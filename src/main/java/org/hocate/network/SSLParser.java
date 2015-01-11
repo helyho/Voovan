@@ -1,0 +1,193 @@
+package org.hocate.network;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLEngineResult.Status;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLEngineResult.HandshakeStatus;
+
+import org.hocate.tools.TEnv;
+
+
+public class SSLParser {
+	private SSLEngine engine;
+	private ByteBuffer appData;
+	private ByteBuffer netData;
+	private IoSession session;
+	boolean handShakeDone = false;
+	/**
+	 * 构造函数
+	 * @param engine
+	 * @param session
+	 */
+	public SSLParser(SSLEngine engine,IoSession session) {
+		this.engine = engine;
+		this.session = session;
+		session.setSSLParser(this);
+		this.appData= buildAppDataBuffer();
+		this.netData = buildNetDataBuffer();
+	}
+	
+	/**
+	 * 判断握手是否完成
+	 * @return
+	 */
+	public boolean isHandShakeDone() {
+		return handShakeDone;
+	}
+
+	/**
+	 * 获取 SSLEngine
+	 * @return
+	 */
+	public SSLEngine getSSLEngine(){
+		return engine;
+	}
+	
+	protected ByteBuffer buildNetDataBuffer() {
+		SSLSession session = engine.getSession();
+		int newBufferMax = session.getPacketBufferSize();
+		return ByteBuffer.allocate(newBufferMax);
+	}
+	
+	protected ByteBuffer buildAppDataBuffer() {
+		SSLSession session = engine.getSession();
+		int newBufferMax = session.getPacketBufferSize();
+		return ByteBuffer.allocate(newBufferMax);
+	}
+	
+	/**
+	 * 清理缓冲区
+	 */
+	private void clearBuffer(){
+		appData.clear();
+		netData.clear();
+	}
+	
+	/**
+	 * 打包并发送数据
+	 * @param buffer       需要的数据缓冲区
+	 * @return 			   返回成功执行的最后一个或者失败的那个 SSLEnginResult
+	 * @throws IOException
+	 */
+	public SSLEngineResult warpData(ByteBuffer buffer) throws IOException{
+		netData.clear();
+		SSLEngineResult engineResult = null;
+		do{
+			engineResult = engine.wrap(buffer, netData);
+			netData.flip();
+			if(session.isConnect() && engineResult.bytesProduced()>0){
+				session.send(netData);
+			}
+			netData.clear();
+			//System.out.println("Warp: "+engineResult+" \r\n\r\n    send size:"+netData.limit());
+			//System.out.println("================================WARP=================================\r\n");
+		}while(engineResult.getStatus() == Status.OK && buffer.hasRemaining());
+		return engineResult;
+	}
+	
+	/**
+	 * 处理握手 Warp;
+	 * @return
+	 * @throws Exception
+	 */
+	private HandshakeStatus doHandShakeWarp()  throws Exception{
+		clearBuffer();
+		appData.flip();
+		warpData(appData);
+		//如果有 HandShake Task 则执行
+		HandshakeStatus handshakeStatus = runDelegatedTasks();
+		return handshakeStatus;
+	}
+	
+	/**
+	 * 解包数据
+	 * @param buffer    	接受解包数据的缓冲区
+	 * @return
+	 * @throws Exception
+	 */
+	public SSLEngineResult unwarpData(ByteBuffer netBuffer,ByteBuffer appBuffer) throws Exception{
+		SSLEngineResult engineResult = null;
+		engineResult = engine.unwrap(netBuffer, appBuffer);
+		//System.out.println("UnWarp: "+engineResult+" \r\n\r\n    Remain size:"+netData.remaining());
+		//System.out.println("================================UNWARP===============================\r\n");
+		return engineResult;
+	}
+	
+	/**
+	 * 处理握手 Unwarp;
+	 * @return
+	 * @throws Exception
+	 */
+	private HandshakeStatus doHandShakeUnwarp() throws Exception{
+			HandshakeStatus handshakeStatus =engine.getHandshakeStatus();
+			ByteBufferChannel netDataChannel = new ByteBufferChannel();
+			SSLEngineResult engineResult = null;
+			do{
+				clearBuffer();
+				session.read(netData);
+				netDataChannel.write(netData);
+				do{
+					engineResult = unwarpData(netDataChannel.getBuffer(),appData);
+					//如果有 HandShake Task 则执行
+					handshakeStatus = runDelegatedTasks();
+				}while(engineResult.getStatus()==Status.OK && netDataChannel.getBuffer().hasRemaining());
+			}while(engineResult!=null && engineResult.getStatus()!=Status.OK);
+			netDataChannel.close();
+			return handshakeStatus;
+	}
+	
+	/**
+	 * 执行委派任务
+	 * @param result
+	 * @param engine
+	 * @throws Exception
+	 */
+	private HandshakeStatus runDelegatedTasks() throws Exception {
+		if(handShakeDone==false){
+			if (engine.getHandshakeStatus() == HandshakeStatus.NEED_TASK) {
+				Runnable runnable;
+				while ((runnable = engine.getDelegatedTask()) != null) {
+					runnable.run();
+				}
+			}
+			return engine.getHandshakeStatus();
+		}
+		return null;
+	}
+	
+	public boolean doHandShake() throws Exception{
+		
+		engine.beginHandshake();
+		int handShakeCount = 0;
+		HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
+		while(!handShakeDone && handShakeCount<20){
+			handShakeCount++;
+			switch (handshakeStatus) {
+				case NEED_TASK:
+					handshakeStatus = runDelegatedTasks();
+					break;
+				case NEED_WRAP:
+					handshakeStatus = doHandShakeWarp();
+					break;
+				case NEED_UNWRAP:
+					handshakeStatus = doHandShakeUnwarp();
+ 					break;
+				case FINISHED:
+					handshakeStatus = engine.getHandshakeStatus();
+					break;
+				case NOT_HANDSHAKING:
+					handShakeDone = true;
+					break;
+				default:
+					break;
+			}
+			TEnv.sleep(1);
+		}
+		System.out.println("HandShake: "+handShakeDone);
+		return handShakeDone;
+	}
+}

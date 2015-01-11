@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hocate HTTP Server - Error report</title>
+<style type="text/css">
+H1 {
+	font-family: Tahoma, Arial, sans-serif;
+	color: white;
+	background-color: #525D76;
+	font-size: 22px;
+	padding:4px 0px 5px 7px;
+}
+
+H3 {
+	font-family: Tahoma, Arial, sans-serif;
+	color: white;
+	background-color: #525D76;
+	font-size: 14px;
+	padding:4px 0px 5px 7px;
+}
+
+BODY {
+	font-family: Tahoma, Arial, sans-serif;
+	color: black;
+	background-color: white;
+}
+
+DIV {
+		font-size: 12px;
+}
+
+B {
+	font-family: Tahoma, Arial, sans-serif;
+	color: #525576;;
+	font-weight:border;
+	font-size: 14px;
+	/* background-color: #525576; */
+}
+
+P {
+	font-family: Tahoma, Arial, sans-serif;
+	background: white;
+	color: black;
+	font-size: 12px;
+}
+
+A {
+	color: black;
+}
+
+A.name {
+	color: black;
+}
+
+.line {
+	height: 1px;
+	background-color: #525D76;
+	border: none;
+}
+</style>
+</head>
+<body>
+	<h1>HTTP Status {{StatusCode}} - {{RequestMethod}} - {{RequestPath}}</h1>
+	<div class="line"></div>
+	<p>
+		<b>Message:</b><div style='padding-left:8em;margin-top:-27px'>{{ErrorMessage}}</div>
+	</p>
+	<p>
+		<b>Description:</b> <div style='padding-left:8em;margin-top:-27px'>{{Description}}</div>
+	</p>
+	<hr class="line">
+	<h3>Hocate HTTP Server {{Version}}</h3>
+</body>
+</html>

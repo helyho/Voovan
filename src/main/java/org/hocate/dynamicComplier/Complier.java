@@ -1,0 +1,134 @@
+package org.hocate.dynamicComplier;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.tools.DiagnosticCollector;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileManager;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
+
+import org.hocate.tools.TObject;
+
+
+/**
+ * 编译器
+ * @author helyho
+ *
+ */
+public class Complier {
+	
+	private JavaCompiler compiler = null ;
+	private JavaFileManager fileManager = null ;
+	private Iterable<String> options = null ;
+	private DiagnosticCollector<JavaFileObject> diagnostics;
+	
+	/**
+	 * 编译器
+	 */
+	public Complier() {
+		this.compiler = this.getComplier();
+		diagnostics = new DiagnosticCollector<JavaFileObject>();
+	}
+
+	/**
+	 * 获取 JAVA编译器
+	 * @return
+	 */
+	public JavaCompiler getComplier(){
+		return ToolProvider.getSystemJavaCompiler(); 
+	}
+	
+	/**
+	 * 编译多个系统中的java源文件为class文件
+	 * @param javaFileNameList
+	 * @param classDir
+	 * @return
+	 */
+	public Boolean compileCode(List<String> javaFileNameList,String classDir){
+		fileManager = compiler.getStandardFileManager(diagnostics, null, null);
+		Iterable<? extends JavaFileObject> compilationUnits = TObject.cast(fileManager,StandardJavaFileManager.class).getJavaFileObjectsFromStrings(javaFileNameList); 
+		options = Arrays.asList("-d", classDir); 
+		return basicCompileCode(compilationUnits) ;
+	}
+	
+	/**
+	 * 编译 内存中的java源码为class文件
+	 * @param javaSourceContent 需要的java源码字符串
+	 * @return
+	 */
+	public Boolean compileCode(String javaSourceCode){
+		String className = getClassNameFromCode(javaSourceCode);
+		fileManager = new MemFileManager(compiler.getStandardFileManager(diagnostics, null, null));
+		JavaFileObject file = new JavaMemSource(className, javaSourceCode); 
+		Iterable<? extends JavaFileObject> compilationUnits = Arrays.asList(file) ;
+		return basicCompileCode(compilationUnits);
+	}
+	
+	/**
+	 * 编译 内存中的java源码为class文件
+	 * @param classDir 生成的class文件所在的目录
+	 * @param javaSourceContent 需要的java源码字符串
+	 * @return
+	 */
+	public Boolean compileCode(String classDir,String javaSourceCode){
+		options = Arrays.asList("-d", classDir); 
+		fileManager = compiler.getStandardFileManager(diagnostics, null, null);
+		return compileCode(javaSourceCode) ;
+	}
+	
+	/**
+	 * 编译 内存中的java源码为class文件
+	 * @param className 生成的java类的名字
+	 * @param classPath 需要引入的环境变量
+	 * @param classDir 生成的class文件所在的目录
+	 * @param javaSourceContent 需要的java源码字符串
+	 * @return
+	 */
+	public Boolean compileCode(String classPath,String classDir,String javaSourceCode){
+		options = Arrays.asList("-classpath",classPath,"-d", classDir); 
+		fileManager = compiler.getStandardFileManager(diagnostics, null, null);
+		return compileCode(javaSourceCode) ;
+	}
+
+	/**
+	 * 编译java源文件，底层函数描述
+	 * @param compilationUnits
+	 * @return
+	 */
+	private Boolean basicCompileCode(Iterable<? extends JavaFileObject> compilationUnits){
+		
+		
+		
+		JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, options, null, compilationUnits);
+		Boolean success = task.call(); 
+		//对在内存中编译的进行特殊处理
+		if(fileManager instanceof MemFileManager){
+			MemFileManager memFileManager = TObject.cast(fileManager);
+			JavaMemClass javaMemClass = memFileManager.getJavaMemClass();
+			javaMemClass.loadThisClass();
+		}
+		
+		if(fileManager != null){
+			try {
+				fileManager.close() ;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return success ;
+	}
+	
+	/**
+	 * 从源代码中获取类名称
+	 * @param javaSourceCode
+	 * @return
+	 */
+	public static String getClassNameFromCode(String javaSourceCode){
+		String className = javaSourceCode.substring(javaSourceCode.indexOf("class")+5,javaSourceCode.indexOf("{")).trim();
+		className = className.trim();
+		return className;
+	}
+}
