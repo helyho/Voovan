@@ -10,7 +10,7 @@ public class HttpServerTest {
 			HttpServer httpServer = new HttpServer("0.0.0.0",2080,100,"/Users/helyho/Downloads");
 			httpServer.get("/", (req,resp)->{
 												System.out.println(req);
-												resp.body().writeString("<b>This is HTTP test!</b>");
+												resp.body().writeString("<b>This is HTTP test!</b><br>"+req.getQueryString());
 												System.out.println("=================================");
 											}
 			);
