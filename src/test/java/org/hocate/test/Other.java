@@ -14,7 +14,7 @@ public class Other {
 		
 		
 		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-		byteOutputStream.write("helyho".getBytes());
+		byteOutputStream.write("bingo".getBytes());
 		System.out.println(byteOutputStream.toByteArray().length);
 		
 		Object x = TReflect.newInstance(String.class);
