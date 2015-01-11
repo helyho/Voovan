@@ -185,7 +185,7 @@ public class HttpRequest {
 	/**
 	 * 根据内容构造一些必要的 Header 属性
 	 */
-	private String fixHeader(){
+	private String initHeader(){
 		
 		if(body.getBodyBytes()!=null && body.getBodyBytes().length>0){
 			header.put("Content-Length", Integer.toString(body.getBodyBytes().length));
@@ -228,7 +228,7 @@ public class HttpRequest {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		
 		//Body 对应的 Header 预处理
-		String boundary = fixHeader();
+		String boundary = initHeader();
 		
 		//报文组装
 		try{

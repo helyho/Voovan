@@ -90,7 +90,7 @@ public class HttpResponse {
 	/**
 	 * 根据内容构造一写必要的 Header 属性
 	 */
-	private void fixHeader() {
+	private void initHeader() {
 		// 根据压缩属性确定 Header 的一些属性内容
 		if (useCompress) {
 			header.put("Transfer-Encoding", "chunked");
@@ -125,7 +125,7 @@ public class HttpResponse {
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-		fixHeader();
+		initHeader();
 
 		try {
 			// 处理协议行
