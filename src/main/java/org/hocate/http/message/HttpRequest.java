@@ -161,7 +161,7 @@ public class HttpRequest {
 	public String getQueryString(){
 		//GET 请求类型的处理
 		if(getType()==RequestType.GET){
-			return decodeQueryString(body.getBodyString());
+			return decodeQueryString(protocol.getQueryString());
 		}
 		//POST_URLENCODED 请求类型的处理
 		else if(getType()==RequestType.POST_URLENCODED){
