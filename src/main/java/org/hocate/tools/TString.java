@@ -125,6 +125,10 @@ public class TString {
 	 */
 	public static String tokenReplace(String source,Map<String, String> tokens){
 		for(Entry<String, String> entry : tokens.entrySet()){
+			String value = entry.getValue();
+			if(value==null){
+				value="null";
+			}
 			source = tokenReplace(source,entry.getKey(),entry.getValue());
 		}
 		return source;

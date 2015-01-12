@@ -133,8 +133,6 @@ public class HttpClient {
 		Logger.simple(System.currentTimeMillis()-t);
 		
 		String bodyString = response.body().toString();
-		//substring(0,300)+
-		//"\r\n<..............................................................................>\r\n"+
 		Logger.debug("body length:"+bodyString.length());
 	}
 }

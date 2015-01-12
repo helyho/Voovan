@@ -13,6 +13,11 @@ import org.hocate.tools.TObject;
  */
 public class Config {
 	/**
+	 * Web Config
+	 */
+	private static Map<String, Object>	webConfig	= loadMapFromFile("/Config/web.js");
+
+	/**
 	 * MimeMap
 	 */
 	private static Map<String, Object>	mimeTypes	= loadMapFromFile("/Config/mime.js");
@@ -34,6 +39,14 @@ public class Config {
 		String fileContent = new String(TFile.loadFileFromContextPath(filePath));
 		Object configObject = JSONDecode.parse(fileContent);
 		return TObject.cast(configObject);
+	}
+	
+	/**
+	 * 获取 Web 服务配置
+	 * @return
+	 */
+	public static Map<String, Object> getWebConfig() {
+		return webConfig;
 	}
 	
 	/**

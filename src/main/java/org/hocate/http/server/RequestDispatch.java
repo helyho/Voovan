@@ -113,6 +113,8 @@ public class RequestDispatch {
 	 * @param e
 	 */
 	public void ExceptionMessage(HttpRequest request, HttpResponse response, Exception e) {
+		e.printStackTrace();
+		
 		Map<String, Object> errorDefine = Config.errorDefine();
 		String requestMethod = request.protocol().getMethod();
 		String requestPath = request.protocol().getPath();

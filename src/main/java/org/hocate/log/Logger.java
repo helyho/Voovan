@@ -30,6 +30,6 @@ public class Logger {
 	
 	public static void simple(Object msg){
 		Message message = Message.newInstance("SIMPLE", msg.toString());
-		formater.writeFormatedLog(message);
+		formater.writeLog(message.getMessage()+"\r\n");
 	}
 }

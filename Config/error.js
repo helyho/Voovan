@@ -1,11 +1,11 @@
 {
 	"java.io.FileNotFoundException":{
-		"StatusCode":404,
-		"Page":"Error.html",
-		"Description":""
+		"StatusCode"	:404,
+		"Page"			:"Error.html",
+		"Description"	:""
 	},
 	"Other":{
-		"StatusCode":500,
-		"Page":"Error.html"
+		"StatusCode"	:500,
+		"Page"			:"Error.html"
 	}  
 }
