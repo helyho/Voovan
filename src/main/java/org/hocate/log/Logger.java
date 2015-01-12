@@ -1,33 +1,26 @@
 package org.hocate.log;
 
-import org.hocate.tools.TEnv;
-
 public class Logger {
 	private static Formater formater = Formater.newInstance();
 
 	public static void debug(Object msg){
-		String className = TEnv.getCurrentStackInfo()[1].getClassName();
-		Message message = Message.newInstance(className, "DEBUG", msg.toString());
+		Message message = Message.newInstance("DEBUG", msg.toString());
 		formater.writeLog(message);
 	}
 	public static void info(Object msg){
-		String className = TEnv.getCurrentStackInfo()[1].getClassName();
-		Message message = Message.newInstance(className, "INFO", msg.toString());
+		Message message = Message.newInstance("INFO", msg.toString());
 		formater.writeLog(message);
 	}
 	public static void warn(Object msg){
-		String className = TEnv.getCurrentStackInfo()[1].getClassName();
-		Message message = Message.newInstance(className, "WARN", msg.toString());
+		Message message = Message.newInstance("WARN", msg.toString());
 		formater.writeLog(message);
 	}
 	public static void error(Object msg){
-		String className = TEnv.getCurrentStackInfo()[1].getClassName();
-		Message message = Message.newInstance(className, "ERROR", msg.toString());
+		Message message = Message.newInstance("ERROR", msg.toString());
 		formater.writeLog(message);
 	}
 	public static void fatal(Object msg){
-		String className = TEnv.getCurrentStackInfo()[1].getClassName();
-		Message message = Message.newInstance(className, "FATAL", msg.toString());
+		Message message = Message.newInstance("FATAL", msg.toString());
 		formater.writeLog(message);
 	}
 }

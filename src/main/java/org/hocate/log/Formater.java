@@ -1,6 +1,5 @@
 package org.hocate.log;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -9,8 +8,6 @@ import java.util.Map;
 
 import org.hocate.tools.TDateTime;
 import org.hocate.tools.TEnv;
-import org.hocate.tools.TFile;
-import org.hocate.tools.TProperties;
 import org.hocate.tools.TString;
 
 public class Formater {
@@ -25,7 +22,7 @@ public class Formater {
 
 	public static StackTraceElement currentStackLine() {
 		StackTraceElement[] stackTraceElements = TEnv.getCurrentStackInfo();
-		return stackTraceElements[2];
+		return stackTraceElements[5];
 	}
 
 	private static String currentThreadName() {
@@ -35,16 +32,23 @@ public class Formater {
 	public String format(Message message) {
 		Map<String, String> tokens = new HashMap<String, String>();
 		StackTraceElement stackTraceElement = currentStackLine();
+		//Message 和栈信息公用
+		tokens.put("t", "\t");
+		tokens.put("s", "\t");
+		tokens.put("i", TString.tokenReplace(message.getMessage(), tokens));
+		
+		//栈信息独享
+		tokens.put("n", "\r\n");
 		tokens.put("p", message.getPriority());
-		tokens.put("s", stackTraceElement.toString());
+		tokens.put("si", stackTraceElement.toString());
 		tokens.put("l", Integer.toString((stackTraceElement.getLineNumber())));
 		tokens.put("m", stackTraceElement.getMethodName());
 		tokens.put("f", stackTraceElement.getFileName());
 		tokens.put("c", stackTraceElement.getClassName());
 		tokens.put("t", currentThreadName());
-		tokens.put("d", TDateTime.currentTime());
+		tokens.put("d", TDateTime.currentTime("YYYYMMDDHHmmss"));
 		tokens.put("r", Long.toString(System.currentTimeMillis() - StaticParam.getStartTimeMillis()));
-		tokens.put("n", "\r\n");
+		
 		return TString.tokenReplace(template, tokens);
 	}
 
@@ -59,10 +63,10 @@ public class Formater {
 	public static Formater newInstance() {
 		OutputStream[] outputStreams;
 		try {
-			File configFile = TFile.getResourceFile("logger.properties");
-			String logTemplate = TProperties.getString(configFile, "LogTemplate");
-			String[] LogTypes = TProperties.getString(configFile, "LogType").split(",");
-			String logFile = TProperties.getString(configFile, "LogFile");
+			
+			String logTemplate = StaticParam.getConfig("LogTemplate");
+			String[] LogTypes = StaticParam.getConfig("LogType").split(",");
+			String logFile = StaticParam.getConfig("LogFile");
 
 			outputStreams = new OutputStream[LogTypes.length];
 			for (int i = 0; i < LogTypes.length; i++) {
@@ -71,8 +75,11 @@ public class Formater {
 				case "STDOUT":
 					outputStreams[i] = System.out;
 					break;
+				case "STDERR":
+					outputStreams[i] = System.err;
+					break;
 				case "FILE":
-					outputStreams[i] = new FileOutputStream(logFile);
+					outputStreams[i] = new FileOutputStream(logFile,true);
 					break;
 				default:
 					break;

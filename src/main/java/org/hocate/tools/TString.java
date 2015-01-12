@@ -1,5 +1,7 @@
 package org.hocate.tools;
 
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,12 +24,12 @@ public class TString {
 	 * @param c
 	 * @return
 	 */
-	public static String leftPad(String str,int len,char c){
+	public static String leftPad(String source,int len,char c){
 		StringBuffer sb = new StringBuffer();
-		for(int i=0; i<len - str.length(); i++){
+		for(int i=0; i<len - source.length(); i++){
 			sb.append(c);
 		}
-		return sb.append(str).toString();
+		return sb.append(source).toString();
 	}
 	
 	/**
@@ -107,11 +109,35 @@ public class TString {
 	 * @param str
 	 * @return
 	 */
-	public static boolean isNullOrEmpty(String str){
-		if(str==null || str.equals("")){
+	public static boolean isNullOrEmpty(String source){
+		if(source==null || source.equals("")){
 			return true;
 		}else{
 			return false;
 		}
+	}
+	
+	/**
+	 * 按照标识符进行替换
+	 * @param source		源字符串,标识符使用"{{标识}}"进行包裹,这些标识符将会被替换
+	 * @param tokens		标识符Map集合
+	 * @return
+	 */
+	public static String tokenReplace(String source,Map<String, String> tokens){
+		for(Entry<String, String> entry : tokens.entrySet()){
+			source = tokenReplace(source,entry.getKey(),entry.getValue());
+		}
+		return source;
+	}
+	
+	/**
+	 * 按照标识符进行替换
+	 * @param source		源字符串,标识符使用"{{标识}}"进行包裹
+	 * @param tokenName		标识符
+	 * @param tokenValue    标志符值
+	 * @return
+	 */
+	public static String tokenReplace(String source,String tokenName,String tokenValue){
+		return source.replaceAll("\\{\\{"+tokenName+"\\}\\}",Matcher.quoteReplacement(tokenValue));
 	}
 }

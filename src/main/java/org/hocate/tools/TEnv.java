@@ -35,4 +35,13 @@ public class TEnv {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * 获取当前栈信息
+	 * @return
+	 */
+	public static StackTraceElement[] getCurrentStackInfo(){
+		Throwable ex = new Throwable();
+		return ex.getStackTrace();
+	}
 }

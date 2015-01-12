@@ -1,5 +1,6 @@
 package org.hocate.tools;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
@@ -11,10 +12,10 @@ import java.util.Properties;
  */
 public class TProperties {
 
-	public static Properties getProperties(String fileName){
+	public static Properties getProperties(File file){
 		Properties properites = new Properties();
 		try {
-			properites.load(new FileReader(fileName));
+			properites.load(new FileReader(file));
 			return properites;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -22,23 +23,23 @@ public class TProperties {
 		}
 	}
 	
-	public static String getString(String fileName,String name){
-		Properties properites = getProperties(fileName);
+	public static String getString(File file,String name){
+		Properties properites = getProperties(file);
 		return TObject.nullDefault(properites.getProperty(name),null);
 	}
 	
-	public static int getInt(String fileName,String name){
-		String value = getString(fileName,name);
+	public static int getInt(File file,String name){
+		String value = getString(file,name);
 		return TObject.nullDefault(Integer.valueOf(value),0);
 	}
 	
-	public static float getFloat(String fileName,String name){
-		String value = getString(fileName,name);
+	public static float getFloat(File file,String name){
+		String value = getString(file,name);
 		return TObject.nullDefault(Float.valueOf(value.trim()),0).floatValue();
 	}
 	
-	public static double getDouble(String fileName,String name){
-		String value = getString(fileName,name);
+	public static double getDouble(File file,String name){
+		String value = getString(file,name);
 		return TObject.nullDefault(Double.valueOf(value.trim()),0).doubleValue();
 	}
 	
