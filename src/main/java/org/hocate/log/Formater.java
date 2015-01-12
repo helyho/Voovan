@@ -34,7 +34,7 @@ public class Formater {
 		StackTraceElement stackTraceElement = currentStackLine();
 		//Message 和栈信息公用
 		tokens.put("t", "\t");
-		tokens.put("s", "\t");
+		tokens.put("s", " ");
 		tokens.put("i", TString.tokenReplace(message.getMessage(), tokens));
 		
 		//栈信息独享
