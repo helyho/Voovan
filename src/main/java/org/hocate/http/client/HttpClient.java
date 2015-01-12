@@ -17,7 +17,11 @@ import org.hocate.network.messagePartition.HttpMessageParter;
 import org.hocate.tools.TEnv;
 import org.hocate.tools.TString;
 
-
+/**
+ * HTTP 请求调用
+ * @author helyho
+ *
+ */
 public class HttpClient {
 	
 	private AioSocket socket;
@@ -25,6 +29,11 @@ public class HttpClient {
 	private HttpRequest request;
 	private Map<String, Object> parameters;
 	
+	
+	/**
+	 * 构建函数
+	 * @param urlString 请求的 URL 地址
+	 */
 	public  HttpClient(String urlString) {
 		try {
 			URL url = new URL(urlString);
@@ -32,7 +41,7 @@ public class HttpClient {
 			int port = url.getPort();
 			
 			request = new HttpRequest();
-			//初始化
+			//初始化请求参数,默认值
 			request.protocol().setPath(url.getPath().isEmpty()?"/":url.getPath());
 			request.header().put("Host", hostString);
 			request.header().put("Pragma", "no-cache");
@@ -47,23 +56,46 @@ public class HttpClient {
 		}
 	}
 	
+	/**
+	 * 设置请求方法
+	 * @param method
+	 */
 	public void setMethod(String method){
 		request.protocol().setMethod(method);
 	}
 	
+	/**
+	 * 获取请求头集合
+	 * @return
+	 */
 	public Header getHeader(){
 		return request.header();
 	}
 	
+	/**
+	 * 获取请求参数集合
+	 * @return
+	 */
 	public Map<String,Object> getParameters(){
 		return parameters;
 	}
 	
+	/**
+	 * 设置请求参数
+	 * @param name
+	 * @param value
+	 * @return
+	 */
 	public HttpClient putParameters(String name,Object value){
 		parameters.put(name, value);
 		return this;
 	}
 	
+	/**
+	 * 构建QueryString
+	 * 	将 Map 集合转换成 QueryString 字符串
+	 * @return
+	 */
 	private String getQueryString(){
 		String queryString = "";
 		try {
@@ -80,6 +112,9 @@ public class HttpClient {
 		return queryString;
 	}
 	
+	/**
+	 * 构建请求
+	 */
 	private void buildRequest(){
 
 		if (request.getType() == RequestType.GET) {
@@ -105,6 +140,11 @@ public class HttpClient {
 		}
 	}
 	
+	/**
+	 * 连接并发送请求
+	 * @return
+	 * @throws Exception
+	 */
 	public HttpResponse Connect() throws Exception{
 		buildRequest();
 		
