@@ -135,10 +135,10 @@ public class RequestDispatch {
 		
 		//读取 error 定义
 		if (errorDefine.containsKey(className)) {
-			error = TObject.cast(errorDefine.get(className));
+			error.putAll(TObject.cast(errorDefine.get(className)));
 			response.protocol().setStatus(TObject.cast(error.get("StatusCode")));
 		} else if (errorDefine.get("Other") != null) {
-			error = TObject.cast(errorDefine.get("Other"));
+			error.putAll(TObject.cast(errorDefine.get("Other")));
 			response.protocol().setStatus(TObject.cast(error.get("StatusCode")));
 		}
 		

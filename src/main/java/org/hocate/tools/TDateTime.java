@@ -6,7 +6,7 @@ import java.util.Date;
 
 public class TDateTime {
 	public static String currentTime(){
-		return dateFormat(new Date(),"YYYY-MM-DD hh:mm:ss");
+		return dateFormat(new Date(),"YYYY-MM-DD HH:mm:ss");
 	}
 	
 	public static String currentTime(String format){

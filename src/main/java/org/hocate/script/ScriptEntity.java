@@ -3,7 +3,7 @@ package org.hocate.script;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.hocate.log.Logger;
 import org.hocate.script.exception.ScriptException;
 import org.hocate.script.scriptLoader.ScriptLoader;
 import org.hocate.tools.TFile;
@@ -15,7 +15,6 @@ import org.hocate.tools.THash;
  *
  */
 public class ScriptEntity {
-	private static Logger logger = Logger.getLogger(ScriptRunner.class);
 	/**
 	 * 脚本路径
 	 */
@@ -130,7 +129,7 @@ public class ScriptEntity {
 		
 		if(!sourceFile.exists())
 		{
-			logger.warn("Script File :"+sourcePath+" is not exists.");
+			Logger.warn("Script File :"+sourcePath+" is not exists.");
 			return false;
 		}
 		
@@ -153,7 +152,7 @@ public class ScriptEntity {
 		File sourceFile = new File(sourcePath);
 		this.fileDate = sourceFile.lastModified();
 		sourceCode = new String(TFile.loadFileFromSysPath(sourcePath));
-		logger.debug("Reload script code : "+sourcePath);
+		Logger.debug("Reload script code : "+sourcePath);
 	}
 	
 	/**
@@ -183,7 +182,7 @@ public class ScriptEntity {
 	
 	@Override
 	public String toString(){
-		return "[Path]="+this.packagePath+" [Version]="+this.version+" [SourcePath]="+sourcePath+"\r\n";
+		return "{Path="+this.packagePath+",Version="+this.version+",SourcePath="+sourcePath+"}";
 	}
 	
 	/**

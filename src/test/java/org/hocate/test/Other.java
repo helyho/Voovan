@@ -3,6 +3,7 @@ package org.hocate.test;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
+import org.hocate.log.Logger;
 import org.hocate.tools.TReflect;
 
 public class Other {
@@ -15,9 +16,9 @@ public class Other {
 		
 		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 		byteOutputStream.write("bingo".getBytes());
-		System.out.println(byteOutputStream.toByteArray().length);
+		Logger.info(byteOutputStream.toByteArray().length);
 		
 		Object x = TReflect.newInstance(String.class);
-		System.out.println(x.getClass().getName());
+		Logger.info(x.getClass().getName());
 	}
 }

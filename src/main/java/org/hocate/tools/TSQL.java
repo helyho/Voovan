@@ -13,8 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
-
+import org.hocate.log.Logger;
 
 /**
  * SQL处理帮助类
@@ -23,8 +22,6 @@ import org.apache.log4j.Logger;
  *
  */
 public class TSQL {
-	private static Logger logger = Logger.getLogger(TSQL.class);
-	
 	/**
 	 * 从 SQL 字符串中,取 SQL 参数表
 	 * @param sqlStr  原始 sql 字符串 (select * from table where x=:x and y=:y)
@@ -58,7 +55,7 @@ public class TSQL {
 			String paramName = sqlParams.get(i);
 			paramName = paramName.substring(1,paramName.length());
 			preparedStatement.setObject(i+1, params.get(paramName));
-			logger.info("Parameter: ["+sqlParams.get(i)+" = "+params.get(paramName)+"]");
+			Logger.info("Parameter: ["+sqlParams.get(i)+" = "+params.get(paramName)+"]");
 		}
 	}
 	
@@ -71,7 +68,7 @@ public class TSQL {
 	 * @throws SQLException
 	 */
 	public static PreparedStatement createPreparedStatement(Connection conn,String sqlStr,Map<String, Object> params) throws SQLException{
-		logger.info("Executed: \n" + sqlStr);
+		Logger.info("Executed: \n" + sqlStr);
 		List<String> sqlParams = TSQL.getSqlParams(sqlStr);
 		String preparedSql = TSQL.preparedSql(sqlStr);
 		PreparedStatement preparedStatement = (PreparedStatement) conn.prepareStatement(preparedSql);

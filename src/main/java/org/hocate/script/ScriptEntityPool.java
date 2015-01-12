@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.log4j.Logger;
+import org.hocate.log.Logger;
 
 /**
  * 脚本实体缓存池
@@ -15,8 +15,6 @@ import org.apache.log4j.Logger;
  *
  */
 public class ScriptEntityPool {
-	private static Logger logger = Logger.getLogger(ScriptEntityPool.class);
-	
 	private Map<Integer,ScriptEntity> scriptEntityMap;
 	private ScriptManager scriptManager;
 	
@@ -44,19 +42,19 @@ public class ScriptEntityPool {
 		}
 		@Override
 		public void run() {
-			logger.debug("Begin to reload script entity.");
+			Logger.info("Begin to reload script entity.");
 			Collection<ScriptEntity> scriptEntities = scriptEntityMap.values();
 			for(ScriptEntity scriptEntity : scriptEntities){
 				if(scriptEntity.canReload() && scriptEntity.isChanged()){
 					scriptEntity.loadSourceCode();
 					scriptManager.evalScriptEntity(scriptEntity);
-					logger.debug("This script Entity : "+scriptEntity.getPackagePath()+" succesed.");
+					Logger.debug("This script Entity : "+scriptEntity.getPackagePath()+" succesed.");
 				}else {
 					
-					logger.debug("This script Entity don't need Reload. confident is [canReload="+scriptEntity.canReload()+"] [isChanged="+scriptEntity.isChanged()+"]");
+					Logger.debug("This script Entity don't need Reload. confident is [canReload="+scriptEntity.canReload()+"] [isChanged="+scriptEntity.isChanged()+"]");
 				}
 			}
-			logger.debug("End to reload script entity.");
+			Logger.debug("End to reload script entity.");
 		}
 	}
 	

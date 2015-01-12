@@ -3,7 +3,7 @@ package org.hocate.biz.config;
 import java.io.File;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.hocate.log.Logger;
 import org.hocate.script.ScriptManager;
 import org.hocate.script.scriptLoader.ScriptDbLoader;
 import org.hocate.script.scriptLoader.ScriptLoader;
@@ -16,7 +16,6 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
 
 public class ConfigLoader {
-	private static Logger	logger	= Logger.getLogger(ConfigLoader.class);
 	private DruidDataSource	dataSource;
 
 	private File			propertiesFile;
@@ -32,9 +31,9 @@ public class ConfigLoader {
 			Properties druidProperites = TProperties.getProperties(new File(druidPath));
 			dataSource = TObject.cast(DruidDataSourceFactory.createDataSource(druidProperites));
 			dataSource.init();
-			logger.info("Database connection pool init finished");
+			Logger.info("Database connection pool init finished");
 		} catch (Exception e) {
-			logger.error(e);
+			Logger.error(e);
 		}
 	}
 

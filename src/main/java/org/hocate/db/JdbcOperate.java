@@ -11,7 +11,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.apache.log4j.Logger;
+import org.hocate.log.Logger;
 import org.hocate.tools.TReflect;
 import org.hocate.tools.TSQL;
 
@@ -23,7 +23,6 @@ import org.hocate.tools.TSQL;
  */
 public class JdbcOperate {
 
-	private static Logger logger = Logger.getLogger(JdbcOperate.class);
 	private DataSource dataSource;
 
 	/**
@@ -140,7 +139,7 @@ public class JdbcOperate {
 		PreparedStatement preparedStatement = null;
 		try {
 			conn.setAutoCommit(false);
-			logger.info("Executed: \n" + sqlText);
+			Logger.info("Executed: \n" + sqlText);
 			//获取 SQL 中的参数列表
 			List<String> sqlParams = TSQL.getSqlParams(sqlText);
 			preparedStatement = (PreparedStatement) conn.prepareStatement(TSQL.preparedSql(sqlText));

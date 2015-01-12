@@ -1,0 +1,589 @@
+
+[INFO] [2015-01-12 03:38:25]-[Thread:main]-[Time:15]-org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [2015-01-12 03:38:25]-[Thread:main]-[Time:30]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [2015-01-12 03:38:26]-[Thread:main]-[Time:96]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [2015-01-12 03:38:26]-[Thread:main]-[Time:97]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [2015-01-12 03:38:26]-[Thread:main]-[Time:100]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [2015-01-12 03:38:26]-[Thread:main]-[Time:104]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [2015-01-12 03:38:26]-[Thread:main]-[Time:110]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [2015-01-12 03:38:26]-[Thread:main]-[Time:112]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [2015-01-12 03:38:26]-[Thread:main]-[Time:119]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[[Path]=org.hocate.test [Version]=1.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		, [Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		]
+
+[INFO] [2015-01-12 03:38:26]-[Thread:main]-[Time:120]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [2015-01-12 03:38:26]-[Thread:main]-[Time:122]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [2015-01-12 03:38:26]-[Thread:main]-[Time:125]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [2015-01-12 03:38:26]-[Thread:main]-[Time:129]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	[Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:15]-org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:32]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:98]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:101]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:105]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:109]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:122]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:129]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:139]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[[Path]=org.hocate.test [Version]=1.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		, [Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		]
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:141]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:142]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:144]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [2015-01-12 03:39:32]-[Thread:main]-[Time:147]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	[Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		
+
+[INFO] [20150112034052]-[Thread:main]-[Time:14]-org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [20150112034052]-[Thread:main]-[Time:27]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [20150112034052]-[Thread:main]-[Time:82]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [20150112034052]-[Thread:main]-[Time:83]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112034052]-[Thread:main]-[Time:85]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112034052]-[Thread:main]-[Time:88]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [20150112034052]-[Thread:main]-[Time:92]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112034052]-[Thread:main]-[Time:93]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112034052]-[Thread:main]-[Time:100]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[[Path]=org.hocate.test [Version]=1.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		, [Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		]
+
+[INFO] [20150112034052]-[Thread:main]-[Time:101]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [20150112034052]-[Thread:main]-[Time:103]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [20150112034052]-[Thread:main]-[Time:104]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [20150112034052]-[Thread:main]-[Time:107]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	[Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		
+
+[INFO] [20150112154113]-[Thread:main]-[Time:13]-org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [20150112154113]-[Thread:main]-[Time:26]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [20150112154113]-[Thread:main]-[Time:80]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [20150112154113]-[Thread:main]-[Time:81]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154113]-[Thread:main]-[Time:83]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154113]-[Thread:main]-[Time:87]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [20150112154113]-[Thread:main]-[Time:91]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154113]-[Thread:main]-[Time:93]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154113]-[Thread:main]-[Time:101]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[[Path]=org.hocate.test [Version]=1.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		, [Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		]
+
+[INFO] [20150112154113]-[Thread:main]-[Time:102]-org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [20150112154113]-[Thread:main]-[Time:103]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [20150112154113]-[Thread:main]-[Time:105]-org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [20150112154113]-[Thread:main]-[Time:109]-org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	[Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		
+
+[INFO] [20150112154134] [Thread:main] [Time:12]org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [20150112154134] [Thread:main] [Time:26]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [20150112154134] [Thread:main] [Time:85]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [20150112154134] [Thread:main] [Time:86]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154134] [Thread:main] [Time:89]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154134] [Thread:main] [Time:92]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [20150112154134] [Thread:main] [Time:94]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154134] [Thread:main] [Time:96]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154134] [Thread:main] [Time:99]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[[Path]=org.hocate.test [Version]=1.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		, [Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		]
+
+[INFO] [20150112154134] [Thread:main] [Time:101]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [20150112154134] [Thread:main] [Time:102]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [20150112154134] [Thread:main] [Time:104]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [20150112154134] [Thread:main] [Time:107]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	[Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		
+
+[INFO] [20150112154202] [Thread:main] [Time:13]org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [20150112154202] [Thread:main] [Time:25]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [20150112154202] [Thread:main] [Time:83]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [20150112154202] [Thread:main] [Time:84]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154202] [Thread:main] [Time:86]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154202] [Thread:main] [Time:91]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [20150112154202] [Thread:main] [Time:96]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154202] [Thread:main] [Time:99]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154202] [Thread:main] [Time:102]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[[Path]=org.hocate.test [Version]=1.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		, [Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		]
+
+[INFO] [20150112154202] [Thread:main] [Time:103]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [20150112154202] [Thread:main] [Time:104]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [20150112154202] [Thread:main] [Time:106]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [20150112154202] [Thread:main] [Time:111]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	[Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		
+
+[INFO] [20150112154243] [Thread:main] [Time:9]org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [20150112154243] [Thread:main] [Time:23]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [20150112154243] [Thread:main] [Time:85]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [20150112154243] [Thread:main] [Time:87]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154243] [Thread:main] [Time:89]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154243] [Thread:main] [Time:94]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [20150112154243] [Thread:main] [Time:98]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154243] [Thread:main] [Time:100]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154243] [Thread:main] [Time:104]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[[Path]=org.hocate.test [Version]=1.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		, [Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		]
+
+[INFO] [20150112154243] [Thread:main] [Time:105]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [20150112154243] [Thread:main] [Time:106]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [20150112154243] [Thread:main] [Time:107]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [20150112154243] [Thread:main] [Time:110]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	[Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		
+
+[INFO] [20150112154408] [Thread:main] [Time:14]org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [20150112154408] [Thread:main] [Time:30]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [20150112154408] [Thread:main] [Time:103]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [20150112154408] [Thread:main] [Time:105]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154408] [Thread:main] [Time:109]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154408] [Thread:main] [Time:114]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [20150112154408] [Thread:main] [Time:117]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154408] [Thread:main] [Time:119]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154408] [Thread:main] [Time:126]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[[Path]=org.hocate.test [Version]=1.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		, [Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		]
+
+[INFO] [20150112154408] [Thread:main] [Time:128]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [20150112154408] [Thread:main] [Time:129]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [20150112154408] [Thread:main] [Time:131]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [20150112154408] [Thread:main] [Time:135]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	[Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		
+
+[INFO] [20150112154609] [Thread:main] [Time:12]org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [20150112154609] [Thread:main] [Time:27]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [20150112154610] [Thread:main] [Time:84]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [20150112154610] [Thread:main] [Time:86]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154610] [Thread:main] [Time:89]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154610] [Thread:main] [Time:93]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [20150112154610] [Thread:main] [Time:95]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154610] [Thread:main] [Time:96]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154610] [Thread:main] [Time:100]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[[Path]=org.hocate.test [Version]=1.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js , [Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js ]
+
+[INFO] [20150112154610] [Thread:main] [Time:101]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [20150112154610] [Thread:main] [Time:102]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [20150112154610] [Thread:main] [Time:103]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [20150112154610] [Thread:main] [Time:106]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	[Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js 
+
+[INFO] [20150112154623] [Thread:main] [Time:10]org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [20150112154623] [Thread:main] [Time:28]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [20150112154624] [Thread:main] [Time:87]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [20150112154624] [Thread:main] [Time:88]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154624] [Thread:main] [Time:93]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154624] [Thread:main] [Time:98]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [20150112154624] [Thread:main] [Time:102]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154624] [Thread:main] [Time:103]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154624] [Thread:main] [Time:112]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[[Path]=org.hocate.test [Version]=1.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, [Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js]
+
+[INFO] [20150112154624] [Thread:main] [Time:113]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [20150112154624] [Thread:main] [Time:115]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [20150112154624] [Thread:main] [Time:117]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [20150112154624] [Thread:main] [Time:121]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	[Path]=org.hocate.test [Version]=2.0 [SourcePath]=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+
+[INFO] [20150112154651] [Thread:main] [Time:12]org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [20150112154651] [Thread:main] [Time:33]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [20150112154651] [Thread:main] [Time:97]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [20150112154651] [Thread:main] [Time:99]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154651] [Thread:main] [Time:101]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154651] [Thread:main] [Time:106]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [20150112154651] [Thread:main] [Time:109]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154651] [Thread:main] [Time:110]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154651] [Thread:main] [Time:113]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[Path=org.hocate.test Version=1.0 SourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, Path=org.hocate.test Version=2.0 SourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js]
+
+[INFO] [20150112154651] [Thread:main] [Time:114]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [20150112154651] [Thread:main] [Time:115]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [20150112154651] [Thread:main] [Time:116]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [20150112154651] [Thread:main] [Time:120]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	Path=org.hocate.test Version=2.0 SourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+
+[INFO] [20150112154737] [Thread:main] [Time:12]org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [20150112154737] [Thread:main] [Time:25]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [20150112154737] [Thread:main] [Time:80]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [20150112154737] [Thread:main] [Time:82]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154737] [Thread:main] [Time:85]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154737] [Thread:main] [Time:89]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [20150112154737] [Thread:main] [Time:94]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154737] [Thread:main] [Time:95]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154737] [Thread:main] [Time:98]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[
+		Path=org.hocate.test Version=1.0 SourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		, 
+		Path=org.hocate.test Version=2.0 SourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		]
+
+[INFO] [20150112154737] [Thread:main] [Time:99]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [20150112154737] [Thread:main] [Time:100]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [20150112154737] [Thread:main] [Time:101]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [20150112154737] [Thread:main] [Time:104]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	
+		Path=org.hocate.test Version=2.0 SourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js
+		
+
+[INFO] [20150112154816] [Thread:main] [Time:13]org.hocate.biz.config.ConfigLoader.buildDataSource(ConfigLoader.java:34)
+	Database connection pool init finished
+
+[INFO] [20150112154817] [Thread:main] [Time:25]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script
+
+[INFO] [20150112154817] [Thread:main] [Time:83]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:18)
+	{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}
+
+[INFO] [20150112154817] [Thread:main] [Time:84]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154817] [Thread:main] [Time:88]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154817] [Thread:main] [Time:92]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:24)
+	[{packagePath=org.hocate.test, id=1, state=1, canReload=2, version=1.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}, {packagePath=org.hocate.test, id=2, state=1, canReload=1, version=2.0, sourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js, createDate=2014-11-07 19:36:22.0}]
+
+[INFO] [20150112154817] [Thread:main] [Time:96]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:packagePath
+
+[INFO] [20150112154817] [Thread:main] [Time:97]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:packagePath = org.hocate.test]
+
+[INFO] [20150112154817] [Thread:main] [Time:102]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:30)
+	[{Path=org.hocate.test,Version=1.0,SourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js}, {Path=org.hocate.test,Version=2.0,SourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js}]
+
+[INFO] [20150112154817] [Thread:main] [Time:103]org.hocate.tools.TSQL.createPreparedStatement(TSQL.java:71)
+	Executed: 
+	select * from sc_script where PackagePath=:1 and version=:2
+
+[INFO] [20150112154817] [Thread:main] [Time:105]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:1 = org.hocate.test]
+
+[INFO] [20150112154817] [Thread:main] [Time:107]org.hocate.tools.TSQL.setPreparedParams(TSQL.java:58)
+	Parameter: [:2 = 2.0]
+
+[INFO] [20150112154817] [Thread:main] [Time:109]org.hocate.test.db.JdbcOperateTest.main(JdbcOperateTest.java:34)
+	{Path=org.hocate.test,Version=2.0,SourcePath=/Users/helyho/Work/Java/BuizPlatform/js/org/hocate/test.js}
