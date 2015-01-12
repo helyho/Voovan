@@ -11,7 +11,7 @@ public class ComplierTest {
 		String code = "package org.hocate.test;\r\n"
 				+ "public class testSay {\r\n"
 					+ " public void say(){\r\n"
-						+ "Logger.simple(\"helloword\");\r\n"
+						+ "System.out.println(\"helloword\");\r\n"
 					+ "}\r\n"
 				+ "}\r\n";
 		Complier dc = new Complier();

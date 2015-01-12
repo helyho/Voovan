@@ -100,12 +100,10 @@ public class Complier {
 	 */
 	private Boolean basicCompileCode(Iterable<? extends JavaFileObject> compilationUnits){
 		
-		
-		
 		JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, options, null, compilationUnits);
 		Boolean success = task.call(); 
 		//对在内存中编译的进行特殊处理
-		if(fileManager instanceof MemFileManager){
+		if(success==true && fileManager instanceof MemFileManager){
 			MemFileManager memFileManager = TObject.cast(fileManager);
 			JavaMemClass javaMemClass = memFileManager.getJavaMemClass();
 			javaMemClass.loadThisClass();
