@@ -7,8 +7,6 @@ import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
-import org.hocate.log.Logger;
-
 public class MemFileManager extends ForwardingJavaFileManager<JavaFileManager> {
 
 	private JavaMemClass javaMemClass;
