@@ -9,6 +9,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.hocate.log.Logger;
 import org.hocate.network.EventTrigger;
 import org.hocate.network.MessageLoader;
 import org.hocate.network.SocketContext;
@@ -101,7 +102,7 @@ public class NioSelector {
 										break;
 									}
 									default: {
-										System.out.println("Nothing to do ,SelectionKey is:"
+										Logger.debug("Nothing to do ,SelectionKey is:"
 												+ selectionKey.readyOps());
 									}
 								}

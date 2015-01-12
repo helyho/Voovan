@@ -2,6 +2,7 @@ package org.hocate.http.client;
 
 import org.hocate.http.message.HttpRequest;
 import org.hocate.http.message.HttpResponse;
+import org.hocate.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
 import org.hocate.tools.TObject;
@@ -29,7 +30,7 @@ public class HttpClientHandler implements IoHandler {
 
 	@Override
 	public void onDisconnect(IoSession session) {
-		System.out.println("Socket disconnect!");
+		Logger.debug("Socket disconnect!");
 	}
 
 	@Override

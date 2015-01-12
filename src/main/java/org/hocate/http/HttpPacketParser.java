@@ -18,6 +18,7 @@ import org.hocate.http.message.HttpRequest;
 import org.hocate.http.message.HttpResponse;
 import org.hocate.http.message.packet.Cookie;
 import org.hocate.http.message.packet.Part;
+import org.hocate.log.Logger;
 import org.hocate.tools.TObject;
 import org.hocate.tools.TStream;
 import org.hocate.tools.TString;
@@ -478,8 +479,6 @@ public class HttpPacketParser {
 		 		"wlmq\r\n"+
 				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm--\r\n\r\n";
 				
-		System.out.println(new String(HttpPacketParser.parseRequest(new ByteArrayInputStream(httpRequestString.getBytes())).asBytes()));
+		Logger.simple(new String(HttpPacketParser.parseRequest(new ByteArrayInputStream(httpRequestString.getBytes())).asBytes()));
 	}
-	
-	
 }

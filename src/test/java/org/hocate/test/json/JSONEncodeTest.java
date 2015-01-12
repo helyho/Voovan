@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.hocate.json.JSONDecode;
 import org.hocate.json.JSONEncode;
+import org.hocate.log.Logger;
 import org.hocate.test.TestObject;
 import org.hocate.tools.TReflect;
 
@@ -23,10 +24,10 @@ public class JSONEncodeTest {
 		testObject.getTb2().getList().add("tb2 list item");
 		testObject.getTb2().getMap().put("tb2 map item", "tb2 map item");
 		String x = JSONEncode.fromObject(testObject);
-		System.out.println("JSON Str:"+x);
+		Logger.simple("JSON Str:"+x);
 		@SuppressWarnings("unchecked")
 		Map<String, Object> obj = (Map<String, Object>) JSONDecode.parse(x);
-		System.out.println("Object"+obj);
-		System.out.println(TReflect.getMapfromObject(testObject.getMap()));
+		Logger.simple("Object"+obj);
+		Logger.simple(TReflect.getMapfromObject(testObject.getMap()));
 	}
 }

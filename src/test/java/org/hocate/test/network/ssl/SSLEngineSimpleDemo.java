@@ -77,6 +77,9 @@ package org.hocate.test.network.ssl;
 
 import javax.net.ssl.*;
 import javax.net.ssl.SSLEngineResult.*;
+
+import org.hocate.log.Logger;
+
 import java.io.*;
 import java.security.*;
 import java.nio.*;
@@ -120,8 +123,8 @@ public class SSLEngineSimpleDemo {
 	/*
 	 * The following is to set up the keystores.
 	 */
-	private static String keyStoreFile = "/Users/helyho/Work/Java/BuizPlatform/src/main/java/org/hocate/ssl/ssl_ks";
-	private static String trustStoreFile = "/Users/helyho/Work/Java/BuizPlatform/src/main/java/org/hocate/ssl/ssl_ks";
+	private static String keyStoreFile = "/Users/helyho/Work/Java/MyPlatform/src/test/java/org/hocate/test/network/ssl/ssl_ks";
+	private static String trustStoreFile = "/Users/helyho/Work/Java/MyPlatform/src/test/java/org/hocate/test/network/ssl/ssl_ks";
 //	private static String passwd = "123123";
 
 	/*
@@ -135,7 +138,7 @@ public class SSLEngineSimpleDemo {
 		SSLEngineSimpleDemo demo = new SSLEngineSimpleDemo();
 		demo.runDemo();
 
-		System.out.println("Demo Completed.");
+		Logger.simple("Demo Completed.");
 	}
 
 	/*
@@ -379,7 +382,7 @@ public class SSLEngineSimpleDemo {
 		}
 		if (resultOnce) {
 			resultOnce = false;
-			System.out.println("The format of the SSLEngineResult is: \n"
+			Logger.simple("The format of the SSLEngineResult is: \n"
 					+ "\t\"getStatus() / getHandshakeStatus()\" +\n"
 					+ "\t\"bytesConsumed() / bytesProduced()\"\n");
 		}
@@ -394,7 +397,7 @@ public class SSLEngineSimpleDemo {
 
 	private static void log(String str) {
 		if (logging) {
-			System.out.println(str);
+			Logger.simple(str);
 		}
 	}
 }

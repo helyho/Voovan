@@ -2,6 +2,7 @@ package org.hocate.http.server;
 
 import java.util.Map;
 
+import org.hocate.log.Logger;
 import org.hocate.tools.TString;
 
 /**
@@ -28,7 +29,7 @@ public class MimeTools {
 			mimeTypeRegex += "\\."+fileExtension+"|";
 		}
 		mimeTypeRegex = TString.removeLastChar(mimeTypeRegex)+"$";
-		System.out.println("load.........");
+		Logger.info("load.........");
 		return mimeTypeRegex;
 	} 
 	

@@ -1,5 +1,6 @@
 package org.hocate.test.script;
 
+import org.hocate.log.Logger;
 import org.hocate.script.ScriptRunner;
 
 public class testScript {
@@ -7,6 +8,6 @@ public class testScript {
 		ScriptRunner scriptRunner = new ScriptRunner();
 		Object object = scriptRunner.eval("org.hocate.util.UEnv.class");
 		//scriptRunner.get("m");
-		System.out.println(object.getClass());
+		Logger.simple(object.getClass());
 	}
 }

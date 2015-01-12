@@ -1,5 +1,6 @@
 package org.hocate.test.network.ssl.yanzheng;
 
+import org.hocate.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
 import org.hocate.network.SSLManager;
@@ -11,7 +12,7 @@ public class SSLClientHandler implements IoHandler {
 	public SSLClientHandler(){
 		try{
 		sslManager = new SSLManager("TLS");
-		sslManager.loadCertificate("/Users/helyho/Work/Java/BuizPlatform/src/test/java/org/hocate/test/network/ssl/ssl_ks", "passStr","123123");
+		sslManager.loadCertificate("/Users/helyho/Work/Java/MyPlatform/src/test/java/org/hocate/test/network/ssl/ssl_ks", "passStr","123123");
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -21,8 +22,8 @@ public class SSLClientHandler implements IoHandler {
 	public Object onConnect(IoSession session) {
 		try {
 			SSLParser sslParser = sslManager.createClientSSLParser(session);
-			System.out.println("SSLManager created");
-			System.out.println(sslParser.doHandShake());
+			Logger.simple("SSLManager created");
+			Logger.simple(sslParser.doHandShake());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -37,7 +38,7 @@ public class SSLClientHandler implements IoHandler {
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		System.out.println("\r\n=======IoHandler recive======\r\n");
+		Logger.simple("\r\n=======IoHandler recive======\r\n");
 		return null;
 	}
 

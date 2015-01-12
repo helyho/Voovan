@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 
+import org.hocate.log.Logger;
+
 
 public class ByteBufferChannel implements ByteChannel {
 
@@ -94,11 +96,11 @@ public class ByteBufferChannel implements ByteChannel {
 		
 		ByteBuffer buffer1 = ByteBuffer.allocate(5);
 		int size = bChannel.read(buffer1);
-		System.out.println("size:"+size+" :"+new  String(buffer1.array()));
-		System.out.println(new String(bChannel.getBuffer().array()));
+		Logger.simple("size:"+size+" :"+new  String(buffer1.array()));
+		Logger.simple(new String(bChannel.getBuffer().array()));
 		
 		bChannel.write(ByteBuffer.wrap(" -=======!".getBytes()));
-		System.out.println((System.currentTimeMillis() - t));
+		Logger.simple((System.currentTimeMillis() - t));
 		
 		bChannel.close();
 	}

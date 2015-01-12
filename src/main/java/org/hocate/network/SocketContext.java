@@ -1,5 +1,7 @@
 package org.hocate.network;
 
+import org.hocate.log.Logger;
+
 /**
  * socket 上下文
  * @author helyho
@@ -63,7 +65,7 @@ public abstract class SocketContext {
 		if(!isConnect()){
 			this.host = host;
 		}else{
-			System.out.println("Socket is Open,can't set host!");
+			Logger.info("Socket is Open,can't set host!");
 		}
 	}
 
@@ -75,7 +77,7 @@ public abstract class SocketContext {
 		if(!isConnect()){
 			this.port = port;
 		}else{
-			System.out.println("Socket is Open,can't set port!");
+			Logger.info("Socket is Open,can't set port!");
 		}
 	}
 

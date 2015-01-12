@@ -3,6 +3,7 @@ package org.hocate.test.json;
 import java.util.Map;
 
 import org.hocate.json.JSONDecode;
+import org.hocate.log.Logger;
 import org.hocate.test.TestObject;
 
 public class JSONDecodeTest {
@@ -11,8 +12,8 @@ public class JSONDecodeTest {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> obj = (Map<String, Object>) JSONDecode
 				.parse(jsonString);
-		System.out.println(obj);
+		Logger.simple(obj);
 		Object object = JSONDecode.fromJSON(jsonString, TestObject.class);
-		System.out.println(object);
+		Logger.simple(object);
 	}
 }

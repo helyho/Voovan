@@ -9,6 +9,7 @@ import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
+import org.hocate.log.Logger;
 import org.hocate.tools.TEnv;
 
 
@@ -83,8 +84,8 @@ public class SSLParser {
 				session.send(netData);
 			}
 			netData.clear();
-			//System.out.println("Warp: "+engineResult+" \r\n\r\n    send size:"+netData.limit());
-			//System.out.println("================================WARP=================================\r\n");
+			//Logger.simple("Warp: "+engineResult+" \r\n\r\n    send size:"+netData.limit());
+			//Logger.simple("================================WARP=================================\r\n");
 		}while(engineResult.getStatus() == Status.OK && buffer.hasRemaining());
 		return engineResult;
 	}
@@ -112,8 +113,8 @@ public class SSLParser {
 	public SSLEngineResult unwarpData(ByteBuffer netBuffer,ByteBuffer appBuffer) throws Exception{
 		SSLEngineResult engineResult = null;
 		engineResult = engine.unwrap(netBuffer, appBuffer);
-		//System.out.println("UnWarp: "+engineResult+" \r\n\r\n    Remain size:"+netData.remaining());
-		//System.out.println("================================UNWARP===============================\r\n");
+		//Logger.simple("UnWarp: "+engineResult+" \r\n\r\n    Remain size:"+netData.remaining());
+		//Logger.simple("================================UNWARP===============================\r\n");
 		return engineResult;
 	}
 	
@@ -187,7 +188,7 @@ public class SSLParser {
 			}
 			TEnv.sleep(1);
 		}
-		System.out.println("HandShake: "+handShakeDone);
+		Logger.simple("HandShake: "+handShakeDone);
 		return handShakeDone;
 	}
 }

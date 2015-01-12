@@ -2,6 +2,7 @@ package org.hocate.test.network;
 
 import java.nio.ByteBuffer;
 
+import org.hocate.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
 import org.hocate.network.MessageLoader;
@@ -11,7 +12,7 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public Object onConnect(IoSession session) {
-		System.out.println("onConnect");
+		Logger.simple("onConnect");
 		session.setAttribute("key", "attribute value");
 		String msg = new String(TFile.loadFileFromSysPath("/Users/helyho/1.txt"));
 		return msg;//"Client Message";
@@ -19,21 +20,21 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public void onDisconnect(IoSession session) {
-		System.out.println("onDisconnect");
+		Logger.simple("onDisconnect");
 	}
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
 		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
-		System.out.println("Client onRecive: "+obj.toString());
-		System.out.println("Attribute onRecive: "+session.getAttribute("key"));
+		Logger.simple("Client onRecive: "+obj.toString());
+		Logger.simple("Attribute onRecive: "+session.getAttribute("key"));
 		session.close();
 		return obj;
 	}
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		System.out.print("Client Exception");
+		Logger.simple("Client Exception");
 		e.printStackTrace();
 	}
 
@@ -41,7 +42,7 @@ public class ClientHandlerTest implements IoHandler {
 	public void onSent(IoSession session, Object obj) {
 		ByteBuffer sad = (ByteBuffer)obj;
 		sad = (ByteBuffer)sad.rewind();
-		System.out.println("Client onSent: "+MessageLoader.byteBufferToString(sad));
+		Logger.simple("Client onSent: "+MessageLoader.byteBufferToString(sad));
 	}
 
 }

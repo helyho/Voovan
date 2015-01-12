@@ -42,11 +42,11 @@ public class HttpServerHandler implements IoHandler {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		// System.out.println(request);
-		// System.out.println("======================================");
+		// Logger.info(request);
+		// Logger.info("======================================");
 		// try{
 		// for(Part part : request.parts()){
-		// System.out.println(part.getType());
+		// Logger.infoln(part.getType());
 		// if(part.getType()==PartType.BINARY){
 		// part.saveAsFile("/Users/helyho/response.jpg");
 		// }
@@ -58,8 +58,8 @@ public class HttpServerHandler implements IoHandler {
 
 		// String bodyContent = "test body content";
 		// response.body().setBody(bodyContent.getBytes());
-		// System.out.println("=================================");
-		// System.out.println(response);
+		// Logger.info("=================================");
+		// Logger.info(response);
 		return response;
 	}
 

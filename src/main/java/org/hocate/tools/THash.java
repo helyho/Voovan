@@ -5,6 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+import org.hocate.log.Logger;
+
 /**
  * hash 计算类
  * @author helyho
@@ -52,7 +54,7 @@ public class THash {
   
             messageDigest.update(str.getBytes("UTF-8"));  
         } catch (NoSuchAlgorithmException e) {  
-            System.out.println("NoSuchAlgorithmException caught!");  
+        	Logger.error("NoSuchAlgorithmException caught!");  
             System.exit(-1);  
         } catch (UnsupportedEncodingException e) {  
             e.printStackTrace();  
@@ -81,7 +83,7 @@ public class THash {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		System.out.println(THash.encryptSHA("org.hocate.test"+1.0));
-		System.out.println(THash.hash_time33("org.hocate.test"+1.0));
+		Logger.simple(THash.encryptSHA("org.hocate.test"+1.0));
+		Logger.simple(THash.hash_time33("org.hocate.test"+1.0));
 	}
 }

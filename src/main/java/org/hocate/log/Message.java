@@ -22,15 +22,7 @@ public class Message {
 	}
 
 	public String getMessage() {
-		String infoIndent = StaticParam.getConfig("InfoIndent");
-		// 对缩进进行处理
-		if (StaticParam.getConfig("InfoIndent") != null) {
-			message = infoIndent + message;
-			message = message.replaceAll("\r\n", "\r\n" + infoIndent);
-			return message.replaceAll("\n", "\n" + infoIndent);
-		} else {
-			return message;
-		}
+		return message;
 	}
 
 	public void setMessage(String message) {

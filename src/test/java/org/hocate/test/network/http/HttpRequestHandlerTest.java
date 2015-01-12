@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import org.hocate.http.HttpPacketParser;
 import org.hocate.http.message.HttpRequest;
 import org.hocate.http.message.HttpResponse;
+import org.hocate.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
 
@@ -20,7 +21,7 @@ public class HttpRequestHandlerTest implements IoHandler {
 	}
 	@Override
 	public Object onConnect(IoSession session) {
-		System.out.println("onConnect");
+		Logger.simple("onConnect");
 		HttpRequest request = new HttpRequest();
 		request.header().put("Host", hostNameString);
 		request.header().put("Connection", "keep-alive");
@@ -30,16 +31,16 @@ public class HttpRequestHandlerTest implements IoHandler {
 
 	@Override
 	public void onDisconnect(IoSession session) {
-		System.out.println("onDisconnect");
+		Logger.simple("onDisconnect");
 	}
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		System.out.println("onRecive string "+obj.toString()+"["+session.remoteAddress()+":"+session.remotePort()+"]" +" "+obj.getClass().getName());
+		Logger.simple("onRecive string "+obj.toString()+"["+session.remoteAddress()+":"+session.remotePort()+"]" +" "+obj.getClass().getName());
 		
 		try {
 			HttpResponse response = HttpPacketParser.parseResponse(new ByteArrayInputStream(((ByteBuffer)obj).array()));
-			System.out.println(response);
+			Logger.simple(response);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -50,13 +51,13 @@ public class HttpRequestHandlerTest implements IoHandler {
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		System.out.println("Exception");
+		Logger.simple("Exception");
 		e.printStackTrace();
 	}
 
 	@Override
 	public void onSent(IoSession session, Object obj) {
-		System.out.println("onSent "+obj);
+		Logger.simple("onSent "+obj);
 	}
 
 }

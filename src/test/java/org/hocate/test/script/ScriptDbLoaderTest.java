@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Vector;
 
 import org.hocate.biz.config.ConfigLoader;
+import org.hocate.log.Logger;
 import org.hocate.script.ScriptEntity;
 import org.hocate.script.exception.ScriptException;
 import org.hocate.script.scriptLoader.ScriptDbLoader;
@@ -14,14 +15,14 @@ public class ScriptDbLoaderTest {
 		ScriptDbLoader sdbl = (ScriptDbLoader) configLoader.createScriptManager().getScriptLoader();
 		Vector<ScriptEntity> v = new Vector<ScriptEntity>();
 		for(String mString : sdbl.packagePaths()){
-			System.out.println(mString);
+			Logger.simple(mString);
 		}
-		System.out.println("--------------------------------------------------");
+		Logger.simple("--------------------------------------------------");
 		for(ScriptEntity entity : sdbl.scriptEntitys()){
 			v.add(entity);
 		}
 		
 		ScriptEntity entity1 = sdbl.getScriptEntity("org.hocate.test",2);
-		System.out.println(v.contains(entity1));
+		Logger.simple(v.contains(entity1));
 	}
 }

@@ -11,14 +11,14 @@ public class ComplierTest {
 		String code = "package org.hocate.test;\r\n"
 				+ "public class testSay {\r\n"
 					+ " public void say(){\r\n"
-						+ "System.out.println(\"helloword\");\r\n"
+						+ "Logger.simple(\"helloword\");\r\n"
 					+ "}\r\n"
 				+ "}\r\n";
 		Complier dc = new Complier();
 		dc.compileCode( code);
 		try {
 			Class<?> testClazz = Class.forName("org.hocate.test.testSay");
-			System.out.println(testClazz.getName());
+			Logger.simple(testClazz.getName());
 			Object kk = testClazz.newInstance();
 			Logger.info(kk);
 			Method m = kk.getClass().getMethod("say");

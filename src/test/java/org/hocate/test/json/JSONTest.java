@@ -1,6 +1,7 @@
 package org.hocate.test.json;
 
 import org.hocate.json.JSON;
+import org.hocate.log.Logger;
 import org.hocate.test.TestObject;
 
 public class JSONTest {
@@ -20,17 +21,17 @@ public class JSONTest {
 		
 		long start = System.currentTimeMillis();
 		String jsonString = JSON.toJSON(testObject);
-		System.out.println("----Serial Time:"+(System.currentTimeMillis()-start));
-		System.out.println(jsonString);
+		Logger.simple("----Serial Time:"+(System.currentTimeMillis()-start));
+		Logger.simple(jsonString);
 		
 		start = System.currentTimeMillis();
 		Object object = JSON.parse(jsonString);
-		System.out.println("----Deserial Time:"+(System.currentTimeMillis()-start));
-		System.out.println(object);
+		Logger.simple("----Deserial Time:"+(System.currentTimeMillis()-start));
+		Logger.simple(object);
 		
 		start = System.currentTimeMillis();
 		TestObject tObject = JSON.toObject(jsonString,TestObject.class);
-		System.out.println("----Deserial Object Time:"+(System.currentTimeMillis()-start));
-		System.out.println(tObject);
+		Logger.simple("----Deserial Object Time:"+(System.currentTimeMillis()-start));
+		Logger.simple(tObject);
 	}
 }

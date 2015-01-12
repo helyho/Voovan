@@ -29,12 +29,25 @@ public class Formater {
 		return Thread.currentThread().getName();
 	}
 
+	public String preIndentMessage(Message message){
+		String infoIndent = StaticParam.getConfig("InfoIndent");
+		String msg = message.getMessage();
+		if (infoIndent != null) {
+			msg = infoIndent + msg;
+			msg = msg.replaceAll("\r\n", "\r\n" + infoIndent);
+			return msg.replaceAll("\n", "\n" + infoIndent);
+		}else{
+			return msg;
+		}
+	}
+	
 	public String format(Message message) {
 		Map<String, String> tokens = new HashMap<String, String>();
 		StackTraceElement stackTraceElement = currentStackLine();
 		//Message 和栈信息公用
 		tokens.put("t", "\t");
 		tokens.put("s", " ");
+		preIndentMessage(message);
 		tokens.put("i", TString.tokenReplace(message.getMessage(), tokens));
 		
 		//栈信息独享
@@ -52,12 +65,24 @@ public class Formater {
 		return TString.tokenReplace(template, tokens);
 	}
 
-	public void writeLog(Message message) {
+	public void writeFormatedLog(Message message) {
+		writeLog(format(message));
+	}
+	
+	public void writeLog(String msg) {
 		if(logWriter==null || !logWriter.isAlive()){
 			logWriter = new Thread(writeThread);
 			logWriter.start();
 		}
-		writeThread.addLogMessage(format(message));
+		writeThread.addLogMessage(msg);
+	}
+	
+	public void writeSimpleLog(Message message) {
+		if(logWriter==null || !logWriter.isAlive()){
+			logWriter = new Thread(writeThread);
+			logWriter.start();
+		}
+		writeThread.addLogMessage(message.getMessage());
 	}
 
 	public static Formater newInstance() {

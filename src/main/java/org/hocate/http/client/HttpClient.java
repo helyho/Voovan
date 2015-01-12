@@ -11,6 +11,7 @@ import org.hocate.http.message.HttpRequest.RequestType;
 import org.hocate.http.message.HttpResponse;
 import org.hocate.http.message.packet.Header;
 import org.hocate.http.message.packet.Part;
+import org.hocate.log.Logger;
 import org.hocate.network.aio.AioSocket;
 import org.hocate.network.messagePartition.HttpMessageParter;
 import org.hocate.tools.TEnv;
@@ -111,7 +112,7 @@ public class HttpClient {
 		socket.handler(clientHandler);
 		socket.filterChain().add(new HttpClientFilter());
 		socket.messageParter(new HttpMessageParter());
-		System.out.println(request);
+		Logger.simple(request);
 		socket.start();
 		
 		//等待获取 response并返回
@@ -126,14 +127,14 @@ public class HttpClient {
 		HttpClient client = new HttpClient("http://www.sohu.com/");
 		client.setMethod("GET");
 		long t = System.currentTimeMillis();
-		System.out.println("start :"+System.currentTimeMillis());
+		Logger.simple("start :"+System.currentTimeMillis());
 		HttpResponse response = client.Connect();
-		System.out.print("====");
-		System.out.println(System.currentTimeMillis()-t);
+		Logger.simple("====");
+		Logger.simple(System.currentTimeMillis()-t);
 		
 		String bodyString = response.body().toString();
 		//substring(0,300)+
 		//"\r\n<..............................................................................>\r\n"+
-		System.out.println("body length:"+bodyString.length());
+		Logger.debug("body length:"+bodyString.length());
 	}
 }
