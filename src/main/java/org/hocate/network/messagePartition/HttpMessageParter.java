@@ -10,8 +10,8 @@ public class HttpMessageParter implements MessageParter {
 	public boolean canPartition(IoSession session, byte[] buffer, int elapsedtime) {
 		String bufferString = new String(buffer);
 
-		// 是否存在\r\n\r\n,存在则说明 http 头部加载完成
-		if (bufferString.contains("\r\n\r\n")) {
+		// 结尾是\r\n\r\n,存在则说明 http 有可能结束
+		if (bufferString.endsWith("\r\n\r\n")) {
 
 			String[] contentLengthLines = TString.searchByRegex(bufferString, "Content-Length: .+[^\\r\\n]");
 
@@ -25,7 +25,7 @@ public class HttpMessageParter implements MessageParter {
 			}
 			// 2.不包含 ContentLength 长度的报文,则通过\r\n\r\n 的结尾判断,
 			// 由于这种报文的报文头和报文结束,都是\r\n\r\n,所以还要判断出现两次的\r\n\r\n 的位置不同说明报文加载完成
-			else if (bufferString.endsWith("\r\n\r\n") && bufferString.indexOf("\r\n\r\n") != bufferString.lastIndexOf("\r\n\r\n")) {
+			else if (bufferString.indexOf("\r\n\r\n") != bufferString.lastIndexOf("\r\n\r\n")) {
 				// 如果是 post multipart/form-data类型,且没有指定
 				// ContentLength,则需要使用--boundary--的结尾形式来判断
 				String[] boundaryLines = TString.searchByRegex(bufferString, "boundary=[^ \\r\\n]+");
