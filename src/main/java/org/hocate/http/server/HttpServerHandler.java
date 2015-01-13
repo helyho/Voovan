@@ -38,7 +38,9 @@ public class HttpServerHandler implements IoHandler {
 		
 		HttpRequest httpRequest = new HttpRequest(request);
 		HttpResponse httpResponse = new HttpResponse(response);
-
+		
+		httpRequest.setRemoteAddres(session.remoteAddress());
+		httpRequest.setRemotePort(session.remotePort());
 		try {
 			processer.Process(httpRequest, httpResponse);
 			session.setAttribute("isKeepAlive", request.header().get("Connection"));

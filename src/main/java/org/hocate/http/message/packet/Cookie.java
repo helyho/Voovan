@@ -3,6 +3,8 @@ package org.hocate.http.message.packet;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.hocate.http.message.Request;
+
 /**
  *  HTTP 的 cookie 对象
  * @author helyho
@@ -100,6 +102,26 @@ public class Cookie {
 				break;
 			}
 		}
+		return cookie;
+	}
+	
+	/**
+	 * 创建一个 Cookie
+	 * @param request	请求对象
+	 * @param name		名称
+	 * @param value		值
+	 * @param maxAge	失效时间,单位秒
+	 * @return
+	 */
+	public static Cookie newInstance(Request request,String name,String value,int maxAge){
+		String domain = request.header().get("Host").split(":")[0];
+		Cookie cookie = new Cookie();
+		cookie.setName(name);
+		cookie.setValue(value);
+		cookie.setPath(request.protocol().getPath());
+		cookie.setDomain(domain);
+		cookie.setMaxage(maxAge);
+		cookie.setHttpOnly(true);
 		return cookie;
 	}
 }

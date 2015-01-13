@@ -126,21 +126,18 @@ public class RequestDispatch {
 		if(sessionCookie==null 
 				|| TString.isNullOrEmpty(sessionCookie.getValue()) 
 				|| SessionManager.getSession(sessionCookie.getValue())==null){
+			//构建 session
 			HttpSession session = new HttpSession();
-			Cookie cookie = new Cookie();
-			String domain = request.header().get("Host").split(":")[0];
-			
-			cookie.setName(Config.getSessionName());
-			cookie.setValue(session.getId());
-			cookie.setPath(request.protocol().getPath());
-			cookie.setDomain(domain);
-			String sessionTimeout = TString.defaultValue(Config.getWebConfig().get("SessionTimeout"), "30");
-			cookie.setMaxage(Integer.parseInt(sessionTimeout)*60);
-			cookie.setHttpOnly(true);
-			
 			request.setSession(session);
-			response.cookies().add(cookie);
 			SessionManager.addSession(session);
+			
+			//取 session 超时时间
+			String sessionTimeout = TString.defaultValue(Config.getWebConfig().get("SessionTimeout"), "30");
+			//创建 Cookie
+			Cookie cookie = Cookie.newInstance(request, Config.getSessionName(), 
+					session.getId(), Integer.parseInt(sessionTimeout)*60);
+			response.cookies().add(cookie);
+			
 			Logger.simple("Create session");
 		}else{
 			HttpSession session = SessionManager.getSession(sessionCookie.getValue());

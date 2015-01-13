@@ -2,6 +2,7 @@ package org.hocate.test.http;
 
 import java.io.IOException;
 import java.util.Date;
+
 import org.hocate.http.server.HttpServer;
 import org.hocate.log.Logger;
 
@@ -14,6 +15,7 @@ public class HttpServerTest {
 											    if(req.getSession()!=null && req.getSession().getAttributes("Time")!=null){
 											    	Logger.simple("Session saved time"+req.getSession().getAttributes("Time"));
 											    }
+											    Logger.simple(req.getRemoteAddres()+" "+req.getRemotePort());
 												req.getSession().setAttribute("Time", new Date().toString());
 												resp.body().writeString("<b>This is HTTP test!</b><br>"+req.getQueryString());
 											}
