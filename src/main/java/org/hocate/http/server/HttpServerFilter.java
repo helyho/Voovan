@@ -4,9 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.hocate.http.HttpPacketParser;
-import org.hocate.http.message.HttpRequest;
-import org.hocate.http.message.HttpResponse;
+import org.hocate.http.message.HttpParser;
+import org.hocate.http.message.Request;
+import org.hocate.http.message.Response;
 import org.hocate.network.IoFilter;
 import org.hocate.tools.TObject;
 
@@ -22,8 +22,8 @@ public class HttpServerFilter implements IoFilter {
 	 */
 	@Override
 	public Object encode(Object object) {
-		if(object instanceof HttpResponse){
-			HttpResponse response = TObject.cast(object);
+		if(object instanceof Response){
+			Response response = TObject.cast(object);
 			return ByteBuffer.wrap(response.asBytes());
 		}
 		else {
@@ -41,7 +41,7 @@ public class HttpServerFilter implements IoFilter {
 			if(object instanceof ByteBuffer){
 				ByteBuffer byteBuffer = TObject.cast(object);
 				ByteArrayInputStream requestInputStream = new ByteArrayInputStream(byteBuffer.array());
-				HttpRequest request = HttpPacketParser.parseRequest(requestInputStream);
+				Request request = HttpParser.parseRequest(requestInputStream);
 				return request;
 			}else{
 				return null;

@@ -1,7 +1,7 @@
 package org.hocate.http.client;
 
-import org.hocate.http.message.HttpRequest;
-import org.hocate.http.message.HttpResponse;
+import org.hocate.http.message.Request;
+import org.hocate.http.message.Response;
 import org.hocate.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
@@ -9,17 +9,17 @@ import org.hocate.tools.TObject;
 
 public class HttpClientHandler implements IoHandler {
 
-	private HttpRequest request;
-	private HttpResponse response;
+	private Request request;
+	private Response response;
 	
 	
 	
-	public HttpClientHandler(HttpRequest request){
+	public HttpClientHandler(Request request){
 		this.request = request;
 		response = null;
 	}
 	
-	public synchronized HttpResponse getResponse(){
+	public synchronized Response getResponse(){
 		return response;
 	}
 	
@@ -35,7 +35,7 @@ public class HttpClientHandler implements IoHandler {
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		if(obj instanceof HttpResponse){
+		if(obj instanceof Response){
 			response = TObject.cast(obj);
 		}
 		session.close();

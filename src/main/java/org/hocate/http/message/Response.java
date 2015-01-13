@@ -15,7 +15,7 @@ import org.hocate.http.message.packet.ResponseProtocol;
  * @author helyho
  *
  */
-public class HttpResponse {
+public class Response {
 	private ResponseProtocol	protocol;
 	private Header				header;
 	private List<Cookie>		cookies;
@@ -25,7 +25,7 @@ public class HttpResponse {
 	/**
 	 * 构造函数
 	 */
-	public HttpResponse() {
+	public Response() {
 		protocol = new ResponseProtocol();
 		header = new Header();
 		cookies = new Vector<Cookie>();

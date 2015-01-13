@@ -3,8 +3,8 @@ package org.hocate.http.server;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hocate.http.message.HttpRequest;
-import org.hocate.http.message.HttpResponse;
+import org.hocate.http.message.Request;
+import org.hocate.http.message.Response;
 import org.hocate.http.server.router.MimeFileRouter;
 import org.hocate.tools.TFile;
 import org.hocate.tools.TObject;
@@ -87,7 +87,7 @@ public class RequestDispatch {
 	 * @param response
 	 * @throws Exception
 	 */
-	public void Process(HttpRequest request, HttpResponse response) throws Exception {
+	public void Process(Request request, Response response) throws Exception {
 		String requestMethod = request.protocol().getMethod();
 		String requestPath = request.protocol().getPath();
 
@@ -112,7 +112,7 @@ public class RequestDispatch {
 	 * @param response
 	 * @param e
 	 */
-	public void ExceptionMessage(HttpRequest request, HttpResponse response, Exception e) {
+	public void ExceptionMessage(Request request, Response response, Exception e) {
 		e.printStackTrace();
 		
 		Map<String, Object> errorDefine = Config.errorDefine();

@@ -1,7 +1,7 @@
 package org.hocate.http.server;
 
-import org.hocate.http.message.HttpRequest;
-import org.hocate.http.message.HttpResponse;
+import org.hocate.http.message.Request;
+import org.hocate.http.message.Response;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
 import org.hocate.tools.TObject;
@@ -32,9 +32,9 @@ public class HttpServerHandler implements IoHandler {
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
 		// 构造请求
-		HttpRequest request = TObject.cast(obj);
+		Request request = TObject.cast(obj);
 		// 构造响应报文并返回
-		HttpResponse response = new HttpResponse();
+		Response response = new Response();
 
 		try {
 			processer.Process(request, response);

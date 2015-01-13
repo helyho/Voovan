@@ -29,7 +29,7 @@ import org.hocate.tools.TString;
  *
  */
 
-public class HttpRequest {
+public class Request {
 	private RequestProtocol protocol;
 	private Header header;
 	private List<Cookie> cookies;
@@ -48,7 +48,7 @@ public class HttpRequest {
 	/**
 	 * 构造函数
 	 */
-	public HttpRequest(){
+	public Request(){
 		protocol = new RequestProtocol();
 		header = new  Header();
 		cookies = new Vector<Cookie>();

@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.hocate.http.message.HttpRequest;
-import org.hocate.http.message.HttpRequest.RequestType;
-import org.hocate.http.message.HttpResponse;
+import org.hocate.http.message.Request;
+import org.hocate.http.message.Request.RequestType;
+import org.hocate.http.message.Response;
 import org.hocate.http.message.packet.Header;
 import org.hocate.http.message.packet.Part;
 import org.hocate.log.Logger;
@@ -26,7 +26,7 @@ public class HttpClient {
 	
 	private AioSocket socket;
 	private HttpClientHandler clientHandler; 
-	private HttpRequest request;
+	private Request request;
 	private Map<String, Object> parameters;
 	
 	
@@ -40,7 +40,7 @@ public class HttpClient {
 			String hostString = url.getHost();
 			int port = url.getPort();
 			
-			request = new HttpRequest();
+			request = new Request();
 			//初始化请求参数,默认值
 			request.protocol().setPath(url.getPath().isEmpty()?"/":url.getPath());
 			request.header().put("Host", hostString);
@@ -145,7 +145,7 @@ public class HttpClient {
 	 * @return
 	 * @throws Exception
 	 */
-	public HttpResponse Connect() throws Exception{
+	public Response Connect() throws Exception{
 		buildRequest();
 		
 		clientHandler = new HttpClientHandler(request);
@@ -168,7 +168,7 @@ public class HttpClient {
 		client.setMethod("GET");
 		long t = System.currentTimeMillis();
 		Logger.simple("start :"+System.currentTimeMillis());
-		HttpResponse response = client.Connect();
+		Response response = client.Connect();
 		Logger.simple("====");
 		Logger.simple(System.currentTimeMillis()-t);
 		

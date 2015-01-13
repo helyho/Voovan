@@ -1,4 +1,4 @@
-package org.hocate.http;
+package org.hocate.http.message;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -14,8 +14,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
-import org.hocate.http.message.HttpRequest;
-import org.hocate.http.message.HttpResponse;
 import org.hocate.http.message.packet.Cookie;
 import org.hocate.http.message.packet.Part;
 import org.hocate.log.Logger;
@@ -29,7 +27,7 @@ import org.hocate.tools.TZip;
  * @author helyho
  *
  */
-public class HttpPacketParser {
+public class HttpParser {
 	
 	/**
 	 * 解析协议信息
@@ -244,7 +242,7 @@ public class HttpPacketParser {
 					ArrayList<Map<String, Object>> bodyPartList = new ArrayList<Map<String, Object>>();
 					
 					//取boundary 用于 part 内容分段
-					String boundary = HttpPacketParser.getPerprotyEqualValue(packetMap,"Content-Type","boundary");
+					String boundary = HttpParser.getPerprotyEqualValue(packetMap,"Content-Type","boundary");
 					
 					for(byte[] spliteBytes = TStream.read(sourceInputStream, ("--"+boundary).getBytes());
 							sourceInputStream.available()>0;
@@ -255,7 +253,7 @@ public class HttpPacketParser {
 							//递归调用 pareser 方法解析
 							Map<String, Object> partMap = Parser(new ByteArrayInputStream(spliteBytes));
 							//对Content-Disposition中的"name=xxx"进行处理,方便直接使用
-							Map<String, String> contentDispositionValue = HttpPacketParser.getEqualMap(partMap.get("Content-Disposition").toString());
+							Map<String, String> contentDispositionValue = HttpParser.getEqualMap(partMap.get("Content-Disposition").toString());
 							partMap.putAll(contentDispositionValue);
 							//加入bodyPartList中
 							bodyPartList.add(partMap);
@@ -323,8 +321,8 @@ public class HttpPacketParser {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
-	public static HttpRequest parseRequest(InputStream inputStream) throws IOException{
-		HttpRequest request = new HttpRequest();
+	public static Request parseRequest(InputStream inputStream) throws IOException{
+		Request request = new Request();
 		
 		Map<String, Object> parsedPacket = Parser(inputStream);
 		
@@ -397,8 +395,8 @@ public class HttpPacketParser {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
-	public static HttpResponse parseResponse(InputStream inputStream) throws IOException{
-		HttpResponse response = new HttpResponse();
+	public static Response parseResponse(InputStream inputStream) throws IOException{
+		Response response = new Response();
 		
 		Map<String, Object> parsedPacket = Parser(inputStream);
 		
@@ -479,6 +477,6 @@ public class HttpPacketParser {
 		 		"wlmq\r\n"+
 				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm--\r\n\r\n";
 				
-		Logger.simple(new String(HttpPacketParser.parseRequest(new ByteArrayInputStream(httpRequestString.getBytes())).asBytes()));
+		Logger.simple(new String(HttpParser.parseRequest(new ByteArrayInputStream(httpRequestString.getBytes())).asBytes()));
 	}
 }

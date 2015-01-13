@@ -4,9 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.hocate.http.HttpPacketParser;
-import org.hocate.http.message.HttpRequest;
-import org.hocate.http.message.HttpResponse;
+import org.hocate.http.message.HttpParser;
+import org.hocate.http.message.Request;
+import org.hocate.http.message.Response;
 import org.hocate.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
@@ -22,7 +22,7 @@ public class HttpRequestHandlerTest implements IoHandler {
 	@Override
 	public Object onConnect(IoSession session) {
 		Logger.simple("onConnect");
-		HttpRequest request = new HttpRequest();
+		Request request = new Request();
 		request.header().put("Host", hostNameString);
 		request.header().put("Connection", "keep-alive");
 		
@@ -39,7 +39,7 @@ public class HttpRequestHandlerTest implements IoHandler {
 		Logger.simple("onRecive string "+obj.toString()+"["+session.remoteAddress()+":"+session.remotePort()+"]" +" "+obj.getClass().getName());
 		
 		try {
-			HttpResponse response = HttpPacketParser.parseResponse(new ByteArrayInputStream(((ByteBuffer)obj).array()));
+			Response response = HttpParser.parseResponse(new ByteArrayInputStream(((ByteBuffer)obj).array()));
 			Logger.simple(response);
 		} catch (IOException e) {
 			e.printStackTrace();
