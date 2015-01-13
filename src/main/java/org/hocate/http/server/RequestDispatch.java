@@ -3,9 +3,9 @@ package org.hocate.http.server;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hocate.http.message.Request;
-import org.hocate.http.message.Response;
+import org.hocate.http.message.packet.Cookie;
 import org.hocate.http.server.router.MimeFileRouter;
+import org.hocate.log.Logger;
 import org.hocate.tools.TFile;
 import org.hocate.tools.TObject;
 import org.hocate.tools.TString;
@@ -29,10 +29,10 @@ import org.hocate.tools.TString;
  */
 public class RequestDispatch {
 	/**
-	 * MainKey = HTTP method Value Key = Route path Value value = RouteBuiz对象
+	 * [MainKey] = HTTP method ,[Value Key] = Route path, [Value value] = RouteBuiz对象
 	 */
 	private Map<String, Map<String, RouterBuiz>>	routes;
-
+	
 	/**
 	 * 构造函数
 	 * 
@@ -52,7 +52,7 @@ public class RequestDispatch {
 		this.addRouteMethod("CONNECT");
 		this.addRouteMethod("OPTIONS");
 
-		// Mime文件默认请求处理
+		// Mime静态文件默认请求处理
 		routes.get("GET").put(MimeTools.getMimeTypeRegex(), new MimeFileRouter(rootDir));
 	}
 
@@ -87,21 +87,65 @@ public class RequestDispatch {
 	 * @param response
 	 * @throws Exception
 	 */
-	public void Process(Request request, Response response) throws Exception {
+	public void Process(HttpRequest request, HttpResponse response) throws Exception {
 		String requestMethod = request.protocol().getMethod();
 		String requestPath = request.protocol().getPath();
 
 		Map<String, RouterBuiz> routeInfos = routes.get(requestMethod);
 		for (String routeRegexPath : routeInfos.keySet()) {
+			//路由匹配
 			if (TString.searchByRegex(requestPath, routeRegexPath).length > 0) {
+				//获取路由处理对象
 				RouterBuiz routeBuiz = routeInfos.get(routeRegexPath);
 				try {
+					//Session预处理
+					diposeSession(request,response);
+					//处理路由请求
 					routeBuiz.Process(request, response);
 				} catch (Exception e) {
 					ExceptionMessage(request, response, e);
 				}
 				break;
 			}
+		}
+	}
+	
+	/**
+	 * 处理 Session
+	 * @param request
+	 * @param response
+	 */
+	public void diposeSession(HttpRequest request, HttpResponse response){
+		
+		Cookie sessionCookie = request.getCookie(Config.getSessionName());
+		
+		//如果 session 不存在,创建新的 session
+		//1.保存 session id 的 cookie 不存在
+		//2.从 cookie 中取 session id 为空
+		//3.从 session 管理器中取 session 对象为空
+		if(sessionCookie==null 
+				|| TString.isNullOrEmpty(sessionCookie.getValue()) 
+				|| SessionManager.getSession(sessionCookie.getValue())==null){
+			HttpSession session = new HttpSession();
+			Cookie cookie = new Cookie();
+			String domain = request.header().get("Host").split(":")[0];
+			
+			cookie.setName(Config.getSessionName());
+			cookie.setValue(session.getId());
+			cookie.setPath(request.protocol().getPath());
+			cookie.setDomain(domain);
+			String sessionTimeout = TString.defaultValue(Config.getWebConfig().get("SessionTimeout"), "30");
+			cookie.setMaxage(Integer.parseInt(sessionTimeout)*60);
+			cookie.setHttpOnly(true);
+			
+			request.setSession(session);
+			response.cookies().add(cookie);
+			SessionManager.addSession(session);
+			Logger.simple("Create session");
+		}else{
+			HttpSession session = SessionManager.getSession(sessionCookie.getValue());
+			request.setSession(session);
+			Logger.simple("Get old session");
 		}
 	}
 
@@ -112,10 +156,10 @@ public class RequestDispatch {
 	 * @param response
 	 * @param e
 	 */
-	public void ExceptionMessage(Request request, Response response, Exception e) {
+	public void ExceptionMessage(HttpRequest request, HttpResponse response, Exception e) {
 		e.printStackTrace();
 		
-		Map<String, Object> errorDefine = Config.errorDefine();
+		Map<String, Object> errorDefine = Config.getErrorDefine();
 		String requestMethod = request.protocol().getMethod();
 		String requestPath = request.protocol().getPath();
 		response.header().put("Content-Type", "text/html");

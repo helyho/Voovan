@@ -12,7 +12,7 @@ import org.hocate.tools.TString;
  */
 public class MimeTools {
 	
-	private static String mimeTypeRegex = MimeTools.buildMimeMatchRegex(Config.mimeDefine());
+	private static String mimeTypeRegex = MimeTools.buildMimeMatchRegex(Config.getMimeDefine());
 	
 	public static  String getMimeTypeRegex(){
 		return mimeTypeRegex;
@@ -39,7 +39,7 @@ public class MimeTools {
 	 * @return
 	 */
 	public static String getMimeByFileExtension(String fileExtension){
-		return Config.mimeDefine().get(fileExtension.toLowerCase()).toString();
+		return Config.getMimeDefine().get(fileExtension.toLowerCase()).toString();
 	}
 	
 	/**

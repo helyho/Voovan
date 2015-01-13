@@ -20,5 +20,6 @@ public class Other {
 		
 		Object x = TReflect.newInstance(String.class);
 		Logger.info(x.getClass().getName());
+		Logger.simple("127.0.0.1".split(":")[0]);
 	}
 }

@@ -144,4 +144,18 @@ public class TString {
 	public static String tokenReplace(String source,String tokenName,String tokenValue){
 		return source.replaceAll("\\{\\{"+tokenName+"\\}\\}",Matcher.quoteReplacement(tokenValue));
 	}
+	
+	/**
+	 * 如果为空取默认值
+	 * @param strObject
+	 * @param defaultValue
+	 * @return
+	 */
+	public static String defaultValue(Object strObject,String defaultValue){
+		String source = strObject.toString();
+		if(isNullOrEmpty(source)){
+			return defaultValue;
+		}
+		return source;
+	}
 }

@@ -35,9 +35,12 @@ public class HttpServerHandler implements IoHandler {
 		Request request = TObject.cast(obj);
 		// 构造响应报文并返回
 		Response response = new Response();
+		
+		HttpRequest httpRequest = new HttpRequest(request);
+		HttpResponse httpResponse = new HttpResponse(response);
 
 		try {
-			processer.Process(request, response);
+			processer.Process(httpRequest, httpResponse);
 			session.setAttribute("isKeepAlive", request.header().get("Connection"));
 		} catch (Exception e) {
 			e.printStackTrace();

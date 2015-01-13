@@ -12,6 +12,9 @@ import org.hocate.tools.TObject;
  *
  */
 public class Config {
+	
+	private static String sessionName = "SESSIONID";
+
 	/**
 	 * Web Config
 	 */
@@ -53,7 +56,7 @@ public class Config {
 	 * 获取 mime 定义
 	 * @return
 	 */
-	public static Map<String, Object> mimeDefine() {
+	public static Map<String, Object> getMimeDefine() {
 		return mimeTypes;
 	}
 	
@@ -61,7 +64,7 @@ public class Config {
 	 * 获取错误输出定义
 	 * @return
 	 */
-	public static Map<String, Object> errorDefine() {
+	public static Map<String, Object> getErrorDefine() {
 		return errorDefine;
 	}
 
@@ -71,5 +74,13 @@ public class Config {
 	 */
 	public final static String getVersion() {
 		return version;
+	}
+	
+	/**
+	 * 获取在 Cookie 中保存 session id 的名称
+	 * @return
+	 */
+	public static String getSessionName() {
+		return sessionName;
 	}
 }

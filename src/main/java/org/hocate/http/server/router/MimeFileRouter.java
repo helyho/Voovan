@@ -3,8 +3,8 @@ package org.hocate.http.server.router;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import org.hocate.http.message.Request;
-import org.hocate.http.message.Response;
+import org.hocate.http.server.HttpRequest;
+import org.hocate.http.server.HttpResponse;
 import org.hocate.http.server.MimeTools;
 import org.hocate.http.server.RouterBuiz;
 import org.hocate.tools.TFile;
@@ -24,7 +24,7 @@ public class MimeFileRouter implements RouterBuiz{
 	}
 	
 	@Override
-	public void Process(Request request, Response response) throws Exception {
+	public void Process(HttpRequest request, HttpResponse response) throws Exception {
 		String urlPath = request.protocol().getPath();
 		if(MimeTools.isMimeFile(urlPath)){
 			//获取扩展名

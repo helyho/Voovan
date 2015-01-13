@@ -47,6 +47,18 @@ public class Request {
 	
 	/**
 	 * 构造函数
+	 * @param request
+	 */
+	protected Request(Request request){
+		this.protocol = request.protocol;
+		this.header = request.header;
+		this.body = request.body;
+		this.cookies = request.cookies;
+		this.parts = request.parts;
+	}
+	
+	/**
+	 * 构造函数
 	 */
 	public Request(){
 		protocol = new RequestProtocol();

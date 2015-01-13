@@ -24,6 +24,18 @@ public class Response {
 
 	/**
 	 * 构造函数
+	 * @param response
+	 */
+	protected Response(Response response){
+		this.protocol = response.protocol;
+		this.header = response.header;
+		this.body = response.body;
+		this.cookies = response.cookies;
+		this.useCompress = response.useCompress;
+	}
+	
+	/**
+	 * 构造函数
 	 */
 	public Response() {
 		protocol = new ResponseProtocol();

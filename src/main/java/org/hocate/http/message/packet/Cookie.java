@@ -11,7 +11,6 @@ import java.util.Map.Entry;
 public class Cookie {
 	private String domain;
 	private String path;
-	private String expires;
 	private int maxAge = -999999;
 	private boolean secure;
 	private boolean httpOnly;
@@ -30,12 +29,6 @@ public class Cookie {
 	}
 	public void setPath(String path) {
 		this.path = path;
-	}
-	public String getExpires() {
-		return expires;
-	}
-	public void setExpires(String expires) {
-		this.expires = expires;
 	}
 	public int getMaxage() {
 		return maxAge;
@@ -72,10 +65,9 @@ public class Cookie {
 	public String toString(){
 		return (this.name!=null||this.value!=null? (this.name+"="+this.value) : "")+
 				(this.domain!=null ? ("; domain="+this.domain) : "")+
-				(this.expires!=null ? ("; expires="+this.expires) : "")+
 				(this.maxAge!=-999999 ? ("; max-age="+this.maxAge) : "")+
-				(this.path!=null ? ("; path="+this.path) : "")+
-				(this.httpOnly?"httponly; ":"")+(this.secure?"secure":"");
+				(this.path!=null ? ("; path="+this.path) : " ")+
+				(this.httpOnly?"; httponly; ":"")+(this.secure?"; secure":"");
 	}
 	
 	/**
@@ -92,9 +84,6 @@ public class Cookie {
 				break;
 			case "path" :
 				cookie.setPath(cookieMapItem.getValue());
-				break;
-			case "expires" :
-				cookie.setExpires(cookieMapItem.getValue());
 				break;
 			case "max-age" :
 				cookie.setMaxage(Integer.valueOf(cookieMapItem.getValue()));
