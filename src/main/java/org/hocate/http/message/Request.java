@@ -150,7 +150,7 @@ public class Request {
 	 */
 	private static String decodeQueryString(String queryString){
 		if(queryString!=null && !queryString.equals("")){
-			String[] encodedValues = TString.searchByRegex(queryString,"=[^ \\&]+");
+			String[] encodedValues = TString.searchByRegex(queryString,"=[^\\&]+");
 			for(String encodedValue : encodedValues){
 				try {
 					String decodeValueString = "="+URLDecoder.decode(encodedValue.substring(1, encodedValue.length()),"UTF-8")+"&";

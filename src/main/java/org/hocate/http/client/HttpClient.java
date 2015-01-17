@@ -109,7 +109,7 @@ public class HttpClient {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return queryString;
+		return queryString.isEmpty()? "" :"?"+queryString;
 	}
 	
 	/**
@@ -118,7 +118,7 @@ public class HttpClient {
 	private void buildRequest(){
 
 		if (request.getType() == RequestType.GET) {
-			String queryString = getQueryString().isEmpty() ? "" :"?"+getQueryString(); 
+			String queryString = getQueryString(); 
 			request.protocol().setPath(request.protocol().getPath() + queryString);
 		}
 		else if(request.getType() == RequestType.POST && request.parts().size()!=0){

@@ -104,7 +104,13 @@ public class Part {
 	
 	@Override
 	public String toString(){
-		header.put("Content-Disposition", "form-data; name=\""+header.get("name")+"\"");
+		header.put("Content-Disposition", "form-data");
+		if(header.get("name")!=null){
+			header.put("Content-Disposition", header.get("Content-Disposition")+"; name=\""+header.get("name")+"\"");
+		}
+		if(header.get("filename")!=null){
+			header.put("Content-Disposition", header.get("Content-Disposition")+"; filename=\""+header.get("filename")+"\"");
+		}
 		return header.toString()+"\r\n";
 	}
 }

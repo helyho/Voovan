@@ -5,15 +5,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-public class SessionManager {
-	private static Map<String, HttpSession>	sessions	= new Hashtable<String, HttpSession>();
+import org.hocate.log.Logger;
+
+public class SessionManager{
+	private  Map<String, HttpSession>	sessions;
+	
+	public SessionManager(Map<String, HttpSession> sessionMap){
+		if(sessionMap == null){
+			sessions = new Hashtable<String, HttpSession>();
+			Logger.warn("Create session container from config file failed,now use defaul session container.");
+		}else{
+			sessions = sessionMap;
+		}
+	}
 
 	/**
 	 * 增加 Session
 	 * 
 	 * @param session
 	 */
-	public static synchronized void addSession(HttpSession session) {
+	public synchronized void addSession(HttpSession session) {
 		clearInvalidSession();
 		if (!sessions.containsKey(session.getId())) {
 			sessions.put(session.getId(), session);
@@ -26,7 +37,7 @@ public class SessionManager {
 	 * @param id
 	 * @return
 	 */
-	public static synchronized HttpSession getSession(String id) {
+	public synchronized HttpSession getSession(String id) {
 		clearInvalidSession();
 		if (sessions.containsKey(id)) {
 			return sessions.get(id);
@@ -37,7 +48,7 @@ public class SessionManager {
 	/**
 	 * 获取失效的 session
 	 */
-	public static synchronized List<HttpSession> getInvalidSession() {
+	public synchronized List<HttpSession> getInvalidSession() {
 		List<HttpSession> needRemove = new Vector<HttpSession>();
 		for (HttpSession session : sessions.values()) {
 			if (session.isInvalid()) {
@@ -50,11 +61,18 @@ public class SessionManager {
 	/**
 	 * 获取失效的 session
 	 */
-	public static synchronized void clearInvalidSession() {
+	public synchronized void clearInvalidSession() {
 		List<HttpSession> needRemove = getInvalidSession();
 		for(HttpSession session : needRemove){
 			sessions.remove(session.getId());
 		}
 	}
-
+	
+	/**
+	 * 获得一个新的 Session
+	 * @return
+	 */
+	public HttpSession newHttpSession(){
+		return new HttpSession();
+	}
 }

@@ -16,6 +16,7 @@ public class HttpServerTest {
 											    	Logger.simple("Session saved time"+req.getSession().getAttributes("Time"));
 											    }
 											    Logger.simple(req.getRemoteAddres()+" "+req.getRemotePort());
+											    Logger.simple(req.getQueryString());
 												req.getSession().setAttribute("Time", new Date().toString());
 												resp.body().writeString("This is HTTP test!");
 											}

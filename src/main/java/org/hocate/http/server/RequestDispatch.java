@@ -32,6 +32,7 @@ public class RequestDispatch {
 	 * [MainKey] = HTTP method ,[Value Key] = Route path, [Value value] = RouteBuiz对象
 	 */
 	private Map<String, Map<String, RouterBuiz>>	routes;
+	private SessionManager sessionManager;
 	
 	/**
 	 * 构造函数
@@ -39,8 +40,11 @@ public class RequestDispatch {
 	 * @param rootDir
 	 *            根目录
 	 */
-	public RequestDispatch(String rootDir) {
+	public RequestDispatch(String contextPath) {
 		routes = new HashMap<String, Map<String, RouterBuiz>>();
+		
+		//构造 SessionManage
+		sessionManager = new SessionManager(WebContext.getSessionConatiner());
 
 		// 初始化所有的 HTTP 请求方法
 		this.addRouteMethod("GET");
@@ -53,7 +57,7 @@ public class RequestDispatch {
 		this.addRouteMethod("OPTIONS");
 
 		// Mime静态文件默认请求处理
-		routes.get("GET").put(MimeTools.getMimeTypeRegex(), new MimeFileRouter(rootDir));
+		routes.get("GET").put(MimeTools.getMimeTypeRegex(), new MimeFileRouter(contextPath));
 	}
 
 	/**
@@ -117,7 +121,7 @@ public class RequestDispatch {
 	 */
 	public void diposeSession(HttpRequest request, HttpResponse response){
 		
-		Cookie sessionCookie = request.getCookie(Config.getSessionName());
+		Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
 		
 		//如果 session 不存在,创建新的 session
 		//1.保存 session id 的 cookie 不存在
@@ -125,22 +129,22 @@ public class RequestDispatch {
 		//3.从 session 管理器中取 session 对象为空
 		if(sessionCookie==null 
 				|| TString.isNullOrEmpty(sessionCookie.getValue()) 
-				|| SessionManager.getSession(sessionCookie.getValue())==null){
+				|| sessionManager.getSession(sessionCookie.getValue())==null){
 			//构建 session
-			HttpSession session = new HttpSession();
+			HttpSession session = sessionManager.newHttpSession();
 			request.setSession(session);
-			SessionManager.addSession(session);
+			sessionManager.addSession(session);
 			
 			//取 session 超时时间
-			String sessionTimeout = TString.defaultValue(Config.getWebConfig().get("SessionTimeout"), "30");
+			int sessionTimeout = WebContext.getWebConfig("SessionTimeout",30);
 			//创建 Cookie
-			Cookie cookie = Cookie.newInstance(request, Config.getSessionName(), 
-					session.getId(), Integer.parseInt(sessionTimeout)*60);
+			Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(), 
+					session.getId(),sessionTimeout*60);
 			response.cookies().add(cookie);
 			
 			Logger.simple("Create session");
 		}else{
-			HttpSession session = SessionManager.getSession(sessionCookie.getValue());
+			HttpSession session = sessionManager.getSession(sessionCookie.getValue());
 			request.setSession(session);
 			Logger.simple("Get old session");
 		}
@@ -156,7 +160,7 @@ public class RequestDispatch {
 	public void ExceptionMessage(HttpRequest request, HttpResponse response, Exception e) {
 		e.printStackTrace();
 		
-		Map<String, Object> errorDefine = Config.getErrorDefine();
+		Map<String, Object> errorDefine = WebContext.getErrorDefine();
 		String requestMethod = request.protocol().getMethod();
 		String requestPath = request.protocol().getPath();
 		response.header().put("Content-Type", "text/html");
@@ -193,7 +197,7 @@ public class RequestDispatch {
 			errorPageContent = TString.tokenReplace(errorPageContent, "RequestPath", requestPath);
 			errorPageContent = TString.tokenReplace(errorPageContent, "ErrorMessage", errorMessage);
 			errorPageContent = TString.tokenReplace(errorPageContent, "Description", error.get("Description").toString());
-			errorPageContent = TString.tokenReplace(errorPageContent, "Version", Config.getVersion());
+			errorPageContent = TString.tokenReplace(errorPageContent, "Version", WebContext.getVersion());
 			response.body().clear();
 			response.body().writeString(errorPageContent);
 		}

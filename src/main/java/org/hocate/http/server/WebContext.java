@@ -5,13 +5,14 @@ import java.util.Map;
 import org.hocate.json.JSONDecode;
 import org.hocate.tools.TFile;
 import org.hocate.tools.TObject;
+import org.hocate.tools.TReflect;
 
 /**
- * 读取配置
+ * Web上下文(配置信息读取)
  * @author helyho
  *
  */
-public class Config {
+public class WebContext {
 	
 	private static String sessionName = "SESSIONID";
 
@@ -44,12 +45,28 @@ public class Config {
 		return TObject.cast(configObject);
 	}
 	
+	
+	/**
+	 * 获取 Session 容器
+	 */
+	public static Map<String, HttpSession> getSessionConatiner(){
+		try {
+			String className = WebContext.getWebConfig("SessionContainer",null);
+			Class<?> sessionContainerClass = Class.forName(className);
+			Map<String, HttpSession> sessionContainer = TObject.cast(TReflect.newInstance(sessionContainerClass));
+			return sessionContainer;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	
 	/**
 	 * 获取 Web 服务配置
+	 * @param <T>
 	 * @return
 	 */
-	public static Map<String, Object> getWebConfig() {
-		return webConfig;
+	public static <T> T getWebConfig(String name,T defaultValue) {
+		return webConfig.get(name)==null?defaultValue:TObject.cast(webConfig.get(name));
 	}
 	
 	/**

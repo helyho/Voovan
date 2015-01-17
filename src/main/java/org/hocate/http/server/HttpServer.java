@@ -1,7 +1,6 @@
 package org.hocate.http.server;
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.hocate.network.aio.AioServerSocket;
 import org.hocate.network.messagePartition.HttpMessageParter;
@@ -31,9 +30,9 @@ public class HttpServer {
 	 * @throws IOException
 	 *             异常
 	 */
-	public HttpServer(String host, int port, int timeout, String rootDir) throws IOException {
+	public HttpServer(String host, int port, int timeout, String contextPath) throws IOException {
 		// 路由处理对象
-		requestProcesser = new RequestDispatch(rootDir);
+		requestProcesser = new RequestDispatch(contextPath);
 		// 准备 socket 监听
 		aioServerSocket = new AioServerSocket(host, port, timeout);
 		aioServerSocket.handler(new HttpServerHandler(requestProcesser));
@@ -83,11 +82,10 @@ public class HttpServer {
 	}
 
 	public static HttpServer newInstance() {
-		Map<String, Object> webConfig = Config.getWebConfig();
-		String host = TObject.cast(webConfig.get("Host"));
-		int port = TObject.cast(webConfig.get("Port"));
-		int timeOut = TObject.cast(webConfig.get("TimeOut"));
-		String rootDir = TObject.cast(webConfig.get("RootDir"));
+		String host = TObject.cast(WebContext.getWebConfig("Host","0.0.0.0"));
+		int port = TObject.cast(WebContext.getWebConfig("Port",80));
+		int timeOut = TObject.cast(WebContext.getWebConfig("Timeout",3000));
+		String rootDir = TObject.cast(WebContext.getWebConfig("ContextPath",""));
 		
 		try {
 			return new HttpServer(host, port, timeOut, rootDir);

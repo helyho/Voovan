@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.hocate.tools.TString;
-
 public class HttpSession {
 	private Map<String,Object> attributes;
 	private String id ;
@@ -19,8 +17,8 @@ public class HttpSession {
 		attributes = new HashMap<String, Object>();
 		this.id = UUID.randomUUID().toString().toUpperCase().replaceAll("-", "");
 		createTimeillis = System.currentTimeMillis();
-		String sessionTimeout = TString.defaultValue(Config.getWebConfig().get("SessionTimeout"),"30");
-		this.maxInactiveInterval = Integer.parseInt(sessionTimeout)*60*1000;
+		int sessionTimeout = WebContext.getWebConfig("SessionTimeout",30);
+		this.maxInactiveInterval = sessionTimeout*60*1000;
 	}
 
 	/**

@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,7 +42,7 @@ public class HttpParser {
 			protocol.put("FL_Method", lineSplit[0]);
 			//请求路径和请求串
 			String[] pathSplit = lineSplit[1].split("\\?");
-			protocol.put("FL_Path", URLDecoder.decode(pathSplit[0],"UTF-8"));
+			protocol.put("FL_Path", pathSplit[0]);
 			if(pathSplit.length==2){
 				protocol.put("value", pathSplit[1].getBytes());
 			}
@@ -472,11 +471,11 @@ public class HttpParser {
 				"\r\n"+
 				"32\r\n"+
 				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
-				"Content-Disposition: form-data; name=\"address\"\r\n"+
+				"Content-Disposition: form-data; name=\"address\" filename=\"1.jpg\"\r\n"+
 				"\r\n"+
 		 		"wlmq\r\n"+
 				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm--\r\n\r\n";
 				
-		Logger.simple(new String(HttpParser.parseRequest(new ByteArrayInputStream(httpRequestString.getBytes())).asBytes()));
+		Logger.simple(HttpParser.parseRequest(new ByteArrayInputStream(httpRequestString.getBytes())));
 	}
 }
