@@ -127,7 +127,7 @@ public class HttpClient {
 				for (Entry<String, Object> parameter : parameters.entrySet()) {
 					Part part = new Part();
 					part.header().put("name", parameter.getKey());
-					part.body().writeBytes(URLEncoder.encode(parameter.getValue().toString(),"UTF-8").getBytes());
+					part.body().write(URLEncoder.encode(parameter.getValue().toString(),"UTF-8").getBytes());
 					request.parts().add(part);
 				}
 			} catch (Exception e) {
@@ -136,7 +136,7 @@ public class HttpClient {
 			
 		}
 		else if(request.getType() == RequestType.POST && request.body()!=null){
-			request.body().writeBytes(getQueryString().getBytes());
+			request.body().write(getQueryString().getBytes());
 		}
 	}
 	

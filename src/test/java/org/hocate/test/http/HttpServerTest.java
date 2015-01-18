@@ -20,7 +20,7 @@ public class HttpServerTest {
 											    Logger.simple(req.getQueryString());
 												req.getSession().setAttribute("Time", new Date().toString());
 												
-												resp.body().writeBytes(TFile.loadResource("org/hocate/test/http/test.htm"));
+												resp.write(TFile.loadResource("org/hocate/test/http/test.htm"));
 											}
 			);
 			
@@ -32,7 +32,7 @@ public class HttpServerTest {
 			    Logger.simple(req.getQueryString());
 				req.getSession().setAttribute("Time", new Date().toString());
 				
-				resp.body().writeBytes(TFile.loadResource("org/hocate/test/http/test.htm"));
+				resp.write(TFile.loadResource("org/hocate/test/http/test.htm"));
 			});
 			httpServer.Serve();
 		} catch (IOException e) {

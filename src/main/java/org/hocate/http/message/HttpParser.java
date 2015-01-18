@@ -354,10 +354,10 @@ public class HttpParser {
 				byte[] value = (byte[])(parsedPacketEntry.getValue());
 				//如果是 GET 请求,则分析出来的内容(parsedPacket)中的 value 是 QueryString
 				if(parsedPacket.get("FL_Method").equals("GET")){
-					request.protocol().setQueryString(new String(value,"UTF-8"));
+					request.protocol().setQueryString(new String(value));
 				}
 				else{
-					request.body().writeBytes(value);
+					request.body().write(value);
 				}
 				break;
 			case "Parts":
@@ -369,7 +369,7 @@ public class HttpParser {
 					for(Entry<String, Object> parsedPartMapItem : parsedPartMap.entrySet()){
 						//填充 Value 中的值到 body 中
 						if(parsedPartMapItem.getKey().equals("value")){
-							part.body().writeBytes(TObject.cast(parsedPartMapItem.getValue()));
+							part.body().write(TObject.cast(parsedPartMapItem.getValue()));
 						}else{
 							//填充 header
 							part.header().put(parsedPartMapItem.getKey(), parsedPartMapItem.getValue().toString());
@@ -425,7 +425,7 @@ public class HttpParser {
 				}
 				break;
 			case "value":
-				response.body().writeBytes(TObject.cast(parsedPacketEntry.getValue()));
+				response.body().write(TObject.cast(parsedPacketEntry.getValue()));
 				break;
 			default:
 				response.header().put(parsedPacketEntry.getKey(), parsedPacketEntry.getValue().toString());

@@ -39,6 +39,11 @@ public class HttpServerHandler implements IoHandler {
 		HttpRequest httpRequest = new HttpRequest(request);
 		HttpResponse httpResponse = new HttpResponse(response);
 		
+		//设置默认字符集
+		String defaultCharacterSet = WebContext.getWebConfig("CharacterSet", "UTF-8");
+		httpRequest.setCharacterSet(defaultCharacterSet);
+		httpResponse.setCharacterSet(defaultCharacterSet);
+		
 		httpRequest.setRemoteAddres(session.remoteAddress());
 		httpRequest.setRemotePort(session.remotePort());
 		try {

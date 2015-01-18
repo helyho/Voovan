@@ -198,8 +198,8 @@ public class RequestDispatch {
 			errorPageContent = TString.tokenReplace(errorPageContent, "ErrorMessage", errorMessage);
 			errorPageContent = TString.tokenReplace(errorPageContent, "Description", error.get("Description").toString());
 			errorPageContent = TString.tokenReplace(errorPageContent, "Version", WebContext.getVersion());
-			response.body().clear();
-			response.body().writeString(errorPageContent);
+			response.clear();
+			response.write(errorPageContent);
 		}
 	}
 }

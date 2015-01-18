@@ -7,6 +7,8 @@
 	"Timeout"			: 3000,
 	//上下文路径
 	"ContextPath"		: "/Users/helyho/Downloads",
+	//默认字符集
+	"CharacterSet"		: "GB2312",
 	//Session 容器类
 	"SessionContainer"  : "java.util.Hashtable",
 	//Session 超时时间

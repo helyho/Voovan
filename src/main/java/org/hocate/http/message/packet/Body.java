@@ -2,6 +2,9 @@ package org.hocate.http.message.packet;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
+import org.hocate.tools.TString;
 import org.hocate.tools.TZip;
 
 /**
@@ -27,20 +30,6 @@ public class Body {
 	}
 	
 	/**
-	 * 填写 body 体
-	 * @param body
-	 * @throws IOException 
-	 */
-	public void writeBytes(byte[] body){
-		try {
-			outputStream.write(body);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	
-	/**
 	 * 获取 body 字符串
 	 * @return
 	 */
@@ -49,13 +38,60 @@ public class Body {
 		return bodyBytes!=null?new String(bodyBytes):null;
 	}
 	
+	
 	/**
-	 * 写入 body 字符串
+	 * 获取 body 字符串
+	 * @param charset 字符集
+	 * @return
+	 */
+	public String getBodyString(String charset){
+		byte[] bodyBytes = getBodyBytes();
+		try {
+			return bodyBytes!=null?new String(bodyBytes,charset):null;
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return new String(bodyBytes);
+		}
+	}
+	
+	/**
+	 * 写入 body 
+	 * @param body
+	 * @throws IOException 
+	 */
+	public void write(byte[] body){
+		try {
+			outputStream.write(body);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 写入 body 
+	 * @param body
+	 * @throws IOException 
+	 */
+	public void write(byte[] body,int offset,int length){
+		outputStream.write(body,offset,length);
+	}
+	
+	/**
+	 * 写入 body 字符串,默认 UTF-8
+	 * @param content
+	 */
+	public void write(String content){
+		write(content,"UTF-8");
+	}
+	
+	/**
+	 * 使用特定的字符集写入 body 字符串
 	 * @param content
 	 * @param charset
 	 */
-	public void writeString(String content){
+	public void write(String content,String charset){
 		try{
+			content = TString.converToCharset(content, charset);
 			outputStream.write(content.getBytes());
 		} catch (IOException e) {
 			e.printStackTrace();

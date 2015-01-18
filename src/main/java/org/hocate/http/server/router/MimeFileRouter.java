@@ -53,12 +53,13 @@ public class MimeFileRouter implements RouterBuiz{
 			}else{
 				fileByte = TFile.loadFileFromSysPath(filePath);
 			}
+			
 			if(fileByte==null){
 				throw new FileNotFoundException(filePath);
 			}
 			else{
 				response.header().put("Content-Length",""+fileByte.length);
-				response.body().writeBytes(fileByte);
+				response.write(fileByte);
 			}
 		}
 	}
