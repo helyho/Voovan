@@ -5,6 +5,7 @@ import java.util.Date;
 
 import org.hocate.http.server.HttpServer;
 import org.hocate.log.Logger;
+import org.hocate.tools.TFile;
 
 public class HttpServerTest {
 	public static void main(String[] args) {
@@ -18,9 +19,21 @@ public class HttpServerTest {
 											    Logger.simple(req.getRemoteAddres()+" "+req.getRemotePort());
 											    Logger.simple(req.getQueryString());
 												req.getSession().setAttribute("Time", new Date().toString());
-												resp.body().writeString("This is HTTP test!");
+												
+												resp.body().writeBytes(TFile.loadResource("org/hocate/test/http/test.htm"));
 											}
 			);
+			
+			httpServer.post("/", (req,resp)->{
+				if(req.getSession()!=null && req.getSession().getAttributes("Time")!=null){
+			    	Logger.simple("Session saved time"+req.getSession().getAttributes("Time"));
+			    }
+			    Logger.simple(req.getRemoteAddres()+" "+req.getRemotePort());
+			    Logger.simple(req.getQueryString());
+				req.getSession().setAttribute("Time", new Date().toString());
+				
+				resp.body().writeBytes(TFile.loadResource("org/hocate/test/http/test.htm"));
+			});
 			httpServer.Serve();
 		} catch (IOException e) {
 			e.printStackTrace();
