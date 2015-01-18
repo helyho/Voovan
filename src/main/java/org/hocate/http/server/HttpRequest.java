@@ -1,5 +1,8 @@
 package org.hocate.http.server;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.hocate.http.message.Request;
 import org.hocate.http.message.packet.Cookie;
 
@@ -9,10 +12,13 @@ public class HttpRequest extends Request {
 	private String remoteAddres;
 	private int remotePort;
 	private String characterSet;
+	private Map<String, String> parameters;
 	
 	protected HttpRequest(Request request){
 		super(request);
 		characterSet="UTF-8";
+		parameters = new HashMap<String, String>();
+		parseParameters();
 	}
 	
 	/**
@@ -99,5 +105,19 @@ public class HttpRequest extends Request {
 	 */
 	public String getQueryString(){
 		return getQueryString(characterSet);
+	}
+	
+	private void  parseParameters() {
+		String[] parameterEquals = getQueryString().split("&");
+		for(String parameterEqual :parameterEquals){
+			int equalFlagPos = parameterEqual.indexOf("=");
+			if(equalFlagPos>0){
+				String name = parameterEqual.substring(0, equalFlagPos);
+				String value = parameterEqual.substring(equalFlagPos+1, parameterEqual.length());
+				parameters.put(name, value);
+			}else{
+				parameters.put(parameterEqual, null);
+			}
+		}
 	}
 }
