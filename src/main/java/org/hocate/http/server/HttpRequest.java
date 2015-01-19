@@ -107,16 +107,25 @@ public class HttpRequest extends Request {
 		return getQueryString(characterSet);
 	}
 	
+	public String getQueryParameter(String paramName){
+		return parameters.get(paramName);
+	}
+	
+	/**
+	 * 解析请求参数
+	 */
 	private void  parseParameters() {
-		String[] parameterEquals = getQueryString().split("&");
-		for(String parameterEqual :parameterEquals){
-			int equalFlagPos = parameterEqual.indexOf("=");
-			if(equalFlagPos>0){
-				String name = parameterEqual.substring(0, equalFlagPos);
-				String value = parameterEqual.substring(equalFlagPos+1, parameterEqual.length());
-				parameters.put(name, value);
-			}else{
-				parameters.put(parameterEqual, null);
+		if(getQueryString()!=null){
+			String[] parameterEquals = getQueryString().split("&");
+			for(String parameterEqual :parameterEquals){
+				int equalFlagPos = parameterEqual.indexOf("=");
+				if(equalFlagPos>0){
+					String name = parameterEqual.substring(0, equalFlagPos);
+					String value = parameterEqual.substring(equalFlagPos+1, parameterEqual.length());
+					parameters.put(name, value);
+				}else{
+					parameters.put(parameterEqual, null);
+				}
 			}
 		}
 	}

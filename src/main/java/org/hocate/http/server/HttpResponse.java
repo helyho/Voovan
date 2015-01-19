@@ -64,4 +64,15 @@ public class HttpResponse extends Response {
 	public void clear() {
 		body().clear();
 	}
+	
+	/**
+	 * 重定向
+	 * @param path 重定向路径
+	 */
+	public void redirct(String path){
+		protocol().setStatus(302);
+		protocol().setStatusCode("Moved Permanently");
+		header().put("Location", path);
+		clear();
+	}
 }

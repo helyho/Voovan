@@ -81,11 +81,15 @@ public class HttpServer {
 		requestProcesser.addRouteRuler(method, routeRegexPath, routeBuiz);
 	}
 
+	/**
+	 * 构建新的 HttpServer
+	 * @return
+	 */
 	public static HttpServer newInstance() {
 		String host = TObject.cast(WebContext.getWebConfig("Host","0.0.0.0"));
 		int port = TObject.cast(WebContext.getWebConfig("Port",80));
 		int timeOut = TObject.cast(WebContext.getWebConfig("Timeout",3000));
-		String rootDir = TObject.cast(WebContext.getWebConfig("ContextPath",""));
+		String rootDir = TObject.cast(WebContext.getWebConfig("ContextPath",System.getProperty("user.dir")));
 		
 		try {
 			return new HttpServer(host, port, timeOut, rootDir);

@@ -51,7 +51,7 @@ public class WebContext {
 	 */
 	public static Map<String, HttpSession> getSessionConatiner(){
 		try {
-			String className = WebContext.getWebConfig("SessionContainer",null);
+			String className = WebContext.getWebConfig("SessionContainer","java.util.Hashtable");
 			Class<?> sessionContainerClass = Class.forName(className);
 			Map<String, HttpSession> sessionContainer = TObject.cast(TReflect.newInstance(sessionContainerClass));
 			return sessionContainer;

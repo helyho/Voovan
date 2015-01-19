@@ -38,6 +38,15 @@ public class HttpSession {
 	public void setAttribute(String name,Object value) {
 		attributes.put(name, value);
 	}
+	
+	/**
+	 *  删除当前 Session 属性
+	 * @param name	属性名
+	 */
+	public void removeAttribute(String name) {
+		attributes.remove(name);
+	}
+
 
 	/**
 	 * 获取 Session ID

@@ -13,10 +13,10 @@ import org.hocate.tools.TObject;
  *
  */
 public class HttpServerHandler implements IoHandler {
-	private RequestDispatch	processer;
+	private RequestDispatch	requestDispatch;
 
-	public HttpServerHandler(RequestDispatch processer) {
-		this.processer = processer;
+	public HttpServerHandler(RequestDispatch requestDispatch) {
+		this.requestDispatch = requestDispatch;
 	}
 
 	@Override
@@ -47,29 +47,11 @@ public class HttpServerHandler implements IoHandler {
 		httpRequest.setRemoteAddres(session.remoteAddress());
 		httpRequest.setRemotePort(session.remotePort());
 		try {
-			processer.Process(httpRequest, httpResponse);
+			requestDispatch.Process(httpRequest, httpResponse);
 			session.setAttribute("isKeepAlive", request.header().get("Connection"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		// Logger.info(request);
-		// Logger.info("======================================");
-		// try{
-		// for(Part part : request.parts()){
-		// Logger.infoln(part.getType());
-		// if(part.getType()==PartType.BINARY){
-		// part.saveAsFile("/Users/helyho/response.jpg");
-		// }
-		// }
-		// }
-		// catch(Exception e){
-		// e.printStackTrace();
-		// }
-
-		// String bodyContent = "test body content";
-		// response.body().setBody(bodyContent.getBytes());
-		// Logger.info("=================================");
-		// Logger.info(response);
 		return response;
 	}
 
