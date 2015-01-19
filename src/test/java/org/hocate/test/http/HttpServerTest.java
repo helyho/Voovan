@@ -34,6 +34,7 @@ public class HttpServerTest {
 				req.getSession().setAttribute("Time", new Date().toString());
 
 				resp.write(TFile.loadResource("org/hocate/test/http/test.htm"));
+				resp.write(req.getParameter("name"));
 			});
 			
 			// 重定向
