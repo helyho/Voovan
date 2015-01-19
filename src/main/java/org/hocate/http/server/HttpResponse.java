@@ -53,7 +53,9 @@ public class HttpResponse extends Response {
 	 * @param bytes
 	 */
 	public void write(String strs) {
-		body().write(strs, characterSet);
+		if(strs!=null){
+			body().write(strs, characterSet);
+		}
 	}
 	
 	/**

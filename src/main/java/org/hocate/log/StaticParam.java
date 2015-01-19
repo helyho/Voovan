@@ -12,7 +12,8 @@ public class StaticParam {
 	public static long getStartTimeMillis() {
 		return startTimeMillis;
 	}
-	public static String getConfig(String property) {
+	
+	public static String getLogConfig(String property) {
 		String value = TProperties.getString(configFile, property);
 		return value==null?"":value;
 	}

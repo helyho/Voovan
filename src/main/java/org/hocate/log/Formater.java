@@ -15,22 +15,40 @@ public class Formater {
 	private Thread logWriter;
 	private WriteThread writeThread;
 
+	/**
+	 * 构造函数
+	 * @param template
+	 * @param outputStreams
+	 */
 	public Formater(String template, OutputStream[] outputStreams) {
 		this.template = template;
 		this.writeThread = new WriteThread(outputStreams);
 	}
 
+	/**
+	 * 获得当前栈元素信息
+	 * @return
+	 */
 	public static StackTraceElement currentStackLine() {
 		StackTraceElement[] stackTraceElements = TEnv.getCurrentStackInfo();
 		return stackTraceElements[5];
 	}
 
+	/**
+	 * 获取当前线程名称
+	 * @return
+	 */
 	private static String currentThreadName() {
 		return Thread.currentThread().getName();
 	}
 
+	/**
+	 * 消息缩进
+	 * @param message
+	 * @return
+	 */
 	public String preIndentMessage(Message message){
-		String infoIndent = StaticParam.getConfig("InfoIndent");
+		String infoIndent = StaticParam.getLogConfig("InfoIndent");
 		String msg = message.getMessage();
 		if (infoIndent != null) {
 			msg = infoIndent + msg;
@@ -41,10 +59,15 @@ public class Formater {
 		}
 	}
 	
+	/**
+	 * 格式化消息
+	 * @param message
+	 * @return
+	 */
 	public String format(Message message) {
 		Map<String, String> tokens = new HashMap<String, String>();
 		StackTraceElement stackTraceElement = currentStackLine();
-		//Message 和栈信息公用
+		//Message和栈信息公用
 		tokens.put("t", "\t");
 		tokens.put("s", " ");
 		preIndentMessage(message);
@@ -65,10 +88,18 @@ public class Formater {
 		return TString.tokenReplace(template, tokens);
 	}
 
+	/**
+	 * 写入格式化后的消息
+	 * @param message
+	 */
 	public void writeFormatedLog(Message message) {
 		writeLog(format(message));
 	}
 	
+	/**
+	 * 写入消息
+	 * @param msg
+	 */
 	public void writeLog(String msg) {
 		if(logWriter==null || !logWriter.isAlive()){
 			logWriter = new Thread(writeThread);
@@ -76,22 +107,18 @@ public class Formater {
 		}
 		writeThread.addLogMessage(msg);
 	}
-	
-	public void writeSimpleLog(Message message) {
-		if(logWriter==null || !logWriter.isAlive()){
-			logWriter = new Thread(writeThread);
-			logWriter.start();
-		}
-		writeThread.addLogMessage(message.getMessage());
-	}
 
+	/**
+	 * 获得一个实例
+	 * @return
+	 */
 	public static Formater newInstance() {
 		OutputStream[] outputStreams;
 		try {
 			
-			String logTemplate = StaticParam.getConfig("LogTemplate");
-			String[] LogTypes = StaticParam.getConfig("LogType").split(",");
-			String logFile = StaticParam.getConfig("LogFile");
+			String logTemplate = StaticParam.getLogConfig("LogTemplate");
+			String[] LogTypes = StaticParam.getLogConfig("LogType").split(",");
+			String logFile = StaticParam.getLogConfig("LogFile");
 
 			outputStreams = new OutputStream[LogTypes.length];
 			for (int i = 0; i < LogTypes.length; i++) {

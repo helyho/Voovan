@@ -3,7 +3,11 @@ package org.hocate.log;
 import java.io.OutputStream;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-
+/**
+ * 日志输出线程
+ * @author helyho
+ *
+ */
 public class WriteThread implements Runnable {
 	private LinkedBlockingDeque<String>	logDeque;
 	private OutputStream[]				outputStreams;
@@ -13,6 +17,10 @@ public class WriteThread implements Runnable {
 		this.outputStreams = outputStreams;
 	}
 
+	/**
+	 * 增加消息
+	 * @param string
+	 */
 	public void addLogMessage(String string) {
 		logDeque.add(string);
 	}

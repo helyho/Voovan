@@ -15,7 +15,7 @@ public class HttpServerTest {
 			HttpServer httpServer = HttpServer.newInstance();
 			httpServer.get("/:name", (req, resp) -> {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
-					Logger.simple("Session saved time" + req.getSession().getAttributes("Time"));
+					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
 				}
 				Logger.simple(req.getRemoteAddres() + " " + req.getRemotePort());
 				Logger.simple("QueryString:"+req.getQueryString());
@@ -27,7 +27,7 @@ public class HttpServerTest {
 			
 			httpServer.get("/", (req, resp) -> {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
-					Logger.simple("Session saved time" + req.getSession().getAttributes("Time"));
+					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
 				}
 				Logger.simple(req.getRemoteAddres() + " " + req.getRemotePort());
 				Logger.simple("QueryString:"+req.getQueryString());
@@ -44,7 +44,7 @@ public class HttpServerTest {
 
 			httpServer.post("/", (req, resp) -> {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
-					Logger.simple("Session saved time" + req.getSession().getAttributes("Time"));
+					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
 				}
 				Logger.simple(req.getRemoteAddres() + " " + req.getRemotePort());
 				Logger.simple(req.getQueryString());
