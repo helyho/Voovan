@@ -13,12 +13,24 @@ public class HttpServerTest {
 			// HttpServer httpServer = new
 			// HttpServer("0.0.0.0",2080,100,"/Users/helyho/Downloads");
 			HttpServer httpServer = HttpServer.newInstance();
+			httpServer.get("/:name", (req, resp) -> {
+				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
+					Logger.simple("Session saved time" + req.getSession().getAttributes("Time"));
+				}
+				Logger.simple(req.getRemoteAddres() + " " + req.getRemotePort());
+				Logger.simple("QueryString:"+req.getQueryString());
+				req.getSession().setAttribute("Time", new Date().toString());
+
+				resp.write(TFile.loadResource("org/hocate/test/http/test.htm"));
+				resp.write(req.getParameter("name"));
+			});
+			
 			httpServer.get("/", (req, resp) -> {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time" + req.getSession().getAttributes("Time"));
 				}
 				Logger.simple(req.getRemoteAddres() + " " + req.getRemotePort());
-				Logger.simple(req.getQueryString());
+				Logger.simple("QueryString:"+req.getQueryString());
 				req.getSession().setAttribute("Time", new Date().toString());
 
 				resp.write(TFile.loadResource("org/hocate/test/http/test.htm"));

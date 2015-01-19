@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import org.hocate.http.server.HttpRequest;
 import org.hocate.http.server.HttpResponse;
 import org.hocate.http.server.MimeTools;
-import org.hocate.http.server.RouterBuiz;
+import org.hocate.http.server.Router;
 import org.hocate.tools.TFile;
 import org.hocate.tools.TString;
 
@@ -15,7 +15,7 @@ import org.hocate.tools.TString;
  * @author helyho
  *
  */
-public class MimeFileRouter implements RouterBuiz{
+public class MimeFileRouter implements Router{
 
 	private String rootPath;
 	

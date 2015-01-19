@@ -1,9 +1,12 @@
 package org.hocate.http.server;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.hocate.http.message.packet.Cookie;
+import org.hocate.http.server.Exception.NoneRouterException;
 import org.hocate.http.server.router.MimeFileRouter;
 import org.hocate.log.Logger;
 import org.hocate.tools.TFile;
@@ -31,7 +34,7 @@ public class RequestDispatch {
 	/**
 	 * [MainKey] = HTTP method ,[Value Key] = Route path, [Value value] = RouteBuiz对象
 	 */
-	private Map<String, Map<String, RouterBuiz>>	routes;
+	private Map<String, Map<String, Router>>	routes;
 	private SessionManager sessionManager;
 	
 	/**
@@ -41,7 +44,7 @@ public class RequestDispatch {
 	 *            根目录
 	 */
 	public RequestDispatch(String contextPath) {
-		routes = new HashMap<String, Map<String, RouterBuiz>>();
+		routes = new HashMap<String, Map<String, Router>>();
 		
 		//构造 SessionManage
 		sessionManager = new SessionManager(WebContext.getSessionConatiner());
@@ -57,7 +60,7 @@ public class RequestDispatch {
 		this.addRouteMethod("OPTIONS");
 
 		// Mime静态文件默认请求处理
-		routes.get("GET").put(MimeTools.getMimeTypeRegex(), new MimeFileRouter(contextPath));
+		addRouteRuler("GET", MimeTools.getMimeTypeRegex(), new MimeFileRouter(contextPath));
 	}
 
 	/**
@@ -67,7 +70,7 @@ public class RequestDispatch {
 	 */
 	protected void addRouteMethod(String method) {
 		if (!routes.containsKey(method)) {
-			routes.put(method, new HashMap<String, RouterBuiz>());
+			routes.put(method, new HashMap<String, Router>());
 		}
 	}
 
@@ -78,7 +81,7 @@ public class RequestDispatch {
 	 * @param routeRegexPath
 	 * @param routeBuiz
 	 */
-	public void addRouteRuler(String Method, String routeRegexPath, RouterBuiz routeBuiz) {
+	public void addRouteRuler(String Method, String routeRegexPath, Router routeBuiz) {
 		if (routes.keySet().contains(Method)) {
 			routes.get(Method).put(routeRegexPath, routeBuiz);
 		}
@@ -92,16 +95,21 @@ public class RequestDispatch {
 	 * @throws Exception
 	 */
 	public void Process(HttpRequest request, HttpResponse response) throws Exception {
-		String requestMethod = request.protocol().getMethod();
 		String requestPath = request.protocol().getPath();
-
-		Map<String, RouterBuiz> routeInfos = routes.get(requestMethod);
-		for (String routeRegexPath : routeInfos.keySet()) {
+		String requestMethod = request.protocol().getMethod();
+		
+		boolean isMatched = false;
+		Map<String, Router> routeInfos = routes.get(requestMethod);
+		for (String routePath : routeInfos.keySet()) {
 			//路由匹配
-			if (TString.searchByRegex(requestPath, routeRegexPath).length > 0) {
+			isMatched = matchPath(requestPath,routePath);
+			if (isMatched) {
 				//获取路由处理对象
-				RouterBuiz routeBuiz = routeInfos.get(routeRegexPath);
+				Router routeBuiz = routeInfos.get(routePath);
 				try {
+					//获取路径变量
+					Map<String, String> pathVariables = fetchPathVariables(requestPath,routePath);
+					request.getParameters().putAll(pathVariables);
 					//Session预处理
 					diposeSession(request,response);
 					//处理路由请求
@@ -112,6 +120,50 @@ public class RequestDispatch {
 				break;
 			}
 		}
+		
+		//没有找寻到匹配的路由处理器
+		if(!isMatched){
+			ExceptionMessage(request, response,  new NoneRouterException("Not avaliable resource!"));
+		}
+	}
+	
+	/**
+	 * 路径匹配
+	 * @param requestPath
+	 * @param routeRegexPath
+	 * @return
+	 */
+	public boolean matchPath(String requestPath, String routeRegexPath){
+		//转换成可以配置的正则,主要是处理:后的参数表达式
+		//把/home/:name转换成/home/[^/?]+来匹配
+		String regexPath = routeRegexPath.replaceAll(":[^/$]+", "[^/?]+");
+		if (TString.searchByRegex(requestPath, regexPath).length>0){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	/**
+	 * 获取路径变量,形如:/test/:name 的路径匹配的请求路径/test/var1后得到{name:var1}
+	 * @param requestPath
+	 * @param routePath
+	 * @return
+	 * @throws UnsupportedEncodingException 
+	 */
+	public Map<String, String> fetchPathVariables(String requestPath,String routePath) throws UnsupportedEncodingException{
+		Map<String, String> resultMap = new HashMap<String, String>();
+		String[] pathPieces = requestPath.split("/");
+		String[] routePathPieces = routePath.substring(1, routePath.length()-1).split("/");
+		for(int i=0;i<routePathPieces.length;i++){
+			String routePathPiece = routePathPieces[i];
+			if(routePathPiece.startsWith(":")){
+				String name = routePathPiece.substring(1,routePathPiece.length());
+				String value = URLDecoder.decode(pathPieces[i], "UTF-8");
+				resultMap.put(name,value);
+			}
+		}
+		return resultMap;
 	}
 	
 	/**
@@ -165,22 +217,22 @@ public class RequestDispatch {
 		String requestPath = request.protocol().getPath();
 		response.header().put("Content-Type", "text/html");
 
+		//信息准备
 		String className = e.getClass().getName();
 		String errorMessage = e.toString();
 		String stackInfo = "";
-
 		for (StackTraceElement stackTraceElement : e.getStackTrace()) {
 			stackInfo += stackTraceElement.toString();
 			stackInfo += "<br/>\r\n";
 		}
 
-		//初始 error 定义
+		//初始 error 定义,如果下面匹配到了定义的错误则定义的会被覆盖
 		Map<String, Object> error = new HashMap<String, Object>();
 		error.put("StatusCode", 500);
 		error.put("Page", "Error.html");
 		error.put("Description", stackInfo);
 		
-		//读取 error 定义
+		//读取 error 定义,如果有可用消息则会覆盖上面的初始内容
 		if (errorDefine.containsKey(className)) {
 			error.putAll(TObject.cast(errorDefine.get(className)));
 			response.protocol().setStatus(TObject.cast(error.get("StatusCode")));

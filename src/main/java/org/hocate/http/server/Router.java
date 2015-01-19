@@ -6,6 +6,6 @@ package org.hocate.http.server;
  * @author helyho
  *
  */
-public interface RouterBuiz {
+public interface Router {
 	public void Process(HttpRequest request,HttpResponse response) throws Exception ;	
 }

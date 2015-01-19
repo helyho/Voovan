@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-import org.hocate.tools.TString;
 import org.hocate.tools.TZip;
 
 /**
@@ -91,8 +90,8 @@ public class Body {
 	 */
 	public void write(String content,String charset){
 		try{
-			content = TString.converToCharset(content, charset);
-			outputStream.write(content.getBytes());
+			//使用字符集编码
+			outputStream.write(content.getBytes(charset));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

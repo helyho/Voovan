@@ -20,5 +20,8 @@ public class Other {
 		Logger.simple(ClassLoader.getSystemClassLoader().getClass().getName());
 		
 		Logger.simple(System.getProperty("user.dir"));
+		String regex = ":[^/]+";
+		Logger.simple("/test/:username_a/:id".replaceAll(regex, "[^/?]+"));
+		
 	}
 }

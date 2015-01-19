@@ -44,41 +44,41 @@ public class HttpServer {
 	 * 以下是一些 HTTP 方法的成员函数
 	 */
 
-	public void get(String routeRegexPath, RouterBuiz routeBuiz) {
-		requestProcesser.addRouteRuler("GET", routeRegexPath, routeBuiz);
+	public void get(String routeRegexPath, Router routeBuiz) {
+		requestProcesser.addRouteRuler("GET", "^"+routeRegexPath+"$", routeBuiz);
 	}
 
-	public void post(String routeRegexPath, RouterBuiz routeBuiz) {
-		requestProcesser.addRouteRuler("POST", routeRegexPath, routeBuiz);
+	public void post(String routeRegexPath, Router routeBuiz) {
+		requestProcesser.addRouteRuler("POST", "^"+routeRegexPath+"$", routeBuiz);
 	}
 
-	public void head(String routeRegexPath, RouterBuiz routeBuiz) {
-		requestProcesser.addRouteRuler("HEAD", routeRegexPath, routeBuiz);
+	public void head(String routeRegexPath, Router routeBuiz) {
+		requestProcesser.addRouteRuler("HEAD", "^"+routeRegexPath+"$", routeBuiz);
 	}
 
-	public void put(String routeRegexPath, RouterBuiz routeBuiz) {
-		requestProcesser.addRouteRuler("PUT", routeRegexPath, routeBuiz);
+	public void put(String routeRegexPath, Router routeBuiz) {
+		requestProcesser.addRouteRuler("PUT", "^"+routeRegexPath+"$", routeBuiz);
 	}
 
-	public void delete(String routeRegexPath, RouterBuiz routeBuiz) {
-		requestProcesser.addRouteRuler("delete", routeRegexPath, routeBuiz);
+	public void delete(String routeRegexPath, Router routeBuiz) {
+		requestProcesser.addRouteRuler("delete", "^"+routeRegexPath+"$", routeBuiz);
 	}
 
-	public void trace(String routeRegexPath, RouterBuiz routeBuiz) {
-		requestProcesser.addRouteRuler("TRACE", routeRegexPath, routeBuiz);
+	public void trace(String routeRegexPath, Router routeBuiz) {
+		requestProcesser.addRouteRuler("TRACE", "^"+routeRegexPath+"$", routeBuiz);
 	}
 
-	public void connect(String routeRegexPath, RouterBuiz routeBuiz) {
-		requestProcesser.addRouteRuler("CONNECT", routeRegexPath, routeBuiz);
+	public void connect(String routeRegexPath, Router routeBuiz) {
+		requestProcesser.addRouteRuler("CONNECT", "^"+routeRegexPath+"$", routeBuiz);
 	}
 
-	public void options(String routeRegexPath, RouterBuiz routeBuiz) {
-		requestProcesser.addRouteRuler("OPTIONS", routeRegexPath, routeBuiz);
+	public void options(String routeRegexPath, Router routeBuiz) {
+		requestProcesser.addRouteRuler("OPTIONS", "^"+routeRegexPath+"$", routeBuiz);
 	}
 
-	public void otherMethod(String method, String routeRegexPath, RouterBuiz routeBuiz) {
+	public void otherMethod(String method, String routeRegexPath, Router routeBuiz) {
 		requestProcesser.addRouteMethod(method);
-		requestProcesser.addRouteRuler(method, routeRegexPath, routeBuiz);
+		requestProcesser.addRouteRuler(method, "^"+routeRegexPath+"$", routeBuiz);
 	}
 
 	/**

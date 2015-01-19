@@ -1,6 +1,5 @@
 package org.hocate.tools;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -158,20 +157,5 @@ public class TString {
 			return defaultValue;
 		}
 		return source;
-	}
-	
-	/**
-	 * 字符集转换
-	 * @param source
-	 * @param charset
-	 * @return
-	 */
-	public static String converToCharset(String source,String charset){
-		try {
-			return  new String(source.getBytes(),charset);
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			return null;
-		}
 	}
 }

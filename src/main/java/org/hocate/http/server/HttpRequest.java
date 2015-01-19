@@ -1,6 +1,8 @@
 package org.hocate.http.server;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hocate.http.message.Request;
@@ -107,8 +109,30 @@ public class HttpRequest extends Request {
 		return getQueryString(characterSet);
 	}
 	
-	public String getQueryParameter(String paramName){
+	/**
+	 * 获取请求变量集合
+	 * @return
+	 */
+	protected Map<String, String> getParameters() {
+		return parameters;
+	}
+	
+	/**
+	 * 获取请求变量
+	 * @param paramName
+	 * @return
+	 */
+	public String getParameter(String paramName){
 		return parameters.get(paramName);
+	}
+	
+	/**
+	 * 获取请求变量
+	 * @param paramName
+	 * @return
+	 */
+	public List<String> getParameterNames(){
+		return Arrays.asList(parameters.keySet().toArray(new String[]{}));
 	}
 	
 	/**
