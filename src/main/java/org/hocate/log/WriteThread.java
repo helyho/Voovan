@@ -21,7 +21,7 @@ public class WriteThread implements Runnable {
 	 * 增加消息
 	 * @param string
 	 */
-	public void addLogMessage(String string) {
+	public synchronized void addLogMessage(String string) {
 		logDeque.add(string);
 	}
 
@@ -37,7 +37,7 @@ public class WriteThread implements Runnable {
 							outputStream.flush();
 						}
 					}
-				} else {
+				} else if(logDeque.size()==0){
 					break;
 				}
 			} catch (Exception e) {

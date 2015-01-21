@@ -35,6 +35,7 @@ public class Logger {
 	
 	public static void simple(Object msg){
 		msg = msg==null?"null":msg;
-		formater.writeLog(msg.toString()+"\r\n");
+		Message message = Message.newInstance("SIMPLE", msg.toString());
+		formater.writeFormatedLog(message);
 	}
 }

@@ -1,24 +1,24 @@
 package org.hocate.log;
 
 public class Message {
-	private String	priority;
+	private String	level;
 	private String	message;
 
 	public Message() {
 
 	}
 
-	public Message(String priority, String message) {
-		this.priority = priority;
+	public Message(String level, String message) {
+		this.level = level;
 		this.message = message;
 	}
 
-	public String getPriority() {
-		return priority;
+	public String getLevel() {
+		return level;
 	}
 
-	public void setPriority(String level) {
-		priority = level;
+	public void setLevel(String level) {
+		this.level = level;
 	}
 
 	public String getMessage() {

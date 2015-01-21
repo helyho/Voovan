@@ -4,16 +4,20 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.hocate.tools.TDateTime;
 import org.hocate.tools.TEnv;
 import org.hocate.tools.TString;
 
+
 public class Formater {
 	private String template;
 	private Thread logWriter;
 	private WriteThread writeThread;
+	private List<String> logLevel;
 
 	/**
 	 * 构造函数
@@ -23,6 +27,10 @@ public class Formater {
 	public Formater(String template, OutputStream[] outputStreams) {
 		this.template = template;
 		this.writeThread = new WriteThread(outputStreams);
+		logLevel = new Vector<String>();
+		for(String level : StaticParam.getLogConfig("LogLevel").split(",")){
+			logLevel.add(level.trim());
+		}
 	}
 
 	/**
@@ -75,7 +83,7 @@ public class Formater {
 		
 		//栈信息独享
 		tokens.put("n", "\r\n");
-		tokens.put("p", message.getPriority());
+		tokens.put("p", message.getLevel());
 		tokens.put("si", stackTraceElement.toString());
 		tokens.put("l", Integer.toString((stackTraceElement.getLineNumber())));
 		tokens.put("m", stackTraceElement.getMethodName());
@@ -89,11 +97,33 @@ public class Formater {
 	}
 
 	/**
-	 * 写入格式化后的消息
+	 * 消息类型是否可以记录
+	 * @param message
+	 * @return
+	 */
+	public boolean messageWritable(Message message){
+		if(logLevel.contains("ALL")){
+			return true;
+		}
+		else if(logLevel.contains(message.getLevel())){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	/**
+	 * 写入消息对象,在进行格式化后的写入
 	 * @param message
 	 */
 	public void writeFormatedLog(Message message) {
-		writeLog(format(message));
+		if(messageWritable(message)){
+			if(message.getLevel().equals("SIMPLE")){
+				writeLog(message.getMessage()+"\r\n");
+			}else{
+				writeLog(format(message));
+			}
+		}
 	}
 	
 	/**
@@ -122,7 +152,7 @@ public class Formater {
 
 			outputStreams = new OutputStream[LogTypes.length];
 			for (int i = 0; i < LogTypes.length; i++) {
-				String logType = LogTypes[i];
+				String logType = LogTypes[i].trim();
 				switch (logType) {
 				case "STDOUT":
 					outputStreams[i] = System.out;
