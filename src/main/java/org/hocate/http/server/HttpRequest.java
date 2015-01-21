@@ -58,7 +58,12 @@ public class HttpRequest extends Request {
 	 * @return
 	 */
 	public String getRemoteAddres() {
-		return remoteAddres;
+		String xForwardedFor = header().get("X-Forwarded-For");
+		if(xForwardedFor==null){
+			return remoteAddres;
+		}else{
+			return xForwardedFor.split(",")[0].trim();
+		}
 	}
 
 	/**
