@@ -47,7 +47,8 @@ public class Formater {
 	 * @return
 	 */
 	private static String currentThreadName() {
-		return Thread.currentThread().getName();
+		Thread currentThread = Thread.currentThread();
+		return currentThread.getName()+" : "+currentThread.getId();
 	}
 
 	/**
@@ -55,15 +56,14 @@ public class Formater {
 	 * @param message
 	 * @return
 	 */
-	public String preIndentMessage(Message message){
+	public void preIndentMessage(Message message){
 		String infoIndent = StaticParam.getLogConfig("InfoIndent");
 		String msg = message.getMessage();
 		if (infoIndent != null) {
 			msg = infoIndent + msg;
 			msg = msg.replaceAll("\r\n", "\r\n" + infoIndent);
-			return msg.replaceAll("\n", "\n" + infoIndent);
-		}else{
-			return msg;
+			msg = msg.replaceAll("\n", "\n" + infoIndent);
+			message.setMessage(msg);
 		}
 	}
 	
@@ -90,7 +90,7 @@ public class Formater {
 		tokens.put("f", stackTraceElement.getFileName());
 		tokens.put("c", stackTraceElement.getClassName());
 		tokens.put("t", currentThreadName());
-		tokens.put("d", TDateTime.currentTime("YYYYMMDDHHmmss"));
+		tokens.put("d", TDateTime.currentTime("YYYY-MM-DD HH:mm:ss:SS z"));
 		tokens.put("r", Long.toString(System.currentTimeMillis() - StaticParam.getStartTimeMillis()));
 		
 		return TString.tokenReplace(template, tokens);

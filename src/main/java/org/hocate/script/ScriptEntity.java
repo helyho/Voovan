@@ -58,6 +58,7 @@ public class ScriptEntity {
 		this.packagePath = packagePath;
 		this.version = 1;
 		this.sourceCode = sourceCode;
+		canReload = 1;
 	}
 	
 	/**
@@ -70,6 +71,7 @@ public class ScriptEntity {
 		this.packagePath = packagePath;
 		this.version = version;
 		this.sourcePath = sourcePath;
+		canReload = 1;
 	}
 	
 	public String getPackagePath() {

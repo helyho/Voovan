@@ -55,7 +55,7 @@ public class TSQL {
 			String paramName = sqlParams.get(i);
 			paramName = paramName.substring(1,paramName.length());
 			preparedStatement.setObject(i+1, params.get(paramName));
-			Logger.info("Parameter: ["+sqlParams.get(i)+" = "+params.get(paramName)+"]");
+			Logger.debug("Parameter: ["+sqlParams.get(i)+" = "+params.get(paramName)+"]");
 		}
 	}
 	
@@ -68,11 +68,14 @@ public class TSQL {
 	 * @throws SQLException
 	 */
 	public static PreparedStatement createPreparedStatement(Connection conn,String sqlStr,Map<String, Object> params) throws SQLException{
-		Logger.info("Executed: \n" + sqlStr);
+		Logger.debug("Executed: " + sqlStr);
+		//获取参数列表
 		List<String> sqlParams = TSQL.getSqlParams(sqlStr);
+		//获取preparedStatement可用的 SQL
 		String preparedSql = TSQL.preparedSql(sqlStr);
 		PreparedStatement preparedStatement = (PreparedStatement) conn.prepareStatement(preparedSql);
 		if(params!=null){
+			//preparedStatement参数填充
 			TSQL.setPreparedParams(preparedStatement,sqlParams,params);
 		}
 		return preparedStatement;

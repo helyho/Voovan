@@ -14,7 +14,7 @@ public class JdbcOperateTest {
 		ConfigLoader cl = new ConfigLoader();
 		JdbcOperate jOperate = new JdbcOperate(cl.getDataSource());
 		
-		Map<String,Object> smm = jOperate.queryMap("select * from sc_script");
+		List<Map<String,Object>> smm = jOperate.queryMapList("select * from sc_script");
 		Logger.info(smm);
 		
 		//Map 参数 => List<Map>
@@ -32,5 +32,11 @@ public class JdbcOperateTest {
 		//不定个数参数 => Object
 		ScriptEntity llmm = jOperate.queryObject("select * from sc_script where PackagePath=:1 and version=:2",ScriptEntity.class,"org.hocate.test",2.0);
 		Logger.info(llmm);
+		
+		//事物测试
+		jOperate = new JdbcOperate(cl.getDataSource(),true);
+		Logger.info(jOperate.update("update sc_script set version=0"));
+		Logger.info(jOperate.queryMapList("select * from sc_script"));
+		jOperate.rollback();
 	}
 }

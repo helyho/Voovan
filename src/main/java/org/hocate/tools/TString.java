@@ -33,6 +33,22 @@ public class TString {
 	}
 	
 	/**
+	 * 右补齐
+	 * @param str
+	 * @param len
+	 * @param c
+	 * @return
+	 */
+	public static String  rightPad(String source,int len,char c){
+		StringBuffer sb = new StringBuffer();
+		sb.append(source);
+		for(int i=0; i<len - source.length(); i++){
+			sb.append(c);
+		}
+		return sb.toString();
+	}
+	
+	/**
 	 * 判断是否是数字字符串
 	 * @param numberString
 	 * @param radix			进制

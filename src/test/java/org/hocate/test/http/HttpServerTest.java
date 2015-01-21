@@ -10,9 +10,9 @@ import org.hocate.tools.TFile;
 public class HttpServerTest {
 	public static void main(String[] args) {
 		try {
-			// HttpServer httpServer = new
-			// HttpServer("0.0.0.0",2080,100,"/Users/helyho/Downloads");
 			HttpServer httpServer = HttpServer.newInstance();
+			
+			//带路劲参数的 GET 请求
 			httpServer.get("/:name", (req, resp) -> {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
@@ -25,6 +25,7 @@ public class HttpServerTest {
 				resp.write(req.getParameter("name"));
 			});
 			
+			//普通 GET 请求
 			httpServer.get("/", (req, resp) -> {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
@@ -42,6 +43,7 @@ public class HttpServerTest {
 				resp.redirct("http://www.baidu.com");
 			});
 
+			//普通 POST 请求
 			httpServer.post("/", (req, resp) -> {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
