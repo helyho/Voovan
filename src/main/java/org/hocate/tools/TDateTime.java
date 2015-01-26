@@ -1,7 +1,10 @@
 package org.hocate.tools;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 
 public class TDateTime {
@@ -28,8 +31,68 @@ public class TDateTime {
 	 * @param format
 	 * @return
 	 */
-	private static String dateFormat(Date date,String format){
+	public static String dateFormat(Date date,String format){
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
 		return simpleDateFormat.format(date);
 	}
+	
+	/**
+	 * 使用特定时区,格式化日期成字符串
+	 * @param date
+	 * @param format
+	 * @param timeZone
+	 * @param loacl
+	 * @return
+	 */
+	public static String dateFormat(Date date,String format,String timeZone,Locale loacl){
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format,loacl);
+		simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
+		return simpleDateFormat.format(date);
+	}
+	
+	/**
+	 * 获取标准的格林威治时间(GMT)
+	 * @param date
+	 * @return
+	 */
+	public static String formatStanderGMTDate(Date date){
+		return dateFormat(date, "EEE, d MMM yyyy HH:mm:ss 'GMT'", "GMT",Locale.ENGLISH);
+	}	
+	
+	/**
+	 * 从字符串解析时间
+	 * @param source
+	 * @param format
+	 * @return
+	 * @throws ParseException
+	 */
+	public static Date parseDate(String source,String format) throws ParseException{
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
+		return simpleDateFormat.parse(source);
+	}
+	
+	/**
+	 * 从字符串解析时间
+	 * @param source
+	 * @param format
+	 * @param timeZone
+	 * @param loacl
+	 * @return
+	 * @throws ParseException
+	 */
+	public static Date parseDate(String source,String format,String timeZone,Locale loacl) throws ParseException{
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format,loacl);
+		simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
+		return simpleDateFormat.parse(source);
+	}
+	
+	/**
+	 * 获取标准的格林威治时间(GMT)
+	 * @param source
+	 * @return
+	 * @throws ParseException 
+	 */
+	public static Date parseStanderGMTDate(String source) throws ParseException{
+		return parseDate(source, "EEE, d MMM yyyy HH:mm:ss 'GMT'", "GMT",Locale.ENGLISH);
+	}	
 }

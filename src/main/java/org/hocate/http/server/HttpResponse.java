@@ -1,12 +1,18 @@
 package org.hocate.http.server;
 
+import java.util.Date;
+import java.util.Locale;
+
 import org.hocate.http.message.Response;
+import org.hocate.tools.TDateTime;
 
 public class HttpResponse extends Response {
 	private String	characterSet;
 
 	protected HttpResponse(Response response) {
 		super(response);
+		this.header().put("Date",
+				TDateTime.dateFormat(new Date(), "EEE, d MMM yyyy HH:mm:ss 'GMT'", "GMT",Locale.ENGLISH));
 	}
 
 	/**

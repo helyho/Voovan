@@ -35,20 +35,23 @@ public class HttpServerHandler implements IoHandler {
 		Request request = TObject.cast(obj);
 		// 构造响应报文并返回
 		Response response = new Response();
-		
+
 		HttpRequest httpRequest = new HttpRequest(request);
 		HttpResponse httpResponse = new HttpResponse(response);
-		
-		//设置默认字符集
+
+		// 设置默认字符集
 		String defaultCharacterSet = WebContext.getWebConfig("CharacterSet", "UTF-8");
 		httpRequest.setCharacterSet(defaultCharacterSet);
 		httpResponse.setCharacterSet(defaultCharacterSet);
-		
+
 		httpRequest.setRemoteAddres(session.remoteAddress());
 		httpRequest.setRemotePort(session.remotePort());
 		try {
 			requestDispatch.Process(httpRequest, httpResponse);
-			session.setAttribute("isKeepAlive", request.header().get("Connection"));
+			if (request.header().contain("Connection")) {
+				session.setAttribute("isKeepAlive", request.header().get("Connection"));
+				response.header().put("Connection", request.header().get("Connection"));
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
