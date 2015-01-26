@@ -105,7 +105,7 @@ public class TReflect {
 	 */
 	public static Method findMethod(Class<?> clazz, String name,
 			Class<?>... paramTypes) throws Exception {
-		return clazz.getMethod(name, paramTypes);
+		return clazz.getDeclaredMethod(name, paramTypes);
 	}
 	
 	/**
@@ -133,6 +133,19 @@ public class TReflect {
 		}
 		return methods.toArray(new Method[0]);
 	}
+	
+	/**
+	 * 执行方法
+	 * @param obj				执行方法的对象
+	 * @param name				执行方法名
+	 * @param parameters		方法参数
+	 * @return					方法返回结果
+	 * @throws Exception		异常
+	 */
+	public static Object invokeMethod(Object obj, Method method, Object... parameters) throws Exception {
+		method.setAccessible(true);
+		return method.invoke(obj, parameters);
+	}
 
 	/**
 	 * 执行方法
@@ -145,6 +158,7 @@ public class TReflect {
 	public static Object invokeMethod(Object obj, String name, Object... parameters) throws Exception {
 		Class<?>[] parameterTypes = getParameters(parameters);
 		Method method = findMethod(obj.getClass(), name, parameterTypes);
+		method.setAccessible(true);
 		return method.invoke(obj, parameters);
 	}
 
