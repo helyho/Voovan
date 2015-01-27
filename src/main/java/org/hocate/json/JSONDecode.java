@@ -27,7 +27,7 @@ public class JSONDecode {
 		Object jsonResult = null;
 		//处理掉注释
 		jsonStr = TString.replaceByRegex(jsonStr, "\\/\\/[^\n]*", "");
-		jsonStr = TString.replaceByRegex(jsonStr, "\\/\\*([^\\*^\\/]*|[\\*^\\/*]*|[^\\**\\/]*)*\\*\\/", "");
+		jsonStr = TString.replaceByRegex(jsonStr, "/\\*([^\\*^/]*|[\\*^/*]*|[^\\*/]*)*\\*/", "");
 		//处理掉前后的特殊字符
 		jsonStr = jsonStr.trim();
 		//根据起始和结束符号,决定返回的对象类型

@@ -114,10 +114,7 @@ public class TString {
 	 * @return
 	 */
 	public static String replaceByRegex(String source,String regex,String replacement){
-		for(String searched : searchByRegex(source,regex)){
-			source = source.replaceAll(searched, replacement);
-		}
-		return source;
+		return source.replaceAll(regex, replacement);
 	}
 	
 	/**

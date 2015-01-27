@@ -1,9 +1,8 @@
 package org.hocate.test.onlineComplier;
 
-import java.lang.reflect.Method;
-
 import org.hocate.dynamicComplier.Complier;
 import org.hocate.log.Logger;
+import org.hocate.tools.TReflect;
 
 public class ComplierTest {
 	
@@ -15,14 +14,14 @@ public class ComplierTest {
 					+ "}\r\n"
 				+ "}\r\n";
 		Complier dc = new Complier();
+		Logger.info("start .....");
 		dc.compileCode( code);
+		Logger.info("end .....");
 		try {
-			Class<?> testClazz = Class.forName("org.hocate.test.testSay");
-			Logger.simple(testClazz.getName());
-			Object kk = testClazz.newInstance();
-			Logger.info(kk);
-			Method m = kk.getClass().getMethod("say");
-			m.invoke(kk);
+			Object testSay = TReflect.newInstance("org.hocate.test.testSay");
+			Logger.info(testSay);
+			TReflect.invokeMethod(testSay, "say");
+			Logger.info("end .....");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

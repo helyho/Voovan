@@ -176,6 +176,20 @@ public class TReflect {
 	}
 	
 	/**
+	 * 构造新的对象
+	 * @param obj				执行方法的对象
+	 * @param parameters		方法参数
+	 * @return					新构造的对象
+	 * @throws Exception		异常
+	 */
+	public static Object newInstance(String className, Object ...parameters) throws Exception {
+		Class<?> clazz = Class.forName(className);
+		Class<?>[] parameterTypes = getParameters(parameters);
+		Constructor<?> constructor = clazz.getConstructor(parameterTypes);
+		return constructor.newInstance(parameters);
+	}
+	
+	/**
 	 * 将对象数组转换成,对象类型的数组
 	 * @param objs
 	 * @return
