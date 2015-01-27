@@ -3,7 +3,7 @@ package org.hocate.http.server;
 import java.io.IOException;
 
 import org.hocate.network.aio.AioServerSocket;
-import org.hocate.network.messagePartition.HttpMessageParter;
+import org.hocate.network.messageParter.HttpMessageParter;
 import org.hocate.tools.TObject;
 
 /**

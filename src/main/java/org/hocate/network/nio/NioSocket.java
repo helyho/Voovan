@@ -94,6 +94,7 @@ public class NioSocket extends SocketContext{
 	 * @throws IOException 
 	 */
 	public void start() throws Exception {
+		
 		if(connectModel == ConnectModel.SERVER && sslManager != null){
 			sslManager.createServerSSLParser(session);
 		}
@@ -102,8 +103,8 @@ public class NioSocket extends SocketContext{
 		}	
 		
 		if(socketChannel!=null && socketChannel.isOpen()){
-			NioSelector eventListener = new NioSelector(selector,this);
-			eventListener.EventChose();
+			NioSelector nioSelector = new NioSelector(selector,this);
+			nioSelector.EventChose();
 		}
 	}
 

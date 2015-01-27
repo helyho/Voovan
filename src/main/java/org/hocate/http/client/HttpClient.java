@@ -13,7 +13,7 @@ import org.hocate.http.message.packet.Header;
 import org.hocate.http.message.packet.Part;
 import org.hocate.log.Logger;
 import org.hocate.network.aio.AioSocket;
-import org.hocate.network.messagePartition.HttpMessageParter;
+import org.hocate.network.messageParter.HttpMessageParter;
 import org.hocate.tools.TEnv;
 import org.hocate.tools.TString;
 

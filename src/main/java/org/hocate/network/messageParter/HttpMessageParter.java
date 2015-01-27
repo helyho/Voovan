@@ -1,4 +1,4 @@
-package org.hocate.network.messagePartition;
+package org.hocate.network.messageParter;
 
 import org.hocate.network.IoSession;
 import org.hocate.network.MessageParter;
