@@ -173,6 +173,7 @@ public class RequestDispatch {
 	 */
 	public void diposeSession(HttpRequest request, HttpResponse response){
 		
+		//获取请求的 Cookie中的session标识
 		Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
 		
 		//如果 session 不存在,创建新的 session
@@ -196,6 +197,7 @@ public class RequestDispatch {
 			
 			Logger.simple("Create session");
 		}else{
+			//通过 Cookie 中的 session 标识获取 Session
 			HttpSession session = sessionManager.getSession(sessionCookie.getValue());
 			request.setSession(session);
 			Logger.simple("Get old session");
