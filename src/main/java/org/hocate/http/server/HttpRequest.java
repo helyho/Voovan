@@ -16,9 +16,9 @@ public class HttpRequest extends Request {
 	private String characterSet;
 	private Map<String, String> parameters;
 	
-	protected HttpRequest(Request request){
+	protected HttpRequest(Request request,String characterSet){
 		super(request);
-		characterSet="UTF-8";
+		this.characterSet=characterSet;
 		parameters = new HashMap<String, String>();
 		parseParameters();
 	}

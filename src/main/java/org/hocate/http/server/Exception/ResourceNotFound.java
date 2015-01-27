@@ -1,13 +1,13 @@
 package org.hocate.http.server.Exception;
 
-public class NoneRouterException extends Exception {
+public class ResourceNotFound extends Exception {
 
 	/**
 	 * 
 	 */
 	private static final long	serialVersionUID	= 1L;
 	
-	public NoneRouterException(String description){
+	public ResourceNotFound(String description){
 		super(description);
 	}
 

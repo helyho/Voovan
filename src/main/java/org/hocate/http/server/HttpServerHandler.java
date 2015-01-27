@@ -36,24 +36,21 @@ public class HttpServerHandler implements IoHandler {
 		// 构造响应报文并返回
 		Response response = new Response();
 
-		HttpRequest httpRequest = new HttpRequest(request);
-		HttpResponse httpResponse = new HttpResponse(response);
-
+		
 		// 设置默认字符集
 		String defaultCharacterSet = WebContext.getWebConfig("CharacterSet", "UTF-8");
-		httpRequest.setCharacterSet(defaultCharacterSet);
-		httpResponse.setCharacterSet(defaultCharacterSet);
+		HttpRequest httpRequest = new HttpRequest(request,defaultCharacterSet);
+		HttpResponse httpResponse = new HttpResponse(response,defaultCharacterSet);
 
+		//填充远程连接的IP 地址和端口
 		httpRequest.setRemoteAddres(session.remoteAddress());
 		httpRequest.setRemotePort(session.remotePort());
-		try {
-			requestDispatch.Process(httpRequest, httpResponse);
-			if (request.header().contain("Connection")) {
-				session.setAttribute("isKeepAlive", request.header().get("Connection"));
-				response.header().put("Connection", request.header().get("Connection"));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		
+		//处理响应请求
+		requestDispatch.Process(httpRequest, httpResponse);
+		if (request.header().contain("Connection")) {
+			session.setAttribute("isKeepAlive", request.header().get("Connection"));
+			response.header().put("Connection", request.header().get("Connection"));
 		}
 		return response;
 	}

@@ -1,7 +1,6 @@
 package org.hocate.http.server;
 
 import java.util.Date;
-import java.util.Locale;
 
 import org.hocate.http.message.Response;
 import org.hocate.tools.TDateTime;
@@ -9,10 +8,11 @@ import org.hocate.tools.TDateTime;
 public class HttpResponse extends Response {
 	private String	characterSet;
 
-	protected HttpResponse(Response response) {
+	protected HttpResponse(Response response,String characterSet) {
 		super(response);
-		this.header().put("Date",
-				TDateTime.dateFormat(new Date(), "EEE, d MMM yyyy HH:mm:ss 'GMT'", "GMT",Locale.ENGLISH));
+		this.characterSet=characterSet;
+		//设置当前响应的时间
+		this.header().put("Date",TDateTime.formatStanderGMTDate(new Date()));
 	}
 
 	/**

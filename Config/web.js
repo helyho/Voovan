@@ -8,7 +8,7 @@
 	//上下文路径
 	"ContextPath"		: "/Users/helyho/Downloads",
 	//默认字符集
-	"CharacterSet"		: "GBK",
+	"CharacterSet"		: "GB2312",
 	//Session 容器类
 	"SessionContainer"  : "java.util.Hashtable",
 	//Session 超时时间

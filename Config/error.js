@@ -9,13 +9,13 @@
 	 */
 	
 	//静态文件访问未找到目标文件
-	"java.io.FileNotFoundException":{
+	"org.hocate.http.server.Exception.ResourceNotFound":{
 		"StatusCode"	:404,
 		"Page"			:"Error.html",
 		"Description"	:"The request file is not found."
 	},
 	//没有可用的路由
-	"org.hocate.http.server.Exception.NoneRouterException":{
+	"org.hocate.http.server.Exception.RouterNotFound":{
 		"StatusCode"	:404,
 		"Page"			:"Error.html",
 		"Description"	:"None avaliable router to use."

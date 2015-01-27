@@ -51,9 +51,9 @@ public class HttpServerTest {
 				Logger.simple(req.getRemoteAddres() + " " + req.getRemotePort());
 				Logger.simple(req.getQueryString());
 				req.getSession().setAttribute("Time", new Date().toString());
-
+				Logger.simple("username:"+req.getParameter("username"));
+				Logger.simple(req.getQueryString());
 				resp.write(TFile.loadResource("org/hocate/test/http/test.htm"));
-
 			});
 			httpServer.Serve();
 		} catch (IOException e) {

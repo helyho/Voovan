@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hocate.http.message.packet.Cookie;
-import org.hocate.http.server.Exception.NoneRouterException;
+import org.hocate.http.server.Exception.RouterNotFound;
 import org.hocate.http.server.router.MimeFileRouter;
 import org.hocate.log.Logger;
 import org.hocate.tools.TFile;
@@ -94,7 +94,7 @@ public class RequestDispatch {
 	 * @param response
 	 * @throws Exception
 	 */
-	public void Process(HttpRequest request, HttpResponse response) throws Exception {
+	public void Process(HttpRequest request, HttpResponse response){
 		String requestPath = request.protocol().getPath();
 		String requestMethod = request.protocol().getMethod();
 		
@@ -123,7 +123,7 @@ public class RequestDispatch {
 		
 		//没有找寻到匹配的路由处理器
 		if(!isMatched){
-			ExceptionMessage(request, response,  new NoneRouterException("Not avaliable resource!"));
+			ExceptionMessage(request, response,  new RouterNotFound("Not avaliable router!"));
 		}
 	}
 	
@@ -210,6 +210,7 @@ public class RequestDispatch {
 	 * @param e
 	 */
 	public void ExceptionMessage(HttpRequest request, HttpResponse response, Exception e) {
+		//输出异常
 		e.printStackTrace();
 		
 		Map<String, Object> errorDefine = WebContext.getErrorDefine();
