@@ -98,9 +98,11 @@ public class EventProcess {
 			
 			// -----------------Filter 解密处理-----------------
 			Object result = byteBuffer;
-			socketContext.filterChain().rewind();
-			while (socketContext.filterChain().hasNext()) {
-				IoFilter fitler = socketContext.filterChain().next();
+			
+			//取得过滤器链
+			Chain<IoFilter> filterChain = socketContext.filterChain().clone();
+			while (filterChain.hasNext()) {
+				IoFilter fitler = filterChain.next();
 				result = fitler.decode(result);
 			}
 			// -------------------------------------------------
@@ -115,9 +117,9 @@ public class EventProcess {
 			//返回的结果不为空的时候才发送
 			if(result!=null){
 				// ------------------Filter 加密处理-----------------
-				socketContext.filterChain().rewind();
-				while (socketContext.filterChain().hasNext()) {
-					IoFilter fitler = socketContext.filterChain().next();
+				filterChain.rewind();
+				while (filterChain.hasNext()) {
+					IoFilter fitler = filterChain.next();
 					result = fitler.encode(result);
 				}
 				// ---------------------------------------------------
@@ -127,6 +129,8 @@ public class EventProcess {
 					sendMessage(session, result);
 				}
 			}
+			
+			filterChain.clear();
 		}
 	}
 

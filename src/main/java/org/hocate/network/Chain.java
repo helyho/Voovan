@@ -77,4 +77,14 @@ public class Chain<E> extends ArrayDeque<E>{
 			return iterator.hasNext();
 		}
 	}
+	
+	/**
+	 *  从当前对象克隆一个 Chain
+	 */
+	public Chain<E> clone(){
+		Chain<E> chain = new Chain<E>();
+		chain.addAll(this);
+		chain.rewind();
+		return chain;
+	}
 }

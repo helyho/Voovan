@@ -21,7 +21,7 @@ public class HttpServerFilter implements IoFilter {
 	 * 将HttpResponse转换成ByteBuffer
 	 */
 	@Override
-	public Object encode(Object object) {
+	public synchronized Object encode(Object object) {
 		if(object instanceof Response){
 			Response response = TObject.cast(object);
 			return ByteBuffer.wrap(response.asBytes());
@@ -36,7 +36,7 @@ public class HttpServerFilter implements IoFilter {
 	 * 将请求ByteBuffer转换成 HttpRequest
 	 */
 	@Override
-	public Object decode(Object object) {
+	public synchronized Object decode(Object object) {
 		try {
 			if(object instanceof ByteBuffer){
 				ByteBuffer byteBuffer = TObject.cast(object);

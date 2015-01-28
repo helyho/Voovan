@@ -8,7 +8,6 @@ import java.util.Map;
 import org.hocate.http.message.packet.Cookie;
 import org.hocate.http.server.Exception.RouterNotFound;
 import org.hocate.http.server.router.MimeFileRouter;
-import org.hocate.log.Logger;
 import org.hocate.tools.TFile;
 import org.hocate.tools.TObject;
 import org.hocate.tools.TString;
@@ -194,13 +193,10 @@ public class RequestDispatch {
 			Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(), 
 					session.getId(),sessionTimeout*60);
 			response.cookies().add(cookie);
-			
-			Logger.simple("Create session");
 		}else{
 			//通过 Cookie 中的 session 标识获取 Session
 			HttpSession session = sessionManager.getSession(sessionCookie.getValue());
 			request.setSession(session);
-			Logger.simple("Get old session");
 		}
 	}
 
