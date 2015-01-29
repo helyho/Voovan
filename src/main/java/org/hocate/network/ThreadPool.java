@@ -13,7 +13,7 @@ public class ThreadPool {
 
 	public static ThreadPoolExecutor getThreadPool(){
 		int cpuCoreCount = Runtime.getRuntime().availableProcessors();
-		ThreadPoolExecutor eventThreadPool = new ThreadPoolExecutor(cpuCoreCount*100, cpuCoreCount*200,1, TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>());
+		ThreadPoolExecutor eventThreadPool = new ThreadPoolExecutor(cpuCoreCount*100, cpuCoreCount*2000,1, TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>());
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		eventThreadPool.allowCoreThreadTimeOut(true);
 		return eventThreadPool;
