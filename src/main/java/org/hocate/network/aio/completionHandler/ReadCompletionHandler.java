@@ -1,6 +1,7 @@
 package org.hocate.network.aio.completionHandler;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.CompletionHandler;
 
 import org.hocate.network.ByteBufferChannel;
@@ -53,8 +54,9 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					
 					//下一次监听延迟1毫秒,用于给 event 的状态改变的时间
 					TEnv.sleep(1);
+					
 					//继续接收 Read 请求
-					socket.catchRead(buffer);					
+					socket.catchRead(buffer);	
 				}
 			} catch (Exception e) {
 				//触发 onException 事件
@@ -65,7 +67,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 	@Override
 	public void failed(Throwable exc,  ByteBuffer buffer) {
-		if(exc instanceof Exception){
+		if(exc instanceof Exception && !(exc instanceof AsynchronousCloseException)){
 			//触发 onException 事件
 			eventTrigger.fireException(TObject.cast(exc));
 		}
