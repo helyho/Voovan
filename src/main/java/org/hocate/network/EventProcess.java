@@ -201,7 +201,7 @@ public class EventProcess {
 			
 			Event event = new Event(session,EventName.ON_SENT,null);
 			//出发发送事件
-			EventProcess.onSent(event,resultBuf);
+			EventProcess.process(event);
 		}
 	}
 	
