@@ -112,9 +112,9 @@ public class AioSession extends IoSession{
 	@Override
 	public void send(ByteBuffer buffer) throws IOException {
 		if(isConnect() && buffer!=null){
-			//do{
+			do{
 				socketChannel.write(buffer);
-			//}while(buffer.hasRemaining());
+			}while(buffer.hasRemaining());
 		}
 	}
 	
