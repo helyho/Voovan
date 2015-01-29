@@ -1,6 +1,7 @@
 package org.hocate.network;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -150,13 +151,16 @@ public class EventTrigger {
 	}
 	
 	public void clearFinishedEvent(){
-		for(int i=0;i<eventPool.size();i++){
-			Event event = eventPool.get(i);
-			if(event.getState() == EventState.FINISHED){
-				eventPool.remove(event);
-				i--;
+		ArrayList<Event> finishedEvent = new ArrayList<Event>();
+		synchronized (eventPool) {
+			for(Event event : eventPool){
+				if(event.getState() == EventState.FINISHED){
+					finishedEvent.add(event);
+				}
 			}
+			eventPool.removeAll(finishedEvent);
 		}
+		
 	}
 	
 	/**
@@ -205,7 +209,7 @@ public class EventTrigger {
 	 * @param exception
 	 */
 	public void fireEvent(Event.EventName name,Object other){
-		fireEventThread(session, name,other);
+		fireEvent(session, name,other);
 	}
 
 }
