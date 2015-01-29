@@ -146,7 +146,7 @@ public class AioSocket extends SocketContext {
 			try{
 				
 				//触发 DisConnect 事件
-				eventTrigger.fireDisconnectThread();
+				eventTrigger.fireDisconnect();
 				
 				//检查是否关闭
 				eventTrigger.shutdown();
@@ -157,7 +157,7 @@ public class AioSocket extends SocketContext {
 				}
 				return true;
 			}
-			catch(Exception e){
+			catch(Throwable e){
 				e.printStackTrace();
 				return false;
 			}
