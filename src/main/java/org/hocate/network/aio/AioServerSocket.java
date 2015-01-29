@@ -63,7 +63,7 @@ public class AioServerSocket extends SocketContext{
 		if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
 			try{
 				//触发 DisConnect 事件
-				eventTrigger.fireDisconnectThread();
+				eventTrigger.fireDisconnect();
 				//检查是否关闭
 				eventTrigger.shutdown();
 				//关闭 Socket 连接
