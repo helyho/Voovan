@@ -1,5 +1,8 @@
 package org.hocate.http.server;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.hocate.http.message.Request;
 import org.hocate.http.message.Response;
 import org.hocate.network.IoHandler;
@@ -60,12 +63,42 @@ public class HttpServerHandler implements IoHandler {
 		String isKeepAlive = session.getAttribute("isKeepAlive").toString();
 		if (!isKeepAlive.equals("keep-alive")) {
 			session.close();
+		}else{
+			keepLiveSchedule(session);
 		}
 	}
 
 	@Override
 	public void onException(IoSession session, Exception e) {
 		e.printStackTrace();
+	}
+	
+	/**
+	 * 通过 Session 来控制 keepAlive 超时,超时后关闭连接
+	 * 同一个连接第二次发送消息,超时时间重置
+	 * @param session
+	 */
+	private void keepLiveSchedule(IoSession session){
+		//取消上次的 KeepAliveTask
+		if(session.getAttribute("keepAliveTimer")!=null){
+			Timer  oldTimer = (Timer) session.getAttribute("keepAliveTimer");
+			oldTimer.cancel();
+		}
+		
+		//构造新的KeepAliveTask
+		Timer keepAliveTimer = new Timer();
+		int keepAliveTimeout = WebContext.getWebConfig("KeepAliveTimeout", 5);
+		
+		TimerTask keepAliveTask = new TimerTask() {
+			@Override
+			public void run() {
+				session.close();
+			}
+		};
+		
+		keepAliveTimer.schedule(keepAliveTask, keepAliveTimeout*60*1000);
+		
+		session.setAttribute("keepAliveTimer", keepAliveTimer);
 	}
 
 }

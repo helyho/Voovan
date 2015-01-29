@@ -87,7 +87,7 @@ public class HttpServer {
 	 */
 	public static HttpServer newInstance() {
 		String host = TObject.cast(WebContext.getWebConfig("Host","0.0.0.0"));
-		int port = TObject.cast(WebContext.getWebConfig("Port",80));
+		int port = TObject.cast(WebContext.getWebConfig("Port",8080));
 		int timeOut = TObject.cast(WebContext.getWebConfig("Timeout",3000));
 		String rootDir = TObject.cast(WebContext.getWebConfig("ContextPath",System.getProperty("user.dir")));
 		
