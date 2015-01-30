@@ -47,11 +47,27 @@ public class TEnv {
 	 * 
 	 * @return
 	 */
-	public static StackTraceElement[] getCurrentStackInfo() {
+	public static StackTraceElement[] getCurrentStackElements() {
 		Throwable ex = new Throwable();
 		return ex.getStackTrace();
 	}
-
+	
+	/**
+	 * 获取当前栈信息
+	 * 
+	 * @return
+	 */
+	public static String getCurrentStackMessage(){
+		String stackInfo = "";
+		Throwable ex = new Throwable();
+		for (StackTraceElement stackTraceElement : ex.getStackTrace()) {
+			stackInfo += stackTraceElement.toString();
+			stackInfo += "\r\n";
+		}
+		
+		return stackInfo;
+	}
+	
 	/**
 	 * 读取二进制
 	 * @param file
