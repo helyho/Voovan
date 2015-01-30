@@ -3,8 +3,8 @@
 	"Host"   			: "0.0.0.0", 
 	//服务端口,默认8080
 	"Port"   			: 18080,		
-	//连接超时时间(s),默认3000
-	"Timeout"			: 3000,
+	//连接超时时间(ms),默认30000
+	"Timeout"			: 30000,
 	//上下文路径
 	"ContextPath"		: "/Users/helyho/Downloads",
 	//默认字符集,默认 UTF-8

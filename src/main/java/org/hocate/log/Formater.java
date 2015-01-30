@@ -38,7 +38,7 @@ public class Formater {
 	 * @return
 	 */
 	public static StackTraceElement currentStackLine() {
-		StackTraceElement[] stackTraceElements = TEnv.getCurrentStackInfo();
+		StackTraceElement[] stackTraceElements = TEnv.getCurrentStackElements();
 		return stackTraceElements[5];
 	}
 
