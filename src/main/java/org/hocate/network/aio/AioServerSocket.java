@@ -48,7 +48,7 @@ public class AioServerSocket extends SocketContext{
 		
 		//等待ServerSocketChannel关闭,结束进程
 		while(isConnect() && !eventTrigger.isShutdown()){
-			TEnv.sleep(1);
+			TEnv.sleep(500);
 		}
 	}
 

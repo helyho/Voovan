@@ -9,7 +9,6 @@ import org.hocate.network.EventTrigger;
 import org.hocate.network.MessageLoader;
 import org.hocate.network.aio.AioSession;
 import org.hocate.network.aio.AioSocket;
-import org.hocate.tools.TEnv;
 import org.hocate.tools.TObject;
 
 /**
@@ -51,9 +50,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					eventTrigger.fireReceiveThread();
 					//接收完成后重置 buffer;
 					buffer.clear();
-					
-					//下一次监听延迟1毫秒,用于给 event 的状态改变的时间
-					TEnv.sleep(1);
 					
 					//继续接收 Read 请求
 					socket.catchRead(buffer);	

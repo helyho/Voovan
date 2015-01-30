@@ -29,6 +29,10 @@ public class ThreadPool {
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
+				if(threadPool.isShutdown()){
+					this.cancel();
+					timer.cancel();
+				}
 				String threadPoolInfo = "PoolInfo:"+threadPool.getActiveCount()+"/"+threadPool.getCorePoolSize()+" TaskCount: "
 						+threadPool.getCompletedTaskCount()+"/"+threadPool.getTaskCount()+" QueueSize:"+threadPool.getQueue().size();
 				if(threadPool.getActiveCount()!=0 || threadPool.getPoolSize()!=0){
