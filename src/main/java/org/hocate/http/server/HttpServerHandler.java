@@ -8,6 +8,7 @@ import org.hocate.http.message.Response;
 import org.hocate.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
+import org.hocate.tools.TEnv;
 import org.hocate.tools.TObject;
 
 /**
@@ -73,8 +74,8 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		Logger.error("Http Server Error:" + e.getMessage());
-		e.printStackTrace();
+		Logger.error("Http Server Error: \r\n" + e.getClass().getName()+"\r\n"+TEnv.getStackElementsMessage(e.getStackTrace()));
+		
 	}
 
 	/**

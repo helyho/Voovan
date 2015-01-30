@@ -69,6 +69,21 @@ public class TEnv {
 	}
 	
 	/**
+	 * 获取当前栈信息
+	 * 
+	 * @return
+	 */
+	public static String getStackElementsMessage(StackTraceElement[] stackTraceElements){
+		String stackInfo = "";
+		for (StackTraceElement stackTraceElement : stackTraceElements) {
+			stackInfo += stackTraceElement.toString();
+			stackInfo += "\r\n";
+		}
+		
+		return stackInfo;
+	}
+	
+	/**
 	 * 读取二进制
 	 * @param file
 	 */
