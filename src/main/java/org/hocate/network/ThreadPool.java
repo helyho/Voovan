@@ -20,7 +20,7 @@ public class ThreadPool {
 	
 	private static ThreadPoolExecutor createThreadPool(){
 		int cpuCoreCount = Runtime.getRuntime().availableProcessors();
-		ThreadPoolExecutor threadPool = new ThreadPoolExecutor(cpuCoreCount*1000, cpuCoreCount*2*1000,1, TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>());
+		ThreadPoolExecutor threadPool = new ThreadPoolExecutor(cpuCoreCount*100, cpuCoreCount*2*100,1, TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>());
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPool.allowCoreThreadTimeOut(true);
 		Timer timer = new Timer();

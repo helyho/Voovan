@@ -65,8 +65,10 @@ public class HttpServerHandler implements IoHandler {
 		if(session.containAttribute("isKeepAlive")){
 			isKeepAlive = session.getAttribute("isKeepAlive").toString();
 		}
-		if (!isKeepAlive.equals("keep-alive")) {
+		if (isKeepAlive.equals("keep-alive")) {
 			keepLiveSchedule(session);
+		}else{
+			session.close();
 		}
 	}
 

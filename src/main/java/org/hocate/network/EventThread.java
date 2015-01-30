@@ -28,6 +28,7 @@ public class EventThread  implements Runnable{
 	@Override
 	public void run() { 
 		EventProcess.process(event);
+		System.out.println(Thread.currentThread().getName()+"is out");
 	}
 	
 }
