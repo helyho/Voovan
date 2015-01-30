@@ -18,5 +18,4 @@ public class ThreadPool {
 		eventThreadPool.allowCoreThreadTimeOut(true);
 		return eventThreadPool;
 	}
-	
 }

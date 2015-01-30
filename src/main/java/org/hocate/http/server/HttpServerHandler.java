@@ -5,6 +5,7 @@ import java.util.TimerTask;
 
 import org.hocate.http.message.Request;
 import org.hocate.http.message.Response;
+import org.hocate.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
 import org.hocate.tools.TObject;
@@ -60,7 +61,10 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public void onSent(IoSession session, Object obj) {
-		String isKeepAlive = session.getAttribute("isKeepAlive").toString();
+		String isKeepAlive = "";
+		if(session.containAttribute("isKeepAlive")){
+			isKeepAlive = session.getAttribute("isKeepAlive").toString();
+		}
 		if (!isKeepAlive.equals("keep-alive")) {
 			session.close();
 		}else{
@@ -70,6 +74,7 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public void onException(IoSession session, Exception e) {
+		Logger.error("Http Server Error:"+e.getMessage());
 		e.printStackTrace();
 	}
 	

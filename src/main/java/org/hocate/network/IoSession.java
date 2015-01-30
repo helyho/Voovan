@@ -64,12 +64,20 @@ public abstract class IoSession {
 	}
 
 	/**
-	 * 设计会话参数
+	 * 设置会话参数
 	 * @param key     参数名
 	 * @param value   参数对象
 	 */
 	public void setAttribute(Object key, Object value) {
 		this.attributes.put(key, value);
+	}
+	
+	/**
+	 * 检查会话参数是否存在
+	 * @param key     参数名
+	 */
+	public boolean containAttribute(Object key) {
+		return this.attributes.containsKey(key);
 	}
 	
 	/**

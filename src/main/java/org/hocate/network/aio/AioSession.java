@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.concurrent.Future;
 
 import org.hocate.network.ByteBufferChannel;
 import org.hocate.network.IoSession;
 import org.hocate.network.MessageLoader;
 import org.hocate.network.MessageParter;
 import org.hocate.network.SocketContext;
+import org.hocate.tools.TEnv;
 import org.hocate.tools.TObject;
 
 public class AioSession extends IoSession {
@@ -48,44 +50,60 @@ public class AioSession extends IoSession {
 
 	@Override
 	public String loaclAddress() {
-		try {
-			InetSocketAddress socketAddress = TObject.cast(socketChannel.getLocalAddress());
-			return socketAddress.getHostName();
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (this.isConnect()) {
+			try {
+				InetSocketAddress socketAddress = TObject.cast(socketChannel.getLocalAddress());
+				return socketAddress.getHostName();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		} else {
 			return null;
 		}
 	}
 
 	@Override
 	public int loaclPort() {
-		try {
-			InetSocketAddress socketAddress = TObject.cast(socketChannel.getLocalAddress());
-			return socketAddress.getPort();
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (this.isConnect()) {
+			try {
+				InetSocketAddress socketAddress = TObject.cast(socketChannel.getLocalAddress());
+				return socketAddress.getPort();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return -1;
+			}
+		} else {
 			return -1;
 		}
 	}
 
 	@Override
 	public String remoteAddress() {
-		try {
-			InetSocketAddress socketAddress = TObject.cast(socketChannel.getRemoteAddress());
-			return socketAddress.getHostString();
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (this.isConnect()) {
+			try {
+				InetSocketAddress socketAddress = TObject.cast(socketChannel.getRemoteAddress());
+				return socketAddress.getHostString();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		} else {
 			return null;
 		}
 	}
 
 	@Override
 	public int remotePort() {
-		try {
-			InetSocketAddress socketAddress = TObject.cast(socketChannel.getRemoteAddress());
-			return socketAddress.getPort();
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (this.isConnect()) {
+			try {
+				InetSocketAddress socketAddress = TObject.cast(socketChannel.getRemoteAddress());
+				return socketAddress.getPort();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return -1;
+			}
+		} else {
 			return -1;
 		}
 	}
@@ -112,7 +130,10 @@ public class AioSession extends IoSession {
 	@Override
 	public void send(ByteBuffer buffer) throws IOException {
 		if (isConnect() && buffer != null) {
-			socketChannel.write(buffer);
+			Future<Integer> seandResult = socketChannel.write(buffer);
+			while (!seandResult.isDone()) {
+				TEnv.sleep(1);
+			}
 		}
 	}
 
