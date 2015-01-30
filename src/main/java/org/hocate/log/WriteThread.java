@@ -3,6 +3,8 @@ package org.hocate.log;
 import java.io.OutputStream;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+
+import org.hocate.tools.TEnv;
 /**
  * 日志输出线程
  * @author helyho
@@ -40,9 +42,11 @@ public class WriteThread implements Runnable {
 				} else if(logDeque.size()==0){
 					break;
 				}
+				TEnv.sleep(1);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			
 		}
 	}
 }
