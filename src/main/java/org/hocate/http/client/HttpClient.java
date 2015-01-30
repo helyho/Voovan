@@ -157,7 +157,7 @@ public class HttpClient {
 		
 		//等待获取 response并返回
 		while(clientHandler.getResponse()==null){
-			TEnv.sleep(1);
+			TEnv.sleep(100);
 		}
 		
 		return clientHandler.getResponse();

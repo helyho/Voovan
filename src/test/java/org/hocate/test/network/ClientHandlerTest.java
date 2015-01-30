@@ -14,7 +14,8 @@ public class ClientHandlerTest implements IoHandler {
 	public Object onConnect(IoSession session) {
 		Logger.simple("onConnect");
 		session.setAttribute("key", "attribute value");
-		String msg = new String(TFile.loadFileFromSysPath("/Users/helyho/1.txt"));
+		TFile.loadFileFromSysPath("/Users/helyho/1.txt");
+		String msg = new String("test message");
 		return msg;//"Client Message";
 	}
 

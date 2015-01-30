@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.concurrent.TimeUnit;
 
 import org.hocate.network.ConnectModel;
 import org.hocate.network.EventTrigger;
@@ -27,7 +26,6 @@ public class AioSocket extends SocketContext {
 	private ConnectModel				connectModel;
 	private ReadCompletionHandler		readCompletionHandler;
 	private ConnectedCompletionHandler	connectedCompletionHandler;
-	private boolean						isSubSocket	= false;
 
 	/**
 	 * 构造函数
@@ -58,7 +56,6 @@ public class AioSocket extends SocketContext {
 	public AioSocket(SocketContext parentSocketContext, AsynchronousSocketChannel socketChannel) throws IOException {
 		this.socketChannel = socketChannel;
 		this.cloneInit(parentSocketContext);
-		isSubSocket = true;
 		session = new AioSession(this, this.readTimeout);
 		eventTrigger = new EventTrigger(session);
 
@@ -81,7 +78,7 @@ public class AioSocket extends SocketContext {
 	 */
 	public void catchConnected() {
 		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
-		socketChannel.connect(socketAddress, null, connectedCompletionHandler);
+		socketChannel.connect(socketAddress, this, connectedCompletionHandler);
 	}
 
 	/**
@@ -89,7 +86,7 @@ public class AioSocket extends SocketContext {
 	 */
 	public void catchRead(ByteBuffer buffer) {
 		if (isConnect()) {
-			socketChannel.read(buffer,readTimeout,TimeUnit.MILLISECONDS, buffer, readCompletionHandler);
+			socketChannel.read(buffer, buffer, readCompletionHandler);
 		}
 	}
 
@@ -109,25 +106,16 @@ public class AioSocket extends SocketContext {
 		if (connectModel == ConnectModel.SERVER) {
 			// 触发 connect 事件
 			eventTrigger.fireConnect();
+			catchRead(ByteBuffer.allocate(1024));
 		} else if (connectModel == ConnectModel.CLIENT) {
 			// 捕获 connect 事件
 			catchConnected();
 		}
 
-		if (isConnect()) {
-			while (true) {
-				try {
-					catchRead(ByteBuffer.allocate(1024));
-					break;
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
+		
 		// 等待ServerSocketChannel关闭,结束进程
-		while (isConnect() && (isSubSocket || eventTrigger.isShutdown())) {
-			TEnv.sleep(1);
+		while (isConnect() && (connectModel==ConnectModel.CLIENT || eventTrigger.isShutdown())) {
+			TEnv.sleep(500);
 		}
 	}
 
@@ -155,12 +143,12 @@ public class AioSocket extends SocketContext {
 
 				// 检查是否关闭线程池,如果不是ServerSocket 下的 Socket 则关闭线程池,由 ServerSocket
 				// 来关闭
-				if (!isSubSocket) {
+				if (connectModel == ConnectModel.CLIENT) {
 					eventTrigger.shutdown();
 				}
 
 				// 关闭 Socket 连接
-				if (socketChannel.isOpen() && (isSubSocket || eventTrigger.isShutdown())) {
+				if (socketChannel.isOpen() && (connectModel == ConnectModel.SERVER || eventTrigger.isShutdown())) {
 					socketChannel.close();
 				}
 				return true;

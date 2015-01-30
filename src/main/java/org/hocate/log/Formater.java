@@ -135,6 +135,7 @@ public class Formater {
 			logWriter = new Thread(writeThread);
 			logWriter.start();
 		}
+		
 		writeThread.addLogMessage(msg);
 	}
 

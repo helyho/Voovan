@@ -25,7 +25,6 @@ public class SessionManager{
 	 * @param session
 	 */
 	public synchronized void addSession(HttpSession session) {
-		clearInvalidSession();
 		if (!sessions.containsKey(session.getId())) {
 			sessions.put(session.getId(), session);
 		}

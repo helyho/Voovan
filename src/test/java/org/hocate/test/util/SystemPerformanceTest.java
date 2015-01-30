@@ -11,7 +11,7 @@ public class SystemPerformanceTest {
 			Logger.simple("=========================================");
 			Logger.simple(TPerformance.cpuPerCoreLoadAvg());
 			Logger.simple(TPerformance.jvmMemoryUsage());
-			TEnv.sleep(1);
+			TEnv.sleep(100);
 		}
 		
 	}

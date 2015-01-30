@@ -1,8 +1,10 @@
 package org.hocate.network.aio.completionHandler;
 
+import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
 
 import org.hocate.network.EventTrigger;
+import org.hocate.network.aio.AioSocket;
 import org.hocate.tools.TObject;
 
 /**
@@ -10,7 +12,7 @@ import org.hocate.tools.TObject;
  * @author helyho
  *
  */
-public class ConnectedCompletionHandler implements CompletionHandler<Void, Void>{
+public class ConnectedCompletionHandler implements CompletionHandler<Void, AioSocket>{
 
 	private EventTrigger eventTrigger;
 	public ConnectedCompletionHandler(EventTrigger eventTrigger){
@@ -18,10 +20,11 @@ public class ConnectedCompletionHandler implements CompletionHandler<Void, Void>
 	}
 	
 	@Override
-	public void completed(Void arg1,  Void arg2) {
+	public void completed(Void arg1,  AioSocket socketContext) {
 		try{
 			//触发 Connect 事件
 			eventTrigger.fireConnect();
+			socketContext.catchRead(ByteBuffer.allocate(1024));
 		}
 		catch(Exception e){
 			eventTrigger.fireException(e);
@@ -29,7 +32,7 @@ public class ConnectedCompletionHandler implements CompletionHandler<Void, Void>
 	}
 
 	@Override
-	public void failed(Throwable exc,  Void arg1) {
+	public void failed(Throwable exc,  AioSocket socketContext) {
 		if(exc instanceof Exception){
 			//触发 onException 事件
 			eventTrigger.fireException(TObject.cast(exc));
