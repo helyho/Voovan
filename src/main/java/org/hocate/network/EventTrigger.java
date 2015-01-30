@@ -3,9 +3,7 @@ package org.hocate.network;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Vector;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.hocate.network.Event.EventName;
 import org.hocate.network.Event.EventState;
@@ -36,8 +34,7 @@ public class EventTrigger {
 	 * 无参数构造函数
 	 */
 	public EventTrigger(){
-		int cpuCoreCount = Runtime.getRuntime().availableProcessors();
-		eventThreadPool = new ThreadPoolExecutor(cpuCoreCount, cpuCoreCount+2,20, TimeUnit.SECONDS,new LinkedBlockingQueue<Runnable>());
+		eventThreadPool = ThreadPool.getThreadPool();
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		eventThreadPool.allowCoreThreadTimeOut(true);
 	}

@@ -14,154 +14,160 @@ import org.hocate.tools.TEnv;
 
 /**
  * AioSocket 连接
+ * 
  * @author helyho
  *
  */
 public class AioSocket extends SocketContext {
-	
-	private AsynchronousSocketChannel socketChannel;
-	private AioSession session;
-	private EventTrigger eventTrigger;
-	private ConnectModel connectModel;
-	private ReadCompletionHandler readCompletionHandler;
-	private ConnectedCompletionHandler connectedCompletionHandler;
-	
+
+	private AsynchronousSocketChannel	socketChannel;
+	private AioSession					session;
+	private EventTrigger				eventTrigger;
+	private ConnectModel				connectModel;
+	private ReadCompletionHandler		readCompletionHandler;
+	private ConnectedCompletionHandler	connectedCompletionHandler;
+	private boolean						isSubSocket	= false;
+
 	/**
 	 * 构造函数
+	 * 
 	 * @param host
 	 * @param port
 	 * @param readTimeout
 	 * @throws IOException
 	 */
-	public AioSocket(String host,int port,int readTimeout) throws IOException{
+	public AioSocket(String host, int port, int readTimeout) throws IOException {
 		super(host, port, readTimeout);
 		this.socketChannel = AsynchronousSocketChannel.open();
-		session = new AioSession(this,this.readTimeout);
+		session = new AioSession(this, this.readTimeout);
 		eventTrigger = new EventTrigger(session);
-		
+
 		connectedCompletionHandler = new ConnectedCompletionHandler(eventTrigger);
-		readCompletionHandler = new ReadCompletionHandler(eventTrigger,session.getByteBufferChannel());
+		readCompletionHandler = new ReadCompletionHandler(eventTrigger, session.getByteBufferChannel());
 		connectModel = ConnectModel.CLIENT;
 	}
-	
+
 	/**
 	 * 构造函数
+	 * 
 	 * @param socketChannel
 	 * @param readTimeout
 	 * @throws IOException
 	 */
-	public AioSocket(SocketContext parentSocketContext,AsynchronousSocketChannel socketChannel) throws IOException{
+	public AioSocket(SocketContext parentSocketContext, AsynchronousSocketChannel socketChannel) throws IOException {
 		this.socketChannel = socketChannel;
 		this.cloneInit(parentSocketContext);
-		
-		session = new AioSession(this,this.readTimeout);
+		isSubSocket = true;
+		session = new AioSession(this, this.readTimeout);
 		eventTrigger = new EventTrigger(session);
-		
+
 		connectedCompletionHandler = new ConnectedCompletionHandler(eventTrigger);
-		readCompletionHandler = new ReadCompletionHandler(eventTrigger,session.getByteBufferChannel());
+		readCompletionHandler = new ReadCompletionHandler(eventTrigger, session.getByteBufferChannel());
 		connectModel = ConnectModel.SERVER;
 	}
-	
+
 	/**
 	 * 获取事件触发器
+	 * 
 	 * @return
 	 */
-	public EventTrigger getEventTrigger(){
+	public EventTrigger getEventTrigger() {
 		return eventTrigger;
 	}
 
 	/**
-	 * 捕获 Aio Connect 
+	 * 捕获 Aio Connect
 	 */
 	public void catchConnected() {
 		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
-		socketChannel.connect(socketAddress,null,connectedCompletionHandler);
+		socketChannel.connect(socketAddress, null, connectedCompletionHandler);
 	}
-	
+
 	/**
-	 * 捕获 Aio Read 
+	 * 捕获 Aio Read
 	 */
 	public void catchRead(ByteBuffer buffer) {
-		if(isConnect()){
-			socketChannel.read(buffer,buffer,readCompletionHandler);
+		if (isConnect()) {
+			socketChannel.read(buffer, buffer, readCompletionHandler);
 		}
 	}
-	
-	public AioSession getSession(){
+
+	public AioSession getSession() {
 		return session;
 	}
-	
+
 	@Override
 	public void start() throws Exception {
-		
-		if(connectModel == ConnectModel.SERVER && sslManager != null){
+
+		if (connectModel == ConnectModel.SERVER && sslManager != null) {
 			sslManager.createServerSSLParser(session);
-		}
-		else if(connectModel == ConnectModel.CLIENT && sslManager != null){
+		} else if (connectModel == ConnectModel.CLIENT && sslManager != null) {
 			sslManager.createClientSSLParser(session);
-		}	
-		
-		if(connectModel == ConnectModel.SERVER){
-			//触发 connect 事件
-			eventTrigger.fireConnect();
 		}
-		else if(connectModel == ConnectModel.CLIENT){
-			//捕获 connect 事件
+
+		if (connectModel == ConnectModel.SERVER) {
+			// 触发 connect 事件
+			eventTrigger.fireConnect();
+		} else if (connectModel == ConnectModel.CLIENT) {
+			// 捕获 connect 事件
 			catchConnected();
-		}	
-		
-		if(isConnect()){
-			while(true){
-				try{
+		}
+
+		if (isConnect()) {
+			while (true) {
+				try {
 					catchRead(ByteBuffer.allocate(1024));
 					break;
-				}
-				catch(Exception e){
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}
-		
-		//等待ServerSocketChannel关闭,结束进程
-		while(isConnect() && !eventTrigger.isShutdown()){
+
+		// 等待ServerSocketChannel关闭,结束进程
+		while (isConnect() && (isSubSocket || eventTrigger.isShutdown())) {
 			TEnv.sleep(1);
 		}
 	}
-	
+
 	/**
 	 * 获取 SocketChannel 对象
+	 * 
 	 * @return
 	 */
-	public AsynchronousSocketChannel socketChannel(){
+	public AsynchronousSocketChannel socketChannel() {
 		return this.socketChannel;
-	} 
+	}
 
 	@Override
 	public boolean isConnect() {
 		return socketChannel.isOpen();
 	}
-	
+
 	@Override
-	public  boolean Close(){
-		if(socketChannel!=null && socketChannel.isOpen()){
-			try{
-				
-				//触发 DisConnect 事件
+	public boolean Close() {
+		if (socketChannel != null && socketChannel.isOpen()) {
+			try {
+
+				// 触发 DisConnect 事件
 				eventTrigger.fireDisconnect();
-				
-				//检查是否关闭
-				eventTrigger.shutdown();
-				
-				//关闭 Socket 连接
-				if(socketChannel.isOpen() && eventTrigger.isShutdown()){
+
+				// 检查是否关闭线程池,如果不是ServerSocket 下的 Socket 则关闭线程池,由 ServerSocket
+				// 来关闭
+				if (!isSubSocket) {
+					eventTrigger.shutdown();
+				}
+
+				// 关闭 Socket 连接
+				if (socketChannel.isOpen() && (isSubSocket || eventTrigger.isShutdown())) {
 					socketChannel.close();
 				}
 				return true;
-			}
-			catch(Throwable e){
+			} catch (Throwable e) {
 				e.printStackTrace();
 				return false;
 			}
-		}else{
+		} else {
 			return true;
 		}
 	}
