@@ -4,14 +4,16 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.hocate.network.ByteBufferChannel;
 import org.hocate.network.IoSession;
 import org.hocate.network.MessageLoader;
 import org.hocate.network.MessageParter;
 import org.hocate.network.SocketContext;
-import org.hocate.tools.TEnv;
 import org.hocate.tools.TObject;
 
 public class AioSession extends IoSession {
@@ -130,9 +132,11 @@ public class AioSession extends IoSession {
 	@Override
 	public void send(ByteBuffer buffer) throws IOException {
 		if (isConnect() && buffer != null) {
-			Future<Integer> seandResult = socketChannel.write(buffer);
-			while (!seandResult.isDone()) {
-				TEnv.sleep(1);
+			Future<Integer> sendResult = socketChannel.write(buffer);
+			try {
+				sendResult.get(sockContext().getReadTimeout(),TimeUnit.MILLISECONDS);
+			} catch (InterruptedException | ExecutionException | TimeoutException e) {
+				e.printStackTrace();
 			}
 		}
 	}
