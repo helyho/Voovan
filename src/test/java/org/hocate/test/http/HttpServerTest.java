@@ -8,6 +8,9 @@ import org.hocate.log.Logger;
 import org.hocate.tools.TFile;
 
 public class HttpServerTest {
+	private static byte[] fileContent = TFile.loadResource("org/hocate/test/http/test.htm");
+	
+	
 	public static void main(String[] args) {
 		try {
 			HttpServer httpServer = HttpServer.newInstance();
@@ -21,7 +24,7 @@ public class HttpServerTest {
 				Logger.simple("QueryString:"+req.getQueryString());
 				req.getSession().setAttribute("Time", new Date().toString());
 
-				resp.write(TFile.loadResource("org/hocate/test/http/test.htm"));
+				resp.write(fileContent);
 				resp.write(req.getParameter("name"));
 			});
 			
@@ -34,7 +37,7 @@ public class HttpServerTest {
 				//Logger.simple("QueryString:"+req.getQueryString());
 				req.getSession().setAttribute("Time", new Date().toString());
 
-				resp.write(TFile.loadResource("org/hocate/test/http/test.htm"));
+				resp.write(fileContent);
 				resp.write(req.getParameter("name"));
 			});
 			
@@ -52,7 +55,7 @@ public class HttpServerTest {
 				Logger.simple(req.getQueryString());
 				req.getSession().setAttribute("Time", new Date().toString());
 				Logger.simple(req.getQueryString());
-				resp.write(TFile.loadResource("org/hocate/test/http/test.htm"));
+				resp.write(fileContent);
 				resp.write(req.getParameter("name"));
 			});
 			httpServer.Serve();
