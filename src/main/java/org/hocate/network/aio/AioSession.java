@@ -136,6 +136,7 @@ public class AioSession extends IoSession {
 			try {
 				sendResult.get(sockContext().getReadTimeout(),TimeUnit.MILLISECONDS);
 			} catch (InterruptedException | ExecutionException | TimeoutException e) {
+				System.out.println("[ERROR]send error");
 				e.printStackTrace();
 			}
 		}
