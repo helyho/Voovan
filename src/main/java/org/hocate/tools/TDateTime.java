@@ -13,7 +13,7 @@ public class TDateTime {
 	 * @return
 	 */
 	public static String currentTime(){
-		return dateFormat(new Date(),"YYYY-MM-DD HH:mm:ss");
+		return dateFormat(new Date(),"YYYY-MM-dd HH:mm:ss");
 	}
 	
 	/**
