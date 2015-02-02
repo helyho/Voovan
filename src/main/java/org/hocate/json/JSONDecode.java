@@ -38,8 +38,7 @@ public class JSONDecode {
 			jsonResult = new ArrayList<Object>();
 		}
 		//规范化字符串
-		jsonStr = jsonStr.replaceAll(": ", ":");
-		jsonStr = jsonStr.replaceAll(" :", ":");
+		jsonStr = TString.replaceByRegex(jsonStr,"\\s*:\\s*", ":");
 		jsonStr = jsonStr.substring(1,jsonStr.length()-1);
 		String keyString = null;
 		Object value = null;
