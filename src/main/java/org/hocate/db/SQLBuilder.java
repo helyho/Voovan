@@ -103,7 +103,7 @@ public class SQLBuilder {
 		}
 		else if(this.type == SQLType.UPDATE){
 			sql+="update \r\n";
-			sql+=this.getUpdateTable()+" \r\n";
+			sql+=this.getUpdateTable()+" \r\nset ";
 			sql+=this.getSets()+" \r\n";
 			sql+=this.getWhere()+" \r\n";
 			
