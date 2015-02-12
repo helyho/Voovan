@@ -29,12 +29,13 @@ import org.hocate.tools.TString;
  * @author helyho
  *
  */
-public class RequestDispatch {
+public class RequestDispatcher {
 	/**
 	 * [MainKey] = HTTP method ,[Value Key] = Route path, [Value value] = RouteBuiz对象
 	 */
 	private Map<String, Map<String, Router>>	routes;
 	private SessionManager sessionManager;
+	private WebConfig config;
 	
 	/**
 	 * 构造函数
@@ -42,11 +43,12 @@ public class RequestDispatch {
 	 * @param rootDir
 	 *            根目录
 	 */
-	public RequestDispatch(String contextPath) {
+	public RequestDispatcher(WebConfig config) {
 		routes = new HashMap<String, Map<String, Router>>();
+		this.config = config;
 		
 		//构造 SessionManage
-		sessionManager = new SessionManager(WebContext.getSessionConatiner());
+		sessionManager = SessionManager.newInstance(config);
 
 		// 初始化所有的 HTTP 请求方法
 		this.addRouteMethod("GET");
@@ -59,7 +61,7 @@ public class RequestDispatch {
 		this.addRouteMethod("OPTIONS");
 
 		// Mime静态文件默认请求处理
-		addRouteRuler("GET", MimeTools.getMimeTypeRegex(), new MimeFileRouter(contextPath));
+		addRouteRuler("GET", MimeTools.getMimeTypeRegex(), new MimeFileRouter(config.getContextPath()));
 	}
 
 	/**
@@ -188,7 +190,7 @@ public class RequestDispatch {
 			sessionManager.addSession(session);
 			
 			//取 session 超时时间
-			int sessionTimeout = WebContext.getWebConfig("SessionTimeout",30);
+			int sessionTimeout = config.getSessionTimeout();
 			//创建 Cookie
 			Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(), 
 					session.getId(),sessionTimeout*60);

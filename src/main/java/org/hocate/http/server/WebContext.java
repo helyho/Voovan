@@ -5,7 +5,6 @@ import java.util.Map;
 import org.hocate.json.JSONDecode;
 import org.hocate.tools.TFile;
 import org.hocate.tools.TObject;
-import org.hocate.tools.TReflect;
 
 /**
  * Web上下文(配置信息读取)
@@ -46,26 +45,26 @@ public class WebContext {
 	}
 	
 	
-	/**
-	 * 获取 Session 容器
-	 */
-	public static Map<String, HttpSession> getSessionConatiner(){
-		try {
-			String className = WebContext.getWebConfig("SessionContainer","java.util.Hashtable");
-			Class<?> sessionContainerClass = Class.forName(className);
-			Map<String, HttpSession> sessionContainer = TObject.cast(TReflect.newInstance(sessionContainerClass));
-			return sessionContainer;
-		} catch (Exception e) {
-			return null;
-		}
+	public static WebConfig getWebConfig() {
+		WebConfig config = new WebConfig();
+		config.setHost(getContextParameter("Host","0.0.0.0"));
+		config.setPort(getContextParameter("Port",8080));
+		config.setTimeout(getContextParameter("Timeout",3000));
+		config.setContextPath(getContextParameter("ContextPath",System.getProperty("user.dir")));
+		config.setCharacterSet(getContextParameter("CharacterSet","UTF-8"));
+		config.setSessionContainer(getContextParameter("SessionContainer","java.util.Hashtable"));
+		config.setSessionTimeout(getContextParameter("SessionTimeout",30));
+		config.setKeepAliveTimeout(getContextParameter("KeepAliveTimeout",5));
+		return config;
 	}
+
 	
 	/**
 	 * 获取 Web 服务配置
 	 * @param <T>
 	 * @return
 	 */
-	public static <T> T getWebConfig(String name,T defaultValue) {
+	public static <T> T getContextParameter(String name,T defaultValue) {
 		return webConfig.get(name)==null?defaultValue:TObject.cast(webConfig.get(name));
 	}
 	

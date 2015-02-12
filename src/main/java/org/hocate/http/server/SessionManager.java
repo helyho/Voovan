@@ -6,19 +6,40 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.hocate.log.Logger;
+import org.hocate.tools.TObject;
+import org.hocate.tools.TReflect;
 
 public class SessionManager{
 	private  Map<String, HttpSession>	sessions;
+	private WebConfig config;
 	
-	public SessionManager(Map<String, HttpSession> sessionMap){
-		if(sessionMap == null){
+	/**
+	 * 构造函数
+	 * @param config
+	 */
+	public SessionManager(WebConfig config){
+		this.config = config;
+		sessions = getSessionContainer();
+		if(sessions == null){
 			sessions = new Hashtable<String, HttpSession>();
 			Logger.warn("Create session container from config file failed,now use defaul session container.");
-		}else{
-			sessions = sessionMap;
 		}
 	}
 
+	/**
+	 * 获取 Session 容器
+	 */
+	public Map<String, HttpSession> getSessionContainer(){
+		try {
+			String className = config.getSessionContainer();
+			Class<?> sessionContainerClass = Class.forName(className);
+			Map<String, HttpSession> sessionContainer = TObject.cast(TReflect.newInstance(sessionContainerClass));
+			return sessionContainer;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	
 	/**
 	 * 增加 Session
 	 * 
@@ -72,6 +93,10 @@ public class SessionManager{
 	 * @return
 	 */
 	public HttpSession newHttpSession(){
-		return new HttpSession();
+		return new HttpSession(config);
+	}
+	
+	public static SessionManager newInstance(WebConfig config){
+		return new SessionManager(config);
 	}
 }
