@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.hocate.network.aio.AioServerSocket;
 import org.hocate.network.messageParter.HttpMessageParter;
-import org.hocate.tools.TObject;
 
 /**
  * HttpServer 对象
@@ -13,8 +12,8 @@ import org.hocate.tools.TObject;
  * 
  */
 public class HttpServer {
-	private AioServerSocket	aioServerSocket;
-	private RequestDispatch	requestProcesser;
+	private AioServerSocket		aioServerSocket;
+	private RequestDispatcher	requestDispatcher;
 
 	/**
 	 * 构造函数
@@ -30,12 +29,12 @@ public class HttpServer {
 	 * @throws IOException
 	 *             异常
 	 */
-	public HttpServer(String host, int port, int timeout, String contextPath) throws IOException {
-		// 路由处理对象
-		requestProcesser = new RequestDispatch(contextPath);
+	public HttpServer(WebConfig config) throws IOException {
+
 		// 准备 socket 监听
-		aioServerSocket = new AioServerSocket(host, port, timeout);
-		aioServerSocket.handler(new HttpServerHandler(requestProcesser));
+		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout());
+		this.requestDispatcher = new RequestDispatcher(config);
+		aioServerSocket.handler(new HttpServerHandler(config, requestDispatcher));
 		aioServerSocket.filterChain().add(new HttpServerFilter());
 		aioServerSocket.messageParter(new HttpMessageParter());
 	}
@@ -45,54 +44,50 @@ public class HttpServer {
 	 */
 
 	public void get(String routeRegexPath, Router routeBuiz) {
-		requestProcesser.addRouteRuler("GET", "^"+routeRegexPath+"$", routeBuiz);
+		requestDispatcher.addRouteRuler("GET", "^" + routeRegexPath + "$", routeBuiz);
 	}
 
 	public void post(String routeRegexPath, Router routeBuiz) {
-		requestProcesser.addRouteRuler("POST", "^"+routeRegexPath+"$", routeBuiz);
+		requestDispatcher.addRouteRuler("POST", "^" + routeRegexPath + "$", routeBuiz);
 	}
 
 	public void head(String routeRegexPath, Router routeBuiz) {
-		requestProcesser.addRouteRuler("HEAD", "^"+routeRegexPath+"$", routeBuiz);
+		requestDispatcher.addRouteRuler("HEAD", "^" + routeRegexPath + "$", routeBuiz);
 	}
 
 	public void put(String routeRegexPath, Router routeBuiz) {
-		requestProcesser.addRouteRuler("PUT", "^"+routeRegexPath+"$", routeBuiz);
+		requestDispatcher.addRouteRuler("PUT", "^" + routeRegexPath + "$", routeBuiz);
 	}
 
 	public void delete(String routeRegexPath, Router routeBuiz) {
-		requestProcesser.addRouteRuler("delete", "^"+routeRegexPath+"$", routeBuiz);
+		requestDispatcher.addRouteRuler("delete", "^" + routeRegexPath + "$", routeBuiz);
 	}
 
 	public void trace(String routeRegexPath, Router routeBuiz) {
-		requestProcesser.addRouteRuler("TRACE", "^"+routeRegexPath+"$", routeBuiz);
+		requestDispatcher.addRouteRuler("TRACE", "^" + routeRegexPath + "$", routeBuiz);
 	}
 
 	public void connect(String routeRegexPath, Router routeBuiz) {
-		requestProcesser.addRouteRuler("CONNECT", "^"+routeRegexPath+"$", routeBuiz);
+		requestDispatcher.addRouteRuler("CONNECT", "^" + routeRegexPath + "$", routeBuiz);
 	}
 
 	public void options(String routeRegexPath, Router routeBuiz) {
-		requestProcesser.addRouteRuler("OPTIONS", "^"+routeRegexPath+"$", routeBuiz);
+		requestDispatcher.addRouteRuler("OPTIONS", "^" + routeRegexPath + "$", routeBuiz);
 	}
 
 	public void otherMethod(String method, String routeRegexPath, Router routeBuiz) {
-		requestProcesser.addRouteMethod(method);
-		requestProcesser.addRouteRuler(method, "^"+routeRegexPath+"$", routeBuiz);
+		requestDispatcher.addRouteMethod(method);
+		requestDispatcher.addRouteRuler(method, "^" + routeRegexPath + "$", routeBuiz);
 	}
 
 	/**
-	 * 构建新的 HttpServer
+	 * 构建新的 HttpServer,从配置文件读取配置
+	 * 
 	 * @return
 	 */
 	public static HttpServer newInstance() {
-		String host = TObject.cast(WebContext.getWebConfig("Host","0.0.0.0"));
-		int port = TObject.cast(WebContext.getWebConfig("Port",8080));
-		int timeOut = TObject.cast(WebContext.getWebConfig("Timeout",3000));
-		String rootDir = TObject.cast(WebContext.getWebConfig("ContextPath",System.getProperty("user.dir")));
-		
 		try {
-			return new HttpServer(host, port, timeOut, rootDir);
+			return new HttpServer(WebContext.getWebConfig());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

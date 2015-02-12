@@ -13,12 +13,13 @@ public class HttpSession {
 	/**
 	 * 构造函数
 	 */
-	public HttpSession(){
+	public HttpSession(WebConfig config){
 		attributes = new HashMap<String, Object>();
 		this.id = UUID.randomUUID().toString().toUpperCase().replaceAll("-", "");
 		createTimeillis = System.currentTimeMillis();
-		int sessionTimeout = WebContext.getWebConfig("SessionTimeout",30);
+		int sessionTimeout = config.getSessionTimeout();
 		this.maxInactiveInterval = sessionTimeout*60*1000;
+		
 	}
 
 	/**

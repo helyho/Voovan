@@ -18,10 +18,12 @@ import org.hocate.tools.TObject;
  *
  */
 public class HttpServerHandler implements IoHandler {
-	private RequestDispatch	requestDispatch;
+	private RequestDispatcher	requestDispatcher;
+	private WebConfig config;
 
-	public HttpServerHandler(RequestDispatch requestDispatch) {
-		this.requestDispatch = requestDispatch;
+	public HttpServerHandler(WebConfig config,RequestDispatcher	requestDispatcher) {
+		this.requestDispatcher = requestDispatcher;
+		this.config = config;
 	}
 
 	@Override
@@ -42,7 +44,7 @@ public class HttpServerHandler implements IoHandler {
 		Response response = new Response();
 
 		// 设置默认字符集
-		String defaultCharacterSet = WebContext.getWebConfig("CharacterSet", "UTF-8");
+		String defaultCharacterSet = config.getCharacterSet();
 		HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);
 		HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet);
 
@@ -51,7 +53,7 @@ public class HttpServerHandler implements IoHandler {
 		httpRequest.setRemotePort(session.remotePort());
 
 		// 处理响应请求
-		requestDispatch.Process(httpRequest, httpResponse);
+		requestDispatcher.Process(httpRequest, httpResponse);
 		if (request.header().contain("Connection")) {
 			session.setAttribute("isKeepAlive", request.header().get("Connection"));
 			response.header().put("Connection", request.header().get("Connection"));
@@ -92,7 +94,7 @@ public class HttpServerHandler implements IoHandler {
 
 		// 构造新的KeepAliveTask
 		Timer keepAliveTimer = new Timer();
-		int keepAliveTimeout = WebContext.getWebConfig("KeepAliveTimeout", 5);
+		int keepAliveTimeout = config.getKeepAliveTimeout();
 
 		if (keepAliveTimeout > 0) {
 			TimerTask keepAliveTask = new TimerTask() {
