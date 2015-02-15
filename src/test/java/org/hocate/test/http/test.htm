@@ -2,6 +2,49 @@
 <head>
 <meta http-equiv="content-type" content="text/html; charset=GB2312" />
 </head>
+<script lang="javascrit">
+var wsServer;
+var websocket;
+	function wsopen() {
+		wsServer = 'ws://localhost:28080/ws';
+		websocket = new WebSocket(wsServer);
+		websocket.onopen = function(evt) {
+			onOpen(evt)
+			websocket.send('hello');
+		};
+		websocket.onclose = function(evt) {
+			onClose(evt)
+		};
+		websocket.onmessage = function(evt) {
+			onMessage(evt)
+		};
+		websocket.onerror = function(evt) {
+			onError(evt)
+		};
+		
+		function onOpen(evt) {
+			alert("连接成功.");
+		}
+		function onClose(evt) {
+			alert("断开连接");
+		}
+		function onMessage(evt) {
+			alert("收到消息: " + evt.data);
+		}
+		function onError(evt) {
+			alert('连接失败: ' + evt.data);
+		}
+	}
+	
+	function wssend(){
+		websocket.send('hello again');
+	}
+	
+	function wsclose(){
+		websocket.close();
+	}
+	
+</script>
 <body>
 	<!-- enctype="multipart/form-data" -->
 	<form action="/" method="post">
@@ -12,6 +55,9 @@
 			age:<input name="age" type="text">
 		</div>
 		<input type="submit" text="submit">
+		<input type="button" onclick="wsopen()" value="open">
+		<input type="button" onclick="wssend()" value="send">
+		<input type="button" onclick="wsclose()" value="close">
 		<div>中文测试</div>
 	</form>
 </body>

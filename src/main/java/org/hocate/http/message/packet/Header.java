@@ -71,6 +71,13 @@ public class Header {
 		return headers.size();
 	}
 	
+	/**
+	 * 清空头
+	 */
+	public void clear(){
+		headers.clear();
+	}
+	
 	@Override 
 	public String toString(){
 		String headerContent = "";

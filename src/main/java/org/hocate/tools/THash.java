@@ -21,8 +21,8 @@ public class THash {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] decryptBASE64(String key) {
-		return Base64.getDecoder().decode(key);
+	public static String decryptBASE64(String key) {
+		return  new String(Base64.getDecoder().decode(key));
 	}
 
 	/**
@@ -32,8 +32,8 @@ public class THash {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String encryptBASE64(byte[] key) {
-		return Base64.getEncoder().encodeToString(key);
+	public static String encryptBASE64(String key) {
+		return Base64.getEncoder().encodeToString(key.getBytes());
 	}
 	
 	public static String encryptMD5(String str){

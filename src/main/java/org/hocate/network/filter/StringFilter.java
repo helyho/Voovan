@@ -3,6 +3,7 @@ package org.hocate.network.filter;
 import java.nio.ByteBuffer;
 
 import org.hocate.network.IoFilter;
+import org.hocate.network.IoSession;
 import org.hocate.network.MessageLoader;
 import org.hocate.tools.TObject;
 
@@ -14,7 +15,7 @@ import org.hocate.tools.TObject;
 public class StringFilter implements IoFilter {
 
 	@Override
-	public Object encode(Object object) {
+	public Object encode(IoSession session,Object object) {
 		if(object instanceof String){
 			String sourceString = TObject.cast(object);
 			return ByteBuffer.wrap(sourceString.getBytes());
@@ -23,7 +24,7 @@ public class StringFilter implements IoFilter {
 	}
 
 	@Override
-	public Object decode(Object object) {
+	public Object decode(IoSession session,Object object) {
 		if(object instanceof ByteBuffer){
 			return MessageLoader.byteBufferToString(TObject.cast(object));
 		}

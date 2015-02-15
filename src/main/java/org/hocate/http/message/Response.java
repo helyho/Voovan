@@ -24,16 +24,17 @@ public class Response {
 
 	/**
 	 * 构造函数
+	 * 
 	 * @param response
 	 */
-	protected Response(Response response){
+	protected Response(Response response) {
 		this.protocol = response.protocol;
 		this.header = response.header;
 		this.body = response.body;
 		this.cookies = response.cookies;
 		this.useCompress = response.useCompress;
 	}
-	
+
 	/**
 	 * 构造函数
 	 */
@@ -137,7 +138,9 @@ public class Response {
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-		initHeader();
+		if (protocol.getStatus() != 101) {
+			initHeader();
+		}
 
 		try {
 			// 处理协议行
@@ -151,19 +154,21 @@ public class Response {
 
 			outputStream.write("\r\n".getBytes());
 
-			if (isUseCompress()) {
+			if (body.getBodyBytes().length != 0) {
+				if (isUseCompress()) {
 
-				byte[] gzipedBody = body.getGZipedBody();
-				outputStream.write((Integer.toUnsignedString(gzipedBody.length, 16) + "\r\n").getBytes());
-				outputStream.write(gzipedBody);
-				outputStream.write("\r\n0".getBytes());
+					byte[] gzipedBody = body.getGZipedBody();
+					outputStream.write((Integer.toUnsignedString(gzipedBody.length, 16) + "\r\n").getBytes());
+					outputStream.write(gzipedBody);
+					outputStream.write("\r\n0".getBytes());
 
-			} else {
-				outputStream.write(body.getBodyBytes());
+				} else {
+					outputStream.write(body.getBodyBytes());
+				}
+				outputStream.write("\r\n".getBytes());
+				outputStream.write("\r\n".getBytes());
 			}
-
-			outputStream.write("\r\n".getBytes());
-			outputStream.write("\r\n".getBytes());
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

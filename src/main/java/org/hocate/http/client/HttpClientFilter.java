@@ -7,12 +7,13 @@ import org.hocate.http.message.HttpParser;
 import org.hocate.http.message.Request;
 import org.hocate.http.message.Response;
 import org.hocate.network.IoFilter;
+import org.hocate.network.IoSession;
 import org.hocate.tools.TObject;
 
 public class HttpClientFilter implements IoFilter {
 
 	@Override
-	public Object encode(Object object) {
+	public Object encode(IoSession session,Object object) {
 		
 		if(object instanceof Request){
 			Request request = TObject.cast(object);
@@ -22,7 +23,7 @@ public class HttpClientFilter implements IoFilter {
 	}
 
 	@Override
-	public Object decode(Object object) {
+	public Object decode(IoSession session,Object object) {
 		try{
 			if(object instanceof ByteBuffer){
 				ByteBuffer byteBuffer = TObject.cast(object);

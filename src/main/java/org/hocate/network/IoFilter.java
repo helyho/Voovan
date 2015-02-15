@@ -7,7 +7,7 @@ public interface IoFilter {
 	 * @param object
 	 * @return
 	 */
-	public Object decode(Object object);
+	public Object decode(IoSession session,Object object);
 	
 	/**
 	 * 过滤器加密函数,发送(onSend)前调用
@@ -15,6 +15,6 @@ public interface IoFilter {
 	 * @param object
 	 * @return
 	 */
-	public Object encode(Object object);
+	public Object encode(IoSession session,Object object);
 	
 }
