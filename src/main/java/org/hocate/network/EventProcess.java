@@ -52,7 +52,7 @@ public class EventProcess {
 				socketContext.filterChain().rewind();
 				while (socketContext.filterChain().hasNext()) {
 					IoFilter fitler = socketContext.filterChain().next();
-					result = fitler.encode(result);
+					result = fitler.encode(session,result);
 				}
 				sendMessage(session, result);
 			}
@@ -103,7 +103,7 @@ public class EventProcess {
 			Chain<IoFilter> filterChain = socketContext.filterChain().clone();
 			while (filterChain.hasNext()) {
 				IoFilter fitler = filterChain.next();
-				result = fitler.decode(result);
+				result = fitler.decode(session,result);
 			}
 			// -------------------------------------------------
 
@@ -120,7 +120,7 @@ public class EventProcess {
 				filterChain.rewind();
 				while (filterChain.hasNext()) {
 					IoFilter fitler = filterChain.next();
-					result = fitler.encode(result);
+					result = fitler.encode(session,result);
 				}
 				// ---------------------------------------------------
 				

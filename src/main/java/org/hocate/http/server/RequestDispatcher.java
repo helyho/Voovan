@@ -33,7 +33,7 @@ public class RequestDispatcher {
 	/**
 	 * [MainKey] = HTTP method ,[Value Key] = Route path, [Value value] = RouteBuiz对象
 	 */
-	private Map<String, Map<String, Router>>	routes;
+	private Map<String, Map<String, HttpHandler>>	routes;
 	private SessionManager sessionManager;
 	private WebConfig config;
 	
@@ -44,7 +44,7 @@ public class RequestDispatcher {
 	 *            根目录
 	 */
 	public RequestDispatcher(WebConfig config) {
-		routes = new HashMap<String, Map<String, Router>>();
+		routes = new HashMap<String, Map<String, HttpHandler>>();
 		this.config = config;
 		
 		//构造 SessionManage
@@ -61,7 +61,7 @@ public class RequestDispatcher {
 		this.addRouteMethod("OPTIONS");
 
 		// Mime静态文件默认请求处理
-		addRouteRuler("GET", MimeTools.getMimeTypeRegex(), new MimeFileRouter(config.getContextPath()));
+		addRouteHandler("GET", MimeTools.getMimeTypeRegex(), new MimeFileRouter(config.getContextPath()));
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class RequestDispatcher {
 	 */
 	protected void addRouteMethod(String method) {
 		if (!routes.containsKey(method)) {
-			routes.put(method, new HashMap<String, Router>());
+			routes.put(method, new HashMap<String, HttpHandler>());
 		}
 	}
 
@@ -82,7 +82,7 @@ public class RequestDispatcher {
 	 * @param routeRegexPath
 	 * @param routeBuiz
 	 */
-	public void addRouteRuler(String Method, String routeRegexPath, Router routeBuiz) {
+	public void addRouteHandler(String Method, String routeRegexPath, HttpHandler routeBuiz) {
 		if (routes.keySet().contains(Method)) {
 			routes.get(Method).put(routeRegexPath, routeBuiz);
 		}
@@ -100,13 +100,13 @@ public class RequestDispatcher {
 		String requestMethod = request.protocol().getMethod();
 		
 		boolean isMatched = false;
-		Map<String, Router> routeInfos = routes.get(requestMethod);
-		for (String routePath : routeInfos.keySet()) {
+		Map<String, HttpHandler> handlerInfos = routes.get(requestMethod);
+		for (String routePath : handlerInfos.keySet()) {
 			//路由匹配
 			isMatched = matchPath(requestPath,routePath);
 			if (isMatched) {
 				//获取路由处理对象
-				Router routeBuiz = routeInfos.get(routePath);
+				HttpHandler handler = handlerInfos.get(routePath);
 				try {
 					//获取路径变量
 					Map<String, String> pathVariables = fetchPathVariables(requestPath,routePath);
@@ -114,7 +114,7 @@ public class RequestDispatcher {
 					//Session预处理
 					diposeSession(request,response);
 					//处理路由请求
-					routeBuiz.Process(request, response);
+					handler.Process(request, response);
 				} catch (Exception e) {
 					ExceptionMessage(request, response, e);
 				}

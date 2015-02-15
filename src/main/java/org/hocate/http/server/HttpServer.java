@@ -43,42 +43,43 @@ public class HttpServer {
 	 * 以下是一些 HTTP 方法的成员函数
 	 */
 
-	public void get(String routeRegexPath, Router routeBuiz) {
-		requestDispatcher.addRouteRuler("GET", "^" + routeRegexPath + "$", routeBuiz);
+	public void get(String routeRegexPath, HttpHandler handler) {
+		requestDispatcher.addRouteHandler("GET", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void post(String routeRegexPath, Router routeBuiz) {
-		requestDispatcher.addRouteRuler("POST", "^" + routeRegexPath + "$", routeBuiz);
+	public void post(String routeRegexPath, HttpHandler handler) {
+		requestDispatcher.addRouteHandler("POST", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void head(String routeRegexPath, Router routeBuiz) {
-		requestDispatcher.addRouteRuler("HEAD", "^" + routeRegexPath + "$", routeBuiz);
+	public void head(String routeRegexPath, HttpHandler handler) {
+		requestDispatcher.addRouteHandler("HEAD", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void put(String routeRegexPath, Router routeBuiz) {
-		requestDispatcher.addRouteRuler("PUT", "^" + routeRegexPath + "$", routeBuiz);
+	public void put(String routeRegexPath, HttpHandler handler) {
+		requestDispatcher.addRouteHandler("PUT", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void delete(String routeRegexPath, Router routeBuiz) {
-		requestDispatcher.addRouteRuler("delete", "^" + routeRegexPath + "$", routeBuiz);
+	public void delete(String routeRegexPath, HttpHandler handler) {
+		requestDispatcher.addRouteHandler("delete", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void trace(String routeRegexPath, Router routeBuiz) {
-		requestDispatcher.addRouteRuler("TRACE", "^" + routeRegexPath + "$", routeBuiz);
+	public void trace(String routeRegexPath, HttpHandler handler) {
+		requestDispatcher.addRouteHandler("TRACE", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void connect(String routeRegexPath, Router routeBuiz) {
-		requestDispatcher.addRouteRuler("CONNECT", "^" + routeRegexPath + "$", routeBuiz);
+	public void connect(String routeRegexPath, HttpHandler handler) {
+		requestDispatcher.addRouteHandler("CONNECT", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void options(String routeRegexPath, Router routeBuiz) {
-		requestDispatcher.addRouteRuler("OPTIONS", "^" + routeRegexPath + "$", routeBuiz);
+	public void options(String routeRegexPath, HttpHandler handler) {
+		requestDispatcher.addRouteHandler("OPTIONS", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void otherMethod(String method, String routeRegexPath, Router routeBuiz) {
+	public void otherMethod(String method, String routeRegexPath, HttpHandler handler) {
 		requestDispatcher.addRouteMethod(method);
-		requestDispatcher.addRouteRuler(method, "^" + routeRegexPath + "$", routeBuiz);
+		requestDispatcher.addRouteHandler(method, "^" + routeRegexPath + "$", handler);
 	}
+	
 
 	/**
 	 * 构建新的 HttpServer,从配置文件读取配置

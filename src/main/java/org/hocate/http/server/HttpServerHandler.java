@@ -1,10 +1,14 @@
 package org.hocate.http.server;
 
+import java.nio.ByteBuffer;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import org.hocate.http.message.Request;
 import org.hocate.http.message.Response;
+import org.hocate.http.server.websocket.WebSocketTools;
+import org.hocate.http.server.websocket.WebSocketFrame;
+import org.hocate.http.server.websocket.WebSocketFrame.Opcode;
 import org.hocate.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
@@ -19,9 +23,9 @@ import org.hocate.tools.TObject;
  */
 public class HttpServerHandler implements IoHandler {
 	private RequestDispatcher	requestDispatcher;
-	private WebConfig config;
+	private WebConfig			config;
 
-	public HttpServerHandler(WebConfig config,RequestDispatcher	requestDispatcher) {
+	public HttpServerHandler(WebConfig config, RequestDispatcher requestDispatcher) {
 		this.requestDispatcher = requestDispatcher;
 		this.config = config;
 	}
@@ -38,36 +42,71 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		// 构造请求
-		Request request = TObject.cast(obj);
-		// 构造响应报文并返回
-		Response response = new Response();
+		// Http 请求
+		if (obj instanceof Request) {
+			// 构造请求
+			Request request = TObject.cast(obj);
+			// 构造响应报文并返回
+			Response response = new Response();
 
-		// 设置默认字符集
-		String defaultCharacterSet = config.getCharacterSet();
-		HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);
-		HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet);
+			// WebSocket协议升级处理
+			if (WebSocketTools.isWebSocketRequest(request.header())) {
+				session.setAttribute("isKeepAlive", true);
+				session.setAttribute("isWebSocket", true);
+				session.setAttribute("path", request.protocol().getPath());
+				
+				response.protocol().setStatus(101);
+				response.protocol().setStatusCode("Switching Protocols");
+				response.header().put("Upgrade", "websocket");
+				response.header().put("Connection", "Upgrade");
+				String webSocketKey = WebSocketTools.generateSecKey(request.header().get("Sec-WebSocket-Key"));
+				response.header().put("Sec-WebSocket-Accept", webSocketKey);
+				
+			}
+			// Http 1.1处理
+			else {
+				// 设置默认字符集
+				String defaultCharacterSet = config.getCharacterSet();
+				HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);
+				HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet);
 
-		// 填充远程连接的IP 地址和端口
-		httpRequest.setRemoteAddres(session.remoteAddress());
-		httpRequest.setRemotePort(session.remotePort());
+				// 填充远程连接的IP 地址和端口
+				httpRequest.setRemoteAddres(session.remoteAddress());
+				httpRequest.setRemotePort(session.remotePort());
 
-		// 处理响应请求
-		requestDispatcher.Process(httpRequest, httpResponse);
-		if (request.header().contain("Connection")) {
-			session.setAttribute("isKeepAlive", request.header().get("Connection"));
-			response.header().put("Connection", request.header().get("Connection"));
+				// 处理响应请求
+				requestDispatcher.Process(httpRequest, httpResponse);
+				if (request.header().contain("Connection")) {
+					session.setAttribute("isKeepAlive", true);
+					response.header().put("Connection", request.header().get("Connection"));
+				}
+			}
+			return response;
+		} else if (obj instanceof WebSocketFrame 
+				&& session.containAttribute("isKeepAlive")
+				&& (boolean) session.getAttribute("isKeepAlive")) {
+			session.setAttribute("isKeepAlive", true);
+			WebSocketFrame webSocketFrame = TObject.cast(obj);
+			
+			//如果收到关闭帧则关闭连接
+			if(webSocketFrame.getOpcode()==Opcode.CLOSING){
+				session.close();
+			}
+			//收到 ping 帧则返回 pong 帧
+			else if(webSocketFrame.getOpcode()==Opcode.PING){
+				WebSocketFrame.newInstance(true, Opcode.PONG, false, null);
+			}
+			System.out.println(webSocketFrame);
+			webSocketFrame.setTransfereMask(false);
+			webSocketFrame.setFrameData(ByteBuffer.wrap("hello helyho".getBytes()));
+			return webSocketFrame;
 		}
-		return response;
+		return null;
 	}
 
 	@Override
 	public void onSent(IoSession session, Object obj) {
-		String isKeepAlive = "";
-		if (session.containAttribute("isKeepAlive")) {
-			isKeepAlive = session.getAttribute("isKeepAlive").toString();
-		}
-		if (isKeepAlive.equals("keep-alive")) {
+		if (session.containAttribute("isKeepAlive") && (boolean) session.getAttribute("isKeepAlive")) {
 			keepLiveSchedule(session);
 		} else {
 			session.close();
@@ -76,8 +115,8 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		Logger.error("Http Server Error: \r\n" + e.getClass().getName()+"\r\n"+TEnv.getStackElementsMessage(e.getStackTrace()));
-		
+		Logger.error("Http Server Error: \r\n" + e.getClass().getName() + "\r\n" + TEnv.getStackElementsMessage(e.getStackTrace()));
+
 	}
 
 	/**

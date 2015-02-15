@@ -1,5 +1,8 @@
 package org.hocate.network.messageParter;
 
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+
 import org.hocate.network.IoSession;
 import org.hocate.network.MessageParter;
 import org.hocate.tools.TString;
@@ -8,8 +11,18 @@ public class HttpMessageParter implements MessageParter {
 
 	@Override
 	public boolean canPartition(IoSession session, byte[] buffer, int elapsedtime) {
-		String bufferString = new String(buffer);
+		
+		if(isHttpFrame(buffer)){
+			return true;
+		}else if(isWebSocketFrame(ByteBuffer.wrap(buffer))){
+			return true;
+		}
 
+		return false;
+	}
+	
+	public static boolean isHttpFrame(byte[] buffer){
+		String bufferString = new String(buffer);
 		// 包含\r\n\r\n,这个时候 Content-Length 可能存在
 		if (bufferString.contains("\r\n\r\n")) {
 			String[] contentLengthLines = TString.searchByRegex(bufferString, "Content-Length: .+[^\\r\\n]");
@@ -40,8 +53,68 @@ public class HttpMessageParter implements MessageParter {
 				} 
 			}
 		}
-
+		
 		return false;
+	}	
+	
+	public static boolean isWebSocketFrame( ByteBuffer buffer ) {
+		//接受数据的大小
+		int maxpacketsize = buffer.remaining();
+		// 期望数据包的实际大小
+		int expectPackagesize = 2;
+		if( maxpacketsize < expectPackagesize ){
+			return false;
+		}
+		byte finByte = buffer.get();
+		boolean FIN = finByte >> 8 != 0;
+		byte rsv = (byte) ( ( finByte & ~(byte) 128 ) >> 4 );
+		if(rsv!=0){
+			return false;
+		}
+		byte maskByte = buffer.get();
+		boolean mask = ( maskByte & -128 ) != 0;
+		int payloadlength = (byte) ( maskByte & ~(byte) 128 );
+		int optcode =  (byte) ( finByte & 15 ) ;
+
+		if( !FIN ) {
+			if( optcode == 9 || optcode == 10 || optcode == 8 ) {
+				return false;
+			}
+		}
+
+		if( payloadlength >= 0 && payloadlength <= 125 ) {
+		} else {
+			if( optcode == 9 || optcode == 10 || optcode == 8 ) {
+				return false;
+			}
+			if( payloadlength == 126 ) {
+				expectPackagesize += 2; 
+				byte[] sizebytes = new byte[ 3 ];
+				sizebytes[ 1 ] = buffer.get();
+				sizebytes[ 2 ] = buffer.get();
+				payloadlength = new BigInteger( sizebytes ).intValue();
+			} else {
+				expectPackagesize += 8; 
+				byte[] bytes = new byte[ 8 ];
+				for( int i = 0 ; i < 8 ; i++ ) {
+					bytes[ i ] = buffer.get();
+				}
+				long length = new BigInteger( bytes ).longValue();
+				if( length <= Integer.MAX_VALUE ) {
+					payloadlength = (int) length;
+				}
+			}
+		}
+
+		expectPackagesize += ( mask ? 4 : 0 );
+		expectPackagesize += payloadlength;
+
+		//如果世界接受的数据小于数据包的大小则报错
+		if( maxpacketsize < expectPackagesize ){
+			return false;
+		}else{
+			return true;
+		}
 	}
 
 }
