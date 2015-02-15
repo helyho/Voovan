@@ -105,7 +105,7 @@ public class AioSocket extends SocketContext {
 
 		if (connectModel == ConnectModel.SERVER) {
 			// 触发 connect 事件
-			eventTrigger.fireConnect();
+			eventTrigger.fireConnectThread();
 			catchRead(ByteBuffer.allocate(1024));
 		} else if (connectModel == ConnectModel.CLIENT) {
 			// 捕获 connect 事件
