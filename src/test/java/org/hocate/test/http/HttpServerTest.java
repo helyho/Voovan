@@ -1,9 +1,12 @@
 package org.hocate.test.http;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.Map;
 
 import org.hocate.http.server.HttpServer;
+import org.hocate.http.server.websocket.WebSocketHandler;
 import org.hocate.log.Logger;
 import org.hocate.tools.TFile;
 
@@ -58,6 +61,27 @@ public class HttpServerTest {
 				resp.write(fileContent);
 				resp.write(req.getParameter("name"));
 			});
+			
+			httpServer.socket("/ws", new WebSocketHandler() {
+				
+				@Override
+				public ByteBuffer onRecived(Map<String, String> params, ByteBuffer message) {
+					Logger.info(new String(message.array()));
+					return ByteBuffer.wrap("hello helyho".getBytes());
+				}
+				
+				@Override
+				public void onOpen(Map<String, String> params) {
+					Logger.info("WebSocket connect!");
+				}
+				
+				@Override
+				public void onClose() {
+					Logger.info("WebSocket close!");
+					
+				}
+			});
+			
 			httpServer.Serve();
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -9,7 +9,7 @@ import org.hocate.http.server.HttpRequest;
 import org.hocate.http.server.HttpResponse;
 import org.hocate.http.server.MimeTools;
 import org.hocate.http.server.HttpHandler;
-import org.hocate.http.server.Exception.ResourceNotFound;
+import org.hocate.http.server.exception.ResourceNotFound;
 import org.hocate.tools.TDateTime;
 import org.hocate.tools.TFile;
 import org.hocate.tools.TString;

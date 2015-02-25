@@ -118,7 +118,7 @@ public class HttpRequest extends Request {
 	 * 获取请求变量集合
 	 * @return
 	 */
-	protected Map<String, String> getParameters() {
+	public Map<String, String> getParameters() {
 		return parameters;
 	}
 	

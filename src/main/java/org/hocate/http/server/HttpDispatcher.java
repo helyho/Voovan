@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hocate.http.message.packet.Cookie;
-import org.hocate.http.server.Exception.RouterNotFound;
+import org.hocate.http.server.exception.RouterNotFound;
 import org.hocate.http.server.router.MimeFileRouter;
 import org.hocate.tools.TFile;
 import org.hocate.tools.TObject;
@@ -29,11 +29,11 @@ import org.hocate.tools.TString;
  * @author helyho
  *
  */
-public class RequestDispatcher {
+public class HttpDispatcher {
 	/**
 	 * [MainKey] = HTTP method ,[Value Key] = Route path, [Value value] = RouteBuiz对象
 	 */
-	private Map<String, Map<String, HttpHandler>>	routes;
+	private Map<String, Map<String, HttpHandler>>	handlers;
 	private SessionManager sessionManager;
 	private WebConfig config;
 	
@@ -43,8 +43,8 @@ public class RequestDispatcher {
 	 * @param rootDir
 	 *            根目录
 	 */
-	public RequestDispatcher(WebConfig config) {
-		routes = new HashMap<String, Map<String, HttpHandler>>();
+	public HttpDispatcher(WebConfig config) {
+		handlers = new HashMap<String, Map<String, HttpHandler>>();
 		this.config = config;
 		
 		//构造 SessionManage
@@ -70,8 +70,8 @@ public class RequestDispatcher {
 	 * @param method
 	 */
 	protected void addRouteMethod(String method) {
-		if (!routes.containsKey(method)) {
-			routes.put(method, new HashMap<String, HttpHandler>());
+		if (!handlers.containsKey(method)) {
+			handlers.put(method, new HashMap<String, HttpHandler>());
 		}
 	}
 
@@ -82,9 +82,9 @@ public class RequestDispatcher {
 	 * @param routeRegexPath
 	 * @param routeBuiz
 	 */
-	public void addRouteHandler(String Method, String routeRegexPath, HttpHandler routeBuiz) {
-		if (routes.keySet().contains(Method)) {
-			routes.get(Method).put(routeRegexPath, routeBuiz);
+	public void addRouteHandler(String Method, String routeRegexPath, HttpHandler handler) {
+		if (handlers.keySet().contains(Method)) {
+			handlers.get(Method).put(routeRegexPath, handler);
 		}
 	}
 
@@ -100,7 +100,7 @@ public class RequestDispatcher {
 		String requestMethod = request.protocol().getMethod();
 		
 		boolean isMatched = false;
-		Map<String, HttpHandler> handlerInfos = routes.get(requestMethod);
+		Map<String, HttpHandler> handlerInfos = handlers.get(requestMethod);
 		for (String routePath : handlerInfos.keySet()) {
 			//路由匹配
 			isMatched = matchPath(requestPath,routePath);
@@ -134,7 +134,7 @@ public class RequestDispatcher {
 	 * @param routeRegexPath
 	 * @return
 	 */
-	public boolean matchPath(String requestPath, String routeRegexPath){
+	public static boolean matchPath(String requestPath, String routeRegexPath){
 		//转换成可以配置的正则,主要是处理:后的参数表达式
 		//把/home/:name转换成/home/[^/?]+来匹配
 		String regexPath = routeRegexPath.replaceAll(":[^/$]+", "[^/?]+");
@@ -152,7 +152,7 @@ public class RequestDispatcher {
 	 * @return
 	 * @throws UnsupportedEncodingException 
 	 */
-	public Map<String, String> fetchPathVariables(String requestPath,String routePath) throws UnsupportedEncodingException{
+	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) throws UnsupportedEncodingException{
 		Map<String, String> resultMap = new HashMap<String, String>();
 		String[] pathPieces = requestPath.split("/");
 		String[] routePathPieces = routePath.substring(1, routePath.length()-1).split("/");
