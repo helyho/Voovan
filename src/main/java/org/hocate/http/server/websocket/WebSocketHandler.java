@@ -1,10 +1,10 @@
 package org.hocate.http.server.websocket;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 public interface WebSocketHandler {
-	public ByteBuffer onOpen();
-	public ByteBuffer onRecived();
-	public ByteBuffer onSent();
-	public ByteBuffer onClose();
+	public void onOpen(Map<String, String> params);
+	public ByteBuffer onRecived(Map<String, String> params,ByteBuffer message);
+	public void onClose();
 }

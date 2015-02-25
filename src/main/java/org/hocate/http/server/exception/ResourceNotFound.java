@@ -1,4 +1,4 @@
-package org.hocate.http.server.Exception;
+package org.hocate.http.server.exception;
 
 public class ResourceNotFound extends Exception {
 

@@ -2,6 +2,8 @@ package org.hocate.http.server;
 
 import java.io.IOException;
 
+import org.hocate.http.server.websocket.WebSocketDispatcher;
+import org.hocate.http.server.websocket.WebSocketHandler;
 import org.hocate.network.aio.AioServerSocket;
 import org.hocate.network.messageParter.HttpMessageParter;
 
@@ -13,7 +15,8 @@ import org.hocate.network.messageParter.HttpMessageParter;
  */
 public class HttpServer {
 	private AioServerSocket		aioServerSocket;
-	private RequestDispatcher	requestDispatcher;
+	private HttpDispatcher	requestDispatcher;
+	private WebSocketDispatcher webSocketDispatcher;
 
 	/**
 	 * 构造函数
@@ -33,8 +36,9 @@ public class HttpServer {
 
 		// 准备 socket 监听
 		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout());
-		this.requestDispatcher = new RequestDispatcher(config);
-		aioServerSocket.handler(new HttpServerHandler(config, requestDispatcher));
+		this.requestDispatcher = new HttpDispatcher(config);
+		this.webSocketDispatcher = new WebSocketDispatcher(config);
+		aioServerSocket.handler(new HttpServerHandler(config, requestDispatcher,webSocketDispatcher));
 		aioServerSocket.filterChain().add(new HttpServerFilter());
 		aioServerSocket.messageParter(new HttpMessageParter());
 	}
@@ -78,6 +82,10 @@ public class HttpServer {
 	public void otherMethod(String method, String routeRegexPath, HttpHandler handler) {
 		requestDispatcher.addRouteMethod(method);
 		requestDispatcher.addRouteHandler(method, "^" + routeRegexPath + "$", handler);
+	}
+	
+	public void socket(String routeRegexPath, WebSocketHandler handler) {
+		webSocketDispatcher.addRouteHandler(routeRegexPath, handler);
 	}
 	
 
