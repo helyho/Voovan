@@ -23,10 +23,7 @@ public class HttpServerTest {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
 				}
-				Logger.simple(req.getRemoteAddres() + " " + req.getRemotePort());
-				Logger.simple("QueryString:"+req.getQueryString());
 				req.getSession().setAttribute("Time", new Date().toString());
-
 				resp.write(fileContent);
 				resp.write(req.getParameter("name"));
 			});
@@ -36,8 +33,6 @@ public class HttpServerTest {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
 				}
-				//Logger.simple(req.getRemoteAddres() + " " + req.getRemotePort());
-				//Logger.simple("QueryString:"+req.getQueryString());
 				req.getSession().setAttribute("Time", new Date().toString());
 
 				resp.write(fileContent);
@@ -54,10 +49,7 @@ public class HttpServerTest {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
 				}
-				Logger.simple(req.getRemoteAddres() + " " + req.getRemotePort());
-				Logger.simple(req.getQueryString());
 				req.getSession().setAttribute("Time", new Date().toString());
-				Logger.simple(req.getQueryString());
 				resp.write(fileContent);
 				resp.write(req.getParameter("name"));
 			});
