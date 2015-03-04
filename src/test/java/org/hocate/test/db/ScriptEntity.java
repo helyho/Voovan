@@ -1,11 +1,9 @@
-package org.hocate.script;
+package org.hocate.test.db;
 
 import java.io.File;
 import java.io.IOException;
 
 import org.hocate.log.Logger;
-import org.hocate.script.exception.ScriptException;
-import org.hocate.script.scriptLoader.ScriptLoader;
 import org.hocate.tools.TFile;
 import org.hocate.tools.THash;
 
@@ -157,15 +155,6 @@ public class ScriptEntity {
 		Logger.debug("Reload script code : "+sourcePath);
 	}
 	
-	/**
-	 * 重新读取 Script 对象
-	 * @throws ScriptException 
-	 */
-	public void reloadInfo(ScriptLoader scriptLoader) {
-		ScriptEntity se = scriptLoader.getScriptEntity(this.packagePath,this.version);
-		se.loadSourceCode();
-		copy(se);
-	}
 	
 	/**
 	 * 将入参对象的属性 copy 到本地属性
