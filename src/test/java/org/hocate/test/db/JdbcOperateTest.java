@@ -1,18 +1,36 @@
 package org.hocate.test.db;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
-import org.hocate.biz.config.ConfigLoader;
 import org.hocate.db.JdbcOperate;
 import org.hocate.log.Logger;
-import org.hocate.script.ScriptEntity;
+import org.hocate.tools.TEnv;
+import org.hocate.tools.TObject;
+import org.hocate.tools.TProperties;
+
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.pool.DruidDataSourceFactory;
 
 public class JdbcOperateTest {
 	public static void main(String[] args) throws Exception {
-		ConfigLoader cl = new ConfigLoader();
-		JdbcOperate jOperate = new JdbcOperate(cl.getDataSource());
+		DruidDataSource dataSource = null;
+		File propertiesFile = new File(TEnv.getSysPathFromContext("Config" + File.separator + "config.properties"));
+		String druidPath = TEnv.getSysPathFromContext("Config" + File.separator
+				+ TProperties.getString(propertiesFile, "Database.Druid"));
+		try {
+			Properties druidProperites = TProperties.getProperties(new File(druidPath));
+		    dataSource = TObject.cast(DruidDataSourceFactory.createDataSource(druidProperites));
+			dataSource.init();
+			Logger.info("Database connection pool init finished");
+		} catch (Exception e) {
+			Logger.error(e);
+		}
+		
+		JdbcOperate jOperate = new JdbcOperate(dataSource);
 		
 		List<Map<String,Object>> smm = jOperate.queryMapList("select * from sc_script");
 		Logger.info(smm);
@@ -34,7 +52,7 @@ public class JdbcOperateTest {
 		Logger.info(llmm);
 		
 		//事物测试
-		jOperate = new JdbcOperate(cl.getDataSource(),true);
+		jOperate = new JdbcOperate(dataSource,true);
 		Logger.info(jOperate.update("update sc_script set version=0"));
 		Logger.info(jOperate.queryMapList("select * from sc_script"));
 		jOperate.rollback();
