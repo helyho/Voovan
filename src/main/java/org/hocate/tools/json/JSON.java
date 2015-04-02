@@ -1,4 +1,4 @@
-package org.hocate.json;
+package org.hocate.tools.json;
 
 public class JSON {
 	

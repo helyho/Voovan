@@ -2,9 +2,9 @@ package org.hocate.test.json;
 
 import java.util.Map;
 
-import org.hocate.json.JSONDecode;
-import org.hocate.json.JSONEncode;
-import org.hocate.log.Logger;
+import org.hocate.tools.json.JSONDecode;
+import org.hocate.tools.json.JSONEncode;
+import org.hocate.tools.log.Logger;
 import org.hocate.test.TestObject;
 import org.hocate.tools.TReflect;
 

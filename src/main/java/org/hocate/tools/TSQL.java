@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 
 /**
  * SQL处理帮助类

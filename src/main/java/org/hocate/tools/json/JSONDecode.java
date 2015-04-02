@@ -1,4 +1,4 @@
-package org.hocate.json;
+package org.hocate.tools.json;
 
 import java.util.ArrayList;
 import java.util.HashMap;

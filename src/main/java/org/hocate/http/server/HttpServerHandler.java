@@ -10,7 +10,7 @@ import org.hocate.http.server.websocket.WebSocketFrame;
 import org.hocate.http.server.websocket.WebSocketTools;
 import org.hocate.http.server.websocket.WebSocketDispatcher.WebSocketEvent;
 import org.hocate.http.server.websocket.WebSocketFrame.Opcode;
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
 import org.hocate.tools.TEnv;

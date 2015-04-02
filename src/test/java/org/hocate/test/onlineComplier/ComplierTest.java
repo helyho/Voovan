@@ -1,7 +1,7 @@
 package org.hocate.test.onlineComplier;
 
 import org.hocate.dynamicComplier.Complier;
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.tools.TReflect;
 
 public class ComplierTest {

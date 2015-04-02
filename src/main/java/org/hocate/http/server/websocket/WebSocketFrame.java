@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 
 public class WebSocketFrame {
 	private boolean		fin;

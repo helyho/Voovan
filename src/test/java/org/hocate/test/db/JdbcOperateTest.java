@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.hocate.db.JdbcOperate;
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.tools.TEnv;
 import org.hocate.tools.TObject;
 import org.hocate.tools.TProperties;

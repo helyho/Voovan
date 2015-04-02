@@ -1,5 +1,10 @@
-package org.hocate.log;
+package org.hocate.tools.log;
 
+/**
+ * 日志工具类
+ * @author helyho
+ *
+ */
 public class Logger {
 	private static Formater	formater	= Formater.newInstance();
 

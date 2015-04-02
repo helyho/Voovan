@@ -1,4 +1,4 @@
-package org.hocate.log;
+package org.hocate.tools.log;
 
 import java.io.File;
 
@@ -13,8 +13,8 @@ public class StaticParam {
 		return startTimeMillis;
 	}
 	
-	public static String getLogConfig(String property) {
+	public static String getLogConfig(String property,String defalut) {
 		String value = TProperties.getString(configFile, property);
-		return value==null?"":value;
+		return value==null?defalut:value;
 	}
 }

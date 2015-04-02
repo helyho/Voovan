@@ -2,7 +2,7 @@ package org.hocate.http.server;
 
 import java.util.Map;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.tools.TString;
 
 /**

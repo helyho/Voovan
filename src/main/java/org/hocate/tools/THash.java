@@ -5,7 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 
 /**
  * hash 计算类

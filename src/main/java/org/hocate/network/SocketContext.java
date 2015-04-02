@@ -1,6 +1,6 @@
 package org.hocate.network;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 
 /**
  * socket 上下文

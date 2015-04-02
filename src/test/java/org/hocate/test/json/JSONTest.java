@@ -1,7 +1,7 @@
 package org.hocate.test.json;
 
-import org.hocate.json.JSON;
-import org.hocate.log.Logger;
+import org.hocate.tools.json.JSON;
+import org.hocate.tools.log.Logger;
 import org.hocate.test.TestObject;
 
 public class JSONTest {

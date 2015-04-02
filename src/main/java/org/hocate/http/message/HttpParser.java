@@ -15,7 +15,7 @@ import java.util.Vector;
 
 import org.hocate.http.message.packet.Cookie;
 import org.hocate.http.message.packet.Part;
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.tools.TObject;
 import org.hocate.tools.TStream;
 import org.hocate.tools.TString;

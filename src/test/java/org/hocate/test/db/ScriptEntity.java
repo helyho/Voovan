@@ -3,7 +3,7 @@ package org.hocate.test.db;
 import java.io.File;
 import java.io.IOException;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.tools.TFile;
 import org.hocate.tools.THash;
 

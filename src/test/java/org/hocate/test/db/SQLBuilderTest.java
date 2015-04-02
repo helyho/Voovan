@@ -1,7 +1,7 @@
 package org.hocate.test.db;
 
 import org.hocate.db.SQLBuilder;
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 
 public class SQLBuilderTest {
 	public static void main(String[] args) {
