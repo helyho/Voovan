@@ -4,6 +4,11 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.math.BigDecimal;
 
+/**
+ * 系统性能相关
+ * @author helyho
+ *
+ */
 public class TPerformance {
 	
 	/**

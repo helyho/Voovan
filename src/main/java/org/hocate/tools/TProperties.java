@@ -12,6 +12,11 @@ import java.util.Properties;
  */
 public class TProperties {
 
+	/**
+	 * 解析 Properties 文件
+	 * @param file
+	 * @return
+	 */
 	public static Properties getProperties(File file){
 		Properties properites = new Properties();
 		try {
@@ -23,21 +28,45 @@ public class TProperties {
 		}
 	}
 	
+	/**
+	 * 从Properties文件读取字符串
+	 * @param file
+	 * @param name
+	 * @return
+	 */
 	public static String getString(File file,String name){
 		Properties properites = getProperties(file);
 		return TObject.nullDefault(properites.getProperty(name),null);
 	}
 	
+	/**
+	 * 从Properties文件读取整形
+	 * @param file
+	 * @param name
+	 * @return
+	 */
 	public static int getInt(File file,String name){
 		String value = getString(file,name);
 		return TObject.nullDefault(Integer.valueOf(value),0);
 	}
 	
+	/**
+	 * 从Properties文件读取浮点数
+	 * @param file
+	 * @param name
+	 * @return
+	 */
 	public static float getFloat(File file,String name){
 		String value = getString(file,name);
 		return TObject.nullDefault(Float.valueOf(value.trim()),0).floatValue();
 	}
 	
+	/**
+	 * 从Properties读取双精度浮点数
+	 * @param file
+	 * @param name
+	 * @return
+	 */
 	public static double getDouble(File file,String name){
 		String value = getString(file,name);
 		return TObject.nullDefault(Double.valueOf(value.trim()),0).doubleValue();

@@ -8,7 +8,7 @@ import java.util.Base64;
 import org.hocate.tools.log.Logger;
 
 /**
- * hash 计算类
+ * hash 算法类
  * @author helyho
  *
  */

@@ -38,10 +38,10 @@ public class TDateTime {
 	
 	/**
 	 * 使用特定时区,格式化日期成字符串
-	 * @param date
-	 * @param format
-	 * @param timeZone
-	 * @param loacl
+	 * @param date			日期对象
+	 * @param format		日期格式化字符串
+	 * @param timeZone		所在时区
+	 * @param loacl			所在区域
 	 * @return
 	 */
 	public static String dateFormat(Date date,String format,String timeZone,Locale loacl){
@@ -73,10 +73,10 @@ public class TDateTime {
 	
 	/**
 	 * 从字符串解析时间
-	 * @param source
-	 * @param format
-	 * @param timeZone
-	 * @param loacl
+	 * @param source		日期字符串
+	 * @param format		日志格式化字符串
+	 * @param timeZone		所在时区
+	 * @param loacl			所在区域
 	 * @return
 	 * @throws ParseException
 	 */
@@ -87,7 +87,7 @@ public class TDateTime {
 	}
 	
 	/**
-	 * 获取标准的格林威治时间(GMT)
+	 * 从字符串获取标准的格林威治时间(GMT)
 	 * @param source
 	 * @return
 	 * @throws ParseException 

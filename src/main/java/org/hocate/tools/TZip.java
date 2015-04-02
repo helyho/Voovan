@@ -5,7 +5,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
+/**
+ * 压缩算法
+ * @author helyho
+ *
+ */
 public class TZip {
 	/**
 	 * GZip 解压缩
@@ -19,7 +26,7 @@ public class TZip {
 	}
 	
 	/**
-	 * 获取使用 GZIP 压缩后的 body 字节
+	 * GZIP 压缩
 	 * @return
 	 * @throws IOException
 	 */
@@ -28,6 +35,30 @@ public class TZip {
 		GZIPOutputStream gzipOutputStream = new GZIPOutputStream(zipedBodyOutputStream);
 		gzipOutputStream.write(sourceBytes);
 		gzipOutputStream.finish();
+		return zipedBodyOutputStream.toByteArray();
+	}
+	
+	/**
+	 * Zip 解压缩
+	 * @param encodeBytes
+	 * @return
+	 * @throws IOException
+	 */
+	public static byte[] decodeZip(byte[] encodeBytes) throws IOException{
+		ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(encodeBytes));
+		return TStream.readAll(zipInputStream);
+	}
+	
+	/**
+	 * ZIP 压缩
+	 * @return
+	 * @throws IOException
+	 */
+	public static byte[] encodeZip(byte[] sourceBytes) throws IOException{
+		ByteArrayOutputStream zipedBodyOutputStream = new ByteArrayOutputStream();
+		ZipOutputStream zipOutputStream = new ZipOutputStream(zipedBodyOutputStream);
+		zipOutputStream.write(sourceBytes);
+		zipOutputStream.finish();
 		return zipedBodyOutputStream.toByteArray();
 	}
 }
