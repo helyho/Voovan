@@ -8,6 +8,11 @@ import java.net.URLClassLoader;
 
 import org.hocate.tools.log.Logger;
 
+/**
+ * 系统环境相关
+ * @author helyho
+ *
+ */
 public class TEnv {
 
 	/**

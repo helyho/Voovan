@@ -82,7 +82,7 @@ public class TStream {
 	
 	/**
 	 * 从 InputStream 读取全部字符串
-	 * @param inputStrem
+	 * @param inputStrem	输入流
 	 * @return
 	 * @throws IOException
 	 */
@@ -109,7 +109,7 @@ public class TStream {
 	 * @param firstBytes		   首个字节数组		
 	 * @param firstBytesLength     首个字节数组长度
 	 * @param lastBytes			   拼接在后的字节数组
-	 * @param lastBytesLength      拼接在后的字节数组
+	 * @param lastBytesLength      拼接在后的字节数组长度
 	 * @return
 	 */
 	public static byte[] byteArrayConcat(byte[] firstBytes,int firstBytesLength, byte[] lastBytes,int lastBytesLength) {

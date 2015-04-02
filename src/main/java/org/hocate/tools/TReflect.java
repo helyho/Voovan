@@ -19,7 +19,7 @@ import java.util.Map.Entry;
 public class TReflect {
 
 	/**
-	 * 获得对象的所有Field
+	 * 获得类所有的Field
 	 * 
 	 * @param clazz
 	 * @return
@@ -29,7 +29,7 @@ public class TReflect {
 	}
 
 	/**
-	 * 从对象中查找特定的Field
+	 * 查找类特定的Field
 	 * 
 	 * @param clazz
 	 * @param fieldName
@@ -43,7 +43,7 @@ public class TReflect {
 	}
 
 	/**
-	 * 获取对象中指定Field的值
+	 * 获取类中指定Field的值
 	 * 
 	 * @param obj
 	 * @param fieldName
@@ -60,6 +60,7 @@ public class TReflect {
 
 	/**
 	 * 更新对象中指定的Field的值
+	 * 		注意:对 private 等字段有效
 	 * 
 	 * @param obj
 	 * @param fieldName
@@ -96,7 +97,7 @@ public class TReflect {
 	}
 
 	/**
-	 * 查找方法
+	 * 查找类中的方法
 	 * @param clazz        类对象
 	 * @param name		   方法名	
 	 * @param paramTypes   参数类型
@@ -109,7 +110,7 @@ public class TReflect {
 	}
 	
 	/**
-	 * 获取方法集合
+	 * 获取类的方法集合
 	 * @param clazz		类对象
 	 * @return
 	 */
@@ -118,7 +119,8 @@ public class TReflect {
 	}
 	
 	/**
-	 * 获取方法集合
+	 * 获取类的特定方法的集合
+	 * 		类中可能存在同名方法
 	 * @param clazz		类对象
 	 * @param name		方法名	
 	 * @return
@@ -135,10 +137,10 @@ public class TReflect {
 	}
 	
 	/**
-	 * 执行方法
+	 * 使用对象执行它的一个方法
+	 * 		对对象执行一个指定Method对象的方法
 	 * @param obj				执行方法的对象
-	 * @param name				执行方法名
-	 * @param parameters		方法参数
+	 * @param method			方法对象
 	 * @return					方法返回结果
 	 * @throws Exception		异常
 	 */
@@ -148,7 +150,8 @@ public class TReflect {
 	}
 
 	/**
-	 * 执行方法
+	 * 使用对象执行方法
+	 * 对对象执行一个通过 方法名和参数列表选择的方法
 	 * @param obj				执行方法的对象
 	 * @param name				执行方法名
 	 * @param parameters		方法参数
@@ -164,10 +167,11 @@ public class TReflect {
 
 	/**
 	 * 构造新的对象
-	 * @param obj				执行方法的对象
-	 * @param parameters		方法参数
-	 * @return					新构造的对象
-	 * @throws Exception		异常
+	 * 	通过参数中的构造参数对象parameters,选择特定的构造方法构造
+	 * @param clazz			类对象
+	 * @param parameters	构造方法参数
+	 * @return
+	 * @throws Exception
 	 */
 	public static Object newInstance(Class<?> clazz, Object ...parameters) throws Exception {
 		Class<?>[] parameterTypes = getParameters(parameters);
@@ -177,10 +181,10 @@ public class TReflect {
 	
 	/**
 	 * 构造新的对象
-	 * @param obj				执行方法的对象
-	 * @param parameters		方法参数
-	 * @return					新构造的对象
-	 * @throws Exception		异常
+	 * @param className		类名称
+	 * @param parameters	构造方法参数
+	 * @return
+	 * @throws Exception
 	 */
 	public static Object newInstance(String className, Object ...parameters) throws Exception {
 		Class<?> clazz = Class.forName(className);
@@ -191,7 +195,7 @@ public class TReflect {
 	
 	/**
 	 * 将对象数组转换成,对象类型的数组
-	 * @param objs
+	 * @param objs	对象类型数组
 	 * @return
 	 */
 	private static Class<?>[] getParameters(Object[] objs){
@@ -205,8 +209,8 @@ public class TReflect {
 	/**
 	 * 将Map转换成指定的对象
 	 * 
-	 * @param clazz
-	 * @param mapField
+	 * @param clazz			类对象
+	 * @param mapField		Map 对象
 	 * @return
 	 * @throws Exception
 	 */
@@ -306,6 +310,7 @@ public class TReflect {
 	
 	/**
 	 * 判断某个类型是否实现了某个接口
+	 * 		包括判断其父接口
 	 * @param type               被判断的类型
 	 * @param interfaceClass     检查是否实现了次类的接口
 	 * @return
@@ -325,6 +330,7 @@ public class TReflect {
 	
 	/**
 	 * 判断某个类型是否继承于某个类
+	 * 		包括判断其父类
 	 * @param type			判断的类型
 	 * @param extendsClass	用于判断的父类类型
 	 * @return

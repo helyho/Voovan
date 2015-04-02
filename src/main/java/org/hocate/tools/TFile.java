@@ -12,6 +12,21 @@ import java.net.URL;
  *
  */
 public class TFile {
+	
+	/**
+	 * 路劲拼装
+	 * @param pathParts 每个由路劲分割符分割的路劲字符串
+	 * @return
+	 */
+	public static String assemblyPath(String ...pathParts ){
+		String result = "";
+		for(String pathPart : pathParts){
+			result = result+pathPart+File.separator;
+		}
+		
+		return TString.removeLastChar(result);
+	}
+	
 	/**
 	 * 从系统路径读取文件内容
 	 * 

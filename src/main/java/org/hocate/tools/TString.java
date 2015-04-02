@@ -49,7 +49,7 @@ public class TString {
 	}
 	
 	/**
-	 * 判断是否是数字字符串
+	 * 判断是否是指定进制的数字字符串
 	 * @param numberString
 	 * @param radix			进制
 	 * @return
@@ -131,7 +131,7 @@ public class TString {
 	}
 	
 	/**
-	 * 按照标识符进行替换
+	 * 按照标识符 Map 进行替换
 	 * @param source		源字符串,标识符使用"{{标识}}"进行包裹,这些标识符将会被替换
 	 * @param tokens		标识符Map集合
 	 * @return

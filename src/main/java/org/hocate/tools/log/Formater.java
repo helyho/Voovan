@@ -30,8 +30,8 @@ import org.hocate.tools.TString;
  */
 public class Formater {
 	private String template;
-	private Thread logWriter;
-	private WriteThread writeThread;
+	private Thread logWriterThread;
+	private WriteThread writer;
 	private List<String> logLevel;
 
 	/**
@@ -41,7 +41,7 @@ public class Formater {
 	 */
 	public Formater(String template, OutputStream[] outputStreams) {
 		this.template = template;
-		this.writeThread = new WriteThread(outputStreams);
+		this.writer = new WriteThread(outputStreams);
 		logLevel = new Vector<String>();
 		for(String level : StaticParam.getLogConfig("LogLevel","ALL").split(",")){
 			logLevel.add(level.trim());
@@ -71,7 +71,7 @@ public class Formater {
 	 * @param message
 	 * @return
 	 */
-	public void preIndentMessage(Message message){
+	private void preIndentMessage(Message message){
 		String infoIndent = StaticParam.getLogConfig("InfoIndent","{{s}}");
 		String msg = message.getMessage();
 		if (infoIndent != null) {
@@ -146,12 +146,12 @@ public class Formater {
 	 * @param msg
 	 */
 	public void writeLog(String msg) {
-		if(logWriter==null || !logWriter.isAlive()){
-			logWriter = new Thread(writeThread);
-			logWriter.start();
+		if(logWriterThread==null || !logWriterThread.isAlive()){
+			logWriterThread = new Thread(writer);
+			logWriterThread.start();
 		}
 		
-		writeThread.addLogMessage(msg);
+		writer.addLogMessage(msg);
 	}
 
 	/**
