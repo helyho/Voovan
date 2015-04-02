@@ -9,7 +9,7 @@ import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.tools.TEnv;
 
 

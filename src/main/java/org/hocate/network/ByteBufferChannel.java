@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 
 
 public class ByteBufferChannel implements ByteChannel {

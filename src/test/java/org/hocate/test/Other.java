@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 
 import org.hocate.http.server.websocket.WebSocketFrame;
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.tools.TEnv;
 
 public class Other {

@@ -9,7 +9,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.network.EventTrigger;
 import org.hocate.network.MessageLoader;
 import org.hocate.network.SocketContext;

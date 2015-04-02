@@ -2,7 +2,7 @@ package org.hocate.test.network;
 
 import java.nio.ByteBuffer;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
 import org.hocate.network.MessageLoader;

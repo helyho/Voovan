@@ -7,7 +7,7 @@ import java.util.Map;
 
 import org.hocate.http.server.HttpServer;
 import org.hocate.http.server.websocket.WebSocketHandler;
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.tools.TFile;
 
 public class HttpServerTest {

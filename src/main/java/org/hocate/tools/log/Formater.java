@@ -1,4 +1,4 @@
-package org.hocate.log;
+package org.hocate.tools.log;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -12,7 +12,22 @@ import org.hocate.tools.TDateTime;
 import org.hocate.tools.TEnv;
 import org.hocate.tools.TString;
 
-
+/**
+ *格式化日志信息并输出
+ *使用包括特殊的定义{{}}
+ *{{t}}:制表符,正常情况下4个空格
+ *{{s}}:一个空格
+ *{{i}}:消息内容,即要展示的日志内容
+ *{{n}}:换行符号
+ *{{si}}:栈信息输出
+ *{{l}}:当前代码的行号
+ *{{m}}:当前代码的方法名
+ *{{c}}:当前代码的类名称
+ *{{t}}:当前线程名
+ *{{d}}:当前代码的事件
+ *{{r}}:从启动到当前代码执行的事件
+ * @author helyho
+ */
 public class Formater {
 	private String template;
 	private Thread logWriter;
@@ -28,7 +43,7 @@ public class Formater {
 		this.template = template;
 		this.writeThread = new WriteThread(outputStreams);
 		logLevel = new Vector<String>();
-		for(String level : StaticParam.getLogConfig("LogLevel").split(",")){
+		for(String level : StaticParam.getLogConfig("LogLevel","ALL").split(",")){
 			logLevel.add(level.trim());
 		}
 	}
@@ -57,7 +72,7 @@ public class Formater {
 	 * @return
 	 */
 	public void preIndentMessage(Message message){
-		String infoIndent = StaticParam.getLogConfig("InfoIndent");
+		String infoIndent = StaticParam.getLogConfig("InfoIndent","{{s}}");
 		String msg = message.getMessage();
 		if (infoIndent != null) {
 			msg = infoIndent + msg;
@@ -147,9 +162,9 @@ public class Formater {
 		OutputStream[] outputStreams;
 		try {
 			
-			String logTemplate = StaticParam.getLogConfig("LogTemplate");
-			String[] LogTypes = StaticParam.getLogConfig("LogType").split(",");
-			String logFile = StaticParam.getLogConfig("LogFile");
+			String logTemplate = StaticParam.getLogConfig("LogTemplate","{{i}}");
+			String[] LogTypes = StaticParam.getLogConfig("LogType","STDOUT").split(",");
+			String logFile = StaticParam.getLogConfig("LogFile","");
 
 			outputStreams = new OutputStream[LogTypes.length];
 			for (int i = 0; i < LogTypes.length; i++) {

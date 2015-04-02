@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.tools.TObject;
 import org.hocate.tools.TReflect;
 

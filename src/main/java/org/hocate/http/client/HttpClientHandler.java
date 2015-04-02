@@ -2,7 +2,7 @@ package org.hocate.http.client;
 
 import org.hocate.http.message.Request;
 import org.hocate.http.message.Response;
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
 import org.hocate.tools.TObject;

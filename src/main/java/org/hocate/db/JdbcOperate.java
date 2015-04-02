@@ -11,7 +11,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.tools.TReflect;
 import org.hocate.tools.TSQL;
 

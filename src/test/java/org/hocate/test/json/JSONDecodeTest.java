@@ -2,8 +2,8 @@ package org.hocate.test.json;
 
 import java.util.Map;
 
-import org.hocate.json.JSONDecode;
-import org.hocate.log.Logger;
+import org.hocate.tools.json.JSONDecode;
+import org.hocate.tools.log.Logger;
 import org.hocate.test.TestObject;
 
 public class JSONDecodeTest {

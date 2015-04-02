@@ -1,4 +1,4 @@
-package org.hocate.log;
+package org.hocate.tools.log;
 
 import java.io.OutputStream;
 import java.util.concurrent.LinkedBlockingDeque;

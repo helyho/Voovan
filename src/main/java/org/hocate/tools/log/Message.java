@@ -1,4 +1,4 @@
-package org.hocate.log;
+package org.hocate.tools.log;
 
 public class Message {
 	private String	level;

@@ -1,6 +1,6 @@
 package org.hocate.test.util;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 import org.hocate.tools.TPerformance;
 import org.hocate.tools.TEnv;
 

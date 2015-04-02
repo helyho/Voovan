@@ -78,7 +78,7 @@ package org.hocate.test.network.ssl;
 import javax.net.ssl.*;
 import javax.net.ssl.SSLEngineResult.*;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 
 import java.io.*;
 import java.security.*;

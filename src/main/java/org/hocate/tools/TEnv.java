@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import org.hocate.log.Logger;
+import org.hocate.tools.log.Logger;
 
 public class TEnv {
 
