@@ -1,6 +1,5 @@
 package org.hocate.tools;
 
-import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -52,14 +51,11 @@ public class THash {
   
             messageDigest.reset();  
   
-            messageDigest.update(str.getBytes("UTF-8"));  
+            messageDigest.update(str.getBytes());  
         } catch (NoSuchAlgorithmException e) {  
         	Logger.error("NoSuchAlgorithmException caught!");  
             System.exit(-1);  
-        } catch (UnsupportedEncodingException e) {  
-            e.printStackTrace();  
-        }  
-  
+        } 
         byte[] byteArray = messageDigest.digest();  
   
         StringBuffer md5StrBuff = new StringBuffer();  
@@ -83,7 +79,10 @@ public class THash {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Logger.simple(THash.encryptSHA("org.hocate.test"+1.0));
-		Logger.simple(THash.hash_time33("org.hocate.test"+1.0));
+		String testStr = "org.hocate.test";
+		Logger.simple(THash.encryptSHA(testStr));
+		Logger.simple(THash.encryptMD5(testStr));
+		Logger.simple(THash.encryptBASE64(testStr));
+		Logger.simple(THash.hash_time33(testStr));
 	}
 }

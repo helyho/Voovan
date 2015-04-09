@@ -15,6 +15,7 @@ public class HttpSession {
 	 */
 	public HttpSession(WebConfig config){
 		attributes = new HashMap<String, Object>();
+		//生成一个随机的 ID 用作唯一标识
 		this.id = UUID.randomUUID().toString().toUpperCase().replaceAll("-", "");
 		createTimeillis = System.currentTimeMillis();
 		int sessionTimeout = config.getSessionTimeout();

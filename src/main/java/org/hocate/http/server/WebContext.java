@@ -44,7 +44,10 @@ public class WebContext {
 		return TObject.cast(configObject);
 	}
 	
-	
+	/**
+	 * 从配置文件初始化 config 对象
+	 * @return
+	 */
 	public static WebConfig getWebConfig() {
 		WebConfig config = new WebConfig();
 		config.setHost(getContextParameter("Host","0.0.0.0"));

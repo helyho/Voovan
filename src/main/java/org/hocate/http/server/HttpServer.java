@@ -3,7 +3,7 @@ package org.hocate.http.server;
 import java.io.IOException;
 
 import org.hocate.http.server.websocket.WebSocketDispatcher;
-import org.hocate.http.server.websocket.WebSocketHandler;
+import org.hocate.http.server.websocket.WebSocketBizHandler;
 import org.hocate.network.aio.AioServerSocket;
 import org.hocate.network.messageParter.HttpMessageParter;
 
@@ -15,7 +15,7 @@ import org.hocate.network.messageParter.HttpMessageParter;
  */
 public class HttpServer {
 	private AioServerSocket		aioServerSocket;
-	private HttpDispatcher	requestDispatcher;
+	private HttpDispatcher	httpDispatcher;
 	private WebSocketDispatcher webSocketDispatcher;
 
 	/**
@@ -36,9 +36,10 @@ public class HttpServer {
 
 		// 准备 socket 监听
 		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout());
-		this.requestDispatcher = new HttpDispatcher(config);
+		//请求派发器创建
+		this.httpDispatcher = new HttpDispatcher(config);
 		this.webSocketDispatcher = new WebSocketDispatcher(config);
-		aioServerSocket.handler(new HttpServerHandler(config, requestDispatcher,webSocketDispatcher));
+		aioServerSocket.handler(new HttpServerHandler(config, httpDispatcher,webSocketDispatcher));
 		aioServerSocket.filterChain().add(new HttpServerFilter());
 		aioServerSocket.messageParter(new HttpMessageParter());
 	}
@@ -47,44 +48,44 @@ public class HttpServer {
 	 * 以下是一些 HTTP 方法的成员函数
 	 */
 
-	public void get(String routeRegexPath, HttpHandler handler) {
-		requestDispatcher.addRouteHandler("GET", "^" + routeRegexPath + "$", handler);
+	public void get(String routeRegexPath, HttpBizHandler handler) {
+		httpDispatcher.addRouteHandler("GET", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void post(String routeRegexPath, HttpHandler handler) {
-		requestDispatcher.addRouteHandler("POST", "^" + routeRegexPath + "$", handler);
+	public void post(String routeRegexPath, HttpBizHandler handler) {
+		httpDispatcher.addRouteHandler("POST", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void head(String routeRegexPath, HttpHandler handler) {
-		requestDispatcher.addRouteHandler("HEAD", "^" + routeRegexPath + "$", handler);
+	public void head(String routeRegexPath, HttpBizHandler handler) {
+		httpDispatcher.addRouteHandler("HEAD", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void put(String routeRegexPath, HttpHandler handler) {
-		requestDispatcher.addRouteHandler("PUT", "^" + routeRegexPath + "$", handler);
+	public void put(String routeRegexPath, HttpBizHandler handler) {
+		httpDispatcher.addRouteHandler("PUT", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void delete(String routeRegexPath, HttpHandler handler) {
-		requestDispatcher.addRouteHandler("delete", "^" + routeRegexPath + "$", handler);
+	public void delete(String routeRegexPath, HttpBizHandler handler) {
+		httpDispatcher.addRouteHandler("delete", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void trace(String routeRegexPath, HttpHandler handler) {
-		requestDispatcher.addRouteHandler("TRACE", "^" + routeRegexPath + "$", handler);
+	public void trace(String routeRegexPath, HttpBizHandler handler) {
+		httpDispatcher.addRouteHandler("TRACE", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void connect(String routeRegexPath, HttpHandler handler) {
-		requestDispatcher.addRouteHandler("CONNECT", "^" + routeRegexPath + "$", handler);
+	public void connect(String routeRegexPath, HttpBizHandler handler) {
+		httpDispatcher.addRouteHandler("CONNECT", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void options(String routeRegexPath, HttpHandler handler) {
-		requestDispatcher.addRouteHandler("OPTIONS", "^" + routeRegexPath + "$", handler);
+	public void options(String routeRegexPath, HttpBizHandler handler) {
+		httpDispatcher.addRouteHandler("OPTIONS", "^" + routeRegexPath + "$", handler);
 	}
 
-	public void otherMethod(String method, String routeRegexPath, HttpHandler handler) {
-		requestDispatcher.addRouteMethod(method);
-		requestDispatcher.addRouteHandler(method, "^" + routeRegexPath + "$", handler);
+	public void otherMethod(String method, String routeRegexPath, HttpBizHandler handler) {
+		httpDispatcher.addRouteMethod(method);
+		httpDispatcher.addRouteHandler(method, "^" + routeRegexPath + "$", handler);
 	}
 	
-	public void socket(String routeRegexPath, WebSocketHandler handler) {
+	public void socket(String routeRegexPath, WebSocketBizHandler handler) {
 		webSocketDispatcher.addRouteHandler(routeRegexPath, handler);
 	}
 	

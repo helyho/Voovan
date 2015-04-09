@@ -33,7 +33,7 @@ public class HttpDispatcher {
 	/**
 	 * [MainKey] = HTTP method ,[Value Key] = Route path, [Value value] = RouteBuiz对象
 	 */
-	private Map<String, Map<String, HttpHandler>>	handlers;
+	private Map<String, Map<String, HttpBizHandler>>	handlers;
 	private SessionManager sessionManager;
 	private WebConfig config;
 	
@@ -44,7 +44,7 @@ public class HttpDispatcher {
 	 *            根目录
 	 */
 	public HttpDispatcher(WebConfig config) {
-		handlers = new HashMap<String, Map<String, HttpHandler>>();
+		handlers = new HashMap<String, Map<String, HttpBizHandler>>();
 		this.config = config;
 		
 		//构造 SessionManage
@@ -71,7 +71,7 @@ public class HttpDispatcher {
 	 */
 	protected void addRouteMethod(String method) {
 		if (!handlers.containsKey(method)) {
-			handlers.put(method, new HashMap<String, HttpHandler>());
+			handlers.put(method, new HashMap<String, HttpBizHandler>());
 		}
 	}
 
@@ -82,7 +82,7 @@ public class HttpDispatcher {
 	 * @param routeRegexPath
 	 * @param routeBuiz
 	 */
-	public void addRouteHandler(String Method, String routeRegexPath, HttpHandler handler) {
+	public void addRouteHandler(String Method, String routeRegexPath, HttpBizHandler handler) {
 		if (handlers.keySet().contains(Method)) {
 			handlers.get(Method).put(routeRegexPath, handler);
 		}
@@ -100,13 +100,14 @@ public class HttpDispatcher {
 		String requestMethod = request.protocol().getMethod();
 		
 		boolean isMatched = false;
-		Map<String, HttpHandler> handlerInfos = handlers.get(requestMethod);
+		Map<String, HttpBizHandler> handlerInfos = handlers.get(requestMethod);
+		//遍历路由寻找匹配的路由对象
 		for (String routePath : handlerInfos.keySet()) {
 			//路由匹配
 			isMatched = matchPath(requestPath,routePath);
 			if (isMatched) {
 				//获取路由处理对象
-				HttpHandler handler = handlerInfos.get(routePath);
+				HttpBizHandler handler = handlerInfos.get(routePath);
 				try {
 					//获取路径变量
 					Map<String, String> pathVariables = fetchPathVariables(requestPath,routePath);

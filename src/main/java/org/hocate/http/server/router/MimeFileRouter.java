@@ -8,7 +8,7 @@ import java.util.Date;
 import org.hocate.http.server.HttpRequest;
 import org.hocate.http.server.HttpResponse;
 import org.hocate.http.server.MimeTools;
-import org.hocate.http.server.HttpHandler;
+import org.hocate.http.server.HttpBizHandler;
 import org.hocate.http.server.exception.ResourceNotFound;
 import org.hocate.tools.TDateTime;
 import org.hocate.tools.TFile;
@@ -20,7 +20,7 @@ import org.hocate.tools.TString;
  * @author helyho
  *
  */
-public class MimeFileRouter implements HttpHandler {
+public class MimeFileRouter implements HttpBizHandler {
 
 	private String	rootPath;
 

@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.Map;
 
 import org.hocate.http.server.HttpServer;
-import org.hocate.http.server.websocket.WebSocketHandler;
+import org.hocate.http.server.websocket.WebSocketBizHandler;
 import org.hocate.tools.log.Logger;
 import org.hocate.tools.TFile;
 
@@ -54,7 +54,7 @@ public class HttpServerTest {
 				resp.write(req.getParameter("name"));
 			});
 			
-			httpServer.socket("/ws", new WebSocketHandler() {
+			httpServer.socket("/ws", new WebSocketBizHandler() {
 				
 				@Override
 				public ByteBuffer onRecived(Map<String, String> params, ByteBuffer message) {
