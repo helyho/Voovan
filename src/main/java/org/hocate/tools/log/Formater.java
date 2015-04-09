@@ -72,13 +72,15 @@ public class Formater {
 	 * @return
 	 */
 	private void preIndentMessage(Message message){
-		String infoIndent = StaticParam.getLogConfig("InfoIndent","{{s}}");
-		String msg = message.getMessage();
-		if (infoIndent != null) {
-			msg = infoIndent + msg;
-			msg = msg.replaceAll("\r\n", "\r\n" + infoIndent);
-			msg = msg.replaceAll("\n", "\n" + infoIndent);
-			message.setMessage(msg);
+		String infoIndent = StaticParam.getLogConfig("InfoIndent","");
+		if(!infoIndent.equals("")){
+			String msg = message.getMessage();
+			if (infoIndent != null) {
+				msg = infoIndent + msg;
+				msg = msg.replaceAll("\r\n", "\r\n" + infoIndent);
+				msg = msg.replaceAll("\n", "\n" + infoIndent);
+				message.setMessage(msg);
+			}
 		}
 	}
 	
