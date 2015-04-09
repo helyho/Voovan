@@ -98,8 +98,10 @@ public class TFile {
 	public static File getResourceFile(String resourcePath) {
 		try {
 			URL url = TEnv.class.getClassLoader().getResource(resourcePath);
-			File file = new File(url.getFile());
-			return file;
+			if(url!=null){
+				File file = new File(url.getFile());
+				return file;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
