@@ -13,18 +13,9 @@ import org.hocate.http.server.websocket.WebSocketFrame.Opcode;
 
 /**
  * 
- * 根据 Request 请求分派到处理路由
+ * 根据 WebSocket 请求分派到处理路由
  * 
- * 
- * GET 请求获取Request-URI所标识的资源<br/>
- * POST 在Request-URI所标识的资源后附加新的数据<br/>
- * HEAD 请求获取由Request-URI所标识的资源的响应消息报头<br/>
- * PUT 请求服务器存储一个资源，并用Request-URI作为其标识<br/>
- * DELETE 请求服务器删除Request-URI所标识的资源<br/>
- * TRACE 请求服务器回送收到的请求信息，主要用于测试或诊断<br/>
- * CONNECT 保留将来使用<br/>
- * OPTIONS 请求查询服务器的性能，或者查询与资源相关的选项和需求<br/>
- * 
+
  * @author helyho
  *
  */
@@ -33,7 +24,7 @@ public class WebSocketDispatcher {
 	 * [MainKey] = HTTP method ,[Value Key] = Route path, [Value value] =
 	 * RouteBuiz对象
 	 */
-	private Map<String, WebSocketHandler>	routes;
+	private Map<String, WebSocketBizHandler>	routes;
 
 	public enum WebSocketEvent {
 		OPEN, RECIVED, SENT, CLOSE
@@ -46,7 +37,7 @@ public class WebSocketDispatcher {
 	 *            根目录
 	 */
 	public WebSocketDispatcher(WebConfig config) {
-		routes = new HashMap<String, WebSocketHandler>();
+		routes = new HashMap<String, WebSocketBizHandler>();
 	}
 
 	/**
@@ -56,7 +47,7 @@ public class WebSocketDispatcher {
 	 * @param routeRegexPath
 	 * @param routeBuiz
 	 */
-	public void addRouteHandler(String routeRegexPath, WebSocketHandler handler) {
+	public void addRouteHandler(String routeRegexPath, WebSocketBizHandler handler) {
 		routes.put(routeRegexPath, handler);
 	}
 
@@ -76,12 +67,14 @@ public class WebSocketDispatcher {
 			isMatched = HttpDispatcher.matchPath(requestPath, routePath);
 			if (isMatched) {
 				// 获取路由处理对象
-				WebSocketHandler handler = routes.get(routePath);
+				WebSocketBizHandler handler = routes.get(routePath);
 				// 获取路径变量
 				try {
 					ByteBuffer responseMessage = null;
 					Map<String, String> variables = HttpDispatcher.fetchPathVariables(requestPath, routePath);
 					variables.putAll(request.getParameters());
+					
+					//WebSocket 事件处理
 					if (event == WebSocketEvent.OPEN) {
 					    handler.onOpen(variables);
 					} else if (event == WebSocketEvent.RECIVED) {
@@ -89,6 +82,8 @@ public class WebSocketDispatcher {
 					} else if (event == WebSocketEvent.CLOSE) {
 						handler.onClose();
 					}
+					
+					//将返回消息包装称WebSocketFrame
 					if (responseMessage != null) {
 						return WebSocketFrame.newInstance(true, Opcode.TEXT, false, responseMessage);
 					}

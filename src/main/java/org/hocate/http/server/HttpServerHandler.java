@@ -23,12 +23,12 @@ import org.hocate.tools.TObject;
  *
  */
 public class HttpServerHandler implements IoHandler {
-	private HttpDispatcher		requestDispatcher;
+	private HttpDispatcher		httpDispatcher;
 	private WebSocketDispatcher	webSocketDispatcher;
 	private WebConfig			config;
 
-	public HttpServerHandler(WebConfig config, HttpDispatcher requestDispatcher, WebSocketDispatcher webSocketDispatcher) {
-		this.requestDispatcher = requestDispatcher;
+	public HttpServerHandler(WebConfig config, HttpDispatcher httpDispatcher, WebSocketDispatcher webSocketDispatcher) {
+		this.httpDispatcher = httpDispatcher;
 		this.webSocketDispatcher = webSocketDispatcher;
 		this.config = config;
 	}
@@ -52,6 +52,7 @@ public class HttpServerHandler implements IoHandler {
 		if (obj instanceof Request) {
 			// 构造请求
 			Request request = TObject.cast(obj);
+			
 			// 构造响应报文并返回
 			Response response = new Response();
 
@@ -87,7 +88,9 @@ public class HttpServerHandler implements IoHandler {
 		httpRequest.setRemotePort(session.remotePort());
 
 		// 处理响应请求
-		requestDispatcher.Process(httpRequest, httpResponse);
+		httpDispatcher.Process(httpRequest, httpResponse);
+		
+		//如果是长连接则填充响应报文
 		if (httpRequest.header().contain("Connection")) {
 			session.setAttribute("isKeepAlive", true);
 			httpResponse.header().put("Connection", httpRequest.header().get("Connection"));

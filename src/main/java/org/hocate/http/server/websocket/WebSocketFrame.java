@@ -6,6 +6,11 @@ import java.util.Random;
 
 import org.hocate.tools.log.Logger;
 
+/**
+ * WebSocket帧解析类
+ * @author helyho
+ *
+ */
 public class WebSocketFrame {
 	private boolean		fin;
 	private Opcode		opcode;
