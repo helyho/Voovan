@@ -6,7 +6,7 @@
 var wsServer;
 var websocket;
 	function wsopen() {
-		wsServer = 'ws://localhost:28080/ws';
+		wsServer = 'ws://10.0.0.180:28080/ws';
 		websocket = new WebSocket(wsServer);
 		websocket.onopen = function(evt) {
 			onOpen(evt)
@@ -32,7 +32,7 @@ var websocket;
 			alert("收到消息: " + evt.data);
 		}
 		function onError(evt) {
-			alert('连接失败: ' + evt.data);
+			alert('连接失败: ' + evt);
 		}
 	}
 	

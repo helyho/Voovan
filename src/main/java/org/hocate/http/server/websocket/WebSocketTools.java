@@ -13,7 +13,7 @@ import org.hocate.http.message.packet.Header;
  */
 public class WebSocketTools {
 	public static boolean isWebSocketRequest(Header header) {
-		if (header.contain("Upgrade") && header.get("Upgrade").equals("websocket")) {
+		if (header.get("Connection").equals("Upgrade") && header.contain("Sec-WebSocket-Key")) {
 			return true;
 		} else {
 			return false;
@@ -30,5 +30,24 @@ public class WebSocketTools {
 			throw new RuntimeException( e );
 		}
 		return Base64.getEncoder().encodeToString( sh1.digest(acc.getBytes()) );
+	}
+	
+	public static byte[] intToByteArray(int iSource, int iArrayLen) {
+	    byte[] bLocalArr = new byte[iArrayLen];
+	    for (int i = 0; (i < 4) && (i < iArrayLen); i++) {
+	        bLocalArr[i] = (byte) (iSource >> 8 * i & 0xFF);
+	    }
+	    return bLocalArr;
+	}
+	
+	public static int byteToInt(byte[] bRefArr) {
+	    int iOutcome = 0;
+	    byte bLoop;
+
+	    for (int i = 0; i < bRefArr.length; i++) {
+	        bLoop = bRefArr[i];
+	        iOutcome += (bLoop & 0xFF) << (8 * i);
+	    }
+	    return iOutcome;
 	}
 }
