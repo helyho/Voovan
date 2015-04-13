@@ -1,5 +1,6 @@
 package org.hocate.http.server;
 
+import java.nio.ByteBuffer;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -132,12 +133,14 @@ public class HttpServerHandler implements IoHandler {
 	 */
 	public WebSocketFrame DisposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
 		session.setAttribute("isKeepAlive", true);
-
+		session.setAttribute("WebSocketClose", false);
+		
 		// 如果收到关闭帧则关闭连接
 		if (webSocketFrame.getOpcode() == Opcode.CLOSING) {
-			session.close();
 			// WebSocket Close事件
 			webSocketDispatcher.Process(WebSocketEvent.CLOSE, TObject.cast(session.getAttribute("WebSocketRequest")), null);
+			session.setAttribute("WebSocketClose", true);
+			return WebSocketFrame.newInstance(true, Opcode.CLOSING, false, webSocketFrame.getFrameData());
 		}
 		// 收到 ping 帧则返回 pong 帧
 		else if (webSocketFrame.getOpcode() == Opcode.PING) {
@@ -145,8 +148,14 @@ public class HttpServerHandler implements IoHandler {
 		}
 		// 文本和二进制消息出发 Recived 事件
 		else if (webSocketFrame.getOpcode() == Opcode.TEXT || webSocketFrame.getOpcode() == Opcode.BINARY) {
-			WebSocketFrame responseWebSocketFrame = webSocketDispatcher.Process(WebSocketEvent.RECIVED,
+			WebSocketFrame responseWebSocketFrame = null;
+			if(webSocketFrame.getErrorCode()==0){
+				responseWebSocketFrame = webSocketDispatcher.Process(WebSocketEvent.RECIVED,
 					TObject.cast(session.getAttribute("WebSocketRequest")), webSocketFrame);
+			}else{
+				//解析时出现异常,返回关闭消息
+				responseWebSocketFrame = WebSocketFrame.newInstance(true, Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
+			}
 			return responseWebSocketFrame;
 		}
 
@@ -155,9 +164,11 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public void onSent(IoSession session, Object obj) {
-		if (session.containAttribute("isKeepAlive") && (boolean) session.getAttribute("isKeepAlive")) {
+		if(session.containAttribute("WebSocketClose") && (boolean) session.getAttribute("WebSocketClose")){
+			session.close();
+		}else if (session.containAttribute("isKeepAlive") && (boolean) session.getAttribute("isKeepAlive")) {
 			keepLiveSchedule(session);
-		} else {
+		}else {
 			session.close();
 		}
 	}

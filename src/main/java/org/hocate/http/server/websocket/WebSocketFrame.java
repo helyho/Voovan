@@ -16,6 +16,7 @@ public class WebSocketFrame {
 	private Opcode		opcode;
 	private boolean		transfereMask;
 	private ByteBuffer	frameData;
+	private int errorCode = 0;
 
 	public boolean isFin() {
 		return fin;
@@ -31,6 +32,14 @@ public class WebSocketFrame {
 
 	public void setOpcode(Opcode opcode) {
 		this.opcode = opcode;
+	}
+
+	public int getErrorCode() {
+		return errorCode;
+	}
+
+	public void setErrorCode(int errorCode) {
+		this.errorCode = errorCode;
 	}
 
 	public boolean isTransfereMask() {
@@ -56,6 +65,17 @@ public class WebSocketFrame {
 	 * @param mask
 	 * @return
 	 */
+	public static WebSocketFrame newInstance(boolean fin, Opcode opcode, boolean mask, ByteBuffer binary,int errorCode) {
+		WebSocketFrame webSocketFrame = new WebSocketFrame();
+		webSocketFrame.setFin(fin);
+		webSocketFrame.setOpcode(opcode);
+		webSocketFrame.setTransfereMask(mask);
+		webSocketFrame.setFrameData(binary);
+		webSocketFrame.setErrorCode(errorCode);
+		return webSocketFrame;
+	}
+
+	
 	public static WebSocketFrame newInstance(boolean fin, Opcode opcode, boolean mask, ByteBuffer binary) {
 		WebSocketFrame webSocketFrame = new WebSocketFrame();
 		webSocketFrame.setFin(fin);
@@ -64,7 +84,6 @@ public class WebSocketFrame {
 		webSocketFrame.setFrameData(binary);
 		return webSocketFrame;
 	}
-
 	public String toString() {
 		return "Framedata={FIN: " + this.isFin() + " , Mask: " + this.isTransfereMask() + " , OpCode: " + getOpcode() + " , Data: "
 				+ new String(getFrameData().array()) + "}";
@@ -75,27 +94,34 @@ public class WebSocketFrame {
 	 * 
 	 * @param byteBuffer
 	 * @return
+	 * @throws WebSocketException 
 	 */
 	public static WebSocketFrame parse(ByteBuffer byteBuffer) {
+		int errorCode = 0;
 		// 接受数据的大小
 		int maxpacketsize = byteBuffer.remaining();
 		// 期望数据包的实际大小
 		int expectPackagesize = 2;
 		if (maxpacketsize < expectPackagesize) {
-			Logger.error("Package size error!");
-			return null;
+			Logger.info("Package size error!");
+			errorCode = 1002;
 		}
 		byte finByte = byteBuffer.get();
 		boolean FIN = finByte >> 8 != 0;
 		byte rsv = (byte) ((finByte & ~(byte) 128) >> 4);
 		if (rsv != 0) {
-			Logger.error("Rsv data error!");
-			return null;
+			Logger.info("RSV data error!");
+			errorCode = 1002;
 		}
 		byte maskByte = byteBuffer.get();
 		boolean mask = (maskByte & -128) != 0;
 		int payloadlength = (byte) (maskByte & ~(byte) 128);
 		Opcode opcode = toOpcode((byte) (finByte & 15));
+		
+		if(opcode == null){
+			Logger.info("Opcode data error!");
+			errorCode = 1002;
+		}
 
 		if (payloadlength >= 0 && payloadlength <= 125) {
 		} else {
@@ -121,10 +147,9 @@ public class WebSocketFrame {
 		expectPackagesize += (mask ? 4 : 0);
 		expectPackagesize += payloadlength;
 
-		// 如果世界接受的数据小于数据包的大小则报错
+		// 如果实际接受的数据小于数据包的大小则报错
 		if (maxpacketsize < expectPackagesize) {
-			Logger.error("Package size error!");
-			return null;
+			Logger.info("Package size error!");
 		}
 
 		// 读取实际接受数据
@@ -140,7 +165,7 @@ public class WebSocketFrame {
 			byteBuffer.position(byteBuffer.position() + payload.limit());
 		}
 
-		return WebSocketFrame.newInstance(FIN, opcode, mask, payload);
+		return WebSocketFrame.newInstance(FIN, opcode, mask, payload,errorCode);
 	}
 
 	/**
