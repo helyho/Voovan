@@ -12,7 +12,7 @@ public class HttpResponse extends Response {
 		super(response);
 		this.characterSet=characterSet;
 		//设置当前响应的时间
-		this.header().put("Date",TDateTime.formatStanderGMTDate(new Date()));
+		this.header().put("Date",TDateTime.formatToGMT(new Date()));
 	}
 
 	/**

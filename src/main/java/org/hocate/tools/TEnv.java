@@ -20,7 +20,7 @@ public class TEnv {
 	 * 
 	 * @return
 	 */
-	public static String getAppContextPath() {
+	public static String getContextPath() {
 		return System.getProperty("user.dir");
 	}
 
@@ -29,8 +29,8 @@ public class TEnv {
 	 * 
 	 * @return
 	 */
-	public static String getSysPathFromContext(String absolutePath) {
-		return getAppContextPath() + File.separator + absolutePath;
+	public static String getSystemPath(String absolutePath) {
+		return getContextPath() + File.separator + absolutePath;
 	}
 
 	/**
@@ -89,7 +89,7 @@ public class TEnv {
 	}
 	
 	/**
-	 * 读取二进制
+	 * 为JVM加载一个jar包 或者一个目录到 classpath
 	 * @param file
 	 */
 	private static void loadBinary(File file) {
@@ -106,7 +106,7 @@ public class TEnv {
 	}
 
 	/**
-	 * 从磁盘读取一个 class 目录或者 jar 文件
+	 * 为JVM加载一个jar包 或者一个目录到 classpath
 	 * @param file
 	 * @throws Exception
 	 */
@@ -116,7 +116,7 @@ public class TEnv {
 	}
 
 	/**
-	 * 从目录读取所有 Jar 文件,递归读取
+	 * 从目录读取所有 Jar 文件,递归并加载到JVM
 	 * 
 	 * @param directoryPath 传入一个目录
 	 * @throws Exception

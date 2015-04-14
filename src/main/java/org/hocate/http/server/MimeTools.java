@@ -28,7 +28,7 @@ public class MimeTools {
 		for(String fileExtension : mimeTypes.keySet()){
 			mimeTypeRegex += "\\."+fileExtension+"|";
 		}
-		mimeTypeRegex = TString.removeLastChar(mimeTypeRegex)+"$";
+		mimeTypeRegex = TString.removeSuffix(mimeTypeRegex)+"$";
 		Logger.info("load.........");
 		return mimeTypeRegex;
 	} 
