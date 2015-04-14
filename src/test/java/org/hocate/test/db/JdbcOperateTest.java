@@ -18,8 +18,8 @@ import com.alibaba.druid.pool.DruidDataSourceFactory;
 public class JdbcOperateTest {
 	public static void main(String[] args) throws Exception {
 		DruidDataSource dataSource = null;
-		File propertiesFile = new File(TEnv.getSysPathFromContext("Config" + File.separator + "config.properties"));
-		String druidPath = TEnv.getSysPathFromContext("Config" + File.separator
+		File propertiesFile = new File(TEnv.getSystemPath("Config" + File.separator + "config.properties"));
+		String druidPath = TEnv.getSystemPath("Config" + File.separator
 				+ TProperties.getString(propertiesFile, "Database.Druid"));
 		try {
 			Properties druidProperites = TProperties.getProperties(new File(druidPath));

@@ -9,11 +9,20 @@ import java.util.regex.Pattern;
 public class TString {
 
 	/**
-	 * 移除字符串最后一个字符
+	 * 移除字符串前缀
 	 * @param source
 	 * @return
 	 */
-	public static String removeLastChar(String source){
+	public static String removePrefix(String source){
+		return source.substring(source.length()-1,source.length());
+	}
+	
+	/**
+	 * 移除字符串后缀
+	 * @param source
+	 * @return
+	 */
+	public static String removeSuffix(String source){
 		return source.substring(0, source.length()-1);
 	}
 
@@ -91,7 +100,7 @@ public class TString {
 	}
 	
 	/**
-	 * 正则表达式查找
+	 * 正则表达式查找,匹配的被提取出来做数组
 	 * @param source
 	 * @param regex
 	 * @return
@@ -157,6 +166,51 @@ public class TString {
 	public static String tokenReplace(String source,String tokenName,String tokenValue){
 		return source.replaceAll("\\{\\{"+tokenName+"\\}\\}",Matcher.quoteReplacement(tokenValue));
 	}
+	
+	/**
+	 * 按位置格式化字符串
+	 * 		TString.format("aaaa{}bbbb{}cccc{}", "1","2","3")
+	 * 		输出aaaa1bbbb2cccc3
+	 * @param source
+	 * @param args
+	 * @return
+	 */
+	public static String format(String source,String ...args){
+		for(String arg : args){
+			source = replaceFirst(source,"{}",arg);
+		}
+		return source;
+	}
+	
+	/**
+	 * 替换第一个标志字符串
+	 * @param source
+	 * @param mark
+	 * @param replacement
+	 * @return
+	 */
+	public static String replaceFirst(String source,String mark,String replacement){
+		int head = source.indexOf(mark);
+		int tail = head+mark.length();
+		source = source.substring(0, head)+replacement==null?"":replacement+source.substring(tail, source.length());
+		return source;
+	}
+	
+	/**
+	 * 替换最后一个标志字符串
+	 * @param source
+	 * @param mark
+	 * @param replacement
+	 * @return
+	 */
+	public static String replaceLast(String source,String mark,String replacement){
+		
+		int head = source.lastIndexOf(mark);
+		int tail = head+mark.length();
+		source = source.substring(0, head)+replacement==null?"":replacement+source.substring(tail, source.length());
+		return source;
+	}
+	
 	
 	/**
 	 * 如果为空取默认值

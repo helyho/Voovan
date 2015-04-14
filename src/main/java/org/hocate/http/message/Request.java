@@ -197,7 +197,7 @@ public class Request {
 					result += name + "=" + value + "&";
 				}
 			}
-			queryString = TString.removeLastChar(result);
+			queryString = TString.removeSuffix(result);
 		}
 
 		return queryString;

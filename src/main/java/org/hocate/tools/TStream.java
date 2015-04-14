@@ -57,7 +57,7 @@ public class TStream {
 	 * @return
 	 * @throws IOException
 	 */
-	public static byte[] read(InputStream inputStream,byte[] splitByte) throws IOException{
+	public static byte[] readWithSplit(InputStream inputStream,byte[] splitByte) throws IOException{
 		byte[] resultBytes = new byte[0];
 		while(true){
 			byte[] tempbyte = new byte[1];

@@ -6,11 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hocate.http.message.packet.Cookie;
+import org.hocate.http.server.exception.ResourceNotFound;
 import org.hocate.http.server.exception.RouterNotFound;
 import org.hocate.http.server.router.MimeFileRouter;
 import org.hocate.tools.TFile;
 import org.hocate.tools.TObject;
 import org.hocate.tools.TString;
+import org.hocate.tools.log.Logger;
 
 /**
  * 
@@ -212,7 +214,12 @@ public class HttpDispatcher {
 	 */
 	public void ExceptionMessage(HttpRequest request, HttpResponse response, Exception e) {
 		//输出异常
-		e.printStackTrace();
+		if(e instanceof ResourceNotFound){
+			Logger.warn("Warning: "+ResourceNotFound.class.getCanonicalName()+": "+request.protocol().getPath());
+		}
+		else{
+			e.printStackTrace();
+		}
 		
 		Map<String, Object> errorDefine = WebContext.getErrorDefine();
 		String requestMethod = request.protocol().getMethod();

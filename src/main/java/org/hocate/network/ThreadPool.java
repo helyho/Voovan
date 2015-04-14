@@ -37,7 +37,7 @@ public class ThreadPool {
 				String threadPoolInfo = "PoolInfo:"+threadPool.getActiveCount()+"/"+threadPool.getCorePoolSize()+"/"+threadPool.getLargestPoolSize()+" TaskCount: "
 						+threadPool.getCompletedTaskCount()+"/"+threadPool.getTaskCount()+" QueueSize:"+threadPool.getQueue().size();
 				if(threadPool.getActiveCount()!=0){
-					Logger.simple(TDateTime.currentTime()+"-"+threadPool.isShutdown()+" "+threadPoolInfo);
+					Logger.simple(TDateTime.now()+"-"+threadPool.isShutdown()+" "+threadPoolInfo);
 				}
 			}
 		}, 1, 1000);

@@ -25,7 +25,7 @@ public class TSQL {
 	/**
 	 * 从 SQL 字符串中,取 SQL 参数表
 	 * @param sqlStr  原始 sql 字符串 (select * from table where x=:x and y=:y)
-	 * @return  sql 参数对照表 ([x,y])
+	 * @return  sql 参数对照表 ([:x,:y])
 	 */
 	public static List<String> getSqlParams(String sqlStr){
 		String[] params = TString.searchByRegex(sqlStr, ":[^ ]+");
@@ -53,6 +53,7 @@ public class TSQL {
 	public static void setPreparedParams(PreparedStatement preparedStatement,List<String> sqlParams,Map<String, Object> params) throws SQLException{
 		for(int i=0;i<sqlParams.size();i++){
 			String paramName = sqlParams.get(i);
+			//去掉前面:号
 			paramName = paramName.substring(1,paramName.length());
 			preparedStatement.setObject(i+1, params.get(paramName));
 			Logger.debug("Parameter: ["+sqlParams.get(i)+" = "+params.get(paramName)+"]");
@@ -214,7 +215,7 @@ public class TSQL {
 	 */
 	public static String getSQLString(Object argObj)
 	{
-		//处理List变成SQL语法的in操作字符串，不包括两端的括号“（）”
+		//处理List变成SQL语法的in操作字符串，包括两端的括号“（）”
 		if(argObj instanceof List)
 		{
 			Object[] objects =((List<?>)argObj).toArray();
@@ -225,7 +226,7 @@ public class TSQL {
 				if(sqlValue!=null)
 					listValueStr+=sqlValue+",";
 			}
-			return TString.removeLastChar(listValueStr)+")";
+			return TString.removeSuffix(listValueStr)+")";
 		}
 		//处理String
 		else if(argObj instanceof String){

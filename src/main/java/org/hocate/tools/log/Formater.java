@@ -107,7 +107,7 @@ public class Formater {
 		tokens.put("f", stackTraceElement.getFileName());
 		tokens.put("c", stackTraceElement.getClassName());
 		tokens.put("t", currentThreadName());
-		tokens.put("d", TDateTime.currentTime("YYYY-MM-DD HH:mm:ss:SS z"));
+		tokens.put("d", TDateTime.now("YYYY-MM-DD HH:mm:ss:SS z"));
 		tokens.put("r", Long.toString(System.currentTimeMillis() - StaticParam.getStartTimeMillis()));
 		
 		return TString.tokenReplace(template, tokens);

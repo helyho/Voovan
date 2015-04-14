@@ -75,17 +75,17 @@ public class MimeFileRouter implements HttpBizHandler {
 		//请求中的修改时间
 		Date requestModifyDate = null;
 		if(request.header().contain("If-Modified-Since")){
-			requestModifyDate = TDateTime.parseStanderGMTDate(request.header().get("If-Modified-Since"));
+			requestModifyDate = TDateTime.parseToGMT(request.header().get("If-Modified-Since"));
 		}
 		
 		//设置文件 hashCode
 		response.header().put("ETag", "\"" + Integer.toString(responseFile.hashCode()) + "\"");
 		//设置最后修改时间
-		response.header().put("Last-Modified",TDateTime.formatStanderGMTDate(fileModifyDate));
+		response.header().put("Last-Modified",TDateTime.formatToGMT(fileModifyDate));
 		//设置缓存控制
 		response.header().put("Cache-Control", "max-age=86400");
 		//设置浏览器缓存超时控制
-		response.header().put("Expires",TDateTime.formatStanderGMTDate(new Date(System.currentTimeMillis()+86400*1000)));
+		response.header().put("Expires",TDateTime.formatToGMT(new Date(System.currentTimeMillis()+86400*1000)));
 		
 		//文件 hashcode 无变化,则返回304
 		if(requestETag!=null && requestETag.equals(eTag)){

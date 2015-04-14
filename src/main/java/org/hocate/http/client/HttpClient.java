@@ -105,7 +105,7 @@ public class HttpClient {
 						+ URLEncoder.encode(parameter.getValue().toString(), "UTF-8")
 						+ "&";
 			}
-			queryString = queryString.length()>0?TString.removeLastChar(queryString):queryString;
+			queryString = queryString.length()>0?TString.removeSuffix(queryString):queryString;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

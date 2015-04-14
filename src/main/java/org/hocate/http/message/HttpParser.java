@@ -243,9 +243,9 @@ public class HttpParser {
 					//取boundary 用于 part 内容分段
 					String boundary = HttpParser.getPerprotyEqualValue(packetMap,"Content-Type","boundary");
 					
-					for(byte[] spliteBytes = TStream.read(sourceInputStream, ("--"+boundary).getBytes());
+					for(byte[] spliteBytes = TStream.readWithSplit(sourceInputStream, ("--"+boundary).getBytes());
 							sourceInputStream.available()>0;
-							spliteBytes = TStream.read(sourceInputStream, ("--"+boundary).getBytes())){
+							spliteBytes = TStream.readWithSplit(sourceInputStream, ("--"+boundary).getBytes())){
 						
 						if(spliteBytes!=null){
 							spliteBytes = Arrays.copyOfRange(spliteBytes, 2, spliteBytes.length-2);

@@ -14,8 +14,8 @@ import java.net.URL;
 public class TFile {
 	
 	/**
-	 * 路劲拼装
-	 * @param pathParts 每个由路劲分割符分割的路劲字符串
+	 * 路径拼装
+	 * @param pathParts 每个由路劲分割符分割的路径字符串
 	 * @return
 	 */
 	public static String assemblyPath(String ...pathParts ){
@@ -24,7 +24,7 @@ public class TFile {
 			result = result+pathPart+File.separator;
 		}
 		
-		return TString.removeLastChar(result);
+		return TString.removeSuffix(result);
 	}
 	
 	/**
@@ -70,7 +70,7 @@ public class TFile {
 	 */
 	public static byte[] loadFileFromContextPath(String filePath, int beginPos, int endPos) {
 		String spliter = filePath.startsWith(File.separator) == true ? "" : File.separator;
-		String fullFilePath = TEnv.getAppContextPath() + spliter + filePath;
+		String fullFilePath = TEnv.getContextPath() + spliter + filePath;
 		return loadFileFromSysPath(fullFilePath, beginPos, endPos);
 	}
 
@@ -83,7 +83,7 @@ public class TFile {
 	 */
 	public static byte[] loadFileFromContextPath(String filePath) {
 		String spliter = filePath.startsWith(File.separator) == true ? "" : File.separator;
-		String fullFilePath = TEnv.getAppContextPath() + spliter + filePath;
+		String fullFilePath = TEnv.getContextPath() + spliter + filePath;
 		return loadFileFromSysPath(fullFilePath);
 	}
 
