@@ -4,6 +4,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+import org.hocate.http.message.Request;
 import org.hocate.http.message.packet.Header;
 
 /**
@@ -12,8 +13,10 @@ import org.hocate.http.message.packet.Header;
  *
  */
 public class WebSocketTools {
-	public static boolean isWebSocketRequest(Header header) {
-		if (header.get("Connection").equals("Upgrade") && header.contain("Sec-WebSocket-Key")) {
+	public static boolean isWebSocketUpgrade(Request request) {
+		Header header = request.header();
+		if (header != null && header.contain("Connection") && header.get("Connection").equals("Upgrade")
+				&& header.contain("Sec-WebSocket-Key")) {
 			return true;
 		} else {
 			return false;

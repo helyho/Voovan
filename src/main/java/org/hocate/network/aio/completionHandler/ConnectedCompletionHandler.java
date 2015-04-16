@@ -5,7 +5,7 @@ import java.nio.channels.CompletionHandler;
 
 import org.hocate.network.EventTrigger;
 import org.hocate.network.aio.AioSocket;
-import org.hocate.tools.TObject;
+import org.hocate.tools.log.Logger;
 
 /**
  * Aio 连接事件
@@ -34,8 +34,9 @@ public class ConnectedCompletionHandler implements CompletionHandler<Void, AioSo
 	@Override
 	public void failed(Throwable exc,  AioSocket socketContext) {
 		if(exc instanceof Exception){
+			Logger.error("Error: Aio connected socket error!");
 			//触发 onException 事件
-			eventTrigger.fireException(TObject.cast(exc));
+			eventTrigger.fireException(new Exception(exc));
 		}
 	}
 
