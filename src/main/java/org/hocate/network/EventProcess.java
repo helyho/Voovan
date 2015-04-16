@@ -6,7 +6,6 @@ import java.nio.ByteBuffer;
 import org.hocate.network.Event.EventName;
 import org.hocate.network.Event.EventState;
 import org.hocate.tools.TObject;
-import org.hocate.tools.log.Logger;
 
 /**
  * 事件的实际逻辑处理
@@ -174,7 +173,6 @@ public class EventProcess {
 				socketContext.handler().onException(session, e);
 			}
 		}else{
-			Logger.error("Error: Aio accept socket error!");
 			e.printStackTrace();
 		}
 	}

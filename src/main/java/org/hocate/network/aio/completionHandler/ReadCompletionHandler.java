@@ -10,6 +10,7 @@ import org.hocate.network.MessageLoader;
 import org.hocate.network.aio.AioSession;
 import org.hocate.network.aio.AioSocket;
 import org.hocate.tools.TObject;
+import org.hocate.tools.log.Logger;
 
 /**
  * Aio 读取事件
@@ -64,8 +65,9 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 	@Override
 	public void failed(Throwable exc,  ByteBuffer buffer) {
 		if(exc instanceof Exception && !(exc instanceof AsynchronousCloseException)){
+			Logger.error("Error: Aio read socket error!");
 			//触发 onException 事件
-			eventTrigger.fireException(TObject.cast(exc));
+			eventTrigger.fireException(new Exception(exc));
 		}
 	}
 }

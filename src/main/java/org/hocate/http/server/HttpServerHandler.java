@@ -46,31 +46,36 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		// 获取默认字符集
-		String defaultCharacterSet = config.getCharacterSet();
-
-		// Http 请求
-		if (obj instanceof Request) {
-			// 构造请求
-			Request request = TObject.cast(obj);
-			
-			// 构造响应报文并返回
-			Response response = new Response();
-
-			// 构造 Http 请求响应对象
-			HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);
-			HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet);
-
-			// WebSocket协议升级处理
-			if (WebSocketTools.isWebSocketRequest(request.header())) {
-				return DisposeWebSocketUpgrade(session, httpRequest, httpResponse);
+		try{
+			// 获取默认字符集
+			String defaultCharacterSet = config.getCharacterSet();
+	
+			// Http 请求
+			if (obj instanceof Request) {
+				// 构造请求
+				Request request = TObject.cast(obj);
+				
+				// 构造响应报文并返回
+				Response response = new Response();
+	
+				// 构造 Http 请求响应对象
+				HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);
+				HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet);
+	
+				// WebSocket协议升级处理
+				if (WebSocketTools.isWebSocketUpgrade(request)) {
+					return DisposeWebSocketUpgrade(session, httpRequest, httpResponse);
+				}
+				// Http 1.1处理
+				else {
+					return DisposeHttp(session, httpRequest, httpResponse);
+				}
+			} else if (obj instanceof WebSocketFrame) {
+				return DisposeWebSocket(session, TObject.cast(obj));
 			}
-			// Http 1.1处理
-			else {
-				return DisposeHttp(session, httpRequest, httpResponse);
-			}
-		} else if (obj instanceof WebSocketFrame) {
-			return DisposeWebSocket(session, TObject.cast(obj));
+		}catch(Exception e){
+			Logger.error("Request error msg is:\r\n"+obj);
+			throw e;
 		}
 		return null;
 	}

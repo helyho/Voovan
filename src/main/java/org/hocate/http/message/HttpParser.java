@@ -123,7 +123,7 @@ public class HttpParser {
 	 * @param cookieLine
 	 */
 	@SuppressWarnings("unchecked")
-	private static void addCookie(Map<String, Object> packetMap,String cookieLine){
+	private static void parseCookie(Map<String, Object> packetMap,String cookieLine){
 		if(!packetMap.containsKey("Cookie")){
 			packetMap.put("Cookie", new Vector<Map<String, String>>());
 		}
@@ -216,7 +216,7 @@ public class HttpParser {
 			//处理 cookie 和 header
 			if(!isBodyConent){
 				if(currentLine.contains("Cookie")){
-					addCookie(packetMap,currentLine);
+					parseCookie(packetMap,currentLine);
 				}else{
 					packetMap.putAll(parsePropertyLine(currentLine));
 				}
@@ -321,10 +321,14 @@ public class HttpParser {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Request parseRequest(InputStream inputStream) throws IOException{
-		Request request = new Request();
-		
 		Map<String, Object> parsedPacket = Parser(inputStream);
 		
+		//如果解析的Map为空,则直接返回空
+		if(parsedPacket==null || parsedPacket.size()==0){
+			return null;
+		}
+		
+		Request request = new Request();
 		//填充报文到请求对象
 		Set<Entry<String, Object>> parsedItems= parsedPacket.entrySet();
 		for(Entry<String, Object> parsedPacketEntry: parsedItems){
@@ -454,27 +458,28 @@ public class HttpParser {
 //				"Host: 127.0.0.1:1031\r\n"+
 //				"\r\n";
 	
-				"POST /test/t HTTP/1.1\r\n"+
-				"Connection: keep-alive\r\n"+
-				"Content-Type: multipart/form-data; boundary=ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
-				"Content-Length: 329\r\n"+
-				"User-Agent: Jakarta Commons-HttpClient/3.1\r\n"+
-				"Cookie: BAIDUID=57939E50D6B2A0B23D20CA330C89E290:FG=1; BAIDUPSID=57939E50D6B2A0B23D20CA330C89E290;\r\n"+
-				"Host: 127.0.0.1:1031\r\n"+
-				"\r\n"+
-				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
-				"Content-Disposition: form-data; name=\"name\"; filename=\"hh.jpg\"\r\n"+
-				"\r\n"+
-				"helyho\r\n"+
-				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
-				"Content-Disposition: form-data; name=\"age\"\r\n"+
-				"\r\n"+
-				"32\r\n"+
-				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
-				"Content-Disposition: form-data; name=\"address\" filename=\"1.jpg\"\r\n"+
-				"\r\n"+
-		 		"wlmq\r\n"+
-				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm--\r\n\r\n";
+//				"POST /test/t HTTP/1.1\r\n"+
+//				"Connection: keep-alive\r\n"+
+//				"Content-Type: multipart/form-data; boundary=ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
+//				"Content-Length: 329\r\n"+
+//				"User-Agent: Jakarta Commons-HttpClient/3.1\r\n"+
+//				"Cookie: BAIDUID=57939E50D6B2A0B23D20CA330C89E290:FG=1; BAIDUPSID=57939E50D6B2A0B23D20CA330C89E290;\r\n"+
+//				"Host: 127.0.0.1:1031\r\n"+
+//				"\r\n"+
+//				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
+//				"Content-Disposition: form-data; name=\"name\"; filename=\"hh.jpg\"\r\n"+
+//				"\r\n"+
+//				"helyho\r\n"+
+//				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
+//				"Content-Disposition: form-data; name=\"age\"\r\n"+
+//				"\r\n"+
+//				"32\r\n"+
+//				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
+//				"Content-Disposition: form-data; name=\"address\" filename=\"1.jpg\"\r\n"+
+//				"\r\n"+
+//		 		"wlmq\r\n"+
+//				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm--\r\n\r\n";
+				"aaaaaaa";
 				
 		Logger.simple(HttpParser.parseRequest(new ByteArrayInputStream(httpRequestString.getBytes())));
 	}

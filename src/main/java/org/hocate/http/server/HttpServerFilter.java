@@ -11,6 +11,7 @@ import org.hocate.http.server.websocket.WebSocketFrame;
 import org.hocate.network.IoFilter;
 import org.hocate.network.IoSession;
 import org.hocate.tools.TObject;
+import org.hocate.tools.log.Logger;
 
 /**
  * HttpServer 过滤器对象
@@ -46,6 +47,7 @@ public class HttpServerFilter implements IoFilter {
 			try {
 				if (object instanceof ByteBuffer) {
 					ByteBuffer byteBuffer = TObject.cast(object);
+					Logger.info("Request from "+session.remoteAddress()+" is:\r\n"+new String(byteBuffer.array()));
 					ByteArrayInputStream requestInputStream = new ByteArrayInputStream(byteBuffer.array());
 					Request request = HttpParser.parseRequest(requestInputStream);
 					return request;

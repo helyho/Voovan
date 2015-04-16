@@ -6,7 +6,10 @@
 var wsServer;
 var websocket;
 	function wsopen() {
-		wsServer = 'ws://10.0.0.180:28080/ws';
+		var loc = window.location.toString();
+		loc = loc.replace("http","ws")
+		loc+="ws";
+		wsServer = loc;
 		websocket = new WebSocket(wsServer);
 		websocket.onopen = function(evt) {
 			onOpen(evt)
@@ -49,7 +52,7 @@ var websocket;
 	<!-- enctype="multipart/form-data" -->
 	<form action="/" method="post">
 		<div>
-			username:<input name="name" type="text" value="ºÎÍ¦" />
+			username:<input name="name" type="text" value="ÖÐÎÄ²âÊÔ" />
 		</div>
 		<div>
 			age:<input name="age" type="text">
