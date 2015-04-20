@@ -39,7 +39,8 @@ public class MimeTools {
 	 * @return
 	 */
 	public static String getMimeByFileExtension(String fileExtension){
-		return WebContext.getMimeDefine().get(fileExtension.toLowerCase()).toString();
+		Object mimeType = WebContext.getMimeDefine().get(fileExtension.toLowerCase());
+		return mimeType==null?"text/plain":mimeType.toString();
 	}
 	
 	/**

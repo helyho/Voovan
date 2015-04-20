@@ -9,6 +9,7 @@ import org.hocate.http.message.packet.Cookie;
 import org.hocate.http.server.exception.ResourceNotFound;
 import org.hocate.http.server.exception.RouterNotFound;
 import org.hocate.http.server.router.MimeFileRouter;
+import org.hocate.tools.TEnv;
 import org.hocate.tools.TFile;
 import org.hocate.tools.TObject;
 import org.hocate.tools.TString;
@@ -214,11 +215,15 @@ public class HttpDispatcher {
 	 */
 	public void ExceptionMessage(HttpRequest request, HttpResponse response, Exception e) {
 		//输出异常
-		if(e instanceof ResourceNotFound){
-			Logger.warn("Warning: "+ResourceNotFound.class.getCanonicalName()+": "+request.protocol().getPath());
+		if(e instanceof ResourceNotFound || e instanceof RouterNotFound){
+			Logger.warn("Warning: "+e.getClass().getCanonicalName()+": "+request.protocol().getPath());
 		}
 		else{
-			e.printStackTrace();
+			Logger.info("Exception request is: "+request+
+					"\r\n===================================================\r\n"+
+					e.getClass().getCanonicalName()+": "+e.getMessage()+"\r\n"+
+					TEnv.getStackElementsMessage(e.getStackTrace()));
+			
 		}
 		
 		Map<String, Object> errorDefine = WebContext.getErrorDefine();
