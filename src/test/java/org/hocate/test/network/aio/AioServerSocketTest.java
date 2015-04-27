@@ -9,7 +9,7 @@ import org.hocate.test.network.ServerHandlerTest;
 public class AioServerSocketTest  {
 
 	public static void main(String[] args) throws IOException {
-		AioServerSocket serverSocket = new AioServerSocket("0.0.0.0",2031,100);
+		AioServerSocket serverSocket = new AioServerSocket("0.0.0.0",2031,1);
 		serverSocket.handler(new ServerHandlerTest());
 		serverSocket.filterChain().add(new StringFilter());
 		serverSocket.start();
