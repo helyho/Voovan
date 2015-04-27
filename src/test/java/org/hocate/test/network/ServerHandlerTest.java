@@ -38,6 +38,8 @@ public class ServerHandlerTest implements IoHandler {
 		ByteBuffer sad = (ByteBuffer)obj;
 		sad = (ByteBuffer)sad.rewind();
 		Logger.simple("Server onSent: "+MessageLoader.byteBufferToString(sad));
+		//jmeter 测试是需要打开,和客户端测试时关闭
+		//session.close();
 	}
 
 }
