@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.hocate.tools.log.Logger;
+import org.hocate.network.ConnectModel;
 import org.hocate.network.EventTrigger;
 import org.hocate.network.MessageLoader;
 import org.hocate.network.SocketContext;
@@ -119,11 +120,11 @@ public class NioSelector {
 			// 触发连接断开事件
 			eventTrigger.fireDisconnectThread();
 			//关闭线程池
-			if(socketContext instanceof NioServerSocket){
+			if(socketContext instanceof NioServerSocket 
+					||  socketContext.getConnectModel() == ConnectModel.CLIENT){
 				eventTrigger.shutdown();
 			}
 		}
-		
 	}
 
 	/**

@@ -1,7 +1,5 @@
 package org.hocate.network;
 
-import org.hocate.tools.log.Logger;
-
 /**
  * socket 上下文
  * @author helyho
@@ -16,6 +14,7 @@ public abstract class SocketContext {
 	protected Chain<IoFilter> filterChain;
 	protected MessageParter messageParter;
 	protected SSLManager sslManager;
+	protected ConnectModel connectModel;
 	
 	
 	/**
@@ -25,6 +24,7 @@ public abstract class SocketContext {
 		this.host = host;
 		this.port = port;
 		this.readTimeout = readTimeout;
+		connectModel = null;
 		filterChain = new Chain<IoFilter>();
 	}
 	
@@ -61,32 +61,24 @@ public abstract class SocketContext {
 		return host;
 	}
 
-	public void setHost(String host) {
-		if(!isConnect()){
-			this.host = host;
-		}else{
-			Logger.info("Socket is Open,can't set host!");
-		}
-	}
-
 	public int getPort() {
 		return port;
 	}
 
-	public void setPort(int port) {
-		if(!isConnect()){
-			this.port = port;
-		}else{
-			Logger.info("Socket is Open,can't set port!");
-		}
-	}
-
+	/**
+	 * 获取超时时间
+	 * @return
+	 */
 	public int getReadTimeout() {
 		return readTimeout;
 	}
-
-	public void setReadTimeout(int readTimeout) {
-		this.readTimeout = readTimeout;
+	
+	/**
+	 * 获取连接模式
+	 * @return
+	 */
+	public ConnectModel getConnectModel() {
+		return connectModel;
 	}
 
 	/**
