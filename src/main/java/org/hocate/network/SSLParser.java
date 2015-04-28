@@ -80,7 +80,7 @@ public class SSLParser {
 		do{
 			engineResult = engine.wrap(buffer, netData);
 			netData.flip();
-			if(session.isConnect() && engineResult.bytesProduced()>0){
+			if(session.isConnect() && engineResult.bytesProduced()>0 && netData.limit()>0){
 				session.send(netData);
 			}
 			netData.clear();

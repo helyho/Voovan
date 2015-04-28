@@ -75,10 +75,16 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 捕获 Aio Connect
+	 * @throws IOException 
 	 */
-	public void catchConnected() {
+	public void catchConnected() throws IOException {
 		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
 		socketChannel.connect(socketAddress, this, connectedCompletionHandler);
+		while(true){
+			if(socketChannel.getRemoteAddress()!=null){
+				break;
+			}
+		}
 	}
 
 	/**
@@ -97,21 +103,22 @@ public class AioSocket extends SocketContext {
 	@Override
 	public void start() throws Exception {
 
+		if (connectModel == ConnectModel.CLIENT) {
+			// 捕获 connect 事件
+			catchConnected();
+		}
+		
+		//捕获输入事件
+		catchRead(ByteBuffer.allocate(1024));
+
 		if (connectModel == ConnectModel.SERVER && sslManager != null) {
 			sslManager.createServerSSLParser(session);
 		} else if (connectModel == ConnectModel.CLIENT && sslManager != null) {
 			sslManager.createClientSSLParser(session);
 		}
-
-		if (connectModel == ConnectModel.SERVER) {
-			// 触发 connect 事件
-			eventTrigger.fireConnectThread();
-			catchRead(ByteBuffer.allocate(1024));
-		} else if (connectModel == ConnectModel.CLIENT) {
-			// 捕获 connect 事件
-			catchConnected();
-		}
-
+		
+		// 触发 connect 事件
+		eventTrigger.fireConnectThread();
 		
 		// 等待ServerSocketChannel关闭,结束进程
 		while (isConnect() && (connectModel==ConnectModel.CLIENT || eventTrigger.isShutdown())) {
@@ -141,8 +148,9 @@ public class AioSocket extends SocketContext {
 				// 触发 DisConnect 事件
 				eventTrigger.fireDisconnect();
 
-				// 检查是否关闭线程池,如果不是ServerSocket 下的 Socket 则关闭线程池,由 ServerSocket
-				// 来关闭
+				// 检查是否关闭线程池
+				// 如果不是ServerSocket下的 Socket 则关闭线程池
+				// ServerSocket下的 Socket由 ServerSocket来关闭线程池
 				if (connectModel == ConnectModel.CLIENT) {
 					eventTrigger.shutdown();
 				}

@@ -1,6 +1,5 @@
 package org.hocate.network.aio.completionhandler;
 
-import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
 
 import org.hocate.network.EventTrigger;
@@ -22,9 +21,7 @@ public class ConnectedCompletionHandler implements CompletionHandler<Void, AioSo
 	@Override
 	public void completed(Void arg1,  AioSocket socketContext) {
 		try{
-			//触发 Connect 事件
-			eventTrigger.fireConnect();
-			socketContext.catchRead(ByteBuffer.allocate(1024));
+			
 		}
 		catch(Exception e){
 			Logger.error("Class ConnectedCompletionHandler Error:"+e.getMessage());

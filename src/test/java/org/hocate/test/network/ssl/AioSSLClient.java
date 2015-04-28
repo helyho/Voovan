@@ -11,7 +11,7 @@ public class AioSSLClient {
 		SSLManager sslManager = new SSLManager("SSL");
 		sslManager.loadCertificate("/Users/helyho/Work/Java/MyPlatform/src/test/java/org/hocate/test/network/ssl/ssl_ks", "passStr","123123");
 		
-		AioSocket socket = new AioSocket("0.0.0.0",2031,500);
+		AioSocket socket = new AioSocket("127.0.0.1",2031,500);
 		socket.setSSLManager(sslManager);
 		socket.handler(new ClientHandlerTest());
 		socket.filterChain().add(new StringFilter());
