@@ -146,4 +146,14 @@ public class TEnv {
 			}
 		}
 	}
+	
+	public static Thread[] getJVMThreads(){
+		ThreadGroup group = Thread.currentThread().getThreadGroup().getParent();
+		int estimatedSize = group.activeCount() * 2;
+		Thread[] slackList = new Thread[estimatedSize];
+		int actualSize = group.enumerate(slackList);
+		Thread[] list = new Thread[actualSize];
+		System.arraycopy(slackList, 0, list, 0, actualSize);
+		return list;
+	}
 }

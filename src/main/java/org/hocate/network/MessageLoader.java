@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.hocate.tools.TEnv;
+import org.hocate.tools.log.Logger;
 
 
 /**
@@ -114,6 +115,7 @@ public class MessageLoader {
 					
 					//超时判断
 					if(readTimeout==elapsedtime){
+						Logger.simple("Socket load timeout,return recived data.");
 						break;
 					}
 					

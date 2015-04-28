@@ -9,7 +9,7 @@ import org.hocate.test.network.ServerHandlerTest;
 public class NioServerSocketTest  {
 
 	public static void main(String[] args) throws IOException {
-		NioServerSocket serverSocket = new NioServerSocket("0.0.0.0",2031,500);
+		NioServerSocket serverSocket = new NioServerSocket("127.0.0.1",2031,500);
 		serverSocket.handler(new ServerHandlerTest());
 		serverSocket.filterChain().add(new StringFilter());
 		serverSocket.start();

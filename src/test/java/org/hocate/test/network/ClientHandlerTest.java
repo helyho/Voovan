@@ -6,7 +6,6 @@ import org.hocate.tools.log.Logger;
 import org.hocate.network.IoHandler;
 import org.hocate.network.IoSession;
 import org.hocate.network.MessageLoader;
-import org.hocate.tools.TFile;
 
 public class ClientHandlerTest implements IoHandler {
 
@@ -14,9 +13,8 @@ public class ClientHandlerTest implements IoHandler {
 	public Object onConnect(IoSession session) {
 		Logger.simple("onConnect");
 		session.setAttribute("key", "attribute value");
-		TFile.loadFileFromSysPath("/Users/helyho/1.txt");
 		String msg = new String("test message");
-		return msg;//"Client Message";
+		return msg;
 	}
 
 	@Override
