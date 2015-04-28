@@ -23,7 +23,6 @@ public class AioSocket extends SocketContext {
 	private AsynchronousSocketChannel	socketChannel;
 	private AioSession					session;
 	private EventTrigger				eventTrigger;
-	private ConnectModel				connectModel;
 	private ReadCompletionHandler		readCompletionHandler;
 	private ConnectedCompletionHandler	connectedCompletionHandler;
 

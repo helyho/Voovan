@@ -20,7 +20,6 @@ public class NioSocket extends SocketContext{
 	private Selector selector;
 	private SocketChannel socketChannel;
 	private NioSession session;
-	private ConnectModel connectModel;
 	
 	/**
 	 * socket 连接
