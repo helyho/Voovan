@@ -1,8 +1,10 @@
 package org.hocate.tools.log;
 
 import java.io.OutputStream;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
+import org.hocate.tools.TEnv;
 
 /**
  * 日志输出线程
@@ -11,11 +13,11 @@ import java.util.concurrent.TimeUnit;
  *
  */
 public class WriteThread implements Runnable {
-	private LinkedBlockingDeque<String>	logDeque;
+	private ArrayBlockingQueue<String>	logQueue;
 	private OutputStream[]				outputStreams;
 
 	public WriteThread(OutputStream[] outputStreams) {
-		this.logDeque = new LinkedBlockingDeque<String>();
+		this.logQueue = new ArrayBlockingQueue<String>(100000);
 		this.outputStreams = outputStreams;
 	}
 
@@ -25,14 +27,16 @@ public class WriteThread implements Runnable {
 	 * @param string
 	 */
 	public synchronized void addLogMessage(String string) {
-		logDeque.add(string);
+		logQueue.add(string);
 	}
 
 	@Override
 	public void run() {
+		int loopCount = 0;
 		while (true) {
 			try {
-				String formatedMessage = logDeque.poll(30, TimeUnit.MINUTES);
+				loopCount++;
+				String formatedMessage = logQueue.poll(500, TimeUnit.MILLISECONDS);
 				if (formatedMessage != null) {
 					for (OutputStream outputStream : outputStreams) {
 						if (outputStream != null) {
@@ -40,12 +44,30 @@ public class WriteThread implements Runnable {
 							outputStream.flush();
 						}
 					}
-				} else if (logDeque.size() == 0) {
+				}else if(isTerminate()){
+					break;
+				}else if (loopCount>=60*2 && logQueue.size() == 0) {
 					break;
 				}
+				TEnv.sleep(1);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 	}
+	
+	/**
+	 * 检查线程是否处于结束状态
+	 * @return
+	 */
+	public boolean isTerminate(){
+		Thread[] jvmThread = TEnv.getJVMThreads();
+		for(Thread threadObj : jvmThread){
+			if(threadObj.getName().contains("DestroyJavaVM")){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }
