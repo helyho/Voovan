@@ -215,7 +215,7 @@ public class Request {
 		else if (parts.size() != 0) {
 			// 产生新的boundary备用
 			String boundary = THash.encryptBASE64(UUID.randomUUID().toString());
-			String contentType = "Content-Type: multipart/form-data; boundary=" + boundary;
+			String contentType = "multipart/form-data; boundary=" + boundary;
 			header.put("Content-Type", contentType);
 			return boundary;
 		}

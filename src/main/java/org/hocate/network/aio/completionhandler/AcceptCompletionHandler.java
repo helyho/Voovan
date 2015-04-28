@@ -1,4 +1,4 @@
-package org.hocate.network.aio.completionHandler;
+package org.hocate.network.aio.completionhandler;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -34,6 +34,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 			
 			
 		} catch (IOException e) {
+			Logger.error("Class AcceptCompletionHandler Error:"+e.getMessage());
 			eventTrigger.fireException(e);
 		}
 	}

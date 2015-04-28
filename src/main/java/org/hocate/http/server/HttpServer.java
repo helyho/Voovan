@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.hocate.http.server.websocket.WebSocketDispatcher;
 import org.hocate.http.server.websocket.WebSocketBizHandler;
 import org.hocate.network.aio.AioServerSocket;
-import org.hocate.network.messageParter.HttpMessageParter;
+import org.hocate.network.messageparter.HttpMessageParter;
 
 /**
  * HttpServer 对象

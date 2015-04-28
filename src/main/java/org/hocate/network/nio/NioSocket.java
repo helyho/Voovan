@@ -104,7 +104,7 @@ public class NioSocket extends SocketContext{
 		
 		if(socketChannel!=null && socketChannel.isOpen()){
 			NioSelector nioSelector = new NioSelector(selector,this);
-			nioSelector.EventChose();
+			nioSelector.eventChose();
 		}
 	}
 

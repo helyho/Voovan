@@ -8,8 +8,8 @@ import java.nio.channels.AsynchronousSocketChannel;
 import org.hocate.network.ConnectModel;
 import org.hocate.network.EventTrigger;
 import org.hocate.network.SocketContext;
-import org.hocate.network.aio.completionHandler.ConnectedCompletionHandler;
-import org.hocate.network.aio.completionHandler.ReadCompletionHandler;
+import org.hocate.network.aio.completionhandler.ConnectedCompletionHandler;
+import org.hocate.network.aio.completionhandler.ReadCompletionHandler;
 import org.hocate.tools.TEnv;
 
 /**

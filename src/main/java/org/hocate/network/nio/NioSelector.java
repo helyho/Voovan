@@ -49,7 +49,7 @@ public class NioSelector {
 	 * 
 	 * @throws IOException
 	 */
-	public void EventChose() throws IOException {
+	public void eventChose() throws IOException {
 		//读取用的缓冲区
 		ByteBuffer readTempBuffer = ByteBuffer.allocate(1024);
 		
@@ -91,8 +91,7 @@ public class NioSelector {
 											//判断连接是否关闭
 											if(MessageLoader.isRemoteClosed(readSize,readTempBuffer) && session.isConnect()){
 												session.close();
-											}
-											else if(readSize>0){
+											}else if(readSize>0){
 												readTempBuffer.flip();
 												session.getByteBufferChannel().write(readTempBuffer);
 												readTempBuffer.clear();
@@ -113,10 +112,10 @@ public class NioSelector {
 				}
 			}
 		} catch (Exception e) {
+			Logger.error("Class NioSelector Error: "+e.getMessage());
 			// 触发 onException 事件
 			eventTrigger.fireExceptionThread(e);
-		}
-		finally{
+		} finally{
 			// 触发连接断开事件
 			eventTrigger.fireDisconnectThread();
 			//关闭线程池

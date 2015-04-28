@@ -3,9 +3,12 @@ package org.hocate.network;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Hashtable;
+import java.util.Map;
 
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.Status;
+
+import org.hocate.tools.log.Logger;
 
 
 /**
@@ -15,7 +18,7 @@ import javax.net.ssl.SSLEngineResult.Status;
  */
 public abstract class IoSession {
 	
-	private Hashtable<Object, Object> attributes;
+	private Map<Object, Object> attributes;
 	private SSLParser sslParser;
 	private ByteBufferChannel netDataBufferChannel;
 	private ByteBufferChannel appDataBufferChannel;
@@ -27,7 +30,6 @@ public abstract class IoSession {
 		attributes = new Hashtable<Object, Object>();
 		netDataBufferChannel = new ByteBufferChannel();
 		appDataBufferChannel = new ByteBufferChannel();
-
 	}
 	
 	/**
@@ -153,6 +155,7 @@ public abstract class IoSession {
 			readSize = appDataBufferChannel.read(buffer);
 		}
 		catch(Exception e){
+			Logger.error("Class IoSession Error: "+e.getMessage());
 			e.printStackTrace();
 		}
 		return readSize;
@@ -170,6 +173,7 @@ public abstract class IoSession {
 			try {
 				sslParser.warpData(buffer);
 			} catch (IOException e) {
+				Logger.error("Class IoSession Error: "+e.getMessage());
 				e.printStackTrace();
 			}
 		}

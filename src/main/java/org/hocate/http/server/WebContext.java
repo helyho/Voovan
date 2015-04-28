@@ -31,7 +31,11 @@ public class WebContext {
 	/**
 	 * 当前版本号
 	 */
-	private static final String version = "0.1";
+	private static final String VERSION = "0.1";
+	
+	private WebContext(){
+		
+	}
 															
 	/**
 	 * 从 js 配置文件读取配置信息到 Map
@@ -50,7 +54,7 @@ public class WebContext {
 	 */
 	public static WebConfig getWebConfig() {
 		WebConfig config = new WebConfig();
-		config.setHost(getContextParameter("Host","0.0.0.0"));
+		config.setHost(getContextParameter("Host","127.0.0.1"));
 		config.setPort(getContextParameter("Port",8080));
 		config.setTimeout(getContextParameter("Timeout",3000));
 		config.setContextPath(getContextParameter("ContextPath",System.getProperty("user.dir")));
@@ -92,7 +96,7 @@ public class WebContext {
 	 * @return
 	 */
 	public final static String getVersion() {
-		return version;
+		return VERSION;
 	}
 	
 	/**

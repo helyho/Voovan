@@ -1,4 +1,4 @@
-package org.hocate.db.sqlSegment;
+package org.hocate.db.sqlsegment;
 import java.util.Vector;
 
 import org.hocate.db.SQLBuilder;
