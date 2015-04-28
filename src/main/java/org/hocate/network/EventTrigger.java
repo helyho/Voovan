@@ -2,6 +2,7 @@ package org.hocate.network;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -18,7 +19,7 @@ public class EventTrigger {
 	
 	private IoSession session;
 	private ThreadPoolExecutor eventThreadPool;
-	private Vector<Event> eventPool;
+	private List<Event> eventPool;
 	
 	/**
 	 * 构造函数
@@ -39,7 +40,7 @@ public class EventTrigger {
 		eventThreadPool.allowCoreThreadTimeOut(true);
 	}
 	
-	public Vector<Event> getEventPool() {
+	public List<Event> getEventPool() {
 		return eventPool;
 	}
 
@@ -60,8 +61,7 @@ public class EventTrigger {
 		//!hasEventDisposeing(EventName.ON_CONNECT) &&
 		if((session.getSSLParser()==null || session.getSSLParser().isHandShakeDone())
 			&& !hasEventDisposeing(EventName.ON_RECEIVE) 
-				&& session.isConnect())
-		{
+				&& session.isConnect()){
 			fireEventThread(EventName.ON_RECEIVE,null);
 		}
 	}
@@ -98,8 +98,7 @@ public class EventTrigger {
 		//!hasEventDisposeing(EventName.ON_CONNECT) &&
 		if((session.getSSLParser()==null || session.getSSLParser().isHandShakeDone())
 				&& !hasEventDisposeing(EventName.ON_RECEIVE) 
-				&& session.isConnect())
-		{
+				&& session.isConnect()){
 			fireEvent(EventName.ON_RECEIVE,null);
 		}
 	}
@@ -148,7 +147,7 @@ public class EventTrigger {
 	}
 	
 	public void clearFinishedEvent(){
-		ArrayList<Event> finishedEvent = new ArrayList<Event>();
+		List<Event> finishedEvent = new ArrayList<Event>();
 		synchronized (eventPool) {
 			for(Event event : eventPool){
 				if(event.getState() == EventState.FINISHED){

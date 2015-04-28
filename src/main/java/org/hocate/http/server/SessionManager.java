@@ -1,9 +1,9 @@
 package org.hocate.http.server;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import org.hocate.tools.log.Logger;
 import org.hocate.tools.TObject;
@@ -36,6 +36,7 @@ public class SessionManager{
 			Map<String, HttpSession> sessionContainer = TObject.cast(TReflect.newInstance(sessionContainerClass));
 			return sessionContainer;
 		} catch (Exception e) {
+			Logger.error("Class SessionManager Error: "+e.getMessage());
 			return null;
 		}
 	}
@@ -69,7 +70,7 @@ public class SessionManager{
 	 * 获取失效的 session
 	 */
 	public synchronized List<HttpSession> getInvalidSession() {
-		List<HttpSession> needRemove = new Vector<HttpSession>();
+		List<HttpSession> needRemove = new ArrayList<HttpSession>();
 		for (HttpSession session : sessions.values()) {
 			if (session.isInvalid()) {
 				needRemove.add(session);

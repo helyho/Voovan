@@ -11,6 +11,7 @@ import org.hocate.http.server.websocket.WebSocketFrame;
 import org.hocate.network.IoFilter;
 import org.hocate.network.IoSession;
 import org.hocate.tools.TObject;
+import org.hocate.tools.log.Logger;
 
 /**
  * HttpServer 过滤器对象
@@ -20,6 +21,8 @@ import org.hocate.tools.TObject;
  */
 public class HttpServerFilter implements IoFilter {
 
+	private static final String IS_WEB_SOCKET="isWebSocket";
+	
 	/**
 	 * 将HttpResponse转换成ByteBuffer
 	 */
@@ -42,11 +45,10 @@ public class HttpServerFilter implements IoFilter {
 	@Override
 	public synchronized Object decode(IoSession session, Object object) {
 		//如果 Session 中不包含isWebSocket,则是 Http 请求,转换成 Http 的 Request 请求
-		if (session.getAttribute("isWebSocket")==null) {
+		if (session.getAttribute(IS_WEB_SOCKET)==null) {
 			try {
 				if (object instanceof ByteBuffer) {
 					ByteBuffer byteBuffer = TObject.cast(object);
-					//Logger.info("Request from "+session.remoteAddress()+" is:\r\n"+new String(byteBuffer.array()));
 					ByteArrayInputStream requestInputStream = new ByteArrayInputStream(byteBuffer.array());
 					Request request = HttpParser.parseRequest(requestInputStream);
 					if(request!=null){
@@ -58,17 +60,18 @@ public class HttpServerFilter implements IoFilter {
 					return null;
 				}
 			} catch (IOException e) {
+				Logger.error("Class HttpServerFilter Error: "+e.getMessage());
 				e.printStackTrace();
 				return null;
 			}
 		
 		}
 		//如果包含isWebSocket,且为 true 曾是 WebSocket,转换成 WebSocketFrame 对象
-		else if((boolean)session.getAttribute("isWebSocket")){
+		else if((boolean)session.getAttribute(IS_WEB_SOCKET)){
 			if (object instanceof ByteBuffer) {
 				ByteBuffer byteBuffer = TObject.cast(object);
 				return WebSocketFrame.parse(byteBuffer);
-			}else {
+			} else {
 				return null;
 			}
 		}

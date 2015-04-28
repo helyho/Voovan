@@ -1,4 +1,4 @@
-package org.hocate.network.messageParter;
+package org.hocate.network.messageparter;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -9,6 +9,8 @@ import org.hocate.tools.TString;
 
 public class HttpMessageParter implements MessageParter {
 
+	private static final String BODY_TAG= "\r\n\r\n";
+	
 	@Override
 	public boolean canPartition(IoSession session, byte[] buffer, int elapsedtime) {
 		
@@ -24,20 +26,20 @@ public class HttpMessageParter implements MessageParter {
 	public static boolean isHttpFrame(byte[] buffer){
 		String bufferString = new String(buffer);
 		// 包含\r\n\r\n,这个时候 Content-Length 可能存在
-		if (bufferString.contains("\r\n\r\n")) {
+		if (bufferString.contains(BODY_TAG)) {
 			String[] contentLengthLines = TString.searchByRegex(bufferString, "Content-Length: .+[^\\r\\n]");
 			// 1.包含 content Length 的则通过获取 contentLenght 来计算报文的总长度,长度相等时,返回成功
 			if (contentLengthLines.length == 1) {
 				int contentLength = Integer.valueOf(contentLengthLines[0].split(" ")[1]);
-				int totalLength = bufferString.indexOf("\r\n\r\n") + 4 + contentLength;
+				int totalLength = bufferString.indexOf(BODY_TAG) + 4 + contentLength;
 				if (buffer.length == totalLength) {
 					return true;
 				}
 			}
 			// 2.不包含 ContentLength头的报文,则通过\r\n\r\n进行结尾判断,
-			else if (bufferString.endsWith("\r\n\r\n")) {
+			else if (bufferString.endsWith(BODY_TAG)) {
 				// 3.分段传输的 POST 请求报文的报文头和报文题结束标识都是\r\n\r\n,所以还要判断出现两次的\r\n\r\n 的位置不同说明报文加载完成
-				if (bufferString.indexOf("\r\n\r\n") != bufferString.lastIndexOf("\r\n\r\n")) {
+				if (bufferString.indexOf(BODY_TAG) != bufferString.lastIndexOf(BODY_TAG)) {
 					// 如果是 post multipart/form-data类型,且没有指定
 					// ContentLength,则需要使用--boundary--的结尾形式来判断
 					String[] boundaryLines = TString.searchByRegex(bufferString, "boundary=[^ \\r\\n]+");
@@ -66,7 +68,7 @@ public class HttpMessageParter implements MessageParter {
 			return false;
 		}
 		byte finByte = buffer.get();
-		boolean FIN = finByte >> 8 != 0;
+		boolean fin = finByte >> 8 != 0;
 		byte rsv = (byte) ( ( finByte & ~(byte) 128 ) >> 4 );
 		if(rsv!=0){
 			return false;
@@ -76,7 +78,7 @@ public class HttpMessageParter implements MessageParter {
 		int payloadlength = (byte) ( maskByte & ~(byte) 128 );
 		int optcode =  (byte) ( finByte & 15 ) ;
 
-		if( !FIN ) {
+		if( !fin ) {
 			if( optcode == 9 || optcode == 10 || optcode == 8 ) {
 				return false;
 			}

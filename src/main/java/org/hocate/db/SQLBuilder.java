@@ -1,7 +1,7 @@
 package org.hocate.db;
 import java.util.List;
 
-import org.hocate.db.sqlSegment.*;
+import org.hocate.db.sqlsegment.*;
 import org.hocate.tools.TObject;
 
 

@@ -1,11 +1,12 @@
-package org.hocate.db.sqlSegment;
+package org.hocate.db.sqlsegment;
 
+import java.util.List;
 import java.util.Vector;
 
 import org.hocate.db.SQLBuilder;
 
 public class Having extends SQLSegment{
-	private Vector<String> conditions;
+	private List<String> conditions;
 	
 	public Having(SQLBuilder builder){
 		super(builder);
@@ -22,18 +23,22 @@ public class Having extends SQLSegment{
 	}
 	
 	public Having and(String condition){
-		if(conditions.size()==0)
+		if(conditions.size()==0){
 			begin(condition);
-		else
+		}
+		else{
 			conditions.add("and "+condition);
+		}
 		return this;
 	}
 	
 	public Having or(String condition){
-		if(conditions.size()==0)
+		if(conditions.size()==0){
 			begin(condition);
-		else
+		}
+		else{
 			conditions.add("or "+condition);
+		}
 		return this;
 	}
 	

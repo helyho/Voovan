@@ -85,9 +85,9 @@ public class HttpDispatcher {
 	 * @param routeRegexPath
 	 * @param routeBuiz
 	 */
-	public void addRouteHandler(String Method, String routeRegexPath, HttpBizHandler handler) {
-		if (handlers.keySet().contains(Method)) {
-			handlers.get(Method).put(routeRegexPath, handler);
+	public void addRouteHandler(String method, String routeRegexPath, HttpBizHandler handler) {
+		if (handlers.keySet().contains(method)) {
+			handlers.get(method).put(routeRegexPath, handler);
 		}
 	}
 
@@ -98,7 +98,7 @@ public class HttpDispatcher {
 	 * @param response
 	 * @throws Exception
 	 */
-	public void Process(HttpRequest request, HttpResponse response){
+	public void process(HttpRequest request, HttpResponse response){
 		String requestPath = request.protocol().getPath();
 		String requestMethod = request.protocol().getMethod();
 		
@@ -120,7 +120,7 @@ public class HttpDispatcher {
 					//处理路由请求
 					handler.Process(request, response);
 				} catch (Exception e) {
-					ExceptionMessage(request, response, e);
+					exceptionMessage(request, response, e);
 				}
 				break;
 			}
@@ -128,7 +128,7 @@ public class HttpDispatcher {
 		
 		//没有找寻到匹配的路由处理器
 		if(!isMatched){
-			ExceptionMessage(request, response,  new RouterNotFound("Not avaliable router!"));
+			exceptionMessage(request, response,  new RouterNotFound("Not avaliable router!"));
 		}
 	}
 	
@@ -213,7 +213,7 @@ public class HttpDispatcher {
 	 * @param response
 	 * @param e
 	 */
-	public void ExceptionMessage(HttpRequest request, HttpResponse response, Exception e) {
+	public void exceptionMessage(HttpRequest request, HttpResponse response, Exception e) {
 		//输出异常
 		if(e instanceof ResourceNotFound || e instanceof RouterNotFound){
 			Logger.warn("Warning: "+e.getClass().getCanonicalName()+": "+request.protocol().getPath());

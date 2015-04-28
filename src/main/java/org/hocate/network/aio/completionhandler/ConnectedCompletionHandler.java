@@ -1,4 +1,4 @@
-package org.hocate.network.aio.completionHandler;
+package org.hocate.network.aio.completionhandler;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.CompletionHandler;
@@ -27,6 +27,7 @@ public class ConnectedCompletionHandler implements CompletionHandler<Void, AioSo
 			socketContext.catchRead(ByteBuffer.allocate(1024));
 		}
 		catch(Exception e){
+			Logger.error("Class ConnectedCompletionHandler Error:"+e.getMessage());
 			eventTrigger.fireException(e);
 		}
 	}

@@ -1,4 +1,4 @@
-package org.hocate.network.aio.completionHandler;
+package org.hocate.network.aio.completionhandler;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
@@ -33,31 +33,33 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 	
 
 	@Override
-	public void completed(Integer length,  ByteBuffer buffer) {
-		
-		//如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
-		if(MessageLoader.isRemoteClosed(length,buffer) && session.isConnect()){
+	public void completed(Integer length, ByteBuffer buffer) {
+
+		// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
+		if (MessageLoader.isRemoteClosed(length, buffer) && session.isConnect()) {
 			session.close();
-		}
-		else{	
+		} else {
 			buffer.flip();
 			try {
-				if(length>0){
-					
-					//接收数据
+				if (length > 0) {
+
+					// 接收数据
 					byteBufferChannel.write(buffer);
-					
-					//触发 onReceive 事件
+
+					// 触发 onReceive 事件
 					eventTrigger.fireReceiveThread();
-					//接收完成后重置 buffer;
-					buffer.clear();
 					
-					//继续接收 Read 请求
-					socket.catchRead(buffer);	
+					// 接收完成后重置buffer对象;
+					buffer.clear();
+
+					// 继续接收 Read 请求
+					socket.catchRead(buffer);
 				}
 			} catch (Exception e) {
-				//触发 onException 事件
+				Logger.error("Class ReadCompletionHandler Error:"+e.getMessage());
+				// 触发 onException 事件
 				eventTrigger.fireException(e);
+				
 			}
 		}
 	}

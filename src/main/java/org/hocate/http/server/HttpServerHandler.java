@@ -64,14 +64,14 @@ public class HttpServerHandler implements IoHandler {
 	
 				// WebSocket协议升级处理
 				if (WebSocketTools.isWebSocketUpgrade(request)) {
-					return DisposeWebSocketUpgrade(session, httpRequest, httpResponse);
+					return disposeWebSocketUpgrade(session, httpRequest, httpResponse);
 				}
 				// Http 1.1处理
 				else {
 					return DisposeHttp(session, httpRequest, httpResponse);
 				}
 			} else if (obj instanceof WebSocketFrame) {
-				return DisposeWebSocket(session, TObject.cast(obj));
+				return disposeWebSocket(session, TObject.cast(obj));
 			}
 		}catch(Exception e){
 			Logger.error("Request error msg is:\r\n"+obj);
@@ -94,7 +94,7 @@ public class HttpServerHandler implements IoHandler {
 		httpRequest.setRemotePort(session.remotePort());
 
 		// 处理响应请求
-		httpDispatcher.Process(httpRequest, httpResponse);
+		httpDispatcher.process(httpRequest, httpResponse);
 		
 		//如果是长连接则填充响应报文
 		if (httpRequest.header().contain("Connection") && httpRequest.header().get("Connection").equals("keep-alive")) {
@@ -112,7 +112,7 @@ public class HttpServerHandler implements IoHandler {
 	 * @param httpResponse
 	 * @return
 	 */
-	public HttpResponse DisposeWebSocketUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
+	public HttpResponse disposeWebSocketUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 		session.setAttribute("isKeepAlive", true);
 		session.setAttribute("isWebSocket", true);
 		session.setAttribute("WebSocketRequest", httpRequest);
@@ -136,7 +136,7 @@ public class HttpServerHandler implements IoHandler {
 	 * @param webSocketFrame
 	 * @return
 	 */
-	public WebSocketFrame DisposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
+	public WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
 		session.setAttribute("isKeepAlive", true);
 		session.setAttribute("WebSocketClose", false);
 		

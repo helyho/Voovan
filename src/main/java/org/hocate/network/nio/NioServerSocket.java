@@ -63,7 +63,7 @@ public class NioServerSocket extends SocketContext{
 	@Override
 	public void start() throws IOException {
 		NioSelector eventListener = new NioSelector(selector,this);
-		eventListener.EventChose();
+		eventListener.eventChose();
 	}
 
 	@Override

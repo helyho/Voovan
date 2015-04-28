@@ -103,11 +103,11 @@ public class WebSocketFrame {
 		// 期望数据包的实际大小
 		int expectPackagesize = 2;
 		if (maxpacketsize < expectPackagesize) {
-			Logger.info("Package size error!");
+			Logger.info("Expect package size error!");
 			errorCode = 1002;
 		}
 		byte finByte = byteBuffer.get();
-		boolean FIN = finByte >> 8 != 0;
+		boolean fin = finByte >> 8 != 0;
 		byte rsv = (byte) ((finByte & ~(byte) 128) >> 4);
 		if (rsv != 0) {
 			Logger.info("RSV data error!");
@@ -122,34 +122,34 @@ public class WebSocketFrame {
 			Logger.info("Opcode data error!");
 			errorCode = 1002;
 		}
-
-		if (payloadlength >= 0 && payloadlength <= 125) {
-		} else {
-			if (payloadlength == 126) {
-				expectPackagesize += 2;
-				byte[] sizebytes = new byte[3];
-				sizebytes[1] = byteBuffer.get();
-				sizebytes[2] = byteBuffer.get();
-				payloadlength = new BigInteger(sizebytes).intValue();
-			} else {
-				expectPackagesize += 8;
-				byte[] bytes = new byte[8];
-				for (int i = 0; i < 8; i++) {
-					bytes[i] = byteBuffer.get();
-				}
-				long length = new BigInteger(bytes).longValue();
-				if (length <= Integer.MAX_VALUE) {
-					payloadlength = (int) length;
-				}
+		//“负载数据”的长度,以字节为单位:如果 0-125,这是负载长度。
+		//如果 126, 之后的两字节解释为一个 16 位的无符号整数是负载长度。
+		//如果 127,之后的 8￼字节解释为一个 64 位的无符号整数(最高有效位必须是 0)是负载长度。
+		if (payloadlength == 126) {
+			expectPackagesize += 2;
+			byte[] sizebytes = new byte[3];
+			sizebytes[1] = byteBuffer.get();
+			sizebytes[2] = byteBuffer.get();
+			payloadlength = new BigInteger(sizebytes).intValue();
+		} else if(payloadlength==127) {
+			expectPackagesize += 8;
+			byte[] bytes = new byte[8];
+			for (int i = 0; i < 8; i++) {
+				bytes[i] = byteBuffer.get();
+			}
+			long length = new BigInteger(bytes).longValue();
+			if (length <= Integer.MAX_VALUE) {
+				payloadlength = (int) length;
 			}
 		}
+
 
 		expectPackagesize += (mask ? 4 : 0);
 		expectPackagesize += payloadlength;
 
 		// 如果实际接受的数据小于数据包的大小则报错
 		if (maxpacketsize < expectPackagesize) {
-			Logger.info("Package size error!");
+			Logger.info("Parse package size error!");
 		}
 
 		// 读取实际接受数据
@@ -165,7 +165,7 @@ public class WebSocketFrame {
 			byteBuffer.position(byteBuffer.position() + payload.limit());
 		}
 
-		return WebSocketFrame.newInstance(FIN, opcode, mask, payload,errorCode);
+		return WebSocketFrame.newInstance(fin, opcode, mask, payload,errorCode);
 	}
 
 	/**
@@ -243,7 +243,8 @@ public class WebSocketFrame {
 	}
 
 	/**
-	 * 转换成 Bytebuffer 供 socket 通信用
+	 * 将 WebSocketFrame 转换成 Bytebuffer 供 socket 通信用
+	 * 
 	 * 
 	 * @return
 	 */
@@ -252,7 +253,7 @@ public class WebSocketFrame {
 		if(data == null){
 			data = ByteBuffer.allocate(0);
 		}
-		boolean mask = this.isTransfereMask(); // framedata.getTransfereMasked();
+		boolean mask = this.isTransfereMask(); 
 		int sizebytes = data.remaining() <= 125 ? 1 : data.remaining() <= 65535 ? 2 : 8;
 		ByteBuffer buf = ByteBuffer.allocate(1 + (sizebytes > 1 ? sizebytes + 1 : sizebytes) + (mask ? 4 : 0) + data.remaining());
 		byte optcode = fromOpcode(this.getOpcode());
@@ -260,7 +261,6 @@ public class WebSocketFrame {
 		one |= optcode;
 		buf.put(one);
 		byte[] payloadlengthbytes = toByteArray(data.remaining(), sizebytes);
-		assert (payloadlengthbytes.length == sizebytes);
 
 		if (sizebytes == 1) {
 			buf.put((byte) ((byte) payloadlengthbytes[0] | (mask ? (byte) -128 : 0)));
@@ -281,10 +281,10 @@ public class WebSocketFrame {
 			for (int i = 0; data.hasRemaining(); i++) {
 				buf.put((byte) (data.get() ^ maskkey.get(i % 4)));
 			}
-		} else
+		} else{
 			buf.put(data);
-		// translateFrame ( buf.array () , buf.array ().length );
-		assert (buf.remaining() == 0) : buf.remaining();
+		}
+		
 		buf.flip();
 
 		return buf;

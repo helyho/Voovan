@@ -84,8 +84,6 @@ public class SSLParser {
 				session.send(netData);
 			}
 			netData.clear();
-			//Logger.simple("Warp: "+engineResult+" \r\n\r\n    send size:"+netData.limit());
-			//Logger.simple("================================WARP=================================\r\n");
 		}while(engineResult.getStatus() == Status.OK && buffer.hasRemaining());
 		return engineResult;
 	}
@@ -113,8 +111,6 @@ public class SSLParser {
 	public SSLEngineResult unwarpData(ByteBuffer netBuffer,ByteBuffer appBuffer) throws Exception{
 		SSLEngineResult engineResult = null;
 		engineResult = engine.unwrap(netBuffer, appBuffer);
-		//Logger.simple("UnWarp: "+engineResult+" \r\n\r\n    Remain size:"+netData.remaining());
-		//Logger.simple("================================UNWARP===============================\r\n");
 		return engineResult;
 	}
 	

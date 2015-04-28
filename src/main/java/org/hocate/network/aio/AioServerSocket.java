@@ -6,7 +6,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 
 import org.hocate.network.EventTrigger;
 import org.hocate.network.SocketContext;
-import org.hocate.network.aio.completionHandler.AcceptCompletionHandler;
+import org.hocate.network.aio.completionhandler.AcceptCompletionHandler;
 import org.hocate.tools.TEnv;
 
 /**

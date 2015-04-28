@@ -21,12 +21,39 @@ import org.hocate.tools.TStream;
 import org.hocate.tools.TString;
 import org.hocate.tools.TZip;
 
+
 /**
  * Http 报文解析类
  * @author helyho
  *
  */
 public class HttpParser {
+	
+	private static final String HTTP_PROTOCOL = "HTTP/";
+	private static final String HTTP_COOKIE = "Cookie";
+	
+	private static final String FL_Method = "FL_Method";
+	private static final String FL_Path="FL_Path";
+	private static final String FL_Protocol="FL_Protocol";
+	private static final String FL_Version="FL_Version";
+	private static final String FL_Status="FL_Status";
+	private static final String FL_StatusCode="FL_StatusCode";
+	
+	private static final String HEAD_CONTENT_ENCODING="Content-Encoding";
+	private static final String HEAD_CONTENT_TYPE = "Content-Type";
+	private static final String HEAD_TRANSFER_ENCODING = "Transfer-Encoding";
+	private static final String HEAD_CONTENT_LENGTH = "Content-Length";
+	
+	private static final String STATIC_VALUE = "value";
+	private static final String STATIC_PARTS = "Parts";
+	
+	/**
+	 * 私有构造函数
+	 * 该类无法被实例化
+	 */
+	private HttpParser(){
+		
+	}
 	
 	/**
 	 * 解析协议信息
@@ -38,24 +65,24 @@ public class HttpParser {
 		Map<String, Object> protocol = new HashMap<String, Object>();
 		//请求方法
 		String[] lineSplit = protocolLine.split(" ");
-		if(protocolLine.indexOf("HTTP/")!=0){
-			protocol.put("FL_Method", lineSplit[0]);
+		if(protocolLine.indexOf(HTTP_PROTOCOL)!=0){
+			protocol.put(FL_Method, lineSplit[0]);
 			//请求路径和请求串
 			String[] pathSplit = lineSplit[1].split("\\?");
-			protocol.put("FL_Path", pathSplit[0]);
+			protocol.put(FL_Path, pathSplit[0]);
 			if(pathSplit.length==2){
-				protocol.put("value", pathSplit[1].getBytes());
+				protocol.put(STATIC_VALUE, pathSplit[1].getBytes());
 			}
 			//协议和协议版本
 			String[] protocolSplit= lineSplit[2].split("/");
-			protocol.put("FL_Protocol", protocolSplit[0]);
-			protocol.put("FL_Version", protocolSplit[1]);
-		}else if(protocolLine.indexOf("HTTP/")==0){
+			protocol.put(FL_Protocol, protocolSplit[0]);
+			protocol.put(FL_Version, protocolSplit[1]);
+		}else if(protocolLine.indexOf(HTTP_PROTOCOL)==0){
 			String[] protocolSplit= lineSplit[0].split("/");
-			protocol.put("FL_Protocol", protocolSplit[0]);
-			protocol.put("FL_Version", protocolSplit[1]);
-			protocol.put("FL_Status", lineSplit[1]);
-			protocol.put("FL_StatusCode", lineSplit[2]);
+			protocol.put(FL_Protocol, protocolSplit[0]);
+			protocol.put(FL_Version, protocolSplit[1]);
+			protocol.put(FL_Status, lineSplit[1]);
+			protocol.put(FL_StatusCode, lineSplit[2]);
 		}
 		return protocol;
 	}
@@ -124,10 +151,10 @@ public class HttpParser {
 	 */
 	@SuppressWarnings("unchecked")
 	private static void parseCookie(Map<String, Object> packetMap,String cookieLine){
-		if(!packetMap.containsKey("Cookie")){
-			packetMap.put("Cookie", new Vector<Map<String, String>>());
+		if(!packetMap.containsKey(HTTP_COOKIE)){
+			packetMap.put(HTTP_COOKIE, new Vector<Map<String, String>>());
 		}
-		List<Map<String, String>> cookies = (List<Map<String, String>>) packetMap.get("Cookie");
+		List<Map<String, String>> cookies = (List<Map<String, String>>) packetMap.get(HTTP_COOKIE);
 		
 		//解析 Cookie 行
 		Map<String, String>cookieMap = getEqualMap(cookieLine);
@@ -167,7 +194,7 @@ public class HttpParser {
 		byte[] bytesValue = new byte[0];
 		
 		//是否支持 GZip
-		boolean isGZip = packetMap.get("Content-Encoding")==null?false:packetMap.get("Content-Encoding").toString().contains("gzip");
+		boolean isGZip = packetMap.get(HEAD_CONTENT_ENCODING)==null?false:packetMap.get(HEAD_CONTENT_ENCODING).toString().contains("gzip");
 		
 		//如果是 GZip 则解压缩
 		if(isGZip && contentBytes.length>0){
@@ -204,10 +231,11 @@ public class HttpParser {
 			if(currentLine.equals("")){
 				//1. Method 是 null 的请求,代表是在解析 chunked 内容,则 isBodyConent = true
 				//2. Method 不是 Get 方法的请求,代表有 body 内容段,则 isBodyConent = true
-				if(packetMap.get("Method")==null || !packetMap.get("Method").equals("GET")){
+				if(packetMap.get(FL_Method)==null || !packetMap.get(FL_Method).equals("GET")){
 					isBodyConent = true;
 				}
 			}
+			
 			//解析 HTTP 协议行
 			if(!isBodyConent && currentLine.contains("HTTP")){
 				packetMap.putAll(parseProtocol(currentLine));
@@ -215,7 +243,7 @@ public class HttpParser {
 			
 			//处理 cookie 和 header
 			if(!isBodyConent){
-				if(currentLine.contains("Cookie")){
+				if(currentLine.contains(HTTP_COOKIE)){
 					parseCookie(packetMap,currentLine);
 				}else{
 					packetMap.putAll(parsePropertyLine(currentLine));
@@ -226,13 +254,13 @@ public class HttpParser {
 			//解析 HTTP 请求 body
 			if(isBodyConent){
 				
-				String contentType =packetMap.get("Content-Type")!=null?packetMap.get("Content-Type").toString():"";
-				String transferEncoding = packetMap.get("Transfer-Encoding")==null?"":packetMap.get("Transfer-Encoding").toString();
+				String contentType =packetMap.get(HEAD_CONTENT_TYPE)!=null?packetMap.get(HEAD_CONTENT_TYPE).toString():"";
+				String transferEncoding = packetMap.get(HEAD_TRANSFER_ENCODING)==null ? "" : packetMap.get(HEAD_TRANSFER_ENCODING).toString();
 								
 				//1. 解析 HTTP 的 POST 请求 body 参数
 				if(contentType.contains("application/x-www-form-urlencoded")){
 					byte[] value = dealBodyContent(packetMap, TStream.readAll(sourceInputStream));
-					packetMap.put("value", value);
+					packetMap.put(STATIC_VALUE, value);
 				}
 				
 				//2. 解析 HTTP 的 POST 请求 body part
@@ -241,7 +269,7 @@ public class HttpParser {
 					ArrayList<Map<String, Object>> bodyPartList = new ArrayList<Map<String, Object>>();
 					
 					//取boundary 用于 part 内容分段
-					String boundary = HttpParser.getPerprotyEqualValue(packetMap,"Content-Type","boundary");
+					String boundary = HttpParser.getPerprotyEqualValue(packetMap,HEAD_CONTENT_TYPE,"boundary");
 					
 					for(byte[] spliteBytes = TStream.readWithSplit(sourceInputStream, ("--"+boundary).getBytes());
 							sourceInputStream.available()>0;
@@ -260,7 +288,7 @@ public class HttpParser {
 						
 					}
 					//将存有多个 part 的 list 放入packetMap
-					packetMap.put("Parts", bodyPartList);
+					packetMap.put(STATIC_PARTS, bodyPartList);
 				}
 				
 				//3. 解析 HTTP 响应 body 内容段的 chunked 
@@ -285,22 +313,22 @@ public class HttpParser {
 						sourceInputStream.read();
 					}
 					byte[] value = dealBodyContent(packetMap, chunkedBytes);
-					packetMap.put("value", value);
+					packetMap.put(STATIC_VALUE, value);
 				}
 				//4. HTTP(请求和响应) 报文的内容段中Content-Length 提供长度,按长度读取 body 内容段
-				else if(packetMap.containsKey("Content-Length")){
+				else if(packetMap.containsKey(HEAD_CONTENT_LENGTH)){
 					byte[] contentBytes = new byte[0];
-					int contentLength = Integer.parseInt(packetMap.get("Content-Length").toString());
+					int contentLength = Integer.parseInt(packetMap.get(HEAD_CONTENT_LENGTH).toString());
 					contentBytes = TStream.read(sourceInputStream,contentLength);
 					byte[] value = dealBodyContent(packetMap, contentBytes);
-					packetMap.put("value", value);
+					packetMap.put(STATIC_VALUE, value);
 				}
 				//5. 容错,没有标识长度则默认读取全部内容段
-				else if(packetMap.get("value")==null || packetMap.get("value").equals("")){
+				else if(packetMap.get(STATIC_VALUE)==null || packetMap.get(STATIC_VALUE).equals("")){
 					byte[] contentBytes = new byte[0];
 					contentBytes = TStream.readAll(sourceInputStream);
 					byte[] value = dealBodyContent(packetMap, contentBytes);
-					packetMap.put("value", value);
+					packetMap.put(STATIC_VALUE, value);
 				}
 				break;
 			}
@@ -334,37 +362,37 @@ public class HttpParser {
 		for(Entry<String, Object> parsedPacketEntry: parsedItems){
 			String key = parsedPacketEntry.getKey();
 			switch (key) {
-			case "FL_Method":
+			case FL_Method:
 				request.protocol().setMethod(parsedPacketEntry.getValue().toString());
 				break;
-			case "FL_Protocol":
+			case FL_Protocol:
 				request.protocol().setProtocol(parsedPacketEntry.getValue().toString());
 				break;
-			case "FL_Version":	
+			case FL_Version:	
 				request.protocol().setVersion(Float.valueOf(parsedPacketEntry.getValue().toString()));
 				break;
-			case "FL_Path":	
+			case FL_Path:	
 				request.protocol().setPath(parsedPacketEntry.getValue().toString());
 				break;
-			case "Cookie":
-				List<Map<String, String>> cookieMap = (List<Map<String, String>>)parsedPacket.get("Cookie");
+			case HTTP_COOKIE:
+				List<Map<String, String>> cookieMap = (List<Map<String, String>>)parsedPacket.get(HTTP_COOKIE);
 				//遍历 Cookie,并构建 Cookie 对象
 				for(Map<String,String> cookieMapItem : cookieMap){
 					Cookie cookie = Cookie.buildCookie(cookieMapItem);
 					request.cookies().add(cookie);
 				}
 				break;
-			case "value":
+			case STATIC_VALUE:
 				byte[] value = (byte[])(parsedPacketEntry.getValue());
 				//如果是 GET 请求,则分析出来的内容(parsedPacket)中的 value 是 QueryString
-				if(parsedPacket.get("FL_Method").equals("GET")){
+				if(parsedPacket.get(FL_Method).equals("GET")){
 					request.protocol().setQueryString(new String(value));
 				}
 				else{
 					request.body().write(value);
 				}
 				break;
-			case "Parts":
+			case STATIC_PARTS:
 				List<Map<String, Object>> parsedParts = (List<Map<String, Object>>)(parsedPacketEntry.getValue());
 				//遍历 part List,并构建 Part 对象
 				for(Map<String, Object> parsedPartMap : parsedParts){
@@ -372,7 +400,7 @@ public class HttpParser {
 					//将 part Map中的值,并填充到新构建的 Part 对象中
 					for(Entry<String, Object> parsedPartMapItem : parsedPartMap.entrySet()){
 						//填充 Value 中的值到 body 中
-						if(parsedPartMapItem.getKey().equals("value")){
+						if(parsedPartMapItem.getKey().equals(STATIC_VALUE)){
 							part.body().write(TObject.cast(parsedPartMapItem.getValue()));
 						}else{
 							//填充 header
@@ -408,19 +436,19 @@ public class HttpParser {
 		for(Entry<String, Object> parsedPacketEntry: parsedItems){
 			String key = parsedPacketEntry.getKey();
 			switch (key) {
-			case "FL_Protocol":
+			case FL_Protocol:
 				response.protocol().setProtocol(parsedPacketEntry.getValue().toString());
 				break;
-			case "FL_Version":	
+			case FL_Version:	
 				response.protocol().setVersion(Float.valueOf(parsedPacketEntry.getValue().toString()));
 				break;
-			case "FL_Status":	
+			case FL_Status:	
 				response.protocol().setStatus(Integer.valueOf(parsedPacketEntry.getValue().toString()));
 				break;
-			case "FL_StatusCode":	
+			case FL_StatusCode:	
 				response.protocol().setStatusCode(parsedPacketEntry.getValue().toString());
 				break;
-			case "Cookie":
+			case HTTP_COOKIE:
 				List<Map<String, String>> cookieMap = (List<Map<String, String>>)parsedPacketEntry.getValue();
 				//遍历 Cookie,并构建 Cookie 对象
 				for(Map<String,String> cookieMapItem : cookieMap){
@@ -428,7 +456,7 @@ public class HttpParser {
 					response.cookies().add(cookie);
 				}
 				break;
-			case "value":
+			case STATIC_VALUE:
 				response.body().write(TObject.cast(parsedPacketEntry.getValue()));
 				break;
 			default:
@@ -452,11 +480,11 @@ public class HttpParser {
 //				"name=helyho&age=32%3D&address=wlmq\r\n"+
 //				"\r\n";
 			
-//				"GET /test/t HTTP/1.1\r\n"+
-//				"Connection: keep-alive\r\n"+
-//				"UserAgent: Jakarta Commons-HttpClient/3.1\r\n"+
-//				"Host: 127.0.0.1:1031\r\n"+
-//				"\r\n";
+				"GET /test/t HTTP/1.1\r\n"+
+				"Connection: keep-alive\r\n"+
+				"UserAgent: Jakarta Commons-HttpClient/3.1\r\n"+
+				"Host: 127.0.0.1:1031\r\n"+
+				"\r\n";
 	
 //				"POST /test/t HTTP/1.1\r\n"+
 //				"Connection: keep-alive\r\n"+
@@ -479,8 +507,8 @@ public class HttpParser {
 //				"\r\n"+
 //		 		"wlmq\r\n"+
 //				"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm--\r\n\r\n";
-				"aaaaaaa";
-				
-		Logger.simple(HttpParser.parseRequest(new ByteArrayInputStream(httpRequestString.getBytes())));
+		
+		Request request = HttpParser.parseRequest(new ByteArrayInputStream(httpRequestString.getBytes()));
+		Logger.simple(request.toString());
 	}
 }
