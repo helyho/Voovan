@@ -23,7 +23,7 @@ public class JSONDecode {
 	 * @return
 	 */
 	public static Object parse(String jsonStr){
-		
+		jsonStr = removeComment(jsonStr);
 		Object jsonResult = null;
 		//处理掉注释
 		jsonStr = TString.replaceByRegex(jsonStr, "\\/\\/[^\n]*", "");
@@ -165,22 +165,31 @@ public class JSONDecode {
 	 * @throws Exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T>T fromJSON(String json,Class<T> clazz) throws Exception{
-		Object parseObject = parse(json);
+	public static <T>T fromJSON(String jsonStr,Class<T> clazz) throws Exception{
+		jsonStr = removeComment(jsonStr);
+		Object parseObject = parse(jsonStr);
 		//{}包裹的对象处理
-		if(json.startsWith("{")){
+		if(jsonStr.startsWith("{")){
 			Map<String,Object> mapJSON = (Map<String, Object>) parseObject;
 			return (T) TReflect.getObjectFromMap(clazz, mapJSON);
 		}
 		//[]包裹的对象处理
-		else if(json.startsWith("[") && TReflect.isImpByInterface(clazz, List.class)){
+		else if(jsonStr.startsWith("[") && TReflect.isImpByInterface(clazz, List.class)){
 			List obj = (List) TReflect.newInstance(clazz, new Class[]{}, new Object(){});
 			obj.addAll(TObject.cast(parseObject));
 			return (T) obj;
 		}
 		//其他类型处理
 		else{
-			return (T) parseObject;
+			return null;
 		}
+	}
+	
+	private static String removeComment(String jsonStr){
+		//处理掉注释
+		jsonStr = TString.replaceByRegex(jsonStr, "\\/\\/[^\n]*", "");
+		jsonStr = TString.replaceByRegex(jsonStr, "/\\*([^\\*^/]*|[\\*^/*]*|[^\\*/]*)*\\*/", "");
+		jsonStr = jsonStr.trim();
+		return jsonStr;
 	}
 }
