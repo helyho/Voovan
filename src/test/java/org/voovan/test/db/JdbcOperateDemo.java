@@ -15,11 +15,11 @@ import org.voovan.tools.log.Logger;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
 
-public class JdbcOperateTest {
+public class JdbcOperateDemo {
 	public static void main(String[] args) throws Exception {
 		DruidDataSource dataSource = null;
-		String druidPath = TEnv.getSystemPath("Config" + File.separator + "druid.properties");
 		try {
+			String druidPath = TEnv.getSystemPath("Config" + File.separator + "druid.properties");
 			Properties druidProperites = TProperties.getProperties(new File(druidPath));
 		    dataSource = TObject.cast(DruidDataSourceFactory.createDataSource(druidProperites));
 			dataSource.init();
@@ -33,19 +33,19 @@ public class JdbcOperateTest {
 		List<Map<String,Object>> smm = jOperate.queryMapList("select * from sc_script");
 		Logger.info(smm);
 		
-		//Map 参数 => List<Map>
+		//Map参数 => 返回List<Map>
 		HashMap<String, Object> xMap = new HashMap<String, Object>();
 		xMap.put("packagePath", "org.hocate.test");
 		List<Map<String,Object>> mm = jOperate.queryMapList("select * from sc_script where PackagePath=:packagePath",xMap);
 		Logger.info(mm);
 		
-		//对象参数 => List<Object>
+		//对象参数 => 返回对象列表 List<Object>
 		ScriptEntity sEntity = new ScriptEntity();
 		sEntity.setPackagePath("org.hocate.test");
 		List<ScriptEntity> lmm = jOperate.queryObjectList("select * from sc_script where PackagePath=:packagePath",ScriptEntity.class,sEntity);
 		Logger.info(lmm);
 		
-		//不定个数参数 => Object
+		//不定个数参数 => 返回一个Object
 		ScriptEntity llmm = jOperate.queryObject("select * from sc_script where PackagePath=:1 and version=:2",ScriptEntity.class,"org.hocate.test",2.0);
 		Logger.info(llmm);
 		

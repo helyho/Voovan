@@ -1,10 +1,9 @@
 package org.voovan.test.json;
 
-import org.voovan.test.TestObject;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 
-public class JSONTest {
+public class JSONRunTimeTest {
 	public static void main(String[] args) {
 		TestObject testObject = new TestObject();
 		testObject.setString("helyho");
@@ -26,12 +25,12 @@ public class JSONTest {
 		
 		start = System.currentTimeMillis();
 		Object object = JSON.parse(jsonString);
-		Logger.simple("----Deserial Time:"+(System.currentTimeMillis()-start));
+		Logger.simple("\r\n----Deserial Map Time:"+(System.currentTimeMillis()-start));
 		Logger.simple(object);
 		
 		start = System.currentTimeMillis();
 		TestObject tObject = JSON.toObject(jsonString,TestObject.class);
-		Logger.simple("----Deserial Object Time:"+(System.currentTimeMillis()-start));
+		Logger.simple("\r\n----Deserial Object Time:"+(System.currentTimeMillis()-start));
 		Logger.simple(tObject);
 	}
 }
