@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import org.voovan.network.ByteBufferChannel;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.MessageParter;
 import org.voovan.network.SocketContext;
+import org.voovan.tools.ByteBufferChannel;
 
 /**
  * 会话连接对象
