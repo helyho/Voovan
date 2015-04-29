@@ -6,11 +6,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.Future;
 
-import org.voovan.network.ByteBufferChannel;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.MessageParter;
 import org.voovan.network.SocketContext;
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 

@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.Status;
 
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.log.Logger;
 
 

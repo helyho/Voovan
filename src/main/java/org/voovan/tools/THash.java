@@ -77,12 +77,4 @@ public class THash {
 		}
 		return hash;
 	}
-	
-	public static void main(String[] args) throws Exception {
-		String testStr = "org.hocate.test";
-		Logger.simple(THash.encryptSHA(testStr));
-		Logger.simple(THash.encryptMD5(testStr));
-		Logger.simple(THash.encryptBASE64(testStr));
-		Logger.simple(THash.hash_time33(testStr));
-	}
 }

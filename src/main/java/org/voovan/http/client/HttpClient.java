@@ -162,17 +162,4 @@ public class HttpClient {
 		
 		return clientHandler.getResponse();
 	}
-	
-	public static void main(String[] args) throws Exception {
-		HttpClient client = new HttpClient("http://www.sohu.com/");
-		client.setMethod("GET");
-		long t = System.currentTimeMillis();
-		Logger.simple("start :"+System.currentTimeMillis());
-		Response response = client.Connect();
-		Logger.simple("====");
-		Logger.simple(System.currentTimeMillis()-t);
-		
-		String bodyString = response.body().toString();
-		Logger.debug("body length:"+bodyString.length());
-	}
 }
