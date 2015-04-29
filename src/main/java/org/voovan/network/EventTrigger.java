@@ -54,15 +54,13 @@ public class EventTrigger {
 		fireEventThread(EventName.ON_CONNECT,null);
 	}
 	
-	public void fireReceiveThread(){
+	public synchronized void fireReceiveThread(){
 		clearFinishedEvent();
-		//当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
-		//所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
-		//!hasEventDisposeing(EventName.ON_CONNECT) &&
-		if((session.getSSLParser()==null || session.getSSLParser().isHandShakeDone())
-			&& !hasEventDisposeing(EventName.ON_RECEIVE) 
-				&& session.isConnect()){
-			fireEventThread(EventName.ON_RECEIVE,null);
+		// 当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
+		// 所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
+		// !hasEventDisposeing(EventName.ON_CONNECT) &&
+		if (session.isConnect() && isHandShakeDone() && !hasEventUnfinished(EventName.ON_RECEIVE)) {
+			fireEventThread(EventName.ON_RECEIVE, null);
 		}
 	}
 	
@@ -95,10 +93,7 @@ public class EventTrigger {
 		clearFinishedEvent();
 		//当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
 		//所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
-		//!hasEventDisposeing(EventName.ON_CONNECT) &&
-		if((session.getSSLParser()==null || session.getSSLParser().isHandShakeDone())
-				&& !hasEventDisposeing(EventName.ON_RECEIVE) 
-				&& session.isConnect()){
+		if (session.isConnect() && isHandShakeDone() && !hasEventUnfinished(EventName.ON_RECEIVE)) {
 			fireEvent(EventName.ON_RECEIVE,null);
 		}
 	}
@@ -125,7 +120,16 @@ public class EventTrigger {
 	}
 	
 	public void shutdown(){
+		clearFinishedEvent();
 		eventThreadPool.shutdown();
+	}
+	
+	public boolean isHandShakeDone(){
+		if(session.getSSLParser()==null || session.getSSLParser().isHandShakeDone()){
+			return true;
+		}else{
+			return false;
+		}
 	}
 	
 	public IoSession getSession(){
@@ -137,9 +141,9 @@ public class EventTrigger {
 	 * @param eventName  事件名
 	 * @return
 	 */
-	public boolean hasEventDisposeing(EventName eventName){
+	public boolean hasEventUnfinished(EventName eventName){
 		for(Event event : eventPool){
-			if(event.getName() == eventName && event.getState() == EventState.DISPOSEING){
+			if(event.getName() == eventName && event.getState() != EventState.FINISHED ){
 				return true;
 			}
 		}
