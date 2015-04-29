@@ -1,0 +1,171 @@
+package org.voovan.network.aio;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
+
+import org.voovan.network.ConnectModel;
+import org.voovan.network.EventTrigger;
+import org.voovan.network.SocketContext;
+import org.voovan.network.aio.completionhandler.ConnectedCompletionHandler;
+import org.voovan.network.aio.completionhandler.ReadCompletionHandler;
+import org.voovan.tools.TEnv;
+
+/**
+ * AioSocket 连接
+ * 
+ * @author helyho
+ *
+ */
+public class AioSocket extends SocketContext {
+
+	private AsynchronousSocketChannel	socketChannel;
+	private AioSession					session;
+	private EventTrigger				eventTrigger;
+	private ReadCompletionHandler		readCompletionHandler;
+	private ConnectedCompletionHandler	connectedCompletionHandler;
+
+	/**
+	 * 构造函数
+	 * 
+	 * @param host
+	 * @param port
+	 * @param readTimeout
+	 * @throws IOException
+	 */
+	public AioSocket(String host, int port, int readTimeout) throws IOException {
+		super(host, port, readTimeout);
+		this.socketChannel = AsynchronousSocketChannel.open();
+		session = new AioSession(this, this.readTimeout);
+		eventTrigger = new EventTrigger(session);
+
+		connectedCompletionHandler = new ConnectedCompletionHandler(eventTrigger);
+		readCompletionHandler = new ReadCompletionHandler(eventTrigger, session.getByteBufferChannel());
+		connectModel = ConnectModel.CLIENT;
+	}
+
+	/**
+	 * 构造函数
+	 * 
+	 * @param socketChannel
+	 * @param readTimeout
+	 * @throws IOException
+	 */
+	public AioSocket(SocketContext parentSocketContext, AsynchronousSocketChannel socketChannel) throws IOException {
+		this.socketChannel = socketChannel;
+		this.cloneInit(parentSocketContext);
+		session = new AioSession(this, this.readTimeout);
+		eventTrigger = new EventTrigger(session);
+
+		connectedCompletionHandler = new ConnectedCompletionHandler(eventTrigger);
+		readCompletionHandler = new ReadCompletionHandler(eventTrigger, session.getByteBufferChannel());
+		connectModel = ConnectModel.SERVER;
+	}
+
+	/**
+	 * 获取事件触发器
+	 * 
+	 * @return
+	 */
+	public EventTrigger getEventTrigger() {
+		return eventTrigger;
+	}
+
+	/**
+	 * 捕获 Aio Connect
+	 * @throws IOException 
+	 */
+	public void catchConnected() throws IOException {
+		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
+		socketChannel.connect(socketAddress, this, connectedCompletionHandler);
+		while(true){
+			if(socketChannel.getRemoteAddress()!=null){
+				break;
+			}
+		}
+	}
+
+	/**
+	 * 捕获 Aio Read
+	 */
+	public void catchRead(ByteBuffer buffer) {
+		if (isConnect()) {
+			socketChannel.read(buffer, buffer, readCompletionHandler);
+		}
+	}
+
+	public AioSession getSession() {
+		return session;
+	}
+
+	@Override
+	public void start() throws Exception {
+
+		if (connectModel == ConnectModel.CLIENT) {
+			// 捕获 connect 事件
+			catchConnected();
+		}
+		
+		//捕获输入事件
+		catchRead(ByteBuffer.allocate(1024));
+
+		if (connectModel == ConnectModel.SERVER && sslManager != null) {
+			sslManager.createServerSSLParser(session);
+		} else if (connectModel == ConnectModel.CLIENT && sslManager != null) {
+			sslManager.createClientSSLParser(session);
+		}
+		
+		// 触发 connect 事件
+		eventTrigger.fireConnectThread();
+		
+		// 等待ServerSocketChannel关闭,结束进程
+		while (isConnect() && (connectModel==ConnectModel.CLIENT || eventTrigger.isShutdown())) {
+			TEnv.sleep(500);
+		}
+	}
+
+	/**
+	 * 获取 SocketChannel 对象
+	 * 
+	 * @return
+	 */
+	public AsynchronousSocketChannel socketChannel() {
+		return this.socketChannel;
+	}
+
+	@Override
+	public boolean isConnect() {
+		return socketChannel.isOpen();
+	}
+
+	@Override
+	public boolean Close() {
+		if (socketChannel != null && socketChannel.isOpen()) {
+			try {
+
+				// 触发 DisConnect 事件
+				eventTrigger.fireDisconnect();
+
+				// 检查是否关闭线程池
+				// 如果不是ServerSocket下的 Socket 则关闭线程池
+				// ServerSocket下的 Socket由 ServerSocket来关闭线程池
+				if (connectModel == ConnectModel.CLIENT) {
+					eventTrigger.shutdown();
+				}
+
+				// 关闭 Socket 连接
+				if (socketChannel.isOpen() && (connectModel == ConnectModel.SERVER || eventTrigger.isShutdown())) {
+					socketChannel.close();
+				}
+				return true;
+			} catch (Throwable e) {
+				e.printStackTrace();
+				return false;
+			}
+		} else {
+			return true;
+		}
+	}
+
+}
