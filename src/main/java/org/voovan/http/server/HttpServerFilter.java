@@ -44,11 +44,11 @@ public class HttpServerFilter implements IoFilter {
 	 */
 	@Override
 	public synchronized Object decode(IoSession session, Object object) {
-		//如果 Session 中不包含isWebSocket,则是 Http 请求,转换成 Http 的 Request 请求
-		if (session.getAttribute(IS_WEB_SOCKET)==null) {
+		ByteBuffer byteBuffer = TObject.cast(object);
+		if (isHttpRequest(byteBuffer)) {
 			try {
 				if (object instanceof ByteBuffer) {
-					ByteBuffer byteBuffer = TObject.cast(object);
+					
 					ByteArrayInputStream requestInputStream = new ByteArrayInputStream(byteBuffer.array());
 					Request request = HttpParser.parseRequest(requestInputStream);
 					if(request!=null){
@@ -67,10 +67,14 @@ public class HttpServerFilter implements IoFilter {
 		
 		}
 		//如果包含isWebSocket,且为 true 曾是 WebSocket,转换成 WebSocketFrame 对象
-		else if((boolean)session.getAttribute(IS_WEB_SOCKET)){
+		else if(TObject.nullDefault((Boolean)session.getAttribute(IS_WEB_SOCKET), false)){
 			if (object instanceof ByteBuffer) {
-				ByteBuffer byteBuffer = TObject.cast(object);
-				return WebSocketFrame.parse(byteBuffer);
+				WebSocketFrame webSocketFrame = WebSocketFrame.parse(byteBuffer);
+				if(webSocketFrame.getErrorCode()==0){
+					return webSocketFrame;
+				}else{
+					session.close();
+				}
 			} else {
 				return null;
 			}
@@ -78,4 +82,45 @@ public class HttpServerFilter implements IoFilter {
 		return null;
 	}
 
+	/**
+	 * 判断是否是 Http 请求
+	 * @param byteBuffer
+	 * @return
+	 */
+	public static boolean isHttpRequest(ByteBuffer byteBuffer){
+		int loadSize = (byteBuffer.limit() > 7 ? 7 : byteBuffer.limit());
+		if (loadSize < 7) {
+			return false;
+		} else {
+			byte[] testBytes = new byte[loadSize];
+			for (int i = 0; i < loadSize; i++) {
+				byte singleByte = byteBuffer.get(i);
+				// 大写字母
+				if (singleByte < 91 && singleByte > 64) {
+					testBytes[i] = singleByte;
+				}
+				//空格退出
+				else if (singleByte == 32) {
+					break;
+				} else {
+					return false;
+				}
+
+			}
+			String testStr = new String(testBytes).trim();
+			String httpMethod = testStr.split(" ")[0];
+			if (httpMethod.equals("GET") 
+					|| httpMethod.equals("POST") 
+					|| httpMethod.equals("HEAD") 
+					|| httpMethod.equals("PUT")
+					|| httpMethod.equals("DELETE") 
+					|| httpMethod.equals("TRACE") 
+					|| httpMethod.equals("CONNECT")
+					|| httpMethod.equals("OPTIONS")) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
 }
