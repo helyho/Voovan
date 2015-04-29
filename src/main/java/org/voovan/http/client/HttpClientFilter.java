@@ -9,6 +9,7 @@ import org.voovan.http.message.Response;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TObject;
+import org.voovan.tools.log.Logger;
 
 public class HttpClientFilter implements IoFilter {
 
@@ -31,6 +32,7 @@ public class HttpClientFilter implements IoFilter {
 				return response;
 			}
 		}catch(Exception e){
+			Logger.error("Class HttpClientFilter decode Error: "+e.getMessage());
 			e.printStackTrace();
 		}
 		return null;
