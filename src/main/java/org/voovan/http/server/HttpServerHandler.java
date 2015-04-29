@@ -77,6 +77,8 @@ public class HttpServerHandler implements IoHandler {
 			Logger.error("Request error msg is:\r\n"+obj);
 			throw e;
 		}
+		//如果协议判断失败关闭连接
+		session.close();
 		return null;
 	}
 
