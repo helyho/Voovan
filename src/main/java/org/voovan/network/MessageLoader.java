@@ -53,6 +53,7 @@ public class MessageLoader {
 	public static boolean isRemoteClosed(Integer length,  ByteBuffer buffer){
 		if(length==-1){
 			//触发 disconnect 事件
+			Logger.simple("Disconnect by Remote");
 			return true;
 		}
 		//如果 buffer 被冲满,且起始、中位、结束的字节都是结束符(Ascii=4)则连接意外结束
@@ -60,6 +61,7 @@ public class MessageLoader {
 				&& buffer.get(0)==4 //起始判断
 				&& buffer.get(length/2)==4 //中位判断 
 				&& buffer.get(length-1)==4){ //结束判断 
+		   Logger.simple("Disconnect by Remote");
 			return true;
 		}
 		
@@ -115,12 +117,13 @@ public class MessageLoader {
 					
 					//超时判断
 					if(readTimeout==elapsedtime){
-						Logger.simple("Socket load timeout,return recived data.");
+						Logger.warn("Socket read timeout,return recived data.");
 						break;
 					}
 					
 					//如果连接断开立刻关闭
 					if(!session.isConnect()){
+						Logger.warn("Socket interrupt,return recived data.");
 						break;
 					}
 					
