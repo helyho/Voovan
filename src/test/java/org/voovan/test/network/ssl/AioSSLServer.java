@@ -9,7 +9,7 @@ public class AioSSLServer  {
 
 	public static void main(String[] args) throws Exception {
 		SSLManager sslManager = new SSLManager("SSL");
-		sslManager.loadCertificate("/Users/helyho/Work/Java/MyPlatform/src/test/java/org/hocate/test/network/ssl/ssl_ks", "passStr","123123");
+		sslManager.loadCertificate(System.getProperty("user.dir")+"/src/test/java/org/voovan/test/network/ssl/ssl_ks", "passStr","123123");
 		
 		AioServerSocket serverSocket = new AioServerSocket("127.0.0.1",2031,500);
 		serverSocket.setSSLManager(sslManager);

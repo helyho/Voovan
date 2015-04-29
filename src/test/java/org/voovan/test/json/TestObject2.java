@@ -1,16 +1,13 @@
-package org.voovan.test;
+package org.voovan.test.json;
 
 import java.util.HashMap;
 import java.util.Vector;
 
-public class TestObject{
-	
-	public String string;
+public class TestObject2{
+	private String string;
 	private int bint;
 	private HashMap<String, String> map = new HashMap<String, String>();
 	private Vector<String> list= new Vector<String>();
-	private TestObject2 tb2 = new TestObject2();
-	
 	public String getString() {
 		return string;
 	}
@@ -34,11 +31,5 @@ public class TestObject{
 	}
 	public void setList(Vector<String> list) {
 		this.list = list;
-	}
-	public TestObject2 getTb2() {
-		return tb2;
-	}
-	public void setTb2(TestObject2 tb2) {
-		this.tb2 = tb2;
 	}
 }

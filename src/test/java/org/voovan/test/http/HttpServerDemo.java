@@ -10,7 +10,7 @@ import org.voovan.http.server.websocket.WebSocketBizHandler;
 import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
-public class HttpServerTest {
+public class HttpServerDemo {
 	private static byte[] fileContent = TFile.loadResource("org/voovan/test/http/test.htm");
 	
 	
