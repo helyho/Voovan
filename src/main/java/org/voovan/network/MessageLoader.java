@@ -119,6 +119,11 @@ public class MessageLoader {
 						break;
 					}
 					
+					//如果连接断开立刻关闭
+					if(!session.isConnect()){
+						break;
+					}
+					
 					TEnv.sleep(1);
 					//超时时间自增
 					elapsedtime++;
