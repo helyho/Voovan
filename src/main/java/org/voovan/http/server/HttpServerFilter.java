@@ -79,6 +79,8 @@ public class HttpServerFilter implements IoFilter {
 				return null;
 			}
 		}
+		//如果协议判断失败关闭连接
+		session.close();
 		return null;
 	}
 
