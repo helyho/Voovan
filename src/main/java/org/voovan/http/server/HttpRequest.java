@@ -20,7 +20,7 @@ public class HttpRequest extends Request {
 		super(request);
 		this.characterSet=characterSet;
 		parameters = new HashMap<String, String>();
-		parseParameters();
+		parseQueryString();
 	}
 	
 	/**
@@ -143,7 +143,7 @@ public class HttpRequest extends Request {
 	/**
 	 * 解析请求参数
 	 */
-	private void  parseParameters() {
+	private void  parseQueryString() {
 		if(getQueryString()!=null){
 			String[] parameterEquals = getQueryString().split("&");
 			for(String parameterEqual :parameterEquals){

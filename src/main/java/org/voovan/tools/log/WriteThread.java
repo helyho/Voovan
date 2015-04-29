@@ -46,7 +46,7 @@ public class WriteThread implements Runnable {
 					}
 				}else if(isTerminate()){
 					break;
-				}else if (loopCount>=60*2 && logQueue.size() == 0) {
+				}else if (loopCount>=10*2 && logQueue.size() == 0) {
 					break;
 				}
 				TEnv.sleep(1);
@@ -63,7 +63,8 @@ public class WriteThread implements Runnable {
 	public boolean isTerminate(){
 		Thread[] jvmThread = TEnv.getJVMThreads();
 		for(Thread threadObj : jvmThread){
-			if(threadObj.getName().contains("DestroyJavaVM")){
+			if(threadObj.getName().contains("DestroyJavaVM") ||
+					threadObj.getName().contains("ReaderThread")){
 				return true;
 			}
 		}
