@@ -13,8 +13,8 @@ public class HttpClientUnit extends TestCase {
 	Response response;
 	public HttpClientUnit(String name){
 		super(name);
-		httpClient = new HttpClient("http://www.baidu.com");
-		httpClient.putParameters("test", "test");
+		httpClient = new HttpClient("http://www.baidu.com/s");
+		httpClient.putParameters("wd", "测试");
 	}
 
 	public void testHttpClient(){
@@ -26,12 +26,12 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testParameters() {
-		assertEquals(httpClient.getParameters().get("test"), "test");
+		assertEquals(httpClient.getParameters().get("wd"), "测试");
 	}
 	
 	public void testConnect() throws Exception{
 		response = httpClient.Connect();
-		Logger.simple("Response body Length: "+ response.body().getBodyBytes().length);
+		Logger.simple("Response body Length: "+ response.body().getBodyBytes().length+"\r\n"+response.body().toString());
 		assertTrue(response.header().size()>5);
 	}
 }
