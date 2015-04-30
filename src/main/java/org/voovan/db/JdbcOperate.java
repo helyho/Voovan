@@ -16,7 +16,8 @@ import org.voovan.tools.TSQL;
 import org.voovan.tools.log.Logger;
 
 /**
- * jdbc 操作类,每个数据库操作函数开机关闭一次连接. 使用:开始来标识参数,例如: Map 和对象形式用:":arg", List 和 Array
+ * jdbc 操作类
+ * 		每个数据库操作函数开机关闭一次连接. 使用:开始来标识参数,例如: Map 和对象形式用:":arg", List 和 Array
  * 形式用":1"
  * 
  * @author helyho
