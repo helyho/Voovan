@@ -565,9 +565,9 @@ public class JdbcOperate {
 	 * 查询单行,返回 Map,Object作为参数
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
-	 * @param param
-	 *            Object参数
+	 *            sql字符串 参数使用":"引导一个标识,例如where id=:id,中 id 就是标识。
+	 * @param arg
+	 *            arg参数 属性指代SQL字符串的标识,属性值用于在SQL字符串中替换标识。
 	 * @return
 	 * @throws Exception
 	 */
@@ -581,9 +581,9 @@ public class JdbcOperate {
 	 * 查询单行,返回 Map,map作为参数
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 *            sql字符串 参数使用":"引导一个标识,例如where id=:id,中 id 就是标识。
 	 * @param map
-	 *            map参数
+	 *            map参数，key指代SQL字符串的标识,value用于在SQL字符串中替换标识。
 	 * @return
 	 * @throws Exception
 	 */
@@ -596,9 +596,9 @@ public class JdbcOperate {
 	 * 查询单行,返回 Map,Array作为参数
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为索引标识,索引标识从1开始,例如where id=:1
-	 * @param param
-	 *            Object参数
+	 *            sql字符串 参数使用":"引导一个索引标识,索引标识从1开始,例如where id=:1
+	 * @param args
+	 *            args参数
 	 * @return
 	 * @throws Exception
 	 */
