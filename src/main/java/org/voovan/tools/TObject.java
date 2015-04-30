@@ -42,7 +42,8 @@ public class TObject {
 	 * @param objs
 	 * @return
 	 */
-	public static List<Object> newList(Object ...objs){
+	@SuppressWarnings("rawtypes")
+	public static List newList(Object ...objs){
 		Vector<Object> list = new Vector<Object>();
 		for(Object obj:objs){
 			list.add(obj);
@@ -55,7 +56,8 @@ public class TObject {
 	 * @param objs		key1,value1,key2,value2.....
 	 * @return
 	 */
-	public static Map<Object,Object> newMap(Object ...objs){
+	@SuppressWarnings("rawtypes")
+	public static Map newMap(Object ...objs){
 		HashMap<Object,Object> map = new HashMap<Object,Object>();
 		for(int i=1;i<objs.length;i+=2){
 			map.put(objs[i-1], objs[i]);
