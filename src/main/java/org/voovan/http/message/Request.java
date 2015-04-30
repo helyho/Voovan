@@ -1,8 +1,6 @@
 package org.voovan.http.message;
 
 import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -149,33 +147,9 @@ public class Request {
 			return RequestType.UNKNOWN;
 		}
 	}
-
-	/**
-	 * 解码 QueryString 中通过 URLEncode 加密的内容
-	 * 
-	 * @param queryString
-	 * @return
-	 */
-	private static String decodeQueryString(String queryString,String charset) {
-		if (queryString != null && !queryString.equals("")) {
-			String[] encodedValues = TString.searchByRegex(queryString, "=[^\\&]+");
-			for (String encodedValue : encodedValues) {
-				try {
-					String decodeValueString = "=" + URLDecoder.decode(encodedValue.substring(1, encodedValue.length()), charset);
-					queryString = queryString.replace(encodedValue, decodeValueString);
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-
-			}
-			return queryString;
-		}
-		return null;
-	}
-
 	
 	/**
-	 * 获取QueryStirng 将参数解密,或拼装成QueryString(用&符号分割的等号表达式)
+	 * 获取QueryStirng 或 将参数拼装成QueryString(用&符号分割的等号表达式)
 	 * @param charset 字符集
 	 * @return
 	 */
@@ -183,11 +157,11 @@ public class Request {
 		String queryString = "";
 		// GET 请求类型的处理
 		if (getType() == RequestType.GET) {
-			queryString = decodeQueryString(protocol.getQueryString(),"UTF-8");
+			queryString = protocol.getQueryString();
 		}
 		// POST_URLENCODED 请求类型的处理
 		else if (getType() == RequestType.POST_URLENCODED) {
-			queryString = decodeQueryString(body.getBodyString(),charset);
+			queryString = body.getBodyString();
 		}
 		// POST_MULTIPART 请求类型的处理
 		else if (getType().equals(RequestType.POST_MULTIPART)) {

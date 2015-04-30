@@ -1,5 +1,7 @@
 package org.voovan.http.server;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -7,6 +9,7 @@ import java.util.Map;
 
 import org.voovan.http.message.Request;
 import org.voovan.http.message.packet.Cookie;
+import org.voovan.tools.log.Logger;
 
 /**
  * HTTPServer 请求对象
@@ -156,7 +159,12 @@ public class HttpRequest extends Request {
 				if(equalFlagPos>0){
 					String name = parameterEqual.substring(0, equalFlagPos);
 					String value = parameterEqual.substring(equalFlagPos+1, parameterEqual.length());
-					parameters.put(name, value);
+					try {
+						parameters.put(name, URLDecoder.decode(value,characterSet));
+					} catch (UnsupportedEncodingException e) {
+						Logger.error("Class HttpRequest methos parseQueryString Error:"+e.getMessage());
+						e.printStackTrace();
+					}
 				}else{
 					parameters.put(parameterEqual, null);
 				}
