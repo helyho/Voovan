@@ -148,6 +148,10 @@ public class TEnv {
 		}
 	}
 	
+	/**
+	 * 获取 JVM 的所有线程
+	 * @return
+	 */
 	public static Thread[] getJVMThreads(){
 		ThreadGroup group = Thread.currentThread().getThreadGroup().getParent();
 		int estimatedSize = group.activeCount() * 2;

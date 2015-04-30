@@ -133,6 +133,10 @@ public class MimeFileRouter implements HttpBizHandler {
 		}
 	}
 	
+	/**
+	 * 将响应报文设置称304
+	 * @param response
+	 */
 	public void setNotModifyResponse(HttpResponse response){
 		response.protocol().setStatus(304);
 		response.protocol().setStatusCode("Not Modified");
