@@ -1,4 +1,4 @@
-Voovan
+Voovan ( Apache v2 License )
 ===============
 ####Voovan开源项目旨在提供可靠、方便、可单元测试的代码。它是一个<font color="blue">无任何依赖</font>的独立工具包，希望能够方便广大开发者快速的实现应用。
 
