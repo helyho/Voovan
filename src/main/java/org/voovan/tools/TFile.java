@@ -160,6 +160,7 @@ public class TFile {
 			if (endPos > fileSize) {
 				endPos = (int) fileSize;
 			}
+			
 			// 计算需要读取的差高难度
 			int loadLength = 0;
 			if (endPos < 0) {
