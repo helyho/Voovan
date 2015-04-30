@@ -9,15 +9,21 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.TReflect;
 import org.voovan.tools.log.Logger;
 
+/**
+ * HTTPServer session 管理器
+ * 
+ * @author helyho
+ *
+ */
 public class SessionManager{
 	private  Map<String, HttpSession>	sessions;
-	private WebConfig config;
+	private WebServerConfig config;
 	
 	/**
 	 * 构造函数
 	 * @param config
 	 */
-	public SessionManager(WebConfig config){
+	public SessionManager(WebServerConfig config){
 		this.config = config;
 		sessions = getSessionContainer();
 		if(sessions == null){
@@ -97,7 +103,7 @@ public class SessionManager{
 		return new HttpSession(config);
 	}
 	
-	public static SessionManager newInstance(WebConfig config){
+	public static SessionManager newInstance(WebServerConfig config){
 		return new SessionManager(config);
 	}
 }

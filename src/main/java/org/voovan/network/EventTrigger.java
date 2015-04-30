@@ -11,7 +11,8 @@ import org.voovan.network.Event.EventState;
 
 /**
  * 事件触发器
- * 		出发各种事件
+ * 
+ * 		触发各种事件
  * @author helyho
  *
  */

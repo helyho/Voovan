@@ -6,6 +6,12 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * String 工具类
+ * 
+ * @author helyho
+ *
+ */
 public class TString {
 
 	/**

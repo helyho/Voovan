@@ -5,6 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+/**
+ * 对象工具类
+ * 
+ * @author helyho
+ *
+ */
 public class TObject {
 	/**
 	 * 类型转换

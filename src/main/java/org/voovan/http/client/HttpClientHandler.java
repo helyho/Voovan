@@ -7,6 +7,11 @@ import org.voovan.network.IoSession;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
+/**
+ * HTTP 请求处理句柄
+ * @author helyho
+ *
+ */
 public class HttpClientHandler implements IoHandler {
 
 	private Request request;

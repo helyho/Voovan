@@ -17,6 +17,7 @@ public class HttpServer {
 	private AioServerSocket		aioServerSocket;
 	private HttpDispatcher	httpDispatcher;
 	private WebSocketDispatcher webSocketDispatcher;
+	private SessionManager sessionManager;
 
 	/**
 	 * 构造函数
@@ -32,12 +33,17 @@ public class HttpServer {
 	 * @throws IOException
 	 *             异常
 	 */
-	public HttpServer(WebConfig config) throws IOException {
+	public HttpServer(WebServerConfig config) throws IOException {
 
 		// 准备 socket 监听
 		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout());
+		
+		//构造 SessionManage
+		sessionManager = SessionManager.newInstance(config);
+		
 		//请求派发器创建
-		this.httpDispatcher = new HttpDispatcher(config);
+		this.httpDispatcher = new HttpDispatcher(config,sessionManager);
+		
 		this.webSocketDispatcher = new WebSocketDispatcher(config);
 		aioServerSocket.handler(new HttpServerHandler(config, httpDispatcher,webSocketDispatcher));
 		aioServerSocket.filterChain().add(new HttpServerFilter());
@@ -97,7 +103,7 @@ public class HttpServer {
 	 */
 	public static HttpServer newInstance() {
 		try {
-			return new HttpServer(WebContext.getWebConfig());
+			return new HttpServer(WebContext.getWebServerConfig());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

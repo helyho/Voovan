@@ -14,6 +14,7 @@ import org.voovan.tools.log.Logger;
 
 /**
  * 会话抽象类
+ * 
  * @author helyho
  *
  */

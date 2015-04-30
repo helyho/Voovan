@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 
 /**
  * 系统性能相关
+ * 
  * @author helyho
  *
  */

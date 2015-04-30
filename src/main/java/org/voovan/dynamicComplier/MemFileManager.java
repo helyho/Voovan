@@ -7,6 +7,11 @@ import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
+/**
+ * 内存文件管理实现
+ * @author helyho
+ *
+ */
 public class MemFileManager extends ForwardingJavaFileManager<JavaFileManager> {
 
 	private JavaMemClass javaMemClass;

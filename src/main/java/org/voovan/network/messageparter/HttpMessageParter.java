@@ -7,6 +7,11 @@ import org.voovan.network.IoSession;
 import org.voovan.network.MessageParter;
 import org.voovan.tools.TString;
 
+/**
+ * Http 消息分割类
+ * @author helyho
+ *
+ */
 public class HttpMessageParter implements MessageParter {
 
 	private static final String	BODY_TAG	= "\r\n\r\n";

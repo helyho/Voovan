@@ -1,6 +1,11 @@
 package org.voovan.http.server;
 
-public class WebConfig {
+/**
+ * WebServer 配置类
+ * @author helyho
+ *
+ */
+public class WebServerConfig {
 	private String host;
 	private int port;
 	private int timeout;

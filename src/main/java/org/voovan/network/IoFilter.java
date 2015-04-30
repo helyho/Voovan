@@ -1,5 +1,11 @@
 package org.voovan.network;
 
+/**
+ * 过滤器接口
+ * 
+ * @author helyho
+ *
+ */
 public interface IoFilter {
 	/**
 	 * 过滤器解密函数,接收(onRecive)前调用

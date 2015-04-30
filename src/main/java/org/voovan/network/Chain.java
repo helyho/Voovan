@@ -4,6 +4,7 @@ import java.util.ArrayDeque;
 import java.util.Iterator;
 /**
  * 对象链
+ * 
  * @author helyho
  *
  * @param <E>

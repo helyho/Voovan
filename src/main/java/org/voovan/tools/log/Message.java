@@ -1,5 +1,11 @@
 package org.voovan.tools.log;
 
+/**
+ * 日志消息对象
+ * 
+ * @author helyho
+ *
+ */
 public class Message {
 	private String	level;
 	private String	message;

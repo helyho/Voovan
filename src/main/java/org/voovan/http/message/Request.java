@@ -17,6 +17,8 @@ import org.voovan.tools.THash;
 import org.voovan.tools.TString;
 
 /**
+ * HTTP 请求对象
+ * 
  * GET 请求获取Request-URI所标识的资源 POST 在Request-URI所标识的资源后附加新的数据 HEAD
  * 请求获取由Request-URI所标识的资源的响应消息报头 PUT 请求服务器存储一个资源，并用Request-URI作为其标识 DELETE
  * 请求服务器删除Request-URI所标识的资源 TRACE 请求服务器回送收到的请求信息，主要用于测试或诊断 CONNECT 保留将来使用

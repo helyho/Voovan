@@ -5,6 +5,12 @@ import java.io.File;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TProperties;
 
+/**
+ * 静态对象类
+ * 
+ * @author helyho
+ *
+ */
 public class StaticParam {
 	private static long		startTimeMillis	= System.currentTimeMillis();
 	private static File		configFile		= loadConfig();

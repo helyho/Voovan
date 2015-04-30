@@ -4,6 +4,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 
+/**
+ * ByteBuffer双向通道
+ * 
+ * @author helyho
+ *
+ */
 public class ByteBufferChannel implements ByteChannel {
 
 	private ByteBuffer buffer; 

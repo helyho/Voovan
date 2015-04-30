@@ -9,6 +9,7 @@ import org.voovan.tools.TObject;
 
 /**
  * String 过滤器
+ * 
  * @author helyho
  *
  */

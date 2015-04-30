@@ -1,5 +1,10 @@
 package org.voovan.http.server.exception;
 
+/**
+ * 资源不存在异常
+ * @author helyho
+ *
+ */
 public class ResourceNotFound extends Exception {
 
 	/**

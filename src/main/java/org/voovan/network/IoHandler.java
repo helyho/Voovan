@@ -1,7 +1,11 @@
 package org.voovan.network;
 
 
-
+/**
+ * Socket 连接业务接口
+ * @author helyho
+ *
+ */
 public interface IoHandler {
 	/**
 	 * 连接成功事件

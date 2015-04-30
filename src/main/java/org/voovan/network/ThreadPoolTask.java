@@ -8,6 +8,12 @@ import org.voovan.tools.TDateTime;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
 
+/**
+ * 线程池监控类
+ * 
+ * @author helyho
+ *
+ */
 public class ThreadPoolTask extends TimerTask {
 	private Timer				timer;
 	private ThreadPoolExecutor	threadPoolInstance;

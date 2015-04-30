@@ -2,6 +2,7 @@ package org.voovan.tools.log;
 
 /**
  * 日志工具类
+ * 
  * @author helyho
  *
  */
