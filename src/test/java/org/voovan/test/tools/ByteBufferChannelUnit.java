@@ -24,8 +24,9 @@ public class ByteBufferChannelUnit extends TestCase {
 	}
 	
 	public void testWrite() throws IOException{
+		int size = byteBufferChannel.size();
 		byteBufferChannel.write(ByteBuffer.wrap(" -=======!".getBytes()));
-		assertEquals(byteBufferChannel.size(),24);
+		assertEquals(byteBufferChannel.size(),size+10);
 	}
 	
 	public void testRead() throws IOException{
