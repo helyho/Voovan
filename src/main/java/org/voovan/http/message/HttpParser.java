@@ -252,18 +252,11 @@ public class HttpParser {
 			
 			//解析 HTTP 请求 body
 			if(isBodyConent){
-				
 				String contentType =packetMap.get(HEAD_CONTENT_TYPE)!=null?packetMap.get(HEAD_CONTENT_TYPE).toString():"";
 				String transferEncoding = packetMap.get(HEAD_TRANSFER_ENCODING)==null ? "" : packetMap.get(HEAD_TRANSFER_ENCODING).toString();
-								
-				//1. 解析 HTTP 的 POST 请求 body 参数
-				if(contentType.contains("application/x-www-form-urlencoded")){
-					byte[] value = dealBodyContent(packetMap, TStream.readAll(sourceInputStream));
-					packetMap.put(STATIC_VALUE, value);
-				}
 				
-				//2. 解析 HTTP 的 POST 请求 body part
-				else if(contentType.contains("multipart/form-data")){
+				//1. 解析 HTTP 的 POST 请求 body part
+				 if(contentType.contains("multipart/form-data")){
 					//用来保存 Part 的 list
 					ArrayList<Map<String, Object>> bodyPartList = new ArrayList<Map<String, Object>>();
 					
@@ -290,7 +283,7 @@ public class HttpParser {
 					packetMap.put(STATIC_PARTS, bodyPartList);
 				}
 				
-				//3. 解析 HTTP 响应 body 内容段的 chunked 
+				//2. 解析 HTTP 响应 body 内容段的 chunked 
 				else if(transferEncoding.equals("chunked")){
 					
 					byte[] chunkedBytes = new byte[0];
@@ -314,7 +307,7 @@ public class HttpParser {
 					byte[] value = dealBodyContent(packetMap, chunkedBytes);
 					packetMap.put(STATIC_VALUE, value);
 				}
-				//4. HTTP(请求和响应) 报文的内容段中Content-Length 提供长度,按长度读取 body 内容段
+				//3. HTTP(请求和响应) 报文的内容段中Content-Length 提供长度,按长度读取 body 内容段
 				else if(packetMap.containsKey(HEAD_CONTENT_LENGTH)){
 					byte[] contentBytes = new byte[0];
 					int contentLength = Integer.parseInt(packetMap.get(HEAD_CONTENT_LENGTH).toString());
@@ -322,13 +315,16 @@ public class HttpParser {
 					byte[] value = dealBodyContent(packetMap, contentBytes);
 					packetMap.put(STATIC_VALUE, value);
 				}
-				//5. 容错,没有标识长度则默认读取全部内容段
+				//4. 容错,没有标识长度则默认读取全部内容段
 				else if(packetMap.get(STATIC_VALUE)==null || packetMap.get(STATIC_VALUE).equals("")){
-					byte[] contentBytes = new byte[0];
-					contentBytes = TStream.readAll(sourceInputStream);
+					byte[] contentBytes = TStream.readAll(sourceInputStream);
+					if(contentBytes!=null && contentBytes.length>0){
+						contentBytes = Arrays.copyOf(contentBytes, contentBytes.length);
+					}
 					byte[] value = dealBodyContent(packetMap, contentBytes);
 					packetMap.put(STATIC_VALUE, value);
 				}
+
 				break;
 			}
 			if(!isBodyConent){
