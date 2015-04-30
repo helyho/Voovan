@@ -1,4 +1,4 @@
-package org.voovan.test.json;
+package org.voovan.test.tools.json;
 
 import org.voovan.tools.json.JSONEncode;
 

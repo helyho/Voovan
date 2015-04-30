@@ -32,6 +32,6 @@ public class HttpClientUnit extends TestCase {
 	public void testConnect() throws Exception{
 		response = httpClient.Connect();
 		Logger.simple("Response body Length: "+ response.body().getBodyBytes().length);
-		assert(response.header().size()>5);
+		assertTrue(response.header().size()>5);
 	}
 }
