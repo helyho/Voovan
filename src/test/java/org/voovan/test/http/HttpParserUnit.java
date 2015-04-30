@@ -45,7 +45,7 @@ public class HttpParserUnit extends TestCase {
 			"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
 			"Content-Disposition: form-data; name=\"age\"\r\n"+
 			"\r\n"+
-			"32\r\n"+
+			"32%3D\r\n"+
 			"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
 			"Content-Disposition: form-data; name=\"address\" filename=\"1.jpg\"\r\n"+
 			"\r\n"+
