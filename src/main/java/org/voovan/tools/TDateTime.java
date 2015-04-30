@@ -10,11 +10,11 @@ import java.util.TimeZone;
 public class TDateTime {
 	/**
 	 * 获取当前时间
-	 * 		YYYY-MM-dd HH:mm:ss
+	 * 		yyyy-MM-dd HH:mm:ss
 	 * @return
 	 */
 	public static String now(){
-		return format(new Date(),"YYYY-MM-dd HH:mm:ss");
+		return format(new Date(),"yyyy-MM-dd HH:mm:ss");
 	}
 	
 	/**
@@ -106,6 +106,5 @@ public class TDateTime {
 	public static Date add(Date date,long millis){
 		 return new Date(date.getTime()+millis);
 	}
-	
-	
+
 }
