@@ -9,6 +9,7 @@ import org.voovan.http.message.packet.Header;
 
 /**
  * WebSocket 工具类
+ * 
  * @author helyho
  *
  */
@@ -23,6 +24,11 @@ public class WebSocketTools {
 		}
 	}
 	
+	/**
+	 * 生成协议升级的 KEY
+	 * @param in
+	 * @return
+	 */
 	public static String generateSecKey( String in ) {
 		String seckey = in.trim();
 		String acc = seckey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";

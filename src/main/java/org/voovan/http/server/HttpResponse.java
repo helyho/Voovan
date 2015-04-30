@@ -5,6 +5,12 @@ import java.util.Date;
 import org.voovan.http.message.Response;
 import org.voovan.tools.TDateTime;
 
+/**
+ * HTTPServer 响应对象
+ * 
+ * @author helyho
+ *
+ */
 public class HttpResponse extends Response {
 	private String	characterSet;
 

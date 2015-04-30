@@ -13,7 +13,13 @@ import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
-
+/**
+ * SSL 解析器
+ * 		1.握手信息 
+ * 		2.报文信息
+ * @author helyho
+ *
+ */
 public class SSLParser {
 	private SSLEngine engine;
 	private ByteBuffer appData;

@@ -8,6 +8,11 @@ import java.util.Map;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.packet.Cookie;
 
+/**
+ * HTTPServer 请求对象
+ * @author helyho
+ *
+ */
 public class HttpRequest extends Request {
 
 	private HttpSession session;

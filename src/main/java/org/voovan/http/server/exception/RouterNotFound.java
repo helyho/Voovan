@@ -1,5 +1,10 @@
 package org.voovan.http.server.exception;
 
+/**
+ * 路由不存在异常
+ * @author helyho
+ *
+ */
 public class RouterNotFound extends Exception {
 
 	/**

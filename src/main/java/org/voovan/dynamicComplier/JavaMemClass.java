@@ -9,6 +9,11 @@ import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Method;
 import java.net.URI;
  
+/**
+ * java 内存 Class
+ * @author helyho
+ *
+ */
 public class JavaMemClass extends SimpleJavaFileObject {
  
     protected final ByteArrayOutputStream classByteArrayOutputStream =

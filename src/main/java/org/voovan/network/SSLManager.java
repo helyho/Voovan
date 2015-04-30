@@ -7,7 +7,11 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
-
+/**
+ * SSL管理器
+ * @author helyho
+ *
+ */
 public class SSLManager {
 	private KeyManagerFactory keyManagerFactory;
 	private TrustManagerFactory trustManagerFactory;

@@ -7,7 +7,7 @@ import java.util.Map;
 
 import org.voovan.http.server.HttpDispatcher;
 import org.voovan.http.server.HttpRequest;
-import org.voovan.http.server.WebConfig;
+import org.voovan.http.server.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.websocket.WebSocketFrame.Opcode;
 
@@ -15,7 +15,6 @@ import org.voovan.http.server.websocket.WebSocketFrame.Opcode;
  * 
  * 根据 WebSocket 请求分派到处理路由
  * 
-
  * @author helyho
  *
  */
@@ -36,7 +35,7 @@ public class WebSocketDispatcher {
 	 * @param rootDir
 	 *            根目录
 	 */
-	public WebSocketDispatcher(WebConfig config) {
+	public WebSocketDispatcher(WebServerConfig config) {
 		routes = new HashMap<String, WebSocketBizHandler>();
 	}
 
@@ -58,7 +57,7 @@ public class WebSocketDispatcher {
 	 * @param response
 	 * @throws Exception
 	 */
-	public WebSocketFrame Process(WebSocketEvent event, HttpRequest request, WebSocketFrame webSocketFrame) {
+	public WebSocketFrame processRoute(WebSocketEvent event, HttpRequest request, WebSocketFrame webSocketFrame) {
 		String requestPath = request.protocol().getPath();
 
 		boolean isMatched = false;

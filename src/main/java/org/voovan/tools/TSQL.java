@@ -17,6 +17,7 @@ import org.voovan.tools.log.Logger;
 
 /**
  * SQL处理帮助类
+ * 
  * 注意所有的时间都用yyyy-MM-dd HH:mm:ss的格式
  * @author helyho
  *

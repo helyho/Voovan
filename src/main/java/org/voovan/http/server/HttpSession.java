@@ -4,6 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * HTTPServer session 类
+ * 
+ * @author helyho
+ *
+ */
 public class HttpSession {
 	private Map<String,Object> attributes;
 	private String id ;
@@ -13,7 +19,7 @@ public class HttpSession {
 	/**
 	 * 构造函数
 	 */
-	public HttpSession(WebConfig config){
+	public HttpSession(WebServerConfig config){
 		attributes = new HashMap<String, Object>();
 		//生成一个随机的 ID 用作唯一标识
 		this.id = UUID.randomUUID().toString().toUpperCase().replaceAll("-", "");

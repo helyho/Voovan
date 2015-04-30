@@ -13,7 +13,8 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 
 /**
- *格式化日志信息并输出
+ *	格式化日志信息并输出
+ *
  *使用包括特殊的定义{{}}
  *{{t}}:制表符,正常情况下4个空格
  *{{s}}:一个空格

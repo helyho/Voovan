@@ -11,7 +11,7 @@ import org.voovan.network.SocketContext;
 import org.voovan.tools.ByteBufferChannel;
 
 /**
- * 会话连接对象
+ * NIO 会话连接对象
  * 
  * @author helyho
  *

@@ -8,6 +8,7 @@ import org.voovan.tools.log.Logger;
 
 /**
  * hash 算法类
+ * 
  * @author helyho
  *
  */

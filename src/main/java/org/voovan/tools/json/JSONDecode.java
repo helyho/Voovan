@@ -10,7 +10,8 @@ import org.voovan.tools.TReflect;
 import org.voovan.tools.TString;
 
 /**
- * <b>JSON字符串分析成 Map</b>
+ * JSON字符串分析成 Map
+ * 
  * @author helyho
  * @version 1.0
  */

@@ -6,7 +6,12 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-
+/**
+ * 时间工具类
+ * 
+ * @author helyho
+ *
+ */
 public class TDateTime {
 	/**
 	 * 获取当前时间

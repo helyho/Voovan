@@ -18,7 +18,7 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 /**
- * HttpServer 业务处理类
+ * HttpServer Socket 事件处理类
  * 
  * @author helyho
  *
@@ -26,9 +26,9 @@ import org.voovan.tools.log.Logger;
 public class HttpServerHandler implements IoHandler {
 	private HttpDispatcher		httpDispatcher;
 	private WebSocketDispatcher	webSocketDispatcher;
-	private WebConfig			config;
+	private WebServerConfig			config;
 
-	public HttpServerHandler(WebConfig config, HttpDispatcher httpDispatcher, WebSocketDispatcher webSocketDispatcher) {
+	public HttpServerHandler(WebServerConfig config, HttpDispatcher httpDispatcher, WebSocketDispatcher webSocketDispatcher) {
 		this.httpDispatcher = httpDispatcher;
 		this.webSocketDispatcher = webSocketDispatcher;
 		this.config = config;
@@ -96,7 +96,7 @@ public class HttpServerHandler implements IoHandler {
 		httpRequest.setRemotePort(session.remotePort());
 
 		// 处理响应请求
-		httpDispatcher.process(httpRequest, httpResponse);
+		httpDispatcher.processRoute(httpRequest, httpResponse);
 		
 		//如果是长连接则填充响应报文
 		if (httpRequest.header().contain("Connection") && httpRequest.header().get("Connection").equals("keep-alive")) {
@@ -127,7 +127,7 @@ public class HttpServerHandler implements IoHandler {
 		httpResponse.header().put("Sec-WebSocket-Accept", webSocketKey);
 
 		// WebSocket Open事件
-		webSocketDispatcher.Process(WebSocketEvent.OPEN, httpRequest, null);
+		webSocketDispatcher.processRoute(WebSocketEvent.OPEN, httpRequest, null);
 		return httpResponse;
 	}
 
@@ -145,7 +145,7 @@ public class HttpServerHandler implements IoHandler {
 		// 如果收到关闭帧则关闭连接
 		if (webSocketFrame.getOpcode() == Opcode.CLOSING) {
 			// WebSocket Close事件
-			webSocketDispatcher.Process(WebSocketEvent.CLOSE, TObject.cast(session.getAttribute("WebSocketRequest")), null);
+			webSocketDispatcher.processRoute(WebSocketEvent.CLOSE, TObject.cast(session.getAttribute("WebSocketRequest")), null);
 			session.setAttribute("WebSocketClose", true);
 			return WebSocketFrame.newInstance(true, Opcode.CLOSING, false, webSocketFrame.getFrameData());
 		}
@@ -157,7 +157,7 @@ public class HttpServerHandler implements IoHandler {
 		else if (webSocketFrame.getOpcode() == Opcode.TEXT || webSocketFrame.getOpcode() == Opcode.BINARY) {
 			WebSocketFrame responseWebSocketFrame = null;
 			if(webSocketFrame.getErrorCode()==0){
-				responseWebSocketFrame = webSocketDispatcher.Process(WebSocketEvent.RECIVED,
+				responseWebSocketFrame = webSocketDispatcher.processRoute(WebSocketEvent.RECIVED,
 					TObject.cast(session.getAttribute("WebSocketRequest")), webSocketFrame);
 			}else{
 				//解析时出现异常,返回关闭消息
@@ -209,7 +209,7 @@ public class HttpServerHandler implements IoHandler {
 					if (session.containAttribute("isWebSocket") && (boolean) session.getAttribute("isWebSocket")) {
 						// WebSocket Close事件
 						webSocketDispatcher
-								.Process(WebSocketEvent.CLOSE, TObject.cast(session.getAttribute("WebSocketRequest")), null);
+								.processRoute(WebSocketEvent.CLOSE, TObject.cast(session.getAttribute("WebSocketRequest")), null);
 					}
 					session.close();
 				}

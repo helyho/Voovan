@@ -52,8 +52,8 @@ public class WebContext {
 	 * 从配置文件初始化 config 对象
 	 * @return
 	 */
-	public static WebConfig getWebConfig() {
-		WebConfig config = new WebConfig();
+	public static WebServerConfig getWebServerConfig() {
+		WebServerConfig config = new WebServerConfig();
 		config.setHost(getContextParameter("Host","127.0.0.1"));
 		config.setPort(getContextParameter("Port",8080));
 		config.setTimeout(getContextParameter("Timeout",3000));

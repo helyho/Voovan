@@ -4,6 +4,7 @@ import org.voovan.tools.TObject;
 
 /**
  * 事件对象
+ * 
  * @author helyho
  *
  */

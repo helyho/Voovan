@@ -37,8 +37,8 @@ public class HttpDispatcher {
 	 * [MainKey] = HTTP method ,[Value Key] = Route path, [Value value] = RouteBuiz对象
 	 */
 	private Map<String, Map<String, HttpBizHandler>>	handlers;
+	private WebServerConfig config;
 	private SessionManager sessionManager;
-	private WebConfig config;
 	
 	/**
 	 * 构造函数
@@ -46,13 +46,11 @@ public class HttpDispatcher {
 	 * @param rootDir
 	 *            根目录
 	 */
-	public HttpDispatcher(WebConfig config) {
+	public HttpDispatcher(WebServerConfig config,SessionManager sessionManager) {
 		handlers = new HashMap<String, Map<String, HttpBizHandler>>();
 		this.config = config;
+		this.sessionManager = sessionManager;
 		
-		//构造 SessionManage
-		sessionManager = SessionManager.newInstance(config);
-
 		// 初始化所有的 HTTP 请求方法
 		this.addRouteMethod("GET");
 		this.addRouteMethod("POST");
@@ -98,7 +96,7 @@ public class HttpDispatcher {
 	 * @param response
 	 * @throws Exception
 	 */
-	public void process(HttpRequest request, HttpResponse response){
+	public void processRoute(HttpRequest request, HttpResponse response){
 		String requestPath = request.protocol().getPath();
 		String requestMethod = request.protocol().getMethod();
 		

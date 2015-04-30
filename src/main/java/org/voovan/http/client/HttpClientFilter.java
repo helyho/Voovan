@@ -11,6 +11,11 @@ import org.voovan.network.IoSession;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
+/**
+ * HTTP 请求过滤器
+ * @author helyho
+ *
+ */
 public class HttpClientFilter implements IoFilter {
 
 	@Override

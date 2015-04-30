@@ -14,6 +14,12 @@ import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 
+/**
+ * NIO 会话连接对象
+ * 
+ * @author helyho
+ *
+ */
 public class AioSession extends IoSession {
 
 	private AsynchronousSocketChannel	socketChannel;

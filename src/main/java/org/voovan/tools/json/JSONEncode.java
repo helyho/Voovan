@@ -10,6 +10,7 @@ import org.voovan.tools.TReflect;
 public class JSONEncode {
 	/**
 	 * 分析自定义对象为JSON字符串
+	 * 
 	 * @param object  	自定义对象
 	 * @return  		JSON字符串
 	 * @throws Exception

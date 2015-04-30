@@ -8,6 +8,7 @@ import org.voovan.tools.log.Logger;
 
 /**
  * WebSocket帧解析类
+ * 
  * @author helyho
  *
  */
@@ -75,7 +76,14 @@ public class WebSocketFrame {
 		return webSocketFrame;
 	}
 
-	
+	/**
+	 * 构建新的实例
+	 * @param fin
+	 * @param opcode
+	 * @param mask
+	 * @param binary
+	 * @return
+	 */
 	public static WebSocketFrame newInstance(boolean fin, Opcode opcode, boolean mask, ByteBuffer binary) {
 		WebSocketFrame webSocketFrame = new WebSocketFrame();
 		webSocketFrame.setFin(fin);
@@ -84,13 +92,9 @@ public class WebSocketFrame {
 		webSocketFrame.setFrameData(binary);
 		return webSocketFrame;
 	}
-	public String toString() {
-		return "Framedata={FIN: " + this.isFin() + " , Mask: " + this.isTransfereMask() + " , OpCode: " + getOpcode() + " , Data: "
-				+ new String(getFrameData().array()) + "}";
-	}
 
 	/**
-	 * 解析报文
+	 * 解析WebSocket报文
 	 * 
 	 * @param byteBuffer
 	 * @return
@@ -288,5 +292,11 @@ public class WebSocketFrame {
 		buf.flip();
 
 		return buf;
+	}
+	
+	@Override
+	public String toString() {
+		return "Framedata={FIN: " + this.isFin() + " , Mask: " + this.isTransfereMask() + " , OpCode: " + getOpcode() + " , Data: "
+				+ new String(getFrameData().array()) + "}";
 	}
 }
