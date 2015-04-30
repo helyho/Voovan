@@ -14,7 +14,7 @@ public class TString {
 	 * @return
 	 */
 	public static String removePrefix(String source){
-		return source.substring(source.length()-1,source.length());
+		return source.substring(1,source.length());
 	}
 	
 	/**
@@ -192,7 +192,8 @@ public class TString {
 	public static String replaceFirst(String source,String mark,String replacement){
 		int head = source.indexOf(mark);
 		int tail = head+mark.length();
-		source = source.substring(0, head)+replacement==null?"":replacement+source.substring(tail, source.length());
+		replacement = replacement==null?"":replacement;
+		source = source.substring(0, head)+replacement+source.substring(tail, source.length());
 		return source;
 	}
 	
@@ -207,22 +208,9 @@ public class TString {
 		
 		int head = source.lastIndexOf(mark);
 		int tail = head+mark.length();
-		source = source.substring(0, head)+replacement==null?"":replacement+source.substring(tail, source.length());
+		replacement = replacement==null?"":replacement;
+		source = source.substring(0, head)+replacement+source.substring(tail, source.length());
 		return source;
 	}
-	
-	
-	/**
-	 * 如果为空取默认值
-	 * @param strObject
-	 * @param defaultValue
-	 * @return
-	 */
-	public static String defaultValue(Object object,String defaultValue){
-		String source = object.toString();
-		if(isNullOrEmpty(source)){
-			return defaultValue;
-		}
-		return source;
-	}
+
 }
