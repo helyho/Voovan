@@ -18,6 +18,21 @@ public class HttpServerDemo {
 		try {
 			HttpServer httpServer = HttpServer.newInstance();
 			
+			//普通 GET 请求
+			httpServer.get("/", (req, resp) -> {
+				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
+					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
+				}
+				req.getSession().setAttribute("Time", TDateTime.now());
+
+				resp.write(fileContent);
+				resp.write("{"
+						+ "\"Method\":\"NormalGET\","
+						+ "\"name\":\""+req.getParameter("name")+"\","
+						+ "\"age\":\""+req.getParameter("age")+"\""
+				 + "}");
+			});
+			
 			//带路劲参数的 GET 请求
 			httpServer.get("/:name/:age", (req, resp) -> {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
@@ -25,20 +40,13 @@ public class HttpServerDemo {
 				}System.out.println(req);
 				req.getSession().setAttribute("Time", TDateTime.now());
 				resp.write(fileContent);
-				resp.write("{\"Method\":\"PathGET\",\"name\":\""+req.getParameter("name")+"\",\"age\":\""+req.getParameter("age")+"\"}");
+				resp.write("{"
+								+ "\"Method\":\"PathGET\","
+								+ "\"name\":\""+req.getParameter("name")+"\","
+								+ "\"age\":\""+req.getParameter("age")+"\""
+						 + "}");
 			});
 			
-			//普通 GET 请求
-			httpServer.get("/", (req, resp) -> {
-				fileContent = TFile.loadResource("org/voovan/test/http/test.htm");
-				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
-					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
-				}
-				req.getSession().setAttribute("Time", TDateTime.now());
-
-				resp.write(fileContent);
-				resp.write("{\"Method\":\"NormalGET\",\"name\":\""+req.getParameter("name")+"\",\"age\":\""+req.getParameter("age")+"\"}");
-			});
 			
 			// 重定向
 			httpServer.get("/redirect", (req, resp) -> {
@@ -53,7 +61,11 @@ public class HttpServerDemo {
 				req.getSession().setAttribute("Time", TDateTime.now());
 				resp.write(fileContent);
 				String contentType = req.header().get("Content-Type").split(";")[0];
-				resp.write("{\"Method\":\""+contentType+"\",\"name\":\""+req.getParameter("name")+"\",\"age\":\""+req.getParameter("age")+"\"}");
+				resp.write("{"
+						+ "\"Method\":\""+contentType+"\","
+						+ "\"name\":\""+req.getParameter("name")+"\","
+						+ "\"age\":\""+req.getParameter("age")+"\""
+				 + "}");
 			});
 			
 			httpServer.socket("/websocket", new WebSocketBizHandler() {
