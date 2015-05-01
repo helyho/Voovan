@@ -32,6 +32,7 @@ public class Request {
 	private List<Cookie>	cookies;
 	private Body			body;
 	private List<Part>		parts;
+	private String boundary = THash.encryptBASE64(UUID.randomUUID().toString());
 
 	/**
 	 * HTTP 请求的枚举对象
@@ -160,7 +161,7 @@ public class Request {
 			queryString = protocol.getQueryString();
 		}
 		// POST_URLENCODED 请求类型的处理
-		else if (getType() == RequestType.POST_URLENCODED) {
+		else if (getType() == RequestType.POST_URLENCODED || getType() == RequestType.POST) {
 			queryString = body.getBodyString();
 		}
 		// POST_MULTIPART 请求类型的处理
@@ -178,24 +179,22 @@ public class Request {
 
 		return queryString;
 	}
-
+	
 	/**
 	 * 根据内容构造一些必要的 Header 属性
+	 * 		这里不按照请求方法组装必要的头信息,而是根据 Body 和 parts 对象的内容组装必要的头信息
+	 * @return
 	 */
-	private String initHeader() {
-
-		if (body.getBodyBytes() != null && body.getBodyBytes().length > 0) {
-			header.put("Content-Length", Integer.toString(body.getBodyBytes().length));
-		}
+	private void initHeader() {
 		// 如果请求中包含 Part 的处理
-		else if (parts.size() != 0) {
+		if (parts.size() != 0) {
 			// 产生新的boundary备用
-			String boundary = THash.encryptBASE64(UUID.randomUUID().toString());
 			String contentType = "multipart/form-data; boundary=" + boundary;
 			header.put("Content-Type", contentType);
-			return boundary;
 		}
-		return null;
+		
+		//生成 Cookie 信息
+		header.put("Cookies", genCookie());
 	}
 
 	/**
@@ -203,20 +202,47 @@ public class Request {
 	 * 
 	 * @return
 	 */
-	private String genCookieString() {
+	private String genCookie() {
 		String cookieString = "";
-		if (cookies.size() > 0) {
-			cookieString += "Cookies: ";
-		}
 		for (Cookie cookie : cookies) {
 			cookieString += cookie.getName() + "=" + cookie.getValue() + "; ";
 		}
-		if (cookies.size() > 0) {
-			cookieString = cookieString.substring(0, cookieString.length() - 2) + "\r\n";
-		}
 		return cookieString;
 	}
-
+	
+	
+	private byte[] genBody() {
+		try {
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			if (body.getBodyBytes() != null || parts.size() != 0) {
+				// 没有 parts 时直接写入包体
+				if (body.getBodyBytes() != null && body.getBodyBytes().length > 0) {
+					String bodyString = body.getBodyString();
+					outputStream.write(bodyString.getBytes());
+				}
+				// 有 parts 时按 parts 的格式写入 parts
+				else {
+					// Content-Type存在
+					if (parts.size() != 0) {
+						// 获取 multiPart 标识
+						for (Part part : this.parts) {
+							outputStream.write(("--" + boundary + "\r\n").getBytes());
+							outputStream.write(part.toString().getBytes());
+							outputStream.write(part.body().getBodyBytes());
+							outputStream.write("\r\n".getBytes());
+						}
+						outputStream.write(("--" + boundary + "--").getBytes());
+					}
+				}
+				// POST结束不需要空行标识结尾
+			}
+			header.put("Content-Length", Integer.toString(outputStream.size()));
+			return outputStream.toByteArray();
+		} catch (Exception e) {
+			return  new byte[0];
+		}
+	}
+	
 	/**
 	 * 根据对象的内容,构造 Http 请求报文
 	 * 
@@ -226,8 +252,10 @@ public class Request {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
 		// Body 对应的 Header 预处理
-		String boundary = initHeader();
-
+		initHeader();
+		
+		byte[] bodyBytes = genBody();
+		
 		// 报文组装
 		try {
 			// 处理协议行
@@ -236,31 +264,12 @@ public class Request {
 			// 处理 Header
 			outputStream.write(header.toString().getBytes());
 
-			// 处理 Cookie
-			outputStream.write(genCookieString().getBytes());
-
-			// 处理 Body
-			// 没有 parts 时直接写入包体
-			if (body.getBodyBytes() != null && body.getBodyBytes().length > 0) {
-				String bodyString = "\r\n" + body.getBodyString();
-				outputStream.write(bodyString.getBytes());
-			}
-			// 有 parts 时按 parts 的格式写入 parts
-			else {
-				// Content-Type存在
-				if (parts.size() != 0) {
-					outputStream.write("\r\n".getBytes());
-					for (Part part : this.parts) {
-						outputStream.write(("--" + boundary + "\r\n").getBytes());
-						outputStream.write(part.toString().getBytes());
-						outputStream.write(part.body().getBodyBytes());
-						outputStream.write("\r\n".getBytes());
-					}
-					outputStream.write(("--" + boundary + "--").getBytes());
-				}
-			}
-
+			//头结束插入空行
 			outputStream.write("\r\n".getBytes());
+			
+			//插入报文内容
+			outputStream.write(bodyBytes);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

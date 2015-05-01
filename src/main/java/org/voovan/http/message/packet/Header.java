@@ -1,6 +1,7 @@
 package org.voovan.http.message.packet;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -61,6 +62,16 @@ public class Header {
 	 */
 	public String put(String header,String value){
 		return headers.put(header,value);
+	}
+	
+	/**
+	 * 填充 Header
+	 * @param header
+	 * @param value
+	 * @return
+	 */
+	public void putAll(Map<String, String> valueMap){
+		headers.putAll(valueMap);
 	}
 	
 	/**

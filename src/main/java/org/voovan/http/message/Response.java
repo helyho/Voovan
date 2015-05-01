@@ -20,7 +20,7 @@ public class Response {
 	private Header				header;
 	private List<Cookie>		cookies;
 	private Body				body;
-	private boolean				useCompress;
+	private boolean				isCompress;
 
 	/**
 	 * 构造函数
@@ -32,7 +32,7 @@ public class Response {
 		this.header = response.header;
 		this.body = response.body;
 		this.cookies = response.cookies;
-		this.useCompress = response.useCompress;
+		this.isCompress = response.isCompress;
 	}
 
 	/**
@@ -43,7 +43,7 @@ public class Response {
 		header = new Header();
 		cookies = new Vector<Cookie>();
 		body = new Body();
-		useCompress = true;
+		isCompress = true;
 	}
 
 	/**
@@ -51,8 +51,8 @@ public class Response {
 	 * 
 	 * @return
 	 */
-	public boolean isUseCompress() {
-		return useCompress;
+	public boolean isCompress() {
+		return isCompress;
 	}
 
 	/**
@@ -60,8 +60,8 @@ public class Response {
 	 * 
 	 * @param useCompress
 	 */
-	public void setUseCompress(boolean useCompress) {
-		this.useCompress = useCompress;
+	public void setCompress(boolean isCompress) {
+		this.isCompress = isCompress;
 	}
 
 	/**
@@ -105,12 +105,13 @@ public class Response {
 	 */
 	private void initHeader() {
 		// 根据压缩属性确定 Header 的一些属性内容
-		if (useCompress) {
+		if (isCompress) {
 			header.put("Transfer-Encoding", "chunked");
 			header.put("Content-Encoding", "gzip");
 		} else {
 			header.put("Content-Length", Integer.toString(body.getBodyBytes().length));
 		}
+		
 		if (header.get("Content-Type") == null) {
 			header.put("Content-Type", "text/html");
 		}
@@ -129,6 +130,36 @@ public class Response {
 		return cookieString;
 	}
 
+	private byte[] genBody(){
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		try {
+			if (body.getBodyBytes().length != 0) {
+				if (isCompress) {
+					byte[] gzipedBody = body.getGZipedBody();
+					// 写入 chunk 的长度
+					outputStream.write((Integer.toUnsignedString(gzipedBody.length, 16) + "\r\n").getBytes());
+					outputStream.write(gzipedBody);
+					// chunk结束
+					outputStream.write("\r\n".getBytes());
+					outputStream.write("0".getBytes());
+
+				} else {
+					outputStream.write(body.getBodyBytes());
+				}
+				// 报文内容结束
+				outputStream.write("\r\n".getBytes());
+				// 插入空行
+				outputStream.write("\r\n".getBytes());
+				
+				return outputStream.toByteArray();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return new byte[0];
+	}
+	
 	/**
 	 * 根据对象的内容,构造 Http 响应报文
 	 * 
@@ -138,10 +169,10 @@ public class Response {
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-		if (protocol.getStatus() != 101) {
-			initHeader();
-		}
-
+		initHeader();
+		
+		byte[] bodyBytes = genBody();
+		
 		try {
 			// 处理协议行
 			outputStream.write(protocol.toString().getBytes());
@@ -152,22 +183,11 @@ public class Response {
 			// 处理 Cookie
 			outputStream.write(genCookie().getBytes());
 
+			//头结束插入空行
 			outputStream.write("\r\n".getBytes());
 
-			if (body.getBodyBytes().length != 0) {
-				if (isUseCompress()) {
-
-					byte[] gzipedBody = body.getGZipedBody();
-					outputStream.write((Integer.toUnsignedString(gzipedBody.length, 16) + "\r\n").getBytes());
-					outputStream.write(gzipedBody);
-					outputStream.write("\r\n0".getBytes());
-
-				} else {
-					outputStream.write(body.getBodyBytes());
-				}
-				outputStream.write("\r\n".getBytes());
-				outputStream.write("\r\n".getBytes());
-			}
+			//插入报文内容
+			outputStream.write(bodyBytes);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
