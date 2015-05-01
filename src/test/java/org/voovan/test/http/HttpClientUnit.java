@@ -51,9 +51,10 @@ public class HttpClientUnit extends TestCase {
 //	}
 
 //	public void testPost() throws Exception {
-//		HttpClient postClient = new HttpClient("http://127.0.0.1:28080");
+//		HttpClient postClient = new HttpClient("http://dig.chouti.com/login");
 //		postClient.setMethod("POST");
-//		postClient.putParameters("name", "测试");
+//		postClient.putParameters("jid", "helyho");
+//		postClient.putParameters("password", "****");
 //		Response response = postClient.Connect();
 //		Logger.simple(response.body().toString());
 //		assertTrue(response.protocol().getStatus() != 500);
