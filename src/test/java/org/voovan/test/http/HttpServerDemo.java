@@ -22,21 +22,22 @@ public class HttpServerDemo {
 			httpServer.get("/:name/:age", (req, resp) -> {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
-				}
+				}System.out.println(req);
 				req.getSession().setAttribute("Time", TDateTime.now());
 				resp.write(fileContent);
-				resp.write("{\r\n\t\"name\":\""+req.getParameter("name")+"\",\r\n\t\"age\":\""+req.getParameter("age")+"\"\r\n}");
+				resp.write("{\"Method\":\"PathGET\",\"name\":\""+req.getParameter("name")+"\",\"age\":\""+req.getParameter("age")+"\"}");
 			});
 			
 			//普通 GET 请求
 			httpServer.get("/", (req, resp) -> {
+				fileContent = TFile.loadResource("org/voovan/test/http/test.htm");
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
 				}
 				req.getSession().setAttribute("Time", TDateTime.now());
 
 				resp.write(fileContent);
-				resp.write("{\r\n\t\"name\":\""+req.getParameter("name")+"\",\r\n\t\"age\":\""+req.getParameter("age")+"\"\r\n}");
+				resp.write("{\"Method\":\"NormalGET\",\"name\":\""+req.getParameter("name")+"\",\"age\":\""+req.getParameter("age")+"\"}");
 			});
 			
 			// 重定向
@@ -51,7 +52,8 @@ public class HttpServerDemo {
 				}
 				req.getSession().setAttribute("Time", TDateTime.now());
 				resp.write(fileContent);
-				resp.write("{\r\n\t\"name\":\""+req.getParameter("name")+"\",\r\n\t\"age\":\""+req.getParameter("age")+"\"\r\n}");
+				String contentType = req.header().get("Content-Type").split(";")[0];
+				resp.write("{\"Method\":\""+contentType+"\",\"name\":\""+req.getParameter("name")+"\",\"age\":\""+req.getParameter("age")+"\"}");
 			});
 			
 			httpServer.socket("/websocket", new WebSocketBizHandler() {
@@ -59,7 +61,8 @@ public class HttpServerDemo {
 				@Override
 				public ByteBuffer onRecived(Map<String, String> params, ByteBuffer message) {
 					Logger.info(new String(message.array()));
-					return ByteBuffer.wrap("hello helyho".getBytes());
+					String msg = "This is server message. Client message: \r\n\t\""+new String(message.array())+"\"";
+					return ByteBuffer.wrap(msg.getBytes());
 				}
 				
 				@Override
