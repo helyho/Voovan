@@ -6,7 +6,8 @@ Voovan ( Apache v2 License )
 
   类似 Netty 和 MINA 的异步 Socket 通信框架.但有有所不同。
   1. <font color="blue">可灵活实现Socket通信粘包的支持</font>（代码中包含 HTTP协议,字符串换行,定长报文的粘包实现）。
-  1. <font color="blue">提供线程池依据系统负载情况的动态调整。</font>
+  1. <font color="blue">支持 SSL/TLS 加密通信。</font>
+  1. <font color="blue">提供线程池依据系统负载情况自动动态调整。</font>
   1. 同时支持 NIO 和 AIO 特性。
   1. 采用非阻塞方式的异步传输。
   1. 事件驱动(Connect、Recive、Sent、Close、Exception)，采用回调的方式完成调用。
