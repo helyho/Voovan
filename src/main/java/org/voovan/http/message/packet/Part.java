@@ -34,6 +34,18 @@ public class Part {
 	}
 	
 	/**
+	 * 构造函数
+	 * @param name 参数名
+	 * @param value 参数值
+	 */
+	public Part(String name,String value){
+		header = new  Header();
+		body = new Body();
+		header.put("name", name);
+		body.write(value.getBytes());
+	}
+	
+	/**
 	 * Part 的 Header 对象
 	 * @return
 	 */
