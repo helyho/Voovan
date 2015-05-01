@@ -271,9 +271,6 @@ public class HttpParser {
 							spliteBytes = Arrays.copyOfRange(spliteBytes, 2, spliteBytes.length-2);
 							//递归调用 pareser 方法解析
 							Map<String, Object> partMap = Parser(new ByteArrayInputStream(spliteBytes));
-							//对Content-Disposition中的"name=xxx"进行处理,方便直接使用
-							Map<String, String> contentDispositionValue = HttpParser.getEqualMap(partMap.get("Content-Disposition").toString());
-							partMap.putAll(contentDispositionValue);
 							//加入bodyPartList中
 							bodyPartList.add(partMap);
 						}
@@ -399,7 +396,14 @@ public class HttpParser {
 							part.body().write(TObject.cast(parsedPartMapItem.getValue()));
 						}else{
 							//填充 header
-							part.header().put(parsedPartMapItem.getKey(), parsedPartMapItem.getValue().toString());
+							String partedHeaderKey = parsedPartMapItem.getKey();
+							String partedHeaderValue = parsedPartMapItem.getValue().toString();
+							part.header().put(partedHeaderKey, partedHeaderValue);
+							if(partedHeaderKey.equals("Content-Disposition")){
+								//对Content-Disposition中的"name=xxx"进行处理,方便直接使用
+								Map<String, String> contentDispositionValue = HttpParser.getEqualMap(partedHeaderValue);
+								part.header().putAll(contentDispositionValue);
+							}
 						}
 					}
 					request.parts().add(part);

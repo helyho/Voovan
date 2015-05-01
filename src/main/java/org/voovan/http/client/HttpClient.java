@@ -81,6 +81,15 @@ public class HttpClient {
 	}
 	
 	/**
+	 * 设置POST多段请求
+	 * 		类似 Form 的 Actiong="POST" enctype="multipart/form-data"
+	 * @param method
+	 */
+	public void addPart(Part part){
+		request.parts().add(part);
+	}
+	
+	/**
 	 * 设置请求参数
 	 * @param name
 	 * @param value
@@ -135,8 +144,8 @@ public class HttpClient {
 			}
 			
 		}
-		else if(request.getType() == RequestType.POST && request.body()!=null){
-			request.body().write(getQueryString().getBytes());
+		else if(request.getType() == RequestType.POST && request.parts().size()==0){
+			request.body().write(TString.removePrefix(getQueryString()).getBytes());
 		}
 	}
 	

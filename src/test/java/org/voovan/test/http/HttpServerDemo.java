@@ -2,11 +2,11 @@ package org.voovan.test.http;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Date;
 import java.util.Map;
 
 import org.voovan.http.server.HttpServer;
 import org.voovan.http.server.websocket.WebSocketBizHandler;
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
@@ -19,13 +19,13 @@ public class HttpServerDemo {
 			HttpServer httpServer = HttpServer.newInstance();
 			
 			//带路劲参数的 GET 请求
-			httpServer.get("/:name", (req, resp) -> {
+			httpServer.get("/:name/:age", (req, resp) -> {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
 				}
-				req.getSession().setAttribute("Time", new Date().toString());
+				req.getSession().setAttribute("Time", TDateTime.now());
 				resp.write(fileContent);
-				resp.write(req.getParameter("name"));
+				resp.write("{\r\n\t\"name\":\""+req.getParameter("name")+"\",\r\n\t\"age\":\""+req.getParameter("age")+"\"\r\n}");
 			});
 			
 			//普通 GET 请求
@@ -33,10 +33,10 @@ public class HttpServerDemo {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
 				}
-				req.getSession().setAttribute("Time", new Date().toString());
+				req.getSession().setAttribute("Time", TDateTime.now());
 
 				resp.write(fileContent);
-				resp.write(req.getParameter("name"));
+				resp.write("{\r\n\t\"name\":\""+req.getParameter("name")+"\",\r\n\t\"age\":\""+req.getParameter("age")+"\"\r\n}");
 			});
 			
 			// 重定向
@@ -49,12 +49,12 @@ public class HttpServerDemo {
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
 				}
-				req.getSession().setAttribute("Time", new Date().toString());
+				req.getSession().setAttribute("Time", TDateTime.now());
 				resp.write(fileContent);
-				resp.write(req.getParameter("name"));
+				resp.write("{\r\n\t\"name\":\""+req.getParameter("name")+"\",\r\n\t\"age\":\""+req.getParameter("age")+"\"\r\n}");
 			});
 			
-			httpServer.socket("/ws", new WebSocketBizHandler() {
+			httpServer.socket("/websocket", new WebSocketBizHandler() {
 				
 				@Override
 				public ByteBuffer onRecived(Map<String, String> params, ByteBuffer message) {

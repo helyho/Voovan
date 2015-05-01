@@ -3,35 +3,59 @@ package org.voovan.test.http;
 
 import org.voovan.http.client.HttpClient;
 import org.voovan.http.message.Response;
+import org.voovan.http.message.packet.Part;
 import org.voovan.tools.log.Logger;
 
 import junit.framework.TestCase;
 
 public class HttpClientUnit extends TestCase {
 
-	HttpClient httpClient;
-	Response response;
 	public HttpClientUnit(String name){
 		super(name);
-		httpClient = new HttpClient("http://www.baidu.com/s");
-		httpClient.putParameters("wd", "测试");
-	}
-
-	public void testHttpClient(){
-		assertNotNull(httpClient);
 	}
 
 	public void testGetHeader() {
-		assertEquals(httpClient.getHeader().get("Host"),"www.baidu.com");
+		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080");
+		httpClient.putParameters("name", "测试");
+		assertEquals(httpClient.getHeader().get("Host"),"127.0.0.1");
 	}
 
 	public void testParameters() {
-		assertEquals(httpClient.getParameters().get("wd"), "测试");
+		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080");
+		httpClient.putParameters("name", "测试");
+		assertEquals(httpClient.getParameters().get("name"), "测试");
 	}
 	
-	public void testConnect() throws Exception{
-		response = httpClient.Connect();
-		Logger.simple("Response body Length: "+ response.body().getBodyBytes().length+"\r\n"+response.body().toString());
-		assertTrue(response.header().size()>5);
+
+	
+	public void testMultiPart() throws Exception {
+		HttpClient mpClient = new HttpClient("http://127.0.0.1:28080");
+		mpClient.setMethod("POST");
+		Part part = new Part();
+		part.header().put("name", "name");
+		part.body().write("测试");
+		mpClient.addPart(part);
+		
+		Response response = mpClient.Connect();
+		Logger.simple(response.body().toString());
+		assertTrue(response.protocol().getStatus()!=500);
 	}
+	
+//	public void testGet() throws Exception{
+//		HttpClient getClient = new HttpClient("http://127.0.0.1:28080");
+//		getClient.setMethod("GET");
+//		getClient.putParameters("name", "测试");
+//		Response response = getClient.Connect();
+//		Logger.simple(response.body().toString());
+//		assertTrue(response.protocol().getStatus()!=500);
+//	}
+
+//	public void testPost() throws Exception {
+//		HttpClient postClient = new HttpClient("http://127.0.0.1:28080");
+//		postClient.setMethod("POST");
+//		postClient.putParameters("name", "测试");
+//		Response response = postClient.Connect();
+//		Logger.simple(response.body().toString());
+//		assertTrue(response.protocol().getStatus() != 500);
+//	}
 }

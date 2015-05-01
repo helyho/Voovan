@@ -3,17 +3,27 @@
 <meta http-equiv="content-type" content="text/html; charset=GB2312" />
 </head>
 <script lang="javascrit">
-var wsServer;
+var wslocation;
 var websocket;
+var host;
+
+
+	function getHost(){
+		var url = window.location.href;
+		var first = url.indexOf("//");
+		var last = url.indexOf("/",first+2);
+		var host = url.substring(first+2,last)
+		return host;
+	}
+	
+	host = getHost();
+	
 	function wsopen() {
-		var loc = window.location.toString();
-		loc = loc.replace("http","ws")
-		loc+="ws";
-		wsServer = loc;
-		websocket = new WebSocket(wsServer);
+		wslocation = "ws://"+host+"/websocket";
+		websocket = new WebSocket(wslocation);
 		websocket.onopen = function(evt) {
 			onOpen(evt)
-			websocket.send('hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohelloxxx');
+			websocket.send('connection hello');
 		};
 		websocket.onclose = function(evt) {
 			onClose(evt)
@@ -40,7 +50,7 @@ var websocket;
 	}
 	
 	function wssend(){
-		websocket.send('hello again');
+		websocket.send('send hello again');
 	}
 	
 	function wsclose(){
@@ -48,27 +58,45 @@ var websocket;
 	}
 	
 	function mySubmit(type){
-		var testFrom = document.getElementById('testForm');
-		testFrom.enctype = type;
-		testForm.submit()
+		var name = document.getElementById('name').value;
+		var age = document.getElementById('age').value;
+		
+		if(type!="normal/get"){
+			var testFrom = document.getElementById('testForm');
+			testFrom.enctype = type;
+			testForm.submit()
+		}else if(type=="normal/get"){
+			window.location="http://"+host+"/?name="+name+"&age="+age;
+		}
+		else if(type=="path/get"){
+			window.location="http://"+host+"/"+name+"/"+age;
+		}
 	}
 	
 </script>
 <body>
 	<!-- enctype="multipart/form-data" -->
 	<form id="testForm" action="/" method="post">
+		<div>中文测试展示测试,用于测试编码</div>
 		<div>
-			username:<input name="name" type="text" value="中文测试" />
+			name:<input id="name" name="name" type="text" value="中文测试" />
 		</div>
 		<div>
-			age:<input name="age" type="text">
+			age:<input id="age" name="age" type="text">
 		</div>
+		GET方法测试:
+		<input type="button" value="normal-get" onClick="mySubmit('normal/get')">
+		<input type="button" value="path-get" onClick="mySubmit('normal/get')">
+		<br>
+		POST方法测试:
 		<input type="button" value="submit-urlencoded" onClick="mySubmit('application/x-www-form-urlencoded')">
 		<input type="button" value="submit-multipart" onClick="mySubmit('multipart/form-data')">
+		<br>
+		WEBSOCKET测试:
 		<input type="button" onclick="wsopen()" value="open">
 		<input type="button" onclick="wssend()" value="send">
 		<input type="button" onclick="wsclose()" value="close">
-		<div>中文测试</div>
+		
 	</form>
 </body>
 </html>

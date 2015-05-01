@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.voovan.http.message.Request;
 import org.voovan.http.message.packet.Cookie;
+import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 /**
@@ -136,7 +137,7 @@ public class HttpRequest extends Request {
 	 * @return
 	 */
 	public String getParameter(String paramName){
-		return parameters.get(paramName);
+		return TObject.nullDefault(parameters.get(paramName),"");
 	}
 	
 	/**
