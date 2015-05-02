@@ -113,8 +113,10 @@ public class HttpDispatcher {
 					//获取路径变量
 					Map<String, String> pathVariables = fetchPathVariables(requestPath,routePath);
 					request.getParameters().putAll(pathVariables);
+					
 					//Session预处理
 					diposeSession(request,response);
+					
 					//处理路由请求
 					handler.Process(request, response);
 				} catch (Exception e) {

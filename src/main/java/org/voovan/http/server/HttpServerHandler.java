@@ -61,14 +61,18 @@ public class HttpServerHandler implements IoHandler {
 				// 构造 Http 请求响应对象
 				HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);
 				HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet);
+				
+				// 填充远程连接的IP 地址和端口
+				httpRequest.setRemoteAddres(session.remoteAddress());
+				httpRequest.setRemotePort(session.remotePort());
 	
 				// WebSocket协议升级处理
 				if (WebSocketTools.isWebSocketUpgrade(request)) {
-					return disposeWebSocketUpgrade(session, httpRequest, httpResponse);
+					return disposeProtocolUpgrade(session, httpRequest, httpResponse);
 				}
 				// Http 1.1处理
 				else {
-					return DisposeHttp(session, httpRequest, httpResponse);
+					return disposeHttp(session, httpRequest, httpResponse);
 				}
 			} else if (obj instanceof WebSocketFrame) {
 				return disposeWebSocket(session, TObject.cast(obj));
@@ -90,44 +94,56 @@ public class HttpServerHandler implements IoHandler {
 	 * @param httpResponse
 	 * @return
 	 */
-	public HttpResponse DisposeHttp(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
-		// 填充远程连接的IP 地址和端口
-		httpRequest.setRemoteAddres(session.remoteAddress());
-		httpRequest.setRemotePort(session.remotePort());
-
+	public HttpResponse disposeHttp(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
+		
 		// 处理响应请求
 		httpDispatcher.processRoute(httpRequest, httpResponse);
 		
 		//如果是长连接则填充响应报文
-		if (httpRequest.header().contain("Connection") && httpRequest.header().get("Connection").toLowerCase().contains("keep-alive")) {
+		if (httpRequest.header().contain("Connection") 
+				&& httpRequest.header().get("Connection").toLowerCase().contains("keep-alive")) {
 			session.setAttribute("isKeepAlive", true);
 			httpResponse.header().put("Connection", httpRequest.header().get("Connection"));
 		}
+		
 		return httpResponse;
 	}
 
 	/**
-	 * WebSocket 协议升级处理
+	 * Http协议升级处理
 	 * 
 	 * @param session
 	 * @param httpRequest
 	 * @param httpResponse
 	 * @return
 	 */
-	public HttpResponse disposeWebSocketUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
+	public HttpResponse disposeProtocolUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
+		
+		//保存必要参数
 		session.setAttribute("isKeepAlive", true);
-		session.setAttribute("isWebSocket", true);
-		session.setAttribute("WebSocketRequest", httpRequest);
+		
+		session.setAttribute("upgradeRequest", httpRequest);
 
+		//初始化响应消息
 		httpResponse.protocol().setStatus(101);
 		httpResponse.protocol().setStatusCode("Switching Protocols");
-		httpResponse.header().put("Upgrade", "websocket");
 		httpResponse.header().put("Connection", "Upgrade");
-		String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get("Sec-WebSocket-Key"));
-		httpResponse.header().put("Sec-WebSocket-Accept", webSocketKey);
-
-		// WebSocket Open事件
-		webSocketDispatcher.processRoute(WebSocketEvent.OPEN, httpRequest, null);
+		
+		if(httpRequest.header().get("Upgrade").equalsIgnoreCase("websocket")){
+			session.setAttribute("isWebSocket", true);
+			httpResponse.header().put("Upgrade", "websocket");
+			String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get("Sec-WebSocket-Key"));
+			httpResponse.header().put("Sec-WebSocket-Accept", webSocketKey);
+			
+			// WS_CONNECT WebSocket Open事件
+			webSocketDispatcher.processRoute(WebSocketEvent.OPEN, httpRequest, null);
+		}
+		
+		if(httpRequest.header().get("Upgrade").equalsIgnoreCase("h2c")){
+			session.setAttribute("isH2c", true);
+			httpResponse.header().put("Upgrade", "h2c");
+			//这里写 HTTP2的实现,暂时流空
+		}
 		return httpResponse;
 	}
 
@@ -142,28 +158,29 @@ public class HttpServerHandler implements IoHandler {
 		session.setAttribute("isKeepAlive", true);
 		session.setAttribute("WebSocketClose", false);
 		
-		// 如果收到关闭帧则关闭连接
+		HttpRequest upgradeRequest = TObject.cast(session.getAttribute("upgradeRequest"));
+		
+		// WS_CLOSE 如果收到关闭帧则关闭连接
 		if (webSocketFrame.getOpcode() == Opcode.CLOSING) {
 			// WebSocket Close事件
-			webSocketDispatcher.processRoute(WebSocketEvent.CLOSE, TObject.cast(session.getAttribute("WebSocketRequest")), null);
+			webSocketDispatcher.processRoute(WebSocketEvent.CLOSE, upgradeRequest, null);
 			session.setAttribute("WebSocketClose", true);
 			return WebSocketFrame.newInstance(true, Opcode.CLOSING, false, webSocketFrame.getFrameData());
 		}
-		// 收到 ping 帧则返回 pong 帧
+		// WS_PING 收到 ping 帧则返回 pong 帧
 		else if (webSocketFrame.getOpcode() == Opcode.PING) {
 			WebSocketFrame.newInstance(true, Opcode.PONG, false, null);
 		}
-		// 文本和二进制消息出发 Recived 事件
+		// WS_RECIVE 文本和二进制消息出发 Recived 事件
 		else if (webSocketFrame.getOpcode() == Opcode.TEXT || webSocketFrame.getOpcode() == Opcode.BINARY) {
-			WebSocketFrame responseWebSocketFrame = null;
+			WebSocketFrame respWebSocketFrame = null;
 			if(webSocketFrame.getErrorCode()==0){
-				responseWebSocketFrame = webSocketDispatcher.processRoute(WebSocketEvent.RECIVED,
-					TObject.cast(session.getAttribute("WebSocketRequest")), webSocketFrame);
+				respWebSocketFrame = webSocketDispatcher.processRoute(WebSocketEvent.RECIVED, upgradeRequest, webSocketFrame);
 			}else{
 				//解析时出现异常,返回关闭消息
-				responseWebSocketFrame = WebSocketFrame.newInstance(true, Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
+				respWebSocketFrame = WebSocketFrame.newInstance(true, Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
 			}
-			return responseWebSocketFrame;
+			return respWebSocketFrame;
 		}
 
 		return null;
@@ -208,8 +225,8 @@ public class HttpServerHandler implements IoHandler {
 					// 如果是 WebSocket 则出发 Close 事件
 					if (session.containAttribute("isWebSocket") && (boolean) session.getAttribute("isWebSocket")) {
 						// WebSocket Close事件
-						webSocketDispatcher
-								.processRoute(WebSocketEvent.CLOSE, TObject.cast(session.getAttribute("WebSocketRequest")), null);
+						webSocketDispatcher.processRoute(WebSocketEvent.CLOSE, 
+								TObject.cast(session.getAttribute("upgradeRequest")), null);
 					}
 					session.close();
 				}

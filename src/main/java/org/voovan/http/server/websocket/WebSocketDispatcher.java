@@ -58,6 +58,7 @@ public class WebSocketDispatcher {
 	 * @throws Exception
 	 */
 	public WebSocketFrame processRoute(WebSocketEvent event, HttpRequest request, WebSocketFrame webSocketFrame) {
+		
 		String requestPath = request.protocol().getPath();
 
 		boolean isMatched = false;
@@ -71,13 +72,13 @@ public class WebSocketDispatcher {
 				try {
 					ByteBuffer responseMessage = null;
 					Map<String, String> variables = HttpDispatcher.fetchPathVariables(requestPath, routePath);
-					variables.putAll(request.getParameters());
+					request.getParameters().putAll(variables);
 					
 					//WebSocket 事件处理
 					if (event == WebSocketEvent.OPEN) {
-					    handler.onOpen(variables);
+					    handler.onOpen(request);
 					} else if (event == WebSocketEvent.RECIVED) {
-						responseMessage = handler.onRecived(variables, webSocketFrame.getFrameData());
+						responseMessage = handler.onRecived(request, webSocketFrame.getFrameData());
 					} else if (event == WebSocketEvent.CLOSE) {
 						handler.onClose();
 					}
