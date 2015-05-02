@@ -99,7 +99,7 @@ public class HttpServerHandler implements IoHandler {
 		httpDispatcher.processRoute(httpRequest, httpResponse);
 		
 		//如果是长连接则填充响应报文
-		if (httpRequest.header().contain("Connection") && httpRequest.header().get("Connection").equals("keep-alive")) {
+		if (httpRequest.header().contain("Connection") && httpRequest.header().get("Connection").toLowerCase().contains("keep-alive")) {
 			session.setAttribute("isKeepAlive", true);
 			httpResponse.header().put("Connection", httpRequest.header().get("Connection"));
 		}
