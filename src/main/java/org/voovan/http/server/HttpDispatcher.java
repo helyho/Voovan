@@ -60,7 +60,7 @@ public class HttpDispatcher {
 		this.addRouteMethod("TRACE");
 		this.addRouteMethod("CONNECT");
 		this.addRouteMethod("OPTIONS");
-
+		
 		// Mime静态文件默认请求处理
 		addRouteHandler("GET", MimeTools.getMimeTypeRegex(), new MimeFileRouter(config.getContextPath()));
 	}
@@ -102,9 +102,9 @@ public class HttpDispatcher {
 		
 		boolean isMatched = false;
 		Map<String, HttpBizHandler> handlerInfos = handlers.get(requestMethod);
-		//遍历路由寻找匹配的路由对象
+		//遍历路由对象
 		for (String routePath : handlerInfos.keySet()) {
-			//路由匹配
+			//寻找匹配的路由对象
 			isMatched = matchPath(requestPath,routePath);
 			if (isMatched) {
 				//获取路由处理对象

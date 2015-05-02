@@ -28,6 +28,7 @@ public class HttpClient {
 	private HttpClientHandler clientHandler; 
 	private Request request;
 	private Map<String, Object> parameters;
+	private String charset="UTF-8";
 	
 	
 	/**
@@ -35,6 +36,19 @@ public class HttpClient {
 	 * @param urlString 请求的 URL 地址
 	 */
 	public  HttpClient(String urlString) {
+		init(urlString);
+	}
+	
+	/**
+	 * 构建函数
+	 * @param urlString 请求的 URL 地址
+	 */
+	public  HttpClient(String urlString,String charset) {
+		this.charset = charset;
+		init(urlString);
+	}
+	
+	private void init(String urlString){
 		try {
 			URL url = new URL(urlString);
 			String hostString = url.getHost();
@@ -111,7 +125,7 @@ public class HttpClient {
 			for (Entry<String, Object> parameter : parameters.entrySet()) {
 				queryString += parameter.getKey()
 						+ "="
-						+ URLEncoder.encode(parameter.getValue().toString(), "UTF-8")
+						+ URLEncoder.encode(parameter.getValue().toString(), charset)
 						+ "&";
 			}
 			queryString = queryString.length()>0?TString.removeSuffix(queryString):queryString;
