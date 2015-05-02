@@ -2,8 +2,8 @@ package org.voovan.test.http;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Map;
 
+import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpServer;
 import org.voovan.http.server.websocket.WebSocketBizHandler;
 import org.voovan.tools.TDateTime;
@@ -71,14 +71,14 @@ public class HttpServerDemo {
 			httpServer.socket("/websocket", new WebSocketBizHandler() {
 				
 				@Override
-				public ByteBuffer onRecived(Map<String, String> params, ByteBuffer message) {
+				public ByteBuffer onRecived(HttpRequest upgradeRequest, ByteBuffer message) {
 					Logger.info(new String(message.array()));
 					String msg = "This is server message. Client message: \r\n\t\""+new String(message.array())+"\"";
 					return ByteBuffer.wrap(msg.getBytes());
 				}
 				
 				@Override
-				public void onOpen(Map<String, String> params) {
+				public void onOpen(HttpRequest upgradeRequest) {
 					Logger.info("WebSocket connect!");
 				}
 				
