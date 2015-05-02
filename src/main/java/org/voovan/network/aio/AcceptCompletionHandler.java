@@ -1,12 +1,10 @@
-package org.voovan.network.aio.completionhandler;
+package org.voovan.network.aio;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 
 import org.voovan.network.EventTrigger;
-import org.voovan.network.aio.AioServerSocket;
-import org.voovan.network.aio.AioSocket;
 import org.voovan.tools.log.Logger;
 
 /**

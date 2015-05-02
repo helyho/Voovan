@@ -8,8 +8,6 @@ import java.nio.channels.AsynchronousSocketChannel;
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
-import org.voovan.network.aio.completionhandler.ConnectedCompletionHandler;
-import org.voovan.network.aio.completionhandler.ReadCompletionHandler;
 import org.voovan.tools.TEnv;
 
 /**
@@ -52,7 +50,7 @@ public class AioSocket extends SocketContext {
 	 * @param readTimeout
 	 * @throws IOException
 	 */
-	public AioSocket(SocketContext parentSocketContext, AsynchronousSocketChannel socketChannel) throws IOException {
+	protected AioSocket(SocketContext parentSocketContext, AsynchronousSocketChannel socketChannel) throws IOException {
 		this.socketChannel = socketChannel;
 		this.cloneInit(parentSocketContext);
 		session = new AioSession(this, this.readTimeout);
@@ -68,7 +66,7 @@ public class AioSocket extends SocketContext {
 	 * 
 	 * @return
 	 */
-	public EventTrigger getEventTrigger() {
+	protected EventTrigger getEventTrigger() {
 		return eventTrigger;
 	}
 
@@ -76,7 +74,7 @@ public class AioSocket extends SocketContext {
 	 * 捕获 Aio Connect
 	 * @throws IOException 
 	 */
-	public void catchConnected() throws IOException {
+	protected void catchConnected() throws IOException {
 		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
 		socketChannel.connect(socketAddress, this, connectedCompletionHandler);
 		while(true){
@@ -89,7 +87,7 @@ public class AioSocket extends SocketContext {
 	/**
 	 * 捕获 Aio Read
 	 */
-	public void catchRead(ByteBuffer buffer) {
+	protected void catchRead(ByteBuffer buffer) {
 		if (isConnect()) {
 			socketChannel.read(buffer, buffer, readCompletionHandler);
 		}
