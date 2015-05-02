@@ -46,7 +46,7 @@ public class NioSocket extends SocketContext{
 	 * 构造函数
 	 * @param socketChannel SocketChannel 对象
 	 */
-	public NioSocket(SocketContext parentSocketContext,SocketChannel socketChannel){
+	protected NioSocket(SocketContext parentSocketContext,SocketChannel socketChannel){
 		try {
 			provider = SelectorProvider.provider();
 			this.host = socketChannel.socket().getLocalAddress().getHostAddress();
