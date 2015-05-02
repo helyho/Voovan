@@ -26,27 +26,12 @@ public class HttpClientUnit extends TestCase {
 		assertEquals(httpClient.getParameters().get("name"), "测试");
 	}
 	
-
-	
-	public void testMultiPart() throws Exception {
-		HttpClient mpClient = new HttpClient("http://127.0.0.1:28080");
-		mpClient.setMethod("POST");
-		Part part = new Part();
-		part.header().put("name", "name");
-		part.body().write("测试");
-		mpClient.addPart(part);
-		
-		Response response = mpClient.Connect();
-		Logger.simple(response.body().toString());
-		assertTrue(response.protocol().getStatus()!=500);
-	}
-	
 //	public void testGet() throws Exception{
-//		HttpClient getClient = new HttpClient("http://127.0.0.1:28080");
+//		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312");
 //		getClient.setMethod("GET");
 //		getClient.putParameters("name", "测试");
 //		Response response = getClient.Connect();
-//		Logger.simple(response.body().toString());
+//		Logger.simple(response.body().getBodyString("GB2312"));
 //		assertTrue(response.protocol().getStatus()!=500);
 //	}
 
@@ -56,7 +41,20 @@ public class HttpClientUnit extends TestCase {
 //		postClient.putParameters("jid", "helyho");
 //		postClient.putParameters("password", "****");
 //		Response response = postClient.Connect();
-//		Logger.simple(response.body().toString());
+//		Logger.simple(response.body().getBodyString());
 //		assertTrue(response.protocol().getStatus() != 500);
 //	}
+	
+	public void testMultiPart() throws Exception {
+		HttpClient mpClient = new HttpClient("http://127.0.0.1:28080");
+		mpClient.setMethod("POST");
+		Part part = new Part();
+		part.header().put("name", "name");
+		part.body().write("测试","GB2312");
+		mpClient.addPart(part);
+		
+		Response response = mpClient.Connect();
+		Logger.simple(response.body().getBodyString("GB2312"));
+		assertTrue(response.protocol().getStatus()!=500);
+	}
 }

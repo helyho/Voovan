@@ -26,7 +26,7 @@ import org.voovan.tools.log.Logger;
 public class HttpServerHandler implements IoHandler {
 	private HttpDispatcher		httpDispatcher;
 	private WebSocketDispatcher	webSocketDispatcher;
-	private WebServerConfig			config;
+	private WebServerConfig		config;
 
 	public HttpServerHandler(WebServerConfig config, HttpDispatcher httpDispatcher, WebSocketDispatcher webSocketDispatcher) {
 		this.httpDispatcher = httpDispatcher;
@@ -169,11 +169,13 @@ public class HttpServerHandler implements IoHandler {
 		}
 		// WS_PING 收到 ping 帧则返回 pong 帧
 		else if (webSocketFrame.getOpcode() == Opcode.PING) {
-			WebSocketFrame.newInstance(true, Opcode.PONG, false, null);
+			return WebSocketFrame.newInstance(true, Opcode.PONG, false, null);
 		}
 		// WS_RECIVE 文本和二进制消息出发 Recived 事件
 		else if (webSocketFrame.getOpcode() == Opcode.TEXT || webSocketFrame.getOpcode() == Opcode.BINARY) {
 			WebSocketFrame respWebSocketFrame = null;
+			
+			//判断解包是否有错
 			if(webSocketFrame.getErrorCode()==0){
 				respWebSocketFrame = webSocketDispatcher.processRoute(WebSocketEvent.RECIVED, upgradeRequest, webSocketFrame);
 			}else{
