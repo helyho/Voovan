@@ -52,7 +52,7 @@ public class AioSocket extends SocketContext {
 	 */
 	protected AioSocket(SocketContext parentSocketContext, AsynchronousSocketChannel socketChannel) throws IOException {
 		this.socketChannel = socketChannel;
-		this.cloneInit(parentSocketContext);
+		this.copyFrom(parentSocketContext);
 		session = new AioSession(this, this.readTimeout);
 		eventTrigger = new EventTrigger(session);
 
