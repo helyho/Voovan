@@ -33,7 +33,7 @@ public abstract class SocketContext {
 	 * 克隆对象
 	 * @param parentSocketContext
 	 */
-	public void cloneInit(SocketContext parentSocketContext){
+	protected void copyFrom(SocketContext parentSocketContext){
 		this.readTimeout = parentSocketContext.readTimeout;
 		this.handler = parentSocketContext.handler;
 		this.filterChain = parentSocketContext.filterChain;
@@ -44,7 +44,7 @@ public abstract class SocketContext {
 	/**
 	 * 无参数构造函数
 	 */
-	public SocketContext() {
+	protected SocketContext() {
 		filterChain = new Chain<IoFilter>();
 	}
 
@@ -107,7 +107,7 @@ public abstract class SocketContext {
 	}
 	
 	/**
-	 * 获取消息分割器
+	 * 获取消息粘包分割器
 	 * @return
 	 */
 	public MessageParter messageParter() {
@@ -115,7 +115,7 @@ public abstract class SocketContext {
 	}
 	
 	/**
-	 * 设置消息分割器
+	 * 设置消息粘包分割器
 	 * @return
 	 */
 	public void messageParter(MessageParter messageParter) {

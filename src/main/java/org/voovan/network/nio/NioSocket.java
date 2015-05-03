@@ -53,7 +53,7 @@ public class NioSocket extends SocketContext{
 			this.port = socketChannel.socket().getLocalPort();
 			this.socketChannel = socketChannel;
 			socketChannel.configureBlocking(false);
-			this.cloneInit(parentSocketContext);
+			this.copyFrom(parentSocketContext);
 			this.socketChannel().socket().setSoTimeout(this.readTimeout);
 			session = new NioSession(this,this.readTimeout);
 			connectModel = ConnectModel.SERVER;

@@ -37,7 +37,7 @@ public class Complier {
 	 * 获取 JAVA编译器
 	 * @return
 	 */
-	public JavaCompiler getComplier(){
+	private JavaCompiler getComplier(){
 		return ToolProvider.getSystemJavaCompiler(); 
 	}
 	
@@ -82,7 +82,7 @@ public class Complier {
 	/**
 	 * 编译 内存中的java源码为class文件
 	 * @param className 生成的java类的名字
-	 * @param classPath 需要引入的环境变量
+	 * @param classPath 需要引入的classpath字符串
 	 * @param classDir 生成的class文件所在的目录
 	 * @param javaSourceContent 需要的java源码字符串
 	 * @return
@@ -102,6 +102,7 @@ public class Complier {
 		
 		JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, options, null, compilationUnits);
 		Boolean success = task.call(); 
+		
 		//对在内存中编译的进行特殊处理
 		if(success==true && fileManager instanceof MemFileManager){
 			MemFileManager memFileManager = TObject.cast(fileManager);

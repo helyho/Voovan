@@ -28,7 +28,7 @@ public abstract class IoSession {
 	/**
 	 * 构造函数
 	 */
-	public IoSession(){
+	protected IoSession(){
 		attributes = new Hashtable<Object, Object>();
 		netDataBufferChannel = new ByteBufferChannel();
 		appDataBufferChannel = new ByteBufferChannel();
@@ -124,7 +124,7 @@ public abstract class IoSession {
 	
 	/**
 	 * 发送消息
-	 * 		不出发任何事件
+	 * 		注意直接调用不会出发 onSent 事件不出发任何事件
 	 * @param byteBuffer
 	 * @throws IOException
 	 */

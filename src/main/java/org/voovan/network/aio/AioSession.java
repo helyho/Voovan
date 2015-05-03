@@ -33,7 +33,7 @@ public class AioSession extends IoSession {
 	 * @param socket
 	 * @param readTimeout
 	 */
-	public AioSession(AioSocket socket, int readTimeout) {
+	AioSession(AioSocket socket, int readTimeout) {
 		super();
 		this.socketChannel = socket.socketChannel();
 		this.socket = socket;
