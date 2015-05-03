@@ -12,7 +12,10 @@ Voovan ( Apache v2 License )
   1. 采用非阻塞方式的异步传输。
   1. 事件驱动(Connect、Recive、Sent、Close、Exception)，采用回调的方式完成调用。
   1. <font color="blue">可灵活的加载过滤器机制。</font>
-
+  
+  
+[查看异步框架使用指南](https://github.com/helyho/Voovan/wiki/%E5%BC%82%E6%AD%A5%E9%80%9A%E4%BF%A1%E6%A1%86%E6%9E%B6%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
+  
 ---------------------
 
 ###二、HTTP 客户端和服务端 通信实现
@@ -20,6 +23,10 @@ Voovan ( Apache v2 License )
   1. 基于 Voovan 异步通信框架实现。
   1. 客户端可以灵活自定义请求报文。
   1. 同步实现 HTTP请求(需要同步实现可参考)。
+  
+  
+[查看HTTP客户端类使用指南](https://github.com/helyho/Voovan/wiki/HTTP%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%B1%BB%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
+  
 
 ###服务端特性:
   1. 支持 <font color="blue">WebSocket Version 13</font>，并且保持 WebSocket请求参数。
@@ -29,22 +36,34 @@ Voovan ( Apache v2 License )
   1. 可灵活实现session共享。
   1. <font color="blue">异常统一展示</font>支持。
   1. MIME 配置支持。
+  
+  
+[查看HTTP服务端类使用指南](https://github.com/helyho/Voovan/wiki/HTTP%E6%9C%8D%E5%8A%A1%E7%B1%BB%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E)
 
 ---------------------
 
 ###三、动态编译支持
 
   在内存中编一个保存有 java 代码的字符串,并将编译后的 byte 字节加入到 classloader 中,可灵活的动态定义类和使用。
+  
+  
+[动态编译使用指南](https://github.com/helyho/Voovan/wiki/%E5%8A%A8%E6%80%81%E7%BC%96%E8%AF%91%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
+  
 
 ---------------------
 
 ###四、数据库操作帮助类
 提供类似Spring JDBCTemplate 的数据访问支持，但提供了更好更灵活易用的函数设计，同时提供对数据库事务的支持。
 
+
+[数据库类使用指南](https://github.com/helyho/Voovan/wiki/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B1%BB%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
+
+
 ---------------------
 
 ###五、DateTime、String、Log、反射、对象工具、流操作、文件操作、异步双向通道等
 
+  1. 简单的 JSON 序列化和反序列化,效率比不过专业的序列化工具(如:FastJson),但重在轻量级好用。
   1. 日期类型和字符串和日期类型互转,日期类型加减操作。
   1. 反射的快捷实现,可直接通过反射取属性值,调用方法,实例化对象,<font color="blue">判断类的继承及实现</font>。
   1. 简单的日志记录类,支持指定输出流,日志报文自定义等。
@@ -54,7 +73,8 @@ Voovan ( Apache v2 License )
   1. 属性文件操作。
   1. 文件路径拼接、从绝对路径读取、从相对路径读取、从包路径读取、指定起始和结束位置内容读取等。
   1. List 和 Map 的快速初始化。
-
+  
+[工具类使用指南](https://github.com/helyho/Voovan/wiki/%E5%B7%A5%E5%85%B7%E7%B1%BB%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
 
 
 ##包结构说明
