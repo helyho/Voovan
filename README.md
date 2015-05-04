@@ -2,6 +2,12 @@ Voovan ( Apache v2 License )
 ===============
 ####Voovan开源项目旨在提供可靠、方便、可单元测试的代码。它是一个<font color="blue">无任何依赖</font>的独立工具包，希望能够方便广大开发者快速的实现应用。
 
+Voovan开源项目源代码主要托管于 GitHub.
+
+GitHub地址: https://github.com/helyho/Voovan.git
+
+帮助文档地址: https://github.com/helyho/Voovan/wiki
+
 ###一、异步通信框架(AIO、NIO异步通信)
 
   类似 Netty 和 MINA 的异步 Socket 通信框架.但有有所不同。
