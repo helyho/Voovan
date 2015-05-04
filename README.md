@@ -2,11 +2,16 @@ Voovan ( Apache v2 License )
 ===============
 ####Voovan开源项目旨在提供可靠、方便、可单元测试的代码。它是一个<font color="blue">无任何依赖</font>的独立工具包，希望能够方便广大开发者快速的实现应用。
 
-Voovan开源项目源代码主要托管于 GitHub.
+    Voovan开源项目源代码主要托管于 GitHub.
 
-GitHub地址: https://github.com/helyho/Voovan.git
+**GitHub地址:** https://github.com/helyho/Voovan.git
 
-帮助文档地址: https://github.com/helyho/Voovan/wiki
+**帮助文档地址:** https://github.com/helyho/Voovan/wiki
+
+**Issues地址:** [GitHub](https://github.com/helyho/Voovan/issues) 或者 [Git@OSC](http://git.oschina.net/helyho/Voovan/issues)
+
+
+    推荐将 Issues 提交到 GitHub,如果没有 GitHub 帐号可以直接提交到 Git@OSC
 
 ###一、异步通信框架(AIO、NIO异步通信)
 
