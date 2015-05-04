@@ -3,7 +3,9 @@ Voovan ( Apache v2 License )
 ####Voovan开源项目旨在提供可靠、方便、可单元测试的代码。它是一个**无任何依赖**的独立工具包，希望能够方便广大开发者快速的实现应用。
 
 **框架主要实现的特点:**
- - 使用 JDK8 的 lambda 表达式,快速实现 HTTP/WebSocket 服务的开发。[【举个栗子】](https://github.com/helyho/Voovan/wiki/HTTP%E6%9C%8D%E5%8A%A1%E7%B1%BB%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E#%E4%BA%8C%E4%BD%BF%E7%94%A8%E4%B8%BE%E4%BE%8B)/[【演示地址】](http://webserver.voovan.com/)
+ - 使用 JDK8 的 lambda 表达式,快速实现 HTTP/WebSocket 服务的开发。
+  
+ [【举个栗子】](https://github.com/helyho/Voovan/wiki/HTTP%E6%9C%8D%E5%8A%A1%E7%B1%BB%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E#%E4%BA%8C%E4%BD%BF%E7%94%A8%E4%B8%BE%E4%BE%8B)/[【演示地址】](http://webserver.voovan.com/)
  - 异步通信框架解决粘包问题。[【举个栗子】](https://github.com/helyho/Voovan/wiki/AIO-NIO%E5%BC%82%E6%AD%A5%E9%80%9A%E4%BF%A1%E6%A1%86%E6%9E%B6%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97#%E4%B8%89%E4%BD%BF%E7%94%A8%E4%B8%BE%E4%BE%8B)
  - 独立无依赖的代码。
  - 源码注释丰富，方便码友学习、调试、使用。
@@ -24,7 +26,7 @@ Voovan开源项目源代码主要托管于 GitHub.
 
   类似 Netty 和 MINA 的异步 Socket 通信框架.但有有所不同。
   1. **可灵活实现Socket通信粘包的支持**（代码中包含 HTTP协议,字符串换行,定长报文的粘包实现）。
-  1. 支持 **SSL/TLS* 加密通信。
+  1. 支持 **SSL/TLS** 加密通信。
   1. **提供线程池依据系统负载情况自动动态调整。**
   1. 同时支持 NIO 和 AIO 特性。
   1. 采用非阻塞方式的异步传输。
