@@ -37,7 +37,7 @@ public class NioSession extends IoSession {
 			byteBufferChannel = new ByteBufferChannel();
 		}
 
-		messageLoader = new MessageLoader(this, readTimeout, 1024);
+		messageLoader = new MessageLoader(this, readTimeout);
 	}
 
 	/**

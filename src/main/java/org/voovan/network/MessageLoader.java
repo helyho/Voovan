@@ -17,7 +17,6 @@ import org.voovan.tools.log.Logger;
 public class MessageLoader {
 	private IoSession session;
 	private int readTimeout;
-	private int bufferSize;
 	
 
 	/**
@@ -25,10 +24,9 @@ public class MessageLoader {
 	 * @param session
 	 * @param readTimeOut 超时时间
 	 */
-	public MessageLoader(IoSession session,int readTimeout,int bufferSize) {
+	public MessageLoader(IoSession session,int readTimeout) {
 		this.session = session;
 		this.readTimeout = readTimeout;
-		this.bufferSize = bufferSize;
 	}
 
 	/**
@@ -71,12 +69,14 @@ public class MessageLoader {
 	
 	/**
 	 * 读取 socket 中的数据
+	 * 	逐字节读取数据,并用消息截断器判断消息包是否完整,消息粘包有两种截断方式:
+	 * 	1.消息截断器生效
+	 * 	2.消息读取时间超时,例如设置5m,则连续5秒内没有读取到有用的消息则返回报文.
 	 * @param socketChannel
 	 * @return
 	 * @throws IOException
 	 */
 	public ByteBuffer read() throws IOException {
-		//标记正在读取数据,标志改为 true ,主要是为了防止多线程读取数据导致 onRecive 事件触发的都是数据块
 		
 		MessageParter messageParter = session.sockContext().messageParter();
 		
@@ -87,13 +87,14 @@ public class MessageLoader {
 		int wroteCount = 0;
 		
 		//缓冲区字段
-		ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
+		ByteBuffer buffer = ByteBuffer.allocate(1);
 		
 		if (session != null) {
 			while (true) {
 				buffer.clear();
 				int readsize = 0;
 				
+				//读出数据
 				if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone){
 					readsize = session.readSSLData(buffer);
 				}
@@ -101,30 +102,35 @@ public class MessageLoader {
 					readsize = session.read(buffer);
 				}
 				
+				//将读出的数据写入缓冲区
+				if(readsize!=0) {
+					//如果读到数据,则清零超时事件
+					wroteCount+=readsize;
+					byteOutputStream.write(buffer.array(), 0, readsize);
+				}
 				
+				//判断连接是否关闭
 				if (isRemoteClosed(readsize,buffer)) {
 					if(byteOutputStream.size()!=0){
 						return buffer;
 					}
 					return null;
 				}
+				//使用消息划分器进行消息划分
+				else if(messageParter!=null && messageParter.canPartition(session,byteOutputStream.toByteArray(), elapsedtime)){
+					Logger.simple(byteOutputStream.size());
+					break;
+				}
 				//readsize为0时认为是超时
 				else if(readsize==0){
 					
-					//使用消息划分器进行消息划分
-					if(messageParter!=null && messageParter.canPartition(session,byteOutputStream.toByteArray(), elapsedtime)){
-						break;
-					}
-					
 					//超时判断
 					if(readTimeout==elapsedtime){
-						Logger.warn("Socket read timeout,return recived data.");
 						break;
 					}
 					
 					//如果连接断开立刻关闭
 					if(!session.isConnect()){
-						Logger.warn("Socket interrupt,return recived data.");
 						break;
 					}
 					
@@ -132,17 +138,13 @@ public class MessageLoader {
 					//超时时间自增
 					elapsedtime++;
 				}
-				else {
-					//如果读到数据,则清零超时事件
-					wroteCount+=readsize;
-					byteOutputStream.write(buffer.array(), 0, readsize);
-				}
-			}
-			if(byteOutputStream.size()!=0){
-				buffer = ByteBuffer.wrap(byteOutputStream.toByteArray());
 			}
 		}
-		//读取完毕,标志改为 false
+		
+		if(byteOutputStream.size()!=0){
+			buffer = ByteBuffer.wrap(byteOutputStream.toByteArray());
+		}
+		
 		if(wroteCount==0){
 			buffer = ByteBuffer.allocate(0);
 		}

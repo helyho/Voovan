@@ -39,6 +39,7 @@ public class EventProcess {
 	public static void onConnect(Event event) throws Exception {
 
 		IoSession session = event.getSession();
+		
 		// SSL 握手
 		if (session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
 			try {
@@ -88,54 +89,62 @@ public class EventProcess {
 		SocketContext socketContext = event.getSession().sockContext();
 		IoSession session = event.getSession();
 		if (socketContext != null && session != null) {
-			// 一次读完单次发送的所有消息
-			ByteBuffer byteBuffer = session.getMessageLoader().read();
-			// 如果读出的消息为 null 则关闭连接
-			if (byteBuffer == null) {
-				session.close();
-				return;
-			}
+			
+			ByteBuffer byteBuffer = ByteBuffer.allocate(1);
+			
+			//循环读取完整的消息包,由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.
+			//按消息包出发 onRecive 事件
+			while (byteBuffer.limit() != 0) {
+				
+				byteBuffer = session.getMessageLoader().read();
+				
+				// 如果读出的消息为 null 则关闭连接
+				if (byteBuffer == null) {
+					session.close();
+					return;
+				}
+				
+				// 如果读出的数据长度为0,不触发事件
+				if (byteBuffer.limit() == 0) {
+					return;
+				}
 
-			// 如果读出的数据长度为0,不触发事件
-			if (byteBuffer.limit() == 0) {
-				return;
-			}
+				// -----------------Filter 解密处理-----------------
+				Object result = byteBuffer;
 
-			// -----------------Filter 解密处理-----------------
-			Object result = byteBuffer;
-
-			// 取得过滤器链
-			Chain<IoFilter> filterChain = socketContext.filterChain().clone();
-			while (filterChain.hasNext()) {
-				IoFilter fitler = filterChain.next();
-				result = fitler.decode(session, result);
-			}
-			// -------------------------------------------------
-
-			// -----------------Handler 业务处理-----------------
-			if (result != null) {
-				IoHandler handler = socketContext.handler();
-				result = handler.onReceive(session, result);
-			}
-			// --------------------------------------------------
-
-			// 返回的结果不为空的时候才发送
-			if (result != null) {
-				// ------------------Filter 加密处理-----------------
-				filterChain.rewind();
+				// 取得过滤器链
+				Chain<IoFilter> filterChain = socketContext.filterChain().clone();
 				while (filterChain.hasNext()) {
 					IoFilter fitler = filterChain.next();
-					result = fitler.encode(session, result);
+					result = fitler.decode(session, result);
 				}
-				// ---------------------------------------------------
+				// -------------------------------------------------
 
-				// 发送消息
+				// -----------------Handler 业务处理-----------------
 				if (result != null) {
-					sendMessage(session, result);
+					IoHandler handler = socketContext.handler();
+					result = handler.onReceive(session, result);
 				}
-			}
+				// --------------------------------------------------
 
-			filterChain.clear();
+				// 返回的结果不为空的时候才发送
+				if (result != null) {
+					// ------------------Filter 加密处理-----------------
+					filterChain.rewind();
+					while (filterChain.hasNext()) {
+						IoFilter fitler = filterChain.next();
+						result = fitler.encode(session, result);
+					}
+					// ---------------------------------------------------
+
+					// 发送消息
+					if (result != null) {
+						sendMessage(session, result);
+					}
+				}
+
+				filterChain.clear();
+			}
 		}
 	}
 
