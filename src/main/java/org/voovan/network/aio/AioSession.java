@@ -42,7 +42,7 @@ public class AioSession extends IoSession {
 			byteBufferChannel = new ByteBufferChannel();
 		}
 
-		this.messageLoader = new MessageLoader(this, readTimeout, 1024);
+		this.messageLoader = new MessageLoader(this, readTimeout);
 	}
 
 	/**
