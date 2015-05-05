@@ -19,7 +19,7 @@ public class JdbcOperateDemo {
 	public static void main(String[] args) throws Exception {
 		DruidDataSource dataSource = null;
 		try {
-			String druidPath = TEnv.getSystemPath("Config" + File.separator + "druid.properties");
+			String druidPath = TEnv.getSystemPath("Config" + File.separator + "datasource.properties");
 			Properties druidProperites = TProperties.getProperties(new File(druidPath));
 		    dataSource = TObject.cast(DruidDataSourceFactory.createDataSource(druidProperites));
 			dataSource.init();
