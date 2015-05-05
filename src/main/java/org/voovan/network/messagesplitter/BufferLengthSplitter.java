@@ -1,7 +1,7 @@
-package org.voovan.network.messageparter;
+package org.voovan.network.messagesplitter;
 
 import org.voovan.network.IoSession;
-import org.voovan.network.MessageParter;
+import org.voovan.network.MessageSplitter;
 
 /**
  * 按定长对消息分割
@@ -9,15 +9,15 @@ import org.voovan.network.MessageParter;
  * @author helyho
  *
  */
-public class BufferLengthParter implements MessageParter {
+public class BufferLengthSplitter implements MessageSplitter {
 	private long bufferLength;
 	
-	public BufferLengthParter(long bufferLength){
+	public BufferLengthSplitter(long bufferLength){
 		this.bufferLength = bufferLength;
 	}
 
 	@Override
-	public boolean canPartition(IoSession session, byte[] buffer, int elapsedtime) {
+	public boolean canSplite(IoSession session, byte[] buffer, int elapsedtime) {
 		if(buffer.length>=bufferLength){
 			return true;
 		}

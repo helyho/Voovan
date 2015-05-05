@@ -13,7 +13,7 @@ public abstract class SocketContext {
 	
 	protected IoHandler handler;
 	protected Chain<IoFilter> filterChain;
-	protected MessageParter messageParter;
+	protected MessageSplitter messageSplitter;
 	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
 	
@@ -37,7 +37,7 @@ public abstract class SocketContext {
 		this.readTimeout = parentSocketContext.readTimeout;
 		this.handler = parentSocketContext.handler;
 		this.filterChain = parentSocketContext.filterChain;
-		this.messageParter = parentSocketContext.messageParter;
+		this.messageSplitter = parentSocketContext.messageSplitter;
 		this.sslManager = parentSocketContext.sslManager;
 	}
 	
@@ -110,16 +110,16 @@ public abstract class SocketContext {
 	 * 获取消息粘包分割器
 	 * @return
 	 */
-	public MessageParter messageParter() {
-		return this.messageParter;
+	public MessageSplitter messageSplitter() {
+		return this.messageSplitter;
 	}
 	
 	/**
 	 * 设置消息粘包分割器
 	 * @return
 	 */
-	public void messageParter(MessageParter messageParter) {
-		this.messageParter = messageParter;
+	public void messageSplitter(MessageSplitter messageSplitter) {
+		this.messageSplitter = messageSplitter;
 	}
 	
 	/**

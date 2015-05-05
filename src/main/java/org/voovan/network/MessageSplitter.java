@@ -6,7 +6,7 @@ package org.voovan.network;
  * @author helyho
  *
  */
-public interface MessageParter {
+public interface MessageSplitter {
 
 	/**
 	 * 判断消息是否可分割
@@ -14,6 +14,6 @@ public interface MessageParter {
 	 * @param elapsedtime
 	 * @return   返回:true 可区分,false不可区分
 	 */
-	public boolean canPartition(IoSession session,byte[] buffer,int elapsedtime);
+	public boolean canSplite(IoSession session,byte[] buffer,int elapsedtime);
 	
 }

@@ -1,10 +1,10 @@
-package org.voovan.network.messageparter;
+package org.voovan.network.messagesplitter;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 
 import org.voovan.network.IoSession;
-import org.voovan.network.MessageParter;
+import org.voovan.network.MessageSplitter;
 import org.voovan.tools.TString;
 
 /**
@@ -13,12 +13,12 @@ import org.voovan.tools.TString;
  * @author helyho
  *
  */
-public class HttpMessageParter implements MessageParter {
+public class HttpMessageSplitter implements MessageSplitter {
 
 	private static final String	BODY_TAG	= "\r\n\r\n";
 
 	@Override
-	public boolean canPartition(IoSession session, byte[] buffer, int elapsedtime) {
+	public boolean canSplite(IoSession session, byte[] buffer, int elapsedtime) {
 
 		if (isHttpFrame(buffer)) {
 			return true;
