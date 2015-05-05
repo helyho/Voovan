@@ -78,7 +78,7 @@ public class MessageLoader {
 	 */
 	public ByteBuffer read() throws IOException {
 		
-		MessageParter messageParter = session.sockContext().messageParter();
+		MessageSplitter messageSplitter = session.sockContext().messageSplitter();
 		
 		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 		
@@ -117,7 +117,7 @@ public class MessageLoader {
 					return null;
 				}
 				//使用消息划分器进行消息划分
-				else if(messageParter!=null && messageParter.canPartition(session,byteOutputStream.toByteArray(), elapsedtime)){
+				else if(messageSplitter!=null && messageSplitter.canSplite(session,byteOutputStream.toByteArray(), elapsedtime)){
 					Logger.simple(byteOutputStream.size());
 					break;
 				}

@@ -192,7 +192,7 @@ public abstract class IoSession {
 	 * 获取消息处理类
 	 * @return
 	 */
-	protected abstract MessageParter getMessagePartition();
+	protected abstract MessageSplitter getMessagePartition();
 	
 	/**
 	 * 会话是否打开

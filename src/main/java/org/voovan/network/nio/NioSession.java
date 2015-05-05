@@ -6,7 +6,7 @@ import java.nio.channels.SocketChannel;
 
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageLoader;
-import org.voovan.network.MessageParter;
+import org.voovan.network.MessageSplitter;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.ByteBufferChannel;
 
@@ -150,8 +150,8 @@ public class NioSession extends IoSession {
 	}
 
 	@Override
-	protected MessageParter getMessagePartition() {
-		return socket.messageParter();
+	protected MessageSplitter getMessagePartition() {
+		return socket.messageSplitter();
 	}
 
 	/**

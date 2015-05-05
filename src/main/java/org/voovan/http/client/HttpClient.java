@@ -12,7 +12,7 @@ import org.voovan.http.message.Request.RequestType;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
 import org.voovan.network.aio.AioSocket;
-import org.voovan.network.messageparter.HttpMessageParter;
+import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
@@ -174,7 +174,7 @@ public class HttpClient {
 		clientHandler = new HttpClientHandler(request);
 		socket.handler(clientHandler);
 		socket.filterChain().add(new HttpClientFilter());
-		socket.messageParter(new HttpMessageParter());
+		socket.messageSplitter(new HttpMessageSplitter());
 		Logger.simple(request);
 		socket.start();
 		

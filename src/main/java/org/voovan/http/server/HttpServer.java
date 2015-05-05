@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.voovan.http.server.websocket.WebSocketBizHandler;
 import org.voovan.http.server.websocket.WebSocketDispatcher;
 import org.voovan.network.aio.AioServerSocket;
-import org.voovan.network.messageparter.HttpMessageParter;
+import org.voovan.network.messagesplitter.HttpMessageSplitter;
 
 /**
  * HttpServer 对象
@@ -47,7 +47,7 @@ public class HttpServer {
 		this.webSocketDispatcher = new WebSocketDispatcher(config);
 		aioServerSocket.handler(new HttpServerHandler(config, httpDispatcher,webSocketDispatcher));
 		aioServerSocket.filterChain().add(new HttpServerFilter());
-		aioServerSocket.messageParter(new HttpMessageParter());
+		aioServerSocket.messageSplitter(new HttpMessageSplitter());
 	}
 
 	/**

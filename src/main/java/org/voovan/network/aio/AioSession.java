@@ -8,7 +8,7 @@ import java.util.concurrent.Future;
 
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageLoader;
-import org.voovan.network.MessageParter;
+import org.voovan.network.MessageSplitter;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
@@ -149,8 +149,8 @@ public class AioSession extends IoSession {
 	}
 
 	@Override
-	protected MessageParter getMessagePartition() {
-		return socket.messageParter();
+	protected MessageSplitter getMessagePartition() {
+		return socket.messageSplitter();
 	}
 
 	@Override
