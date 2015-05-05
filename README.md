@@ -10,7 +10,7 @@ Voovan ( Apache v2 License )
  - 有能力的同学可以通过很简单几行修改使 HTTPServer 和 HTTPClient使用 NIO 那么就是 JDK1.6。
  
 
-    Voovan开源项目源代码主要托管于 GitHub.
+**Voovan开源项目源代码主要托管于 GitHub.**
 
 **GitHub地址:** https://github.com/helyho/Voovan.git
 
