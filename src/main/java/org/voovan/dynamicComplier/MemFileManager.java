@@ -10,7 +10,10 @@ import javax.tools.JavaFileObject;
 /**
  * 内存文件管理实现
  * @author helyho
- *
+ * 
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class MemFileManager extends ForwardingJavaFileManager<JavaFileManager> {
 

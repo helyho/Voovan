@@ -13,6 +13,9 @@ import org.voovan.tools.TEnv;
  * 
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class AioServerSocket extends SocketContext{
 

@@ -9,7 +9,10 @@ import org.voovan.tools.TZip;
 /**
  * HTTP的内容对象
  * @author helyho
- *
+ * 
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class Body {
 	private ByteArrayOutputStream outputStream;

@@ -15,6 +15,9 @@ import org.voovan.tools.ByteBufferChannel;
  * 
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class NioSession extends IoSession {
 	private SocketChannel		socketChannel;

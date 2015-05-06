@@ -8,6 +8,9 @@ import java.util.Map.Entry;
  * HTTP 的 header 对象 
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class Header {
 	private HashMap<String, String> headers;

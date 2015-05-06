@@ -6,7 +6,10 @@ import javax.tools.SimpleJavaFileObject;
 /**
  * 内存源码保存对象
  * @author helyho
- *
+ * 
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class JavaMemSource  extends SimpleJavaFileObject{
 

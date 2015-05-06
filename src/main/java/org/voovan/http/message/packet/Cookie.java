@@ -9,6 +9,9 @@ import org.voovan.http.message.Request;
  *  HTTP 的 cookie 对象
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class Cookie {
 	private String domain;

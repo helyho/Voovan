@@ -19,6 +19,9 @@ import org.voovan.tools.log.Logger;
  * 		2.报文信息
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class SSLParser {
 	private SSLEngine engine;

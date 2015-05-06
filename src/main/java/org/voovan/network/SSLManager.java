@@ -11,6 +11,9 @@ import javax.net.ssl.TrustManagerFactory;
  * SSL管理器
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class SSLManager {
 	private KeyManagerFactory keyManagerFactory;

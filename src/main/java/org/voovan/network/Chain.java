@@ -7,7 +7,9 @@ import java.util.Iterator;
  * 
  * @author helyho
  *
- * @param <E>
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class Chain<E> extends ArrayDeque<E>{
 	
