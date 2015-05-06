@@ -28,6 +28,10 @@ import org.voovan.tools.TString;
  *{{d}}:当前代码的事件
  *{{r}}:从启动到当前代码执行的事件
  * @author helyho
+ * 
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class Formater {
 	private String template;

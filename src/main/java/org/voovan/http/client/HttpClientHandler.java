@@ -10,7 +10,10 @@ import org.voovan.tools.log.Logger;
 /**
  * HTTP 请求处理句柄
  * @author helyho
- *
+ * 
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class HttpClientHandler implements IoHandler {
 

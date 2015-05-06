@@ -12,6 +12,9 @@ import org.voovan.network.messagesplitter.HttpMessageSplitter;
  * 
  * @author helyho
  * 
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class HttpServer {
 	private AioServerSocket		aioServerSocket;

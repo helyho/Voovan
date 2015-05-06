@@ -7,6 +7,15 @@ import java.util.Map;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TReflect;
 
+/**
+ * JSON打包类
+ * 
+ * @author helyho
+ *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
+ */
 public class JSONEncode {
 	/**
 	 * 分析自定义对象为JSON字符串

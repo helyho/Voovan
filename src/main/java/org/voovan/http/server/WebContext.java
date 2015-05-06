@@ -10,6 +10,9 @@ import org.voovan.tools.json.JSONDecode;
  * Web上下文(配置信息读取)
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class WebContext {
 	

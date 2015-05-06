@@ -11,6 +11,9 @@ import org.voovan.tools.TObject;
  * 	改对象仅在 POST 请求,并且Content-Type = multipart/form-data时使用
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class Part {
 	private Header header;

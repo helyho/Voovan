@@ -7,6 +7,9 @@ import org.voovan.tools.TObject;
  * 
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class Event {
 	private IoSession session;

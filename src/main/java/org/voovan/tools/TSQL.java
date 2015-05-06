@@ -21,6 +21,9 @@ import org.voovan.tools.log.Logger;
  * 注意所有的时间都用yyyy-MM-dd HH:mm:ss的格式
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class TSQL {
 	/**
