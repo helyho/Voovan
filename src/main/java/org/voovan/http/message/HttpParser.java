@@ -25,6 +25,9 @@ import org.voovan.tools.TZip;
  * Http 报文解析类
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class HttpParser {
 	

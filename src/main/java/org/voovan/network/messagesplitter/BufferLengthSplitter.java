@@ -8,6 +8,9 @@ import org.voovan.network.MessageSplitter;
  * 		超过指定长度也会分割
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class BufferLengthSplitter implements MessageSplitter {
 	private long bufferLength;

@@ -10,6 +10,9 @@ import java.util.concurrent.TimeUnit;
  * 
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class ThreadPool {
 	private static ThreadPoolExecutor threadPool = createThreadPool();

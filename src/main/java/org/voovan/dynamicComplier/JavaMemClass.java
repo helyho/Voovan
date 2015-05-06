@@ -12,7 +12,10 @@ import java.net.URI;
 /**
  * java 内存 Class
  * @author helyho
- *
+ * 
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class JavaMemClass extends SimpleJavaFileObject {
  

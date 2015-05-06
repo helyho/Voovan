@@ -13,7 +13,10 @@ import org.voovan.tools.TString;
  * JSON字符串分析成 Map
  * 
  * @author helyho
- * @version 1.0
+ * 
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class JSONDecode {
 	

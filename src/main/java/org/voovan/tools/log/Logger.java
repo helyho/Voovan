@@ -5,6 +5,9 @@ package org.voovan.tools.log;
  * 
  * @author helyho
  *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class Logger {
 	private static Formater	formater	= Formater.newInstance();
