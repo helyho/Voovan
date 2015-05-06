@@ -239,7 +239,9 @@ public class Request {
 				}
 				// POST结束不需要空行标识结尾
 			}
-			header.put("Content-Length", Integer.toString(outputStream.size()));
+			if(outputStream.size()>0){
+				header.put("Content-Length", Integer.toString(outputStream.size()));
+			}
 			return outputStream.toByteArray();
 		} catch (Exception e) {
 			return  new byte[0];
