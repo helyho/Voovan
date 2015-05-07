@@ -1,10 +1,12 @@
 package org.voovan.tools.log;
 
 import java.io.OutputStream;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
 
 /**
  * 日志输出线程
@@ -63,12 +65,20 @@ public class WriteThread implements Runnable {
 	 * 检查线程是否处于结束状态
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public boolean isTerminate(){
+		//应用结束的线程标识
+		List<String> destoryThreadNames = TObject.newList("DestroyJavaVM","ReaderThread");
+		
+		//获取系统内所有的线程
 		Thread[] jvmThread = TEnv.getJVMThreads();
+		
+		//遍历是否包含线程结束标识
 		for(Thread threadObj : jvmThread){
-			if(threadObj.getName().contains("DestroyJavaVM") ||
-					threadObj.getName().contains("ReaderThread")){
-				return true;
+			for(String destoryThreadName : destoryThreadNames){
+				if(threadObj.getName().contains(destoryThreadName)){
+					return true;
+				}
 			}
 		}
 		return false;

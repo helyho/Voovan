@@ -96,7 +96,7 @@ public class TDateTime {
 	}
 	
 	/**
-	 * 从字符串获取标准的格林威治时间(GMT)
+	 * 按格林威治时间(GMT)时间格式获取事件对象
 	 * @param source
 	 * @return
 	 * @throws ParseException 

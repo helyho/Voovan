@@ -54,7 +54,7 @@ public class TEnv {
 	 * 
 	 * @return
 	 */
-	public static StackTraceElement[] getCurrentStackElements() {
+	public static StackTraceElement[] getStackElements() {
 		Throwable ex = new Throwable();
 		return ex.getStackTrace();
 	}
@@ -64,7 +64,7 @@ public class TEnv {
 	 * 
 	 * @return
 	 */
-	public static String getCurrentStackMessage(){
+	public static String getStackMessage(){
 		String stackInfo = "";
 		Throwable ex = new Throwable();
 		for (StackTraceElement stackTraceElement : ex.getStackTrace()) {
@@ -94,7 +94,7 @@ public class TEnv {
 	 * 为JVM加载一个jar包 或者一个目录到 classpath
 	 * @param file
 	 */
-	private static void loadBinary(File file) {
+	public static void loadBinary(File file) {
 		try {
 			if (file.isDirectory() || file.getPath().toLowerCase().endsWith(".jar")) {
 				URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
@@ -151,7 +151,7 @@ public class TEnv {
 	}
 	
 	/**
-	 * 获取 JVM 的所有线程
+	 * 获取 JVM中的所有线程
 	 * @return
 	 */
 	public static Thread[] getJVMThreads(){

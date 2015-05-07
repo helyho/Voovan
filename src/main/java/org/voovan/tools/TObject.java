@@ -17,8 +17,8 @@ import java.util.Vector;
 public class TObject {
 	/**
 	 * 类型转换
-	 * @param obj
-	 * @return
+	 * @param obj 被转换对象
+	 * @return	转换后的对象
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T cast(Object obj){
@@ -27,9 +27,9 @@ public class TObject {
 	
 	/**
 	 * 转换成指定类型
-	 * @param obj
-	 * @param t
-	 * @return
+	 * @param obj   被转换对象
+	 * @param t		指定的类型
+	 * @return		转换后的对象
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T cast(Object obj,Class<T> t){
@@ -37,10 +37,10 @@ public class TObject {
 	}
 	
 	/**
-	 * 空指针默认值
-	 * @param source
-	 * @param value
-	 * @return
+	 * 空值默认值
+	 * @param source	检测对象
+	 * @param value		null 值替换值
+	 * @return	如果非 null 则返回 source，如果为 null 则返回 defValue。
 	 */
 	public static <T>T nullDefault(T source,T defValue){
 		return source!=null?source:defValue;
@@ -48,8 +48,8 @@ public class TObject {
 	
 	/**
 	 * 初始化一个 List
-	 * @param objs
-	 * @return
+	 * @param objs List 列表的每一个元素
+	 * @return	初始化完成的List对象
 	 */
 	@SuppressWarnings("rawtypes")
 	public static List newList(Object ...objs){
@@ -62,8 +62,8 @@ public class TObject {
 	
 	/**
 	 * 初始化一个 Map
-	 * @param objs		key1,value1,key2,value2.....
-	 * @return
+	 * @param objs		每两个参数组成一个键值对，来初始化一个 Map. 如:key1,value1,key2,value2.....
+	 * @return	初始化完成的Map对象
 	 */
 	@SuppressWarnings("rawtypes")
 	public static Map newMap(Object ...objs){

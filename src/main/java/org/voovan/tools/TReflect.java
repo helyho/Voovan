@@ -202,7 +202,7 @@ public class TReflect {
 	 * @param objs	对象类型数组
 	 * @return
 	 */
-	private static Class<?>[] getParameters(Object[] objs){
+	public static Class<?>[] getParameters(Object[] objs){
 		Class<?>[] parameterTypes= new Class<?>[objs.length];
 		for(int i=0;i<objs.length;i++){
 			parameterTypes[i] = objs[i].getClass();
