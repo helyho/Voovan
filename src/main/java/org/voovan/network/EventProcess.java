@@ -54,7 +54,7 @@ public class EventProcess {
 		IoSession session = event.getSession();
 		
 		// SSL 握手
-		if (session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
+		if (session!=null && session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
 			try {
 				session.getSSLParser().doHandShake();
 			} catch (Exception e) {

@@ -122,7 +122,7 @@ public class JSONEncode {
 		
 		else if(object instanceof Collection)
 		{
-			List<Object> listObject = (List<Object>)object;
+			List<Object> listObject = TObject.cast(object);
 			value = CollectionObject(listObject);
 		}
 

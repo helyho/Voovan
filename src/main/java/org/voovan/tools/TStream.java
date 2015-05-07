@@ -41,12 +41,12 @@ public class TStream {
 	public static String readLine(InputStream inputStream) throws IOException{
 		String lineStr="";
 		while(true){
-			char singleChar = (char) inputStream.read();		
+			int singleChar = inputStream.read();		
 			if(singleChar==-1 || singleChar==65535) {
 				break;
 			}
 			else{
-				lineStr += String.valueOf(singleChar);
+				lineStr += String.valueOf((char)singleChar);
 				if(lineStr.endsWith("\r\n")){
 					break;
 				}
