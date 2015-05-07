@@ -61,7 +61,8 @@ public class JSONDecode {
 			
 			//分析字符串,如果是字符串不作任何处理
 			if(currentChar=='\"'){
-				if(i>2?jsonStr.charAt(i-1)!='\\':true && i>2?jsonStr.charAt(i-2)!='\\':true){
+				//i小于1的不是转意字符,判断为字符串(因为转意字符要2个字节),大于2的要判断是否\\"的转义字符
+				if(i<1 || (jsonStr.charAt(i-1)!='\\' && jsonStr.charAt(i-2)!='\\')){
 					stringWarpFlag++;
 					//字符串起始的"
 					if(stringWarpFlag==1){

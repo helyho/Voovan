@@ -15,6 +15,8 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.voovan.tools.TString;
+
 /**
  * SSL管理器
  * @author helyho
@@ -86,7 +88,7 @@ public class SSLManager {
 	 */
 	private void init(String protocol) throws SSLException {
 
-		if(protocol.isEmpty() || protocol == null){
+		if(TString.isNullOrEmpty(protocol) || protocol == null){
 			protocol = "SSL";
 		}
 		try {

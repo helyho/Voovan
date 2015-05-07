@@ -78,7 +78,7 @@ public class Formater {
 	 */
 	private void preIndentMessage(Message message){
 		String infoIndent = StaticParam.getLogConfig("InfoIndent","");
-		if(!infoIndent.equals("")){
+		if(infoIndent!=null && infoIndent.isEmpty()){
 			String msg = message.getMessage();
 			if (infoIndent != null) {
 				msg = infoIndent + msg;

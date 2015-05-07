@@ -156,8 +156,10 @@ public abstract class IoSession {
 						appDataBufferChannel.write(appBuffer);
 					}
 				}while(engineResult==null?false:engineResult.getStatus() != Status.OK);
+				
+				readSize = appDataBufferChannel.read(buffer);
 			}
-			readSize = appDataBufferChannel.read(buffer);
+			
 		}
 		catch(Exception e){
 			Logger.error("Class IoSession Error: "+e.getMessage());
