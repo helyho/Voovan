@@ -72,6 +72,6 @@ public class RequestProtocol extends Protocol {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		return null;
+		return this.method+" "+this.path+queryString+" "+this.protocol+"/"+this.version+"\r\n";
 	}
 }

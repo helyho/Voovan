@@ -38,14 +38,15 @@ public class AioSession extends IoSession {
 	 */
 	AioSession(AioSocket socket, int readTimeout) {
 		super();
-		this.socketChannel = socket.socketChannel();
-		this.socket = socket;
-
 		if (socket != null) {
+			this.socketChannel = socket.socketChannel();
+			this.socket = socket;
 			byteBufferChannel = new ByteBufferChannel();
+		    this.messageLoader = new MessageLoader(this, readTimeout);
 		}
-
-		this.messageLoader = new MessageLoader(this, readTimeout);
+		else{
+			throw new RuntimeException("Socket is null, please check it.");
+		}
 	}
 
 	/**

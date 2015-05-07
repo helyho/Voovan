@@ -81,6 +81,10 @@ public class MessageLoader {
 	 */
 	public ByteBuffer read() throws IOException {
 		
+		if(session==null){
+			return null;
+		}
+		
 		MessageSplitter messageSplitter = session.sockContext().messageSplitter();
 		
 		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();

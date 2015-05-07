@@ -33,14 +33,16 @@ public class NioSession extends IoSession {
 	 */
 	NioSession(NioSocket nioSocket, int readTimeout) {
 		super();
-		this.socket = nioSocket;
-		this.socketChannel = nioSocket.socketChannel();
-
 		if (nioSocket != null) {
+			this.socket = nioSocket;
+			this.socketChannel = nioSocket.socketChannel();
 			byteBufferChannel = new ByteBufferChannel();
+			messageLoader = new MessageLoader(this, readTimeout);
+		}else{
+			throw new RuntimeException("Socket is null, please check it.");
 		}
 
-		messageLoader = new MessageLoader(this, readTimeout);
+		
 	}
 
 	/**

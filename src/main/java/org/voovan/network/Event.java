@@ -81,10 +81,15 @@ public class Event {
 	}
 	
 	@Override
+	public int hashCode(){
+		return session.hashCode()+name.hashCode();
+	}
+	
+	@Override
 	public boolean equals(Object obj){
 		if(obj instanceof Event){
-			Event event = TObject.cast( obj );
-			if(this.session.equals(event.session) && event.getName().equals(this.name))
+			Event compareEvent = TObject.cast( obj );
+			if(session.equals(compareEvent.session) && compareEvent.getName().equals(name))
 				return true;
 			else
 				return false;
