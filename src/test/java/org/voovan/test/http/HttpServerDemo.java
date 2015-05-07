@@ -20,7 +20,8 @@ public class HttpServerDemo {
 			
 			//普通 GET 请求
 			httpServer.get("/", (req, resp) -> {
-				Logger.simple(req.getRemoteAddres()+":"+req.getRemotePort());
+				Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
+				Logger.simple("Request info: "+req.protocol());
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
 				}
@@ -36,10 +37,11 @@ public class HttpServerDemo {
 			
 			//带路劲参数的 GET 请求
 			httpServer.get("/:name/:age", (req, resp) -> {
-				Logger.simple(req.getRemoteAddres()+":"+req.getRemotePort());
+				Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
+				Logger.simple("Request info: "+req.protocol());
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
-				}System.out.println(req);
+				}
 				req.getSession().setAttribute("Time", TDateTime.now());
 				resp.write(fileContent);
 				resp.write("{"
@@ -52,13 +54,15 @@ public class HttpServerDemo {
 			
 			// 重定向
 			httpServer.get("/redirect", (req, resp) -> {
-				Logger.simple(req.getRemoteAddres()+":"+req.getRemotePort());
+				Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
+				Logger.simple("Request info: "+req.protocol());
 				resp.redirct("http://www.baidu.com");
 			});
 
 			//普通 POST 请求
 			httpServer.post("/", (req, resp) -> {
-				Logger.simple(req.getRemoteAddres()+":"+req.getRemotePort());
+				Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
+				Logger.simple("Request info: "+req.protocol());
 				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
 					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
 				}
