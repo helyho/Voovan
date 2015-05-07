@@ -125,7 +125,6 @@ public class MessageLoader {
 				}
 				//使用消息划分器进行消息划分
 				else if(messageSplitter!=null && messageSplitter.canSplite(session,byteOutputStream.toByteArray(), elapsedtime)){
-					Logger.simple(byteOutputStream.size());
 					break;
 				}
 				//readsize为0时认为是超时

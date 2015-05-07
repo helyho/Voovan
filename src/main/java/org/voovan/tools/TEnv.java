@@ -6,8 +6,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import org.voovan.tools.log.Logger;
-
 /**
  * 系统环境相关
  * 
@@ -146,7 +144,6 @@ public class TEnv {
 						LoadJars(file.getPath());
 					}else if(file.getPath().toLowerCase().endsWith(".jar")){
 						loadBinary(file);
-						Logger.simple("Load jar file : "+file.getPath());
 					}
 				}
 			}

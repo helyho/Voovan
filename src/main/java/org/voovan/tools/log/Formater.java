@@ -36,7 +36,7 @@ import org.voovan.tools.TString;
 public class Formater {
 	private String template;
 	private Thread logWriterThread;
-	private WriteThread writer;
+	private WriteThread writerThread;
 	private List<String> logLevel;
 
 	/**
@@ -46,7 +46,7 @@ public class Formater {
 	 */
 	public Formater(String template, OutputStream[] outputStreams) {
 		this.template = template;
-		this.writer = new WriteThread(outputStreams);
+		this.writerThread = new WriteThread(outputStreams);
 		logLevel = new Vector<String>();
 		for(String level : StaticParam.getLogConfig("LogLevel","ALL").split(",")){
 			logLevel.add(level.trim());
@@ -82,7 +82,6 @@ public class Formater {
 			String msg = message.getMessage();
 			if (infoIndent != null) {
 				msg = infoIndent + msg;
-				msg = msg.replaceAll("\r\n", "\r\n" + infoIndent);
 				msg = msg.replaceAll("\n", "\n" + infoIndent);
 				message.setMessage(msg);
 			}
@@ -154,11 +153,11 @@ public class Formater {
 	 */
 	public void writeLog(String msg) {
 		if(logWriterThread==null || !logWriterThread.isAlive()){
-			logWriterThread = new Thread(writer);
+			logWriterThread = new Thread(writerThread);
 			logWriterThread.start();
 		}
 		
-		writer.addLogMessage(msg);
+		writerThread.addLogMessage(msg);
 	}
 
 	/**

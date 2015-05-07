@@ -30,8 +30,6 @@ public class Other {
 		TEnv.LoadJars("/Users/helyho/Work/Java/Ozologo/WEBAPP/WEB-INF/lib");
 		TEnv.loadBinary(fileClasses.getPath());
 		Class.forName("trySomething");
-		String xx = "\\\"";
-		System.out.println();
 	}
 	
 }
