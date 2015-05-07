@@ -1,5 +1,7 @@
 package org.voovan.network;
 
+import java.io.IOException;
+
 /**
  * socket 上下文
  * 
@@ -129,7 +131,7 @@ public abstract class SocketContext {
 	 * 启动上下文连接
 	 * @return
 	 */
-	public abstract void start() throws Exception;
+	public abstract void start() throws IOException;
 	
 	/**
 	 * 上下文连接是否打开

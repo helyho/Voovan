@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 
 import org.voovan.network.Event.EventName;
 import org.voovan.network.Event.EventState;
+import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TObject;
 
 /**
@@ -19,13 +20,21 @@ import org.voovan.tools.TObject;
 public class EventProcess {
 
 	/**
+	 * 私有构造函数,防止被实例化
+	 */
+	private EventProcess(){
+		
+	}
+	
+	/**
 	 * Accept事件
 	 * 
 	 * @param event
 	 *            事件对象
+	 * @throws Exception 
 	 * @throws IOException
 	 */
-	public static void onAccepted(Event event) throws Exception {
+	public static void onAccepted(Event event) throws IOException {
 		SocketContext socketContext = event.getSession().sockContext();
 		if (socketContext != null) {
 			socketContext.start();
@@ -37,9 +46,10 @@ public class EventProcess {
 	 * 
 	 * @param event
 	 *            事件对象
+	 * @throws SendMessageException 
 	 * @throws IOException
 	 */
-	public static void onConnect(Event event) throws Exception {
+	public static void onConnect(Event event) throws SendMessageException, IOException  {
 
 		IoSession session = event.getSession();
 		
@@ -86,9 +96,11 @@ public class EventProcess {
 	 * 
 	 * @param event
 	 *            事件对象
+	 * @throws IOException 
+	 * @throws SendMessageException 
 	 * @throws Exception
 	 */
-	public static void onRead(Event event) throws Exception {
+	public static void onRead(Event event) throws IOException, SendMessageException {
 		SocketContext socketContext = event.getSession().sockContext();
 		IoSession session = event.getSession();
 		if (socketContext != null && session != null) {
@@ -194,9 +206,10 @@ public class EventProcess {
 	 * 
 	 * @param event
 	 * @param sendBuf
-	 * @throws Exception
+	 * @throws SendMessageException 
+	 * @throws IOException 
 	 */
-	public static void sendMessage(IoSession session, Object sendObj) throws Exception {
+	public static void sendMessage(IoSession session, Object sendObj) throws SendMessageException, IOException{
 
 		ByteBuffer resultBuf = null;
 		// 根据消息类型,封装消息
@@ -208,7 +221,7 @@ public class EventProcess {
 				String sendString = TObject.cast(sendObj);
 				resultBuf = ByteBuffer.wrap(sendString.getBytes());
 			} else {
-				throw new Exception("Expect Object type is 'java.nio.ByteBuffer' or 'java.lang.String',reality got type is '"
+				throw new SendMessageException("Expect Object type is 'java.nio.ByteBuffer' or 'java.lang.String',reality got type is '"
 						+ sendObj.getClass() + "'");
 			}
 		}

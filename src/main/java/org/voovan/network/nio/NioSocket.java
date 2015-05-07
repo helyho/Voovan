@@ -96,7 +96,7 @@ public class NioSocket extends SocketContext{
 	 * 启动
 	 * @throws IOException 
 	 */
-	public void start() throws Exception {
+	public void start() throws IOException  {
 		
 		if(connectModel == ConnectModel.SERVER && sslManager != null){
 			sslManager.createServerSSLParser(session);
