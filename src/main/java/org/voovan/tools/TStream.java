@@ -47,7 +47,7 @@ public class TStream {
 			}
 			else{
 				lineStr += String.valueOf((char)singleChar);
-				if(lineStr.endsWith("\r\n")){
+				if(lineStr.endsWith("\n")){
 					break;
 				}
 			}
@@ -85,7 +85,7 @@ public class TStream {
 	}
 	
 	/**
-	 * 从 InputStream 读取全部字符串
+	 * 从 InputStream 读取全部字节
 	 * @param inputStrem	输入流
 	 * @return
 	 * @throws IOException
