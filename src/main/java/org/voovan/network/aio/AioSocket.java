@@ -101,7 +101,7 @@ public class AioSocket extends SocketContext {
 	}
 
 	@Override
-	public void start() throws Exception {
+	public void start() throws IOException{
 
 		if (connectModel == ConnectModel.CLIENT) {
 			// 捕获 connect 事件
