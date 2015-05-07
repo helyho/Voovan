@@ -15,7 +15,6 @@ import org.voovan.network.aio.AioSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
-import org.voovan.tools.log.Logger;
 
 /**
  * HTTP 请求调用
@@ -179,7 +178,6 @@ public class HttpClient {
 		socket.handler(clientHandler);
 		socket.filterChain().add(new HttpClientFilter());
 		socket.messageSplitter(new HttpMessageSplitter());
-		Logger.simple(request);
 		socket.start();
 		
 		//等待获取 response并返回
