@@ -19,8 +19,8 @@ public class TString {
 
 	/**
 	 * 移除字符串前缀
-	 * @param source
-	 * @return
+	 * @param source 目标字符串
+	 * @return 移除第一个字节后的字符串
 	 */
 	public static String removePrefix(String source){
 		return source.substring(1,source.length());
@@ -28,8 +28,8 @@ public class TString {
 	
 	/**
 	 * 移除字符串后缀
-	 * @param source
-	 * @return
+	 * @param source 目标字符串
+	 * @return 移除最后一个字节后的字符串
 	 */
 	public static String removeSuffix(String source){
 		return source.substring(0, source.length()-1);
@@ -37,10 +37,10 @@ public class TString {
 
 	/**
 	 * 左补齐
-	 * @param str
-	 * @param len
-	 * @param c
-	 * @return
+	 * @param str 目标字符串
+	 * @param len 补齐后字符串的长度
+	 * @param c 用于补齐的字符串
+	 * @return 补齐后的字符串
 	 */
 	public static String leftPad(String source,int len,char c){
 		StringBuffer sb = new StringBuffer();
@@ -52,10 +52,10 @@ public class TString {
 	
 	/**
 	 * 右补齐
-	 * @param str
-	 * @param len
-	 * @param c
-	 * @return
+	 * @param str 目标字符串
+	 * @param len 补齐后字符串的长度
+	 * @param c 用于补齐的字符串
+	 * @return 补齐后的字符串
 	 */
 	public static String  rightPad(String source,int len,char c){
 		StringBuffer sb = new StringBuffer();
@@ -68,7 +68,7 @@ public class TString {
 	
 	/**
 	 * 判断是否是指定进制的数字字符串
-	 * @param numberString
+	 * @param numberString  目标字符串
 	 * @param radix			进制
 	 * @return
 	 */
@@ -110,9 +110,9 @@ public class TString {
 	
 	/**
 	 * 正则表达式查找,匹配的被提取出来做数组
-	 * @param source
-	 * @param regex
-	 * @return
+	 * @param source 目标字符串
+	 * @param regex 正则表达式
+	 * @return  匹配的字符串数组
 	 */
 	public static String[] searchByRegex(String source,String regex){
 		Pattern pattern = Pattern.compile(regex);

@@ -46,7 +46,7 @@ public class JSON {
 	
 	/**
 	 * 解析 JSON 字符串
-	 * 		如果是{}包裹的对象解析成 HashMap,如果是[]包裹的对象解析成 ArrayList
+	 * 		如果是{}包裹的字符串解析成 HashMap,如果是[]包裹的字符串解析成 ArrayList
 	 * @param jsonStr	待解析的 JSON 字符串
 	 * @return
 	 */
