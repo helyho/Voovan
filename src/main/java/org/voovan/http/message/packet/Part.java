@@ -40,6 +40,19 @@ public class Part {
 	 * 构造函数
 	 * @param name 参数名
 	 * @param value 参数值
+	 * @param charset 字符集
+	 */
+	public Part(String name,String value, String charset){
+		header = new  Header();
+		body = new Body();
+		header.put("name", name);
+		body.write(value,charset);
+	}
+	
+	/**
+	 * 构造函数
+	 * @param name 参数名
+	 * @param value 参数值
 	 */
 	public Part(String name,String value){
 		header = new  Header();
