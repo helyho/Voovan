@@ -194,6 +194,8 @@ public class Request {
 			// 产生新的boundary备用
 			String contentType = "multipart/form-data; boundary=" + boundary;
 			header.put("Content-Type", contentType);
+		}else if(body.getBodyBytes().length>0){
+			header.put("Content-Type", "application/x-www-form-urlencoded");
 		}
 		
 		//生成 Cookie 信息
