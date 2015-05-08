@@ -161,9 +161,8 @@ public abstract class IoSession {
 			}
 			
 		}
-		catch(Exception e){
-			Logger.error("Class IoSession Error: "+e.getMessage());
-			e.printStackTrace();
+		catch(IOException e){
+			Logger.error(e);
 		}
 		return readSize;
 	}
@@ -180,8 +179,7 @@ public abstract class IoSession {
 			try {
 				sslParser.warpData(buffer);
 			} catch (IOException e) {
-				Logger.error("Class IoSession Error: "+e.getMessage());
-				e.printStackTrace();
+				Logger.error(e);
 			}
 		}
 	}

@@ -7,6 +7,7 @@ import org.voovan.network.Event.EventName;
 import org.voovan.network.Event.EventState;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TObject;
+import org.voovan.tools.log.Logger;
 
 /**
  * 事件的实际逻辑处理
@@ -57,8 +58,8 @@ public class EventProcess {
 		if (session!=null && session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
 			try {
 				session.getSSLParser().doHandShake();
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (IOException e) {
+				Logger.error(e);
 			}
 		}
 
@@ -197,7 +198,7 @@ public class EventProcess {
 				socketContext.handler().onException(session, e);
 			}
 		}else{
-			e.printStackTrace();
+			Logger.error(e);
 		}
 	}
 
@@ -261,9 +262,9 @@ public class EventProcess {
 			} else if (eventName == EventName.ON_SENT) {
 				EventProcess.onSent(event, event.getOther());
 			} else if (eventName == EventName.ON_EXCEPTION) {
-				EventProcess.onException(event, TObject.cast(event.getOther()));
+				EventProcess.onException(event, (Exception)event.getOther());
 			}
-		} catch (Exception e) {
+		} catch (IOException | SendMessageException e) {
 			EventProcess.onException(event, e);
 		} finally {
 			event.setState(EventState.FINISHED);

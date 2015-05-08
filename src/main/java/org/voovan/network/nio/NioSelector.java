@@ -116,8 +116,7 @@ public class NioSelector {
 					}
 				}
 			}
-		} catch (Exception e) {
-			Logger.error("Class NioSelector Error: "+e.getMessage());
+		} catch (IOException e) {
 			// 触发 onException 事件
 			eventTrigger.fireExceptionThread(e);
 		} finally{

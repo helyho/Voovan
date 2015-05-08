@@ -1,11 +1,14 @@
-package org.voovan.dynamicComplier;
+package org.voovan.complier;
 
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 
+import org.voovan.tools.log.Logger;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
  
@@ -52,8 +55,8 @@ public class JavaMemClass extends SimpleJavaFileObject {
 					method.invoke(this.getClass().getClassLoader(), new Object[]{null,classBytes,0,classBytes.length});
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			Logger.error(e.getMessage());
 		}
     }
 }

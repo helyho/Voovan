@@ -5,7 +5,6 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 
 import org.voovan.network.EventTrigger;
-import org.voovan.tools.log.Logger;
 
 /**
  * Aio Accept 事件
@@ -36,7 +35,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 			
 			
 		} catch (IOException e) {
-			Logger.error("Class AcceptCompletionHandler Error:"+e.getMessage());
 			eventTrigger.fireException(e);
 		}
 	}
@@ -44,7 +42,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	@Override
 	public void failed(Throwable exc, AioServerSocket attachment) {
 		if(exc instanceof Exception){
-			Logger.error("Error: Aio accept socket error!");
 			//触发 onException 事件
 			eventTrigger.fireException(new Exception(exc));
 			

@@ -221,5 +221,23 @@ public class TString {
 		source = source.substring(0, head)+replacement+source.substring(tail, source.length());
 		return source;
 	}
+	
+	/**
+	 * 缩进字符串
+	 * @param str			待缩进的字符串
+	 * @param indentCount   缩进数(空格的数目)
+	 * @return
+	 */
+	public static String indent(String str,int indentCount){
+		if(indentCount>0 && str!=null){
+			String indent = "";
+			for(int i=0;i<indentCount;i++){
+				indent += " ";
+			}
+			str = indent + str;
+			str = str.replaceAll("\n", "\n" + indent);
+		}
+		return str;
+	}
 
 }

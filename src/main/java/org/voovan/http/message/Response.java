@@ -1,6 +1,7 @@
 package org.voovan.http.message;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
 
@@ -8,6 +9,7 @@ import org.voovan.http.message.packet.Body;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.ResponseProtocol;
+import org.voovan.tools.log.Logger;
 
 /**
  * HTTP 响应对象
@@ -156,8 +158,8 @@ public class Response {
 				
 				return outputStream.toByteArray();
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (IOException e) {
+			Logger.error(e);
 		}
 
 		return new byte[0];
@@ -192,8 +194,8 @@ public class Response {
 			//插入报文内容
 			outputStream.write(bodyBytes);
 			
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (IOException e) {
+			Logger.error(e);
 		}
 		return outputStream.toByteArray();
 	}

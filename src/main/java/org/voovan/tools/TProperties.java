@@ -7,6 +7,8 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.voovan.tools.log.Logger;
+
 /**
  * properties文件操作类
  * 
@@ -38,7 +40,7 @@ public class TProperties {
 				return properites;
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			Logger.error(e);
 			return null;
 		}
 	}

@@ -98,7 +98,7 @@ public class ScriptEntity {
 			try {
 				loadSourceCode();
 			} catch (Exception e) {
-				e.printStackTrace();
+				Logger.error(e);
 			}
 		}
 		return sourceCode;

@@ -99,7 +99,7 @@ public class HttpServerDemo {
 			
 			httpServer.Serve();
 		} catch (IOException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		}
 	}
 }

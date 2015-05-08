@@ -1,5 +1,9 @@
 package org.voovan.tools.json;
 
+import java.text.ParseException;
+
+import org.voovan.tools.log.Logger;
+
 /**
  * JAVA 对象和 JSON 对象转换类
  * 
@@ -20,8 +24,8 @@ public class JSON {
 		String jsonString = null;
 		try {
 			jsonString = JSONEncode.fromObject(object);
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (ReflectiveOperationException e) {
+			Logger.error(e);
 		}
 		return jsonString;
 	}
@@ -37,8 +41,8 @@ public class JSON {
 		T valueObject = null;
 		try {
 			valueObject = JSONDecode.fromJSON(jsonStr, clazz);
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (ReflectiveOperationException | ParseException e) {
+			Logger.error(e);
 		}
 		return valueObject;
 	}
@@ -52,11 +56,7 @@ public class JSON {
 	 */
 	public static Object parse(String jsonStr){
 		Object parseObject = null;
-		try {
-			parseObject = JSONDecode.parse(jsonStr);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		parseObject = JSONDecode.parse(jsonStr);
 		return parseObject;
 	}
 }

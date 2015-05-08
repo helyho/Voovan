@@ -169,8 +169,7 @@ public class HttpRequest extends Request {
 					try {
 						parameters.put(name, URLDecoder.decode(value,characterSet));
 					} catch (UnsupportedEncodingException e) {
-						Logger.error("Class HttpRequest methos parseQueryString Error:"+e.getMessage());
-						e.printStackTrace();
+						Logger.error(e);
 					}
 				}else{
 					parameters.put(parameterEqual, null);
