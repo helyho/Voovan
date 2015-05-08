@@ -183,7 +183,7 @@ public class JdbcOperate {
 			ResultSet rs = preparedStatement.executeQuery();
 			return new ResultInfo(rs);
 		} catch (SQLException e) {
-			Logger.error("Query excution SQL Error! \n SQL is : \n\t" + sqlText + "\n Error is:\n\t" + e.getMessage() + "\n",e);
+			Logger.error("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " + e.getMessage() + "\n",e);
 		}
 		return null;
 	}
@@ -203,10 +203,9 @@ public class JdbcOperate {
 		PreparedStatement preparedStatement = null;
 		try {
 			preparedStatement = TSQL.createPreparedStatement(conn, sqlText, mapArg);
-			int result = preparedStatement.executeUpdate();
-			return result;
+			return preparedStatement.executeUpdate();
 		} catch (SQLException e) {
-			Logger.error("Update excution SQL Error! \n SQL is :\n\t " + sqlText + "\nError is:\n\t" + e.getMessage() + "\n",e);
+			Logger.error("Update excution SQL Error! \n SQL is :\n\t " + sqlText + "\nError is: \n\t" + e.getMessage() + "\n",e);
 		} finally {
 			// 非事物模式执行
 			if (!isTrancation) {
@@ -259,14 +258,14 @@ public class JdbcOperate {
 
 			return result;
 		} catch (SQLException e) {
-			Logger.error("Batch excution SQL Error! \n SQL is : \n\t" + sqlText.toString() + "\n Error is:\n\t" + e.getMessage() + "\n",e);
+			Logger.error("Batch excution SQL Error! \n SQL is : \n\t" + sqlText.toString() + ":\n\t" + e.getMessage() + "\n",e);
 		} finally {
 			// 非事物模式执行
 			if (!isTrancation) {
 				closeConnection(preparedStatement);
 			}
 		}
-		return null;
+		return new int[0];
 	}
 
 	/**
@@ -294,8 +293,7 @@ public class JdbcOperate {
 	 */
 	public int update(String sqlText, Object arg) throws SQLException, ReflectiveOperationException {
 		Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
-		int result = this.baseUpdate(sqlText, paramsMap);
-		return result;
+		return this.baseUpdate(sqlText, paramsMap);
 	}
 
 	/**
@@ -309,8 +307,7 @@ public class JdbcOperate {
 	 * @throws Exception
 	 */
 	public int update(String sqlText, Map<String, Object> mapArg) throws SQLException {
-		int result = this.baseUpdate(sqlText, mapArg);
-		return result;
+		return this.baseUpdate(sqlText, mapArg);
 	}
 
 	/**
@@ -326,8 +323,7 @@ public class JdbcOperate {
 	 */
 	public int update(String sqlText, Object... args) throws SQLException {
 		Map<String, Object> paramsMap = TSQL.arrayToMap(args);
-		int result = this.baseUpdate(sqlText, paramsMap);
-		return result;
+		return this.baseUpdate(sqlText, paramsMap);
 	}
 
 	/**
@@ -661,8 +657,7 @@ public class JdbcOperate {
 		for (Object object : objects) {
 			mapList.add(TReflect.getMapfromObject(object));
 		}
-		int[] result = this.baseBatch(sqlText, mapList);
-		return result;
+		return this.baseBatch(sqlText, mapList);
 	}
 
 	/**
