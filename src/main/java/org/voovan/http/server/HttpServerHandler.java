@@ -49,43 +49,39 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		try{
-			// 获取默认字符集
-			String defaultCharacterSet = config.getCharacterSet();
-	
-			// Http 请求
-			if (obj instanceof Request) {
-				// 构造请求
-				Request request = TObject.cast(obj);
-				
-				// 构造响应报文并返回
-				Response response = new Response();
-				response.setCompress(config.isGzip());
-	
-				// 构造 Http 请求响应对象
-				HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);
-				HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet);
-				
-				// 填充远程连接的IP 地址和端口
-				httpRequest.setRemoteAddres(session.remoteAddress());
-				httpRequest.setRemotePort(session.remotePort());
-	
-				// WebSocket协议升级处理
-				if (WebSocketTools.isWebSocketUpgrade(request)) {
-					return disposeProtocolUpgrade(session, httpRequest, httpResponse);
-				}
-				// Http 1.1处理
-				else {
-					return disposeHttp(session, httpRequest, httpResponse);
-				}
-			} else if (obj instanceof WebSocketFrame) {
-				return disposeWebSocket(session, TObject.cast(obj));
+		// 获取默认字符集
+		String defaultCharacterSet = config.getCharacterSet();
+
+		// Http 请求
+		if (obj instanceof Request) {
+			// 构造请求
+			Request request = TObject.cast(obj);
+
+			// 构造响应报文并返回
+			Response response = new Response();
+			response.setCompress(config.isGzip());
+
+			// 构造 Http 请求响应对象
+			HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);
+			HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet);
+
+			// 填充远程连接的IP 地址和端口
+			httpRequest.setRemoteAddres(session.remoteAddress());
+			httpRequest.setRemotePort(session.remotePort());
+
+			// WebSocket协议升级处理
+			if (WebSocketTools.isWebSocketUpgrade(request)) {
+				return disposeProtocolUpgrade(session, httpRequest, httpResponse);
 			}
-		}catch(Exception e){
-			Logger.error("Request error msg is:\r\n"+obj);
-			throw e;
+			// Http 1.1处理
+			else {
+				return disposeHttp(session, httpRequest, httpResponse);
+			}
+		} else if (obj instanceof WebSocketFrame) {
+			return disposeWebSocket(session, TObject.cast(obj));
 		}
-		//如果协议判断失败关闭连接
+		
+		// 如果协议判断失败关闭连接
 		session.close();
 		return null;
 	}

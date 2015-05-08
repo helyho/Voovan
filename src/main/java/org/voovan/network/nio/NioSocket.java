@@ -9,6 +9,7 @@ import java.nio.channels.spi.SelectorProvider;
 
 import org.voovan.network.ConnectModel;
 import org.voovan.network.SocketContext;
+import org.voovan.tools.log.Logger;
 
 /**
  * NioSocket 连接
@@ -62,7 +63,7 @@ public class NioSocket extends SocketContext{
 			connectModel = ConnectModel.SERVER;
 			init();
 		} catch (IOException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		}
 	}
 	
@@ -83,8 +84,8 @@ public class NioSocket extends SocketContext{
 			selector = provider.openSelector();
 			socketChannel.register(selector, SelectionKey.OP_READ);
 		}
-		catch(Exception e){
-			e.printStackTrace();
+		catch(IOException e){
+			Logger.error(e);
 		}
 	}
 	
@@ -127,9 +128,8 @@ public class NioSocket extends SocketContext{
 			try{
 				socketChannel.close();
 				return true;
-			}
-			catch(Exception e){
-				e.printStackTrace();
+			} catch(IOException e){
+				Logger.error(e);
 				return false;
 			}
 		}else{

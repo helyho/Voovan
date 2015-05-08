@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.URL;
 
+import org.voovan.tools.log.Logger;
+
 /**
  * 文件操作工具类
  * 
@@ -39,11 +41,7 @@ public class TFile {
 	 */
 	public static byte[] loadFileFromSysPath(String filePath) {
 		byte[] fileContent = null;
-		try {
-			fileContent = loadFile(new File(filePath));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		fileContent = loadFile(new File(filePath));
 		return fileContent;
 	}
 
@@ -56,11 +54,7 @@ public class TFile {
 	 */
 	public static byte[] loadFileFromSysPath(String filePath, int beginPos, int endPos) {
 		byte[] fileContent = null;
-		try {
-			fileContent = loadFile(new File(filePath), beginPos, endPos);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		fileContent = loadFile(new File(filePath), beginPos, endPos);
 		return fileContent;
 	}
 
@@ -99,14 +93,10 @@ public class TFile {
 	 * @throws IOException
 	 */
 	public static File getResourceFile(String resourcePath) {
-		try {
-			URL url = TEnv.class.getClassLoader().getResource(resourcePath);
-			if(url!=null){
-				File file = new File(url.getFile());
-				return file;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		URL url = TEnv.class.getClassLoader().getResource(resourcePath);
+		if(url!=null){
+			File file = new File(url.getFile());
+			return file;
 		}
 		return null;
 	}
@@ -122,11 +112,7 @@ public class TFile {
 	public static byte[] loadResource(String resourcePath) {
 
 		byte[] fileContent = null;
-		try {
-			fileContent = loadFile(getResourceFile(resourcePath));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		fileContent = loadFile(getResourceFile(resourcePath));
 		return fileContent;
 	}
 
@@ -177,8 +163,8 @@ public class TFile {
 			randomAccessFile.read(fileBytes);
 			randomAccessFile.close();
 			return fileBytes;
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (IOException e) {
+			Logger.error(e);
 		}
 		return null;
 	}

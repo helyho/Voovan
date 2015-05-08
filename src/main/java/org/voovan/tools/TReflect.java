@@ -2,8 +2,10 @@ package org.voovan.tools;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +44,7 @@ public class TReflect {
 	 * @throws SecurityException
 	 */
 	public static Field findField(Class<?> clazz, String fieldName)
-			throws NoSuchFieldException, SecurityException {
+			throws ReflectiveOperationException {
 		return clazz.getDeclaredField(fieldName);
 	}
 
@@ -56,7 +58,7 @@ public class TReflect {
 	 */
 	@SuppressWarnings("unchecked")
 	static public <T> T getFieldValue(Object obj, String fieldName)
-			throws Exception {
+			throws ReflectiveOperationException {
 		Field field = findField(obj.getClass(), fieldName);
 		field.setAccessible(true);
 		return (T) field.get(obj);
@@ -72,7 +74,7 @@ public class TReflect {
 	 * @throws Exception
 	 */
 	public static void setFieldValue(Object obj, String fieldName,
-			Object fieldValue) throws Exception {
+			Object fieldValue) throws ReflectiveOperationException {
 		Field field = findField(obj.getClass(), fieldName);
 		field.setAccessible(true);
 		field.set(obj, fieldValue);
@@ -86,7 +88,7 @@ public class TReflect {
 	 * @throws Exception
 	 */
 	public static Map<String, Object> getFieldValues(Object obj)
-			throws Exception {
+			throws ReflectiveOperationException {
 		HashMap<String, Object> result = new HashMap<String, Object>();
 		Field[] fields = getFields(obj.getClass());
 		for (Field field : fields) {
@@ -106,10 +108,12 @@ public class TReflect {
 	 * @param name		   方法名	
 	 * @param paramTypes   参数类型
 	 * @return			   方法对象
+	 * @throws SecurityException 
+	 * @throws NoSuchMethodException 
 	 * @throws Exception   异常
 	 */
 	public static Method findMethod(Class<?> clazz, String name,
-			Class<?>... paramTypes) throws Exception {
+			Class<?>... paramTypes) throws ReflectiveOperationException  {
 		return clazz.getDeclaredMethod(name, paramTypes);
 	}
 	
@@ -146,9 +150,12 @@ public class TReflect {
 	 * @param obj				执行方法的对象
 	 * @param method			方法对象
 	 * @return					方法返回结果
+	 * @throws InvocationTargetException 
+	 * @throws IllegalArgumentException 
+	 * @throws IllegalAccessException 
 	 * @throws Exception		异常
 	 */
-	public static Object invokeMethod(Object obj, Method method, Object... parameters) throws Exception {
+	public static Object invokeMethod(Object obj, Method method, Object... parameters) throws ReflectiveOperationException {
 		method.setAccessible(true);
 		return method.invoke(obj, parameters);
 	}
@@ -162,7 +169,7 @@ public class TReflect {
 	 * @return					方法返回结果
 	 * @throws Exception		异常
 	 */
-	public static Object invokeMethod(Object obj, String name, Object... parameters) throws Exception {
+	public static Object invokeMethod(Object obj, String name, Object... parameters) throws ReflectiveOperationException {
 		Class<?>[] parameterTypes = getParameters(parameters);
 		Method method = findMethod(obj.getClass(), name, parameterTypes);
 		method.setAccessible(true);
@@ -177,7 +184,7 @@ public class TReflect {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Object newInstance(Class<?> clazz, Object ...parameters) throws Exception {
+	public static Object newInstance(Class<?> clazz, Object ...parameters) throws ReflectiveOperationException {
 		Class<?>[] parameterTypes = getParameters(parameters);
 		Constructor<?> constructor = clazz.getConstructor(parameterTypes);
 		return constructor.newInstance(parameters);
@@ -190,7 +197,7 @@ public class TReflect {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Object newInstance(String className, Object ...parameters) throws Exception {
+	public static Object newInstance(String className, Object ...parameters) throws ReflectiveOperationException {
 		Class<?> clazz = Class.forName(className);
 		Class<?>[] parameterTypes = getParameters(parameters);
 		Constructor<?> constructor = clazz.getConstructor(parameterTypes);
@@ -216,11 +223,12 @@ public class TReflect {
 	 * @param clazz			类对象
 	 * @param mapField		Map 对象
 	 * @return
+	 * @throws ParseException 
 	 * @throws Exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Object getObjectFromMap(Class<?> clazz,
-		Map<String, Object> mapField) throws Exception {
+		Map<String, Object> mapField) throws ReflectiveOperationException, ParseException {
 		Object obj = null;
 
 		// java标准对象
@@ -257,18 +265,18 @@ public class TReflect {
 					//Map 类型
 					else if(isImpByInterface(fieldType,Map.class)){
 						Map mapObject = TObject.cast(newInstance(fieldType));
-						mapObject.putAll(TObject.cast(value));
+						mapObject.putAll((Map) TObject.cast(value));
 						value = mapObject;
 					}
 					//Collection 类型
 					else if(isImpByInterface(fieldType,Collection.class)){
 						Collection listObject = TObject.cast(newInstance(fieldType));
-						listObject.addAll(TObject.cast(value));
+						listObject.addAll((Collection) TObject.cast(value));
 						value = listObject;
 					}
 					//如果没有匹配到类型且参数是 Map 类型,就判定是复杂类型,递归调用方法
 					else if(isImpByInterface(value.getClass(),Map.class)){
-						value = getObjectFromMap(fieldType, TObject.cast(value));
+						value = getObjectFromMap(fieldType, (Map<String, Object>) TObject.cast(value));
 					}
 					setFieldValue(obj, fieldName, value);
 				}
@@ -285,7 +293,7 @@ public class TReflect {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Map<String, Object> getMapfromObject(Object obj) throws Exception{
+	public static Map<String, Object> getMapfromObject(Object obj) throws ReflectiveOperationException{
 		
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		Map<String, Object> fieldValues =  TReflect.getFieldValues(obj);

@@ -34,7 +34,7 @@ public class ClientHandlerTest implements IoHandler {
 	@Override
 	public void onException(IoSession session, Exception e) {
 		Logger.simple("Client Exception");
-		e.printStackTrace();
+		Logger.error(e);
 	}
 
 	@Override

@@ -9,6 +9,7 @@ import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.log.Logger;
 
 /**
  * AioSocket 连接
@@ -160,8 +161,8 @@ public class AioSocket extends SocketContext {
 					socketChannel.close();
 				}
 				return true;
-			} catch (Throwable e) {
-				e.printStackTrace();
+			} catch (IOException e) {
+				Logger.error(e);
 				return false;
 			}
 		} else {

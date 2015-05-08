@@ -9,6 +9,7 @@ import org.voovan.network.MessageLoader;
 import org.voovan.network.MessageSplitter;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.log.Logger;
 
 /**
  * NIO 会话连接对象
@@ -39,7 +40,7 @@ public class NioSession extends IoSession {
 			byteBufferChannel = new ByteBufferChannel();
 			messageLoader = new MessageLoader(this, readTimeout);
 		}else{
-			throw new RuntimeException("Socket is null, please check it.");
+			Logger.error("Socket is null, please check it.");
 		}
 
 		
@@ -134,7 +135,7 @@ public class NioSession extends IoSession {
 		if (isConnect() && buffer != null) {
 			try {
 				readSize = byteBufferChannel.read(buffer);
-			} catch (Exception e) {
+			} catch (IOException e) {
 				// 如果出现异常则返回-1,表示读取通道结束
 				readSize = -1;
 			}

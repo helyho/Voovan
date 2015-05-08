@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import org.voovan.tools.TZip;
+import org.voovan.tools.log.Logger;
 
 /**
  * HTTP的内容对象
@@ -51,7 +52,7 @@ public class Body {
 		try {
 			return bodyBytes!=null?new String(bodyBytes,charset):null;
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			Logger.error(e);
 			return new String(bodyBytes);
 		}
 	}
@@ -65,7 +66,7 @@ public class Body {
 		try {
 			outputStream.write(body);
 		} catch (IOException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		}
 	}
 	
@@ -96,7 +97,7 @@ public class Body {
 			//使用字符集编码
 			outputStream.write(content.getBytes(charset));
 		} catch (IOException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		}
 	}
 	

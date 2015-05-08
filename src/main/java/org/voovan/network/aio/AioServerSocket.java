@@ -7,6 +7,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.log.Logger;
 
 /**
  * AioServerSocket 监听
@@ -75,8 +76,8 @@ public class AioServerSocket extends SocketContext{
 				}
 				return true;
 			}
-			catch(Exception e){
-				e.printStackTrace();
+			catch(IOException e){
+				Logger.error(e);
 				return false;
 			}
 		}else{

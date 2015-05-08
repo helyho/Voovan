@@ -1,5 +1,6 @@
 package org.voovan.tools.log;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -55,8 +56,8 @@ public class WriteThread implements Runnable {
 					break;
 				}
 				TEnv.sleep(1);
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (IOException | InterruptedException e) {
+				Logger.error(e);
 			}
 		}
 	}

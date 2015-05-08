@@ -48,13 +48,11 @@ public class Chain<E> extends ArrayDeque<E>{
 	public E next(){
 		if(isStop){
 			return null;
-		}
-		else{
+		} else {
 			if(iterator.hasNext()){
 				currentObj = iterator.next();
 				return currentObj;
-			}
-			else {
+			} else {
 				return null;
 			}
 		}
@@ -75,8 +73,7 @@ public class Chain<E> extends ArrayDeque<E>{
 	public boolean hasNext(){
 		if(isStop){
 			return false;
-		}
-		else{
+		} else {
 			return iterator.hasNext();
 		}
 	}
@@ -85,6 +82,7 @@ public class Chain<E> extends ArrayDeque<E>{
 	 *  从当前对象克隆一个 Chain
 	 */
 	public Chain<E> clone(){
+		super.clone();
 		Chain<E> chain = new Chain<E>();
 		chain.addAll(this);
 		chain.rewind();

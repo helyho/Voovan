@@ -65,7 +65,7 @@ public class WebContext {
 		config.setSessionContainer(getContextParameter("SessionContainer","java.util.Hashtable"));
 		config.setSessionTimeout(getContextParameter("SessionTimeout",30));
 		config.setKeepAliveTimeout(getContextParameter("KeepAliveTimeout",5));
-		config.setGzip(getContextParameter("Gzip","true").equals("on")?true:false);
+		config.setGzip(getContextParameter("Gzip","on").equals("on")?true:false);
 		return config;
 	}
 
@@ -75,8 +75,9 @@ public class WebContext {
 	 * @param <T>
 	 * @return
 	 */
-	public static <T> T getContextParameter(String name,T defaultValue) {
-		return webConfig.get(name)==null?defaultValue:TObject.cast(webConfig.get(name));
+	@SuppressWarnings("unchecked")
+	public static <T> T getContextParameter(String name, T defaultValue) {
+		return webConfig.get(name) == null ? defaultValue : ((T) webConfig.get(name));
 	}
 	
 	/**

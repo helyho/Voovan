@@ -1,11 +1,11 @@
 package org.voovan.http.client;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
-import org.voovan.http.message.Response;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TObject;
@@ -36,12 +36,10 @@ public class HttpClientFilter implements IoFilter {
 		try{
 			if(object instanceof ByteBuffer){
 				ByteBuffer byteBuffer = TObject.cast(object);
-				Response response = HttpParser.parseResponse(new ByteArrayInputStream(byteBuffer.array()));
-				return response;
+				return HttpParser.parseResponse(new ByteArrayInputStream(byteBuffer.array()));
 			}
-		}catch(Exception e){
-			Logger.error("Class HttpClientFilter decode Error: "+e.getMessage());
-			e.printStackTrace();
+		}catch(IOException e){
+			Logger.error("Class HttpClientFilter decode Error. " , e);
 		}
 		return null;
 	}

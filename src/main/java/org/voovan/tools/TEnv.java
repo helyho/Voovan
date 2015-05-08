@@ -2,9 +2,12 @@ package org.voovan.tools;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+
+import org.voovan.tools.log.Logger;
 
 /**
  * 系统环境相关
@@ -45,7 +48,7 @@ public class TEnv {
 			Thread.currentThread();
 			Thread.sleep(sleepTime);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		}
 	}
 
@@ -93,8 +96,10 @@ public class TEnv {
 	/**
 	 * 为JVM加载一个jar包 或者一个目录到 classpath
 	 * @param file
+	 * @throws SecurityException 
+	 * @throws NoSuchMethodException 
 	 */
-	public static void loadBinary(File file) {
+	public static void loadBinary(File file) throws NoSuchMethodException, SecurityException {
 		try {
 			if (file.isDirectory() || file.getPath().toLowerCase().endsWith(".jar")) {
 				URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
@@ -102,8 +107,8 @@ public class TEnv {
 				method.setAccessible(true);
 				TReflect.invokeMethod(urlClassLoader, method, file.toURI().toURL());
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (IOException | ReflectiveOperationException e) {
+			Logger.error(e);
 		}
 	}
 

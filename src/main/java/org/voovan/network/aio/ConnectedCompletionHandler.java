@@ -3,7 +3,6 @@ package org.voovan.network.aio;
 import java.nio.channels.CompletionHandler;
 
 import org.voovan.network.EventTrigger;
-import org.voovan.tools.log.Logger;
 
 /**
  * Aio 连接事件
@@ -23,19 +22,12 @@ public class ConnectedCompletionHandler implements CompletionHandler<Void, AioSo
 	
 	@Override
 	public void completed(Void arg1,  AioSocket socketContext) {
-		try{
-			
-		}
-		catch(Exception e){
-			Logger.error("Class ConnectedCompletionHandler Error:"+e.getMessage());
-			eventTrigger.fireException(e);
-		}
+		// 不处理,这个方法原来是要触发 onConnect 事件,现在移到 AioSocket 的 start 方法触发。
 	}
 
 	@Override
 	public void failed(Throwable exc,  AioSocket socketContext) {
 		if(exc instanceof Exception){
-			Logger.error("Error: Aio connected socket error!");
 			//触发 onException 事件
 			eventTrigger.fireException(new Exception(exc));
 		}

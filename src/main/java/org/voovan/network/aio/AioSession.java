@@ -13,6 +13,7 @@ import org.voovan.network.SocketContext;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
+import org.voovan.tools.log.Logger;
 
 /**
  * NIO 会话连接对象
@@ -43,9 +44,8 @@ public class AioSession extends IoSession {
 			this.socket = socket;
 			byteBufferChannel = new ByteBufferChannel();
 		    this.messageLoader = new MessageLoader(this, readTimeout);
-		}
-		else{
-			throw new RuntimeException("Socket is null, please check it.");
+		} else {
+			Logger.error("Socket is null, please check it.");
 		}
 	}
 
@@ -64,8 +64,8 @@ public class AioSession extends IoSession {
 			try {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getLocalAddress());
 				return socketAddress.getHostName();
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (IOException e) {
+				Logger.error(e);
 				return null;
 			}
 		} else {
@@ -79,8 +79,8 @@ public class AioSession extends IoSession {
 			try {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getLocalAddress());
 				return socketAddress.getPort();
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (IOException e) {
+				Logger.error(e);
 				return -1;
 			}
 		} else {
@@ -94,8 +94,8 @@ public class AioSession extends IoSession {
 			try {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getRemoteAddress());
 				return socketAddress.getHostString();
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (IOException e) {
+				Logger.error(e);
 				return null;
 			}
 		} else {
@@ -109,8 +109,8 @@ public class AioSession extends IoSession {
 			try {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getRemoteAddress());
 				return socketAddress.getPort();
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (IOException e) {
+				Logger.error(e);
 				return -1;
 			}
 		} else {
@@ -129,7 +129,7 @@ public class AioSession extends IoSession {
 		if (isConnect() && buffer != null) {
 			try {
 				readSize = byteBufferChannel.read(buffer);
-			} catch (Exception e) {
+			} catch (IOException e) {
 				// 如果出现异常则返回-1,表示读取通道结束
 				readSize = -1;
 			}
