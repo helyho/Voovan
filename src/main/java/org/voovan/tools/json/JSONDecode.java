@@ -1,6 +1,8 @@
 package org.voovan.tools.json;
 
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -167,10 +169,12 @@ public class JSONDecode {
 	 * @param json				JSON字符串
 	 * @param objectType		JSON 字符串将要转换的目标类
 	 * @return					JSON 转换后的 Java 对象
+	 * @throws ReflectiveOperationException 
+	 * @throws ParseException 
 	 * @throws Exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T>T fromJSON(String jsonStr,Class<T> clazz) throws Exception{
+	public static <T>T fromJSON(String jsonStr,Class<T> clazz) throws ReflectiveOperationException, ParseException{
 		jsonStr = removeComment(jsonStr);
 		Object parseObject = parse(jsonStr);
 		//{}包裹的对象处理
@@ -181,7 +185,7 @@ public class JSONDecode {
 		//[]包裹的对象处理
 		else if(jsonStr.startsWith("[") && TReflect.isImpByInterface(clazz, List.class)){
 			List obj = (List) TReflect.newInstance(clazz, new Class[]{}, new Object(){});
-			obj.addAll(TObject.cast(parseObject));
+			obj.addAll((Collection) parseObject);
 			return (T) obj;
 		}
 		//其他类型处理

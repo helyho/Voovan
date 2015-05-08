@@ -57,7 +57,7 @@ public class THash {
   
             messageDigest.update(str.getBytes());  
         } catch (NoSuchAlgorithmException e) {  
-        	Logger.error("NoSuchAlgorithmException caught!");  
+        	Logger.error(e);  
             System.exit(-1);  
         } 
         byte[] byteArray = messageDigest.digest();  

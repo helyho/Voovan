@@ -191,7 +191,7 @@ public class Formater {
 			}
 			return new Formater(logTemplate, outputStreams);
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		}
 		return null;
 	}

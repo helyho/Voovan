@@ -1,6 +1,7 @@
 package org.voovan.http.message;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -13,6 +14,7 @@ import org.voovan.http.message.packet.RequestProtocol;
 import org.voovan.http.message.packet.Part.PartType;
 import org.voovan.tools.THash;
 import org.voovan.tools.TString;
+import org.voovan.tools.log.Logger;
 
 /**
  * HTTP 请求对象
@@ -36,6 +38,7 @@ public class Request {
 	private Body			body;
 	private List<Part>		parts;
 	private String boundary = THash.encryptBASE64(UUID.randomUUID().toString());
+	private static final String CONTENT_TYPE = "Content-Type";
 
 	/**
 	 * HTTP 请求的枚举对象
@@ -138,10 +141,10 @@ public class Request {
 		case "HEAD":
 			return RequestType.HEAD;
 		case "POST":
-			if (header.get("Content-Type") != null) {
-				if (header.get("Content-Type").contains("application/x-www-form-urlencoded")) {
+			if (header.get(CONTENT_TYPE) != null) {
+				if (header.get(CONTENT_TYPE).contains("application/x-www-form-urlencoded")) {
 					return RequestType.POST_URLENCODED;
-				} else if (header.get("Content-Type").contains("multipart/form-data")) {
+				} else if (header.get(CONTENT_TYPE).contains("multipart/form-data")) {
 					return RequestType.POST_MULTIPART;
 				}
 			} else {
@@ -193,9 +196,9 @@ public class Request {
 		if (parts.size() != 0) {
 			// 产生新的boundary备用
 			String contentType = "multipart/form-data; boundary=" + boundary;
-			header.put("Content-Type", contentType);
+			header.put(CONTENT_TYPE, contentType);
 		}else if(body.getBodyBytes().length>0){
-			header.put("Content-Type", "application/x-www-form-urlencoded");
+			header.put(CONTENT_TYPE, "application/x-www-form-urlencoded");
 		}
 		
 		//生成 Cookie 信息
@@ -245,7 +248,7 @@ public class Request {
 				header.put("Content-Length", Integer.toString(outputStream.size()));
 			}
 			return outputStream.toByteArray();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			return  new byte[0];
 		}
 	}
@@ -277,8 +280,8 @@ public class Request {
 			//插入报文内容
 			outputStream.write(bodyBytes);
 			
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (IOException e) {
+			Logger.error(e);
 		}
 
 		return outputStream.toByteArray();

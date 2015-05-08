@@ -30,7 +30,7 @@ public class ServerHandlerTest implements IoHandler {
 	@Override
 	public void onException(IoSession session, Exception e) {
 		Logger.simple("Server Exception:");
-		e.printStackTrace();
+		Logger.error(e);
 	}
 
 	@Override

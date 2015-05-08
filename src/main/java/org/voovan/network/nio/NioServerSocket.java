@@ -8,6 +8,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 
 import org.voovan.network.SocketContext;
+import org.voovan.tools.log.Logger;
 
 /**
  * NioServerSocket 监听
@@ -86,8 +87,8 @@ public class NioServerSocket extends SocketContext{
 				serverSocketChannel.close();
 				return true;
 			}
-			catch(Exception e){
-				e.printStackTrace();
+			catch(IOException e){
+				Logger.error(e);
 				return false;
 			}
 		}else{

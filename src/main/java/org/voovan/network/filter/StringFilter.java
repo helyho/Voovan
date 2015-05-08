@@ -30,7 +30,7 @@ public class StringFilter implements IoFilter {
 	@Override
 	public Object decode(IoSession session,Object object) {
 		if(object instanceof ByteBuffer){
-			return MessageLoader.byteBufferToString(TObject.cast(object));
+			return MessageLoader.byteBufferToString((ByteBuffer)object);
 		}
 		return object;
 	}

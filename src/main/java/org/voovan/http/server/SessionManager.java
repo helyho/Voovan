@@ -44,8 +44,8 @@ public class SessionManager{
 			Class<?> sessionContainerClass = Class.forName(className);
 			Map<String, HttpSession> sessionContainer = TObject.cast(TReflect.newInstance(sessionContainerClass));
 			return sessionContainer;
-		} catch (Exception e) {
-			Logger.error("Class SessionManager Error: "+e.getMessage());
+		} catch (ReflectiveOperationException e) {
+			Logger.error(e);
 			return null;
 		}
 	}

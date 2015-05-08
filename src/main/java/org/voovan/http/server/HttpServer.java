@@ -6,6 +6,7 @@ import org.voovan.http.server.websocket.WebSocketBizHandler;
 import org.voovan.http.server.websocket.WebSocketDispatcher;
 import org.voovan.network.aio.AioServerSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
+import org.voovan.tools.log.Logger;
 
 /**
  * HttpServer 对象
@@ -108,7 +109,7 @@ public class HttpServer {
 		try {
 			return new HttpServer(WebContext.getWebServerConfig());
 		} catch (IOException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		}
 		return null;
 	}

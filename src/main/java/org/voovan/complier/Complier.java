@@ -1,4 +1,4 @@
-package org.voovan.dynamicComplier;
+package org.voovan.complier;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -11,6 +11,7 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import org.voovan.tools.TObject;
+import org.voovan.tools.log.Logger;
 
 
 /**
@@ -106,7 +107,7 @@ public class Complier {
 		Boolean success = task.call(); 
 		
 		//对在内存中编译的进行特殊处理
-		if(success==true && fileManager instanceof MemFileManager){
+		if(success && fileManager instanceof MemFileManager){
 			MemFileManager memFileManager = TObject.cast(fileManager);
 			JavaMemClass javaMemClass = memFileManager.getJavaMemClass();
 			javaMemClass.loadThisClass();
@@ -116,7 +117,7 @@ public class Complier {
 			try {
 				fileManager.close() ;
 			} catch (IOException e) {
-				e.printStackTrace();
+				Logger.error(e.getMessage());
 			}
 		}
 		return success ;

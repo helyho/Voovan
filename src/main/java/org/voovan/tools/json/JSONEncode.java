@@ -24,7 +24,7 @@ public class JSONEncode {
 	 * @return  		JSON字符串
 	 * @throws Exception
 	 */
-	private static String complexObject(Object object) throws Exception
+	private static String complexObject(Object object) throws ReflectiveOperationException
 	{
 		return mapObject(TReflect.getMapfromObject(object));
 	}
@@ -35,7 +35,7 @@ public class JSONEncode {
 	 * @return 				JSON字符串
 	 * @throws Exception
 	 */
-	private static String mapObject(Map<?,?> mapObject) throws Exception
+	private static String mapObject(Map<?,?> mapObject) throws ReflectiveOperationException
 	{
 		String mapString = "{";
 		String ContentString = "";
@@ -64,7 +64,7 @@ public class JSONEncode {
 	 * @return 					JSON字符串
 	 * @throws Exception 
 	 */
-	private static String CollectionObject(List<Object> listObject) throws Exception
+	private static String CollectionObject(List<Object> listObject) throws ReflectiveOperationException
 	{
 		return arrayObject(listObject.toArray());
 	}
@@ -75,7 +75,7 @@ public class JSONEncode {
 	 * @return					JSON字符串
 	 * @throws Exception 
 	 */
-	private static String arrayObject(Object[] arrayObject) throws Exception
+	private static String arrayObject(Object[] arrayObject) throws ReflectiveOperationException
 	{
 		String arrayString = "[";
 		String ContentString = "";
@@ -101,7 +101,7 @@ public class JSONEncode {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public static String fromObject(Object object) throws Exception
+	public static String fromObject(Object object) throws ReflectiveOperationException
 	{
 		String value = "";
 

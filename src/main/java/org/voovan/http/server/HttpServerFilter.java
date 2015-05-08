@@ -63,8 +63,7 @@ public class HttpServerFilter implements IoFilter {
 					return null;
 				}
 			} catch (IOException e) {
-				Logger.error("Class HttpServerFilter Error: "+e.getMessage());
-				e.printStackTrace();
+				Logger.error(e);
 				return null;
 			}
 		

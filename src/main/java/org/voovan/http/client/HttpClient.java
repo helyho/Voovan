@@ -1,5 +1,6 @@
 package org.voovan.http.client;
 
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import org.voovan.network.aio.AioSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
+import org.voovan.tools.log.Logger;
 
 /**
  * HTTP 请求调用
@@ -68,8 +70,8 @@ public class HttpClient {
 			
 			socket = new AioSocket(hostString, port==-1?80:port, 5000);
 			parameters = new HashMap<String, Object>();
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (IOException e) {
+			Logger.error("HttpClient init error. ",e);
 		}
 	}
 	
@@ -132,8 +134,8 @@ public class HttpClient {
 						+ "&";
 			}
 			queryString = queryString.length()>0?TString.removeSuffix(queryString):queryString;
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (IOException e) {
+			Logger.error("HttpClient getQueryString error. ",e);
 		}
 		return queryString.isEmpty()? "" :"?"+queryString;
 	}
@@ -146,8 +148,7 @@ public class HttpClient {
 		if (request.getType() == RequestType.GET) {
 			String queryString = getQueryString(); 
 			request.protocol().setPath(request.protocol().getPath() + queryString);
-		}
-		else if(request.getType() == RequestType.POST && request.parts().size()!=0){
+		} else if(request.getType() == RequestType.POST && request.parts().size()!=0){
 			try{
 				for (Entry<String, Object> parameter : parameters.entrySet()) {
 					Part part = new Part();
@@ -155,12 +156,11 @@ public class HttpClient {
 					part.body().write(URLEncoder.encode(parameter.getValue().toString(),charset).getBytes());
 					request.parts().add(part);
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (IOException e) {
+				Logger.error("HttpClient buildRequest error. ",e);
 			}
 			
-		}
-		else if(request.getType() == RequestType.POST && request.parts().size()==0){
+		} else if(request.getType() == RequestType.POST && request.parts().isEmpty()){
 			request.body().write(TString.removePrefix(getQueryString()),charset);
 		}
 	}
@@ -168,9 +168,9 @@ public class HttpClient {
 	/**
 	 * 连接并发送请求
 	 * @return
-	 * @throws Exception
+	 * @throws IOException 
 	 */
-	public Response Connect() throws Exception{
+	public Response connect() throws IOException {
 		buildRequest();
 		
 		clientHandler = new HttpClientHandler(request);

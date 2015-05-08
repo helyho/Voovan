@@ -52,13 +52,13 @@ public class HttpClientHandler implements IoHandler {
 
 	@Override
 	public void onSent(IoSession session, Object obj) {
-
+		//不处理这个方法
 	}
 
 	@Override
 	public void onException(IoSession session, Exception e) {
 		session.close();
-		e.printStackTrace();
+		Logger.error(e);
 	}
 
 }

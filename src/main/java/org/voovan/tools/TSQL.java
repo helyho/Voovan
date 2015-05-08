@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -117,9 +118,10 @@ public class TSQL {
 	 * @param sqlStr
 	 * @param argObjectj
 	 * @return
+	 * @throws ReflectiveOperationException 
 	 * @throws Exception
 	 */
-	public static String assembleSQLWithObject(String sqlStr,Object argObjectj) throws Exception{
+	public static String assembleSQLWithObject(String sqlStr,Object argObjectj) throws ReflectiveOperationException{
 		
 		//获取对象 (属性-值)Map
 		Map<String,Object> argMap = TReflect.getMapfromObject(argObjectj);
@@ -147,9 +149,11 @@ public class TSQL {
 	 * 包装resultSet中单行记录成Map
 	 * @param resultset
 	 * @return
+	 * @throws SQLException 
+	 * @throws ReflectiveOperationException 
 	 * @throws Exception
 	 */
-    public static Map<String, Object> getOneRowWithMap(ResultSet resultset) throws Exception{
+    public static Map<String, Object> getOneRowWithMap(ResultSet resultset) throws SQLException, ReflectiveOperationException {
 		 
 		HashMap<String, Object> resultMap = new HashMap<String,Object>();
 		HashMap<String,Integer> columns = new HashMap<String,Integer>();
@@ -175,9 +179,12 @@ public class TSQL {
      * @param clazz
      * @param resultset
      * @return
+     * @throws ReflectiveOperationException 
+     * @throws SQLException 
+     * @throws ParseException 
      * @throws Exception
      */
-    public static Object getOneRowWithObject(Class<?> clazz,ResultSet resultset) throws Exception{
+    public static Object getOneRowWithObject(Class<?> clazz,ResultSet resultset) throws SQLException, ReflectiveOperationException, ParseException {
     	Map<String,Object>rowMap = getOneRowWithMap(resultset);
     	return TReflect.getObjectFromMap(clazz, rowMap);
     }
@@ -186,9 +193,11 @@ public class TSQL {
      * 包装resultSet中所有记录成List,单行元素为Map
      * @param resultset
      * @return
+     * @throws ReflectiveOperationException 
+     * @throws SQLException 
      * @throws Exception
      */
-    public static List<Map<String,Object>> getAllRowWithMapList(ResultSet resultset) throws Exception{
+    public static List<Map<String,Object>> getAllRowWithMapList(ResultSet resultset) throws SQLException, ReflectiveOperationException {
     	List<Map<String,Object>> resultList = new Vector<Map<String,Object>>();
     	while(resultset.next()){
     		resultList.add(getOneRowWithMap(resultset));
@@ -201,9 +210,12 @@ public class TSQL {
      * @param clazz
      * @param resultset
      * @return
+     * @throws ParseException 
+     * @throws ReflectiveOperationException 
+     * @throws SQLException 
      * @throws Exception
      */
-    public static List<Object> getAllRowWithObjectList(Class<?> clazz,ResultSet resultset) throws Exception{
+    public static List<Object> getAllRowWithObjectList(Class<?> clazz,ResultSet resultset) throws SQLException, ReflectiveOperationException, ParseException {
     	List<Object> resultList = new Vector<Object>();
     	while(resultset.next()){
     		resultList.add(getOneRowWithObject(clazz,resultset));

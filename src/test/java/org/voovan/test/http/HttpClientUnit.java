@@ -30,7 +30,7 @@ public class HttpClientUnit extends TestCase {
 //		HttpClient getClient = new HttpClient("http://webserver.voovan.com","GB2312");
 //		getClient.setMethod("GET");
 //		getClient.putParameters("name", "测试");
-//		Response response = getClient.Connect();
+//		Response response = getClient.connect();
 //		Logger.simple(response.body().getBodyString("GB2312"));
 //		assertTrue(response.protocol().getStatus()!=500);
 //	}
@@ -40,7 +40,7 @@ public class HttpClientUnit extends TestCase {
 //		postClient.setMethod("POST");
 //		postClient.putParameters("name", "测试");
 //		postClient.putParameters("age", "32");
-//		Response response = postClient.Connect();
+//		Response response = postClient.connect();
 //		Logger.simple(response.body().getBodyString("GB2312"));
 //		assertTrue(response.protocol().getStatus() != 500);
 //	}
@@ -55,7 +55,7 @@ public class HttpClientUnit extends TestCase {
 		mpClient.addPart(partName);
 		mpClient.addPart(partAge);
 		
-		Response response = mpClient.Connect();
+		Response response = mpClient.connect();
 		Logger.simple(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 	}

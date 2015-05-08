@@ -3,6 +3,8 @@ package org.voovan.http.message.packet;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
+import org.voovan.tools.log.Logger;
+
 /**
  * HTTP 请求的协议对象
  * @author helyho
@@ -70,7 +72,7 @@ public class RequestProtocol extends Protocol {
 		try {
 			return this.method+" "+this.path+URLEncoder.encode(queryString,"UTF-8")+" "+this.protocol+"/"+this.version+"\r\n";
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		}
 		return this.method+" "+this.path+queryString+" "+this.protocol+"/"+this.version+"\r\n";
 	}

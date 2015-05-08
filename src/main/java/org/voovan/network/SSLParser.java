@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.Status;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
@@ -58,14 +59,14 @@ public class SSLParser {
 	}
 	
 	protected ByteBuffer buildNetDataBuffer() {
-		SSLSession session = engine.getSession();
-		int newBufferMax = session.getPacketBufferSize();
+		SSLSession sslSession = engine.getSession();
+		int newBufferMax = sslSession.getPacketBufferSize();
 		return ByteBuffer.allocate(newBufferMax);
 	}
 	
 	protected ByteBuffer buildAppDataBuffer() {
-		SSLSession session = engine.getSession();
-		int newBufferMax = session.getPacketBufferSize();
+		SSLSession sslSession = engine.getSession();
+		int newBufferMax = sslSession.getPacketBufferSize();
 		return ByteBuffer.allocate(newBufferMax);
 	}
 	
@@ -100,9 +101,10 @@ public class SSLParser {
 	/**
 	 * 处理握手 Warp;
 	 * @return
+	 * @throws IOException 
 	 * @throws Exception
 	 */
-	private HandshakeStatus doHandShakeWarp()  throws Exception{
+	private HandshakeStatus doHandShakeWarp() throws IOException {
 		clearBuffer();
 		appData.flip();
 		warpData(appData);
@@ -115,9 +117,10 @@ public class SSLParser {
 	 * 解包数据
 	 * @param buffer    	接受解包数据的缓冲区
 	 * @return
+	 * @throws SSLException 
 	 * @throws Exception
 	 */
-	public SSLEngineResult unwarpData(ByteBuffer netBuffer,ByteBuffer appBuffer) throws Exception{
+	public SSLEngineResult unwarpData(ByteBuffer netBuffer,ByteBuffer appBuffer) throws SSLException{
 		SSLEngineResult engineResult = null;
 		engineResult = engine.unwrap(netBuffer, appBuffer);
 		return engineResult;
@@ -126,9 +129,10 @@ public class SSLParser {
 	/**
 	 * 处理握手 Unwarp;
 	 * @return
+	 * @throws IOException 
 	 * @throws Exception
 	 */
-	private HandshakeStatus doHandShakeUnwarp() throws Exception{
+	private HandshakeStatus doHandShakeUnwarp() throws IOException{
 			HandshakeStatus handshakeStatus =engine.getHandshakeStatus();
 			ByteBufferChannel netDataChannel = new ByteBufferChannel();
 			SSLEngineResult engineResult = null;
@@ -152,7 +156,7 @@ public class SSLParser {
 	 * @param engine
 	 * @throws Exception
 	 */
-	private HandshakeStatus runDelegatedTasks() throws Exception {
+	private HandshakeStatus runDelegatedTasks()  {
 		if(handShakeDone==false){
 			if (engine.getHandshakeStatus() == HandshakeStatus.NEED_TASK) {
 				Runnable runnable;
@@ -165,7 +169,7 @@ public class SSLParser {
 		return null;
 	}
 	
-	public boolean doHandShake() throws Exception{
+	public boolean doHandShake() throws IOException{
 		
 		engine.beginHandshake();
 		int handShakeCount = 0;
