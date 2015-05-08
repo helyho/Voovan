@@ -14,5 +14,7 @@
 	//Session 超时时间(m),默认30分钟
 	"SessionTimeout"    : 30,
 	//KeepAlive 超时时间(m),默认5分钟
-	"KeepAliveTimeout"  : 1
+	"KeepAliveTimeout"  : 1,
+	//是否启用Gzip压缩
+	"Gzip"              : off                
 }

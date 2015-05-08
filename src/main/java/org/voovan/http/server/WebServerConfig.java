@@ -17,6 +17,7 @@ public class WebServerConfig {
 	private String sessionContainer;
 	private int sessionTimeout;
 	private int keepAliveTimeout;
+	private boolean gzip;
 	
 	protected void setHost(String host) {
 		this.host = host;
@@ -66,6 +67,12 @@ public class WebServerConfig {
 	}
 	public int getKeepAliveTimeout() {
 		return keepAliveTimeout;
+	}
+	public boolean isGzip() {
+		return gzip;
+	}
+	public void setGzip(boolean gzip) {
+		this.gzip = gzip;
 	}
 	
 	
