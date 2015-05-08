@@ -60,6 +60,7 @@ public class HttpServerHandler implements IoHandler {
 				
 				// 构造响应报文并返回
 				Response response = new Response();
+				response.setCompress(config.isGzip());
 	
 				// 构造 Http 请求响应对象
 				HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);

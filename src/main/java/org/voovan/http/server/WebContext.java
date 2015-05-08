@@ -65,6 +65,7 @@ public class WebContext {
 		config.setSessionContainer(getContextParameter("SessionContainer","java.util.Hashtable"));
 		config.setSessionTimeout(getContextParameter("SessionTimeout",30));
 		config.setKeepAliveTimeout(getContextParameter("KeepAliveTimeout",5));
+		config.setGzip(getContextParameter("Gzip","true").equals("on")?true:false);
 		return config;
 	}
 
