@@ -148,12 +148,11 @@ public class HttpClient {
 			request.protocol().setPath(request.protocol().getPath() + queryString);
 		}
 		else if(request.getType() == RequestType.POST && request.parts().size()!=0){
-			
 			try{
 				for (Entry<String, Object> parameter : parameters.entrySet()) {
 					Part part = new Part();
 					part.header().put("name", parameter.getKey());
-					part.body().write(URLEncoder.encode(parameter.getValue().toString(),"UTF-8").getBytes());
+					part.body().write(URLEncoder.encode(parameter.getValue().toString(),charset).getBytes());
 					request.parts().add(part);
 				}
 			} catch (Exception e) {
@@ -162,7 +161,7 @@ public class HttpClient {
 			
 		}
 		else if(request.getType() == RequestType.POST && request.parts().size()==0){
-			request.body().write(TString.removePrefix(getQueryString()).getBytes());
+			request.body().write(TString.removePrefix(getQueryString()),charset);
 		}
 	}
 	
