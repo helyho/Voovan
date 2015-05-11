@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
-import org.voovan.network.MessageLoader;
 import org.voovan.tools.TObject;
 
 /**
@@ -30,8 +29,21 @@ public class StringFilter implements IoFilter {
 	@Override
 	public Object decode(IoSession session,Object object) {
 		if(object instanceof ByteBuffer){
-			return MessageLoader.byteBufferToString((ByteBuffer)object);
+			return byteBufferToString((ByteBuffer)object);
 		}
 		return object;
+	}
+	
+	
+	/**
+	 * 将 ByteBuffer 转换成 String
+	 * @param buf   byteBuffer 对象
+	 * @return
+	 */
+	public static String byteBufferToString(ByteBuffer byteBuffer) {
+		int size = byteBuffer.limit();
+		byte[] byteBuf = new byte[size];
+		byteBuffer.get(byteBuf);
+		return new String(byteBuf);
 	}
 }

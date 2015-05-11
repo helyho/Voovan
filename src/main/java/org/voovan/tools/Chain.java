@@ -1,4 +1,4 @@
-package org.voovan.network;
+package org.voovan.tools;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;

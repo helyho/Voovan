@@ -158,16 +158,4 @@ public class MessageLoader {
 		return buffer;
 	}
 
-	
-	/**
-	 * 将 ByteBuffer 转换成 String
-	 * @param buf   byteBuffer 对象
-	 * @return
-	 */
-	public static String byteBufferToString(ByteBuffer byteBuffer) {
-		int size = byteBuffer.limit();
-		byte[] byteBuf = new byte[size];
-		byteBuffer.get(byteBuf);
-		return new String(byteBuf);
-	}
 }

@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
-import org.voovan.network.MessageLoader;
 import org.voovan.tools.log.Logger;
 
 public class ClientHandlerTest implements IoHandler {
@@ -41,7 +40,7 @@ public class ClientHandlerTest implements IoHandler {
 	public void onSent(IoSession session, Object obj) {
 		ByteBuffer sad = (ByteBuffer)obj;
 		sad = (ByteBuffer)sad.rewind();
-		Logger.simple("Client onSent: "+MessageLoader.byteBufferToString(sad));
+		Logger.simple("Client onSent: "+new String(sad.array()));
 	}
 
 }
