@@ -26,36 +26,30 @@ public class HttpClientUnit extends TestCase {
 		assertEquals(httpClient.getParameters().get("name"), "测试");
 	}
 	
-//	public void testGet() throws Exception{
-//		HttpClient getClient = new HttpClient("http://webserver.voovan.com","GB2312");
-//		getClient.setMethod("GET");
-//		getClient.putParameters("name", "测试");
-//		Response response = getClient.connect();
-//		Logger.simple(response.body().getBodyString("GB2312"));
-//		assertTrue(response.protocol().getStatus()!=500);
-//	}
+	public void testGet() throws Exception{
+		HttpClient getClient = new HttpClient("http://webserver.voovan.com","GB2312");
+		Response response  = getClient.setMethod("GET")
+			.putParameters("name", "测试")
+			.putParameters("age", "32").connect();
+		Logger.simple(response.body().getBodyString("GB2312"));
+		assertTrue(response.protocol().getStatus()!=500);
+	}
 
-//	public void testPost() throws Exception {
-//		HttpClient postClient = new HttpClient("http://webserver.voovan.com","GB2312");
-//		postClient.setMethod("POST");
-//		postClient.putParameters("name", "测试");
-//		postClient.putParameters("age", "32");
-//		Response response = postClient.connect();
-//		Logger.simple(response.body().getBodyString("GB2312"));
-//		assertTrue(response.protocol().getStatus() != 500);
-//	}
+	public void testPost() throws Exception {
+	HttpClient postClient = new HttpClient("http://webserver.voovan.com","GB2312");
+	Response response = postClient.setMethod("POST") 
+		.putParameters("name", "测试")
+		.putParameters("age", "32").connect();
+	Logger.simple(response.body().getBodyString("GB2312"));
+	assertTrue(response.protocol().getStatus() != 500);
+	}
 	
 	public void testMultiPart() throws Exception {
-		HttpClient mpClient = new HttpClient("http://127.0.0.1:28080");
-		mpClient.setMethod("POST");
+		HttpClient mpClient = new HttpClient("http://webserver.voovan.com");
+		Response response = mpClient.setMethod("POST")
+			.addPart(new Part("name","测试","GB2312"))
+			.addPart(new Part("age","23","GB2312")).connect();
 		
-		Part partName = new Part("name","测试","GB2312");
-		Part partAge = new Part("age","23","GB2312");
-		
-		mpClient.addPart(partName);
-		mpClient.addPart(partAge);
-		
-		Response response = mpClient.connect();
 		Logger.simple(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 	}

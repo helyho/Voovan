@@ -79,8 +79,9 @@ public class HttpClient {
 	 * 设置请求方法
 	 * @param method
 	 */
-	public void setMethod(String method){
+	public HttpClient setMethod(String method){
 		request.protocol().setMethod(method);
+		return this;
 	}
 	
 	/**
@@ -104,8 +105,9 @@ public class HttpClient {
 	 * 		类似 Form 的 Actiong="POST" enctype="multipart/form-data"
 	 * @param method
 	 */
-	public void addPart(Part part){
+	public HttpClient addPart(Part part){
 		request.parts().add(part);
+		return this;
 	}
 	
 	/**
