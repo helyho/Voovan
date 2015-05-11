@@ -29,7 +29,7 @@
 **Issues地址:** [GitHub](https://github.com/helyho/Voovan/issues) 或者 [Git@OSC](http://git.oschina.net/helyho/Voovan/issues)
 
 
-    推荐将 Issues 提交到 GitHub,如果没有 GitHub 帐号可以直接提交到 Git@OSC
+    推荐将 Issues 提交到 GIT@OSC,如果没有 GitHub 帐号可以直接提交到 Git@OSC
 
 ###一、高性能异步通信(AIO、NIO异步通信)
 
@@ -65,7 +65,7 @@
 ###WEB服务器特性:
   1. 支持 **WebSocket Version 13**，并且保持 WebSocket请求参数。
   1. **使用 Lambda 实现更加方便的 Http 响应实现。**
-  1. **支持路径变量自动抽取**  当路径定义/:name,在使用/jonh地址访问时，可以通过 name 参数获取 jonh 字符串。
+  1. **支持路径参数自动抽取**  当路径定义/:name,在使用/jonh地址访问时，可以通过 name 参数获取 jonh 字符串。
   1. 重定向支持。
   1. 可灵活实现session共享。
   1. **异常统一展示**支持。
