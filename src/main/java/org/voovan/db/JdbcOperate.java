@@ -361,7 +361,6 @@ public class JdbcOperate {
 	 * @throws ReflectiveOperationException 
 	 * @throws SQLException 
 	 * @throws ParseException 
-	 * @throws Exception
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t, Object arg) throws ReflectiveOperationException, SQLException, ParseException{
 		Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);

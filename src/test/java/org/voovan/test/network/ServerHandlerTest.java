@@ -5,7 +5,6 @@ import java.nio.ByteBuffer;
 
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
-import org.voovan.network.MessageLoader;
 import org.voovan.tools.log.Logger;
 
 public class ServerHandlerTest implements IoHandler {
@@ -37,7 +36,7 @@ public class ServerHandlerTest implements IoHandler {
 	public void onSent(IoSession session, Object obj) {
 		ByteBuffer sad = (ByteBuffer)obj;
 		sad = (ByteBuffer)sad.rewind();
-		Logger.simple("Server onSent: "+MessageLoader.byteBufferToString(sad));
+		Logger.simple("Server onSent: "+new String(sad.array()));
 		//jmeter 测试是需要打开,和客户端测试时关闭
 		//session.close();
 	}
