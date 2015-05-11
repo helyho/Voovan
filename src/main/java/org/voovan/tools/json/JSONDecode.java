@@ -138,21 +138,23 @@ public class JSONDecode {
 						value = new Integer((String)value);
 					}
 					//判断有一个.即为浮点数,转换成 Float
-					else if (TString.isInteger(stringValue)) {
+					else if (TString.isFloat(stringValue)) {
 						value = new Float((String)value);
+					}else{
+						value = null;
 					}
 				}
 				
 				//这里 key 和 value 都准备完成了
 				
 				//判断返回对象的类型,填充返回对象
-				if(jsonResult instanceof HashMap){
+				if(jsonResult instanceof HashMap && value != null){
 					@SuppressWarnings("unchecked")
 					HashMap<String, Object> result = (HashMap<String, Object>)jsonResult;
 					keyString = keyString.substring(1, keyString.length()-1);
 					result.put(keyString, value);
 				}
-				if(jsonResult instanceof ArrayList){
+				if(jsonResult instanceof ArrayList && value != null){
 					@SuppressWarnings("unchecked")
 					ArrayList<Object> result = (ArrayList<Object>)jsonResult;
 					result.add(value);
