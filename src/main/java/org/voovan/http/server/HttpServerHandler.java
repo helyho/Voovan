@@ -29,12 +29,12 @@ import org.voovan.tools.log.Logger;
 public class HttpServerHandler implements IoHandler {
 	private HttpDispatcher		httpDispatcher;
 	private WebSocketDispatcher	webSocketDispatcher;
-	private WebServerConfig		config;
+	private WebServerConfig		webConfig;
 
-	public HttpServerHandler(WebServerConfig config, HttpDispatcher httpDispatcher, WebSocketDispatcher webSocketDispatcher) {
+	public HttpServerHandler(WebServerConfig webConfig, HttpDispatcher httpDispatcher, WebSocketDispatcher webSocketDispatcher) {
 		this.httpDispatcher = httpDispatcher;
 		this.webSocketDispatcher = webSocketDispatcher;
-		this.config = config;
+		this.webConfig = webConfig;
 	}
 
 	@Override
@@ -50,7 +50,7 @@ public class HttpServerHandler implements IoHandler {
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
 		// 获取默认字符集
-		String defaultCharacterSet = config.getCharacterSet();
+		String defaultCharacterSet = webConfig.getCharacterSet();
 
 		// Http 请求
 		if (obj instanceof Request) {
@@ -59,7 +59,7 @@ public class HttpServerHandler implements IoHandler {
 
 			// 构造响应报文并返回
 			Response response = new Response();
-			response.setCompress(config.isGzip());
+			response.setCompress(webConfig.isGzip());
 
 			// 构造 Http 请求响应对象
 			HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);
@@ -218,7 +218,7 @@ public class HttpServerHandler implements IoHandler {
 
 		// 构造新的KeepAliveTask
 		Timer keepAliveTimer = new Timer();
-		int keepAliveTimeout = config.getKeepAliveTimeout();
+		int keepAliveTimeout = webConfig.getKeepAliveTimeout();
 
 		if (keepAliveTimeout > 0) {
 			TimerTask keepAliveTask = new TimerTask() {
