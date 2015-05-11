@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.Event.EventState;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.tools.Chain;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
