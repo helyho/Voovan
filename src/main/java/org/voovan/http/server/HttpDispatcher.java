@@ -6,9 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.voovan.http.message.packet.Cookie;
+import org.voovan.http.server.WebServerConfig.FilterConfig;
 import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.router.MimeFileRouter;
+import org.voovan.tools.Chain;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
@@ -40,7 +42,7 @@ public class HttpDispatcher {
 	 * [MainKey] = HTTP method ,[Value Key] = Route path, [Value value] = RouteBuiz对象
 	 */
 	private Map<String, Map<String, HttpBizHandler>>	handlers;
-	private WebServerConfig config;
+	private WebServerConfig webConfig;
 	private SessionManager sessionManager;
 	
 	/**
@@ -49,9 +51,9 @@ public class HttpDispatcher {
 	 * @param rootDir
 	 *            根目录
 	 */
-	public HttpDispatcher(WebServerConfig config,SessionManager sessionManager) {
+	public HttpDispatcher(WebServerConfig webConfig,SessionManager sessionManager) {
 		handlers = new HashMap<String, Map<String, HttpBizHandler>>();
-		this.config = config;
+		this.webConfig = webConfig;
 		this.sessionManager = sessionManager;
 		
 		// 初始化所有的 HTTP 请求方法
@@ -65,7 +67,7 @@ public class HttpDispatcher {
 		this.addRouteMethod("OPTIONS");
 		
 		// Mime静态文件默认请求处理
-		addRouteHandler("GET", MimeTools.getMimeTypeRegex(), new MimeFileRouter(config.getContextPath()));
+		addRouteHandler("GET", MimeTools.getMimeTypeRegex(), new MimeFileRouter(webConfig.getContextPath()));
 	}
 
 	/**
@@ -120,8 +122,17 @@ public class HttpDispatcher {
 					//Session预处理
 					diposeSession(request,response);
 					
+					Chain<FilterConfig> filterConfigs = webConfig.getFilterConfigs().clone();
+					
+					//过滤器处理
+					diposeFilter(filterConfigs,request,response);
+					
 					//处理路由请求
 					handler.Process(request, response);
+					
+					//过滤器处理
+					diposeFilter(filterConfigs,request,response);
+					
 				} catch (Exception e) {
 					exceptionMessage(request, response, e);
 				}
@@ -197,7 +208,7 @@ public class HttpDispatcher {
 			sessionManager.addSession(session);
 			
 			//取 session 超时时间
-			int sessionTimeout = config.getSessionTimeout();
+			int sessionTimeout = webConfig.getSessionTimeout();
 			//创建 Cookie
 			Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(), 
 					session.getId(),sessionTimeout*60);
@@ -209,6 +220,15 @@ public class HttpDispatcher {
 		}
 	}
 
+	public void diposeFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) throws ReflectiveOperationException{
+		filterConfigs.rewind();
+		while(filterConfigs.hasNext()){
+			FilterConfig filterConfig = filterConfigs.next();
+			HttpBizFilter httpBizFilter = filterConfig.getBizFilter();
+			httpBizFilter.doFilter(filterConfig, request, response);
+		}
+	}
+	
 	/**
 	 * 异常消息处理
 	 * 

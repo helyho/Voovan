@@ -1,5 +1,6 @@
 package org.voovan.http.server;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.voovan.tools.TFile;
@@ -66,6 +67,9 @@ public class WebContext {
 		config.setSessionTimeout(getContextParameter("SessionTimeout",30));
 		config.setKeepAliveTimeout(getContextParameter("KeepAliveTimeout",5));
 		config.setGzip(getContextParameter("Gzip","on").equals("on")?true:false);
+		//初始化过滤器
+		config.addAllFilterConfigs(getContextParameter("Filter",new ArrayList<Map<String,Object>>()));
+		
 		return config;
 	}
 
