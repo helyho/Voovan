@@ -17,7 +17,7 @@ public class HttpSession {
 	private Map<String,Object> attributes;
 	private String id ;
 	private int maxInactiveInterval;
-	private long createTimeillis;
+	private long lastTimeillis;
 	
 	/**
 	 * 构造函数
@@ -26,12 +26,20 @@ public class HttpSession {
 		attributes = new HashMap<String, Object>();
 		//生成一个随机的 ID 用作唯一标识
 		this.id = UUID.randomUUID().toString().toUpperCase().replaceAll("-", "");
-		createTimeillis = System.currentTimeMillis();
+		lastTimeillis = System.currentTimeMillis();
 		int sessionTimeout = config.getSessionTimeout();
 		this.maxInactiveInterval = sessionTimeout*60*1000;
 		
 	}
 
+	/**
+	 * 刷新 Session 的超时时间
+	 */
+	public HttpSession refresh(){
+		lastTimeillis = System.currentTimeMillis();
+		return this;
+	}
+	
 	/**
 	 * 获取当前 Session 属性
 	 * @param name 属性名
@@ -88,7 +96,7 @@ public class HttpSession {
 	 * @return  true: 失效,false: 有效
 	 */
 	public boolean isInvalid(){
-		int intervalTime = (int)(System.currentTimeMillis() - createTimeillis);
+		int intervalTime = (int)(System.currentTimeMillis() - lastTimeillis);
 		if(intervalTime>maxInactiveInterval){
 			return true;
 		}else{
