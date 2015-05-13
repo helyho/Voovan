@@ -22,11 +22,14 @@ public class HttpServerDemo {
 			httpServer.get("/", (req, resp) -> {
 				Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
 				Logger.simple("Request info: "+req.protocol());
-				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
-					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
+				//Session 测试
+				{
+					String now = TDateTime.now();
+					if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
+						Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time")+" SavedTime: "+now);
+					}
+					req.getSession().setAttribute("Time", now);
 				}
-				req.getSession().setAttribute("Time", TDateTime.now());
-
 				resp.write(fileContent);
 				resp.write("{"
 						+ "\"Method\":\"NormalGET\","
@@ -39,10 +42,6 @@ public class HttpServerDemo {
 			httpServer.get("/:name/:age", (req, resp) -> {
 				Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
 				Logger.simple("Request info: "+req.protocol());
-				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
-					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
-				}
-				req.getSession().setAttribute("Time", TDateTime.now());
 				resp.write(fileContent);
 				resp.write("{"
 								+ "\"Method\":\"PathGET\","
@@ -63,10 +62,6 @@ public class HttpServerDemo {
 			httpServer.post("/", (req, resp) -> {
 				Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
 				Logger.simple("Request info: "+req.protocol());
-				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
-					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time"));
-				}
-				req.getSession().setAttribute("Time", TDateTime.now());
 				resp.write(fileContent);
 				String contentType = req.header().get("Content-Type").split(";")[0];
 				resp.write("{"
