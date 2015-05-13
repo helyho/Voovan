@@ -127,4 +127,15 @@ public class Cookie {
 		cookie.setHttpOnly(true);
 		return cookie;
 	}
+	
+	/**
+	 * 创建一个 Cookie
+	 * @param request	请求对象
+	 * @param name		名称
+	 * @param value		值
+	 * @return
+	 */
+	public static Cookie newInstance(Request request,String name,String value){
+		return newInstance(request,name,value,-1);
+	}
 }

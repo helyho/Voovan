@@ -5,6 +5,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import org.voovan.http.message.packet.Cookie;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TReflect;
 import org.voovan.tools.log.Logger;
@@ -20,14 +21,14 @@ import org.voovan.tools.log.Logger;
  */
 public class SessionManager{
 	private  Map<String, HttpSession>	sessions;
-	private WebServerConfig config;
+	private WebServerConfig webConfig;
 	
 	/**
 	 * 构造函数
 	 * @param config
 	 */
-	public SessionManager(WebServerConfig config){
-		this.config = config;
+	public SessionManager(WebServerConfig webConfig){
+		this.webConfig = webConfig;
 		sessions = getSessionContainer();
 		if(sessions == null){
 			sessions = new Hashtable<String, HttpSession>();
@@ -39,14 +40,19 @@ public class SessionManager{
 	 * 获取 Session 容器
 	 */
 	public Map<String, HttpSession> getSessionContainer(){
-		try {
-			String className = config.getSessionContainer();
-			Class<?> sessionContainerClass = Class.forName(className);
-			Map<String, HttpSession> sessionContainer = TObject.cast(TReflect.newInstance(sessionContainerClass));
-			return sessionContainer;
-		} catch (ReflectiveOperationException e) {
-			Logger.error(e);
-			return null;
+		if(sessions!=null){
+			return sessions;
+		}else{
+			try {
+				String className = webConfig.getSessionContainer();
+				Class<?> sessionContainerClass = Class.forName(className);
+				//根据 Class 构造一个 Session 容器
+				Map<String, HttpSession> sessionContainer = TObject.cast(TReflect.newInstance(sessionContainerClass));
+				return sessionContainer;
+			} catch (ReflectiveOperationException e) {
+				Logger.error(e);
+				return null;
+			}
 		}
 	}
 	
@@ -69,12 +75,42 @@ public class SessionManager{
 	 */
 	public synchronized HttpSession getSession(String id) {
 		clearInvalidSession();
-		if (sessions.containsKey(id)) {
-			return sessions.get(id);
+		if (id!=null && sessions.containsKey(id)) {
+			return sessions.get(id).refresh();
+		}
+		return null;
+	}
+	
+	/**
+	 * 获取 Session
+	 * 
+	 * @param cookie
+	 * @return
+	 */
+	public synchronized HttpSession getSession(Cookie cookie) {
+		clearInvalidSession();
+		if (cookie!=null && sessions.containsKey(cookie.getValue())) {
+			return sessions.get(cookie.getValue()).refresh();
 		}
 		return null;
 	}
 
+	/**
+	 * 判断 Session 是否存在
+	 * @param cookie
+	 * @return
+	 */
+	public synchronized boolean containsSession(Cookie cookie) {
+		
+		if(cookie==null){
+			return false;
+		} else if (getSession(cookie) != null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	/**
 	 * 获取失效的 session
 	 */
@@ -89,7 +125,7 @@ public class SessionManager{
 	}
 	
 	/**
-	 * 获取失效的 session
+	 * 清理失效的 session
 	 */
 	public synchronized void clearInvalidSession() {
 		List<HttpSession> needRemove = getInvalidSession();
@@ -102,8 +138,19 @@ public class SessionManager{
 	 * 获得一个新的 Session
 	 * @return
 	 */
-	public HttpSession newHttpSession(){
-		return new HttpSession(config);
+	public HttpSession newHttpSession(HttpRequest request,HttpResponse response){
+		HttpSession session  = new HttpSession(webConfig);
+		
+		this.addSession(session);
+		
+		//创建 Cookie
+		Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(), 
+				session.getId(),webConfig.getSessionTimeout()*60);
+		
+		//响应增加Session 对应的 Cookie
+		response.cookies().add(cookie);
+		
+		return session;
 	}
 	
 	public static SessionManager newInstance(WebServerConfig config){

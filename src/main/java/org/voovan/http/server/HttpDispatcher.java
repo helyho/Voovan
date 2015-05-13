@@ -196,26 +196,17 @@ public class HttpDispatcher {
 		Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
 		
 		//如果 session 不存在,创建新的 session
-		//1.保存 session id 的 cookie 不存在
-		//2.从 cookie 中取 session id 为空
-		//3.从 session 管理器中取 session 对象为空
-		if(sessionCookie==null 
-				|| TString.isNullOrEmpty(sessionCookie.getValue()) 
-				|| sessionManager.getSession(sessionCookie.getValue())==null){
-			//构建 session
-			HttpSession session = sessionManager.newHttpSession();
+		if (!sessionManager.containsSession(sessionCookie)) {
+			// 构建 session
+			HttpSession session = sessionManager.newHttpSession(request, response);
+
+			// 请求增加 Session
 			request.setSession(session);
-			sessionManager.addSession(session);
-			
-			//取 session 超时时间
-			int sessionTimeout = webConfig.getSessionTimeout();
-			//创建 Cookie
-			Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(), 
-					session.getId(),sessionTimeout*60);
-			response.cookies().add(cookie);
-		}else{
-			//通过 Cookie 中的 session 标识获取 Session
+		} else {
+			// 通过 Cookie 中的 session 标识获取 Session
 			HttpSession session = sessionManager.getSession(sessionCookie.getValue());
+
+			// 请求增加 Session
 			request.setSession(session);
 		}
 	}
