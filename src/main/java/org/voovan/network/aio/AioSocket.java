@@ -5,6 +5,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 
+import javax.net.ssl.SSLException;
+
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
@@ -101,9 +103,18 @@ public class AioSocket extends SocketContext {
 		return session;
 	}
 
+	private void initSSL() throws SSLException{
+		if (connectModel == ConnectModel.SERVER && sslManager != null) {
+			sslManager.createServerSSLParser(session);
+		} else if (connectModel == ConnectModel.CLIENT && sslManager != null) {
+			sslManager.createClientSSLParser(session);
+		}
+	}
+	
 	@Override
 	public void start() throws IOException{
-
+		initSSL();
+		
 		if (connectModel == ConnectModel.CLIENT) {
 			// 捕获 connect 事件
 			catchConnected();
@@ -111,12 +122,6 @@ public class AioSocket extends SocketContext {
 		
 		//捕获输入事件
 		catchRead(ByteBuffer.allocate(1024));
-
-		if (connectModel == ConnectModel.SERVER && sslManager != null) {
-			sslManager.createServerSSLParser(session);
-		} else if (connectModel == ConnectModel.CLIENT && sslManager != null) {
-			sslManager.createClientSSLParser(session);
-		}
 		
 		// 触发 connect 事件
 		eventTrigger.fireConnectThread();

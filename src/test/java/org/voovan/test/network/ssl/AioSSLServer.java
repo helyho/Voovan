@@ -8,7 +8,7 @@ import org.voovan.test.network.ServerHandlerTest;
 public class AioSSLServer  {
 
 	public static void main(String[] args) throws Exception {
-		SSLManager sslManager = new SSLManager("SSL");
+		SSLManager sslManager = new SSLManager("SSL",false);
 		sslManager.loadCertificate(System.getProperty("user.dir")+"/src/test/java/org/voovan/test/network/ssl/ssl_ks", "passStr","123123");
 		
 		AioServerSocket serverSocket = new AioServerSocket("127.0.0.1",2031,500);

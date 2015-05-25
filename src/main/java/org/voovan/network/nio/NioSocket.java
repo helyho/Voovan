@@ -7,6 +7,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 
+import javax.net.ssl.SSLException;
+
 import org.voovan.network.ConnectModel;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.log.Logger;
@@ -93,18 +95,20 @@ public class NioSocket extends SocketContext{
 		return session;
 	}
 	
+	private void initSSL() throws SSLException{
+		if (connectModel == ConnectModel.SERVER && sslManager != null) {
+			sslManager.createServerSSLParser(session);
+		} else if (connectModel == ConnectModel.CLIENT && sslManager != null) {
+			sslManager.createClientSSLParser(session);
+		}
+	}
+	
 	/**
 	 * 启动
 	 * @throws IOException 
 	 */
 	public void start() throws IOException  {
-		
-		if(connectModel == ConnectModel.SERVER && sslManager != null){
-			sslManager.createServerSSLParser(session);
-		}
-		else if(connectModel == ConnectModel.CLIENT && sslManager != null){
-			sslManager.createClientSSLParser(session);
-		}	
+		initSSL();
 		
 		if(socketChannel!=null && socketChannel.isOpen()){
 			NioSelector nioSelector = new NioSelector(selector,this);
