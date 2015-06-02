@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 
@@ -20,13 +21,42 @@ import org.voovan.tools.TObject;
  */
 public class WriteThread implements Runnable {
 	private ArrayBlockingQueue<String>	logQueue;
-	private OutputStream[]				outputStreams;
+	private OutputStream[] outputStreams;
+	private String dateStamp = TDateTime.now("YYYYMMdd");
 
-	public WriteThread(OutputStream[] outputStreams) {
+	/**
+	 * 构造函数
+	 */
+	public WriteThread() {
 		this.logQueue = new ArrayBlockingQueue<String>(100000);
-		this.outputStreams = outputStreams;
+		outputStreams = Formater.getOutputStreams();
 	}
 
+	/**
+	 * 刷新OutputStreams
+	 */
+	private void refreshOutputStreams(){
+		if(!dateStamp.equals(TDateTime.now("YYYYMMdd"))){
+			closeOutputStreams();
+			outputStreams = Formater.getOutputStreams();
+		}
+	}
+	
+	/**
+	 * 关闭所有的OutputStream
+	 */
+	private void closeOutputStreams() {
+		try {
+			for (OutputStream outputStream : outputStreams) {
+				if (outputStream != null) {
+					outputStream.close();
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * 增加消息
 	 * 
@@ -44,6 +74,7 @@ public class WriteThread implements Runnable {
 				loopCount++;
 				String formatedMessage = logQueue.poll(500, TimeUnit.MILLISECONDS);
 				if (formatedMessage != null) {
+					refreshOutputStreams();
 					for (OutputStream outputStream : outputStreams) {
 						if (outputStream != null) {
 							outputStream.write(formatedMessage.getBytes());
