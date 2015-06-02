@@ -44,13 +44,14 @@ public class Formater {
 	 * @param template
 	 * @param outputStreams
 	 */
-	public Formater(String template, OutputStream[] outputStreams) {
+	public Formater(String template) {
 		this.template = template;
-		this.writerThread = new WriteThread(outputStreams);
+		this.writerThread = new WriteThread();
 		logLevel = new Vector<String>();
 		for(String level : StaticParam.getLogConfig("LogLevel","ALL").split(",")){
 			logLevel.add(level.trim());
 		}
+		System.out.println("Logger format object is created;");
 	}
 
 	/**
@@ -78,7 +79,7 @@ public class Formater {
 	 */
 	private void preIndentMessage(Message message){
 		String infoIndent = StaticParam.getLogConfig("InfoIndent","");
-		if(infoIndent!=null && infoIndent.isEmpty()){
+		if(infoIndent!=null && !infoIndent.isEmpty()){
 			String msg = message.getMessage();
 			if (infoIndent != null) {
 				msg = infoIndent + msg;
@@ -94,12 +95,17 @@ public class Formater {
 	 * @return
 	 */
 	public String format(Message message) {
+		
+		
 		Map<String, String> tokens = new HashMap<String, String>();
 		StackTraceElement stackTraceElement = currentStackLine();
 		//Message和栈信息公用
 		tokens.put("t", "\t");
 		tokens.put("s", " ");
+		
+		//消息缩进
 		preIndentMessage(message);
+		
 		tokens.put("i", TString.tokenReplace(message.getMessage(), tokens));
 		
 		//栈信息独享
@@ -159,20 +165,38 @@ public class Formater {
 		
 		writerThread.addLogMessage(msg);
 	}
-
+	
+	/**
+	 * 获取格式化后的日志文件路径
+	 * @return
+	 */
+	public static String getFormatedLogFilePath(){
+		String logFile = StaticParam.getLogConfig("LogFile","");
+		Map<String, String> tokens = new HashMap<String, String>();
+		tokens.put("D", TDateTime.now("YYYYMMdd"));
+		tokens.put("WorkDir", TEnv.getContextPath());
+		return TString.tokenReplace(logFile, tokens);
+	}
+	
 	/**
 	 * 获得一个实例
 	 * @return
 	 */
 	public static Formater newInstance() {
-		OutputStream[] outputStreams;
-		try {
-			
 			String logTemplate = StaticParam.getLogConfig("LogTemplate","{{i}}");
-			String[] LogTypes = StaticParam.getLogConfig("LogType","STDOUT").split(",");
-			String logFile = StaticParam.getLogConfig("LogFile","");
-
-			outputStreams = new OutputStream[LogTypes.length];
+			return new Formater(logTemplate);
+	}
+	
+	/**
+	 * 获取输出流
+	 * @return
+	 */
+	 protected static OutputStream[] getOutputStreams(){
+		String[] LogTypes = StaticParam.getLogConfig("LogType","STDOUT").split(",");
+		String logFile = getFormatedLogFilePath();
+		
+		try {
+			OutputStream[] outputStreams = new OutputStream[LogTypes.length];
 			for (int i = 0; i < LogTypes.length; i++) {
 				String logType = LogTypes[i].trim();
 				switch (logType) {
@@ -189,10 +213,10 @@ public class Formater {
 					break;
 				}
 			}
-			return new Formater(logTemplate, outputStreams);
+			return outputStreams;
 		} catch (FileNotFoundException e) {
 			Logger.error(e);
+			return null;
 		}
-		return null;
 	}
 }
