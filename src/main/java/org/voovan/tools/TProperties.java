@@ -1,7 +1,6 @@
 package org.voovan.tools;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
@@ -20,7 +19,7 @@ import org.voovan.tools.log.Logger;
  */
 public class TProperties {
 
-	private static HashMap<File, String>	propertiesCache	= new HashMap<File, String>();
+	private static HashMap<File, Properties>	propertiesCache	= new HashMap<File, Properties>();
 
 	/**
 	 * 解析 Properties 文件
@@ -29,16 +28,18 @@ public class TProperties {
 	 * @return
 	 */
 	public static Properties getProperties(File file) {
-		Properties properites = new Properties();
+		
 
 		try {
-			if (propertiesCache.containsKey(file)) {
-				properites.load(new StringReader(file.getAbsolutePath()));
-				return properites;
-			} else {
-				properites.load(new FileReader(file));
-				return properites;
+			if (!propertiesCache.containsKey(file)) {
+				Properties properites = new Properties();
+				String content = new String(TFile.loadFile(file));
+				properites.load(new StringReader(content));
+				propertiesCache.put(file, properites);
 			}
+			
+			return propertiesCache.get(file);
+			
 		} catch (IOException e) {
 			Logger.error(e);
 			return null;
@@ -93,4 +94,10 @@ public class TProperties {
 		return TObject.nullDefault(Double.valueOf(value.trim()), 0).doubleValue();
 	}
 
+	/**
+	 * 清空 Properites 缓存
+	 */
+	public void clear(){
+		 propertiesCache.clear();
+	}
 }
