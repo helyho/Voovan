@@ -38,7 +38,7 @@ public class HttpClientHandler implements IoHandler {
 
 	@Override
 	public void onDisconnect(IoSession session) {
-		Logger.debug("Socket disconnect!");
+		//不处理这个方法
 	}
 
 	@Override
