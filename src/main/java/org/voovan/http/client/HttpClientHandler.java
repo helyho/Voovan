@@ -29,6 +29,7 @@ public class HttpClientHandler implements IoHandler {
 	
 	public synchronized Response getResponse(){
 		return response;
+
 	}
 	
 	@Override
