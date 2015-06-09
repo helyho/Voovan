@@ -33,7 +33,7 @@ public class TSQL {
 	 * @return  sql 参数对照表 ([:x,:y])
 	 */
 	public static List<String> getSqlParams(String sqlStr){
-		String[] params = TString.searchByRegex(sqlStr, ":[^ ]+");
+		String[] params = TString.searchByRegex(sqlStr, ":[^, \\)]+");
 		return Arrays.asList(params);
 	}
 	
@@ -44,7 +44,7 @@ public class TSQL {
 	 * @return				将所有的:引导的参数转换成? (select * from table where x=? and y=?)
 	 */
 	public static String preparedSql(String sqlStr){
-		return TString.replaceByRegex(sqlStr, ":[^ ]+", "?");
+		return TString.replaceByRegex(sqlStr, ":[^,| |\\)]+", "?");
 	}
 	
 	/**
