@@ -292,8 +292,12 @@ public class JdbcOperate {
 	 * @throws Exception
 	 */
 	public int update(String sqlText, Object arg) throws SQLException, ReflectiveOperationException {
-		Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
-		return this.baseUpdate(sqlText, paramsMap);
+		if(arg.getClass().getName().startsWith("java")){
+			return update(sqlText, arg, null);
+		}else{
+			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
+			return this.baseUpdate(sqlText, paramsMap);
+		}
 	}
 
 	/**
@@ -363,9 +367,13 @@ public class JdbcOperate {
 	 * @throws ParseException 
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t, Object arg) throws ReflectiveOperationException, SQLException, ParseException{
+		if(arg.getClass().getName().startsWith("java")){
+			return queryObjectList(sqlText, t, arg,null);
+		}else{
 		Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
 		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 		return (List<T>) resultInfo.getObjectList(t);
+		}
 	}
 
 	/**
@@ -449,9 +457,13 @@ public class JdbcOperate {
 	 * @throws Exception
 	 */
 	public List<Map<String, Object>> queryMapList(String sqlText, Object arg) throws ReflectiveOperationException, SQLException  {
-		Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
-		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
-		return resultInfo.getMapList();
+		if(arg.getClass().getName().startsWith("java")){
+			return queryMapList(sqlText, arg, null);
+		}else{
+			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
+			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
+			return resultInfo.getMapList();
+		}
 	}
 
 	/**
@@ -533,9 +545,13 @@ public class JdbcOperate {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T queryObject(String sqlText, Class<T> t, Object arg) throws ReflectiveOperationException, SQLException, ParseException {
-		Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
-		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
-		return (T) resultInfo.getObject(t);
+		if(arg.getClass().getName().startsWith("java")){
+			return queryObject(sqlText,t,arg,null);
+		}else{
+			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
+			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
+			return (T) resultInfo.getObject(t);
+		}
 	}
 
 	/**
@@ -605,9 +621,13 @@ public class JdbcOperate {
 	 * @throws Exception
 	 */
 	public Map<String, Object> queryMap(String sqlText, Object arg) throws SQLException, ReflectiveOperationException {
-		Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
-		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
-		return resultInfo.getMap();
+		if(arg.getClass().getName().startsWith("java")){
+			return queryMap(sqlText,arg,null);
+		}else{
+			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
+			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
+			return resultInfo.getMap();
+		}
 	}
 
 	/**
