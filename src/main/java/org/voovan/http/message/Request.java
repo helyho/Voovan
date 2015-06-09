@@ -202,7 +202,10 @@ public class Request {
 		}
 		
 		//生成 Cookie 信息
-		header.put("Cookies", genCookie());
+		String cookieValue = genCookie();
+		if(!TString.isNullOrEmpty(cookieValue)){
+			header.put("Cookies", genCookie());
+		}
 	}
 
 	/**

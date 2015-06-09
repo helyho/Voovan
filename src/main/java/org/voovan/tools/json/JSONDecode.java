@@ -135,7 +135,10 @@ public class JSONDecode {
 					}
 					//判断不包含.即为整形
 					else if (TString.isInteger(stringValue)){
-						value = new Integer((String)value);
+						Long longValue = new Long((String)value);
+						if(longValue <= 2147483647 && longValue >= -2147483647){
+							value = new Integer((String)value);
+						}
 					}
 					//判断有一个.即为浮点数,转换成 Float
 					else if (TString.isFloat(stringValue)) {
