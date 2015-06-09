@@ -32,6 +32,9 @@ public class ThreadPool {
 	}
 	
 	public static ThreadPoolExecutor getThreadPool(){
+		if(threadPool.isShutdown()){
+			threadPool = createThreadPool();
+		}
 		return threadPool;
 	}
 }
