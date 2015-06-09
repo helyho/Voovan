@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.message.Request.RequestType;
+import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
 import org.voovan.network.aio.AioSocket;
@@ -90,6 +92,14 @@ public class HttpClient {
 	 */
 	public Header getHeader(){
 		return request.header();
+	}
+	
+	/**
+	 * 获取Cookie集合
+	 * @return
+	 */
+	public List<Cookie> getCookies(){
+		return request.cookies();
 	}
 	
 	/**
