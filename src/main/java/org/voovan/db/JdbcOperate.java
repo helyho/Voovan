@@ -272,7 +272,7 @@ public class JdbcOperate {
 	 * 执行数据库更新
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 *            sql字符串 参数使用"::"作为标识,例如where id=:id
 	 * @return
 	 * @throws SQLException
 	 */
@@ -284,7 +284,7 @@ public class JdbcOperate {
 	 * 执行数据库更新,Object作为参数 字段名和对象属性名大消息必须大小写一致
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 *            sql字符串 参数使用"::"作为标识,例如where id=:id
 	 * @param object
 	 *            object为参数的对象
 	 * @return
@@ -304,7 +304,7 @@ public class JdbcOperate {
 	 * 执行数据库更新,Map作为参数
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 *            sql字符串 参数使用"::"作为标识,例如where id=:id
 	 * @param map
 	 *            map为参数的对象
 	 * @return
@@ -318,7 +318,7 @@ public class JdbcOperate {
 	 * 执行数据库更新,Map作为参数
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为索引标识,例如where id=:1
+	 *            sql字符串 参数使用"::"作为索引标识,例如where id=:1
 	 * @param map
 	 *            map为参数的对象
 	 * @return
@@ -356,7 +356,7 @@ public class JdbcOperate {
 	 * @param <T>
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 *            sql字符串 参数使用"::"作为标识,例如where id=:id
 	 * @param param
 	 *            Object参数
 	 * @param t
@@ -382,7 +382,7 @@ public class JdbcOperate {
 	 * @param <T>
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 *            sql字符串 参数使用"::"作为标识,例如where id=:id
 	 * @param map
 	 *            map参数
 	 * @param t
@@ -404,7 +404,7 @@ public class JdbcOperate {
 	 * @param <T>
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为索引标识,索引标识从1开始,例如where id=:1
+	 *            sql字符串 参数使用"::"作为索引标识,索引标识从1开始,例如where id=:1
 	 * @param map
 	 *            map参数
 	 * @param t
@@ -446,7 +446,7 @@ public class JdbcOperate {
 	 * @param <T>
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 *            sql字符串 参数使用"::"作为标识,例如where id=:id
 	 * @param param
 	 *            Object参数
 	 * @param t
@@ -472,7 +472,7 @@ public class JdbcOperate {
 	 * @param <T>
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 *            sql字符串 参数使用"::"作为标识,例如where id=:id
 	 * @param map
 	 *            map参数
 	 * @param t
@@ -493,7 +493,7 @@ public class JdbcOperate {
 	 * @param <T>
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为索引标识,索引标识从1开始,例如where id=:1
+	 *            sql字符串 参数使用"::"作为索引标识,索引标识从1开始,例如where id=:1
 	 * @param param
 	 *            Object参数
 	 * @param t
@@ -532,7 +532,7 @@ public class JdbcOperate {
 	 * 查询单个对象,Object作为参数 字段名和对象属性名大消息必须大小写一致
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 *            sql字符串 参数使用"::"作为标识,例如where id=:id
 	 * @param param
 	 *            Object参数
 	 * @param t
@@ -558,7 +558,7 @@ public class JdbcOperate {
 	 * 查询单个对象,map作为参数 字段名和对象属性名大消息必须大小写一致
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 *            sql字符串 参数使用"::"作为标识,例如where id=:id
 	 * @param map
 	 *            map参数
 	 * @param t
@@ -579,7 +579,7 @@ public class JdbcOperate {
 	 * 查询单个对象,map作为参数 字段名和对象属性名大消息必须大小写一致
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为索引标识,索引标识从1开始,例如where id=:1
+	 *            sql字符串 参数使用"::"作为索引标识,索引标识从1开始,例如where id=:1
 	 * @param map
 	 *            map参数
 	 * @param t
@@ -614,7 +614,7 @@ public class JdbcOperate {
 	 * 查询单行,返回 Map,Object作为参数
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"引导一个标识,例如where id=:id,中 id 就是标识。
+	 *            sql字符串 参数使用"::"引导一个标识,例如where id=:id,中 id 就是标识。
 	 * @param arg
 	 *            arg参数 属性指代SQL字符串的标识,属性值用于在SQL字符串中替换标识。
 	 * @return
@@ -634,7 +634,7 @@ public class JdbcOperate {
 	 * 查询单行,返回 Map,map作为参数
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"引导一个标识,例如where id=:id,中 id 就是标识。
+	 *            sql字符串 参数使用"::"引导一个标识,例如where id=:id,中 id 就是标识。
 	 * @param map
 	 *            map参数，key指代SQL字符串的标识,value用于在SQL字符串中替换标识。
 	 * @return
@@ -649,7 +649,7 @@ public class JdbcOperate {
 	 * 查询单行,返回 Map,Array作为参数
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"引导一个索引标识,索引标识从1开始,例如where id=:1
+	 *            sql字符串 参数使用"::"引导一个索引标识,索引标识从1开始,例如where id=:1
 	 * @param args
 	 *            args参数
 	 * @return
@@ -665,7 +665,7 @@ public class JdbcOperate {
 	 * 执行数据库批量更新 字段名和对象属性名大消息必须大小写一致
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 *            sql字符串 参数使用"::"作为标识,例如where id=:id
 	 * @param objects
 	 *            模型对象
 	 * @return
@@ -683,7 +683,7 @@ public class JdbcOperate {
 	 * 执行数据库批量更新
 	 * 
 	 * @param sqlText
-	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 *            sql字符串 参数使用"::"作为标识,例如where id=:id
 	 * @param maps
 	 *            批量处理SQL的参数
 	 * @return
