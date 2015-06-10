@@ -17,55 +17,79 @@ public class Cookie {
 	private String domain;
 	private String path;
 	private int maxAge = -999999;
+	private String expires;
 	private boolean secure;
 	private boolean httpOnly;
 	
 	private String name;
 	private String value;
 	
+	
+	
 	public String getDomain() {
 		return domain;
 	}
+
 	public void setDomain(String domain) {
 		this.domain = domain;
 	}
+
 	public String getPath() {
 		return path;
 	}
+
 	public void setPath(String path) {
 		this.path = path;
 	}
-	public int getMaxage() {
+
+	public int getMaxAge() {
 		return maxAge;
 	}
-	public void setMaxage(int maxAge) {
+
+	public void setMaxAge(int maxAge) {
 		this.maxAge = maxAge;
 	}
+
+	public String getExpires() {
+		return expires;
+	}
+
+	public void setExpires(String expires) {
+		this.expires = expires;
+	}
+
 	public boolean isSecure() {
 		return secure;
 	}
+
 	public void setSecure(boolean secure) {
 		this.secure = secure;
 	}
+
 	public boolean isHttpOnly() {
 		return httpOnly;
 	}
+
 	public void setHttpOnly(boolean httpOnly) {
 		this.httpOnly = httpOnly;
 	}
+
 	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
+
 	public String getValue() {
 		return value;
 	}
+
 	public void setValue(String value) {
 		this.value = value;
 	}
-	
+
 	@Override
 	public String toString(){
 		return (this.name!=null||this.value!=null? (this.name+"="+this.value) : "")+
@@ -91,13 +115,16 @@ public class Cookie {
 				cookie.setPath(cookieMapItem.getValue());
 				break;
 			case "max-age" :
-				cookie.setMaxage(Integer.valueOf(cookieMapItem.getValue()));
+				cookie.setMaxAge(Integer.valueOf(cookieMapItem.getValue()));
 				break;
 			case "secure" :
 				cookie.setSecure(true);
 				break;
 			case "httponly" :
 				cookie.setHttpOnly(true);
+				break;
+			case "expires" :
+				cookie.setExpires(cookieMapItem.getValue());
 				break;
 			default:
 				cookie.setName(cookieMapItem.getKey());
@@ -123,7 +150,7 @@ public class Cookie {
 		cookie.setValue(value);
 		cookie.setPath(request.protocol().getPath());
 		cookie.setDomain(domain);
-		cookie.setMaxage(maxAge);
+		cookie.setMaxAge(maxAge);
 		cookie.setHttpOnly(true);
 		return cookie;
 	}

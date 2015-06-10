@@ -204,7 +204,7 @@ public class Request {
 		//生成 Cookie 信息
 		String cookieValue = genCookie();
 		if(!TString.isNullOrEmpty(cookieValue)){
-			header.put("Cookies", genCookie());
+			header.put("Cookie", genCookie());
 		}
 	}
 
