@@ -29,22 +29,22 @@ import org.voovan.tools.log.Logger;
 public class TSQL {
 	/**
 	 * 从 SQL 字符串中,取 SQL 参数表
-	 * @param sqlStr  原始 sql 字符串 (select * from table where x=:x and y=:y)
+	 * @param sqlStr  原始 sql 字符串 (select * from table where x=::x and y=::y)
 	 * @return  sql 参数对照表 ([:x,:y])
 	 */
 	public static List<String> getSqlParams(String sqlStr){
-		String[] params = TString.searchByRegex(sqlStr, ":[^, \\)]+");
+		String[] params = TString.searchByRegex(sqlStr, "::[^, \\)]+");
 		return Arrays.asList(params);
 	}
 	
 	/**
 	 * 转换preparedStatement对象为可用的 sql 字符串(参数用?表示)
-	 * @param sqlStr		原始 sql 字符串 (select * from table where x=:x and y=:y)
+	 * @param sqlStr		原始 sql 字符串 (select * from table where x=:x and y=::y)
 	 * @param sqlParams		sql参数表
 	 * @return				将所有的:引导的参数转换成? (select * from table where x=? and y=?)
 	 */
 	public static String preparedSql(String sqlStr){
-		return TString.replaceByRegex(sqlStr, ":[^,| |\\)]+", "?");
+		return TString.replaceByRegex(sqlStr, "::[^,| |\\)]+", "?");
 	}
 	
 	/**
@@ -59,7 +59,7 @@ public class TSQL {
 		for(int i=0;i<sqlParams.size();i++){
 			String paramName = sqlParams.get(i);
 			//去掉前面:号
-			paramName = paramName.substring(1,paramName.length());
+			paramName = paramName.substring(2,paramName.length());
 			preparedStatement.setObject(i+1, params.get(paramName));
 			Logger.debug("Parameter: ["+sqlParams.get(i)+" = "+params.get(paramName)+"]");
 		}
@@ -161,9 +161,8 @@ public class TSQL {
 		//遍历结果集字段信息
 		int columnCount = resultset.getMetaData().getColumnCount();
 		for(int i=1;i<=columnCount;i++){
-			columns.put(resultset.getMetaData().getColumnName(i),resultset.getMetaData().getColumnType(i));
+			columns.put(resultset.getMetaData().getColumnLabel(i),resultset.getMetaData().getColumnType(i));
 		}
-		
 		//组装Map
 		for(Entry<String, Integer> columnEntry : columns.entrySet())
 		{
