@@ -110,7 +110,7 @@ public class Formater {
 		
 		//栈信息独享
 		tokens.put("n", "\r\n");
-		tokens.put("p", message.getLevel());
+		tokens.put("p", message.getLevel()==null?"INFO":message.getLevel());
 		tokens.put("si", stackTraceElement.toString());
 		tokens.put("l", Integer.toString((stackTraceElement.getLineNumber())));
 		tokens.put("m", stackTraceElement.getMethodName());
