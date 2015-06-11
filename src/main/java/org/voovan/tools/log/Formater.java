@@ -51,7 +51,6 @@ public class Formater {
 		for(String level : StaticParam.getLogConfig("LogLevel","ALL").split(",")){
 			logLevel.add(level.trim());
 		}
-		System.out.println("Logger format object is created;");
 	}
 
 	/**
