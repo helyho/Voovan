@@ -42,7 +42,24 @@ public class HttpClient {
 	 * @param urlString 请求的 URL 地址
 	 */
 	public  HttpClient(String urlString) {
-		init(urlString);
+		init(urlString,5);
+	}
+	
+	/**
+	 * 构建函数
+	 * @param urlString 请求的 URL 地址
+	 */
+	public  HttpClient(String urlString,int timeOut) {
+		init(urlString,timeOut);
+	}
+	
+	/**
+	 * 构建函数
+	 * @param urlString 请求的 URL 地址
+	 */
+	public  HttpClient(String urlString,String charset,int timeOut) {
+		this.charset = charset;
+		init(urlString,timeOut);
 	}
 	
 	/**
@@ -51,10 +68,10 @@ public class HttpClient {
 	 */
 	public  HttpClient(String urlString,String charset) {
 		this.charset = charset;
-		init(urlString);
+		init(urlString,5);
 	}
 	
-	private void init(String urlString){
+	private void init(String urlString,int timeOut){
 		try {
 			URL url = new URL(urlString);
 			String hostString = url.getHost();
@@ -70,7 +87,7 @@ public class HttpClient {
 			request.header().put("Accept-Encoding","gzip,deflate,sdch");
 			request.header().put("Connection","keep-alive");
 			
-			socket = new AioSocket(hostString, port==-1?80:port, 5000);
+			socket = new AioSocket(hostString, port==-1?80:port, timeOut*1000);
 			parameters = new HashMap<String, Object>();
 		} catch (IOException e) {
 			Logger.error("HttpClient init error. ",e);
@@ -197,6 +214,13 @@ public class HttpClient {
 		}
 		
 		return clientHandler.getResponse();
+	}
+	
+	/**
+	 * 关闭 HTTP 连接
+	 */
+	public void close(){
+		socket.Close();
 	}
 
 }
