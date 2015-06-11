@@ -76,7 +76,7 @@ public class JdbcOperate {
 		}
 
 		public <T> Object getObject(Class<T> t) throws SQLException, ReflectiveOperationException, ParseException {
-			if (this.resultSet.next()) {
+			if (resultSet!=null && this.resultSet.next()) {
 				@SuppressWarnings("unchecked")
 				T obj = (T) TSQL.getOneRowWithObject(t, this.resultSet);
 				
@@ -93,7 +93,7 @@ public class JdbcOperate {
 		}
 
 		public Map<String, Object> getMap() throws SQLException, ReflectiveOperationException {
-			if (this.resultSet.next()) {
+			if (resultSet!=null && this.resultSet.next()) {
 				Map<String, Object> map = TSQL.getOneRowWithMap(this.resultSet);
 				
 				// 非事物模式执行
