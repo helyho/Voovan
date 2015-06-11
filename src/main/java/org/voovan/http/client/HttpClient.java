@@ -192,10 +192,11 @@ public class HttpClient {
 		socket.start();
 		
 		//等待获取 response并返回
-		while(clientHandler.getResponse()==null){
+		while(socket.isConnect() && clientHandler.getResponse()==null){
 			TEnv.sleep(100);
 		}
 		
 		return clientHandler.getResponse();
 	}
+
 }

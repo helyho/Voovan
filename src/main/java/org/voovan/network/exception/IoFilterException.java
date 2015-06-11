@@ -1,15 +1,15 @@
 package org.voovan.network.exception;
 
-public class SendMessageException extends Exception {
+public class IoFilterException extends Exception {
 
 	private static final long	serialVersionUID	= 1L;
 
-	public SendMessageException(String message,Exception e){
+	public IoFilterException(String message,Exception e){
 		super(message);
 		this.setStackTrace(e.getStackTrace());
 	}
 	
-	public SendMessageException(String message){
+	public IoFilterException(String message){
 		super(message);
 	}
 }
