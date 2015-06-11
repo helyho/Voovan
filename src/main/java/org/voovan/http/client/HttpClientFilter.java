@@ -8,8 +8,8 @@ import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
+import org.voovan.network.exception.IoFilterException;
 import org.voovan.tools.TObject;
-import org.voovan.tools.log.Logger;
 
 /**
  * HTTP 请求过滤器
@@ -23,7 +23,6 @@ public class HttpClientFilter implements IoFilter {
 
 	@Override
 	public Object encode(IoSession session,Object object) {
-		
 		if(object instanceof Request){
 			Request request = TObject.cast(object);
 			return ByteBuffer.wrap(request.asBytes());
@@ -32,14 +31,14 @@ public class HttpClientFilter implements IoFilter {
 	}
 
 	@Override
-	public Object decode(IoSession session,Object object) {
+	public Object decode(IoSession session,Object object) throws IoFilterException{
 		try{
 			if(object instanceof ByteBuffer){
 				ByteBuffer byteBuffer = TObject.cast(object);
 				return HttpParser.parseResponse(new ByteArrayInputStream(byteBuffer.array()));
 			}
 		}catch(IOException e){
-			Logger.error("Class HttpClientFilter decode Error. " , e);
+			throw new IoFilterException("HttpClientFilter decode Error. "+e.getMessage(),e);
 		}
 		return null;
 	}

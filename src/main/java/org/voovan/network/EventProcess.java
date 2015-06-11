@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 
 import org.voovan.network.Event.EventName;
 import org.voovan.network.Event.EventState;
+import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TObject;
@@ -50,8 +51,9 @@ public class EventProcess {
 	 *            事件对象
 	 * @throws SendMessageException 
 	 * @throws IOException
+	 * @throws IoFilterException 
 	 */
-	public static void onConnect(Event event) throws SendMessageException, IOException  {
+	public static void onConnect(Event event) throws SendMessageException, IOException, IoFilterException  {
 
 		IoSession session = event.getSession();
 		
@@ -100,9 +102,10 @@ public class EventProcess {
 	 *            事件对象
 	 * @throws IOException 
 	 * @throws SendMessageException 
+	 * @throws IoFilterException 
 	 * @throws Exception
 	 */
-	public static void onRead(Event event) throws IOException, SendMessageException {
+	public static void onRead(Event event) throws IOException, SendMessageException, IoFilterException {
 		SocketContext socketContext = event.getSession().sockContext();
 		IoSession session = event.getSession();
 		if (socketContext != null && session != null) {
@@ -265,7 +268,7 @@ public class EventProcess {
 			} else if (eventName == EventName.ON_EXCEPTION) {
 				EventProcess.onException(event, (Exception)event.getOther());
 			}
-		} catch (IOException | SendMessageException e) {
+		} catch (IOException | SendMessageException | IoFilterException e) {
 			EventProcess.onException(event, e);
 		} finally {
 			event.setState(EventState.FINISHED);
