@@ -1,5 +1,7 @@
 package org.voovan.network;
 
+import org.voovan.network.exception.IoFilterException;
+
 /**
  * 过滤器接口
  * 
@@ -16,7 +18,7 @@ public interface IoFilter {
 	 * @param object
 	 * @return
 	 */
-	public Object decode(IoSession session,Object object);
+	public Object decode(IoSession session,Object object) throws IoFilterException;
 	
 	/**
 	 * 过滤器加密函数,发送事件(onSend)前调用
@@ -24,6 +26,6 @@ public interface IoFilter {
 	 * @param object
 	 * @return
 	 */
-	public Object encode(IoSession session,Object object);
+	public Object encode(IoSession session,Object object)throws IoFilterException;
 	
 }
