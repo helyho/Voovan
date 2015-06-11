@@ -196,10 +196,10 @@ public class TSQL {
      * @throws SQLException 
      * @throws Exception
      */
-    public static List<Map<String,Object>> getAllRowWithMapList(ResultSet resultset) throws SQLException, ReflectiveOperationException {
+    public static List<Map<String,Object>> getAllRowWithMapList(ResultSet resultSet) throws SQLException, ReflectiveOperationException {
     	List<Map<String,Object>> resultList = new Vector<Map<String,Object>>();
-    	while(resultset.next()){
-    		resultList.add(getOneRowWithMap(resultset));
+    	while(resultSet!=null && resultSet.next()){
+    		resultList.add(getOneRowWithMap(resultSet));
     	}
     	return resultList;
     }
@@ -214,10 +214,10 @@ public class TSQL {
      * @throws SQLException 
      * @throws Exception
      */
-    public static List<Object> getAllRowWithObjectList(Class<?> clazz,ResultSet resultset) throws SQLException, ReflectiveOperationException, ParseException {
+    public static List<Object> getAllRowWithObjectList(Class<?> clazz,ResultSet resultSet) throws SQLException, ReflectiveOperationException, ParseException {
     	List<Object> resultList = new Vector<Object>();
-    	while(resultset.next()){
-    		resultList.add(getOneRowWithObject(clazz,resultset));
+    	while(resultSet!=null && resultSet.next()){
+    		resultList.add(getOneRowWithObject(clazz,resultSet));
     	}
     	return resultList;
     }
