@@ -88,7 +88,7 @@ public class TString {
 	 * @return
 	 */
 	public static boolean isInteger(String integerString){
-		if(searchByRegex(integerString, "^-?[1-9]\\d*$").length>0){
+		if(searchByRegex(integerString, "^-?[0-9]\\d*$").length>0){
 			return true;
 		}else{
 			return false;
