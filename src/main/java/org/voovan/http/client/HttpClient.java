@@ -210,7 +210,7 @@ public class HttpClient {
 		
 		//等待获取 response并返回
 		while(socket.isConnect() && clientHandler.getResponse()==null){
-			TEnv.sleep(100);
+			TEnv.sleep(1);
 		}
 		
 		return clientHandler.getResponse();
