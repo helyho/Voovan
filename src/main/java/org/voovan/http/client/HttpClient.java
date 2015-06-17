@@ -76,9 +76,13 @@ public class HttpClient {
 	
 	private void init(String host,int timeOut){
 		try {
-			URL url = new URL(host);
-			String hostString = url.getHost();
-			int port = url.getPort();
+			String hostString = host;
+			int port = 80;
+			if(host.toLowerCase().startsWith("http://")){
+				URL url = new URL(hostString);
+				hostString = url.getHost();
+				port = url.getPort();
+			}
 			
 			parameters = new HashMap<String, Object>();
 			
@@ -229,9 +233,9 @@ public class HttpClient {
 	private void buildRequest(String urlString){
 
 		request.protocol().setPath(urlString.isEmpty()?"/":urlString);
+		String queryString = getQueryString();
 		
 		if (request.getType() == RequestType.GET) {
-			String queryString = getQueryString(); 
 			request.protocol().setPath(request.protocol().getPath() + queryString);
 		} else if(request.getType() == RequestType.POST && request.parts().size()!=0){
 			try{
@@ -246,7 +250,7 @@ public class HttpClient {
 			}
 			
 		} else if(request.getType() == RequestType.POST && request.parts().isEmpty()){
-			request.body().write(TString.removePrefix(getQueryString()),charset);
+			request.body().write(TString.removePrefix(queryString),charset);
 		}
 	}
 	
@@ -266,12 +270,26 @@ public class HttpClient {
 			while(isConnect() && !clientHandler.isHaveResponse()){
 				TEnv.sleep(1);
 			}
-			parameters.clear();
+			
+			Response response = clientHandler.getResponse();
+			finished(response);
 			status = HttpClientStatus.IDLE;
-			return clientHandler.getResponse();
+			return response;
 		}else{
 			return null;
 		}
+	}
+	
+	public void finished(Response response){
+		//传递 cookie
+		request.cookies().addAll(response.cookies());
+		
+		//清理请求对象,以便下次请求使用
+		parameters.clear();
+		request.body().clear();
+		request.parts().clear();
+		request.header().remove("Content-Type");
+		request.header().remove("Content-Length");
 	}
 	
 	public Response send() throws IOException {
