@@ -3,6 +3,7 @@ package org.voovan.http.client;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,8 @@ public class HttpClient {
 	private Request request;
 	private Map<String, Object> parameters;
 	private String charset="UTF-8";
+	private HttpClientStatus status = HttpClientStatus.PREPARE;
+
 	
 	
 	/**
@@ -42,7 +45,7 @@ public class HttpClient {
 	 * @param urlString 请求的 URL 地址
 	 */
 	public  HttpClient(String urlString) {
-		init(urlString,5);
+		init(urlString,30);
 	}
 	
 	/**
@@ -71,15 +74,16 @@ public class HttpClient {
 		init(urlString,5);
 	}
 	
-	private void init(String urlString,int timeOut){
+	private void init(String host,int timeOut){
 		try {
-			URL url = new URL(urlString);
+			URL url = new URL(host);
 			String hostString = url.getHost();
 			int port = url.getPort();
 			
+			parameters = new HashMap<String, Object>();
+			
 			request = new Request();
 			//初始化请求参数,默认值
-			request.protocol().setPath(url.getPath().isEmpty()?"/":url.getPath());
 			request.header().put("Host", hostString);
 			request.header().put("Pragma", "no-cache");
 			request.header().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
@@ -88,7 +92,27 @@ public class HttpClient {
 			request.header().put("Connection","keep-alive");
 			
 			socket = new AioSocket(hostString, port==-1?80:port, timeOut*1000);
-			parameters = new HashMap<String, Object>();
+			clientHandler = new HttpClientHandler(this);
+			socket.handler(clientHandler);
+			socket.filterChain().add(new HttpClientFilter());
+			socket.messageSplitter(new HttpMessageSplitter());
+			
+			Thread backThread = new Thread(){
+				public void run(){
+					try {
+						socket.start();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			};
+			
+			backThread.start();
+			
+			//等待状态变更
+			while(status==HttpClientStatus.PREPARE){
+				TEnv.sleep(1);
+			}
 		} catch (IOException e) {
 			Logger.error("HttpClient init error. ",e);
 		}
@@ -99,8 +123,11 @@ public class HttpClient {
 	 * @param method
 	 */
 	public HttpClient setMethod(String method){
-		request.protocol().setMethod(method);
-		return this;
+		if(status==HttpClientStatus.IDLE){
+			request.protocol().setMethod(method);
+			return this;
+		}
+		return null;
 	}
 	
 	/**
@@ -108,7 +135,11 @@ public class HttpClient {
 	 * @return
 	 */
 	public Header getHeader(){
-		return request.header();
+		if(status==HttpClientStatus.IDLE){
+			return request.header();
+		}else{
+			return null;
+		}
 	}
 	
 	/**
@@ -116,7 +147,11 @@ public class HttpClient {
 	 * @return
 	 */
 	public List<Cookie> getCookies(){
-		return request.cookies();
+		if(status==HttpClientStatus.IDLE){
+			return request.cookies();
+		}else{
+			return null;
+		}
 	}
 	
 	/**
@@ -124,7 +159,10 @@ public class HttpClient {
 	 * @return
 	 */
 	public Map<String,Object> getParameters(){
-		return parameters;
+		if(status==HttpClientStatus.IDLE){
+			return parameters;
+		}
+		return null;
 	}
 	
 	/**
@@ -133,8 +171,12 @@ public class HttpClient {
 	 * @param method
 	 */
 	public HttpClient addPart(Part part){
-		request.parts().add(part);
-		return this;
+		if(status==HttpClientStatus.IDLE){
+			request.parts().add(part);
+			return this;
+		}else{
+			return null;
+		}
 	}
 	
 	/**
@@ -144,10 +186,22 @@ public class HttpClient {
 	 * @return
 	 */
 	public HttpClient putParameters(String name,Object value){
-		parameters.put(name, value);
-		return this;
+		if(status==HttpClientStatus.IDLE){
+			parameters.put(name, value);
+			return this;
+		}else{
+			return null;
+		}
 	}
 	
+	public HttpClientStatus getStatus() {
+		return status;
+	}
+
+	protected void setStatus(HttpClientStatus status) {
+		this.status = status;
+	}
+
 	/**
 	 * 构建QueryString
 	 * 	将 Map 集合转换成 QueryString 字符串
@@ -168,12 +222,14 @@ public class HttpClient {
 		}
 		return queryString.isEmpty()? "" :"?"+queryString;
 	}
-	
+
 	/**
 	 * 构建请求
 	 */
-	private void buildRequest(){
+	private void buildRequest(String urlString){
 
+		request.protocol().setPath(urlString.isEmpty()?"/":urlString);
+		
 		if (request.getType() == RequestType.GET) {
 			String queryString = getQueryString(); 
 			request.protocol().setPath(request.protocol().getPath() + queryString);
@@ -199,21 +255,27 @@ public class HttpClient {
 	 * @return
 	 * @throws IOException 
 	 */
-	public Response connect() throws IOException {
-		buildRequest();
-		
-		clientHandler = new HttpClientHandler(request);
-		socket.handler(clientHandler);
-		socket.filterChain().add(new HttpClientFilter());
-		socket.messageSplitter(new HttpMessageSplitter());
-		socket.start();
-		
-		//等待获取 response并返回
-		while(socket.isConnect() && clientHandler.getResponse()==null){
-			TEnv.sleep(1);
+	public Response send(String urlString) throws IOException {
+		if(status==HttpClientStatus.IDLE){
+			status = HttpClientStatus.WORKING;
+			buildRequest(TString.isNullOrEmpty(urlString)?"/":urlString);
+			
+			socket.getSession().send(ByteBuffer.wrap(request.asBytes()));
+			
+			//等待获取 response并返回
+			while(isConnect() && !clientHandler.isHaveResponse()){
+				TEnv.sleep(1);
+			}
+			parameters.clear();
+			status = HttpClientStatus.IDLE;
+			return clientHandler.getResponse();
+		}else{
+			return null;
 		}
-		
-		return clientHandler.getResponse();
+	}
+	
+	public Response send() throws IOException {
+		return send("/");
 	}
 	
 	/**
@@ -223,4 +285,22 @@ public class HttpClient {
 		socket.Close();
 	}
 
+	/**
+	 * 判断是否处于连接状态
+	 * @return
+	 */
+	public synchronized boolean isConnect(){
+		return socket.isConnect();
+	}
+	
+	public static void main(String[] args) throws IOException {
+		//http://jyzd.sina.com/futuresmn/ajaxGetHq?stock_code=IF1506
+		HttpClient httpClient = new HttpClient("http://jyzd.sina.com",5000);
+		Logger.simple(httpClient.send("/futuresmn/ajaxGetHq?stock_code=IF1506").body().getBodyString());
+		while(httpClient.getStatus() == HttpClientStatus.WORKING){
+			TEnv.sleep(1);
+		}
+		Logger.simple(httpClient.send("/futuresmn/ajaxGetHq?stock_code=IF1506").body().getBodyString());
+		httpClient.close();
+	}
 }

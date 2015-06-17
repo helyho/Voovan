@@ -1,6 +1,5 @@
 package org.voovan.http.client;
 
-import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
@@ -16,38 +15,44 @@ import org.voovan.tools.log.Logger;
  * Licence: Apache v2 License
  */
 public class HttpClientHandler implements IoHandler {
-
-	private Request request;
+	private HttpClient httpClient;
 	private Response response;
+	private boolean haveResponse = false;
 	
-	
-	
-	public HttpClientHandler(Request request){
-		this.request = request;
+	public HttpClientHandler(HttpClient httpClient){
 		response = null;
+		this.httpClient = httpClient;
 	}
 	
+	public boolean isHaveResponse() {
+		return haveResponse;
+	}
+
 	public synchronized Response getResponse(){
-		return response;
+		haveResponse = false;
+		Response returnResponse = response;
+		response = null;
+		return returnResponse;
 
 	}
 	
 	@Override
 	public Object onConnect(IoSession session) {
-		return request;
+		httpClient.setStatus(HttpClientStatus.IDLE);
+		return null;
 	}
 
 	@Override
 	public void onDisconnect(IoSession session) {
-		//不处理这个方法
+		httpClient.setStatus(HttpClientStatus.CLOSED);
 	}
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
 		if(obj instanceof Response){
 			response = TObject.cast(obj);
+			haveResponse = true;
 		}
-		session.close();
 		return null;
 	}
 
@@ -58,6 +63,7 @@ public class HttpClientHandler implements IoHandler {
 
 	@Override
 	public void onException(IoSession session, Exception e) {
+		httpClient.setStatus(HttpClientStatus.CLOSED);
 		session.close();
 		Logger.error(e);
 	}

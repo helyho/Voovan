@@ -4,7 +4,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import org.voovan.tools.TDateTime;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
 
@@ -34,13 +33,13 @@ public class ThreadPoolTask extends TimerTask {
 			this.cancel();
 			timer.cancel();
 		}
-		String threadPoolInfo = "PoolInfo:" + threadPoolInstance.getActiveCount() + "/" + threadPoolInstance.getCorePoolSize() + "/"
-				+ threadPoolInstance.getLargestPoolSize() + " TaskCount: " + threadPoolInstance.getCompletedTaskCount() + "/"
-				+ threadPoolInstance.getTaskCount() + " QueueSize:" + threadPoolInstance.getQueue().size() + " PerCoreLoadAvg:"
-				+ TPerformance.cpuPerCoreLoadAvg();
-		if (threadPoolInstance.getActiveCount() != 0) {
-			Logger.simple(TDateTime.now() + " ShutDown:" + threadPoolInstance.isShutdown() + " " + threadPoolInfo);
-		}
+//		String threadPoolInfo = "PoolInfo:" + threadPoolInstance.getActiveCount() + "/" + threadPoolInstance.getCorePoolSize() + "/"
+//				+ threadPoolInstance.getLargestPoolSize() + " TaskCount: " + threadPoolInstance.getCompletedTaskCount() + "/"
+//				+ threadPoolInstance.getTaskCount() + " QueueSize:" + threadPoolInstance.getQueue().size() + " PerCoreLoadAvg:"
+//				+ TPerformance.cpuPerCoreLoadAvg();
+//		if (threadPoolInstance.getActiveCount() != 0) {
+//			Logger.simple(TDateTime.now() + " ShutDown:" + threadPoolInstance.isShutdown() + " " + threadPoolInfo);
+//		}
 
 		int oldPoolSize = threadPoolInstance.getPoolSize();
 		// 动态调整线程数,线程数要小于CPU核心数*100,且系统CPU负载值要小于1
