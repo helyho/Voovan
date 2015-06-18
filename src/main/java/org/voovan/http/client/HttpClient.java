@@ -282,7 +282,9 @@ public class HttpClient {
 	
 	public void finished(Response response){
 		//传递 cookie
-		request.cookies().addAll(response.cookies());
+		if(response!=null && response.cookies()!=null){
+			request.cookies().addAll(response.cookies());
+		}
 		
 		//清理请求对象,以便下次请求使用
 		parameters.clear();

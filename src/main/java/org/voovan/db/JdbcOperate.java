@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -93,9 +92,12 @@ public class JdbcOperate {
 		@SuppressWarnings("unchecked")
 		public <T> Object getObject(Class<T> t){
 			try{
-				resultSet.next();
-				T obj = (T) TSQL.getOneRowWithObject(t, this.resultSet);
-				return obj;
+				if(resultSet.next()){
+					T obj = (T) TSQL.getOneRowWithObject(t, this.resultSet);
+					return obj;
+				}else{
+					return null;
+				}
 			}
 			catch(SQLException | ReflectiveOperationException | ParseException e){
 				Logger.error("JdbcOperate.getObject error",e);
@@ -112,9 +114,12 @@ public class JdbcOperate {
 
 		public Map<String, Object> getMap(){
 			try{
-				resultSet.next();
-				Map<String, Object> map = TSQL.getOneRowWithMap(this.resultSet);
-				return map;
+				if(resultSet.next()){
+					Map<String, Object> map = TSQL.getOneRowWithMap(this.resultSet);
+					return map;
+				}else{
+					return null;
+				}
 			}
 			catch(SQLException | ReflectiveOperationException e){
 				Logger.error("JdbcOperate.getObject error",e);
@@ -126,7 +131,7 @@ public class JdbcOperate {
 					closeResult(resultSet);
 				}
 			}
-			return new HashMap<String, Object>();
+			return null;
 		}
 
 	}
