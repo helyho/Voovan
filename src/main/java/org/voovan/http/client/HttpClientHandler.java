@@ -64,6 +64,7 @@ public class HttpClientHandler implements IoHandler {
 	@Override
 	public void onException(IoSession session, Exception e) {
 		httpClient.setStatus(HttpClientStatus.CLOSED);
+		haveResponse = true;
 		session.close();
 		Logger.error(e);
 	}
