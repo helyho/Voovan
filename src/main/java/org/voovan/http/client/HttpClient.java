@@ -105,6 +105,7 @@ public class HttpClient {
 				public void run(){
 					try {
 						socket.start();
+						Logger.info("HttpClient连接关闭");
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
