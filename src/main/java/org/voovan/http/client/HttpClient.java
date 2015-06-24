@@ -148,6 +148,19 @@ public class HttpClient {
 	}
 	
 	/**
+	 * 设置请求头
+	 * @return
+	 */
+	public HttpClient putHeader(String name ,String value){
+		if(status==HttpClientStatus.IDLE){
+			request.header().put(name, value);
+			return this;
+		}else{
+			return null;
+		}
+	}
+	
+	/**
 	 * 获取Cookie集合
 	 * @return
 	 */
@@ -262,9 +275,12 @@ public class HttpClient {
 	 */
 	public Response send(String urlString) throws IOException {
 		if(status==HttpClientStatus.IDLE){
+			//变更状态
 			status = HttpClientStatus.WORKING;
+			//构造 Request 对象
 			buildRequest(TString.isNullOrEmpty(urlString)?"/":urlString);
 			
+			//发送报文
 			socket.getSession().send(ByteBuffer.wrap(request.asBytes()));
 			
 			//等待获取 response并返回
@@ -273,6 +289,8 @@ public class HttpClient {
 			}
 			
 			Response response = clientHandler.getResponse();
+			
+			//结束操作
 			finished(response);
 			
 			
@@ -282,8 +300,8 @@ public class HttpClient {
 		}
 	}
 	
-	public void finished(Response response){
-		//传递 cookie
+	 private void finished(Response response){
+		//传递 cookie 到 Request 对象
 		if(response!=null && response.cookies()!=null){
 			request.cookies().addAll(response.cookies());
 		}
@@ -309,6 +327,7 @@ public class HttpClient {
 	 * 关闭 HTTP 连接
 	 */
 	public void close(){
+		status = HttpClientStatus.CLOSED;
 		socket.Close();
 	}
 
