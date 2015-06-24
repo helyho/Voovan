@@ -114,7 +114,7 @@ public class HttpClient {
 			
 			backThread.start();
 			
-			//等待状态变更
+			//等待状态变更,变更为 IDLE
 			while(status==HttpClientStatus.PREPARE){
 				TEnv.sleep(1);
 			}
@@ -275,9 +275,7 @@ public class HttpClient {
 			Response response = clientHandler.getResponse();
 			finished(response);
 			
-			if(status == HttpClientStatus.WORKING){
-				status = HttpClientStatus.IDLE;
-			}
+			
 			return response;
 		}else{
 			return null;
@@ -296,6 +294,11 @@ public class HttpClient {
 		request.parts().clear();
 		request.header().remove("Content-Type");
 		request.header().remove("Content-Length");
+		
+		//更新状态
+		if(status == HttpClientStatus.WORKING){
+			status = HttpClientStatus.IDLE;
+		}
 	}
 	
 	public Response send() throws IOException {
@@ -319,7 +322,7 @@ public class HttpClient {
 	
 	public static void main(String[] args) throws IOException {
 		//http://jyzd.sina.com/futuresmn/ajaxGetHq?stock_code=IF1506
-		HttpClient httpClient = new HttpClient("http://10.0.0.100:60000",1);
+		HttpClient httpClient = new HttpClient("http://10.0.0.100:60000",10);
 		Logger.simple(httpClient.send("/futuresmn/ajaxGetHq?stock_code=IF1506").body().getBodyString());
 	}
 }

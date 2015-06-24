@@ -128,7 +128,7 @@ public class NioSocket extends SocketContext{
 
 	@Override
 	public boolean Close(){
-		if(socketChannel!=null && socketChannel.isOpen()){
+		if(socketChannel!=null){
 			try{
 				socketChannel.close();
 				return true;

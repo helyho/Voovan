@@ -149,7 +149,7 @@ public class AioSocket extends SocketContext {
 
 	@Override
 	public boolean Close() {
-		if (socketChannel != null && socketChannel.isOpen()) {
+		if (socketChannel != null) {
 			try {
 
 				// 触发 DisConnect 事件
