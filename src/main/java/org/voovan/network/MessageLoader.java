@@ -4,8 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.log.Logger;
 
 
 /**
@@ -51,20 +51,19 @@ public class MessageLoader {
 	 * @param length
 	 * @param buffer
 	 * @return
+	 * @throws SocketDisconnectByRemote 
 	 */
-	public static boolean isRemoteClosed(Integer length,  ByteBuffer buffer){
+	public static boolean isRemoteClosed(Integer length,  ByteBuffer buffer) throws SocketDisconnectByRemote{
 		if(length==-1){
 			//触发 disconnect 事件
-			Logger.info("Disconnect by Remote");
-			return true;
+			throw new SocketDisconnectByRemote("Disconnect by Remote");
 		}
 		//如果 buffer 被冲满,且起始、中位、结束的字节都是结束符(Ascii=4)则连接意外结束
 	   if(length>2
 				&& buffer.get(0)==4 //起始判断
 				&& buffer.get(length/2)==4 //中位判断 
 				&& buffer.get(length-1)==4){ //结束判断 
-		   Logger.info("Disconnect by Remote");
-			return true;
+		   	throw new SocketDisconnectByRemote("Disconnect by Remote");
 		}
 		
 	   return false;

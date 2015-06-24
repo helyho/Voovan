@@ -36,13 +36,13 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 	@Override
 	public void completed(Integer length, ByteBuffer buffer) {
-
-		// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
-		if (MessageLoader.isRemoteClosed(length, buffer) && session.isConnect()) {
-			session.close();
-		} else {
-			buffer.flip();
-			try {
+		try {
+			// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
+			if (MessageLoader.isRemoteClosed(length, buffer) && session.isConnect()) {
+				session.close();
+			} else {
+				buffer.flip();
+			
 				if (length > 0) {
 
 					// 接收数据
@@ -57,12 +57,13 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					// 继续接收 Read 请求
 					socket.catchRead(buffer);
 				}
-			} catch (IOException e) {
-				// 触发 onException 事件
-				eventTrigger.fireException(e);
-				
 			}
+		} catch (IOException e) {
+			// 触发 onException 事件
+			eventTrigger.fireException(e);
+			
 		}
+		
 	}
 
 	@Override
