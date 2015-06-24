@@ -273,7 +273,10 @@ public class HttpClient {
 			
 			Response response = clientHandler.getResponse();
 			finished(response);
-			status = HttpClientStatus.IDLE;
+			
+			if(status == HttpClientStatus.WORKING){
+				status = HttpClientStatus.IDLE;
+			}
 			return response;
 		}else{
 			return null;
@@ -315,12 +318,7 @@ public class HttpClient {
 	
 	public static void main(String[] args) throws IOException {
 		//http://jyzd.sina.com/futuresmn/ajaxGetHq?stock_code=IF1506
-		HttpClient httpClient = new HttpClient("http://jyzd.sina.com",5000);
+		HttpClient httpClient = new HttpClient("http://10.0.0.100:60000",1);
 		Logger.simple(httpClient.send("/futuresmn/ajaxGetHq?stock_code=IF1506").body().getBodyString());
-		while(httpClient.getStatus() == HttpClientStatus.WORKING){
-			TEnv.sleep(1);
-		}
-		Logger.simple(httpClient.send("/futuresmn/ajaxGetHq?stock_code=IF1506").body().getBodyString());
-		httpClient.close();
 	}
 }
