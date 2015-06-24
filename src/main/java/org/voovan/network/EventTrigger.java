@@ -33,7 +33,7 @@ public class EventTrigger {
 	 */
 	public EventTrigger(IoSession session){
 		this.session = session;
-		eventThreadPool =ThreadPool.getThreadPool();
+		eventThreadPool = ThreadPool.getThreadPool();
 		eventPool = new Vector<Event>();
 	}
 	

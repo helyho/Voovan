@@ -15,14 +15,12 @@ import java.util.concurrent.TimeUnit;
  * Licence: Apache v2 License
  */
 public class ThreadPool {
-	private static ThreadPoolExecutor threadPool = createThreadPool();
-
 	private ThreadPool(){
 	}
 	
 	private static ThreadPoolExecutor createThreadPool(){
 		int cpuCoreCount = Runtime.getRuntime().availableProcessors();
-		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(cpuCoreCount*10, cpuCoreCount*10,1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*10000));
+		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(cpuCoreCount*2, cpuCoreCount*4,1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*10000));
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPoolInstance.allowCoreThreadTimeOut(true);
 		Timer timer = new Timer();
@@ -32,9 +30,6 @@ public class ThreadPool {
 	}
 	
 	public static ThreadPoolExecutor getThreadPool(){
-		if(threadPool.isShutdown()){
-			threadPool = createThreadPool();
-		}
-		return threadPool;
+		 return createThreadPool();
 	}
 }
