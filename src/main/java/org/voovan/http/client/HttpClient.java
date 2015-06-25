@@ -277,6 +277,7 @@ public class HttpClient {
 		if(status==HttpClientStatus.IDLE){
 			//变更状态
 			status = HttpClientStatus.WORKING;
+			
 			//构造 Request 对象
 			buildRequest(TString.isNullOrEmpty(urlString)?"/":urlString);
 			
@@ -302,7 +303,9 @@ public class HttpClient {
 	
 	 private void finished(Response response){
 		//传递 cookie 到 Request 对象
-		if(response!=null && response.cookies()!=null){
+		if(response!=null 
+				&& response.cookies()!=null 
+				&& response.cookies().size()>0){
 			request.cookies().addAll(response.cookies());
 		}
 		
@@ -312,7 +315,7 @@ public class HttpClient {
 		request.parts().clear();
 		request.header().remove("Content-Type");
 		request.header().remove("Content-Length");
-		
+
 		//更新状态
 		if(status == HttpClientStatus.WORKING){
 			status = HttpClientStatus.IDLE;
