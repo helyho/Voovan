@@ -138,6 +138,8 @@ public class JSONDecode {
 						Long longValue = new Long((String)value);
 						if(longValue <= 2147483647 && longValue >= -2147483647){
 							value = new Integer((String)value);
+						}else{
+							value = longValue;
 						}
 					}
 					//判断有一个.即为浮点数,转换成 Float
