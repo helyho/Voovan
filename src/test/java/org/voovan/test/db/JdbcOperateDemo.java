@@ -49,10 +49,14 @@ public class JdbcOperateDemo {
 		ScriptEntity llmm = jOperate.queryObject("select * from sc_script where PackagePath=::1 and version=::2",ScriptEntity.class,"org.hocate.test",2.0);
 		Logger.info(llmm);
 		
-		//事物测试
+		//事务测试
 		jOperate = new JdbcOperate(dataSource,true);
 		Logger.info(jOperate.update("update sc_script set version=0"));
 		Logger.info(jOperate.queryMapList("select * from sc_script"));
 		jOperate.rollback();
+		
+		//调用存储过程(Mysql)
+		String llmm1 = jOperate.queryObject("call test",String.class);
+		Logger.info("xxxxx"+llmm1);
 	}
 }
