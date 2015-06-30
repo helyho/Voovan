@@ -15,14 +15,21 @@ import java.util.TimeZone;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
+
+
 public class TDateTime {
+	public final static String STANDER_DATE_TEMPLATE = "yyyy-MM-dd";
+	public final static String STANDER_TIME_TEMPLATE = "HH:mm:ss";
+	public final static String STANDER_DATETIME_TEMPLATE = "yyyy-MM-dd HH:mm:ss";
+	public final static String GMT_DATETIME_TEMPLATE = "EEE, d MMM yyyy HH:mm:ss 'GMT'";
+	
 	/**
 	 * 获取当前时间
 	 * 		yyyy-MM-dd HH:mm:ss
 	 * @return
 	 */
 	public static String now(){
-		return format(new Date(),"yyyy-MM-dd HH:mm:ss");
+		return format(new Date(),STANDER_DATETIME_TEMPLATE);
 	}
 	
 	/**
@@ -65,7 +72,7 @@ public class TDateTime {
 	 * @return
 	 */
 	public static String formatToGMT(Date date){
-		return format(date, "EEE, d MMM yyyy HH:mm:ss 'GMT'", "GMT",Locale.ENGLISH);
+		return format(date, GMT_DATETIME_TEMPLATE, "GMT",Locale.ENGLISH);
 	}	
 	
 	/**
@@ -102,7 +109,7 @@ public class TDateTime {
 	 * @throws ParseException 
 	 */
 	public static Date parseToGMT(String source) throws ParseException{
-		return parse(source, "EEE, d MMM yyyy HH:mm:ss 'GMT'", "GMT",Locale.ENGLISH);
+		return parse(source, GMT_DATETIME_TEMPLATE, "GMT",Locale.ENGLISH);
 	}	
 
 	/**
@@ -114,5 +121,19 @@ public class TDateTime {
 	public static Date add(Date date,long millis){
 		 return new Date(date.getTime()+millis);
 	}
+	
+	/**
+	 * 日期加操作
+	 * @param date		加法的基数日期
+	 * @param millis	微秒
+	 * @return
+	 * @throws ParseException 
+	 */
+	public static String add(String time,String format,long millis) throws ParseException{
+		Date tmpDate = parse(time, format);
+		Date resultDate = add(tmpDate, millis);
+		return format(resultDate, format);
+	}
+
 
 }
