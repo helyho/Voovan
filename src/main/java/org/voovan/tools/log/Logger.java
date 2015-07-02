@@ -13,6 +13,24 @@ import org.voovan.tools.TString;
  */
 public class Logger {
 	private static Formater	formater	= Formater.newInstance();
+	private static boolean state = true;
+	
+	/**
+	 * 日志输出状态
+	 * 		
+	 * @return true:输出日志,false 不输出任何日志
+	 */
+	public static boolean isState() {
+		return state;
+	}
+
+	/**
+	 * 设置日志输出状态
+	 * @param state true:输出日志,false 不输出任何日志
+	 */
+	public static void setState(boolean state) {
+		Logger.state = state;
+	}
 
 	public static void debug(Object msg) {
 		try {
