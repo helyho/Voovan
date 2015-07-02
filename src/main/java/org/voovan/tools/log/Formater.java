@@ -122,6 +122,17 @@ public class Formater {
 		return TString.tokenReplace(template, tokens);
 	}
 
+	public String simpleFormat(Message message){
+		Map<String, String> tokens = new HashMap<String, String>();
+		//Message和栈信息公用
+		tokens.put("t", "\t");
+		tokens.put("s", " ");
+		
+		//消息缩进
+		preIndentMessage(message);
+		return TString.tokenReplace(message.getMessage(), tokens);
+	}
+	
 	/**
 	 * 消息类型是否可以记录
 	 * @param message
@@ -145,7 +156,7 @@ public class Formater {
 	public void writeFormatedLog(Message message) {
 		if(messageWritable(message)){
 			if(message.getLevel().equals("SIMPLE")){
-				writeLog(message.getMessage()+"\r\n");
+				writeLog(simpleFormat(message)+"\r\n");
 			}else{
 				writeLog(format(message));
 			}
