@@ -157,12 +157,14 @@ public class Formater {
 	 * @param msg
 	 */
 	public void writeLog(String msg) {
-		if(logWriterThread==null || !logWriterThread.isAlive()){
-			logWriterThread = new Thread(writerThread);
-			logWriterThread.start();
+		if(Logger.isState()){
+			if(logWriterThread==null || !logWriterThread.isAlive()){
+				logWriterThread = new Thread(writerThread);
+				logWriterThread.start();
+			}
+			
+			writerThread.addLogMessage(msg);
 		}
-		
-		writerThread.addLogMessage(msg);
 	}
 	
 	/**
