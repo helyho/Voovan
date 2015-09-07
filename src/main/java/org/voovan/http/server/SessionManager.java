@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.voovan.http.message.packet.Cookie;
-import org.voovan.tools.TObject;
 import org.voovan.tools.TReflect;
 import org.voovan.tools.log.Logger;
 
@@ -44,10 +43,9 @@ public class SessionManager{
 			return sessions;
 		}else{
 			try {
-				String className = webConfig.getSessionContainer();
-				Class<?> sessionContainerClass = Class.forName(className);
+				String sessionContainerClassName = webConfig.getSessionContainer();
 				//根据 Class 构造一个 Session 容器
-				Map<String, HttpSession> sessionContainer = TObject.cast(TReflect.newInstance(sessionContainerClass));
+				Map<String, HttpSession> sessionContainer = TReflect.newInstance(sessionContainerClassName);
 				return sessionContainer;
 			} catch (ReflectiveOperationException e) {
 				Logger.error(e);

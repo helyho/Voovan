@@ -184,9 +184,9 @@ public class TReflect {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Object newInstance(Class<?> clazz, Object ...parameters) throws ReflectiveOperationException {
+	public static <T> T newInstance(Class<T> clazz, Object ...parameters) throws ReflectiveOperationException {
 		Class<?>[] parameterTypes = getParameters(parameters);
-		Constructor<?> constructor = clazz.getConstructor(parameterTypes);
+		Constructor<T> constructor = clazz.getConstructor(parameterTypes);
 		return constructor.newInstance(parameters);
 	}
 	
@@ -197,11 +197,10 @@ public class TReflect {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Object newInstance(String className, Object ...parameters) throws ReflectiveOperationException {
-		Class<?> clazz = Class.forName(className);
-		Class<?>[] parameterTypes = getParameters(parameters);
-		Constructor<?> constructor = clazz.getConstructor(parameterTypes);
-		return constructor.newInstance(parameters);
+	public static <T> T newInstance(String className, Object ...parameters) throws ReflectiveOperationException {
+		@SuppressWarnings("unchecked")
+		Class<T> clazz = (Class<T>) Class.forName(className);
+		return newInstance(clazz,parameters);
 	}
 	
 	/**
