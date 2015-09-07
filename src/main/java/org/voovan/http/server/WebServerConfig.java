@@ -162,7 +162,7 @@ public class WebServerConfig {
 		protected HttpBizFilter getBizFilter() throws ReflectiveOperationException{
 			//单例模式
 			if(httpBizFilter==null){
-				httpBizFilter = (HttpBizFilter) TReflect.newInstance(className);
+				httpBizFilter = TReflect.newInstance(className);
 			}
 			return httpBizFilter;
 		}
