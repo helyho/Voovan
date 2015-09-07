@@ -4,7 +4,7 @@
 	// 服务端口,默认8080
 	"Port"   			: 28080,		
 	// 连接超时时间(ms),默认30000
-	"Timeout"			: 3000,
+	"Timeout"			: 15000,
 	// 上下文路径
 	"ContextPath"		: "/Users/helyho/Downloads",
 	// 默认字符集,默认 UTF-8
