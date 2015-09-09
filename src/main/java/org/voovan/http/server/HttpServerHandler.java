@@ -13,7 +13,6 @@ import org.voovan.http.server.websocket.WebSocketDispatcher.WebSocketEvent;
 import org.voovan.http.server.websocket.WebSocketFrame.Opcode;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -44,7 +43,7 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public void onDisconnect(IoSession session) {
-
+		Logger.simple("Socket is Closed!");
 	}
 
 	@Override
@@ -201,7 +200,7 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		Logger.error("Http Server Error: \r\n" + e.getClass().getName() + "\r\n" + TEnv.getStackElementsMessage(e.getStackTrace()));
+		Logger.error("Http Server Error: \r\n" + e.getMessage(),e);
 	}
 
 	/**
