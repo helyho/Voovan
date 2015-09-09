@@ -29,7 +29,7 @@ public class ConnectedCompletionHandler implements CompletionHandler<Void, AioSo
 	public void failed(Throwable exc,  AioSocket socketContext) {
 		if(exc instanceof Exception){
 			//触发 onException 事件
-			eventTrigger.fireException(new Exception(exc));
+			eventTrigger.fireException((Exception)exc);
 		}
 	}
 
