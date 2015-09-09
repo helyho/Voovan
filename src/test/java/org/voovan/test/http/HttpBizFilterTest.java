@@ -14,7 +14,7 @@ public class HttpBizFilterTest implements HttpBizFilter {
 	public void doFilter(FilterConfig filterConfig, HttpRequest request, HttpResponse response) {
 		String msg = "["+filterConfig.getName()+"] ";
 		for(Entry<String, Object> entry : filterConfig.getParameters().entrySet()){
-			msg+=entry.getKey()+" = "+entry.getValue()+" ";
+			msg+=entry.getKey()+" = "+entry.getValue()+" " + request.protocol().getPath();
 		}
 		Logger.simple(msg);
 	}
