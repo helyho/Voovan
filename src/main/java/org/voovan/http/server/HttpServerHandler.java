@@ -1,6 +1,7 @@
 package org.voovan.http.server;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.InterruptedByTimeoutException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -13,6 +14,7 @@ import org.voovan.http.server.websocket.WebSocketDispatcher.WebSocketEvent;
 import org.voovan.http.server.websocket.WebSocketFrame.Opcode;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -43,7 +45,7 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public void onDisconnect(IoSession session) {
-		Logger.simple("Socket is Closed!");
+		
 	}
 
 	@Override
@@ -189,6 +191,7 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public void onSent(IoSession session, Object obj) {
+		//如果 WebSocket 关闭,则关闭对应的 Socket
 		if(session.containAttribute("WebSocketClose") && (boolean) session.getAttribute("WebSocketClose")){
 			session.close();
 		}else if (session.containAttribute("isKeepAlive") && (boolean) session.getAttribute("isKeepAlive")) {
@@ -200,7 +203,11 @@ public class HttpServerHandler implements IoHandler {
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		Logger.error("Http Server Error: \r\n" + e.getMessage(),e);
+		//忽略远程连接断开异常 和 超时断开异常
+		if(!(e instanceof SocketDisconnectByRemote) &&
+			!(e instanceof InterruptedByTimeoutException)){
+			Logger.error("Http Server Error: \r\n" + e.getMessage(),e);
+		}		
 	}
 
 	/**
@@ -224,7 +231,10 @@ public class HttpServerHandler implements IoHandler {
 				@Override
 				public void run() {
 					// 如果是 WebSocket 则出发 Close 事件
-					if (session.containAttribute("isWebSocket") && (boolean) session.getAttribute("isWebSocket")) {
+					if (session.containAttribute("isWebSocket") && (boolean) session.getAttribute("isWebSocket") &&
+						session.containAttribute("WebSocketClose") && (boolean) session.getAttribute("WebSocketClose") &&
+						!session.close()
+							) {
 						// WebSocket Close事件
 						webSocketDispatcher.processRoute(WebSocketEvent.CLOSE, 
 								TObject.cast(session.getAttribute("upgradeRequest")), null);

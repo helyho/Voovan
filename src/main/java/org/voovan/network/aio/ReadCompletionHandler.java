@@ -70,7 +70,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 	public void failed(Throwable exc,  ByteBuffer buffer) {
 		if(exc instanceof Exception && !(exc instanceof AsynchronousCloseException)){
 			//触发 onException 事件
-			eventTrigger.fireException(new Exception(exc));
+			eventTrigger.fireException((Exception)exc);
 		}
 	}
 }
