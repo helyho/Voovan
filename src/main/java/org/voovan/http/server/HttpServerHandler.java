@@ -223,7 +223,7 @@ public class HttpServerHandler implements IoHandler {
 		}
 
 		// 构造新的KeepAliveTask
-		Timer keepAliveTimer = new Timer();
+		Timer keepAliveTimer = new Timer("Keep_Alive_Timer");
 		int keepAliveTimeout = webConfig.getKeepAliveTimeout();
 
 		if (keepAliveTimeout > 0) {
@@ -240,6 +240,7 @@ public class HttpServerHandler implements IoHandler {
 								TObject.cast(session.getAttribute("upgradeRequest")), null);
 					}
 					session.close();
+					keepAliveTimer.cancel();
 				}
 			};
 			keepAliveTimer.schedule(keepAliveTask, keepAliveTimeout * 60 * 1000);
