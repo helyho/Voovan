@@ -10,6 +10,8 @@ import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.websocket.WebSocketFrame.Opcode;
+import org.voovan.network.IoSession;
+import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 /**
@@ -103,5 +105,21 @@ public class WebSocketDispatcher {
 			new RouterNotFound("Not avaliable router!").printStackTrace();
 		}
 		return null;
+	}
+	
+	/**
+	 * 出发 Close 事件
+	 * @param session
+	 */
+	public void fireCloseEvent(IoSession session){
+		//检查是否是WebSocket
+		if (session.containAttribute("isWebSocket") && (boolean) session.getAttribute("isWebSocket") &&
+				session.containAttribute("WebSocketClose") && (boolean) session.getAttribute("WebSocketClose") &&
+				!session.close()
+					) {
+				// 触发一个 WebSocket Close 事件
+				processRoute(WebSocketEvent.CLOSE, 
+						TObject.cast(session.getAttribute("upgradeRequest")), null);
+			}
 	}
 }

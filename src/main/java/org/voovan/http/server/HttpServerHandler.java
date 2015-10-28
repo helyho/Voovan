@@ -2,8 +2,10 @@ package org.voovan.http.server;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.InterruptedByTimeoutException;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Vector;
 
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
@@ -31,13 +33,63 @@ public class HttpServerHandler implements IoHandler {
 	private HttpDispatcher		httpDispatcher;
 	private WebSocketDispatcher	webSocketDispatcher;
 	private WebServerConfig		webConfig;
+	private Timer keepAliveTimer;
+	private List<IoSession> keepAliveSessionList;
 
 	public HttpServerHandler(WebServerConfig webConfig, HttpDispatcher httpDispatcher, WebSocketDispatcher webSocketDispatcher) {
 		this.httpDispatcher = httpDispatcher;
 		this.webSocketDispatcher = webSocketDispatcher;
 		this.webConfig = webConfig;
+		keepAliveTimer = new Timer("VOOVAN@Keep_Alive_Timer");
+		keepAliveSessionList = new Vector<IoSession>();
+		initKeepAliveTimer();
 	}
 
+	
+	/**
+	 * 获得给予当前时间的超时毫秒值
+	 * @return
+	 */
+	private long getCurrentTimeoutValue(){
+		int keepAliveTimeout = webConfig.getKeepAliveTimeout();
+		return System.currentTimeMillis()+keepAliveTimeout*60*1000;
+	}
+	
+	/**
+	 * 初始化连接保持 Timer
+	 */
+	public void initKeepAliveTimer(){
+
+		TimerTask keepAliveTask = new TimerTask() {
+			@Override
+			public void run() {
+				//临时保存需要清理的 session
+				List<IoSession> sessionNeedRemove= new Vector<IoSession>();
+				
+				//遍历所有的 session
+				for(IoSession session : keepAliveSessionList){
+					long currentTimeValue = System.currentTimeMillis();
+					long timeOutValue = (long) session.getAttribute("TimeOutValue");
+					
+					if(timeOutValue < currentTimeValue){					
+						//如果超时则结束当前连接
+						//触发 WebSocket close 事件
+						webSocketDispatcher.fireCloseEvent(session);
+						session.close();
+						sessionNeedRemove.add(session);
+					}
+				}
+				
+				//清理已经超时的会话
+				for(IoSession session : sessionNeedRemove){
+					keepAliveSessionList.remove(session);
+				}
+				
+			}
+		};
+		keepAliveTimer.schedule(keepAliveTask, 1 , 1000);
+	}
+	
 	@Override
 	public Object onConnect(IoSession session) {
 		return null;
@@ -195,7 +247,11 @@ public class HttpServerHandler implements IoHandler {
 		if(session.containAttribute("WebSocketClose") && (boolean) session.getAttribute("WebSocketClose")){
 			session.close();
 		}else if (session.containAttribute("isKeepAlive") && (boolean) session.getAttribute("isKeepAlive")) {
-			keepLiveSchedule(session);
+			if(!keepAliveSessionList.contains(session)){
+				keepAliveSessionList.add(session);
+			}
+			//更新会话超时时间
+			session.setAttribute("TimeOutValue", getCurrentTimeoutValue());
 		}else {
 			session.close();
 		}
@@ -215,39 +271,39 @@ public class HttpServerHandler implements IoHandler {
 	 * 
 	 * @param session
 	 */
-	private void keepLiveSchedule(IoSession session) {
-		// 取消上次的 KeepAliveTask
-		if (session.getAttribute("keepAliveTimer") != null) {
-			Timer oldTimer = (Timer) session.getAttribute("keepAliveTimer");
-			oldTimer.cancel();
-		}
-
-		// 构造新的KeepAliveTask
-		Timer keepAliveTimer = new Timer("Keep_Alive_Timer");
-		int keepAliveTimeout = webConfig.getKeepAliveTimeout();
-
-		if (keepAliveTimeout > 0) {
-			TimerTask keepAliveTask = new TimerTask() {
-				@Override
-				public void run() {
-					// 如果是 WebSocket 则出发 Close 事件
-					if (session.containAttribute("isWebSocket") && (boolean) session.getAttribute("isWebSocket") &&
-						session.containAttribute("WebSocketClose") && (boolean) session.getAttribute("WebSocketClose") &&
-						!session.close()
-							) {
-						// WebSocket Close事件
-						webSocketDispatcher.processRoute(WebSocketEvent.CLOSE, 
-								TObject.cast(session.getAttribute("upgradeRequest")), null);
-					}
-					session.close();
-					keepAliveTimer.cancel();
-				}
-			};
-			keepAliveTimer.schedule(keepAliveTask, keepAliveTimeout * 60 * 1000);
-			session.setAttribute("keepAliveTimer", keepAliveTimer);
-		} else {
-			session.close();
-		}
-
-	}
+//	private void keepLiveSchedule(IoSession session) {
+//		// 取消上次的 KeepAliveTask
+//		if (session.getAttribute("keepAliveTimer") != null) {
+//			Timer oldTimer = (Timer) session.getAttribute("keepAliveTimer");
+//			oldTimer.cancel();
+//		}
+//
+//		// 构造新的KeepAliveTask
+//		Timer keepAliveTimer = new Timer("Keep_Alive_Timer");
+//		int keepAliveTimeout = webConfig.getKeepAliveTimeout();
+//
+//		if (keepAliveTimeout > 0) {
+//			TimerTask keepAliveTask = new TimerTask() {
+//				@Override
+//				public void run() {
+//					// 如果是 WebSocket 则出发 Close 事件
+//					if (session.containAttribute("isWebSocket") && (boolean) session.getAttribute("isWebSocket") &&
+//						session.containAttribute("WebSocketClose") && (boolean) session.getAttribute("WebSocketClose") &&
+//						!session.close()
+//							) {
+//						//出发一个 WebSocket Close 事件
+//						webSocketDispatcher.processRoute(WebSocketEvent.CLOSE, 
+//								TObject.cast(session.getAttribute("upgradeRequest")), null);
+//					}
+//					session.close();
+//					keepAliveTimer.cancel();
+//				}
+//			};
+//			keepAliveTimer.schedule(keepAliveTask, keepAliveTimeout * 60 * 1000);
+//			session.setAttribute("keepAliveTimer", keepAliveTimer);
+//		} else {
+//			session.close();
+//		}
+//
+//	}
 }

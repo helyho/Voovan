@@ -2,10 +2,12 @@ package org.voovan.http.server;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.json.JSONDecode;
+import org.voovan.tools.threadpool.ThreadPool;
 
 /**
  * Web上下文(配置信息读取)
@@ -18,6 +20,8 @@ import org.voovan.tools.json.JSONDecode;
 public class WebContext {
 	
 	private static String sessionName = "SESSIONID";
+	
+	private static ThreadPoolExecutor threadPool = ThreadPool.getThreadPool();
 
 	/**
 	 * Web Config
@@ -39,6 +43,14 @@ public class WebContext {
 	
 	private WebContext(){
 		
+	}
+	
+	/**
+	 * 返回公用线程池
+	 * @return
+	 */
+	public static ThreadPoolExecutor getThreadPool(){
+		return threadPool;
 	}
 															
 	/**
