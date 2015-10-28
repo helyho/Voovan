@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.voovan.http.server.WebContext;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.Event.EventState;
-import org.voovan.tools.threadpool.ThreadPool;
 
 /**
  * 事件触发器
@@ -33,7 +33,7 @@ public class EventTrigger {
 	 */
 	public EventTrigger(IoSession session){
 		this.session = session;
-		eventThreadPool = ThreadPool.getThreadPool();
+		eventThreadPool = WebContext.getThreadPool();
 		eventPool = new Vector<Event>();
 	}
 	
@@ -41,7 +41,7 @@ public class EventTrigger {
 	 * 无参数构造函数
 	 */
 	public EventTrigger(){
-		eventThreadPool = ThreadPool.getThreadPool();
+		eventThreadPool = WebContext.getThreadPool();
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		eventThreadPool.allowCoreThreadTimeOut(true);
 	}

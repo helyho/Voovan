@@ -33,6 +33,7 @@ public class ThreadPoolTask extends TimerTask {
 			this.cancel();
 			timer.cancel();
 		}
+		
 //		String threadPoolInfo = "PoolInfo:" + threadPoolInstance.getActiveCount() + "/" + threadPoolInstance.getCorePoolSize() + "/"
 //				+ threadPoolInstance.getLargestPoolSize() + " TaskCount: " + threadPoolInstance.getCompletedTaskCount() + "/"
 //				+ threadPoolInstance.getTaskCount() + " QueueSize:" + threadPoolInstance.getQueue().size() + " PerCoreLoadAvg:"
