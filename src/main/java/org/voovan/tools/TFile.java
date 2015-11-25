@@ -3,7 +3,9 @@ package org.voovan.tools;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLDecoder;
 
 import org.voovan.tools.log.Logger;
 
@@ -93,12 +95,19 @@ public class TFile {
 	 * @throws IOException
 	 */
 	public static File getResourceFile(String resourcePath) {
-		URL url = TEnv.class.getClassLoader().getResource(resourcePath);
-		if(url!=null){
-			File file = new File(url.getFile());
-			return file;
-		}
-		return null;
+		try {
+			resourcePath = URLDecoder.decode(resourcePath,"utf-8");
+			URL url = TEnv.class.getClassLoader().getResource(resourcePath);
+			if(url!=null){
+				File file = new File(url.getFile());
+				return file;
+			}
+			return null;
+		} catch (UnsupportedEncodingException e) {	
+			Logger.error(e);
+			return null;
+		}  
+		
 	}
 
 	/**
