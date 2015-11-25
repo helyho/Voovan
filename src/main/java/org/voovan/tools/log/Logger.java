@@ -179,9 +179,9 @@ public class Logger {
 			Message message = Message.newInstance("SIMPLE", msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + msg);
+			System.out.println("Logger system error:"+oe.getMessage()+"\r\n");
+			System.out.println(TEnv.getStackElementsMessage(oe.getStackTrace()));
+			System.out.println("Output message is: " + msg);
 		}
 	}
 }
