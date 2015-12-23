@@ -26,10 +26,9 @@ import org.voovan.tools.log.Logger;
  */
 public class WebSocketDispatcher {
 	/**
-	 * [MainKey] = HTTP method ,[Value Key] = Route path, [Value value] =
-	 * RouteBuiz对象
+	 * [Key] = Route path ,[Value] = WebSocketBizHandler对象
 	 */
-	private Map<String, WebSocketBizHandler>	routes;
+	private Map<String, WebSocketBizHandler>	handlers;
 
 	public enum WebSocketEvent {
 		OPEN, RECIVED, SENT, CLOSE
@@ -42,7 +41,7 @@ public class WebSocketDispatcher {
 	 *            根目录
 	 */
 	public WebSocketDispatcher(WebServerConfig config) {
-		routes = new HashMap<String, WebSocketBizHandler>();
+		handlers = new HashMap<String, WebSocketBizHandler>();
 	}
 
 	/**
@@ -53,7 +52,7 @@ public class WebSocketDispatcher {
 	 * @param routeBuiz
 	 */
 	public void addRouteHandler(String routeRegexPath, WebSocketBizHandler handler) {
-		routes.put(routeRegexPath, handler);
+		handlers.put(routeRegexPath, handler);
 	}
 
 	/**
@@ -68,12 +67,12 @@ public class WebSocketDispatcher {
 		String requestPath = request.protocol().getPath();
 
 		boolean isMatched = false;
-		for (String routePath : routes.keySet()) {
+		for (String routePath : handlers.keySet()) {
 			// 路由匹配
 			isMatched = HttpDispatcher.matchPath(requestPath, routePath);
 			if (isMatched) {
 				// 获取路由处理对象
-				WebSocketBizHandler handler = routes.get(routePath);
+				WebSocketBizHandler handler = handlers.get(routePath);
 				// 获取路径变量
 				try {
 					ByteBuffer responseMessage = null;
