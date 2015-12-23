@@ -41,7 +41,7 @@ public class MimeFileRouter implements HttpBizHandler {
 			response.header().put("Content-Type", MimeTools.getMimeByFileExtension(fileExtension));
 			// 转换请求Path 里的文件路劲分割符为系统默认分割符
 			urlPath = urlPath.replaceAll("//", File.separator);
-			// 拼装文件路径
+			// 拼装文件实际存储路径
 			String filePath = rootPath + urlPath;
 			File responseFile = new File(filePath);
 			
@@ -96,7 +96,7 @@ public class MimeFileRouter implements HttpBizHandler {
 			return true;
 		}
 		//文件更新时间比请求时间大,则返回304
-		if(requestModifyDate!=null && requestModifyDate.before(fileModifyDate)){
+		if(requestModifyDate!=null && requestModifyDate.after(fileModifyDate)){
 			setNotModifyResponse(response);
 			return true; 
 		} 
