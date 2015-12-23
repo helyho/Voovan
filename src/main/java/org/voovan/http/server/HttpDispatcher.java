@@ -39,7 +39,7 @@ import org.voovan.tools.log.Logger;
  */
 public class HttpDispatcher {
 	/**
-	 * [MainKey] = HTTP method ,[Value Key] = Route path, [Value value] = RouteBuiz对象
+	 * [MainKey] = HTTP method ,[Value] = { [Value Key] = Route path, [Value value] = RouteBuiz对象 }
 	 */
 	private Map<String, Map<String, HttpBizHandler>>	handlers;
 	private WebServerConfig webConfig;
