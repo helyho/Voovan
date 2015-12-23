@@ -13,7 +13,6 @@ import org.voovan.tools.log.Logger;
 public class HttpServerDemo {
 	private static byte[] fileContent = TFile.loadResource("org/voovan/test/http/test.htm");
 	
-	
 	public static void main(String[] args) {
 		try {
 			HttpServer httpServer = HttpServer.newInstance();
