@@ -96,7 +96,7 @@ public class MimeFileRouter implements HttpBizHandler {
 			return true;
 		}
 		//文件更新时间比请求时间大,则返回304
-		if(requestModifyDate!=null && requestModifyDate.after(fileModifyDate)){
+		if(requestModifyDate!=null && requestModifyDate.equals(fileModifyDate)){
 			setNotModifyResponse(response);
 			return true; 
 		} 
