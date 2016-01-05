@@ -1,6 +1,8 @@
 package org.voovan.tools;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
@@ -32,6 +34,26 @@ public class TFile {
 		}
 		
 		return TString.removeSuffix(result);
+	}
+	
+	/**
+	 * 获取文件大小
+	 * @param file
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	public static int getFileSize(String filePath) {
+		try {
+			FileInputStream fileInputStream = new FileInputStream(new File( filePath));
+			int fileSize = (fileInputStream).available();
+			fileInputStream.close();
+			return fileSize;
+		} catch (Exception e) {
+			Logger.error(e);
+			return -1;
+		}
+		
 	}
 	
 	/**
