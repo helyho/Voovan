@@ -12,7 +12,6 @@ import org.voovan.http.server.MimeTools;
 import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
-import org.voovan.tools.TString;
 
 /**
  * MIME 文件路由处理类
@@ -112,20 +111,35 @@ public class MimeFileRouter implements HttpBizHandler {
 	 */
 	public void fillMimeFile(File responseFile,HttpRequest request,HttpResponse response){
 		byte[] fileByte = null;
+		int fileSize = TFile.getFileSize(responseFile.getPath());
+		
 		// 如果包含取一个范围内的文件内容进行处理,形似:Range: 0-800
 		if (request.header().get("Range") != null && request.header().get("Range").contains("-")) {
-
+			
+			int beginPos=-1;
+			int endPos=-1;
+			
 			String rangeStr = request.header().get("Range");
+			rangeStr = rangeStr.replace("bytes=", "").trim();
 			String[] ranges = rangeStr.split("-");
-			if (ranges[1].equals("")) {
-				ranges[1] = "-1";
+			
+			//形似:Range: -800
+			if(rangeStr.startsWith("-") && ranges.length==1){
+				beginPos = fileSize - Integer.parseInt(ranges[0]);
+				endPos = fileSize;
 			}
-			// 是否是整形数字进行判断,如果不是整形数字,则全部使用-1
-			int beginPos = TString.isInteger(ranges[0]) ? Integer.parseInt(ranges[0]) : -1;
-			int endPos = TString.isInteger(ranges[1]) ? Integer.parseInt(ranges[1]) : -1;
-
+			//形似:Range: 800-
+			else if(rangeStr.endsWith("-") && ranges.length==1){
+				beginPos = Integer.parseInt(ranges[0]);
+				endPos = fileSize;
+			}
+			//形似:Range: 0-800
+			else if(ranges.length==2){
+				beginPos = Integer.parseInt(ranges[0]);
+				endPos   = Integer.parseInt(ranges[1]);
+			}
 			fileByte = TFile.loadFileFromSysPath(responseFile.getPath(), beginPos, endPos);
-			response.header().put("Content-Range", "bytes " + rangeStr + "/" + fileByte.length);
+			response.header().put("Content-Range", "bytes " + rangeStr + "/" + fileSize);
 		} else {
 			fileByte = TFile.loadFileFromSysPath(responseFile.getPath());
 		}
@@ -134,6 +148,7 @@ public class MimeFileRouter implements HttpBizHandler {
 			response.header().put("Content-Length", "" + fileByte.length);
 			response.write(fileByte);
 		}
+		
 	}
 	
 	/**
