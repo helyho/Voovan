@@ -12,6 +12,8 @@ import org.voovan.http.server.MimeTools;
 import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
+import org.voovan.tools.THash;
+
 
 /**
  * MIME 文件路由处理类
@@ -66,7 +68,7 @@ public class MimeFileRouter implements HttpBizHandler {
 	 */
 	public boolean isNotModify(File responseFile,HttpRequest request,HttpResponse response) throws ParseException{
 		//文件的 ETag
-		String eTag = "\"" + Integer.toString(responseFile.hashCode()) + "\"";
+		String eTag = "\"" + THash.encryptMD5(Integer.toString(responseFile.hashCode())).toUpperCase() + "\"";
 		
 		//请求中的 ETag
 		String requestETag = request.header().get("If-None-Match");
@@ -81,7 +83,7 @@ public class MimeFileRouter implements HttpBizHandler {
 		}
 		
 		//设置文件 hashCode
-		response.header().put("ETag", "\"" + Integer.toString(responseFile.hashCode()) + "\"");
+		response.header().put("ETag", eTag);
 		//设置最后修改时间
 		response.header().put("Last-Modified",TDateTime.formatToGMT(fileModifyDate));
 		//设置缓存控制
@@ -145,7 +147,6 @@ public class MimeFileRouter implements HttpBizHandler {
 		}
 
 		if (fileByte != null) {
-			response.header().put("Content-Length", "" + fileByte.length);
 			response.write(fileByte);
 		}
 		

@@ -7,6 +7,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.json.JSONDecode;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.threadpool.ThreadPool;
 
 /**
@@ -72,13 +73,30 @@ public class WebContext {
 		WebServerConfig config = new WebServerConfig();
 		config.setHost(getContextParameter("Host","127.0.0.1"));
 		config.setPort(getContextParameter("Port",8080));
-		config.setTimeout(getContextParameter("Timeout",3000));
+		config.setTimeout(getContextParameter("Timeout",3*1000));
 		config.setContextPath(getContextParameter("ContextPath",System.getProperty("user.dir")));
 		config.setCharacterSet(getContextParameter("CharacterSet","UTF-8"));
 		config.setSessionContainer(getContextParameter("SessionContainer","java.util.Hashtable"));
 		config.setSessionTimeout(getContextParameter("SessionTimeout",30));
 		config.setKeepAliveTimeout(getContextParameter("KeepAliveTimeout",5));
 		config.setGzip(getContextParameter("Gzip","on").equals("on")?true:false);
+		
+		Logger.simple("\r\n");
+		Logger.simple("===========================================================================");
+		Logger.simple("=============================VooVan Open Source============================");
+		Logger.simple("==============================VooVan WEB Server============================");
+		Logger.simple("===========================================================================");
+		Logger.simple("WebServer working on:"+config.getHost()+":"+config.getPort()+" ...");
+		Logger.simple("===========================Config parameter list===========================");
+		Logger.simple("\tTimeout:\t\t"+config.getTimeout());
+		Logger.simple("\tContextPath:\t\t"+config.getContextPath());
+		Logger.simple("\tCharacterSet:\t\t"+config.getCharacterSet());
+		Logger.simple("\tSessionContainer:\t"+config.getSessionContainer());
+		Logger.simple("\tSessionTimeout:\t\t"+config.getSessionTimeout());
+		Logger.simple("\tKeepAliveTimeout:\t"+config.getKeepAliveTimeout());
+		Logger.simple("\tGzip:\t\t\t"+ (config.isGzip()?"on":"off"));
+		Logger.simple("===========================================================================");
+		
 		//初始化过滤器
 		config.addAllFilterConfigs(getContextParameter("Filter",new ArrayList<Map<String,Object>>()));
 		
