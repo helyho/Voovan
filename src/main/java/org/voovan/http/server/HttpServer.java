@@ -40,7 +40,7 @@ public class HttpServer {
 	public HttpServer(WebServerConfig config) throws IOException {
 
 		// 准备 socket 监听
-		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout());
+		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout()*1000);
 		
 		//构造 SessionManage
 		sessionManager = SessionManager.newInstance(config);
