@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLException;
 
@@ -96,7 +95,8 @@ public class AioSocket extends SocketContext {
 	 */
 	protected void catchRead(ByteBuffer buffer) {
 		if (isConnect()) {
-			socketChannel.read(buffer, readTimeout, TimeUnit.MILLISECONDS, buffer, readCompletionHandler);
+			//socketChannel.read(buffer, readTimeout*4, TimeUnit.MILLISECONDS, buffer, readCompletionHandler);
+			socketChannel.read(buffer, buffer, readCompletionHandler);
 		}
 	}
 
