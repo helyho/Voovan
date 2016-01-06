@@ -146,7 +146,10 @@ public class NioSession extends IoSession {
 	@Override
 	public void send(ByteBuffer buffer) throws IOException {
 		if (isConnect() && buffer != null) {
-			socketChannel.write(buffer);
+			//循环发送直到全不内容发送完毕
+			while(buffer.remaining()!=0){
+				socketChannel.write(buffer);
+			}
 		}
 	}
 

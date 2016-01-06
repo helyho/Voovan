@@ -140,9 +140,12 @@ public class AioSession extends IoSession {
 	@Override
 	public void send(ByteBuffer buffer) throws IOException {
 		if (isConnect() && buffer != null) {
-			Future<Integer> sendResult = socketChannel.write(buffer);
-			while(!sendResult.isDone()){
-				TEnv.sleep(1);
+			//循环发送直到全不内容发送完毕
+			while(buffer.remaining()!=0){
+				Future<Integer> sendResult = socketChannel.write(buffer);
+				while(!sendResult.isDone()){
+					TEnv.sleep(1);
+				}
 			}
 		}
 	}
