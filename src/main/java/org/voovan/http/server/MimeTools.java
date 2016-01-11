@@ -33,7 +33,6 @@ public class MimeTools {
 			mimeTypeRegex += "\\."+fileExtension+"|";
 		}
 		mimeTypeRegex = TString.removeSuffix(mimeTypeRegex)+"$";
-		Logger.info("load.........");
 		return mimeTypeRegex;
 	} 
 	
