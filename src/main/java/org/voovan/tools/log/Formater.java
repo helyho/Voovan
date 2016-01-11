@@ -16,17 +16,19 @@ import org.voovan.tools.TString;
  *	格式化日志信息并输出
  *
  *使用包括特殊的定义{{}}
- *{{t}}:制表符,正常情况下4个空格
- *{{s}}:一个空格
- *{{i}}:消息内容,即要展示的日志内容
- *{{n}}:换行符号
- *{{si}}:栈信息输出
- *{{l}}:当前代码的行号
- *{{m}}:当前代码的方法名
- *{{c}}:当前代码的类名称
- *{{t}}:当前线程名
- *{{d}}:当前代码的事件
- *{{r}}:从启动到当前代码执行的事件
+ *{{s}}:  一个空格
+ *{{t}}:  制表符
+ *{{n}}:  换行
+ *================================
+ *{{I}}:  消息内容,即要展示的日志内容
+ *{{F}}:  源码文件名
+ *{{SI}}: 栈信息输出
+ *{{L}}:  当前代码的行号
+ *{{M}}:  当前代码的方法名
+ *{{C}}:  当前代码的类名称
+ *{{T}}:  当前线程名
+ *{{D}}:  当前系统时间
+ *{{R}}:  从启动到当前代码执行的事件
  * @author helyho
  * 
  * Voovan Framework.
@@ -76,16 +78,42 @@ public class Formater {
 	 * @param message
 	 * @return
 	 */
-	private void preIndentMessage(Message message){
+	private String preIndentMessage(Message message){
 		String infoIndent = StaticParam.getLogConfig("InfoIndent","");
+		String msg = message.getMessage();
 		if(infoIndent!=null && !infoIndent.isEmpty()){
-			String msg = message.getMessage();
 			if (infoIndent != null) {
 				msg = infoIndent + msg;
 				msg = msg.replaceAll("\n", "\n" + infoIndent);
 				message.setMessage(msg);
 			}
 		}
+		return msg;
+	}
+	
+	public Map<String, String> newLogtokens(Message message){
+		Map<String, String> tokens = new HashMap<String, String>();
+		StackTraceElement stackTraceElement = currentStackLine();
+		
+		//Message和栈信息公用
+		tokens.put("t", "\t");
+		tokens.put("s", " ");
+		tokens.put("n", "\r\n");
+		tokens.put("I", message.getMessage());            								//日志消息
+		
+		//栈信息独享
+		
+		tokens.put("P", message.getLevel()==null?"INFO":message.getLevel());			//信息级别
+		tokens.put("SI", stackTraceElement.toString());									//堆栈信息
+		tokens.put("L", Integer.toString((stackTraceElement.getLineNumber())));			//行号
+		tokens.put("M", stackTraceElement.getMethodName());								//方法名
+		tokens.put("F", stackTraceElement.getFileName());								//源文件名
+		tokens.put("C", stackTraceElement.getClassName());								//类名
+		tokens.put("T", currentThreadName());											//线程
+		tokens.put("D", TDateTime.now("YYYY-MM-dd HH:mm:ss:SS z"));						//当前时间 
+		tokens.put("R", Long.toString(System.currentTimeMillis() - StaticParam.getStartTimeMillis())); //系统运行时间
+		
+		return tokens;
 	}
 	
 	/**
@@ -94,41 +122,14 @@ public class Formater {
 	 * @return
 	 */
 	public String format(Message message) {
-		
-		
-		Map<String, String> tokens = new HashMap<String, String>();
-		StackTraceElement stackTraceElement = currentStackLine();
-		//Message和栈信息公用
-		tokens.put("t", "\t");
-		tokens.put("s", " ");
-		
-		//消息缩进
-		preIndentMessage(message);
-		
-		tokens.put("i", TString.tokenReplace(message.getMessage(), tokens));
-		
-		//栈信息独享
-		tokens.put("n", "\r\n");
-		tokens.put("p", message.getLevel()==null?"INFO":message.getLevel());
-		tokens.put("si", stackTraceElement.toString());
-		tokens.put("l", Integer.toString((stackTraceElement.getLineNumber())));
-		tokens.put("m", stackTraceElement.getMethodName());
-		tokens.put("f", stackTraceElement.getFileName());
-		tokens.put("c", stackTraceElement.getClassName());
-		tokens.put("t", currentThreadName());
-		tokens.put("d", TDateTime.now("YYYY-MM-dd HH:mm:ss:SS z"));
-		tokens.put("r", Long.toString(System.currentTimeMillis() - StaticParam.getStartTimeMillis()));
-		
+		Map<String, String> tokens = newLogtokens(message);
+		tokens.replace("I", preIndentMessage(message));
 		return TString.tokenReplace(template, tokens);
 	}
 
 	public String simpleFormat(Message message){
-		Map<String, String> tokens = new HashMap<String, String>();
-		//Message和栈信息公用
-		tokens.put("t", "\t");
-		tokens.put("s", " ");
-		
 		//消息缩进
+		Map<String, String> tokens = newLogtokens(message);
 		preIndentMessage(message);
 		return TString.tokenReplace(message.getMessage(), tokens);
 	}
