@@ -14,8 +14,10 @@
  - 异步通信框架解决粘包问题。[【举个栗子】](https://github.com/helyho/Voovan/wiki/AIO-NIO%E5%BC%82%E6%AD%A5%E9%80%9A%E4%BF%A1%E6%A1%86%E6%9E%B6%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97#%E4%B8%89%E4%BD%BF%E7%94%A8%E4%B8%BE%E4%BE%8B)
  - 独立无依赖的代码。
  - 源码注释丰富，方便码友学习、调试、使用。
-
-
+ 
+```
+如果无法访问 GitHub 请增加 192.30.252.131  github.com 到 hosts 文件.
+```
 **交流QQ群：**454201740
 
 **开源协议:**Apache v2 License
