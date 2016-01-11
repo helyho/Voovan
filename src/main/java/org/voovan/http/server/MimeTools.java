@@ -3,7 +3,6 @@ package org.voovan.http.server;
 import java.util.Map;
 
 import org.voovan.tools.TString;
-import org.voovan.tools.log.Logger;
 
 /**
  * MIME 相关处理

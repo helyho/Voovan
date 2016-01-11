@@ -82,11 +82,14 @@ public class WebContext {
 		config.setGzip(getContextParameter("Gzip","on").equals("on")?true:false);
 		
 		Logger.simple("\r\n");
-		Logger.simple("===========================================================================");
-		Logger.simple("=============================VooVan Open Source============================");
-		Logger.simple("==============================VooVan WEB Server============================");
-		Logger.simple("===========================================================================");
-		Logger.simple("WebServer working on:"+config.getHost()+":"+config.getPort()+" ...");
+		Logger.simple("==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==");
+		Logger.simple(" ==          ==  ==        == ==        ==  ==          ==  ==  ==      ==   ==      =="); 
+		Logger.simple("  ==        ==   ==        == ==        ==   ==        ==  ==    ==     ==    ==     =="); 
+		Logger.simple("   ==      ==    ==        == ==        ==    ==      ==  ==      ==    ==     ==    =="); 
+		Logger.simple("    ==    ==     ==        == ==        ==     ==    ==  ============   ==      ==   =="); 
+		Logger.simple("     ==  ==      ==        == ==        ==      ==  ==  ==          ==  ==       ==  =="); 
+		Logger.simple("      ====        ==========   ==========        ====  ==            == ==        == ==");
+		Logger.simple("");
 		Logger.simple("===========================Config parameter list===========================");
 		Logger.simple("\tTimeout:\t\t"+config.getTimeout());
 		Logger.simple("\tContextPath:\t\t"+config.getContextPath());
@@ -96,7 +99,7 @@ public class WebContext {
 		Logger.simple("\tKeepAliveTimeout:\t"+config.getKeepAliveTimeout());
 		Logger.simple("\tGzip:\t\t\t"+ (config.isGzip()?"on":"off"));
 		Logger.simple("===========================================================================");
-		
+		Logger.simple("WebServer working on:"+config.getHost()+":"+config.getPort()+" ...");
 		//初始化过滤器
 		config.addAllFilterConfigs(getContextParameter("Filter",new ArrayList<Map<String,Object>>()));
 		
