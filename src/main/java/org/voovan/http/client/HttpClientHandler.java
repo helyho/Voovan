@@ -24,12 +24,26 @@ public class HttpClientHandler implements IoHandler {
 		this.httpClient = httpClient;
 	}
 	
+	/**
+	 * 重置状态
+	 */
+	public void reset(){
+		haveResponse = false;
+	}
+	
+	/**
+	 * 是否有可用响应对象
+	 * @return
+	 */
 	public boolean isHaveResponse() {
 		return haveResponse;
 	}
 
+	/**
+	 * 获取响应对象
+	 * @return
+	 */
 	public synchronized Response getResponse(){
-		haveResponse = false;
 		Response returnResponse = response;
 		response = null;
 		return returnResponse;
@@ -38,17 +52,21 @@ public class HttpClientHandler implements IoHandler {
 	
 	@Override
 	public Object onConnect(IoSession session) {
+		//变更状态
 		httpClient.setStatus(HttpClientStatus.IDLE);
+		Logger.info("is IDLE");
 		return null;
 	}
 
 	@Override
 	public void onDisconnect(IoSession session) {
+		//变更状态
 		httpClient.setStatus(HttpClientStatus.CLOSED);
 	}
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
+		//确认对象是否可用
 		if(obj instanceof Response){
 			response = TObject.cast(obj);
 			haveResponse = true;
