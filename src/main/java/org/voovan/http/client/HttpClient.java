@@ -32,7 +32,7 @@ import org.voovan.tools.log.Logger;
 public class HttpClient {
 	
 	private AioSocket socket;
-	private HttpClientHandler clientHandler; 
+	private HttpClientHandler httpClientHandler; 
 	private Request request;
 	private Map<String, Object> parameters;
 	private String charset="UTF-8";
@@ -96,8 +96,8 @@ public class HttpClient {
 			request.header().put("Connection","keep-alive");
 			
 			socket = new AioSocket(hostString, port==-1?80:port, timeOut*1000);
-			clientHandler = new HttpClientHandler(this);
-			socket.handler(clientHandler);
+			httpClientHandler = new HttpClientHandler(this);
+			socket.handler(httpClientHandler);
 			socket.filterChain().add(new HttpClientFilter());
 			socket.messageSplitter(new HttpMessageSplitter());
 			
@@ -105,7 +105,7 @@ public class HttpClient {
 				public void run(){
 					try {
 						socket.start();
-						Logger.info("HttpClient连接关闭");
+						Logger.info("HttpClient closed");
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -114,7 +114,7 @@ public class HttpClient {
 			
 			backThread.start();
 			
-			//等待状态变更,变更为 IDLE
+			//等待连接完成后状态变更,变更为 IDLE
 			while(status==HttpClientStatus.PREPARE){
 				TEnv.sleep(1);
 			}
@@ -275,6 +275,7 @@ public class HttpClient {
 	 */
 	public Response send(String urlString) throws IOException {
 		if(status==HttpClientStatus.IDLE){
+			
 			//变更状态
 			status = HttpClientStatus.WORKING;
 			
@@ -285,11 +286,11 @@ public class HttpClient {
 			socket.getSession().send(ByteBuffer.wrap(request.asBytes()));
 			
 			//等待获取 response并返回
-			while(isConnect() && !clientHandler.isHaveResponse()){
+			while(isConnect() && !httpClientHandler.isHaveResponse()){
 				TEnv.sleep(1);
 			}
 			
-			Response response = clientHandler.getResponse();
+			Response response = httpClientHandler.getResponse();
 			
 			//结束操作
 			finished(response);
@@ -315,11 +316,13 @@ public class HttpClient {
 		request.parts().clear();
 		request.header().remove("Content-Type");
 		request.header().remove("Content-Length");
-
+		
 		//更新状态
 		if(status == HttpClientStatus.WORKING){
 			status = HttpClientStatus.IDLE;
 		}
+		
+		httpClientHandler.reset();
 	}
 	
 	public Response send() throws IOException {
@@ -342,9 +345,4 @@ public class HttpClient {
 		return socket.isConnect();
 	}
 	
-	public static void main(String[] args) throws IOException {
-		//http://jyzd.sina.com/futuresmn/ajaxGetHq?stock_code=IF1506
-		HttpClient httpClient = new HttpClient("http://10.0.0.100:60000",10);
-		Logger.simple(httpClient.send("/futuresmn/ajaxGetHq?stock_code=IF1506").body().getBodyString());
-	}
 }
