@@ -14,10 +14,7 @@
  - 异步通信框架解决粘包问题。[【举个栗子】](https://github.com/helyho/Voovan/wiki/AIO-NIO%E5%BC%82%E6%AD%A5%E9%80%9A%E4%BF%A1%E6%A1%86%E6%9E%B6%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97#%E4%B8%89%E4%BD%BF%E7%94%A8%E4%B8%BE%E4%BE%8B)
  - 独立无依赖的代码。
  - 源码注释丰富，方便码友学习、调试、使用。
- 
-```
-如果无法访问 GitHub 请增加 192.30.252.131  github.com 到 hosts 文件.
-```
+
 **交流QQ群：**454201740
 
 **开源协议:**Apache v2 License
@@ -26,12 +23,12 @@
 
 **GitHub地址:** https://github.com/helyho/Voovan.git
 
-**帮助文档地址:** https://github.com/helyho/Voovan/wiki
+**帮助文档地址:** https://github.com/helyho/Voovan/wiki 和 https://git.oschina.net/helyho/Voovan/wikis/
 
 **Issues地址:** [GitHub](https://github.com/helyho/Voovan/issues) 或者 [Git@OSC](http://git.oschina.net/helyho/Voovan/issues)
 
 
-    推荐将 Issues 提交到 GIT@OSC,如果没有 GitHub 帐号可以直接提交到 Git@OSC
+    推荐将 Issues 提交到 GIT@OSC
 
 ###一、高性能异步通信(AIO、NIO异步通信)
 
