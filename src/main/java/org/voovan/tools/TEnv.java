@@ -70,11 +70,14 @@ public class TEnv {
 	public static String getStackMessage(){
 		String stackInfo = "";
 		Throwable ex = new Throwable();
+		int row = 0;
 		for (StackTraceElement stackTraceElement : ex.getStackTrace()) {
-			stackInfo += stackTraceElement.toString();
-			stackInfo += "\r\n";
+			if(row!=0){
+				stackInfo += stackTraceElement.toString();
+				stackInfo += "\r\n";
+			}
+			row++;
 		}
-		
 		return stackInfo;
 	}
 	
