@@ -5,8 +5,8 @@
 	"Port"   			: 28080,		
 	// 连接超时时间(s),默认30秒
 	"Timeout"			: 30,
-	// 上下文路径
-	"ContextPath"		: "/Users/helyho/Downloads",// /home/helyho/HttpServerDemo/WebApp
+	// 上下文路径,绝对路径 "/"起始,相对路径 非"/" 起始
+	"ContextPath"		: "",// /home/helyho/HttpServerDemo/WebApp
 	// 默认字符集,默认 UTF-8
 	"CharacterSet"		: "GB2312",
 	// Session 容器类,默认java.util.Hashtable
@@ -19,7 +19,6 @@
 	"Gzip"              : "on",
 	// 过滤器 先执行filter1, 后执行filter2
 	
-	/*
 	"Filter":[
 		          {
 		        	  "Name"      : "filter1",
@@ -32,5 +31,5 @@
 		        	  "Encoding"  : "UTF-8",
 		        	  "Action"    : "pass"      }
 	          ]
-	*/
+	
 }

@@ -1,11 +1,13 @@
 package org.voovan.http.server;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
 import org.voovan.tools.json.JSONDecode;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.threadpool.ThreadPool;
@@ -80,6 +82,14 @@ public class WebContext {
 		config.setSessionTimeout(getContextParameter("SessionTimeout",30));
 		config.setKeepAliveTimeout(getContextParameter("KeepAliveTimeout",5));
 		config.setGzip(getContextParameter("Gzip","on").equals("on")?true:false);
+		
+		//如果是相对路径则转换成绝对路径
+		if(!config.getContextPath().startsWith(File.separator)){
+			config.setContextPath(System.getProperty("user.dir")+File.separator+config.getContextPath());
+		}
+		if(config.getContextPath().endsWith(File.separator)){
+			config.setContextPath(TString.removeSuffix(config.getContextPath()));
+		}
 		
 		Logger.simple("=======================================================================================");
 		Logger.simple("");
