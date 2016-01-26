@@ -171,7 +171,7 @@ public class Formater {
 	public void writeLog(String msg) {
 		if(Logger.isState()){
 			if(logWriterThread==null || !logWriterThread.isAlive()){
-				logWriterThread = new Thread(writerThread);
+				logWriterThread = new Thread(writerThread,"Voovan_Loger_Thread");
 				logWriterThread.start();
 			}
 			
