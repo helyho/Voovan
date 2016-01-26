@@ -111,7 +111,7 @@ public class WebServerConfig {
 	
 	
 	/**
-	 * 过滤器配置信息对象
+	 * 过滤器配置信息对象,内联对象
 	 * @author helyho
 	 *
 	 * Voovan Framework.
