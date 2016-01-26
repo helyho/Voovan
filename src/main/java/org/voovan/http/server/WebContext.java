@@ -1,6 +1,7 @@
 package org.voovan.http.server;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -43,6 +44,10 @@ public class WebContext {
 	 * 当前版本号
 	 */
 	private static final String VERSION = "0.1";
+	
+	private static AccessLog accessLog = null;
+	
+	private static Thread accessLogThread ;
 	
 	private WebContext(){
 		
@@ -117,6 +122,24 @@ public class WebContext {
 		return config;
 	}
 
+	/**
+	 * 获取 Web 访问日志记录对象
+	 * @return
+	 */
+	protected static AccessLog getAccessLog() {
+		if(accessLog==null || (accessLogThread!=null && !accessLogThread.isAlive())){
+			try {
+				accessLog = new AccessLog();
+				accessLogThread = new Thread(accessLog,"Access_Loger_Thread");
+				accessLogThread.start();
+			} catch (FileNotFoundException e) {
+				Logger.error("Open access log file error",e);
+				accessLog = null;
+			}
+		}
+		return accessLog;
+		
+	}
 	
 	/**
 	 * 获取 Web 服务配置
