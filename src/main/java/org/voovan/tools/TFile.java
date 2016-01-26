@@ -3,6 +3,7 @@ package org.voovan.tools;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
@@ -198,5 +199,61 @@ public class TFile {
 			Logger.error(e);
 		}
 		return null;
+	}
+	
+	/**
+	 * 向文件写入内容
+	 * @param filePath	文件路径
+	 * @param append    是否已追加形式写入
+	 * @param contents	文件内容
+	 * @param offset	偏移值(起始位置)
+	 * @param length	写入长度
+	 * @return 成功返回 true,失败返回 false
+	 */
+	public static boolean writeFile(String filePath,boolean append,byte[] contents,int offset,int length){
+		FileOutputStream fileOutputStream;
+		try {
+			fileOutputStream = new FileOutputStream(filePath,append);
+			fileOutputStream.write(contents, offset, length);
+			fileOutputStream.flush();
+			fileOutputStream.close();
+			return true;
+		} catch (IOException e) {
+			Logger.error("TFile.writeFile Error!", e);
+			return false;
+		}
+	}
+	
+	/**
+	 * 向文件写入内容
+	 * @param filePath	文件路径
+	 * @param append    是否已追加形式写入
+	 * @param contents	文件内容
+	 * @return 成功返回 true,失败返回 false
+	 */
+	public static boolean writeFile(String filePath,boolean append,byte[] contents){
+		return writeFile(filePath,append,contents,0,contents.length);
+	}
+	
+	/**
+	 * 已追加的形式,向文件写入内容
+	 * @param filePath	文件路径
+	 * @param contents	文件内容
+	 * @param offset	偏移值(起始位置)
+	 * @param length	写入长度
+	 * @return 成功返回 true,失败返回 false
+	 */
+	public static boolean writeFile(String filePath,byte[] contents,int offset,int length){
+		return writeFile(filePath,true,contents,0,contents.length);
+	}
+	
+	/**
+	 * 已追加的形式,向文件写入内容
+	 * @param filePath	文件路径
+	 * @param contents	文件内容
+	 * @return 成功返回 true,失败返回 false
+	 */
+	public static boolean writeFile(String filePath,byte[] contents){
+		return writeFile(filePath,true,contents,0,contents.length);
 	}
 }
