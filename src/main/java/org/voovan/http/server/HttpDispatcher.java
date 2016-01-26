@@ -136,6 +136,9 @@ public class HttpDispatcher {
 				} catch (Exception e) {
 					exceptionMessage(request, response, e);
 				}
+				
+				//输出访问日志
+				WebContext.getAccessLog().writeAccessLog(request,response);
 				break;
 			}
 		}
@@ -228,39 +231,32 @@ public class HttpDispatcher {
 	 * @param e
 	 */
 	public void exceptionMessage(HttpRequest request, HttpResponse response, Exception e) {
-		//输出异常
-		if(e instanceof ResourceNotFound || e instanceof RouterNotFound){
-			Logger.warn("Warning: "+e.getClass().getCanonicalName()+": "+request.protocol().getPath());
-		}
-		else{
-			Logger.info("Exception request is: "+request+
-					"\r\n===================================================\r\n"+
-					e.getClass().getCanonicalName()+": "+e.getMessage()+"\r\n"+
-					TEnv.getStackElementsMessage(e.getStackTrace()));
-			
-		}
 		
+		//获取配置文件异常定义
 		Map<String, Object> errorDefine = WebContext.getErrorDefine();
-		String requestMethod = request.protocol().getMethod();
-		String requestPath = request.protocol().getPath();
-		response.header().put("Content-Type", "text/html");
+		
+		//输出异常
+		if( !(e instanceof ResourceNotFound || e instanceof RouterNotFound) ){
+			Logger.error(e);
+		}
 
 		//信息准备
+		String requestMethod = request.protocol().getMethod();
+		String requestPath = request.protocol().getPath();
 		String className = e.getClass().getName();
 		String errorMessage = e.toString();
-		String stackInfo = "";
-		for (StackTraceElement stackTraceElement : e.getStackTrace()) {
-			stackInfo += stackTraceElement.toString();
-			stackInfo += "<br/>\r\n";
-		}
+		String stackInfo = TEnv.getStackMessage().replace("\n", "<br/>");
+		response.header().put("Content-Type", "text/html");
 
 		//初始 error 定义,如果下面匹配到了定义的错误则定义的会被覆盖
 		Map<String, Object> error = new HashMap<String, Object>();
-		error.put("StatusCode", 500);
-		error.put("Page", "Error.html");
-		error.put("Description", stackInfo);
+		{
+			error.put("StatusCode", 500);
+			error.put("Page", "Error.html");
+			error.put("Description", stackInfo);
+		}
 		
-		//读取 error 定义,如果有可用消息则会覆盖上面的初始内容
+		//匹配 error 定义,如果有可用消息则会覆盖上面定义的初始内容
 		if (errorDefine.containsKey(className)) {
 			error.putAll(TObject.cast(errorDefine.get(className)));
 			response.protocol().setStatus(TObject.cast(error.get("StatusCode")));
