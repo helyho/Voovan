@@ -62,8 +62,8 @@ public class WriteThread implements Runnable {
 	 * 
 	 * @param string
 	 */
-	public synchronized void addLogMessage(String string) {
-		logQueue.add(string);
+	public synchronized void addLogMessage(String msg) {
+		logQueue.add(msg);
 	}
 
 	@Override
