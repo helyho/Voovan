@@ -60,7 +60,7 @@ public class EventTrigger {
 		fireEventThread(EventName.ON_CONNECT,null);
 	}
 	
-	public synchronized void fireReceiveThread(){
+	public void fireReceiveThread(){
 		clearFinishedEvent();
 		// 当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
 		// 所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
@@ -166,7 +166,6 @@ public class EventTrigger {
 			}
 			eventPool.removeAll(finishedEvent);
 		}
-		
 	}
 	
 	/**

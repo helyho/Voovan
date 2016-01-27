@@ -6,13 +6,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Vector;
 
 import org.voovan.tools.log.Logger;
 
@@ -197,7 +197,7 @@ public class TSQL {
      * @throws Exception
      */
     public static List<Map<String,Object>> getAllRowWithMapList(ResultSet resultSet) throws SQLException, ReflectiveOperationException {
-    	List<Map<String,Object>> resultList = new Vector<Map<String,Object>>();
+    	List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
     	while(resultSet!=null && resultSet.next()){
     		resultList.add(getOneRowWithMap(resultSet));
     	}
@@ -215,7 +215,7 @@ public class TSQL {
      * @throws Exception
      */
     public static List<Object> getAllRowWithObjectList(Class<?> clazz,ResultSet resultSet) throws SQLException, ReflectiveOperationException, ParseException {
-    	List<Object> resultList = new Vector<Object>();
+    	List<Object> resultList = new ArrayList<Object>();
     	while(resultSet!=null && resultSet.next()){
     		resultList.add(getOneRowWithObject(clazz,resultSet));
     	}
