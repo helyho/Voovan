@@ -96,17 +96,19 @@ public class WebContext {
 			config.setContextPath(TString.removeSuffix(config.getContextPath()));
 		}
 		
-		Logger.simple("=======================================================================================");
+		Logger.simple("*********************************************************************************************");
 		Logger.simple("");
-		Logger.simple("==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==");
-		Logger.simple(" ==          ==  ==        == ==        ==  ==          ==  ==  ==      ==   ==      =="); 
-		Logger.simple("  ==        ==   ==        == ==        ==   ==        ==  ==    ==     ==    ==     =="); 
-		Logger.simple("   ==      ==    ==        == ==        ==    ==      ==  ==      ==    ==     ==    =="); 
-		Logger.simple("    ==    ==     ==        == ==        ==     ==    ==  ============   ==      ==   =="); 
-		Logger.simple("     ==  ==      ==        == ==        ==      ==  ==  ==          ==  ==       ==  =="); 
-		Logger.simple("      ====        ==========   ==========        ====  ==            == ==        == ==");
+		Logger.simple("   ==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==	");
+		Logger.simple("    ==          ==  ==        == ==        ==  ==          ==  ==  ==      ==   ==      ==	"); 
+		Logger.simple("     ==        ==   ==        == ==        ==   ==        ==  ==    ==     ==    ==     ==	"); 
+		Logger.simple("      ==      ==    ==        == ==        ==    ==      ==  ==      ==    ==     ==    ==   "); 
+		Logger.simple("       ==    ==     ==        == ==        ==     ==    ==  ============   ==      ==   ==   "); 
+		Logger.simple("        ==  ==      ==        == ==        ==      ==  ==  ==          ==  ==       ==  ==	"); 
+		Logger.simple("         ====        ==========   ==========        ====  ==            == ==        == ==	");
 		Logger.simple("");
-		Logger.simple("============================== [Config file parameter list] =============================");
+		Logger.simple("*********************************************************************************************");
+		Logger.simple("");
+		Logger.simple("============================== [Config file parameter list] =================================");
 		Logger.simple("\tTimeout:\t\t"+config.getTimeout());
 		Logger.simple("\tContextPath:\t\t"+config.getContextPath());
 		Logger.simple("\tCharacterSet:\t\t"+config.getCharacterSet());
@@ -114,7 +116,7 @@ public class WebContext {
 		Logger.simple("\tSessionTimeout:\t\t"+config.getSessionTimeout());
 		Logger.simple("\tKeepAliveTimeout:\t"+config.getKeepAliveTimeout());
 		Logger.simple("\tGzip:\t\t\t"+ (config.isGzip()?"on":"off"));
-		Logger.simple("=======================================================================================");
+		Logger.simple("=============================================================================================");
 		Logger.simple("WebServer working on: "+config.getHost()+":"+config.getPort()+" ...");
 		//初始化过滤器
 		config.addAllFilterConfigs(getContextParameter("Filter",new ArrayList<Map<String,Object>>()));
