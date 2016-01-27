@@ -18,7 +18,7 @@
 	// 是否启用Gzip压缩
 	"Gzip"              : "on",
 	// 过滤器 先执行filter1, 后执行filter2
-	
+	/*
 	"Filter":[
 		          {
 		        	  "Name"      : "filter1",
@@ -31,5 +31,5 @@
 		        	  "Encoding"  : "UTF-8",
 		        	  "Action"    : "pass"      }
 	          ]
-	
+	*/
 }

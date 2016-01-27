@@ -2,10 +2,10 @@ package org.voovan.http.server;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.InterruptedByTimeoutException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Vector;
 
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
@@ -41,7 +41,7 @@ public class HttpServerHandler implements IoHandler {
 		this.webSocketDispatcher = webSocketDispatcher;
 		this.webConfig = webConfig;
 		keepAliveTimer = new Timer("VOOVAN@Keep_Alive_Timer");
-		keepAliveSessionList = new Vector<IoSession>();
+		keepAliveSessionList = new ArrayList<IoSession>();
 		initKeepAliveTimer();
 	}
 
@@ -64,7 +64,7 @@ public class HttpServerHandler implements IoHandler {
 			@Override
 			public void run() {
 				//临时保存需要清理的 session
-				List<IoSession> sessionNeedRemove= new Vector<IoSession>();
+				List<IoSession> sessionNeedRemove= new ArrayList<IoSession>();
 				
 				//遍历所有的 session
 				for(IoSession session : keepAliveSessionList){
@@ -160,6 +160,8 @@ public class HttpServerHandler implements IoHandler {
 			session.setAttribute("isKeepAlive", true);
 			httpResponse.header().put("Connection", httpRequest.header().get("Connection"));
 		}
+		
+		httpResponse.header().put("Server", WebContext.getVersion());
 		
 		return httpResponse;
 	}

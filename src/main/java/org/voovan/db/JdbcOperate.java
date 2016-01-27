@@ -9,8 +9,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
-
 import javax.sql.DataSource;
 
 import org.voovan.tools.TReflect;
@@ -67,7 +65,7 @@ public class JdbcOperate {
 					closeResult(resultSet);
 				}
 			}
-			return new Vector<T>();
+			return new ArrayList<T>();
 			
 		}
 
@@ -86,7 +84,7 @@ public class JdbcOperate {
 					closeResult(resultSet);
 				}
 			}
-			return new Vector<Map<String, Object>>();
+			return new ArrayList<Map<String, Object>>();
 		}
 
 		@SuppressWarnings("unchecked")
@@ -423,7 +421,7 @@ public class JdbcOperate {
 	 * @param map
 	 *            map参数
 	 * @param t
-	 *            对象模型Vector
+	 *            对象模型
 	 * @return
 	 * @throws SQLException 
 	 * @throws ParseException 
@@ -448,7 +446,7 @@ public class JdbcOperate {
 	 * @param map
 	 *            map参数
 	 * @param t
-	 *            对象模型Vector
+	 *            对象模型
 	 * @return
 	 * @throws SQLException 
 	 * @throws ParseException 

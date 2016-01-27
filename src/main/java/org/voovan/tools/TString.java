@@ -1,8 +1,9 @@
 package org.voovan.tools;
 
+import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +18,8 @@ import java.util.regex.Pattern;
  */
 public class TString {
 
+	private static Hashtable<String,Pattern> regexPattern = new Hashtable<String,Pattern>();
+	
 	/**
 	 * 移除字符串前缀
 	 * @param source 目标字符串
@@ -107,7 +110,7 @@ public class TString {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * 正则表达式查找,匹配的被提取出来做数组
 	 * @param source 目标字符串
@@ -115,9 +118,14 @@ public class TString {
 	 * @return  匹配的字符串数组
 	 */
 	public static String[] searchByRegex(String source,String regex){
-		Pattern pattern = Pattern.compile(regex);
+		Pattern pattern = null;
+		if(regexPattern.contains(regex)){
+			pattern = regexPattern.get(regex);
+		}else{
+			pattern = Pattern.compile(regex);
+		}
 		Matcher matcher = pattern.matcher(source);
-		Vector<String> result = new Vector<String>();
+		ArrayList<String> result = new ArrayList<String>();
 		while(matcher.find()){
 			result.add(matcher.group());
 		}

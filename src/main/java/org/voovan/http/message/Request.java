@@ -2,9 +2,9 @@ package org.voovan.http.message;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.Vector;
 
 import org.voovan.http.message.packet.Body;
 import org.voovan.http.message.packet.Cookie;
@@ -69,9 +69,9 @@ public class Request {
 	public Request() {
 		protocol = new RequestProtocol();
 		header = new Header();
-		cookies = new Vector<Cookie>();
+		cookies = new ArrayList<Cookie>();
 		body = new Body();
-		parts = new Vector<Part>();
+		parts = new ArrayList<Part>();
 	}
 
 	/**

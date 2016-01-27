@@ -2,8 +2,8 @@ package org.voovan.http.message;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import org.voovan.http.message.packet.Body;
 import org.voovan.http.message.packet.Cookie;
@@ -46,7 +46,7 @@ public class Response {
 	public Response() {
 		protocol = new ResponseProtocol();
 		header = new Header();
-		cookies = new Vector<Cookie>();
+		cookies = new ArrayList<Cookie>();
 		body = new Body();
 		isCompress = true;
 	}
