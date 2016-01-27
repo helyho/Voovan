@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
-
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
 import org.voovan.tools.TObject;
@@ -154,7 +152,7 @@ public class HttpParser {
 	@SuppressWarnings("unchecked")
 	private static void parseCookie(Map<String, Object> packetMap,String cookieLine){
 		if(!packetMap.containsKey(HTTP_COOKIE)){
-			packetMap.put(HTTP_COOKIE, new Vector<Map<String, String>>());
+			packetMap.put(HTTP_COOKIE, new ArrayList<Map<String, String>>());
 		}
 		List<Map<String, String>> cookies = (List<Map<String, String>>) packetMap.get(HTTP_COOKIE);
 		

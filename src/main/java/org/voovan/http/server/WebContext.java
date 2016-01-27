@@ -23,7 +23,9 @@ import org.voovan.tools.threadpool.ThreadPool;
  */
 public class WebContext {
 	
-	private static String sessionName = "SESSIONID";
+	private static String version = "Voovan-HTTP-Server/V0.97";
+	
+	private static String sessionName = "VOOVAN_SESSIONID";
 	
 	private static ThreadPoolExecutor threadPool = ThreadPool.getThreadPool();
 
@@ -40,10 +42,6 @@ public class WebContext {
 	 * 错误输出 Map
 	 */
 	private static Map<String, Object>	errorDefine	= loadMapFromFile("/Config/error.js");
-	/**
-	 * 当前版本号
-	 */
-	private static final String VERSION = "0.1";
 	
 	private static AccessLog accessLog = null;
 	
@@ -174,7 +172,7 @@ public class WebContext {
 	 * @return
 	 */
 	public final static String getVersion() {
-		return VERSION;
+		return version;
 	}
 	
 	/**
