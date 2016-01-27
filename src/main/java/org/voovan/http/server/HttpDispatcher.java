@@ -175,12 +175,12 @@ public class HttpDispatcher {
 	 */
 	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) throws UnsupportedEncodingException{
 		Map<String, String> resultMap = new HashMap<String, String>();
-		String[] pathPieces = requestPath.split("/");
-		String[] routePathPieces = routePath.substring(1, routePath.length()-1).split("/");
+		String[] pathPieces = requestPath.substring(1,requestPath.length()).split("/");
+		String[] routePathPieces = routePath.substring(2, routePath.length()-1).split("/");
 		for(int i=0;i<routePathPieces.length;i++){
 			String routePathPiece = routePathPieces[i];
 			if(routePathPiece.startsWith(":")){
-				String name = routePathPiece.substring(1,routePathPiece.length());
+				String name = TString.removePrefix(routePathPiece);
 				String value = URLDecoder.decode(pathPieces[i], "UTF-8");
 				resultMap.put(name,value);
 			}
