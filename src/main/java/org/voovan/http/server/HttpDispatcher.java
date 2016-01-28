@@ -159,7 +159,7 @@ public class HttpDispatcher {
 		//转换成可以配置的正则,主要是处理:后的参数表达式
 		//把/home/:name转换成/home/[^/?]+来匹配
 		String regexPath = routeRegexPath.replaceAll(":[^/$]+", "[^/?]+");
-		if (TString.searchByRegex(requestPath, regexPath).length>0){
+		if (TString.searchByRegex(requestPath, "^"+regexPath+"$").length>0){
 			return true;
 		}else{
 			return false;
@@ -167,7 +167,7 @@ public class HttpDispatcher {
 	}
 	
 	/**
-	 * 获取路径变量,形如:/test/:name 的路径匹配的请求路径/test/var1后得到{name:var1}
+	 * 获取路径变量,形如/:test/:name 的路径匹配的请求路径/test/var1后得到{name:var1}
 	 * @param requestPath
 	 * @param routePath
 	 * @return
