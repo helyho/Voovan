@@ -47,10 +47,10 @@ public class HttpServerHandler implements IoHandler {
 
 	
 	/**
-	 * 获得给予当前时间的超时毫秒值
+	 * 活的基于当前时间的超时毫秒值
 	 * @return
 	 */
-	private long getCurrentTimeoutValue(){
+	private long getTimeoutValue(){
 		int keepAliveTimeout = webConfig.getKeepAliveTimeout();
 		return System.currentTimeMillis()+keepAliveTimeout*1000;
 	}
@@ -124,7 +124,7 @@ public class HttpServerHandler implements IoHandler {
 
 			// WebSocket协议升级处理
 			if (WebSocketTools.isWebSocketUpgrade(request)) {
-				return disposeProtocolUpgrade(session, httpRequest, httpResponse);
+				return disposeUpgrade(session, httpRequest, httpResponse);
 			}
 			// Http 1.1处理
 			else {
@@ -150,6 +150,7 @@ public class HttpServerHandler implements IoHandler {
 	 * @return
 	 */
 	public HttpResponse disposeHttp(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
+		session.setAttribute("Type", "HTTP");
 		
 		// 处理响应请求
 		httpDispatcher.processRoute(httpRequest, httpResponse);
@@ -157,7 +158,7 @@ public class HttpServerHandler implements IoHandler {
 		//如果是长连接则填充响应报文
 		if (httpRequest.header().contain("Connection") 
 				&& httpRequest.header().get("Connection").toLowerCase().contains("keep-alive")) {
-			session.setAttribute("isKeepAlive", true);
+			session.setAttribute("IsKeepAlive", true);
 			httpResponse.header().put("Connection", httpRequest.header().get("Connection"));
 		}
 		
@@ -174,12 +175,12 @@ public class HttpServerHandler implements IoHandler {
 	 * @param httpResponse
 	 * @return
 	 */
-	public HttpResponse disposeProtocolUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
+	public HttpResponse disposeUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 		
 		//保存必要参数
-		session.setAttribute("isKeepAlive", true);
-		
-		session.setAttribute("upgradeRequest", httpRequest);
+		session.setAttribute("Type", "Upgrade");
+		session.setAttribute("IsKeepAlive", true);
+		session.setAttribute("UpgradeRequest", httpRequest);
 
 		//初始化响应消息
 		httpResponse.protocol().setStatus(101);
@@ -187,7 +188,8 @@ public class HttpServerHandler implements IoHandler {
 		httpResponse.header().put("Connection", "Upgrade");
 		
 		if(httpRequest.header().get("Upgrade").equalsIgnoreCase("websocket")){
-			session.setAttribute("isWebSocket", true);
+			session.setAttribute("Type", "WebSocket");
+			
 			httpResponse.header().put("Upgrade", "websocket");
 			String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get("Sec-WebSocket-Key"));
 			httpResponse.header().put("Sec-WebSocket-Accept", webSocketKey);
@@ -197,9 +199,10 @@ public class HttpServerHandler implements IoHandler {
 		}
 		
 		if(httpRequest.header().get("Upgrade").equalsIgnoreCase("h2c")){
-			session.setAttribute("isH2c", true);
+			session.setAttribute("Type", "H2C");
+			
 			httpResponse.header().put("Upgrade", "h2c");
-			//这里写 HTTP2的实现,暂时流空
+			//这里写 HTTP2的实现,暂时留空
 		}
 		return httpResponse;
 	}
@@ -212,16 +215,17 @@ public class HttpServerHandler implements IoHandler {
 	 * @return
 	 */
 	public WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
-		session.setAttribute("isKeepAlive", true);
-		session.setAttribute("WebSocketClose", false);
+		session.setAttribute("Type"			, "WebSocket");
+		session.setAttribute("IsKeepAlive"	, true);
+		session.setAttribute("IsClose"		, false);
 		
-		HttpRequest upgradeRequest = TObject.cast(session.getAttribute("upgradeRequest"));
+		HttpRequest upgradeRequest = TObject.cast(session.getAttribute("UpgradeRequest"));
 		
 		// WS_CLOSE 如果收到关闭帧则关闭连接
 		if (webSocketFrame.getOpcode() == Opcode.CLOSING) {
 			// WebSocket Close事件
 			webSocketDispatcher.processRoute(WebSocketEvent.CLOSE, upgradeRequest, null);
-			session.setAttribute("WebSocketClose", true);
+			session.setAttribute("IsClose", true);
 			return WebSocketFrame.newInstance(true, Opcode.CLOSING, false, webSocketFrame.getFrameData());
 		}
 		// WS_PING 收到 ping 帧则返回 pong 帧
@@ -248,15 +252,16 @@ public class HttpServerHandler implements IoHandler {
 	@Override
 	public void onSent(IoSession session, Object obj) {
 		//如果 WebSocket 关闭,则关闭对应的 Socket
-		if(session.containAttribute("WebSocketClose") && (boolean) session.getAttribute("WebSocketClose")){
+		if(session.containAttribute("IsClose") && (boolean) session.getAttribute("IsClose")){
 			session.close();
 		}
-		else if (session.containAttribute("isKeepAlive") && (boolean) session.getAttribute("isKeepAlive") && webConfig.getKeepAliveTimeout()>0) {
+		else if (session.containAttribute("IsKeepAlive") && (boolean) session.getAttribute("IsKeepAlive")
+					&& webConfig.getKeepAliveTimeout() > 0) {
 			if(!keepAliveSessionList.contains(session)){
 				keepAliveSessionList.add(session);
 			}
 			//更新会话超时时间
-			session.setAttribute("TimeOutValue", getCurrentTimeoutValue());
+			session.setAttribute("TimeOutValue", getTimeoutValue());
 		}else {
 			if(keepAliveSessionList.contains(session)){
 				keepAliveSessionList.remove("session");

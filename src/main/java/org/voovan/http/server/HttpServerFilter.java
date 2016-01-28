@@ -24,7 +24,6 @@ import org.voovan.tools.log.Logger;
  */
 public class HttpServerFilter implements IoFilter {
 
-	private static final String IS_WEB_SOCKET="isWebSocket";
 	
 	/**
 	 * 将HttpResponse转换成ByteBuffer
@@ -68,8 +67,8 @@ public class HttpServerFilter implements IoFilter {
 			}
 		
 		}
-		//如果包含isWebSocket,且为 true 曾是 WebSocket,转换成 WebSocketFrame 对象
-		else if(TObject.nullDefault((Boolean)session.getAttribute(IS_WEB_SOCKET), false)){
+		//如果包含Type为 WebSocket 说明是 WebSocket 通信,转换成 WebSocketFrame 对象
+		else if(session.containAttribute("Type") && session.getAttribute("Type").equals("WebSocket")){
 			if (object instanceof ByteBuffer) {
 				WebSocketFrame webSocketFrame = WebSocketFrame.parse(byteBuffer);
 				if(webSocketFrame.getErrorCode()==0){
