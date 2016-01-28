@@ -127,11 +127,11 @@ public abstract class IoSession {
 	
 	/**
 	 * 发送消息
-	 * 		注意直接调用不会出发 onSent 事件不出发任何事件
+	 * 		注意直接调用不会出发 onSent 事件
 	 * @param byteBuffer
 	 * @throws IOException
 	 */
-	protected abstract void send(ByteBuffer buffer) throws IOException;
+	public abstract void send(ByteBuffer buffer) throws IOException;
 	
 	/**
 	 * 读取SSL消息到缓冲区
@@ -170,11 +170,11 @@ public abstract class IoSession {
 	
 	/**
 	 * 发送SSL消息
-	 * 		不出发任何事件
+	 * 		注意直接调用不会出发 onSent 事件
 	 * @param byteBuffer
 	 * @throws IOException
 	 */
-	protected void sendSSLData(ByteBuffer buffer){
+	public void sendSSLData(ByteBuffer buffer){
 		if(isConnect() && buffer!=null){
 			try {
 				sslParser.warpData(buffer);
