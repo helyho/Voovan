@@ -16,6 +16,9 @@ public class HttpServerDemo {
 	public static void main(String[] args) {
 		try {
 			HttpServer httpServer = HttpServer.newInstance();
+			httpServer.get("/test", (req, resp) -> {
+				resp.body().write("OK");
+			});
 			
 			//普通 GET 请求
 			httpServer.get("/", (req, resp) -> {
