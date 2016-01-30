@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 
@@ -19,33 +18,45 @@ import org.voovan.tools.TObject;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class WriteThread implements Runnable {
+public class LoggerThread implements Runnable {
 	private ArrayBlockingQueue<String>	logQueue;
 	private OutputStream[] outputStreams;
-	private String dateStamp = TDateTime.now("YYYYMMdd");
+	private boolean isFinished = false;
 
 	/**
 	 * 构造函数
 	 */
-	public WriteThread() {
+	public LoggerThread(OutputStream[] outputStreams) {
 		this.logQueue = new ArrayBlockingQueue<String>(100000);
-		outputStreams = Formater.getOutputStreams();
+		this.outputStreams = outputStreams;
 	}
-
-	/**
-	 * 刷新OutputStreams
-	 */
-	private void refreshOutputStreams(){
-		if(!dateStamp.equals(TDateTime.now("YYYYMMdd"))){
-			closeOutputStreams();
-			outputStreams = Formater.getOutputStreams();
-		}
+	
+	public boolean isFinished() {
+		return isFinished;
 	}
 	
 	/**
+	 * 获取日志输出流集合
+	 * @return
+	 */
+	public OutputStream[] getOutputStreams() {
+		return outputStreams;
+	}
+
+	/**
+	 * 设置日志输出流集合
+	 * @param outputStreams
+	 */
+	public void setOutputStreams(OutputStream[] outputStreams) {
+		synchronized(outputStreams){
+			this.outputStreams = outputStreams;
+		}
+	}
+
+	/**
 	 * 关闭所有的OutputStream
 	 */
-	private void closeOutputStreams() {
+	public void closeAllOutputStreams() {
 		try {
 			for (OutputStream outputStream : outputStreams) {
 				if (outputStream != null) {
@@ -62,33 +73,26 @@ public class WriteThread implements Runnable {
 	 * 
 	 * @param string
 	 */
-	public synchronized void addLogMessage(String msg) {
+	public void addLogMessage(String msg) {
 		logQueue.add(msg);
 	}
 
 	@Override
 	public void run() {
-		int loopCount = 0;
 		while (true) {
 			try {
-				loopCount++;
 				String formatedMessage = logQueue.poll(500, TimeUnit.MILLISECONDS);
 				if (formatedMessage != null) {
-					refreshOutputStreams();
 					for (OutputStream outputStream : outputStreams) {
 						if (outputStream != null) {
 							outputStream.write(formatedMessage.getBytes());
 							outputStream.flush();
 						}
 					}
-				}else if(isTerminate()){
-					break;
-				}else if (loopCount>=10*2 && logQueue.size() == 0) {
-					break;
 				}
 				TEnv.sleep(1);
 			} catch (IOException | InterruptedException e) {
-				Logger.error(e);
+				e.printStackTrace();
 			}
 		}
 	}
@@ -114,6 +118,17 @@ public class WriteThread implements Runnable {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * 获取 Web 访问日志记录对象
+	 * @return
+	 */
+	public static LoggerThread start(OutputStream[] outputStreams) {
+		LoggerThread loggerThread = new LoggerThread(outputStreams);
+		Thread loggerMainThread = new Thread(loggerThread,"VOOVAN@Loger_Thread");
+		loggerMainThread.start();
+		return loggerThread;
 	}
 	
 }

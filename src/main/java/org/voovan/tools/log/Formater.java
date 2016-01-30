@@ -37,9 +37,9 @@ import org.voovan.tools.TString;
  */
 public class Formater {
 	private String template;
-	private Thread logWriterThread;
-	private WriteThread writerThread;
+	private LoggerThread loggerThread;
 	private List<String> logLevel;
+	private String dateStamp; 
 
 	/**
 	 * 构造函数
@@ -48,11 +48,11 @@ public class Formater {
 	 */
 	public Formater(String template) {
 		this.template = template;
-		this.writerThread = new WriteThread();
 		logLevel = new Vector<String>();
 		for(String level : StaticParam.getLogConfig("LogLevel","ALL").split(",")){
 			logLevel.add(level.trim());
 		}
+		dateStamp = TDateTime.now("YYYYMMdd");
 	}
 
 	/**
@@ -170,12 +170,16 @@ public class Formater {
 	 */
 	public void writeLog(String msg) {
 		if(Logger.isState()){
-			if(logWriterThread==null || !logWriterThread.isAlive()){
-				logWriterThread = new Thread(writerThread,"Voovan_Loger_Thread");
-				logWriterThread.start();
+			if(loggerThread==null || (loggerThread!=null && loggerThread.isFinished())){
+				this.loggerThread = LoggerThread.start(getOutputStreams());
 			}
 			
-			writerThread.addLogMessage(msg);
+			//如果日志发生变化则产生新的文件
+			if(!dateStamp.equals(TDateTime.now("YYYYMMdd"))){
+				loggerThread.setOutputStreams(getOutputStreams());
+			}
+			
+			loggerThread.addLogMessage(msg);
 		}
 	}
 	
