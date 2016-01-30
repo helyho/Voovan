@@ -1,15 +1,18 @@
 package org.voovan.http.server;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.voovan.tools.TDateTime;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.json.JSONDecode;
+import org.voovan.tools.log.SingleLogger;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.threadpool.ThreadPool;
 
@@ -43,9 +46,7 @@ public class WebContext {
 	 */
 	private static Map<String, Object>	errorDefine	= loadMapFromFile("/Config/error.js");
 	
-	private static AccessLog accessLog = null;
-	
-	private static Thread accessLogThread ;
+	private static SingleLogger accessLogger = null;
 	
 	private WebContext(){
 		
@@ -123,22 +124,40 @@ public class WebContext {
 	}
 
 	/**
-	 * 获取 Web 访问日志记录对象
+	 * 生成 accessLog 日志
+	 * @param request
+	 * @param response
 	 * @return
 	 */
-	protected static AccessLog getAccessLog() {
-		if(accessLog==null || (accessLogThread!=null && !accessLogThread.isAlive())){
-			try {
-				accessLog = new AccessLog();
-				accessLogThread = new Thread(accessLog,"Access_Loger_Thread");
-				accessLogThread.start();
-			} catch (FileNotFoundException e) {
-				Logger.error("Open access log file error",e);
-				accessLog = null;
+	private static String genAccessLog(HttpRequest request,HttpResponse response){
+		StringBuffer content = new StringBuffer();
+		content.append("["+TDateTime.now()+"]");
+		content.append(" "+request.getRemoteAddres()+":"+request.getRemotePort());
+		content.append(" "+request.protocol().getProtocol()+"/"+request.protocol().getVersion()+" "+request.protocol().getMethod());
+		content.append(" "+response.protocol().getStatus());
+		content.append(" "+response.body().getBodyBytes().length);
+		content.append("\t "+request.protocol().getPath());
+		content.append("\t "+TObject.nullDefault(request.header().get("User-Agent"),""));
+		content.append("\t "+TObject.nullDefault(request.header().get("Referer"),""));
+		content.append("\r\n");
+		return content.toString();
+	}
+	
+	/**
+	 * 写入ac'ce
+	 * @param request
+	 * @param response
+	 */
+	public static void writeAccessLog(HttpRequest request,HttpResponse response){
+		try{
+			if(accessLogger==null || accessLogger.isFinished()){
+				String fileName = TEnv.getContextPath()+File.separator+"logs"+File.separator+"access.log";
+				accessLogger = SingleLogger.start(fileName);
 			}
+			accessLogger.addLogMessage(genAccessLog(request, response));
+		}catch(IOException e){
+			Logger.error(e);
 		}
-		return accessLog;
-		
 	}
 	
 	/**
@@ -182,4 +201,6 @@ public class WebContext {
 	public static String getSessionName() {
 		return sessionName;
 	}
+	
+	
 }

@@ -59,9 +59,11 @@ public class SessionManager{
 	 * 
 	 * @param session
 	 */
-	public synchronized void addSession(HttpSession session) {
-		if (!sessions.containsKey(session.getId())) {
-			sessions.put(session.getId(), session);
+	public void addSession(HttpSession session) {
+		synchronized(sessions){
+			if (!sessions.containsKey(session.getId())) {
+				sessions.put(session.getId(), session);
+			}
 		}
 	}
 
@@ -71,12 +73,14 @@ public class SessionManager{
 	 * @param id
 	 * @return
 	 */
-	public synchronized HttpSession getSession(String id) {
-		clearInvalidSession();
-		if (id!=null && sessions.containsKey(id)) {
-			return sessions.get(id).refresh();
+	public HttpSession getSession(String id) {
+		synchronized(sessions){
+			clearInvalidSession();
+			if (id!=null && sessions.containsKey(id)) {
+				return sessions.get(id).refresh();
+			}
+			return null;
 		}
-		return null;
 	}
 	
 	/**
@@ -85,12 +89,14 @@ public class SessionManager{
 	 * @param cookie
 	 * @return
 	 */
-	public synchronized HttpSession getSession(Cookie cookie) {
-		clearInvalidSession();
-		if (cookie!=null && sessions.containsKey(cookie.getValue())) {
-			return sessions.get(cookie.getValue()).refresh();
+	public HttpSession getSession(Cookie cookie) {
+		synchronized(sessions){
+			clearInvalidSession();
+			if (cookie!=null && sessions.containsKey(cookie.getValue())) {
+				return sessions.get(cookie.getValue()).refresh();
+			}
+			return null;
 		}
-		return null;
 	}
 
 	/**
@@ -98,37 +104,42 @@ public class SessionManager{
 	 * @param cookie
 	 * @return
 	 */
-	public synchronized boolean containsSession(Cookie cookie) {
-		
-		if(cookie==null){
-			return false;
-		} else if (getSession(cookie) != null) {
-			return true;
-		} else {
-			return false;
+	public boolean containsSession(Cookie cookie) {
+		synchronized(sessions){
+			if(cookie==null){
+				return false;
+			} else if (getSession(cookie) != null) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 	
 	/**
 	 * 获取失效的 session
 	 */
-	public synchronized List<HttpSession> getInvalidSession() {
-		List<HttpSession> needRemove = new ArrayList<HttpSession>();
-		for (HttpSession session : sessions.values()) {
-			if (session.isInvalid()) {
-				needRemove.add(session);
+	public List<HttpSession> getInvalidSession() {
+		synchronized(sessions){
+			List<HttpSession> needRemove = new ArrayList<HttpSession>();
+			for (HttpSession session : sessions.values()) {
+				if (session.isInvalid()) {
+					needRemove.add(session);
+				}
 			}
+			return needRemove;
 		}
-		return needRemove;
 	}
 	
 	/**
 	 * 清理失效的 session
 	 */
-	public synchronized void clearInvalidSession() {
-		List<HttpSession> needRemove = getInvalidSession();
-		for(HttpSession session : needRemove){
-			sessions.remove(session.getId());
+	public void clearInvalidSession() {
+		synchronized(sessions){
+			List<HttpSession> needRemove = getInvalidSession();
+			for(HttpSession session : needRemove){
+				sessions.remove(session.getId());
+			}
 		}
 	}
 	

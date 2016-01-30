@@ -138,7 +138,7 @@ public class HttpDispatcher {
 				}
 				
 				//输出访问日志
-				WebContext.getAccessLog().writeAccessLog(request,response);
+				WebContext.writeAccessLog(request,response);
 				break;
 			}
 		}
