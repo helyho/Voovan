@@ -72,7 +72,7 @@ public class NioServerSocket extends SocketContext{
 	}
 
 	@Override
-	public synchronized boolean isConnect() {
+	public boolean isConnect() {
 		if(serverSocketChannel!=null){
 			return serverSocketChannel.isOpen();
 		}
