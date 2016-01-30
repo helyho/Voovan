@@ -20,7 +20,7 @@ public class ThreadPool {
 	
 	private static ThreadPoolExecutor createThreadPool(){
 		int cpuCoreCount = Runtime.getRuntime().availableProcessors();
-		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(cpuCoreCount*5, cpuCoreCount*50,1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*10000));
+		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(cpuCoreCount*50, cpuCoreCount*100,1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*10000));
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPoolInstance.allowCoreThreadTimeOut(true);
 		Timer timer = new Timer("VOOVAN@Thread_Pool_Timer");

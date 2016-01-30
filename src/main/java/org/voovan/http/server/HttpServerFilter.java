@@ -29,7 +29,7 @@ public class HttpServerFilter implements IoFilter {
 	 * 将HttpResponse转换成ByteBuffer
 	 */
 	@Override
-	public synchronized Object encode(IoSession session, Object object) {
+	public Object encode(IoSession session, Object object) {
 		// 对 Websocket 进行处理
 		if (object instanceof Response) {
 			Response response = TObject.cast(object);
@@ -45,7 +45,7 @@ public class HttpServerFilter implements IoFilter {
 	 * 将请求ByteBuffer转换成 HttpRequest
 	 */
 	@Override
-	public synchronized Object decode(IoSession session, Object object) {
+	public Object decode(IoSession session, Object object) {
 		ByteBuffer byteBuffer = TObject.cast(object);
 		if (isHttpRequest(byteBuffer)) {
 			try {
