@@ -16,7 +16,7 @@ public class LineMessageSplitter implements MessageSplitter {
 
 	@Override
 	public boolean canSplite(IoSession session, byte[] buffer, int elapsedtime) {
-		if(buffer[buffer.length]=='\n'){
+		if(buffer[buffer.length-1]=='\n'){
 			return true;
 		}
 		return false;
