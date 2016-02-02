@@ -1,5 +1,6 @@
 package org.voovan.tools.log;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -192,7 +193,13 @@ public class Formater {
 		Map<String, String> tokens = new HashMap<String, String>();
 		tokens.put("D", TDateTime.now("YYYYMMdd"));
 		tokens.put("WorkDir", TEnv.getContextPath());
-		return TString.tokenReplace(logFile, tokens);
+		String filePath = TString.tokenReplace(logFile, tokens);
+		String fileDirectory = filePath.substring(0, filePath.lastIndexOf(File.separator));
+		File loggerFile = new File(fileDirectory);
+		if(!loggerFile.exists()){
+			loggerFile.mkdirs();
+		}
+		return filePath;
 	}
 	
 	/**
@@ -208,32 +215,33 @@ public class Formater {
 	 * 获取输出流
 	 * @return
 	 */
-	 protected static OutputStream[] getOutputStreams(){
+	protected static OutputStream[] getOutputStreams(){
 		String[] LogTypes = StaticParam.getLogConfig("LogType","STDOUT").split(",");
 		String logFile = getFormatedLogFilePath();
 		
-		try {
-			OutputStream[] outputStreams = new OutputStream[LogTypes.length];
-			for (int i = 0; i < LogTypes.length; i++) {
-				String logType = LogTypes[i].trim();
-				switch (logType) {
-				case "STDOUT":
-					outputStreams[i] = System.out;
-					break;
-				case "STDERR":
-					outputStreams[i] = System.err;
-					break;
-				case "FILE":
+	
+		OutputStream[] outputStreams = new OutputStream[LogTypes.length];
+		for (int i = 0; i < LogTypes.length; i++) {
+			String logType = LogTypes[i].trim();
+			switch (logType) {
+			case "STDOUT":
+				outputStreams[i] = System.out;
+				break;
+			case "STDERR":
+				outputStreams[i] = System.err;
+				break;
+			case "FILE":
+				try {
 					outputStreams[i] = new FileOutputStream(logFile,true);
-					break;
-				default:
-					break;
+				} catch (FileNotFoundException e) {
+					System.out.println("log file: ["+logFile+"] is not found.\r\n");
 				}
+				break;
+			default:
+				break;
 			}
-			return outputStreams;
-		} catch (FileNotFoundException e) {
-			Logger.error(e);
-			return null;
 		}
+		return outputStreams;
+		
 	}
 }

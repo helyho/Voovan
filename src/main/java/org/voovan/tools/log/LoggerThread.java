@@ -82,7 +82,7 @@ public class LoggerThread implements Runnable {
 		while (true) {
 			try {
 				String formatedMessage = logQueue.poll(500, TimeUnit.MILLISECONDS);
-				if (formatedMessage != null) {
+				if (formatedMessage != null && outputStreams!=null) {
 					for (OutputStream outputStream : outputStreams) {
 						if (outputStream != null) {
 							outputStream.write(formatedMessage.getBytes());
