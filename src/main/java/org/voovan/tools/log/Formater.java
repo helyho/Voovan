@@ -157,7 +157,7 @@ public class Formater {
 	 */
 	public void writeFormatedLog(Message message) {
 		if(messageWritable(message)){
-			if(message.getLevel().equals("SIMPLE")){
+			if("SIMPLE".equals(message.getLevel())){
 				writeLog(simpleFormat(message)+"\r\n");
 			}else{
 				writeLog(format(message));

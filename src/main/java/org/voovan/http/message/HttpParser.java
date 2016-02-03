@@ -227,7 +227,7 @@ public class HttpParser {
 			currentLine = TStream.readLine(sourceInputStream)){
 			
 			//空行分隔处理,遇到空行标识下面有可能到内容段
-			if(currentLine.equals("")){
+			if("".equals(currentLine)){
 				//1. Method 是 null 的请求,代表是在解析 chunked 内容,则 isBodyConent = true
 				//2. Method 不是 Get 方法的请求,代表有 body 内容段,则 isBodyConent = true
 				if(packetMap.get(FL_METHOD)==null || !packetMap.get(FL_METHOD).equals("GET")){
@@ -281,7 +281,7 @@ public class HttpParser {
 				}
 				
 				//2. 解析 HTTP 响应 body 内容段的 chunked 
-				else if(transferEncoding.equals("chunked")){
+				else if("chunked".equals(transferEncoding)){
 					
 					byte[] chunkedBytes = new byte[0];
 					for(String chunkedLengthLine = TStream.readLine(sourceInputStream);
@@ -377,7 +377,7 @@ public class HttpParser {
 			case STATIC_VALUE:
 				byte[] value = (byte[])(parsedPacketEntry.getValue());
 				//如果是 GET 请求,则分析出来的内容(parsedPacket)中的 value 是 QueryString
-				if(parsedPacket.get(FL_METHOD).equals("GET")){
+				if("GET".equals(parsedPacket.get(FL_METHOD))){
 					request.protocol().setQueryString(new String(value));
 				} else {
 					request.body().write(value);
@@ -398,7 +398,7 @@ public class HttpParser {
 							String partedHeaderKey = parsedPartMapItem.getKey();
 							String partedHeaderValue = parsedPartMapItem.getValue().toString();
 							part.header().put(partedHeaderKey, partedHeaderValue);
-							if(partedHeaderKey.equals("Content-Disposition")){
+							if("Content-Disposition".equals(partedHeaderKey)){
 								//对Content-Disposition中的"name=xxx"进行处理,方便直接使用
 								Map<String, String> contentDispositionValue = HttpParser.getEqualMap(partedHeaderValue);
 								part.header().putAll(contentDispositionValue);

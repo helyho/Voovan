@@ -68,7 +68,7 @@ public class HttpServerFilter implements IoFilter {
 		
 		}
 		//如果包含Type为 WebSocket 说明是 WebSocket 通信,转换成 WebSocketFrame 对象
-		else if(session.containAttribute("Type") && session.getAttribute("Type").equals("WebSocket")){
+		else if("WebSocket".equals(session.getAttribute("Type"))){
 			if (object instanceof ByteBuffer) {
 				WebSocketFrame webSocketFrame = WebSocketFrame.parse(byteBuffer);
 				if(webSocketFrame.getErrorCode()==0){
@@ -112,14 +112,14 @@ public class HttpServerFilter implements IoFilter {
 			}
 			String testStr = new String(testBytes).trim();
 			String httpMethod = testStr.split(" ")[0];
-			if (httpMethod.equals("GET") 
-					|| httpMethod.equals("POST") 
-					|| httpMethod.equals("HEAD") 
-					|| httpMethod.equals("PUT")
-					|| httpMethod.equals("DELETE") 
-					|| httpMethod.equals("TRACE") 
-					|| httpMethod.equals("CONNECT")
-					|| httpMethod.equals("OPTIONS")) {
+			if ("GET".equals(httpMethod) 
+					|| "POST".equals(httpMethod) 
+					|| "HEAD".equals(httpMethod) 
+					|| "PUT".equals(httpMethod) 
+					|| "DELETE".equals(httpMethod)  
+					|| "TRACE".equals(httpMethod) 
+					|| "CONNECT".equals(httpMethod) 
+					|| "OPTIONS".equals(httpMethod) ) {
 				return true;
 			} else {
 				return false;
