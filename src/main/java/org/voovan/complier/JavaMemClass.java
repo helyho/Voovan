@@ -49,7 +49,7 @@ public class JavaMemClass extends SimpleJavaFileObject {
     	try {
 			Method[] methods = classLoaderClass.getDeclaredMethods();
 			for(Method method : methods){
-				if(method.getName().equals("defineClass") && method.getParameterTypes().length==4){
+				if("defineClass".equals(method.getName()) && method.getParameterTypes().length==4){
 					method.setAccessible(true);
 					byte[] classBytes = this.getBytes();
 					method.invoke(this.getClass().getClassLoader(), new Object[]{null,classBytes,0,classBytes.length});

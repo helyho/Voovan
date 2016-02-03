@@ -19,7 +19,7 @@ import org.voovan.http.message.packet.Header;
 public class WebSocketTools {
 	public static boolean isWebSocketUpgrade(Request request) {
 		Header header = request.header();
-		if (header != null && header.contain("Upgrade") && header.get("Upgrade").equalsIgnoreCase("websocket")
+		if (header != null && "websocket".equalsIgnoreCase(header.get("Upgrade"))
 				&& header.contain("Sec-WebSocket-Key")) {
 			return true;
 		} else {

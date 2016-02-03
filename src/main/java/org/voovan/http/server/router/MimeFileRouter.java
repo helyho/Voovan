@@ -92,12 +92,12 @@ public class MimeFileRouter implements HttpBizHandler {
 		response.header().put("Expires",TDateTime.formatToGMT(new Date(System.currentTimeMillis()+86400*1000)));
 		
 		//文件 hashcode 无变化,则返回304
-		if(requestETag!=null && requestETag.equals(eTag)){
+		if(eTag.equals(requestETag)){
 			setNotModifyResponse(response);
 			return true;
 		}
 		//文件更新时间比请求时间大,则返回304
-		if(requestModifyDate!=null && requestModifyDate.equals(fileModifyDate)){
+		if(fileModifyDate.equals(requestModifyDate)){
 			setNotModifyResponse(response);
 			return true; 
 		} 

@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.voovan.tools.TObject;
-
 /**
  * HTTP 的 part 对象
  * 	改对象仅在 POST 请求,并且Content-Type = multipart/form-data时使用
@@ -98,7 +96,7 @@ public class Part {
 	 * @return
 	 */
 	public PartType getType(){
-		if(TObject.nullDefault(header.get("Content-Transfer-Encoding"), "").equals("binary")){
+		if("binary".equals(header.get("Content-Transfer-Encoding"))){
 			return PartType.BINARY;
 		}
 		else{
