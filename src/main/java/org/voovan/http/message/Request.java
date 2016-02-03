@@ -171,7 +171,7 @@ public class Request {
 			queryString = body.getBodyString();
 		}
 		// POST_MULTIPART 请求类型的处理
-		else if (getType().equals(RequestType.POST_MULTIPART)) {
+		else if (getType() == RequestType.POST_MULTIPART) {
 			String result = "";
 			for (Part part : parts) {
 				if (part.getType() == PartType.TEXT) {

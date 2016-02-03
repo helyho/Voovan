@@ -187,7 +187,7 @@ public class HttpServerHandler implements IoHandler {
 		httpResponse.protocol().setStatusCode("Switching Protocols");
 		httpResponse.header().put("Connection", "Upgrade");
 		
-		if(httpRequest.header().get("Upgrade").equalsIgnoreCase("websocket")){
+		if(httpRequest.header()!=null && "websocket".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
 			session.setAttribute("Type", "WebSocket");
 			
 			httpResponse.header().put("Upgrade", "websocket");
@@ -198,7 +198,7 @@ public class HttpServerHandler implements IoHandler {
 			webSocketDispatcher.processRoute(WebSocketEvent.OPEN, httpRequest, null);
 		}
 		
-		if(httpRequest.header().get("Upgrade").equalsIgnoreCase("h2c")){
+		else if(httpRequest.header()!=null && "h2c".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
 			session.setAttribute("Type", "H2C");
 			
 			httpResponse.header().put("Upgrade", "h2c");
