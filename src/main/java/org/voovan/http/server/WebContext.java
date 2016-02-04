@@ -1,6 +1,7 @@
 package org.voovan.http.server;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
@@ -149,14 +150,14 @@ public class WebContext {
 	 * @param response
 	 */
 	public static void writeAccessLog(HttpRequest request,HttpResponse response){
+		String fileName = TEnv.getContextPath()+File.separator+"logs"+File.separator+"access.log";
 		try{
 			if(accessLogger==null || accessLogger.isFinished()){
-				String fileName = TEnv.getContextPath()+File.separator+"logs"+File.separator+"access.log";
 				accessLogger = SingleLogger.start(fileName);
 			}
 			accessLogger.addLogMessage(genAccessLog(request, response));
-		}catch(IOException e){
-			Logger.error(e);
+		}catch(FileNotFoundException e){
+			Logger.error("Log file "+fileName+" not found.",e);
 		}
 	}
 	

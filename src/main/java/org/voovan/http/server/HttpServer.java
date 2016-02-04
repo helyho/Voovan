@@ -109,7 +109,7 @@ public class HttpServer {
 		try {
 			return new HttpServer(WebContext.getWebServerConfig());
 		} catch (IOException e) {
-			Logger.error(e);
+			Logger.error("Create HttpServer failed.",e);
 		}
 		return null;
 	}

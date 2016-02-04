@@ -52,7 +52,7 @@ public class Body {
 		try {
 			return bodyBytes!=null?new String(bodyBytes,charset):null;
 		} catch (UnsupportedEncodingException e) {
-			Logger.error(e);
+			Logger.error("this charset is unsupported.",e);
 			return new String(bodyBytes);
 		}
 	}
@@ -66,7 +66,7 @@ public class Body {
 		try {
 			outputStream.write(body);
 		} catch (IOException e) {
-			Logger.error(e);
+			Logger.error("Wirte byte array faild by OutputStream",e);
 		}
 	}
 	
@@ -97,7 +97,7 @@ public class Body {
 			//使用字符集编码
 			outputStream.write(content.getBytes(charset));
 		} catch (IOException e) {
-			Logger.error(e);
+			Logger.error("Wirte string faild by OutputStream",e);
 		}
 	}
 	

@@ -159,7 +159,7 @@ public class Response {
 				return outputStream.toByteArray();
 			}
 		} catch (IOException e) {
-			Logger.error(e);
+			Logger.error("OutputString io error.",e);
 		}
 
 		return new byte[0];
@@ -195,7 +195,7 @@ public class Response {
 			outputStream.write(bodyBytes);
 			
 		} catch (IOException e) {
-			Logger.error(e);
+			Logger.error("OutputString io error.",e);
 		}
 		return outputStream.toByteArray();
 	}

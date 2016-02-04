@@ -48,7 +48,7 @@ public class TEnv {
 			Thread.currentThread();
 			Thread.sleep(sleepTime);
 		} catch (InterruptedException e) {
-			Logger.error(e);
+			Logger.error("TEnv.sleep interrupted",e);
 		}
 	}
 
@@ -111,7 +111,7 @@ public class TEnv {
 				TReflect.invokeMethod(urlClassLoader, method, file.toURI().toURL());
 			}
 		} catch (IOException | ReflectiveOperationException e) {
-			Logger.error(e);
+			Logger.error("Load jar or class failed",e);
 		}
 	}
 

@@ -169,7 +169,7 @@ public class HttpRequest extends Request {
 					try {
 						parameters.put(name, URLDecoder.decode(value,characterSet));
 					} catch (UnsupportedEncodingException e) {
-						Logger.error(e);
+						Logger.error("QueryString URLDecoder.decode failed by charset:"+characterSet,e);
 					}
 				}else{
 					parameters.put(parameterEqual, null);
