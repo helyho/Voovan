@@ -25,7 +25,7 @@ public class JSON {
 		try {
 			jsonString = JSONEncode.fromObject(object);
 		} catch (ReflectiveOperationException e) {
-			Logger.error(e);
+			Logger.error("Reflective Operation failed.",e);
 		}
 		return jsonString;
 	}
@@ -42,7 +42,7 @@ public class JSON {
 		try {
 			valueObject = JSONDecode.fromJSON(jsonStr, clazz);
 		} catch (ReflectiveOperationException | ParseException e) {
-			Logger.error(e);
+			Logger.error("Reflective Operation failed.",e);
 		}
 		return valueObject;
 	}

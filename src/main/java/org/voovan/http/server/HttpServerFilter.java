@@ -62,7 +62,7 @@ public class HttpServerFilter implements IoFilter {
 					return null;
 				}
 			} catch (IOException e) {
-				Logger.error(e);
+				Logger.error("ParseRequest failed.",e);
 				return null;
 			}
 		

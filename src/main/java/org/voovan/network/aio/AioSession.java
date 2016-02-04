@@ -45,7 +45,7 @@ public class AioSession extends IoSession {
 			byteBufferChannel = new ByteBufferChannel();
 		    this.messageLoader = new MessageLoader(this, readTimeout);
 		} else {
-			Logger.error("Socket is null, please check it.");
+			Logger.error("SocketChannel is null, please check it.");
 		}
 	}
 
@@ -65,7 +65,7 @@ public class AioSession extends IoSession {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getLocalAddress());
 				return socketAddress.getHostName();
 			} catch (IOException e) {
-				Logger.error(e);
+				Logger.error("Get SocketChannel local address failed.",e);
 				return null;
 			}
 		} else {
@@ -80,7 +80,7 @@ public class AioSession extends IoSession {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getLocalAddress());
 				return socketAddress.getPort();
 			} catch (IOException e) {
-				Logger.error(e);
+				Logger.error("Get SocketChannel local port failed.",e);
 				return -1;
 			}
 		} else {
@@ -95,7 +95,7 @@ public class AioSession extends IoSession {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getRemoteAddress());
 				return socketAddress.getHostString();
 			} catch (IOException e) {
-				Logger.error(e);
+				Logger.error("Get SocketChannel remote address failed.",e);
 				return null;
 			}
 		} else {
@@ -110,7 +110,7 @@ public class AioSession extends IoSession {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getRemoteAddress());
 				return socketAddress.getPort();
 			} catch (IOException e) {
-				Logger.error(e);
+				Logger.error("Get SocketChannel remote port failed.",e);
 				return -1;
 			}
 		} else {
@@ -130,6 +130,7 @@ public class AioSession extends IoSession {
 			try {
 				readSize = byteBufferChannel.read(buffer);
 			} catch (IOException e) {
+				Logger.error("Read socketChannel failed.",e);
 				// 如果出现异常则返回-1,表示读取通道结束
 				readSize = -1;
 			}

@@ -62,7 +62,7 @@ public class EventProcess {
 			try {
 				session.getSSLParser().doHandShake();
 			} catch (IOException e) {
-				Logger.error(e);
+				Logger.error("SSL hand shake failed",e);
 			}
 		}
 
@@ -201,8 +201,6 @@ public class EventProcess {
 			if (socketContext.handler() != null) {
 				socketContext.handler().onException(session, e);
 			}
-		}else{
-			Logger.error(e);
 		}
 	}
 

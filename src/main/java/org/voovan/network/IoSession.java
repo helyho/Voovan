@@ -162,7 +162,7 @@ public abstract class IoSession {
 			
 		}
 		catch(IOException e){
-			Logger.error(e);
+			Logger.error("Read SSL date failed.",e);
 		}
 		return readSize;
 	}
@@ -179,7 +179,7 @@ public abstract class IoSession {
 			try {
 				sslParser.warpData(buffer);
 			} catch (IOException e) {
-				Logger.error(e);
+				Logger.error("Send SSL date failed.",e);
 			}
 		}
 	}

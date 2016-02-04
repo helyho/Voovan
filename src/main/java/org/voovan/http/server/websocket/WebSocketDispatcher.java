@@ -1,6 +1,5 @@
 package org.voovan.http.server.websocket;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +11,6 @@ import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.websocket.WebSocketFrame.Opcode;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TObject;
-import org.voovan.tools.log.Logger;
 
 /**
  * 
@@ -73,29 +71,27 @@ public class WebSocketDispatcher {
 			if (isMatched) {
 				// 获取路由处理对象
 				WebSocketBizHandler handler = handlers.get(routePath);
+				
 				// 获取路径变量
-				try {
-					ByteBuffer responseMessage = null;
-					Map<String, String> variables = HttpDispatcher.fetchPathVariables(requestPath, routePath);
-					request.getParameters().putAll(variables);
-					
-					//WebSocket 事件处理
-					if (event == WebSocketEvent.OPEN) {
-					    handler.onOpen(request);
-					} else if (event == WebSocketEvent.RECIVED) {
-						responseMessage = handler.onRecived(request, webSocketFrame.getFrameData());
-					} else if (event == WebSocketEvent.CLOSE) {
-						handler.onClose();
-					}
-					
-					//将返回消息包装称WebSocketFrame
-					if (responseMessage != null) {
-						return WebSocketFrame.newInstance(true, Opcode.TEXT, false, responseMessage);
-					}
-					break;
-				} catch (UnsupportedEncodingException e) {
-					Logger.error(e);
+				ByteBuffer responseMessage = null;
+				Map<String, String> variables = HttpDispatcher.fetchPathVariables(requestPath, routePath);
+				request.getParameters().putAll(variables);
+				
+				//WebSocket 事件处理
+				if (event == WebSocketEvent.OPEN) {
+				    handler.onOpen(request);
+				} else if (event == WebSocketEvent.RECIVED) {
+					responseMessage = handler.onRecived(request, webSocketFrame.getFrameData());
+				} else if (event == WebSocketEvent.CLOSE) {
+					handler.onClose();
 				}
+				
+				//将返回消息包装称WebSocketFrame
+				if (responseMessage != null) {
+					return WebSocketFrame.newInstance(true, Opcode.TEXT, false, responseMessage);
+				}
+				break;
+		
 			}
 		}
 

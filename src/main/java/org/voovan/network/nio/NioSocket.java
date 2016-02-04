@@ -65,7 +65,7 @@ public class NioSocket extends SocketContext{
 			connectModel = ConnectModel.SERVER;
 			init();
 		} catch (IOException e) {
-			Logger.error(e);
+			Logger.error("Create socket channel failed",e);
 		}
 	}
 	
@@ -87,7 +87,7 @@ public class NioSocket extends SocketContext{
 			socketChannel.register(selector, SelectionKey.OP_READ);
 		}
 		catch(IOException e){
-			Logger.error(e);
+			Logger.error("init SocketChannel failed by openSelector",e);
 		}
 	}
 	
@@ -133,7 +133,7 @@ public class NioSocket extends SocketContext{
 				socketChannel.close();
 				return true;
 			} catch(IOException e){
-				Logger.error(e);
+				Logger.error("Close SocketChannel failed",e);
 				return false;
 			}
 		}else{

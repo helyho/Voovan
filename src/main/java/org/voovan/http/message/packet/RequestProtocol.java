@@ -72,7 +72,7 @@ public class RequestProtocol extends Protocol {
 		try {
 			return this.method+" "+this.path+URLEncoder.encode(queryString,"UTF-8")+" "+this.protocol+"/"+this.version+"\r\n";
 		} catch (UnsupportedEncodingException e) {
-			Logger.error(e);
+			Logger.error("queryString Unsuppoert UTF-8 .",e);
 		}
 		return this.method+" "+this.path+queryString+" "+this.protocol+"/"+this.version+"\r\n";
 	}

@@ -173,10 +173,11 @@ public class HttpDispatcher {
 	 * @return
 	 * @throws UnsupportedEncodingException 
 	 */
-	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) throws UnsupportedEncodingException{
+	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) {
 		Map<String, String> resultMap = new HashMap<String, String>();
 		String[] pathPieces = requestPath.substring(1,requestPath.length()).split("/");
 		String[] routePathPieces = routePath.substring(2, routePath.length()-1).split("/");
+		try{
 		for(int i=0;i<routePathPieces.length;i++){
 			String routePathPiece = routePathPieces[i];
 			if(routePathPiece.startsWith(":")){
@@ -184,6 +185,9 @@ public class HttpDispatcher {
 				String value = URLDecoder.decode(pathPieces[i], "UTF-8");
 				resultMap.put(name,value);
 			}
+		}}
+		catch(UnsupportedEncodingException e){
+			Logger.error("RoutePath URLDecoder.decode failed by charset: UTF-8",e);
 		}
 		return resultMap;
 	}

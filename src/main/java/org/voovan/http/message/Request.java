@@ -284,7 +284,7 @@ public class Request {
 			outputStream.write(bodyBytes);
 			
 		} catch (IOException e) {
-			Logger.error(e);
+			Logger.error("OutputString io error.",e);
 		}
 
 		return outputStream.toByteArray();
