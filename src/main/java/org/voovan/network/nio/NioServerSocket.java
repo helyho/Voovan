@@ -88,7 +88,7 @@ public class NioServerSocket extends SocketContext{
 				return true;
 			}
 			catch(IOException e){
-				Logger.error(e);
+				Logger.error("SocketChannel close failed",e);
 				return false;
 			}
 		}else{

@@ -101,18 +101,8 @@ public class HttpClient {
 			socket.filterChain().add(new HttpClientFilter());
 			socket.messageSplitter(new HttpMessageSplitter());
 			
-			Thread backThread = new Thread(){
-				public void run(){
-					try {
-						socket.start();
-						Logger.info("HttpClient closed");
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			};
-			
-			backThread.start();
+			Thread bThread = new Thread(new BackThread());
+			bThread.start();
 			
 			//等待连接完成后状态变更,变更为 IDLE
 			while(status==HttpClientStatus.PREPARE){
@@ -120,6 +110,17 @@ public class HttpClient {
 			}
 		} catch (IOException e) {
 			Logger.error("HttpClient init error. ",e);
+		}
+	}
+	
+	private class BackThread implements Runnable{
+		public void run(){
+			try {
+				socket.start();
+				Logger.info("HttpClient closed");
+			} catch (IOException e) {
+				Logger.error("Start HttpClient thread failed",e);
+			}
 		}
 	}
 	

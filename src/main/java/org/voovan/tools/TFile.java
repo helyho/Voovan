@@ -51,7 +51,7 @@ public class TFile {
 			fileInputStream.close();
 			return fileSize;
 		} catch (Exception e) {
-			Logger.error(e);
+			Logger.error("File not found: "+filePath+".",e);
 			return -1;
 		}
 		
@@ -127,7 +127,7 @@ public class TFile {
 			}
 			return null;
 		} catch (UnsupportedEncodingException e) {	
-			Logger.error(e);
+			Logger.error("Load resource URLDecoder.decode failed",e);
 			return null;
 		}  
 		
@@ -196,7 +196,7 @@ public class TFile {
 			randomAccessFile.close();
 			return fileBytes;
 		} catch (IOException e) {
-			Logger.error(e);
+			Logger.error("Load file error: "+file.getAbsolutePath()+".",e);
 		}
 		return null;
 	}

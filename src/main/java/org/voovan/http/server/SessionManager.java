@@ -48,7 +48,7 @@ public class SessionManager{
 				Map<String, HttpSession> sessionContainer = TReflect.newInstance(sessionContainerClassName);
 				return sessionContainer;
 			} catch (ReflectiveOperationException e) {
-				Logger.error(e);
+				Logger.error("Reflective operation error.",e);
 				return null;
 			}
 		}
