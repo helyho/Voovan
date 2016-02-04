@@ -193,7 +193,7 @@ public class Request {
 	 */
 	private void initHeader() {
 		// 如果请求中包含 Part 的处理
-		if (parts.size() != 0) {
+		if (!parts.isEmpty()) {
 			// 产生新的boundary备用
 			String contentType = "multipart/form-data; boundary=" + boundary;
 			header.put(CONTENT_TYPE, contentType);
