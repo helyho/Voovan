@@ -21,7 +21,7 @@ public class HttpMessageSplitter implements MessageSplitter {
 	private static final String	BODY_TAG	= "\r\n\r\n";
 
 	@Override
-	public boolean canSplite(IoSession session, byte[] buffer, int elapsedtime) {
+	public boolean canSplite(IoSession session, byte[] buffer) {
 
 		if (isHttpFrame(buffer)) {
 			return true;

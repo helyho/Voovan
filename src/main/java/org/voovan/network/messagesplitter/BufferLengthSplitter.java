@@ -20,7 +20,7 @@ public class BufferLengthSplitter implements MessageSplitter {
 	}
 
 	@Override
-	public boolean canSplite(IoSession session, byte[] buffer, int elapsedtime) {
+	public boolean canSplite(IoSession session, byte[] buffer) {
 		if(buffer.length>=bufferLength){
 			return true;
 		}

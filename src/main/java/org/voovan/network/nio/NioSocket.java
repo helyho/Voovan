@@ -43,7 +43,7 @@ public class NioSocket extends SocketContext{
 		socketChannel.socket().setSoTimeout(this.readTimeout);
 		socketChannel.connect(new InetSocketAddress(this.host,this.port));
 		socketChannel.configureBlocking(false);
-		session = new NioSession(this,readTimeout);
+		session = new NioSession(this);
 		connectModel = ConnectModel.CLIENT;
 		init();
 	}
@@ -61,7 +61,7 @@ public class NioSocket extends SocketContext{
 			socketChannel.configureBlocking(false);
 			this.copyFrom(parentSocketContext);
 			this.socketChannel().socket().setSoTimeout(this.readTimeout);
-			session = new NioSession(this,this.readTimeout);
+			session = new NioSession(this);
 			connectModel = ConnectModel.SERVER;
 			init();
 		} catch (IOException e) {
