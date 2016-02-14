@@ -13,7 +13,6 @@ import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.SocketContext;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -66,13 +65,11 @@ public class NioSelector {
 		// 事件循环
 		try {
 			while (socketContext != null && socketContext.isConnect()) {
-				TEnv.sleep(1);
 				if (selector.select(1) > 0) {
 					Set<SelectionKey> selectionKeys = selector.selectedKeys();
 					Iterator<SelectionKey> selectionKeyIterator = selectionKeys
 							.iterator();
 					while (selectionKeyIterator.hasNext()) {
-						TEnv.sleep(1);
 						SelectionKey selectionKey = selectionKeyIterator.next();
 						if (selectionKey.isValid()) {
 							// 获取 socket 通道
