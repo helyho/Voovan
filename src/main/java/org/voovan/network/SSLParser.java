@@ -11,7 +11,6 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 /**
@@ -197,7 +196,6 @@ public class SSLParser {
 				default:
 					break;
 			}
-			TEnv.sleep(1);
 		}
 		return handShakeDone;
 	}
