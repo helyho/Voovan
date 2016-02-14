@@ -19,18 +19,7 @@ import org.voovan.tools.TEnv;
  */
 public class MessageLoader {
 	private IoSession session;
-	private int readTimeout;
-	
-
-	/**
-	 * 构造函数
-	 * @param session
-	 * @param readTimeOut 超时时间
-	 */
-	public MessageLoader(IoSession session,int readTimeout) {
-		this.session = session;
-		this.readTimeout = readTimeout;
-	}
+	private boolean isLoading;
 
 	/**
 	 * 构造函数
@@ -39,11 +28,14 @@ public class MessageLoader {
 	 */
 	public MessageLoader(IoSession session) {
 		this.session = session;
-		this.readTimeout = 100;
+		isLoading = false;
 	}
 	
-	public void setReadTimeOut(int readTimeout){
-		this.readTimeout = readTimeout;
+	/**
+	 * 停止读取
+	 */
+	public void stopLoading(){
+		isLoading = false;
 	}
 
 	/**
@@ -84,77 +76,69 @@ public class MessageLoader {
 			return null;
 		}
 		
+		//获取消息分割器
 		MessageSplitter messageSplitter = session.sockContext().messageSplitter();
 		
+		//准备缓冲流
 		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 		
-		//当前已超时时间值
-		int elapsedtime = 0;
-		int wroteCount = 0;
-		
-		//缓冲区字段
-		ByteBuffer buffer = ByteBuffer.allocate(1);
+		//缓冲区字段,一次读一个字节,所以这里分配一个
+		ByteBuffer oneByteBuffer = ByteBuffer.allocate(1);
 		
 		if (session != null) {
-			while (true) {
-				buffer.clear();
+			isLoading = true;
+			
+			while (isLoading) {
+				//如果连接关闭,退出循环
+				if(!session.isConnect()){
+					stopLoading();
+				}
+				
+				oneByteBuffer.clear();
 				int readsize = 0;
 				
 				//读出数据
 				if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone){
-					readsize = session.readSSLData(buffer);
+					readsize = session.readSSLData(oneByteBuffer);
 				}
 				else{
-					readsize = session.read(buffer);
+					readsize = session.read(oneByteBuffer);
+				}
+				
+				if(readsize==0){
+					TEnv.sleep(1);
+				}
+				
+				//通道关闭,退出循环
+				if(readsize==-1){
+					stopLoading();
 				}
 				
 				//将读出的数据写入缓冲区
-				if(readsize!=0) {
-					//如果读到数据,则清零超时事件
-					wroteCount+=readsize;
-					byteOutputStream.write(buffer.array(), 0, readsize);
+				if(readsize>0) {
+					byteOutputStream.write(oneByteBuffer.array(), 0, readsize);
 				}
 				
+				
 				//判断连接是否关闭
-				if (isRemoteClosed(readsize,buffer)) {
-					if(byteOutputStream.size()!=0){
-						return buffer;
-					}
-					return null;
+				if (isRemoteClosed(readsize,oneByteBuffer)) {
+					stopLoading();
 				}
+				
 				//使用消息划分器进行消息划分
-				else if(messageSplitter!=null && messageSplitter.canSplite(session,byteOutputStream.toByteArray(), elapsedtime)){
-					break;
-				}
-				//readsize为0时认为是超时
-				else if(readsize==0){
-					
-					//超时判断
-					if(readTimeout==elapsedtime){
-						break;
-					}
-					
-					//如果连接断开立刻关闭
-					if(!session.isConnect()){
-						break;
-					}
-					
-					TEnv.sleep(1);
-					//超时时间自增
-					elapsedtime++;
+				else if(messageSplitter!=null && messageSplitter.canSplite(session,byteOutputStream.toByteArray())){
+					stopLoading();
 				}
 			}
 		}
 		
-		if(byteOutputStream.size()!=0){
-			buffer = ByteBuffer.wrap(byteOutputStream.toByteArray());
+		ByteBuffer retBuffer = null;
+		
+		if(byteOutputStream!=null){
+			retBuffer = ByteBuffer.wrap(byteOutputStream.toByteArray());
 		}
 		
-		if(wroteCount==0){
-			buffer = ByteBuffer.allocate(0);
-		}
-		
-		return buffer;
+		return retBuffer;
 	}
 
 }

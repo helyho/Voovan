@@ -14,7 +14,7 @@
 	// Session 会话超时时间(m),默认30分钟
 	"SessionTimeout"    : 30,
 	// KeepAlive 超时时间(s),默认5秒 (该参数同样会被应用到 WebSocket 的连接保持上)
-	"KeepAliveTimeout"  : 5,
+	"KeepAliveTimeout"  : 50,
 	// 是否启用Gzip压缩
 	"Gzip"              : "off",
 	// 过滤器 先执行filter1, 后执行filter2

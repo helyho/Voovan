@@ -37,13 +37,13 @@ public class AioSession extends IoSession {
 	 * @param socket
 	 * @param readTimeout
 	 */
-	AioSession(AioSocket socket, int readTimeout) {
+	AioSession(AioSocket socket) {
 		super();
 		if (socket != null) {
 			this.socketChannel = socket.socketChannel();
 			this.socket = socket;
 			byteBufferChannel = new ByteBufferChannel();
-		    this.messageLoader = new MessageLoader(this, readTimeout);
+		    this.messageLoader = new MessageLoader(this);
 		} else {
 			Logger.error("SocketChannel is null, please check it.");
 		}

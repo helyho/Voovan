@@ -15,7 +15,7 @@ import org.voovan.network.MessageSplitter;
 public class LineMessageSplitter implements MessageSplitter {
 
 	@Override
-	public boolean canSplite(IoSession session, byte[] buffer, int elapsedtime) {
+	public boolean canSplite(IoSession session, byte[] buffer) {
 		if(buffer[buffer.length-1]=='\n'){
 			return true;
 		}
