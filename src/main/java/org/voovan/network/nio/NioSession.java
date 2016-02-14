@@ -32,13 +32,13 @@ public class NioSession extends IoSession {
 	 * @param socketContext
 	 *            socket 上下文对象
 	 */
-	NioSession(NioSocket nioSocket, int readTimeout) {
+	NioSession(NioSocket nioSocket) {
 		super();
 		if (nioSocket != null) {
 			this.socket = nioSocket;
 			this.socketChannel = nioSocket.socketChannel();
 			byteBufferChannel = new ByteBufferChannel();
-			messageLoader = new MessageLoader(this, readTimeout);
+			messageLoader = new MessageLoader(this);
 		}else{
 			Logger.error("Socket is null, please check it.");
 		}

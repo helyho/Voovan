@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLException;
 
@@ -41,7 +42,7 @@ public class AioSocket extends SocketContext {
 	public AioSocket(String host, int port, int readTimeout) throws IOException {
 		super(host, port, readTimeout);
 		this.socketChannel = AsynchronousSocketChannel.open();
-		session = new AioSession(this, this.readTimeout);
+		session = new AioSession(this);
 		eventTrigger = new EventTrigger(session);
 
 		connectedCompletionHandler = new ConnectedCompletionHandler(eventTrigger);
@@ -59,7 +60,7 @@ public class AioSocket extends SocketContext {
 	protected AioSocket(SocketContext parentSocketContext, AsynchronousSocketChannel socketChannel) throws IOException {
 		this.socketChannel = socketChannel;
 		this.copyFrom(parentSocketContext);
-		session = new AioSession(this, this.readTimeout);
+		session = new AioSession(this);
 		eventTrigger = new EventTrigger(session);
 
 		connectedCompletionHandler = new ConnectedCompletionHandler(eventTrigger);
@@ -95,8 +96,7 @@ public class AioSocket extends SocketContext {
 	 */
 	protected void catchRead(ByteBuffer buffer) {
 		if (isConnect()) {
-			//socketChannel.read(buffer, readTimeout*4, TimeUnit.MILLISECONDS, buffer, readCompletionHandler);
-			socketChannel.read(buffer, buffer, readCompletionHandler);
+			socketChannel.read(buffer, readTimeout, TimeUnit.MILLISECONDS, buffer, readCompletionHandler);
 		}
 	}
 

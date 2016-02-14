@@ -51,7 +51,7 @@ public class ByteBufferChannel implements ByteChannel {
 				readSize = dst.limit();
 			}
 			
-			if(readSize!=0)
+			if(readSize>0)
 			{
 				dst.put(buffer.array(),0,readSize);
 				buffer.position(readSize);
