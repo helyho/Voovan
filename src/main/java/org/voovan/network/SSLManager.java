@@ -111,7 +111,7 @@ public class SSLManager {
 	}
 	
 	/**
-	 * 获取SSLEngine
+	 * 获取SSLParser
 	 * @return
 	 * @throws SSLException 
 	 */
@@ -122,7 +122,7 @@ public class SSLManager {
 	}
 	
 	/**
-	 * 获取Server 模式 SSLEngine
+	 * 获取Server 模式 SSLSSLParser
 	 * @return
 	 * @throws SSLException 
 	 */

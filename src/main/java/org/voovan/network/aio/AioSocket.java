@@ -11,6 +11,7 @@ import javax.net.ssl.SSLException;
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
+import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
@@ -115,6 +116,11 @@ public class AioSocket extends SocketContext {
 	@Override
 	public void start() throws IOException{
 		initSSL();
+		
+		//如果没有消息分割器默认使用读取超时时间作为分割器
+		if(messageSplitter == null){
+			messageSplitter = new TimeOutMesssageSplitter();
+		}
 		
 		if (connectModel == ConnectModel.CLIENT) {
 			// 捕获 connect 事件
