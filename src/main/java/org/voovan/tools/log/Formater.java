@@ -62,7 +62,7 @@ public class Formater {
 	 */
 	public static StackTraceElement currentStackLine() {
 		StackTraceElement[] stackTraceElements = TEnv.getStackElements();
-		return stackTraceElements[5];
+		return stackTraceElements[6];
 	}
 
 	/**
