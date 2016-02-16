@@ -221,11 +221,12 @@ public class HttpParser {
 
 		int headerLength = 0;
 		boolean isBodyConent = false;
+		int lineNum = 0;
 		//按行遍历HTTP报文
 		for(String currentLine = TStream.readLine(sourceInputStream);
 			currentLine!=null;
 			currentLine = TStream.readLine(sourceInputStream)){
-			
+			lineNum++;
 			//空行分隔处理,遇到空行标识下面有可能到内容段
 			if("".equals(currentLine)){
 				//1. Method 是 null 的请求,代表是在解析 chunked 内容,则 isBodyConent = true
@@ -236,7 +237,7 @@ public class HttpParser {
 			}
 			
 			//解析 HTTP 协议行
-			if(!isBodyConent && currentLine.contains("HTTP")){
+			if(!isBodyConent && currentLine.contains("HTTP") && lineNum==1){
 				packetMap.putAll(parseProtocol(currentLine));
 			}
 			

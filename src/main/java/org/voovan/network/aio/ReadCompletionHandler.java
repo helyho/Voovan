@@ -64,7 +64,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 			// 触发 onException 事件
 			session.getMessageLoader().stopLoading();
 			eventTrigger.fireException(e);
-			
 		}
 		
 	}

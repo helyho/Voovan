@@ -6,6 +6,7 @@ import java.util.Base64;
 
 import org.voovan.http.message.Request;
 import org.voovan.http.message.packet.Header;
+import org.voovan.tools.log.Logger;
 
 /**
  * WebSocket 工具类
@@ -19,12 +20,8 @@ import org.voovan.http.message.packet.Header;
 public class WebSocketTools {
 	public static boolean isWebSocketUpgrade(Request request) {
 		Header header = request.header();
-		if (header != null && "websocket".equalsIgnoreCase(header.get("Upgrade"))
-				&& header.contain("Sec-WebSocket-Key")) {
-			return true;
-		} else {
-			return false;
-		}
+		return header != null && "websocket".equalsIgnoreCase(header.get("Upgrade"))
+				&& header.contain("Sec-WebSocket-Key");
 	}
 	
 	/**
@@ -35,11 +32,11 @@ public class WebSocketTools {
 	public static String generateSecKey( String in ) {
 		String seckey = in.trim();
 		String acc = seckey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-		MessageDigest sh1;
+		MessageDigest sh1 = null;
 		try {
 			sh1 = MessageDigest.getInstance( "SHA" );
 		} catch ( NoSuchAlgorithmException e ) {
-			throw new RuntimeException( e );
+			Logger.error("No Such Algorithm.", e);
 		}
 		return Base64.getEncoder().encodeToString( sh1.digest(acc.getBytes()) );
 	}

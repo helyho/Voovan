@@ -177,7 +177,7 @@ public class NioSession extends IoSession {
 	 * 关闭会话
 	 */
 	public boolean close() {
-		return socket.Close();
+		return socket.close();
 	}
 
 	@Override

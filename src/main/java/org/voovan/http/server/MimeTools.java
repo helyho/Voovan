@@ -17,6 +17,10 @@ public class MimeTools {
 	
 	private static String mimeTypeRegex = MimeTools.buildMimeMatchRegex(WebContext.getMimeDefine());
 	
+	private MimeTools(){
+		
+	}
+	
 	public static  String getMimeTypeRegex(){
 		return mimeTypeRegex;
 	}

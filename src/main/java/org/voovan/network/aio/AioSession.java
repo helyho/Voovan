@@ -170,7 +170,7 @@ public class AioSession extends IoSession {
 	@Override
 	public boolean close() {
 		// 关闭 socket
-		return socket.Close();
+		return socket.close();
 	}
 
 	@Override

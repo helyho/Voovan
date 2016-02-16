@@ -9,11 +9,13 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import javax.sql.DataSource;
 
 import org.voovan.tools.TReflect;
 import org.voovan.tools.TSQL;
 import org.voovan.tools.log.Logger;
+
 
 /**
  * jdbc 操作类
@@ -52,10 +54,8 @@ public class JdbcOperate {
 		@SuppressWarnings("unchecked")
 		public <T> List<T> getObjectList(Class<T> t) {
 			try{
-				List<T> objects = (List<T>) TSQL.getAllRowWithObjectList(t, this.resultSet);
-				return objects;
-			}
-			catch(SQLException | ReflectiveOperationException | ParseException e){
+				return (List<T>) TSQL.getAllRowWithObjectList(t, this.resultSet);
+			}catch(SQLException | ReflectiveOperationException | ParseException e){
 				Logger.error("JdbcOperate.getObjectList error",e);
 			}finally{
 				// 非事物模式执行
@@ -71,10 +71,8 @@ public class JdbcOperate {
 
 		public List<Map<String, Object>> getMapList() {
 			try{
-				List<Map<String, Object>> objects = TSQL.getAllRowWithMapList(this.resultSet);
-				return objects;
-			}
-			catch(SQLException | ReflectiveOperationException e){
+				return TSQL.getAllRowWithMapList(this.resultSet);
+			}catch(SQLException | ReflectiveOperationException e){
 				Logger.error("JdbcOperate.getMapList error",e);
 			}finally{
 				// 非事物模式执行
@@ -91,13 +89,11 @@ public class JdbcOperate {
 		public <T> Object getObject(Class<T> t){
 			try{
 				if(resultSet.next()){
-					T obj = (T) TSQL.getOneRowWithObject(t, this.resultSet);
-					return obj;
+					return (T) TSQL.getOneRowWithObject(t, this.resultSet);
 				}else{
 					return null;
 				}
-			}
-			catch(SQLException | ReflectiveOperationException | ParseException e){
+			}catch(SQLException | ReflectiveOperationException | ParseException e){
 				Logger.error("JdbcOperate.getObject error",e);
 			}finally{
 				// 非事物模式执行
@@ -113,14 +109,12 @@ public class JdbcOperate {
 		public Map<String, Object> getMap(){
 			try{
 				if(resultSet.next()){
-					Map<String, Object> map = TSQL.getOneRowWithMap(this.resultSet);
-					return map;
+					return TSQL.getOneRowWithMap(this.resultSet);
 				}else{
 					return null;
 				}
-			}
-			catch(SQLException | ReflectiveOperationException e){
-				Logger.error("JdbcOperate.getObject error",e);
+			}catch(SQLException | ReflectiveOperationException e){
+				Logger.error("JdbcOperate.getMap error",e);
 			}finally{
 				// 非事物模式执行
 				if (!isTrancation) {
@@ -376,10 +370,11 @@ public class JdbcOperate {
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t) throws SQLException{
 		ResultInfo resultInfo = this.baseQuery(sqlText, null);
-		if(resultInfo==null){
-			return null;
+		if(resultInfo!=null){
+			return (List<T>) resultInfo.getObjectList(t);
 		}
-		return (List<T>) resultInfo.getObjectList(t);
+		return new ArrayList<T>();
+		
 	}
 
 	/**
@@ -402,12 +397,12 @@ public class JdbcOperate {
 		if(arg.getClass().getName().startsWith("java")){
 			return queryObjectList(sqlText, t, arg,null);
 		}else{
-		Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
-		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
-		if(resultInfo==null){
-			return null;
-		}
-		return (List<T>) resultInfo.getObjectList(t);
+			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
+			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
+			if(resultInfo!=null){
+				return (List<T>) resultInfo.getObjectList(t);
+			}
+			return new ArrayList<T>();
 		}
 	}
 
@@ -430,10 +425,10 @@ public class JdbcOperate {
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t, Map<String, Object> mapArg) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, mapArg);
-		if(resultInfo==null){
-			return null;
+		if(resultInfo!=null){
+			return (List<T>) resultInfo.getObjectList(t);
 		}
-		return (List<T>) resultInfo.getObjectList(t);
+		return new ArrayList<T>();
 	}
 
 	/**
@@ -456,10 +451,10 @@ public class JdbcOperate {
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t, Object... args) throws SQLException{
 		Map<String, Object> paramsMap = TSQL.arrayToMap(args);
 		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
-		if(resultInfo==null){
-			return null;
+		if(resultInfo!=null){
+			return (List<T>) resultInfo.getObjectList(t);
 		}
-		return (List<T>) resultInfo.getObjectList(t);
+		return new ArrayList<T>();
 	}
 
 	/**
@@ -478,10 +473,10 @@ public class JdbcOperate {
 	 */
 	public List<Map<String, Object>> queryMapList(String sqlText) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, null);
-		if(resultInfo==null){
-			return null;
+		if(resultInfo!=null){
+			return resultInfo.getMapList();
 		}
-		return resultInfo.getMapList();
+		return new ArrayList<Map<String, Object>>();
 	}
 
 	/**
@@ -506,10 +501,10 @@ public class JdbcOperate {
 		}else{
 			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
 			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
-			if(resultInfo==null){
-				return null;
+			if(resultInfo!=null){
+				return resultInfo.getMapList();
 			}
-			return resultInfo.getMapList();
+			return new ArrayList<Map<String, Object>>();
 		}
 	}
 
@@ -531,10 +526,10 @@ public class JdbcOperate {
 	 */
 	public List<Map<String, Object>> queryMapList(String sqlText, Map<String, Object> mapArg) throws SQLException{
 		ResultInfo resultInfo = this.baseQuery(sqlText, mapArg);
-		if(resultInfo==null){
-			return null;
+		if(resultInfo!=null){
+			return resultInfo.getMapList();
 		}
-		return resultInfo.getMapList();
+		return new ArrayList<Map<String, Object>>();
 	}
 
 	/**
@@ -556,10 +551,10 @@ public class JdbcOperate {
 	public List<Map<String, Object>> queryMapList(String sqlText, Object... args) throws SQLException {
 		Map<String, Object> paramsMap = TSQL.arrayToMap(args);
 		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
-		if(resultInfo==null){
-			return null;
+		if(resultInfo!=null){
+			return resultInfo.getMapList();
 		}
-		return resultInfo.getMapList();
+		return new ArrayList<Map<String, Object>>();
 	}
 
 	/**
@@ -578,10 +573,10 @@ public class JdbcOperate {
 	@SuppressWarnings("unchecked")
 	public <T> T queryObject(String sqlText, Class<T> t) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, null);
-		if(resultInfo==null){
-			return null;
+		if(resultInfo!=null){
+			return (T) resultInfo.getObject(t);
 		}
-		return (T) resultInfo.getObject(t);
+		return null;
 	}
 
 	/**
@@ -606,10 +601,10 @@ public class JdbcOperate {
 		}else{
 			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
 			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
-			if(resultInfo==null){
-				return null;
+			if(resultInfo!=null){
+				return (T) resultInfo.getObject(t);
 			}
-			return (T) resultInfo.getObject(t);
+			return null;
 		}
 	}
 
@@ -631,10 +626,10 @@ public class JdbcOperate {
 	@SuppressWarnings("unchecked")
 	public <T> T queryObject(String sqlText, Class<T> t, Map<String, Object> mapArg) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, mapArg);
-		if(resultInfo==null){
-			return null;
+		if(resultInfo!=null){
+			return (T) resultInfo.getObject(t);
 		}
-		return (T) resultInfo.getObject(t);
+		return null;
 	}
 
 	/**
@@ -655,10 +650,10 @@ public class JdbcOperate {
 	public <T> T queryObject(String sqlText, Class<T> t, Object... args) throws SQLException{
 		Map<String, Object> paramsMap = TSQL.arrayToMap(args);
 		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
-		if(resultInfo==null){
-			return null;
+		if(resultInfo!=null){
+			return (T) resultInfo.getObject(t);
 		}
-		return (T) resultInfo.getObject(t);
+		return null;
 	}
 
 	/**
@@ -672,10 +667,10 @@ public class JdbcOperate {
 	 */
 	public Map<String, Object> queryMap(String sqlText) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, null);
-		if(resultInfo==null){
-			return null;
+		if(resultInfo!=null){
+			return resultInfo.getMap();
 		}
-		return resultInfo.getMap();
+		return null;
 	}
 
 	/**
@@ -694,10 +689,10 @@ public class JdbcOperate {
 		}else{
 			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
 			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
-			if(resultInfo==null){
-				return null;
+			if(resultInfo!=null){
+				return resultInfo.getMap();
 			}
-			return resultInfo.getMap();
+			return null;
 		}
 	}
 
@@ -713,10 +708,10 @@ public class JdbcOperate {
 	 */
 	public Map<String, Object> queryMap(String sqlText, Map<String, Object> mapArg) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, mapArg);
-		if(resultInfo==null){
-			return null;
+		if(resultInfo!=null){
+			return resultInfo.getMap();
 		}
-		return resultInfo.getMap();
+		return null;
 	}
 
 	/**
@@ -732,10 +727,10 @@ public class JdbcOperate {
 	public Map<String, Object> queryMap(String sqlText, Object... args) throws SQLException {
 		Map<String, Object> paramsMap = TSQL.arrayToMap(args);
 		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
-		if(resultInfo==null){
-			return null;
+		if(resultInfo!=null){
+			return resultInfo.getMap();
 		}
-		return resultInfo.getMap();
+		return null;
 	}
 
 	/**

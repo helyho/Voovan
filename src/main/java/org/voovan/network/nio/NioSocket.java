@@ -86,8 +86,7 @@ public class NioSocket extends SocketContext{
 		try{
 			selector = provider.openSelector();
 			socketChannel.register(selector, SelectionKey.OP_READ);
-		}
-		catch(IOException e){
+		}catch(IOException e){
 			Logger.error("init SocketChannel failed by openSelector",e);
 		}
 	}
@@ -126,14 +125,13 @@ public class NioSocket extends SocketContext{
 	public boolean isConnect() {
 		if(socketChannel!=null){
 			return socketChannel.isOpen();
-		}
-		else{
+		}else{
 			return false;
 		}
 	}
 
 	@Override
-	public boolean Close(){
+	public boolean close(){
 		if(socketChannel!=null){
 			try{
 				socketChannel.close();

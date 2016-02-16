@@ -77,7 +77,7 @@ public class WebContext {
 	 */
 	public static WebServerConfig getWebServerConfig() {
 		WebServerConfig config = new WebServerConfig();
-		config.setHost(getContextParameter("Host","127.0.0.1"));
+		config.setHost(getContextParameter("Host","0.0.0.0"));
 		config.setPort(getContextParameter("Port",8080));
 		config.setTimeout(getContextParameter("Timeout",3*1000));
 		config.setContextPath(getContextParameter("ContextPath",System.getProperty("user.dir")));
@@ -130,7 +130,7 @@ public class WebContext {
 	 * @return
 	 */
 	private static String genAccessLog(HttpRequest request,HttpResponse response){
-		StringBuffer content = new StringBuffer();
+		StringBuilder content = new StringBuilder();
 		content.append("["+TDateTime.now()+"]");
 		content.append(" "+request.getRemoteAddres()+":"+request.getRemotePort());
 		content.append(" "+request.protocol().getProtocol()+"/"+request.protocol().getVersion()+" "+request.protocol().getMethod());

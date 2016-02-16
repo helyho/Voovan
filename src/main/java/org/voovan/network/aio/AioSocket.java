@@ -154,7 +154,7 @@ public class AioSocket extends SocketContext {
 	}
 
 	@Override
-	public boolean Close() {
+	public boolean close() {
 		if (socketChannel != null) {
 			try {
 

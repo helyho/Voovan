@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -169,7 +170,7 @@ public class HttpClient {
 		if(status==HttpClientStatus.IDLE){
 			return request.cookies();
 		}else{
-			return null;
+			return new ArrayList<Cookie>();
 		}
 	}
 	
@@ -335,7 +336,7 @@ public class HttpClient {
 	 */
 	public void close(){
 		status = HttpClientStatus.CLOSED;
-		socket.Close();
+		socket.close();
 	}
 
 	/**
