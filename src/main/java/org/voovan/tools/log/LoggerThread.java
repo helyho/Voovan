@@ -79,7 +79,7 @@ public class LoggerThread implements Runnable {
 
 	@Override
 	public void run() {
-		while (true) {
+		while (true && !isTerminate()) {
 			try {
 				String formatedMessage = logQueue.poll(500, TimeUnit.MILLISECONDS);
 				if (formatedMessage != null && outputStreams!=null) {
