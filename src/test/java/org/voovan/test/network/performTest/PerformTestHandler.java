@@ -9,12 +9,15 @@ public class PerformTestHandler implements IoHandler {
 	private String responseStr ;
 	
 	public PerformTestHandler(){
-		responseStr  =	"GET / HTTP/1.1\r\n"+
-						"Host: www.baidu.com\r\n"+
-						"Connection: keep-alive\r\n"+
-						"Pragma: no-cache\r\n"+
-						"Cache-Control: no-cache\r\n"+
-						"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\n\r\n";
+		responseStr  =	"HTTP/1.1 200 OK\n" +
+						"Date: Wed, 10 Jun 2009 11:22:58 GMT\n" + 
+						"Server: Microsoft-IIS/6.0\n" + 
+						"X-Powered-By: ASP.NET\n" + 
+						"Content-Length: 2\n" + 
+						"Content-Type: text/html\n" + 
+						"Cache-control: private\n\n"+
+						"OK1";
+
 
 	}
 	
@@ -34,7 +37,7 @@ public class PerformTestHandler implements IoHandler {
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		Logger.error(e.getMessage());
+		Logger.error(e.getMessage(),e);
 	}
 
 	@Override
