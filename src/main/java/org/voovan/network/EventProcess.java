@@ -7,6 +7,7 @@ import org.voovan.network.Event.EventName;
 import org.voovan.network.Event.EventState;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
@@ -159,7 +160,15 @@ public class EventProcess {
 		}
 	}
 
-	public static Object filterDecoder(Chain<IoFilter> filterChain,IoSession session,Object result) throws IoFilterException{
+	/**
+	 * 使用过滤器过滤解码结果
+	 * @param filterChain
+	 * @param session
+	 * @param result
+	 * @return
+	 * @throws IoFilterException
+	 */
+	 private static Object filterDecoder(Chain<IoFilter> filterChain,IoSession session,Object result) throws IoFilterException{
 		while (filterChain.hasNext()) {
 			IoFilter fitler = filterChain.next();
 			result = fitler.decode(session, result);
@@ -167,7 +176,15 @@ public class EventProcess {
 		return result;
 	}
 	
-	public static Object filterEncoder(Chain<IoFilter> filterChain,IoSession session,Object result) throws IoFilterException{
+	/**
+	 * 使用过滤器编码结果
+	 * @param filterChain
+	 * @param session
+	 * @param result
+	 * @return
+	 * @throws IoFilterException
+	 */
+	private static Object filterEncoder(Chain<IoFilter> filterChain,IoSession session,Object result) throws IoFilterException{
 		filterChain.rewind();
 		while (filterChain.hasNext()) {
 			IoFilter fitler = filterChain.next();
@@ -207,9 +224,14 @@ public class EventProcess {
 				&& event.getSession().sockContext() != null) {
 			SocketContext socketContext = event.getSession().sockContext();
 			IoSession session = event.getSession();
+			//如果是SocketDisconnectByRemote标示对端断开连接,则关闭 session.close();
+			if(e instanceof SocketDisconnectByRemote){
+				event.getSession().close();
+				return;
+			}
 			if (socketContext.handler() != null) {
 				socketContext.handler().onException(session, e);
-			}
+			} 
 		}
 	}
 
