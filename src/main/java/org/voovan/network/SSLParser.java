@@ -11,7 +11,6 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.log.Logger;
 
 /**
  * SSL 解析器
@@ -191,7 +190,6 @@ public class SSLParser {
 					break;
 				case NOT_HANDSHAKING:
 					handShakeDone = true;
-					Logger.debug("HandShake is done!");
 					break;
 				default:
 					break;
