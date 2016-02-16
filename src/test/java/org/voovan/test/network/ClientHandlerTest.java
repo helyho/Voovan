@@ -12,7 +12,7 @@ public class ClientHandlerTest implements IoHandler {
 	public Object onConnect(IoSession session) {
 		Logger.simple("onConnect");
 		session.setAttribute("key", "attribute value");
-		String msg = new String("test message");
+		String msg = new String("test message\r\n");
 		return msg;
 	}
 

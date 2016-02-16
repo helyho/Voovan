@@ -23,7 +23,7 @@ public class ServerHandlerTest implements IoHandler {
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
 		Logger.simple("Server onRecive: "+obj.toString());
-		return "===="+obj+" ===== ";
+		return "===="+obj.toString().trim()+" ===== \r\n";
 	}
 
 	@Override
