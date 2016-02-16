@@ -44,7 +44,6 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 		if(exc instanceof Exception){
 			//触发 onException 事件
 			eventTrigger.fireException(( Exception)exc);
-			
 		}
 	}
 

@@ -33,7 +33,7 @@ public class MimeFileRouter implements HttpBizHandler {
 	}
 
 	@Override
-	public void Process(HttpRequest request, HttpResponse response) throws Exception {
+	public void process(HttpRequest request, HttpResponse response) throws Exception {
 		String urlPath = request.protocol().getPath();
 		if (MimeTools.isMimeFile(urlPath)) {
 			// 获取扩展名

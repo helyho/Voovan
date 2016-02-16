@@ -28,6 +28,9 @@ public class WebSocketDispatcher {
 	 */
 	private Map<String, WebSocketBizHandler>	handlers;
 
+	private static final String IS_WEB_SOCKET = "isWebSocket";
+	private static final String WEB_SOCKET_ClOSE = "WebSocketClose";
+	
 	public enum WebSocketEvent {
 		OPEN, RECIVED, SENT, CLOSE
 	}
@@ -108,8 +111,8 @@ public class WebSocketDispatcher {
 	 */
 	public void fireCloseEvent(IoSession session){
 		//检查是否是WebSocket
-		if (session.containAttribute("isWebSocket") && (boolean) session.getAttribute("isWebSocket") &&
-				session.containAttribute("WebSocketClose") && (boolean) session.getAttribute("WebSocketClose") &&
+		if (session.containAttribute(IS_WEB_SOCKET) && (boolean) session.getAttribute(IS_WEB_SOCKET) &&
+				session.containAttribute(WEB_SOCKET_ClOSE) && (boolean) session.getAttribute(WEB_SOCKET_ClOSE) &&
 				!session.close()
 					) {
 				// 触发一个 WebSocket Close 事件

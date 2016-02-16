@@ -97,10 +97,7 @@ public class HttpSession {
 	 */
 	public boolean isInvalid(){
 		int intervalTime = (int)(System.currentTimeMillis() - lastTimeillis);
-		if(intervalTime>maxInactiveInterval){
-			return true;
-		}else{
-			return false;
-		}
+		return intervalTime > maxInactiveInterval;
+		
 	}
 }

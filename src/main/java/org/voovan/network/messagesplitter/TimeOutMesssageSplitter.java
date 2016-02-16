@@ -19,12 +19,7 @@ public class TimeOutMesssageSplitter implements MessageSplitter {
 			initTime = currentTime;
 		} 
 		
-		if(currentTime-initTime >= timeOut){
-			return true;
-		}else{
-			return false;
-		}
-		
+		return currentTime-initTime >= timeOut;
 	}
 
 }

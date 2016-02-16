@@ -13,5 +13,5 @@ package org.voovan.http.server;
  * Licence: Apache v2 License
  */
 public interface HttpBizHandler {
-	public void Process(HttpRequest request,HttpResponse response) throws Exception ;	
+	public void process(HttpRequest request,HttpResponse response) throws Exception ;	
 }

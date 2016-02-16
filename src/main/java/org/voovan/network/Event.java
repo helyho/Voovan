@@ -89,10 +89,7 @@ public class Event {
 	public boolean equals(Object obj){
 		if(obj instanceof Event){
 			Event compareEvent = TObject.cast( obj );
-			if(session.equals(compareEvent.session) && compareEvent.getName().equals(name))
-				return true;
-			else
-				return false;
+			return session.equals(compareEvent.session) && compareEvent.getName().equals(name);
 		}
 		else {
 			return false;

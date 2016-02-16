@@ -100,8 +100,7 @@ public class MessageLoader {
 				//读出数据
 				if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone){
 					readsize = session.readSSLData(oneByteBuffer);
-				}
-				else{
+				}else{
 					readsize = session.read(oneByteBuffer);
 				}
 				

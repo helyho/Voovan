@@ -94,7 +94,7 @@ public class HttpServerDemo {
 				}
 			});
 			
-			httpServer.Serve();
+			httpServer.serve();
 		} catch (IOException e) {
 			Logger.error(e);
 		}

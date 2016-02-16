@@ -128,7 +128,7 @@ public class HttpDispatcher {
 					diposeFilter(filterConfigs,request,response);
 					
 					//处理路由请求
-					handler.Process(request, response);
+					handler.process(request, response);
 					
 					//过滤器处理
 					diposeFilter(filterConfigs,request,response);
@@ -159,11 +159,7 @@ public class HttpDispatcher {
 		//转换成可以配置的正则,主要是处理:后的参数表达式
 		//把/home/:name转换成/home/[^/?]+来匹配
 		String regexPath = routeRegexPath.replaceAll(":[^/$]+", "[^/?]+");
-		if (TString.searchByRegex(requestPath, "^"+regexPath+"$").length>0){
-			return true;
-		}else{
-			return false;
-		}
+		return TString.searchByRegex(requestPath, "^"+regexPath+"$").length > 0;
 	}
 	
 	/**
@@ -178,15 +174,15 @@ public class HttpDispatcher {
 		String[] pathPieces = requestPath.substring(1,requestPath.length()).split("/");
 		String[] routePathPieces = routePath.substring(2, routePath.length()-1).split("/");
 		try{
-		for(int i=0;i<routePathPieces.length;i++){
-			String routePathPiece = routePathPieces[i];
-			if(routePathPiece.startsWith(":")){
-				String name = TString.removePrefix(routePathPiece);
-				String value = URLDecoder.decode(pathPieces[i], "UTF-8");
-				resultMap.put(name,value);
+			for(int i=0;i<routePathPieces.length;i++){
+				String routePathPiece = routePathPieces[i];
+				if(routePathPiece.startsWith(":")){
+					String name = TString.removePrefix(routePathPiece);
+					String value = URLDecoder.decode(pathPieces[i], "UTF-8");
+					resultMap.put(name,value);
+				}
 			}
-		}}
-		catch(UnsupportedEncodingException e){
+		}catch(UnsupportedEncodingException e){
 			Logger.error("RoutePath URLDecoder.decode failed by charset: UTF-8",e);
 		}
 		return resultMap;
@@ -254,11 +250,9 @@ public class HttpDispatcher {
 
 		//初始 error 定义,如果下面匹配到了定义的错误则定义的会被覆盖
 		Map<String, Object> error = new HashMap<String, Object>();
-		{
-			error.put("StatusCode", 500);
-			error.put("Page", "Error.html");
-			error.put("Description", stackInfo);
-		}
+		error.put("StatusCode", 500);
+		error.put("Page", "Error.html");
+		error.put("Description", stackInfo);
 		
 		//匹配 error 定义,如果有可用消息则会覆盖上面定义的初始内容
 		if (errorDefine.containsKey(className)) {

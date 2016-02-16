@@ -119,7 +119,7 @@ public class HttpServer {
 	 * 
 	 * @throws IOException
 	 */
-	public void Serve() throws IOException {
+	public void serve() throws IOException {
 		aioServerSocket.start();
 	}
 }

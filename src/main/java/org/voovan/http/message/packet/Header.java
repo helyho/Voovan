@@ -13,7 +13,7 @@ import java.util.Map.Entry;
  * Licence: Apache v2 License
  */
 public class Header {
-	private HashMap<String, String> headers;
+	private Map<String, String> headers;
 	
 	/**
 	 * 构造函数
@@ -26,7 +26,7 @@ public class Header {
 	 * 获取 Header  的 Map 对象
 	 * @return
 	 */
-	public HashMap<String,String> getHeaders() {
+	public Map<String,String> getHeaders() {
 		return headers;
 	}
 

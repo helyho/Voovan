@@ -37,9 +37,10 @@ public class SSLManager {
 	 * 构造函数
 	 * 		默认使用客户端认证
 	 * @param protocol    协议类型
+	 * @throws NoSuchAlgorithmException 
 	 * @throws Exception
 	 */
-	public SSLManager(String protocol) throws Exception{
+	public SSLManager(String protocol) throws NoSuchAlgorithmException{
 		this.useClientAuth = true;
 		this.protocol = protocol;
 		keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
@@ -89,7 +90,7 @@ public class SSLManager {
 	private void init(String protocol) throws SSLException {
 
 		if(TString.isNullOrEmpty(protocol) || protocol == null){
-			protocol = "SSL";
+			this.protocol = "SSL";
 		}
 		try {
 			context = SSLContext.getInstance(protocol);
