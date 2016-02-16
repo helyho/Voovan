@@ -12,7 +12,7 @@ public class AioSSLPerformTest  {
 		SSLManager sslManager = new SSLManager("TLS",false);
 		sslManager.loadCertificate(System.getProperty("user.dir")+"/src/test/java/org/voovan/test/network/ssl/ssl_ks", "passStr","123123");
 		
-		AioServerSocket serverSocket = new AioServerSocket("0.0.0.0",28081,500);
+		AioServerSocket serverSocket = new AioServerSocket("0.0.0.0",28081,5000);
 		serverSocket.setSSLManager(sslManager);
 		serverSocket.handler(new PerformTestHandler());
 		serverSocket.filterChain().add(new StringFilter());
