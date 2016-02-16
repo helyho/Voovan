@@ -131,10 +131,10 @@ public class EventTrigger {
 	}
 	
 	public boolean isHandShakeDone(){
-		if(session.getSSLParser()==null || session.getSSLParser().isHandShakeDone()){
+		if(session.getSSLParser()==null){
 			return true;
 		}else{
-			return false;
+			return session.getSSLParser().isHandShakeDone();
 		}
 	}
 	

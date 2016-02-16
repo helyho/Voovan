@@ -81,13 +81,12 @@ public class NioServerSocket extends SocketContext{
 	}
 
 	@Override
-	public boolean Close() {
+	public boolean close() {
 		if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
 			try{
 				serverSocketChannel.close();
 				return true;
-			}
-			catch(IOException e){
+			} catch(IOException e){
 				Logger.error("SocketChannel close failed",e);
 				return false;
 			}

@@ -130,10 +130,9 @@ public class WebServerConfig {
 		 */
 		public FilterConfig(Map<String, Object> configMap){
 			for(Entry<String, Object> entry : configMap.entrySet()){
-				if(entry.getKey().equalsIgnoreCase("Name")){
+				if("Name".equalsIgnoreCase(entry.getKey())){
 					this.name = (String)entry.getValue();
-				}
-				else if(entry.getKey().equalsIgnoreCase("ClassName")){
+				}else if("ClassName".equalsIgnoreCase(entry.getKey())){
 					this.className = (String)entry.getValue();
 				}else{
 					paramters.put(entry.getKey(), entry.getValue());

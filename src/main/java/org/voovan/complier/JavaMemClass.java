@@ -56,7 +56,7 @@ public class JavaMemClass extends SimpleJavaFileObject {
 				}
 			}
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			Logger.error(e.getMessage());
+			Logger.error(e.getMessage(),e);
 		}
     }
 }

@@ -137,32 +137,29 @@ public abstract class IoSession {
 	 * 读取SSL消息到缓冲区
 	 * @param buffer    接受数据的缓冲区
 	 * @return
+	 * @throws IOException 
+	 * @throws  
 	 */
-	protected int readSSLData(ByteBuffer buffer){
+	protected int readSSLData(ByteBuffer buffer) throws IOException{
 		int readSize = 0;
 		
 		ByteBuffer netBuffer = sslParser.buildAppDataBuffer();
 		ByteBuffer appBuffer = sslParser.buildAppDataBuffer();
-		try{
-			if(isConnect() && buffer!=null){
-				SSLEngineResult engineResult = null;
-				do{
-					netBuffer.clear();
-					appBuffer.clear();
-					if(read(netBuffer)!=0){
-						netDataBufferChannel.write(netBuffer);
-						engineResult = sslParser.unwarpData(netDataBufferChannel.getBuffer(), appBuffer);
-						appBuffer.flip();
-						appDataBufferChannel.write(appBuffer);
-					}
-				}while(engineResult==null?false:engineResult.getStatus() != Status.OK);
-				
-				readSize = appDataBufferChannel.read(buffer);
-			}
+		
+		if(isConnect() && buffer!=null){
+			SSLEngineResult engineResult = null;
+			do{
+				netBuffer.clear();
+				appBuffer.clear();
+				if(read(netBuffer)!=0){
+					netDataBufferChannel.write(netBuffer);
+					engineResult = sslParser.unwarpData(netDataBufferChannel.getBuffer(), appBuffer);
+					appBuffer.flip();
+					appDataBufferChannel.write(appBuffer);
+				}
+			}while(engineResult==null?false:engineResult.getStatus() != Status.OK);
 			
-		}
-		catch(IOException e){
-			Logger.error("Read SSL date failed.",e);
+			readSize = appDataBufferChannel.read(buffer);
 		}
 		return readSize;
 	}

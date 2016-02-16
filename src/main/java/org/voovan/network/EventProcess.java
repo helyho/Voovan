@@ -109,7 +109,6 @@ public class EventProcess {
 		SocketContext socketContext = event.getSession().sockContext();
 		IoSession session = event.getSession();
 		if (socketContext != null && session != null) {
-			
 			ByteBuffer byteBuffer = ByteBuffer.allocate(1);
 			
 			//循环读取完整的消息包,由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.
@@ -129,15 +128,13 @@ public class EventProcess {
 					return;
 				}
 
-				// -----------------Filter 解密处理-----------------
 				Object result = byteBuffer;
-
+				
 				// 取得过滤器链
 				Chain<IoFilter> filterChain = socketContext.filterChain().clone();
-				while (filterChain.hasNext()) {
-					IoFilter fitler = filterChain.next();
-					result = fitler.decode(session, result);
-				}
+				
+				// -----------------Filter 解密处理-----------------
+				result = filterDecoder(filterChain,session,result);
 				// -------------------------------------------------
 
 				// -----------------Handler 业务处理-----------------
@@ -150,17 +147,11 @@ public class EventProcess {
 				// 返回的结果不为空的时候才发送
 				if (result != null) {
 					// ------------------Filter 加密处理-----------------
-					filterChain.rewind();
-					while (filterChain.hasNext()) {
-						IoFilter fitler = filterChain.next();
-						result = fitler.encode(session, result);
-					}
+					result = filterEncoder(filterChain,session,result);
 					// ---------------------------------------------------
 
 					// 发送消息
-					if (result != null) {
-						sendMessage(session, result);
-					}
+					sendMessage(session, result);
 				}
 
 				filterChain.clear();
@@ -168,6 +159,24 @@ public class EventProcess {
 		}
 	}
 
+	public static Object filterDecoder(Chain<IoFilter> filterChain,IoSession session,Object result) throws IoFilterException{
+		while (filterChain.hasNext()) {
+			IoFilter fitler = filterChain.next();
+			result = fitler.decode(session, result);
+		}
+		return result;
+	}
+	
+	public static Object filterEncoder(Chain<IoFilter> filterChain,IoSession session,Object result) throws IoFilterException{
+		filterChain.rewind();
+		while (filterChain.hasNext()) {
+			IoFilter fitler = filterChain.next();
+			result = fitler.encode(session, result);
+		}
+		return result;
+	}
+	
+	
 	/**
 	 * 发送完成事件 发送后出发
 	 * 

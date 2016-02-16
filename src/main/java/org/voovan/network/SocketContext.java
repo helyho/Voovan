@@ -144,5 +144,5 @@ public abstract class SocketContext {
 	/**
 	 * 关闭连接
 	 */
-	public abstract boolean Close();
+	public abstract boolean close();
 }

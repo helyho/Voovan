@@ -45,8 +45,7 @@ public class SessionManager{
 			try {
 				String sessionContainerClassName = webConfig.getSessionContainer();
 				//根据 Class 构造一个 Session 容器
-				Map<String, HttpSession> sessionContainer = TReflect.newInstance(sessionContainerClassName);
-				return sessionContainer;
+				return TReflect.newInstance(sessionContainerClassName);
 			} catch (ReflectiveOperationException e) {
 				Logger.error("Reflective operation error.",e);
 				return null;
@@ -108,10 +107,8 @@ public class SessionManager{
 		synchronized(sessions){
 			if(cookie==null){
 				return false;
-			} else if (getSession(cookie) != null) {
-				return true;
-			} else {
-				return false;
+			} else { 
+				return getSession(cookie) != null;
 			}
 		}
 	}
