@@ -2,18 +2,22 @@ package org.voovan.network;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.voovan.tools.TString;
 
@@ -43,8 +47,6 @@ public class SSLManager {
 	public SSLManager(String protocol) throws NoSuchAlgorithmException{
 		this.useClientAuth = true;
 		this.protocol = protocol;
-		keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-		trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
 	}
 	
 	/**
@@ -54,14 +56,8 @@ public class SSLManager {
 	 * @throws SSLException 
 	 */
 	public SSLManager(String protocol,boolean useClientAuth) throws SSLException{
-		try{
 			this.useClientAuth = useClientAuth;
 			this.protocol = protocol;
-			keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-			trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-		} catch (NoSuchAlgorithmException e) {
-			throw new SSLException("Init SSLContext Error: "+e.getMessage(),e);
-		}
 	}
 	
 	/**
@@ -73,8 +69,12 @@ public class SSLManager {
 	 */
 	public void loadCertificate(String manageCertFile, String certPassword,String keyPassword) throws SSLException{
 		try{
+			keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+			trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+			
 			KeyStore manageKeystore = KeyStore.getInstance(KeyStore.getDefaultType());
 			manageKeystore.load(new FileInputStream(manageCertFile), certPassword.toCharArray());
+			
 			keyManagerFactory.init(manageKeystore, keyPassword.toCharArray());
 			trustManagerFactory.init(manageKeystore);
 		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException e) {
@@ -94,15 +94,21 @@ public class SSLManager {
 		}
 		try {
 			context = SSLContext.getInstance(protocol);
-			context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
-		} catch (NoSuchAlgorithmException | KeyManagementException e) {
+			if(keyManagerFactory!=null && trustManagerFactory!=null){
+				context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
+			}else{
+				context.init(new KeyManager[0],new TrustManager[]{new DefaultTrustManager()},new SecureRandom());
+			}
+			//NoSuchAlgorithmException | KeyManagementException |
+		} catch ( Exception e) {
+			
 			throw new SSLException("Init SSLContext Error: "+e.getMessage(),e);
 		}
 		
 	}
 	
 	/**
-	 * 获取Client 模式 SSLEngine
+	 * 构造SSLEngine
 	 * @return
 	 * @throws SSLException 
 	 */
@@ -132,5 +138,25 @@ public class SSLManager {
 		engine.setUseClientMode(false);
 		engine.setNeedClientAuth(useClientAuth);
 		return new SSLParser(engine, session);
+	}
+	
+	private static class DefaultTrustManager implements X509TrustManager {
+
+		@Override
+		public void checkClientTrusted(X509Certificate[] paramArrayOfX509Certificate, String paramString) throws CertificateException {
+			
+		}
+
+		@Override
+		public void checkServerTrusted(X509Certificate[] paramArrayOfX509Certificate, String paramString) throws CertificateException {
+			
+		}
+
+		@Override
+		public X509Certificate[] getAcceptedIssuers() {
+			// TODO Auto-generated method stub
+			return null;
+		}  
+		
 	}
 }
