@@ -9,13 +9,13 @@ public class PerformTestHandler implements IoHandler {
 	private String responseStr ;
 	
 	public PerformTestHandler(){
-		responseStr  =	"HTTP/1.1 200 OK\n" +
-						"Date: Wed, 10 Jun 2009 11:22:58 GMT\n" + 
-						"Server: Microsoft-IIS/6.0\n" + 
-						"X-Powered-By: ASP.NET\n" + 
-						"Content-Length: 2\n" + 
-						"Content-Type: text/html\n" + 
-						"Cache-control: private\n\n"+
+		responseStr  =	"HTTP/1.1 200 OK\r\n" +
+						"Date: Wed, 10 Jun 2009 11:22:58 GMT\r\n" + 
+						"Server: Microsoft-IIS/6.0\r\n" + 
+						"X-Powered-By: ASP.NET\r\n" + 
+						"Content-Length: 2\r\n" + 
+						"Content-Type: text/html\r\n" + 
+						"Cache-control: private\r\n\r\n"+
 						"OK";
 	}
 	
