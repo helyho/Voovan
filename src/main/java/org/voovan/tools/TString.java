@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  */
 public class TString {
 
-	private static Hashtable<String,Pattern> regexPattern = new Hashtable<String,Pattern>();
+	private static Hashtable<Integer,Pattern> regexPattern = new Hashtable<Integer,Pattern>();
 	
 	/**
 	 * 移除字符串前缀
@@ -119,10 +119,11 @@ public class TString {
 	 */
 	public static String[] searchByRegex(String source,String regex){
 		Pattern pattern = null;
-		if(regexPattern.contains(regex)){
-			pattern = regexPattern.get(regex);
+		if(regexPattern.containsKey(regex.hashCode())){
+			pattern = regexPattern.get(regex.hashCode());
 		}else{
 			pattern = Pattern.compile(regex);
+			regexPattern.put(regex.hashCode(), pattern);
 		}
 		Matcher matcher = pattern.matcher(source);
 		ArrayList<String> result = new ArrayList<String>();

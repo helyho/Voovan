@@ -38,10 +38,10 @@ public class HttpMessageSplitter implements MessageSplitter {
 		String[] contentLengthLines = TString.searchByRegex(bufferString, "Content-Length: .+[^\\r\\n]");
 
 		// 包含\r\n\r\n,这个时候报文有可能加载完成
-		if (bufferString.contains(BODY_TAG)) {
+		if (bufferString.endsWith(BODY_TAG)) {
 			// 1.包含 content Length 的则通过获取 contentLenght 来计算报文的总长度,长度相等时,返回成功
 			if (contentLengthLines.length == 1) {
-				int contentLength = Integer.valueOf(contentLengthLines[0].split(" ")[1]);
+				int contentLength = Integer.valueOf(contentLengthLines[0].split(" ")[1].trim());
 				int totalLength = bufferString.indexOf(BODY_TAG) + 4 + contentLength;
 				if (buffer.length == totalLength) {
 					return true;
@@ -59,7 +59,6 @@ public class HttpMessageSplitter implements MessageSplitter {
 			// 3. 如果是 HTTP 响应报文 chunk
 			// 则trim 后判断最后一个字符是否是 0
 			if (bufferString.contains("chunked") 
-					&& boundaryLines.length == 0 
 					&& bufferString.trim().endsWith("\r\n0")) {
 				return true;
 			}
