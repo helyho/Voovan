@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.voovan.http.message.Request.RequestType;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
+import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
@@ -38,7 +40,7 @@ public class HttpClient {
 	private Map<String, Object> parameters;
 	private String charset="UTF-8";
 	private HttpClientStatus status = HttpClientStatus.PREPARE;
-
+	private boolean isSSL;
 	
 	
 	/**
@@ -46,7 +48,9 @@ public class HttpClient {
 	 * @param urlString 请求的 URL 地址
 	 */
 	public  HttpClient(String urlString) {
+		isSSL = urlString.toLowerCase().startsWith("https://");
 		init(urlString,30);
+		
 	}
 	
 	/**
@@ -54,6 +58,7 @@ public class HttpClient {
 	 * @param urlString 请求的 URL 地址
 	 */
 	public  HttpClient(String urlString,int timeOut) {
+		isSSL = urlString.toLowerCase().startsWith("https://");
 		init(urlString,timeOut);
 	}
 	
@@ -62,8 +67,10 @@ public class HttpClient {
 	 * @param urlString 请求的 URL 地址
 	 */
 	public  HttpClient(String urlString,String charset,int timeOut) {
+		isSSL = urlString.toLowerCase().startsWith("https://");
 		this.charset = charset;
 		init(urlString,timeOut);
+		
 	}
 	
 	/**
@@ -71,18 +78,26 @@ public class HttpClient {
 	 * @param urlString 请求的 URL 地址
 	 */
 	public  HttpClient(String urlString,String charset) {
+		isSSL = urlString.toLowerCase().startsWith("https://");
 		this.charset = charset;
 		init(urlString,5);
+		
 	}
 	
 	private void init(String host,int timeOut){
 		try {
 			String hostString = host;
 			int port = 80;
-			if(host.toLowerCase().startsWith("http://")){
+			if(host.toLowerCase().startsWith("http")){
 				URL url = new URL(hostString);
 				hostString = url.getHost();
 				port = url.getPort();
+			}
+			
+			if(port==-1 && !isSSL){
+				port = 80;
+			}else if(port==-1 && isSSL){
+				port = 443;
 			}
 			
 			parameters = new HashMap<String, Object>();
@@ -102,6 +117,15 @@ public class HttpClient {
 			socket.filterChain().add(new HttpClientFilter());
 			socket.messageSplitter(new HttpMessageSplitter());
 			
+			if(isSSL){
+				try {
+					SSLManager sslManager = new SSLManager("TLS");
+					socket.setSSLManager(sslManager);
+				} catch (NoSuchAlgorithmException e) {
+					e.printStackTrace();
+				}
+			}
+			
 			Thread bThread = new Thread(new BackThread());
 			bThread.start();
 			
@@ -113,7 +137,15 @@ public class HttpClient {
 			Logger.error("HttpClient init error. ",e);
 		}
 	}
-	
+
+	/**
+	 * 后台线程
+	 * @author helyho
+	 *
+	 * Voovan Framework.
+	 * WebSite: https://github.com/helyho/Voovan
+	 * Licence: Apache v2 License
+	 */
 	private class BackThread implements Runnable{
 		public void run(){
 			try {
@@ -285,7 +317,11 @@ public class HttpClient {
 			buildRequest(TString.isNullOrEmpty(urlString)?"/":urlString);
 			
 			//发送报文
-			socket.getSession().send(ByteBuffer.wrap(request.asBytes()));
+			if(isSSL){
+				socket.getSession().sendSSLData(ByteBuffer.wrap(request.asBytes()));
+			}else{
+				socket.getSession().send(ByteBuffer.wrap(request.asBytes()));
+			}
 			
 			//等待获取 response并返回
 			while(isConnect() && !httpClientHandler.isHaveResponse()){
@@ -347,4 +383,13 @@ public class HttpClient {
 		return socket.isConnect();
 	}
 	
+	public static void main(String[] args) throws IOException {
+//		System.setProperty("javax.net.debug", "all");
+		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312",6000);
+		Response response  = getClient.setMethod("GET")
+			.putParameters("name", "测试Get")
+			.putParameters("age", "32").send("/test");
+		Logger.simple(response.body().getBodyString("GB2312"));
+		getClient.close();
+	}
 }
