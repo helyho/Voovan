@@ -52,7 +52,7 @@ public class HttpMessageSplitter implements MessageSplitter {
 			// POST方法的multipart/form-data类型,且没有指定ContentLength,则需要使用--boundary--的结尾形式来判断
 			if (bufferString.contains("multipart/form-data") 
 					&& boundaryLines.length == 1 
-					&& bufferString.trim().endsWith("--" + boundaryLines[0] + "--")) {
+					&& bufferString.trim().endsWith("--" + boundaryLines[0].replace("boundary=", "") + "--")) {
 				return true;
 			}
 			
