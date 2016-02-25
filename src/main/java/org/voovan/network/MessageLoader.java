@@ -125,7 +125,7 @@ public class MessageLoader {
 				}
 				
 				//使用消息划分器进行消息划分
-				else if(messageSplitter!=null && messageSplitter.canSplite(session,byteOutputStream.toByteArray())){
+				else if(messageSplitter!=null && readsize==1 && messageSplitter.canSplite(session,byteOutputStream.toByteArray())){
 					stopLoading();
 				}
 			}
