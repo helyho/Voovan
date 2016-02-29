@@ -385,7 +385,7 @@ public class HttpClient {
 	
 	public static void main(String[] args) throws IOException {
 //		System.setProperty("javax.net.debug", "all");
-		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312",6000);
+		HttpClient getClient = new HttpClient("https://www.baidu.com","GB2312",60000);
 		Response response  = getClient.setMethod("GET")
 			.putParameters("name", "测试Get")
 			.putParameters("age", "32").send("/test");
