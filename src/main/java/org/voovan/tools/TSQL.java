@@ -1,9 +1,17 @@
 package org.voovan.tools;
 
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.sql.Blob;
+import java.sql.CallableStatement;
+import java.sql.Clob;
 import java.sql.Connection;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,7 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.voovan.db.JdbcOperate.CallType;
 import org.voovan.tools.log.Logger;
+
+import com.alibaba.druid.sql.visitor.functions.Char;
 
 /**
  * SQL处理帮助类
@@ -61,7 +72,7 @@ public class TSQL {
 			//去掉前面:号
 			paramName = paramName.substring(2,paramName.length());
 			preparedStatement.setObject(i+1, params.get(paramName));
-			Logger.debug("Parameter: ["+sqlParams.get(i)+" = "+params.get(paramName)+"]");
+			Logger.debug("[SQL_Parameter]: "+sqlParams.get(i)+" = "+params.get(paramName));
 		}
 	}
 	
@@ -74,7 +85,7 @@ public class TSQL {
 	 * @throws SQLException
 	 */
 	public static PreparedStatement createPreparedStatement(Connection conn,String sqlStr,Map<String, Object> params) throws SQLException{
-		Logger.debug("Executed: " + sqlStr);
+		Logger.debug("[SQL_Executed]: " + sqlStr);
 		//获取参数列表
 		List<String> sqlParams = TSQL.getSqlParams(sqlStr);
 		//获取preparedStatement可用的 SQL
@@ -85,6 +96,74 @@ public class TSQL {
 			TSQL.setPreparedParams(preparedStatement,sqlParams,params);
 		}
 		return preparedStatement;
+	}
+	
+	/**
+	 * 创建PreparedStatement
+	 * @param conn      数据库连接
+	 * @param sqlStr    sql 自负穿
+	 * @param params    Map 参数
+	 * @return			PreparedStatement 对象
+	 * @throws SQLException
+	 */
+	public static CallableStatement createCallableStatement(Connection conn,String sqlStr,Map<String, Object> params,CallType[] callTypes) throws SQLException{
+		Logger.debug("[SQL_Executed]: " + sqlStr);
+		//获取参数列表
+		List<String> sqlParams = TSQL.getSqlParams(sqlStr);
+		//获取preparedStatement可用的 SQL
+		String preparedSql = TSQL.preparedSql(sqlStr);
+		
+		//定义 jdbc statement 对象
+		CallableStatement callableStatement = (CallableStatement) conn.prepareCall(preparedSql);
+
+		if(params!=null){
+			//callableStatement参数填充
+			TSQL.setPreparedParams(callableStatement,sqlParams,params);
+		}
+		
+		//根据存储过程参数定义,注册 OUT 参数
+		ParameterMetaData parameterMetaData = callableStatement.getParameterMetaData();
+		for(int i=0;i<parameterMetaData.getParameterCount();i++){
+			callableStatement.registerOutParameter(i+1,parameterMetaData.getParameterType(i+1));
+		}
+		
+		return callableStatement;
+	}
+	
+	/**
+	 * 解析存储过程结果集
+	 * @param callableStatement
+	 * @return
+	 * @throws SQLException
+	 * @throws ReflectiveOperationException
+	 */
+	public static List<Object> getCallableStatementResult(CallableStatement callableStatement) throws SQLException{
+		ArrayList<Object> result = new ArrayList<Object>();
+		ParameterMetaData parameterMetaData =  callableStatement.getParameterMetaData();
+		
+		//遍历参数信息
+		for(int i=0;i<parameterMetaData.getParameterCount();i++){
+			int paramMode = parameterMetaData.getParameterMode(i+1);
+			
+			//如果是带有 out 属性的参数,则对其进行取值操作
+			if(paramMode == ParameterMetaData.parameterModeOut || paramMode == ParameterMetaData.parameterModeInOut){
+				//取值方法名
+				String methodName =getDataMethod(parameterMetaData.getParameterType(i+1));
+				Object value;
+				try {
+					//获得取值方法参数参数是 int 类型的对应方法
+					Method method = TReflect.findMethod(CallableStatement.class,methodName,new Class[]{int.class});
+					
+					//反射调用方法
+					value = TReflect.invokeMethod(callableStatement, method,i+1);
+					result.add(value);
+					
+				} catch (ReflectiveOperationException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return result;
 	}
 	
 	/**
@@ -303,7 +382,7 @@ public class TSQL {
 			case java.sql.Types.REAL : 
 			         return  "getFloat";
 			case java.sql.Types.FLOAT : 
-			         return  "getDouble";
+			         return  "getFloat";
 			case java.sql.Types.DOUBLE : 
 			         return  "getDouble";
 			case java.sql.Types.BINARY : 
@@ -327,5 +406,51 @@ public class TSQL {
 			default:
 					return "getString";
 		}
+	}
+	
+	public static int getSqlTypes(Object obj){
+		Class<?> objectClass = obj.getClass();
+		if(Char.class == objectClass){
+	         return  java.sql.Types.CHAR;
+		}else if(String.class == objectClass){
+			 return java.sql.Types.VARCHAR ;
+		}else if(BigDecimal.class == objectClass){
+			 return java.sql.Types.NUMERIC;
+		}else if(Boolean.class == objectClass || Boolean.class == objectClass){
+			 return java.sql.Types.BIT;
+		}else if(Byte.class == objectClass){
+			 return java.sql.Types.TINYINT;
+		}else if(Short.class == objectClass){
+			 return java.sql.Types.SMALLINT;
+		}else if(Integer.class == objectClass){
+			 return java.sql.Types.INTEGER;
+		}else if(Long.class == objectClass){
+			 return java.sql.Types.BIGINT;
+		}else if(Float.class == objectClass){
+			 return java.sql.Types.REAL;
+		}else if(Float.class == objectClass){
+			 return java.sql.Types.FLOAT;
+		}else if(Double.class == objectClass){
+			 return java.sql.Types.DOUBLE;
+		}else if(Byte[].class == objectClass){
+			 return java.sql.Types.BINARY;
+		}else if(Byte[].class == objectClass){
+			 return java.sql.Types.VARBINARY;
+		}else if(Byte[].class == objectClass){
+			 return java.sql.Types.LONGVARBINARY;
+		}else if(Date.class == objectClass){
+			 return java.sql.Types.DATE;
+		}else if(Time.class == objectClass){
+			 return java.sql.Types.TIME;
+		}else if(Timestamp.class == objectClass){
+			 return java.sql.Types.TIMESTAMP;
+		}else if(Clob.class == objectClass){
+			 return java.sql.Types.CLOB;
+		}else if(Blob.class == objectClass){
+			 return java.sql.Types.BLOB;
+		}else if(Object[].class == objectClass){
+			 return java.sql.Types.ARRAY;
+		}
+		return 0;
 	}
 }
