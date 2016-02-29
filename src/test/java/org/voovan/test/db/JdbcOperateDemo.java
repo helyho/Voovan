@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.voovan.db.JdbcOperate;
+import org.voovan.db.JdbcOperate.CallType;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
@@ -51,12 +52,15 @@ public class JdbcOperateDemo {
 		
 		//事务测试
 		jOperate = new JdbcOperate(dataSource,true);
-		Logger.info(jOperate.update("update sc_script set version=0"));
-		Logger.info(jOperate.queryMapList("select * from sc_script"));
+		Logger.info("更新记录数:"+jOperate.update("update sc_script set version=0"));
+		Logger.simple("事务回滚前:"+jOperate.queryMapList("select version from sc_script"));
 		jOperate.rollback();
+		Logger.simple("失误回滚后:"+jOperate.queryMapList("select version from sc_script"));
 		
-		//调用存储过程(Mysql)
-		String llmm1 = jOperate.queryObject("call test",String.class);
-		Logger.info("xxxxx"+llmm1);
+		jOperate = new JdbcOperate(dataSource);
+		Map<String,Object> mmm = new HashMap<String,Object>();
+		mmm.put("arg1", "tttt");
+		Logger.info(jOperate.call("{call test(::arg1)}",new CallType[]{CallType.INOUT},mmm));
+		Logger.info(jOperate.call("{call test(::1)}",new CallType[]{CallType.INOUT},"1111"));
 	}
 }
