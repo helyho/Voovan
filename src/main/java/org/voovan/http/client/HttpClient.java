@@ -162,7 +162,7 @@ public class HttpClient {
 	 * @param method
 	 */
 	public HttpClient setMethod(String method){
-		if(status==HttpClientStatus.IDLE){
+		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED ){
 			request.protocol().setMethod(method);
 			return this;
 		}
@@ -174,7 +174,7 @@ public class HttpClient {
 	 * @return
 	 */
 	public Header getHeader(){
-		if(status==HttpClientStatus.IDLE){
+		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED){
 			return request.header();
 		}else{
 			return null;
@@ -186,7 +186,7 @@ public class HttpClient {
 	 * @return
 	 */
 	public HttpClient putHeader(String name ,String value){
-		if(status==HttpClientStatus.IDLE){
+		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED){
 			request.header().put(name, value);
 			return this;
 		}else{
@@ -199,7 +199,7 @@ public class HttpClient {
 	 * @return
 	 */
 	public List<Cookie> getCookies(){
-		if(status==HttpClientStatus.IDLE){
+		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED){
 			return request.cookies();
 		}else{
 			return new ArrayList<Cookie>();
@@ -211,7 +211,7 @@ public class HttpClient {
 	 * @return
 	 */
 	public Map<String,Object> getParameters(){
-		if(status==HttpClientStatus.IDLE){
+		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED){
 			return parameters;
 		}
 		return null;
@@ -220,10 +220,10 @@ public class HttpClient {
 	/**
 	 * 设置POST多段请求
 	 * 		类似 Form 的 Actiong="POST" enctype="multipart/form-data"
-	 * @param method
+	 * @param part
 	 */
 	public HttpClient addPart(Part part){
-		if(status==HttpClientStatus.IDLE){
+		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED){
 			request.parts().add(part);
 			return this;
 		}else{
@@ -238,7 +238,7 @@ public class HttpClient {
 	 * @return
 	 */
 	public HttpClient putParameters(String name,Object value){
-		if(status==HttpClientStatus.IDLE){
+		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED){
 			parameters.put(name, value);
 			return this;
 		}else{
