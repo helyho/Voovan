@@ -2,9 +2,9 @@ package org.voovan.http.message;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.Vector;
 
 import org.voovan.http.message.packet.Body;
 import org.voovan.http.message.packet.Cookie;
@@ -69,14 +69,14 @@ public class Request {
 	public Request() {
 		protocol = new RequestProtocol();
 		header = new Header();
-		cookies = new ArrayList<Cookie>();
+		cookies = new Vector<Cookie>();
 		body = new Body();
-		parts = new ArrayList<Part>();
+		parts = new Vector<Part>();
 	}
 
 	/**
 	 * 获取协议对象
-	 * 
+	 *
 	 * @return
 	 */
 	public RequestProtocol protocol() {
@@ -85,7 +85,7 @@ public class Request {
 
 	/**
 	 * 获取 Header 对象
-	 * 
+	 *
 	 * @return
 	 */
 	public Header header() {
@@ -94,7 +94,7 @@ public class Request {
 
 	/**
 	 * 获取所有的Cookies对象,返回一个 List
-	 * 
+	 *
 	 * @return
 	 */
 	public List<Cookie> cookies() {
@@ -103,7 +103,7 @@ public class Request {
 
 	/**
 	 * 获取 Body 对象
-	 * 
+	 *
 	 * @return
 	 */
 	public Body body() {
