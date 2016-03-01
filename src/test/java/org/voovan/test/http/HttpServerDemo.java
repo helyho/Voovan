@@ -11,7 +11,7 @@ import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
 public class HttpServerDemo {
-	private static byte[] fileContent = TFile.loadResource("org/voovan/test/http/test.htm");
+	private static byte[] fileContent = TFile.loadFileFromContextPath("WEBAPP/test.htm");
 	
 	public static void main(String[] args) {
 		try {

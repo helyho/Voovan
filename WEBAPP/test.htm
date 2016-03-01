@@ -1,0 +1,125 @@
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=GB2312"/>
+    <style type="text/css">
+        body {
+            font-size: 12px
+        }
+    </style>
+</head>
+<script lang="javascrit">
+    var wslocation;
+    var websocket;
+    var host;
+
+    function getHost() {
+        var url = window.location.href;
+        var first = url.indexOf("//");
+        var last = url.indexOf("/", first + 2);
+        var host = url.substring(first + 2, last)
+        return host;
+    }
+
+    host = getHost();
+
+    function wsopen() {
+        wslocation = "ws://" + host + "/websocket";
+        websocket = new WebSocket(wslocation);
+        websocket.onopen = function (evt) {
+            onOpen(evt)
+            //websocket.send('[CONN] This send by connection');
+        };
+        websocket.onclose = function (evt) {
+            onClose(evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage(evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(evt)
+        };
+
+        function onOpen(evt) {
+            alert("连接成功.");
+        }
+
+        function onClose(evt) {
+            alert("断开连接");
+        }
+
+        function onMessage(evt) {
+            alert("收到消息: \r\n" + evt.data);
+        }
+
+        function onError(evt) {
+            alert('连接失败: ' + evt);
+        }
+    }
+
+    function wssend() {
+        websocket.send('[SEND] This is send by "Send" button.');
+        websocket.send('serial send,small package demo.');
+    }
+
+    function wsclose() {
+        websocket.close();
+    }
+
+    function mySubmit(type) {
+        var name = document.getElementById('name').value;
+        var age = document.getElementById('age').value;
+
+        if (type.indexOf("mu") == 0 || type.indexOf("app") == 0) {
+            var testFrom = document.getElementById('testForm');
+            testFrom.enctype = type;
+            testForm.submit()
+        } else if (type == "normal/get") {
+            window.location = "http://" + host + "/?name=" + name + "&age=" + age;
+        } else if (type == "path/get") {
+            window.location = "http://" + host + "/" + encodeURI(name) + "/" + encodeURI(age);
+        }
+    }
+</script>
+<body>
+<img src="img/logo.jpg"/>
+<div>
+    <h1>Voovan HTTP 服务器测试页面</h1>
+</div>
+<div>
+    <a href="https://os.voovan.com">【项目主页】</a>
+    <a href="https://github.com/helyho/Voovan/blob/master/src/test/java/org/voovan/test/http/test.htm">【前台源码】</a>
+    <a href="https://github.com/helyho/Voovan/blob/master/src/test/java/org/voovan/test/http/HttpServerDemo.java">【后台源码】</a>
+</div>
+<!-- enctype="multipart/form-data" -->
+<form id="testForm" action="/" method="post">
+
+    <hr>
+    <div>中文展示测试,用于测试编码</div>
+    <hr>
+    <h4>测试参数表单</h4>
+    <div>
+        Name: <input id="name" name="name" type="text" value="中文测试"/>
+    </div>
+    <div style="margin:5 0 0 11">
+        Age: <input id="age" name="age" type="text" value="100">
+    </div>
+    <hr>
+    <div>
+        GET方法测试: <input style="margin:5 0 0 30" type="button" value="NormalGet" onClick="mySubmit('normal/get')">
+        <input type="button" value="PathGet" onClick="mySubmit('path/get')">
+    </div>
+    <div>
+        POST方法测试: <input style="margin:5 0 0 23" type="button" value="URLEncoded"
+                         onClick="mySubmit('application/x-www-form-urlencoded')">
+        <input type="button" value="MultiPart" onClick="mySubmit('multipart/form-data')">
+    </div>
+    <div>
+        WEBSOCKET测试: <input style="margin:5 0 0 5" type="button" onclick="wsopen()" value="Open">
+        <input type="button" onclick="wssend()" value="Send">
+        <input type="button" onclick="wsclose()" value="Close">
+    </div>
+</form>
+<hr>
+<div><h4>服务器接收参数展示:</h4></div>
+</body>
+</html>
