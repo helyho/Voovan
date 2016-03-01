@@ -162,11 +162,8 @@ public class HttpClient {
 	 * @param method
 	 */
 	public HttpClient setMethod(String method){
-		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED ){
-			request.protocol().setMethod(method);
-			return this;
-		}
-		return null;
+		request.protocol().setMethod(method);
+		return this;
 	}
 	
 	/**
@@ -174,11 +171,7 @@ public class HttpClient {
 	 * @return
 	 */
 	public Header getHeader(){
-		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED){
-			return request.header();
-		}else{
-			return null;
-		}
+		return request.header();
 	}
 	
 	/**
@@ -186,12 +179,8 @@ public class HttpClient {
 	 * @return
 	 */
 	public HttpClient putHeader(String name ,String value){
-		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED){
-			request.header().put(name, value);
-			return this;
-		}else{
-			return null;
-		}
+		request.header().put(name, value);
+		return this;
 	}
 	
 	/**
@@ -199,11 +188,7 @@ public class HttpClient {
 	 * @return
 	 */
 	public List<Cookie> getCookies(){
-		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED){
-			return request.cookies();
-		}else{
-			return new ArrayList<Cookie>();
-		}
+		return request.cookies();
 	}
 	
 	/**
@@ -211,10 +196,7 @@ public class HttpClient {
 	 * @return
 	 */
 	public Map<String,Object> getParameters(){
-		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED){
-			return parameters;
-		}
-		return null;
+		return parameters;
 	}
 	
 	/**
@@ -223,12 +205,8 @@ public class HttpClient {
 	 * @param part
 	 */
 	public HttpClient addPart(Part part){
-		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED){
-			request.parts().add(part);
-			return this;
-		}else{
-			return null;
-		}
+		request.parts().add(part);
+		return this;
 	}
 	
 	/**
@@ -238,12 +216,8 @@ public class HttpClient {
 	 * @return
 	 */
 	public HttpClient putParameters(String name,Object value){
-		if(status==HttpClientStatus.IDLE || status==HttpClientStatus.CLOSED){
-			parameters.put(name, value);
-			return this;
-		}else{
-			return null;
-		}
+		parameters.put(name, value);
+		return this;
 	}
 	
 	public HttpClientStatus getStatus() {
