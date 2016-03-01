@@ -29,8 +29,6 @@ public class WebContext {
 	private static String version = "Voovan-HTTP-Server/V0.97";
 	
 	private static String sessionName = "VOOVAN_SESSIONID";
-	
-	private static ThreadPoolExecutor threadPool = ThreadPool.getThreadPool();
 
 	/**
 	 * Web Config
@@ -52,13 +50,7 @@ public class WebContext {
 		
 	}
 	
-	/**
-	 * 返回公用线程池
-	 * @return
-	 */
-	public static ThreadPoolExecutor getThreadPool(){
-		return threadPool;
-	}
+
 															
 	/**
 	 * 从 js 配置文件读取配置信息到 Map
