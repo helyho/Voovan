@@ -213,8 +213,7 @@ public class HttpParser {
 	 * 			3.cookie   解析成 List<Map<String,String>> 形式
 	 * 			3.part     解析成 List<Map<Stirng,Object>>(因为是递归,参考 HTTP 解析形式) 形式
 	 * 			5.body     解析成 key="value" 的Map 元素
-	 * @param source
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public static Map<String, Object> parser(InputStream sourceInputStream) throws IOException{
 		Map<String, Object> packetMap = new HashMap<String, Object>();
@@ -393,7 +392,7 @@ public class HttpParser {
 					for(Entry<String, Object> parsedPartMapItem : parsedPartMap.entrySet()){
 						//填充 Value 中的值到 body 中
 						if(parsedPartMapItem.getKey().equals(STATIC_VALUE)){
-							part.body().write(TObject.cast(parsedPartMapItem.getValue()));
+							part.body().write((byte[])parsedPartMapItem.getValue());
 						}else{
 							//填充 header
 							String partedHeaderKey = parsedPartMapItem.getKey();
@@ -456,7 +455,7 @@ public class HttpParser {
 				}
 				break;
 			case STATIC_VALUE:
-				response.body().write(TObject.cast(parsedPacketEntry.getValue()));
+				response.body().write((byte[])parsedPacketEntry.getValue());
 				break;
 			default:
 				response.header().put(parsedPacketEntry.getKey(), parsedPacketEntry.getValue().toString());
