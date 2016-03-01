@@ -5,7 +5,13 @@ import org.voovan.tools.threadpool.ThreadPool;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * Created by helyho on 16/3/1.
+ * 全局对象
+ *
+ * @author helyho
+ *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class Global {
 
