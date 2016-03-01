@@ -154,7 +154,6 @@ public class SSLManager {
 
 		@Override
 		public X509Certificate[] getAcceptedIssuers() {
-			// TODO Auto-generated method stub
 			return null;
 		}  
 		
