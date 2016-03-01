@@ -33,7 +33,7 @@ public class EventTrigger {
 	 */
 	public EventTrigger(IoSession session){
 		this.session = session;
-		eventThreadPool = WebContext.getThreadPool();
+		eventThreadPool = Global.getThreadPool();
 		eventPool = new Vector<Event>();
 	}
 	
@@ -41,7 +41,7 @@ public class EventTrigger {
 	 * 无参数构造函数
 	 */
 	public EventTrigger(){
-		eventThreadPool = WebContext.getThreadPool();
+		eventThreadPool = Global.getThreadPool();
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		eventThreadPool.allowCoreThreadTimeOut(true);
 	}
@@ -173,7 +173,6 @@ public class EventTrigger {
 	 * 		根据事件启动 EventThread 来处理事件
 	 * @param session  当前连接会话
 	 * @param name     事件名称
-	 * @param exception
 	 */
 	public void fireEventThread(IoSession session,Event.EventName name,Object other){
 		if(!eventThreadPool.isShutdown()){
@@ -199,7 +198,6 @@ public class EventTrigger {
 	 * 		根据事件启动 EventThread 来处理事件
 	 * @param session  当前连接会话
 	 * @param name     事件名称
-	 * @param exception
 	 */
 	public void fireEvent(IoSession session,Event.EventName name,Object other){
 		Event event = Event.getInstance(session,name,other);
@@ -211,7 +209,6 @@ public class EventTrigger {
 	 * 事件触发
 	 * 		根据事件启动 EventThread 来处理事件
 	 * @param name     事件名称
-	 * @param exception
 	 */
 	public void fireEvent(Event.EventName name,Object other){
 		fireEvent(session, name,other);
