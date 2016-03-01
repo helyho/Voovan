@@ -1,12 +1,12 @@
 {
 	// 服务 IP 地址,默认0.0.0.0
-	"Host"   			: "0.0.0.0", 
+	"Host"   			: "0.0.0.0",
 	// 服务端口,默认8080
 	"Port"   			: 28080,		
 	// 连接超时时间(s),默认30秒
 	"Timeout"			: 30,
 	// 上下文路径,绝对路径 "/"起始,相对路径 非"/" 起始
-	"ContextPath"		: "",// /home/helyho/HttpServerDemo/WebApp
+	"ContextPath"		: "WEBAPP",// /home/helyho/HttpServerDemo/WebApp
 	// 默认字符集,默认 UTF-8
 	"CharacterSet"		: "GB2312",
 	// Session 容器类,默认java.util.Hashtable
