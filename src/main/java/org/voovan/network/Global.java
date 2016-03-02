@@ -15,13 +15,16 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public class Global {
 
-    private static ThreadPoolExecutor threadPool = ThreadPool.getThreadPool();
+    private static ThreadPoolExecutor threadPool;
 
     /**
      * 返回公用线程池
      * @return
      */
     public static ThreadPoolExecutor getThreadPool(){
+       if(threadPool==null || threadPool.isShutdown()){
+           threadPool = ThreadPool.getThreadPool();
+       }
         return threadPool;
     }
 }
