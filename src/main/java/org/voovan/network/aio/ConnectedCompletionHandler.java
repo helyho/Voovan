@@ -17,20 +17,24 @@ public class ConnectedCompletionHandler implements CompletionHandler<Void, AioSo
 
 	private EventTrigger eventTrigger;
 
-	private boolean isFinished;
+	private boolean finished;
 	public ConnectedCompletionHandler(EventTrigger eventTrigger){
 		this.eventTrigger = eventTrigger;
-		isFinished = false;
+		finished = false;
 	}
 
-	public boolean isFinished() {
-		return isFinished;
+	/**
+	 * 获取是否完成 connect 操作
+     */
+	public synchronized boolean isFinished() {
+		return finished;
 	}
 
 	@Override
 	public void completed(Void arg1,  AioSocket socketContext) {
 		// 不处理,这个方法原来是要触发 onConnect 事件,现在移到 AioSocket 的 start 方法触发。
-		isFinished = true;
+		finished = true;
+
 	}
 
 	@Override
