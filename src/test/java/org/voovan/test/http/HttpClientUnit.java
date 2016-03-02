@@ -68,9 +68,10 @@ public class HttpClientUnit extends TestCase {
 	}
 	
 	public void testSeriesRequest() throws Exception {
-		HttpClient httpClient = new HttpClient("http://www.baidu.com",10);
-		Logger.simple(httpClient.send("s?wd=aa").body().getBodyString());
-		Logger.simple(httpClient.send("s?wd=bbb").body().getBodyString());
+		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080","GBK2312",10);
+		Logger.simple(httpClient.send("/").body().getBodyString());
+		Logger.simple("=========================================");
+		Logger.simple(httpClient.send("/test").body().getBodyString());
 		httpClient.close();
 	}
 }

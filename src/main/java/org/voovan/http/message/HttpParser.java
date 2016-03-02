@@ -59,6 +59,7 @@ public class HttpParser {
 	 * 解析协议信息
 	 * 		http 头的第一行
 	 * @param protocolLine
+	 *              Http 报文协议行字符串
 	 * @throws UnsupportedEncodingException 
 	 */
 	private static Map<String, Object> parseProtocol(String protocolLine) throws UnsupportedEncodingException{
@@ -90,6 +91,7 @@ public class HttpParser {
 	/**
 	 * 解析 HTTP Header属性行
 	 * @param propertyLine
+     *              Http 报文头属性行字符串
 	 * @return
 	 */
 	private static Map<String,String> parsePropertyLine(String propertyLine){
@@ -106,6 +108,7 @@ public class HttpParser {
 	/**
 	 * 解析字符串中的所有等号表达式成 Map
 	 * @param str
+     *              等式表达式
 	 * @return
 	 */
 	public static Map<String, String> getEqualMap(String str){
@@ -134,8 +137,8 @@ public class HttpParser {
 	 * 		可以从字符串 Content-Type: multipart/form-data; boundary=ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm
 	 * 		直接解析出boundary的值.
 	 * 		使用方法:getPerprotyEqualValue(packetMap,"Content-Type","boundary")获得ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm
-	 * @param propertyName
-	 * @param valueName
+	 * @param propertyName   属性名
+	 * @param valueName      属性值
 	 * @return
 	 */
 	private static String getPerprotyEqualValue(Map<String,Object> packetMap,String propertyName,String valueName){
@@ -146,8 +149,8 @@ public class HttpParser {
 	
 	/**
 	 * 处理消息的Cookie
-	 * @param packetMap
-	 * @param cookieLine
+	 * @param packetMap         报文 MAp 对象
+	 * @param cookieLine        Http 头中 Cookie 报文行
 	 */
 	@SuppressWarnings("unchecked")
 	private static void parseCookie(Map<String, Object> packetMap,String cookieLine){
@@ -323,8 +326,7 @@ public class HttpParser {
 				}
 
 				break;
-			}
-			if(!isBodyConent){
+			}else{
 				headerLength = headerLength+currentLine.length()+2;
 			}
 		}
@@ -335,8 +337,8 @@ public class HttpParser {
 	
 	/**
 	 * 解析报文成 HttpRequest 对象
-	 * @param inputStream
-	 * @return
+	 * @param inputStream  输入字节流
+	 * @return   返回请求报文
 	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
@@ -419,8 +421,8 @@ public class HttpParser {
 	
 	/**
 	 * 解析报文成 HttpResponse 对象
-	 * @param inputStream
-	 * @return
+	 * @param inputStream  输入字节流
+	 * @return   返回响应报文
 	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")

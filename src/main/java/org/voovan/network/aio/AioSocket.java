@@ -55,7 +55,6 @@ public class AioSocket extends SocketContext {
 	 * 构造函数
 	 * 
 	 * @param socketChannel
-	 * @param readTimeout
 	 * @throws IOException
 	 */
 	protected AioSocket(SocketContext parentSocketContext, AsynchronousSocketChannel socketChannel) throws IOException {
@@ -86,7 +85,7 @@ public class AioSocket extends SocketContext {
 		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
 		socketChannel.connect(socketAddress, this, connectedCompletionHandler);
 		while(true){
-			if(socketChannel.getRemoteAddress()!=null){
+			if(connectedCompletionHandler.isFinished()){
 				break;
 			}
 		}
