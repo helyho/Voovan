@@ -75,14 +75,13 @@ package org.voovan.test.network.ssl;
  *	unwrap()	...		Finished
  */
 
-import javax.net.ssl.*;
-import javax.net.ssl.SSLEngineResult.*;
-
 import org.voovan.tools.log.Logger;
 
-import java.io.*;
-import java.security.*;
-import java.nio.*;
+import javax.net.ssl.*;
+import javax.net.ssl.SSLEngineResult.HandshakeStatus;
+import java.io.FileInputStream;
+import java.nio.ByteBuffer;
+import java.security.KeyStore;
 
 public class SSLEngineSimpleDemo {
 

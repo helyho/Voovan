@@ -1,10 +1,10 @@
 package org.voovan.tools;
 
+import org.voovan.tools.log.Logger;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-
-import org.voovan.tools.log.Logger;
 
 /**
  * hash 算法类

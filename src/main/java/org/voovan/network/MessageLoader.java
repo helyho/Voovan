@@ -1,11 +1,11 @@
 package org.voovan.network;
 
+import org.voovan.network.exception.SocketDisconnectByRemote;
+import org.voovan.tools.TEnv;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import org.voovan.network.exception.SocketDisconnectByRemote;
-import org.voovan.tools.TEnv;
 
 
 /**

@@ -1,8 +1,7 @@
 package org.voovan.test.tools.json;
 
-import org.voovan.tools.json.JSONEncode;
-
 import junit.framework.TestCase;
+import org.voovan.tools.json.JSONEncode;
 
 public class JSONEncodeUnit extends TestCase {
 

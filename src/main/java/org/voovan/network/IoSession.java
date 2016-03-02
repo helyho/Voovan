@@ -1,15 +1,14 @@
 package org.voovan.network;
 
+import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.log.Logger;
+
+import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLEngineResult.Status;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Hashtable;
 import java.util.Map;
-
-import javax.net.ssl.SSLEngineResult;
-import javax.net.ssl.SSLEngineResult.Status;
-
-import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.log.Logger;
 
 
 /**

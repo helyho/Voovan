@@ -1,8 +1,8 @@
 package org.voovan.network;
 
-import java.io.IOException;
-
 import org.voovan.tools.Chain;
+
+import java.io.IOException;
 
 /**
  * socket 上下文

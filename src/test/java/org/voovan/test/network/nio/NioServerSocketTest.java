@@ -1,11 +1,11 @@
 package org.voovan.test.network.nio;
 
-import java.io.IOException;
-
 import org.voovan.network.filter.StringFilter;
 import org.voovan.network.messagesplitter.LineMessageSplitter;
 import org.voovan.network.nio.NioServerSocket;
 import org.voovan.test.network.ServerHandlerTest;
+
+import java.io.IOException;
 
 public class NioServerSocketTest  {
 

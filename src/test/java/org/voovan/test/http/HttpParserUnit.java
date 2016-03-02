@@ -1,12 +1,11 @@
 package org.voovan.test.http;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-
+import junit.framework.TestCase;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 
-import junit.framework.TestCase;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 public class HttpParserUnit extends TestCase {
 

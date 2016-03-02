@@ -1,10 +1,10 @@
 package org.voovan.network.filter;
 
-import java.nio.ByteBuffer;
-
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TObject;
+
+import java.nio.ByteBuffer;
 
 /**
  * String 过滤器
