@@ -1,12 +1,11 @@
 package org.voovan.test.http;
 
 
+import junit.framework.TestCase;
 import org.voovan.http.client.HttpClient;
 import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Part;
 import org.voovan.tools.log.Logger;
-
-import junit.framework.TestCase;
 
 /**
  * 测试用例中的方法需要单独执行

@@ -1,12 +1,12 @@
 package org.voovan.http.server.websocket;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-
 import org.voovan.http.message.Request;
 import org.voovan.http.message.packet.Header;
 import org.voovan.tools.log.Logger;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 /**
  * WebSocket 工具类

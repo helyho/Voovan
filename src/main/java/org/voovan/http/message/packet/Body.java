@@ -1,11 +1,11 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.tools.TZip;
+import org.voovan.tools.log.Logger;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-
-import org.voovan.tools.TZip;
-import org.voovan.tools.log.Logger;
 
 /**
  * HTTP的内容对象

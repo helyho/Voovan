@@ -1,16 +1,15 @@
 package org.voovan.network;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
+import org.voovan.tools.ByteBufferChannel;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLEngineResult.HandshakeStatus;
-
-import org.voovan.tools.ByteBufferChannel;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * SSL 解析器

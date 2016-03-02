@@ -1,11 +1,7 @@
 package org.voovan.test.db;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.pool.DruidDataSourceFactory;
 import org.voovan.db.JdbcOperate;
 import org.voovan.db.JdbcOperate.CallType;
 import org.voovan.tools.TEnv;
@@ -13,8 +9,11 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.log.Logger;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.druid.pool.DruidDataSourceFactory;
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 public class JdbcOperateDemo {
 	public static void main(String[] args) throws Exception {
