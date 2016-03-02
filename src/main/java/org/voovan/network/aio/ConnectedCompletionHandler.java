@@ -16,13 +16,21 @@ import org.voovan.network.EventTrigger;
 public class ConnectedCompletionHandler implements CompletionHandler<Void, AioSocket>{
 
 	private EventTrigger eventTrigger;
+
+	private boolean isFinished;
 	public ConnectedCompletionHandler(EventTrigger eventTrigger){
 		this.eventTrigger = eventTrigger;
+		isFinished = false;
 	}
-	
+
+	public boolean isFinished() {
+		return isFinished;
+	}
+
 	@Override
 	public void completed(Void arg1,  AioSocket socketContext) {
 		// 不处理,这个方法原来是要触发 onConnect 事件,现在移到 AioSocket 的 start 方法触发。
+		isFinished = true;
 	}
 
 	@Override
