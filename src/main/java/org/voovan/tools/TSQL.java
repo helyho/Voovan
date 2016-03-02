@@ -1,31 +1,17 @@
 package org.voovan.tools;
 
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.sql.Blob;
-import java.sql.CallableStatement;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.ParameterMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
+import com.alibaba.druid.sql.visitor.functions.Char;
 import org.voovan.db.JdbcOperate.CallType;
 import org.voovan.tools.log.Logger;
 
-import com.alibaba.druid.sql.visitor.functions.Char;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Date;
+import java.util.Map.Entry;
 
 /**
  * SQL处理帮助类

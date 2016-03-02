@@ -1,15 +1,15 @@
 package org.voovan.http.client;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.tools.TObject;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * HTTP 请求过滤器

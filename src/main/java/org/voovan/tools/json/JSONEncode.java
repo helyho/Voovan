@@ -1,11 +1,11 @@
 package org.voovan.tools.json;
 
+import org.voovan.tools.TObject;
+import org.voovan.tools.TReflect;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import org.voovan.tools.TObject;
-import org.voovan.tools.TReflect;
 
 /**
  * JSON打包类

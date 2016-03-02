@@ -1,11 +1,11 @@
 package org.voovan.network.messagesplitter;
 
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.tools.TString;
+
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
 
 /**
  * Http 消息分割类

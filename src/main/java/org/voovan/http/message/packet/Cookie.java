@@ -1,9 +1,9 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.http.message.Request;
+
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.voovan.http.message.Request;
 
 /**
  *  HTTP 的 cookie 对象

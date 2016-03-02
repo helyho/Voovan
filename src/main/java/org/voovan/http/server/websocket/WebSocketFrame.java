@@ -1,10 +1,10 @@
 package org.voovan.http.server.websocket;
 
+import org.voovan.tools.log.Logger;
+
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Random;
-
-import org.voovan.tools.log.Logger;
 
 /**
  * WebSocket帧解析类

@@ -1,18 +1,17 @@
 package org.voovan.network.nio;
 
+import org.voovan.network.ConnectModel;
+import org.voovan.network.SocketContext;
+import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
+import org.voovan.tools.log.Logger;
+
+import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
-
-import javax.net.ssl.SSLException;
-
-import org.voovan.network.ConnectModel;
-import org.voovan.network.SocketContext;
-import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
-import org.voovan.tools.log.Logger;
 
 /**
  * NioSocket 连接

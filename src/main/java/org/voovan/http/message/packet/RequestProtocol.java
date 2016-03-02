@@ -1,9 +1,9 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.tools.log.Logger;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-
-import org.voovan.tools.log.Logger;
 
 /**
  * HTTP 请求的协议对象

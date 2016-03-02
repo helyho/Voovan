@@ -1,11 +1,10 @@
 package org.voovan.test.tools;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
+import junit.framework.TestCase;
 import org.voovan.tools.ByteBufferChannel;
 
-import junit.framework.TestCase;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class ByteBufferChannelUnit extends TestCase {
 	

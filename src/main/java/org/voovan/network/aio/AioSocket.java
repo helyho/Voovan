@@ -1,19 +1,18 @@
 package org.voovan.network.aio;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.SSLException;
-
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
+
+import javax.net.ssl.SSLException;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.util.concurrent.TimeUnit;
 
 /**
  * AioSocket 连接

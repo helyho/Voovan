@@ -1,12 +1,12 @@
 package org.voovan.tools;
 
+import org.voovan.tools.log.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Properties;
-
-import org.voovan.tools.log.Logger;
 
 /**
  * properties文件操作类

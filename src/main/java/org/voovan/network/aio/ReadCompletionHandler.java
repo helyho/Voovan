@@ -1,14 +1,14 @@
 package org.voovan.network.aio;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousCloseException;
-import java.nio.channels.CompletionHandler;
-
 import org.voovan.network.EventTrigger;
 import org.voovan.network.MessageLoader;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TObject;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.CompletionHandler;
 
 /**
  * Aio 读取事件

@@ -1,20 +1,16 @@
 package org.voovan.http.message;
 
+import org.voovan.http.message.packet.*;
+import org.voovan.http.message.packet.Part.PartType;
+import org.voovan.tools.THash;
+import org.voovan.tools.TString;
+import org.voovan.tools.log.Logger;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
-
-import org.voovan.http.message.packet.Body;
-import org.voovan.http.message.packet.Cookie;
-import org.voovan.http.message.packet.Header;
-import org.voovan.http.message.packet.Part;
-import org.voovan.http.message.packet.RequestProtocol;
-import org.voovan.http.message.packet.Part.PartType;
-import org.voovan.tools.THash;
-import org.voovan.tools.TString;
-import org.voovan.tools.log.Logger;
 
 /**
  * HTTP 请求对象
