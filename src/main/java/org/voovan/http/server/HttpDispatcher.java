@@ -267,7 +267,7 @@ public class HttpDispatcher {
 			errorPageContent = TString.tokenReplace(errorPageContent, "RequestPath", requestPath);
 			errorPageContent = TString.tokenReplace(errorPageContent, "ErrorMessage", errorMessage);
 			errorPageContent = TString.tokenReplace(errorPageContent, "Description", error.get("Description").toString());
-			errorPageContent = TString.tokenReplace(errorPageContent, "Version", WebContext.getVersion());
+			errorPageContent = TString.tokenReplace(errorPageContent, "Version", WebContext.getVERSION());
 			response.clear();
 			response.write(errorPageContent);
 		}
