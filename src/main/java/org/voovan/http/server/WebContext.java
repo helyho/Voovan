@@ -6,7 +6,6 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.log.SingleLogger;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -20,25 +19,28 @@ import java.util.Map;
  */
 public class WebContext {
 	
-	private static String version = "Voovan-HTTP-Server/V0.97";
+	private static final String VERSION = "Voovan-HTTP-Server/V0.97";
 	
-	private static String sessionName = "VOOVAN_SESSIONID";
+	private static final String SESSION_NAME = "VOOVAN_SESSIONID";
 
 	/**
 	 * Web Config
 	 */
-	private static Map<String, Object>	webConfig	= loadMapFromFile("/Config/web.js");
+	private static final Map<String, Object> WEB_CONFIG = loadMapFromFile("/Config/web.js");
 
 	/**
 	 * MimeMap
 	 */
-	private static Map<String, Object>	mimeTypes	= loadMapFromFile("/Config/mime.js");
+	private static final Map<String, Object> MIME_TYPES = loadMapFromFile("/Config/mime.js");
 	/**
 	 * 错误输出 Map
 	 */
-	private static Map<String, Object>	errorDefine	= loadMapFromFile("/Config/error.js");
-	
-	private static SingleLogger accessLogger = null;
+	private static final Map<String, Object> ERROR_DEFINE = loadMapFromFile("/Config/error.js");
+
+	/**
+	 *  accessLog 的文件路径
+	 */
+	private static final String ACCESS_LOG_FILE_NAME = TEnv.getContextPath()+File.separator+"logs"+File.separator+"access.log";
 	
 	private WebContext(){
 		
@@ -135,15 +137,7 @@ public class WebContext {
 	 * @param response
 	 */
 	public static void writeAccessLog(HttpRequest request,HttpResponse response){
-		String fileName = TEnv.getContextPath()+File.separator+"logs"+File.separator+"access.log";
-		try{
-			if(accessLogger==null || accessLogger.isFinished()){
-				accessLogger = SingleLogger.start(fileName);
-			}
-			accessLogger.addLogMessage(genAccessLog(request, response));
-		}catch(FileNotFoundException e){
-			Logger.error("Log file "+fileName+" not found.",e);
-		}
+		SingleLogger.writeLog(ACCESS_LOG_FILE_NAME,genAccessLog(request, response));
 	}
 	
 	/**
@@ -153,7 +147,7 @@ public class WebContext {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T getContextParameter(String name, T defaultValue) {
-		return webConfig.get(name) == null ? defaultValue : ((T) webConfig.get(name));
+		return WEB_CONFIG.get(name) == null ? defaultValue : ((T) WEB_CONFIG.get(name));
 	}
 	
 	/**
@@ -161,7 +155,7 @@ public class WebContext {
 	 * @return
 	 */
 	public static Map<String, Object> getMimeDefine() {
-		return mimeTypes;
+		return MIME_TYPES;
 	}
 	
 	/**
@@ -169,15 +163,15 @@ public class WebContext {
 	 * @return
 	 */
 	public static Map<String, Object> getErrorDefine() {
-		return errorDefine;
+		return ERROR_DEFINE;
 	}
 
 	/**
 	 * 获取版本号
 	 * @return
 	 */
-	public final static String getVersion() {
-		return version;
+	public final static String getVERSION() {
+		return VERSION;
 	}
 	
 	/**
@@ -185,7 +179,7 @@ public class WebContext {
 	 * @return
 	 */
 	public static String getSessionName() {
-		return sessionName;
+		return SESSION_NAME;
 	}
 	
 	

@@ -162,7 +162,7 @@ public class HttpServerHandler implements IoHandler {
 			httpResponse.header().put("Connection", httpRequest.header().get("Connection"));
 		}
 		
-		httpResponse.header().put("Server", WebContext.getVersion());
+		httpResponse.header().put("Server", WebContext.getVERSION());
 		
 		return httpResponse;
 	}

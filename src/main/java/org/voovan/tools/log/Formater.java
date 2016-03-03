@@ -171,7 +171,7 @@ public class Formater {
 	 */
 	public void writeLog(String msg) {
 		if(Logger.isState()){
-			if(loggerThread==null || (loggerThread!=null && loggerThread.isFinished())){
+			if(loggerThread==null || loggerThread.isFinished()){
 				this.loggerThread = LoggerThread.start(getOutputStreams());
 			}
 			

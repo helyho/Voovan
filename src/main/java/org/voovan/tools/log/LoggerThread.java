@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class LoggerThread implements Runnable {
 	private ArrayBlockingQueue<String>	logQueue;
 	private OutputStream[] outputStreams;
-	private boolean isFinished = false;
+	private boolean finished = false;
 
 	/**
 	 * 构造函数
@@ -31,8 +31,8 @@ public class LoggerThread implements Runnable {
 		this.outputStreams = outputStreams;
 	}
 	
-	public boolean isFinished() {
-		return isFinished;
+	public synchronized boolean isFinished() {
+		return finished;
 	}
 	
 	/**
@@ -67,12 +67,12 @@ public class LoggerThread implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * 增加消息
-	 * 
-	 * @param string
-	 */
+	 *
+	 * @param msg
+     */
 	public void addLogMessage(String msg) {
 		logQueue.add(msg);
 	}
@@ -95,6 +95,7 @@ public class LoggerThread implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		finished = true;
 	}
 	
 	/**
@@ -126,7 +127,7 @@ public class LoggerThread implements Runnable {
 	 */
 	public static LoggerThread start(OutputStream[] outputStreams) {
 		LoggerThread loggerThread = new LoggerThread(outputStreams);
-		Thread loggerMainThread = new Thread(loggerThread,"VOOVAN@Loger_Thread");
+		Thread loggerMainThread = new Thread(loggerThread,"VOOVAN@Logger_Thread");
 		loggerMainThread.start();
 		return loggerThread;
 	}
