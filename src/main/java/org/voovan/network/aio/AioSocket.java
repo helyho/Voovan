@@ -126,7 +126,7 @@ public class AioSocket extends SocketContext {
 		}
 		
 		//捕获输入事件
-		catchRead(ByteBuffer.allocate(1024));
+		catchRead(ByteBuffer.allocateDirect(1024));
 		
 		// 触发 connect 事件
 		eventTrigger.fireConnectThread();
