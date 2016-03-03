@@ -114,8 +114,8 @@ public class MessageLoader {
 				}
 				
 				//将读出的数据写入缓冲区
-				if(readsize>0) {
-					byteOutputStream.write(oneByteBuffer.array(), 0, readsize);
+				if(readsize == 1) {
+					byteOutputStream.write(oneByteBuffer.get(0));
 				}
 				
 				
