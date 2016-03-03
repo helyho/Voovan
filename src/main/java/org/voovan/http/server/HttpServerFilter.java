@@ -6,6 +6,7 @@ import org.voovan.http.message.Response;
 import org.voovan.http.server.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -51,7 +52,7 @@ public class HttpServerFilter implements IoFilter {
 			try {
 				if (object instanceof ByteBuffer) {
 					
-					ByteArrayInputStream requestInputStream = new ByteArrayInputStream(byteBuffer.array());
+					ByteArrayInputStream requestInputStream = new ByteArrayInputStream(TByteBuffer.toArray(byteBuffer));
 					Request request = HttpParser.parseRequest(requestInputStream);
 					if(request!=null){
 						return request;

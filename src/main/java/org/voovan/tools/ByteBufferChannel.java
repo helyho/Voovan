@@ -53,7 +53,7 @@ public class ByteBufferChannel implements ByteChannel {
 			
 			if(readSize>0)
 			{
-				dst.put(buffer.array(),0,readSize);
+				dst.put(TByteBuffer.toArray(buffer),0,readSize);
 				buffer.position(readSize);
 				byte[] tempBytes = new byte[buffer.remaining()];
 				buffer.get(tempBytes,0,buffer.remaining());
