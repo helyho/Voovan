@@ -18,14 +18,14 @@ public class ByteBufferChannel implements ByteChannel {
 	private ByteBuffer buffer; 
 	
 	public ByteBufferChannel() {
-		buffer = ByteBuffer.allocate(0);
+		buffer = ByteBuffer.allocateDirect(0);
 	}
 	
 	/**
 	 * 重置
 	 */
 	public void reset() {
-		buffer = ByteBuffer.allocate(0);
+		buffer = ByteBuffer.allocateDirect(0);
 	}
 	
 	/**
@@ -83,7 +83,7 @@ public class ByteBufferChannel implements ByteChannel {
 	public synchronized int write(ByteBuffer src) throws IOException {
 		if(src.limit()!=0){
 			int newSize = buffer.limit()+src.limit();
-			ByteBuffer tempBuffer = ByteBuffer.allocate(newSize);
+			ByteBuffer tempBuffer = ByteBuffer.allocateDirect(newSize);
 			tempBuffer.put(buffer);
 			tempBuffer.put(src);
 			buffer = tempBuffer;
