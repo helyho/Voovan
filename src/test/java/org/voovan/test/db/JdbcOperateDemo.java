@@ -2,8 +2,8 @@ package org.voovan.test.db;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
+import org.voovan.db.CallType;
 import org.voovan.db.JdbcOperate;
-import org.voovan.db.JdbcOperate.CallType;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
