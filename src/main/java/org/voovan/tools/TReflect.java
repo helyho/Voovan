@@ -42,6 +42,24 @@ public class TReflect {
 	}
 
 	/**
+	 * 查找类特定的Field
+	 * 			不区分大小写,并且替换掉特殊字符
+	 * @param clazz
+	 * @param fieldName
+	 * @return
+	 * @throws ReflectiveOperationException
+     */
+	public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName)
+			throws ReflectiveOperationException{
+		for(Field field : getFields(clazz)){
+			if(field.getName().equalsIgnoreCase(fieldName)){
+				return field;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * 获取类中指定Field的值
 	 * 
 	 * @param obj
@@ -213,13 +231,15 @@ public class TReflect {
 	 * 
 	 * @param clazz			类对象
 	 * @param mapObj		Map 对象
+	 * @param ignoreCase    匹配属性名是否不区分大小写
+	 *                      注意:所有特殊字符会被丢弃,仅包含字母和数字
 	 * @return
 	 * @throws ParseException 
 	 * @throws Exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Object getObjectFromMap(Class<?> clazz,
-		Map<String, Object> mapObj) throws ReflectiveOperationException, ParseException {
+		Map<String, Object> mapObj,boolean ignoreCase) throws ReflectiveOperationException, ParseException {
 		Object obj = null;
 
 		// java标准对象
@@ -254,23 +274,29 @@ public class TReflect {
 		// 复杂对象
 		else {
 			obj = newInstance(clazz);
-			Field[] fields = getFields(clazz);
-			for (Field field : fields) {
-				field.setAccessible(true);
-				String fieldName = field.getName();
-				if (mapObj.containsKey(fieldName)) {
-					Object value = mapObj.get(fieldName);
+			for(String key : mapObj.keySet()){
+				Object value = mapObj.get(key);
+
+				Field field = null;
+				if(ignoreCase) {
+					field = findFieldIgnoreCase(clazz, key);
+				}else{
+					//精确匹配属性
+					field = findField(clazz, key);
+				}
+
+				if(field!=null) {
+					String fieldName = field.getName();
 					Class<?> fieldType = field.getType();
-					value = getObjectFromMap(fieldType,TObject.newMap("value",TObject.cast(value)));
-					if(value!=null) {
-						setFieldValue(obj, fieldName, value);
-					}
+
+					value = getObjectFromMap(fieldType, TObject.newMap("value", TObject.cast(value)), ignoreCase);
+					setFieldValue(obj, fieldName, value);
 				}
 			}
 		}
 		return obj;
 	}
-	
+
 	/**
 	 * 将对象转换成 Map
 	 * 			key 对象属性名称

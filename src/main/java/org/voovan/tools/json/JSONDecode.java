@@ -21,7 +21,7 @@ public class JSONDecode {
 	/**
 	 * 解析 JSON 字符串
 	 * 		如果是{}包裹的对象解析成 HashMap,如果是[]包裹的对象解析成 ArrayList
-	 * @param parseString	待解析的 JSON 字符串
+	 * @param jsonStr	待解析的 JSON 字符串
 	 * @return
 	 */
 	public static Object parse(String jsonStr){
@@ -169,8 +169,8 @@ public class JSONDecode {
 	
 	/**
 	 * 解析 JSON 字符串成为参数指定的类
-	 * @param json				JSON字符串
-	 * @param objectType		JSON 字符串将要转换的目标类
+	 * @param jsonStr				JSON字符串
+	 * @param clazz		JSON 字符串将要转换的目标类
 	 * @return					JSON 转换后的 Java 对象
 	 * @throws ReflectiveOperationException 
 	 * @throws ParseException 
@@ -183,7 +183,7 @@ public class JSONDecode {
 		//{}包裹的对象处理
 		if(jsonStr.startsWith("{")){
 			Map<String,Object> mapJSON = (Map<String, Object>) parseObject;
-			return (T) TReflect.getObjectFromMap(clazz, mapJSON);
+			return (T) TReflect.getObjectFromMap(clazz, mapJSON,false);
 		}
 		//[]包裹的对象处理
 		else if(jsonStr.startsWith("[") && TReflect.isImpByInterface(clazz, List.class)){
