@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 /**
  * SQL处理帮助类
  * 
- * 注意所有的时间都用yyyy-MM-dd HH:mm:ss的格式
+ * 注意所有的时间都用TDateTime.STANDER_DATETIME_TEMPLATE的格式
  * @author helyho
  *
  * Voovan Framework.
@@ -321,8 +321,7 @@ public class TSQL {
 		}
 		//处理Date
 		else if(argObj instanceof Date){
-			String pattern = "yyyy-MM-dd HH:mm:ss";
-			SimpleDateFormat dateFormat = new SimpleDateFormat(pattern);
+			SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
 			return "'"+dateFormat.format(argObj)+"'";
 		}
 		//处理其他类型，全部转换成String
