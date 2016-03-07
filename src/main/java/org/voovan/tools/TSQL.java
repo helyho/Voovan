@@ -31,7 +31,11 @@ public class TSQL {
 	 */
 	public static List<String> getSqlParams(String sqlStr){
 		String[] params = TString.searchByRegex(sqlStr, "::[^,\\s\\)]+");
-		return Arrays.asList(params);
+		ArrayList<String> sqlParams = new ArrayList<String>();
+		for(String param : params){
+			sqlParams.add(param);
+		}
+		return sqlParams;
 	}
 	
 	/**
@@ -54,7 +58,7 @@ public class TSQL {
 	public static void setPreparedParams(PreparedStatement preparedStatement,List<String> sqlParams,Map<String, Object> params) throws SQLException{
 		for(int i=0;i<sqlParams.size();i++){
 			String paramName = sqlParams.get(i);
-			//去掉前面:号
+			//去掉前面::号
 			paramName = paramName.substring(2,paramName.length());
 			preparedStatement.setObject(i+1, params.get(paramName));
 			Logger.debug("[SQL_Parameter]: "+sqlParams.get(i)+" = "+params.get(paramName));
@@ -73,6 +77,9 @@ public class TSQL {
 		Logger.debug("[SQL_Executed]: " + sqlStr);
 		//获取参数列表
 		List<String> sqlParams = TSQL.getSqlParams(sqlStr);
+
+		//将没有提供查询参数的条件移除
+		sqlStr = TSQL.removeEmptyCondiction(sqlStr,sqlParams,params);
 
 		//获取preparedStatement可用的 SQL
 		String preparedSql = TSQL.preparedSql(sqlStr);
@@ -118,7 +125,10 @@ public class TSQL {
 		//根据存储过程参数定义,注册 OUT 参数
 		ParameterMetaData parameterMetaData = callableStatement.getParameterMetaData();
 		for(int i=0;i<parameterMetaData.getParameterCount();i++){
-			callableStatement.registerOutParameter(i+1,parameterMetaData.getParameterType(i+1));
+			int paramMode = parameterMetaData.getParameterMode(i+1);
+			if(paramMode == ParameterMetaData.parameterModeOut || paramMode == ParameterMetaData.parameterModeInOut) {
+				callableStatement.registerOutParameter(i + 1, parameterMetaData.getParameterType(i + 1));
+			}
 		}
 		
 		return callableStatement;
@@ -142,7 +152,7 @@ public class TSQL {
 			//如果是带有 out 属性的参数,则对其进行取值操作
 			if(paramMode == ParameterMetaData.parameterModeOut || paramMode == ParameterMetaData.parameterModeInOut){
 				//取值方法名
-				String methodName =getDataMethod(parameterMetaData.getParameterType(i+1));
+				String methodName = getDataMethod(parameterMetaData.getParameterType(i+1));
 				Object value;
 				try {
 					//获得取值方法参数参数是 int 类型的对应方法
@@ -258,7 +268,16 @@ public class TSQL {
      */
     public static Object getOneRowWithObject(Class<?> clazz,ResultSet resultset) throws SQLException, ReflectiveOperationException, ParseException {
     	Map<String,Object>rowMap = getOneRowWithMap(resultset);
-    	return TReflect.getObjectFromMap(clazz, rowMap);
+
+		//对象转换时,模糊匹配属性,去除掉所有的
+		HashMap<String,Object> newMap = new HashMap<String,Object>();
+		for(Entry<String,Object> entry : rowMap.entrySet()){
+			String key = entry.getKey().replaceAll("[^a-z|A-Z|0-9]","");
+			newMap.put(key,entry.getValue());
+		}
+		rowMap.clear();
+
+    	return TReflect.getObjectFromMap(clazz, newMap,true);
     }
     
     /**
@@ -299,31 +318,37 @@ public class TSQL {
 	/**
 	 * 将SQL 语句中,没有提供查询参数的条件移除
 	 * @param sqlText
-	 * @param mapArg
+	 * @param params
      * @return
      */
-	public static String removeEmptyCondiction(String sqlText,Map<String, Object> params){
+	public static String removeEmptyCondiction(String sqlText,List<String> sqlParams,Map<String, Object> params){
 
 		//如果params为空,则新建一个
 		if(params==null){
 			params = new Hashtable<String, Object>();
 		}
 
-		//格式化完整的 SQL
-		sqlText = TSQL.assembleSQLWithMap(sqlText,params);
+		//转换存在参数的变量从::paramName 到 ``paramName
+		for(String paramName : params.keySet()){
+			sqlText = sqlText.replace("::"+paramName,"``"+paramName);
+		}
 
 		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\sand\\s)|(\\sor\\s)|$)";
 		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
 		for(String condiction : sqlCondiction){
-			if(TString.searchByRegex(condiction,"::[^,\\s\\)]+").length>0){
+			String[] condictions = TString.searchByRegex(condiction,"::[^,\\s\\)]+");
+			if(condictions.length>0){
 				if(condiction.trim().toLowerCase().startsWith("where")){
 					sqlText = sqlText.replace(condiction.trim(),"where 1=1");
 				}else{
 					sqlText = sqlText.replace(condiction.trim(),"");
 				}
+				sqlParams.remove(condictions[0]);
 			}
 		}
-		return sqlText;
+
+		//转换存在参数的变量从``paramName 到 ::paramName
+		return sqlText.replace("``","::");
 	}
 
 

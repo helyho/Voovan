@@ -98,8 +98,6 @@ public class JdbcOperate {
 	private ResultInfo baseQuery(String sqlText, Map<String, Object> mapArg) throws SQLException {
 		Connection conn = getConnection();
 		try {
-			//将没有提供查询参数的条件移除
-			sqlText = TSQL.removeEmptyCondiction(sqlText,mapArg);
 			//构造PreparedStatement
 			PreparedStatement preparedStatement = TSQL.createPreparedStatement(conn, sqlText, mapArg);
 			//执行查询
