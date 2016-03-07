@@ -72,13 +72,13 @@ public class JdbcOperateDemo {
 
 
         //不定个数参数 => 返回一个复杂对象
-        ScriptEntity llmmn = jOperate.queryObject("select * from sc_script where PackagePath=::1 and version=::2", ScriptEntity.class);
+        List<ScriptEntity> llmmn = jOperate.queryObjectList("select * from sc_script where PackagePath=::1 and version=::2", ScriptEntity.class);
         Logger.simple("自动移除无对应参数的 SQL 查询条件: "+llmmn);
 
         //数据库中表的列名和对象中的属性名模糊匹配
         //packagePath 列名转换为 paCKAge_Path
         //SouRCEPath 列名转换为 Source_Path
-        ScriptEntity llmmnx = jOperate.queryObject("select ID,packagePath as paCKAge_Path,SouRCEPath as Source_Path from sc_script", ScriptEntity.class);
+        List<ScriptEntity> llmmnx = jOperate.queryObjectList("select ID,packagePath as paCKAge_Path,SouRCEPath as Source_Path from sc_script", ScriptEntity.class);
         Logger.simple("数据库中表的列名和对象中的属性名模糊匹配: "+llmmnx);
 
         //事务测试
