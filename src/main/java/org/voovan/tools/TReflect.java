@@ -262,7 +262,9 @@ public class TReflect {
 					Object value = mapObj.get(fieldName);
 					Class<?> fieldType = field.getType();
 					value = getObjectFromMap(fieldType,TObject.newMap("value",TObject.cast(value)));
-					setFieldValue(obj, fieldName, value);
+					if(value!=null) {
+						setFieldValue(obj, fieldName, value);
+					}
 				}
 			}
 		}
