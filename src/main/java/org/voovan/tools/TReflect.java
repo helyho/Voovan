@@ -236,7 +236,6 @@ public class TReflect {
 	 * @param clazz			类对象
 	 * @param mapObj		Map 对象
 	 * @param ignoreCase    匹配属性名是否不区分大小写
-	 *                      注意:所有特殊字符会被丢弃,仅包含字母和数字
 	 * @return
 	 * @throws ParseException 
 	 * @throws Exception
