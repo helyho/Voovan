@@ -323,7 +323,6 @@ public class TSQL {
 				}
 			}
 		}
-		Logger.info("\\\\\\\\\\\\\\\\\\\\\r\n"+sqlText);
 		return sqlText;
 	}
 
