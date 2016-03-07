@@ -73,13 +73,19 @@ public class TSQL {
 		Logger.debug("[SQL_Executed]: " + sqlStr);
 		//获取参数列表
 		List<String> sqlParams = TSQL.getSqlParams(sqlStr);
+
 		//获取preparedStatement可用的 SQL
 		String preparedSql = TSQL.preparedSql(sqlStr);
+
 		PreparedStatement preparedStatement = (PreparedStatement) conn.prepareStatement(preparedSql);
-		if(params!=null){
-			//preparedStatement参数填充
-			TSQL.setPreparedParams(preparedStatement,sqlParams,params);
+
+		//如果params为空,则新建一个
+		if(params==null){
+			params = new Hashtable<String, Object>();
 		}
+
+		//为preparedStatement参数填充
+		TSQL.setPreparedParams(preparedStatement,sqlParams,params);
 		return preparedStatement;
 	}
 	
@@ -101,11 +107,14 @@ public class TSQL {
 		//定义 jdbc statement 对象
 		CallableStatement callableStatement = (CallableStatement) conn.prepareCall(preparedSql);
 
-		if(params!=null){
-			//callableStatement参数填充
-			TSQL.setPreparedParams(callableStatement,sqlParams,params);
+		//如果params为空,则新建一个
+		if(params==null){
+			params = new Hashtable<String, Object>();
 		}
-		
+
+		//callableStatement参数填充
+		TSQL.setPreparedParams(callableStatement,sqlParams,params);
+
 		//根据存储过程参数定义,注册 OUT 参数
 		ParameterMetaData parameterMetaData = callableStatement.getParameterMetaData();
 		for(int i=0;i<parameterMetaData.getParameterCount();i++){
@@ -285,9 +294,42 @@ public class TSQL {
     	}
     	return resultList;
     }
-	
+
+
 	/**
-	 * 将标准类型转换成可在SQL中进行封装的字符串
+	 * 将SQL 语句中,没有提供查询参数的条件移除
+	 * @param sqlText
+	 * @param mapArg
+     * @return
+     */
+	public static String removeEmptyCondiction(String sqlText,Map<String, Object> params){
+
+		//如果params为空,则新建一个
+		if(params==null){
+			params = new Hashtable<String, Object>();
+		}
+
+		//格式化完整的 SQL
+		sqlText = TSQL.assembleSQLWithMap(sqlText,params);
+
+		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\sand\\s)|(\\sor\\s)|$)";
+		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
+		for(String condiction : sqlCondiction){
+			if(TString.searchByRegex(condiction,"::[^,\\s\\)]+").length>0){
+				if(condiction.trim().toLowerCase().startsWith("where")){
+					sqlText = sqlText.replace(condiction.trim(),"where 1=1");
+				}else{
+					sqlText = sqlText.replace(condiction.trim(),"");
+				}
+			}
+		}
+		Logger.info("\\\\\\\\\\\\\\\\\\\\\r\n"+sqlText);
+		return sqlText;
+	}
+
+
+	/**
+	 * SQL的参数,将 JAVA 的类型转换成可在SQL中进行封装的字符串
 	 * 例如:String类型的对象转换成 'chs'
 	 * @param argObj
 	 * @return
@@ -331,7 +373,7 @@ public class TSQL {
 	}
 	
 	/**
-	 * 根据 SQL 类型判断 Result 改使用什么方法取值
+	 * 根据 SQL 类型判断 Result 该使用什么方法取值
 	 * @param databaseType
 	 * @return  方法名
 	 */
@@ -391,7 +433,12 @@ public class TSQL {
 					return "getString";
 		}
 	}
-	
+
+	/**
+	 * 根据 JAVA 类型判断该使用什么 SQL 数据类型
+	 * @param obj
+	 * @return
+     */
 	public static int getSqlTypes(Object obj){
 		Class<?> objectClass = obj.getClass();
 		if(Char.class == objectClass){
