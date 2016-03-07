@@ -173,7 +173,7 @@ public class ScriptEntity {
 	
 	@Override
 	public String toString(){
-		return "{Path="+this.packagePath+",Version="+this.version+",SourcePath="+sourcePath+"}";
+		return "{PackagePath="+this.packagePath+",Version="+this.version+",SourcePath="+sourcePath+"}";
 	}
 	
 	/**
