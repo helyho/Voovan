@@ -1,7 +1,7 @@
 package org.voovan.tools;
 
 import com.alibaba.druid.sql.visitor.functions.Char;
-import org.voovan.db.JdbcOperate.CallType;
+import org.voovan.db.CallType;
 import org.voovan.tools.log.Logger;
 
 import java.lang.reflect.Method;
@@ -37,7 +37,6 @@ public class TSQL {
 	/**
 	 * 转换preparedStatement对象为可用的 sql 字符串(参数用?表示)
 	 * @param sqlStr		原始 sql 字符串 (select * from table where x=:x and y=::y)
-	 * @param sqlParams		sql参数表
 	 * @return				将所有的:引导的参数转换成? (select * from table where x=? and y=?)
 	 */
 	public static String preparedSql(String sqlStr){
@@ -255,7 +254,7 @@ public class TSQL {
     
     /**
      * 包装resultSet中所有记录成List,单行元素为Map
-     * @param resultset
+     * @param resultSet
      * @return
      * @throws ReflectiveOperationException 
      * @throws SQLException 
@@ -272,7 +271,7 @@ public class TSQL {
     /**
      * 包装resultSet中所有记录成List,单行元素为指定对象
      * @param clazz
-     * @param resultset
+     * @param resultSet
      * @return
      * @throws ParseException 
      * @throws ReflectiveOperationException 

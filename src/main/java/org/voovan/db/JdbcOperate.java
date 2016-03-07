@@ -30,108 +30,6 @@ public class JdbcOperate {
 	private boolean		isTrancation;
 
 	/**
-	 * 内部类,存储过程的枚举
-	 * @author helyho
-	 *
-	 * Voovan Framework.
-	 * WebSite: https://github.com/helyho/Voovan
-	 * Licence: Apache v2 License
-	 */
-	public enum CallType{
-		IN,OUT,INOUT;
-	}
-	
-	/**
-	 * 内部类,结果集和数据库连接封装
-	 * 
-	 * @author helyho
-	 *
-	 */
-	private class ResultInfo {
-		private ResultSet	resultSet;
-
-		public ResultInfo(ResultSet resultSet) {
-			this.resultSet = resultSet;
-		}
-
-		@SuppressWarnings("unchecked")
-		public <T> List<T> getObjectList(Class<T> t) {
-			try{
-				return (List<T>) TSQL.getAllRowWithObjectList(t, this.resultSet);
-			}catch(SQLException | ReflectiveOperationException | ParseException e){
-				Logger.error("JdbcOperate.getObjectList error",e);
-			}finally{
-				// 非事物模式执行
-				if (!isTrancation) {
-					closeConnection(resultSet);
-				}else{
-					closeResult(resultSet);
-				}
-			}
-			return new ArrayList<T>();
-			
-		}
-
-		public List<Map<String, Object>> getMapList() {
-			try{
-				return TSQL.getAllRowWithMapList(this.resultSet);
-			}catch(SQLException | ReflectiveOperationException e){
-				Logger.error("JdbcOperate.getMapList error",e);
-			}finally{
-				// 非事物模式执行
-				if (!isTrancation) {
-					closeConnection(resultSet);
-				}else{
-					closeResult(resultSet);
-				}
-			}
-			return new ArrayList<Map<String, Object>>();
-		}
-
-		@SuppressWarnings("unchecked")
-		public <T> Object getObject(Class<T> t){
-			try{
-				if(resultSet.next()){
-					return (T) TSQL.getOneRowWithObject(t, this.resultSet);
-				}else{
-					return null;
-				}
-			}catch(SQLException | ReflectiveOperationException | ParseException e){
-				Logger.error("JdbcOperate.getObject error: "+e.getMessage(),e);
-			}finally{
-				// 非事物模式执行
-				if (!isTrancation) {
-					closeConnection(resultSet);
-				}else{
-					closeResult(resultSet);
-				}
-			}
-			return null;
-		}
-
-		public Map<String, Object> getMap(){
-			try{
-				if(resultSet.next()){
-					return TSQL.getOneRowWithMap(this.resultSet);
-				}else{
-					return null;
-				}
-			}catch(SQLException | ReflectiveOperationException e){
-				Logger.error("JdbcOperate.getMap error",e);
-			}finally{
-				// 非事物模式执行
-				if (!isTrancation) {
-					closeConnection(resultSet);
-				}else{
-					closeResult(resultSet);
-				}
-			}
-			return null;
-		}
-
-	}
-
-	/**
 	 * 构造函数
 	 * @param dataSource	数据源
 	 * @throws SQLException
@@ -205,7 +103,7 @@ public class JdbcOperate {
 			if(rs==null){
 				return null;
 			}
-			return new ResultInfo(rs);
+			return new ResultInfo(rs,this.isTrancation);
 		} catch (SQLException e) {
 			closeConnection(conn);
 			Logger.error("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " + e.getMessage() + "\n",e);
@@ -825,7 +723,7 @@ public class JdbcOperate {
 	 * 关闭连接
 	 * @param resultSet
 	 */
-	private static void closeConnection(ResultSet resultSet) {
+	protected static void closeConnection(ResultSet resultSet) {
 		Statement statement = null;
 		Connection connection = null;
 		try {
@@ -854,7 +752,7 @@ public class JdbcOperate {
 	 * 关闭连接
 	 * @param statement
 	 */
-	private static void closeConnection(Statement statement) {
+	protected static void closeConnection(Statement statement) {
 		Connection connection = null;
 		try {
 			connection = statement.getConnection();
@@ -892,7 +790,7 @@ public class JdbcOperate {
 	 * 关闭结果集
 	 * @param resultSet
 	 */
-	private static void closeResult(ResultSet resultSet){
+	protected static void closeResult(ResultSet resultSet){
 		Statement statement = null;
 		try {
 			statement = resultSet.getStatement();
@@ -915,7 +813,7 @@ public class JdbcOperate {
 	 * 关闭 Statement
 	 * @param statement
 	 */
-	private static void closeStatement(Statement statement){
+	protected static void closeStatement(Statement statement){
 		try {
 			if (statement != null) {
 				statement.close();
