@@ -38,7 +38,11 @@ public class TReflect {
 	 */
 	public static Field findField(Class<?> clazz, String fieldName)
 			throws ReflectiveOperationException {
-		return clazz.getDeclaredField(fieldName);
+		try {
+			return clazz.getDeclaredField(fieldName);
+		}catch(NoSuchFieldException ex){
+			return null;
+		}
 	}
 
 	/**
@@ -262,7 +266,7 @@ public class TReflect {
 		//Map 类型
 		else if(isImpByInterface(clazz,Map.class)){
 			Map mapObject = TObject.cast(newInstance(clazz));
-			mapObject.putAll((Map) TObject.cast(mapObj.values().iterator().next()));
+			mapObject.putAll(mapObj);
 			obj = mapObject;
 		}
 		//Collection 类型
@@ -289,7 +293,11 @@ public class TReflect {
 					String fieldName = field.getName();
 					Class<?> fieldType = field.getType();
 
-					value = getObjectFromMap(fieldType, TObject.newMap("value", TObject.cast(value)), ignoreCase);
+					if(isImpByInterface(value.getClass(),Map.class)){
+						value = getObjectFromMap(fieldType, TObject.cast(value), ignoreCase);
+					}else {
+						value = getObjectFromMap(fieldType, TObject.newMap("value", TObject.cast(value)), ignoreCase);
+					}
 					setFieldValue(obj, fieldName, value);
 				}
 			}
