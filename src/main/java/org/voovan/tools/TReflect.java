@@ -280,8 +280,13 @@ public class TReflect {
 			for(String key : mapObj.keySet()){
 				Object value = mapObj.get(key);
 
+				if(value==null){
+					continue;
+				}
+
 				Field field = null;
 				if(ignoreCase) {
+					//忽略大小写匹配
 					field = findFieldIgnoreCase(clazz, key);
 				}else{
 					//精确匹配属性
