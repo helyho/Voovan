@@ -69,7 +69,13 @@ public class JdbcOperateDemo {
 		//不定个数参数 => 返回一个复杂对象
 		ScriptEntity llmm = jOperate.queryObject("select * from sc_script where PackagePath=::1 and version=::2",ScriptEntity.class,"org.hocate.test",2.0);
 		Logger.info(llmm);
-		
+
+
+		//不定个数参数 => 返回一个复杂对象
+		//自动移除不含参数的 SQL 查询条件
+		ScriptEntity llmmn = jOperate.queryObject("select * from sc_script where PackagePath=::1 and version=::2",ScriptEntity.class);
+		Logger.info(llmmn);
+
 		//事务测试
 		jOperate = new JdbcOperate(dataSource,true);
 		Logger.info("更新记录数:"+jOperate.update("update sc_script set version=0"));

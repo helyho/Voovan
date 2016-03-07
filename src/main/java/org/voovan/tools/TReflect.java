@@ -212,43 +212,43 @@ public class TReflect {
 	 * 将Map转换成指定的对象
 	 * 
 	 * @param clazz			类对象
-	 * @param mapField		Map 对象
+	 * @param mapObj		Map 对象
 	 * @return
 	 * @throws ParseException 
 	 * @throws Exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Object getObjectFromMap(Class<?> clazz,
-		Map<String, Object> mapField) throws ReflectiveOperationException, ParseException {
+		Map<String, Object> mapObj) throws ReflectiveOperationException, ParseException {
 		Object obj = null;
 
 		// java标准对象
 		if (!clazz.getName().contains(".")){
-			obj = mapField.values().iterator().next();
+			obj = mapObj.values().iterator().next();
 		}
 		//java基本对象
 		else if (clazz.getName().startsWith("java.lang")) {
 			//取 Map.Values 里的递第一个值
-			String value = mapField.values().iterator().next().toString();
+			String value = mapObj.values().iterator().next().toString();
 			obj = newInstance(clazz,  value);
 		}
 		//java 日期对象
 		else if(isExtendsByClass(clazz,Date.class)){
 			//取 Map.Values 里的递第一个值
-			String value = mapField.values().iterator().next().toString();
+			String value = mapObj.values().iterator().next().toString();
 			SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
 			obj = dateFormat.parse(value.toString());
 		}
 		//Map 类型
 		else if(isImpByInterface(clazz,Map.class)){
 			Map mapObject = TObject.cast(newInstance(clazz));
-			mapObject.putAll((Map) TObject.cast(mapField.values().iterator().next()));
+			mapObject.putAll((Map) TObject.cast(mapObj.values().iterator().next()));
 			obj = mapObject;
 		}
 		//Collection 类型
 		else if(isImpByInterface(clazz,Collection.class)){
 			Collection listObject = TObject.cast(newInstance(clazz));
-			listObject.addAll((Collection) TObject.cast(mapField.values().iterator().next()));
+			listObject.addAll((Collection) TObject.cast(mapObj.values().iterator().next()));
 			obj = listObject;
 		}
 		// 复杂对象
@@ -257,9 +257,9 @@ public class TReflect {
 			Field[] fields = getFields(clazz);
 			for (Field field : fields) {
 				field.setAccessible(true);
-				if (mapField.containsKey(field.getName())) {
-					Object value = mapField.get(field.getName());
-					String fieldName = field.getName();
+				String fieldName = field.getName();
+				if (mapObj.containsKey(fieldName)) {
+					Object value = mapObj.get(fieldName);
 					Class<?> fieldType = field.getType();
 					value = getObjectFromMap(fieldType,TObject.newMap("value",TObject.cast(value)));
 					setFieldValue(obj, fieldName, value);
