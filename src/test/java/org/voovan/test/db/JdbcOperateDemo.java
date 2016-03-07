@@ -72,7 +72,7 @@ public class JdbcOperateDemo {
 
 
 		//不定个数参数 => 返回一个复杂对象
-		//自动移除不含参数的 SQL 查询条件
+		//自动移除无对应参数的 SQL 查询条件
 		ScriptEntity llmmn = jOperate.queryObject("select * from sc_script where PackagePath=::1 and version=::2",ScriptEntity.class);
 		Logger.info(llmmn);
 
