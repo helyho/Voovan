@@ -3,10 +3,7 @@ package org.voovan.tools;
 import java.lang.reflect.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 /**
@@ -83,16 +80,15 @@ public class TReflect {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Map<String, Object> getFieldValues(Object obj)
+	public static Map<Field, Object> getFieldValues(Object obj)
 			throws ReflectiveOperationException {
-		HashMap<String, Object> result = new HashMap<String, Object>();
+		HashMap<Field, Object> result = new HashMap<Field, Object>();
 		Field[] fields = getFields(obj.getClass());
 		for (Field field : fields) {
 			if (!Modifier.isStatic(field.getModifiers())) {
-				String key = field.getName();
-				Object value = getFieldValue(obj, key);
+				Object value = getFieldValue(obj, field.getName());
 				if (value != null)
-					result.put(key, value);
+					result.put(field, value);
 			}
 		}
 		return result;
@@ -227,18 +223,33 @@ public class TReflect {
 		Object obj = null;
 
 		// java标准对象
-		if (clazz.getName().startsWith("java.lang")) {
+		if (!clazz.getName().contains(".")){
+			obj = mapField.values().iterator().next();
+		}
+		//java基本对象
+		else if (clazz.getName().startsWith("java.lang")) {
 			//取 Map.Values 里的递第一个值
 			String value = mapField.values().iterator().next().toString();
-			obj = newInstance(clazz,  value );
+			obj = newInstance(clazz,  value);
 		}
 		//java 日期对象
-		else if(clazz.getName().equals("java.util.Date")){
+		else if(isExtendsByClass(clazz,Date.class)){
 			//取 Map.Values 里的递第一个值
 			String value = mapField.values().iterator().next().toString();
-			String pattern = "yyyy-MM-dd HH:mm:ss";
-			SimpleDateFormat dateFormat = new SimpleDateFormat(pattern);
+			SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
 			obj = dateFormat.parse(value.toString());
+		}
+		//Map 类型
+		else if(isImpByInterface(clazz,Map.class)){
+			Map mapObject = TObject.cast(newInstance(clazz));
+			mapObject.putAll((Map) TObject.cast(mapField.values().iterator().next()));
+			obj = mapObject;
+		}
+		//Collection 类型
+		else if(isImpByInterface(clazz,Collection.class)){
+			Collection listObject = TObject.cast(newInstance(clazz));
+			listObject.addAll((Collection) TObject.cast(mapField.values().iterator().next()));
+			obj = listObject;
 		}
 		// 复杂对象
 		else {
@@ -250,29 +261,7 @@ public class TReflect {
 					Object value = mapField.get(field.getName());
 					String fieldName = field.getName();
 					Class<?> fieldType = field.getType();
-					//标准类型不做判断直接填写相应的值到
-					//日期类型
-					if(fieldName.equals("java.util.Date")){
-						String pattern = "yyyy-MM-dd HH:mm:ss";
-						SimpleDateFormat dateFormat = new SimpleDateFormat(pattern);
-						value = dateFormat.parse(value.toString());
-					}
-					//Map 类型
-					else if(isImpByInterface(fieldType,Map.class)){
-						Map mapObject = TObject.cast(newInstance(fieldType));
-						mapObject.putAll((Map) TObject.cast(value));
-						value = mapObject;
-					}
-					//Collection 类型
-					else if(isImpByInterface(fieldType,Collection.class)){
-						Collection listObject = TObject.cast(newInstance(fieldType));
-						listObject.addAll((Collection) TObject.cast(value));
-						value = listObject;
-					}
-					//如果没有匹配到类型且参数是 Map 类型,就判定是复杂类型,递归调用方法
-					else if(isImpByInterface(value.getClass(),Map.class)){
-						value = getObjectFromMap(fieldType, (Map<String, Object>) TObject.cast(value));
-					}
+					value = getObjectFromMap(fieldType,TObject.newMap("value",TObject.cast(value)));
 					setFieldValue(obj, fieldName, value);
 				}
 			}
@@ -291,15 +280,15 @@ public class TReflect {
 	public static Map<String, Object> getMapfromObject(Object obj) throws ReflectiveOperationException{
 		
 		Map<String, Object> mapResult = new HashMap<String, Object>();
-		Map<String, Object> fieldValues =  TReflect.getFieldValues(obj);
+		Map<Field, Object> fieldValues =  TReflect.getFieldValues(obj);
 		//如果是 java 标准类型
 		if(obj.getClass().getName().startsWith("java")){
 			mapResult.put("value", obj);
 		}
 		//复杂对象类型
 		else{
-			for(Entry<String,Object> entry : fieldValues.entrySet()){
-				String key = entry.getKey();
+			for(Entry<Field,Object> entry : fieldValues.entrySet()){
+				String key = entry.getKey().getName();
 				Object value = entry.getValue();
 				String valueClass = entry.getValue().getClass().getName();
 				if(!key.contains("$")){
@@ -325,7 +314,7 @@ public class TReflect {
 	public static boolean isImpByInterface(Class<?> type,Class<?> interfaceClass){
 		Class<?>[] interfaces= type.getInterfaces();
 		for (Class<?> interfaceItem : interfaces) {
-			if (interfaceItem==interfaceClass) {
+			if (interfaceItem.equals(interfaceClass)) {
 				return true;
 			}
 			else{
@@ -343,16 +332,18 @@ public class TReflect {
 	 * @return
 	 */
 	public static boolean isExtendsByClass(Class<?> type,Class<?> extendsClass){
-		Class<?> superClass = type.getSuperclass();
-		while(!superClass.equals(extendsClass) && !superClass.equals(Object.class)){
+		Class<?> superClass = type;
+		do{
+			if(superClass.equals(extendsClass)){
+				return true;
+			}
 			superClass = superClass.getSuperclass();
-		}
-		
-		if(superClass.equals(extendsClass)){
-			return true;
-		}
-		else{
-			return false;
-		}
+		}while(superClass!=null && !superClass.equals(extendsClass) && !superClass.equals(Object.class));
+
+		return false;
+	}
+
+	public static void main(String[] args) {
+		System.out.println(isExtendsByClass(Date.class,Date.class));
 	}
 }
