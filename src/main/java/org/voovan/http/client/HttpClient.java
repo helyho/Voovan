@@ -121,7 +121,7 @@ public class HttpClient {
 					SSLManager sslManager = new SSLManager("TLS");
 					socket.setSSLManager(sslManager);
 				} catch (NoSuchAlgorithmException e) {
-					e.printStackTrace();
+					Logger.error(e);
 				}
 			}
 			
@@ -262,7 +262,7 @@ public class HttpClient {
 		
 		if (request.getType() == RequestType.GET) {
 			request.protocol().setPath(request.protocol().getPath() + queryString);
-		} else if(request.getType() == RequestType.POST && request.parts().size()!=0){
+		} else if(request.getType() == RequestType.POST && !request.parts().isEmpty()){
 			try{
 				for (Entry<String, Object> parameter : parameters.entrySet()) {
 					Part part = new Part();
@@ -321,7 +321,7 @@ public class HttpClient {
 		//传递 cookie 到 Request 对象
 		if(response!=null 
 				&& response.cookies()!=null 
-				&& response.cookies().size()>0){
+				&& !response.cookies().isEmpty()){
 			request.cookies().addAll(response.cookies());
 		}
 		
@@ -359,14 +359,5 @@ public class HttpClient {
 	public synchronized boolean isConnect(){
 		return socket.isConnect();
 	}
-	
-	public static void main(String[] args) throws IOException {
-//		System.setProperty("javax.net.debug", "all");
-		HttpClient getClient = new HttpClient("https://www.baidu.com","GB2312",60000);
-		Response response  = getClient.setMethod("GET")
-			.putParameters("name", "测试Get")
-			.putParameters("age", "32").send("/test");
-		Logger.simple(response.body().getBodyString("GB2312"));
-		getClient.close();
-	}
+
 }

@@ -224,7 +224,7 @@ public class EventProcess {
 				&& event.getSession().sockContext() != null) {
 			SocketContext socketContext = event.getSession().sockContext();
 			IoSession session = event.getSession();
-			//如果是SocketDisconnectByRemote标示对端断开连接,则关闭 session.close();
+			//如果是SocketDisconnectByRemote标示对端断开连接,则关闭session
 			if(e instanceof SocketDisconnectByRemote){
 				event.getSession().close();
 				return;
@@ -238,8 +238,8 @@ public class EventProcess {
 	/**
 	 * 消息发送
 	 * 
-	 * @param event
-	 * @param sendBuf
+	 * @param session
+	 * @param sendObj
 	 * @throws SendMessageException 
 	 * @throws IOException 
 	 */
