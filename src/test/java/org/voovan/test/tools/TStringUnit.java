@@ -56,10 +56,6 @@ public class TStringUnit extends TestCase {
 		assertTrue(TString.searchByRegex(simpleStr, "helyho").length==1);
 	}
 
-	public void testReplaceByRegex() {
-		assertEquals(TString.replaceByRegex(simpleStr, "helyho","king"),"^ king is my name ^");
-	}
-
 	public void testIsNullOrEmpty() {
 		assertTrue(TString.isNullOrEmpty(""));
 		assertTrue(TString.isNullOrEmpty(null));

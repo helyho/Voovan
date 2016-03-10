@@ -29,72 +29,89 @@ public class JdbcOperateDemo {
         }
 
         JdbcOperate jOperate = new JdbcOperate(dataSource);
-
+        String sql = "";
         //查询测试
-        List<Map<String, Object>> smm = jOperate.queryMapList("select * from sc_script");
-        Logger.simple("查询测试: "+smm);
+        sql = "select * from sc_script";
+        List<Map<String, Object>> manyMaps = jOperate.queryMapList(sql);
+        Logger.simple("查询测试: " + manyMaps);
 
         //查询并返回多个对象
-        List<ScriptEntity> ls = jOperate.queryObjectList("select * from sc_script", ScriptEntity.class);
-        Logger.simple("查询并返回多个对象: "+ls);
+        sql = "select * from sc_script";
+        List<ScriptEntity> manyObject = jOperate.queryObjectList(sql, ScriptEntity.class);
+        Logger.simple("查询并返回多个对象: " + manyObject);
 
-        //Java基本类型
-        long count = jOperate.queryObject("select count(*) from sc_script", long.class);
-        Logger.simple("Java基本类型: "+count);
+        //Java基本类型(int)
+        sql = "select count(*) from sc_script";
+        long count = jOperate.queryObject(sql, long.class);
+        Logger.simple("Java基本类型: " + count);
 
-        //Java基本类型
-        String packagePath = jOperate.queryObject("select packagePath from sc_script limit 0,1", String.class);
-        Logger.simple("Java基本类型: "+packagePath);
+        //Java基本类型(String)
+        sql = "select packagePath from sc_script";
+        String singleField = jOperate.queryObject(sql, String.class);
+        Logger.simple("Java基本类型: " + singleField);
 
         //Map参数 => 返回List<Map>
-        HashMap<String, Object> xMap = new HashMap<String, Object>();
-        xMap.put("packagePath", "org.hocate.test");
-        List<Map<String, Object>> mm = jOperate.queryMapList("select * from sc_script where PackagePath=::packagePath and version=::version", xMap);
-        Logger.simple("Map参数 => 返回List<Map>: "+mm);
+        HashMap<String, Object> paramMap = new HashMap<String, Object>();
+        paramMap.put("packagePath", "org.hocate.test");
+        sql = "select * from sc_script where PackagePath=::packagePath and version=::version";
+        List<Map<String, Object>> manyMapsMapParam = jOperate.queryMapList(sql, paramMap);
+        Logger.simple("Map参数 => 返回List<Map>: " + manyMapsMapParam);
 
         //Map参数 => 返回List<Object>
-        List<ScriptEntity> lo = jOperate.queryObjectList("select * from sc_script where PackagePath=::packagePath", ScriptEntity.class, xMap);
-        Logger.simple("Map参数 => 返回List<Object>: "+lo);
+        sql = "select * from sc_script where PackagePath=::packagePath";
+        List<ScriptEntity> manyObjectMapParam = jOperate.queryObjectList(sql, ScriptEntity.class, paramMap);
+        Logger.simple("Map参数 => 返回List<Object>: " + manyObjectMapParam);
 
         //对象参数 => 返回对象列表 List<Object>
         ScriptEntity sEntity = new ScriptEntity();
         sEntity.setPackagePath("org.hocate.test");
-        List<ScriptEntity> lmm = jOperate.queryObjectList("select * from sc_script where PackagePath=::packagePath", ScriptEntity.class, sEntity);
-        Logger.simple("对象参数 => 返回对象列表 List<Object>: "+lmm);
+        sql = "select * from sc_script where PackagePath=::packagePath";
+        List<ScriptEntity> manyObjectObjectParam = jOperate.queryObjectList(sql, ScriptEntity.class, sEntity);
+        Logger.simple("对象参数 => 返回对象列表 List<Object>: " + manyObjectObjectParam);
 
         //对象参数 => 返回对象列表 List<Map>
-        List<Map<String, Object>> lmms = jOperate.queryMapList("select * from sc_script where PackagePath=::packagePath", sEntity);
-        Logger.simple("查询并返回多个对象: "+lmms);
+        sql = "select * from sc_script where PackagePath=::packagePath";
+        List<Map<String, Object>> manyMapsObjectParam = jOperate.queryMapList(sql, sEntity);
+        Logger.simple("查询并返回多个对象: " + manyMapsObjectParam);
 
         //不定个数参数 => 返回一个复杂对象
-        ScriptEntity llmm = jOperate.queryObject("select * from sc_script where PackagePath=::1 and version=::2", ScriptEntity.class, "org.hocate.test", 2.0);
-        Logger.simple("不定个数参数 => 返回一个复杂对象: "+llmm);
+        sql = "select * from sc_script where PackagePath=::1 and version=::2";
+        ScriptEntity singleObjectArrayParam = jOperate.queryObject(sql, ScriptEntity.class, "org.hocate.test", 2.0);
+        Logger.simple("不定个数参数 => 返回一个复杂对象: " + singleObjectArrayParam);
 
 
         //不定个数参数 => 返回一个复杂对象
-        List<ScriptEntity> llmmn = jOperate.queryObjectList("select * from sc_script where PackagePath=::1 and version=::2", ScriptEntity.class);
-        Logger.simple("自动移除无对应参数的 SQL 查询条件: "+llmmn);
+        sql = "select * from sc_script where PackagePath=::1 and version=::2";
+        List<ScriptEntity> manyObjectArrayParam = jOperate.queryObjectList(sql, ScriptEntity.class);
+        Logger.simple("自动移除无对应参数的 SQL 查询条件: " + manyObjectArrayParam);
 
         //数据库中表的列名和对象中的属性名模糊匹配
         //packagePath 列名转换为 paCKAge_Path
         //SouRCEPath 列名转换为 Source_Path
-        List<ScriptEntity> llmmnx = jOperate.queryObjectList("select ID,packagePath as paCKAge_Path,SouRCEPath as Source_Path from sc_script", ScriptEntity.class);
-        Logger.simple("数据库中表的列名和对象中的属性名模糊匹配: "+llmmnx);
+        sql = "select ID,packagePath as paCKAge_Path,SouRCEPath as Source_Path from sc_script";
+        List<ScriptEntity> manyObjectIgnoreCaseFile = jOperate.queryObjectList(sql, ScriptEntity.class);
+        Logger.simple("数据库中表的列名和对象中的属性名模糊匹配: " + manyObjectIgnoreCaseFile);
 
         //事务测试
         jOperate = new JdbcOperate(dataSource, true);
-        Logger.simple("事务更新记录数:" + jOperate.update("update sc_script set version=0"));
-        Logger.simple("事务回滚前:" + jOperate.queryMapList("select version from sc_script"));
+        sql = "update sc_script set version=::1";
+        int updateCount = jOperate.update(sql,-1);
+        Logger.simple("事务更新记录数:" + updateCount);
+        List<Map<String, Object>> updateResult = jOperate.queryMapList("select version from sc_script");
+        Logger.simple("事务回滚前:" + updateResult);
         jOperate.rollback();
-        Logger.simple("事务误回滚后:" + jOperate.queryMapList("select version from sc_script"));
+        List<Map<String, Object>> rollbackResult = jOperate.queryMapList("select version from sc_script");
+        Logger.simple("事务误回滚后:" + rollbackResult);
 
         //存储过程测试
         jOperate = new JdbcOperate(dataSource);
-        Map<String, Object> mmm = new HashMap<String, Object>();
-        mmm.put("arg1", "tttt");
-        List<Object> proRes = jOperate.call("{call test(::arg1)}", new CallType[]{CallType.INOUT}, mmm);
-        Logger.simple("存储过程测试: "+proRes);
-        proRes = jOperate.call("{call test(::1)}", new CallType[]{CallType.INOUT}, "1111");
-        Logger.simple("存储过程测试: "+ proRes);
+        Map<String, Object> procParam = new HashMap<String, Object>();
+        procParam.put("arg1", "tttt");
+        sql = "{call test(::arg1)}";
+        List<Object> callWithMap = jOperate.call(sql, new CallType[]{CallType.INOUT}, procParam);
+        Logger.simple("存储过程测试: " + callWithMap);
+        sql = "{call test(::1)}";
+        List<Object> callWithParam = jOperate.call(sql, new CallType[]{CallType.INOUT}, "1111");
+        Logger.simple("存储过程测试: " + callWithParam);
     }
 }

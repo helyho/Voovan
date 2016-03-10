@@ -28,8 +28,8 @@ public class JSONDecode {
 		jsonStr = removeComment(jsonStr);
 		Object jsonResult = null;
 		//处理掉注释
-		jsonStr = TString.replaceByRegex(jsonStr, "\\/\\/[^\n]*", "");
-		jsonStr = TString.replaceByRegex(jsonStr, "/\\*([^\\*^/]*|[\\*^/*]*|[^\\*/]*)*\\*/", "");
+		jsonStr = jsonStr.replaceAll("\\/\\/[^\n]*", "");
+		jsonStr = jsonStr.replaceAll("/\\*([^\\*^/]*|[\\*^/*]*|[^\\*/]*)*\\*/", "");
 		//处理掉前后的特殊字符
 		jsonStr = jsonStr.trim();
 		//根据起始和结束符号,决定返回的对象类型
@@ -40,7 +40,7 @@ public class JSONDecode {
 			jsonResult = new ArrayList<Object>();
 		}
 		//规范化字符串
-		jsonStr = TString.replaceByRegex(jsonStr,"\\s*:\\s*", ":");
+		jsonStr = jsonStr.replaceAll("\\s*:\\s*", ":");
 		jsonStr = jsonStr.substring(1,jsonStr.length()-1);
 		String keyString = null;
 		Object value = null;
@@ -199,8 +199,8 @@ public class JSONDecode {
 	
 	private static String removeComment(String jsonStr){
 		//处理掉注释
-		jsonStr = TString.replaceByRegex(jsonStr, "\\/\\/[^\n]*", "");
-		jsonStr = TString.replaceByRegex(jsonStr, "/\\*([^\\*^/]*|[\\*^/*]*|[^\\*/]*)*\\*/", "");
+		jsonStr = jsonStr.replaceAll("\\/\\/[^\n]*", "");
+		jsonStr = jsonStr.replaceAll("/\\*([^\\*^/]*|[\\*^/*]*|[^\\*/]*)*\\*/", "");
 		jsonStr = jsonStr.trim();
 		return jsonStr;
 	}
