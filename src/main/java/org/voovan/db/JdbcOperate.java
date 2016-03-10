@@ -194,8 +194,8 @@ public class JdbcOperate {
 		return new int[0];
 	}
 
-	
-	public List<Object> baseCall(String sqlText, Map<String, Object> mapArg,CallType[] callTypes) throws SQLException {
+
+	private List<Object> baseCall(String sqlText, CallType[] callTypes,Map<String, Object> mapArg) throws SQLException {
 		Connection conn = getConnection();
 		try {
 			CallableStatement callableStatement = TSQL.createCallableStatement(conn, sqlText, mapArg, callTypes);
@@ -678,7 +678,7 @@ public class JdbcOperate {
 	 * @throws SQLException
 	 */
 	public List<Object> call(String sqlText, CallType[] callTypes, Map<String, Object> maps) throws SQLException {
-		return this.baseCall(sqlText, maps,callTypes);
+		return this.baseCall(sqlText ,callTypes ,maps);
 	}
 	
 	/**
@@ -699,7 +699,7 @@ public class JdbcOperate {
 			return call(sqlText, callTypes, arg, null);
 		}else{
 			Map<String, Object> paramsMap  = TReflect.getMapfromObject(arg);
-			return this.baseCall(sqlText, paramsMap,callTypes);
+			return this.baseCall(sqlText,callTypes, paramsMap);
 		}
 		
 	}
@@ -717,7 +717,7 @@ public class JdbcOperate {
 	 */
 	public List<Object> call(String sqlText, CallType[] callTypes, Object ... args) throws SQLException {
 		Map<String, Object> paramsMap  = TSQL.arrayToMap(args);
-		return this.baseCall(sqlText, paramsMap,callTypes);
+		return this.baseCall(sqlText,callTypes, paramsMap);
 	}
 	
 

@@ -134,17 +134,6 @@ public class TString {
 	}
 	
 	/**
-	 * 正则表达式替换
-	 * @param source
-	 * @param regex
-	 * @param replacement
-	 * @return
-	 */
-	public static String replaceByRegex(String source,String regex,String replacement){
-		return source.replaceAll(regex, replacement);
-	}
-	
-	/**
 	 * 判断字符串空指针或者内容为空
 	 * @param str
 	 * @return

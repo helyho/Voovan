@@ -218,7 +218,11 @@ public class HttpClient {
 		parameters.put(name, value);
 		return this;
 	}
-	
+
+	/**
+	 * 获取当前工作状态
+	 * @return
+     */
 	public HttpClientStatus getStatus() {
 		return status;
 	}

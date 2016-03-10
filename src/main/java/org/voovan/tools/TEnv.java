@@ -117,7 +117,7 @@ public class TEnv {
 
 	/**
 	 * 为JVM加载一个jar包 或者一个目录到 classpath
-	 * @param file
+	 * @param filePath
 	 * @throws Exception
 	 */
 	public static void loadBinary(String filePath) throws Exception {
