@@ -48,7 +48,7 @@ public class TDateTimeUnit extends TestCase {
 	public void testParseStringString() throws ParseException {
 		Date date = new Date();
 		Date parsedDate = TDateTime.parse(TDateTime.format(date, "yyyy-MM-dd HH:mm:ss"), "yyyy-MM-dd HH:mm:ss");
-		assert (date.compareTo(parsedDate) == 0);
+		assert (date.toString().equals(parsedDate.toString()));
 	}
 
 	public void testParseStringStringStringLocale() throws ParseException {
@@ -56,13 +56,13 @@ public class TDateTimeUnit extends TestCase {
 		Date parsedDate = TDateTime.parse(TDateTime.format(date, "yyyy-MM-dd HH:mm:ss"), 
 											"yyyy-MM-dd HH:mm:ss", TimeZone.getDefault()
 											.getID(), Locale.getDefault());
-		assert (date.compareTo(parsedDate) == 0);
+		assert (date.toString().equals(parsedDate.toString()));
 	}
 	
 	 public void testParseToGMT() throws ParseException {
 		Date date = new Date();
 		Date parsedDate = TDateTime.parseToGMT(TDateTime.formatToGMT(date));
-		assert (date.compareTo(parsedDate) == 0);
+		assert (date.toString().equals(parsedDate.toString()));
 		
 	 }
 	

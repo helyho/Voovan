@@ -89,8 +89,8 @@ public class JdbcOperateDemo {
         //packagePath 列名转换为 paCKAge_Path
         //SouRCEPath 列名转换为 Source_Path
         sql = "select ID,packagePath as paCKAge_Path,SouRCEPath as Source_Path from sc_script";
-        List<ScriptEntity> manyObjectIgnoreCaseFile = jOperate.queryObjectList(sql, ScriptEntity.class);
-        Logger.simple("数据库中表的列名和对象中的属性名模糊匹配: " + manyObjectIgnoreCaseFile);
+        List<ScriptEntity> manyObjectIgnoreCaseField = jOperate.queryObjectList(sql, ScriptEntity.class);
+        Logger.simple("数据库中表的列名和对象中的属性名模糊匹配: " + manyObjectIgnoreCaseField);
 
         //事务测试
         jOperate = new JdbcOperate(dataSource, true);

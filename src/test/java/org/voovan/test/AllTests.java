@@ -2,6 +2,7 @@ package org.voovan.test;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import org.voovan.test.db.JdbcOperatorUnit;
 import org.voovan.test.http.HttpClientUnit;
 import org.voovan.test.http.HttpParserUnit;
 import org.voovan.test.onlineComplier.ComplierUnit;
@@ -24,6 +25,7 @@ public class AllTests {
 		suite.addTestSuite(ByteBufferChannelUnit.class);
 		suite.addTestSuite(TDateTimeUnit.class);
 		suite.addTestSuite(TStringUnit.class);
+		suite.addTestSuite(JdbcOperatorUnit.class);
 		//$JUnit-END$
 		return suite;
 	}
