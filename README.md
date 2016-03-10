@@ -42,10 +42,7 @@
   1. **可灵活的加载过滤器机制。**
   
   
-[异步框架使用指南](https://github.com/helyho/Voovan/wiki/AIO-NIO%E5%BC%82%E6%AD%A5%E9%80%9A%E4%BF%A1%E6%A1%86%E6%9E%B6%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
-  
-
-**>> [异步框架使用举例](https://github.com/helyho/Voovan/wiki/AIO-NIO%E5%BC%82%E6%AD%A5%E9%80%9A%E4%BF%A1%E6%A1%86%E6%9E%B6%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97#%E4%B8%89%E4%BD%BF%E7%94%A8%E4%B8%BE%E4%BE%8B)**
+[异步框架使用指南](https://git.oschina.net/helyho/Voovan/wikis/%E5%BC%82%E6%AD%A5%E9%80%9A%E4%BF%A1%E6%A1%86%E6%9E%B6%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
 
 ---------------------
 
@@ -55,10 +52,8 @@
   1. 客户端可以灵活自定义请求报文。
   1. 同步实现 HTTP请求(需要同步实现可参考)。
   
-[HTTP客户端类使用指南](https://github.com/helyho/Voovan/wiki/HTTP%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%B1%BB%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
+[HTTP客户端类使用指南](https://git.oschina.net/helyho/Voovan/wikis/HTTP%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%B1%BB%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
 
-**>> [HTTP客户端使用举例](https://github.com/helyho/Voovan/wiki/HTTP%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%B1%BB%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97#%E4%BA%8C%E4%BD%BF%E7%94%A8%E4%B8%BE%E4%BE%8B)**
-  
 
 ###WEB服务器特性:
   1. 支持 **WebSocket Version 13**，并且保持 WebSocket请求参数。
@@ -71,10 +66,7 @@
 
 [HTTP服务端性能测试报告](https://git.oschina.net/helyho/Voovan/issues/12)
   
-[HTTP服务端类使用指南](https://github.com/helyho/Voovan/wiki/HTTP%E6%9C%8D%E5%8A%A1%E7%B1%BB%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E)
-
-
-**>> [HTTP服务类使用举例](https://github.com/helyho/Voovan/wiki/HTTP%E6%9C%8D%E5%8A%A1%E7%B1%BB%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E#%E4%BA%8C%E4%BD%BF%E7%94%A8%E4%B8%BE%E4%BE%8B)**
+[HTTP服务端类使用指南](https://git.oschina.net/helyho/Voovan/wikis/HTTP%E6%9C%8D%E5%8A%A1%E7%B1%BB%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E)
 
 ---------------------
 
@@ -83,11 +75,7 @@
   在内存中编一个保存有 java 代码的字符串,并将编译后的 byte 字节加入到 classloader 中,可灵活的动态定义类和使用。
   
   
-[动态编译使用指南](https://github.com/helyho/Voovan/wiki/%E5%8A%A8%E6%80%81%E7%BC%96%E8%AF%91%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
-
-
-**>> [动态编译使用举例](https://github.com/helyho/Voovan/wiki/%E5%8A%A8%E6%80%81%E7%BC%96%E8%AF%91%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97#%E4%BA%8C%E4%BD%BF%E7%94%A8%E4%B8%BE%E4%BE%8B)**
-  
+[动态编译使用指南](https://git.oschina.net/helyho/Voovan/wikis/%E5%8A%A8%E6%80%81%E7%BC%96%E8%AF%91%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
 
 ---------------------
 
@@ -95,9 +83,7 @@
 提供类似Spring JDBCTemplate 的数据访问支持，但提供了更好更灵活易用的函数设计，同时提供对数据库事务的支持。
 
 
-[数据库类使用指南](https://github.com/helyho/Voovan/wiki/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B1%BB%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
-
-**>> [数据库类使用举例](https://github.com/helyho/Voovan/wiki/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B1%BB%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97#%E5%9B%9B-%E4%BD%BF%E7%94%A8%E4%B8%BE%E4%BE%8B)**
+[数据库类使用指南](https://git.oschina.net/helyho/Voovan/wikis/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B1%BB%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
 
 ---------------------
 
@@ -114,7 +100,7 @@
   1. 文件路径拼接、从绝对路径读取、从相对路径读取、从包路径读取、指定起始和结束位置内容读取等。
   1. List 和 Map 的快速初始化。
   
-[工具类使用指南](https://github.com/helyho/Voovan/wiki/%E5%B7%A5%E5%85%B7%E7%B1%BB%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
+[工具类使用指南](https://git.oschina.net/helyho/Voovan/wikis/%E5%B7%A5%E5%85%B7%E7%B1%BB%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97)
 
 
 ##包结构说明
@@ -126,3 +112,6 @@
 |org.voovan.dynamicComplier |动态编译包        |
 |org.voovan.network         |网络异步通信包    |
 |org.voovan.tools           |基本工具包        |
+
+## 支持者鸣谢
+[zhubibo](https://git.oschina.net/zhubibo)
