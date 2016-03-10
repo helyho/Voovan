@@ -184,7 +184,7 @@ public class TReflect {
 	 * @throws Exception		异常
 	 */
 	public static Object invokeMethod(Object obj, String name, Object... parameters) throws ReflectiveOperationException {
-		Class<?>[] parameterTypes = getParameters(parameters);
+		Class<?>[] parameterTypes = getArrayClasses(parameters);
 		Method method = findMethod(obj.getClass(), name, parameterTypes);
 		method.setAccessible(true);
 		return method.invoke(obj, parameters);
@@ -199,7 +199,7 @@ public class TReflect {
 	 * @throws Exception
 	 */
 	public static <T> T newInstance(Class<T> clazz, Object ...parameters) throws ReflectiveOperationException {
-		Class<?>[] parameterTypes = getParameters(parameters);
+		Class<?>[] parameterTypes = getArrayClasses(parameters);
 		Constructor<T> constructor = clazz.getConstructor(parameterTypes);
 		return constructor.newInstance(parameters);
 	}
@@ -222,7 +222,7 @@ public class TReflect {
 	 * @param objs	对象类型数组
 	 * @return
 	 */
-	public static Class<?>[] getParameters(Object[] objs){
+	public static Class<?>[] getArrayClasses(Object[] objs){
 		Class<?>[] parameterTypes= new Class<?>[objs.length];
 		for(int i=0;i<objs.length;i++){
 			parameterTypes[i] = objs[i].getClass();
