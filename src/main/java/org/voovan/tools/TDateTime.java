@@ -126,10 +126,11 @@ public class TDateTime {
 	 * 日期加操作
 	 * @param date		加法的基数日期
 	 * @param millis	微秒
+	 * @param format    输出的格式
 	 * @return
 	 * @throws ParseException 
 	 */
-	public static String add(String time,String format,long millis) throws ParseException{
+	public static String add(String time,long millis,String format) throws ParseException{
 		Date tmpDate = parse(time, format);
 		Date resultDate = add(tmpDate, millis);
 		return format(resultDate, format);
