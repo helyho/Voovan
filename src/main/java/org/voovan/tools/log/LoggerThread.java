@@ -81,7 +81,7 @@ public class LoggerThread implements Runnable {
 	public void run() {
 		while (true && !isTerminate()) {
 			try {
-				String formatedMessage = logQueue.poll(500, TimeUnit.MILLISECONDS);
+				String formatedMessage = logQueue.poll(100, TimeUnit.MILLISECONDS);
 				if (formatedMessage != null && outputStreams!=null) {
 					for (OutputStream outputStream : outputStreams) {
 						if (outputStream != null) {
@@ -90,7 +90,6 @@ public class LoggerThread implements Runnable {
 						}
 					}
 				}
-				TEnv.sleep(1);
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
 			}
