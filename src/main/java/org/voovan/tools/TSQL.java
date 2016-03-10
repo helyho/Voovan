@@ -74,12 +74,14 @@ public class TSQL {
 	 * @throws SQLException
 	 */
 	public static PreparedStatement createPreparedStatement(Connection conn,String sqlStr,Map<String, Object> params) throws SQLException{
-		Logger.debug("[SQL_Executed]: " + sqlStr);
+
 		//获取参数列表
 		List<String> sqlParams = TSQL.getSqlParams(sqlStr);
 
 		//将没有提供查询参数的条件移除
 		sqlStr = TSQL.removeEmptyCondiction(sqlStr,sqlParams,params);
+
+		Logger.debug("[SQL_Executed]: " + sqlStr);
 
 		//获取preparedStatement可用的 SQL
 		String preparedSql = TSQL.preparedSql(sqlStr);
