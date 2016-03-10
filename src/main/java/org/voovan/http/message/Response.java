@@ -151,12 +151,7 @@ public class Response {
 				} else {
 					outputStream.write(body.getBodyBytes());
 				}
-				//结尾换行根据 http 协议不需要
-				// 报文内容结束
-//				outputStream.write("\r\n".getBytes());
-				// 插入空行
-//				outputStream.write("\r\n".getBytes());
-				
+
 				return outputStream.toByteArray();
 			}
 		} catch (IOException e) {

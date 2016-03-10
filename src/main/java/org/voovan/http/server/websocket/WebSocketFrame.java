@@ -218,18 +218,24 @@ public class WebSocketFrame {
 	 * @return
 	 */
 	private static byte fromOpcode(Opcode opcode) {
-		if (opcode == Opcode.CONTINUOUS)
+		if (opcode == Opcode.CONTINUOUS) {
 			return 0;
-		else if (opcode == Opcode.TEXT)
+		}
+		else if (opcode == Opcode.TEXT) {
 			return 1;
-		else if (opcode == Opcode.BINARY)
+		}
+		else if (opcode == Opcode.BINARY) {
 			return 2;
-		else if (opcode == Opcode.CLOSING)
+		}
+		else if (opcode == Opcode.CLOSING) {
 			return 8;
-		else if (opcode == Opcode.PING)
+		}
+		else if (opcode == Opcode.PING) {
 			return 9;
-		else if (opcode == Opcode.PONG)
+		}
+		else if (opcode == Opcode.PONG) {
 			return 10;
+		}
 		return -1;
 	}
 
@@ -277,8 +283,9 @@ public class WebSocketFrame {
 		} else if (sizebytes == 8) {
 			buf.put((byte) ((byte) 127 | (mask ? (byte) -128 : 0)));
 			buf.put(payloadlengthbytes);
-		} else
-			throw new RuntimeException("Size representation not supported/specified");
+		} else {
+			Logger.error("Size representation not supported/specified");
+		}
 
 		if (mask) {
 			ByteBuffer maskkey = ByteBuffer.allocate(4);
