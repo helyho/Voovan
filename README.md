@@ -113,5 +113,8 @@
 |org.voovan.network         |网络异步通信包    |
 |org.voovan.tools           |基本工具包        |
 
-## 支持者鸣谢
-[zhubibo](https://git.oschina.net/zhubibo)
+## 贡献者名单
+|  名称                      | 贡献内容           |
+| -------------             |:-------------: |
+|[愚民日记](https://git.oschina.net/helyho)             | 项目发起者      |
+|[zhubibo](https://git.oschina.net/zhubibo)            |应用与BUG提交      |
