@@ -44,7 +44,7 @@ public class TSQL {
 	 * @return				将所有的:引导的参数转换成? (select * from table where x=? and y=?)
 	 */
 	public static String preparedSql(String sqlStr){
-		return TString.replaceByRegex(sqlStr, "::[^,\\s\\)]+", "?");
+		return sqlStr.replaceAll("::[^,\\s\\)]+", "?");
 	}
 	
 	/**
