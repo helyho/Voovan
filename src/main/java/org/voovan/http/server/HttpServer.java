@@ -59,40 +59,40 @@ public class HttpServer {
 	 */
 
 	public void get(String routeRegexPath, HttpBizHandler handler) {
-		httpDispatcher.addRouteHandler("GET", "^" + routeRegexPath + "$", handler);
+		httpDispatcher.addRouteHandler("GET", routeRegexPath, handler);
 	}
 
 	public void post(String routeRegexPath, HttpBizHandler handler) {
-		httpDispatcher.addRouteHandler("POST", "^" + routeRegexPath + "$", handler);
+		httpDispatcher.addRouteHandler("POST", routeRegexPath, handler);
 	}
 
 	public void head(String routeRegexPath, HttpBizHandler handler) {
-		httpDispatcher.addRouteHandler("HEAD", "^" + routeRegexPath + "$", handler);
+		httpDispatcher.addRouteHandler("HEAD", routeRegexPath, handler);
 	}
 
 	public void put(String routeRegexPath, HttpBizHandler handler) {
-		httpDispatcher.addRouteHandler("PUT", "^" + routeRegexPath + "$", handler);
+		httpDispatcher.addRouteHandler("PUT", routeRegexPath, handler);
 	}
 
 	public void delete(String routeRegexPath, HttpBizHandler handler) {
-		httpDispatcher.addRouteHandler("delete", "^" + routeRegexPath + "$", handler);
+		httpDispatcher.addRouteHandler("delete", routeRegexPath, handler);
 	}
 
 	public void trace(String routeRegexPath, HttpBizHandler handler) {
-		httpDispatcher.addRouteHandler("TRACE", "^" + routeRegexPath + "$", handler);
+		httpDispatcher.addRouteHandler("TRACE", routeRegexPath, handler);
 	}
 
 	public void connect(String routeRegexPath, HttpBizHandler handler) {
-		httpDispatcher.addRouteHandler("CONNECT", "^" + routeRegexPath + "$", handler);
+		httpDispatcher.addRouteHandler("CONNECT", routeRegexPath, handler);
 	}
 
 	public void options(String routeRegexPath, HttpBizHandler handler) {
-		httpDispatcher.addRouteHandler("OPTIONS", "^" + routeRegexPath + "$", handler);
+		httpDispatcher.addRouteHandler("OPTIONS", routeRegexPath, handler);
 	}
 
 	public void otherMethod(String method, String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteMethod(method);
-		httpDispatcher.addRouteHandler(method, "^" + routeRegexPath + "$", handler);
+		httpDispatcher.addRouteHandler(method, routeRegexPath, handler);
 	}
 	
 	public void socket(String routeRegexPath, WebSocketBizHandler handler) {
