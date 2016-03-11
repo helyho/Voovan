@@ -186,8 +186,8 @@ public class EventProcess {
 	 */
 	private static Object filterEncoder(Chain<IoFilter> filterChain,IoSession session,Object result) throws IoFilterException{
 		filterChain.rewind();
-		while (filterChain.hasNext()) {
-			IoFilter fitler = filterChain.next();
+		while (filterChain.hasPrevious()) {
+			IoFilter fitler = filterChain.previous();
 			result = fitler.encode(session, result);
 		}
 		return result;
