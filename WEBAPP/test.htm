@@ -69,14 +69,14 @@
         var name = document.getElementById('name').value;
         var age = document.getElementById('age').value;
 
-        if (type.indexOf("mu") == 0 || type.indexOf("app") == 0) {
+        if (type=="multipart/form-data" || type=="application/x-www-form-urlencoded") {
             var testFrom = document.getElementById('testForm');
             testFrom.enctype = type;
             testForm.submit()
         } else if (type == "normal/get") {
             window.location = "http://" + host + "/?name=" + name + "&age=" + age;
         } else if (type == "path/get") {
-            window.location = "http://" + host + "/" + encodeURI(name) + "/" + encodeURI(age);
+            window.location = "http://" + host + "/Star/" + encodeURI(name) + "/" + encodeURI(age);
         }
     }
 </script>
