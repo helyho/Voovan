@@ -44,7 +44,8 @@ public class HttpDispatcher {
 	/**
 	 * 构造函数
 	 * 
-	 * @param rootDir
+	 * @param webConfig
+	 * @param sessionManager
 	 *            根目录
 	 */
 	public HttpDispatcher(WebServerConfig webConfig,SessionManager sessionManager) {
@@ -80,9 +81,9 @@ public class HttpDispatcher {
 	/**
 	 * 增加一个路由规则
 	 * 
-	 * @param Method
+	 * @param method
 	 * @param routeRegexPath
-	 * @param routeBuiz
+	 * @param handler
 	 */
 	public void addRouteHandler(String method, String routeRegexPath, HttpBizHandler handler) {
 		if (handlers.keySet().contains(method)) {
@@ -144,18 +145,29 @@ public class HttpDispatcher {
 			exceptionMessage(request, response,  new RouterNotFound("Not avaliable router!"));
 		}
 	}
-	
+
+	/**
+	 * 将路径转换成正则表达式形式的路径
+	 * @param routePath
+	 * @return
+     */
+	public static String routePath2RegexPath(String routePath){
+		String routeRegexPath = routePath.replaceAll(":[^/$]+", "[^/?]+");
+		routeRegexPath = routeRegexPath.replaceAll("/\\*/","/.*/");
+		return routeRegexPath;
+	}
+
 	/**
 	 * 路径匹配
 	 * @param requestPath
-	 * @param routeRegexPath
+	 * @param routePath
 	 * @return
 	 */
-	public static boolean matchPath(String requestPath, String routeRegexPath){
+	public static boolean matchPath(String requestPath, String routePath){
 		//转换成可以配置的正则,主要是处理:后的参数表达式
 		//把/home/:name转换成/home/[^/?]+来匹配
-		String regexPath = routeRegexPath.replaceAll(":[^/$]+", "[^/?]+");
-		return TString.searchByRegex(requestPath, "^"+regexPath+"$").length > 0;
+		String routeRegexPath = routePath2RegexPath(routePath);
+		return TString.searchByRegex(requestPath, "^" + routeRegexPath + "/?$" ).length > 0;
 	}
 	
 	/**
@@ -168,13 +180,15 @@ public class HttpDispatcher {
 	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) {
 		Map<String, String> resultMap = new HashMap<String, String>();
 		String[] pathPieces = requestPath.substring(1,requestPath.length()).split("/");
-		String[] routePathPieces = routePath.substring(2, routePath.length()-1).split("/");
+		String[] routePathPieces = routePath.substring(1, routePath.length()).split("/");
 		try{
-			for(int i=0;i<routePathPieces.length;i++){
-				String routePathPiece = routePathPieces[i];
+			for(int i=1;i<=routePathPieces.length;i++){
+				int routePathPiecesLength = routePathPieces.length;
+				int pathPiecesLength = pathPieces.length;
+				String routePathPiece = routePathPieces[routePathPiecesLength-i];
 				if(routePathPiece.startsWith(":")){
 					String name = TString.removePrefix(routePathPiece);
-					String value = URLDecoder.decode(pathPieces[i], "UTF-8");
+					String value = URLDecoder.decode(pathPieces[pathPiecesLength-i], "UTF-8");
 					resultMap.put(name,value);
 				}
 			}
