@@ -39,7 +39,6 @@ public class Event {
 	 * 构造函数
 	 * @param session  会话对象
 	 * @param name		事件名
-	 * @param exception	异常对象
 	 */
 	public Event(IoSession session,EventName name,Object other){
 		this.session = session;
@@ -87,15 +86,27 @@ public class Event {
 	
 	@Override
 	public boolean equals(Object obj){
-		if(obj instanceof Event){
+		if(obj != null && obj instanceof Event){
 			Event compareEvent = TObject.cast( obj );
-			return session.equals(compareEvent.session) && compareEvent.getName().equals(name);
-		}
-		else {
+			if(session!=null && name != null
+					&& session.equals(compareEvent.getSession())
+					&& name.equals(compareEvent.getName())) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
 			return false;
 		}
 	}
-	
+
+	/**
+	 * 活的新的实例
+	 * @param session
+	 * @param name
+	 * @param other
+     * @return
+     */
 	public static Event getInstance(IoSession session,Event.EventName name,Object other){
 		return new Event(session, name, other);
 	}
