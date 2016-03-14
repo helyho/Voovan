@@ -28,9 +28,9 @@ public class NioServerSocket extends SocketContext{
 	 
 	/**
 	 * 构造函数
-	 * @param addr      监听地址
+	 * @param host      监听地址
 	 * @param port		监听端口
-	 * @param timeout   超时时间
+	 * @param readTimeout   超时时间
 	 * @throws IOException	异常
 	 */
 	public NioServerSocket(String host,int port,int readTimeout) throws IOException{
@@ -47,7 +47,7 @@ public class NioServerSocket extends SocketContext{
 	 * 获取 SocketChannel 对象
 	 * @return
 	 */
-	public ServerSocketChannel socketChannel(){
+	private ServerSocketChannel socketChannel(){
 		return this.serverSocketChannel;
 	}
 	

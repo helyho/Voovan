@@ -40,7 +40,7 @@ public class AioServerSocket extends SocketContext{
 	/**
 	 * 捕获 Aio Accept 事件
 	 */
-	public void catchAccept(){
+	private void catchAccept(){
 		serverSocketChannel.accept(this, new AcceptCompletionHandler(eventTrigger));
 	}
 	
