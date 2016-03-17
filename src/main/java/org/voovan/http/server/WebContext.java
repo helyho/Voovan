@@ -26,16 +26,16 @@ public class WebContext {
 	/**
 	 * Web Config
 	 */
-	private static final Map<String, Object> WEB_CONFIG = loadMapFromFile("/Config/web.js");
+	private static final Map<String, Object> WEB_CONFIG = loadMapFromFile("/conf/web.json");
 
 	/**
 	 * MimeMap
 	 */
-	private static final Map<String, Object> MIME_TYPES = loadMapFromFile("/Config/mime.js");
+	private static final Map<String, Object> MIME_TYPES = loadMapFromFile("/conf/mime.json");
 	/**
 	 * 错误输出 Map
 	 */
-	private static final Map<String, Object> ERROR_DEFINE = loadMapFromFile("/Config/error.js");
+	private static final Map<String, Object> ERROR_DEFINE = loadMapFromFile("/conf/error.json");
 
 	/**
 	 *  accessLog 的文件路径
