@@ -298,7 +298,6 @@ public class TReflect {
 					Class<?> fieldType = field.getType();
 
 					if(value instanceof Map){
-						fieldType.getGenericInterfaces();
 						value = getObjectFromMap(fieldType, TObject.cast(value), ignoreCase);
 					} else {
 						value = getObjectFromMap(fieldType, TObject.newMap("value", TObject.cast(value)), ignoreCase);
