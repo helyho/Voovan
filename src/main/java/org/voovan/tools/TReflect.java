@@ -234,7 +234,7 @@ public class TReflect {
 	 * 将Map转换成指定的对象
 	 * 
 	 * @param clazz			类对象
-	 * @param mapObj		Map 对象
+	 * @param mapArg		Map 对象
 	 * @param ignoreCase    匹配属性名是否不区分大小写
 	 * @return
 	 * @throws ParseException 
@@ -242,43 +242,43 @@ public class TReflect {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Object getObjectFromMap(Class<?> clazz,
-		Map<String, Object> mapObj,boolean ignoreCase) throws ReflectiveOperationException, ParseException {
+		Map<String, Object> mapArg,boolean ignoreCase) throws ReflectiveOperationException, ParseException {
 		Object obj = null;
 
 		// java标准对象
 		if (!clazz.getName().contains(".")){
-			obj = mapObj.values().iterator().next();
+			obj = mapArg.values().iterator().next();
 		}
 		//java基本对象
 		else if (clazz.getName().startsWith("java.lang")) {
 			//取 Map.Values 里的递第一个值
-			String value = mapObj.values().iterator().next().toString();
+			String value = mapArg.values().iterator().next().toString();
 			obj = newInstance(clazz,  value);
 		}
 		//java 日期对象
 		else if(isExtendsByClass(clazz,Date.class)){
 			//取 Map.Values 里的递第一个值
-			String value = mapObj.values().iterator().next().toString();
+			String value = mapArg.values().iterator().next().toString();
 			SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
 			obj = dateFormat.parse(value.toString());
 		}
 		//Map 类型
 		else if(isImpByInterface(clazz,Map.class)){
 			Map mapObject = TObject.cast(newInstance(clazz));
-			mapObject.putAll(mapObj);
+			mapObject.putAll(mapArg);
 			obj = mapObject;
 		}
 		//Collection 类型
 		else if(isImpByInterface(clazz,Collection.class)){
 			Collection listObject = TObject.cast(newInstance(clazz));
-			listObject.addAll((Collection) TObject.cast(mapObj.values().iterator().next()));
+			listObject.addAll((Collection) TObject.cast(mapArg.values().iterator().next()));
 			obj = listObject;
 		}
 		// 复杂对象
 		else {
 			obj = newInstance(clazz);
-			for(String key : mapObj.keySet()){
-				Object value = mapObj.get(key);
+			for(String key : mapArg.keySet()){
+				Object value = mapArg.get(key);
 
 				if(value==null){
 					continue;
@@ -297,9 +297,10 @@ public class TReflect {
 					String fieldName = field.getName();
 					Class<?> fieldType = field.getType();
 
-					if(isImpByInterface(value.getClass(),Map.class)){
+					if(value instanceof Map){
+						fieldType.getGenericInterfaces();
 						value = getObjectFromMap(fieldType, TObject.cast(value), ignoreCase);
-					}else {
+					} else {
 						value = getObjectFromMap(fieldType, TObject.newMap("value", TObject.cast(value)), ignoreCase);
 					}
 					setFieldValue(obj, fieldName, value);
@@ -322,8 +323,26 @@ public class TReflect {
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		Map<Field, Object> fieldValues =  TReflect.getFieldValues(obj);
 		//如果是 java 标准类型
-		if(obj.getClass().getName().startsWith("java")){
+		if(obj.getClass().getName().startsWith("java.lang")
+				|| !obj.getClass().getName().contains(".")){
 			mapResult.put("value", obj);
+		}
+		//对 Collection 类型的处理
+		else if(obj instanceof Collection){
+			Collection collection = (Collection) newInstance(obj.getClass());
+			for(Object collectionItem : (Collection)obj) {
+				collection.add(getMapfromObject(collectionItem));
+			}
+			mapResult.put("value", collection);
+		}
+		//对 Map 类型的处理
+		else if(obj instanceof Map){
+			Map mapObject = (Map)obj;
+			Map map = (Map)newInstance(obj.getClass());
+			for(Object key : mapObject.keySet()) {
+				map.put(getMapfromObject(key),getMapfromObject(mapObject.get(key)));
+			}
+			mapResult.put("value", map);
 		}
 		//复杂对象类型
 		else{
@@ -336,7 +355,13 @@ public class TReflect {
 						mapResult.put(key, value);
 					}else {
 						//如果是复杂类型则递归调用
-						mapResult.put(key, getMapfromObject(value));
+						Map resultMap = getMapfromObject(value);
+						if(resultMap.size()==1 && resultMap.containsKey("value")){
+							mapResult.put(key, resultMap.values().iterator().next());
+						}else{
+							mapResult.put(key,resultMap);
+						}
+
 					}
 				}
 			}
