@@ -75,7 +75,7 @@ public class SSLManager {
 	 * @param protocol		协议名称 SSL/TLS
 	 * @throws SSLException 
 	 */
-	private void init(String protocol) throws SSLException {
+	private synchronized void init(String protocol) throws SSLException {
 
 		if(TString.isNullOrEmpty(protocol) || protocol == null){
 			this.protocol = "SSL";
@@ -100,7 +100,7 @@ public class SSLManager {
 	 * @return
 	 * @throws SSLException 
 	 */
-	private void createSSLEngine(String protocol) throws SSLException {
+	private synchronized void createSSLEngine(String protocol) throws SSLException {
 		init(protocol);
 		engine = context.createSSLEngine();
 	}

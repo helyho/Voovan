@@ -20,6 +20,7 @@ public class TByteBuffer {
             int size = bytebuffer.limit();
             byte[] buffers = new byte[size];
             bytebuffer.get(buffers);
+            bytebuffer.position(oldPosition);
             return buffers;
         }else{
             return bytebuffer.array();

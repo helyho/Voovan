@@ -113,28 +113,30 @@ public class EventProcess {
 		if (socketContext != null && session != null) {
 			ByteBuffer byteBuffer = ByteBuffer.allocate(1);
 			
-			//循环读取完整的消息包,由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.
-			//按消息包出发 onRecive 事件
-			while (byteBuffer.limit() != 0) {
-				
+			// 循环读取完整的消息包.
+			// 由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.
+			// 有可能缓冲区没有读完
+			// 按消息包出发 onRecive 事件
+			while (session.getByteBufferChannel().getBuffer().hasRemaining()) {
+
 				byteBuffer = session.getMessageLoader().read();
-				
+
 				// 如果读出的消息为 null 则关闭连接
 				if (byteBuffer == null) {
 					session.close();
 					return;
 				}
-				
+
 				// 如果读出的数据长度为0,不触发事件
 				if (byteBuffer.limit() == 0) {
 					return;
 				}
 
 				Object result = byteBuffer;
-				
+
 				// 取得过滤器链
 				Chain<IoFilter> filterChain = socketContext.filterChain().clone();
-				
+
 				// -----------------Filter 解密处理-----------------
 				result = filterDecoder(filterChain,session,result);
 				// -------------------------------------------------
