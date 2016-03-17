@@ -65,6 +65,7 @@
   1. 可灵活实现session共享。
   1. **异常统一展示**支持。
   1. MIME 配置支持。
+  1. 支持基于 HTTP1.1,的 HTTPS 访问,默认采用TLS模式.
 
 [HTTP服务端性能测试报告](https://git.oschina.net/helyho/Voovan/issues/12)
   
