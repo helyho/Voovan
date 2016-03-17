@@ -276,7 +276,7 @@ public class HttpDispatcher {
 		//初始 error 定义,如果下面匹配到了定义的错误则定义的会被覆盖
 		Map<String, Object> error = new HashMap<String, Object>();
 		error.put("StatusCode", 500);
-		error.put("Page", "error.html");
+		error.put("Page", "Error.html");
 		error.put("Description", stackInfo);
 		
 		//匹配 error 定义,如果有可用消息则会覆盖上面定义的初始内容
