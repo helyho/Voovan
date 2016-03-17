@@ -44,10 +44,9 @@ public class JSONEncode {
 		
 		for(Object mapkey:keys)
 		{	
-			Object mapValue = mapObject.get(mapkey);
-			String Value = "";
-			Value = fromObject(mapValue); 
-			ContentString = ContentString+"\""+TObject.cast(mapkey)+"\":"+Value+",";
+			Object key = fromObject(mapkey);
+			String Value = fromObject(mapObject.get(mapkey));
+			ContentString = ContentString+key+":"+Value+",";
 		}
 		
 		if(!ContentString.trim().equals(""))
@@ -60,7 +59,7 @@ public class JSONEncode {
 	
 	/**
 	 * 分析Collection对象为JSON字符串
-	 * @param mapObject 		List对象
+	 * @param listObject 		List对象
 	 * @return 					JSON字符串
 	 * @throws Exception 
 	 */
@@ -82,8 +81,7 @@ public class JSONEncode {
 
 		for(Object object:arrayObject)
 		{
-			String Value = "";		
-			Value = fromObject(object); 			
+			String Value = fromObject(object);
 			ContentString = ContentString+Value+",";
 		}
 		

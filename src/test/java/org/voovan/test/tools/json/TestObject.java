@@ -7,8 +7,8 @@ public class TestObject{
 	
 	public String string;
 	private int bint;
-	private HashMap<String, String> map = new HashMap<String, String>();
-	private Vector<String> list= new Vector<String>();
+	private HashMap<String, Object> map = new HashMap<String, Object>();
+	private Vector<Object> list= new Vector<Object>();
 	private TestObject2 tb2 = new TestObject2();
 	
 	public String getString() {
@@ -23,16 +23,16 @@ public class TestObject{
 	public void setBint(int bint) {
 		this.bint = bint;
 	}
-	public HashMap<String, String> getMap() {
+	public HashMap<String, Object> getMap() {
 		return map;
 	}
-	public void setMap(HashMap<String, String> map) {
+	public void setMap(HashMap<String, Object> map) {
 		this.map = map;
 	}
-	public Vector<String> getList() {
+	public Vector<Object> getList() {
 		return list;
 	}
-	public void setList(Vector<String> list) {
+	public void setList(Vector<Object> list) {
 		this.list = list;
 	}
 	public TestObject2 getTb2() {
