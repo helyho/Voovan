@@ -1,6 +1,7 @@
 package org.voovan.network;
 
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLEngineResult;
@@ -127,7 +128,6 @@ public abstract class IoSession {
 	/**
 	 * 发送消息
 	 * 		注意直接调用不会出发 onSent 事件
-	 * @param byteBuffer
 	 * @throws IOException
 	 */
 	public abstract void send(ByteBuffer buffer) throws IOException;
@@ -156,8 +156,7 @@ public abstract class IoSession {
 					appBuffer.flip();
 					appDataBufferChannel.write(appBuffer);
 				}
-			}while(engineResult==null?false:engineResult.getStatus() != Status.OK);
-			
+			}while(engineResult!=null && engineResult.getStatus() != Status.OK);
 			readSize = appDataBufferChannel.read(buffer);
 		}
 		return readSize;
@@ -167,7 +166,6 @@ public abstract class IoSession {
 	/**
 	 * 发送SSL消息
 	 * 		注意直接调用不会出发 onSent 事件
-	 * @param byteBuffer
 	 * @throws IOException
 	 */
 	public void sendSSLData(ByteBuffer buffer){

@@ -103,6 +103,10 @@ public class AioSocket extends SocketContext {
 		return session;
 	}
 
+	/**
+	 * 初始化 SSL 环境
+	 * @throws SSLException
+     */
 	private void initSSL() throws SSLException{
 		if (connectModel == ConnectModel.SERVER && sslManager != null) {
 			sslManager.createServerSSLParser(session);

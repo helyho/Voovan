@@ -15,7 +15,7 @@ import java.nio.channels.ByteChannel;
  */
 public class ByteBufferChannel implements ByteChannel {
 
-	private ByteBuffer buffer; 
+	private ByteBuffer buffer;
 	
 	public ByteBufferChannel() {
 		buffer = ByteBuffer.allocateDirect(0);
