@@ -11,6 +11,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 
 /**
  * 事件的实际逻辑处理
@@ -225,7 +226,7 @@ public class EventProcess {
 			SocketContext socketContext = event.getSession().sockContext();
 			IoSession session = event.getSession();
 			//如果是SocketDisconnectByRemote标示对端断开连接,则关闭session
-			if(e instanceof SocketDisconnectByRemote){
+			if(e instanceof SocketDisconnectByRemote || e instanceof ClosedChannelException){
 				event.getSession().close();
 				return;
 			}
