@@ -2,11 +2,13 @@ package org.voovan.http.server;
 
 import org.voovan.http.server.websocket.WebSocketBizHandler;
 import org.voovan.http.server.websocket.WebSocketDispatcher;
+import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioServerSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
+import java.text.ParseException;
 
 /**
  * HttpServer 对象
@@ -22,18 +24,12 @@ public class HttpServer {
 	private HttpDispatcher	httpDispatcher;
 	private WebSocketDispatcher webSocketDispatcher;
 	private SessionManager sessionManager;
+	private static WebServerConfig config = WebContext.getWebServerConfig();
 
 	/**
 	 * 构造函数
 	 * 
-	 * @param host
-	 *            监听地址
-	 * @param port
-	 *            监听端口
-	 * @param timeout
-	 *            超时时间
-	 * @param rootDir
-	 *            根目录
+	 * @param config
 	 * @throws IOException
 	 *             异常
 	 */
@@ -41,14 +37,23 @@ public class HttpServer {
 
 		// 准备 socket 监听
 		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout()*1000);
-		
+
 		//构造 SessionManage
 		sessionManager = SessionManager.newInstance(config);
-		
+
 		//请求派发器创建
 		this.httpDispatcher = new HttpDispatcher(config,sessionManager);
-		
+
 		this.webSocketDispatcher = new WebSocketDispatcher(config);
+
+		//确认是否启用 HTTPS 支持
+		if(config.getCertificateFile()!=null) {
+			SSLManager sslManager = new SSLManager("TLS", false);
+			sslManager.loadCertificate(System.getProperty("user.dir") + config.getCertificateFile(),
+					config.getCertificatePassword(), config.getKeyPassword());
+			aioServerSocket.setSSLManager(sslManager);
+		}
+
 		aioServerSocket.handler(new HttpServerHandler(config, httpDispatcher,webSocketDispatcher));
 		aioServerSocket.filterChain().add(new HttpServerFilter());
 		aioServerSocket.messageSplitter(new HttpMessageSplitter());
@@ -120,6 +125,8 @@ public class HttpServer {
 	 * @throws IOException
 	 */
 	public void serve() throws IOException {
+		WebContext.welcome(config);
 		aioServerSocket.start();
+
 	}
 }

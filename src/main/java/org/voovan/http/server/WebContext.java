@@ -6,6 +6,7 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.log.SingleLogger;
 
 import java.io.File;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -45,8 +46,6 @@ public class WebContext {
 	private WebContext(){
 		
 	}
-	
-
 															
 	/**
 	 * 从 js 配置文件读取配置信息到 Map
@@ -65,16 +64,16 @@ public class WebContext {
 	 */
 	public static WebServerConfig getWebServerConfig() {
 		WebServerConfig config = new WebServerConfig();
-		config.setHost(getContextParameter("Host","0.0.0.0"));
-		config.setPort(getContextParameter("Port",8080));
-		config.setTimeout(getContextParameter("Timeout",3*1000));
-		config.setContextPath(getContextParameter("ContextPath",System.getProperty("user.dir")));
-		config.setCharacterSet(getContextParameter("CharacterSet","UTF-8"));
-		config.setSessionContainer(getContextParameter("SessionContainer","java.util.Hashtable"));
-		config.setSessionTimeout(getContextParameter("SessionTimeout",30));
-		config.setKeepAliveTimeout(getContextParameter("KeepAliveTimeout",5));
-		config.setGzip(getContextParameter("Gzip","on").equals("on")?true:false);
-		
+
+		//使用反射工具自动加载
+		try {
+			config = (WebServerConfig)TReflect.getObjectFromMap(WebServerConfig.class,WEB_CONFIG,true);
+		} catch (ReflectiveOperationException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
 		//如果是相对路径则转换成绝对路径
 		if(!config.getContextPath().startsWith(File.separator)){
 			config.setContextPath(System.getProperty("user.dir")+File.separator+config.getContextPath());
@@ -82,33 +81,41 @@ public class WebContext {
 		if(config.getContextPath().endsWith(File.separator)){
 			config.setContextPath(TString.removeSuffix(config.getContextPath()));
 		}
+
+		//初始化过滤器
+		config.addAllFilterConfigs(getContextParameter("Filter",new ArrayList<Map<String,Object>>()));
 		
+		return config;
+	}
+
+	public static void welcome(WebServerConfig config){
 		Logger.simple("*********************************************************************************************");
 		Logger.simple("");
 		Logger.simple("   ==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==	");
-		Logger.simple("    ==          ==  ==        == ==        ==  ==          ==  ==  ==      ==   ==      ==	"); 
-		Logger.simple("     ==        ==   ==        == ==        ==   ==        ==  ==    ==     ==    ==     ==	"); 
-		Logger.simple("      ==      ==    ==        == ==        ==    ==      ==  ==      ==    ==     ==    ==   "); 
-		Logger.simple("       ==    ==     ==        == ==        ==     ==    ==  ============   ==      ==   ==   "); 
-		Logger.simple("        ==  ==      ==        == ==        ==      ==  ==  ==          ==  ==       ==  ==	"); 
+		Logger.simple("    ==          ==  ==        == ==        ==  ==          ==  ==  ==      ==   ==      ==	");
+		Logger.simple("     ==        ==   ==        == ==        ==   ==        ==  ==    ==     ==    ==     ==	");
+		Logger.simple("      ==      ==    ==        == ==        ==    ==      ==  ==      ==    ==     ==    ==   ");
+		Logger.simple("       ==    ==     ==        == ==        ==     ==    ==  ============   ==      ==   ==   ");
+		Logger.simple("        ==  ==      ==        == ==        ==      ==  ==  ==          ==  ==       ==  ==	");
 		Logger.simple("         ====        ==========   ==========        ====  ==            == ==        == ==	");
 		Logger.simple("");
 		Logger.simple("*********************************************************************************************");
 		Logger.simple("");
 		Logger.simple("============================== [Config file parameter list] =================================");
-		Logger.simple("\tTimeout:\t\t"+config.getTimeout());
-		Logger.simple("\tContextPath:\t\t"+config.getContextPath());
-		Logger.simple("\tCharacterSet:\t\t"+config.getCharacterSet());
-		Logger.simple("\tSessionContainer:\t"+config.getSessionContainer());
-		Logger.simple("\tSessionTimeout:\t\t"+config.getSessionTimeout());
-		Logger.simple("\tKeepAliveTimeout:\t"+config.getKeepAliveTimeout());
-		Logger.simple("\tGzip:\t\t\t"+ (config.isGzip()?"on":"off"));
+		Logger.simple("\tTimeout:\t\t\t\t"+config.getTimeout());
+		Logger.simple("\tContextPath:\t\t\t"+config.getContextPath());
+		Logger.simple("\tCharacterSet:\t\t\t"+config.getCharacterSet());
+		Logger.simple("\tSessionContainer:\t\t"+config.getSessionContainer());
+		Logger.simple("\tSessionTimeout:\t\t\t"+config.getSessionTimeout());
+		Logger.simple("\tKeepAliveTimeout:\t\t"+config.getKeepAliveTimeout());
+		Logger.simple("\tGzip:\t\t\t\t\t"+ config.isGzip());
+		if(config.getCertificateFile()!=null) {
+			Logger.simple("\tCertificateFile:\t\t" + config.getCertificateFile());
+			Logger.simple("\tCertificatePassword:\t" + config.getCertificatePassword());
+			Logger.simple("\tKeyPassword:\t\t\t" + config.getKeyPassword());
+		}
 		Logger.simple("=============================================================================================");
 		Logger.simple("WebServer working on: "+config.getHost()+":"+config.getPort()+" ...");
-		//初始化过滤器
-		config.addAllFilterConfigs(getContextParameter("Filter",new ArrayList<Map<String,Object>>()));
-		
-		return config;
 	}
 
 	/**
