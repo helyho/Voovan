@@ -276,6 +276,7 @@ public class HttpServerHandler implements IoHandler {
 		if(!(e instanceof SocketDisconnectByRemote) &&
 			!(e instanceof InterruptedByTimeoutException)){
 			Logger.error("Http Server Error: \r\n" + e.getMessage(),e);
-		}		
+		}
+		session.close();
 	}
 }

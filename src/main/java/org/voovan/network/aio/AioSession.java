@@ -35,7 +35,6 @@ public class AioSession extends IoSession {
 	 * 构造函数
 	 * 
 	 * @param socket
-	 * @param readTimeout
 	 */
 	AioSession(AioSocket socket) {
 		super();
@@ -142,7 +141,7 @@ public class AioSession extends IoSession {
 	public void send(ByteBuffer buffer) throws IOException {
 		if (isConnect() && buffer != null) {
 			//循环发送直到全不内容发送完毕
-			while(buffer.remaining()!=0){
+			while(isConnect() && buffer.remaining()!=0){
 				Future<Integer> sendResult = socketChannel.write(buffer);
 				while(!sendResult.isDone()){
 					TEnv.sleep(1);
