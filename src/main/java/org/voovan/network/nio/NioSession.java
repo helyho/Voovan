@@ -29,7 +29,6 @@ public class NioSession extends IoSession {
 	/**
 	 * 构造函数
 	 * 
-	 * @param socketContext
 	 *            socket 上下文对象
 	 */
 	NioSession(NioSocket nioSocket) {
@@ -147,7 +146,7 @@ public class NioSession extends IoSession {
 	public void send(ByteBuffer buffer) throws IOException {
 		if (isConnect() && buffer != null) {
 			//循环发送直到全不内容发送完毕
-			while(buffer.remaining()!=0){
+			while(isConnect() && buffer.remaining()!=0){
 				socketChannel.write(buffer);
 			}
 		}
