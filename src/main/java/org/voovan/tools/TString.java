@@ -40,7 +40,7 @@ public class TString {
 
 	/**
 	 * 左补齐
-	 * @param str 目标字符串
+	 * @param source 目标字符串
 	 * @param len 补齐后字符串的长度
 	 * @param c 用于补齐的字符串
 	 * @return 补齐后的字符串
@@ -55,7 +55,7 @@ public class TString {
 	
 	/**
 	 * 右补齐
-	 * @param str 目标字符串
+	 * @param source 目标字符串
 	 * @param len 补齐后字符串的长度
 	 * @param c 用于补齐的字符串
 	 * @return 补齐后的字符串
@@ -112,6 +112,19 @@ public class TString {
 	}
 
 	/**
+	 * 判断是否是浮点数
+	 * @param floadString
+	 * @return
+	 */
+	public static boolean isBoolean(String floadString){
+		if("true".equalsIgnoreCase(floadString) || "false".equalsIgnoreCase(floadString)){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	/**
 	 * 正则表达式查找,匹配的被提取出来做数组
 	 * @param source 目标字符串
 	 * @param regex 正则表达式
@@ -135,7 +148,7 @@ public class TString {
 	
 	/**
 	 * 判断字符串空指针或者内容为空
-	 * @param str
+	 * @param source
 	 * @return
 	 */
 	public static boolean isNullOrEmpty(String source){
