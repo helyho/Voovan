@@ -22,7 +22,7 @@
 	// HTTPS 证书密码
 	"CertificatePassword"   : "passStr",
 	// HTTPS 证书Key 密码
-	"KeyPassword"   		: "123123",
+	"KeyPassword"   		: "123123"
 	// 过滤器 先执行filter1, 后执行filter2
 	/*
 	"Filter":[

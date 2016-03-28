@@ -141,6 +141,10 @@ public class JSONDecode {
 					//判断有一个.即为浮点数,转换成 Float
 					else if (TString.isFloat(stringValue)) {
 						value = new Float((String)value);
+					}
+					//判断是否是 boolean 类型
+					else if(TString.isBoolean(stringValue)){
+						value = new Boolean((String)value);
 					}else{
 						value = null;
 					}
