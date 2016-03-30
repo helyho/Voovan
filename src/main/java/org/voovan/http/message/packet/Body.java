@@ -24,7 +24,15 @@ public class Body {
 	public Body(){
 		outputStream = new ByteArrayOutputStream();
 	}
-	
+
+	/**
+	 * 获取长度
+	 * @return
+     */
+	public int size(){
+		return outputStream.size();
+	}
+
 	/**
 	 * 获取内容字节数组
 	 */
