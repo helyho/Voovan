@@ -48,7 +48,7 @@ public class HttpMessageSplitter implements MessageSplitter {
 				}
 			}
 		
-			// 2. 如果是 HTTP 请求报文
+			// 2. 如果是 HTTP POST报文
 			// POST方法的multipart/form-data类型,且没有指定ContentLength,则需要使用--boundary--的结尾形式来判断
 			if (bufferString.contains("multipart/form-data") 
 					&& boundaryLines.length == 1 
