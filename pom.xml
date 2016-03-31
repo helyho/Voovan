@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.voovan</groupId>
-  <artifactId>Platform</artifactId>
+  <artifactId>Voovan</artifactId>
   <version>0.9.8-SNAPSHOT</version>
   <packaging>jar</packaging>
 
