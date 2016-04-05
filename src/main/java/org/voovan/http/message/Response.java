@@ -152,6 +152,8 @@ public class Response {
 					outputStream.write(body.getBodyBytes());
 				}
 
+				outputStream.write("\r\n".getBytes());
+				outputStream.write("\r\n".getBytes());
 				return outputStream.toByteArray();
 			}
 		} catch (IOException e) {
