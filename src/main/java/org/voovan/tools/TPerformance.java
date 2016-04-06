@@ -14,14 +14,30 @@ import java.math.BigDecimal;
  * Licence: Apache v2 License
  */
 public class TPerformance {
-	
+
+	private static OperatingSystemMXBean osmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+
+	/**
+	 * 获取 CPU 数量
+	* @return
+			*/
+	public int getCPUCount(){
+		return osmxb.getAvailableProcessors();
+	}
+
+	/**
+	 * 获取系统的使用情况
+	 * @return
+     */
+	public double getSystemLoadAverage(){
+		return osmxb.getSystemLoadAverage();
+	}
+
 	/**
 	 * 获取系统单 CPU 核心的平均负载
 	 * @return
 	 */
 	public static double cpuPerCoreLoadAvg(){
-		OperatingSystemMXBean osmxb = (OperatingSystemMXBean) ManagementFactory   
-                .getOperatingSystemMXBean();   
 		double perCoreLoadAvg = osmxb.getSystemLoadAverage()/osmxb.getAvailableProcessors();
 		BigDecimal bg = new BigDecimal(perCoreLoadAvg);
 		perCoreLoadAvg = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
@@ -39,6 +55,5 @@ public class TPerformance {
 		memoryUsage = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 		return memoryUsage;
 	}
-	
-	
+
 }
