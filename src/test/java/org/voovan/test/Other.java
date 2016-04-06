@@ -16,6 +16,16 @@ public class Other {
         System.out.println(pt.getActualTypeArguments().length);
         System.out.println(pt.getActualTypeArguments()[0]);
         System.out.println(pt.getActualTypeArguments()[1]);
+
+        Properties x =  System.getProperties();
+        for(Map.Entry<Object,Object> m: x.entrySet()){
+            if(!m.getKey().equals("line.separator")) {
+                System.out.println(m.getKey() + "=" + m.getValue());
+            }else{
+                byte[] bytes = m.getValue().toString().getBytes();
+                System.out.println(m.getKey() + "=" + (bytes.length>=1?bytes[0]:"") + "" +(bytes.length>=2?bytes[1]:"") );
+            }
+        }
     }
 
 }
