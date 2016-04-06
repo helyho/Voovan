@@ -67,22 +67,22 @@ public class MimeFileRouter implements HttpBizHandler {
 	 * @throws ParseException
 	 */
 	public boolean isNotModify(File responseFile,HttpRequest request,HttpResponse response) throws ParseException{
-		//文件的 ETag
-		String eTag = "\"" + THash.encryptMD5(Integer.toString(responseFile.hashCode())).toUpperCase() + "\"";
-		
-		//请求中的 ETag
-		String requestETag = request.header().get("If-None-Match");
-		
 		//文件的修改日期
 		Date fileModifyDate = new Date(responseFile.lastModified());
-		
+
 		//请求中的修改时间
 		Date requestModifyDate = null;
 		if(request.header().contain("If-Modified-Since")){
 			requestModifyDate = TDateTime.parseToGMT(request.header().get("If-Modified-Since"));
 		}
+
+		//文件的 ETag
+		String eTag = "\"" + THash.encryptMD5(Integer.toString(responseFile.hashCode()+fileModifyDate.hashCode())).toUpperCase() + "\"";
+
+		//请求中的 ETag
+		String requestETag = request.header().get("If-None-Match");
 		
-		//设置文件 hashCode
+		//设置响应头 ETag
 		response.header().put("ETag", eTag);
 		//设置最后修改时间
 		response.header().put("Last-Modified",TDateTime.formatToGMT(fileModifyDate));
