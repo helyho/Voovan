@@ -46,6 +46,9 @@ public class TString {
 	 * @return 补齐后的字符串
 	 */
 	public static String leftPad(String source,int len,char c){
+		if(source==null){
+			source="";
+		}
 		StringBuffer sb = new StringBuffer();
 		for(int i=0; i<len - source.length(); i++){
 			sb.append(c);
@@ -61,6 +64,9 @@ public class TString {
 	 * @return 补齐后的字符串
 	 */
 	public static String  rightPad(String source,int len,char c){
+		if(source==null){
+			source="";
+		}
 		StringBuffer sb = new StringBuffer();
 		sb.append(source);
 		for(int i=0; i<len - source.length(); i++){
