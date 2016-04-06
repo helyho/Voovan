@@ -21,6 +21,14 @@ import java.net.URLClassLoader;
 public class TEnv {
 
 	/**
+	 * 获取当前进程 PID
+	 * @return
+     */
+	public long getCurrentPID(){
+		return Long.parseLong(java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+	}
+
+	/**
 	 * 获得应用的工作根目录路径
 	 * 
 	 * @return
