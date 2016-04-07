@@ -11,5 +11,6 @@ import org.voovan.http.server.WebServerConfig.FilterConfig;
  * Licence: Apache v2 License
  */
 public interface HttpBizFilter {
-	public void doFilter(FilterConfig filterConfig,HttpRequest request,HttpResponse response);
+	public void onRequest(FilterConfig filterConfig, HttpRequest request, HttpResponse response);
+	public void onResponse(FilterConfig filterConfig, HttpRequest request, HttpResponse response);
 }

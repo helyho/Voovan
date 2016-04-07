@@ -121,13 +121,13 @@ public class HttpDispatcher {
 					
 					Chain<FilterConfig> filterConfigs = webConfig.getFilterConfigs().clone();
 					
-					//过滤器处理
+					//正向过滤器处理
 					diposeFilter(filterConfigs,request,response);
 					
 					//处理路由请求
 					handler.process(request, response);
 					
-					//反向处理过滤器处理
+					//反向过滤器处理
 					diposeInvertedFilter(filterConfigs,request,response);
 					
 				} catch (Exception e) {
@@ -225,6 +225,7 @@ public class HttpDispatcher {
 	}
 
 	/**
+	 * //正向处理过滤器
 	 * @param filterConfigs
 	 * @param request
 	 * @param response
@@ -235,16 +236,23 @@ public class HttpDispatcher {
 		while(filterConfigs.hasNext()){
 			FilterConfig filterConfig = filterConfigs.next();
 			HttpBizFilter httpBizFilter = filterConfig.getBizFilter();
-			httpBizFilter.doFilter(filterConfig, request, response);
+			httpBizFilter.onRequest(filterConfig, request, response);
 		}
 	}
 
+	/**
+	 * 反向处理过滤器
+	 * @param filterConfigs
+	 * @param request
+	 * @param response
+	 * @throws ReflectiveOperationException
+     */
 	public void diposeInvertedFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) throws ReflectiveOperationException{
 		filterConfigs.rewind();
 		while(filterConfigs.hasPrevious()){
 			FilterConfig filterConfig = filterConfigs.previous();
 			HttpBizFilter httpBizFilter = filterConfig.getBizFilter();
-			httpBizFilter.doFilter(filterConfig, request, response);
+			httpBizFilter.onResponse(filterConfig, request, response);
 		}
 	}
 	
