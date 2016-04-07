@@ -11,12 +11,21 @@ import java.util.Map.Entry;
 public class HttpBizFilterTest implements HttpBizFilter {
 
 	@Override
-	public void doFilter(FilterConfig filterConfig, HttpRequest request, HttpResponse response) {
+	public void onRequest(FilterConfig filterConfig, HttpRequest request, HttpResponse response) {
 		String msg = "["+filterConfig.getName()+"] ";
 		for(Entry<String, Object> entry : filterConfig.getParameters().entrySet()){
 			msg+=entry.getKey()+" = "+entry.getValue()+" " + request.protocol().getPath();
 		}
-		Logger.simple(msg);
+		Logger.simple("ON_REQUEST: "+msg);
+	}
+
+	@Override
+	public void onResponse(FilterConfig filterConfig, HttpRequest request, HttpResponse response) {
+		String msg = "["+filterConfig.getName()+"] ";
+		for(Entry<String, Object> entry : filterConfig.getParameters().entrySet()){
+			msg+=entry.getKey()+" = "+entry.getValue()+" " + request.protocol().getPath();
+		}
+		Logger.simple("ON_RESPONSE: "+msg);
 	}
 
 }
