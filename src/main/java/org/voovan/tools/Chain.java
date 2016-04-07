@@ -116,9 +116,9 @@ public class Chain<E> extends ArrayDeque<E>{
 	 *  从当前对象克隆一个 Chain
 	 */
 	public Chain<E> clone(){
-		super.clone();
+		ArrayDeque<E> cloned = super.clone();
 		Chain<E> chain = new Chain<E>();
-		chain.addAll(this);
+		chain.addAll(cloned);
 		chain.rewind();
 		return chain;
 	}
