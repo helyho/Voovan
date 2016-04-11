@@ -115,7 +115,9 @@ public class WebContext {
 			Logger.simple("\tKeyPassword:\t\t\t" + config.getKeyPassword());
 		}
 		Logger.simple("=============================================================================================");
+		Logger.simple("Process ID: "+TEnv.getCurrentPID());
 		Logger.simple("WebServer working on: "+config.getHost()+":"+config.getPort()+" ...");
+
 	}
 
 	/**

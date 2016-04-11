@@ -5,6 +5,7 @@ import org.voovan.tools.log.Logger;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -24,8 +25,19 @@ public class TEnv {
 	 * 获取当前进程 PID
 	 * @return
      */
-	public long getCurrentPID(){
+	public static long getCurrentPID(){
 		return Long.parseLong(java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+	}
+
+	/**
+	 * 构造一个系统进程
+	 * @return
+     */
+	public static byte[] createSysProcess(String command) throws IOException {
+		Runtime runTime  = Runtime.getRuntime();
+		Process process = runTime.exec(command);
+		InputStream is = process.getInputStream();
+		return TStream.readAll(is);
 	}
 
 	/**
@@ -167,10 +179,10 @@ public class TEnv {
 	}
 	
 	/**
-	 * 获取 JVM中的所有线程
+	 * 获取JVM中的所有线程
 	 * @return
 	 */
-	public static Thread[] getJVMThreads(){
+	public static Thread[] getThreads(){
 		ThreadGroup group = Thread.currentThread().getThreadGroup().getParent();
 		int estimatedSize = group.activeCount() * 2;
 		Thread[] slackList = new Thread[estimatedSize];

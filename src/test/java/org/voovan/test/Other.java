@@ -1,7 +1,13 @@
 package org.voovan.test;
 
+import org.voovan.tools.TEnv;
+import org.voovan.tools.TFile;
+import org.voovan.tools.TPerformance;
+import org.voovan.tools.TStream;
 import org.voovan.tools.log.Logger;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
 
@@ -26,6 +32,9 @@ public class Other {
                 System.out.println(m.getKey() + "=" + (bytes.length>=1?bytes[0]:"") + "" +(bytes.length>=2?bytes[1]:"") );
             }
         }
+
+        TPerformance.getSysObjectInfo(3018,"");
+        TEnv.getThreads();
     }
 
 }

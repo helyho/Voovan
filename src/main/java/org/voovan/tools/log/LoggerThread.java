@@ -107,7 +107,7 @@ public class LoggerThread implements Runnable {
 		List<String> destoryThreadNames = TObject.newList("DestroyJavaVM","ReaderThread");
 		
 		//获取系统内所有的线程
-		Thread[] jvmThread = TEnv.getJVMThreads();
+		Thread[] jvmThread = TEnv.getThreads();
 		
 		//遍历是否包含线程结束标识
 		for(Thread threadObj : jvmThread){
