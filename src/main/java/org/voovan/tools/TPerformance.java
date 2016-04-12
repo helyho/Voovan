@@ -133,7 +133,7 @@ public class TPerformance {
 	public static Map<String,ObjectInfo> getSysObjectInfo(long pid,String regex) throws IOException {
 		Hashtable<String,ObjectInfo> result = new Hashtable<String,ObjectInfo>();
 		String console = new String(TEnv.createSysProcess("jmap -histo "+pid));
-		String[] consoleLines = console.split(System.getProperty("line.separator"));
+		String[] consoleLines = console.split(System.lineSeparator());
 		for(int lineCount = 3;lineCount<consoleLines.length;lineCount++){
 			String lineContent = consoleLines[lineCount];
 			long count = new Long(lineContent.substring(5,19).trim());
