@@ -20,19 +20,21 @@ public class TPerformance {
 
 	private static OperatingSystemMXBean osmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 
-	public static final int MEM_NOHEAP=-1;
-	public static final int MEM_HEAP=-2;
-
-	public static final int MEM_INIT=1;
-	public static final int MEM_MAX=2;
-	public static final int MEM_USAGE=3;
-	public static final int MEM_COMMIT=3;
 	/**
-	 * 获取 CPU 数量
-	* @return
-			*/
-	public static int getCPUCount(){
-		return osmxb.getAvailableProcessors();
+	 * 内存信息类型枚举
+	 */
+	public enum MEMTYPE{
+		NOHEAP_INIT,
+		HEAP_INIT,
+
+		NOHEAP_MAX,
+		HEAP_MAX,
+
+		NOHEAP_USAGE,
+		HEAP_USAGE,
+
+		NOHEAP_COMMIT,
+		HEAP_COMMIT
 	}
 
 	/**
@@ -47,7 +49,7 @@ public class TPerformance {
 	 * 获取当前系统 CPU 数
 	 * @return
      */
-	public static double getAvailableProcessors(){
+	public static double getProcessorCount(){
 		return osmxb.getAvailableProcessors();
 	}
 
@@ -64,9 +66,8 @@ public class TPerformance {
 	
 	/**
 	 * JVM 虚拟机的内存使用情况
-	 * @return
-	 */
-	public static double jvmMemoryUsage(){
+	 * @return	 */
+	public static double getJVMMemoryUsage(){
 		Runtime runtime = Runtime.getRuntime();
 		double memoryUsage = 1-((double)runtime.freeMemory()+(runtime.maxMemory()-runtime.totalMemory()))/(double)runtime.maxMemory();
 		BigDecimal bg = new BigDecimal(memoryUsage);
@@ -75,31 +76,51 @@ public class TPerformance {
 	}
 
 	/**
-	 * 获取内存信息(栈,非栈)
-	 * @param type
-	 * @param kind
+	 * 获取部分内存信息(栈,非栈)
+	 * @param memType 获取的信息类型
      * @return
      */
-	public static long getMemoryInfo(int type,int kind){
-		if(type==MEM_NOHEAP && kind == MEM_INIT){
+	public static long getHeapMemoryInfo(MEMTYPE memType){
+		if(memType==MEMTYPE.NOHEAP_INIT){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getInit();
-		} else if(type==MEM_NOHEAP && kind == MEM_MAX){
+		} else if(memType==MEMTYPE.NOHEAP_MAX){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getMax();
-		} else if(type==MEM_NOHEAP && kind == MEM_USAGE){
+		} else if(memType==MEMTYPE.NOHEAP_USAGE){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getUsed();
-		} else if(type==MEM_NOHEAP && kind == MEM_COMMIT){
+		} else if(memType== MEMTYPE.NOHEAP_COMMIT){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getCommitted();
-		} else if(type==MEM_HEAP && kind == MEM_INIT){
+		} else if(memType==MEMTYPE.HEAP_INIT){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getInit();
-		} else if(type==MEM_HEAP && kind == MEM_MAX){
+		} else if(memType==MEMTYPE.HEAP_MAX){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax();
-		} else if(type==MEM_HEAP && kind == MEM_USAGE){
+		} else if(memType==MEMTYPE.HEAP_USAGE){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed();
-		} else if(type==MEM_HEAP && kind == MEM_COMMIT){
+		} else if(memType==MEMTYPE.HEAP_COMMIT){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getCommitted();
 		}else{
 			throw new RuntimeException("getMemoryInfo function arg error!");
 		}
+	}
+
+	/**
+	 * 获取当前内存信息
+	 * @return  内存信息描述对象
+     */
+	public static MemoryInfo getMemoryInfo(){
+		MemoryInfo memoryInfo = new MemoryInfo();
+		memoryInfo.setHeapInit(getHeapMemoryInfo(MEMTYPE.HEAP_INIT));
+		memoryInfo.setHeapUsage(getHeapMemoryInfo(MEMTYPE.HEAP_USAGE));
+		memoryInfo.setHeapCommit(getHeapMemoryInfo(MEMTYPE.HEAP_COMMIT));
+		memoryInfo.setHeapMax(getHeapMemoryInfo(MEMTYPE.HEAP_MAX));
+
+		memoryInfo.setNoHeapInit(getHeapMemoryInfo(MEMTYPE.NOHEAP_INIT));
+		memoryInfo.setNoHeapUsage(getHeapMemoryInfo(MEMTYPE.NOHEAP_USAGE));
+		memoryInfo.setNoHeapCommit(getHeapMemoryInfo(MEMTYPE.NOHEAP_COMMIT));
+		memoryInfo.setNoHeapMax(getHeapMemoryInfo(MEMTYPE.NOHEAP_MAX));
+		memoryInfo.setFree(Runtime.getRuntime().freeMemory());
+		memoryInfo.setTotal(Runtime.getRuntime().totalMemory());
+		memoryInfo.setMax(Runtime.getRuntime().maxMemory());
+		return memoryInfo;
 	}
 
 	/**
@@ -109,7 +130,7 @@ public class TPerformance {
 	 * @return
 	 * @throws IOException
      */
-	public static Map<String,ObjectInfo> getSysObjectInfo(int pid,String regex) throws IOException {
+	public static Map<String,ObjectInfo> getSysObjectInfo(long pid,String regex) throws IOException {
 		Hashtable<String,ObjectInfo> result = new Hashtable<String,ObjectInfo>();
 		String console = new String(TEnv.createSysProcess("jmap -histo "+pid));
 		String[] consoleLines = console.split(System.getProperty("line.separator"));
@@ -162,6 +183,111 @@ public class TPerformance {
 
 		public void setSize(long size) {
 			this.size = size;
+		}
+	}
+
+	/**
+	 * 内存信息对象
+	 */
+	public static class MemoryInfo{
+		private long heapInit;
+		private long heapUsage;
+		private long heapMax;
+		private long heapCommit;
+		private long noHeapInit;
+		private long noHeapUsage;
+		private long noHeapMax;
+		private long noHeapCommit;
+		private long free;
+		private long max;
+		private long total;
+
+		public long getFree() {
+			return free;
+		}
+
+		public void setFree(long free) {
+			this.free = free;
+		}
+
+		public long getMax() {
+			return max;
+		}
+
+		public void setMax(long max) {
+			this.max = max;
+		}
+
+		public long getTotal() {
+			return total;
+		}
+
+		public void setTotal(long total) {
+			this.total = total;
+		}
+
+		public long getHeapInit() {
+			return heapInit;
+		}
+
+		public void setHeapInit(long heapInit) {
+			this.heapInit = heapInit;
+		}
+
+		public long getHeapUsage() {
+			return heapUsage;
+		}
+
+		public void setHeapUsage(long heapUsage) {
+			this.heapUsage = heapUsage;
+		}
+
+		public long getHeapMax() {
+			return heapMax;
+		}
+
+		public void setHeapMax(long heapMax) {
+			this.heapMax = heapMax;
+		}
+
+		public long getHeapCommit() {
+			return heapCommit;
+		}
+
+		public void setHeapCommit(long heapCommit) {
+			this.heapCommit = heapCommit;
+		}
+
+		public long getNoHeapInit() {
+			return noHeapInit;
+		}
+
+		public void setNoHeapInit(long noHeapInit) {
+			this.noHeapInit = noHeapInit;
+		}
+
+		public long getNoHeapUsage() {
+			return noHeapUsage;
+		}
+
+		public void setNoHeapUsage(long noHeapUsage) {
+			this.noHeapUsage = noHeapUsage;
+		}
+
+		public long getNoHeapMax() {
+			return noHeapMax;
+		}
+
+		public void setNoHeapMax(long noHeapMax) {
+			this.noHeapMax = noHeapMax;
+		}
+
+		public long getNoHeapCommit() {
+			return noHeapCommit;
+		}
+
+		public void setNoHeapCommit(long noHeapCommit) {
+			this.noHeapCommit = noHeapCommit;
 		}
 	}
 }
