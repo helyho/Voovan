@@ -30,7 +30,7 @@ public class NioSocket extends SocketContext{
 	
 	/**
 	 * socket 连接
-	 * @param addr      监听地址
+	 * @param host      监听地址
 	 * @param port		监听端口
 	 * @param readTimeout   超时事件
 	 * @throws IOException	异常
