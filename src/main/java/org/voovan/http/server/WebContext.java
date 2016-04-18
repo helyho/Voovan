@@ -131,7 +131,7 @@ public class WebContext {
 		content.append("["+TDateTime.now()+"]");
 		content.append(" "+TString.rightPad(request.getRemoteAddres(),15,' '));
 		content.append(" "+TString.rightPad(request.getRemotePort()+"",5,' '));
-		content.append(" "+request.protocol().getProtocol()+"/"+request.protocol().getVersion()+" "+request.protocol().getMethod());
+		content.append(" "+request.protocol().getProtocol()+"/"+request.protocol().getVersion()+" "+TString.rightPad(request.protocol().getMethod(),6,' '));
 		content.append(" "+response.protocol().getStatus());
 		content.append(" "+response.body().getBodyBytes().length);
 		content.append("\t "+request.protocol().getPath());
