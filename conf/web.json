@@ -4,10 +4,11 @@
 	"Timeout"				: 30,						// 连接超时时间(s),默认30秒
 	"ContextPath"			: "WEBAPP",					// 上下文路径,绝对路径 "/"起始,相对路径 非"/" 起始
 	"CharacterSet"			: "GB2312",					// 默认字符集,默认 UTF-8
-	"SessionContainer" 	 	: "java.util.Hashtable",		// Session 容器类,默认java.util.Hashtable
+	"SessionContainer" 	 	: "java.util.Hashtable",	// Session 容器类,默认java.util.Hashtable
 	"SessionTimeout"    	: 30,						// Session 会话超时时间(m),默认30分钟
 	"KeepAliveTimeout"  	: 50,						// KeepAlive 超时时间(s),默认5秒 (该参数同样会被应用到 WebSocket 的连接保持上)
-	"Gzip"              	: false,						// 是否启用Gzip压缩
+	"Gzip"              	: false,					// 是否启用Gzip压缩
+	"AccessLog"				: true,						// 是否记录access.log
 	//"CertificateFile"   	: "/src/test/java/org/voovan/test/network/ssl/ssl_ks",  // HTTPS 证书
 	//"CertificatePassword"   : "passStr",				// HTTPS 证书密码
 	//"KeyPassword"   		: "123123",				// HTTPS 证书Key 密码

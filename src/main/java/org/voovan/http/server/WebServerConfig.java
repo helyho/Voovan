@@ -29,9 +29,11 @@ public class WebServerConfig {
     private int sessionTimeout;
     private int keepAliveTimeout;
     private boolean gzip;
-    private String CertificateFile;
-    private String CertificatePassword;
-    private String KeyPassword;
+    private String certificateFile;
+    private String certificatePassword;
+    private String keyPassword;
+    private boolean accessLog;
+
     private Chain<FilterConfig> filterConfigs = new Chain<FilterConfig>();
 
     protected void setHost(String host) {
@@ -107,29 +109,36 @@ public class WebServerConfig {
     }
 
     public String getCertificateFile() {
-        return CertificateFile;
+        return certificateFile;
     }
 
     public void setCertificateFile(String certificateFile) {
-        CertificateFile = certificateFile;
+        this.certificateFile = certificateFile;
     }
 
     public String getCertificatePassword() {
-        return CertificatePassword;
+        return certificatePassword;
     }
 
     public void setCertificatePassword(String certificatePassword) {
-        CertificatePassword = certificatePassword;
+        this.certificatePassword = certificatePassword;
     }
 
     public String getKeyPassword() {
-        return KeyPassword;
+        return keyPassword;
     }
 
     public void setKeyPassword(String keyPassword) {
-        KeyPassword = keyPassword;
+        this.keyPassword = keyPassword;
     }
 
+    public boolean isAccessLog() {
+        return accessLog;
+    }
+
+    public void setAccessLog(boolean accessLog) {
+        this.accessLog = accessLog;
+    }
 
     public Chain<FilterConfig> getFilterConfigs() {
         return filterConfigs;
