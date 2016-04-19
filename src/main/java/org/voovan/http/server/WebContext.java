@@ -119,7 +119,7 @@ public class WebContext {
 		Logger.simple("\tSessionTimeout:\t\t\t"+config.getSessionTimeout());
 		Logger.simple("\tKeepAliveTimeout:\t\t"+config.getKeepAliveTimeout());
 		Logger.simple("\tGzip:\t\t\t\t\t"+ config.isGzip());
-		Logger.simple("\tAccessLog:\t\t\t\t\t"+ config.isAccessLog());
+		Logger.simple("\tAccessLog:\t\t\t\t"+ config.isAccessLog());
 		if(config.getCertificateFile()!=null) {
 			Logger.simple("\tCertificateFile:\t\t" + config.getCertificateFile());
 			Logger.simple("\tCertificatePassword:\t" + config.getCertificatePassword());
