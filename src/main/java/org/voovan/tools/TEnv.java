@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -26,7 +27,7 @@ public class TEnv {
 	 * @return
      */
 	public static long getCurrentPID(){
-		return Long.parseLong(java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+		return Long.parseLong(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
 	}
 
 	/**

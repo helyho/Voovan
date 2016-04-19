@@ -42,7 +42,9 @@ public class WebContext {
 	 *  accessLog 的文件路径
 	 */
 	private static final String ACCESS_LOG_FILE_NAME = TEnv.getContextPath()+File.separator+"logs"+File.separator+"access.log";
-	
+
+	private static WebServerConfig webServerConfig = initWebServerConfig();
+
 	private WebContext(){
 		
 	}
@@ -62,7 +64,7 @@ public class WebContext {
 	 * 从配置文件初始化 config 对象
 	 * @return
 	 */
-	public static WebServerConfig getWebServerConfig() {
+	private static WebServerConfig initWebServerConfig() {
 		WebServerConfig config = new WebServerConfig();
 
 		//使用反射工具自动加载
@@ -84,8 +86,16 @@ public class WebContext {
 
 		//初始化过滤器
 		config.addAllFilterConfigs(getContextParameter("Filter",new ArrayList<Map<String,Object>>()));
-		
+
 		return config;
+	}
+
+	/**
+	 * 获取HttpServer配置对象
+	 * @return
+     */
+	public static WebServerConfig getWebServerConfig(){
+		return webServerConfig;
 	}
 
 	public static void welcome(WebServerConfig config){
@@ -109,6 +119,7 @@ public class WebContext {
 		Logger.simple("\tSessionTimeout:\t\t\t"+config.getSessionTimeout());
 		Logger.simple("\tKeepAliveTimeout:\t\t"+config.getKeepAliveTimeout());
 		Logger.simple("\tGzip:\t\t\t\t\t"+ config.isGzip());
+		Logger.simple("\tAccessLog:\t\t\t\t\t"+ config.isAccessLog());
 		if(config.getCertificateFile()!=null) {
 			Logger.simple("\tCertificateFile:\t\t" + config.getCertificateFile());
 			Logger.simple("\tCertificatePassword:\t" + config.getCertificatePassword());
@@ -117,7 +128,6 @@ public class WebContext {
 		Logger.simple("=============================================================================================");
 		Logger.simple("Process ID: "+TEnv.getCurrentPID());
 		Logger.simple("WebServer working on: "+config.getHost()+":"+config.getPort()+" ...");
-
 	}
 
 	/**
@@ -147,7 +157,9 @@ public class WebContext {
 	 * @param response
 	 */
 	public static void writeAccessLog(HttpRequest request,HttpResponse response){
-		SingleLogger.writeLog(ACCESS_LOG_FILE_NAME,genAccessLog(request, response));
+		if(webServerConfig.isAccessLog()) {
+			SingleLogger.writeLog(ACCESS_LOG_FILE_NAME, genAccessLog(request, response));
+		}
 	}
 	
 	/**
