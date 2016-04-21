@@ -446,22 +446,26 @@ function initThreadChart() {
 
 
 function refreshThreadChart() {
-    var dataSeries = threadOption.series;
-    var dataLength = threadOption.xAxis.data.length;
+    if (threadOption != undefined) {
+        var dataSeries = threadOption.series;
+        var dataLength = threadOption.xAxis.data.length;
+    }
 
     $.ajax({
         url: "ThreadCount",
         success: function (response) {
             //动态属性图表数据
-            result = response;
-            dataSeries[0].data.push(result)
-            if (dataSeries[0].data.length > threadOption.xAxis.data.length) {
-                dataSeries[0].data.shift()
+            if (threadOption != undefined){
+                result = response;
+                dataSeries[0].data.push(result)
+                if (dataSeries[0].data.length > threadOption.xAxis.data.length) {
+                    dataSeries[0].data.shift()
+                }
+                threadChartElement.setOption(threadOption);
             }
-
         }
     })
-    threadChartElement.setOption(threadOption);
+
 }
 
 
@@ -530,22 +534,26 @@ function initObjectChart() {
 
 
 function refreshObjectChart() {
-    var dataSeries = objectOption.series;
-    var dataLength = objectOption.xAxis.data.length;
+    if (objectOption != undefined) {
+        var dataSeries = objectOption.series;
+        var dataLength = objectOption.xAxis.data.length;
+    }
 
     $.ajax({
         url: "ObjectCount",
         success: function (response) {
             //动态属性图表数据
-            result = response;
-            dataSeries[0].data.push(result)
-            if (dataSeries[0].data.length > objectOption.xAxis.data.length) {
-                dataSeries[0].data.shift()
+            if (objectOption != undefined) {
+                result = response;
+                dataSeries[0].data.push(result)
+                if (dataSeries[0].data.length > objectOption.xAxis.data.length) {
+                    dataSeries[0].data.shift()
+                }
+                objectChartElement.setOption(objectOption);
             }
-
         }
     })
-    objectChartElement.setOption(objectOption);
+
 }
 
 
