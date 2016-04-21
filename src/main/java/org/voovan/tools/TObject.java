@@ -39,7 +39,7 @@ public class TObject {
 	/**
 	 * 空值默认值
 	 * @param source	检测对象
-	 * @param value		null 值替换值
+	 * @param defValue		null 值替换值
 	 * @return	如果非 null 则返回 source，如果为 null 则返回 defValue。
 	 */
 	public static <T>T nullDefault(T source,T defValue){
@@ -72,5 +72,18 @@ public class TObject {
 			map.put(objs[i-1], objs[i]);
 		}
 		return map;
+	}
+
+	/**
+	 * 将 Map 的值转换成 List
+	 * @param map
+	 * @return
+     */
+	public static List<?> mapValueToList(Map<?,?> map){
+		ArrayList<Object> result = new ArrayList<Object>();
+		for(Map.Entry<?,?> entry : map.entrySet()){
+			result.add(entry.getValue());
+		}
+		return result;
 	}
 }

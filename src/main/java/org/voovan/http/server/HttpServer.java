@@ -1,5 +1,6 @@
 package org.voovan.http.server;
 
+import org.voovan.http.monitor.Monitor;
 import org.voovan.http.server.websocket.WebSocketBizHandler;
 import org.voovan.http.server.websocket.WebSocketDispatcher;
 import org.voovan.network.SSLManager;
@@ -24,7 +25,7 @@ public class HttpServer {
 	private HttpDispatcher	httpDispatcher;
 	private WebSocketDispatcher webSocketDispatcher;
 	private SessionManager sessionManager;
-	private static WebServerConfig config = WebContext.getWebServerConfig();
+	private WebServerConfig config;
 
 	/**
 	 * 构造函数
@@ -34,6 +35,7 @@ public class HttpServer {
 	 *             异常
 	 */
 	public HttpServer(WebServerConfig config) throws IOException {
+		this.config = config;
 
 		// 准备 socket 监听
 		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout()*1000);
@@ -57,6 +59,19 @@ public class HttpServer {
 		aioServerSocket.handler(new HttpServerHandler(config, httpDispatcher,webSocketDispatcher));
 		aioServerSocket.filterChain().add(new HttpServerFilter());
 		aioServerSocket.messageSplitter(new HttpMessageSplitter());
+
+		//初始化并安装监控功能
+		if(config.isMonitor()){
+			Monitor.installMonitor(this);
+		}
+	}
+
+	/**
+	 * 获取配置对象
+	 * @return
+     */
+	public WebServerConfig getWebServerConfig() {
+		return config;
 	}
 
 	/**

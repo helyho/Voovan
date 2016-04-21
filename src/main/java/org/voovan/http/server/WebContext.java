@@ -157,7 +157,9 @@ public class WebContext {
 	 * @param response
 	 */
 	public static void writeAccessLog(HttpRequest request,HttpResponse response){
-		if(webServerConfig.isAccessLog()) {
+		//配置文件控制是否写入 access.log
+		//监控程序的不写出 access.log
+		if(webServerConfig.isAccessLog() && !request.protocol().getPath().contains("/VoovanMonitor/")) {
 			SingleLogger.writeLog(ACCESS_LOG_FILE_NAME, genAccessLog(request, response));
 		}
 	}

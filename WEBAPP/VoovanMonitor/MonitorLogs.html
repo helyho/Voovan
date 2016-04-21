@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Voovan server monitor page</title>
+    <link href="css/uikit.gradient.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/uikit.min.js"></script>
+    <script src="js/Monitor.js"></script>
+    <script src="js/Logs.js"></script>
+</head>
+<body id="OverView">
+<nav class="uk-navbar">
+    <a href="" class="uk-navbar-brand"><img src="img/logo.jpg" class="nav_logo"/></a>
+    <ul class="uk-navbar-nav">
+        <li class="uk-parent"><a href="Monitor.html"><span class="uk-icon-building"/>&nbsp;系统信息</a></li>
+        <li class="uk-parent"><a href="MonitorPerformance.html"><span class="uk-icon-pie-chart"/>&nbsp;性能</a></li>
+        <li class="uk-parent"><a href="MonitorObject.html"><span class="uk-icon-circle-o-notch"/>&nbsp;对象信息</a></li>
+        <li class="uk-parent"><a href="MonitorThread.html"><span class="uk-icon-cogs"/>&nbsp;线程</a></li>
+        <li class="uk-parent"><a href="MonitorRequest.html"><span class="uk-icon-life-bouy"/>&nbsp;请求分析</a></li>
+        <li class="uk-active"><a href="MonitorLogs.html"><span class="uk-icon-television"/>&nbsp;日志</a></li>
+    </ul>
+</nav>
+<div class="uk-grid" style="padding: 5px;">
+    <div class="uk-width-medium-1-6">
+        <ul class="uk-tab uk-tab-left tab-ext"
+            data-uk-tab="{connect:'#my-tab-content1',animation: 'uk-animation-fade'}">
+            <li class="uk-active"><a href=""><span class="uk-icon-archive"/>&nbsp;访问日志</a></li>
+            <li><a href=""><span class="uk-icon-book"/>&nbsp;系统日志</a></li>
+        </ul>
+    </div>
+    <div class="uk-width-medium-5-6 uk-panel-box tab-content-panel">
+        <ul id="my-tab-content1" class="uk-switcher">
+            <li aria-hidden="false">
+                <div id="AccessLog" class="uk-overflow-container" style="height:530px">
+                    <div class="uk-form uk-align-right uk-panel-box">
+                        <span class="uk-text-primary uk-text-bold">加载行数:</span>
+                        <select id="LineNumber" style="width:150px">
+                            <option value="50">50</option>
+                            <option value="100" selected>100</option>
+                            <option value="200">200</option>
+                            <option value="300">300</option>
+                        </select>
+                        <span id="RefreshLog" class="uk-icon-button uk-icon-refresh" onclick="refreshLog('ACCESS')"></span>
+                    </div>
+
+                    <table class="uk-table uk-table-striped uk-table-condensed uk-text-nowrap">
+                        <caption>访问日志</caption>
+                        <tbody>
+                        <tr>
+                            <td>
+                                {{{content}}}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+            <li aria-hidden="false">
+                <div id="SysoutLog" class="uk-overflow-container" style="height:530px">
+                    <div class="uk-form uk-align-right uk-panel-box">
+                        <span class="uk-text-primary uk-text-bold">加载行数:</span>
+                        <select id="LineNumber" style="width:150px">
+                            <option value="50">50</option>
+                            <option value="100" selected>100</option>
+                            <option value="200">200</option>
+                            <option value="300">300</option>
+                        </select>
+                        <span id="RefreshLog" class="uk-icon-button uk-icon-refresh" onclick="refreshLog('SYSOUT')"></span>
+                    </div>
+                    <table class="uk-table uk-table-striped uk-table-condensed uk-text-nowrap">
+                        <caption>系统日志</caption>
+                        <tbody>
+                        <tr>
+                            <td style="font-family: Consolas">
+                                {{{content}}}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>

@@ -41,7 +41,7 @@ public class HttpServerDemo {
 			});
 			
 			//带路劲参数的 GET 请求
-			httpServer.get("/*/:name/:age", (req, resp) -> {
+			httpServer.get("/Star/:name/:age", (req, resp) -> {
 				Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
 				Logger.simple("Request info: "+req.protocol());
 				resp.write(fileContent);
