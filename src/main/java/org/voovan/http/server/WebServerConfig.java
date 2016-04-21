@@ -33,6 +33,7 @@ public class WebServerConfig {
     private String certificatePassword;
     private String keyPassword;
     private boolean accessLog;
+    private boolean monitor;
 
     private Chain<FilterConfig> filterConfigs = new Chain<FilterConfig>();
 
@@ -140,6 +141,14 @@ public class WebServerConfig {
         this.accessLog = accessLog;
     }
 
+    public boolean isMonitor() {
+        return monitor;
+    }
+
+    public void setMonitor(boolean monitor) {
+        this.monitor = monitor;
+    }
+
     public Chain<FilterConfig> getFilterConfigs() {
         return filterConfigs;
     }
@@ -181,6 +190,14 @@ public class WebServerConfig {
     }
 
     /**
+     * 构造一个空的实例
+     * @return
+     */
+    public static FilterConfig newFilterConfig(){
+        return new FilterConfig();
+    }
+
+    /**
      * 过滤器配置信息对象,内联对象
      *
      * @author helyho
@@ -189,7 +206,7 @@ public class WebServerConfig {
      *         WebSite: https://github.com/helyho/Voovan
      *         Licence: Apache v2 License
      */
-    public class FilterConfig {
+    public static class FilterConfig {
         private String name;
         private String className;
         private Map<String, Object> paramters = new HashMap<String, Object>();
@@ -212,6 +229,13 @@ public class WebServerConfig {
             }
         }
 
+        /**
+         * 构造函数
+         */
+        public FilterConfig() {
+
+        }
+
         public String getName() {
             return name;
         }
@@ -229,6 +253,15 @@ public class WebServerConfig {
         }
 
         /**
+         * 获取过滤器的参数,在过滤器定义的时候
+         *
+         * @return
+         */
+        public Map<String, Object> getParameters() {
+            return paramters;
+        }
+
+        /**
          * 获取HttpBuizFilter过滤器实例
          *
          * @return
@@ -242,13 +275,6 @@ public class WebServerConfig {
             return httpBizFilter;
         }
 
-        /**
-         * 获取过滤器的参数,在过滤器定义的时候
-         *
-         * @return
-         */
-        public Map<String, Object> getParameters() {
-            return paramters;
-        }
+
     }
 }
