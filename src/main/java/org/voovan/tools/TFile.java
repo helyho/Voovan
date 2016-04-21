@@ -33,7 +33,7 @@ public class TFile {
 	
 	/**
 	 * 获取文件大小
-	 * @param file
+	 * @param filePath
 	 * @return
 	 * @throws FileNotFoundException
 	 * @throws IOException
@@ -54,7 +54,7 @@ public class TFile {
 	/**
 	 * 从系统路径读取文件内容
 	 * 
-	 * @param FilePath
+	 * @param filePath
 	 * @return
 	 * @throws IOException
 	 */
@@ -67,9 +67,10 @@ public class TFile {
 	/**
 	 * 从系统路径读取文件内容
 	 * 
-	 * @param FilePath
+	 * @param filePath
+	 * @param beginPos
+	 * @param endPos
 	 * @return
-	 * @throws IOException
 	 */
 	public static byte[] loadFileFromSysPath(String filePath, int beginPos, int endPos) {
 		byte[] fileContent = null;
@@ -80,7 +81,7 @@ public class TFile {
 	/**
 	 * 从应用的工作根目录为根的相对路径读取文件内容
 	 * 
-	 * @param FilePath
+	 * @param filePath
 	 * @return
 	 * @throws IOException
 	 */
@@ -93,7 +94,7 @@ public class TFile {
 	/**
 	 * 获取应用的工作根目录为根的相对路径
 	 * 
-	 * @param FilePath
+	 * @param filePath
 	 * @return
 	 * @throws IOException
 	 */
@@ -194,11 +195,38 @@ public class TFile {
 		}
 		return null;
 	}
-	
+
+	/**
+	 * 读取文件最后几行记录
+	 * @param file
+	 * @param lastLineNum
+     * @return
+     */
+	public static byte[] loadFileLastLines(File file, int lastLineNum) throws IOException {
+		RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
+		long fileLength = randomAccessFile.length();
+		randomAccessFile.seek(fileLength);
+		int rowCount = 0;
+		while(randomAccessFile.getFilePointer()!=0){
+			randomAccessFile.seek(--fileLength);
+			byte readByte = randomAccessFile.readByte();
+			if(readByte=='\n'){
+				rowCount++;
+			}
+			if(lastLineNum == rowCount){
+				int byteCount = (int)(randomAccessFile.length() - fileLength);
+				byte[] byteContent = new byte[byteCount];
+				randomAccessFile.read(byteContent);
+				return byteContent;
+			}
+		}
+		return new byte[0];
+	}
+
 	/**
 	 * 向文件写入内容
 	 * @param filePath	文件路径
-	 * @param append    是否已追加形式写入
+	 * @param append    是否以追加形式写入
 	 * @param contents	文件内容
 	 * @param offset	偏移值(起始位置)
 	 * @param length	写入长度
@@ -221,7 +249,7 @@ public class TFile {
 	/**
 	 * 向文件写入内容
 	 * @param filePath	文件路径
-	 * @param append    是否已追加形式写入
+	 * @param append    是否以追加形式写入
 	 * @param contents	文件内容
 	 * @return 成功返回 true,失败返回 false
 	 */
@@ -250,4 +278,6 @@ public class TFile {
 	public static boolean writeFile(String filePath,byte[] contents){
 		return writeFile(filePath,true,contents,0,contents.length);
 	}
+
+
 }
