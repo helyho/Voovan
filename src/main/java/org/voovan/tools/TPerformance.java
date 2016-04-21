@@ -139,6 +139,11 @@ public class TPerformance {
 			long count = new Long(lineContent.substring(5,19).trim());
 			long size = new Long(lineContent.substring(19,34).trim());
 			String name = lineContent.substring(34,lineContent.length()).trim();
+
+			if(name.equals("")){
+				continue;
+			}
+
 			if(TString.searchByRegex(name,regex).length>0) {
 				ObjectInfo objectInfo = new ObjectInfo(name, size, count);
 				result.put(name,objectInfo);
