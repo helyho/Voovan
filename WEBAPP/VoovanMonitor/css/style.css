@@ -1,28 +1,46 @@
-html{
+html {
     background: #fff;
 }
-.nav_logo{
-    height:35px;
+
+.nav_logo {
+    height: 35px;
     width: 115px;
 }
 
-.tab-content-panel{
-    border-left:0px;
+.tab-content-panel {
+    border-left: 0px;
     border-radius: 0px
 }
 
-.tab-ext{
-    height:550px;
+.tab-ext {
+    height: 550px;
     border: 1px solid #dddddd;
-    padding-top:10px;
+    padding-top: 10px;
 
 }
 
-.tab-ext > li.uk-active > a{
+.tab-ext > li.uk-active > a {
     border-radius: 0px;
-    border-left:none;
+    border-left: none;
 }
 
-.tab-ext > li.uk-active > a{
+.tab-ext > li.uk-active > a {
     background-color: #fafafa;
+}
+
+.footer {
+    height: 150px;
+    background-color: #555;
+    width: 100%;
+    color: #fff;
+    padding: 15px 0px 15px 0px;
+    margin: 0px;
+}
+
+.footer > div {
+    height: 30px;
+    line-height: 30px;
+}
+.footer > div > ul> li > a {
+    color: #fff;
 }
