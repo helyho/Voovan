@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Voovan server monitor page</title>
+    <link href="css/uikit.gradient.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/uikit.min.js"></script>
+    <script src="js/echart.min.js"></script>
+    <script src="js/Monitor.js"></script>
+    <script src="js/ChartDefine.js"></script>
+    <script src="js/Overview.js"></script>
+</head>
+<body id="OverView">
+<nav class="uk-navbar">
+    <a href="" class="uk-navbar-brand"><img src="img/logo.jpg" class="nav_logo"/></a>
+    <ul class="uk-navbar-nav">
+        <li class="uk-active"><a href="Monitor.html"><span class="uk-icon-building"/>&nbsp;系统信息</a></li>
+        <li class="uk-parent"><a href="MonitorPerformance.html"><span class="uk-icon-pie-chart"/>&nbsp;性能</a></li>
+        <li class="uk-parent"><a href="MonitorObject.html"><span class="uk-icon-circle-o-notch"/>&nbsp;对象信息</a></li>
+        <li class="uk-parent"><a href="MonitorThread.html"><span class="uk-icon-cogs"/>&nbsp;线程</a></li>
+        <li class="uk-parent"><a href="MonitorRequest.html"><span class="uk-icon-life-bouy"/>&nbsp;请求分析</a></li>
+        <li class="uk-parent"><a href="MonitorLogs.html"><span class="uk-icon-television"/>&nbsp;日志</a></li>
+    </ul>
+</nav>
+<div class="uk-grid" style="padding: 5px;">
+    <div class="uk-width-medium-1-6">
+        <ul class="uk-tab uk-tab-left tab-ext"
+            data-uk-tab="{connect:'#my-tab-content1',animation: 'uk-animation-fade'}">
+            <li class="uk-active"><a href=""><span class="uk-icon-laptop"/>&nbsp;概要信息</a></li>
+            <li><a href=""><span class="uk-icon-briefcase"/>&nbsp;JVM信息</a></a></li>
+            <li><a href=""><span class="uk-icon-cubes"/>&nbsp;环境信息</a></a></li>
+        </ul>
+    </div>
+    <div class="uk-width-medium-5-6 uk-panel-box tab-content-panel">
+        <ul id="my-tab-content1" class="uk-switcher">
+            <li aria-hidden="false">
+                <table class="uk-table uk-table-hover uk-table-striped">
+                    <caption>概要信息</caption>
+                    <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>参数</th>
+                    </tr>
+                    </thead>
+                    <tbody id="OverView">
+                    <tr v-for="ov in info">
+                        <td>{{ov.name}}</td>
+                        <td>{{ov.value}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="uk-grid">
+                    <div class="uk-container-center uk-panel-box">
+                        <div id="CPUChart" class="uk-width-medium-1-2" style="width:500px;height:300px;"></div>
+                    </div>
+                    <div class="uk-container-center uk-panel-box">
+                        <div id="MemChart" class="uk-width-medium-1-2" style="width:500px;height:300px;"></div>
+                    </div>
+                </div>
+            </li>
+            <li aria-hidden="false">
+                <table class="uk-table uk-table-hover uk-table-striped">
+                    <caption>JVM信息</caption>
+                    <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>参数</th>
+                    </tr>
+                    </thead>
+                    <tbody id="JvmInfo">
+                    <tr v-for="ji in info">
+                        <td>{{ji.name}}</td>
+                        <td>{{ji.value}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </li>
+            </li>
+            <li aria-hidden="false">
+                <table class="uk-table uk-table-hover uk-table-striped">
+                    <caption>环境信息</caption>
+                    <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>参数</th>
+                    </tr>
+                    </thead>
+                    <tbody id="EnvInfo">
+                    <tr v-for="ei in info">
+                        <td>{{ei.name}}</td>
+                        <td>{{{ei.value}}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>

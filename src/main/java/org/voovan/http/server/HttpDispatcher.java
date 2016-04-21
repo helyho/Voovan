@@ -236,7 +236,9 @@ public class HttpDispatcher {
 		while(filterConfigs.hasNext()){
 			FilterConfig filterConfig = filterConfigs.next();
 			HttpBizFilter httpBizFilter = filterConfig.getBizFilter();
-			httpBizFilter.onRequest(filterConfig, request, response);
+			if(httpBizFilter!=null) {
+				httpBizFilter.onRequest(filterConfig, request, response);
+			}
 		}
 	}
 
@@ -252,7 +254,10 @@ public class HttpDispatcher {
 		while(filterConfigs.hasPrevious()){
 			FilterConfig filterConfig = filterConfigs.previous();
 			HttpBizFilter httpBizFilter = filterConfig.getBizFilter();
-			httpBizFilter.onResponse(filterConfig, request, response);
+			if(httpBizFilter!=null) {
+				httpBizFilter.onResponse(filterConfig, request, response);
+			}
+
 		}
 	}
 	

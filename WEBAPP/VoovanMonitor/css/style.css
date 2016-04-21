@@ -1,0 +1,28 @@
+html{
+    background: #fff;
+}
+.nav_logo{
+    height:35px;
+    width: 115px;
+}
+
+.tab-content-panel{
+    border-left:0px;
+    border-radius: 0px
+}
+
+.tab-ext{
+    height:550px;
+    border: 1px solid #dddddd;
+    padding-top:10px;
+
+}
+
+.tab-ext > li.uk-active > a{
+    border-radius: 0px;
+    border-left:none;
+}
+
+.tab-ext > li.uk-active > a{
+    background-color: #fafafa;
+}
