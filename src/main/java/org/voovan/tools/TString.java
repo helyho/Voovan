@@ -35,6 +35,9 @@ public class TString {
 	 * @return 移除最后一个字节后的字符串
 	 */
 	public static String removeSuffix(String source){
+		if(source.isEmpty()){
+			return source;
+		}
 		return source.substring(0, source.length()-1);
 	}
 
