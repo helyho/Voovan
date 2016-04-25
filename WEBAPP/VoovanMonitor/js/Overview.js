@@ -88,10 +88,10 @@ $(function () {
                         "value": sysInfo["user.dir"]
                     }, {
                         "name": "库目录",
-                        "value": ReplaceAll(sysInfo["java.library.path"], ":", "<br/>")
+                        "value": ReplaceAll(ReplaceAll(sysInfo["java.library.path"], ":", "<br/>"),";", "<br/>")
                     }, {
                         "name": "ClassPath",
-                        "value": ReplaceAll(sysInfo["java.class.path"], ":", "<br/>")
+                        "value": ReplaceAll(ReplaceAll(sysInfo["java.class.path"], ":", "<br/>"),";", "<br/>")
                     }
                 ]
             }
