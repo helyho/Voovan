@@ -20,20 +20,21 @@ import java.util.Map.Entry;
  *         Licence: Apache v2 License
  */
 public class WebServerConfig {
-    private String host;
-    private int port;
-    private int timeout;
-    private String contextPath;
-    private String characterSet;
-    private String sessionContainer;
-    private int sessionTimeout;
-    private int keepAliveTimeout;
-    private boolean gzip;
+    private String host             = "0.0.0.0";
+    private int port                = 28080;
+    private int timeout             = 30;
+    private String contextPath      = "WEBAPP";
+    private String characterSet     = "UTF-8";
+    private String sessionContainer = "java.util.Hashtable";
+    private int sessionTimeout      = 30;
+    private int keepAliveTimeout    = 60;
+    private boolean accessLog       = true;
+    private boolean monitor         = false;
+    private boolean gzip            = true;
     private String certificateFile;
     private String certificatePassword;
     private String keyPassword;
-    private boolean accessLog;
-    private boolean monitor;
+
 
     private Chain<FilterConfig> filterConfigs = new Chain<FilterConfig>();
 

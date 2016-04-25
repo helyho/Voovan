@@ -78,41 +78,50 @@ public class HttpServer {
 	 * 以下是一些 HTTP 方法的成员函数
 	 */
 
-	public void get(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer get(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("GET", routeRegexPath, handler);
+		return this;
 	}
 
-	public void post(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer post(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("POST", routeRegexPath, handler);
+		return this;
 	}
 
-	public void head(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer head(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("HEAD", routeRegexPath, handler);
+		return this;
 	}
 
-	public void put(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer put(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("PUT", routeRegexPath, handler);
+		return this;
 	}
 
-	public void delete(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer delete(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("delete", routeRegexPath, handler);
+		return this;
 	}
 
-	public void trace(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer trace(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("TRACE", routeRegexPath, handler);
+		return this;
 	}
 
-	public void connect(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer connect(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("CONNECT", routeRegexPath, handler);
+		return this;
 	}
 
-	public void options(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer options(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("OPTIONS", routeRegexPath, handler);
+		return this;
 	}
 
-	public void otherMethod(String method, String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer otherMethod(String method, String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteMethod(method);
 		httpDispatcher.addRouteHandler(method, routeRegexPath, handler);
+		return this;
 	}
 	
 	public void socket(String routeRegexPath, WebSocketBizHandler handler) {
@@ -122,12 +131,16 @@ public class HttpServer {
 
 	/**
 	 * 构建新的 HttpServer,从配置文件读取配置
-	 * 
+	 * @param port  HTTP 服务的端口号
 	 * @return
 	 */
-	public static HttpServer newInstance() {
+	public static HttpServer newInstance(Integer port) {
 		try {
-			return new HttpServer(WebContext.getWebServerConfig());
+			WebServerConfig config = WebContext.getWebServerConfig();
+			if(port!=null) {
+				config.setPort(port);
+			}
+			return new HttpServer(config);
 		} catch (IOException e) {
 			Logger.error("Create HttpServer failed.",e);
 		}
@@ -135,13 +148,26 @@ public class HttpServer {
 	}
 
 	/**
+	 * 构建新的 HttpServer,从配置文件读取配置
+	 *
+	 * @return
+	 */
+	public static HttpServer newInstance() {
+		return newInstance(null);
+	}
+
+	/**
 	 * 启动服务
 	 * 
 	 * @throws IOException
 	 */
-	public void serve() throws IOException {
-		WebContext.welcome(config);
-		aioServerSocket.start();
-
+	public HttpServer serve() {
+		try {
+			WebContext.welcome(config);
+			aioServerSocket.start();
+		} catch (IOException e) {
+			Logger.error("Start HTTP server error.",e);
+		}
+		return this;
 	}
 }
