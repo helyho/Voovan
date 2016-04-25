@@ -15,6 +15,14 @@ function getOverView() {
     return $.parseJSON(result)
 }
 
+function isWindowsPath(path){
+    if(path.indexOf(":") < path.indexOf(";")){
+        return true;
+    }else{
+        return false;
+    }
+}
+
 /**
  * 页面初始化
  */
@@ -76,10 +84,6 @@ $(function () {
 
     //环境模块渲染
     if (sysInfo != undefined)
-        var isWindows = false;
-        if(navigator.userAgent.indexOf("Windows")>0){
-            isWindows = true;
-        }
         var envInfo = new Vue({
             el: '#EnvInfo',
             data: {
@@ -92,10 +96,10 @@ $(function () {
                         "value": sysInfo["user.dir"]
                     }, {
                         "name": "库目录",
-                        "value": ReplaceAll(sysInfo["java.library.path"], isWindows?";":":", "<br/>")
+                        "value": ReplaceAll(sysInfo["java.library.path"], isWindowsPath(sysInfo["java.library.path"])?";":":", "<br/>")
                     }, {
                         "name": "ClassPath",
-                        "value": ReplaceAll(sysInfo["java.class.path"], isWindows?";":":", "<br/>")
+                        "value": ReplaceAll(sysInfo["java.class.path"], isWindowsPath(sysInfo["java.class.path"])?";":":", "<br/>")
                     }
                 ]
             }
