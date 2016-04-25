@@ -8,6 +8,7 @@ import org.voovan.tools.log.SingleLogger;
 import java.io.File;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -55,9 +56,12 @@ public class WebContext {
 	 * @return
 	 */
 	private static Map<String, Object> loadMapFromFile(String filePath){
-		String fileContent = new String(TFile.loadFileFromContextPath(filePath));
-		Object configObject = JSONDecode.parse(fileContent);
-		return TObject.cast(configObject);
+		if(new File(TEnv.getSystemPath(filePath)).exists()) {
+			String fileContent = new String(TFile.loadFileFromContextPath(filePath));
+			Object configObject = JSONDecode.parse(fileContent);
+			return TObject.cast(configObject);
+		}
+		return new HashMap<String,Object>();
 	}
 	
 	/**
@@ -120,6 +124,7 @@ public class WebContext {
 		Logger.simple("\tKeepAliveTimeout:\t\t"+config.getKeepAliveTimeout());
 		Logger.simple("\tGzip:\t\t\t\t\t"+ config.isGzip());
 		Logger.simple("\tAccessLog:\t\t\t\t"+ config.isAccessLog());
+		Logger.simple("\tMonitor:\t\t\t\t"+ config.isMonitor());
 		if(config.getCertificateFile()!=null) {
 			Logger.simple("\tCertificateFile:\t\t" + config.getCertificateFile());
 			Logger.simple("\tCertificatePassword:\t" + config.getCertificatePassword());
