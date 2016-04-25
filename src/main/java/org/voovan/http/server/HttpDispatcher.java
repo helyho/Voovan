@@ -272,11 +272,6 @@ public class HttpDispatcher {
 		
 		//获取配置文件异常定义
 		Map<String, Object> errorDefine = WebContext.getErrorDefine();
-		
-		//输出异常
-		if( !(e instanceof ResourceNotFound || e instanceof RouterNotFound) ){
-			Logger.error(e);
-		}
 
 		//信息准备
 		String requestMethod = request.protocol().getMethod();
@@ -288,7 +283,14 @@ public class HttpDispatcher {
 
 		//初始 error 定义,如果下面匹配到了定义的错误则定义的会被覆盖
 		Map<String, Object> error = new HashMap<String, Object>();
-		error.put("StatusCode", 500);
+
+		//输出异常
+		if( !(e instanceof ResourceNotFound || e instanceof RouterNotFound) ){
+			error.put("StatusCode", 500);
+			Logger.error(e);
+		}else{
+			error.put("StatusCode", 404);
+		}
 		error.put("Page", "Error.html");
 		error.put("Description", stackInfo);
 		

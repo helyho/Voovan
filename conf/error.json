@@ -9,13 +9,13 @@
 	 */
 	
 	//静态文件访问未找到目标文件
-	"org.hocate.http.server.Exception.ResourceNotFound":{
+	"org.voovan.http.server.exception.ResourceNotFound":{
 		"StatusCode"	:404,
 		"Page"			:"Error.html",
 		"Description"	:"The request file is not found."
 	},
 	//没有可用的路由
-	"org.hocate.http.server.Exception.RouterNotFound":{
+	"org.voovan.http.server.exception.RouterNotFound":{
 		"StatusCode"	:404,
 		"Page"			:"Error.html",
 		"Description"	:"None avaliable router to use."
