@@ -14,89 +14,86 @@ public class HttpServerDemo {
 	private static byte[] fileContent = TFile.loadFileFromContextPath("WEBAPP/test.htm");
 	
 	public static void main(String[] args) {
-		try {
-			HttpServer httpServer = HttpServer.newInstance();
-			httpServer.get("/test", (req, resp) -> {
-				resp.body().write("OK");
-			});
-			
-			//普通 GET 请求
-			httpServer.get("/", (req, resp) -> {
-				Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
-				Logger.simple("Request info: "+req.protocol());
-				//Session 测试
-				{
-					String now = TDateTime.now();
-					if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
-						Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time")+" SavedTime: "+now);
-					}
-					req.getSession().setAttribute("Time", now);
-				}
-				resp.write(fileContent);
-				resp.write("{"
-						+ "\"Method\":\"NormalGET\","
-						+ "\"name\":\""+req.getParameter("name")+"\","
-						+ "\"age\":\""+req.getParameter("age")+"\""
-				 + "}");
-			});
-			
-			//带路劲参数的 GET 请求
-			httpServer.get("/Star/:name/:age", (req, resp) -> {
-				Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
-				Logger.simple("Request info: "+req.protocol());
-				resp.write(fileContent);
-				resp.write("{"
-								+ "\"Method\":\"PathGET\","
-								+ "\"name\":\""+req.getParameter("name")+"\","
-								+ "\"age\":\""+req.getParameter("age")+"\""
-						 + "}");
-			});
-			
-			
-			// 重定向
-			httpServer.get("/redirect", (req, resp) -> {
-				Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
-				Logger.simple("Request info: "+req.protocol());
-				resp.redirct("http://www.baidu.com");
-			});
+		HttpServer httpServer = HttpServer.newInstance();
+		httpServer.get("/test", (req, resp) -> {
+			resp.body().write("OK");
+		});
 
-			//普通 POST 请求
-			httpServer.post("/", (req, resp) -> {
-				Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
-				Logger.simple("Request info: "+req.protocol());
-				resp.write(fileContent);
-				String contentType = req.header().get("Content-Type").split(";")[0];
-				resp.write("{"
-						+ "\"Method\":\""+contentType+"\","
-						+ "\"name\":\""+req.getParameter("name")+"\","
-						+ "\"age\":\""+req.getParameter("age")+"\""
-				 + "}");
-			});
-			
-			httpServer.socket("/websocket", new WebSocketBizHandler() {
-				
-				@Override
-				public ByteBuffer onRecived(HttpRequest upgradeRequest, ByteBuffer message) {
-					Logger.info(new String(message.array()));
-					String msg = "This is server message. Client message: \r\n\t\""+new String(message.array())+"\"";
-					return ByteBuffer.wrap(msg.getBytes());
+		//普通 GET 请求
+		httpServer.get("/", (req, resp) -> {
+			Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
+			Logger.simple("Request info: "+req.protocol());
+			//Session 测试
+			{
+				String now = TDateTime.now();
+				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
+					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time")+" SavedTime: "+now);
 				}
-				
-				@Override
-				public void onOpen(HttpRequest upgradeRequest) {
-					Logger.info("WebSocket connect!");
-				}
-				
-				@Override
-				public void onClose() {
-					Logger.info("WebSocket close!");
-					
-				}
-			});
-			
-			httpServer.serve();
-		} catch (IOException e) {
-			Logger.error(e);
-		}
+				req.getSession().setAttribute("Time", now);
+			}
+			resp.write(fileContent);
+			resp.write("{"
+					+ "\"Method\":\"NormalGET\","
+					+ "\"name\":\""+req.getParameter("name")+"\","
+					+ "\"age\":\""+req.getParameter("age")+"\""
+			 + "}");
+		});
+
+		//带路劲参数的 GET 请求
+		httpServer.get("/Star/:name/:age", (req, resp) -> {
+			Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
+			Logger.simple("Request info: "+req.protocol());
+			resp.write(fileContent);
+			resp.write("{"
+							+ "\"Method\":\"PathGET\","
+							+ "\"name\":\""+req.getParameter("name")+"\","
+							+ "\"age\":\""+req.getParameter("age")+"\""
+					 + "}");
+		});
+
+
+		// 重定向
+		httpServer.get("/redirect", (req, resp) -> {
+			Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
+			Logger.simple("Request info: "+req.protocol());
+			resp.redirct("http://www.baidu.com");
+		});
+
+		//普通 POST 请求
+		httpServer.post("/", (req, resp) -> {
+			Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
+			Logger.simple("Request info: "+req.protocol());
+			resp.write(fileContent);
+			String contentType = req.header().get("Content-Type").split(";")[0];
+			resp.write("{"
+					+ "\"Method\":\""+contentType+"\","
+					+ "\"name\":\""+req.getParameter("name")+"\","
+					+ "\"age\":\""+req.getParameter("age")+"\""
+			 + "}");
+		});
+
+		httpServer.socket("/websocket", new WebSocketBizHandler() {
+
+			@Override
+			public ByteBuffer onRecived(HttpRequest upgradeRequest, ByteBuffer message) {
+				Logger.info(new String(message.array()));
+				String msg = "This is server message. Client message: \r\n\t\""+new String(message.array())+"\"";
+				return ByteBuffer.wrap(msg.getBytes());
+			}
+
+			@Override
+			public void onOpen(HttpRequest upgradeRequest) {
+				Logger.info("WebSocket connect!");
+			}
+
+			@Override
+			public void onClose() {
+				Logger.info("WebSocket close!");
+
+			}
+		});
+
+		httpServer.serve();
+
 	}
 }
