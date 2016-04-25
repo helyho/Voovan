@@ -15,7 +15,7 @@ import java.io.IOException;
  */
 public class simpleHttpServerDemo {
     public static void main(String[] args) {
-        HttpServer.newInstance().get("/test",(req,resp)->{
+        HttpServer.newInstance(20001).get("/test",(req,resp)->{
             resp.write("this is test Message.");
         }).serve();
     }
