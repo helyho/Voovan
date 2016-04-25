@@ -56,7 +56,7 @@ public class WebContext {
 	 * @return
 	 */
 	private static Map<String, Object> loadMapFromFile(String filePath){
-		if(new File(TEnv.getSystemPath(filePath)).exists()) {
+		if(TFile.fileExists(TEnv.getSystemPath(filePath))) {
 			String fileContent = new String(TFile.loadFileFromContextPath(filePath));
 			Object configObject = JSONDecode.parse(fileContent);
 			return TObject.cast(configObject);
@@ -124,7 +124,6 @@ public class WebContext {
 		Logger.simple("\tKeepAliveTimeout:\t\t"+config.getKeepAliveTimeout());
 		Logger.simple("\tGzip:\t\t\t\t\t"+ config.isGzip());
 		Logger.simple("\tAccessLog:\t\t\t\t"+ config.isAccessLog());
-		Logger.simple("\tMonitor:\t\t\t\t"+ config.isMonitor());
 		if(config.getCertificateFile()!=null) {
 			Logger.simple("\tCertificateFile:\t\t" + config.getCertificateFile());
 			Logger.simple("\tCertificatePassword:\t" + config.getCertificatePassword());
@@ -211,5 +210,12 @@ public class WebContext {
 		return SESSION_NAME;
 	}
 	
-	
+	public static String getDefaultErrorPage(){
+		return "RequestMethod: {{RequestMethod}} <br/>" +
+				"StatusCode: {{StatusCode}} <br/>" +
+				"RequestPath: {{RequestPath}} <br/>" +
+				"ErrorMessage: {{ErrorMessage}} <br/>" +
+				"Version: {{Version}} <br/>" +
+				"Description: {{Description}} <br/>";
+	}
 }
