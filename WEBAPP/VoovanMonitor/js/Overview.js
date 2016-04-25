@@ -76,6 +76,10 @@ $(function () {
 
     //环境模块渲染
     if (sysInfo != undefined)
+        var isWindows = false;
+        if(navigator.userAgent.indexOf("Windows")>0){
+            isWindows = true;
+        }
         var envInfo = new Vue({
             el: '#EnvInfo',
             data: {
@@ -88,10 +92,10 @@ $(function () {
                         "value": sysInfo["user.dir"]
                     }, {
                         "name": "库目录",
-                        "value": ReplaceAll(ReplaceAll(sysInfo["java.library.path"], ":", "<br/>"),";", "<br/>")
+                        "value": ReplaceAll(sysInfo["java.library.path"], isWindows?";":":", "<br/>")
                     }, {
                         "name": "ClassPath",
-                        "value": ReplaceAll(ReplaceAll(sysInfo["java.class.path"], ":", "<br/>"),";", "<br/>")
+                        "value": ReplaceAll(sysInfo["java.class.path"], isWindows?";":":", "<br/>")
                     }
                 ]
             }
