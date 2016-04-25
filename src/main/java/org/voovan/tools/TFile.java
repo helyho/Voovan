@@ -16,6 +16,15 @@ import java.net.URLDecoder;
  * Licence: Apache v2 License
  */
 public class TFile {
+
+	/**
+	 * 普安短文件是否存在
+	 * @param fullPath
+	 * @return
+     */
+	public static boolean fileExists(String fullPath){
+		return new File(fullPath).exists();
+	}
 	
 	/**
 	 * 路径拼装

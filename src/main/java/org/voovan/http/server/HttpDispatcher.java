@@ -302,7 +302,10 @@ public class HttpDispatcher {
 		}
 		
 		//消息拼装
-		String errorPageContent = new String(TFile.loadFileFromContextPath("/conf/error-page/" + error.get("Page")));
+		String errorPageContent = WebContext.getDefaultErrorPage();
+		if(TFile.fileExists("/conf/error-page/" + error.get("Page"))) {
+			errorPageContent = new String(TFile.loadFileFromContextPath("/conf/error-page/" + error.get("Page")));
+		}
 		if(errorPageContent!=null){
 			errorPageContent = TString.tokenReplace(errorPageContent, "StatusCode", error.get("StatusCode").toString());
 			errorPageContent = TString.tokenReplace(errorPageContent, "RequestMethod", requestMethod);
