@@ -123,7 +123,6 @@ public abstract class SocketContext {
 	
 	/**
 	 * 设置消息粘包分割器
-	 * @return
 	 */
 	public void messageSplitter(MessageSplitter messageSplitter) {
 		this.messageSplitter = messageSplitter;
@@ -131,7 +130,6 @@ public abstract class SocketContext {
 	
 	/**
 	 * 启动上下文连接
-	 * @return
 	 */
 	public abstract void start() throws IOException;
 	

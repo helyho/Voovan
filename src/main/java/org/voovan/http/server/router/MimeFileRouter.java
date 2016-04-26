@@ -109,7 +109,6 @@ public class MimeFileRouter implements HttpBizHandler {
 	 * @param responseFile
 	 * @param request
 	 * @param response
-	 * @throws FileNotFoundException 
 	 */
 	public void fillMimeFile(File responseFile,HttpRequest request,HttpResponse response){
 		byte[] fileByte = null;

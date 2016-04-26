@@ -15,7 +15,7 @@ public class EventThread  implements Runnable{
 	
 	/**
 	 * 事件处理 Thread
-	 * @param events 事件队列
+	 * @param event 事件
 	 */
 	public EventThread(Event event){
 		this.event = event;

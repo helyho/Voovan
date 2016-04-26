@@ -96,7 +96,7 @@ public class JSONEncode {
 	 * 将对象转换成JSON字符串
 	 * @param object 			要转换的对象
 	 * @return 类型:String 		对象对应的JSON字符串
-	 * @throws Exception
+	 * @throws ReflectiveOperationException
 	 */
 	@SuppressWarnings("unchecked")
 	public static String fromObject(Object object) throws ReflectiveOperationException

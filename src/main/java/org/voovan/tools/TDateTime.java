@@ -124,7 +124,7 @@ public class TDateTime {
 	
 	/**
 	 * 日期加操作
-	 * @param date		加法的基数日期
+	 * @param time		加法的基数日期
 	 * @param millis	微秒
 	 * @param format    输出的格式
 	 * @return

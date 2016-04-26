@@ -45,7 +45,6 @@ public class Formater {
 	/**
 	 * 构造函数
 	 * @param template
-	 * @param outputStreams
 	 */
 	public Formater(String template) {
 		this.template = template;

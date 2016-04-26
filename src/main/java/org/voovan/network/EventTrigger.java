@@ -185,7 +185,6 @@ public class EventTrigger {
 	 * 事件触发
 	 * 		根据事件启动 EventThread 来处理事件
 	 * @param name     事件名称
-	 * @param exception
 	 */
 	public void fireEventThread(Event.EventName name,Object other){
 		fireEventThread(session, name,other);

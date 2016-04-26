@@ -24,7 +24,6 @@ public class MessageLoader {
 	/**
 	 * 构造函数
 	 * @param session
-	 * @param readTimeOut 超时时间
 	 */
 	public MessageLoader(IoSession session) {
 		this.session = session;
@@ -66,7 +65,6 @@ public class MessageLoader {
 	 * 	逐字节读取数据,并用消息截断器判断消息包是否完整,消息粘包有两种截断方式:
 	 * 	1.消息截断器生效
 	 * 	2.消息读取时间超时,例如设置5m,则连续5秒内没有读取到有用的消息则返回报文.
-	 * @param socketChannel
 	 * @return
 	 * @throws IOException
 	 */

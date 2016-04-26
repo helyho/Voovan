@@ -68,7 +68,6 @@ public class Body {
 	/**
 	 * 写入 body 
 	 * @param body
-	 * @throws IOException 
 	 */
 	public void write(byte[] body){
 		try {
@@ -81,7 +80,6 @@ public class Body {
 	/**
 	 * 写入 body 
 	 * @param body
-	 * @throws IOException 
 	 */
 	public void write(byte[] body,int offset,int length){
 		outputStream.write(body,offset,length);

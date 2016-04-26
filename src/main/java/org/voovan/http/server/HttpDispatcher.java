@@ -96,7 +96,6 @@ public class HttpDispatcher {
 	 * 
 	 * @param request
 	 * @param response
-	 * @throws Exception
 	 */
 	public void processRoute(HttpRequest request, HttpResponse response){
 		String requestPath = request.protocol().getPath();
@@ -175,7 +174,6 @@ public class HttpDispatcher {
 	 * @param requestPath
 	 * @param routePath
 	 * @return
-	 * @throws UnsupportedEncodingException 
 	 */
 	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) {
 		Map<String, String> resultMap = new HashMap<String, String>();

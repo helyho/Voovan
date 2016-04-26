@@ -69,7 +69,6 @@ public class TReflect {
 	 * @param obj
 	 * @param fieldName
 	 * @return
-	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
 	static public <T> T getFieldValue(Object obj, String fieldName)
@@ -86,7 +85,6 @@ public class TReflect {
 	 * @param obj
 	 * @param fieldName
 	 * @param fieldValue
-	 * @throws Exception
 	 */
 	public static void setFieldValue(Object obj, String fieldName,
 			Object fieldValue) throws ReflectiveOperationException {
@@ -100,7 +98,6 @@ public class TReflect {
 	 * 
 	 * @param obj
 	 * @return
-	 * @throws Exception
 	 */
 	public static Map<Field, Object> getFieldValues(Object obj)
 			throws ReflectiveOperationException {
@@ -122,9 +119,7 @@ public class TReflect {
 	 * @param name		   方法名	
 	 * @param paramTypes   参数类型
 	 * @return			   方法对象
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws Exception   异常
+	 * @throws ReflectiveOperationException
 	 */
 	public static Method findMethod(Class<?> clazz, String name,
 			Class<?>... paramTypes) throws ReflectiveOperationException  {
@@ -164,12 +159,10 @@ public class TReflect {
 	 * @param obj				执行方法的对象
 	 * @param method			方法对象
 	 * @return					方法返回结果
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
-	 * @throws Exception		异常
+	 * @throws ReflectiveOperationException
 	 */
-	public static Object invokeMethod(Object obj, Method method, Object... parameters) throws ReflectiveOperationException {
+	public static Object invokeMethod(Object obj, Method method, Object... parameters)
+			throws ReflectiveOperationException {
 		method.setAccessible(true);
 		return method.invoke(obj, parameters);
 	}
@@ -181,9 +174,10 @@ public class TReflect {
 	 * @param name				执行方法名
 	 * @param parameters		方法参数
 	 * @return					方法返回结果
-	 * @throws Exception		异常
+	 * @throws ReflectiveOperationException		异常
 	 */
-	public static Object invokeMethod(Object obj, String name, Object... parameters) throws ReflectiveOperationException {
+	public static Object invokeMethod(Object obj, String name, Object... parameters)
+			throws ReflectiveOperationException {
 		Class<?>[] parameterTypes = getArrayClasses(parameters);
 		Method method = findMethod(obj.getClass(), name, parameterTypes);
 		method.setAccessible(true);
@@ -196,9 +190,10 @@ public class TReflect {
 	 * @param clazz			类对象
 	 * @param parameters	构造方法参数
 	 * @return
-	 * @throws Exception
+	 * @throws ReflectiveOperationException
 	 */
-	public static <T> T newInstance(Class<T> clazz, Object ...parameters) throws ReflectiveOperationException {
+	public static <T> T newInstance(Class<T> clazz, Object ...parameters)
+			throws ReflectiveOperationException {
 		Class<?>[] parameterTypes = getArrayClasses(parameters);
 		Constructor<T> constructor = clazz.getConstructor(parameterTypes);
 		return constructor.newInstance(parameters);
@@ -209,7 +204,7 @@ public class TReflect {
 	 * @param className		类名称
 	 * @param parameters	构造方法参数
 	 * @return
-	 * @throws Exception
+	 * @throws ReflectiveOperationException
 	 */
 	public static <T> T newInstance(String className, Object ...parameters) throws ReflectiveOperationException {
 		@SuppressWarnings("unchecked")
@@ -237,8 +232,8 @@ public class TReflect {
 	 * @param mapArg		Map 对象
 	 * @param ignoreCase    匹配属性名是否不区分大小写
 	 * @return
-	 * @throws ParseException 
-	 * @throws Exception
+	 * @throws ReflectiveOperationException
+	 * @throws ParseException
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Object getObjectFromMap(Class<?> clazz,
@@ -315,7 +310,7 @@ public class TReflect {
 	 * 			value 对象属性值
 	 * @param obj      待转换的对象
 	 * @return
-	 * @throws Exception
+	 * @throws ReflectiveOperationException
 	 */
 	public static Map<String, Object> getMapfromObject(Object obj) throws ReflectiveOperationException{
 		

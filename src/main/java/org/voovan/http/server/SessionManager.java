@@ -24,7 +24,7 @@ public class SessionManager{
 	
 	/**
 	 * 构造函数
-	 * @param config
+	 * @param webConfig
 	 */
 	public SessionManager(WebServerConfig webConfig){
 		this.webConfig = webConfig;

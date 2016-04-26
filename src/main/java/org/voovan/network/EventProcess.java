@@ -36,7 +36,6 @@ public class EventProcess {
 	 * 
 	 * @param event
 	 *            事件对象
-	 * @throws Exception 
 	 * @throws IOException
 	 */
 	public static void onAccepted(Event event) throws IOException {
@@ -105,7 +104,6 @@ public class EventProcess {
 	 * @throws IOException 
 	 * @throws SendMessageException 
 	 * @throws IoFilterException 
-	 * @throws Exception
 	 */
 	public static void onRead(Event event) throws IOException, SendMessageException, IoFilterException {
 		SocketContext socketContext = event.getSession().sockContext();

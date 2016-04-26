@@ -38,7 +38,7 @@ public class WebSocketDispatcher {
 	/**
 	 * 构造函数
 	 * 
-	 * @param rootDir
+	 * @param config
 	 *            根目录
 	 */
 	public WebSocketDispatcher(WebServerConfig config) {
@@ -48,9 +48,8 @@ public class WebSocketDispatcher {
 	/**
 	 * 增加一个路由规则
 	 * 
-	 * @param Method
 	 * @param routeRegexPath
-	 * @param routeBuiz
+	 * @param handler
 	 */
 	public void addRouteHandler(String routeRegexPath, WebSocketBizHandler handler) {
 		handlers.put(routeRegexPath, handler);
@@ -59,9 +58,9 @@ public class WebSocketDispatcher {
 	/**
 	 * 路由处理函数
 	 * 
+	 * @param event
 	 * @param request
-	 * @param response
-	 * @throws Exception
+	 * @param webSocketFrame
 	 */
 	public WebSocketFrame processRoute(WebSocketEvent event, HttpRequest request, WebSocketFrame webSocketFrame) {
 		

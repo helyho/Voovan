@@ -32,7 +32,6 @@ public class JdbcOperate {
 	/**
 	 * 构造函数
 	 * @param dataSource	数据源
-	 * @throws SQLException
 	 */
 	public JdbcOperate(DataSource dataSource) {
 		this.dataSource = dataSource;
@@ -43,7 +42,6 @@ public class JdbcOperate {
 	 * 构造函数
 	 * @param dataSource	数据源
 	 * @param isTrancation   是否启用事物支持
-	 * @throws SQLException
 	 */
 	public JdbcOperate(DataSource dataSource,boolean isTrancation){
 		this.dataSource = dataSource;
@@ -231,7 +229,7 @@ public class JdbcOperate {
 	 *            object为参数的对象
 	 * @return
 	 * @throws ReflectiveOperationException 
-	 * @throws Exception
+	 * @throws SQLException
 	 */
 	public int update(String sqlText, Object arg) throws SQLException, ReflectiveOperationException {
 		if(arg.getClass().getName().startsWith("java")){
@@ -250,7 +248,7 @@ public class JdbcOperate {
 	 * @param mapArg
 	 *            map为参数的对象
 	 * @return
-	 * @throws Exception
+	 * @throws SQLException
 	 */
 	public int update(String sqlText, Map<String, Object> mapArg) throws SQLException {
 		return this.baseUpdate(sqlText, mapArg);
@@ -265,7 +263,6 @@ public class JdbcOperate {
 	 *            多参数
 	 * @return
 	 * @throws SQLException 
-	 * @throws Exception
 	 */
 	public int update(String sqlText, Object... args) throws SQLException {
 		Map<String, Object> paramsMap = TSQL.arrayToMap(args);
@@ -283,9 +280,6 @@ public class JdbcOperate {
 	 *            对象模型
 	 * @return
 	 * @throws SQLException
-	 * @throws ParseException 
-	 * @throws ReflectiveOperationException 
-	 * @throws Exception
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t) throws SQLException{
 		ResultInfo resultInfo = this.baseQuery(sqlText, null);
@@ -310,7 +304,6 @@ public class JdbcOperate {
 	 * @return
 	 * @throws ReflectiveOperationException 
 	 * @throws SQLException 
-	 * @throws ParseException 
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t, Object arg) throws SQLException, ReflectiveOperationException{
 		if(arg.getClass().getName().startsWith("java")){
@@ -338,9 +331,6 @@ public class JdbcOperate {
 	 *            对象模型
 	 * @return
 	 * @throws SQLException 
-	 * @throws ParseException 
-	 * @throws ReflectiveOperationException 
-	 * @throws Exception
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t, Map<String, Object> mapArg) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, mapArg);
@@ -363,9 +353,6 @@ public class JdbcOperate {
 	 *            对象模型
 	 * @return
 	 * @throws SQLException 
-	 * @throws ParseException 
-	 * @throws ReflectiveOperationException 
-	 * @throws Exception
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t, Object... args) throws SQLException{
 		Map<String, Object> paramsMap = TSQL.arrayToMap(args);
@@ -383,8 +370,6 @@ public class JdbcOperate {
 	 *            sql字符串
 	 * @return
 	 * @throws SQLException 
-	 * @throws ReflectiveOperationException 
-	 * @throws Exception
 	 */
 	public List<Map<String, Object>> queryMapList(String sqlText) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, null);
@@ -404,7 +389,6 @@ public class JdbcOperate {
 	 * @return
 	 * @throws ReflectiveOperationException 
 	 * @throws SQLException 
-	 * @throws Exception
 	 */
 	public List<Map<String, Object>> queryMapList(String sqlText, Object arg) throws SQLException, ReflectiveOperationException  {
 		if(arg.getClass().getName().startsWith("java")){
@@ -532,7 +516,7 @@ public class JdbcOperate {
 	 * @param t
 	 *            对象模型
 	 * @return
-	 * @throws ParseException 
+	 * @throws SQLException
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T queryObject(String sqlText, Class<T> t, Object... args) throws SQLException{
@@ -613,7 +597,7 @@ public class JdbcOperate {
 	 * @param args
 	 *            args参数
 	 * @return
-	 * @throws Exception
+	 * @throws SQLException
 	 */
 	public Map<String, Object> queryMap(String sqlText, Object... args) throws SQLException {
 		Map<String, Object> paramsMap = TSQL.arrayToMap(args);

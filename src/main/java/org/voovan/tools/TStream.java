@@ -19,7 +19,7 @@ public class TStream {
 	
 	/**
 	 * 从 InputStream 读取定长字符串
-	 * @param inputStrem
+	 * @param inputStream
 	 * @param length
 	 * @return
 	 * @throws IOException

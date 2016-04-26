@@ -158,8 +158,6 @@ public class HttpServer {
 
 	/**
 	 * 启动服务
-	 * 
-	 * @throws IOException
 	 */
 	public HttpServer serve() {
 		try {
