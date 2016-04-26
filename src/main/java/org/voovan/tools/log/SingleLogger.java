@@ -20,7 +20,6 @@ public class SingleLogger {
 	private static HashMap<String,SingleLogger> singleLoggerPool = new HashMap<String,SingleLogger>();
 	/**
 	 * 构造函数
-	 * @throws FileNotFoundException 
 	 */
 	public SingleLogger(String fileName){
 		this.fileName = fileName;

@@ -113,10 +113,10 @@ public class SSLParser {
 	
 	/**
 	 * 解包数据
-	 * @param buffer    	接受解包数据的缓冲区
+	 * @param netBuffer    	接受解包数据的缓冲区
+	 * @param appBuffer
 	 * @return
 	 * @throws SSLException 
-	 * @throws Exception
 	 */
 	public SSLEngineResult unwarpData(ByteBuffer netBuffer,ByteBuffer appBuffer) throws SSLException{
 		SSLEngineResult engineResult = null;

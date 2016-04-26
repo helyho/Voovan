@@ -141,7 +141,6 @@ public class TSQL {
 	 * @param callableStatement
 	 * @return
 	 * @throws SQLException
-	 * @throws ReflectiveOperationException
 	 */
 	public static List<Object> getCallableStatementResult(CallableStatement callableStatement) throws SQLException{
 		ArrayList<Object> result = new ArrayList<Object>();
@@ -204,7 +203,6 @@ public class TSQL {
 	 * @param argObjectj
 	 * @return
 	 * @throws ReflectiveOperationException 
-	 * @throws Exception
 	 */
 	public static String assembleSQLWithObject(String sqlStr,Object argObjectj) throws ReflectiveOperationException{
 		
@@ -236,9 +234,9 @@ public class TSQL {
 	 * @return
 	 * @throws SQLException 
 	 * @throws ReflectiveOperationException 
-	 * @throws Exception
 	 */
-    public static Map<String, Object> getOneRowWithMap(ResultSet resultset) throws SQLException, ReflectiveOperationException {
+    public static Map<String, Object> getOneRowWithMap(ResultSet resultset)
+			throws SQLException, ReflectiveOperationException {
 		 
 		HashMap<String, Object> resultMap = new HashMap<String,Object>();
 		HashMap<String,Integer> columns = new HashMap<String,Integer>();
@@ -266,9 +264,9 @@ public class TSQL {
      * @throws ReflectiveOperationException 
      * @throws SQLException 
      * @throws ParseException 
-     * @throws Exception
      */
-    public static Object getOneRowWithObject(Class<?> clazz,ResultSet resultset) throws SQLException, ReflectiveOperationException, ParseException {
+    public static Object getOneRowWithObject(Class<?> clazz,ResultSet resultset)
+			throws SQLException, ReflectiveOperationException, ParseException {
     	Map<String,Object>rowMap = getOneRowWithMap(resultset);
 
 		//对象转换时,模糊匹配属性,去除掉所有的
@@ -288,9 +286,9 @@ public class TSQL {
      * @return
      * @throws ReflectiveOperationException 
      * @throws SQLException 
-     * @throws Exception
      */
-    public static List<Map<String,Object>> getAllRowWithMapList(ResultSet resultSet) throws SQLException, ReflectiveOperationException {
+    public static List<Map<String,Object>> getAllRowWithMapList(ResultSet resultSet)
+			throws SQLException, ReflectiveOperationException {
     	List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
     	while(resultSet!=null && resultSet.next()){
     		resultList.add(getOneRowWithMap(resultSet));
@@ -306,9 +304,9 @@ public class TSQL {
      * @throws ParseException 
      * @throws ReflectiveOperationException 
      * @throws SQLException 
-     * @throws Exception
      */
-    public static List<Object> getAllRowWithObjectList(Class<?> clazz,ResultSet resultSet) throws SQLException, ReflectiveOperationException, ParseException {
+    public static List<Object> getAllRowWithObjectList(Class<?> clazz,ResultSet resultSet)
+			throws SQLException, ReflectiveOperationException, ParseException {
     	List<Object> resultList = new ArrayList<Object>();
     	while(resultSet!=null && resultSet.next()){
     		resultList.add(getOneRowWithObject(clazz,resultSet));

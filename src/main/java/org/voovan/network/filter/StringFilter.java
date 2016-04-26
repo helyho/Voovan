@@ -37,7 +37,7 @@ public class StringFilter implements IoFilter {
 	
 	/**
 	 * 将 ByteBuffer 转换成 String
-	 * @param buf   byteBuffer 对象
+	 * @param byteBuffer   byteBuffer 对象
 	 * @return
 	 */
 	public static String byteBufferToString(ByteBuffer byteBuffer) {

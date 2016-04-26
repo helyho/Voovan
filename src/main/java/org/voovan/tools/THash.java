@@ -22,7 +22,6 @@ public class THash {
 	 * 
 	 * @param key
 	 * @return
-	 * @throws Exception
 	 */
 	public static String decryptBASE64(String key) {
 		return  new String(Base64.getDecoder().decode(key));
@@ -33,7 +32,6 @@ public class THash {
 	 * 
 	 * @param key
 	 * @return
-	 * @throws Exception
 	 */
 	public static String encryptBASE64(String key) {
 		return Base64.getEncoder().encodeToString(key.getBytes());

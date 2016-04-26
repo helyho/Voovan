@@ -30,7 +30,6 @@ public class SSLManager {
 	 * 		默认使用客户端认证
 	 * @param protocol    协议类型
 	 * @throws NoSuchAlgorithmException 
-	 * @throws Exception
 	 */
 	public SSLManager(String protocol) throws NoSuchAlgorithmException{
 		this.useClientAuth = true;
