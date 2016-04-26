@@ -148,7 +148,6 @@ public class HttpRequest extends Request {
 	
 	/**
 	 * 获取请求变量
-	 * @param paramName
 	 * @return
 	 */
 	public List<String> getParameterNames(){

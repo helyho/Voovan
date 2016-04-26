@@ -44,8 +44,6 @@ public class TFile {
 	 * 获取文件大小
 	 * @param filePath
 	 * @return
-	 * @throws FileNotFoundException
-	 * @throws IOException
 	 */
 	public static int getFileSize(String filePath) {
 		try {
@@ -65,7 +63,6 @@ public class TFile {
 	 * 
 	 * @param filePath
 	 * @return
-	 * @throws IOException
 	 */
 	public static byte[] loadFileFromSysPath(String filePath) {
 		byte[] fileContent = null;
@@ -92,7 +89,6 @@ public class TFile {
 	 * 
 	 * @param filePath
 	 * @return
-	 * @throws IOException
 	 */
 	public static byte[] loadFileFromContextPath(String filePath, int beginPos, int endPos) {
 		String spliter = filePath.startsWith(File.separator) == true ? "" : File.separator;
@@ -105,7 +101,6 @@ public class TFile {
 	 * 
 	 * @param filePath
 	 * @return
-	 * @throws IOException
 	 */
 	public static byte[] loadFileFromContextPath(String filePath) {
 		String spliter = filePath.startsWith(File.separator) == true ? "" : File.separator;
@@ -119,7 +114,6 @@ public class TFile {
 	 * @param resourcePath
 	 *            路径起始不带"/"
 	 * @return
-	 * @throws IOException
 	 */
 	public static File getResourceFile(String resourcePath) {
 		try {
@@ -143,7 +137,6 @@ public class TFile {
 	 * @param resourcePath
 	 *            路径起始不带"/"
 	 * @return
-	 * @throws IOException
 	 */
 	public static byte[] loadResource(String resourcePath) {
 

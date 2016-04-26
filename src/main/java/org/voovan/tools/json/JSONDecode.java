@@ -178,7 +178,6 @@ public class JSONDecode {
 	 * @return					JSON 转换后的 Java 对象
 	 * @throws ReflectiveOperationException 
 	 * @throws ParseException 
-	 * @throws Exception
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T>T fromJSON(String jsonStr,Class<T> clazz) throws ReflectiveOperationException, ParseException{

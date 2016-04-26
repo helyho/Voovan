@@ -63,7 +63,7 @@ public class Response {
 	/**
 	 * 设置压缩属性
 	 * 
-	 * @param useCompress
+	 * @param isCompress
 	 */
 	public void setCompress(boolean isCompress) {
 		this.isCompress = isCompress;

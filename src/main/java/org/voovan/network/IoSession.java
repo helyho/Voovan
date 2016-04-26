@@ -53,7 +53,7 @@ public abstract class IoSession {
 	
 	/**
 	 * 获取 SSLParser
-	 * @return SSLParser对象
+	 * @param sslParser
 	 */
 	protected void setSSLParser(SSLParser sslParser) {
 		if(this.sslParser==null){
@@ -137,7 +137,6 @@ public abstract class IoSession {
 	 * @param buffer    接受数据的缓冲区
 	 * @return
 	 * @throws IOException 
-	 * @throws  
 	 */
 	protected int readSSLData(ByteBuffer buffer) throws IOException{
 		int readSize = 0;
@@ -166,7 +165,6 @@ public abstract class IoSession {
 	/**
 	 * 发送SSL消息
 	 * 		注意直接调用不会出发 onSent 事件
-	 * @throws IOException
 	 */
 	public void sendSSLData(ByteBuffer buffer){
 		if(isConnect() && buffer!=null){

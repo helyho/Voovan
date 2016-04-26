@@ -101,7 +101,6 @@ public class WebSocketFrame {
 	 * 
 	 * @param byteBuffer
 	 * @return
-	 * @throws WebSocketException 
 	 */
 	public static WebSocketFrame parse(ByteBuffer byteBuffer) {
 		int errorCode = 0;

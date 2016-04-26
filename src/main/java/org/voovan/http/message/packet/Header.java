@@ -69,9 +69,7 @@ public class Header {
 	
 	/**
 	 * 填充 Header
-	 * @param header
-	 * @param value
-	 * @return
+	 * @param valueMap
 	 */
 	public void putAll(Map<String, String> valueMap){
 		headers.putAll(valueMap);

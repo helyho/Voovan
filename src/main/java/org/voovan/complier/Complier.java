@@ -54,7 +54,7 @@ public class Complier {
 	
 	/**
 	 * 编译 内存中的java源码为class文件
-	 * @param javaSourceContent 需要的java源码字符串
+	 * @param javaSourceCode 需要的java源码字符串
 	 * @return
 	 */
 	public Boolean compileCode(String javaSourceCode){
@@ -68,7 +68,7 @@ public class Complier {
 	/**
 	 * 编译 内存中的java源码为class文件
 	 * @param classDir 生成的class文件所在的目录
-	 * @param javaSourceContent 需要的java源码字符串
+	 * @param javaSourceCode 需要的java源码字符串
 	 * @return
 	 */
 	public Boolean compileCode(String classDir,String javaSourceCode){
@@ -79,10 +79,9 @@ public class Complier {
 	
 	/**
 	 * 编译 内存中的java源码为class文件
-	 * @param className 生成的java类的名字
 	 * @param classPath 需要引入的classpath字符串
 	 * @param classDir 生成的class文件所在的目录
-	 * @param javaSourceContent 需要的java源码字符串
+	 * @param javaSourceCode 需要的java源码字符串
 	 * @return
 	 */
 	public Boolean compileCode(String classPath,String classDir,String javaSourceCode){

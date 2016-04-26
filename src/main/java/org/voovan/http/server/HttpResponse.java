@@ -36,7 +36,7 @@ public class HttpResponse extends Response {
 	/**
 	 * 设置当前默认字符集
 	 * 
-	 * @param charset
+	 * @param characterSet
 	 */
 	public void setCharacterSet(String characterSet) {
 		this.characterSet = characterSet;
@@ -65,7 +65,7 @@ public class HttpResponse extends Response {
 	/**
 	 * 写入一个字符串
 	 * 
-	 * @param bytes
+	 * @param strs
 	 */
 	public void write(String strs) {
 		if(strs!=null){
@@ -74,9 +74,7 @@ public class HttpResponse extends Response {
 	}
 	
 	/**
-	 * 写入一个 byte 数组
-	 * 
-	 * @param bytes
+	 * 清理报文
 	 */
 	public void clear() {
 		body().clear();
