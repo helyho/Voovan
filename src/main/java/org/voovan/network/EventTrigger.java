@@ -28,7 +28,7 @@ public class EventTrigger {
 	
 	/**
 	 * 构造函数
-	 * @param session
+	 * @param session Session 对象
 	 */
 	public EventTrigger(IoSession session){
 		this.session = session;
@@ -44,7 +44,11 @@ public class EventTrigger {
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		eventThreadPool.allowCoreThreadTimeOut(true);
 	}
-	
+
+	/**
+	 * 获取事件池
+	 * @return 事件集合
+     */
 	public List<Event> getEventPool() {
 		return eventPool;
 	}
@@ -144,7 +148,7 @@ public class EventTrigger {
 	/**
 	 * 判断有没有特定的事件在执行
 	 * @param eventName  事件名
-	 * @return
+	 * @return 事件是否在处理
 	 */
 	public boolean hasEventUnfinished(EventName eventName){
 		for(Event event : eventPool){
@@ -172,6 +176,7 @@ public class EventTrigger {
 	 * 		根据事件启动 EventThread 来处理事件
 	 * @param session  当前连接会话
 	 * @param name     事件名称
+	 * @param other 附属对象
 	 */
 	public void fireEventThread(IoSession session,Event.EventName name,Object other){
 		if(!eventThreadPool.isShutdown()){
@@ -185,6 +190,7 @@ public class EventTrigger {
 	 * 事件触发
 	 * 		根据事件启动 EventThread 来处理事件
 	 * @param name     事件名称
+	 * @param other 附属对象
 	 */
 	public void fireEventThread(Event.EventName name,Object other){
 		fireEventThread(session, name,other);
@@ -196,6 +202,7 @@ public class EventTrigger {
 	 * 		根据事件启动 EventThread 来处理事件
 	 * @param session  当前连接会话
 	 * @param name     事件名称
+	 * @param other 附属对象
 	 */
 	public void fireEvent(IoSession session,Event.EventName name,Object other){
 		Event event = Event.getInstance(session,name,other);
@@ -207,6 +214,7 @@ public class EventTrigger {
 	 * 事件触发
 	 * 		根据事件启动 EventThread 来处理事件
 	 * @param name     事件名称
+	 * @param other 附属对象
 	 */
 	public void fireEvent(Event.EventName name,Object other){
 		fireEvent(session, name,other);

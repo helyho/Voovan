@@ -32,7 +32,7 @@ public class JSON {
 	
 	/**
 	 * 将 JSON字符串 转换成 Java 对象
-	 * @param <T>
+	 * @param <T>			范型
 	 * @param jsonStr		待转换的 JSON 字符串
 	 * @param clazz			转换的目标 java 类
 	 * @return				转换后的 Java 对象
@@ -52,7 +52,7 @@ public class JSON {
 	 * 解析 JSON 字符串
 	 * 		如果是{}包裹的字符串解析成 HashMap,如果是[]包裹的字符串解析成 ArrayList
 	 * @param jsonStr	待解析的 JSON 字符串
-	 * @return
+	 * @return 接口后的对象
 	 */
 	public static Object parse(String jsonStr){
 		Object parseObject = null;

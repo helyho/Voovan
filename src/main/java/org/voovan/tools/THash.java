@@ -20,8 +20,8 @@ public class THash {
 	/**
 	 * BASE64解密
 	 * 
-	 * @param key
-	 * @return
+	 * @param key 待解密字符串
+	 * @return 解密后字符串
 	 */
 	public static String decryptBASE64(String key) {
 		return  new String(Base64.getDecoder().decode(key));
@@ -29,18 +29,28 @@ public class THash {
 
 	/**
 	 * BASE64加密
-	 * 
-	 * @param key
-	 * @return
+	 *
+	 * @param key 待加密字符串
+	 * @return 加密后字符串
 	 */
 	public static String encryptBASE64(String key) {
 		return Base64.getEncoder().encodeToString(key.getBytes());
 	}
-	
+
+	/**
+	 * MD5加密
+	 * @param str 待加密字符串
+	 * @return 加密结果
+     */
 	public static String encryptMD5(String str){
 		return digest("MD5", str);
 	}
-	
+
+	/**
+	 * SHA 加密
+	 * @param str 待加密字符串
+	 * @return 加密结果
+     */
 	public static String encryptSHA(String str){
 		return digest("SHA", str);
 	}
@@ -70,8 +80,13 @@ public class THash {
         }  
   
         return md5StrBuff.toString();  
-    }  
+    }
 
+	/**
+	 * Time33算法
+	 * @param source 待加密字符串
+	 * @return 加密结果
+     */
 	public static int hash_time33(String source) {
 		int hash = 0;
 		for (int i = 0; i < source.length(); i++) {

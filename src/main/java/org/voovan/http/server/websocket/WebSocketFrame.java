@@ -64,10 +64,12 @@ public class WebSocketFrame {
 
 	/**
 	 * 构建新的实例
-	 * 
-	 * @param binary
-	 * @param mask
-	 * @return
+	 * @param fin    fin 码
+	 * @param opcode 操作码
+	 * @param mask   掩码
+	 * @param binary 二进制数据
+	 * @param errorCode 错误码
+	 * @return WebSocket 帧对象
 	 */
 	public static WebSocketFrame newInstance(boolean fin, Opcode opcode, boolean mask, ByteBuffer binary,int errorCode) {
 		WebSocketFrame webSocketFrame = new WebSocketFrame();
@@ -81,11 +83,11 @@ public class WebSocketFrame {
 
 	/**
 	 * 构建新的实例
-	 * @param fin
-	 * @param opcode
-	 * @param mask
-	 * @param binary
-	 * @return
+	 * @param fin    fin 码
+	 * @param opcode 操作码
+	 * @param mask   掩码
+	 * @param binary 二进制数据
+	 * @return WebSocket 帧
 	 */
 	public static WebSocketFrame newInstance(boolean fin, Opcode opcode, boolean mask, ByteBuffer binary) {
 		WebSocketFrame webSocketFrame = new WebSocketFrame();
@@ -99,8 +101,8 @@ public class WebSocketFrame {
 	/**
 	 * 解析WebSocket报文
 	 * 
-	 * @param byteBuffer
-	 * @return
+	 * @param byteBuffer  字节缓冲对象
+	 * @return  WebSocket 帧对象
 	 */
 	public static WebSocketFrame parse(ByteBuffer byteBuffer) {
 		int errorCode = 0;
@@ -213,8 +215,8 @@ public class WebSocketFrame {
 	/**
 	 * opcode转换成 byte
 	 * 
-	 * @param opcode
-	 * @return
+	 * @param opcode 操作码
+	 * @return 字节
 	 */
 	private static byte fromOpcode(Opcode opcode) {
 		if (opcode == Opcode.CONTINUOUS) {
@@ -241,9 +243,9 @@ public class WebSocketFrame {
 	/**
 	 * 转换 long 为 byte
 	 * 
-	 * @param val
-	 * @param bytecount
-	 * @return
+	 * @param value     long 值
+	 * @param bytecount 字节位数
+	 * @return 转换 long 后的 byte
 	 */
 	private static byte[] toByteArray(long value, int bytecount) {
 		byte[] buffer = new byte[bytecount];
@@ -258,7 +260,7 @@ public class WebSocketFrame {
 	 * 将 WebSocketFrame 转换成 Bytebuffer 供 socket 通信用
 	 * 
 	 * 
-	 * @return
+	 * @return WebSocketFrame 转换后的 Bytebuffer
 	 */
 	public ByteBuffer toByteBuffer() {
 		ByteBuffer data = this.getFrameData();

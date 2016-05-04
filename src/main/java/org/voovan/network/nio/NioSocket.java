@@ -33,7 +33,7 @@ public class NioSocket extends SocketContext{
 	 * @param host      监听地址
 	 * @param port		监听端口
 	 * @param readTimeout   超时事件
-	 * @throws IOException	异常
+	 * @throws IOException	IO异常
 	 */
 	public NioSocket(String host,int port,int readTimeout) throws IOException{
 		super(host, port, readTimeout);
@@ -50,6 +50,7 @@ public class NioSocket extends SocketContext{
 	
 	/**
 	 * 构造函数
+	 * @param parentSocketContext 父 SocketChannel 对象
 	 * @param socketChannel SocketChannel 对象
 	 */
 	protected NioSocket(SocketContext parentSocketContext,SocketChannel socketChannel){
@@ -72,7 +73,7 @@ public class NioSocket extends SocketContext{
 	
 	/**
 	 * 获取 SocketChannel 对象
-	 * @return
+	 * @return SocketChannel 对象
 	 */
 	public SocketChannel socketChannel(){
 		return this.socketChannel;
@@ -89,7 +90,11 @@ public class NioSocket extends SocketContext{
 			Logger.error("init SocketChannel failed by openSelector",e);
 		}
 	}
-	
+
+	/**
+	 * 获取 Session 对象
+	 * @return Session 对象
+     */
 	public NioSession getSession(){
 		return session;
 	}
@@ -104,7 +109,7 @@ public class NioSocket extends SocketContext{
 	
 	/**
 	 * 启动
-	 * @throws IOException 
+	 * @throws IOException IO 异常
 	 */
 	public void start() throws IOException  {
 		initSSL();

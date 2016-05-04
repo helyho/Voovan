@@ -36,7 +36,7 @@ public class EventProcess {
 	 * 
 	 * @param event
 	 *            事件对象
-	 * @throws IOException
+	 * @throws IOException IO 异常
 	 */
 	public static void onAccepted(Event event) throws IOException {
 		SocketContext socketContext = event.getSession().sockContext();
@@ -50,9 +50,9 @@ public class EventProcess {
 	 * 
 	 * @param event
 	 *            事件对象
-	 * @throws SendMessageException 
-	 * @throws IOException
-	 * @throws IoFilterException 
+	 * @throws SendMessageException  消息发送异常
+	 * @throws IOException  IO 异常
+	 * @throws IoFilterException IoFilter 异常
 	 */
 	public static void onConnect(Event event) throws SendMessageException, IOException, IoFilterException  {
 
@@ -101,9 +101,9 @@ public class EventProcess {
 	 * 
 	 * @param event
 	 *            事件对象
-	 * @throws IOException 
-	 * @throws SendMessageException 
-	 * @throws IoFilterException 
+	 * @throws SendMessageException  消息发送异常
+	 * @throws IOException  IO 异常
+	 * @throws IoFilterException IoFilter 异常
 	 */
 	public static void onRead(Event event) throws IOException, SendMessageException, IoFilterException {
 		SocketContext socketContext = event.getSession().sockContext();
@@ -163,11 +163,11 @@ public class EventProcess {
 
 	/**
 	 * 使用过滤器过滤解码结果
-	 * @param filterChain
-	 * @param session
-	 * @param result
-	 * @return
-	 * @throws IoFilterException
+	 * @param filterChain  过滤器链
+	 * @param session      Session 对象
+	 * @param result	   需解码的对象
+	 * @return  解码后的对象
+	 * @throws IoFilterException 过滤器异常
 	 */
 	 private static Object filterDecoder(Chain<IoFilter> filterChain,IoSession session,Object result) throws IoFilterException{
 		while (filterChain.hasNext()) {
@@ -179,11 +179,11 @@ public class EventProcess {
 	
 	/**
 	 * 使用过滤器编码结果
-	 * @param filterChain
-	 * @param session
-	 * @param result
-	 * @return
-	 * @throws IoFilterException
+	 * @param filterChain  过滤器链
+	 * @param session      Session 对象
+	 * @param result	   需编码的对象
+	 * @return  编码后的对象
+	 * @throws IoFilterException 过滤器异常
 	 */
 	private static Object filterEncoder(Chain<IoFilter> filterChain,IoSession session,Object result) throws IoFilterException{
 		filterChain.rewind();
@@ -202,7 +202,7 @@ public class EventProcess {
 	 *            事件对象
 	 * @param obj
 	 *            发送的对象
-	 * @throws IOException
+	 * @throws IOException IO 异常
 	 */
 	public static void onSent(Event event, Object obj) throws IOException {
 		SocketContext socketContext = event.getSession().sockContext();
@@ -217,7 +217,7 @@ public class EventProcess {
 	 * 
 	 * @param event
 	 *            事件对象
-	 * @param e
+	 * @param e 异常对象
 	 */
 	public static void onException(Event event, Exception e) {
 		if (event != null 
@@ -239,10 +239,10 @@ public class EventProcess {
 	/**
 	 * 消息发送
 	 * 
-	 * @param session
-	 * @param sendObj
-	 * @throws SendMessageException 
-	 * @throws IOException 
+	 * @param session Session 对象
+	 * @param sendObj 发送的对象
+	 * @throws SendMessageException  消息发送异常
+	 * @throws IOException  IO 异常
 	 */
 	public static void sendMessage(IoSession session, Object sendObj) throws SendMessageException, IOException{
 
@@ -276,6 +276,10 @@ public class EventProcess {
 		}
 	}
 
+	/**
+	 * 处理异常
+	 * @param event 事件对象
+     */
 	public static void process(Event event) {
 		if (event == null) {
 			return;

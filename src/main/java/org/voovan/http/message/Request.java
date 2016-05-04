@@ -49,7 +49,7 @@ public class Request {
 	/**
 	 * 构造函数
 	 * 
-	 * @param request
+	 * @param request 请求对象
 	 */
 	protected Request(Request request) {
 		this.protocol = request.protocol;
@@ -73,7 +73,7 @@ public class Request {
 	/**
 	 * 获取协议对象
 	 *
-	 * @return
+	 * @return 请求协议对象
 	 */
 	public RequestProtocol protocol() {
 		return protocol;
@@ -82,7 +82,7 @@ public class Request {
 	/**
 	 * 获取 Header 对象
 	 *
-	 * @return
+	 * @return HTTP-Header 对象
 	 */
 	public Header header() {
 		return header;
@@ -91,7 +91,7 @@ public class Request {
 	/**
 	 * 获取所有的Cookies对象,返回一个 List
 	 *
-	 * @return
+	 * @return Cookie 对象
 	 */
 	public List<Cookie> cookies() {
 		return cookies;
@@ -100,7 +100,7 @@ public class Request {
 	/**
 	 * 获取 Body 对象
 	 *
-	 * @return
+	 * @return Body对象
 	 */
 	public Body body() {
 		return body;
@@ -109,7 +109,7 @@ public class Request {
 	/**
 	 * 获取所有的 Part 对象,返回一个 List
 	 * 
-	 * @return
+	 * @return POST 请求报文对象
 	 */
 	public List<Part> parts() {
 		return parts;
@@ -152,9 +152,9 @@ public class Request {
 	}
 	
 	/**
-	 * 获取QueryStirng 或 将参数拼装成QueryString(用&符号分割的等号表达式)
+	 * 获取QueryStirng 或 将参数拼装成QueryString
 	 * @param charset 字符集
-	 * @return
+	 * @return 请求字符串
 	 */
 	public String getQueryString(String charset) {
 		String queryString = "";
@@ -185,7 +185,6 @@ public class Request {
 	/**
 	 * 根据内容构造一些必要的 Header 属性
 	 * 		这里不按照请求方法组装必要的头信息,而是根据 Body 和 parts 对象的内容组装必要的头信息
-	 * @return
 	 */
 	private void initHeader() {
 		// 如果请求中包含 Part 的处理
@@ -207,7 +206,7 @@ public class Request {
 	/**
 	 * 根据 Cookie 对象,生成 HTTP 请求中的 Cookie 字符串 用于报文拼装
 	 * 
-	 * @return
+	 * @return 获取 Cookie 字符串
 	 */
 	private String genCookie() {
 		String cookieString = "";
@@ -216,8 +215,11 @@ public class Request {
 		}
 		return cookieString;
 	}
-	
-	
+
+	/**
+	 * 获取报文体
+	 * @return 报文体 byte 数组
+     */
 	private byte[] genBody() {
 		try {
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -255,7 +257,7 @@ public class Request {
 	/**
 	 * 根据对象的内容,构造 Http 请求报文
 	 * 
-	 * @return
+	 * @return Http 请求报文
 	 */
 	public byte[] asBytes() {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

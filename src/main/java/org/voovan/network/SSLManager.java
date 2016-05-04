@@ -29,7 +29,7 @@ public class SSLManager {
 	 * 构造函数
 	 * 		默认使用客户端认证
 	 * @param protocol    协议类型
-	 * @throws NoSuchAlgorithmException 
+	 * @throws NoSuchAlgorithmException  无可用协议异常
 	 */
 	public SSLManager(String protocol) throws NoSuchAlgorithmException{
 		this.useClientAuth = true;
@@ -40,7 +40,7 @@ public class SSLManager {
 	 * 构造函数
 	 * @param protocol  	协议类型
 	 * @param useClientAuth	是否使用客户端认证
-	 * @throws SSLException 
+	 * @throws SSLException  SSL 异常
 	 */
 	public SSLManager(String protocol,boolean useClientAuth) throws SSLException{
 			this.useClientAuth = useClientAuth;
@@ -52,7 +52,7 @@ public class SSLManager {
 	 * @param manageCertFile   证书地址
 	 * @param certPassword	   证书密码
 	 * @param keyPassword	   密钥
-	 * @throws SSLException 
+	 * @throws SSLException SSL 异常
 	 */
 	public void loadCertificate(String manageCertFile, String certPassword,String keyPassword) throws SSLException{
 		try{
@@ -72,7 +72,7 @@ public class SSLManager {
 	/**
 	 * 初始化
 	 * @param protocol		协议名称 SSL/TLS
-	 * @throws SSLException 
+	 * @throws SSLException SSL 异常
 	 */
 	private synchronized void init(String protocol) throws SSLException {
 
@@ -96,8 +96,7 @@ public class SSLManager {
 	
 	/**
 	 * 构造SSLEngine
-	 * @return
-	 * @throws SSLException 
+	 * @throws SSLException SSL 异常
 	 */
 	private synchronized void createSSLEngine(String protocol) throws SSLException {
 		init(protocol);
@@ -106,8 +105,9 @@ public class SSLManager {
 	
 	/**
 	 * 获取SSLParser
-	 * @return
-	 * @throws SSLException 
+	 * @param session session 对象
+	 * @return SSLParser 对象
+	 * @throws SSLException SSL 异常
 	 */
 	public SSLParser createClientSSLParser(IoSession session) throws SSLException {
 		createSSLEngine(protocol);
@@ -116,9 +116,10 @@ public class SSLManager {
 	}
 	
 	/**
-	 * 获取Server 模式 SSLSSLParser
-	 * @return
-	 * @throws SSLException 
+	 * 获取Server 模式 SSLParser
+	 * @param session session 对象
+	 * @return SSLParser对象
+	 * @throws SSLException SSL 异常
 	 */
 	public SSLParser createServerSSLParser(IoSession session) throws SSLException{
 		createSSLEngine(protocol);

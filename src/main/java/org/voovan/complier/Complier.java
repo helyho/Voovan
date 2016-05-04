@@ -33,7 +33,7 @@ public class Complier {
 
 	/**
 	 * 获取 JAVA编译器
-	 * @return
+	 * @return 获取 java 编译对象
 	 */
 	private JavaCompiler getComplier(){
 		return ToolProvider.getSystemJavaCompiler(); 
@@ -41,9 +41,9 @@ public class Complier {
 	
 	/**
 	 * 编译多个系统中的java源文件为class文件
-	 * @param javaFileNameList
-	 * @param classDir
-	 * @return
+	 * @param javaFileNameList java文件名列表
+	 * @param classDir			类文件夹
+	 * @return  是否编译成功
 	 */
 	public Boolean compileCode(List<String> javaFileNameList,String classDir){
 		fileManager = compiler.getStandardFileManager(diagnostics, null, null);
@@ -55,7 +55,7 @@ public class Complier {
 	/**
 	 * 编译 内存中的java源码为class文件
 	 * @param javaSourceCode 需要的java源码字符串
-	 * @return
+	 * @return 是否编译成功
 	 */
 	public Boolean compileCode(String javaSourceCode){
 		String className = getClassNameFromCode(javaSourceCode);
@@ -69,7 +69,7 @@ public class Complier {
 	 * 编译 内存中的java源码为class文件
 	 * @param classDir 生成的class文件所在的目录
 	 * @param javaSourceCode 需要的java源码字符串
-	 * @return
+	 * @return 是否编译成功
 	 */
 	public Boolean compileCode(String classDir,String javaSourceCode){
 		options = Arrays.asList("-d", classDir); 
@@ -82,7 +82,7 @@ public class Complier {
 	 * @param classPath 需要引入的classpath字符串
 	 * @param classDir 生成的class文件所在的目录
 	 * @param javaSourceCode 需要的java源码字符串
-	 * @return
+	 * @return 是否编译成功
 	 */
 	public Boolean compileCode(String classPath,String classDir,String javaSourceCode){
 		options = Arrays.asList("-classpath",classPath,"-d", classDir); 
@@ -92,8 +92,8 @@ public class Complier {
 
 	/**
 	 * 编译java源文件，底层函数描述
-	 * @param compilationUnits
-	 * @return
+	 * @param compilationUnits  编译对象
+	 * @return 是否编译成功
 	 */
 	private Boolean basicCompileCode(Iterable<? extends JavaFileObject> compilationUnits){
 		
@@ -119,8 +119,8 @@ public class Complier {
 	
 	/**
 	 * 从源代码中获取类名称
-	 * @param javaSourceCode
-	 * @return
+	 * @param javaSourceCode java 源代码
+	 * @return 类名称
 	 */
 	public static String getClassNameFromCode(String javaSourceCode){
 		String className = javaSourceCode.substring(javaSourceCode.indexOf("class")+5,javaSourceCode.indexOf("{")).trim();

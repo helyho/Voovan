@@ -24,7 +24,7 @@ public class TEnv {
 
 	/**
 	 * 获取当前进程 PID
-	 * @return
+	 * @return 当前进程 ID
      */
 	public static long getCurrentPID(){
 		return Long.parseLong(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
@@ -32,7 +32,9 @@ public class TEnv {
 
 	/**
 	 * 构造一个系统进程
-	 * @return
+	 * @param command 命令行
+	 * @return 控制台输出
+	 * @throws IOException IO 异常
      */
 	public static byte[] createSysProcess(String command) throws IOException {
 		Runtime runTime  = Runtime.getRuntime();
@@ -44,7 +46,7 @@ public class TEnv {
 	/**
 	 * 获得应用的工作根目录路径
 	 * 
-	 * @return
+	 * @return 工作根目录路径
 	 */
 	public static String getContextPath() {
 		return System.getProperty("user.dir");
@@ -52,8 +54,8 @@ public class TEnv {
 
 	/**
 	 * 使用相对路径获得系统的完整路径
-	 * 
-	 * @return
+	 * @param absolutePath 相对路径
+	 * @return 系统的完整路径
 	 */
 	public static String getSystemPath(String absolutePath) {
 		return getContextPath() + File.separator + absolutePath;
@@ -62,7 +64,7 @@ public class TEnv {
 	/**
 	 * 休眠函数
 	 * 
-	 * @param sleepTime
+	 * @param sleepTime 休眠时间
 	 */
 	public static void sleep(int sleepTime) {
 		try {
@@ -76,7 +78,7 @@ public class TEnv {
 	/**
 	 * 获取当前栈信息
 	 * 
-	 * @return
+	 * @return 当前栈信息
 	 */
 	public static StackTraceElement[] getStackElements() {
 		Throwable ex = new Throwable();
@@ -85,8 +87,8 @@ public class TEnv {
 	
 	/**
 	 * 获取当前栈信息
-	 * 
-	 * @return
+	 *
+	 * @return 当前栈信息
 	 */
 	public static String getStackMessage(){
 		String stackInfo = "";
@@ -104,8 +106,8 @@ public class TEnv {
 	
 	/**
 	 * 获取当前栈信息
-	 * 
-	 * @return
+	 * @param stackTraceElements 栈信息对象数组
+	 * @return 当前栈信息
 	 */
 	public static String getStackElementsMessage(StackTraceElement[] stackTraceElements){
 		String stackInfo = "";
@@ -119,9 +121,9 @@ public class TEnv {
 	
 	/**
 	 * 为JVM加载一个jar包 或者一个目录到 classpath
-	 * @param file
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
+	 * @param file 文件路径
+	 * @throws SecurityException  安全性异常
+	 * @throws NoSuchMethodException  无方法异常
 	 */
 	public static void loadBinary(File file) throws NoSuchMethodException, SecurityException {
 		try {
@@ -138,8 +140,8 @@ public class TEnv {
 
 	/**
 	 * 为JVM加载一个jar包 或者一个目录到 classpath
-	 * @param filePath
-	 * @throws Exception
+	 * @param filePath  文件路径
+	 * @throws Exception 异常信息
 	 */
 	public static void loadBinary(String filePath) throws Exception {
 		File file = new File(filePath);
@@ -150,7 +152,7 @@ public class TEnv {
 	 * 从目录读取所有 Jar 文件,递归并加载到JVM
 	 * 
 	 * @param directoryPath 传入一个目录
-	 * @throws Exception
+	 * @throws Exception 异常信息
 	 */
 	public static void LoadJars(String directoryPath) throws Exception {
 		File rootFile = new File(directoryPath);
@@ -181,7 +183,7 @@ public class TEnv {
 	
 	/**
 	 * 获取JVM中的所有线程
-	 * @return
+	 * @return 线程对象数组
 	 */
 	public static Thread[] getThreads(){
 		ThreadGroup group = Thread.currentThread().getThreadGroup().getParent();

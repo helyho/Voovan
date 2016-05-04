@@ -29,8 +29,8 @@ public class SSLParser {
 	boolean handShakeDone = false;
 	/**
 	 * 构造函数
-	 * @param engine
-	 * @param session
+	 * @param engine  SSLEngine对象
+	 * @param session session 对象
 	 */
 	public SSLParser(SSLEngine engine,IoSession session) {
 		this.engine = engine;
@@ -42,7 +42,7 @@ public class SSLParser {
 	
 	/**
 	 * 判断握手是否完成
-	 * @return
+	 * @return 握手是否完成
 	 */
 	public boolean isHandShakeDone() {
 		return handShakeDone;
@@ -50,7 +50,7 @@ public class SSLParser {
 
 	/**
 	 * 获取 SSLEngine
-	 * @return
+	 * @return  SSLEngine 对象
 	 */
 	public SSLEngine getSSLEngine(){
 		return engine;
@@ -80,7 +80,7 @@ public class SSLParser {
 	 * 打包并发送数据
 	 * @param buffer       需要的数据缓冲区
 	 * @return 			   返回成功执行的最后一个或者失败的那个 SSLEnginResult
-	 * @throws IOException
+	 * @throws IOException IO 异常
 	 */
 	public SSLEngineResult warpData(ByteBuffer buffer) throws IOException{
 		netData.clear();
@@ -114,9 +114,9 @@ public class SSLParser {
 	/**
 	 * 解包数据
 	 * @param netBuffer    	接受解包数据的缓冲区
-	 * @param appBuffer
-	 * @return
-	 * @throws SSLException 
+	 * @param appBuffer		接受解包后数据的缓冲区
+	 * @return				SSLEngineResult 对象
+	 * @throws SSLException SSL 异常
 	 */
 	public SSLEngineResult unwarpData(ByteBuffer netBuffer,ByteBuffer appBuffer) throws SSLException{
 		SSLEngineResult engineResult = null;

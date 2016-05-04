@@ -24,7 +24,7 @@ public class SessionManager{
 	
 	/**
 	 * 构造函数
-	 * @param webConfig
+	 * @param webConfig Web 服务配置对象
 	 */
 	public SessionManager(WebServerConfig webConfig){
 		this.webConfig = webConfig;
@@ -37,6 +37,8 @@ public class SessionManager{
 
 	/**
 	 * 获取 Session 容器
+	 *
+	 * @return Session 容器 Map
 	 */
 	public Map<String, HttpSession> getSessionContainer(){
 		if(sessions!=null){
@@ -56,7 +58,7 @@ public class SessionManager{
 	/**
 	 * 增加 Session
 	 * 
-	 * @param session
+	 * @param session HTTP-Session对象
 	 */
 	public void addSession(HttpSession session) {
 		synchronized(sessions){
@@ -69,8 +71,8 @@ public class SessionManager{
 	/**
 	 * 获取 Session
 	 * 
-	 * @param id
-	 * @return
+	 * @param id session Id
+	 * @return HTTP-Session对象
 	 */
 	public HttpSession getSession(String id) {
 		synchronized(sessions){
@@ -85,8 +87,8 @@ public class SessionManager{
 	/**
 	 * 获取 Session
 	 * 
-	 * @param cookie
-	 * @return
+	 * @param cookie cookie 对象
+	 * @return HTTP-Session对象
 	 */
 	public HttpSession getSession(Cookie cookie) {
 		synchronized(sessions){
@@ -100,8 +102,8 @@ public class SessionManager{
 
 	/**
 	 * 判断 Session 是否存在
-	 * @param cookie
-	 * @return
+	 * @param cookie cookie 对象
+	 * @return 是否存在
 	 */
 	public boolean containsSession(Cookie cookie) {
 		synchronized(sessions){
@@ -115,6 +117,8 @@ public class SessionManager{
 	
 	/**
 	 * 获取失效的 session
+	 *
+	 * @return session 失效时间
 	 */
 	public List<HttpSession> getInvalidSession() {
 		synchronized(sessions){
@@ -142,7 +146,9 @@ public class SessionManager{
 	
 	/**
 	 * 获得一个新的 Session
-	 * @return
+	 * @param request  HTTP 请求对象
+	 * @param response  HTTP 响应对象
+	 * @return HTTP-Session对象
 	 */
 	public HttpSession newHttpSession(HttpRequest request,HttpResponse response){
 		HttpSession session  = new HttpSession(webConfig);
@@ -158,7 +164,12 @@ public class SessionManager{
 		
 		return session;
 	}
-	
+
+	/**
+	 * 构造一个 SessionManager
+	 * @param config WEB 配置对象
+	 * @return SessionManager对象
+     */
 	public static SessionManager newInstance(WebServerConfig config){
 		return new SessionManager(config);
 	}

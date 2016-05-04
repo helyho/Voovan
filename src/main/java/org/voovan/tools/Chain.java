@@ -45,7 +45,7 @@ public class Chain<E> extends ArrayDeque<E>{
 
 	/**
 	 * 迭代器当前元素
-	 * @return
+	 * @return 当前元素
 	 */
 	public E current(){
 		return currentObj;
@@ -53,7 +53,7 @@ public class Chain<E> extends ArrayDeque<E>{
 
 	/**
 	 * 迭代器下一个元素
-	 * @return
+	 * @return 当前元素
 	 */
 	public E next(){
 		if(isStop){
@@ -71,7 +71,7 @@ public class Chain<E> extends ArrayDeque<E>{
 
 	/**
 	 * 迭代器是否有下一个对象
-	 * @return
+	 * @return 是否有下一个对象
 	 */
 	public boolean hasNext(){
 		if(isStop){
@@ -85,7 +85,7 @@ public class Chain<E> extends ArrayDeque<E>{
 
 	/**
 	 * 迭代器上一个元素
-	 * @return
+	 * @return 上一个元素
 	 */
 	public E previous(){
 		if(isStop){
@@ -102,7 +102,7 @@ public class Chain<E> extends ArrayDeque<E>{
 
 	/**
 	 * 迭代器是否有上一个对象
-	 * @return
+	 * @return 是否有上一个对象
 	 */
 	public boolean hasPrevious(){
 		if(isStop){

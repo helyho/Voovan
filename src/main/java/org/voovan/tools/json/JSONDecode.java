@@ -22,7 +22,7 @@ public class JSONDecode {
 	 * 解析 JSON 字符串
 	 * 		如果是{}包裹的对象解析成 HashMap,如果是[]包裹的对象解析成 ArrayList
 	 * @param jsonStr	待解析的 JSON 字符串
-	 * @return
+	 * @return 解析后的对象
 	 */
 	public static Object parse(String jsonStr){
 		jsonStr = removeComment(jsonStr);
@@ -173,11 +173,12 @@ public class JSONDecode {
 	
 	/**
 	 * 解析 JSON 字符串成为参数指定的类
-	 * @param jsonStr				JSON字符串
+	 * @param <T> 		范型
+	 * @param jsonStr	JSON字符串
 	 * @param clazz		JSON 字符串将要转换的目标类
 	 * @return					JSON 转换后的 Java 对象
-	 * @throws ReflectiveOperationException 
-	 * @throws ParseException 
+	 * @throws ReflectiveOperationException  反射异常
+	 * @throws ParseException 解析异常
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T>T fromJSON(String jsonStr,Class<T> clazz) throws ReflectiveOperationException, ParseException{

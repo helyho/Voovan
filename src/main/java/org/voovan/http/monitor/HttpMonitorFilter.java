@@ -17,7 +17,7 @@ public class HttpMonitorFilter implements HttpBizFilter {
 
 	/**
 	 * 获取请求分析对象
-	 * @return
+	 * @return 返回的请求信息
      */
 	public static Map<String, RequestAnalysis> getRequestInfos() {
 		return requestInfos;

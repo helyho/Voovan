@@ -101,8 +101,8 @@ public class Cookie {
 	
 	/**
 	 * 通过 Map 构建一个 Cookie 对象
-	 * @param cookieMap
-	 * @return
+	 * @param cookieMap Cookie 属性 Map
+	 * @return Cookie 对象
 	 */
 	public static Cookie buildCookie(Map<String, String> cookieMap){
 		Cookie cookie = new Cookie();
@@ -141,7 +141,7 @@ public class Cookie {
 	 * @param name		名称
 	 * @param value		值
 	 * @param maxAge	失效时间,单位秒
-	 * @return
+	 * @return Cookie 对象
 	 */
 	public static Cookie newInstance(Request request,String name,String value,int maxAge){
 		String domain = request.header().get("Host").split(":")[0];
@@ -160,7 +160,7 @@ public class Cookie {
 	 * @param request	请求对象
 	 * @param name		名称
 	 * @param value		值
-	 * @return
+	 * @return Cookie 对象
 	 */
 	public static Cookie newInstance(Request request,String name,String value){
 		return newInstance(request,name,value,-1);

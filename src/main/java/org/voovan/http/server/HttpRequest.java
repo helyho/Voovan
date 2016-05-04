@@ -37,8 +37,9 @@ public class HttpRequest extends Request {
 	
 	/**
 	 * 根据 Cookie 名称取 Cookie
-	 * @param name
-	 * @return
+	 *
+	 * @param name  Cookie 名称
+	 * @return Cookie
 	 */
 	public Cookie getCookie(String name){
 		for(Cookie cookie : this.cookies()){
@@ -51,7 +52,8 @@ public class HttpRequest extends Request {
 
 	/**
 	 * 获取 Session
-	 * @return
+	 *
+	 * @return HTTP-Session 对象
 	 */
 	public HttpSession getSession() {
 		return session;
@@ -59,7 +61,8 @@ public class HttpRequest extends Request {
 
 	/**
 	 * 设置一个 Session
-	 * @param session
+	 *
+	 * @param session  HTTP-Session 对象
 	 */
 	protected void setSession(HttpSession session) {
 		this.session = session;
@@ -67,7 +70,8 @@ public class HttpRequest extends Request {
 
 	/**
 	 * 获取对端连接的 IP
-	 * @return
+	 *
+	 * @return 对端连接的 IP
 	 */
 	public String getRemoteAddres() {
 		String xForwardedFor = header().get("X-Forwarded-For");
@@ -83,7 +87,8 @@ public class HttpRequest extends Request {
 
 	/**
 	 * 设置对端连接的 IP
-	 * @param remoteAddres
+	 *
+	 * @param remoteAddres 对端连接的 IP
 	 */
 	protected void setRemoteAddres(String remoteAddres) {
 		this.remoteAddres = remoteAddres;
@@ -91,7 +96,8 @@ public class HttpRequest extends Request {
 
 	/**
 	 * 获取对端连接的端口
-	 * @return
+	 *
+	 * @return 对端连接的端口
 	 */
 	public int getRemotePort() {
 		return remotePort;
@@ -99,7 +105,8 @@ public class HttpRequest extends Request {
 
 	/**
 	 * 设置对端连接的端口
-	 * @param port
+	 *
+	 * @param port 对端连接的端口
 	 */
 	protected void setRemotePort(int port) {
 		this.remotePort = port;
@@ -107,7 +114,8 @@ public class HttpRequest extends Request {
 
 	/**
 	 * 获取当前默认字符集
-	 * @return
+	 *
+	 * @return 字符集
 	 */
 	public String getCharacterSet() {
 		return characterSet;
@@ -115,7 +123,8 @@ public class HttpRequest extends Request {
 
 	/**
 	 * 设置当前默认字符集
-	 * @param charset
+	 *
+	 * @param charset 字符集
 	 */
 	public void setCharacterSet(String charset) {
 		this.characterSet = charset;
@@ -123,7 +132,8 @@ public class HttpRequest extends Request {
 	
 	/**
 	 * 获取请求字符串
-	 * @return
+	 *
+	 * @return 请求字符串
 	 */
 	public String getQueryString(){
 		return getQueryString(characterSet);
@@ -131,7 +141,8 @@ public class HttpRequest extends Request {
 	
 	/**
 	 * 获取请求变量集合
-	 * @return
+	 *
+	 * @return 请求变量集合
 	 */
 	public Map<String, String> getParameters() {
 		return parameters;
@@ -139,8 +150,9 @@ public class HttpRequest extends Request {
 	
 	/**
 	 * 获取请求变量
-	 * @param paramName
-	 * @return
+	 *
+	 * @param paramName 请求变量名称
+	 * @return 请求变量值
 	 */
 	public String getParameter(String paramName){
 		return TObject.nullDefault(parameters.get(paramName),"");
@@ -148,7 +160,8 @@ public class HttpRequest extends Request {
 	
 	/**
 	 * 获取请求变量
-	 * @return
+	 *
+	 * @return 请求变量集合
 	 */
 	public List<String> getParameterNames(){
 		return Arrays.asList(parameters.keySet().toArray(new String[]{}));

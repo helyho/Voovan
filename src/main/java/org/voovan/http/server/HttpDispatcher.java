@@ -18,14 +18,14 @@ import java.util.Map;
  * 根据 Request 请求分派到处理路由
  * 
  * 
- * GET 请求获取Request-URI所标识的资源<br/>
- * POST 在Request-URI所标识的资源后附加新的数据<br/>
- * HEAD 请求获取由Request-URI所标识的资源的响应消息报头<br/>
- * PUT 请求服务器存储一个资源，并用Request-URI作为其标识<br/>
- * DELETE 请求服务器删除Request-URI所标识的资源<br/>
- * TRACE 请求服务器回送收到的请求信息，主要用于测试或诊断<br/>
- * CONNECT 保留将来使用<br/>
- * OPTIONS 请求查询服务器的性能，或者查询与资源相关的选项和需求<br/>
+ * GET 请求获取Request-URI所标识的资源
+ * POST 在Request-URI所标识的资源后附加新的数据
+ * HEAD 请求获取由Request-URI所标识的资源的响应消息报头
+ * PUT 请求服务器存储一个资源，并用Request-URI作为其标识
+ * DELETE 请求服务器删除Request-URI所标识的资源
+ * TRACE 请求服务器回送收到的请求信息，主要用于测试或诊断
+ * CONNECT 保留将来使用
+ * OPTIONS 请求查询服务器的性能，或者查询与资源相关的选项和需求
  * 
  * @author helyho
  *
@@ -44,9 +44,8 @@ public class HttpDispatcher {
 	/**
 	 * 构造函数
 	 * 
-	 * @param webConfig
-	 * @param sessionManager
-	 *            根目录
+	 * @param webConfig    Web 服务配置对象
+	 * @param sessionManager Session 管理器
 	 */
 	public HttpDispatcher(WebServerConfig webConfig,SessionManager sessionManager) {
 		handlers = new HashMap<String, Map<String, HttpBizHandler>>();
@@ -70,7 +69,7 @@ public class HttpDispatcher {
 	/**
 	 * 增加新的路由方法,例如:HTTP 方法 GET、POST 等等
 	 * 
-	 * @param method
+	 * @param method HTTP 请求方法
 	 */
 	protected void addRouteMethod(String method) {
 		if (!handlers.containsKey(method)) {
@@ -81,9 +80,9 @@ public class HttpDispatcher {
 	/**
 	 * 增加一个路由规则
 	 * 
-	 * @param method
-	 * @param routeRegexPath
-	 * @param handler
+	 * @param method          Http 请求方法
+	 * @param routeRegexPath  路径匹配正则
+	 * @param handler         请求处理句柄
 	 */
 	public void addRouteHandler(String method, String routeRegexPath, HttpBizHandler handler) {
 		if (handlers.keySet().contains(method)) {
@@ -94,8 +93,8 @@ public class HttpDispatcher {
 	/**
 	 * 路由处理函数
 	 * 
-	 * @param request
-	 * @param response
+	 * @param request    HTTP 请求
+	 * @param response   HTTP 响应
 	 */
 	public void processRoute(HttpRequest request, HttpResponse response){
 		String requestPath = request.protocol().getPath();
@@ -147,8 +146,8 @@ public class HttpDispatcher {
 
 	/**
 	 * 将路径转换成正则表达式形式的路径
-	 * @param routePath
-	 * @return
+	 * @param routePath   匹配路径参数
+	 * @return  转换后的正则匹配路径
      */
 	public static String routePath2RegexPath(String routePath){
 		String routeRegexPath = routePath.replaceAll(":[^/$]+", "[^/?]+");
@@ -158,9 +157,9 @@ public class HttpDispatcher {
 
 	/**
 	 * 路径匹配
-	 * @param requestPath
-	 * @param routePath
-	 * @return
+	 * @param requestPath    请求路径
+	 * @param routePath      正则匹配路径
+	 * @return  是否匹配成功
 	 */
 	public static boolean matchPath(String requestPath, String routePath){
 		//转换成可以配置的正则,主要是处理:后的参数表达式
@@ -171,9 +170,9 @@ public class HttpDispatcher {
 	
 	/**
 	 * 获取路径变量,形如/:test/:name 的路径匹配的请求路径/test/var1后得到{name:var1}
-	 * @param requestPath
-	 * @param routePath
-	 * @return
+	 * @param requestPath   请求路径
+	 * @param routePath     正则匹配路径
+	 * @return     路径抽取参数 Map
 	 */
 	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) {
 		Map<String, String> resultMap = new HashMap<String, String>();
@@ -198,8 +197,8 @@ public class HttpDispatcher {
 	
 	/**
 	 * 处理 Session
-	 * @param request
-	 * @param response
+	 * @param request   HTTP 请求
+	 * @param response  HTTP 响应
 	 */
 	public void diposeSession(HttpRequest request, HttpResponse response){
 		
@@ -224,10 +223,10 @@ public class HttpDispatcher {
 
 	/**
 	 * //正向处理过滤器
-	 * @param filterConfigs
-	 * @param request
-	 * @param response
-	 * @throws ReflectiveOperationException
+	 * @param filterConfigs   HTTP过滤器配置对象
+	 * @param request		  请求对象
+	 * @param response		  响应对象
+	 * @throws ReflectiveOperationException  反射异常
      */
 	public void diposeFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) throws ReflectiveOperationException{
 		filterConfigs.rewind();
@@ -242,10 +241,10 @@ public class HttpDispatcher {
 
 	/**
 	 * 反向处理过滤器
-	 * @param filterConfigs
-	 * @param request
-	 * @param response
-	 * @throws ReflectiveOperationException
+	 * @param filterConfigs   HTTP过滤器配置对象
+	 * @param request		  请求对象
+	 * @param response		  响应对象
+	 * @throws ReflectiveOperationException  反射异常
      */
 	public void diposeInvertedFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) throws ReflectiveOperationException{
 		filterConfigs.rewind();
@@ -262,9 +261,9 @@ public class HttpDispatcher {
 	/**
 	 * 异常消息处理
 	 * 
-	 * @param request
-	 * @param response
-	 * @param e
+	 * @param request  请求对象
+	 * @param response 响应对象
+	 * @param e  异常对象
 	 */
 	public void exceptionMessage(HttpRequest request, HttpResponse response, Exception e) {
 		
@@ -276,7 +275,7 @@ public class HttpDispatcher {
 		String requestPath = request.protocol().getPath();
 		String className = e.getClass().getName();
 		String errorMessage = e.toString();
-		String stackInfo = TEnv.getStackMessage().replace("\n", "<br/>");
+		String stackInfo = TEnv.getStackMessage().replace("\n", "");
 		response.header().put("Content-Type", "text/html");
 
 		//初始 error 定义,如果下面匹配到了定义的错误则定义的会被覆盖

@@ -87,9 +87,9 @@ public class HttpServerFilter implements IoFilter {
 	}
 
 	/**
-	 * 判断是否是 Http 请求
-	 * @param byteBuffer
-	 * @return
+	 * 判断是否是 HTTP 请求
+	 * @param byteBuffer 请求字节换缓冲对象
+	 * @return  是否是 HTTP 请求
 	 */
 	public static boolean isHttpRequest(ByteBuffer byteBuffer){
 		int loadSize = (byteBuffer.limit() > 7 ? 7 : byteBuffer.limit());

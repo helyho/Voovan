@@ -34,10 +34,10 @@ public class AioSocket extends SocketContext {
 	/**
 	 * 构造函数
 	 * 
-	 * @param host
-	 * @param port
-	 * @param readTimeout
-	 * @throws IOException
+	 * @param host   主机地址
+	 * @param port   主机端口
+	 * @param readTimeout 主机超时时间
+	 * @throws IOException IO 异常
 	 */
 	public AioSocket(String host, int port, int readTimeout) throws IOException {
 		super(host, port, readTimeout);
@@ -52,9 +52,11 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 构造函数
-	 * 
-	 * @param socketChannel
-	 * @throws IOException
+	 *
+	 * @param parentSocketContext 父异步 socket 通道
+	 * @param socketChannel 异步 socket 通道
+	 *
+	 * @throws IOException IO 异常
 	 */
 	protected AioSocket(SocketContext parentSocketContext, AsynchronousSocketChannel socketChannel) throws IOException {
 		this.socketChannel = socketChannel;
@@ -70,7 +72,7 @@ public class AioSocket extends SocketContext {
 	/**
 	 * 获取事件触发器
 	 * 
-	 * @return
+	 * @return 事件触发器
 	 */
 	protected EventTrigger getEventTrigger() {
 		return eventTrigger;
@@ -78,7 +80,7 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 捕获 Aio Connect
-	 * @throws IOException 
+	 * @throws IOException  IO 异常
 	 */
 	protected void catchConnected() throws IOException {
 		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
@@ -92,6 +94,7 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 捕获 Aio Read
+	 * @param buffer 缓冲区
 	 */
 	protected void catchRead(ByteBuffer buffer) {
 		if (isConnect()) {
@@ -99,13 +102,17 @@ public class AioSocket extends SocketContext {
 		}
 	}
 
+	/**
+	 * 获取 Session 对象
+	 * @return  Session 对象
+     */
 	public AioSession getSession() {
 		return session;
 	}
 
 	/**
 	 * 初始化 SSL 环境
-	 * @throws SSLException
+	 * @throws SSLException SSL 异常
      */
 	private void initSSL() throws SSLException{
 		if (connectModel == ConnectModel.SERVER && sslManager != null) {
@@ -144,7 +151,7 @@ public class AioSocket extends SocketContext {
 	/**
 	 * 获取 SocketChannel 对象
 	 * 
-	 * @return
+	 * @return 异步 Socket 通道
 	 */
 	public AsynchronousSocketChannel socketChannel() {
 		return this.socketChannel;

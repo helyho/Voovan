@@ -28,6 +28,10 @@ public class MimeFileRouter implements HttpBizHandler {
 
 	private String	rootPath;
 
+	/**
+	 * 构造函数
+	 * @param rootPath 根路径
+     */
 	public MimeFileRouter(String rootPath) {
 		this.rootPath = rootPath;
 	}
@@ -60,11 +64,11 @@ public class MimeFileRouter implements HttpBizHandler {
 	
 	/**
 	 * 判断是否是304 not modify
-	 * @param responseFile
-	 * @param request
-	 * @param response
-	 * @return
-	 * @throws ParseException
+	 * @param responseFile   响应文件
+	 * @param request   HTTP 请求对象
+	 * @param response  HTTP 响应对象
+	 * @return 是否是304 not modify
+	 * @throws ParseException 解析异常
 	 */
 	public boolean isNotModify(File responseFile,HttpRequest request,HttpResponse response) throws ParseException{
 		//文件的修改日期
@@ -106,9 +110,9 @@ public class MimeFileRouter implements HttpBizHandler {
 	
 	/**
 	 * 填充 mime 文件到 response
-	 * @param responseFile
-	 * @param request
-	 * @param response
+	 * @param responseFile   响应文件
+	 * @param request   HTTP 请求对象
+	 * @param response  HTTP 响应对象
 	 */
 	public void fillMimeFile(File responseFile,HttpRequest request,HttpResponse response){
 		byte[] fileByte = null;
@@ -153,7 +157,7 @@ public class MimeFileRouter implements HttpBizHandler {
 	
 	/**
 	 * 将响应报文设置称304
-	 * @param response
+	 * @param response HTTP 响应对象
 	 */
 	public void setNotModifyResponse(HttpResponse response){
 		response.protocol().setStatus(304);

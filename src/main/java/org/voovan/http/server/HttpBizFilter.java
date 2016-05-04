@@ -13,17 +13,17 @@ import org.voovan.http.server.WebServerConfig.FilterConfig;
 public interface HttpBizFilter {
 	/**
 	 * 请求过滤器,在请求之前
-	 * @param filterConfig
-	 * @param request
-	 * @param response
+	 * @param filterConfig 过滤器配置对象
+	 * @param request  请求对象
+	 * @param response 响应对象
      */
 	public void onRequest(FilterConfig filterConfig, HttpRequest request, HttpResponse response);
 
 	/**
 	 * 响应过滤器,在响应之后
-	 * @param filterConfig
-	 * @param request
-	 * @param response
+	 * @param filterConfig 过滤器配置对象
+	 * @param request  请求对象
+	 * @param response 响应对象
      */
 	public void onResponse(FilterConfig filterConfig, HttpRequest request, HttpResponse response);
 }

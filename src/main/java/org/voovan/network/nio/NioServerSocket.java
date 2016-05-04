@@ -63,7 +63,7 @@ public class NioServerSocket extends SocketContext{
 	
 	/**
 	 * 启动
-	 * @throws IOException 
+	 * @throws IOException  IO 异常
 	 */
 	@Override
 	public void start() throws IOException {

@@ -158,7 +158,7 @@ public class WebServerConfig {
      * 增加一个过滤器
      * 其中 name 和 className 会被初始化成过滤器的属性,其他会被初始化成过滤器的参数
      *
-     * @param configMap
+     * @param configMap 过滤器配置 Map
      */
     public void addFilterConfig(Map<String, Object> configMap) {
         filterConfigs.addLast(new FilterConfig(configMap));
@@ -168,7 +168,7 @@ public class WebServerConfig {
     /**
      * 使用列表初始话过滤器链
      *
-     * @param filterInfoList
+     * @param filterInfoList 过滤器信息列表
      */
     public void addAllFilterConfigs(List<Map<String, Object>> filterInfoList) {
         for (Map<String, Object> filterConfigMap : filterInfoList) {
@@ -176,6 +176,7 @@ public class WebServerConfig {
         }
     }
 
+    @Override
     public String toString(){
         try {
             Map<Field, Object> fieldValues = TReflect.getFieldValues(this);
@@ -192,7 +193,7 @@ public class WebServerConfig {
 
     /**
      * 构造一个空的实例
-     * @return
+     * @return 过滤器对象
      */
     public static FilterConfig newFilterConfig(){
         return new FilterConfig();
@@ -216,7 +217,7 @@ public class WebServerConfig {
         /**
          * 构造函数
          *
-         * @param configMap
+         * @param configMap 过滤去定义 Map
          */
         public FilterConfig(Map<String, Object> configMap) {
             for (Entry<String, Object> entry : configMap.entrySet()) {
@@ -237,18 +238,34 @@ public class WebServerConfig {
 
         }
 
+        /**
+         * 获取过滤器名称
+         * @return 过滤器名称
+         */
         public String getName() {
             return name;
         }
 
+        /**
+         * 设置过滤器名称
+         * @param name 过滤器名称
+         */
         public void setName(String name) {
             this.name = name;
         }
 
+        /**
+         * 获取过滤器类名
+         * @return 过滤器类名
+         */
         public String getClassName() {
             return className;
         }
 
+        /**
+         * 设置过滤器类名
+         * @param className 过滤器类名
+         */
         public void setClassName(String className) {
             this.className = className;
         }
@@ -256,7 +273,7 @@ public class WebServerConfig {
         /**
          * 获取过滤器的参数,在过滤器定义的时候
          *
-         * @return
+         * @return 过滤器参数
          */
         public Map<String, Object> getParameters() {
             return paramters;
@@ -265,8 +282,8 @@ public class WebServerConfig {
         /**
          * 获取HttpBuizFilter过滤器实例
          *
-         * @return
-         * @throws ReflectiveOperationException
+         * @return 过滤器实例
+         * @throws ReflectiveOperationException 反射异常
          */
         protected HttpBizFilter getBizFilter() throws ReflectiveOperationException {
             //单例模式
@@ -275,7 +292,5 @@ public class WebServerConfig {
             }
             return httpBizFilter;
         }
-
-
     }
 }

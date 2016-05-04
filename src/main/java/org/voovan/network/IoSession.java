@@ -39,7 +39,7 @@ public abstract class IoSession {
 	
 	/**
 	 * 获取接收的输出流
-	 * @return
+	 * @return 接收的输出流
 	 */
 	protected abstract ByteBufferChannel getByteBufferChannel();
 	
@@ -53,7 +53,7 @@ public abstract class IoSession {
 	
 	/**
 	 * 获取 SSLParser
-	 * @param sslParser
+	 * @param sslParser SSL解析对象
 	 */
 	protected void setSSLParser(SSLParser sslParser) {
 		if(this.sslParser==null){
@@ -82,6 +82,7 @@ public abstract class IoSession {
 	/**
 	 * 检查会话参数是否存在
 	 * @param key     参数名
+	 * @return 是否包含
 	 */
 	public boolean containAttribute(Object key) {
 		return this.attributes.containsKey(key);
@@ -119,8 +120,9 @@ public abstract class IoSession {
 	
 	/**
 	 * 读取消息到缓冲区
-	 * @param buffer    接受数据的缓冲区
-	 * @return
+	 * @param buffer    接收数据的缓冲区
+	 * @return 接收数据大小
+	 * @throws IOException IO 异常
 	 */
 	protected abstract int read(ByteBuffer buffer) throws IOException;
 	
@@ -128,15 +130,16 @@ public abstract class IoSession {
 	/**
 	 * 发送消息
 	 * 		注意直接调用不会出发 onSent 事件
-	 * @throws IOException
+	 * @param buffer  发送缓冲区
+	 * @throws IOException IO 异常
 	 */
 	public abstract void send(ByteBuffer buffer) throws IOException;
 	
 	/**
 	 * 读取SSL消息到缓冲区
-	 * @param buffer    接受数据的缓冲区
-	 * @return
-	 * @throws IOException 
+	 * @param buffer    接收数据的缓冲区
+	 * @return 接收数据大小
+	 * @throws IOException  IO异常
 	 */
 	protected int readSSLData(ByteBuffer buffer) throws IOException{
 		int readSize = 0;
@@ -165,6 +168,7 @@ public abstract class IoSession {
 	/**
 	 * 发送SSL消息
 	 * 		注意直接调用不会出发 onSent 事件
+	 * 	@param buffer byte缓冲区
 	 */
 	public void sendSSLData(ByteBuffer buffer){
 		if(isConnect() && buffer!=null){
@@ -179,13 +183,13 @@ public abstract class IoSession {
 	
 	/**
 	 * 获取消息处理类
-	 * @return
+	 * @return 消息处理类
 	 */
 	protected abstract MessageLoader getMessageLoader();
 	
 	/**
-	 * 获取消息处理类
-	 * @return
+	 * 获取消息分割处理类
+	 * @return 消息分割处理类
 	 */
 	protected abstract MessageSplitter getMessagePartition();
 	
@@ -197,6 +201,7 @@ public abstract class IoSession {
 	
 	/**
 	 * 关闭会话
+	 * @return 是否关闭
 	 */
 	public abstract boolean close();
 	

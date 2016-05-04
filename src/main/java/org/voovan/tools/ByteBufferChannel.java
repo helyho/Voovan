@@ -30,12 +30,16 @@ public class ByteBufferChannel implements ByteChannel {
 	
 	/**
 	 * 当前数据大小
-	 * @return
+	 * @return 数据大小
 	 */
 	public int size(){
 		return buffer.limit();
-	} 
-	
+	}
+
+	/**
+	 * 当前数据缓冲区
+	 * @return 数据缓冲区
+     */
 	public ByteBuffer getBuffer(){
 		return buffer;
 	}

@@ -25,6 +25,7 @@ public class ConnectedCompletionHandler implements CompletionHandler<Void, AioSo
 
 	/**
 	 * 获取是否完成 connect 操作
+	 * @return 是否完成 connect 操作
      */
 	public synchronized boolean isFinished() {
 		return finished;
