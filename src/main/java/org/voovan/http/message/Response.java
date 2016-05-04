@@ -30,7 +30,7 @@ public class Response {
 	/**
 	 * 构造函数
 	 * 
-	 * @param response
+	 * @param response 响应对象
 	 */
 	protected Response(Response response) {
 		this.protocol = response.protocol;
@@ -54,7 +54,7 @@ public class Response {
 	/**
 	 * 是否压缩 默认为 true
 	 * 
-	 * @return
+	 * @return 是否启用个压缩
 	 */
 	public boolean isCompress() {
 		return isCompress;
@@ -63,7 +63,7 @@ public class Response {
 	/**
 	 * 设置压缩属性
 	 * 
-	 * @param isCompress
+	 * @param isCompress 是否启用个压缩
 	 */
 	public void setCompress(boolean isCompress) {
 		this.isCompress = isCompress;
@@ -72,7 +72,7 @@ public class Response {
 	/**
 	 * 获取协议对象
 	 * 
-	 * @return
+	 * @return 返回响应协议对象
 	 */
 	public ResponseProtocol protocol() {
 		return protocol;
@@ -81,7 +81,7 @@ public class Response {
 	/**
 	 * 获取 Header 对象
 	 * 
-	 * @return
+	 * @return HTTP-Header 对象
 	 */
 	public Header header() {
 		return header;
@@ -89,8 +89,8 @@ public class Response {
 
 	/**
 	 * 获取所有的Cookies对象,返回一个 List
-	 * 
-	 * @return
+	 *
+	 * @return Cookie 对象集合
 	 */
 	public List<Cookie> cookies() {
 		return cookies;
@@ -99,7 +99,7 @@ public class Response {
 	/**
 	 * 获取 Body 对象
 	 * 
-	 * @return
+	 * @return Body 对象
 	 */
 	public Body body() {
 		return body;
@@ -125,7 +125,7 @@ public class Response {
 	/**
 	 * 根据 Cookie 对象,生成 HTTP 响应中的 Cookie 字符串 用于报文拼装
 	 * 
-	 * @return
+	 * @return Cookie 字符串
 	 */
 	private String genCookie() {
 		String cookieString = "";
@@ -135,6 +135,10 @@ public class Response {
 		return cookieString;
 	}
 
+	/**
+	 * 获取报文体
+	 * @return 报文体 byte 数组
+     */
 	private byte[] genBody(){
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		try {
@@ -166,7 +170,7 @@ public class Response {
 	/**
 	 * 根据对象的内容,构造 Http 响应报文
 	 * 
-	 * @return
+	 * @return Http 响应报文
 	 */
 	public byte[] asBytes() {
 

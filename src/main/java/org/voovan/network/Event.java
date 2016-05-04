@@ -39,6 +39,7 @@ public class Event {
 	 * 构造函数
 	 * @param session  会话对象
 	 * @param name		事件名
+	 * @param other 附加对象
 	 */
 	public Event(IoSession session,EventName name,Object other){
 		this.session = session;
@@ -102,10 +103,10 @@ public class Event {
 
 	/**
 	 * 活的新的实例
-	 * @param session
-	 * @param name
-	 * @param other
-     * @return
+	 * @param session   Session 对象
+	 * @param name      事件名称
+	 * @param other     附属对象
+     * @return   事件对象
      */
 	public static Event getInstance(IoSession session,Event.EventName name,Object other){
 		return new Event(session, name, other);

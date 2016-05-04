@@ -55,6 +55,7 @@ public class HttpClient {
 	/**
 	 * 构建函数
 	 * @param urlString 请求的 URL 地址
+	 * @param timeOut 超时时间
 	 */
 	public  HttpClient(String urlString,int timeOut) {
 		isSSL = urlString.toLowerCase().startsWith("https://");
@@ -64,6 +65,8 @@ public class HttpClient {
 	/**
 	 * 构建函数
 	 * @param urlString 请求的 URL 地址
+	 * @param charset  字符集
+	 * @param timeOut  超时时间
 	 */
 	public  HttpClient(String urlString,String charset,int timeOut) {
 		isSSL = urlString.toLowerCase().startsWith("https://");
@@ -75,6 +78,7 @@ public class HttpClient {
 	/**
 	 * 构建函数
 	 * @param urlString 请求的 URL 地址
+	 * @param charset  字符集
 	 */
 	public  HttpClient(String urlString,String charset) {
 		isSSL = urlString.toLowerCase().startsWith("https://");
@@ -82,7 +86,12 @@ public class HttpClient {
 		init(urlString,5);
 		
 	}
-	
+
+	/**
+	 * 初始化函数
+	 * @param host     主机地址
+	 * @param timeOut  超时时间
+     */
 	private void init(String host,int timeOut){
 		try {
 			String hostString = host;
@@ -158,7 +167,8 @@ public class HttpClient {
 	
 	/**
 	 * 设置请求方法
-	 * @param method
+	 * @param method  Http 请求的方法
+	 * @return    HttpClient 对象
 	 */
 	public HttpClient setMethod(String method){
 		request.protocol().setMethod(method);
@@ -167,7 +177,7 @@ public class HttpClient {
 	
 	/**
 	 * 获取请求头集合
-	 * @return
+	 * @return Header 对象
 	 */
 	public Header getHeader(){
 		return request.header();
@@ -175,7 +185,9 @@ public class HttpClient {
 	
 	/**
 	 * 设置请求头
-	 * @return
+	 * @param name    Header 名称
+	 * @param value   Header 值
+	 * @return  HttpClient 对象
 	 */
 	public HttpClient putHeader(String name ,String value){
 		request.header().put(name, value);
@@ -184,7 +196,7 @@ public class HttpClient {
 	
 	/**
 	 * 获取Cookie集合
-	 * @return
+	 * @return Cookie集合
 	 */
 	public List<Cookie> getCookies(){
 		return request.cookies();
@@ -192,7 +204,7 @@ public class HttpClient {
 	
 	/**
 	 * 获取请求参数集合
-	 * @return
+	 * @return 参数对象
 	 */
 	public Map<String,Object> getParameters(){
 		return parameters;
@@ -201,7 +213,8 @@ public class HttpClient {
 	/**
 	 * 设置POST多段请求
 	 * 		类似 Form 的 Actiong="POST" enctype="multipart/form-data"
-	 * @param part
+	 * @param part POST 请求包文对象
+	 * @return  HttpClient 对象
 	 */
 	public HttpClient addPart(Part part){
 		request.parts().add(part);
@@ -210,9 +223,9 @@ public class HttpClient {
 	
 	/**
 	 * 设置请求参数
-	 * @param name
-	 * @param value
-	 * @return
+	 * @param name 参数名
+	 * @param value 参数值
+	 * @return  HttpClient 对象
 	 */
 	public HttpClient putParameters(String name,Object value){
 		parameters.put(name, value);
@@ -221,7 +234,7 @@ public class HttpClient {
 
 	/**
 	 * 获取当前工作状态
-	 * @return
+	 * @return HttpClient 状态枚举
      */
 	public HttpClientStatus getStatus() {
 		return status;
@@ -234,7 +247,7 @@ public class HttpClient {
 	/**
 	 * 构建QueryString
 	 * 	将 Map 集合转换成 QueryString 字符串
-	 * @return
+	 * @return 请求字符串
 	 */
 	private String getQueryString(){
 		String queryString = "";
@@ -281,8 +294,9 @@ public class HttpClient {
 	
 	/**
 	 * 连接并发送请求
-	 * @return
-	 * @throws IOException 
+	 * @param urlString 请求 URL
+	 * @return Response 对象
+	 * @throws IOException  IO 异常
 	 */
 	public Response send(String urlString) throws IOException {
 		if(status==HttpClientStatus.IDLE){
@@ -316,7 +330,11 @@ public class HttpClient {
 			return null;
 		}
 	}
-	
+
+	/**
+	 * 请求晚场
+	 * @param response 请求对象
+     */
 	 private void finished(Response response){
 		//传递 cookie 到 Request 对象
 		if(response!=null 
@@ -339,7 +357,12 @@ public class HttpClient {
 		
 		httpClientHandler.reset();
 	}
-	
+
+	/**
+	 * 发送行数
+	 * @return Response 对象
+	 * @throws IOException IO 异常
+     */
 	public Response send() throws IOException {
 		return send("/");
 	}
@@ -354,7 +377,7 @@ public class HttpClient {
 
 	/**
 	 * 判断是否处于连接状态
-	 * @return
+	 * @return 是否连接
 	 */
 	public synchronized boolean isConnect(){
 		return socket.isConnect();

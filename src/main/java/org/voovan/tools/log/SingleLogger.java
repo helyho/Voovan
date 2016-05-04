@@ -20,6 +20,7 @@ public class SingleLogger {
 	private static HashMap<String,SingleLogger> singleLoggerPool = new HashMap<String,SingleLogger>();
 	/**
 	 * 构造函数
+	 * @param fileName  文件名
 	 */
 	public SingleLogger(String fileName){
 		this.fileName = fileName;
@@ -28,17 +29,24 @@ public class SingleLogger {
 
 	/**
 	 * 获取日志文件名
-	 * @return
+	 * @return 日志文件名
 	 */
 	public String getFileName() {
 		return fileName;
 	}
 
-
+	/**
+	 * 设置日志记录线程
+	 * @param loggerThread 日志记录线程对象
+     */
 	public void setLoggerThread(LoggerThread loggerThread) {
 		this.loggerThread = loggerThread;
 	}
 
+	/**
+	 * 是否完成
+	 * @return 是否完成
+     */
 	public boolean isFinished() {
 		return loggerThread.isFinished();
 	}
@@ -46,7 +54,7 @@ public class SingleLogger {
 	/**
 	 * 增加消息
 	 * 
-	 * @param msg
+	 * @param msg 消息字符串
 	 */
 	public void addLogMessage(String msg) {
 		loggerThread.addLogMessage(msg);

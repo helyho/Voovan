@@ -26,8 +26,8 @@ public class WebSocketTools {
 	
 	/**
 	 * 生成协议升级的 KEY
-	 * @param in
-	 * @return
+	 * @param in 协议参数
+	 * @return 协议升级的 KEY
 	 */
 	public static String generateSecKey( String in ) {
 		String seckey = in.trim();
@@ -40,7 +40,13 @@ public class WebSocketTools {
 		}
 		return Base64.getEncoder().encodeToString( sh1.digest(acc.getBytes()) );
 	}
-	
+
+	/**
+	 * 将 int 转换成 byte[]
+	 * @param iSource     int 值
+	 * @param iArrayLen   数组长度
+     * @return int 转换后的 byte[]
+     */
 	public static byte[] intToByteArray(int iSource, int iArrayLen) {
 	    byte[] bLocalArr = new byte[iArrayLen];
 	    for (int i = 0; (i < 4) && (i < iArrayLen); i++) {
@@ -48,7 +54,12 @@ public class WebSocketTools {
 	    }
 	    return bLocalArr;
 	}
-	
+
+	/**
+	 * byte 转换成 int
+	 * @param bRefArr byte 数组
+	 * @return int 值
+     */
 	public static int byteToInt(byte[] bRefArr) {
 	    int iOutcome = 0;
 	    byte bLoop;

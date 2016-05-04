@@ -24,8 +24,8 @@ public class TProperties {
 	/**
 	 * 解析 Properties 文件
 	 * 
-	 * @param file
-	 * @return
+	 * @param file 文件对象
+	 * @return Properties 对象
 	 */
 	public static Properties getProperties(File file) {
 		
@@ -49,9 +49,9 @@ public class TProperties {
 	/**
 	 * 从Properties文件读取字符串
 	 * 
-	 * @param file
-	 * @param name
-	 * @return
+	 * @param file 文件对象
+	 * @param name 属性名
+	 * @return 属性值
 	 */
 	public static String getString(File file, String name) {
 		Properties properites = getProperties(file);
@@ -60,10 +60,10 @@ public class TProperties {
 
 	/**
 	 * 从Properties文件读取整形
-	 * 
-	 * @param file
-	 * @param name
-	 * @return
+	 *
+	 * @param file 文件对象
+	 * @param name 属性名
+	 * @return 属性值
 	 */
 	public static int getInt(File file, String name) {
 		String value = getString(file, name);
@@ -72,10 +72,10 @@ public class TProperties {
 
 	/**
 	 * 从Properties文件读取浮点数
-	 * 
-	 * @param file
-	 * @param name
-	 * @return
+	 *
+	 * @param file 文件对象
+	 * @param name 属性名
+	 * @return 属性值
 	 */
 	public static float getFloat(File file, String name) {
 		String value = getString(file, name);
@@ -84,10 +84,10 @@ public class TProperties {
 
 	/**
 	 * 从Properties读取双精度浮点数
-	 * 
-	 * @param file
-	 * @param name
-	 * @return
+	 *
+	 * @param file 文件对象
+	 * @param name 属性名
+	 * @return 属性值
 	 */
 	public static double getDouble(File file, String name) {
 		String value = getString(file, name);

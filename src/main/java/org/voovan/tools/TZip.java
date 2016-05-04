@@ -20,9 +20,9 @@ import java.util.zip.ZipOutputStream;
 public class TZip {
 	/**
 	 * GZip 解压缩
-	 * @param encodeBytes
-	 * @return
-	 * @throws IOException
+	 * @param encodeBytes 待解压字节
+	 * @return 解压后的字节
+	 * @throws IOException IO 异常
 	 */
 	public static byte[] decodeGZip(byte[] encodeBytes) throws IOException{
 		GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(encodeBytes));
@@ -31,8 +31,9 @@ public class TZip {
 	
 	/**
 	 * GZIP 压缩
-	 * @return
-	 * @throws IOException
+	 * @param sourceBytes 待压缩字节
+	 * @return 压缩后的字节
+	 * @throws IOException IO 异常
 	 */
 	public static byte[] encodeGZip(byte[] sourceBytes) throws IOException{
 		ByteArrayOutputStream zipedBodyOutputStream = new ByteArrayOutputStream();
@@ -44,9 +45,9 @@ public class TZip {
 	
 	/**
 	 * Zip 解压缩
-	 * @param encodeBytes
-	 * @return
-	 * @throws IOException
+	 * @param encodeBytes 待解压字节
+	 * @return 解压后的字节
+	 * @throws IOException IO 异常
 	 */
 	public static byte[] decodeZip(byte[] encodeBytes) throws IOException{
 		ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(encodeBytes));
@@ -55,8 +56,9 @@ public class TZip {
 	
 	/**
 	 * ZIP 压缩
-	 * @return
-	 * @throws IOException
+	 * @param sourceBytes 待压缩自己
+	 * @return 压缩后的字节
+	 * @throws IOException IO 异常
 	 */
 	public static byte[] encodeZip(byte[] sourceBytes) throws IOException{
 		ByteArrayOutputStream zipedBodyOutputStream = new ByteArrayOutputStream();

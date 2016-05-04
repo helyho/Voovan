@@ -23,11 +23,14 @@ public abstract class SocketContext {
 	protected MessageSplitter messageSplitter;
 	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
-	
-	
+
+
 	/**
 	 * 构造函数
-	 */
+	 * @param host    主机地址
+	 * @param port    主机端口
+	 * @param readTimeout 超时时间
+     */
 	public SocketContext(String host,int port,int readTimeout) {
 		this.host = host;
 		this.port = port;
@@ -38,7 +41,7 @@ public abstract class SocketContext {
 	
 	/**
 	 * 克隆对象
-	 * @param parentSocketContext
+	 * @param parentSocketContext 父 socket 对象
 	 */
 	protected void copyFrom(SocketContext parentSocketContext){
 		this.readTimeout = parentSocketContext.readTimeout;
@@ -55,27 +58,43 @@ public abstract class SocketContext {
 		filterChain = new Chain<IoFilter>();
 	}
 
+	/**
+	 * 获取 SSL 管理器
+	 * @return SSL 管理器
+     */
 	public SSLManager getSSLManager() {
 		return sslManager;
 	}
 
+	/**
+	 * 设置 SSL 管理器
+	 * @param sslManager SSL 管理器
+     */
 	public void setSSLManager(SSLManager sslManager) {
 		if(this.sslManager==null){
 			this.sslManager = sslManager;
 		}
 	}
 
+	/**
+	 * 获取主机地址
+	 * @return 主机地址
+     */
 	public String getHost() {
 		return host;
 	}
 
+	/**
+	 * 获取主机端口
+	 * @return 主机端口
+     */
 	public int getPort() {
 		return port;
 	}
 
 	/**
 	 * 获取超时时间
-	 * @return
+	 * @return 超时时间
 	 */
 	public int getReadTimeout() {
 		return readTimeout;
@@ -83,7 +102,7 @@ public abstract class SocketContext {
 	
 	/**
 	 * 获取连接模式
-	 * @return
+	 * @return 连接模式
 	 */
 	public ConnectModel getConnectModel() {
 		return connectModel;
@@ -115,7 +134,7 @@ public abstract class SocketContext {
 	
 	/**
 	 * 获取消息粘包分割器
-	 * @return
+	 * @return 消息粘包分割器
 	 */
 	public MessageSplitter messageSplitter() {
 		return this.messageSplitter;
@@ -123,6 +142,7 @@ public abstract class SocketContext {
 	
 	/**
 	 * 设置消息粘包分割器
+	 * @param  messageSplitter 消息分割器
 	 */
 	public void messageSplitter(MessageSplitter messageSplitter) {
 		this.messageSplitter = messageSplitter;
@@ -130,6 +150,7 @@ public abstract class SocketContext {
 	
 	/**
 	 * 启动上下文连接
+	 * @throws IOException IO 异常
 	 */
 	public abstract void start() throws IOException;
 	
@@ -141,6 +162,7 @@ public abstract class SocketContext {
 	
 	/**
 	 * 关闭连接
+	 * @return 是否关闭
 	 */
 	public abstract boolean close();
 }

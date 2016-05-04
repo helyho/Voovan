@@ -53,7 +53,7 @@ public class TSQL {
 	 * @param preparedStatement  preparedStatement对象
 	 * @param sqlParams			sql 参数表
 	 * @param params			参数键值 Map
-	 * @throws SQLException
+	 * @throws SQLException SQL 异常
 	 */
 	public static void setPreparedParams(PreparedStatement preparedStatement,List<String> sqlParams,Map<String, Object> params) throws SQLException{
 		for(int i=0;i<sqlParams.size();i++){
@@ -71,7 +71,7 @@ public class TSQL {
 	 * @param sqlStr    sql 自负穿
 	 * @param params    Map 参数
 	 * @return			PreparedStatement 对象
-	 * @throws SQLException
+	 * @throws SQLException SQL 异常
 	 */
 	public static PreparedStatement createPreparedStatement(Connection conn,String sqlStr,Map<String, Object> params) throws SQLException{
 
@@ -103,8 +103,9 @@ public class TSQL {
 	 * @param conn      数据库连接
 	 * @param sqlStr    sql 自负穿
 	 * @param params    Map 参数
+	 * @param callTypes 调用参数类型
 	 * @return			PreparedStatement 对象
-	 * @throws SQLException
+	 * @throws SQLException SQL 异常
 	 */
 	public static CallableStatement createCallableStatement(Connection conn,String sqlStr,Map<String, Object> params,CallType[] callTypes) throws SQLException{
 		Logger.debug("[SQL_Executed]: " + sqlStr);
@@ -138,9 +139,9 @@ public class TSQL {
 	
 	/**
 	 * 解析存储过程结果集
-	 * @param callableStatement
-	 * @return
-	 * @throws SQLException
+	 * @param callableStatement  callableStatement对象
+	 * @return 解析后的存储过程结果集
+	 * @throws SQLException SQL 异常
 	 */
 	public static List<Object> getCallableStatementResult(CallableStatement callableStatement) throws SQLException{
 		ArrayList<Object> result = new ArrayList<Object>();
@@ -171,38 +172,25 @@ public class TSQL {
 		return result;
 	}
 	
-	/**
-	 * 将数组转换成 Map 
-	 * 			key 位置坐标 
-	 *          value 数组值
-	 * @param objs    	待转换的数组
-	 * @return
-	 */
-	public static Map<String, Object> arrayToMap(Object[] objs){
-		HashMap<String ,Object> arrayMap = new HashMap<String ,Object>();
-		for(int i=0;i<objs.length;i++){
-			arrayMap.put(Integer.toString(i+1), objs[i]);
-		}
-		return arrayMap;
-	}
+
 	
 	/**
 	 * 使用数组参数的属性组装SQL
-	 * @param sqlStr
-	 * @param args
-	 * @return
+	 * @param sqlStr SQL 字符串
+	 * @param args 拼装参数
+	 * @return 拼装后的 SQL
 	 */
 	public static String assembleSQLWithArray(String sqlStr,Object[] args){
-		Map<String,Object> argMap = arrayToMap(args);
+		Map<String,Object> argMap = TObject.arrayToMap(args);
 		return assembleSQLWithMap(sqlStr,argMap);
 	}
 	
 	/**
 	 * 使用argObjectj参数的属性组装SQL
-	 * @param sqlStr
-	 * @param argObjectj
-	 * @return
-	 * @throws ReflectiveOperationException 
+	 * @param sqlStr    SQL 字符串
+	 * @param argObjectj 拼装对象
+	 * @return 拼装候的SQL
+	 * @throws ReflectiveOperationException  反射异常
 	 */
 	public static String assembleSQLWithObject(String sqlStr,Object argObjectj) throws ReflectiveOperationException{
 		
@@ -214,9 +202,9 @@ public class TSQL {
 	/**
 	 *  使用argMap参数的KV组装SQL
 	 *  		SQL字符串中以:开始的相同字符串将被替换
-	 * @param sqlStr
-	 * @param argMap
-	 * @return
+	 * @param sqlStr SQL 字符串
+	 * @param argMap 拼装的 Map
+	 * @return 拼装后的字符串
 	 */
 	public static String assembleSQLWithMap(String sqlStr,Map<String ,Object> argMap) {		
 		
@@ -230,10 +218,10 @@ public class TSQL {
 	
 	/**
 	 * 包装resultSet中单行记录成Map
-	 * @param resultset
-	 * @return
-	 * @throws SQLException 
-	 * @throws ReflectiveOperationException 
+	 * @param resultset 查询结果集
+	 * @return 转后的 Map 对象
+	 * @throws SQLException  SQL 异常
+	 * @throws ReflectiveOperationException  反射异常
 	 */
     public static Map<String, Object> getOneRowWithMap(ResultSet resultset)
 			throws SQLException, ReflectiveOperationException {
@@ -258,12 +246,12 @@ public class TSQL {
     
     /**
      * 包装resultSet中单行记录成指定对象
-     * @param clazz
-     * @param resultset
-     * @return
-     * @throws ReflectiveOperationException 
-     * @throws SQLException 
-     * @throws ParseException 
+     * @param clazz 类对象
+     * @param resultset 查询结果集
+     * @return 转换后的对象
+     * @throws ReflectiveOperationException 反射异常
+     * @throws SQLException  SQL 异常
+     * @throws ParseException  解析异常
      */
     public static Object getOneRowWithObject(Class<?> clazz,ResultSet resultset)
 			throws SQLException, ReflectiveOperationException, ParseException {
@@ -282,10 +270,10 @@ public class TSQL {
     
     /**
      * 包装resultSet中所有记录成List,单行元素为Map
-     * @param resultSet
-     * @return
-     * @throws ReflectiveOperationException 
-     * @throws SQLException 
+     * @param resultSet 查询结果集
+     * @return 转后的 List[Map]
+     * @throws ReflectiveOperationException 反射异常
+     * @throws SQLException  SQL 异常
      */
     public static List<Map<String,Object>> getAllRowWithMapList(ResultSet resultSet)
 			throws SQLException, ReflectiveOperationException {
@@ -298,12 +286,12 @@ public class TSQL {
     
     /**
      * 包装resultSet中所有记录成List,单行元素为指定对象
-     * @param clazz
-     * @param resultSet
-     * @return
-     * @throws ParseException 
-     * @throws ReflectiveOperationException 
-     * @throws SQLException 
+     * @param clazz 类
+     * @param resultSet 查询结果集
+     * @return 转换候的对象结合
+     * @throws ParseException  解析异常
+     * @throws ReflectiveOperationException 反射异常
+     * @throws SQLException  SQL 异常
      */
     public static List<Object> getAllRowWithObjectList(Class<?> clazz,ResultSet resultSet)
 			throws SQLException, ReflectiveOperationException, ParseException {
@@ -317,9 +305,10 @@ public class TSQL {
 
 	/**
 	 * 将SQL 语句中,没有提供查询参数的条件移除
-	 * @param sqlText
-	 * @param params
-     * @return
+	 * @param sqlText SQL 字符串
+	 * @param sqlParams sql 参数名集合
+	 * @param params 参数集合
+     * @return 转换后的字符串
      */
 	public static String removeEmptyCondiction(String sqlText,List<String> sqlParams,Map<String, Object> params){
 
@@ -355,8 +344,8 @@ public class TSQL {
 	/**
 	 * SQL的参数,将 JAVA 的类型转换成可在SQL中进行封装的字符串
 	 * 例如:String类型的对象转换成 'chs'
-	 * @param argObj
-	 * @return
+	 * @param argObj 转换前的对象
+	 * @return 封装后的字符串
 	 */
 	public static String getSQLString(Object argObj)
 	{
@@ -398,7 +387,7 @@ public class TSQL {
 	
 	/**
 	 * 根据 SQL 类型判断 Result 该使用什么方法取值
-	 * @param databaseType
+	 * @param databaseType 数据库中的数据类型
 	 * @return  方法名
 	 */
 	public static String getDataMethod(int databaseType){
@@ -460,8 +449,8 @@ public class TSQL {
 
 	/**
 	 * 根据 JAVA 类型判断该使用什么 SQL 数据类型
-	 * @param obj
-	 * @return
+	 * @param obj 对象
+	 * @return 数据库中的数据类型
      */
 	public static int getSqlTypes(Object obj){
 		Class<?> objectClass = obj.getClass();

@@ -12,21 +12,21 @@ package org.voovan.network;
 public interface IoHandler {
 	/**
 	 * 连接成功事件
-	 * @param session
+	 * @param session Session 对象
 	 * @return   返回的对象将发送
 	 */
 	public Object onConnect(IoSession session);
 	
 	/**
 	 * 连接断开事件
-	 * @param session
+	 * @param session Session 对象
 	 */
 	public void onDisconnect(IoSession session);
 	
 	/**
 	 * 接收数据事件
-	 * @param session
-	 * @param obj 
+	 * @param session Session 对象
+	 * @param obj  接收的对象
 	 * @return 返回的对象将发送
 	 */
 	public Object onReceive(IoSession session,Object obj);
@@ -34,15 +34,15 @@ public interface IoHandler {
 	/**
 	 * 发送数据事件
 	 * 		发送后调用
-	 * @param session
-	 * @param obj 
+	 * @param session Session 对象
+	 * @param obj 发送的对象
 	 */
 	public void onSent(IoSession session,Object obj);	
 	
 	/**
 	 * 异常事件
-	 * @param session
-	 * @param e
+	 * @param session Session 对象
+	 * @param e 异常信息
 	 */
 	public void onException(IoSession session,Exception e);
 }

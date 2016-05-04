@@ -27,7 +27,7 @@ public class MonitorHandler implements HttpBizHandler {
 
     /**
      * 获取当前 JVM 线程信息描述
-     * @return
+     * @return 线程信息信息集合
      */
     public static List<Map<String,Object>> getThreadDetail(){
         ArrayList<Map<String,Object>> threadDetailList = new ArrayList<Map<String,Object>>();
@@ -46,7 +46,7 @@ public class MonitorHandler implements HttpBizHandler {
 
     /**
      * 获取处理器信息
-     * @return
+     * @return 处理器信息 Map
      */
     public static Map<String,Object>  getProcessorInfo(){
         Map<String,Object> processInfo = new Hashtable<String,Object>();
@@ -57,8 +57,8 @@ public class MonitorHandler implements HttpBizHandler {
 
     /**
      * 获取当前JVM加载的对象信息(数量,所占内存大小)
-     * @param regex
-     * @return
+     * @param regex 正则表达式
+     * @return 系统对象信息的Map
      */
     public static Map<String,TPerformance.ObjectInfo> getSysObjectInfo(String regex) {
         Map<String,TPerformance.ObjectInfo> result;
@@ -73,7 +73,7 @@ public class MonitorHandler implements HttpBizHandler {
 
     /**
      * 获取JVM信息
-     * @return
+     * @return JVM 信息的 Map
      */
     public static Map<String,Object> getJVMInfo(){
         Map<String, Object> jvmInfo = new Hashtable<String, Object>();
@@ -86,8 +86,8 @@ public class MonitorHandler implements HttpBizHandler {
     /**
      * 对象转换成 JSON 字符串
      *      json 中的换行被处理成"\\r\\n"
-     * @param obj
-     * @return
+     * @param obj 待转换的对象
+     * @return JSON 字符串
      */
     public static String toJsonWithLF(Object obj){
         String jsonStr = null;
@@ -104,11 +104,11 @@ public class MonitorHandler implements HttpBizHandler {
     }
 
     /**
-     * 读取日志信息
-     * @param type
-     * @param lineNumber
-     * @return
-     * @throws IOException
+     * 从尾部读取日志信息
+     * @param type    日志类型
+     * @param lineNumber  日志行数
+     * @return 日志信息
+     * @throws IOException IO 异常
      */
     public static String readLogs(String type ,int lineNumber) throws IOException {
         String fileName;
@@ -124,6 +124,10 @@ public class MonitorHandler implements HttpBizHandler {
         return new String(TFile.loadFileLastLines(new File(fullPath),lineNumber));
     }
 
+    /**
+     * 返回请求分析信息
+     * @return 请求分析信息集合
+     */
     public static List<RequestAnalysis> requestInfo() {
        return (List<RequestAnalysis>) TObject.mapValueToList(HttpMonitorFilter.getRequestInfos());
     }

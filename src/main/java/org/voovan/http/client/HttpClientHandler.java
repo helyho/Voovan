@@ -33,7 +33,7 @@ public class HttpClientHandler implements IoHandler {
 	
 	/**
 	 * 是否有可用响应对象
-	 * @return
+	 * @return 是否有响应对象可用
 	 */
 	public boolean isHaveResponse() {
 		return haveResponse;
@@ -41,7 +41,7 @@ public class HttpClientHandler implements IoHandler {
 
 	/**
 	 * 获取响应对象
-	 * @return
+	 * @return 获取响应对象
 	 */
 	public synchronized Response getResponse(){
 		Response returnResponse = response;

@@ -38,7 +38,7 @@ public class WebSocketDispatcher {
 	/**
 	 * 构造函数
 	 * 
-	 * @param config
+	 * @param config WEB 配置对象
 	 *            根目录
 	 */
 	public WebSocketDispatcher(WebServerConfig config) {
@@ -48,8 +48,8 @@ public class WebSocketDispatcher {
 	/**
 	 * 增加一个路由规则
 	 * 
-	 * @param routeRegexPath
-	 * @param handler
+	 * @param routeRegexPath 匹配路径
+	 * @param handler WebSocketBizHandler 对象
 	 */
 	public void addRouteHandler(String routeRegexPath, WebSocketBizHandler handler) {
 		handlers.put(routeRegexPath, handler);
@@ -58,9 +58,10 @@ public class WebSocketDispatcher {
 	/**
 	 * 路由处理函数
 	 * 
-	 * @param event
-	 * @param request
-	 * @param webSocketFrame
+	 * @param event     WebSocket 事件
+	 * @param request   HTTP 请求对象
+	 * @param webSocketFrame WebSocket 帧对象
+	 * @return WebSocket 帧对象
 	 */
 	public WebSocketFrame processRoute(WebSocketEvent event, HttpRequest request, WebSocketFrame webSocketFrame) {
 		
@@ -106,7 +107,7 @@ public class WebSocketDispatcher {
 	
 	/**
 	 * 出发 Close 事件
-	 * @param session
+	 * @param session HTTP-Session 对象
 	 */
 	public void fireCloseEvent(IoSession session){
 		//检查是否是WebSocket

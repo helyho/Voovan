@@ -48,7 +48,7 @@ public class NioSession extends IoSession {
 	/**
 	 * 获取接收的输出流
 	 * 
-	 * @return
+	 * @return 接收的输出流
 	 */
 	protected ByteBufferChannel getByteBufferChannel() {
 		return byteBufferChannel;

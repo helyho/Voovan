@@ -61,7 +61,7 @@ public class Part {
 	
 	/**
 	 * Part 的 Header 对象
-	 * @return
+	 * @return HTTP-Header 对象
 	 */
 	public Header header(){
 		return header;
@@ -69,7 +69,7 @@ public class Part {
 	
 	/**
 	 * Part 的 body 对象
-	 * @return
+	 * @return Body 对象
 	 */
 	public Body body(){
 		return body;
@@ -77,7 +77,7 @@ public class Part {
 	
 	/**
 	 * 获取 Part 的名称
-	 * @return
+	 * @return Part 的名称
 	 */
 	public String getName() {
 		return  header.get("name");
@@ -85,7 +85,7 @@ public class Part {
 
 	/**
 	 * 获取 part 的文件名称
-	 * @return
+	 * @return part 的文件名称
 	 */
 	public String getFileName() {
 		return header.get("filename");
@@ -93,7 +93,7 @@ public class Part {
 
 	/**
 	 * 获取 Part 内容的类型
-	 * @return
+	 * @return Part 内容的类型
 	 */
 	public PartType getType(){
 		if("binary".equals(header.get("Content-Transfer-Encoding"))){
@@ -105,8 +105,8 @@ public class Part {
 	
 	/**
 	 * 将 Part 的内容保存为文件
-	 * @param file
-	 * @throws IOException
+	 * @param file art 的内容保存为文件
+	 * @throws IOException IO 异常
 	 */
 	public void saveAsFile(File file) throws IOException{
 		FileOutputStream fOutputStream  = new FileOutputStream(file);
@@ -117,8 +117,8 @@ public class Part {
 	
 	/**
 	 * 将 Part 的内容保存为文件
-	 * @param fileName
-	 * @throws IOException
+	 * @param fileName    Part 的内容保存为文件
+	 * @throws IOException IO 异常
 	 */
 	public void saveAsFile(String fileName) throws IOException{
 		FileOutputStream fOutputStream  = new FileOutputStream(new File(fileName));

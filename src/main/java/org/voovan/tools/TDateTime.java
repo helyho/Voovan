@@ -26,7 +26,7 @@ public class TDateTime {
 	/**
 	 * 获取当前时间
 	 * 		yyyy-MM-dd HH:mm:ss
-	 * @return
+	 * @return 日期字符串
 	 */
 	public static String now(){
 		return format(new Date(),STANDER_DATETIME_TEMPLATE);
@@ -34,8 +34,8 @@ public class TDateTime {
 	
 	/**
 	 * 根据特定格式获取当前时间
-	 * @param format
-	 * @return
+	 * @param format 日期格式模板
+	 * @return 日期字符串
 	 */
 	public static String now(String format){
 		return format(new Date(),format);
@@ -43,9 +43,9 @@ public class TDateTime {
 	
 	/**
 	 * 格式化日期成字符串
-	 * @param date
-	 * @param format
-	 * @return
+	 * @param date Date 对象
+	 * @param format 日期格式模板
+	 * @return 日期字符串
 	 */
 	public static String format(Date date,String format){
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
@@ -58,7 +58,7 @@ public class TDateTime {
 	 * @param format		日期格式化字符串
 	 * @param timeZone		所在时区
 	 * @param loacl			所在区域
-	 * @return
+	 * @return 日期字符串
 	 */
 	public static String format(Date date,String format,String timeZone,Locale loacl){
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format,loacl);
@@ -68,8 +68,8 @@ public class TDateTime {
 	
 	/**
 	 * 获取标准的格林威治时间(GMT)
-	 * @param date
-	 * @return
+	 * @param date Date 对象
+	 * @return 日期字符串
 	 */
 	public static String formatToGMT(Date date){
 		return format(date, GMT_DATETIME_TEMPLATE, "GMT",Locale.ENGLISH);
@@ -77,10 +77,10 @@ public class TDateTime {
 	
 	/**
 	 * 从字符串解析时间
-	 * @param source
-	 * @param format
-	 * @return
-	 * @throws ParseException
+	 * @param source 日期字符串
+	 * @param format 日期格式模板
+	 * @return Date 对象
+	 * @throws ParseException 解析异常
 	 */
 	public static Date parse(String source,String format) throws ParseException{
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
@@ -93,8 +93,8 @@ public class TDateTime {
 	 * @param format		日志格式化字符串
 	 * @param timeZone		所在时区
 	 * @param loacl			所在区域
-	 * @return
-	 * @throws ParseException
+	 * @return 日期字符串
+	 * @throws ParseException 解析异常
 	 */
 	public static Date parse(String source,String format,String timeZone,Locale loacl) throws ParseException{
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format,loacl);
@@ -104,9 +104,9 @@ public class TDateTime {
 	
 	/**
 	 * 按格林威治时间(GMT)时间格式获取事件对象
-	 * @param source
-	 * @return
-	 * @throws ParseException 
+	 * @param source 日期字符串
+	 * @return Date 对象
+	 * @throws ParseException 解析异常
 	 */
 	public static Date parseToGMT(String source) throws ParseException{
 		return parse(source, GMT_DATETIME_TEMPLATE, "GMT",Locale.ENGLISH);
@@ -116,7 +116,7 @@ public class TDateTime {
 	 * 日期加操作
 	 * @param date		加法的基数日期
 	 * @param millis	微秒
-	 * @return
+	 * @return Date 对象
 	 */
 	public static Date add(Date date,long millis){
 		 return new Date(date.getTime()+millis);
@@ -127,14 +127,12 @@ public class TDateTime {
 	 * @param time		加法的基数日期
 	 * @param millis	微秒
 	 * @param format    输出的格式
-	 * @return
-	 * @throws ParseException 
+	 * @return 日期字符串
+	 * @throws ParseException  解析异常
 	 */
 	public static String add(String time,long millis,String format) throws ParseException{
 		Date tmpDate = parse(time, format);
 		Date resultDate = add(tmpDate, millis);
 		return format(resultDate, format);
 	}
-
-
 }

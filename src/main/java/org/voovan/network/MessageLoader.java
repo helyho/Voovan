@@ -23,7 +23,7 @@ public class MessageLoader {
 
 	/**
 	 * 构造函数
-	 * @param session
+	 * @param session Session 对象
 	 */
 	public MessageLoader(IoSession session) {
 		this.session = session;
@@ -39,10 +39,10 @@ public class MessageLoader {
 
 	/**
 	 * 判断连接是否意外断开
-	 * @param length
-	 * @param buffer
-	 * @return
-	 * @throws SocketDisconnectByRemote 
+	 * @param length  长度
+	 * @param buffer  缓冲区
+	 * @return 是否意外断开
+	 * @throws SocketDisconnectByRemote  Socket 断开异常
 	 */
 	public static boolean isRemoteClosed(Integer length,  ByteBuffer buffer) throws SocketDisconnectByRemote{
 		if(length==-1){
@@ -65,8 +65,8 @@ public class MessageLoader {
 	 * 	逐字节读取数据,并用消息截断器判断消息包是否完整,消息粘包有两种截断方式:
 	 * 	1.消息截断器生效
 	 * 	2.消息读取时间超时,例如设置5m,则连续5秒内没有读取到有用的消息则返回报文.
-	 * @return
-	 * @throws IOException
+	 * @return 读取的缓冲区数据
+	 * @throws IOException IO 异常
 	 */
 	public ByteBuffer read() throws IOException {
 		

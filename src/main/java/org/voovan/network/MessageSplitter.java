@@ -13,7 +13,8 @@ public interface MessageSplitter {
 
 	/**
 	 * 判断消息是否可分割
-	 * @param buffer
+	 * @param session  session 对象
+	 * @param buffer 缓冲数据
 	 * @return   返回:true 可区分,false不可区分
 	 */
 	public boolean canSplite(IoSession session,byte[] buffer);

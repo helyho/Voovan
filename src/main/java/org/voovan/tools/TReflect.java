@@ -20,8 +20,8 @@ public class TReflect {
 	/**
 	 * 获得类所有的Field
 	 * 
-	 * @param clazz
-	 * @return
+	 * @param clazz 类对象
+	 * @return Field数组
 	 */
 	public static Field[] getFields(Class<?> clazz) {
 		return clazz.getDeclaredFields();
@@ -30,11 +30,11 @@ public class TReflect {
 	/**
 	 * 查找类特定的Field
 	 * 
-	 * @param clazz
-	 * @param fieldName
-	 * @return
-	 * @throws NoSuchFieldException
-	 * @throws SecurityException
+	 * @param clazz   类对象
+	 * @param fieldName field 名称
+	 * @return field 对象
+	 * @throws NoSuchFieldException 无 Field 异常
+	 * @throws SecurityException 安全性异常
 	 */
 	public static Field findField(Class<?> clazz, String fieldName)
 			throws ReflectiveOperationException {
@@ -48,10 +48,10 @@ public class TReflect {
 	/**
 	 * 查找类特定的Field
 	 * 			不区分大小写,并且替换掉特殊字符
-	 * @param clazz
-	 * @param fieldName
-	 * @return
-	 * @throws ReflectiveOperationException
+	 * @param clazz   类对象
+	 * @param fieldName Field 名称
+	 * @return Field 对象
+	 * @throws ReflectiveOperationException 反射异常
      */
 	public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName)
 			throws ReflectiveOperationException{
@@ -65,10 +65,11 @@ public class TReflect {
 
 	/**
 	 * 获取类中指定Field的值
-	 * 
-	 * @param obj
-	 * @param fieldName
-	 * @return
+	 * @param <T> 范型
+	 * @param obj  对象
+	 * @param fieldName Field 名称
+	 * @return Field 的值
+	 * @throws ReflectiveOperationException 反射异常
 	 */
 	@SuppressWarnings("unchecked")
 	static public <T> T getFieldValue(Object obj, String fieldName)
@@ -82,9 +83,10 @@ public class TReflect {
 	 * 更新对象中指定的Field的值
 	 * 		注意:对 private 等字段有效
 	 * 
-	 * @param obj
-	 * @param fieldName
-	 * @param fieldValue
+	 * @param obj  对象
+	 * @param fieldName field 名称
+	 * @param fieldValue field 值
+	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static void setFieldValue(Object obj, String fieldName,
 			Object fieldValue) throws ReflectiveOperationException {
@@ -96,8 +98,9 @@ public class TReflect {
 	/**
 	 * 将对象中的field和其值组装成Map 静态字段(static修饰的)不包括
 	 * 
-	 * @param obj
-	 * @return
+	 * @param obj 对象
+	 * @return 所有 field 名称-值拼装的 Map
+	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Map<Field, Object> getFieldValues(Object obj)
 			throws ReflectiveOperationException {
@@ -119,7 +122,7 @@ public class TReflect {
 	 * @param name		   方法名	
 	 * @param paramTypes   参数类型
 	 * @return			   方法对象
-	 * @throws ReflectiveOperationException
+	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Method findMethod(Class<?> clazz, String name,
 			Class<?>... paramTypes) throws ReflectiveOperationException  {
@@ -129,7 +132,7 @@ public class TReflect {
 	/**
 	 * 获取类的方法集合
 	 * @param clazz		类对象
-	 * @return
+	 * @return Method 对象数组
 	 */
 	public static Method[] getMethods(Class<?> clazz) {
 		return clazz.getMethods();
@@ -140,7 +143,7 @@ public class TReflect {
 	 * 		类中可能存在同名方法
 	 * @param clazz		类对象
 	 * @param name		方法名	
-	 * @return
+	 * @return Method 对象数组
 	 */
 	public static Method[] getMethods(Class<?> clazz,String name) {
 		ArrayList<Method> methods = new ArrayList<Method>();
@@ -158,8 +161,9 @@ public class TReflect {
 	 * 		对对象执行一个指定Method对象的方法
 	 * @param obj				执行方法的对象
 	 * @param method			方法对象
+	 * @param parameters        多个参数
 	 * @return					方法返回结果
-	 * @throws ReflectiveOperationException
+	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Object invokeMethod(Object obj, Method method, Object... parameters)
 			throws ReflectiveOperationException {
@@ -174,7 +178,7 @@ public class TReflect {
 	 * @param name				执行方法名
 	 * @param parameters		方法参数
 	 * @return					方法返回结果
-	 * @throws ReflectiveOperationException		异常
+	 * @throws ReflectiveOperationException		反射异常
 	 */
 	public static Object invokeMethod(Object obj, String name, Object... parameters)
 			throws ReflectiveOperationException {
@@ -187,10 +191,11 @@ public class TReflect {
 	/**
 	 * 构造新的对象
 	 * 	通过参数中的构造参数对象parameters,选择特定的构造方法构造
+	 * @param <T>           范型
 	 * @param clazz			类对象
 	 * @param parameters	构造方法参数
-	 * @return
-	 * @throws ReflectiveOperationException
+	 * @return 新的对象
+	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static <T> T newInstance(Class<T> clazz, Object ...parameters)
 			throws ReflectiveOperationException {
@@ -201,10 +206,11 @@ public class TReflect {
 	
 	/**
 	 * 构造新的对象
+	 * @param <T> 范型
 	 * @param className		类名称
 	 * @param parameters	构造方法参数
-	 * @return
-	 * @throws ReflectiveOperationException
+	 * @return 新的对象
+	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static <T> T newInstance(String className, Object ...parameters) throws ReflectiveOperationException {
 		@SuppressWarnings("unchecked")
@@ -215,7 +221,7 @@ public class TReflect {
 	/**
 	 * 将对象数组转换成,对象类型的数组
 	 * @param objs	对象类型数组
-	 * @return
+	 * @return 类数组
 	 */
 	public static Class<?>[] getArrayClasses(Object[] objs){
 		Class<?>[] parameterTypes= new Class<?>[objs.length];
@@ -231,9 +237,9 @@ public class TReflect {
 	 * @param clazz			类对象
 	 * @param mapArg		Map 对象
 	 * @param ignoreCase    匹配属性名是否不区分大小写
-	 * @return
-	 * @throws ReflectiveOperationException
-	 * @throws ParseException
+	 * @return 转换后的对象
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws ParseException 解析异常
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Object getObjectFromMap(Class<?> clazz,
@@ -309,8 +315,8 @@ public class TReflect {
 	 * 			key 对象属性名称
 	 * 			value 对象属性值
 	 * @param obj      待转换的对象
-	 * @return
-	 * @throws ReflectiveOperationException
+	 * @return 转后的 Map
+	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Map<String, Object> getMapfromObject(Object obj) throws ReflectiveOperationException{
 		
@@ -368,7 +374,7 @@ public class TReflect {
 	 * 		包括判断其父接口
 	 * @param type               被判断的类型
 	 * @param interfaceClass     检查是否实现了次类的接口
-	 * @return
+	 * @return 是否实现某个接口
 	 */
 	public static boolean isImpByInterface(Class<?> type,Class<?> interfaceClass){
 		Class<?>[] interfaces= type.getInterfaces();
@@ -388,7 +394,7 @@ public class TReflect {
 	 * 		包括判断其父类
 	 * @param type			判断的类型
 	 * @param extendsClass	用于判断的父类类型
-	 * @return
+	 * @return 是否继承于某个类
 	 */
 	public static boolean isExtendsByClass(Class<?> type,Class<?> extendsClass){
 		Class<?> superClass = type;
@@ -400,9 +406,5 @@ public class TReflect {
 		}while(superClass!=null && !superClass.equals(extendsClass) && !superClass.equals(Object.class));
 
 		return false;
-	}
-
-	public static void main(String[] args) {
-		System.out.println(isExtendsByClass(Date.class,Date.class));
 	}
 }

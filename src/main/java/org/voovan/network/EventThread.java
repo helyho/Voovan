@@ -23,7 +23,7 @@ public class EventThread  implements Runnable{
 	
 	/**
 	 * 获取事件
-	 * @return
+	 * @return 事件对象
 	 */
 	public Event getEvent(){
 		return event;
