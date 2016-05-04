@@ -14,10 +14,10 @@ import java.util.Map.Entry;
  * WebServer 配置类
  *
  * @author helyho
- *         <p>
- *         Voovan Framework.
- *         WebSite: https://github.com/helyho/Voovan
- *         Licence: Apache v2 License
+ *
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class WebServerConfig {
     private String host             = "0.0.0.0";
@@ -203,10 +203,10 @@ public class WebServerConfig {
      * 过滤器配置信息对象,内联对象
      *
      * @author helyho
-     *         <p>
-     *         Voovan Framework.
-     *         WebSite: https://github.com/helyho/Voovan
-     *         Licence: Apache v2 License
+     *
+     * Voovan Framework.
+     * WebSite: https://github.com/helyho/Voovan
+     * Licence: Apache v2 License
      */
     public static class FilterConfig {
         private String name;

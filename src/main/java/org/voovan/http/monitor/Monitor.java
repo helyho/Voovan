@@ -9,10 +9,10 @@ import java.io.IOException;
  * 监控器类
  *
  * @author helyho
- *         <p>
- *         Java Framework.
- *         WebSite: https://github.com/helyho/Voovan
- *         Licence: Apache v2 License
+ *
+ * Java Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class Monitor {
 

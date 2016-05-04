@@ -20,10 +20,10 @@ import java.util.Properties;
  * 类文字命名
  *
  * @author helyho
- *         <p>
- *         Java Framework.
- *         WebSite: https://github.com/helyho/Voovan
- *         Licence: Apache v2 License
+ *
+ * Java Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class JdbcOperatorUnit extends TestCase {
     private static DruidDataSource dataSource = null;
