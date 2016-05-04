@@ -75,9 +75,9 @@ public class WebContext {
 		try {
 			config = (WebServerConfig)TReflect.getObjectFromMap(WebServerConfig.class,WEB_CONFIG,true);
 		} catch (ReflectiveOperationException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		} catch (ParseException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		}
 
 		//如果是相对路径则转换成绝对路径
