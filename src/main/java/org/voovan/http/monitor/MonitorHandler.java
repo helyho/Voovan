@@ -5,6 +5,7 @@ import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.tools.*;
 import org.voovan.tools.json.JSONEncode;
+import org.voovan.tools.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -98,7 +99,7 @@ public class MonitorHandler implements HttpBizHandler {
             jsonStr=jsonStr.replace("\\", "\\/");
             return jsonStr;
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            Logger.error(e);
         }
         return "";
     }
