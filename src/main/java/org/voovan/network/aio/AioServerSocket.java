@@ -25,10 +25,10 @@ public class AioServerSocket extends SocketContext{
 	
 	/**
 	 * 构造函数
-	 * @param host
-	 * @param port
-	 * @param readTimeout
-	 * @throws IOException
+	 * @param host    主机地址
+	 * @param port    主机端口
+	 * @param readTimeout 超时时间
+	 * @throws IOException IO 异常
 	 */
 	public AioServerSocket(String host,int port,int readTimeout) throws IOException{
 		super(host, port, readTimeout);

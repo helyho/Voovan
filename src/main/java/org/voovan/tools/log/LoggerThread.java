@@ -25,6 +25,7 @@ public class LoggerThread implements Runnable {
 
 	/**
 	 * 构造函数
+	 * @param outputStreams 输出流数组
 	 */
 	public LoggerThread(OutputStream[] outputStreams) {
 		this.logQueue = new ArrayBlockingQueue<String>(100000);
@@ -37,7 +38,7 @@ public class LoggerThread implements Runnable {
 	
 	/**
 	 * 获取日志输出流集合
-	 * @return
+	 * @return 输出流数组
 	 */
 	public OutputStream[] getOutputStreams() {
 		return outputStreams;
@@ -45,7 +46,7 @@ public class LoggerThread implements Runnable {
 
 	/**
 	 * 设置日志输出流集合
-	 * @param outputStreams
+	 * @param outputStreams 输出流数组
 	 */
 	public void setOutputStreams(OutputStream[] outputStreams) {
 		synchronized(outputStreams){
@@ -71,7 +72,7 @@ public class LoggerThread implements Runnable {
 	/**
 	 * 增加消息
 	 *
-	 * @param msg
+	 * @param msg 消息字符串
      */
 	public void addLogMessage(String msg) {
 		logQueue.add(msg);
@@ -99,7 +100,7 @@ public class LoggerThread implements Runnable {
 	
 	/**
 	 * 检查线程是否处于结束状态
-	 * @return
+	 * @return 是否结束状态
 	 */
 	@SuppressWarnings("unchecked")
 	public boolean isTerminate(){
@@ -122,7 +123,8 @@ public class LoggerThread implements Runnable {
 	
 	/**
 	 * 获取 Web 访问日志记录对象
-	 * @return
+	 * @param outputStreams 输出流数组
+	 * @return 日志记录线程对象
 	 */
 	public static LoggerThread start(OutputStream[] outputStreams) {
 		LoggerThread loggerThread = new LoggerThread(outputStreams);

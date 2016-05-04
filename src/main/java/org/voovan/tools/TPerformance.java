@@ -39,7 +39,7 @@ public class TPerformance {
 
 	/**
 	 * 获取当前系统的负载情况
-	 * @return
+	 * @return 系统的负载情况
      */
 	public static double getSystemLoadAverage(){
 		return osmxb.getSystemLoadAverage();
@@ -47,7 +47,7 @@ public class TPerformance {
 
 	/**
 	 * 获取当前系统 CPU 数
-	 * @return
+	 * @return 系统 CPU 数
      */
 	public static double getProcessorCount(){
 		return osmxb.getAvailableProcessors();
@@ -55,7 +55,7 @@ public class TPerformance {
 
 	/**
 	 * 获取系统单 CPU 核心的平均负载
-	 * @return
+	 * @return 单 CPU 核心的平均负载
 	 */
 	public static double cpuPerCoreLoadAvg(){
 		double perCoreLoadAvg = osmxb.getSystemLoadAverage()/osmxb.getAvailableProcessors();
@@ -66,7 +66,8 @@ public class TPerformance {
 	
 	/**
 	 * JVM 虚拟机的内存使用情况
-	 * @return	 */
+	 * @return 内存使用情况
+	 * */
 	public static double getJVMMemoryUsage(){
 		Runtime runtime = Runtime.getRuntime();
 		double memoryUsage = 1-((double)runtime.freeMemory()+(runtime.maxMemory()-runtime.totalMemory()))/(double)runtime.maxMemory();
@@ -78,7 +79,7 @@ public class TPerformance {
 	/**
 	 * 获取部分内存信息(栈,非栈)
 	 * @param memType 获取的信息类型
-     * @return
+     * @return 当前内存数值
      */
 	public static long getHeapMemoryInfo(MEMTYPE memType){
 		if(memType==MEMTYPE.NOHEAP_INIT){
@@ -127,8 +128,8 @@ public class TPerformance {
 	 * 获取虚拟机中的对象信息
 	 * @param pid		进程 Id
 	 * @param regex     对象匹配字符串
-	 * @return
-	 * @throws IOException
+	 * @return 虚拟机中的对象信息
+	 * @throws IOException IO 异常
      */
 	public static Map<String,ObjectInfo> getSysObjectInfo(long pid,String regex) throws IOException {
 		Hashtable<String,ObjectInfo> result = new Hashtable<String,ObjectInfo>();

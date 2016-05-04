@@ -34,8 +34,8 @@ public class NioSelector {
 	
 	/**
 	 * 事件监听器构造
-	 * @param selector
-	 * @param socketContext
+	 * @param selector   对象Selector
+	 * @param socketContext socketContext 对象
 	 */
 	public NioSelector(Selector selector, SocketContext socketContext) {
 		this.selector = selector;
@@ -51,7 +51,7 @@ public class NioSelector {
 	/**
 	 * 所有的事件均在这里触发
 	 * 
-	 * @throws IOException
+	 * @throws IOException IO 异常
 	 */
 	public void eventChose() throws IOException {
 		//读取用的缓冲区
@@ -133,8 +133,8 @@ public class NioSelector {
 	 * 获取 socket 通道
 	 * 
 	 * @param selectionKey  当前 Selectionkey
-	 * @return
-	 * @throws IOException
+	 * @return SocketChannel 对象
+	 * @throws IOException IO 异常
 	 */
 	public SocketChannel getSocketChannel(SelectionKey selectionKey)
 			throws IOException {

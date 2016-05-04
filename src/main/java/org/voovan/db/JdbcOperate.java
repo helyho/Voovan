@@ -1,5 +1,6 @@
 package org.voovan.db;
 
+import org.voovan.tools.TObject;
 import org.voovan.tools.TReflect;
 import org.voovan.tools.TSQL;
 import org.voovan.tools.log.Logger;
@@ -51,8 +52,8 @@ public class JdbcOperate {
 	/**
 	 * 获取连接
 	 * 
-	 * @return
-	 * @throws SQLException
+	 * @return 获取数据库连接
+	 * @throws SQLException SQL 异常
 	 */
 	public Connection getConnection() throws SQLException {
 		//如果连接不存在,或者连接已关闭则重取一个连接
@@ -68,7 +69,7 @@ public class JdbcOperate {
 
 	/**
 	 * 提交事物
-	 * @throws SQLException
+	 * @throws SQLException SQL 异常
 	 */
 	public void commit() throws SQLException{
 		connection.commit();
@@ -77,7 +78,7 @@ public class JdbcOperate {
 	
 	/**
 	 * 回滚事物
-	 * @throws SQLException
+	 * @throws SQLException SQL 异常
 	 */
 	public void rollback() throws SQLException{
 		connection.rollback();
@@ -90,8 +91,8 @@ public class JdbcOperate {
 	 *            sql字符串
 	 * @param mapArg
 	 *            参数
-	 * @return
-	 * @throws SQLException
+	 * @return 结果集信息
+	 * @throws SQLException SQL 异常
 	 */
 	private ResultInfo baseQuery(String sqlText, Map<String, Object> mapArg) throws SQLException {
 		Connection conn = getConnection();
@@ -118,8 +119,8 @@ public class JdbcOperate {
 	 *            sql字符串
 	 * @param mapArg
 	 *            参数
-	 * @return
-	 * @throws SQLException
+	 * @return 更新记录数
+	 * @throws SQLException SQL 异常
 	 */
 	private int baseUpdate(String sqlText, Map<String, Object> mapArg) throws SQLException {
 		Connection conn = getConnection();
@@ -147,8 +148,8 @@ public class JdbcOperate {
 	 *            sql字符串
 	 * @param mapArgs
 	 *            参数
-	 * @return
-	 * @throws SQLException
+	 * @return 每条 SQL 更新记录数
+	 * @throws SQLException SQL 异常
 	 */
 	private int[] baseBatch(String sqlText, List<Map<String, Object>> mapArgs) throws SQLException {
 		Connection conn = getConnection();
@@ -213,8 +214,8 @@ public class JdbcOperate {
 	 * 
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
-	 * @return
-	 * @throws SQLException
+	 * @return 更新记录数
+	 * @throws SQLException SQL 异常
 	 */
 	public int update(String sqlText) throws SQLException {
 		return this.baseUpdate(sqlText, null);
@@ -227,9 +228,9 @@ public class JdbcOperate {
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param arg
 	 *            object为参数的对象
-	 * @return
-	 * @throws ReflectiveOperationException 
-	 * @throws SQLException
+	 * @return SQL 异常
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws SQLException SQL 异常
 	 */
 	public int update(String sqlText, Object arg) throws SQLException, ReflectiveOperationException {
 		if(arg.getClass().getName().startsWith("java")){
@@ -247,8 +248,8 @@ public class JdbcOperate {
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param mapArg
 	 *            map为参数的对象
-	 * @return
-	 * @throws SQLException
+	 * @return 更新记录数
+	 * @throws SQLException SQL 异常
 	 */
 	public int update(String sqlText, Map<String, Object> mapArg) throws SQLException {
 		return this.baseUpdate(sqlText, mapArg);
@@ -261,25 +262,25 @@ public class JdbcOperate {
 	 *            sql字符串 参数使用"::"作为索引标识,引导一个索引标识,索引标识从1开始,例如where id=::1
 	 * @param args
 	 *            多参数
-	 * @return
-	 * @throws SQLException 
+	 * @return 更新记录数
+	 * @throws SQLException  SQL 异常
 	 */
 	public int update(String sqlText, Object... args) throws SQLException {
-		Map<String, Object> paramsMap = TSQL.arrayToMap(args);
+		Map<String, Object> paramsMap = TObject.arrayToMap(args);
 		return this.baseUpdate(sqlText, paramsMap);
 	}
 
 	/**
 	 * 查询对象集合,无参数 字段名和对象属性名大消息必须大小写一致
 	 * 
-	 * @param <T>
+	 * @param <T> 范型
 	 * 
 	 * @param sqlText
 	 *            sql字符串
 	 * @param t
 	 *            对象模型
-	 * @return
-	 * @throws SQLException
+	 * @return 结果集List
+	 * @throws SQLException SQL 异常
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t) throws SQLException{
 		ResultInfo resultInfo = this.baseQuery(sqlText, null);
@@ -293,17 +294,17 @@ public class JdbcOperate {
 	/**
 	 * 查询单个对象,Object作为参数 字段名和对象属性名大消息必须大小写一致
 	 * 
-	 * @param <T>
-	 * 
+	 * @param <T> 范型
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param arg
 	 *            Object参数
 	 * @param t
 	 *            对象模型
-	 * @return
-	 * @throws ReflectiveOperationException 
-	 * @throws SQLException 
+	 * @return 结果集 List
+	 * @throws ReflectiveOperationException  反射异常
+	 * @throws SQLException  SQL 异常
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t, Object arg) throws SQLException, ReflectiveOperationException{
 		if(arg.getClass().getName().startsWith("java")){
@@ -321,7 +322,7 @@ public class JdbcOperate {
 	/**
 	 * 查询对象集合,map作为参数,字段名和Map键名大消息必须大小写一致
 	 * 
-	 * @param <T>
+	 * @param <T>  范型
 	 * 
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
@@ -329,8 +330,8 @@ public class JdbcOperate {
 	 *            map参数
 	 * @param t
 	 *            对象模型
-	 * @return
-	 * @throws SQLException 
+	 * @return  返回结果集 List
+	 * @throws SQLException  SQL 异常
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t, Map<String, Object> mapArg) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, mapArg);
@@ -343,7 +344,7 @@ public class JdbcOperate {
 	/**
 	 * 查询对象集合,map作为参数,字段名和Map键名大消息必须大小写一致
 	 * 
-	 * @param <T>
+	 * @param <T> 范型
 	 * 
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为索引标识,引导一个索引标识,索引标识从1开始,例如where id=::1
@@ -351,11 +352,11 @@ public class JdbcOperate {
 	 *            map参数
 	 * @param t
 	 *            对象模型
-	 * @return
-	 * @throws SQLException 
+	 * @return 返回结果集 List
+	 * @throws SQLException SQL 异常
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t, Object... args) throws SQLException{
-		Map<String, Object> paramsMap = TSQL.arrayToMap(args);
+		Map<String, Object> paramsMap = TObject.arrayToMap(args);
 		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 		if(resultInfo!=null){
 			return (List<T>) resultInfo.getObjectList(t);
@@ -368,8 +369,8 @@ public class JdbcOperate {
 	 * 
 	 * @param sqlText
 	 *            sql字符串
-	 * @return
-	 * @throws SQLException 
+	 * @return 返回结果集 List[Map]
+	 * @throws SQLException   SQL 异常
 	 */
 	public List<Map<String, Object>> queryMapList(String sqlText) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, null);
@@ -386,9 +387,9 @@ public class JdbcOperate {
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param arg
 	 *            Object参数
-	 * @return
-	 * @throws ReflectiveOperationException 
-	 * @throws SQLException 
+	 * @return 返回结果集 List[Map]
+	 * @throws ReflectiveOperationException  反射异常
+	 * @throws SQLException SQL 异常
 	 */
 	public List<Map<String, Object>> queryMapList(String sqlText, Object arg) throws SQLException, ReflectiveOperationException  {
 		if(arg.getClass().getName().startsWith("java")){
@@ -410,8 +411,8 @@ public class JdbcOperate {
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param mapArg
 	 *            map参数
-	 * @return
-	 * @throws SQLException
+	 * @return 返回结果集 List[Map]
+	 * @throws SQLException SQL 异常
 	 */
 	public List<Map<String, Object>> queryMapList(String sqlText, Map<String, Object> mapArg) throws SQLException{
 		ResultInfo resultInfo = this.baseQuery(sqlText, mapArg);
@@ -428,11 +429,11 @@ public class JdbcOperate {
 	 *            sql字符串 参数使用"::"作为索引标识,引导一个索引标识,索引标识从1开始,例如where id=::1
 	 * @param args
 	 *            Object参数
-	 * @return
-	 * @throws SQLException 
+	 * @return 返回结果集 List[Map]
+	 * @throws SQLException SQL 异常
 	 */
 	public List<Map<String, Object>> queryMapList(String sqlText, Object... args) throws SQLException {
-		Map<String, Object> paramsMap = TSQL.arrayToMap(args);
+		Map<String, Object> paramsMap = TObject.arrayToMap(args);
 		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 		if(resultInfo!=null){
 			return resultInfo.getMapList();
@@ -442,13 +443,15 @@ public class JdbcOperate {
 
 	/**
 	 * 查询单个对象,无参数 
-	 * 
+	 *
+	 * @param <T> 范型
+	 *
 	 * @param sqlText
 	 *            sql字符串
 	 * @param t
 	 *            对象模型
-	 * @return
-	 * @throws SQLException 
+	 * @return 返回结果集 List[Map]
+	 * @throws SQLException SQL 异常
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T queryObject(String sqlText, Class<T> t) throws SQLException {
@@ -461,15 +464,19 @@ public class JdbcOperate {
 
 	/**
 	 * 查询单个对象,Object作为参数 字段名和对象属性名大消息必须大小写一致
-	 * 
+	 *
+	 * @param <T> 范型
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
+	 * @param t
+	 * 			  对象模型
 	 * @param arg
 	 *            Object参数
-	 * @return
-	 * @throws ReflectiveOperationException 
-	 * @throws SQLException 
-	 * @throws ParseException 
+	 * @return 结果对象
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws SQLException SQL 异常
+	 * @throws ParseException 解析异常
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T queryObject(String sqlText, Class<T> t, Object arg) throws SQLException, ReflectiveOperationException, ParseException {
@@ -487,15 +494,17 @@ public class JdbcOperate {
 
 	/**
 	 * 查询单个对象,map作为参数,字段名和Map键名大消息必须大小写一致
-	 * 
+	 *
+	 * @param <T> 范型
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param mapArg
 	 *            map参数
 	 * @param t
 	 *            对象模型
-	 * @return
-	 * @throws SQLException 
+	 * @return 结果对象
+	 * @throws SQLException  SQL 异常
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T queryObject(String sqlText, Class<T> t, Map<String, Object> mapArg) throws SQLException {
@@ -508,19 +517,21 @@ public class JdbcOperate {
 
 	/**
 	 * 查询单个对象,map作为参数,字段名和Map键名大消息必须大小写一致
-	 * 
+	 *
+	 * @param <T> 范型
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为索引标识,引导一个索引标识,索引标识从1开始,例如where id=::1
 	 * @param args
 	 *            map参数
 	 * @param t
 	 *            对象模型
-	 * @return
-	 * @throws SQLException
+	 * @return 结果对象
+	 * @throws SQLException SQL 异常
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T queryObject(String sqlText, Class<T> t, Object... args) throws SQLException{
-		Map<String, Object> paramsMap = TSQL.arrayToMap(args);
+		Map<String, Object> paramsMap = TObject.arrayToMap(args);
 		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 		if(resultInfo!=null){
 			return (T) resultInfo.getObject(t);
@@ -533,8 +544,8 @@ public class JdbcOperate {
 	 * 
 	 * @param sqlText
 	 *            sql字符串
-	 * @return
-	 * @throws SQLException
+	 * @return 结果对象 Map
+	 * @throws SQLException SQL 异常
 	 */
 	public Map<String, Object> queryMap(String sqlText) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, null);
@@ -553,9 +564,9 @@ public class JdbcOperate {
 	 *            sql字符串 参数使用"::"引导一个标识,例如where id=::id,中 id 就是标识。
 	 * @param arg
 	 *            arg参数 属性指代SQL字符串的标识,属性值用于在SQL字符串中替换标识。
-	 * @return
-	 * @throws SQLException
-	 * @throws ReflectiveOperationException
+	 * @return 结果对象 Map
+	 * @throws SQLException SQL 异常
+	 * @throws ReflectiveOperationException 反射异常
 	 *
 	 */
 	public Map<String, Object> queryMap(String sqlText, Object arg) throws SQLException, ReflectiveOperationException {
@@ -578,8 +589,8 @@ public class JdbcOperate {
 	 *            sql字符串 参数使用"::"引导一个标识,例如where id=::id,中 id 就是标识。
 	 * @param mapArg
 	 *            map参数，key指代SQL字符串的标识,value用于在SQL字符串中替换标识。
-	 * @return
-	 * @throws SQLException
+	 * @return 结果对象 Map
+	 * @throws SQLException SQL 异常
 	 */
 	public Map<String, Object> queryMap(String sqlText, Map<String, Object> mapArg) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, mapArg);
@@ -596,11 +607,11 @@ public class JdbcOperate {
 	 *            sql字符串 参数使用"::"引导一个索引标识,引导一个索引标识,索引标识从1开始,例如where id=::1
 	 * @param args
 	 *            args参数
-	 * @return
-	 * @throws SQLException
+	 * @return 结果对象
+	 * @throws SQLException SQL 异常
 	 */
 	public Map<String, Object> queryMap(String sqlText, Object... args) throws SQLException {
-		Map<String, Object> paramsMap = TSQL.arrayToMap(args);
+		Map<String, Object> paramsMap = TObject.arrayToMap(args);
 		ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 		if(resultInfo!=null){
 			return resultInfo.getMap();
@@ -615,8 +626,9 @@ public class JdbcOperate {
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param objects
 	 *            模型对象
-	 * @return
-	 * @throws SQLException
+	 * @return 每条 SQL 更新记录数
+	 * @throws SQLException SQL 异常
+	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public int[] batchObject(String sqlText, List<Object> objects) throws SQLException, ReflectiveOperationException {
 		List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
@@ -629,21 +641,19 @@ public class JdbcOperate {
 	/**
 	 * 执行数据库批量更新
 	 * 
-	 * @param sqlText
-	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
-	 * @param maps
-	 *            批量处理SQL的参数
-	 * @return
-	 * @throws SQLException
+	 * @param sqlText sql字符串 参数使用"::"作为标识,例如where id=::id
+	 * @param maps 批量处理SQL的参数
+	 * @return 每条 SQL 更新记录数
+	 * @throws SQLException SQL 异常
 	 */
 	public int[] batchMap(String sqlText, List<Map<String, Object>> maps) throws SQLException {
 		return this.baseBatch(sqlText, maps);
 	}
 	/**
 	 * 调用存储过程,无参数
-	 * @param sqlText
-	 * @return
-	 * @throws SQLException
+	 * @param sqlText sql字符串 参数使用"::"作为标识,例如where id=::id
+	 * @return 调用结果
+	 * @throws SQLException SQL 异常
 	 */
 	public List<Object> call(String sqlText) throws SQLException {
 		return this.baseCall(sqlText,null,null);
@@ -658,8 +668,8 @@ public class JdbcOperate {
 	 * 				参数类型 IN,OUT,INOUT 可选
 	 * @param maps
 	 * 				map参数
-	 * @return
-	 * @throws SQLException
+	 * @return 调用结果
+	 * @throws SQLException SQL 异常
 	 */
 	public List<Object> call(String sqlText, CallType[] callTypes, Map<String, Object> maps) throws SQLException {
 		return this.baseCall(sqlText ,callTypes ,maps);
@@ -674,9 +684,9 @@ public class JdbcOperate {
 	 * 				参数类型 IN,OUT,INOUT 可选
 	 * @param arg
 	 * 				对象参数
-	 * @return
-	 * @throws SQLException
-	 * @throws ReflectiveOperationException
+	 * @return 调用结果
+	 * @throws SQLException SQL 异常
+	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public List<Object> call(String sqlText, CallType[] callTypes, Object arg) throws SQLException, ReflectiveOperationException {
 		if(arg.getClass().getName().startsWith("java")){
@@ -696,18 +706,18 @@ public class JdbcOperate {
 	 * 				参数类型 IN,OUT,INOUT 可选
 	 * @param args
 	 * 				多个连续参数
-	 * @return
-	 * @throws SQLException
+	 * @return 调用结果
+	 * @throws SQLException SQL 异常
 	 */
 	public List<Object> call(String sqlText, CallType[] callTypes, Object ... args) throws SQLException {
-		Map<String, Object> paramsMap  = TSQL.arrayToMap(args);
+		Map<String, Object> paramsMap  = TObject.arrayToMap(args);
 		return this.baseCall(sqlText,callTypes, paramsMap);
 	}
 	
 
 	/**
 	 * 关闭连接
-	 * @param resultSet
+	 * @param resultSet 结果集
 	 */
 	protected static void closeConnection(ResultSet resultSet) {
 		Statement statement = null;
@@ -736,7 +746,7 @@ public class JdbcOperate {
 
 	/**
 	 * 关闭连接
-	 * @param statement
+	 * @param statement Statement 对象
 	 */
 	protected static void closeConnection(Statement statement) {
 		Connection connection = null;
@@ -760,7 +770,7 @@ public class JdbcOperate {
 	
 	/**
 	 * 关闭连接
-	 * @param connection
+	 * @param connection 连接对象
 	 */
 	private static void closeConnection(Connection connection) {
 		try {
@@ -774,7 +784,7 @@ public class JdbcOperate {
 	
 	/**
 	 * 关闭结果集
-	 * @param resultSet
+	 * @param resultSet 结果集
 	 */
 	protected static void closeResult(ResultSet resultSet){
 		Statement statement = null;
@@ -797,7 +807,7 @@ public class JdbcOperate {
 	
 	/**
 	 * 关闭 Statement
-	 * @param statement
+	 * @param statement Statement 对象
 	 */
 	protected static void closeStatement(Statement statement){
 		try {

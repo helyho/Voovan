@@ -96,12 +96,16 @@ public class WebContext {
 
 	/**
 	 * 获取HttpServer配置对象
-	 * @return
+	 * @return  HttpServer配置对象
      */
 	public static WebServerConfig getWebServerConfig(){
 		return webServerConfig;
 	}
 
+	/**
+	 * 显示欢迎信息
+	 * @param config HttpServer配置对象
+     */
 	public static void welcome(WebServerConfig config){
 		Logger.simple("*********************************************************************************************");
 		Logger.simple("");
@@ -136,9 +140,9 @@ public class WebContext {
 
 	/**
 	 * 生成 accessLog 日志
-	 * @param request
-	 * @param response
-	 * @return
+	 * @param request   HTTP 请求对象
+	 * @param response	HTTP 响应对象
+	 * @return 日志信息
 	 */
 	private static String genAccessLog(HttpRequest request,HttpResponse response){
 		StringBuilder content = new StringBuilder();
@@ -156,9 +160,9 @@ public class WebContext {
 	}
 	
 	/**
-	 * 写入ac'ce
-	 * @param request
-	 * @param response
+	 * 写入access.log
+	 * @param request HTTP 请求对象
+	 * @param response HTTP 响应对象
 	 */
 	public static void writeAccessLog(HttpRequest request,HttpResponse response){
 		//配置文件控制是否写入 access.log
@@ -169,9 +173,11 @@ public class WebContext {
 	}
 	
 	/**
-	 * 获取 Web 服务配置
-	 * @param <T>
-	 * @return
+	 * 取配置中的参数定义
+	 * @param <T> 范型
+	 * @param name 参数名
+	 * @param defaultValue 默认值
+	 * @return 参数定义
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T getContextParameter(String name, T defaultValue) {
@@ -180,7 +186,7 @@ public class WebContext {
 	
 	/**
 	 * 获取 mime 定义
-	 * @return
+	 * @return  MIME 定义 Map
 	 */
 	public static Map<String, Object> getMimeDefine() {
 		return MIME_TYPES;
@@ -188,7 +194,7 @@ public class WebContext {
 	
 	/**
 	 * 获取错误输出定义
-	 * @return
+	 * @return  错误输出定义
 	 */
 	public static Map<String, Object> getErrorDefine() {
 		return ERROR_DEFINE;
@@ -196,7 +202,7 @@ public class WebContext {
 
 	/**
 	 * 获取版本号
-	 * @return
+	 * @return  版本号
 	 */
 	public final static String getVERSION() {
 		return VERSION;
@@ -204,12 +210,16 @@ public class WebContext {
 	
 	/**
 	 * 获取在 Cookie 中保存 session id 的名称
-	 * @return
+	 * @return session id 的名称
 	 */
 	public static String getSessionName() {
 		return SESSION_NAME;
 	}
-	
+
+	/**
+	 * 默认错误输出定义
+	 * @return 错误输出定义
+     */
 	public static String getDefaultErrorPage(){
 		return "RequestMethod: {{RequestMethod}} <br/>" +
 				"StatusCode: {{StatusCode}} <br/>" +

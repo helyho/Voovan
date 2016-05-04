@@ -82,7 +82,7 @@ public class TString {
 	 * 判断是否是指定进制的数字字符串
 	 * @param numberString  目标字符串
 	 * @param radix			进制
-	 * @return
+	 * @return 是否是指定进制的数字字符串
 	 */
 	public static boolean isNumber(String numberString,int radix){
 		try{
@@ -96,8 +96,8 @@ public class TString {
 	
 	/**
 	 * 判断是否是整形数
-	 * @param integerString
-	 * @return
+	 * @param integerString 数字字符串
+	 * @return 是否是整形数
 	 */
 	public static boolean isInteger(String integerString){
 		if(searchByRegex(integerString, "^-?[0-9]\\d*$").length>0){
@@ -109,8 +109,8 @@ public class TString {
 	
 	/**
 	 * 判断是否是浮点数
-	 * @param floadString
-	 * @return
+	 * @param floadString  浮点数字符串
+	 * @return 是否是浮点数
 	 */
 	public static boolean isFloat(String floadString){
 		if(searchByRegex(floadString, "^-?[1-9]\\d*\\.\\d*|-0\\.\\d*[1-9]\\d*$").length>0){
@@ -122,8 +122,8 @@ public class TString {
 
 	/**
 	 * 判断是否是浮点数
-	 * @param floadString
-	 * @return
+	 * @param floadString 浮点数字符串
+	 * @return 是否是浮点数
 	 */
 	public static boolean isBoolean(String floadString){
 		if("true".equalsIgnoreCase(floadString) || "false".equalsIgnoreCase(floadString)){
@@ -157,8 +157,8 @@ public class TString {
 	
 	/**
 	 * 判断字符串空指针或者内容为空
-	 * @param source
-	 * @return
+	 * @param source 字符串
+	 * @return 是否是空指针或者内容为空
 	 */
 	public static boolean isNullOrEmpty(String source){
 		if(source==null || source.equals("")){
@@ -172,7 +172,7 @@ public class TString {
 	 * 按照标识符 Map 进行替换
 	 * @param source		源字符串,标识符使用"{{标识}}"进行包裹,这些标识符将会被替换
 	 * @param tokens		标识符Map集合
-	 * @return
+	 * @return 替换后的字符串
 	 */
 	public static String tokenReplace(String source,Map<String, String> tokens){
 		for(Entry<String, String> entry : tokens.entrySet()){
@@ -190,7 +190,7 @@ public class TString {
 	 * @param source		源字符串,标识符使用"{{标识}}"进行包裹
 	 * @param tokenName		标识符
 	 * @param tokenValue    标志符值
-	 * @return
+	 * @return 替换后的字符串
 	 */
 	public static String tokenReplace(String source,String tokenName,String tokenValue){
 		return source.replaceAll("\\{\\{"+tokenName+"\\}\\}",Matcher.quoteReplacement(tokenValue));
@@ -200,9 +200,9 @@ public class TString {
 	 * 按位置格式化字符串
 	 * 		TString.format("aaaa{}bbbb{}cccc{}", "1","2","3")
 	 * 		输出aaaa1bbbb2cccc3
-	 * @param source
-	 * @param args
-	 * @return
+	 * @param source 字符串
+	 * @param args 多个参数
+	 * @return 格式化后的字符串
 	 */
 	public static String format(String source,String ...args){
 		for(String arg : args){
@@ -213,10 +213,10 @@ public class TString {
 	
 	/**
 	 * 替换第一个标志字符串
-	 * @param source
-	 * @param mark
-	 * @param replacement
-	 * @return
+	 * @param source  字符串
+	 * @param mark    标志字符
+	 * @param replacement 替换字符
+	 * @return 替换后的结果
 	 */
 	public static String replaceFirst(String source,String mark,String replacement){
 		int head = source.indexOf(mark);
@@ -228,10 +228,10 @@ public class TString {
 	
 	/**
 	 * 替换最后一个标志字符串
-	 * @param source
-	 * @param mark
-	 * @param replacement
-	 * @return
+	 * @param source  字符串
+	 * @param mark    标志字符
+	 * @param replacement 替换字符
+	 * @return 替换后的结果
 	 */
 	public static String replaceLast(String source,String mark,String replacement){
 		
@@ -246,7 +246,7 @@ public class TString {
 	 * 缩进字符串
 	 * @param str			待缩进的字符串
 	 * @param indentCount   缩进数(空格的数目)
-	 * @return
+	 * @return 缩进后的字符串
 	 */
 	public static String indent(String str,int indentCount){
 		if(indentCount>0 && str!=null){

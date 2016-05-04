@@ -21,6 +21,8 @@ public class HttpSession {
 	
 	/**
 	 * 构造函数
+	 *
+	 * @param config  WEB服务配置对象
 	 */
 	public HttpSession(WebServerConfig config){
 		attributes = new HashMap<String, Object>();
@@ -34,6 +36,8 @@ public class HttpSession {
 
 	/**
 	 * 刷新 Session 的超时时间
+	 *
+	 * @return HTTP-Session 对象
 	 */
 	public HttpSession refresh(){
 		lastTimeillis = System.currentTimeMillis();
@@ -69,7 +73,8 @@ public class HttpSession {
 
 	/**
 	 * 获取 Session ID
-	 * @return
+	 *
+	 * @return   Session ID
 	 */
 	public String getId() {
 		return id;
@@ -77,6 +82,7 @@ public class HttpSession {
 
 	/**
 	 * 获取最大活动时间
+	 *
 	 * @return 最大活动时间
 	 */
 	public int getMaxInactiveInterval() {
@@ -85,6 +91,7 @@ public class HttpSession {
 
 	/**
 	 * 设置最大活动时间
+	 *
 	 * @param maxInactiveInterval 最大活动时间
 	 */
 	public void setMaxInactiveInterval(int maxInactiveInterval) {
@@ -93,6 +100,7 @@ public class HttpSession {
 	
 	/**
 	 * 当前 Session 是否失效
+	 *
 	 * @return  true: 失效,false: 有效
 	 */
 	public boolean isInvalid(){

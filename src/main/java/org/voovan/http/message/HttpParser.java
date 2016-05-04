@@ -105,7 +105,7 @@ public class HttpParser {
 	 * 解析字符串中的所有等号表达式成 Map
 	 * @param str
      *              等式表达式
-	 * @return
+	 * @return 等号表达式 Map
 	 */
 	public static Map<String, String> getEqualMap(String str){
 		Map<String, String> equalMap = new HashMap<String, String>();
@@ -209,10 +209,12 @@ public class HttpParser {
 	 * 		解析称 Map 形式,其中:
 	 * 			1.protocol 解析成 key/value 形式
 	 * 			2.header   解析成 key/value 形式
-	 * 			3.cookie   解析成 List<Map<String,String>> 形式
-	 * 			3.part     解析成 List<Map<Stirng,Object>>(因为是递归,参考 HTTP 解析形式) 形式
+	 * 			3.cookie   解析成 List[Map[String,String]] 形式
+	 * 			3.part     解析成 List[Map[Stirng,Object]](因为是递归,参考 HTTP 解析形式) 形式
 	 * 			5.body     解析成 key="value" 的Map 元素
-	 * @throws IOException
+	 * @param sourceInputStream 输入流
+	 * @return 解析后的 Map
+	 * @throws IOException IO 异常
 	 */
 	public static Map<String, Object> parser(InputStream sourceInputStream) throws IOException{
 		Map<String, Object> packetMap = new HashMap<String, Object>();
@@ -335,7 +337,7 @@ public class HttpParser {
 	 * 解析报文成 HttpRequest 对象
 	 * @param inputStream  输入字节流
 	 * @return   返回请求报文
-	 * @throws IOException
+	 * @throws IOException IO 异常
 	 */
 	@SuppressWarnings("unchecked")
 	public static Request parseRequest(InputStream inputStream) throws IOException{
@@ -419,7 +421,7 @@ public class HttpParser {
 	 * 解析报文成 HttpResponse 对象
 	 * @param inputStream  输入字节流
 	 * @return   返回响应报文
-	 * @throws IOException
+	 * @throws IOException IO 异常
 	 */
 	@SuppressWarnings("unchecked")
 	public static Response parseResponse(InputStream inputStream) throws IOException{

@@ -44,7 +44,7 @@ public class Formater {
 
 	/**
 	 * 构造函数
-	 * @param template
+	 * @param template 模板
 	 */
 	public Formater(String template) {
 		this.template = template;
@@ -57,7 +57,7 @@ public class Formater {
 
 	/**
 	 * 获得当前栈元素信息
-	 * @return
+	 * @return 栈信息元素
 	 */
 	public static StackTraceElement currentStackLine() {
 		StackTraceElement[] stackTraceElements = TEnv.getStackElements();
@@ -66,7 +66,7 @@ public class Formater {
 
 	/**
 	 * 获取当前线程名称
-	 * @return
+	 * @return 当前线程名
 	 */
 	private static String currentThreadName() {
 		Thread currentThread = Thread.currentThread();
@@ -75,8 +75,8 @@ public class Formater {
 
 	/**
 	 * 消息缩进
-	 * @param message
-	 * @return
+	 * @param message 消息对象
+	 * @return 随进后的消息
 	 */
 	private String preIndentMessage(Message message){
 		String infoIndent = StaticParam.getLogConfig("InfoIndent","");
@@ -90,7 +90,12 @@ public class Formater {
 		}
 		return msg;
 	}
-	
+
+	/**
+	 * 构造消息格式化 Token
+	 * @param message 消息对象
+	 * @return  token 集合
+     */
 	public Map<String, String> newLogtokens(Message message){
 		Map<String, String> tokens = new HashMap<String, String>();
 		StackTraceElement stackTraceElement = currentStackLine();
@@ -118,8 +123,8 @@ public class Formater {
 	
 	/**
 	 * 格式化消息
-	 * @param message
-	 * @return
+	 * @param message 消息对象
+	 * @return 格式化后的消息
 	 */
 	public String format(Message message) {
 		Map<String, String> tokens = newLogtokens(message);
@@ -127,6 +132,11 @@ public class Formater {
 		return TString.tokenReplace(template, tokens);
 	}
 
+	/**
+	 * 简单格式化
+	 * @param message 消息对象
+	 * @return 格式化后的消息
+     */
 	public String simpleFormat(Message message){
 		//消息缩进
 		Map<String, String> tokens = newLogtokens(message);
@@ -136,8 +146,8 @@ public class Formater {
 	
 	/**
 	 * 消息类型是否可以记录
-	 * @param message
-	 * @return
+	 * @param message 消息对象
+	 * @return 是否可写入
 	 */
 	public boolean messageWritable(Message message){
 		if(logLevel.contains("ALL")){
@@ -152,7 +162,7 @@ public class Formater {
 	
 	/**
 	 * 写入消息对象,在进行格式化后的写入
-	 * @param message
+	 * @param message 消息对象
 	 */
 	public void writeFormatedLog(Message message) {
 		if(messageWritable(message)){
@@ -166,7 +176,7 @@ public class Formater {
 	
 	/**
 	 * 写入消息
-	 * @param msg
+	 * @param msg 消息字符串
 	 */
 	public void writeLog(String msg) {
 		if(Logger.isState()){
@@ -185,7 +195,7 @@ public class Formater {
 	
 	/**
 	 * 获取格式化后的日志文件路径
-	 * @return
+	 * @return 返回日志文件名
 	 */
 	public static String getFormatedLogFilePath(){
 		String logFile = StaticParam.getLogConfig("LogFile","");
@@ -203,7 +213,7 @@ public class Formater {
 	
 	/**
 	 * 获得一个实例
-	 * @return
+	 * @return 新的实例
 	 */
 	public static Formater newInstance() {
 			String logTemplate = StaticParam.getLogConfig("LogTemplate","{{i}}");
@@ -212,7 +222,7 @@ public class Formater {
 	
 	/**
 	 * 获取输出流
-	 * @return
+	 * @return 输出流数组
 	 */
 	protected static OutputStream[] getOutputStreams(){
 		String[] LogTypes = StaticParam.getLogConfig("LogType","STDOUT").split(",");

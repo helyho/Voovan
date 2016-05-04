@@ -19,10 +19,10 @@ public class TStream {
 	
 	/**
 	 * 从 InputStream 读取定长字符串
-	 * @param inputStream
-	 * @param length
-	 * @return
-	 * @throws IOException
+	 * @param inputStream 输入流
+	 * @param length  产度
+	 * @return 字节数组
+	 * @throws IOException IO 异常
 	 */
 	public static byte[] read(InputStream inputStream,int length) throws IOException{
 		byte[] resultBytes = new byte[length];
@@ -35,8 +35,9 @@ public class TStream {
 
 	/**
 	 * 从 InputStream 读取一行
-	 * @return
-	 * @throws IOException
+	 * @param inputStream 输入流
+	 * @return 字符串
+	 * @throws IOException IO 异常
 	 */
 	public static String readLine(InputStream inputStream) throws IOException{
 		String lineStr="";
@@ -58,8 +59,10 @@ public class TStream {
 	/**
 	 * 从 InputStream 读取一段,使用 byte数组 分割
 	 * 		返回的 byte数组中不包含分割 byte 数组的内容
-	 * @return
-	 * @throws IOException
+	 * @param inputStream  输入流
+	 * @param splitByte 分割字节数组
+	 * @return 字节数组
+	 * @throws IOException IO 异常
 	 */
 	public static byte[] readWithSplit(InputStream inputStream,byte[] splitByte) throws IOException{
 		byte[] resultBytes = new byte[0];
@@ -87,8 +90,8 @@ public class TStream {
 	/**
 	 * 从 InputStream 读取全部字节
 	 * @param inputStrem	输入流
-	 * @return
-	 * @throws IOException
+	 * @return 字节数组
+	 * @throws IOException IO 异常
 	 */
 	public static byte[] readAll(InputStream inputStrem) throws IOException{
 		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
@@ -114,7 +117,7 @@ public class TStream {
 	 * @param firstBytesLength     首个字节数组长度
 	 * @param lastBytes			   拼接在后的字节数组
 	 * @param lastBytesLength      拼接在后的字节数组长度
-	 * @return
+	 * @return 字节数组
 	 */
 	public static byte[] byteArrayConcat(byte[] firstBytes,int firstBytesLength, byte[] lastBytes,int lastBytesLength) {
 		if (lastBytes.length == 0)

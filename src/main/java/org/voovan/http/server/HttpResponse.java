@@ -17,6 +17,11 @@ import java.util.Date;
 public class HttpResponse extends Response {
 	private String	characterSet;
 
+	/**
+	 * 构造 HTTP 响应对象
+	 * @param response     响应对象
+	 * @param characterSet 字符集
+     */
 	protected HttpResponse(Response response,String characterSet) {
 		super(response);
 		this.characterSet=characterSet;
@@ -27,7 +32,7 @@ public class HttpResponse extends Response {
 	/**
 	 * 获取当前默认字符集
 	 * 
-	 * @return
+	 * @return 默认字符集
 	 */
 	public String getCharacterSet() {
 		return characterSet;
@@ -36,7 +41,7 @@ public class HttpResponse extends Response {
 	/**
 	 * 设置当前默认字符集
 	 * 
-	 * @param characterSet
+	 * @param characterSet 默认字符集
 	 */
 	public void setCharacterSet(String characterSet) {
 		this.characterSet = characterSet;
@@ -45,7 +50,7 @@ public class HttpResponse extends Response {
 	/**
 	 * 写入一个 byte 数组
 	 * 
-	 * @param bytes
+	 * @param bytes  byte 数组
 	 */
 	public void write(byte[] bytes) {
 		body().write(bytes);
@@ -54,9 +59,9 @@ public class HttpResponse extends Response {
 	/**
 	 * 写入一个 byte 数组
 	 * 
-	 * @param bytes
-	 * @param offset
-	 * @param length
+	 * @param bytes  byte 数组
+	 * @param offset 偏移量
+	 * @param length 写入长度
 	 */
 	public void write(byte[] bytes, int offset, int length) {
 		body().write(bytes, offset, length);
@@ -65,7 +70,7 @@ public class HttpResponse extends Response {
 	/**
 	 * 写入一个字符串
 	 * 
-	 * @param strs
+	 * @param strs 字符串
 	 */
 	public void write(String strs) {
 		if(strs!=null){

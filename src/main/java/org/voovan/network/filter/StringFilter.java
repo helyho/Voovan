@@ -38,7 +38,7 @@ public class StringFilter implements IoFilter {
 	/**
 	 * 将 ByteBuffer 转换成 String
 	 * @param byteBuffer   byteBuffer 对象
-	 * @return
+	 * @return 转化后的字符串
 	 */
 	public static String byteBufferToString(ByteBuffer byteBuffer) {
 		int size = byteBuffer.limit();

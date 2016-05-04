@@ -17,6 +17,7 @@ import java.util.Map;
 public class TObject {
 	/**
 	 * 类型转换
+	 * @param <T> 范型
 	 * @param obj 被转换对象
 	 * @return	转换后的对象
 	 */
@@ -27,6 +28,7 @@ public class TObject {
 	
 	/**
 	 * 转换成指定类型
+	 * @param <T> 范型
 	 * @param obj   被转换对象
 	 * @param t		指定的类型
 	 * @return		转换后的对象
@@ -38,6 +40,7 @@ public class TObject {
 	
 	/**
 	 * 空值默认值
+	 * @param <T> 范型
 	 * @param source	检测对象
 	 * @param defValue		null 值替换值
 	 * @return	如果非 null 则返回 source，如果为 null 则返回 defValue。
@@ -76,8 +79,8 @@ public class TObject {
 
 	/**
 	 * 将 Map 的值转换成 List
-	 * @param map
-	 * @return
+	 * @param map 需转换的 Map 对象
+	 * @return 转后的 Value 的 list
      */
 	public static List<?> mapValueToList(Map<?,?> map){
 		ArrayList<Object> result = new ArrayList<Object>();
@@ -85,5 +88,20 @@ public class TObject {
 			result.add(entry.getValue());
 		}
 		return result;
+	}
+
+	/**
+	 * 将数组转换成 Map
+	 * 			key 位置坐标
+	 *          value 数组值
+	 * @param objs    	待转换的数组
+	 * @return 转换后的 Map
+	 */
+	public static Map<String, Object> arrayToMap(Object[] objs){
+		HashMap<String ,Object> arrayMap = new HashMap<String ,Object>();
+		for(int i=0;i<objs.length;i++){
+			arrayMap.put(Integer.toString(i+1), objs[i]);
+		}
+		return arrayMap;
 	}
 }

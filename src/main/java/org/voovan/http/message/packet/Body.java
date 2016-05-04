@@ -27,7 +27,7 @@ public class Body {
 
 	/**
 	 * 获取长度
-	 * @return
+	 * @return 长度
      */
 	public int size(){
 		return outputStream.size();
@@ -35,6 +35,7 @@ public class Body {
 
 	/**
 	 * 获取内容字节数组
+	 * @return body 字节数组
 	 */
 	public byte[] getBodyBytes(){
 		return outputStream.toByteArray();
@@ -42,7 +43,7 @@ public class Body {
 	
 	/**
 	 * 获取 body 字符串
-	 * @return
+	 * @return body 字符串
 	 */
 	public String getBodyString(){
 		byte[] bodyBytes = getBodyBytes();
@@ -53,7 +54,7 @@ public class Body {
 	/**
 	 * 获取 body 字符串
 	 * @param charset 字符集
-	 * @return
+	 * @return body 字符串
 	 */
 	public String getBodyString(String charset){
 		byte[] bodyBytes = getBodyBytes();
@@ -67,7 +68,7 @@ public class Body {
 	
 	/**
 	 * 写入 body 
-	 * @param body
+	 * @param body 字节数组
 	 */
 	public void write(byte[] body){
 		try {
@@ -79,7 +80,9 @@ public class Body {
 	
 	/**
 	 * 写入 body 
-	 * @param body
+	 * @param body 字节数组
+	 * @param offset  字节数组偏移量
+	 * @param length  写入长度
 	 */
 	public void write(byte[] body,int offset,int length){
 		outputStream.write(body,offset,length);
@@ -87,7 +90,7 @@ public class Body {
 	
 	/**
 	 * 写入 body 字符串,默认 UTF-8
-	 * @param content
+	 * @param content body 字符串
 	 */
 	public void write(String content){
 		write(content,"UTF-8");
@@ -95,8 +98,8 @@ public class Body {
 	
 	/**
 	 * 使用特定的字符集写入 body 字符串
-	 * @param content
-	 * @param charset
+	 * @param content body 字符串
+	 * @param charset 字符集
 	 */
 	public void write(String content,String charset){
 		try{
@@ -109,8 +112,8 @@ public class Body {
 	
 	/**
 	 * 获取使用 GZIP 压缩后的 body 字节
-	 * @return
-	 * @throws IOException
+	 * @return 压缩后的字节数组
+	 * @throws IOException IO 异常
 	 */
 	public byte[] getGZipedBody() throws IOException{
 		return TZip.encodeGZip(outputStream.toByteArray());

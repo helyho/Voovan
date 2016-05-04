@@ -30,7 +30,7 @@ public class HttpServer {
 	/**
 	 * 构造函数
 	 * 
-	 * @param config
+	 * @param config  WEB 配对对象
 	 * @throws IOException
 	 *             异常
 	 */
@@ -68,7 +68,7 @@ public class HttpServer {
 
 	/**
 	 * 获取配置对象
-	 * @return
+	 * @return 返回 Web 服务配置对象
      */
 	public WebServerConfig getWebServerConfig() {
 		return config;
@@ -78,52 +78,112 @@ public class HttpServer {
 	 * 以下是一些 HTTP 方法的成员函数
 	 */
 
+	/**
+	 * GET 请求
+	 * @param routeRegexPath 匹配路径
+	 * @param handler  HTTP处理请求句柄
+     * @return HttpServer对象
+     */
 	public HttpServer get(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("GET", routeRegexPath, handler);
 		return this;
 	}
 
+	/**
+	 * POST 请求
+	 * @param routeRegexPath 匹配路径
+	 * @param handler  HTTP处理请求句柄
+	 * @return HttpServer对象
+     */
 	public HttpServer post(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("POST", routeRegexPath, handler);
 		return this;
 	}
 
+	/**
+	 * HEAD 请求
+	 * @param routeRegexPath 匹配路径
+	 * @param handler  HTTP处理请求句柄
+	 * @return HttpServer对象
+	 */
 	public HttpServer head(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("HEAD", routeRegexPath, handler);
 		return this;
 	}
 
+	/**
+	 * PUT 请求
+	 * @param routeRegexPath 匹配路径
+	 * @param handler  HTTP处理请求句柄
+	 * @return HttpServer对象
+	 */
 	public HttpServer put(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("PUT", routeRegexPath, handler);
 		return this;
 	}
 
+	/**
+	 * DELETE 请求
+	 * @param routeRegexPath 匹配路径
+	 * @param handler  HTTP处理请求句柄
+	 * @return HttpServer对象
+	 */
 	public HttpServer delete(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("delete", routeRegexPath, handler);
 		return this;
 	}
 
+	/**
+	 * TRACE 请求
+	 * @param routeRegexPath 匹配路径
+	 * @param handler  HTTP处理请求句柄
+	 * @return HttpServer对象
+	 */
 	public HttpServer trace(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("TRACE", routeRegexPath, handler);
 		return this;
 	}
 
+	/**
+	 * CONNECT 请求
+	 * @param routeRegexPath 匹配路径
+	 * @param handler  HTTP处理请求句柄
+	 * @return HttpServer对象
+	 */
 	public HttpServer connect(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("CONNECT", routeRegexPath, handler);
 		return this;
 	}
 
+	/**
+	 * OPTIONS 请求
+	 * @param routeRegexPath 匹配路径
+	 * @param handler  HTTP处理请求句柄
+	 * @return HttpServer对象
+	 */
 	public HttpServer options(String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteHandler("OPTIONS", routeRegexPath, handler);
 		return this;
 	}
 
+	/**
+	 * 其他请求
+	 * @param method 请求方法
+	 * @param routeRegexPath 匹配路径
+	 * @param handler  HTTP处理请求句柄
+	 * @return HttpServer对象
+	 */
 	public HttpServer otherMethod(String method, String routeRegexPath, HttpBizHandler handler) {
 		httpDispatcher.addRouteMethod(method);
 		httpDispatcher.addRouteHandler(method, routeRegexPath, handler);
 		return this;
 	}
-	
+
+	/**
+	 * WebSocket 服务
+	 * @param routeRegexPath 匹配路径
+	 * @param handler WebSocket处理句柄
+     */
 	public void socket(String routeRegexPath, WebSocketBizHandler handler) {
 		webSocketDispatcher.addRouteHandler(routeRegexPath, handler);
 	}
@@ -132,7 +192,7 @@ public class HttpServer {
 	/**
 	 * 构建新的 HttpServer,从配置文件读取配置
 	 * @param port  HTTP 服务的端口号
-	 * @return
+	 * @return HttpServer 对象
 	 */
 	public static HttpServer newInstance(Integer port) {
 		try {
@@ -150,7 +210,7 @@ public class HttpServer {
 	/**
 	 * 构建新的 HttpServer,从配置文件读取配置
 	 *
-	 * @return
+	 * @return HttpServer 对象
 	 */
 	public static HttpServer newInstance() {
 		return newInstance(null);
@@ -158,6 +218,8 @@ public class HttpServer {
 
 	/**
 	 * 启动服务
+	 *
+	 * @return HttpServer 对象
 	 */
 	public HttpServer serve() {
 		try {

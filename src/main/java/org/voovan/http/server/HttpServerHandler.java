@@ -144,36 +144,36 @@ public class HttpServerHandler implements IoHandler {
 	/**
 	 * Http 请求响应处理
 	 * 
-	 * @param session
-	 * @param httpRequest
-	 * @param httpResponse
-	 * @return
+	 * @param session    HTTP-Session 对象
+	 * @param httpRequest  HTTP 请求对象
+	 * @param httpResponse HTTP 响应对象
+	 * @return HTTP 响应对象
 	 */
 	public HttpResponse disposeHttp(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 		session.setAttribute("Type", "HTTP");
-		
+
 		// 处理响应请求
 		httpDispatcher.processRoute(httpRequest, httpResponse);
-		
+
 		//如果是长连接则填充响应报文
-		if (httpRequest.header().contain("Connection") 
+		if (httpRequest.header().contain("Connection")
 				&& httpRequest.header().get("Connection").toLowerCase().contains("keep-alive")) {
 			session.setAttribute("IsKeepAlive", true);
 			httpResponse.header().put("Connection", httpRequest.header().get("Connection"));
 		}
-		
+
 		httpResponse.header().put("Server", WebContext.getVERSION());
-		
+
 		return httpResponse;
 	}
 
 	/**
 	 * Http协议升级处理
-	 * 
-	 * @param session
-	 * @param httpRequest
-	 * @param httpResponse
-	 * @return
+	 *
+	 * @param session    HTTP-Session 对象
+	 * @param httpRequest  HTTP 请求对象
+	 * @param httpResponse HTTP 响应对象
+	 * @return HTTP 响应对象
 	 */
 	public HttpResponse disposeUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 		
@@ -210,9 +210,9 @@ public class HttpServerHandler implements IoHandler {
 	/**
 	 * WebSocket 帧处理
 	 * 
-	 * @param session
-	 * @param webSocketFrame
-	 * @return
+	 * @param session 	HTTP-Session 对象
+	 * @param webSocketFrame WebSocket 帧对象
+	 * @return WebSocket 帧对象
 	 */
 	public WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
 		session.setAttribute("Type"			, "WebSocket");
