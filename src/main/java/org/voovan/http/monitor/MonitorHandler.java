@@ -18,10 +18,10 @@ import java.util.Map.Entry;
  * 监控业务处理类
  *
  * @author helyho
- *         <p>
- *         Java Framework.
- *         WebSite: https://github.com/helyho/Voovan
- *         Licence: Apache v2 License
+ *
+ * Java Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class MonitorHandler implements HttpBizHandler {
 

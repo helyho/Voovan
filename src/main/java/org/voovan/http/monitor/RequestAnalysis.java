@@ -4,10 +4,10 @@ package org.voovan.http.monitor;
  * 请求分析信息对象
  *
  * @author helyho
- *         <p>
- *         Java Framework.
- *         WebSite: https://github.com/helyho/Voovan
- *         Licence: Apache v2 License
+ *
+ * Java Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class RequestAnalysis {
     private String path;
