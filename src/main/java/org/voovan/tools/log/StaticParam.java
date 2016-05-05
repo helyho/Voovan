@@ -24,6 +24,7 @@ public class StaticParam {
 			return tmpFile;
 		}else{
 			System.out.println("Log util Waring: Can't found log config file!");
+			System.out.println("Log util Waring: System will be use default config: LogType just STDOUT!");
 			return null;
 		}
 	}
