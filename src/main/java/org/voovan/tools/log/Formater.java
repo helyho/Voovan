@@ -198,15 +198,20 @@ public class Formater {
 	 * @return 返回日志文件名
 	 */
 	public static String getFormatedLogFilePath(){
-		String logFile = StaticParam.getLogConfig("LogFile","");
-		Map<String, String> tokens = new HashMap<String, String>();
-		tokens.put("D", TDateTime.now("YYYYMMdd"));
-		tokens.put("WorkDir", TEnv.getContextPath());
-		String filePath = TString.tokenReplace(logFile, tokens);
-		String fileDirectory = filePath.substring(0, filePath.lastIndexOf(File.separator));
-		File loggerFile = new File(fileDirectory);
-		if(!loggerFile.exists()){
-			loggerFile.mkdirs();
+		String filePath = "";
+		String logFile = StaticParam.getLogConfig("LogFile",null);
+		if(logFile!=null) {
+			Map<String, String> tokens = new HashMap<String, String>();
+			tokens.put("D", TDateTime.now("YYYYMMdd"));
+			tokens.put("WorkDir", TEnv.getContextPath());
+			filePath = TString.tokenReplace(logFile, tokens);
+			String fileDirectory = filePath.substring(0, filePath.lastIndexOf(File.separator));
+			File loggerFile = new File(fileDirectory);
+			if (!loggerFile.exists()) {
+				loggerFile.mkdirs();
+			}
+		}else{
+			filePath = null;
 		}
 		return filePath;
 	}
@@ -216,7 +221,11 @@ public class Formater {
 	 * @return 新的实例
 	 */
 	public static Formater newInstance() {
-			String logTemplate = StaticParam.getLogConfig("LogTemplate","{{i}}");
+		String defaultLogTemplate = "--------------------------------------------------------------------------------------------------------------------------------------------------" +
+									"{{n}}[{{P}}] [{{D}}] [Thread:{{T}}] [Time:{{R}}] ({{F}}:{{L}}) {{n}}" +
+									"--------------------------------------------------------------------------------------------------------------------------------------------------" +
+									"{{n}}{{I}}{{n}}{{n}}";
+			String logTemplate = StaticParam.getLogConfig("LogTemplate",defaultLogTemplate);
 			return new Formater(logTemplate);
 	}
 	

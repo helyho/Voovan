@@ -34,7 +34,7 @@ public class JdbcOperatorUnit extends TestCase {
         //只构建一次数据源
         if(dataSource==null) {
             try {
-                String druidpath = TEnv.getSystemPath("Config" + File.separator + "datasource.properties");
+                String druidpath = TEnv.getSystemPath("conf" + File.separator + "datasource.properties");
                 Properties druidProperites = TProperties.getProperties(new File(druidpath));
                 dataSource = TObject.cast(DruidDataSourceFactory.createDataSource(druidProperites));
                 dataSource.init();
