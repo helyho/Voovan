@@ -9,7 +9,7 @@
     <version>0.9.8</version>
 </dependency>
 ```
-**JDK支持:*
+**JDK支持:**
 
  - 推荐使用 JDK1.8,懒人专用。
  - 如果仅使用 AIO 需要 JDK1.7。
