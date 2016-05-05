@@ -1,6 +1,5 @@
 package org.voovan.tools;
 
-import com.alibaba.druid.sql.visitor.functions.Char;
 import org.voovan.db.CallType;
 import org.voovan.tools.log.Logger;
 
@@ -454,7 +453,7 @@ public class TSQL {
      */
 	public static int getSqlTypes(Object obj){
 		Class<?> objectClass = obj.getClass();
-		if(Char.class == objectClass){
+		if(char.class == objectClass){
 	         return  java.sql.Types.CHAR;
 		}else if(String.class == objectClass){
 			 return java.sql.Types.VARCHAR ;
