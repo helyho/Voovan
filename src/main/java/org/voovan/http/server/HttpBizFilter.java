@@ -1,6 +1,6 @@
 package org.voovan.http.server;
 
-import org.voovan.http.server.WebServerConfig.FilterConfig;
+import org.voovan.http.server.FilterConfig;
 
 /**
  * Http 服务过滤器接口
@@ -16,14 +16,16 @@ public interface HttpBizFilter {
 	 * @param filterConfig 过滤器配置对象
 	 * @param request  请求对象
 	 * @param response 响应对象
+	 * @param prevFilterResult 上一个过滤器的结果,可用来传递控制过滤器
      */
-	public void onRequest(FilterConfig filterConfig, HttpRequest request, HttpResponse response);
+	public Object onRequest(FilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult );
 
 	/**
 	 * 响应过滤器,在响应之后
 	 * @param filterConfig 过滤器配置对象
 	 * @param request  请求对象
 	 * @param response 响应对象
+	 * @param prevFilterResult 上一个过滤器的结果,可用来传递控制过滤器
      */
-	public void onResponse(FilterConfig filterConfig, HttpRequest request, HttpResponse response);
+	public Object onResponse(FilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult);
 }
