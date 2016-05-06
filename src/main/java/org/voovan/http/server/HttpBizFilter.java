@@ -17,6 +17,7 @@ public interface HttpBizFilter {
 	 * @param request  请求对象
 	 * @param response 响应对象
 	 * @param prevFilterResult 上一个过滤器的结果,可用来传递控制过滤器
+	 * @return 本地过滤器的结果,用于传递到下一个过滤器的prevFilterResult参数
      */
 	public Object onRequest(FilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult );
 
@@ -26,6 +27,7 @@ public interface HttpBizFilter {
 	 * @param request  请求对象
 	 * @param response 响应对象
 	 * @param prevFilterResult 上一个过滤器的结果,可用来传递控制过滤器
+	 * @return 本地过滤器的结果,用于传递到下一个过滤器的prevFilterResult参数
      */
 	public Object onResponse(FilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult);
 }
