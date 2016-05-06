@@ -1,7 +1,7 @@
 package org.voovan.http.server;
 
 import org.voovan.http.message.packet.Cookie;
-import org.voovan.http.server.WebServerConfig.FilterConfig;
+import org.voovan.http.server.FilterConfig;
 import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.router.MimeFileRouter;
@@ -230,11 +230,12 @@ public class HttpDispatcher {
      */
 	public void diposeFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) throws ReflectiveOperationException{
 		filterConfigs.rewind();
+		Object filterResult = null;
 		while(filterConfigs.hasNext()){
 			FilterConfig filterConfig = filterConfigs.next();
 			HttpBizFilter httpBizFilter = filterConfig.getBizFilter();
 			if(httpBizFilter!=null) {
-				httpBizFilter.onRequest(filterConfig, request, response);
+				filterResult = httpBizFilter.onRequest(filterConfig, request, response, filterResult);
 			}
 		}
 	}
@@ -248,11 +249,12 @@ public class HttpDispatcher {
      */
 	public void diposeInvertedFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) throws ReflectiveOperationException{
 		filterConfigs.rewind();
+		Object filterResult = null;
 		while(filterConfigs.hasPrevious()){
 			FilterConfig filterConfig = filterConfigs.previous();
 			HttpBizFilter httpBizFilter = filterConfig.getBizFilter();
 			if(httpBizFilter!=null) {
-				httpBizFilter.onResponse(filterConfig, request, response);
+				filterResult = httpBizFilter.onResponse(filterConfig, request, response, filterResult);
 			}
 
 		}
