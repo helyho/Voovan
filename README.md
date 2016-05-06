@@ -9,6 +9,9 @@
     <version>0.9.8</version>
 </dependency>
 ```
+`
+注意:测试代码由于测试的需要,依赖 alibaba-druid ,junit ,mysql-connector-java,所以在运行时添加相应的包.
+`
 **JDK支持:**
 
  - 推荐使用 JDK1.8,懒人专用。
@@ -73,6 +76,7 @@
   1. **异常统一展示**支持。
   1. MIME 配置支持。
   1. 支持基于 HTTP1.1 的 HTTPS 访问,默认采用TLS模式.
+  1. 支持性能监控[HTTP服务端性能监控演示](http://webserver.voovan.com/VoovanMonitor/Monitor.html)
 
 [HTTP服务端性能测试报告](https://git.oschina.net/helyho/Voovan/issues/12)
   
