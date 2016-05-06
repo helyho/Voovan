@@ -27,14 +27,17 @@ public class HttpRequest extends Request {
 	private int remotePort;
 	private String characterSet;
 	private Map<String, String> parameters;
+
+	private Map<String, Object> attributes;
 	
 	protected HttpRequest(Request request,String characterSet){
 		super(request);
 		this.characterSet=characterSet;
 		parameters = new HashMap<String, String>();
+		attributes = new HashMap<String, Object>();
 		parseQueryString();
 	}
-	
+
 	/**
 	 * 根据 Cookie 名称取 Cookie
 	 *
@@ -67,6 +70,8 @@ public class HttpRequest extends Request {
 	protected void setSession(HttpSession session) {
 		this.session = session;
 	}
+
+
 
 	/**
 	 * 获取对端连接的 IP
@@ -166,7 +171,34 @@ public class HttpRequest extends Request {
 	public List<String> getParameterNames(){
 		return Arrays.asList(parameters.keySet().toArray(new String[]{}));
 	}
-	
+
+	/**
+	 * 获取请求属性.此属性是会话级的
+	 * @return 返回请求属性
+     */
+	public Map<String, Object> getAttributes() {
+		return attributes;
+	}
+
+	/**
+	 * 获取请求属性值
+	 * @param attrName 请求属性名称
+	 * @return 请求属性值
+     */
+	public Object getAttributes(String attrName){
+		return attributes.get(attrName);
+	}
+
+	/**
+	 * 设置请求属性
+	 * @param attrName 请求属性名称
+	 * @param attrValue 请求属性值
+     */
+	public void setAttributes(String attrName,Object attrValue){
+		attributes.put(attrName,attrValue);
+	}
+
+
 	/**
 	 * 解析请求参数
 	 */
