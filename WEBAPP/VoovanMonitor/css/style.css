@@ -4,7 +4,7 @@ html {
 
 .nav_logo {
     height: 35px;
-    width: 115px;
+    width: 105px;
 }
 
 .tab-content-panel {
@@ -35,6 +35,8 @@ html {
     color: #fff;
     padding: 15px 0px 15px 0px;
     margin: 0px;
+    background-image: -webkit-linear-gradient(top, #222222, #222222);
+    background-image: linear-gradient(to bottom, #222222, #222222);
 }
 
 .footer > div {
