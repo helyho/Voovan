@@ -321,7 +321,7 @@ public class TSQL {
 			sqlText = sqlText.replace("::"+paramName,"``"+paramName);
 		}
 
-		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\sand\\s)|(\\sor\\s)|$)";
+		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\))|(\\sorder\\s)|(\\shaving\\s)|(\\sor\\s)|$)";
 		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
 		for(String condiction : sqlCondiction){
 			String[] condictions = TString.searchByRegex(condiction,"::[^,\\s\\)]+");
@@ -337,6 +337,50 @@ public class TSQL {
 
 		//转换存在参数的变量从``paramName 到 ::paramName
 		return sqlText.replace("``","::");
+	}
+
+	/**
+	 * 获取拼装好的 SQL 的条件
+	 * @param sqlText SQL 字符串
+	 * @return 条件 map
+     */
+	public static Map<String,String> parseSQLCondiction(String sqlText){
+		HashMap<String,String> sqlCond = new HashMap<String,String>();
+		sqlText = sqlText.toLowerCase();
+		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\))|(\\sorder\\s)|(\\shaving\\s)|(\\sor\\s)|$)";
+		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
+		for(String condiction : sqlCondiction){
+			condiction = condiction.trim();
+			if(TString.searchByRegex(condiction, "\\sin\\s*\\(").length!=0 || TString.searchByRegex(condiction, "\\slike\\s*\\(").length!=0){
+				condiction = condiction+")";
+			}
+			String concateMethod = condiction.substring(0,condiction.indexOf(" ")+1).trim();
+			condiction = condiction.substring(condiction.indexOf(" ")+1,condiction.length()).trim();
+			String operatorChar = TString.searchByRegex(condiction, "(\\slike\\s)|(\\sin\\s)|(>=)|(<=)|[=<>]")[0].trim();
+
+			String[] condictionArr = condiction.split("(\\slike\\s)|(\\sin\\s)|(>=)|(<=)|[=<>]");
+			condictionArr[0] = condictionArr[0].trim();
+			condictionArr[1] = condictionArr[1].trim();
+			if(condictionArr[0].trim().indexOf(".")>0){
+
+				condictionArr[0] = condictionArr[0].split("\\.")[1];
+				condictionArr[0] = condictionArr[0].substring(condictionArr[0].lastIndexOf(" ")+1);
+			}
+
+			if(condictionArr.length>1){
+				if((condictionArr[1].trim().startsWith("'") && condictionArr[1].trim().endsWith("'")) ||
+						(condictionArr[1].trim().startsWith("(") && condictionArr[1].trim().endsWith(")"))
+						){
+					condictionArr[1] = condictionArr[1].substring(1,condictionArr[1].length()-1);
+				}
+				System.out.println("操作符:"+concateMethod+" \t查询字段:"+condictionArr[0]+" \t查询关系:"+operatorChar+" \t查询值:"+condictionArr[1]);
+				sqlCond.put(condictionArr[0], condictionArr[1]);
+			}else{
+				System.out.println("\t error.");
+			}
+
+		}
+		return sqlCond;
 	}
 
 
