@@ -2000,13 +2000,13 @@ html:not(.uk-touch) .uk-nav-offcanvas ul a:hover {
  ========================================================================== */
 .uk-navbar {
   background: #f7f7f7;
-  color: #444444;
+  color: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-bottom-color: rgba(0, 0, 0, 0.3);
   border-radius: 4px;
   background-origin: border-box;
-  background-image: -webkit-linear-gradient(top, #ffffff, #eeeeee);
-  background-image: linear-gradient(to bottom, #ffffff, #eeeeee);
+  background-image: -webkit-linear-gradient(top, #222222, #222222);
+  background-image: linear-gradient(to bottom, #222222, #222222);
 }
 /*
  * Micro clearfix
@@ -2048,7 +2048,7 @@ html:not(.uk-touch) .uk-nav-offcanvas ul a:hover {
   padding: 0 15px;
   line-height: 40px;
   /* 2 */
-  color: #444444;
+  color: #ffffff;
   font-size: 14px;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: normal;
@@ -2056,7 +2056,7 @@ html:not(.uk-touch) .uk-nav-offcanvas ul a:hover {
   margin-left: -1px;
   border: 1px solid transparent;
   border-bottom-width: 0;
-  text-shadow: 0 1px 0 #ffffff;
+  text-shadow: 0 1px 0 #555555;
 }
 /* Appear not as link */
 .uk-navbar-nav > li > a[href='#'] {
@@ -2072,7 +2072,7 @@ html:not(.uk-touch) .uk-nav-offcanvas ul a:hover {
 .uk-navbar-nav > li > a:focus,
 .uk-navbar-nav > li.uk-open > a {
   background-color: transparent;
-  color: #444444;
+  color: #aaaaaa;
   /* 3 */
   outline: none;
   position: relative;
@@ -2085,7 +2085,7 @@ html:not(.uk-touch) .uk-nav-offcanvas ul a:hover {
 /* OnClick */
 .uk-navbar-nav > li > a:active {
   background-color: #f5f5f5;
-  color: #444444;
+  color: #aaaaaa;
   border-left-color: rgba(0, 0, 0, 0.1);
   border-right-color: rgba(0, 0, 0, 0.1);
   border-top-color: rgba(0, 0, 0, 0.2);
