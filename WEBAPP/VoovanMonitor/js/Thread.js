@@ -48,14 +48,12 @@ $(function () {
                 }
             },
             showStack: function(thread){
-                var stackInfo = ReplaceAll(thread.StackTrace,"\r\n","\\r\\n&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" +
+                var stackInfo = ReplaceAll(thread.StackTrace,"\r\n","<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" +
                     "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-                stackInfo = ReplaceAll(stackInfo,"\\r\\n","\r\n");
                 var content = "<b>线程信息:&nbsp;</b>\""+thread.Name+"\"" +
                     " #"+thread.Id+
                     " Priority:"+thread.Priority+
-                    "\r\n <hr><b>堆栈信息:&nbsp;</b>"+stackInfo;
-                content = ReplaceAll(content,"\r\n","<br>")
+                    "<br> <hr><b>堆栈信息:&nbsp;</b>"+stackInfo;
                 $("#dialogContent").html(content);
             }
         }
