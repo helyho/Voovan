@@ -22,7 +22,7 @@ public class Monitor {
         FilterConfig filterConfig = WebServerConfig.newFilterConfig();
         filterConfig.setName("MonitorFilter");
         filterConfig.setClassName("org.voovan.http.monitor.HttpMonitorFilter");
-        config.getFilterConfigs().add(filterConfig);
+        config.getFilterConfigs().addFirst(filterConfig);
     }
 
     public static void installMonitor(HttpServer httpServer){
