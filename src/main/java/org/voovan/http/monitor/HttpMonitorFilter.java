@@ -27,7 +27,7 @@ public class HttpMonitorFilter implements HttpBizFilter {
 	public Object onRequest(FilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult ) {
 		request.getSession().setAttribute("VOOVAN_REQSTART",System.currentTimeMillis());
 		TEnv.sleep(20);
-		return null;
+		return prevFilterResult;
 	}
 
 	@Override
@@ -44,6 +44,6 @@ public class HttpMonitorFilter implements HttpBizFilter {
 				requestInfos.put(path, requestAnalysis);
 			}
 		}
-		return null;
+		return prevFilterResult;
 	}
 }
