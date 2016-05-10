@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class WebContext {
 	
-	private static final String VERSION = "Voovan-HTTP-Server/V0.97";
+	private static final String VERSION = "Voovan-HTTP-Server/V1.0-alpha";
 	
 	private static final String SESSION_NAME = "VOOVAN_SESSIONID";
 
