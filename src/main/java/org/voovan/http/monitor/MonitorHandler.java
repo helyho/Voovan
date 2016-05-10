@@ -94,9 +94,9 @@ public class MonitorHandler implements HttpBizHandler {
         String jsonStr = null;
         try {
             jsonStr = JSONEncode.fromObject(obj);
+            jsonStr=jsonStr.replace("\\", "\\/");
             jsonStr=jsonStr.replace("\r", "\\r");
             jsonStr=jsonStr.replace("\n", "\\n");
-            jsonStr=jsonStr.replace("\\", "\\/");
             return jsonStr;
         } catch (ReflectiveOperationException e) {
             Logger.error(e);
