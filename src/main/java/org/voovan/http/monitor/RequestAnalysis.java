@@ -10,11 +10,11 @@ package org.voovan.http.monitor;
  * Licence: Apache v2 License
  */
 public class RequestAnalysis {
-    private String path;
-    private long count;
-    private long avgTime;
-    private long maxTime;
-    private long minTime;
+    private String path;    //请求路径
+    private long count;     //请求数量
+    private long avgTime;   //平均请求时间
+    private long maxTime;   //最大请求时间
+    private long minTime;   //最小请求时间
 
     public RequestAnalysis(String path){
         this.path = path;
@@ -47,6 +47,7 @@ public class RequestAnalysis {
     public void setAvgTime(long avgTime) {
         this.avgTime = avgTime;
     }
+
     public long getMaxTime() {
         return maxTime;
     }
@@ -63,6 +64,10 @@ public class RequestAnalysis {
         this.minTime = minTime;
     }
 
+    /**
+     * 增加请求时间
+     * @param time
+     */
     public void add(long time){
         count++;
         avgTime = (avgTime+time)/count;

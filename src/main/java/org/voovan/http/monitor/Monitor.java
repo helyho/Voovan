@@ -17,6 +17,10 @@ import java.io.IOException;
  */
 public class Monitor {
 
+    /**
+     * 为 HttpServer 增加过滤器
+     * @param httpServer httpServer 对象
+     */
     public static void addMonitorFilter(HttpServer httpServer){
         WebServerConfig config = httpServer.getWebServerConfig();
         FilterConfig filterConfig = WebServerConfig.newFilterConfig();
@@ -25,6 +29,10 @@ public class Monitor {
         config.getFilterConfigs().addFirst(filterConfig);
     }
 
+    /**
+     * 安装监控过滤器
+     * @param httpServer httpServer 对象
+     */
     public static void installMonitor(HttpServer httpServer){
         httpServer.get("/VoovanMonitor/:Type/:Param1",new MonitorHandler());
         httpServer.get("/VoovanMonitor/:Type",new MonitorHandler());
