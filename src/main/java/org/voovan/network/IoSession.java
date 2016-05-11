@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -32,7 +33,7 @@ public abstract class IoSession {
 	 * 构造函数
 	 */
 	protected IoSession(){
-		attributes = new Hashtable<Object, Object>();
+		attributes = new ConcurrentHashMap<Object, Object>();
 		netDataBufferChannel = new ByteBufferChannel();
 		appDataBufferChannel = new ByteBufferChannel();
 	}

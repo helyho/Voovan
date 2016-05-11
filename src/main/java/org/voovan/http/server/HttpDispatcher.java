@@ -12,6 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 
@@ -48,7 +49,7 @@ public class HttpDispatcher {
 	 * @param sessionManager Session 管理器
 	 */
 	public HttpDispatcher(WebServerConfig webConfig,SessionManager sessionManager) {
-		handlers = new HashMap<String, Map<String, HttpBizHandler>>();
+		handlers = new ConcurrentHashMap<String, Map<String, HttpBizHandler>>();
 		this.webConfig = webConfig;
 		this.sessionManager = sessionManager;
 		
@@ -73,7 +74,7 @@ public class HttpDispatcher {
 	 */
 	protected void addRouteMethod(String method) {
 		if (!handlers.containsKey(method)) {
-			handlers.put(method, new HashMap<String, HttpBizHandler>());
+			handlers.put(method, new ConcurrentHashMap<String, HttpBizHandler>());
 		}
 	}
 

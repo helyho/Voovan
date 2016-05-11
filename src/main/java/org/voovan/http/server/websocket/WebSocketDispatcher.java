@@ -11,6 +11,7 @@ import org.voovan.tools.TObject;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 
@@ -42,7 +43,7 @@ public class WebSocketDispatcher {
 	 *            根目录
 	 */
 	public WebSocketDispatcher(WebServerConfig config) {
-		handlers = new HashMap<String, WebSocketBizHandler>();
+		handlers = new ConcurrentHashMap<String, WebSocketBizHandler>();
 	}
 
 	/**
