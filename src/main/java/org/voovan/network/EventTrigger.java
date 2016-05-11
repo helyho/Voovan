@@ -1,5 +1,6 @@
 package org.voovan.network;
 
+import org.voovan.Global;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.Event.EventState;
 

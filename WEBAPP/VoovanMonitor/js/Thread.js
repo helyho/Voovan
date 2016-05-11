@@ -15,10 +15,26 @@ function getTheads() {
     return $.parseJSON(result)
 }
 
+function getTheadPool() {
+    if (document.getElementById("ThreadPool") == null) {
+        return;
+    }
+    result = $.ajax({
+        url: "ThreadPool",
+        async: false
+    }).responseText;
+    return $.parseJSON(result)
+}
+
 function refreshThread(){
     threadsInfo = getTheads();
     threads.info = threadsInfo
     threadCount.count = threadsInfo.length
+}
+
+function refreshThreadPool(){
+    threadsPoolInfo = getTheadPool();
+    threadPool.info = threadsPoolInfo;
 }
 
 /**
@@ -26,6 +42,7 @@ function refreshThread(){
  */
 $(function () {
     threadsInfo = getTheads();
+    threadsPoolInfo = getTheadPool();
     threads = new Vue({
         el: '#Threads',
         data: {
@@ -63,6 +80,28 @@ $(function () {
         el:"#ThreadCount",
         data:{
             count:threadsInfo.length
+        }
+    })
+
+    Vue.filter('toName', function (value) {
+        if(value=="QueueSize"){
+            return "线程任务队列";
+        } else if(value=="TaskCount"){
+            return "线程任务数";
+        } else if(value=="FinishedTaskCount"){
+            return "完成线程任务数";
+        } else if(value=="CorePoolSize"){
+            return "线程池大小";
+        } else if(value=="ActiveCount"){
+            return "活动线程数";
+        }
+
+    })
+
+    threadPool = new Vue({
+        el:"#ThreadPool",
+        data:{
+            info:threadsPoolInfo
         }
     })
 })
