@@ -3,6 +3,7 @@ package org.voovan.http.server;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * HTTPServer session 类
@@ -25,7 +26,7 @@ public class HttpSession {
 	 * @param config  WEB服务配置对象
 	 */
 	public HttpSession(WebServerConfig config){
-		attributes = new HashMap<String, Object>();
+		attributes = new ConcurrentHashMap<String, Object>();
 		//生成一个随机的 ID 用作唯一标识
 		this.id = UUID.randomUUID().toString().toUpperCase().replaceAll("-", "");
 		lastTimeillis = System.currentTimeMillis();

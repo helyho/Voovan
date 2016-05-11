@@ -29,7 +29,7 @@ public class ThreadPool {
 		return threadPoolInstance;
 	}
 	
-	public static ThreadPoolExecutor getThreadPool(){
+	public static ThreadPoolExecutor getNewThreadPool(){
 		 return createThreadPool();	
 	}
 }

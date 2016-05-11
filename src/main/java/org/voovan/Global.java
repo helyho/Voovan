@@ -1,4 +1,4 @@
-package org.voovan.network;
+package org.voovan;
 
 import org.voovan.tools.threadpool.ThreadPool;
 
@@ -23,7 +23,7 @@ public class Global {
      */
     public static ThreadPoolExecutor getThreadPool(){
        if(threadPool==null || threadPool.isShutdown()){
-           threadPool = ThreadPool.getThreadPool();
+           threadPool = ThreadPool.getNewThreadPool();
        }
         return threadPool;
     }

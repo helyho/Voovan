@@ -3,17 +3,16 @@ package org.voovan.http.monitor;
 import org.voovan.http.server.HttpBizHandler;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
+import org.voovan.Global;
 import org.voovan.tools.*;
 import org.voovan.tools.json.JSONEncode;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 监控业务处理类
@@ -25,6 +24,21 @@ import java.util.Map.Entry;
  * Licence: Apache v2 License
  */
 public class MonitorHandler implements HttpBizHandler {
+
+    /**
+     * 获取当前 JVM 线程信息描述
+     * @return 线程信息信息集合
+     */
+    public static Map<String,Object> getThreadPoolInfo(){
+        Map<String,Object> threadPoolInfo = new HashMap<String,Object>();
+        ThreadPoolExecutor threadPoolInstance = Global.getThreadPool();
+        threadPoolInfo.put("ActiveCount",threadPoolInstance.getActiveCount());
+        threadPoolInfo.put("CorePoolSize",threadPoolInstance.getCorePoolSize());
+        threadPoolInfo.put("FinishedTaskCount",threadPoolInstance.getCompletedTaskCount());
+        threadPoolInfo.put("TaskCount",threadPoolInstance.getTaskCount());
+        threadPoolInfo.put("QueueSize",threadPoolInstance.getQueue().size());
+        return threadPoolInfo;
+    }
 
     /**
      * 获取当前 JVM 线程信息描述
@@ -152,6 +166,8 @@ public class MonitorHandler implements HttpBizHandler {
             responseStr = toJsonWithLF(getThreadDetail());
         }else if(type.equals("ThreadCount")){
             responseStr = Integer.toString(TEnv.getThreads().length);
+        }else if(type.equals("ThreadPool")){
+            responseStr = toJsonWithLF(getThreadPoolInfo());
         }else if(type.equals("RequestInfo")){
             responseStr = toJsonWithLF(requestInfo());
         }else if(type.equals("Log")){

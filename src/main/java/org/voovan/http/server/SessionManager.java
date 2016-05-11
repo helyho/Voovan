@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * HTTPServer session 管理器
@@ -30,7 +31,7 @@ public class SessionManager{
 		this.webConfig = webConfig;
 		sessions = getSessionContainer();
 		if(sessions == null){
-			sessions = new Hashtable<String, HttpSession>();
+			sessions = new ConcurrentHashMap<String, HttpSession>();
 			Logger.warn("Create session container from config file failed,now use defaul session container.");
 		}
 	}

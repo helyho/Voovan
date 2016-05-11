@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * HttpServer访问日志对象
@@ -17,7 +19,7 @@ import java.util.HashMap;
 public class SingleLogger {
 	private String fileName;
 	private LoggerThread loggerThread;
-	private static HashMap<String,SingleLogger> singleLoggerPool = new HashMap<String,SingleLogger>();
+	private static Map<String,SingleLogger> singleLoggerPool = new ConcurrentHashMap<String,SingleLogger>();
 	/**
 	 * 构造函数
 	 * @param fileName  文件名
