@@ -260,4 +260,19 @@ public class TString {
 		return str;
 	}
 
+	/**
+	 * 翻转字符串 输入1234 输出4321
+	 * @param str  字符串
+	 * @return 翻转后的字符串
+     */
+	public static String reverse(String str){
+		if(str!=null){
+			char[] array = str.toCharArray();
+			String reverse = "";
+			for (int i = array.length - 1; i >= 0; i--)
+				reverse += array[i];
+			return reverse;
+		}
+		return null;
+	}
 }
