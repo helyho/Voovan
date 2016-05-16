@@ -109,8 +109,7 @@ public class TReflect {
 		for (Field field : fields) {
 			if (!Modifier.isStatic(field.getModifiers())) {
 				Object value = getFieldValue(obj, field.getName());
-				if (value != null)
-					result.put(field, value);
+				result.put(field, value);
 			}
 		}
 		return result;
@@ -245,23 +244,23 @@ public class TReflect {
 	public static Object getObjectFromMap(Class<?> clazz,
 		Map<String, Object> mapArg,boolean ignoreCase) throws ReflectiveOperationException, ParseException {
 		Object obj = null;
-
+		Object singleValue = mapArg.values().iterator().next();
 		// java标准对象
 		if (!clazz.getName().contains(".")){
-			obj = mapArg.values().iterator().next();
+			obj = singleValue;
 		}
 		//java基本对象
 		else if (clazz.getName().startsWith("java.lang")) {
 			//取 Map.Values 里的递第一个值
-			String value = mapArg.values().iterator().next().toString();
-			obj = newInstance(clazz,  value);
+			String value = singleValue==null?null:singleValue.toString();
+			obj = singleValue==null?null:newInstance(clazz,  value);
 		}
 		//java 日期对象
 		else if(isExtendsByClass(clazz,Date.class)){
 			//取 Map.Values 里的递第一个值
-			String value = mapArg.values().iterator().next().toString();
+			String value = singleValue==null?null:singleValue.toString();
 			SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
-			obj = dateFormat.parse(value.toString());
+			obj = singleValue!=null?dateFormat.parse(value.toString()):null;
 		}
 		//Map 类型
 		else if(isImpByInterface(clazz,Map.class)){
@@ -272,7 +271,7 @@ public class TReflect {
 		//Collection 类型
 		else if(isImpByInterface(clazz,Collection.class)){
 			Collection listObject = TObject.cast(newInstance(clazz));
-			listObject.addAll((Collection) TObject.cast(mapArg.values().iterator().next()));
+			listObject.addAll((Collection) TObject.cast(singleValue));
 			obj = listObject;
 		}
 		// 复杂对象
@@ -280,10 +279,6 @@ public class TReflect {
 			obj = newInstance(clazz);
 			for(String key : mapArg.keySet()){
 				Object value = mapArg.get(key);
-
-				if(value==null){
-					continue;
-				}
 
 				Field field = null;
 				if(ignoreCase) {
@@ -349,8 +344,10 @@ public class TReflect {
 			for(Entry<Field,Object> entry : fieldValues.entrySet()){
 				String key = entry.getKey().getName();
 				Object value = entry.getValue();
-				String valueClass = entry.getValue().getClass().getName();
-				if(!key.contains("$")){
+				if(value == null){
+					mapResult.put(key, value);
+				}else if(!key.contains("$")){
+					String valueClass = entry.getValue().getClass().getName();
 					if(valueClass.startsWith("java")){
 						mapResult.put(key, value);
 					}else {

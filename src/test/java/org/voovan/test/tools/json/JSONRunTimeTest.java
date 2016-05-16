@@ -6,7 +6,7 @@ import org.voovan.tools.log.Logger;
 public class JSONRunTimeTest {
 	public static void main(String[] args) {
 		TestObject testObject = new TestObject();
-		testObject.setString("helyho");
+		testObject.setString(null);
 		testObject.setBint(32);
 		testObject.getList().add("listitem1");
 		testObject.getList().add("listitem2 ");

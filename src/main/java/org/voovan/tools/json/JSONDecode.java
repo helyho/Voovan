@@ -153,7 +153,7 @@ public class JSONDecode {
 				//这里 key 和 value 都准备完成了
 				
 				//判断返回对象的类型,填充返回对象
-				if(jsonResult instanceof HashMap && value != null){
+				if(jsonResult instanceof HashMap){
 					@SuppressWarnings("unchecked")
 					HashMap<String, Object> result = (HashMap<String, Object>)jsonResult;
 					keyString = keyString.substring(1, keyString.length()-1);
