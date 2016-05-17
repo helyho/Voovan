@@ -340,12 +340,12 @@ public class TSQL {
 	}
 
 	/**
-	 * 获取拼装好的 SQL 的条件
+	 * 获取解析后的 SQL 的条件
 	 * @param sqlText SQL 字符串
-	 * @return 条件 map
+	 * @return 解析的 SQL 查询条件
      */
-	public static Map<String,String> parseSQLCondiction(String sqlText){
-		HashMap<String,String> sqlCond = new HashMap<String,String>();
+	public static List<String[]> parseSQLCondiction(String sqlText) {
+		ArrayList<String[]> condictionList = new ArrayList<String[]>();
 		sqlText = sqlText.toLowerCase();
 		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\))|(\\sorder\\s)|(\\shaving\\s)|(\\sor\\s)|$)";
 		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
@@ -357,6 +357,7 @@ public class TSQL {
 			String concateMethod = condiction.substring(0,condiction.indexOf(" ")+1).trim();
 			condiction = condiction.substring(condiction.indexOf(" ")+1,condiction.length()).trim();
 			String operatorChar = TString.searchByRegex(condiction, "(\\slike\\s)|(\\sin\\s)|(>=)|(<=)|[=<>]")[0].trim();
+
 
 			String[] condictionArr = condiction.split("(\\slike\\s)|(\\sin\\s)|(>=)|(<=)|[=<>]");
 			condictionArr[0] = condictionArr[0].trim();
@@ -373,14 +374,17 @@ public class TSQL {
 						){
 					condictionArr[1] = condictionArr[1].substring(1,condictionArr[1].length()-1);
 				}
-				System.out.println("操作符:"+concateMethod+" \t查询字段:"+condictionArr[0]+" \t查询关系:"+operatorChar+" \t查询值:"+condictionArr[1]);
-				sqlCond.put(condictionArr[0], condictionArr[1]);
+				if(operatorChar.contains("in")){
+					condictionArr[1] = condictionArr[1].replace("'", "");
+				}
+				//System.out.println("操作符: "+concateMethod+" \t查询字段: "+condictionArr[0]+" \t查询关系: "+operatorChar+" \t查询值: "+condictionArr[1]);
+				condictionList.add(new String[]{concateMethod, condictionArr[0], operatorChar, condictionArr[1]});
 			}else{
-				System.out.println("\t error.");
+				Logger.error("Parse SQL condiction error");
 			}
 
 		}
-		return sqlCond;
+		return condictionList;
 	}
 
 
