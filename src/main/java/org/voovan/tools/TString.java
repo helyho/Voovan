@@ -100,7 +100,7 @@ public class TString {
 	 * @return 是否是整形数
 	 */
 	public static boolean isInteger(String integerString){
-		if(searchByRegex(integerString, "^-?[0-9]\\d*$").length>0){
+		if(integerString!=null && searchByRegex(integerString, "^-?[0-9]\\d*$").length>0){
 			return true;
 		}else{
 			return false;
@@ -113,7 +113,7 @@ public class TString {
 	 * @return 是否是浮点数
 	 */
 	public static boolean isFloat(String floadString){
-		if(searchByRegex(floadString, "^-?[1-9]\\d*\\.\\d*|-0\\.\\d*[1-9]\\d*$").length>0){
+		if(floadString!=null && searchByRegex(floadString, "^-?[1-9]\\d*\\.\\d*|-0\\.\\d*[1-9]\\d*$").length>0){
 			return true;
 		}else{
 			return false;
@@ -122,11 +122,11 @@ public class TString {
 
 	/**
 	 * 判断是否是浮点数
-	 * @param floadString 浮点数字符串
+	 * @param booleanString 浮点数字符串
 	 * @return 是否是浮点数
 	 */
-	public static boolean isBoolean(String floadString){
-		if("true".equalsIgnoreCase(floadString) || "false".equalsIgnoreCase(floadString)){
+	public static boolean isBoolean(String booleanString){
+		if( "true".equalsIgnoreCase(booleanString) || "false".equalsIgnoreCase(booleanString)){
 			return true;
 		}else{
 			return false;
