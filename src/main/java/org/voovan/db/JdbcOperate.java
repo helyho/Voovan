@@ -771,6 +771,10 @@ public class JdbcOperate {
 	 * @param statement Statement 对象
 	 */
 	protected static void closeConnection(Statement statement) {
+		if(statement==null){
+			return;
+		}
+
 		Connection connection = null;
 		try {
 			connection = statement.getConnection();
@@ -809,6 +813,10 @@ public class JdbcOperate {
 	 * @param resultSet 结果集
 	 */
 	protected static void closeResult(ResultSet resultSet){
+		if(resultSet==null){
+			return;
+		}
+
 		Statement statement = null;
 		try {
 			statement = resultSet.getStatement();
@@ -832,6 +840,9 @@ public class JdbcOperate {
 	 * @param statement Statement 对象
 	 */
 	protected static void closeStatement(Statement statement){
+		if(statement==null){
+			return;
+		}
 		try {
 			if (statement != null) {
 				statement.close();
