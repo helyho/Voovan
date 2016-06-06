@@ -53,7 +53,7 @@ public class Chain<E> extends ArrayDeque<E>{
 
 	/**
 	 * 迭代器下一个元素
-	 * @return 当前元素
+	 * @return 下一个元素
 	 */
 	public E next(){
 		if(isStop){
@@ -114,6 +114,7 @@ public class Chain<E> extends ArrayDeque<E>{
 	
 	/**
 	 *  从当前对象克隆一个 Chain
+	 *  @return 克隆后的对象
 	 */
 	public Chain<E> clone(){
 		ArrayDeque<E> cloned = super.clone();

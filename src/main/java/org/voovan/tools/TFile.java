@@ -45,10 +45,10 @@ public class TFile {
 	 * @param filePath 文件路径
 	 * @return 文件大小
 	 */
-	public static int getFileSize(String filePath) {
+	public static long getFileSize(String filePath) {
 		try {
 			FileInputStream fileInputStream = new FileInputStream(new File( filePath));
-			int fileSize = (fileInputStream).available();
+			long fileSize = (fileInputStream).available();
 			fileInputStream.close();
 			return fileSize;
 		} catch (Exception e) {
@@ -136,7 +136,7 @@ public class TFile {
 	}
 
 	/**
-	 * 读取在Context的资源文件 完整路径
+	 * 读取在Context的资源文件 (完整路径)
 	 * 
 	 * @param resourcePath
 	 *            路径起始不带"/"
