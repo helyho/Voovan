@@ -56,7 +56,7 @@ public class TZip {
 	
 	/**
 	 * ZIP 压缩
-	 * @param sourceBytes 待压缩自己
+	 * @param sourceBytes 待压缩字节
 	 * @return 压缩后的字节
 	 * @throws IOException IO 异常
 	 */
