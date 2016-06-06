@@ -121,9 +121,9 @@ public class TString {
 	}
 
 	/**
-	 * 判断是否是浮点数
-	 * @param booleanString 浮点数字符串
-	 * @return 是否是浮点数
+	 * 判断是否是布尔值
+	 * @param booleanString 布尔值字符串
+	 * @return 是否是布尔值
 	 */
 	public static boolean isBoolean(String booleanString){
 		if( "true".equalsIgnoreCase(booleanString) || "false".equalsIgnoreCase(booleanString)){
