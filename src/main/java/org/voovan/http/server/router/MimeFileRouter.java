@@ -116,13 +116,13 @@ public class MimeFileRouter implements HttpBizHandler {
 	 */
 	public void fillMimeFile(File responseFile,HttpRequest request,HttpResponse response){
 		byte[] fileByte = null;
-		int fileSize = TFile.getFileSize(responseFile.getPath());
+		long fileSize = TFile.getFileSize(responseFile.getPath());
 		
 		// 如果包含取一个范围内的文件内容进行处理,形似:Range: 0-800
 		if (request.header().get("Range") != null && request.header().get("Range").contains("-")) {
 			
-			int beginPos=-1;
-			int endPos=-1;
+			long beginPos=-1;
+			long endPos=-1;
 			
 			String rangeStr = request.header().get("Range");
 			rangeStr = rangeStr.replace("bytes=", "").trim();
@@ -130,7 +130,7 @@ public class MimeFileRouter implements HttpBizHandler {
 			
 			//形似:Range: -800
 			if(rangeStr.startsWith("-") && ranges.length==1){
-				beginPos = fileSize - Integer.parseInt(ranges[0]);
+				beginPos = fileSize - Long.parseLong(ranges[0]);
 				endPos = fileSize;
 			}
 			//形似:Range: 800-
@@ -140,8 +140,8 @@ public class MimeFileRouter implements HttpBizHandler {
 			}
 			//形似:Range: 0-800
 			else if(ranges.length==2){
-				beginPos = Integer.parseInt(ranges[0]);
-				endPos   = Integer.parseInt(ranges[1]);
+				beginPos = Long.parseLong(ranges[0]);
+				endPos   = Long.parseLong(ranges[1]);
 			}
 			fileByte = TFile.loadFileFromSysPath(responseFile.getPath(), beginPos, endPos);
 			response.header().put("Content-Range", "bytes " + rangeStr + "/" + fileSize);
