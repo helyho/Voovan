@@ -78,7 +78,7 @@ public class TFile {
 	 * @param endPos   结束位置
 	 * @return 文件内容
 	 */
-	public static byte[] loadFileFromSysPath(String filePath, int beginPos, int endPos) {
+	public static byte[] loadFileFromSysPath(String filePath, long beginPos, long endPos) {
 		byte[] fileContent = null;
 		fileContent = loadFile(new File(filePath), beginPos, endPos);
 		return fileContent;
@@ -94,7 +94,7 @@ public class TFile {
 	 *            结束位置,如果值小于0则读取全部,如果大于文件的大小,则自动调整为文件的大小
 	 * @return 文件内容
 	 */
-	public static byte[] loadFileFromContextPath(String filePath, int beginPos, int endPos) {
+	public static byte[] loadFileFromContextPath(String filePath, long beginPos, long endPos) {
 		String spliter = filePath.startsWith(File.separator) == true ? "" : File.separator;
 		String fullFilePath = TEnv.getContextPath() + spliter + filePath;
 		return loadFileFromSysPath(fullFilePath, beginPos, endPos);
@@ -170,7 +170,7 @@ public class TFile {
 	 *            结束位置,如果值小于0则读取全部,如果大于文件的大小,则自动调整为文件的大小
 	 * @return 文件内容
 	 */
-	public static byte[] loadFile(File file, int beginPos, int endPos) {
+	public static byte[] loadFile(File file, long beginPos, long endPos) {
 
 		try {
 			long fileSize = file.length();
@@ -184,7 +184,7 @@ public class TFile {
 			}
 			
 			// 计算需要读取的差高难度
-			int loadLength = 0;
+			long loadLength = 0;
 			if (endPos < 0) {
 				loadLength = (int) fileSize - beginPos + 1;
 			} else {
