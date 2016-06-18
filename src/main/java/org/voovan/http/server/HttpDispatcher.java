@@ -305,7 +305,7 @@ public class HttpDispatcher {
 		
 		//消息拼装
 		String errorPageContent = WebContext.getDefaultErrorPage();
-		if(TFile.fileExists("/conf/error-page/" + error.get("Page"))) {
+		if(TFile.fileExists(TEnv.getSystemPath("/conf/error-page/" + error.get("Page")))) {
 			errorPageContent = new String(TFile.loadFileFromContextPath("/conf/error-page/" + error.get("Page")));
 		}
 		if(errorPageContent!=null){
