@@ -21,7 +21,7 @@ public class TDateTime {
 	public final static String STANDER_DATE_TEMPLATE = "yyyy-MM-dd";
 	public final static String STANDER_TIME_TEMPLATE = "HH:mm:ss";
 	public final static String STANDER_DATETIME_TEMPLATE = "yyyy-MM-dd HH:mm:ss";
-	public final static String GMT_DATETIME_TEMPLATE = "EEE, d MMM yyyy HH:mm:ss 'GMT'";
+	public final static String INTERNTTION_DATETIME_TEMPLATE = "EEE, dd MMM yyyy HH:mm:ss z";
 	
 	/**
 	 * 获取当前时间
@@ -51,17 +51,29 @@ public class TDateTime {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
 		return simpleDateFormat.format(date);
 	}
-	
+
+	/**
+	 * 格式化日期成字符串
+	 * @param date Date 对象
+	 * @param format 日期格式模板
+	 * @param local 所在区域
+	 * @return 日期字符串
+	 */
+	public static String format(Date date,String format,Locale local){
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format,local);
+		return simpleDateFormat.format(date);
+	}
+
 	/**
 	 * 使用特定时区,格式化日期成字符串
 	 * @param date			日期对象
 	 * @param format		日期格式化字符串
 	 * @param timeZone		所在时区
-	 * @param loacl			所在区域
+	 * @param local			所在区域
 	 * @return 日期字符串
 	 */
-	public static String format(Date date,String format,String timeZone,Locale loacl){
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format,loacl);
+	public static String format(Date date,String format,String timeZone,Locale local){
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format,local);
 		simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
 		return simpleDateFormat.format(date);
 	}
@@ -72,9 +84,9 @@ public class TDateTime {
 	 * @return 日期字符串
 	 */
 	public static String formatToGMT(Date date){
-		return format(date, GMT_DATETIME_TEMPLATE, "GMT",Locale.ENGLISH);
-	}	
-	
+		return format(date, INTERNTTION_DATETIME_TEMPLATE, "GMT", Locale.ENGLISH);
+	}
+
 	/**
 	 * 从字符串解析时间
 	 * @param source 日期字符串
@@ -86,31 +98,44 @@ public class TDateTime {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
 		return simpleDateFormat.parse(source);
 	}
+
+	/**
+	 * 从字符串解析时间
+	 * @param source 日期字符串
+	 * @param format 日期格式模板
+	 * @param local  所在区域
+	 * @return Date 对象
+	 * @throws ParseException 解析异常
+	 */
+	public static Date parse(String source,String format,Locale local) throws ParseException{
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
+		return simpleDateFormat.parse(source);
+	}
 	
 	/**
 	 * 按照特定的时区和地狱从字符串解析时间
 	 * @param source		日期字符串
 	 * @param format		日志格式化字符串
 	 * @param timeZone		所在时区
-	 * @param loacl			所在区域
+	 * @param local			所在区域
 	 * @return 日期字符串
 	 * @throws ParseException 解析异常
 	 */
-	public static Date parse(String source,String format,String timeZone,Locale loacl) throws ParseException{
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format,loacl);
+	public static Date parse(String source,String format,String timeZone,Locale local) throws ParseException{
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format, local);
 		simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
 		return simpleDateFormat.parse(source);
 	}
 	
 	/**
-	 * 按格林威治时间(GMT)时间格式获取事件对象
+	 * 按格林威治时间(GMT)时间格式获取时间对象
 	 * @param source 日期字符串
 	 * @return Date 对象
 	 * @throws ParseException 解析异常
 	 */
 	public static Date parseToGMT(String source) throws ParseException{
-		return parse(source, GMT_DATETIME_TEMPLATE, "GMT",Locale.ENGLISH);
-	}	
+		return parse(source, INTERNTTION_DATETIME_TEMPLATE, "GMT", Locale.ENGLISH);
+	}
 
 	/**
 	 * 日期加操作
