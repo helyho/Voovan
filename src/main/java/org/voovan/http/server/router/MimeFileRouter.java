@@ -77,7 +77,11 @@ public class MimeFileRouter implements HttpBizHandler {
 		//请求中的修改时间
 		Date requestModifyDate = null;
 		if(request.header().contain("If-Modified-Since")){
-			requestModifyDate = TDateTime.parseToGMT(request.header().get("If-Modified-Since"));
+			try {
+				requestModifyDate = TDateTime.parseToGMT(request.header().get("If-Modified-Since"));
+			}catch(Exception e){
+				requestModifyDate = null;
+			}
 		}
 
 		//文件的 ETag
