@@ -87,8 +87,8 @@ public class MessageLoader {
 			isLoading = true;
 			
 			while (isLoading) {
-				//如果连接关闭,退出循环
-				if(!session.isConnect()){
+				//如果连接关闭,且读取缓冲区内没有数据时,退出循环
+				if(!session.isConnect() && session.getByteBufferChannel().size()==0){
 					stopLoading();
 				}
 				
@@ -115,15 +115,15 @@ public class MessageLoader {
 				if(readsize == 1) {
 					byteOutputStream.write(oneByteBuffer.get(0));
 				}
-				
-				
+
 				//判断连接是否关闭
 				if (isRemoteClosed(readsize,oneByteBuffer)) {
 					stopLoading();
 				}
-				
+
 				//使用消息划分器进行消息划分
-				else if(messageSplitter!=null && readsize==1 && messageSplitter.canSplite(session,byteOutputStream.toByteArray())){
+				boolean msgSplitState = messageSplitter.canSplite(session,byteOutputStream.toByteArray());
+				if(messageSplitter!=null && readsize==1 && msgSplitState){
 					stopLoading();
 				}
 			}

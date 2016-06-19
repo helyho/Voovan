@@ -313,12 +313,7 @@ public class HttpClient {
 			}else{
 				socket.getSession().send(ByteBuffer.wrap(request.asBytes()));
 			}
-			
-			//等待获取 response并返回
-			while(isConnect() && !httpClientHandler.isHaveResponse()){
-				TEnv.sleep(1);
-			}
-			
+
 			Response response = httpClientHandler.getResponse();
 			
 			//结束操作
