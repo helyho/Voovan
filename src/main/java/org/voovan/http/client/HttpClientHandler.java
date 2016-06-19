@@ -3,6 +3,8 @@ package org.voovan.http.client;
 import org.voovan.http.message.Response;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.network.exception.SocketDisconnectByRemote;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -44,6 +46,11 @@ public class HttpClientHandler implements IoHandler {
 	 * @return 获取响应对象
 	 */
 	public synchronized Response getResponse(){
+		//等待获取 response并返回
+		while(!isHaveResponse()){
+			TEnv.sleep(1);
+		}
+
 		Response returnResponse = response;
 		response = null;
 		return returnResponse;
@@ -54,7 +61,6 @@ public class HttpClientHandler implements IoHandler {
 	public Object onConnect(IoSession session) {
 		//变更状态
 		httpClient.setStatus(HttpClientStatus.IDLE);
-		Logger.info("is IDLE");
 		return null;
 	}
 
@@ -69,6 +75,7 @@ public class HttpClientHandler implements IoHandler {
 		//确认对象是否可用
 		if(obj instanceof Response){
 			response = TObject.cast(obj);
+			System.out.println("response"+response);
 			haveResponse = true;
 		}
 		return null;
@@ -82,7 +89,9 @@ public class HttpClientHandler implements IoHandler {
 	@Override
 	public void onException(IoSession session, Exception e) {
 		httpClient.setStatus(HttpClientStatus.CLOSED);
-		haveResponse = true;
+		if(!(e instanceof SocketDisconnectByRemote)) {
+			haveResponse = true;
+		}
 		session.close();
 		Logger.error(e);
 	}

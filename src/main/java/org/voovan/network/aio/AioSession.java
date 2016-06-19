@@ -125,7 +125,7 @@ public class AioSession extends IoSession {
 	@Override
 	protected int read(ByteBuffer buffer) throws IOException {
 		int readSize = 0;
-		if (isConnect() && buffer != null) {
+		if (buffer != null) {
 			try {
 				readSize = byteBufferChannel.read(buffer);
 			} catch (IOException e) {
