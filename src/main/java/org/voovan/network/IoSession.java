@@ -79,6 +79,14 @@ public abstract class IoSession {
 	public void setAttribute(Object key, Object value) {
 		this.attributes.put(key, value);
 	}
+
+	/**
+	 * 移除会话参数
+	 * @param key     参数名
+	 */
+	public void removeAttribute(Object key) {
+		this.attributes.remove(key);
+	}
 	
 	/**
 	 * 检查会话参数是否存在

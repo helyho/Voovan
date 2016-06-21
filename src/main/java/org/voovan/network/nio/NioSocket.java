@@ -1,7 +1,10 @@
 package org.voovan.network.nio;
 
-import org.voovan.network.ConnectModel;
-import org.voovan.network.SocketContext;
+import org.voovan.Global;
+import org.voovan.network.*;
+import org.voovan.network.exception.IoFilterException;
+import org.voovan.network.exception.ReadMessageException;
+import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
 import org.voovan.tools.log.Logger;
 
@@ -45,6 +48,7 @@ public class NioSocket extends SocketContext{
 		socketChannel.configureBlocking(false);
 		session = new NioSession(this);
 		connectModel = ConnectModel.CLIENT;
+		this.handler = new SynchronousHandler();
 		init();
 	}
 	
@@ -121,7 +125,11 @@ public class NioSocket extends SocketContext{
 		
 		if(socketChannel!=null && socketChannel.isOpen()){
 			NioSelector nioSelector = new NioSelector(selector,this);
-			nioSelector.eventChose();
+
+			//循环放入独立的线程中处理
+			Global.getThreadPool().execute( () -> {
+				nioSelector.eventChose();
+			});
 		}
 	}
 
@@ -131,6 +139,45 @@ public class NioSocket extends SocketContext{
 			return socketChannel.isOpen();
 		}else{
 			return false;
+		}
+	}
+
+	/**
+	 * 同步读取消息
+	 * @return 读取出的对象
+	 */
+	public Object synchronouRead() throws ReadMessageException {
+		Object readObject = null;
+		while(true){
+			readObject = session.getAttribute("SocketResponse");
+			if(readObject!=null) {
+				if(readObject instanceof Exception){
+					throw new ReadMessageException("Method synchronouRead error! ",(Exception) readObject);
+				}
+				session.removeAttribute("SocketResponse");
+				break;
+			}
+		}
+		return readObject;
+	}
+
+	/**
+	 * 发送消息
+	 * @param obj  要发送的对象
+	 * @throws SendMessageException  消息发送异常
+	 */
+	public void synchronouSend(Object obj) throws SendMessageException{
+		if (obj != null) {
+			try {
+				filterChain().rewind();
+				while (filterChain().hasNext()) {
+					IoFilter fitler = filterChain().next();
+					obj = fitler.encode(session, obj);
+				}
+				EventProcess.sendMessage(session, obj);
+			}catch (Exception e){
+				throw new SendMessageException("Method synchronouSend error! ",e);
+			}
 		}
 	}
 
