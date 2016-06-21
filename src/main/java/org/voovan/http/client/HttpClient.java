@@ -8,6 +8,9 @@ import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioSocket;
+import org.voovan.network.exception.IoFilterException;
+import org.voovan.network.exception.ReadMessageException;
+import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
@@ -34,13 +37,10 @@ import java.util.Map.Entry;
 public class HttpClient {
 	
 	private AioSocket socket;
-	private HttpClientHandler httpClientHandler; 
 	private Request request;
 	private Map<String, Object> parameters;
 	private String charset="UTF-8";
-	private HttpClientStatus status = HttpClientStatus.PREPARE;
 	private boolean isSSL;
-	
 	
 	/**
 	 * 构建函数
@@ -120,8 +120,6 @@ public class HttpClient {
 			request.header().put("Connection","keep-alive");
 			
 			socket = new AioSocket(hostString, port==-1?80:port, timeOut*1000);
-			httpClientHandler = new HttpClientHandler(this);
-			socket.handler(httpClientHandler);
 			socket.filterChain().add(new HttpClientFilter());
 			socket.messageSplitter(new HttpMessageSplitter());
 			
@@ -133,35 +131,11 @@ public class HttpClient {
 					Logger.error(e);
 				}
 			}
-			
-			Thread bThread = new Thread(new BackThread());
-			bThread.start();
-			
-			//等待连接完成后状态变更,变更为 IDLE
-			while(status==HttpClientStatus.PREPARE){
-				TEnv.sleep(1);
-			}
+
+			socket.start();
+
 		} catch (IOException e) {
 			Logger.error("HttpClient init error. ",e);
-		}
-	}
-
-	/**
-	 * 后台线程
-	 * @author helyho
-	 *
-	 * Voovan Framework.
-	 * WebSite: https://github.com/helyho/Voovan
-	 * Licence: Apache v2 License
-	 */
-	private class BackThread implements Runnable{
-		public void run(){
-			try {
-				socket.start();
-				Logger.info("HttpClient closed");
-			} catch (IOException e) {
-				Logger.error("Start HttpClient thread failed",e);
-			}
 		}
 	}
 	
@@ -233,18 +207,6 @@ public class HttpClient {
 	}
 
 	/**
-	 * 获取当前工作状态
-	 * @return HttpClient 状态枚举
-     */
-	public HttpClientStatus getStatus() {
-		return status;
-	}
-
-	protected void setStatus(HttpClientStatus status) {
-		this.status = status;
-	}
-
-	/**
 	 * 构建QueryString
 	 * 	将 Map 集合转换成 QueryString 字符串
 	 * @return 请求字符串
@@ -298,32 +260,20 @@ public class HttpClient {
 	 * @return Response 对象
 	 * @throws IOException  IO 异常
 	 */
-	public Response send(String urlString) throws IOException {
-		if(status==HttpClientStatus.IDLE){
-			
-			//变更状态
-			status = HttpClientStatus.WORKING;
+	public Response send(String urlString) throws SendMessageException, ReadMessageException {
 			
 			//构造 Request 对象
 			buildRequest(TString.isNullOrEmpty(urlString)?"/":urlString);
 			
 			//发送报文
-			if(isSSL){
-				socket.getSession().sendSSLData(ByteBuffer.wrap(request.asBytes()));
-			}else{
-				socket.getSession().send(ByteBuffer.wrap(request.asBytes()));
-			}
+			socket.synchronouSend(request);
 
-			Response response = httpClientHandler.getResponse();
+			Response response = (Response)socket.synchronouRead();
 			
 			//结束操作
 			finished(response);
 			
-			
 			return response;
-		}else{
-			return null;
-		}
 	}
 
 	/**
@@ -344,13 +294,7 @@ public class HttpClient {
 		request.parts().clear();
 		request.header().remove("Content-Type");
 		request.header().remove("Content-Length");
-		
-		//更新状态
-		if(status == HttpClientStatus.WORKING){
-			status = HttpClientStatus.IDLE;
-		}
-		
-		httpClientHandler.reset();
+		request.header().remove("Content-Length");
 	}
 
 	/**
@@ -358,7 +302,7 @@ public class HttpClient {
 	 * @return Response 对象
 	 * @throws IOException IO 异常
      */
-	public Response send() throws IOException {
+	public Response send() throws SendMessageException, ReadMessageException {
 		return send("/");
 	}
 	
@@ -366,7 +310,6 @@ public class HttpClient {
 	 * 关闭 HTTP 连接
 	 */
 	public void close(){
-		status = HttpClientStatus.CLOSED;
 		socket.close();
 	}
 

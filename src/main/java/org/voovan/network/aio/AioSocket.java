@@ -1,8 +1,10 @@
 package org.voovan.network.aio;
 
-import org.voovan.network.ConnectModel;
-import org.voovan.network.EventTrigger;
-import org.voovan.network.SocketContext;
+import org.voovan.Global;
+import org.voovan.network.*;
+import org.voovan.network.exception.IoFilterException;
+import org.voovan.network.exception.ReadMessageException;
+import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
@@ -47,6 +49,7 @@ public class AioSocket extends SocketContext {
 
 		connectedCompletionHandler = new ConnectedCompletionHandler(eventTrigger);
 		readCompletionHandler = new ReadCompletionHandler(eventTrigger, session.getByteBufferChannel());
+		this.handler = new SynchronousHandler();
 		connectModel = ConnectModel.CLIENT;
 	}
 
@@ -141,11 +144,14 @@ public class AioSocket extends SocketContext {
 		
 		// 触发 connect 事件
 		eventTrigger.fireConnectThread();
-		
-		// 等待ServerSocketChannel关闭,结束进程
-		while (isConnect() && (connectModel==ConnectModel.CLIENT || eventTrigger.isShutdown())) {
-			TEnv.sleep(500);
-		}
+
+		Global.getThreadPool().execute( () -> {
+			// 等待ServerSocketChannel关闭,结束进程
+			while (isConnect() && (connectModel==ConnectModel.CLIENT || eventTrigger.isShutdown())) {
+				TEnv.sleep(500);
+			}
+		});
+
 	}
 
 	/**
@@ -160,6 +166,45 @@ public class AioSocket extends SocketContext {
 	@Override
 	public boolean isConnect() {
 		return socketChannel.isOpen();
+	}
+
+	/**
+	 * 同步读取消息
+	 * @return 读取出的对象
+     */
+	public Object synchronouRead() throws ReadMessageException {
+		Object readObject = null;
+		while(true){
+			readObject = session.getAttribute("SocketResponse");
+			if(readObject!=null) {
+				if(readObject instanceof Exception){
+					throw new ReadMessageException("Method synchronouRead error! ",(Exception) readObject);
+				}
+				session.removeAttribute("SocketResponse");
+				break;
+			}
+		}
+		return readObject;
+	}
+
+	/**
+	 * 发送消息
+	 * @param obj  要发送的对象
+	 * @throws SendMessageException  消息发送异常
+     */
+	public void synchronouSend(Object obj) throws SendMessageException{
+		if (obj != null) {
+			try {
+				filterChain().rewind();
+				while (filterChain().hasNext()) {
+					IoFilter fitler = filterChain().next();
+					obj = fitler.encode(session, obj);
+				}
+				EventProcess.sendMessage(session, obj);
+			}catch (Exception e){
+				throw new SendMessageException("Method synchronouSend error! ",e);
+			}
+		}
 	}
 
 	@Override
