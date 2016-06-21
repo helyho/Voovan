@@ -100,9 +100,7 @@ public class AioSocket extends SocketContext {
 	 * @param buffer 缓冲区
 	 */
 	protected void catchRead(ByteBuffer buffer) {
-		if (isConnect()) {
-			socketChannel.read(buffer, readTimeout, TimeUnit.MILLISECONDS, buffer, readCompletionHandler);
-		}
+		socketChannel.read(buffer, readTimeout, TimeUnit.MILLISECONDS, buffer, readCompletionHandler);
 	}
 
 	/**
