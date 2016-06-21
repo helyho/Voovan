@@ -243,35 +243,38 @@ public class EventProcess {
 	 * @throws SendMessageException  消息发送异常
 	 * @throws IOException  IO 异常
 	 */
-	public static void sendMessage(IoSession session, Object sendObj) throws SendMessageException, IOException{
-
-		ByteBuffer resultBuf = null;
-		// 根据消息类型,封装消息
-		if (sendObj != null) {
-			if (sendObj instanceof ByteBuffer) {
-				resultBuf = TObject.cast(sendObj);
-				resultBuf.rewind();
-			} else if (sendObj instanceof String) {
-				String sendString = TObject.cast(sendObj);
-				resultBuf = ByteBuffer.wrap(sendString.getBytes());
-			} else {
-				throw new SendMessageException("Expect Object type is 'java.nio.ByteBuffer' or 'java.lang.String',reality got type is '"
-						+ sendObj.getClass() + "'");
-			}
-		}
-
-		// 发送消息
-		if (sendObj != null && session.isConnect()) {
-
-			if (session.getSSLParser() != null && session.getSSLParser().handShakeDone) {
-				session.sendSSLData(resultBuf);
-			} else {
-				session.send(resultBuf);
+	public static void sendMessage(IoSession session, Object sendObj) throws SendMessageException {
+		try {
+			ByteBuffer resultBuf = null;
+			// 根据消息类型,封装消息
+			if (sendObj != null) {
+				if (sendObj instanceof ByteBuffer) {
+					resultBuf = TObject.cast(sendObj);
+					resultBuf.rewind();
+				} else if (sendObj instanceof String) {
+					String sendString = TObject.cast(sendObj);
+					resultBuf = ByteBuffer.wrap(sendString.getBytes());
+				} else {
+					throw new SendMessageException("Expect Object type is 'java.nio.ByteBuffer' or 'java.lang.String',reality got type is '"
+							+ sendObj.getClass() + "'");
+				}
 			}
 
-			Event event = new Event(session, EventName.ON_SENT, resultBuf);
-			// 出发发送事件
-			EventProcess.process(event);
+			// 发送消息
+			if (sendObj != null && session.isConnect()) {
+
+				if (session.getSSLParser() != null && session.getSSLParser().handShakeDone) {
+					session.sendSSLData(resultBuf);
+				} else {
+					session.send(resultBuf);
+				}
+
+				Event event = new Event(session, EventName.ON_SENT, resultBuf);
+				// 出发发送事件
+				EventProcess.process(event);
+			}
+		}catch(IOException e){
+			throw new SendMessageException(e);
 		}
 	}
 

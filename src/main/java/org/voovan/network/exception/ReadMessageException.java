@@ -1,19 +1,19 @@
 package org.voovan.network.exception;
 
-public class SendMessageException extends Exception {
+public class ReadMessageException extends Exception {
 
 	private static final long	serialVersionUID	= 1L;
 
-	public SendMessageException(String message,Exception e){
+	public ReadMessageException(String message, Exception e){
 		super(message);
 		this.setStackTrace(e.getStackTrace());
 	}
-	
-	public SendMessageException(String message){
+
+	public ReadMessageException(String message){
 		super(message);
 	}
 
-	public SendMessageException(Exception e){
+	public ReadMessageException(Exception e){
 		this.setStackTrace(e.getStackTrace());
 	}
 }

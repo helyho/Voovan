@@ -53,7 +53,7 @@ public class NioSelector {
 	 * 
 	 * @throws IOException IO 异常
 	 */
-	public void eventChose() throws IOException {
+	public void eventChose() {
 		//读取用的缓冲区
 		ByteBuffer readTempBuffer = ByteBuffer.allocateDirect(1024);
 		
