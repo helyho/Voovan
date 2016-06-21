@@ -102,10 +102,6 @@ public class MessageLoader {
 					readsize = session.read(oneByteBuffer);
 				}
 				
-				if(readsize==0){
-					TEnv.sleep(1);
-				}
-				
 				//通道关闭,退出循环
 				if(readsize==-1){
 					stopLoading();
