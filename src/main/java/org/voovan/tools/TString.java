@@ -250,12 +250,12 @@ public class TString {
 	 */
 	public static String indent(String str,int indentCount){
 		if(indentCount>0 && str!=null){
-			String indent = "";
+			StringBuilder indent = new StringBuilder("");
 			for(int i=0;i<indentCount;i++){
-				indent += " ";
+				indent.append(" ");
 			}
-			str = indent + str;
-			str = str.replaceAll("\n", "\n" + indent);
+			str = indent.toString() + str;
+			str = str.replaceAll("\n", "\n" + indent.toString());
 		}
 		return str;
 	}
@@ -268,10 +268,10 @@ public class TString {
 	public static String reverse(String str){
 		if(str!=null){
 			char[] array = str.toCharArray();
-			String reverse = "";
+			StringBuilder reverse = new StringBuilder("");
 			for (int i = array.length - 1; i >= 0; i--)
-				reverse += array[i];
-			return reverse;
+				reverse.append(array[i]);
+			return reverse.toString();
 		}
 		return null;
 	}

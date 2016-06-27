@@ -131,9 +131,9 @@ public class JSONDecode {
 					}
 					//判断不包含.即为整形
 					else if (TString.isInteger(stringValue)){
-						Long longValue = new Long((String)value);
+						Long longValue = Long.parseLong((String)value);
 						if(longValue <= 2147483647 && longValue >= -2147483647){
-							value = new Integer((String)value);
+							value = Integer.parseInt((String)value);
 						}else{
 							value = longValue;
 						}
@@ -144,7 +144,7 @@ public class JSONDecode {
 					}
 					//判断是否是 boolean 类型
 					else if(TString.isBoolean(stringValue)){
-						value = new Boolean((String)value);
+						value = Boolean.parseBoolean((String)value);
 					}else{
 						value = null;
 					}

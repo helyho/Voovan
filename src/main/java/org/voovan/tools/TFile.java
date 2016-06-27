@@ -32,12 +32,13 @@ public class TFile {
 	 * @return 拼装后的路径
 	 */
 	public static String assemblyPath(String ...pathParts ){
-		String result = "";
+		StringBuilder result = new StringBuilder("");
 		for(String pathPart : pathParts){
-			result = result+pathPart+File.separator;
+			result.append(pathPart);
+			result.append(File.separator);
 		}
 		
-		return TString.removeSuffix(result);
+		return TString.removeSuffix(result.toString());
 	}
 	
 	/**

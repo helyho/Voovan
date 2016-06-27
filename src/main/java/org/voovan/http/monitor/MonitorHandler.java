@@ -172,7 +172,7 @@ public class MonitorHandler implements HttpBizHandler {
             responseStr = toJsonWithLF(requestInfo());
         }else if(type.equals("Log")){
             String logType = request.getParameter("Param1");
-            int lineNumber = new Integer(request.getParameter("Param2"));
+            int lineNumber = Integer.parseInt(request.getParameter("Param2"));
             responseStr = readLogs(logType,lineNumber);
         }
         response.write(responseStr);

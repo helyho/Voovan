@@ -438,10 +438,10 @@ public class HttpParser {
 				response.protocol().setProtocol(parsedPacketEntry.getValue().toString());
 				break;
 			case FL_VERSION:	
-				response.protocol().setVersion(Float.valueOf(parsedPacketEntry.getValue().toString()));
+				response.protocol().setVersion(Float.parseFloat(parsedPacketEntry.getValue().toString()));
 				break;
 			case FL_STATUS:	
-				response.protocol().setStatus(Integer.valueOf(parsedPacketEntry.getValue().toString()));
+				response.protocol().setStatus(Integer.parseInt(parsedPacketEntry.getValue().toString()));
 				break;
 			case FL_STATUSCODE:	
 				response.protocol().setStatusCode(parsedPacketEntry.getValue().toString());

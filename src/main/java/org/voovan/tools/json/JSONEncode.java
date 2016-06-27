@@ -37,6 +37,7 @@ public class JSONEncode {
      */
     private static String mapObject(Map<?, ?> mapObject) throws ReflectiveOperationException {
         String mapString = "{";
+        StringBuilder ContentStringBuilder = new StringBuilder("");
         String ContentString = "";
 
         Object[] keys = mapObject.keySet().toArray();
@@ -44,11 +45,16 @@ public class JSONEncode {
         for (Object mapkey : keys) {
             Object key = fromObject(mapkey);
             String Value = fromObject(mapObject.get(mapkey));
-            ContentString = ContentString + key + ":" + Value + ",";
+            ContentStringBuilder.append(key);
+            ContentStringBuilder.append(":");
+            ContentStringBuilder.append(Value);
+            ContentStringBuilder.append(",");
         }
 
-        if (!ContentString.trim().equals(""))
+        ContentString = ContentStringBuilder.toString();
+        if (!ContentString.trim().equals("")){
             ContentString = ContentString.substring(0, ContentString.length() - 1);
+        }
 
         mapString = mapString + ContentString + "}";
 
@@ -76,10 +82,12 @@ public class JSONEncode {
     private static String arrayObject(Object[] arrayObject) throws ReflectiveOperationException {
         String arrayString = "[";
         String ContentString = "";
+        StringBuilder ContentStringBuilder = new StringBuilder("");
 
         for (Object object : arrayObject) {
             String Value = fromObject(object);
-            ContentString = ContentString + Value + ",";
+            ContentStringBuilder.append(Value);
+            ContentStringBuilder.append(",");
         }
 
         if (!ContentString.trim().equals(""))

@@ -115,7 +115,7 @@ public class Cookie {
 				cookie.setPath(cookieMapItem.getValue());
 				break;
 			case "max-age" :
-				cookie.setMaxAge(Integer.valueOf(cookieMapItem.getValue()));
+				cookie.setMaxAge(Integer.parseInt(cookieMapItem.getValue()));
 				break;
 			case "secure" :
 				cookie.setSecure(true);

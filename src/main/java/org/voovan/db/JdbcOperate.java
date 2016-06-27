@@ -123,9 +123,6 @@ public class JdbcOperate {
 			PreparedStatement preparedStatement = TSQL.createPreparedStatement(conn, sqlText, mapArg);
 			//执行查询
 			ResultSet rs = preparedStatement.executeQuery();
-			if(rs==null){
-				return null;
-			}
 			return new ResultInfo(rs,this.isTrancation);
 		} catch (SQLException e) {
 			closeConnection(conn);
@@ -783,9 +780,7 @@ public class JdbcOperate {
 		}
 
 		try {
-			if (statement != null) {
-				statement.close();
-			}
+			statement.close();
 			if (connection != null) {
 				connection.close();
 			}
@@ -827,9 +822,8 @@ public class JdbcOperate {
 			if (statement != null) {
 				statement.close();
 			}
-			if (resultSet != null) {
-				resultSet.close();
-			}
+
+			resultSet.close();
 		} catch (SQLException e) {
 			Logger.error(e.getMessage(),e);
 		}
@@ -844,9 +838,7 @@ public class JdbcOperate {
 			return;
 		}
 		try {
-			if (statement != null) {
-				statement.close();
-			}
+			statement.close();
 		} catch (SQLException e) {
 			Logger.error(e.getMessage(),e);
 		}

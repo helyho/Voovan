@@ -69,12 +69,13 @@ public class WebSocketDispatcher {
 		String requestPath = request.protocol().getPath();
 
 		boolean isMatched = false;
-		for (String routePath : handlers.keySet()) {
+		for (Map.Entry<String,WebSocketBizHandler> routeEntry : handlers.entrySet()) {
+			String routePath = routeEntry.getKey();
 			// 路由匹配
 			isMatched = HttpDispatcher.matchPath(requestPath, routePath);
 			if (isMatched) {
 				// 获取路由处理对象
-				WebSocketBizHandler handler = handlers.get(routePath);
+				WebSocketBizHandler handler = routeEntry.getValue();
 				
 				// 获取路径变量
 				ByteBuffer responseMessage = null;
