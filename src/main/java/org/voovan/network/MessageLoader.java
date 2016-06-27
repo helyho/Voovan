@@ -129,14 +129,7 @@ public class MessageLoader {
 			}
 		}
 
-		
-		ByteBuffer retBuffer = null;
-		
-		if(byteOutputStream!=null){
-			retBuffer = ByteBuffer.wrap(byteOutputStream.toByteArray());
-		}
-		
-		return retBuffer;
+		return ByteBuffer.wrap(byteOutputStream.toByteArray());
 	}
 
 }

@@ -22,7 +22,7 @@ public class JSONEncode {
      *
      * @param object 自定义对象
      * @return JSON字符串
-     * @throws Exception
+     * @throws ReflectiveOperationException
      */
     private static String complexObject(Object object) throws ReflectiveOperationException {
         return mapObject(TReflect.getMapfromObject(object));
@@ -33,12 +33,12 @@ public class JSONEncode {
      *
      * @param mapObject map对象
      * @return JSON字符串
-     * @throws Exception
+     * @throws ReflectiveOperationException
      */
     private static String mapObject(Map<?, ?> mapObject) throws ReflectiveOperationException {
         String mapString = "{";
         StringBuilder ContentStringBuilder = new StringBuilder("");
-        String ContentString = "";
+        String ContentString = null;
 
         Object[] keys = mapObject.keySet().toArray();
 
@@ -66,7 +66,7 @@ public class JSONEncode {
      *
      * @param listObject List对象
      * @return JSON字符串
-     * @throws Exception
+     * @throws ReflectiveOperationException
      */
     private static String CollectionObject(List<Object> listObject) throws ReflectiveOperationException {
         return arrayObject(listObject.toArray());
@@ -76,7 +76,7 @@ public class JSONEncode {
      * 分析Array对象为JSON字符串
      *
      * @param arrayObject Array对象
-     * @throws Exception
+     * @throws ReflectiveOperationException
      * @return JSON字符串
      */
     private static String arrayObject(Object[] arrayObject) throws ReflectiveOperationException {
@@ -107,7 +107,7 @@ public class JSONEncode {
      */
     @SuppressWarnings("unchecked")
     public static String fromObject(Object object) throws ReflectiveOperationException {
-        String value = "";
+        String value = null;
 
         if (object == null) {
             value = "null";
