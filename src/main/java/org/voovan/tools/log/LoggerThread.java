@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class LoggerThread implements Runnable {
 	private ArrayBlockingQueue<String>	logQueue;
 	private OutputStream[] outputStreams;
-	private boolean finished = false;
+	private boolean finished = true;
 
 	/**
 	 * 构造函数
@@ -80,7 +80,9 @@ public class LoggerThread implements Runnable {
 
 	@Override
 	public void run() {
-		while (true && !isTerminate()) {
+		finished = false;
+		int count = 0;
+		while (true) {
 			try {
 				String formatedMessage = logQueue.poll(100, TimeUnit.MILLISECONDS);
 				if (formatedMessage != null && outputStreams!=null) {
@@ -90,35 +92,22 @@ public class LoggerThread implements Runnable {
 							outputStream.flush();
 						}
 					}
+					count = 0;
 				}
+
+				if(formatedMessage==null){
+					count++;
+				}
+
+				//如果有 1s 没有新的日志输出则结束当前线程
+				if(count>10){
+					break;
+				}
+
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
-		finished = true;
-	}
-	
-	/**
-	 * 检查线程是否处于结束状态
-	 * @return 是否结束状态
-	 */
-	@SuppressWarnings("unchecked")
-	public boolean isTerminate(){
-		//应用结束的线程标识
-		List<String> destoryThreadNames = TObject.newList("DestroyJavaVM","ReaderThread");
-		
-		//获取系统内所有的线程
-		Thread[] jvmThread = TEnv.getThreads();
-		
-		//遍历是否包含线程结束标识
-		for(Thread threadObj : jvmThread){
-			for(String destoryThreadName : destoryThreadNames){
-				if(threadObj.getName().contains(destoryThreadName)){
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 	
 	/**

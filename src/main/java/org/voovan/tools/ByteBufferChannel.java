@@ -24,7 +24,7 @@ public class ByteBufferChannel implements ByteChannel {
 	/**
 	 * 重置
 	 */
-	public void reset() {
+	public synchronized void reset() {
 		buffer = ByteBuffer.allocateDirect(0);
 	}
 	
@@ -40,7 +40,7 @@ public class ByteBufferChannel implements ByteChannel {
 	 * 当前数据缓冲区
 	 * @return 数据缓冲区
      */
-	public ByteBuffer getBuffer(){
+	public synchronized ByteBuffer getBuffer(){
 		return buffer;
 	}
 	

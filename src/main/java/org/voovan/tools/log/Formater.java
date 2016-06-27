@@ -176,12 +176,11 @@ public class Formater {
 	 * 写入消息
 	 * @param msg 消息字符串
 	 */
-	public void writeLog(String msg) {
+	public synchronized void writeLog(String msg) {
 		if(Logger.isState()){
-			if(loggerThread==null || loggerThread.isFinished()){
+			if (loggerThread == null || loggerThread.isFinished()) {
 				this.loggerThread = LoggerThread.start(getOutputStreams());
 			}
-			
 			//如果日志发生变化则产生新的文件
 			if(!dateStamp.equals(TDateTime.now("YYYYMMdd"))){
 				loggerThread.setOutputStreams(getOutputStreams());
@@ -225,8 +224,8 @@ public class Formater {
 									"{{n}}[{{P}}] [{{D}}] [Thread:{{T}}] [Time:{{R}}] ({{F}}:{{L}}) {{n}}" +
 									"--------------------------------------------------------------------------------------------------------------------------------------------------" +
 									"{{n}}{{I}}{{n}}{{n}}";
-			String logTemplate = StaticParam.getLogConfig("LogTemplate",defaultLogTemplate);
-			return new Formater(logTemplate);
+		String logTemplate = StaticParam.getLogConfig("LogTemplate",defaultLogTemplate);
+		return new Formater(logTemplate);
 	}
 	
 	/**
