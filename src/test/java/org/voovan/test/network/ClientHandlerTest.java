@@ -34,6 +34,7 @@ public class ClientHandlerTest implements IoHandler {
 	public void onException(IoSession session, Exception e) {
 		Logger.simple("Client Exception");
 		Logger.error(e);
+		session.close();
 	}
 
 	@Override
