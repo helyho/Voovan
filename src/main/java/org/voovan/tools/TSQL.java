@@ -207,9 +207,9 @@ public class TSQL {
 	 */
 	public static String assembleSQLWithMap(String sqlStr,Map<String ,Object> argMap) {		
 		
-		for(String key : argMap.keySet())
+		for(Entry<String,Object> arg : argMap.entrySet())
 		{
-			sqlStr = sqlStr.replaceAll(":"+key,getSQLString(argMap.get(key)));
+			sqlStr = sqlStr.replaceAll(":"+arg.getKey(),getSQLString(argMap.get(arg.getKey())));
 		}
 		return sqlStr;
 	}
@@ -400,14 +400,15 @@ public class TSQL {
 		if(argObj instanceof List)
 		{
 			Object[] objects =((List<?>)argObj).toArray();
-			String listValueStr="(";
+			StringBuilder listValueStr= new StringBuilder("(");
 			for(Object obj : objects)
 			{
 				String sqlValue = getSQLString(obj);
 				if(sqlValue!=null)
-					listValueStr+=sqlValue+",";
+					listValueStr.append(sqlValue);
+					listValueStr.append(",");
 			}
-			return TString.removeSuffix(listValueStr)+")";
+			return TString.removeSuffix(listValueStr.toString())+")";
 		}
 		//处理String
 		else if(argObj instanceof String){

@@ -168,15 +168,18 @@ public class Request {
 		}
 		// POST_MULTIPART 请求类型的处理
 		else if (getType() == RequestType.POST_MULTIPART) {
-			String result = "";
+			StringBuilder result = new StringBuilder("");
 			for (Part part : parts) {
 				if (part.getType() == PartType.TEXT) {
 					String name = part.header().get("name");
 					String value = part.body().getBodyString(charset);
-					result += name + "=" + value + "&";
+					result.append(name);
+					result.append("=");
+					result.append(value);
+					result.append("&");
 				}
 			}
-			queryString = TString.removeSuffix(result);
+			queryString = TString.removeSuffix(result.toString());
 		}
 
 		return queryString;
@@ -209,11 +212,14 @@ public class Request {
 	 * @return 获取 Cookie 字符串
 	 */
 	private String genCookie() {
-		String cookieString = "";
+		StringBuilder cookieString = new StringBuilder("");
 		for (Cookie cookie : cookies) {
-			cookieString += cookie.getName() + "=" + cookie.getValue() + "; ";
+			cookieString.append(cookie.getName());
+			cookieString.append("=");
+			cookieString.append(cookie.getValue());
+			cookieString.append("; ");
 		}
-		return cookieString;
+		return cookieString.toString();
 	}
 
 	/**
@@ -225,7 +231,7 @@ public class Request {
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 			if (body.getBodyBytes() != null || parts.size() != 0) {
 				// 没有 parts 时直接写入包体
-				if (body.getBodyBytes() != null && body.getBodyBytes().length > 0) {
+				if (body.getBodyBytes().length > 0) {
 					String bodyString = body.getBodyString();
 					outputStream.write(bodyString.getBytes());
 				}

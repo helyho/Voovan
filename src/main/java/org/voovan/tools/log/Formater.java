@@ -82,11 +82,9 @@ public class Formater {
 		String infoIndent = StaticParam.getLogConfig("InfoIndent","");
 		String msg = message.getMessage();
 		if(infoIndent!=null && !infoIndent.isEmpty()){
-			if (infoIndent != null) {
-				msg = infoIndent + msg;
-				msg = msg.replaceAll("\n", "\n" + infoIndent);
-				message.setMessage(msg);
-			}
+			msg = infoIndent + msg;
+			msg = msg.replaceAll("\n", "\n" + infoIndent);
+			message.setMessage(msg);
 		}
 		return msg;
 	}

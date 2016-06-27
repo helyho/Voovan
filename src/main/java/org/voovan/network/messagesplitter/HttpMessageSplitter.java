@@ -41,7 +41,7 @@ public class HttpMessageSplitter implements MessageSplitter {
 		if (bufferString.contains(BODY_TAG)) {
 			// 1.包含 content Length 的则通过获取 contentLenght 来计算报文的总长度,长度相等时,返回成功
 			if (contentLengthLines.length == 1) {
-				int contentLength = Integer.valueOf(contentLengthLines[0].split(" ")[1].trim());
+				int contentLength = Integer.parseInt(contentLengthLines[0].split(" ")[1].trim());
 				int totalLength = bufferString.indexOf(BODY_TAG) + 4 + contentLength;
 				if (buffer.length >= totalLength) {
 					return true;

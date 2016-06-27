@@ -128,11 +128,13 @@ public class Response {
 	 * @return Cookie 字符串
 	 */
 	private String genCookie() {
-		String cookieString = "";
+		StringBuilder cookieString = new StringBuilder("");
 		for (Cookie cookie : cookies) {
-			cookieString = cookieString + "Set-Cookie: " + cookie.toString() + "\r\n";
+			cookieString.append("Set-Cookie: ");
+			cookieString.append(cookie.toString());
+			cookieString.append("\r\n");
 		}
-		return cookieString;
+		return cookieString.toString();
 	}
 
 	/**

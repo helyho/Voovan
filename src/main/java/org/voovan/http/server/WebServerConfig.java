@@ -180,11 +180,14 @@ public class WebServerConfig {
     public String toString(){
         try {
             Map<Field, Object> fieldValues = TReflect.getFieldValues(this);
-            String str = "";
+            StringBuilder str = new StringBuilder("");
             for(Entry<Field,Object> entry : fieldValues.entrySet()){
-                str+=entry.getKey().getName()+":\t\t"+entry.getValue()+"\r\n";
+                str.append(entry.getKey().getName());
+                str.append(":\t\t");
+                str.append(entry.getValue());
+                str.append("\r\n");
             }
-            return str;
+            return str.toString();
         } catch (ReflectiveOperationException e) {
             Logger.error(e);
         }
