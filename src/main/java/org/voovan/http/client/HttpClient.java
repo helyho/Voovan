@@ -213,14 +213,16 @@ public class HttpClient {
 	 */
 	private String getQueryString(){
 		String queryString = "";
+		StringBuilder queryStringBuilder = new StringBuilder("");
 		try {
 			for (Entry<String, Object> parameter : parameters.entrySet()) {
-				queryString += parameter.getKey()
-						+ "="
-						+ URLEncoder.encode(parameter.getValue().toString(), charset)
-						+ "&";
+				queryStringBuilder.append(parameter.getKey());
+				queryStringBuilder.append("=");
+				queryStringBuilder.append(URLEncoder.encode(parameter.getValue().toString(), charset));
+				queryStringBuilder.append("&");
 			}
-			queryString = queryString.length()>0?TString.removeSuffix(queryString):queryString;
+			queryString = queryStringBuilder.toString();
+			queryString = queryStringBuilder.length()>0?TString.removeSuffix(queryString):queryString;
 		} catch (IOException e) {
 			Logger.error("HttpClient getQueryString error. ",e);
 		}

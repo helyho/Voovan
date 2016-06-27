@@ -83,47 +83,46 @@ public class MessageLoader {
 		//缓冲区字段,一次读一个字节,所以这里分配一个
 		ByteBuffer oneByteBuffer = ByteBuffer.allocate(1);
 		
-		if (session != null) {
-			isLoading = true;
-			
-			while (isLoading) {
-				//如果连接关闭,且读取缓冲区内没有数据时,退出循环
-				if(!session.isConnect() && session.getByteBufferChannel().size()==0){
-					stopLoading();
-				}
-				
-				oneByteBuffer.clear();
-				int readsize = 0;
-				
-				//读出数据
-				if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone){
-					readsize = session.readSSLData(oneByteBuffer);
-				}else{
-					readsize = session.read(oneByteBuffer);
-				}
-				
-				//通道关闭,退出循环
-				if(readsize==-1){
-					stopLoading();
-				}
-				
-				//将读出的数据写入缓冲区
-				if(readsize == 1) {
-					byteOutputStream.write(oneByteBuffer.get(0));
-				}
+		isLoading = true;
 
-				//判断连接是否关闭
-				if (isRemoteClosed(readsize,oneByteBuffer)) {
-					stopLoading();
-				}
+		while (isLoading) {
+			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
+			if(!session.isConnect() && session.getByteBufferChannel().size()==0){
+				stopLoading();
+			}
 
-				//使用消息划分器进行消息划分
-				boolean msgSplitState = messageSplitter.canSplite(session,byteOutputStream.toByteArray());
-				if(messageSplitter!=null && readsize==1 && msgSplitState){
-					stopLoading();
-				}
+			oneByteBuffer.clear();
+			int readsize = 0;
+
+			//读出数据
+			if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone){
+				readsize = session.readSSLData(oneByteBuffer);
+			}else{
+				readsize = session.read(oneByteBuffer);
+			}
+
+			//通道关闭,退出循环
+			if(readsize==-1){
+				stopLoading();
+			}
+
+			//将读出的数据写入缓冲区
+			if(readsize == 1) {
+				byteOutputStream.write(oneByteBuffer.get(0));
+			}
+
+			//判断连接是否关闭
+			if (isRemoteClosed(readsize,oneByteBuffer)) {
+				stopLoading();
+			}
+
+			//使用消息划分器进行消息划分
+			boolean msgSplitState = messageSplitter.canSplite(session,byteOutputStream.toByteArray());
+			if(messageSplitter!=null && readsize==1 && msgSplitState){
+				stopLoading();
 			}
 		}
+
 		
 		ByteBuffer retBuffer = null;
 		

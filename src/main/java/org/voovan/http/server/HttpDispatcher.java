@@ -104,12 +104,13 @@ public class HttpDispatcher {
 		boolean isMatched = false;
 		Map<String, HttpBizHandler> handlerInfos = handlers.get(requestMethod);
 		//遍历路由对象
-		for (String routePath : handlerInfos.keySet()) {
+		for (Map.Entry<String,HttpBizHandler> routeEntry : handlerInfos.entrySet()) {
+			String routePath = routeEntry.getKey();
 			//寻找匹配的路由对象
 			isMatched = matchPath(requestPath,routePath);
 			if (isMatched) {
 				//获取路由处理对象
-				HttpBizHandler handler = handlerInfos.get(routePath);
+				HttpBizHandler handler = routeEntry.getValue();
 				try {
 					//获取路径变量
 					Map<String, String> pathVariables = fetchPathVariables(requestPath,routePath);

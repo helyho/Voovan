@@ -47,7 +47,7 @@ public class Body {
 	 */
 	public String getBodyString(){
 		byte[] bodyBytes = getBodyBytes();
-		return bodyBytes!=null?new String(bodyBytes):null;
+		return new String(bodyBytes);
 	}
 	
 	
@@ -59,7 +59,7 @@ public class Body {
 	public String getBodyString(String charset){
 		byte[] bodyBytes = getBodyBytes();
 		try {
-			return bodyBytes!=null?new String(bodyBytes,charset):null;
+			return new String(bodyBytes,charset);
 		} catch (UnsupportedEncodingException e) {
 			Logger.error("this charset is unsupported.",e);
 			return new String(bodyBytes);

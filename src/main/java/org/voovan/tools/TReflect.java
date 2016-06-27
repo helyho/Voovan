@@ -277,8 +277,9 @@ public class TReflect {
 		// 复杂对象
 		else {
 			obj = newInstance(clazz);
-			for(String key : mapArg.keySet()){
-				Object value = mapArg.get(key);
+			for(Entry<String,Object> argEntry : mapArg.entrySet()){
+				String key = argEntry.getKey();
+				Object value = argEntry.getValue();
 
 				Field field = null;
 				if(ignoreCase) {

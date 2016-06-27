@@ -87,21 +87,22 @@ public class TEnv {
 	
 	/**
 	 * 获取当前栈信息
+	 * 		会自动过滤掉栈里的第一行,即当前类的信息
 	 *
 	 * @return 当前栈信息
 	 */
 	public static String getStackMessage(){
-		String stackInfo = "";
+		StringBuilder stackInfo = new StringBuilder("");
 		Throwable ex = new Throwable();
 		int row = 0;
 		for (StackTraceElement stackTraceElement : ex.getStackTrace()) {
 			if(row!=0){
-				stackInfo += stackTraceElement.toString();
-				stackInfo += "\r\n";
+				stackInfo.append(stackTraceElement.toString());
+				stackInfo.append("\r\n");
 			}
 			row++;
 		}
-		return stackInfo;
+		return stackInfo.toString();
 	}
 	
 	/**
@@ -110,13 +111,13 @@ public class TEnv {
 	 * @return 当前栈信息
 	 */
 	public static String getStackElementsMessage(StackTraceElement[] stackTraceElements){
-		String stackInfo = "";
+		StringBuilder stackInfo = new StringBuilder("");
 		for (StackTraceElement stackTraceElement : stackTraceElements) {
-			stackInfo += stackTraceElement.toString();
-			stackInfo += "\r\n";
+			stackInfo.append(stackTraceElement.toString());
+			stackInfo.append("\r\n");
 		}
 		
-		return stackInfo;
+		return stackInfo.toString();
 	}
 	
 	/**

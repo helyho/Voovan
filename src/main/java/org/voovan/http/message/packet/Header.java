@@ -92,14 +92,17 @@ public class Header {
 	
 	@Override 
 	public String toString(){
-		String headerContent = "";
+		StringBuilder headerContent = new StringBuilder("");
 		for(Entry<String,String> headerItemEntry : this.headers.entrySet()){
 			String key = headerItemEntry.getKey();
 			String value = headerItemEntry.getValue();
 			if(!key.isEmpty() && Character.isUpperCase(key.charAt(0))){
-				headerContent = headerContent+key+": "+value+"\r\n";
+				headerContent.append(key);
+				headerContent.append(": ");
+				headerContent.append(value);
+				headerContent.append("\r\n");
 			}
 		}
-		return headerContent;
+		return headerContent.toString();
 	}
 }

@@ -40,19 +40,21 @@ public class TStream {
 	 * @throws IOException IO 异常
 	 */
 	public static String readLine(InputStream inputStream) throws IOException{
-		String lineStr="";
+		String lineStr = "";
+		StringBuilder lineStrBuilder= new StringBuilder("");
 		while(true){
 			int singleChar = inputStream.read();		
 			if(singleChar==-1 || singleChar==65535) {
 				break;
 			}
 			else{
-				lineStr += String.valueOf((char)singleChar);
-				if(lineStr.endsWith("\n")){
+				lineStrBuilder.append(String.valueOf((char)singleChar));
+				if(singleChar == '\n'){
 					break;
 				}
 			}
-		}		
+		}
+		lineStr = lineStrBuilder.toString();
 		return lineStr.equals("")?null:lineStr.substring(0,lineStr.length()-2);
 	}
 	
@@ -103,7 +105,7 @@ public class TStream {
 			if(readSize>0){
 				byteOutputStream.write(tempBytes,0,readSize);
 			}
-			else if(readSize==-1 || readSize==65535){
+			else if(readSize==-1){
 				break;
 			}
 		}
