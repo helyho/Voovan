@@ -90,6 +90,8 @@ public class JSONEncode {
             ContentStringBuilder.append(",");
         }
 
+        ContentString = ContentStringBuilder.toString();
+
         if (!ContentString.trim().equals("")) {
             ContentString = ContentString.substring(0, ContentString.length() - 1);
         }

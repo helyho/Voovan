@@ -21,10 +21,11 @@ public class Global {
      * 返回公用线程池
      * @return 公用线程池
      */
-    public static ThreadPoolExecutor getThreadPool(){
+    public static synchronized ThreadPoolExecutor getThreadPool(){
        if(threadPool==null || threadPool.isShutdown()){
            threadPool = ThreadPool.getNewThreadPool();
        }
-        return threadPool;
+
+       return threadPool;
     }
 }

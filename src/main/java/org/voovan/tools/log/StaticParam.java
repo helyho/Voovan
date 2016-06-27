@@ -18,7 +18,11 @@ public class StaticParam {
 	private static long		startTimeMillis	= System.currentTimeMillis();
 	private static File		configFile		= loadConfig();
 
-	public static File loadConfig(){
+	/**
+	 * 读取日志配置文件信息
+	 * @return 日志配置文件对象
+     */
+	protected static File loadConfig(){
 		File tmpFile = TFile.getResourceFile("logger.properties");
 		if(tmpFile!=null){
 			return tmpFile;
@@ -28,12 +32,22 @@ public class StaticParam {
 			return null;
 		}
 	}
-	
-	public static long getStartTimeMillis() {
+
+	/**
+	 * 获取启动时间信息
+	 * @return 启动时间
+     */
+	 protected static long getStartTimeMillis() {
 		return startTimeMillis;
 	}
-	
-	public static String getLogConfig(String property,String defalut) {
+
+	/**
+	 * 获取日志配置项信息
+	 * @param property  日志配置项
+	 * @param defalut   默认值
+     * @return  日志配置信息
+     */
+	protected static String getLogConfig(String property,String defalut) {
 		String value = null;
 		if(configFile!=null){
 			value = TProperties.getString(configFile, property);

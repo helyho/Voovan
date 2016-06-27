@@ -3,6 +3,7 @@ package org.voovan.test.network;
 
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
@@ -28,8 +29,12 @@ public class ServerHandlerTest implements IoHandler {
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		Logger.simple("Server Exception:");
-		Logger.error(e);
+		if(e instanceof SocketDisconnectByRemote){
+			Logger.simple("Connection disconnect by client");
+		}else {
+			Logger.error("Server Exception:",e);
+		}
+		session.close();
 	}
 
 	@Override

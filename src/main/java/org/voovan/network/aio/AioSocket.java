@@ -88,10 +88,9 @@ public class AioSocket extends SocketContext {
 	protected void catchConnected() throws IOException {
 		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
 		socketChannel.connect(socketAddress, this, connectedCompletionHandler);
-		while(true){
-			if(connectedCompletionHandler.isFinished()){
-				break;
-			}
+		//获取到对端 IP 地址为连接成功
+		while(socketChannel.getRemoteAddress()==null){
+			TEnv.sleep(1);
 		}
 	}
 
@@ -134,7 +133,11 @@ public class AioSocket extends SocketContext {
 		
 		if (connectModel == ConnectModel.CLIENT) {
 			// 捕获 connect 事件
-			catchConnected();
+			try {
+				catchConnected();
+			}catch (IOException e){
+				return;
+			}
 		}
 		
 		//捕获输入事件

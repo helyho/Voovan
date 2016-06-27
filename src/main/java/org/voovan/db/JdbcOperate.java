@@ -195,7 +195,7 @@ public class JdbcOperate {
 			// 非事物模式执行
 			if (!isTrancation) {
 				conn.commit();
-				closeConnection(conn);
+				closeConnection(preparedStatement);
 			} else {
 				closeStatement(preparedStatement);
 			}
