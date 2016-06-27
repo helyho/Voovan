@@ -206,7 +206,9 @@ public class Formater {
 			String fileDirectory = filePath.substring(0, filePath.lastIndexOf(File.separator));
 			File loggerFile = new File(fileDirectory);
 			if (!loggerFile.exists()) {
-				loggerFile.mkdirs();
+				if(!loggerFile.mkdirs()){
+					System.out.println("Logger file directory error!");
+				}
 			}
 		}else{
 			filePath = null;

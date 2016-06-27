@@ -12,8 +12,6 @@ import java.util.Iterator;
  * Licence: Apache v2 License
  */
 public class Chain<E> extends ArrayDeque<E>{
-	
-	private static final long serialVersionUID = -4820686406224770808L;	
 	private Iterator<E> iterator;
 	private Iterator<E> invertedIterator;
 	private boolean isStop;

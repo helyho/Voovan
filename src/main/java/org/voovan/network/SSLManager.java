@@ -55,17 +55,28 @@ public class SSLManager {
 	 * @throws SSLException SSL 异常
 	 */
 	public void loadCertificate(String manageCertFile, String certPassword,String keyPassword) throws SSLException{
+
+		FileInputStream certFIS = null;
 		try{
 			keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
 			trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
 			
 			KeyStore manageKeystore = KeyStore.getInstance(KeyStore.getDefaultType());
-			manageKeystore.load(new FileInputStream(manageCertFile), certPassword.toCharArray());
-			
+			certFIS = new FileInputStream(manageCertFile);
+			manageKeystore.load(certFIS, certPassword.toCharArray());
+
 			keyManagerFactory.init(manageKeystore, keyPassword.toCharArray());
 			trustManagerFactory.init(manageKeystore);
 		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException e) {
 			throw new SSLException("Init SSLContext Error: "+e.getMessage(),e);
+		}finally {
+			if(certFIS!=null) {
+				try {
+					certFIS.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	

@@ -264,7 +264,7 @@ public class HttpServerHandler implements IoHandler {
 			session.setAttribute("TimeOutValue", getTimeoutValue());
 		}else {
 			if(keepAliveSessionList.contains(session)){
-				keepAliveSessionList.remove("session");
+				keepAliveSessionList.remove(session);
 			}
 			session.close();
 		}
