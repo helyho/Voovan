@@ -225,10 +225,7 @@ public class EventProcess {
 				&& event.getSession().sockContext() != null) {
 			SocketContext socketContext = event.getSession().sockContext();
 			IoSession session = event.getSession();
-			//如果是SocketDisconnectByRemote标示对端断开连接,则关闭session,并抛出异常
-			if(e instanceof SocketDisconnectByRemote || e instanceof ClosedChannelException){
-				event.getSession().close();
-			}
+
 			if (socketContext.handler() != null) {
 				socketContext.handler().onException(session, e);
 			} 

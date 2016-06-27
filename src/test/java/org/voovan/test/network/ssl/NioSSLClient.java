@@ -2,6 +2,7 @@ package org.voovan.test.network.ssl;
 
 import org.voovan.network.SSLManager;
 import org.voovan.network.filter.StringFilter;
+import org.voovan.network.messagesplitter.LineMessageSplitter;
 import org.voovan.network.nio.NioSocket;
 import org.voovan.test.network.ClientHandlerTest;
 
@@ -15,6 +16,7 @@ public class NioSSLClient {
 		socket.setSSLManager(sslManager);
 		socket.handler(new ClientHandlerTest());
 		socket.filterChain().add(new StringFilter());
+		socket.messageSplitter(new LineMessageSplitter());
 		socket.start();
 	}
 }
