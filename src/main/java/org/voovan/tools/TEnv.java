@@ -155,7 +155,7 @@ public class TEnv {
 	 * @param directoryPath 传入一个目录
 	 * @throws Exception 异常信息
 	 */
-	public static void LoadJars(String directoryPath) throws Exception {
+	public static void loadJars(String directoryPath) throws Exception {
 		File rootFile = new File(directoryPath);
 		if(rootFile.isDirectory()){
 			//文件过滤器取目录中的文件
@@ -173,7 +173,7 @@ public class TEnv {
 			if(files!=null){
 				for(File file:files){
 					if(file.isDirectory()){
-						LoadJars(file.getPath());
+						loadJars(file.getPath());
 					}else if(file.getPath().toLowerCase().endsWith(".jar")){
 						loadBinary(file);
 					}

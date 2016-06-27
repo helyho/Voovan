@@ -82,7 +82,7 @@ public class JSONEncode {
     private static String arrayObject(Object[] arrayObject) throws ReflectiveOperationException {
         String arrayString = "[";
         String ContentString = "";
-        StringBuilder ContentStringBuilder = new StringBuilder("");
+        StringBuilder ContentStringBuilder = new StringBuilder();
 
         for (Object object : arrayObject) {
             String Value = fromObject(object);
@@ -90,8 +90,9 @@ public class JSONEncode {
             ContentStringBuilder.append(",");
         }
 
-        if (!ContentString.trim().equals(""))
+        if (!ContentString.trim().equals("")) {
             ContentString = ContentString.substring(0, ContentString.length() - 1);
+        }
 
         arrayString = arrayString + ContentString + "]";
         return arrayString;

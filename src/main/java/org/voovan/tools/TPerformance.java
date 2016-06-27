@@ -138,7 +138,7 @@ public class TPerformance {
 		for(int lineCount = 3;lineCount<consoleLines.length;lineCount++){
 			String lineContent = consoleLines[lineCount];
 			long count = Long.parseLong(lineContent.substring(5,19).trim());
-			long size = new Long(lineContent.substring(19,34).trim());
+			long size = Long.parseLong(lineContent.substring(19,34).trim());
 			String name = lineContent.substring(34,lineContent.length()).trim();
 
 			if(name.equals("")){

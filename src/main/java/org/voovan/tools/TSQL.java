@@ -508,7 +508,7 @@ public class TSQL {
 			 return java.sql.Types.VARCHAR ;
 		}else if(BigDecimal.class == objectClass){
 			 return java.sql.Types.NUMERIC;
-		}else if(Boolean.class == objectClass || Boolean.class == objectClass){
+		}else if(Boolean.class == objectClass){
 			 return java.sql.Types.BIT;
 		}else if(Byte.class == objectClass){
 			 return java.sql.Types.TINYINT;

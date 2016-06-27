@@ -224,8 +224,12 @@ public class TFile {
 			if(fileLength-1==0 || lastLineNum == rowCount){
 				int byteCount = (int)(randomAccessFile.length() - fileLength);
 				byte[] byteContent = new byte[byteCount];
-				randomAccessFile.read(byteContent);
-				return byteContent;
+				int readSize = randomAccessFile.read(byteContent);
+				if(readSize>0) {
+					return byteContent;
+				}else{
+					return new byte[0];
+				}
 			}
 			--fileLength;
 		}

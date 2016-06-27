@@ -2,6 +2,7 @@ package org.voovan.network;
 
 import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -76,6 +77,11 @@ public class MessageLoader {
 		
 		//获取消息分割器
 		MessageSplitter messageSplitter = session.sockContext().messageSplitter();
+
+		if(messageSplitter==null){
+			Logger.error("[Error] MessageSplitter is null, you need to invoke SocketContext object's messageSplitter method to set MessageSplitter Object in it.");
+			return null;
+		}
 		
 		//准备缓冲流
 		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
@@ -118,7 +124,7 @@ public class MessageLoader {
 
 			//使用消息划分器进行消息划分
 			boolean msgSplitState = messageSplitter.canSplite(session,byteOutputStream.toByteArray());
-			if(messageSplitter!=null && readsize==1 && msgSplitState){
+			if(readsize==1 && msgSplitState){
 				stopLoading();
 			}
 		}
