@@ -108,6 +108,8 @@ public class LoggerThread implements Runnable {
 				e.printStackTrace();
 			}
 		}
+
+		finished = true;
 	}
 	
 	/**
