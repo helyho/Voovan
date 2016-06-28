@@ -15,6 +15,8 @@ public class HttpServerDemo {
 	
 	public static void main(String[] args) {
 		HttpServer httpServer = HttpServer.newInstance();
+
+		//性能测试请求
 		httpServer.get("/test", (req, resp) -> {
 			resp.body().write("OK");
 		});
