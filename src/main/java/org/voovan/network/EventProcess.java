@@ -266,7 +266,7 @@ public class EventProcess {
 					session.send(resultBuf);
 				}
 
-				Event event = new Event(session, EventName.ON_SENT, resultBuf);
+				Event event = new Event(session, null, EventName.ON_SENT, resultBuf);
 				// 出发发送事件
 				EventProcess.process(event);
 			}

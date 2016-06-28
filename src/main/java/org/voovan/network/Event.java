@@ -2,6 +2,8 @@ package org.voovan.network;
 
 import org.voovan.tools.TObject;
 
+import java.util.List;
+
 /**
  * 事件对象
  * 
@@ -16,6 +18,7 @@ public class Event {
 	private EventName name;
 	private Object other;
 	private EventState state;
+	private List<Event> eventPool;
 	
 	/**
 	 * 事件名称枚举
@@ -41,11 +44,12 @@ public class Event {
 	 * @param name		事件名
 	 * @param other 附加对象
 	 */
-	public Event(IoSession session,EventName name,Object other){
+	public Event(IoSession session, List<Event> eventPool, EventName name,Object other){
 		this.session = session;
 		this.name = name;
 		this.other = other;
 		this.state = EventState.READY;
+		this.eventPool = eventPool;
 	}
 
 	public IoSession getSession() {
@@ -79,6 +83,12 @@ public class Event {
 	public void setOther(Object other) {
 		this.other = other;
 	}
+
+	public void removeFromPool(){
+		if(eventPool!=null) {
+			eventPool.remove(this);
+		}
+	}
 	
 	@Override
 	public int hashCode(){
@@ -108,8 +118,8 @@ public class Event {
 	 * @param other     附属对象
      * @return   事件对象
      */
-	public static Event getInstance(IoSession session,Event.EventName name,Object other){
-		return new Event(session, name, other);
+	public static Event getInstance(IoSession session, List<Event> eventPool, Event.EventName name,Object other){
+		return new Event(session, eventPool, name, other);
 	}
 	
 }
