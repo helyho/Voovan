@@ -1,22 +1,20 @@
 package org.voovan.test.network.performTest;
 
+import org.voovan.http.message.Response;
+import org.voovan.http.server.HttpResponse;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.log.Logger;
 
 public class PerformTestHandler implements IoHandler {
 
-	private String responseStr ;
+	private Response response ;
 	
 	public PerformTestHandler(){
-		responseStr  =	"HTTP/1.1 200 OK\r\n" +
-						"Date: Wed, 10 Jun 2009 11:22:58 GMT\r\n" + 
-						"Server: Microsoft-IIS/6.0\r\n" + 
-						"X-Powered-By: ASP.NET\r\n" + 
-						"Content-Length: 2\r\n" + 
-						"Content-Type: text/html\r\n" + 
-						"Cache-control: private\r\n\r\n"+
-						"OK";
+		response = new Response();
+		response.protocol().setStatus(200);
+		response.body().write("OK");
 	}
 	
 	@Override
@@ -30,12 +28,14 @@ public class PerformTestHandler implements IoHandler {
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		return responseStr;
+		return response;
 	}
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		Logger.error(e.getMessage(),e);
+		if(!(e instanceof SocketDisconnectByRemote)) {
+			Logger.error(e.getMessage(), e);
+		}
 	}
 
 	@Override

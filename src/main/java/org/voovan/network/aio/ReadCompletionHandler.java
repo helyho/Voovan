@@ -55,7 +55,9 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					buffer.clear();
 
 					// 继续接收 Read 请求
-					socket.catchRead(buffer);
+					if(socket.isConnect()) {
+						socket.catchRead(buffer);
+					}
 				}else if(length == -1){
 					session.getMessageLoader().stopLoading();
 				}
