@@ -6,6 +6,7 @@ import org.voovan.network.Event.EventState;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -55,17 +56,14 @@ public class EventTrigger {
 	}
 
 	public void fireAcceptThread(IoSession session){
-		clearFinishedEvent();
 		fireEventThread(session,EventName.ON_ACCEPTED,null);
 	}
 	
 	public void fireConnectThread(){
-		clearFinishedEvent();
 		fireEventThread(EventName.ON_CONNECT,null);
 	}
 	
 	public void fireReceiveThread(){
-		clearFinishedEvent();
 		// 当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
 		// 所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
 		// !hasEventDisposeing(EventName.ON_CONNECT) &&
@@ -75,32 +73,26 @@ public class EventTrigger {
 	}
 	
 	public void fireSentThread(ByteBuffer buffer){
-		clearFinishedEvent();
 		fireEventThread(EventName.ON_SENT,buffer);
 	}
 	
 	public void fireDisconnectThread(){
-		clearFinishedEvent();
 		fireEventThread(EventName.ON_DISCONNECT,null);
 	}
 	
 	public void fireExceptionThread(Exception exception){
-		clearFinishedEvent();
 		fireEventThread(EventName.ON_EXCEPTION,exception);
 	}
 	
 	public void fireAccept(IoSession session){
-		clearFinishedEvent();
 		fireEvent(session,EventName.ON_ACCEPTED,null);
 	}
 
 	public void fireConnect(){
-		clearFinishedEvent();
 		fireEvent(EventName.ON_CONNECT,null);
 	}
 	
 	public void fireReceive(){
-		clearFinishedEvent();
 		//当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
 		//所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
 		if (session.isConnect() && isHandShakeDone() && !hasEventUnfinished(EventName.ON_RECEIVE)) {
@@ -109,28 +101,24 @@ public class EventTrigger {
 	}
 	
 	public void fireSent(ByteBuffer buffer){
-		clearFinishedEvent();
 		fireEvent(EventName.ON_SENT,buffer);
 	}
 	
 	public void fireDisconnect(){
-		clearFinishedEvent();
 		fireEvent(EventName.ON_DISCONNECT,null);
 	}
 	
 	public void fireException(Exception exception){
-		clearFinishedEvent();
 		fireEvent(EventName.ON_EXCEPTION,exception);
 	}
 	
 	
 	public boolean isShutdown(){
-		clearFinishedEvent();
+//		clearFinishedEvent();
 		return eventThreadPool.isShutdown();
 	}
 	
 	public void shutdown(){
-		clearFinishedEvent();
 		eventThreadPool.shutdown();
 	}
 	
@@ -152,25 +140,14 @@ public class EventTrigger {
 	 * @return 事件是否在处理
 	 */
 	public boolean hasEventUnfinished(EventName eventName){
-		for(Event event : eventPool){
-			if(event.getName() == eventName && event.getState() != EventState.FINISHED ){
+		for (Event event : eventPool) {
+			if (event.getName() == eventName && event.getState() != EventState.FINISHED) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	public void clearFinishedEvent(){
-		List<Event> finishedEvent = new ArrayList<Event>();
-		synchronized (eventPool) {
-			for(Event event : eventPool){
-				if(event.getState() == EventState.FINISHED){
-					finishedEvent.add(event);
-				}
-			}
-			eventPool.removeAll(finishedEvent);
-		}
-	}
+
 	
 	/**
 	 * 事件触发
@@ -181,7 +158,7 @@ public class EventTrigger {
 	 */
 	public void fireEventThread(IoSession session,Event.EventName name,Object other){
 		if(!eventThreadPool.isShutdown()){
-			Event event = Event.getInstance(session,name,other);
+			Event event = Event.getInstance(session,eventPool,name,other);
 			eventPool.add(event);
 			eventThreadPool.execute(new EventThread(event));
 		}
@@ -206,7 +183,7 @@ public class EventTrigger {
 	 * @param other 附属对象
 	 */
 	public void fireEvent(IoSession session,Event.EventName name,Object other){
-		Event event = Event.getInstance(session,name,other);
+		Event event = Event.getInstance(session,eventPool,name,other);
 		EventProcess.process(event);
 		eventPool.add(event);
 	}
