@@ -1,20 +1,26 @@
 package org.voovan.test.network.performTest;
 
-import org.voovan.http.message.Response;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.log.Logger;
 
+import java.nio.channels.ClosedChannelException;
+
 public class PerformTestHandler implements IoHandler {
 
-	private Response response ;
+	private String responseStr ;
 	
 	public PerformTestHandler(){
-		response = new Response();
-		response.protocol().setStatus(200);
-		response.body().write("OK");
+		responseStr  =	"HTTP/1.1 200 OK\r\n" +
+						"Date: Wed, 10 Jun 2009 11:22:58 GMT\r\n" +
+						"Server: Microsoft-IIS/6.0\r\n" +
+						"X-Powered-By: ASP.NET\r\n" +
+						"Content-Length: 2\r\n" +
+						"Content-Type: text/html\r\n" +
+						"Cache-control: private\r\n\r\n"+
+						"OK";
 	}
 	
 	@Override
@@ -28,12 +34,14 @@ public class PerformTestHandler implements IoHandler {
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		return response;
+		return responseStr;
 	}
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		if(!(e instanceof SocketDisconnectByRemote)) {
+		if((e instanceof SocketDisconnectByRemote) || (e instanceof ClosedChannelException)) {
+
+		}else{
 			Logger.error(e.getMessage(), e);
 		}
 	}
