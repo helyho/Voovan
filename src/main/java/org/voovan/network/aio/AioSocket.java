@@ -1,5 +1,6 @@
 package org.voovan.network.aio;
 
+import com.alibaba.druid.sql.visitor.functions.If;
 import org.voovan.Global;
 import org.voovan.network.*;
 import org.voovan.network.exception.IoFilterException;
@@ -99,7 +100,9 @@ public class AioSocket extends SocketContext {
 	 * @param buffer 缓冲区
 	 */
 	protected void catchRead(ByteBuffer buffer) {
-		socketChannel.read(buffer, readTimeout, TimeUnit.MILLISECONDS, buffer, readCompletionHandler);
+		if(socketChannel.isOpen()) {
+			socketChannel.read(buffer, readTimeout, TimeUnit.MILLISECONDS, buffer, readCompletionHandler);
+		}
 	}
 
 	/**

@@ -148,7 +148,7 @@ public class Cookie {
 		Cookie cookie = new Cookie();
 		cookie.setName(name);
 		cookie.setValue(value);
-		cookie.setPath(request.protocol().getPath());
+		cookie.setPath("/");
 		cookie.setDomain(domain);
 		cookie.setMaxAge(maxAge);
 		cookie.setHttpOnly(true);
