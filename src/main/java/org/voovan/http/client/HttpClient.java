@@ -48,7 +48,7 @@ public class HttpClient {
 	 */
 	public  HttpClient(String urlString) {
 		isSSL = urlString.toLowerCase().startsWith("https://");
-		init(urlString,30);
+		init(urlString,5);
 		
 	}
 	
