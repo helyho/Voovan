@@ -69,8 +69,6 @@ public class HttpClientUnit extends TestCase {
 	public void testHTTPSRequest() throws Exception {
 		HttpClient httpClient = new HttpClient("https://www.oschina.net/","UTF-8",10000);
 		Logger.simple(httpClient.send("/").body().getBodyString());
-		Logger.simple("=========================================");
-		Logger.simple(httpClient.send("/").body().getBodyString());
 		httpClient.close();
 	}
 	
