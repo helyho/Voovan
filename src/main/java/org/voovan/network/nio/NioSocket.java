@@ -51,7 +51,7 @@ public class NioSocket extends SocketContext{
 		this.handler = new SynchronousHandler();
 		init();
 	}
-	
+
 	/**
 	 * 构造函数
 	 * @param parentSocketContext 父 SocketChannel 对象
@@ -147,38 +147,16 @@ public class NioSocket extends SocketContext{
 	 * @return 读取出的对象
 	 */
 	public Object synchronouRead() throws ReadMessageException {
-		Object readObject = null;
-		while(true){
-			readObject = session.getAttribute("SocketResponse");
-			if(readObject!=null) {
-				if(readObject instanceof Exception){
-					throw new ReadMessageException("Method synchronouRead error! ",(Exception) readObject);
-				}
-				session.removeAttribute("SocketResponse");
-				break;
-			}
-		}
-		return readObject;
+		return session.synchronouRead();
 	}
 
 	/**
-	 * 发送消息
+	 * 同步发送消息
 	 * @param obj  要发送的对象
 	 * @throws SendMessageException  消息发送异常
 	 */
-	public void synchronouSend(Object obj) throws SendMessageException{
-		if (obj != null) {
-			try {
-				filterChain().rewind();
-				while (filterChain().hasNext()) {
-					IoFilter fitler = filterChain().next();
-					obj = fitler.encode(session, obj);
-				}
-				EventProcess.sendMessage(session, obj);
-			}catch (Exception e){
-				throw new SendMessageException("Method synchronouSend error! ",e);
-			}
-		}
+	public void synchronouSend(Object obj) throws SendMessageException {
+		session.synchronouSend(obj);
 	}
 
 	@Override

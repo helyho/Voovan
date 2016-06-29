@@ -150,8 +150,6 @@ public class SSLParser {
 	
 	/**
 	 * 执行委派任务
-	 * @param result
-	 * @param engine
 	 * @throws Exception
 	 */
 	private HandshakeStatus runDelegatedTasks()  {

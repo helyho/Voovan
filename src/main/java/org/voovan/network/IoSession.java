@@ -1,7 +1,11 @@
 package org.voovan.network;
 
+import org.voovan.network.exception.ReadMessageException;
+import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLEngineResult;
@@ -143,7 +147,52 @@ public abstract class IoSession {
 	 * @throws IOException IO 异常
 	 */
 	public abstract void send(ByteBuffer buffer) throws IOException;
-	
+
+	/**
+	 * 同步读取消息
+	 * @return 读取出的对象
+	 */
+	public Object synchronouRead() throws ReadMessageException {
+		Object readObject = null;
+		while(true){
+			readObject = getAttribute("SocketResponse");
+			if(readObject!=null) {
+				if(readObject instanceof Exception){
+					throw new ReadMessageException("Method synchronouRead error! ",(Exception) readObject);
+				}
+				removeAttribute("SocketResponse");
+				break;
+			}
+		}
+		return readObject;
+	}
+
+	/**
+	 * 同步发送消息
+	 * @param obj  要发送的对象
+	 * @throws SendMessageException  消息发送异常
+	 */
+	public void synchronouSend(Object obj) throws SendMessageException{
+		//等待 ssl 握手完成
+		while(sslParser!=null && !sslParser.handShakeDone){
+			TEnv.sleep(1);
+		}
+
+		if (obj != null) {
+			try {
+				Chain<IoFilter> filterChain = sockContext().filterChain();
+				filterChain.rewind();
+				while (filterChain.hasNext()) {
+					IoFilter fitler = filterChain.next();
+					obj = fitler.encode(this, obj);
+				}
+				EventProcess.sendMessage(this, obj);
+			}catch (Exception e){
+				throw new SendMessageException("Method synchronouSend error! ",e);
+			}
+		}
+	}
+
 	/**
 	 * 读取SSL消息到缓冲区
 	 * @param buffer    接收数据的缓冲区

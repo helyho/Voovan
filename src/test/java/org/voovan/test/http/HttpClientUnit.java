@@ -65,9 +65,17 @@ public class HttpClientUnit extends TestCase {
 		assertTrue(response.protocol().getStatus()!=500);
 		mpClient.close();
 	}
+
+	public void testHTTPSRequest() throws Exception {
+		HttpClient httpClient = new HttpClient("https://www.oschina.net/","UTF-8",10000);
+		Logger.simple(httpClient.send("/").body().getBodyString());
+		Logger.simple("=========================================");
+		Logger.simple(httpClient.send("/").body().getBodyString());
+		httpClient.close();
+	}
 	
 	public void testSeriesRequest() throws Exception {
-		HttpClient httpClient = new HttpClient("http://www.oschina.net/","GBK2312",10000);
+		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080/","GBK2312",10000);
 		Logger.simple(httpClient.send("/").body().getBodyString());
 		Logger.simple("=========================================");
 		Logger.simple(httpClient.send("/").body().getBodyString());

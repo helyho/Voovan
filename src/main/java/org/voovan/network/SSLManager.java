@@ -91,11 +91,11 @@ public class SSLManager {
 			this.protocol = "SSL";
 		}
 		try {
-			context = SSLContext.getInstance(protocol);
+			context = SSLContext.getInstance(protocol, "SunJSSE");
 			if(keyManagerFactory!=null && trustManagerFactory!=null){
 				context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
 			}else{
-				context.init(new KeyManager[0],new TrustManager[]{new DefaultTrustManager()},new SecureRandom());
+				context.init(null, new TrustManager[]{new DefaultTrustManager()}, new SecureRandom());
 			}
 			//NoSuchAlgorithmException | KeyManagementException |
 		} catch ( Exception e) {
@@ -143,12 +143,12 @@ public class SSLManager {
 
 		@Override
 		public void checkClientTrusted(X509Certificate[] paramArrayOfX509Certificate, String paramString) throws CertificateException {
-			
+
 		}
 
 		@Override
 		public void checkServerTrusted(X509Certificate[] paramArrayOfX509Certificate, String paramString) throws CertificateException {
-			
+
 		}
 
 		@Override
