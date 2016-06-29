@@ -86,8 +86,8 @@ public class MessageLoader {
 		//准备缓冲流
 		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 		
-		//缓冲区字段,一次读一个字节,所以这里分配一个
-		ByteBuffer oneByteBuffer = ByteBuffer.allocate(1);
+		//缓冲区字段,一次读1024个字节
+		ByteBuffer tmpByteBuffer = ByteBuffer.allocate(1024);
 		
 		isLoading = true;
 
@@ -97,14 +97,14 @@ public class MessageLoader {
 				stopLoading();
 			}
 
-			oneByteBuffer.clear();
+			tmpByteBuffer.clear();
 			int readsize = 0;
 
 			//读出数据
 			if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone){
-				readsize = session.readSSLData(oneByteBuffer);
+				readsize = session.readSSLData(tmpByteBuffer);
 			}else{
-				readsize = session.read(oneByteBuffer);
+				readsize = session.read(tmpByteBuffer);
 			}
 
 			//通道关闭,退出循环
@@ -113,19 +113,21 @@ public class MessageLoader {
 			}
 
 			//将读出的数据写入缓冲区
-			if(readsize == 1) {
-				byteOutputStream.write(oneByteBuffer.get(0));
+			if(readsize > 0 ) {
+				byteOutputStream.write(tmpByteBuffer.array(),0,readsize);
 			}
 
 			//判断连接是否关闭
-			if (isRemoteClosed(readsize,oneByteBuffer)) {
+			if (isRemoteClosed(readsize,tmpByteBuffer)) {
 				stopLoading();
 			}
 
 			//使用消息划分器进行消息划分
-			boolean msgSplitState = messageSplitter.canSplite(session,byteOutputStream.toByteArray());
-			if(readsize==1 && msgSplitState){
-				stopLoading();
+			if(readsize==0) {
+				boolean msgSplitState = messageSplitter.canSplite(session, byteOutputStream.toByteArray());
+				if (msgSplitState) {
+					stopLoading();
+				}
 			}
 		}
 
