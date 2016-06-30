@@ -50,8 +50,6 @@ public class NioSelector {
 
 	/**
 	 * 所有的事件均在这里触发
-	 * 
-	 * @throws IOException IO 异常
 	 */
 	public void eventChose() {
 		//读取用的缓冲区
@@ -134,7 +132,6 @@ public class NioSelector {
 	 * 
 	 * @param selectionKey  当前 Selectionkey
 	 * @return SocketChannel 对象
-	 * @throws IOException IO 异常
 	 */
 	public SocketChannel getSocketChannel(SelectionKey selectionKey)
 			throws IOException {

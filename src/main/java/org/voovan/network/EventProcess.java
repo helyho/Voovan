@@ -238,7 +238,6 @@ public class EventProcess {
 	 * @param session Session 对象
 	 * @param sendObj 发送的对象
 	 * @throws SendMessageException  消息发送异常
-	 * @throws IOException  IO 异常
 	 */
 	public static void sendMessage(IoSession session, Object sendObj) throws SendMessageException {
 		try {
