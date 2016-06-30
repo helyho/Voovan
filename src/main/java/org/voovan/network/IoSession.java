@@ -151,6 +151,7 @@ public abstract class IoSession {
 	/**
 	 * 同步读取消息
 	 * @return 读取出的对象
+	 * @throws ReadMessageException  读取消息异常
 	 */
 	public Object synchronouRead() throws ReadMessageException {
 		Object readObject = null;
