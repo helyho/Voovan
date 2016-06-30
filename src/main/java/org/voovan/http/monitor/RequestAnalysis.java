@@ -66,7 +66,7 @@ public class RequestAnalysis {
 
     /**
      * 增加请求时间
-     * @param time
+     * @param time 增加的时间参数
      */
     public void add(long time){
         count++;

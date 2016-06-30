@@ -1,9 +1,7 @@
 package org.voovan.network.aio;
 
-import com.alibaba.druid.sql.visitor.functions.If;
 import org.voovan.Global;
 import org.voovan.network.*;
-import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
@@ -15,7 +13,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.ClosedChannelException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -176,6 +173,7 @@ public class AioSocket extends SocketContext {
 	/**
 	 * 同步读取消息
 	 * @return 读取出的对象
+	 * @throws ReadMessageException  读取消息异常
 	 */
 	public Object synchronouRead() throws ReadMessageException {
 		return session.synchronouRead();

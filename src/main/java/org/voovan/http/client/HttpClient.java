@@ -260,7 +260,8 @@ public class HttpClient {
 	 * 连接并发送请求
 	 * @param urlString 请求 URL
 	 * @return Response 对象
-	 * @throws IOException  IO 异常
+	 * @throws SendMessageException  发送异常
+	 * @throws ReadMessageException  读取异常
 	 */
 	public Response send(String urlString) throws SendMessageException, ReadMessageException {
 			
@@ -302,7 +303,8 @@ public class HttpClient {
 	/**
 	 * 发送行数
 	 * @return Response 对象
-	 * @throws IOException IO 异常
+	 * @throws SendMessageException  发送异常
+	 * @throws ReadMessageException  读取异常
      */
 	public Response send() throws SendMessageException, ReadMessageException {
 		return send("/");
