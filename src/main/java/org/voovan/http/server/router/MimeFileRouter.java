@@ -11,6 +11,7 @@ import org.voovan.tools.THash;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
 
@@ -117,8 +118,9 @@ public class MimeFileRouter implements HttpBizHandler {
 	 * @param responseFile   响应文件
 	 * @param request   HTTP 请求对象
 	 * @param response  HTTP 响应对象
+	 * @throws IOException IO操作异常
 	 */
-	public void fillMimeFile(File responseFile,HttpRequest request,HttpResponse response){
+	public void fillMimeFile(File responseFile,HttpRequest request,HttpResponse response) throws IOException {
 		byte[] fileByte = null;
 		long fileSize = TFile.getFileSize(responseFile.getPath());
 		
