@@ -229,28 +229,28 @@ public class Request {
 	private byte[] genBody() {
 		try {
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			if (body.getBodyBytes() != null || parts.size() != 0) {
-				// 没有 parts 时直接写入包体
-				if (body.getBodyBytes().length > 0) {
-					String bodyString = body.getBodyString();
-					outputStream.write(bodyString.getBytes());
-				}
-				// 有 parts 时按 parts 的格式写入 parts
-				else {
-					// Content-Type存在
-					if (parts.size() != 0) {
-						// 获取 multiPart 标识
-						for (Part part : this.parts) {
-							outputStream.write(("--" + boundary + "\r\n").getBytes());
-							outputStream.write(part.toString().getBytes());
-							outputStream.write(part.body().getBodyBytes());
-							outputStream.write("\r\n".getBytes());
-						}
-						outputStream.write(("--" + boundary + "--").getBytes());
-					}
-				}
-				// POST结束不需要空行标识结尾
+			// 有 BodyBytes 时直接写入包体
+			if (body.getBodyBytes().length > 0) {
+				String bodyString = body.getBodyString();
+				outputStream.write(bodyString.getBytes());
 			}
+
+			// 有 parts 时按 parts 的格式写入 parts
+			if(parts.size() != 0) {
+				// Content-Type存在
+				if (parts.size() != 0) {
+					// 获取 multiPart 标识
+					for (Part part : this.parts) {
+						outputStream.write(("--" + boundary + "\r\n").getBytes());
+						outputStream.write(part.toString().getBytes());
+						outputStream.write(part.body().getBodyBytes());
+						outputStream.write("\r\n".getBytes());
+					}
+					outputStream.write(("--" + boundary + "--").getBytes());
+					// POST结束不需要空行标识结尾
+				}
+			}
+
 			if(outputStream.size()>0){
 				header.put("Content-Length", Integer.toString(outputStream.size()));
 			}
