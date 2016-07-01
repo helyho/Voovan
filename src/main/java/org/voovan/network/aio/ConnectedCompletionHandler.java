@@ -17,7 +17,6 @@ public class ConnectedCompletionHandler implements CompletionHandler<Void, AioSo
 
 	private EventTrigger eventTrigger;
 
-	private boolean finished;
 	public ConnectedCompletionHandler(EventTrigger eventTrigger){
 		this.eventTrigger = eventTrigger;
 	}

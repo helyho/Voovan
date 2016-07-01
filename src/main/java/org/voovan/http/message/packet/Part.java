@@ -108,11 +108,17 @@ public class Part {
 	 * @param file art 的内容保存为文件
 	 * @throws IOException IO 异常
 	 */
-	public void saveAsFile(File file) throws IOException{
-		FileOutputStream fOutputStream  = new FileOutputStream(file);
-		fOutputStream.write(body.getBodyBytes());
-		fOutputStream.flush();
-		fOutputStream.close();
+	public void saveAsFile(File file) throws IOException {
+		FileOutputStream fileOutputStream = new FileOutputStream(file);
+		try {
+			fileOutputStream.write(body.getBodyBytes());
+			fileOutputStream.flush();
+			fileOutputStream.close();
+		} catch (IOException e) {
+			throw e;
+		} finally {
+			fileOutputStream.close();
+		}
 	}
 	
 	/**
@@ -121,10 +127,15 @@ public class Part {
 	 * @throws IOException IO 异常
 	 */
 	public void saveAsFile(String fileName) throws IOException{
-		FileOutputStream fOutputStream  = new FileOutputStream(new File(fileName));
-		fOutputStream.write(body.getBodyBytes());
-		fOutputStream.flush();
-		fOutputStream.close();
+		FileOutputStream fileOutputStream = new FileOutputStream(new File(fileName));
+		try{
+			fileOutputStream.write(body.getBodyBytes());
+			fileOutputStream.flush();
+		}catch (IOException e){
+			throw e;
+		}finally {
+			fileOutputStream.close();
+		}
 	}
 	
 	@Override
