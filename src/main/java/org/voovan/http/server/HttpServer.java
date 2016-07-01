@@ -129,7 +129,7 @@ public class HttpServer {
 	 * @return HttpServer对象
 	 */
 	public HttpServer delete(String routeRegexPath, HttpBizHandler handler) {
-		httpDispatcher.addRouteHandler("delete", routeRegexPath, handler);
+		httpDispatcher.addRouteHandler("DELETE", routeRegexPath, handler);
 		return this;
 	}
 
