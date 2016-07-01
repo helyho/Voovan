@@ -1,14 +1,15 @@
 ![](http://git.oschina.net/uploads/images/2016/0510/122514_7d971a34_116083.jpeg)
-===============
+===========================================================================================================================
 #### Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTTP客户端抓取、动态编译支持、数据库访问封装以及DateTime、String、Log、反射、对象工具、流操作、文件操作、异步双向通道等功能。旨在提供可靠、方便、可单元测试的代码。它是一个无任何依赖的独立工具包，希望能够方便广大开发者快速的实现应用
 **Maven中央库支持:**
 ```xml
 <dependency>
     <groupId>org.voovan</groupId>
     <artifactId>voovan-framework</artifactId>
-    <version>0.9.8</version>
+    <version>1.0-alpha-2</version>
 </dependency>
 ```
+
 `
 注意:测试代码由于测试的需要,依赖 alibaba-druid ,junit ,mysql-connector-java,所以在运行时添加相应的包.
 `
@@ -35,7 +36,7 @@
 
 **GitHub地址:** https://github.com/helyho/Voovan.git
 
-**帮助文档地址:** https://github.com/helyho/Voovan/wiki 和 https://git.oschina.net/helyho/Voovan/wikis/
+**帮助文档地址:** [http://voovan.mydoc.io/](http://voovan.mydoc.io/)
 
 **Issues地址:** [GitHub](https://github.com/helyho/Voovan/issues) 或者 [Git@OSC](http://git.oschina.net/helyho/Voovan/issues)
 
