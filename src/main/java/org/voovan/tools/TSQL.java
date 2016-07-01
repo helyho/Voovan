@@ -362,7 +362,7 @@ public class TSQL {
 			String[] condictionArr = condiction.split("(\\slike\\s)|(\\sin\\s)|(>=)|(<=)|[=<>]");
 			condictionArr[0] = condictionArr[0].trim();
 			condictionArr[1] = condictionArr[1].trim();
-			if(condictionArr[0].trim().indexOf(".")>0){
+			if(condictionArr[0].trim().indexOf(".")>1){
 
 				condictionArr[0] = condictionArr[0].split("\\.")[1];
 				condictionArr[0] = condictionArr[0].substring(condictionArr[0].lastIndexOf(" ")+1);
@@ -519,17 +519,11 @@ public class TSQL {
 		}else if(Long.class == objectClass){
 			 return java.sql.Types.BIGINT;
 		}else if(Float.class == objectClass){
-			 return java.sql.Types.REAL;
-		}else if(Float.class == objectClass){
 			 return java.sql.Types.FLOAT;
 		}else if(Double.class == objectClass){
 			 return java.sql.Types.DOUBLE;
 		}else if(Byte[].class == objectClass){
 			 return java.sql.Types.BINARY;
-		}else if(Byte[].class == objectClass){
-			 return java.sql.Types.VARBINARY;
-		}else if(Byte[].class == objectClass){
-			 return java.sql.Types.LONGVARBINARY;
 		}else if(Date.class == objectClass){
 			 return java.sql.Types.DATE;
 		}else if(Time.class == objectClass){

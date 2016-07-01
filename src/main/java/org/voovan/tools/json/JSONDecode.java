@@ -106,12 +106,12 @@ public class JSONDecode {
 			}
 			//JSON对象字符串分组,取 Key 对象,当前字符是:则取 Key
 			else if(!isString && !isObject && !isArray && currentChar==':'){
-				keyString = itemString.substring(0,itemString.length()-1).toString().trim();
+				keyString = itemString.substring(0,itemString.length()-1).trim();
 				itemString = new StringBuilder();
 			}
 			//JSON对象字符串分组,取 value 对象,当前字符是,则取 value
 			else if(!isString && !isArray && !isObject && currentChar==','){
-				value = itemString.substring(0,itemString.length()-1).toString().trim();
+				value = itemString.substring(0,itemString.length()-1).trim();
 				itemString = new StringBuilder();
 			}
 			//最后结尾的是没有,号分割的,特殊处理
@@ -156,8 +156,10 @@ public class JSONDecode {
 				if(jsonResult instanceof HashMap){
 					@SuppressWarnings("unchecked")
 					HashMap<String, Object> result = (HashMap<String, Object>)jsonResult;
-					keyString = keyString.substring(1, keyString.length()-1);
-					result.put(keyString, value);
+					if(keyString!=null) {
+						keyString = keyString.substring(1, keyString.length() - 1);
+						result.put(keyString, value);
+					}
 				}
 				if(jsonResult instanceof ArrayList && value != null){
 					@SuppressWarnings("unchecked")
