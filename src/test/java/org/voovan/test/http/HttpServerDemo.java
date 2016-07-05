@@ -74,6 +74,10 @@ public class HttpServerDemo {
 			 + "}");
 		});
 
+		httpServer.otherMethod("LOCK","/:test",(request,response)->{
+			Logger.simple("Query");
+		});
+
 		httpServer.socket("/websocket", new WebSocketBizHandler() {
 
 			@Override
