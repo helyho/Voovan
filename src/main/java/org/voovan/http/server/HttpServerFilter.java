@@ -8,10 +8,12 @@ import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 /**
@@ -91,40 +93,13 @@ public class HttpServerFilter implements IoFilter {
 	 * @param byteBuffer 请求字节换缓冲对象
 	 * @return  是否是 HTTP 请求
 	 */
-	public static boolean isHttpRequest(ByteBuffer byteBuffer){
-		int loadSize = (byteBuffer.limit() > 7 ? 7 : byteBuffer.limit());
-		if (loadSize < 7) {
+	public static boolean isHttpRequest(ByteBuffer byteBuffer) {
+		String testStr = new String(byteBuffer.array()).trim();
+		String httpMethod = testStr.split(" ")[0];
+		if (TString.searchByRegex(testStr,"HTTP.{0,4}\\r\\n").length>0) {
+			return true;
+		}else {
 			return false;
-		} else {
-			byte[] testBytes = new byte[loadSize];
-			for (int i = 0; i < loadSize; i++) {
-				byte singleByte = byteBuffer.get(i);
-				// 大写字母
-				if (singleByte < 91 && singleByte > 64) {
-					testBytes[i] = singleByte;
-				}
-				//空格退出
-				else if (singleByte == 32) {
-					break;
-				} else {
-					return false;
-				}
-
-			}
-			String testStr = new String(testBytes).trim();
-			String httpMethod = testStr.split(" ")[0];
-			if ("GET".equals(httpMethod) 
-					|| "POST".equals(httpMethod) 
-					|| "HEAD".equals(httpMethod) 
-					|| "PUT".equals(httpMethod) 
-					|| "DELETE".equals(httpMethod)  
-					|| "TRACE".equals(httpMethod) 
-					|| "CONNECT".equals(httpMethod) 
-					|| "OPTIONS".equals(httpMethod) ) {
-				return true;
-			} else {
-				return false;
-			}
 		}
 	}
 }
