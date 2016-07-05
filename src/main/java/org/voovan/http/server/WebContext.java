@@ -6,10 +6,12 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.log.SingleLogger;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Web上下文(配置信息读取)
@@ -189,7 +191,17 @@ public class WebContext {
 	 * @return  MIME 定义 Map
 	 */
 	public static Map<String, Object> getMimeDefine() {
-		return MIME_TYPES;
+		byte[] mimeDefBytes = TFile.loadResource("org/voovan/http/server/router/mime.json");
+		Map<String, Object> mimeDefMap = new ConcurrentHashMap<String, Object>();
+		try {
+			Map<String, Object> systemMimeDef = TObject.cast(JSONDecode.parse(new String(mimeDefBytes,"UTF-8")));
+			mimeDefMap.putAll(systemMimeDef);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+
+		mimeDefMap.putAll(MIME_TYPES);
+		return mimeDefMap;
 	}
 	
 	/**
@@ -221,11 +233,11 @@ public class WebContext {
 	 * @return 错误输出定义
      */
 	public static String getDefaultErrorPage(){
-		return "RequestMethod: {{RequestMethod}} <br/>" +
-				"StatusCode: {{StatusCode}} <br/>" +
-				"RequestPath: {{RequestPath}} <br/>" +
-				"ErrorMessage: {{ErrorMessage}} <br/>" +
-				"Version: {{Version}} <br/>" +
-				"Description: {{Description}} <br/>";
+		return "RequestMethod: {{RequestMethod}} <hr/>" +
+				"StatusCode: {{StatusCode}} <hr/>" +
+				"RequestPath: {{RequestPath}} <hr/>" +
+				"ErrorMessage: {{ErrorMessage}} <hr/>" +
+				"Version: {{Version}} <hr/>" +
+				"Description: <br>{{Description}} <hr/>";
 	}
 }
