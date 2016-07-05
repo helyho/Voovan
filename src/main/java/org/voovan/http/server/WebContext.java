@@ -135,7 +135,7 @@ public class WebContext {
 		}
 		Logger.simple("=============================================================================================");
 		Logger.simple("Process ID: "+TEnv.getCurrentPID());
-		Logger.simple("WebServer working on: "+config.getHost()+":"+config.getPort()+" ...");
+		Logger.simple("WebServer working on: http"+(config.getCertificateFile()!=null?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
 	}
 
 	/**
