@@ -275,4 +275,32 @@ public class TString {
 		}
 		return null;
 	}
+
+	/**
+	 * java 基本类型转换成对象
+	 * @param value
+	 * @param clazz Class类,仅支持基本类型
+	 * @return
+	 */
+	public static Object toObject(String value,Class clazz){
+		if(clazz == int.class){
+			return Integer.parseInt(value);
+		}else if(clazz == float.class){
+			return Float.parseFloat(value);
+		}else if(clazz == double.class){
+			return Double.parseDouble(value);
+		}else if(clazz == boolean.class){
+			return Boolean.parseBoolean(value);
+		}else if(clazz == long.class){
+			return Long.parseLong(value);
+		}else if(clazz == short.class){
+			return Short.parseShort(value);
+		}else if(clazz == byte.class){
+			return Byte.parseByte(value);
+		}else if(clazz == char.class){
+			return value.charAt(0);
+		}else{
+			return value;
+		}
+	}
 }
