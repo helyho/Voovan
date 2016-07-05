@@ -46,6 +46,14 @@ public class SSLManager {
 			this.useClientAuth = useClientAuth;
 			this.protocol = protocol;
 	}
+
+	/**
+	 * 获取 SSLEngine
+	 * @return SSLEngine 对象
+     */
+	public SSLEngine getSSLEngine(){
+		return engine;
+	}
 	
 	/**
 	 * 读取管理证书
