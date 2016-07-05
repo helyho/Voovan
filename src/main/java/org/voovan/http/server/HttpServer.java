@@ -187,20 +187,19 @@ public class HttpServer {
 	public void socket(String routeRegexPath, WebSocketBizHandler handler) {
 		webSocketDispatcher.addRouteHandler(routeRegexPath, handler);
 	}
-	
 
 	/**
 	 * 构建新的 HttpServer,从配置文件读取配置
-	 * @param port  HTTP 服务的端口号
+	 * @param config  WebServer配置类
 	 * @return HttpServer 对象
 	 */
-	public static HttpServer newInstance(Integer port) {
+	public static HttpServer newInstance(WebServerConfig config) {
 		try {
-			WebServerConfig config = WebContext.getWebServerConfig();
-			if(port!=null) {
-				config.setPort(port);
+			if(config!=null) {
+				return new HttpServer(config);
+			}else{
+				Logger.error("Create HttpServer failed: WebServerConfig object is null.");
 			}
-			return new HttpServer(config);
 		} catch (IOException e) {
 			Logger.error("Create HttpServer failed.",e);
 		}
@@ -209,11 +208,22 @@ public class HttpServer {
 
 	/**
 	 * 构建新的 HttpServer,从配置文件读取配置
+	 * @param port  HTTP 服务的端口号
+	 * @return HttpServer 对象
+	 */
+	public static HttpServer newInstance(int port) {
+		WebServerConfig config = new WebServerConfig();
+		config.setPort(port);
+		return newInstance(config);
+	}
+
+	/**
+	 * 构建新的 HttpServer,从配置文件读取配置
 	 *
 	 * @return HttpServer 对象
 	 */
 	public static HttpServer newInstance() {
-		return newInstance(null);
+		return newInstance(new WebServerConfig());
 	}
 
 	/**

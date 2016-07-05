@@ -279,7 +279,9 @@ public class HttpDispatcher {
 		String requestPath = request.protocol().getPath();
 		String className = e.getClass().getName();
 		String errorMessage = e.toString();
-		String stackInfo = TEnv.getStackMessage().replace("\n", "");
+		String stackInfo = TEnv.getStackMessage();
+		//转换成能在 HTML 中展示的超文本字符串
+		stackInfo = TString.indent(stackInfo,1).replace("\n", "<br>");
 		response.header().put("Content-Type", "text/html");
 
 		//初始 error 定义,如果下面匹配到了定义的错误则定义的会被覆盖
