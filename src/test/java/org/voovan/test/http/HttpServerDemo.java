@@ -74,7 +74,9 @@ public class HttpServerDemo {
 			 + "}");
 		});
 
+		//自定义方法测试
 		httpServer.otherMethod("LOCK","/:test",(request,response)->{
+			response.body().write("User Defined HTTP method is "+request.protocol().getMethod());
 			Logger.simple("Query");
 		});
 

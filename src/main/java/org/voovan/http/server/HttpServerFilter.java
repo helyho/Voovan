@@ -96,7 +96,7 @@ public class HttpServerFilter implements IoFilter {
 	public static boolean isHttpRequest(ByteBuffer byteBuffer) {
 		String testStr = new String(byteBuffer.array()).trim();
 		String httpMethod = testStr.split(" ")[0];
-		if (TString.searchByRegex(testStr,"HTTP.{0,4}\\r\\n").length>0) {
+		if (TString.searchByRegex(testStr,"HTTP.{0,4}\\r\\n").length == 1) {
 			return true;
 		}else {
 			return false;
