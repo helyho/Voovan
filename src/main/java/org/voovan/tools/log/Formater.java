@@ -49,7 +49,7 @@ public class Formater {
 	public Formater(String template) {
 		this.template = template;
 		logLevel = new Vector<String>();
-		for(String level : StaticParam.getLogConfig("LogLevel","ALL").split(",")){
+		for(String level : StaticParam.getLogConfig("LogLevel",StaticParam.LOG_LEVEL).split(",")){
 			logLevel.add(level.trim());
 		}
 		dateStamp = TDateTime.now("YYYYMMdd");
@@ -79,7 +79,7 @@ public class Formater {
 	 * @return 随进后的消息
 	 */
 	private String preIndentMessage(Message message){
-		String infoIndent = StaticParam.getLogConfig("InfoIndent","");
+		String infoIndent = StaticParam.getLogConfig("InfoIndent",StaticParam.LOG_INFO_INDENT);
 		String msg = message.getMessage();
 		if(infoIndent!=null && !infoIndent.isEmpty()){
 			msg = infoIndent + msg;
@@ -196,7 +196,7 @@ public class Formater {
 	 */
 	public static String getFormatedLogFilePath(){
 		String filePath = "";
-		String logFile = StaticParam.getLogConfig("LogFile",null);
+		String logFile = StaticParam.getLogConfig("LogFile",StaticParam.LOG_FILE);
 		if(logFile!=null) {
 			Map<String, String> tokens = new HashMap<String, String>();
 			tokens.put("D", TDateTime.now("YYYYMMdd"));
@@ -220,11 +220,7 @@ public class Formater {
 	 * @return 新的实例
 	 */
 	public static Formater newInstance() {
-		String defaultLogTemplate = "--------------------------------------------------------------------------------------------------------------------------------------------------" +
-									"{{n}}[{{P}}] [{{D}}] [Thread:{{T}}] [Time:{{R}}] ({{F}}:{{L}}) {{n}}" +
-									"--------------------------------------------------------------------------------------------------------------------------------------------------" +
-									"{{n}}{{I}}{{n}}{{n}}";
-		String logTemplate = StaticParam.getLogConfig("LogTemplate",defaultLogTemplate);
+		String logTemplate = StaticParam.getLogConfig("LogTemplate",StaticParam.LOG_TEMPLATE);
 		return new Formater(logTemplate);
 	}
 	
@@ -233,7 +229,7 @@ public class Formater {
 	 * @return 输出流数组
 	 */
 	protected static OutputStream[] getOutputStreams(){
-		String[] LogTypes = StaticParam.getLogConfig("LogType","STDOUT").split(",");
+		String[] LogTypes = StaticParam.getLogConfig("LogType",StaticParam.LOG_TYPE).split(",");
 		String logFile = getFormatedLogFilePath();
 		
 	

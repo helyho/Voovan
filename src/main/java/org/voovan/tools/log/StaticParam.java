@@ -18,13 +18,22 @@ public class StaticParam {
 	private static long		startTimeMillis	= System.currentTimeMillis();
 	private static File		configFile		= loadConfig();
 
+	public static String LOG_LEVEL = "ALL";
+	public static String LOG_FILE = null;
+	public static String LOG_TYPE = "STDOUT";
+	public static String LOG_TEMPLATE = "--------------------------------------------------------------------------------------------------------------------------------------------------" +
+										"{{n}}[{{P}}] [{{D}}] [Thread:{{T}}] [Time:{{R}}] ({{F}}:{{L}}) {{n}}" +
+										"--------------------------------------------------------------------------------------------------------------------------------------------------" +
+										"{{n}}{{I}}{{n}}{{n}}";
+	public static String LOG_INFO_INDENT = "";
+
 	/**
 	 * 读取日志配置文件信息
 	 * @return 日志配置文件对象
      */
 	protected static File loadConfig(){
 		File tmpFile = TFile.getResourceFile("logger.properties");
-		if(tmpFile!=null){
+		if(tmpFile!=null && tmpFile.exists()){
 			return tmpFile;
 		}else{
 			System.out.println("Log util Waring: Can't found log config file!");
