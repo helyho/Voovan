@@ -153,7 +153,7 @@ public class HttpDispatcher {
      */
 	public static String routePath2RegexPath(String routePath){
 		String routeRegexPath = routePath.replaceAll(":[^/$]+", "[^/?]+");
-		routeRegexPath = routeRegexPath.replaceAll("/\\*/","/.*/");
+		routeRegexPath = routeRegexPath.replaceAll("/\\*","/.*?");
 		return routeRegexPath;
 	}
 
