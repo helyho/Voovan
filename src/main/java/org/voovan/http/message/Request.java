@@ -144,7 +144,7 @@ public class Request {
 
 		// POST_URLENCODED 请求类型的处理
 		if (getBodyType() == BodyType.BODY_URLENCODED ) {
-			queryString = body.getBodyString();
+			queryString = queryString+"&"+body.getBodyString();
 		}
 		// POST_MULTIPART 请求类型的处理
 		else if (getBodyType() == BodyType.BODY_MULTIPART) {
@@ -159,10 +159,10 @@ public class Request {
 					result.append("&");
 				}
 			}
-			queryString = TString.removeSuffix(result.toString());
+			queryString = TString.removeSuffix( queryString+"&"+result.toString() );
 		}
 
-		return queryString;
+		return queryString.isEmpty()? null : queryString;
 	}
 	
 	/**

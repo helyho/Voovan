@@ -113,7 +113,9 @@ public class JSONEncode {
 
         if (object == null) {
             value = "null";
-        } else  if (object instanceof String) {
+        }else  if (object instanceof String) {
+            value = "\"" + object + "\"";
+        } else  if (object instanceof String || object instanceof Character) {
             value = "\"" + object.toString() + "\"";
         } else if (object.getClass().getName().startsWith("java.lang")) {
             value = object.toString();
