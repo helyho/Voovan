@@ -152,7 +152,7 @@ public class HttpDispatcher {
 	 * @return  转换后的正则匹配路径
      */
 	public static String routePath2RegexPath(String routePath){
-		String routeRegexPath = routePath.replaceAll(":[^/$]+", "[^/?]+");
+		String routeRegexPath = routePath.replaceAll(":[^/?]+", "[^/?]+");
 		routeRegexPath = routeRegexPath.replaceAll("/\\*","/.*");
 		return routeRegexPath;
 	}
@@ -172,7 +172,7 @@ public class HttpDispatcher {
 			requestPath = requestPath.toLowerCase();
 			routeRegexPath = routeRegexPath.toLowerCase();
 		}
-		return TString.searchByRegex(requestPath, "^" + routeRegexPath + "/?$" ).length > 0;
+		return TString.searchByRegex(requestPath, routeRegexPath + ".*" ).length > 0;
 	}
 	
 	/**
