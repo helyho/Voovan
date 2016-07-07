@@ -298,7 +298,7 @@ public class TString {
 		}else if(clazz == byte.class){
 			return Byte.parseByte(value);
 		}else if(clazz == char.class){
-			return value.charAt(0);
+			return value!=null ? value.charAt(0) : null;
 		}else{
 			return value;
 		}

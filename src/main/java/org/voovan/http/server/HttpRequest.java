@@ -160,7 +160,7 @@ public class HttpRequest extends Request {
 	 * @return 请求变量值
 	 */
 	public String getParameter(String paramName){
-		return TObject.nullDefault(parameters.get(paramName),"");
+		return parameters.get(paramName);
 	}
 	
 	/**
