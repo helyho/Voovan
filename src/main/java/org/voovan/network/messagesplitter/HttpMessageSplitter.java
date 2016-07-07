@@ -64,12 +64,7 @@ public class HttpMessageSplitter implements MessageSplitter {
 			}
 			
 			// 4 HEAD,CONNECT,DELETE,GET,TRACE,OPTIONS等请求,没有报文内容
-			if (bufferString.startsWith("GET") 
-					|| bufferString.startsWith("TRACE") 
-					|| bufferString.startsWith("OPTIONS")
-					|| bufferString.startsWith("HEAD") 
-					|| bufferString.startsWith("DELETE") 
-					|| bufferString.startsWith("CONNECT")) {
+			if (contentLengthLines.length == 0) {
 				return true;
 			}
 		}
