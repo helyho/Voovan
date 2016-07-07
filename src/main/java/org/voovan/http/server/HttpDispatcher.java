@@ -107,7 +107,7 @@ public class HttpDispatcher {
 		for (Map.Entry<String,HttpBizHandler> routeEntry : handlerInfos.entrySet()) {
 			String routePath = routeEntry.getKey();
 			//寻找匹配的路由对象
-			isMatched = matchPath(requestPath,routePath);
+			isMatched = matchPath(requestPath,routePath,webConfig.isMatchRouteIgnoreCase());
 			if (isMatched) {
 				//获取路由处理对象
 				HttpBizHandler handler = routeEntry.getValue();
@@ -163,10 +163,15 @@ public class HttpDispatcher {
 	 * @param routePath      正则匹配路径
 	 * @return  是否匹配成功
 	 */
-	public static boolean matchPath(String requestPath, String routePath){
+	public static boolean matchPath(String requestPath, String routePath,boolean matchRouteIgnoreCase){
 		//转换成可以配置的正则,主要是处理:后的参数表达式
 		//把/home/:name转换成/home/[^/?]+来匹配
 		String routeRegexPath = routePath2RegexPath(routePath);
+		//匹配路由不区分大小写
+		if(matchRouteIgnoreCase){
+			requestPath = requestPath.toLowerCase();
+			routeRegexPath = routeRegexPath.toLowerCase();
+		}
 		return TString.searchByRegex(requestPath, "^" + routeRegexPath + "/?$" ).length > 0;
 	}
 	
