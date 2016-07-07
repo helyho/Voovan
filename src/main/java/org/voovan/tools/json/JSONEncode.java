@@ -113,12 +113,12 @@ public class JSONEncode {
 
         if (object == null) {
             value = "null";
-        }else  if (object instanceof String) {
-            value = "\"" + object + "\"";
-        } else  if (object instanceof String || object instanceof Character) {
-            value = "\"" + object.toString() + "\"";
-        } else if (object.getClass().getName().startsWith("java.lang")) {
+        } else if (object instanceof Integer ||  object instanceof Float ||
+                object instanceof Double || object instanceof Boolean ||
+                object instanceof Long || object instanceof Short) {
             value = object.toString();
+        } else if (object.getClass().getName().startsWith("java.lang")) {
+            value = "\"" + object.toString() + "\"";
         } else if (object instanceof Map) {
             Map<Object, Object> mapObject = (Map<Object, Object>) object;
             value = mapObject(mapObject);
