@@ -178,21 +178,24 @@ public class HttpDispatcher {
 	 */
 	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) {
 		Map<String, String> resultMap = new HashMap<String, String>();
-		String[] pathPieces = requestPath.substring(1,requestPath.length()).split("/");
+		String[] requestPathPieces = requestPath.substring(1,requestPath.length()).split("/");
 		String[] routePathPieces = routePath.substring(1, routePath.length()).split("/");
-		try{
-			for(int i=1;i<=routePathPieces.length;i++){
-				int routePathPiecesLength = routePathPieces.length;
-				int pathPiecesLength = pathPieces.length;
-				String routePathPiece = routePathPieces[routePathPiecesLength-i];
-				if(routePathPiece.startsWith(":")){
-					String name = TString.removePrefix(routePathPiece);
-					String value = URLDecoder.decode(pathPieces[pathPiecesLength-i], "UTF-8");
-					resultMap.put(name,value);
+
+		if(requestPathPieces.length == routePathPieces.length){
+			try {
+				for (int i = 1; i <= routePathPieces.length; i++) {
+					int routePathPiecesLength = routePathPieces.length;
+					int pathPiecesLength = requestPathPieces.length;
+					String routePathPiece = routePathPieces[routePathPiecesLength - i];
+					if (routePathPiece.startsWith(":")) {
+						String name = TString.removePrefix(routePathPiece);
+						String value = URLDecoder.decode(requestPathPieces[pathPiecesLength - i], "UTF-8");
+						resultMap.put(name, value);
+					}
 				}
+			} catch (UnsupportedEncodingException e) {
+				Logger.error("RoutePath URLDecoder.decode failed by charset: UTF-8", e);
 			}
-		}catch(UnsupportedEncodingException e){
-			Logger.error("RoutePath URLDecoder.decode failed by charset: UTF-8",e);
 		}
 		return resultMap;
 	}
