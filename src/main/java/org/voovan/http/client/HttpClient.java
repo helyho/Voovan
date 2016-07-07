@@ -1,7 +1,6 @@
 package org.voovan.http.client;
 
 import org.voovan.http.message.Request;
-import org.voovan.http.message.Request.RequestType;
 import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
@@ -13,9 +12,11 @@ import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -148,6 +149,22 @@ public class HttpClient {
 		request.protocol().setMethod(method);
 		return this;
 	}
+
+	/**
+	 * 设置报文形式
+	 * @param bodyType  Http 报文形式
+	 * @return Request.BodyType 枚举
+	 */
+	public HttpClient setBodyType(Request.BodyType bodyType){
+		if(bodyType== Request.BodyType.BODY_MULTIPART){
+			request.header().put("Content-Type","multipart/form-data;");
+		}
+		else if(bodyType== Request.BodyType.BODY_URLENCODED){
+			request.header().put("Content-Type","application/x-www-form-urlencoded");
+		}
+
+		return this;
+	}
 	
 	/**
 	 * 获取请求头集合
@@ -233,25 +250,33 @@ public class HttpClient {
 	 * 构建请求
 	 */
 	private void buildRequest(String urlString){
-
 		request.protocol().setPath(urlString.isEmpty()?"/":urlString);
-		String queryString = getQueryString();
-		
-		if (request.getType() == RequestType.GET) {
+		//1.没有报文 Body,参数包含于请求URL
+		if (request.getBodyType() == Request.BodyType.BODY_NOBODY) {
+			String queryString = getQueryString();
 			request.protocol().setPath(request.protocol().getPath() + queryString);
-		} else if(request.getType() == RequestType.POST && !request.parts().isEmpty()){
+		}
+		//2.请求报文Body 使用Part 类型
+		else if(request.getBodyType() == Request.BodyType.BODY_MULTIPART){
 			try{
 				for (Entry<String, Object> parameter : parameters.entrySet()) {
 					Part part = new Part();
 					part.header().put("name", parameter.getKey());
-					part.body().write(URLEncoder.encode(parameter.getValue().toString(),charset).getBytes());
+					if(parameter.getValue() instanceof String) {
+						part.body().write(URLEncoder.encode(parameter.getValue().toString(), charset).getBytes());
+					}else if(parameter.getValue() instanceof File){
+						part.body().write(TFile.loadFile((File) parameter.getValue()));
+					}
 					request.parts().add(part);
 				}
 			} catch (IOException e) {
 				Logger.error("HttpClient buildRequest error. ",e);
 			}
-			
-		} else if(request.getType() == RequestType.POST && request.parts().isEmpty()){
+
+		}
+		//3.请求报文Body 使用流类型
+		else if(request.getBodyType() == Request.BodyType.BODY_URLENCODED){
+			String queryString = getQueryString();
 			request.body().write(TString.removePrefix(queryString),charset);
 		}
 	}
@@ -264,19 +289,24 @@ public class HttpClient {
 	 * @throws ReadMessageException  读取异常
 	 */
 	public Response send(String urlString) throws SendMessageException, ReadMessageException {
-			
-			//构造 Request 对象
-			buildRequest(TString.isNullOrEmpty(urlString)?"/":urlString);
-			
-			//发送报文
-			socket.synchronouSend(request);
 
-			Response response = (Response)socket.synchronouRead();
-			
-			//结束操作
-			finished(response);
-			
-			return response;
+		//设置默认的报文 Body 类型
+		if(request.protocol().getMethod().equals("POST")){
+			setBodyType(Request.BodyType.BODY_MULTIPART);
+		}
+
+		//构造 Request 对象
+		buildRequest(TString.isNullOrEmpty(urlString)?"/":urlString);
+
+		//发送报文
+		socket.synchronouSend(request);
+
+		Response response = (Response)socket.synchronouRead();
+
+		//结束操作
+		finished(response);
+
+		return response;
 	}
 
 	/**

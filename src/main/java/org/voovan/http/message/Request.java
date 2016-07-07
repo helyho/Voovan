@@ -38,15 +38,15 @@ public class Request {
 
 	/**
 	 * HTTP 请求的枚举对象
-	 * 
+	 *
 	 * @author helyho
 	 *
 	 */
-	public enum RequestType {
-		GET, POST, POST_URLENCODED, POST_MULTIPART, HEAD, PUT, DELETE, TRACE, CONNECT, OPTIONS, UNKNOWN
-	}
+	public enum BodyType {
+		BODY_URLENCODED, BODY_MULTIPART, BODY_NOBODY
+	 }
 
-	/**
+	 /**
 	 * 构造函数
 	 * 
 	 * @param request 请求对象
@@ -120,35 +120,16 @@ public class Request {
 	 * 
 	 * @return RequestType枚举
 	 */
-	public RequestType getType() {
-		switch (protocol.getMethod()) {
-		case "GET":
-			return RequestType.GET;
-		case "PUT":
-			return RequestType.PUT;
-		case "DELETE":
-			return RequestType.DELETE;
-		case "TRACE":
-			return RequestType.TRACE;
-		case "CONNECT":
-			return RequestType.CONNECT;
-		case "OPTIONS":
-			return RequestType.OPTIONS;
-		case "HEAD":
-			return RequestType.HEAD;
-		case "POST":
-			if (header.get(CONTENT_TYPE) != null) {
-				if (header.get(CONTENT_TYPE).contains("application/x-www-form-urlencoded")) {
-					return RequestType.POST_URLENCODED;
-				} else if (header.get(CONTENT_TYPE).contains("multipart/form-data")) {
-					return RequestType.POST_MULTIPART;
-				}
-			} else {
-				return RequestType.POST;
+	public BodyType getBodyType() {
+		if (header.get(CONTENT_TYPE) != null) {
+			if (header.get(CONTENT_TYPE).contains("application/x-www-form-urlencoded")) {
+				return BodyType.BODY_URLENCODED;
+			} else if (header.get(CONTENT_TYPE).contains("multipart/form-data")) {
+				return BodyType.BODY_MULTIPART;
 			}
-		default:
-			return RequestType.UNKNOWN;
 		}
+
+		return BodyType.BODY_NOBODY;
 	}
 	
 	/**
@@ -158,16 +139,15 @@ public class Request {
 	 */
 	public String getQueryString(String charset) {
 		String queryString = "";
-		// GET 请求类型的处理
-		if (getType() == RequestType.GET) {
-			queryString = protocol.getQueryString();
-		}
+		//请求路径内包含的参数
+		queryString = protocol.getQueryString();
+
 		// POST_URLENCODED 请求类型的处理
-		else if (getType() == RequestType.POST_URLENCODED || getType() == RequestType.POST) {
+		if (getBodyType() == BodyType.BODY_URLENCODED ) {
 			queryString = body.getBodyString();
 		}
 		// POST_MULTIPART 请求类型的处理
-		else if (getType() == RequestType.POST_MULTIPART) {
+		else if (getBodyType() == BodyType.BODY_MULTIPART) {
 			StringBuilder result = new StringBuilder("");
 			for (Part part : parts) {
 				if (part.getType() == PartType.TEXT) {

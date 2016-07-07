@@ -212,7 +212,7 @@ public class HttpServer {
 	 * @return HttpServer 对象
 	 */
 	public static HttpServer newInstance(int port) {
-		WebServerConfig config = new WebServerConfig();
+		WebServerConfig config = WebContext.getWebServerConfig();
 		config.setPort(port);
 		return newInstance(config);
 	}
@@ -223,7 +223,7 @@ public class HttpServer {
 	 * @return HttpServer 对象
 	 */
 	public static HttpServer newInstance() {
-		return newInstance(new WebServerConfig());
+		return newInstance(WebContext.getWebServerConfig());
 	}
 
 	/**
