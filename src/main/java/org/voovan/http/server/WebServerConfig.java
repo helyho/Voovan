@@ -24,6 +24,7 @@ public class WebServerConfig {
     private int port                = 28080;
     private int timeout             = 30;
     private String contextPath      = "WEBAPP";
+    private boolean MatchRouteIgnoreCase = false;
     private String characterSet     = "UTF-8";
     private String sessionContainer = "java.util.Hashtable";
     private int sessionTimeout      = 30;
@@ -52,6 +53,14 @@ public class WebServerConfig {
 
     protected void setContextPath(String contextPath) {
         this.contextPath = contextPath;
+    }
+
+    public boolean isMatchRouteIgnoreCase() {
+        return MatchRouteIgnoreCase;
+    }
+
+    public void setMatchRouteIgnoreCase(boolean matchRouteIgnoreCase) {
+        MatchRouteIgnoreCase = matchRouteIgnoreCase;
     }
 
     protected void setCharacterSet(String characterSet) {

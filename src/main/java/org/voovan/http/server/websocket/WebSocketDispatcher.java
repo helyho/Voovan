@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class WebSocketDispatcher {
+	private WebServerConfig webConfig;
+
 	/**
 	 * [Key] = Route path ,[Value] = WebSocketBizHandler对象
 	 */
@@ -39,10 +41,11 @@ public class WebSocketDispatcher {
 	/**
 	 * 构造函数
 	 * 
-	 * @param config WEB 配置对象
+	 * @param webConfig WEB 配置对象
 	 *            根目录
 	 */
-	public WebSocketDispatcher(WebServerConfig config) {
+	public WebSocketDispatcher(WebServerConfig webConfig) {
+		this.webConfig = webConfig;
 		handlers = new ConcurrentHashMap<String, WebSocketBizHandler>();
 	}
 
@@ -72,7 +75,7 @@ public class WebSocketDispatcher {
 		for (Map.Entry<String,WebSocketBizHandler> routeEntry : handlers.entrySet()) {
 			String routePath = routeEntry.getKey();
 			// 路由匹配
-			isMatched = HttpDispatcher.matchPath(requestPath, routePath);
+			isMatched = HttpDispatcher.matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase());
 			if (isMatched) {
 				// 获取路由处理对象
 				WebSocketBizHandler handler = routeEntry.getValue();
