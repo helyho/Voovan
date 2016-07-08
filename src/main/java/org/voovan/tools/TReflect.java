@@ -405,4 +405,37 @@ public class TReflect {
 
 		return false;
 	}
+
+	/**
+	 * 获取类的 json 形式的描述
+	 * @param clazz  Class 类型对象
+	 * @return 类的 json 形式的描述
+     */
+	public static String getClazzJSONModel(Class clazz){
+		String jsonStr = "";
+		if(clazz.getName().startsWith("java") || clazz.isPrimitive()){
+			jsonStr = clazz.getName();
+		} else if(clazz.getName().startsWith("[L")){
+			String clazzName = clazz.getName();
+			clazzName = clazzName.substring(clazzName.lastIndexOf(".")+1,clazzName.length()-2)+"[]";
+			jsonStr = clazzName;
+		} else {
+			jsonStr += "{";
+			for (Field field : TReflect.getFields(clazz)) {
+				jsonStr = jsonStr + "\"" + field.getName() + "\":";
+				String filedValueModel = getClazzJSONModel(field.getType());
+				if(filedValueModel.startsWith("{") && filedValueModel.endsWith("}")) {
+					jsonStr = jsonStr + filedValueModel + ",";
+				} else if(filedValueModel.startsWith("[") && filedValueModel.endsWith("]")) {
+					jsonStr = jsonStr + filedValueModel + ",";
+				} else {
+					jsonStr = jsonStr + "\"" + filedValueModel + "\",";
+				}
+			}
+			jsonStr = TString.removeSuffix(jsonStr);
+			jsonStr = jsonStr + "}";
+		}
+
+		return jsonStr;
+	}
 }
