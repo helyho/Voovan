@@ -162,6 +162,10 @@ public class Request {
 			queryString = TString.removeSuffix( queryString+"&"+result.toString() );
 		}
 
+		if(queryString.startsWith("&")){
+			queryString = TString.removePrefix(queryString);
+		}
+
 		return queryString.isEmpty()? null : queryString;
 	}
 	

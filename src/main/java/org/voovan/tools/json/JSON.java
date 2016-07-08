@@ -59,4 +59,71 @@ public class JSON {
 		parseObject = JSONDecode.parse(jsonStr);
 		return parseObject;
 	}
+
+	/**
+	 * 格式化 JSON
+	 * @param jsonStr JSON 字符串
+	 * @return
+	 */
+	public static String formatJson(String jsonStr) {
+		if (jsonStr == null || jsonStr.isEmpty()) return "";
+		StringBuilder jsongStrBuild = new StringBuilder();
+		char prevChar = '\0';
+		char current = '\0';
+		int indent = 0;
+		boolean inStr = false;
+		for (int i = 0; i < jsonStr.length(); i++) {
+			prevChar = current;
+			current = jsonStr.charAt(i);
+
+			//判断是否在字符串中
+			if(current == '\"' && prevChar!='\\'){
+				inStr = !inStr;
+			}
+
+			if(inStr){
+				jsongStrBuild.append(current);
+				continue;
+			}
+
+			if(current=='[' || current=='{'){
+				jsongStrBuild.append(current);
+				jsongStrBuild.append('\n');
+				indent++;
+				addIndentByNum(jsongStrBuild, indent);
+				continue;
+			}
+
+			if(current==']' || current=='}'){
+				jsongStrBuild.append('\n');
+				indent--;
+				addIndentByNum(jsongStrBuild, indent);
+				jsongStrBuild.append(current);
+				continue;
+			}
+
+			if(current==','){
+				jsongStrBuild.append(current);
+				jsongStrBuild.append('\n');
+				addIndentByNum(jsongStrBuild, indent);
+				continue;
+			}
+
+			jsongStrBuild.append(current);
+
+		}
+
+		return jsongStrBuild.toString();
+	}
+
+	/**
+	 * 添加缩进
+	 * @param str     需要追加缩进的字符串
+	 * @param indent  缩进后的字符串
+	 */
+	private static void addIndentByNum(StringBuilder  str, int indent) {
+		for (int i = 0; i < indent; i++) {
+			str.append('\t');
+		}
+	}
 }
