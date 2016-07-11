@@ -99,7 +99,6 @@ public class FilterConfig {
      * 获取HttpBuizFilter过滤器实例
      *
      * @return 过滤器实例
-     * @throws ReflectiveOperationException 反射异常
      */
     protected HttpBizFilter getFilterInstance() {
         try {

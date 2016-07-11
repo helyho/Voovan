@@ -63,7 +63,7 @@ public class JSON {
 	/**
 	 * 格式化 JSON
 	 * @param jsonStr JSON 字符串
-	 * @return
+	 * @return  格式化后的 JSON 字符串
 	 */
 	public static String formatJson(String jsonStr) {
 		if (jsonStr == null || jsonStr.isEmpty()) return "";
