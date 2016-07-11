@@ -278,9 +278,9 @@ public class TString {
 
 	/**
 	 * java 基本类型转换成对象
-	 * @param value
+	 * @param value 字符串字面值
 	 * @param clazz Class类,仅支持基本类型
-	 * @return
+	 * @return 基本类型对象
 	 */
 	public static Object toObject(String value,Class clazz){
 		if(clazz == int.class){

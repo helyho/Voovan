@@ -118,9 +118,8 @@ public class HttpDispatcher {
 
 	/**
 	 * Http 路由处理函数
-	 * @param request
-	 * @param response
-     * @return
+	 * @param request    Http请求对象
+	 * @param response   Http 响应对象
      */
 	public void disposeRoute(HttpRequest request, HttpResponse response){
 		String requestPath 		= request.protocol().getPath();
@@ -175,6 +174,7 @@ public class HttpDispatcher {
 	 * 路径匹配
 	 * @param requestPath    请求路径
 	 * @param routePath      正则匹配路径
+	 * @param matchRouteIgnoreCase 路劲匹配是否忽略大消息
 	 * @return  是否匹配成功
 	 */
 	public static boolean matchPath(String requestPath, String routePath,boolean matchRouteIgnoreCase){
@@ -250,7 +250,6 @@ public class HttpDispatcher {
 	 * @param filterConfigs   HTTP过滤器配置对象
 	 * @param request		  请求对象
 	 * @param response		  响应对象
-	 * @throws ReflectiveOperationException  反射异常
      */
 	public void diposeFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) {
 		filterConfigs.rewind();
@@ -269,7 +268,6 @@ public class HttpDispatcher {
 	 * @param filterConfigs   HTTP过滤器配置对象
 	 * @param request		  请求对象
 	 * @param response		  响应对象
-	 * @throws ReflectiveOperationException  反射异常
      */
 	public void diposeInvertedFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) {
 		filterConfigs.rewind();
