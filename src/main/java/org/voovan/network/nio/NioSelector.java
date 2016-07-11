@@ -132,6 +132,7 @@ public class NioSelector {
 	 * 
 	 * @param selectionKey  当前 Selectionkey
 	 * @return SocketChannel 对象
+	 * @throws IOException  IO 异常
 	 */
 	public SocketChannel getSocketChannel(SelectionKey selectionKey)
 			throws IOException {
