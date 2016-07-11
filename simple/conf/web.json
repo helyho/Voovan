@@ -9,28 +9,14 @@
 	"SessionTimeout"    	: 30,						// Session 会话超时时间(m),默认30分钟
 	"KeepAliveTimeout"  	: 60,						// KeepAlive 超时时间(s),默认60秒,如果值小于0则不启用 KeepAlive 设置 (该参数同样会被应用到 WebSocket 的连接保持上)
 	"Gzip"              	: false,					// 是否启用Gzip压缩,默认 true
-	"AccessLog"				: false,						// 是否记录access.log,默认 true
+	"AccessLog"				: false,					// 是否记录access.log,默认 true
 	"Monitor"               : true,					    // 是否提供监控服务,默认 false
-	//"CertificateFile"   	: "/src/test/java/org/voovan/test/network/ssl/ssl_ks",  // HTTPS 证书
-	//"CertificatePassword"   : "passStr",				// HTTPS 证书密码
-	//"KeyPassword"   		: "123123",				// HTTPS 证书Key 密码
-
 	"Filter":[											// 过滤器 先执行filter1, 后执行filter2
 		          {
 		        	  "Name"      : "filter1",
 		        	  "ClassName" : "org.voovan.test.http.HttpBizFilterTest",
 		        	  "Encoding"  : "UTF-8",
-		        	  "Action"    : "pass"      },
-		          {
-		        	  "Name"      : "filter2",
-		        	  "ClassName" : "org.voovan.test.http.HttpBizFilterTest",
-		        	  "Encoding"  : "UTF-8",
-		        	  "Action"    : "pass"      },
-		          {
-					  "Name"      : "filter3",
-					  "ClassName" : "org.voovan.test.http.HttpBizFilterTest",
-					  "Encoding"  : "UTF-8",
-					  "Action"    : "pass"      }
+		        	  "Action"    : "pass"      }
 	          ]
 
 }
