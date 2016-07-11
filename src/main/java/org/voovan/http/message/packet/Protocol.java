@@ -43,4 +43,12 @@ public class Protocol {
 	public void setVersion(float version) {
 		this.version = version;
 	}
+
+	/**
+	 * 清理
+	 */
+	public void clear(){
+		this.protocol = "HTTP";
+		this.version = 1.1F;
+	}
 }

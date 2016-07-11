@@ -153,7 +153,7 @@ public class HttpServerHandler implements IoHandler {
 		session.setAttribute("Type", "HTTP");
 
 		// 处理响应请求
-		httpDispatcher.processRoute(httpRequest, httpResponse);
+		httpDispatcher.process(httpRequest, httpResponse);
 
 		//如果是长连接则填充响应报文
 		if (httpRequest.header().contain("Connection")

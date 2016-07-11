@@ -279,6 +279,17 @@ public class Request {
 		return outputStream.toByteArray();
 	}
 
+	/**
+	 * 清理
+	 */
+	public void clear(){
+		this.header().clear();
+		this.cookies().clear();
+		this.protocol().clear();
+		this.body().clear();
+		this.parts().clear();
+	}
+
 	@Override
 	public String toString() {
 		return new String(asBytes());

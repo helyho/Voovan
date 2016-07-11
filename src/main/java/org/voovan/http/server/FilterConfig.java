@@ -1,6 +1,7 @@
 package org.voovan.http.server;
 
 import org.voovan.tools.TReflect;
+import org.voovan.tools.log.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -100,11 +101,16 @@ public class FilterConfig {
      * @return 过滤器实例
      * @throws ReflectiveOperationException 反射异常
      */
-    protected HttpBizFilter getBizFilter() throws ReflectiveOperationException {
-        //单例模式
-        if (httpBizFilter == null) {
-            httpBizFilter = TReflect.newInstance(className);
+    protected HttpBizFilter getFilterInstance() {
+        try {
+            //单例模式
+            if (httpBizFilter == null) {
+                httpBizFilter = TReflect.newInstance(className);
+            }
+            return httpBizFilter;
+        } catch (ReflectiveOperationException e) {
+            Logger.error("New HttpBizFilter["+className+"] error.",e);
+            return null;
         }
-        return httpBizFilter;
     }
 }

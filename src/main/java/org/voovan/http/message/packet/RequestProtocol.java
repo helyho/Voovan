@@ -66,6 +66,16 @@ public class RequestProtocol extends Protocol {
 		this.queryString = queryString;
 	}
 
+	/**
+	 * 清理
+	 */
+	public void clear(){
+		super.clear();
+		this.method = "GET";
+		this.path = "/";
+		this.queryString = "";
+	}
+
 
 	@Override
 	public String toString(){
