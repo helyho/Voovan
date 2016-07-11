@@ -47,7 +47,12 @@ public class Body {
 	 */
 	public String getBodyString(){
 		byte[] bodyBytes = getBodyBytes();
-		return new String(bodyBytes);
+		try {
+			return new String(bodyBytes,"UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			Logger.error("This charset is unsupported.",e);
+			return null;
+		}
 	}
 	
 	
@@ -61,8 +66,8 @@ public class Body {
 		try {
 			return new String(bodyBytes,charset);
 		} catch (UnsupportedEncodingException e) {
-			Logger.error("this charset is unsupported.",e);
-			return new String(bodyBytes);
+			Logger.error("This charset is unsupported.",e);
+			return null;
 		}
 	}
 	
@@ -129,6 +134,11 @@ public class Body {
 	@Override
 	public String toString(){
 		byte[] bodyBytes = getBodyBytes();
-		return new String(bodyBytes);
+		try {
+			return new String(bodyBytes,"UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			Logger.error(e);
+			return null;
+		}
 	}
 }

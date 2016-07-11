@@ -94,8 +94,15 @@ public class HttpServerFilter implements IoFilter {
 	 * @return  是否是 HTTP 请求
 	 */
 	public static boolean isHttpRequest(ByteBuffer byteBuffer) {
-		String testStr = new String(byteBuffer.array()).trim();
-		String httpMethod = testStr.split(" ")[0];
+		String testStr = null;
+
+		try {
+			testStr = new String(byteBuffer.array(),"UTF-8").trim();
+		} catch (UnsupportedEncodingException e) {
+			Logger.error("This charset is unsupported.",e);
+			return false;
+		}
+
 		if (TString.searchByRegex(testStr,"HTTP.{0,4}\\r\\n").length == 1) {
 			return true;
 		}else {

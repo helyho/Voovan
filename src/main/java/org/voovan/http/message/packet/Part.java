@@ -1,8 +1,11 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.tools.log.Logger;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 /**
  * HTTP 的 part 对象
@@ -56,7 +59,11 @@ public class Part {
 		header = new  Header();
 		body = new Body();
 		header.put("name", name);
-		body.write(value.getBytes());
+		try {
+			body.write(value.getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			Logger.error("This charset is unsupported.",e);
+		}
 	}
 	
 	/**

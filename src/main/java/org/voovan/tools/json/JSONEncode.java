@@ -40,7 +40,7 @@ public class JSONEncode {
      */
     private static String mapObject(Map<?, ?> mapObject) throws ReflectiveOperationException {
         String mapString = "{";
-        StringBuilder ContentStringBuilder = new StringBuilder("");
+        StringBuilder ContentStringBuilder = new StringBuilder();
         String ContentString = null;
 
         Object[] keys = mapObject.keySet().toArray();
@@ -55,7 +55,7 @@ public class JSONEncode {
         }
 
         ContentString = ContentStringBuilder.toString();
-        if (!ContentString.trim().equals("")){
+        if (!ContentString.trim().isEmpty()){
             ContentString = ContentString.substring(0, ContentString.length() - 1);
         }
 
@@ -95,7 +95,7 @@ public class JSONEncode {
 
         ContentString = ContentStringBuilder.toString();
 
-        if (!ContentString.trim().equals("")) {
+        if (!ContentString.trim().isEmpty()) {
             ContentString = ContentString.substring(0, ContentString.length() - 1);
         }
 

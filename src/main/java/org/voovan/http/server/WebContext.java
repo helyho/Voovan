@@ -59,9 +59,15 @@ public class WebContext {
 	 */
 	private static Map<String, Object> loadMapFromFile(String filePath){
 		if(TFile.fileExists(TEnv.getSystemPath(filePath))) {
-			String fileContent = new String(TFile.loadFileFromContextPath(filePath));
-			Object configObject = JSONDecode.parse(fileContent);
-			return TObject.cast(configObject);
+			String fileContent = null;
+			try {
+				fileContent = new String(TFile.loadFileFromContextPath(filePath),"UTF-8");
+				Object configObject = JSONDecode.parse(fileContent);
+				return TObject.cast(configObject);
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+
 		}
 		return new HashMap<String,Object>();
 	}

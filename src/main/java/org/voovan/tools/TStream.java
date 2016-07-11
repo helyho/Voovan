@@ -39,7 +39,7 @@ public class TStream {
 	 */
 	public static String readLine(InputStream inputStream) throws IOException{
 		String lineStr = "";
-		StringBuilder lineStrBuilder= new StringBuilder("");
+		StringBuilder lineStrBuilder= new StringBuilder();
 		while(true){
 			int singleChar = inputStream.read();		
 			if(singleChar==-1 || singleChar==65535) {
@@ -53,7 +53,7 @@ public class TStream {
 			}
 		}
 		lineStr = lineStrBuilder.toString();
-		return lineStr.equals("")?null:lineStr.substring(0,lineStr.length()-2);
+		return lineStr.isEmpty()?null:lineStr.substring(0,lineStr.length()-2);
 	}
 	
 	/**

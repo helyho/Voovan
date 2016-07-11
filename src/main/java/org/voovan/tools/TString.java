@@ -161,7 +161,7 @@ public class TString {
 	 * @return 是否是空指针或者内容为空
 	 */
 	public static boolean isNullOrEmpty(String source){
-		if(source==null || source.equals("")){
+		if(source==null || source.isEmpty()){
 			return true;
 		}else{
 			return false;
@@ -250,7 +250,7 @@ public class TString {
 	 */
 	public static String indent(String str,int indentCount){
 		if(indentCount>0 && str!=null){
-			StringBuilder indent = new StringBuilder("");
+			StringBuilder indent = new StringBuilder();
 			for(int i=0;i<indentCount;i++){
 				indent.append(" ");
 			}
@@ -268,7 +268,7 @@ public class TString {
 	public static String reverse(String str){
 		if(str!=null){
 			char[] array = str.toCharArray();
-			StringBuilder reverse = new StringBuilder("");
+			StringBuilder reverse = new StringBuilder();
 			for (int i = array.length - 1; i >= 0; i--)
 				reverse.append(array[i]);
 			return reverse.toString();
