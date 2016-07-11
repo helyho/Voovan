@@ -1,7 +1,6 @@
 package org.voovan.http.server;
 
 import org.voovan.http.message.packet.Cookie;
-import org.voovan.http.server.FilterConfig;
 import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.router.MimeFileRouter;
@@ -11,8 +10,8 @@ import org.voovan.tools.log.Logger;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 
@@ -49,7 +48,7 @@ public class HttpDispatcher {
 	 * @param sessionManager Session 管理器
 	 */
 	public HttpDispatcher(WebServerConfig webConfig,SessionManager sessionManager) {
-		handlers = new ConcurrentHashMap<String, Map<String, HttpBizHandler>>();
+		handlers = new LinkedHashMap<String, Map<String, HttpBizHandler>>();
 		this.webConfig = webConfig;
 		this.sessionManager = sessionManager;
 		
@@ -74,7 +73,7 @@ public class HttpDispatcher {
 	 */
 	protected void addRouteMethod(String method) {
 		if (!handlers.containsKey(method)) {
-			handlers.put(method, new ConcurrentHashMap<String, HttpBizHandler>());
+			handlers.put(method, new LinkedHashMap<String, HttpBizHandler>());
 		}
 	}
 
@@ -100,11 +99,11 @@ public class HttpDispatcher {
 	public void process(HttpRequest request, HttpResponse response){
 		Chain<FilterConfig> filterConfigs = webConfig.getFilterConfigs().clone();
 
-		//正向过滤器处理,请求有可能被 Redirect 所以过滤器执行放在开始
-		diposeFilter(filterConfigs,request,response);
-
 		//Session预处理
 		diposeSession(request,response);
+
+		//正向过滤器处理,请求有可能被 Redirect 所以过滤器执行放在开始
+		diposeFilter(filterConfigs,request,response);
 
 		//调用处理路由函数
 		disposeRoute(request,response);
