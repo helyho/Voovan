@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Voovan server monitor page</title>
+    <link href="css/uikit.gradient.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/components/tooltip.gradient.min.css" rel="stylesheet">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/uikit.min.js"></script>
+    <script src="js/Monitor.js"></script>
+    <script src="js/Object.js"></script>
+    <script src="js/components/tooltip.js"></script>
+</head>
+<body>
+<nav class="uk-navbar">
+    <a href="" class="uk-navbar-brand"><img src="img/logo.jpg" class="nav_logo"/></a>
+    <ul class="uk-navbar-nav">
+        <li class="uk-parent"><a href="Monitor.html"><span class="uk-icon-building"/>&nbsp;系统信息</a></li>
+        <li class="uk-parent"><a href="MonitorPerformance.html"><span class="uk-icon-pie-chart"/>&nbsp;性能</a></li>
+        <li class="uk-active"><a href="MonitorObject.html"><span class="uk-icon-circle-o-notch"/>&nbsp;对象信息</a></li>
+        <li class="uk-parent"><a href="MonitorThread.html"><span class="uk-icon-cogs"/>&nbsp;线程</a></li>
+        <li class="uk-parent"><a href="MonitorRequest.html"><span class="uk-icon-life-bouy"/>&nbsp;请求分析</a></li>
+        <li class="uk-parent"><a href="MonitorLogs.html"><span class="uk-icon-television"/>&nbsp;日志</a></li>
+    </ul>
+</nav>
+<div class="uk-grid" style="padding: 5px;">
+    <div class="uk-width-medium-1-6">
+        <ul class="uk-tab uk-tab-left tab-ext"
+            data-uk-tab="{connect:'#my-tab-content1',animation: 'uk-animation-fade'}">
+            <li class="uk-active"><a href=""><span class="uk-icon-cog"/>&nbsp;JVM对象</a></li>
+        </ul>
+    </div>
+    <div class="uk-width-medium-5-6 uk-panel-box tab-content-panel">
+        <ul id="my-tab-content1" class="uk-switcher">
+            <li aria-hidden="false">
+                <div id="AccessLog" class="uk-overflow-container" style="height:530px">
+                    <div class="uk-align-right uk-form uk-panel-box">
+                        <span class="uk-text-primary uk-text-bold" data-uk-tooltip
+                              title="默认过滤掉所有JVM内部类的对象.">正则过滤:&nbsp;</span>
+                        <input id="ObjectSearchWord" type="text" placeholder="输入正则匹配" value="" style="width:150px"/>
+                        <span id="ObjectSearch" class="uk-icon-button uk-icon-search"/></span>
+                    </div>
+                    <table class="uk-table uk-table-hover uk-table-striped">
+                        <caption id="ObjectCount">JVM对象信息&nbsp;(共{{count==null?0:count}}个对象)</caption>
+                        <thead>
+                        <tr>
+                            <th>对象类名</th>
+                            <th>实例数</th>
+                            <th>所占内存</th>
+                        </tr>
+                        </thead>
+                        <tbody id="Objects">
+                        <tr v-for="(key,value) in info | orderBy 'count' -1">
+                            <td class="uk-text-primary">{{key}}</td>
+                            <td class="uk-text-warning">{{value.count}}</td>
+                            <td class="uk-text-success">{{value.size}} byte</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+<div class="uk-grid footer">
+    <div class="uk-container-center uk-width-2-10 uk-text-center" style="height: 30px;line-height: 30px">
+        <ul class="uk-subnav uk-subnav-line uk-container-center">
+            <li><a href="https://git.oschina.net/helyho/Voovan">Git@OSC</a></li>
+            <li><a href="https://github.com/helyho/Voovan">GitHub</a></li>
+            <li><a href="https://git.oschina.net/helyho/Voovan/issues">Issues</a></li>
+            <li><a href="https://git.oschina.net/helyho/Voovan/wikis/home">Wiki</a></li>
+        </ul>
+    </div>
+    <div class="uk-container-center uk-width-9-10 uk-text-center">
+        UI made by UIKit with Jquery and baidu's eChart.
+    </div>
+    <div class="uk-container-center uk-width-9-10 uk-text-center">
+        HTTP service made by Voovan.
+    </div>
+    <div class="uk-container-center uk-width-9-10 uk-text-center">
+        Licensed under Apache v2 license.
+    </div>
+    <div class="uk-container-center uk-width-9-10 uk-text-center">
+        <img src="img/logo.jpg" class="nav_logo"/>
+    </div>
+</div>
+</body>
+</html>
