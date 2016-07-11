@@ -144,6 +144,14 @@ public class Part {
 			fileOutputStream.close();
 		}
 	}
+
+	/**
+	 * 清理
+	 */
+	public void clear(){
+		this.header.clear();
+		this.body().clear();
+	}
 	
 	@Override
 	public String toString(){

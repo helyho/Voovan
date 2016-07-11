@@ -221,4 +221,27 @@ public class HttpRequest extends Request {
 			}
 		}
 	}
+
+
+
+	/**
+	 * 重置请求
+	 * 		用于在 Filter 中重新定向,其他地方无用
+	 * @param url 请求地址,"/"起始,可以包含"?"参数引导及参数.
+	 */
+	public void redirect(String url){
+		String[] parsedURL = url.split("\\?");
+
+		this.protocol().clear();
+		this.body().clear();
+		this.parts().clear();
+
+		if(parsedURL.length>0) {
+			this.protocol().setPath(parsedURL[0]);
+		}
+
+		if(parsedURL.length > 1) {
+			this.protocol().setQueryString(parsedURL[1]);
+		}
+	}
 }
