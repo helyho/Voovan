@@ -412,30 +412,36 @@ public class TReflect {
 	 * @return 类的 json 形式的描述
      */
 	public static String getClazzJSONModel(Class clazz){
-		String jsonStr = "";
+		StringBuilder jsonStrBuilder = new StringBuilder();
 		if(clazz.getName().startsWith("java") || clazz.isPrimitive()){
-			jsonStr = clazz.getName();
+			jsonStrBuilder.append(clazz.getName());
 		} else if(clazz.getName().startsWith("[L")){
 			String clazzName = clazz.getName();
 			clazzName = clazzName.substring(clazzName.lastIndexOf(".")+1,clazzName.length()-2)+"[]";
-			jsonStr = clazzName;
+			jsonStrBuilder.append(clazzName);
 		} else {
-			jsonStr += "{";
+			jsonStrBuilder.append("{");
 			for (Field field : TReflect.getFields(clazz)) {
-				jsonStr = jsonStr + "\"" + field.getName() + "\":";
+				jsonStrBuilder.append("\"");
+				jsonStrBuilder.append(field.getName());
+				jsonStrBuilder.append("\":");
 				String filedValueModel = getClazzJSONModel(field.getType());
 				if(filedValueModel.startsWith("{") && filedValueModel.endsWith("}")) {
-					jsonStr = jsonStr + filedValueModel + ",";
+					jsonStrBuilder.append(filedValueModel);
+					jsonStrBuilder.append(",");
 				} else if(filedValueModel.startsWith("[") && filedValueModel.endsWith("]")) {
-					jsonStr = jsonStr + filedValueModel + ",";
+					jsonStrBuilder.append(filedValueModel);
+					jsonStrBuilder.append(",");
 				} else {
-					jsonStr = jsonStr + "\"" + filedValueModel + "\",";
+					jsonStrBuilder.append("\"");
+					jsonStrBuilder.append(filedValueModel);
+					jsonStrBuilder.append("\",");
 				}
 			}
-			jsonStr = TString.removeSuffix(jsonStr);
-			jsonStr = jsonStr + "}";
+			jsonStrBuilder.deleteCharAt(jsonStrBuilder.length()-1);
+			jsonStrBuilder.append("}");
 		}
 
-		return jsonStr;
+		return jsonStrBuilder.toString();
 	}
 }

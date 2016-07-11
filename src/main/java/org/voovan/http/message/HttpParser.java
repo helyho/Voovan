@@ -193,7 +193,7 @@ public class HttpParser {
 	 * @throws IOException
 	 */
 	private static byte[] dealBodyContent(Map<String, Object> packetMap,byte[] contentBytes) throws IOException{
-		byte[] bytesValue = new byte[0];
+		byte[] bytesValue;
 		
 		//是否支持 GZip
 		boolean isGZip = packetMap.get(HEAD_CONTENT_ENCODING)==null?false:packetMap.get(HEAD_CONTENT_ENCODING).toString().contains("gzip");
@@ -202,9 +202,9 @@ public class HttpParser {
 		if(isGZip && contentBytes.length>0){
 			bytesValue =TZip.decodeGZip(contentBytes);
 		} else {
-			bytesValue = TObject.nullDefault(contentBytes,new byte[0]);
+			bytesValue = contentBytes;
 		}
-		return bytesValue;
+		return TObject.nullDefault(bytesValue,new byte[0]);
 	}
 	
 	/**
@@ -231,7 +231,7 @@ public class HttpParser {
 			currentLine = TStream.readLine(sourceInputStream)){
 			lineNum++;
 			//空行分隔处理,遇到空行标识下面有可能到内容段
-			if("".equals(currentLine)){
+			if(currentLine.isEmpty()){
 				isBodyConent = true;
 			}
 			
@@ -263,9 +263,9 @@ public class HttpParser {
 					//取boundary 用于 part 内容分段
 					String boundary = HttpParser.getPerprotyEqualValue(packetMap,HEAD_CONTENT_TYPE,"boundary");
 					
-					for(byte[] spliteBytes = TStream.readWithSplit(sourceInputStream, ("--"+boundary).getBytes());
+					for(byte[] spliteBytes = TStream.readWithSplit(sourceInputStream, ("--"+boundary).getBytes("UTF-8"));
 							sourceInputStream.available()>0;
-							spliteBytes = TStream.readWithSplit(sourceInputStream, ("--"+boundary).getBytes())){
+							spliteBytes = TStream.readWithSplit(sourceInputStream, ("--"+boundary).getBytes("UTF-8"))){
 						
 						if(spliteBytes!=null){
 							spliteBytes = Arrays.copyOfRange(spliteBytes, 2, spliteBytes.length-2);
@@ -313,7 +313,7 @@ public class HttpParser {
 					packetMap.put(BODY_VALUE, value);
 				}
 				//4. 容错,没有标识长度则默认读取全部内容段
-				else if(packetMap.get(BODY_VALUE)==null || packetMap.get(BODY_VALUE).equals("")){
+				else if(packetMap.get(BODY_VALUE)==null || packetMap.get(BODY_VALUE).toString().isEmpty()){
 					byte[] contentBytes = TStream.readAll(sourceInputStream);
 					if(contentBytes!=null && contentBytes.length>0){
 						contentBytes = Arrays.copyOf(contentBytes, contentBytes.length);

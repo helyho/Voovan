@@ -32,7 +32,7 @@ public class TFile {
 	 * @return 拼装后的路径
 	 */
 	public static String assemblyPath(String ...pathParts ){
-		StringBuilder result = new StringBuilder("");
+		StringBuilder result = new StringBuilder();
 		for(String pathPart : pathParts){
 			result.append(pathPart);
 			result.append(File.separator);
@@ -119,7 +119,7 @@ public class TFile {
 
 	/**
 	 * 读取在Context的资源文件 完整路径
-	 * 
+	 *
 	 * @param resourcePath
 	 *            路径起始不带"/"
 	 * @return File 对象
@@ -133,25 +133,29 @@ public class TFile {
 				return file;
 			}
 			return null;
-		} catch (UnsupportedEncodingException e) {	
+		} catch (UnsupportedEncodingException e) {
 			Logger.error("Load resource URLDecoder.decode failed",e);
 			return null;
-		}  
-		
+		}
+
 	}
 
 	/**
 	 * 读取在Context的资源文件 (完整路径)
-	 * 
+	 *
 	 * @param resourcePath
 	 *            路径起始不带"/"
 	 * @return 文件内容
 	 */
 	public static byte[] loadResource(String resourcePath) {
-
-		byte[] fileContent = null;
-		fileContent = loadFile(getResourceFile(resourcePath));
-		return fileContent;
+		try {
+			resourcePath = URLDecoder.decode(resourcePath,"utf-8");
+			InputStream inputStream = TEnv.class.getClassLoader().getResourceAsStream(resourcePath);
+			return TStream.readAll(inputStream);
+		} catch (IOException e) {
+			Logger.error("Load resource URLDecoder.decode failed",e);
+			return null;
+		}
 	}
 
 	/**

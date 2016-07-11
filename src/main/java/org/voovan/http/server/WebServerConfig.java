@@ -189,7 +189,7 @@ public class WebServerConfig {
     public String toString(){
         try {
             Map<Field, Object> fieldValues = TReflect.getFieldValues(this);
-            StringBuilder str = new StringBuilder("");
+            StringBuilder str = new StringBuilder();
             for(Entry<Field,Object> entry : fieldValues.entrySet()){
                 str.append(entry.getKey().getName());
                 str.append(":\t\t");
