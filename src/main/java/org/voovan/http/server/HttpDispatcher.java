@@ -9,9 +9,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 
@@ -37,7 +35,7 @@ public class HttpDispatcher {
 	/**
 	 * [MainKey] = HTTP method ,[Value] = { [Value Key] = Route path, [Value value] = RouteBuiz对象 }
 	 */
-	private Map<String, Map<String, HttpBizHandler>>	handlers;
+	private Map<String, Map<String, HttpBizHandler>>	methodHandlers;
 	private WebServerConfig webConfig;
 	private SessionManager sessionManager;
 	
@@ -48,7 +46,7 @@ public class HttpDispatcher {
 	 * @param sessionManager Session 管理器
 	 */
 	public HttpDispatcher(WebServerConfig webConfig,SessionManager sessionManager) {
-		handlers = new LinkedHashMap<String, Map<String, HttpBizHandler>>();
+		methodHandlers = new LinkedHashMap<String, Map<String, HttpBizHandler>>();
 		this.webConfig = webConfig;
 		this.sessionManager = sessionManager;
 		
@@ -72,8 +70,20 @@ public class HttpDispatcher {
 	 * @param method HTTP 请求方法
 	 */
 	protected void addRouteMethod(String method) {
-		if (!handlers.containsKey(method)) {
-			handlers.put(method, new LinkedHashMap<String, HttpBizHandler>());
+		if (!methodHandlers.containsKey(method)) {
+		 Map<String,HttpBizHandler> routeHandlers = new TreeMap<String, HttpBizHandler>( new Comparator<String>() {
+				@Override
+				public int compare(String o1, String o2) {
+					if(o1.length() > o2.length()){
+						return -1;
+					} else if(o1.length() < o2.length()){
+						return 1;
+					} else {
+						return 0;
+					}
+				}
+			});
+			methodHandlers.put(method, routeHandlers);
 		}
 	}
 
@@ -85,8 +95,8 @@ public class HttpDispatcher {
 	 * @param handler         请求处理句柄
 	 */
 	public void addRouteHandler(String method, String routeRegexPath, HttpBizHandler handler) {
-		if (handlers.keySet().contains(method)) {
-			handlers.get(method).put(routeRegexPath, handler);
+		if (methodHandlers.keySet().contains(method)) {
+			methodHandlers.get(method).put(routeRegexPath, handler);
 		}
 	}
 
@@ -125,7 +135,7 @@ public class HttpDispatcher {
 		String requestMethod 	= request.protocol().getMethod();
 
 		boolean isMatched = false;
-		Map<String, HttpBizHandler> handlerInfos = handlers.get(requestMethod);
+		Map<String, HttpBizHandler> handlerInfos = methodHandlers.get(requestMethod);
 
 		//遍历路由对象
 		for (Map.Entry<String,HttpBizHandler> routeEntry : handlerInfos.entrySet()) {
