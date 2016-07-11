@@ -44,6 +44,15 @@ public class ResponseProtocol extends Protocol {
 		this.statusCode = statusCode;
 	}
 
+	/**
+	 * 清理
+	 */
+	public void clear(){
+		super.clear();
+		this.status = 200;
+		this.statusCode = "OK";
+	}
+
 	@Override
 	public String toString(){
 		return this.protocol+"/"+this.version+" "+this.status+" "+this.statusCode+"\r\n";

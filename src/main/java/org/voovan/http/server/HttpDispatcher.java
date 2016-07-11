@@ -92,57 +92,71 @@ public class HttpDispatcher {
 	}
 
 	/**
-	 * 路由处理函数
+	 * Http 请求响应处理函数,入口函数
 	 * 
 	 * @param request    HTTP 请求
 	 * @param response   HTTP 响应
 	 */
-	public void processRoute(HttpRequest request, HttpResponse response){
-		String requestPath = request.protocol().getPath();
-		String requestMethod = request.protocol().getMethod();
-		
+	public void process(HttpRequest request, HttpResponse response){
+		Chain<FilterConfig> filterConfigs = webConfig.getFilterConfigs().clone();
+
+		//正向过滤器处理,请求有可能被 Redirect 所以过滤器执行放在开始
+		diposeFilter(filterConfigs,request,response);
+
+		//Session预处理
+		diposeSession(request,response);
+
+		//调用处理路由函数
+		disposeRoute(request,response);
+
+		//反向过滤器处理
+		diposeInvertedFilter(filterConfigs,request,response);
+
+		//输出访问日志
+		WebContext.writeAccessLog(request,response);
+	}
+
+	/**
+	 * Http 路由处理函数
+	 * @param request
+	 * @param response
+     * @return
+     */
+	public void disposeRoute(HttpRequest request, HttpResponse response){
+		String requestPath 		= request.protocol().getPath();
+		String requestMethod 	= request.protocol().getMethod();
+
 		boolean isMatched = false;
 		Map<String, HttpBizHandler> handlerInfos = handlers.get(requestMethod);
+
 		//遍历路由对象
 		for (Map.Entry<String,HttpBizHandler> routeEntry : handlerInfos.entrySet()) {
 			String routePath = routeEntry.getKey();
 			//寻找匹配的路由对象
 			isMatched = matchPath(requestPath,routePath,webConfig.isMatchRouteIgnoreCase());
 			if (isMatched) {
+
 				//获取路由处理对象
 				HttpBizHandler handler = routeEntry.getValue();
+
 				try {
 					//获取路径变量
 					Map<String, String> pathVariables = fetchPathVariables(requestPath,routePath);
 					request.getParameters().putAll(pathVariables);
-					
-					//Session预处理
-					diposeSession(request,response);
-					
-					Chain<FilterConfig> filterConfigs = webConfig.getFilterConfigs().clone();
-					
-					//正向过滤器处理
-					diposeFilter(filterConfigs,request,response);
-					
+
 					//处理路由请求
 					handler.process(request, response);
-					
-					//反向过滤器处理
-					diposeInvertedFilter(filterConfigs,request,response);
-					
+
 				} catch (Exception e) {
 					exceptionMessage(request, response, e);
 				}
-				
-				//输出访问日志
-				WebContext.writeAccessLog(request,response);
+
 				break;
 			}
 		}
-		
-		//没有找寻到匹配的路由处理器
-		if(!isMatched){
-			exceptionMessage(request, response,  new RouterNotFound("Not avaliable router!"));
+
+		if(!isMatched) {
+			exceptionMessage(request, response, new RouterNotFound("Not avaliable router!"));
 		}
 	}
 
@@ -238,12 +252,12 @@ public class HttpDispatcher {
 	 * @param response		  响应对象
 	 * @throws ReflectiveOperationException  反射异常
      */
-	public void diposeFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) throws ReflectiveOperationException{
+	public void diposeFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) {
 		filterConfigs.rewind();
 		Object filterResult = null;
 		while(filterConfigs.hasNext()){
 			FilterConfig filterConfig = filterConfigs.next();
-			HttpBizFilter httpBizFilter = filterConfig.getBizFilter();
+			HttpBizFilter httpBizFilter = filterConfig.getFilterInstance();
 			if(httpBizFilter!=null) {
 				filterResult = httpBizFilter.onRequest(filterConfig, request, response, filterResult);
 			}
@@ -257,12 +271,12 @@ public class HttpDispatcher {
 	 * @param response		  响应对象
 	 * @throws ReflectiveOperationException  反射异常
      */
-	public void diposeInvertedFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) throws ReflectiveOperationException{
+	public void diposeInvertedFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) {
 		filterConfigs.rewind();
 		Object filterResult = null;
 		while(filterConfigs.hasPrevious()){
 			FilterConfig filterConfig = filterConfigs.previous();
-			HttpBizFilter httpBizFilter = filterConfig.getBizFilter();
+			HttpBizFilter httpBizFilter = filterConfig.getFilterInstance();
 			if(httpBizFilter!=null) {
 				filterResult = httpBizFilter.onResponse(filterConfig, request, response, filterResult);
 			}

@@ -204,6 +204,16 @@ public class Response {
 		return outputStream.toByteArray();
 	}
 
+	/**
+	 * 清理
+	 */
+	public void clear(){
+		this.header().clear();
+		this.cookies().clear();
+		this.protocol().clear();
+		this.body().clear();
+	}
+
 	@Override
 	public String toString() {
 		return new String(asBytes());

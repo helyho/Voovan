@@ -14,10 +14,12 @@ public class HttpBizFilterTest implements HttpBizFilter {
 	public Object onRequest(FilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult ) {
 		String msg = "["+filterConfig.getName()+"] ";
 		for(Entry<String, Object> entry : filterConfig.getParameters().entrySet()){
-			msg+=entry.getKey()+" = "+entry.getValue()+" " + request.protocol().getPath();
+			msg+=entry.getKey()+" = "+entry.getValue()+" " + request.protocol().getPath()+", ";
+
 		}
 		Logger.simple("ON_REQUEST: "+msg+",filter result:"+prevFilterResult);
 		if(prevFilterResult == null){
+//			request.redirect("/img/logo.jpg");  //转向请求用于拦截非法请求并志向其他
 			return 1;
 		}else{
 			return (int)prevFilterResult+1;
@@ -28,7 +30,7 @@ public class HttpBizFilterTest implements HttpBizFilter {
 	public Object onResponse(FilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult ) {
 		String msg = "["+filterConfig.getName()+"] ";
 		for(Entry<String, Object> entry : filterConfig.getParameters().entrySet()){
-			msg+=entry.getKey()+" = "+entry.getValue()+" " + request.protocol().getPath();
+			msg+=entry.getKey()+" = "+entry.getValue()+" " + request.protocol().getPath()+", ";
 		}
 		Logger.simple("ON_RESPONSE: "+msg+",filter result:"+prevFilterResult);
 
