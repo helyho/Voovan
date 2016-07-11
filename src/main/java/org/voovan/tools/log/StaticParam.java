@@ -18,14 +18,14 @@ public class StaticParam {
 	private static long		startTimeMillis	= System.currentTimeMillis();
 	private static File		configFile		= loadConfig();
 
-	public static String LOG_LEVEL = "ALL";
-	public static String LOG_FILE = null;
-	public static String LOG_TYPE = "STDOUT";
-	public static String LOG_TEMPLATE = "--------------------------------------------------------------------------------------------------------------------------------------------------" +
+	public final static String LOG_LEVEL = "ALL";
+	public final static String LOG_FILE = null;
+	public final static String LOG_TYPE = "STDOUT";
+	public final static String LOG_TEMPLATE = "--------------------------------------------------------------------------------------------------------------------------------------------------" +
 										"{{n}}[{{P}}] [{{D}}] [Thread:{{T}}] [Time:{{R}}] ({{F}}:{{L}}) {{n}}" +
 										"--------------------------------------------------------------------------------------------------------------------------------------------------" +
 										"{{n}}{{I}}{{n}}{{n}}";
-	public static String LOG_INFO_INDENT = "";
+	public final static String LOG_INFO_INDENT = "";
 
 	/**
 	 * 读取日志配置文件信息

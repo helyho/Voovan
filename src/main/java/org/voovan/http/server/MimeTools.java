@@ -36,7 +36,7 @@ public class MimeTools {
 	 */
 	private static String buildMimeMatchRegex(Map<String, Object> mimeTypes){
 		String mimeTypeRegex = "";
-		StringBuilder mimeTypeRegexSB = new StringBuilder("");
+		StringBuilder mimeTypeRegexSB = new StringBuilder();
 		for(String fileExtension : mimeTypes.keySet()){
 			mimeTypeRegexSB.append("\\.");
 			mimeTypeRegexSB.append(fileExtension);

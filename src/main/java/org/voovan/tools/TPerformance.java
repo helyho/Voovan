@@ -141,7 +141,7 @@ public class TPerformance {
 			long size = Long.parseLong(lineContent.substring(19,34).trim());
 			String name = lineContent.substring(34,lineContent.length()).trim();
 
-			if(name.equals("")){
+			if(name.isEmpty()){
 				continue;
 			}
 

@@ -128,7 +128,7 @@ public class Response {
 	 * @return Cookie 字符串
 	 */
 	private String genCookie() {
-		StringBuilder cookieString = new StringBuilder("");
+		StringBuilder cookieString = new StringBuilder();
 		for (Cookie cookie : cookies) {
 			cookieString.append("Set-Cookie: ");
 			cookieString.append(cookie.toString());
@@ -148,18 +148,18 @@ public class Response {
 				if (isCompress) {
 					byte[] gzipedBody = body.getGZipedBody();
 					// 写入 chunk 的长度
-					outputStream.write((Integer.toUnsignedString(gzipedBody.length, 16) + "\r\n").getBytes());
+					outputStream.write((Integer.toUnsignedString(gzipedBody.length, 16) + "\r\n").getBytes("UTF-8"));
 					outputStream.write(gzipedBody);
 					// chunk结束
-					outputStream.write("\r\n".getBytes());
-					outputStream.write("0".getBytes());
+					outputStream.write("\r\n".getBytes("UTF-8"));
+					outputStream.write("0".getBytes("UTF-8"));
 
 				} else {
 					outputStream.write(body.getBodyBytes());
 				}
 
-				outputStream.write("\r\n".getBytes());
-				outputStream.write("\r\n".getBytes());
+				outputStream.write("\r\n".getBytes("UTF-8"));
+				outputStream.write("\r\n".getBytes("UTF-8"));
 				return outputStream.toByteArray();
 			}
 		} catch (IOException e) {
@@ -184,16 +184,16 @@ public class Response {
 		
 		try {
 			// 处理协议行
-			outputStream.write(protocol.toString().getBytes());
+			outputStream.write(protocol.toString().getBytes("UTF-8"));
 
 			// 处理 Header
-			outputStream.write(header.toString().getBytes());
+			outputStream.write(header.toString().getBytes("UTF-8"));
 
 			// 处理 Cookie
-			outputStream.write(genCookie().getBytes());
+			outputStream.write(genCookie().getBytes("UTF-8"));
 
 			//头结束插入空行
-			outputStream.write("\r\n".getBytes());
+			outputStream.write("\r\n".getBytes("UTF-8"));
 
 			//插入报文内容
 			outputStream.write(bodyBytes);

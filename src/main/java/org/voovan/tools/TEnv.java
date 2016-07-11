@@ -92,7 +92,7 @@ public class TEnv {
 	 * @return 当前栈信息
 	 */
 	public static String getStackMessage(){
-		StringBuilder stackInfo = new StringBuilder("");
+		StringBuilder stackInfo = new StringBuilder();
 		Throwable ex = new Throwable();
 		int row = 0;
 		for (StackTraceElement stackTraceElement : ex.getStackTrace()) {
@@ -111,7 +111,7 @@ public class TEnv {
 	 * @return 当前栈信息
 	 */
 	public static String getStackElementsMessage(StackTraceElement[] stackTraceElements){
-		StringBuilder stackInfo = new StringBuilder("");
+		StringBuilder stackInfo = new StringBuilder();
 		for (StackTraceElement stackTraceElement : stackTraceElements) {
 			stackInfo.append(stackTraceElement.toString());
 			stackInfo.append("\r\n");

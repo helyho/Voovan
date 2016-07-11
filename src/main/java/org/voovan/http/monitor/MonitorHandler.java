@@ -136,7 +136,7 @@ public class MonitorHandler implements HttpBizHandler {
         }
 
         String fullPath = TEnv.getSystemPath("logs"+ File.separator+fileName);
-        return new String(TFile.loadFileLastLines(new File(fullPath),lineNumber));
+        return new String(TFile.loadFileLastLines(new File(fullPath),lineNumber),"UTF-8");
     }
 
     /**

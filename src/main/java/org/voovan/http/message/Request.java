@@ -8,6 +8,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -148,7 +149,7 @@ public class Request {
 		}
 		// POST_MULTIPART 请求类型的处理
 		else if (getBodyType() == BodyType.BODY_MULTIPART) {
-			StringBuilder result = new StringBuilder("");
+			StringBuilder result = new StringBuilder();
 			for (Part part : parts) {
 				if (part.getType() == PartType.TEXT) {
 					String name = part.header().get("name");
@@ -196,7 +197,7 @@ public class Request {
 	 * @return 获取 Cookie 字符串
 	 */
 	private String genCookie() {
-		StringBuilder cookieString = new StringBuilder("");
+		StringBuilder cookieString = new StringBuilder();
 		for (Cookie cookie : cookies) {
 			cookieString.append(cookie.getName());
 			cookieString.append("=");
@@ -216,21 +217,21 @@ public class Request {
 			// 有 BodyBytes 时直接写入包体
 			if (body.getBodyBytes().length > 0) {
 				String bodyString = body.getBodyString();
-				outputStream.write(bodyString.getBytes());
+				outputStream.write(bodyString.getBytes("UTF-8"));
 			}
 
 			// 有 parts 时按 parts 的格式写入 parts
-			if(parts.size() != 0) {
+			if(parts.isEmpty()) {
 				// Content-Type存在
 				if (parts.size() != 0) {
 					// 获取 multiPart 标识
 					for (Part part : this.parts) {
-						outputStream.write(("--" + boundary + "\r\n").getBytes());
-						outputStream.write(part.toString().getBytes());
+						outputStream.write(("--" + boundary + "\r\n").getBytes("UTF-8"));
+						outputStream.write(part.toString().getBytes("UTF-8"));
 						outputStream.write(part.body().getBodyBytes());
-						outputStream.write("\r\n".getBytes());
+						outputStream.write("\r\n".getBytes("UTF-8"));
 					}
-					outputStream.write(("--" + boundary + "--").getBytes());
+					outputStream.write(("--" + boundary + "--").getBytes("UTF-8"));
 					// POST结束不需要空行标识结尾
 				}
 			}
@@ -260,13 +261,13 @@ public class Request {
 		// 报文组装
 		try {
 			// 处理协议行
-			outputStream.write(protocol.toString().getBytes());
+			outputStream.write(protocol.toString().getBytes("UTF-8"));
 
 			// 处理 Header
-			outputStream.write(header.toString().getBytes());
+			outputStream.write(header.toString().getBytes("UTF-8"));
 
 			//头结束插入空行
-			outputStream.write("\r\n".getBytes());
+			outputStream.write("\r\n".getBytes("UTF-8"));
 			
 			//插入报文内容
 			outputStream.write(bodyBytes);

@@ -230,7 +230,7 @@ public class HttpClient {
 	 */
 	private String getQueryString(){
 		String queryString = "";
-		StringBuilder queryStringBuilder = new StringBuilder("");
+		StringBuilder queryStringBuilder = new StringBuilder();
 		try {
 			for (Entry<String, Object> parameter : parameters.entrySet()) {
 				queryStringBuilder.append(parameter.getKey());
@@ -263,7 +263,7 @@ public class HttpClient {
 					Part part = new Part();
 					part.header().put("name", parameter.getKey());
 					if(parameter.getValue() instanceof String) {
-						part.body().write(URLEncoder.encode(parameter.getValue().toString(), charset).getBytes());
+						part.body().write(URLEncoder.encode(parameter.getValue().toString(), charset).getBytes(charset));
 					}else if(parameter.getValue() instanceof File){
 						part.body().write(TFile.loadFile((File) parameter.getValue()));
 					}

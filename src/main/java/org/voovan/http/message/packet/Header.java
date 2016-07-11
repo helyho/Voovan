@@ -92,7 +92,7 @@ public class Header {
 	
 	@Override 
 	public String toString(){
-		StringBuilder headerContent = new StringBuilder("");
+		StringBuilder headerContent = new StringBuilder();
 		for(Entry<String,String> headerItemEntry : this.headers.entrySet()){
 			String key = headerItemEntry.getKey();
 			String value = headerItemEntry.getValue();
