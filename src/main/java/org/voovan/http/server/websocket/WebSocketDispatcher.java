@@ -1,5 +1,6 @@
 package org.voovan.http.server.websocket;
 
+import org.voovan.http.server.HttpBizHandler;
 import org.voovan.http.server.HttpDispatcher;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.WebServerConfig;
@@ -9,8 +10,10 @@ import org.voovan.network.IoSession;
 import org.voovan.tools.TObject;
 
 import java.nio.ByteBuffer;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -29,7 +32,7 @@ public class WebSocketDispatcher {
 	/**
 	 * [Key] = Route path ,[Value] = WebSocketBizHandler对象
 	 */
-	private Map<String, WebSocketBizHandler>	handlers;
+	private Map<String, WebSocketBizHandler> routeHandlers;
 
 	private static final String IS_WEB_SOCKET = "isWebSocket";
 	private static final String WEB_SOCKET_ClOSE = "WebSocketClose";
@@ -46,7 +49,18 @@ public class WebSocketDispatcher {
 	 */
 	public WebSocketDispatcher(WebServerConfig webConfig) {
 		this.webConfig = webConfig;
-		handlers = new ConcurrentHashMap<String, WebSocketBizHandler>();
+		routeHandlers =  new TreeMap<String, WebSocketBizHandler>(new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				if(o1.length() > o2.length()){
+					return -1;
+				} else if(o1.length() < o2.length()){
+					return 1;
+				} else {
+					return 0;
+				}
+			}
+		});
 	}
 
 	/**
@@ -56,7 +70,7 @@ public class WebSocketDispatcher {
 	 * @param handler WebSocketBizHandler 对象
 	 */
 	public void addRouteHandler(String routeRegexPath, WebSocketBizHandler handler) {
-		handlers.put(routeRegexPath, handler);
+		routeHandlers.put(routeRegexPath, handler);
 	}
 
 	/**
@@ -67,12 +81,12 @@ public class WebSocketDispatcher {
 	 * @param webSocketFrame WebSocket 帧对象
 	 * @return WebSocket 帧对象
 	 */
-	public WebSocketFrame processRoute(WebSocketEvent event, HttpRequest request, WebSocketFrame webSocketFrame) {
+	public WebSocketFrame process(WebSocketEvent event, HttpRequest request, WebSocketFrame webSocketFrame) {
 		
 		String requestPath = request.protocol().getPath();
 
 		boolean isMatched = false;
-		for (Map.Entry<String,WebSocketBizHandler> routeEntry : handlers.entrySet()) {
+		for (Map.Entry<String,WebSocketBizHandler> routeEntry : routeHandlers.entrySet()) {
 			String routePath = routeEntry.getKey();
 			// 路由匹配
 			isMatched = HttpDispatcher.matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase());
@@ -117,11 +131,10 @@ public class WebSocketDispatcher {
 	public void fireCloseEvent(IoSession session){
 		//检查是否是WebSocket
 		if (session.containAttribute(IS_WEB_SOCKET) && (boolean) session.getAttribute(IS_WEB_SOCKET) &&
-				session.containAttribute(WEB_SOCKET_ClOSE) && (boolean) session.getAttribute(WEB_SOCKET_ClOSE) &&
-				!session.close()
-					) {
+				session.containAttribute(WEB_SOCKET_ClOSE) && !(boolean) session.getAttribute(WEB_SOCKET_ClOSE) &&
+				!session.close() ) {
 				// 触发一个 WebSocket Close 事件
-				processRoute(WebSocketEvent.CLOSE, 
+				process(WebSocketEvent.CLOSE,
 						TObject.cast(session.getAttribute("upgradeRequest")), null);
 			}
 	}
