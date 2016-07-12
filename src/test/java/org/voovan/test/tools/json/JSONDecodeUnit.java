@@ -37,7 +37,11 @@ public class JSONDecodeUnit extends TestCase {
 								"\"map\":{"+
 									"\"mapitem2\":\"mapitem2\","+
 									"\"mapitem1\":\"mapitem1\""+
-								"}"+
+								"}, " +
+								"\"func\": function(){" +
+												"var x=\"l\"" +
+										   "}, " +
+								"\"nullValue\":null"+
 							"}";
 		Map<String, Object> obj = TObject.cast(JSONDecode.parse(jsonString));
 		assertTrue((Integer)obj.get("bint")==32);
