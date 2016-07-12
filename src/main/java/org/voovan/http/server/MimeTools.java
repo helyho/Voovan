@@ -64,6 +64,6 @@ public class MimeTools {
 	 * @return  是否是Mime 类型文件
 	 */
 	public static boolean isMimeFile(String path){
-		return TString.searchByRegex(path, mimeTypeRegex).length>0?true:false;
+		return TString.regexMatch(path, mimeTypeRegex)>0?true:false;
 	}
 }

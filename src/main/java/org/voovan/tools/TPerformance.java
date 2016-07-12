@@ -145,7 +145,7 @@ public class TPerformance {
 				continue;
 			}
 
-			if(TString.searchByRegex(name,regex).length>0) {
+			if(TString.regexMatch(name,regex) > 0) {
 				ObjectInfo objectInfo = new ObjectInfo(name, size, count);
 				result.put(name,objectInfo);
 			}

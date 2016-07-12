@@ -351,7 +351,7 @@ public class TSQL {
 		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
 		for(String condiction : sqlCondiction){
 			condiction = condiction.trim();
-			if(TString.searchByRegex(condiction, "\\sin\\s*\\(").length!=0 || TString.searchByRegex(condiction, "\\slike\\s*\\(").length!=0){
+			if(TString.regexMatch(condiction, "\\sin\\s*\\(")!=0 || TString.regexMatch(condiction, "\\slike\\s*\\(")!=0){
 				condiction = condiction+")";
 			}
 			String concateMethod = condiction.substring(0,condiction.indexOf(" ")+1).trim();

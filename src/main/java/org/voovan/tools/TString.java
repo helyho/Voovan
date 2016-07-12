@@ -100,7 +100,7 @@ public class TString {
 	 * @return 是否是整形数
 	 */
 	public static boolean isInteger(String integerString){
-		if(integerString!=null && searchByRegex(integerString, "^-?[0-9]\\d*$").length>0){
+		if(integerString!=null && regexMatch(integerString, "^-?[0-9]\\d*$")>0){
 			return true;
 		}else{
 			return false;
@@ -113,7 +113,7 @@ public class TString {
 	 * @return 是否是浮点数
 	 */
 	public static boolean isFloat(String floadString){
-		if(floadString!=null && searchByRegex(floadString, "^-?[1-9]\\d*\\.\\d*|-0\\.\\d*[1-9]\\d*$").length>0){
+		if(floadString!=null && regexMatch(floadString, "^-?[1-9]\\d*\\.\\d*|-0\\.\\d*[1-9]\\d*$")>0){
 			return true;
 		}else{
 			return false;
@@ -153,6 +153,16 @@ public class TString {
 			result.add(matcher.group());
 		}
 		return result.toArray(new String[0]);
+	}
+
+	/**
+	 * 正则匹配
+	 * @param source 目标字符串
+	 * @param regex 正则表达式
+     * @return 正则搜索后得到的匹配数量
+     */
+	public static int regexMatch(String source,String regex){
+		return searchByRegex(source,regex).length;
 	}
 	
 	/**
@@ -221,7 +231,7 @@ public class TString {
 	public static String replaceFirst(String source,String mark,String replacement){
 		int head = source.indexOf(mark);
 		int tail = head+mark.length();
-		replacement = replacement==null?"":replacement;
+		replacement = TObject.nullDefault(replacement,"");
 		source = source.substring(0, head)+replacement+source.substring(tail, source.length());
 		return source;
 	}
@@ -237,7 +247,7 @@ public class TString {
 		
 		int head = source.lastIndexOf(mark);
 		int tail = head+mark.length();
-		replacement = replacement==null?"":replacement;
+		replacement = TObject.nullDefault(replacement,"");
 		source = source.substring(0, head)+replacement+source.substring(tail, source.length());
 		return source;
 	}
