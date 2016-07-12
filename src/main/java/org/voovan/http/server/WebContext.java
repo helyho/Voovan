@@ -67,7 +67,6 @@ public class WebContext {
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
-
 		}
 		return new HashMap<String,Object>();
 	}
