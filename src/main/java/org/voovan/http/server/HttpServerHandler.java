@@ -195,7 +195,7 @@ public class HttpServerHandler implements IoHandler {
 			httpResponse.header().put("Sec-WebSocket-Accept", webSocketKey);
 			
 			// WS_CONNECT WebSocket Open事件
-			webSocketDispatcher.processRoute(WebSocketEvent.OPEN, httpRequest, null);
+			webSocketDispatcher.process(WebSocketEvent.OPEN, httpRequest, null);
 		}
 		
 		else if(httpRequest.header()!=null && "h2c".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
@@ -224,7 +224,7 @@ public class HttpServerHandler implements IoHandler {
 		// WS_CLOSE 如果收到关闭帧则关闭连接
 		if (webSocketFrame.getOpcode() == Opcode.CLOSING) {
 			// WebSocket Close事件
-			webSocketDispatcher.processRoute(WebSocketEvent.CLOSE, upgradeRequest, null);
+			webSocketDispatcher.process(WebSocketEvent.CLOSE, upgradeRequest, null);
 			session.setAttribute("IsClose", true);
 			return WebSocketFrame.newInstance(true, Opcode.CLOSING, false, webSocketFrame.getFrameData());
 		}
@@ -238,7 +238,7 @@ public class HttpServerHandler implements IoHandler {
 			
 			//判断解包是否有错
 			if(webSocketFrame.getErrorCode()==0){
-				respWebSocketFrame = webSocketDispatcher.processRoute(WebSocketEvent.RECIVED, upgradeRequest, webSocketFrame);
+				respWebSocketFrame = webSocketDispatcher.process(WebSocketEvent.RECIVED, upgradeRequest, webSocketFrame);
 			}else{
 				//解析时出现异常,返回关闭消息
 				respWebSocketFrame = WebSocketFrame.newInstance(true, Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
