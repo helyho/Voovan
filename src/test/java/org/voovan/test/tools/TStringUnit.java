@@ -53,7 +53,7 @@ public class TStringUnit extends TestCase {
 	}
 
 	public void testSearchByRegex() {
-		assertTrue(TString.searchByRegex(simpleStr, "helyho").length==1);
+		assertTrue(TString.regexMatch(simpleStr, "helyho")==1);
 	}
 
 	public void testIsNullOrEmpty() {

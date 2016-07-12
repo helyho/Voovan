@@ -103,7 +103,7 @@ public class HttpServerFilter implements IoFilter {
 			return false;
 		}
 
-		if (TString.searchByRegex(testStr,"HTTP.{0,4}\\r\\n").length == 1) {
+		if (TString.regexMatch(testStr,"HTTP.{0,4}\\r\\n") == 1) {
 			return true;
 		}else {
 			return false;
