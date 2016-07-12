@@ -195,7 +195,7 @@ public class HttpDispatcher {
 			requestPath = requestPath.toLowerCase();
 			routeRegexPath = routeRegexPath.toLowerCase();
 		}
-		return TString.searchByRegex(requestPath, routeRegexPath + ".*" ).length > 0;
+		return TString.regexMatch(requestPath, routeRegexPath + ".*" ) > 0;
 	}
 	
 	/**
