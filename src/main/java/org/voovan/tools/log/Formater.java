@@ -2,6 +2,7 @@ package org.voovan.tools.log;
 
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 
 import java.io.File;
@@ -106,7 +107,7 @@ public class Formater {
 		
 		//栈信息独享
 		
-		tokens.put("P", message.getLevel()==null?"INFO":message.getLevel());			//信息级别
+		tokens.put("P", TObject.nullDefault(message.getLevel(),"INFO"));			//信息级别
 		tokens.put("SI", stackTraceElement.toString());									//堆栈信息
 		tokens.put("L", Integer.toString((stackTraceElement.getLineNumber())));			//行号
 		tokens.put("M", stackTraceElement.getMethodName());								//方法名

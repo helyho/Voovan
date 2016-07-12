@@ -1,6 +1,7 @@
 package org.voovan.tools.log;
 
 import org.voovan.tools.TFile;
+import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
 
 import java.io.File;
@@ -61,6 +62,6 @@ public class StaticParam {
 		if(configFile!=null){
 			value = TProperties.getString(configFile, property);
 		}
-		return value==null?defalut:value;
+		return TObject.nullDefault(value,defalut);
 	}
 }
