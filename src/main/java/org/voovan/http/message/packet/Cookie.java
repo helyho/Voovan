@@ -134,7 +134,27 @@ public class Cookie {
 		}
 		return cookie;
 	}
-	
+
+
+	/**
+	 * 创建一个 Cookie
+	 * @param domain	cookie的受控域
+	 * @param name		名称
+	 * @param value		值
+	 * @param maxAge	失效时间,单位秒
+	 * @return Cookie 对象
+	 */
+	public static Cookie newInstance(String domain,String name,String value,int maxAge){
+		Cookie cookie = new Cookie();
+		cookie.setName(name);
+		cookie.setValue(value);
+		cookie.setPath("/");
+		cookie.setDomain(domain);
+		cookie.setMaxAge(maxAge);
+		cookie.setHttpOnly(true);
+		return cookie;
+	}
+
 	/**
 	 * 创建一个 Cookie
 	 * @param request	请求对象
@@ -145,14 +165,7 @@ public class Cookie {
 	 */
 	public static Cookie newInstance(Request request,String name,String value,int maxAge){
 		String domain = request.header().get("Host").split(":")[0];
-		Cookie cookie = new Cookie();
-		cookie.setName(name);
-		cookie.setValue(value);
-		cookie.setPath("/");
-		cookie.setDomain(domain);
-		cookie.setMaxAge(maxAge);
-		cookie.setHttpOnly(true);
-		return cookie;
+		return newInstance(domain, name, value, maxAge);
 	}
 	
 	/**
