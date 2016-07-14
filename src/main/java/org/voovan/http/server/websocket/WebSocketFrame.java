@@ -111,14 +111,14 @@ public class WebSocketFrame {
 		// 期望数据包的实际大小
 		int expectPackagesize = 2;
 		if (maxpacketsize < expectPackagesize) {
-			Logger.info("Expect package size error!");
+			Logger.error("Expect package size error!");
 			errorCode = 1002;
 		}
 		byte finByte = byteBuffer.get();
 		boolean fin = finByte >> 8 != 0;
 		byte rsv = (byte) ((finByte & ~(byte) 128) >> 4);
 		if (rsv != 0) {
-			Logger.info("RSV data error!");
+			Logger.error("RSV data error!");
 			errorCode = 1002;
 		}
 		byte maskByte = byteBuffer.get();
@@ -127,7 +127,7 @@ public class WebSocketFrame {
 		Opcode opcode = toOpcode((byte) (finByte & 15));
 		
 		if(opcode == null){
-			Logger.info("Opcode data error!");
+			Logger.error("Opcode data error!");
 			errorCode = 1002;
 		}
 		//“负载数据”的长度,以字节为单位:如果 0-125,这是负载长度。
@@ -157,7 +157,7 @@ public class WebSocketFrame {
 
 		// 如果实际接受的数据小于数据包的大小则报错
 		if (maxpacketsize < expectPackagesize) {
-			Logger.info("Parse package size error!");
+			Logger.error("Parse package size error!");
 		}
 
 		// 读取实际接受数据
