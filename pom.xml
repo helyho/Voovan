@@ -91,6 +91,29 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <!-- Java jar -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <version>2.4</version>
+                        <configuration>
+                            <archive>
+                                <manifestFile>
+                                    src/main/resources/META-INF/MANIFEST.MF
+                                </manifestFile>
+                                <manifest>
+                                    <!-- 告知 maven-jar-plugin添加一个 Class-Path元素到 MANIFEST.MF文件，以及在Class-Path元素中包括所有依赖项 -->
+                                    <addClasspath>true</addClasspath>
+                                    <!-- 所有的依赖项应该位于 lib文件夹 -->
+                                    <classpathPrefix>lib/</classpathPrefix>
+                                    <classpathPrefix>classes/</classpathPrefix>
+                                    <!-- 当用户使用 lib命令执行JAR文件时，使用该元素定义将要执行的类名
+                                    <mainClass>com.zhengtian.tools.service.phone.MobilePhoneTool</mainClass>
+                                    -->
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </plugin>
                     <!-- Javadoc -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
