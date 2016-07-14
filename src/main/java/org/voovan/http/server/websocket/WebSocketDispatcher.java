@@ -1,6 +1,5 @@
 package org.voovan.http.server.websocket;
 
-import org.voovan.http.server.HttpBizHandler;
 import org.voovan.http.server.HttpDispatcher;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.WebServerConfig;
@@ -11,10 +10,8 @@ import org.voovan.tools.TObject;
 
 import java.nio.ByteBuffer;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 

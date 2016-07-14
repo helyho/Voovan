@@ -1,6 +1,6 @@
 package org.voovan.http.monitor;
 
-import org.voovan.http.server.HttpBizFilter;
+import org.voovan.http.server.HttpFilter;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.FilterConfig;
@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * 监控用过滤器
  */
-public class HttpMonitorFilter implements HttpBizFilter {
+public class HttpMonitorFilter implements HttpFilter {
 	private static Map<String,RequestAnalysis> requestInfos= new HashMap<String,RequestAnalysis>();
 
 	/**

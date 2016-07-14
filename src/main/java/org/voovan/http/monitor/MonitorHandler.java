@@ -1,6 +1,6 @@
 package org.voovan.http.monitor;
 
-import org.voovan.http.server.HttpBizHandler;
+import org.voovan.http.server.HttpRouter;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.Global;
@@ -23,7 +23,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class MonitorHandler implements HttpBizHandler {
+public class MonitorHandler implements HttpRouter {
 
     /**
      * 获取当前 JVM 线程信息描述
