@@ -3,7 +3,7 @@ package org.voovan.http.monitor;
 import org.voovan.http.server.HttpFilter;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
-import org.voovan.http.server.FilterConfig;
+import org.voovan.http.server.HttpFilterConfig;
 import org.voovan.tools.TEnv;
 
 import java.util.HashMap;
@@ -24,14 +24,14 @@ public class HttpMonitorFilter implements HttpFilter {
 	}
 
 	@Override
-	public Object onRequest(FilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult ) {
+	public Object onRequest(HttpFilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult ) {
 		request.getSession().setAttribute("VOOVAN_REQSTART",System.currentTimeMillis());
 		TEnv.sleep(20);
 		return prevFilterResult;
 	}
 
 	@Override
-	public Object onResponse(FilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult ) {
+	public Object onResponse(HttpFilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult ) {
 		Long startTime = (Long)request.getSession().getAttributes("VOOVAN_REQSTART");
 		if(startTime!=null) {
 			long dealTime = (System.currentTimeMillis() - startTime);

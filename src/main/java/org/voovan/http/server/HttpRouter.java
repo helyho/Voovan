@@ -2,7 +2,7 @@ package org.voovan.http.server;
 
 
 /**
- * HTTP 路由业务处理接口
+ * HTTP 路由业务处理器
  * 
  * 路由业务处理接口,方法类型的接口
  * 用于用户实现

@@ -1,6 +1,6 @@
 package org.voovan.http.monitor;
 
-import org.voovan.http.server.FilterConfig;
+import org.voovan.http.server.HttpFilterConfig;
 import org.voovan.http.server.HttpServer;
 import org.voovan.http.server.WebServerConfig;
 
@@ -23,7 +23,7 @@ public class Monitor {
      */
     public static void addMonitorFilter(HttpServer httpServer){
         WebServerConfig config = httpServer.getWebServerConfig();
-        FilterConfig filterConfig = WebServerConfig.newFilterConfig();
+        HttpFilterConfig filterConfig = WebServerConfig.newFilterConfig();
         filterConfig.setName("MonitorFilter");
         filterConfig.setClassName("org.voovan.http.monitor.HttpMonitorFilter");
         config.getFilterConfigs().addFirst(filterConfig);
