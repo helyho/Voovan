@@ -116,7 +116,7 @@ public class WebContext {
 	 * 显示欢迎信息
 	 * @param config HttpServer配置对象
      */
-	public static void welcome(WebServerConfig config){
+	protected static void welcome(WebServerConfig config){
 		Logger.simple("*********************************************************************************************");
 		Logger.simple("");
 		Logger.simple("   ==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==	");
@@ -174,7 +174,7 @@ public class WebContext {
 	 * @param request HTTP 请求对象
 	 * @param response HTTP 响应对象
 	 */
-	public static void writeAccessLog(HttpRequest request,HttpResponse response){
+    protected static void writeAccessLog(HttpRequest request,HttpResponse response){
 		//配置文件控制是否写入 access.log
 		//监控程序的不写出 access.log
 		if(webServerConfig.isAccessLog() && !request.protocol().getPath().contains("/VoovanMonitor/")) {
@@ -198,7 +198,7 @@ public class WebContext {
 	 * 获取 mime 定义
 	 * @return  MIME 定义 Map
 	 */
-	public static Map<String, Object> getMimeDefine() {
+    protected static Map<String, Object> getMimeDefine() {
 		byte[] mimeDefBytes = TFile.loadResource("org/voovan/http/server/router/mime.json");
 		Map<String, Object> mimeDefMap = new ConcurrentHashMap<String, Object>();
 		try {
@@ -216,7 +216,7 @@ public class WebContext {
 	 * 获取错误输出定义
 	 * @return  错误输出定义
 	 */
-	public static Map<String, Object> getErrorDefine() {
+    protected static Map<String, Object> getErrorDefine() {
 		return ERROR_DEFINE;
 	}
 
@@ -240,7 +240,7 @@ public class WebContext {
 	 * 默认错误输出定义
 	 * @return 错误输出定义
      */
-	public static String getDefaultErrorPage(){
+    protected static String getDefaultErrorPage(){
 		return "RequestMethod: {{RequestMethod}} <hr/>" +
 				"StatusCode: {{StatusCode}} <hr/>" +
 				"RequestPath: {{RequestPath}} <hr/>" +
