@@ -107,7 +107,7 @@ public class HttpDispatcher {
 	 * @param response   HTTP 响应
 	 */
 	public void process(HttpRequest request, HttpResponse response){
-		Chain<FilterConfig> filterConfigs = webConfig.getFilterConfigs().clone();
+		Chain<HttpFilterConfig> filterConfigs = webConfig.getFilterConfigs().clone();
 
 		//Session预处理
 		diposeSession(request,response);
@@ -260,12 +260,12 @@ public class HttpDispatcher {
 	 * @param request		  请求对象
 	 * @param response		  响应对象
      */
-	public void diposeFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) {
+	public void diposeFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
 		filterConfigs.rewind();
 		Object filterResult = null;
 		while(filterConfigs.hasNext()){
-			FilterConfig filterConfig = filterConfigs.next();
-			HttpFilter httpFilter = filterConfig.getFilterInstance();
+			HttpFilterConfig filterConfig = filterConfigs.next();
+			HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
 			if(httpFilter!=null) {
 				filterResult = httpFilter.onRequest(filterConfig, request, response, filterResult);
 			}
@@ -278,12 +278,12 @@ public class HttpDispatcher {
 	 * @param request		  请求对象
 	 * @param response		  响应对象
      */
-	public void diposeInvertedFilter(Chain<FilterConfig> filterConfigs,HttpRequest request,HttpResponse response) {
+	public void diposeInvertedFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
 		filterConfigs.rewind();
 		Object filterResult = null;
 		while(filterConfigs.hasPrevious()){
-			FilterConfig filterConfig = filterConfigs.previous();
-			HttpFilter httpFilter = filterConfig.getFilterInstance();
+			HttpFilterConfig filterConfig = filterConfigs.previous();
+			HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
 			if(httpFilter!=null) {
 				filterResult = httpFilter.onResponse(filterConfig, request, response, filterResult);
 			}

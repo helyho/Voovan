@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 过滤器配置信息对象,内联对象
+ * 过滤器配置信息对象
  *
  * @author helyho
  *
@@ -15,7 +15,7 @@ import java.util.Map;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class FilterConfig {
+public class HttpFilterConfig {
     private String name;
     private String className;
     private Map<String, Object> paramters = new HashMap<String, Object>();
@@ -26,7 +26,7 @@ public class FilterConfig {
      *
      * @param configMap 过滤去定义 Map
      */
-    public FilterConfig(Map<String, Object> configMap) {
+    public HttpFilterConfig(Map<String, Object> configMap) {
         for (Map.Entry<String, Object> entry : configMap.entrySet()) {
             if ("Name".equalsIgnoreCase(entry.getKey())) {
                 this.name = (String) entry.getValue();
@@ -41,7 +41,7 @@ public class FilterConfig {
     /**
      * 构造函数
      */
-    public FilterConfig() {
+    public HttpFilterConfig() {
 
     }
 
@@ -100,7 +100,7 @@ public class FilterConfig {
      *
      * @return 过滤器实例
      */
-    protected HttpFilter getFilterInstance() {
+    protected HttpFilter getHttpFilterInstance() {
         try {
             //单例模式
             if (httpFilter == null) {

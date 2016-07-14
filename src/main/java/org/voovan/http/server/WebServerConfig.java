@@ -5,10 +5,10 @@ import org.voovan.tools.TReflect;
 import org.voovan.tools.log.Logger;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 /**
  * WebServer 配置类
@@ -37,7 +37,9 @@ public class WebServerConfig {
     private String keyPassword;
 
 
-    private Chain<FilterConfig> filterConfigs = new Chain<FilterConfig>();
+    private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
+
+    private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
 
     protected void setHost(String host) {
         this.host = host;
@@ -159,8 +161,12 @@ public class WebServerConfig {
         this.monitor = monitor;
     }
 
-    public Chain<FilterConfig> getFilterConfigs() {
+    public Chain<HttpFilterConfig> getFilterConfigs() {
         return filterConfigs;
+    }
+
+    public List<HttpRouterConfig> getRouterConfigs() {
+        return routerConfigs;
     }
 
     /**
@@ -170,16 +176,32 @@ public class WebServerConfig {
      * @param configMap 过滤器配置 Map
      */
     public void addFilterConfig(Map<String, Object> configMap) {
-        filterConfigs.addLast(new FilterConfig(configMap));
+        HttpFilterConfig httpFilterConfig = new HttpFilterConfig(configMap);
+        filterConfigs.addLast(httpFilterConfig);
+        Logger.debug("Load HttpFilter "+httpFilterConfig.getName()+
+                " by <"+ httpFilterConfig.getClassName()+">");
         filterConfigs.rewind();
     }
 
+    /**
+     * 使用列表初始话路由处理器
+     *
+     * @param routerInfoList  路由处理器信息列表
+     */
+    public void addRouterByConfigs(List<Map<String, Object>>  routerInfoList) {
+        for (Map<String, Object> routerInfoMap : routerInfoList) {
+            HttpRouterConfig httpRouterConfig = new HttpRouterConfig(routerInfoMap);
+           routerConfigs.add(httpRouterConfig);
+            Logger.debug("Load HttpRouter "+httpRouterConfig.getMethod()+
+                    " on  ["+httpRouterConfig.getRoute()+"] by <"+ httpRouterConfig.getClassName()+">");
+        }
+    }
     /**
      * 使用列表初始话过滤器链
      *
      * @param filterInfoList 过滤器信息列表
      */
-    public void addAllFilterConfigs(List<Map<String, Object>> filterInfoList) {
+    public void addFilterByConfigs(List<Map<String, Object>> filterInfoList) {
         for (Map<String, Object> filterConfigMap : filterInfoList) {
             this.addFilterConfig(filterConfigMap);
         }
@@ -207,7 +229,7 @@ public class WebServerConfig {
      * 构造一个空的实例
      * @return 过滤器对象
      */
-    public static FilterConfig newFilterConfig(){
-        return new FilterConfig();
+    public static HttpFilterConfig newFilterConfig(){
+        return new HttpFilterConfig();
     }
 }

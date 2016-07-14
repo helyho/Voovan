@@ -135,7 +135,9 @@ public class JSONDecode {
 			//最后结尾的是没有,号分割的,特殊处理
 			if(jsonStr.length() == i+1 && itemString.length()!=0){
 				value = itemString.toString().trim();
-				break;
+				if(value.toString().isEmpty()){
+					break;
+				}
 			}
 			
 			//返回值处理

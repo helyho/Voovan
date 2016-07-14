@@ -1,5 +1,6 @@
 package org.voovan.http.server;
 
+import com.sun.xml.internal.xsom.impl.WildcardImpl;
 import org.voovan.http.monitor.Monitor;
 import org.voovan.http.server.websocket.WebSocketRouter;
 import org.voovan.http.server.websocket.WebSocketDispatcher;
@@ -36,18 +37,18 @@ public class HttpServer {
 	public HttpServer(WebServerConfig config) throws IOException {
 		this.config = config;
 
-		// 准备 socket 监听
+		//[Socket] 准备 socket 监听
 		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout()*1000);
 
-		//构造 SessionManage
+		//[HTTP] 构造 SessionManage
 		sessionManager = SessionManager.newInstance(config);
 
-		//请求派发器创建
+		//[HTTP]请求派发器创建
 		this.httpDispatcher = new HttpDispatcher(config,sessionManager);
 
 		this.webSocketDispatcher = new WebSocketDispatcher(config);
 
-		//确认是否启用 HTTPS 支持
+		//[Socket]确认是否启用 HTTPS 支持
 		if(config.getCertificateFile()!=null) {
 			SSLManager sslManager = new SSLManager("TLS", false);
 			sslManager.loadCertificate(System.getProperty("user.dir") + config.getCertificateFile(),
@@ -62,6 +63,18 @@ public class HttpServer {
 		//初始化并安装监控功能
 		if(config.isMonitor()){
 			Monitor.installMonitor(this);
+		}
+	}
+
+	/**
+	 * 将配置文件中的 Router 配置载入到 HttpServer
+     */
+	public void  initConfigedRouter(){
+		for(HttpRouterConfig httpRouterConfig : config.getRouterConfigs()){
+			String method = httpRouterConfig.getMethod();
+			String route = httpRouterConfig.getRoute();
+			String className = httpRouterConfig.getClassName();
+			otherMethod(method,route,httpRouterConfig.getHttpRouterInstance());
 		}
 	}
 
@@ -233,6 +246,7 @@ public class HttpServer {
 	public HttpServer serve() {
 		try {
 			WebContext.welcome(config);
+			initConfigedRouter();
 			aioServerSocket.start();
 		} catch (IOException e) {
 			Logger.error("Start HTTP server error.",e);

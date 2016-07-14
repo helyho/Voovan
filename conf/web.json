@@ -15,7 +15,7 @@
 	//"CertificatePassword"   : "passStr",				// HTTPS 证书密码
 	//"KeyPassword"   		: "123123",				// HTTPS 证书Key 密码
 
-	"Filter": [											// 过滤器 先执行filter1, 后执行filter2
+	"Filters": [											// 过滤器 先执行filter1, 后执行filter2
 		          {
 		        	  "Name"      : "filter1",
 		        	  "ClassName" : "org.voovan.test.http.HttpFilterTest",
@@ -32,11 +32,11 @@
 					  "Encoding"  : "UTF-8",
 					  "Action"    : "pass"      }
 	           ],
-    "Handler": [
+    "Routers": [
       {
-        route: "/",
-        method: "GET",
-        class: ""
+        "Route": "/configRouter",    //Http请求路径
+        "Method": "GET",             //Http请求方法
+		"ClassName": "org.voovan.test.http.router.HttpTestRouter"  //Http 路由处理器
       }
     ]
 }

@@ -78,7 +78,7 @@ public class WebContext {
 	private static WebServerConfig initWebServerConfig() {
 		WebServerConfig config = new WebServerConfig();
 
-		//使用反射工具自动加载
+		//使用反射工具自动加载配置信息
 		try {
 			config = (WebServerConfig)TReflect.getObjectFromMap(WebServerConfig.class,WEB_CONFIG,true);
 		} catch (ReflectiveOperationException e) {
@@ -96,7 +96,10 @@ public class WebContext {
 		}
 
 		//初始化过滤器
-		config.addAllFilterConfigs(getContextParameter("Filter",new ArrayList<Map<String,Object>>()));
+		config.addFilterByConfigs(getContextParameter("Filters",new ArrayList<Map<String,Object>>()));
+
+		//初始路由处理器
+		config.addRouterByConfigs(getContextParameter("Routers",new ArrayList<Map<String,Object>>()));
 
 		return config;
 	}

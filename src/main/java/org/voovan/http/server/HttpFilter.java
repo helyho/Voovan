@@ -1,7 +1,5 @@
 package org.voovan.http.server;
 
-import org.voovan.http.server.FilterConfig;
-
 /**
  * Http 服务过滤器接口
  * @author helyho
@@ -19,7 +17,7 @@ public interface HttpFilter {
 	 * @param prevFilterResult 上一个过滤器的结果,可用来传递状态参数,用于控制过滤器.第一个过滤器接收的值是 null.
 	 * @return 本地过滤器的结果,用于传递到下一个过滤器的prevFilterResult参数
      */
-	public Object onRequest(FilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult );
+	public Object onRequest(HttpFilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult );
 
 	/**
 	 * 响应过滤器,在响应之后
@@ -29,5 +27,5 @@ public interface HttpFilter {
 	 * @param prevFilterResult 上一个过滤器的结果,可用来传递状态参数,用于控制过滤器.第一个过滤器接收的值是 null.
 	 * @return 本地过滤器的结果,用于传递到下一个过滤器的prevFilterResult参数
      */
-	public Object onResponse(FilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult);
+	public Object onResponse(HttpFilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult);
 }
