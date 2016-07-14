@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public interface WebSocketBizHandler {
+public interface WebSocketRouter {
 	public void onOpen(HttpRequest upgradeRequest);
 	public ByteBuffer onRecived(HttpRequest upgradeRequest,ByteBuffer message);
 	public void onClose();

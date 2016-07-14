@@ -2,12 +2,11 @@ package org.voovan.test.http;
 
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpServer;
-import org.voovan.http.server.websocket.WebSocketBizHandler;
+import org.voovan.http.server.websocket.WebSocketRouter;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class HttpServerDemo {
@@ -80,7 +79,7 @@ public class HttpServerDemo {
 			Logger.simple("Query");
 		});
 
-		httpServer.socket("/websocket", new WebSocketBizHandler() {
+		httpServer.socket("/websocket", new WebSocketRouter() {
 
 			@Override
 			public ByteBuffer onRecived(HttpRequest upgradeRequest, ByteBuffer message) {

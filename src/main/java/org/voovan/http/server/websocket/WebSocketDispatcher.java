@@ -29,7 +29,7 @@ public class WebSocketDispatcher {
 	/**
 	 * [Key] = Route path ,[Value] = WebSocketBizHandler对象
 	 */
-	private Map<String, WebSocketBizHandler> routeHandlers;
+	private Map<String, WebSocketRouter> routes;
 
 	private static final String IS_WEB_SOCKET = "isWebSocket";
 	private static final String WEB_SOCKET_ClOSE = "WebSocketClose";
@@ -46,7 +46,7 @@ public class WebSocketDispatcher {
 	 */
 	public WebSocketDispatcher(WebServerConfig webConfig) {
 		this.webConfig = webConfig;
-		routeHandlers =  new TreeMap<String, WebSocketBizHandler>(new Comparator<String>() {
+		routes =  new TreeMap<String, WebSocketRouter>(new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
 				if(o1.length() > o2.length()){
@@ -64,10 +64,10 @@ public class WebSocketDispatcher {
 	 * 增加一个路由规则
 	 * 
 	 * @param routeRegexPath 匹配路径
-	 * @param handler WebSocketBizHandler 对象
+	 * @param handler WebSocketRouter 对象
 	 */
-	public void addRouteHandler(String routeRegexPath, WebSocketBizHandler handler) {
-		routeHandlers.put(routeRegexPath, handler);
+	public void addRouteHandler(String routeRegexPath, WebSocketRouter handler) {
+		routes.put(routeRegexPath, handler);
 	}
 
 	/**
@@ -83,13 +83,13 @@ public class WebSocketDispatcher {
 		String requestPath = request.protocol().getPath();
 
 		boolean isMatched = false;
-		for (Map.Entry<String,WebSocketBizHandler> routeEntry : routeHandlers.entrySet()) {
+		for (Map.Entry<String,WebSocketRouter> routeEntry : routes.entrySet()) {
 			String routePath = routeEntry.getKey();
 			// 路由匹配
 			isMatched = HttpDispatcher.matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase());
 			if (isMatched) {
 				// 获取路由处理对象
-				WebSocketBizHandler handler = routeEntry.getValue();
+				WebSocketRouter handler = routeEntry.getValue();
 				
 				// 获取路径变量
 				ByteBuffer responseMessage = null;
