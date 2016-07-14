@@ -195,7 +195,12 @@ public class HttpDispatcher {
 			requestPath = requestPath.toLowerCase();
 			routeRegexPath = routeRegexPath.toLowerCase();
 		}
-		return TString.regexMatch(requestPath, routeRegexPath + ".*" ) > 0;
+		if(TString.regexMatch(requestPath, routeRegexPath+"$" ) > 0 ){
+			return true;
+		}else if(TString.regexMatch(requestPath, routeRegexPath+"/$" ) > 0){
+			return true;
+		}
+		return false ;
 	}
 	
 	/**
