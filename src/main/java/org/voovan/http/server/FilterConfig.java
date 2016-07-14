@@ -19,7 +19,7 @@ public class FilterConfig {
     private String name;
     private String className;
     private Map<String, Object> paramters = new HashMap<String, Object>();
-    private HttpBizFilter httpBizFilter;
+    private HttpFilter httpFilter;
 
     /**
      * 构造函数
@@ -100,15 +100,15 @@ public class FilterConfig {
      *
      * @return 过滤器实例
      */
-    protected HttpBizFilter getFilterInstance() {
+    protected HttpFilter getFilterInstance() {
         try {
             //单例模式
-            if (httpBizFilter == null) {
-                httpBizFilter = TReflect.newInstance(className);
+            if (httpFilter == null) {
+                httpFilter = TReflect.newInstance(className);
             }
-            return httpBizFilter;
+            return httpFilter;
         } catch (ReflectiveOperationException e) {
-            Logger.error("New HttpBizFilter["+className+"] error.",e);
+            Logger.error("New HttpFilter["+className+"] error.",e);
             return null;
         }
     }

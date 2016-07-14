@@ -9,7 +9,6 @@ import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
-import java.text.ParseException;
 
 /**
  * HttpServer 对象
@@ -84,7 +83,7 @@ public class HttpServer {
 	 * @param handler  HTTP处理请求句柄
      * @return HttpServer对象
      */
-	public HttpServer get(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer get(String routeRegexPath, HttpRouter handler) {
 		httpDispatcher.addRouteHandler("GET", routeRegexPath, handler);
 		return this;
 	}
@@ -95,7 +94,7 @@ public class HttpServer {
 	 * @param handler  HTTP处理请求句柄
 	 * @return HttpServer对象
      */
-	public HttpServer post(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer post(String routeRegexPath, HttpRouter handler) {
 		httpDispatcher.addRouteHandler("POST", routeRegexPath, handler);
 		return this;
 	}
@@ -106,7 +105,7 @@ public class HttpServer {
 	 * @param handler  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer head(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer head(String routeRegexPath, HttpRouter handler) {
 		httpDispatcher.addRouteHandler("HEAD", routeRegexPath, handler);
 		return this;
 	}
@@ -117,7 +116,7 @@ public class HttpServer {
 	 * @param handler  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer put(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer put(String routeRegexPath, HttpRouter handler) {
 		httpDispatcher.addRouteHandler("PUT", routeRegexPath, handler);
 		return this;
 	}
@@ -128,7 +127,7 @@ public class HttpServer {
 	 * @param handler  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer delete(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer delete(String routeRegexPath, HttpRouter handler) {
 		httpDispatcher.addRouteHandler("DELETE", routeRegexPath, handler);
 		return this;
 	}
@@ -139,7 +138,7 @@ public class HttpServer {
 	 * @param handler  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer trace(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer trace(String routeRegexPath, HttpRouter handler) {
 		httpDispatcher.addRouteHandler("TRACE", routeRegexPath, handler);
 		return this;
 	}
@@ -150,7 +149,7 @@ public class HttpServer {
 	 * @param handler  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer connect(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer connect(String routeRegexPath, HttpRouter handler) {
 		httpDispatcher.addRouteHandler("CONNECT", routeRegexPath, handler);
 		return this;
 	}
@@ -161,7 +160,7 @@ public class HttpServer {
 	 * @param handler  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer options(String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer options(String routeRegexPath, HttpRouter handler) {
 		httpDispatcher.addRouteHandler("OPTIONS", routeRegexPath, handler);
 		return this;
 	}
@@ -173,7 +172,7 @@ public class HttpServer {
 	 * @param handler  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer otherMethod(String method, String routeRegexPath, HttpBizHandler handler) {
+	public HttpServer otherMethod(String method, String routeRegexPath, HttpRouter handler) {
 		httpDispatcher.addRouteMethod(method);
 		httpDispatcher.addRouteHandler(method, routeRegexPath, handler);
 		return this;
