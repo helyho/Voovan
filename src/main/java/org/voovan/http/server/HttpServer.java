@@ -1,7 +1,7 @@
 package org.voovan.http.server;
 
 import org.voovan.http.monitor.Monitor;
-import org.voovan.http.server.websocket.WebSocketBizHandler;
+import org.voovan.http.server.websocket.WebSocketRouter;
 import org.voovan.http.server.websocket.WebSocketDispatcher;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioServerSocket;
@@ -80,88 +80,88 @@ public class HttpServer {
 	/**
 	 * GET 请求
 	 * @param routeRegexPath 匹配路径
-	 * @param handler  HTTP处理请求句柄
+	 * @param router  HTTP处理请求句柄
      * @return HttpServer对象
      */
-	public HttpServer get(String routeRegexPath, HttpRouter handler) {
-		httpDispatcher.addRouteHandler("GET", routeRegexPath, handler);
+	public HttpServer get(String routeRegexPath, HttpRouter router) {
+		httpDispatcher.addRouteHandler("GET", routeRegexPath, router);
 		return this;
 	}
 
 	/**
 	 * POST 请求
 	 * @param routeRegexPath 匹配路径
-	 * @param handler  HTTP处理请求句柄
+	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
      */
-	public HttpServer post(String routeRegexPath, HttpRouter handler) {
-		httpDispatcher.addRouteHandler("POST", routeRegexPath, handler);
+	public HttpServer post(String routeRegexPath, HttpRouter router) {
+		httpDispatcher.addRouteHandler("POST", routeRegexPath, router);
 		return this;
 	}
 
 	/**
 	 * HEAD 请求
 	 * @param routeRegexPath 匹配路径
-	 * @param handler  HTTP处理请求句柄
+	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer head(String routeRegexPath, HttpRouter handler) {
-		httpDispatcher.addRouteHandler("HEAD", routeRegexPath, handler);
+	public HttpServer head(String routeRegexPath, HttpRouter router) {
+		httpDispatcher.addRouteHandler("HEAD", routeRegexPath, router);
 		return this;
 	}
 
 	/**
 	 * PUT 请求
 	 * @param routeRegexPath 匹配路径
-	 * @param handler  HTTP处理请求句柄
+	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer put(String routeRegexPath, HttpRouter handler) {
-		httpDispatcher.addRouteHandler("PUT", routeRegexPath, handler);
+	public HttpServer put(String routeRegexPath, HttpRouter router) {
+		httpDispatcher.addRouteHandler("PUT", routeRegexPath, router);
 		return this;
 	}
 
 	/**
 	 * DELETE 请求
 	 * @param routeRegexPath 匹配路径
-	 * @param handler  HTTP处理请求句柄
+	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer delete(String routeRegexPath, HttpRouter handler) {
-		httpDispatcher.addRouteHandler("DELETE", routeRegexPath, handler);
+	public HttpServer delete(String routeRegexPath, HttpRouter router) {
+		httpDispatcher.addRouteHandler("DELETE", routeRegexPath, router);
 		return this;
 	}
 
 	/**
 	 * TRACE 请求
 	 * @param routeRegexPath 匹配路径
-	 * @param handler  HTTP处理请求句柄
+	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer trace(String routeRegexPath, HttpRouter handler) {
-		httpDispatcher.addRouteHandler("TRACE", routeRegexPath, handler);
+	public HttpServer trace(String routeRegexPath, HttpRouter router) {
+		httpDispatcher.addRouteHandler("TRACE", routeRegexPath, router);
 		return this;
 	}
 
 	/**
 	 * CONNECT 请求
 	 * @param routeRegexPath 匹配路径
-	 * @param handler  HTTP处理请求句柄
+	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer connect(String routeRegexPath, HttpRouter handler) {
-		httpDispatcher.addRouteHandler("CONNECT", routeRegexPath, handler);
+	public HttpServer connect(String routeRegexPath, HttpRouter router) {
+		httpDispatcher.addRouteHandler("CONNECT", routeRegexPath, router);
 		return this;
 	}
 
 	/**
 	 * OPTIONS 请求
 	 * @param routeRegexPath 匹配路径
-	 * @param handler  HTTP处理请求句柄
+	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer options(String routeRegexPath, HttpRouter handler) {
-		httpDispatcher.addRouteHandler("OPTIONS", routeRegexPath, handler);
+	public HttpServer options(String routeRegexPath, HttpRouter router) {
+		httpDispatcher.addRouteHandler("OPTIONS", routeRegexPath, router);
 		return this;
 	}
 
@@ -169,22 +169,22 @@ public class HttpServer {
 	 * 其他请求
 	 * @param method 请求方法
 	 * @param routeRegexPath 匹配路径
-	 * @param handler  HTTP处理请求句柄
+	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer otherMethod(String method, String routeRegexPath, HttpRouter handler) {
+	public HttpServer otherMethod(String method, String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteMethod(method);
-		httpDispatcher.addRouteHandler(method, routeRegexPath, handler);
+		httpDispatcher.addRouteHandler(method, routeRegexPath, router);
 		return this;
 	}
 
 	/**
 	 * WebSocket 服务
 	 * @param routeRegexPath 匹配路径
-	 * @param handler WebSocket处理句柄
+	 * @param router WebSocket处理句柄
      */
-	public void socket(String routeRegexPath, WebSocketBizHandler handler) {
-		webSocketDispatcher.addRouteHandler(routeRegexPath, handler);
+	public void socket(String routeRegexPath, WebSocketRouter router) {
+		webSocketDispatcher.addRouteHandler(routeRegexPath, router);
 	}
 
 	/**

@@ -35,7 +35,7 @@ public class HttpDispatcher {
 	/**
 	 * [MainKey] = HTTP method ,[Value] = { [Value Key] = Route path, [Value value] = RouteBuiz对象 }
 	 */
-	private Map<String, Map<String, HttpRouter>>	methodHandlers;
+	private Map<String, Map<String, HttpRouter>> methodRouters;
 	private WebServerConfig webConfig;
 	private SessionManager sessionManager;
 	
@@ -46,7 +46,7 @@ public class HttpDispatcher {
 	 * @param sessionManager Session 管理器
 	 */
 	public HttpDispatcher(WebServerConfig webConfig,SessionManager sessionManager) {
-		methodHandlers = new LinkedHashMap<String, Map<String, HttpRouter>>();
+		methodRouters = new LinkedHashMap<String, Map<String, HttpRouter>>();
 		this.webConfig = webConfig;
 		this.sessionManager = sessionManager;
 		
@@ -70,8 +70,8 @@ public class HttpDispatcher {
 	 * @param method HTTP 请求方法
 	 */
 	protected void addRouteMethod(String method) {
-		if (!methodHandlers.containsKey(method)) {
-		 Map<String,HttpRouter> routeHandlers = new TreeMap<String, HttpRouter>(new Comparator<String>() {
+		if (!methodRouters.containsKey(method)) {
+		 Map<String,HttpRouter> routers = new TreeMap<String, HttpRouter>(new Comparator<String>() {
 				@Override
 				public int compare(String o1, String o2) {
 					if(o1.length() > o2.length()){
@@ -83,7 +83,7 @@ public class HttpDispatcher {
 					}
 				}
 			});
-			methodHandlers.put(method, routeHandlers);
+			methodRouters.put(method, routers);
 		}
 	}
 
@@ -92,11 +92,11 @@ public class HttpDispatcher {
 	 * 
 	 * @param method          Http 请求方法
 	 * @param routeRegexPath  路径匹配正则
-	 * @param handler         请求处理句柄
+	 * @param router         请求处理句柄
 	 */
-	public void addRouteHandler(String method, String routeRegexPath, HttpRouter handler) {
-		if (methodHandlers.keySet().contains(method)) {
-			methodHandlers.get(method).put(routeRegexPath, handler);
+	public void addRouteHandler(String method, String routeRegexPath, HttpRouter router) {
+		if (methodRouters.keySet().contains(method)) {
+			methodRouters.get(method).put(routeRegexPath, router);
 		}
 	}
 
@@ -135,17 +135,17 @@ public class HttpDispatcher {
 		String requestMethod 	= request.protocol().getMethod();
 
 		boolean isMatched = false;
-		Map<String, HttpRouter> handlerInfos = methodHandlers.get(requestMethod);
+		Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
 
 		//遍历路由对象
-		for (Map.Entry<String,HttpRouter> routeEntry : handlerInfos.entrySet()) {
+		for (Map.Entry<String,HttpRouter> routeEntry : routers.entrySet()) {
 			String routePath = routeEntry.getKey();
 			//寻找匹配的路由对象
 			isMatched = matchPath(requestPath,routePath,webConfig.isMatchRouteIgnoreCase());
 			if (isMatched) {
 
 				//获取路由处理对象
-				HttpRouter handler = routeEntry.getValue();
+				HttpRouter router = routeEntry.getValue();
 
 				try {
 					//获取路径变量
@@ -153,7 +153,7 @@ public class HttpDispatcher {
 					request.getParameters().putAll(pathVariables);
 
 					//处理路由请求
-					handler.process(request, response);
+                    router.process(request, response);
 
 				} catch (Exception e) {
 					exceptionMessage(request, response, e);
