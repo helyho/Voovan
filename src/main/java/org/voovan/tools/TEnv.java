@@ -125,8 +125,13 @@ public class TEnv {
 	 * @param file 文件路径
 	 * @throws SecurityException  安全性异常
 	 * @throws NoSuchMethodException  无方法异常
+	 * @throws IOException IO异常
 	 */
-	public static void loadBinary(File file) throws NoSuchMethodException, SecurityException {
+	public static void loadBinary(File file) throws NoSuchMethodException, SecurityException, IOException {
+		if(!file.exists()){
+			Logger.error("Method loadBinary, This director["+file.getCanonicalPath()+"] is not exists");
+		}
+
 		try {
 			if (file.isDirectory() || file.getPath().toLowerCase().endsWith(".jar")) {
 				URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
@@ -151,12 +156,14 @@ public class TEnv {
 
 	/**
 	 * 从目录读取所有 Jar 文件,递归并加载到JVM
-	 * 
-	 * @param directoryPath 传入一个目录
-	 * @throws Exception 异常信息
+	 *
+	 * @param rootFile 传入一个File 对象
+	 * @throws IOException IO异常
 	 */
-	public static void loadJars(String directoryPath) throws Exception {
-		File rootFile = new File(directoryPath);
+	public static void loadJars(File rootFile) throws IOException, NoSuchMethodException {
+		if(!rootFile.exists()){
+			Logger.error("Method loadJars, This director["+rootFile.getCanonicalPath()+"] is not exists");
+		}
 		if(rootFile.isDirectory()){
 			//文件过滤器取目录中的文件
 			File[] files = rootFile.listFiles(new FileFilter() {
@@ -180,6 +187,17 @@ public class TEnv {
 				}
 			}
 		}
+	}
+
+	/**
+	 * 从目录读取所有 Jar 文件,递归并加载到JVM
+	 * 
+	 * @param directoryPath 传入一个目录
+	 * @throws Exception 异常信息
+	 */
+	public static void loadJars(String directoryPath) throws IOException, NoSuchMethodException {
+		File file = new File(directoryPath);
+		loadJars(file);
 	}
 	
 	/**
