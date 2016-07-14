@@ -61,7 +61,7 @@ public class WebServerConfig {
         return MatchRouteIgnoreCase;
     }
 
-    public void setMatchRouteIgnoreCase(boolean matchRouteIgnoreCase) {
+    protected void setMatchRouteIgnoreCase(boolean matchRouteIgnoreCase) {
         MatchRouteIgnoreCase = matchRouteIgnoreCase;
     }
 
@@ -117,7 +117,7 @@ public class WebServerConfig {
         return gzip;
     }
 
-    public void setGzip(boolean gzip) {
+    protected void setGzip(boolean gzip) {
         this.gzip = gzip;
     }
 
@@ -125,7 +125,7 @@ public class WebServerConfig {
         return certificateFile;
     }
 
-    public void setCertificateFile(String certificateFile) {
+    protected void setCertificateFile(String certificateFile) {
         this.certificateFile = certificateFile;
     }
 
@@ -133,7 +133,7 @@ public class WebServerConfig {
         return certificatePassword;
     }
 
-    public void setCertificatePassword(String certificatePassword) {
+    protected void setCertificatePassword(String certificatePassword) {
         this.certificatePassword = certificatePassword;
     }
 
@@ -141,7 +141,7 @@ public class WebServerConfig {
         return keyPassword;
     }
 
-    public void setKeyPassword(String keyPassword) {
+    protected void setKeyPassword(String keyPassword) {
         this.keyPassword = keyPassword;
     }
 
@@ -149,7 +149,7 @@ public class WebServerConfig {
         return accessLog;
     }
 
-    public void setAccessLog(boolean accessLog) {
+    protected void setAccessLog(boolean accessLog) {
         this.accessLog = accessLog;
     }
 
@@ -157,7 +157,7 @@ public class WebServerConfig {
         return monitor;
     }
 
-    public void setMonitor(boolean monitor) {
+    protected void setMonitor(boolean monitor) {
         this.monitor = monitor;
     }
 
