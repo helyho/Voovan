@@ -35,7 +35,7 @@ public class HttpDispatcher {
 	/**
 	 * [MainKey] = HTTP method ,[Value] = { [Value Key] = Route path, [Value value] = RouteBuiz对象 }
 	 */
-	private Map<String, Map<String, HttpBizHandler>>	methodHandlers;
+	private Map<String, Map<String, HttpRouter>>	methodHandlers;
 	private WebServerConfig webConfig;
 	private SessionManager sessionManager;
 	
@@ -46,7 +46,7 @@ public class HttpDispatcher {
 	 * @param sessionManager Session 管理器
 	 */
 	public HttpDispatcher(WebServerConfig webConfig,SessionManager sessionManager) {
-		methodHandlers = new LinkedHashMap<String, Map<String, HttpBizHandler>>();
+		methodHandlers = new LinkedHashMap<String, Map<String, HttpRouter>>();
 		this.webConfig = webConfig;
 		this.sessionManager = sessionManager;
 		
@@ -71,7 +71,7 @@ public class HttpDispatcher {
 	 */
 	protected void addRouteMethod(String method) {
 		if (!methodHandlers.containsKey(method)) {
-		 Map<String,HttpBizHandler> routeHandlers = new TreeMap<String, HttpBizHandler>( new Comparator<String>() {
+		 Map<String,HttpRouter> routeHandlers = new TreeMap<String, HttpRouter>(new Comparator<String>() {
 				@Override
 				public int compare(String o1, String o2) {
 					if(o1.length() > o2.length()){
@@ -94,7 +94,7 @@ public class HttpDispatcher {
 	 * @param routeRegexPath  路径匹配正则
 	 * @param handler         请求处理句柄
 	 */
-	public void addRouteHandler(String method, String routeRegexPath, HttpBizHandler handler) {
+	public void addRouteHandler(String method, String routeRegexPath, HttpRouter handler) {
 		if (methodHandlers.keySet().contains(method)) {
 			methodHandlers.get(method).put(routeRegexPath, handler);
 		}
@@ -135,17 +135,17 @@ public class HttpDispatcher {
 		String requestMethod 	= request.protocol().getMethod();
 
 		boolean isMatched = false;
-		Map<String, HttpBizHandler> handlerInfos = methodHandlers.get(requestMethod);
+		Map<String, HttpRouter> handlerInfos = methodHandlers.get(requestMethod);
 
 		//遍历路由对象
-		for (Map.Entry<String,HttpBizHandler> routeEntry : handlerInfos.entrySet()) {
+		for (Map.Entry<String,HttpRouter> routeEntry : handlerInfos.entrySet()) {
 			String routePath = routeEntry.getKey();
 			//寻找匹配的路由对象
 			isMatched = matchPath(requestPath,routePath,webConfig.isMatchRouteIgnoreCase());
 			if (isMatched) {
 
 				//获取路由处理对象
-				HttpBizHandler handler = routeEntry.getValue();
+				HttpRouter handler = routeEntry.getValue();
 
 				try {
 					//获取路径变量
@@ -265,9 +265,9 @@ public class HttpDispatcher {
 		Object filterResult = null;
 		while(filterConfigs.hasNext()){
 			FilterConfig filterConfig = filterConfigs.next();
-			HttpBizFilter httpBizFilter = filterConfig.getFilterInstance();
-			if(httpBizFilter!=null) {
-				filterResult = httpBizFilter.onRequest(filterConfig, request, response, filterResult);
+			HttpFilter httpFilter = filterConfig.getFilterInstance();
+			if(httpFilter!=null) {
+				filterResult = httpFilter.onRequest(filterConfig, request, response, filterResult);
 			}
 		}
 	}
@@ -283,9 +283,9 @@ public class HttpDispatcher {
 		Object filterResult = null;
 		while(filterConfigs.hasPrevious()){
 			FilterConfig filterConfig = filterConfigs.previous();
-			HttpBizFilter httpBizFilter = filterConfig.getFilterInstance();
-			if(httpBizFilter!=null) {
-				filterResult = httpBizFilter.onResponse(filterConfig, request, response, filterResult);
+			HttpFilter httpFilter = filterConfig.getFilterInstance();
+			if(httpFilter!=null) {
+				filterResult = httpFilter.onResponse(filterConfig, request, response, filterResult);
 			}
 
 		}

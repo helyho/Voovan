@@ -10,7 +10,7 @@ import org.voovan.http.server.FilterConfig;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public interface HttpBizFilter {
+public interface HttpFilter {
 	/**
 	 * 请求过滤器,在请求之前
 	 * @param filterConfig 过滤器配置对象

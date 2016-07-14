@@ -1,6 +1,6 @@
 package org.voovan.http.server.router;
 
-import org.voovan.http.server.HttpBizHandler;
+import org.voovan.http.server.HttpRouter;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.MimeTools;
@@ -10,7 +10,6 @@ import org.voovan.tools.TFile;
 import org.voovan.tools.THash;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Date;
@@ -25,7 +24,7 @@ import java.util.Date;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class MimeFileRouter implements HttpBizHandler {
+public class MimeFileRouter implements HttpRouter {
 
 	private String	rootPath;
 
