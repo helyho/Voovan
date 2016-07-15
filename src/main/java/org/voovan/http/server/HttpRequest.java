@@ -3,10 +3,13 @@ package org.voovan.http.server;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.tools.TObject;
+import org.voovan.tools.TReflect;
+import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -131,7 +134,7 @@ public class HttpRequest extends Request {
 	 *
 	 * @param charset 字符集
 	 */
-	public void setCharacterSet(String charset) {
+	protected void setCharacterSet(String charset) {
 		this.characterSet = charset;
 	}
 	
@@ -140,33 +143,150 @@ public class HttpRequest extends Request {
 	 *
 	 * @return 请求字符串
 	 */
-	public String getQueryString(){
+	protected String getQueryString(){
 		return getQueryString(characterSet);
 	}
 	
 	/**
-	 * 获取请求变量集合
+	 * 获取请求参数集合
 	 *
-	 * @return 请求变量集合
+	 * @return 请求参数集合
 	 */
 	public Map<String, String> getParameters() {
 		return parameters;
 	}
 	
 	/**
-	 * 获取请求变量
+	 * 获取请求参数
 	 *
-	 * @param paramName 请求变量名称
-	 * @return 请求变量值
+	 * @param paramName 请求参数名称
+	 * @return 请求参数值
 	 */
 	public String getParameter(String paramName){
 		return parameters.get(paramName);
 	}
-	
+
 	/**
-	 * 获取请求变量
+	 * 获取 int 类型的数据
+	 * @param paramName 请求参数名称
+	 * @return int 类型的数据
+     */
+	public int getParameterAsInt(String paramName){
+		try {
+			return (int) TString.toObject(parameters.get(paramName), int.class);
+		}catch(Exception e){
+			throw new RuntimeException("Get parameter ["+paramName+"] as int error.",e);
+		}
+	}
+
+	/**
+	 * 获取 float 类型的数据
+	 * @param paramName 请求参数名称
+	 * @return float 类型的数据
+	 */
+	public float getParameterAsFloat(String paramName){
+		try {
+			return (float) TString.toObject(parameters.get(paramName), float.class);
+		}catch(Exception e){
+			throw new RuntimeException("Get parameter ["+paramName+"] as float error.",e);
+		}
+	}
+
+	/**
+	 * 获取 long 类型的数据
+	 * @param paramName 请求参数名称
+	 * @return long 类型的数据
+	 */
+	public long getParameterAsLong(String paramName){
+		try {
+			return (long) TString.toObject(parameters.get(paramName), long.class);
+		}catch(Exception e){
+			throw new RuntimeException("Get parameter ["+paramName+"] as long error.",e);
+		}
+	}
+
+	/**
+	 * 获取 short 类型的数据
+	 * @param paramName 请求参数名称
+	 * @return short 类型的数据
+	 */
+	public short getParameterAsShort(String paramName){
+		try {
+			return (short) TString.toObject(parameters.get(paramName), short.class);
+		}catch(Exception e){
+			throw new RuntimeException("Get parameter ["+paramName+"] as short error.",e);
+		}
+	}
+
+	/**
+	 * 获取 double 类型的数据
+	 * @param paramName 请求参数名称
+	 * @return double 类型的数据
+	 */
+	public double getParameterAsDouble(String paramName){
+		try {
+			return (double) TString.toObject(parameters.get(paramName), double.class);
+		}catch(Exception e){
+			throw new RuntimeException("Get parameter ["+paramName+"] as double error.",e);
+		}
+	}
+
+	/**
+	 * 获取 boolean 类型的数据
+	 * @param paramName 请求参数名称
+	 * @return boolean 类型的数据
+	 */
+	public boolean getParameterAsBoolean(String paramName){
+		try {
+			return (boolean) TString.toObject(parameters.get(paramName), boolean.class);
+		}catch(Exception e){
+			throw new RuntimeException("Get parameter ["+paramName+"] as boolean error.",e);
+		}
+	}
+
+	/**
+	 * 获取 byte 类型的数据
+	 * @param paramName 请求参数名称
+	 * @return byte 类型的数据
+	 */
+	public byte getParameterAsByte(String paramName){
+		try {
+			return (byte) TString.toObject(parameters.get(paramName), byte.class);
+		}catch(Exception e){
+			throw new RuntimeException("Get parameter ["+paramName+"] as byte error.",e);
+		}
+	}
+
+	/**
+	 * 获取 char 类型的数据
+	 * @param paramName 请求参数名称
+	 * @return char 类型的数据
+	 */
+	public char getParameterAsChar(String paramName){
+		try {
+			return (char) TString.toObject(parameters.get(paramName), char.class);
+		}catch(Exception e){
+			throw new RuntimeException("Get parameter ["+paramName+"] as char error.",e);
+		}
+	}
+
+	/**
+	 * 获取 自定义 类型的数据
+	 * @param clazz  自定义数据类型
+	 * @return char 自定义数据类型的对象,转换时字段忽略大小写
+	 */
+	public char getParameterAsObject(Class<?> clazz){
+		try {
+			return (char) TReflect.getObjectFromMap(clazz, TObject.cast(getParameters()), true);
+		} catch (ReflectiveOperationException | ParseException e) {
+			throw new RuntimeException("Conver parameters to "+clazz.getCanonicalName()+" error.",e);
+		}
+	}
+
+	/**
+	 * 获取请求参数名称集合
 	 *
-	 * @return 请求变量集合
+	 * @return 请求参数集合
 	 */
 	public List<String> getParameterNames(){
 		return Arrays.asList(parameters.keySet().toArray(new String[]{}));
@@ -226,7 +346,7 @@ public class HttpRequest extends Request {
 
 	/**
 	 * 重置请求
-	 * 		用于在 Filter 中重新定向,其他地方无用
+	 * 		用于在 HttpFilter 中重新定向,其他地方无用
 	 * @param url 请求地址,"/"起始,可以包含"?"参数引导及参数.
 	 */
 	public void redirect(String url){
