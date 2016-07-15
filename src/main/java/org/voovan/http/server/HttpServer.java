@@ -69,7 +69,7 @@ public class HttpServer {
 	/**
 	 * 将配置文件中的 Router 配置载入到 HttpServer
      */
-	public void  initConfigedRouter(){
+	private void  initConfigedRouter(){
 		for(HttpRouterConfig httpRouterConfig : config.getRouterConfigs()){
 			String method = httpRouterConfig.getMethod();
 			String route = httpRouterConfig.getRoute();
@@ -79,8 +79,8 @@ public class HttpServer {
 	}
 
 	/**
-	 * 获取配置对象
-	 * @return 返回 Web 服务配置对象
+	 * 获取 Http 服务配置对象
+	 * @return 返回 Http 服务配置对象
      */
 	public WebServerConfig getWebServerConfig() {
 		return config;
@@ -201,7 +201,7 @@ public class HttpServer {
 	}
 
 	/**
-	 * 构建新的 HttpServer,从配置文件读取配置
+	 * 构建新的 HttpServer,从配置对象读取配置
 	 * @param config  WebServer配置类
 	 * @return HttpServer 对象
 	 */
@@ -219,7 +219,7 @@ public class HttpServer {
 	}
 
 	/**
-	 * 构建新的 HttpServer,从配置文件读取配置
+	 * 构建新的 HttpServer,指定服务端口
 	 * @param port  HTTP 服务的端口号
 	 * @return HttpServer 对象
 	 */
