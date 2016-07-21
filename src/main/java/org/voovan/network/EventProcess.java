@@ -70,14 +70,8 @@ public class EventProcess {
 		SocketContext socketContext = event.getSession().sockContext();
 		if (socketContext != null && session != null) {
 			Object result = socketContext.handler().onConnect(session);
-			if (result != null) {
-				socketContext.filterChain().rewind();
-				while (socketContext.filterChain().hasNext()) {
-					IoFilter fitler = socketContext.filterChain().next();
-					result = fitler.encode(session, result);
-				}
-				sendMessage(session, result);
-			}
+			result =filterEncoder(session,result);
+			sendMessage(session, result);
 		}
 	}
 
@@ -132,11 +126,8 @@ public class EventProcess {
 
 				Object result = byteBuffer;
 
-				// 取得过滤器链
-				Chain<IoFilter> filterChain = socketContext.filterChain().clone();
-
 				// -----------------Filter 解密处理-----------------
-				result = filterDecoder(filterChain,session,result);
+				result = filterDecoder(session,result);
 				// -------------------------------------------------
 
 				// -----------------Handler 业务处理-----------------
@@ -149,27 +140,25 @@ public class EventProcess {
 				// 返回的结果不为空的时候才发送
 				if (result != null) {
 					// ------------------Filter 加密处理-----------------
-					result = filterEncoder(filterChain,session,result);
+					result = filterEncoder(session,result);
 					// ---------------------------------------------------
 
 					// 发送消息
 					sendMessage(session, result);
 				}
-
-				filterChain.clear();
 			}
 		}
 	}
 
 	/**
 	 * 使用过滤器过滤解码结果
-	 * @param filterChain  过滤器链
 	 * @param session      Session 对象
 	 * @param result	   需解码的对象
 	 * @return  解码后的对象
 	 * @throws IoFilterException 过滤器异常
 	 */
-	 private static Object filterDecoder(Chain<IoFilter> filterChain,IoSession session,Object result) throws IoFilterException{
+	public static Object filterDecoder(IoSession session,Object result) throws IoFilterException{
+		Chain<IoFilter> filterChain = session.sockContext().filterChain().clone();
 		while (filterChain.hasNext()) {
 			IoFilter fitler = filterChain.next();
 			result = fitler.decode(session, result);
@@ -179,13 +168,13 @@ public class EventProcess {
 	
 	/**
 	 * 使用过滤器编码结果
-	 * @param filterChain  过滤器链
 	 * @param session      Session 对象
 	 * @param result	   需编码的对象
 	 * @return  编码后的对象
 	 * @throws IoFilterException 过滤器异常
 	 */
-	private static Object filterEncoder(Chain<IoFilter> filterChain,IoSession session,Object result) throws IoFilterException{
+	public static Object filterEncoder(IoSession session,Object result) throws IoFilterException{
+		Chain<IoFilter> filterChain = session.sockContext().filterChain().clone();
 		filterChain.rewind();
 		while (filterChain.hasPrevious()) {
 			IoFilter fitler = filterChain.previous();
