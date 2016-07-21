@@ -181,12 +181,7 @@ public abstract class IoSession {
 
 		if (obj != null) {
 			try {
-				Chain<IoFilter> filterChain = sockContext().filterChain();
-				filterChain.rewind();
-				while (filterChain.hasNext()) {
-					IoFilter fitler = filterChain.next();
-					obj = fitler.encode(this, obj);
-				}
+				obj = EventProcess.filterEncoder(this,obj);
 				EventProcess.sendMessage(this, obj);
 			}catch (Exception e){
 				throw new SendMessageException("Method synchronouSend error! ",e);
