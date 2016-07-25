@@ -74,11 +74,11 @@ public class HttpDispatcher {
 		 Map<String,HttpRouter> routers = new TreeMap<String, HttpRouter>(new Comparator<String>() {
 				@Override
 				public int compare(String o1, String o2) {
-					if(o1.length() > o2.length()){
+					if(o1.length() >= o2.length() && !o1.equals(o2)){
 						return -1;
-					} else if(o1.length() < o2.length()){
+					} else if(o1.length() < o2.length() &&!o1.equals(o2)){
 						return 1;
-					} else {
+					}else{
 						return 0;
 					}
 				}
@@ -175,7 +175,8 @@ public class HttpDispatcher {
      */
 	public static String routePath2RegexPath(String routePath){
 		String routeRegexPath = routePath.replaceAll(":[^/?]+", "[^/?]+");
-		routeRegexPath = routeRegexPath.replaceAll("/\\*","/.*");
+//		routeRegexPath = routeRegexPath.replaceAll("/\\*","/.*");
+        routeRegexPath = routeRegexPath.replaceAll("\\*",".*?");
 		return routeRegexPath;
 	}
 
@@ -195,7 +196,7 @@ public class HttpDispatcher {
 			requestPath = requestPath.toLowerCase();
 			routeRegexPath = routeRegexPath.toLowerCase();
 		}
-		if(TString.regexMatch(requestPath, routeRegexPath+"$" ) > 0 ){
+		if(TString.regexMatch(requestPath, routeRegexPath ) > 0 ){
 			return true;
 		}else if(TString.regexMatch(requestPath, routeRegexPath+"/$" ) > 0){
 			return true;
