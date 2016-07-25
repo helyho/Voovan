@@ -52,6 +52,18 @@ public class HttpServerDemo {
 					 + "}");
 		});
 
+		//带路劲参数的 GET 请求
+		httpServer.get("/test/t*t/kkk/*", (req, resp) -> {
+			Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
+			Logger.simple("Request info: "+req.protocol());
+			resp.write(fileContent);
+			resp.write("{"
+							+ "\"Method\":\"FuzzyMatching\","
+							+ "\"name\":\""+req.getParameter("name")+"\","
+							+ "\"age\":\""+req.getParameter("age")+"\""
+					 + "}");
+		});
+
 
 		// 重定向
 		httpServer.get("/redirect", (req, resp) -> {
