@@ -149,6 +149,7 @@ public class JSONDecode {
 					//判断是字符串去掉头尾的冒号
 					if(stringValue.startsWith("\"") && stringValue.endsWith("\"")){
 						value = stringValue.substring(1,stringValue.length()-1);
+						value = value.toString().replace("\\\\","\\").replace("\\r","\r").replace("\\n","\n");
 					}
 					//判断不包含.即为整形
 					else if (TString.isInteger(stringValue)){
