@@ -10,7 +10,7 @@ public class JSONEncodeUnit extends TestCase {
 	}
 
 	public void testRun() throws Exception{
-		String targetStr = "{\"bint\":32,\"string\":\"helyho\",\"tb2\":{\"bint\":56,\"string\":\"bingo\",\"list\":[\"tb2 list item\"],\"map\":{\"tb2 map item\":\"tb2 map item\"}},\"list\":[\"listitem1\",\"listitem2\",\"listitem3\"],\"map\":{\"mapitem2\":\"mapitem2\",\"mapitem1\":\"mapitem1\"}}";
+		String targetStr = "{\"bint\":32,\"string\":\"helyho\",\"tb2\":{\"bint\":56,\"string\":\"bingo\\\\r\\\\nsrc\\\\main\\\\kkk\",\"list\":[\"tb2 list item\"],\"map\":{\"tb2 map item\":\"tb2 map item\"}},\"list\":[\"listitem1\",\"listitem2\",\"listitem3\"],\"map\":{\"mapitem2\":\"mapitem2\",\"mapitem1\":\"mapitem1\"}}";
 		
 		TestObject testObject = new TestObject();
 		testObject.setString("helyho");
@@ -20,7 +20,7 @@ public class JSONEncodeUnit extends TestCase {
 		testObject.getList().add("listitem3");
 		testObject.getMap().put("mapitem1", "mapitem1");
 		testObject.getMap().put("mapitem2", "mapitem2");
-		testObject.getTb2().setString("bingo");
+		testObject.getTb2().setString("bingo\r\nsrc\\main\\kkk");
 		testObject.getTb2().setBint(56);
 		testObject.getTb2().getList().add("tb2 list item");
 		testObject.getTb2().getMap().put("tb2 map item", "tb2 map item");

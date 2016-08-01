@@ -121,7 +121,8 @@ public class JSONEncode {
                 object instanceof Long || object instanceof Short) {
             value = object.toString();
         } else if (object.getClass().getName().startsWith("java.lang")) {
-            value = "\"" + object.toString() + "\"";
+            String strValue = object.toString().replace("\r","\\r").replace("\n","\\n").replace("\\", "\\\\");
+            value = "\"" + strValue + "\"";
         } else if (object instanceof Map) {
             Map<Object, Object> mapObject = (Map<Object, Object>) object;
             value = mapObject(mapObject);
