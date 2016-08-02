@@ -1,0 +1,43 @@
+{
+	"Host"   				: "0.0.0.0",              	// 服务 IP 地址,默认0.0.0.0
+	"Port"   				: 28080,					// 服务端口,默认8080
+	"Timeout"				: 30,						// 连接超时时间(s),默认30秒
+	"ContextPath"			: "WEBAPP",					// 上下文路径,绝对路径 "/"起始,相对路径 非"/" 起始,默认是WEBAPP
+	"MatchRouteIgnoreCase"  : true,                     // 匹配路由不区分大小写,默认是 false
+	"CharacterSet"			: "GB2312",					// 默认字符集,默认 UTF-8
+	"SessionContainer" 	 	: "java.util.Hashtable",	// Session 容器类,默认java.util.Hashtable
+	"SessionTimeout"    	: 30,						// Session 会话超时时间(m),默认30分钟
+	"KeepAliveTimeout"  	: 60,						// KeepAlive 超时时间(s),默认60秒,如果值小于0则不启用 KeepAlive 设置 (该参数同样会被应用到 WebSocket 的连接保持上)
+	"Gzip"              	: false,					// 是否启用Gzip压缩,默认 true
+	"AccessLog"				: true,						// 是否记录access.log,默认 true
+	"Monitor"               : true,					    // 是否提供监控服务,默认 false
+	//"CertificateFile"   	: "/src/test/java/org/voovan/test/network/ssl/ssl_ks",  // HTTPS 证书
+	//"CertificatePassword"   : "passStr",				// HTTPS 证书密码
+	//"KeyPassword"   		: "123123",				    // HTTPS 证书Key 密码
+
+	"Filters": [										// 过滤器配置节点 请求 先执行filter1, 后执行filter2,响应则相反
+		          {
+		        	  "Name"      : "filter1",
+		        	  "ClassName" : "org.voovan.test.http.HttpFilterTest",
+		        	  "Encoding"  : "UTF-8",
+		        	  "Action"    : "pass"      },
+		          {
+		        	  "Name"      : "filter2",
+		        	  "ClassName" : "org.voovan.test.http.HttpFilterTest",
+		        	  "Encoding"  : "UTF-8",
+		        	  "Action"    : "pass"      },
+		          {
+					  "Name"      : "filter3",
+					  "ClassName" : "org.voovan.test.http.HttpFilterTest",
+					  "Encoding"  : "UTF-8",
+					  "Action"    : "pass"      }
+	           ],
+    "Routers": [                                        //路由管理器配置节点
+      {
+	    "name": "配置路由测试",
+        "Route": "/configRouter",    //Http请求路径
+        "Method": "GET",             //Http请求方法
+		"ClassName": "org.voovan.test.http.router.HttpTestRouter"  //Http 路由处理器
+      }
+    ]
+}
