@@ -178,8 +178,8 @@ public class WebServerConfig {
     public void addFilterConfig(Map<String, Object> configMap) {
         HttpFilterConfig httpFilterConfig = new HttpFilterConfig(configMap);
         filterConfigs.addLast(httpFilterConfig);
-        Logger.debug("Load HttpFilter "+httpFilterConfig.getName()+
-                " by <"+ httpFilterConfig.getClassName()+">");
+        Logger.simple("\tLoad HttpFilter ["+httpFilterConfig.getName()+
+                "] by ["+ httpFilterConfig.getClassName()+"]");
         filterConfigs.rewind();
     }
 
@@ -192,8 +192,8 @@ public class WebServerConfig {
         for (Map<String, Object> routerInfoMap : routerInfoList) {
             HttpRouterConfig httpRouterConfig = new HttpRouterConfig(routerInfoMap);
            routerConfigs.add(httpRouterConfig);
-            Logger.debug("Load HttpRouter "+httpRouterConfig.getMethod()+
-                    " on  ["+httpRouterConfig.getRoute()+"] by <"+ httpRouterConfig.getClassName()+">");
+            Logger.simple("\tLoad HttpRouter ["+httpRouterConfig.getName()+"] by Method ["+httpRouterConfig.getMethod()+
+                    "] on route ["+httpRouterConfig.getRoute()+"] by ["+ httpRouterConfig.getClassName()+"]");
         }
     }
     /**
