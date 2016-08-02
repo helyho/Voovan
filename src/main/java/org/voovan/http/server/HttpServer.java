@@ -246,9 +246,9 @@ public class HttpServer {
 	 */
 	public HttpServer serve() {
 		try {
+			initConfigedRouter();
 			Logger.simple("Process ID: "+ TEnv.getCurrentPID());
 			Logger.simple("WebServer working on: http"+(config.getCertificateFile()!=null?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
-			initConfigedRouter();
 			aioServerSocket.start();
 		} catch (IOException e) {
 			Logger.error("Start HTTP server error.",e);
