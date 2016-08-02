@@ -81,6 +81,7 @@ public class WebContext {
 		//使用反射工具自动加载配置信息
 		try {
 			config = (WebServerConfig)TReflect.getObjectFromMap(WebServerConfig.class,WEB_CONFIG,true);
+            config = TObject.nullDefault(config, new WebServerConfig());
 		} catch (ReflectiveOperationException e) {
 			Logger.error(e);
 		} catch (ParseException e) {
