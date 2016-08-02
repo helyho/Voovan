@@ -54,8 +54,8 @@ public class MimeTools {
 	 * @return MIME 类型
 	 */
 	public static String getMimeByFileExtension(String fileExtension){
-		String mimeType = WebContext.getMimeDefine().get(fileExtension.toLowerCase()).toString();
-		return TObject.nullDefault(mimeType,"text/plain");
+		Object mimeTypeObj = WebContext.getMimeDefine().get(fileExtension.toLowerCase());
+		return TObject.nullDefault(mimeTypeObj,"application/octet-stream").toString();
 	}
 	
 	/**
