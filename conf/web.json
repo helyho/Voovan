@@ -34,6 +34,7 @@
 	           ],
     "Routers": [                                        //路由管理器配置节点
       {
+	    "name": "配置路由测试",
         "Route": "/configRouter",    //Http请求路径
         "Method": "GET",             //Http请求方法
 		"ClassName": "org.voovan.test.http.router.HttpTestRouter"  //Http 路由处理器

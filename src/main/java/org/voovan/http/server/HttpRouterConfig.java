@@ -16,6 +16,7 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class HttpRouterConfig {
+    private String name;
     private String route;
     private String className;
     private String method;
@@ -28,7 +29,9 @@ public class HttpRouterConfig {
      */
     public HttpRouterConfig(Map<String, Object> configMap) {
         for (Map.Entry<String, Object> entry : configMap.entrySet()) {
-            if ("Route".equalsIgnoreCase(entry.getKey())) {
+            if ("Name".equalsIgnoreCase(entry.getKey())) {
+                this.name = (String) entry.getValue();
+            } else if ("Route".equalsIgnoreCase(entry.getKey())) {
                 this.route = (String) entry.getValue();
             } else if ("ClassName".equalsIgnoreCase(entry.getKey())) {
                 this.className = (String) entry.getValue();
@@ -43,6 +46,22 @@ public class HttpRouterConfig {
      */
     public HttpRouterConfig() {
 
+    }
+
+    /**
+     * 获取路由名称
+     * @return 路由名称
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * 设置路由名称
+     * @param name 路由名称
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
