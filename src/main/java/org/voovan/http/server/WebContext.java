@@ -94,12 +94,16 @@ public class WebContext {
 		if(config.getContextPath().endsWith(File.separator)){
 			config.setContextPath(TString.removeSuffix(config.getContextPath()));
 		}
+		//输出欢迎信息
+		WebContext.welcome(config);
 
 		//初始化过滤器
 		config.addFilterByConfigs(getContextParameter("Filters",new ArrayList<Map<String,Object>>()));
 
 		//初始路由处理器
 		config.addRouterByConfigs(getContextParameter("Routers",new ArrayList<Map<String,Object>>()));
+
+		Logger.simple("=============================================================================================");
 
 		return config;
 	}
@@ -144,8 +148,6 @@ public class WebContext {
 			Logger.simple("\tKeyPassword:\t\t\t" + config.getKeyPassword());
 		}
 		Logger.simple("=============================================================================================");
-		Logger.simple("Process ID: "+TEnv.getCurrentPID());
-		Logger.simple("WebServer working on: http"+(config.getCertificateFile()!=null?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
 	}
 
 	/**

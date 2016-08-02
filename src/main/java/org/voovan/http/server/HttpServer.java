@@ -7,6 +7,7 @@ import org.voovan.http.server.websocket.WebSocketDispatcher;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioServerSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -245,12 +246,22 @@ public class HttpServer {
 	 */
 	public HttpServer serve() {
 		try {
-			WebContext.welcome(config);
+			Logger.simple("Process ID: "+ TEnv.getCurrentPID());
+			Logger.simple("WebServer working on: http"+(config.getCertificateFile()!=null?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
 			initConfigedRouter();
 			aioServerSocket.start();
 		} catch (IOException e) {
 			Logger.error("Start HTTP server error.",e);
 		}
 		return this;
+	}
+
+	/**
+	 * 启动 HttpServer 服务
+	 * @param args
+     */
+	public static void main(String[] args) {
+		HttpServer httpServer = HttpServer.newInstance();
+		httpServer.serve();
 	}
 }
