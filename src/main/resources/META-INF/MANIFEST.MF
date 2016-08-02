@@ -4,7 +4,7 @@ Implementation-Title: voovan-framework
 Implementation-Version: 1.0-alpha-2
 Implementation-Vendor-Id: org.voovan
 Archiver-Version: Plexus Archiver
-Main-Class:org.voovan.http.server.HttpServer
+Main-Class: org.voovan.http.server.HttpServer
 Built-By: helyho
 Created-By: Apache Maven 3.3.9
 Build-Jdk: 1.8.0_77

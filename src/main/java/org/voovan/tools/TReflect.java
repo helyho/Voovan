@@ -244,6 +244,11 @@ public class TReflect {
 	public static Object getObjectFromMap(Class<?> clazz,
 		Map<String, Object> mapArg,boolean ignoreCase) throws ReflectiveOperationException, ParseException {
 		Object obj = null;
+
+		if(mapArg==null || mapArg.isEmpty()){
+			return obj;
+		}
+
 		Object singleValue = mapArg.values().iterator().next();
 		// java标准对象
 		if (!clazz.getName().contains(".")){
