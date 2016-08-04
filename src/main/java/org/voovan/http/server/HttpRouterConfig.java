@@ -125,7 +125,7 @@ public class HttpRouterConfig {
             }
             return httpRouter;
         } catch (ReflectiveOperationException e) {
-            Logger.error("New HttpRouter["+className+"] error.",e);
+            Logger.error("New HttpRouter ["+className+"] error.",e);
             return null;
         }
     }

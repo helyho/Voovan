@@ -8,8 +8,10 @@ import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioServerSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -257,10 +259,23 @@ public class HttpServer {
 	}
 
 	/**
+	 * 读取Classes目录和lib目录中的class或者jar文件
+     */
+	private static void loadContextBin(){
+		try {
+			TEnv.loadBinary(TEnv.getSystemPath("classes"));
+			TEnv.loadJars(TEnv.getSystemPath("lib"));
+		} catch (NoSuchMethodException | IOException | SecurityException e) {
+			Logger.error("Voovan WEBServer Loader ./classes or ./lib error." ,e);
+		}
+	}
+
+	/**
 	 * 启动 HttpServer 服务
-	 * @param args
+	 * @param args 启动参数
      */
 	public static void main(String[] args) {
+		loadContextBin();
 		HttpServer httpServer = HttpServer.newInstance();
 		httpServer.serve();
 	}

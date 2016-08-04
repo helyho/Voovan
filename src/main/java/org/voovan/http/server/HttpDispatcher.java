@@ -6,6 +6,7 @@ import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.tools.*;
 import org.voovan.tools.log.Logger;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.*;
@@ -37,7 +38,8 @@ public class HttpDispatcher {
 	private Map<String, Map<String, HttpRouter>> methodRouters;
 	private WebServerConfig webConfig;
 	private SessionManager sessionManager;
-	
+	private MimeFileRouter mimeFileRouter;
+	private String[] indexFiles;
 	/**
 	 * 构造函数
 	 * 
@@ -48,7 +50,10 @@ public class HttpDispatcher {
 		methodRouters = new LinkedHashMap<String, Map<String, HttpRouter>>();
 		this.webConfig = webConfig;
 		this.sessionManager = sessionManager;
-		
+
+		//拆分首页索引文件的名称
+        indexFiles = webConfig.getIndexFiles();
+
 		// 初始化所有的 HTTP 请求方法
 		this.addRouteMethod("GET");
 		this.addRouteMethod("POST");
@@ -60,7 +65,8 @@ public class HttpDispatcher {
 		this.addRouteMethod("OPTIONS");
 		
 		// Mime静态文件默认请求处理
-		addRouteHandler("GET", MimeTools.getMimeTypeRegex(), new MimeFileRouter(webConfig.getContextPath()));
+		mimeFileRouter = new MimeFileRouter(webConfig.getContextPath());
+		addRouteHandler("GET", MimeTools.getMimeTypeRegex(), mimeFileRouter);
 	}
 
 	/**
@@ -163,8 +169,35 @@ public class HttpDispatcher {
 		}
 
 		if(!isMatched) {
-			exceptionMessage(request, response, new RouterNotFound("Not avaliable router!"));
+			//如果匹配失败,尝试用定义首页索引文件的名称
+			if(request.protocol().getMethod().equals("GET") && !tryIndex(request,response)) {
+				exceptionMessage(request, response, new RouterNotFound("Not avaliable router!"));
+			}
 		}
+	}
+
+	/**
+	 * 尝试用定义首页索引文件的名称
+	 * @param request   Http 请求对象
+	 * @param response  Http 响应对象
+     * @return 成功匹配到定义首页索引文件的名返回 true,否则返回 false
+     */
+	public boolean tryIndex(HttpRequest request,HttpResponse response){
+		for (String indexFile : indexFiles) {
+			String requestPath 	= request.protocol().getPath();
+			String filePath = webConfig.getContextPath() + requestPath.replace("/",File.separator) + (requestPath.endsWith("/") ? "" : File.separator) + indexFile;
+			if(TFile.fileExists(filePath)){
+				try {
+					String newRequestPath = requestPath + (requestPath.endsWith("/") ? "" : "/") + indexFile;
+					request.protocol().setPath(newRequestPath);
+					mimeFileRouter.process(request,response);
+				} catch (Exception e) {
+					exceptionMessage(request, response, e);
+				}
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
