@@ -3,7 +3,6 @@ package org.voovan.http.server;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.http.server.exception.RouterNotFound;
-import org.voovan.http.server.router.MimeFileRouter;
 import org.voovan.tools.*;
 import org.voovan.tools.log.Logger;
 
