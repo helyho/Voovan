@@ -2,8 +2,10 @@ package org.voovan.network.filter;
 
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TObject;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 /**
@@ -29,21 +31,8 @@ public class StringFilter implements IoFilter {
 	@Override
 	public Object decode(IoSession session,Object object) {
 		if(object instanceof ByteBuffer){
-			return byteBufferToString((ByteBuffer)object);
+            return TByteBuffer.toString((ByteBuffer)object);
 		}
 		return object;
-	}
-	
-	
-	/**
-	 * 将 ByteBuffer 转换成 String
-	 * @param byteBuffer   byteBuffer 对象
-	 * @return 转化后的字符串
-	 */
-	public static String byteBufferToString(ByteBuffer byteBuffer) {
-		int size = byteBuffer.limit();
-		byte[] byteBuf = new byte[size];
-		byteBuffer.get(byteBuf);
-		return new String(byteBuf);
 	}
 }

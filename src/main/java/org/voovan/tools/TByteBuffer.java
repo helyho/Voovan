@@ -1,5 +1,7 @@
 package org.voovan.tools;
 
+import org.voovan.tools.log.Logger;
+
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
@@ -37,9 +39,22 @@ public class TByteBuffer {
      * @param bytebuffer Bytebuffer 对象
      * @param charset 字符集
      * @return 字符串对象
-     * @throws UnsupportedEncodingException 不支持的字符集对象
      */
-    public static String toString(ByteBuffer bytebuffer,String charset) throws UnsupportedEncodingException {
-        return new String(toArray(bytebuffer), charset);
+    public static String toString(ByteBuffer bytebuffer,String charset) {
+        try {
+            return new String(toArray(bytebuffer), charset);
+        } catch (UnsupportedEncodingException e) {
+            Logger.error(charset+" is not supported",e);
+            return null;
+        }
+    }
+
+    /**
+     * 将 Bytebuffer 转换成 字符串
+     * @param bytebuffer Bytebuffer 对象
+     * @return 字符串对象
+     */
+    public static String toString(ByteBuffer bytebuffer) {
+        return toString(bytebuffer, "UTF-8");
     }
 }

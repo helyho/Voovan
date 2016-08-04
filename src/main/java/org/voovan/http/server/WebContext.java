@@ -35,7 +35,8 @@ public class WebContext {
 	/**
 	 * MimeMap
 	 */
-	private static final Map<String, Object> MIME_TYPES = loadMapFromFile("/conf/mime.json");
+	private static final Map<String, Object> MIME_TYPES = getMimeDefine();
+
 	/**
 	 * 错误输出 Map
 	 */
@@ -211,7 +212,7 @@ public class WebContext {
 			e.printStackTrace();
 		}
 
-		mimeDefMap.putAll(MIME_TYPES);
+		mimeDefMap.putAll(loadMapFromFile("/conf/mime.json"));
 		return mimeDefMap;
 	}
 	
