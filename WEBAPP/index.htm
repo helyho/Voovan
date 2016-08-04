@@ -17,7 +17,7 @@
         url = window.location.href;
         first = url.indexOf("//");
         last = url.indexOf("/", first + 2);
-        host = url.substring(first + 2, last)
+        host = url.substring(first + 2, last);
         protocol = url.substring(0, first);
         return protocol+"//"+host;
     }
@@ -25,7 +25,7 @@
     host = getHost();
 
     function wsopen() {
-        ws_host = host.replace("http","ws")
+        ws_host = host.replace("http","ws");
         wslocation = ws_host + "/websocket";
         websocket = new WebSocket(wslocation);
         websocket.onopen = function (evt) {

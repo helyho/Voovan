@@ -35,6 +35,7 @@ public class WebServerConfig {
     private String certificateFile;
     private String certificatePassword;
     private String keyPassword;
+    private String indexFiles = "index.htm,index.html,default.htm,default.htm";
 
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
@@ -159,6 +160,14 @@ public class WebServerConfig {
 
     protected void setMonitor(boolean monitor) {
         this.monitor = monitor;
+    }
+
+    public String[] getIndexFiles() {
+        return indexFiles.split(",");
+    }
+
+    protected void setIndexFiles(String indexFiles) {
+        this.indexFiles = indexFiles;
     }
 
     public Chain<HttpFilterConfig> getFilterConfigs() {

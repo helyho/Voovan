@@ -58,7 +58,8 @@ public class TEnv {
 	 * @return 系统的完整路径
 	 */
 	public static String getSystemPath(String absolutePath) {
-		return getContextPath() + File.separator + absolutePath;
+		String spliter = absolutePath.startsWith(File.separator) == true ? "" : File.separator;
+		return getContextPath() + spliter + absolutePath;
 	}
 
 	/**
@@ -147,9 +148,10 @@ public class TEnv {
 	/**
 	 * 为JVM加载一个jar包 或者一个目录到 classpath
 	 * @param filePath  文件路径
-	 * @throws Exception 异常信息
+	 * @throws NoSuchMethodException 异常信息
+     * @throws IOException 异常信息
 	 */
-	public static void loadBinary(String filePath) throws Exception {
+	public static void loadBinary(String filePath) throws NoSuchMethodException, IOException {
 		File file = new File(filePath);
 		loadBinary(file);
 	}
