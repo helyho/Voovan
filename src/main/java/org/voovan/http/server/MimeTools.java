@@ -1,5 +1,6 @@
 package org.voovan.http.server;
 
+import org.voovan.http.server.context.WebContext;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 
@@ -26,7 +27,7 @@ public class MimeTools {
 	 * 获取 MIME 正则表达式
 	 * @return MIME 正则表达式
      */
-	public static  String getMimeTypeRegex(){
+	public static String getMimeTypeRegex(){
 		return mimeTypeRegex;
 	}
 	
@@ -43,7 +44,7 @@ public class MimeTools {
 			mimeTypeRegexSB.append(fileExtension);
 			mimeTypeRegexSB.append("|");
 	}
-	mimeTypeRegex = mimeTypeRegexSB.toString();
+		mimeTypeRegex = mimeTypeRegexSB.toString();
 		mimeTypeRegex = TString.removeSuffix(mimeTypeRegex)+"$";
 		return mimeTypeRegex;
 	} 

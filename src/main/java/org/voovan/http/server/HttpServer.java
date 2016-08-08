@@ -1,17 +1,17 @@
 package org.voovan.http.server;
 
-import com.sun.xml.internal.xsom.impl.WildcardImpl;
-import org.voovan.http.monitor.Monitor;
+import org.voovan.http.server.context.HttpModuleConfig;
+import org.voovan.http.server.context.HttpRouterConfig;
+import org.voovan.http.server.context.WebContext;
+import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.websocket.WebSocketRouter;
 import org.voovan.http.server.websocket.WebSocketDispatcher;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioServerSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -24,7 +24,7 @@ import java.io.IOException;
  * Licence: Apache v2 License
  */
 public class HttpServer {
-	private AioServerSocket		aioServerSocket;
+	private AioServerSocket	aioServerSocket;
 	private HttpDispatcher	httpDispatcher;
 	private WebSocketDispatcher webSocketDispatcher;
 	private SessionManager sessionManager;
@@ -52,21 +52,16 @@ public class HttpServer {
 		this.webSocketDispatcher = new WebSocketDispatcher(config);
 
 		//[Socket]确认是否启用 HTTPS 支持
-		if(config.getCertificateFile()!=null) {
+		if(config.isHttps()) {
 			SSLManager sslManager = new SSLManager("TLS", false);
-			sslManager.loadCertificate(System.getProperty("user.dir") + config.getCertificateFile(),
-					config.getCertificatePassword(), config.getKeyPassword());
+			sslManager.loadCertificate(System.getProperty("user.dir") + config.getHttps().getCertificateFile(),
+					config.getHttps().getCertificatePassword(), config.getHttps().getKeyPassword());
 			aioServerSocket.setSSLManager(sslManager);
 		}
 
 		aioServerSocket.handler(new HttpServerHandler(config, httpDispatcher,webSocketDispatcher));
 		aioServerSocket.filterChain().add(new HttpServerFilter());
 		aioServerSocket.messageSplitter(new HttpMessageSplitter());
-
-		//初始化并安装监控功能
-		if(config.isMonitor()){
-			Monitor.installMonitor(this);
-		}
 	}
 
 	/**
@@ -80,6 +75,16 @@ public class HttpServer {
 			otherMethod(method,route,httpRouterConfig.getHttpRouterInstance());
 		}
 	}
+
+	/**
+	 * 模块安装
+     */
+	public void initModule() {
+		for (HttpModuleConfig httpModuleConfig : config.getModuleonfigs()) {
+			httpModuleConfig.getHttpModuleInstance(this).install();
+		}
+	}
+
 
 	/**
 	 * 获取 Http 服务配置对象
@@ -249,8 +254,9 @@ public class HttpServer {
 	public HttpServer serve() {
 		try {
 			initConfigedRouter();
+			initModule();
 			Logger.simple("Process ID: "+ TEnv.getCurrentPID());
-			Logger.simple("WebServer working on: http"+(config.getCertificateFile()!=null?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
+			Logger.simple("WebServer working on: http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
 			aioServerSocket.start();
 		} catch (IOException e) {
 			Logger.error("Start HTTP server error.",e);

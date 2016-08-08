@@ -1,11 +1,12 @@
 package org.voovan.http.server;
 
 import org.voovan.http.message.packet.Cookie;
+import org.voovan.http.server.context.WebContext;
+import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.tools.TReflect;
 import org.voovan.tools.log.Logger;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -157,7 +158,7 @@ public class SessionManager{
 		this.addSession(session);
 		
 		//创建 Cookie
-		Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(), 
+		Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(),
 				session.getId(),webConfig.getSessionTimeout()*60);
 		
 		//响应增加Session 对应的 Cookie
