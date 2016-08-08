@@ -1,5 +1,7 @@
-package org.voovan.http.server;
+package org.voovan.http.server.context;
 
+import org.voovan.http.server.HttpRequest;
+import org.voovan.http.server.HttpResponse;
 import org.voovan.tools.*;
 import org.voovan.tools.json.JSONDecode;
 import org.voovan.tools.log.Logger;
@@ -81,7 +83,7 @@ public class WebContext {
 
 		//使用反射工具自动加载配置信息
 		try {
-			config = (WebServerConfig)TReflect.getObjectFromMap(WebServerConfig.class,WEB_CONFIG,true);
+			config = (WebServerConfig)TReflect.getObjectFromMap(WebServerConfig.class, WEB_CONFIG, true);
             config = TObject.nullDefault(config, new WebServerConfig());
 		} catch (ReflectiveOperationException e) {
 			Logger.error(e);
@@ -89,7 +91,7 @@ public class WebContext {
 			Logger.error(e);
 		}
 
-		//如果是相对路径则转换成绝对路径
+		//如果是相对路径则转换成绝对路
 		if(!config.getContextPath().startsWith(File.separator)){
 			config.setContextPath(System.getProperty("user.dir")+File.separator+config.getContextPath());
 		}
@@ -100,11 +102,13 @@ public class WebContext {
 		WebContext.welcome(config);
 
 		//初始化过滤器
-		config.addFilterByConfigs(getContextParameter("Filters",new ArrayList<Map<String,Object>>()));
+		config.addFilterByList(getContextParameter("Filters",new ArrayList<Map<String,Object>>()));
 
 		//初始路由处理器
-		config.addRouterByConfigs(getContextParameter("Routers",new ArrayList<Map<String,Object>>()));
+		config.addRouterByList(getContextParameter("Routers",new ArrayList<Map<String,Object>>()));
 
+		//初始化模块
+		config.addModuleByList(getContextParameter("Modules",new ArrayList<Map<String,Object>>()));
 		Logger.simple("=============================================================================================");
 
 		return config;
@@ -144,10 +148,10 @@ public class WebContext {
 		Logger.simple("\tKeepAliveTimeout:\t\t"+config.getKeepAliveTimeout());
 		Logger.simple("\tGzip:\t\t\t\t\t"+ config.isGzip());
 		Logger.simple("\tAccessLog:\t\t\t\t"+ config.isAccessLog());
-		if(config.getCertificateFile()!=null) {
-			Logger.simple("\tCertificateFile:\t\t" + config.getCertificateFile());
-			Logger.simple("\tCertificatePassword:\t" + config.getCertificatePassword());
-			Logger.simple("\tKeyPassword:\t\t\t" + config.getKeyPassword());
+		if(config.isHttps()) {
+			Logger.simple("\tCertificateFile:\t\t" + config.getHttps().getCertificateFile());
+			Logger.simple("\tCertificatePassword:\t" + config.getHttps().getCertificatePassword());
+			Logger.simple("\tKeyPassword:\t\t\t" + config.getHttps().getKeyPassword());
 		}
 		Logger.simple("=============================================================================================");
 	}
@@ -158,7 +162,7 @@ public class WebContext {
 	 * @param response	HTTP 响应对象
 	 * @return 日志信息
 	 */
-	private static String genAccessLog(HttpRequest request,HttpResponse response){
+	private static String genAccessLog(HttpRequest request, HttpResponse response){
 		StringBuilder content = new StringBuilder();
 		content.append("["+TDateTime.now()+"]");
 		content.append(" "+TString.rightPad(request.getRemoteAddres(),15,' '));
@@ -178,7 +182,7 @@ public class WebContext {
 	 * @param request HTTP 请求对象
 	 * @param response HTTP 响应对象
 	 */
-    protected static void writeAccessLog(HttpRequest request,HttpResponse response){
+    public static void writeAccessLog(HttpRequest request,HttpResponse response){
 		//配置文件控制是否写入 access.log
 		//监控程序的不写出 access.log
 		if(webServerConfig.isAccessLog() && !request.protocol().getPath().contains("/VoovanMonitor/")) {
@@ -202,7 +206,7 @@ public class WebContext {
 	 * 获取 mime 定义
 	 * @return  MIME 定义 Map
 	 */
-    protected static Map<String, Object> getMimeDefine() {
+   public static Map<String, Object> getMimeDefine() {
 		byte[] mimeDefBytes = TFile.loadResource("org/voovan/http/server/conf/mime.json");
 		Map<String, Object> mimeDefMap = new ConcurrentHashMap<String, Object>();
 		try {
@@ -220,7 +224,7 @@ public class WebContext {
 	 * 获取错误输出定义
 	 * @return  错误输出定义
 	 */
-    protected static Map<String, Object> getErrorDefine() {
+    public static Map<String, Object> getErrorDefine() {
 		return ERROR_DEFINE;
 	}
 
@@ -244,7 +248,7 @@ public class WebContext {
 	 * 默认错误输出定义
 	 * @return 错误输出定义
      */
-    protected static String getDefaultErrorPage(){
+    public static String getDefaultErrorPage(){
 		return "RequestMethod: {{RequestMethod}} <hr/>" +
 				"StatusCode: {{StatusCode}} <hr/>" +
 				"RequestPath: {{RequestPath}} <hr/>" +

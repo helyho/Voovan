@@ -1,5 +1,8 @@
-package org.voovan.http.server;
+package org.voovan.http.server.context;
 
+import org.voovan.http.server.context.HttpFilterConfig;
+import org.voovan.http.server.context.HttpRouterConfig;
+import org.voovan.http.server.context.HttpsConfig;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TReflect;
 import org.voovan.tools.log.Logger;
@@ -30,31 +33,27 @@ public class WebServerConfig {
     private int sessionTimeout      = 30;
     private int keepAliveTimeout    = 60;
     private boolean accessLog       = true;
-    private boolean monitor         = false;
     private boolean gzip            = true;
-    private String certificateFile;
-    private String certificatePassword;
-    private String keyPassword;
+    private HttpsConfig https;
     private String indexFiles = "index.htm,index.html,default.htm,default.htm";
 
-
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
-
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
+    private List<HttpModuleConfig> moduleConfigs = new Vector<HttpModuleConfig>();
 
-    protected void setHost(String host) {
+    public void setHost(String host) {
         this.host = host;
     }
 
-    protected void setPort(int port) {
+    public void setPort(int port) {
         this.port = port;
     }
 
-    protected void setTimeout(int timeout) {
+    public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
 
-    protected void setContextPath(String contextPath) {
+    public void setContextPath(String contextPath) {
         this.contextPath = contextPath;
     }
 
@@ -62,23 +61,23 @@ public class WebServerConfig {
         return MatchRouteIgnoreCase;
     }
 
-    protected void setMatchRouteIgnoreCase(boolean matchRouteIgnoreCase) {
+    public void setMatchRouteIgnoreCase(boolean matchRouteIgnoreCase) {
         MatchRouteIgnoreCase = matchRouteIgnoreCase;
     }
 
-    protected void setCharacterSet(String characterSet) {
+    public void setCharacterSet(String characterSet) {
         this.characterSet = characterSet;
     }
 
-    protected void setSessionContainer(String sessionContainer) {
+    public void setSessionContainer(String sessionContainer) {
         this.sessionContainer = sessionContainer;
     }
 
-    protected void setSessionTimeout(int sessionTimeout) {
+    public void setSessionTimeout(int sessionTimeout) {
         this.sessionTimeout = sessionTimeout;
     }
 
-    protected void setKeepAliveTimeout(int keepAliveTimeout) {
+    public void setKeepAliveTimeout(int keepAliveTimeout) {
         this.keepAliveTimeout = keepAliveTimeout;
     }
 
@@ -118,55 +117,35 @@ public class WebServerConfig {
         return gzip;
     }
 
-    protected void setGzip(boolean gzip) {
+    public void setGzip(boolean gzip) {
         this.gzip = gzip;
-    }
-
-    public String getCertificateFile() {
-        return certificateFile;
-    }
-
-    protected void setCertificateFile(String certificateFile) {
-        this.certificateFile = certificateFile;
-    }
-
-    public String getCertificatePassword() {
-        return certificatePassword;
-    }
-
-    protected void setCertificatePassword(String certificatePassword) {
-        this.certificatePassword = certificatePassword;
-    }
-
-    public String getKeyPassword() {
-        return keyPassword;
-    }
-
-    protected void setKeyPassword(String keyPassword) {
-        this.keyPassword = keyPassword;
     }
 
     public boolean isAccessLog() {
         return accessLog;
     }
 
-    protected void setAccessLog(boolean accessLog) {
+    public void setAccessLog(boolean accessLog) {
         this.accessLog = accessLog;
     }
 
-    public boolean isMonitor() {
-        return monitor;
+    public HttpsConfig getHttps() {
+        return https;
     }
 
-    protected void setMonitor(boolean monitor) {
-        this.monitor = monitor;
+    public boolean isHttps(){
+        return https!=null?true:false;
+    }
+
+    public void setHttps(HttpsConfig https) {
+        this.https = https;
     }
 
     public String[] getIndexFiles() {
         return indexFiles.split(",");
     }
 
-    protected void setIndexFiles(String indexFiles) {
+    public void setIndexFiles(String indexFiles) {
         this.indexFiles = indexFiles;
     }
 
@@ -178,18 +157,22 @@ public class WebServerConfig {
         return routerConfigs;
     }
 
+    public List<HttpModuleConfig> getModuleonfigs() {
+        return moduleConfigs;
+    }
     /**
-     * 增加一个过滤器
-     * 其中 name 和 className 会被初始化成过滤器的属性,其他会被初始化成过滤器的参数
+     * 使用列表初始话过滤器链
      *
-     * @param configMap 过滤器配置 Map
+     * @param filterInfoList 过滤器信息列表
      */
-    public void addFilterConfig(Map<String, Object> configMap) {
-        HttpFilterConfig httpFilterConfig = new HttpFilterConfig(configMap);
-        filterConfigs.addLast(httpFilterConfig);
-        Logger.simple("\tLoad HttpFilter ["+httpFilterConfig.getName()+
-                "] by ["+ httpFilterConfig.getClassName()+"]");
-        filterConfigs.rewind();
+    public void addFilterByList(List<Map<String, Object>> filterInfoList) {
+        for (Map<String, Object> filterConfigMap : filterInfoList) {
+            HttpFilterConfig httpFilterConfig = new HttpFilterConfig(filterConfigMap);
+            filterConfigs.addLast(httpFilterConfig);
+            Logger.simple("\tLoad HttpFilter ["+httpFilterConfig.getName()+
+                    "] by ["+ httpFilterConfig.getClassName()+"]");
+            filterConfigs.rewind();
+        }
     }
 
     /**
@@ -197,22 +180,27 @@ public class WebServerConfig {
      *
      * @param routerInfoList  路由处理器信息列表
      */
-    public void addRouterByConfigs(List<Map<String, Object>>  routerInfoList) {
+    public void addRouterByList(List<Map<String, Object>>  routerInfoList) {
         for (Map<String, Object> routerInfoMap : routerInfoList) {
             HttpRouterConfig httpRouterConfig = new HttpRouterConfig(routerInfoMap);
-           routerConfigs.add(httpRouterConfig);
+            routerConfigs.add(httpRouterConfig);
             Logger.simple("\tLoad HttpRouter ["+httpRouterConfig.getName()+"] by Method ["+httpRouterConfig.getMethod()+
                     "] on route ["+httpRouterConfig.getRoute()+"] by ["+ httpRouterConfig.getClassName()+"]");
         }
     }
+
+
     /**
-     * 使用列表初始话过滤器链
+     * 使用列表初始话路由处理器
      *
-     * @param filterInfoList 过滤器信息列表
+     * @param moduleInfoList  路由处理器信息列表
      */
-    public void addFilterByConfigs(List<Map<String, Object>> filterInfoList) {
-        for (Map<String, Object> filterConfigMap : filterInfoList) {
-            this.addFilterConfig(filterConfigMap);
+    public void addModuleByList(List<Map<String, Object>>  moduleInfoList) {
+        for (Map<String, Object> moduleInfoMap : moduleInfoList) {
+            HttpModuleConfig httpModuleConfig = new HttpModuleConfig(moduleInfoMap);
+            moduleConfigs.add(httpModuleConfig);
+            Logger.simple("\tLoad HttpModule ["+httpModuleConfig.getName()+"] " +
+                    "by ["+ httpModuleConfig.getClassName()+"]");
         }
     }
 
@@ -233,12 +221,6 @@ public class WebServerConfig {
         }
         return "ReflectiveOperationException error by TReflect.getFieldValues Method. ";
     }
-
-    /**
-     * 构造一个空的实例
-     * @return 过滤器对象
-     */
-    public static HttpFilterConfig newFilterConfig(){
-        return new HttpFilterConfig();
-    }
 }
+
+

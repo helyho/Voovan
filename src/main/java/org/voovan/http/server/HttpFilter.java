@@ -1,5 +1,7 @@
 package org.voovan.http.server;
 
+import org.voovan.http.server.context.HttpFilterConfig;
+
 /**
  * Http 服务过滤器接口
  * @author helyho

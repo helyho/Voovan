@@ -2,7 +2,7 @@ package org.voovan.http.server.websocket;
 
 import org.voovan.http.server.HttpDispatcher;
 import org.voovan.http.server.HttpRequest;
-import org.voovan.http.server.WebServerConfig;
+import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.websocket.WebSocketFrame.Opcode;
 import org.voovan.network.IoSession;

@@ -2,6 +2,8 @@ package org.voovan.http.server;
 
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
+import org.voovan.http.server.context.WebContext;
+import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.websocket.WebSocketDispatcher;
 import org.voovan.http.server.websocket.WebSocketDispatcher.WebSocketEvent;
 import org.voovan.http.server.websocket.WebSocketFrame;
@@ -32,7 +34,7 @@ import java.util.TimerTask;
 public class HttpServerHandler implements IoHandler {
 	private HttpDispatcher		httpDispatcher;
 	private WebSocketDispatcher	webSocketDispatcher;
-	private WebServerConfig		webConfig;
+	private WebServerConfig webConfig;
 	private Timer keepAliveTimer;
 	private List<IoSession> keepAliveSessionList;
 
