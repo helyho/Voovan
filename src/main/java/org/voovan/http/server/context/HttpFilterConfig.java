@@ -1,5 +1,6 @@
-package org.voovan.http.server;
+package org.voovan.http.server.context;
 
+import org.voovan.http.server.HttpFilter;
 import org.voovan.tools.TReflect;
 import org.voovan.tools.log.Logger;
 
@@ -35,6 +36,20 @@ public class HttpFilterConfig {
             } else {
                 paramters.put(entry.getKey(), entry.getValue());
             }
+        }
+    }
+
+    /**
+     * 构造函数
+     * @param name   过滤器名称
+     * @param className  过滤器类
+     * @param parameters  过滤器参数
+     */
+    public HttpFilterConfig(String name, String className, Map<String, Object> parameters){
+        this.name = name;
+        this.className = className;
+        if(parameters!=null) {
+            this.paramters = parameters;
         }
     }
 
@@ -100,7 +115,7 @@ public class HttpFilterConfig {
      *
      * @return 过滤器实例
      */
-    protected HttpFilter getHttpFilterInstance() {
+    public HttpFilter getHttpFilterInstance() {
         try {
             //单例模式
             if (httpFilter == null) {
@@ -111,5 +126,27 @@ public class HttpFilterConfig {
             Logger.error("New HttpFilter["+className+"] error.",e);
             return null;
         }
+    }
+
+    /**
+     * 新的过滤器配置对象
+     * @param name   过滤器名称
+     * @param className  过滤器类
+     * @param parameters  过滤器参数
+     * @return 过滤器配置对象
+     */
+    public static HttpFilterConfig newInstance(String name, String className, Map<String, Object> parameters){
+        return new HttpFilterConfig(name,className,parameters);
+    }
+
+    /**
+     * 新的过滤器配置对象
+     * @param name   过滤器名称
+     * @param clazz  过滤器类
+     * @param parameters  过滤器参数
+     * @return 过滤器配置对象
+     */
+    public static HttpFilterConfig newInstance(String name, Class clazz, Map<String, Object> parameters){
+        return new HttpFilterConfig(name,clazz.getCanonicalName(),parameters);
     }
 }

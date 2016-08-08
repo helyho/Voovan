@@ -199,7 +199,12 @@ public class TReflect {
 	public static <T> T newInstance(Class<T> clazz, Object ...parameters)
 			throws ReflectiveOperationException {
 		Class<?>[] parameterTypes = getArrayClasses(parameters);
-		Constructor<T> constructor = clazz.getConstructor(parameterTypes);
+		Constructor<T> constructor = null;
+		if(parameters.length==0){
+			constructor = clazz.getConstructor();
+		}else {
+			constructor = clazz.getConstructor(parameterTypes);
+		}
 		return constructor.newInstance(parameters);
 	}
 	

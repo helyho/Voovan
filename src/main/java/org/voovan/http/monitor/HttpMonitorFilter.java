@@ -3,7 +3,7 @@ package org.voovan.http.monitor;
 import org.voovan.http.server.HttpFilter;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
-import org.voovan.http.server.HttpFilterConfig;
+import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.tools.TEnv;
 
 import java.util.HashMap;

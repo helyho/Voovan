@@ -1,5 +1,6 @@
-package org.voovan.http.server;
+package org.voovan.http.server.context;
 
+import org.voovan.http.server.HttpRouter;
 import org.voovan.tools.TReflect;
 import org.voovan.tools.log.Logger;
 
@@ -117,7 +118,7 @@ public class HttpRouterConfig {
      *
      * @return 过滤器实例
      */
-    protected HttpRouter getHttpRouterInstance() {
+    public HttpRouter getHttpRouterInstance() {
         try {
             //单例模式
             if (httpRouter == null) {
