@@ -108,9 +108,6 @@ public class MonitorHandler implements HttpRouter {
         String jsonStr = null;
         try {
             jsonStr = JSONEncode.fromObject(obj);
-            jsonStr=jsonStr.replace("\\", "\\/");
-            jsonStr=jsonStr.replace("\r", "\\r");
-            jsonStr=jsonStr.replace("\n", "\\n");
             return jsonStr;
         } catch (ReflectiveOperationException e) {
             Logger.error(e);
