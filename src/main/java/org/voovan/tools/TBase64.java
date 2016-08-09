@@ -1,13 +1,13 @@
 package org.voovan.tools;
 
 /**
- * 类文字命名
+ * Base64算法
  *
  * @author helyho
- *         <p>
- *         Voovan Framework.
- *         WebSite: https://github.com/helyho/Voovan
- *         Licence: Apache v2 License
+ * <p>
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class TBase64 {
     static private final int  BASELENGTH         = 128;
@@ -71,12 +71,6 @@ public class TBase64 {
         return (isWhiteSpace(octect) || isPad(octect) || isData(octect));
     }
 
-    /**
-     * Encodes hex octects into Base64
-     *
-     * @param binaryData Array containing binaryData
-     * @return Encoded Base64 array
-     */
     public static String encode(byte[] binaryData) {
 
         if (binaryData == null)
@@ -162,12 +156,6 @@ public class TBase64 {
         return new String(encodedData);
     }
 
-    /**
-     * Decodes Base64 data into octects
-     *
-     * @param encoded string containing Base64 data
-     * @return Array containind decoded data.
-     */
     public static byte[] decode(String encoded) {
 
         if (encoded == null)
@@ -256,12 +244,6 @@ public class TBase64 {
         return decodedData;
     }
 
-    /**
-     * remove WhiteSpace from MIME containing encoded Base64 data.
-     *
-     * @param data  the byte array of base64 data (with WS)
-     * @return      the new length
-     */
     protected static int removeWhiteSpace(char[] data) {
         if (data == null)
             return 0;
