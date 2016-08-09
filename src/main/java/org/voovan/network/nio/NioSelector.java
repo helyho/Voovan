@@ -86,8 +86,7 @@ public class NioSelector {
 									}
 									// 有数据读取
 									case SelectionKey.OP_READ: {
-											int readSize = 0;
-											readSize = socketChannel.read(readTempBuffer);
+                                            int readSize = socketChannel.read(readTempBuffer);
 											//判断连接是否关闭
 											if(MessageLoader.isRemoteClosed(readSize,readTempBuffer) && session.isConnect()){
 												session.close();
@@ -120,8 +119,9 @@ public class NioSelector {
 			// 触发连接断开事件
 			eventTrigger.fireDisconnectThread();
 			//关闭线程池
-			if(socketContext instanceof NioServerSocket 
-					||  socketContext.getConnectModel() == ConnectModel.CLIENT){
+			if(socketContext!=null &&
+					(socketContext instanceof NioServerSocket
+					||  socketContext.getConnectModel() == ConnectModel.CLIENT)){
 				eventTrigger.shutdown();
 			}
 		}
