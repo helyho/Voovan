@@ -4,7 +4,6 @@ import org.voovan.tools.log.Logger;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 
 /**
  * hash 算法类
@@ -24,7 +23,7 @@ public class THash {
 	 * @return 解密后字符串
 	 */
 	public static String decryptBASE64(String key) {
-		return  new String(Base64.getDecoder().decode(key));
+		return  new String(TBase64.decode(key));
 	}
 
 	/**
@@ -34,7 +33,7 @@ public class THash {
 	 * @return 加密后字符串
 	 */
 	public static String encryptBASE64(String key) {
-		return Base64.getEncoder().encodeToString(key.getBytes());
+		return TBase64.encode(key.getBytes());
 	}
 
 	/**
@@ -94,4 +93,5 @@ public class THash {
 		}
 		return hash;
 	}
+
 }

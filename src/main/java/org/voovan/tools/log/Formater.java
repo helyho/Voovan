@@ -103,7 +103,7 @@ public class Formater {
 		tokens.put("t", "\t");
 		tokens.put("s", " ");
 		tokens.put("n", "\r\n");
-		tokens.put("I", message.getMessage());            								//日志消息
+		tokens.put("I", preIndentMessage(message)); //日志消息
 		
 		//栈信息独享
 		
@@ -127,7 +127,6 @@ public class Formater {
 	 */
 	public String format(Message message) {
 		Map<String, String> tokens = newLogtokens(message);
-		tokens.replace("I", preIndentMessage(message));
 		return TString.tokenReplace(template, tokens);
 	}
 

@@ -148,7 +148,7 @@ public class Response {
 				if (isCompress) {
 					byte[] gzipedBody = body.getGZipedBody();
 					// 写入 chunk 的长度
-					outputStream.write((Integer.toUnsignedString(gzipedBody.length, 16) + "\r\n").getBytes("UTF-8"));
+					outputStream.write((Integer.toHexString(gzipedBody.length) + "\r\n").getBytes("UTF-8"));
 					outputStream.write(gzipedBody);
 					// chunk结束
 					outputStream.write("\r\n".getBytes("UTF-8"));

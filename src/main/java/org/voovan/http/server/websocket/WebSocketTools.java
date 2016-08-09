@@ -2,11 +2,12 @@ package org.voovan.http.server.websocket;
 
 import org.voovan.http.message.Request;
 import org.voovan.http.message.packet.Header;
+import org.voovan.tools.TBase64;
+import org.voovan.tools.THash;
 import org.voovan.tools.log.Logger;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 
 /**
  * WebSocket 工具类
@@ -45,7 +46,7 @@ public class WebSocketTools {
 		MessageDigest sh1 = null;
 		try {
 			sh1 = MessageDigest.getInstance( "SHA" );
-			return Base64.getEncoder().encodeToString( sh1.digest(acc.getBytes()) );
+			return TBase64.encode( sh1.digest(acc.getBytes()) );
 		} catch ( NoSuchAlgorithmException e ) {
 			Logger.error("No Such Algorithm.", e);
 			return null;
