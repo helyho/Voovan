@@ -247,7 +247,7 @@ public class TReflect {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Object getObjectFromMap(Class<?> clazz,
-		Map<String, Object> mapArg,boolean ignoreCase) throws ReflectiveOperationException, ParseException {
+		Map<String, ?> mapArg,boolean ignoreCase) throws ReflectiveOperationException, ParseException {
 		Object obj = null;
 
 		if(mapArg==null || mapArg.isEmpty()){
@@ -287,7 +287,7 @@ public class TReflect {
 		// 复杂对象
 		else {
 			obj = newInstance(clazz);
-			for(Entry<String,Object> argEntry : mapArg.entrySet()){
+			for(Entry<String,?> argEntry : mapArg.entrySet()){
 				String key = argEntry.getKey();
 				Object value = argEntry.getValue();
 
@@ -305,7 +305,7 @@ public class TReflect {
 					Class<?> fieldType = field.getType();
 
 					if(value instanceof Map){
-						value = getObjectFromMap(fieldType, TObject.cast(value), ignoreCase);
+						value = getObjectFromMap(fieldType,(Map<String, ?>)value, ignoreCase);
 					} else {
 						value = getObjectFromMap(fieldType, TObject.newMap("value", TObject.cast(value)), ignoreCase);
 					}
