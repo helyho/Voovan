@@ -18,6 +18,16 @@ import java.util.Base64;
  * Licence: Apache v2 License
  */
 public class WebSocketTools {
+
+	private WebSocketTools(){
+
+	}
+
+	/**
+	 * s是否是 websocket 升级协议
+	 * @param request
+	 * @return
+     */
 	public static boolean isWebSocketUpgrade(Request request) {
 		Header header = request.header();
 		return header != null && "websocket".equalsIgnoreCase(header.get("Upgrade"))
@@ -35,10 +45,12 @@ public class WebSocketTools {
 		MessageDigest sh1 = null;
 		try {
 			sh1 = MessageDigest.getInstance( "SHA" );
+			return Base64.getEncoder().encodeToString( sh1.digest(acc.getBytes()) );
 		} catch ( NoSuchAlgorithmException e ) {
 			Logger.error("No Such Algorithm.", e);
+			return null;
 		}
-		return Base64.getEncoder().encodeToString( sh1.digest(acc.getBytes()) );
+
 	}
 
 	/**

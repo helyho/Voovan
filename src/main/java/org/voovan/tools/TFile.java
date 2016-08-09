@@ -434,6 +434,7 @@ public class TFile {
 				result.add(jarEntry);
 			}
 		}
+		jarFile.close();
 		return result;
 	}
 

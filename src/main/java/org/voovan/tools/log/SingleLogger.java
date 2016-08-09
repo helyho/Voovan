@@ -78,7 +78,10 @@ public class SingleLogger {
 		}else {
 			singleLog = singleLoggerPool.get(fileName);
 		}
-		singleLog.addLogMessage(msg);
+
+		if(singleLog!=null) {
+			singleLog.addLogMessage(msg);
+		}
 		return singleLog;
 	}
 }
