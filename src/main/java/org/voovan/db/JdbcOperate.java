@@ -202,7 +202,7 @@ public class JdbcOperate {
 
 			return result;
 		} catch (SQLException e) {
-			Logger.error("Batch excution SQL Error! \n SQL is : \n\t" + sqlText.toString() + ":\n\t" + e.getMessage() + "\n",e);
+			Logger.error("Batch excution SQL Error! \n SQL is : \n\t" + sqlText + ":\n\t" + e.getMessage() + "\n",e);
 		} finally {
 			// 非事物模式执行
 			if (!isTrancation) {
@@ -752,15 +752,26 @@ public class JdbcOperate {
 			if (resultSet != null) {
 				resultSet.close();
 			}
-			if (statement != null) {
-				statement.close();
-			}
-			if (connection != null) {
-				connection.close();
-			}
+
 		} catch (SQLException e) {
 			Logger.error(e.getMessage(),e);
 		}
+
+		try {
+            if (statement != null) {
+                statement.close();
+            }
+        } catch (SQLException e) {
+            Logger.error(e.getMessage(),e);
+        }
+
+		try {
+			if (connection != null) {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            Logger.error(e.getMessage(),e);
+        }
 	}
 
 	/**
@@ -781,6 +792,11 @@ public class JdbcOperate {
 
 		try {
 			statement.close();
+		} catch (SQLException e) {
+			Logger.error(e.getMessage(),e);
+		}
+
+		try{
 			if (connection != null) {
 				connection.close();
 			}
