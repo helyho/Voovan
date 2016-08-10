@@ -199,8 +199,8 @@ public class WebServerConfig {
         for (Map<String, Object> moduleInfoMap : moduleInfoList) {
             HttpModuleConfig httpModuleConfig = new HttpModuleConfig(moduleInfoMap);
             moduleConfigs.add(httpModuleConfig);
-            Logger.simple("\tLoad HttpModule ["+httpModuleConfig.getName()+"] " +
-                    "by ["+ httpModuleConfig.getClassName()+"]");
+            Logger.simple("\tLoad HttpModule ["+httpModuleConfig.getName()+"] on [" + httpModuleConfig.getPath() +
+                    "] by ["+ httpModuleConfig.getClassName()+"]");
         }
     }
 
