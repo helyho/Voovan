@@ -36,11 +36,9 @@ public class TEnv {
 	 * @return 控制台输出
 	 * @throws IOException IO 异常
      */
-	public static byte[] createSysProcess(String command) throws IOException {
+	public static Process createSysProcess(String command) throws IOException {
 		Runtime runTime  = Runtime.getRuntime();
-		Process process = runTime.exec(command);
-		InputStream is = process.getInputStream();
-		return TStream.readAll(is);
+		return runTime.exec(command);
 	}
 
 	/**
