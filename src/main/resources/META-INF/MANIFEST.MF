@@ -3,6 +3,4 @@ Implementation-Vendor: Voovan open source
 Implementation-Version: 1.0-alpha-2
 Implementation-Vendor-Id: org.voovan
 Archiver-Version: Plexus Archiver
-Class-Path: ./lib ./classes
-Main-Class: org.voovan.http.server.HttpServer
 Implementation-URL: http://www.voovan.org
