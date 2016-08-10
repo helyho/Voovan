@@ -265,23 +265,10 @@ public class HttpServer {
 	}
 
 	/**
-	 * 读取Classes目录和lib目录中的class或者jar文件
-     */
-	private static void loadContextBin(){
-		try {
-			TEnv.loadBinary(TEnv.getSystemPath("classes"));
-			TEnv.loadJars(TEnv.getSystemPath("lib"));
-		} catch (NoSuchMethodException | IOException | SecurityException e) {
-			Logger.error("Voovan WEBServer Loader ./classes or ./lib error." ,e);
-		}
-	}
-
-	/**
 	 * 启动 HttpServer 服务
 	 * @param args 启动参数
      */
 	public static void main(String[] args) {
-		loadContextBin();
 		HttpServer httpServer = HttpServer.newInstance();
 		httpServer.serve();
 	}
