@@ -1,13 +1,13 @@
 package org.voovan.http.server.context;;
 
 /**
- * 类文字命名
+ * Https配置类
  *
  * @author helyho
- *         <p>
- *         Voovan Framework.
- *         WebSite: https://github.com/helyho/Voovan
- *         Licence: Apache v2 License
+ * <p>
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class HttpsConfig {
     private String certificateFile;

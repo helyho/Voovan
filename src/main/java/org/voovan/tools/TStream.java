@@ -40,18 +40,20 @@ public class TStream {
 	public static String readLine(InputStream inputStream) throws IOException{
 		String lineStr = "";
 		StringBuilder lineStrBuilder= new StringBuilder();
+		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 		while(true){
-			int singleChar = inputStream.read();		
+			int singleChar = inputStream.read();
 			if(singleChar==-1 || singleChar==65535) {
 				break;
 			}
 			else{
-				lineStrBuilder.append(String.valueOf((char)singleChar));
+				byteOutputStream.write(singleChar);
 				if(singleChar == '\n'){
 					break;
 				}
 			}
 		}
+		lineStrBuilder.append(new String(byteOutputStream.toByteArray()));
 		lineStr = lineStrBuilder.toString();
 		return lineStr.isEmpty()?null:lineStr.substring(0,lineStr.length()-2);
 	}
