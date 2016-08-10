@@ -130,7 +130,7 @@ public class TEnv {
 	 */
 	public static void loadBinary(File file) throws NoSuchMethodException, SecurityException, IOException {
 		if(!file.exists()){
-			Logger.error("Method loadBinary, This director["+file.getCanonicalPath()+"] is not exists");
+			Logger.error("Method loadBinary, This ["+file.getCanonicalPath()+"] is not exists");
 		}
 
 		try {
@@ -164,7 +164,7 @@ public class TEnv {
 	 */
 	public static void loadJars(File rootFile) throws IOException, NoSuchMethodException {
 		if(!rootFile.exists()){
-			Logger.error("Method loadJars, This director["+rootFile.getCanonicalPath()+"] is not exists");
+			Logger.error("Method loadJars, This ["+rootFile.getCanonicalPath()+"] is not exists");
 		}
 		if(rootFile.isDirectory()){
 			//文件过滤器取目录中的文件
