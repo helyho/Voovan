@@ -247,24 +247,6 @@ public class HttpServer {
 	}
 
 	/**
-	 * 启动服务
-	 *
-	 * @return HttpServer 对象
-	 */
-	public HttpServer serve() {
-		try {
-			initConfigedRouter();
-			initModule();
-			Logger.simple("Process ID: "+ TEnv.getCurrentPID());
-			Logger.simple("WebServer working on: http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
-			aioServerSocket.start();
-		} catch (IOException e) {
-			Logger.error("Start HTTP server error.",e);
-		}
-		return this;
-	}
-
-	/**
 	 * 读取Classes目录和lib目录中的class或者jar文件
 	 */
 	private static void loadContextBin(){
@@ -277,11 +259,30 @@ public class HttpServer {
 	}
 
 	/**
+	 * 启动服务
+	 *
+	 * @return HttpServer 对象
+	 */
+	public HttpServer serve() {
+		try {
+			loadContextBin();
+			initConfigedRouter();
+			initModule();
+			Logger.simple("Process ID: "+ TEnv.getCurrentPID());
+			Logger.simple("WebServer working on: http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
+			aioServerSocket.start();
+		} catch (IOException e) {
+			Logger.error("Start HTTP server error.",e);
+		}
+		return this;
+	}
+
+	/**
 	 * 启动 HttpServer 服务
 	 * @param args 启动参数
 	 */
 	public static void main(String[] args) {
-		loadContextBin();
+
 		HttpServer httpServer = HttpServer.newInstance();
 		httpServer.serve();
 	}
