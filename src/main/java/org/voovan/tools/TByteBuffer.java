@@ -6,7 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 /**
- * 类文字命名
+ * ByteBuffer 工具类
  *
  * @author helyho
  *

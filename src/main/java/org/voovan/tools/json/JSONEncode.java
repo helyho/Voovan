@@ -14,10 +14,10 @@ import java.util.Map;
  * JSON打包类
  *
  * @author helyho
- *         <p>
- *         Voovan Framework.
- *         WebSite: https://github.com/helyho/Voovan
- *         Licence: Apache v2 License
+ * <p>
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class JSONEncode {
     /**

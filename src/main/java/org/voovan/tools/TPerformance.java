@@ -1,6 +1,7 @@
 package org.voovan.tools;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.math.BigDecimal;
@@ -133,7 +134,8 @@ public class TPerformance {
      */
 	public static Map<String,ObjectInfo> getSysObjectInfo(long pid,String regex) throws IOException {
 		Hashtable<String,ObjectInfo> result = new Hashtable<String,ObjectInfo>();
-		String console = new String(TEnv.createSysProcess("jmap -histo "+pid));
+		InputStream processInputStream = TEnv.createSysProcess("jmap -histo "+pid).getInputStream();
+		String console = new String(TStream.readAll(processInputStream));
 		String[] consoleLines = console.split(System.lineSeparator());
 		for(int lineCount = 3;lineCount<consoleLines.length;lineCount++){
 			String lineContent = consoleLines[lineCount];
