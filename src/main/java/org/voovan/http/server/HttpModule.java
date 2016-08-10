@@ -1,6 +1,7 @@
 package org.voovan.http.server;
 
 import org.voovan.http.server.context.HttpFilterConfig;
+import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.tools.Chain;
 
 import java.util.Map;
@@ -16,7 +17,7 @@ import java.util.Map;
  */
 public abstract class HttpModule {
     private HttpServer httpServer;
-    private Map<String,Object> paramters;
+    private HttpModuleConfig moduleConfig;
 
     public HttpModule(){
 
@@ -25,11 +26,10 @@ public abstract class HttpModule {
     /**
      * 初始化模块操作
      * @param httpServer httpServer对象
-     * @param paramters 模块配置参数
      */
-    public void init(HttpServer httpServer,Map<String,Object> paramters){
+    public void init(HttpServer httpServer,HttpModuleConfig moduleConfig){
         this.httpServer = httpServer;
-        this.paramters = paramters;
+        this.moduleConfig = moduleConfig;
     }
 
     /**
@@ -38,7 +38,7 @@ public abstract class HttpModule {
      * @return
      */
     public Object getParamters(String name){
-        return paramters.get(name);
+        return moduleConfig.getParameters().get(name);
     }
 
     /**
@@ -48,7 +48,8 @@ public abstract class HttpModule {
      * @return HttpServer对象
      */
     public void get(String routeRegexPath, HttpRouter router) {
-        httpServer.get(routeRegexPath,router);
+        String routePath = moduleConfig.getPath()+routeRegexPath;
+        httpServer.get(routePath,router);
     }
 
     /**
@@ -58,7 +59,8 @@ public abstract class HttpModule {
      * @return HttpServer对象
      */
     public void post(String routeRegexPath, HttpRouter router) {
-        httpServer.post(routeRegexPath,router);
+        String routePath = moduleConfig.getPath()+routeRegexPath;
+        httpServer.post(routePath,router);
     }
 
     /**
@@ -68,7 +70,8 @@ public abstract class HttpModule {
      * @return HttpServer对象
      */
     public void head(String routeRegexPath, HttpRouter router) {
-        httpServer.head(routeRegexPath,router);
+        String routePath = moduleConfig.getPath()+routeRegexPath;
+        httpServer.head(routePath,router);
     }
 
     /**
@@ -78,7 +81,8 @@ public abstract class HttpModule {
      * @return HttpServer对象
      */
     public void put(String routeRegexPath, HttpRouter router) {
-        httpServer.put(routeRegexPath,router);
+        String routePath = moduleConfig.getPath()+routeRegexPath;
+        httpServer.put(routePath,router);
     }
 
     /**
@@ -88,7 +92,8 @@ public abstract class HttpModule {
      * @return HttpServer对象
      */
     public void delete(String routeRegexPath, HttpRouter router) {
-       httpServer.delete(routeRegexPath,router);
+       String routePath = moduleConfig.getPath()+routeRegexPath;
+       httpServer.delete(routePath,router);
     }
 
     /**
@@ -98,7 +103,8 @@ public abstract class HttpModule {
      * @return HttpServer对象
      */
     public void trace(String routeRegexPath, HttpRouter router) {
-        httpServer.trace(routeRegexPath,router);
+        String routePath = moduleConfig.getPath()+routeRegexPath;
+        httpServer.trace(routePath,router);
     }
 
     /**
@@ -108,7 +114,8 @@ public abstract class HttpModule {
      * @return HttpServer对象
      */
     public void connect(String routeRegexPath, HttpRouter router) {
-        httpServer.connect(routeRegexPath,router);
+        String routePath = moduleConfig.getPath()+routeRegexPath;
+        httpServer.connect(routePath,router);
     }
 
     /**
@@ -118,7 +125,8 @@ public abstract class HttpModule {
      * @return HttpServer对象
      */
     public void options(String routeRegexPath, HttpRouter router) {
-        httpServer.options(routeRegexPath,router);
+        String routePath = moduleConfig.getPath()+routeRegexPath;
+        httpServer.options(routePath,router);
     }
 
     /**
@@ -129,7 +137,8 @@ public abstract class HttpModule {
      * @return HttpServer对象
      */
     public void otherMethod(String method, String routeRegexPath, HttpRouter router) {
-        httpServer.otherMethod(method,routeRegexPath,router);
+        String routePath = moduleConfig.getPath()+routeRegexPath;
+        httpServer.otherMethod(method,routePath,router);
     }
 
     /**
