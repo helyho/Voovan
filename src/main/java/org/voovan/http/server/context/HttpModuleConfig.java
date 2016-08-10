@@ -20,6 +20,7 @@ import java.util.Map;
  */
 public class HttpModuleConfig {
     private String name;
+    private String path;
     private String className;
     private Map<String, Object> paramters = new HashMap<String, Object>();
     private HttpModule httpModule;
@@ -28,7 +29,9 @@ public class HttpModuleConfig {
         for (Map.Entry<String, Object> entry : configMap.entrySet()) {
             if ("Name".equalsIgnoreCase(entry.getKey())) {
                 this.name = (String) entry.getValue();
-            } else if ("ClassName".equalsIgnoreCase(entry.getKey())) {
+            }else if ("Path".equalsIgnoreCase(entry.getKey())) {
+                this.path = (String) entry.getValue();
+            }else if ("ClassName".equalsIgnoreCase(entry.getKey())) {
                 this.className = (String) entry.getValue();
             } else {
                 paramters.put(entry.getKey(), entry.getValue());
@@ -42,6 +45,14 @@ public class HttpModuleConfig {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public String getClassName() {
@@ -80,7 +91,7 @@ public class HttpModuleConfig {
             //单例模式
             if (httpModule == null) {
                 httpModule = TReflect.newInstance(className);
-                httpModule.init(httpServer,paramters);
+                httpModule.init(httpServer,this);
             }
             return httpModule;
         } catch (ReflectiveOperationException e) {
