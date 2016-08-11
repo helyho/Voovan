@@ -1,6 +1,7 @@
 package org.voovan.http.server.context;
 
 import org.voovan.http.server.HttpRouter;
+import org.voovan.tools.TObject;
 import org.voovan.tools.TReflect;
 import org.voovan.tools.log.Logger;
 
@@ -70,7 +71,7 @@ public class HttpRouterConfig {
      * @return 路由路径
      */
     public String getRoute() {
-        return route;
+        return TObject.nullDefault(route,"/");
     }
 
     /**
