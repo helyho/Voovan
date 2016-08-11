@@ -3,6 +3,7 @@ package org.voovan.http.server.context;
 import org.voovan.http.server.HttpFilter;
 import org.voovan.http.server.HttpModule;
 import org.voovan.http.server.HttpServer;
+import org.voovan.tools.TObject;
 import org.voovan.tools.TReflect;
 import org.voovan.tools.log.Logger;
 
@@ -48,7 +49,7 @@ public class HttpModuleConfig {
     }
 
     public String getPath() {
-        return path;
+        return TObject.nullDefault(path,"/");
     }
 
     public void setPath(String path) {
