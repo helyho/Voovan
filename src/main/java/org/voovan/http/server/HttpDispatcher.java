@@ -9,6 +9,7 @@ import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.router.MimeFileRouter;
 import org.voovan.tools.*;
 import org.voovan.tools.log.Logger;
+import sun.rmi.runtime.Log;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -105,6 +106,7 @@ public class HttpDispatcher {
 	 */
 	public void addRouteHandler(String method, String routeRegexPath, HttpRouter router) {
 		if (methodRouters.keySet().contains(method)) {
+			routeRegexPath = routeRegexPath.replaceAll("\\/{2,9}","/");
 			methodRouters.get(method).put(routeRegexPath, router);
 		}
 	}
