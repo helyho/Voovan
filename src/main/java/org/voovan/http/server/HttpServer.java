@@ -204,8 +204,9 @@ public class HttpServer {
 	 * @param routeRegexPath 匹配路径
 	 * @param router WebSocket处理句柄
      */
-	public void socket(String routeRegexPath, WebSocketRouter router) {
+	public HttpServer socket(String routeRegexPath, WebSocketRouter router) {
 		webSocketDispatcher.addRouteHandler(routeRegexPath, router);
+		return this;
 	}
 
 	/**
