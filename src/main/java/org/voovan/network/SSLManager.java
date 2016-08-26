@@ -69,12 +69,12 @@ public class SSLManager {
 			keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
 			trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
 			
-			KeyStore manageKeystore = KeyStore.getInstance(KeyStore.getDefaultType());
+			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
 			certFIS = new FileInputStream(manageCertFile);
-			manageKeystore.load(certFIS, certPassword.toCharArray());
+			keystore.load(certFIS, certPassword.toCharArray());
 
-			keyManagerFactory.init(manageKeystore, keyPassword.toCharArray());
-			trustManagerFactory.init(manageKeystore);
+			keyManagerFactory.init(keystore , keyPassword.toCharArray());
+			trustManagerFactory.init(keystore );
 		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException e) {
 			throw new SSLException("Init SSLContext Error: "+e.getMessage(),e);
 		}finally {
