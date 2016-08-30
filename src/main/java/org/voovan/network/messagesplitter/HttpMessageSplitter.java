@@ -39,6 +39,7 @@ public class HttpMessageSplitter implements MessageSplitter {
 			String bufferString = new String(buffer,"UTF-8");
 			String[] boundaryLines = TString.searchByRegex(bufferString, "boundary=[^ \\r\\n]+");
 			String[] contentLengthLines = TString.searchByRegex(bufferString, "Content-Length: \\d+");
+			boolean isChunked = bufferString.contains("chunked");
 
 			// 包含\r\n\r\n,这个时候报文有可能加载完成
 			if (bufferString.contains(BODY_TAG)) {
@@ -61,13 +62,12 @@ public class HttpMessageSplitter implements MessageSplitter {
 
 				// 3. 如果是 HTTP 响应报文 chunk
 				// 则trim 后判断最后一个字符是否是 0
-				if (bufferString.contains("chunked")
-						&& bufferString.trim().endsWith("\r\n0")) {
+				if (isChunked && bufferString.trim().endsWith("\r\n0")) {
 					return true;
 				}
 
-				// 4 HEAD,CONNECT,DELETE,GET,TRACE,OPTIONS等请求,没有报文内容
-				if (contentLengthLines.length == 0) {
+				// 4.是否是无报文体的简单请求报文(1.Header 中没有 ContentLength / 2.非 Chunked 报文形式)
+				if (contentLengthLines.length == 0 && !isChunked) {
 					return true;
 				}
 			}
