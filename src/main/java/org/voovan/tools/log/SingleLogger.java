@@ -62,7 +62,7 @@ public class SingleLogger {
 		loggerThread.addLogMessage(msg);
 	}
 	
-	public static synchronized SingleLogger writeLog(String fileName,String msg) {
+	public static SingleLogger writeLog(String fileName,String msg) {
 		SingleLogger singleLog = null;
 		if(!singleLoggerPool.containsKey(fileName) || singleLoggerPool.get(fileName).isFinished()) {
 			try {
@@ -71,7 +71,9 @@ public class SingleLogger {
 				outputStream = new FileOutputStream(fileName, true);
 				LoggerThread loggerThread = LoggerThread.start(new OutputStream[]{outputStream});
 				singleLog.setLoggerThread(loggerThread);
-				singleLoggerPool.put(fileName,singleLog);
+				synchronized (singleLoggerPool) {
+					singleLoggerPool.put(fileName, singleLog);
+				}
 			} catch (FileNotFoundException e) {
 				Logger.error("[SingleLogger] log file "+fileName+" not found.",e);
 			}
