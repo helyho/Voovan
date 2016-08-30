@@ -24,8 +24,10 @@ public class ByteBufferChannel implements ByteChannel {
 	/**
 	 * 重置
 	 */
-	public synchronized void reset() {
-		buffer = ByteBuffer.allocateDirect(0);
+	public  void reset() {
+        synchronized(buffer) {
+            buffer = ByteBuffer.allocateDirect(0);
+        }
 	}
 	
 	/**
@@ -40,12 +42,12 @@ public class ByteBufferChannel implements ByteChannel {
 	 * 当前数据缓冲区
 	 * @return 数据缓冲区
      */
-	public synchronized ByteBuffer getBuffer(){
+	public ByteBuffer getBuffer(){
 		return buffer;
 	}
 	
 	@Override
-	public synchronized int read(ByteBuffer dst) throws IOException {
+	public int read(ByteBuffer dst) throws IOException {
 			int readSize = 0;
 			
 			//确定读取大小
@@ -54,16 +56,20 @@ public class ByteBufferChannel implements ByteChannel {
 			}else{
 				readSize = dst.limit();
 			}
-			
-			if(readSize>0)
-			{
-				dst.put(TByteBuffer.toArray(buffer),0,readSize);
-				buffer.position(readSize);
-				byte[] tempBytes = new byte[buffer.remaining()];
-				buffer.get(tempBytes,0,buffer.remaining());
-				buffer = ByteBuffer.wrap(tempBytes);
-			}
-			dst.flip();
+
+            synchronized(dst) {
+                if (readSize > 0) {
+                    synchronized (buffer) {
+                        dst.put(TByteBuffer.toArray(buffer), 0, readSize);
+                        buffer.position(readSize);
+                        byte[] tempBytes = new byte[buffer.remaining()];
+                        buffer.get(tempBytes, 0, buffer.remaining());
+                        buffer = ByteBuffer.wrap(tempBytes);
+                    }
+                }
+                dst.flip();
+            }
+
 			return readSize;
 	}
 
@@ -84,12 +90,13 @@ public class ByteBufferChannel implements ByteChannel {
 	}
 
 	@Override
-	public synchronized int write(ByteBuffer src) throws IOException {
+	public int write(ByteBuffer src) throws IOException {
 		if(src.limit()!=0){
 			int newSize = buffer.limit()+src.limit();
 			ByteBuffer tempBuffer = ByteBuffer.allocateDirect(newSize);
 			tempBuffer.put(buffer);
 			tempBuffer.put(src);
+			buffer.clear();
 			buffer = tempBuffer;
 			buffer.flip();
 		}

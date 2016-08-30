@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 日志输出线程
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class LoggerThread implements Runnable {
 	private ArrayBlockingQueue<String>	logQueue;
 	private OutputStream[] outputStreams;
-	private boolean finished = true;
+	private AtomicBoolean finished = new AtomicBoolean(true);
 
 	/**
 	 * 构造函数
@@ -32,8 +33,8 @@ public class LoggerThread implements Runnable {
 		this.outputStreams = outputStreams;
 	}
 	
-	public synchronized boolean isFinished() {
-		return finished;
+	public boolean isFinished() {
+		return finished.get();
 	}
 	
 	/**
@@ -49,9 +50,7 @@ public class LoggerThread implements Runnable {
 	 * @param outputStreams 输出流数组
 	 */
 	public void setOutputStreams(OutputStream[] outputStreams) {
-		synchronized(outputStreams){
-			this.outputStreams = outputStreams;
-		}
+        this.outputStreams = outputStreams;
 	}
 
 	/**
@@ -80,7 +79,9 @@ public class LoggerThread implements Runnable {
 
 	@Override
 	public void run() {
-		finished = false;
+
+        finished.set(false);
+
 		int count = 0;
 		while (true) {
 			try {
@@ -109,7 +110,8 @@ public class LoggerThread implements Runnable {
 			}
 		}
 
-		finished = true;
+        finished.set(true);
+
 	}
 	
 	/**

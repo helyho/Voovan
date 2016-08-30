@@ -351,7 +351,7 @@ public class HttpClient {
 	 * 判断是否处于连接状态
 	 * @return 是否连接
 	 */
-	public synchronized boolean isConnect(){
+	public boolean isConnect(){
 		return socket.isConnect();
 	}
 

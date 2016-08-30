@@ -77,13 +77,11 @@ public class SessionManager{
 	 * @return HTTP-Session对象
 	 */
 	public HttpSession getSession(String id) {
-		synchronized(sessions){
-			clearInvalidSession();
-			if (id!=null && sessions.containsKey(id)) {
-				return sessions.get(id).refresh();
-			}
-			return null;
-		}
+        clearInvalidSession();
+        if (id!=null && sessions.containsKey(id)) {
+            return sessions.get(id).refresh();
+        }
+        return null;
 	}
 	
 	/**
@@ -93,13 +91,11 @@ public class SessionManager{
 	 * @return HTTP-Session对象
 	 */
 	public HttpSession getSession(Cookie cookie) {
-		synchronized(sessions){
-			clearInvalidSession();
-			if (cookie!=null && sessions.containsKey(cookie.getValue())) {
-				return sessions.get(cookie.getValue()).refresh();
-			}
-			return null;
-		}
+        clearInvalidSession();
+        if (cookie!=null && sessions.containsKey(cookie.getValue())) {
+            return sessions.get(cookie.getValue()).refresh();
+        }
+        return null;
 	}
 
 	/**
@@ -108,13 +104,11 @@ public class SessionManager{
 	 * @return 是否存在
 	 */
 	public boolean containsSession(Cookie cookie) {
-		synchronized(sessions){
-			if(cookie==null){
-				return false;
-			} else { 
-				return getSession(cookie) != null;
-			}
-		}
+        if(cookie==null){
+            return false;
+        } else {
+            return getSession(cookie) != null;
+        }
 	}
 	
 	/**
@@ -123,23 +117,21 @@ public class SessionManager{
 	 * @return session 失效时间
 	 */
 	public List<HttpSession> getInvalidSession() {
-		synchronized(sessions){
-			List<HttpSession> needRemove = new ArrayList<HttpSession>();
-			for (HttpSession session : sessions.values()) {
-				if (session.isInvalid()) {
-					needRemove.add(session);
-				}
-			}
-			return needRemove;
-		}
+        List<HttpSession> needRemove = new ArrayList<HttpSession>();
+        for (HttpSession session : sessions.values()) {
+            if (session.isInvalid()) {
+                needRemove.add(session);
+            }
+        }
+        return needRemove;
 	}
 	
 	/**
 	 * 清理失效的 session
 	 */
 	public void clearInvalidSession() {
+        List<HttpSession> needRemove = getInvalidSession();
 		synchronized(sessions){
-			List<HttpSession> needRemove = getInvalidSession();
 			for(HttpSession session : needRemove){
 				sessions.remove(session.getId());
 			}
