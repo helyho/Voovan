@@ -55,7 +55,7 @@ public class TStream {
 		}
 		lineStrBuilder.append(new String(byteOutputStream.toByteArray()));
 		lineStr = lineStrBuilder.toString();
-		return lineStr.isEmpty()?null:lineStr.substring(0,lineStr.length()-2);
+		return lineStr.isEmpty()?null:lineStr.trim();
 	}
 	
 	/**
