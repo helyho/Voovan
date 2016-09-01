@@ -117,7 +117,7 @@ public class HttpClient {
 			request.header().put("Pragma", "no-cache");
 			request.header().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
 			request.header().put("User-Agent", "Voovan Http Client");
-			request.header().put("Accept-Encoding","gzip,deflate,sdch");
+			request.header().put("Accept-Encoding","gzip");
 			request.header().put("Connection","keep-alive");
 			
 			socket = new AioSocket(hostString, port==-1?80:port, timeOut*1000);
