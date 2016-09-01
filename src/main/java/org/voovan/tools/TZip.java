@@ -1,12 +1,11 @@
 package org.voovan.tools;
 
+import org.voovan.tools.log.Logger;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
+import java.util.zip.*;
 
 /**
  * 压缩算法
@@ -51,6 +50,7 @@ public class TZip {
 	 */
 	public static byte[] decodeZip(byte[] encodeBytes) throws IOException{
 		ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(encodeBytes));
+		Logger.simple(zipInputStream.getNextEntry().getName());
 		return TStream.readAll(zipInputStream);
 	}
 	
@@ -61,8 +61,11 @@ public class TZip {
 	 * @throws IOException IO 异常
 	 */
 	public static byte[] encodeZip(byte[] sourceBytes) throws IOException{
+		ZipEntry zipEntry = new ZipEntry("VoovanZipEntry");
+
 		ByteArrayOutputStream zipedBodyOutputStream = new ByteArrayOutputStream();
 		ZipOutputStream zipOutputStream = new ZipOutputStream(zipedBodyOutputStream);
+		zipOutputStream.putNextEntry(zipEntry);
 		zipOutputStream.write(sourceBytes);
 		zipOutputStream.finish();
 		return zipedBodyOutputStream.toByteArray();
