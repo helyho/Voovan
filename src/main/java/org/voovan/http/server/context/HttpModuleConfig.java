@@ -84,7 +84,7 @@ public class HttpModuleConfig {
 
     /**
      * 获取HttpBuizFilter过滤器实例
-     *
+     * @param httpServer HttpServer对象
      * @return 过滤器实例
      */
     public HttpModule getHttpModuleInstance(HttpServer httpServer) {

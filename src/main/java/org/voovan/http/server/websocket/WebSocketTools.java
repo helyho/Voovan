@@ -26,8 +26,8 @@ public class WebSocketTools {
 
 	/**
 	 * s是否是 websocket 升级协议
-	 * @param request
-	 * @return
+	 * @param request Http 请求对象
+	 * @return 是否是 Websocket 升级协议
      */
 	public static boolean isWebSocketUpgrade(Request request) {
 		Header header = request.header();
