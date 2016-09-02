@@ -1,3 +1,56 @@
+###1.0-beta-1:###
+- 发布日期:2016-09-02
+####增加的内容:####
+HttpServer 增加模块功能
+在 web.json增加 IndexFiles 参数定义首页索引文件的名称.
+增加对HttpServer.socket方法 Stream 操作支持
+在 web.json 中对 https 参数独立处理
+增加直接将参数转换成自定义对象的方法以及取特定类型参数的方法
+在 web.json 中增加路由处理器的配
+在 web.json 中修改 Filter 节点名称为 Filters
+TString 增加正则匹配函数
+TFile增加了类搜索函数
+在 HttpBizFilter 类的 onRequest 方法对请求重定向.
+JSON 增加格式化输出 JSON 的函数
+增加获取自定义对象模型的方法 TRefletc.getClazzJSONModel(Class clazz)
+增加基本类型转换成其包装的对象类型方法 TString.toObject
+HttpServer 增加忽略大小写匹配路由
+添加@NotJSON注解,过滤掉一些不想解析进 JSON 字符串的字段
+
+####BUG修复:####
+修复 TZip 中 Zip 压缩的错误
+修复 Http 消息截断器对于有保内容不解析的 bug
+增加对HttpServer 请求路径中的错误兼容.目前兼容多个/////的错误
+Mime 类型为空的处理.
+TRefletc.getObjectFromMap传入空的 Map 参数的处理
+HttpServer 路径匹配*匹配人多个任意字符的逻辑bug修复
+HttpServer注册 handler 时的顺序问题
+某些平台的默认编码不是 UTF-8导致代码不能正常运行
+JSON补充缺少的函数元素的解析,解析成字符串
+
+###优化内容:####
+HttpClient 代码优化
+并发性能调优
+SSL证书管理优化
+HttpServer加载优化
+将HttpServer性能监控模块分离成独立项目
+增加Base64算法,应为 jdk1.7不支持
+由于增加JSON对换行的支持,性能监控代码做响应的调整
+重构HttpServer代码,将配置文件和上下文类移动到 context 目录.
+增加 HttpServer 的 main 方法,默认加载 web.json 中的配置信息
+JSON转换中对\r \n \的处理
+Socket 通信代码优化
+类重命名WebSocketBizHandler->WebSocketRoute
+类重命名HttpBizHandler->HttpRoute
+类重命名HttpBizFilter -> HttpFilter
+将 Http 请求的路径匹配规则修改的更加严格
+WebContext类何 WebServerConfig 暴露的方法处理,减少了一些可能导致风险的暴露方法
+优化 class 和 jar 加载方法
+WebSocketDispatcher优化
+优化 HttpServerFilter 中对HTTP 报文的判断方式的优化
+Mime 为极少变动的静态信息,调整到应用jar的静态资源中.但同时保留了对自定义配置的支持,自定义配置会覆盖系统默认配置
+优化了 Error 的错误信息提示
+
 ###1.0-alpha-2:###
 
 - 发布日期:2016-06-30
