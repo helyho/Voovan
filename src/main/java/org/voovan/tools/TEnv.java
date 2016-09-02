@@ -159,6 +159,7 @@ public class TEnv {
 	 *
 	 * @param rootFile 传入一个File 对象
 	 * @throws IOException IO异常
+	 * @throws NoSuchMethodException 异常信息
 	 */
 	public static void loadJars(File rootFile) throws IOException, NoSuchMethodException {
 		if(!rootFile.exists()){
@@ -193,7 +194,8 @@ public class TEnv {
 	 * 从目录读取所有 Jar 文件,递归并加载到JVM
 	 * 
 	 * @param directoryPath 传入一个目录
-	 * @throws Exception 异常信息
+	 * @throws IOException 异常信息
+	 * @throws NoSuchMethodException 异常信息
 	 */
 	public static void loadJars(String directoryPath) throws IOException, NoSuchMethodException {
 		File file = new File(directoryPath);

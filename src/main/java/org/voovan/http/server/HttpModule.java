@@ -26,6 +26,7 @@ public abstract class HttpModule {
     /**
      * 初始化模块操作
      * @param httpServer httpServer对象
+     * @param moduleConfig 模块配置对象
      */
     public void init(HttpServer httpServer,HttpModuleConfig moduleConfig){
         this.httpServer = httpServer;
@@ -34,8 +35,8 @@ public abstract class HttpModule {
 
     /**
      * 获取模块的配置参数
-     * @param name
-     * @return
+     * @param name 参数名
+     * @return 参数对象
      */
     public Object getParamters(String name){
         return moduleConfig.getParameters().get(name);
@@ -45,7 +46,6 @@ public abstract class HttpModule {
      * GET 请求
      * @param routeRegexPath 匹配路径
      * @param router  HTTP处理请求句柄
-     * @return HttpServer对象
      */
     public void get(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
@@ -56,7 +56,6 @@ public abstract class HttpModule {
      * POST 请求
      * @param routeRegexPath 匹配路径
      * @param router  HTTP处理请求句柄
-     * @return HttpServer对象
      */
     public void post(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
@@ -67,7 +66,6 @@ public abstract class HttpModule {
      * HEAD 请求
      * @param routeRegexPath 匹配路径
      * @param router  HTTP处理请求句柄
-     * @return HttpServer对象
      */
     public void head(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
@@ -78,7 +76,6 @@ public abstract class HttpModule {
      * PUT 请求
      * @param routeRegexPath 匹配路径
      * @param router  HTTP处理请求句柄
-     * @return HttpServer对象
      */
     public void put(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
@@ -89,7 +86,6 @@ public abstract class HttpModule {
      * DELETE 请求
      * @param routeRegexPath 匹配路径
      * @param router  HTTP处理请求句柄
-     * @return HttpServer对象
      */
     public void delete(String routeRegexPath, HttpRouter router) {
        String routePath = moduleConfig.getPath()+routeRegexPath;
@@ -100,7 +96,6 @@ public abstract class HttpModule {
      * TRACE 请求
      * @param routeRegexPath 匹配路径
      * @param router  HTTP处理请求句柄
-     * @return HttpServer对象
      */
     public void trace(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
@@ -111,7 +106,6 @@ public abstract class HttpModule {
      * CONNECT 请求
      * @param routeRegexPath 匹配路径
      * @param router  HTTP处理请求句柄
-     * @return HttpServer对象
      */
     public void connect(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
@@ -122,7 +116,6 @@ public abstract class HttpModule {
      * OPTIONS 请求
      * @param routeRegexPath 匹配路径
      * @param router  HTTP处理请求句柄
-     * @return HttpServer对象
      */
     public void options(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
@@ -134,7 +127,6 @@ public abstract class HttpModule {
      * @param method 请求方法
      * @param routeRegexPath 匹配路径
      * @param router  HTTP处理请求句柄
-     * @return HttpServer对象
      */
     public void otherMethod(String method, String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;

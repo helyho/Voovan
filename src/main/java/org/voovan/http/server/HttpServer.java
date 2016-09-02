@@ -203,6 +203,7 @@ public class HttpServer {
 	 * WebSocket 服务
 	 * @param routeRegexPath 匹配路径
 	 * @param router WebSocket处理句柄
+	 * @return HttpServer对象
      */
 	public HttpServer socket(String routeRegexPath, WebSocketRouter router) {
 		webSocketDispatcher.addRouteHandler(routeRegexPath, router);
