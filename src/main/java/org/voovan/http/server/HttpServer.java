@@ -310,6 +310,13 @@ public class HttpServer {
 					config.setTimeout(Integer.parseInt(args[i]));
 				}
 
+				//上下文路径
+				if(args[i].equals("-cp")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					i++;
+					config.setContextPath(args[i]);
+				}
+
 				//首页索引文件的名称,默认index.htm,index.html,default.htm,default.htm
 				if(args[i].equals("-i")){
 					config = config==null?WebContext.getWebServerConfig():config;
@@ -367,13 +374,14 @@ public class HttpServer {
 					return;
 				}
 
-				if(args[i].equals("-help")){
+				if(args[i].equals("-help") || args[i].equals("-h") || args[i].equals("-?")){
 					Logger.simple("Usage: java -jar voovan-framework.jar [Options]");
 					Logger.simple("Start voovan webserver");
 					Logger.simple("");
 					Logger.simple("Options:");
 					Logger.simple("  -p \t\t\t\t\t\t\t Webserver bind port number");
 					Logger.simple("  -t \t\t\t\t\t\t\t Socket timeout");
+					Logger.simple("  -cp \t\t\t\t\t\t Context path, contain webserver static file");
 					Logger.simple("  -i \t\t\t\t\t\t\t index file for client access to webserver");
 					Logger.simple("  -mi \t\t\t\t\t\t Match route ignore case");
 					Logger.simple("  -c \t\t\t\t\t\t\t set default charset");
