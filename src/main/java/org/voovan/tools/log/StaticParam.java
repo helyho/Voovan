@@ -34,6 +34,12 @@ public class StaticParam {
      */
 	protected static File loadConfig(){
 		File tmpFile = TFile.getResourceFile("logger.properties");
+
+		//如果找不日志配置文件则从classes 目录中查找
+		if(tmpFile==null || !tmpFile.exists()){
+			tmpFile = new File("./classes/logger.properties");
+		}
+
 		if(tmpFile!=null && tmpFile.exists()){
 			return tmpFile;
 		}else{

@@ -25,8 +25,5 @@ public class Other {
 
     public static void main(String[] args) throws Exception {
 
-        HttpClient httpc = new HttpClient("http://www.voovan.org:2735");
-        Logger.info(httpc.send("/containers/c3c397d3a10e/logs?stdout=1&tail=20").body().getBodyString());
-
     }
 }
