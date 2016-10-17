@@ -1,5 +1,6 @@
 package org.voovan.test;
 
+import com.sun.tools.attach.VirtualMachine;
 import org.voovan.http.client.HttpClient;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.MimeTools;
@@ -24,10 +25,8 @@ public class Other {
 
     public static void main(String[] args) throws Exception {
 
-        String userDir = System.getProperty("user.dir");
-        String[] classPaths = System.getProperty("java.class.path").split(File.pathSeparator);
-        List<Class> clazzes = TFile.searchClassInEnv("org.voovan.tools.*");
-        Logger.simple(JSON.formatJson(JSON.toJSON(clazzes)));
+        HttpClient httpc = new HttpClient("http://www.voovan.org:2735");
+        Logger.info(httpc.send("/containers/c3c397d3a10e/logs?stdout=1&tail=20").body().getBodyString());
 
     }
 }

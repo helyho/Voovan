@@ -81,7 +81,10 @@ public class HttpServer {
      */
 	public void initModule() {
 		for (HttpModuleConfig httpModuleConfig : config.getModuleonfigs()) {
-			httpModuleConfig.getHttpModuleInstance(this).install();
+			HttpModule httpModule = httpModuleConfig.getHttpModuleInstance(this);
+			if(httpModule!=null){
+				httpModule.install();
+			}
 		}
 	}
 
@@ -216,6 +219,7 @@ public class HttpServer {
 	 * @return HttpServer 对象
 	 */
 	public static HttpServer newInstance(WebServerConfig config) {
+
 		try {
 			if(config!=null) {
 				return new HttpServer(config);
@@ -225,6 +229,7 @@ public class HttpServer {
 		} catch (IOException e) {
 			Logger.error("Create HttpServer failed.",e);
 		}
+
 		return null;
 	}
 
@@ -267,6 +272,10 @@ public class HttpServer {
 	 */
 	public HttpServer serve() {
 		try {
+			//输出欢迎信息
+			WebContext.welcome(config);
+			WebContext.initWebServerPlugin();
+
 			loadContextBin();
 			initConfigedRouter();
 			initModule();
@@ -284,8 +293,105 @@ public class HttpServer {
 	 * @param args 启动参数
 	 */
 	public static void main(String[] args) {
+		 WebServerConfig config = null;
+		if(args.length>0){
+			for(int i=0;i<args.length;i++){
+				//服务端口
+				if(args[i].equals("-p")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					i++;
+					config.setPort(Integer.parseInt(args[i]));
+				}
 
-		HttpServer httpServer = HttpServer.newInstance();
+				//连接超时时间(s)
+				if(args[i].equals("-t")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					i++;
+					config.setTimeout(Integer.parseInt(args[i]));
+				}
+
+				//首页索引文件的名称,默认index.htm,index.html,default.htm,default.htm
+				if(args[i].equals("-i")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					i++;
+					config.setIndexFiles(args[i]);
+				}
+
+				//匹配路由不区分大小写,默认是 false
+				if(args[i].equals("-mi")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					config.setMatchRouteIgnoreCase(true);
+				}
+
+				//默认字符集,默认 UTF-8
+				if(args[i].equals("-c")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					i++;
+					config.setCharacterSet(args[i]);
+				}
+
+				//是否启用Gzip压缩,默认 true
+				if(args[i].equals("-noGzip")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					config.setGzip(false);
+				}
+
+				//是否记录access.log,默认 true
+				if(args[i].equals("-noAccessLog")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					config.setAccessLog(false);
+				}
+
+				//HTTPS 证书
+				if(args[i].equals("-https.CertificateFile")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					i++;
+					config.getHttps().setCertificateFile(args[i]);
+				}
+				//证书密码
+				if(args[i].equals("-https.CertificatePassword")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					i++;
+					config.getHttps().setCertificatePassword(args[i]);
+				}
+				//证书Key 密码
+				if(args[i].equals("-https.KeyPassword")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					i++;
+					config.getHttps().setKeyPassword(args[i]);
+				}
+
+				//输出版本号
+				if(args[i].equals("-v")){
+					Logger.simple("Version:"+WebContext.getVERSION());
+					return;
+				}
+
+				if(args[i].equals("-help")){
+					Logger.simple("Usage: java -cp ./classes:./lib/voovan-framework.jar org.voovan.http.server.HttpServer [Options]");
+					Logger.simple("Start voovan webserver");
+					Logger.simple("");
+					Logger.simple("Options:");
+					Logger.simple("  -p \t\t\t\t\t\t\t Webserver bind port number");
+					Logger.simple("  -t \t\t\t\t\t\t\t Socket timeout");
+					Logger.simple("  -i \t\t\t\t\t\t\t index file for client access to webserver");
+					Logger.simple("  -mi \t\t\t\t\t\t Match route ignore case");
+					Logger.simple("  -c \t\t\t\t\t\t\t set default charset");
+					Logger.simple("  -noGzip \t\t\t\t\t Do not use gzip for client");
+					Logger.simple("  -noAccessLog \t\t\t\t Do not write access log to access.log");
+					Logger.simple("  -https.CertificateFile \t\t Certificate file for https");
+					Logger.simple("  -https.CertificatePassword \t Certificate file for https");
+					Logger.simple("  -https.KeyPassword \t\t\t Certificate file for https");
+					Logger.simple("  -help \t\t\t\t\t\t how to use this command");
+					Logger.simple("  -v \t\t\t\t\t\t\t Show the version information");
+					return;
+				}
+			}
+		}
+		config = config==null?WebContext.getWebServerConfig():config;
+
+		HttpServer httpServer = HttpServer.newInstance(config);
+
 		httpServer.serve();
 	}
 }
