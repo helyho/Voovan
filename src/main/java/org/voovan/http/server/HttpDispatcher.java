@@ -228,7 +228,7 @@ public class HttpDispatcher {
 	public static boolean matchPath(String requestPath, String routePath,boolean matchRouteIgnoreCase){
 		//转换成可以配置的正则,主要是处理:后的参数表达式
 		//把/home/:name转换成/home/[^/?]+来匹配
-		String routeRegexPath = routePath2RegexPath(routePath);
+		String routeRegexPath = routePath2RegexPath(routePath)+"[/]?$";
 		//匹配路由不区分大小写
 		if(matchRouteIgnoreCase){
 			requestPath = requestPath.toLowerCase();
