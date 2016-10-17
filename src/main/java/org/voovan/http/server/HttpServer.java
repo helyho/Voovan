@@ -10,6 +10,7 @@ import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioServerSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -376,22 +377,31 @@ public class HttpServer {
 
 				if(args[i].equals("-help") || args[i].equals("-h") || args[i].equals("-?")){
 					Logger.simple("Usage: java -jar voovan-framework.jar [Options]");
+					Logger.simple("");
 					Logger.simple("Start voovan webserver");
 					Logger.simple("");
 					Logger.simple("Options:");
-					Logger.simple("  -p \t\t\t\t\t\t\t Webserver bind port number");
-					Logger.simple("  -t \t\t\t\t\t\t\t Socket timeout");
-					Logger.simple("  -cp \t\t\t\t\t\t Context path, contain webserver static file");
-					Logger.simple("  -i \t\t\t\t\t\t\t index file for client access to webserver");
-					Logger.simple("  -mi \t\t\t\t\t\t Match route ignore case");
-					Logger.simple("  -c \t\t\t\t\t\t\t set default charset");
-					Logger.simple("  -noGzip \t\t\t\t\t Do not use gzip for client");
-					Logger.simple("  -noAccessLog \t\t\t\t Do not write access log to access.log");
-					Logger.simple("  -https.CertificateFile \t\t Certificate file for https");
-					Logger.simple("  -https.CertificatePassword \t Certificate file for https");
-					Logger.simple("  -https.KeyPassword \t\t\t Certificate file for https");
-					Logger.simple("  -help \t\t\t\t\t\t how to use this command");
-					Logger.simple("  -v \t\t\t\t\t\t\t Show the version information");
+					Logger.simple(TString.rightPad("  -p ",35,' ')+"Webserver bind port number");
+					Logger.simple(TString.rightPad("  -t  ",35,' ')+"Socket timeout");
+					Logger.simple(TString.rightPad("  -cp ",35,' ')+"Context path, contain webserver static file");
+					Logger.simple(TString.rightPad("  -i ",35,' ')+"index file for client access to webserver");
+					Logger.simple(TString.rightPad("  -mi ",35,' ')+"Match route ignore case");
+					Logger.simple(TString.rightPad("  -c ",35,' ')+"set default charset");
+					Logger.simple(TString.rightPad("  -noGzip ",35,' ')+"Do not use gzip for client");
+					Logger.simple(TString.rightPad("  -noAccessLog ",35,' ')+"Do not write access log to access.log");
+					Logger.simple(TString.rightPad("  -https.CertificateFile ",35,' ')+"Certificate file for https");
+					Logger.simple(TString.rightPad("  -https.CertificatePassword ",35,' ')+"ertificate file for https");
+					Logger.simple(TString.rightPad("  -https.KeyPassword ",35,' ')+"Certificate file for https");
+					Logger.simple(TString.rightPad("  -help ",35,' ')+"how to use this command");
+					Logger.simple(TString.rightPad("  -v ",35,' ')+"Show the version information");
+					Logger.simple("");
+
+					Logger.simple("This WebServer based on VoovanFramework.");
+					Logger.simple("WebSite: http://www.voovan.org");
+					Logger.simple("Author: helyho");
+					Logger.simple("E-mail: helyho@gmail.com");
+					Logger.simple("");
+
 					return;
 				}
 			}

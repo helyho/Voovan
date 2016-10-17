@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class WebContext {
 	
-	private static final String VERSION = "Voovan-HTTP-Server/V1.0-alpha-2";
+	private static final String VERSION = "Voovan-HttpServer/V1.0-alpha-2";
 	
 	private static final String SESSION_NAME = "VOOVAN_SESSIONID";
 
@@ -140,20 +140,26 @@ public class WebContext {
 		Logger.simple("*********************************************************************************************");
 		Logger.simple("");
 		Logger.simple("============================== [Config file parameter list] =================================");
-		Logger.simple("\tTimeout:\t\t\t\t"+config.getTimeout());
-		Logger.simple("\tContextPath:\t\t\t"+config.getContextPath());
-		Logger.simple("\tCharacterSet:\t\t\t"+config.getCharacterSet());
-		Logger.simple("\tSessionContainer:\t\t"+config.getSessionContainer());
-		Logger.simple("\tSessionTimeout:\t\t\t"+config.getSessionTimeout());
-		Logger.simple("\tKeepAliveTimeout:\t\t"+config.getKeepAliveTimeout());
-		Logger.simple("\tMatchRouteIgnoreCase:\t"+config.isMatchRouteIgnoreCase());
-		Logger.simple("\tGzip:\t\t\t\t\t"+ config.isGzip());
-		Logger.simple("\tAccessLog:\t\t\t\t"+ config.isAccessLog());
+		Logger.simple(TString.rightPad("  Timeout:",35,' ')+config.getTimeout());
+		Logger.simple(TString.rightPad("  ContextPath:",35,' ')+config.getContextPath());
+		Logger.simple(TString.rightPad("  CharacterSet: ",35,' ')+config.getCharacterSet());
+		Logger.simple(TString.rightPad("  SessionContainer:",35,' ')+config.getSessionContainer());
+		Logger.simple(TString.rightPad("  SessionTimeout:",35,' ')+config.getSessionTimeout());
+		Logger.simple(TString.rightPad("  KeepAliveTimeout:",35,' ')+config.getKeepAliveTimeout());
+		Logger.simple(TString.rightPad("  MatchRouteIgnoreCase:",35,' ')+config.isMatchRouteIgnoreCase());
+		Logger.simple(TString.rightPad("  Gzip:",35,' ')+ config.isGzip());
+		Logger.simple(TString.rightPad("  AccessLog:",35,' ')+ config.isAccessLog());
 		if(config.isHttps()) {
-			Logger.simple("\tCertificateFile:\t\t" + config.getHttps().getCertificateFile());
-			Logger.simple("\tCertificatePassword:\t" + config.getHttps().getCertificatePassword());
-			Logger.simple("\tKeyPassword:\t\t\t" + config.getHttps().getKeyPassword());
+			Logger.simple(TString.rightPad("  CertificateFile:",35,' ')+config.getHttps().getCertificateFile());
+			Logger.simple(TString.rightPad("  CertificatePassword:",35,' ')+config.getHttps().getCertificatePassword());
+			Logger.simple(TString.rightPad("  KeyPassword:",35,' ')+config.getHttps().getKeyPassword());
 		}
+		Logger.simple("=============================================================================================");
+		Logger.simple("  This WebServer based on VoovanFramework.");
+		Logger.simple("  Version: "+WebContext.getVERSION());
+		Logger.simple("  WebSite: http://www.voovan.org");
+		Logger.simple("  Author: helyho");
+		Logger.simple("  E-mail: helyho@gmail.com");
 		Logger.simple("=============================================================================================");
 	}
 
