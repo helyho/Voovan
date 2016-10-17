@@ -368,7 +368,7 @@ public class HttpServer {
 				}
 
 				if(args[i].equals("-help")){
-					Logger.simple("Usage: java -jar ./lib/voovan-framework.jar [Options]");
+					Logger.simple("Usage: java -jar voovan-framework.jar [Options]");
 					Logger.simple("Start voovan webserver");
 					Logger.simple("");
 					Logger.simple("Options:");
