@@ -98,20 +98,20 @@ public class WebContext {
 		if(config.getContextPath().endsWith(File.separator)){
 			config.setContextPath(TString.removeSuffix(config.getContextPath()));
 		}
-		//输出欢迎信息
-		WebContext.welcome(config);
-
-		//初始化过滤器
-		config.addFilterByList(getContextParameter("Filters",new ArrayList<Map<String,Object>>()));
-
-		//初始路由处理器
-		config.addRouterByList(getContextParameter("Routers",new ArrayList<Map<String,Object>>()));
-
-		//初始化模块
-		config.addModuleByList(getContextParameter("Modules",new ArrayList<Map<String,Object>>()));
-		Logger.simple("=============================================================================================");
 
 		return config;
+	}
+
+	public static void initWebServerPlugin(){
+		//初始化过滤器
+		webServerConfig.addFilterByList(getContextParameter("Filters",new ArrayList<Map<String,Object>>()));
+
+		//初始路由处理器
+		webServerConfig.addRouterByList(getContextParameter("Routers",new ArrayList<Map<String,Object>>()));
+
+		//初始化模块
+		webServerConfig.addModuleByList(getContextParameter("Modules",new ArrayList<Map<String,Object>>()));
+		Logger.simple("=============================================================================================");
 	}
 
 	/**
@@ -126,7 +126,7 @@ public class WebContext {
 	 * 显示欢迎信息
 	 * @param config HttpServer配置对象
      */
-	protected static void welcome(WebServerConfig config){
+	public static void welcome(WebServerConfig config){
 		Logger.simple("*********************************************************************************************");
 		Logger.simple("");
 		Logger.simple("   ==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==	");
@@ -146,6 +146,7 @@ public class WebContext {
 		Logger.simple("\tSessionContainer:\t\t"+config.getSessionContainer());
 		Logger.simple("\tSessionTimeout:\t\t\t"+config.getSessionTimeout());
 		Logger.simple("\tKeepAliveTimeout:\t\t"+config.getKeepAliveTimeout());
+		Logger.simple("\tMatchRouteIgnoreCase:\t"+config.isMatchRouteIgnoreCase());
 		Logger.simple("\tGzip:\t\t\t\t\t"+ config.isGzip());
 		Logger.simple("\tAccessLog:\t\t\t\t"+ config.isAccessLog());
 		if(config.isHttps()) {

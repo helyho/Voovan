@@ -123,7 +123,7 @@ public class HttpFilterConfig {
             }
             return httpFilter;
         } catch (ReflectiveOperationException e) {
-            Logger.error("New HttpFilter["+className+"] error.",e);
+            Logger.error("[ERROR] New HttpFilter ["+className+"] error.");
             return null;
         }
     }
