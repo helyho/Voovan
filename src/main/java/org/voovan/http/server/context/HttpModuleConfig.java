@@ -96,7 +96,7 @@ public class HttpModuleConfig {
             }
             return httpModule;
         } catch (ReflectiveOperationException e) {
-            Logger.error("New HttpModule["+className+"] error.",e);
+            Logger.error("[ERROR] New HttpModule ["+className+"] error.");
             return null;
         }
     }

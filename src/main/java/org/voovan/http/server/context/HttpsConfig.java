@@ -18,7 +18,7 @@ public class HttpsConfig {
         return certificateFile;
     }
 
-    protected void setCertificateFile(String certificateFile) {
+    public void setCertificateFile(String certificateFile) {
         this.certificateFile = certificateFile;
     }
 
@@ -26,7 +26,7 @@ public class HttpsConfig {
         return certificatePassword;
     }
 
-    protected void setCertificatePassword(String certificatePassword) {
+    public void setCertificatePassword(String certificatePassword) {
         this.certificatePassword = certificatePassword;
     }
 
@@ -34,7 +34,7 @@ public class HttpsConfig {
         return keyPassword;
     }
 
-    protected void setKeyPassword(String keyPassword) {
+    public void setKeyPassword(String keyPassword) {
         this.keyPassword = keyPassword;
     }
 }
