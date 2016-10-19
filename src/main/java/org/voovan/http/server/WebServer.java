@@ -106,7 +106,7 @@ public class WebServer {
 	 * GET 请求
 	 * @param routeRegexPath 匹配路径
 	 * @param router  HTTP处理请求句柄
-     * @return HttpServer对象
+     * @return WebServer对象
      */
 	public WebServer get(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("GET", routeRegexPath, router);
@@ -117,7 +117,7 @@ public class WebServer {
 	 * POST 请求
 	 * @param routeRegexPath 匹配路径
 	 * @param router  HTTP处理请求句柄
-	 * @return HttpServer对象
+	 * @return WebServer对象
      */
 	public WebServer post(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("POST", routeRegexPath, router);
@@ -128,7 +128,7 @@ public class WebServer {
 	 * HEAD 请求
 	 * @param routeRegexPath 匹配路径
 	 * @param router  HTTP处理请求句柄
-	 * @return HttpServer对象
+	 * @return WebServer对象
 	 */
 	public WebServer head(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("HEAD", routeRegexPath, router);
@@ -139,7 +139,7 @@ public class WebServer {
 	 * PUT 请求
 	 * @param routeRegexPath 匹配路径
 	 * @param router  HTTP处理请求句柄
-	 * @return HttpServer对象
+	 * @return WebServer对象
 	 */
 	public WebServer put(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("PUT", routeRegexPath, router);
@@ -150,7 +150,7 @@ public class WebServer {
 	 * DELETE 请求
 	 * @param routeRegexPath 匹配路径
 	 * @param router  HTTP处理请求句柄
-	 * @return HttpServer对象
+	 * @return WebServer对象
 	 */
 	public WebServer delete(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("DELETE", routeRegexPath, router);
@@ -161,7 +161,7 @@ public class WebServer {
 	 * TRACE 请求
 	 * @param routeRegexPath 匹配路径
 	 * @param router  HTTP处理请求句柄
-	 * @return HttpServer对象
+	 * @return WebServer对象
 	 */
 	public WebServer trace(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("TRACE", routeRegexPath, router);
@@ -172,7 +172,7 @@ public class WebServer {
 	 * CONNECT 请求
 	 * @param routeRegexPath 匹配路径
 	 * @param router  HTTP处理请求句柄
-	 * @return HttpServer对象
+	 * @return WebServer对象
 	 */
 	public WebServer connect(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("CONNECT", routeRegexPath, router);
@@ -183,7 +183,7 @@ public class WebServer {
 	 * OPTIONS 请求
 	 * @param routeRegexPath 匹配路径
 	 * @param router  HTTP处理请求句柄
-	 * @return HttpServer对象
+	 * @return WebServer对象
 	 */
 	public WebServer options(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("OPTIONS", routeRegexPath, router);
@@ -195,7 +195,7 @@ public class WebServer {
 	 * @param method 请求方法
 	 * @param routeRegexPath 匹配路径
 	 * @param router  HTTP处理请求句柄
-	 * @return HttpServer对象
+	 * @return WebServer对象
 	 */
 	public WebServer otherMethod(String method, String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteMethod(method);
@@ -207,7 +207,7 @@ public class WebServer {
 	 * WebSocket 服务
 	 * @param routeRegexPath 匹配路径
 	 * @param router WebSocket处理句柄
-	 * @return HttpServer对象
+	 * @return WebServer对象
      */
 	public WebServer socket(String routeRegexPath, WebSocketRouter router) {
 		webSocketDispatcher.addRouteHandler(routeRegexPath, router);
@@ -408,8 +408,8 @@ public class WebServer {
 		}
 		config = config==null?WebContext.getWebServerConfig():config;
 
-		WebServer httpServer = WebServer.newInstance(config);
+		WebServer webServer = WebServer.newInstance(config);
 
-		httpServer.serve();
+		webServer.serve();
 	}
 }

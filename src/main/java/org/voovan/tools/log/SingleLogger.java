@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * HttpServer访问日志对象
+ * WebServer访问日志对象
  * 
  * @author helyho
  *

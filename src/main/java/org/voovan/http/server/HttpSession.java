@@ -7,7 +7,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * HTTPServer session 类
+ * WebServer session 类
  * 
  * @author helyho
  *

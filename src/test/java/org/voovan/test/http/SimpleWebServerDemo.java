@@ -11,7 +11,7 @@ import org.voovan.http.server.WebServer;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class SimpleHttpServerDemo {
+public class SimpleWebServerDemo {
     public static void main(String[] args) {
         WebServer.newInstance(20001).get("/test",(req, resp)->{
             resp.write("this is test Message.");

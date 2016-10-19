@@ -115,8 +115,8 @@ public class WebContext {
 	}
 
 	/**
-	 * 获取HttpServer配置对象
-	 * @return  HttpServer配置对象
+	 * 获取WebServer配置对象
+	 * @return WebServer配置对象
      */
 	public static WebServerConfig getWebServerConfig(){
 		return webServerConfig;
@@ -124,7 +124,7 @@ public class WebContext {
 
 	/**
 	 * 显示欢迎信息
-	 * @param config HttpServer配置对象
+	 * @param config WebServer配置对象
      */
 	public static void welcome(WebServerConfig config){
 		Logger.simple("*********************************************************************************************");

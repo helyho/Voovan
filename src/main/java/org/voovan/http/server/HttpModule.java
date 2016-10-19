@@ -5,7 +5,7 @@ import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.tools.Chain;
 
 /**
- * HttpServer的模块
+ * WebServer的模块
  *
  * @author helyho
  * <p>
@@ -14,7 +14,7 @@ import org.voovan.tools.Chain;
  * Licence: Apache v2 License
  */
 public abstract class HttpModule {
-    private WebServer httpServer;
+    private WebServer webServer;
     private HttpModuleConfig moduleConfig;
 
     public HttpModule(){
@@ -23,11 +23,11 @@ public abstract class HttpModule {
 
     /**
      * 初始化模块操作
-     * @param httpServer httpServer对象
+     * @param webServer WebServer对象
      * @param moduleConfig 模块配置对象
      */
-    public void init(WebServer httpServer, HttpModuleConfig moduleConfig){
-        this.httpServer = httpServer;
+    public void init(WebServer webServer, HttpModuleConfig moduleConfig){
+        this.webServer = webServer;
         this.moduleConfig = moduleConfig;
     }
 
@@ -47,7 +47,7 @@ public abstract class HttpModule {
      */
     public void get(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
-        httpServer.get(routePath,router);
+        webServer.get(routePath,router);
     }
 
     /**
@@ -57,7 +57,7 @@ public abstract class HttpModule {
      */
     public void post(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
-        httpServer.post(routePath,router);
+        webServer.post(routePath,router);
     }
 
     /**
@@ -67,7 +67,7 @@ public abstract class HttpModule {
      */
     public void head(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
-        httpServer.head(routePath,router);
+        webServer.head(routePath,router);
     }
 
     /**
@@ -77,7 +77,7 @@ public abstract class HttpModule {
      */
     public void put(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
-        httpServer.put(routePath,router);
+        webServer.put(routePath,router);
     }
 
     /**
@@ -87,7 +87,7 @@ public abstract class HttpModule {
      */
     public void delete(String routeRegexPath, HttpRouter router) {
        String routePath = moduleConfig.getPath()+routeRegexPath;
-       httpServer.delete(routePath,router);
+        webServer.delete(routePath,router);
     }
 
     /**
@@ -97,7 +97,7 @@ public abstract class HttpModule {
      */
     public void trace(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
-        httpServer.trace(routePath,router);
+        webServer.trace(routePath,router);
     }
 
     /**
@@ -107,7 +107,7 @@ public abstract class HttpModule {
      */
     public void connect(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
-        httpServer.connect(routePath,router);
+        webServer.connect(routePath,router);
     }
 
     /**
@@ -117,7 +117,7 @@ public abstract class HttpModule {
      */
     public void options(String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
-        httpServer.options(routePath,router);
+        webServer.options(routePath,router);
     }
 
     /**
@@ -128,7 +128,7 @@ public abstract class HttpModule {
      */
     public void otherMethod(String method, String routeRegexPath, HttpRouter router) {
         String routePath = moduleConfig.getPath()+routeRegexPath;
-        httpServer.otherMethod(method,routePath,router);
+        webServer.otherMethod(method,routePath,router);
     }
 
     /**
@@ -136,7 +136,7 @@ public abstract class HttpModule {
      * @return 过滤器链
      */
     public Chain<HttpFilterConfig> filterChain(){
-        return httpServer.getWebServerConfig().getFilterConfigs();
+        return webServer.getWebServerConfig().getFilterConfigs();
     }
 
     /**
