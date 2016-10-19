@@ -17,7 +17,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 /**
- * HttpServer 过滤器对象
+ * WebServer 过滤器对象
  * 
  * @author helyho
  *
@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class HttpServerFilter implements IoFilter {
+public class WebServerFilter implements IoFilter {
 
 	
 	/**

@@ -1,8 +1,7 @@
 package org.voovan.http.server.context;
 
-import org.voovan.http.server.HttpFilter;
 import org.voovan.http.server.HttpModule;
-import org.voovan.http.server.HttpServer;
+import org.voovan.http.server.WebServer;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TReflect;
 import org.voovan.tools.log.Logger;
@@ -87,7 +86,7 @@ public class HttpModuleConfig {
      * @param httpServer HttpServer对象
      * @return 过滤器实例
      */
-    public HttpModule getHttpModuleInstance(HttpServer httpServer) {
+    public HttpModule getHttpModuleInstance(WebServer httpServer) {
         try {
             //单例模式
             if (httpModule == null) {

@@ -1,9 +1,6 @@
 package org.voovan.test.http;
 
-import org.voovan.http.message.Response;
-import org.voovan.http.server.HttpServer;
-
-import java.io.IOException;
+import org.voovan.http.server.WebServer;
 
 /**
  * Http简单服务测试类
@@ -16,7 +13,7 @@ import java.io.IOException;
  */
 public class SimpleHttpServerDemo {
     public static void main(String[] args) {
-        HttpServer.newInstance(20001).get("/test",(req,resp)->{
+        WebServer.newInstance(20001).get("/test",(req, resp)->{
             resp.write("this is test Message.");
         }).get("/test1",(req1,resp1)->{
             resp1.write("this is test1 Message.");
