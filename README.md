@@ -17,8 +17,8 @@
 
  - 推荐使用 JDK1.8,懒人专用。
  - 如果仅使用 AIO 需要 JDK1.7。[[如何兼容到JDK1.7?](http://voovan.mydoc.io/?t=113242)]
- - 如果 HTTPServer 使用lambda 需要 JDK1.8,不使用 lambda 需要 JDK1.7。
- - 有能力的同学可以通过很简单几行修改使 HTTPServer 和 HTTPClient使用 NIO 那么就是 JDK1.6。
+ - 如果 WebServer 使用lambda 需要 JDK1.8,不使用 lambda 需要 JDK1.7。
+ - 有能力的同学可以通过很简单几行修改使 WebServer 和 HTTPClient使用 NIO 那么就是 JDK1.6。
  
 **框架特点介绍:**
  - 使用 JDK8 的 lambda 表达式,快速实现 HTTP/WebSocket 服务的开发。[【演示】](http://webserver.voovan.org/)/[【性能测试报告】](https://git.oschina.net/helyho/Voovan/issues/12)

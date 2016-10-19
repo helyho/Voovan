@@ -6,7 +6,7 @@ import org.voovan.tools.TDateTime;
 import java.util.Date;
 
 /**
- * HTTPServer 响应对象
+ * WebServer 响应对象
  * 
  * @author helyho
  *

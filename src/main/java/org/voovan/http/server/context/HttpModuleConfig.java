@@ -83,15 +83,15 @@ public class HttpModuleConfig {
 
     /**
      * 获取HttpBuizFilter过滤器实例
-     * @param httpServer HttpServer对象
+     * @param webServer WebServer对象
      * @return 过滤器实例
      */
-    public HttpModule getHttpModuleInstance(WebServer httpServer) {
+    public HttpModule getHttpModuleInstance(WebServer webServer) {
         try {
             //单例模式
             if (httpModule == null) {
                 httpModule = TReflect.newInstance(className);
-                httpModule.init(httpServer,this);
+                httpModule.init(webServer,this);
             }
             return httpModule;
         } catch (ReflectiveOperationException e) {

@@ -9,19 +9,19 @@ import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
 
-public class HttpServerDemo {
+public class WebServerDemo {
 	private static byte[] fileContent = TFile.loadFileFromContextPath("WEBAPP/index.htm");
 	
 	public static void main(String[] args) {
-		WebServer httpServer = WebServer.newInstance();
+		WebServer webServer = WebServer.newInstance();
 
 		//性能测试请求
-		httpServer.get("/test", (req, resp) -> {
+        webServer.get("/test", (req, resp) -> {
 			resp.body().write("OK");
 		});
 
 		//普通 GET 请求
-		httpServer.get("/", (req, resp) -> {
+        webServer.get("/", (req, resp) -> {
 			Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
 			Logger.simple("Request info: "+req.protocol());
 			//Session 测试
@@ -41,7 +41,7 @@ public class HttpServerDemo {
 		});
 
 		//带路劲参数的 GET 请求
-		httpServer.get("/Star/:name/:age", (req, resp) -> {
+        webServer.get("/Star/:name/:age", (req, resp) -> {
 			Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
 			Logger.simple("Request info: "+req.protocol());
 			resp.write(fileContent);
@@ -53,7 +53,7 @@ public class HttpServerDemo {
 		});
 
 		//带路劲参数的 GET 请求
-		httpServer.get("/test/t*t/kkk/*", (req, resp) -> {
+        webServer.get("/test/t*t/kkk/*", (req, resp) -> {
 			Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
 			Logger.simple("Request info: "+req.protocol());
 			resp.write(fileContent);
@@ -66,14 +66,14 @@ public class HttpServerDemo {
 
 
 		// 重定向
-		httpServer.get("/redirect", (req, resp) -> {
+        webServer.get("/redirect", (req, resp) -> {
 			Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
 			Logger.simple("Request info: "+req.protocol());
 			resp.redirct("http://www.baidu.com");
 		});
 
 		//普通 POST 请求
-		httpServer.post("/", (req, resp) -> {
+        webServer.post("/", (req, resp) -> {
 			Logger.info("Client info: "+req.getRemoteAddres()+":"+req.getRemotePort());
 			Logger.simple("Request info: "+req.protocol());
 			resp.write(fileContent);
@@ -86,12 +86,12 @@ public class HttpServerDemo {
 		});
 
 		//自定义方法测试
-		httpServer.otherMethod("LOCK","/:test",(request,response)->{
+        webServer.otherMethod("LOCK","/:test",(request,response)->{
 			response.body().write("User Defined HTTP method is "+request.protocol().getMethod());
 			Logger.simple("Query");
 		});
 
-		httpServer.socket("/websocket", new WebSocketRouter() {
+        webServer.socket("/websocket", new WebSocketRouter() {
 
 			@Override
 			public ByteBuffer onRecived(HttpRequest upgradeRequest, ByteBuffer message) {
@@ -112,7 +112,7 @@ public class HttpServerDemo {
 			}
 		});
 
-		httpServer.serve();
+        webServer.serve();
 
 	}
 }

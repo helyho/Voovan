@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * HTTPServer session 管理器
+ * WebServer session 管理器
  * 
  * @author helyho
  *

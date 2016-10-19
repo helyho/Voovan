@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * HTTPServer 请求对象
+ * WebServer 请求对象
  * @author helyho
  *
  * Voovan Framework.
