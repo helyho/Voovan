@@ -16,7 +16,7 @@ import org.voovan.tools.log.Logger;
 import java.io.IOException;
 
 /**
- * HttpServer 对象
+ * WebServer 对象
  * 
  * @author helyho
  * 
@@ -24,7 +24,7 @@ import java.io.IOException;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class HttpServer {
+public class WebServer {
 	private AioServerSocket	aioServerSocket;
 	private HttpDispatcher	httpDispatcher;
 	private WebSocketDispatcher webSocketDispatcher;
@@ -38,7 +38,7 @@ public class HttpServer {
 	 * @throws IOException
 	 *             异常
 	 */
-	public HttpServer(WebServerConfig config) throws IOException {
+	public WebServer(WebServerConfig config) throws IOException {
 		this.config = config;
 
 		//[Socket] 准备 socket 监听
@@ -60,13 +60,13 @@ public class HttpServer {
 			aioServerSocket.setSSLManager(sslManager);
 		}
 
-		aioServerSocket.handler(new HttpServerHandler(config, httpDispatcher,webSocketDispatcher));
-		aioServerSocket.filterChain().add(new HttpServerFilter());
+		aioServerSocket.handler(new WebServerHandler(config, httpDispatcher,webSocketDispatcher));
+		aioServerSocket.filterChain().add(new WebServerFilter());
 		aioServerSocket.messageSplitter(new HttpMessageSplitter());
 	}
 
 	/**
-	 * 将配置文件中的 Router 配置载入到 HttpServer
+	 * 将配置文件中的 Router 配置载入到 WebServer
      */
 	private void  initConfigedRouter(){
 		for(HttpRouterConfig httpRouterConfig : config.getRouterConfigs()){
@@ -108,7 +108,7 @@ public class HttpServer {
 	 * @param router  HTTP处理请求句柄
      * @return HttpServer对象
      */
-	public HttpServer get(String routeRegexPath, HttpRouter router) {
+	public WebServer get(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("GET", routeRegexPath, router);
 		return this;
 	}
@@ -119,7 +119,7 @@ public class HttpServer {
 	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
      */
-	public HttpServer post(String routeRegexPath, HttpRouter router) {
+	public WebServer post(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("POST", routeRegexPath, router);
 		return this;
 	}
@@ -130,7 +130,7 @@ public class HttpServer {
 	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer head(String routeRegexPath, HttpRouter router) {
+	public WebServer head(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("HEAD", routeRegexPath, router);
 		return this;
 	}
@@ -141,7 +141,7 @@ public class HttpServer {
 	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer put(String routeRegexPath, HttpRouter router) {
+	public WebServer put(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("PUT", routeRegexPath, router);
 		return this;
 	}
@@ -152,7 +152,7 @@ public class HttpServer {
 	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer delete(String routeRegexPath, HttpRouter router) {
+	public WebServer delete(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("DELETE", routeRegexPath, router);
 		return this;
 	}
@@ -163,7 +163,7 @@ public class HttpServer {
 	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer trace(String routeRegexPath, HttpRouter router) {
+	public WebServer trace(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("TRACE", routeRegexPath, router);
 		return this;
 	}
@@ -174,7 +174,7 @@ public class HttpServer {
 	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer connect(String routeRegexPath, HttpRouter router) {
+	public WebServer connect(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("CONNECT", routeRegexPath, router);
 		return this;
 	}
@@ -185,7 +185,7 @@ public class HttpServer {
 	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer options(String routeRegexPath, HttpRouter router) {
+	public WebServer options(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("OPTIONS", routeRegexPath, router);
 		return this;
 	}
@@ -197,7 +197,7 @@ public class HttpServer {
 	 * @param router  HTTP处理请求句柄
 	 * @return HttpServer对象
 	 */
-	public HttpServer otherMethod(String method, String routeRegexPath, HttpRouter router) {
+	public WebServer otherMethod(String method, String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteMethod(method);
 		httpDispatcher.addRouteHandler(method, routeRegexPath, router);
 		return this;
@@ -209,48 +209,48 @@ public class HttpServer {
 	 * @param router WebSocket处理句柄
 	 * @return HttpServer对象
      */
-	public HttpServer socket(String routeRegexPath, WebSocketRouter router) {
+	public WebServer socket(String routeRegexPath, WebSocketRouter router) {
 		webSocketDispatcher.addRouteHandler(routeRegexPath, router);
 		return this;
 	}
 
 	/**
-	 * 构建新的 HttpServer,从配置对象读取配置
+	 * 构建新的 WebServer,从配置对象读取配置
 	 * @param config  WebServer配置类
-	 * @return HttpServer 对象
+	 * @return WebServer 对象
 	 */
-	public static HttpServer newInstance(WebServerConfig config) {
+	public static WebServer newInstance(WebServerConfig config) {
 
 		try {
 			if(config!=null) {
-				return new HttpServer(config);
+				return new WebServer(config);
 			}else{
-				Logger.error("Create HttpServer failed: WebServerConfig object is null.");
+				Logger.error("Create WebServer failed: WebServerConfig object is null.");
 			}
 		} catch (IOException e) {
-			Logger.error("Create HttpServer failed.",e);
+			Logger.error("Create WebServer failed.",e);
 		}
 
 		return null;
 	}
 
 	/**
-	 * 构建新的 HttpServer,指定服务端口
+	 * 构建新的 WebServer,指定服务端口
 	 * @param port  HTTP 服务的端口号
-	 * @return HttpServer 对象
+	 * @return WebServer 对象
 	 */
-	public static HttpServer newInstance(int port) {
+	public static WebServer newInstance(int port) {
 		WebServerConfig config = WebContext.getWebServerConfig();
 		config.setPort(port);
 		return newInstance(config);
 	}
 
 	/**
-	 * 构建新的 HttpServer,从配置文件读取配置
+	 * 构建新的 WebServer,从配置文件读取配置
 	 *
-	 * @return HttpServer 对象
+	 * @return WebServer 对象
 	 */
-	public static HttpServer newInstance() {
+	public static WebServer newInstance() {
 		return newInstance(WebContext.getWebServerConfig());
 	}
 
@@ -269,9 +269,9 @@ public class HttpServer {
 	/**
 	 * 启动服务
 	 *
-	 * @return HttpServer 对象
+	 * @return WebServer 对象
 	 */
-	public HttpServer serve() {
+	public WebServer serve() {
 		try {
 			//输出欢迎信息
 			WebContext.welcome(config);
@@ -290,7 +290,7 @@ public class HttpServer {
 	}
 
 	/**
-	 * 启动 HttpServer 服务
+	 * 启动 WebServer 服务
 	 * @param args 启动参数
 	 */
 	public static void main(String[] args) {
@@ -408,7 +408,7 @@ public class HttpServer {
 		}
 		config = config==null?WebContext.getWebServerConfig():config;
 
-		HttpServer httpServer = HttpServer.newInstance(config);
+		WebServer httpServer = WebServer.newInstance(config);
 
 		httpServer.serve();
 	}

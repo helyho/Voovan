@@ -1,7 +1,7 @@
 package org.voovan.test.http;
 
 import org.voovan.http.server.HttpRequest;
-import org.voovan.http.server.HttpServer;
+import org.voovan.http.server.WebServer;
 import org.voovan.http.server.websocket.WebSocketRouter;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
@@ -13,7 +13,7 @@ public class HttpServerDemo {
 	private static byte[] fileContent = TFile.loadFileFromContextPath("WEBAPP/index.htm");
 	
 	public static void main(String[] args) {
-		HttpServer httpServer = HttpServer.newInstance();
+		WebServer httpServer = WebServer.newInstance();
 
 		//性能测试请求
 		httpServer.get("/test", (req, resp) -> {

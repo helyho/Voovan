@@ -23,7 +23,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * HttpServer Socket 事件处理类
+ * WebServer Socket 事件处理类
  * 
  * @author helyho
  *
@@ -31,14 +31,14 @@ import java.util.TimerTask;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class HttpServerHandler implements IoHandler {
+public class WebServerHandler implements IoHandler {
 	private HttpDispatcher		httpDispatcher;
 	private WebSocketDispatcher	webSocketDispatcher;
 	private WebServerConfig webConfig;
 	private Timer keepAliveTimer;
 	private List<IoSession> keepAliveSessionList;
 
-	public HttpServerHandler(WebServerConfig webConfig, HttpDispatcher httpDispatcher, WebSocketDispatcher webSocketDispatcher) {
+	public WebServerHandler(WebServerConfig webConfig, HttpDispatcher httpDispatcher, WebSocketDispatcher webSocketDispatcher) {
 		this.httpDispatcher = httpDispatcher;
 		this.webSocketDispatcher = webSocketDispatcher;
 		this.webConfig = webConfig;

@@ -4,8 +4,6 @@ import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.tools.Chain;
 
-import java.util.Map;
-
 /**
  * HttpServer的模块
  *
@@ -16,7 +14,7 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public abstract class HttpModule {
-    private HttpServer httpServer;
+    private WebServer httpServer;
     private HttpModuleConfig moduleConfig;
 
     public HttpModule(){
@@ -28,7 +26,7 @@ public abstract class HttpModule {
      * @param httpServer httpServer对象
      * @param moduleConfig 模块配置对象
      */
-    public void init(HttpServer httpServer,HttpModuleConfig moduleConfig){
+    public void init(WebServer httpServer, HttpModuleConfig moduleConfig){
         this.httpServer = httpServer;
         this.moduleConfig = moduleConfig;
     }
@@ -142,7 +140,7 @@ public abstract class HttpModule {
     }
 
     /**
-     * 安装模块至 HttpServer
+     * 安装模块至 WebServer
      */
     public abstract void install();
 }
