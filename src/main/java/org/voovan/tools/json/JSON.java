@@ -1,5 +1,6 @@
 package org.voovan.tools.json;
 
+import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
 import java.text.ParseException;
@@ -125,5 +126,46 @@ public class JSON {
 		for (int i = 0; i < indent; i++) {
 			str.append('\t');
 		}
+	}
+
+	/**
+	 * 清理json字符串串null节点
+	 * @param jsonStr json 字符串
+	 * @return 清理null节点的结果
+	 */
+	public static String removeNullNode(String jsonStr){
+
+		jsonStr	= jsonStr.replaceAll("\\\"\\w+?\\\":null","").replaceAll("null","");
+		return fixJSON(jsonStr);
+	}
+
+	/**
+	 * 清理json字符串中节点
+	 * @param jsonStr  json 字符串
+	 * @param nodeName 节点名称
+	 * @return 清理后的结果
+	 */
+	public static String removeNode(String jsonStr,String nodeName){
+		jsonStr = jsonStr.replaceAll("\\\""+nodeName+"\\\":[^,]*","");
+		return JSON.fixJSON(jsonStr);
+	}
+
+	/**
+	 * 修复 JSON 字符串中因清理节点导致的多个","的分割异常问题
+	 * @param jsonStr json 字符串
+	 * @return 清理后点的结果
+	 */
+	protected 	 static String fixJSON(String jsonStr){
+
+		while(TString.searchByRegex(jsonStr,",[\\s\\r\\n]*,").length>0) {
+			jsonStr = jsonStr.replaceAll(",[\\s\\r\\n]*,", ",");
+		}
+
+		jsonStr	= jsonStr.replaceAll("(?:[\\{])[\\s\\r\\n]*,","{");
+		jsonStr	= jsonStr.replaceAll("(?:[\\[])[\\s\\r\\n]*,","[");
+		jsonStr	= jsonStr.replaceAll(",[\\s\\r\\n]*(?:[\\}])","}");
+		jsonStr	= jsonStr.replaceAll(",[\\s\\r\\n]*(?:[\\]])","]");
+
+		return jsonStr;
 	}
 }
