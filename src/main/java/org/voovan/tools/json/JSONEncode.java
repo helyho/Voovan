@@ -139,7 +139,7 @@ public class JSONEncode {
             for(Field field : TReflect.getFields(object.getClass())){
                 NotJSON notJSON = field.getAnnotation(NotJSON.class);
                 if(notJSON != null){
-                    value = value.replaceAll("\\,?\\\""+field.getName()+"\\\":\\\"?[^\\]\\}\\\"]+[\\\"\\}\\]]?","");
+                    value = JSON.removeNode(value,field.getName());
                 }
             }
         }
