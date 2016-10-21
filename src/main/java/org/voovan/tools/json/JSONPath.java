@@ -40,7 +40,7 @@ public class JSONPath {
      * @return  节点的数据
      * @throws ReflectiveOperationException
      */
-    public Object pathValue(String pathQry) throws ReflectiveOperationException {
+    public Object value(String pathQry) throws ReflectiveOperationException {
         Object currentPathObject = parsedObj;
         String[] pathElems = pathQry.split("/");
         ArrayList result = new ArrayList();
@@ -82,8 +82,8 @@ public class JSONPath {
      * @throws ParseException  解析异常
      * @throws ReflectiveOperationException 反射异常
      */
-    public <T> T pathValue(String pathQry, Class<T> clazz) throws ParseException, ReflectiveOperationException {
-        Object value = pathValue(pathQry);
+    public <T> T value(String pathQry, Class<T> clazz) throws ParseException, ReflectiveOperationException {
+        Object value = value(pathQry);
         if (clazz.getName().startsWith("java.")) {
             return TObject.cast(value);
         } else {
@@ -102,9 +102,9 @@ public class JSONPath {
      * @throws ParseException  解析异常
      * @throws ReflectiveOperationException 反射异常
      */
-    public <T> T pathValue(String pathQry, Class<T> clazz, T defaultValue) throws ParseException, ReflectiveOperationException {
+    public <T> T value(String pathQry, Class<T> clazz, T defaultValue) throws ParseException, ReflectiveOperationException {
         T result;
-        Object value = pathValue(pathQry);
+        Object value = value(pathQry);
         if (clazz.getName().startsWith("java.")) {
             result = TObject.cast(value);
         } else {
@@ -124,9 +124,9 @@ public class JSONPath {
      * @throws ParseException  解析异常
      * @throws ReflectiveOperationException 反射异常
      */
-    public <T> List<T> pathListValue(String pathQry, Class<T> elemClazz) throws ParseException, ReflectiveOperationException {
+    public <T> List<T> listValue(String pathQry, Class<T> elemClazz) throws ParseException, ReflectiveOperationException {
         ArrayList resultList = new ArrayList();
-        List<Map<String, ?>> listMaps = pathValue(pathQry, List.class, TObject.newList());
+        List<Map<String, ?>> listMaps = value(pathQry, List.class, TObject.newList());
 
         for(Map<String, ?> map :listMaps){
             T obj = (T) TReflect.getObjectFromMap(elemClazz, map, true);

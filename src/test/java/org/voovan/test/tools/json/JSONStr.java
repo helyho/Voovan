@@ -123,6 +123,6 @@ public class JSONStr {
 
     public static void main(String[] args) throws ReflectiveOperationException {
         JSONPath jsonPath = new JSONPath(tmpStr);
-        Logger.info(jsonPath.pathValue("/root[0]/Version/Index"));
+        Logger.info(jsonPath.value("/root[0]/Version/Index"));
     }
 }
