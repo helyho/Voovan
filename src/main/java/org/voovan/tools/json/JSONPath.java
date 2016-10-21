@@ -69,7 +69,7 @@ public class JSONPath {
         }
     }
 
-    public JSONPath newInstance(String jsonStr){
+    public static JSONPath newInstance(String jsonStr){
         return new JSONPath(jsonStr);
     }
 }
