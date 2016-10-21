@@ -60,10 +60,14 @@ public class JSONPath {
                 listIndex = Integer.parseInt(TString.removeSuffix(TString.removePrefix(listMarks[0])));
             }
 
+            if(pathElem.startsWith("root") && listIndex == -1){
+                 continue;
+            }
+
             //如果没有list索引则认为需要获取 Map,否则任务需要获取 List
             if (listIndex == -1) {
                 Method mapGetMethod = TReflect.findMethod(HashMap.class, "get", new Class[]{Object.class});
-                currentPathObject = TReflect.invokeMethod(currentPathObject, mapGetMethod, (Object) (listIndex == -1 ? pathElem : pathElem.replace("[" + listIndex + "]", "")));
+                currentPathObject = TReflect.invokeMethod(currentPathObject, mapGetMethod, pathElem );
             }else {
                 Method listGetMethod = TReflect.findMethod(ArrayList.class, "get", new Class[]{int.class});
                 currentPathObject = TReflect.invokeMethod(currentPathObject, listGetMethod, listIndex);
@@ -84,8 +88,8 @@ public class JSONPath {
      */
     public <T> T value(String pathQry, Class<T> clazz) throws ParseException, ReflectiveOperationException {
         Object value = value(pathQry);
-        if (clazz.getName().startsWith("java.")) {
-            return TObject.cast(value);
+        if (clazz.getName().startsWith("java.") || !clazz.getName().contains(".")) {
+                return TObject.cast(value);
         } else {
             Object obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
             return TObject.cast(obj);
@@ -105,7 +109,7 @@ public class JSONPath {
     public <T> T value(String pathQry, Class<T> clazz, T defaultValue) throws ParseException, ReflectiveOperationException {
         T result;
         Object value = value(pathQry);
-        if (clazz.getName().startsWith("java.")) {
+        if (clazz.getName().startsWith("java.") || !clazz.getName().contains(".")) {
             result = TObject.cast(value);
         } else {
             Object obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
