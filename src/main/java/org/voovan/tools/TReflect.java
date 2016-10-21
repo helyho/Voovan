@@ -1,6 +1,5 @@
 package org.voovan.tools;
 
-import com.alibaba.druid.sql.visitor.functions.Char;
 
 import java.lang.reflect.*;
 import java.text.ParseException;
@@ -227,7 +226,7 @@ public class TReflect {
 			return boolean.class;
 		}
 
-		if(clazz == Char.class){
+		if(clazz ==Character.class){
 			return char.class;
 		}
 
@@ -301,8 +300,12 @@ public class TReflect {
 		Map<String, ?> mapArg,boolean ignoreCase) throws ReflectiveOperationException, ParseException {
 		Object obj = null;
 
-		if(mapArg==null || mapArg.isEmpty()){
+		if(mapArg==null){
 			return obj;
+		}
+
+		if(mapArg.isEmpty()){
+			return TReflect.newInstance(clazz,new Object[]{});
 		}
 
 		Object singleValue = mapArg.values().iterator().next();
