@@ -1,5 +1,7 @@
 package org.voovan.tools;
 
+import com.alibaba.druid.sql.visitor.functions.Char;
+
 import java.lang.reflect.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -182,9 +184,58 @@ public class TReflect {
 	public static Object invokeMethod(Object obj, String name, Object... parameters)
 			throws ReflectiveOperationException {
 		Class<?>[] parameterTypes = getArrayClasses(parameters);
-		Method method = findMethod(obj.getClass(), name, parameterTypes);
+		Method method;
+		try {
+			 method = findMethod(obj.getClass(), name, parameterTypes);
+		}catch(NoSuchMethodException e){
+			for(int i=0; i<parameterTypes.length; i++){
+				parameterTypes[i] = convertNativeType(parameterTypes[i]);
+			}
+			 method = findMethod(obj.getClass(), name, parameterTypes);
+		}
 		method.setAccessible(true);
 		return method.invoke(obj, parameters);
+	}
+
+	/**
+	 * 转换基本类型的对象类型到基本类型
+	 * @param clazz 基本类型的对象类型
+	 * @return 基本类型
+	 */
+	public static Class convertNativeType(Class clazz){
+		if(clazz == Integer.class){
+			return int.class;
+		}
+
+		if(clazz == Long.class){
+			return long.class;
+		}
+
+		if(clazz == Short.class){
+			return short.class;
+		}
+
+		if(clazz == Float.class){
+			return float.class;
+		}
+
+		if(clazz == Double.class){
+			return double.class;
+		}
+
+		if(clazz == Boolean.class){
+			return boolean.class;
+		}
+
+		if(clazz == Char.class){
+			return char.class;
+		}
+
+		if(clazz == Byte.class){
+			return byte.class;
+		}
+
+		return clazz;
 	}
 
 	/**
