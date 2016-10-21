@@ -6,6 +6,7 @@ import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
 import java.lang.reflect.Method;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,42 +34,113 @@ public class JSONPath {
         }
     }
 
-    public Object pathValue(String pathQry) {
+    /**
+     * 获取JSONPath 对应的节点数据
+     * @param pathQry JSONPath 路径
+     * @return  节点的数据
+     * @throws ReflectiveOperationException
+     */
+    public Object pathValue(String pathQry) throws ReflectiveOperationException {
         Object currentPathObject = parsedObj;
         String[] pathElems = pathQry.split("/");
         ArrayList result = new ArrayList();
 
-        try{
-            for(String pathElem : pathElems){
-                pathElem = pathElem.trim();
+        for (String pathElem : pathElems) {
+            pathElem = pathElem.trim();
 
-                if(pathElem.isEmpty()){
-                    continue;
-                }
-
-                String[] listMarks = TString.searchByRegex(pathElem,"\\[\\d+\\]$");
-                int listIndex = -1;
-                if(listMarks.length>0){
-                    listIndex = Integer.parseInt( TString.removeSuffix( TString.removePrefix(listMarks[0]) ) );
-                }
-
-                if(!pathElem.startsWith("root")){
-                    Method mapGetMethod = TReflect.findMethod(HashMap.class,"get",new Class[]{Object.class});
-                    currentPathObject = TReflect.invokeMethod(currentPathObject, mapGetMethod, (Object)(listIndex==-1?pathElem:pathElem.replace("["+listIndex+"]","")) );
-                }
-
-                if(listIndex!=-1) {
-                    Method listGetMethod = TReflect.findMethod(ArrayList.class,"get",new Class[]{int.class});
-                    currentPathObject = TReflect.invokeMethod(currentPathObject, listGetMethod, listIndex);
-                }
+            if (pathElem.isEmpty()) {
+                continue;
             }
 
-            return currentPathObject;
-        } catch (ReflectiveOperationException e) {
-            return null;
+            String[] listMarks = TString.searchByRegex(pathElem, "\\[\\d+\\]$");
+            int listIndex = -1;
+
+            //获取 list 索引位置
+            if (listMarks.length > 0) {
+                listIndex = Integer.parseInt(TString.removeSuffix(TString.removePrefix(listMarks[0])));
+            }
+
+            //如果没有list索引则认为需要获取 Map,否则任务需要获取 List
+            if (listIndex == -1) {
+                Method mapGetMethod = TReflect.findMethod(HashMap.class, "get", new Class[]{Object.class});
+                currentPathObject = TReflect.invokeMethod(currentPathObject, mapGetMethod, (Object) (listIndex == -1 ? pathElem : pathElem.replace("[" + listIndex + "]", "")));
+            }else {
+                Method listGetMethod = TReflect.findMethod(ArrayList.class, "get", new Class[]{int.class});
+                currentPathObject = TReflect.invokeMethod(currentPathObject, listGetMethod, listIndex);
+            }
+        }
+
+        return currentPathObject;
+    }
+
+    /**
+     * 获取节点值并转换成相应的对象
+     * @param pathQry  JSONPath 路径
+     * @param clazz    对象的 class
+     * @param <T>      范型指代对象
+     * @return  转换后的对象
+     * @throws ParseException  解析异常
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public <T> T pathValue(String pathQry, Class<T> clazz) throws ParseException, ReflectiveOperationException {
+        Object value = pathValue(pathQry);
+        if (clazz.getName().startsWith("java.")) {
+            return TObject.cast(value);
+        } else {
+            Object obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
+            return TObject.cast(obj);
         }
     }
 
+    /**
+     * 获取节点值并转换成相应的对象
+     * @param pathQry  JSONPath 路径
+     * @param clazz    对象的 class
+     * @param defaultValue 对象默认值
+     * @param <T>      范型指代对象
+     * @return  转换后的对象
+     * @throws ParseException  解析异常
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public <T> T pathValue(String pathQry, Class<T> clazz, T defaultValue) throws ParseException, ReflectiveOperationException {
+        T result;
+        Object value = pathValue(pathQry);
+        if (clazz.getName().startsWith("java.")) {
+            result = TObject.cast(value);
+        } else {
+            Object obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
+            result = TObject.cast(obj);
+        }
+
+        return TObject.nullDefault(result, defaultValue);
+    }
+
+    /**
+     * 获取节点值并转换成相应的对象
+     * @param pathQry  JSONPath 路径
+     * @param elemClazz    List 元素对象的 class
+     * @param <T>      范型指代对象
+     * @return  转换后的对象
+     * @throws ParseException  解析异常
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public <T> List<T> pathListValue(String pathQry, Class<T> elemClazz) throws ParseException, ReflectiveOperationException {
+        ArrayList resultList = new ArrayList();
+        List<Map<String, ?>> listMaps = pathValue(pathQry, List.class, TObject.newList());
+
+        for(Map<String, ?> map :listMaps){
+            T obj = (T) TReflect.getObjectFromMap(elemClazz, map, true);
+            resultList.add(obj);
+        }
+
+        return resultList;
+    }
+
+    /**
+     * 构造默认的对象
+     * @param jsonStr JSONPath 路径
+     * @return  转换后的对象
+     */
     public static JSONPath newInstance(String jsonStr){
         return new JSONPath(jsonStr);
     }
