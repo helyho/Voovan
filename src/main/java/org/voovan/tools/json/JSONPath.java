@@ -68,4 +68,8 @@ public class JSONPath {
             return null;
         }
     }
+
+    public JSONPath newInstance(String jsonStr){
+        return new JSONPath(jsonStr);
+    }
 }
