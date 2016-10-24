@@ -153,7 +153,16 @@ public class JSONPath {
         return resultList;
     }
 
-
+    /**
+     * 将 JSON 中的对象中的一个节点自动 转换成 java 中的对象
+     * @param pathQry        JSONPath 路径
+     * @param keyFieldName   key 值在 java 对象中对应的字段
+     * @param elemClazz      对象的 class
+     * @param <T>            范型指代对象
+     * @return  转换后的对象
+     * @throws ParseException  解析异常
+     * @throws ReflectiveOperationException 反射异常
+     */
     public <T> List<T> mapToListObject(String pathQry,String keyFieldName,Class<?> elemClazz) throws ParseException, ReflectiveOperationException {
         List<T> resultList = new ArrayList<T>();
         Map<String,?> mapValue = value(pathQry,Map.class);
