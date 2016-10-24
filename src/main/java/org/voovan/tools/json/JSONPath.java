@@ -51,26 +51,27 @@ public class JSONPath {
                 continue;
             }
 
-            String[] listMarks = TString.searchByRegex(pathElem, "\\[\\d+\\]$");
-            int listIndex = -1;
-
             //获取 list 索引位置
-            if (listMarks.length > 0) {
-                listIndex = Integer.parseInt(TString.removeSuffix(TString.removePrefix(listMarks[0])));
+            if ( pathElem.indexOf("[") > -1 &&  pathElem.indexOf("]") > -1 ) {
+                String[] pathElemSegms = pathElem.trim().split("\\[");
+
+                for(int i=0;i<pathElemSegms.length;i++ ){
+                    String pathElemSegm = pathElemSegms[i];
+                    if(pathElemSegm.isEmpty()){
+                        continue;
+                    }
+                    if(pathElemSegm.endsWith("]")){
+                        int index = Integer.parseInt(TString.removeSuffix(pathElemSegms[i]));
+                        currentPathObject = ((List)currentPathObject).get(index);
+                    }else {
+                        currentPathObject = (List) ((Map) currentPathObject).get(pathElemSegms[i]);
+                    }
+                }
+            }else{
+                currentPathObject =  ((Map)currentPathObject).get(pathElem);
             }
 
-            if(pathElem.startsWith("root") && listIndex == -1){
-                 continue;
-            }
 
-            //如果没有list索引则认为需要获取 Map,否则任务需要获取 List
-            if (listIndex == -1) {
-                Method mapGetMethod = TReflect.findMethod(HashMap.class, "get", new Class[]{Object.class});
-                currentPathObject = TReflect.invokeMethod(currentPathObject, mapGetMethod, pathElem );
-            }else {
-                Method listGetMethod = TReflect.findMethod(ArrayList.class, "get", new Class[]{int.class});
-                currentPathObject = TReflect.invokeMethod(currentPathObject, listGetMethod, listIndex);
-            }
         }
 
         return currentPathObject;
@@ -93,7 +94,7 @@ public class JSONPath {
         }
 
         if (clazz.getName().startsWith("java.") || !clazz.getName().contains(".")) {
-                return TObject.cast(value);
+                return (T)TObject.cast(value);
         } else {
             Object obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
             return TObject.cast(obj);
@@ -119,7 +120,7 @@ public class JSONPath {
         }
 
         if (clazz.getName().startsWith("java.") || !clazz.getName().contains(".")) {
-            result = TObject.cast(value);
+            result = (T)TObject.cast(value);
         } else {
             Object obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
             result = TObject.cast(obj);
