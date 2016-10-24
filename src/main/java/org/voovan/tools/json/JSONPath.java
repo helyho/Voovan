@@ -3,7 +3,6 @@ package org.voovan.tools.json;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TReflect;
 import org.voovan.tools.TString;
-import org.voovan.tools.log.Logger;
 
 import java.lang.reflect.Method;
 import java.text.ParseException;
@@ -88,6 +87,11 @@ public class JSONPath {
      */
     public <T> T value(String pathQry, Class<T> clazz) throws ParseException, ReflectiveOperationException {
         Object value = value(pathQry);
+
+        if(value==null){
+            return null;
+        }
+
         if (clazz.getName().startsWith("java.") || !clazz.getName().contains(".")) {
                 return TObject.cast(value);
         } else {
@@ -109,6 +113,11 @@ public class JSONPath {
     public <T> T value(String pathQry, Class<T> clazz, T defaultValue) throws ParseException, ReflectiveOperationException {
         T result;
         Object value = value(pathQry);
+
+        if(value==null){
+            return defaultValue;
+        }
+
         if (clazz.getName().startsWith("java.") || !clazz.getName().contains(".")) {
             result = TObject.cast(value);
         } else {
@@ -121,16 +130,20 @@ public class JSONPath {
 
     /**
      * 获取节点值并转换成相应的对象
+     * @param <T>      范型指代对象
      * @param pathQry  JSONPath 路径
      * @param elemClazz    List 元素对象的 class
-     * @param <T>      范型指代对象
      * @return  转换后的对象
      * @throws ParseException  解析异常
      * @throws ReflectiveOperationException 反射异常
      */
-    public <T> List<T> listValue(String pathQry, Class<T> elemClazz) throws ParseException, ReflectiveOperationException {
-        ArrayList resultList = new ArrayList();
+    public <T> List<T> listObject(String pathQry, Class<T> elemClazz) throws ParseException, ReflectiveOperationException {
+        List<T> resultList = new ArrayList<T>();
         List<Map<String, ?>> listMaps = value(pathQry, List.class, TObject.newList());
+
+        if(listMaps==null){
+            return null;
+        }
 
         for(Map<String, ?> map :listMaps){
             T obj = (T) TReflect.getObjectFromMap(elemClazz, map, true);
@@ -139,6 +152,31 @@ public class JSONPath {
 
         return resultList;
     }
+
+
+    public <T> List<T> mapToListObject(String pathQry,String keyFieldName,Class<?> elemClazz) throws ParseException, ReflectiveOperationException {
+        List<T> resultList = new ArrayList<T>();
+        Map<String,?> mapValue = value(pathQry,Map.class);
+
+        if(mapValue==null){
+            return null;
+        }
+
+        for(Map.Entry<String,?> entry : mapValue.entrySet()){
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            if(value instanceof Map){
+                Map map = ((Map) value);
+                map.put(keyFieldName,key);
+                T obj = (T) TReflect.getObjectFromMap(elemClazz, map, true);
+                resultList.add(obj);
+            }
+        }
+
+        return resultList;
+    }
+
+
 
     /**
      * 构造默认的对象
