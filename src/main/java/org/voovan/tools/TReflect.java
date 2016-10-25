@@ -25,7 +25,13 @@ public class TReflect {
 	 * @return Field数组
 	 */
 	public static Field[] getFields(Class<?> clazz) {
-		return clazz.getDeclaredFields();
+		List<Field> fields = new ArrayList<Field>();
+		for( ; clazz != Object.class ; clazz = clazz.getSuperclass()) {
+			Field[] tmpFields = clazz.getDeclaredFields();
+			List<Field> fieldList = Arrays.asList(tmpFields);
+			fields.addAll(fieldList);
+		}
+		return fields.toArray(new Field[]{});
 	}
 
 	/**
@@ -42,7 +48,12 @@ public class TReflect {
 		try {
 			return clazz.getDeclaredField(fieldName);
 		}catch(NoSuchFieldException ex){
-			return null;
+			Class superClazz = clazz.getSuperclass();
+			if( superClazz != Object.class ) {
+				return findField(clazz.getSuperclass(), fieldName);
+			}else{
+				return null;
+			}
 		}
 	}
 
