@@ -28,8 +28,7 @@ public class TReflect {
 		List<Field> fields = new ArrayList<Field>();
 		for( ; clazz != Object.class ; clazz = clazz.getSuperclass()) {
 			Field[] tmpFields = clazz.getDeclaredFields();
-			List<Field> fieldList = Arrays.asList(tmpFields);
-			fields.addAll(fieldList);
+			fields.addAll(Arrays.asList(tmpFields));
 		}
 		return fields.toArray(new Field[]{});
 	}
@@ -146,7 +145,12 @@ public class TReflect {
 	 * @return Method 对象数组
 	 */
 	public static Method[] getMethods(Class<?> clazz) {
-		return clazz.getDeclaredMethods();
+		List<Method> methods = new ArrayList<Method>();
+		for( ; clazz != Object.class ; clazz = clazz.getSuperclass()) {
+			Method[] tmpMethods = clazz.getDeclaredMethods();
+			methods.addAll(Arrays.asList(tmpMethods));
+		}
+		return methods.toArray(new Method[]{});
 	}
 	
 	/**
@@ -158,7 +162,7 @@ public class TReflect {
 	 */
 	public static Method[] getMethods(Class<?> clazz,String name) {
 		ArrayList<Method> methods = new ArrayList<Method>();
-		Method[] allMethod = clazz.getDeclaredMethods();
+		Method[] allMethod = getMethods(clazz);
 		
 		for(Method method : allMethod){
 			if(method.getName().equals(name) )
