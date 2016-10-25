@@ -135,7 +135,7 @@ public class TReflect {
 	 * @return Method 对象数组
 	 */
 	public static Method[] getMethods(Class<?> clazz) {
-		return clazz.getMethods();
+		return clazz.getDeclaredMethods();
 	}
 	
 	/**
@@ -147,7 +147,7 @@ public class TReflect {
 	 */
 	public static Method[] getMethods(Class<?> clazz,String name) {
 		ArrayList<Method> methods = new ArrayList<Method>();
-		Method[] allMethod = clazz.getMethods();
+		Method[] allMethod = clazz.getDeclaredMethods();
 		
 		for(Method method : allMethod){
 			if(method.getName().equals(name) )
