@@ -12,6 +12,7 @@ import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.Status;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.InterruptedByTimeoutException;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -159,7 +160,10 @@ public abstract class IoSession {
 			readObject = getAttribute("SocketResponse");
 			if(readObject!=null) {
 				if(readObject instanceof Exception){
-					throw new ReadMessageException("Method synchronouRead error! ",(Exception) readObject);
+					if(readObject instanceof InterruptedByTimeoutException) {
+						throw new ReadMessageException("Method synchronouRead error! Error by " +
+								((Exception) readObject).getClass().getSimpleName() + ".", (Exception) readObject);
+					}
 				}
 				removeAttribute("SocketResponse");
 				break;
@@ -184,7 +188,8 @@ public abstract class IoSession {
 				obj = EventProcess.filterEncoder(this,obj);
 				EventProcess.sendMessage(this, obj);
 			}catch (Exception e){
-				throw new SendMessageException("Method synchronouSend error! ",e);
+				throw new SendMessageException("Method synchronouSend error! "+
+						e.getClass().getSimpleName() + ".",e);
 			}
 		}
 	}
