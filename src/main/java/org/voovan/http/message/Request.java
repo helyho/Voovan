@@ -175,19 +175,22 @@ public class Request {
 	 * 		这里不按照请求方法组装必要的头信息,而是根据 Body 和 parts 对象的内容组装必要的头信息
 	 */
 	private void initHeader() {
-		// 如果请求中包含 Part 的处理
-		if (!parts.isEmpty()) {
-			// 产生新的boundary备用
-			String contentType = "multipart/form-data; boundary=" + boundary;
-			header.put(CONTENT_TYPE, contentType);
-		}else if(body.getBodyBytes().length>0){
-			header.put(CONTENT_TYPE, "application/x-www-form-urlencoded");
-		}
-		
-		//生成 Cookie 信息
-		String cookieValue = genCookie();
-		if(!TString.isNullOrEmpty(cookieValue)){
-			header.put("Cookie", genCookie());
+		//如果之前设置过 ContentType 则不自动设置 ContentType
+		if(!header.contain(CONTENT_TYPE)){
+            // 如果请求中包含 Part 的处理
+            if (!parts.isEmpty()) {
+                // 产生新的boundary备用
+                String contentType = "multipart/form-data; boundary=" + boundary;
+                header.put(CONTENT_TYPE, contentType);
+            }else if(body.getBodyBytes().length>0){
+                header.put(CONTENT_TYPE, "application/x-www-form-urlencoded");
+            }
+
+            //生成 Cookie 信息
+            String cookieValue = genCookie();
+            if(!TString.isNullOrEmpty(cookieValue)){
+                header.put("Cookie", genCookie());
+            }
 		}
 	}
 
@@ -221,7 +224,7 @@ public class Request {
 			}
 
 			// 有 parts 时按 parts 的格式写入 parts
-			if(parts.isEmpty()) {
+			if(!parts.isEmpty()) {
 				// Content-Type存在
 				if (parts.size() != 0) {
 					// 获取 multiPart 标识

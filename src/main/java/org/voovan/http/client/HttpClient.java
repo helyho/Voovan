@@ -156,16 +156,49 @@ public class HttpClient {
 	 * @return Request.BodyType 枚举
 	 */
 	public HttpClient setBodyType(Request.BodyType bodyType){
-		if(bodyType== Request.BodyType.BODY_MULTIPART){
-			request.header().put("Content-Type","multipart/form-data;");
-		}
-		else if(bodyType== Request.BodyType.BODY_URLENCODED){
-			request.header().put("Content-Type","application/x-www-form-urlencoded");
-		}
 
+		//如果之前设置过 ContentType 则不自动设置 ContentType
+		if(!request.header().contain("Content-Type")) {
+			if (bodyType == Request.BodyType.BODY_MULTIPART) {
+				request.header().put("Content-Type", "multipart/form-data;");
+			} else if (bodyType == Request.BodyType.BODY_URLENCODED) {
+				request.header().put("Content-Type", "application/x-www-form-urlencoded");
+			}
+		}
 		return this;
 	}
-	
+
+	/**
+	 * 设置请求内容
+	 * @param data 请求内容
+	 * @return  HttpClient 对象
+	 */
+	public HttpClient setData(byte[] data){
+		request.body().write(data);
+		return this;
+	}
+
+	/**
+	 * 设置请求内容
+	 * @param data 请求内容
+	 * @return  HttpClient 对象
+	 */
+	public HttpClient setData(String data){
+		request.body().write(data);
+		return this;
+	}
+
+	/**
+	 * 设置请求内容
+	 * @param data 请求内容
+	 * @param  charset 字符集
+	 * @return  HttpClient 对象
+	 */
+	public HttpClient setData(String data, String charset){
+		request.body().write(data,charset);
+		return this;
+	}
+
 	/**
 	 * 获取请求头集合
 	 * @return Header 对象
@@ -226,9 +259,11 @@ public class HttpClient {
 	/**
 	 * 构建QueryString
 	 * 	将 Map 集合转换成 QueryString 字符串
+	 * 	@param parameters 用于保存拼装请求字符串参数的 Map 对象
+	 *  @param charset 参数的字符集
 	 * @return 请求字符串
 	 */
-	private String getQueryString(){
+	 public static String buildQueryString(Map<String,Object> parameters,String charset){
 		String queryString = "";
 		StringBuilder queryStringBuilder = new StringBuilder();
 		try {
@@ -243,7 +278,16 @@ public class HttpClient {
 		} catch (IOException e) {
 			Logger.error("HttpClient getQueryString error. ",e);
 		}
-		return queryString.isEmpty()? "" :"?"+queryString;
+		return queryString.isEmpty()? "" : queryString;
+	}
+
+	/**
+	 * 构建QueryString
+	 * 	将 Map 集合转换成 QueryString 字符串
+	 * @return 请求字符串
+	 */
+	private String getQueryString(){
+		return buildQueryString(parameters,charset);
 	}
 
 	/**
@@ -254,6 +298,12 @@ public class HttpClient {
 		//1.没有报文 Body,参数包含于请求URL
 		if (request.getBodyType() == Request.BodyType.BODY_NOBODY) {
 			String queryString = getQueryString();
+			String requestPath = request.protocol().getPath();
+			if(requestPath.contains("?")){
+				queryString = "&"+queryString;
+			}else{
+				queryString = "?"+queryString;
+			}
 			request.protocol().setPath(request.protocol().getPath() + queryString);
 		}
 		//2.请求报文Body 使用Part 类型
@@ -291,8 +341,12 @@ public class HttpClient {
 	public Response send(String urlString) throws SendMessageException, ReadMessageException {
 
 		//设置默认的报文 Body 类型
-		if(request.protocol().getMethod().equals("POST")){
+		if(request.protocol().getMethod().equals("POST") && request.parts().size()>0){
 			setBodyType(Request.BodyType.BODY_MULTIPART);
+		}else if(request.protocol().getMethod().equals("POST") && getParameters().size()>0){
+			setBodyType(Request.BodyType.BODY_URLENCODED);
+		}else{
+			setBodyType(Request.BodyType.BODY_NOBODY);
 		}
 
 		//构造 Request 对象
