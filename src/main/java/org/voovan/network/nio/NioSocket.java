@@ -11,6 +11,7 @@ import org.voovan.tools.log.Logger;
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -160,10 +161,30 @@ public class NioSocket extends SocketContext{
 		session.synchronouSend(obj);
 	}
 
+	/**
+	 * 直接从缓冲区读取数据
+	 * @param data 字节缓冲对象ByteBuffer
+	 * @return 读取的字节数
+	 * */
+	public int directReadBuffer(ByteBuffer data) throws IOException {
+		return  session.getByteBufferChannel().read(data);
+	}
+
+	/**
+	 * 直接从缓冲区读取数据
+	 * @return 字节缓冲对象ByteBuffer
+	 * */
+	public ByteBuffer directBufferRead() throws IOException {
+		return  session.getMessageLoader().directRead();
+	}
+
 	@Override
 	public boolean close(){
 		if(socketChannel!=null){
 			try{
+				//关闭直接读取模式
+				session.closeDirectBufferRead();
+
 				socketChannel.close();
 				return true;
 			} catch(IOException e){

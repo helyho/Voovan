@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
@@ -138,16 +139,46 @@ public class AioSession extends IoSession {
 	}
 
 	@Override
-	public void send(ByteBuffer buffer) throws IOException {
+	public int send(ByteBuffer buffer) throws IOException {
+		int totalSendByte = 0;
 		if (isConnect() && buffer != null) {
 			//循环发送直到全不内容发送完毕
 			while(isConnect() && buffer.remaining()!=0){
 				Future<Integer> sendResult = socketChannel.write(buffer);
+				try {
+					totalSendByte+=sendResult.get();
+				} catch (InterruptedException|ExecutionException e) {
+					throw new IOException("Get send byte count error.",e);
+				}
 				while(!sendResult.isDone()){
 					TEnv.sleep(1);
 				}
 			}
 		}
+		return totalSendByte;
+	}
+
+	/**
+	 * 打开直接读取模式
+	 */
+	public void openDirectBufferRead(){
+		messageLoader.setDirectRead(true);
+	}
+
+	/**
+	 * 直接从缓冲区读取数据
+	 * @return 字节缓冲对象ByteBuffer
+	 * */
+	public ByteBuffer directBufferRead() throws IOException {
+		messageLoader.setDirectRead(true);
+		return  messageLoader.directRead();
+	}
+
+	/**
+	 * 关闭直接读取模式
+	 */
+	public void closeDirectBufferRead(){
+		messageLoader.setDirectRead(false);
 	}
 
 	@Override

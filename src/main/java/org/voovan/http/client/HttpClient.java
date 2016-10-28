@@ -11,6 +11,7 @@ import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
@@ -139,7 +140,33 @@ public class HttpClient {
 			Logger.error("HttpClient init error. ",e);
 		}
 	}
-	
+
+
+	/**
+	 * 开启流读取模式
+	 */
+	public void beginLoadStream(){
+		socket.getSession().openDirectBufferRead();
+	}
+
+	/**
+	 * 读取流
+	 * @return 字节缓冲对象ByteBuffer
+	 * @throws IOException IO异常对象
+	 */
+	public ByteBuffer loadStream() throws IOException {
+		ByteBuffer tmpBuffer = socket.getSession().directBufferRead();
+		return tmpBuffer;
+	}
+
+	/**
+	 * 关闭流读取模式
+	 */
+	public void endLoadStream(){
+		socket.getSession().closeDirectBufferRead();
+	}
+
+
 	/**
 	 * 设置请求方法
 	 * @param method  Http 请求的方法
@@ -174,7 +201,9 @@ public class HttpClient {
 	 * @return  HttpClient 对象
 	 */
 	public HttpClient setData(byte[] data){
-		request.body().write(data);
+		if(data!=null) {
+			request.body().write(data);
+		}
 		return this;
 	}
 
@@ -184,7 +213,9 @@ public class HttpClient {
 	 * @return  HttpClient 对象
 	 */
 	public HttpClient setData(String data){
-		request.body().write(data);
+		if(data!=null) {
+			request.body().write(data);
+		}
 		return this;
 	}
 
@@ -195,7 +226,9 @@ public class HttpClient {
 	 * @return  HttpClient 对象
 	 */
 	public HttpClient setData(String data, String charset){
-		request.body().write(data,charset);
+		if(data!=null) {
+			request.body().write(data, charset);
+		}
 		return this;
 	}
 
