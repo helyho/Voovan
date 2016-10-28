@@ -193,7 +193,9 @@ public class AioSocket extends SocketContext {
 	@Override
 	public boolean close() {
 		if (socketChannel != null) {
-			try {
+			 try {
+				//关闭直接读取模式
+				session.closeDirectBufferRead();
 
 				// 触发 DisConnect 事件
 				eventTrigger.fireDisconnect();

@@ -1,5 +1,7 @@
 package org.voovan.tools;
 
+import org.voovan.tools.log.Logger;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
@@ -47,30 +49,30 @@ public class ByteBufferChannel implements ByteChannel {
 	}
 	
 	@Override
-	public int read(ByteBuffer dst) throws IOException {
-			int readSize = 0;
-			
-			//确定读取大小
-			if( dst.limit() > buffer.limit() ){
-				readSize = buffer.limit();
-			}else{
-				readSize = dst.limit();
-			}
+	public synchronized int read(ByteBuffer dst) throws IOException {
+        int readSize = 0;
 
-            synchronized(dst) {
-                if (readSize > 0) {
-                    synchronized (buffer) {
-                        dst.put(TByteBuffer.toArray(buffer), 0, readSize);
-                        buffer.position(readSize);
-                        byte[] tempBytes = new byte[buffer.remaining()];
-                        buffer.get(tempBytes, 0, buffer.remaining());
-                        buffer = ByteBuffer.wrap(tempBytes);
-                    }
-                }
-                dst.flip();
+        //确定读取大小
+        if (dst.limit() > buffer.limit()) {
+            readSize = buffer.limit();
+        } else {
+            readSize = dst.limit();
+        }
+
+        if (readSize > 0) {
+            try {
+                dst.put(TByteBuffer.toArray(buffer), 0, readSize);
+            } catch (Exception e) {
+                Logger.simple("error");
             }
+            buffer.position(readSize);
+            byte[] tempBytes = new byte[buffer.remaining()];
+            buffer.get(tempBytes, 0, buffer.remaining());
+            buffer = ByteBuffer.wrap(tempBytes);
+        }
+        dst.flip();
 
-			return readSize;
+        return readSize;
 	}
 
 	/**
@@ -90,7 +92,7 @@ public class ByteBufferChannel implements ByteChannel {
 	}
 
 	@Override
-	public int write(ByteBuffer src) throws IOException {
+	public synchronized int write(ByteBuffer src) throws IOException {
 		if(src.limit()!=0){
 			int newSize = buffer.limit()+src.limit();
 			ByteBuffer tempBuffer = ByteBuffer.allocateDirect(newSize);
