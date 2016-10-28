@@ -5,10 +5,7 @@ import org.voovan.http.client.HttpClient;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.MimeTools;
 import org.voovan.network.SSLManager;
-import org.voovan.tools.TFile;
-import org.voovan.tools.TObject;
-import org.voovan.tools.TStream;
-import org.voovan.tools.TString;
+import org.voovan.tools.*;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 
@@ -24,6 +21,24 @@ public class Other {
 
 
     public static void main(String[] args) throws Exception {
-
+        Thread mainThread = null;
+        for(Thread threadI: TEnv.getThreads()){
+            if(threadI.getId()==1)
+                mainThread = threadI;
+        }
+        Thread finalMainThread = mainThread;
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true){
+                    System.out.println(finalMainThread.getState());
+                    TEnv.sleep(1000);
+                }
+            }
+        });
+        for(Thread threadI: TEnv.getThreads()){
+            System.out.println(threadI.getId()+" "+threadI.getName());
+        }
+        thread.start();
     }
 }
