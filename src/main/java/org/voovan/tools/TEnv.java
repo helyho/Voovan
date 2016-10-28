@@ -215,4 +215,17 @@ public class TEnv {
 		System.arraycopy(slackList, 0, list, 0, actualSize);
 		return list;
 	}
+
+	/**
+	 * 获取进程的主线程
+	 * @return 进程的主线程
+	 */
+	public static Thread getMainThread(){
+		for(Thread thread: TEnv.getThreads()){
+			if(thread.getId()==1){
+				return thread;
+			}
+		}
+		return null;
+	}
 }
