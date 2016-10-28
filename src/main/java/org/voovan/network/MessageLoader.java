@@ -21,7 +21,8 @@ import java.nio.ByteBuffer;
 public class MessageLoader {
 	private IoSession session;
 	private boolean isLoading;
-
+	private ByteArrayOutputStream byteOutputStream;
+	private boolean isDirectRead;
 	/**
 	 * 构造函数
 	 * @param session Session 对象
@@ -29,8 +30,27 @@ public class MessageLoader {
 	public MessageLoader(IoSession session) {
 		this.session = session;
 		isLoading = false;
+		isDirectRead = false;
+		//准备缓冲流
+		byteOutputStream = new ByteArrayOutputStream();
 	}
-	
+
+	/**
+	 * 是否是直接读取模式
+	 * @return true 直接读取模式,false 常规过滤器读取模式
+	 */
+	public boolean isDirectRead() {
+		return isDirectRead;
+	}
+
+	/**
+	 * 设置是否启用直接读取模式
+	 * @param directRead true 直接读取模式,false 常规过滤器读取模式
+	 */
+	public void setDirectRead(boolean directRead) {
+		isDirectRead = directRead;
+	}
+
 	/**
 	 * 停止读取
 	 */
@@ -70,7 +90,9 @@ public class MessageLoader {
 	 * @throws IOException IO 异常
 	 */
 	public ByteBuffer read() throws IOException {
-		
+
+		byteOutputStream.reset();
+
 		if(session==null){
 			return null;
 		}
@@ -82,9 +104,6 @@ public class MessageLoader {
 			Logger.error("[Error] MessageSplitter is null, you need to invoke SocketContext object's messageSplitter method to set MessageSplitter Object in it.");
 			return null;
 		}
-		
-		//准备缓冲流
-		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 		
 		//缓冲区字段,一次读1024个字节
 		ByteBuffer tmpByteBuffer = ByteBuffer.allocate(1024);
@@ -123,7 +142,7 @@ public class MessageLoader {
 			}
 
 			//使用消息划分器进行消息划分
-			if(readsize==0) {
+			if(readsize==0 && !isDirectRead) {
 				boolean msgSplitState = messageSplitter.canSplite(session, byteOutputStream.toByteArray());
 				if (msgSplitState) {
 					stopLoading();
@@ -131,7 +150,18 @@ public class MessageLoader {
 			}
 		}
 
-		return ByteBuffer.wrap(byteOutputStream.toByteArray());
+		ByteBuffer result = ByteBuffer.wrap(byteOutputStream.toByteArray());
+		byteOutputStream.reset();
+		return result;
 	}
 
+	/**
+	 * 直接读取缓冲区的数据
+	 * @return 字节缓冲对象ByteBuffer
+	 */
+	public synchronized ByteBuffer directRead(){
+		ByteBuffer result = ByteBuffer.wrap(byteOutputStream.toByteArray());
+		byteOutputStream.reset();
+		return result;
+	}
 }

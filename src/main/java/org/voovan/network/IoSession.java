@@ -147,7 +147,7 @@ public abstract class IoSession {
 	 * @param buffer  发送缓冲区
 	 * @throws IOException IO 异常
 	 */
-	public abstract void send(ByteBuffer buffer) throws IOException;
+	public abstract int send(ByteBuffer buffer) throws IOException;
 
 	/**
 	 * 同步读取消息

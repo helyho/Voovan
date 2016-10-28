@@ -83,7 +83,12 @@ public class HttpParser {
 			protocol.put(FL_PROTOCOL, protocolSplit[0]);
 			protocol.put(FL_VERSION, protocolSplit[1]);
 			protocol.put(FL_STATUS, lineSplit[1]);
-			protocol.put(FL_STATUSCODE, lineSplit[2]);
+			String statusCode = "";
+			for(int i=2;i<lineSplit.length;i++){
+				statusCode += lineSplit[i]+" ";
+			}
+			statusCode = TString.removeSuffix(statusCode);
+			protocol.put(FL_STATUSCODE, statusCode);
 		}
 		return protocol;
 	}

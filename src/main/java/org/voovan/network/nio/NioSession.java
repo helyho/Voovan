@@ -143,13 +143,38 @@ public class NioSession extends IoSession {
 	}
 
 	@Override
-	public void send(ByteBuffer buffer) throws IOException {
+	public int send(ByteBuffer buffer) throws IOException {
+		int totalSendByte = 0;
 		if (isConnect() && buffer != null) {
 			//循环发送直到全不内容发送完毕
 			while(isConnect() && buffer.remaining()!=0){
-				socketChannel.write(buffer);
+				totalSendByte+=socketChannel.write(buffer);
 			}
 		}
+		return totalSendByte;
+	}
+
+	/**
+	 * 打开直接读取模式
+	 */
+	public void openDirectBufferRead(){
+		messageLoader.setDirectRead(true);
+	}
+
+	/**
+	 * 直接从缓冲区读取数据
+	 * @return 字节缓冲对象ByteBuffer
+	 * */
+	public ByteBuffer directBufferRead() throws IOException {
+		messageLoader.setDirectRead(true);
+		return  messageLoader.directRead();
+	}
+
+	/**
+	 * 关闭直接读取模式
+	 */
+	public void closeDirectBufferRead(){
+		messageLoader.setDirectRead(false);
 	}
 
 	@Override
