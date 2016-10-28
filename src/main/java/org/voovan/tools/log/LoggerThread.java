@@ -1,5 +1,6 @@
 package org.voovan.tools.log;
 
+import org.voovan.Global;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 
@@ -36,7 +37,7 @@ public class LoggerThread implements Runnable {
 	public boolean isFinished() {
 		return finished.get();
 	}
-	
+
 	/**
 	 * 获取日志输出流集合
 	 * @return 输出流数组
@@ -79,13 +80,13 @@ public class LoggerThread implements Runnable {
 
 	@Override
 	public void run() {
-
         finished.set(false);
 
-		int count = 0;
+		Thread mainThread = TEnv.getMainThread();
+
 		while (true) {
 			try {
-				String formatedMessage = logQueue.poll(100, TimeUnit.MILLISECONDS);
+				String formatedMessage = logQueue.poll(1000, TimeUnit.MILLISECONDS);
 				if (formatedMessage != null && outputStreams!=null) {
 					for (OutputStream outputStream : outputStreams) {
 						if (outputStream != null) {
@@ -93,18 +94,15 @@ public class LoggerThread implements Runnable {
 							outputStream.flush();
 						}
 					}
-					count = 0;
 				}
-
-				if(formatedMessage==null){
-					count++;
-				}
-
-				//如果有 1s 没有新的日志输出则结束当前线程
-				if(count>10){
+				//如果主线程结束,则日志线程也退出
+				if(mainThread!=null && mainThread.getState() == Thread.State.TERMINATED){
 					break;
 				}
 
+				if(mainThread == null){
+					break;
+				}
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
 			}
