@@ -27,7 +27,9 @@ public class TStream {
 	public static byte[] read(InputStream inputStream,int length) throws IOException{
 		byte[] resultBytes = new byte[length];
 		int readLength = inputStream.read(resultBytes);
-		resultBytes = Arrays.copyOfRange(resultBytes, 0, readLength);
+		if(readLength>0) {
+			resultBytes = Arrays.copyOfRange(resultBytes, 0, readLength);
+		}
 		return resultBytes.length==0?null:resultBytes;
 	}
 
