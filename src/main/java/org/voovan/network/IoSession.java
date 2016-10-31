@@ -160,10 +160,8 @@ public abstract class IoSession {
 			readObject = getAttribute("SocketResponse");
 			if(readObject!=null) {
 				if(readObject instanceof Exception){
-					if(readObject instanceof InterruptedByTimeoutException) {
 						throw new ReadMessageException("Method synchronouRead error! Error by " +
 								((Exception) readObject).getClass().getSimpleName() + ".", (Exception) readObject);
-					}
 				}
 				removeAttribute("SocketResponse");
 				break;
