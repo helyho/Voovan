@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
  */
 public class MessageLoader {
 	private IoSession session;
-	private boolean isLoading;
+	private StopType stopType;
 	private ByteArrayOutputStream byteOutputStream;
 	private boolean isDirectRead;
 	/**
@@ -29,7 +29,7 @@ public class MessageLoader {
 	 */
 	public MessageLoader(IoSession session) {
 		this.session = session;
-		isLoading = false;
+		stopType = StopType.RUNNING;
 		isDirectRead = false;
 		//准备缓冲流
 		byteOutputStream = new ByteArrayOutputStream();
@@ -51,11 +51,23 @@ public class MessageLoader {
 		isDirectRead = directRead;
 	}
 
+	public enum StopType {
+		RUNNING,SOCKET_CLOSE,STREAM_END,REMOTE_DISCONNECT,MSG_SPLITTER,EXCEPTION
+	}
+
 	/**
-	 * 停止读取
+	 * 获取停止类型
 	 */
-	public void stopLoading(){
-		isLoading = false;
+	public StopType getStopType() {
+		return stopType;
+	}
+
+	/**
+	 * 设置停止类型
+	 * @param stopType 停止类型
+	 */
+	public void setStopType(StopType stopType) {
+		this.stopType = stopType;
 	}
 
 	/**
@@ -68,14 +80,14 @@ public class MessageLoader {
 	public static boolean isRemoteClosed(Integer length,  ByteBuffer buffer) throws SocketDisconnectByRemote{
 		if(length==-1){
 			//触发 disconnect 事件
-			throw new SocketDisconnectByRemote("Disconnect by Remote");
+			return true;
 		}
 		//如果 buffer 被冲满,且起始、中位、结束的字节都是结束符(Ascii=4)则连接意外结束
 	   if(length>2
 				&& buffer.get(0)==4 //起始判断
 				&& buffer.get(length/2)==4 //中位判断 
 				&& buffer.get(length-1)==4){ //结束判断 
-		   	throw new SocketDisconnectByRemote("Disconnect by Remote");
+		   return true;
 		}
 		
 	   return false;
@@ -90,6 +102,8 @@ public class MessageLoader {
 	 * @throws IOException IO 异常
 	 */
 	public ByteBuffer read() throws IOException {
+
+		stopType = StopType.RUNNING;
 
 		byteOutputStream.reset();
 
@@ -108,12 +122,10 @@ public class MessageLoader {
 		//缓冲区字段,一次读1024个字节
 		ByteBuffer tmpByteBuffer = ByteBuffer.allocate(1024);
 		
-		isLoading = true;
-
-		while (isLoading) {
+		while (stopType==StopType.RUNNING) {
 			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
 			if(!session.isConnect() && session.getByteBufferChannel().size()==0){
-				stopLoading();
+				stopType = StopType.SOCKET_CLOSE;
 			}
 
 			tmpByteBuffer.clear();
@@ -128,7 +140,7 @@ public class MessageLoader {
 
 			//通道关闭,退出循环
 			if(readsize==-1){
-				stopLoading();
+				stopType = StopType.STREAM_END;
 			}
 
 			//将读出的数据写入缓冲区
@@ -138,21 +150,27 @@ public class MessageLoader {
 
 			//判断连接是否关闭
 			if (isRemoteClosed(readsize,tmpByteBuffer)) {
-				stopLoading();
+				stopType = StopType.REMOTE_DISCONNECT;
 			}
-
 			//使用消息划分器进行消息划分
 			if(readsize==0 && !isDirectRead) {
 				boolean msgSplitState = messageSplitter.canSplite(session, byteOutputStream.toByteArray());
 				if (msgSplitState) {
-					stopLoading();
+					stopType = StopType.MSG_SPLITTER ;
 				}
 			}
 		}
 
-		ByteBuffer result = ByteBuffer.wrap(byteOutputStream.toByteArray());
-		byteOutputStream.reset();
-		return result;
+		//如果是消息截断器截断的消息则掉用消息截断器处理的逻辑
+		if(stopType==StopType.MSG_SPLITTER) {
+			ByteBuffer result = ByteBuffer.wrap(byteOutputStream.toByteArray());
+			byteOutputStream.reset();
+			return result;
+		}else{
+			//不是消息截断器截断的消息放在缓冲区中,等待直接读取流的形式读取
+			session.getByteBufferChannel().write(ByteBuffer.wrap(byteOutputStream.toByteArray()));
+			return ByteBuffer.allocate(0);
+		}
 	}
 
 	/**
@@ -162,6 +180,11 @@ public class MessageLoader {
 	public synchronized ByteBuffer directRead(){
 		ByteBuffer result = ByteBuffer.wrap(byteOutputStream.toByteArray());
 		byteOutputStream.reset();
-		return result;
+
+		if(!result.hasRemaining() && !session.isConnect()){
+			return null;
+		}
+
+        return result;
 	}
 }

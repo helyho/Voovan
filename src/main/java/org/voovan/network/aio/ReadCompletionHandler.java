@@ -58,13 +58,11 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					if(socket.isConnect()) {
 						socket.catchRead(buffer);
 					}
-				}else if(length == -1){
-					session.getMessageLoader().stopLoading();
 				}
 			}
 		} catch (IOException e) {
 			// 触发 onException 事件
-			session.getMessageLoader().stopLoading();
+			session.getMessageLoader().setStopType(MessageLoader.StopType.EXCEPTION);
 			eventTrigger.fireException(e);
 		}
 		

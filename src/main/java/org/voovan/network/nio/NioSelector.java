@@ -95,7 +95,7 @@ public class NioSelector {
 												session.getByteBufferChannel().write(readTempBuffer);
 												readTempBuffer.clear();
 											}else if(readSize == -1){
-												session.getMessageLoader().stopLoading();
+												session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 											}
 											// 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
 											eventTrigger.fireReceiveThread();
