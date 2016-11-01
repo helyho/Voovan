@@ -25,10 +25,17 @@ public class HttpMessageSplitter implements MessageSplitter {
 	@Override
 	public boolean canSplite(IoSession session, byte[] buffer) {
 
+		if(buffer.length==0){
+			return false;
+		}
+
+
 		if (isHttpFrame(buffer)) {
 			return true;
-		} else if (isWebSocketFrame(ByteBuffer.wrap(buffer))) {
+		} else if (isWebSocketFrame(ByteBuffer.wrap(buffer))
+                    && "WebSocket".equals(session.getAttribute("Type")) ) {
 			return true;
+
 		}
 
 		return false;
@@ -37,6 +44,12 @@ public class HttpMessageSplitter implements MessageSplitter {
 	public static boolean isHttpFrame(byte[] buffer) {
 		try {
 			String bufferString = new String(buffer,"UTF-8");
+
+			String firstLine = bufferString.substring(0,bufferString.indexOf("\r\n"));
+			if(!firstLine.contains("HTTP/")){
+				return false;
+			}
+
 			String[] boundaryLines = TString.searchByRegex(bufferString, "boundary=[^ \\r\\n]+");
 			String[] contentLengthLines = TString.searchByRegex(bufferString, "Content-Length: \\d+");
 			boolean isChunked = bufferString.contains("chunked");
