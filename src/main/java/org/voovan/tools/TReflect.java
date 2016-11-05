@@ -1,6 +1,9 @@
 package org.voovan.tools;
 
 
+import javafx.print.Collation;
+import org.omg.CORBA.OBJ_ADAPTER;
+
 import java.lang.reflect.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -70,6 +73,28 @@ public class TReflect {
 			if(field.getName().equalsIgnoreCase(fieldName)){
 				return field;
 			}
+		}
+		return null;
+	}
+
+	/**
+	 * 获取 Field 的范型类型
+	 * @param field  field 对象
+	 * @return 返回范型类型数组
+	 * @throws ClassNotFoundException 类找不到异常
+	 */
+	public static Class[] getFieldGenericType(Field field) throws ClassNotFoundException {
+		Class[] result = null;
+		Type fieldType = field.getGenericType();
+		if(fieldType instanceof ParameterizedType){
+			ParameterizedType parameterizedFieldType = (ParameterizedType)fieldType;
+			Type[] actualType = parameterizedFieldType.getActualTypeArguments();
+			result = new Class[actualType.length];
+
+			for(int i=0;i<actualType.length;i++){
+				result[i] = Class.forName(actualType[i].getTypeName());
+			}
+			return result;
 		}
 		return null;
 	}
@@ -169,6 +194,36 @@ public class TReflect {
 			methods.add(method);
 		}
 		return methods.toArray(new Method[0]);
+	}
+
+	/**
+	 * 获取方法的参数和返回值的范型类型
+	 * @param method  method 对象
+	 * @param parameterIndex 参数索引 (>0) 参数索引位置[第一个参数为0,以此类推], (-1) 返回值
+	 * @return 返回范型类型数组
+	 * @throws ClassNotFoundException 类找不到异常
+	 */
+	public static Class[] getMethodParameterGenericType(Method method,int parameterIndex) throws ClassNotFoundException {
+		Class[] result = null;
+		Type parameterType;
+
+		if(parameterIndex == -1){
+			parameterType = method.getGenericReturnType();
+		}else{
+			parameterType = method.getGenericParameterTypes()[parameterIndex];
+		}
+
+		if(parameterType instanceof ParameterizedType){
+			ParameterizedType parameterizedFieldType = (ParameterizedType)parameterType;
+			Type[] actualType = parameterizedFieldType.getActualTypeArguments();
+			result = new Class[actualType.length];
+
+			for(int i=0;i<actualType.length;i++){
+				result[i] = Class.forName(actualType[i].getTypeName());
+			}
+			return result;
+		}
+		return null;
 	}
 	
 	/**
@@ -319,20 +374,22 @@ public class TReflect {
 			return obj;
 		}
 
+		//由于 List 和 Map 无法构造, 所以使用默认类型
+		if(clazz == List.class){
+			clazz= ArrayList.class;
+		}else if(clazz == Map.class){
+			clazz= HashMap.class;
+		}
+
 		if(mapArg.isEmpty()){
+
 			return TReflect.newInstance(clazz,new Object[]{});
 		}
 
 		Object singleValue = mapArg.values().iterator().next();
 		// java标准对象
-		if (!clazz.getName().contains(".")){
+		if (clazz.isPrimitive() || clazz == Object.class){
 			obj = singleValue;
-		}
-		//java基本对象
-		else if (clazz.getName().startsWith("java.lang")) {
-			//取 Map.Values 里的递第一个值
-			String value = singleValue==null?null:singleValue.toString();
-			obj = singleValue==null?null:newInstance(clazz,  value);
 		}
 		//java 日期对象
 		else if(isExtendsByClass(clazz,Date.class)){
@@ -349,9 +406,17 @@ public class TReflect {
 		}
 		//Collection 类型
 		else if(isImpByInterface(clazz,Collection.class)){
-			Collection listObject = TObject.cast(newInstance(clazz));
-			listObject.addAll((Collection) TObject.cast(singleValue));
+            Collection listObject = TObject.cast(newInstance(clazz));
+			if(singleValue!=null){
+                listObject.addAll((Collection) TObject.cast(singleValue));
+			}
 			obj = listObject;
+		}
+		//java基本对象
+		else if (clazz.getName().startsWith("java.lang")) {
+			//取 Map.Values 里的递第一个值
+			String value = singleValue==null?null:singleValue.toString();
+			obj = singleValue==null?null:newInstance(clazz,  value);
 		}
 		// 复杂对象
 		else {
@@ -373,11 +438,65 @@ public class TReflect {
 					String fieldName = field.getName();
 					Class<?> fieldType = field.getType();
 
-					if(value instanceof Map){
-						value = getObjectFromMap(fieldType,(Map<String, ?>)value, ignoreCase);
-					} else {
-						value = getObjectFromMap(fieldType, TObject.newMap("value", TObject.cast(value)), ignoreCase);
+					//对于 对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
+					if(isImpByInterface(fieldType,Map.class) && value instanceof Map){
+						Class[] mapGenericTypes = getFieldGenericType(field);
+						if(mapGenericTypes!=null) {
+							HashMap result = new HashMap();
+							Map mapValue = (Map) value;
+							Iterator iterator = mapValue.entrySet().iterator();
+							while(iterator.hasNext() ) {
+								Entry entry = (Entry) iterator.next();
+								Map keyMap = null;
+								Map valueMap = null;
+								if(entry.getKey() instanceof Map){
+									keyMap = (Map)entry.getKey();
+								}else{
+									keyMap = TObject.newMap("value",entry.getKey());
+								}
+
+								if(entry.getValue() instanceof Map){
+									valueMap = (Map)entry.getValue();
+								}else{
+									valueMap = TObject.newMap("value",entry.getValue());
+								}
+
+								Object keyObj = getObjectFromMap(mapGenericTypes[0], keyMap, ignoreCase);
+								Object valueObj = getObjectFromMap(mapGenericTypes[1], valueMap, ignoreCase);
+								result.put(keyObj, valueObj);
+							}
+							mapValue.clear();
+							mapValue.putAll(result);
+						}
 					}
+					//对于 对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
+					else if(isImpByInterface(fieldType,Collection.class) && value instanceof Collation){
+						Class[] listGenericTypes = getFieldGenericType(field);
+						if(listGenericTypes!=null) {
+							ArrayList result = new ArrayList();
+							List listValue = (List)value;
+							for(Object listItem : listValue){
+								Map valueMap = null;
+								if(listValue instanceof Map){
+									valueMap = (Map)listValue;
+								}else{
+									valueMap = TObject.newMap("value",listValue);
+								}
+
+								Object item = getObjectFromMap(listGenericTypes[0],valueMap,ignoreCase);
+								result.add(item);
+							}
+							listValue.clear();
+							listValue.addAll(result);
+						}
+
+					}else if(value instanceof Map){
+						value = getObjectFromMap(fieldType,(Map<String, ?>)value, ignoreCase);
+
+					} else {
+						value = getObjectFromMap(fieldType, TObject.newMap("value", value), ignoreCase);
+					}
+
 					setFieldValue(obj, fieldName, value);
 				}
 			}
@@ -399,7 +518,7 @@ public class TReflect {
 		Map<Field, Object> fieldValues =  TReflect.getFieldValues(obj);
 		//如果是 java 标准类型
 		if(obj.getClass().getName().startsWith("java.lang")
-				|| !obj.getClass().getName().contains(".")){
+				|| obj.getClass().isPrimitive()){
 			mapResult.put("value", obj);
 		}
 		//对 Collection 类型的处理
@@ -454,6 +573,10 @@ public class TReflect {
 	 * @return 是否实现某个接口
 	 */
 	public static boolean isImpByInterface(Class<?> type,Class<?> interfaceClass){
+		if(type==interfaceClass){
+			return true;
+		}
+
 		Class<?>[] interfaces= type.getInterfaces();
 		for (Class<?> interfaceItem : interfaces) {
 			if (interfaceItem.equals(interfaceClass)) {
@@ -474,6 +597,10 @@ public class TReflect {
 	 * @return 是否继承于某个类
 	 */
 	public static boolean isExtendsByClass(Class<?> type,Class<?> extendsClass){
+		if(extendsClass == type){
+			return true;
+		}
+
 		Class<?> superClass = type;
 		do{
 			if(superClass.equals(extendsClass)){
