@@ -8,7 +8,6 @@ import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;

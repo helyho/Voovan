@@ -4,14 +4,12 @@ import org.voovan.network.Event.EventName;
 import org.voovan.network.Event.EventState;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 
 /**
  * 事件的实际逻辑处理
