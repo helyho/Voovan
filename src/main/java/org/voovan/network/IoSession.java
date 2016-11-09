@@ -3,8 +3,6 @@ package org.voovan.network;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.Chain;
-import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
@@ -12,8 +10,6 @@ import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.Status;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.InterruptedByTimeoutException;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

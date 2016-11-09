@@ -5,7 +5,6 @@ import org.voovan.tools.TReflect;
 import org.voovan.tools.json.annotation.NotJSON;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

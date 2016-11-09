@@ -2,7 +2,6 @@ package org.voovan.tools;
 
 
 import javafx.print.Collation;
-import org.omg.CORBA.OBJ_ADAPTER;
 
 import java.lang.reflect.*;
 import java.text.ParseException;

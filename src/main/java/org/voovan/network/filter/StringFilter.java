@@ -5,7 +5,6 @@ import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TObject;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 /**
