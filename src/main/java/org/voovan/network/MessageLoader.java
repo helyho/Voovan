@@ -1,7 +1,6 @@
 package org.voovan.network;
 
 import org.voovan.network.exception.SocketDisconnectByRemote;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayOutputStream;

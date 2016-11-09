@@ -5,8 +5,6 @@ import org.voovan.network.Event.EventName;
 import org.voovan.network.Event.EventState;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -71,6 +69,15 @@ public class EventTrigger {
 			fireEventThread(EventName.ON_RECEIVE, null);
 		}
 	}
+
+	public void fireReceiveThread(IoSession session){
+		// 当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
+		// 所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
+		// !hasEventDisposeing(EventName.ON_CONNECT) &&
+		if (session.isConnect() && isHandShakeDone() && !hasEventUnfinished(EventName.ON_RECEIVE)) {
+			fireEventThread(session,EventName.ON_RECEIVE, null);
+		}
+	}
 	
 	public void fireSentThread(ByteBuffer buffer){
 		fireEventThread(EventName.ON_SENT,buffer);
@@ -82,6 +89,10 @@ public class EventTrigger {
 	
 	public void fireExceptionThread(Exception exception){
 		fireEventThread(EventName.ON_EXCEPTION,exception);
+	}
+
+	public void fireExceptionThread(IoSession session,Exception exception){
+		fireEventThread(session,EventName.ON_EXCEPTION,exception);
 	}
 	
 	public void fireAccept(IoSession session){
