@@ -164,6 +164,7 @@ public class NioSession extends IoSession {
 	/**
 	 * 直接从缓冲区读取数据
 	 * @return 字节缓冲对象ByteBuffer
+	 * @throws IOException IO异常
 	 * */
 	public ByteBuffer directBufferRead() throws IOException {
 		messageLoader.setDirectRead(true);

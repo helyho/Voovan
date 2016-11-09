@@ -40,6 +40,7 @@ public class UdpSocket extends SocketContext{
      * @param host      监听地址
      * @param port		监听端口
      * @param readTimeout   超时事件
+     * @param connectModel 连接类型,请查看 org.voovan.network.ConnectModel 类
      * @throws IOException	IO异常
      */
     public UdpSocket(String host, int port, int readTimeout,ConnectModel connectModel) throws IOException{
@@ -146,6 +147,7 @@ public class UdpSocket extends SocketContext{
      * 直接从缓冲区读取数据
      * @param data 字节缓冲对象ByteBuffer
      * @return 读取的字节数
+     * @throws IOException IO异常
      * */
     public int directReadBuffer(ByteBuffer data) throws IOException {
         return  session.getByteBufferChannel().read(data);
@@ -154,6 +156,7 @@ public class UdpSocket extends SocketContext{
     /**
      * 直接从缓冲区读取数据
      * @return 字节缓冲对象ByteBuffer
+     * @throws IOException IO异常
      * */
     public ByteBuffer directBufferRead() throws IOException {
         return  session.getMessageLoader().directRead();

@@ -35,7 +35,7 @@ public class JSONPath {
      * 获取JSONPath 对应的节点数据
      * @param pathQry JSONPath 路径
      * @return  节点的数据
-     * @throws ReflectiveOperationException
+     * @throws ReflectiveOperationException 反射操作异常
      */
     public Object value(String pathQry) throws ReflectiveOperationException {
         Object currentPathObject = parsedObj;
@@ -79,8 +79,9 @@ public class JSONPath {
     /**
      * 获取JSONPath 对应的节点数据
      * @param pathQry JSONPath 路径
+     * @param defaultValue 节点不存在时的默认值
      * @return  节点的数据
-     * @throws ReflectiveOperationException
+     * @throws ReflectiveOperationException 反射操作异常
      */
     public Object value(String pathQry,Object defaultValue) throws ReflectiveOperationException {
         return TObject.nullDefault(value(pathQry),defaultValue);
@@ -154,6 +155,7 @@ public class JSONPath {
      * @param <T>      范型指代对象
      * @param pathQry  JSONPath 路径
      * @param elemClazz    List 元素对象的 class
+     * @param defaultValue 节点不存在时的默认值
      * @return  转换后的对象
      * @throws ParseException  解析异常
      * @throws ReflectiveOperationException 反射异常
