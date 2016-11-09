@@ -141,6 +141,7 @@ public abstract class IoSession {
 	 * 发送消息
 	 * 		注意直接调用不会出发 onSent 事件
 	 * @param buffer  发送缓冲区
+	 * @return 读取的字节数
 	 * @throws IOException IO 异常
 	 */
 	public abstract int send(ByteBuffer buffer) throws IOException;

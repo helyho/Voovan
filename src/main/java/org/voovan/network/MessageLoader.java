@@ -56,6 +56,7 @@ public class MessageLoader {
 
 	/**
 	 * 获取停止类型
+	 * @return 停止类型
 	 */
 	public StopType getStopType() {
 		return stopType;

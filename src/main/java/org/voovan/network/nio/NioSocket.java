@@ -166,6 +166,7 @@ public class NioSocket extends SocketContext{
 	 * 直接从缓冲区读取数据
 	 * @param data 字节缓冲对象ByteBuffer
 	 * @return 读取的字节数
+	 * @throws IOException IO异常
 	 * */
 	public int directReadBuffer(ByteBuffer data) throws IOException {
 		return  session.getByteBufferChannel().read(data);
@@ -174,6 +175,7 @@ public class NioSocket extends SocketContext{
 	/**
 	 * 直接从缓冲区读取数据
 	 * @return 字节缓冲对象ByteBuffer
+	 * @throws IOException IO异常
 	 * */
 	public ByteBuffer directBufferRead() throws IOException {
 		return  session.getMessageLoader().directRead();
