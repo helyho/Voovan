@@ -198,7 +198,7 @@ public class TReflect {
 	/**
 	 * 获取方法的参数和返回值的范型类型
 	 * @param method  method 对象
-	 * @param parameterIndex 参数索引 (>0) 参数索引位置[第一个参数为0,以此类推], (-1) 返回值
+	 * @param parameterIndex 参数索引(大于0)参数索引位置[第一个参数为0,以此类推], (-1) 返回值
 	 * @return 返回范型类型数组
 	 * @throws ClassNotFoundException 类找不到异常
 	 */
