@@ -1,8 +1,11 @@
-package org.voovan.tools;
+package org.voovan.tools.reflect;
 
 
 import javafx.print.Collation;
-
+import org.voovan.tools.TDateTime;
+import org.voovan.tools.TObject;
+import org.voovan.tools.json.annotation.NotJSON;
+import org.voovan.tools.reflect.annotation.NotSerialization;
 import java.lang.reflect.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -142,7 +145,9 @@ public class TReflect {
 		HashMap<Field, Object> result = new HashMap<Field, Object>();
 		Field[] fields = getFields(obj.getClass());
 		for (Field field : fields) {
-			if (!Modifier.isStatic(field.getModifiers())) {
+			if (!Modifier.isStatic(field.getModifiers()) &&
+					field.getAnnotation(NotJSON.class)==null &&
+					field.getAnnotation(NotSerialization.class)==null) {
 				Object value = getFieldValue(obj, field.getName());
 				result.put(field, value);
 			}
