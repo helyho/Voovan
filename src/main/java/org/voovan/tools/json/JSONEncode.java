@@ -1,10 +1,8 @@
 package org.voovan.tools.json;
 
 import org.voovan.tools.TObject;
-import org.voovan.tools.TReflect;
-import org.voovan.tools.json.annotation.NotJSON;
+import org.voovan.tools.reflect.TReflect;
 
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -133,14 +131,6 @@ public class JSONEncode {
             value = arrayObject(arrayObject);
         } else {
             value = complexObject(object);
-
-            //从 JSON 字符串中,过滤掉包含 NotJSON Annotation的字段
-            for(Field field : TReflect.getFields(object.getClass())){
-                NotJSON notJSON = field.getAnnotation(NotJSON.class);
-                if(notJSON != null){
-                    value = JSON.removeNode(value,field.getName());
-                }
-            }
         }
 
         return value;

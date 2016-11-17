@@ -2,7 +2,7 @@ package org.voovan.test.onlineComplier;
 
 import junit.framework.TestCase;
 import org.voovan.complier.Complier;
-import org.voovan.tools.TReflect;
+import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.log.Logger;
 
 public class ComplierUnit extends TestCase {

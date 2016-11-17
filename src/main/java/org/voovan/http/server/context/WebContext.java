@@ -3,6 +3,7 @@ package org.voovan.http.server.context;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.tools.*;
+import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.json.JSONDecode;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.log.SingleLogger;
@@ -83,7 +84,7 @@ public class WebContext {
 
 		//使用反射工具自动加载配置信息
 		try {
-			config = (WebServerConfig)TReflect.getObjectFromMap(WebServerConfig.class, WEB_CONFIG, true);
+			config = (WebServerConfig) TReflect.getObjectFromMap(WebServerConfig.class, WEB_CONFIG, true);
             config = TObject.nullDefault(config, new WebServerConfig());
 		} catch (ReflectiveOperationException e) {
 			Logger.error(e);
