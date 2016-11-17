@@ -134,20 +134,8 @@ public class JSON {
 	 * @return 清理null节点的结果
 	 */
 	public static String removeNullNode(String jsonStr){
-
 		jsonStr	= jsonStr.replaceAll("\\\"\\w+?\\\":null","").replaceAll("null","");
 		return fixJSON(jsonStr);
-	}
-
-	/**
-	 * 清理json字符串中节点
-	 * @param jsonStr  json 字符串
-	 * @param nodeName 节点名称
-	 * @return 清理后的结果
-	 */
-	public static String removeNode(String jsonStr,String nodeName){
-		jsonStr = jsonStr.replaceAll("\\\""+nodeName+"\\\":[^,]*","");
-		return JSON.fixJSON(jsonStr);
 	}
 
 	/**
