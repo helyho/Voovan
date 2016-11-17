@@ -45,9 +45,11 @@ public class HttpMessageSplitter implements MessageSplitter {
 		try {
 			String bufferString = new String(buffer,"UTF-8");
 
-			String firstLine = bufferString.substring(0,bufferString.indexOf("\r\n"));
-			if(!firstLine.contains("HTTP/")){
-				return false;
+			if(bufferString.contains("\r\n")){
+                String firstLine = bufferString.substring(0,bufferString.indexOf("\r\n"));
+                if(!firstLine.contains("HTTP/")){
+                    return false;
+                }
 			}
 
 			String[] boundaryLines = TString.searchByRegex(bufferString, "boundary=[^ \\r\\n]+");
