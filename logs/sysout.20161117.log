@@ -1,0 +1,269 @@
+  *********************************************************************************************
+  
+     ==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==	
+      ==          ==  ==        == ==        ==  ==          ==  ==  ==      ==   ==      ==	
+       ==        ==   ==        == ==        ==   ==        ==  ==    ==     ==    ==     ==	
+        ==      ==    ==        == ==        ==    ==      ==  ==      ==    ==     ==    ==   
+         ==    ==     ==        == ==        ==     ==    ==  ============   ==      ==   ==   
+          ==  ==      ==        == ==        ==      ==  ==  ==          ==  ==       ==  ==	
+           ====        ==========   ==========        ====  ==            == ==        == ==	
+  
+  *********************************************************************************************
+  
+  ============================== [Config file parameter list] =================================
+    Timeout:                         30
+    ContextPath:                     /Users/helyho/Work/Java/Voovan/WEBAPP
+    CharacterSet:                    GB2312
+    SessionContainer:                java.util.Hashtable
+    SessionTimeout:                  30
+    KeepAliveTimeout:                60
+    MatchRouteIgnoreCase:            false
+    Gzip:                            true
+    AccessLog:                       true
+  =============================================================================================
+    This WebServer based on VoovanFramework.
+    Version: Voovan-WebServer/V1.0-beta-3
+    WebSite: http://www.voovan.org
+    Author: helyho
+    E-mail: helyho@gmail.com
+  =============================================================================================
+  Load HttpFilter [filter1] by [org.voovan.test.http.HttpFilterTest]
+  Load HttpFilter [filter2] by [org.voovan.test.http.HttpFilterTest]
+  Load HttpFilter [filter3] by [org.voovan.test.http.HttpFilterTest1]
+  Load HttpRouter [配置路由测试] by Method [GET] on route [/configRouter] by [org.voovan.test.http.router.HttpTestRouter]
+  Load HttpModule [性能监控模块] on [/VoovanMonitor] by [org.voovan.http.monitor.Monitor1]
+  =============================================================================================
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:43:26:957 CST] [Thread:main : 1] [Time:133] (TEnv.java:131) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ Method loadBinary, This [/Users/helyho/Work/Java/Voovan/classes] is not exists
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:43:27:08 CST] [Thread:main : 1] [Time:185] (HttpModuleConfig.java:98) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpModule [org.voovan.http.monitor.Monitor1] error.
+
+  Process ID: 35943
+  WebServer working on: http://0.0.0.0:28080 ...
+  ON_REQUEST: [filter1] Action = pass, Encoding = UTF-8, RequestPath=/,filter sequence:1
+  ON_REQUEST: [filter2] Action = pass, Encoding = UTF-8, RequestPath=/,filter sequence:2
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:43:29:435 CST] [Thread:pool-1-thread-5 : 25] [Time:2612] (HttpFilterConfig.java:126) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpFilter [org.voovan.test.http.HttpFilterTest1] error.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[INFO] [2016-11-17 18:43:29:442 CST] [Thread:pool-1-thread-5 : 25] [Time:2618] (WebServerDemo.java:25) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ Client info: 127.0.0.1:60854
+
+  Request info: GET / HTTP/1.1
+  
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:43:29:470 CST] [Thread:pool-1-thread-5 : 25] [Time:2647] (HttpFilterConfig.java:126) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpFilter [org.voovan.test.http.HttpFilterTest1] error.
+
+  ON_RESPONSE: [filter2] Action = pass, Encoding = UTF-8, RequestPath=/ ,filter sequence:1
+  ON_RESPONSE: [filter1] Action = pass, Encoding = UTF-8, RequestPath=/ ,filter sequence:2
+  ON_REQUEST: [filter1] Action = pass, Encoding = UTF-8, RequestPath=/img/logo.jpg,filter sequence:1
+  ON_REQUEST: [filter2] Action = pass, Encoding = UTF-8, RequestPath=/img/logo.jpg,filter sequence:2
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:43:29:497 CST] [Thread:pool-1-thread-6 : 27] [Time:2673] (HttpFilterConfig.java:126) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpFilter [org.voovan.test.http.HttpFilterTest1] error.
+
+  ON_REQUEST: [filter1] Action = pass, Encoding = UTF-8, RequestPath=/,filter sequence:1
+  ON_REQUEST: [filter2] Action = pass, Encoding = UTF-8, RequestPath=/,filter sequence:2
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:43:29:512 CST] [Thread:pool-1-thread-7 : 28] [Time:2689] (HttpFilterConfig.java:126) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpFilter [org.voovan.test.http.HttpFilterTest1] error.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[INFO] [2016-11-17 18:43:29:513 CST] [Thread:pool-1-thread-7 : 28] [Time:2690] (WebServerDemo.java:25) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ Client info: 127.0.0.1:60855
+
+  Request info: GET / HTTP/1.1
+  
+  Session saved time is: 2016-11-17 18:43:29 SavedTime: 2016-11-17 18:43:29
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:43:29:516 CST] [Thread:pool-1-thread-7 : 28] [Time:2692] (HttpFilterConfig.java:126) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpFilter [org.voovan.test.http.HttpFilterTest1] error.
+
+  ON_RESPONSE: [filter2] Action = pass, Encoding = UTF-8, RequestPath=/ ,filter sequence:1
+  ON_RESPONSE: [filter1] Action = pass, Encoding = UTF-8, RequestPath=/ ,filter sequence:2
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:43:29:603 CST] [Thread:pool-1-thread-6 : 27] [Time:2779] (HttpFilterConfig.java:126) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpFilter [org.voovan.test.http.HttpFilterTest1] error.
+
+  ON_RESPONSE: [filter2] Action = pass, Encoding = UTF-8, RequestPath=/img/logo.jpg ,filter sequence:1
+  ON_RESPONSE: [filter1] Action = pass, Encoding = UTF-8, RequestPath=/img/logo.jpg ,filter sequence:2
+  ON_REQUEST: [filter1] Action = pass, Encoding = UTF-8, RequestPath=/,filter sequence:1
+  ON_REQUEST: [filter2] Action = pass, Encoding = UTF-8, RequestPath=/,filter sequence:2
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:43:29:769 CST] [Thread:pool-1-thread-8 : 29] [Time:2945] (HttpFilterConfig.java:126) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpFilter [org.voovan.test.http.HttpFilterTest1] error.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[INFO] [2016-11-17 18:43:29:770 CST] [Thread:pool-1-thread-8 : 29] [Time:2947] (WebServerDemo.java:25) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ Client info: 127.0.0.1:60854
+
+  Request info: GET / HTTP/1.1
+  
+  Session saved time is: 2016-11-17 18:43:29 SavedTime: 2016-11-17 18:43:29
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:43:29:773 CST] [Thread:pool-1-thread-8 : 29] [Time:2949] (HttpFilterConfig.java:126) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpFilter [org.voovan.test.http.HttpFilterTest1] error.
+
+  ON_RESPONSE: [filter2] Action = pass, Encoding = UTF-8, RequestPath=/ ,filter sequence:1
+  ON_RESPONSE: [filter1] Action = pass, Encoding = UTF-8, RequestPath=/ ,filter sequence:2
+  ON_REQUEST: [filter1] Action = pass, Encoding = UTF-8, RequestPath=/img/favicon.ico,filter sequence:1
+  ON_REQUEST: [filter2] Action = pass, Encoding = UTF-8, RequestPath=/img/favicon.ico,filter sequence:2
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:43:30:33 CST] [Thread:pool-1-thread-9 : 30] [Time:3209] (HttpFilterConfig.java:126) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpFilter [org.voovan.test.http.HttpFilterTest1] error.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:43:30:69 CST] [Thread:pool-1-thread-9 : 30] [Time:3245] (HttpFilterConfig.java:126) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpFilter [org.voovan.test.http.HttpFilterTest1] error.
+
+  ON_RESPONSE: [filter2] Action = pass, Encoding = UTF-8, RequestPath=/img/favicon.ico ,filter sequence:1
+  ON_RESPONSE: [filter1] Action = pass, Encoding = UTF-8, RequestPath=/img/favicon.ico ,filter sequence:2
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[INFO] [2016-11-17 18:43:31:114 CST] [Thread:pool-1-thread-10 : 31] [Time:4291] (WebServerDemo.java:105) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ WebSocket connect!
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[INFO] [2016-11-17 18:43:36:166 CST] [Thread:pool-1-thread-27 : 48] [Time:9343] (WebServerDemo.java:105) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ WebSocket connect!
+
+  *********************************************************************************************
+  
+     ==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==	
+      ==          ==  ==        == ==        ==  ==          ==  ==  ==      ==   ==      ==	
+       ==        ==   ==        == ==        ==   ==        ==  ==    ==     ==    ==     ==	
+        ==      ==    ==        == ==        ==    ==      ==  ==      ==    ==     ==    ==   
+         ==    ==     ==        == ==        ==     ==    ==  ============   ==      ==   ==   
+          ==  ==      ==        == ==        ==      ==  ==  ==          ==  ==       ==  ==	
+           ====        ==========   ==========        ====  ==            == ==        == ==	
+  
+  *********************************************************************************************
+  
+  ============================== [Config file parameter list] =================================
+    Timeout:                         30
+    ContextPath:                     /Users/helyho/Work/Java/Voovan/WEBAPP
+    CharacterSet:                    GB2312
+    SessionContainer:                java.util.Hashtable
+    SessionTimeout:                  30
+    KeepAliveTimeout:                60
+    MatchRouteIgnoreCase:            false
+    Gzip:                            true
+    AccessLog:                       true
+  =============================================================================================
+    This WebServer based on VoovanFramework.
+    Version: Voovan-WebServer/V1.0-beta-3
+    WebSite: http://www.voovan.org
+    Author: helyho
+    E-mail: helyho@gmail.com
+  =============================================================================================
+  Load HttpFilter [filter1] by [org.voovan.test.http.HttpFilterTest]
+  Load HttpFilter [filter2] by [org.voovan.test.http.HttpFilterTest]
+  Load HttpFilter [filter3] by [org.voovan.test.http.HttpFilterTest1]
+  Load HttpRouter [配置路由测试] by Method [GET] on route [/configRouter] by [org.voovan.test.http.router.HttpTestRouter]
+  Load HttpModule [性能监控模块] on [/VoovanMonitor] by [org.voovan.http.monitor.Monitor1]
+  =============================================================================================
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:44:11:13 CST] [Thread:main : 1] [Time:169] (TEnv.java:131) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ Method loadBinary, This [/Users/helyho/Work/Java/Voovan/classes] is not exists
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:44:11:28 CST] [Thread:main : 1] [Time:184] (HttpModuleConfig.java:98) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpModule [org.voovan.http.monitor.Monitor1] error.
+
+  Process ID: 35997
+  WebServer working on: http://0.0.0.0:28080 ...
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[INFO] [2016-11-17 18:44:24:385 CST] [Thread:pool-1-thread-1 : 21] [Time:13542] (WebServerDemo.java:105) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ WebSocket connect!
+
+  *********************************************************************************************
+  
+     ==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==	
+      ==          ==  ==        == ==        ==  ==          ==  ==  ==      ==   ==      ==	
+       ==        ==   ==        == ==        ==   ==        ==  ==    ==     ==    ==     ==	
+        ==      ==    ==        == ==        ==    ==      ==  ==      ==    ==     ==    ==   
+         ==    ==     ==        == ==        ==     ==    ==  ============   ==      ==   ==   
+          ==  ==      ==        == ==        ==      ==  ==  ==          ==  ==       ==  ==	
+           ====        ==========   ==========        ====  ==            == ==        == ==	
+  
+  *********************************************************************************************
+  
+  ============================== [Config file parameter list] =================================
+    Timeout:                         30
+    ContextPath:                     /Users/helyho/Work/Java/Voovan/WEBAPP
+    CharacterSet:                    GB2312
+    SessionContainer:                java.util.Hashtable
+    SessionTimeout:                  30
+    KeepAliveTimeout:                60
+    MatchRouteIgnoreCase:            false
+    Gzip:                            true
+    AccessLog:                       true
+  =============================================================================================
+    This WebServer based on VoovanFramework.
+    Version: Voovan-WebServer/V1.0-beta-3
+    WebSite: http://www.voovan.org
+    Author: helyho
+    E-mail: helyho@gmail.com
+  =============================================================================================
+  Load HttpFilter [filter1] by [org.voovan.test.http.HttpFilterTest]
+  Load HttpFilter [filter2] by [org.voovan.test.http.HttpFilterTest]
+  Load HttpFilter [filter3] by [org.voovan.test.http.HttpFilterTest1]
+  Load HttpRouter [配置路由测试] by Method [GET] on route [/configRouter] by [org.voovan.test.http.router.HttpTestRouter]
+  Load HttpModule [性能监控模块] on [/VoovanMonitor] by [org.voovan.http.monitor.Monitor1]
+  =============================================================================================
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:45:55:791 CST] [Thread:main : 1] [Time:122] (TEnv.java:131) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ Method loadBinary, This [/Users/helyho/Work/Java/Voovan/classes] is not exists
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-17 18:45:55:798 CST] [Thread:main : 1] [Time:129] (HttpModuleConfig.java:98) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpModule [org.voovan.http.monitor.Monitor1] error.
+
+  Process ID: 36109
+  WebServer working on: http://0.0.0.0:28080 ...
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[INFO] [2016-11-17 18:45:58:748 CST] [Thread:pool-1-thread-1 : 21] [Time:3079] (WebServerDemo.java:105) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ WebSocket connect!
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[INFO] [2016-11-17 18:46:00:481 CST] [Thread:pool-1-thread-4 : 25] [Time:4813] (WebServerDemo.java:98) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [SEND] This is send by "Send" button.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[INFO] [2016-11-17 18:46:00:580 CST] [Thread:pool-1-thread-5 : 26] [Time:4911] (WebServerDemo.java:98) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ serial send,small package demo.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[INFO] [2016-11-17 18:46:02:935 CST] [Thread:pool-1-thread-6 : 27] [Time:7266] (WebServerDemo.java:110) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ WebSocket close!
+

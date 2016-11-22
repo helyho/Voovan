@@ -1,0 +1,94 @@
+  *********************************************************************************************
+  
+     ==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==	
+      ==          ==  ==        == ==        ==  ==          ==  ==  ==      ==   ==      ==	
+       ==        ==   ==        == ==        ==   ==        ==  ==    ==     ==    ==     ==	
+        ==      ==    ==        == ==        ==    ==      ==  ==      ==    ==     ==    ==   
+         ==    ==     ==        == ==        ==     ==    ==  ============   ==      ==   ==   
+          ==  ==      ==        == ==        ==      ==  ==  ==          ==  ==       ==  ==	
+           ====        ==========   ==========        ====  ==            == ==        == ==	
+  
+  *********************************************************************************************
+  
+  ============================== [Config file parameter list] =================================
+    Timeout:                         30
+    ContextPath:                     /Users/helyho/Work/Java/Voovan/WEBAPP
+    CharacterSet:                    GB2312
+    SessionContainer:                java.util.Hashtable
+    SessionTimeout:                  30
+    KeepAliveTimeout:                60
+    MatchRouteIgnoreCase:            false
+    Gzip:                            true
+    AccessLog:                       true
+  =============================================================================================
+    This WebServer based on VoovanFramework.
+    Version: Voovan-WebServer/V1.0-beta-3
+    WebSite: http://www.voovan.org
+    Author: helyho
+    E-mail: helyho@gmail.com
+  =============================================================================================
+  Load HttpFilter [filter1] by [org.voovan.test.http.HttpFilterTest]
+  Load HttpFilter [filter2] by [org.voovan.test.http.HttpFilterTest]
+  Load HttpFilter [filter3] by [org.voovan.test.http.HttpFilterTest1]
+  Load HttpRouter [配置路由测试] by Method [GET] on route [/configRouter] by [org.voovan.test.http.router.HttpTestRouter]
+  Load HttpModule [性能监控模块] on [/VoovanMonitor] by [org.voovan.http.monitor.Monitor1]
+  =============================================================================================
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-10 13:02:16:111 CST] [Thread:main : 1] [Time:275] (TEnv.java:130) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ Method loadBinary, This [/Users/helyho/Work/Java/Voovan/classes] is not exists
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-10 13:02:16:136 CST] [Thread:main : 1] [Time:300] (HttpModuleConfig.java:98) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpModule [org.voovan.http.monitor.Monitor1] error.
+
+  Process ID: 57745
+  WebServer working on: http://0.0.0.0:28080 ...
+  *********************************************************************************************
+  
+     ==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==	
+      ==          ==  ==        == ==        ==  ==          ==  ==  ==      ==   ==      ==	
+       ==        ==   ==        == ==        ==   ==        ==  ==    ==     ==    ==     ==	
+        ==      ==    ==        == ==        ==    ==      ==  ==      ==    ==     ==    ==   
+         ==    ==     ==        == ==        ==     ==    ==  ============   ==      ==   ==   
+          ==  ==      ==        == ==        ==      ==  ==  ==          ==  ==       ==  ==	
+           ====        ==========   ==========        ====  ==            == ==        == ==	
+  
+  *********************************************************************************************
+  
+  ============================== [Config file parameter list] =================================
+    Timeout:                         30
+    ContextPath:                     /Users/helyho/Work/Java/Voovan/WEBAPP
+    CharacterSet:                    GB2312
+    SessionContainer:                java.util.Hashtable
+    SessionTimeout:                  30
+    KeepAliveTimeout:                60
+    MatchRouteIgnoreCase:            false
+    Gzip:                            true
+    AccessLog:                       true
+  =============================================================================================
+    This WebServer based on VoovanFramework.
+    Version: Voovan-WebServer/V1.0-beta-3
+    WebSite: http://www.voovan.org
+    Author: helyho
+    E-mail: helyho@gmail.com
+  =============================================================================================
+  Load HttpFilter [filter1] by [org.voovan.test.http.HttpFilterTest]
+  Load HttpFilter [filter2] by [org.voovan.test.http.HttpFilterTest]
+  Load HttpFilter [filter3] by [org.voovan.test.http.HttpFilterTest1]
+  Load HttpRouter [配置路由测试] by Method [GET] on route [/configRouter] by [org.voovan.test.http.router.HttpTestRouter]
+  Load HttpModule [性能监控模块] on [/VoovanMonitor] by [org.voovan.http.monitor.Monitor1]
+  =============================================================================================
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-10 13:04:22:14 CST] [Thread:main : 1] [Time:500] (TEnv.java:130) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ Method loadBinary, This [/Users/helyho/Work/Java/Voovan/classes] is not exists
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+[ERROR] [2016-11-10 13:04:22:61 CST] [Thread:main : 1] [Time:548] (HttpModuleConfig.java:98) 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+ [ERROR] New HttpModule [org.voovan.http.monitor.Monitor1] error.
+
+  Process ID: 57968
+  WebServer working on: http://0.0.0.0:28080 ...
