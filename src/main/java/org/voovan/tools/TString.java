@@ -1,7 +1,11 @@
 package org.voovan.tools;
 
+import org.voovan.tools.json.JSON;
+import org.voovan.tools.reflect.TReflect;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -309,7 +313,11 @@ public class TString {
 			return Byte.valueOf(value);
 		}else if(clazz == char.class || clazz == Character.class){
 			return value!=null ? value.charAt(0) : null;
-		}else{
+		}else if( TReflect.isImpByInterface(clazz,List.class) ||
+				TReflect.isImpByInterface(clazz,Map.class) ){
+			return JSON.toObject(value,clazz);
+		}
+		else{
 			return value;
 		}
 	}

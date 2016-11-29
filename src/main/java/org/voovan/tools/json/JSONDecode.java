@@ -214,12 +214,18 @@ public class JSONDecode {
 		Object parseObject = parse(jsonStr);
 		//{}包裹的对象处理
 		if(jsonStr.startsWith("{")){
+			if(clazz==Map.class){
+				clazz = (Class<T>) HashMap.class;
+			}
 			Map<String,Object> mapJSON = (Map<String, Object>) parseObject;
 			return (T) TReflect.getObjectFromMap(clazz, mapJSON,false);
 		}
 		//[]包裹的对象处理
 		else if(jsonStr.startsWith("[") && TReflect.isImpByInterface(clazz, List.class)){
-			List obj = (List) TReflect.newInstance(clazz, new Class[]{}, new Object(){});
+			if(clazz==List.class){
+				clazz = (Class<T>) ArrayList.class;
+			}
+			List obj = (List) TReflect.newInstance(clazz);
 			obj.addAll((Collection) parseObject);
 			return (T) obj;
 		}
