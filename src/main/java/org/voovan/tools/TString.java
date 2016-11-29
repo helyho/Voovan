@@ -293,21 +293,21 @@ public class TString {
 	 * @return 基本类型对象
 	 */
 	public static Object toObject(String value,Class clazz){
-		if(clazz == int.class){
-			return Integer.parseInt(value);
-		}else if(clazz == float.class){
-			return Float.parseFloat(value);
-		}else if(clazz == double.class){
-			return Double.parseDouble(value);
-		}else if(clazz == boolean.class){
-			return Boolean.parseBoolean(value);
-		}else if(clazz == long.class){
-			return Long.parseLong(value);
-		}else if(clazz == short.class){
-			return Short.parseShort(value);
-		}else if(clazz == byte.class){
-			return Byte.parseByte(value);
-		}else if(clazz == char.class){
+		if(clazz == int.class || clazz == Integer.class){
+			return Integer.valueOf(value);
+		}else if(clazz == float.class || clazz == Float.class){
+			return Float.valueOf(value);
+		}else if(clazz == double.class || clazz == Double.class){
+			return Double.valueOf(value);
+		}else if(clazz == boolean.class || clazz == Boolean.class){
+			return Boolean.valueOf(value);
+		}else if(clazz == long.class || clazz == Long.class){
+			return Long.valueOf(value);
+		}else if(clazz == short.class || clazz == Short.class){
+			return Short.valueOf(value);
+		}else if(clazz == byte.class || clazz == Byte.class){
+			return Byte.valueOf(value);
+		}else if(clazz == char.class || clazz == Character.class){
 			return value!=null ? value.charAt(0) : null;
 		}else{
 			return value;
