@@ -211,9 +211,8 @@ public class HttpDispatcher {
 	 * @return  转换后的正则匹配路径
      */
 	public static String routePath2RegexPath(String routePath){
-		String routeRegexPath = routePath.replaceAll(":[^/?]+", "[^/?]+");
-//		routeRegexPath = routeRegexPath.replaceAll("/\\*","/.*");
-        routeRegexPath = routeRegexPath.replaceAll("\\*",".*?");
+		String routeRegexPath = routePath.replaceAll("\\*",".*?");
+		routeRegexPath = routeRegexPath.replaceAll(":[^/?]*", "[^/?]*");
 		return routeRegexPath;
 	}
 
