@@ -175,7 +175,7 @@ public class HttpDispatcher {
 
 		if(!isMatched) {
 			//如果匹配失败,尝试用定义首页索引文件的名称
-			if(request.protocol().getMethod().equals("GET") && !tryIndex(request,response)) {
+			if(!tryIndex(request,response)) {
 				exceptionMessage(request, response, new RouterNotFound("Not avaliable router!"));
 			}
 		}
