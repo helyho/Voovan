@@ -25,6 +25,11 @@ public class JSONDecode {
 	 * @return 解析后的对象
 	 */
 	public static Object parse(String jsonStr){
+
+		if(jsonStr==null){
+			return null;
+		}
+
 		jsonStr = removeComment(jsonStr);
 		Object jsonResult = null;
 		//处理掉注释
@@ -210,6 +215,10 @@ public class JSONDecode {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T>T fromJSON(String jsonStr,Class<T> clazz) throws ReflectiveOperationException, ParseException{
+		if(jsonStr==null){
+			return null;
+		}
+
 		jsonStr = removeComment(jsonStr);
 		Object parseObject = parse(jsonStr);
 		//{}包裹的对象处理
@@ -236,6 +245,9 @@ public class JSONDecode {
 	}
 	
 	private static String removeComment(String jsonStr){
+		if(jsonStr==null){
+			return null;
+		}
 		//处理掉注释
 		jsonStr = jsonStr.replaceAll("\\/\\/[^\n]*", "");
 		jsonStr = jsonStr.replaceAll("/\\*([^\\*^/]*|[\\*^/*]*|[^\\*/]*)*\\*/", "");
