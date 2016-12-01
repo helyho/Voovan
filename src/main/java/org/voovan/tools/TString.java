@@ -297,7 +297,9 @@ public class TString {
 	 * @return 基本类型对象
 	 */
 	public static Object toObject(String value,Class clazz){
-		if(clazz == int.class || clazz == Integer.class){
+		if(value == null){
+			return null;
+		}else if(clazz == int.class || clazz == Integer.class){
 			return Integer.valueOf(value);
 		}else if(clazz == float.class || clazz == Float.class){
 			return Float.valueOf(value);
@@ -315,9 +317,8 @@ public class TString {
 			return value!=null ? value.charAt(0) : null;
 		}else if( TReflect.isImpByInterface(clazz,List.class) ||
 				TReflect.isImpByInterface(clazz,Map.class) ){
-			return JSON.toObject(value,clazz);
-		}
-		else{
+			return JSON.toObject(value, clazz);
+		}else{
 			return value;
 		}
 	}
