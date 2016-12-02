@@ -1,4 +1,7 @@
-package org.voovan.network;
+package org.voovan.network.handler;
+
+import org.voovan.network.IoHandler;
+import org.voovan.network.IoSession;
 
 /**
  * Socket 同步通信 handler

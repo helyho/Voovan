@@ -42,10 +42,9 @@ public class NioSelector {
 		this.socketContext = socketContext;
 		if (socketContext instanceof NioSocket){
 			session = ((NioSocket)socketContext).getSession();
-			eventTrigger = new EventTrigger(session);
-		}else{
-			eventTrigger = new EventTrigger(null);
 		}
+
+        eventTrigger = new EventTrigger();
 	}
 
 	/**
@@ -57,7 +56,7 @@ public class NioSelector {
 		
 		if (socketContext instanceof NioSocket) {
 			// 连接完成onConnect事件触发
-			eventTrigger.fireConnectThread();
+			eventTrigger.fireConnectThread(session);
 		}
 		
 		// 事件循环
@@ -114,10 +113,10 @@ public class NioSelector {
 			}
 		} catch (IOException e) {
 			// 触发 onException 事件
-			eventTrigger.fireExceptionThread(e);
+			eventTrigger.fireExceptionThread(session, e);
 		} finally{
 			// 触发连接断开事件
-			eventTrigger.fireDisconnectThread();
+			eventTrigger.fireDisconnectThread(session);
 			//关闭线程池
 			if(socketContext!=null &&
 					(socketContext instanceof NioServerSocket
