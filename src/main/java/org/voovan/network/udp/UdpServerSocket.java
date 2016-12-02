@@ -11,8 +11,6 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -27,7 +25,7 @@ import java.nio.channels.spi.SelectorProvider;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class UdpSocket extends SocketContext{
+public class UdpServerSocket extends SocketContext{
 
     private SelectorProvider provider;
     private Selector selector;
@@ -42,7 +40,7 @@ public class UdpSocket extends SocketContext{
      * @param readTimeout   超时事件
      * @throws IOException	IO异常
      */
-    public UdpSocket(String host, int port, int readTimeout) throws IOException{
+    public UdpServerSocket(String host, int port, int readTimeout) throws IOException{
         super(host, port, readTimeout);
         this.readTimeout = readTimeout;
         provider = SelectorProvider.provider();
@@ -50,30 +48,10 @@ public class UdpSocket extends SocketContext{
         datagramChannel.socket().setSoTimeout(this.readTimeout);
         this.connectModel = connectModel;
         InetSocketAddress address = new InetSocketAddress(this.host, this.port);
-        datagramChannel.connect(address);
-        session = new UdpSession(this,address);
+        datagramChannel.bind(new InetSocketAddress(this.host, this.port));
         datagramChannel.configureBlocking(false);
-
         this.handler = new SynchronousHandler();
         init();
-    }
-
-    /**
-     * 构造函数
-     * @param parentSocketContext 父 SocketChannel 对象
-     * @param socketAddress SocketAddress 对象
-     */
-    protected UdpSocket(SocketContext parentSocketContext,InetSocketAddress socketAddress){
-        try {
-            provider = SelectorProvider.provider();
-            this.datagramChannel = ((UdpServerSocket)parentSocketContext).datagramChannel();
-            this.copyFrom(parentSocketContext);
-            session = new UdpSession(this, socketAddress);
-            connectModel = ConnectModel.SERVER;
-            init();
-        } catch (Exception e) {
-            Logger.error("Create socket channel failed",e);
-        }
     }
 
     /**
@@ -117,25 +95,6 @@ public class UdpSocket extends SocketContext{
             });
         }
     }
-
-    /**
-     * 同步读取消息
-     * @return 读取出的对象
-     * @throws ReadMessageException 读取消息异常
-     */
-    public Object synchronouRead() throws ReadMessageException {
-        return session.synchronouRead();
-    }
-
-    /**
-     * 同步发送消息
-     * @param obj  要发送的对象
-     * @throws SendMessageException  消息发送异常
-     */
-    public void synchronouSend(Object obj) throws SendMessageException {
-        session.synchronouSend(obj);
-    }
-
 
     @Override
     public boolean isConnect() {

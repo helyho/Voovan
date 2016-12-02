@@ -20,7 +20,7 @@ import java.io.IOException;
 public class UdpSocketTest {
 
     public static void main(String[] args) throws IOException {
-        UdpSocket udpSocket = new UdpSocket("10.0.0.100",60000,50, ConnectModel.CLIENT);
+        UdpSocket udpSocket = new UdpSocket("127.0.0.1",60000,50);
         udpSocket.messageSplitter(new LineMessageSplitter());
         udpSocket.filterChain().add(new StringFilter());
         udpSocket.handler(new ClientHandlerTest());

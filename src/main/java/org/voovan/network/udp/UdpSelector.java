@@ -7,6 +7,7 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
@@ -63,7 +64,7 @@ public class UdpSelector {
         // 事件循环
         try {
             while (socketContext != null && socketContext.isConnect()) {
-                if (selector.select(1) > 0) {
+                if (selector.select(1000) > 0) {
                     Set<SelectionKey> selectionKeys = selector.selectedKeys();
                     Iterator<SelectionKey> selectionKeyIterator = selectionKeys
                             .iterator();
@@ -76,6 +77,7 @@ public class UdpSelector {
                                 // 事件分发,包含时间 onRead onAccept
 
                                 switch (selectionKey.readyOps()) {
+
                                     // 有数据读取
                                     case SelectionKey.OP_READ: {
                                         int readSize = - 1;
@@ -87,7 +89,7 @@ public class UdpSelector {
                                         }else{
                                             SocketAddress address = datagramChannel.receive(readTempBuffer);
                                             readSize = readTempBuffer.position();
-                                            clientUdpSocket = new UdpSocket(socketContext,address);
+                                            clientUdpSocket = new UdpSocket(socketContext,(InetSocketAddress)address);
                                             clientSession = clientUdpSocket.getSession();
                                         }
 
@@ -124,8 +126,6 @@ public class UdpSelector {
             // 触发 onException 事件
             eventTrigger.fireExceptionThread(e);
         } finally{
-            // 触发连接断开事件
-            eventTrigger.fireDisconnectThread();
             //关闭线程池
             eventTrigger.shutdown();
         }
