@@ -23,16 +23,17 @@ public class ServerHandlerTest implements IoHandler {
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		Logger.simple("Server onRecive: "+obj.toString());
-		return "===="+obj.toString().trim()+" ===== \r\n";
-	}
+		Logger.simple(session.remoteAddress()+":"+session.remotePort());
+			Logger.simple("Server onRecive: "+obj.toString());
+			return "===="+obj.toString().trim()+" ===== \r\n";
+		}
 
-	@Override
-	public void onException(IoSession session, Exception e) {
-		if(e instanceof SocketDisconnectByRemote){
-			Logger.simple("Connection disconnect by client");
-		}else {
-			Logger.error("Server Exception:",e);
+		@Override
+		public void onException(IoSession session, Exception e) {
+			if(e instanceof SocketDisconnectByRemote){
+				Logger.simple("Connection disconnect by client");
+			}else {
+				Logger.error("Server Exception:",e);
 		}
 		session.close();
 	}

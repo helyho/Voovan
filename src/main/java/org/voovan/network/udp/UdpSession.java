@@ -8,6 +8,8 @@ import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 
@@ -25,19 +27,21 @@ public class UdpSession extends IoSession {
 	private UdpSocket			udpSocket;
 	private ByteBufferChannel	byteBufferChannel;
 	private MessageLoader		messageLoader;
+	private InetSocketAddress remoteAddress;
 
 	/**
 	 * 构造函数
 	 *
 	 *            socket 上下文对象
 	 */
-	UdpSession(UdpSocket udpSocket) {
+	UdpSession(UdpSocket udpSocket, InetSocketAddress remoteAddress) {
 		super();
 		if (udpSocket != null) {
 			this.udpSocket = udpSocket;
 			this.datagramChannel = udpSocket.datagramChannel();
 			byteBufferChannel = new ByteBufferChannel();
 			messageLoader = new MessageLoader(this);
+			this.remoteAddress = remoteAddress;
 		}else{
 			Logger.error("Socket is null, please check it.");
 		}
@@ -87,7 +91,7 @@ public class UdpSession extends IoSession {
 	 */
 	public String remoteAddress() {
 		if (datagramChannel.isOpen()) {
-			return datagramChannel.socket().getInetAddress().getHostAddress();
+			return remoteAddress.getAddress().getHostAddress();
 		} else {
 			return null;
 		}
@@ -100,7 +104,7 @@ public class UdpSession extends IoSession {
 	 */
 	public int remotePort() {
 		if (datagramChannel.isOpen()) {
-			return datagramChannel.socket().getPort();
+			return remoteAddress.getPort();
 		} else {
 			return -1;
 		}
@@ -148,7 +152,7 @@ public class UdpSession extends IoSession {
 		if (isConnect() && buffer != null) {
 			//循环发送直到全不内容发送完毕
 			while(isConnect() && buffer.remaining()!=0){
-				totalSendByte+=datagramChannel.write(buffer);
+				totalSendByte+=datagramChannel.send(buffer, remoteAddress);
 			}
 		}
 		return totalSendByte;
