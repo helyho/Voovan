@@ -43,10 +43,9 @@ public class UdpSelector {
         this.socketContext = socketContext;
         if (socketContext instanceof UdpSocket){
             session = ((UdpSocket)socketContext).getSession();
-            eventTrigger = new EventTrigger(session);
-        }else{
-            eventTrigger = new EventTrigger(null);
         }
+
+        eventTrigger = new EventTrigger();
     }
 
     /**
@@ -58,7 +57,7 @@ public class UdpSelector {
 
         if (socketContext instanceof UdpSocket) {
             // 连接完成onConnect事件触发
-            eventTrigger.fireConnectThread();
+            eventTrigger.fireConnectThread(session);
         }
 
         // 事件循环
@@ -124,8 +123,10 @@ public class UdpSelector {
             }
         } catch (IOException e) {
             // 触发 onException 事件
-            eventTrigger.fireExceptionThread(e);
+            eventTrigger.fireExceptionThread(session, e);
         } finally{
+            // 触发连接断开事件
+            eventTrigger.fireDisconnectThread(session);
             //关闭线程池
             eventTrigger.shutdown();
         }

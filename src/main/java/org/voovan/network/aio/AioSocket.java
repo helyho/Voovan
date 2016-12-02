@@ -4,7 +4,7 @@ import org.voovan.Global;
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
-import org.voovan.network.SynchronousHandler;
+import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
@@ -47,10 +47,10 @@ public class AioSocket extends SocketContext {
 		super(host, port, readTimeout);
 		this.socketChannel = AsynchronousSocketChannel.open();
 		session = new AioSession(this);
-		eventTrigger = new EventTrigger(session);
+		eventTrigger = new EventTrigger();
 
 		connectedCompletionHandler = new ConnectedCompletionHandler(eventTrigger);
-		readCompletionHandler = new ReadCompletionHandler(eventTrigger, session.getByteBufferChannel());
+		readCompletionHandler = new ReadCompletionHandler(this, eventTrigger, session.getByteBufferChannel());
 		this.handler = new SynchronousHandler();
 		connectModel = ConnectModel.CLIENT;
 	}
@@ -67,10 +67,10 @@ public class AioSocket extends SocketContext {
 		this.socketChannel = socketChannel;
 		this.copyFrom(parentSocketContext);
 		session = new AioSession(this);
-		eventTrigger = new EventTrigger(session);
+		eventTrigger = new EventTrigger();
 
 		connectedCompletionHandler = new ConnectedCompletionHandler(eventTrigger);
-		readCompletionHandler = new ReadCompletionHandler(eventTrigger, session.getByteBufferChannel());
+		readCompletionHandler = new ReadCompletionHandler(this, eventTrigger, session.getByteBufferChannel());
 		connectModel = ConnectModel.SERVER;
 	}
 
@@ -148,7 +148,7 @@ public class AioSocket extends SocketContext {
 		catchRead(ByteBuffer.allocateDirect(1024));
 		
 		// 触发 connect 事件
-		eventTrigger.fireConnectThread();
+		eventTrigger.fireConnectThread(session);
 
 		Global.getThreadPool().execute( () -> {
 			// 等待ServerSocketChannel关闭,结束进程
@@ -201,7 +201,7 @@ public class AioSocket extends SocketContext {
 				session.closeDirectBufferRead();
 
 				// 触发 DisConnect 事件
-				eventTrigger.fireDisconnect();
+				eventTrigger.fireDisconnect(session);
 
 				// 检查是否关闭线程池
 				// 如果不是ServerSocket下的 Socket 则关闭线程池
