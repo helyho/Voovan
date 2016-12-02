@@ -63,7 +63,7 @@ public class NioSelector {
 		// 事件循环
 		try {
 			while (socketContext != null && socketContext.isConnect()) {
-				if (selector.select(1) > 0) {
+				if (selector.select(1000) > 0) {
 					Set<SelectionKey> selectionKeys = selector.selectedKeys();
 					Iterator<SelectionKey> selectionKeyIterator = selectionKeys
 							.iterator();
@@ -98,7 +98,7 @@ public class NioSelector {
 												session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 											}
 											// 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
-											eventTrigger.fireReceiveThread();
+											eventTrigger.fireReceiveThread(session);
 										break;
 									}
 									default: {
