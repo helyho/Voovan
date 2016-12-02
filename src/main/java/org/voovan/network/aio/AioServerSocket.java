@@ -33,7 +33,7 @@ public class AioServerSocket extends SocketContext{
 	public AioServerSocket(String host,int port,int readTimeout) throws IOException{
 		super(host, port, readTimeout);
 		serverSocketChannel = AsynchronousServerSocketChannel.open();
-		eventTrigger = new EventTrigger(null);
+		eventTrigger = new EventTrigger();
 		
 	}
 	
@@ -67,7 +67,7 @@ public class AioServerSocket extends SocketContext{
 		if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
 			try{
 				//触发 DisConnect 事件
-				eventTrigger.fireDisconnect();
+				eventTrigger.fireDisconnect(null);
 				//检查是否关闭
 				eventTrigger.shutdown();
 				//关闭 Socket 连接

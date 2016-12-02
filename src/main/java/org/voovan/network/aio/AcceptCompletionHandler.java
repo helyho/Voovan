@@ -35,7 +35,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 			
 			
 		} catch (IOException e) {
-			eventTrigger.fireException(e);
+			eventTrigger.fireException(null, e);
 		}
 	}
 
@@ -43,7 +43,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	public void failed(Throwable exc, AioServerSocket attachment) {
 		if(exc instanceof Exception){
 			//触发 onException 事件
-			eventTrigger.fireException(( Exception)exc);
+			eventTrigger.fireException(null, ( Exception)exc);
 		}
 	}
 

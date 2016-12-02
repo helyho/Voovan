@@ -20,16 +20,16 @@ import java.nio.channels.CompletionHandler;
  * Licence: Apache v2 License
  */
 public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBuffer>{
-	private AioSocket socket;
+	private AioSocket aioSocket;
 	private EventTrigger eventTrigger;
 	private ByteBufferChannel byteBufferChannel;
 	private AioSession session;
 	
-	public ReadCompletionHandler(EventTrigger eventTrigger,ByteBufferChannel byteBufferChannel){
+	public ReadCompletionHandler(AioSocket aioSocket, EventTrigger eventTrigger,ByteBufferChannel byteBufferChannel){
 		this.eventTrigger = eventTrigger;
 		this.byteBufferChannel = byteBufferChannel;
-		this.socket = (AioSocket)eventTrigger.getSession().sockContext();
-		this.session = TObject.cast(eventTrigger.getSession());
+		this.aioSocket = aioSocket;
+		this.session = aioSocket.getSession();
 	}
 	
 	
@@ -49,21 +49,21 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					byteBufferChannel.write(buffer);
 
 					// 触发 onReceive 事件
-					eventTrigger.fireReceiveThread();
+					eventTrigger.fireReceiveThread(session);
 					
 					// 接收完成后重置buffer对象
 					buffer.clear();
 
 					// 继续接收 Read 请求
-					if(socket.isConnect()) {
-						socket.catchRead(buffer);
+					if(aioSocket.isConnect()) {
+						aioSocket.catchRead(buffer);
 					}
 				}
 			}
 		} catch (IOException e) {
 			// 触发 onException 事件
 			session.getMessageLoader().setStopType(MessageLoader.StopType.EXCEPTION);
-			eventTrigger.fireException(e);
+			eventTrigger.fireException(session, e);
 		}
 		
 	}
@@ -72,7 +72,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 	public void failed(Throwable exc,  ByteBuffer buffer) {
 		if(exc instanceof Exception && !(exc instanceof AsynchronousCloseException)){
 			//触发 onException 事件
-			eventTrigger.fireException((Exception)exc);
+			eventTrigger.fireException(session, (Exception)exc);
 		}
 	}
 }
