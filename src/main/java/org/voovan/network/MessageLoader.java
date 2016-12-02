@@ -110,7 +110,7 @@ public class MessageLoader {
 		if(session==null){
 			return null;
 		}
-		
+
 		//获取消息分割器
 		MessageSplitter messageSplitter = session.sockContext().messageSplitter();
 
@@ -118,10 +118,10 @@ public class MessageLoader {
 			Logger.error("[Error] MessageSplitter is null, you need to invoke SocketContext object's messageSplitter method to set MessageSplitter Object in it.");
 			return null;
 		}
-		
+
 		//缓冲区字段,一次读1024个字节
 		ByteBuffer tmpByteBuffer = ByteBuffer.allocate(1024);
-		
+
 		while (stopType==StopType.RUNNING) {
 			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
 			if(!session.isConnect() && session.getByteBufferChannel().size()==0){
@@ -161,7 +161,7 @@ public class MessageLoader {
 			}
 		}
 
-		//如果是消息截断器截断的消息则掉用消息截断器处理的逻辑
+		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		if(stopType==StopType.MSG_SPLITTER) {
 			ByteBuffer result = ByteBuffer.wrap(byteOutputStream.toByteArray());
 			byteOutputStream.reset();
