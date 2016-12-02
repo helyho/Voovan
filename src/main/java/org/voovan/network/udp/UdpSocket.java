@@ -143,24 +143,6 @@ public class UdpSocket extends SocketContext{
         session.synchronouSend(obj);
     }
 
-    /**
-     * 直接从缓冲区读取数据
-     * @param data 字节缓冲对象ByteBuffer
-     * @return 读取的字节数
-     * @throws IOException IO异常
-     * */
-    public int directReadBuffer(ByteBuffer data) throws IOException {
-        return  session.getByteBufferChannel().read(data);
-    }
-
-    /**
-     * 直接从缓冲区读取数据
-     * @return 字节缓冲对象ByteBuffer
-     * @throws IOException IO异常
-     * */
-    public ByteBuffer directBufferRead() throws IOException {
-        return  session.getMessageLoader().directRead();
-    }
 
     @Override
     public boolean isConnect() {
