@@ -29,7 +29,6 @@ public class NioSelector {
 	
 	private Selector selector;
 	private SocketContext socketContext;
-	private EventTrigger eventTrigger;
 	private NioSession session;
 	
 	/**
@@ -43,8 +42,6 @@ public class NioSelector {
 		if (socketContext instanceof NioSocket){
 			session = ((NioSocket)socketContext).getSession();
 		}
-
-        eventTrigger = new EventTrigger();
 	}
 
 	/**
@@ -56,7 +53,7 @@ public class NioSelector {
 		
 		if (socketContext instanceof NioSocket) {
 			// 连接完成onConnect事件触发
-			eventTrigger.fireConnectThread(session);
+			EventTrigger.fireConnectThread(session);
 		}
 		
 		// 事件循环
@@ -80,7 +77,7 @@ public class NioSelector {
 										NioServerSocket serverSocket = (NioServerSocket)socketContext;
 										NioSocket socket = new NioSocket(serverSocket,socketChannel);
 										session = socket.getSession();
-										eventTrigger.fireAcceptThread(session);
+										EventTrigger.fireAcceptThread(session);
 										break;
 									}
 									// 有数据读取
@@ -97,7 +94,7 @@ public class NioSelector {
 												session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 											}
 											// 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
-											eventTrigger.fireReceiveThread(session);
+											EventTrigger.fireReceiveThread(session);
 										break;
 									}
 									default: {
@@ -113,15 +110,15 @@ public class NioSelector {
 			}
 		} catch (IOException e) {
 			// 触发 onException 事件
-			eventTrigger.fireExceptionThread(session, e);
+			EventTrigger.fireExceptionThread(session, e);
 		} finally{
 			// 触发连接断开事件
-			eventTrigger.fireDisconnectThread(session);
+			EventTrigger.fireDisconnectThread(session);
 			//关闭线程池
 			if(socketContext!=null &&
 					(socketContext instanceof NioServerSocket
 					||  socketContext.getConnectModel() == ConnectModel.CLIENT)){
-				eventTrigger.shutdown();
+				EventTrigger.shutdown();
 			}
 		}
 	}

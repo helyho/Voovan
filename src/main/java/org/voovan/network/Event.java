@@ -17,9 +17,7 @@ public class Event {
 	private IoSession session;
 	private EventName name;
 	private Object other;
-	private EventState state;
-	private List<Event> eventPool;
-	
+
 	/**
 	 * 事件名称枚举
 	 * @author helyho
@@ -30,27 +28,15 @@ public class Event {
 	}
 	
 	/**
-	 * 事件名称枚举
-	 * @author helyho
-	 *
-	 */
-	public enum EventState {
-		READY,DISPOSEING,FINISHED
-	}
-	
-	/**
 	 * 构造函数
 	 * @param session  会话对象
-	 * @param eventPool       事件池
 	 * @param name		事件名
 	 * @param other 附加对象
 	 */
-	public Event(IoSession session, List<Event> eventPool, EventName name,Object other){
+	public Event(IoSession session,EventName name,Object other){
 		this.session = session;
 		this.name = name;
 		this.other = other;
-		this.state = EventState.READY;
-		this.eventPool = eventPool;
 	}
 
 	public IoSession getSession() {
@@ -69,14 +55,6 @@ public class Event {
 		this.name = name;
 	}
 
-	public EventState getState() {
-		return state;
-	}
-
-	public void setState(EventState state) {
-		this.state = state;
-	}
-
 	public Object getOther() {
 		return other;
 	}
@@ -85,12 +63,6 @@ public class Event {
 		this.other = other;
 	}
 
-	public void removeFromPool(){
-		if(eventPool!=null) {
-			eventPool.remove(this);
-		}
-	}
-	
 	@Override
 	public int hashCode(){
 		return session.hashCode()+name.hashCode();
@@ -115,13 +87,12 @@ public class Event {
 	/**
 	 * 活的新的实例
 	 * @param session   Session 对象
-	 * @param eventPool       事件池
 	 * @param name      事件名称
 	 * @param other     附属对象
      * @return   事件对象
      */
-	public static Event getInstance(IoSession session, List<Event> eventPool, Event.EventName name,Object other){
-		return new Event(session, eventPool, name, other);
+	public static Event getInstance(IoSession session, Event.EventName name,Object other){
+		return new Event(session, name, other);
 	}
 	
 }

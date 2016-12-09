@@ -17,9 +17,7 @@ import java.nio.channels.CompletionHandler;
  */
 public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSocketChannel, AioServerSocket>{
 
-	private EventTrigger eventTrigger;
-	public AcceptCompletionHandler(EventTrigger eventTrigger){
-		this.eventTrigger = eventTrigger;
+	public AcceptCompletionHandler(){
 	}
 	
 	@Override
@@ -31,11 +29,11 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 			AioSocket socket = new AioSocket(serverSocket,socketChannel);
 			
 			//触发 Accept 事件
-			eventTrigger.fireAccept(socket.getSession());
+			EventTrigger.fireAccept(socket.getSession());
 			
 			
 		} catch (IOException e) {
-			eventTrigger.fireException(null, e);
+			EventTrigger.fireException(null, e);
 		}
 	}
 
@@ -43,7 +41,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	public void failed(Throwable exc, AioServerSocket attachment) {
 		if(exc instanceof Exception){
 			//触发 onException 事件
-			eventTrigger.fireException(null, ( Exception)exc);
+			EventTrigger.fireException(null, ( Exception)exc);
 		}
 	}
 

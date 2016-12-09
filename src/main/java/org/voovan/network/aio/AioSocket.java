@@ -31,7 +31,6 @@ public class AioSocket extends SocketContext {
 
 	private AsynchronousSocketChannel	socketChannel;
 	private AioSession					session;
-	private EventTrigger				eventTrigger;
 	private ReadCompletionHandler		readCompletionHandler;
 	private ConnectedCompletionHandler	connectedCompletionHandler;
 
@@ -47,10 +46,9 @@ public class AioSocket extends SocketContext {
 		super(host, port, readTimeout);
 		this.socketChannel = AsynchronousSocketChannel.open();
 		session = new AioSession(this);
-		eventTrigger = new EventTrigger();
 
-		connectedCompletionHandler = new ConnectedCompletionHandler(eventTrigger);
-		readCompletionHandler = new ReadCompletionHandler(this, eventTrigger, session.getByteBufferChannel());
+		connectedCompletionHandler = new ConnectedCompletionHandler();
+		readCompletionHandler = new ReadCompletionHandler(this,  session.getByteBufferChannel());
 		this.handler = new SynchronousHandler();
 		connectModel = ConnectModel.CLIENT;
 	}
@@ -67,20 +65,10 @@ public class AioSocket extends SocketContext {
 		this.socketChannel = socketChannel;
 		this.copyFrom(parentSocketContext);
 		session = new AioSession(this);
-		eventTrigger = new EventTrigger();
 
-		connectedCompletionHandler = new ConnectedCompletionHandler(eventTrigger);
-		readCompletionHandler = new ReadCompletionHandler(this, eventTrigger, session.getByteBufferChannel());
+		connectedCompletionHandler = new ConnectedCompletionHandler();
+		readCompletionHandler = new ReadCompletionHandler(this, session.getByteBufferChannel());
 		connectModel = ConnectModel.SERVER;
-	}
-
-	/**
-	 * 获取事件触发器
-	 * 
-	 * @return 事件触发器
-	 */
-	protected EventTrigger getEventTrigger() {
-		return eventTrigger;
 	}
 
 	/**
@@ -148,11 +136,11 @@ public class AioSocket extends SocketContext {
 		catchRead(ByteBuffer.allocateDirect(1024));
 		
 		// 触发 connect 事件
-		eventTrigger.fireConnectThread(session);
+		EventTrigger.fireConnectThread(session);
 
 		Global.getThreadPool().execute( () -> {
 			// 等待ServerSocketChannel关闭,结束进程
-			while (isConnect() && (connectModel==ConnectModel.CLIENT || eventTrigger.isShutdown())) {
+			while (isConnect() && (connectModel==ConnectModel.CLIENT || EventTrigger.isShutdown())) {
 				TEnv.sleep(500);
 			}
 		});
@@ -201,17 +189,17 @@ public class AioSocket extends SocketContext {
 				session.closeDirectBufferRead();
 
 				// 触发 DisConnect 事件
-				eventTrigger.fireDisconnect(session);
+				 EventTrigger.fireDisconnect(session);
 
 				// 检查是否关闭线程池
 				// 如果不是ServerSocket下的 Socket 则关闭线程池
 				// ServerSocket下的 Socket由 ServerSocket来关闭线程池
 				if (connectModel == ConnectModel.CLIENT) {
-					eventTrigger.shutdown();
+					EventTrigger.shutdown();
 				}
 
 				// 关闭 Socket 连接
-				if (socketChannel.isOpen() && (connectModel == ConnectModel.SERVER || eventTrigger.isShutdown())) {
+				if (socketChannel.isOpen() && (connectModel == ConnectModel.SERVER || EventTrigger.isShutdown())) {
 					socketChannel.close();
 				}
 				return true;

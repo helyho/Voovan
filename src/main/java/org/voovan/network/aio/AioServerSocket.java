@@ -21,8 +21,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 public class AioServerSocket extends SocketContext{
 
 	private AsynchronousServerSocketChannel serverSocketChannel;
-	private EventTrigger eventTrigger;
-	
+
 	/**
 	 * 构造函数
 	 * @param host    主机地址
@@ -33,15 +32,13 @@ public class AioServerSocket extends SocketContext{
 	public AioServerSocket(String host,int port,int readTimeout) throws IOException{
 		super(host, port, readTimeout);
 		serverSocketChannel = AsynchronousServerSocketChannel.open();
-		eventTrigger = new EventTrigger();
-		
 	}
 	
 	/**
 	 * 捕获 Aio Accept 事件
 	 */
 	protected void catchAccept(){
-		serverSocketChannel.accept(this, new AcceptCompletionHandler(eventTrigger));
+		serverSocketChannel.accept(this, new AcceptCompletionHandler());
 	}
 	
 	@Override
@@ -51,7 +48,7 @@ public class AioServerSocket extends SocketContext{
 		catchAccept();
 		
 		//等待ServerSocketChannel关闭,结束进程
-		while(isConnect() && !eventTrigger.isShutdown()){
+		while(isConnect() && !EventTrigger.isShutdown()){
 			TEnv.sleep(500);
 		}
 	}
@@ -67,11 +64,11 @@ public class AioServerSocket extends SocketContext{
 		if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
 			try{
 				//触发 DisConnect 事件
-				eventTrigger.fireDisconnect(null);
+				EventTrigger.fireDisconnect(null);
 				//检查是否关闭
-				eventTrigger.shutdown();
+				EventTrigger.shutdown();
 				//关闭 Socket 连接
-				if(serverSocketChannel.isOpen()  && eventTrigger.isShutdown()){
+				if(serverSocketChannel.isOpen()  && EventTrigger.isShutdown()){
 					serverSocketChannel.close();
 				}
 				return true;
