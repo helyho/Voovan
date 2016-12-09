@@ -4,7 +4,7 @@ import org.voovan.network.ConnectModel;
 import org.voovan.network.filter.StringFilter;
 import org.voovan.network.messagesplitter.LineMessageSplitter;
 import org.voovan.network.udp.UdpSocket;
-import org.voovan.test.network.ClientHandlerTest;
+import org.voovan.test.network.udp.ClientHandlerTest;
 
 import java.io.IOException;
 

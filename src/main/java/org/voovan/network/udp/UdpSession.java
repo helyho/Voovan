@@ -1,9 +1,6 @@
 package org.voovan.network.udp;
 
-import org.voovan.network.IoSession;
-import org.voovan.network.MessageLoader;
-import org.voovan.network.MessageSplitter;
-import org.voovan.network.SocketContext;
+import org.voovan.network.*;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.log.Logger;
 
@@ -206,6 +203,7 @@ public class UdpSession extends IoSession {
 	 * 关闭会话
 	 */
 	public boolean close() {
+		EventTrigger.fireDisconnect(this);
 		return udpSocket.close();
 	}
 
