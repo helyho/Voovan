@@ -77,13 +77,15 @@ public class LoggerThread implements Runnable {
 
 	@Override
 	public void run() {
-        finished.set(false);
+		String formatedMessage = null;
+
+		finished.set(false);
 
 		Thread mainThread = TEnv.getMainThread();
 
 		while (true) {
 			try {
-				String formatedMessage = logQueue.poll(1000, TimeUnit.MILLISECONDS);
+				formatedMessage = logQueue.poll(1000, TimeUnit.MILLISECONDS);
 				if (formatedMessage != null && outputStreams!=null) {
 					for (OutputStream outputStream : outputStreams) {
 						if (outputStream != null) {

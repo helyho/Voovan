@@ -20,6 +20,7 @@
   //},
 
   // 过滤器配置节点 请求 先执行filter1, 后执行filter2,响应则相反
+  /*
   "Filters": [
     {
       "Name"      : "filter1",
@@ -55,4 +56,5 @@
       "ClassName": "org.voovan.http.monitor.Monitor1"               //模块处理器
     }
   ]
+  */
 }
