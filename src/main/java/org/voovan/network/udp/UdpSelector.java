@@ -76,6 +76,7 @@ public class UdpSelector {
 
                                     // 有数据读取
                                     case SelectionKey.OP_READ: {
+
                                         int readSize = - 1;
                                         UdpSocket clientUdpSocket = null;
                                         UdpSession clientSession = session;
@@ -89,23 +90,21 @@ public class UdpSelector {
                                             clientSession = clientUdpSocket.getSession();
                                         }
 
-                                        try {
                                             //判断连接是否关闭
-                                            if (MessageLoader.isRemoteClosed(readSize, readTempBuffer) && clientSession.isConnect()) {
-                                                clientSession.close();
-                                            } else if (readSize > 0) {
-                                                readTempBuffer.flip();
-                                                clientSession.getByteBufferChannel().write(readTempBuffer);
-                                                readTempBuffer.clear();
-                                            } else if (readSize == -1) {
-                                                clientSession.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
-                                            }
-                                            // 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
-                                            EventTrigger.fireReceiveThread(clientSession);
-                                        }catch(Exception e){
-                                            EventTrigger.fireExceptionThread(clientSession,e);
+                                        if (MessageLoader.isRemoteClosed(readSize, readTempBuffer) && clientSession.isConnect()) {
+                                            clientSession.close();
+                                            break;
+                                        } else if (readSize > 0) {
+                                            readTempBuffer.flip();
+                                            clientSession.getByteBufferChannel().write(readTempBuffer);
+                                            readTempBuffer.clear();
+                                        } else if (readSize == -1) {
+                                            clientSession.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
+                                            break;
                                         }
-                                        break;
+
+                                        // 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
+                                        EventTrigger.fireReceiveThread(clientSession);
                                     }
                                     default: {
                                         Logger.debug("Nothing to do ,SelectionKey is:"
@@ -122,8 +121,6 @@ public class UdpSelector {
             // 触发 onException 事件
             EventTrigger.fireExceptionThread(session, e);
         } finally{
-            // 触发连接断开事件
-            EventTrigger.fireDisconnectThread(session);
             //关闭线程池
             EventTrigger.shutdown();
         }
