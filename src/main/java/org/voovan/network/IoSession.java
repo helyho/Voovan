@@ -29,7 +29,8 @@ public abstract class IoSession {
 	private SSLParser sslParser;
 	private ByteBufferChannel netDataBufferChannel;
 	private ByteBufferChannel appDataBufferChannel;
-	
+	private boolean onReceive;
+
 	/**
 	 * 构造函数
 	 */
@@ -38,7 +39,15 @@ public abstract class IoSession {
 		netDataBufferChannel = new ByteBufferChannel();
 		appDataBufferChannel = new ByteBufferChannel();
 	}
-	
+
+	protected boolean isOnReceive() {
+		return onReceive;
+	}
+
+	protected void setOnReceive(boolean onReceive) {
+		this.onReceive = onReceive;
+	}
+
 	/**
 	 * 获取接收的输出流
 	 * @return 接收的输出流

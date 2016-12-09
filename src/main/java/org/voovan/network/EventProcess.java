@@ -1,7 +1,6 @@
 package org.voovan.network;
 
 import org.voovan.network.Event.EventName;
-import org.voovan.network.Event.EventState;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.Chain;
@@ -252,7 +251,7 @@ public class EventProcess {
 					session.send(resultBuf);
 				}
 
-				Event event = new Event(session, null, EventName.ON_SENT, resultBuf);
+				Event event = new Event(session, EventName.ON_SENT, resultBuf);
 				// 出发发送事件
 				EventProcess.process(event);
 			}
@@ -269,7 +268,6 @@ public class EventProcess {
 		if (event == null) {
 			return;
 		}
-		event.setState(EventState.DISPOSEING);
 		EventName eventName = event.getName();
 		// 根据事件名称处理事件
 		try {
@@ -289,8 +287,6 @@ public class EventProcess {
 			}
 		} catch (IOException | SendMessageException | IoFilterException e) {
 			EventProcess.onException(event, e);
-		} finally {
-			event.setState(EventState.FINISHED);
 		}
 	}
 }

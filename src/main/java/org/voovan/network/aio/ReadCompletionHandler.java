@@ -8,6 +8,7 @@ import org.voovan.tools.TObject;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.CompletionHandler;
 
 /**
@@ -21,12 +22,10 @@ import java.nio.channels.CompletionHandler;
  */
 public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBuffer>{
 	private AioSocket aioSocket;
-	private EventTrigger eventTrigger;
 	private ByteBufferChannel byteBufferChannel;
 	private AioSession session;
 	
-	public ReadCompletionHandler(AioSocket aioSocket, EventTrigger eventTrigger,ByteBufferChannel byteBufferChannel){
-		this.eventTrigger = eventTrigger;
+	public ReadCompletionHandler(AioSocket aioSocket, ByteBufferChannel byteBufferChannel){
 		this.byteBufferChannel = byteBufferChannel;
 		this.aioSocket = aioSocket;
 		this.session = aioSocket.getSession();
@@ -49,7 +48,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					byteBufferChannel.write(buffer);
 
 					// 触发 onReceive 事件
-					eventTrigger.fireReceiveThread(session);
+					EventTrigger.fireReceiveThread(session);
 					
 					// 接收完成后重置buffer对象
 					buffer.clear();
@@ -63,16 +62,23 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 		} catch (IOException e) {
 			// 触发 onException 事件
 			session.getMessageLoader().setStopType(MessageLoader.StopType.EXCEPTION);
-			eventTrigger.fireException(session, e);
+			EventTrigger.fireException(session, e);
 		}
 		
 	}
 
 	@Override
 	public void failed(Throwable exc,  ByteBuffer buffer) {
-		if(exc instanceof Exception && !(exc instanceof AsynchronousCloseException)){
+
+		if((exc instanceof AsynchronousCloseException) ||
+				(exc instanceof ClosedChannelException)){
+			session.close();
+			return;
+		}
+
+		if(exc instanceof Exception){
 			//触发 onException 事件
-			eventTrigger.fireException(session, (Exception)exc);
+			EventTrigger.fireException(session, (Exception)exc);
 		}
 	}
 }

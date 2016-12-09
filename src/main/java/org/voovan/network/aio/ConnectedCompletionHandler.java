@@ -15,10 +15,8 @@ import java.nio.channels.CompletionHandler;
  */
 public class ConnectedCompletionHandler implements CompletionHandler<Void, AioSocket>{
 
-	private EventTrigger eventTrigger;
 
-	public ConnectedCompletionHandler(EventTrigger eventTrigger){
-		this.eventTrigger = eventTrigger;
+	public ConnectedCompletionHandler(){
 	}
 
 
@@ -31,7 +29,7 @@ public class ConnectedCompletionHandler implements CompletionHandler<Void, AioSo
 	public void failed(Throwable exc,  AioSocket socketContext) {
 		if(exc instanceof Exception){
 			//触发 onException 事件
-			eventTrigger.fireException(socketContext.getSession(), (Exception)exc);
+			EventTrigger.fireException(socketContext.getSession(), (Exception)exc);
 		}
 	}
 
