@@ -380,6 +380,7 @@ public class HttpParser {
 					Cookie cookie = Cookie.buildCookie(cookieMapItem);
 					request.cookies().add(cookie);
 				}
+				cookieMap.clear();
 				break;
 			case BODY_VALUE:
 				byte[] value = (byte[])(parsedPacketEntry.getValue());
@@ -408,6 +409,7 @@ public class HttpParser {
 						}
 					}
 					request.parts().add(part);
+					parsedPartMap.clear();
 				}
 				break;
 			default:
@@ -415,6 +417,8 @@ public class HttpParser {
 				break;
 			}
 		}
+
+		parsedPacket.clear();
 		
 		return request;
 	}
@@ -464,6 +468,7 @@ public class HttpParser {
 				break;
 			}
 		}
+		parsedPacket.clear();
 		return response;
 	}
 }
