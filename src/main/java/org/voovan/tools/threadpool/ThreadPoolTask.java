@@ -44,7 +44,9 @@ public class ThreadPoolTask extends TimerTask {
 
 		int poolSize = threadPoolInstance.getPoolSize();
 		// 动态调整线程数,线程数要小于CPU核心数*100,且系统CPU负载值要小于1
-		if (threadPoolInstance.getQueue().size() > 0 && poolSize < cpuCoreCount * 50 && TPerformance.cpuPerCoreLoadAvg() < 1) {
+		if (threadPoolInstance.getQueue().size() > 0 &&
+				poolSize < cpuCoreCount * 50 &&
+				TPerformance.cpuPerCoreLoadAvg() < 1) {
 			threadPoolInstance.setCorePoolSize(threadPoolInstance.getPoolSize() + cpuCoreCount * 2);
 			Logger.debug("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
 		}

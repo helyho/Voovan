@@ -66,7 +66,6 @@ public class Chain<E> extends ArrayDeque<E>{
 		}
 	}
 
-
 	/**
 	 * 迭代器是否有下一个对象
 	 * @return 是否有下一个对象
@@ -78,8 +77,6 @@ public class Chain<E> extends ArrayDeque<E>{
 			return iterator.hasNext();
 		}
 	}
-
-
 
 	/**
 	 * 迭代器上一个元素
@@ -119,6 +116,7 @@ public class Chain<E> extends ArrayDeque<E>{
 		Chain<E> chain = new Chain<E>();
 		chain.addAll(cloned);
 		chain.rewind();
+		cloned.clear();
 		return chain;
 	}
 }

@@ -160,6 +160,7 @@ public class EventProcess {
 			IoFilter fitler = filterChain.next();
 			result = fitler.decode(session, result);
 		}
+		filterChain.clear();
 		return result;
 	}
 	
@@ -177,6 +178,7 @@ public class EventProcess {
 			IoFilter fitler = filterChain.previous();
 			result = fitler.encode(session, result);
 		}
+		filterChain.clear();
 		return result;
 	}
 	
