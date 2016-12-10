@@ -1,6 +1,7 @@
 package org.voovan.network;
 
 import org.voovan.network.exception.SocketDisconnectByRemote;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayOutputStream;
@@ -22,6 +23,7 @@ public class MessageLoader {
 	private StopType stopType;
 	private ByteArrayOutputStream byteOutputStream;
 	private boolean isDirectRead;
+	private int readZeroCount = 0;
 	/**
 	 * 构造函数
 	 * @param session Session 对象
@@ -123,6 +125,7 @@ public class MessageLoader {
 		ByteBuffer tmpByteBuffer = ByteBuffer.allocate(1024);
 
 		while (stopType==StopType.RUNNING) {
+
 			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
 			if(!session.isConnect() && session.getByteBufferChannel().size()==0){
 				stopType = StopType.SOCKET_CLOSE;
@@ -152,11 +155,22 @@ public class MessageLoader {
 			if (isRemoteClosed(readsize,tmpByteBuffer)) {
 				stopType = StopType.REMOTE_DISCONNECT;
 			}
+
 			//使用消息划分器进行消息划分
 			if(readsize==0 && !isDirectRead) {
 				boolean msgSplitState = messageSplitter.canSplite(session, byteOutputStream.toByteArray());
 				if (msgSplitState) {
 					stopType = StopType.MSG_SPLITTER ;
+				}
+			}
+
+			//超时判断,防止读0时导致的高 CPU 负载
+			if(readsize==0 && stopType == StopType.RUNNING){
+				if(readZeroCount >= session.sockContext().getReadTimeout()){
+					stopType = StopType.STREAM_END;
+				}else {
+					readZeroCount++;
+					TEnv.sleep(1);
 				}
 			}
 		}
