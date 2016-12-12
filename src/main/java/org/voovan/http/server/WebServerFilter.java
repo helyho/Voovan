@@ -53,7 +53,7 @@ public class WebServerFilter implements IoFilter {
 		if (isHttpRequest(byteBuffer)) {
 			try {
 				if (object instanceof ByteBuffer) {
-					
+
 					ByteArrayInputStream requestInputStream = new ByteArrayInputStream(TByteBuffer.toArray(byteBuffer));
 					Request request = HttpParser.parseRequest(requestInputStream);
 					if(request!=null){
