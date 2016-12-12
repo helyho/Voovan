@@ -1,5 +1,6 @@
 package org.voovan.tools;
 
+import org.voovan.http.message.Request;
 import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayInputStream;
@@ -25,7 +26,9 @@ public class TZip {
 	 */
 	public static byte[] decodeGZip(byte[] encodeBytes) throws IOException{
 		GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(encodeBytes));
-		return TStream.readAll(gzipInputStream);
+		byte[] result = TStream.readAll(gzipInputStream);
+		gzipInputStream.close();
+		return result;
 	}
 	
 	/**
@@ -39,7 +42,10 @@ public class TZip {
 		GZIPOutputStream gzipOutputStream = new GZIPOutputStream(zipedBodyOutputStream);
 		gzipOutputStream.write(sourceBytes);
 		gzipOutputStream.finish();
-		return zipedBodyOutputStream.toByteArray();
+		byte[] result = zipedBodyOutputStream.toByteArray();
+		gzipOutputStream.close();
+		zipedBodyOutputStream.close();
+		return result;
 	}
 	
 	/**
@@ -51,7 +57,9 @@ public class TZip {
 	public static byte[] decodeZip(byte[] encodeBytes) throws IOException{
 		ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(encodeBytes));
 		Logger.simple(zipInputStream.getNextEntry().getName());
-		return TStream.readAll(zipInputStream);
+		byte[] result = TStream.readAll(zipInputStream);
+		zipInputStream.close();
+		return result;
 	}
 	
 	/**
@@ -68,6 +76,10 @@ public class TZip {
 		zipOutputStream.putNextEntry(zipEntry);
 		zipOutputStream.write(sourceBytes);
 		zipOutputStream.finish();
-		return zipedBodyOutputStream.toByteArray();
+		byte[] result = zipedBodyOutputStream.toByteArray();
+		zipedBodyOutputStream.close();
+		zipOutputStream.close();
+		return result;
+
 	}
 }

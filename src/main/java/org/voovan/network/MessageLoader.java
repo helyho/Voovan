@@ -105,6 +105,8 @@ public class MessageLoader {
 	 */
 	public ByteBuffer read() throws IOException {
 
+		ByteBuffer result = null;
+
 		stopType = StopType.RUNNING;
 
 		byteOutputStream.reset();
@@ -177,14 +179,21 @@ public class MessageLoader {
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		if(stopType==StopType.MSG_SPLITTER) {
-			ByteBuffer result = ByteBuffer.wrap(byteOutputStream.toByteArray());
+			 result = ByteBuffer.wrap(byteOutputStream.toByteArray());
 			byteOutputStream.reset();
-			return result;
+
 		}else{
 			//不是消息截断器截断的消息放在缓冲区中,等待直接读取流的形式读取
 			session.getByteBufferChannel().write(ByteBuffer.wrap(byteOutputStream.toByteArray()));
-			return ByteBuffer.allocate(0);
+			 result = ByteBuffer.allocate(0);
 		}
+
+
+		if(stopType == stopType.SOCKET_CLOSE || stopType == StopType.REMOTE_DISCONNECT) {
+			byteOutputStream.close();
+		}
+
+		return result;
 	}
 
 	/**
