@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.WritePendingException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -144,14 +145,18 @@ public class AioSession extends IoSession {
 		if (isConnect() && buffer != null) {
 			//循环发送直到全不内容发送完毕
 			while(isConnect() && buffer.remaining()!=0){
-				Future<Integer> sendResult = socketChannel.write(buffer);
 				try {
-					totalSendByte+=sendResult.get();
-				} catch (InterruptedException|ExecutionException e) {
-					throw new IOException("Get send byte count error.",e);
-				}
-				while(!sendResult.isDone()){
-					TEnv.sleep(1);
+					Future<Integer> sendResult = socketChannel.write(buffer);
+					try {
+						totalSendByte += sendResult.get();
+					} catch (InterruptedException | ExecutionException e) {
+						throw new IOException("Get send byte count error.", e);
+					}
+					while (!sendResult.isDone()) {
+						TEnv.sleep(1);
+					}
+				}catch(WritePendingException e){
+					continue;
 				}
 			}
 		}
