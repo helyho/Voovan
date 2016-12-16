@@ -318,6 +318,9 @@ public class TString {
 		}else if( TReflect.isImpByInterface(clazz,List.class) ||
 				TReflect.isImpByInterface(clazz,Map.class) ){
 			return JSON.toObject(value, clazz);
+		}else if(TString.searchByRegex(value,"^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0
+				|| TString.searchByRegex(value,"^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0 ){
+			return JSON.toObject(value, clazz);
 		}else{
 			return value;
 		}
