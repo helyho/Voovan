@@ -222,7 +222,7 @@ public class JSONDecode {
 		jsonStr = removeComment(jsonStr);
 		Object parseObject = parse(jsonStr);
 		//{}包裹的对象处理
-		if(jsonStr.startsWith("{")){
+		if(TString.searchByRegex(jsonStr,"^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0 ){
 			if(clazz==Map.class){
 				clazz = (Class<T>) HashMap.class;
 			}
@@ -230,7 +230,8 @@ public class JSONDecode {
 			return (T) TReflect.getObjectFromMap(clazz, mapJSON,false);
 		}
 		//[]包裹的对象处理
-		else if(jsonStr.startsWith("[") && TReflect.isImpByInterface(clazz, List.class)){
+		else if(TString.searchByRegex(jsonStr,"^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0
+				&& TReflect.isImpByInterface(clazz, List.class)){
 			if(clazz==List.class){
 				clazz = (Class<T>) ArrayList.class;
 			}
