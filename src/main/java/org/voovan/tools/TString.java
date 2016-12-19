@@ -316,7 +316,8 @@ public class TString {
 		}else if(clazz == char.class || clazz == Character.class){
 			return value!=null ? value.charAt(0) : null;
 		}else if( TReflect.isImpByInterface(clazz,List.class) ||
-				TReflect.isImpByInterface(clazz,Map.class) ){
+				TReflect.isImpByInterface(clazz,Map.class) ||
+				clazz.isArray()){
 			return JSON.toObject(value, clazz);
 		}else if(TString.searchByRegex(value,"^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0
 				|| TString.searchByRegex(value,"^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0 ){
