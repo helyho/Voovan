@@ -4,6 +4,7 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.TString;
 
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.util.*;
 
@@ -230,14 +231,21 @@ public class JSONDecode {
 			return (T) TReflect.getObjectFromMap(clazz, mapJSON,false);
 		}
 		//[]包裹的对象处理
-		else if(TString.searchByRegex(jsonStr,"^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0
-				&& TReflect.isImpByInterface(clazz, List.class)){
-			if(clazz==List.class){
-				clazz = (Class<T>) ArrayList.class;
+		else if(TString.searchByRegex(jsonStr,"^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0){
+			if(TReflect.isImpByInterface(clazz, List.class)){
+				if(clazz==List.class){
+					clazz = (Class<T>) ArrayList.class;
+				}
+                List obj = (List) TReflect.newInstance(clazz);
+                obj.addAll((Collection) parseObject);
+				return (T) obj;
+			}else if(clazz.isArray()){
+				Class arrayClass = clazz.getComponentType();
+				Object tempArrayObj = Array.newInstance(arrayClass, 0);
+				return (T)((Collection)parseObject).toArray((Object[])tempArrayObj);
+			}else {
+				return null;
 			}
-			List obj = (List) TReflect.newInstance(clazz);
-			obj.addAll((Collection) parseObject);
-			return (T) obj;
 		}
 		//其他类型处理
 		else{
