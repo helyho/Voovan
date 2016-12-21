@@ -42,7 +42,7 @@ public class MimeTools {
 		for(String fileExtension : mimeTypes.keySet()){
 			mimeTypeRegexSB.append("\\.");
 			mimeTypeRegexSB.append(fileExtension);
-			mimeTypeRegexSB.append("|");
+			mimeTypeRegexSB.append("[$|\\/]|");
 	}
 		mimeTypeRegex = mimeTypeRegexSB.toString();
 		mimeTypeRegex = TString.removeSuffix(mimeTypeRegex)+"$";
