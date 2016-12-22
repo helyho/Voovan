@@ -3,6 +3,7 @@ package org.voovan.tools;
 import org.voovan.tools.log.Logger;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 对象池
@@ -19,6 +20,7 @@ public class ObjectPool {
     private Timer timer;
     private long aliveTime = 5;
     private boolean autoRefreshOnGet = true;
+    private AtomicInteger objectId = new AtomicInteger(0);
 
 
     /**
@@ -67,6 +69,16 @@ public class ObjectPool {
     }
 
     /**
+     * 生成ObjectId
+     * @return 生成的ObjectId
+     */
+    private int getObjectId(){
+        objectId.getAndIncrement();
+        return objectId.get();
+    }
+
+
+    /**
      * 是否获取对象时刷新对象存活试驾
      * @return
      */
@@ -76,11 +88,11 @@ public class ObjectPool {
 
     /**
      * 获取池中的对象
-     * @param hashCode 对象的 hash 值
+     * @param id 对象的 hash 值
      * @return 池中的对象
      */
-    public Object get(Integer hashCode){
-        PooledObject pooledObject = objects.get(hashCode);
+    public Object get(Integer id){
+        PooledObject pooledObject = objects.get(id);
         if(pooledObject!=null) {
             return pooledObject.getObject();
         }else{
@@ -97,16 +109,26 @@ public class ObjectPool {
         if(obj == null){
             return 0;
         }
-        objects.put(obj.hashCode(),new PooledObject(this, obj));
-        return obj.hashCode();
+        int id = getObjectId();
+        objects.put(id, new PooledObject(this, id, obj));
+        return id;
+    }
+
+    /**
+     * 判断池中是否存在对象
+     * @param id 对象的 hash 值
+     * @return true: 存在, false: 不存在
+     */
+    public boolean contains(Integer id){
+        return objects.containsKey(id);
     }
 
     /**
      * 移除池中的对象
-     * @param hashCode 对象的 hash 值
+     * @param id 对象的 hash 值
      */
-    public void remove(Integer hashCode){
-        objects.remove(hashCode);
+    public void remove(Integer id){
+        objects.remove(id);
     }
 
     /**
@@ -132,7 +154,7 @@ public class ObjectPool {
                     synchronized (objects){
                         for (PooledObject pooledObject : objects.values().toArray(new PooledObject[]{})) {
                             if (!pooledObject.isAlive()) {
-                                remove(pooledObject.getObject().hashCode());
+                                remove(pooledObject.getId());
                             }
                         }
                     }
@@ -149,13 +171,16 @@ public class ObjectPool {
      */
     private class PooledObject{
         private long createTime;
+        private int id;
         private Object object;
         private ObjectPool objectPool;
 
-        public PooledObject(ObjectPool objectPool,Object object) {
+        public PooledObject(ObjectPool objectPool,int id,Object object) {
             this.objectPool = objectPool;
             this.createTime = System.currentTimeMillis();
+            this.id = id;
             this.object = object;
+            Logger.simple(id);
         }
 
         /**
@@ -182,6 +207,11 @@ public class ObjectPool {
          */
         public void setObject(Object object) {
             this.object = object;
+        }
+
+
+        public int getId() {
+            return id;
         }
 
         /**
