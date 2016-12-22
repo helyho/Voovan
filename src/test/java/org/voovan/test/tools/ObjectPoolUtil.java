@@ -36,7 +36,4 @@ public class ObjectPoolUtil extends TestCase {
         assertEquals(1,objectPool.size());
         assertEquals(0, objectPool.add(null));
     }
-
-
-
 }
