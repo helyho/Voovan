@@ -6,6 +6,7 @@ import org.voovan.tools.TDateTime;
 import org.voovan.tools.TObject;
 import org.voovan.tools.json.annotation.NotJSON;
 import org.voovan.tools.reflect.annotation.NotSerialization;
+
 import java.lang.reflect.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -164,7 +165,7 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Method findMethod(Class<?> clazz, String name,
-			Class<?>... paramTypes) throws ReflectiveOperationException  {
+			Class<?>... paramTypes) throws ReflectiveOperationException {
 		return clazz.getDeclaredMethod(name, paramTypes);
 	}
 	
@@ -598,7 +599,6 @@ public class TReflect {
 		if(type==interfaceClass){
 			return true;
 		}
-
 		Class<?>[] interfaces= type.getInterfaces();
 		for (Class<?> interfaceItem : interfaces) {
 			if (interfaceItem.equals(interfaceClass)) {
@@ -610,6 +610,8 @@ public class TReflect {
 		}
 		return false;
 	}
+
+
 	
 	/**
 	 * 判断某个类型是否继承于某个类
@@ -632,6 +634,27 @@ public class TReflect {
 		}while(superClass!=null && !superClass.equals(extendsClass) && !superClass.equals(Object.class));
 
 		return false;
+	}
+
+	/**
+	 * 获取类的继承树上的所有父类
+	 * @param type 类型 Class
+	 * @return 所有父类
+	 */
+	public static Class<?>[] getAllExtendAndInterfaceClass(Class<?> type){
+		if(type == null){
+			return null;
+		}
+
+		ArrayList<Class> classes = new ArrayList<Class>();
+
+		Class<?> superClass = type;
+		do{
+			superClass = superClass.getSuperclass();
+			classes.addAll(Arrays.asList(superClass.getInterfaces()));
+			classes.add(superClass);
+		}while(superClass!=null && !superClass.equals(Object.class));
+		return classes.toArray(new Class[]{});
 	}
 
 	/**
