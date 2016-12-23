@@ -120,8 +120,7 @@ public class JSONEncode {
         } else if (object.getClass().getName().startsWith("java.lang")) {
             String strValue = object.toString()
                     .replace("\r","\\r")
-                    .replace("\n","\\n")
-                    .replace("\"","\\\"");
+                    .replace("\n","\\n");
             value = "\"" + strValue + "\"";
         } else if (object instanceof Map) {
             Map<Object, Object> mapObject = (Map<Object, Object>) object;
