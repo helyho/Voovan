@@ -370,13 +370,6 @@ public class TReflect {
 			return obj;
 		}
 
-		//由于 List 和 Map 无法构造, 所以使用默认类型
-		if(clazz == List.class){
-			clazz= ArrayList.class;
-		}else if(clazz == Map.class){
-			clazz= HashMap.class;
-		}
-
 		if(mapArg.isEmpty()){
 
 			return TReflect.newInstance(clazz,new Object[]{});
@@ -396,17 +389,33 @@ public class TReflect {
 		}
 		//Map 类型
 		else if(isImpByInterface(clazz,Map.class)){
+			//不可构造的类型使用最常用的类型
+			if(Modifier.isAbstract(clazz.getModifiers()) && Modifier.isInterface(clazz.getModifiers())){
+				clazz = HashMap.class;
+			}
+
 			Map mapObject = TObject.cast(newInstance(clazz));
 			mapObject.putAll(mapArg);
 			obj = mapObject;
 		}
 		//Collection 类型
 		else if(isImpByInterface(clazz,Collection.class)){
+			//不可构造的类型使用最常用的类型
+			if(Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())){
+				clazz = ArrayList.class;
+			}
+
             Collection listObject = TObject.cast(newInstance(clazz));
 			if(singleValue!=null){
                 listObject.addAll((Collection) TObject.cast(singleValue));
 			}
 			obj = listObject;
+		}
+		//Array 类型
+		else if(clazz.isArray()){
+			Class arrayClass = clazz.getComponentType();
+			Object tempArrayObj = Array.newInstance(arrayClass, 0);
+			return ((Collection)singleValue).toArray((Object[])tempArrayObj);
 		}
 		//java基本对象
 		else if (clazz.getName().startsWith("java.lang")) {
