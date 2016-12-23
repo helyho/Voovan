@@ -180,7 +180,6 @@ public class ObjectPool {
             this.createTime = System.currentTimeMillis();
             this.id = id;
             this.object = object;
-            Logger.simple(id);
         }
 
         /**
