@@ -169,10 +169,26 @@ public class TReflect {
 		return clazz.getDeclaredMethod(name, paramTypes);
 	}
 
-//	public static Method findMethod(Class<?> clazz, String name,
-//									Class<?>... paramTypes) throws ReflectiveOperationException {
-//		return clazz.getDeclaredMethod(name, paramTypes);
-//	}
+	/**
+	 * 查找类中的方法(使用参数数量)
+	 * @param clazz        类对象
+	 * @param name		   方法名
+	 * @param paramCount   参数数量
+	 * @return			   方法对象
+	 * @throws ReflectiveOperationException 反射异常
+	 */
+	public static Method[] findMethod(Class<?> clazz, String name,
+									int paramCount) throws ReflectiveOperationException {
+		ArrayList<Method> result = new ArrayList<Method>();
+		Method[] methods = getMethods(clazz,name);
+		for(Method method : methods){
+			if(method.getParameters().length == paramCount){
+				result.add(method);
+			}
+		}
+
+		return result.toArray(new Method[]{});
+	}
 
     /**
      * 获取类的方法集合
@@ -247,14 +263,13 @@ public class TReflect {
 	 */
 	public static Object invokeMethod(Object obj, Method method, Object... parameters)
 			throws ReflectiveOperationException {
-		method.setAccessible(true);
 		return method.invoke(obj, parameters);
 	}
 
 	/**
 	 * 使用对象执行方法
 	 * 对对象执行一个通过 方法名和参数列表选择的方法
-	 * @param obj				执行方法的对象
+	 * @param obj				执行方法的对象,如果调用静态方法直接传 Class 类型的对象
 	 * @param name				执行方法名
 	 * @param parameters		方法参数
 	 * @return					方法返回结果
@@ -264,11 +279,12 @@ public class TReflect {
 			throws ReflectiveOperationException {
 		Class<?>[] parameterTypes = getArrayClasses(parameters);
 		Method method = null;
+		Class objClass = (obj instanceof Class) ? (Class)obj : obj.getClass();
 		try {
-			 method = findMethod(obj.getClass(), name, parameterTypes);
+			 method = findMethod(objClass, name, parameterTypes);
 		}catch(NoSuchMethodException e){
 			//找到这个名称的所有方法
-			Method[] methods = getMethods(obj.getClass(),name);
+			Method[] methods = findMethod(objClass,name,parameterTypes.length);
 			for(Method similarMethod : methods){
 				Parameter[] methodParams = similarMethod.getParameters();
 				//匹配参数数量相等的方法
