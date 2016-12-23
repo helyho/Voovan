@@ -4,6 +4,7 @@ package org.voovan.tools.reflect;
 import javafx.print.Collation;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
 import org.voovan.tools.json.annotation.NotJSON;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
@@ -292,7 +293,7 @@ public class TReflect {
 					for(int i=0;i<methodParams.length;i++){
 						Parameter parameter = methodParams[i];
 						//参数类型转换
-						parameters[i] = TObject.cast(parameters[i],parameter.getType());
+						parameters[i] = TString.toObject(parameters[i].toString(), parameter.getType());
 					}
 					method = similarMethod;
 				}
