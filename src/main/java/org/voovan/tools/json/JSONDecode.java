@@ -1,5 +1,6 @@
 package org.voovan.tools.json;
 
+import com.sun.javafx.collections.MappingChange;
 import org.voovan.tools.TObject;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.TString;
@@ -40,10 +41,10 @@ public class JSONDecode {
 		jsonStr = jsonStr.trim();
 		//根据起始和结束符号,决定返回的对象类型
 		if(jsonStr.startsWith("{")){
-			jsonResult = new HashMap<String,Object>();
+			jsonResult = (Map)new HashMap<String,Object>();
 		}
 		else if(jsonStr.startsWith("[")){
-			jsonResult = new ArrayList<Object>();
+			jsonResult = (List)new ArrayList<Object>();
 		}
 		//规范化字符串
 		jsonStr = jsonStr.replaceAll("\\s*:\\s*", ":");
@@ -224,28 +225,12 @@ public class JSONDecode {
 		Object parseObject = parse(jsonStr);
 		//{}包裹的对象处理
 		if(TString.searchByRegex(jsonStr,"^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0 ){
-			if(clazz==Map.class){
-				clazz = (Class<T>) HashMap.class;
-			}
 			Map<String,Object> mapJSON = (Map<String, Object>) parseObject;
 			return (T) TReflect.getObjectFromMap(clazz, mapJSON,false);
 		}
 		//[]包裹的对象处理
 		else if(TString.searchByRegex(jsonStr,"^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0){
-			if(TReflect.isImpByInterface(clazz, List.class)){
-				if(clazz==List.class){
-					clazz = (Class<T>) ArrayList.class;
-				}
-                List obj = (List) TReflect.newInstance(clazz);
-                obj.addAll((Collection) parseObject);
-				return (T) obj;
-			}else if(clazz.isArray()){
-				Class arrayClass = clazz.getComponentType();
-				Object tempArrayObj = Array.newInstance(arrayClass, 0);
-				return (T)((Collection)parseObject).toArray((Object[])tempArrayObj);
-			}else {
-				return null;
-			}
+			return (T) TReflect.getObjectFromMap(clazz, TObject.newMap("value",parseObject),false);
 		}
 		//其他类型处理
 		else{
