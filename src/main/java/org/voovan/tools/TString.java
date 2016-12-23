@@ -23,7 +23,19 @@ import java.util.regex.Pattern;
 public class TString {
 
 	private static Hashtable<Integer,Pattern> regexPattern = new Hashtable<Integer,Pattern>();
-	
+
+	/**
+	 * 单词首字母大写
+	 * @param source 字符串
+	 * @return 首字母大写后的字符串
+	 */
+	public static String upperFirstCase(String source){
+		String first = source.substring(0, 1).toUpperCase();
+		String rest = source.substring(1, source.length());
+		return new StringBuffer(first).append(rest).toString();
+	}
+
+
 	/**
 	 * 移除字符串前缀
 	 * @param source 目标字符串
