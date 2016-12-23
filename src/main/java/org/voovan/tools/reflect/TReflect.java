@@ -201,7 +201,7 @@ public class TReflect {
 	}
 
 	/**
-	 * 获取方法的参数和返回值的范型类型
+	 * 获取方法的参数返回值的范型类型
 	 * @param method  method 对象
 	 * @param parameterIndex 参数索引(大于0)参数索引位置[第一个参数为0,以此类推], (-1) 返回值
 	 * @return 返回范型类型数组
@@ -257,14 +257,32 @@ public class TReflect {
 	public static Object invokeMethod(Object obj, String name, Object... parameters)
 			throws ReflectiveOperationException {
 		Class<?>[] parameterTypes = getArrayClasses(parameters);
-		Method method;
+		Method method = null;
 		try {
 			 method = findMethod(obj.getClass(), name, parameterTypes);
 		}catch(NoSuchMethodException e){
-			for(int i=0; i<parameterTypes.length; i++){
-				parameterTypes[i] = convertNativeType(parameterTypes[i]);
+			//找到这个名称的所有方法
+			Method[] methods = getMethods(obj.getClass(),name);
+			for(Method similarMethod : methods){
+				Parameter[] methodParams = similarMethod.getParameters();
+				//匹配参数数量相等的方法
+				if(methodParams.length == parameters.length){
+					for(int i=0;i<methodParams.length;i++){
+						Parameter parameter = methodParams[i];
+						//参数类型转换
+						parameters[i] = TObject.cast(parameters[i],parameter.getType());
+					}
+					method = similarMethod;
+				}
 			}
-			 method = findMethod(obj.getClass(), name, parameterTypes);
+
+			//如果没有找到相似的方法,则将参数转换成原类型来匹配可用的方法
+//			if(method == null) {
+//                for(int i=0; i<parameterTypes.length; i++){
+//                    parameterTypes[i] = convertNativeType(parameterTypes[i]);
+//                }
+//                 method = findMethod(obj.getClass(), name, parameterTypes);
+//			}
 		}
 		method.setAccessible(true);
 		return method.invoke(obj, parameters);
