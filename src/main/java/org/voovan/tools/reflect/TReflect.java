@@ -165,15 +165,20 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Method findMethod(Class<?> clazz, String name,
-			Class<?>... paramTypes) throws ReflectiveOperationException {
+									Class<?>... paramTypes) throws ReflectiveOperationException {
 		return clazz.getDeclaredMethod(name, paramTypes);
 	}
-	
-	/**
-	 * 获取类的方法集合
-	 * @param clazz		类对象
-	 * @return Method 对象数组
-	 */
+
+//	public static Method findMethod(Class<?> clazz, String name,
+//									Class<?>... paramTypes) throws ReflectiveOperationException {
+//		return clazz.getDeclaredMethod(name, paramTypes);
+//	}
+
+    /**
+     * 获取类的方法集合
+     * @param clazz		类对象
+     * @return Method 对象数组
+     */
 	public static Method[] getMethods(Class<?> clazz) {
 		List<Method> methods = new ArrayList<Method>();
 		for( ; clazz != Object.class ; clazz = clazz.getSuperclass()) {
@@ -276,58 +281,9 @@ public class TReflect {
 					method = similarMethod;
 				}
 			}
-
-			//如果没有找到相似的方法,则将参数转换成原类型来匹配可用的方法
-//			if(method == null) {
-//                for(int i=0; i<parameterTypes.length; i++){
-//                    parameterTypes[i] = convertNativeType(parameterTypes[i]);
-//                }
-//                 method = findMethod(obj.getClass(), name, parameterTypes);
-//			}
 		}
 		method.setAccessible(true);
 		return method.invoke(obj, parameters);
-	}
-
-	/**
-	 * 转换基本类型的对象类型到基本类型
-	 * @param clazz 基本类型的对象类型
-	 * @return 基本类型
-	 */
-	public static Class convertNativeType(Class clazz){
-		if(clazz == Integer.class){
-			return int.class;
-		}
-
-		if(clazz == Long.class){
-			return long.class;
-		}
-
-		if(clazz == Short.class){
-			return short.class;
-		}
-
-		if(clazz == Float.class){
-			return float.class;
-		}
-
-		if(clazz == Double.class){
-			return double.class;
-		}
-
-		if(clazz == Boolean.class){
-			return boolean.class;
-		}
-
-		if(clazz ==Character.class){
-			return char.class;
-		}
-
-		if(clazz == Byte.class){
-			return byte.class;
-		}
-
-		return clazz;
 	}
 
 	/**
@@ -641,7 +597,7 @@ public class TReflect {
 	 * @param type 类型 Class
 	 * @return 所有父类
 	 */
-	public static Class<?>[] getAllExtendAndInterfaceClass(Class<?> type){
+	public static Class[] getAllExtendAndInterfaceClass(Class<?> type){
 		if(type == null){
 			return null;
 		}
