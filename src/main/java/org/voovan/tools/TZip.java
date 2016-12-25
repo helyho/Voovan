@@ -1,6 +1,5 @@
 package org.voovan.tools;
 
-import org.voovan.http.message.Request;
 import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayInputStream;
