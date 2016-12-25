@@ -29,10 +29,10 @@ public class TString {
 	 * @param source 字符串
 	 * @return 首字母大写后的字符串
 	 */
-	public static String upperFirstCase(String source){
-		String first = source.substring(0, 1).toUpperCase();
-		String rest = source.substring(1, source.length());
-		return new StringBuffer(first).append(rest).toString();
+	public static String uppercaseFirstChar(String source){
+		char[] charArray = source.toCharArray();
+		charArray[0] = Character.toUpperCase(charArray[0]);
+		return new String(charArray);
 	}
 
 
