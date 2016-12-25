@@ -1,11 +1,12 @@
 package org.voovan.test;
 
 import org.voovan.test.tools.json.TestObject;
-import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.HashMap;
 
 
 public class Other {

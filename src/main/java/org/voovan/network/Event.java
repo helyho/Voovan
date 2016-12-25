@@ -2,8 +2,6 @@ package org.voovan.network;
 
 import org.voovan.tools.TObject;
 
-import java.util.List;
-
 /**
  * 事件对象
  * 

@@ -2,7 +2,6 @@ package org.voovan.test.http;
 
 import org.voovan.http.client.HttpClient;
 import org.voovan.http.message.Response;
-import org.voovan.http.server.HttpResponse;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.log.Logger;
