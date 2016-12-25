@@ -4,8 +4,6 @@ import org.voovan.Global;
 import org.voovan.network.Event.EventName;
 
 import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**

@@ -3,7 +3,6 @@ package org.voovan.test.tools;
 import junit.framework.TestCase;
 import org.voovan.tools.ObjectPool;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.log.Logger;
 
 /**
  * 类文字命名

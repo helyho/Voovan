@@ -1,6 +1,5 @@
 package org.voovan.test.network.performTest;
 
-import org.voovan.http.server.HttpResponse;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SocketDisconnectByRemote;
