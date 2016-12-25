@@ -3,6 +3,8 @@ package org.voovan.tools;
 import org.voovan.tools.log.Logger;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -29,7 +31,7 @@ public class ObjectPool {
      * @param autoRefreshOnGet 获取对象时刷新对象存活时间
      */
     public ObjectPool(long aliveTime,boolean autoRefreshOnGet){
-        objects = new Hashtable<Integer,PooledObject>();
+        objects = new ConcurrentHashMap<Integer, PooledObject>();
         this.aliveTime = aliveTime;
         timer = new Timer("VOOVAN@Object_Pool_Timer");
         this.autoRefreshOnGet = autoRefreshOnGet;
@@ -42,7 +44,7 @@ public class ObjectPool {
      * @param aliveTime 对象存活时间,单位:秒
      */
     public ObjectPool(long aliveTime){
-        objects = new Hashtable<Integer,PooledObject>();
+        objects = new ConcurrentHashMap<Integer,PooledObject>();
         this.aliveTime = aliveTime;
         timer = new Timer("VOOVAN@Object_Pool_Timer");
         removeDeadObject();
@@ -53,7 +55,7 @@ public class ObjectPool {
      * @param autoRefreshOnGet 获取对象时刷新对象存活时间
      */
     public ObjectPool(boolean autoRefreshOnGet){
-        objects = new Hashtable<Integer,PooledObject>();
+        objects = new ConcurrentHashMap<Integer,PooledObject>();
         timer = new Timer("VOOVAN@Object_Pool_Timer");
         this.autoRefreshOnGet = autoRefreshOnGet;
         removeDeadObject();
@@ -63,7 +65,7 @@ public class ObjectPool {
      * 构造一个对象池,默认对象存活事件 5 s
      */
     public ObjectPool(){
-        objects = new Hashtable<Integer,PooledObject>();
+        objects = new ConcurrentHashMap<Integer,PooledObject>();
         timer = new Timer("VOOVAN@Object_Pool_Timer");
         removeDeadObject();
     }
