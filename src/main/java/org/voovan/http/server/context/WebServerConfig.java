@@ -26,7 +26,7 @@ public class WebServerConfig {
     private String contextPath      = "WEBAPP";
     private boolean MatchRouteIgnoreCase = false;
     private String characterSet     = "UTF-8";
-    private String sessionContainer = "java.util.Hashtable";
+    private String sessionContainer = "java.util.concurrent.ConcurrentHashMap";
     private int sessionTimeout      = 30;
     private int keepAliveTimeout    = 60;
     private boolean accessLog       = true;

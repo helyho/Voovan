@@ -382,7 +382,7 @@ public class WebServer {
 					Logger.simple("");
 					Logger.simple("Options:");
 					Logger.simple(TString.rightPad("  -p ",35,' ')+"Webserver bind port number");
-					Logger.simple(TString.rightPad("  -t  ",35,' ')+"Socket timeout");
+					Logger.simple(TString.rightPad("  -t ",35,' ')+"Socket timeout");
 					Logger.simple(TString.rightPad("  -cp ",35,' ')+"Context path, contain webserver static file");
 					Logger.simple(TString.rightPad("  -i ",35,' ')+"index file for client access to webserver");
 					Logger.simple(TString.rightPad("  -mri ",35,' ')+"Match route ignore case");
@@ -392,7 +392,7 @@ public class WebServer {
 					Logger.simple(TString.rightPad("  --https.CertificateFile ",35,' ')+"Certificate file for https");
 					Logger.simple(TString.rightPad("  --https.CertificatePassword ",35,' ')+"ertificate file for https");
 					Logger.simple(TString.rightPad("  --https.KeyPassword ",35,' ')+"Certificate file for https");
-					Logger.simple(TString.rightPad("  --help ",35,' ')+"how to use this command");
+					Logger.simple(TString.rightPad("  -h or --help ",35,' ')+"how to use this command");
 					Logger.simple(TString.rightPad("  -v ",35,' ')+"Show the version information");
 					Logger.simple("");
 
