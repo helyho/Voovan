@@ -326,7 +326,7 @@ public class WebServer {
 				}
 
 				//匹配路由不区分大小写,默认是 false
-				if(args[i].equals("-mi")){
+				if(args[i].equals("-mri")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					config.setMatchRouteIgnoreCase(true);
 				}
@@ -339,31 +339,31 @@ public class WebServer {
 				}
 
 				//是否启用Gzip压缩,默认 true
-				if(args[i].equals("-noGzip")){
+				if(args[i].equals("--noGzip")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					config.setGzip(false);
 				}
 
 				//是否记录access.log,默认 true
-				if(args[i].equals("-noAccessLog")){
+				if(args[i].equals("--noAccessLog")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					config.setAccessLog(false);
 				}
 
 				//HTTPS 证书
-				if(args[i].equals("-https.CertificateFile")){
+				if(args[i].equals("--https.CertificateFile")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					i++;
 					config.getHttps().setCertificateFile(args[i]);
 				}
 				//证书密码
-				if(args[i].equals("-https.CertificatePassword")){
+				if(args[i].equals("--https.CertificatePassword")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					i++;
 					config.getHttps().setCertificatePassword(args[i]);
 				}
 				//证书Key 密码
-				if(args[i].equals("-https.KeyPassword")){
+				if(args[i].equals("--https.KeyPassword")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					i++;
 					config.getHttps().setKeyPassword(args[i]);
@@ -375,7 +375,7 @@ public class WebServer {
 					return;
 				}
 
-				if(args[i].equals("-help") || args[i].equals("-h") || args[i].equals("-?")){
+				if(args[i].equals("--help") || args[i].equals("-h") || args[i].equals("-?")){
 					Logger.simple("Usage: java -jar voovan-framework.jar [Options]");
 					Logger.simple("");
 					Logger.simple("Start voovan webserver");
@@ -385,14 +385,14 @@ public class WebServer {
 					Logger.simple(TString.rightPad("  -t  ",35,' ')+"Socket timeout");
 					Logger.simple(TString.rightPad("  -cp ",35,' ')+"Context path, contain webserver static file");
 					Logger.simple(TString.rightPad("  -i ",35,' ')+"index file for client access to webserver");
-					Logger.simple(TString.rightPad("  -mi ",35,' ')+"Match route ignore case");
+					Logger.simple(TString.rightPad("  -mri ",35,' ')+"Match route ignore case");
 					Logger.simple(TString.rightPad("  -c ",35,' ')+"set default charset");
-					Logger.simple(TString.rightPad("  -noGzip ",35,' ')+"Do not use gzip for client");
-					Logger.simple(TString.rightPad("  -noAccessLog ",35,' ')+"Do not write access log to access.log");
-					Logger.simple(TString.rightPad("  -https.CertificateFile ",35,' ')+"Certificate file for https");
-					Logger.simple(TString.rightPad("  -https.CertificatePassword ",35,' ')+"ertificate file for https");
-					Logger.simple(TString.rightPad("  -https.KeyPassword ",35,' ')+"Certificate file for https");
-					Logger.simple(TString.rightPad("  -help ",35,' ')+"how to use this command");
+					Logger.simple(TString.rightPad("  --noGzip ",35,' ')+"Do not use gzip for client");
+					Logger.simple(TString.rightPad("  --noAccessLog ",35,' ')+"Do not write access log to access.log");
+					Logger.simple(TString.rightPad("  --https.CertificateFile ",35,' ')+"Certificate file for https");
+					Logger.simple(TString.rightPad("  --https.CertificatePassword ",35,' ')+"ertificate file for https");
+					Logger.simple(TString.rightPad("  --https.KeyPassword ",35,' ')+"Certificate file for https");
+					Logger.simple(TString.rightPad("  --help ",35,' ')+"how to use this command");
 					Logger.simple(TString.rightPad("  -v ",35,' ')+"Show the version information");
 					Logger.simple("");
 
