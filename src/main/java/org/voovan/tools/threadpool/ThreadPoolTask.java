@@ -1,5 +1,6 @@
 package org.voovan.tools.threadpool;
 
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
 
@@ -29,6 +30,8 @@ public class ThreadPoolTask extends TimerTask {
 
 	@Override
 	public void run() {
+		Thread mainThread = TEnv.getMainThread();
+
 		if (threadPoolInstance.isShutdown()) {
 			this.cancel();
 			timer.cancel();
@@ -49,6 +52,16 @@ public class ThreadPoolTask extends TimerTask {
 				TPerformance.cpuPerCoreLoadAvg() < 1) {
 			threadPoolInstance.setCorePoolSize(threadPoolInstance.getPoolSize() + cpuCoreCount * 2);
 			Logger.debug("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
+		}
+
+		//如果主线程结束,则线程池也关闭
+		if(mainThread!=null && mainThread.getState() == Thread.State.TERMINATED) {
+			threadPoolInstance.shutdown();
+		}
+
+		//如果主线程没有的,则线程池也关闭
+		if(mainThread==null){
+			threadPoolInstance.shutdown();
 		}
 	}
 }
