@@ -172,6 +172,7 @@ public abstract class IoSession {
 				removeAttribute("SocketResponse");
 				break;
 			}
+			TEnv.sleep(1);
 		}
 		return readObject;
 	}

@@ -114,12 +114,6 @@ public class NioSelector {
 		} finally{
 			// 触发连接断开事件
 			EventTrigger.fireDisconnectThread(session);
-			//关闭线程池
-			if(socketContext!=null &&
-					(socketContext instanceof NioServerSocket
-					||  socketContext.getConnectModel() == ConnectModel.CLIENT)){
-				EventTrigger.shutdown();
-			}
 		}
 	}
 

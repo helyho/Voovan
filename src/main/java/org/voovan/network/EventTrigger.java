@@ -78,14 +78,6 @@ public class EventTrigger {
 		fireEvent(session, EventName.ON_EXCEPTION,exception);
 	}
 
-	public static boolean isShutdown(){
-		return eventThreadPool.isShutdown();
-	}
-	
-	public static void shutdown(){
-		eventThreadPool.shutdown();
-	}
-	
 	public static boolean isHandShakeDone(IoSession session){
 		if(session==null || session.getSSLParser()==null){
 			return true;
