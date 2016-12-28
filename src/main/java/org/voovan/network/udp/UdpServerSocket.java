@@ -85,11 +85,7 @@ public class UdpServerSocket extends SocketContext{
 
         if(datagramChannel!=null && datagramChannel.isOpen()){
             UdpSelector udpSelector = new UdpSelector(selector,this);
-
-            //循环放入独立的线程中处理
-            Global.getThreadPool().execute( () -> {
-                udpSelector.eventChose();
-            });
+            udpSelector.eventChose();
         }
     }
 

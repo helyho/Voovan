@@ -17,15 +17,18 @@ import org.voovan.tools.log.Logger;
  */
 public class HttpClientTest {
     public static void main(String[] args) throws SendMessageException, ReadMessageException {
-        HttpClient httpClient = new HttpClient("http://www.oschina.net","UTF-8",10000);
-        Response resp = httpClient.send("/");
-        Logger.simple(resp.body().getBodyString());
-        httpClient.close();
-
-
-
-        HttpClient httpClient1 = new HttpClient("http://www.oschina.net/","UTF-8",10000);
-        Logger.simple(httpClient1.send("/").body().getBodyString());
-        httpClient1.close();
+        HttpClient httpClient = null;
+        try {
+                httpClient = new HttpClient("http://ddns.oray.com/", "UTF-8", 5);
+                Response resp = httpClient.send("/checkip");
+                Logger.simple(resp.protocol().getStatusCode());
+            }catch(Exception e){
+                e.printStackTrace();
+            }finally {
+                if(httpClient!=null) {
+                    httpClient.close();
+                }
+            }
+        Logger.simple("finished");
     }
 }

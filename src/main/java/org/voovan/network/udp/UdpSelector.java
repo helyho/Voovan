@@ -121,9 +121,6 @@ public class UdpSelector {
         } catch (IOException e) {
             // 触发 onException 事件
             EventTrigger.fireExceptionThread(session, e);
-        } finally{
-            //关闭线程池
-            EventTrigger.shutdown();
         }
     }
 
