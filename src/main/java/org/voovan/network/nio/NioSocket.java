@@ -126,11 +126,7 @@ public class NioSocket extends SocketContext{
 		
 		if(socketChannel!=null && socketChannel.isOpen()){
 			NioSelector nioSelector = new NioSelector(selector,this);
-
-			//循环放入独立的线程中处理
-			Global.getThreadPool().execute( () -> {
-				nioSelector.eventChose();
-			});
+			nioSelector.eventChose();
 		}
 	}
 

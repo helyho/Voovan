@@ -48,8 +48,8 @@ public class AioServerSocket extends SocketContext{
 		catchAccept();
 		
 		//等待ServerSocketChannel关闭,结束进程
-		while(isConnect() && !EventTrigger.isShutdown()){
-			TEnv.sleep(500);
+		while(isConnect()) {
+			TEnv.sleep(1);
 		}
 	}
 
@@ -65,10 +65,9 @@ public class AioServerSocket extends SocketContext{
 			try{
 				//触发 DisConnect 事件
 				EventTrigger.fireDisconnect(null);
-				//检查是否关闭
-				EventTrigger.shutdown();
+
 				//关闭 Socket 连接
-				if(serverSocketChannel.isOpen()  && EventTrigger.isShutdown()){
+				if(serverSocketChannel.isOpen()){
 					serverSocketChannel.close();
 				}
 				return true;

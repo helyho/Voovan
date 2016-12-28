@@ -124,8 +124,8 @@ public class AioSocket extends SocketContext {
 		}
 		
 		if (connectModel == ConnectModel.CLIENT) {
-			// 捕获 connect 事件
 			try {
+				// 捕获 connect 事件
 				catchConnected();
 			}catch (IOException e){
 				return;
@@ -135,15 +135,18 @@ public class AioSocket extends SocketContext {
 		//捕获输入事件
 		catchRead(ByteBuffer.allocateDirect(1024));
 		
-		// 触发 connect 事件
+		//触发 connect 事件
 		EventTrigger.fireConnectThread(session);
 
-		Global.getThreadPool().execute( () -> {
-			// 等待ServerSocketChannel关闭,结束进程
-			while (isConnect() && (connectModel==ConnectModel.CLIENT || EventTrigger.isShutdown())) {
-				TEnv.sleep(500);
-			}
-		});
+		//如果是ServerSocket的 AioSocket 不需要阻塞等待进程
+		if(connectModel == ConnectModel.CLIENT ){
+            Global.getThreadPool().execute( () -> {
+                // 等待ServerSocketChannel关闭,结束进程
+                while (isConnect()) {
+                    TEnv.sleep(1);
+                }
+            });
+		}
 
 	}
 
@@ -191,15 +194,8 @@ public class AioSocket extends SocketContext {
 				// 触发 DisConnect 事件
 				 EventTrigger.fireDisconnect(session);
 
-				// 检查是否关闭线程池
-				// 如果不是ServerSocket下的 Socket 则关闭线程池
-				// ServerSocket下的 Socket由 ServerSocket来关闭线程池
-				if (connectModel == ConnectModel.CLIENT) {
-					EventTrigger.shutdown();
-				}
-
 				// 关闭 Socket 连接
-				if (socketChannel.isOpen() && (connectModel == ConnectModel.SERVER || EventTrigger.isShutdown())) {
+				if (socketChannel.isOpen()) {
 					socketChannel.close();
 				}
 				return true;
