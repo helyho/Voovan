@@ -281,7 +281,9 @@ public class EventProcess {
 			} else if (eventName == EventName.ON_DISCONNECT) {
 				EventProcess.onDisconnect(event);
 			} else if (eventName == EventName.ON_RECEIVE) {
+				event.getSession().setOnReceive(true);
 				EventProcess.onRead(event);
+				event.getSession().setOnReceive(false);
 			} else if (eventName == EventName.ON_SENT) {
 				EventProcess.onSent(event, event.getOther());
 			} else if (eventName == EventName.ON_EXCEPTION) {

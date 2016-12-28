@@ -193,7 +193,7 @@ public abstract class IoSession {
 				obj = EventProcess.filterEncoder(this,obj);
 				EventProcess.sendMessage(this, obj);
 			}catch (Exception e){
-				throw new SendMessageException("Method synchronouSend error! "+
+				throw new SendMessageException("Method synchronouSend error! Error by "+
 						e.getClass().getSimpleName() + ".",e);
 			}
 		}
