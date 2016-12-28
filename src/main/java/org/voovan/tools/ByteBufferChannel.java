@@ -48,32 +48,7 @@ public class ByteBufferChannel implements ByteChannel {
 		return buffer;
 	}
 	
-	@Override
-	public synchronized int read(ByteBuffer dst) throws IOException {
-        int readSize = 0;
 
-        //确定读取大小
-        if (dst.limit() > buffer.limit()) {
-            readSize = buffer.limit();
-        } else {
-            readSize = dst.limit();
-        }
-
-        if (readSize > 0) {
-            try {
-                dst.put(TByteBuffer.toArray(buffer), 0, readSize);
-            } catch (Exception e) {
-                Logger.simple("error");
-            }
-            buffer.position(readSize);
-            byte[] tempBytes = new byte[buffer.remaining()];
-            buffer.get(tempBytes, 0, buffer.remaining());
-            buffer = ByteBuffer.wrap(tempBytes);
-        }
-        dst.flip();
-
-        return readSize;
-	}
 
 	/**
 	 * 没有作用永远返回 true
@@ -93,16 +68,52 @@ public class ByteBufferChannel implements ByteChannel {
 
 	@Override
 	public synchronized int write(ByteBuffer src) throws IOException {
-		if(src.limit()!=0){
-			int newSize = buffer.limit()+src.limit();
+		int writeSize = src.remaining();
+		if(writeSize!=0){
+			int newSize = buffer.remaining()+src.remaining();
 			ByteBuffer tempBuffer = ByteBuffer.allocateDirect(newSize);
 			tempBuffer.put(buffer);
 			tempBuffer.put(src);
-			buffer.clear();
 			buffer = tempBuffer;
 			buffer.flip();
+
 		}
-		return src.limit();
+		return writeSize;
+	}
+
+	@Override
+	public synchronized int read(ByteBuffer dst) throws IOException {
+		int readSize = 0;
+
+		//确定读取大小
+		if (dst.remaining() > buffer.remaining()) {
+			readSize = buffer.remaining();
+		} else {
+			readSize = dst.remaining();
+		}
+
+		if (readSize > 0) {
+			try {
+				byte[] tempBytes = new byte[readSize];
+				buffer.get(tempBytes,0,readSize);
+				dst.put(tempBytes);
+			} catch (Exception e) {
+				Logger.simple("error");
+			}
+
+			buffer.position(readSize);
+
+			if(buffer.remaining()>0) {
+				byte[] tempBytes = new byte[buffer.remaining()];
+				buffer.get(tempBytes, 0, buffer.remaining());
+				buffer = ByteBuffer.wrap(tempBytes);
+			}else{
+				buffer = ByteBuffer.allocateDirect(0);
+			}
+		}
+		dst.flip();
+
+		return readSize;
 	}
 	
 	@Override

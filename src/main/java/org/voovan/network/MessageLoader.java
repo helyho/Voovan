@@ -1,6 +1,7 @@
 package org.voovan.network;
 
 import org.voovan.network.exception.SocketDisconnectByRemote;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
@@ -124,7 +125,7 @@ public class MessageLoader {
 		}
 
 		//缓冲区字段,一次读1024个字节
-		ByteBuffer tmpByteBuffer = ByteBuffer.allocate(1024);
+		ByteBuffer tmpByteBuffer = ByteBuffer.allocateDirect(1024);
 
 		while (stopType==StopType.RUNNING) {
 
@@ -150,8 +151,10 @@ public class MessageLoader {
 
 			//将读出的数据写入缓冲区
 			if(readsize > 0 ) {
-				byteOutputStream.write(tmpByteBuffer.array(),0,readsize);
+				byteOutputStream.write(TByteBuffer.toArray(tmpByteBuffer),0,readsize);
 			}
+
+
 
 			//判断连接是否关闭
 			if (isRemoteClosed(readsize,tmpByteBuffer)) {
@@ -180,12 +183,12 @@ public class MessageLoader {
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		if(stopType==StopType.MSG_SPLITTER) {
 			 result = ByteBuffer.wrap(byteOutputStream.toByteArray());
-			byteOutputStream.reset();
-
+			 byteOutputStream.reset();
 		}else{
 			//不是消息截断器截断的消息放在缓冲区中,等待直接读取流的形式读取
 			session.getByteBufferChannel().write(ByteBuffer.wrap(byteOutputStream.toByteArray()));
-			 result = ByteBuffer.allocate(0);
+			result = ByteBuffer.allocate(0);
+			byteOutputStream.reset();
 		}
 
 
