@@ -110,8 +110,6 @@ public class MessageLoader {
 
 		stopType = StopType.RUNNING;
 
-		byteOutputStream.reset();
-
 		if(session==null){
 			return null;
 		}
