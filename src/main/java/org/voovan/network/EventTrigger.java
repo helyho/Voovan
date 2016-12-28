@@ -62,6 +62,7 @@ public class EventTrigger {
 		//当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
 		//所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
 		if (session.isConnect() && isHandShakeDone(session) && !session.isOnReceive()) {
+			session.setOnReceive(true);
 			fireEvent(session, EventName.ON_RECEIVE,null);
 		}
 	}
