@@ -23,6 +23,7 @@ public abstract class SocketContext {
 	protected MessageSplitter messageSplitter;
 	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
+	protected int bufferSize = 1024;
 
 
 	/**
@@ -49,8 +50,25 @@ public abstract class SocketContext {
 		this.filterChain = parentSocketContext.filterChain;
 		this.messageSplitter = parentSocketContext.messageSplitter;
 		this.sslManager = parentSocketContext.sslManager;
+		this.bufferSize = parentSocketContext.bufferSize;
 	}
-	
+
+	/**
+	 * 获取缓冲区大小
+	 * @return 缓冲区大小 (default:1024)
+	 */
+	public int getBufferSize() {
+		return bufferSize;
+	}
+
+	/**
+	 * 设置缓冲区大小
+	 * @param bufferSize 缓冲区大小 (default:1024)
+	 */
+	public void setBufferSize(int bufferSize) {
+		this.bufferSize = bufferSize;
+	}
+
 	/**
 	 * 无参数构造函数
 	 */

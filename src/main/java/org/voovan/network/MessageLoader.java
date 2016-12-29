@@ -123,7 +123,7 @@ public class MessageLoader {
 		}
 
 		//缓冲区字段,一次读1024个字节
-		ByteBuffer tmpByteBuffer = ByteBuffer.allocateDirect(1024);
+		ByteBuffer tmpByteBuffer = ByteBuffer.allocateDirect(session.sockContext().getBufferSize());
 
 		while (stopType==StopType.RUNNING) {
 
