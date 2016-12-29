@@ -36,7 +36,7 @@ public class NioSocket extends SocketContext{
 	 * socket 连接
 	 * @param host      监听地址
 	 * @param port		监听端口
-	 * @param readTimeout   超时事件
+	 * @param readTimeout   超时时间 (milliseconds)
 	 * @throws IOException	IO异常
 	 */
 	public NioSocket(String host,int port,int readTimeout) throws IOException{
@@ -45,12 +45,9 @@ public class NioSocket extends SocketContext{
 		provider = SelectorProvider.provider();
 		socketChannel = provider.openSocketChannel();
 		socketChannel.socket().setSoTimeout(this.readTimeout);
-		socketChannel.connect(new InetSocketAddress(this.host,this.port));
-		socketChannel.configureBlocking(false);
 		session = new NioSession(this);
 		connectModel = ConnectModel.CLIENT;
 		this.handler = new SynchronousHandler();
-		init();
 	}
 
 	/**
@@ -69,7 +66,6 @@ public class NioSocket extends SocketContext{
 			this.socketChannel().socket().setSoTimeout(this.readTimeout);
 			session = new NioSession(this);
 			connectModel = ConnectModel.SERVER;
-			init();
 		} catch (IOException e) {
 			Logger.error("Create socket channel failed",e);
 		}
@@ -117,6 +113,14 @@ public class NioSocket extends SocketContext{
 	 * @throws IOException IO 异常
 	 */
 	public void start() throws IOException  {
+
+		if(connectModel == ConnectModel.CLIENT) {
+			socketChannel.connect(new InetSocketAddress(this.host, this.port));
+			socketChannel.configureBlocking(false);
+		}
+
+		init();
+
 		initSSL();
 		
 		//如果没有消息分割器默认使用读取超时时间作为分割器
