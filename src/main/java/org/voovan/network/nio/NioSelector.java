@@ -49,7 +49,7 @@ public class NioSelector {
 	 */
 	public void eventChose() {
 		//读取用的缓冲区
-		ByteBuffer readTempBuffer = ByteBuffer.allocateDirect(1024);
+		ByteBuffer readTempBuffer = ByteBuffer.allocateDirect(socketContext.getBufferSize());
 		
 		if (socketContext instanceof NioSocket) {
 			// 连接完成onConnect事件触发
