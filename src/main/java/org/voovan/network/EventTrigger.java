@@ -34,6 +34,7 @@ public class EventTrigger {
 		// 所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
 		// !hasEventDisposeing(EventName.ON_CONNECT) &&
 		if (session.isConnect() && isHandShakeDone(session) && !session.isOnReceive()) {
+			session.setOnReceive(true);
 			fireEventThread(session,EventName.ON_RECEIVE, null);
 		}
 	}

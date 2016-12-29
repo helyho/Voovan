@@ -48,6 +48,10 @@ public class ByteBufferChannelUnit extends TestCase {
 		ByteBuffer xxx = ByteBuffer.allocate(5);
 		byteBufferChannel1.read(xxx);
 		Logger.simple(new String(xxx.array()));
+		xxx = ByteBuffer.allocate(5);
+		byteBufferChannel1.read(xxx);
+		Logger.simple(new String(xxx.array()));
+		xxx = ByteBuffer.allocate(5);
 		byteBufferChannel1.read(xxx);
 		Logger.simple(new String(xxx.array()));
 	}
