@@ -120,16 +120,16 @@ public class HttpDispatcher {
 		Chain<HttpFilterConfig> filterConfigs = webConfig.getFilterConfigs().clone();
 
 		//Session预处理
-		diposeSession(request,response);
+		disposeSession(request,response);
 
 		//正向过滤器处理,请求有可能被 Redirect 所以过滤器执行放在开始
-		diposeFilter(filterConfigs,request,response);
+		disposeFilter(filterConfigs,request,response);
 
 		//调用处理路由函数
 		disposeRoute(request,response);
 
 		//反向过滤器处理
-		diposeInvertedFilter(filterConfigs,request,response);
+		disposeInvertedFilter(filterConfigs,request,response);
 
 		//输出访问日志
 		WebContext.writeAccessLog(request,response);
@@ -275,7 +275,7 @@ public class HttpDispatcher {
 	 * @param request   HTTP 请求
 	 * @param response  HTTP 响应
 	 */
-	public void diposeSession(HttpRequest request, HttpResponse response){
+	public void disposeSession(HttpRequest request, HttpResponse response){
 		
 		//获取请求的 Cookie中的session标识
 		Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
@@ -302,7 +302,7 @@ public class HttpDispatcher {
 	 * @param request		  请求对象
 	 * @param response		  响应对象
      */
-	public void diposeFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
+	public void disposeFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
 		filterConfigs.rewind();
 		Object filterResult = null;
 		while(filterConfigs.hasNext()){
@@ -320,7 +320,7 @@ public class HttpDispatcher {
 	 * @param request		  请求对象
 	 * @param response		  响应对象
      */
-	public void diposeInvertedFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
+	public void disposeInvertedFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
 		filterConfigs.rewind();
 		Object filterResult = null;
 		while(filterConfigs.hasPrevious()){
