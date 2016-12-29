@@ -39,7 +39,7 @@ public class AioSocket extends SocketContext {
 	 * 
 	 * @param host   主机地址
 	 * @param port   主机端口
-	 * @param readTimeout 主机超时时间
+	 * @param readTimeout 主机超时时间 (milliseconds)
 	 * @throws IOException IO 异常
 	 */
 	public AioSocket(String host, int port, int readTimeout) throws IOException {
@@ -191,11 +191,13 @@ public class AioSocket extends SocketContext {
 				//关闭直接读取模式
 				session.closeDirectBufferRead();
 
-				// 触发 DisConnect 事件
-				 EventTrigger.fireDisconnect(session);
+
 
 				// 关闭 Socket 连接
 				if (socketChannel.isOpen()) {
+					// 触发 DisConnect 事件
+					EventTrigger.fireDisconnect(session);
+
 					socketChannel.close();
 				}
 				return true;
