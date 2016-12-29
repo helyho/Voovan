@@ -61,7 +61,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 		} catch (IOException e) {
 			// 触发 onException 事件
 			session.getMessageLoader().setStopType(MessageLoader.StopType.EXCEPTION);
-			EventTrigger.fireException(session, e);
+			EventTrigger.fireExceptionThread(session, e);
 		}
 		
 	}
@@ -77,7 +77,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 		if(exc instanceof Exception){
 			//触发 onException 事件
-			EventTrigger.fireException(session, (Exception)exc);
+			EventTrigger.fireExceptionThread(session, (Exception)exc);
 		}
 	}
 }
