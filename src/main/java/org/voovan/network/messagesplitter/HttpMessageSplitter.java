@@ -47,9 +47,13 @@ public class HttpMessageSplitter implements MessageSplitter {
 
 			if(bufferString.contains("\r\n")){
                 String firstLine = bufferString.substring(0,bufferString.indexOf("\r\n"));
-                if(!firstLine.contains("HTTP/")){
-                    return false;
+                if(TString.regexMatch(firstLine,"HTTP\\/\\d\\.\\d\\s\\d{3}\\s.*\\S") < 0){
+					if(TString.regexMatch(firstLine,"^[A-Z]*\\s.*\\sHTTP\\/\\d\\.\\d\\S") < 0){
+						return false;
+					}
                 }
+
+                Logger.simple(firstLine);
 			}
 
 			String[] boundaryLines = TString.searchByRegex(bufferString, "boundary=[^ \\r\\n]+");

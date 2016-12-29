@@ -19,9 +19,10 @@ public class HttpClientTest {
     public static void main(String[] args) throws SendMessageException, ReadMessageException {
         HttpClient httpClient = null;
         try {
-                httpClient = new HttpClient("http://ddns.oray.com/", "UTF-8", 5);
-                Response resp = httpClient.send("/checkip");
-                Logger.simple(resp.protocol().getStatusCode());
+                httpClient = new HttpClient("http://127.0.0.1:2735/", "UTF-8", 50);
+                httpClient.getParameters().put("all","1");
+                Response resp = httpClient.send("/containers/json");
+                Logger.simple(resp.body().getBodyString().substring(0,20));
             }catch(Exception e){
                 e.printStackTrace();
             }finally {
