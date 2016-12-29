@@ -113,7 +113,7 @@ public class NioSelector {
 			EventTrigger.fireExceptionThread(session, e);
 		} finally{
 			// 触发连接断开事件
-			EventTrigger.fireDisconnectThread(session);
+			EventTrigger.fireDisconnect(session);
 		}
 	}
 

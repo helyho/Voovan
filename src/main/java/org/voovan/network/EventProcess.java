@@ -252,10 +252,11 @@ public class EventProcess {
 				} else {
 					session.send(resultBuf);
 				}
-				resultBuf.clear();
-				Event event = new Event(session, EventName.ON_SENT, resultBuf);
-				// 出发发送事件
-				EventProcess.process(event);
+				resultBuf.rewind();
+				//Event event = new Event(session, EventName.ON_SENT, resultBuf);
+				//触发发送事件
+				//EventProcess.process(event);
+				EventTrigger.fireSentThread(session, resultBuf);
 			}
 		}catch(IOException e){
 			throw new SendMessageException(e);
