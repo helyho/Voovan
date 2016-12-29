@@ -45,9 +45,9 @@ public class NioServerSocket extends SocketContext{
 	
 	/**
 	 * 获取 SocketChannel 对象
-	 * @return
+	 * @return SocketChannel 对象
 	 */
-	private ServerSocketChannel socketChannel(){
+	public ServerSocketChannel socketChannel(){
 		return this.serverSocketChannel;
 	}
 	

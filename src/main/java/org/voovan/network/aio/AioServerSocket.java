@@ -33,7 +33,16 @@ public class AioServerSocket extends SocketContext{
 		super(host, port, readTimeout);
 		serverSocketChannel = AsynchronousServerSocketChannel.open();
 	}
-	
+
+	/**
+	 * 获取 SocketChannel 对象
+	 * @return AsynchronousServerSocketChannel对象
+	 */
+	public AsynchronousServerSocketChannel socketChannel(){
+		return this.serverSocketChannel;
+	}
+
+
 	/**
 	 * 捕获 Aio Accept 事件
 	 */
