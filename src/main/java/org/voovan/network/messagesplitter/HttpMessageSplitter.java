@@ -52,8 +52,6 @@ public class HttpMessageSplitter implements MessageSplitter {
 						return false;
 					}
                 }
-
-                Logger.simple(firstLine);
 			}
 
 			String[] boundaryLines = TString.searchByRegex(bufferString, "boundary=[^ \\r\\n]+");
