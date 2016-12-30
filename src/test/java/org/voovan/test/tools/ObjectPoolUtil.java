@@ -3,6 +3,7 @@ package org.voovan.test.tools;
 import junit.framework.TestCase;
 import org.voovan.tools.ObjectPool;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.log.Logger;
 
 /**
  * 类文字命名
@@ -17,22 +18,24 @@ public class ObjectPoolUtil extends TestCase {
 
 
     public void testAdd(){
-        int hashCode = 0;
+        String pooledId = null;
 
-        ObjectPool objectPool = new ObjectPool(1);
+        ObjectPool objectPool = new ObjectPool(2);
         for(int i=0;i<30;i++) {
             String item = "element " + i;
-            if(hashCode==0) {
-                hashCode = objectPool.add(item);
+            if(pooledId==null) {
+                pooledId = objectPool.add(item);
             }else{
                 objectPool.add(item);
             }
         }
+        Logger.simple(pooledId);
+
         for(int m=0;m<30;m++) {
-            objectPool.get(hashCode);
+            objectPool.get(pooledId);
             TEnv.sleep(100);
         }
         assertEquals(1,objectPool.size());
-        assertEquals(0, objectPool.add(null));
+        assertEquals(null, objectPool.add(null));
     }
 }
