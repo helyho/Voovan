@@ -1,10 +1,12 @@
 package org.voovan.tools;
 
+import org.voovan.tools.log.Logger;
+
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 对象池
@@ -17,12 +19,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ObjectPool {
 
-    private Map<Integer,PooledObject> objects;
+    private Map<String,PooledObject> objects;
     private Timer timer;
     private long aliveTime = 5;
     private boolean autoRefreshOnGet = true;
-    private AtomicInteger objectId = new AtomicInteger(0);
-
 
     /**
      * 构造一个对象池
@@ -30,7 +30,7 @@ public class ObjectPool {
      * @param autoRefreshOnGet 获取对象时刷新对象存活时间
      */
     public ObjectPool(long aliveTime,boolean autoRefreshOnGet){
-        objects = new ConcurrentHashMap<Integer, PooledObject>();
+        objects = new ConcurrentHashMap<String, PooledObject>();
         this.aliveTime = aliveTime;
         timer = new Timer("VOOVAN@Object_Pool_Timer");
         this.autoRefreshOnGet = autoRefreshOnGet;
@@ -43,7 +43,7 @@ public class ObjectPool {
      * @param aliveTime 对象存活时间,单位:秒
      */
     public ObjectPool(long aliveTime){
-        objects = new ConcurrentHashMap<Integer,PooledObject>();
+        objects = new ConcurrentHashMap<String,PooledObject>();
         this.aliveTime = aliveTime;
         timer = new Timer("VOOVAN@Object_Pool_Timer");
         removeDeadObject();
@@ -54,7 +54,7 @@ public class ObjectPool {
      * @param autoRefreshOnGet 获取对象时刷新对象存活时间
      */
     public ObjectPool(boolean autoRefreshOnGet){
-        objects = new ConcurrentHashMap<Integer,PooledObject>();
+        objects = new ConcurrentHashMap<String,PooledObject>();
         timer = new Timer("VOOVAN@Object_Pool_Timer");
         this.autoRefreshOnGet = autoRefreshOnGet;
         removeDeadObject();
@@ -64,7 +64,7 @@ public class ObjectPool {
      * 构造一个对象池,默认对象存活事件 5 s
      */
     public ObjectPool(){
-        objects = new ConcurrentHashMap<Integer,PooledObject>();
+        objects = new ConcurrentHashMap<String,PooledObject>();
         timer = new Timer("VOOVAN@Object_Pool_Timer");
         removeDeadObject();
     }
@@ -73,9 +73,8 @@ public class ObjectPool {
      * 生成ObjectId
      * @return 生成的ObjectId
      */
-    private int getObjectId(){
-        objectId.getAndIncrement();
-        return objectId.get();
+    private String getObjectId(){
+        return UUID.randomUUID().toString().replaceAll("-","");
     }
 
 
@@ -92,7 +91,7 @@ public class ObjectPool {
      * @param id 对象的 hash 值
      * @return 池中的对象
      */
-    public Object get(Integer id){
+    public Object get(String id){
         PooledObject pooledObject = objects.get(id);
         if(pooledObject!=null) {
             return pooledObject.getObject();
@@ -106,11 +105,11 @@ public class ObjectPool {
      * @param obj 增加到池中的对象
      * @return 对象的 hash 值 ,如果返回 0 ,则增加的是 null 值
      */
-    public int add(Object obj){
+    public String add(Object obj){
         if(obj == null){
-            return 0;
+            return null;
         }
-        int id = getObjectId();
+        String id = getObjectId();
         objects.put(id, new PooledObject(this, id, obj));
         return id;
     }
@@ -120,7 +119,7 @@ public class ObjectPool {
      * @param id 对象的 hash 值
      * @return true: 存在, false: 不存在
      */
-    public boolean contains(Integer id){
+    public boolean contains(String id){
         return objects.containsKey(id);
     }
 
@@ -128,7 +127,7 @@ public class ObjectPool {
      * 移除池中的对象
      * @param id 对象的 hash 值
      */
-    public void remove(Integer id){
+    public void remove(String id){
         objects.remove(id);
     }
 
@@ -147,7 +146,7 @@ public class ObjectPool {
         objects.clear();
     }
 
-    public void removeDeadObject(){
+    private void removeDeadObject(){
         TimerTask aliveTask = new TimerTask() {
             @Override
             public void run() {
@@ -156,6 +155,7 @@ public class ObjectPool {
                         for (PooledObject pooledObject : objects.values().toArray(new PooledObject[]{})) {
                             if (!pooledObject.isAlive()) {
                                 remove(pooledObject.getId());
+                                Logger.simple("R:   "+pooledObject.getId());
                             }
                         }
                     }
@@ -171,14 +171,14 @@ public class ObjectPool {
      * 池中缓存的对象模型
      */
     private class PooledObject{
-        private long createTime;
-        private int id;
+        private long lastVisiediTime;
+        private String id;
         private Object object;
         private ObjectPool objectPool;
 
-        public PooledObject(ObjectPool objectPool,int id,Object object) {
+        public PooledObject(ObjectPool objectPool,String id,Object object) {
             this.objectPool = objectPool;
-            this.createTime = System.currentTimeMillis();
+            this.lastVisiediTime = System.currentTimeMillis();
             this.id = id;
             this.object = object;
         }
@@ -187,7 +187,7 @@ public class ObjectPool {
          * 刷新对象
          */
         public void refresh() {
-            createTime = System.currentTimeMillis();
+            lastVisiediTime = System.currentTimeMillis();
         }
 
         /**
@@ -210,7 +210,7 @@ public class ObjectPool {
         }
 
 
-        public int getId() {
+        public String getId() {
             return id;
         }
 
@@ -219,7 +219,7 @@ public class ObjectPool {
          * @return
          */
         public boolean isAlive(){
-            long currentAliveTime = System.currentTimeMillis() - createTime;
+            long currentAliveTime = System.currentTimeMillis() - lastVisiediTime;
             if (currentAliveTime >= objectPool.aliveTime*1000){
                 return false;
             }else{
