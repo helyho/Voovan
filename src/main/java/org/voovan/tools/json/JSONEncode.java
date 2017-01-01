@@ -118,6 +118,7 @@ public class JSONEncode {
                 object instanceof Long || object instanceof Short) {
             value = object.toString();
         } else if (object.getClass().getName().startsWith("java.lang")) {
+            //这里这么做的目的是方便 js 中通过 eval 方法产生 js 对象
             String strValue = object.toString()
                     .replace("\r","\\r")
                     .replace("\n","\\n");
