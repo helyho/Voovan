@@ -155,7 +155,6 @@ public class ObjectPool {
                         for (PooledObject pooledObject : objects.values().toArray(new PooledObject[]{})) {
                             if (!pooledObject.isAlive()) {
                                 remove(pooledObject.getId());
-                                Logger.simple("R:   "+pooledObject.getId());
                             }
                         }
                     }
