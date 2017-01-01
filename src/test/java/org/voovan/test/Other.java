@@ -1,6 +1,7 @@
 package org.voovan.test;
 
 import org.voovan.test.tools.json.TestObject;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -20,6 +21,6 @@ public class Other {
         Method m = TReflect.findMethod(TestObject.class,"setMap",new Class[]{HashMap.class});
         Logger.simple(TReflect.getMethodParameterGenericType(m,0)[0]);
 
-
+        JSON.parse("[[\"0.0.0.0:31111\"]]");
     }
 }

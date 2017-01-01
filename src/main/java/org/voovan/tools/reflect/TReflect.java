@@ -5,8 +5,10 @@ import javafx.print.Collation;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.annotation.NotJSON;
 import org.voovan.tools.reflect.annotation.NotSerialization;
+import sun.jvm.hotspot.gc_interface.CollectedHeap;
 
 import java.lang.reflect.*;
 import java.text.ParseException;
@@ -284,24 +286,47 @@ public class TReflect {
 		Class objClass = (obj instanceof Class) ? (Class)obj : obj.getClass();
 		try {
 			 method = findMethod(objClass, name, parameterTypes);
-		}catch(NoSuchMethodException e){
+			 method.setAccessible(true);
+			 return method.invoke(obj, parameters);
+		}catch(Exception e){
 			//找到这个名称的所有方法
 			Method[] methods = findMethod(objClass,name,parameterTypes.length);
 			for(Method similarMethod : methods){
 				Parameter[] methodParams = similarMethod.getParameters();
 				//匹配参数数量相等的方法
 				if(methodParams.length == parameters.length){
+					Object[] convertedParams = new Object[parameters.length];
 					for(int i=0;i<methodParams.length;i++){
 						Parameter parameter = methodParams[i];
 						//参数类型转换
-						parameters[i] = TString.toObject(parameters[i].toString(), parameter.getType());
+						String value = "";
+
+						Class parameterClass = parameters[i].getClass();
+
+						//复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
+						if(parameters[i] instanceof Collection ||
+								parameters[i] instanceof Map ||
+								parameterClass.isArray() ||
+								!parameterClass.getCanonicalName().startsWith("java.lang")){
+							value = JSON.toJSON(parameters[i]);
+						}else{
+							value = parameters[i].toString();
+						}
+
+						convertedParams[i] = TString.toObject(value, parameter.getType());
 					}
 					method = similarMethod;
+					try{
+						method.setAccessible(true);
+						return method.invoke(obj, convertedParams);
+					}catch(Exception ex){
+						continue;
+					}
 				}
 			}
+
+			throw e;
 		}
-		method.setAccessible(true);
-		return method.invoke(obj, parameters);
 	}
 
 	/**
