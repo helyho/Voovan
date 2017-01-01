@@ -152,8 +152,6 @@ public class MessageLoader {
 				byteOutputStream.write(TByteBuffer.toArray(tmpByteBuffer),0,readsize);
 			}
 
-
-
 			//判断连接是否关闭
 			if (isRemoteClosed(readsize,tmpByteBuffer)) {
 				stopType = StopType.REMOTE_DISCONNECT;
