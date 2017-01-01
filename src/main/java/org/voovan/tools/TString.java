@@ -129,7 +129,7 @@ public class TString {
 	 * @return 是否是浮点数
 	 */
 	public static boolean isFloat(String floadString){
-		if(floadString!=null && regexMatch(floadString, "^-?[1-9]\\d*\\.\\d*|-0\\.\\d*[1-9]\\d*$")>0){
+		if(floadString!=null && regexMatch(floadString, "^-?\\d+\\.\\d+$")>0){
 			return true;
 		}else{
 			return false;
