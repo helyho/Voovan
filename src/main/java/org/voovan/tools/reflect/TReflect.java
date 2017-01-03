@@ -533,6 +533,9 @@ public class TReflect {
 						throw new ReflectiveOperationException("Fill object " + obj.getClass().getCanonicalName() +
 								"#"+fieldName+" failed",e);
 					}
+				}else{
+					throw new ReflectiveOperationException("Field " + obj.getClass().getCanonicalName() +
+							"#"+key+" not found. please try to set ignoreCase=true");
 				}
 			}
 		}
