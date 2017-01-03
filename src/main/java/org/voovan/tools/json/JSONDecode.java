@@ -33,23 +33,21 @@ public class JSONDecode {
 			return null;
 		}
 
-		jsonStr = removeComment(jsonStr);
 		Object jsonResult = null;
-		//处理掉注释
-		jsonStr = jsonStr.replaceAll("\\/\\/[^\n]*", "");
-		jsonStr = jsonStr.replaceAll("/\\*([^\\*^/]*|[\\*^/*]*|[^\\*/]*)*\\*/", "");
+
 		//处理掉前后的特殊字符
 		jsonStr = jsonStr.trim();
 		//根据起始和结束符号,决定返回的对象类型
 		if(jsonStr.startsWith("{")){
 			jsonResult = (Map)new HashMap<String,Object>();
+			jsonStr = jsonStr.substring(1,jsonStr.length()-1);
 		}
 		else if(jsonStr.startsWith("[")){
 			jsonResult = (List)new ArrayList<Object>();
+			jsonStr = jsonStr.substring(1,jsonStr.length()-1);
 		}
 		//规范化字符串
 		jsonStr = jsonStr.replaceAll("\\s*:\\s*", ":");
-		jsonStr = jsonStr.substring(1,jsonStr.length()-1);
 		String keyString = null;
 		Object value = null;
 		int arrayWarpFlag = 0;
@@ -59,17 +57,52 @@ public class JSONDecode {
 		boolean isArray = false;
 		boolean isObject = false;
 		boolean isFunction =false;
+		int isComment = 0;
 		StringBuilder itemString = new StringBuilder();
-		
-		for(int i=0;i<jsonStr.length();i++){
+
+		int jsonStrLen = jsonStr.length();
+		for(int i=0;i<jsonStrLen;i++){
 			char currentChar = jsonStr.charAt(i);
-			
-			itemString.append(currentChar);
-			
+			char nextChar = 0;
+			if(i!=jsonStrLen-1) {
+				nextChar = jsonStr.charAt(i + 1);
+			}
+
+			char prevChar = 0;
+			if(i>0) {
+				prevChar = jsonStr.charAt(i - 1);
+			}
+
+			//处理注释
+			if(!isString && !isArray && !isObject && !isFunction){
+
+				if(currentChar=='/' && (nextChar!=0 && nextChar=='/') ){
+					isComment = 1; //单行注释
+				}
+
+				if(isComment==1 && currentChar=='\n'){
+					isComment = 0; //单行注释
+				}
+
+				if(i>1 && currentChar=='/' && (nextChar!=0 && nextChar=='*') ){
+					isComment = 2; //多行注释
+				}
+
+				if(isComment==2 && currentChar=='*' && (nextChar!=0 && nextChar=='/') ){
+					isComment = 0; //多行注释
+				}
+			}
+
+			if(isComment!=0){
+				continue;
+			}else{
+				itemString.append(currentChar);
+			}
+
 			//分析字符串,如果是字符串不作任何处理
-			if(currentChar=='\"'){
+			if(currentChar=='"'){
 				//i小于1的不是转意字符,判断为字符串(因为转意字符要2个字节),大于2的要判断是否\\"的转义字符
-				if(i<=1 || !(i>1 && jsonStr.charAt(i-1)=='\\')){
+				if( nextChar!=0 && prevChar!='\\'){
 					stringWarpFlag++;
 					//字符串起始的"
 					if(stringWarpFlag==1 && itemString.toString().trim().startsWith("\"")){
@@ -82,8 +115,9 @@ public class JSONDecode {
 					}
 				}
 			}
+
 			//如果是函数 function 起始
-			else if(!isString && !isObject && itemString.toString().trim().startsWith("function")){
+			if(!isString && !isObject && itemString.toString().trim().startsWith("function")){
 
 				if(currentChar=='{'){
 					objectWarpFlag++;
@@ -100,12 +134,14 @@ public class JSONDecode {
 					isFunction = true;
 				}
 			}
+
 			//JSON数组字符串分组,以符号对称的方式取 []
-			else if(!isString && !isObject && !isFunction && currentChar=='['){
+			if(!isString && !isObject && !isFunction && currentChar=='['){
 				arrayWarpFlag++;
 				isArray = true;
 			}
-			else if(!isString && !isObject && !isFunction && currentChar==']'){
+
+			if(!isString && !isObject && !isFunction && currentChar==']'){
 				arrayWarpFlag--;
 				if(arrayWarpFlag==0){
 					//递归解析处理,取 value 对象
@@ -115,12 +151,13 @@ public class JSONDecode {
 					i++;
 				}
 			}
+
 			//JSON对象字符串分组,以符号对称的方式取 {}
-			else if(!isString && !isArray && !isFunction && currentChar=='{'){
+			if(!isString && !isArray && !isFunction && currentChar=='{'){
 				objectWarpFlag++;
 				isObject = true;
 			}
-			else if(!isString && !isArray && !isFunction && currentChar=='}'){
+			if(!isString && !isArray && !isFunction && currentChar=='}'){
 				objectWarpFlag--;
 				if(objectWarpFlag==0){
 					//递归解析处理,取 value 对象
@@ -130,13 +167,15 @@ public class JSONDecode {
 					i++;
 				}
 			}
+
 			//JSON对象字符串分组,取 Key 对象,当前字符是:则取 Key
-			else if(!isString && !isObject && !isArray && !isFunction && currentChar==':'){
+			if(!isString && !isObject && !isArray && !isFunction && currentChar==':'){
 				keyString = itemString.substring(0,itemString.length()-1).trim();
 				itemString = new StringBuilder();
 			}
+
 			//JSON对象字符串分组,取 value 对象,当前字符是,则取 value
-			else if(!isString && !isArray && !isObject && !isFunction && currentChar==','){
+			if(!isString && !isArray && !isObject && !isFunction && currentChar==','){
 				value = itemString.substring(0,itemString.length()-1).trim();
 				itemString = new StringBuilder();
 			}
@@ -222,7 +261,6 @@ public class JSONDecode {
 			return null;
 		}
 
-		jsonStr = removeComment(jsonStr);
 		Object parseObject = parse(jsonStr);
 		//{}包裹的对象处理
 		if(TString.searchByRegex(jsonStr,"^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0 ){
@@ -237,16 +275,5 @@ public class JSONDecode {
 		else{
 			return null;
 		}
-	}
-	
-	private static String removeComment(String jsonStr){
-		if(jsonStr==null){
-			return null;
-		}
-		//处理掉注释
-		jsonStr = jsonStr.replaceAll("\\/\\/[^\n]*", "");
-		jsonStr = jsonStr.replaceAll("/\\*([^\\*^/]*|[\\*^/*]*|[^\\*/]*)*\\*/", "");
-		jsonStr = jsonStr.trim();
-		return jsonStr;
 	}
 }
