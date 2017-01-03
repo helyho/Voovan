@@ -256,7 +256,7 @@ public class JSONDecode {
 	 * @throws ParseException 解析异常
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T>T fromJSON(String jsonStr,Class<T> clazz) throws ReflectiveOperationException, ParseException{
+	public static <T>T fromJSON(String jsonStr,Class<T> clazz, boolean ignoreCase) throws ReflectiveOperationException, ParseException{
 		if(jsonStr==null){
 			return null;
 		}
@@ -265,7 +265,7 @@ public class JSONDecode {
 		//{}包裹的对象处理
 		if(TString.searchByRegex(jsonStr,"^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0 ){
 			Map<String,Object> mapJSON = (Map<String, Object>) parseObject;
-			return (T) TReflect.getObjectFromMap(clazz, mapJSON,false);
+			return (T) TReflect.getObjectFromMap(clazz, mapJSON,ignoreCase);
 		}
 		//[]包裹的对象处理
 		else if(TString.searchByRegex(jsonStr,"^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0){
@@ -275,5 +275,20 @@ public class JSONDecode {
 		else{
 			return null;
 		}
+	}
+
+	/**
+	 * 解析 JSON 字符串成为参数指定的类,默认严格限制字段大小写
+	 * @param <T> 		范型
+	 * @param jsonStr	JSON字符串
+	 * @param clazz		JSON 字符串将要转换的目标类
+	 * @param clazz			转换的目标 java 类
+	 * @return					JSON 转换后的 Java 对象
+	 * @throws ReflectiveOperationException  反射异常
+	 * @throws ParseException 解析异常
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static <T>T fromJSON(String jsonStr,Class<T> clazz) throws ParseException, ReflectiveOperationException {
+		return fromJSON(jsonStr, clazz, false);
 	}
 }
