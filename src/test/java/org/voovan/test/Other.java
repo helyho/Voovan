@@ -21,6 +21,6 @@ public class Other {
         Method m = TReflect.findMethod(TestObject.class,"setMap",new Class[]{HashMap.class});
         Logger.simple(TReflect.getMethodParameterGenericType(m,0)[0]);
 
-        JSON.parse("[[\"0.0.0.0:31111\"]]");
+        JSON.parse("\r\n //adfadfadff \r\n { \"IndexServerAddress\": \"https://index.docker.io/v1/\"}");
     }
 }
