@@ -36,12 +36,31 @@ public class JSON {
 	 * @param <T>			范型
 	 * @param jsonStr		待转换的 JSON 字符串
 	 * @param clazz			转换的目标 java 类
+	 * @param ignoreCase    是否忽略字段大小写
+	 * @return				转换后的 Java 对象
+	 */
+	public static <T> T toObject(String jsonStr,Class<T> clazz, boolean ignoreCase){
+		T valueObject = null;
+		try {
+			valueObject = JSONDecode.fromJSON(jsonStr, clazz, ignoreCase);
+		} catch (ReflectiveOperationException | ParseException e) {
+			Logger.error("Reflective Operation failed.",e);
+		}
+		return valueObject;
+	}
+
+
+	/**
+	 * 将 JSON字符串 转换成 Java 对象,默认严格限制字段大小写
+	 * @param <T>			范型
+	 * @param jsonStr		待转换的 JSON 字符串
+	 * @param clazz			转换的目标 java 类
 	 * @return				转换后的 Java 对象
 	 */
 	public static <T> T toObject(String jsonStr,Class<T> clazz){
 		T valueObject = null;
 		try {
-			valueObject = JSONDecode.fromJSON(jsonStr, clazz);
+			valueObject = JSONDecode.fromJSON(jsonStr, clazz, false);
 		} catch (ReflectiveOperationException | ParseException e) {
 			Logger.error("Reflective Operation failed.",e);
 		}

@@ -468,67 +468,71 @@ public class TReflect {
 				if(field!=null) {
 					String fieldName = field.getName();
 					Class<?> fieldType = field.getType();
+					try {
+                        //对于 对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
+                        if(isImpByInterface(fieldType,Map.class) && value instanceof Map){
+                            Class[] mapGenericTypes = getFieldGenericType(field);
+                            if(mapGenericTypes!=null) {
+                                HashMap result = new HashMap();
+                                Map mapValue = (Map) value;
+                                Iterator iterator = mapValue.entrySet().iterator();
+                                while(iterator.hasNext() ) {
+                                    Entry entry = (Entry) iterator.next();
+                                    Map keyMap = null;
+                                    Map valueMap = null;
+                                    if(entry.getKey() instanceof Map){
+                                        keyMap = (Map)entry.getKey();
+                                    }else{
+                                        keyMap = TObject.newMap("value",entry.getKey());
+                                    }
 
-					//对于 对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
-					if(isImpByInterface(fieldType,Map.class) && value instanceof Map){
-						Class[] mapGenericTypes = getFieldGenericType(field);
-						if(mapGenericTypes!=null) {
-							HashMap result = new HashMap();
-							Map mapValue = (Map) value;
-							Iterator iterator = mapValue.entrySet().iterator();
-							while(iterator.hasNext() ) {
-								Entry entry = (Entry) iterator.next();
-								Map keyMap = null;
-								Map valueMap = null;
-								if(entry.getKey() instanceof Map){
-									keyMap = (Map)entry.getKey();
-								}else{
-									keyMap = TObject.newMap("value",entry.getKey());
-								}
+                                    if(entry.getValue() instanceof Map){
+                                        valueMap = (Map)entry.getValue();
+                                    }else{
+                                        valueMap = TObject.newMap("value",entry.getValue());
+                                    }
 
-								if(entry.getValue() instanceof Map){
-									valueMap = (Map)entry.getValue();
-								}else{
-									valueMap = TObject.newMap("value",entry.getValue());
-								}
+                                    Object keyObj = getObjectFromMap(mapGenericTypes[0], keyMap, ignoreCase);
+                                    Object valueObj = getObjectFromMap(mapGenericTypes[1], valueMap, ignoreCase);
+                                    result.put(keyObj, valueObj);
+                                }
+                                mapValue.clear();
+                                mapValue.putAll(result);
+                            }
+                        }
+                        //对于 对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
+                        else if(isImpByInterface(fieldType,Collection.class) && value instanceof Collation){
+                            Class[] listGenericTypes = getFieldGenericType(field);
+                            if(listGenericTypes!=null) {
+                                ArrayList result = new ArrayList();
+                                List listValue = (List)value;
+                                for(Object listItem : listValue){
+                                    Map valueMap = null;
+                                    if(listValue instanceof Map){
+                                        valueMap = (Map)listValue;
+                                    }else{
+                                        valueMap = TObject.newMap("value",listValue);
+                                    }
 
-								Object keyObj = getObjectFromMap(mapGenericTypes[0], keyMap, ignoreCase);
-								Object valueObj = getObjectFromMap(mapGenericTypes[1], valueMap, ignoreCase);
-								result.put(keyObj, valueObj);
-							}
-							mapValue.clear();
-							mapValue.putAll(result);
-						}
+                                    Object item = getObjectFromMap(listGenericTypes[0],valueMap,ignoreCase);
+                                    result.add(item);
+                                }
+                                listValue.clear();
+                                listValue.addAll(result);
+                            }
+
+                        }else if(value instanceof Map){
+                            value = getObjectFromMap(fieldType,(Map<String, ?>)value, ignoreCase);
+
+                        } else {
+                            value = getObjectFromMap(fieldType, TObject.newMap("value", value), ignoreCase);
+                        }
+
+						setFieldValue(obj, fieldName, value);
+					}catch(Exception e){
+						throw new ReflectiveOperationException("Fill object " + obj.getClass().getCanonicalName() +
+								"#"+fieldName+" failed",e);
 					}
-					//对于 对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
-					else if(isImpByInterface(fieldType,Collection.class) && value instanceof Collation){
-						Class[] listGenericTypes = getFieldGenericType(field);
-						if(listGenericTypes!=null) {
-							ArrayList result = new ArrayList();
-							List listValue = (List)value;
-							for(Object listItem : listValue){
-								Map valueMap = null;
-								if(listValue instanceof Map){
-									valueMap = (Map)listValue;
-								}else{
-									valueMap = TObject.newMap("value",listValue);
-								}
-
-								Object item = getObjectFromMap(listGenericTypes[0],valueMap,ignoreCase);
-								result.add(item);
-							}
-							listValue.clear();
-							listValue.addAll(result);
-						}
-
-					}else if(value instanceof Map){
-						value = getObjectFromMap(fieldType,(Map<String, ?>)value, ignoreCase);
-
-					} else {
-						value = getObjectFromMap(fieldType, TObject.newMap("value", value), ignoreCase);
-					}
-
-					setFieldValue(obj, fieldName, value);
 				}
 			}
 		}

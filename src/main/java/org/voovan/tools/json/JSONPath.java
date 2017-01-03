@@ -32,7 +32,7 @@ public class JSONPath {
     }
 
     /**
-     * 获取JSONPath 对应的节点数据
+     * 获取JSONPath 对应的节点数据,忽略段大小写
      * @param pathQry JSONPath 路径
      * @return  节点的数据
      * @throws ReflectiveOperationException 反射操作异常
@@ -77,7 +77,7 @@ public class JSONPath {
 
 
     /**
-     * 获取JSONPath 对应的节点数据
+     * 获取JSONPath 对应的节点数据,默认忽略段大小写
      * @param pathQry JSONPath 路径
      * @param defaultValue 节点不存在时的默认值
      * @return  节点的数据
@@ -88,7 +88,7 @@ public class JSONPath {
     }
 
     /**
-     * 获取节点值并转换成相应的对象
+     * 获取节点值并转换成相应的对象,默认忽略段大小写
      * @param pathQry  JSONPath 路径
      * @param clazz    对象的 class
      * @param <T>      范型指代对象
@@ -112,7 +112,7 @@ public class JSONPath {
     }
 
     /**
-     * 获取节点值并转换成相应的对象
+     * 获取节点值并转换成相应的对象,忽略段大小写
      * @param pathQry  JSONPath 路径
      * @param clazz    对象的 class
      * @param defaultValue 对象默认值
@@ -126,7 +126,7 @@ public class JSONPath {
     }
 
     /**
-     * 获取节点值并转换成相应的对象
+     * 获取节点值并转换成相应的对象,忽略段大小写
      * @param <T>      范型指代对象
      * @param pathQry  JSONPath 路径
      * @param elemClazz    List 元素对象的 class
@@ -151,7 +151,7 @@ public class JSONPath {
     }
 
     /**
-     * 获取节点值并转换成相应的对象
+     * 获取节点值并转换成相应的对象,忽略段大小写
      * @param <T>      范型指代对象
      * @param pathQry  JSONPath 路径
      * @param elemClazz    List 元素对象的 class
@@ -171,7 +171,7 @@ public class JSONPath {
 
 
         /**
-         * 将 JSON 中的对象中的一个节点自动 转换成 java 中的对象
+         * 将 JSON 中的对象中的一个节点自动 转换成 java 中的对象,忽略段大小写
          * @param pathQry        JSONPath 路径
          * @param keyFieldName   key 值在 java 对象中对应的字段
          * @param elemClazz      对象的 class
@@ -203,7 +203,7 @@ public class JSONPath {
     }
 
     /**
-     * 将 JSON 中的对象中的一个节点自动 转换成 java 中的对象
+     * 将 JSON 中的对象中的一个节点自动 转换成 java 中的对象,忽略段大小写
      * @param pathQry        JSONPath 路径
      * @param keyFieldName   key 值在 java 对象中对应的字段
      * @param elemClazz      对象的 class
