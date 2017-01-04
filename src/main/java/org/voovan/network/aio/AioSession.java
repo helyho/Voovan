@@ -147,6 +147,10 @@ public class AioSession extends IoSession {
 			while(isConnect() && buffer.remaining()!=0){
 				try {
 					Future<Integer> sendResult = socketChannel.write(buffer);
+					if(sendResult==null){
+						break;
+					}
+
 					try {
 						totalSendByte += sendResult.get();
 					} catch (InterruptedException | ExecutionException e) {
