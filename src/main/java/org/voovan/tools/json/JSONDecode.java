@@ -76,28 +76,30 @@ public class JSONDecode {
 			//处理注释
 			if(!isString && !isArray && !isObject && !isFunction){
 
-				if(currentChar=='/' && (nextChar!=0 && nextChar=='/') ){
+				if(currentChar=='/' && (nextChar!=0 && nextChar=='/') && isComment==0){
 					isComment = 1; //单行注释
 				}
 
-				if(isComment==1 && currentChar=='\n'){
+				if(isComment==1 && currentChar=='\n' && isComment>0){
 					isComment = 0; //单行注释
 				}
 
-				if(i>1 && currentChar=='/' && (nextChar!=0 && nextChar=='*') ){
+				if(i>1 && currentChar=='/' && (nextChar!=0 && nextChar=='*') && isComment==0 ){
 					isComment = 2; //多行注释
+					continue;
 				}
 
-				if(isComment==2 && currentChar=='*' && (nextChar!=0 && nextChar=='/') ){
+				if(isComment==2 && currentChar=='/' && (prevChar!=0 && prevChar=='*') && isComment>0){
 					isComment = 0; //多行注释
+					continue;
+				}
+
+				if(isComment!=0){
+					continue;
 				}
 			}
 
-			if(isComment!=0){
-				continue;
-			}else{
-				itemString.append(currentChar);
-			}
+			itemString.append(currentChar);
 
 			//分析字符串,如果是字符串不作任何处理
 			if(currentChar=='"'){
