@@ -5,6 +5,7 @@ import org.voovan.tools.log.Logger;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * ByteBuffer双向通道
@@ -18,20 +19,20 @@ import java.nio.channels.ByteChannel;
 public class ByteBufferChannel implements ByteChannel {
 
 	private ByteBuffer buffer;
-	
+
 	public ByteBufferChannel() {
 		buffer = ByteBuffer.allocateDirect(0);
 	}
-	
+
 	/**
 	 * 重置
 	 */
 	public  void reset() {
-        synchronized(buffer) {
-            buffer = ByteBuffer.allocateDirect(0);
-        }
+		synchronized(buffer) {
+			buffer = ByteBuffer.allocateDirect(0);
+		}
 	}
-	
+
 	/**
 	 * 当前数据大小
 	 * @return 数据大小
@@ -43,11 +44,11 @@ public class ByteBufferChannel implements ByteChannel {
 	/**
 	 * 当前数据缓冲区
 	 * @return 数据缓冲区
-     */
+	 */
 	public ByteBuffer getBuffer(){
 		return buffer;
 	}
-	
+
 
 
 	/**
@@ -63,7 +64,7 @@ public class ByteBufferChannel implements ByteChannel {
 	 */
 	@Override
 	public void close() throws IOException {
-		
+
 	}
 
 	@Override
@@ -106,7 +107,8 @@ public class ByteBufferChannel implements ByteChannel {
 			if(buffer.remaining()>0) {
 				byte[] tempBytes = new byte[buffer.remaining()];
 				buffer.get(tempBytes, 0, buffer.remaining());
-				buffer = ByteBuffer.wrap(tempBytes);
+				buffer = ByteBuffer.allocateDirect(tempBytes.length);
+				buffer.put(tempBytes);
 			}else{
 				buffer = ByteBuffer.allocateDirect(0);
 			}
@@ -114,10 +116,5 @@ public class ByteBufferChannel implements ByteChannel {
 		dst.flip();
 
 		return readSize;
-	}
-	
-	@Override
-	public String toString(){
-		return buffer.toString();
 	}
 }
