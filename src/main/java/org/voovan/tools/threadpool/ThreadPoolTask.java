@@ -50,7 +50,7 @@ public class ThreadPoolTask extends TimerTask {
 		if (threadPoolInstance.getQueue().size() > 0 &&
 				poolSize < cpuCoreCount * 50 &&
 				TPerformance.cpuPerCoreLoadAvg() < 1) {
-			threadPoolInstance.setCorePoolSize(threadPoolInstance.getPoolSize() + cpuCoreCount * 2);
+			threadPoolInstance.setCorePoolSize(threadPoolInstance.getPoolSize() + poolSize / 2);
 			Logger.debug("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
 		}
 
