@@ -1,5 +1,6 @@
 package org.voovan.network.aio;
 
+import org.voovan.Global;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.TEnv;
@@ -7,6 +8,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 
 /**
@@ -31,7 +33,8 @@ public class AioServerSocket extends SocketContext{
 	 */
 	public AioServerSocket(String host,int port,int readTimeout) throws IOException{
 		super(host, port, readTimeout);
-		serverSocketChannel = AsynchronousServerSocketChannel.open();
+		AsynchronousChannelGroup asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(Global.getThreadPool());
+		serverSocketChannel = AsynchronousServerSocketChannel.open(asynchronousChannelGroup);
 	}
 
 	/**
