@@ -7,6 +7,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 
@@ -21,6 +22,10 @@ public class Other {
         Method m = TReflect.findMethod(TestObject.class,"setMap",new Class[]{HashMap.class});
         Logger.simple(TReflect.getMethodParameterGenericType(m,0)[0]);
 
-        JSON.parse("\r\n //adfadfadff \r\n { \"IndexServerAddress\": \"https://index.docker.io/v1/\"}");
+        ByteBuffer bb = ByteBuffer.allocate(0);
+        bb.put("asdfadfasfd".getBytes());
+
+        Logger.info(new String(bb.array()));
+
     }
 }
