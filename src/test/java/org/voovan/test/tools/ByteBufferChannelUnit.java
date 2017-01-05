@@ -2,6 +2,7 @@ package org.voovan.test.tools;
 
 import junit.framework.TestCase;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -45,6 +46,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		byteBufferChannel1 = new ByteBufferChannel();
 		byteBufferChannel1.write(ByteBuffer.wrap("kkkkk".getBytes()));
 		byteBufferChannel1.write(ByteBuffer.wrap("fffff".getBytes()));
+		Logger.simple(new String(TByteBuffer.toArray(byteBufferChannel1.getBuffer())));
 		ByteBuffer xxx = ByteBuffer.allocate(5);
 		byteBufferChannel1.read(xxx);
 		Logger.simple(new String(xxx.array()));
