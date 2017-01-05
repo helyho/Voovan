@@ -124,6 +124,7 @@ public class HttpFilterConfig {
             return httpFilter;
         } catch (ReflectiveOperationException e) {
             Logger.error("[ERROR] New HttpFilter ["+className+"] error.");
+            e.printStackTrace();
             return null;
         }
     }
