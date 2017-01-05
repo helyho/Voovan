@@ -21,7 +21,7 @@ public class ByteBufferChannel implements ByteChannel {
 	private ByteBuffer buffer;
 
 	public ByteBufferChannel() {
-		buffer = ByteBuffer.allocateDirect(0);
+		buffer = ByteBuffer.allocate(0);
 	}
 
 	/**
@@ -29,7 +29,7 @@ public class ByteBufferChannel implements ByteChannel {
 	 */
 	public  void reset() {
 		synchronized(buffer) {
-			buffer = ByteBuffer.allocateDirect(0);
+			buffer = ByteBuffer.allocate(0);
 		}
 	}
 
@@ -72,7 +72,7 @@ public class ByteBufferChannel implements ByteChannel {
 		int writeSize = src.remaining();
 		if(writeSize!=0){
 			int newSize = buffer.remaining()+src.remaining();
-			ByteBuffer tempBuffer = ByteBuffer.allocateDirect(newSize);
+			ByteBuffer tempBuffer = ByteBuffer.allocate(newSize);
 			tempBuffer.put(buffer);
 			tempBuffer.put(src);
 			buffer = tempBuffer;
@@ -107,10 +107,10 @@ public class ByteBufferChannel implements ByteChannel {
 			if(buffer.remaining()>0) {
 				byte[] tempBytes = new byte[buffer.remaining()];
 				buffer.get(tempBytes, 0, buffer.remaining());
-				buffer = ByteBuffer.allocateDirect(tempBytes.length);
+				buffer = ByteBuffer.allocate(tempBytes.length);
 				buffer.put(tempBytes);
 			}else{
-				buffer = ByteBuffer.allocateDirect(0);
+				buffer = ByteBuffer.allocate(0);
 			}
 		}
 		dst.flip();
