@@ -15,6 +15,7 @@ import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.TimeUnit;
 
@@ -44,7 +45,8 @@ public class AioSocket extends SocketContext {
 	 */
 	public AioSocket(String host, int port, int readTimeout) throws IOException {
 		super(host, port, readTimeout);
-		this.socketChannel = AsynchronousSocketChannel.open();
+		AsynchronousChannelGroup asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(Global.getThreadPool());
+		this.socketChannel = AsynchronousSocketChannel.open(asynchronousChannelGroup);
 		session = new AioSession(this);
 
 		connectedCompletionHandler = new ConnectedCompletionHandler();
