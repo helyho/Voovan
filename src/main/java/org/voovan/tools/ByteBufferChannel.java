@@ -109,6 +109,7 @@ public class ByteBufferChannel implements ByteChannel {
 				buffer.get(tempBytes, 0, buffer.remaining());
 				buffer = ByteBuffer.allocate(tempBytes.length);
 				buffer.put(tempBytes);
+				buffer.flip();
 			}else{
 				buffer = ByteBuffer.allocate(0);
 			}
