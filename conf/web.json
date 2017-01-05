@@ -48,7 +48,7 @@
       "ClassName": "org.voovan.test.http.router.HttpTestRouter"  //Http 路由处理器
     }
   ],
-
+*/
   "Modules": [
     {
       "Name": "性能监控模块",                                      //模块名称
@@ -56,5 +56,5 @@
       "ClassName": "org.voovan.http.monitor.Monitor1"               //模块处理器
     }
   ]
-  */
+
 }
