@@ -262,7 +262,7 @@ public class WebServer {
 			TEnv.loadBinary(TEnv.getSystemPath("classes"));
 			TEnv.loadJars(TEnv.getSystemPath("lib"));
 		} catch (NoSuchMethodException | IOException | SecurityException e) {
-			Logger.error("Voovan WEBServer Loader ./classes or ./lib error." ,e);
+			Logger.warn("Voovan WebServer Loader ./classes or ./lib error." ,e);
 		}
 	}
 
