@@ -120,8 +120,9 @@ public class JSONEncode {
         } else if (object.getClass().getName().startsWith("java.lang")) {
             //这里这么做的目的是方便 js 中通过 eval 方法产生 js 对象
             String strValue = object.toString()
-                    .replace("\r","\\r")
-                    .replace("\n","\\n");
+                    .replace("\r","\\u000d")  // \r
+                    .replace("\r","\\u0022")  // \*
+                    .replace("\n","\\u000a"); // \n
             value = "\"" + strValue + "\"";
         } else if (object instanceof Map) {
             Map<Object, Object> mapObject = (Map<Object, Object>) object;
