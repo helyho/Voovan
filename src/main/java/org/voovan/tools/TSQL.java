@@ -405,9 +405,10 @@ public class TSQL {
 			for(Object obj : objects)
 			{
 				String sqlValue = getSQLString(obj);
-				if(sqlValue!=null)
+				if(sqlValue!=null) {
 					listValueStr.append(sqlValue);
 					listValueStr.append(",");
+				}
 			}
 			return TString.removeSuffix(listValueStr.toString())+")";
 		}
