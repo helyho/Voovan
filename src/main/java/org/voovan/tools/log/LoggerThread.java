@@ -82,32 +82,42 @@ public class LoggerThread implements Runnable {
 		finished.set(false);
 
 		Thread mainThread = TEnv.getMainThread();
+		try {
+            while (true) {
+                    formatedMessage = logQueue.poll(1000, TimeUnit.MILLISECONDS);
+                    if (formatedMessage != null && outputStreams!=null) {
+                        for (OutputStream outputStream : outputStreams) {
+                            if (outputStream != null) {
+                                outputStream.write(formatedMessage.getBytes());
+                                outputStream.flush();
+                            }
+                        }
+                    }
+                    //如果主线程结束,则日志线程也退出
+                    if(mainThread!=null && mainThread.getState() == Thread.State.TERMINATED){
+                        break;
+                    }
 
-		while (true) {
+                    if(mainThread == null){
+                        break;
+                    }
+            }
+
+            finished.set(true);
+
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		} finally {
 			try {
-				formatedMessage = logQueue.poll(1000, TimeUnit.MILLISECONDS);
-				if (formatedMessage != null && outputStreams!=null) {
-					for (OutputStream outputStream : outputStreams) {
-						if (outputStream != null) {
-							outputStream.write(formatedMessage.getBytes());
-							outputStream.flush();
-						}
-					}
-				}
-				//如果主线程结束,则日志线程也退出
-				if(mainThread!=null && mainThread.getState() == Thread.State.TERMINATED){
-					break;
-				}
-
-				if(mainThread == null){
-					break;
-				}
-			} catch (IOException | InterruptedException e) {
+                for (OutputStream outputStream : outputStreams) {
+                    if (outputStream != null) {
+                        outputStream.close();
+                    }
+                }
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-
-        finished.set(true);
 
 	}
 	

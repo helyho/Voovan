@@ -739,39 +739,16 @@ public class JdbcOperate {
 	 * @param resultSet 结果集
 	 */
 	protected static void closeConnection(ResultSet resultSet) {
-		Statement statement = null;
-		Connection connection = null;
-		try {
-			statement = resultSet.getStatement();
-			connection = statement.getConnection();
-		} catch (SQLException e) {
-			Logger.error(e.getMessage(),e);
-		}
-
 		try {
 			if (resultSet != null) {
+				Statement statement = resultSet.getStatement();
 				resultSet.close();
+				closeConnection(statement);
 			}
-
 		} catch (SQLException e) {
 			Logger.error(e.getMessage(),e);
 		}
 
-		try {
-            if (statement != null) {
-                statement.close();
-            }
-        } catch (SQLException e) {
-            Logger.error(e.getMessage(),e);
-        }
-
-		try {
-			if (connection != null) {
-                connection.close();
-            }
-        } catch (SQLException e) {
-            Logger.error(e.getMessage(),e);
-        }
 	}
 
 	/**
@@ -779,26 +756,11 @@ public class JdbcOperate {
 	 * @param statement Statement 对象
 	 */
 	protected static void closeConnection(Statement statement) {
-		if(statement==null){
-			return;
-		}
-
-		Connection connection = null;
 		try {
-			connection = statement.getConnection();
-		} catch (SQLException e) {
-			Logger.error(e.getMessage(),e);
-		}
-
-		try {
-			statement.close();
-		} catch (SQLException e) {
-			Logger.error(e.getMessage(),e);
-		}
-
-		try{
-			if (connection != null) {
-				connection.close();
+			if(statement!=null) {
+				Connection connection = statement.getConnection();
+				statement.close();
+				closeConnection(connection);
 			}
 		} catch (SQLException e) {
 			Logger.error(e.getMessage(),e);
@@ -824,22 +786,12 @@ public class JdbcOperate {
 	 * @param resultSet 结果集
 	 */
 	protected static void closeResult(ResultSet resultSet){
-		if(resultSet==null){
-			return;
-		}
-
-		Statement statement = null;
 		try {
-			statement = resultSet.getStatement();
-		} catch (SQLException e) {
-			Logger.error(e.getMessage(),e);
-		}
-		try {
-			if (statement != null) {
-				statement.close();
-			}
-
-			resultSet.close();
+            if(resultSet!=null) {
+                Statement statement = resultSet.getStatement();
+				resultSet.close();
+                closeStatement(statement);
+            }
 		} catch (SQLException e) {
 			Logger.error(e.getMessage(),e);
 		}
@@ -850,11 +802,10 @@ public class JdbcOperate {
 	 * @param statement Statement 对象
 	 */
 	protected static void closeStatement(Statement statement){
-		if(statement==null){
-			return;
-		}
 		try {
-			statement.close();
+			if(statement!=null) {
+				statement.close();
+			}
 		} catch (SQLException e) {
 			Logger.error(e.getMessage(),e);
 		}

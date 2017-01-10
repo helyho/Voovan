@@ -224,29 +224,40 @@ public class TFile {
 	 * @throws IOException IO 异常
      */
 	public static byte[] loadFileLastLines(File file, int lastLineNum) throws IOException {
-		RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
-		long fileLength = randomAccessFile.length();
-		randomAccessFile.seek(fileLength);
-		int rowCount = 0;
-		while(randomAccessFile.getFilePointer()!=0){
-			randomAccessFile.seek(fileLength-1);
-			byte readByte = randomAccessFile.readByte();
-			if(readByte=='\n'){
-				rowCount++;
-			}
-			if(fileLength-1==0 || lastLineNum == rowCount){
-				int byteCount = (int)(randomAccessFile.length() - fileLength);
-				byte[] byteContent = new byte[byteCount];
-				int readSize = randomAccessFile.read(byteContent);
-				if(readSize>0) {
-					return byteContent;
-				}else{
-					return new byte[0];
+
+		RandomAccessFile randomAccessFile = null;
+		try {
+			randomAccessFile = new RandomAccessFile(file, "r");
+			long fileLength = randomAccessFile.length();
+			randomAccessFile.seek(fileLength);
+			int rowCount = 0;
+			while (randomAccessFile.getFilePointer() != 0) {
+				randomAccessFile.seek(fileLength - 1);
+				byte readByte = randomAccessFile.readByte();
+				if (readByte == '\n') {
+					rowCount++;
 				}
+				if (fileLength - 1 == 0 || lastLineNum == rowCount) {
+					int byteCount = (int) (randomAccessFile.length() - fileLength);
+					byte[] byteContent = new byte[byteCount];
+					int readSize = randomAccessFile.read(byteContent);
+					if (readSize > 0) {
+						return byteContent;
+					} else {
+						return new byte[0];
+					}
+				}
+				--fileLength;
 			}
-			--fileLength;
+		} catch(IOException e){
+			throw e;
+
+		} finally {
+			if(randomAccessFile!=null){
+				randomAccessFile.close();
+			}
 		}
-		randomAccessFile.close();
+
 		return new byte[0];
 	}
 

@@ -665,7 +665,7 @@ public class TReflect {
 			superClass = superClass.getSuperclass();
 			classes.addAll(Arrays.asList(superClass.getInterfaces()));
 			classes.add(superClass);
-		}while(superClass!=null && !superClass.equals(Object.class));
+		}while(!Object.class.equals(superClass));
 		return classes.toArray(new Class[]{});
 	}
 
