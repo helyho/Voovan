@@ -245,7 +245,7 @@ public class EventProcess {
 			}
 
 			// 发送消息
-			if (sendObj != null && session.isConnect()) {
+			if (resultBuf != null && session.isConnect()) {
 
 				if (session.getSSLParser() != null && session.getSSLParser().handShakeDone) {
 					session.sendSSLData(resultBuf);
