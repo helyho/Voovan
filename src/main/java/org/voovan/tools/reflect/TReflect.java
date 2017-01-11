@@ -342,12 +342,52 @@ public class TReflect {
 			throws ReflectiveOperationException {
 		Class<?>[] parameterTypes = getArrayClasses(parameters);
 		Constructor<T> constructor = null;
-		if(parameters.length==0){
-			constructor = clazz.getConstructor();
-		}else {
-			constructor = clazz.getConstructor(parameterTypes);
+		try {
+			if (parameters.length == 0) {
+				constructor = clazz.getConstructor();
+			} else {
+				constructor = clazz.getConstructor(parameterTypes);
+			}
+
+			return constructor.newInstance(parameters);
+		}catch(Exception e){
+			Constructor[] constructors = clazz.getConstructors();
+			for(Constructor similarConstructor : constructors){
+				Parameter[] methodParams = similarConstructor.getParameters();
+				//匹配参数数量相等的方法
+				if(methodParams.length == parameters.length){
+					Object[] convertedParams = new Object[parameters.length];
+					for(int i=0;i<methodParams.length;i++){
+						Parameter parameter = methodParams[i];
+						//参数类型转换
+						String value = "";
+
+						Class parameterClass = parameters[i].getClass();
+
+						//复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
+						if(parameters[i] instanceof Collection ||
+								parameters[i] instanceof Map ||
+								parameterClass.isArray() ||
+								!parameterClass.getCanonicalName().startsWith("java.lang")){
+							value = JSON.toJSON(parameters[i]);
+						}else{
+							value = parameters[i].toString();
+						}
+
+						convertedParams[i] = TString.toObject(value, parameter.getType());
+					}
+					constructor = similarConstructor;
+					try{
+						return constructor.newInstance(convertedParams);
+					}catch(Exception ex){
+						continue;
+					}
+				}
+			}
+
+			throw e;
 		}
-		return constructor.newInstance(parameters);
+
 	}
 	
 	/**
