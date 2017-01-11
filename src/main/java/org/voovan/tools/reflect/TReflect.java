@@ -1,14 +1,12 @@
 package org.voovan.tools.reflect;
 
 
-import javafx.print.Collation;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.annotation.NotJSON;
 import org.voovan.tools.reflect.annotation.NotSerialization;
-import sun.jvm.hotspot.gc_interface.CollectedHeap;
 
 import java.lang.reflect.*;
 import java.text.ParseException;
@@ -541,17 +539,17 @@ public class TReflect {
                             }
                         }
                         //对于 对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
-                        else if(isImpByInterface(fieldType,Collection.class) && value instanceof Collation){
+                        else if(isImpByInterface(fieldType,Collection.class) && value instanceof Collection){
                             Class[] listGenericTypes = getFieldGenericType(field);
-                            if(listGenericTypes!=null) {
+                            if(listGenericTypes !=null) {
                                 ArrayList result = new ArrayList();
                                 List listValue = (List)value;
                                 for(Object listItem : listValue){
                                     Map valueMap = null;
-                                    if(listValue instanceof Map){
-                                        valueMap = (Map)listValue;
+                                    if(listItem instanceof Map){
+                                        valueMap = (Map)listItem;
                                     }else{
-                                        valueMap = TObject.newMap("value",listValue);
+                                        valueMap = TObject.newMap("value",listItem);
                                     }
 
                                     Object item = getObjectFromMap(listGenericTypes[0],valueMap,ignoreCase);
