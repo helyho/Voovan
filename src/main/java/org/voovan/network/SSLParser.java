@@ -1,6 +1,8 @@
 package org.voovan.network;
 
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TEnv;
+import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
@@ -93,6 +95,7 @@ public class SSLParser {
 			}
 			netData.clear();
 		}while(engineResult.getStatus() == Status.OK && buffer.hasRemaining());
+		TEnv.sleep(1);
 		return engineResult;
 	}
 	
@@ -121,6 +124,7 @@ public class SSLParser {
 	public SSLEngineResult unwarpData(ByteBuffer netBuffer,ByteBuffer appBuffer) throws SSLException{
 		SSLEngineResult engineResult = null;
 		engineResult = engine.unwrap(netBuffer, appBuffer);
+		TEnv.sleep(1);
 		return engineResult;
 	}
 	
@@ -137,14 +141,21 @@ public class SSLParser {
 			do{
 				clearBuffer();
 				session.read(netData);
-				netDataChannel.write(netData);
+				netDataChannel.writeEnd(netData);
 				do{
-					engineResult = unwarpData(netDataChannel.getBuffer(),appData);
+					ByteBuffer byteBuffer = netDataChannel.getBuffer();
+					engineResult = unwarpData(byteBuffer,appData);
 					//如果有 HandShake Task 则执行
 					handshakeStatus = runDelegatedTasks();
-				}while(engineResult!=null && engineResult.getStatus()==Status.OK && netDataChannel.getBuffer().hasRemaining());
+					netDataChannel.writeHead(byteBuffer);
+
+				}while(engineResult!=null && engineResult.getStatus()==Status.OK &&
+						netDataChannel.size()!=0 );
+				if( netDataChannel.size()!=0) {
+					session.getByteBufferChannel().writeHead(netDataChannel.getBuffer());
+				}
+				//Logger.simple("reWrite"+byteBuffer.limit());
 			}while(engineResult!=null && engineResult.getStatus()!=Status.OK);
-			netDataChannel.close();
 			return handshakeStatus;
 	}
 	

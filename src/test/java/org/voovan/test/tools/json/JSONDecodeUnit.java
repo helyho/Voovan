@@ -16,7 +16,7 @@ public class JSONDecodeUnit extends TestCase {
 	@SuppressWarnings("rawtypes")
 	public void testRun() throws Exception{
 		String jsonString = "/*asdfasdf*/"+
-							"{"+
+							" {"+
 								"\"bint\":32,"+
 								"\"string\":\"helyho\","+
 								"\"tb2\":{"+
@@ -42,7 +42,7 @@ public class JSONDecodeUnit extends TestCase {
 												"var x=\"l\"" +
 										   "}, " +
 								"\"nullValue\":null"+
-							"}";
+							"} ";
 
 		Map<String, Object> obj = TObject.cast(JSONDecode.parse(jsonString));
 		assertTrue((Integer)obj.get("bint")==32);

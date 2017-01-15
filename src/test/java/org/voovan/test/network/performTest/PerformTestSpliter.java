@@ -6,12 +6,12 @@ import org.voovan.network.MessageSplitter;
 public class PerformTestSpliter implements MessageSplitter {
 
 	@Override
-	public boolean canSplite(IoSession session, byte[] buffer) {
+	public int canSplite(IoSession session, byte[] buffer) {
 		String requestStr = new String(buffer);
 		if(requestStr.endsWith("\r\n\r\n")){
-			return true;
+			return buffer.length;
 		}else{
-			return false;
+			return -1;
 		}
 	}
 	 

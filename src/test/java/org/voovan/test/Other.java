@@ -1,5 +1,6 @@
 package org.voovan.test;
 
+import org.voovan.http.client.HttpClient;
 import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
@@ -22,15 +23,7 @@ public class Other {
 
     public static void main(String[] args) throws Exception {
 
-        Field field = TReflect.findField(TestObject.class,"map");
-        Logger.simple(TReflect.getFieldGenericType(field)[0]);
-
-        Method m = TReflect.findMethod(TestObject.class,"setMap",new Class[]{HashMap.class});
-        Logger.simple(TReflect.getMethodParameterGenericType(m,0)[0]);
-
-        ByteBuffer bb = ByteBuffer.allocate(0);
-
-        Map<String, Object> WEB_CONFIG = loadMapFromFile("/conf/web.json");
+        HttpClient httpClient = new HttpClient("https://www.oschina.net/","UTF-8",10000);
     }
 
     private static Map<String, Object> loadMapFromFile(String filePath){

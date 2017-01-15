@@ -1,10 +1,13 @@
 package org.voovan.tools;
 
 import org.voovan.tools.log.Logger;
+import sun.tools.tree.RemainderExpression;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -16,21 +19,36 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class ByteBufferChannel implements ByteChannel {
+public class ByteBufferChannel {
 
-	private ByteBuffer buffer;
+	private byte[] buffer;
+	private int size;
+
+	public ByteBufferChannel(int size) {
+		buffer = new byte[size];
+		size = 0;
+	}
 
 	public ByteBufferChannel() {
-		buffer = ByteBuffer.allocate(0);
+		buffer = new byte[256];
+		size = 0;
+	}
+
+
+	/**
+	 * 当前数组空闲的大小
+	 * @return 当前数组空闲的大小
+	 */
+	public int free(){
+		return buffer.length - size;
 	}
 
 	/**
-	 * 重置
+	 * 返回当前分配的数组大小
+	 * @return 当前分配的数组大小
 	 */
-	public  void reset() {
-		synchronized(buffer) {
-			buffer = ByteBuffer.allocate(0);
-		}
+	public int capacity(){
+		return buffer.length;
 	}
 
 	/**
@@ -38,82 +56,124 @@ public class ByteBufferChannel implements ByteChannel {
 	 * @return 数据大小
 	 */
 	public int size(){
-		return buffer.limit();
+		return size;
 	}
 
 	/**
-	 * 当前数据缓冲区
-	 * @return 数据缓冲区
+	 * 获取缓冲区
+	 *     通道会被重置
+	 * @return ByteBuffer 对象
 	 */
-	public ByteBuffer getBuffer(){
-		return buffer;
-	}
-
-
-
-	/**
-	 * 没有作用永远返回 true
-	 */
-	@Override
-	public boolean isOpen() {
-		return true;
+	public synchronized ByteBuffer getBuffer(){
+		ByteBuffer byteBuffer = ByteBuffer.wrap(Arrays.copyOfRange(buffer, 0, size));
+		reset();
+		return byteBuffer;
 	}
 
 	/**
-	 * 没有作用
+	 * 重置通道
 	 */
-	@Override
-	public void close() throws IOException {
-
+	public synchronized void reset(){
+		size = 0;
 	}
 
-	@Override
-	public synchronized int write(ByteBuffer src) throws IOException {
-		int writeSize = src.remaining();
-		if(writeSize!=0){
-			int newSize = buffer.remaining()+src.remaining();
-			ByteBuffer tempBuffer = ByteBuffer.allocate(newSize);
-			tempBuffer.put(buffer);
-			tempBuffer.put(src);
-			buffer = tempBuffer;
-			buffer.flip();
+	/**
+	 * 缓冲区头部写入
+	 * @param src 需要写入的缓冲区 ByteBuffer 对象
+	 * @return 读出的数据大小
+	 */
+	public synchronized int writeEnd(ByteBuffer src) {
+		byte[] srcByte = src.array();
+		srcByte = Arrays.copyOfRange(srcByte, src.position(), src.limit());
+		int writeSize = srcByte.length;
 
+		if(free() < writeSize) {
+			buffer = Arrays.copyOf(buffer, size + writeSize);
 		}
+
+		System.arraycopy(srcByte, 0 , buffer , size, srcByte.length);
+		size = size + srcByte.length;
 		return writeSize;
 	}
 
-	@Override
-	public synchronized int read(ByteBuffer dst) throws IOException {
+	/**
+	 * 缓冲区尾部写入
+	 * @param src 需要写入的缓冲区 ByteBuffer 对象
+	 * @return 读出的数据大小
+	 */
+	public synchronized int writeHead(ByteBuffer src) {
+		byte[] srcByte = src.array();
+		srcByte = Arrays.copyOfRange(srcByte, src.position(),src.limit());
+		int writeSize = srcByte.length;
+
+		if(free() < writeSize) {
+			buffer = Arrays.copyOf(buffer, size + writeSize);
+		}
+
+		byte[] data = Arrays.copyOfRange(buffer, 0, size);
+
+		System.arraycopy(srcByte, 0 , buffer , 0, writeSize);
+		System.arraycopy(data, 0 , buffer , writeSize, size);
+		size = size + srcByte.length;
+		return writeSize;
+	}
+
+	/**
+	 * 从缓冲区头部读取数据
+	 * @param dst 需要读入数据的缓冲区ByteBuffer 对象
+	 * @return 读出的数据大小
+	 */
+	public synchronized int readHead(ByteBuffer dst) {
 		int readSize = 0;
 
 		//确定读取大小
-		if (dst.remaining() > buffer.remaining()) {
-			readSize = buffer.remaining();
+		if (dst.remaining() > size) {
+			readSize = size;
 		} else {
 			readSize = dst.remaining();
 		}
 
-		if (readSize > 0) {
-			try {
-				byte[] tempBytes = new byte[readSize];
-				buffer.get(tempBytes,0,readSize);
-				dst.put(tempBytes);
-			} catch (Exception e) {
-				Logger.simple("error");
-			}
+		if(readSize!=0) {
 
-			buffer.position(readSize);
+			byte[] readBuffer = Arrays.copyOfRange(buffer, 0, readSize);
+			dst.put(readBuffer);
 
-			if(buffer.remaining()>0) {
-				byte[] tempBytes = new byte[buffer.remaining()];
-				buffer.get(tempBytes, 0, buffer.remaining());
-				buffer = ByteBuffer.allocate(tempBytes.length);
-				buffer.put(tempBytes);
-				buffer.flip();
-			}else{
-				buffer = ByteBuffer.allocate(0);
-			}
+			size = size - readSize;
+
+			System.arraycopy(buffer, readSize, buffer, 0, size);
 		}
+
+		dst.flip();
+
+		return readSize;
+	}
+
+	/**
+	 * 从缓冲区尾部读取数据
+	 * @param dst 需要读入数据的缓冲区ByteBuffer 对象
+	 * @return 读出的数据大小
+	 */
+	public synchronized int readEnd(ByteBuffer dst) {
+		int readSize = 0;
+
+		//确定读取大小
+		if (dst.remaining() > size) {
+			readSize = size;
+		} else {
+			readSize = dst.remaining();
+		}
+
+		if(readSize!=0) {
+
+			byte[] readBuffer = Arrays.copyOfRange(buffer, size - readSize, size);
+			dst.put(readBuffer);
+
+			size = size - readSize;
+
+			System.arraycopy(buffer, 0, buffer, 0, size);
+
+		}
+
 		dst.flip();
 
 		return readSize;

@@ -35,7 +35,7 @@ public class UdpSession extends IoSession {
 		if (udpSocket != null) {
 			this.udpSocket = udpSocket;
 			this.datagramChannel = udpSocket.datagramChannel();
-			byteBufferChannel = new ByteBufferChannel();
+			byteBufferChannel = new ByteBufferChannel(this.sockContext().getBufferSize());
 			messageLoader = new MessageLoader(this);
 			this.remoteAddress = remoteAddress;
 		}else{
@@ -133,8 +133,8 @@ public class UdpSession extends IoSession {
 		int readSize = 0;
 		if (buffer != null) {
 			try {
-				readSize = byteBufferChannel.read(buffer);
-			} catch (IOException e) {
+				readSize = byteBufferChannel.readHead(buffer);
+			} catch (Exception e) {
 				// 如果出现异常则返回-1,表示读取通道结束
 				readSize = -1;
 			}

@@ -6,9 +6,11 @@ import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 
 /**
@@ -26,6 +28,7 @@ public class MessageLoader {
 	private ByteArrayOutputStream byteOutputStream;
 	private boolean isDirectRead;
 	private int readZeroCount = 0;
+	private int splitLength;
 	/**
 	 * 构造函数
 	 * @param session Session 对象
@@ -161,8 +164,8 @@ public class MessageLoader {
 
 			//使用消息划分器进行消息划分
 			if(readsize==0) {
-				boolean msgSplitState = messageSplitter.canSplite(session, byteOutputStream.toByteArray());
-				if (msgSplitState) {
+				splitLength = messageSplitter.canSplite(session, byteOutputStream.toByteArray());
+				if (splitLength > 0) {
 					stopType = StopType.MSG_SPLITTER ;
 				}
 			}
@@ -180,18 +183,26 @@ public class MessageLoader {
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		if(stopType==StopType.MSG_SPLITTER) {
-			 result = ByteBuffer.wrap(byteOutputStream.toByteArray());
-			 byteOutputStream.reset();
-		}else{
-			//不是消息截断器截断的消息放在Session缓冲区中,等待直接读取流的形式读取
-			//由于数据是从Session缓冲区中读取的,所以这里写到缓冲区的头部
-			ByteBufferChannel sessionByteBufferChannel = session.getByteBufferChannel();
-			ByteBuffer byteBufferInSession = ByteBuffer.wrap(sessionByteBufferChannel.getBuffer().array());
-			sessionByteBufferChannel.reset();
-			sessionByteBufferChannel.write(ByteBuffer.wrap(byteOutputStream.toByteArray()));
-			sessionByteBufferChannel.write(byteBufferInSession);
+			byte[] tempBytebuff = byteOutputStream.toByteArray();
+			result = ByteBuffer.wrap(tempBytebuff,0,splitLength);
+			byteOutputStream.reset();
+			if(splitLength < tempBytebuff.length) {
+				byteOutputStream.write(tempBytebuff, splitLength + 1, tempBytebuff.length-(splitLength + 1));
+			}
+		}
+
+        //不是消息截断器截断的消息放在Session缓冲区中,等待直接读取流的形式读取
+        //由于数据是从Session缓冲区中读取的,所以这里写到缓冲区的头部
+        ByteBufferChannel sessionByteBufferChannel = session.getByteBufferChannel();
+		if(sessionByteBufferChannel.size()!=0) {
+			//ByteBuffer byteBufferInSession = ByteBuffer.wrap(sessionByteBufferChannel.getBuffer().array());
+			//sessionByteBufferChannel.reset();
+			//sessionByteBufferChannel.write(ByteBuffer.wrap(byteOutputStream.toByteArray()));
+			//sessionByteBufferChannel.write(byteBufferInSession);
+			sessionByteBufferChannel.writeHead(ByteBuffer.wrap(byteOutputStream.toByteArray()));
 			result = ByteBuffer.allocate(0);
 		}
+
 
 
 		if(stopType == stopType.SOCKET_CLOSE || stopType == StopType.REMOTE_DISCONNECT) {
@@ -208,7 +219,7 @@ public class MessageLoader {
 	public synchronized ByteBuffer directRead() throws IOException {
 
         ByteBuffer data = ByteBuffer.allocate(session.sockContext().getBufferSize());
-        session.getByteBufferChannel().read(data);
+        session.getByteBufferChannel().readHead(data);
         if(!data.hasRemaining() && !session.isConnect()){
             return null;
         }

@@ -505,13 +505,16 @@ public class TReflect {
 
 				if(field!=null) {
 					String fieldName = field.getName();
-					Class<?> fieldType = field.getType();
+					Class fieldType = field.getType();
 					try {
                         //对于 对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
                         if(isImpByInterface(fieldType,Map.class) && value instanceof Map){
                             Class[] mapGenericTypes = getFieldGenericType(field);
                             if(mapGenericTypes!=null) {
-                                HashMap result = new HashMap();
+								if(fieldType == Map.class){
+									fieldType = HashMap.class;
+								}
+                                Map result = (Map)TReflect.newInstance(fieldType);
                                 Map mapValue = (Map) value;
                                 Iterator iterator = mapValue.entrySet().iterator();
                                 while(iterator.hasNext() ) {
@@ -534,15 +537,17 @@ public class TReflect {
                                     Object valueObj = getObjectFromMap(mapGenericTypes[1], valueMap, ignoreCase);
                                     result.put(keyObj, valueObj);
                                 }
-                                mapValue.clear();
-                                mapValue.putAll(result);
+                                value = result;
                             }
                         }
                         //对于 对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
                         else if(isImpByInterface(fieldType,Collection.class) && value instanceof Collection){
                             Class[] listGenericTypes = getFieldGenericType(field);
                             if(listGenericTypes !=null) {
-                                ArrayList result = new ArrayList();
+                            	if(fieldType == List.class){
+									fieldType = ArrayList.class;
+								}
+                                List result = (List)TReflect.newInstance(fieldType);
                                 List listValue = (List)value;
                                 for(Object listItem : listValue){
                                     Map valueMap = null;
@@ -555,8 +560,7 @@ public class TReflect {
                                     Object item = getObjectFromMap(listGenericTypes[0],valueMap,ignoreCase);
                                     result.add(item);
                                 }
-                                listValue.clear();
-                                listValue.addAll(result);
+                                value = result;
                             }
 
                         }else if(value instanceof Map){

@@ -21,26 +21,26 @@ import java.nio.ByteBuffer;
 public class HttpMessageSplitter implements MessageSplitter {
 
 	private static final String	BODY_TAG	= "\r\n\r\n";
+	private int result = -1;
+
 
 	@Override
-	public boolean canSplite(IoSession session, byte[] buffer) {
+	public int canSplite(IoSession session, byte[] buffer) {
 
 		if(buffer.length==0){
-			return false;
+			return -1;
 		}
 
-		if (isHttpFrame(buffer)) {
-			return true;
-		} else if (isWebSocketFrame(ByteBuffer.wrap(buffer))
-                    && "WebSocket".equals(session.getAttribute("Type")) ) {
-			return true;
+		result = isHttpFrame(buffer);
 
+	    if (result==-1 && "WebSocket".equals(session.getAttribute("Type")) ) {
+			result = isWebSocketFrame(ByteBuffer.wrap(buffer));
 		}
 
-		return false;
+		return result;
 	}
 
-	public static boolean isHttpFrame(byte[] buffer) {
+	public static int isHttpFrame(byte[] buffer) {
 		try {
 			String bufferString = new String(buffer,"UTF-8");
 
@@ -48,7 +48,7 @@ public class HttpMessageSplitter implements MessageSplitter {
                 String firstLine = bufferString.substring(0,bufferString.indexOf("\r\n"));
                 if(TString.regexMatch(firstLine,"HTTP\\/\\d\\.\\d\\s\\d{3}\\s.*") <= 0){
 					if(TString.regexMatch(firstLine,"^[A-Z]*\\s.*\\sHTTP\\/\\d\\.\\d") <= 0){
-						return false;
+						return -1;
 					}
                 }
 			}
@@ -58,13 +58,17 @@ public class HttpMessageSplitter implements MessageSplitter {
 			boolean isChunked = bufferString.contains("chunked");
 
 			// 包含\r\n\r\n,这个时候报文有可能加载完成
+//			if (bufferString.contains(BODY_TAG)){
+//				return bufferString.indexOf(BODY_TAG) + BODY_TAG.length();
+//			}
+
 			if (bufferString.contains(BODY_TAG)) {
 				// 1.包含 content Length 的则通过获取 contentLenght 来计算报文的总长度,长度相等时,返回成功
 				if (contentLengthLines.length == 1) {
 					int contentLength = Integer.parseInt(contentLengthLines[0].split(" ")[1].trim());
 					int totalLength = bufferString.indexOf(BODY_TAG) + 4 + contentLength;
 					if (buffer.length >= totalLength) {
-						return true;
+						return buffer.length;
 					}
 				}
 
@@ -73,18 +77,18 @@ public class HttpMessageSplitter implements MessageSplitter {
 				if (bufferString.contains("multipart/form-data")
 						&& boundaryLines.length == 1
 						&& bufferString.trim().endsWith("--" + boundaryLines[0].replace("boundary=", "") + "--")) {
-					return true;
+					return buffer.length;
 				}
 
 				// 3. 如果是 HTTP 响应报文 chunk
 				// 则trim 后判断最后一个字符是否是 0
 				if (isChunked && bufferString.trim().endsWith("\r\n0")) {
-					return true;
+					return buffer.length;
 				}
 
 				// 4.是否是无报文体的简单请求报文(1.Header 中没有 ContentLength / 2.非 Chunked 报文形式)
 				if (contentLengthLines.length == 0 && !isChunked) {
-					return true;
+					return buffer.length;
 				}
 			}
 		} catch (UnsupportedEncodingException e) {
@@ -92,22 +96,22 @@ public class HttpMessageSplitter implements MessageSplitter {
 		}
 
 
-		return false;
+		return -1;
 	}
 
-	public static boolean isWebSocketFrame(ByteBuffer buffer) {
+	public static int isWebSocketFrame(ByteBuffer buffer) {
 		// 接受数据的大小
 		int maxpacketsize = buffer.remaining();
 		// 期望数据包的实际大小
 		int expectPackagesize = 2;
 		if (maxpacketsize < expectPackagesize) {
-			return false;
+			return -1;
 		}
 		byte finByte = buffer.get();
 		boolean fin = finByte >> 8 != 0;
 		byte rsv = (byte) ((finByte & ~(byte) 128) >> 4);
 		if (rsv != 0) {
-			return false;
+			return -1;
 		}
 		byte maskByte = buffer.get();
 		boolean mask = (maskByte & -128) != 0;
@@ -116,14 +120,14 @@ public class HttpMessageSplitter implements MessageSplitter {
 
 		if (!fin) {
 			if (optcode == 9 || optcode == 10 || optcode == 8) {
-				return false;
+				return -1;
 			}
 		}
 
 		if (payloadlength >= 0 && payloadlength <= 125) {
 		} else {
 			if (optcode == 9 || optcode == 10 || optcode == 8) {
-				return false;
+				return -1;
 			}
 			if (payloadlength == 126) {
 				expectPackagesize += 2;
@@ -149,9 +153,10 @@ public class HttpMessageSplitter implements MessageSplitter {
 
 		// 如果实际接受的数据小于数据包的大小则报错
 		if (maxpacketsize < expectPackagesize) {
-			return false;
+			return -1;
 		} else {
-			return true;
+			buffer.position(0);
+			return buffer.remaining();
 		}
 	}
 
