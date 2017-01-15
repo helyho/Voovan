@@ -28,7 +28,7 @@ public class ClientHandlerTest implements IoHandler {
 		Logger.simple("Client onRecive: "+obj.toString());
 		Logger.simple("Attribute onRecive: "+session.getAttribute("key"));
 		session.close();
-		return obj;
+		return null;
 	}
 
 	@Override

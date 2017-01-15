@@ -241,7 +241,7 @@ public abstract class IoSession {
 			try {
 				sslParser.warpData(buffer);
 			} catch (IOException e) {
-				Logger.error("Send SSL date failed.",e);
+				Logger.error("Send SSL data failed.",e);
 			}
 		}
 	}
