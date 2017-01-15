@@ -11,7 +11,7 @@ public class SyncAioSocketTest {
 		AioSocket socket = new AioSocket("127.0.0.1",2031,30000);
 		socket.filterChain().add(new StringFilter());
 		socket.messageSplitter(new LineMessageSplitter());
-		socket.start();
+		socket.syncStart();
 		socket.synchronouSend("syncSocket\r\n");
 		try {
 			System.out.println(socket.synchronouRead());

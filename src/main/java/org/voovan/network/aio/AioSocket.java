@@ -118,13 +118,30 @@ public class AioSocket extends SocketContext {
 	
 	@Override
 	public void start() throws IOException{
+
+		syncStart();
+
+		//如果是ServerSocket的 AioSocket 不需要阻塞等待进程
+		if(connectModel == ConnectModel.CLIENT ){
+            // 等待ServerSocketChannel关闭,结束进程
+            while (isConnect()) {
+                TEnv.sleep(1);
+            }
+		}
+
+	}
+
+	/**
+	 * 启动同步的上下文连接,同步读写时使用
+	 */
+	public void syncStart() throws IOException{
 		initSSL();
-		
+
 		//如果没有消息分割器默认使用读取超时时间作为分割器
 		if(messageSplitter == null){
 			messageSplitter = new TimeOutMesssageSplitter();
 		}
-		
+
 		if (connectModel == ConnectModel.CLIENT) {
 			try {
 				// 捕获 connect 事件
@@ -133,23 +150,12 @@ public class AioSocket extends SocketContext {
 				return;
 			}
 		}
-		
+
 		//捕获输入事件
-		catchRead(ByteBuffer.allocateDirect(this.getBufferSize()));
-		
+		catchRead(ByteBuffer.allocate(this.getBufferSize()));
+
 		//触发 connect 事件
 		EventTrigger.fireConnectThread(session);
-
-		//如果是ServerSocket的 AioSocket 不需要阻塞等待进程
-		if(connectModel == ConnectModel.CLIENT ){
-            Global.getThreadPool().execute( () -> {
-                // 等待ServerSocketChannel关闭,结束进程
-                while (isConnect()) {
-                    TEnv.sleep(1);
-                }
-            });
-		}
-
 	}
 
 	/**

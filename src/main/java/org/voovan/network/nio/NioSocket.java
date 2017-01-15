@@ -134,10 +134,23 @@ public class NioSocket extends SocketContext{
 		}
 	}
 
+	/**
+	 * 启动同步的上下文连接,同步读写时使用
+	 */
+	public void syncStart(){
+		Global.getThreadPool().execute(()->{
+			try {
+				start();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+	}
+
 	@Override
 	public boolean isConnect() {
 		if(socketChannel!=null){
-			return socketChannel.isOpen();
+			return socketChannel.isConnected();
 		}else{
 			return false;
 		}

@@ -5,10 +5,7 @@ import org.voovan.tools.TString;
 import org.voovan.tools.reflect.TReflect;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * JSON字符串分析成 Map
@@ -84,7 +81,7 @@ public class JSONDecode {
 					isComment = 0; //单行注释
 				}
 
-				if(i>1 && currentChar=='/' && (nextChar!=0 && nextChar=='*') && isComment==0 ){
+				if(currentChar=='/' && (nextChar!=0 && nextChar=='*') && isComment==0 ){
 					isComment = 2; //多行注释
 					continue;
 				}
@@ -235,10 +232,12 @@ public class JSONDecode {
 						result.put(keyString, value);
 					}
 				}
-				if(jsonResult instanceof ArrayList && value != null){
+				else if(jsonResult instanceof ArrayList && value != null){
 					@SuppressWarnings("unchecked")
 					ArrayList<Object> result = (ArrayList<Object>)jsonResult;
 					result.add(value);
+				} else {
+					jsonResult = value;
 				}
 				//处理完侯将 value 放空
 				keyString = null;
@@ -265,12 +264,12 @@ public class JSONDecode {
 
 		Object parseObject = parse(jsonStr);
 		//{}包裹的对象处理
-		if(TString.searchByRegex(jsonStr,"^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0 ){
+		if(parseObject instanceof Map){
 			Map<String,Object> mapJSON = (Map<String, Object>) parseObject;
 			return (T) TReflect.getObjectFromMap(clazz, mapJSON,ignoreCase);
 		}
 		//[]包裹的对象处理
-		else if(TString.searchByRegex(jsonStr,"^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0){
+		else if(parseObject instanceof Collection){
 			return (T) TReflect.getObjectFromMap(clazz, TObject.newMap("value",parseObject),false);
 		}
 		//其他类型处理

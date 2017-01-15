@@ -20,41 +20,45 @@ public class ByteBufferChannelUnit extends TestCase {
 		String initStr = "helyho is a hero!!!";
 		ByteBuffer buffer = ByteBuffer.wrap(initStr.getBytes());
 		byteBufferChannel = new ByteBufferChannel();
-		byteBufferChannel.write(buffer);
+		byteBufferChannel.writeEnd(buffer);
 		assertEquals(byteBufferChannel.size(),19);
 	}
 	
 	public void testWrite() throws IOException{
 		int size = byteBufferChannel.size();
-		byteBufferChannel.write(ByteBuffer.wrap(" -=======!".getBytes()));
+		byteBufferChannel.writeEnd(ByteBuffer.wrap(" -=======!".getBytes()));
 		assertEquals(byteBufferChannel.size(),size+10);
 	}
 	
 	public void testRead() throws IOException{
 		ByteBuffer buffer1 = ByteBuffer.allocate(5);
-		int size = byteBufferChannel.read(buffer1);
+		int size = byteBufferChannel.readHead(buffer1);
 		assertEquals(size, 5);
 		assertEquals(new String(buffer1.array()), "helyh");
 	}
-	
-	public void tearDown() throws IOException{
-		byteBufferChannel.close();
-	}
+
 
 	public void test() throws IOException {
 		ByteBufferChannel byteBufferChannel1;
 		byteBufferChannel1 = new ByteBufferChannel();
-		byteBufferChannel1.write(ByteBuffer.wrap("kkkkk".getBytes()));
-		byteBufferChannel1.write(ByteBuffer.wrap("fffff".getBytes()));
+		byteBufferChannel1.writeEnd(ByteBuffer.wrap("kkkkk".getBytes()));
+		byteBufferChannel1.writeEnd(ByteBuffer.wrap("fffff".getBytes()));
+		byteBufferChannel1.writeHead(ByteBuffer.wrap("bbbbb".getBytes()));
+		byteBufferChannel1.writeEnd(ByteBuffer.wrap("eeeee".getBytes()));
 		Logger.simple(new String(TByteBuffer.toArray(byteBufferChannel1.getBuffer())));
+
+
 		ByteBuffer xxx = ByteBuffer.allocate(5);
-		byteBufferChannel1.read(xxx);
+		byteBufferChannel1.readHead(xxx);
 		Logger.simple(new String(xxx.array()));
 		xxx = ByteBuffer.allocate(5);
-		byteBufferChannel1.read(xxx);
+		byteBufferChannel1.readEnd(xxx);
 		Logger.simple(new String(xxx.array()));
 		xxx = ByteBuffer.allocate(5);
-		byteBufferChannel1.read(xxx);
+		byteBufferChannel1.readHead(xxx);
+		Logger.simple(new String(xxx.array()));
+		xxx = ByteBuffer.allocate(5);
+		byteBufferChannel1.readHead(xxx);
 		Logger.simple(new String(xxx.array()));
 	}
 }

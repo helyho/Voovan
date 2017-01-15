@@ -22,7 +22,7 @@ public class SSLManager {
 	private TrustManagerFactory trustManagerFactory;
 	private SSLContext context;
 	private SSLEngine engine;
-	private boolean useClientAuth;
+	private boolean needClientAuth;
 	private String protocol;
 	
 	/**
@@ -32,7 +32,7 @@ public class SSLManager {
 	 * @throws NoSuchAlgorithmException  无可用协议异常
 	 */
 	public SSLManager(String protocol) throws NoSuchAlgorithmException{
-		this.useClientAuth = true;
+		this.needClientAuth = true;
 		this.protocol = protocol;
 	}
 	
@@ -43,7 +43,7 @@ public class SSLManager {
 	 * @throws SSLException  SSL 异常
 	 */
 	public SSLManager(String protocol,boolean useClientAuth) throws SSLException{
-			this.useClientAuth = useClientAuth;
+			this.needClientAuth = useClientAuth;
 			this.protocol = protocol;
 	}
 
@@ -143,7 +143,7 @@ public class SSLManager {
 	public SSLParser createServerSSLParser(IoSession session) throws SSLException{
 		createSSLEngine(protocol);
 		engine.setUseClientMode(false);
-		engine.setNeedClientAuth(useClientAuth);
+		engine.setNeedClientAuth(needClientAuth);
 		return new SSLParser(engine, session);
 	}
 	

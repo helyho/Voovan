@@ -217,13 +217,15 @@ public abstract class IoSession {
 				netBuffer.clear();
 				appBuffer.clear();
 				if(read(netBuffer)!=0){
-					netDataBufferChannel.write(netBuffer);
-					engineResult = sslParser.unwarpData(netDataBufferChannel.getBuffer(), appBuffer);
+					netDataBufferChannel.writeEnd(netBuffer);
+					ByteBuffer byteBuffer = netDataBufferChannel.getBuffer();
+					engineResult = sslParser.unwarpData(byteBuffer, appBuffer);
+					netDataBufferChannel.writeHead(byteBuffer);
 					appBuffer.flip();
-					appDataBufferChannel.write(appBuffer);
+					appDataBufferChannel.writeEnd(appBuffer);
 				}
 			}while(engineResult!=null && engineResult.getStatus() != Status.OK);
-			readSize = appDataBufferChannel.read(buffer);
+			readSize = appDataBufferChannel.readHead(buffer);
 		}
 		return readSize;
 	}
