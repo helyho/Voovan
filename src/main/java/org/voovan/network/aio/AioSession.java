@@ -43,7 +43,7 @@ public class AioSession extends IoSession {
 		if (socket != null) {
 			this.socketChannel = socket.socketChannel();
 			this.socket = socket;
-			byteBufferChannel = new ByteBufferChannel();
+			byteBufferChannel = new ByteBufferChannel(this.sockContext().getBufferSize());
 		    this.messageLoader = new MessageLoader(this);
 		} else {
 			Logger.error("SocketChannel is null, please check it.");
@@ -129,8 +129,8 @@ public class AioSession extends IoSession {
 		int readSize = 0;
 		if (buffer != null) {
 			try {
-				readSize = byteBufferChannel.read(buffer);
-			} catch (IOException e) {
+				readSize = byteBufferChannel.readHead(buffer);
+			} catch (Exception e) {
 				Logger.error("Read socketChannel failed.",e);
 				// 如果出现异常则返回-1,表示读取通道结束
 				readSize = -1;

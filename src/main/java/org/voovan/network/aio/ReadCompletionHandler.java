@@ -3,6 +3,7 @@ package org.voovan.network.aio;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.MessageLoader;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -44,7 +45,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 				if (length > 0) {
 
 					// 接收数据
-					byteBufferChannel.write(buffer);
+					byteBufferChannel.writeEnd(buffer);
 
 					// 触发 onReceive 事件
 					EventTrigger.fireReceiveThread(session);

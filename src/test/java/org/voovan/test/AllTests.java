@@ -25,7 +25,7 @@ public class AllTests {
 		suite.addTestSuite(ByteBufferChannelUnit.class);
 		suite.addTestSuite(TDateTimeUnit.class);
 		suite.addTestSuite(TStringUnit.class);
-		suite.addTestSuite(JdbcOperatorUnit.class);
+		//suite.addTestSuite(JdbcOperatorUnit.class);
 		//$JUnit-END$
 		return suite;
 	}

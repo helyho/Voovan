@@ -13,15 +13,19 @@ import org.voovan.network.MessageSplitter;
  * Licence: Apache v2 License
  */
 public class BufferLengthSplitter implements MessageSplitter {
-	private long bufferLength;
+	private int bufferLength;
 	
-	public BufferLengthSplitter(long bufferLength){
+	public BufferLengthSplitter(int bufferLength){
 		this.bufferLength = bufferLength;
 	}
 
 	@Override
-	public boolean canSplite(IoSession session, byte[] buffer) {
-		return buffer.length>=bufferLength;
+	public int canSplite(IoSession session, byte[] buffer) {
+		if(buffer.length>=bufferLength){
+			return bufferLength;
+		}else{
+			return -1;
+		}
 	}
 	
 }

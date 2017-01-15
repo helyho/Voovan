@@ -12,14 +12,18 @@ public class TimeOutMesssageSplitter implements MessageSplitter {
 	}
 	
 	@Override
-	public boolean canSplite(IoSession session, byte[] buffer) {
+	public int canSplite(IoSession session, byte[] buffer) {
 		int timeOut = session.sockContext().getReadTimeout();
 		long currentTime = System.currentTimeMillis();
 		if(initTime==-1){
 			initTime = currentTime;
 		} 
 		
-		return currentTime-initTime >= timeOut;
+		if(currentTime-initTime >= timeOut){
+			return buffer.length;
+		}else{
+			return -1;
+		}
 	}
 
 }

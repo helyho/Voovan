@@ -171,7 +171,7 @@ public abstract class SocketContext {
 	 * @throws IOException IO 异常
 	 */
 	public abstract void start() throws IOException;
-	
+
 	/**
 	 * 上下文连接是否打开
 	 * @return true:连接打开,false:连接关闭

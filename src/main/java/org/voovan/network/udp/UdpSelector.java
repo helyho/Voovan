@@ -50,7 +50,7 @@ public class UdpSelector {
      */
     public void eventChose() {
         //读取用的缓冲区
-        ByteBuffer readTempBuffer = ByteBuffer.allocateDirect(socketContext.getBufferSize());
+        ByteBuffer readTempBuffer = ByteBuffer.allocate(socketContext.getBufferSize());
 
         if (socketContext instanceof UdpSocket) {
             // 连接完成onConnect事件触发
@@ -96,7 +96,7 @@ public class UdpSelector {
                                             break;
                                         } else if (readSize > 0) {
                                             readTempBuffer.flip();
-                                            clientSession.getByteBufferChannel().write(readTempBuffer);
+                                            clientSession.getByteBufferChannel().writeEnd(readTempBuffer);
                                             readTempBuffer.clear();
                                         } else if (readSize == -1) {
                                             clientSession.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);

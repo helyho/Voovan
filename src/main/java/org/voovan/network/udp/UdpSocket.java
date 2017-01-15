@@ -68,7 +68,6 @@ public class UdpSocket extends SocketContext{
             this.copyFrom(parentSocketContext);
             session = new UdpSession(this, socketAddress);
             connectModel = ConnectModel.SERVER;
-            init();
         } catch (Exception e) {
             Logger.error("Create socket channel failed",e);
         }
@@ -106,10 +105,25 @@ public class UdpSocket extends SocketContext{
             messageSplitter = new TimeOutMesssageSplitter();
         }
 
+        init();
+
         if(datagramChannel!=null && datagramChannel.isOpen()){
             UdpSelector udpSelector = new UdpSelector(selector,this);
             udpSelector.eventChose();
         }
+    }
+
+    /**
+     * 启动同步的上下文连接,同步读写时使用
+     */
+    public void syncStart(){
+        Global.getThreadPool().execute(()->{
+            try {
+                start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     /**
@@ -134,7 +148,7 @@ public class UdpSocket extends SocketContext{
     @Override
     public boolean isConnect() {
         if(datagramChannel!=null){
-            return datagramChannel.isOpen();
+            return datagramChannel.isConnected();
         }else{
             return false;
         }
