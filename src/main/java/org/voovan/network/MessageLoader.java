@@ -1,6 +1,7 @@
 package org.voovan.network;
 
 import org.voovan.network.exception.SocketDisconnectByRemote;
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
@@ -125,7 +126,7 @@ public class MessageLoader {
 		//缓冲区字段,一次读1024个字节
 		ByteBuffer tmpByteBuffer = ByteBuffer.allocate(session.sockContext().getBufferSize());
 
-		while (stopType==StopType.RUNNING) {
+		while (stopType==StopType.RUNNING && !isDirectRead) {
 
 			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
 			if(!session.isConnect() && session.getByteBufferChannel().size()==0){
@@ -149,6 +150,7 @@ public class MessageLoader {
 
 			//将读出的数据写入缓冲区
 			if(readsize > 0 ) {
+				readZeroCount = 0;
 				byteOutputStream.write(TByteBuffer.toArray(tmpByteBuffer),0,readsize);
 			}
 
@@ -158,7 +160,7 @@ public class MessageLoader {
 			}
 
 			//使用消息划分器进行消息划分
-			if(readsize==0 && !isDirectRead) {
+			if(readsize==0) {
 				boolean msgSplitState = messageSplitter.canSplite(session, byteOutputStream.toByteArray());
 				if (msgSplitState) {
 					stopType = StopType.MSG_SPLITTER ;
@@ -181,10 +183,14 @@ public class MessageLoader {
 			 result = ByteBuffer.wrap(byteOutputStream.toByteArray());
 			 byteOutputStream.reset();
 		}else{
-			//不是消息截断器截断的消息放在缓冲区中,等待直接读取流的形式读取
-			session.getByteBufferChannel().write(ByteBuffer.wrap(byteOutputStream.toByteArray()));
+			//不是消息截断器截断的消息放在Session缓冲区中,等待直接读取流的形式读取
+			//由于数据是从Session缓冲区中读取的,所以这里写到缓冲区的头部
+			ByteBufferChannel sessionByteBufferChannel = session.getByteBufferChannel();
+			ByteBuffer byteBufferInSession = ByteBuffer.wrap(sessionByteBufferChannel.getBuffer().array());
+			sessionByteBufferChannel.reset();
+			sessionByteBufferChannel.write(ByteBuffer.wrap(byteOutputStream.toByteArray()));
+			sessionByteBufferChannel.write(byteBufferInSession);
 			result = ByteBuffer.allocate(0);
-			byteOutputStream.reset();
 		}
 
 
@@ -199,14 +205,15 @@ public class MessageLoader {
 	 * 直接读取缓冲区的数据
 	 * @return 字节缓冲对象ByteBuffer
 	 */
-	public synchronized ByteBuffer directRead(){
-		ByteBuffer result = ByteBuffer.wrap(byteOutputStream.toByteArray());
-		byteOutputStream.reset();
+	public synchronized ByteBuffer directRead() throws IOException {
 
-		if(!result.hasRemaining() && !session.isConnect()){
-			return null;
-		}
+        ByteBuffer data = ByteBuffer.allocate(session.sockContext().getBufferSize());
+        session.getByteBufferChannel().read(data);
+        if(!data.hasRemaining() && !session.isConnect()){
+            return null;
+        }
 
-        return result;
+        return data;
+
 	}
 }

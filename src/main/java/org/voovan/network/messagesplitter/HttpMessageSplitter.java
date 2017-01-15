@@ -29,7 +29,6 @@ public class HttpMessageSplitter implements MessageSplitter {
 			return false;
 		}
 
-
 		if (isHttpFrame(buffer)) {
 			return true;
 		} else if (isWebSocketFrame(ByteBuffer.wrap(buffer))
@@ -47,8 +46,8 @@ public class HttpMessageSplitter implements MessageSplitter {
 
 			if(bufferString.contains("\r\n")){
                 String firstLine = bufferString.substring(0,bufferString.indexOf("\r\n"));
-                if(TString.regexMatch(firstLine,"HTTP\\/\\d\\.\\d\\s\\d{3}\\s.*\\S") < 0){
-					if(TString.regexMatch(firstLine,"^[A-Z]*\\s.*\\sHTTP\\/\\d\\.\\d\\S") < 0){
+                if(TString.regexMatch(firstLine,"HTTP\\/\\d\\.\\d\\s\\d{3}\\s.*") <= 0){
+					if(TString.regexMatch(firstLine,"^[A-Z]*\\s.*\\sHTTP\\/\\d\\.\\d") <= 0){
 						return false;
 					}
                 }
