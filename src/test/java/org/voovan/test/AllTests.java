@@ -2,7 +2,6 @@ package org.voovan.test;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import org.voovan.test.db.JdbcOperatorUnit;
 import org.voovan.test.http.HttpClientUnit;
 import org.voovan.test.http.HttpParserUnit;
 import org.voovan.test.onlineComplier.ComplierUnit;

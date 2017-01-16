@@ -6,8 +6,6 @@ import org.voovan.network.IoSession;
 import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.log.Logger;
 
-import java.nio.ByteBuffer;
-
 public class ServerBenchHandlerTest implements IoHandler {
 
 	@Override

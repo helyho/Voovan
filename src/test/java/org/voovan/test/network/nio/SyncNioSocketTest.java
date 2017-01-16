@@ -1,12 +1,9 @@
 package org.voovan.test.network.nio;
 
-import org.voovan.Global;
 import org.voovan.network.filter.StringFilter;
 import org.voovan.network.messagesplitter.LineMessageSplitter;
 import org.voovan.network.nio.NioSocket;
 import org.voovan.tools.log.Logger;
-
-import java.io.IOException;
 
 public class SyncNioSocketTest {
 	
