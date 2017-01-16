@@ -1,6 +1,5 @@
 package org.voovan.network.nio;
 
-import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.SocketContext;

@@ -3,7 +3,6 @@ package org.voovan.network.aio;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.MessageLoader;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
