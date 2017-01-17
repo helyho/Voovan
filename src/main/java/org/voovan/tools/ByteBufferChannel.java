@@ -57,7 +57,7 @@ public class ByteBufferChannel {
 	 *     通道会被重置
 	 * @return ByteBuffer 对象
 	 */
-	public synchronized ByteBuffer getBuffer(){
+	public ByteBuffer getBuffer(){
 		ByteBuffer byteBuffer = ByteBuffer.wrap(Arrays.copyOfRange(buffer, 0, size));
 		reset();
 		return byteBuffer;
@@ -66,7 +66,7 @@ public class ByteBufferChannel {
 	/**
 	 * 重置通道
 	 */
-	public synchronized void reset(){
+	public void reset(){
 		size = 0;
 	}
 
@@ -75,7 +75,7 @@ public class ByteBufferChannel {
 	 * @param src 需要写入的缓冲区 ByteBuffer 对象
 	 * @return 读出的数据大小
 	 */
-	public synchronized int writeEnd(ByteBuffer src) {
+	public int writeEnd(ByteBuffer src) {
 		byte[] srcByte = src.array();
 		srcByte = Arrays.copyOfRange(srcByte, src.position(), src.limit());
 		int writeSize = srcByte.length;
@@ -94,7 +94,7 @@ public class ByteBufferChannel {
 	 * @param src 需要写入的缓冲区 ByteBuffer 对象
 	 * @return 读出的数据大小
 	 */
-	public synchronized int writeHead(ByteBuffer src) {
+	public int writeHead(ByteBuffer src) {
 		byte[] srcByte = src.array();
 		srcByte = Arrays.copyOfRange(srcByte, src.position(),src.limit());
 		int writeSize = srcByte.length;
@@ -116,7 +116,7 @@ public class ByteBufferChannel {
 	 * @param dst 需要读入数据的缓冲区ByteBuffer 对象
 	 * @return 读出的数据大小
 	 */
-	public synchronized int readHead(ByteBuffer dst) {
+	public int readHead(ByteBuffer dst) {
 		int readSize = 0;
 
 		//确定读取大小
@@ -146,7 +146,7 @@ public class ByteBufferChannel {
 	 * @param dst 需要读入数据的缓冲区ByteBuffer 对象
 	 * @return 读出的数据大小
 	 */
-	public synchronized int readEnd(ByteBuffer dst) {
+	public int readEnd(ByteBuffer dst) {
 		int readSize = 0;
 
 		//确定读取大小

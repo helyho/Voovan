@@ -156,9 +156,7 @@ public class AioSession extends IoSession {
 					} catch (InterruptedException | ExecutionException e) {
 						throw new IOException("Get send byte count error.", e);
 					}
-					while (!sendResult.isDone()) {
-						TEnv.sleep(1);
-					}
+
 				}catch(WritePendingException e){
 					continue;
 				}

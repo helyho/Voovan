@@ -255,7 +255,6 @@ public class EventProcess {
 				resultBuf.rewind();
 				//Event event = new Event(session, EventName.ON_SENT, resultBuf);
 				//触发发送事件
-				//EventProcess.process(event);
 				EventTrigger.fireSentThread(session, resultBuf);
 			}
 		}catch(IOException e){
