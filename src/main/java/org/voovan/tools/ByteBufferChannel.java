@@ -94,7 +94,7 @@ public class ByteBufferChannel {
 		int writeSize = src.limit() - src.position();
 
 		if(free() < writeSize) {
-			buffer = Arrays.copyOf(buffer, size + writeSize);
+			buffer = Arrays.copyOf(buffer, buffer.length + writeSize);
 		}
 
 		System.arraycopy(srcByte, src.position() , buffer , size, writeSize);
@@ -116,11 +116,11 @@ public class ByteBufferChannel {
 		int writeSize = src.limit() - src.position();
 
 		if (free() < writeSize) {
-			buffer = Arrays.copyOf(buffer, size + writeSize);
+			buffer = Arrays.copyOf(buffer, buffer.length + writeSize);
 		}
 
 		if (size != 0) {
-			System.arraycopy(buffer, 0, buffer, size, size);
+			System.arraycopy(buffer, 0, buffer, writeSize, size);
 		}
 
 		System.arraycopy(srcByte, src.position() , buffer , 0, writeSize);
