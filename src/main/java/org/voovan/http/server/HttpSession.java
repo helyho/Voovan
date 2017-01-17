@@ -20,19 +20,21 @@ public class HttpSession {
 	private String id ;
 	private int maxInactiveInterval;
 	private long lastTimeillis;
+	private SessionManager sessionManager;
 	
 	/**
 	 * 构造函数
 	 *
 	 * @param config  WEB服务配置对象
 	 */
-	public HttpSession(WebServerConfig config){
+	public HttpSession(WebServerConfig config, SessionManager sessionManager){
 		attributes = new ConcurrentHashMap<String, Object>();
 		//生成一个随机的 ID 用作唯一标识
 		this.id = UUID.randomUUID().toString().toUpperCase().replaceAll("-", "");
 		lastTimeillis = System.currentTimeMillis();
 		int sessionTimeout = config.getSessionTimeout();
 		this.maxInactiveInterval = sessionTimeout*60*1000;
+		this.sessionManager = sessionManager;
 		
 	}
 
@@ -72,6 +74,25 @@ public class HttpSession {
 		attributes.remove(name);
 	}
 
+	/**
+	 * 获取 Session 管理器
+	 * @return Session 管理器
+	 */
+	public SessionManager getSessionManager() {
+		return sessionManager;
+	}
+
+	/**
+	 * 设置Session 管理器
+	 * @param sessionManager Session 管理器
+	 */
+	public void setSessionManager(SessionManager sessionManager) {
+		this.sessionManager = sessionManager;
+	}
+
+	public void removeFromSessionManager(){
+		sessionManager.removeSession(this);
+	}
 
 	/**
 	 * 获取 Session ID
