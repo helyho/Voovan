@@ -40,7 +40,7 @@ public class ByteBufferChannelUnit extends TestCase {
 
 	public void test() throws IOException {
 		ByteBufferChannel byteBufferChannel1;
-		byteBufferChannel1 = new ByteBufferChannel();
+		byteBufferChannel1 = new ByteBufferChannel(2);
 		byteBufferChannel1.writeEnd(ByteBuffer.wrap("kkkkk".getBytes()));
 		byteBufferChannel1.writeEnd(ByteBuffer.wrap("fffff".getBytes()));
 		byteBufferChannel1.writeHead(ByteBuffer.wrap("bbbbb".getBytes()));
