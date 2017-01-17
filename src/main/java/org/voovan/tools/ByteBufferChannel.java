@@ -108,18 +108,21 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int writeHead(ByteBuffer src) {
-		if(src==null){
+		if (src == null) {
 			return -1;
 		}
 
 		byte[] srcByte = src.array();
 		int writeSize = src.limit() - src.position();
 
-		if(free() < writeSize) {
+		if (free() < writeSize) {
 			buffer = Arrays.copyOf(buffer, size + writeSize);
 		}
 
-		System.arraycopy(buffer, 0 , buffer , size, size);
+		if (size != 0) {
+			System.arraycopy(buffer, 0, buffer, size, size);
+		}
+
 		System.arraycopy(srcByte, src.position() , buffer , 0, writeSize);
 		size = size + writeSize;
 		return writeSize;
