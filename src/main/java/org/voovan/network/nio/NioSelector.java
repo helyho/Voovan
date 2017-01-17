@@ -83,7 +83,7 @@ public class NioSelector {
 									case SelectionKey.OP_READ: {
                                             int readSize = socketChannel.read(readTempBuffer);
 											//判断连接是否关闭
-											if(MessageLoader.isRemoteClosed(readSize,readTempBuffer) && session.isConnect()){
+											if(MessageLoader.isRemoteClosed(readTempBuffer, readSize) && session.isConnect()){
 												session.close();
 											}else if(readSize>0){
 												readTempBuffer.flip();
