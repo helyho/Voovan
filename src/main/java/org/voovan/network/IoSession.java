@@ -167,7 +167,7 @@ public abstract class IoSession {
 			if(readObject!=null) {
 				if(readObject instanceof Exception){
 						throw new ReadMessageException("Method synchronouRead error! Error by " +
-								((Exception) readObject).getClass().getSimpleName() + ".", (Exception) readObject);
+								((Exception) readObject).getClass().getSimpleName() + ". " + ((Exception) readObject).getMessage(), (Exception) readObject);
 				}
 				removeAttribute("SocketResponse");
 				break;
@@ -219,15 +219,20 @@ public abstract class IoSession {
 				if(read(netBuffer)!=0){
 					netDataBufferChannel.writeEnd(netBuffer);
 					ByteBuffer byteBuffer = netDataBufferChannel.getByteBuffer();
-					engineResult = sslParser.unwarpData(byteBuffer, appBuffer);
-					if(netDataBufferChannel.size() > 0) {
-						netDataBufferChannel.writeHead(byteBuffer);
-					}
+                    engineResult = sslParser.unwarpData(byteBuffer, appBuffer);
+                    if(byteBuffer.remaining() > 0) {
+                        netDataBufferChannel.writeHead(byteBuffer);
+                    }
+
 					appBuffer.flip();
 					appDataBufferChannel.writeEnd(appBuffer);
 				}
+				TEnv.sleep(1);
 			}while(engineResult!=null && engineResult.getStatus() != Status.OK);
 			readSize = appDataBufferChannel.readHead(buffer);
+			if(netDataBufferChannel.size() > 0 ) {
+				getByteBufferChannel().writeHead(netDataBufferChannel.getByteBuffer());
+			}
 		}
 		return readSize;
 	}

@@ -146,8 +146,10 @@ public class SSLParser {
 					engineResult = unwarpData(byteBuffer,appData);
 					//如果有 HandShake Task 则执行
 					handshakeStatus = runDelegatedTasks();
-					netDataChannel.writeHead(byteBuffer);
-
+					if(byteBuffer.remaining() > 0 ) {
+						netDataChannel.writeHead(byteBuffer);
+					}
+					TEnv.sleep(1);
 				}while(engineResult!=null && engineResult.getStatus()==Status.OK &&
 						netDataChannel.size()!=0 );
 				if( netDataChannel.size() > 0) {
