@@ -169,9 +169,7 @@ public class AioSocket extends SocketContext {
 
 	@Override
 	public boolean isConnect() {
-		synchronized (socketChannel) {
-			return socketChannel.isOpen();
-		}
+        return socketChannel.isOpen();
 	}
 
 	/**

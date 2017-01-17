@@ -23,6 +23,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 public class AioServerSocket extends SocketContext{
 
 	private AsynchronousServerSocketChannel serverSocketChannel;
+	private AcceptCompletionHandler acceptCompletionHandler;
 
 	/**
 	 * 构造函数
@@ -35,6 +36,7 @@ public class AioServerSocket extends SocketContext{
 		super(host, port, readTimeout);
 		AsynchronousChannelGroup asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(Global.getThreadPool());
 		serverSocketChannel = AsynchronousServerSocketChannel.open(asynchronousChannelGroup);
+		acceptCompletionHandler = new AcceptCompletionHandler();
 	}
 
 	/**
@@ -50,7 +52,7 @@ public class AioServerSocket extends SocketContext{
 	 * 捕获 Aio Accept 事件
 	 */
 	protected void catchAccept(){
-		serverSocketChannel.accept(this, new AcceptCompletionHandler());
+		serverSocketChannel.accept(this, acceptCompletionHandler);
 	}
 	
 	@Override
