@@ -7,7 +7,7 @@
   "MatchRouteIgnoreCase"   : false,                     // 匹配路由不区分大小写,默认是 false
   "CharacterSet"           : "GB2312",                 // 默认字符集,默认 UTF-8
   "SessionContainer"       : "java.util.Hashtable",    // Session 容器类,默认java.util.Hashtable
-  "SessionTimeout"         : 30,                       // Session 会话超时时间(m),默认30分钟
+  "SessionTimeout"         : 0,                       // Session 会话超时时间(m),默认30分钟, 配置成0 ,为不创建 session
   "KeepAliveTimeout"       : 600,                       // KeepAlive 超时时间(s),默认60秒,如果值小于0则不启用 KeepAlive 设置 (该参数同样会被应用到 WebSocket 的连接保持上)
   "Gzip"                   : false,                    // 是否启用Gzip压缩,默认 true
   "AccessLog"              : false,                     // 是否记录access.log,默认 true
