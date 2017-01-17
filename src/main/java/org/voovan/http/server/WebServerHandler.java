@@ -100,6 +100,14 @@ public class WebServerHandler implements IoHandler {
 
 	@Override
 	public void onDisconnect(IoSession session) {
+		//清理 IoSession
+		keepAliveSessionList.remove(session);
+
+		//清理 HttpSession
+		HttpRequest httpRequest = TObject.cast(session.getAttribute("HttpRequest"));
+		if(httpRequest!=null) {
+			httpRequest.getSession().removeFromSessionManager();
+		}
 	}
 
 	@Override
@@ -156,6 +164,8 @@ public class WebServerHandler implements IoHandler {
 
 		// 处理响应请求
 		httpDispatcher.process(httpRequest, httpResponse);
+		session.setAttribute("HttpRequest",httpRequest);
+		session.setAttribute("HttpResponse",httpResponse);
 
 		//如果是长连接则填充响应报文
 		if (httpRequest.header().contain("Connection")
@@ -257,7 +267,8 @@ public class WebServerHandler implements IoHandler {
 		if(session.containAttribute("IsClose") && (boolean) session.getAttribute("IsClose")){
 			session.close();
 		}
-		else if (session.containAttribute("IsKeepAlive") && (boolean) session.getAttribute("IsKeepAlive")
+		else if (session.containAttribute("IsKeepAlive")
+				&& (boolean) session.getAttribute("IsKeepAlive")
 					&& webConfig.getKeepAliveTimeout() > 0) {
 			if(!keepAliveSessionList.contains(session)){
 				keepAliveSessionList.add(session);

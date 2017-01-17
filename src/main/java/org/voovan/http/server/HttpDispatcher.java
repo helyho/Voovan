@@ -44,6 +44,7 @@ public class HttpDispatcher {
 	private SessionManager sessionManager;
 	private MimeFileRouter mimeFileRouter;
 	private String[] indexFiles;
+
 	/**
 	 * 构造函数
 	 * 
@@ -280,22 +281,20 @@ public class HttpDispatcher {
 		//获取请求的 Cookie中的session标识
 		Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
 
-		if( WebContext.getWebServerConfig().getSessionTimeout() > 0 ){
-            //如果 session 不存在,创建新的 session
-            if (!sessionManager.containsSession(sessionCookie)) {
-                // 构建 session
-                HttpSession session = sessionManager.newHttpSession(request, response);
+        //如果 session 不存在,创建新的 session
+        if (!sessionManager.containsSession(sessionCookie)) {
+            // 构建 session
+            HttpSession httpSession = sessionManager.newHttpSession(request, response);
 
-                // 请求增加 Session
-                request.setSession(session);
-            } else {
-                // 通过 Cookie 中的 session 标识获取 Session
-                HttpSession session = sessionManager.getSession(sessionCookie.getValue());
+            // 请求增加 Session
+            request.setSession(httpSession);
+        } else {
+            // 通过 Cookie 中的 session 标识获取 Session
+            HttpSession httpSession = sessionManager.getSession(sessionCookie.getValue());
 
-                // 请求增加 Session
-                request.setSession(session);
-            }
-		}
+            // 请求增加 Session
+            request.setSession(httpSession);
+        }
 	}
 
 	/**
