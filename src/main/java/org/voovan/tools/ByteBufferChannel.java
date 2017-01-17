@@ -86,16 +86,19 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int writeEnd(ByteBuffer src) {
+		if(src==null){
+			return -1;
+		}
+
 		byte[] srcByte = src.array();
-		srcByte = Arrays.copyOfRange(srcByte, src.position(), src.limit());
-		int writeSize = srcByte.length;
+		int writeSize = src.limit() - src.position();
 
 		if(free() < writeSize) {
 			buffer = Arrays.copyOf(buffer, size + writeSize);
 		}
 
-		System.arraycopy(srcByte, 0 , buffer , size, srcByte.length);
-		size = size + srcByte.length;
+		System.arraycopy(srcByte, src.position() , buffer , size, writeSize);
+		size = size + writeSize;
 		return writeSize;
 	}
 
@@ -105,19 +108,20 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int writeHead(ByteBuffer src) {
+		if(src==null){
+			return -1;
+		}
+
 		byte[] srcByte = src.array();
-		srcByte = Arrays.copyOfRange(srcByte, src.position(),src.limit());
-		int writeSize = srcByte.length;
+		int writeSize = src.limit() - src.position();
 
 		if(free() < writeSize) {
 			buffer = Arrays.copyOf(buffer, size + writeSize);
 		}
 
-		byte[] data = Arrays.copyOfRange(buffer, 0, size);
-
-		System.arraycopy(srcByte, 0 , buffer , 0, writeSize);
-		System.arraycopy(data, 0 , buffer , writeSize, size);
-		size = size + srcByte.length;
+		System.arraycopy(buffer, 0 , buffer , size, size);
+		System.arraycopy(srcByte, src.position() , buffer , 0, writeSize);
+		size = size + writeSize;
 		return writeSize;
 	}
 
@@ -127,6 +131,10 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int readHead(ByteBuffer dst) {
+		if(dst==null){
+			return -1;
+		}
+
 		int readSize = 0;
 
 		//确定读取大小
@@ -137,13 +145,12 @@ public class ByteBufferChannel {
 		}
 
 		if(readSize!=0) {
-
-			byte[] readBuffer = Arrays.copyOfRange(buffer, 0, readSize);
-			dst.put(readBuffer);
+			System.arraycopy(buffer, 0, dst.array(), 0, readSize);
 
 			size = size - readSize;
 
 			System.arraycopy(buffer, readSize, buffer, 0, size);
+			dst.position(readSize);
 		}
 
 		dst.flip();
@@ -157,6 +164,10 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int readEnd(ByteBuffer dst) {
+		if(dst==null){
+			return -1;
+		}
+
 		int readSize = 0;
 
 		//确定读取大小
@@ -168,10 +179,10 @@ public class ByteBufferChannel {
 
 		if(readSize!=0) {
 
-			byte[] readBuffer = Arrays.copyOfRange(buffer, size - readSize, size);
-			dst.put(readBuffer);
-
 			size = size - readSize;
+
+			System.arraycopy(buffer, size, dst.array(), 0, readSize);
+			dst.position(readSize);
 
 			System.arraycopy(buffer, 0, buffer, 0, size);
 
