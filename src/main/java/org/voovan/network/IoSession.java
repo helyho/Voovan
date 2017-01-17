@@ -218,7 +218,7 @@ public abstract class IoSession {
 				appBuffer.clear();
 				if(read(netBuffer)!=0){
 					netDataBufferChannel.writeEnd(netBuffer);
-					ByteBuffer byteBuffer = netDataBufferChannel.getBuffer();
+					ByteBuffer byteBuffer = netDataBufferChannel.getByteBuffer();
 					engineResult = sslParser.unwarpData(byteBuffer, appBuffer);
 					netDataBufferChannel.writeHead(byteBuffer);
 					appBuffer.flip();

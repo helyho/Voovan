@@ -9,6 +9,7 @@ import org.voovan.tools.log.Logger;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 
 /**
@@ -23,7 +24,7 @@ import java.nio.ByteBuffer;
 public class MessageLoader {
 	private IoSession session;
 	private StopType stopType;
-	private ByteArrayOutputStream byteOutputStream;
+	private ByteBufferChannel byteBufferChannel;
 	private boolean isDirectRead;
 	private int readZeroCount = 0;
 	private int splitLength;
@@ -36,7 +37,7 @@ public class MessageLoader {
 		stopType = StopType.RUNNING;
 		isDirectRead = false;
 		//准备缓冲流
-		byteOutputStream = new ByteArrayOutputStream();
+		byteBufferChannel = session.getByteBufferChannel();
 	}
 
 	/**
@@ -77,12 +78,12 @@ public class MessageLoader {
 
 	/**
 	 * 判断连接是否意外断开
-	 * @param length  长度
 	 * @param buffer  缓冲区
+	 * @param length  长度
 	 * @return 是否意外断开
 	 * @throws SocketDisconnectByRemote  Socket 断开异常
 	 */
-	public static boolean isRemoteClosed(Integer length,  ByteBuffer buffer) throws SocketDisconnectByRemote{
+	public static boolean isRemoteClosed(ByteBuffer buffer, Integer length) throws SocketDisconnectByRemote{
 		if(length==-1){
 			//触发 disconnect 事件
 			return true;
@@ -97,6 +98,29 @@ public class MessageLoader {
 		
 	   return false;
 	}
+
+	/**
+	 * 判断连接是否意外断开
+	 * @param buffer  缓冲区
+	 * @param length  长度
+	 * @return 是否意外断开
+	 * @throws SocketDisconnectByRemote  Socket 断开异常
+	 */
+	public static boolean isRemoteClosed(byte[] buffer, Integer length) throws SocketDisconnectByRemote{
+		if(length==-1){
+			//触发 disconnect 事件
+			return true;
+		}
+		//如果 buffer 被冲满,且起始、中位、结束的字节都是结束符(Ascii=4)则连接意外结束
+		if(length>2
+				&& buffer[0]==4 //起始判断
+				&& buffer[length/2]==4 //中位判断
+				&& buffer[length-1]==4){ //结束判断
+			return true;
+		}
+
+		return false;
+	}
 	
 	/**
 	 * 读取 socket 中的数据
@@ -109,6 +133,15 @@ public class MessageLoader {
 	public ByteBuffer read() throws IOException {
 
 		ByteBuffer result = null;
+		int oldByteChannelSize = 0;
+
+		ByteBufferChannel dataByteBuffer = null;
+
+		if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
+			dataByteBuffer = new ByteBufferChannel(session.sockContext().getBufferSize());
+		}else{
+			dataByteBuffer = session.getByteBufferChannel();
+		}
 
 		stopType = StopType.RUNNING;
 
@@ -124,9 +157,6 @@ public class MessageLoader {
 			return null;
 		}
 
-		//缓冲区字段,一次读1024个字节
-		ByteBuffer tmpByteBuffer = ByteBuffer.allocate(session.sockContext().getBufferSize());
-
 		while (stopType==StopType.RUNNING && !isDirectRead) {
 
 			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
@@ -134,35 +164,29 @@ public class MessageLoader {
 				stopType = StopType.SOCKET_CLOSE;
 			}
 
-			tmpByteBuffer.clear();
-			int readsize = 0;
+			int readsize = byteBufferChannel.size() - oldByteChannelSize;
 
 			//读出数据
-			if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone){
-				readsize = session.readSSLData(tmpByteBuffer);
-			}else{
-				readsize = session.read(tmpByteBuffer);
-			}
+//			if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone){
+//				readsize = session.readSSLData(tmpByteBuffer);
+//			}else{
+//				readsize = session.read(tmpByteBuffer);
+//			}
 
-			//通道关闭,退出循环
-			if(readsize==-1){
-				stopType = StopType.STREAM_END;
-			}
-
-			//将读出的数据写入缓冲区
-			if(readsize > 0 ) {
-				readZeroCount = 0;
-				byteOutputStream.write(TByteBuffer.toArray(tmpByteBuffer),0,readsize);
+			if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
+				ByteBuffer sslData = ByteBuffer.wrap(byteBufferChannel.array());
+				session.readSSLData(sslData);
+				dataByteBuffer.writeEnd(sslData);
 			}
 
 			//判断连接是否关闭
-			if (isRemoteClosed(readsize,tmpByteBuffer)) {
+			if (isRemoteClosed(ByteBuffer.wrap(dataByteBuffer.array()), dataByteBuffer.size())) {
 				stopType = StopType.REMOTE_DISCONNECT;
 			}
 
 			//使用消息划分器进行消息划分
 			if(readsize==0) {
-				splitLength = messageSplitter.canSplite(session, byteOutputStream.toByteArray());
+				splitLength = messageSplitter.canSplite(session,  dataByteBuffer.array());
 				if (splitLength > 0) {
 					stopType = StopType.MSG_SPLITTER ;
 				}
@@ -177,34 +201,16 @@ public class MessageLoader {
 					TEnv.sleep(1);
 				}
 			}
+
+			oldByteChannelSize = byteBufferChannel.size();
 		}
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		if(stopType==StopType.MSG_SPLITTER) {
-			byte[] tempBytebuff = byteOutputStream.toByteArray();
-			result = ByteBuffer.wrap(tempBytebuff,0,splitLength);
-			byteOutputStream.reset();
-			if(splitLength < tempBytebuff.length) {
-				byteOutputStream.write(tempBytebuff, splitLength + 1, tempBytebuff.length-(splitLength + 1));
-			}
-		}
-
-        //不是消息截断器截断的消息放在Session缓冲区中,等待直接读取流的形式读取
-        //由于数据是从Session缓冲区中读取的,所以这里写到缓冲区的头部
-        ByteBufferChannel sessionByteBufferChannel = session.getByteBufferChannel();
-		if(sessionByteBufferChannel.size()!=0) {
-			//ByteBuffer byteBufferInSession = ByteBuffer.wrap(sessionByteBufferChannel.getBuffer().array());
-			//sessionByteBufferChannel.reset();
-			//sessionByteBufferChannel.write(ByteBuffer.wrap(byteOutputStream.toByteArray()));
-			//sessionByteBufferChannel.write(byteBufferInSession);
-			sessionByteBufferChannel.writeHead(ByteBuffer.wrap(byteOutputStream.toByteArray()));
+			result = ByteBuffer.allocate(splitLength);
+			dataByteBuffer.readHead(result);
+		} else {
 			result = ByteBuffer.allocate(0);
-		}
-
-
-
-		if(stopType == stopType.SOCKET_CLOSE || stopType == StopType.REMOTE_DISCONNECT) {
-			byteOutputStream.close();
 		}
 
 		return result;
@@ -215,9 +221,16 @@ public class MessageLoader {
 	 * @return 字节缓冲对象ByteBuffer
 	 */
 	public synchronized ByteBuffer directRead() throws IOException {
+		ByteBuffer data = null;
 
-        ByteBuffer data = ByteBuffer.allocate(session.sockContext().getBufferSize());
-        session.getByteBufferChannel().readHead(data);
+		if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
+			ByteBuffer sslData = ByteBuffer.wrap(byteBufferChannel.array());
+			session.readSSLData(sslData);
+			data = sslData;
+		}else {
+			data = ByteBuffer.allocate(session.sockContext().getBufferSize());
+			session.getByteBufferChannel().readHead(data);
+		}
         if(!data.hasRemaining() && !session.isConnect()){
             return null;
         }

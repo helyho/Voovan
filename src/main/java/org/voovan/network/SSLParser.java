@@ -142,7 +142,7 @@ public class SSLParser {
 				session.read(netData);
 				netDataChannel.writeEnd(netData);
 				do{
-					ByteBuffer byteBuffer = netDataChannel.getBuffer();
+					ByteBuffer byteBuffer = netDataChannel.getByteBuffer();
 					engineResult = unwarpData(byteBuffer,appData);
 					//如果有 HandShake Task 则执行
 					handshakeStatus = runDelegatedTasks();
@@ -151,7 +151,7 @@ public class SSLParser {
 				}while(engineResult!=null && engineResult.getStatus()==Status.OK &&
 						netDataChannel.size()!=0 );
 				if( netDataChannel.size()!=0) {
-					session.getByteBufferChannel().writeHead(netDataChannel.getBuffer());
+					session.getByteBufferChannel().writeHead(netDataChannel.getByteBuffer());
 				}
 				//Logger.simple("reWrite"+byteBuffer.limit());
 			}while(engineResult!=null && engineResult.getStatus()!=Status.OK);

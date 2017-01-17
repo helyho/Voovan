@@ -91,7 +91,7 @@ public class UdpSelector {
                                         }
 
                                             //判断连接是否关闭
-                                        if (MessageLoader.isRemoteClosed(readSize, readTempBuffer) && clientSession.isConnect()) {
+                                        if (MessageLoader.isRemoteClosed(readTempBuffer, readSize) && clientSession.isConnect()) {
                                             clientSession.close();
                                             break;
                                         } else if (readSize > 0) {
