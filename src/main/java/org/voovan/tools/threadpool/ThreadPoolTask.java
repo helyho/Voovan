@@ -1,5 +1,6 @@
 package org.voovan.tools.threadpool;
 
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
@@ -38,11 +39,12 @@ public class ThreadPoolTask extends TimerTask {
 		}
 		
 //		String threadPoolInfo = "PoolInfo:" + threadPoolInstance.getActiveCount() + "/" + threadPoolInstance.getCorePoolSize() + "/"
-//				+ threadPoolInstance.getLargestPoolSize() + " TaskCount: " + threadPoolInstance.getCompletedTaskCount() + "/"
+//				+ threadPoolInstance.getLargestPoolSize()+ "/" + threadPoolInstance.getMaximumPoolSize() + " TaskCount: "
+//				+ threadPoolInstance.getCompletedTaskCount() + "/"
 //				+ threadPoolInstance.getTaskCount() + " QueueSize:" + threadPoolInstance.getQueue().size() + " PerCoreLoadAvg:"
 //				+ TPerformance.cpuPerCoreLoadAvg();
 //		if (threadPoolInstance.getActiveCount() != 0) {
-//			Logger.simple(TDateTime.now() + " ShutDown:" + threadPoolInstance.isShutdown() + " " + threadPoolInfo);
+//			System.out.println(TDateTime.now() + " ShutDown:" + threadPoolInstance.isShutdown() + " " + threadPoolInfo);
 //		}
 
 		int poolSize = threadPoolInstance.getPoolSize();
@@ -50,7 +52,7 @@ public class ThreadPoolTask extends TimerTask {
 		if (threadPoolInstance.getQueue().size() > 0 &&
 				poolSize < cpuCoreCount * 50 &&
 				TPerformance.cpuPerCoreLoadAvg() < 1) {
-			threadPoolInstance.setCorePoolSize(threadPoolInstance.getPoolSize() + poolSize / 2);
+			threadPoolInstance.setCorePoolSize(threadPoolInstance.getPoolSize() + poolSize);
 			Logger.debug("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
 		}
 
