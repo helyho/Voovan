@@ -85,7 +85,7 @@ public class ByteBufferChannel {
 	 * @param src 需要写入的缓冲区 ByteBuffer 对象
 	 * @return 读出的数据大小
 	 */
-	public int writeEnd(ByteBuffer src) {
+	public synchronized int writeEnd(ByteBuffer src) {
 		if(src==null){
 			return -1;
 		}
@@ -107,7 +107,7 @@ public class ByteBufferChannel {
 	 * @param src 需要写入的缓冲区 ByteBuffer 对象
 	 * @return 读出的数据大小
 	 */
-	public int writeHead(ByteBuffer src) {
+	public synchronized int writeHead(ByteBuffer src) {
 		if (src == null) {
 			return -1;
 		}
@@ -133,7 +133,7 @@ public class ByteBufferChannel {
 	 * @param dst 需要读入数据的缓冲区ByteBuffer 对象
 	 * @return 读出的数据大小
 	 */
-	public int readHead(ByteBuffer dst) {
+	public synchronized int readHead(ByteBuffer dst) {
 		if(dst==null){
 			return -1;
 		}
@@ -166,7 +166,7 @@ public class ByteBufferChannel {
 	 * @param dst 需要读入数据的缓冲区ByteBuffer 对象
 	 * @return 读出的数据大小
 	 */
-	public int readEnd(ByteBuffer dst) {
+	public synchronized int readEnd(ByteBuffer dst) {
 		if(dst==null){
 			return -1;
 		}
