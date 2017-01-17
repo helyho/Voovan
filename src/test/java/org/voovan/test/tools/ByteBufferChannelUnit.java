@@ -45,7 +45,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		byteBufferChannel1.writeEnd(ByteBuffer.wrap("fffff".getBytes()));
 		byteBufferChannel1.writeHead(ByteBuffer.wrap("bbbbb".getBytes()));
 		byteBufferChannel1.writeEnd(ByteBuffer.wrap("eeeee".getBytes()));
-		Logger.simple(new String(TByteBuffer.toArray(byteBufferChannel1.getByteBuffer())));
+		Logger.simple(new String(byteBufferChannel1.array()));
 
 
 		ByteBuffer xxx = ByteBuffer.allocate(5);

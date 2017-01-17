@@ -9,7 +9,7 @@ import org.voovan.tools.log.Logger;
 public class AioSocketTest {
 	
 	public static void main(String[] args) throws Exception {
-		AioSocket socket = new AioSocket("127.0.0.1",2031,300);
+		AioSocket socket = new AioSocket("127.0.0.1",2031,5000);
 		socket.handler(new ClientHandlerTest());
 		socket.filterChain().add(new StringFilter());
 		socket.messageSplitter(new LineMessageSplitter());

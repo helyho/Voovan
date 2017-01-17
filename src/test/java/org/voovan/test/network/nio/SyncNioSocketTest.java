@@ -8,7 +8,7 @@ import org.voovan.tools.log.Logger;
 public class SyncNioSocketTest {
 	
 	public static void main(String[] args) throws Exception {
-		NioSocket socket = new NioSocket("127.0.0.1",2031,30000);
+		NioSocket socket = new NioSocket("127.0.0.1",2031,5000);
 		socket.filterChain().add(new StringFilter());
 		socket.messageSplitter(new LineMessageSplitter());
 	    socket.syncStart();
