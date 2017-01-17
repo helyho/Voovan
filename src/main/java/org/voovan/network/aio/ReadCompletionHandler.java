@@ -36,7 +36,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 	public void completed(Integer length, ByteBuffer buffer) {
 		try {
 			// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
-			if (MessageLoader.isRemoteClosed(length, buffer) && session.isConnect()) {
+			if (MessageLoader.isRemoteClosed(buffer, length) && session.isConnect()) {
 				session.close();
 			} else {
 				buffer.flip();

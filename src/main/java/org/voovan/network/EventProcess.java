@@ -100,7 +100,7 @@ public class EventProcess {
 		SocketContext socketContext = event.getSession().sockContext();
 		IoSession session = event.getSession();
 		if (socketContext != null && session != null) {
-			ByteBuffer byteBuffer = ByteBuffer.allocate(1);
+			ByteBuffer byteBuffer = null;
 			
 			// 循环读取完整的消息包.
 			// 由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.

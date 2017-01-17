@@ -53,12 +53,22 @@ public class ByteBufferChannel {
 	}
 
 	/**
+	 * 获取缓冲区有效字节数组
+	 *        返回 0->size 的有效数据
+	 * @return 缓冲区有效字节数组
+	 */
+	public byte[] array(){
+		return Arrays.copyOfRange(buffer, 0, size);
+	}
+
+	/**
 	 * 获取缓冲区
+	 *     返回 0->size 的有效数据
 	 *     通道会被重置
 	 * @return ByteBuffer 对象
 	 */
-	public ByteBuffer getBuffer(){
-		ByteBuffer byteBuffer = ByteBuffer.wrap(Arrays.copyOfRange(buffer, 0, size));
+	public ByteBuffer getByteBuffer(){
+		ByteBuffer byteBuffer = ByteBuffer.wrap(array());
 		reset();
 		return byteBuffer;
 	}
