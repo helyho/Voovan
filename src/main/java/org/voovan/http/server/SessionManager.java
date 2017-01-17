@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class SessionManager{
-	private  Map<String, HttpSession>	sessions;
+	private  Map<String, HttpSession>	httpSessions;
 	private WebServerConfig webConfig;
 	
 	/**
@@ -30,9 +30,9 @@ public class SessionManager{
 	 */
 	public SessionManager(WebServerConfig webConfig){
 		this.webConfig = webConfig;
-		sessions = getSessionContainer();
-		if(sessions == null){
-			sessions = new ConcurrentHashMap<String, HttpSession>();
+		httpSessions = getSessionContainer();
+		if(httpSessions == null){
+			httpSessions = new ConcurrentHashMap<String, HttpSession>();
 			Logger.warn("Create session container from config file failed,now use defaul session container.");
 		}
 	}
@@ -43,8 +43,8 @@ public class SessionManager{
 	 * @return Session 容器 Map
 	 */
 	public Map<String, HttpSession> getSessionContainer(){
-		if(sessions!=null){
-			return sessions;
+		if(httpSessions!=null){
+			return httpSessions;
 		}else{
 			try {
 				String sessionContainerClassName = webConfig.getSessionContainer();
@@ -63,11 +63,9 @@ public class SessionManager{
 	 * @param session HTTP-Session对象
 	 */
 	public void addSession(HttpSession session) {
-		synchronized(sessions){
-			if (!sessions.containsKey(session.getId())) {
-				sessions.put(session.getId(), session);
-			}
-		}
+        if (!httpSessions.containsKey(session.getId())) {
+            httpSessions.put(session.getId(), session);
+        }
 	}
 
 	/**
@@ -77,9 +75,12 @@ public class SessionManager{
 	 * @return HTTP-Session对象
 	 */
 	public HttpSession getSession(String id) {
-        clearInvalidSession();
-        if (id!=null && sessions.containsKey(id)) {
-            return sessions.get(id).refresh();
+        if (id!=null && httpSessions.containsKey(id)) {
+			HttpSession httpSession = httpSessions.get(id).refresh();
+			if(httpSession.isInvalid()){
+				httpSession.removeFromSessionManager();
+			}
+			return httpSession;
         }
         return null;
 	}
@@ -91,9 +92,12 @@ public class SessionManager{
 	 * @return HTTP-Session对象
 	 */
 	public HttpSession getSession(Cookie cookie) {
-        clearInvalidSession();
-        if (cookie!=null && sessions.containsKey(cookie.getValue())) {
-            return sessions.get(cookie.getValue()).refresh();
+        if (cookie!=null && httpSessions.containsKey(cookie.getValue())) {
+			HttpSession httpSession = httpSessions.get(cookie.getValue()).refresh();
+			if(httpSession.isInvalid()){
+				httpSession.removeFromSessionManager();
+			}
+            return httpSession;
         }
         return null;
 	}
@@ -110,32 +114,9 @@ public class SessionManager{
             return getSession(cookie) != null;
         }
 	}
-	
-	/**
-	 * 获取失效的 session
-	 *
-	 * @return session 失效时间
-	 */
-	public List<HttpSession> getInvalidSession() {
-        List<HttpSession> needRemove = new ArrayList<HttpSession>();
-        for (HttpSession session : sessions.values()) {
-            if (session.isInvalid()) {
-                needRemove.add(session);
-            }
-        }
-        return needRemove;
-	}
-	
-	/**
-	 * 清理失效的 session
-	 */
-	public void clearInvalidSession() {
-        List<HttpSession> needRemove = getInvalidSession();
-		synchronized(sessions){
-			for(HttpSession session : needRemove){
-				sessions.remove(session.getId());
-			}
-		}
+
+	public void removeSession(HttpSession seesion){
+		httpSessions.remove(seesion.getId());
 	}
 	
 	/**
@@ -145,7 +126,7 @@ public class SessionManager{
 	 * @return HTTP-Session对象
 	 */
 	public HttpSession newHttpSession(HttpRequest request,HttpResponse response){
-		HttpSession session  = new HttpSession(webConfig);
+		HttpSession session  = new HttpSession(webConfig, this);
 		
 		this.addSession(session);
 		
