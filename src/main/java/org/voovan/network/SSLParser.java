@@ -150,7 +150,7 @@ public class SSLParser {
 
 				}while(engineResult!=null && engineResult.getStatus()==Status.OK &&
 						netDataChannel.size()!=0 );
-				if( netDataChannel.size()!=0) {
+				if( netDataChannel.size() > 0) {
 					session.getByteBufferChannel().writeHead(netDataChannel.getByteBuffer());
 				}
 				//Logger.simple("reWrite"+byteBuffer.limit());
