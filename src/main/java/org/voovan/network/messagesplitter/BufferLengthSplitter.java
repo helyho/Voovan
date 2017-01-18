@@ -3,6 +3,8 @@ package org.voovan.network.messagesplitter;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 
+import java.nio.ByteBuffer;
+
 /**
  * 按定长对消息分割
  * 		超过指定长度也会分割
@@ -20,8 +22,8 @@ public class BufferLengthSplitter implements MessageSplitter {
 	}
 
 	@Override
-	public int canSplite(IoSession session, byte[] buffer) {
-		if(buffer.length>=bufferLength){
+	public int canSplite(IoSession session, ByteBuffer byteBuffer) {
+		if(byteBuffer.limit()>=bufferLength){
 			return bufferLength;
 		}else{
 			return -1;
