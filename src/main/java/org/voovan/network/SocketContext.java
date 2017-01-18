@@ -176,7 +176,14 @@ public abstract class SocketContext {
 	 * 上下文连接是否打开
 	 * @return true:连接打开,false:连接关闭
 	 */
-	public abstract boolean isConnect();
+	public abstract boolean isOpen();
+
+
+	/**
+	 * 上下文连接是否连接
+	 * @return true:连接,false:断开
+	 */
+	public abstract boolean isConnected();
 	
 	/**
 	 * 关闭连接

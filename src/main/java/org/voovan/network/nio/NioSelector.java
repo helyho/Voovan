@@ -57,7 +57,7 @@ public class NioSelector {
 		
 		// 事件循环
 		try {
-			while (socketContext != null && socketContext.isConnect()) {
+			while (socketContext != null && socketContext.isConnected()) {
 				if (selector.select(1000) > 0) {
 					Set<SelectionKey> selectionKeys = selector.selectedKeys();
 					Iterator<SelectionKey> selectionKeyIterator = selectionKeys
@@ -83,7 +83,7 @@ public class NioSelector {
 									case SelectionKey.OP_READ: {
                                             int readSize = socketChannel.read(readTempBuffer);
 											//判断连接是否关闭
-											if(MessageLoader.isRemoteClosed(readTempBuffer, readSize) && session.isConnect()){
+											if(MessageLoader.isRemoteClosed(readTempBuffer, readSize) && session.isConnected()){
 												session.close();
 											}else if(readSize>0){
 												readTempBuffer.flip();

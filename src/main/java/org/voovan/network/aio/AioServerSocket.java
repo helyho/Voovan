@@ -62,14 +62,27 @@ public class AioServerSocket extends SocketContext{
 		catchAccept();
 		
 		//等待ServerSocketChannel关闭,结束进程
-		while(isConnect()) {
+		while(isConnected()) {
 			TEnv.sleep(1);
 		}
 	}
 
 	@Override
-	public boolean isConnect() {
-		return serverSocketChannel.isOpen();
+	public boolean isOpen() {
+		if(serverSocketChannel!=null) {
+			return serverSocketChannel.isOpen();
+		}else{
+			return false;
+		}
+	}
+
+	@Override
+	public boolean isConnected() {
+		if(serverSocketChannel!=null) {
+			return serverSocketChannel.isOpen();
+		}else{
+			return false;
+		}
 	}
 	
 	@Override

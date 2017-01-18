@@ -145,9 +145,9 @@ public class NioSession extends IoSession {
 	@Override
 	public int send(ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
-		if (isConnect() && buffer != null) {
+		if (isConnected() && buffer != null) {
 			//循环发送直到全不内容发送完毕
-			while(isConnect() && buffer.remaining()!=0){
+			while(isConnected() && buffer.remaining()!=0){
 				totalSendByte+=socketChannel.write(buffer);
 			}
 		}
@@ -194,8 +194,18 @@ public class NioSession extends IoSession {
 	 * @return true: 打开,false: 关闭
 	 */
 	@Override
-	public boolean isConnect() {
-		return socket.isConnect();
+	public boolean isConnected() {
+		return socket.isConnected();
+	}
+
+	/**
+	 * 会话是否打开
+	 *
+	 * @return true: 打开,false: 关闭
+	 */
+	@Override
+	public boolean isOpen() {
+		return socket.isOpen();
 	}
 
 	/**
