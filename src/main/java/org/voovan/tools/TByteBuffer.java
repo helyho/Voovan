@@ -3,7 +3,9 @@ package org.voovan.tools;
 import org.voovan.tools.log.Logger;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * ByteBuffer 工具类
@@ -30,7 +32,7 @@ public class TByteBuffer {
             bytebuffer.position(oldPosition);
             return buffers;
         }else{
-            return bytebuffer.array();
+            return Arrays.copyOfRange(bytebuffer.array(), bytebuffer.position(), bytebuffer.limit());
         }
     }
 
