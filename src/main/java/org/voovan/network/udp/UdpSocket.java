@@ -148,7 +148,7 @@ public class UdpSocket extends SocketContext{
     @Override
     public boolean isConnect() {
         if(datagramChannel!=null){
-            return datagramChannel.isConnected();
+            return datagramChannel.isOpen();
         }else{
             return false;
         }
