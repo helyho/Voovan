@@ -5,7 +5,6 @@ import org.voovan.network.MessageLoader;
 import org.voovan.network.MessageSplitter;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -61,7 +60,7 @@ public class AioSession extends IoSession {
 
 	@Override
 	public String loaclAddress() {
-		if (this.isConnect()) {
+		if (this.isConnected()) {
 			try {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getLocalAddress());
 				return socketAddress.getHostName();
@@ -76,7 +75,7 @@ public class AioSession extends IoSession {
 
 	@Override
 	public int loaclPort() {
-		if (this.isConnect()) {
+		if (this.isConnected()) {
 			try {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getLocalAddress());
 				return socketAddress.getPort();
@@ -91,7 +90,7 @@ public class AioSession extends IoSession {
 
 	@Override
 	public String remoteAddress() {
-		if (this.isConnect()) {
+		if (this.isConnected()) {
 			try {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getRemoteAddress());
 				return socketAddress.getHostString();
@@ -106,7 +105,7 @@ public class AioSession extends IoSession {
 
 	@Override
 	public int remotePort() {
-		if (this.isConnect()) {
+		if (this.isConnected()) {
 			try {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getRemoteAddress());
 				return socketAddress.getPort();
@@ -142,9 +141,9 @@ public class AioSession extends IoSession {
 	@Override
 	public int send(ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
-		if (isConnect() && buffer != null) {
+		if (isConnected() && buffer != null) {
 			//循环发送直到全不内容发送完毕
-			while(isConnect() && buffer.remaining()!=0){
+			while(isConnected() && buffer.remaining()!=0){
 				try {
 					Future<Integer> sendResult = socketChannel.write(buffer);
 					if(sendResult==null){
@@ -200,9 +199,18 @@ public class AioSession extends IoSession {
 	}
 
 	@Override
-	public boolean isConnect() {
+	public boolean isConnected() {
+		return socket.isConnected();
+	}
 
-		return socket.isConnect();
+	/**
+	 * 会话是否打开
+	 *
+	 * @return true: 打开,false: 关闭
+	 */
+	@Override
+	public boolean isOpen() {
+		return socket.isOpen();
 	}
 
 	@Override

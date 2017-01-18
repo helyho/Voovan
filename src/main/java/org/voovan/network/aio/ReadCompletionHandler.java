@@ -36,7 +36,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 	public void completed(Integer length, ByteBuffer buffer) {
 		try {
 			// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
-			if (MessageLoader.isRemoteClosed(buffer, length) && session.isConnect()) {
+			if (MessageLoader.isRemoteClosed(buffer, length) && session.isConnected()) {
 				session.close();
 			} else {
 				buffer.flip();
@@ -53,7 +53,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					buffer.clear();
 
 					// 继续接收 Read 请求
-					if(aioSocket.isConnect()) {
+					if(aioSocket.isConnected()) {
 						aioSocket.catchRead(buffer);
 					}
 				}

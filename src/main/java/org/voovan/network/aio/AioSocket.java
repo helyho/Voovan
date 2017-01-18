@@ -81,7 +81,7 @@ public class AioSocket extends SocketContext {
 		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
 		socketChannel.connect(socketAddress, this, connectedCompletionHandler);
 		//获取到对端 IP 地址为连接成功
-		while(socketChannel.getRemoteAddress()==null){
+		while(!isConnected()){
 			TEnv.sleep(1);
 		}
 	}
@@ -124,7 +124,7 @@ public class AioSocket extends SocketContext {
 		//如果是ServerSocket的 AioSocket 不需要阻塞等待进程
 		if(connectModel == ConnectModel.CLIENT ){
             // 等待ServerSocketChannel关闭,结束进程
-            while (isConnect()) {
+            while (isConnected()) {
                 TEnv.sleep(1);
             }
 		}
@@ -168,8 +168,25 @@ public class AioSocket extends SocketContext {
 	}
 
 	@Override
-	public boolean isConnect() {
-        return socketChannel.isOpen();
+	public boolean isOpen() {
+		if(socketChannel!=null) {
+			return socketChannel.isOpen();
+		}else{
+			return false;
+		}
+	}
+
+	@Override
+	public boolean isConnected() {
+		try {
+			if (socketChannel.getRemoteAddress() != null) {
+				return true;
+			} else {
+				return false;
+			}
+		}catch(Exception e){
+			return false;
+		}
 	}
 
 	/**

@@ -2,14 +2,11 @@ package org.voovan.network;
 
 import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 
 /**
@@ -160,7 +157,7 @@ public class MessageLoader {
 		while (stopType==StopType.RUNNING && !isDirectRead) {
 
 			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
-			if(!session.isConnect() && session.getByteBufferChannel().size()==0){
+			if(!session.isConnected() && session.getByteBufferChannel().size()==0){
 				stopType = StopType.SOCKET_CLOSE;
 			}
 
@@ -231,7 +228,7 @@ public class MessageLoader {
 			data = ByteBuffer.allocate(session.sockContext().getBufferSize());
 			session.getByteBufferChannel().readHead(data);
 		}
-        if(!data.hasRemaining() && !session.isConnect()){
+        if(!data.hasRemaining() && !session.isConnected()){
             return null;
         }
 
