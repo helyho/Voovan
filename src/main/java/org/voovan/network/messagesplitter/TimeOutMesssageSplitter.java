@@ -3,6 +3,8 @@ package org.voovan.network.messagesplitter;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 
+import java.nio.ByteBuffer;
+
 public class TimeOutMesssageSplitter implements MessageSplitter {
 
 	private long initTime;
@@ -12,7 +14,7 @@ public class TimeOutMesssageSplitter implements MessageSplitter {
 	}
 	
 	@Override
-	public int canSplite(IoSession session, byte[] buffer) {
+	public int canSplite(IoSession session, ByteBuffer byteBuffer) {
 		int timeOut = session.sockContext().getReadTimeout();
 		long currentTime = System.currentTimeMillis();
 		if(initTime==-1){
@@ -20,7 +22,7 @@ public class TimeOutMesssageSplitter implements MessageSplitter {
 		} 
 		
 		if(currentTime-initTime >= timeOut){
-			return buffer.length;
+			return byteBuffer.limit();
 		}else{
 			return -1;
 		}

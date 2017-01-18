@@ -183,7 +183,7 @@ public class MessageLoader {
 
 			//使用消息划分器进行消息划分
 			if(readsize==0) {
-				splitLength = messageSplitter.canSplite(session,  dataByteBuffer.array());
+				splitLength = messageSplitter.canSplite(session,  dataByteBuffer.getByteBuffer());
 				if (splitLength > 0) {
 					stopType = StopType.MSG_SPLITTER ;
 				}
