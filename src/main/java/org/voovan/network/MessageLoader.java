@@ -174,13 +174,13 @@ public class MessageLoader {
 //			}
 
 			if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
-				ByteBuffer sslData = ByteBuffer.wrap(byteBufferChannel.array());
+				ByteBuffer sslData = ByteBuffer.allocate(session.sockContext().getBufferSize());
 				session.readSSLData(sslData);
 				dataByteBuffer.writeEnd(sslData);
 			}
 
 			//判断连接是否关闭
-			if (isRemoteClosed(ByteBuffer.wrap(dataByteBuffer.array()), dataByteBuffer.size())) {
+			if (isRemoteClosed(dataByteBuffer.getByteBuffer(), dataByteBuffer.size())) {
 				stopType = StopType.REMOTE_DISCONNECT;
 			}
 
@@ -224,7 +224,7 @@ public class MessageLoader {
 		ByteBuffer data = null;
 
 		if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
-			ByteBuffer sslData = ByteBuffer.wrap(byteBufferChannel.array());
+			ByteBuffer sslData = ByteBuffer.allocate(session.sockContext().getBufferSize());
 			session.readSSLData(sslData);
 			data = sslData;
 		}else {

@@ -8,6 +8,7 @@ import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.Status;
+import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -27,7 +28,6 @@ public abstract class IoSession {
 	
 	private Map<Object, Object> attributes;
 	private SSLParser sslParser;
-	private ByteBufferChannel netDataBufferChannel;
 	private ByteBufferChannel appDataBufferChannel;
 	private boolean onReceive;
 
@@ -36,7 +36,6 @@ public abstract class IoSession {
 	 */
 	protected IoSession(){
 		attributes = new ConcurrentHashMap<Object, Object>();
-		netDataBufferChannel = new ByteBufferChannel();
 		appDataBufferChannel = new ByteBufferChannel();
 	}
 
@@ -208,31 +207,34 @@ public abstract class IoSession {
 	protected int readSSLData(ByteBuffer buffer) throws IOException{
 		int readSize = 0;
 		
-		ByteBuffer netBuffer = sslParser.buildAppDataBuffer();
 		ByteBuffer appBuffer = sslParser.buildAppDataBuffer();
-		
+
+		while(true){
+			readSize = appDataBufferChannel.readHead(buffer);
+			if(readSize!=0){
+				return readSize;
+			}else{
+				break;
+			}
+		}
+
 		if(isConnect() && buffer!=null){
 			SSLEngineResult engineResult = null;
 			do{
-				netBuffer.clear();
 				appBuffer.clear();
-				if(read(netBuffer)!=0){
-					netDataBufferChannel.writeEnd(netBuffer);
-					ByteBuffer byteBuffer = netDataBufferChannel.getByteBuffer();
-                    engineResult = sslParser.unwarpData(byteBuffer, appBuffer);
-                    if(byteBuffer.remaining() > 0) {
-                        netDataBufferChannel.writeHead(byteBuffer);
-                    }
+				ByteBufferChannel byteBufferChannel = getByteBufferChannel();
+                ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+
+					engineResult = sslParser.unwarpData(byteBuffer, appBuffer);
+					byteBufferChannel.compact();
 
 					appBuffer.flip();
 					appDataBufferChannel.writeEnd(appBuffer);
+				if(byteBuffer.remaining()==0) {
+					TEnv.sleep(1);
+					continue;
 				}
-				TEnv.sleep(1);
-			}while(engineResult!=null && engineResult.getStatus() != Status.OK);
-			readSize = appDataBufferChannel.readHead(buffer);
-			if(netDataBufferChannel.size() > 0 ) {
-				getByteBufferChannel().writeHead(netDataBufferChannel.getByteBuffer());
-			}
+			}while(engineResult!=null && engineResult.getStatus() != Status.OK && engineResult.getStatus() != Status.CLOSED);
 		}
 		return readSize;
 	}

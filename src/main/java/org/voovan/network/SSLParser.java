@@ -135,27 +135,21 @@ public class SSLParser {
 	 */
 	private HandshakeStatus doHandShakeUnwarp() throws IOException{
 			HandshakeStatus handshakeStatus =engine.getHandshakeStatus();
-			ByteBufferChannel netDataChannel = new ByteBufferChannel();
 			SSLEngineResult engineResult = null;
 			do{
 				clearBuffer();
-				session.read(netData);
-				netDataChannel.writeEnd(netData);
-				do{
-					ByteBuffer byteBuffer = netDataChannel.getByteBuffer();
-					engineResult = unwarpData(byteBuffer,appData);
+				ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
+                ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+
+					engineResult = unwarpData(byteBuffer, appData);
 					//如果有 HandShake Task 则执行
 					handshakeStatus = runDelegatedTasks();
-					if(byteBuffer.remaining() > 0 ) {
-						netDataChannel.writeHead(byteBuffer);
-					}
-					TEnv.sleep(1);
-				}while(engineResult!=null && engineResult.getStatus()==Status.OK &&
-						netDataChannel.size()!=0 );
-				if( netDataChannel.size() > 0) {
-					session.getByteBufferChannel().writeHead(netDataChannel.getByteBuffer());
+					session.getByteBufferChannel().compact();
+
+				if(byteBuffer.remaining()==0) {
+                	TEnv.sleep(1);
+                	continue;
 				}
-				//Logger.simple("reWrite"+byteBuffer.limit());
 			}while(engineResult!=null && engineResult.getStatus()!=Status.OK);
 			return handshakeStatus;
 	}
