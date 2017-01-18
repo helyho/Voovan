@@ -8,7 +8,6 @@ import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.Status;
-import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -218,7 +217,7 @@ public abstract class IoSession {
 			}
 		}
 
-		if(isConnect() && buffer!=null){
+		if(isConnected() && buffer!=null){
 			SSLEngineResult engineResult = null;
 			do{
 				appBuffer.clear();
@@ -246,7 +245,7 @@ public abstract class IoSession {
 	 * 	@param buffer byte缓冲区
 	 */
 	public void sendSSLData(ByteBuffer buffer){
-		if(isConnect() && buffer!=null){
+		if(isConnected() && buffer!=null){
 			try {
 				sslParser.warpData(buffer);
 			} catch (IOException e) {
@@ -272,7 +271,13 @@ public abstract class IoSession {
 	 * 会话是否打开
 	 * @return	true: 打开,false: 关闭
 	 */
-	public abstract boolean isConnect();
+	public abstract boolean isConnected();
+
+	/**
+	 * 会话是否打开
+	 * @return	true: 打开,false: 关闭
+	 */
+	public abstract boolean isOpen();
 	
 	/**
 	 * 关闭会话

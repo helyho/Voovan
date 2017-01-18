@@ -436,7 +436,7 @@ public class HttpClient {
 	 * @return 是否连接
 	 */
 	public boolean isConnect(){
-		return socket.isConnect();
+		return socket.isConnected();
 	}
 
 }

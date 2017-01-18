@@ -72,12 +72,21 @@ public class NioServerSocket extends SocketContext{
 	}
 
 	@Override
-	public boolean isConnect() {
+	public boolean isOpen() {
 		if(serverSocketChannel!=null){
 			return serverSocketChannel.isOpen();
 		}
 		
 		return false;
+	}
+
+	@Override
+	public boolean isConnected() {
+		if(serverSocketChannel!=null){
+			return serverSocketChannel.isOpen();
+		}else{
+			return false;
+		}
 	}
 
 	@Override

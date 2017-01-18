@@ -59,7 +59,7 @@ public class UdpSelector {
 
         // 事件循环
         try {
-            while (socketContext != null && socketContext.isConnect()) {
+            while (socketContext != null && socketContext.isOpen()) {
                 if (selector.select(1000) > 0) {
                     Set<SelectionKey> selectionKeys = selector.selectedKeys();
                     Iterator<SelectionKey> selectionKeyIterator = selectionKeys
@@ -81,6 +81,8 @@ public class UdpSelector {
                                         UdpSocket clientUdpSocket = null;
                                         UdpSession clientSession = session;
 
+                                        //接受的连接isConnected 是 false
+                                        //发起的连接isConnected 是 true
                                         if(datagramChannel.isConnected()) {
                                             readSize = datagramChannel.read(readTempBuffer);
                                         }else{
@@ -91,7 +93,7 @@ public class UdpSelector {
                                         }
 
                                             //判断连接是否关闭
-                                        if (MessageLoader.isRemoteClosed(readTempBuffer, readSize) && clientSession.isConnect()) {
+                                        if (MessageLoader.isRemoteClosed(readTempBuffer, readSize) && clientSession.isConnected()) {
                                             clientSession.close();
                                             break;
                                         } else if (readSize > 0) {

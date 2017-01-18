@@ -145,9 +145,9 @@ public class UdpSession extends IoSession {
 	@Override
 	public int send(ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
-		if (isConnect() && buffer != null) {
+		if (isOpen() && buffer != null) {
 			//循环发送直到全不内容发送完毕
-			while(isConnect() && buffer.remaining()!=0){
+			while(isOpen() && buffer.remaining()!=0){
 				totalSendByte+=datagramChannel.send(buffer, remoteAddress);
 			}
 		}
@@ -194,8 +194,18 @@ public class UdpSession extends IoSession {
 	 * @return true: 打开,false: 关闭
 	 */
 	@Override
-	public boolean isConnect() {
-		return udpSocket.isConnect();
+	public boolean isConnected() {
+		return udpSocket.isConnected();
+	}
+
+	/**
+	 * 会话是否打开
+	 *
+	 * @return true: 打开,false: 关闭
+	 */
+	@Override
+	public boolean isOpen() {
+		return udpSocket.isOpen();
 	}
 
 	/**
