@@ -45,6 +45,7 @@ public class JSONDecodeUnit extends TestCase {
 							"} ";
 
 		Map<String, Object> obj = TObject.cast(JSONDecode.parse(jsonString));
+		assertTrue((Integer)obj.size()==7);
 		assertTrue((Integer)obj.get("bint")==32);
 		assertEquals((String)obj.get("string"),"helyho");
 		assertTrue(((List)obj.get("list")).size() == 3);
