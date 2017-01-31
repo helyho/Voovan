@@ -12,7 +12,7 @@ import org.voovan.tools.log.Logger;
  *         WebSite: https://github.com/helyho/Voovan
  *         Licence: Apache v2 License
  */
-public class JSONStr {
+public class JSONPathTest {
     public static String tmpStr = "[\n" +
             "  {\n" +
             "    \"ID\": \"7hyvnnrbp48bzcvolx35hdoqg\",\n" +
@@ -113,6 +113,6 @@ public class JSONStr {
 
     public static void main(String[] args) throws ReflectiveOperationException {
         JSONPath jsonPath = new JSONPath(tmpStr);
-        Logger.info(jsonPath.value("/root[0]/Version/Index"));
+        Logger.info(jsonPath.value("/[0]/Version/Index"));
     }
 }
