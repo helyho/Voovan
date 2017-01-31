@@ -228,16 +228,21 @@ public class TFile {
 		RandomAccessFile randomAccessFile = null;
 		try {
 			randomAccessFile = new RandomAccessFile(file, "r");
-			long fileLength = randomAccessFile.length();
+			long fileLength = randomAccessFile.length() - 1 ;
 			randomAccessFile.seek(fileLength);
 			int rowCount = 0;
 			while (randomAccessFile.getFilePointer() != 0) {
-				randomAccessFile.seek(fileLength - 1);
-				byte readByte = randomAccessFile.readByte();
+				randomAccessFile.seek(fileLength);
+                byte readByte = randomAccessFile.readByte();
 				if (readByte == '\n') {
 					rowCount++;
 				}
-				if (fileLength - 1 == 0 || lastLineNum == rowCount) {
+
+				if (fileLength==0 || lastLineNum == rowCount) {
+					if(fileLength==0){
+						randomAccessFile.seek(0);
+					}
+
 					int byteCount = (int) (randomAccessFile.length() - fileLength);
 					byte[] byteContent = new byte[byteCount];
 					int readSize = randomAccessFile.read(byteContent);
