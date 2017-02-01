@@ -20,6 +20,8 @@ import java.util.*;
  * Licence: Apache v2 License
  */
 public class JSONDecode {
+	private static int E_OBJECT = 1;
+	private static int E_ARRAY = -1;
 
 	public static Object parse(String jsonStr) {
 		return parse(new StringReader(jsonStr.trim()+"\0"));
@@ -38,28 +40,28 @@ public class JSONDecode {
 				return null;
 			}
 
-			String type = null;
+			int type = 0;
 			Object jsonResult = null;
 			boolean isFirstChar = true;
 
 			//根据起始和结束符号,决定返回的对象类型
-			if (type == null) {
+			if (type == 0) {
 				char flag = (char) reader.read();
 
 				if (flag == '{') {
-					type = "Object";
+					type = E_OBJECT;
 				}
 
 				if (flag == '[') {
-					type = "Array";
+					type = E_ARRAY;
 				}
 			}
 
 			//对象类型构造返回的对象
-			if ("Object".equals(type)) {
+			if (E_OBJECT == type) {
 				jsonResult = (Map) new HashMap<String, Object>();
 				isFirstChar = false;
-			} else if ("Array".equals(type)) {
+			} else if (E_ARRAY == type) {
 				jsonResult = (List) new ArrayList<Object>();
 				isFirstChar = false;
 			} else {
