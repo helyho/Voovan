@@ -216,6 +216,7 @@ public class MessageLoader {
 	/**
 	 * 直接读取缓冲区的数据
 	 * @return 字节缓冲对象ByteBuffer
+	 * @exception IOException IO异常
 	 */
 	public synchronized ByteBuffer directRead() throws IOException {
 		ByteBuffer data = null;
