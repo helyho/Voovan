@@ -125,6 +125,11 @@ public class UdpSelector {
         } catch (IOException e) {
             // 触发 onException 事件
             EventTrigger.fireExceptionThread(session, e);
+        }finally{
+            // 触发连接断开事件
+            if(session!=null) {
+                EventTrigger.fireDisconnect(session);
+            }
         }
     }
 
