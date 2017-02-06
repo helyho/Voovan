@@ -20,7 +20,7 @@ public class ServerBenchHandlerTest implements IoHandler {
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
 			return "HTTP/1.1 200 OK\r\n" +
-					"Server: Voovan-WebServer/V1.0-beta-3.2\r\n" +
+					"Server: Voovan-WebServer/V1.0-RC-1\r\n" +
 					"Connection: keep-alive\r\n" +
 					"Content-Length: 2\r\n" +
 					"Date: Thu, 05 Jan 2017 04:55:20 GMT\r\n" +
