@@ -73,7 +73,7 @@ public class TStream {
 		while(true){
 			byte[] tempbyte = new byte[1];
 			int readSize = inputStream.read(tempbyte);		
-			if(readSize==65535) {
+			if(readSize==-1) {
 				break;
 			}
 			else{

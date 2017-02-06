@@ -93,4 +93,16 @@ public class TStringUnit extends TestCase {
 		String formatedStr = TString.replaceLast(formatStr,"{}", "1");
 		assertEquals(formatedStr,"aaaa{}bbbb{}cccc1");
 	}
+
+	public void testReverse() {
+		String formatStr = "abcdefg";
+		String formatedStr = TString.reverse(formatStr);
+		assertEquals(formatedStr,"gfedcba");
+	}
+
+	public void testUppercaseHead(){
+		String uppercaseHeadStr = "abcdefg";
+		String uppercaseHeadedStr = TString.uppercaseHead(uppercaseHeadStr);
+		assertEquals(uppercaseHeadedStr,"Abcdefg");
+	}
 }
