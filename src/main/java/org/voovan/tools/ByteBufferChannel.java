@@ -56,7 +56,7 @@ public class ByteBufferChannel {
 	/**
 	 * 获取缓冲区有效字节数组的一个拷贝
 	 *        修改这个数组将不会影响当前对象
-	 *        返回 0->size 的有效数据
+	 *        返回 0 到 size 的有效数据
 	 * @return 缓冲区有效字节数组
 	 */
 	public byte[] array(){
@@ -65,7 +65,7 @@ public class ByteBufferChannel {
 
 	/**
 	 * 获取缓冲区
-	 *     返回 0->size 的有效数据
+	 *     返回 0 到 size 的有效数据
 	 *     数据随时会变化,使用后下次使用建议重新获取,否则可能导致数据不全
 	 * @return ByteBuffer 对象
 	 */
@@ -86,7 +86,7 @@ public class ByteBufferChannel {
 	 *      将通过getByteBuffer()方法获得 ByteBuffer 对象的操作同步到 ByteBufferChannel
 	 *      如果不需要同步,则不用调用这个方法
 	 * 		如果之前最后一次通过getByteBuffer()方法获得过 ByteBuffer,则使用这个 Byte 来收缩通道
-	 *      将 (position -> limit) 之间的数据 移动到 (0 -> limit - position) 其他情形将不做任何操作
+	 *      将 (position 到 limit) 之间的数据 移动到 (0  到 limit - position) 其他情形将不做任何操作
 	 *		所以 建议 getByteBuffer() 和 compact() 成对操作
 	 */
 	public synchronized void compact(){

@@ -296,6 +296,7 @@ public class JSONDecode {
 	 * @param <T> 		范型
 	 * @param jsonStr	JSON字符串
 	 * @param clazz		JSON 字符串将要转换的目标类
+	 * @param ignoreCase 是否在字段匹配时忽略大小写
 	 * @return					JSON 转换后的 Java 对象
 	 * @throws ReflectiveOperationException  反射异常
 	 * @throws ParseException 解析异常
@@ -331,6 +332,7 @@ public class JSONDecode {
 	 * @return					JSON 转换后的 Java 对象
 	 * @throws ReflectiveOperationException  反射异常
 	 * @throws ParseException 解析异常
+	 * @throws IOException IO 异常
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T>T fromJSON(String jsonStr,Class<T> clazz) throws ParseException, ReflectiveOperationException, IOException {

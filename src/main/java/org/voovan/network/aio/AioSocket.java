@@ -133,6 +133,8 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 启动同步的上下文连接,同步读写时使用
+	 *
+	 * @exception IOException IO异常
 	 */
 	public void syncStart() throws IOException{
 		initSSL();

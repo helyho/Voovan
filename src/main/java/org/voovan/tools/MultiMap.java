@@ -87,7 +87,7 @@ public class MultiMap<K,V>
      * 一次插入一个键值
      * @param key 键
      * @param values 值的集合
-     * @return
+     * @return 值的集合
      */
     public List<V> putValues(K key, List<V> values)
     {
@@ -98,7 +98,7 @@ public class MultiMap<K,V>
      * 一次插入一个键值
      * @param key 键
      * @param values 值的数组
-     * @return
+     * @return 值的集合
      */
     @SafeVarargs
     public final List<V> putValues(K key, V... values)
@@ -112,7 +112,6 @@ public class MultiMap<K,V>
      * 一次插入一个键值
      * @param key 键
      * @param value 值
-     * @return
      */
     public void add(K key, V value)
     {
@@ -157,6 +156,7 @@ public class MultiMap<K,V>
     /**
      * 增加键/值
      * @param map 键/值(List)的 Map 对象
+     * @return 是否成功 true:成功,false:失败
      */
     public boolean addAllValues(MultiMap<K,V> map)
     {
