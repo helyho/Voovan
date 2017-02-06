@@ -1,50 +1,39 @@
 ![](http://git.oschina.net/uploads/images/2016/0510/122514_7d971a34_116083.jpeg)
-===========================================================================================================================
-#### Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTTP客户端抓取、动态编译支持、数据库访问封装以及DateTime、String、Log、反射、对象工具、流操作、文件操作、异步双向通道等功能。旨在提供可靠、方便、可单元测试的代码。它是一个无任何依赖的独立工具包，希望能够方便广大开发者快速的实现应用
-**Maven中央库支持:**
+
+
+##### Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTTP客户端抓取、动态编译支持、数据库访问封装以及DateTime、String、Log、反射、对象工具、流操作、文件操作、异步双向通道等功能。旨在提供可靠、方便、可单元测试的代码。它是一个无任何依赖的独立工具包，希望能够方便广大开发者快速的实现应用。
+
+---------------------
+
+###Maven中央库支持:
 ```xml
 <dependency>
     <groupId>org.voovan</groupId>
     <artifactId>voovan-framework</artifactId>
-    <version>1.0-alpha-2</version>
+    <version>1.0-RC-1</version>
 </dependency>
 ```
 
-`
-注意:测试代码由于测试的需要,依赖 alibaba-druid ,junit ,mysql-connector-java,所以在运行时添加相应的包.
-`
-**JDK支持:**
+---------------------
+
+###JDK支持:
 
  - 推荐使用 JDK1.8,懒人专用。
- - 如果仅使用 AIO 需要 JDK1.7。[[如何兼容到JDK1.7?](http://voovan.mydoc.io/?t=113242)]
+ - 如果仅使用 AIO 需要 JDK1.7。【[如何兼容到JDK1.7?](http://voovan.mydoc.io/?t=113242)】
  - 如果 WebServer 使用lambda 需要 JDK1.8,不使用 lambda 需要 JDK1.7。
  - 有能力的同学可以通过很简单几行修改使 WebServer 和 HTTPClient使用 NIO 那么就是 JDK1.6。
- 
-**框架特点介绍:**
+
+
+---------------------
+
+###框架特点介绍:
  - 使用 JDK8 的 lambda 表达式,快速实现 HTTP/WebSocket 服务的开发。[【演示】](http://webserver.voovan.org/)/[【性能测试报告】](https://git.oschina.net/helyho/Voovan/issues/12)
- - 异步通信框架解决粘包问题。
+ - 异步通信框架解决粘包问题,过滤器链等。
  - 独立无依赖的代码。
  - 源码注释丰富，方便码友学习、调试、使用。
 
- 
-**文档入口: **【[开发手册](http://voovan.mydoc.io/)】
 
-**交流QQ群：**454201740
-
-**开源协议:**Apache v2 License
-
-**Voovan开源项目源代码主要托管于 Git@OSC.**
-
-**Voovan开源项目源代码 Git@OSC 和 GitHub 同步更新.**
-
-**GitHub地址:** https://github.com/helyho/Voovan.git
-
-**帮助文档地址:** [http://voovan.mydoc.io/](http://voovan.mydoc.io/)
-
-**Issues地址:** [GitHub](https://github.com/helyho/Voovan/issues) 或者 [Git@OSC](http://git.oschina.net/helyho/Voovan/issues)
-
-
-    推荐将 Issues 提交到 GIT@OSC
+---------------------
 
 ###一、高性能异步通信(AIO、NIO异步通信)
 
@@ -87,8 +76,6 @@
 ###三、动态编译支持
 
   在内存中编一个保存有 java 代码的字符串,并将编译后的 byte 字节加入到 classloader 中,可灵活的动态定义类和使用。
-  
-  
 
 ---------------------
 
@@ -103,7 +90,6 @@
  - 数据库事务的支持。
  - 支持自动移除无匹配参数的条件。
  - 结果转换对象的时候使用模糊匹配。
-
 
 ---------------------
 
@@ -120,8 +106,8 @@
   1. 文件路径拼接、从绝对路径读取、从相对路径读取、从包路径读取、指定起始和结束位置内容读取等。
   1. List 和 Map 的快速初始化。
   
-
-##包结构说明
+---------------------
+###包结构说明
 
 |  包名                      | 名称           |
 | -------------             |:-------------: |
@@ -130,6 +116,20 @@
 |org.voovan.dynamicComplier |动态编译包        |
 |org.voovan.network         |网络异步通信包    |
 |org.voovan.tools           |基本工具包        |
+
+---------------------
+
+**文档入口: **【[开发手册](http://voovan.mydoc.io/)】
+
+**交流QQ群：**454201740
+
+**开源协议:**Apache v2 License
+
+**Voovan开源项目源代码主要托管于 Git@OSC.**
+
+**Issues地址:** [Git@OSC](http://git.oschina.net/helyho/Voovan/issues)
+
+---------------------
 
 ## 贡献者名单
 |  名称                      | 贡献内容           |
