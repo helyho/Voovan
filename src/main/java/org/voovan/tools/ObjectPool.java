@@ -77,8 +77,8 @@ public class ObjectPool {
 
 
     /**
-     * 是否获取对象时刷新对象存活试驾
-     * @return
+     * 是否获取对象时刷新对象存活时间
+     * @return 是否获取对象时刷新对象存活时间
      */
     public boolean isAutoRefreshOnGet(){
         return autoRefreshOnGet;

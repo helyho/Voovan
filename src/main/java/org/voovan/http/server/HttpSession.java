@@ -26,6 +26,7 @@ public class HttpSession {
 	 * 构造函数
 	 *
 	 * @param config  WEB服务配置对象
+	 * @param sessionManager Session管理器
 	 */
 	public HttpSession(WebServerConfig config, SessionManager sessionManager){
 		attributes = new ConcurrentHashMap<String, Object>();
