@@ -4,12 +4,9 @@ import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TString;
-import org.voovan.tools.log.Logger;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 /**
  * Http 消息分割类

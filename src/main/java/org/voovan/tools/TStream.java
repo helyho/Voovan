@@ -45,7 +45,7 @@ public class TStream {
 		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 		while(true){
 			int singleChar = inputStream.read();
-			if(singleChar==-1 || singleChar==65535) {
+			if(singleChar==65535) {
 				break;
 			}
 			else{
@@ -73,7 +73,7 @@ public class TStream {
 		while(true){
 			byte[] tempbyte = new byte[1];
 			int readSize = inputStream.read(tempbyte);		
-			if(readSize==-1 || readSize==65535) {
+			if(readSize==65535) {
 				break;
 			}
 			else{

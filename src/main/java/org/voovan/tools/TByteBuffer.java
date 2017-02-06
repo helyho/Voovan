@@ -3,7 +3,6 @@ package org.voovan.tools;
 import org.voovan.tools.log.Logger;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
