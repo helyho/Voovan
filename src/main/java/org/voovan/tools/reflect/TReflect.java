@@ -519,22 +519,22 @@ public class TReflect {
                                 Iterator iterator = mapValue.entrySet().iterator();
                                 while(iterator.hasNext() ) {
                                     Entry entry = (Entry) iterator.next();
-                                    Map keyMap = null;
-                                    Map valueMap = null;
+                                    Map keyOfMap = null;
+                                    Map valueOfMap = null;
                                     if(entry.getKey() instanceof Map){
-                                        keyMap = (Map)entry.getKey();
+                                        keyOfMap = (Map)entry.getKey();
                                     }else{
-                                        keyMap = TObject.newMap("value",entry.getKey());
+                                        keyOfMap = TObject.newMap("value",entry.getKey());
                                     }
 
                                     if(entry.getValue() instanceof Map){
-                                        valueMap = (Map)entry.getValue();
+                                        valueOfMap = (Map)entry.getValue();
                                     }else{
-                                        valueMap = TObject.newMap("value",entry.getValue());
+                                        valueOfMap = TObject.newMap("value",entry.getValue());
                                     }
 
-                                    Object keyObj = getObjectFromMap(mapGenericTypes[0], keyMap, ignoreCase);
-                                    Object valueObj = getObjectFromMap(mapGenericTypes[1], valueMap, ignoreCase);
+                                    Object keyObj = getObjectFromMap(mapGenericTypes[0], keyOfMap, ignoreCase);
+                                    Object valueObj = getObjectFromMap(mapGenericTypes[1], valueOfMap, ignoreCase);
                                     result.put(keyObj, valueObj);
                                 }
                                 value = result;
@@ -550,14 +550,14 @@ public class TReflect {
                                 List result = (List)TReflect.newInstance(fieldType);
                                 List listValue = (List)value;
                                 for(Object listItem : listValue){
-                                    Map valueMap = null;
+                                    Map valueOfMap = null;
                                     if(listItem instanceof Map){
-                                        valueMap = (Map)listItem;
+                                        valueOfMap = (Map)listItem;
                                     }else{
-                                        valueMap = TObject.newMap("value",listItem);
+                                        valueOfMap = TObject.newMap("value",listItem);
                                     }
 
-                                    Object item = getObjectFromMap(listGenericTypes[0],valueMap,ignoreCase);
+                                    Object item = getObjectFromMap(listGenericTypes[0],valueOfMap,ignoreCase);
                                     result.add(item);
                                 }
                                 value = result;
