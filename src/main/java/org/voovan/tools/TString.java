@@ -29,7 +29,7 @@ public class TString {
 	 * @param source 字符串
 	 * @return 首字母大写后的字符串
 	 */
-	public static String uppercaseFirstChar(String source){
+	public static String uppercaseHead(String source){
 		char[] charArray = source.toCharArray();
 		charArray[0] = Character.toUpperCase(charArray[0]);
 		return new String(charArray);
@@ -306,9 +306,10 @@ public class TString {
 	 * 字符串转换为 Java 基本类型
 	 * @param value 字符串字面值
 	 * @param clazz Class类,仅支持基本类型
+	 * @param ignoreCase 是否在字段匹配时忽略大小写
 	 * @return 基本类型对象
 	 */
-	public static Object toObject(String value,Class clazz){
+	public static Object toObject(String value,Class clazz, boolean ignoreCase){
 		if(value == null){
 			return null;
 		}else if(clazz == int.class || clazz == Integer.class){
@@ -327,15 +328,25 @@ public class TString {
 			return Byte.valueOf(value);
 		}else if(clazz == char.class || clazz == Character.class){
 			return value!=null ? value.charAt(0) : null;
-		}else if( TReflect.isImpByInterface(clazz,Collection.class) ||
+		}else if(TReflect.isImpByInterface(clazz,Collection.class) ||
 				TReflect.isImpByInterface(clazz,Map.class) ||
 				clazz.isArray()){
-			return JSON.toObject(value, clazz);
+			return JSON.toObject(value, clazz, ignoreCase);
 		}else if(TString.searchByRegex(value,"^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0
 				|| TString.searchByRegex(value,"^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0 ){
-			return JSON.toObject(value, clazz);
+			return JSON.toObject(value, clazz, ignoreCase);
 		}else{
 			return value;
 		}
+	}
+
+	/**
+	 * 字符串转换为 Java 基本类型
+	 * @param value 字符串字面值
+	 * @param clazz Class类,仅支持基本类型
+	 * @return 基本类型对象
+	 */
+	public static Object toObject(String value,Class clazz){
+		return toObject(value, clazz, false);
 	}
 }
