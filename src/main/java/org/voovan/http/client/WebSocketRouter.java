@@ -1,4 +1,4 @@
-package org.voovan.http.server.websocket;
+package org.voovan.http.client;
 
 import org.voovan.http.server.HttpRequest;
 
@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public interface WebSocketRouter {
-	public ByteBuffer onOpen(HttpRequest upgradeRequest);
-	public ByteBuffer onRecived(HttpRequest upgradeRequest,ByteBuffer message);
+	public ByteBuffer onOpen();
+	public ByteBuffer onRecived(ByteBuffer message);
 	public void onClose();
 }
