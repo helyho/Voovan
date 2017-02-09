@@ -101,8 +101,9 @@ public class WebServerDemo {
 			}
 
 			@Override
-			public void onOpen(HttpRequest upgradeRequest) {
+			public ByteBuffer onOpen(HttpRequest upgradeRequest) {
 				Logger.info("WebSocket connect!");
+				return null;
 			}
 
 			@Override

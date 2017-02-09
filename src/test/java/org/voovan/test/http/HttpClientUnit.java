@@ -3,9 +3,15 @@ package org.voovan.test.http;
 
 import junit.framework.TestCase;
 import org.voovan.http.client.HttpClient;
+import org.voovan.http.client.WebSocketRouter;
 import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Part;
+import org.voovan.http.server.websocket.WebSocketFrame;
+import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
+
+import java.nio.ByteBuffer;
 
 /**
  * 测试用例中的方法需要单独执行
@@ -78,6 +84,30 @@ public class HttpClientUnit extends TestCase {
 		Logger.simple(httpClient.send("/").body().getBodyString());
 		Logger.simple("=========================================");
 		Logger.simple(httpClient.send("/").body().getBodyString());
+		httpClient.close();
+	}
+
+	public void testWebSocket() throws Exception {
+		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080/","GBK2312",10000);
+		httpClient.connectWebSocket("/websocket", new WebSocketRouter() {
+
+			public ByteBuffer onOpen() {
+				Logger.simple("open");
+				return ByteBuffer.wrap("adfadf".getBytes());
+			}
+
+			public ByteBuffer onRecived(ByteBuffer message) {
+				Logger.simple(TByteBuffer.toString(message));
+				return ByteBuffer.wrap("response".getBytes());
+			}
+
+			@Override
+			public void onClose() {
+				Logger.simple("close");
+			}
+		});
+
+		TEnv.sleep(40000);
 		httpClient.close();
 	}
 }

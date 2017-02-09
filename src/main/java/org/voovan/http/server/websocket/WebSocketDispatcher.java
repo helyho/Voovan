@@ -98,7 +98,7 @@ public class WebSocketDispatcher {
 				
 				//WebSocket 事件处理
 				if (event == WebSocketEvent.OPEN) {
-				    handler.onOpen(request);
+					responseMessage = handler.onOpen(request);
 				} else if (event == WebSocketEvent.RECIVED) {
 					responseMessage = handler.onRecived(request, webSocketFrame.getFrameData());
 				} else if (event == WebSocketEvent.CLOSE) {

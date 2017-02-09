@@ -172,7 +172,7 @@ public class WebSocketFrame {
 			payload.put(byteBuffer.array(), byteBuffer.position(), payload.limit());
 			byteBuffer.position(byteBuffer.position() + payload.limit());
 		}
-
+		payload.flip();
 		return WebSocketFrame.newInstance(fin, opcode, mask, payload,errorCode);
 	}
 
