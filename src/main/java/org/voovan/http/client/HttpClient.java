@@ -6,7 +6,6 @@ import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.websocket.WebSocketFrame;
-import org.voovan.http.server.websocket.WebSocketTools;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioSocket;
 import org.voovan.network.exception.ReadMessageException;
@@ -41,8 +40,8 @@ public class HttpClient {
 	private Request request;
 	private Map<String, Object> parameters;
 	private String charset="UTF-8";
-	private boolean isSSL;
 	private String urlString;
+	private boolean isWebSocket = false;
 
 	/**
 	 * 构建函数
@@ -50,7 +49,6 @@ public class HttpClient {
 	 */
 	public  HttpClient(String urlString) {
 		this.urlString = urlString;
-		isSSL = urlString.toLowerCase().startsWith("https://");
 		init(urlString,5);
 
 	}
@@ -62,7 +60,6 @@ public class HttpClient {
 	 */
 	public  HttpClient(String urlString,int timeOut) {
 		this.urlString = urlString;
-		isSSL = urlString.toLowerCase().startsWith("https://");
 		init(urlString,timeOut);
 	}
 
@@ -74,7 +71,6 @@ public class HttpClient {
 	 */
 	public  HttpClient(String urlString,String charset,int timeOut) {
 		this.urlString = urlString;
-		isSSL = urlString.toLowerCase().startsWith("https://");
 		this.charset = charset;
 		init(urlString,timeOut);
 
@@ -87,22 +83,37 @@ public class HttpClient {
 	 */
 	public  HttpClient(String urlString,String charset) {
 		this.urlString = urlString;
-		isSSL = urlString.toLowerCase().startsWith("https://");
 		this.charset = charset;
 		init(urlString,5);
 
 	}
 
+	public boolean trySSL(String urlString){
+		boolean isSSL = urlString.toLowerCase().startsWith("https://");
+		if(!isSSL){
+			isSSL = urlString.toLowerCase().startsWith("wss://");
+		}
+
+		return isSSL;
+	}
+
 	/**
 	 * 初始化函数
-	 * @param host     主机地址
+	 * @param urlString     主机地址
 	 * @param timeOut  超时时间
      */
-	private void init(String host,int timeOut){
+	private void init(String urlString,int timeOut){
 		try {
-			String hostString = host;
+
+			boolean isSSL = trySSL(urlString);
+
+			String hostString = urlString;
 			int port = 80;
-			if(host.toLowerCase().startsWith("http")){
+
+			if(hostString.toLowerCase().startsWith("ws")){
+				hostString = "http"+hostString.substring(2,hostString.length());
+			}
+			if(hostString.toLowerCase().startsWith("http")){
 				URL url = new URL(hostString);
 				hostString = url.getHost();
 				port = url.getPort();
@@ -376,6 +387,11 @@ public class HttpClient {
 	 */
 	public Response send(String urlString) throws SendMessageException, ReadMessageException {
 
+		if(isWebSocket){
+			throw new SendMessageException("The WebSocket is connect, you can't send http request.");
+		}
+
+
 		//设置默认的报文 Body 类型
 		if(request.protocol().getMethod().equals("POST") && request.parts().size()>0){
 			setBodyType(Request.BodyType.BODY_MULTIPART);
@@ -435,6 +451,9 @@ public class HttpClient {
 		request.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
 		Response response = send(urlString);
 		if(response.protocol().getStatus()==101){
+
+			isWebSocket = true;
+
 			//这里需要效验Sec-WebSocket-Accept
 			socket.getSession().setAttribute("Type","WebSocket");
 
