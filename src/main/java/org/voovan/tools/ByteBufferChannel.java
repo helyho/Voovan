@@ -105,7 +105,7 @@ public class ByteBufferChannel {
 	/**
 	 * 缓冲区头部写入
 	 * @param src 需要写入的缓冲区 ByteBuffer 对象
-	 * @return 读出的数据大小
+	 * @return 写入的数据大小
 	 */
 	public synchronized int writeEnd(ByteBuffer src) {
 		if(src==null){
