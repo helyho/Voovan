@@ -83,11 +83,11 @@ public class AioSocket extends SocketContext {
 		socketChannel.connect(socketAddress, this, connectedCompletionHandler);
 		//获取到对端 IP 地址为连接成功
 
-		int waitTime = 0;
+		long startTime = System.currentTimeMillis();
 		while(!isConnected()){
 			TEnv.sleep(1);
-			waitTime++;
-			if(waitTime>=this.readTimeout){
+			long elapseTime = System.currentTimeMillis() - startTime;
+			if(elapseTime >= this.readTimeout){
 				throw new ConnectException("Connection refused");
 			}
 		}
