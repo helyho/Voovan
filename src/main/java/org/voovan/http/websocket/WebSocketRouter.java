@@ -37,8 +37,7 @@ public abstract class WebSocketRouter {
             WebSocketFrame closeWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING,
                     false, ByteBuffer.wrap(WebSocketTools.intToByteArray(1000, 2)));
             session.setAttribute("WebSocketClose", true);
-            session.synchronouSend(closeWebSocketFrame.toByteBuffer());
-			session.close();
+            session.synchronouSend(closeWebSocketFrame);
 		} catch (SendMessageException e) {
 			e.printStackTrace();
 		}
