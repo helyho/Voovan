@@ -106,7 +106,10 @@ public class WebServerHandler implements IoHandler {
 		//清理 HttpSession
 		HttpRequest httpRequest = TObject.cast(session.getAttribute("HttpRequest"));
 		if(httpRequest!=null) {
-			httpRequest.getSession().removeFromSessionManager();
+			HttpSession httpSession = httpRequest.getSession();
+			if(httpSession!=null) {
+				httpSession.removeFromSessionManager();
+			}
 		}
 	}
 
@@ -127,6 +130,9 @@ public class WebServerHandler implements IoHandler {
 			// 构造 Http 请求/响应 对象
 			HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);
 			HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet);
+
+			session.setAttribute("HttpRequest",httpRequest);
+			session.setAttribute("HttpResponse",httpResponse);
 
 			// 填充远程连接的IP 地址和端口
 			httpRequest.setRemoteAddres(session.remoteAddress());
@@ -164,8 +170,6 @@ public class WebServerHandler implements IoHandler {
 
 		// 处理响应请求
 		httpDispatcher.process(httpRequest, httpResponse);
-		session.setAttribute("HttpRequest",httpRequest);
-		session.setAttribute("HttpResponse",httpResponse);
 
 		//如果是长连接则填充响应报文
 		if (httpRequest.header().contain("Connection")
@@ -192,7 +196,7 @@ public class WebServerHandler implements IoHandler {
 		//保存必要参数
 		session.setAttribute("Type", "Upgrade");
 		session.setAttribute("IsKeepAlive", true);
-		session.setAttribute("UpgradeRequest", httpRequest);
+//		session.setAttribute("UpgradeRequest", httpRequest);
 
 		//初始化响应消息
 		httpResponse.protocol().setStatus(101);
@@ -231,7 +235,7 @@ public class WebServerHandler implements IoHandler {
 		session.setAttribute("IsKeepAlive"	 , true);
 		session.setAttribute("WebSocketClose", false);
 		
-		HttpRequest reqWebSocket = TObject.cast(session.getAttribute("UpgradeRequest"));
+		HttpRequest reqWebSocket = TObject.cast(session.getAttribute("HttpRequest"));
 		
 		// WS_CLOSE 如果收到关闭帧则关闭连接
 		if (webSocketFrame.getOpcode() == Opcode.CLOSING) {
@@ -269,7 +273,7 @@ public class WebServerHandler implements IoHandler {
 	public void onSent(IoSession session, Object obj) {
 
 		if(WebSocketTools.isWebSocketFrame(TObject.cast(obj)) != -1){
-			HttpRequest reqWebSocket = TObject.cast(session.getAttribute("UpgradeRequest"));
+			HttpRequest reqWebSocket = TObject.cast(session.getAttribute("HttpRequest"));
 			WebSocketFrame webSocketFrame = WebSocketFrame.parse(TObject.cast(obj));
 			webSocketDispatcher.process(WebSocketEvent.SENT, session, reqWebSocket, webSocketFrame);
 		}
