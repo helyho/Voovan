@@ -119,7 +119,5 @@ public class HttpClientUnit extends TestCase {
 				Logger.simple("close");
 			}
 		});
-
-		TEnv.sleep(1000);
 	}
 }
