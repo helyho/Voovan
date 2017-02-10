@@ -444,7 +444,17 @@ public class HttpClient {
 	 * @throws SendMessageException  发送异常
 	 * @throws ReadMessageException  读取异常
 	 */
-	public void connectWebSocket(String urlString, WebSocketRouter webSocketRouter) throws SendMessageException, ReadMessageException {
+	public Response send() throws SendMessageException, ReadMessageException {
+		return send("/");
+	}
+
+	/**
+	 * 发送行数
+	 * @return Response 对象
+	 * @throws SendMessageException  发送异常
+	 * @throws ReadMessageException  读取异常
+	 */
+	public void webSocket(String urlString, WebSocketRouter webSocketRouter) throws SendMessageException, ReadMessageException {
 		request.header().put("Connection","Upgrade");
 		request.header().put("Upgrade", "websocket");
 		request.header().put("Pragma","no-cache");
@@ -467,15 +477,14 @@ public class HttpClient {
 			ByteBuffer buffer = webSocketRouter.onOpen();
 			if(buffer!=null) {
 				WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.BINARY, true, buffer);
-				sendData(webSocketFrame.toByteBuffer());
+				sendData(webSocketFrame);
 				webSocketFrame.getFrameData().flip();
-				webSocketRouter.onSent(webSocketFrame.getFrameData());
 			}
 
 		}else{
 			//异常发送关闭帧
 			WebSocketFrame errWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(new byte[]{}));
-			sendData(errWebSocketFrame.toByteBuffer());
+			sendData(errWebSocketFrame);
 			throw new ReadMessageException("Connect WebSocket error!");
 		}
 
@@ -485,23 +494,14 @@ public class HttpClient {
 		}
 	}
 
-	private void sendData(ByteBuffer buffer){
+	private void sendData(WebSocketFrame webSocketFrame){
 		try {
-			socket.getSession().send(buffer);
-		} catch (IOException e) {
+			socket.getSession().synchronouSend(webSocketFrame);
+		} catch (SendMessageException e) {
 			Logger.error("WebSocket on connect send data error! "+e.getMessage(), e);
 		}
 	}
 
-	/**
-	 * 发送行数
-	 * @return Response 对象
-	 * @throws SendMessageException  发送异常
-	 * @throws ReadMessageException  读取异常
-	 */
-	public Response send() throws SendMessageException, ReadMessageException {
-		return send("/");
-	}
 
 
 	/**
