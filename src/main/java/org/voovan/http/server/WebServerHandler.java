@@ -4,14 +4,15 @@ import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
-import org.voovan.http.server.websocket.WebSocketDispatcher;
-import org.voovan.http.server.websocket.WebSocketDispatcher.WebSocketEvent;
-import org.voovan.http.server.websocket.WebSocketFrame;
-import org.voovan.http.server.websocket.WebSocketFrame.Opcode;
-import org.voovan.http.server.websocket.WebSocketTools;
+import org.voovan.http.websocket.WebSocketDispatcher;
+import org.voovan.http.websocket.WebSocketDispatcher.WebSocketEvent;
+import org.voovan.http.websocket.WebSocketFrame;
+import org.voovan.http.websocket.WebSocketFrame.Opcode;
+import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SocketDisconnectByRemote;
+import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -201,13 +202,13 @@ public class WebServerHandler implements IoHandler {
 		
 		if(httpRequest.header()!=null && "websocket".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
 			session.setAttribute("Type", "WebSocket");
-			
+
 			httpResponse.header().put("Upgrade", "websocket");
 			String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get("Sec-WebSocket-Key"));
 			httpResponse.header().put("Sec-WebSocket-Accept", webSocketKey);
 			
 			// WS_CONNECT WebSocket Open事件
-			webSocketDispatcher.process(WebSocketEvent.OPEN, httpRequest, null);
+			webSocketDispatcher.process(WebSocketEvent.OPEN, session, httpRequest, null);
 		}
 		
 		else if(httpRequest.header()!=null && "h2c".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
@@ -227,17 +228,17 @@ public class WebServerHandler implements IoHandler {
 	 * @return WebSocket 帧对象
 	 */
 	public WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
-		session.setAttribute("Type"			, "WebSocket");
-		session.setAttribute("IsKeepAlive"	, true);
-		session.setAttribute("IsClose"		, false);
+		session.setAttribute("Type"		     , "WebSocket");
+		session.setAttribute("IsKeepAlive"	 , true);
+		session.setAttribute("WebSocketClose", false);
 		
-		HttpRequest upgradeRequest = TObject.cast(session.getAttribute("UpgradeRequest"));
+		HttpRequest reqWebSocket = TObject.cast(session.getAttribute("UpgradeRequest"));
 		
 		// WS_CLOSE 如果收到关闭帧则关闭连接
 		if (webSocketFrame.getOpcode() == Opcode.CLOSING) {
 			// WebSocket Close事件
-			webSocketDispatcher.process(WebSocketEvent.CLOSE, upgradeRequest, null);
-			session.setAttribute("IsClose", true);
+			webSocketDispatcher.process(WebSocketEvent.CLOSE, session, reqWebSocket, null);
+			session.setAttribute("WebSocketClose", true);
 			return WebSocketFrame.newInstance(true, Opcode.CLOSING, false, webSocketFrame.getFrameData());
 		}
 		// WS_PING 收到 ping 帧则返回 pong 帧
@@ -254,7 +255,7 @@ public class WebServerHandler implements IoHandler {
 			
 			//判断解包是否有错
 			if(webSocketFrame.getErrorCode()==0){
-				respWebSocketFrame = webSocketDispatcher.process(WebSocketEvent.RECIVED, upgradeRequest, webSocketFrame);
+				respWebSocketFrame = webSocketDispatcher.process(WebSocketEvent.RECIVED, session, reqWebSocket, webSocketFrame);
 			}else{
 				//解析时出现异常,返回关闭消息
 				respWebSocketFrame = WebSocketFrame.newInstance(true, Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
@@ -267,8 +268,15 @@ public class WebServerHandler implements IoHandler {
 
 	@Override
 	public void onSent(IoSession session, Object obj) {
+
+		if(HttpMessageSplitter.isWebSocketFrame(TObject.cast(obj)) != -1){
+			HttpRequest reqWebSocket = TObject.cast(session.getAttribute("UpgradeRequest"));
+			WebSocketFrame webSocketFrame = WebSocketFrame.parse(TObject.cast(obj));
+			webSocketDispatcher.process(WebSocketEvent.SENT, session, reqWebSocket, webSocketFrame);
+		}
+
 		//如果 WebSocket 关闭,则关闭对应的 Socket
-		if(session.containAttribute("IsClose") && (boolean) session.getAttribute("IsClose")){
+		if(session.containAttribute("WebSocketClose") && (boolean) session.getAttribute("WebSocketClose")){
 			session.close();
 		}
 		else if (session.containAttribute("IsKeepAlive")

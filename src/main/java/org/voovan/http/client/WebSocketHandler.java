@@ -1,7 +1,8 @@
 package org.voovan.http.client;
 
-import org.voovan.http.server.websocket.WebSocketFrame;
-import org.voovan.http.server.websocket.WebSocketTools;
+import org.voovan.http.websocket.WebSocketFrame;
+import org.voovan.http.websocket.WebSocketRouter;
+import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TObject;
@@ -39,6 +40,11 @@ public class WebSocketHandler implements IoHandler{
 
     @Override
     public Object onReceive(IoSession session, Object obj) {
+
+        //分片 (1) fin=0 , opcode=1
+        //分片 (2) fin=0 , opcode=0
+        //分片 (3) fin=1 , opcode=0
+
         WebSocketFrame respWebSocketFrame = null;
         WebSocketFrame reqWebSocketFrame = null;
         if(obj instanceof WebSocketFrame) {
@@ -76,7 +82,14 @@ public class WebSocketHandler implements IoHandler{
 
     @Override
     public void onSent(IoSession session, Object obj) {
-
+        webSocketRouter.setSession(session);
+        WebSocketFrame webSocketFrame = WebSocketFrame.parse(TObject.cast(obj));
+        if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING){
+            session.close();
+            return;
+        }
+        ByteBuffer data = webSocketFrame.getFrameData();
+        webSocketRouter.onSent(data);
     }
 
     @Override

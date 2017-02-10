@@ -1,10 +1,10 @@
-package org.voovan.http.server.websocket;
+package org.voovan.http.websocket;
 
 import org.voovan.http.server.HttpDispatcher;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
-import org.voovan.http.server.websocket.WebSocketFrame.Opcode;
+import org.voovan.http.websocket.WebSocketFrame.Opcode;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TObject;
 
@@ -78,7 +78,7 @@ public class WebSocketDispatcher {
 	 * @param webSocketFrame WebSocket 帧对象
 	 * @return WebSocket 帧对象
 	 */
-	public WebSocketFrame process(WebSocketEvent event, HttpRequest request, WebSocketFrame webSocketFrame) {
+	public WebSocketFrame process(WebSocketEvent event, IoSession session, HttpRequest request, WebSocketFrame webSocketFrame) {
 		
 		String requestPath = request.protocol().getPath();
 
@@ -89,8 +89,8 @@ public class WebSocketDispatcher {
 			isMatched = HttpDispatcher.matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase());
 			if (isMatched) {
 				// 获取路由处理对象
-				WebSocketRouter handler = routeEntry.getValue();
-				
+				WebSocketRouter webSocketRouter = routeEntry.getValue();
+				webSocketRouter.setSession(session);
 				// 获取路径变量
 				ByteBuffer responseMessage = null;
 				Map<String, String> variables = HttpDispatcher.fetchPathVariables(requestPath, routePath);
@@ -98,11 +98,11 @@ public class WebSocketDispatcher {
 				
 				//WebSocket 事件处理
 				if (event == WebSocketEvent.OPEN) {
-					responseMessage = handler.onOpen(request);
+					responseMessage = webSocketRouter.onOpen();
 				} else if (event == WebSocketEvent.RECIVED) {
-					responseMessage = handler.onRecived(request, webSocketFrame.getFrameData());
+					responseMessage = webSocketRouter.onRecived(webSocketFrame.getFrameData());
 				} else if (event == WebSocketEvent.CLOSE) {
-					handler.onClose();
+					webSocketRouter.onClose();
 				}
 				
 				//将返回消息包装称WebSocketFrame
@@ -131,7 +131,7 @@ public class WebSocketDispatcher {
 				session.containAttribute(WEB_SOCKET_ClOSE) && !(boolean) session.getAttribute(WEB_SOCKET_ClOSE) &&
 				!session.close() ) {
 				// 触发一个 WebSocket Close 事件
-				process(WebSocketEvent.CLOSE,
+				process(WebSocketEvent.CLOSE, session,
 						TObject.cast(session.getAttribute("upgradeRequest")), null);
 			}
 	}
