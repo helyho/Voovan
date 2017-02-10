@@ -268,7 +268,7 @@ public class WebServerHandler implements IoHandler {
 	@Override
 	public void onSent(IoSession session, Object obj) {
 
-		if(HttpMessageSplitter.isWebSocketFrame(TObject.cast(obj)) != -1){
+		if(WebSocketTools.isWebSocketFrame(TObject.cast(obj)) != -1){
 			HttpRequest reqWebSocket = TObject.cast(session.getAttribute("UpgradeRequest"));
 			WebSocketFrame webSocketFrame = WebSocketFrame.parse(TObject.cast(obj));
 			webSocketDispatcher.process(WebSocketEvent.SENT, session, reqWebSocket, webSocketFrame);
