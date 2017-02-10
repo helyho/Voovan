@@ -86,7 +86,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testWebSocket() throws Exception {
-		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/","GBK2312",10000);
+		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/","GBK2312",5);
 		httpClient.webSocket("/websocket", new WebSocketRouter() {
 
 			@Override
