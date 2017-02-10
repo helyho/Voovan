@@ -1,4 +1,4 @@
-package org.voovan.http.server.websocket;
+package org.voovan.http.websocket;
 
 import org.voovan.tools.log.Logger;
 

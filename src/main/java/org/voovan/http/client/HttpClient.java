@@ -1,11 +1,13 @@
 package org.voovan.http.client;
 
+import org.voovan.Global;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
-import org.voovan.http.server.websocket.WebSocketFrame;
+import org.voovan.http.websocket.WebSocketFrame;
+import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioSocket;
 import org.voovan.network.exception.ReadMessageException;
@@ -149,7 +151,17 @@ public class HttpClient {
 				}
 			}
 
-			socket.syncStart();
+			if(urlString.toLowerCase().startsWith("ws")){
+				Global.getThreadPool().execute(()->{
+					try {
+						socket.start();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
+			}else{
+				socket.syncStart();
+			}
 
 		} catch (IOException e) {
 			Logger.error("HttpClient init error. ",e);
@@ -391,7 +403,6 @@ public class HttpClient {
 			throw new SendMessageException("The WebSocket is connect, you can't send http request.");
 		}
 
-
 		//设置默认的报文 Body 类型
 		if(request.protocol().getMethod().equals("POST") && request.parts().size()>0){
 			setBodyType(Request.BodyType.BODY_MULTIPART);
@@ -460,11 +471,16 @@ public class HttpClient {
 			WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketRouter);
 			socket.handler(webSocketHandler);
 
+			//触发 onOpen 方法
+			webSocketRouter.setSession(socket.getSession());
 			ByteBuffer buffer = webSocketRouter.onOpen();
 			if(buffer!=null) {
 				WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.BINARY, true, buffer);
 				sendData(webSocketFrame.toByteBuffer());
+				webSocketFrame.getFrameData().flip();
+				webSocketRouter.onSent(webSocketFrame.getFrameData());
 			}
+
 		}else{
 			//异常发送关闭帧
 			WebSocketFrame errWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(new byte[]{}));

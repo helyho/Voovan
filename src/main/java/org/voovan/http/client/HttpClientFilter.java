@@ -2,7 +2,7 @@ package org.voovan.http.client;
 
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
-import org.voovan.http.server.websocket.WebSocketFrame;
+import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;

@@ -2,7 +2,8 @@ package org.voovan.test.http;
 
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.WebServer;
-import org.voovan.http.server.websocket.WebSocketRouter;
+import org.voovan.http.websocket.WebSocketRouter;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
@@ -94,19 +95,24 @@ public class WebServerDemo {
         webServer.socket("/websocket", new WebSocketRouter() {
 
 			@Override
-			public ByteBuffer onRecived(HttpRequest upgradeRequest, ByteBuffer message) {
+			public ByteBuffer onRecived(ByteBuffer message) {
 				Logger.info(new String(message.array()));
 				String msg = "This is server message. Client message: \r\n\t\""+new String(message.array())+"\"";
 				return ByteBuffer.wrap(msg.getBytes());
 			}
 
 			@Override
-			public ByteBuffer onOpen(HttpRequest upgradeRequest) {
+			public ByteBuffer onOpen() {
 				Logger.info("WebSocket connect!");
 				return null;
 			}
 
 			@Override
+			public void onSent(ByteBuffer message) {
+				Logger.simple("Send: "+TByteBuffer.toString(message));
+			}
+
+				@Override
 			public void onClose() {
 				Logger.info("WebSocket close!");
 
