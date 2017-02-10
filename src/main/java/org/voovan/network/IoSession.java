@@ -155,6 +155,7 @@ public abstract class IoSession {
 
 	/**
 	 * 同步读取消息
+	 * 			消息会经过 filter 的 decoder 函数处理后再返回
 	 * @return 读取出的对象
 	 * @throws ReadMessageException  读取消息异常
 	 */
@@ -177,6 +178,7 @@ public abstract class IoSession {
 
 	/**
 	 * 同步发送消息
+	 * 			消息会经过 filter 的 encoder 函数处理后再发送
 	 * @param obj  要发送的对象
 	 * @throws SendMessageException  消息发送异常
 	 */
