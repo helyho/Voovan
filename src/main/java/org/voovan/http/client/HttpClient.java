@@ -13,6 +13,7 @@ import org.voovan.network.aio.AioSocket;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
@@ -151,17 +152,7 @@ public class HttpClient {
 				}
 			}
 
-			if(urlString.toLowerCase().startsWith("ws")){
-				Global.getThreadPool().execute(()->{
-					try {
-						socket.start();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				});
-			}else{
-				socket.syncStart();
-			}
+			socket.syncStart();
 
 		} catch (IOException e) {
 			Logger.error("HttpClient init error. ",e);
@@ -486,6 +477,11 @@ public class HttpClient {
 			WebSocketFrame errWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(new byte[]{}));
 			sendData(errWebSocketFrame.toByteBuffer());
 			throw new ReadMessageException("Connect WebSocket error!");
+		}
+
+		//为异步调用进行阻赛,等待 socket 关闭
+		while(socket.isOpen()){
+			TEnv.sleep(1);
 		}
 	}
 
