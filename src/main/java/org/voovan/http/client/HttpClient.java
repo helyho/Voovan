@@ -489,7 +489,7 @@ public class HttpClient {
 		try {
 			socket.getSession().send(buffer);
 		} catch (IOException e) {
-			Logger.error("WebSocket on connect send data error!", e);
+			Logger.error("WebSocket on connect send data error! "+e.getMessage(), e);
 		}
 	}
 
