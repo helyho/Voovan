@@ -104,7 +104,7 @@ public class HttpClientUnit extends TestCase {
 				try {
 					return ByteBuffer.wrap("RECIVE_MSG".getBytes());
 				}finally {
-					//close();
+					close();
 				}
 			}
 
