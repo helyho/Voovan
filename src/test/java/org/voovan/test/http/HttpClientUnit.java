@@ -6,12 +6,9 @@ import org.voovan.http.client.HttpClient;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Part;
-import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -90,7 +87,7 @@ public class HttpClientUnit extends TestCase {
 
 	public void testWebSocket() throws Exception {
 		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/","GBK2312",10000);
-		httpClient.connectWebSocket("/websocket", new WebSocketRouter() {
+		httpClient.webSocket("/websocket", new WebSocketRouter() {
 
 			@Override
 			public ByteBuffer onOpen() {
