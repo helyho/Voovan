@@ -13,6 +13,7 @@ import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;
@@ -81,8 +82,14 @@ public class AioSocket extends SocketContext {
 		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
 		socketChannel.connect(socketAddress, this, connectedCompletionHandler);
 		//获取到对端 IP 地址为连接成功
+
+		int waitTime = 0;
 		while(!isConnected()){
 			TEnv.sleep(1);
+			waitTime++;
+			if(waitTime>=this.readTimeout){
+				throw new ConnectException("Connection refused");
+			}
 		}
 	}
 
@@ -149,15 +156,18 @@ public class AioSocket extends SocketContext {
 				// 捕获 connect 事件
 				catchConnected();
 			}catch (IOException e){
+				Logger.error(e);
 				return;
 			}
 		}
 
-		//捕获输入事件
-		catchRead(ByteBuffer.allocate(this.getBufferSize()));
+		if(isConnected()) {
+			//捕获输入事件
+			catchRead(ByteBuffer.allocate(this.getBufferSize()));
 
-		//触发 connect 事件
-		EventTrigger.fireConnectThread(session);
+			//触发 connect 事件
+			EventTrigger.fireConnectThread(session);
+		}
 	}
 
 	/**
