@@ -39,7 +39,7 @@ public class HttpClientFilter implements IoFilter {
 	public Object decode(IoSession session,Object object) throws IoFilterException{
 		try{
 			if("WebSocket".equals(session.getAttribute("Type"))){
-				return object;
+				return WebSocketFrame.parse(TObject.cast(object));
 			}
 
 			if(object instanceof ByteBuffer){
