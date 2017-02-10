@@ -3,14 +3,15 @@ package org.voovan.test.http;
 
 import junit.framework.TestCase;
 import org.voovan.http.client.HttpClient;
-import org.voovan.http.client.WebSocketRouter;
+import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Part;
-import org.voovan.http.server.websocket.WebSocketFrame;
+import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -91,14 +92,26 @@ public class HttpClientUnit extends TestCase {
 		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/","GBK2312",10000);
 		httpClient.connectWebSocket("/websocket", new WebSocketRouter() {
 
+			@Override
 			public ByteBuffer onOpen() {
 				Logger.simple("open");
-				return ByteBuffer.wrap("adfadf".getBytes());
+				return ByteBuffer.wrap("OPEN_MSG".getBytes());
 			}
 
+			@Override
 			public ByteBuffer onRecived(ByteBuffer message) {
-				Logger.simple(TByteBuffer.toString(message));
-				return ByteBuffer.wrap("response".getBytes());
+				Logger.simple("Recive: "+TByteBuffer.toString(message));
+				try {
+					return ByteBuffer.wrap("RECIVE_MSG".getBytes());
+				}finally {
+					//close();
+				}
+			}
+
+			@Override
+			public void onSent(ByteBuffer message){
+				String msg = TByteBuffer.toString(message);
+				Logger.simple("Send: "+TByteBuffer.toString(message));
 			}
 
 			@Override
@@ -107,7 +120,6 @@ public class HttpClientUnit extends TestCase {
 			}
 		});
 
-		TEnv.sleep(40000);
-		httpClient.close();
+		TEnv.sleep(1000);
 	}
 }
