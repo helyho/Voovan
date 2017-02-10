@@ -244,6 +244,10 @@ public class WebServerHandler implements IoHandler {
 		else if (webSocketFrame.getOpcode() == Opcode.PING) {
 			return WebSocketFrame.newInstance(true, Opcode.PONG, false, null);
 		}
+		// WS_PING 收到 pong 帧则返回 ping 帧
+		else if (webSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
+			return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null);
+		}
 		// WS_RECIVE 文本和二进制消息出发 Recived 事件
 		else if (webSocketFrame.getOpcode() == Opcode.TEXT || webSocketFrame.getOpcode() == Opcode.BINARY) {
 			WebSocketFrame respWebSocketFrame = null;
