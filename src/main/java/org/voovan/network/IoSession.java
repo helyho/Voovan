@@ -161,7 +161,7 @@ public abstract class IoSession {
 	 */
 	public Object synchronouRead() throws ReadMessageException {
 		Object readObject = null;
-		while(true){
+		while(this.isConnected()){
 			readObject = getAttribute("SocketResponse");
 			if(readObject!=null) {
 				if(readObject instanceof Exception){
@@ -210,7 +210,7 @@ public abstract class IoSession {
 		
 		ByteBuffer appBuffer = sslParser.buildAppDataBuffer();
 
-		while(true){
+		while(isConnected()){
 			readSize = appDataBufferChannel.readHead(buffer);
 			if(readSize!=0){
 				return readSize;
