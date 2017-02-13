@@ -158,6 +158,7 @@ public class AioSocket extends SocketContext {
 				// 捕获 connect 事件
 				catchConnected();
 			}catch (IOException e){
+				EventTrigger.fireException(session,e);
 				Logger.error(e);
 				return;
 			}
