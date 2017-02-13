@@ -172,7 +172,7 @@ public abstract class IoSession {
 				break;
 			}
 
-			if(isConnected()){
+			if(!isConnected()){
 				break;
 			}
 			TEnv.sleep(1);
