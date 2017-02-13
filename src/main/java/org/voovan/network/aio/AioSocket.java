@@ -18,6 +18,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -34,7 +36,6 @@ public class AioSocket extends SocketContext {
 	private AsynchronousSocketChannel	socketChannel;
 	private AioSession					session;
 	private ReadCompletionHandler		readCompletionHandler;
-	private ConnectedCompletionHandler	connectedCompletionHandler;
 
 	/**
 	 * 构造函数
@@ -50,7 +51,6 @@ public class AioSocket extends SocketContext {
 		this.socketChannel = AsynchronousSocketChannel.open(asynchronousChannelGroup);
 		session = new AioSession(this);
 
-		connectedCompletionHandler = new ConnectedCompletionHandler();
 		readCompletionHandler = new ReadCompletionHandler(this,  session.getByteBufferChannel());
 		this.handler = new SynchronousHandler();
 		connectModel = ConnectModel.CLIENT;
@@ -69,7 +69,6 @@ public class AioSocket extends SocketContext {
 		this.copyFrom(parentSocketContext);
 		session = new AioSession(this);
 
-		connectedCompletionHandler = new ConnectedCompletionHandler();
 		readCompletionHandler = new ReadCompletionHandler(this, session.getByteBufferChannel());
 		connectModel = ConnectModel.SERVER;
 	}
@@ -80,16 +79,19 @@ public class AioSocket extends SocketContext {
 	 */
 	protected void catchConnected() throws IOException {
 		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
-		socketChannel.connect(socketAddress, this, connectedCompletionHandler);
-		//获取到对端 IP 地址为连接成功
-
-		long startTime = System.currentTimeMillis();
-		while(!isConnected()){
-			TEnv.sleep(1);
-			long elapseTime = System.currentTimeMillis() - startTime;
-			if(elapseTime >= this.readTimeout){
-				throw new ConnectException("Connection refused");
+		Future result =  socketChannel.connect(socketAddress);
+		try {
+			result.get();
+		} catch (InterruptedException e) {
+			this.close();
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			this.close();
+			Throwable causeException = e.getCause();
+			if(causeException!=null && causeException instanceof IOException){
+				throw (IOException) causeException;
 			}
+			e.printStackTrace();
 		}
 	}
 
