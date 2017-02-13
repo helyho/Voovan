@@ -84,14 +84,14 @@ public class AioSocket extends SocketContext {
 			result.get();
 		} catch (InterruptedException e) {
 			this.close();
-			e.printStackTrace();
+			Logger.error(e);
 		} catch (ExecutionException e) {
 			this.close();
 			Throwable causeException = e.getCause();
 			if(causeException!=null && causeException instanceof IOException){
 				throw (IOException) causeException;
 			}
-			e.printStackTrace();
+			Logger.error(e);
 		}
 	}
 
