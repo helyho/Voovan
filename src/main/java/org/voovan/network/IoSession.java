@@ -161,7 +161,7 @@ public abstract class IoSession {
 	 */
 	public Object synchronouRead() throws ReadMessageException {
 		Object readObject = null;
-		while(this.isConnected()){
+		while(true){
 			readObject = getAttribute("SocketResponse");
 			if(readObject!=null) {
 				if(readObject instanceof Exception){
@@ -171,8 +171,13 @@ public abstract class IoSession {
 				removeAttribute("SocketResponse");
 				break;
 			}
+
+			if(isConnected()){
+				break;
+			}
 			TEnv.sleep(1);
 		}
+
 		return readObject;
 	}
 
