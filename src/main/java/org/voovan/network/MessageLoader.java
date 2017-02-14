@@ -229,6 +229,7 @@ public class MessageLoader {
 			data = ByteBuffer.allocate(session.sockContext().getBufferSize());
 			session.getByteBufferChannel().readHead(data);
 		}
+
         if(!data.hasRemaining() && !session.isConnected()){
             return null;
         }
