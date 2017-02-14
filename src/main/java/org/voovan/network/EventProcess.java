@@ -101,14 +101,20 @@ public class EventProcess {
 		IoSession session = event.getSession();
 		if (socketContext != null && session != null) {
 			ByteBuffer byteBuffer = null;
-			
+
+			//如果是直接读取,则跳过
+			MessageLoader messageLoader = session.getMessageLoader();
+			if(messageLoader.isDirectRead()){
+				return;
+			}
+
 			// 循环读取完整的消息包.
 			// 由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.
 			// 有可能缓冲区没有读完
 			// 按消息包出发 onRecive 事件
 			while (session.getByteBufferChannel().size() > 0) {
 
-				byteBuffer = session.getMessageLoader().read();
+				byteBuffer = messageLoader.read();
 
 				// 如果读出的消息为 null 则关闭连接
 				if (byteBuffer == null) {
