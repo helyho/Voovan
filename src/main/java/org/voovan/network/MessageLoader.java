@@ -135,7 +135,7 @@ public class MessageLoader {
 		ByteBufferChannel dataByteBuffer = null;
 
 		if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
-			dataByteBuffer = new ByteBufferChannel(session.sockContext().getBufferSize());
+			dataByteBuffer = new ByteBufferChannel(session.socketContext().getBufferSize());
 		}else{
 			dataByteBuffer = session.getByteBufferChannel();
 		}
@@ -147,7 +147,7 @@ public class MessageLoader {
 		}
 
 		//获取消息分割器
-		MessageSplitter messageSplitter = session.sockContext().messageSplitter();
+		MessageSplitter messageSplitter = session.socketContext().messageSplitter();
 
 		if(messageSplitter==null){
 			Logger.error("[Error] MessageSplitter is null, you need to invoke SocketContext object's messageSplitter method to set MessageSplitter Object in it.");
@@ -171,7 +171,7 @@ public class MessageLoader {
 //			}
 
 			if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
-				ByteBuffer sslData = ByteBuffer.allocate(session.sockContext().getBufferSize());
+				ByteBuffer sslData = ByteBuffer.allocate(session.socketContext().getBufferSize());
 				session.readSSLData(sslData);
 				dataByteBuffer.writeEnd(sslData);
 			}
@@ -191,7 +191,7 @@ public class MessageLoader {
 
 			//超时判断,防止读0时导致的高 CPU 负载
 			if(readsize==0 && stopType == StopType.RUNNING){
-				if(readZeroCount >= session.sockContext().getReadTimeout()){
+				if(readZeroCount >= session.socketContext().getReadTimeout()){
 					stopType = StopType.STREAM_END;
 				}else {
 					readZeroCount++;
@@ -222,11 +222,11 @@ public class MessageLoader {
 		ByteBuffer data = null;
 
 		if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
-			ByteBuffer sslData = ByteBuffer.allocate(session.sockContext().getBufferSize());
+			ByteBuffer sslData = ByteBuffer.allocate(session.socketContext().getBufferSize());
 			session.readSSLData(sslData);
 			data = sslData;
 		}else {
-			data = ByteBuffer.allocate(session.sockContext().getBufferSize());
+			data = ByteBuffer.allocate(session.socketContext().getBufferSize());
 			session.getByteBufferChannel().readHead(data);
 		}
 

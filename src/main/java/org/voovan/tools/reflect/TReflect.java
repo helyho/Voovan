@@ -287,6 +287,8 @@ public class TReflect {
 			 method.setAccessible(true);
 			 return method.invoke(obj, parameters);
 		}catch(Exception e){
+			Exception lastExecption = e;
+
 			//找到这个名称的所有方法
 			Method[] methods = findMethod(objClass,name,parameterTypes.length);
 			for(Method similarMethod : methods){
@@ -318,12 +320,17 @@ public class TReflect {
 						method.setAccessible(true);
 						return method.invoke(obj, convertedParams);
 					}catch(Exception ex){
+						lastExecption = (Exception) ex.getCause();
 						continue;
 					}
 				}
 			}
 
-			throw e;
+			if ( !(lastExecption instanceof ReflectiveOperationException) ) {
+				lastExecption = new ReflectiveOperationException(lastExecption);
+			}
+
+			throw (ReflectiveOperationException)lastExecption;
 		}
 	}
 

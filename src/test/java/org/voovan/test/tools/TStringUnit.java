@@ -105,4 +105,17 @@ public class TStringUnit extends TestCase {
 		String uppercaseHeadedStr = TString.uppercaseHead(uppercaseHeadStr);
 		assertEquals(uppercaseHeadedStr,"Abcdefg");
 	}
+
+	public void testToUnicode(){
+		String str = "abcdefg";
+		String uncodeStr = TString.toUnicode(str);
+		assertEquals(uncodeStr,"\\u0061\\u0062\\u0063\\u0064\\u0065\\u0066\\u0067");
+	}
+
+	public void testFromUnicode(){
+		String uncodeStr = "=\\u0061=\\u0062=\\u0063=";
+		String str = TString.fromUnicode(uncodeStr);
+		assertEquals(str, "=a=b=c=");
+		System.out.println(TString.fromUnicode("\\u0063="));
+	}
 }

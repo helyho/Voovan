@@ -1,6 +1,5 @@
 package org.voovan.http.client;
 
-import org.voovan.Global;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Cookie;

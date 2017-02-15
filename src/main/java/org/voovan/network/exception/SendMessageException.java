@@ -1,6 +1,8 @@
 package org.voovan.network.exception;
 
-public class SendMessageException extends Exception {
+import java.io.IOException;
+
+public class SendMessageException extends IOException {
 
 	private static final long	serialVersionUID	= 1L;
 

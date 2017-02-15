@@ -1,6 +1,8 @@
 package org.voovan.network.exception;
 
-public class IoFilterException extends Exception {
+import java.io.IOException;
+
+public class IoFilterException extends IOException {
 
 	private static final long	serialVersionUID	= 1L;
 

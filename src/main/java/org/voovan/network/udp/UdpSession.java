@@ -1,10 +1,7 @@
 package org.voovan.network.udp;
 
 import org.voovan.network.IoSession;
-import org.voovan.network.MessageLoader;
 import org.voovan.network.MessageSplitter;
-import org.voovan.network.SocketContext;
-import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -21,11 +18,8 @@ import java.nio.channels.DatagramChannel;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class UdpSession extends IoSession {
+public class UdpSession extends IoSession<UdpSocket> {
 	private DatagramChannel	datagramChannel;
-	private UdpSocket			udpSocket;
-	private ByteBufferChannel	byteBufferChannel;
-	private MessageLoader		messageLoader;
 	private InetSocketAddress remoteAddress;
 
 	/**
@@ -34,27 +28,15 @@ public class UdpSession extends IoSession {
 	 *            socket 上下文对象
 	 */
 	UdpSession(UdpSocket udpSocket, InetSocketAddress remoteAddress) {
-		super();
+		super(udpSocket);
 		if (udpSocket != null) {
-			this.udpSocket = udpSocket;
 			this.datagramChannel = udpSocket.datagramChannel();
-			byteBufferChannel = new ByteBufferChannel(this.sockContext().getBufferSize());
-			messageLoader = new MessageLoader(this);
 			this.remoteAddress = remoteAddress;
 		}else{
 			Logger.error("Socket is null, please check it.");
 		}
 
 		
-	}
-
-	/**
-	 * 获取接收的输出流
-	 * 
-	 * @return 接收的输出流
-	 */
-	protected ByteBufferChannel getByteBufferChannel() {
-		return byteBufferChannel;
 	}
 
 	/**
@@ -122,21 +104,12 @@ public class UdpSession extends IoSession {
 		}
 	}
 
-	/**
-	 * 获取 socket 连接上下文
-	 * 
-	 * @return socket 连接上下文, 连接断开时返回的是null
-	 */
-	public SocketContext sockContext() {
-		return this.udpSocket;
-	}
-
 	@Override
 	public int read(ByteBuffer buffer) throws IOException {
 		int readSize = 0;
 		if (buffer != null) {
 			try {
-				readSize = byteBufferChannel.readHead(buffer);
+				readSize = this.getByteBufferChannel().readHead(buffer);
 			} catch (Exception e) {
 				// 如果出现异常则返回-1,表示读取通道结束
 				readSize = -1;
@@ -157,38 +130,9 @@ public class UdpSession extends IoSession {
 		return totalSendByte;
 	}
 
-	/**
-	 * 打开直接读取模式
-	 */
-	public void openDirectBufferRead(){
-		messageLoader.setDirectRead(true);
-	}
-
-	/**
-	 * 直接从缓冲区读取数据
-	 * @return 字节缓冲对象ByteBuffer
-	 * @throws IOException IO异常
-	 * */
-	public ByteBuffer directBufferRead() throws IOException {
-		messageLoader.setDirectRead(true);
-		return  messageLoader.directRead();
-	}
-
-	/**
-	 * 关闭直接读取模式
-	 */
-	public void closeDirectBufferRead(){
-		messageLoader.setDirectRead(false);
-	}
-
-	@Override
-	protected MessageLoader getMessageLoader() {
-		return messageLoader;
-	}
-
 	@Override
 	protected MessageSplitter getMessagePartition() {
-		return udpSocket.messageSplitter();
+		return this.socketContext().messageSplitter();
 	}
 
 	/**
@@ -198,7 +142,7 @@ public class UdpSession extends IoSession {
 	 */
 	@Override
 	public boolean isConnected() {
-		return udpSocket.isConnected();
+		return this.socketContext().isConnected();
 	}
 
 	/**
@@ -208,14 +152,14 @@ public class UdpSession extends IoSession {
 	 */
 	@Override
 	public boolean isOpen() {
-		return udpSocket.isOpen();
+		return this.socketContext().isOpen();
 	}
 
 	/**
 	 * 关闭会话
 	 */
 	public boolean close() {
-		return udpSocket.close();
+		return this.socketContext().close();
 	}
 
 	@Override

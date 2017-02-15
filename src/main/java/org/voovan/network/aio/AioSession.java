@@ -1,10 +1,7 @@
 package org.voovan.network.aio;
 
 import org.voovan.network.IoSession;
-import org.voovan.network.MessageLoader;
 import org.voovan.network.MessageSplitter;
-import org.voovan.network.SocketContext;
-import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -25,12 +22,10 @@ import java.util.concurrent.Future;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class AioSession extends IoSession {
+public class AioSession extends IoSession<AioSocket>  {
 
 	private AsynchronousSocketChannel	socketChannel;
-	private AioSocket					socket;
-	private ByteBufferChannel			byteBufferChannel;
-	private MessageLoader				messageLoader;
+
 
 	/**
 	 * 构造函数
@@ -38,24 +33,12 @@ public class AioSession extends IoSession {
 	 * @param socket
 	 */
 	AioSession(AioSocket socket) {
-		super();
+		super(socket);
 		if (socket != null) {
 			this.socketChannel = socket.socketChannel();
-			this.socket = socket;
-			byteBufferChannel = new ByteBufferChannel(this.sockContext().getBufferSize());
-		    this.messageLoader = new MessageLoader(this);
 		} else {
 			Logger.error("SocketChannel is null, please check it.");
 		}
-	}
-
-	/**
-	 * 获取接收的输出流
-	 * 
-	 * @return 接收的输出流
-	 */
-	protected ByteBufferChannel getByteBufferChannel() {
-		return byteBufferChannel;
 	}
 
 	@Override
@@ -119,16 +102,11 @@ public class AioSession extends IoSession {
 	}
 
 	@Override
-	public SocketContext sockContext() {
-		return socket;
-	}
-
-	@Override
 	protected int read(ByteBuffer buffer) throws IOException {
 		int readSize = 0;
 		if (buffer != null) {
 			try {
-				readSize = byteBufferChannel.readHead(buffer);
+				readSize = this.getByteBufferChannel().readHead(buffer);
 			} catch (Exception e) {
 				Logger.error("Read socketChannel failed.",e);
 				// 如果出现异常则返回-1,表示读取通道结束
@@ -164,43 +142,14 @@ public class AioSession extends IoSession {
 		return totalSendByte;
 	}
 
-	/**
-	 * 打开直接读取模式
-	 */
-	public void openDirectBufferRead(){
-		messageLoader.setDirectRead(true);
-	}
-
-	/**
-	 * 直接从缓冲区读取数据
-	 * @return 字节缓冲对象ByteBuffer
-	 * @throws IOException IO异常
-	 * */
-	public ByteBuffer directBufferRead() throws IOException {
-		messageLoader.setDirectRead(true);
-		return  messageLoader.directRead();
-	}
-
-	/**
-	 * 关闭直接读取模式
-	 */
-	public void closeDirectBufferRead(){
-		messageLoader.setDirectRead(false);
-	}
-
-	@Override
-	protected MessageLoader getMessageLoader() {
-		return messageLoader;
-	}
-
 	@Override
 	protected MessageSplitter getMessagePartition() {
-		return socket.messageSplitter();
+		return this.socketContext().messageSplitter();
 	}
 
 	@Override
 	public boolean isConnected() {
-		return socket.isConnected();
+		return this.socketContext().isConnected();
 	}
 
 	/**
@@ -210,13 +159,13 @@ public class AioSession extends IoSession {
 	 */
 	@Override
 	public boolean isOpen() {
-		return socket.isOpen();
+		return this.socketContext().isOpen();
 	}
 
 	@Override
 	public boolean close() {
 		// 关闭 socket
-		return socket.close();
+		return this.socketContext().close();
 	}
 
 	@Override
