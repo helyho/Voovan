@@ -36,7 +36,7 @@ public class EventProcess {
 	 * @throws IOException IO 异常
 	 */
 	public static void onAccepted(Event event) throws IOException {
-		SocketContext socketContext = event.getSession().sockContext();
+		SocketContext socketContext = event.getSession().socketContext();
 		if (socketContext != null) {
 			socketContext.start();
 		}
@@ -64,7 +64,7 @@ public class EventProcess {
 			}
 		}
 
-		SocketContext socketContext = event.getSession().sockContext();
+		SocketContext socketContext = event.getSession().socketContext();
 		if (socketContext != null && session != null) {
 			Object result = socketContext.handler().onConnect(session);
 			result =filterEncoder(session,result);
@@ -79,7 +79,7 @@ public class EventProcess {
 	 *            事件对象
 	 */
 	public static void onDisconnect(Event event) {
-		SocketContext socketContext = event.getSession().sockContext();
+		SocketContext socketContext = event.getSession().socketContext();
 		if (socketContext != null) {
 			IoSession session = event.getSession();
 
@@ -97,7 +97,7 @@ public class EventProcess {
 	 * @throws IoFilterException IoFilter 异常
 	 */
 	public static void onRead(Event event) throws IOException, SendMessageException, IoFilterException {
-		SocketContext socketContext = event.getSession().sockContext();
+		SocketContext socketContext = event.getSession().socketContext();
 		IoSession session = event.getSession();
 		if (socketContext != null && session != null) {
 			ByteBuffer byteBuffer = null;
@@ -161,7 +161,7 @@ public class EventProcess {
 	 * @throws IoFilterException 过滤器异常
 	 */
 	public static Object filterDecoder(IoSession session,Object result) throws IoFilterException{
-		Chain<IoFilter> filterChain = session.sockContext().filterChain().clone();
+		Chain<IoFilter> filterChain = session.socketContext().filterChain().clone();
 		while (filterChain.hasNext()) {
 			IoFilter fitler = filterChain.next();
 			result = fitler.decode(session, result);
@@ -178,7 +178,7 @@ public class EventProcess {
 	 * @throws IoFilterException 过滤器异常
 	 */
 	public static Object filterEncoder(IoSession session,Object result) throws IoFilterException{
-		Chain<IoFilter> filterChain = session.sockContext().filterChain().clone();
+		Chain<IoFilter> filterChain = session.socketContext().filterChain().clone();
 		filterChain.rewind();
 		while (filterChain.hasPrevious()) {
 			IoFilter fitler = filterChain.previous();
@@ -199,7 +199,7 @@ public class EventProcess {
 	 * @throws IOException IO 异常
 	 */
 	public static void onSent(Event event, Object obj) throws IOException {
-		SocketContext socketContext = event.getSession().sockContext();
+		SocketContext socketContext = event.getSession().socketContext();
 		if (socketContext != null) {
 			IoSession session = event.getSession();
 			socketContext.handler().onSent(session, obj);
@@ -216,8 +216,8 @@ public class EventProcess {
 	public static void onException(Event event, Exception e) {
 		if (event != null 
 				&& event.getSession() != null 
-				&& event.getSession().sockContext() != null) {
-			SocketContext socketContext = event.getSession().sockContext();
+				&& event.getSession().socketContext() != null) {
+			SocketContext socketContext = event.getSession().socketContext();
 			IoSession session = event.getSession();
 
 			if (socketContext.handler() != null) {
@@ -280,7 +280,7 @@ public class EventProcess {
 		// 根据事件名称处理事件
 		try {
 			if (eventName == EventName.ON_ACCEPTED) {
-				SocketContext socketContext = TObject.cast(event.getSession().sockContext());
+				SocketContext socketContext = TObject.cast(event.getSession().socketContext());
 				socketContext.start();
 			} else if (eventName == EventName.ON_CONNECT) {
 				EventProcess.onConnect(event);
@@ -294,7 +294,7 @@ public class EventProcess {
 			} else if (eventName == EventName.ON_EXCEPTION) {
 				EventProcess.onException(event, (Exception)event.getOther());
 			}
-		} catch (IOException | SendMessageException | IoFilterException e) {
+		} catch (IOException e) {
 			EventProcess.onException(event, e);
 		}
 	}

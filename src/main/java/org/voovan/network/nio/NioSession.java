@@ -1,10 +1,7 @@
 package org.voovan.network.nio;
 
 import org.voovan.network.IoSession;
-import org.voovan.network.MessageLoader;
 import org.voovan.network.MessageSplitter;
-import org.voovan.network.SocketContext;
-import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -20,11 +17,8 @@ import java.nio.channels.SocketChannel;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class NioSession extends IoSession {
+public class NioSession extends IoSession<NioSocket> {
 	private SocketChannel		socketChannel;
-	private NioSocket			socket;
-	private ByteBufferChannel	byteBufferChannel;
-	private MessageLoader		messageLoader;
 
 	/**
 	 * 构造函数
@@ -32,26 +26,14 @@ public class NioSession extends IoSession {
 	 *            socket 上下文对象
 	 */
 	NioSession(NioSocket nioSocket) {
-		super();
+		super(nioSocket);
 		if (nioSocket != null) {
-			this.socket = nioSocket;
-			this.socketChannel = nioSocket.socketChannel();
-			byteBufferChannel = new ByteBufferChannel(this.sockContext().getBufferSize());
-			messageLoader = new MessageLoader(this);
+			socketChannel = nioSocket.socketChannel();
 		}else{
 			Logger.error("Socket is null, please check it.");
 		}
 
 		
-	}
-
-	/**
-	 * 获取接收的输出流
-	 * 
-	 * @return 接收的输出流
-	 */
-	protected ByteBufferChannel getByteBufferChannel() {
-		return byteBufferChannel;
 	}
 
 	/**
@@ -119,21 +101,12 @@ public class NioSession extends IoSession {
 		}
 	}
 
-	/**
-	 * 获取 socket 连接上下文
-	 * 
-	 * @return socket 连接上下文, 连接断开时返回的是null
-	 */
-	public SocketContext sockContext() {
-		return this.socket;
-	}
-
 	@Override
 	public int read(ByteBuffer buffer) throws IOException {
 		int readSize = 0;
 		if (buffer != null) {
 			try {
-				readSize = byteBufferChannel.readHead(buffer);
+				readSize = this.getByteBufferChannel().readHead(buffer);
 			} catch (Exception e) {
 				// 如果出现异常则返回-1,表示读取通道结束
 				readSize = -1;
@@ -154,38 +127,10 @@ public class NioSession extends IoSession {
 		return totalSendByte;
 	}
 
-	/**
-	 * 打开直接读取模式
-	 */
-	public void openDirectBufferRead(){
-		messageLoader.setDirectRead(true);
-	}
-
-	/**
-	 * 直接从缓冲区读取数据
-	 * @return 字节缓冲对象ByteBuffer
-	 * @throws IOException IO异常
-	 * */
-	public ByteBuffer directBufferRead() throws IOException {
-		messageLoader.setDirectRead(true);
-		return  messageLoader.directRead();
-	}
-
-	/**
-	 * 关闭直接读取模式
-	 */
-	public void closeDirectBufferRead(){
-		messageLoader.setDirectRead(false);
-	}
-
-	@Override
-	protected MessageLoader getMessageLoader() {
-		return messageLoader;
-	}
 
 	@Override
 	protected MessageSplitter getMessagePartition() {
-		return socket.messageSplitter();
+		return this.socketContext().messageSplitter();
 	}
 
 	/**
@@ -195,7 +140,7 @@ public class NioSession extends IoSession {
 	 */
 	@Override
 	public boolean isConnected() {
-		return socket.isConnected();
+		return this.socketContext().isConnected();
 	}
 
 	/**
@@ -205,14 +150,14 @@ public class NioSession extends IoSession {
 	 */
 	@Override
 	public boolean isOpen() {
-		return socket.isOpen();
+		return this.socketContext().isOpen();
 	}
 
 	/**
 	 * 关闭会话
 	 */
 	public boolean close() {
-		return socket.close();
+		return this.socketContext().close();
 	}
 
 	@Override

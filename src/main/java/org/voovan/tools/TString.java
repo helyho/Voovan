@@ -30,6 +30,9 @@ public class TString {
 	 * @return 首字母大写后的字符串
 	 */
 	public static String uppercaseHead(String source){
+		if(source==null){
+			return null;
+		}
 		char[] charArray = source.toCharArray();
 		charArray[0] = Character.toUpperCase(charArray[0]);
 		return new String(charArray);
@@ -42,6 +45,9 @@ public class TString {
 	 * @return 移除第一个字节后的字符串
 	 */
 	public static String removePrefix(String source){
+		if(source==null){
+			return null;
+		}
 		return source.substring(1,source.length());
 	}
 	
@@ -51,6 +57,10 @@ public class TString {
 	 * @return 移除最后一个字节后的字符串
 	 */
 	public static String removeSuffix(String source){
+		if(source==null){
+			return null;
+		}
+
 		if(source.isEmpty()){
 			return source;
 		}
@@ -101,6 +111,10 @@ public class TString {
 	 * @return 是否是指定进制的数字字符串
 	 */
 	public static boolean isNumber(String numberString,int radix){
+		if(numberString==null){
+			return false;
+		}
+
 		try{
 			Integer.parseInt(numberString, radix);
 			return true;
@@ -156,6 +170,10 @@ public class TString {
 	 * @return  匹配的字符串数组
 	 */
 	public static String[] searchByRegex(String source,String regex){
+		if(source==null){
+			return null;
+		}
+
 		Pattern pattern = null;
 		if(regexPattern.containsKey(regex.hashCode())){
 			pattern = regexPattern.get(regex.hashCode());
@@ -201,6 +219,10 @@ public class TString {
 	 * @return 替换后的字符串
 	 */
 	public static String tokenReplace(String source,Map<String, String> tokens){
+		if(source==null){
+			return null;
+		}
+
 		for(Entry<String, String> entry : tokens.entrySet()){
 			String value = entry.getValue();
 			if(value==null){
@@ -219,6 +241,10 @@ public class TString {
 	 * @return 替换后的字符串
 	 */
 	public static String tokenReplace(String source,String tokenName,String tokenValue){
+		if(source==null){
+			return null;
+		}
+
 		return source.replaceAll("\\{\\{"+tokenName+"\\}\\}",Matcher.quoteReplacement(tokenValue));
 	}
 	
@@ -231,6 +257,10 @@ public class TString {
 	 * @return 格式化后的字符串
 	 */
 	public static String format(String source,String ...args){
+		if(source==null){
+			return null;
+		}
+
 		for(String arg : args){
 			source = replaceFirst(source,"{}",arg);
 		}
@@ -245,6 +275,10 @@ public class TString {
 	 * @return 替换后的结果
 	 */
 	public static String replaceFirst(String source,String mark,String replacement){
+		if(source==null){
+			return null;
+		}
+
 		int head = source.indexOf(mark);
 		int tail = head+mark.length();
 		replacement = TObject.nullDefault(replacement,"");
@@ -260,7 +294,9 @@ public class TString {
 	 * @return 替换后的结果
 	 */
 	public static String replaceLast(String source,String mark,String replacement){
-		
+		if(source==null){
+			return null;
+		}
 		int head = source.lastIndexOf(mark);
 		int tail = head+mark.length();
 		replacement = TObject.nullDefault(replacement,"");
@@ -270,30 +306,30 @@ public class TString {
 	
 	/**
 	 * 缩进字符串
-	 * @param str			待缩进的字符串
+	 * @param source			待缩进的字符串
 	 * @param indentCount   缩进数(空格的数目)
 	 * @return 缩进后的字符串
 	 */
-	public static String indent(String str,int indentCount){
-		if(indentCount>0 && str!=null){
+	public static String indent(String source,int indentCount){
+		if(indentCount>0 && source!=null){
 			StringBuilder indent = new StringBuilder();
 			for(int i=0;i<indentCount;i++){
 				indent.append(" ");
 			}
-			str = indent.toString() + str;
-			str = str.replaceAll("\n", "\n" + indent.toString());
+			source = indent.toString() + source;
+			source = source.replaceAll("\n", "\n" + indent.toString());
 		}
-		return str;
+		return source;
 	}
 
 	/**
 	 * 翻转字符串 输入1234 输出4321
-	 * @param str  字符串
+	 * @param source  字符串
 	 * @return 翻转后的字符串
      */
-	public static String reverse(String str){
-		if(str!=null){
-			char[] array = str.toCharArray();
+	public static String reverse(String source){
+		if(source!=null){
+			char[] array = source.toCharArray();
 			StringBuilder reverse = new StringBuilder();
 			for (int i = array.length - 1; i >= 0; i--)
 				reverse.append(array[i]);
@@ -305,11 +341,15 @@ public class TString {
 	/**
 	 * 将系统转义字符,转义成可在字符串表达的转义字符
 	 *       例如:将字符串中的 \" 转转成 \\\"
-	 * @param str
+	 * @param source
 	 * @return
 	 */
-	public static String convertEscapeChar(String str){
-		return str.replace("\\","\\u005c")
+	public static String convertEscapeChar(String source){
+		if(source==null){
+			return null;
+		}
+
+		return source.replace("\\","\\u005c")
 				.replace("\f","\\u000c")
 				.replace("\'","\\u0027")
 				.replace("\r","\\u000d")
@@ -322,11 +362,15 @@ public class TString {
 	/**
 	 * 将可在字符串中表达的转义字符,转义成系统转义字符
 	 *       例如:将字符串中的 \\\" 转转成 \"
-	 * @param str
+	 * @param source
 	 * @return
 	 */
-	public static String unConvertEscapeChar(String str){
-		return str.replace("\\\\","\\")
+	public static String unConvertEscapeChar(String source){
+		if(source==null){
+			return null;
+		}
+
+		return source.replace("\\\\","\\")
 				.replace("\\f","\f")
 				.replace("\\'","\'")
 				.replace("\\r","\r")
@@ -336,6 +380,67 @@ public class TString {
 				.replace("\\n","\n");
 	}
 
+
+	/**
+	 * 字符串转 Unicode
+	 * @param source 字符串
+	 * @return unicode 字符串
+	 */
+	public static String toUnicode(String source) {
+
+		if(source==null){
+			return null;
+		}
+
+		StringBuffer result = new StringBuffer();
+
+		for (int i = 0; i < source.length(); i++) {
+
+			// 取出一个字符
+			char c = source.charAt(i);
+
+			// 转换为unicode
+			result.append("\\u" + leftPad(Integer.toHexString(c),4,'0') );
+		}
+
+		return result.toString();
+	}
+
+	/**
+	 * Unicode 转 字符串
+	 * @param source unicode 字符串
+	 * @return string 字符串
+	 */
+	public static String fromUnicode(String source) {
+		if(source==null){
+			return null;
+		}
+
+		if(source.contains("\\u")) {
+
+			StringBuffer result = new StringBuffer();
+
+			String[] hex = source.split("\\\\u");
+
+			for (int i = 0; i < hex.length; i++) {
+				String element = hex[i];
+				if (element.length() >= 4) {
+					String codePoint = element.substring(0, 4);
+					// 转换码点
+					int charCode = Integer.parseInt(codePoint, 16);
+					result.append((char) charCode);
+					element = element.substring(4, element.length());
+				}
+				// 追加成string
+				result.append(element);
+			}
+			return result.toString();
+		}else{
+			return source;
+		}
+
+	}
+
 	/**
 	 * 字符串转换为 Java 基本类型
 	 * @param value 字符串字面值
@@ -343,7 +448,7 @@ public class TString {
 	 * @param ignoreCase 是否在字段匹配时忽略大小写
 	 * @return 基本类型对象
 	 */
-	public static Object toObject(String value,Class clazz, boolean ignoreCase){
+	public static Object toObject(String value, Class clazz, boolean ignoreCase){
 		if(value == null){
 			return null;
 		}else if(clazz == int.class || clazz == Integer.class){
