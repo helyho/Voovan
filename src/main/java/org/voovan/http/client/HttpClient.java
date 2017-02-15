@@ -419,12 +419,12 @@ public class HttpClient {
 
 	/**
 	 * 发送二进制数据
-	 * @param binData 二进制数据
+	 * @param buffer 二进制数据
 	 * @return 发送的字节数
 	 * @throws IOException IO 异常
 	 */
-	public int sendBinary(ByteBuffer binData) throws IOException {
-		return socket.getSession().send(binData);
+	public int send(ByteBuffer buffer) throws IOException {
+		return socket.getSession().send(buffer);
 	}
 
 	/**

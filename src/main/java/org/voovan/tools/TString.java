@@ -303,6 +303,21 @@ public class TString {
 	}
 
 	/**
+	 * 将字符串中的转义字符,转义成可在字符串表达的转义字符
+	 *       例如:将字符串中的 \" 转转成 \\\"
+	 * @param str
+	 * @return
+	 */
+	public static String convertEscapeChar(String str){
+		return str.replace("\\","\\\\")
+				.replace("\r","\\r")
+				.replace("\"","\\\"")
+				.replace("\b","\\b")
+				.replace("\t","\\t")
+				.replace("\n","\\n");
+	}
+
+	/**
 	 * 字符串转换为 Java 基本类型
 	 * @param value 字符串字面值
 	 * @param clazz Class类,仅支持基本类型
@@ -349,4 +364,6 @@ public class TString {
 	public static Object toObject(String value,Class clazz){
 		return toObject(value, clazz, false);
 	}
+
+
 }
