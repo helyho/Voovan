@@ -1,6 +1,7 @@
 package org.voovan.tools.json;
 
 import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
 import org.voovan.tools.reflect.TReflect;
 
 import java.util.Collection;
@@ -119,10 +120,7 @@ public class JSONEncode {
             value = object.toString();
         } else if (object.getClass().getName().startsWith("java.lang")) {
             //这里这么做的目的是方便 js 中通过 eval 方法产生 js 对象
-            String strValue = object.toString()
-                    .replace("\r","\\u000d")  // \r
-                    .replace("\r","\\u0022")  // \*
-                    .replace("\n","\\u000a"); // \n
+            String strValue = TString.convertEscapeChar(object.toString());
             value = "\"" + strValue + "\"";
         } else if (object instanceof Map) {
             Map<Object, Object> mapObject = (Map<Object, Object>) object;
@@ -139,4 +137,5 @@ public class JSONEncode {
 
         return value;
     }
+
 }
