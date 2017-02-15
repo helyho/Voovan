@@ -303,18 +303,37 @@ public class TString {
 	}
 
 	/**
-	 * 将字符串中的转义字符,转义成可在字符串表达的转义字符
+	 * 将系统转义字符,转义成可在字符串表达的转义字符
 	 *       例如:将字符串中的 \" 转转成 \\\"
 	 * @param str
 	 * @return
 	 */
 	public static String convertEscapeChar(String str){
-		return str.replace("\\","\\\\")
-				.replace("\r","\\r")
-				.replace("\"","\\\"")
-				.replace("\b","\\b")
-				.replace("\t","\\t")
-				.replace("\n","\\n");
+		return str.replace("\\","\\u005c")
+				.replace("\f","\\u000c")
+				.replace("\'","\\u0027")
+				.replace("\r","\\u000d")
+				.replace("\"","\\u0022")
+				.replace("\b","\\u0008")
+				.replace("\t","\\u0009")
+				.replace("\n","\\u000a");
+	}
+
+	/**
+	 * 将可在字符串中表达的转义字符,转义成系统转义字符
+	 *       例如:将字符串中的 \\\" 转转成 \"
+	 * @param str
+	 * @return
+	 */
+	public static String unConvertEscapeChar(String str){
+		return str.replace("\\\\","\\")
+				.replace("\\f","\f")
+				.replace("\\'","\'")
+				.replace("\\r","\r")
+				.replace("\\\"","\"")
+				.replace("\\b","\b")
+				.replace("\\t","\t")
+				.replace("\\n","\n");
 	}
 
 	/**
