@@ -10,7 +10,7 @@ import org.voovan.tools.TObject;
 import java.nio.ByteBuffer;
 
 /**
- * 类文字命名
+ * 处理 WebSocket 相关的 IoHandler 事件
  *
  * @author helyho
  *         <p>
