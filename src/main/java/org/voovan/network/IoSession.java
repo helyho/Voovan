@@ -23,19 +23,25 @@ import java.util.concurrent.ConcurrentHashMap;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public abstract class IoSession {
+public abstract class IoSession<T extends SocketContext> {
 	
 	private Map<Object, Object> attributes;
 	private SSLParser sslParser;
 	private ByteBufferChannel appDataBufferChannel;
 	private boolean onReceive;
+	private MessageLoader messageLoader;
+	private ByteBufferChannel byteBufferChannel;
+	private T socketContext;
 
 	/**
 	 * 构造函数
 	 */
-	protected IoSession(){
+	public IoSession(T socketContext){
 		attributes = new ConcurrentHashMap<Object, Object>();
 		appDataBufferChannel = new ByteBufferChannel();
+		this.socketContext = socketContext;
+		byteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
+		messageLoader = new MessageLoader(this);
 	}
 
 	protected boolean isOnReceive() {
@@ -48,10 +54,13 @@ public abstract class IoSession {
 
 	/**
 	 * 获取接收的输出流
+	 *
 	 * @return 接收的输出流
 	 */
-	protected abstract ByteBufferChannel getByteBufferChannel();
-	
+	public ByteBufferChannel getByteBufferChannel() {
+		return byteBufferChannel;
+	}
+
 	/**
 	 * 获取 SSLParser
 	 * @return SSLParser对象
@@ -104,7 +113,7 @@ public abstract class IoSession {
 	public boolean containAttribute(Object key) {
 		return this.attributes.containsKey(key);
 	}
-	
+
 	/**
 	 * 获取本地 IP 地址
 	 * @return	本地 IP 地址
@@ -133,7 +142,9 @@ public abstract class IoSession {
 	 * 获取 socket 连接上下文
 	 * @return	socket 连接上下文, 连接断开时返回的是null
 	 */
-	public abstract SocketContext sockContext();
+	public T socketContext() {
+		return socketContext;
+	};
 	
 	/**
 	 * 读取消息到缓冲区
@@ -260,14 +271,48 @@ public abstract class IoSession {
 			}
 		}
 	}
-	
-	
+
+
+	/**
+	 * 打开直接读取模式
+	 */
+	public void openDirectBufferRead(){
+		messageLoader.setDirectRead(true);
+	}
+
+	/**
+	 * 直接从缓冲区读取数据
+	 * @return 字节缓冲对象ByteBuffer
+	 * @throws IOException IO异常
+	 * */
+	public ByteBuffer directBufferRead() throws IOException {
+		Object response = this.getAttribute("SocketResponse");
+		if(response!=null){
+			if(response instanceof Exception) {
+				throw (IOException) response;
+			}else{
+				throw new IOException((Exception)response);
+			}
+		}
+		messageLoader.setDirectRead(true);
+		return  messageLoader.directRead();
+	}
+
+	/**
+	 * 关闭直接读取模式
+	 */
+	public void closeDirectBufferRead(){
+		messageLoader.setDirectRead(false);
+	}
+
 	/**
 	 * 获取消息处理类
 	 * @return 消息处理类
 	 */
-	protected abstract MessageLoader getMessageLoader();
-	
+	public MessageLoader getMessageLoader() {
+		return messageLoader;
+	}
+
 	/**
 	 * 获取消息分割处理类
 	 * @return 消息分割处理类

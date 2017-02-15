@@ -13,7 +13,6 @@ import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;

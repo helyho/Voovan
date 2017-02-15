@@ -15,7 +15,7 @@ public class TimeOutMesssageSplitter implements MessageSplitter {
 	
 	@Override
 	public int canSplite(IoSession session, ByteBuffer byteBuffer) {
-		int timeOut = session.sockContext().getReadTimeout();
+		int timeOut = session.socketContext().getReadTimeout();
 		long currentTime = System.currentTimeMillis();
 		if(initTime==-1){
 			initTime = currentTime;
