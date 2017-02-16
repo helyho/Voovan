@@ -59,7 +59,7 @@ public class TStream {
 		lineStr = lineStrBuilder.toString();
 		return lineStr.isEmpty()?null:lineStr.trim();
 	}
-	
+
 	/**
 	 * 从 InputStream 读取一段,使用 byte数组 分割
 	 * 		返回的 byte数组中不包含分割 byte 数组的内容
