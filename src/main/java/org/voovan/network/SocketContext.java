@@ -23,7 +23,7 @@ public abstract class SocketContext {
 	protected MessageSplitter messageSplitter;
 	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
-	protected int bufferSize = 1024;
+	protected int bufferSize = 10240;
 
 
 	/**
