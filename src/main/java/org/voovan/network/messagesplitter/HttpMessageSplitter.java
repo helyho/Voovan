@@ -99,36 +99,35 @@ public class HttpMessageSplitter implements MessageSplitter {
                 getBodyTagIndex(byteBuffer);
             }
 
-            if(bodyTagIndex!=-1) {
 
-                if (bodyTagIndex != -1) {
-                    // 1.包含 content Length 的则通过获取 contentLenght 来计算报文的总长度,长度相等时,返回成功
-                    if (contentLength != -1) {
-                        int totalLength = bodyTagIndex + 4 + contentLength;
-                        if (byteBuffer.limit() >= totalLength) {
-                            return byteBuffer.limit();
-                        }
-                    }
-
-                    // 2. 如果是 HTTP 响应报文 chunk
-                    // 则trim 后判断最后一个字符是否是 0
-                    if (isChunked) {
-                        byteBuffer.position(byteBuffer.limit() - 7);
-                        byte[] tailBytes = new byte[7];
-                        byteBuffer.get(tailBytes);
-                        byteBuffer.position(0);
-                        String tailStr = new String(tailBytes, "UTF-8");
-                        if("\r\n0\r\n\r\n".equals(tailStr) || tailStr.endsWith("\r\n0")) {
-                            return byteBuffer.limit();
-                        }
-                    }
-
-                    // 3.是否是无报文体的简单请求报文(1.Header 中没有 ContentLength / 2.非 Chunked 报文形式)
-                    if (contentLength == -1 && !isChunked) {
+            if(bodyTagIndex != -1) {
+                // 1.包含 content Length 的则通过获取 contentLenght 来计算报文的总长度,长度相等时,返回成功
+                if (contentLength != -1) {
+                    int totalLength = bodyTagIndex + 4 + contentLength;
+                    if (byteBuffer.limit() >= totalLength) {
                         return byteBuffer.limit();
                     }
                 }
+
+                // 2. 如果是 HTTP 响应报文 chunk
+                // 则trim 后判断最后一个字符是否是 0
+                if (isChunked) {
+                    byteBuffer.position(byteBuffer.limit() - 7);
+                    byte[] tailBytes = new byte[7];
+                    byteBuffer.get(tailBytes);
+                    byteBuffer.position(0);
+                    String tailStr = new String(tailBytes, "UTF-8");
+                    if("\r\n0\r\n\r\n".equals(tailStr) || tailStr.endsWith("\r\n0")) {
+                        return byteBuffer.limit();
+                    }
+                }
+
+                // 3.是否是无报文体的简单请求报文(1.Header 中没有 ContentLength / 2.非 Chunked 报文形式)
+                if (contentLength == -1 && !isChunked) {
+                    return byteBuffer.limit();
+                }
             }
+
 	    }catch(Exception e){
             Logger.error(e);
         }
