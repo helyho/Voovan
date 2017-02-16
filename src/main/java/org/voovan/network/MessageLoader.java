@@ -163,13 +163,6 @@ public class MessageLoader {
 
 			int readsize = byteBufferChannel.size() - oldByteChannelSize;
 
-			//读出数据
-//			if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone){
-//				readsize = session.readSSLData(tmpByteBuffer);
-//			}else{
-//				readsize = session.read(tmpByteBuffer);
-//			}
-
 			if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
 				ByteBuffer sslData = ByteBuffer.allocate(session.socketContext().getBufferSize());
 				session.readSSLData(sslData);
@@ -182,7 +175,7 @@ public class MessageLoader {
 			}
 
 			//使用消息划分器进行消息划分
-			if(readsize==0) {
+			if(readsize == 0) {
 				splitLength = messageSplitter.canSplite(session,  dataByteBuffer.getByteBuffer());
 				if (splitLength > 0) {
 					stopType = StopType.MSG_SPLITTER ;
@@ -197,6 +190,8 @@ public class MessageLoader {
 					readZeroCount++;
 					TEnv.sleep(1);
 				}
+			}else{
+				readZeroCount = 0;
 			}
 
 			oldByteChannelSize = byteBufferChannel.size();
