@@ -25,10 +25,13 @@ public class HttpMessageSplitter implements MessageSplitter {
 
 	private static final String	BODY_TAG	= "\r\n\r\n";
 	private int result = -1;
-	private int bodyTagIndex = -1;
+	private int bodyTagIndex= -1;
+
+	private int contentLength = -1;
+    boolean isChunked = false;
 
 
-	@Override
+    @Override
 	public int canSplite(IoSession session, ByteBuffer byteBuffer) {
 
 		if(byteBuffer.limit()==0){
@@ -48,44 +51,59 @@ public class HttpMessageSplitter implements MessageSplitter {
 		return result;
 	}
 
-	public int getBodyTagIndex(ByteBuffer byteBuffer){
+    private void getBodyTagIndex(ByteBuffer byteBuffer){
         byte[] buffer = byteBuffer.array();
+        StringBuilder stringBuilder = new StringBuilder();
+        String httpHead = null;
         for(int x=0;x<buffer.length;x++){
             if(buffer[x] == '\r' && buffer[x+1] == '\n' && buffer[x+2] == '\r' && buffer[x+3] == '\n'){
-                return x;
+                bodyTagIndex = x;
+                httpHead = stringBuilder.toString();
+                break;
+            }else{
+                stringBuilder.append((char)buffer[x]);
             }
         }
-        return -1;
+
+        if(httpHead !=null && isHttpHead(httpHead)) {
+
+            String[] contentLengthLines = TString.searchByRegex(httpHead, "Content-Length: \\d+");
+            if (contentLengthLines.length > 1) {
+                contentLength = Integer.parseInt(contentLengthLines[0].split(" ")[1].trim());
+            }
+
+            isChunked = httpHead.contains("chunked");
+
+        }else{
+            bodyTagIndex = -1;
+        }
+    }
+
+    private boolean isHttpHead(String str){
+        //判断是否是 HTTP 头
+        int firstLineIndex = str.indexOf("\r\n");
+        if(firstLineIndex != -1) {
+            String firstLine = str.substring(0, firstLineIndex);
+            if (TString.regexMatch(firstLine, "HTTP\\/\\d\\.\\d\\s\\d{3}\\s.*") <= 0) {
+                if (TString.regexMatch(firstLine, "^[A-Z]*\\s.*\\sHTTP\\/\\d\\.\\d") <= 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 	public int isHttpFrame(ByteBuffer byteBuffer) {
 	    try{
             if(bodyTagIndex==-1) {
-                bodyTagIndex = getBodyTagIndex(byteBuffer);
+                getBodyTagIndex(byteBuffer);
             }
 
             if(bodyTagIndex!=-1) {
 
-                ByteArrayInputStream bufferStream = new ByteArrayInputStream(byteBuffer.array());
-                String bufferString = new String(TStream.read(bufferStream, bodyTagIndex), "UTF-8");
-
-                //判断是否是 HTTP 头
-                String firstLine = bufferString.substring(0, bufferString.indexOf("\r\n"));
-                if (TString.regexMatch(firstLine, "HTTP\\/\\d\\.\\d\\s\\d{3}\\s.*") <= 0) {
-                    if (TString.regexMatch(firstLine, "^[A-Z]*\\s.*\\sHTTP\\/\\d\\.\\d") <= 0) {
-                        return -1;
-                    }
-                }
-
-                //读取必要参数
-                String[] boundaryLines = TString.searchByRegex(bufferString, "boundary=[^ \\r\\n]+");
-                String[] contentLengthLines = TString.searchByRegex(bufferString, "Content-Length: \\d+");
-                boolean isChunked = bufferString.contains("chunked");
-
                 if (bodyTagIndex != -1) {
                     // 1.包含 content Length 的则通过获取 contentLenght 来计算报文的总长度,长度相等时,返回成功
-                    if (contentLengthLines.length == 1) {
-                        int contentLength = Integer.parseInt(contentLengthLines[0].split(" ")[1].trim());
+                    if (contentLength != -1) {
                         int totalLength = bodyTagIndex + 4 + contentLength;
                         if (byteBuffer.limit() >= totalLength) {
                             return byteBuffer.limit();
@@ -95,9 +113,10 @@ public class HttpMessageSplitter implements MessageSplitter {
                     // 2. 如果是 HTTP 响应报文 chunk
                     // 则trim 后判断最后一个字符是否是 0
                     if (isChunked) {
-                        bufferStream.skip(bufferStream.available()-7);
+                        byteBuffer.position(byteBuffer.limit() - 7);
                         byte[] tailBytes = new byte[7];
-                        bufferStream.read(tailBytes);
+                        byteBuffer.get(tailBytes);
+                        byteBuffer.position(0);
                         String tailStr = new String(tailBytes, "UTF-8");
                         if("\r\n0\r\n\r\n".equals(tailStr) || tailStr.endsWith("\r\n0")) {
                             return byteBuffer.limit();
@@ -105,7 +124,7 @@ public class HttpMessageSplitter implements MessageSplitter {
                     }
 
                     // 3.是否是无报文体的简单请求报文(1.Header 中没有 ContentLength / 2.非 Chunked 报文形式)
-                    if (contentLengthLines.length == 0 && !isChunked) {
+                    if (contentLength == -1 && !isChunked) {
                         return byteBuffer.limit();
                     }
                 }
