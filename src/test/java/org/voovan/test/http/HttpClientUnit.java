@@ -9,6 +9,7 @@ import org.voovan.http.message.packet.Part;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -25,14 +26,14 @@ public class HttpClientUnit extends TestCase {
 		super(name);
 	}
 
-	public void testGetHeader() {
+	public void testGetHeader() throws IOException {
 		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080");
 		httpClient.putParameters("name", "测试");
 		assertEquals(httpClient.getHeader().get("Host"),"127.0.0.1");
 		httpClient.close();
 	}
 
-	public void testParameters() {
+	public void testParameters() throws IOException {
 		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080");
 		httpClient.putParameters("name", "测试");
 		assertEquals(httpClient.getParameters().get("name"), "测试");
