@@ -36,7 +36,7 @@
 ###一、高性能异步通信(AIO、NIO异步通信)
 
   类似 Netty 和 MINA 的异步 Socket 通信框架.但有有所不同。
-  1. **可灵活实现Socket通信粘包的支持**（代码中包含 HTTP协议,字符串换行,定长报文的粘包实现）。
+  1. **可灵活解决Socket通信粘包的支持**（源码中包含 HTTP协议,字符串换行,定长报文的粘包实现）。
   1. **支持 SSL/TLS 加密通信。**
   1. **提供线程池依据系统负载情况自动动态调整。**
   1. 同时支持 NIO 和 AIO 特性。
@@ -51,6 +51,7 @@
   1. 基于 Voovan 异步通信框架实现。
   1. 客户端可以灵活自定义请求报文。
   1. 同步实现 HTTP请求(需要同步实现可参考)。
+  1. 实现 WebSocket 客户端调用,可以连接任何支持 **WebSocket Version 13**的 WebSocket 服务。
   
 
 
@@ -130,4 +131,4 @@
 |  名称                      | 贡献内容           |
 | -------------             |:-------------: |
 |[愚民日记](https://git.oschina.net/helyho)             | 项目发起者      |
-|[zhubibo](https://git.oschina.net/zhubibo)            |应用与BUG提交      |
+|[zhubibo](https://git.oschina.net/zhubibo)            | 应用与BUG提交      |
