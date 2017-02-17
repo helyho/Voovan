@@ -132,7 +132,7 @@ public class UdpSocket extends SocketContext{
      * @throws ReadMessageException 读取消息异常
      */
     public Object synchronouRead() throws ReadMessageException {
-        return session.synchronouRead();
+        return session.syncRead();
     }
 
     /**
@@ -141,7 +141,7 @@ public class UdpSocket extends SocketContext{
      * @throws SendMessageException  消息发送异常
      */
     public void synchronouSend(Object obj) throws SendMessageException {
-        session.synchronouSend(obj);
+        session.syncSend(obj);
     }
 
 
@@ -167,9 +167,6 @@ public class UdpSocket extends SocketContext{
     public boolean close() {
         if(datagramChannel!=null){
             try{
-                //关闭直接读取模式
-                session.closeDirectBufferRead();
-
                 datagramChannel.close();
                 return true;
             } catch(IOException e){

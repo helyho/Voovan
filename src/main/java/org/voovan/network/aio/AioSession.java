@@ -102,16 +102,10 @@ public class AioSession extends IoSession<AioSocket>  {
 	}
 
 	@Override
-	protected int read(ByteBuffer buffer) throws IOException {
+	protected int read0(ByteBuffer buffer) throws IOException {
 		int readSize = 0;
 		if (buffer != null) {
-			try {
-				readSize = this.getByteBufferChannel().readHead(buffer);
-			} catch (Exception e) {
-				Logger.error("Read socketChannel failed.",e);
-				// 如果出现异常则返回-1,表示读取通道结束
-				readSize = -1;
-			}
+			readSize = this.getByteBufferChannel().readHead(buffer);
 		}
 		return readSize;
 	}

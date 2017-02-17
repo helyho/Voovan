@@ -145,6 +145,7 @@ public class AioSocket extends SocketContext {
 	 * @exception IOException IO异常
 	 */
 	public void syncStart() throws IOException{
+
 		initSSL();
 
 		//如果没有消息分割器默认使用读取超时时间作为分割器
@@ -209,7 +210,7 @@ public class AioSocket extends SocketContext {
 	 * @throws ReadMessageException  读取消息异常
 	 */
 	public Object synchronouRead() throws ReadMessageException {
-		return session.synchronouRead();
+		return session.syncRead();
 	}
 
 	/**
@@ -218,17 +219,13 @@ public class AioSocket extends SocketContext {
 	 * @throws SendMessageException  消息发送异常
 	 */
 	public void synchronouSend(Object obj) throws SendMessageException {
-		session.synchronouSend(obj);
+		session.syncSend(obj);
 	}
 
 	@Override
 	public boolean close() {
 		if (socketChannel != null) {
 			 try {
-				//关闭直接读取模式
-				session.closeDirectBufferRead();
-
-
 
 				// 关闭 Socket 连接
 				if (socketChannel.isOpen()) {
