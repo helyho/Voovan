@@ -91,7 +91,7 @@ public class HttpClient {
 
 	}
 
-	public boolean trySSL(String urlString){
+	private boolean trySSL(String urlString){
 		boolean isSSL = urlString.toLowerCase().startsWith("https://");
 		if(!isSSL){
 			isSSL = urlString.toLowerCase().startsWith("wss://");
