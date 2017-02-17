@@ -254,7 +254,7 @@ public class EventProcess {
 			if (resultBuf != null && session.isOpen()) {
 
 				if (session.getSSLParser() != null && session.getSSLParser().handShakeDone) {
-					session.sendSSLData(resultBuf);
+					session.sendSSL(resultBuf);
 				} else {
 					session.send(resultBuf);
 				}
@@ -288,7 +288,7 @@ public class EventProcess {
 				EventProcess.onDisconnect(event);
 			} else if (eventName == EventName.ON_RECEIVE) {
 				EventProcess.onRead(event);
-				event.getSession().setOnReceive(false);
+				event.getSession().setReceiving(false);
 			} else if (eventName == EventName.ON_SENT) {
 				EventProcess.onSent(event, event.getOther());
 			} else if (eventName == EventName.ON_EXCEPTION) {
