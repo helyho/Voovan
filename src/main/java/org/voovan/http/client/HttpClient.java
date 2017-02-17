@@ -43,6 +43,7 @@ public class HttpClient {
 	private Map<String, Object> parameters;
 	private String charset="UTF-8";
 	private String urlString;
+	private boolean isSSL = false;
 	private boolean isWebSocket = false;
 
 	/**
@@ -107,7 +108,7 @@ public class HttpClient {
 	private void init(String urlString,int timeOut){
 		try {
 
-			boolean isSSL = trySSL(urlString);
+			isSSL = trySSL(urlString);
 
 			String hostString = urlString;
 			int port = 80;
@@ -158,12 +159,6 @@ public class HttpClient {
 		}
 	}
 
-	/**
-	 * 开启流读取模式
-	 */
-	public void beginLoadStream(){
-		socket.getSession().openDirectBufferRead();
-	}
 
 	/**
 	 * 读取流
@@ -171,17 +166,16 @@ public class HttpClient {
 	 * @throws IOException IO异常对象
 	 */
 	public ByteBuffer loadStream() throws IOException {
-		ByteBuffer tmpBuffer = socket.getSession().directBufferRead();
+		ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getBufferSize());
+
+		int readSize = socket.getSession().read(tmpBuffer);
+
+		if(readSize == -1){
+			return null;
+		}
+
 		return tmpBuffer;
 	}
-
-	/**
-	 * 关闭流读取模式
-	 */
-	public void endLoadStream(){
-		socket.getSession().closeDirectBufferRead();
-	}
-
 
 	/**
 	 * 设置请求方法
@@ -505,7 +499,7 @@ public class HttpClient {
 
 	private void sendData(WebSocketFrame webSocketFrame){
 		try {
-			socket.getSession().synchronouSend(webSocketFrame);
+			socket.getSession().syncSend(webSocketFrame);
 		} catch (SendMessageException e) {
 			Logger.error("WebSocket on connect send data error! "+e.getMessage(), e);
 		}

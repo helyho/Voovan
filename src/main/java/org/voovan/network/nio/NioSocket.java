@@ -171,7 +171,7 @@ public class NioSocket extends SocketContext{
 	 * @throws ReadMessageException 读取消息异常
 	 */
 	public Object synchronouRead() throws ReadMessageException {
-		return session.synchronouRead();
+		return session.syncRead();
 	}
 
 	/**
@@ -180,16 +180,13 @@ public class NioSocket extends SocketContext{
 	 * @throws SendMessageException  消息发送异常
 	 */
 	public void synchronouSend(Object obj) throws SendMessageException {
-		session.synchronouSend(obj);
+		session.syncSend(obj);
 	}
 
 	@Override
 	public boolean close(){
 		if(socketChannel!=null){
 			try{
-				//关闭直接读取模式
-				session.closeDirectBufferRead();
-
 				socketChannel.close();
 				return true;
 			} catch(IOException e){

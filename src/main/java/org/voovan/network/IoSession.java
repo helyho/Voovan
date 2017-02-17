@@ -28,7 +28,7 @@ public abstract class IoSession<T extends SocketContext> {
 	private Map<Object, Object> attributes;
 	private SSLParser sslParser;
 	private ByteBufferChannel appDataBufferChannel;
-	private boolean onReceive;
+	private boolean receiving;
 	private MessageLoader messageLoader;
 	private ByteBufferChannel byteBufferChannel;
 	private T socketContext;
@@ -44,12 +44,12 @@ public abstract class IoSession<T extends SocketContext> {
 		messageLoader = new MessageLoader(this);
 	}
 
-	protected boolean isOnReceive() {
-		return onReceive;
+	protected boolean isReceiving() {
+		return receiving;
 	}
 
-	protected void setOnReceive(boolean onReceive) {
-		this.onReceive = onReceive;
+	protected void setReceiving(boolean receiving) {
+		this.receiving = receiving;
 	}
 
 	/**
@@ -152,8 +152,8 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return 接收数据大小
 	 * @throws IOException IO 异常
 	 */
-	protected abstract int read(ByteBuffer buffer) throws IOException;
-	
+	protected abstract int read0(ByteBuffer buffer) throws IOException;
+
 	
 	/**
 	 * 发送消息
@@ -170,13 +170,13 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return 读取出的对象
 	 * @throws ReadMessageException  读取消息异常
 	 */
-	public Object synchronouRead() throws ReadMessageException {
+	public Object syncRead() throws ReadMessageException {
 		Object readObject = null;
 		while(true){
 			readObject = getAttribute("SocketResponse");
 			if(readObject!=null) {
 				if(readObject instanceof Exception){
-						throw new ReadMessageException("Method synchronouRead error! Error by " +
+						throw new ReadMessageException("Method syncRead error! Error by " +
 								((Exception) readObject).getClass().getSimpleName() + ". " + ((Exception) readObject).getMessage(), (Exception) readObject);
 				}
 				removeAttribute("SocketResponse");
@@ -198,7 +198,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @param obj  要发送的对象
 	 * @throws SendMessageException  消息发送异常
 	 */
-	public void synchronouSend(Object obj) throws SendMessageException{
+	public void syncSend(Object obj) throws SendMessageException{
 		//等待 ssl 握手完成
 		while(sslParser!=null && !sslParser.handShakeDone){
 			TEnv.sleep(1);
@@ -207,9 +207,10 @@ public abstract class IoSession<T extends SocketContext> {
 		if (obj != null) {
 			try {
 				obj = EventProcess.filterEncoder(this,obj);
+
 				EventProcess.sendMessage(this, obj);
 			}catch (Exception e){
-				throw new SendMessageException("Method synchronouSend error! Error by "+
+				throw new SendMessageException("Method syncSend error! Error by "+
 						e.getClass().getSimpleName() + ".",e);
 			}
 		}
@@ -221,25 +222,15 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return 接收数据大小
 	 * @throws IOException  IO异常
 	 */
-	protected int readSSLData(ByteBuffer buffer) throws IOException{
+	public int readSSL(ByteBuffer buffer) throws IOException{
 		int readSize = 0;
 		
 		ByteBuffer appBuffer = sslParser.buildAppDataBuffer();
 
-		while(isConnected()){
-			readSize = appDataBufferChannel.readHead(buffer);
-			if(readSize!=0){
-				return readSize;
-			}else{
-				break;
-			}
-		}
-
-		if(isConnected() && buffer!=null){
+		if(buffer!=null && isConnected() && byteBufferChannel.size()>0){
 			SSLEngineResult engineResult = null;
 			do{
 				appBuffer.clear();
-				ByteBufferChannel byteBufferChannel = getByteBufferChannel();
                 ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
 					engineResult = sslParser.unwarpData(byteBuffer, appBuffer);
@@ -247,12 +238,14 @@ public abstract class IoSession<T extends SocketContext> {
 
 					appBuffer.flip();
 					appDataBufferChannel.writeEnd(appBuffer);
+
 				if(byteBuffer.remaining()==0) {
 					TEnv.sleep(1);
 					continue;
 				}
 			}while(engineResult!=null && engineResult.getStatus() != Status.OK && engineResult.getStatus() != Status.CLOSED);
 		}
+		readSize = appDataBufferChannel.readHead(buffer);
 		return readSize;
 	}
 	
@@ -262,7 +255,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 * 		注意直接调用不会出发 onSent 事件
 	 * 	@param buffer byte缓冲区
 	 */
-	public void sendSSLData(ByteBuffer buffer){
+	public void sendSSL(ByteBuffer buffer){
 		if(isConnected() && buffer!=null){
 			try {
 				sslParser.warpData(buffer);
@@ -272,20 +265,17 @@ public abstract class IoSession<T extends SocketContext> {
 		}
 	}
 
-
-	/**
-	 * 打开直接读取模式
-	 */
-	public void openDirectBufferRead(){
-		messageLoader.setDirectRead(true);
-	}
-
 	/**
 	 * 直接从缓冲区读取数据
-	 * @return 字节缓冲对象ByteBuffer
+	 * @param byteBuffer 字节缓冲对象ByteBuffer
+	 * @return  读取的字节数
 	 * @throws IOException IO异常
 	 * */
-	public ByteBuffer directBufferRead() throws IOException {
+	public int read(ByteBuffer byteBuffer) throws IOException {
+		messageLoader.setDirectRead(true);
+
+		int readSize = -1;
+
 		Object response = this.getAttribute("SocketResponse");
 		if(response!=null){
 			if(response instanceof Exception) {
@@ -294,15 +284,16 @@ public abstract class IoSession<T extends SocketContext> {
 				throw new IOException((Exception)response);
 			}
 		}
-		messageLoader.setDirectRead(true);
-		return  messageLoader.directRead();
-	}
 
-	/**
-	 * 关闭直接读取模式
-	 */
-	public void closeDirectBufferRead(){
+		readSize = this.read0(byteBuffer);
+
+		if(!this.isConnected() && readSize <= 0){
+			readSize = -1;
+		}
+
 		messageLoader.setDirectRead(false);
+
+		return readSize;
 	}
 
 	/**

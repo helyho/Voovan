@@ -110,9 +110,6 @@ public class UdpServerSocket extends SocketContext{
     public boolean close() {
         if(datagramChannel!=null){
             try{
-                //关闭直接读取模式
-                session.closeDirectBufferRead();
-
                 datagramChannel.close();
                 return true;
             } catch(IOException e){
