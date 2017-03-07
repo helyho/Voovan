@@ -19,7 +19,7 @@ public class PerformTestHandler implements IoHandler {
 						"Content-Length: 2\r\n" +
 						"Content-Type: text/html\r\n" +
 						"Cache-control: private\r\n\r\n"+
-						"OK";
+						"OK\r\n\r\n";
 	}
 	
 	@Override
