@@ -120,14 +120,16 @@ public class HttpDispatcher {
 	public void process(HttpRequest request, HttpResponse response){
 		Chain<HttpFilterConfig> filterConfigs = webConfig.getFilterConfigs().clone();
 
+		Object filterResult = null;
+
 		//Session预处理
 		disposeSession(request,response);
 
 		//正向过滤器处理,请求有可能被 Redirect 所以过滤器执行放在开始
-		disposeFilter(filterConfigs,request,response);
+		filterResult = disposeFilter(filterConfigs,request,response);
 
-		//调用处理路由函数
-		disposeRoute(request,response);
+        //调用处理路由函数
+        disposeRoute(request, response);
 
 		//反向过滤器处理
 		disposeInvertedFilter(filterConfigs,request,response);
@@ -303,7 +305,7 @@ public class HttpDispatcher {
 	 * @param request		  请求对象
 	 * @param response		  响应对象
      */
-	public void disposeFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
+	public Object disposeFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
 		filterConfigs.rewind();
 		Object filterResult = null;
 		while(filterConfigs.hasNext()){
@@ -313,6 +315,8 @@ public class HttpDispatcher {
 				filterResult = httpFilter.onRequest(filterConfig, request, response, filterResult);
 			}
 		}
+
+		return filterResult;
 	}
 
 	/**
@@ -321,7 +325,7 @@ public class HttpDispatcher {
 	 * @param request		  请求对象
 	 * @param response		  响应对象
      */
-	public void disposeInvertedFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
+	public Object disposeInvertedFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
 		filterConfigs.rewind();
 		Object filterResult = null;
 		while(filterConfigs.hasPrevious()){
@@ -330,8 +334,9 @@ public class HttpDispatcher {
 			if(httpFilter!=null) {
 				filterResult = httpFilter.onResponse(filterConfig, request, response, filterResult);
 			}
-
 		}
+
+		return filterResult;
 	}
 	
 	/**

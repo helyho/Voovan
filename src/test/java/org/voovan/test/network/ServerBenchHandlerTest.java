@@ -26,7 +26,7 @@ public class ServerBenchHandlerTest implements IoHandler {
 					"Date: Thu, 05 Jan 2017 04:55:20 GMT\r\n" +
 					"Content-Type: text/html\r\n"+
 					"\r\n"+
-					"OK\r\n\n";
+					"OK\r\n\r\n";
 		}
 
 		@Override
