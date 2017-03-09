@@ -284,7 +284,7 @@ public class HttpDispatcher {
 		Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
 
         //如果 session 不存在,创建新的 session
-        if (!sessionManager.containsSession(sessionCookie)) {
+        if (sessionCookie==null || !sessionManager.containsSession(sessionCookie)) {
             // 构建 session
             HttpSession httpSession = sessionManager.newHttpSession(request, response);
 
