@@ -49,7 +49,7 @@ public class HttpRequest extends Request {
 	 */
 	public Cookie getCookie(String name){
 		for(Cookie cookie : this.cookies()){
-			if(cookie.getName().equals(name)){
+			if(cookie !=null && cookie.getName().equals(name)){
 				return cookie;
 			}
 		}
