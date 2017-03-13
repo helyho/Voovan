@@ -68,6 +68,14 @@ public class ObjectPool {
     }
 
     /**
+     * 设置对象池的对象存活时间
+     * @param aliveTime 对象存活时间,单位:秒
+     */
+    public void setAliveTime(long aliveTime) {
+        this.aliveTime = aliveTime;
+    }
+
+    /**
      * 生成ObjectId
      * @return 生成的ObjectId
      */
