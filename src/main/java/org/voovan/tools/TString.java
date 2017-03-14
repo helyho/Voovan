@@ -341,8 +341,8 @@ public class TString {
 	/**
 	 * 将系统转义字符,转义成可在字符串表达的转义字符
 	 *       例如:将字符串中的 \" 转转成 \\\"
-	 * @param source
-	 * @return
+	 * @param source 源字符串
+	 * @return 转换后的字符串
 	 */
 	public static String convertEscapeChar(String source){
 		if(source==null){
@@ -362,8 +362,8 @@ public class TString {
 	/**
 	 * 将可在字符串中表达的转义字符,转义成系统转义字符
 	 *       例如:将字符串中的 \\\" 转转成 \"
-	 * @param source
-	 * @return
+	 * @param source 源字符串
+	 * @return 转换后的字符串
 	 */
 	public static String unConvertEscapeChar(String source){
 		if(source==null){
