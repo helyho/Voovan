@@ -74,6 +74,7 @@ public class WebSocketDispatcher {
 	 * 路由处理函数
 	 * 
 	 * @param event     WebSocket 事件
+	 * @param session   socket连接会话
 	 * @param request   HTTP 请求对象
 	 * @param webSocketFrame WebSocket 帧对象
 	 * @return WebSocket 帧对象

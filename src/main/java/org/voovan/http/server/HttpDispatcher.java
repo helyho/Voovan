@@ -304,6 +304,7 @@ public class HttpDispatcher {
 	 * @param filterConfigs   HTTP过滤器配置对象
 	 * @param request		  请求对象
 	 * @param response		  响应对象
+	 * @return 过滤器最后的结果
      */
 	public Object disposeFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
 		filterConfigs.rewind();
@@ -324,6 +325,7 @@ public class HttpDispatcher {
 	 * @param filterConfigs   HTTP过滤器配置对象
 	 * @param request		  请求对象
 	 * @param response		  响应对象
+	 * @return 过滤器最后的结果
      */
 	public Object disposeInvertedFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
 		filterConfigs.rewind();

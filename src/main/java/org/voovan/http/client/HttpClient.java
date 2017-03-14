@@ -421,7 +421,7 @@ public class HttpClient {
 	}
 
 	/**
-	 * 请求晚场
+	 * 请求完成
 	 * @param response 请求对象
      */
 	 private void finished(Response response){
@@ -452,8 +452,9 @@ public class HttpClient {
 	}
 
 	/**
-	 * 发送行数
-	 * @return Response 对象
+	 * 连接 Websocket
+	 * @param urlString URL地址
+	 * @param webSocketRouter WebSocker的路由
 	 * @throws SendMessageException  发送异常
 	 * @throws ReadMessageException  读取异常
 	 */

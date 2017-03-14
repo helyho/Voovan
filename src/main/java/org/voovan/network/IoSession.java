@@ -35,6 +35,7 @@ public abstract class IoSession<T extends SocketContext> {
 
 	/**
 	 * 构造函数
+	 * @param socketContext socketContext对象
 	 */
 	public IoSession(T socketContext){
 		attributes = new ConcurrentHashMap<Object, Object>();
