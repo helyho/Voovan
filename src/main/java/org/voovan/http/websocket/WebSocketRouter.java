@@ -29,7 +29,6 @@ public abstract class WebSocketRouter {
 
 	/**
 	 * 关闭 WebSocket
-	 * @throws IOException Io 异常
 	 */
 	public void close() {
 		try {
@@ -44,21 +43,20 @@ public abstract class WebSocketRouter {
 
 	/**
 	 * websocket 连接打开
-	 * @return
+	 * @return 收到的缓冲数据
 	 */
 	public abstract ByteBuffer onOpen();
 
 	/**
 	 * websocket 收到消息
-	 * @param message
-	 * @return
+	 * @param message 收到的缓冲数据
+	 * @return 收到的缓冲数据
 	 */
 	public abstract ByteBuffer onRecived(ByteBuffer message);
 
 	/**
 	 * websocket 消息发送完成
-	 * @param message
-	 * @return
+	 * @param message 发送的消息
 	 */
 	public abstract void onSent(ByteBuffer message);
 
