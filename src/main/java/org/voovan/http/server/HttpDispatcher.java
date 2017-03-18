@@ -128,11 +128,14 @@ public class HttpDispatcher {
 		//正向过滤器处理,请求有可能被 Redirect 所以过滤器执行放在开始
 		filterResult = disposeFilter(filterConfigs,request,response);
 
-        //调用处理路由函数
-        disposeRoute(request, response);
+		//如果 response 在过滤器中修改过,则不执行路由处理
+		if(response.body().size()==0) {
+			//调用处理路由函数
+			disposeRoute(request, response);
+		}
 
 		//反向过滤器处理
-		disposeInvertedFilter(filterConfigs,request,response);
+		filterResult = disposeInvertedFilter(filterConfigs,request,response);
 
 		//输出访问日志
 		WebContext.writeAccessLog(request,response);
