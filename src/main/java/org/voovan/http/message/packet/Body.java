@@ -116,15 +116,6 @@ public class Body {
 	}
 	
 	/**
-	 * 获取使用 GZIP 压缩后的 body 字节
-	 * @return 压缩后的字节数组
-	 * @throws IOException IO 异常
-	 */
-	public byte[] getGZipedBody() throws IOException{
-		return TZip.encodeGZip(outputStream.toByteArray());
-	}
-	
-	/**
 	 * 清空缓冲
 	 */
 	public void clear(){
