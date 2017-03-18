@@ -271,13 +271,26 @@ public class HttpRequest extends Request {
 	}
 
 	/**
-	 * 获取 自定义 类型的数据
+	 * 将 HTTP 请求的一个参数,使用 JSON 转换成一个 Java 对象
 	 * @param clazz  自定义数据类型
 	 * @return char 自定义数据类型的对象,转换时字段忽略大小写
 	 */
-	public char getParameterAsObject(Class<?> clazz){
+	public Object getParameterAsObject(String paramName, Class<?> clazz){
 		try {
-			return (char) TReflect.getObjectFromMap(clazz, TObject.cast(getParameters()), true);
+			return (char) TString.toObject(parameters.get(paramName), clazz);
+		} catch (Exception e) {
+			throw new RuntimeException("Conver parameters to "+clazz.getCanonicalName()+" error.",e);
+		}
+	}
+
+	/**
+	 * 将 HTTP 请求的所有参数, 转换成一个 Java 对象
+	 * @param clazz  自定义数据类型
+	 * @return char 自定义数据类型的对象,转换时字段忽略大小写
+	 */
+	public Object getAllParameterAsObject(Class<?> clazz){
+		try {
+			return TReflect.getObjectFromMap(clazz, TObject.cast(getParameters()), true);
 		} catch (ReflectiveOperationException | ParseException e) {
 			throw new RuntimeException("Conver parameters to "+clazz.getCanonicalName()+" error.",e);
 		}
