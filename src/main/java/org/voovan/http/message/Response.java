@@ -4,6 +4,7 @@ import org.voovan.http.message.packet.Body;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.ResponseProtocol;
+import org.voovan.tools.TZip;
 import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayOutputStream;
@@ -146,7 +147,9 @@ public class Response {
 		try {
 			if (body.getBodyBytes().length != 0) {
 				if (isCompress) {
-					byte[] gzipedBody = body.getGZipedBody();
+					//使用 GZIP 进行压缩
+					byte[] gzipedBody =  TZip.encodeGZip(body.getBodyBytes());
+
 					// 写入 chunk 的长度
 					outputStream.write((Integer.toHexString(gzipedBody.length) + "\r\n").getBytes("UTF-8"));
 					outputStream.write(gzipedBody);
