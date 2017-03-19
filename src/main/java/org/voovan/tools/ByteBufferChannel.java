@@ -1,5 +1,6 @@
 package org.voovan.tools;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -115,6 +116,7 @@ public class ByteBufferChannel {
 		byte[] srcByte = src.array();
 		int writeSize = src.limit() - src.position();
 
+		//是否扩容
 		if(free() < writeSize) {
 			buffer = Arrays.copyOf(buffer, buffer.length + writeSize);
 		}
@@ -141,10 +143,12 @@ public class ByteBufferChannel {
 		byte[] srcByte = src.array();
 		int writeSize = src.limit() - src.position();
 
+		//是否扩容
 		if (free() < writeSize) {
 			buffer = Arrays.copyOf(buffer, buffer.length + writeSize);
 		}
 
+		//内容移动到 writeSize 之后
 		if (size != 0) {
 			System.arraycopy(buffer, 0, buffer, writeSize, size);
 		}
@@ -152,7 +156,7 @@ public class ByteBufferChannel {
 		System.arraycopy(srcByte, src.position() , buffer , 0, writeSize);
 		size = size + writeSize;
 
-		if(byteBuffer!=null && size <= byteBuffer.capacity()){
+		if(byteBuffer!=null && size <= byteBuffer.limit()){
 			byteBuffer.position(writeSize);
 			byteBuffer.limit(size);
 		}
@@ -180,7 +184,7 @@ public class ByteBufferChannel {
 		}
 
 		if(readSize!=0) {
-			System.arraycopy(buffer, 0, dst.array(), 0, readSize);
+			System.arraycopy(buffer, 0, dst.array(), dst.position(), readSize);
 
 			size = size - readSize;
 
@@ -228,7 +232,7 @@ public class ByteBufferChannel {
 
 			size = size - readSize;
 
-			System.arraycopy(buffer, size, dst.array(), 0, readSize);
+			System.arraycopy(buffer, size, dst.array(), dst.position(), readSize);
 			dst.position(readSize);
 
 			System.arraycopy(buffer, 0, buffer, 0, size);
@@ -237,10 +241,73 @@ public class ByteBufferChannel {
 
 		dst.flip();
 
-		if(byteBuffer!=null && size <= byteBuffer.capacity()){
+		if(byteBuffer!=null && size <= byteBuffer.limit()){
 			byteBuffer.limit(size - readSize);
 		}
 
 		return readSize;
 	}
+
+	/**
+	 * 读取一行
+	 * @return 字符串
+	 */
+	public String readLine()  {
+		String lineStr = "";
+		int index = 0;
+		for(; index < size; index++){
+			int singleChar = buffer[index];
+			if(singleChar==65535) {
+				break;
+			}
+			else{
+				if(singleChar == '\n'){
+					index++;
+					break;
+				}
+			}
+		}
+
+		ByteBuffer lineBuffer = ByteBuffer.allocate(index);
+
+		int readSize = readHead(lineBuffer);
+
+		if(readSize == index){
+			lineStr = TByteBuffer.toString(lineBuffer);
+		}
+
+		return lineStr.isEmpty()?null:lineStr.trim();
+	}
+
+
+	/**
+	 * 从 InputStream 读取一段,使用 byte数组 分割
+	 * 		返回的 byte数组中不包含分割 byte 数组的内容
+	 * @param splitByte 分割字节数组
+	 * @return 字节数组
+	 */
+	public ByteBuffer readWithSplit(byte[] splitByte) {
+		byte[] tempBytes = new byte[splitByte.length];
+		int index = 0;
+		for(; index < size; index++){
+			if(buffer.length-index >= tempBytes.length) {
+				System.arraycopy(buffer, index, tempBytes, 0, tempBytes.length);
+
+					if (Arrays.equals(splitByte, tempBytes)) {
+						break;
+					}
+			}
+		}
+
+		ByteBuffer resultBuffer = ByteBuffer.allocate(index);
+
+		int readSize = readHead(resultBuffer);
+
+		//跳过分割符
+		readHead(ByteBuffer.allocate(tempBytes.length));
+
+		return resultBuffer.limit()==0?null:resultBuffer;
+	}
+
+
 }
