@@ -2,6 +2,7 @@ package org.voovan.test.tools;
 
 import junit.framework.TestCase;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -36,34 +37,68 @@ public class ByteBufferChannelUnit extends TestCase {
 		assertEquals(new String(buffer1.array()), "helyh");
 	}
 
+	public void testReadLine(){
+		ByteBufferChannel byteBufferChannel1 = new ByteBufferChannel();
+		byteBufferChannel1.writeHead(ByteBuffer.wrap("aaaaa\r\nbbbbb\r\nccccc\r\n".getBytes()));
+		while(true){
+			String tmp = byteBufferChannel1.readLine();
+			if(tmp==null){
+				break;
+			}
+			Logger.simple("lineCount: "+tmp);
+		}
+	}
 
-	public void test() throws IOException {
+	public void testReadWithSplit(){
+		ByteBufferChannel byteBufferChannel1 = new ByteBufferChannel();
+		byteBufferChannel1.writeHead(ByteBuffer.wrap("aaaaa\r\nbbbbb\r\nccccc\r\n".getBytes()));
+		while(true){
+			ByteBuffer byteBuffer = byteBufferChannel1.readWithSplit("bbbbb\r\n".getBytes());
+			if(byteBuffer==null){
+				break;
+			}
+			Logger.simple("splitedContent: "+ TByteBuffer.toString(byteBuffer));
+		}
+	}
+
+	public void testAll() throws IOException {
 		ByteBufferChannel byteBufferChannel1;
 		byteBufferChannel1 = new ByteBufferChannel(2);
-		byteBufferChannel1.writeEnd(ByteBuffer.wrap("kkkkk".getBytes()));
-		byteBufferChannel1.writeEnd(ByteBuffer.wrap("fffff".getBytes()));
-		byteBufferChannel1.writeHead(ByteBuffer.wrap("bbbbb".getBytes()));
-		byteBufferChannel1.writeEnd(ByteBuffer.wrap("eeeee".getBytes()));
+		byteBufferChannel1.writeEnd(ByteBuffer.wrap("bbbbb".getBytes()));
+		Logger.simple("bytbyteBufferChannel writeEnd: bbbbb");
+		byteBufferChannel1.writeEnd(ByteBuffer.wrap("ccccc".getBytes()));
+		Logger.simple("bytbyteBufferChannel writeEnd: ccccc");
+		byteBufferChannel1.writeHead(ByteBuffer.wrap("aaaaa".getBytes()));
+		Logger.simple("bytbyteBufferChannel writeHead: aaaaa");
+		byteBufferChannel1.writeEnd(ByteBuffer.wrap("ddddd".getBytes()));
+		Logger.simple("bytbyteBufferChannel writeEnd: ddddd");
 		ByteBuffer bytebuffer = byteBufferChannel1.getByteBuffer();
-		Logger.simple(new String(bytebuffer.array()));
-		Logger.simple(bytebuffer.get());
+		Logger.simple("bytbyteBufferChannel content: "+new String(bytebuffer.array()));
+		Logger.simple("bytebuffer get: '"+(char)bytebuffer.get()+"'");
 
-		Logger.simple(new String(byteBufferChannel1.array()));
+		Logger.simple("bytebuffer put: 'c'");
+		bytebuffer.put(new byte[]{99});
 
-		bytebuffer.put(new byte[]{13});
+		Logger.simple("bytbyteBufferChannel content:"+new String(byteBufferChannel1.array()));
 
-
-		ByteBuffer xxx = ByteBuffer.allocate(5);
+		ByteBuffer xxx = ByteBuffer.allocate(7);
+		xxx.put((byte) '-');
+		xxx.put((byte) '=');
 		byteBufferChannel1.readHead(xxx);
-		Logger.simple(new String(xxx.array()));
-		xxx = ByteBuffer.allocate(5);
+		Logger.simple("read head 5: "+new String(xxx.array()));
+
+		xxx.rewind();
+		xxx.put((byte) '-');
+		xxx.put((byte) '=');
 		byteBufferChannel1.readEnd(xxx);
-		Logger.simple(new String(xxx.array()));
+		Logger.simple("read End 5: "+new String(xxx.array()));
+
 		xxx = ByteBuffer.allocate(5);
 		byteBufferChannel1.readHead(xxx);
-		Logger.simple(new String(xxx.array()));
-		xxx = ByteBuffer.allocate(5);
+		Logger.simple("read head 5: "+new String(xxx.array()));
+
+		xxx.rewind();
 		byteBufferChannel1.readHead(xxx);
-		Logger.simple(new String(xxx.array()));
+		Logger.simple("read head 5: "+new String(xxx.array()));
 	}
 }
