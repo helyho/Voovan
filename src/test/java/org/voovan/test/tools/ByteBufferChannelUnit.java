@@ -11,30 +11,62 @@ import java.nio.ByteBuffer;
 public class ByteBufferChannelUnit extends TestCase {
 	
 	private ByteBufferChannel byteBufferChannel;
+	private String tmp1 = "helyho is a hero!!!";
+	private String tmp2 = " -=======!";
 	
 	public ByteBufferChannelUnit(String name) {
 		super(name);
 	}
 
 	public void setUp() throws IOException{
-		String initStr = "helyho is a hero!!!";
-		ByteBuffer buffer = ByteBuffer.wrap(initStr.getBytes());
+		ByteBuffer buffer = ByteBuffer.wrap(tmp1.getBytes());
 		byteBufferChannel = new ByteBufferChannel();
 		byteBufferChannel.writeEnd(buffer);
 		assertEquals(byteBufferChannel.size(),19);
 	}
 	
-	public void testWrite() throws IOException{
+	public void testWriteEnd() throws IOException{
 		int size = byteBufferChannel.size();
-		byteBufferChannel.writeEnd(ByteBuffer.wrap(" -=======!".getBytes()));
-		assertEquals(byteBufferChannel.size(),size+10);
+		byteBufferChannel.writeEnd(ByteBuffer.wrap(tmp2.getBytes()));
+		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),tmp1+tmp2);
+	}
+
+	public void testWriteHead() throws IOException{
+		int size = byteBufferChannel.size();
+		byteBufferChannel.writeHead(ByteBuffer.wrap(tmp2.getBytes()));
+		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),tmp2+tmp1);
 	}
 	
-	public void testRead() throws IOException{
+	public void testReadHead() throws IOException{
 		ByteBuffer buffer1 = ByteBuffer.allocate(5);
 		int size = byteBufferChannel.readHead(buffer1);
 		assertEquals(size, 5);
-		assertEquals(new String(buffer1.array()), "helyh");
+		assertEquals(TByteBuffer.toString(buffer1), "helyh");
+		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),"o is a hero!!!");
+	}
+
+	public void testReadEnd() throws IOException{
+		ByteBuffer buffer1 = ByteBuffer.allocate(5);
+		int size = byteBufferChannel.readEnd(buffer1);
+		assertEquals(size, 5);
+		assertEquals(TByteBuffer.toString(buffer1), "ro!!!");
+		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),"helyho is a he");
+
+	}
+
+	public void testArray(){
+		assertEquals(new String(byteBufferChannel.array()), tmp1);
+	}
+
+	public void testCompact(){
+		ByteBufferChannel byteBufferChannel1;
+		byteBufferChannel1 = new ByteBufferChannel(6);
+		byteBufferChannel1.writeEnd(ByteBuffer.wrap("bbccdd".getBytes()));
+		byteBufferChannel1.getByteBuffer().position(2);
+		byteBufferChannel1.compact();
+		Logger.simple(TByteBuffer.toString(byteBufferChannel1.getByteBuffer()));
+
+
 	}
 
 	public void testReadLine(){
@@ -73,11 +105,13 @@ public class ByteBufferChannelUnit extends TestCase {
 		byteBufferChannel1.writeEnd(ByteBuffer.wrap("ddddd".getBytes()));
 		Logger.simple("bytbyteBufferChannel writeEnd: ddddd");
 		ByteBuffer bytebuffer = byteBufferChannel1.getByteBuffer();
-		Logger.simple("bytbyteBufferChannel content: "+new String(bytebuffer.array()));
+		Logger.simple("bytbyteBufferChannel content: "+TByteBuffer.toString(bytebuffer));
 		Logger.simple("bytebuffer get: '"+(char)bytebuffer.get()+"'");
 
 		Logger.simple("bytebuffer put: 'c'");
 		bytebuffer.put(new byte[]{99});
+
+		byteBufferChannel1.getByteBuffer().rewind();
 
 		Logger.simple("bytbyteBufferChannel content:"+new String(byteBufferChannel1.array()));
 
@@ -87,7 +121,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		byteBufferChannel1.readHead(xxx);
 		Logger.simple("read head 5: "+new String(xxx.array()));
 
-		xxx.rewind();
+		xxx.clear();
 		xxx.put((byte) '-');
 		xxx.put((byte) '=');
 		byteBufferChannel1.readEnd(xxx);

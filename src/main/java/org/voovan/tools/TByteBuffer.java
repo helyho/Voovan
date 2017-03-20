@@ -1,6 +1,7 @@
 package org.voovan.tools;
 
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -57,5 +58,46 @@ public class TByteBuffer {
      */
     public static String toString(ByteBuffer bytebuffer) {
         return toString(bytebuffer, "UTF-8");
+    }
+
+    public static long reallocateDirectByteBuffer(ByteBuffer byteBuffer, int newSize) {
+        try {
+            if(!byteBuffer.hasArray()) {
+                long address = TReflect.getFieldValue(byteBuffer, "address");
+                int newLimit = byteBuffer.limit();
+                if (byteBuffer.limit() == byteBuffer.capacity()) {
+                    newLimit = newSize;
+                }
+
+                long newAddress = TUnsafe.getUnsafe().reallocateMemory(address, newSize);
+                TReflect.setFieldValue(byteBuffer, "address", newAddress);
+                TReflect.setFieldValue(byteBuffer, "capacity", newSize);
+                TReflect.setFieldValue(byteBuffer, "limit", newLimit);
+                return newAddress;
+            }
+        }catch (ReflectiveOperationException e){
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public static boolean moveByteBufferData(ByteBuffer byteBuffer, int offset) {
+        try {
+            if(!byteBuffer.hasArray()) {
+                long address = TReflect.getFieldValue(byteBuffer, "address");
+                int limit = byteBuffer.limit()+offset;
+                if(limit <= byteBuffer.capacity()) {
+                    TUnsafe.getUnsafe().copyMemory(address + byteBuffer.position(), address + byteBuffer.position() + offset, byteBuffer.remaining());
+                    TReflect.setFieldValue(byteBuffer, "limit", limit);
+                    byteBuffer.position(0);
+                }else{
+                    return false;
+                }
+                return true;
+            }
+        }catch (ReflectiveOperationException e){
+            e.printStackTrace();
+        }
+        return false;
     }
 }
