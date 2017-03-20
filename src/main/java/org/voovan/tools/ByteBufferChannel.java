@@ -1,5 +1,9 @@
 package org.voovan.tools;
 
+import org.voovan.tools.reflect.TReflect;
+import sun.misc.Unsafe;
+
+import java.lang.reflect.Field;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -15,27 +19,37 @@ import java.util.Arrays;
  */
 public class ByteBufferChannel {
 
-	private byte[] buffer;
-	private int size;
+	private long address;
+	private Unsafe unsafe = TUnsafe.getUnsafe();
 	private ByteBuffer byteBuffer;
+	private int size;
 
 	public ByteBufferChannel(int size) {
-		buffer = new byte[size];
-		size = 0;
+		try {
+			byteBuffer = ByteBuffer.allocateDirect(size);
+			address = TReflect.getFieldValue(byteBuffer, "address");
+			size = 0;
+		}catch (ReflectiveOperationException e){
+			e.printStackTrace();
+		}
 	}
 
 	public ByteBufferChannel() {
-		buffer = new byte[256];
-		size = 0;
+		try {
+            byteBuffer = ByteBuffer.allocateDirect(256);
+            address = TReflect.getFieldValue(byteBuffer, "address");
+            size = 0;
+		}catch (ReflectiveOperationException e){
+			e.printStackTrace();
+		}
 	}
-
 
 	/**
 	 * 当前数组空闲的大小
 	 * @return 当前数组空闲的大小
 	 */
 	public int free(){
-		return buffer.length - size;
+		return byteBuffer.capacity() - size;
 	}
 
 	/**
@@ -43,7 +57,7 @@ public class ByteBufferChannel {
 	 * @return 当前分配的数组大小
 	 */
 	public int capacity(){
-		return buffer.length;
+		return byteBuffer.capacity();
 	}
 
 	/**
@@ -61,7 +75,9 @@ public class ByteBufferChannel {
 	 * @return 缓冲区有效字节数组
 	 */
 	public byte[] array(){
-		return Arrays.copyOfRange(buffer, 0, size);
+		byte[] temp = new byte[size()];
+		unsafe.copyMemory(null, address, temp, Unsafe.ARRAY_BYTE_BASE_OFFSET, size());
+		return temp;
 	}
 
 	/**
@@ -71,37 +87,45 @@ public class ByteBufferChannel {
 	 * @return ByteBuffer 对象
 	 */
 	public ByteBuffer getByteBuffer(){
-		byteBuffer = ByteBuffer.wrap(buffer, 0, size);
 		return byteBuffer;
 	}
 
 	/**
 	 * 重置通道
 	 */
+	public void flip(){
+		byteBuffer.flip();
+	}
+
+
+	 /**
+	 * 重置通道
+	 */
+	public void rewind(){
+		byteBuffer.rewind();
+	}
+
+
+	/**
+	 * 重置通道
+	 */
 	public void reset(){
-		size = 0;
+		byteBuffer.clear();
 	}
 
 	/**
 	 * 收缩通道
 	 *      将通过getByteBuffer()方法获得 ByteBuffer 对象的操作同步到 ByteBufferChannel
 	 *      如果不需要同步,则不用调用这个方法
-	 * 		如果之前最后一次通过getByteBuffer()方法获得过 ByteBuffer,则使用这个 Byte 来收缩通道
+	 * 		如果之前最后一次通过 getByteBuffer() 方法获得过 ByteBuffer,则使用这个 ByteBuffer 来收缩通道
 	 *      将 (position 到 limit) 之间的数据 移动到 (0  到 limit - position) 其他情形将不做任何操作
 	 *		所以 建议 getByteBuffer() 和 compact() 成对操作
 	 */
-	public synchronized void compact(){
-		if(byteBuffer!=null) {
-			size = size - byteBuffer.position();
-			if(size > 0) {
-				System.arraycopy(buffer, byteBuffer.position(), buffer, 0, size);
-			}else{
-				size = 0;
-			}
-
-		}
+	public void compact(){
+		int position = byteBuffer.position();
+		TByteBuffer.moveByteBufferData(byteBuffer, position*-1);
+		size = size - position;
 	}
-
 
 	/**
 	 * 缓冲区头部写入
@@ -118,15 +142,18 @@ public class ByteBufferChannel {
 
 		//是否扩容
 		if(free() < writeSize) {
-			buffer = Arrays.copyOf(buffer, buffer.length + writeSize);
+			int newSize = byteBuffer.capacity() + writeSize;
+			address = TByteBuffer.reallocateDirectByteBuffer(byteBuffer, newSize);
 		}
 
-		System.arraycopy(srcByte, src.position() , buffer , size, writeSize);
-		size = size + writeSize;
+		byteBuffer.position(size);
 
-		if(byteBuffer!=null && size <= byteBuffer.capacity()){
-			byteBuffer.limit(size);
-		}
+		size = size+ writeSize;
+		byteBuffer.limit(size);
+
+		byteBuffer.put(src);
+		byteBuffer.position(0);
+
 		return writeSize;
 	}
 
@@ -145,21 +172,17 @@ public class ByteBufferChannel {
 
 		//是否扩容
 		if (free() < writeSize) {
-			buffer = Arrays.copyOf(buffer, buffer.length + writeSize);
+			int newSize = byteBuffer.capacity() + writeSize;
+			address = TByteBuffer.reallocateDirectByteBuffer(byteBuffer, newSize);
 		}
 
 		//内容移动到 writeSize 之后
-		if (size != 0) {
-			System.arraycopy(buffer, 0, buffer, writeSize, size);
-		}
+		TByteBuffer.moveByteBufferData(byteBuffer, writeSize);
 
-		System.arraycopy(srcByte, src.position() , buffer , 0, writeSize);
-		size = size + writeSize;
-
-		if(byteBuffer!=null && size <= byteBuffer.limit()){
-			byteBuffer.position(writeSize);
-			byteBuffer.limit(size);
-		}
+		byteBuffer.put(src);
+		size = size+ writeSize;
+		byteBuffer.limit(size);
+		byteBuffer.position(0);
 
 		return writeSize;
 	}
@@ -177,34 +200,23 @@ public class ByteBufferChannel {
 		int readSize = 0;
 
 		//确定读取大小
-		if (dst.remaining() > size) {
-			readSize = size;
+		if (dst.remaining() > byteBuffer.remaining()) {
+			readSize = byteBuffer.remaining();
 		} else {
 			readSize = dst.remaining();
 		}
 
 		if(readSize!=0) {
-			System.arraycopy(buffer, 0, dst.array(), dst.position(), readSize);
-
-			size = size - readSize;
-
-			System.arraycopy(buffer, readSize, buffer, 0, size);
+			while(dst.remaining()>0){
+				dst.put(byteBuffer.get());
+			}
 			dst.position(readSize);
+			TByteBuffer.moveByteBufferData(byteBuffer, -readSize);
+			size = size - readSize;
+			byteBuffer.limit(size);
 		}
 
 		dst.flip();
-		if(byteBuffer!=null){
-
-			int newPosition = byteBuffer.position() - readSize;
-			if(newPosition > 0) {
-				byteBuffer.position(newPosition);
-			}
-
-			int newSize = size - readSize;
-			if(newSize > 0 && size <= byteBuffer.capacity()) {
-				byteBuffer.limit(newSize < 0 ? 0 : newSize);
-			}
-		}
 
 		return readSize;
 	}
@@ -222,28 +234,23 @@ public class ByteBufferChannel {
 		int readSize = 0;
 
 		//确定读取大小
-		if (dst.remaining() > size) {
-			readSize = size;
+		if (dst.remaining() > byteBuffer.remaining()) {
+			readSize = byteBuffer.remaining();
 		} else {
 			readSize = dst.remaining();
 		}
 
 		if(readSize!=0) {
-
+			byteBuffer.position(size - readSize);
+			while(dst.remaining()>0){
+				dst.put(byteBuffer.get());
+			}
 			size = size - readSize;
-
-			System.arraycopy(buffer, size, dst.array(), dst.position(), readSize);
-			dst.position(readSize);
-
-			System.arraycopy(buffer, 0, buffer, 0, size);
-
+			byteBuffer.limit(size);
+			byteBuffer.position(0);
 		}
 
 		dst.flip();
-
-		if(byteBuffer!=null && size <= byteBuffer.limit()){
-			byteBuffer.limit(size - readSize);
-		}
 
 		return readSize;
 	}
@@ -252,21 +259,23 @@ public class ByteBufferChannel {
 	 * 读取一行
 	 * @return 字符串
 	 */
-	public String readLine()  {
+	public String readLine() {
 		String lineStr = "";
 		int index = 0;
-		for(; index < size; index++){
-			int singleChar = buffer[index];
+		while(byteBuffer.remaining()>0){
+			index++;
+			int singleChar = byteBuffer.get();
 			if(singleChar==65535) {
 				break;
 			}
 			else{
 				if(singleChar == '\n'){
-					index++;
 					break;
 				}
 			}
 		}
+
+		byteBuffer.position(0);
 
 		ByteBuffer lineBuffer = ByteBuffer.allocate(index);
 
@@ -289,15 +298,17 @@ public class ByteBufferChannel {
 	public ByteBuffer readWithSplit(byte[] splitByte) {
 		byte[] tempBytes = new byte[splitByte.length];
 		int index = 0;
-		for(; index < size; index++){
-			if(buffer.length-index >= tempBytes.length) {
-				System.arraycopy(buffer, index, tempBytes, 0, tempBytes.length);
-
+		while(byteBuffer.remaining()>index){
+			if(byteBuffer.limit()-index >= tempBytes.length) {
+				unsafe.copyMemory(null, address+index, tempBytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, tempBytes.length);
 					if (Arrays.equals(splitByte, tempBytes)) {
 						break;
 					}
 			}
+			index++;
 		}
+
+		byteBuffer.position(0);
 
 		ByteBuffer resultBuffer = ByteBuffer.allocate(index);
 
@@ -308,6 +319,7 @@ public class ByteBufferChannel {
 
 		return resultBuffer.limit()==0?null:resultBuffer;
 	}
+
 
 
 }
