@@ -52,7 +52,8 @@ public class HttpMessageSplitter implements MessageSplitter {
 	}
 
     private void getBodyTagIndex(ByteBuffer byteBuffer){
-        byte[] buffer = byteBuffer.array();
+        //TODO: 需要优化
+        byte[] buffer = TByteBuffer.toArray(byteBuffer);
         StringBuilder stringBuilder = new StringBuilder();
         String httpHead = null;
         for(int x=0;x<buffer.length;x++){
