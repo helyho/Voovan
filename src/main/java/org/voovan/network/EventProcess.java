@@ -102,9 +102,11 @@ public class EventProcess {
 		if (socketContext != null && session != null) {
 			ByteBuffer byteBuffer = null;
 
-			//如果是直接读取,则跳过
+
 			MessageLoader messageLoader = session.getMessageLoader();
-			if(messageLoader.isDirectRead()){
+
+			//如果没有使用分割器,则跳过
+			if(!messageLoader.isUseSpliter()){
 				return;
 			}
 
