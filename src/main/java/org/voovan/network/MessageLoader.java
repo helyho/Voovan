@@ -22,7 +22,7 @@ public class MessageLoader {
 	private IoSession session;
 	private StopType stopType;
 	private ByteBufferChannel byteBufferChannel;
-	private boolean isDirectRead;
+	private boolean useSpliter;
 	private int readZeroCount = 0;
 	private int splitLength;
 	/**
@@ -31,26 +31,26 @@ public class MessageLoader {
 	 */
 	public MessageLoader(IoSession session) {
 		this.session = session;
-		stopType = StopType.RUNNING;
-		isDirectRead = false;
+		useSpliter = true;
 		//准备缓冲流
 		byteBufferChannel = session.getByteBufferChannel();
 	}
 
 	/**
-	 * 是否是直接读取模式
-	 * @return true 直接读取模式,false 常规过滤器读取模式
+	 * 获取是否使用分割器读取
+	 *
+	 * @return true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
 	 */
-	public boolean isDirectRead() {
-		return isDirectRead;
+	public boolean isUseSpliter() {
+		return useSpliter;
 	}
 
 	/**
-	 * 设置是否启用直接读取模式
-	 * @param directRead true 直接读取模式,false 常规过滤器读取模式
+	 * 设置是否是否使用分割器读取
+	 * @param useSpliter true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
 	 */
-	public void setDirectRead(boolean directRead) {
-		isDirectRead = directRead;
+	public void setUseSpliter(boolean useSpliter) {
+		useSpliter = useSpliter;
 	}
 
 	public enum StopType {
@@ -154,7 +154,7 @@ public class MessageLoader {
 			return null;
 		}
 
-		while (stopType==StopType.RUNNING && !isDirectRead) {
+		while (stopType==StopType.RUNNING && useSpliter) {
 
 			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
 			if(!session.isConnected() && session.getByteBufferChannel().size()==0){

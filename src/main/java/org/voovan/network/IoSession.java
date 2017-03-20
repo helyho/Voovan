@@ -249,6 +249,14 @@ public abstract class IoSession<T extends SocketContext> {
 		readSize = appDataBufferChannel.readHead(buffer);
 		return readSize;
 	}
+
+	/**
+	 * 设置是否使用分割器读取
+	 * @param useSpliter true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
+	 */
+	public void enabledMessageSpliter(boolean useSpliter) {
+		messageLoader.setUseSpliter(useSpliter);
+	}
 	
 	
 	/**
@@ -268,12 +276,11 @@ public abstract class IoSession<T extends SocketContext> {
 
 	/**
 	 * 直接从缓冲区读取数据
-	 * @param byteBuffer 字节缓冲对象ByteBuffer
+	 * @param byteBuffer 字节缓冲对象ByteBuffer,读取 前需要使用 enabledMessageSpliter(false) 停止分割器的工作,除非有特殊的需求.
 	 * @return  读取的字节数
 	 * @throws IOException IO异常
 	 * */
 	public int read(ByteBuffer byteBuffer) throws IOException {
-		messageLoader.setDirectRead(true);
 
 		int readSize = -1;
 
@@ -292,9 +299,8 @@ public abstract class IoSession<T extends SocketContext> {
 			readSize = -1;
 		}
 
-		messageLoader.setDirectRead(false);
-
 		return readSize;
+
 	}
 
 	/**
