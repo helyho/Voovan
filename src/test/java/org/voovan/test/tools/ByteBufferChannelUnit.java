@@ -51,11 +51,23 @@ public class ByteBufferChannelUnit extends TestCase {
 		assertEquals(size, 5);
 		assertEquals(TByteBuffer.toString(buffer1), "ro!!!");
 		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),"helyho is a he");
-
 	}
 
 	public void testArray(){
 		assertEquals(new String(byteBufferChannel.array()), tmp1);
+	}
+
+	public void testGetByte(){
+		assertEquals('h', byteBufferChannel.get(0));
+		assertEquals('e', byteBufferChannel.get(1));
+		assertEquals('l', byteBufferChannel.get(2));
+		assertEquals('y', byteBufferChannel.get(3));
+	}
+
+	public void testGetByteArray(){
+		byte[] tmp = new byte[6];
+		byteBufferChannel.get(0, tmp, 6);
+		assertEquals("helyho", new String(tmp));
 	}
 
 	public void testCompact(){
