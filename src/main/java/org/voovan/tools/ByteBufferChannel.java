@@ -1,10 +1,9 @@
 package org.voovan.tools;
 
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import sun.misc.Unsafe;
 
-import java.lang.reflect.Field;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -25,23 +24,28 @@ public class ByteBufferChannel {
 	private int size;
 
 	public ByteBufferChannel(int size) {
-		try {
-			byteBuffer = ByteBuffer.allocateDirect(size);
-			address = TReflect.getFieldValue(byteBuffer, "address");
-			size = 0;
-		}catch (ReflectiveOperationException e){
-			e.printStackTrace();
-		}
+        this.byteBuffer = ByteBuffer.allocateDirect(size);
+        this.address = address();
+        size = 0;
 	}
 
 	public ByteBufferChannel() {
+        this.byteBuffer = ByteBuffer.allocateDirect(256);
+        this.address = address();
+        size = 0;
+	}
+
+	/**
+	 * 获取当前数据的内存起始地址
+	 * @return 当前数据的内存起始地址
+	 */
+	public long address(){
 		try {
-            byteBuffer = ByteBuffer.allocateDirect(256);
-            address = TReflect.getFieldValue(byteBuffer, "address");
-            size = 0;
+			return TReflect.getFieldValue(byteBuffer, "address");
 		}catch (ReflectiveOperationException e){
-			e.printStackTrace();
+			Logger.error("ByteBufferChannel.address() Error: "+e.getMessage(), e);
 		}
+		return -1;
 	}
 
 	/**
@@ -121,10 +125,15 @@ public class ByteBufferChannel {
 	 *      将 (position 到 limit) 之间的数据 移动到 (0  到 limit - position) 其他情形将不做任何操作
 	 *		所以 建议 getByteBuffer() 和 compact() 成对操作
 	 */
-	public void compact(){
+	public boolean compact(){
 		int position = byteBuffer.position();
-		TByteBuffer.moveByteBufferData(byteBuffer, position*-1);
-		size = size - position;
+		if(TByteBuffer.moveData(byteBuffer, position*-1)) {
+			byteBuffer.position(0);
+			size = size - position;
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -143,7 +152,9 @@ public class ByteBufferChannel {
 		//是否扩容
 		if(free() < writeSize) {
 			int newSize = byteBuffer.capacity() + writeSize;
-			address = TByteBuffer.reallocateDirectByteBuffer(byteBuffer, newSize);
+			if(TByteBuffer.reallocate(byteBuffer, newSize)){
+				this.address = address();
+			}
 		}
 
 		byteBuffer.position(size);
@@ -173,18 +184,23 @@ public class ByteBufferChannel {
 		//是否扩容
 		if (free() < writeSize) {
 			int newSize = byteBuffer.capacity() + writeSize;
-			address = TByteBuffer.reallocateDirectByteBuffer(byteBuffer, newSize);
+			if(TByteBuffer.reallocate(byteBuffer, newSize)){
+				this.address = address();
+			}
 		}
 
 		//内容移动到 writeSize 之后
-		TByteBuffer.moveByteBufferData(byteBuffer, writeSize);
+		if(TByteBuffer.moveData(byteBuffer, writeSize)){
+			byteBuffer.position(0);
+			byteBuffer.put(src);
+			size = size+ writeSize;
+			byteBuffer.limit(size);
+			byteBuffer.position(0);
 
-		byteBuffer.put(src);
-		size = size+ writeSize;
-		byteBuffer.limit(size);
-		byteBuffer.position(0);
+			return writeSize;
+		}
 
-		return writeSize;
+		return -1;
 	}
 
 	/**
@@ -207,18 +223,23 @@ public class ByteBufferChannel {
 		}
 
 		if(readSize!=0) {
+			dst.mark();
 			while(dst.remaining()>0){
 				dst.put(byteBuffer.get());
 			}
 			dst.position(readSize);
-			TByteBuffer.moveByteBufferData(byteBuffer, -readSize);
-			size = size - readSize;
-			byteBuffer.limit(size);
+			if(TByteBuffer.moveData(byteBuffer, -readSize)) {
+				byteBuffer.position(0);
+				size = size - readSize;
+				byteBuffer.limit(size);
+				dst.flip();
+				return readSize;
+			}else{
+				dst.reset();
+			}
 		}
 
-		dst.flip();
-
-		return readSize;
+        return -1;
 	}
 
 	/**
