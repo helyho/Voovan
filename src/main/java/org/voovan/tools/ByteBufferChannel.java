@@ -109,12 +109,34 @@ public class ByteBufferChannel {
 		byteBuffer.rewind();
 	}
 
+	/**
+	 * 清空通道
+	 */
+	public void clear(){
+		byteBuffer.clear();
+	}
+
 
 	/**
-	 * 重置通道
+	 * 获取某个偏移量位置的 byte 数据
+	 *     该操作不会导致通道内的数据发生变化
+	 * @param offset 偏移量位置的
+	 * @return byte 数据
 	 */
-	public void reset(){
-		byteBuffer.clear();
+	public synchronized byte get(int offset){
+		return unsafe.getByte(address + offset);
+	}
+
+
+	/**
+	 * 获取某个偏移量位置的 byte 数据数组
+	 *     该操作不会导致通道内的数据发生变化
+	 * @param offset  偏移量
+	 * @param dst     目标数组
+	 * @param length  长度
+	 */
+	public synchronized void get(int offset, byte[] dst, int length){
+		unsafe.copyMemory(null, address, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET + offset, length);
 	}
 
 	/**
@@ -125,7 +147,7 @@ public class ByteBufferChannel {
 	 *      将 (position 到 limit) 之间的数据 移动到 (0  到 limit - position) 其他情形将不做任何操作
 	 *		所以 建议 getByteBuffer() 和 compact() 成对操作
 	 */
-	public boolean compact(){
+	public synchronized boolean compact(){
 		int position = byteBuffer.position();
 		if(TByteBuffer.moveData(byteBuffer, position*-1)) {
 			byteBuffer.position(0);
