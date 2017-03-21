@@ -7,6 +7,7 @@ import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
+import org.voovan.network.IoSession;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioSocket;
 import org.voovan.network.exception.ReadMessageException;
@@ -166,9 +167,12 @@ public class HttpClient {
 	 * @throws IOException IO异常对象
 	 */
 	public ByteBuffer loadStream() throws IOException {
+
 		ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getBufferSize());
 
-		int readSize = socket.getSession().read(tmpBuffer);
+		IoSession session = socket.getSession();
+		session.enabledMessageSpliter(false);
+		int readSize = session.read(tmpBuffer);
 
 		if(readSize == -1){
 			return null;

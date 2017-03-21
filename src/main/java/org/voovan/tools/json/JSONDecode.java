@@ -87,6 +87,8 @@ public class JSONDecode {
 				nextChar = (char) reader.read();
 				if (nextChar != 65535) {
 					reader.skip(-1);
+				}else{
+					return jsonResult;
 				}
 
 				if (!isFirstChar) {
