@@ -101,6 +101,7 @@ public class TByteBuffer {
 
     /**
      * 移动 Bytebuffer 中的数据
+     *       以Bytebuffer.position()为远点,移动 offset 个位置
      * @param byteBuffer byteBuffer对象
      * @param offset 相对当前 ByteBuffer.position 的偏移量
      * @return true:成功, false:失败
@@ -122,8 +123,6 @@ public class TByteBuffer {
                 System.arraycopy(hb, byteBuffer.position(), hb, position, byteBuffer.remaining());
             }
 
-            TReflect.setFieldValue(byteBuffer, "limit", limit);
-            byteBuffer.position(position);
             TReflect.setFieldValue(byteBuffer, "limit", limit);
             byteBuffer.position(position);
             return true;

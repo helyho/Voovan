@@ -3,18 +3,14 @@ package org.voovan.network.messagesplitter;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
-import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.TStream;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
-import java.io.ByteArrayInputStream;
-import java.lang.reflect.Executable;
 import java.nio.ByteBuffer;
 
 /**
  * Http 消息分割类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -23,38 +19,38 @@ import java.nio.ByteBuffer;
  */
 public class HttpMessageSplitter implements MessageSplitter {
 
-	private static final String	BODY_TAG	= "\r\n\r\n";
-	private int result = -1;
-	private int bodyTagIndex= -1;
+    private static final String	BODY_TAG	= "\r\n\r\n";
+    private int result = -1;
+    private int bodyTagIndex= -1;
 
-	private int contentLength = -1;
+    private int contentLength = -1;
     boolean isChunked = false;
 
 
     @Override
-	public int canSplite(IoSession session, ByteBuffer byteBuffer) {
+    public int canSplite(IoSession session, ByteBuffer byteBuffer) {
 
-		if(byteBuffer.limit()==0){
-			return -1;
-		}
+        if(byteBuffer.limit()==0){
+            return -1;
+        }
 
-		result = isHttpFrame(byteBuffer);
+        result = isHttpFrame(byteBuffer);
 
-	    if (result==-1 && "WebSocket".equals(session.getAttribute("Type")) ) {
-			result = WebSocketTools.isWebSocketFrame(byteBuffer);
-		}
+        if (result==-1 && "WebSocket".equals(session.getAttribute("Type")) ) {
+            result = WebSocketTools.isWebSocketFrame(byteBuffer);
+        }
 
-		if(result!=-1){
+        if(result!=-1){
             bodyTagIndex = -1;
         }
 
-		return result;
-	}
+        return result;
+    }
 
     private void getBodyTagIndex(ByteBuffer byteBuffer){
         StringBuilder stringBuilder = new StringBuilder();
         String httpHead = null;
-        for(int x=0;x<byteBuffer.limit();x++){
+        for(int x=0;x<byteBuffer.limit()-3;x++){
             if(byteBuffer.get(x) == '\r' && byteBuffer.get(x+1) == '\n'
                     && byteBuffer.get(x+2) == '\r' && byteBuffer.get(x+3) == '\n'){
                 bodyTagIndex = x;
@@ -93,8 +89,8 @@ public class HttpMessageSplitter implements MessageSplitter {
         return true;
     }
 
-	public int isHttpFrame(ByteBuffer byteBuffer) {
-	    try{
+    public int isHttpFrame(ByteBuffer byteBuffer) {
+        try{
             if(bodyTagIndex==-1) {
                 getBodyTagIndex(byteBuffer);
             }
@@ -127,10 +123,10 @@ public class HttpMessageSplitter implements MessageSplitter {
                 }
             }
 
-	    }catch(Exception e){
+        }catch(Exception e){
             Logger.error(e);
         }
         return -1;
-	}
+    }
 
 }
