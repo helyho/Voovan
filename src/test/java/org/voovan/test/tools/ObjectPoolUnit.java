@@ -14,7 +14,7 @@ import org.voovan.tools.log.Logger;
  *         WebSite: https://github.com/helyho/Voovan
  *         Licence: Apache v2 License
  */
-public class ObjectPoolUtil extends TestCase {
+public class ObjectPoolUnit extends TestCase {
 
 
     public void testAdd(){

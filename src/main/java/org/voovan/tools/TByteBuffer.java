@@ -32,7 +32,7 @@ public class TByteBuffer {
             bytebuffer.position(oldPosition);
             return buffers;
         }else{
-            return Arrays.copyOfRange(bytebuffer.array(), bytebuffer.position(), bytebuffer.limit());
+            return Arrays.copyOfRange(bytebuffer.array(), 0, bytebuffer.limit());
         }
     }
 
@@ -60,44 +60,77 @@ public class TByteBuffer {
         return toString(bytebuffer, "UTF-8");
     }
 
-    public static long reallocateDirectByteBuffer(ByteBuffer byteBuffer, int newSize) {
+    /**
+     * 重新分配 byteBuffer 中的空间大小
+     * @param byteBuffer byteBuffer对象
+     * @param newSize  重新分配的空间大小
+     * @return true:成功, false:失败
+     */
+    public static boolean reallocate(ByteBuffer byteBuffer, int newSize) {
         try {
+
+            //计算新的 Limit 位置
+            int newLimit = byteBuffer.limit();
+            if (byteBuffer.limit() == byteBuffer.capacity()) {
+                newLimit = newSize;
+            }
+
             if(!byteBuffer.hasArray()) {
                 long address = TReflect.getFieldValue(byteBuffer, "address");
-                int newLimit = byteBuffer.limit();
-                if (byteBuffer.limit() == byteBuffer.capacity()) {
-                    newLimit = newSize;
-                }
-
                 long newAddress = TUnsafe.getUnsafe().reallocateMemory(address, newSize);
                 TReflect.setFieldValue(byteBuffer, "address", newAddress);
-                TReflect.setFieldValue(byteBuffer, "capacity", newSize);
-                TReflect.setFieldValue(byteBuffer, "limit", newLimit);
-                return newAddress;
-            }
-        }catch (ReflectiveOperationException e){
-            e.printStackTrace();
-        }
-        return -1;
-    }
 
-    public static boolean moveByteBufferData(ByteBuffer byteBuffer, int offset) {
-        try {
-            if(!byteBuffer.hasArray()) {
-                long address = TReflect.getFieldValue(byteBuffer, "address");
-                int limit = byteBuffer.limit()+offset;
-                if(limit <= byteBuffer.capacity()) {
-                    TUnsafe.getUnsafe().copyMemory(address + byteBuffer.position(), address + byteBuffer.position() + offset, byteBuffer.remaining());
-                    TReflect.setFieldValue(byteBuffer, "limit", limit);
-                    byteBuffer.position(0);
-                }else{
-                    return false;
-                }
-                return true;
+            }else{
+                byte[] hb = byteBuffer.array();
+                byte[] newHb = Arrays.copyOf(hb, newSize);
+                TReflect.setFieldValue(byteBuffer, "hb", newHb);
             }
+
+            //重置容量
+            TReflect.setFieldValue(byteBuffer, "capacity", newSize);
+            //重置 Limit 位置
+            TReflect.setFieldValue(byteBuffer, "limit", newLimit);
+
+            return true;
+
         }catch (ReflectiveOperationException e){
-            e.printStackTrace();
+            Logger.error("TByteBuffer.reallocate() Error: "+e.getMessage(), e);
         }
         return false;
     }
+
+    /**
+     * 移动 Bytebuffer 中的数据
+     * @param byteBuffer byteBuffer对象
+     * @param offset 相对当前 ByteBuffer.position 的偏移量
+     * @return true:成功, false:失败
+     */
+    public static boolean moveData(ByteBuffer byteBuffer, int offset) {
+        try {
+            int limit = byteBuffer.limit()+offset;
+            int position = byteBuffer.position() + offset;
+
+            if(limit > byteBuffer.capacity() && position < 0){
+                return false;
+            }
+
+            if(!byteBuffer.hasArray()) {
+                long address = TReflect.getFieldValue(byteBuffer, "address");
+                TUnsafe.getUnsafe().copyMemory(address + byteBuffer.position(), address + position, byteBuffer.remaining());
+            }else{
+                byte[] hb = byteBuffer.array();
+                System.arraycopy(hb, byteBuffer.position(), hb, position, byteBuffer.remaining());
+            }
+
+            TReflect.setFieldValue(byteBuffer, "limit", limit);
+            byteBuffer.position(position);
+            TReflect.setFieldValue(byteBuffer, "limit", limit);
+            byteBuffer.position(position);
+            return true;
+        }catch (ReflectiveOperationException e){
+            Logger.error("TByteBuffer.moveData() Error: "+e.getMessage(), e);
+        }
+        return false;
+    }
+
 }
