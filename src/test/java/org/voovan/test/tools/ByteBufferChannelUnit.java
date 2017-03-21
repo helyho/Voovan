@@ -64,7 +64,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		byteBufferChannel1.writeEnd(ByteBuffer.wrap("bbccdd".getBytes()));
 		byteBufferChannel1.getByteBuffer().position(2);
 		byteBufferChannel1.compact();
-		Logger.simple(TByteBuffer.toString(byteBufferChannel1.getByteBuffer()));
+		assertEquals("ccdd",TByteBuffer.toString(byteBufferChannel1.getByteBuffer()));
 
 
 	}
