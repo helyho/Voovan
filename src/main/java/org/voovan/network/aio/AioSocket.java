@@ -234,6 +234,9 @@ public class AioSocket extends SocketContext {
 
 					socketChannel.close();
 				}
+
+				 session.getByteBufferChannel().free();
+
 				return true;
 			} catch (IOException e) {
 				Logger.error("SocketChannel close failed",e);
