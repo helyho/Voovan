@@ -87,8 +87,6 @@ public class JSONDecode {
 				nextChar = (char) reader.read();
 				if (nextChar != 65535) {
 					reader.skip(-1);
-				}else{
-					return jsonResult;
 				}
 
 				if (!isFirstChar) {
@@ -129,15 +127,24 @@ public class JSONDecode {
 
 					if (currentChar == '/' && (nextChar != 0 && nextChar == '*') && isComment == 0) {
 						isComment = 2; //多行注释
+						if(currentChar == 65535){
+							return jsonResult;
+						}
 						continue;
 					}
 
 					if (isComment == 2 && currentChar == '/' && (prevChar != 0 && prevChar == '*') && isComment > 0) {
 						isComment = 0; //多行注释
+						if(currentChar == 65535){
+							return jsonResult;
+						}
 						continue;
 					}
 
 					if (isComment != 0) {
+						if(currentChar == 65535){
+							return jsonResult;
+						}
 						continue;
 					}
 				}
@@ -147,6 +154,9 @@ public class JSONDecode {
 					reader.skip(-1);
 					//递归解析处理,取 value 对象
 					value = JSONDecode.parse(reader);
+					if(currentChar == 65535){
+						return jsonResult;
+					}
 					continue;
 				} else if (!isString && !isFunction && currentChar == ']') {
 					//最后一个元素,追加一个,号来将其附加到结果集

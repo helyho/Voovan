@@ -31,6 +31,7 @@ public abstract class IoSession<T extends SocketContext> {
 	private boolean receiving;
 	private MessageLoader messageLoader;
 	private ByteBufferChannel byteBufferChannel;
+	private ByteBufferChannel sslByteBufferChannel;
 	private T socketContext;
 
 	/**
@@ -232,19 +233,22 @@ public abstract class IoSession<T extends SocketContext> {
 			SSLEngineResult engineResult = null;
 			do{
 				appBuffer.clear();
-                ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+				ByteBuffer byteBuffer = ByteBuffer.allocate(byteBufferChannel.size());
+				byteBufferChannel.readHead(byteBuffer);
 
-					engineResult = sslParser.unwarpData(byteBuffer, appBuffer);
-					byteBufferChannel.compact();
+                engineResult = sslParser.unwarpData(byteBuffer, appBuffer);
+				byteBufferChannel.writeHead(byteBuffer);
 
-					appBuffer.flip();
-					appDataBufferChannel.writeEnd(appBuffer);
+				appBuffer.flip();
+                appDataBufferChannel.writeEnd(appBuffer);
 
-				if(byteBuffer.remaining()==0) {
+                if(byteBuffer.remaining()==0) {
 					TEnv.sleep(1);
 					continue;
 				}
 			}while(engineResult!=null && engineResult.getStatus() != Status.OK && engineResult.getStatus() != Status.CLOSED);
+		}else{
+			buffer.limit(0);
 		}
 		readSize = appDataBufferChannel.readHead(buffer);
 		return readSize;
