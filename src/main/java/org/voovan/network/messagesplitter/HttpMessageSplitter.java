@@ -3,9 +3,13 @@ package org.voovan.network.messagesplitter;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
+import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.TStream;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
+import java.io.ByteArrayInputStream;
+import java.lang.reflect.Executable;
 import java.nio.ByteBuffer;
 
 /**
@@ -19,45 +23,45 @@ import java.nio.ByteBuffer;
  */
 public class HttpMessageSplitter implements MessageSplitter {
 
-    private static final String	BODY_TAG	= "\r\n\r\n";
-    private int result = -1;
-    private int bodyTagIndex= -1;
+	private static final String	BODY_TAG	= "\r\n\r\n";
+	private int result = -1;
+	private int bodyTagIndex= -1;
 
-    private int contentLength = -1;
+	private int contentLength = -1;
     boolean isChunked = false;
 
 
     @Override
-    public int canSplite(IoSession session, ByteBuffer byteBuffer) {
+	public int canSplite(IoSession session, ByteBuffer byteBuffer) {
 
-        if(byteBuffer.limit()==0){
-            return -1;
-        }
+		if(byteBuffer.limit()==0){
+			return -1;
+		}
 
-        result = isHttpFrame(byteBuffer);
+		result = isHttpFrame(byteBuffer);
 
-        if (result==-1 && "WebSocket".equals(session.getAttribute("Type")) ) {
-            result = WebSocketTools.isWebSocketFrame(byteBuffer);
-        }
+	    if (result==-1 && "WebSocket".equals(session.getAttribute("Type")) ) {
+			result = WebSocketTools.isWebSocketFrame(byteBuffer);
+		}
 
-        if(result!=-1){
+		if(result!=-1){
             bodyTagIndex = -1;
         }
 
-        return result;
-    }
+		return result;
+	}
 
     private void getBodyTagIndex(ByteBuffer byteBuffer){
+        byte[] buffer = TByteBuffer.toArray(byteBuffer);
         StringBuilder stringBuilder = new StringBuilder();
         String httpHead = null;
-        for(int x=0;x<byteBuffer.limit()-3;x++){
-            if(byteBuffer.get(x) == '\r' && byteBuffer.get(x+1) == '\n'
-                    && byteBuffer.get(x+2) == '\r' && byteBuffer.get(x+3) == '\n'){
-                bodyTagIndex = x;
+        for(int x=0;x<buffer.length;x++){
+            if(buffer[x] == '\r' && buffer[x+1] == '\n' && buffer[x+2] == '\r' && buffer[x+3] == '\n'){
+                bodyTagIndex = x + 3;
                 httpHead = stringBuilder.toString();
                 break;
             }else{
-                stringBuilder.append((char)byteBuffer.get(x));
+                stringBuilder.append((char)buffer[x]);
             }
         }
 
@@ -89,8 +93,8 @@ public class HttpMessageSplitter implements MessageSplitter {
         return true;
     }
 
-    public int isHttpFrame(ByteBuffer byteBuffer) {
-        try{
+	public int isHttpFrame(ByteBuffer byteBuffer) {
+	    try{
             if(bodyTagIndex==-1) {
                 getBodyTagIndex(byteBuffer);
             }
@@ -98,7 +102,7 @@ public class HttpMessageSplitter implements MessageSplitter {
             if(bodyTagIndex != -1) {
                 // 1.包含 content Length 的则通过获取 contentLenght 来计算报文的总长度,长度相等时,返回成功
                 if (contentLength != -1) {
-                    int totalLength = bodyTagIndex + 4 + contentLength;
+                    int totalLength = bodyTagIndex + contentLength + 1; //索引位置从0开始,这里加1
                     if (byteBuffer.limit() >= totalLength) {
                         return byteBuffer.limit();
                     }
@@ -123,10 +127,10 @@ public class HttpMessageSplitter implements MessageSplitter {
                 }
             }
 
-        }catch(Exception e){
+	    }catch(Exception e){
             Logger.error(e);
         }
         return -1;
-    }
+	}
 
 }
