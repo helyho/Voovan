@@ -102,7 +102,7 @@ public class HttpMessageSplitter implements MessageSplitter {
             if(bodyTagIndex != -1) {
                 // 1.包含 content Length 的则通过获取 contentLenght 来计算报文的总长度,长度相等时,返回成功
                 if (contentLength != -1) {
-                    int totalLength = bodyTagIndex + contentLength + 1; //索引位置从0开始,这里加1
+                    int totalLength = bodyTagIndex + contentLength + 1; //
                     if (byteBuffer.limit() >= totalLength) {
                         return byteBuffer.limit();
                     }
