@@ -52,7 +52,11 @@ public class ByteBufferChannel {
 	 * 当前数组空闲的大小
 	 * @return 当前数组空闲的大小
 	 */
-	public int free(){
+	public int available(){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		return byteBuffer.capacity() - size;
 	}
 
@@ -61,6 +65,10 @@ public class ByteBufferChannel {
 	 * @return 当前分配的数组大小
 	 */
 	public int capacity(){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		return byteBuffer.capacity();
 	}
 
@@ -69,7 +77,35 @@ public class ByteBufferChannel {
 	 * @return 数据大小
 	 */
 	public int size(){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		return size;
+	}
+
+	/**
+	 * 当前数据大小
+	 */
+	public void free(){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
+		unsafe.freeMemory(address);
+		address = -1;
+	}
+
+	/**
+	 * 判断通道是否关闭
+	 * @return true: 通道关闭, false: 通道打开
+	 */
+	public boolean isClosed(){
+		if(address < 0){
+			return true;
+		}else{
+			return false;
+		}
 	}
 
 	/**
@@ -79,6 +115,10 @@ public class ByteBufferChannel {
 	 * @return 缓冲区有效字节数组
 	 */
 	public byte[] array(){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		byte[] temp = new byte[size()];
 		unsafe.copyMemory(null, address, temp, Unsafe.ARRAY_BYTE_BASE_OFFSET, size());
 		return temp;
@@ -91,6 +131,10 @@ public class ByteBufferChannel {
 	 * @return ByteBuffer 对象
 	 */
 	public ByteBuffer getByteBuffer(){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		return byteBuffer;
 	}
 
@@ -98,6 +142,10 @@ public class ByteBufferChannel {
 	 * 重置通道
 	 */
 	public void flip(){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		byteBuffer.flip();
 	}
 
@@ -106,6 +154,10 @@ public class ByteBufferChannel {
 	 * 重置通道
 	 */
 	public void rewind(){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		byteBuffer.rewind();
 	}
 
@@ -113,6 +165,10 @@ public class ByteBufferChannel {
 	 * 清空通道
 	 */
 	public void clear(){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		byteBuffer.clear();
 	}
 
@@ -124,6 +180,10 @@ public class ByteBufferChannel {
 	 * @return byte 数据
 	 */
 	public synchronized byte get(int offset){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		return unsafe.getByte(address + offset);
 	}
 
@@ -136,6 +196,10 @@ public class ByteBufferChannel {
 	 * @param length  长度
 	 */
 	public synchronized void get(int offset, byte[] dst, int length){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		unsafe.copyMemory(null, address, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET + offset, length);
 	}
 
@@ -147,6 +211,10 @@ public class ByteBufferChannel {
 	 * @param dst     目标数组
 	 */
 	public synchronized void get(byte[] dst){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		unsafe.copyMemory(null, address, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET + 0, dst.length);
 	}
 
@@ -159,6 +227,10 @@ public class ByteBufferChannel {
 	 *		所以 建议 getByteBuffer() 和 compact() 成对操作
 	 */
 	public synchronized boolean compact(){
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		int position = byteBuffer.position();
 		if(TByteBuffer.moveData(byteBuffer, position*-1)) {
 			byteBuffer.position(0);
@@ -175,6 +247,10 @@ public class ByteBufferChannel {
 	 * @return 写入的数据大小
 	 */
 	public synchronized int writeEnd(ByteBuffer src) {
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		if(src==null){
 			return -1;
 		}
@@ -184,7 +260,7 @@ public class ByteBufferChannel {
 
 		if(writeSize > 0){
             //是否扩容
-            if(free() < writeSize) {
+            if(available() < writeSize) {
                 int newSize = byteBuffer.capacity() + writeSize;
                 if(TByteBuffer.reallocate(byteBuffer, newSize)){
                     this.address = address();
@@ -212,6 +288,10 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public synchronized int writeHead(ByteBuffer src) {
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		if (src == null) {
 			return -1;
 		}
@@ -221,7 +301,7 @@ public class ByteBufferChannel {
 
 		if(writeSize>0){
             //是否扩容
-            if (free() < writeSize) {
+            if (available() < writeSize) {
                 int newSize = byteBuffer.capacity() + writeSize;
                 if(TByteBuffer.reallocate(byteBuffer, newSize)){
                     this.address = address();
@@ -249,6 +329,10 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public synchronized int readHead(ByteBuffer dst) {
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		if(dst==null){
 			return -1;
 		}
@@ -286,6 +370,10 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public synchronized int readEnd(ByteBuffer dst) {
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		if(dst==null){
 			return -1;
 		}
@@ -319,6 +407,10 @@ public class ByteBufferChannel {
 	 * @return 字符串
 	 */
 	public String readLine() {
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		String lineStr = "";
 		int index = 0;
 		while(byteBuffer.remaining()>0){
@@ -355,6 +447,10 @@ public class ByteBufferChannel {
 	 * @return 字节数组
 	 */
 	public ByteBuffer readWithSplit(byte[] splitByte) {
+		if(isClosed()){
+			throw new RuntimeException("ByteBufferChannel is closed.");
+		}
+
 		byte[] tempBytes = new byte[splitByte.length];
 		int index = 0;
 		while(byteBuffer.remaining()>index){
@@ -378,7 +474,4 @@ public class ByteBufferChannel {
 
 		return resultBuffer.limit()==0?null:resultBuffer;
 	}
-
-
-
 }

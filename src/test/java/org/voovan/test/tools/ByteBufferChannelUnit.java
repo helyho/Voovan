@@ -146,5 +146,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		xxx.rewind();
 		byteBufferChannel1.readHead(xxx);
 		Logger.simple("read head 5: "+new String(xxx.array()));
+
+
 	}
 }
