@@ -64,6 +64,12 @@ public class ByteBufferChannelUnit extends TestCase {
 		assertEquals('y', byteBufferChannel.get(3));
 	}
 
+	public void testIndex(){
+		byte[] tmp = new byte[6];
+		int index = byteBufferChannel.indexOf("y".getBytes());
+		assertEquals(index,3);
+	}
+
 	public void testGetByteArray(){
 		byte[] tmp = new byte[6];
 		byteBufferChannel.get(0, tmp, 6);
@@ -95,7 +101,18 @@ public class ByteBufferChannelUnit extends TestCase {
 
 	public void testReadWithSplit(){
 		ByteBufferChannel byteBufferChannel1 = new ByteBufferChannel();
-		byteBufferChannel1.writeHead(ByteBuffer.wrap("aaaaa\r\nbbbbb\r\nccccc\r\n".getBytes()));
+		byteBufferChannel1.writeEnd(ByteBuffer.wrap("aaaaa\r\nbbbbb\r\nccccc\r\n".getBytes()));
+		while(true){
+			ByteBuffer byteBuffer = byteBufferChannel1.readWithSplit("bbbbb\r\n".getBytes());
+			if(byteBuffer==null){
+				break;
+			}
+			Logger.simple("splitedContent: "+ TByteBuffer.toString(byteBuffer));
+		}
+
+		Logger.simple("========================");
+
+		byteBufferChannel1.writeEnd(ByteBuffer.wrap("bbbbb\r\nccccc\r\nbbbbb\r\nccccc\r\n".getBytes()));
 		while(true){
 			ByteBuffer byteBuffer = byteBufferChannel1.readWithSplit("bbbbb\r\n".getBytes());
 			if(byteBuffer==null){

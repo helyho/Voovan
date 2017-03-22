@@ -165,7 +165,7 @@ public class MessageLoader {
 
 			if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
 				ByteBuffer sslData = ByteBuffer.allocate(session.socketContext().getBufferSize());
-				session.readSSL(sslData);
+				readsize = session.readSSL(sslData);
 				dataByteBuffer.writeEnd(sslData);
 			}
 
@@ -177,13 +177,13 @@ public class MessageLoader {
 			//使用消息划分器进行消息划分
 			if(readsize == 0) {
 				splitLength = messageSplitter.canSplite(session,  dataByteBuffer.getByteBuffer());
-				if (splitLength > 0) {
+				if (splitLength >= 0) {
 					stopType = StopType.MSG_SPLITTER ;
 				}
 			}
 
 			//超时判断,防止读0时导致的高 CPU 负载
-			if(readsize==0 && stopType == StopType.RUNNING){
+			if(readsize==0 && stopType == StopType.RUNNING ){
 				if(readZeroCount >= session.socketContext().getReadTimeout()){
 					stopType = StopType.STREAM_END;
 				}else {
@@ -198,7 +198,7 @@ public class MessageLoader {
 		}
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
-		if(stopType==StopType.MSG_SPLITTER) {
+		if(splitLength!=0 && stopType==StopType.MSG_SPLITTER) {
 			result = ByteBuffer.allocate(splitLength);
 			dataByteBuffer.readHead(result);
 		} else {

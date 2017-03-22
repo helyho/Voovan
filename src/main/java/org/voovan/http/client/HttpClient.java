@@ -374,7 +374,7 @@ public class HttpClient {
 		//3.请求报文Body 使用流类型
 		else if(request.getBodyType() == Request.BodyType.BODY_URLENCODED){
 			String queryString = getQueryString();
-			request.body().write(TString.removePrefix(queryString),charset);
+			request.body().write(queryString,charset);
 		}
 	}
 

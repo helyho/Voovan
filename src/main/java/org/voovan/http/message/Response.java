@@ -111,7 +111,7 @@ public class Response {
 	 */
 	private void initHeader() {
 		// 根据压缩属性确定 Header 的一些属性内容
-		if (isCompress) {
+		if (body.size()!=0 && isCompress) {
 			header.put("Transfer-Encoding", "chunked");
 			header.put("Content-Encoding", "gzip");
 		} else {
