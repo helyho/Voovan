@@ -8,7 +8,9 @@ import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
 import org.voovan.tools.THash;
+import org.voovan.tools.reflect.TReflect;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -155,7 +157,13 @@ public class MimeFileRouter implements HttpRouter {
 		}
 
 		if (fileByte != null) {
-			response.write(fileByte);
+			try {
+				ByteArrayOutputStream outputStream = TReflect.getFieldValue(response.body(), "outputStream");
+				TReflect.setFieldValue(outputStream, "buf", fileByte);
+				TReflect.setFieldValue(outputStream, "count", fileByte.length);
+			}catch(ReflectiveOperationException e){
+				throw new IOException(e);
+			}
 		}
 		
 	}
