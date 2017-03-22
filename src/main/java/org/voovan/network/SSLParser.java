@@ -139,12 +139,16 @@ public class SSLParser {
 			do{
 				clearBuffer();
 				ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
-                ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
-					engineResult = unwarpData(byteBuffer, appData);
-					//如果有 HandShake Task 则执行
-					handshakeStatus = runDelegatedTasks();
-					session.getByteBufferChannel().compact();
+                ByteBuffer byteBuffer = ByteBuffer.allocate(byteBufferChannel.size());
+				byteBufferChannel.readHead(byteBuffer);
+
+
+                engineResult = unwarpData(byteBuffer, appData);
+                //如果有 HandShake Task 则执行
+                handshakeStatus = runDelegatedTasks();
+                byteBufferChannel.writeHead(byteBuffer);
+
 
 				if(byteBuffer.remaining()==0) {
                 	TEnv.sleep(1);

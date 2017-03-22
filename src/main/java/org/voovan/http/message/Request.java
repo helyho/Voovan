@@ -190,6 +190,8 @@ public class Request {
             if(!TString.isNullOrEmpty(cookieValue)){
                 header.put("Cookie", genCookie());
             }
+		}else if("multipart/form-data;".equals(header.get(CONTENT_TYPE))){
+			header.put(CONTENT_TYPE ,header.get(CONTENT_TYPE)+" boundary=" + boundary);
 		}
 	}
 

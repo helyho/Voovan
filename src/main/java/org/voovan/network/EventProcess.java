@@ -124,11 +124,6 @@ public class EventProcess {
 					return;
 				}
 
-				// 如果读出的数据长度为0,不触发事件
-				if (byteBuffer.limit() == 0) {
-					return;
-				}
-
 				Object result = byteBuffer;
 
 				// -----------------Filter 解密处理-----------------

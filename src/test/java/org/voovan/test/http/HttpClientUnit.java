@@ -41,7 +41,7 @@ public class HttpClientUnit extends TestCase {
 	}
 	
 	public void testGet() throws Exception{
-		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312");
+		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 30);
 		Response response  = getClient.setMethod("GET")
 			.putParameters("name", "测试Get")
 			.putParameters("age", "32").send();
@@ -72,7 +72,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testHTTPSRequest() throws Exception {
-		HttpClient httpClient = new HttpClient("https://www.baidu.com/","UTF-8", 50000);
+		HttpClient httpClient = new HttpClient("https://www.oschina.net/","UTF-8", 50000);
 		httpClient.putHeader("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36");
 		System.out.println(httpClient.send("/").body().getBodyString());
 		httpClient.close();
@@ -87,7 +87,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testWebSocket() throws Exception {
-		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/","GBK2312",5);
+		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/","GBK2312",500);
 		httpClient.webSocket("/websocket", new WebSocketRouter() {
 
 			@Override

@@ -25,12 +25,14 @@ public class ByteBufferChannel {
 
 	public ByteBufferChannel(int size) {
         this.byteBuffer = ByteBuffer.allocateDirect(size);
+		byteBuffer.limit(0);
         this.address = address();
         size = 0;
 	}
 
 	public ByteBufferChannel() {
         this.byteBuffer = ByteBuffer.allocateDirect(256);
+		byteBuffer.limit(0);
         this.address = address();
         size = 0;
 	}
@@ -123,8 +125,12 @@ public class ByteBufferChannel {
 	 * @param offset 偏移量位置的
 	 * @return byte 数据
 	 */
-	public synchronized byte get(int offset){
-		return unsafe.getByte(address + offset);
+	public synchronized byte get(int offset) throws IndexOutOfBoundsException {
+		if(offset >= 0 && offset <= size) {
+            return unsafe.getByte(address + offset);
+        } else {
+            throw new IndexOutOfBoundsException();
+        }
 	}
 
 
@@ -135,8 +141,13 @@ public class ByteBufferChannel {
 	 * @param dst     目标数组
 	 * @param length  长度
 	 */
-	public synchronized void get(int offset, byte[] dst, int length){
-		unsafe.copyMemory(null, address, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET + offset, length);
+	public synchronized void get(int offset, byte[] dst, int length) throws IndexOutOfBoundsException {
+
+		if(offset >= 0 && length <= size - offset) {
+			unsafe.copyMemory(null, address + offset, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
+		} else {
+			throw new IndexOutOfBoundsException();
+		}
 	}
 
 
@@ -147,7 +158,7 @@ public class ByteBufferChannel {
 	 * @param dst     目标数组
 	 */
 	public synchronized void get(byte[] dst){
-		unsafe.copyMemory(null, address, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET + 0, dst.length);
+		unsafe.copyMemory(null, address, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, dst.length);
 	}
 
 	/**
@@ -163,6 +174,7 @@ public class ByteBufferChannel {
 		if(TByteBuffer.moveData(byteBuffer, position*-1)) {
 			byteBuffer.position(0);
 			size = size - position;
+			byteBuffer.limit(size);
 			return true;
 		}
 
@@ -315,36 +327,53 @@ public class ByteBufferChannel {
 	}
 
 	/**
+	 * 查找特定 byte 标识的位置
+	 *     byte 标识数组第一个字节的索引位置
+	 * @param mark byte 标识数组
+	 * @return 第一个字节的索引位置
+	 */
+	public int indexOf(byte[] mark){
+		if(size == 0){
+			return -1;
+		}
+
+		int index = -1;
+		byte[] tmp = new byte[mark.length];
+		for(int offset = 0;offset <= byteBuffer.remaining() - mark.length; offset++){
+            get(offset, tmp, tmp.length);
+            if(Arrays.equals(mark, tmp)){
+            	index = offset;
+                break;
+            }
+		}
+
+		return index;
+	}
+
+	/**
 	 * 读取一行
 	 * @return 字符串
 	 */
 	public String readLine() {
-		String lineStr = "";
-		int index = 0;
-		while(byteBuffer.remaining()>0){
-			index++;
-			int singleChar = byteBuffer.get();
-			if(singleChar==65535) {
-				break;
-			}
-			else{
-				if(singleChar == '\n'){
-					break;
-				}
-			}
+		if(size == 0){
+			return null;
 		}
+
+
+		String lineStr = "";
+		int index = indexOf("\n".getBytes());
 
 		byteBuffer.position(0);
 
-		ByteBuffer lineBuffer = ByteBuffer.allocate(index);
+		ByteBuffer lineBuffer = ByteBuffer.allocate(index + 1);
 
 		int readSize = readHead(lineBuffer);
 
-		if(readSize == index){
+		if(readSize == index + 1){
 			lineStr = TByteBuffer.toString(lineBuffer);
 		}
 
-		return lineStr.isEmpty()?null:lineStr.trim();
+		return lineStr.isEmpty()?null:lineStr;
 	}
 
 
@@ -355,27 +384,28 @@ public class ByteBufferChannel {
 	 * @return 字节数组
 	 */
 	public ByteBuffer readWithSplit(byte[] splitByte) {
-		byte[] tempBytes = new byte[splitByte.length];
-		int index = 0;
-		while(byteBuffer.remaining()>index){
-			if(byteBuffer.limit()-index >= tempBytes.length) {
-				unsafe.copyMemory(null, address+index, tempBytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, tempBytes.length);
-					if (Arrays.equals(splitByte, tempBytes)) {
-						break;
-					}
-			}
-			index++;
+		int index = indexOf(splitByte);
+
+		if(size == 0){
+			return ByteBuffer.allocate(0);
 		}
 
-		byteBuffer.position(0);
+		if(index == 0){
+			byteBuffer.position(splitByte.length);
+			compact();
+			index = indexOf(splitByte);
+		}
+
+		if(index == -1){
+			index = size;
+		}
 
 		ByteBuffer resultBuffer = ByteBuffer.allocate(index);
-
 		int readSize = readHead(resultBuffer);
 
 		//跳过分割符
-		readHead(ByteBuffer.allocate(tempBytes.length));
+		readHead(ByteBuffer.allocate(splitByte.length));
 
-		return resultBuffer.limit()==0?null:resultBuffer;
+		return resultBuffer;
 	}
 }
