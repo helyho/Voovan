@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
@@ -45,7 +46,7 @@ public class TStream {
 		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 		while(true){
 			int singleChar = inputStream.read();
-			if(singleChar==65535) {
+			if(singleChar==65535 || singleChar == -1) {
 				break;
 			}
 			else{
