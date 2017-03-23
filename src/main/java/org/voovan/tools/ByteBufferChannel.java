@@ -363,14 +363,16 @@ public class ByteBufferChannel {
 		String lineStr = "";
 		int index = indexOf("\n".getBytes());
 
-		byteBuffer.position(0);
+		if(index > 0) {
+			byteBuffer.position(0);
 
-		ByteBuffer lineBuffer = ByteBuffer.allocate(index + 1);
+			ByteBuffer lineBuffer = ByteBuffer.allocate(index + 1);
 
-		int readSize = readHead(lineBuffer);
+			int readSize = readHead(lineBuffer);
 
-		if(readSize == index + 1){
-			lineStr = TByteBuffer.toString(lineBuffer);
+			if (readSize == index + 1) {
+				lineStr = TByteBuffer.toString(lineBuffer);
+			}
 		}
 
 		return lineStr.isEmpty()?null:lineStr;
