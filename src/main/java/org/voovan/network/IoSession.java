@@ -290,11 +290,15 @@ public abstract class IoSession<T extends SocketContext> {
 
 		Object response = this.getAttribute("SocketResponse");
 		if(response!=null){
-			if(response instanceof Exception) {
-				throw (IOException) response;
-			}else{
-				throw new IOException((Exception)response);
-			}
+
+            if(response instanceof  IOException){
+                throw (IOException) response;
+            }
+
+            if(response instanceof Exception){
+                throw new IOException((Exception)response);
+            }
+
 		}
 
 		readSize = this.read0(byteBuffer);
