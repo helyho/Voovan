@@ -18,7 +18,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		super(name);
 	}
 
-	public void setUp() throws IOException{
+	public void init() {
 		ByteBuffer buffer = ByteBuffer.wrap(tmp1.getBytes());
 		byteBufferChannel = new ByteBufferChannel();
 		byteBufferChannel.writeEnd(buffer);
@@ -26,18 +26,20 @@ public class ByteBufferChannelUnit extends TestCase {
 	}
 	
 	public void testWriteEnd() throws IOException{
+		init();
 		int size = byteBufferChannel.size();
 		byteBufferChannel.writeEnd(ByteBuffer.wrap(tmp2.getBytes()));
 		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),tmp1+tmp2);
 	}
 
 	public void testWriteHead() throws IOException{
-		int size = byteBufferChannel.size();
+		init();
 		byteBufferChannel.writeHead(ByteBuffer.wrap(tmp2.getBytes()));
 		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),tmp2+tmp1);
 	}
 	
 	public void testReadHead() throws IOException{
+		init();
 		ByteBuffer buffer1 = ByteBuffer.allocate(5);
 		int size = byteBufferChannel.readHead(buffer1);
 		assertEquals(size, 5);
@@ -46,6 +48,7 @@ public class ByteBufferChannelUnit extends TestCase {
 	}
 
 	public void testReadEnd() throws IOException{
+		init();
 		ByteBuffer buffer1 = ByteBuffer.allocate(5);
 		int size = byteBufferChannel.readEnd(buffer1);
 		assertEquals(size, 5);
@@ -54,10 +57,12 @@ public class ByteBufferChannelUnit extends TestCase {
 	}
 
 	public void testArray(){
+		init();
 		assertEquals(new String(byteBufferChannel.array()), tmp1);
 	}
 
 	public void testGetByte(){
+		init();
 		assertEquals('h', byteBufferChannel.get(0));
 		assertEquals('e', byteBufferChannel.get(1));
 		assertEquals('l', byteBufferChannel.get(2));
@@ -65,18 +70,30 @@ public class ByteBufferChannelUnit extends TestCase {
 	}
 
 	public void testIndex(){
+		init();
 		byte[] tmp = new byte[6];
 		int index = byteBufferChannel.indexOf("y".getBytes());
 		assertEquals(index,3);
 	}
 
+	public void testSshrink(){
+		init();
+		byte[] tmp = new byte[6];
+		byteBufferChannel.shrink(-3);
+		assertEquals("yho is a hero!!!",TByteBuffer.toString(byteBufferChannel.getByteBuffer()));
+		byteBufferChannel.shrink(3);
+		assertEquals("yho is a hero",TByteBuffer.toString(byteBufferChannel.getByteBuffer()));
+	}
+
 	public void testGetByteArray(){
+		init();
 		byte[] tmp = new byte[6];
 		byteBufferChannel.get(0, tmp, 6);
 		assertEquals("helyho", new String(tmp));
 	}
 
 	public void testCompact(){
+		init();
 		ByteBufferChannel byteBufferChannel1;
 		byteBufferChannel1 = new ByteBufferChannel(6);
 		byteBufferChannel1.writeEnd(ByteBuffer.wrap("bbccdd".getBytes()));
@@ -88,6 +105,7 @@ public class ByteBufferChannelUnit extends TestCase {
 	}
 
 	public void testReadLine(){
+		init();
 		ByteBufferChannel byteBufferChannel1 = new ByteBufferChannel();
 		byteBufferChannel1.writeHead(ByteBuffer.wrap("aaaaa\r\nbbbbb\r\nccccc\r\n".getBytes()));
 		while(true){
@@ -100,6 +118,7 @@ public class ByteBufferChannelUnit extends TestCase {
 	}
 
 	public void testReadWithSplit(){
+		init();
 		ByteBufferChannel byteBufferChannel1 = new ByteBufferChannel();
 		byteBufferChannel1.writeEnd(ByteBuffer.wrap("aaaaa\r\nbbbbb\r\nccccc\r\n".getBytes()));
 		while(true){
