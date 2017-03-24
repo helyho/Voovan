@@ -190,8 +190,7 @@ public class ByteBufferChannel {
 
 	/**
 	 * 收缩通道
-	 *      将通过getByteBuffer()方法获得 ByteBuffer 对象的操作同步到 ByteBufferChannel
-	 *      如果不需要同步,则不用调用这个方法
+	 *      将通过 getByteBuffer() 方法获得 ByteBuffer 对象的操作同步到 ByteBufferChannel
 	 * 		如果之前最后一次通过 getByteBuffer() 方法获得过 ByteBuffer,则使用这个 ByteBuffer 来收缩通道
 	 *      将 (position 到 limit) 之间的数据 移动到 (0  到 limit - position) 其他情形将不做任何操作
 	 *		所以 建议 getByteBuffer() 和 compact() 成对操作
