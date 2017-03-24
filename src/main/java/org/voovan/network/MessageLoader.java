@@ -132,12 +132,13 @@ public class MessageLoader {
 		ByteBuffer result = null;
 		int oldByteChannelSize = 0;
 
-		ByteBufferChannel dataByteBuffer = null;
+		ByteBufferChannel dataByteBufferChannel = null;
+		ByteBuffer dataByteBuffer = null;
 
 		if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
-			dataByteBuffer = new ByteBufferChannel(session.socketContext().getBufferSize());
+			dataByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
 		}else{
-			dataByteBuffer = session.getByteBufferChannel();
+			dataByteBufferChannel = session.getByteBufferChannel();
 		}
 
 		stopType = StopType.RUNNING;
@@ -154,6 +155,8 @@ public class MessageLoader {
 			return null;
 		}
 
+
+
 		while (stopType==StopType.RUNNING && useSpliter) {
 
 			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
@@ -166,21 +169,26 @@ public class MessageLoader {
 			if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
 				ByteBuffer sslData = ByteBuffer.allocate(session.socketContext().getBufferSize());
 				readsize = session.readSSL(sslData);
-				dataByteBuffer.writeEnd(sslData);
+				dataByteBufferChannel.writeEnd(sslData);
 			}
 
+			dataByteBuffer = dataByteBufferChannel.getByteBuffer();
+
 			//判断连接是否关闭
-			if (isRemoteClosed(dataByteBuffer.getByteBuffer(), dataByteBuffer.size())) {
+			if (isRemoteClosed(dataByteBuffer, dataByteBufferChannel.size())) {
 				stopType = StopType.REMOTE_DISCONNECT;
 			}
 
+
 			//使用消息划分器进行消息划分
 			if(readsize == 0) {
-				splitLength = messageSplitter.canSplite(session,  dataByteBuffer.getByteBuffer());
+				splitLength = messageSplitter.canSplite(session,  dataByteBuffer);
 				if (splitLength >= 0) {
 					stopType = StopType.MSG_SPLITTER ;
 				}
 			}
+
+			dataByteBufferChannel.compact();
 
 			//超时判断,防止读0时导致的高 CPU 负载
 			if(readsize==0 && stopType == StopType.RUNNING ){
@@ -200,7 +208,7 @@ public class MessageLoader {
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		if(splitLength!=0 && stopType==StopType.MSG_SPLITTER) {
 			result = ByteBuffer.allocate(splitLength);
-			dataByteBuffer.readHead(result);
+			dataByteBufferChannel.readHead(result);
 		} else {
 			result = ByteBuffer.allocate(0);
 		}
