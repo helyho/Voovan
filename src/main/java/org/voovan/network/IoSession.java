@@ -233,24 +233,23 @@ public abstract class IoSession<T extends SocketContext> {
 			SSLEngineResult engineResult = null;
 			do{
 				appBuffer.clear();
-				ByteBuffer byteBuffer = ByteBuffer.allocate(byteBufferChannel.size());
-				byteBufferChannel.readHead(byteBuffer);
+                ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
-                engineResult = sslParser.unwarpData(byteBuffer, appBuffer);
-				byteBufferChannel.writeHead(byteBuffer);
+					engineResult = sslParser.unwarpData(byteBuffer, appBuffer);
+					byteBufferChannel.compact();
 
-				appBuffer.flip();
-                appDataBufferChannel.writeEnd(appBuffer);
+					appBuffer.flip();
+					appDataBufferChannel.writeEnd(appBuffer);
 
-                if(byteBuffer.remaining()==0) {
+				if(byteBuffer.remaining()==0) {
 					TEnv.sleep(1);
 					continue;
 				}
 			}while(engineResult!=null && engineResult.getStatus() != Status.OK && engineResult.getStatus() != Status.CLOSED);
+			readSize = appDataBufferChannel.readHead(buffer);
 		}else{
-			buffer.limit(0);
+			buffer.flip();
 		}
-		readSize = appDataBufferChannel.readHead(buffer);
 		return readSize;
 	}
 
@@ -290,15 +289,11 @@ public abstract class IoSession<T extends SocketContext> {
 
 		Object response = this.getAttribute("SocketResponse");
 		if(response!=null){
-
-            if(response instanceof  IOException){
-                throw (IOException) response;
-            }
-
-            if(response instanceof Exception){
-                throw new IOException((Exception)response);
-            }
-
+			if(response instanceof Exception) {
+				throw (IOException) response;
+			}else{
+				throw new IOException((Exception)response);
+			}
 		}
 
 		readSize = this.read0(byteBuffer);

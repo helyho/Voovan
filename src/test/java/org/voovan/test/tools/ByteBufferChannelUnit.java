@@ -104,7 +104,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		byteBufferChannel1.writeEnd(ByteBuffer.wrap("aaaaa\r\nbbbbb\r\nccccc\r\n".getBytes()));
 		while(true){
 			ByteBuffer byteBuffer = byteBufferChannel1.readWithSplit("bbbbb\r\n".getBytes());
-			if(byteBuffer==null){
+			if(byteBuffer.limit() == 0){
 				break;
 			}
 			Logger.simple("splitedContent: "+ TByteBuffer.toString(byteBuffer));
@@ -115,7 +115,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		byteBufferChannel1.writeEnd(ByteBuffer.wrap("bbbbb\r\nccccc\r\nbbbbb\r\nccccc\r\n".getBytes()));
 		while(true){
 			ByteBuffer byteBuffer = byteBufferChannel1.readWithSplit("bbbbb\r\n".getBytes());
-			if(byteBuffer==null){
+			if(byteBuffer.limit()==0){
 				break;
 			}
 			Logger.simple("splitedContent: "+ TByteBuffer.toString(byteBuffer));
