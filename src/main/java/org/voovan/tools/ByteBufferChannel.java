@@ -94,25 +94,42 @@ public class ByteBufferChannel {
 	}
 
 	/**
-	 * 重置通道
-	 */
-	public void flip(){
-		byteBuffer.flip();
-	}
-
-
-	 /**
-	 * 重置通道
-	 */
-	public void rewind(){
-		byteBuffer.rewind();
-	}
-
-	/**
 	 * 清空通道
 	 */
 	public void clear(){
 		byteBuffer.clear();
+	}
+
+	/**
+	 * 收缩通道内的数据
+	 *
+	 * @param shrinkSize 收缩的偏移量, 大于0,从尾部收缩数据,小于0 从头部收缩数据
+	 * @return true: 成功, false: 失败
+	 */
+	public boolean shrink(int shrinkSize){
+		if(shrinkSize>0){
+			size = size -  shrinkSize;
+			byteBuffer.limit(size);
+			return true;
+		}else if(shrinkSize < 0 ){
+			int position = byteBuffer.position();
+			byteBuffer.position(shrinkSize * -1);
+			if (TByteBuffer.moveData(byteBuffer, shrinkSize)) {
+				size = size + shrinkSize;
+				byteBuffer.limit(size);
+
+				int newPosition = position+shrinkSize;
+				newPosition = newPosition < 0 ? 0 : newPosition;
+				byteBuffer.position(newPosition);
+				return true;
+			}else{
+				//收缩失败了,重置原 position 的位置
+				byteBuffer.position(position);
+				return false;
+			}
+		} else{
+			return true;
+		}
 	}
 
 
@@ -136,7 +153,6 @@ public class ByteBufferChannel {
         }
 	}
 
-
 	/**
 	 * 获取某个偏移量位置的 byte 数据数组
 	 *     该操作不会导致通道内的数据发生变化
@@ -157,8 +173,6 @@ public class ByteBufferChannel {
 			throw new IndexOutOfBoundsException();
 		}
 	}
-
-
 
 	/**
 	 * 获取某个偏移量位置的 byte 数据数组
@@ -221,6 +235,23 @@ public class ByteBufferChannel {
 	}
 
 	/**
+	 * 等待数据
+	 * @param length  期望的数据长度
+	 * @param timeout 超时时间
+	 * @return true: 具备期望长度的数据, false: 等待数据超时
+	 */
+	public boolean waitData(int length,long timeout){
+		while(timeout > 0){
+			if(size >= length){
+				return true;
+			}
+			timeout -- ;
+			TEnv.sleep(1);
+		}
+		return false;
+	}
+
+	/**
 	 * 缓冲区头部写入
 	 * @param src 需要写入的缓冲区 ByteBuffer 对象
 	 * @return 写入的数据大小
@@ -245,14 +276,15 @@ public class ByteBufferChannel {
 					}
 				}
 
-
+			    int position = byteBuffer.position();
 				byteBuffer.position(size);
 
 				size = size + writeSize;
 				byteBuffer.limit(size);
 
 				byteBuffer.put(src);
-				byteBuffer.position(0);
+
+				byteBuffer.position(position);
 
 			}
 
@@ -288,13 +320,21 @@ public class ByteBufferChannel {
 					}
 				}
 
+				int position = byteBuffer.position();
+				byteBuffer.position(0);
+
 				//内容移动到 writeSize 之后
 				if (TByteBuffer.moveData(byteBuffer, writeSize)) {
+
 					byteBuffer.position(0);
 					byteBuffer.put(src);
+
 					size = size + writeSize;
 					byteBuffer.limit(size);
-					byteBuffer.position(0);
+
+					position = position + writeSize;
+					position = position > size ? size : position;
+					byteBuffer.position(position);
 				}
 			}
 
@@ -330,13 +370,20 @@ public class ByteBufferChannel {
 			}
 
 			if (readSize != 0) {
+				int position = byteBuffer.position();
+				byteBuffer.position(0);
+
 				for (int i = 0; i < readSize; i++) {
 					dst.put(byteBuffer.get());
 				}
-				if (TByteBuffer.moveData(byteBuffer, -readSize)) {
-					byteBuffer.position(0);
+
+				if (TByteBuffer.moveData(byteBuffer, (readSize*-1))) {
 					size = size - readSize;
 					byteBuffer.limit(size);
+
+					position = position+ (readSize*-1);
+					position = position < 0 ? 0 : position;
+					byteBuffer.position(position);
 					dst.flip();
 				} else {
 					dst.reset();
@@ -374,13 +421,17 @@ public class ByteBufferChannel {
 			}
 
 			if (readSize != 0) {
+				int position = byteBuffer.position();
+
 				byteBuffer.position(size - readSize);
 				for (int i = 0; i < readSize; i++) {
 					dst.put(byteBuffer.get());
 				}
 				size = size - readSize;
 				byteBuffer.limit(size);
-				byteBuffer.position(0);
+
+				position = position > size ? size : position;
+				byteBuffer.position(position);
 			}
 
 			dst.flip();
@@ -404,7 +455,7 @@ public class ByteBufferChannel {
 
 		int index = -1;
 		byte[] tmp = new byte[mark.length];
-		for(int offset = 0;offset <= byteBuffer.remaining() - mark.length; offset++){
+		for(int offset = 0;offset <= size - mark.length; offset++){
             get(offset, tmp, tmp.length);
             if(Arrays.equals(mark, tmp)){
             	index = offset;

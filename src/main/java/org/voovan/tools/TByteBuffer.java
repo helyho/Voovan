@@ -69,12 +69,6 @@ public class TByteBuffer {
     public static boolean reallocate(ByteBuffer byteBuffer, int newSize) {
         try {
 
-            //计算新的 Limit 位置
-            int newLimit = byteBuffer.limit();
-            if (byteBuffer.limit() == byteBuffer.capacity()) {
-                newLimit = newSize;
-            }
-
             if(!byteBuffer.hasArray()) {
                 long address = TReflect.getFieldValue(byteBuffer, "address");
                 long newAddress = TUnsafe.getUnsafe().reallocateMemory(address, newSize);
@@ -88,8 +82,6 @@ public class TByteBuffer {
 
             //重置容量
             TReflect.setFieldValue(byteBuffer, "capacity", newSize);
-            //重置 Limit 位置
-            TReflect.setFieldValue(byteBuffer, "limit", newLimit);
 
             return true;
 
