@@ -76,7 +76,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		assertEquals(index,3);
 	}
 
-	public void testSshrink(){
+	public void testShrink(){
 		init();
 		byte[] tmp = new byte[6];
 		byteBufferChannel.shrink(-3);
@@ -139,6 +139,12 @@ public class ByteBufferChannelUnit extends TestCase {
 			}
 			Logger.simple("splitedContent: "+ TByteBuffer.toString(byteBuffer));
 		}
+	}
+
+	public void testSaveToFile() throws IOException {
+		init();
+		byteBufferChannel.shrink(-3);
+		byteBufferChannel.saveToFile("/Users/helyho/Downloads/test.txt",byteBufferChannel.size()-3);
 	}
 
 	public void testAll() throws IOException {
