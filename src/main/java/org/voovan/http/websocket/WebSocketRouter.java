@@ -3,7 +3,6 @@ package org.voovan.http.websocket;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**

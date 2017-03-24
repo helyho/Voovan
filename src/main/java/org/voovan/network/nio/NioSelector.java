@@ -3,6 +3,7 @@ package org.voovan.network.nio;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.SocketContext;
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -28,6 +29,8 @@ public class NioSelector {
 	
 	private Selector selector;
 	private SocketContext socketContext;
+	private ByteBufferChannel netByteBufferChannel;
+	private ByteBufferChannel appByteBufferChannel;
 	private NioSession session;
 	
 	/**
@@ -39,8 +42,11 @@ public class NioSelector {
 		this.selector = selector;
 		this.socketContext = socketContext;
 		if (socketContext instanceof NioSocket){
-			session = ((NioSocket)socketContext).getSession();
+			this.session = ((NioSocket)socketContext).getSession();
+			this.appByteBufferChannel = session.getByteBufferChannel();
+			netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
 		}
+
 	}
 
 	/**
@@ -87,7 +93,13 @@ public class NioSelector {
 												session.close();
 											}else if(readSize>0){
 												readTempBuffer.flip();
-												session.getByteBufferChannel().writeEnd(readTempBuffer);
+												// 接收数据
+												if(session.getSSLParser()!=null && session.getSSLParser().isHandShakeDone()){
+													netByteBufferChannel.writeEnd(readTempBuffer);
+													session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, appByteBufferChannel);
+												}else{
+													appByteBufferChannel.writeEnd(readTempBuffer);
+												}
 												readTempBuffer.clear();
 											}else if(readSize == -1){
 												session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);

@@ -135,11 +135,7 @@ public class MessageLoader {
 		ByteBufferChannel dataByteBufferChannel = null;
 		ByteBuffer dataByteBuffer = null;
 
-		if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
-			dataByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
-		}else{
-			dataByteBufferChannel = session.getByteBufferChannel();
-		}
+        dataByteBufferChannel = session.getByteBufferChannel();
 
 		stopType = StopType.RUNNING;
 
@@ -155,8 +151,6 @@ public class MessageLoader {
 			return null;
 		}
 
-
-
 		while (stopType==StopType.RUNNING && useSpliter) {
 
 			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
@@ -165,12 +159,6 @@ public class MessageLoader {
 			}
 
 			int readsize = byteBufferChannel.size() - oldByteChannelSize;
-
-			if(session.getSSLParser()!=null && session.getSSLParser().handShakeDone) {
-				ByteBuffer sslData = ByteBuffer.allocate(session.socketContext().getBufferSize());
-				readsize = session.readSSL(sslData);
-				dataByteBufferChannel.writeEnd(sslData);
-			}
 
 			dataByteBuffer = dataByteBufferChannel.getByteBuffer();
 
