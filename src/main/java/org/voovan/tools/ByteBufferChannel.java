@@ -1,9 +1,13 @@
 package org.voovan.tools;
 
+import io.netty.buffer.ByteBuf;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import sun.misc.Unsafe;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
@@ -264,7 +268,6 @@ public class ByteBufferChannel {
 		lock.lock();
 		try {
 
-			byte[] srcByte = src.array();
 			int writeSize = src.limit() - src.position();
 
 			if (writeSize > 0) {
@@ -482,7 +485,7 @@ public class ByteBufferChannel {
 		if(index > 0) {
 			byteBuffer.position(0);
 
-			ByteBuffer lineBuffer = ByteBuffer.allocate(index + 1);
+			ByteBuffer lineBuffer = ByteBuffer.allocateDirect(index + 1);
 
 			int readSize = readHead(lineBuffer);
 
@@ -519,12 +522,43 @@ public class ByteBufferChannel {
 			index = size;
 		}
 
-		ByteBuffer resultBuffer = ByteBuffer.allocate(index);
+		ByteBuffer resultBuffer = ByteBuffer.allocateDirect(index);
 		int readSize = readHead(resultBuffer);
 
 		//跳过分割符
-		readHead(ByteBuffer.allocate(splitByte.length));
+		readHead(ByteBuffer.allocateDirect(splitByte.length));
 
 		return resultBuffer;
+	}
+
+	public void saveToFile(String filePath, long length) throws IOException{
+		int bufferSize = 1024*1024;
+
+		RandomAccessFile randomAccessFile = null;
+		File file = new File(filePath);
+		byte[] buffer = new byte[bufferSize];
+        try {
+            randomAccessFile = new RandomAccessFile(file, "rwd");
+
+            int loadSize = bufferSize;
+            while(length > 0){
+                loadSize = length > bufferSize ? bufferSize : new Long(length).intValue();
+                byteBuffer.get(buffer, 0, loadSize);
+                randomAccessFile.write(buffer, 0, loadSize);
+
+                length = length - loadSize;
+            }
+
+            if(length > 0){
+
+            }
+
+
+        }catch(IOException e){
+            randomAccessFile.close();
+            throw e;
+        }finally {
+            randomAccessFile.close();
+        }
 	}
 }
