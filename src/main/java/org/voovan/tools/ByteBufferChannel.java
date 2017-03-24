@@ -82,6 +82,7 @@ public class ByteBufferChannel {
 	 * 获取缓冲区有效字节数组的一个拷贝
 	 *        修改这个数组将不会影响当前对象
 	 *        返回 0 到 size 的有效数据
+	 *        从堆外复制到堆内
 	 * @return 缓冲区有效字节数组
 	 */
 	public byte[] array(){
@@ -176,7 +177,8 @@ public class ByteBufferChannel {
 	/**
 	 * 获取缓冲区
 	 *     返回 0 到 size 的有效数据
-	 *     数据随时会变化,使用后下次使用建议重新获取,否则可能导致数据不全
+	 *	   为了保证数据一致性, 这里会加锁, 在调用getByteBuffer()方法后,所有读写操作都会被阻塞
+	 *	   所以必须配合 compact() 方法使用,否则会导致锁死.
 	 * @return ByteBuffer 对象
 	 */
 	public ByteBuffer getByteBuffer(){
