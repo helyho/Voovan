@@ -6,8 +6,6 @@ import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
-import javax.net.ssl.SSLEngineResult;
-import javax.net.ssl.SSLEngineResult.Status;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -27,11 +25,10 @@ public abstract class IoSession<T extends SocketContext> {
 	
 	private Map<Object, Object> attributes;
 	private SSLParser sslParser;
-	private ByteBufferChannel appDataBufferChannel;
+
 	private boolean receiving;
 	private MessageLoader messageLoader;
 	private ByteBufferChannel byteBufferChannel;
-	private ByteBufferChannel sslByteBufferChannel;
 	private T socketContext;
 
 	/**
@@ -40,7 +37,6 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	public IoSession(T socketContext){
 		attributes = new ConcurrentHashMap<Object, Object>();
-		appDataBufferChannel = new ByteBufferChannel();
 		this.socketContext = socketContext;
 		byteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
 		messageLoader = new MessageLoader(this);
@@ -60,14 +56,14 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return 接收的输出流
 	 */
 	public ByteBufferChannel getByteBufferChannel() {
-		return byteBufferChannel;
+			return byteBufferChannel;
 	}
 
 	/**
 	 * 获取 SSLParser
 	 * @return SSLParser对象
 	 */
-	protected SSLParser getSSLParser() {
+	public SSLParser getSSLParser() {
 		return sslParser;
 	}
 	
@@ -164,7 +160,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return 读取的字节数
 	 * @throws IOException IO 异常
 	 */
-	public abstract int send(ByteBuffer buffer) throws IOException;
+	protected abstract int send0(ByteBuffer buffer) throws IOException;
 
 	/**
 	 * 同步读取消息
@@ -218,40 +214,7 @@ public abstract class IoSession<T extends SocketContext> {
 		}
 	}
 
-	/**
-	 * 读取SSL消息到缓冲区
-	 * @param buffer    接收数据的缓冲区
-	 * @return 接收数据大小
-	 * @throws IOException  IO异常
-	 */
-	public int readSSL(ByteBuffer buffer) throws IOException{
-		int readSize = 0;
-		
-		ByteBuffer appBuffer = sslParser.buildAppDataBuffer();
 
-		if(buffer!=null && isConnected() && byteBufferChannel.size()>0){
-			SSLEngineResult engineResult = null;
-			do{
-				appBuffer.clear();
-                ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
-
-					engineResult = sslParser.unwarpData(byteBuffer, appBuffer);
-					byteBufferChannel.compact();
-
-					appBuffer.flip();
-					appDataBufferChannel.writeEnd(appBuffer);
-
-				if(byteBuffer.remaining()==0) {
-					TEnv.sleep(1);
-					continue;
-				}
-			}while(engineResult!=null && engineResult.getStatus() != Status.OK && engineResult.getStatus() != Status.CLOSED);
-			readSize = appDataBufferChannel.readHead(buffer);
-		}else{
-			buffer.flip();
-		}
-		return readSize;
-	}
 
 	/**
 	 * 设置是否使用分割器读取
@@ -260,21 +223,27 @@ public abstract class IoSession<T extends SocketContext> {
 	public void enabledMessageSpliter(boolean useSpliter) {
 		messageLoader.setUseSpliter(useSpliter);
 	}
-	
-	
+
+
 	/**
 	 * 发送SSL消息
 	 * 		注意直接调用不会出发 onSent 事件
 	 * 	@param buffer byte缓冲区
+	 * 	@return 发送的数据大小
 	 */
-	public void sendSSL(ByteBuffer buffer){
-		if(isConnected() && buffer!=null){
-			try {
-				sslParser.warpData(buffer);
-			} catch (IOException e) {
-				Logger.error("Send SSL data failed.",e);
-			}
-		}
+	public int send(ByteBuffer buffer){
+        try {
+            if(sslParser!=null && sslParser.isHandShakeDone()) {
+                sslParser.warpData(buffer);
+                return buffer.limit();
+            }else{
+                return send0(buffer);
+            }
+        } catch (IOException e) {
+            Logger.error("Send data failed.",e);
+        }
+
+		return -1;
 	}
 
 	/**

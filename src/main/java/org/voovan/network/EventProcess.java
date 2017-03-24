@@ -249,12 +249,7 @@ public class EventProcess {
 
 			// 发送消息
 			if (resultBuf != null && session.isOpen()) {
-
-				if (session.getSSLParser() != null && session.getSSLParser().handShakeDone) {
-					session.sendSSL(resultBuf);
-				} else {
-					session.send(resultBuf);
-				}
+				session.send(resultBuf);
 				resultBuf.rewind();
 				//Event event = new Event(session, EventName.ON_SENT, resultBuf);
 				//触发发送事件
