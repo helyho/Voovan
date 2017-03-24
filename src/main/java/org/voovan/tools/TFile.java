@@ -1,9 +1,12 @@
 package org.voovan.tools;
 
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -104,7 +107,7 @@ public class TFile {
 	 */
 	public static byte[] loadFileFromContextPath(String filePath, long beginPos, long endPos) {
 		String spliter = filePath.startsWith(File.separator) == true ? "" : File.separator;
-		String fullFilePath = TEnv.getContextPath() + spliter + filePath;
+		String fullFilePath = getContextPath() + spliter + filePath;
 		return loadFileFromSysPath(fullFilePath, beginPos, endPos);
 	}
 
@@ -116,7 +119,7 @@ public class TFile {
 	 */
 	public static byte[] loadFileFromContextPath(String filePath) {
 		String spliter = filePath.startsWith(File.separator) == true ? "" : File.separator;
-		String fullFilePath = TEnv.getContextPath() + spliter + filePath;
+		String fullFilePath = getContextPath() + spliter + filePath;
 		return loadFileFromSysPath(fullFilePath);
 	}
 
@@ -459,4 +462,123 @@ public class TFile {
 		return result;
 	}
 
+	/**
+	 * 使用相对路径获得系统的完整路径
+	 * @param absolutePath 相对路径
+	 * @return 系统的完整路径
+	 */
+	public static String getSystemPath(String absolutePath) {
+		String spliter = absolutePath.startsWith(File.separator) == true ? "" : File.separator;
+		return getContextPath() + spliter + absolutePath;
+	}
+
+	/**
+	 * 获得应用的工作根目录路径
+	 *
+	 * @return 工作根目录路径
+	 */
+	public static String getContextPath() {
+		return System.getProperty("user.dir");
+	}
+
+	/**
+	 * 获得系统的临时目录路径
+	 *
+	 * @return 系统的临时目录路径
+	 */
+	public static String getTemporaryPath() {
+		return System.getProperty("java.io.tmpdir");
+	}
+
+	/**
+	 * 获得系统默认的换行符号
+	 *
+	 * @return 系统默认的换行符号
+	 */
+	public static String getLineSeparator() {
+		return System.getProperty("line.separator");
+	}
+
+	/**
+	 * 为JVM加载一个jar包 或者一个目录到 classpath
+	 * @param file 文件路径
+	 * @throws SecurityException  安全性异常
+	 * @throws NoSuchMethodException  无方法异常
+	 * @throws IOException IO异常
+	 */
+	public static void loadBinary(File file) throws NoSuchMethodException, SecurityException, IOException {
+		if(!file.exists()){
+			Logger.warn("Method loadBinary, This ["+file.getCanonicalPath()+"] is not exists");
+		}
+
+		try {
+			if (file.isDirectory() || file.getPath().toLowerCase().endsWith(".jar")) {
+				URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+				Method method = TReflect.findMethod(URLClassLoader.class, "addURL", URL.class);
+				method.setAccessible(true);
+				TReflect.invokeMethod(urlClassLoader, method, file.toURI().toURL());
+			}
+		} catch (IOException | ReflectiveOperationException e) {
+			Logger.error("Load jar or class failed",e);
+		}
+	}
+
+	/**
+	 * 为JVM加载一个jar包 或者一个目录到 classpath
+	 * @param filePath  文件路径
+	 * @throws NoSuchMethodException 异常信息
+     * @throws IOException 异常信息
+	 */
+	public static void loadBinary(String filePath) throws NoSuchMethodException, IOException {
+		File file = new File(filePath);
+		loadBinary(file);
+	}
+
+	/**
+	 * 从目录读取所有 Jar 文件,递归并加载到JVM
+	 *
+	 * @param rootFile 传入一个File 对象
+	 * @throws IOException IO异常
+	 * @throws NoSuchMethodException 异常信息
+	 */
+	public static void loadJars(File rootFile) throws IOException, NoSuchMethodException {
+		if(!rootFile.exists()){
+			Logger.warn("Method loadJars, This ["+rootFile.getCanonicalPath()+"] is not exists");
+		}
+		if(rootFile.isDirectory()){
+			//文件过滤器取目录中的文件
+			File[] files = rootFile.listFiles(new FileFilter() {
+				@Override
+				public boolean accept(File pathname) {
+					if(pathname.isDirectory() || pathname.getPath().toLowerCase().endsWith(".jar")){
+						return true;
+					}else{
+						return false;
+					}
+				}
+			});
+			//遍历或者加载文件
+			if(files!=null){
+				for(File file:files){
+					if(file.isDirectory()){
+						loadJars(file.getPath());
+					}else if(file.getPath().toLowerCase().endsWith(".jar")){
+						loadBinary(file);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 从目录读取所有 Jar 文件,递归并加载到JVM
+	 *
+	 * @param directoryPath 传入一个目录
+	 * @throws IOException 异常信息
+	 * @throws NoSuchMethodException 异常信息
+	 */
+	public static void loadJars(String directoryPath) throws IOException, NoSuchMethodException {
+		File file = new File(directoryPath);
+		loadJars(file);
+	}
 }
