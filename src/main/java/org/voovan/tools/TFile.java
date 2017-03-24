@@ -52,18 +52,16 @@ public class TFile {
 	 * @throws IOException IO操作异常
 	 * @return 文件大小
 	 */
-	public static long getFileSize(String filePath) throws IOException {
-		FileInputStream fileInputStream = new FileInputStream(new File( filePath));
+	public static long getFileSize(File file) throws IOException {
+		RandomAccessFile randomAccessFile = new RandomAccessFile(file, "w");
 		try {
-
-			long fileSize = (fileInputStream).available();
-			fileInputStream.close();
+			long fileSize = randomAccessFile.length();
 			return fileSize;
 		} catch (Exception e) {
-			Logger.error("File not found: "+filePath+".",e);
+			Logger.error("File not found: "+file.getCanonicalPath()+".",e);
 			return -1;
 		}finally {
-			fileInputStream.close();
+			randomAccessFile.close();
 		}
 		
 	}
@@ -187,6 +185,10 @@ public class TFile {
 	public static byte[] loadFile(File file, long beginPos, long endPos) {
 
 		try {
+			if(!file.exists()){
+				return null;
+			}
+
 			long fileSize = file.length();
 
 			if (beginPos < 0) {
@@ -268,7 +270,7 @@ public class TFile {
 
 	/**
 	 * 向文件写入内容
-	 * @param filePath	文件路径
+	 * @param file	文件对象
 	 * @param append    是否以追加形式写入
 	 * @param contents	文件内容
 	 * @param offset	偏移值(起始位置)
@@ -276,55 +278,58 @@ public class TFile {
 	 * @throws IOException IO操作异常
 	 * @return 成功返回 true,失败返回 false
 	 */
-	public static boolean writeFile(String filePath,boolean append,byte[] contents,int offset,int length) throws IOException {
-		FileOutputStream fileOutputStream = new FileOutputStream(filePath,append);
+	public static boolean writeFile(File file, boolean append, byte[] contents, int offset, int length) throws IOException {
+		RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rwd");
 		try {
-			fileOutputStream.write(contents, offset, length);
-			fileOutputStream.flush();
 
+			if(append){
+				randomAccessFile.seek(randomAccessFile.length());
+			}
+
+			randomAccessFile.write(contents, offset, length);
 			return true;
 		} catch (IOException e) {
 			Logger.error("TFile.writeFile Error!", e);
 			return false;
 		}finally {
-			fileOutputStream.close();
+			randomAccessFile.close();
 		}
 	}
 	
 	/**
 	 * 向文件写入内容
-	 * @param filePath	文件路径
+	 * @param file	文件对象
 	 * @param append    是否以追加形式写入
 	 * @param contents	文件内容
 	 * @throws IOException IO操作异常
 	 * @return 成功返回 true,失败返回 false
 	 */
-	public static boolean writeFile(String filePath,boolean append,byte[] contents) throws IOException {
-		return writeFile(filePath,append,contents,0,contents.length);
+	public static boolean writeFile(File file, boolean append, byte[] contents) throws IOException {
+		return writeFile(file, append, contents, 0, contents.length);
 	}
-	
+
 	/**
-	 * 已追加的形式,向文件写入内容
-	 * @param filePath	文件路径
+	 * 以追加的形式,向文件写入内容
+	 * @param file	文件路径
 	 * @param contents	文件内容
 	 * @param offset	偏移值(起始位置)
 	 * @param length	写入长度
 	 * @throws IOException IO操作异常
 	 * @return 成功返回 true,失败返回 false
 	 */
-	public static boolean writeFile(String filePath,byte[] contents,int offset,int length) throws IOException {
-		return writeFile(filePath,true,contents,0,contents.length);
+	public static boolean writeFile(File file, byte[] contents, int offset, int length) throws IOException {
+		return writeFile(file, true, contents, 0, contents.length);
 	}
-	
+
 	/**
-	 * 已追加的形式,向文件写入内容
-	 * @param filePath	文件路径
+	 * 以追加的形式,向文件写入内容
+	 * @param file	文件路径
 	 * @param contents	文件内容
 	 * @throws IOException IO操作异常
 	 * @return 成功返回 true,失败返回 false
 	 */
-	public static boolean writeFile(String filePath,byte[] contents) throws IOException {
-		return writeFile(filePath,true,contents,0,contents.length);
+	public static boolean writeFile(File file, byte[] contents) throws IOException {
+		return writeFile(file, true, contents, 0, contents.length);
 	}
 
 	/**
@@ -352,7 +357,7 @@ public class TFile {
 	}
 
 	/**
-	 * 从指定File 对象寻找 Class
+	 * 从指定 File 对象寻找 Class
 	 * @param rootfile 文件目录 File 对象
 	 * @param pattern  确认匹配的正则表达式
 	 * @return  匹配到的 class 集合
