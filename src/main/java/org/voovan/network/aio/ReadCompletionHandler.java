@@ -5,6 +5,7 @@ import org.voovan.network.MessageLoader;
 import org.voovan.tools.ByteBufferChannel;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ClosedChannelException;
@@ -21,20 +22,22 @@ import java.nio.channels.CompletionHandler;
  */
 public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBuffer>{
 	private AioSocket aioSocket;
-	private ByteBufferChannel byteBufferChannel;
+	private ByteBufferChannel netByteBufferChannel;
+	private ByteBufferChannel appByteBufferChannel;
 	private AioSession session;
+	private Method readSSLMethod;
 	
 	public ReadCompletionHandler(AioSocket aioSocket, ByteBufferChannel byteBufferChannel){
-		this.byteBufferChannel = byteBufferChannel;
 		this.aioSocket = aioSocket;
+		this.appByteBufferChannel = byteBufferChannel;
 		this.session = aioSocket.getSession();
+		netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
 	}
-	
-	
 
 	@Override
 	public void completed(Integer length, ByteBuffer buffer) {
 		try {
+
 			// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
 			if (MessageLoader.isRemoteClosed(buffer, length) && session.isConnected()) {
 				session.close();
@@ -44,7 +47,12 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 				if (length > 0) {
 
 					// 接收数据
-					byteBufferChannel.writeEnd(buffer);
+					if(session.getSSLParser()!=null && session.getSSLParser().isHandShakeDone()){
+						netByteBufferChannel.writeEnd(buffer);
+						session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, appByteBufferChannel);
+					}else{
+						appByteBufferChannel.writeEnd(buffer);
+					}
 
 					// 触发 onReceive 事件
 					EventTrigger.fireReceiveThread(session);
@@ -80,4 +88,8 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 			EventTrigger.fireExceptionThread(session, (Exception)exc);
 		}
 	}
+
+
+
+
 }

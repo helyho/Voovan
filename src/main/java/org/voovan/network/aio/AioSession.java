@@ -111,7 +111,7 @@ public class AioSession extends IoSession<AioSocket>  {
 	}
 
 	@Override
-	public int send(ByteBuffer buffer) throws IOException {
+	protected int send0(ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
 		if (isConnected() && buffer != null) {
 			//循环发送直到全不内容发送完毕

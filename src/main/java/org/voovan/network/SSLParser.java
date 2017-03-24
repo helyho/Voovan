@@ -57,13 +57,13 @@ public class SSLParser {
 		return engine;
 	}
 	
-	protected ByteBuffer buildNetDataBuffer() {
+	public ByteBuffer buildNetDataBuffer() {
 		SSLSession sslSession = engine.getSession();
 		int newBufferMax = sslSession.getPacketBufferSize();
 		return ByteBuffer.allocate(newBufferMax);
 	}
 	
-	protected ByteBuffer buildAppDataBuffer() {
+	public ByteBuffer buildAppDataBuffer() {
 		SSLSession sslSession = engine.getSession();
 		int newBufferMax = sslSession.getPacketBufferSize();
 		return ByteBuffer.allocate(newBufferMax);
@@ -90,7 +90,7 @@ public class SSLParser {
 			engineResult = engine.wrap(buffer, netData);
 			netData.flip();
 			if(session.isConnected() && engineResult.bytesProduced()>0 && netData.limit()>0){
-				session.send(netData);
+				session.send0(netData);
 			}
 			netData.clear();
 		}while(engineResult.getStatus() == Status.OK && buffer.hasRemaining());
@@ -199,5 +199,32 @@ public class SSLParser {
 			}
 		}
 		return handShakeDone;
+	}
+
+	/**
+	 * 读取SSL消息到缓冲区
+	 * @return 接收数据大小
+	 * @throws IOException  IO异常
+	 */
+	public int unWarpByteBufferChannel(IoSession session, ByteBufferChannel netByteBufferChannel, ByteBufferChannel appByteBufferChannel) throws IOException{
+		int readSize = 0;
+
+
+		if(session.isConnected() && netByteBufferChannel.size()>0){
+			SSLEngineResult engineResult = null;
+			appData.clear();
+			ByteBuffer byteBuffer = netByteBufferChannel.getByteBuffer();
+
+			engineResult = unwarpData(byteBuffer, appData);
+			netByteBufferChannel.compact();
+
+			appData.flip();
+			appByteBufferChannel.writeEnd(appData);
+
+			if(byteBuffer.remaining()==0) {
+				TEnv.sleep(1);
+			}
+		}
+		return readSize;
 	}
 }
