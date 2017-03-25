@@ -19,7 +19,8 @@ public class TUnsafe {
         try {
             Field field = Unsafe.class.getDeclaredField("theUnsafe");
             field.setAccessible(true);
-            return (Unsafe)field.get(null);
+            Unsafe unsafe = (Unsafe)field.get(null);
+            return unsafe;
         } catch (Exception e) {
             e.printStackTrace();
         }

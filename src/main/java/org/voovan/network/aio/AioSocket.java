@@ -228,7 +228,7 @@ public class AioSocket extends SocketContext {
 			 try {
 
 				// 关闭 Socket 连接
-				if (socketChannel.isOpen()) {
+				if (isConnected()) {
 					// 触发 DisConnect 事件
 					EventTrigger.fireDisconnect(session);
 

@@ -48,7 +48,7 @@ public class WebContext {
 	/**
 	 *  accessLog 的文件路径
 	 */
-	private static final String ACCESS_LOG_FILE_NAME = TEnv.getContextPath()+File.separator+"logs"+File.separator+"access.log";
+	private static final String ACCESS_LOG_FILE_NAME = TFile.getContextPath()+File.separator+"logs"+File.separator+"access.log";
 
 	private static WebServerConfig webServerConfig = initWebServerConfig();
 
@@ -62,7 +62,7 @@ public class WebContext {
 	 * @return
 	 */
 	private static Map<String, Object> loadMapFromFile(String filePath){
-		if(TFile.fileExists(TEnv.getSystemPath(filePath))) {
+		if(TFile.fileExists(TFile.getSystemPath(filePath))) {
 			String fileContent = null;
 			try {
 				fileContent = new String(TFile.loadFileFromContextPath(filePath),"UTF-8");

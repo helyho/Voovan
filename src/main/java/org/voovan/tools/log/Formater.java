@@ -1,9 +1,6 @@
 package org.voovan.tools.log;
 
-import org.voovan.tools.TDateTime;
-import org.voovan.tools.TEnv;
-import org.voovan.tools.TObject;
-import org.voovan.tools.TString;
+import org.voovan.tools.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -200,7 +197,7 @@ public class Formater {
 		if(logFile!=null) {
 			Map<String, String> tokens = new HashMap<String, String>();
 			tokens.put("D", TDateTime.now("YYYYMMdd"));
-			tokens.put("WorkDir", TEnv.getContextPath());
+			tokens.put("WorkDir", TFile.getContextPath());
 			filePath = TString.tokenReplace(logFile, tokens);
 			String fileDirectory = filePath.substring(0, filePath.lastIndexOf(File.separator));
 			File loggerFile = new File(fileDirectory);

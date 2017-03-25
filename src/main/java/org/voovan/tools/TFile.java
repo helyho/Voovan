@@ -39,11 +39,13 @@ public class TFile {
 	 * @param pathParts 每个由路劲分割符分割的路径字符串
 	 * @return 拼装后的路径
 	 */
-	public static String assemblyPath(String ...pathParts ){
+	public static String assemblyPath(Object ...pathParts){
 		StringBuilder result = new StringBuilder();
-		for(String pathPart : pathParts){
-			result.append(pathPart);
-			result.append(File.separator);
+		for(Object pathPart : pathParts){
+			result.append(pathPart.toString());
+			if(!pathPart.toString().endsWith(File.separator)) {
+				result.append(File.separator);
+			}
 		}
 		
 		return TString.removeSuffix(result.toString());
@@ -51,12 +53,12 @@ public class TFile {
 	
 	/**
 	 * 获取文件大小
-	 * @param filePath 文件路径
+	 * @param file 文件对象
 	 * @throws IOException IO操作异常
 	 * @return 文件大小
 	 */
 	public static long getFileSize(File file) throws IOException {
-		RandomAccessFile randomAccessFile = new RandomAccessFile(file, "w");
+		RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
 		try {
 			long fileSize = randomAccessFile.length();
 			return fileSize;
@@ -497,6 +499,44 @@ public class TFile {
 	 */
 	public static String getLineSeparator() {
 		return System.getProperty("line.separator");
+	}
+
+	/**
+	 * 获取文件的扩展名
+	 * @param filePath 文件的路径或者文件名
+	 * @return 文件的扩展名
+	 */
+	public static String getFileExtension(String filePath){
+		try {
+			return filePath.substring(filePath.lastIndexOf(".") + 1);
+		}catch(IndexOutOfBoundsException e){
+			return "";
+		}
+	}
+
+
+	/**
+	 * 获取文件所在文件夹路径
+	 * @param filePath 文件的路径或者文件名
+	 * @return 获取文件所在文件夹路径
+	 */
+	public static String getFileFolderPath(String filePath){
+		try {
+			return filePath.substring(0, filePath.lastIndexOf(File.separator) + 1);
+		}catch(IndexOutOfBoundsException e){
+			return "";
+		}
+	}
+
+	/**
+	 * 移动文件
+	 * @param src   原文件
+	 * @param dest  目标文件
+	 * @return true: 成功, false:失败
+	 */
+	public static boolean moveFile(File src, File dest) throws IOException{
+		new File(TFile.getFileFolderPath(dest.getCanonicalPath())).mkdirs();
+		 return src.renameTo(dest);
 	}
 
 	/**
