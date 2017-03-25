@@ -9,6 +9,7 @@ import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioServerSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
@@ -258,8 +259,8 @@ public class WebServer {
 	 */
 	private static void loadContextBin(){
 		try {
-			TEnv.loadBinary(TEnv.getSystemPath("classes"));
-			TEnv.loadJars(TEnv.getSystemPath("lib"));
+			TFile.loadBinary(TFile.getSystemPath("classes"));
+			TFile.loadJars(TFile.getSystemPath("lib"));
 		} catch (NoSuchMethodException | IOException | SecurityException e) {
 			Logger.warn("Voovan WebServer Loader ./classes or ./lib error." ,e);
 		}

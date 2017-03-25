@@ -123,7 +123,7 @@ public class MimeFileRouter implements HttpRouter {
 	 */
 	public void fillMimeFile(File responseFile,HttpRequest request,HttpResponse response) throws IOException {
 		byte[] fileByte = null;
-		long fileSize = TFile.getFileSize(responseFile.getPath());
+		long fileSize = TFile.getFileSize(responseFile);
 		
 		// 如果包含取一个范围内的文件内容进行处理,形似:Range: 0-800
 		if (request.header().get("Range") != null && request.header().get("Range").contains("-")) {

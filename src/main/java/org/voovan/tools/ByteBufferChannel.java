@@ -1,13 +1,14 @@
 package org.voovan.tools;
 
-import io.netty.buffer.ByteBuf;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
@@ -30,32 +31,72 @@ public class ByteBufferChannel {
 	private ReentrantLock lock ;
 
 	public ByteBufferChannel(int size) {
-        this.byteBuffer = ByteBuffer.allocateDirect(size);
-		byteBuffer.limit(0);
-        this.address = address();
-        size = 0;
 		lock = new ReentrantLock();
+        this.byteBuffer = newByteBuffer(size);
+		byteBuffer.limit(0);
+		resetAddress();
+        size = 0;
 	}
 
 	public ByteBufferChannel() {
-        this.byteBuffer = ByteBuffer.allocateDirect(256);
-		byteBuffer.limit(0);
-        this.address = address();
-        size = 0;
 		lock = new ReentrantLock();
+        this.byteBuffer = newByteBuffer(256);
+		byteBuffer.limit(0);
+		resetAddress();
+        size = 0;
+	}
+
+	private ByteBuffer newByteBuffer(int capacity){
+		try {
+			ByteBuffer template = ByteBuffer.allocateDirect(0);
+			Constructor c = template.getClass().getDeclaredConstructor(long.class, int.class);
+			c.setAccessible(true);
+			long address = TUnsafe.getUnsafe().allocateMemory(capacity);
+
+			ByteBuffer instance = (ByteBuffer) c.newInstance(address, capacity);
+
+			Cleaner cleaner = Cleaner.create(this, new Deallocator(this, capacity));
+
+			return instance;
+
+		}catch(Exception e){
+			Logger.error("Create ByteBufferChannel error. ", e);
+			return null;
+		}
+	}
+
+	private static class Deallocator implements Runnable {
+		private ByteBufferChannel byteBufferChannel;
+		private int capacity;
+
+		private Deallocator(ByteBufferChannel byteBufferChannel, int capacity) {
+			this.byteBufferChannel = byteBufferChannel;
+			this.capacity = capacity;
+		}
+
+		public void run() {
+			long address = byteBufferChannel.address;
+			if (address == 0) {
+				return;
+			}
+//			Logger.simple("Free " + address);
+			TUnsafe.getUnsafe().freeMemory(address);
+			address = 0;
+		}
 	}
 
 	/**
-	 * 获取当前数据的内存起始地址
-	 * @return 当前数据的内存起始地址
+	 * 重新设置当前内存地址
 	 */
-	public long address(){
+	private void resetAddress(){
+		lock.lock();
 		try {
-			return TReflect.getFieldValue(byteBuffer, "address");
+			this.address = TReflect.getFieldValue(byteBuffer, "address");
 		}catch (ReflectiveOperationException e){
-			Logger.error("ByteBufferChannel.address() Error: "+e.getMessage(), e);
+			Logger.error("ByteBufferChannel resetAddress() Error: "+e.getMessage(), e);
+		} finally {
+			lock.unlock();
 		}
-		return -1;
 	}
 
 	/**
@@ -90,18 +131,27 @@ public class ByteBufferChannel {
 	 * @return 缓冲区有效字节数组
 	 */
 	public byte[] array(){
-		byte[] temp = new byte[size()];
 		lock.lock();
-		unsafe.copyMemory(null, address, temp, Unsafe.ARRAY_BYTE_BASE_OFFSET, size());
-		lock.unlock();
-		return temp;
+		try {
+			byte[] temp = new byte[size()];
+			unsafe.copyMemory(null, address, temp, Unsafe.ARRAY_BYTE_BASE_OFFSET, size());
+			return temp;
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/**
 	 * 清空通道
 	 */
 	public void clear(){
-		byteBuffer.clear();
+		lock.lock();
+		try{
+			byteBuffer.clear();
+			size = 0;
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/**
@@ -111,28 +161,38 @@ public class ByteBufferChannel {
 	 * @return true: 成功, false: 失败
 	 */
 	public boolean shrink(int shrinkSize){
-		if(shrinkSize>0){
-			size = size -  shrinkSize;
-			byteBuffer.limit(size);
-			return true;
-		}else if(shrinkSize < 0 ){
-			int position = byteBuffer.position();
-			byteBuffer.position(shrinkSize * -1);
-			if (TByteBuffer.moveData(byteBuffer, shrinkSize)) {
-				size = size + shrinkSize;
-				byteBuffer.limit(size);
 
-				int newPosition = position+shrinkSize;
-				newPosition = newPosition < 0 ? 0 : newPosition;
-				byteBuffer.position(newPosition);
-				return true;
-			}else{
-				//收缩失败了,重置原 position 的位置
-				byteBuffer.position(position);
-				return false;
-			}
-		} else{
+		if(Math.abs(shrinkSize) > size){
 			return true;
+		}
+
+		lock.lock();
+		try{
+            if(shrinkSize>0){
+                size = size -  shrinkSize;
+                byteBuffer.limit(size);
+                return true;
+            }else if(shrinkSize < 0 ){
+                int position = byteBuffer.position();
+                byteBuffer.position(shrinkSize * -1);
+                if (TByteBuffer.moveData(byteBuffer, shrinkSize)) {
+                    size = size + shrinkSize;
+                    byteBuffer.limit(size);
+
+                    int newPosition = position+shrinkSize;
+                    newPosition = newPosition < 0 ? 0 : newPosition;
+                    byteBuffer.position(newPosition);
+                    return true;
+                }else{
+                    //收缩失败了,重置原 position 的位置
+                    byteBuffer.position(position);
+                    return false;
+                }
+            } else{
+                return true;
+            }
+		} finally {
+			lock.unlock();
 		}
 	}
 
@@ -164,14 +224,21 @@ public class ByteBufferChannel {
 	 * @param dst     目标数组
 	 * @param length  长度
 	 */
-	public void get(int offset, byte[] dst, int length) throws IndexOutOfBoundsException {
-
+	public int get(int offset, byte[] dst, int length) throws IndexOutOfBoundsException {
 		if(offset >= 0 && length <= size - offset) {
 			lock.lock();
 			try {
+				int arrSize = length;
+
+				if(length > size){
+					arrSize = size;
+				}
+
 				unsafe.copyMemory(null, address + offset, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
+
+				return arrSize;
 			} finally {
-					lock.unlock();
+				lock.unlock();
 			}
 		} else {
 			throw new IndexOutOfBoundsException();
@@ -183,10 +250,18 @@ public class ByteBufferChannel {
 	 *     该操作不会导致通道内的数据发生变化
 	 * @param dst     目标数组
 	 */
-	public void get(byte[] dst){
+	public int get(byte[] dst){
 		lock.lock();
 		try {
-			unsafe.copyMemory(null, address, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, dst.length);
+			int arrSize = dst.length;
+			if(dst.length > size){
+				arrSize = size;
+			}
+
+			unsafe.copyMemory(null, address, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, arrSize);
+
+			return arrSize;
+
 		}finally {
 			lock.unlock();
 		}
@@ -200,9 +275,7 @@ public class ByteBufferChannel {
 	 * @return ByteBuffer 对象
 	 */
 	public ByteBuffer getByteBuffer(){
-		if(size!=0) {
-			lock.lock();
-		}
+		lock.lock();
 		return byteBuffer;
 	}
 
@@ -214,6 +287,9 @@ public class ByteBufferChannel {
 	 *		所以 建议 getByteBuffer() 和 compact() 成对操作
 	 */
 	public boolean compact(){
+		if(!lock.isLocked()){
+			lock.lock();
+		}
 		try{
 
 			if(byteBuffer.position() == 0){
@@ -239,14 +315,32 @@ public class ByteBufferChannel {
 	}
 
 	/**
-	 * 等待数据
+	 * 等待期望的数据长度
 	 * @param length  期望的数据长度
-	 * @param timeout 超时时间
+	 * @param timeout 超时时间,单位: 秒
 	 * @return true: 具备期望长度的数据, false: 等待数据超时
 	 */
-	public boolean waitData(int length,long timeout){
+	public boolean waitData(int length,int timeout){
 		while(timeout > 0){
 			if(size >= length){
+				return true;
+			}
+			timeout -- ;
+			TEnv.sleep(1);
+		}
+		return false;
+	}
+
+
+	/**
+	 * 等待收到期望的数据
+	 * @param mark  期望的数据出现
+	 * @param timeout 超时时间,单位: 秒
+	 * @return true: 具备期望长度的数据, false: 等待数据超时
+	 */
+	public boolean waitData(byte[] mark, int timeout){
+		while(timeout > 0){
+			if(indexOf(mark) != -1){
 				return true;
 			}
 			timeout -- ;
@@ -267,20 +361,23 @@ public class ByteBufferChannel {
 
 		lock.lock();
 		try {
-
 			int writeSize = src.limit() - src.position();
+
+			int limit = byteBuffer.limit();
 
 			if (writeSize > 0) {
 				//是否扩容
 				if (available() < writeSize) {
 					int newSize = byteBuffer.capacity() + writeSize;
 					if (TByteBuffer.reallocate(byteBuffer, newSize)) {
-						this.address = address();
+						resetAddress();
 					}
 				}
 
 			    int position = byteBuffer.position();
 				byteBuffer.position(size);
+
+				int old = byteBuffer.limit();
 
 				size = size + writeSize;
 				byteBuffer.limit(size);
@@ -291,6 +388,7 @@ public class ByteBufferChannel {
 
 			}
 
+//			Logger.simple("W: " + writeSize + " \t" + limit + " \t" + byteBuffer.limit());
 			return writeSize;
 
 		} finally {
@@ -319,7 +417,7 @@ public class ByteBufferChannel {
 				if (available() < writeSize) {
 					int newSize = byteBuffer.capacity() + writeSize;
 					if (TByteBuffer.reallocate(byteBuffer, newSize)) {
-						this.address = address();
+						resetAddress();
 					}
 				}
 
@@ -372,6 +470,8 @@ public class ByteBufferChannel {
 				readSize = dst.remaining();
 			}
 
+			int limit = byteBuffer.limit();
+
 			if (readSize != 0) {
 				int position = byteBuffer.position();
 				byteBuffer.position(0);
@@ -393,6 +493,7 @@ public class ByteBufferChannel {
 				}
 			}
 
+//			Logger.simple("R: " + readSize + " \t"+limit + " \t"+ byteBuffer.limit());
 			return readSize;
 
 		} finally {
@@ -534,11 +635,19 @@ public class ByteBufferChannel {
 	public void saveToFile(String filePath, long length) throws IOException{
 		int bufferSize = 1024*1024;
 
+		if(length < bufferSize){
+			bufferSize = Long.valueOf(length).intValue();
+		}
+
+		new File(TFile.getFileFolderPath(filePath)).mkdirs();
+
 		RandomAccessFile randomAccessFile = null;
 		File file = new File(filePath);
 		byte[] buffer = new byte[bufferSize];
         try {
             randomAccessFile = new RandomAccessFile(file, "rwd");
+			//追加形式
+            randomAccessFile.seek(randomAccessFile.length());
 
             int loadSize = bufferSize;
             while(length > 0){
@@ -549,11 +658,7 @@ public class ByteBufferChannel {
                 length = length - loadSize;
             }
 
-            if(length > 0){
-
-            }
-
-
+            compact();
         }catch(IOException e){
             randomAccessFile.close();
             throw e;
