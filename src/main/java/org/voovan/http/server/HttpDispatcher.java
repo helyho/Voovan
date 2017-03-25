@@ -390,7 +390,7 @@ public class HttpDispatcher {
 		
 		//消息拼装
 		String errorPageContent = WebContext.getDefaultErrorPage();
-		if(TFile.fileExists(TEnv.getSystemPath("/conf/error-page/" + error.get("Page")))) {
+		if(TFile.fileExists(TFile.getSystemPath("/conf/error-page/" + error.get("Page")))) {
 			try {
 				errorPageContent = new String(TFile.loadFileFromContextPath("/conf/error-page/" + error.get("Page")),"UTF-8");
 			} catch (UnsupportedEncodingException e1) {
