@@ -406,7 +406,16 @@ public class HttpClient {
 		//发送报文
 		socket.synchronouSend(request);
 
-		Response response = (Response)socket.synchronouRead();
+		Object readObject = socket.synchronouRead();
+		Response response = null;
+
+		//如果是异常则抛出异常
+		if(readObject instanceof Exception){
+			throw new ReadMessageException((Exception) readObject);
+		}else{
+			response = (Response) readObject;
+		}
+
 
 		//结束操作
 		finished(response);

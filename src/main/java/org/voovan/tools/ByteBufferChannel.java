@@ -30,22 +30,38 @@ public class ByteBufferChannel {
 	private int size;
 	private ReentrantLock lock ;
 
-	public ByteBufferChannel(int size) {
-		lock = new ReentrantLock();
-        this.byteBuffer = newByteBuffer(size);
-		byteBuffer.limit(0);
-		resetAddress();
-        size = 0;
+	/**
+	 * 构造函数
+	 * @param capacity 分配的容量
+	 */
+	public ByteBufferChannel(int capacity) {
+		init(capacity);
 	}
 
+	/**
+	 * 构造函数
+	 */
 	public ByteBufferChannel() {
-		lock = new ReentrantLock();
-        this.byteBuffer = newByteBuffer(256);
-		byteBuffer.limit(0);
-		resetAddress();
-        size = 0;
+		init(256);
 	}
 
+	/**
+	 * 初始化函数
+	 * @param capacity 分配的容量
+	 */
+	private void init(int capacity){
+		lock = new ReentrantLock();
+		this.byteBuffer = newByteBuffer(capacity);
+		byteBuffer.limit(0);
+		resetAddress();
+		this.size = 0;
+	}
+
+	/**
+	 * 构造一个ByteBuffer
+	 * @param capacity 分配的容量
+	 * @return ByteBuffer 对象
+	 */
 	private ByteBuffer newByteBuffer(int capacity){
 		try {
 			ByteBuffer template = ByteBuffer.allocateDirect(0);
@@ -65,6 +81,21 @@ public class ByteBufferChannel {
 		}
 	}
 
+	/**
+	 * 立刻释放内存
+	 */
+	public void free(){
+		lock.lock();
+		try{
+            if(address != 0){
+                TUnsafe.getUnsafe().freeMemory(address);
+                address = 0;
+            }
+		}finally {
+			lock.unlock();
+		}
+	}
+
 	private static class Deallocator implements Runnable {
 		private ByteBufferChannel byteBufferChannel;
 		private int capacity;
@@ -75,13 +106,13 @@ public class ByteBufferChannel {
 		}
 
 		public void run() {
+
 			long address = byteBufferChannel.address;
 			if (address == 0) {
 				return;
 			}
-//			Logger.simple("Free " + address);
-			TUnsafe.getUnsafe().freeMemory(address);
-			address = 0;
+
+			byteBufferChannel.free();
 		}
 	}
 
@@ -108,8 +139,8 @@ public class ByteBufferChannel {
 	}
 
 	/**
-	 * 返回当前分配的数组大小
-	 * @return 当前分配的数组大小
+	 * 返回当前分配的容量
+	 * @return 当前分配的容量
 	 */
 	public int capacity(){
 		return byteBuffer.capacity();

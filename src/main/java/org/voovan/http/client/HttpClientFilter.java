@@ -2,10 +2,12 @@ package org.voovan.http.client;
 
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
+import org.voovan.http.message.Response;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TObject;
 
@@ -38,13 +40,17 @@ public class HttpClientFilter implements IoFilter {
 	@Override
 	public Object decode(IoSession session,Object object) throws IoFilterException{
 		try{
+			ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
 			if("WebSocket".equals(session.getAttribute("Type"))){
 				return WebSocketFrame.parse(TObject.cast(object));
 			}
 
 			if(object instanceof ByteBuffer){
+				session.enabledMessageSpliter(false);
 				ByteBuffer byteBuffer = TObject.cast(object);
-				return HttpParser.parseResponse(new ByteArrayInputStream(TByteBuffer.toArray(byteBuffer)));
+				Response response = HttpParser.parseResponse(byteBufferChannel, session.socketContext().getReadTimeout());
+				session.enabledMessageSpliter(true);
+				return response;
 			}
 		}catch(IOException e){
 			throw new IoFilterException("HttpClientFilter decode Error. "+e.getMessage(),e);

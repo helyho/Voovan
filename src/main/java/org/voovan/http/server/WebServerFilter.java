@@ -6,14 +6,12 @@ import org.voovan.http.message.Response;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 /**
@@ -35,6 +33,7 @@ public class WebServerFilter implements IoFilter {
 	public Object encode(IoSession session, Object object) {
 		// 对 Websocket 进行处理
 		if (object instanceof Response) {
+			session.enabledMessageSpliter(true);
 			Response response = TObject.cast(object);
 			return ByteBuffer.wrap(response.asBytes());
 		} else if(object instanceof WebSocketFrame){
@@ -50,12 +49,12 @@ public class WebServerFilter implements IoFilter {
 	@Override
 	public Object decode(IoSession session, Object object) {
 		ByteBuffer byteBuffer = TObject.cast(object);
-		if (isHttpRequest(byteBuffer)) {
+		ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
+		if (isHttpRequest(byteBufferChannel)) {
 			try {
 				if (object instanceof ByteBuffer) {
-
-					ByteArrayInputStream requestInputStream = new ByteArrayInputStream(TByteBuffer.toArray(byteBuffer));
-					Request request = HttpParser.parseRequest(requestInputStream);
+					session.enabledMessageSpliter(false);
+					Request request = HttpParser.parseRequest(byteBufferChannel, session.socketContext().getReadTimeout());
 					if(request!=null){
 						return request;
 					}else{
@@ -90,20 +89,18 @@ public class WebServerFilter implements IoFilter {
 
 	/**
 	 * 判断是否是 HTTP 请求
-	 * @param byteBuffer 请求字节换缓冲对象
+	 * @param byteBufferChannel 请求字节换缓冲对象
 	 * @return  是否是 HTTP 请求
 	 */
-	public static boolean isHttpRequest(ByteBuffer byteBuffer) {
+	public static boolean isHttpRequest(ByteBufferChannel byteBufferChannel) {
 		String testStr = null;
 
-		try {
-			testStr = new String(byteBuffer.array(),"UTF-8").trim();
-		} catch (UnsupportedEncodingException e) {
-			Logger.error("This charset is unsupported.",e);
-			return false;
+		testStr = byteBufferChannel.readLine();
+		if(testStr!=null) {
+			byteBufferChannel.writeHead(ByteBuffer.wrap((testStr).getBytes()));
 		}
 
-		if (TString.regexMatch(testStr,"HTTP.{0,4}\\r\\n") == 1) {
+		if (testStr!=null && TString.regexMatch(testStr,"HTTP.{0,4}") == 1) {
 			return true;
 		}else {
 			return false;

@@ -3,9 +3,15 @@ package org.voovan.test.http;
 import junit.framework.TestCase;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
+import org.voovan.http.message.Response;
+import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TFile;
+import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class HttpParserUnit extends TestCase {
 
@@ -38,45 +44,65 @@ public class HttpParserUnit extends TestCase {
 			"Host: 127.0.0.1:1031\r\n"+
 			"\r\n"+
 			"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
-			"Content-Disposition: form-data; name=\"name\"; filename=\"hh.jpg\"\r\n"+
+			"Content-Disposition: form-data; name=\"name\"; \r\n"+
 			"\r\n"+
 			"helyho\r\n"+
 			"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
 			"Content-Disposition: form-data; name=\"age\"\r\n"+
 			"\r\n"+
 			"32%3D\r\n"+
+            "--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
+            "Content-Disposition: form-data; name=\"address\"\r\n"+
+            "\r\n"+
+            "wlmq\r\n"+
 			"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm\r\n"+
-			"Content-Disposition: form-data; name=\"address\" filename=\"1.jpg\"\r\n"+
+			"Content-Disposition: form-data; name=\"upload\" filename=\"1.jpg\"\r\n"+
+			"Content-Transfer-Encoding: binary\r\n"+
 			"\r\n"+
-	 		"wlmq\r\n"+
+	 		"wlmq filecontent1\r\n"+
 			"--ujjLiiJBznFt70fG1F4EUCkIupn7H4tzm--\r\n\r\n";
 	
 	public HttpParserUnit(String name) {
 		super(name);
 	}
 
+	public void test() throws IOException{
+		ByteBufferChannel b = new ByteBufferChannel();
+		b.writeEnd(ByteBuffer.wrap(TFile.loadFile(new File("/Users/helyho/Downloads/QQ_V5.5.0.dmg"))));
+		Logger.simple(b.indexOf("helyho1031".getBytes()));
+		//Response response = HttpParser.parseResponse(b);
+		//assertEquals(response.protocol().getStatus(),200);
+	}
+
 	public void testGet() throws IOException{
-		Request request = HttpParser.parseRequest(new ByteArrayInputStream(httpRequestGet.getBytes()));
+		ByteBufferChannel b = new ByteBufferChannel();
+		b.writeEnd(ByteBuffer.wrap(httpRequestGet.getBytes()));
+		Request request = HttpParser.parseRequest(b, 30000);
 		assertEquals(request.header().size(),3);
 		assertEquals(request.protocol().getPath(),"/test/t");
 		assertEquals(request.protocol().getMethod(),"GET");
 		assertEquals(request.getQueryString("UTF-8"),"name=helyho");
 	}
-	
+
 	public void testPostSimple() throws IOException{
-		Request request = HttpParser.parseRequest(new ByteArrayInputStream(httpRequestPostSimple.getBytes()));
+		ByteBufferChannel b = new ByteBufferChannel();
+		b.writeEnd(ByteBuffer.wrap(httpRequestPostSimple.getBytes()));
+		Request request = HttpParser.parseRequest(b, 30000);
 		assertEquals(request.header().size(),5);
 		assertEquals(request.protocol().getPath(),"/test/t");
 		assertEquals(request.protocol().getMethod(),"POST");
 		assertEquals(request.getQueryString("UTF-8"),"name=helyho&age=32%3D&address=wlmq");
 	}
-	
+
 	public void testPostComplex() throws IOException{
-		Request request = HttpParser.parseRequest(new ByteArrayInputStream(httpRequestPostComplex.getBytes()));
+		ByteBufferChannel b = new ByteBufferChannel();
+		b.writeEnd(ByteBuffer.wrap(httpRequestPostComplex.getBytes()));
+		Request request = HttpParser.parseRequest(b, 30000);
+		request.parts().get(0).saveAsFile("/Users/helyho/Downloads/helyho.txt");
 		assertEquals(request.header().size(),5);
 		assertEquals(request.protocol().getPath(),"/test/t");
 		assertEquals(request.protocol().getMethod(),"POST");
-		assertEquals(request.getQueryString("UTF-8"),"name=helyho&age=32%3D&address=wlmq");
+			assertEquals(request.getQueryString("UTF-8"),"name=helyho&age=32%3D&address=wlmq");
 	}
 
 }
