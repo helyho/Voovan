@@ -191,5 +191,8 @@ public class ByteBufferChannelUnit extends TestCase {
 		Logger.simple("read head 5: "+new String(xxx.array()));
 
 		byteBufferChannel1.clear();
+
+		byteBufferChannel1.free();
+		byteBufferChannel1.free();
 	}
 }

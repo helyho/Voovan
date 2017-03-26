@@ -256,14 +256,16 @@ public abstract class IoSession<T extends SocketContext> {
 
 		int readSize = -1;
 
-		Object response = this.getAttribute("SocketResponse");
-		if(response!=null){
-			if(response instanceof Exception) {
-				throw (IOException) response;
-			}else{
-				throw new IOException((Exception)response);
-			}
-		}
+//		if(messageLoader.isUseSpliter()) {
+//			Object response = this.getAttribute("SocketResponse");
+//			if (response != null) {
+//				if (response instanceof IOException) {
+//					throw (IOException) response;
+//				} else if (response instanceof Exception) {
+//					throw new IOException((Exception) response);
+//				}
+//			}
+//		}
 
 		readSize = this.read0(byteBuffer);
 

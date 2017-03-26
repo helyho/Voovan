@@ -31,7 +31,7 @@ public class NioSocket extends SocketContext{
 	private Selector selector;
 	private SocketChannel socketChannel;
 	private NioSession session;
-	
+	private NioSelector nioSelector;
 	/**
 	 * socket 连接
 	 * @param host      监听地址
@@ -129,7 +129,7 @@ public class NioSocket extends SocketContext{
 		}
 		
 		if(socketChannel!=null && socketChannel.isOpen()){
-			NioSelector nioSelector = new NioSelector(selector,this);
+			nioSelector = new NioSelector(selector,this);
 			nioSelector.eventChose();
 		}
 	}
@@ -187,6 +187,7 @@ public class NioSocket extends SocketContext{
 	public boolean close(){
 		if(socketChannel!=null){
 			try{
+				nioSelector.free();
 				socketChannel.close();
 				return true;
 			} catch(IOException e){
