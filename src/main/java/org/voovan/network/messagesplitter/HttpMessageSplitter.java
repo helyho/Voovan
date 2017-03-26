@@ -55,7 +55,7 @@ public class HttpMessageSplitter implements MessageSplitter {
         byte[] buffer = TByteBuffer.toArray(byteBuffer);
         StringBuilder stringBuilder = new StringBuilder();
         String httpHead = null;
-        for(int x=0;x<buffer.length;x++){
+        for(int x=0;x<buffer.length-3;x++){
             if(buffer[x] == '\r' && buffer[x+1] == '\n' && buffer[x+2] == '\r' && buffer[x+3] == '\n'){
                 bodyTagIndex = x + 3;
                 httpHead = stringBuilder.toString();
@@ -100,31 +100,33 @@ public class HttpMessageSplitter implements MessageSplitter {
             }
 
             if(bodyTagIndex != -1) {
-                // 1.包含 content Length 的则通过获取 contentLenght 来计算报文的总长度,长度相等时,返回成功
-                if (contentLength != -1) {
-                    int totalLength = bodyTagIndex + contentLength + 1; //
-                    if (byteBuffer.limit() >= totalLength) {
-                        return byteBuffer.limit();
-                    }
-                }
+//                // 1.包含 content Length 的则通过获取 contentLenght 来计算报文的总长度,长度相等时,返回成功
+//                if (contentLength != -1) {
+//                    int totalLength = bodyTagIndex + contentLength + 1; //
+//                    if (byteBuffer.limit() >= totalLength) {
+//                        return 0;
+//                    }
+//                }
+//
+//                // 2. 如果是 HTTP 响应报文 chunk
+//                // 则trim 后判断最后一个字符是否是 0
+//                if (isChunked) {
+//                    byteBuffer.position(byteBuffer.limit() - 7);
+//                    byte[] tailBytes = new byte[7];
+//                    byteBuffer.get(tailBytes);
+//                    byteBuffer.position(0);
+//                    String tailStr = new String(tailBytes, "UTF-8");
+//                    if("\r\n0\r\n\r\n".equals(tailStr) || tailStr.endsWith("\r\n0")) {
+//                        return 0;
+//                    }
+//                }
+//
+//                // 3.是否是无报文体的简单请求报文(1.Header 中没有 ContentLength / 2.非 Chunked 报文形式)
+//                if (contentLength == -1 && !isChunked) {
+//                    return 0;
+//                }
 
-                // 2. 如果是 HTTP 响应报文 chunk
-                // 则trim 后判断最后一个字符是否是 0
-                if (isChunked) {
-                    byteBuffer.position(byteBuffer.limit() - 7);
-                    byte[] tailBytes = new byte[7];
-                    byteBuffer.get(tailBytes);
-                    byteBuffer.position(0);
-                    String tailStr = new String(tailBytes, "UTF-8");
-                    if("\r\n0\r\n\r\n".equals(tailStr) || tailStr.endsWith("\r\n0")) {
-                        return byteBuffer.limit();
-                    }
-                }
-
-                // 3.是否是无报文体的简单请求报文(1.Header 中没有 ContentLength / 2.非 Chunked 报文形式)
-                if (contentLength == -1 && !isChunked) {
-                    return byteBuffer.limit();
-                }
+                return 0;
             }
 
 	    }catch(Exception e){

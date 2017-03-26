@@ -1,11 +1,13 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 
 /**
  * HTTP 的 part 对象
@@ -19,7 +21,7 @@ import java.io.UnsupportedEncodingException;
 public class Part {
 	private Header header;
 	private Body body;
-	
+
 	/**
 	 * Part 类型枚举
 	 * @author helyho
@@ -109,22 +111,17 @@ public class Part {
 			return PartType.TEXT;
 		}
 	}
-	
+
 	/**
 	 * 将 Part 的内容保存为文件
 	 * @param file art 的内容保存为文件
 	 * @throws IOException IO 异常
 	 */
 	public void saveAsFile(File file) throws IOException {
-		FileOutputStream fileOutputStream = new FileOutputStream(file);
-		try {
-			fileOutputStream.write(body.getBodyBytes());
-			fileOutputStream.flush();
-			fileOutputStream.close();
-		} catch (IOException e) {
-			throw e;
-		} finally {
-			fileOutputStream.close();
+		if(getType() == PartType.TEXT){
+			TFile.writeFile(file, body.getBodyBytes());
+		}else{
+			TFile.moveFile(new File(body.toString()), file);
 		}
 	}
 	
@@ -134,15 +131,12 @@ public class Part {
 	 * @throws IOException IO 异常
 	 */
 	public void saveAsFile(String fileName) throws IOException{
-		FileOutputStream fileOutputStream = new FileOutputStream(new File(fileName));
-		try{
-			fileOutputStream.write(body.getBodyBytes());
-			fileOutputStream.flush();
-		}catch (IOException e){
-			throw e;
-		}finally {
-			fileOutputStream.close();
+		if(getType() == PartType.TEXT){
+			TFile.writeFile(new File(fileName), body.getBodyBytes());
+		}else{
+			TFile.moveFile(new File(body.toString()), new File(fileName));
 		}
+
 	}
 
 	/**

@@ -4,7 +4,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
 import org.voovan.db.CallType;
 import org.voovan.db.JdbcOperate;
-import org.voovan.tools.TEnv;
+import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.log.Logger;
@@ -19,7 +19,7 @@ public class JdbcOperateDemo {
     public static void main(String[] args) throws Exception {
         DruidDataSource dataSource = null;
         try {
-            String druidpath = TEnv.getSystemPath("conf" + File.separator + "datasource.properties");
+            String druidpath = TFile.getSystemPath("conf" + File.separator + "datasource.properties");
             Properties druidProperites = TProperties.getProperties(new File(druidpath));
             dataSource = TObject.cast(DruidDataSourceFactory.createDataSource(druidProperites));
             dataSource.init();

@@ -89,7 +89,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 		}
 	}
 
-
-
-
+	public void free(){
+		netByteBufferChannel.free();
+	}
 }
