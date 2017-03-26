@@ -7,6 +7,7 @@ import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
+import org.voovan.network.messagesplitter.TrasnferSplitter;
 import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLException;
@@ -123,9 +124,9 @@ public class NioSocket extends SocketContext{
 
 		initSSL();
 		
-		//如果没有消息分割器默认使用读取超时时间作为分割器
+		//如果没有消息分割器默认使用透传分割器
 		if(messageSplitter == null){
-			messageSplitter = new TimeOutMesssageSplitter();
+			messageSplitter = new TrasnferSplitter();
 		}
 		
 		if(socketChannel!=null && socketChannel.isOpen()){
