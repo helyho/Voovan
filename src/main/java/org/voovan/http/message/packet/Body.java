@@ -1,9 +1,11 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 
 /**
  * HTTP的内容对象
@@ -14,7 +16,7 @@ import java.io.*;
  * Licence: Apache v2 License
  */
 public class Body {
-	private ByteArrayOutputStream bytesOutputStream;
+	private ByteBufferChannel byteBufferChannel;
 	private BodyType type;
 	private File bodyFile;
 
@@ -86,8 +88,8 @@ public class Body {
             throw new FileNotFoundException(" bodyFile " + filePath + " not exists");
         }
 
-		if(bytesOutputStream != null){
-			bytesOutputStream = null;
+		if(byteBufferChannel != null){
+			byteBufferChannel = null;
 		}
 
 		this.type = BodyType.FILE;
@@ -99,15 +101,15 @@ public class Body {
 	 * @throws IOException 文件未找到异常
 	 */
 	public void chaneToBytes(byte[] content) throws IOException {
-		if(bytesOutputStream == null){
-			bytesOutputStream = new ByteArrayOutputStream();
+		if(byteBufferChannel == null){
+			byteBufferChannel = new ByteBufferChannel();
 		}
 
 		if(bodyFile != null){
 			bodyFile = null;
 		}
 
-		bytesOutputStream.write(content);
+		byteBufferChannel.writeEnd(ByteBuffer.wrap(content));
 		type = BodyType.BYTES;
 	}
 
@@ -124,7 +126,7 @@ public class Body {
 				return -1;
 			}
 		}else {
-			return bytesOutputStream.size();
+			return byteBufferChannel.size();
 		}
 	}
 
@@ -136,7 +138,7 @@ public class Body {
 		if(type == BodyType.FILE){
 			return TFile.loadFile(bodyFile);
 		}else {
-			return bytesOutputStream.toByteArray();
+			return byteBufferChannel.array();
 		}
 	}
 	
@@ -173,41 +175,30 @@ public class Body {
 	/**
 	 * 写入 body 
 	 * @param body 字节数组
-	 */
-	public void write(byte[] body){
-		try {
-			if(type == BodyType.BYTES) {
-				bytesOutputStream.write(body);
-			}else{
-				FileOutputStream fileOutputStream = new FileOutputStream(bodyFile);
-				fileOutputStream.write(body);
-				fileOutputStream.flush();
-				fileOutputStream.close();
-			}
-		} catch (IOException e) {
-			Logger.error("Wirte byte array faild by OutputStream",e);
-		}
-	}
-	
-	/**
-	 * 写入 body 
-	 * @param body 字节数组
 	 * @param offset  字节数组偏移量
 	 * @param length  写入长度
 	 */
 	public void write(byte[] body,int offset,int length){
 		try {
             if(type == BodyType.BYTES) {
-                bytesOutputStream.write(body, offset, length);
+				ByteBuffer bodyTmp = ByteBuffer.wrap(body);
+				bodyTmp.position(offset);
+				bodyTmp.limit(length);
+				byteBufferChannel.writeEnd(bodyTmp);
             }else{
-				FileOutputStream fileOutputStream = new FileOutputStream(bodyFile);
-                fileOutputStream.write(body, offset, length);
-				fileOutputStream.flush();
-				fileOutputStream.close();
+            	TFile.writeFile(bodyFile,true, body, offset, length);
             }
 		} catch (IOException e) {
 			Logger.error("Wirte byte array faild by OutputStream",e);
 		}
+	}
+
+	/**
+	 * 写入 body
+	 * @param body 字节数组
+	 */
+	public void write(byte[] body){
+		write(body, 0, body.length);
 	}
 
 	/**
@@ -237,7 +228,7 @@ public class Body {
 	 */
 	public void clear(){
 		if(type == BodyType.BYTES) {
-			bytesOutputStream.reset();
+			byteBufferChannel.clear();
 		}
 	}
 
