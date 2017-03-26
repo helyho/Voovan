@@ -99,6 +99,7 @@ public class HttpParserUnit extends TestCase {
 		b.writeEnd(ByteBuffer.wrap(httpRequestPostComplex.getBytes()));
 		Request request = HttpParser.parseRequest(b, 30000);
 		request.toString();
+		request.parts().get(3).body().write("\r\n helyho");
 		request.parts().get(3).saveAsFile("/Users/helyho/Downloads/helyho.txt");
 		assertEquals(request.header().size(),5);
 		assertEquals(request.protocol().getPath(),"/test/t");
