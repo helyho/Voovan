@@ -196,13 +196,13 @@ public class HttpClient {
 	 * @param bodyType  Http 报文形式
 	 * @return Request.BodyType 枚举
 	 */
-	public HttpClient setBodyType(Request.BodyType bodyType){
+	public HttpClient setBodyType(Request.RequestType bodyType){
 
 		//如果之前设置过 ContentType 则不自动设置 ContentType
 		if(!request.header().contain("Content-Type")) {
-			if (bodyType == Request.BodyType.BODY_MULTIPART) {
+			if (bodyType == Request.RequestType.BODY_MULTIPART) {
 				request.header().put("Content-Type", "multipart/form-data;");
-			} else if (bodyType == Request.BodyType.BODY_URLENCODED) {
+			} else if (bodyType == Request.RequestType.BODY_URLENCODED) {
 				request.header().put("Content-Type", "application/x-www-form-urlencoded");
 			}
 		}
@@ -343,7 +343,7 @@ public class HttpClient {
 	private void buildRequest(String urlString){
 		request.protocol().setPath(urlString.isEmpty()?"/":urlString);
 		//1.没有报文 Body,参数包含于请求URL
-		if (request.getBodyType() == Request.BodyType.BODY_NOBODY) {
+		if (request.getBodyType() == Request.RequestType.NORMAL) {
 			String queryString = getQueryString();
 			String requestPath = request.protocol().getPath();
 			if(requestPath.contains("?")){
@@ -354,7 +354,7 @@ public class HttpClient {
 			request.protocol().setPath(request.protocol().getPath() + queryString);
 		}
 		//2.请求报文Body 使用Part 类型
-		else if(request.getBodyType() == Request.BodyType.BODY_MULTIPART){
+		else if(request.getBodyType() == Request.RequestType.BODY_MULTIPART){
 			try{
 				for (Entry<String, Object> parameter : parameters.entrySet()) {
 					Part part = new Part();
@@ -372,7 +372,7 @@ public class HttpClient {
 
 		}
 		//3.请求报文Body 使用流类型
-		else if(request.getBodyType() == Request.BodyType.BODY_URLENCODED){
+		else if(request.getBodyType() == Request.RequestType.BODY_URLENCODED){
 			String queryString = getQueryString();
 			request.body().write(queryString,charset);
 		}
@@ -393,11 +393,11 @@ public class HttpClient {
 
 		//设置默认的报文 Body 类型
 		if(request.protocol().getMethod().equals("POST") && request.parts().size()>0){
-			setBodyType(Request.BodyType.BODY_MULTIPART);
+			setBodyType(Request.RequestType.BODY_MULTIPART);
 		}else if(request.protocol().getMethod().equals("POST") && getParameters().size()>0){
-			setBodyType(Request.BodyType.BODY_URLENCODED);
+			setBodyType(Request.RequestType.BODY_URLENCODED);
 		}else{
-			setBodyType(Request.BodyType.BODY_NOBODY);
+			setBodyType(Request.RequestType.NORMAL);
 		}
 
 		//构造 Request 对象

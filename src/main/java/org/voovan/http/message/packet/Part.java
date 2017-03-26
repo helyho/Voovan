@@ -118,11 +118,7 @@ public class Part {
 	 * @throws IOException IO 异常
 	 */
 	public void saveAsFile(File file) throws IOException {
-		if(getType() == PartType.TEXT){
-			TFile.writeFile(file, body.getBodyBytes());
-		}else{
-			TFile.moveFile(new File(body.toString()), file);
-		}
+		body.saveAsFile(file);
 	}
 	
 	/**
@@ -131,12 +127,7 @@ public class Part {
 	 * @throws IOException IO 异常
 	 */
 	public void saveAsFile(String fileName) throws IOException{
-		if(getType() == PartType.TEXT){
-			TFile.writeFile(new File(fileName), body.getBodyBytes());
-		}else{
-			TFile.moveFile(new File(body.toString()), new File(fileName));
-		}
-
+		body.saveAsFile(new File(fileName));
 	}
 
 	/**
