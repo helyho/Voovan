@@ -60,13 +60,13 @@ public class SSLParser {
 	public ByteBuffer buildNetDataBuffer() {
 		SSLSession sslSession = engine.getSession();
 		int newBufferMax = sslSession.getPacketBufferSize();
-		return ByteBuffer.allocate(newBufferMax);
+		return ByteBuffer.allocateDirect(newBufferMax);
 	}
 	
 	public ByteBuffer buildAppDataBuffer() {
 		SSLSession sslSession = engine.getSession();
 		int newBufferMax = sslSession.getPacketBufferSize();
-		return ByteBuffer.allocate(newBufferMax);
+		return ByteBuffer.allocateDirect(newBufferMax);
 	}
 	
 	/**
