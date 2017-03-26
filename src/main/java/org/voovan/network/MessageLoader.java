@@ -195,10 +195,10 @@ public class MessageLoader {
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		if(splitLength!=0 && stopType==StopType.MSG_SPLITTER) {
-			result = ByteBuffer.allocate(splitLength);
+			result = ByteBuffer.allocateDirect(splitLength);
 			dataByteBufferChannel.readHead(result);
 		} else {
-			result = ByteBuffer.allocate(0);
+			result = ByteBuffer.allocateDirect(0);
 		}
 
 		return result;
