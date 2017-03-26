@@ -96,8 +96,9 @@ public class WebServerDemo {
 
 			@Override
 			public ByteBuffer onRecived(ByteBuffer message) {
-				Logger.info(new String(message.array()));
-				String msg = "This is server message. Client message: \r\n\t\""+new String(message.array())+"\"";
+				String msg = TByteBuffer.toString(message);
+				Logger.info(TByteBuffer.toString(message));
+				msg = "This is server message. Client message: \r\n\t\""+msg+"\"";
 				return ByteBuffer.wrap(msg.getBytes());
 			}
 

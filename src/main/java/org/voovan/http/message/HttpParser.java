@@ -272,6 +272,7 @@ public class HttpParser {
 					//取boundary 用于 part 内容分段
 					String boundary = "--" + getPerprotyEqualValue(packetMap, HEAD_CONTENT_TYPE, "boundary");
 
+					ByteBuffer boundaryEnd = ByteBuffer.allocate(2);
 					while(true) {
 						//等待数据
 						if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut)) {
@@ -284,7 +285,7 @@ public class HttpParser {
 						byteBufferChannel.shrink((index + boundary.length()) * -1);
 
 						//取 boundary 结尾字符
-						ByteBuffer boundaryEnd = ByteBuffer.allocate(2);
+						boundaryEnd.clear();
 						byteBufferChannel.readHead(boundaryEnd);
 
 						//确认 boundary 结尾字符, 如果是"--" 则标识报文结束
