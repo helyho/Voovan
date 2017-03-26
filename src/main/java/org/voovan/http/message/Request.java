@@ -42,8 +42,8 @@ public class Request {
 	 * @author helyho
 	 *
 	 */
-	public enum BodyType {
-		BODY_URLENCODED, BODY_MULTIPART, BODY_NOBODY
+	public enum RequestType {
+		BODY_URLENCODED, BODY_MULTIPART, NORMAL
 	 }
 
 	 /**
@@ -120,16 +120,16 @@ public class Request {
 	 * 
 	 * @return RequestType枚举
 	 */
-	public BodyType getBodyType() {
+	public RequestType getBodyType() {
 		if (header.get(CONTENT_TYPE) != null) {
 			if (header.get(CONTENT_TYPE).contains("application/x-www-form-urlencoded")) {
-				return BodyType.BODY_URLENCODED;
+				return RequestType.BODY_URLENCODED;
 			} else if (header.get(CONTENT_TYPE).contains("multipart/form-data")) {
-				return BodyType.BODY_MULTIPART;
+				return RequestType.BODY_MULTIPART;
 			}
 		}
 
-		return BodyType.BODY_NOBODY;
+		return RequestType.NORMAL;
 	}
 	
 	/**
@@ -143,11 +143,11 @@ public class Request {
 		queryString = protocol.getQueryString();
 
 		// POST_URLENCODED 请求类型的处理
-		if (getBodyType() == BodyType.BODY_URLENCODED ) {
+		if (getBodyType() == RequestType.BODY_URLENCODED ) {
 			queryString = queryString+"&"+body.getBodyString();
 		}
 		// POST_MULTIPART 请求类型的处理
-		else if (getBodyType() == BodyType.BODY_MULTIPART) {
+		else if (getBodyType() == RequestType.BODY_MULTIPART) {
 			StringBuilder result = new StringBuilder();
 			for (Part part : parts) {
 				if (part.getType() == PartType.TEXT) {

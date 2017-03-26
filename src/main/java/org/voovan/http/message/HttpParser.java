@@ -1,5 +1,6 @@
 package org.voovan.http.message;
 
+import org.voovan.http.message.packet.Body;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
 import org.voovan.tools.*;
@@ -39,8 +40,9 @@ public class HttpParser {
 	private static final String HEAD_COOKIE 			= "Cookie";
 
 
-	private static final String BODY_VALUE = "Body_Value";
 	private static final String BODY_PARTS = "Body_Parts";
+	private static final String BODY_VALUE = "Body_Value";
+	private static final String BODY_FILE = "Body_File";
 
 	/**
 	 * 私有构造函数
@@ -352,7 +354,8 @@ public class HttpParser {
 								new File(localFileName).delete();
 								throw new IOException("Http Parser read data error");
 							}else{
-								partMap.put(BODY_VALUE, localFileName.getBytes());
+								partMap.remove(BODY_VALUE);
+								partMap.put(BODY_FILE, localFileName.getBytes());
 							}
 						}
 
@@ -520,7 +523,10 @@ public class HttpParser {
 						for(Entry<String, Object> parsedPartMapItem : parsedPartMap.entrySet()){
 							//填充 Value 中的值到 body 中
 							if(parsedPartMapItem.getKey().equals(BODY_VALUE)){
-								part.body().write((byte[])parsedPartMapItem.getValue());
+								part.body().chaneToBytes((byte[])parsedPartMapItem.getValue());
+							} if(parsedPartMapItem.getKey().equals(BODY_FILE)){
+								String filePath = new String((byte[])parsedPartMapItem.getValue());
+								part.body().changeToFile(filePath);
 							} else {
 								//填充 header
 								String partedHeaderKey = parsedPartMapItem.getKey();
