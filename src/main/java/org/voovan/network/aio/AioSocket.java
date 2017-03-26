@@ -8,6 +8,7 @@ import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
+import org.voovan.network.messagesplitter.TrasnferSplitter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
@@ -148,9 +149,9 @@ public class AioSocket extends SocketContext {
 
 		initSSL();
 
-		//如果没有消息分割器默认使用读取超时时间作为分割器
+		//如果没有消息分割器默认使用透传分割器
 		if(messageSplitter == null){
-			messageSplitter = new TimeOutMesssageSplitter();
+			messageSplitter = new TrasnferSplitter();
 		}
 
 		if (connectModel == ConnectModel.CLIENT) {
@@ -166,7 +167,7 @@ public class AioSocket extends SocketContext {
 
 		if(isConnected()) {
 			//捕获输入事件
-			catchRead(ByteBuffer.allocate(this.getBufferSize()));
+			catchRead(ByteBuffer.allocateDirect(this.getBufferSize()));
 
 			//触发 connect 事件
 			EventTrigger.fireConnectThread(session);
