@@ -373,7 +373,7 @@ public class HttpParser {
 					String chunkedLengthLine = "";
 					while(chunkedLengthLine!=null){
 
-						// 等待数据满足长度
+						// 等待数据
 						if(!byteBufferChannel.waitData("\r\n".getBytes(), timeOut)){
 							throw new IOException("Http Parser read data error");
 						}
@@ -400,7 +400,7 @@ public class HttpParser {
 							break;
 						}
 
-						// 等待数据满足长度
+						// 等待数据
 						if(!byteBufferChannel.waitData(chunkedLength, timeOut)){
 							throw new IOException("Http Parser read data error");
 						}
@@ -431,7 +431,7 @@ public class HttpParser {
 				else if(packetMap.containsKey(HEAD_CONTENT_LENGTH)){
 					int contentLength = Integer.parseInt(packetMap.get(HEAD_CONTENT_LENGTH).toString());
 
-					// 等待数据满足长度
+					// 等待数据
 					if(!byteBufferChannel.waitData(contentLength, timeOut)){
 						throw new IOException("Http Parser read data error");
 					}

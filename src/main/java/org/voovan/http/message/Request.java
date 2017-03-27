@@ -246,6 +246,8 @@ public class Request {
 			return outputStream.toByteArray();
 		} catch (IOException e) {
 			return  new byte[0];
+		}finally {
+			body.free();
 		}
 	}
 	

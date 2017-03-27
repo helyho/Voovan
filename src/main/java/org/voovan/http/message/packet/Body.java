@@ -2,6 +2,7 @@ package org.voovan.http.message.packet;
 
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TFile;
+import org.voovan.tools.TZip;
 import org.voovan.tools.log.Logger;
 
 import java.io.*;
@@ -19,6 +20,7 @@ public class Body {
 	private ByteBufferChannel byteBufferChannel;
 	private BodyType type;
 	private File bodyFile;
+	private long position;
 
 	/**
 	 * Body 类型枚举
@@ -36,6 +38,7 @@ public class Body {
 		type = BodyType.BYTES;
 		try{
             chaneToBytes("".getBytes());
+			bodyFile = null;
         } catch (IOException e){
             Logger.error("Construct class Body error. ",e);
         }
@@ -50,6 +53,7 @@ public class Body {
 		type = BodyType.BYTES;
 		try {
 			chaneToBytes(content);
+			bodyFile = null;
 		} catch (IOException e){
 			Logger.error("Construct class Body error. ",e);
 		}
@@ -76,6 +80,15 @@ public class Body {
 		return type;
 	}
 
+    /**
+     * 内容是否是由存储中的文件提供
+     * @return true: 由存储中的文件提供, false: 由字节提供
+     */
+	public boolean isFile(){
+		return bodyFile==null? false: true;
+	}
+
+
 	/**
 	 * 转换成文件形式
 	 * @param filePath  文件路径
@@ -92,6 +105,7 @@ public class Body {
 			byteBufferChannel = null;
 		}
 
+		position = 0;
 		this.type = BodyType.FILE;
 	}
 
@@ -171,11 +185,41 @@ public class Body {
 			return null;
 		}
 	}
-	
+
+	/**
+	 * 读取 Body 中的内容
+	 * @param byteBuffer ByteBuffer 对象
+	 * @return  读出的字节长度
+	 */
+	public int read(ByteBuffer byteBuffer){
+		if(type == BodyType.BYTES) {
+			return byteBufferChannel.readHead(byteBuffer);
+		}else {
+			byte[] fileContent = TFile.loadFile(bodyFile, position, position + byteBuffer.remaining());
+			if (fileContent != null){
+				int readSize = fileContent.length;
+                position = position + readSize;
+                return readSize;
+            }else{
+				return -1;
+			}
+		}
+	}
+
+	/**
+	 * 读取 Body 中的内容
+	 * @param buffer byte 数组对象
+	 * @return 读出的字节长度
+	 */
+	public int read(byte[] buffer){
+		ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
+		return read(byteBuffer);
+	}
+
 	/**
 	 * 写入 body 
 	 * @param body 字节数组
-	 * @param offset  字节数组偏移量
+	 * @param offset  在Body 对象中的偏移量,即在这个位置开始写入数据
 	 * @param length  写入长度
 	 */
 	public void write(byte[] body,int offset,int length){
@@ -256,5 +300,41 @@ public class Body {
 			Logger.error(e);
 			return null;
 		}
+	}
+
+	/**
+	 * 压缩
+	 * @return
+	 */
+	public boolean compress() throws IOException {
+
+
+		if(isFile()) {
+			String fileExtName = TFile.getFileExtension(bodyFile.getCanonicalPath());
+			fileExtName = fileExtName.equals("") ? ".tmp" : fileExtName;
+
+			//拼文件名
+			String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(), "org.voovan.webserver",
+					"response", "VOOVAN_" + System.currentTimeMillis() + "." + fileExtName);
+
+			new File(TFile.getFileFolderPath(localFileName)).mkdirs();
+			File gzipedFile = new File(localFileName);
+
+			TZip.encodeGZip(bodyFile, gzipedFile);
+
+			bodyFile = gzipedFile;
+
+		}else{
+			byte[] bodyBytes = TZip.encodeGZip(getBodyBytes());
+			byteBufferChannel.clear();
+			byteBufferChannel.writeEnd(ByteBuffer.wrap(bodyBytes));
+			return true;
+		}
+
+		return false;
+	}
+
+	public void free(){
+		byteBufferChannel.free();
 	}
 }

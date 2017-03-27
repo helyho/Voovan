@@ -35,7 +35,12 @@ public class WebServerFilter implements IoFilter {
 		if (object instanceof Response) {
 			session.enabledMessageSpliter(true);
 			Response response = TObject.cast(object);
-			return ByteBuffer.wrap(response.asBytes());
+			try {
+				response.send(session);
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			return ByteBuffer.allocateDirect(0);
 		} else if(object instanceof WebSocketFrame){
 			WebSocketFrame webSocketFrame = TObject.cast(object);
 			return webSocketFrame.toByteBuffer();
