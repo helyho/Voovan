@@ -152,20 +152,11 @@ public class MimeFileRouter implements HttpRouter {
 			}
 			fileByte = TFile.loadFileFromSysPath(responseFile.getPath(), beginPos, endPos);
 			response.header().put("Content-Range", "bytes " + rangeStr + "/" + fileSize);
-		} else {
-			fileByte = TFile.loadFileFromSysPath(responseFile.getPath());
-		}
+			response.body().write(fileByte);
 
-		if (fileByte != null) {
-			try {
-				ByteArrayOutputStream outputStream = TReflect.getFieldValue(response.body(), "outputStream");
-				TReflect.setFieldValue(outputStream, "buf", fileByte);
-				TReflect.setFieldValue(outputStream, "count", fileByte.length);
-			}catch(ReflectiveOperationException e){
-				throw new IOException(e);
-			}
+		} else {
+			response.body().changeToFile(responseFile.getCanonicalPath());
 		}
-		
 	}
 	
 	/**
