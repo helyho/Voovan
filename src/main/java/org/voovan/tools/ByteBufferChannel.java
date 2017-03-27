@@ -4,6 +4,7 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
+import sun.nio.ch.DirectBuffer;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +30,9 @@ public class ByteBufferChannel {
 	private ByteBuffer byteBuffer;
 	private int size;
 	private ReentrantLock lock ;
+
+	private Deallocator deallocator;
+	private Cleaner cleaner;
 
 	/**
 	 * 构造函数
@@ -71,7 +75,9 @@ public class ByteBufferChannel {
 
 			ByteBuffer instance = (ByteBuffer) c.newInstance(address, capacity);
 
-			Cleaner cleaner = Cleaner.create(this, new Deallocator(this, capacity));
+			deallocator = new Deallocator(address, capacity);
+
+			cleaner = Cleaner.create(this, deallocator);
 
 			return instance;
 
@@ -87,32 +93,31 @@ public class ByteBufferChannel {
 	public void free(){
 		lock.lock();
 		try{
-            if(address != 0){
-                TUnsafe.getUnsafe().freeMemory(address);
-                address = 0;
-            }
+           cleaner.clean();
 		}finally {
 			lock.unlock();
 		}
 	}
 
 	private static class Deallocator implements Runnable {
-		private ByteBufferChannel byteBufferChannel;
+		private long address;
 		private int capacity;
 
-		private Deallocator(ByteBufferChannel byteBufferChannel, int capacity) {
-			this.byteBufferChannel = byteBufferChannel;
+		private Deallocator(long address, int capacity) {
+			this.address = address;
 			this.capacity = capacity;
+		}
+
+		public void setAddress(long address){
+			this.address = address;
 		}
 
 		public void run() {
 
-			long address = byteBufferChannel.address;
-			if (address == 0) {
+			if (this.address == 0) {
 				return;
 			}
-
-			byteBufferChannel.free();
+			TUnsafe.getUnsafe().freeMemory(address);
 		}
 	}
 
@@ -123,6 +128,7 @@ public class ByteBufferChannel {
 		lock.lock();
 		try {
 			this.address = TReflect.getFieldValue(byteBuffer, "address");
+			deallocator.setAddress(address);
 		}catch (ReflectiveOperationException e){
 			Logger.error("ByteBufferChannel resetAddress() Error: "+e.getMessage(), e);
 		} finally {

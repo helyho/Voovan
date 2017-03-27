@@ -2,9 +2,7 @@ package org.voovan.tools;
 
 import org.voovan.tools.log.Logger;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.zip.*;
 
 /**
@@ -29,7 +27,38 @@ public class TZip {
 		gzipInputStream.close();
 		return result;
 	}
-	
+
+	/**
+	 * GZip 解压文件
+	 *
+	 * @param inputFile 源文件
+	 * @param outputFile 目标文件
+	 * @throws IOException
+	 */
+	public static void decodeGZip(File inputFile, File outputFile)
+			throws IOException {
+		FileInputStream fin = null;
+		GZIPInputStream gzin = null;
+		FileOutputStream fout = null;
+		try {
+			fin = new FileInputStream(inputFile);
+			fout = new FileOutputStream(outputFile);
+			gzin = new GZIPInputStream(fin);
+			byte[] buf = new byte[1024];
+			int num;
+			while ((num = gzin.read(buf, 0, buf.length)) != -1) {
+				fout.write(buf, 0, num);
+			}
+		} finally {
+			if (fout != null)
+				fout.close();
+			if (gzin != null)
+				gzin.close();
+			if (fin != null)
+				fin.close();
+		}
+	}
+
 	/**
 	 * GZIP 压缩
 	 * @param sourceBytes 待压缩字节
@@ -45,6 +74,36 @@ public class TZip {
 		gzipOutputStream.close();
 		zipedBodyOutputStream.close();
 		return result;
+	}
+
+	/**
+	 * GZip 文件压缩处理
+	 *
+	 * @param inputFile 源文件
+	 * @param outputFile 目标文件
+	 * @throws IOException
+	 */
+	public static void encodeGZip(File inputFile, File outputFile) throws IOException{
+		FileInputStream fin = null;
+		FileOutputStream fout = null;
+		GZIPOutputStream gzout = null;
+		try {
+			fin = new FileInputStream(inputFile);
+			fout = new FileOutputStream(outputFile);
+			gzout = new GZIPOutputStream(fout);
+			byte[] buf = new byte[1024];
+			int num;
+			while ((num = fin.read(buf)) != -1) {
+				gzout.write(buf, 0, num);
+			}
+		} finally {
+			if (gzout != null)
+				gzout.close();
+			if (fout != null)
+				fout.close();
+			if (fin != null)
+				fin.close();
+		}
 	}
 	
 	/**
