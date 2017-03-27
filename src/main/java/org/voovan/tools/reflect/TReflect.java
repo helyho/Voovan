@@ -25,6 +25,9 @@ import java.util.Map.Entry;
  */
 public class TReflect {
 
+	private static Map<String, Field> fields = new HashMap<String ,Field>();
+	private static Map<String, Method> methods = new HashMap<String ,Method>();
+
 	/**
 	 * 获得类所有的Field
 	 * 
@@ -51,8 +54,18 @@ public class TReflect {
 	 */
 	public static Field findField(Class<?> clazz, String fieldName)
 			throws ReflectiveOperationException {
+
+		String fieldMark = clazz.getCanonicalName()+"#"+fieldName;
+
 		try {
-			return clazz.getDeclaredField(fieldName);
+			if(fields.containsKey(fieldMark)){
+				return fields.get(fieldMark);
+			}else {
+				Field field = clazz.getDeclaredField(fieldName);
+				fields.put(fieldMark, field);
+				return field;
+			}
+
 		}catch(NoSuchFieldException ex){
 			Class superClazz = clazz.getSuperclass();
 			if( superClazz != Object.class ) {
@@ -73,9 +86,17 @@ public class TReflect {
      */
 	public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName)
 			throws ReflectiveOperationException{
-		for(Field field : getFields(clazz)){
-			if(field.getName().equalsIgnoreCase(fieldName)){
-				return field;
+
+		String fieldMark = clazz.getCanonicalName()+"#"+fieldName;
+
+		if(fields.containsKey(fieldMark)){
+			return fields.get(fieldMark);
+		}else {
+			for (Field field : getFields(clazz)) {
+				if (field.getName().equalsIgnoreCase(fieldName)) {
+					fields.put(fieldMark, field);
+					return field;
+				}
 			}
 		}
 		return null;
@@ -167,7 +188,21 @@ public class TReflect {
 	 */
 	public static Method findMethod(Class<?> clazz, String name,
 									Class<?>... paramTypes) throws ReflectiveOperationException {
-		return clazz.getDeclaredMethod(name, paramTypes);
+
+
+
+		String methodMark = clazz.getCanonicalName()+"#"+name;
+		for(Class<?> paramType : paramTypes){
+			methodMark = methodMark + "$" + paramType.getCanonicalName();
+		}
+
+		if(methods.containsKey(methodMark)){
+			return methods.get(methodMark);
+		}else {
+			Method method = clazz.getDeclaredMethod(name, paramTypes);
+			methods.put(methodMark, method);
+			return method;
+		}
 	}
 
 	/**
