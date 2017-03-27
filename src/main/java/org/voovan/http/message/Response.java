@@ -4,11 +4,14 @@ import org.voovan.http.message.packet.Body;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.ResponseProtocol;
+import org.voovan.network.IoSession;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TZip;
 import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -138,52 +141,18 @@ public class Response {
 		return cookieString.toString();
 	}
 
-	/**
-	 * 获取报文体
-	 * @return 报文体 byte 数组
-     */
-	private byte[] genBody(){
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		try {
-			if (body.getBodyBytes().length != 0) {
-				if (isCompress) {
-					//使用 GZIP 进行压缩
-					byte[] gzipedBody =  TZip.encodeGZip(body.getBodyBytes());
 
-					// 写入 chunk 的长度
-					outputStream.write((Integer.toHexString(gzipedBody.length) + "\r\n").getBytes("UTF-8"));
-					outputStream.write(gzipedBody);
-					// chunk结束
-					outputStream.write("\r\n".getBytes("UTF-8"));
-					outputStream.write("0".getBytes("UTF-8"));
-
-				} else {
-					outputStream.write(body.getBodyBytes());
-				}
-
-				outputStream.write("\r\n".getBytes("UTF-8"));
-				outputStream.write("\r\n".getBytes("UTF-8"));
-				return outputStream.toByteArray();
-			}
-		} catch (IOException e) {
-			Logger.error("OutputString io error.",e);
-		}
-
-		return new byte[0];
-	}
 	
 	/**
-	 * 根据对象的内容,构造 Http 响应报文
+	 * 根据对象的内容,构造 Http 响应报头
 	 * 
-	 * @return Http 响应报文
+	 * @return ByteBuffer 响应报文的报头
 	 */
-	public byte[] asBytes() {
+	private ByteBuffer readHead() {
 
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
 		initHeader();
-		
-		byte[] bodyBytes = genBody();
 		
 		try {
 			// 处理协议行
@@ -198,13 +167,79 @@ public class Response {
 			//头结束插入空行
 			outputStream.write("\r\n".getBytes("UTF-8"));
 
-			//插入报文内容
-			outputStream.write(bodyBytes);
-			
 		} catch (IOException e) {
 			Logger.error("OutputString io error.",e);
 		}
-		return outputStream.toByteArray();
+		return ByteBuffer.wrap(outputStream.toByteArray());
+	}
+
+	/**
+	 * 获取报文体
+	 * @param  byteBuffer 读取缓冲区
+	 * @return 读出的数据的大小
+	 */
+	private int readBody(ByteBuffer byteBuffer){
+		int readSize = 0;
+
+		if (body.size() != 0) {
+			readSize = body.read(byteBuffer);
+        }
+
+		return readSize;
+	}
+
+	private ByteBuffer readEnd(){
+		if (isCompress) {
+			return ByteBuffer.wrap("0\r\n\r\n".getBytes());
+		}else{
+			return ByteBuffer.allocate(0);
+		}
+	}
+
+	public void send(IoSession session) throws IOException {
+
+		//发送报文头
+		session.send(readHead());
+
+		//是否需要压缩
+		if(isCompress){
+			body.compress();
+		}
+
+		//发送报文主体
+		if(body.size() != 0) {
+			//准备缓冲区
+			ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024 * 50);
+			int readSize = 0;
+			while (true) {
+
+				readSize = readBody(byteBuffer);
+
+				if (readSize == 0) {
+					break;
+				}
+
+				//判断是否需要发送 chunked 段长度
+				if (isCompress()) {
+					String chunkedLengthLine = Integer.toHexString(readSize) + "\r\n";
+					session.send(ByteBuffer.wrap(chunkedLengthLine.getBytes()));
+				}
+
+				session.send(byteBuffer);
+				byteBuffer.clear();
+
+				//判断是否需要发送 chunked 结束符号
+				if (isCompress()) {
+					session.send(ByteBuffer.wrap("\r\n".getBytes()));
+				}
+			}
+
+			//发送报文结束符
+			session.send(readEnd());
+		}
+
+		body.free();
+
 	}
 
 	/**
@@ -219,6 +254,6 @@ public class Response {
 
 	@Override
 	public String toString() {
-		return new String(asBytes());
+		return new String(TByteBuffer.toString(readHead()));
 	}
 }

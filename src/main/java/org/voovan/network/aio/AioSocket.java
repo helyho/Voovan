@@ -225,17 +225,15 @@ public class AioSocket extends SocketContext {
 
 	@Override
 	public boolean close() {
+		readCompletionHandler.free();
+		session.getByteBufferChannel().free();
+
 		if (socketChannel != null) {
 			 try {
-
 				// 关闭 Socket 连接
 				if (isConnected()) {
-
 					// 触发 DisConnect 事件
 					EventTrigger.fireDisconnect(session);
-
-					readCompletionHandler.free();
-
 					socketChannel.close();
 				}
 
