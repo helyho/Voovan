@@ -199,8 +199,10 @@ public class Body {
 			if (fileContent != null){
 				int readSize = fileContent.length;
                 position = position + readSize;
+				byteBuffer.put(fileContent);
+				byteBuffer.flip();
                 return readSize;
-            }else{
+            } else {
 				return -1;
 			}
 		}
@@ -308,33 +310,39 @@ public class Body {
 	 */
 	public boolean compress() throws IOException {
 
+		if(size()!=0) {
+			if (isFile()) {
+				String fileExtName = TFile.getFileExtension(bodyFile.getCanonicalPath());
+				fileExtName = fileExtName.equals("") ? ".tmp" : fileExtName;
 
-		if(isFile()) {
-			String fileExtName = TFile.getFileExtension(bodyFile.getCanonicalPath());
-			fileExtName = fileExtName.equals("") ? ".tmp" : fileExtName;
+				//拼文件名
+				String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
+						"org.voovan.webserver",
+						"response",
+						"VOOVAN_" + System.currentTimeMillis() + "." + fileExtName);
 
-			//拼文件名
-			String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(), "org.voovan.webserver",
-					"response", "VOOVAN_" + System.currentTimeMillis() + "." + fileExtName);
+				new File(TFile.getFileFolderPath(localFileName)).mkdirs();
+				File gzipedFile = new File(localFileName);
 
-			new File(TFile.getFileFolderPath(localFileName)).mkdirs();
-			File gzipedFile = new File(localFileName);
+				TZip.encodeGZip(bodyFile, gzipedFile);
 
-			TZip.encodeGZip(bodyFile, gzipedFile);
+				bodyFile = gzipedFile;
 
-			bodyFile = gzipedFile;
-
-		}else{
-			byte[] bodyBytes = TZip.encodeGZip(getBodyBytes());
-			byteBufferChannel.clear();
-			byteBufferChannel.writeEnd(ByteBuffer.wrap(bodyBytes));
-			return true;
+				return true;
+			} else {
+				byte[] bodyBytes = TZip.encodeGZip(getBodyBytes());
+				byteBufferChannel.clear();
+				byteBufferChannel.writeEnd(ByteBuffer.wrap(bodyBytes));
+				return true;
+			}
+		}else {
+			return false;
 		}
-
-		return false;
 	}
 
 	public void free(){
-		byteBufferChannel.free();
+		if(byteBufferChannel!=null) {
+			byteBufferChannel.free();
+		}
 	}
 }
