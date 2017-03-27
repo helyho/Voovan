@@ -338,8 +338,10 @@ public class HttpParser {
 							fileExtName = fileExtName.equals("") ? ".tmp" : fileExtName;
 
 							//拼文件名
-							String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(), "org.voovan.webserver",
-									"upload", "VOOVAN_" + System.currentTimeMillis() + "." + fileExtName);
+							String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
+									"org.voovan.webserver",
+									"upload",
+									"VOOVAN_" + System.currentTimeMillis() + "." + fileExtName);
 
 							int count = 0;
 							do{
