@@ -225,9 +225,6 @@ public class AioSocket extends SocketContext {
 
 	@Override
 	public boolean close() {
-		readCompletionHandler.free();
-		session.getByteBufferChannel().free();
-
 		if (socketChannel != null) {
 			 try {
 				// 关闭 Socket 连接
@@ -235,6 +232,9 @@ public class AioSocket extends SocketContext {
 					// 触发 DisConnect 事件
 					EventTrigger.fireDisconnect(session);
 					socketChannel.close();
+
+					readCompletionHandler.free();
+					session.getByteBufferChannel().free();
 				}
 
 				return true;

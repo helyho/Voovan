@@ -166,11 +166,12 @@ public class UdpSocket extends SocketContext{
 
     @Override
     public boolean close() {
-        session.getByteBufferChannel().free();
 
         if(datagramChannel!=null){
             try{
                 datagramChannel.close();
+
+                session.getByteBufferChannel().free();
                 return true;
             } catch(IOException e){
                 Logger.error("Close SocketChannel failed",e);

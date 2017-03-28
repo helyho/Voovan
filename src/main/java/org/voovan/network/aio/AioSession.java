@@ -114,7 +114,7 @@ public class AioSession extends IoSession<AioSocket>  {
 	protected int send0(ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
 		if (isConnected() && buffer != null) {
-			//循环发送直到全不内容发送完毕
+			//循环发送直到全部内容发送完毕
 			while(isConnected() && buffer.remaining()!=0){
 				try {
 					Future<Integer> sendResult = socketChannel.write(buffer);
