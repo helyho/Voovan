@@ -186,12 +186,13 @@ public class NioSocket extends SocketContext{
 
 	@Override
 	public boolean close(){
-		nioSelector.free();
-		session.getByteBufferChannel().free();
 
 		if(socketChannel!=null){
 			try{
 				socketChannel.close();
+
+				nioSelector.free();
+				session.getByteBufferChannel().free();
 				return true;
 			} catch(IOException e){
 				Logger.error("Close SocketChannel failed",e);
