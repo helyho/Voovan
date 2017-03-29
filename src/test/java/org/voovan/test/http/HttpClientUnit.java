@@ -61,7 +61,7 @@ public class HttpClientUnit extends TestCase {
 	}
 	
 	public void testMultiPart() throws Exception {
-		HttpClient mpClient = new HttpClient("http://127.0.0.1:28080");
+		HttpClient mpClient = new HttpClient("http://127.0.0.1:28080", 50000);
 		Response response = mpClient.setMethod("POST")
 			.addPart(new Part("name","测试MultiPart","GB2312"))
 			.addPart(new Part("age","23","GB2312")).send();
