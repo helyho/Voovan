@@ -10,6 +10,7 @@ import org.voovan.network.exception.IoFilterException;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TObject;
+import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -32,7 +33,12 @@ public class HttpClientFilter implements IoFilter {
 		}
 		if(object instanceof Request){
 			Request request = TObject.cast(object);
-			return ByteBuffer.wrap(request.asBytes());
+			try {
+				request.send(session);
+			} catch (IOException e) {
+				Logger.error(e);
+			}
+			return ByteBuffer.allocateDirect(0);
 		}
 		return null;
 	}

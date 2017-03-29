@@ -2,6 +2,7 @@ package org.voovan.tools;
 
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import sun.misc.Cleaner;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -127,6 +128,22 @@ public class TByteBuffer {
             Logger.error("TByteBuffer.moveData() Error: "+e.getMessage(), e);
         }
         return false;
+    }
+
+    /**
+     * 释放byteBuffer
+     *      释放对外的 bytebuffer
+     * @param byteBuffer bytebuffer 对象
+     */
+    public static void free(ByteBuffer byteBuffer){
+        if(!byteBuffer.hasArray()) {
+            try {
+                Cleaner cleaner = TReflect.getFieldValue(byteBuffer, "cleaner");
+                cleaner.clean();
+            } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

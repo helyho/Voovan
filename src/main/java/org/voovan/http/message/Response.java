@@ -196,6 +196,11 @@ public class Response {
 		}
 	}
 
+	/**
+	 * 发送数据
+	 * @param session socket 会话对象
+	 * @throws IOException
+	 */
 	public void send(IoSession session) throws IOException {
 
 		//发送报文头
@@ -208,6 +213,7 @@ public class Response {
 
 		//发送报文主体
 		if(body.size() != 0) {
+
 			//准备缓冲区
 			ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024 * 50);
 			int readSize = 0;
@@ -236,6 +242,7 @@ public class Response {
 
 			//发送报文结束符
 			session.send(readEnd());
+			TByteBuffer.free(byteBuffer);
 		}
 
 		body.free();
