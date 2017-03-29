@@ -1,6 +1,5 @@
 package org.voovan.http.message;
 
-import org.voovan.http.message.packet.Body;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
 import org.voovan.tools.*;
@@ -312,7 +311,7 @@ public class HttpParser {
 						ByteBufferChannel partByteBufferChannel = new ByteBufferChannel(partHeadEndIndex + 4); //包含换行符
 						partByteBufferChannel.writeEnd(partHeadBuffer);
 						Map<String, Object> partMap = parser(partByteBufferChannel, timeOut);
-						partByteBufferChannel.free();
+						partByteBufferChannel.release();
 
 						String fileName = getPerprotyEqualValue(partMap, "Content-Disposition", "filename");
 
@@ -426,7 +425,7 @@ public class HttpParser {
 					}
 
 					byte[] value = dealBodyContent(packetMap, chunkedByteBufferChannel.array());
-					chunkedByteBufferChannel.free();
+					chunkedByteBufferChannel.release();
 					packetMap.put(BODY_VALUE, value);
 				}
 				//3. HTTP(请求和响应) 报文的内容段中Content-Length 提供长度,按长度读取 body 内容段

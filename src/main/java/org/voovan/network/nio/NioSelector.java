@@ -155,7 +155,7 @@ public class NioSelector {
 		return socketChannel;
 	}
 
-	public void free(){
-		netByteBufferChannel.free();
+	public void release(){
+		netByteBufferChannel.release();
 	}
 }

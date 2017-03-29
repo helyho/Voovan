@@ -3,7 +3,6 @@ package org.voovan.test.tools;
 import junit.framework.TestCase;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.TUnsafe;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -192,7 +191,7 @@ public class ByteBufferChannelUnit extends TestCase {
 
 		byteBufferChannel1.clear();
 
-		byteBufferChannel1.free();
-		byteBufferChannel1.free();
+		byteBufferChannel1.release();
+		byteBufferChannel1.release();
 	}
 }

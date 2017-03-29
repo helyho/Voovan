@@ -1,10 +1,10 @@
 package org.voovan.tools;
 
+import org.voovan.tools.Exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import sun.misc.Cleaner;
 import sun.misc.Unsafe;
-import sun.nio.ch.DirectBuffer;
 
 import java.io.File;
 import java.io.IOException;
@@ -88,12 +88,27 @@ public class ByteBufferChannel {
 	}
 
 	/**
+	 * 是否已经释放
+	 * @return true 已释放, false: 未释放
+	 */
+	public boolean isReleased(){
+		if(address == 0){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	/**
 	 * 立刻释放内存
 	 */
-	public void free(){
+	public void release(){
 		lock.lock();
 		try{
-           cleaner.clean();
+			if(address != 0) {
+				cleaner.clean();
+				address = 0;
+			}
 		}finally {
 			lock.unlock();
 		}
@@ -117,7 +132,9 @@ public class ByteBufferChannel {
 			if (this.address == 0) {
 				return;
 			}
+
 			TUnsafe.getUnsafe().freeMemory(address);
+			address = 0;
 		}
 	}
 
@@ -138,17 +155,25 @@ public class ByteBufferChannel {
 
 	/**
 	 * 当前数组空闲的大小
-	 * @return 当前数组空闲的大小
+	 * @return 当前数组空闲的大小. -1: 已释放
 	 */
 	public int available(){
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		return byteBuffer.capacity() - size;
 	}
 
 	/**
 	 * 返回当前分配的容量
-	 * @return 当前分配的容量
+	 * @return 当前分配的容量. -1: 已释放
 	 */
 	public int capacity(){
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		return byteBuffer.capacity();
 	}
 
@@ -157,6 +182,10 @@ public class ByteBufferChannel {
 	 * @return 数据大小
 	 */
 	public int size(){
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		return size;
 	}
 
@@ -168,6 +197,10 @@ public class ByteBufferChannel {
 	 * @return 缓冲区有效字节数组
 	 */
 	public byte[] array(){
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		lock.lock();
 		try {
 			byte[] temp = new byte[size()];
@@ -182,6 +215,10 @@ public class ByteBufferChannel {
 	 * 清空通道
 	 */
 	public void clear(){
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		lock.lock();
 		try{
 			byteBuffer.clear();
@@ -198,6 +235,9 @@ public class ByteBufferChannel {
 	 * @return true: 成功, false: 失败
 	 */
 	public boolean shrink(int shrinkSize){
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
 
 		if(Math.abs(shrinkSize) > size){
 			return true;
@@ -241,6 +281,10 @@ public class ByteBufferChannel {
 	 * @return byte 数据
 	 */
 	public byte get(int offset) throws IndexOutOfBoundsException {
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		if(offset >= 0 && offset <= size) {
 			lock.lock();
 			try {
@@ -262,6 +306,10 @@ public class ByteBufferChannel {
 	 * @param length  长度
 	 */
 	public int get(int offset, byte[] dst, int length) throws IndexOutOfBoundsException {
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		if(offset >= 0 && length <= size - offset) {
 			lock.lock();
 			try {
@@ -288,6 +336,10 @@ public class ByteBufferChannel {
 	 * @param dst     目标数组
 	 */
 	public int get(byte[] dst){
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		lock.lock();
 		try {
 			int arrSize = dst.length;
@@ -312,6 +364,10 @@ public class ByteBufferChannel {
 	 * @return ByteBuffer 对象
 	 */
 	public ByteBuffer getByteBuffer(){
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		lock.lock();
 		return byteBuffer;
 	}
@@ -324,6 +380,10 @@ public class ByteBufferChannel {
 	 *		所以 建议 getByteBuffer() 和 compact() 成对操作
 	 */
 	public boolean compact(){
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		if(!lock.isLocked()){
 			lock.lock();
 		}
@@ -359,6 +419,10 @@ public class ByteBufferChannel {
 	 */
 	public boolean waitData(int length,int timeout){
 		while(timeout > 0){
+			if(isReleased()){
+				throw new MemoryReleasedException("ByteBufferChannel is freed.");
+			}
+
 			if(size >= length){
 				return true;
 			}
@@ -377,6 +441,10 @@ public class ByteBufferChannel {
 	 */
 	public boolean waitData(byte[] mark, int timeout){
 		while(timeout > 0){
+			if(isReleased()){
+				throw new MemoryReleasedException("ByteBufferChannel is freed.");
+			}
+
 			if(indexOf(mark) != -1){
 				return true;
 			}
@@ -392,6 +460,10 @@ public class ByteBufferChannel {
 	 * @return 写入的数据大小
 	 */
 	public int writeEnd(ByteBuffer src) {
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		if(src==null){
 			return -1;
 		}
@@ -439,6 +511,10 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int writeHead(ByteBuffer src) {
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		if (src == null) {
 			 return -1;
 		}
@@ -490,6 +566,9 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int readHead(ByteBuffer dst) {
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
 
 		if(dst==null){
 			return -1;
@@ -545,6 +624,10 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int readEnd(ByteBuffer dst) {
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		if(dst==null){
 			return -1;
 		}
@@ -590,6 +673,10 @@ public class ByteBufferChannel {
 	 * @return 第一个字节的索引位置
 	 */
 	public int indexOf(byte[] mark){
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		if(size == 0){
 			return -1;
 		}
@@ -612,6 +699,9 @@ public class ByteBufferChannel {
 	 * @return 字符串
 	 */
 	public String readLine() {
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
 
 		if(size == 0){
 			return null;
@@ -643,6 +733,9 @@ public class ByteBufferChannel {
 	 * @return 字节数组
 	 */
 	public ByteBuffer readWithSplit(byte[] splitByte) {
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
 
 		int index = indexOf(splitByte);
 
@@ -670,6 +763,10 @@ public class ByteBufferChannel {
 	}
 
 	public void saveToFile(String filePath, long length) throws IOException{
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is freed.");
+		}
+
 		int bufferSize = 1024*1024;
 
 		if(length < bufferSize){

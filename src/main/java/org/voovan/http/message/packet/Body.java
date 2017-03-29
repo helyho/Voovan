@@ -342,7 +342,7 @@ public class Body {
 
 	public void free(){
 		if(byteBufferChannel!=null) {
-			byteBufferChannel.free();
+			byteBufferChannel.release();
 		}
 	}
 }
