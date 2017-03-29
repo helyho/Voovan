@@ -38,7 +38,7 @@ public class WebServerFilter implements IoFilter {
 			try {
 				response.send(session);
 			}catch(Exception e){
-				e.printStackTrace();
+				Logger.error(e);
 			}
 			return ByteBuffer.allocateDirect(0);
 		} else if(object instanceof WebSocketFrame){

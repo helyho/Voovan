@@ -2,12 +2,15 @@ package org.voovan.http.message;
 
 import org.voovan.http.message.packet.*;
 import org.voovan.http.message.packet.Part.PartType;
+import org.voovan.network.IoSession;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.THash;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -179,7 +182,7 @@ public class Request {
             // 如果请求中包含 Part 的处理
             if (!parts.isEmpty()) {
                 // 产生新的boundary备用
-                String contentType = "multipart/form-data; boundary=" + boundary;
+                String contentType = "multipart/form-data;";
                 header.put(CONTENT_TYPE, contentType);
             }else if(body.getBodyBytes().length>0){
                 header.put(CONTENT_TYPE, "application/x-www-form-urlencoded");
@@ -190,8 +193,14 @@ public class Request {
             if(!TString.isNullOrEmpty(cookieValue)){
                 header.put("Cookie", genCookie());
             }
-		}else if("multipart/form-data;".equals(header.get(CONTENT_TYPE))){
+		}
+
+		if("multipart/form-data;".equals(header.get(CONTENT_TYPE))){
 			header.put(CONTENT_TYPE ,header.get(CONTENT_TYPE)+" boundary=" + boundary);
+		}
+
+		if (body.size() > 0) {
+			header.put("Content-Length", Long.toString(body.size()));
 		}
 	}
 
@@ -212,57 +221,15 @@ public class Request {
 	}
 
 	/**
-	 * 获取报文体
-	 * @return 报文体 byte 数组
-     */
-	private byte[] genBody() {
-		try {
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			// 有 BodyBytes 时直接写入包体
-			if (body.getBodyBytes().length > 0) {
-				String bodyString = body.getBodyString();
-				outputStream.write(bodyString.getBytes("UTF-8"));
-			}
-
-			// 有 parts 时按 parts 的格式写入 parts
-			if(!parts.isEmpty()) {
-				// Content-Type存在
-				if (parts.size() != 0) {
-					// 获取 multiPart 标识
-					for (Part part : this.parts) {
-						outputStream.write(("--" + boundary + "\r\n").getBytes("UTF-8"));
-						outputStream.write(part.toString().getBytes("UTF-8"));
-						outputStream.write(part.body().getBodyBytes());
-						outputStream.write("\r\n".getBytes("UTF-8"));
-					}
-					outputStream.write(("--" + boundary + "--").getBytes("UTF-8"));
-					// POST结束不需要空行标识结尾
-				}
-			}
-
-			if(outputStream.size()>0){
-				header.put("Content-Length", Integer.toString(outputStream.size()));
-			}
-			return outputStream.toByteArray();
-		} catch (IOException e) {
-			return  new byte[0];
-		}finally {
-			body.free();
-		}
-	}
-	
-	/**
 	 * 根据对象的内容,构造 Http 请求报文
 	 * 
 	 * @return Http 请求报文
 	 */
-	public byte[] asBytes() {
+	private ByteBuffer readHead() {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
 		// Body 对应的 Header 预处理
 		initHeader();
-		
-		byte[] bodyBytes = genBody();
 		
 		// 报文组装
 		try {
@@ -275,15 +242,64 @@ public class Request {
 			//头结束插入空行
 			outputStream.write("\r\n".getBytes("UTF-8"));
 			
-			//插入报文内容
-			outputStream.write(bodyBytes);
-			
 		} catch (IOException e) {
 			Logger.error("OutputString io error.",e);
 		}
 
-		return outputStream.toByteArray();
+		return ByteBuffer.wrap(outputStream.toByteArray());
 	}
+
+	/**
+	 * 发送数据
+	 * @param session socket 会话对象
+	 * @throws IOException
+	 */
+	 public void send(IoSession session) throws IOException {
+
+		int readSize = 0;
+
+		//发送报文头
+        session.send(readHead());
+
+        //发送缓冲区
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024 * 50);
+
+        // 有 BodyBytes 时直接写入包体
+        if (body.size() > 0) {
+            while(true) {
+                readSize = body.read(byteBuffer);
+                if (readSize == 0) {
+                    break;
+                }
+                session.send(byteBuffer);
+                byteBuffer.clear();
+            }
+        }
+
+        byteBuffer.clear();
+
+        // 有 parts 时按 parts 的格式写入 parts
+        if(!parts.isEmpty()) {
+            // Content-Type存在
+            if (parts.size() != 0) {
+
+                // 获取 multiPart 标识
+                for (Part part : this.parts) {
+					//发送 part 报文
+					part.send(session, boundary);
+                }
+
+                //发送结尾标识
+                byteBuffer.put(("--" + boundary + "--").getBytes());
+				byteBuffer.flip();
+                session.send(byteBuffer);
+                byteBuffer.clear();
+                // POST结束不需要空行标识结尾
+            }
+        }
+	}
+
+
 
 	/**
 	 * 清理
@@ -298,6 +314,6 @@ public class Request {
 
 	@Override
 	public String toString() {
-		return new String(asBytes());
+		return new String(TByteBuffer.toString(readHead()));
 	}
 }

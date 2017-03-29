@@ -1,5 +1,7 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.network.IoSession;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
@@ -8,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.nio.ByteBuffer;
 
 /**
  * HTTP 的 part 对象
@@ -137,9 +140,8 @@ public class Part {
 		this.header.clear();
 		this.body().clear();
 	}
-	
-	@Override
-	public String toString(){
+
+	private String readHead(){
 		header.put("Content-Disposition", "form-data");
 		if(header.get("name")!=null){
 			header.put("Content-Disposition", header.get("Content-Disposition")+"; name=\""+header.get("name")+"\"");
@@ -149,4 +151,48 @@ public class Part {
 		}
 		return header.toString()+"\r\n";
 	}
+
+	public void send(IoSession session, String boundary){
+		int readSize = 0;
+
+		//发送缓冲区
+		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024 * 50);
+
+		//发送分段开始
+		byteBuffer.put(("--" + boundary + "\r\n").getBytes());
+		byteBuffer.flip();
+		session.send(byteBuffer);
+		byteBuffer.clear();
+
+		//发送 part 头
+		byteBuffer.put(readHead().getBytes());
+		byteBuffer.flip();
+		session.send(byteBuffer);
+		byteBuffer.clear();
+
+		//发送 part 报文正文
+		while(true) {
+			readSize = body().read(byteBuffer);
+			if (readSize == 0) {
+				break;
+			}
+			session.send(byteBuffer);
+			byteBuffer.clear();
+		}
+
+		//发送结尾字符
+		byteBuffer.put("\r\n".getBytes());
+		byteBuffer.flip();
+		session.send(byteBuffer);
+		byteBuffer.clear();
+
+		TByteBuffer.free(byteBuffer);
+	}
+
+	@Override
+	public String toString(){
+		return readHead();
+	}
+
+
 }
