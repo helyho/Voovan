@@ -6,7 +6,6 @@ import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
-import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
 import org.voovan.network.messagesplitter.TrasnferSplitter;
 import org.voovan.tools.log.Logger;
 
@@ -171,7 +170,7 @@ public class UdpSocket extends SocketContext{
             try{
                 datagramChannel.close();
 
-                session.getByteBufferChannel().free();
+                session.getByteBufferChannel().release();
                 return true;
             } catch(IOException e){
                 Logger.error("Close SocketChannel failed",e);

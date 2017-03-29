@@ -7,7 +7,6 @@ import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
-import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
 import org.voovan.network.messagesplitter.TrasnferSplitter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
@@ -233,8 +232,8 @@ public class AioSocket extends SocketContext {
 					EventTrigger.fireDisconnect(session);
 					socketChannel.close();
 
-					readCompletionHandler.free();
-					session.getByteBufferChannel().free();
+					readCompletionHandler.release();
+					session.getByteBufferChannel().release();
 				}
 
 				return true;

@@ -6,7 +6,6 @@ import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
-import org.voovan.network.messagesplitter.TimeOutMesssageSplitter;
 import org.voovan.network.messagesplitter.TrasnferSplitter;
 import org.voovan.tools.log.Logger;
 
@@ -191,8 +190,8 @@ public class NioSocket extends SocketContext{
 			try{
 				socketChannel.close();
 
-				nioSelector.free();
-				session.getByteBufferChannel().free();
+				nioSelector.release();
+				session.getByteBufferChannel().release();
 				return true;
 			} catch(IOException e){
 				Logger.error("Close SocketChannel failed",e);
