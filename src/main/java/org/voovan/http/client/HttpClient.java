@@ -167,18 +167,22 @@ public class HttpClient {
 	 * @throws IOException IO异常对象
 	 */
 	public ByteBuffer loadStream() throws IOException {
-
-		ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getBufferSize());
-
 		IoSession session = socket.getSession();
-		session.enabledMessageSpliter(false);
-		int readSize = session.read(tmpBuffer);
 
-		if(readSize == -1){
+		if(session.isConnected()) {
+			ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getBufferSize());
+
+			session.enabledMessageSpliter(false);
+			int readSize = session.read(tmpBuffer);
+
+			if (readSize == -1) {
+				return null;
+			}
+
+			return tmpBuffer;
+		}else{
 			return null;
 		}
-
-		return tmpBuffer;
 	}
 
 	/**
