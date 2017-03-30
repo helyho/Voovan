@@ -60,7 +60,6 @@
 
     function wssend() {
         websocket.send('[SEND] This is send by "Send" button.');
-        //鉴于 AIO catchRead 的 bug,这里需要停止100ms.
         sleep(100);
         websocket.send('serial send,small package demo.');
 
