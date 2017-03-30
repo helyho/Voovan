@@ -13,7 +13,7 @@ import org.voovan.http.server.context.HttpFilterConfig;
 public interface HttpFilter {
 	/**
 	 * 请求过滤器,在请求之前
-	 *   如果在这里修改了response参数的 body ( 即:response.body().size()>0 ),则不会执行路由处理,
+	 *   如果在这里修改了response参数的 body ( 即:response.body().size() 大于 0 ),则不会执行路由处理,
 	 *   	整个过滤器执行完成后,返回response.
 	 * @param filterConfig 过滤器配置对象
 	 * @param request  请求对象

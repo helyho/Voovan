@@ -33,7 +33,7 @@ public class TZip {
 	 *
 	 * @param inputFile 源文件
 	 * @param outputFile 目标文件
-	 * @throws IOException
+	 * @throws IOException IO异常
 	 */
 	public static void decodeGZip(File inputFile, File outputFile)
 			throws IOException {
@@ -81,7 +81,7 @@ public class TZip {
 	 *
 	 * @param inputFile 源文件
 	 * @param outputFile 目标文件
-	 * @throws IOException
+	 * @throws IOException IO异常
 	 */
 	public static void encodeGZip(File inputFile, File outputFile) throws IOException{
 		FileInputStream fin = null;

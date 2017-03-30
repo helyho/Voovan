@@ -198,7 +198,7 @@ public class Response {
 	/**
 	 * 发送数据
 	 * @param session socket 会话对象
-	 * @throws IOException
+	 * @throws IOException IO异常
 	 */
 	public void send(IoSession session) throws IOException {
 
