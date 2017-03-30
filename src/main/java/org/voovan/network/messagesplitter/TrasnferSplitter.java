@@ -11,9 +11,9 @@ import java.nio.ByteBuffer;
  *         使用这个分割器的时候不推荐使用过滤器,应为报文并不完整.
  *
  * @author: helyho
- * @Voovan Framework.
- * @WebSite: https://github.com/helyho/Voovan
- * @Licence: Apache v2 License
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class TrasnferSplitter implements MessageSplitter {
     @Override

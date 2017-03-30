@@ -4,9 +4,9 @@ package org.voovan.tools.Exception;
  * 类文字命名
  *
  * @author: helyho
- * @Voovan Framework.
- * @WebSite: https://github.com/helyho/Voovan
- * @Licence: Apache v2 License
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class MemoryReleasedException extends RuntimeException{
 
