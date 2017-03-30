@@ -549,68 +549,71 @@ public class TReflect {
 					String fieldName = field.getName();
 					Class fieldType = field.getType();
 					try {
-                        //对于 对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
-                        if(isImpByInterface(fieldType,Map.class) && value instanceof Map){
-                            Class[] mapGenericTypes = getFieldGenericType(field);
-                            if(mapGenericTypes!=null) {
-								if(fieldType == Map.class){
-									fieldType = HashMap.class;
+
+						if(value != null) {
+							//对于 对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
+							if (isImpByInterface(fieldType, Map.class) && value instanceof Map) {
+								Class[] mapGenericTypes = getFieldGenericType(field);
+								if (mapGenericTypes != null) {
+									if (fieldType == Map.class) {
+										fieldType = HashMap.class;
+									}
+									Map result = (Map) TReflect.newInstance(fieldType);
+									Map mapValue = (Map) value;
+									Iterator iterator = mapValue.entrySet().iterator();
+									while (iterator.hasNext()) {
+										Entry entry = (Entry) iterator.next();
+										Map keyOfMap = null;
+										Map valueOfMap = null;
+										if (entry.getKey() instanceof Map) {
+											keyOfMap = (Map) entry.getKey();
+										} else {
+											keyOfMap = TObject.newMap("value", entry.getKey());
+										}
+
+										if (entry.getValue() instanceof Map) {
+											valueOfMap = (Map) entry.getValue();
+										} else {
+											valueOfMap = TObject.newMap("value", entry.getValue());
+										}
+
+										Object keyObj = getObjectFromMap(mapGenericTypes[0], keyOfMap, ignoreCase);
+										Object valueObj = getObjectFromMap(mapGenericTypes[1], valueOfMap, ignoreCase);
+										result.put(keyObj, valueObj);
+									}
+									value = result;
 								}
-                                Map result = (Map)TReflect.newInstance(fieldType);
-                                Map mapValue = (Map) value;
-                                Iterator iterator = mapValue.entrySet().iterator();
-                                while(iterator.hasNext() ) {
-                                    Entry entry = (Entry) iterator.next();
-                                    Map keyOfMap = null;
-                                    Map valueOfMap = null;
-                                    if(entry.getKey() instanceof Map){
-                                        keyOfMap = (Map)entry.getKey();
-                                    }else{
-                                        keyOfMap = TObject.newMap("value",entry.getKey());
-                                    }
+							}
+							//对于 对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
+							else if (isImpByInterface(fieldType, Collection.class) && value instanceof Collection) {
+								Class[] listGenericTypes = getFieldGenericType(field);
+								if (listGenericTypes != null) {
+									if (fieldType == List.class) {
+										fieldType = ArrayList.class;
+									}
+									List result = (List) TReflect.newInstance(fieldType);
+									List listValue = (List) value;
+									for (Object listItem : listValue) {
+										Map valueOfMap = null;
+										if (listItem instanceof Map) {
+											valueOfMap = (Map) listItem;
+										} else {
+											valueOfMap = TObject.newMap("value", listItem);
+										}
 
-                                    if(entry.getValue() instanceof Map){
-                                        valueOfMap = (Map)entry.getValue();
-                                    }else{
-                                        valueOfMap = TObject.newMap("value",entry.getValue());
-                                    }
-
-                                    Object keyObj = getObjectFromMap(mapGenericTypes[0], keyOfMap, ignoreCase);
-                                    Object valueObj = getObjectFromMap(mapGenericTypes[1], valueOfMap, ignoreCase);
-                                    result.put(keyObj, valueObj);
-                                }
-                                value = result;
-                            }
-                        }
-                        //对于 对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
-                        else if(isImpByInterface(fieldType,Collection.class) && value instanceof Collection){
-                            Class[] listGenericTypes = getFieldGenericType(field);
-                            if(listGenericTypes !=null) {
-                            	if(fieldType == List.class){
-									fieldType = ArrayList.class;
+										Object item = getObjectFromMap(listGenericTypes[0], valueOfMap, ignoreCase);
+										result.add(item);
+									}
+									value = result;
 								}
-                                List result = (List)TReflect.newInstance(fieldType);
-                                List listValue = (List)value;
-                                for(Object listItem : listValue){
-                                    Map valueOfMap = null;
-                                    if(listItem instanceof Map){
-                                        valueOfMap = (Map)listItem;
-                                    }else{
-                                        valueOfMap = TObject.newMap("value",listItem);
-                                    }
 
-                                    Object item = getObjectFromMap(listGenericTypes[0],valueOfMap,ignoreCase);
-                                    result.add(item);
-                                }
-                                value = result;
-                            }
+							} else if (value instanceof Map) {
+								value = getObjectFromMap(fieldType, (Map<String, ?>) value, ignoreCase);
 
-                        }else if(value instanceof Map){
-                            value = getObjectFromMap(fieldType,(Map<String, ?>)value, ignoreCase);
-
-                        } else {
-                            value = getObjectFromMap(fieldType, TObject.newMap("value", value), ignoreCase);
-                        }
+							} else {
+								value = getObjectFromMap(fieldType, TObject.newMap("value", value), ignoreCase);
+							}
+						}
 
 						setFieldValue(obj, fieldName, value);
 					}catch(Exception e){
