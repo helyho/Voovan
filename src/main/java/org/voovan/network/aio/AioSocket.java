@@ -8,6 +8,7 @@ import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TrasnferSplitter;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
@@ -35,6 +36,7 @@ public class AioSocket extends SocketContext {
 	private AsynchronousSocketChannel	socketChannel;
 	private AioSession					session;
 	private ReadCompletionHandler		readCompletionHandler;
+	private ByteBuffer readByteBuffer;
 
 	/**
 	 * 构造函数
@@ -136,7 +138,6 @@ public class AioSocket extends SocketContext {
                 TEnv.sleep(1);
             }
 		}
-
 	}
 
 	/**
@@ -166,10 +167,21 @@ public class AioSocket extends SocketContext {
 
 		if(isConnected()) {
 			//捕获输入事件
-			catchRead(ByteBuffer.allocateDirect(this.getBufferSize()));
+			readByteBuffer = ByteBuffer.allocateDirect(this.getBufferSize());
+			catchRead(readByteBuffer);
 
 			//触发 connect 事件
 			EventTrigger.fireConnectThread(session);
+		}
+
+		//等待连接完成
+		int waitConnectTime = 0;
+		while(!isConnected()){
+			TEnv.sleep(1);
+			waitConnectTime++;
+			if(waitConnectTime >= readTimeout){
+				break;
+			}
 		}
 	}
 
@@ -234,6 +246,10 @@ public class AioSocket extends SocketContext {
 
 					readCompletionHandler.release();
 					session.getByteBufferChannel().release();
+					TByteBuffer.release(readByteBuffer);
+					if(session.getSSLParser()!=null){
+						session.getSSLParser().release();
+					}
 				}
 
 				return true;

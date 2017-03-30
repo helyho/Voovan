@@ -1,5 +1,6 @@
 package org.voovan.http.websocket;
 
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.math.BigInteger;
@@ -172,7 +173,9 @@ public class WebSocketFrame {
 			payload.put(byteBuffer);
 		}
 		payload.flip();
-		return WebSocketFrame.newInstance(fin, opcode, mask, payload,errorCode);
+		WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(fin, opcode, mask, payload,errorCode);
+		TByteBuffer.release(payload);
+		return webSocketFrame;
 	}
 
 	/**
