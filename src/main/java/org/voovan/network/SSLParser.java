@@ -1,6 +1,7 @@
 package org.voovan.network;
 
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 
 import javax.net.ssl.SSLEngine;
@@ -226,5 +227,10 @@ public class SSLParser {
 			}
 		}
 		return readSize;
+	}
+
+	public void release(){
+		TByteBuffer.release(netData);
+		TByteBuffer.release(appData);
 	}
 }

@@ -2,14 +2,11 @@ package org.voovan.http.message.packet;
 
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 
 /**
@@ -186,7 +183,7 @@ public class Part {
 		session.send(byteBuffer);
 		byteBuffer.clear();
 
-		TByteBuffer.free(byteBuffer);
+		TByteBuffer.release(byteBuffer);
 	}
 
 	@Override

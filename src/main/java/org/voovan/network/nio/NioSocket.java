@@ -7,6 +7,7 @@ import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TrasnferSplitter;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLException;
@@ -138,6 +139,7 @@ public class NioSocket extends SocketContext{
 	 * 启动同步的上下文连接,同步读写时使用
 	 */
 	public void syncStart(){
+
 		Global.getThreadPool().execute(()->{
 			try {
 				start();
@@ -145,6 +147,16 @@ public class NioSocket extends SocketContext{
 				e.printStackTrace();
 			}
 		});
+
+		//等待连接完成
+		int waitConnectTime = 0;
+		while(!isConnected()){
+			TEnv.sleep(1);
+			waitConnectTime++;
+			if(waitConnectTime >= readTimeout){
+				break;
+			}
+		}
 	}
 
 	@Override
@@ -192,6 +204,9 @@ public class NioSocket extends SocketContext{
 
 				nioSelector.release();
 				session.getByteBufferChannel().release();
+				if(session.getSSLParser()!=null){
+					session.getSSLParser().release();
+				}
 				return true;
 			} catch(IOException e){
 				Logger.error("Close SocketChannel failed",e);
