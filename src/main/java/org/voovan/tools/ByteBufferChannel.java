@@ -380,6 +380,7 @@ public class ByteBufferChannel {
 	 * 		如果之前最后一次通过 getByteBuffer() 方法获得过 ByteBuffer,则使用这个 ByteBuffer 来收缩通道
 	 *      将 (position 到 limit) 之间的数据 移动到 (0  到 limit - position) 其他情形将不做任何操作
 	 *		所以 建议 getByteBuffer() 和 compact() 成对操作
+	 * @return 是否compact成功,true:成功, false:失败
 	 */
 	public boolean compact(){
 		if(isReleased()){

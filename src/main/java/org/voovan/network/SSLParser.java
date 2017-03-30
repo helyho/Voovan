@@ -204,6 +204,9 @@ public class SSLParser {
 
 	/**
 	 * 读取SSL消息到缓冲区
+	 * @param session Socket 会话对象
+	 * @param netByteBufferChannel Socket SSL 加密后的数据
+	 * @param appByteBufferChannel Socket SSL 解密后的数据
 	 * @return 接收数据大小
 	 * @throws IOException  IO异常
 	 */

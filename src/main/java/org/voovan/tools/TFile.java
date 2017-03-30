@@ -533,6 +533,7 @@ public class TFile {
 	 * @param src   原文件
 	 * @param dest  目标文件
 	 * @return true: 成功, false:失败
+	 * @throws IOException IO异常
 	 */
 	public static boolean moveFile(File src, File dest) throws IOException{
 		new File(TFile.getFileFolderPath(dest.getCanonicalPath())).mkdirs();

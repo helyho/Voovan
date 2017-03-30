@@ -306,7 +306,8 @@ public class Body {
 
 	/**
 	 * 压缩
-	 * @return
+	 * @return true: 压缩成功, false: 压缩失败
+	 * @throws IOException IO异常
 	 */
 	public boolean compress() throws IOException {
 
