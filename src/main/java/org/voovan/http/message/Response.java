@@ -6,7 +6,6 @@ import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.ResponseProtocol;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.TZip;
 import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayOutputStream;
@@ -242,7 +241,7 @@ public class Response {
 
 			//发送报文结束符
 			session.send(readEnd());
-			TByteBuffer.free(byteBuffer);
+			TByteBuffer.release(byteBuffer);
 		}
 
 		body.free();

@@ -311,6 +311,7 @@ public class HttpParser {
 						ByteBufferChannel partByteBufferChannel = new ByteBufferChannel(partHeadEndIndex + 4); //包含换行符
 						partByteBufferChannel.writeEnd(partHeadBuffer);
 						Map<String, Object> partMap = parser(partByteBufferChannel, timeOut);
+						TByteBuffer.release(partHeadBuffer);
 						partByteBufferChannel.release();
 
 						String fileName = getPerprotyEqualValue(partMap, "Content-Disposition", "filename");
@@ -418,6 +419,7 @@ public class HttpParser {
 
 							//如果多次读取则拼接
 							chunkedByteBufferChannel.writeEnd(byteBuffer);
+							TByteBuffer.release(byteBuffer);
 						}
 
 						//跳过换行符号

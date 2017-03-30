@@ -114,7 +114,7 @@ public class EventProcess {
 			// 由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.
 			// 有可能缓冲区没有读完
 			// 按消息包出发 onRecive 事件
-			while (session.isConnected() && session.getByteBufferChannel().size() > 0) {
+			while (session.getByteBufferChannel().size() > 0) {
 
 				byteBuffer = messageLoader.read();
 

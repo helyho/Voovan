@@ -297,6 +297,7 @@ public class Request {
                 // POST结束不需要空行标识结尾
             }
         }
+		 TByteBuffer.release(byteBuffer);
 	}
 
 

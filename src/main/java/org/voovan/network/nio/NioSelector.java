@@ -4,6 +4,7 @@ import org.voovan.network.EventTrigger;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -129,6 +130,7 @@ public class NioSelector {
 			// 触发连接断开事件
 			if(session!=null) {
 				EventTrigger.fireDisconnect(session);
+				TByteBuffer.release(readTempBuffer);
 			}
 		}
 	}
