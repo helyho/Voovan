@@ -291,13 +291,14 @@ public class WebSocketFrame {
 		}
 
 		if (mask) {
-			ByteBuffer maskkey = ByteBuffer.allocate(4);
+			ByteBuffer maskkey = ByteBuffer.allocateDirect(4);
 			Random reuseableRandom = new Random();
 			maskkey.putInt(reuseableRandom.nextInt());
-			buf.put(maskkey.array());
+			buf.put(maskkey);
 			for (int i = 0; data.hasRemaining(); i++) {
 				buf.put((byte) (data.get() ^ maskkey.get(i % 4)));
 			}
+			TByteBuffer.release(maskkey);
 		} else{
 			buf.put(data);
 		}

@@ -39,8 +39,8 @@ public class EventTrigger {
 		}
 	}
 	
-	public static void fireSentThread(IoSession session, ByteBuffer buffer){
-		fireEventThread(session, EventName.ON_SENT,buffer);
+	public static void fireSentThread(IoSession session, Object obj){
+		fireEventThread(session, EventName.ON_SENT, obj);
 	}
 
 	public static void fireDisconnectThread(IoSession session){
@@ -68,8 +68,8 @@ public class EventTrigger {
 		}
 	}
 	
-	public static void fireSent(IoSession session, ByteBuffer buffer){
-		fireEvent(session, EventName.ON_SENT,buffer);
+	public static void fireSent(IoSession session, Object obj){
+		fireEvent(session, EventName.ON_SENT, obj);
 	}
 	
 	public static void fireDisconnect(IoSession session){
@@ -109,10 +109,9 @@ public class EventTrigger {
 	 * @param name     事件名称
 	 * @param other 附属对象
 	 */
-	public static void fireEvent(IoSession session,Event.EventName name,Object other){
+	public static void fireEvent(IoSession session, Event.EventName name, Object other){
 		Event event = Event.getInstance(session,name,other);
 		EventProcess.process(event);
 	}
-
 
 }
