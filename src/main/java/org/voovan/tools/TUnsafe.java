@@ -17,15 +17,19 @@ import java.util.Arrays;
  */
 public class TUnsafe {
 
+    private static Unsafe unsafe;
+
     public static Unsafe getUnsafe() {
-        try {
-            Field field = Unsafe.class.getDeclaredField("theUnsafe");
-            field.setAccessible(true);
-            Unsafe unsafe = (Unsafe)field.get(null);
-            return unsafe;
-        } catch (Exception e) {
-            e.printStackTrace();
+        if(unsafe==null) {
+            try {
+                Field field = Unsafe.class.getDeclaredField("theUnsafe");
+                field.setAccessible(true);
+                unsafe = (Unsafe) field.get(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        return null;
+
+        return unsafe;
     }
 }
