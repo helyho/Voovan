@@ -259,8 +259,8 @@ public class WebServer {
 	 */
 	private static void loadContextBin(){
 		try {
-			TFile.loadBinary(TFile.getSystemPath("classes"));
-			TFile.loadJars(TFile.getSystemPath("lib"));
+			TEnv.loadBinary(TFile.getSystemPath("classes"));
+			TEnv.loadJars(TFile.getSystemPath("lib"));
 		} catch (NoSuchMethodException | IOException | SecurityException e) {
 			Logger.warn("Voovan WebServer Loader ./classes or ./lib error." ,e);
 		}
