@@ -292,8 +292,8 @@ public abstract class IoSession<T extends SocketContext> {
 	protected abstract MessageSplitter getMessagePartition();
 	
 	/**
-	 * 会话是否打开
-	 * @return	true: 打开,false: 关闭
+	 * 会话是否连接
+	 * @return	true: 连接,false: 关闭
 	 */
 	public abstract boolean isConnected();
 

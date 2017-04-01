@@ -277,7 +277,7 @@ public class ByteBufferChannel {
 	/**
 	 * 获取某个偏移量位置的 byte 数据
 	 *     该操作不会导致通道内的数据发生变化
-	 * @param offset 偏移量位置的
+	 * @param offset 偏移量
 	 * @return byte 数据
 	 */
 	public byte get(int offset) throws IndexOutOfBoundsException {
@@ -438,7 +438,7 @@ public class ByteBufferChannel {
 
 	/**
 	 * 等待收到期望的数据
-	 * @param mark  期望的数据出现
+	 * @param mark  期望出现的数据
 	 * @param timeout 超时时间,单位: 秒
 	 * @return true: 具备期望长度的数据, false: 等待数据超时
 	 */
