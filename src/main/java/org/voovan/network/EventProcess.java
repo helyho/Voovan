@@ -4,6 +4,7 @@ import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.Chain;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -147,6 +148,8 @@ public class EventProcess {
 					sendMessage(session, result);
 				}
 			}
+
+			TByteBuffer.release(byteBuffer);
 		}
 	}
 
@@ -200,6 +203,11 @@ public class EventProcess {
 		if (socketContext != null) {
 			IoSession session = event.getSession();
 			socketContext.handler().onSent(session, obj);
+
+			//如果 obj 是 ByteBuffer 释放改对象
+			if(obj instanceof ByteBuffer){
+				TByteBuffer.release(TObject.cast(obj));
+			}
 		}
 	}
 
@@ -241,6 +249,9 @@ public class EventProcess {
 				} else if (sendObj instanceof String) {
 					String sendString = TObject.cast(sendObj);
 					resultBuf = ByteBuffer.wrap(sendString.getBytes());
+				} else if (sendObj instanceof byte[]) {
+					byte[] sendBuffer = TObject.cast(sendObj);
+					resultBuf = ByteBuffer.wrap(sendBuffer);
 				} else {
 					throw new SendMessageException("Expect Object type is 'java.nio.ByteBuffer' or 'java.lang.String',reality got type is '"
 							+ sendObj.getClass() + "'");
@@ -253,7 +264,7 @@ public class EventProcess {
 				resultBuf.rewind();
 				//Event event = new Event(session, EventName.ON_SENT, resultBuf);
 				//触发发送事件
-				EventTrigger.fireSentThread(session, resultBuf);
+				EventTrigger.fireSentThread(session, sendObj);
 			}
 		}catch(IOException e){
 			throw new SendMessageException(e);
