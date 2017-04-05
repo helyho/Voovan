@@ -64,7 +64,6 @@ public class NettyServer {
             ByteBuf bf = ctx.alloc().buffer(retVal.length());
             bf.writeBytes(retVal.getBytes());
             ctx.writeAndFlush(bf);
-            bf.release();
             ctx.close();
         }
 
