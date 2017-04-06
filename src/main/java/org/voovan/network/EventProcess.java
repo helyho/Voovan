@@ -204,7 +204,7 @@ public class EventProcess {
 			IoSession session = event.getSession();
 			socketContext.handler().onSent(session, obj);
 
-			//如果 obj 是
+			//如果 obj 是 ByteBuffer 进行释放
 			if(obj instanceof ByteBuffer){
 				TByteBuffer.release(TObject.cast(obj));
 			}
