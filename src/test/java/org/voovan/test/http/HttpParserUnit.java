@@ -66,14 +66,6 @@ public class HttpParserUnit extends TestCase {
 		super(name);
 	}
 
-	public void test() throws IOException{
-		ByteBufferChannel b = new ByteBufferChannel();
-		b.writeEnd(ByteBuffer.wrap(TFile.loadFile(new File("/Users/helyho/Downloads/QQ_V5.5.0.dmg"))));
-		Logger.simple(b.indexOf("helyho1031".getBytes()));
-		//Response response = HttpParser.parseResponse(b);
-		//assertEquals(response.protocol().getStatus(),200);
-	}
-
 	public void testGet() throws IOException{
 		ByteBufferChannel b = new ByteBufferChannel();
 		b.writeEnd(ByteBuffer.wrap(httpRequestGet.getBytes()));
