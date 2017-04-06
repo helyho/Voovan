@@ -136,7 +136,7 @@ public class TByteBuffer {
      * @param byteBuffer bytebuffer 对象
      */
     public static void release(ByteBuffer byteBuffer){
-        if(!byteBuffer.hasArray()) {
+        if(byteBuffer!=null && !byteBuffer.hasArray()) {
             try {
                 Cleaner cleaner = TReflect.getFieldValue(byteBuffer, "cleaner");
                 cleaner.clean();
