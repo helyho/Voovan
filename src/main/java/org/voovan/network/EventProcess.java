@@ -204,7 +204,7 @@ public class EventProcess {
 			IoSession session = event.getSession();
 			socketContext.handler().onSent(session, obj);
 
-			//如果 obj 是 ByteBuffer 释放改对象
+			//如果 obj 是
 			if(obj instanceof ByteBuffer){
 				TByteBuffer.release(TObject.cast(obj));
 			}
@@ -265,6 +265,10 @@ public class EventProcess {
 				//Event event = new Event(session, EventName.ON_SENT, resultBuf);
 				//触发发送事件
 				EventTrigger.fireSentThread(session, sendObj);
+
+				if(sendObj!=null && !sendObj.equals(resultBuf)){
+					TByteBuffer.release(resultBuf);
+				}
 			}
 		}catch(IOException e){
 			throw new SendMessageException(e);

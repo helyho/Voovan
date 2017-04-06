@@ -145,7 +145,7 @@ public class AioSocket extends SocketContext {
 	 *
 	 * @exception IOException IO异常
 	 */
-	public void syncStart() throws IOException{
+	public void syncStart() throws IOException {
 
 		initSSL();
 
@@ -172,16 +172,6 @@ public class AioSocket extends SocketContext {
 
 			//触发 connect 事件
 			EventTrigger.fireConnectThread(session);
-		}
-
-		//等待连接完成
-		int waitConnectTime = 0;
-		while(!isConnected()){
-			TEnv.sleep(1);
-			waitConnectTime++;
-			if(waitConnectTime >= readTimeout){
-				break;
-			}
 		}
 	}
 
