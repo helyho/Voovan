@@ -173,8 +173,7 @@ public class WebSocketFrame {
 			payload.put(byteBuffer);
 		}
 		payload.flip();
-		WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(fin, opcode, mask, payload,errorCode);
-		TByteBuffer.release(payload);
+		WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(fin, opcode, mask, payload, errorCode);
 		return webSocketFrame;
 	}
 
@@ -294,6 +293,7 @@ public class WebSocketFrame {
 			ByteBuffer maskkey = ByteBuffer.allocateDirect(4);
 			Random reuseableRandom = new Random();
 			maskkey.putInt(reuseableRandom.nextInt());
+			maskkey.flip();
 			buf.put(maskkey);
 			for (int i = 0; data.hasRemaining(); i++) {
 				buf.put((byte) (data.get() ^ maskkey.get(i % 4)));
