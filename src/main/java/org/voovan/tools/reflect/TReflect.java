@@ -27,6 +27,8 @@ public class TReflect {
 
 	private static Map<String, Field> fields = new HashMap<String ,Field>();
 	private static Map<String, Method> methods = new HashMap<String ,Method>();
+	private static Map<String, Field[]> fieldArrays = new HashMap<String ,Field[]>();
+	private static Map<String, Method[]> methodArrays = new HashMap<String ,Method[]>();
 
 	/**
 	 * 获得类所有的Field
@@ -35,12 +37,23 @@ public class TReflect {
 	 * @return Field数组
 	 */
 	public static Field[] getFields(Class<?> clazz) {
-		List<Field> fields = new ArrayList<Field>();
-		for( ; clazz != Object.class ; clazz = clazz.getSuperclass()) {
-			Field[] tmpFields = clazz.getDeclaredFields();
-			fields.addAll(Arrays.asList(tmpFields));
+		String mark = clazz.getCanonicalName();
+		Field[] fields = null;
+
+		if(fieldArrays.containsKey(mark)){
+			fields = fieldArrays.get(mark);
+		}else {
+			ArrayList<Field> fieldArray = new ArrayList<Field>();
+			for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+				Field[] tmpFields = clazz.getDeclaredFields();
+				fieldArray.addAll(Arrays.asList(tmpFields));
+			}
+			fields = fieldArray.toArray(new Field[]{});
+			fieldArrays.put(mark, fields);
+			fieldArray.clear();
 		}
-		return fields.toArray(new Field[]{});
+
+		return fields;
 	}
 
 	/**
@@ -55,14 +68,14 @@ public class TReflect {
 	public static Field findField(Class<?> clazz, String fieldName)
 			throws ReflectiveOperationException {
 
-		String fieldMark = clazz.getCanonicalName()+"#"+fieldName;
+		String mark = clazz.getCanonicalName()+"#"+fieldName;
 
 		try {
-			if(fields.containsKey(fieldMark)){
-				return fields.get(fieldMark);
+			if(fields.containsKey(mark)){
+				return fields.get(mark);
 			}else {
 				Field field = clazz.getDeclaredField(fieldName);
-				fields.put(fieldMark, field);
+				fields.put(mark, field);
 				return field;
 			}
 
@@ -87,14 +100,14 @@ public class TReflect {
 	public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName)
 			throws ReflectiveOperationException{
 
-		String fieldMark = clazz.getCanonicalName()+"#"+fieldName;
+		String mark = clazz.getCanonicalName()+"#"+fieldName;
 
-		if(fields.containsKey(fieldMark)){
-			return fields.get(fieldMark);
+		if(fields.containsKey(mark)){
+			return fields.get(mark);
 		}else {
 			for (Field field : getFields(clazz)) {
 				if (field.getName().equalsIgnoreCase(fieldName)) {
-					fields.put(fieldMark, field);
+					fields.put(mark, field);
 					return field;
 				}
 			}
@@ -188,19 +201,16 @@ public class TReflect {
 	 */
 	public static Method findMethod(Class<?> clazz, String name,
 									Class<?>... paramTypes) throws ReflectiveOperationException {
-
-
-
-		String methodMark = clazz.getCanonicalName()+"#"+name;
+		String mark = clazz.getCanonicalName()+"#"+name;
 		for(Class<?> paramType : paramTypes){
-			methodMark = methodMark + "$" + paramType.getCanonicalName();
+			mark = mark + "$" + paramType.getCanonicalName();
 		}
 
-		if(methods.containsKey(methodMark)){
-			return methods.get(methodMark);
+		if(methods.containsKey(mark)){
+			return methods.get(mark);
 		}else {
 			Method method = clazz.getDeclaredMethod(name, paramTypes);
-			methods.put(methodMark, method);
+			methods.put(mark, method);
 			return method;
 		}
 	}
@@ -215,15 +225,26 @@ public class TReflect {
 	 */
 	public static Method[] findMethod(Class<?> clazz, String name,
 									int paramCount) throws ReflectiveOperationException {
-		ArrayList<Method> result = new ArrayList<Method>();
-		Method[] methods = getMethods(clazz,name);
-		for(Method method : methods){
-			if(method.getParameters().length == paramCount){
-				result.add(method);
+		Method[] methods = null;
+
+		String mark = clazz.getCanonicalName()+"#"+name+"@"+paramCount;
+
+		if(methodArrays.containsKey(mark)){
+			return methodArrays.get(mark);
+		} else {
+			ArrayList<Method> methodList = new ArrayList<Method>();
+			Method[] allMethods = getMethods(clazz, name);
+			for (Method method : allMethods) {
+				if (method.getParameters().length == paramCount) {
+					methodList.add(method);
+				}
 			}
+			methods = methodList.toArray(new Method[]{});
+			methodArrays.put(mark,methods);
+			methodList.clear();
 		}
 
-		return result.toArray(new Method[]{});
+		return methods;
 	}
 
     /**
@@ -232,12 +253,24 @@ public class TReflect {
      * @return Method 对象数组
      */
 	public static Method[] getMethods(Class<?> clazz) {
-		List<Method> methods = new ArrayList<Method>();
-		for( ; clazz != Object.class ; clazz = clazz.getSuperclass()) {
-			Method[] tmpMethods = clazz.getDeclaredMethods();
-			methods.addAll(Arrays.asList(tmpMethods));
+
+		Method[] methods = null;
+
+		String mark = clazz.getCanonicalName();
+
+		if(methodArrays.containsKey(mark)){
+			return methodArrays.get(mark);
+		} else {
+			List<Method> methodList = new ArrayList<Method>();
+			for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+				Method[] tmpMethods = clazz.getDeclaredMethods();
+				methodList.addAll(Arrays.asList(tmpMethods));
+			}
+			methods = methodList.toArray(new Method[]{});
+			methodList.clear();
+			methodArrays.put(mark,methods);
 		}
-		return methods.toArray(new Method[]{});
+		return methods;
 	}
 	
 	/**
@@ -248,14 +281,25 @@ public class TReflect {
 	 * @return Method 对象数组
 	 */
 	public static Method[] getMethods(Class<?> clazz,String name) {
-		ArrayList<Method> methods = new ArrayList<Method>();
-		Method[] allMethod = getMethods(clazz);
-		
-		for(Method method : allMethod){
-			if(method.getName().equals(name) )
-			methods.add(method);
+
+		Method[] methods = null;
+
+		String mark = clazz.getCanonicalName()+"#"+name;
+
+		if(methodArrays.containsKey(mark)){
+			return methodArrays.get(mark);
+		} else {
+			ArrayList<Method> methodList = new ArrayList<Method>();
+			Method[] allMethods = getMethods(clazz);
+			for (Method method : allMethods) {
+				if (method.getName().equals(name))
+					methodList.add(method);
+			}
+			methods = methodList.toArray(new Method[0]);
+			methodList.clear();
+			methodArrays.put(mark,methods);
 		}
-		return methods.toArray(new Method[0]);
+		return methods;
 	}
 
 	/**
