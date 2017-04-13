@@ -10,7 +10,7 @@
 <dependency>
     <groupId>org.voovan</groupId>
     <artifactId>voovan-framework</artifactId>
-    <version>1.0</version>
+    <version>1.5</version>
 </dependency>
 ```
 
