@@ -71,7 +71,7 @@ public class ByteBufferChannel {
 			ByteBuffer template = ByteBuffer.allocateDirect(0);
 			Constructor c = template.getClass().getDeclaredConstructor(long.class, int.class);
 			c.setAccessible(true);
-			long address = TUnsafe.getUnsafe().allocateMemory(capacity);
+			address = TUnsafe.getUnsafe().allocateMemory(capacity);
 
 			ByteBuffer instance = (ByteBuffer) c.newInstance(address, capacity);
 
@@ -799,7 +799,6 @@ public class ByteBufferChannel {
 
             compact();
         }catch(IOException e){
-            randomAccessFile.close();
             throw e;
         }finally {
             randomAccessFile.close();
