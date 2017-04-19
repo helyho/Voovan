@@ -19,7 +19,7 @@ before_install:
   - export TZ=Asia/Shanghai
 
 script:
-  - mvn clean package -Dmaven.javadoc.skip=true
+  - mvn clean package -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
 
 after_success:
   -
@@ -28,7 +28,6 @@ after_failure:
  -
 
 services:
-  - mysql
 
 addons:
   hosts:
