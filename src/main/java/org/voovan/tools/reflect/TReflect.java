@@ -520,12 +520,12 @@ public class TReflect {
 			return obj;
 		}
 
-		if(mapArg.isEmpty()){
+		Object singleValue = null;
 
-			return TReflect.newInstance(clazz,new Object[]{});
+		if(!mapArg.isEmpty()){
+			singleValue = mapArg.values().iterator().next();
 		}
 
-		Object singleValue = mapArg.values().iterator().next();
 		// java标准对象
 		if (clazz.isPrimitive() || clazz == Object.class){
 			obj = singleValue;
