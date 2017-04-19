@@ -1,0 +1,36 @@
+language: java
+sudo: true
+
+jdk:
+  - openjdk8
+  - oraclejdk8
+
+notifications:
+  email: false
+
+git:
+  depth: 1
+
+branches:
+  only:
+    - master
+
+before_install:
+  - export TZ=Asia/Shanghai
+
+script:
+  - mvn clean package -Dmaven.javadoc.skip=true
+
+after_success:
+  -
+
+after_failure:
+ -
+
+services:
+  - mysql
+
+addons:
+  hosts:
+  - hasor.net
+  - www.hasor.net
