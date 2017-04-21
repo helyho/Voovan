@@ -104,7 +104,7 @@ public class AioSession extends IoSession<AioSocket>  {
 	@Override
 	protected int read0(ByteBuffer buffer) throws IOException {
 		int readSize = 0;
-		if (buffer != null) {
+		if (buffer != null && !this.getByteBufferChannel().isReleased()) {
 			readSize = this.getByteBufferChannel().readHead(buffer);
 		}
 		return readSize;
