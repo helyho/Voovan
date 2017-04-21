@@ -169,20 +169,19 @@ public class HttpClient {
 	public ByteBuffer loadStream() throws IOException {
 		IoSession session = socket.getSession();
 
-		if(session.isConnected()) {
 			ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getBufferSize());
 
 			session.enabledMessageSpliter(false);
 			int readSize = session.read(tmpBuffer);
 
-			if (readSize == -1) {
+			if(readSize > 0) {
+				return tmpBuffer;
+			}else if(session.getAttribute("SocketResponse") instanceof Exception){
+				session.close();
 				return null;
 			}
 
 			return tmpBuffer;
-		}else{
-			return null;
-		}
 	}
 
 	/**

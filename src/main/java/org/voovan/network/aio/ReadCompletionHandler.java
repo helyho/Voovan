@@ -2,6 +2,7 @@ package org.voovan.network.aio;
 
 import org.voovan.network.EventTrigger;
 import org.voovan.network.MessageLoader;
+import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.ByteBufferChannel;
 
 import java.io.IOException;
@@ -40,7 +41,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 			// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
 			if (MessageLoader.isRemoteClosed(buffer, length) && session.isConnected()) {
-				session.close();
+			    throw new SocketDisconnectByRemote("Buffer data length is -1.");
 			} else {
 				buffer.flip();
 			
@@ -76,12 +77,11 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 	@Override
 	public void failed(Throwable exc,  ByteBuffer buffer) {
-
-		if((exc instanceof AsynchronousCloseException) ||
-				(exc instanceof ClosedChannelException)){
-			session.close();
-			return;
-		}
+//		if((exc instanceof AsynchronousCloseException) ||
+//				(exc instanceof ClosedChannelException)){
+//			session.close();
+//			return;
+//		}
 
 		if(exc instanceof Exception){
 			//触发 onException 事件
