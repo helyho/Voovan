@@ -175,7 +175,7 @@ public class MessageLoader {
 			dataByteBufferChannel.compact();
 
 			//超时判断,防止读0时导致的高 CPU 负载
-			if(readsize==0 && stopType == StopType.RUNNING ){
+			if( readsize==0 && stopType == StopType.RUNNING ){
 				if(readZeroCount >= session.socketContext().getReadTimeout()){
 					stopType = StopType.STREAM_END;
 				}else {
@@ -196,6 +196,8 @@ public class MessageLoader {
 		} else {
 			result = ByteBuffer.allocateDirect(0);
 		}
+
+		session.tryStreamEndClose();
 
 		return result;
 	}
