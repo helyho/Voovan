@@ -92,18 +92,21 @@ public class UdpSelector {
                                             clientUdpSocket = new UdpSocket(socketContext,(InetSocketAddress)address);
                                             clientSession = clientUdpSocket.getSession();
                                         }
-
-                                            //判断连接是否关闭
+                                        //判断连接是否关闭
                                         if (MessageLoader.isRemoteClosed(readTempBuffer, readSize) && clientSession.isConnected()) {
+
                                             session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
+                                            //如果 Socket 流达到结尾,则关闭连接
+                                            while(session.isConnected()) {
+                                                if (session.getByteBufferChannel().size() == 0) {
+                                                    session.close();
+                                                }
+                                            }
                                             break;
                                         } else if (readSize > 0) {
                                             readTempBuffer.flip();
                                             clientSession.getByteBufferChannel().writeEnd(readTempBuffer);
                                             readTempBuffer.clear();
-                                        } else if (readSize == -1) {
-                                            clientSession.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
-                                            break;
                                         }
 
                                         readTempBuffer.clear();

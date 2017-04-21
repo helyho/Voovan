@@ -197,8 +197,6 @@ public class MessageLoader {
 			result = ByteBuffer.allocateDirect(0);
 		}
 
-		session.tryStreamEndClose();
-
 		return result;
 	}
 }
