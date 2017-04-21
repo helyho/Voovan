@@ -92,6 +92,7 @@ public class NioSelector {
 											//判断连接是否关闭
 											if(MessageLoader.isRemoteClosed(readTempBuffer, readSize) && session.isConnected()){
 												session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
+												break;
 											}else if(readSize>0){
 												readTempBuffer.flip();
 												// 接收数据
