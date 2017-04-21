@@ -277,22 +277,7 @@ public abstract class IoSession<T extends SocketContext> {
 			readSize = -1;
 		}
 
-		tryStreamEndClose();
-
 		return readSize;
-
-	}
-
-	/**
-	 * 尝试检测流 EOF,并关闭连接
-	 */
-	protected void tryStreamEndClose(){
-		//如果 Socket 流达到结尾,则关闭连接
-		if(this.isConnected()
-				&& getByteBufferChannel().size() == 0
-				&& getMessageLoader().getStopType() == MessageLoader.StopType.STREAM_END){
-			close();
-		}
 	}
 
 	/**

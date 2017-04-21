@@ -170,9 +170,13 @@ public class NioSocket extends SocketContext{
 
 	@Override
 	public boolean isConnected() {
-		if(socketChannel!=null){
-			return socketChannel.isConnected();
-		}else{
+		try {
+			if (socketChannel.getRemoteAddress() != null) {
+				return true;
+			} else {
+				return false;
+			}
+		}catch(Exception e){
 			return false;
 		}
 	}

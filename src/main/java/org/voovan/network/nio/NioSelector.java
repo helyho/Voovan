@@ -10,10 +10,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -91,7 +88,14 @@ public class NioSelector {
                                             int readSize = socketChannel.read(readTempBuffer);
 											//判断连接是否关闭
 											if(MessageLoader.isRemoteClosed(readTempBuffer, readSize) && session.isConnected()){
+
 												session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
+												//如果 Socket 流达到结尾,则关闭连接
+												while(session.isConnected()) {
+													if (session.getByteBufferChannel().size() == 0) {
+														session.close();
+													}
+												}
 												break;
 											}else if(readSize>0){
 												readTempBuffer.flip();
@@ -103,8 +107,6 @@ public class NioSelector {
 													appByteBufferChannel.writeEnd(readTempBuffer);
 												}
 												readTempBuffer.clear();
-											}else if(readSize == -1){
-												session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 											}
 
 											readTempBuffer.clear();
@@ -125,8 +127,15 @@ public class NioSelector {
 				}
 			}
 		} catch (IOException e) {
-			// 触发 onException 事件
-			EventTrigger.fireExceptionThread(session, e);
+			if((e instanceof AsynchronousCloseException) ||
+					(e instanceof ClosedChannelException)){
+				return;
+			}
+
+			if(e instanceof Exception){
+				//触发 onException 事件
+				EventTrigger.fireExceptionThread(session, e);
+			}
 		} finally{
 			// 触发连接断开事件
 			if(session!=null) {
