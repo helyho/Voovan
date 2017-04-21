@@ -36,6 +36,6 @@ public class SynchronousHandler implements IoHandler {
 
     @Override
     public void onException(IoSession session, Exception e) {
-        session.setAttribute("SocketResponse",e);
+        session.setAttribute("SocketException",e);
     }
 }

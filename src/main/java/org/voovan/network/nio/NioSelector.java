@@ -3,7 +3,6 @@ package org.voovan.network.nio;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.SocketContext;
-import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TObject;
@@ -92,7 +91,7 @@ public class NioSelector {
                                             int readSize = socketChannel.read(readTempBuffer);
 											//判断连接是否关闭
 											if(MessageLoader.isRemoteClosed(readTempBuffer, readSize) && session.isConnected()){
-												throw new SocketDisconnectByRemote("Buffer data length is -1.");
+												session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 											}else if(readSize>0){
 												readTempBuffer.flip();
 												// 接收数据
