@@ -176,7 +176,7 @@ public class HttpClient {
 
 			if(readSize > 0) {
 				return tmpBuffer;
-			}else if(session.getAttribute("SocketResponse") instanceof Exception){
+			}else if(session.getAttribute("SocketException") instanceof Exception){
 				session.close();
 				return null;
 			}else if(readSize == 0){

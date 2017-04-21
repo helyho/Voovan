@@ -1,6 +1,5 @@
 package org.voovan.network;
 
-import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
@@ -78,9 +77,8 @@ public class MessageLoader {
 	 * @param buffer  缓冲区
 	 * @param length  长度
 	 * @return 是否意外断开
-	 * @throws SocketDisconnectByRemote  Socket 断开异常
 	 */
-	public static boolean isRemoteClosed(ByteBuffer buffer, Integer length) throws SocketDisconnectByRemote{
+	public static boolean isRemoteClosed(ByteBuffer buffer, Integer length) {
 		if(length==-1){
 			//触发 disconnect 事件
 			return true;
@@ -88,11 +86,11 @@ public class MessageLoader {
 		//如果 buffer 被冲满,且起始、中位、结束的字节都是结束符(Ascii=4)则连接意外结束
 	   if(length>2
 				&& buffer.get(0)==4 //起始判断
-				&& buffer.get(length/2)==4 //中位判断 
-				&& buffer.get(length-1)==4){ //结束判断 
+				&& buffer.get(length/2)==4 //中位判断
+				&& buffer.get(length-1)==4){ //结束判断
 		   return true;
 		}
-		
+
 	   return false;
 	}
 
@@ -101,11 +99,9 @@ public class MessageLoader {
 	 * @param buffer  缓冲区
 	 * @param length  长度
 	 * @return 是否意外断开
-	 * @throws SocketDisconnectByRemote  Socket 断开异常
 	 */
-	public static boolean isRemoteClosed(byte[] buffer, Integer length) throws SocketDisconnectByRemote{
+	public static boolean isRemoteClosed(byte[] buffer, Integer length) {
 		if(length==-1){
-			//触发 disconnect 事件
 			return true;
 		}
 		//如果 buffer 被冲满,且起始、中位、结束的字节都是结束符(Ascii=4)则连接意外结束

@@ -4,6 +4,7 @@ import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -172,13 +173,16 @@ public abstract class IoSession<T extends SocketContext> {
 		Object readObject = null;
 		while(true){
 			readObject = getAttribute("SocketResponse");
-			if(readObject!=null) {
-				if(readObject instanceof Exception){
-						throw new ReadMessageException("Method syncRead error! Error by " +
-								((Exception) readObject).getClass().getSimpleName() + ". " + ((Exception) readObject).getMessage(), (Exception) readObject);
-				}
+			if(readObject!=null){
 				removeAttribute("SocketResponse");
 				break;
+			}else {
+				Exception exception = TObject.cast(getAttribute("SocketException"));
+				if (exception != null) {
+					removeAttribute("SocketException");
+					throw new ReadMessageException("Method syncRead error! Error by " +
+							exception.getClass().getSimpleName() + ". " + exception.getMessage(), exception);
+				}
 			}
 
 			if(!isConnected()){
