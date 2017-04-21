@@ -174,13 +174,15 @@ public class HttpClient {
 			session.enabledMessageSpliter(false);
 			int readSize = session.read(tmpBuffer);
 
-			if(readSize > 0) {
-				return tmpBuffer;
-			}else if(session.getAttribute("SocketException") instanceof Exception){
-				session.close();
-				return null;
-			}else if(readSize == 0){
+            if(session.getAttribute("SocketException") instanceof Exception){
+                session.close();
+                return null;
+            }else if(readSize > 0) {
+                return tmpBuffer;
+            } else if(readSize == 0){
 				tmpBuffer.flip();
+			}else if(readSize == -1){
+				return null;
 			}
 
 			return tmpBuffer;
