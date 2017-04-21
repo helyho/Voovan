@@ -3,7 +3,6 @@ package org.voovan.network.udp;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.SocketContext;
-import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
@@ -96,7 +95,7 @@ public class UdpSelector {
 
                                             //判断连接是否关闭
                                         if (MessageLoader.isRemoteClosed(readTempBuffer, readSize) && clientSession.isConnected()) {
-                                            throw new SocketDisconnectByRemote("Buffer data length is -1.");
+                                            session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
                                         } else if (readSize > 0) {
                                             readTempBuffer.flip();
                                             clientSession.getByteBufferChannel().writeEnd(readTempBuffer);

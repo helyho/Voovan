@@ -10,7 +10,6 @@ import org.voovan.http.websocket.WebSocketFrame.Opcode;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
-import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -300,8 +299,7 @@ public class WebServerHandler implements IoHandler {
 	@Override
 	public void onException(IoSession session, Exception e) {
 		//忽略远程连接断开异常 和 超时断开异常
-		if(!(e instanceof SocketDisconnectByRemote) &&
-			!(e instanceof InterruptedByTimeoutException)){
+		if(!(e instanceof InterruptedByTimeoutException)){
 			Logger.error("Http Server Error: \r\n" + e.getMessage(),e);
 		}
 		session.close();
