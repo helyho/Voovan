@@ -7,6 +7,8 @@ import org.voovan.tools.ByteBufferChannel;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.CompletionHandler;
 
 /**
@@ -74,6 +76,11 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 	@Override
 	public void failed(Throwable exc,  ByteBuffer buffer) {
+		if((exc instanceof AsynchronousCloseException) ||
+				(exc instanceof ClosedChannelException)){
+			return;
+		}
+
 		if(exc instanceof Exception){
 			//触发 onException 事件
 			EventTrigger.fireExceptionThread(session, (Exception)exc);
