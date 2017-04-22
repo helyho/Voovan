@@ -130,7 +130,9 @@ public class TReflect {
 			result = new Class[actualType.length];
 
 			for(int i=0;i<actualType.length;i++){
-				result[i] = Class.forName(actualType[i].getTypeName());
+				String classStr = actualType[i].getTypeName();
+				classStr = classStr.replaceAll("<.*>","");
+				result[i] = Class.forName(classStr);
 			}
 			return result;
 		}
@@ -325,7 +327,9 @@ public class TReflect {
 			result = new Class[actualType.length];
 
 			for(int i=0;i<actualType.length;i++){
-				result[i] = Class.forName(actualType[i].getTypeName());
+				String classStr = actualType[i].getTypeName();
+				classStr = classStr.replaceAll("<.*>","");
+				result[i] = Class.forName(classStr);
 			}
 			return result;
 		}
