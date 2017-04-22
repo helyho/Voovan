@@ -136,13 +136,20 @@ public class JSONPath {
      */
     public <T> List<T> listObject(String pathQry, Class<T> elemClazz) throws ParseException, ReflectiveOperationException {
         List<T> resultList = new ArrayList<T>();
-        List<Map<String, ?>> listMaps = value(pathQry, List.class, TObject.newList());
+        List<?> listObjects = value(pathQry, List.class, TObject.newList());
 
-        if(listMaps==null){
+        if(listObjects==null){
             return null;
         }
 
-        for(Map<String, ?> map :listMaps){
+        Map map = null;
+        for(Object value :listObjects){
+            if(value instanceof Map){
+                map = (Map)value;
+            }else{
+                map = TObject.newMap("", value);
+            }
+
             T obj = (T) TReflect.getObjectFromMap(elemClazz, map, true);
             resultList.add(obj);
         }
@@ -188,15 +195,18 @@ public class JSONPath {
             return null;
         }
 
+        Map map = null;
         for(Map.Entry<String,?> entry : mapValue.entrySet()){
             String key = entry.getKey();
             Object value = entry.getValue();
             if(value instanceof Map){
-                Map map = ((Map) value);
-                map.put(keyFieldName,key);
-                T obj = (T) TReflect.getObjectFromMap(elemClazz, map, true);
-                resultList.add(obj);
+                map = (Map) value;
+            }else{
+                map = TObject.newMap("", value);
             }
+            map.put(keyFieldName,key);
+            T obj = (T) TReflect.getObjectFromMap(elemClazz, map, true);
+            resultList.add(obj);
         }
 
         return resultList;
