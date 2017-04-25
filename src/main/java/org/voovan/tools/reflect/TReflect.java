@@ -813,7 +813,7 @@ public class TReflect {
 		StringBuilder jsonStrBuilder = new StringBuilder();
 		if(clazz.getName().startsWith("java") || clazz.isPrimitive()){
 			jsonStrBuilder.append(clazz.getName());
-		} else if(clazz.getName().startsWith("[L")){
+		} else if(clazz.isArray()){
 			String clazzName = clazz.getName();
 			clazzName = clazzName.substring(clazzName.lastIndexOf(".")+1,clazzName.length()-2)+"[]";
 			jsonStrBuilder.append(clazzName);
