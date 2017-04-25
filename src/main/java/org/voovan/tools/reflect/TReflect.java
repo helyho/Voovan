@@ -356,19 +356,19 @@ public class TReflect {
 	 * 对对象执行一个通过 方法名和参数列表选择的方法
 	 * @param obj				执行方法的对象,如果调用静态方法直接传 Class 类型的对象
 	 * @param name				执行方法名
-	 * @param parameters		方法参数
+	 * @param args		方法参数
 	 * @return					方法返回结果
 	 * @throws ReflectiveOperationException		反射异常
 	 */
-	public static Object invokeMethod(Object obj, String name, Object... parameters)
+	public static Object invokeMethod(Object obj, String name, Object... args)
 			throws ReflectiveOperationException {
-		Class<?>[] parameterTypes = getArrayClasses(parameters);
+		Class<?>[] parameterTypes = getArrayClasses(args);
 		Method method = null;
 		Class objClass = (obj instanceof Class) ? (Class)obj : obj.getClass();
 		try {
 			 method = findMethod(objClass, name, parameterTypes);
 			 method.setAccessible(true);
-			 return method.invoke(obj, parameters);
+			 return method.invoke(obj, args);
 		}catch(Exception e){
 			Exception lastExecption = e;
 
@@ -377,26 +377,31 @@ public class TReflect {
 			for(Method similarMethod : methods){
 				Parameter[] methodParams = similarMethod.getParameters();
 				//匹配参数数量相等的方法
-				if(methodParams.length == parameters.length){
-					Object[] convertedParams = new Object[parameters.length];
+				if(methodParams.length == args.length){
+					Object[] convertedParams = new Object[args.length];
 					for(int i=0;i<methodParams.length;i++){
 						Parameter parameter = methodParams[i];
 						//参数类型转换
 						String value = "";
 
-						Class parameterClass = parameters[i].getClass();
+						//这里对参数类型是 Object或者是范型 的提供支持
+						if(parameter.getType() != Object.class) {
+							Class argClass = args[i].getClass();
 
-						//复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
-						if(parameters[i] instanceof Collection ||
-								parameters[i] instanceof Map ||
-								parameterClass.isArray() ||
-								!parameterClass.getCanonicalName().startsWith("java.lang")){
-							value = JSON.toJSON(parameters[i]);
+							//复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
+							if (args[i] instanceof Collection ||
+									args[i] instanceof Map ||
+									argClass.isArray() ||
+									!argClass.getCanonicalName().startsWith("java.lang")) {
+								value = JSON.toJSON(args[i]);
+							} else {
+								value = args[i].toString();
+							}
+
+							convertedParams[i] = TString.toObject(value, parameter.getType());
 						}else{
-							value = parameters[i].toString();
+							convertedParams[i] = args[i];
 						}
-
-						convertedParams[i] = TString.toObject(value, parameter.getType());
 					}
 					method = similarMethod;
 					try{
