@@ -6,6 +6,7 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 
 public class Other {
@@ -14,19 +15,11 @@ public class Other {
     public static void main(String[] args) throws Exception {
 
         Logger.simple("Process ID: "+ TEnv.getCurrentPID());
-        ByteBufferChannel bbf = new ByteBufferChannel(0);
-        long address = TReflect.getFieldValue(bbf, "address");
+        Object[][] mm = new Object[][]{{12}};
 
-        for(int i=0;i<1024*1024*100;i++){
-            bbf.writeEnd(ByteBuffer.wrap("a".getBytes()));
-        }
+        Logger.simple(mm.getClass().getCanonicalName()+" / "+mm.getClass().getSimpleName()+
+                " / "+mm.getClass().getName() + " / " +mm.getClass().getTypeName()+" / "+mm.getClass().toGenericString());
 
-        Logger.simple("xxxx");
-
-        bbf.release();
-
-
-        Logger.simple("xxxx");
     }
 
 
