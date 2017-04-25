@@ -252,7 +252,7 @@ public class JdbcOperate {
 	 * @throws SQLException SQL 异常
 	 */
 	public int update(String sqlText, Object arg) throws SQLException, ReflectiveOperationException {
-		if(arg.getClass().getName().startsWith("java")){
+		if(arg.getClass().getCanonicalName().startsWith("java")){
 			return update(sqlText, arg, null);
 		}else{
 			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
@@ -326,7 +326,7 @@ public class JdbcOperate {
 	 * @throws SQLException  SQL 异常
 	 */
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t, Object arg) throws SQLException, ReflectiveOperationException{
-		if(arg.getClass().getName().startsWith("java")){
+		if(arg.getClass().getCanonicalName().startsWith("java")){
 			return queryObjectList(sqlText, t, arg,null);
 		}else{
 			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
@@ -411,7 +411,7 @@ public class JdbcOperate {
 	 * @throws SQLException SQL 异常
 	 */
 	public List<Map<String, Object>> queryMapList(String sqlText, Object arg) throws SQLException, ReflectiveOperationException  {
-		if(arg.getClass().getName().startsWith("java")){
+		if(arg.getClass().getCanonicalName().startsWith("java")){
 			return queryMapList(sqlText, arg, null);
 		}else{
 			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
@@ -499,7 +499,7 @@ public class JdbcOperate {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T queryObject(String sqlText, Class<T> t, Object arg) throws SQLException, ReflectiveOperationException, ParseException {
-		if(arg.getClass().getName().startsWith("java")){
+		if(arg.getClass().getCanonicalName().startsWith("java")){
 			return queryObject(sqlText,t,arg,null);
 		}else{
 			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
@@ -589,7 +589,7 @@ public class JdbcOperate {
 	 *
 	 */
 	public Map<String, Object> queryMap(String sqlText, Object arg) throws SQLException, ReflectiveOperationException {
-		if(arg.getClass().getName().startsWith("java")){
+		if(arg.getClass().getCanonicalName().startsWith("java")){
 			return queryMap(sqlText,arg,null);
 		}else{
 			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg);
@@ -708,7 +708,7 @@ public class JdbcOperate {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public List<Object> call(String sqlText, CallType[] callTypes, Object arg) throws SQLException, ReflectiveOperationException {
-		if(arg.getClass().getName().startsWith("java")){
+		if(arg.getClass().getCanonicalName().startsWith("java")){
 			return call(sqlText, callTypes, arg, null);
 		}else{
 			Map<String, Object> paramsMap  = TReflect.getMapfromObject(arg);

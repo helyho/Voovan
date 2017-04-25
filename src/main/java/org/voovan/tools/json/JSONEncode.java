@@ -114,6 +114,15 @@ public class JSONEncode {
 
         if (object == null) {
             value = "null";
+        } else if (object instanceof Map) {
+            Map<Object, Object> mapObject = (Map<Object, Object>) object;
+            value = mapObject(mapObject);
+        } else if (object instanceof Collection) {
+            List<Object> listObject = TObject.cast(object);
+            value = CollectionObject(listObject);
+        } else if (object.getClass().isArray()) {
+            Object[] arrayObject = TObject.cast(object);
+            value = arrayObject(arrayObject);
         } else if (object instanceof Integer ||  object instanceof Float ||
                 object instanceof Double || object instanceof Boolean ||
                 object instanceof Long || object instanceof Short) {
@@ -122,16 +131,7 @@ public class JSONEncode {
             //这里这么做的目的是方便 js 中通过 eval 方法产生 js 对象
             String strValue = TString.convertEscapeChar(object.toString());
             value = "\"" + strValue + "\"";
-        } else if (object instanceof Map) {
-            Map<Object, Object> mapObject = (Map<Object, Object>) object;
-            value = mapObject(mapObject);
-        } else if (object instanceof Collection) {
-            List<Object> listObject = TObject.cast(object);
-            value = CollectionObject(listObject);
-        } else if (object instanceof Object[]) {
-            Object[] arrayObject = TObject.cast(object);
-            value = arrayObject(arrayObject);
-        } else {
+        }  else {
             value = complexObject(object);
         }
 
