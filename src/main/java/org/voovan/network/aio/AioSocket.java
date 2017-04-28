@@ -48,7 +48,7 @@ public class AioSocket extends SocketContext {
 	 */
 	public AioSocket(String host, int port, int readTimeout) throws IOException {
 		super(host, port, readTimeout);
-		AsynchronousChannelGroup asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(Global.getThreadPool());
+		AsynchronousChannelGroup asynchronousChannelGroup = Global.getAsynchronousChannelGroup();
 		this.socketChannel = AsynchronousSocketChannel.open(asynchronousChannelGroup);
 		session = new AioSession(this);
 
