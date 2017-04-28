@@ -2,6 +2,8 @@ package org.voovan;
 
 import org.voovan.tools.threadpool.ThreadPool;
 
+import java.io.IOException;
+import java.nio.channels.AsynchronousChannelGroup;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -17,6 +19,8 @@ public class Global {
 
     private static ThreadPoolExecutor threadPool;
 
+    private static AsynchronousChannelGroup asynchronousChannelGroup;
+
     /**
      * 返回公用线程池
      * @return 公用线程池
@@ -27,5 +31,12 @@ public class Global {
        }
 
        return threadPool;
+    }
+
+    public synchronized static AsynchronousChannelGroup getAsynchronousChannelGroup() throws IOException {
+        if(asynchronousChannelGroup == null ){
+            asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(Global.getThreadPool());
+        }
+        return asynchronousChannelGroup;
     }
 }
