@@ -6,6 +6,7 @@ import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.ResponseProtocol;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayOutputStream;
@@ -120,7 +121,7 @@ public class Response {
 			header.put("Content-Length", Integer.toString(body.getBodyBytes().length));
 		}
 		
-		if (header.get("Content-Type") == null) {
+		if (TString.isNullOrEmpty(header.get("Content-Type"))) {
 			header.put("Content-Type", "text/html");
 		}
 	}

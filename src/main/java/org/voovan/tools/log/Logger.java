@@ -1,6 +1,7 @@
 package org.voovan.tools.log;
 
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 
 /**
@@ -34,7 +35,7 @@ public class Logger {
 
 	public static void debug(Object msg) {
 		try {
-			msg = (msg == null ? "null" : msg);
+			msg = TObject.nullDefault(msg,"null");
 			Message message = Message.newInstance("DEBUG", msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -46,7 +47,7 @@ public class Logger {
 
 	public static void info(Object msg) {
 		try {
-			msg = (msg == null ? "null" : msg);
+			msg = TObject.nullDefault(msg,"null");
 			Message message = Message.newInstance("INFO", msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -58,7 +59,7 @@ public class Logger {
 
 	public static void warn(Object msg) {
 		try {
-			msg = (msg == null ? "null" : msg);
+			msg = TObject.nullDefault(msg,"null");
 			Message message = Message.newInstance("WARN", msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -83,7 +84,7 @@ public class Logger {
 
 	public static void warn(Object msg, Exception e) {
 		try {
-			msg = (msg == null ? "null" : msg);
+			msg = TObject.nullDefault(msg,"null");
 			String msgStr = e.getClass().getCanonicalName() + ": " + msg + "\r\n"
 					+ TString.indent(TEnv.getStackElementsMessage(e.getStackTrace()), 8);
 			Message message = Message.newInstance("WARN", msgStr);
@@ -97,7 +98,7 @@ public class Logger {
 
 	public static void error(Object msg) {
 		try {
-			msg = (msg == null ? "null" : msg);
+			msg = TObject.nullDefault(msg,"null");
 			Message message = Message.newInstance("ERROR", msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -122,7 +123,7 @@ public class Logger {
 
 	public static void error(Object msg, Exception e) {
 		try {
-			msg = (msg == null ? "null" : msg);
+			msg = TObject.nullDefault(msg,"null");
 			String msgStr = e.getClass().getCanonicalName() + ": " + msg + "\r\n"
 					+ TString.indent(TEnv.getStackElementsMessage(e.getStackTrace()), 8);
 			Message message = Message.newInstance("ERROR", msgStr);
@@ -136,7 +137,7 @@ public class Logger {
 
 	public static void fatal(Object msg) {
 		try {
-			msg = (msg == null ? "null" : msg);
+			msg = TObject.nullDefault(msg,"null");
 			Message message = Message.newInstance("FATAL", msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -161,7 +162,7 @@ public class Logger {
 
 	public static void fatal(Object msg, Exception e) {
 		try {
-			msg = (msg == null ? "null" : msg);
+			msg = TObject.nullDefault(msg,"null");
 			String msgStr = e.getClass().getCanonicalName() + ": " + msg + "\r\n"
 					+ TString.indent(TEnv.getStackElementsMessage(e.getStackTrace()), 8);
 			Message message = Message.newInstance("FATAL", msgStr);
@@ -175,7 +176,7 @@ public class Logger {
 
 	public static void simple(Object msg) {
 		try {
-			msg = (msg == null ? "null" : msg);
+			msg = TObject.nullDefault(msg,"null");
 			Message message = Message.newInstance("SIMPLE", msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {

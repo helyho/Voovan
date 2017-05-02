@@ -147,7 +147,7 @@ public class WebServerHandler implements IoHandler {
 		} 
 		//处理 WEBSocket 报文
 		else if (obj instanceof WebSocketFrame) {
-			return disposeWebSocket(session, TObject.cast(obj));
+			return disposeWebSocket(session, (WebSocketFrame)obj);
 		}
 		
 		// 如果协议判断失败关闭连接
@@ -270,9 +270,9 @@ public class WebServerHandler implements IoHandler {
 	@Override
 	public void onSent(IoSession session, Object obj) {
 
-		if(WebSocketTools.isWebSocketFrame(TObject.cast(obj)) != -1){
+		if(WebSocketTools.isWebSocketFrame((ByteBuffer) obj) != -1){
 			HttpRequest reqWebSocket = TObject.cast(session.getAttribute("HttpRequest"));
-			WebSocketFrame webSocketFrame = WebSocketFrame.parse(TObject.cast(obj));
+			WebSocketFrame webSocketFrame = WebSocketFrame.parse((ByteBuffer)obj);
 			webSocketDispatcher.process(WebSocketEvent.SENT, session, reqWebSocket, webSocketFrame);
 		}
 

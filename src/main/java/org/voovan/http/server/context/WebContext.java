@@ -207,7 +207,7 @@ public class WebContext {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T getContextParameter(String name, T defaultValue) {
-		return WEB_CONFIG.get(name) == null ? defaultValue : ((T) WEB_CONFIG.get(name));
+		return TObject.nullDefault((T) WEB_CONFIG.get(name),defaultValue);
 	}
 	
 	/**

@@ -55,7 +55,7 @@ public class TObject {
 	 * @return	初始化完成的List对象
 	 */
 	@SuppressWarnings("rawtypes")
-	public static List newList(Object ...objs){
+	public static List asList(Object ...objs){
 		ArrayList<Object> list = new ArrayList<Object>();
 		for(Object obj:objs){
 			list.add(obj);
@@ -69,7 +69,7 @@ public class TObject {
 	 * @return	初始化完成的Map对象
 	 */
 	@SuppressWarnings("rawtypes")
-	public static Map newMap(Object ...objs){
+	public static Map asMap(Object ...objs){
 		HashMap<Object,Object> map = new HashMap<Object,Object>();
 		for(int i=1;i<objs.length;i+=2){
 			map.put(objs[i-1], objs[i]);
@@ -86,6 +86,19 @@ public class TObject {
 		ArrayList<Object> result = new ArrayList<Object>();
 		for(Map.Entry<?,?> entry : map.entrySet()){
 			result.add(entry.getValue());
+		}
+		return result;
+	}
+
+	/**
+	 * 将 Map 的值转换成 List
+	 * @param map 需转换的 Map 对象
+	 * @return 转后的 Value 的 list
+	 */
+	public static List<?> mapKeyToList(Map<?,?> map){
+		ArrayList<Object> result = new ArrayList<Object>();
+		for(Map.Entry<?,?> entry : map.entrySet()){
+			result.add(entry.getKey());
 		}
 		return result;
 	}

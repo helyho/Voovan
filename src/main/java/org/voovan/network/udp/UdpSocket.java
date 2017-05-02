@@ -117,12 +117,14 @@ public class UdpSocket extends SocketContext{
      * 启动同步的上下文连接,同步读写时使用
      */
     public void syncStart(){
-        Global.getThreadPool().execute(()->{
-            try {
-                start();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        Global.getThreadPool().execute(new Runnable(){
+           public void run() {
+               try {
+                   start();
+               } catch (IOException e) {
+                   e.printStackTrace();
+               }
+           }
         });
     }
 

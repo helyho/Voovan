@@ -65,7 +65,7 @@ public class TStringUnit extends TestCase {
 	@SuppressWarnings("unchecked")
 	public void testTokenReplaceStringMapOfStringString() {
 		String simpleTokenStr ="^ {{helyho}} {{is}} my name ^";
-		Map<String, String> tokens = TObject.newMap("helyho","HELY HO","is","IS'NT");
+		Map<String, String> tokens = TObject.asMap("helyho","HELY HO","is","IS'NT");
 		String replacedStr = TString.tokenReplace(simpleTokenStr, tokens);
 		assertEquals(replacedStr,"^ HELY HO IS'NT my name ^");
 	}

@@ -621,13 +621,13 @@ public class TReflect {
 										if (entry.getKey() instanceof Map) {
 											keyOfMap = (Map) entry.getKey();
 										} else {
-											keyOfMap = TObject.newMap("value", entry.getKey());
+											keyOfMap = TObject.asMap("value", entry.getKey());
 										}
 
 										if (entry.getValue() instanceof Map) {
 											valueOfMap = (Map) entry.getValue();
 										} else {
-											valueOfMap = TObject.newMap("value", entry.getValue());
+											valueOfMap = TObject.asMap("value", entry.getValue());
 										}
 
 										Object keyObj = getObjectFromMap(mapGenericTypes[0], keyOfMap, ignoreCase);
@@ -651,7 +651,7 @@ public class TReflect {
 										if (listItem instanceof Map) {
 											valueOfMap = (Map) listItem;
 										} else {
-											valueOfMap = TObject.newMap("value", listItem);
+											valueOfMap = TObject.asMap("value", listItem);
 										}
 
 										Object item = getObjectFromMap(listGenericTypes[0], valueOfMap, ignoreCase);
@@ -664,7 +664,7 @@ public class TReflect {
 								value = getObjectFromMap(fieldType, (Map<String, ?>) value, ignoreCase);
 
 							} else {
-								value = getObjectFromMap(fieldType, TObject.newMap("value", value), ignoreCase);
+								value = getObjectFromMap(fieldType, TObject.asMap("value", value), ignoreCase);
 							}
 						}
 

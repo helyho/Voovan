@@ -206,7 +206,7 @@ public class EventProcess {
 
 			//如果 obj 是 ByteBuffer 进行释放
 			if(obj instanceof ByteBuffer){
-				TByteBuffer.release(TObject.cast(obj));
+				TByteBuffer.release((ByteBuffer)obj);
 			}
 		}
 	}
