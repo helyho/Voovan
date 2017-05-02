@@ -83,7 +83,7 @@ public class WebSocketHandler implements IoHandler{
     @Override
     public void onSent(IoSession session, Object obj) {
         webSocketRouter.setSession(session);
-        WebSocketFrame webSocketFrame = WebSocketFrame.parse(TObject.cast(obj));
+        WebSocketFrame webSocketFrame = WebSocketFrame.parse((ByteBuffer)obj);
         if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING){
             session.close();
             return;

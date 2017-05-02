@@ -291,7 +291,7 @@ public class HttpRequest extends Request {
 	 */
 	public Object getAllParameterAsObject(Class<?> clazz){
 		try {
-			return TReflect.getObjectFromMap(clazz, TObject.cast(getParameters()), true);
+			return TReflect.getObjectFromMap(clazz, (Map<String,?>)getParameters(), true);
 		} catch (ReflectiveOperationException | ParseException e) {
 			throw new RuntimeException("Conver parameters to "+clazz.getCanonicalName()+" error.",e);
 		}

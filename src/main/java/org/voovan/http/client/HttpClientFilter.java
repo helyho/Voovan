@@ -48,7 +48,7 @@ public class HttpClientFilter implements IoFilter {
 		try{
 			ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
 			if("WebSocket".equals(session.getAttribute("Type"))){
-				return WebSocketFrame.parse(TObject.cast(object));
+				return WebSocketFrame.parse((ByteBuffer)object);
 			}
 
 			if(object instanceof ByteBuffer){
