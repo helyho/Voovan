@@ -327,7 +327,7 @@ public class JSONDecode {
 		}
 		//[]包裹的对象处理
 		else if(parseObject instanceof Collection){
-			return (T) TReflect.getObjectFromMap(clazz, TObject.newMap("value",parseObject),false);
+			return (T) TReflect.getObjectFromMap(clazz, TObject.asMap("value",parseObject),false);
 		}
 		//其他类型处理
 		else{

@@ -133,7 +133,7 @@ public class WebSocketDispatcher {
 				!session.close() ) {
 				// 触发一个 WebSocket Close 事件
 				process(WebSocketEvent.CLOSE, session,
-						TObject.cast(session.getAttribute("HttpRequest")), null);
+						(HttpRequest) session.getAttribute("HttpRequest"), null);
 			}
 	}
 }

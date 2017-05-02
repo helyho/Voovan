@@ -95,7 +95,7 @@ public class SSLManager {
 	 */
 	private synchronized void init(String protocol) throws SSLException {
 
-		if(TString.isNullOrEmpty(protocol) || protocol == null){
+		if(TString.isNullOrEmpty(protocol)){
 			this.protocol = "SSL";
 		}
 		try {

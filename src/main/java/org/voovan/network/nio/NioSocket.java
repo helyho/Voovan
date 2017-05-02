@@ -140,11 +140,13 @@ public class NioSocket extends SocketContext{
 	 */
 	public void syncStart(){
 
-		Global.getThreadPool().execute(()->{
-			try {
-				start();
-			} catch (IOException e) {
-				e.printStackTrace();
+		Global.getThreadPool().execute(new Runnable(){
+			public void run() {
+				try {
+					start();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		});
 

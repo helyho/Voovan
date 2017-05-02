@@ -86,7 +86,9 @@ public class JSON {
 	 * @return  格式化后的 JSON 字符串
 	 */
 	public static String formatJson(String jsonStr) {
-		if (jsonStr == null || jsonStr.isEmpty()) return "";
+		if (TString.isNullOrEmpty(jsonStr)){
+			return "";
+		}
 		StringBuilder jsongStrBuild = new StringBuilder();
 		char prevChar = '\0';
 		char current = '\0';

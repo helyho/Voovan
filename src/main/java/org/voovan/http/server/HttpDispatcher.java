@@ -381,11 +381,11 @@ public class HttpDispatcher {
 		
 		//匹配 error 定义,如果有可用消息则会覆盖上面定义的初始内容
 		if (errorDefine.containsKey(className)) {
-			error.putAll(TObject.cast(errorDefine.get(className)));
-			response.protocol().setStatus(TObject.cast(error.get("StatusCode")));
+			error.putAll((Map<String,Object>)errorDefine.get(className));
+			response.protocol().setStatus((int)error.get("StatusCode"));
 		} else if (errorDefine.get("Other") != null) {
-			error.putAll(TObject.cast(errorDefine.get("Other")));
-			response.protocol().setStatus(TObject.cast(error.get("StatusCode")));
+			error.putAll((Map<String,Object>)errorDefine.get("Other"));
+			response.protocol().setStatus((int)error.get("StatusCode"));
 		}
 		
 		//消息拼装
