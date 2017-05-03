@@ -34,7 +34,7 @@
             scm:git:https://git.oschina.net/helyho/Voovan.git
         </developerConnection>
         <url>https://git.oschina.net/helyho/Voovan</url>
-        <tag>v1.5</tag>
+        <tag>v1.5.1</tag>
     </scm>
 
     <issueManagement>
