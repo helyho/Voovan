@@ -121,7 +121,7 @@ public class TReflect {
 	 * @return Class 对象
 	 * @throws ClassNotFoundException 类找不到异常
 	 */
-	public static Class[] getActualType(ParameterizedType type) throws ClassNotFoundException{
+	public static Class[] getGenericClass(ParameterizedType type) throws ClassNotFoundException{
 		Class[] result = null;
 		Type[] actualType = type.getActualTypeArguments();
 		result = new Class[actualType.length];
@@ -148,7 +148,7 @@ public class TReflect {
 	public static Class[] getFieldGenericType(Field field) throws ClassNotFoundException {
 		Type fieldType = field.getGenericType();
 		if(fieldType instanceof ParameterizedType){
-			return getActualType((ParameterizedType)fieldType);
+			return getGenericClass((ParameterizedType)fieldType);
 		}
 		return null;
 	}
@@ -336,7 +336,7 @@ public class TReflect {
 		}
 
 		if(parameterType instanceof ParameterizedType){
-			return getActualType((ParameterizedType)parameterType);
+			return getGenericClass((ParameterizedType)parameterType);
 		}
 		return null;
 	}
@@ -518,7 +518,7 @@ public class TReflect {
 	/**
 	 * 将Map转换成指定的对象
 	 * 
-	 * @param clazz			类对象
+	 * @param type			类对象
 	 * @param mapArg		Map 对象
 	 * @param ignoreCase    匹配属性名是否不区分大小写
 	 * @return 转换后的对象
@@ -526,9 +526,19 @@ public class TReflect {
 	 * @throws ParseException 解析异常
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static Object getObjectFromMap(Class<?> clazz,
-		Map<String, ?> mapArg,boolean ignoreCase) throws ReflectiveOperationException, ParseException {
+	public static Object getObjectFromMap(Type type, Map<String, ?> mapArg, boolean ignoreCase)
+			throws ReflectiveOperationException, ParseException {
 		Object obj = null;
+		Class<?> clazz = null;
+		Class[] genericType = null;
+
+		if(type instanceof ParameterizedType) {
+			ParameterizedType parameterizedType = (ParameterizedType) type;
+			clazz = (Class)parameterizedType.getRawType();
+			genericType = getGenericClass(parameterizedType);
+		}else if(type instanceof Class){
+			clazz = (Class)type;
+		}
 
 		if(mapArg==null){
 			return obj;
@@ -557,9 +567,34 @@ public class TReflect {
 			if(Modifier.isAbstract(clazz.getModifiers()) && Modifier.isInterface(clazz.getModifiers())){
 				clazz = HashMap.class;
 			}
-
 			Map mapObject = TObject.cast(newInstance(clazz));
-			mapObject.putAll(mapArg);
+
+			if(genericType!=null) {
+				Iterator iterator = mapArg.entrySet().iterator();
+				while (iterator.hasNext()) {
+					Entry entry = (Entry) iterator.next();
+					Map keyOfMap = null;
+					Map valueOfMap = null;
+
+					if (entry.getKey() instanceof Map) {
+						keyOfMap = (Map) entry.getKey();
+					} else {
+						keyOfMap = TObject.asMap("value", entry.getKey());
+					}
+
+					if (entry.getValue() instanceof Map) {
+						valueOfMap = (Map) entry.getValue();
+					} else {
+						valueOfMap = TObject.asMap("value", entry.getValue());
+					}
+
+					Object keyObj = getObjectFromMap(genericType[0], keyOfMap, ignoreCase);
+					Object valueObj = getObjectFromMap(genericType[1], valueOfMap, ignoreCase);
+					mapObject.put(keyObj, valueObj);
+				}
+			}else{
+				mapObject.putAll(mapArg);
+			}
 			obj = mapObject;
 		}
 		//Collection 类型
@@ -568,10 +603,24 @@ public class TReflect {
 			if(Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())){
 				clazz = ArrayList.class;
 			}
-
             Collection listObject = TObject.cast(newInstance(clazz));
+
 			if(singleValue!=null){
-                listObject.addAll((Collection) TObject.cast(singleValue));
+				if(genericType!=null){
+                    for (Object listItem : (Collection)singleValue) {
+                        Map valueOfMap = null;
+                        if (listItem instanceof Map) {
+                            valueOfMap = (Map) listItem;
+                        } else {
+                            valueOfMap = TObject.asMap("value", listItem);
+                        }
+
+                        Object item = getObjectFromMap(genericType[0], valueOfMap, ignoreCase);
+                        listObject.add(item);
+                    }
+				}else{
+					listObject.addAll((Collection)singleValue);
+				}
 			}
 			obj = listObject;
 		}
@@ -606,73 +655,31 @@ public class TReflect {
 				if(field!=null) {
 					String fieldName = field.getName();
 					Class fieldType = field.getType();
+					Type fieldGenericType = field.getGenericType();
 					try {
-
 						if(value != null) {
-							//对于 对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
+							//对于 目标对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
 							if (isImpByInterface(fieldType, Map.class) && value instanceof Map) {
-								Class[] mapGenericTypes = getFieldGenericType(field);
-								if (mapGenericTypes != null) {
-									if (fieldType == Map.class) {
-										fieldType = HashMap.class;
-									}
-									Map result = (Map) TReflect.newInstance(fieldType);
-									Map mapValue = (Map) value;
-									Iterator iterator = mapValue.entrySet().iterator();
-									while (iterator.hasNext()) {
-										Entry entry = (Entry) iterator.next();
-										Map keyOfMap = null;
-										Map valueOfMap = null;
-										if (entry.getKey() instanceof Map) {
-											keyOfMap = (Map) entry.getKey();
-										} else {
-											keyOfMap = TObject.asMap("value", entry.getKey());
-										}
-
-										if (entry.getValue() instanceof Map) {
-											valueOfMap = (Map) entry.getValue();
-										} else {
-											valueOfMap = TObject.asMap("value", entry.getValue());
-										}
-
-										Object keyObj = getObjectFromMap(mapGenericTypes[0], keyOfMap, ignoreCase);
-										Object valueObj = getObjectFromMap(mapGenericTypes[1], valueOfMap, ignoreCase);
-										result.put(keyObj, valueObj);
-									}
-									value = result;
-								}
+                                value = getObjectFromMap(fieldGenericType, (Map<String,?>)value, ignoreCase);
 							}
-							//对于 对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
+							//对于 目标对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
 							else if (isImpByInterface(fieldType, Collection.class) && value instanceof Collection) {
-								Class[] listGenericTypes = getFieldGenericType(field);
-								if (listGenericTypes != null) {
-									if (fieldType == List.class) {
-										fieldType = ArrayList.class;
-									}
-									List result = (List) TReflect.newInstance(fieldType);
-									List listValue = (List) value;
-									for (Object listItem : listValue) {
-										Map valueOfMap = null;
-										if (listItem instanceof Map) {
-											valueOfMap = (Map) listItem;
-										} else {
-											valueOfMap = TObject.asMap("value", listItem);
-										}
-
-										Object item = getObjectFromMap(listGenericTypes[0], valueOfMap, ignoreCase);
-										result.add(item);
-									}
-									value = result;
+								value = getObjectFromMap(fieldGenericType, TObject.asMap("value", value), ignoreCase);
+							}
+							//对于 目标对象类型不是 Map,则认定为复杂类型
+							else if (!isImpByInterface(fieldType, Map.class)) {
+								if(value instanceof Map) {
+									value = getObjectFromMap(fieldType, (Map<String, ?>) value, ignoreCase);
+								}else{
+									value = getObjectFromMap(fieldType, TObject.asMap("value", value), ignoreCase);
 								}
-
-							} else if (value instanceof Map) {
-								value = getObjectFromMap(fieldType, (Map<String, ?>) value, ignoreCase);
-
-							} else {
-								value = getObjectFromMap(fieldType, TObject.asMap("value", value), ignoreCase);
+							}else{
+								throw new ReflectiveOperationException("Conver field object error! Except type: " +
+										fieldType.getName() +
+										", Object type: "+
+										value.getClass().getName());
 							}
 						}
-
 						setFieldValue(obj, fieldName, value);
 					}catch(Exception e){
 						throw new ReflectiveOperationException("Fill object " + obj.getClass().getCanonicalName() +
