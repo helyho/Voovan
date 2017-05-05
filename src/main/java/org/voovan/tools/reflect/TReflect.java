@@ -130,9 +130,13 @@ public class TReflect {
 			result = new Class[actualType.length];
 
 			for(int i=0;i<actualType.length;i++){
-				String classStr = actualType[i].getTypeName();
-				classStr = classStr.replaceAll("<.*>","");
-				result[i] = Class.forName(classStr);
+				if(actualType[i] instanceof Class){
+					result[i] = (Class)actualType[i];
+				}else {
+					String classStr = actualType[i].toString().split(" ")[1];
+					classStr = classStr.replaceAll("<.*>", "");
+					result[i] = Class.forName(classStr);
+				}
 			}
 			return result;
 		}
@@ -237,7 +241,7 @@ public class TReflect {
 			ArrayList<Method> methodList = new ArrayList<Method>();
 			Method[] allMethods = getMethods(clazz, name);
 			for (Method method : allMethods) {
-				if (method.getParameters().length == paramCount) {
+				if (method.getParameterTypes().length == paramCount) {
 					methodList.add(method);
 				}
 			}
@@ -327,7 +331,7 @@ public class TReflect {
 			result = new Class[actualType.length];
 
 			for(int i=0;i<actualType.length;i++){
-				String classStr = actualType[i].getTypeName();
+				String classStr = actualType[i].toString();
 				classStr = classStr.replaceAll("<.*>","");
 				result[i] = Class.forName(classStr);
 			}
@@ -375,17 +379,17 @@ public class TReflect {
 			//找到这个名称的所有方法
 			Method[] methods = findMethod(objClass,name,parameterTypes.length);
 			for(Method similarMethod : methods){
-				Parameter[] methodParams = similarMethod.getParameters();
+				Class[] methodParamTypes = similarMethod.getParameterTypes();
 				//匹配参数数量相等的方法
-				if(methodParams.length == args.length){
+				if(methodParamTypes.length == args.length){
 					Object[] convertedParams = new Object[args.length];
-					for(int i=0;i<methodParams.length;i++){
-						Parameter parameter = methodParams[i];
+					for(int i=0;i<methodParamTypes.length;i++){
+						Class parameterType = methodParamTypes[i];
 						//参数类型转换
 						String value = "";
 
 						//这里对参数类型是 Object或者是范型 的提供支持
-						if(parameter.getType() != Object.class) {
+						if(parameterType != Object.class) {
 							Class argClass = args[i].getClass();
 
 							//复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
@@ -398,7 +402,7 @@ public class TReflect {
 								value = args[i].toString();
 							}
 
-							convertedParams[i] = TString.toObject(value, parameter.getType());
+							convertedParams[i] = TString.toObject(value, parameterType);
 						}else{
 							convertedParams[i] = args[i];
 						}
@@ -446,12 +450,12 @@ public class TReflect {
 		}catch(Exception e){
 			Constructor[] constructors = clazz.getConstructors();
 			for(Constructor similarConstructor : constructors){
-				Parameter[] methodParams = similarConstructor.getParameters();
+				Class[] methodParamTypes = similarConstructor.getParameterTypes();
 				//匹配参数数量相等的方法
-				if(methodParams.length == parameters.length){
+				if(methodParamTypes.length == parameters.length){
 					Object[] convertedParams = new Object[parameters.length];
-					for(int i=0;i<methodParams.length;i++){
-						Parameter parameter = methodParams[i];
+					for(int i=0;i<methodParamTypes.length;i++){
+						Class parameterType = methodParamTypes[i];
 						//参数类型转换
 						String value = "";
 
@@ -467,7 +471,7 @@ public class TReflect {
 							value = parameters[i].toString();
 						}
 
-						convertedParams[i] = TString.toObject(value, parameter.getType());
+						convertedParams[i] = TString.toObject(value, parameterType);
 					}
 					constructor = similarConstructor;
 					try{
