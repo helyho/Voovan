@@ -116,29 +116,39 @@ public class TReflect {
 	}
 
 	/**
+	 * 获取范型类型
+	 * @param type 类型对象
+	 * @return Class 对象
+	 * @throws ClassNotFoundException 类找不到异常
+	 */
+	public static Class[] getActualType(ParameterizedType type) throws ClassNotFoundException{
+		Class[] result = null;
+		Type[] actualType = type.getActualTypeArguments();
+		result = new Class[actualType.length];
+
+		for(int i=0;i<actualType.length;i++){
+			if(actualType[i] instanceof Class){
+				result[i] = (Class)actualType[i];
+			}else if(actualType[i] instanceof Type){
+				String classStr = actualType[i].toString();
+				classStr = classStr.replaceAll("<.*>", "");
+				result[i] = Class.forName(classStr);
+			}
+		}
+		return result;
+	}
+
+
+	/**
 	 * 获取 Field 的范型类型
 	 * @param field  field 对象
 	 * @return 返回范型类型数组
 	 * @throws ClassNotFoundException 类找不到异常
 	 */
 	public static Class[] getFieldGenericType(Field field) throws ClassNotFoundException {
-		Class[] result = null;
 		Type fieldType = field.getGenericType();
 		if(fieldType instanceof ParameterizedType){
-			ParameterizedType parameterizedFieldType = (ParameterizedType)fieldType;
-			Type[] actualType = parameterizedFieldType.getActualTypeArguments();
-			result = new Class[actualType.length];
-
-			for(int i=0;i<actualType.length;i++){
-				if(actualType[i] instanceof Class){
-					result[i] = (Class)actualType[i];
-				}else {
-					String classStr = actualType[i].toString().split(" ")[1];
-					classStr = classStr.replaceAll("<.*>", "");
-					result[i] = Class.forName(classStr);
-				}
-			}
-			return result;
+			return getActualType((ParameterizedType)fieldType);
 		}
 		return null;
 	}
@@ -326,16 +336,7 @@ public class TReflect {
 		}
 
 		if(parameterType instanceof ParameterizedType){
-			ParameterizedType parameterizedFieldType = (ParameterizedType)parameterType;
-			Type[] actualType = parameterizedFieldType.getActualTypeArguments();
-			result = new Class[actualType.length];
-
-			for(int i=0;i<actualType.length;i++){
-				String classStr = actualType[i].toString();
-				classStr = classStr.replaceAll("<.*>","");
-				result[i] = Class.forName(classStr);
-			}
-			return result;
+			return getActualType((ParameterizedType)parameterType);
 		}
 		return null;
 	}
