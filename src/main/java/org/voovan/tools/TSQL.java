@@ -322,7 +322,7 @@ public class TSQL {
 			sqlText = sqlText.replace("::"+paramName,"``"+paramName);
 		}
 
-		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\))|(\\sorder\\s)|(\\shaving\\s)|(\\sor\\s)|$)";
+		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\sor\\s)|(\\sorder\\s)|(\\shaving\\s)|$)";
 		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
 		for(String condiction : sqlCondiction){
 			String[] condictions = TString.searchByRegex(condiction,"::[^,\\s\\)]+");
@@ -348,19 +348,16 @@ public class TSQL {
 	public static List<String[]> parseSQLCondiction(String sqlText) {
 		ArrayList<String[]> condictionList = new ArrayList<String[]>();
 		sqlText = sqlText.toLowerCase();
-		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\))|(\\sorder\\s)|(\\shaving\\s)|(\\sor\\s)|$)";
+		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\sor\\s)|(\\sorder\\s)|(\\shaving\\s)|$)";
 		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
 		for(String condiction : sqlCondiction){
 			condiction = condiction.trim();
-			if(TString.regexMatch(condiction, "\\sin\\s*\\(")!=0 || TString.regexMatch(condiction, "\\slike\\s*\\(")!=0){
-				condiction = condiction+")";
-			}
 			String concateMethod = condiction.substring(0,condiction.indexOf(" ")+1).trim();
 			condiction = condiction.substring(condiction.indexOf(" ")+1,condiction.length()).trim();
-			String operatorChar = TString.searchByRegex(condiction, "(\\slike\\s)|(\\sin\\s)|(>=)|(<=)|[=<>]")[0].trim();
+			String operatorChar = TString.searchByRegex(condiction, "(\\slike\\s*)|(\\sin\\s*)|(>=)|(<=)|[=<>]")[0].trim();
 
 
-			String[] condictionArr = condiction.split("(\\slike\\s)|(\\sin\\s)|(>=)|(<=)|[=<>]");
+			String[] condictionArr = condiction.split("(\\slike\\s*)|(\\sin\\s*)|(>=)|(<=)|[=<>]");
 			condictionArr[0] = condictionArr[0].trim();
 			condictionArr[1] = condictionArr[1].trim();
 			if(condictionArr[0].trim().indexOf(".")>1){

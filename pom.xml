@@ -4,7 +4,7 @@
 
     <groupId>org.voovan</groupId>
     <artifactId>voovan-framework</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
     <packaging>jar</packaging>
     <name>Voovan</name>
     <url>https://git.oschina.net/helyho/Voovan</url>
@@ -34,7 +34,7 @@
             scm:git:https://git.oschina.net/helyho/Voovan.git
         </developerConnection>
         <url>https://git.oschina.net/helyho/Voovan</url>
-        <tag>v1.5.1</tag>
+        <tag>v1.5.2</tag>
     </scm>
 
     <issueManagement>
