@@ -213,7 +213,7 @@ public class JSONDecode {
 				}
 
 				//JSON对象字符串分组,取 Key 对象,当前字符是:则取 Key
-				if (!isString && !isFunction && currentChar == ':') {
+				if (!isString && !isFunction && (currentChar == ':' || currentChar == '=')) {
 					keyString = itemString.substring(0, itemString.length() - 1).trim();
 					itemString = new StringBuilder();
 				}
