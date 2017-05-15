@@ -74,18 +74,26 @@ public class TReflect {
 			if(fields.containsKey(mark)){
 				return fields.get(mark);
 			}else {
-				Field field = clazz.getDeclaredField(fieldName);
+				Field field = null;
+				ReflectiveOperationException exception = null;
+
+				for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+					try {
+						field = clazz.getDeclaredField(fieldName);
+					}catch(ReflectiveOperationException e){
+						exception = e;
+					}
+				}
+				if(field == null){
+					throw exception;
+				}
+
 				fields.put(mark, field);
 				return field;
 			}
 
 		}catch(NoSuchFieldException ex){
-			Class superClazz = clazz.getSuperclass();
-			if( superClazz != Object.class ) {
-				return findField(clazz.getSuperclass(), fieldName);
-			}else{
-				return null;
-			}
+			throw ex;
 		}
 	}
 
@@ -225,7 +233,21 @@ public class TReflect {
 		if(methods.containsKey(mark)){
 			return methods.get(mark);
 		}else {
-			Method method = clazz.getDeclaredMethod(name, paramTypes);
+			Method method = null;
+			ReflectiveOperationException exception = null;
+
+			for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+				try {
+					method = clazz.getDeclaredMethod(name, paramTypes);
+				}catch(ReflectiveOperationException e){
+					exception = e;
+				}
+			}
+
+			if(method==null){
+				throw exception;
+			}
+
 			methods.put(mark, method);
 			return method;
 		}
@@ -380,36 +402,36 @@ public class TReflect {
 			//找到这个名称的所有方法
 			Method[] methods = findMethod(objClass,name,parameterTypes.length);
 			for(Method similarMethod : methods){
-				Class[] methodParamTypes = similarMethod.getParameterTypes();
-				//匹配参数数量相等的方法
-				if(methodParamTypes.length == args.length){
-					Object[] convertedParams = new Object[args.length];
-					for(int i=0;i<methodParamTypes.length;i++){
-						Class parameterType = methodParamTypes[i];
-						//参数类型转换
-						String value = "";
-
-						//这里对参数类型是 Object或者是范型 的提供支持
-						if(parameterType != Object.class) {
-							Class argClass = args[i].getClass();
-
-							//复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
-							if (args[i] instanceof Collection ||
-									args[i] instanceof Map ||
-									argClass.isArray() ||
-									!argClass.getCanonicalName().startsWith("java.lang")) {
-								value = JSON.toJSON(args[i]);
-							} else {
-								value = args[i].toString();
-							}
-
-							convertedParams[i] = TString.toObject(value, parameterType);
-						}else{
-							convertedParams[i] = args[i];
-						}
-					}
-					method = similarMethod;
+                Class[] methodParamTypes = similarMethod.getParameterTypes();
+                //匹配参数数量相等的方法
+                if(methodParamTypes.length == args.length){
 					try{
+                        Object[] convertedParams = new Object[args.length];
+                        for(int i=0;i<methodParamTypes.length;i++){
+                            Class parameterType = methodParamTypes[i];
+                            //参数类型转换
+                            String value = "";
+
+                            //这里对参数类型是 Object或者是范型 的提供支持
+                            if(parameterType != Object.class) {
+                                Class argClass = args[i].getClass();
+
+                                //复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
+                                if (args[i] instanceof Collection ||
+                                        args[i] instanceof Map ||
+                                        argClass.isArray() ||
+                                        !argClass.getCanonicalName().startsWith("java.lang")) {
+                                    value = JSON.toJSON(args[i]);
+                                } else {
+                                    value = args[i].toString();
+                                }
+
+                                convertedParams[i] = TString.toObject(value, parameterType);
+                            }else{
+                                convertedParams[i] = args[i];
+                            }
+                        }
+                        method = similarMethod;
 						method.setAccessible(true);
 						return method.invoke(obj, convertedParams);
 					}catch(Exception ex){
@@ -454,28 +476,29 @@ public class TReflect {
 				Class[] methodParamTypes = similarConstructor.getParameterTypes();
 				//匹配参数数量相等的方法
 				if(methodParamTypes.length == parameters.length){
-					Object[] convertedParams = new Object[parameters.length];
-					for(int i=0;i<methodParamTypes.length;i++){
-						Class parameterType = methodParamTypes[i];
-						//参数类型转换
-						String value = "";
-
-						Class parameterClass = parameters[i].getClass();
-
-						//复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
-						if(parameters[i] instanceof Collection ||
-								parameters[i] instanceof Map ||
-								parameterClass.isArray() ||
-								!parameterClass.getCanonicalName().startsWith("java.lang")){
-							value = JSON.toJSON(parameters[i]);
-						}else{
-							value = parameters[i].toString();
-						}
-
-						convertedParams[i] = TString.toObject(value, parameterType);
-					}
-					constructor = similarConstructor;
 					try{
+                        Object[] convertedParams = new Object[parameters.length];
+                        for(int i=0;i<methodParamTypes.length;i++){
+                            Class parameterType = methodParamTypes[i];
+                            //参数类型转换
+                            String value = "";
+
+                            Class parameterClass = parameters[i].getClass();
+
+                            //复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
+                            if(parameters[i] instanceof Collection ||
+                                    parameters[i] instanceof Map ||
+                                    parameterClass.isArray() ||
+                                    !parameterClass.getCanonicalName().startsWith("java.lang")){
+                                value = JSON.toJSON(parameters[i]);
+                            }else{
+                                value = parameters[i].toString();
+                            }
+
+                            convertedParams[i] = TString.toObject(value, parameterType);
+                        }
+                        constructor = similarConstructor;
+
 						return constructor.newInstance(convertedParams);
 					}catch(Exception ex){
 						continue;
