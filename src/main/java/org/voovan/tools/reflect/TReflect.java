@@ -681,6 +681,17 @@ public class TReflect {
 					Type fieldGenericType = field.getGenericType();
 					try {
 						if(value != null) {
+							//通过 JSON 将,String类型的 value转换,将 String 转换成 Collection, Map 或者 复杂类型 对象作为参数
+							if( value instanceof String &&
+									(
+										isImpByInterface(fieldType, Map.class) ||
+										isImpByInterface(fieldType, Collection.class) ||
+										!fieldType.getName().startsWith("java.lang")
+									)
+								){
+								value = TString.toObject(value.toString(), fieldType);
+							}
+
 							//对于 目标对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
 							if (isImpByInterface(fieldType, Map.class) && value instanceof Map) {
                                 value = getObjectFromMap(fieldGenericType, (Map<String,?>)value, ignoreCase);
@@ -697,7 +708,7 @@ public class TReflect {
 									value = getObjectFromMap(fieldType, TObject.asMap("value", value), ignoreCase);
 								}
 							}else{
-								throw new ReflectiveOperationException("Conver field object error! Except type: " +
+								throw new ReflectiveOperationException("Conver field object error! Exception type: " +
 										fieldType.getName() +
 										", Object type: "+
 										value.getClass().getName());
