@@ -70,31 +70,24 @@ public class TReflect {
 
 		String mark = clazz.getCanonicalName()+"#"+fieldName;
 
-		try {
-			if(fields.containsKey(mark)){
-				return fields.get(mark);
-			}else {
-				Field field = null;
-				ReflectiveOperationException exception = null;
+        if(fields.containsKey(mark)){
+            return fields.get(mark);
+        }else {
+            Field field = null;
 
-				for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
-					try {
-						field = clazz.getDeclaredField(fieldName);
-					}catch(ReflectiveOperationException e){
-						exception = e;
-					}
-				}
-				if(field == null){
-					throw exception;
-				}
+            for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+                try {
+                    field = clazz.getDeclaredField(fieldName);
+                    break;
+                }catch(ReflectiveOperationException e){
+                    field = null;
+                }
+            }
 
-				fields.put(mark, field);
-				return field;
-			}
+            fields.put(mark, field);
 
-		}catch(NoSuchFieldException ex){
-			throw ex;
-		}
+            return field;
+        }
 	}
 
 	/**
@@ -234,18 +227,14 @@ public class TReflect {
 			return methods.get(mark);
 		}else {
 			Method method = null;
-			ReflectiveOperationException exception = null;
 
 			for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
 				try {
 					method = clazz.getDeclaredMethod(name, paramTypes);
+					break;
 				}catch(ReflectiveOperationException e){
-					exception = e;
+					method = null;
 				}
-			}
-
-			if(method==null){
-				throw exception;
 			}
 
 			methods.put(mark, method);
