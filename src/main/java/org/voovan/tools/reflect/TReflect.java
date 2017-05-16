@@ -727,53 +727,54 @@ public class TReflect {
 	public static Map<String, Object> getMapfromObject(Object obj) throws ReflectiveOperationException{
 		
 		Map<String, Object> mapResult = new HashMap<String, Object>();
-		Map<Field, Object> fieldValues =  TReflect.getFieldValues(obj);
 
 		//如果是 java 标准类型
-		if(TReflect.isBasicType(obj.getClass())){
-			mapResult.put("value", obj);
+		if(obj==null || TReflect.isBasicType(obj.getClass())){
+			mapResult.put(null, obj);
 		}
 		//java 日期对象
 		else if(isExtendsByClass(obj.getClass(),Date.class)){
-			mapResult.put("value",TDateTime.format((Date) obj, TDateTime.STANDER_DATETIME_TEMPLATE));
+			mapResult.put(null,TDateTime.format((Date) obj, TDateTime.STANDER_DATETIME_TEMPLATE));
 		}
 		//对 Collection 类型的处理
 		else if(obj instanceof Collection){
 			Collection collection = (Collection) newInstance(obj.getClass());
 			for(Object collectionItem : (Collection)obj) {
 				Map<String, Object> item = getMapfromObject(collectionItem);
-				if(item.containsKey("value")) {
-					collection.add(item.get("value"));
-				}
+                collection.add( (item.size()==1 && item.containsKey(null)) ? item.get(null) : item);
 			}
-			mapResult.put("value", collection);
+			mapResult.put(null, collection);
 		}
 		//对 Array 类型的处理
 		else if(obj.getClass().isArray()){
-			Object[] tmpArray = (Object[]) obj;
-			Object[] targetArray = new Object[tmpArray.length];
-			for(int i=0;i<tmpArray.length;i++) {
-				Object arrayItem = tmpArray[i];
+			Class arrayClass = obj.getClass().getComponentType();
+			Object targetArray = Array.newInstance(arrayClass, Array.getLength(obj));
+
+			for(int i=0;i<Array.getLength(obj);i++) {
+				Object arrayItem = Array.get(obj, i);
 				Map<String, Object> item = getMapfromObject(arrayItem);
-				if(item.containsKey("value")) {
-					targetArray[i] = item.get("value");
-				}
+				Array.set(targetArray, i, (item.size()==1 && item.containsKey(null)) ? item.get(null) : item);
 			}
-			mapResult.put("value", targetArray);
+			mapResult.put(null, targetArray);
 		}
 		//对 Map 类型的处理
 		else if(obj instanceof Map){
 			Map mapObject = (Map)obj;
 			Map map = (Map)newInstance(obj.getClass());
-			for(Object key : mapObject.keySet()) {
-				Map<String, Object> keyItem = getMapfromObject(key);
-				Map<String, Object> valueItem = getMapfromObject(mapObject.get(key));
-				map.put(keyItem.get("value"), valueItem.get("value"));
+			Iterator iterator =  mapObject.entrySet().iterator();
+			while(iterator.hasNext()) {
+				Entry<?, ?> entry = (Entry<?, ?>) iterator.next();
+				Map<String, Object> keyItem = getMapfromObject(entry.getKey());
+				Map<String, Object> valueItem = getMapfromObject(entry.getValue());
+				Object key = (keyItem.size()==1 && keyItem.containsKey(null)) ? keyItem.get(null) : keyItem;
+				Object value = (valueItem.size()==1 && valueItem.containsKey(null)) ? valueItem.get(null) : valueItem;
+				map.put(key, value);
 			}
-			mapResult.put("value", map);
+			mapResult.put(null, map);
 		}
 		//复杂对象类型
 		else{
+			Map<Field, Object> fieldValues =  TReflect.getFieldValues(obj);
 			for(Entry<Field,Object> entry : fieldValues.entrySet()){
 				String key = entry.getKey().getName();
 				Object value = entry.getValue();
@@ -786,8 +787,8 @@ public class TReflect {
 					}else {
 						//如果是复杂类型则递归调用
 						Map resultMap = getMapfromObject(value);
-						if(resultMap.size()>0 && resultMap.containsKey("value")){
-							mapResult.put(key, resultMap.get("value"));
+						if(resultMap.size()==1 && resultMap.containsKey(null)){
+							mapResult.put(key, resultMap.get(null));
 						}else{
 							mapResult.put(key,resultMap);
 						}
@@ -907,12 +908,13 @@ public class TReflect {
 	}
 
 	/**
-	 * 判读是否是基本类型(boolean, byte, char, double, float, int, long, short, string)
+	 * 判读是否是基本类型(null, boolean, byte, char, double, float, int, long, short, string)
 	 * @param clazz Class 对象
 	 * @return true: 是基本类型, false:非基本类型
 	 */
 	public static boolean isBasicType(Class clazz){
-		if(clazz.isPrimitive() ||
+		if(clazz == null ||
+				clazz.isPrimitive() ||
 				clazz.getName().contains("java.lang.Boolean") ||
 				clazz.getName().contains("java.lang.Byte") ||
 				clazz.getName().contains("java.lang.Character") ||

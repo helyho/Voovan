@@ -222,7 +222,7 @@ public class HttpParser {
 	 * 			2.header   解析成 key/value 形式
 	 * 			3.cookie   解析成 List[Map[String,String]] 形式
 	 * 			3.part     解析成 List[Map[Stirng,Object]](因为是递归,参考 HTTP 解析形式) 形式
-	 * 			5.body     解析成 key="value" 的Map 元素
+	 * 			5.body     解析成 key=BODY_VALUE 的Map 元素
 	 * @param byteBufferChannel 输入流
 	 * @param timeOut 读取超时时间参数
 	 * @return 解析后的 Map
