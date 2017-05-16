@@ -1,6 +1,7 @@
 package org.voovan.tools;
 
 import org.voovan.db.CallType;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -60,7 +61,13 @@ public class TSQL {
 			String paramName = sqlParams.get(i);
 			//去掉前面::号
 			paramName = paramName.substring(2,paramName.length());
-			preparedStatement.setObject(i+1, params.get(paramName));
+			Object data = params.get(paramName);
+			if(TReflect.isBasicType(data.getClass())) {
+				preparedStatement.setObject(i + 1, params.get(paramName));
+			}else{
+				//复杂对象类型,无法直接保存进数据库,进行 JSON 转换后保存
+				preparedStatement.setObject(i + 1, JSON.toJSON(params.get(paramName)));
+			}
 			Logger.debug("[SQL_Parameter]: "+sqlParams.get(i)+" = "+params.get(paramName));
 		}
 	}
