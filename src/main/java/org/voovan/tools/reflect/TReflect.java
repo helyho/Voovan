@@ -44,7 +44,7 @@ public class TReflect {
 			fields = fieldArrays.get(mark);
 		}else {
 			ArrayList<Field> fieldArray = new ArrayList<Field>();
-			for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
 				Field[] tmpFields = clazz.getDeclaredFields();
 				fieldArray.addAll(Arrays.asList(tmpFields));
 			}
@@ -75,7 +75,7 @@ public class TReflect {
         }else {
             Field field = null;
 
-            for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+            for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 try {
                     field = clazz.getDeclaredField(fieldName);
                     break;
@@ -228,7 +228,7 @@ public class TReflect {
 		}else {
 			Method method = null;
 
-			for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
 				try {
 					method = clazz.getDeclaredMethod(name, paramTypes);
 					break;
@@ -289,7 +289,7 @@ public class TReflect {
 			return methodArrays.get(mark);
 		} else {
 			List<Method> methodList = new ArrayList<Method>();
-			for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
 				Method[] tmpMethods = clazz.getDeclaredMethods();
 				methodList.addAll(Arrays.asList(tmpMethods));
 			}
@@ -571,7 +571,8 @@ public class TReflect {
 			//取 Map.Values 里的递第一个值
 			String value = singleValue==null?null:singleValue.toString();
 			SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
-			obj = singleValue!=null?dateFormat.parse(value.toString()):null;
+			Date dateObj = singleValue!=null?dateFormat.parse(value.toString()):null;
+			return TReflect.newInstance(clazz,dateObj.getTime());
 		}
 		//Map 类型
 		else if(isImpByInterface(clazz,Map.class)){
@@ -790,7 +791,7 @@ public class TReflect {
 			if (interfaceItem.equals(interfaceClass)) {
 				return true;
 			}
-			else{
+			else {
 				return isImpByInterface(interfaceItem,interfaceClass);
 			}
 		}
@@ -817,7 +818,7 @@ public class TReflect {
 				return true;
 			}
 			superClass = superClass.getSuperclass();
-		}while(superClass!=null && !superClass.equals(extendsClass) && !superClass.equals(Object.class));
+		}while(superClass!=null && Object.class != superClass);
 
 		return false;
 	}
@@ -839,7 +840,7 @@ public class TReflect {
 			superClass = superClass.getSuperclass();
 			classes.addAll(Arrays.asList(superClass.getInterfaces()));
 			classes.add(superClass);
-		}while(!Object.class.equals(superClass));
+		}while(superClass!=null && Object.class != superClass);
 		return classes.toArray(new Class[]{});
 	}
 
