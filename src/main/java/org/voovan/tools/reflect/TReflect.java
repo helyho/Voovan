@@ -566,6 +566,7 @@ public class TReflect {
 		if (clazz.isPrimitive() || clazz == Object.class){
 			obj = singleValue;
 		}
+
 		//java 日期对象
 		else if(isExtendsByClass(clazz,Date.class)){
 			//取 Map.Values 里的递第一个值
@@ -727,24 +728,47 @@ public class TReflect {
 		
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		Map<Field, Object> fieldValues =  TReflect.getFieldValues(obj);
+
 		//如果是 java 标准类型
 		if(TReflect.isBasicType(obj.getClass())){
 			mapResult.put("value", obj);
+		}
+		//java 日期对象
+		else if(isExtendsByClass(obj.getClass(),Date.class)){
+			mapResult.put("value",TDateTime.format((Date) obj, TDateTime.STANDER_DATETIME_TEMPLATE));
 		}
 		//对 Collection 类型的处理
 		else if(obj instanceof Collection){
 			Collection collection = (Collection) newInstance(obj.getClass());
 			for(Object collectionItem : (Collection)obj) {
-				collection.add(getMapfromObject(collectionItem));
+				Map<String, Object> item = getMapfromObject(collectionItem);
+				if(item.containsKey("value")) {
+					collection.add(item.get("value"));
+				}
 			}
 			mapResult.put("value", collection);
+		}
+		//对 Array 类型的处理
+		else if(obj.getClass().isArray()){
+			Object[] tmpArray = (Object[]) obj;
+			Object[] targetArray = new Object[tmpArray.length];
+			for(int i=0;i<tmpArray.length;i++) {
+				Object arrayItem = tmpArray[i];
+				Map<String, Object> item = getMapfromObject(arrayItem);
+				if(item.containsKey("value")) {
+					targetArray[i] = item.get("value");
+				}
+			}
+			mapResult.put("value", targetArray);
 		}
 		//对 Map 类型的处理
 		else if(obj instanceof Map){
 			Map mapObject = (Map)obj;
 			Map map = (Map)newInstance(obj.getClass());
 			for(Object key : mapObject.keySet()) {
-				map.put(getMapfromObject(key),getMapfromObject(mapObject.get(key)));
+				Map<String, Object> keyItem = getMapfromObject(key);
+				Map<String, Object> valueItem = getMapfromObject(mapObject.get(key));
+				map.put(keyItem.get("value"), valueItem.get("value"));
 			}
 			mapResult.put("value", map);
 		}
@@ -757,17 +781,16 @@ public class TReflect {
 					mapResult.put(key, value);
 				}else if(!key.contains("$")){
 					Class valueClass = entry.getValue().getClass();
-					if(TReflect.isSystemType(valueClass)){
+					if(TReflect.isBasicType(valueClass)){
 						mapResult.put(key, value);
 					}else {
 						//如果是复杂类型则递归调用
 						Map resultMap = getMapfromObject(value);
-						if(resultMap.size()==1 && resultMap.containsKey("value")){
-							mapResult.put(key, resultMap.values().iterator().next());
+						if(resultMap.size()>0 && resultMap.containsKey("value")){
+							mapResult.put(key, resultMap.get("value"));
 						}else{
 							mapResult.put(key,resultMap);
 						}
-
 					}
 				}
 			}
