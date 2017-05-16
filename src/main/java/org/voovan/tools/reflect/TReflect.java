@@ -420,7 +420,7 @@ public class TReflect {
                                 if (args[i] instanceof Collection ||
                                         args[i] instanceof Map ||
                                         argClass.isArray() ||
-                                        !argClass.getCanonicalName().startsWith("java.lang")) {
+                                        !TReflect.isBasicType(argClass)) {
                                     value = JSON.toJSON(args[i]);
                                 } else {
                                     value = args[i].toString();
@@ -489,7 +489,7 @@ public class TReflect {
                             if(parameters[i] instanceof Collection ||
                                     parameters[i] instanceof Map ||
                                     parameterClass.isArray() ||
-                                    !parameterClass.getCanonicalName().startsWith("java.lang")){
+                                    !TReflect.isBasicType(parameterClass)){
                                 value = JSON.toJSON(parameters[i]);
                             }else{
                                 value = parameters[i].toString();
@@ -654,7 +654,7 @@ public class TReflect {
 			return ((Collection)singleValue).toArray((Object[])tempArrayObj);
 		}
 		//java基本对象
-		else if (clazz.getName().startsWith("java.lang")) {
+		else if (TReflect.isBasicType(clazz)) {
 			//取 Map.Values 里的递第一个值
 			String value = singleValue==null?null:singleValue.toString();
 			obj = singleValue==null?null:newInstance(clazz,  value);
@@ -686,7 +686,7 @@ public class TReflect {
 									(
 										isImpByInterface(fieldType, Map.class) ||
 										isImpByInterface(fieldType, Collection.class) ||
-										!fieldType.getName().startsWith("java.lang")
+										!TReflect.isBasicType(fieldType)
 									)
 								){
 								value = TString.toObject(value.toString(), fieldType);
@@ -738,8 +738,7 @@ public class TReflect {
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		Map<Field, Object> fieldValues =  TReflect.getFieldValues(obj);
 		//如果是 java 标准类型
-		if(obj.getClass().getName().startsWith("java.lang")
-				|| obj.getClass().isPrimitive()){
+		if(TReflect.isBasicType(obj.getClass())){
 			mapResult.put("value", obj);
 		}
 		//对 Collection 类型的处理
@@ -767,8 +766,8 @@ public class TReflect {
 				if(value == null){
 					mapResult.put(key, value);
 				}else if(!key.contains("$")){
-					String valueClass = entry.getValue().getClass().getName();
-					if(valueClass.startsWith("java")){
+					Class valueClass = entry.getValue().getClass();
+					if(TReflect.isSystemType(valueClass)){
 						mapResult.put(key, value);
 					}else {
 						//如果是复杂类型则递归调用
@@ -862,7 +861,7 @@ public class TReflect {
      */
 	public static String getClazzJSONModel(Class clazz){
 		StringBuilder jsonStrBuilder = new StringBuilder();
-		if(clazz.getName().startsWith("java") || clazz.isPrimitive()){
+		if(TReflect.isBasicType(clazz)){
 			jsonStrBuilder.append(clazz.getName());
 		} else if(clazz.isArray()){
 			String clazzName = clazz.getName();
@@ -892,5 +891,41 @@ public class TReflect {
 		}
 
 		return jsonStrBuilder.toString();
+	}
+
+	/**
+	 * 判读是否是基本类型(boolean, byte, char, double, float, int, long, short, string)
+	 * @param clazz Class 对象
+	 * @return true: 是基本类型, false:非基本类型
+	 */
+	public static boolean isBasicType(Class clazz){
+		if(clazz.isPrimitive() ||
+				clazz.getName().contains("java.lang.Boolean") ||
+				clazz.getName().contains("java.lang.Byte") ||
+				clazz.getName().contains("java.lang.Character") ||
+				clazz.getName().contains("java.lang.Double") ||
+				clazz.getName().contains("java.lang.Float") ||
+				clazz.getName().contains("java.lang.Integer") ||
+				clazz.getName().contains("java.lang.Long") ||
+				clazz.getName().contains("java.lang.Short") ||
+				clazz.getName().contains("java.lang.String")
+				){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	/**
+	 * 判读是否是 JDK 中定义的类(java包下的所有类)
+	 * @param clazz Class 对象
+	 * @return true: 是基本类型, false:非基本类型
+	 */
+	public static boolean isSystemType(Class clazz){
+		if( clazz.isPrimitive() || clazz.getName().contains("java.")){
+			return true;
+		}else{
+			return false;
+		}
 	}
 }

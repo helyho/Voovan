@@ -103,7 +103,7 @@ public class JSONPath {
             return null;
         }
 
-        if (clazz.getName().startsWith("java.") || clazz.isPrimitive()) {
+        if (TReflect.isSystemType(clazz)) {
                 return (T)TObject.cast(value);
         } else {
             Object obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);

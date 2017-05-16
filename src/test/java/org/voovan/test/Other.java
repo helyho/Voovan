@@ -14,6 +14,7 @@ public class Other {
 
     public static void main(String[] args) throws Exception {
 
+        Logger.simple(Integer.valueOf(1123).getClass().isPrimitive());
         Logger.simple("Process ID: "+ TEnv.getCurrentPID());
         Object[][] mm = new Object[][]{{12}};
 
@@ -21,6 +22,4 @@ public class Other {
                 " / "+mm.getClass().getName() + " / " +mm.getClass().getTypeName()+" / "+mm.getClass().toGenericString());
 
     }
-
-
 }
