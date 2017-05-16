@@ -33,6 +33,23 @@ public class Logger {
 		Logger.state = state;
 	}
 
+	/**
+	 * 判断是否包含指定的日志级别
+	 * @param logLevel
+	 * @return true: 包含, false: 不包含
+	 */
+	public static boolean isLogLevel(String logLevel){
+		if(formater.getLogLevel().contains("ALL")){
+			return true;
+		}
+
+		if(formater.getLogLevel().contains(logLevel)){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
 	public static void debug(Object msg) {
 		try {
 			msg = TObject.nullDefault(msg,"null");
