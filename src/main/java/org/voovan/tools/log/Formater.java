@@ -54,6 +54,14 @@ public class Formater {
 	}
 
 	/**
+	 * 获取日志记录级别信息
+	 * @return 获取日志记录级别信息
+	 */
+	public List<String> getLogLevel() {
+		return logLevel;
+	}
+
+	/**
 	 * 获得当前栈元素信息
 	 * @return 栈信息元素
 	 */

@@ -68,7 +68,9 @@ public class TSQL {
 				//复杂对象类型,无法直接保存进数据库,进行 JSON 转换后保存
 				preparedStatement.setObject(i + 1, JSON.toJSON(params.get(paramName)));
 			}
-			Logger.debug("[SQL_Parameter]: "+sqlParams.get(i)+" = "+params.get(paramName));
+			if(Logger.isLogLevel("DEBUG")) {
+				Logger.simple("[SQL_Parameter]: " + sqlParams.get(i) + " = " + params.get(paramName));
+			}
 		}
 	}
 	
