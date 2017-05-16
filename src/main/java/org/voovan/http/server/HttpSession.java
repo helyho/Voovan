@@ -54,8 +54,17 @@ public class HttpSession {
 	 * @param name 属性名
 	 * @return 属性值
 	 */
-	public Object getAttributes(String name) {
+	public Object getAttribute(String name) {
 		return attributes.get(name);
+	}
+
+	/**
+	 * 判断当前 Session 属性是否存在
+	 * @param name 属性名
+	 * @return true: 存在, false: 不存在
+	 */
+	public boolean containAttribute(String name) {
+		return attributes.containsKey(name);
 	}
 
 	/**
@@ -79,7 +88,7 @@ public class HttpSession {
 	 * 获取 Session 管理器
 	 * @return Session 管理器
 	 */
-	public SessionManager getSessionManager() {
+	protected SessionManager getSessionManager() {
 		return sessionManager;
 	}
 
@@ -87,7 +96,7 @@ public class HttpSession {
 	 * 设置Session 管理器
 	 * @param sessionManager Session 管理器
 	 */
-	public void setSessionManager(SessionManager sessionManager) {
+	protected void setSessionManager(SessionManager sessionManager) {
 		this.sessionManager = sessionManager;
 	}
 

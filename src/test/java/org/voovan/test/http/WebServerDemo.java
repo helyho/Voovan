@@ -28,8 +28,8 @@ public class WebServerDemo {
 			//Session 测试
 			{
 				String now = TDateTime.now();
-				if (req.getSession() != null && req.getSession().getAttributes("Time") != null) {
-					Logger.simple("Session saved time is: " + req.getSession().getAttributes("Time")+" SavedTime: "+now);
+				if (req.getSession() != null && req.getSession().getAttribute("Time") != null) {
+					Logger.simple("Session saved time is: " + req.getSession().getAttribute("Time")+" SavedTime: "+now);
 				}
 				req.getSession().setAttribute("Time", now);
 			}
