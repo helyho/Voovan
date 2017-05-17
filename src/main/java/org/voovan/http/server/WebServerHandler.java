@@ -15,10 +15,7 @@ import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.InterruptedByTimeoutException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * WebServer Socket 事件处理类
@@ -40,8 +37,9 @@ public class WebServerHandler implements IoHandler {
 		this.httpDispatcher = httpDispatcher;
 		this.webSocketDispatcher = webSocketDispatcher;
 		this.webConfig = webConfig;
-		keepAliveTimer = new Timer("VOOVAN@Keep_Alive_Timer");
 		keepAliveSessionList = new ArrayList<IoSession>();
+
+		keepAliveTimer = new Timer("VOOVAN_WEB@KEEP_ALIVER_TIMER");
 		initKeepAliveTimer();
 	}
 
@@ -63,11 +61,10 @@ public class WebServerHandler implements IoHandler {
 		TimerTask keepAliveTask = new TimerTask() {
 			@Override
 			public void run() {
-				//临时保存需要清理的 session
-				List<IoSession> sessionNeedRemove= new ArrayList<IoSession>();
-				
+
 				//遍历所有的 session
-				for(IoSession session : keepAliveSessionList){
+				for(int i=0; i<keepAliveSessionList.size(); i++){
+					IoSession session = keepAliveSessionList.get(i);
 					long currentTimeValue = System.currentTimeMillis();
 					long timeOutValue = (long) session.getAttribute("TimeOutValue");
 					
@@ -76,19 +73,13 @@ public class WebServerHandler implements IoHandler {
 						//触发 WebSocket close 事件
 						webSocketDispatcher.fireCloseEvent(session);
 						session.close();
-						
-						sessionNeedRemove.add(session);
+						keepAliveSessionList.remove(i);
+						i--;
 					}
 				}
-				
-				//清理已经超时的会话
-				for(IoSession session : sessionNeedRemove){
-					keepAliveSessionList.remove(session);
-				}
-				
 			}
 		};
-		keepAliveTimer.schedule(keepAliveTask, 1 , 1000);
+		keepAliveTimer.schedule(keepAliveTask, 1 , 60*1000);
 	}
 	
 	@Override
@@ -101,14 +92,15 @@ public class WebServerHandler implements IoHandler {
 		//清理 IoSession
 		keepAliveSessionList.remove(session);
 
+		//http是无连接的,不跟随 Socket 连接清理 HTTPSession
 		//清理 HttpSession
-		HttpRequest httpRequest = TObject.cast(session.getAttribute("HttpRequest"));
-		if(httpRequest!=null) {
-			HttpSession httpSession = httpRequest.getSession();
-			if(httpSession!=null) {
-				httpSession.removeFromSessionManager();
-			}
-		}
+//		HttpRequest httpRequest = TObject.cast(session.getAttribute("HttpRequest"));
+//		if(httpRequest!=null) {
+//			HttpSession httpSession = httpRequest.getSession();
+//			if(httpSession!=null) {
+//				httpSession.removeFromSessionManager();
+//			}
+//		}
 	}
 
 	@Override

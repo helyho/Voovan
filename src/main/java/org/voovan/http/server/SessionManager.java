@@ -7,6 +7,8 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SessionManager{
 	private  Map<String, HttpSession>	httpSessions;
 	private WebServerConfig webConfig;
-	
+	private Timer checkSessionTimer;
 	/**
 	 * 构造函数
 	 * @param webConfig Web 服务配置对象
@@ -33,6 +35,32 @@ public class SessionManager{
 			httpSessions = new ConcurrentHashMap<String, HttpSession>();
 			Logger.warn("Create session container from config file failed,now use defaul session container.");
 		}
+
+		checkSessionTimer = new Timer("VOOVAN_WEB@CHECK_SESSION_TASK");
+		initKeepAliveTimer();
+	}
+
+	/**
+	 * 初始化连接保持 Timer
+	 */
+	public void initKeepAliveTimer(){
+
+		TimerTask checkSessionTask = new TimerTask() {
+			@Override
+			public void run() {
+
+				//遍历所有的 session
+				for(String sessionId : httpSessions.keySet().toArray(new String[]{})){
+
+					HttpSession session = httpSessions.get(sessionId);
+
+					if(session.isInvalid()){
+						session.removeFromSessionManager();
+					}
+				}
+			}
+		};
+		checkSessionTimer.schedule(checkSessionTask, 1 , 60*1000);
 	}
 
 	/**
@@ -77,6 +105,7 @@ public class SessionManager{
 			HttpSession httpSession = httpSessions.get(id).refresh();
 			if(httpSession.isInvalid()){
 				httpSession.removeFromSessionManager();
+				return null;
 			}
 			return httpSession;
         }
@@ -94,6 +123,7 @@ public class SessionManager{
 			HttpSession httpSession = httpSessions.get(cookie.getValue()).refresh();
 			if(httpSession.isInvalid()){
 				httpSession.removeFromSessionManager();
+				return null;
 			}
             return httpSession;
         }
