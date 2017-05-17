@@ -496,7 +496,12 @@ public class TReflect {
 				}
 			}
 
-			throw e;
+			//尝试使用 Unsafe 分配
+			try{
+				return allocateInstance(clazz);
+			}catch(Exception ex) {
+				throw e;
+			}
 		}
 
 	}
@@ -664,7 +669,7 @@ public class TReflect {
 		}
 		// 复杂对象
 		else {
-			obj = allocateInstance(clazz);
+			obj = newInstance(clazz);
 			for(Entry<String,?> argEntry : mapArg.entrySet()){
 				String key = argEntry.getKey();
 				Object value = argEntry.getValue();
