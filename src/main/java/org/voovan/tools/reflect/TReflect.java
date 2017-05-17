@@ -4,6 +4,7 @@ package org.voovan.tools.reflect;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.TUnsafe;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.annotation.NotJSON;
 import org.voovan.tools.reflect.annotation.NotSerialization;
@@ -513,6 +514,17 @@ public class TReflect {
 		Class<T> clazz = (Class<T>) Class.forName(className);
 		return newInstance(clazz,parameters);
 	}
+
+	/**
+	 * 采用 Unsafe 构造一个对象,无须参数
+	 * @param clazz 对象类型
+	 * @param <T> 范型
+	 * @return 新的对象
+	 * @throws InstantiationException 实例化异常
+	 */
+	public static <T> T allocateInstance(Class<T> clazz) throws InstantiationException {
+		return (T)TUnsafe.getUnsafe().allocateInstance(clazz);
+	}
 	
 	/**
 	 * 将对象数组转换成,对象类型的数组
@@ -652,7 +664,7 @@ public class TReflect {
 		}
 		// 复杂对象
 		else {
-			obj = newInstance(clazz);
+			obj = allocateInstance(clazz);
 			for(Entry<String,?> argEntry : mapArg.entrySet()){
 				String key = argEntry.getKey();
 				Object value = argEntry.getValue();
