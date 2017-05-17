@@ -173,21 +173,6 @@ public class Response {
 		return ByteBuffer.wrap(outputStream.toByteArray());
 	}
 
-	/**
-	 * 获取报文体
-	 * @param  byteBuffer 读取缓冲区
-	 * @return 读出的数据的大小
-	 */
-	private int readBody(ByteBuffer byteBuffer){
-		int readSize = 0;
-
-		if (body.size() != 0) {
-			readSize = body.read(byteBuffer);
-        }
-
-		return readSize;
-	}
-
 	private ByteBuffer readEnd(){
 		if (isCompress) {
 			return ByteBuffer.wrap("0\r\n\r\n".getBytes());
@@ -219,14 +204,14 @@ public class Response {
 			int readSize = 0;
 			while (true) {
 
-				readSize = readBody(byteBuffer);
+				readSize = body.read(byteBuffer);
 
-				if (readSize == 0) {
+				if (readSize == -1) {
 					break;
 				}
 
 				//判断是否需要发送 chunked 段长度
-				if (isCompress()) {
+				if (isCompress() && readSize!=0) {
 					String chunkedLengthLine = Integer.toHexString(readSize) + "\r\n";
 					session.send(ByteBuffer.wrap(chunkedLengthLine.getBytes()));
 				}
@@ -235,7 +220,7 @@ public class Response {
 				byteBuffer.clear();
 
 				//判断是否需要发送 chunked 结束符号
-				if (isCompress()) {
+				if (isCompress() && readSize!=0) {
 					session.send(ByteBuffer.wrap("\r\n".getBytes()));
 				}
 			}

@@ -196,14 +196,22 @@ public class TFile {
 
 			long fileSize = file.length();
 
+			if (endPos > fileSize) {
+				endPos = (int) fileSize;
+			}
+
 			if (beginPos < 0) {
 				return null;
 			}
 
-			if (endPos > fileSize) {
-				endPos = (int) fileSize;
+			if(beginPos >= fileSize){
+				return null;
 			}
-			
+
+			if(beginPos == endPos){
+				return null;
+			}
+
 			// 计算需要读取的差高难度
 			long loadLength = 0;
 			if (endPos < 0) {

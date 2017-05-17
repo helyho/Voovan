@@ -192,20 +192,23 @@ public class Body {
 	 * @return  读出的字节长度
 	 */
 	public int read(ByteBuffer byteBuffer){
+		int readSize = -1;
 		if(type == BodyType.BYTES) {
-			return byteBufferChannel.readHead(byteBuffer);
+			 readSize = byteBufferChannel.readHead(byteBuffer);
+			 readSize = readSize==0? -1: readSize;
 		}else {
 			byte[] fileContent = TFile.loadFile(bodyFile, position, position + byteBuffer.remaining());
 			if (fileContent != null){
-				int readSize = fileContent.length;
+				readSize = fileContent.length;
                 position = position + readSize;
 				byteBuffer.put(fileContent);
 				byteBuffer.flip();
                 return readSize;
-            } else {
-				return -1;
+            }else{
+				readSize = -1;
 			}
 		}
+		return readSize;
 	}
 
 	/**

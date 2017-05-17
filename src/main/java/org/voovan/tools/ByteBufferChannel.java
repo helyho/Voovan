@@ -606,12 +606,12 @@ public class ByteBufferChannel {
 					position = position+ (readSize*-1);
 					position = position < 0 ? 0 : position;
 					byteBuffer.position(position);
-					dst.flip();
 				} else {
 					dst.reset();
 				}
 			}
 
+			dst.flip();
 			return readSize;
 
 		} finally {
