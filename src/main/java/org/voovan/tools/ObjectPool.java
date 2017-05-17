@@ -30,7 +30,7 @@ public class ObjectPool {
     public ObjectPool(long aliveTime,boolean autoRefreshOnGet){
         objects = new ConcurrentHashMap<String, PooledObject>();
         this.aliveTime = aliveTime;
-        timer = new Timer("VOOVAN@Object_Pool_Timer");
+        timer = new Timer("VOOVAN@OBJECT_POOL_TIMER");
         this.autoRefreshOnGet = autoRefreshOnGet;
         removeDeadObject();
     }
@@ -43,7 +43,7 @@ public class ObjectPool {
     public ObjectPool(long aliveTime){
         objects = new ConcurrentHashMap<String,PooledObject>();
         this.aliveTime = aliveTime;
-        timer = new Timer("VOOVAN@Object_Pool_Timer");
+        timer = new Timer("VOOVAN@OBJECT_POOL_TIMER");
         removeDeadObject();
     }
 
@@ -53,7 +53,7 @@ public class ObjectPool {
      */
     public ObjectPool(boolean autoRefreshOnGet){
         objects = new ConcurrentHashMap<String,PooledObject>();
-        timer = new Timer("VOOVAN@Object_Pool_Timer");
+        timer = new Timer("VOOVAN@OBJECT_POOL_TIMER");
         this.autoRefreshOnGet = autoRefreshOnGet;
         removeDeadObject();
     }
@@ -63,7 +63,7 @@ public class ObjectPool {
      */
     public ObjectPool(){
         objects = new ConcurrentHashMap<String,PooledObject>();
-        timer = new Timer("VOOVAN@Object_Pool_Timer");
+        timer = new Timer("VOOVAN@OBJECT_POOL_TIMER");
         removeDeadObject();
     }
 
