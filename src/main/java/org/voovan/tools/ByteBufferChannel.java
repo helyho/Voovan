@@ -92,10 +92,15 @@ public class ByteBufferChannel {
 	 * @return true 已释放, false: 未释放
 	 */
 	public boolean isReleased(){
-		if(address == 0){
-			return true;
-		}else{
-			return false;
+		lock.lock();
+		try {
+            if(address == 0){
+                return true;
+            }else{
+                return false;
+            }
+		}finally {
+			lock.unlock();
 		}
 	}
 
@@ -161,8 +166,12 @@ public class ByteBufferChannel {
 		if(isReleased()){
 		    return -1;
 		}
-
-		return byteBuffer.capacity() - size;
+		lock.lock();
+		try {
+			return byteBuffer.capacity() - size;
+		}finally {
+			lock.unlock();
+		}
 	}
 
 	/**
@@ -173,8 +182,12 @@ public class ByteBufferChannel {
 		if(isReleased()){
 		    return -1;
 		}
-
-		return byteBuffer.capacity();
+		lock.lock();
+		try {
+			return byteBuffer.capacity();
+		}finally {
+			lock.unlock();
+		}
 	}
 
 	/**
@@ -185,8 +198,12 @@ public class ByteBufferChannel {
 		if(isReleased()){
 		    return -1;
 		}
-
-		return size;
+		lock.lock();
+		try {
+			return size;
+		}finally {
+			lock.unlock();
+		}
 	}
 
 	/**
@@ -203,8 +220,8 @@ public class ByteBufferChannel {
 
 		lock.lock();
 		try {
-			byte[] temp = new byte[size()];
-			unsafe.copyMemory(null, address, temp, Unsafe.ARRAY_BYTE_BASE_OFFSET, size());
+			byte[] temp = new byte[size];
+			unsafe.copyMemory(null, address, temp, Unsafe.ARRAY_BYTE_BASE_OFFSET, size);
 			return temp;
 		} finally {
 			lock.unlock();
