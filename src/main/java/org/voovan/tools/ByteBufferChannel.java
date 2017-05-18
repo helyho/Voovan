@@ -263,7 +263,7 @@ public class ByteBufferChannel {
 		lock.lock();
 		try{
             if(shrinkSize>0){
-                size = size -  shrinkSize;
+                size = size - shrinkSize;
                 byteBuffer.limit(size);
                 return true;
             }else if(shrinkSize < 0 ){
@@ -301,18 +301,17 @@ public class ByteBufferChannel {
 		if(isReleased()){
 			throw new MemoryReleasedException("ByteBufferChannel is released.");
 		}
-
-		if(offset >= 0 && offset <= size) {
-			lock.lock();
-			try {
-				byte result = unsafe.getByte(address + offset);
-				return result;
-			} finally {
-				lock.unlock();
-			}
-        } else {
-            throw new IndexOutOfBoundsException();
-        }
+		lock.lock();
+		try{
+            if(offset >= 0 && offset <= size) {
+                    byte result = unsafe.getByte(address + offset);
+                    return result;
+            } else {
+                throw new IndexOutOfBoundsException();
+            }
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/**
@@ -327,24 +326,25 @@ public class ByteBufferChannel {
 		if(isReleased()){
 			throw new MemoryReleasedException("ByteBufferChannel is released.");
 		}
+		lock.lock();
+		try {
+            if(offset >= 0 && length <= size - offset) {
 
-		if(offset >= 0 && length <= size - offset) {
-			lock.lock();
-			try {
-				int arrSize = length;
+                int arrSize = length;
 
-				if(length > size){
-					arrSize = size;
-				}
+                if(length > size){
+                    arrSize = size;
+                }
 
-				unsafe.copyMemory(null, address + offset, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
+                unsafe.copyMemory(null, address + offset, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
 
-				return arrSize;
-			} finally {
-				lock.unlock();
-			}
-		} else {
-			throw new IndexOutOfBoundsException();
+                return arrSize;
+
+            } else {
+                throw new IndexOutOfBoundsException();
+            }
+		} finally {
+			lock.unlock();
 		}
 	}
 
@@ -388,7 +388,11 @@ public class ByteBufferChannel {
 		}
 
 		lock.lock();
-		return byteBuffer;
+		try {
+			return byteBuffer;
+		}finally {
+			lock.unlock();
+		}
 	}
 
 	/**
@@ -404,9 +408,7 @@ public class ByteBufferChannel {
 		    return false;
 		}
 
-		if(!lock.isLocked()){
-			lock.lock();
-		}
+        lock.lock();
 		try{
 
 			if(byteBuffer.position() == 0){
@@ -425,9 +427,7 @@ public class ByteBufferChannel {
 			return result;
 
 		} finally {
-			if(lock.isLocked()) {
 				lock.unlock();
-			}
 		}
 	}
 
@@ -443,7 +443,7 @@ public class ByteBufferChannel {
 				throw new MemoryReleasedException("ByteBufferChannel is released.");
 			}
 
-			if(size >= length){
+			if(size() >= length){
 				return true;
 			}
 			timeout -- ;
@@ -696,13 +696,13 @@ public class ByteBufferChannel {
 			throw new MemoryReleasedException("ByteBufferChannel is released.");
 		}
 
-		if(size == 0){
+		if(size() == 0){
 			return -1;
 		}
 
 		int index = -1;
 		byte[] tmp = new byte[mark.length];
-		for(int offset = 0;offset <= size - mark.length; offset++){
+		for(int offset = 0;offset <= size() - mark.length; offset++){
             get(offset, tmp, tmp.length);
             if(Arrays.equals(mark, tmp)){
             	index = offset;
@@ -722,27 +722,32 @@ public class ByteBufferChannel {
 			throw new MemoryReleasedException("ByteBufferChannel is released.");
 		}
 
-		if(size == 0){
-			return null;
-		}
-
-		String lineStr = "";
-		int index = indexOf("\n".getBytes());
-
-		if(index > 0) {
-			byteBuffer.position(0);
-
-			ByteBuffer lineBuffer = ByteBuffer.allocateDirect(index + 1);
-
-			int readSize = readHead(lineBuffer);
-
-			if (readSize == index + 1) {
-				lineStr = TByteBuffer.toString(lineBuffer);
+		lock.lock();
+		try {
+			if (size() == 0) {
+				return null;
 			}
-			TByteBuffer.release(lineBuffer);
-		}
 
-		return lineStr.isEmpty()?null:lineStr;
+			String lineStr = "";
+			int index = indexOf("\n".getBytes());
+
+			if (index > 0) {
+				byteBuffer.position(0);
+
+				ByteBuffer lineBuffer = ByteBuffer.allocateDirect(index + 1);
+
+				int readSize = readHead(lineBuffer);
+
+				if (readSize == index + 1) {
+					lineStr = TByteBuffer.toString(lineBuffer);
+				}
+				TByteBuffer.release(lineBuffer);
+			}
+
+			return lineStr.isEmpty() ? null : lineStr;
+		}finally {
+			lock.unlock();
+		}
 	}
 
 
@@ -757,31 +762,35 @@ public class ByteBufferChannel {
 			throw new MemoryReleasedException("ByteBufferChannel is released.");
 		}
 
-		int index = indexOf(splitByte);
+		lock.lock();
+		try {
+			int index = indexOf(splitByte);
 
-		if(size == 0){
-			return ByteBuffer.allocate(0);
+			if (size() == 0) {
+				return ByteBuffer.allocate(0);
+			}
+
+			if (index == 0) {
+				byteBuffer.position(splitByte.length);
+				compact();
+				index = indexOf(splitByte);
+			}
+
+			if (index == -1) {
+				index = size();
+			}
+
+			ByteBuffer resultBuffer = ByteBuffer.allocateDirect(index);
+			int readSize = readHead(resultBuffer);
+			TByteBuffer.release(resultBuffer);
+
+			//跳过分割符
+			shrink(splitByte.length * -1);
+
+			return resultBuffer;
+		}finally {
+			lock.unlock();
 		}
-
-		if(index == 0){
-			byteBuffer.position(splitByte.length);
-			compact();
-			index = indexOf(splitByte);
-		}
-
-		if(index == -1){
-			index = size;
-		}
-
-		ByteBuffer resultBuffer = ByteBuffer.allocateDirect(index);
-		int readSize = readHead(resultBuffer);
-		TByteBuffer.release(resultBuffer);
-
-		//跳过分割符
-		shrink(splitByte.length*-1);
-//		readHead(ByteBuffer.allocateDirect());
-
-		return resultBuffer;
 	}
 
 	public void saveToFile(String filePath, long length) throws IOException{
@@ -789,36 +798,42 @@ public class ByteBufferChannel {
 			throw new MemoryReleasedException("ByteBufferChannel is released.");
 		}
 
-		int bufferSize = 1024*1024;
+		lock.lock();
 
-		if(length < bufferSize){
-			bufferSize = Long.valueOf(length).intValue();
+		try {
+			int bufferSize = 1024 * 1024;
+
+			if (length < bufferSize) {
+				bufferSize = Long.valueOf(length).intValue();
+			}
+
+			new File(TFile.getFileFolderPath(filePath)).mkdirs();
+
+			RandomAccessFile randomAccessFile = null;
+			File file = new File(filePath);
+			byte[] buffer = new byte[bufferSize];
+			try {
+				randomAccessFile = new RandomAccessFile(file, "rwd");
+				//追加形式
+				randomAccessFile.seek(randomAccessFile.length());
+
+				int loadSize = bufferSize;
+				while (length > 0) {
+					loadSize = length > bufferSize ? bufferSize : new Long(length).intValue();
+					byteBuffer.get(buffer, 0, loadSize);
+					randomAccessFile.write(buffer, 0, loadSize);
+
+					length = length - loadSize;
+				}
+
+				compact();
+			} catch (IOException e) {
+				throw e;
+			} finally {
+				randomAccessFile.close();
+			}
+		}finally {
+			lock.unlock();
 		}
-
-		new File(TFile.getFileFolderPath(filePath)).mkdirs();
-
-		RandomAccessFile randomAccessFile = null;
-		File file = new File(filePath);
-		byte[] buffer = new byte[bufferSize];
-        try {
-            randomAccessFile = new RandomAccessFile(file, "rwd");
-			//追加形式
-            randomAccessFile.seek(randomAccessFile.length());
-
-            int loadSize = bufferSize;
-            while(length > 0){
-                loadSize = length > bufferSize ? bufferSize : new Long(length).intValue();
-                byteBuffer.get(buffer, 0, loadSize);
-                randomAccessFile.write(buffer, 0, loadSize);
-
-                length = length - loadSize;
-            }
-
-            compact();
-        }catch(IOException e){
-            throw e;
-        }finally {
-            randomAccessFile.close();
-        }
 	}
 }
