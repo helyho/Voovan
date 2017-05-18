@@ -268,7 +268,7 @@ public class Request {
         if (body.size() > 0) {
             while(true) {
                 readSize = body.read(byteBuffer);
-                if (readSize == 0) {
+                if (readSize == -1) {
                     break;
                 }
                 session.send(byteBuffer);
