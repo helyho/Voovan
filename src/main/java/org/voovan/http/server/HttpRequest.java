@@ -276,9 +276,9 @@ public class HttpRequest extends Request {
 	 * @param clazz  自定义数据类型
 	 * @return char 自定义数据类型的对象,转换时字段忽略大小写
 	 */
-	public Object getParameterAsObject(String paramName, Class<?> clazz){
+	public <T>T getParameterAsObject(String paramName, Class<T> clazz){
 		try {
-			return (char) TString.toObject(parameters.get(paramName), clazz);
+			return TString.toObject(parameters.get(paramName), clazz);
 		} catch (Exception e) {
 			throw new RuntimeException("Conver parameters to "+clazz.getCanonicalName()+" error.",e);
 		}
@@ -289,9 +289,10 @@ public class HttpRequest extends Request {
 	 * @param clazz  自定义数据类型
 	 * @return char 自定义数据类型的对象,转换时字段忽略大小写
 	 */
-	public Object getAllParameterAsObject(Class<?> clazz){
+	@SuppressWarnings("unchecked")
+	public <T>T getAllParameterAsObject(Class<T> clazz){
 		try {
-			return TReflect.getObjectFromMap(clazz, (Map<String,?>)getParameters(), true);
+			return (T) TReflect.getObjectFromMap(clazz, (Map<String,?>)getParameters(), true);
 		} catch (ReflectiveOperationException | ParseException e) {
 			throw new RuntimeException("Conver parameters to "+clazz.getCanonicalName()+" error.",e);
 		}
