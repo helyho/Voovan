@@ -448,25 +448,26 @@ public class TString {
 	 * @param ignoreCase 是否在字段匹配时忽略大小写
 	 * @return 基本类型对象
 	 */
-	public static Object toObject(String value, Class clazz, boolean ignoreCase){
+	public static <T> T toObject(String value, Class<T> clazz, boolean ignoreCase){
 		if(value == null){
 			return null;
 		}else if(clazz == int.class || clazz == Integer.class){
-			return Integer.valueOf(value);
+			return (T)Integer.valueOf(value);
 		}else if(clazz == float.class || clazz == Float.class){
-			return Float.valueOf(value);
+			return (T)Float.valueOf(value);
 		}else if(clazz == double.class || clazz == Double.class){
-			return Double.valueOf(value);
+			return (T)Double.valueOf(value);
 		}else if(clazz == boolean.class || clazz == Boolean.class){
-			return Boolean.valueOf(value);
+			return (T)Boolean.valueOf(value);
 		}else if(clazz == long.class || clazz == Long.class){
-			return Long.valueOf(value);
+			return (T)Long.valueOf(value);
 		}else if(clazz == short.class || clazz == Short.class){
-			return Short.valueOf(value);
+			return (T)Short.valueOf(value);
 		}else if(clazz == byte.class || clazz == Byte.class){
-			return Byte.valueOf(value);
+			return (T)Byte.valueOf(value);
 		}else if(clazz == char.class || clazz == Character.class){
-			return value!=null ? value.charAt(0) : null;
+			Object tmpValue = value!=null ? value.charAt(0) : null;
+			return (T)tmpValue;
 		}else if(TReflect.isImpByInterface(clazz,Collection.class) ||
 				TReflect.isImpByInterface(clazz,Map.class) ||
 				clazz.isArray()){
@@ -475,7 +476,7 @@ public class TString {
 				|| TString.searchByRegex(value,"^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0 ){
 			return JSON.toObject(value, clazz, ignoreCase);
 		}else{
-			return value;
+			return (T)value;
 		}
 	}
 
@@ -485,8 +486,9 @@ public class TString {
 	 * @param clazz Class类,仅支持基本类型
 	 * @return 基本类型对象
 	 */
-	public static Object toObject(String value,Class clazz){
-		return toObject(value, clazz, false);
+	@SuppressWarnings("unchecked")
+	public static <T> T toObject(String value,Class<T> clazz){
+		return (T)toObject(value, clazz, false);
 	}
 
 
