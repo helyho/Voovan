@@ -110,8 +110,8 @@ public class TObject {
 	 * @param objs    	待转换的数组
 	 * @return 转换后的 Map
 	 */
-	public static Map<String, Object> arrayToMap(Object[] objs){
-		HashMap<String ,Object> arrayMap = new HashMap<String ,Object>();
+	public static <T> Map<String, T> arrayToMap(T[] objs){
+		HashMap<String ,T> arrayMap = new HashMap<String ,T>();
 		for(int i=0;i<objs.length;i++){
 			arrayMap.put(Integer.toString(i+1), objs[i]);
 		}
