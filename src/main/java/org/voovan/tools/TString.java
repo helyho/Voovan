@@ -247,7 +247,7 @@ public class TString {
 
 		return source.replaceAll("\\{\\{"+tokenName+"\\}\\}",Matcher.quoteReplacement(tokenValue));
 	}
-	
+
 	/**
 	 * 按位置格式化字符串
 	 * 		TString.format("aaaa{}bbbb{}cccc{}", "1","2","3")
@@ -256,14 +256,12 @@ public class TString {
 	 * @param args 多个参数
 	 * @return 格式化后的字符串
 	 */
-	public static String format(String source,String ...args){
+	public static String tokenReplace(String source,String ...args){
 		if(source==null){
 			return null;
 		}
 
-		for(String arg : args){
-			source = replaceFirst(source,"{}",arg);
-		}
+        source = tokenReplace(source, TObject.arrayToMap(args));
 		return source;
 	}
 	
