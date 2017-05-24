@@ -932,15 +932,7 @@ public class TReflect {
 	public static boolean isBasicType(Class clazz){
 		if(clazz == null ||
 				clazz.isPrimitive() ||
-				clazz.getName().contains("java.lang.Boolean") ||
-				clazz.getName().contains("java.lang.Byte") ||
-				clazz.getName().contains("java.lang.Character") ||
-				clazz.getName().contains("java.lang.Double") ||
-				clazz.getName().contains("java.lang.Float") ||
-				clazz.getName().contains("java.lang.Integer") ||
-				clazz.getName().contains("java.lang.Long") ||
-				clazz.getName().contains("java.lang.Short") ||
-				clazz.getName().contains("java.lang.String")
+				clazz.getName().startsWith("java.lang")
 				){
 			return true;
 		}else{
