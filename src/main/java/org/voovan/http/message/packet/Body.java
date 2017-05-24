@@ -325,7 +325,7 @@ public class Body {
 						"response",
 						"VOOVAN_" + System.currentTimeMillis() + "." + fileExtName);
 
-				new File(TFile.getFileFolderPath(localFileName)).mkdirs();
+				new File(TFile.getFileDirectory(localFileName)).mkdirs();
 				File gzipedFile = new File(localFileName);
 
 				TZip.encodeGZip(bodyFile, gzipedFile);
