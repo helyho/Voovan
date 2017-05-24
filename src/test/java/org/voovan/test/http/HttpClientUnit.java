@@ -83,6 +83,10 @@ public class HttpClientUnit extends TestCase {
 		Logger.simple(httpClient.send("/").body().getBodyString());
 		Logger.simple("=========================================");
 		Logger.simple(httpClient.send("/").body().getBodyString());
+		Logger.simple("=========================================");
+		Logger.simple(httpClient.send("/").body().getBodyString());
+		Logger.simple("=========================================");
+		Logger.simple(httpClient.send("/").body().getBodyString());
 		httpClient.close();
 	}
 

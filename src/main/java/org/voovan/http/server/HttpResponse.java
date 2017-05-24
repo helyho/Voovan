@@ -93,6 +93,6 @@ public class HttpResponse extends Response {
 		protocol().setStatus(302);
 		protocol().setStatusCode("Moved Permanently");
 		header().put("Location", path);
-		clear();
+		this.body().write(" ");
 	}
 }

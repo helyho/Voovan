@@ -528,7 +528,7 @@ public class TFile {
 	 * @param filePath 文件的路径或者文件名
 	 * @return 获取文件所在文件夹路径
 	 */
-	public static String getFileFolderPath(String filePath){
+	public static String getFileDirectory(String filePath){
 		try {
 			return filePath.substring(0, filePath.lastIndexOf(File.separator) + 1);
 		}catch(IndexOutOfBoundsException e){
@@ -544,8 +544,22 @@ public class TFile {
 	 * @throws IOException IO异常
 	 */
 	public static boolean moveFile(File src, File dest) throws IOException{
-		new File(TFile.getFileFolderPath(dest.getCanonicalPath())).mkdirs();
+		new File(TFile.getFileDirectory(dest.getCanonicalPath())).mkdirs();
 		 return src.renameTo(dest);
+	}
+
+	/**
+	 * 创建目录
+	 * @param dirPath 目录 file 对象
+	 * @return true: 成功, false: 失败
+	 */
+	public static boolean mkdir(String dirPath){
+		File dir = new File(dirPath);
+		if(!dir.exists()) {
+			return dir.mkdir();
+		} else{
+			return true;
+		}
 	}
 
 }

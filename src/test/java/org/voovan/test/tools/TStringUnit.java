@@ -76,12 +76,6 @@ public class TStringUnit extends TestCase {
 		assertEquals(replacedStr,"^ HELY HO is my name ^");
 	}
 
-	public void testFormat() {
-		String formatStr = "aaaa{}bbbb{}cccc{}";
-		String formatedStr = TString.format(formatStr, "1","2","x");
-		assertEquals(formatedStr,"aaaa1bbbb2ccccx");
-	}
-
 	public void testReplaceFirst() {
 		String formatStr = "aaaa{}bbbb{}cccc{}";
 		String formatedStr = TString.replaceFirst(formatStr,"{}", "1");
