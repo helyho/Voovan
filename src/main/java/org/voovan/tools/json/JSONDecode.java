@@ -100,7 +100,7 @@ public class JSONDecode {
 				//分析字符串,如果是字符串不作任何处理
 				if (currentChar == '"') {
 					//i小于1的不是转意字符,判断为字符串(因为转意字符要2个字节),大于2的要判断是否\\"的转义字符
-					if (nextChar != 0 && prevChar != '\\') {
+					if (isComment==0 && nextChar != 0 && prevChar != '\\') {
 						stringWarpFlag++;
 						//字符串起始的"
 						if (stringWarpFlag == 1) {
