@@ -2,12 +2,15 @@ package org.voovan.http.message.packet;
 
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TFile;
+import org.voovan.tools.TString;
 import org.voovan.tools.TZip;
 import org.voovan.tools.log.Logger;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.Random;
 
 /**
  * HTTP的内容对象
@@ -325,12 +328,11 @@ public class Body {
 				String fileName = TFile.getFileName(bodyFile.getCanonicalPath());
 				fileName = fileName.equals("") ? ".tmp" : fileName;
 
-				int randomSeq = new Random().nextInt(1000);
 				//拼文件名
 				String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
 						"org.voovan.webserver",
 						"body",
-						"VOOVAN_" + System.currentTimeMillis()+"_"+ randomSeq + "." + fileName);
+						"VOOVAN_" + TString.generateShortUUID() + "." + fileName);
 
 				new File(TFile.getFileDirectory(localFileName)).mkdirs();
 				File gzipedFile = new File(localFileName);

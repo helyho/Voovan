@@ -3,7 +3,6 @@ package org.voovan.tools;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -80,7 +79,7 @@ public class ObjectPool {
      * @return 生成的ObjectId
      */
     private String getObjectId(){
-        return UUID.randomUUID().toString().replaceAll("-","");
+        return TString.generateShortUUID();
     }
 
 
