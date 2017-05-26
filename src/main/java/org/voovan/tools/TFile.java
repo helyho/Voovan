@@ -537,6 +537,19 @@ public class TFile {
 	}
 
 	/**
+	 * 获取文件名称,包含扩展名
+	 * @param filePath 文件的路径或者文件名
+	 * @return 获取文件所在文件夹路径
+	 */
+	public static String getFileName(String filePath){
+		try {
+			return filePath.substring(filePath.lastIndexOf(File.separator) + 1, filePath.length());
+		}catch(IndexOutOfBoundsException e){
+			return "";
+		}
+	}
+
+	/**
 	 * 移动文件
 	 * @param src   原文件
 	 * @param dest  目标文件
