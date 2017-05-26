@@ -278,6 +278,11 @@ public class Body {
 	public void clear(){
 		if(type == BodyType.BYTES) {
 			byteBufferChannel.clear();
+		} else if(type == BodyType.FILE){
+			if(bodyFile.getPath().startsWith(TFile.getTemporaryPath())) {
+				bodyFile.delete();
+			}
+			bodyFile = null;
 		}
 	}
 
@@ -322,7 +327,7 @@ public class Body {
 				//拼文件名
 				String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
 						"org.voovan.webserver",
-						"response",
+						"body",
 						"VOOVAN_" + System.currentTimeMillis() + "." + fileExtName);
 
 				new File(TFile.getFileDirectory(localFileName)).mkdirs();
