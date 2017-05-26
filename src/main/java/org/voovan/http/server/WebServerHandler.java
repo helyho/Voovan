@@ -289,12 +289,6 @@ public class WebServerHandler implements IoHandler {
 			}
 			session.close();
 		}
-
-		//清理
-		if("HTTP".equals(session.getAttribute("Type"))) {
-			request.clear();
-			response.clear();
-		}
 	}
 
 	@Override
