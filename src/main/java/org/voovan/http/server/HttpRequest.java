@@ -2,7 +2,6 @@ package org.voovan.http.server;
 
 import org.voovan.http.message.Request;
 import org.voovan.http.message.packet.Cookie;
-import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;

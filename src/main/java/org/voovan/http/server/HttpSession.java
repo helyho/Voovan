@@ -1,9 +1,9 @@
 package org.voovan.http.server;
 
 import org.voovan.http.server.context.WebServerConfig;
+import org.voovan.tools.TString;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -31,7 +31,7 @@ public class HttpSession {
 	public HttpSession(WebServerConfig config, SessionManager sessionManager){
 		attributes = new ConcurrentHashMap<String, Object>();
 		//生成一个随机的 ID 用作唯一标识
-		this.id = UUID.randomUUID().toString().toUpperCase().replaceAll("-", "");
+		this.id = TString.generateShortUUID()+"-"+TString.generateShortUUID();
 		lastTimeillis = System.currentTimeMillis();
 		int sessionTimeout = config.getSessionTimeout();
 		this.maxInactiveInterval = sessionTimeout*60*1000;
