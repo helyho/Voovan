@@ -7,6 +7,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 /**
  * HTTP的内容对象
@@ -321,14 +322,15 @@ public class Body {
 
 		if(size()!=0) {
 			if (isFile()) {
-				String fileExtName = TFile.getFileExtension(bodyFile.getCanonicalPath());
-				fileExtName = fileExtName.equals("") ? ".tmp" : fileExtName;
+				String fileName = TFile.getFileName(bodyFile.getCanonicalPath());
+				fileName = fileName.equals("") ? ".tmp" : fileName;
 
+				int randomSeq = new Random().nextInt(1000);
 				//拼文件名
 				String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
 						"org.voovan.webserver",
 						"body",
-						"VOOVAN_" + System.currentTimeMillis() + "." + fileExtName);
+						"VOOVAN_" + System.currentTimeMillis()+"_"+ randomSeq + "." + fileName);
 
 				new File(TFile.getFileDirectory(localFileName)).mkdirs();
 				File gzipedFile = new File(localFileName);
