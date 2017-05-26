@@ -254,11 +254,10 @@ public class Request {
 	 * @param session socket 会话对象
 	 * @throws IOException IO异常
 	 */
-	 public void send(IoSession session) throws IOException {
+	public void send(IoSession session) throws IOException {
+        int readSize = 0;
 
-		int readSize = 0;
-
-		//发送报文头
+        //发送报文头
         session.send(readHead());
 
         //发送缓冲区
@@ -285,19 +284,21 @@ public class Request {
 
                 // 获取 multiPart 标识
                 for (Part part : this.parts) {
-					//发送 part 报文
-					part.send(session, boundary);
+                    //发送 part 报文
+                    part.send(session, boundary);
                 }
 
                 //发送结尾标识
                 byteBuffer.put(("--" + boundary + "--").getBytes());
-				byteBuffer.flip();
+                byteBuffer.flip();
                 session.send(byteBuffer);
                 byteBuffer.clear();
                 // POST结束不需要空行标识结尾
             }
         }
-		 TByteBuffer.release(byteBuffer);
+
+        TByteBuffer.release(byteBuffer);
+        body.free();
 	}
 
 

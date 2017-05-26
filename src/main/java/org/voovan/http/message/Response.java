@@ -228,9 +228,10 @@ public class Response {
 			//发送报文结束符
 			session.send(readEnd());
 			TByteBuffer.release(byteBuffer);
+			body.free();
 		}
 
-		body.free();
+
 
 	}
 
