@@ -262,8 +262,11 @@ public class WebServerHandler implements IoHandler {
 	@Override
 	public void onSent(IoSession session, Object obj) {
 
+		HttpRequest request = TObject.cast(session.getAttribute("HttpRequest"));
+		HttpResponse response = TObject.cast(session.getAttribute("HttpResponse"));
+
 		if(WebSocketTools.isWebSocketFrame((ByteBuffer) obj) != -1){
-			HttpRequest reqWebSocket = TObject.cast(session.getAttribute("HttpRequest"));
+			HttpRequest reqWebSocket = request;
 			WebSocketFrame webSocketFrame = WebSocketFrame.parse((ByteBuffer)obj);
 			webSocketDispatcher.process(WebSocketEvent.SENT, session, reqWebSocket, webSocketFrame);
 		}
@@ -285,6 +288,12 @@ public class WebServerHandler implements IoHandler {
 				keepAliveSessionList.remove(session);
 			}
 			session.close();
+		}
+
+		//清理
+		if("HTTP".equals(session.getAttribute("Type"))) {
+			request.clear();
+			response.clear();
 		}
 	}
 
