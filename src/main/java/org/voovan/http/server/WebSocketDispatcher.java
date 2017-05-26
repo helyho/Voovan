@@ -6,7 +6,6 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketFrame.Opcode;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.IoSession;
-import org.voovan.tools.TObject;
 
 import java.nio.ByteBuffer;
 import java.util.Comparator;

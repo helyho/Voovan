@@ -12,7 +12,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.UUID;
 import java.util.Vector;
 
 /**
@@ -36,7 +35,7 @@ public class Request {
 	private List<Cookie>	cookies;
 	private Body			body;
 	private List<Part>		parts;
-	private String boundary = THash.encryptBASE64(UUID.randomUUID().toString());
+	private String boundary = THash.encryptBASE64(TString.generateShortUUID());
 	private static final String CONTENT_TYPE = "Content-Type";
 
 	/**
