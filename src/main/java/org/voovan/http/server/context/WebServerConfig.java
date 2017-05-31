@@ -29,7 +29,7 @@ public class WebServerConfig {
     private String sessionContainer = "java.util.concurrent.ConcurrentHashMap";
     private int sessionTimeout      = 30;
     private int keepAliveTimeout    = 60;
-    private boolean accessLog       = true;
+    private boolean accessLog       = false;
     private boolean gzip            = true;
     private HttpsConfig https;
     private String indexFiles = "index.htm,index.html,default.htm,default.htm";

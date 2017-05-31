@@ -190,10 +190,11 @@ public class WebContext {
 	
 	/**
 	 * 写入access.log
+	 * @param webServerConfig WebServer 配置对象
 	 * @param request HTTP 请求对象
 	 * @param response HTTP 响应对象
 	 */
-    public static void writeAccessLog(HttpRequest request,HttpResponse response){
+    public static void writeAccessLog(WebServerConfig webServerConfig, HttpRequest request,HttpResponse response){
 		//配置文件控制是否写入 access.log
 		//监控程序的不写出 access.log
 		if(webServerConfig.isAccessLog() && !request.protocol().getPath().contains("/VoovanMonitor/")) {
