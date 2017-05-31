@@ -71,13 +71,17 @@ public class WebServerHandler implements IoHandler {
 					long currentTimeValue = System.currentTimeMillis();
 					long timeOutValue = (long) session.getAttribute("TimeOutValue");
 					
-					if(timeOutValue < currentTimeValue){					
-						//如果超时则结束当前连接
-						//触发 WebSocket close 事件
-						webSocketDispatcher.fireCloseEvent(session);
-						session.close();
-						keepAliveSessionList.remove(i);
-						i--;
+					if(timeOutValue < currentTimeValue){
+						try {
+							//如果超时则结束当前连接
+							//触发 WebSocket close 事件
+							webSocketDispatcher.fireCloseEvent(session);
+							session.close();
+							keepAliveSessionList.remove(i);
+							i--;
+						} catch(Exception e){
+							break;
+						}
 					}
 				}
 			}
