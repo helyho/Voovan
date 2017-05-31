@@ -138,7 +138,7 @@ public class HttpDispatcher {
 		filterResult = disposeInvertedFilter(filterConfigs,request,response);
 
 		//输出访问日志
-		WebContext.writeAccessLog(request,response);
+		WebContext.writeAccessLog(webConfig, request,response);
 	}
 
 	/**
