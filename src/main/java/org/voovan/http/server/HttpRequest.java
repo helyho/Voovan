@@ -273,6 +273,7 @@ public class HttpRequest extends Request {
 	 * 将 HTTP 请求的一个参数,使用 JSON 转换成一个 Java 对象
 	 * @param paramName 参数名
 	 * @param clazz  自定义数据类型
+	 * @param <T> 范型
 	 * @return char 自定义数据类型的对象,转换时字段忽略大小写
 	 */
 	public <T>T getParameterAsObject(String paramName, Class<T> clazz){
@@ -286,6 +287,7 @@ public class HttpRequest extends Request {
 	/**
 	 * 将 HTTP 请求的所有参数, 转换成一个 Java 对象
 	 * @param clazz  自定义数据类型
+	 * @param <T> 范型
 	 * @return char 自定义数据类型的对象,转换时字段忽略大小写
 	 */
 	@SuppressWarnings("unchecked")
