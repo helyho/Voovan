@@ -108,6 +108,7 @@ public class TObject {
 	 * 			key 位置坐标
 	 *          value 数组值
 	 * @param objs    	待转换的数组
+	 * @param <T> 范型
 	 * @return 转换后的 Map
 	 */
 	public static <T> Map<String, T> arrayToMap(T[] objs){

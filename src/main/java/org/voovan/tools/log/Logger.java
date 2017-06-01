@@ -35,7 +35,7 @@ public class Logger {
 
 	/**
 	 * 判断是否包含指定的日志级别
-	 * @param logLevel
+	 * @param logLevel  日志级别
 	 * @return true: 包含, false: 不包含
 	 */
 	public static boolean isLogLevel(String logLevel){

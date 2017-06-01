@@ -441,6 +441,7 @@ public class TString {
 	 * @param value 字符串字面值
 	 * @param clazz Class类,仅支持基本类型
 	 * @param ignoreCase 是否在字段匹配时忽略大小写
+	 * @param <T> 范型
 	 * @return 基本类型对象
 	 */
 	public static <T> T toObject(String value, Class<T> clazz, boolean ignoreCase){
@@ -479,6 +480,7 @@ public class TString {
 	 * 字符串转换为 Java 基本类型
 	 * @param value 字符串字面值
 	 * @param clazz Class类,仅支持基本类型
+	 * @param <T> 范型
 	 * @return 基本类型对象
 	 */
 	@SuppressWarnings("unchecked")
