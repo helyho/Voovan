@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class WebContext {
 	
-	private static final String VERSION = "Voovan-WebServer/V1.5.2";
+	private static final String VERSION = "Voovan-WebServer/V1.5.3";
 
 	private static final String SESSION_NAME = "VOOVAN_SESSIONID";
 
