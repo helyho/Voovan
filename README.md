@@ -15,7 +15,7 @@
 <dependency>
     <groupId>org.voovan</groupId>
     <artifactId>voovan-framework</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.3</version>
 </dependency>
 ```
 
