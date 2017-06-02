@@ -132,8 +132,9 @@
 
 ---------------------
 
-## 贡献者名单
-|  名称                      | 贡献内容           |
-| -------------             |:-------------: |
-|[愚民日记](https://git.oschina.net/helyho)             | 项目发起者      |
-|[zhubibo](https://git.oschina.net/zhubibo)            | 应用与BUG提交      |
+
+###Voovan 在异步通信的范畴内的同类框架有:
+  - [t-io](http://www.t-io.org:9292/): 长连接异步通信框架,提供心跳和连接保持的支持.
+  - [netty](http://netty.io/):  老牌异步通信框架和voovan有面对相同的场景,相比 voovan 开发跟易上手,针对 Socket 通信中粘包的处理 Voovan 提供了更加优雅的方式.
+
+大家可以根据自己的需要适应的场景选择不同框架.
