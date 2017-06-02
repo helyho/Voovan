@@ -389,44 +389,46 @@ public class TReflect {
 		}catch(Exception e){
 			Exception lastExecption = e;
 
-			//找到这个名称的所有方法
-			Method[] methods = findMethod(objClass,name,parameterTypes.length);
-			for(Method similarMethod : methods){
-                Class[] methodParamTypes = similarMethod.getParameterTypes();
-                //匹配参数数量相等的方法
-                if(methodParamTypes.length == args.length){
-					try{
-                        Object[] convertedParams = new Object[args.length];
-                        for(int i=0;i<methodParamTypes.length;i++){
-                            Class parameterType = methodParamTypes[i];
-                            //参数类型转换
-                            String value = "";
+			if(e instanceof NoSuchMethodException || method == null) {
+				//找到这个名称的所有方法
+				Method[] methods = findMethod(objClass, name, parameterTypes.length);
+				for (Method similarMethod : methods) {
+					Class[] methodParamTypes = similarMethod.getParameterTypes();
+					//匹配参数数量相等的方法
+					if (methodParamTypes.length == args.length) {
+						try {
+							Object[] convertedParams = new Object[args.length];
+							for (int i = 0; i < methodParamTypes.length; i++) {
+								Class parameterType = methodParamTypes[i];
+								//参数类型转换
+								String value = "";
 
-                            //这里对参数类型是 Object或者是范型 的提供支持
-                            if(parameterType != Object.class) {
-                                Class argClass = args[i].getClass();
+								//这里对参数类型是 Object或者是范型 的提供支持
+								if (parameterType != Object.class) {
+									Class argClass = args[i].getClass();
 
-                                //复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
-                                if (args[i] instanceof Collection ||
-                                        args[i] instanceof Map ||
-                                        argClass.isArray() ||
-                                        !TReflect.isBasicType(argClass)) {
-                                    value = JSON.toJSON(args[i]);
-                                } else {
-                                    value = args[i].toString();
-                                }
+									//复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
+									if (args[i] instanceof Collection ||
+											args[i] instanceof Map ||
+											argClass.isArray() ||
+											!TReflect.isBasicType(argClass)) {
+										value = JSON.toJSON(args[i]);
+									} else {
+										value = args[i].toString();
+									}
 
-                                convertedParams[i] = TString.toObject(value, parameterType);
-                            }else{
-                                convertedParams[i] = args[i];
-                            }
-                        }
-                        method = similarMethod;
-						method.setAccessible(true);
-						return method.invoke(obj, convertedParams);
-					}catch(Exception ex){
-						lastExecption = (Exception) ex.getCause();
-						continue;
+									convertedParams[i] = TString.toObject(value, parameterType);
+								} else {
+									convertedParams[i] = args[i];
+								}
+							}
+							method = similarMethod;
+							method.setAccessible(true);
+							return method.invoke(obj, convertedParams);
+						} catch (Exception ex) {
+							lastExecption = (Exception) ex.getCause();
+							continue;
+						}
 					}
 				}
 			}
@@ -461,39 +463,46 @@ public class TReflect {
 
 			return constructor.newInstance(parameters);
 		}catch(Exception e){
-			Constructor[] constructors = clazz.getConstructors();
-			for(Constructor similarConstructor : constructors){
-				Class[] methodParamTypes = similarConstructor.getParameterTypes();
-				//匹配参数数量相等的方法
-				if(methodParamTypes.length == parameters.length){
-					try{
-                        Object[] convertedParams = new Object[parameters.length];
-                        for(int i=0;i<methodParamTypes.length;i++){
-                            Class parameterType = methodParamTypes[i];
-                            //参数类型转换
-                            String value = "";
+			Exception lastExecption = e;
+			if(constructor==null) {
+				Constructor[] constructors = clazz.getConstructors();
+				for (Constructor similarConstructor : constructors) {
+					Class[] methodParamTypes = similarConstructor.getParameterTypes();
+					//匹配参数数量相等的方法
+					if (methodParamTypes.length == parameters.length) {
+						try {
+							Object[] convertedParams = new Object[parameters.length];
+							for (int i = 0; i < methodParamTypes.length; i++) {
+								Class parameterType = methodParamTypes[i];
+								//参数类型转换
+								String value = "";
 
-                            Class parameterClass = parameters[i].getClass();
+								Class parameterClass = parameters[i].getClass();
 
-                            //复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
-                            if(parameters[i] instanceof Collection ||
-                                    parameters[i] instanceof Map ||
-                                    parameterClass.isArray() ||
-                                    !TReflect.isBasicType(parameterClass)){
-                                value = JSON.toJSON(parameters[i]);
-                            }else{
-                                value = parameters[i].toString();
-                            }
+								//复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
+								if (parameters[i] instanceof Collection ||
+										parameters[i] instanceof Map ||
+										parameterClass.isArray() ||
+										!TReflect.isBasicType(parameterClass)) {
+									value = JSON.toJSON(parameters[i]);
+								} else {
+									value = parameters[i].toString();
+								}
 
-                            convertedParams[i] = TString.toObject(value, parameterType);
-                        }
-                        constructor = similarConstructor;
+								convertedParams[i] = TString.toObject(value, parameterType);
+							}
+							constructor = similarConstructor;
 
-						return constructor.newInstance(convertedParams);
-					}catch(Exception ex){
-						continue;
+							return constructor.newInstance(convertedParams);
+						} catch (Exception ex) {
+							continue;
+						}
 					}
 				}
+			}
+
+			if ( !(lastExecption instanceof ReflectiveOperationException) ) {
+				lastExecption = new ReflectiveOperationException(lastExecption);
 			}
 
 			//尝试使用 Unsafe 分配
