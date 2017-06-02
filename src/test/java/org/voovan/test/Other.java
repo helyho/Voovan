@@ -1,5 +1,6 @@
 package org.voovan.test;
 
+import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
@@ -13,6 +14,8 @@ public class Other {
 
 
     public static void main(String[] args) throws Exception {
+
+        TReflect.newInstance(TestObject.class,12,12,12,12);
 
         Logger.simple(Integer.valueOf(1123).getClass().isPrimitive());
         Logger.simple("Process ID: "+ TEnv.getCurrentPID());
