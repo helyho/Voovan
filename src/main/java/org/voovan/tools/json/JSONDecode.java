@@ -7,6 +7,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.util.*;
 
@@ -307,14 +308,14 @@ public class JSONDecode {
 	 * 解析 JSON 字符串成为参数指定的类
 	 * @param <T> 		范型
 	 * @param jsonStr	JSON字符串
-	 * @param clazz		JSON 字符串将要转换的目标类
+	 * @param type		JSON 字符串将要转换的目标类
 	 * @param ignoreCase 是否在字段匹配时忽略大小写
 	 * @return					JSON 转换后的 Java 对象
 	 * @throws ReflectiveOperationException  反射异常
 	 * @throws ParseException 解析异常
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T>T fromJSON(String jsonStr,Class<T> clazz, boolean ignoreCase) throws ReflectiveOperationException, ParseException {
+	public static <T>T fromJSON(String jsonStr, Type type, boolean ignoreCase) throws ReflectiveOperationException, ParseException {
 		if(jsonStr==null){
 			return null;
 		}
@@ -323,11 +324,11 @@ public class JSONDecode {
 		//{}包裹的对象处理
 		if(parseObject instanceof Map){
 			Map<String,Object> mapJSON = (Map<String, Object>) parseObject;
-			return (T) TReflect.getObjectFromMap(clazz, mapJSON,ignoreCase);
+			return (T) TReflect.getObjectFromMap(type, mapJSON,ignoreCase);
 		}
 		//[]包裹的对象处理
 		else if(parseObject instanceof Collection){
-			return (T) TReflect.getObjectFromMap(clazz, TObject.asMap("value",parseObject),false);
+			return (T) TReflect.getObjectFromMap(type, TObject.asMap("value",parseObject),false);
 		}
 		//其他类型处理
 		else{

@@ -3,6 +3,8 @@ package org.voovan.tools;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.reflect.TReflect;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -439,12 +441,21 @@ public class TString {
 	/**
 	 * 字符串转换为 Java 基本类型
 	 * @param value 字符串字面值
-	 * @param clazz Class类,仅支持基本类型
+	 * @param type Type类型
 	 * @param ignoreCase 是否在字段匹配时忽略大小写
 	 * @param <T> 范型
 	 * @return 基本类型对象
 	 */
-	public static <T> T toObject(String value, Class<T> clazz, boolean ignoreCase){
+	public static <T> T toObject(String value, Type type, boolean ignoreCase){
+
+		Class<?> clazz = null;
+		if(type instanceof ParameterizedType) {
+			ParameterizedType parameterizedType = (ParameterizedType) type;
+			clazz = (Class<T>)parameterizedType.getRawType();
+		}else if(type instanceof Class){
+			clazz = (Class<T>)type;
+		}
+
 		if(value == null){
 			return null;
 		}else if(clazz == int.class || clazz == Integer.class){
@@ -467,10 +478,10 @@ public class TString {
 		}else if(TReflect.isImpByInterface(clazz,Collection.class) ||
 				TReflect.isImpByInterface(clazz,Map.class) ||
 				clazz.isArray()){
-			return JSON.toObject(value, clazz, ignoreCase);
+			return JSON.toObject(value, type, ignoreCase);
 		}else if(TString.searchByRegex(value,"^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0
 				|| TString.searchByRegex(value,"^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0 ){
-			return JSON.toObject(value, clazz, ignoreCase);
+			return JSON.toObject(value, type, ignoreCase);
 		}else{
 			return (T)value;
 		}
@@ -479,13 +490,13 @@ public class TString {
 	/**
 	 * 字符串转换为 Java 基本类型
 	 * @param value 字符串字面值
-	 * @param clazz Class类,仅支持基本类型
+	 * @param type Type类型
 	 * @param <T> 范型
 	 * @return 基本类型对象
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> T toObject(String value,Class<T> clazz){
-		return (T)toObject(value, clazz, false);
+	public static <T> T toObject(String value, Type type){
+		return (T)toObject(value, type, false);
 	}
 
 
