@@ -3,6 +3,7 @@ package org.voovan.tools.json;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
+import java.lang.reflect.Type;
 import java.text.ParseException;
 
 /**
@@ -35,14 +36,14 @@ public class JSON {
 	 * 将 JSON字符串 转换成 Java 对象
 	 * @param <T>			范型
 	 * @param jsonStr		待转换的 JSON 字符串
-	 * @param clazz			转换的目标 java 类
+	 * @param type			转换的目标 java 类
 	 * @param ignoreCase    是否忽略字段大小写
 	 * @return				转换后的 Java 对象
 	 */
-	public static <T> T toObject(String jsonStr,Class<T> clazz, boolean ignoreCase){
+	public static <T> T toObject(String jsonStr, Type type, boolean ignoreCase){
 		T valueObject = null;
 		try {
-			valueObject = JSONDecode.fromJSON(jsonStr, clazz, ignoreCase);
+			valueObject = JSONDecode.fromJSON(jsonStr, type, ignoreCase);
 		} catch (ReflectiveOperationException | ParseException e) {
 			Logger.error("Reflective Operation failed.",e);
 		}
@@ -54,17 +55,11 @@ public class JSON {
 	 * 将 JSON字符串 转换成 Java 对象,默认严格限制字段大小写
 	 * @param <T>			范型
 	 * @param jsonStr		待转换的 JSON 字符串
-	 * @param clazz			转换的目标 java 类
+	 * @param type			转换的目标 java 类
 	 * @return				转换后的 Java 对象
 	 */
-	public static <T> T toObject(String jsonStr,Class<T> clazz){
-		T valueObject = null;
-		try {
-			valueObject = JSONDecode.fromJSON(jsonStr, clazz, false);
-		} catch (ReflectiveOperationException | ParseException e) {
-			Logger.error("Reflective Operation failed.",e);
-		}
-		return valueObject;
+	public static <T> T toObject(String jsonStr,Type type){
+		return toObject(jsonStr, type , false);
 	}
 	
 	
