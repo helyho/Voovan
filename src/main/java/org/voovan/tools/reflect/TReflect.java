@@ -393,13 +393,13 @@ public class TReflect {
 				//找到这个名称的所有方法
 				Method[] methods = findMethod(objClass, name, parameterTypes.length);
 				for (Method similarMethod : methods) {
-					Class[] methodParamTypes = similarMethod.getParameterTypes();
+					Type[] methodParamTypes = similarMethod.getGenericParameterTypes();
 					//匹配参数数量相等的方法
 					if (methodParamTypes.length == args.length) {
 						try {
 							Object[] convertedParams = new Object[args.length];
 							for (int i = 0; i < methodParamTypes.length; i++) {
-								Class parameterType = methodParamTypes[i];
+								Type parameterType = methodParamTypes[i];
 								//参数类型转换
 								String value = "";
 
@@ -416,7 +416,6 @@ public class TReflect {
 									} else {
 										value = args[i].toString();
 									}
-
 									convertedParams[i] = TString.toObject(value, parameterType);
 								} else {
 									convertedParams[i] = args[i];
@@ -564,9 +563,9 @@ public class TReflect {
 	 * @throws ParseException 解析异常
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static Object getObjectFromMap(Type type, Map<String, ?> mapArg, boolean ignoreCase)
+	public static <T>T getObjectFromMap(Type type, Map<String, ?> mapArg, boolean ignoreCase)
 			throws ReflectiveOperationException, ParseException {
-		Object obj = null;
+		T obj = null;
 		Class<?> clazz = null;
 		Class[] genericType = null;
 
@@ -579,7 +578,7 @@ public class TReflect {
 		}
 
 		if(mapArg==null){
-			return obj;
+			return null;
 		}
 
 		Object singleValue = null;
@@ -590,7 +589,11 @@ public class TReflect {
 
 		// java标准对象
 		if (clazz.isPrimitive() || clazz == Object.class){
-			obj = singleValue;
+			if(singleValue.getClass() !=  clazz) {
+				obj = TString.toObject(singleValue.toString(), clazz);
+			} else {
+				obj = (T)singleValue;
+			}
 		}
 
 		//java 日期对象
@@ -599,7 +602,7 @@ public class TReflect {
 			String value = singleValue==null?null:singleValue.toString();
 			SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
 			Date dateObj = singleValue!=null?dateFormat.parse(value.toString()):null;
-			return TReflect.newInstance(clazz,dateObj.getTime());
+			obj = (T)TReflect.newInstance(clazz,dateObj.getTime());
 		}
 		//Map 类型
 		else if(isImpByInterface(clazz,Map.class)){
@@ -635,7 +638,7 @@ public class TReflect {
 			}else{
 				mapObject.putAll(mapArg);
 			}
-			obj = mapObject;
+			obj = (T)mapObject;
 		}
 		//Collection 类型
 		else if(isImpByInterface(clazz,Collection.class)){
@@ -662,23 +665,23 @@ public class TReflect {
 					listObject.addAll((Collection)singleValue);
 				}
 			}
-			obj = listObject;
+			obj = (T)listObject;
 		}
 		//Array 类型
 		else if(clazz.isArray()){
 			Class arrayClass = clazz.getComponentType();
 			Object tempArrayObj = Array.newInstance(arrayClass, 0);
-			return ((Collection)singleValue).toArray((Object[])tempArrayObj);
+			return (T)((Collection)singleValue).toArray((Object[])tempArrayObj);
 		}
 		//java基本对象
 		else if (TReflect.isBasicType(clazz)) {
 			//取 Map.Values 里的递第一个值
 			String value = singleValue==null?null:singleValue.toString();
-			obj = singleValue==null?null:newInstance(clazz,  value);
+			obj = (T)(singleValue==null?null:newInstance(clazz,  value));
 		}
 		// 复杂对象
 		else {
-			obj = newInstance(clazz);
+			obj = (T)newInstance(clazz);
 			for(Entry<String,?> argEntry : mapArg.entrySet()){
 				String key = argEntry.getKey();
 				Object value = argEntry.getValue();
