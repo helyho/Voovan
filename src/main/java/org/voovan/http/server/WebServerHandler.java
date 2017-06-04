@@ -15,10 +15,7 @@ import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.InterruptedByTimeoutException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * WebServer Socket 事件处理类
@@ -40,7 +37,7 @@ public class WebServerHandler implements IoHandler {
 		this.httpDispatcher = httpDispatcher;
 		this.webSocketDispatcher = webSocketDispatcher;
 		this.webConfig = webConfig;
-		keepAliveSessionList = new ArrayList<IoSession>();
+		keepAliveSessionList = Collections.synchronizedList(new ArrayList<IoSession>());
 
 		keepAliveTimer = new Timer("VOOVAN_WEB@KEEP_ALIVER_TIMER");
 		initKeepAliveTimer();
@@ -72,16 +69,12 @@ public class WebServerHandler implements IoHandler {
 					long timeOutValue = (long) session.getAttribute("TimeOutValue");
 					
 					if(timeOutValue < currentTimeValue){
-						try {
-							//如果超时则结束当前连接
-							//触发 WebSocket close 事件
-							webSocketDispatcher.fireCloseEvent(session);
-							session.close();
-							keepAliveSessionList.remove(i);
-							i--;
-						} catch(Exception e){
-							break;
-						}
+                        //如果超时则结束当前连接
+                        //触发 WebSocket close 事件
+                        webSocketDispatcher.fireCloseEvent(session);
+                        session.close();
+                        keepAliveSessionList.remove(i);
+                        i--;
 					}
 				}
 			}

@@ -50,14 +50,13 @@ public class ThreadPoolTask extends TimerTask {
 		// 动态调整线程数,且系统CPU负载值要小于1
 		if (threadPoolInstance.getQueue().size() > 0 &&
 				TPerformance.cpuPerCoreLoadAvg() > 1) {
-			threadPoolInstance.setCorePoolSize(threadPoolInstance.getCorePoolSize() * 2);
+			threadPoolInstance.setCorePoolSize( (int)(threadPoolInstance.getCorePoolSize() * 1.25));
 			Logger.debug("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
 		}
 
-		else if(threadPoolInstance.getActiveCount()!=0
-				&& threadPoolInstance.getActiveCount() <= threadPoolInstance.getCorePoolSize()/2
+		else if(threadPoolInstance.getActiveCount() <= threadPoolInstance.getCorePoolSize()/2
 				&& threadPoolInstance.getCorePoolSize() > cpuCoreCount*2){
-			threadPoolInstance.setCorePoolSize(threadPoolInstance.getCorePoolSize() / 2);
+			threadPoolInstance.setCorePoolSize((int)(threadPoolInstance.getCorePoolSize() * 0.8));
 			Logger.debug("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
 		}
 
