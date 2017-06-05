@@ -34,17 +34,14 @@ public class HttpMessageSplitter implements MessageSplitter {
 			return -1;
 		}
 
-		result = isHttpFrame(byteBuffer);
-
-	    if (result==-1 && "WebSocket".equals(session.getAttribute("Type")) ) {
-			result = isWebSocketFrame(byteBuffer);
-		}
-
-		if(result>0){
-	        return 0;
+        if( "WebSocket".equals(session.getAttribute("Type")) ){
+            result = isWebSocketFrame(byteBuffer);
         }else{
-		    return -1;
+            result = isHttpFrame(byteBuffer);
+            result = result==0 ? -1 : 0;
         }
+
+        return result;
 	}
 
     private int isHttpFrame(ByteBuffer byteBuffer){
@@ -150,10 +147,11 @@ public class HttpMessageSplitter implements MessageSplitter {
 
         // 如果实际接受的数据小于数据包的大小则报错
         if (maxpacketsize < expectPackagesize) {
-            return 0;
+            buffer.position(0);
+            return -1;
         } else {
             buffer.position(0);
-            return buffer.remaining();
+            return expectPackagesize;
         }
     }
 
