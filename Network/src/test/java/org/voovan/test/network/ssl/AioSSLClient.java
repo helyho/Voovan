@@ -10,7 +10,7 @@ public class AioSSLClient {
 	
 	public static void main(String[] args) throws Exception {
 		SSLManager sslManager = new SSLManager("SSL");
-		sslManager.loadCertificate(System.getProperty("user.dir")+"/src/test/java/org/voovan/test/network/ssl/ssl_ks", "passStr","123123");
+		sslManager.loadCertificate(System.getProperty("user.dir")+"/Network/src/test/java/org/voovan/test/network/ssl/ssl_ks", "passStr","123123");
 		
 		AioSocket socket = new AioSocket("127.0.0.1",2031,1000000);
 		socket.setSSLManager(sslManager);
