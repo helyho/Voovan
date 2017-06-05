@@ -1,0 +1,7 @@
+Manifest-Version: 1.5.3
+Implementation-Vendor: Voovan open source
+Implementation-Version: 1.0
+Implementation-Vendor-Id: org.voovan
+Archiver-Version: Plexus Archiver
+Implementation-URL: http://www.voovan.org
+Main-Class: org.voovan.http.server.WebServer
