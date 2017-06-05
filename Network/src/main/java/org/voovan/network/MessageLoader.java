@@ -1,6 +1,7 @@
 package org.voovan.network;
 
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -164,7 +165,7 @@ public class MessageLoader {
 
 
 			//使用消息划分器进行消息划分
-			if(readsize == 0) {
+			if(readsize == 0 && dataByteBuffer.limit() > 0) {
 				splitLength = messageSplitter.canSplite(session,  dataByteBuffer);
 				if (splitLength >= 0) {
 					stopType = StopType.MSG_SPLITTER ;
@@ -179,7 +180,7 @@ public class MessageLoader {
 					stopType = StopType.STREAM_END;
 				}else {
 					readZeroCount++;
-//					TEnv.sleep(1);
+					TEnv.sleep(1);
 				}
 			}else{
 				readZeroCount = 0;
