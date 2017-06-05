@@ -1,0 +1,133 @@
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=GB2312"/>
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico" />
+    <style type="text/css">
+        body {
+            font-size: 12px
+        }
+    </style>
+</head>
+<script lang="javascrit">
+    var wslocation;
+    var websocket;
+    var host;
+
+    function getHost() {
+        url = window.location.href;
+        first = url.indexOf("//");
+        last = url.indexOf("/", first + 2);
+        host = url.substring(first + 2, last);
+        protocol = url.substring(0, first);
+        return protocol+"//"+host;
+    }
+
+    host = getHost();
+
+    function wsopen() {
+        ws_host = host.replace("http","ws");
+        wslocation = ws_host + "/websocket";
+        websocket = new WebSocket(wslocation);
+        websocket.onopen = function (evt) {
+            onOpen(evt)
+        };
+        websocket.onclose = function (evt) {
+            onClose(evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage(evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(evt)
+        };
+
+        function onOpen(evt) {
+            alert("连接成功.");
+        }
+
+        function onClose(evt) {
+            alert("断开连接");
+        }
+
+        function onMessage(evt) {
+            alert("收到消息: \r\n" + evt.data);
+        }
+
+        function onError(evt) {
+            alert('连接失败: ' + evt);
+        }
+    }
+
+    function wssend() {
+        websocket.send('[SEND] This is send by "Send" button.');
+        sleep(100);
+        websocket.send('serial send,small package demo.');
+
+    }
+
+    function wsclose() {
+        websocket.close();
+    }
+
+    function mySubmit(type) {
+        var name = document.getElementById('name').value;
+        var age = document.getElementById('age').value;
+
+        if (type=="multipart/form-data" || type=="application/x-www-form-urlencoded") {
+            var testFrom = document.getElementById('testForm');
+            testFrom.enctype = type;
+            testForm.submit()
+        } else if (type == "normal/get") {
+            window.location = host + "/?name=" + name + "&age=" + age;
+        } else if (type == "path/get") {
+            window.location = host + "/Star/" + encodeURI(name) + "/" + encodeURI(age);
+        }
+    }
+
+    function sleep(d){
+        for(var t = Date.now();Date.now() - t <= d;);
+    }
+</script>
+<body>
+<img src="img/logo.jpg"/>
+<div>
+    <h1>Voovan Web服务器测试页面</h1>
+</div>
+<div>
+    <a href="https://git.oschina.net/helyho/Voovan/">【项目主页】</a>
+    <a href="https://git.oschina.net/helyho/Voovan/blob/master/WEBAPP/index.htm">【前台源码】</a>
+    <a href="https://git.oschina.net/helyho/Voovan/blob/master/src/test/java/org/voovan/test/http/WebServerDemo.java">【后台源码】</a>
+</div>
+<!-- enctype="multipart/form-data" -->
+<form id="testForm" action="/" method="post">
+
+    <hr>
+    <div>中文展示测试,用于测试编码</div>
+    <hr>
+    <h4>测试参数表单</h4>
+    <div>
+        Name: <input id="name" name="name" type="text" value="中文测试"/>
+    </div>
+    <div style="margin:5px 0px 0px 11px">
+        Age: <input id="age" name="age" type="text" value="100">
+    </div>
+    <hr>
+    <div>
+        GET方法测试: <input style="margin:5px 0px 0px 30px" type="button" value="NormalGet" onClick="mySubmit('normal/get')">
+        <input type="button" value="PathGet" onClick="mySubmit('path/get')">
+    </div>
+    <div>
+        POST方法测试: <input style="margin:5px 0px 0px 23px" type="button" value="URLEncoded"
+                         onClick="mySubmit('application/x-www-form-urlencoded')">
+        <input type="button" value="MultiPart" onClick="mySubmit('multipart/form-data')">
+    </div>
+    <div>
+        WEBSOCKET测试: <input style="margin:5px 0px 0px 5px" type="button" onclick="wsopen()" value="Open">
+        <input type="button" onclick="wssend()" value="Send">
+        <input type="button" onclick="wsclose()" value="Close">
+    </div>
+</form>
+<hr>
+<div><h4>服务器接收参数展示:</h4></div>
+</body>
+</html>
