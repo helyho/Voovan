@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
  */
 public class WebServerFilter implements IoFilter {
 
-	
+
 	/**
 	 * 将HttpResponse转换成ByteBuffer
 	 */
@@ -72,11 +72,10 @@ public class WebServerFilter implements IoFilter {
 				Logger.error("ParseRequest failed.",e);
 				return null;
 			}
-		
 		}
 		//如果包含Type为 WebSocket 说明是 WebSocket 通信,转换成 WebSocketFrame 对象
 		else if("WebSocket".equals(session.getAttribute("Type"))){
-			if (object instanceof ByteBuffer) {
+			if (object instanceof ByteBuffer && byteBuffer.limit()!=0) {
 				WebSocketFrame webSocketFrame = WebSocketFrame.parse(byteBuffer);
 				if(webSocketFrame.getErrorCode()==0){
 					return webSocketFrame;
@@ -100,16 +99,20 @@ public class WebServerFilter implements IoFilter {
 	 */
 	public static boolean isHttpRequest(ByteBufferChannel byteBufferChannel) {
 		String testStr = null;
+        int lineEndIndex = byteBufferChannel.indexOf("\n".getBytes());
 
-		testStr = byteBufferChannel.readLine();
-		if(testStr!=null) {
-			byteBufferChannel.writeHead(ByteBuffer.wrap((testStr).getBytes()));
-		}
+        if(lineEndIndex>0) {
+			byte[] tmpByte = new byte[lineEndIndex];
+			byteBufferChannel.get(tmpByte);
+			testStr = new String(tmpByte);
 
-		if (testStr!=null && TString.regexMatch(testStr,"HTTP.{0,4}") == 1) {
-			return true;
-		}else {
-			return false;
+			if (testStr != null && TString.regexMatch(testStr, "HTTP.{0,4}") == 1) {
+				return true;
+			} else {
+				return false;
+			}
+		}else{
+        	return false;
 		}
 	}
 }

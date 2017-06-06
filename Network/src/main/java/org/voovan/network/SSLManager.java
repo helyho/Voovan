@@ -39,7 +39,7 @@ public class SSLManager {
 	/**
 	 * 构造函数
 	 * @param protocol  	协议类型
-	 * @param useClientAuth	是否使用客户端认证
+	 * @param useClientAuth	 是否使用客户端认证, true:双向认证, false: 单向认证
 	 * @throws SSLException  SSL 异常
 	 */
 	public SSLManager(String protocol,boolean useClientAuth) throws SSLException{
@@ -117,9 +117,9 @@ public class SSLManager {
 	 * 构造SSLEngine
 	 * @throws SSLException SSL 异常
 	 */
-	private synchronized void createSSLEngine(String protocol) throws SSLException {
+	private synchronized void createSSLEngine(String protocol, String ipAddress, int port) throws SSLException {
 		init(protocol);
-		engine = context.createSSLEngine();
+		engine = context.createSSLEngine(ipAddress, port);
 	}
 	
 	/**
@@ -129,7 +129,7 @@ public class SSLManager {
 	 * @throws SSLException SSL 异常
 	 */
 	public SSLParser createClientSSLParser(IoSession session) throws SSLException {
-		createSSLEngine(protocol);
+		createSSLEngine(protocol, session.socketContext().getHost(), session.socketContext().getPort());
 		engine.setUseClientMode(true);
 		return new SSLParser(engine, session);
 	}
@@ -141,7 +141,7 @@ public class SSLManager {
 	 * @throws SSLException SSL 异常
 	 */
 	public SSLParser createServerSSLParser(IoSession session) throws SSLException{
-		createSSLEngine(protocol);
+		createSSLEngine(protocol, session.socketContext().getHost(), session.socketContext().getPort());
 		engine.setUseClientMode(false);
 		engine.setNeedClientAuth(needClientAuth);
 		return new SSLParser(engine, session);
