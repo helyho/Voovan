@@ -147,7 +147,7 @@ public class MessageLoader {
 			return null;
 		}
 
-		while (stopType== StopType.RUNNING && useSpliter) {
+		while (session.isConnected() && useSpliter && stopType== StopType.RUNNING ) {
 
 			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
 			if(!session.isConnected() && session.getByteBufferChannel().size()==0){
@@ -190,11 +190,15 @@ public class MessageLoader {
 		}
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
-		if(splitLength!=0 && stopType== StopType.MSG_SPLITTER) {
-			result = ByteBuffer.allocateDirect(splitLength);
-			dataByteBufferChannel.readHead(result);
+		if(stopType== StopType.MSG_SPLITTER) {
+			if(splitLength!=0) {
+				result = ByteBuffer.allocateDirect(splitLength);
+				dataByteBufferChannel.readHead(result);
+			} else {
+				return ByteBuffer.allocate(0);
+			}
 		} else {
-			result = ByteBuffer.allocateDirect(0);
+			result = null;
 		}
 
 		return result;

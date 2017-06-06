@@ -38,6 +38,6 @@ public class Global {
      * @return Voovan 版本号
      */
     public static String getVersion(){
-        return "1.5.3";
+        return "2.0.0";
     }
 }

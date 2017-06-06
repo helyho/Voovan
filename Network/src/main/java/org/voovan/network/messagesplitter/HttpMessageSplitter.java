@@ -113,6 +113,10 @@ public class HttpMessageSplitter implements MessageSplitter {
         int payloadlength = (byte) (maskByte & ~(byte) 128);
         int optcode = (byte) (finByte & 15);
 
+        if(optcode < 0 && optcode > 10){
+            return -1;
+        }
+
         if (!fin) {
             if (optcode == 9 || optcode == 10 || optcode == 8) {
                 return -1;
@@ -155,5 +159,4 @@ public class HttpMessageSplitter implements MessageSplitter {
             return expectPackagesize;
         }
     }
-
 }
