@@ -10,7 +10,8 @@ public class NioSSLClient {
 	
 	public static void main(String[] args) throws Exception {
 		SSLManager sslManager = new SSLManager("SSL");
-		sslManager.loadCertificate(System.getProperty("user.dir")+"/Network/src/test/java/org/voovan/test/network/ssl/ssl_ks", "passStr","123123");
+		String certFile = System.getProperty("user.dir")+"/Network/src/test/java/org/voovan/test/network/ssl/ssl_ks";
+		sslManager.loadCertificate(certFile, "passStr","123123");
 		
 		NioSocket socket = new NioSocket("127.0.0.1",2031,1000);
 		socket.setSSLManager(sslManager);

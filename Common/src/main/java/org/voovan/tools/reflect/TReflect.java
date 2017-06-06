@@ -559,6 +559,7 @@ public class TReflect {
 	 * @param mapArg		Map 对象
 	 * @param ignoreCase    匹配属性名是否不区分大小写
 	 * @return 转换后的对象
+	 * @param <T> 范型
 	 * @throws ReflectiveOperationException 反射异常
 	 * @throws ParseException 解析异常
 	 */
