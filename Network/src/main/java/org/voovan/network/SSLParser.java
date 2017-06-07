@@ -3,6 +3,7 @@ package org.voovan.network;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
@@ -140,18 +141,24 @@ public class SSLParser {
 			do{
 				clearBuffer();
 				ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
-                ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
+				if(byteBufferChannel.size() > 0)  {
+					ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 					engineResult = unwarpData(byteBuffer, appData);
 					//如果有 HandShake Task 则执行
 					handshakeStatus = runDelegatedTasks();
-					session.getByteBufferChannel().compact();
+					byteBufferChannel.compact();
 
-				if(byteBuffer.remaining()==0) {
-                	TEnv.sleep(1);
-                	continue;
+					if(engineResult!=null && engineResult.getStatus()==Status.OK){
+						if (byteBuffer.remaining() == 0) {
+							TEnv.sleep(1);
+							break;
+						}
+					}
+				} else {
+					TEnv.sleep(1);
 				}
-			}while(engineResult!=null && engineResult.getStatus()!=Status.OK);
+			}while(true);
 			return handshakeStatus;
 	}
 	
@@ -198,6 +205,7 @@ public class SSLParser {
 				default:
 					break;
 			}
+//			TEnv.sleep(1);
 		}
 		return handShakeDone;
 	}

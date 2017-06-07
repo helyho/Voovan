@@ -92,16 +92,11 @@ public class ByteBufferChannel {
 	 * @return true 已释放, false: 未释放
 	 */
 	public boolean isReleased(){
-		lock.lock();
-		try {
-            if(address == 0){
-                return true;
-            }else{
-                return false;
-            }
-		}finally {
-			lock.unlock();
-		}
+        if(address == 0){
+            return true;
+        }else{
+            return false;
+        }
 	}
 
 	/**
@@ -166,6 +161,7 @@ public class ByteBufferChannel {
 		if(isReleased()){
 		    return -1;
 		}
+
 		lock.lock();
 		try {
 			return byteBuffer.capacity() - size;
@@ -198,12 +194,8 @@ public class ByteBufferChannel {
 		if(isReleased()){
 		    return -1;
 		}
-		lock.lock();
-		try {
-			return size;
-		}finally {
-			lock.unlock();
-		}
+
+        return size;
 	}
 
 	/**
@@ -387,12 +379,9 @@ public class ByteBufferChannel {
 			throw new MemoryReleasedException("ByteBufferChannel is released.");
 		}
 
+		//这里上锁,在compact()方法解锁
 		lock.lock();
-		try {
-			return byteBuffer;
-		}finally {
-			lock.unlock();
-		}
+		return byteBuffer;
 	}
 
 	/**
@@ -408,7 +397,9 @@ public class ByteBufferChannel {
 		    return false;
 		}
 
-        lock.lock();
+		if(!lock.isLocked()) {
+			lock.lock();
+		}
 		try{
 
 			if(byteBuffer.position() == 0){
@@ -835,5 +826,10 @@ public class ByteBufferChannel {
 		}finally {
 			lock.unlock();
 		}
+	}
+
+	@Override
+	public String toString(){
+		return "{size="+size+", released="+(address==0)+"}";
 	}
 }
