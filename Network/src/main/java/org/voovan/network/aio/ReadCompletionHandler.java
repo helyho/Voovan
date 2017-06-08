@@ -90,6 +90,15 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 		}
 
 		if(exc instanceof Exception){
+
+			Exception e = (Exception)exc;
+
+			//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误
+            if(e.getStackTrace()[0].getClassName().contains("sun.nio.ch")){
+            	session.close();
+                return;
+            }
+
 			//触发 onException 事件
 			EventTrigger.fireExceptionThread(session, (Exception)exc);
 		}

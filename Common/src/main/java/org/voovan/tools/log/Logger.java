@@ -141,7 +141,7 @@ public class Logger {
 	public static void error(Object msg, Exception e) {
 		try {
 			msg = TObject.nullDefault(msg,"null");
-			String msgStr = e.getClass().getCanonicalName() + ": " + msg + "\r\n"
+			String msgStr = msg + " => " +  e.getClass().getCanonicalName() + ": " + e.getMessage() + "\r\n"
 					+ TString.indent(TEnv.getStackElementsMessage(e.getStackTrace()), 8);
 			Message message = Message.newInstance("ERROR", msgStr);
 			formater.writeFormatedLog(message);
