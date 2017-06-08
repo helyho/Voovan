@@ -1,5 +1,6 @@
 package org.voovan.network;
 
+import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
@@ -147,7 +148,15 @@ public class MessageLoader {
 			return null;
 		}
 
-		while (session.isConnected() && useSpliter && stopType== StopType.RUNNING ) {
+		boolean isConnect = false;
+
+		if(session.socketContext() instanceof UdpSocket) {
+			isConnect = session.isOpen();
+		}else {
+			isConnect = session.isConnected();
+		}
+
+		while ( isConnect && useSpliter && stopType== StopType.RUNNING ) {
 
 			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
 			if(!session.isConnected() && session.getByteBufferChannel().size()==0){
