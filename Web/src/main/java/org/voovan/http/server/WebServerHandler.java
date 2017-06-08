@@ -75,7 +75,8 @@ public class WebServerHandler implements IoHandler {
                         //触发 WebSocket close 事件
                         webSocketDispatcher.fireCloseEvent(session);
                         session.close();
-                        keepAliveSessionList.remove(i);
+
+                        keepAliveSessionList.remove(session);
                         i--;
 					}
 				}
@@ -93,16 +94,6 @@ public class WebServerHandler implements IoHandler {
 	public void onDisconnect(IoSession session) {
 		//清理 IoSession
 		keepAliveSessionList.remove(session);
-
-		//http是无连接的,不跟随 Socket 连接清理 HTTPSession
-		//清理 HttpSession
-//		HttpRequest httpRequest = TObject.cast(session.getAttribute("HttpRequest"));
-//		if(httpRequest!=null) {
-//			HttpSession httpSession = httpRequest.getSession();
-//			if(httpSession!=null) {
-//				httpSession.removeFromSessionManager();
-//			}
-//		}
 	}
 
 	@Override
