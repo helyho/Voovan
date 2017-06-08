@@ -132,6 +132,11 @@ public class NioSelector {
 				return;
 			}
 
+			//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误
+			if(e.getStackTrace()[0].getClassName().contains("sun.nio.ch")){
+				return;
+			}
+
 			if(e instanceof Exception){
 				//触发 onException 事件
 				EventTrigger.fireExceptionThread(session, e);
