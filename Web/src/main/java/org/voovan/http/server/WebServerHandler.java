@@ -2,7 +2,6 @@ package org.voovan.http.server;
 
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
-import org.voovan.http.message.packet.Header;
 import org.voovan.http.server.WebSocketDispatcher.WebSocketEvent;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
@@ -39,7 +38,7 @@ public class WebServerHandler implements IoHandler {
 		this.httpDispatcher = httpDispatcher;
 		this.webSocketDispatcher = webSocketDispatcher;
 		this.webConfig = webConfig;
-		keepAliveSessionList = Collections.synchronizedList(new ArrayList<IoSession>());
+		keepAliveSessionList = new Vector<IoSession>();
 
 		keepAliveTimer = new Timer("VOOVAN_WEB@KEEP_ALIVER_TIMER");
 		initKeepAliveTimer();
