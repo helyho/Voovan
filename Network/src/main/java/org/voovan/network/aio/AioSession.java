@@ -125,7 +125,7 @@ public class AioSession extends IoSession<AioSocket>  {
 					try {
 						totalSendByte += sendResult.get();
 					} catch (InterruptedException | ExecutionException e) {
-						throw new IOException("Get send byte count error: "+e.getMessage(), e);
+						//throw new IOException("Get send byte count error: "+e.getMessage(), e);
 					}
 
 				}catch(WritePendingException e){
