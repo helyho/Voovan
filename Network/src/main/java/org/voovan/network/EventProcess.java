@@ -261,7 +261,7 @@ public class EventProcess {
 			}
 
 			// 发送消息
-			if (resultBuf != null && session.isOpen()) {
+			if (resultBuf != null && session.isOpen() && resultBuf.limit() > 0) {
 				session.send(resultBuf);
 				resultBuf.rewind();
 				//Event event = new Event(session, EventName.ON_SENT, resultBuf);

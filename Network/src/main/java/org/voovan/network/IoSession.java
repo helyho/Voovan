@@ -3,6 +3,7 @@ package org.voovan.network;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
