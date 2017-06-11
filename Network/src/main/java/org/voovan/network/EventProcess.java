@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 
 /**
  * 事件的实际逻辑处理
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -26,12 +26,12 @@ public class EventProcess {
 	 * 私有构造函数,防止被实例化
 	 */
 	private EventProcess(){
-		
+
 	}
-	
+
 	/**
 	 * Accept事件
-	 * 
+	 *
 	 * @param event
 	 *            事件对象
 	 * @throws IOException IO 异常
@@ -45,7 +45,7 @@ public class EventProcess {
 
 	/**
 	 * 连接成功事件 建立连接完成后出发
-	 * 
+	 *
 	 * @param event
 	 *            事件对象
 	 * @throws SendMessageException  消息发送异常
@@ -55,7 +55,7 @@ public class EventProcess {
 	public static void onConnect(Event event) throws SendMessageException, IOException, IoFilterException  {
 
 		IoSession session = event.getSession();
-		
+
 		// SSL 握手
 		if (session!=null && session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
 			try {
@@ -77,7 +77,7 @@ public class EventProcess {
 
 	/**
 	 * 连接断开事件 断开后出发
-	 * 
+	 *
 	 * @param event
 	 *            事件对象
 	 */
@@ -92,7 +92,7 @@ public class EventProcess {
 
 	/**
 	 * 读取事件 在消息接受完成后触发
-	 * 
+	 *
 	 * @param event
 	 *            事件对象
 	 * @throws SendMessageException  消息发送异常
@@ -148,6 +148,7 @@ public class EventProcess {
 
 					// 发送消息
 					if(result!=null) {
+						//触发发送事件
 						sendMessage(session, result);
 					}
 				}
@@ -173,7 +174,7 @@ public class EventProcess {
 		filterChain.clear();
 		return result;
 	}
-	
+
 	/**
 	 * 使用过滤器编码结果
 	 * @param session      Session 对象
@@ -191,58 +192,35 @@ public class EventProcess {
 		filterChain.clear();
 		return result;
 	}
-	
-	
-	/**
-	 * 发送完成事件 发送后出发
-	 * 
-	 * @param event
-	 *            事件对象
-	 * @param obj
-	 *            发送的对象
-	 * @throws IOException IO 异常
-	 */
-	public static void onSent(Event event, Object obj) throws IOException {
-		SocketContext socketContext = event.getSession().socketContext();
-		if (socketContext != null) {
-			IoSession session = event.getSession();
-			socketContext.handler().onSent(session, obj);
 
-			//如果 obj 是 ByteBuffer 进行释放
-			if(obj instanceof ByteBuffer){
-				TByteBuffer.release((ByteBuffer)obj);
-			}
-		}
-	}
-
-	/**
-	 * 异常产生事件 异常产生侯触发
-	 * 
-	 * @param event
-	 *            事件对象
-	 * @param e 异常对象
-	 */
-	public static void onException(Event event, Exception e) {
-		if (event != null 
-				&& event.getSession() != null 
-				&& event.getSession().socketContext() != null) {
-			SocketContext socketContext = event.getSession().socketContext();
-			IoSession session = event.getSession();
-
-			if (socketContext.handler() != null) {
-				socketContext.handler().onException(session, e);
-			} 
-		}
-	}
 
 	/**
 	 * 消息发送
-	 * 
+	 *
 	 * @param session Session 对象
 	 * @param sendObj 发送的对象
 	 * @throws SendMessageException  消息发送异常
 	 */
 	public static void sendMessage(IoSession session, Object sendObj) throws SendMessageException {
+
+		if(sendObj != null) {
+			//触发发送事件
+			EventTrigger.fireSentThread(session, sendObj);
+		}
+	}
+
+	/**
+	 * 发送完成事件 发送后出发
+	 *
+	 * @param event
+	 *            事件对象
+	 * @param sendObj
+	 *            发送的对象
+	 * @throws IOException IO 异常
+	 */
+	public static void onSent(Event event, Object sendObj) throws IOException {
+		SocketContext socketContext = event.getSession().socketContext();
+		IoSession session = event.getSession();
 		try {
 			ByteBuffer resultBuf = null;
 			// 根据消息类型,封装消息
@@ -274,21 +252,44 @@ public class EventProcess {
 					TByteBuffer.release(resultBuf);
 				}
 
-				//触发发送事件
-				EventTrigger.fireSentThread(session, sendObj);
+				if (socketContext != null) {
+					socketContext.handler().onSent(session, sendObj);
+
+					//如果 obj 是 ByteBuffer 进行释放
+					if(sendObj instanceof ByteBuffer){
+						TByteBuffer.release((ByteBuffer)sendObj);
+					}
+				}
 			}
-
-
-
 		}catch(IOException e){
 			throw new SendMessageException(e);
 		}
 	}
 
 	/**
+	 * 异常产生事件 异常产生侯触发
+	 *
+	 * @param event
+	 *            事件对象
+	 * @param e 异常对象
+	 */
+	public static void onException(Event event, Exception e) {
+		if (event != null
+				&& event.getSession() != null
+				&& event.getSession().socketContext() != null) {
+			SocketContext socketContext = event.getSession().socketContext();
+			IoSession session = event.getSession();
+
+			if (socketContext.handler() != null) {
+				socketContext.handler().onException(session, e);
+			}
+		}
+	}
+
+	/**
 	 * 处理异常
 	 * @param event 事件对象
-     */
+	 */
 	public static void process(Event event) {
 		if (event == null) {
 			return;
