@@ -147,7 +147,9 @@ public class EventProcess {
 					// ---------------------------------------------------
 
 					// 发送消息
-					sendMessage(session, result);
+					if(result!=null) {
+						sendMessage(session, result);
+					}
 				}
 			}
 
@@ -261,18 +263,22 @@ public class EventProcess {
 			}
 
 			// 发送消息
-			if (resultBuf != null && session.isOpen() && resultBuf.limit() >0) {
-				session.send(resultBuf);
-				resultBuf.rewind();
+			if (resultBuf != null && session.isOpen()) {
+				if(resultBuf.limit() >0) {
+					session.send(resultBuf);
+					resultBuf.rewind();
+				}
 				//Event event = new Event(session, EventName.ON_SENT, resultBuf);
 
 				if(sendObj!=null && !sendObj.equals(resultBuf)){
 					TByteBuffer.release(resultBuf);
 				}
+
+				//触发发送事件
+				EventTrigger.fireSentThread(session, sendObj);
 			}
 
-			//触发发送事件
-			EventTrigger.fireSentThread(session, sendObj);
+
 
 		}catch(IOException e){
 			throw new SendMessageException(e);
