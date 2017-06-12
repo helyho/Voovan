@@ -242,7 +242,7 @@ public class Request {
 			outputStream.write("\r\n".getBytes("UTF-8"));
 			
 		} catch (IOException e) {
-			Logger.error("OutputString io error.",e);
+			Logger.error("OutputString io error",e);
 		}
 
 		return ByteBuffer.wrap(outputStream.toByteArray());

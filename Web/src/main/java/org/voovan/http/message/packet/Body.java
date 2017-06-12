@@ -45,7 +45,7 @@ public class Body {
             chaneToBytes("".getBytes());
 			bodyFile = null;
         } catch (IOException e){
-            Logger.error("Construct class Body error. ",e);
+            Logger.error("Construct class Body error",e);
         }
 	}
 
@@ -60,7 +60,7 @@ public class Body {
 			chaneToBytes(content);
 			bodyFile = null;
 		} catch (IOException e){
-			Logger.error("Construct class Body error. ",e);
+			Logger.error("Construct class Body error",e);
 		}
 	}
 
@@ -73,7 +73,7 @@ public class Body {
 		try {
 			changeToFile(filePath);
 		} catch (IOException e){
-			Logger.error("Construct class Body error. ",e);
+			Logger.error("Construct class Body error",e);
 		}
 	}
 
@@ -170,7 +170,7 @@ public class Body {
 		try {
 			return new String(bodyBytes,"UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			Logger.error("This charset is unsupported.",e);
+			Logger.error("This charset is unsupported",e);
 			return null;
 		}
 	}
@@ -186,7 +186,7 @@ public class Body {
 		try {
 			return new String(bodyBytes,charset);
 		} catch (UnsupportedEncodingException e) {
-			Logger.error("This charset is unsupported.",e);
+			Logger.error("This charset is unsupported",e);
 			return null;
 		}
 	}

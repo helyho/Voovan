@@ -62,7 +62,7 @@ public class EventProcess {
 				session.getSSLParser().doHandShake();
 			} catch (Exception e) {
 				session.close();
-				Logger.error("SSL hand shake failed: "+e.getMessage(),e);
+				Logger.error("SSL hand shake failed",e);
 				return;
 			}
 		}

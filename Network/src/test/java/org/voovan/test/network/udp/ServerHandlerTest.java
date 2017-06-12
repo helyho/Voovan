@@ -29,7 +29,7 @@ public class ServerHandlerTest implements IoHandler {
 
 		@Override
 		public void onException(IoSession session, Exception e) {
-        Logger.error("Server Exception:",e);
+        Logger.error("Server Exception",e);
 		session.close();
 	}
 

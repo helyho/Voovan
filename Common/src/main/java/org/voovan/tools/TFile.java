@@ -60,7 +60,7 @@ public class TFile {
 			long fileSize = randomAccessFile.length();
 			return fileSize;
 		} catch (Exception e) {
-			Logger.error("File not found: "+file.getCanonicalPath()+".",e);
+			Logger.error("File not found: "+file.getCanonicalPath(),e);
 			return -1;
 		}finally {
 			randomAccessFile.close();
@@ -223,7 +223,7 @@ public class TFile {
 			randomAccessFile.close();
 			return fileBytes;
 		} catch (IOException e) {
-			Logger.error("Load file error: "+file.getAbsolutePath()+".",e);
+			Logger.error("Load file error: "+file.getAbsolutePath(),e);
 		}
 		return null;
 	}
