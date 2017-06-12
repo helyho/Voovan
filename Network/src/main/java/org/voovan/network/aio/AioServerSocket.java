@@ -99,7 +99,7 @@ public class AioServerSocket extends SocketContext{
 				}
 				return true;
 			}catch(IOException e){
-				Logger.error("SocketChannel close failed.",e);
+				Logger.error("SocketChannel close failed",e);
 				return false;
 			}
 		}else{

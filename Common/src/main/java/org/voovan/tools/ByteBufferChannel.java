@@ -147,7 +147,7 @@ public class ByteBufferChannel {
 			this.address = TReflect.getFieldValue(byteBuffer, "address");
 			deallocator.setAddress(address);
 		}catch (ReflectiveOperationException e){
-			Logger.error("ByteBufferChannel resetAddress() Error: "+e.getMessage(), e);
+			Logger.error("ByteBufferChannel resetAddress() Error: ", e);
 		} finally {
 			lock.unlock();
 		}

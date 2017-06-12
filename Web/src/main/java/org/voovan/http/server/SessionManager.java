@@ -77,7 +77,7 @@ public class SessionManager{
 				//根据 Class 构造一个 Session 容器
 				return TReflect.newInstance(sessionContainerClassName);
 			} catch (ReflectiveOperationException e) {
-				Logger.error("Reflective operation error.",e);
+				Logger.error("Reflective operation error",e);
 				return null;
 			}
 		}

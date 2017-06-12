@@ -69,7 +69,7 @@ public class WebServerFilter implements IoFilter {
 					return null;
 				}
 			} catch (IOException e) {
-				Logger.error("ParseRequest failed.",e);
+				Logger.error("ParseRequest failed",e);
 				return null;
 			}
 		}

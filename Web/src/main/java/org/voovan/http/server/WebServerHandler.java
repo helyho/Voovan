@@ -289,7 +289,7 @@ public class WebServerHandler implements IoHandler {
 	public void onException(IoSession session, Exception e) {
 		//忽略远程连接断开异常 和 超时断开异常
 		if(!(e instanceof InterruptedByTimeoutException)){
-			Logger.error("Http Server Error: \r\n" + e.getMessage(),e);
+			Logger.error("Http Server Error",e);
 		}
 		session.close();
 	}

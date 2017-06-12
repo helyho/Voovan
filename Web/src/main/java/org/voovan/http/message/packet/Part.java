@@ -64,7 +64,7 @@ public class Part {
 		try {
 			body.write(value.getBytes("UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			Logger.error("This charset is unsupported.",e);
+			Logger.error("This charset is unsupported",e);
 		}
 	}
 	

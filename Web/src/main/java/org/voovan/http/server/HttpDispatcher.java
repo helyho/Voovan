@@ -394,7 +394,7 @@ public class HttpDispatcher {
 			try {
 				errorPageContent = new String(TFile.loadFileFromContextPath("/conf/error-page/" + error.get("Page")),"UTF-8");
 			} catch (UnsupportedEncodingException e1) {
-				Logger.error("This charset is unsupported.",e);
+				Logger.error("This charset is unsupported",e);
 			}
 		}
 		if(errorPageContent!=null){

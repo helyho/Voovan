@@ -111,7 +111,7 @@ public class Complier {
 			try {
 				fileManager.close() ;
 			} catch (IOException e) {
-				Logger.error(e.getMessage(),e);
+				Logger.error(e);
 			}
 		}
 		return success ;

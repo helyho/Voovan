@@ -87,7 +87,7 @@ public class TByteBuffer {
             return true;
 
         }catch (ReflectiveOperationException e){
-            Logger.error("TByteBuffer.reallocate() Error: "+e.getMessage(), e);
+            Logger.error("TByteBuffer.reallocate() Error. ", e);
         }
         return false;
     }
@@ -125,7 +125,7 @@ public class TByteBuffer {
             byteBuffer.position(position);
             return true;
         }catch (ReflectiveOperationException e){
-            Logger.error("TByteBuffer.moveData() Error: "+e.getMessage(), e);
+            Logger.error("TByteBuffer.moveData() Error.", e);
         }
         return false;
     }
