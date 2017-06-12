@@ -71,7 +71,7 @@ public class ResultInfo {
                 return null;
             }
         }catch(SQLException | ReflectiveOperationException | ParseException e){
-            Logger.error("JdbcOperate.getObject error: "+e.getMessage(),e);
+            Logger.error("JdbcOperate.getObject error",e);
         }finally{
             // 非事物模式执行
             if (!isTrancation) {

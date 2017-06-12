@@ -245,7 +245,7 @@ public abstract class IoSession<T extends SocketContext> {
                 return send0(buffer);
             }
         } catch (IOException e) {
-            Logger.error("Send data failed." + e.getMessage(),e);
+            Logger.error("Send data failed" ,e);
         }
 
 		return -1;

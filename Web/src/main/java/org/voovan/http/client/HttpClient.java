@@ -156,7 +156,7 @@ public class HttpClient {
 			socket.syncStart();
 
 		} catch (IOException e) {
-			Logger.error("HttpClient init error. ",e);
+			Logger.error("HttpClient init error",e);
 		}
 	}
 
@@ -330,7 +330,7 @@ public class HttpClient {
 			queryString = queryStringBuilder.toString();
 			queryString = queryStringBuilder.length()>0?TString.removeSuffix(queryString):queryString;
 		} catch (IOException e) {
-			Logger.error("HttpClient getQueryString error. ",e);
+			Logger.error("HttpClient getQueryString error",e);
 		}
 		return queryString.isEmpty()? "" : queryString;
 	}
@@ -374,7 +374,7 @@ public class HttpClient {
 					request.parts().add(part);
 				}
 			} catch (IOException e) {
-				Logger.error("HttpClient buildRequest error. ",e);
+				Logger.error("HttpClient buildRequest error",e);
 			}
 
 		}
@@ -528,7 +528,7 @@ public class HttpClient {
 		try {
 			socket.getSession().syncSend(webSocketFrame);
 		} catch (SendMessageException e) {
-			Logger.error("WebSocket on connect send data error! "+e.getMessage(), e);
+			Logger.error("WebSocket on connect send data error! ", e);
 		}
 	}
 

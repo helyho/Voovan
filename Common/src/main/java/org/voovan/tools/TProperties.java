@@ -41,7 +41,7 @@ public class TProperties {
 			return propertiesCache.get(file);
 			
 		} catch (IOException e) {
-			Logger.error("Get properites file fialed. File:"+file.getAbsolutePath()+".",e);
+			Logger.error("Get properites file fialed. File:"+file.getAbsolutePath(),e);
 			return null;
 		}
 	}

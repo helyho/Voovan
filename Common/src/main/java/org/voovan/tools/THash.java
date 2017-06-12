@@ -77,7 +77,7 @@ public class THash {
 			return md5StrBuff.toString();
 
 		} catch (NoSuchAlgorithmException e) {
-        	Logger.error("No such algorithm.",e);  
+        	Logger.error("No such algorithm",e);
             return null;
         } 
 

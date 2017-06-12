@@ -48,7 +48,7 @@ public class AioSession extends IoSession<AioSocket>  {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getLocalAddress());
 				return socketAddress.getHostName();
 			} catch (IOException e) {
-				Logger.error("Get SocketChannel local address failed.",e);
+				Logger.error("Get SocketChannel local address failed",e);
 				return null;
 			}
 		} else {
@@ -63,7 +63,7 @@ public class AioSession extends IoSession<AioSocket>  {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getLocalAddress());
 				return socketAddress.getPort();
 			} catch (IOException e) {
-				Logger.error("Get SocketChannel local port failed.",e);
+				Logger.error("Get SocketChannel local port failed",e);
 				return -1;
 			}
 		} else {
@@ -78,7 +78,7 @@ public class AioSession extends IoSession<AioSocket>  {
 				InetSocketAddress socketAddress = TObject.cast(socketChannel.getRemoteAddress());
 				return socketAddress.getHostString();
 			} catch (IOException e) {
-				Logger.error("Get SocketChannel remote address failed.",e);
+				Logger.error("Get SocketChannel remote address failed",e);
 				return null;
 			}
 		} else {

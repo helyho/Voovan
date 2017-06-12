@@ -228,7 +228,7 @@ public class WebServer {
 				Logger.error("Create WebServer failed: WebServerConfig object is null.");
 			}
 		} catch (IOException e) {
-			Logger.error("Create WebServer failed.",e);
+			Logger.error("Create WebServer failed",e);
 		}
 
 		return null;
@@ -284,7 +284,7 @@ public class WebServer {
 			Logger.simple("WebServer working on: http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
 			aioServerSocket.start();
 		} catch (IOException e) {
-			Logger.error("Start HTTP server error.",e);
+			Logger.error("Start HTTP server error",e);
 		}
 		return this;
 	}

@@ -126,7 +126,7 @@ public class JdbcOperate {
 			return new ResultInfo(rs,this.isTrancation);
 		} catch (SQLException e) {
 			closeConnection(conn);
-			Logger.error("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " + e.getMessage() + "\n",e);
+			Logger.error("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " ,e);
 		}
 		return null;
 	}
@@ -148,7 +148,7 @@ public class JdbcOperate {
 			preparedStatement = TSQL.createPreparedStatement(conn, sqlText, mapArg);
 			return preparedStatement.executeUpdate();
 		} catch (SQLException e) {
-			Logger.error("Update excution SQL Error! \n SQL is :\n\t " + sqlText + "\nError is: \n\t" + e.getMessage() + "\n",e);
+			Logger.error("Update excution SQL Error! \n SQL is :\n\t " + sqlText + "\nError is: \n\t" ,e);
 		} finally {
 			// 非事物模式执行
 			if (!isTrancation) {
@@ -202,7 +202,7 @@ public class JdbcOperate {
 
 			return result;
 		} catch (SQLException e) {
-			Logger.error("Batch excution SQL Error! \n SQL is : \n\t" + sqlText + ":\n\t" + e.getMessage() + "\n",e);
+			Logger.error("Batch excution SQL Error! \n SQL is : \n\t" + sqlText + ":\n\t" ,e);
 		} finally {
 			// 非事物模式执行
 			if (!isTrancation) {
@@ -222,7 +222,7 @@ public class JdbcOperate {
 			return objList;
 		} catch (SQLException e) {
 			closeConnection(conn);
-			Logger.error("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " + e.getMessage() + "\n",e);
+			Logger.error("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " ,e);
 		}
 		return null;
 	}
@@ -746,7 +746,7 @@ public class JdbcOperate {
 				closeConnection(statement);
 			}
 		} catch (SQLException e) {
-			Logger.error(e.getMessage(),e);
+			Logger.error(e);
 		}
 
 	}
@@ -763,7 +763,7 @@ public class JdbcOperate {
 				closeConnection(connection);
 			}
 		} catch (SQLException e) {
-			Logger.error(e.getMessage(),e);
+			Logger.error(e);
 		}
 	}
 	
@@ -777,7 +777,7 @@ public class JdbcOperate {
 				connection.close();
 			}
 		} catch (SQLException e) {
-			Logger.error(e.getMessage(),e);
+			Logger.error(e);
 		}
 	}
 	
@@ -793,7 +793,7 @@ public class JdbcOperate {
                 closeStatement(statement);
             }
 		} catch (SQLException e) {
-			Logger.error(e.getMessage(),e);
+			Logger.error(e);
 		}
 	}
 	
@@ -807,7 +807,7 @@ public class JdbcOperate {
 				statement.close();
 			}
 		} catch (SQLException e) {
-			Logger.error(e.getMessage(),e);
+			Logger.error(e);
 		}
 	}
 }
