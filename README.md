@@ -38,7 +38,16 @@ Voovan 迎来了 2.0 新版本,此版本应广大使用者朋友们的要求将 
 提供了Web 常用的 HttpClient 和 HttpServer 两种支持,使用 web 模块可以轻松搞定 http 的服务和 客户端模式, 同时无论是服务端还是客户端都提供对 websocket 的支持,使您在开发过程中不在组合各种框架来完成同一类的功能.
 
 ---------------------
+###典型案例:
+ - 商旅行业酒店预订系统,基于 Voovan 开发的后端API服务
+ - 基于 Voovan 开发物联网管理服务
+ - 基于 Voovan 开发的游戏后端服务
+ - 某通信企业基于 Voovan开发日通信10w+ 次的关口机
+ - Vestful 一款提供 Restful 服务的框架
+ - Dockerfly 一款 Docker web 管理工具
+ - JDocker 一款 java 开发 Docker API 封装的框架
 
+---------------------
 
 ###JDK支持:
 
@@ -124,7 +133,7 @@ Voovan 迎来了 2.0 新版本,此版本应广大使用者朋友们的要求将 
   1. 属性文件操作。
   1. 文件路径拼接、从绝对路径读取、从相对路径读取、从包路径读取、指定起始和结束位置内容读取等。
   1. List 和 Map 的快速初始化。
-  
+
 ---------------------
 
 ###包结构说明
@@ -150,7 +159,14 @@ Voovan 迎来了 2.0 新版本,此版本应广大使用者朋友们的要求将 
 **Issues地址:** [Git@OSC](http://git.oschina.net/helyho/Voovan/issues)
 
 ---------------------
-
+###典型案例:
+ - 商旅行业酒店预订系统,基于 Voovan 开发的微服务API 后端
+ - 基于 Voovan 开发物联网管理服务
+ - 基于 Voovan 开发的游戏后端服务
+ - 某通信企业基于 Voovan开发日通信10w+ 次的关口机
+ - Vestful 一款提供 Restful 服务的框架
+ - Dockerfly 一款 Docker web 管理工具
+ - JDocker 一款 java 开发 Docker API 封装的框架
 
 ###Voovan 在异步通信的范畴内的同类框架有:
   - [t-io](http://www.t-io.org:9292/): 长连接异步通信框架,提供心跳和连接保持的支持.
