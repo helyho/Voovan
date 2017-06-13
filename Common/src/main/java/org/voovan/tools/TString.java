@@ -535,7 +535,7 @@ public class TString {
 	 */
 	public static String generateShortUUID() {
 		StringBuffer shortBuffer = new StringBuffer();
-		String uuid = UUID.nameUUIDFromBytes("Voovan".getBytes()).toString();
+		String uuid = UUID.randomUUID().toString();
 		uuid = uuid.replace("-", "");
 		for (int i = 0; i < 8; i++) {
 			String str = uuid.substring(i * 4, i * 4 + 4);
