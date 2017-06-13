@@ -52,7 +52,7 @@ public class Response {
 		header = new Header();
 		cookies = new ArrayList<Cookie>();
 		body = new Body();
-		isCompress = true;
+		isCompress = false;
 	}
 
 	/**

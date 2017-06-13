@@ -107,7 +107,11 @@ public class WebServerHandler implements IoHandler {
 			
 			// 构造响应对象
 			Response response = new Response();
-			response.setCompress(webConfig.isGzip());
+
+			if(webConfig.isGzip() && request.header().contain("Accept-Encoding") &&
+					request.header().get("Accept-Encoding").contains("gzip")) {
+				response.setCompress(true);
+			}
 
 			// 构造 Http 请求/响应 对象
 			HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);
