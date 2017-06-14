@@ -310,6 +310,11 @@ public class HttpClient {
 		return this;
 	}
 
+	public void uploadFile(String name, File file){
+		Part filePart = new Part(name, file);
+		addPart(filePart);
+	}
+
 	/**
 	 * 构建QueryString
 	 * 	将 Map 集合转换成 QueryString 字符串
@@ -411,7 +416,11 @@ public class HttpClient {
 		buildRequest(TString.isNullOrEmpty(urlString)?"/":urlString);
 
 		//发送报文
-		socket.synchronouSend(request);
+		try {
+			request.send(socket.getSession());
+		}catch(IOException e){
+			throw new SendMessageException("HttpClient send error",e);
+		}
 
 		Object readObject = socket.synchronouRead();
 		Response response = null;
