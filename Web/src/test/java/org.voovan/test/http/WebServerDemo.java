@@ -1,5 +1,6 @@
 package org.voovan.test.http;
 
+import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.WebServer;
 import org.voovan.http.websocket.WebSocketRouter;
@@ -19,6 +20,14 @@ public class WebServerDemo {
 		//性能测试请求
         webServer.get("/test", (req, resp) -> {
 			resp.body().write("OK");
+		});
+
+		//性能测试请求
+		webServer.post("/upload", (req, resp) -> {
+			for(Part part : req.parts()) {
+				Logger.simple(part.body().isFile());
+			}
+			resp.body().write("upload file is ");
 		});
 
 		//普通 GET 请求

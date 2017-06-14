@@ -3,6 +3,7 @@ package org.voovan.http.message;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
 import org.voovan.tools.*;
+import org.voovan.tools.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -345,14 +346,16 @@ public class HttpParser {
 									"upload",
 									"VOOVAN_" + System.currentTimeMillis() + "." + fileExtName);
 
-							int count = 0;
-							do{
+							//等待数据
+							while (byteBufferChannel.waitData(boundary.getBytes(), timeOut)){
 								index = byteBufferChannel.indexOf(boundary.getBytes("UTF-8"));
 
 								int length = index == -1 ? byteBufferChannel.size() : (index - 2);
-								byteBufferChannel.saveToFile(localFileName, index - 2);
-								count++;
-							} while (!byteBufferChannel.waitData(boundary.getBytes(), 100) && count*100 < timeOut);
+								if(index > 0 ) {
+									byteBufferChannel.saveToFile(localFileName, index - 2);
+									break;
+								}
+							}
 
 							if(index == -1){
 								new File(localFileName).delete();
@@ -532,7 +535,7 @@ public class HttpParser {
 								part.body().chaneToBytes((byte[])parsedPartMapItem.getValue());
 							} if(parsedPartMapItem.getKey().equals(BODY_FILE)){
 								String filePath = new String((byte[])parsedPartMapItem.getValue());
-								part.body().changeToFile(filePath);
+								part.body().changeToFile(new File(filePath));
 							} else {
 								//填充 header
 								String partedHeaderKey = parsedPartMapItem.getKey();
