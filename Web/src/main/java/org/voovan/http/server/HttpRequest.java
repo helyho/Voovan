@@ -2,10 +2,13 @@ package org.voovan.http.server;
 
 import org.voovan.http.message.Request;
 import org.voovan.http.message.packet.Cookie;
+import org.voovan.http.message.packet.Part;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.text.ParseException;
@@ -338,7 +341,7 @@ public class HttpRequest extends Request {
 	/**
 	 * 解析请求参数
 	 */
-	private void  parseQueryString() {
+	private void parseQueryString() {
 		if(getQueryString()!=null){
 			String[] parameterEquals = getQueryString().split("&");
 			for(String parameterEqual :parameterEquals){
@@ -357,6 +360,34 @@ public class HttpRequest extends Request {
 			}
 		}
 	}
+
+	/**
+	 * 保存上传的文件
+	 * @param name  提交的参数名
+	 * @param file  目标文件名
+	 * @throws IOException IO 异常
+	 */
+	public void saveUploadedFile(String name, File file) throws IOException {
+		for(Part part: this.parts()){
+			if(part.getName().equals(name)){
+				part.saveAsFile(file);
+				return;
+			}
+		}
+
+		throw new IOException("The uploadFile parameter whie name is "+name+" not found.");
+	}
+
+	/**
+	 * 保存上传的文件
+	 * @param name  提交的参数名
+	 * @param file  目标文件名
+	 * @throws IOException IO 异常
+	 */
+	public void saveUploadedFile(String name, String file) throws IOException {
+		saveUploadedFile(name, new File(file));
+	}
+
 
 
 
