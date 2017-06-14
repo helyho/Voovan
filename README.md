@@ -159,14 +159,6 @@ Voovan 迎来了 2.0 新版本,此版本应广大使用者朋友们的要求将 
 **Issues地址:** [Git@OSC](http://git.oschina.net/helyho/Voovan/issues)
 
 ---------------------
-###典型案例:
- - 商旅行业酒店预订系统,基于 Voovan 开发的微服务API 后端
- - 基于 Voovan 开发物联网管理服务
- - 基于 Voovan 开发的游戏后端服务
- - 某通信企业基于 Voovan开发日通信10w+ 次的关口机
- - Vestful 一款提供 Restful 服务的框架
- - Dockerfly 一款 Docker web 管理工具
- - JDocker 一款 java 开发 Docker API 封装的框架
 
 ###Voovan 在异步通信的范畴内的同类框架有:
   - [t-io](http://www.t-io.org:9292/): 长连接异步通信框架,提供心跳和连接保持的支持.
