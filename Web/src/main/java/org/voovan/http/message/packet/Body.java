@@ -93,7 +93,6 @@ public class Body {
 		return bodyFile==null? false: true;
 	}
 
-
 	/**
 	 * 转换成文件形式
 	 * @param bodyFile  文件对象
