@@ -9,6 +9,7 @@ import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 
 public class WebServerDemo {
@@ -19,15 +20,15 @@ public class WebServerDemo {
 
 		//性能测试请求
         webServer.get("/test", (req, resp) -> {
-			resp.body().write("OK");
+			resp.write("OK");
 		});
 
 		//性能测试请求
 		webServer.post("/upload", (req, resp) -> {
-			for(Part part : req.parts()) {
-				Logger.simple(part.body().isFile());
+			req.saveUploadedFile("file","./upload_file.xml");
+			if(new File("./upload_file.xml").exists()){
+				resp.write("Success");
 			}
-			resp.body().write("upload file is ");
 		});
 
 		//普通 GET 请求
