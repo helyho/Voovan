@@ -71,7 +71,7 @@ public class Body {
 	public Body(String filePath){
 		type = BodyType.FILE;
 		try {
-			changeToFile(filePath);
+			changeToFile(new File(filePath));
 		} catch (IOException e){
 			Logger.error("Construct class Body error",e);
 		}
@@ -96,15 +96,16 @@ public class Body {
 
 	/**
 	 * 转换成文件形式
-	 * @param filePath  文件路径
+	 * @param bodyFile  文件对象
 	 * @throws FileNotFoundException 文件未找到异常
 	 */
-	public void changeToFile(String filePath) throws FileNotFoundException{
+	public void changeToFile(File bodyFile) throws FileNotFoundException{
 
-        bodyFile = new File(filePath);
         if(!bodyFile.exists()){
-            throw new FileNotFoundException(" bodyFile " + filePath + " not exists");
+            throw new FileNotFoundException("Upload file " + bodyFile.getPath() + " not exists");
         }
+
+        this.bodyFile = bodyFile;
 
 		if(byteBufferChannel != null){
 			byteBufferChannel = null;
@@ -112,6 +113,15 @@ public class Body {
 
 		position = 0;
 		this.type = BodyType.FILE;
+	}
+
+	/**
+	 * 转换成文件形式
+	 * @param file  文件路径
+	 * @throws FileNotFoundException 文件未找到异常
+	 */
+	public void changeToFile(String file) throws FileNotFoundException{
+		changeToFile(new File(file));
 	}
 
 	/**

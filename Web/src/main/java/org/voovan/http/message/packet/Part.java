@@ -2,9 +2,11 @@ package org.voovan.http.message.packet;
 
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -67,7 +69,19 @@ public class Part {
 			Logger.error("This charset is unsupported",e);
 		}
 	}
-	
+
+	public Part(String name,File file){
+		header = new  Header();
+		body = new Body();
+		header.put("name", name);
+		header.put("filename", TFile.getFileName(file.getPath()));
+		try {
+			body.changeToFile(file);
+		} catch (FileNotFoundException e) {
+			Logger.error(e);
+		}
+	}
+
 	/**
 	 * Part 的 Header 对象
 	 * @return HTTP-Header 对象

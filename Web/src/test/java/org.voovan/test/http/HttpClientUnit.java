@@ -9,6 +9,7 @@ import org.voovan.http.message.packet.Part;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -69,6 +70,17 @@ public class HttpClientUnit extends TestCase {
 		Logger.simple(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 		mpClient.close();
+	}
+
+	public void testFileUpload() throws Exception {
+		HttpClient ulClient = new HttpClient("http://127.0.0.1:28080", 50000);
+		ulClient.setMethod("POST");
+		ulClient.addPart(new Part("name","测试Upload","GB2312"));
+		ulClient.uploadFile("file",new File("./pom.xml"));
+		Response response = ulClient.send("/upload");
+		Logger.simple(response.body().getBodyString("GB2312"));
+		assertTrue(response.protocol().getStatus()!=500);
+		ulClient.close();
 	}
 
 	public void testHTTPSRequest() throws Exception {
