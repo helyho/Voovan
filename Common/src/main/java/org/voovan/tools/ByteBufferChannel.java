@@ -762,7 +762,7 @@ public class ByteBufferChannel {
 			}
 
 			if (index == 0) {
-				byteBuffer.position(splitByte.length);
+				this.getByteBuffer().position(splitByte.length);
 				compact();
 				index = indexOf(splitByte);
 			}
@@ -811,7 +811,7 @@ public class ByteBufferChannel {
 				int loadSize = bufferSize;
 				while (length > 0) {
 					loadSize = length > bufferSize ? bufferSize : new Long(length).intValue();
-					byteBuffer.get(buffer, 0, loadSize);
+					this.getByteBuffer().get(buffer, 0, loadSize);
 					randomAccessFile.write(buffer, 0, loadSize);
 
 					length = length - loadSize;
@@ -824,7 +824,7 @@ public class ByteBufferChannel {
 				randomAccessFile.close();
 			}
 		}finally {
-			lock.unlock();
+            lock.unlock();
 		}
 	}
 
