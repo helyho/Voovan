@@ -455,6 +455,8 @@ public class TString {
 			clazz = (Class<T>)parameterizedType.getRawType();
 		}else if(type instanceof Class){
 			clazz = (Class<T>)type;
+		}else{
+			return (T)value;
 		}
 
 		if(value == null){

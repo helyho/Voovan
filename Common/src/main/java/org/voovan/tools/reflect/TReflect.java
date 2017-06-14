@@ -400,6 +400,12 @@ public class TReflect {
 							Object[] convertedParams = new Object[args.length];
 							for (int i = 0; i < methodParamTypes.length; i++) {
 								Type parameterType = methodParamTypes[i];
+
+								//如果范型类型没有指定则使用 Object 作为默认类型
+								if(!(parameterType instanceof ParameterizedType)){
+									parameterType = Object.class;
+								}
+
 								//参数类型转换
 								String value = "";
 
@@ -573,7 +579,11 @@ public class TReflect {
 		if(type instanceof ParameterizedType) {
 			ParameterizedType parameterizedType = (ParameterizedType) type;
 			clazz = (Class)parameterizedType.getRawType();
-			genericType = getGenericClass(parameterizedType);
+			try {
+				genericType = getGenericClass(parameterizedType);
+			}catch(ClassNotFoundException e){
+				genericType = new Class[]{Object.class};
+			}
 		}else if(type instanceof Class){
 			clazz = (Class)type;
 		}
