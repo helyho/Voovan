@@ -22,17 +22,18 @@ public class UniqueIdUnit extends TestCase {
 
     public void testUniqueId(){
         ThreadPoolExecutor threadPoolExecutor = Global.getThreadPool();
-        UniqueId uniqueId = new UniqueId();
+        UniqueId uniqueId = new UniqueId(200);
         System.out.println("--start--");
         System.out.println(System.currentTimeMillis());
-        for(int i=0;i<100;i++) {
+        for(int i=0;i<500;i++) {
             try {
                 threadPoolExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
                         String value = "";
-                        for (int k = 0; k < 100; k++) {
-                            System.out.println(uniqueId.nextId());
+                        for (int k = 0; k < 10000; k++) {
+//                            System.out.println(uniqueId.nextStringId() + " "+System.currentTimeMillis());
+                            uniqueId.nextStringId();
                         }
                         System.out.println(100 + " "+System.currentTimeMillis());
                     }
