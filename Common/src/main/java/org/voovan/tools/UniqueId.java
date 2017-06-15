@@ -1,6 +1,10 @@
 package org.voovan.tools;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.security.SecureRandom;
+import java.util.Arrays;
 
 /**
  * 高速ID生成器
@@ -48,7 +52,7 @@ public class UniqueId {
      * 获取下一个 id
      * @return 返回 id
      */
-    public long nextIntId(){
+    public long nextInt(){
         return generateId();
     }
 
@@ -56,8 +60,8 @@ public class UniqueId {
      * 获取下一个 id
      * @return 返回 id
      */
-    public String nextStringId(){
-        return TString.radixConvert(generateId(),RADIX);
+    public String nextString(){
+        return TString.radixConvert(generateId(), RADIX);
     }
 
     /**
