@@ -93,7 +93,7 @@ public class TObject {
 	/**
 	 * 将 Map 的值转换成 List
 	 * @param map 需转换的 Map 对象
-	 * @return 转后的 Value 的 list
+	 * @return 转后的 key 的 list
 	 */
 	public static List<?> mapKeyToList(Map<?,?> map){
 		ArrayList<Object> result = new ArrayList<Object>();
