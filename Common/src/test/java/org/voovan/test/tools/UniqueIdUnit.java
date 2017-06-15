@@ -33,7 +33,7 @@ public class UniqueIdUnit extends TestCase {
                         String value = "";
                         for (int k = 0; k < 10000; k++) {
 //                            System.out.println(uniqueId.nextStringId() + " "+System.currentTimeMillis());
-                            System.out.println(uniqueId.nextString());
+                            uniqueId.nextString();
                         }
                         System.out.println(100 + " "+System.currentTimeMillis());
                     }
