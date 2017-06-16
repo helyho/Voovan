@@ -7,7 +7,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
 /**
- * 类文字命名
+ * 封装 JDK 的加密解密算法
  *
  * @author: helyho
  * Voovan Framework.
@@ -22,6 +22,11 @@ public class Cipher {
     private PublicKey publicKey;
     private PrivateKey privateKey;
 
+    /**
+     * 构造函数
+     * @param algorithm 加密算法名称
+     * @throws NoSuchAlgorithmException
+     */
     public Cipher(String algorithm) throws NoSuchAlgorithmException {
         if(algorithm==null){
             throw new NoSuchAlgorithmException("algorithm may be null");
@@ -29,6 +34,13 @@ public class Cipher {
         this.algorithm = algorithm;
     }
 
+    /**
+     * 构造函数
+     * @param algorithm 加密算法名称
+     * @param mode      加密形式
+     * @param fillMode  密钥填充方式
+     * @throws NoSuchAlgorithmException
+     */
     public Cipher(String algorithm, String mode, String fillMode) throws NoSuchAlgorithmException {
         if(algorithm==null  || mode == null || fillMode == null){
             throw new NoSuchAlgorithmException("algorithm / mode / fillMode may be null");
@@ -38,11 +50,21 @@ public class Cipher {
         this.fillMode = fillMode;
     }
 
+    /**
+     * 生成一个对称加密的密钥
+     * @return 密钥
+     * @throws NoSuchAlgorithmException
+     */
     public byte[] generateSymmetryKey() throws NoSuchAlgorithmException {
         this.secretKey = KeyGenerator.getInstance(algorithm).generateKey();
         return secretKey.getEncoded();
     }
 
+    /**
+     * 生成一对非对称加密的公钥和私钥
+     * @return 保存公钥和私钥的对象
+     * @throws NoSuchAlgorithmException
+     */
     public KeyPairStore generatPairKey() throws NoSuchAlgorithmException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(algorithm);
         KeyPair keyPair =  keyPairGenerator.generateKeyPair();
@@ -52,23 +74,52 @@ public class Cipher {
         return keyPairStore;
     }
 
+    /**
+     * 读取对称加密的密钥
+     * @param keyBytes 密钥
+     * @return Key 对象
+     */
     public SecretKey loadSymmetryKey(byte[] keyBytes) {
         X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(keyBytes);
         return new SecretKeySpec(keyBytes, algorithm);
     }
 
+    /**
+     * 读取非对称加密的公钥
+     * @param keyBytes 公钥
+     * @return 公钥 Key 对象
+     * @throws NoSuchAlgorithmException 算法异常
+     * @throws InvalidKeySpecException 密钥异常
+     */
     public PublicKey loadPublicKey(byte[] keyBytes) throws NoSuchAlgorithmException, InvalidKeySpecException {
         X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory =  KeyFactory.getInstance(algorithm);
         return keyFactory.generatePublic(x509EncodedKeySpec);
     }
 
+    /**
+     * 读取非对称加密的私钥
+     * @param keyBytes 私钥
+     * @return 私钥 Key 对象
+     * @throws NoSuchAlgorithmException 算法异常
+     * @throws InvalidKeySpecException 密钥异常
+     */
     public PrivateKey loadPrivateKey(byte[] keyBytes) throws NoSuchAlgorithmException, InvalidKeySpecException {
         X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory =  KeyFactory.getInstance(algorithm);
         return keyFactory.generatePrivate(x509EncodedKeySpec);
     }
 
+    /**
+     * 加密算法
+     * @param data 明文
+     * @return 密文
+     * @throws NoSuchPaddingException    填充模式异常
+     * @throws NoSuchAlgorithmException  算法异常
+     * @throws InvalidKeyException       密钥异常
+     * @throws BadPaddingException       填充操作异常
+     * @throws IllegalBlockSizeException 异常
+     */
     public byte[] encode(byte[] data) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 
         String tmp = algorithm + (mode!=null ? ("/"+mode) : "") + (fillMode!=null ? ("/"+fillMode) : "");
@@ -88,6 +139,16 @@ public class Cipher {
         return cipher.doFinal(data);
     }
 
+    /**
+     * 加密算法
+     * @param data 密文
+     * @return 明文
+     * @throws NoSuchPaddingException    填充模式异常
+     * @throws NoSuchAlgorithmException  算法异常
+     * @throws InvalidKeyException       密钥异常
+     * @throws BadPaddingException       填充操作异常
+     * @throws IllegalBlockSizeException 异常
+     */
     public byte[] decode(byte[] data) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         String tmp = algorithm + (mode!=null ? ("/"+mode) : "") + (fillMode!=null ? ("/"+fillMode) : "");
         javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance(tmp);
@@ -106,6 +167,9 @@ public class Cipher {
         return cipher.doFinal(data);
     }
 
+    /**
+     * 保存非对称加密算法的公钥和私钥
+     */
     public class KeyPairStore {
         private byte[] publicKey;
         private byte[] privateKey;
