@@ -57,6 +57,13 @@ public class THash {
 	private static String digest(String code,String str) {  
 
         try {
+			//code 可选 hash 算法
+            //MD2
+            //MD5
+            //SHA-1/SHA
+            //SHA-256
+            //SHA-384
+            //SHA-512
 			MessageDigest messageDigest = MessageDigest.getInstance(code);
   
             messageDigest.reset();  
