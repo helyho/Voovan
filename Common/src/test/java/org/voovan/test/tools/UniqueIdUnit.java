@@ -22,7 +22,7 @@ public class UniqueIdUnit extends TestCase {
 
     public void testUniqueId(){
         ThreadPoolExecutor threadPoolExecutor = Global.getThreadPool();
-        UniqueId uniqueId = new UniqueId(200);
+        final UniqueId uniqueId = new UniqueId(200);
         System.out.println("--start--");
         System.out.println(System.currentTimeMillis());
         for(int i=0;i<500;i++) {

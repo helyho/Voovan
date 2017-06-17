@@ -101,6 +101,11 @@ public class TByteBuffer {
      */
     public static boolean moveData(ByteBuffer byteBuffer, int offset) {
         try {
+
+            if(offset==0){
+                return true;
+            }
+
             int limit = byteBuffer.limit()+offset;
             int position = byteBuffer.position() + offset;
 
