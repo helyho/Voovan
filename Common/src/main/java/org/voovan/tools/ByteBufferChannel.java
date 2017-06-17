@@ -100,6 +100,15 @@ public class ByteBufferChannel {
 	}
 
 	/**
+	 * 测试是否被释放
+	 */
+	private void tryRelease(){
+		if(isReleased()){
+			throw new MemoryReleasedException("ByteBufferChannel is released.");
+		}
+	}
+
+	/**
 	 * 立刻释放内存
 	 */
 	public void release(){
@@ -206,9 +215,12 @@ public class ByteBufferChannel {
 	 * @return 缓冲区有效字节数组. null: 已释放
 	 */
 	public byte[] array(){
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
+		tryRelease();
+
+		if(size()==0){
+			return new byte[]{};
 		}
+
 
 		lock.lock();
 		try {
@@ -246,6 +258,10 @@ public class ByteBufferChannel {
 	public boolean shrink(int shrinkSize){
 		if(isReleased()){
 		    return false;
+		}
+
+		if(size()==0){
+			return true;
 		}
 
 		if(Math.abs(shrinkSize) > size){
@@ -290,9 +306,12 @@ public class ByteBufferChannel {
 	 * @return byte 数据
 	 */
 	public byte get(int offset) throws IndexOutOfBoundsException {
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
+		tryRelease();
+
+		if(size()==0){
+			throw new IndexOutOfBoundsException();
 		}
+
 		lock.lock();
 		try{
             if(offset >= 0 && offset <= size) {
@@ -315,9 +334,12 @@ public class ByteBufferChannel {
 	 * @return 获取数据的长度
 	 */
 	public int get(int offset, byte[] dst, int length) throws IndexOutOfBoundsException {
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
+		tryRelease();
+
+		if(size()==0){
+			return 0;
 		}
+
 		lock.lock();
 		try {
             if(offset >= 0 && length <= size - offset) {
@@ -347,24 +369,9 @@ public class ByteBufferChannel {
 	 * @return 获取数据的长度
 	 */
 	public int get(byte[] dst){
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
-		}
+		tryRelease();
 
-		lock.lock();
-		try {
-			int arrSize = dst.length;
-			if(dst.length > size){
-				arrSize = size;
-			}
-
-			unsafe.copyMemory(null, address, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, arrSize);
-
-			return arrSize;
-
-		}finally {
-			lock.unlock();
-		}
+		return get(0, dst, dst.length);
 	}
 
 	/**
@@ -375,9 +382,7 @@ public class ByteBufferChannel {
 	 * @return ByteBuffer 对象
 	 */
 	public ByteBuffer getByteBuffer(){
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
-		}
+		tryRelease();
 
 		//这里上锁,在compact()方法解锁
 		lock.lock();
@@ -389,7 +394,7 @@ public class ByteBufferChannel {
 	 *      将通过 getByteBuffer() 方法获得 ByteBuffer 对象的操作同步到 ByteBufferChannel
 	 * 		如果之前最后一次通过 getByteBuffer() 方法获得过 ByteBuffer,则使用这个 ByteBuffer 来收缩通道
 	 *      将 (position 到 limit) 之间的数据 移动到 (0  到 limit - position) 其他情形将不做任何操作
-	 *		所以 建议 getByteBuffer() 和 compact() 成对操作
+	 *		所以 必须 getByteBuffer() 和 compact() 成对操作
 	 * @return 是否compact成功,true:成功, false:失败
 	 */
 	public boolean compact(){
@@ -400,6 +405,14 @@ public class ByteBufferChannel {
 		if(!lock.isLocked()) {
 			lock.lock();
 		}
+
+		if(size()==0){
+			if(lock.isLocked()){
+				lock.unlock();
+			}
+			return true;
+		}
+
 		try{
 
 			if(byteBuffer.position() == 0){
@@ -407,10 +420,11 @@ public class ByteBufferChannel {
 			}
 
             int position = byteBuffer.position();
+			int limit = byteBuffer.limit();
             boolean result = false;
             if(TByteBuffer.moveData(byteBuffer, position*-1)) {
                 byteBuffer.position(0);
-                size = size - position;
+                size = limit - position;
                 byteBuffer.limit(size);
 
                 result = true;
@@ -418,7 +432,9 @@ public class ByteBufferChannel {
 			return result;
 
 		} finally {
+			if(lock.isLocked()) {
 				lock.unlock();
+			}
 		}
 	}
 
@@ -471,8 +487,10 @@ public class ByteBufferChannel {
 	 * @return 写入的数据大小
 	 */
 	public int writeEnd(ByteBuffer src) {
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
+		tryRelease();
+
+		if(src.remaining() == 0){
+			return 0;
 		}
 
 		if(src==null){
@@ -508,7 +526,6 @@ public class ByteBufferChannel {
 
 			}
 
-//			Logger.simple("W: " + writeSize + " \t" + limit + " \t" + byteBuffer.limit());
 			return writeSize;
 
 		} finally {
@@ -522,8 +539,10 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int writeHead(ByteBuffer src) {
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
+		tryRelease();
+
+		if(src.remaining() == 0){
+			return 0;
 		}
 
 		if (src == null) {
@@ -577,8 +596,10 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int readHead(ByteBuffer dst) {
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
+		tryRelease();
+
+		if(dst.remaining() == 0){
+			return 0;
 		}
 
 		if(dst==null){
@@ -634,8 +655,10 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int readEnd(ByteBuffer dst) {
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
+		tryRelease();
+
+		if(dst.remaining() == 0){
+			return 0;
 		}
 
 		if(dst==null){
@@ -683,9 +706,7 @@ public class ByteBufferChannel {
 	 * @return 第一个字节的索引位置
 	 */
 	public int indexOf(byte[] mark){
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
-		}
+		tryRelease();
 
 		if(size() == 0){
 			return -1;
@@ -709,36 +730,32 @@ public class ByteBufferChannel {
 	 * @return 字符串
 	 */
 	public String readLine() {
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
+		tryRelease();
+
+		if(size() == 0){
+			return null;
 		}
 
-		lock.lock();
-		try {
-			if (size() == 0) {
-				return null;
-			}
+        if (size() == 0) {
+            return null;
+        }
 
-			String lineStr = "";
-			int index = indexOf("\n".getBytes());
+        String lineStr = "";
+        int index = indexOf("\n".getBytes());
 
-			if (index > 0) {
-				byteBuffer.position(0);
+        if (index > 0) {
 
-				ByteBuffer lineBuffer = ByteBuffer.allocateDirect(index + 1);
+            ByteBuffer lineBuffer = ByteBuffer.allocateDirect(index + 1);
 
-				int readSize = readHead(lineBuffer);
+            int readSize = readHead(lineBuffer);
 
-				if (readSize == index + 1) {
-					lineStr = TByteBuffer.toString(lineBuffer);
-				}
-				TByteBuffer.release(lineBuffer);
-			}
+            if (readSize == index + 1) {
+                lineStr = TByteBuffer.toString(lineBuffer);
+            }
+            TByteBuffer.release(lineBuffer);
+        }
 
-			return lineStr.isEmpty() ? null : lineStr;
-		}finally {
-			lock.unlock();
-		}
+        return lineStr.isEmpty() ? null : lineStr;
 	}
 
 
@@ -749,83 +766,78 @@ public class ByteBufferChannel {
 	 * @return 字节数组
 	 */
 	public ByteBuffer readWithSplit(byte[] splitByte) {
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
+		tryRelease();
+
+		if(size() == 0){
+			return ByteBuffer.allocateDirect(0);
 		}
 
-		lock.lock();
-		try {
-			int index = indexOf(splitByte);
+        int index = indexOf(splitByte);
 
-			if (size() == 0) {
-				return ByteBuffer.allocate(0);
-			}
+        if (size() == 0) {
+            return ByteBuffer.allocate(0);
+        }
 
-			if (index == 0) {
-				this.getByteBuffer().position(splitByte.length);
-				compact();
-				index = indexOf(splitByte);
-			}
+        if (index == 0) {
+            this.getByteBuffer().position(splitByte.length);
+            compact();
+            index = indexOf(splitByte);
+        }
 
-			if (index == -1) {
-				index = size();
-			}
+        if (index == -1) {
+            index = size();
+        }
 
-			ByteBuffer resultBuffer = ByteBuffer.allocateDirect(index);
-			int readSize = readHead(resultBuffer);
-			TByteBuffer.release(resultBuffer);
+        ByteBuffer resultBuffer = ByteBuffer.allocateDirect(index);
+        int readSize = readHead(resultBuffer);
+        TByteBuffer.release(resultBuffer);
 
-			//跳过分割符
-			shrink(splitByte.length * -1);
+        //跳过分割符
+        shrink(splitByte.length * -1);
 
-			return resultBuffer;
-		}finally {
-			lock.unlock();
-		}
+        return resultBuffer;
+
 	}
 
 	public void saveToFile(String filePath, long length) throws IOException{
-		if(isReleased()){
-			throw new MemoryReleasedException("ByteBufferChannel is released.");
+		tryRelease();
+
+		if(size() == 0){
+			return;
 		}
 
-		lock.lock();
+        int bufferSize = 1024 * 1024;
 
-		try {
-			int bufferSize = 1024 * 1024;
+        if (length < bufferSize) {
+            bufferSize = Long.valueOf(length).intValue();
+        }
 
-			if (length < bufferSize) {
-				bufferSize = Long.valueOf(length).intValue();
-			}
+        new File(TFile.getFileDirectory(filePath)).mkdirs();
 
-			new File(TFile.getFileDirectory(filePath)).mkdirs();
+        RandomAccessFile randomAccessFile = null;
+        File file = new File(filePath);
+        byte[] buffer = new byte[bufferSize];
+        try {
+            randomAccessFile = new RandomAccessFile(file, "rwd");
+            //追加形式
+            randomAccessFile.seek(randomAccessFile.length());
 
-			RandomAccessFile randomAccessFile = null;
-			File file = new File(filePath);
-			byte[] buffer = new byte[bufferSize];
-			try {
-				randomAccessFile = new RandomAccessFile(file, "rwd");
-				//追加形式
-				randomAccessFile.seek(randomAccessFile.length());
+            int loadSize = bufferSize;
+            while (length > 0) {
+                loadSize = length > bufferSize ? bufferSize : new Long(length).intValue();
+                get(0, buffer, loadSize);
+                randomAccessFile.write(buffer, 0, loadSize);
 
-				int loadSize = bufferSize;
-				while (length > 0) {
-					loadSize = length > bufferSize ? bufferSize : new Long(length).intValue();
-					this.getByteBuffer().get(buffer, 0, loadSize);
-					randomAccessFile.write(buffer, 0, loadSize);
+                length = length - loadSize;
+            }
 
-					length = length - loadSize;
-				}
+            compact();
+        } catch (IOException e) {
+            throw e;
+        } finally {
+            randomAccessFile.close();
+        }
 
-				compact();
-			} catch (IOException e) {
-				throw e;
-			} finally {
-				randomAccessFile.close();
-			}
-		}finally {
-            lock.unlock();
-		}
 	}
 
 	@Override

@@ -95,8 +95,11 @@ public class ByteBufferChannelUnit extends TestCase {
 	public void testCompact(){
 		init();
 		ByteBufferChannel byteBufferChannel1;
-		byteBufferChannel1 = new ByteBufferChannel(6);
+		byteBufferChannel1 = new ByteBufferChannel(8);
 		byteBufferChannel1.writeEnd(ByteBuffer.wrap("bbccdd".getBytes()));
+		byteBufferChannel1.getByteBuffer().position(6);
+		byteBufferChannel1.getByteBuffer().limit(8);
+		byteBufferChannel1.getByteBuffer().put("ee".getBytes());
 		byteBufferChannel1.getByteBuffer().position(2);
 		byteBufferChannel1.compact();
 		assertEquals("ccdd",TByteBuffer.toString(byteBufferChannel1.getByteBuffer()));
