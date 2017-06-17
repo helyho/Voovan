@@ -31,14 +31,15 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 		this.aioSocket = aioSocket;
 		this.appByteBufferChannel = byteBufferChannel;
 		this.session = aioSocket.getSession();
-		if(session.getSSLParser()!=null) {
-			netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
-		}
 	}
 
 	@Override
 	public void completed(Integer length, ByteBuffer buffer) {
 		try {
+
+			if(netByteBufferChannel== null && session.getSSLParser()!=null) {
+				netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+			}
 
 			// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
 			if (MessageLoader.isRemoteClosed(buffer, length) || !session.isConnected()) {
