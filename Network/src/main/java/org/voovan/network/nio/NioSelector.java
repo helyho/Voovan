@@ -42,9 +42,6 @@ public class NioSelector {
 		if (socketContext instanceof NioSocket){
 			this.session = ((NioSocket)socketContext).getSession();
 			this.appByteBufferChannel = session.getByteBufferChannel();
-			if(session.getSSLParser()!=null) {
-				netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
-			}
 		}
 	}
 
@@ -54,6 +51,10 @@ public class NioSelector {
 	public void eventChose() {
 		//读取用的缓冲区
 		ByteBuffer readTempBuffer = ByteBuffer.allocateDirect(socketContext.getBufferSize());
+
+		if( socketContext instanceof NioSocket && netByteBufferChannel== null && session.getSSLParser()!=null) {
+			netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+		}
 		
 		if (socketContext instanceof NioSocket) {
 			// 连接完成onConnect事件触发
