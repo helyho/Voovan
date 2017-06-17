@@ -174,6 +174,8 @@ public class NioSelector {
 	}
 
 	public void release(){
-		netByteBufferChannel.release();
+		if(netByteBufferChannel!=null) {
+			netByteBufferChannel.release();
+		}
 	}
 }

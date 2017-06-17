@@ -107,6 +107,8 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 	}
 
 	public void release(){
-		netByteBufferChannel.release();
+		if(netByteBufferChannel!=null) {
+			netByteBufferChannel.release();
+		}
 	}
 }
