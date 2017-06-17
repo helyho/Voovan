@@ -42,9 +42,10 @@ public class NioSelector {
 		if (socketContext instanceof NioSocket){
 			this.session = ((NioSocket)socketContext).getSession();
 			this.appByteBufferChannel = session.getByteBufferChannel();
-			netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+			if(session.getSSLParser()!=null) {
+				netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+			}
 		}
-
 	}
 
 	/**

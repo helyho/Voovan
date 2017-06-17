@@ -31,7 +31,9 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 		this.aioSocket = aioSocket;
 		this.appByteBufferChannel = byteBufferChannel;
 		this.session = aioSocket.getSession();
-		netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+		if(session.getSSLParser()!=null) {
+			netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+		}
 	}
 
 	@Override
