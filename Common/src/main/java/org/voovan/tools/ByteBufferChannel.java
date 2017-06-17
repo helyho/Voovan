@@ -482,6 +482,20 @@ public class ByteBufferChannel {
 	}
 
 	/**
+	 * 重新分配内存空间的大小
+	 * @param newSize  重新分配的空间大小
+	 * @return true:成功, false:失败
+	 */
+	public boolean reallocate(int newSize){
+		if (TByteBuffer.reallocate(byteBuffer, newSize)) {
+			resetAddress();
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	/**
 	 * 缓冲区头部写入
 	 * @param src 需要写入的缓冲区 ByteBuffer 对象
 	 * @return 写入的数据大小
@@ -507,9 +521,7 @@ public class ByteBufferChannel {
 				//是否扩容
 				if (available() < writeSize) {
 					int newSize = byteBuffer.capacity() + writeSize;
-					if (TByteBuffer.reallocate(byteBuffer, newSize)) {
-						resetAddress();
-					}
+					reallocate(newSize);
 				}
 
 			    int position = byteBuffer.position();
@@ -559,9 +571,7 @@ public class ByteBufferChannel {
 				//是否扩容
 				if (available() < writeSize) {
 					int newSize = byteBuffer.capacity() + writeSize;
-					if (TByteBuffer.reallocate(byteBuffer, newSize)) {
-						resetAddress();
-					}
+					reallocate(newSize);
 				}
 
 				int position = byteBuffer.position();
