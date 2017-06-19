@@ -42,6 +42,7 @@ Voovan 迎来了 2.0 新版本,此版本应广大使用者朋友们的要求将 
  - 商旅行业酒店预订系统,基于 Voovan 开发的后端API服务
  - 基于 Voovan 开发物联网管理服务
  - 基于 Voovan 开发的游戏后端服务
+ - 基于 Voovan 开发的 WEB 服务以及手机推送服务
  - 某通信企业基于 Voovan开发日通信10w+ 次的关口机
  - Vestful 一款提供 Restful 服务的框架
  - Dockerfly 一款 Docker web 管理工具
