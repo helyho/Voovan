@@ -34,7 +34,6 @@ public class ObjectPool {
         removeDeadObject();
     }
 
-
     /**
      * 构造一个对象池
      * @param aliveTime 对象存活时间,单位:秒
