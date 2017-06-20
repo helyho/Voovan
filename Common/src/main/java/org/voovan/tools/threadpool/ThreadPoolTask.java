@@ -56,8 +56,16 @@ public class ThreadPoolTask extends TimerTask {
 
 		else if(threadPoolInstance.getActiveCount() <= threadPoolInstance.getCorePoolSize()/2
 				&& threadPoolInstance.getCorePoolSize() > cpuCoreCount*2){
-			threadPoolInstance.setCorePoolSize((int)(threadPoolInstance.getCorePoolSize() * 0.8));
-			Logger.debug("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
+			int newPoolsize = (int)(threadPoolInstance.getCorePoolSize()*0.8);
+
+			if(newPoolsize < poolSize){
+				newPoolsize = poolSize;
+			}
+
+			if(newPoolsize != poolSize) {
+				threadPoolInstance.setCorePoolSize(newPoolsize);
+				Logger.debug("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
+			}
 		}
 
 		//如果主线程结束,则线程池也关闭
