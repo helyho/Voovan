@@ -221,13 +221,12 @@ public class SSLParser {
 	public int unWarpByteBufferChannel(IoSession session, ByteBufferChannel netByteBufferChannel, ByteBufferChannel appByteBufferChannel) throws IOException{
 		int readSize = 0;
 
-
 		if(session.isConnected() && netByteBufferChannel.size()>0){
 			SSLEngineResult engineResult = null;
 			appData.clear();
 			ByteBuffer byteBuffer = netByteBufferChannel.getByteBuffer();
 
-			engineResult = unwarpData(byteBuffer, appData);
+			unwarpData(byteBuffer, appData);
 			netByteBufferChannel.compact();
 
 			appData.flip();
