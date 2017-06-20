@@ -7,6 +7,7 @@ import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TrasnferSplitter;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -171,6 +172,15 @@ public class UdpSocket extends SocketContext{
         if(datagramChannel!=null){
             try{
                 datagramChannel.close();
+
+                //如果有未读数据等待数据处理完成
+                int count= 0;
+                while(session.getByteBufferChannel().size()>0 &&
+                        session.isReceiving() &&
+                        count < readTimeout){
+                    TEnv.sleep(1);
+                    count ++;
+                }
 
                 session.getByteBufferChannel().release();
                 return true;

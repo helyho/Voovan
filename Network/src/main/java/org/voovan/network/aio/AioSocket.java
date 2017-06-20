@@ -229,17 +229,26 @@ public class AioSocket extends SocketContext {
 		if (socketChannel != null) {
 			 try {
 				// 关闭 Socket 连接
-				if (isConnected()) {
-					// 触发 DisConnect 事件
-					EventTrigger.fireDisconnect(session);
-					socketChannel.close();
+				 if (isConnected()) {
+					 // 触发 DisConnect 事件
+					 EventTrigger.fireDisconnect(session);
+					 socketChannel.close();
 
-					readCompletionHandler.release();
-					session.getByteBufferChannel().release();
-					TByteBuffer.release(readByteBuffer);
-					if(session.getSSLParser()!=null){
-						session.getSSLParser().release();
-					}
+					 //如果有未读数据等待数据处理完成
+					 int count= 0;
+					 while(session.getByteBufferChannel().size()>0 &&
+                         	session.isReceiving() &&
+                         	count < readTimeout){
+                         TEnv.sleep(1);
+                         count ++;
+					 }
+
+					 readCompletionHandler.release();
+					 session.getByteBufferChannel().release();
+					 TByteBuffer.release(readByteBuffer);
+					 if(session.getSSLParser()!=null){
+					 	 session.getSSLParser().release();
+					 }
 				}
 
 				return true;

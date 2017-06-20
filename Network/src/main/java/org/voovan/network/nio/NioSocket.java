@@ -208,6 +208,15 @@ public class NioSocket extends SocketContext{
 			try{
 				socketChannel.close();
 
+				//如果有未读数据等待数据处理完成
+				int count= 0;
+				while(session.getByteBufferChannel().size()>0 &&
+						session.isReceiving() &&
+						count < readTimeout){
+					TEnv.sleep(1);
+					count ++;
+				}
+
 				nioSelector.release();
 				session.getByteBufferChannel().release();
 				if(session.getSSLParser()!=null){
