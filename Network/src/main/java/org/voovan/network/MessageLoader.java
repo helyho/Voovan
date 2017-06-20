@@ -2,6 +2,7 @@ package org.voovan.network;
 
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.Exception.MemoryReleasedException;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
@@ -54,7 +55,12 @@ public class MessageLoader {
 	}
 
 	public enum StopType {
-		RUNNING,SOCKET_CLOSE,STREAM_END,REMOTE_DISCONNECT,MSG_SPLITTER,EXCEPTION
+		RUNNING,
+		SOCKET_CLOSED,
+		STREAM_END,
+		REMOTE_DISCONNECT,
+		MSG_SPLITTER,
+		EXCEPTION
 	}
 
 	/**
@@ -126,7 +132,7 @@ public class MessageLoader {
 	 */
 	public ByteBuffer read() throws IOException {
 
-		ByteBuffer result = null;
+		ByteBuffer result = ByteBuffer.allocate(0);
 		int oldByteChannelSize = 0;
 
 		ByteBufferChannel dataByteBufferChannel = null;
@@ -148,24 +154,28 @@ public class MessageLoader {
 			return null;
 		}
 
-		boolean isConnect = false;
-
-		if(session.socketContext() instanceof UdpSocket) {
-			isConnect = session.isOpen();
-		}else {
-			isConnect = session.isConnected();
-		}
+		boolean isConnect = true;
 
 		while ( isConnect && useSpliter && stopType== StopType.RUNNING ) {
 
+			if(session.socketContext() instanceof UdpSocket) {
+				isConnect = session.isOpen();
+			}else {
+				isConnect = session.isConnected();
+			}
+
 			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
-			if(!session.isConnected() && session.getByteBufferChannel().size()==0){
-				stopType = StopType.SOCKET_CLOSE;
+			if(!isConnect && session.getByteBufferChannel().size()==0){
+				stopType = StopType.SOCKET_CLOSED;
 			}
 
 			int readsize = byteBufferChannel.size() - oldByteChannelSize;
 
-			dataByteBuffer = dataByteBufferChannel.getByteBuffer();
+			try {
+				dataByteBuffer = dataByteBufferChannel.getByteBuffer();
+			}catch(MemoryReleasedException e){
+				stopType = StopType.STREAM_END;
+			}
 
 			//判断连接是否关闭
 			if (isRemoteClosed(dataByteBuffer, dataByteBufferChannel.size())) {
@@ -198,8 +208,15 @@ public class MessageLoader {
 			oldByteChannelSize = byteBufferChannel.size();
 		}
 
+		//如果是流结束,对方关闭,本地关闭这三种情况则返回 null
+		// 返回是 null 则在EventProcess中会自动关闭连接
+		if(stopType == StopType.STREAM_END ||
+				stopType == StopType.REMOTE_DISCONNECT ||
+				stopType == StopType.SOCKET_CLOSED){
+			result = null;
+		 }
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
-		if(stopType== StopType.MSG_SPLITTER) {
+		else if(stopType== StopType.MSG_SPLITTER) {
 			if(splitLength!=0) {
 				result = ByteBuffer.allocateDirect(splitLength);
 				dataByteBufferChannel.readHead(result);
@@ -207,7 +224,7 @@ public class MessageLoader {
 				return ByteBuffer.allocate(0);
 			}
 		} else {
-			result = null;
+			return ByteBuffer.allocate(0);
 		}
 
 		return result;

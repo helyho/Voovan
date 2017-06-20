@@ -44,7 +44,7 @@ public abstract class IoSession<T extends SocketContext> {
 		messageLoader = new MessageLoader(this);
 	}
 
-	protected boolean isReceiving() {
+	public boolean isReceiving() {
 		return receiving;
 	}
 
