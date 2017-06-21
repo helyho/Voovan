@@ -163,6 +163,6 @@ Voovan 迎来了 2.0 新版本,此版本应广大使用者朋友们的要求将 
 
 ###Voovan 在异步通信的范畴内的同类框架有:
   - [t-io](http://www.t-io.org:9292/): 长连接异步通信框架,提供心跳和连接保持的支持.
-  - [netty](http://netty.io/):  老牌异步通信框架和voovan有面对相同的场景,相比 voovan 开发跟易上手,针对 Socket 通信中粘包的处理 Voovan 提供了更加优雅的方式.
+  - [netty](http://netty.io/):  老牌异步通信框架和voovan有面对相同的场景, 两者相比的话 voovan 开发更易上手,针对 Socket 通信中粘包的处理 Voovan 提供了更加优雅的方式.
 
 大家可以根据自己的需要适应的场景选择不同框架.
