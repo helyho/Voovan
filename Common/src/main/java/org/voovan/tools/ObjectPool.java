@@ -155,11 +155,9 @@ public class ObjectPool {
             @Override
             public void run() {
                 try {
-                    synchronized (objects){
-                        for (PooledObject pooledObject : objects.values().toArray(new PooledObject[]{})) {
-                            if (!pooledObject.isAlive()) {
-                                remove(pooledObject.getId());
-                            }
+                    for (PooledObject pooledObject : objects.values().toArray(new PooledObject[]{})) {
+                        if (!pooledObject.isAlive()) {
+                            remove(pooledObject.getId());
                         }
                     }
                 }catch(Exception e){
@@ -167,7 +165,7 @@ public class ObjectPool {
                 }
             }
         };
-        timer.schedule(aliveTask,1,100);
+        timer.schedule(aliveTask,1,1000);
     }
 
     /**

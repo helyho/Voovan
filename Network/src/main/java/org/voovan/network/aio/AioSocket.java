@@ -48,8 +48,8 @@ public class AioSocket extends SocketContext {
 	 */
 	public AioSocket(String host, int port, int readTimeout) throws IOException {
 		super(host, port, readTimeout);
-		AsynchronousChannelGroup asynchronousChannelGroup = SocketContext.getAsynchronousChannelGroup();
-		this.socketChannel = AsynchronousSocketChannel.open(asynchronousChannelGroup);
+		//这里不能使用已有线程池作为参数调用AsynchronousChannelGroup.open(threadPool)会导致线程不释放的问题
+		this.socketChannel = AsynchronousSocketChannel.open();
 		session = new AioSession(this);
 
 		readCompletionHandler = new ReadCompletionHandler(this,  session.getByteBufferChannel());
@@ -142,7 +142,7 @@ public class AioSocket extends SocketContext {
 
 		syncStart();
 
-		//如果是ServerSocket的 AioSocket 不需要阻塞等待进程
+		//如果是 ServerSocket 的 AioSocket 不需要阻塞进程
 		if(connectModel == ConnectModel.CLIENT ){
             // 等待ServerSocketChannel关闭,结束进程
             while (isConnected()) {
