@@ -1,6 +1,5 @@
 package org.voovan.network.aio;
 
-import org.voovan.Global;
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
@@ -15,6 +14,7 @@ import org.voovan.tools.log.Logger;
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketOption;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -72,6 +72,17 @@ public class AioSocket extends SocketContext {
 
 		readCompletionHandler = new ReadCompletionHandler(this, session.getByteBufferChannel());
 		connectModel = ConnectModel.SERVER;
+	}
+
+	/**
+	 * 设置 Socket 的 Option 选项
+	 *
+	 * @param name   SocketOption类型的枚举, 参照:AsynchronousSocketChannel.setOption的说明
+	 * @param value  SocketOption参数
+	 * @throws IOException
+	 */
+	public <T> void setOption(SocketOption<T> name, T value) throws IOException {
+		socketChannel.setOption(name, value);
 	}
 
 	/**

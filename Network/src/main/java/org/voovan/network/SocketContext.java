@@ -4,6 +4,7 @@ import org.voovan.Global;
 import org.voovan.tools.Chain;
 
 import java.io.IOException;
+import java.net.SocketOption;
 import java.nio.channels.AsynchronousChannelGroup;
 
 /**
@@ -35,6 +36,8 @@ public abstract class SocketContext {
 		}
 		return asynchronousChannelGroup;
 	}
+
+	public abstract  <T> void setOption(SocketOption<T> name, T value) throws IOException;
 
 
 	/**
