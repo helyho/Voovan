@@ -5,6 +5,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketOption;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -41,7 +42,17 @@ public class NioServerSocket extends SocketContext{
 		serverSocketChannel.configureBlocking(false);
 		init();
 	}
-	
+
+	/**
+	 * 设置 Socket 的 Option 选项
+	 *
+	 * @param name    SocketOption类型的枚举, 参照:ServerSocketChannel.setOption的说明
+	 * @param value  SocketOption参数
+	 * @throws IOException
+	 */
+	public <T> void setOption(SocketOption<T> name, T value) throws IOException {
+		serverSocketChannel.setOption(name, value);
+	}
 	
 	/**
 	 * 获取 SocketChannel 对象

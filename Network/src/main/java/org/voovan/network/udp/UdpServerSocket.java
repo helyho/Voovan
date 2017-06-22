@@ -7,6 +7,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketOption;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -48,6 +49,17 @@ public class UdpServerSocket extends SocketContext{
         datagramChannel.configureBlocking(false);
         this.handler = new SynchronousHandler();
         init();
+    }
+
+    /**
+     * 设置 Socket 的 Option 选项
+     *
+     * @param name   SocketOption类型的枚举, 参照:DatagramChannel.setOption的说明
+     * @param value  SocketOption参数
+     * @throws IOException
+     */
+    public <T> void setOption(SocketOption<T> name, T value) throws IOException {
+        datagramChannel.setOption(name, value);
     }
 
     /**
