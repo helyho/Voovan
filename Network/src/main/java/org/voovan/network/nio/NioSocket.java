@@ -13,6 +13,7 @@ import org.voovan.tools.log.Logger;
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketOption;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -70,6 +71,17 @@ public class NioSocket extends SocketContext{
 		} catch (IOException e) {
 			Logger.error("Create socket channel failed",e);
 		}
+	}
+
+	/**
+	 * 设置 Socket 的 Option 选项
+	 *
+	 * @param name   SocketOption类型的枚举, 参照:SocketChannel.setOption的说明
+	 * @param value  SocketOption参数
+	 * @throws IOException
+	 */
+	public <T> void setOption(SocketOption<T> name, T value) throws IOException {
+		socketChannel.setOption(name, value);
 	}
 	
 	
