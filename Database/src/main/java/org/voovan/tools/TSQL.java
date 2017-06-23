@@ -30,13 +30,13 @@ public class TSQL {
 	 * @param sqlStr  原始 sql 字符串 (select * from table where x=::x and y=::y)
 	 * @return  sql 参数对照表 ([:x,:y])
 	 */
-	public static List<String> getSqlParams(String sqlStr){
+	public static List<String> getSqlParamNames(String sqlStr){
 		String[] params = TString.searchByRegex(sqlStr, "::[^,\\s\\)]+");
-		ArrayList<String> sqlParams = new ArrayList<String>();
+		ArrayList<String> sqlParamNames = new ArrayList<String>();
 		for(String param : params){
-			sqlParams.add(param);
+			sqlParamNames.add(param);
 		}
-		return sqlParams;
+		return sqlParamNames;
 	}
 	
 	/**
@@ -52,13 +52,13 @@ public class TSQL {
 	 * 给preparedStatement对象设置参数
 	 * 	
 	 * @param preparedStatement  preparedStatement对象
-	 * @param sqlParams			sql 参数表
+	 * @param sqlParamNames			sql 参数表
 	 * @param params			参数键值 Map
 	 * @throws SQLException SQL 异常
 	 */
-	public static void setPreparedParams(PreparedStatement preparedStatement,List<String> sqlParams,Map<String, Object> params) throws SQLException{
-		for(int i=0;i<sqlParams.size();i++){
-			String paramName = sqlParams.get(i);
+	public static void setPreparedParams(PreparedStatement preparedStatement,List<String> sqlParamNames,Map<String, Object> params) throws SQLException{
+		for(int i=0;i<sqlParamNames.size();i++){
+			String paramName = sqlParamNames.get(i);
 			//去掉前面::号
 			paramName = paramName.substring(2,paramName.length());
 			Object data = params.get(paramName);
@@ -69,7 +69,7 @@ public class TSQL {
 				preparedStatement.setObject(i + 1, JSON.toJSON(params.get(paramName)));
 			}
 			if(Logger.isLogLevel("DEBUG")) {
-				Logger.simple("[SQL_Parameter]: " + sqlParams.get(i) + " = " + params.get(paramName));
+				Logger.simple("[SQL_Parameter]: " + sqlParamNames.get(i) + " = " + params.get(paramName));
 			}
 		}
 	}
@@ -85,10 +85,10 @@ public class TSQL {
 	public static PreparedStatement createPreparedStatement(Connection conn,String sqlStr,Map<String, Object> params) throws SQLException{
 
 		//获取参数列表
-		List<String> sqlParams = TSQL.getSqlParams(sqlStr);
+		List<String> sqlParamNames = TSQL.getSqlParamNames(sqlStr);
 
 		//将没有提供查询参数的条件移除
-		sqlStr = TSQL.removeEmptyCondiction(sqlStr,sqlParams,params);
+		sqlStr = TSQL.removeEmptyCondiction(sqlStr,sqlParamNames,params);
 
 		Logger.debug("[SQL_Executed]: " + sqlStr);
 
@@ -103,7 +103,7 @@ public class TSQL {
 		}
 
 		//为preparedStatement参数填充
-		TSQL.setPreparedParams(preparedStatement,sqlParams,params);
+		TSQL.setPreparedParams(preparedStatement,sqlParamNames,params);
 		return preparedStatement;
 	}
 	
@@ -119,7 +119,7 @@ public class TSQL {
 	public static CallableStatement createCallableStatement(Connection conn,String sqlStr,Map<String, Object> params, CallType[] callTypes) throws SQLException{
 		Logger.debug("[SQL_Executed]: " + sqlStr);
 		//获取参数列表
-		List<String> sqlParams = TSQL.getSqlParams(sqlStr);
+		List<String> sqlParamNames = TSQL.getSqlParamNames(sqlStr);
 		//获取preparedStatement可用的 SQL
 		String preparedSql = TSQL.preparedSql(sqlStr);
 		
@@ -132,7 +132,7 @@ public class TSQL {
 		}
 
 		//callableStatement参数填充
-		TSQL.setPreparedParams(callableStatement,sqlParams,params);
+		TSQL.setPreparedParams(callableStatement,sqlParamNames,params);
 
 		//根据存储过程参数定义,注册 OUT 参数
 		ParameterMetaData parameterMetaData = callableStatement.getParameterMetaData();
@@ -190,6 +190,7 @@ public class TSQL {
 	 * @return 拼装后的 SQL
 	 */
 	public static String assembleSQLWithArray(String sqlStr,Object[] args){
+		//获取对象  [序号, 值] Map
 		Map<String,Object> argMap = TObject.arrayToMap(args);
 		return assembleSQLWithMap(sqlStr,argMap);
 	}
@@ -202,8 +203,7 @@ public class TSQL {
 	 * @throws ReflectiveOperationException  反射异常
 	 */
 	public static String assembleSQLWithObject(String sqlStr,Object argObjectj) throws ReflectiveOperationException{
-		
-		//获取对象 (属性-值)Map
+		//获取对象 [属性-值] Map
 		Map<String,Object> argMap = TReflect.getMapfromObject(argObjectj);
 		return assembleSQLWithMap(sqlStr,argMap);
 	}
@@ -215,8 +215,8 @@ public class TSQL {
 	 * @param argMap 拼装的 Map
 	 * @return 拼装后的字符串
 	 */
-	public static String assembleSQLWithMap(String sqlStr,Map<String ,Object> argMap) {		
-		
+	public static String assembleSQLWithMap(String sqlStr,Map<String ,Object> argMap) {
+		sqlStr = removeEmptyCondiction(sqlStr, getSqlParamNames(sqlStr) ,argMap);
 		for(Entry<String,Object> arg : argMap.entrySet())
 		{
 			sqlStr = sqlStr.replaceAll(":"+arg.getKey(),getSQLString(argMap.get(arg.getKey())));
@@ -315,11 +315,11 @@ public class TSQL {
 	/**
 	 * 将SQL 语句中,没有提供查询参数的条件移除
 	 * @param sqlText SQL 字符串
-	 * @param sqlParams sql 参数名集合
+	 * @param sqlParamNames sql 参数名集合
 	 * @param params 参数集合
      * @return 转换后的字符串
      */
-	public static String removeEmptyCondiction(String sqlText,List<String> sqlParams,Map<String, Object> params){
+	public static String removeEmptyCondiction(String sqlText,List<String> sqlParamNames,Map<String, Object> params){
 
 		//如果params为空,则新建一个
 		if(params==null){
@@ -341,7 +341,7 @@ public class TSQL {
 				}else{
 					sqlText = sqlText.replace(condiction.trim(),"");
 				}
-				sqlParams.remove(condictions[0]);
+				sqlParamNames.remove(condictions[0]);
 			}
 		}
 
