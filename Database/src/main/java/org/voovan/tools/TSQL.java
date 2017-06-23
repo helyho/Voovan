@@ -68,9 +68,6 @@ public class TSQL {
 				//复杂对象类型,无法直接保存进数据库,进行 JSON 转换后保存
 				preparedStatement.setObject(i + 1, JSON.toJSON(params.get(paramName)));
 			}
-			if(Logger.isLogLevel("DEBUG")) {
-				Logger.simple("[SQL_Parameter]: " + sqlParamNames.get(i) + " = " + params.get(paramName));
-			}
 		}
 	}
 	
@@ -90,7 +87,9 @@ public class TSQL {
 		//将没有提供查询参数的条件移除
 		sqlStr = TSQL.removeEmptyCondiction(sqlStr,sqlParamNames,params);
 
-		Logger.debug("[SQL_Executed]: " + sqlStr);
+		if(Logger.isLogLevel("DEBUG")) {
+			Logger.debug("[SQL_Executed]: " + assembleSQLWithMap(sqlStr, params));
+		}
 
 		//获取preparedStatement可用的 SQL
 		String preparedSql = TSQL.preparedSql(sqlStr);
@@ -216,10 +215,10 @@ public class TSQL {
 	 * @return 拼装后的字符串
 	 */
 	public static String assembleSQLWithMap(String sqlStr,Map<String ,Object> argMap) {
-		sqlStr = removeEmptyCondiction(sqlStr, getSqlParamNames(sqlStr) ,argMap);
-		for(Entry<String,Object> arg : argMap.entrySet())
-		{
-			sqlStr = sqlStr.replaceAll(":"+arg.getKey(),getSQLString(argMap.get(arg.getKey())));
+		if(argMap!=null) {
+			for (Entry<String, Object> arg : argMap.entrySet()) {
+				sqlStr = sqlStr.replaceAll("::" + arg.getKey(), getSQLString(argMap.get(arg.getKey())));
+			}
 		}
 		return sqlStr;
 	}
