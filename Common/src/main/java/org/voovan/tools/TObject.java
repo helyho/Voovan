@@ -109,7 +109,7 @@ public class TObject {
 	 *          value 数组值
 	 * @param objs    	待转换的数组
 	 * @param <T> 范型
-	 * @return 转换后的 Map
+	 * @return 转换后的 Map  [序号, 值]
 	 */
 	public static <T> Map<String, T> arrayToMap(T[] objs){
 		HashMap<String ,T> arrayMap = new HashMap<String ,T>();

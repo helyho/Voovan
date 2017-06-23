@@ -181,7 +181,7 @@ public class JdbcOperate {
 			}
 
 			// 获取 SQL 中的参数列表
-			List<String> sqlParams = TSQL.getSqlParams(sqlText);
+			List<String> sqlParams = TSQL.getSqlParamNames(sqlText);
 			preparedStatement = (PreparedStatement) conn.prepareStatement(TSQL.preparedSql(sqlText));
 			if (mapArgs != null) {
 				for (Map<String, Object> magArg : mapArgs) {
