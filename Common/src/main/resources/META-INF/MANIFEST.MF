@@ -1,4 +1,4 @@
-Manifest-Version: 2.0.0
+Manifest-Version: 2.0.1
 Implementation-Vendor: Voovan open source
 Implementation-Version: 1.0
 Implementation-Vendor-Id: org.voovan
