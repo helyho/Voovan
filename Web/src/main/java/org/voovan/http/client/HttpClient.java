@@ -494,6 +494,7 @@ public class HttpClient {
 	 * @throws ReadMessageException  读取异常
 	 */
 	public void webSocket(String urlString, WebSocketRouter webSocketRouter) throws SendMessageException, ReadMessageException {
+		// 处理协议升级
 		request.header().put("Connection","Upgrade");
 		request.header().put("Upgrade", "websocket");
 		request.header().put("Pragma","no-cache");
@@ -501,6 +502,8 @@ public class HttpClient {
 		request.header().put("Sec-WebSocket-Version","13");
 		request.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
 		Response response = send(urlString);
+
+		//处理升级后的消息
 		if(response.protocol().getStatus()==101){
 
 			isWebSocket = true;

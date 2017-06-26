@@ -115,7 +115,7 @@ public class WebServerDemo {
 			@Override
 			public ByteBuffer onOpen() {
 				Logger.info("WebSocket connect!");
-				return null;
+				return ByteBuffer.wrap("Server send: onOpen".getBytes());
 			}
 
 			@Override
