@@ -27,6 +27,15 @@ public abstract class WebSocketRouter {
 	}
 
 	/**
+	 * 发送消息给客户端
+	 * @param byteBuffer ByteBuffer 对象
+	 */
+	public synchronized void send(ByteBuffer byteBuffer){
+		WebSocketFrame wbSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.BINARY, true, byteBuffer);
+		session.send(wbSocketFrame.toByteBuffer());
+	}
+
+	/**
 	 * 关闭 WebSocket
 	 */
 	public void close() {
