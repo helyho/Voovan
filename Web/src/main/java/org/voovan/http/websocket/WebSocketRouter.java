@@ -29,6 +29,7 @@ public abstract class WebSocketRouter {
 	/**
 	 * 发送消息给客户端
 	 * @param byteBuffer ByteBuffer 对象
+	 * @throws SendMessageException 发送异常
 	 */
 	public synchronized void send(ByteBuffer byteBuffer) throws SendMessageException {
 		WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.BINARY, true, byteBuffer);
