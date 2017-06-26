@@ -25,7 +25,7 @@ public class Cipher {
     /**
      * 构造函数
      * @param algorithm 加密算法名称
-     * @throws NoSuchAlgorithmException
+     * @throws NoSuchAlgorithmException 算法指定异常
      */
     public Cipher(String algorithm) throws NoSuchAlgorithmException {
         if(algorithm==null){
@@ -39,7 +39,7 @@ public class Cipher {
      * @param algorithm 加密算法名称
      * @param mode      加密形式
      * @param fillMode  密钥填充方式
-     * @throws NoSuchAlgorithmException
+     * @throws NoSuchAlgorithmException 算法指定异常
      */
     public Cipher(String algorithm, String mode, String fillMode) throws NoSuchAlgorithmException {
         if(algorithm==null  || mode == null || fillMode == null){
@@ -53,7 +53,7 @@ public class Cipher {
     /**
      * 生成一个对称加密的密钥
      * @return 密钥
-     * @throws NoSuchAlgorithmException
+     * @throws NoSuchAlgorithmException 算法指定异常
      */
     public byte[] generateSymmetryKey() throws NoSuchAlgorithmException {
         this.secretKey = KeyGenerator.getInstance(algorithm).generateKey();
@@ -63,7 +63,7 @@ public class Cipher {
     /**
      * 生成一对非对称加密的公钥和私钥
      * @return 保存公钥和私钥的对象
-     * @throws NoSuchAlgorithmException
+     * @throws NoSuchAlgorithmException 算法指定异常
      */
     public KeyPairStore generatPairKey() throws NoSuchAlgorithmException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(algorithm);
