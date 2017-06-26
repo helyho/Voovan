@@ -45,7 +45,7 @@ public class AioServerSocket extends SocketContext{
 	 *
 	 * @param name   SocketOption类型的枚举, 参照:AsynchronousServerSocketChannel.setOption的说明
 	 * @param value  SocketOption参数
-	 * @throws IOException
+	 * @throws IOException IO异常
 	 */
 	public <T> void setOption(SocketOption<T> name, T value) throws IOException {
 		serverSocketChannel.setOption(name, value);
