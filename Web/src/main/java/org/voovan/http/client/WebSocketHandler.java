@@ -52,6 +52,8 @@ public class WebSocketHandler implements IoHandler{
         }else{
             return null;
         }
+
+        // WS_CLOSE 如果收到关闭帧则关闭连接
         if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING) {
             return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, reqWebSocketFrame.getFrameData());
         }
