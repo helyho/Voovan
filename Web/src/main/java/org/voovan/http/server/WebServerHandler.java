@@ -10,6 +10,7 @@ import org.voovan.http.websocket.WebSocketFrame.Opcode;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
@@ -182,27 +183,20 @@ public class WebServerHandler implements IoHandler {
 		//保存必要参数
 		session.setAttribute("Type", "Upgrade");
 		session.setAttribute("IsKeepAlive", true);
-//		session.setAttribute("UpgradeRequest", httpRequest);
 
 		//初始化响应消息
 		httpResponse.protocol().setStatus(101);
 		httpResponse.protocol().setStatusCode("Switching Protocols");
 		httpResponse.header().put("Connection", "Upgrade");
-		
+
 		if(httpRequest.header()!=null && "websocket".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
-			session.setAttribute("Type", "WebSocket");
 
 			httpResponse.header().put("Upgrade", "websocket");
 			String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get("Sec-WebSocket-Key"));
 			httpResponse.header().put("Sec-WebSocket-Accept", webSocketKey);
-			
-			// WS_CONNECT WebSocket Open事件
-			webSocketDispatcher.process(WebSocketEvent.OPEN, session, httpRequest, null);
 		}
 		
 		else if(httpRequest.header()!=null && "h2c".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
-			session.setAttribute("Type", "H2C");
-			
 			httpResponse.header().put("Upgrade", "h2c");
 			//这里写 HTTP2的实现,暂时留空
 		}
@@ -259,7 +253,6 @@ public class WebServerHandler implements IoHandler {
 
 	@Override
 	public void onSent(IoSession session, Object obj) {
-
 		HttpRequest request = TObject.cast(session.getAttribute("HttpRequest"));
 		HttpResponse response = TObject.cast(session.getAttribute("HttpResponse"));
 
@@ -269,13 +262,24 @@ public class WebServerHandler implements IoHandler {
 			webSocketDispatcher.process(WebSocketEvent.SENT, session, reqWebSocket, webSocketFrame);
 		}
 
+		//针对 WebSocket 的处理协议升级
+		if("Upgrade".equals(session.getAttribute("Type"))){
+			WebSocketFrame webSocketFrame = webSocketDispatcher.process(WebSocketEvent.OPEN, session, request, null);
+
+			//发送 onOpen 方法的数据
+			session.send(webSocketFrame.toByteBuffer());
+			session.setAttribute("Type", "WebSocket");
+		}
+
 		//如果 WebSocket 关闭,则关闭对应的 Socket
 		if(session.containAttribute("WebSocketClose") && (boolean) session.getAttribute("WebSocketClose")){
 			session.close();
 		}
-		else if (session.containAttribute("IsKeepAlive")
+
+		//处理连接保持
+		if (session.containAttribute("IsKeepAlive")
 				&& (boolean) session.getAttribute("IsKeepAlive")
-					&& webConfig.getKeepAliveTimeout() > 0) {
+				&& webConfig.getKeepAliveTimeout() > 0) {
 			if(!keepAliveSessionList.contains(session)){
 				keepAliveSessionList.add(session);
 			}
