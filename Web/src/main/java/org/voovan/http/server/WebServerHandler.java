@@ -272,12 +272,19 @@ public class WebServerHandler implements IoHandler {
 			if(webSocketFrame!=null) {
 				//发送 onOpen 方法的数据
 				ByteBuffer byteBuffer = webSocketFrame.toByteBuffer();
+
+				//这里不用syncSend 方法是因为出发 onSent 是异步的,会导致消息顺序错乱
 				session.send(byteBuffer);
 				byteBuffer.rewind();
 
 				//出发 onSent 事件
 				onSent(session, byteBuffer);
 			}
+
+			//发送 ping 消息
+			WebSocketFrame ping = WebSocketFrame.newInstance(true, Opcode.PING, false, null);
+			session.setAttribute("TimeOutValue", getTimeoutValue());
+			session.send(ping.toByteBuffer());
 		}
 
 		//处理连接保持
