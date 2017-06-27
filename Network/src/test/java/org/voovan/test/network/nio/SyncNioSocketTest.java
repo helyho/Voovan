@@ -3,7 +3,6 @@ package org.voovan.test.network.nio;
 import org.voovan.network.filter.StringFilter;
 import org.voovan.network.messagesplitter.LineMessageSplitter;
 import org.voovan.network.nio.NioSocket;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 public class SyncNioSocketTest {

@@ -1,6 +1,5 @@
 package org.voovan.network.aio;
 
-import org.voovan.Global;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.TEnv;

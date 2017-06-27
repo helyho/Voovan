@@ -5,8 +5,6 @@ import org.voovan.http.message.packet.Header;
 import org.voovan.tools.TBase64;
 import org.voovan.tools.log.Logger;
 
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 

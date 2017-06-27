@@ -375,7 +375,7 @@ public class HttpRequest extends Request {
 			}
 		}
 
-		throw new IOException("The uploadFile parameter whie name is "+name+" not found.");
+		throw new IOException("The uploadFile parameter which name is "+name+" not found.");
 	}
 
 	/**

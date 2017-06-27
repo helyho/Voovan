@@ -3,13 +3,8 @@ package org.voovan.test.http;
 import junit.framework.TestCase;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
-import org.voovan.http.message.Response;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TFile;
-import org.voovan.tools.log.Logger;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
