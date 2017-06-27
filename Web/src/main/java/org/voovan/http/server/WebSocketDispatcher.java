@@ -90,6 +90,7 @@ public class WebSocketDispatcher {
 				// 获取路由处理对象
 				WebSocketRouter webSocketRouter = routeEntry.getValue();
 				webSocketRouter.setSession(session);
+
 				// 获取路径变量
 				ByteBuffer responseMessage = null;
 				Map<String, String> variables = HttpDispatcher.fetchPathVariables(requestPath, routePath);
@@ -100,6 +101,8 @@ public class WebSocketDispatcher {
 					responseMessage = webSocketRouter.onOpen();
 				} else if (event == WebSocketEvent.RECIVED) {
 					responseMessage = webSocketRouter.onRecived(webSocketFrame.getFrameData());
+				} else if (event == WebSocketEvent.SENT) {
+					webSocketRouter.onSent(webSocketFrame.getFrameData());
 				} else if (event == WebSocketEvent.CLOSE) {
 					webSocketRouter.onClose();
 				}

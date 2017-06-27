@@ -21,9 +21,7 @@ public abstract class WebSocketRouter {
 	 * @param session IoSession 会话对象
 	 */
 	public void setSession(IoSession session){
-		if(this.session==null) {
-			this.session = session;
-		}
+		this.session = session;
 	}
 
 	/**
@@ -32,8 +30,12 @@ public abstract class WebSocketRouter {
 	 * @throws SendMessageException 发送异常
 	 */
 	public synchronized void send(ByteBuffer byteBuffer) throws SendMessageException {
-		WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.BINARY, true, byteBuffer);
-		session.syncSend(webSocketFrame);
+		WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, byteBuffer);
+		session.send(webSocketFrame.toByteBuffer());
+		byteBuffer.remaining();
+
+		//出发发送事件
+		onSent(byteBuffer);
 	}
 
 	/**

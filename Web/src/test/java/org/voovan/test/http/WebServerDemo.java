@@ -4,6 +4,7 @@ import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.WebServer;
 import org.voovan.http.websocket.WebSocketRouter;
+import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
@@ -104,23 +105,35 @@ public class WebServerDemo {
 
         webServer.socket("/websocket", new WebSocketRouter() {
 
-			@Override
-			public ByteBuffer onRecived(ByteBuffer message) {
-				String msg = TByteBuffer.toString(message);
-				Logger.info(TByteBuffer.toString(message));
-				msg = "This is server message. Client message: \r\n\t\""+msg+"\"";
-				return ByteBuffer.wrap(msg.getBytes());
-			}
-
-			@Override
+        	@Override
 			public ByteBuffer onOpen() {
-				Logger.info("WebSocket connect!");
+				Logger.info("onOpen: WebSocket connect!");
+				try {
+					send(ByteBuffer.wrap("Send by send method in onOpen".getBytes()));
+				} catch (SendMessageException e) {
+					e.printStackTrace();
+				}
 				return ByteBuffer.wrap("Server send: onOpen".getBytes());
 			}
 
 			@Override
+			public ByteBuffer onRecived(ByteBuffer message) {
+				String msg = TByteBuffer.toString(message);
+				Logger.info("onRecive: "+TByteBuffer.toString(message));
+				msg = "This is server message. Client message: \r\n\t\""+msg+"\"";
+				try {
+					send(ByteBuffer.wrap("Send by send method in onRecive".getBytes()));
+				} catch (SendMessageException e) {
+					e.printStackTrace();
+				}
+				return ByteBuffer.wrap(msg.getBytes());
+			}
+
+
+
+			@Override
 			public void onSent(ByteBuffer message) {
-				Logger.simple("Send: "+TByteBuffer.toString(message));
+				Logger.info("onSend: "+TByteBuffer.toString(message));
 			}
 
 				@Override

@@ -257,18 +257,27 @@ public class WebServerHandler implements IoHandler {
 		HttpResponse response = TObject.cast(session.getAttribute("HttpResponse"));
 
 		if(HttpMessageSplitter.isWebSocketFrame((ByteBuffer) obj) != -1){
-			HttpRequest reqWebSocket = request;
 			WebSocketFrame webSocketFrame = WebSocketFrame.parse((ByteBuffer)obj);
-			webSocketDispatcher.process(WebSocketEvent.SENT, session, reqWebSocket, webSocketFrame);
+			webSocketDispatcher.process(WebSocketEvent.SENT, session, request, webSocketFrame);
 		}
 
 		//针对 WebSocket 的处理协议升级
 		if("Upgrade".equals(session.getAttribute("Type"))){
+			session.setAttribute("Type", "WebSocket");
+
 			WebSocketFrame webSocketFrame = webSocketDispatcher.process(WebSocketEvent.OPEN, session, request, null);
 
-			//发送 onOpen 方法的数据
-			session.send(webSocketFrame.toByteBuffer());
-			session.setAttribute("Type", "WebSocket");
+			if(webSocketFrame!=null) {
+				//发送 onOpen 方法的数据
+				ByteBuffer byteBuffer = webSocketFrame.toByteBuffer();
+				session.send(byteBuffer);
+
+
+				byteBuffer.rewind();
+
+				//出发 onSent 事件
+				onSent(session, byteBuffer);
+			}
 		}
 
 		//如果 WebSocket 关闭,则关闭对应的 Socket
