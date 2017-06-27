@@ -3,7 +3,6 @@ package org.voovan.http.message;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
 import org.voovan.tools.*;
-import org.voovan.tools.log.Logger;
 
 import java.io.File;
 import java.io.IOException;

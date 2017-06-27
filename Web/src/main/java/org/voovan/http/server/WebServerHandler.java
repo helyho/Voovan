@@ -10,14 +10,16 @@ import org.voovan.http.websocket.WebSocketFrame.Opcode;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
-import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.InterruptedByTimeoutException;
-import java.util.*;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Vector;
 
 /**
  * WebServer Socket 事件处理类
