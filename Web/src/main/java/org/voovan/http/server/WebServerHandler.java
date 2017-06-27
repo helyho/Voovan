@@ -67,10 +67,10 @@ public class WebServerHandler implements IoHandler {
 			@Override
 			public void run() {
 
+				long currentTimeValue = System.currentTimeMillis();
 				//遍历所有的 session
 				for(int i=0; i<keepAliveSessionList.size(); i++){
 					IoSession session = keepAliveSessionList.get(i);
-					long currentTimeValue = System.currentTimeMillis();
 					long timeOutValue = (long) session.getAttribute("TimeOutValue");
 					
 					if(timeOutValue < currentTimeValue){
