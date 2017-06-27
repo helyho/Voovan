@@ -2,6 +2,7 @@ package org.voovan.http.websocket;
 
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
 
@@ -13,7 +14,7 @@ import java.nio.ByteBuffer;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public abstract class WebSocketRouter {
+public abstract class WebSocketRouter implements Cloneable{
 	private IoSession session;
 
 	/**
@@ -22,6 +23,19 @@ public abstract class WebSocketRouter {
 	 */
 	public void setSession(IoSession session){
 		this.session = session;
+	}
+
+	/**
+	 * 持久化当前 WebSocketRouter, 可以在任何时候给客户端发送消息
+	 * @return WebSocketRouter对象
+	 */
+	public WebSocketRouter persistent() {
+		try {
+			return (WebSocketRouter) super.clone();
+		}catch(CloneNotSupportedException e){
+			Logger.error("Persistent WebSocketRouter error");
+			return null;
+		}
 	}
 
 	/**

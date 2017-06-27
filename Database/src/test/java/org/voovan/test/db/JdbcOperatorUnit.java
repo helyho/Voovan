@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.voovan.tools.TSQL.*;
-
 /**
  * 类文字命名
  *

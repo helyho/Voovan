@@ -1,10 +1,7 @@
 package org.voovan.test.http;
 
-import org.voovan.http.message.packet.Part;
-import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.WebServer;
 import org.voovan.http.websocket.WebSocketRouter;
-import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
@@ -109,7 +106,10 @@ public class WebServerDemo {
 			public ByteBuffer onOpen() {
 				Logger.info("onOpen: WebSocket connect!");
 
-				//调用发送函数发送
+				WebSocketRouter webSocketRouter = this.persistent();
+                //调用发送函数发送
+                webSocketRouter.send(ByteBuffer.wrap("Send by persistent Object's send method in onOpen".getBytes()));
+
 				send(ByteBuffer.wrap("Send by send method in onOpen".getBytes()));
 				return ByteBuffer.wrap("Server send: onOpen".getBytes());
 			}
@@ -124,8 +124,6 @@ public class WebServerDemo {
 				send(ByteBuffer.wrap("Send by send method in onRecive".getBytes()));
 				return ByteBuffer.wrap(msg.getBytes());
 			}
-
-
 
 			@Override
 			public void onSent(ByteBuffer message) {
