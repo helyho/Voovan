@@ -227,7 +227,11 @@ public class EventProcess {
 			if (sendObj != null) {
 				if (sendObj instanceof ByteBuffer) {
 					resultBuf = TObject.cast(sendObj);
-					resultBuf.rewind();
+
+					//判断是否需要 rewind 操作
+					if(!resultBuf.hasRemaining()) {
+						resultBuf.rewind();
+					}
 				} else if (sendObj instanceof String) {
 					String sendString = TObject.cast(sendObj);
 					resultBuf = ByteBuffer.wrap(sendString.getBytes());
