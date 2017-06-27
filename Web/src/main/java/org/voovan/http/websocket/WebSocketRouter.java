@@ -29,7 +29,7 @@ public abstract class WebSocketRouter {
 	 * @param byteBuffer ByteBuffer 对象
 	 * @throws SendMessageException 发送异常
 	 */
-	public synchronized void send(ByteBuffer byteBuffer) throws SendMessageException {
+	public synchronized void send(ByteBuffer byteBuffer) {
 		WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, byteBuffer);
 		session.send(webSocketFrame.toByteBuffer());
 		byteBuffer.remaining();

@@ -108,11 +108,9 @@ public class WebServerDemo {
         	@Override
 			public ByteBuffer onOpen() {
 				Logger.info("onOpen: WebSocket connect!");
-				try {
-					send(ByteBuffer.wrap("Send by send method in onOpen".getBytes()));
-				} catch (SendMessageException e) {
-					e.printStackTrace();
-				}
+
+				//调用发送函数发送
+				send(ByteBuffer.wrap("Send by send method in onOpen".getBytes()));
 				return ByteBuffer.wrap("Server send: onOpen".getBytes());
 			}
 
@@ -121,11 +119,9 @@ public class WebServerDemo {
 				String msg = TByteBuffer.toString(message);
 				Logger.info("onRecive: "+TByteBuffer.toString(message));
 				msg = "This is server message. Client message: \r\n\t\""+msg+"\"";
-				try {
-					send(ByteBuffer.wrap("Send by send method in onRecive".getBytes()));
-				} catch (SendMessageException e) {
-					e.printStackTrace();
-				}
+
+				//调用发送函数发送
+				send(ByteBuffer.wrap("Send by send method in onRecive".getBytes()));
 				return ByteBuffer.wrap(msg.getBytes());
 			}
 
