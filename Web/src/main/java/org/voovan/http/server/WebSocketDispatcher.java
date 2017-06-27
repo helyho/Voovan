@@ -30,8 +30,6 @@ public class WebSocketDispatcher {
 	 */
 	private Map<String, WebSocketRouter> routes;
 
-	private static final String WEB_SOCKET_ClOSE = "WebSocketClose";
-	
 	public enum WebSocketEvent {
 		OPEN, RECIVED, SENT, CLOSE
 	}
@@ -112,7 +110,6 @@ public class WebSocketDispatcher {
 					return WebSocketFrame.newInstance(true, Opcode.TEXT, false, responseMessage);
 				}
 				break;
-		
 			}
 		}
 
@@ -129,10 +126,7 @@ public class WebSocketDispatcher {
 	 */
 	public void fireCloseEvent(IoSession session){
 		//检查是否是WebSocket
-		if ("WebSocket".equals(session.getAttribute("Type")) &&
-				session.containAttribute(WEB_SOCKET_ClOSE) &&
-				!(boolean) session.getAttribute(WEB_SOCKET_ClOSE) &&
-				!session.close() ) {
+		if ("WebSocket".equals(session.getAttribute("Type"))) {
 				// 触发一个 WebSocket Close 事件
 				process(WebSocketEvent.CLOSE, session,
 						(HttpRequest) session.getAttribute("HttpRequest"), null);

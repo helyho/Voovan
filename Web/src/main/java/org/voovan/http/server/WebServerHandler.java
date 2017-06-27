@@ -11,6 +11,7 @@ import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
@@ -74,8 +75,6 @@ public class WebServerHandler implements IoHandler {
 					
 					if(timeOutValue < currentTimeValue){
                         //如果超时则结束当前连接
-                        //触发 WebSocket close 事件
-                        webSocketDispatcher.fireCloseEvent(session);
                         session.close();
 
                         keepAliveSessionList.remove(session);
@@ -84,7 +83,7 @@ public class WebServerHandler implements IoHandler {
 				}
 			}
 		};
-		keepAliveTimer.schedule(keepAliveTask, 1 , 60*1000);
+		keepAliveTimer.schedule(keepAliveTask, 1 , 1000);
 	}
 
 	@Override
@@ -94,6 +93,12 @@ public class WebServerHandler implements IoHandler {
 
 	@Override
 	public void onDisconnect(IoSession session) {
+
+		if ("WebSocket".equals(session.getAttribute("Type"))) {
+			// 触发一个 WebSocket Close 事件
+			webSocketDispatcher.fireCloseEvent(session);
+		}
+
 		//清理 IoSession
 		keepAliveSessionList.remove(session);
 	}
@@ -205,8 +210,6 @@ public class WebServerHandler implements IoHandler {
 		return httpResponse;
 	}
 
-
-
 	/**
 	 * WebSocket 帧处理
 	 * 
@@ -217,23 +220,20 @@ public class WebServerHandler implements IoHandler {
 	public WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
 		session.setAttribute("Type"		     , "WebSocket");
 		session.setAttribute("IsKeepAlive"	 , true);
-		session.setAttribute("WebSocketClose", false);
-		
+
 		HttpRequest reqWebSocket = TObject.cast(session.getAttribute("HttpRequest"));
 		
 		// WS_CLOSE 如果收到关闭帧则关闭连接
 		if (webSocketFrame.getOpcode() == Opcode.CLOSING) {
-			// WebSocket Close事件
-			webSocketDispatcher.process(WebSocketEvent.CLOSE, session, reqWebSocket, null);
-			session.setAttribute("WebSocketClose", true);
 			return WebSocketFrame.newInstance(true, Opcode.CLOSING, false, webSocketFrame.getFrameData());
 		}
 		// WS_PING 收到 ping 帧则返回 pong 帧
 		else if (webSocketFrame.getOpcode() == Opcode.PING) {
-			return WebSocketFrame.newInstance(true, Opcode.PONG, false, null);
+			return WebSocketFrame.newInstance(true, Opcode.PONG, false, webSocketFrame.getFrameData());
 		}
 		// WS_PING 收到 pong 帧则返回 ping 帧
 		else if (webSocketFrame.getOpcode() == Opcode.PONG) {
+			TEnv.sleep(1000);
 			return WebSocketFrame.newInstance(true, Opcode.PING, false, null);
 		}
 		// WS_RECIVE 文本和二进制消息出发 Recived 事件
@@ -273,18 +273,11 @@ public class WebServerHandler implements IoHandler {
 				//发送 onOpen 方法的数据
 				ByteBuffer byteBuffer = webSocketFrame.toByteBuffer();
 				session.send(byteBuffer);
-
-
 				byteBuffer.rewind();
 
 				//出发 onSent 事件
 				onSent(session, byteBuffer);
 			}
-		}
-
-		//如果 WebSocket 关闭,则关闭对应的 Socket
-		if(session.containAttribute("WebSocketClose") && (boolean) session.getAttribute("WebSocketClose")){
-			session.close();
 		}
 
 		//处理连接保持
