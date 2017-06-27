@@ -5,6 +5,7 @@ import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 
 import java.nio.ByteBuffer;
@@ -63,6 +64,7 @@ public class WebSocketHandler implements IoHandler{
         }
         // WS_PING 收到 pong 帧则返回 ping 帧
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
+            TEnv.sleep(1000);
             return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null);
         }
         // WS_RECIVE 文本和二进制消息出发 Recived 事件
