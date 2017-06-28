@@ -260,7 +260,11 @@ public class WebServerHandler implements IoHandler {
 
 		if(HttpMessageSplitter.isWebSocketFrame((ByteBuffer) obj) != -1){
 			WebSocketFrame webSocketFrame = WebSocketFrame.parse((ByteBuffer)obj);
-			webSocketDispatcher.process(WebSocketEvent.SENT, session, request, webSocketFrame);
+			if(webSocketFrame.getOpcode() != Opcode.PING &&
+					webSocketFrame.getOpcode() != Opcode.PONG &&
+					webSocketFrame.getOpcode() != Opcode.CLOSING) {
+				webSocketDispatcher.process(WebSocketEvent.SENT, session, request, webSocketFrame);
+			}
 		}
 
 		//针对 WebSocket 的处理协议升级
