@@ -72,11 +72,11 @@ public class WebSocketDispatcher {
 	 * @param event     WebSocket 事件
 	 * @param session   socket连接会话
 	 * @param request   HTTP 请求对象
-	 * @param webSocketFrame WebSocket 帧对象
+	 * @param bytebuffer bytebuffer 对象, 保存 WebSocket 数据
 	 * @return WebSocket 帧对象
 	 */
-	public WebSocketFrame process(WebSocketEvent event, IoSession session, HttpRequest request, WebSocketFrame webSocketFrame) {
-		
+	public WebSocketFrame process(WebSocketEvent event, IoSession session, HttpRequest request, ByteBuffer bytebuffer) {
+
 		String requestPath = request.protocol().getPath();
 
 		boolean isMatched = false;
@@ -91,16 +91,14 @@ public class WebSocketDispatcher {
 
 				// 获取路径变量
 				ByteBuffer responseMessage = null;
-				Map<String, String> variables = HttpDispatcher.fetchPathVariables(requestPath, routePath);
-				request.getParameters().putAll(variables);
-				
+
 				//WebSocket 事件处理
 				if (event == WebSocketEvent.OPEN) {
 					responseMessage = webSocketRouter.onOpen();
 				} else if (event == WebSocketEvent.RECIVED) {
-					responseMessage = webSocketRouter.onRecived(webSocketFrame.getFrameData());
+					responseMessage = webSocketRouter.onRecived(bytebuffer);
 				} else if (event == WebSocketEvent.SENT) {
-					webSocketRouter.onSent(webSocketFrame.getFrameData());
+					webSocketRouter.onSent(bytebuffer);
 				} else if (event == WebSocketEvent.CLOSE) {
 					webSocketRouter.onClose();
 				}

@@ -11,6 +11,7 @@ import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
@@ -44,7 +45,7 @@ public class WebServerHandler implements IoHandler {
 		this.webConfig = webConfig;
 		keepAliveSessionList = new Vector<IoSession>();
 
-		keepAliveTimer = new Timer("VOOVAN_WEB@KEEP_ALIVER_TIMER");
+		keepAliveTimer = new Timer("VOOVAN_WEB@KEEPALIVE_TIMER");
 		initKeepAliveTimer();
 	}
 
@@ -70,6 +71,7 @@ public class WebServerHandler implements IoHandler {
 				long currentTimeValue = System.currentTimeMillis();
 				//遍历所有的 session
 				for(int i=0; i<keepAliveSessionList.size(); i++){
+
 					IoSession session = keepAliveSessionList.get(i);
 					long timeOutValue = (long) session.getAttribute("TimeOutValue");
 					
@@ -95,8 +97,15 @@ public class WebServerHandler implements IoHandler {
 	public void onDisconnect(IoSession session) {
 
 		if ("WebSocket".equals(session.getAttribute("Type"))) {
+
 			// 触发一个 WebSocket Close 事件
 			webSocketDispatcher.fireCloseEvent(session);
+
+			//WebSocket 要考虑释放缓冲区
+			ByteBufferChannel byteBufferChannel = TObject.cast(session.getAttribute("WebSocketByteBufferChannel"));
+			if (byteBufferChannel != null && !byteBufferChannel.isReleased()) {
+				byteBufferChannel.release();
+			}
 		}
 
 		//清理 IoSession
@@ -218,29 +227,43 @@ public class WebServerHandler implements IoHandler {
 	 */
 	public WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
 		session.setAttribute("Type"		     , "WebSocket");
+		ByteBufferChannel byteBufferChannel = null;
+		if(!session.containAttribute("WebSocketByteBufferChannel")){
+			byteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+			session.setAttribute("WebSocketByteBufferChannel",byteBufferChannel);
+		}else{
+			byteBufferChannel = TObject.cast(session.getAttribute("WebSocketByteBufferChannel"));
+		}
 
 		HttpRequest reqWebSocket = TObject.cast(session.getAttribute("HttpRequest"));
 		
 		// WS_CLOSE 如果收到关闭帧则关闭连接
-		if (webSocketFrame.getOpcode() == Opcode.CLOSING) {
+		if(webSocketFrame.getOpcode() == Opcode.CLOSING) {
+			session.close();
 			return WebSocketFrame.newInstance(true, Opcode.CLOSING, false, webSocketFrame.getFrameData());
 		}
 		// WS_PING 收到 ping 帧则返回 pong 帧
-		else if (webSocketFrame.getOpcode() == Opcode.PING) {
+		else if(webSocketFrame.getOpcode() == Opcode.PING) {
 			return WebSocketFrame.newInstance(true, Opcode.PONG, false, webSocketFrame.getFrameData());
 		}
 		// WS_PING 收到 pong 帧则返回 ping 帧
-		else if (webSocketFrame.getOpcode() == Opcode.PONG) {
+		else if(webSocketFrame.getOpcode() == Opcode.PONG) {
 			TEnv.sleep(1000);
 			return WebSocketFrame.newInstance(true, Opcode.PING, false, null);
+		}else if(webSocketFrame.getOpcode() == Opcode.CONTINUOUS){
+			byteBufferChannel.writeEnd(webSocketFrame.getFrameData());
 		}
 		// WS_RECIVE 文本和二进制消息出发 Recived 事件
 		else if (webSocketFrame.getOpcode() == Opcode.TEXT || webSocketFrame.getOpcode() == Opcode.BINARY) {
+
+			byteBufferChannel.writeEnd(webSocketFrame.getFrameData());
 			WebSocketFrame respWebSocketFrame = null;
 			
 			//判断解包是否有错
 			if(webSocketFrame.getErrorCode()==0){
-				respWebSocketFrame = webSocketDispatcher.process(WebSocketEvent.RECIVED, session, reqWebSocket, webSocketFrame);
+				respWebSocketFrame = webSocketDispatcher.process(WebSocketEvent.RECIVED, session, reqWebSocket, byteBufferChannel.getByteBuffer());
+				byteBufferChannel.compact();
+				byteBufferChannel.clear();
 			}else{
 				//解析时出现异常,返回关闭消息
 				respWebSocketFrame = WebSocketFrame.newInstance(true, Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
@@ -263,7 +286,7 @@ public class WebServerHandler implements IoHandler {
 					webSocketFrame.getOpcode() != Opcode.PONG &&
 					webSocketFrame.getOpcode() != Opcode.CLOSING) {
 
-				webSocketDispatcher.process(WebSocketEvent.SENT, session, request, webSocketFrame);
+				webSocketDispatcher.process(WebSocketEvent.SENT, session, request, webSocketFrame.getFrameData());
 			}
 		}
 
@@ -271,6 +294,7 @@ public class WebServerHandler implements IoHandler {
 		if("Upgrade".equals(session.getAttribute("Type"))){
 			session.setAttribute("Type", "WebSocket");
 
+			//触发 onOpen 事件
 			WebSocketFrame webSocketFrame = webSocketDispatcher.process(WebSocketEvent.OPEN, session, request, null);
 
 			if(webSocketFrame!=null) {
