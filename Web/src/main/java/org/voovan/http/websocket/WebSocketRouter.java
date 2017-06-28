@@ -44,11 +44,21 @@ public abstract class WebSocketRouter implements Cloneable{
 	 */
 	public synchronized void send(ByteBuffer byteBuffer) {
 		WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, byteBuffer);
+
+		//这里不用syncSend 方法是因为出发 onSent 是异步的,会导致消息顺序错乱
 		session.send(webSocketFrame.toByteBuffer());
 		byteBuffer.remaining();
 
 		//出发发送事件
 		onSent(byteBuffer);
+	}
+
+	/**
+	 * 判断连接状态
+	 * @return true: 连接状态, false: 断开状态
+	 */
+	public boolean isConnected(){
+		return session.isConnected();
 	}
 
 	/**
