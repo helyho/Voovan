@@ -287,7 +287,6 @@ public class WebServerHandler implements IoHandler {
 
 			//发送 ping 消息
 			WebSocketFrame ping = WebSocketFrame.newInstance(true, Opcode.PING, false, null);
-			session.setAttribute("TimeOutValue", getTimeoutValue());
 			session.send(ping.toByteBuffer());
 		}
 
