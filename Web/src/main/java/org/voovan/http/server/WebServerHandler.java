@@ -189,7 +189,6 @@ public class WebServerHandler implements IoHandler {
 		
 		//保存必要参数
 		session.setAttribute("Type", "Upgrade");
-		session.setAttribute("IsKeepAlive", true);
 
 		//初始化响应消息
 		httpResponse.protocol().setStatus(101);
@@ -219,7 +218,6 @@ public class WebServerHandler implements IoHandler {
 	 */
 	public WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
 		session.setAttribute("Type"		     , "WebSocket");
-		session.setAttribute("IsKeepAlive"	 , true);
 
 		HttpRequest reqWebSocket = TObject.cast(session.getAttribute("HttpRequest"));
 		
@@ -258,11 +256,13 @@ public class WebServerHandler implements IoHandler {
 		HttpRequest request = TObject.cast(session.getAttribute("HttpRequest"));
 		HttpResponse response = TObject.cast(session.getAttribute("HttpResponse"));
 
+		//WebSocket 协议处理
 		if(HttpMessageSplitter.isWebSocketFrame((ByteBuffer) obj) != -1){
 			WebSocketFrame webSocketFrame = WebSocketFrame.parse((ByteBuffer)obj);
 			if(webSocketFrame.getOpcode() != Opcode.PING &&
 					webSocketFrame.getOpcode() != Opcode.PONG &&
 					webSocketFrame.getOpcode() != Opcode.CLOSING) {
+
 				webSocketDispatcher.process(WebSocketEvent.SENT, session, request, webSocketFrame);
 			}
 		}
@@ -274,6 +274,7 @@ public class WebServerHandler implements IoHandler {
 			WebSocketFrame webSocketFrame = webSocketDispatcher.process(WebSocketEvent.OPEN, session, request, null);
 
 			if(webSocketFrame!=null) {
+
 				//发送 onOpen 方法的数据
 				ByteBuffer byteBuffer = webSocketFrame.toByteBuffer();
 
@@ -290,20 +291,23 @@ public class WebServerHandler implements IoHandler {
 			session.send(ping.toByteBuffer());
 		}
 
-		//处理连接保持
-		if (session.containAttribute("IsKeepAlive")
-				&& (boolean) session.getAttribute("IsKeepAlive")
-				&& webConfig.getKeepAliveTimeout() > 0) {
-			if(!keepAliveSessionList.contains(session)){
-				keepAliveSessionList.add(session);
+		//WebSocket 不做 KeepAlive 的控制
+		if( !"WebSocket".equals(session.getAttribute("Type")) ) {
+			//处理连接保持
+			if (((Boolean) true).equals(session.getAttribute("IsKeepAlive")) &&
+					webConfig.getKeepAliveTimeout() > 0) {
+
+				if (!keepAliveSessionList.contains(session)) {
+					keepAliveSessionList.add(session);
+				}
+				//更新会话超时时间
+				session.setAttribute("TimeOutValue", getTimeoutValue());
+			} else {
+				if (keepAliveSessionList.contains(session)) {
+					keepAliveSessionList.remove(session);
+				}
+				session.close();
 			}
-			//更新会话超时时间
-			session.setAttribute("TimeOutValue", getTimeoutValue());
-		}else {
-			if(keepAliveSessionList.contains(session)){
-				keepAliveSessionList.remove(session);
-			}
-			session.close();
 		}
 	}
 
