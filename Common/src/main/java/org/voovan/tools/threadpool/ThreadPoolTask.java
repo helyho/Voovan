@@ -50,16 +50,26 @@ public class ThreadPoolTask extends TimerTask {
 		// 动态调整线程数,且系统CPU负载值要小于1
 		if (threadPoolInstance.getQueue().size() > 0 &&
 				TPerformance.cpuPerCoreLoadAvg() > 1) {
-			threadPoolInstance.setCorePoolSize( (int)(threadPoolInstance.getCorePoolSize() * 1.25));
-			Logger.debug("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
+
+			int newPoolSize = (int)(threadPoolInstance.getCorePoolSize() * 1.25);
+
+			if(newPoolSize > ThreadPool.MAX_POOL_SIZE){
+				newPoolSize = ThreadPool.MAX_POOL_SIZE;
+			}
+
+			if(newPoolSize!=poolSize) {
+				threadPoolInstance.setCorePoolSize(newPoolSize);
+				Logger.debug("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
+			}
 		}
 
-		else if(threadPoolInstance.getActiveCount() <= threadPoolInstance.getCorePoolSize()/2
-				&& threadPoolInstance.getCorePoolSize() > cpuCoreCount*2){
-			int newPoolsize = (int)(threadPoolInstance.getCorePoolSize()*0.8);
+		else if(threadPoolInstance.getActiveCount() <= threadPoolInstance.getPoolSize()/2 &&
+				 threadPoolInstance.getCorePoolSize() > ThreadPool.MIN_POOL_SIZE){
 
-			if(newPoolsize < poolSize){
-				newPoolsize = poolSize;
+			int newPoolsize = (int)(threadPoolInstance.getCorePoolSize()*0.75);
+
+			if(newPoolsize < ThreadPool.MIN_POOL_SIZE){
+				newPoolsize = ThreadPool.MIN_POOL_SIZE;
 			}
 
 			if(newPoolsize != poolSize) {
