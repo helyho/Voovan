@@ -217,21 +217,48 @@ public class TString {
 	 * @param tokens		标识符Map集合
 	 * @return 替换后的字符串
 	 */
-	public static String tokenReplace(String source,Map<String, String> tokens){
+	public static String tokenReplace(String source,Map<String, ?> tokens){
 		if(source==null){
 			return null;
 		}
 
-		for(Entry<String, String> entry : tokens.entrySet()){
-			String value = entry.getValue();
-			if(value==null){
-				value="null";
-			}
-			source = tokenReplace(source,entry.getKey(),entry.getValue());
+		for(Entry<String, ?> entry : tokens.entrySet()){
+			String value = entry.getValue() == null ? "null" : entry.getValue().toString();
+			source = oneTokenReplace(source,entry.getKey(),entry.getValue().toString());
 		}
 		return source;
 	}
-	
+
+	/**
+	 * 按照标识符 Map 进行替换
+	 * @param source	源字符串,标识符使用"{{标识}}"进行包裹,这些标识符将会被替换
+	 * @param list		数据 List 集合
+	 * @return 替换后的字符串
+	 */
+	public static String tokenReplace(String source, List<Object> list){
+
+		Map<String, Object> tokens = TObject.arrayToMap(list.toArray());
+		return tokenReplace(source, tokens);
+	}
+
+	/**
+	 * 按位置格式化字符串
+	 * 		TString.tokenReplace("aaaa{{1}}bbbb{{2}}cccc{{3}}", "1","2","3")
+	 * 	    或者TString.tokenReplace("aaaa{{}}bbbb{{}}cccc{{}}", "1","2","3")
+	 * 		输出aaaa1bbbb2cccc3
+	 * @param source 字符串
+	 * @param args 多个参数
+	 * @return 格式化后的字符串
+	 */
+	public static String tokenReplace(String source, Object ...args){
+		if(source==null){
+			return null;
+		}
+
+        source = tokenReplace(source, TObject.arrayToMap(args));
+		return source;
+	}
+
 	/**
 	 * 按照标识符进行替换
 	 * @param source		源字符串,标识符使用"{{标识}}"进行包裹
@@ -239,29 +266,18 @@ public class TString {
 	 * @param tokenValue    标志符值
 	 * @return 替换后的字符串
 	 */
-	public static String tokenReplace(String source,String tokenName,String tokenValue){
+	public static String oneTokenReplace(String source,String tokenName,String tokenValue){
 		if(source==null){
 			return null;
 		}
 
-		return source.replaceAll("\\{\\{"+tokenName+"\\}\\}",Matcher.quoteReplacement(tokenValue));
-	}
-
-	/**
-	 * 按位置格式化字符串
-	 * 		TString.format("aaaa{}bbbb{}cccc{}", "1","2","3")
-	 * 		输出aaaa1bbbb2cccc3
-	 * @param source 字符串
-	 * @param args 多个参数
-	 * @return 格式化后的字符串
-	 */
-	public static String tokenReplace(String source,String ...args){
-		if(source==null){
-			return null;
+		if(source.contains("{{"+tokenName+"}}")) {
+			return source.replaceAll("\\{\\{" + tokenName + "\\}\\}", Matcher.quoteReplacement(tokenValue));
+		} else if(TString.isInteger(tokenName) && source.contains("{{}}")) {
+			return TString.replaceFirst(source, "{{}}", tokenValue);
+		} else {
+			return source;
 		}
-
-        source = tokenReplace(source, TObject.arrayToMap(args));
-		return source;
 	}
 	
 	/**
