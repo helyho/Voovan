@@ -63,17 +63,21 @@ public class TStringUnit extends TestCase {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void testTokenReplaceStringMapOfStringString() {
+	public void testTokenReplaceStringMap() {
 		String simpleTokenStr ="^ {{helyho}} {{is}} my name ^";
 		Map<String, String> tokens = TObject.asMap("helyho","HELY HO","is","IS'NT");
 		String replacedStr = TString.tokenReplace(simpleTokenStr, tokens);
 		assertEquals(replacedStr,"^ HELY HO IS'NT my name ^");
 	}
 
-	public void testTokenReplaceStringStringString() {
-		String simpleTokenStr ="^ {{helyho}} is my name ^";	
-		String replacedStr = TString.tokenReplace(simpleTokenStr, "helyho","HELY HO");
-		assertEquals(replacedStr,"^ HELY HO is my name ^");
+	public void testTokenReplaceStringArray() {
+		String simpleTokenStr ="^ {{}} is my {{}} name ^";
+		String replacedStr = TString.tokenReplace(simpleTokenStr, "HELY HO", "full");
+		assertEquals(replacedStr,"^ HELY HO is my full name ^");
+
+		simpleTokenStr ="^ {{1}} is my {{2}} name ^";
+		replacedStr = TString.tokenReplace(simpleTokenStr, "HELY HO", "full");
+		assertEquals(replacedStr,"^ HELY HO is my full name ^");
 	}
 
 	public void testReplaceFirst() {
