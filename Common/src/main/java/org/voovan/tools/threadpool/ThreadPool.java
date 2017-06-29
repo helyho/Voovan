@@ -15,15 +15,15 @@ import java.util.concurrent.TimeUnit;
  * Licence: Apache v2 License
  */
 public class ThreadPool {
+	private final static int cpuCoreCount = Runtime.getRuntime().availableProcessors();
+	public final static int MIN_POOL_SIZE = 2*cpuCoreCount;
+	public final static int MAX_POOL_SIZE = 11*cpuCoreCount;
+
 	private ThreadPool(){
 	}
 	
 	private static ThreadPoolExecutor createThreadPool(){
-		int cpuCoreCount = Runtime.getRuntime().availableProcessors();
-		if(cpuCoreCount==0){
-			cpuCoreCount = 1;
-		}
-		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(cpuCoreCount*2, cpuCoreCount*11, 1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*500));
+		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(MIN_POOL_SIZE, MAX_POOL_SIZE, 1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*500));
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPoolInstance.allowCoreThreadTimeOut(true);
 		Timer timer = new Timer("VOOVAN@THREAD_POOL_TIMER");
