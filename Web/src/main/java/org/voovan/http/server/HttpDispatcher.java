@@ -398,13 +398,13 @@ public class HttpDispatcher {
 			}
 		}
 		if(errorPageContent!=null){
-			errorPageContent = TString.tokenReplace(errorPageContent, "StatusCode", error.get("StatusCode").toString());
-			errorPageContent = TString.tokenReplace(errorPageContent, "RequestMethod", requestMethod);
-			errorPageContent = TString.tokenReplace(errorPageContent, "RequestPath", requestPath);
-			errorPageContent = TString.tokenReplace(errorPageContent, "ErrorMessage", errorMessage);
-			errorPageContent = TString.tokenReplace(errorPageContent, "Description", error.get("Description").toString());
-			errorPageContent = TString.tokenReplace(errorPageContent, "Version", WebContext.getVERSION());
-			errorPageContent = TString.tokenReplace(errorPageContent, "DateTime", TDateTime.now());
+			errorPageContent = TString.oneTokenReplace(errorPageContent, "StatusCode", error.get("StatusCode").toString());
+			errorPageContent = TString.oneTokenReplace(errorPageContent, "RequestMethod", requestMethod);
+			errorPageContent = TString.oneTokenReplace(errorPageContent, "RequestPath", requestPath);
+			errorPageContent = TString.oneTokenReplace(errorPageContent, "ErrorMessage", errorMessage);
+			errorPageContent = TString.oneTokenReplace(errorPageContent, "Description", error.get("Description").toString());
+			errorPageContent = TString.oneTokenReplace(errorPageContent, "Version", WebContext.getVERSION());
+			errorPageContent = TString.oneTokenReplace(errorPageContent, "DateTime", TDateTime.now());
 			response.clear();
 			response.write(errorPageContent);
 		}
