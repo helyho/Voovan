@@ -1,13 +1,13 @@
 package org.voovan.test.tools.complier;
 
 import junit.framework.TestCase;
-import org.voovan.tools.complier.Complier;
+import org.voovan.tools.complier.DynamicCompiler;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
-public class ComplierUnit extends TestCase {
+public class DynamicCompilerUnit extends TestCase {
 
-	public ComplierUnit(String name) {
+	public DynamicCompilerUnit(String name) {
 		super(name);
 	}
 	
@@ -21,7 +21,7 @@ public class ComplierUnit extends TestCase {
 					+ "\t }\r\n"
 				+ "}\r\n";
 		Logger.simple(codeStr);
-		Complier dc = new Complier();
+		DynamicCompiler dc = new DynamicCompiler();
 		dc.compileCode(codeStr);
 	}
 	
