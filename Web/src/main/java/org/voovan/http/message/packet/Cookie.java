@@ -1,7 +1,11 @@
 package org.voovan.http.message.packet;
 
 import org.voovan.http.message.Request;
+import org.voovan.tools.log.Logger;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -24,7 +28,9 @@ public class Cookie {
 	private String name;
 	private String value;
 	
-	
+	private Cookie(){
+
+	}
 	
 	public String getDomain() {
 		return domain;
@@ -83,11 +89,21 @@ public class Cookie {
 	}
 
 	public String getValue() {
-		return value;
+		try {
+			return URLDecoder.decode(this.value, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			Logger.error(e);
+		}
+		return this.value;
 	}
 
 	public void setValue(String value) {
-		this.value = value;
+		try {
+			this.value = URLEncoder.encode(value, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			Logger.error(e);
+		}
+
 	}
 
 	@Override
