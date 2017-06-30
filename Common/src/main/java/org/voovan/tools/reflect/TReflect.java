@@ -411,7 +411,7 @@ public class TReflect {
 								String value = "";
 
 								//这里对参数类型是 Object或者是范型 的提供支持
-								if (parameterType != Object.class) {
+								if (parameterType != Object.class && args[i] != null) {
 									Class argClass = args[i].getClass();
 
 									//复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
@@ -419,7 +419,13 @@ public class TReflect {
 											args[i] instanceof Map ||
 											argClass.isArray() ||
 											!TReflect.isBasicType(argClass)) {
-										value = JSON.toJSON(args[i]);
+										//增加对于基本类型 Array 的支持
+										if(argClass.isArray() && TReflect.isBasicType(argClass.getComponentType())) {
+											convertedParams[i]  = args[i];
+											continue;
+										} else {
+											value = JSON.toJSON(args[i]);
+										}
 									} else {
 										value = args[i].toString();
 									}
@@ -554,7 +560,11 @@ public class TReflect {
 	public static Class<?>[] getArrayClasses(Object[] objs){
 		Class<?>[] parameterTypes= new Class<?>[objs.length];
 		for(int i=0;i<objs.length;i++){
-			parameterTypes[i] = objs[i].getClass();
+			if(objs[i]==null){
+				parameterTypes[i] = Object.class;
+			}else {
+				parameterTypes[i] = objs[i].getClass();
+			}
 		}
 		return parameterTypes;
 	}
