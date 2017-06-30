@@ -1,6 +1,7 @@
 package org.voovan.tools.complier;
 
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
@@ -42,19 +43,10 @@ public class JavaMemClass extends SimpleJavaFileObject {
     
     public void loadThisClass(){
     	Class<?> classLoaderClass =  this.getClass().getClassLoader().getClass();
-    	while (!classLoaderClass.equals(ClassLoader.class) && !classLoaderClass.equals(Object.class)) {
-    		classLoaderClass = classLoaderClass.getSuperclass();
-		}
     	try {
-			Method[] methods = classLoaderClass.getDeclaredMethods();
-			for(Method method : methods){
-				if("defineClass".equals(method.getName()) && method.getParameterTypes().length==4){
-					method.setAccessible(true);
-					byte[] classBytes = this.getBytes();
-					method.invoke(this.getClass().getClassLoader(), new Object[]{null,classBytes,0,classBytes.length});
-				}
-			}
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            byte[] classBytes = this.getBytes();
+            TReflect.invokeMethod(this.getClass().getClassLoader(), "defineClass", new Object[]{null, classBytes, 0, classBytes.length});
+		} catch (ReflectiveOperationException e) {
 			Logger.error(e);
 		}
     }
