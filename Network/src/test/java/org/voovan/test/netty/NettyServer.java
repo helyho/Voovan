@@ -44,15 +44,10 @@ public class NettyServer {
     }
 
     public static class DiscardServerHandler extends ChannelInboundHandlerAdapter {
+        private String retVal;
 
-        @Override
-        public void channelRead(ChannelHandlerContext ctx, Object msg) {
-            //byte[] buffer = new byte[((ByteBuf) msg).readableBytes()];
-            //((ByteBuf) msg).readBytes(buffer);
-            //System.out.println(new String(buffer));
-            //((ByteBuf) msg).clear();
-            ((ByteBuf) msg).release();
-            String retVal = "HTTP/1.1 200 OK\r\n" +
+        public DiscardServerHandler(){
+            retVal = "HTTP/1.1 200 OK\r\n" +
                     "Server: Voovan-WebServer/V1.0-RC-1\r\n" +
                     "Connection: keep-alive\r\n" +
                     "Content-Length: 2\r\n" +
@@ -60,6 +55,12 @@ public class NettyServer {
                     "Content-Type: text/html\r\n"+
                     "\r\n"+
                     "OK\r\n\r\n";
+        }
+
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) {
+            ((ByteBuf) msg).release();
+
             ByteBuf bf = ctx.alloc().buffer(retVal.length());
             bf.writeBytes(retVal.getBytes());
             ctx.writeAndFlush(bf);
