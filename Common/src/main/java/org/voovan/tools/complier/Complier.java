@@ -141,6 +141,10 @@ public class Complier {
 	 */
 	public static String getClassNameFromCode(String javaSourceCode){
 		String className = javaSourceCode.substring(javaSourceCode.indexOf(" class ")+7,javaSourceCode.indexOf("{")).trim();
+		int spaceIndex = className.indexOf(" ");
+		if(spaceIndex != -1){
+			className = className.substring(0, spaceIndex);
+		}
 		className = className.trim();
 		return className;
 	}

@@ -753,7 +753,7 @@ public class ByteBufferChannel {
         String lineStr = "";
         int index = indexOf("\n".getBytes());
 
-        if (index > 0) {
+        if (index >= 0) {
 
             ByteBuffer lineBuffer = ByteBuffer.allocateDirect(index + 1);
 
@@ -764,6 +764,11 @@ public class ByteBufferChannel {
             }
             TByteBuffer.release(lineBuffer);
         }
+
+        if(size()>0 && lineStr.isEmpty()){
+        	lineStr = TByteBuffer.toString(this.getByteBuffer());
+        	this.compact();
+		}
 
         return lineStr.isEmpty() ? null : lineStr;
 	}
