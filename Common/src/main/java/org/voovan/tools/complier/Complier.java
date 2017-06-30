@@ -7,6 +7,7 @@ import javax.tools.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -21,14 +22,15 @@ public class Complier {
 	private JavaCompiler compiler = null ;
 	private JavaFileManager fileManager = null ;
 	private Iterable<String> options = null ;
-	private DiagnosticCollector<JavaFileObject> diagnostics;
-	
+	private DiagnosticCollector<JavaFileObject> diagnosticCollector;
+
 	/**
 	 * 编译器
 	 */
 	public Complier() {
 		this.compiler = this.getComplier();
-		diagnostics = new DiagnosticCollector<JavaFileObject>();
+		//保存编译的诊断信息
+		diagnosticCollector = new DiagnosticCollector<JavaFileObject>();
 	}
 
 	/**
@@ -46,39 +48,40 @@ public class Complier {
 	 * @return  是否编译成功
 	 */
 	public Boolean compileCode(List<String> javaFileNameList,String classDir){
-		fileManager = compiler.getStandardFileManager(diagnostics, null, null);
-		Iterable<? extends JavaFileObject> compilationUnits = TObject.cast(fileManager,StandardJavaFileManager.class).getJavaFileObjectsFromStrings(javaFileNameList); 
+		fileManager = compiler.getStandardFileManager(diagnosticCollector, null, null);
+		StandardJavaFileManager standardJavaFileManager = TObject.cast(fileManager,StandardJavaFileManager.class);
+		Iterable<? extends JavaFileObject> compilationUnits = standardJavaFileManager.getJavaFileObjectsFromStrings(javaFileNameList);
 		options = Arrays.asList("-d", classDir); 
 		return basicCompileCode(compilationUnits) ;
 	}
 	
 	/**
-	 * 编译 内存中的java源码为class文件
+	 * 编译 内存中的java源码为内存中的class,并默认加载 进 JVM
 	 * @param javaSourceCode 需要的java源码字符串
 	 * @return 是否编译成功
 	 */
 	public Boolean compileCode(String javaSourceCode){
 		String className = getClassNameFromCode(javaSourceCode);
-		fileManager = new MemFileManager(compiler.getStandardFileManager(diagnostics, null, null));
-		JavaFileObject file = new JavaMemSource(className, javaSourceCode); 
+		fileManager = new MemFileManager(compiler.getStandardFileManager(diagnosticCollector, null, null));
+		JavaFileObject file = new JavaMemSource(className, javaSourceCode);
 		Iterable<? extends JavaFileObject> compilationUnits = Arrays.asList(file) ;
 		return basicCompileCode(compilationUnits);
 	}
 	
 	/**
-	 * 编译 内存中的java源码为class文件
+	 * 编译内存中的java源码为目标class文件
 	 * @param classDir 生成的class文件所在的目录
 	 * @param javaSourceCode 需要的java源码字符串
 	 * @return 是否编译成功
 	 */
 	public Boolean compileCode(String classDir,String javaSourceCode){
 		options = Arrays.asList("-d", classDir); 
-		fileManager = compiler.getStandardFileManager(diagnostics, null, null);
+		fileManager = compiler.getStandardFileManager(diagnosticCollector, null, null);
 		return compileCode(javaSourceCode) ;
 	}
 	
 	/**
-	 * 编译 内存中的java源码为class文件
+	 * 编译内存中的java源码为目标class文件
 	 * @param classPath 需要引入的classpath字符串
 	 * @param classDir 生成的class文件所在的目录
 	 * @param javaSourceCode 需要的java源码字符串
@@ -86,8 +89,16 @@ public class Complier {
 	 */
 	public Boolean compileCode(String classPath,String classDir,String javaSourceCode){
 		options = Arrays.asList("-classpath",classPath,"-d", classDir); 
-		fileManager = compiler.getStandardFileManager(diagnostics, null, null);
+		fileManager = compiler.getStandardFileManager(diagnosticCollector, null, null);
 		return compileCode(javaSourceCode) ;
+	}
+
+	/**
+	 * 获取编译时的诊断信息
+	 * @return 诊断信息列表
+	 */
+	private List<Diagnostic<? extends JavaFileObject>> getDiagnostics(){
+		return diagnosticCollector.getDiagnostics();
 	}
 
 	/**
@@ -97,7 +108,8 @@ public class Complier {
 	 */
 	private Boolean basicCompileCode(Iterable<? extends JavaFileObject> compilationUnits){
 		
-		JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnostics, options, null, compilationUnits);
+		JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticCollector,
+																	options, null, compilationUnits);
 		Boolean success = task.call(); 
 		
 		//对在内存中编译的进行特殊处理
@@ -105,6 +117,11 @@ public class Complier {
 			MemFileManager memFileManager = TObject.cast(fileManager);
 			JavaMemClass javaMemClass = memFileManager.getJavaMemClass();
 			javaMemClass.loadThisClass();
+		}
+
+
+		for(Diagnostic diagnostic : diagnosticCollector.getDiagnostics()){
+			Logger.simple(diagnostic.getMessage(Locale.getDefault()));
 		}
 		
 		if(fileManager != null){
@@ -123,7 +140,7 @@ public class Complier {
 	 * @return 类名称
 	 */
 	public static String getClassNameFromCode(String javaSourceCode){
-		String className = javaSourceCode.substring(javaSourceCode.indexOf("class")+5,javaSourceCode.indexOf("{")).trim();
+		String className = javaSourceCode.substring(javaSourceCode.indexOf(" class ")+7,javaSourceCode.indexOf("{")).trim();
 		className = className.trim();
 		return className;
 	}
