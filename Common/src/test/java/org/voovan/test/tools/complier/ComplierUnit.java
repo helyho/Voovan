@@ -12,7 +12,7 @@ public class ComplierUnit extends TestCase {
 	}
 	
 	public void setUp(){
-		String codeStr = "package org.hocate.test;\r\n\r\n"
+		String codeStr = "package org.hocate.test1;\r\n\r\n"
 				+ "import org.voovan.tools.TString;\r\n"
 				+ "public class testSay {\r\n"
 					+ "\t public String say(){\r\n"
@@ -26,8 +26,8 @@ public class ComplierUnit extends TestCase {
 	}
 	
 	public void testRun() throws Exception{
-		Object testSay = TReflect.newInstance("org.hocate.test.testSay");
-		assertEquals(testSay.getClass().getName(),"org.hocate.test.testSay");
+		Object testSay = TReflect.newInstance("org.hocate.test1.testSay");
+		assertEquals(testSay.getClass().getName(),"org.hocate.test1.testSay");
 		Object obj = TReflect.invokeMethod(testSay, "say");
 		assertEquals(obj,"inished");
 	}
