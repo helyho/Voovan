@@ -17,7 +17,7 @@ import java.util.Locale;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class Complier {
+public class DynamicCompiler {
 	
 	private JavaCompiler compiler = null ;
 	private JavaFileManager fileManager = null ;
@@ -27,7 +27,7 @@ public class Complier {
 	/**
 	 * 编译器
 	 */
-	public Complier() {
+	public DynamicCompiler() {
 		this.compiler = this.getComplier();
 		//保存编译的诊断信息
 		diagnosticCollector = new DiagnosticCollector<JavaFileObject>();
@@ -121,7 +121,7 @@ public class Complier {
 
 
 		for(Diagnostic diagnostic : diagnosticCollector.getDiagnostics()){
-			Logger.simple(diagnostic.getMessage(Locale.getDefault()));
+			Logger.simple(diagnostic.toString());
 		}
 		
 		if(fileManager != null){
