@@ -327,7 +327,7 @@ public class DynamicFunction {
         parseCode();
 
         this.javaCode = TString.tokenReplace(CODE_TEMPLATE, TObject.asMap(
-                "PACKAGE", packageName, //报名
+                "PACKAGE", packageName, //包名
                 "IMPORT", importCode,   //解析获得
                 "CLASSNAME", className, //类名
                 "PREPAREARG", argCode,  //参数
