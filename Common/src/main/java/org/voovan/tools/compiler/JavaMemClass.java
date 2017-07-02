@@ -39,13 +39,14 @@ public class JavaMemClass extends SimpleJavaFileObject {
         return classByteArrayOutputStream;
     }
     
-    public void loadThisClass(){
-    	Class<?> classLoaderClass =  this.getClass().getClassLoader().getClass();
+    public Class loadThisClass(){
     	try {
             byte[] classBytes = this.getBytes();
-            TReflect.invokeMethod(this.getClass().getClassLoader(), "defineClass", new Object[]{null, classBytes, 0, classBytes.length});
+            return (Class)TReflect.invokeMethod(this.getClass().getClassLoader(), "defineClass", new Object[]{null, classBytes, 0, classBytes.length});
         } catch (ReflectiveOperationException e) {
 			Logger.error(e);
 		}
+
+		return null;
     }
 }

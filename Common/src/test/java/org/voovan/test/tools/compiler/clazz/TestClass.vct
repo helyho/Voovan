@@ -1,0 +1,10 @@
+package org.voovan.test.tools.compiler.clazz;
+
+import org.voovan.tools.TString;
+
+public class testSay {
+	 public String say(){
+		 System.out.println("helloword");
+		 return TString.removePrefix("finished");
+	 }
+}
