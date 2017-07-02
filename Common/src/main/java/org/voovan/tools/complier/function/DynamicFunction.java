@@ -1,14 +1,18 @@
-package org.voovan.tools.complier;
+package org.voovan.tools.complier.function;
 
 import org.voovan.tools.*;
+import org.voovan.tools.complier.DynamicCompiler;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 类文字命名
+ * 动态函数管理类
  *
  * @author: helyho
  * Voovan Framework.
@@ -17,11 +21,11 @@ import java.util.Map;
  */
 public class DynamicFunction {
     private final static String CODE_TEMPLATE =
-                    "package org.voovan.tools.complier.temporary;\n" +
+            "package org.voovan.tools.complier.temporary;\n" +
                     "import org.voovan.tools.TObject;\n" +
                     "{{IMPORT}}\n" +
                     "public class {{CLASSNAME}} {\n" +
-                    "    public Object execute(Object ... args){\n" +
+                    "    public synchronized static Object execute(Object ... args){\n" +
                     "        {{PREPAREARG}}\n" +
                     "        {{CODE}}\n" +
                     "    }\n" +
@@ -39,7 +43,14 @@ public class DynamicFunction {
     private String code;
     private String javaCode;
     private Class clazz;
-    private Object instance;
+
+
+    private File codeFile;
+    private String fileCharset;
+    private long lastFileTimeStamp;
+
+    private boolean needCompile;
+
 
     /**
      * 构造函数
@@ -47,14 +58,40 @@ public class DynamicFunction {
      * @param name 命名的名称
      */
     public DynamicFunction(String name, String code) {
+        init();
         this.name = name;
+        this.code = code;
+    }
+
+    /**
+     * 构造函数
+     *
+     * @param name    命名的名称
+     * @param file    脚本文件路径
+     * @param charset 脚本文件编码
+     * @throws UnsupportedEncodingException
+     */
+    public DynamicFunction(String name, File file, String charset) throws UnsupportedEncodingException {
+        init();
+        this.name = name;
+        this.codeFile = file;
+        this.fileCharset = charset;
+        this.lastFileTimeStamp = file.lastModified();
+    }
+
+    /**
+     * 初始化
+     */
+    private void init() {
+        this.name = null;
         this.prepareArgCode = null;
         this.importCode = "";
         this.bodyCode = "";
-        this.code = code;
+        this.code = null;
         this.javaCode = "";
-        this.clazz = null;
-        this.instance = null;
+        this.clazz = Object.class;
+        this.codeFile = null;
+        needCompile = true;
         this.prepareArgs = new MultiMap<Integer, String>();
     }
 
@@ -77,11 +114,29 @@ public class DynamicFunction {
     }
 
     public String getCode() {
+        if (codeFile != null) {
+            try {
+                this.code = new String(TFile.loadFile(this.codeFile), this.fileCharset);
+            } catch (UnsupportedEncodingException e) {
+                Logger.error("Load file " + this.codeFile.getPath() + " error", e);
+            }
+        }
+
         return code;
     }
 
+    /**
+     * 设置脚本代码
+     *
+     * @param code 脚本代码
+     */
     public void setCode(String code) {
-        this.code = code;
+        if (codeFile == null) {
+            this.code = code;
+            needCompile = true;
+        } else {
+            throw new RuntimeException("This function used code in file, Can't invoke this method.");
+        }
     }
 
     /**
@@ -96,7 +151,7 @@ public class DynamicFunction {
     /**
      * 获得编译后的 Class 对象
      *
-     * @return
+     * @return 实际编译的类对象
      */
     public Class getClazz() {
         return clazz;
@@ -126,40 +181,46 @@ public class DynamicFunction {
      * 生成编译时混淆的类名
      */
     private void genClassName() {
-        className = name + TString.generateShortUUID();
+        this.className = name + TString.generateShortUUID();
     }
 
     /**
      * 生成可调用参数
      */
     private void genPrepareArgCode() {
-        StringBuffer stringBuffer = new StringBuffer();
+        this.prepareArgCode = "";
         for (Map.Entry<Integer, List<String>> prepareArg : prepareArgs.entrySet()) {
             int argIndex = prepareArg.getKey();
             String className = prepareArgs.getValue(argIndex, 0);
             String name = prepareArgs.getValue(argIndex, 1);
-            stringBuffer.append("        ").append(className).append(" ").append(name).append(" = ")
-                    .append("TObject.cast(args[").append(argIndex).append("]);").append(TFile.getLineSeparator());
+            this.prepareArgCode = this.prepareArgCode + "        " + className + " " + name +
+                    " = TObject.cast(args[" + argIndex + "]);" + TFile.getLineSeparator();
         }
-        this.prepareArgCode = stringBuffer.toString().trim();
     }
 
     /**
      * 解析用户代码
      */
-    public void parseCode() {
-        if(code == null){
+    private void parseCode() {
+        if (this.codeFile != null) {
+            this.code = getCode();
+        }
+
+        if (this.code == null) {
             throw new NullPointerException("Function code is null.");
         }
 
-        if (!code.contains("return ")) {
-            code = code + "\r\n        return null;";
+        if (!this.code.contains("return ")) {
+            this.code = this.code + "\r\n        return null;";
         }
+
+        this.bodyCode = "";
+        this.importCode = "";
         ByteBufferChannel byteBufferChannel = new ByteBufferChannel();
-        byteBufferChannel.writeEnd(ByteBuffer.wrap(code.getBytes()));
-        while(true) {
+        byteBufferChannel.writeEnd(ByteBuffer.wrap(this.code.getBytes()));
+        while (true) {
             String lineCode = byteBufferChannel.readLine();
-            if(lineCode==null){
+            if (lineCode == null) {
                 break;
             }
             if (lineCode.trim().startsWith("import ")) {
@@ -193,37 +254,60 @@ public class DynamicFunction {
     }
 
     /**
-     * 编译代码
+     * 编译用户代码
      *
      * @return 返回编译后得到的 Class 对象
      * @throws ClassNotFoundException 反射异常
      */
-    public void compileCode() throws ReflectiveOperationException {
-        genCode();
+    private void compileCode() throws ReflectiveOperationException {
+        synchronized (this.clazz) {
+            genCode();
 
-        DynamicCompiler compiler = new DynamicCompiler();
-        if (compiler.compileCode(this.javaCode)) {
-            this.clazz = Class.forName("org.voovan.tools.complier.temporary." + this.getClassName());
-            //实例化动态编译的对象使其可悲调用
-            this.instance = TReflect.newInstance(clazz);
-        } else {
-            throw new ReflectiveOperationException("Compile code error.");
+            DynamicCompiler compiler = new DynamicCompiler();
+            if (compiler.compileCode(this.javaCode)) {
+                this.clazz = Class.forName("org.voovan.tools.complier.temporary." + this.getClassName());
+                needCompile = false;
+            } else {
+                Logger.simple(code);
+                throw new ReflectiveOperationException("Compile code error.");
+            }
         }
     }
 
+
     /**
-     * 执行
+     * 测试文件是否变更
+     */
+    private void checkFileChanged() {
+        if (lastFileTimeStamp != this.codeFile.lastModified()) {
+            this.lastFileTimeStamp = this.codeFile.lastModified();
+            needCompile = true;
+        }
+
+    }
+
+    /**
+     * 执行代码
+     *
      * @param args 调用参数
-     * @param <T> 范型
+     * @param <T>  范型
      * @return 返回的类型
      * @throws ReflectiveOperationException 反射异常
      */
-    public <T> T call(Object ... args) throws ReflectiveOperationException {
-        if(this.instance == null){
-            throw new NullPointerException("Function instance is null.");
+    public <T> T call(Object... args) throws ReflectiveOperationException {
+        synchronized (this.clazz) {
+
+            if (this.clazz != Object.class && codeFile != null) {
+                checkFileChanged();
+            }
+
+            if (this.clazz == Object.class || needCompile) {
+                compileCode();
+            }
+
+            Object result = TReflect.invokeMethod(this.clazz, "execute", new Object[]{args});
+            return TObject.cast(result);
         }
-        Object result = TReflect.invokeMethod(instance, "execute", new Object[]{args});
-        return TObject.cast(result);
     }
 
 }
