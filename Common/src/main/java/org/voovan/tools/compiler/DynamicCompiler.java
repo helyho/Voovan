@@ -22,6 +22,7 @@ public class DynamicCompiler {
 	private JavaFileManager fileManager = null ;
 	private Iterable<String> options = null ;
 	private DiagnosticCollector<JavaFileObject> diagnosticCollector;
+	private Class clazz = null;
 
 	/**
 	 * 编译器
@@ -33,13 +34,35 @@ public class DynamicCompiler {
 	}
 
 	/**
+	 * 获得编译后的 Class 对象
+	 *  	仅在内存中编译对象时生效
+	 * @return Class 对象
+	 */
+	public Class getClazz() {
+		return clazz;
+	}
+
+	/**
 	 * 获取 JAVA编译器
 	 * @return 获取 java 编译对象
 	 */
 	private JavaCompiler getComplier(){
 		return ToolProvider.getSystemJavaCompiler(); 
 	}
-	
+
+	/**
+	 * 编译 内存中的java源码为内存中的class,并默认加载 进 JVM
+	 * @param javaSourceCode 需要的java源码字符串
+	 * @return 是否编译成功
+	 */
+	public Boolean compileCode(String javaSourceCode){
+		String className = getClassNameFromCode(javaSourceCode);
+		fileManager = new MemFileManager(compiler.getStandardFileManager(diagnosticCollector, null, null));
+		JavaFileObject file = new JavaMemSource(className, javaSourceCode);
+		Iterable<? extends JavaFileObject> compilationUnits = Arrays.asList(file) ;
+		return basicCompileCode(compilationUnits);
+	}
+
 	/**
 	 * 编译多个系统中的java源文件为class文件
 	 * @param javaFileNameList java文件名列表
@@ -52,19 +75,6 @@ public class DynamicCompiler {
 		Iterable<? extends JavaFileObject> compilationUnits = standardJavaFileManager.getJavaFileObjectsFromStrings(javaFileNameList);
 		options = Arrays.asList("-d", classDir); 
 		return basicCompileCode(compilationUnits) ;
-	}
-	
-	/**
-	 * 编译 内存中的java源码为内存中的class,并默认加载 进 JVM
-	 * @param javaSourceCode 需要的java源码字符串
-	 * @return 是否编译成功
-	 */
-	public Boolean compileCode(String javaSourceCode){
-		String className = getClassNameFromCode(javaSourceCode);
-		fileManager = new MemFileManager(compiler.getStandardFileManager(diagnosticCollector, null, null));
-		JavaFileObject file = new JavaMemSource(className, javaSourceCode);
-		Iterable<? extends JavaFileObject> compilationUnits = Arrays.asList(file) ;
-		return basicCompileCode(compilationUnits);
 	}
 	
 	/**
@@ -106,7 +116,7 @@ public class DynamicCompiler {
 	 * @return 是否编译成功
 	 */
 	private Boolean basicCompileCode(Iterable<? extends JavaFileObject> compilationUnits){
-		
+
 		JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticCollector,
 																	options, null, compilationUnits);
 		Boolean success = task.call(); 
@@ -115,7 +125,9 @@ public class DynamicCompiler {
 		if(success && fileManager instanceof MemFileManager){
 			MemFileManager memFileManager = TObject.cast(fileManager);
 			JavaMemClass javaMemClass = memFileManager.getJavaMemClass();
-			javaMemClass.loadThisClass();
+			clazz = javaMemClass.loadThisClass();
+		}else{
+			clazz = null;
 		}
 
 

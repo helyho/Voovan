@@ -348,9 +348,8 @@ public class DynamicFunction {
             genCode();
 
             DynamicCompiler compiler = new DynamicCompiler();
-            System.out.println(javaCode);
             if (compiler.compileCode(this.javaCode)) {
-                this.clazz = Class.forName(packageName + "." + this.getClassName());
+                this.clazz =  compiler.getClazz();
                 needCompile = false;
             } else {
                 Logger.simple(code);
