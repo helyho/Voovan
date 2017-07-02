@@ -33,13 +33,14 @@ public class DynamicFunctionUnit extends TestCase{
     }
 
     public void testRun() throws Exception{
-//        DynamicFunction function = new DynamicFunction("TestCode",code);
+//        DynamicFunction function = new DynamicFunction("TestCode",code);  //字符串形式的脚本
         DynamicFunction function = new DynamicFunction("TestCode",
                 new File("./src/test/java/org/voovan/test/tools/complier/function/TestScript.jf"),
-                "UTF-8");
+                "UTF-8");   // 文件形式的脚本
 
-        function.addPrepareArg(0, "String", " temp1");
-        function.addPrepareArg(1, "String", " temp2");
+        //准备脚本的默认参数
+        function.addPrepareArg(0, String.class, " temp1");
+        function.addPrepareArg(1, String.class, " temp2");
 
         System.out.println("=============Args list=============");
         System.out.println("arg0 -> 0 String temp1 = hely ");
@@ -49,6 +50,7 @@ public class DynamicFunctionUnit extends TestCase{
 
         for(int i=0;i<4;i++) {
             long startTime = System.currentTimeMillis();
+            //运行脚本
             List list = function.call("hely ", "ho");
             Logger.simple( (System.currentTimeMillis()-startTime )+" Result: " + list);
             TEnv.sleep( 1000 );

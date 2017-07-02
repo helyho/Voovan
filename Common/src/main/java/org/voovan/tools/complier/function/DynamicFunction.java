@@ -32,7 +32,7 @@ public class DynamicFunction {
                     "}";
 
 
-    private MultiMap<Integer, String> prepareArgs;
+    private MultiMap<Integer, Object> prepareArgs;
     private String prepareArgCode;
 
     //动态编译相关的对象
@@ -92,7 +92,7 @@ public class DynamicFunction {
         this.clazz = Object.class;
         this.codeFile = null;
         needCompile = true;
-        this.prepareArgs = new MultiMap<Integer, String>();
+        this.prepareArgs = new MultiMap<Integer, Object>();
     }
 
     /**
@@ -161,11 +161,11 @@ public class DynamicFunction {
      * 增加一个调用参数
      *
      * @param argIndex  调用参数的索引
-     * @param className 调用参数的类
+     * @param argClazz  调用参数的类
      * @param name      调用参数的名称
      */
-    public void addPrepareArg(int argIndex, String className, String name) {
-        prepareArgs.putValues(argIndex, className, name);
+    public void addPrepareArg(int argIndex, Class argClazz, String name) {
+        prepareArgs.putValues(argIndex, argClazz, name);
     }
 
     /**
@@ -189,11 +189,11 @@ public class DynamicFunction {
      */
     private void genPrepareArgCode() {
         this.prepareArgCode = "";
-        for (Map.Entry<Integer, List<String>> prepareArg : prepareArgs.entrySet()) {
+        for (Map.Entry<Integer, List<Object>> prepareArg : prepareArgs.entrySet()) {
             int argIndex = prepareArg.getKey();
-            String className = prepareArgs.getValue(argIndex, 0);
-            String name = prepareArgs.getValue(argIndex, 1);
-            this.prepareArgCode = this.prepareArgCode + "        " + className + " " + name +
+            Class argClazz = TObject.cast(prepareArgs.getValue(argIndex, 0));
+            String name = TObject.cast(prepareArgs.getValue(argIndex, 1));
+            this.prepareArgCode = this.prepareArgCode + "        " + argClazz.getCanonicalName() + " " + name +
                     " = TObject.cast(args[" + argIndex + "]);" + TFile.getLineSeparator();
         }
     }
