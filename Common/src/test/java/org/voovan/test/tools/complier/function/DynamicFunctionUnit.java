@@ -1,11 +1,11 @@
-package org.voovan.test.tools.complier;
+package org.voovan.test.tools.complier.function;
 
 import junit.framework.TestCase;
-import org.voovan.tools.complier.DynamicCompiler;
-import org.voovan.tools.complier.DynamicFunction;
+import org.voovan.tools.TEnv;
+import org.voovan.tools.complier.function.DynamicFunction;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.reflect.TReflect;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -29,8 +29,14 @@ public class DynamicFunctionUnit extends TestCase{
         System.out.println(code);
     }
 
+    public void testName() throws Exception {
+    }
+
     public void testRun() throws Exception{
-        DynamicFunction function = new DynamicFunction("TestCode",code);
+//        DynamicFunction function = new DynamicFunction("TestCode",code);
+        DynamicFunction function = new DynamicFunction("TestCode",
+                new File("./src/test/java/org/voovan/test/tools/complier/function/TestScript.jf"),
+                "UTF-8");
 
         function.addPrepareArg(0, "String", " temp1");
         function.addPrepareArg(1, "String", " temp2");
@@ -41,10 +47,12 @@ public class DynamicFunctionUnit extends TestCase{
 
         System.out.println("============= result =============");
 
-        function.compileCode();
-
-        List list = function.call("hely ", "ho");
-        System.out.println("Result: " + list);
+        for(int i=0;i<4;i++) {
+            long startTime = System.currentTimeMillis();
+            List list = function.call("hely ", "ho");
+            Logger.simple( (System.currentTimeMillis()-startTime )+" Result: " + list);
+            TEnv.sleep( 1000 );
+        }
     }
     
 }
