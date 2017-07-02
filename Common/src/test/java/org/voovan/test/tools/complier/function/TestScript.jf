@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 
 ArrayList asssssl = new ArrayList();
-System.out.println(temp1 + " t " + temp2);
+System.out.println(" arg1: "+temp1);
+System.out.println(" arg2: "+temp2);
 return asssssl;
