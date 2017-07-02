@@ -30,12 +30,9 @@ public class DynamicFunctionUnit extends TestCase{
         System.out.println(code);
     }
 
-    public void testName() throws Exception {
-    }
-
     public void testRun() throws Exception{
 //        DynamicFunction function = new DynamicFunction("TestCode",code);  //字符串形式的脚本
-        File codeFile = new File("./src/test/java/org/voovan/test/tools/compiler/function/TestScript.jf");
+        File codeFile = new File("./src/test/java/org/voovan/test/tools/compiler/function/TestFunction.vct");
         DynamicFunction function = new DynamicFunction( codeFile, "UTF-8");   // 文件形式的脚本
 
         //增加默认导入

@@ -44,7 +44,7 @@ public class Body {
             chaneToBytes("".getBytes());
 			bodyFile = null;
         } catch (IOException e){
-            Logger.error("Construct class Body error",e);
+            Logger.error("Construct Body error",e);
         }
 	}
 
@@ -59,7 +59,7 @@ public class Body {
 			chaneToBytes(content);
 			bodyFile = null;
 		} catch (IOException e){
-			Logger.error("Construct class Body error",e);
+			Logger.error("Construct Body error",e);
 		}
 	}
 
@@ -72,7 +72,7 @@ public class Body {
 		try {
 			changeToFile(new File(filePath));
 		} catch (IOException e){
-			Logger.error("Construct class Body error",e);
+			Logger.error("Construct Body error",e);
 		}
 	}
 
