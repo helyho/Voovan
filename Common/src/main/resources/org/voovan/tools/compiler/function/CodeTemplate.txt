@@ -1,0 +1,9 @@
+package {{PACKAGE}};
+import org.voovan.tools.TObject;
+{{IMPORT}}
+public class {{CLASSNAME}} {
+    public synchronized static Object execute(Object ... args){
+        {{PREPAREARG}}
+        {{CODE}}
+    }
+}

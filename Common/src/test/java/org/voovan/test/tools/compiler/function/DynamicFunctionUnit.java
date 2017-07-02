@@ -1,11 +1,12 @@
-package org.voovan.test.tools.complier.function;
+package org.voovan.test.tools.compiler.function;
 
 import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.complier.function.DynamicFunction;
+import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,9 +35,14 @@ public class DynamicFunctionUnit extends TestCase{
 
     public void testRun() throws Exception{
 //        DynamicFunction function = new DynamicFunction("TestCode",code);  //字符串形式的脚本
-        DynamicFunction function = new DynamicFunction("TestCode",
-                new File("./src/test/java/org/voovan/test/tools/complier/function/TestScript.jf"),
-                "UTF-8");   // 文件形式的脚本
+        File codeFile = new File("./src/test/java/org/voovan/test/tools/compiler/function/TestScript.jf");
+        DynamicFunction function = new DynamicFunction( codeFile, "UTF-8");   // 文件形式的脚本
+
+        //增加默认导入
+        function.addImport(ArrayList.class);
+
+        //启用脚本中的 import 导入
+        function.enableImportInCode(true);
 
         //准备脚本的默认参数
         function.addPrepareArg(0, String.class, " temp1");

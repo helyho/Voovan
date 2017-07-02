@@ -1,7 +1,7 @@
-package org.voovan.test.tools.complier;
+package org.voovan.test.tools.compiler;
 
 import junit.framework.TestCase;
-import org.voovan.tools.complier.DynamicCompiler;
+import org.voovan.tools.compiler.DynamicCompiler;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
