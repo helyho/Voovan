@@ -42,12 +42,15 @@ public class DynamicClassUnit extends TestCase{
         DynamicClass dynamicClass = new DynamicClass( codeFile, "UTF-8");   // 文件形式的脚本
 
         for(int i=0;i<4;i++) {
+            System.out.println("\r\n=============Run "+i+"=============");
             long startTime = System.currentTimeMillis();
             //运行脚本
             Class clazz = dynamicClass.getClazz();
+            System.out.println("name:" +dynamicClass.getName());
+            System.out.println("classname:" +dynamicClass.getClassName());
             Object testSay = TReflect.newInstance(clazz);
             Object obj = TReflect.invokeMethod(testSay, "say");
-            assertEquals(obj,"inished");
+            Logger.simple( (System.currentTimeMillis()-startTime )+" Result: " + obj);
             TEnv.sleep( 1000 );
         }
     }
