@@ -122,6 +122,7 @@ public class DynamicFunction {
 
     /**
      * 获得命名的名称
+     *       用于标定这个动态编译的函数
      *
      * @return 命名的名称
      */
@@ -343,17 +344,25 @@ public class DynamicFunction {
      * @return 返回编译后得到的 Class 对象
      * @throws ClassNotFoundException 反射异常
      */
-    private void compileCode() throws ReflectiveOperationException {
+    public void compileCode() throws ReflectiveOperationException {
         synchronized (this.clazz) {
-            genCode();
 
-            DynamicCompiler compiler = new DynamicCompiler();
-            if (compiler.compileCode(this.javaCode)) {
-                this.clazz =  compiler.getClazz();
-                needCompile = false;
-            } else {
-                Logger.simple(code);
-                throw new ReflectiveOperationException("Compile code error.");
+            if (this.clazz != Object.class && codeFile != null) {
+                checkFileChanged();
+            }
+
+            if (this.clazz == Object.class || needCompile) {
+                genCode();
+
+                DynamicCompiler compiler = new DynamicCompiler();
+                if (compiler.compileCode(this.javaCode)) {
+                    this.clazz = compiler.getClazz();
+                    this.className = this.clazz.getCanonicalName();
+                    needCompile = false;
+                } else {
+                    Logger.simple(code);
+                    throw new ReflectiveOperationException("Compile code error.");
+                }
             }
         }
     }
@@ -380,15 +389,7 @@ public class DynamicFunction {
      */
     public <T> T call(Object... args) throws ReflectiveOperationException {
         synchronized (this.clazz) {
-
-            if (this.clazz != Object.class && codeFile != null) {
-                checkFileChanged();
-            }
-
-            if (this.clazz == Object.class || needCompile) {
-                compileCode();
-            }
-
+            compileCode();
             Object result = TReflect.invokeMethod(this.clazz, "execute", new Object[]{args});
             return TObject.cast(result);
         }

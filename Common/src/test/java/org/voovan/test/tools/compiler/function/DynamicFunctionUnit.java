@@ -33,17 +33,17 @@ public class DynamicFunctionUnit extends TestCase{
     public void testRun() throws Exception{
 //        DynamicFunction function = new DynamicFunction("TestCode",code);  //字符串形式的脚本
         File codeFile = new File("./src/test/java/org/voovan/test/tools/compiler/function/TestFunction.vct");
-        DynamicFunction function = new DynamicFunction( codeFile, "UTF-8");   // 文件形式的脚本
+        DynamicFunction dynamicFunction = new DynamicFunction( codeFile, "UTF-8");   // 文件形式的脚本
 
         //增加默认导入
-        function.addImport(ArrayList.class);
+        dynamicFunction.addImport(ArrayList.class);
 
         //启用脚本中的 import 导入
-        function.enableImportInCode(true);
+        dynamicFunction.enableImportInCode(true);
 
         //准备脚本的默认参数
-        function.addPrepareArg(0, String.class, " temp1");
-        function.addPrepareArg(1, String.class, " temp2");
+        dynamicFunction.addPrepareArg(0, String.class, " temp1");
+        dynamicFunction.addPrepareArg(1, String.class, " temp2");
 
         System.out.println("=============Args list=============");
         System.out.println("arg0 -> 0 String temp1 = hely ");
@@ -52,9 +52,14 @@ public class DynamicFunctionUnit extends TestCase{
         System.out.println("============= result =============");
 
         for(int i=0;i<4;i++) {
+            System.out.println("\r\n=============Run "+i+"=============");
+            System.out.println("name:" +dynamicFunction.getName());
+            System.out.println("classname:" +dynamicFunction.getClassName());
+
             long startTime = System.currentTimeMillis();
             //运行脚本
-            List list = function.call("hely ", "ho");
+            List list = dynamicFunction.call("hely ", "ho");
+
             Logger.simple( (System.currentTimeMillis()-startTime )+" Result: " + list);
             TEnv.sleep( 1000 );
         }
