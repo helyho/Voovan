@@ -75,11 +75,17 @@ public class DynamicClass {
 
     /**
      * 获得命名的名称
+     *      用于标定这个动态编译的 class
      *
      * @return 命名的名称
      */
     public String getName() {
-        return name;
+        if(this.className == null) {
+            return this.name;
+        }else{
+            int index = this.className.indexOf(this.name);
+            return this.className.substring(0, index+this.name.length());
+        }
     }
 
     /**
@@ -181,7 +187,7 @@ public class DynamicClass {
      * @return 返回编译后得到的 Class 对象
      * @throws ClassNotFoundException 反射异常
      */
-    private void compileCode() throws ReflectiveOperationException {
+    public void compileCode() throws ReflectiveOperationException {
 
         if (this.clazz != Object.class && codeFile != null) {
             checkFileChanged();
@@ -194,6 +200,7 @@ public class DynamicClass {
                 DynamicCompiler compiler = new DynamicCompiler();
                 if (compiler.compileCode(this.javaCode)) {
                     this.clazz = compiler.getClazz();
+                    this.className = this.clazz.getCanonicalName();
                     needCompile = false;
                 } else {
                     Logger.simple(code);
