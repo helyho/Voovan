@@ -79,12 +79,20 @@ public abstract class IoSession<T extends SocketContext> {
 	}
 
 	/**
+	 * 获取全部会话参数
+	 * @return 会话参数Map
+	 */
+	public Map<Object,Object> getAttributes(){
+		return this.attributes;
+	}
+
+	/**
 	 * 获取会话参数
 	 * @param key 参数名
 	 * @return    参数对象
 	 */
-	public Object getAttribute(Object key) {
-		return attributes.get(key);
+	public <T> T getAttribute(Object key) {
+		return TObject.cast(attributes.get(key));
 	}
 
 	/**
