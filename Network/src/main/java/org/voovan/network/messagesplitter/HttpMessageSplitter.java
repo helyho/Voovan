@@ -33,7 +33,7 @@ public class HttpMessageSplitter implements MessageSplitter {
 			return -1;
 		}
 
-        if( "WebSocket".equals(session.getAttribute("Type")) ){
+        if( "WebSocket".equals(session.getAttribute(0x1111)) ){
             result = isWebSocketFrame(byteBuffer);
             result = result==0 ? -1 : result;
         }else{
