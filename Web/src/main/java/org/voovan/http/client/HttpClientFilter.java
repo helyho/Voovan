@@ -3,6 +3,7 @@ package org.voovan.http.client;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
+import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
@@ -45,7 +46,7 @@ public class HttpClientFilter implements IoFilter {
 	public Object decode(IoSession session,Object object) throws IoFilterException{
 		try{
 			ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
-			if("WebSocket".equals(session.getAttribute("Type"))){
+			if("WebSocket".equals(WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.TYPE))){
 				return WebSocketFrame.parse((ByteBuffer)object);
 			}
 

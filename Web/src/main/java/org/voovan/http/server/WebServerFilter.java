@@ -74,7 +74,7 @@ public class WebServerFilter implements IoFilter {
 			}
 		}
 		//如果包含Type为 WebSocket 说明是 WebSocket 通信,转换成 WebSocketFrame 对象
-		else if("WebSocket".equals(session.getAttribute("Type"))){
+		else if("WebSocket".equals(WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.TYPE))){
 			if (object instanceof ByteBuffer && byteBuffer.limit()!=0) {
 				WebSocketFrame webSocketFrame = WebSocketFrame.parse(byteBuffer);
 				if(webSocketFrame.getErrorCode()==0){
