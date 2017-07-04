@@ -514,7 +514,7 @@ public class HttpClient {
 			WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketRouter);
 			socket.handler(webSocketHandler);
 
-			//触发 onOpen 方法
+			//触发 onOpen
 			webSocketRouter.setSession(socket.getSession());
 			ByteBuffer buffer = webSocketRouter.onOpen();
 			if(buffer!=null) {
