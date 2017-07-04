@@ -5,6 +5,7 @@ import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 
@@ -36,7 +37,14 @@ public class WebSocketHandler implements IoHandler{
 
     @Override
     public void onDisconnect(IoSession session) {
+        //触发 onClose
         webSocketRouter.onClose();
+
+        //WebSocket 要考虑释放缓冲区
+        ByteBufferChannel byteBufferChannel = TObject.cast(session.getAttribute("WebSocketByteBufferChannel"));
+        if (byteBufferChannel != null && !byteBufferChannel.isReleased()) {
+            byteBufferChannel.release();
+        }
     }
 
     @Override
@@ -54,12 +62,19 @@ public class WebSocketHandler implements IoHandler{
             return null;
         }
 
+        ByteBufferChannel byteBufferChannel = null;
+        if(!session.containAttribute("WebSocketByteBufferChannel")){
+            byteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+            session.setAttribute("WebSocketByteBufferChannel",byteBufferChannel);
+        }else{
+            byteBufferChannel = TObject.cast(session.getAttribute("WebSocketByteBufferChannel"));
+        }
+
+
         // WS_CLOSE 如果收到关闭帧则关闭连接
         if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING) {
             return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, reqWebSocketFrame.getFrameData());
         }
-
-
         // WS_PING 收到 ping 帧则返回 pong 帧
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PING) {
             return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false,  reqWebSocketFrame.getFrameData());
@@ -68,11 +83,17 @@ public class WebSocketHandler implements IoHandler{
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
             TEnv.sleep(1000);
             return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null);
+        }else if(reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.CONTINUOUS){
+            byteBufferChannel.writeEnd(reqWebSocketFrame.getFrameData());
         }
         // WS_RECIVE 文本和二进制消息出发 Recived 事件
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.TEXT || reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.BINARY) {
 
-            ByteBuffer respData = webSocketRouter.onRecived(reqWebSocketFrame.getFrameData());
+            byteBufferChannel.writeEnd(reqWebSocketFrame.getFrameData());
+
+            //触发 onRecive
+            ByteBuffer respData = webSocketRouter.onRecived(byteBufferChannel.getByteBuffer());
+            byteBufferChannel.compact();
 
             //判断解包是否有错
             if (reqWebSocketFrame.getErrorCode() == 0) {
@@ -95,6 +116,7 @@ public class WebSocketHandler implements IoHandler{
             return;
         }
         ByteBuffer data = webSocketFrame.getFrameData();
+        //触发 onSent
         webSocketRouter.onSent(data);
     }
 
