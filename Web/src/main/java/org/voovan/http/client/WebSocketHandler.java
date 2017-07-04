@@ -58,9 +58,11 @@ public class WebSocketHandler implements IoHandler{
         if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING) {
             return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, reqWebSocketFrame.getFrameData());
         }
+
+
         // WS_PING 收到 ping 帧则返回 pong 帧
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PING) {
-            return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false, null);
+            return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false,  reqWebSocketFrame.getFrameData());
         }
         // WS_PING 收到 pong 帧则返回 ping 帧
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
