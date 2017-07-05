@@ -346,7 +346,8 @@ public class WebServerHandler implements IoHandler {
 		}
 
         //处理连接保持
-        if ( (boolean)getAttribute(session, SessionParam.KEEP_ALIVE) &&
+        if ( getAttribute(session, SessionParam.KEEP_ALIVE) !=null &&
+				(boolean)getAttribute(session, SessionParam.KEEP_ALIVE) &&
                 webConfig.getKeepAliveTimeout() > 0) {
 
             if (!keepAliveSessionList.contains(session)) {
