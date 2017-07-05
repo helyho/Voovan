@@ -1,5 +1,6 @@
 package org.voovan.network.udp;
 
+import org.voovan.Global;
 import org.voovan.network.SocketContext;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TrasnferSplitter;
@@ -87,6 +88,11 @@ public class UdpServerSocket extends SocketContext{
         return this.datagramChannel;
     }
 
+    /**
+     * 启动同步监听
+     * 		非阻赛方法
+     * @throws IOException  IO 异常
+     */
     @Override
     public void start() throws IOException {
         //如果没有消息分割器默认使用透传割器
@@ -98,6 +104,23 @@ public class UdpServerSocket extends SocketContext{
             UdpSelector udpSelector = new UdpSelector(selector,this);
             udpSelector.eventChose();
         }
+    }
+
+    /**
+     * 启动同步监听
+     * 		非阻赛方法
+     * @throws IOException  IO 异常
+     */
+    public void syncStart() throws IOException {
+        Global.getThreadPool().execute(new Runnable(){
+            public void run() {
+                try {
+                    start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override

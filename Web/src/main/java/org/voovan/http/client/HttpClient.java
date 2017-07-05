@@ -5,6 +5,7 @@ import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
+import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.IoSession;
@@ -506,12 +507,13 @@ public class HttpClient {
 		//处理升级后的消息
 		if(response.protocol().getStatus()==101){
 
+			WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketRouter);
+
 			isWebSocket = true;
 
 			//这里需要效验Sec-WebSocket-Accept
-			socket.getSession().setAttribute("Type","WebSocket");
+			socket.getSession().setAttribute(WebServerHandler.SessionParam.TYPE, "WebSocket");
 
-			WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketRouter);
 			socket.handler(webSocketHandler);
 
 			//触发 onOpen
