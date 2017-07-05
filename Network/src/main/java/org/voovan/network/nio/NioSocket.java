@@ -122,7 +122,8 @@ public class NioSocket extends SocketContext{
 	}
 	
 	/**
-	 * 启动
+	 * 启动同步的上下文连接,
+	 * 		阻塞方法
 	 * @throws IOException IO 异常
 	 */
 	public void start() throws IOException  {
@@ -148,7 +149,8 @@ public class NioSocket extends SocketContext{
 	}
 
 	/**
-	 * 启动同步的上下文连接,同步读写时使用
+	 * 启动同步的上下文连接
+	 * 		非阻塞方法
 	 */
 	public void syncStart(){
 

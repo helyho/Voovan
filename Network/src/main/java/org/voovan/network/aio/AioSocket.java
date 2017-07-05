@@ -135,7 +135,12 @@ public class AioSocket extends SocketContext {
 			sslManager.createClientSSLParser(session);
 		}
 	}
-	
+
+	/**
+	 * 启动上下文连接
+	 *		阻塞方法
+	 * @throws IOException  IO 异常
+	 */
 	@Override
 	public void start() throws IOException{
 
@@ -151,7 +156,8 @@ public class AioSocket extends SocketContext {
 	}
 
 	/**
-	 * 启动同步的上下文连接,同步读写时使用
+	 * 启动同步的上下文连接
+	 * 		非阻塞方法
 	 *
 	 * @exception IOException IO异常
 	 */
