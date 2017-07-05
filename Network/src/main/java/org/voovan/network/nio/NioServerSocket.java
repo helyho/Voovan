@@ -1,6 +1,8 @@
 package org.voovan.network.nio;
 
+import org.voovan.Global;
 import org.voovan.network.SocketContext;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -73,13 +75,31 @@ public class NioServerSocket extends SocketContext{
 	}
 	
 	/**
-	 * 启动
+	 * 启动监听
+	 * 		阻赛方法
 	 * @throws IOException  IO 异常
 	 */
 	@Override
 	public void start() throws IOException {
 		NioSelector eventListener = new NioSelector(selector,this);
 		eventListener.eventChose();
+	}
+
+	/**
+	 * 启动同步监听
+	 * 		非阻赛方法
+	 * @throws IOException  IO 异常
+	 */
+	public void syncStart() throws IOException {
+		Global.getThreadPool().execute(new Runnable(){
+			public void run() {
+				try {
+					start();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 
 	@Override

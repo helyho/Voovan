@@ -64,17 +64,30 @@ public class AioServerSocket extends SocketContext{
 	protected void catchAccept(){
 		serverSocketChannel.accept(this, acceptCompletionHandler);
 	}
-	
+
+	/**
+	 * 启动监听
+	 *   	阻塞方法
+	 * @throws IOException  IO 异常
+	 */
 	@Override
 	public void start() throws IOException {
-		InetSocketAddress socketAddress = new InetSocketAddress(host, port);
-		serverSocketChannel.bind(socketAddress, 1000);
-		catchAccept();
-		
+		syncStart();
 		//等待ServerSocketChannel关闭,结束进程
 		while(isConnected()) {
 			TEnv.sleep(1);
 		}
+	}
+
+	/**
+	 *  启动同步监听
+	 *  	非阻塞方法
+	 * @throws IOException
+	 */
+	public void syncStart() throws IOException {
+		InetSocketAddress socketAddress = new InetSocketAddress(host, port);
+		serverSocketChannel.bind(socketAddress, 1000);
+		catchAccept();
 	}
 
 	@Override
