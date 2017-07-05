@@ -8,6 +8,7 @@ import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
+import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.network.IoSession;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioSocket;
@@ -507,7 +508,12 @@ public class HttpClient {
 		//处理升级后的消息
 		if(response.protocol().getStatus()==101){
 
-			WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketRouter);
+
+			WebSocketSession webSocketSession = new WebSocketSession(socket.getSession());
+			WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketSession, webSocketRouter);
+			webSocketSession.setWebSocketRouter(webSocketRouter);
+
+			webSocketRouter.setSession(webSocketSession);
 
 			isWebSocket = true;
 
@@ -516,11 +522,9 @@ public class HttpClient {
 
 			socket.handler(webSocketHandler);
 
-			//触发 onOpen
-			webSocketRouter.setSession(socket.getSession());
-			ByteBuffer buffer = webSocketRouter.onOpen();
+			ByteBuffer buffer = webSocketRouter.onOpen(webSocketSession);
 			if(buffer!=null) {
-				WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.BINARY, true, buffer);
+				WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
 				sendData(webSocketFrame);
 				webSocketFrame.getFrameData().flip();
 			}

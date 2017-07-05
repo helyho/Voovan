@@ -15,87 +15,38 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public abstract class WebSocketRouter implements Cloneable{
-	private IoSession session;
+	private WebSocketSession session;
 
 	/**
 	 * 设置会话
 	 * @param session IoSession 会话对象
 	 */
-	public void setSession(IoSession session){
+	public void setSession(WebSocketSession session){
 		this.session = session;
-	}
-
-	/**
-	 * 持久化当前 WebSocketRouter, 可以在任何时候给客户端发送消息
-	 * @return WebSocketRouter对象
-	 */
-	public WebSocketRouter persistent() {
-		try {
-			return (WebSocketRouter) super.clone();
-		}catch(CloneNotSupportedException e){
-			Logger.error("Persistent WebSocketRouter error");
-			return null;
-		}
-	}
-
-	/**
-	 * 发送消息给客户端
-	 * @param byteBuffer ByteBuffer 对象
-	 */
-	public synchronized void send(ByteBuffer byteBuffer) {
-		WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, byteBuffer);
-
-		//这里不用syncSend 方法是因为出发 onSent 是异步的,会导致消息顺序错乱
-		session.send(webSocketFrame.toByteBuffer());
-		byteBuffer.remaining();
-
-		//出发发送事件
-		onSent(byteBuffer);
-	}
-
-	/**
-	 * 判断连接状态
-	 * @return true: 连接状态, false: 断开状态
-	 */
-	public boolean isConnected(){
-		return session.isConnected();
-	}
-
-	/**
-	 * 关闭 WebSocket
-	 */
-	public void close() {
-		try {
-            WebSocketFrame closeWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING,
-                    false, ByteBuffer.wrap(WebSocketTools.intToByteArray(1000, 2)));
-            session.syncSend(closeWebSocketFrame);
-		} catch (SendMessageException e) {
-			e.printStackTrace();
-		}
 	}
 
 	/**
 	 * websocket 连接打开
 	 * @return 收到的缓冲数据
 	 */
-	public abstract ByteBuffer onOpen();
+	public abstract ByteBuffer onOpen(WebSocketSession session);
 
 	/**
 	 * websocket 收到消息
 	 * @param message 收到的缓冲数据
 	 * @return 收到的缓冲数据
 	 */
-	public abstract ByteBuffer onRecived(ByteBuffer message);
+	public abstract ByteBuffer onRecived(WebSocketSession session, ByteBuffer message);
 
 	/**
 	 * websocket 消息发送完成
 	 * @param message 发送的消息
 	 */
-	public abstract void onSent(ByteBuffer message);
+	public abstract void onSent(WebSocketSession session, ByteBuffer message);
 
 
 	/**
 	 * websocket 关闭
 	 */
-	public abstract void onClose();
+	public abstract void onClose(WebSocketSession session);
 }

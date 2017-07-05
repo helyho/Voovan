@@ -2,6 +2,7 @@ package org.voovan.test.http;
 
 import org.voovan.http.server.WebServer;
 import org.voovan.http.websocket.WebSocketRouter;
+import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
@@ -103,35 +104,34 @@ public class WebServerDemo {
         webServer.socket("/websocket", new WebSocketRouter() {
 
         	@Override
-			public ByteBuffer onOpen() {
+			public ByteBuffer onOpen(WebSocketSession webSocketSession) {
 				Logger.info("onOpen: WebSocket connect!");
 
-				WebSocketRouter webSocketRouter = this.persistent();
                 //调用发送函数发送
-                webSocketRouter.send(ByteBuffer.wrap("Send by persistent Object's send method in onOpen".getBytes()));
+				webSocketSession.send(ByteBuffer.wrap("Send by persistent Object's send method in onOpen".getBytes()));
 
-				send(ByteBuffer.wrap("Send by send method in onOpen".getBytes()));
+				webSocketSession.send(ByteBuffer.wrap("Send by send method in onOpen".getBytes()));
 				return ByteBuffer.wrap("Server send: onOpen".getBytes());
 			}
 
 			@Override
-			public ByteBuffer onRecived(ByteBuffer message) {
+			public ByteBuffer onRecived(WebSocketSession webSocketSession, ByteBuffer message) {
 				String msg = TByteBuffer.toString(message);
 				Logger.info("onRecive: "+TByteBuffer.toString(message));
 				msg = "This is server message. Client message: \r\n\t\""+msg+"\"";
 
 				//调用发送函数发送
-				send(ByteBuffer.wrap("Send by send method in onRecive".getBytes()));
+				webSocketSession.send(ByteBuffer.wrap("Send by send method in onRecive".getBytes()));
 				return ByteBuffer.wrap(msg.getBytes());
 			}
 
 			@Override
-			public void onSent(ByteBuffer message) {
+			public void onSent(WebSocketSession webSocketSession, ByteBuffer message) {
 				Logger.info("onSend: "+TByteBuffer.toString(message));
 			}
 
 				@Override
-			public void onClose() {
+			public void onClose(WebSocketSession webSocketSession) {
 				Logger.info("WebSocket close!");
 			}
 		});

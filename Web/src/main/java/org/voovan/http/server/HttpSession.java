@@ -1,6 +1,8 @@
 package org.voovan.http.server;
 
 import org.voovan.http.server.context.WebServerConfig;
+import org.voovan.http.websocket.WebSocketSession;
+import org.voovan.network.IoSession;
 import org.voovan.tools.TString;
 import org.voovan.tools.UniqueId;
 
@@ -22,6 +24,8 @@ public class HttpSession {
 	private int maxInactiveInterval;
 	private long lastTimeillis;
 	private SessionManager sessionManager;
+	private IoSession socketSession;
+	private WebSocketSession webSocketSession;
 
 	
 	/**
@@ -30,7 +34,7 @@ public class HttpSession {
 	 * @param config  WEB服务配置对象
 	 * @param sessionManager Session管理器
 	 */
-	public HttpSession(WebServerConfig config, SessionManager sessionManager){
+	public HttpSession(WebServerConfig config, SessionManager sessionManager, IoSession socketSession){
 		attributes = new ConcurrentHashMap<String, Object>();
 		//生成一个随机的 ID 用作唯一标识
 		this.id = TString.generateShortUUID();
@@ -38,7 +42,39 @@ public class HttpSession {
 		int sessionTimeout = config.getSessionTimeout();
 		this.maxInactiveInterval = sessionTimeout*60*1000;
 		this.sessionManager = sessionManager;
-		
+		this.socketSession = socketSession;
+	}
+
+	/**
+	 * 获取 WebSocket 会话对象
+	 * @return socket 会话对象
+	 */
+	protected WebSocketSession getWebSocketSession() {
+		return webSocketSession;
+	}
+
+	/**
+	 * 设置 socket 会话对象
+	 * @param webSocketSession WebSocket 会话对象
+	 */
+	protected void setWebSocketSession(WebSocketSession webSocketSession) {
+		this.webSocketSession = webSocketSession;
+	}
+
+	/**
+	 * 获取 socket 会话对象
+	 * @return socket 会话对象
+	 */
+	public IoSession getSocketSession() {
+		return socketSession;
+	}
+
+	/**
+	 * 设置 socket 会话对象
+	 * @param socketSession socket 会话对象
+	 */
+	public void setSocketSession(IoSession socketSession) {
+		this.socketSession = socketSession;
 	}
 
 	/**
