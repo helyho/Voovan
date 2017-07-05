@@ -57,6 +57,7 @@ public class DynamicFunction {
      * 构造函数
      *
      * @param name 命名的名称
+     * @param code 用户代码
      */
     public DynamicFunction(String name, String code) {
         init();
@@ -67,9 +68,9 @@ public class DynamicFunction {
     /**
      * 构造函数
      *
-     * @param file    脚本文件路径
-     * @param charset 脚本文件编码
-     * @throws UnsupportedEncodingException
+     * @param file    用户代码路径
+     * @param charset 用户代码编码
+     * @throws UnsupportedEncodingException 字符集异常
      */
     public DynamicFunction(File file, String charset) throws UnsupportedEncodingException {
         init();
@@ -141,7 +142,7 @@ public class DynamicFunction {
 
     /**
      * 获取是否支持代码中的 import
-     * @return
+     * @return true:支持代码中的 import, false: 不支持代码中的 import
      */
     public boolean isEnableImportInCode() {
         return enableImportInCode;
@@ -149,12 +150,16 @@ public class DynamicFunction {
 
     /**
      * 设置是否支持代码中 import
-     * @param enableImportInCode
+     * @param enableImportInCode true:支持代码中的 import, false:不支持代码中的 import
      */
     public void enableImportInCode(boolean enableImportInCode) {
         this.enableImportInCode = enableImportInCode;
     }
 
+    /**
+     * 获取用户代码
+     * @return 用户代码
+     */
     public String getCode() {
         if (codeFile != null) {
             try {
@@ -341,8 +346,7 @@ public class DynamicFunction {
     /**
      * 编译用户代码
      *
-     * @return 返回编译后得到的 Class 对象
-     * @throws ClassNotFoundException 反射异常
+     * @throws ReflectiveOperationException 反射异常
      */
     public void compileCode() throws ReflectiveOperationException {
         synchronized (this.clazz) {
