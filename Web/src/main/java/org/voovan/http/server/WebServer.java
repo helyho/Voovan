@@ -267,22 +267,47 @@ public class WebServer {
 	}
 
 	/**
+	 * 通用服务启动
+	 */
+	private void commonServe(){
+		//输出欢迎信息
+		WebContext.welcome(config);
+		WebContext.initWebServerPlugin();
+
+		loadContextBin();
+		initConfigedRouter();
+		initModule();
+		Logger.simple("Process ID: "+ TEnv.getCurrentPID());
+		Logger.simple("WebServer working on: http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
+
+	}
+
+
+	/**
 	 * 启动服务
+	 * 		阻塞方式启动
 	 *
 	 * @return WebServer 对象
 	 */
 	public WebServer serve() {
 		try {
-			//输出欢迎信息
-			WebContext.welcome(config);
-			WebContext.initWebServerPlugin();
-
-			loadContextBin();
-			initConfigedRouter();
-			initModule();
-			Logger.simple("Process ID: "+ TEnv.getCurrentPID());
-			Logger.simple("WebServer working on: http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
+			commonServe();
 			aioServerSocket.start();
+		} catch (IOException e) {
+			Logger.error("Start HTTP server error",e);
+		}
+		return this;
+	}
+
+	/**
+	 * 启动服务
+	 *		非阻塞方式启动
+	 * @return WebServer 对象
+	 */
+	public WebServer syncServe() {
+		try {
+			commonServe();
+			aioServerSocket.syncStart();
 		} catch (IOException e) {
 			Logger.error("Start HTTP server error",e);
 		}
