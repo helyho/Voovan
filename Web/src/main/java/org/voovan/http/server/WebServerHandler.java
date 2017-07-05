@@ -151,8 +151,8 @@ public class WebServerHandler implements IoHandler {
 			}
 
 			// 构造 Http 请求/响应 对象
-			HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet);
-			HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet);
+			HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet, session);
+			HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet, session);
 
 			setAttribute(session, SessionParam.HTTP_REQUEST, httpRequest);
 			setAttribute(session, SessionParam.HTTP_RESPONSE, httpResponse);
@@ -219,6 +219,7 @@ public class WebServerHandler implements IoHandler {
 		
 		//保存必要参数
 		setAttribute(session, SessionParam.TYPE, "Upgrade");
+		httpDispatcher.disposeSession(httpRequest, httpResponse);
 
 		//初始化响应消息
 		httpResponse.protocol().setStatus(101);

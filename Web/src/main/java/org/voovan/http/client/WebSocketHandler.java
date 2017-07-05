@@ -2,6 +2,7 @@ package org.voovan.http.client;
 
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
+import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
@@ -24,9 +25,18 @@ public class WebSocketHandler implements IoHandler{
 
     private WebSocketRouter webSocketRouter;
     private HttpClient httpClient;
-    public WebSocketHandler(HttpClient httpClient, WebSocketRouter webSocketRouter){
+    private WebSocketSession webSocketSession;
+
+    /**
+     * 构造函数
+     * @param httpClient  HttpClient对象
+     * @param webSocketSession WebSocketSession对象
+     * @param webSocketRouter WebSocketRouter对象
+     */
+    public WebSocketHandler(HttpClient httpClient, WebSocketSession webSocketSession, WebSocketRouter webSocketRouter){
         this.webSocketRouter = webSocketRouter;
         this.httpClient = httpClient;
+        this.webSocketSession = webSocketSession;
     }
 
     @Override
@@ -38,7 +48,7 @@ public class WebSocketHandler implements IoHandler{
     @Override
     public void onDisconnect(IoSession session) {
         //触发 onClose
-        webSocketRouter.onClose();
+        webSocketRouter.onClose(webSocketSession);
 
         //WebSocket 要考虑释放缓冲区
         ByteBufferChannel byteBufferChannel = TObject.cast(session.getAttribute("WebSocketByteBufferChannel"));
@@ -92,12 +102,12 @@ public class WebSocketHandler implements IoHandler{
             byteBufferChannel.writeEnd(reqWebSocketFrame.getFrameData());
 
             //触发 onRecive
-            ByteBuffer respData = webSocketRouter.onRecived(byteBufferChannel.getByteBuffer());
+            ByteBuffer respData = webSocketRouter.onRecived(webSocketSession, byteBufferChannel.getByteBuffer());
             byteBufferChannel.compact();
 
             //判断解包是否有错
             if (reqWebSocketFrame.getErrorCode() == 0) {
-                respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.BINARY, true, respData);
+                respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, respData);
             } else {
                 //解析时出现异常,返回关闭消息
                 respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(reqWebSocketFrame.getErrorCode(), 2)));
@@ -109,15 +119,19 @@ public class WebSocketHandler implements IoHandler{
 
     @Override
     public void onSent(IoSession session, Object obj) {
-        webSocketRouter.setSession(session);
         WebSocketFrame webSocketFrame = WebSocketFrame.parse((ByteBuffer)obj);
         if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING){
             session.close();
             return;
         }
-        ByteBuffer data = webSocketFrame.getFrameData();
-        //触发 onSent
-        webSocketRouter.onSent(data);
+
+        if(webSocketFrame.getOpcode() != WebSocketFrame.Opcode.PING &&
+                webSocketFrame.getOpcode() != WebSocketFrame.Opcode.PONG &&
+                webSocketFrame.getOpcode() != WebSocketFrame.Opcode.CLOSING) {
+            ByteBuffer data = webSocketFrame.getFrameData();
+            //触发 onSent
+            webSocketRouter.onSent(webSocketSession, data);
+        }
     }
 
     @Override

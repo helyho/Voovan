@@ -1,10 +1,14 @@
 package org.voovan.http.server;
 
+import org.voovan.http.client.WebSocketHandler;
+import org.voovan.http.message.packet.Cookie;
+import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketFrame.Opcode;
 import org.voovan.http.websocket.WebSocketRouter;
+import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.network.IoSession;
 
 import java.nio.ByteBuffer;
@@ -24,6 +28,7 @@ import java.util.TreeMap;
  */
 public class WebSocketDispatcher {
 	private WebServerConfig webConfig;
+	private SessionManager sessionManager;
 
 	/**
 	 * [Key] = Route path ,[Value] = WebSocketBizHandler对象
@@ -40,8 +45,10 @@ public class WebSocketDispatcher {
 	 * @param webConfig WEB 配置对象
 	 *            根目录
 	 */
-	public WebSocketDispatcher(WebServerConfig webConfig) {
+	public WebSocketDispatcher(WebServerConfig webConfig, SessionManager sessionManager) {
 		this.webConfig = webConfig;
+		this.sessionManager = sessionManager;
+
 		routes =  new TreeMap<String, WebSocketRouter>(new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
@@ -87,20 +94,23 @@ public class WebSocketDispatcher {
 			if (isMatched) {
 				// 获取路由处理对象
 				WebSocketRouter webSocketRouter = routeEntry.getValue();
-				webSocketRouter.setSession(session);
+
+				WebSocketSession webSocketSession = disposeSession(request, webSocketRouter);
+
+				webSocketRouter.setSession(webSocketSession);
 
 				// 获取路径变量
 				ByteBuffer responseMessage = null;
 
 				//WebSocket 事件处理
 				if (event == WebSocketEvent.OPEN) {
-					responseMessage = webSocketRouter.onOpen();
+					responseMessage = webSocketRouter.onOpen(webSocketSession);
 				} else if (event == WebSocketEvent.RECIVED) {
-					responseMessage = webSocketRouter.onRecived(bytebuffer);
+					responseMessage = webSocketRouter.onRecived(webSocketSession, bytebuffer);
 				} else if (event == WebSocketEvent.SENT) {
-					webSocketRouter.onSent(bytebuffer);
+					webSocketRouter.onSent(webSocketSession, bytebuffer);
 				} else if (event == WebSocketEvent.CLOSE) {
-					webSocketRouter.onClose();
+					webSocketRouter.onClose(webSocketSession);
 				}
 				
 				//将返回消息包装称WebSocketFrame
@@ -116,6 +126,28 @@ public class WebSocketDispatcher {
 			new RouterNotFound("Not avaliable router!").printStackTrace();
 		}
 		return null;
+	}
+
+	/**
+	 * 处理 WebSocketSession
+	 * @param request Http 请求对象
+	 * @param webSocketRouter websocket 路由处理
+	 * @return WebSocketSession对象
+	 */
+	public WebSocketSession disposeSession(HttpRequest request, WebSocketRouter webSocketRouter){
+
+		HttpSession httpSession = request.getSession();
+		//如果 session 不存在,创建新的 session
+		if (httpSession.getWebSocketSession()==null) {
+			// 构建 session
+			WebSocketSession webSocketSession = new WebSocketSession(httpSession.getSocketSession(), webSocketRouter);
+			httpSession.setWebSocketSession(webSocketSession);
+			// 请求增加 Session
+			request.setSession(httpSession);
+		}
+
+		return httpSession.getWebSocketSession();
+
 	}
 	
 	/**
