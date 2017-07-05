@@ -39,6 +39,7 @@ public class DynamicClass {
 
     /**
      * 构造函数
+     * @param  code 用户代码
      */
     public DynamicClass(String code) {
         init();
@@ -50,7 +51,7 @@ public class DynamicClass {
      *
      * @param file    脚本文件路径
      * @param charset 脚本文件编码
-     * @throws UnsupportedEncodingException
+     * @throws UnsupportedEncodingException 字符集异常
      */
     public DynamicClass(File file, String charset) throws UnsupportedEncodingException {
         init();
@@ -184,8 +185,7 @@ public class DynamicClass {
     /**
      * 编译用户代码
      *
-     * @return 返回编译后得到的 Class 对象
-     * @throws ClassNotFoundException 反射异常
+     * @throws ReflectiveOperationException 反射异常
      */
     public void compileCode() throws ReflectiveOperationException {
 
