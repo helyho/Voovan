@@ -57,8 +57,13 @@ public class NioSelector {
 		}
 		
 		if (socketContext instanceof NioSocket) {
-			// 连接完成onConnect事件触发
-			EventTrigger.fireConnectThread(session);
+			// 连接完成 onConnect 事件触发
+			if(session.getSSLParser()!=null){
+				//如果是 SSL 通信需要connect 事件同步执行,用来等待我手完成
+				EventTrigger.fireConnect(session);
+			}else {
+				EventTrigger.fireConnectThread(session);
+			}
 		}
 		
 		// 事件循环

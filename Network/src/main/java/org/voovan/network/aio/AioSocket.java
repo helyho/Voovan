@@ -187,7 +187,12 @@ public class AioSocket extends SocketContext {
 			catchRead(readByteBuffer);
 
 			//触发 connect 事件
-			EventTrigger.fireConnectThread(session);
+			if(session.getSSLParser()!=null){
+				//如果是 SSL 通信需要 connect 事件同步执行用来等待我手完成
+				EventTrigger.fireConnect(session);
+			}else {
+				EventTrigger.fireConnectThread(session);
+			}
 		}
 	}
 
