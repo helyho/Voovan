@@ -1,6 +1,7 @@
 package org.voovan.http.server;
 
 import org.voovan.http.message.Response;
+import org.voovan.network.IoSession;
 import org.voovan.tools.TDateTime;
 
 import java.util.Date;
@@ -16,17 +17,35 @@ import java.util.Date;
  */
 public class HttpResponse extends Response {
 	private String	characterSet;
+	private IoSession socketSession;
 
 	/**
 	 * 构造 HTTP 响应对象
 	 * @param response     响应对象
 	 * @param characterSet 字符集
      */
-	protected HttpResponse(Response response,String characterSet) {
+	protected HttpResponse(Response response,String characterSet, IoSession socketSession) {
 		super(response);
 		this.characterSet=characterSet;
 		//设置当前响应的时间
 		this.header().put("Date",TDateTime.formatToGMT(new Date()));
+		this.socketSession = socketSession;
+	}
+
+	/**
+	 * 获取 socket 会话对象
+	 * @return socket 会话对象
+	 */
+	protected IoSession getSocketSession() {
+		return socketSession;
+	}
+
+	/**
+	 * 设置 socket 会话对象
+	 * @param socketSession socket 会话对象
+	 */
+	protected void setSocketSession(IoSession socketSession) {
+		this.socketSession = socketSession;
 	}
 
 	/**

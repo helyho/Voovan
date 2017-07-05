@@ -297,7 +297,12 @@ public class HttpDispatcher {
             // 通过 Cookie 中的 session 标识获取 Session
             HttpSession httpSession = sessionManager.getSession(sessionCookie.getValue());
 
-            // 请求增加 Session
+            // 保持 Socket 会话同步
+			if(!request.getSocketSession().equals(httpSession.getSocketSession())) {
+				httpSession.setSocketSession(request.getSocketSession());
+			}
+
+			// 请求增加 Session
             request.setSession(httpSession);
         }
 	}

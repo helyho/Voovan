@@ -154,7 +154,7 @@ public class SessionManager{
 	 * @return HTTP-Session对象
 	 */
 	public HttpSession newHttpSession(HttpRequest request,HttpResponse response){
-		HttpSession session  = new HttpSession(webConfig, this);
+		HttpSession session  = new HttpSession(webConfig, this, request.getSocketSession());
 		
 		this.addSession(session);
 		

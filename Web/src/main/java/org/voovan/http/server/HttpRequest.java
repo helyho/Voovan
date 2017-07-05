@@ -3,6 +3,7 @@ package org.voovan.http.server;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
+import org.voovan.network.IoSession;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -32,15 +33,38 @@ public class HttpRequest extends Request {
 	private int remotePort;
 	private String characterSet;
 	private Map<String, String> parameters;
-
 	private Map<String, Object> attributes;
-	
-	protected HttpRequest(Request request,String characterSet){
+	private IoSession socketSession;
+
+	/**
+	 * 构造函数
+	 * @param request  解析出的 Request 对象
+	 * @param characterSet  字符集
+	 * @param socketSession socket 会话对象
+	 */
+	protected HttpRequest(Request request,String characterSet, IoSession socketSession){
 		super(request);
 		this.characterSet=characterSet;
 		parameters = new HashMap<String, String>();
 		attributes = new HashMap<String, Object>();
 		parseQueryString();
+		this.socketSession = socketSession;
+	}
+
+	/**
+	 * 获取 socket 会话对象
+	 * @return socket 会话对象
+	 */
+	protected IoSession getSocketSession() {
+		return socketSession;
+	}
+
+	/**
+	 * 设置 socket 会话对象
+	 * @param socketSession socket 会话对象
+	 */
+	protected void setSocketSession(IoSession socketSession) {
+		this.socketSession = socketSession;
 	}
 
 	/**
