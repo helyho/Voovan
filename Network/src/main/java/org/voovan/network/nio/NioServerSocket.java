@@ -2,7 +2,6 @@ package org.voovan.network.nio;
 
 import org.voovan.Global;
 import org.voovan.network.SocketContext;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;

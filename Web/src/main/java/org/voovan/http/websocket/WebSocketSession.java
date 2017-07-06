@@ -1,7 +1,5 @@
 package org.voovan.http.websocket;
 
-import org.voovan.http.client.WebSocketHandler;
-import org.voovan.http.server.HttpRequest;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.log.Logger;
@@ -56,19 +54,19 @@ public class WebSocketSession {
 
     /**
      * 发送 websocket 消息
-     * @param byteBuffer 消息内容
+     * @param obj 消息对象
      */
-    public synchronized void send(ByteBuffer byteBuffer) {
+    public synchronized void send(Object obj) {
 
-
+        ByteBuffer byteBuffer = (ByteBuffer)webSocketRouter.filterEncoder(this, obj);
         WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, byteBuffer);
 
-        //这里不用syncSend 方法是因为出发 onSent 是异步的,会导致消息顺序错乱
         this.socketSession.send(webSocketFrame.toByteBuffer());
         byteBuffer.remaining();
 
-        //触发发送事件
-        webSocketRouter.onSent(this, byteBuffer);
+        //触发 onSent 事件
+        obj = webSocketRouter.filterDecoder(this, byteBuffer);
+        webSocketRouter.onSent(this, obj);
     }
 
     /**

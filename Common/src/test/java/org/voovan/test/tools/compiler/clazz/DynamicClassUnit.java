@@ -3,13 +3,10 @@ package org.voovan.test.tools.compiler.clazz;
 import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.compiler.clazz.DynamicClass;
-import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 类文字命名

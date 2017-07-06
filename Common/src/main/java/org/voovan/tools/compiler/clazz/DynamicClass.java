@@ -1,16 +1,13 @@
 package org.voovan.tools.compiler.clazz;
 
-import org.voovan.tools.*;
+import org.voovan.tools.TFile;
+import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
 import org.voovan.tools.compiler.DynamicCompiler;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * 动态类管理类

@@ -1,8 +1,5 @@
 package org.voovan.http.server;
 
-import org.voovan.http.client.WebSocketHandler;
-import org.voovan.http.message.packet.Cookie;
-import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.websocket.WebSocketFrame;
@@ -79,10 +76,10 @@ public class WebSocketDispatcher {
 	 * @param event     WebSocket 事件
 	 * @param session   socket连接会话
 	 * @param request   HTTP 请求对象
-	 * @param bytebuffer bytebuffer 对象, 保存 WebSocket 数据
+	 * @param byteBuffer 对象, 保存 WebSocket 数据
 	 * @return WebSocket 帧对象
 	 */
-	public WebSocketFrame process(WebSocketEvent event, IoSession session, HttpRequest request, ByteBuffer bytebuffer) {
+	public WebSocketFrame process(WebSocketEvent event, IoSession session, HttpRequest request, ByteBuffer byteBuffer) {
 
 		String requestPath = request.protocol().getPath();
 
@@ -102,13 +99,23 @@ public class WebSocketDispatcher {
 				// 获取路径变量
 				ByteBuffer responseMessage = null;
 
+				Object result = byteBuffer;
 				//WebSocket 事件处理
 				if (event == WebSocketEvent.OPEN) {
-					responseMessage = webSocketRouter.onOpen(webSocketSession);
+					result = webSocketRouter.onOpen(webSocketSession);
+					//封包
+					responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
 				} else if (event == WebSocketEvent.RECIVED) {
-					responseMessage = webSocketRouter.onRecived(webSocketSession, bytebuffer);
+					//解包
+					result = webSocketRouter.filterDecoder(webSocketSession, result);
+					//触发 onRecive 事件
+					result = webSocketRouter.onRecived(webSocketSession, result);
+					//封包
+					responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
 				} else if (event == WebSocketEvent.SENT) {
-					webSocketRouter.onSent(webSocketSession, bytebuffer);
+					//封包
+					result = webSocketRouter.filterDecoder(webSocketSession, byteBuffer);
+					webSocketRouter.onSent(webSocketSession, result);
 				} else if (event == WebSocketEvent.CLOSE) {
 					webSocketRouter.onClose(webSocketSession);
 				}

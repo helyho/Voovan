@@ -4,8 +4,6 @@ import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.tools.log.Logger;
 
-import java.nio.ByteBuffer;
-
 public class ClientHandlerTest implements IoHandler {
 
 	@Override
@@ -40,9 +38,8 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public void onSent(IoSession session, Object obj) {
-		ByteBuffer sad = (ByteBuffer)obj;
-		sad = (ByteBuffer)sad.rewind();
-		Logger.simple("Client onSent: "+new String(sad.array()));
+		String sad = (String)obj;
+		Logger.simple("Client onSent: "+ sad);
 	}
 
 }
