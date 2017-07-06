@@ -3,13 +3,12 @@ package org.voovan.test.http;
 import org.voovan.http.server.WebServer;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.http.websocket.filter.StringFilter;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
-import java.nio.ByteBuffer;
 
 public class WebServerDemo {
 	private static byte[] fileContent = TFile.loadFileFromContextPath("WEBAPP/index.htm");
@@ -104,37 +103,37 @@ public class WebServerDemo {
         webServer.socket("/websocket", new WebSocketRouter() {
 
         	@Override
-			public ByteBuffer onOpen(WebSocketSession webSocketSession) {
+			public Object onOpen(WebSocketSession webSocketSession) {
 				Logger.info("onOpen: WebSocket connect!");
 
                 //调用发送函数发送
-				webSocketSession.send(ByteBuffer.wrap("Send by persistent Object's send method in onOpen".getBytes()));
+				webSocketSession.send("Send by persistent Object's send method in onOpen");
 
-				webSocketSession.send(ByteBuffer.wrap("Send by send method in onOpen".getBytes()));
-				return ByteBuffer.wrap("Server send: onOpen".getBytes());
+				webSocketSession.send("Send by send method in onOpen");
+				return "Server send: onOpen";
 			}
 
 			@Override
-			public ByteBuffer onRecived(WebSocketSession webSocketSession, ByteBuffer message) {
-				String msg = TByteBuffer.toString(message);
-				Logger.info("onRecive: "+TByteBuffer.toString(message));
+			public Object onRecived(WebSocketSession webSocketSession, Object obj) {
+				String msg = (String)obj;
+				Logger.info("onRecive: "+msg);
 				msg = "This is server message. Client message: \r\n\t\""+msg+"\"";
 
 				//调用发送函数发送
-				webSocketSession.send(ByteBuffer.wrap("Send by send method in onRecive".getBytes()));
-				return ByteBuffer.wrap(msg.getBytes());
+				webSocketSession.send("Send by send method in onRecive");
+				return msg;
 			}
 
 			@Override
-			public void onSent(WebSocketSession webSocketSession, ByteBuffer message) {
-				Logger.info("onSend: "+TByteBuffer.toString(message));
+			public void onSent(WebSocketSession webSocketSession, Object message) {
+				Logger.info("----> onSend: " + message);
 			}
 
 				@Override
 			public void onClose(WebSocketSession webSocketSession) {
 				Logger.info("WebSocket close!");
 			}
-		});
+		}.addFilterChain(new StringFilter()));
 
         webServer.serve();
 

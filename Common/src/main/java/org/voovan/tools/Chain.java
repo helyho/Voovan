@@ -11,7 +11,7 @@ import java.util.Iterator;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class Chain<E> extends ArrayDeque<E>{
+public class Chain<E>  extends ArrayDeque<E> implements Cloneable{
 	private Iterator<E> iterator;
 	private Iterator<E> invertedIterator;
 	private boolean isStop;
@@ -106,11 +106,12 @@ public class Chain<E> extends ArrayDeque<E>{
 			return invertedIterator.hasNext();
 		}
 	}
-	
+
 	/**
 	 *  从当前对象克隆一个 Chain
 	 *  @return 克隆后的对象
 	 */
+	@Override
 	public Chain<E> clone(){
 		ArrayDeque<E> cloned = super.clone();
 		Chain<E> chain = new Chain<E>();

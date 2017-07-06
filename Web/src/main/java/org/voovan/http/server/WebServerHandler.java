@@ -10,7 +10,6 @@ import org.voovan.http.websocket.WebSocketFrame.Opcode;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
-import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
@@ -310,8 +309,8 @@ public class WebServerHandler implements IoHandler {
 		HttpResponse response = getAttribute(session,SessionParam.HTTP_RESPONSE);
 
 		//WebSocket 协议处理
-		if(HttpMessageSplitter.isWebSocketFrame((ByteBuffer) obj) != -1){
-			WebSocketFrame webSocketFrame = WebSocketFrame.parse((ByteBuffer)obj);
+		if(obj instanceof WebSocketFrame){
+			WebSocketFrame webSocketFrame = (WebSocketFrame)obj;
 			if(webSocketFrame.getOpcode() != Opcode.PING &&
 					webSocketFrame.getOpcode() != Opcode.PONG &&
 					webSocketFrame.getOpcode() != Opcode.CLOSING) {
@@ -338,7 +337,7 @@ public class WebServerHandler implements IoHandler {
 				byteBuffer.rewind();
 
 				//出发 onSent 事件
-				onSent(session, byteBuffer);
+				webSocketDispatcher.process(WebSocketEvent.SENT, session, request, webSocketFrame.getFrameData());
 			}
 
 			//发送 ping 消息

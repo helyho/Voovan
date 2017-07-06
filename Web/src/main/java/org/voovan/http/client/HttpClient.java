@@ -522,17 +522,22 @@ public class HttpClient {
 
 			socket.handler(webSocketHandler);
 
-			ByteBuffer buffer = webSocketRouter.onOpen(webSocketSession);
-			if(buffer!=null) {
+			Object result = null;
+
+			result = webSocketRouter.onOpen(webSocketSession);
+			if(result!=null) {
+				//封包
+				ByteBuffer buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+
 				WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
-				sendData(webSocketFrame);
+				sendWebSocketData(webSocketFrame);
 				webSocketFrame.getFrameData().flip();
 			}
 
 		}else{
 			//异常发送关闭帧
 			WebSocketFrame errWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(new byte[]{}));
-			sendData(errWebSocketFrame);
+			sendWebSocketData(errWebSocketFrame);
 			throw new ReadMessageException("Connect WebSocket error!");
 		}
 
@@ -542,7 +547,7 @@ public class HttpClient {
 		}
 	}
 
-	private void sendData(WebSocketFrame webSocketFrame){
+	private void sendWebSocketData(WebSocketFrame webSocketFrame){
 		try {
 			socket.getSession().syncSend(webSocketFrame);
 		} catch (SendMessageException e) {
