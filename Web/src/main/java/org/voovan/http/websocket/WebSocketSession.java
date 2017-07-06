@@ -60,13 +60,11 @@ public class WebSocketSession {
 
         ByteBuffer byteBuffer = (ByteBuffer)webSocketRouter.filterEncoder(this, obj);
         WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, byteBuffer);
-
-        this.socketSession.send(webSocketFrame.toByteBuffer());
-        byteBuffer.remaining();
-
-        //触发 onSent 事件
-        obj = webSocketRouter.filterDecoder(this, byteBuffer);
-        webSocketRouter.onSent(this, obj);
+        try {
+            this.socketSession.syncSend(webSocketFrame);
+        } catch (SendMessageException e) {
+            Logger.error("WebSocket send frame error", e);
+        }
     }
 
     /**
@@ -113,7 +111,7 @@ public class WebSocketSession {
         return socketSession;
     }
 
-    protected void setSocketSession(IoSession socketSession) {
+    public void setSocketSession(IoSession socketSession) {
         this.socketSession = socketSession;
     }
 

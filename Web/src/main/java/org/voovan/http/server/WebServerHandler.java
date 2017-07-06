@@ -10,6 +10,7 @@ import org.voovan.http.websocket.WebSocketFrame.Opcode;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
@@ -283,9 +284,8 @@ public class WebServerHandler implements IoHandler {
 			
 			//判断解包是否有错
 			if(webSocketFrame.getErrorCode()==0){
-				respWebSocketFrame = webSocketDispatcher.process(WebSocketEvent.RECIVED, session, reqWebSocket, byteBufferChannel.getByteBuffer());
+				respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBufferChannel.getByteBuffer());
 				byteBufferChannel.compact();
-				byteBufferChannel.clear();
 			}else{
 				//解析时出现异常,返回关闭消息
 				respWebSocketFrame = WebSocketFrame.newInstance(true, Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
@@ -303,6 +303,18 @@ public class WebServerHandler implements IoHandler {
 
 	}
 
+
+
+	/**
+	 * 触发 WebSocket Close 事件
+	 * @param session socket 会话对象
+	 * @param request http 请求对象
+	 * @param byteBuffer ByteBuffer 对象
+	 */
+	private void fireWebSocketClose(IoSession session, HttpRequest request, ByteBuffer byteBuffer){
+		webSocketDispatcher.process(WebSocketEvent.CLOSE, session, request, byteBuffer);
+	}
+
 	@Override
 	public void onSent(IoSession session, Object obj) {
 		HttpRequest request = getAttribute(session,SessionParam.HTTP_REQUEST);
@@ -314,8 +326,7 @@ public class WebServerHandler implements IoHandler {
 			if(webSocketFrame.getOpcode() != Opcode.PING &&
 					webSocketFrame.getOpcode() != Opcode.PONG &&
 					webSocketFrame.getOpcode() != Opcode.CLOSING) {
-
-				webSocketDispatcher.process(WebSocketEvent.SENT, session, request, webSocketFrame.getFrameData());
+				webSocketDispatcher.fireSentEvent(session, request, webSocketFrame.getFrameData());
 			}
 		}
 
@@ -325,19 +336,15 @@ public class WebServerHandler implements IoHandler {
 			setAttribute(session, SessionParam.KEEP_ALIVE, true);
 
 			//触发 onOpen 事件
-			WebSocketFrame webSocketFrame = webSocketDispatcher.process(WebSocketEvent.OPEN, session, request, null);
+			WebSocketFrame webSocketFrame = webSocketDispatcher.fireOpenEvent(session, request);
 
 			if(webSocketFrame!=null) {
 
-				//发送 onOpen 方法的数据
-				ByteBuffer byteBuffer = webSocketFrame.toByteBuffer();
-
-				//这里不用syncSend 方法是因为出发 onSent 是异步的,会导致消息顺序错乱
-				session.send(byteBuffer);
-				byteBuffer.rewind();
-
-				//出发 onSent 事件
-				webSocketDispatcher.process(WebSocketEvent.SENT, session, request, webSocketFrame.getFrameData());
+				try {
+					session.syncSend(webSocketFrame);
+				} catch (SendMessageException e) {
+					Logger.error("WebSocket Open event send frame error", e);
+				}
 			}
 
 			//发送 ping 消息
