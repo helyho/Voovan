@@ -261,18 +261,17 @@ public class WebServerHandler implements IoHandler {
 		
 		// WS_CLOSE 如果收到关闭帧则关闭连接
 		if(webSocketFrame.getOpcode() == Opcode.CLOSING) {
-			session.close();
 			return WebSocketFrame.newInstance(true, Opcode.CLOSING, false, webSocketFrame.getFrameData());
 		}
 		// WS_PING 收到 ping 帧则返回 pong 帧
 		else if(webSocketFrame.getOpcode() == Opcode.PING) {
-			return WebSocketFrame.newInstance(true, Opcode.PONG, false, webSocketFrame.getFrameData());
+			return webSocketDispatcher.firePingEvent(session, reqWebSocket, webSocketFrame.getFrameData());
 		}
 		// WS_PING 收到 pong 帧则返回 ping 帧
 		else if(webSocketFrame.getOpcode() == Opcode.PONG) {
-			TEnv.sleep(1000);
 			refreshTimeout(session);
-			return WebSocketFrame.newInstance(true, Opcode.PING, false, null);
+			webSocketDispatcher.firePoneEvent(session, reqWebSocket, webSocketFrame.getFrameData());
+			return null;
 		}else if(webSocketFrame.getOpcode() == Opcode.CONTINUOUS){
 			byteBufferChannel.writeEnd(webSocketFrame.getFrameData());
 		}
@@ -286,6 +285,7 @@ public class WebServerHandler implements IoHandler {
 			if(webSocketFrame.getErrorCode()==0){
 				respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBufferChannel.getByteBuffer());
 				byteBufferChannel.compact();
+				byteBufferChannel.clear();
 			}else{
 				//解析时出现异常,返回关闭消息
 				respWebSocketFrame = WebSocketFrame.newInstance(true, Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
@@ -296,23 +296,11 @@ public class WebServerHandler implements IoHandler {
 		return null;
 	}
 
-	public void refreshTimeout(IoSession session){
+	private void refreshTimeout(IoSession session){
 		int keepAliveTimeout = webConfig.getKeepAliveTimeout();
 		long timeoutValue = System.currentTimeMillis()+keepAliveTimeout*1000;
 		setAttribute(session, SessionParam.TIMEOUT, timeoutValue);
 
-	}
-
-
-
-	/**
-	 * 触发 WebSocket Close 事件
-	 * @param session socket 会话对象
-	 * @param request http 请求对象
-	 * @param byteBuffer ByteBuffer 对象
-	 */
-	private void fireWebSocketClose(IoSession session, HttpRequest request, ByteBuffer byteBuffer){
-		webSocketDispatcher.process(WebSocketEvent.CLOSE, session, request, byteBuffer);
 	}
 
 	@Override
@@ -323,9 +311,11 @@ public class WebServerHandler implements IoHandler {
 		//WebSocket 协议处理
 		if(obj instanceof WebSocketFrame){
 			WebSocketFrame webSocketFrame = (WebSocketFrame)obj;
-			if(webSocketFrame.getOpcode() != Opcode.PING &&
-					webSocketFrame.getOpcode() != Opcode.PONG &&
-					webSocketFrame.getOpcode() != Opcode.CLOSING) {
+
+			if(webSocketFrame.getOpcode() == Opcode.CLOSING){
+				session.close();
+			} else if (webSocketFrame.getOpcode() != Opcode.PING &&
+					webSocketFrame.getOpcode() != Opcode.PONG) {
 				webSocketDispatcher.fireSentEvent(session, request, webSocketFrame.getFrameData());
 			}
 		}
