@@ -509,7 +509,9 @@ public class HttpClient {
 		if(response.protocol().getStatus()==101){
 
 
-			WebSocketSession webSocketSession = new WebSocketSession(socket.getSession());
+			WebSocketSession webSocketSession =
+					new WebSocketSession(socket.getSession(), null,
+											this.socket.getHost(), this.socket.getPort());
 			WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketSession, webSocketRouter);
 			webSocketSession.setWebSocketRouter(webSocketRouter);
 

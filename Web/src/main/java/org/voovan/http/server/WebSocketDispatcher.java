@@ -163,7 +163,10 @@ public class WebSocketDispatcher {
 		//如果 session 不存在,创建新的 session
 		if (httpSession.getWebSocketSession()==null) {
 			// 构建 session
-			WebSocketSession webSocketSession = new WebSocketSession(httpSession.getSocketSession(), webSocketRouter);
+			WebSocketSession webSocketSession =
+					new WebSocketSession(httpSession.getSocketSession(), webSocketRouter,
+											request.getRemoteAddres(), request.getRemotePort());
+
 			httpSession.setWebSocketSession(webSocketSession);
 		}
 

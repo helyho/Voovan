@@ -5,6 +5,8 @@ import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 类文字命名
@@ -17,23 +19,75 @@ import java.nio.ByteBuffer;
 public class WebSocketSession {
     private IoSession socketSession;
     private WebSocketRouter webSocketRouter;
+    private String remoteAddres;
+    private int remotePort;
 
-    /**
-     * 构造函数
-     * @param socketSession Socket 会话
-     */
-    public WebSocketSession(IoSession socketSession){
-        this.socketSession = socketSession;
-    }
+    private Map<String,Object> attributes;
 
     /**
      * 构造函数
      * @param socketSession Socket 会话
      * @param webSocketRouter WebSocket 路由处理对象
      */
-    public WebSocketSession(IoSession socketSession, WebSocketRouter webSocketRouter){
+    public WebSocketSession(IoSession socketSession, WebSocketRouter webSocketRouter, String remoteAddres, int remotePort){
         this.socketSession = socketSession;
+        this.remoteAddres = remoteAddres;
+        this.remotePort = remotePort;
         this.webSocketRouter = webSocketRouter;
+        attributes = new ConcurrentHashMap<String, Object>();
+    }
+
+    /**
+     * 获取对端连接的 IP
+     *
+     * @return 对端连接的 IP
+     */
+    public String getRemoteAddres() {
+       return this.remoteAddres;
+    }
+
+    /**
+     * 获取对端连接的端口
+     *
+     * @return 对端连接的端口
+     */
+    public int getRemotePort() {
+        return remotePort;
+    }
+
+    /**
+     * 获取当前 Session 属性
+     * @param name 属性名
+     * @return 属性值
+     */
+    public Object getAttribute(String name) {
+        return attributes.get(name);
+    }
+
+    /**
+     * 判断当前 Session 属性是否存在
+     * @param name 属性名
+     * @return true: 存在, false: 不存在
+     */
+    public boolean containAttribute(String name) {
+        return attributes.containsKey(name);
+    }
+
+    /**
+     * 设置当前 Session 属性
+     * @param name	属性名
+     * @param value	属性值
+     */
+    public void setAttribute(String name,Object value) {
+        attributes.put(name, value);
+    }
+
+    /**
+     *  删除当前 Session 属性
+     * @param name	属性名
+     */
+    public void removeAttribute(String name) {
+        attributes.remove(name);
     }
 
     /**
@@ -111,7 +165,7 @@ public class WebSocketSession {
         return socketSession;
     }
 
-    public void setSocketSession(IoSession socketSession) {
+     public void setSocketSession(IoSession socketSession) {
         this.socketSession = socketSession;
     }
 
