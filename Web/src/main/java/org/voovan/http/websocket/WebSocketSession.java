@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 类文字命名
+ * WebSocket 会话对象
  *
  * @author: helyho
  * Voovan Framework.
