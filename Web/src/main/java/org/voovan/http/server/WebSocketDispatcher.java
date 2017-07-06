@@ -128,13 +128,13 @@ public class WebSocketDispatcher {
 				} else if(event == WebSocketEvent.PING){
 					return WebSocketFrame.newInstance(true, Opcode.PONG, false, byteBuffer);
 				} else if(event == WebSocketEvent.PONG){
-					new Timer().schedule(new TimerTask() {
+					new Timer("VOOVAN_WEB@PONE_TIMER").schedule(new TimerTask() {
 						@Override
 						public void run() {
 							try {
 								session.syncSend(WebSocketFrame.newInstance(true, Opcode.PING, false, null));
 							} catch (SendMessageException e) {
-								Logger.error("Send websocket ping error", e);
+								Logger.error("Send WebSocket ping error", e);
 							}
 						}
 					},session.socketContext().getReadTimeout()/3);
