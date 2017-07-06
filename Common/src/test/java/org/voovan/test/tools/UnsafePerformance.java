@@ -21,7 +21,7 @@ public class UnsafePerformance {
         long start = 0;
 
         //切换这个标记,使用堆和堆外内存,观察性能情况
-        boolean useStackMemory = true;
+        boolean useStackMemory = false;
 
         for(int x=0;x<10;x++) {
             start = System.currentTimeMillis();
