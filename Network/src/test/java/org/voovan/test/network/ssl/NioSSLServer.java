@@ -13,7 +13,7 @@ public class NioSSLServer  {
 		String certFile = System.getProperty("user.dir")+"/Network/src/test/java/org/voovan/test/network/ssl/ssl_ks";
 		sslManager.loadCertificate(certFile, "passStr","123123");
 		
-		NioServerSocket serverSocket = new NioServerSocket("127.0.0.1",2031,500);
+		NioServerSocket serverSocket = new NioServerSocket("127.0.0.1",2031,1000000);
 		serverSocket.setSSLManager(sslManager);
 		serverSocket.handler(new ServerHandlerTest());
 		serverSocket.filterChain().add(new StringFilter());
