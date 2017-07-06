@@ -72,7 +72,7 @@ public class EventProcess {
 		if (socketContext != null && session != null) {
 			Object original = socketContext.handler().onConnect(session);
 			Object result =filterEncoder(session,original);
-			sendMessage(session, result, original);
+			sendMessage(session, result, original, false);
 		}
 	}
 
@@ -152,7 +152,7 @@ public class EventProcess {
 					// 发送消息
 					if(result!=null) {
 						//触发发送事件
-						sendMessage(session, result, original);
+						sendMessage(session, result, original, false);
 					}
 				}
 			}
@@ -196,19 +196,53 @@ public class EventProcess {
 		return result;
 	}
 
+	/**
+	 * 发送消息的公共函数
+	 * @param session Socket 会话对象
+	 * @param sendObj 发送的报文
+	 */
+	private static void sendMessageCommon(IoSession session, Object sendObj){
+		if(sendObj instanceof ByteBuffer) {
+
+			ByteBuffer resultBuf = (ByteBuffer) sendObj;
+
+			// 发送消息
+			if (resultBuf != null && session.isOpen()) {
+				if (resultBuf.limit() > 0) {
+					session.send(resultBuf);
+					resultBuf.rewind();
+				}
+
+				TByteBuffer.release((ByteBuffer) sendObj);
+			}
+		} else if(sendObj != null) {
+			Logger.error(" Latest send object must by ByteBuffer, " +
+					"please check you filter be sure the latest filter return Object's type is ByteBuffer.");
+		}
+	}
 
 	/**
-	 * 消息发送
+	 * 在一个独立的线程中并行的发送消息
 	 *
 	 * @param session Session 对象
 	 * @param sendObj 发送的对象
+	 * @param original 原始对象
+	 * @param block true: 阻塞发送, false:非阻塞发送
 	 * @throws SendMessageException  消息发送异常
 	 */
-	public static void sendMessage(IoSession session, Object sendObj, Object reciveRtnObj) throws SendMessageException {
+	public static void sendMessage(IoSession session, Object sendObj,
+											 Object original, boolean block)
+			throws SendMessageException {
+
+		sendMessageCommon(session, sendObj);
 
 		if(sendObj != null) {
 			//触发发送事件
-			EventTrigger.fireSentThread(session, TObject.asList(sendObj, reciveRtnObj));
+			if(block) {
+				EventTrigger.fireSent(session, original);
+			}else{
+				EventTrigger.fireSentThread(session, original);
+			}
 		}
 	}
 
@@ -223,33 +257,14 @@ public class EventProcess {
 	 */
 	public static void onSent(Event event, Object sendObj) throws IOException {
 		SocketContext socketContext = event.getSession().socketContext();
-		IoSession session = event.getSession();
-			if(sendObj instanceof List) {
-                List objs = (List) sendObj;
-                ByteBuffer resultBuf = (ByteBuffer) objs.get(0);
-                Object original = objs.get(1);
+        if (socketContext != null) {
+            socketContext.handler().onSent(event.getSession(), sendObj);
 
-                // 发送消息
-                if (resultBuf != null && session.isOpen()) {
-                    if (resultBuf.limit() > 0) {
-                        session.send(resultBuf);
-                        resultBuf.rewind();
-                    }
-
-                    if (sendObj != null && !sendObj.equals(resultBuf)) {
-                        TByteBuffer.release(resultBuf);
-                    }
-
-                    if (socketContext != null) {
-                        socketContext.handler().onSent(session, original);
-
-                        //如果 obj 是 ByteBuffer 进行释放
-                        if (sendObj instanceof ByteBuffer) {
-                            TByteBuffer.release((ByteBuffer) sendObj);
-                        }
-                    }
-                }
+            //如果 obj 是 ByteBuffer 进行释放
+            if (sendObj instanceof ByteBuffer) {
+                TByteBuffer.release((ByteBuffer) sendObj);
             }
+        }
 	}
 
 	/**

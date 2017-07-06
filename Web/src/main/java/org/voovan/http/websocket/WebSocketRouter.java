@@ -37,6 +37,14 @@ public abstract class WebSocketRouter implements Cloneable{
 		return this;
 	}
 
+	/**
+	 * 过滤器解密函数,接收事件(onRecive)前调用
+	 * 			onRecive事件前调用
+	 * @param session  session 对象
+	 * @param result   解码对象,上一个过滤器的返回值
+	 * @return 解码后对象
+	 * @throws IoFilterException 过滤器异常
+	 */
 	public Object filterDecoder(WebSocketSession session, Object result) {
 		Chain<WebSocketFilter> tmpWebFilterChain = webFilterChain.clone();
 		tmpWebFilterChain.rewind();
