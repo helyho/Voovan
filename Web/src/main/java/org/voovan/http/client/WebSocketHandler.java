@@ -93,19 +93,21 @@ public class WebSocketHandler implements IoHandler{
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PING) {
             return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false,  reqWebSocketFrame.getFrameData());
         }
-        // WS_PING 收到 pong 帧则返回 ping 帧
+        // WS_PONG 收到 pong 帧则返回 ping 帧
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
-            new Timer().schedule(new TimerTask() {
+            new Timer("VOOVAN_WEB@PONE_TIMER").schedule(new TimerTask() {
                 @Override
                 public void run() {
                     try {
                         session.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
                     } catch (SendMessageException e) {
-                        Logger.error("Send websocket ping error", e);
+                        Logger.error("WebSocket Open event send frame error", e);
                     }
                 }
-            },session.socketContext().getReadTimeout()/3);
-        }else if(reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.CONTINUOUS){
+            }, session.socketContext().getReadTimeout()/3);
+        }
+        // CONTINUOUS 收到 pong 帧则返回 ping 帧
+        else if(reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.CONTINUOUS){
             byteBufferChannel.writeEnd(reqWebSocketFrame.getFrameData());
         }
         // WS_RECIVE 文本和二进制消息触发 Recived 事件
