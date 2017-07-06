@@ -100,8 +100,6 @@ public class HttpRequest extends Request {
 		this.session = session;
 	}
 
-
-
 	/**
 	 * 获取对端连接的 IP
 	 *
