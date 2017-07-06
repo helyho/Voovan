@@ -4,6 +4,7 @@ import org.voovan.http.server.WebServer;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.filter.StringFilter;
+import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
@@ -107,9 +108,13 @@ public class WebServerDemo {
 				Logger.info("onOpen: WebSocket connect!");
 
                 //调用发送函数发送
-				webSocketSession.send("Send by persistent Object's send method in onOpen");
+				try {
+					webSocketSession.send("Send by persistent Object's send method in onOpen");
+					webSocketSession.send("Send by send method in onOpen");
+				} catch (SendMessageException e) {
+					e.printStackTrace();
+				}
 
-				webSocketSession.send("Send by send method in onOpen");
 				return "Server send: onOpen";
 			}
 
@@ -120,7 +125,11 @@ public class WebServerDemo {
 				msg = "This is server message. Client message: \r\n\t\""+msg+"\"";
 
 				//调用发送函数发送
-				webSocketSession.send("Send by send method in onRecive");
+				try {
+					webSocketSession.send("Send by send method in onRecive");
+				} catch (SendMessageException e) {
+					e.printStackTrace();
+				}
 				return msg;
 			}
 
