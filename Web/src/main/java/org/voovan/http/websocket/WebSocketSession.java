@@ -28,8 +28,11 @@ public class WebSocketSession {
      * 构造函数
      * @param socketSession Socket 会话
      * @param webSocketRouter WebSocket 路由处理对象
+     * @param remoteAddres 对端地址
+     * @param remotePort 对端端口
      */
-    public WebSocketSession(IoSession socketSession, WebSocketRouter webSocketRouter, String remoteAddres, int remotePort){
+    public WebSocketSession(IoSession socketSession, WebSocketRouter webSocketRouter,
+                            String remoteAddres, int remotePort){
         this.socketSession = socketSession;
         this.remoteAddres = remoteAddres;
         this.remotePort = remotePort;
@@ -110,15 +113,11 @@ public class WebSocketSession {
      * 发送 websocket 消息
      * @param obj 消息对象
      */
-    public synchronized void send(Object obj) {
+    public synchronized void send(Object obj) throws SendMessageException {
 
         ByteBuffer byteBuffer = (ByteBuffer)webSocketRouter.filterEncoder(this, obj);
         WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, byteBuffer);
-        try {
-            this.socketSession.syncSend(webSocketFrame);
-        } catch (SendMessageException e) {
-            Logger.error("WebSocket send frame error", e);
-        }
+        this.socketSession.syncSend(webSocketFrame);
     }
 
     /**

@@ -89,6 +89,7 @@ public abstract class IoSession<T extends SocketContext> {
 	/**
 	 * 获取会话参数
 	 * @param key 参数名
+	 * @param <T> 范型
 	 * @return    参数对象
 	 */
 	public <T> T getAttribute(Object key) {

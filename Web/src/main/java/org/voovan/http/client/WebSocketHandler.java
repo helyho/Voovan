@@ -100,6 +100,7 @@ public class WebSocketHandler implements IoHandler{
                     try {
                         session.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
                     } catch (SendMessageException e) {
+                        session.close();
                         Logger.error("WebSocket Open event send frame error", e);
                     }
                 }
