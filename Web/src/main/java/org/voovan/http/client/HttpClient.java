@@ -549,12 +549,8 @@ public class HttpClient {
 		}
 	}
 
-	private void sendWebSocketData(WebSocketFrame webSocketFrame){
-		try {
-			socket.getSession().syncSend(webSocketFrame);
-		} catch (SendMessageException e) {
-			Logger.error("WebSocket on connect send data error! ", e);
-		}
+	private void sendWebSocketData(WebSocketFrame webSocketFrame) throws SendMessageException {
+		socket.getSession().syncSend(webSocketFrame);
 	}
 
 
