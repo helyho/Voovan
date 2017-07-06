@@ -149,14 +149,45 @@ public class WebSocketDispatcher {
 			// 构建 session
 			WebSocketSession webSocketSession = new WebSocketSession(httpSession.getSocketSession(), webSocketRouter);
 			httpSession.setWebSocketSession(webSocketSession);
-			// 请求增加 Session
-			request.setSession(httpSession);
 		}
+
+		httpSession.getWebSocketSession().setSocketSession(request.getSocketSession());
+
 
 		return httpSession.getWebSocketSession();
 
 	}
-	
+
+	/**
+	 * 触发 WebSocket Open 事件
+	 * @param session socket 会话对象
+	 * @param request http 请求对象
+	 */
+	public WebSocketFrame fireOpenEvent(IoSession session, HttpRequest request){
+		//触发 onOpen 事件
+		return process(WebSocketEvent.OPEN, session, request, null);
+	}
+
+	/**
+	 * 触发 WebSocket Received 事件
+	 * @param session socket 会话对象
+	 * @param request http 请求对象
+	 * @param byteBuffer ByteBuffer 对象
+	 */
+	public  WebSocketFrame fireReceivedEvent(IoSession session, HttpRequest request, ByteBuffer byteBuffer){
+		return process(WebSocketEvent.RECIVED, session, request, byteBuffer);
+	}
+
+	/**
+	 * 触发 WebSocket Sent 事件
+	 * @param session socket 会话对象
+	 * @param request http 请求对象
+	 * @param byteBuffer ByteBuffer 对象
+	 */
+	public void fireSentEvent(IoSession session, HttpRequest request, ByteBuffer byteBuffer){
+		process(WebSocketEvent.SENT, session, request, byteBuffer);
+	}
+
 	/**
 	 * 出发 Close 事件
 	 * @param session HTTP-Session 对象

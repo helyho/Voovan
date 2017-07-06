@@ -218,7 +218,7 @@ public abstract class IoSession<T extends SocketContext> {
 			try {
 				Object sendObj = EventProcess.filterEncoder(this,obj);
 
-				EventProcess.sendMessage(this, sendObj, obj);
+				EventProcess.sendMessage(this, sendObj, obj, true);
 			}catch (Exception e){
 				throw new SendMessageException("Method syncSend error! Error by "+
 						e.getClass().getSimpleName() + ".",e);
