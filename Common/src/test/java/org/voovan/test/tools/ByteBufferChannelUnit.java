@@ -102,7 +102,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		byteBufferChannel1.getByteBuffer().put("ee".getBytes());
 		byteBufferChannel1.getByteBuffer().position(2);
 		byteBufferChannel1.compact();
-		assertEquals("ccdd",TByteBuffer.toString(byteBufferChannel1.getByteBuffer()));
+		assertEquals("ccddee",TByteBuffer.toString(byteBufferChannel1.getByteBuffer()));
 
 
 	}
