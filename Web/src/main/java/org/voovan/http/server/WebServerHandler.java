@@ -39,6 +39,7 @@ public class WebServerHandler implements IoHandler {
 	private Timer keepAliveTimer;
 	private List<IoSession> keepAliveSessionList;
 
+
 	public class SessionParam{
 		public static final int TYPE = 0x1111;
 		public static final int HTTP_REQUEST = 0x2222;
@@ -55,6 +56,7 @@ public class WebServerHandler implements IoHandler {
 
 		keepAliveTimer = new Timer("VOOVAN_WEB@KEEPALIVE_TIMER");
 		initKeepAliveTimer();
+
 	}
 
 	/**
@@ -105,6 +107,7 @@ public class WebServerHandler implements IoHandler {
 				}
 			}
 		};
+
 		keepAliveTimer.schedule(keepAliveTask, 1 , 1000);
 	}
 
