@@ -173,6 +173,12 @@ public class NioSocket extends SocketContext{
 				break;
 			}
 		}
+
+		//等待 SSL 握手操作完成
+		while(this.session.getSSLParser()!=null &&
+				!this.session.getSSLParser().isHandShakeDone()){
+			TEnv.sleep(1);
+		}
 	}
 
 	@Override
