@@ -50,21 +50,9 @@ public class Logger {
 		}
 	}
 
-	public static void debug(Object msg) {
-		try {
-			msg = TObject.nullDefault(msg,"null");
-			Message message = Message.newInstance("DEBUG", msg.toString());
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + msg);
-		}
-	}
-
 	public static void info(Object msg) {
 		try {
-			msg = TObject.nullDefault(msg,"null");
+			msg = buildMessage(msg);
 			Message message = Message.newInstance("INFO", msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -74,9 +62,30 @@ public class Logger {
 		}
 	}
 
+	public static void infof(String msg, Object ... args){
+		info(TString.tokenReplace(msg, args));
+	}
+
+	public static void debug(Object msg) {
+		try {
+			msg = buildMessage(msg);
+			Message message = Message.newInstance("DEBUG", msg.toString());
+			formater.writeFormatedLog(message);
+		} catch (Exception oe) {
+			simple("Logger system error:"+oe.getMessage()+"\r\n");
+			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
+			simple("Output message is: " + msg);
+		}
+	}
+
+	public static void debugf(String msg, Object ... args){
+		debug(TString.tokenReplace(msg, args));
+	}
+
+
 	public static void warn(Object msg) {
 		try {
-			msg = TObject.nullDefault(msg,"null");
+			msg = buildMessage(msg);
 			Message message = Message.newInstance("WARN", msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -86,10 +95,14 @@ public class Logger {
 		}
 	}
 
+	public static void warnf(String msg, Object ... args){
+		warn(TString.tokenReplace(msg, args));
+	}
+
+
 	public static void warn(Exception e) {
 		try {
-			String msg = e.getClass().getCanonicalName() + ": " + e.getMessage() + "\r\n"
-					+ TString.indent(TEnv.getStackElementsMessage(e.getStackTrace()), 8);
+			String msg = buildMessage(null, e);
 			Message message = Message.newInstance("WARN", msg);
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -101,9 +114,7 @@ public class Logger {
 
 	public static void warn(Object msg, Exception e) {
 		try {
-			msg = TObject.nullDefault(msg,"null");
-			String msgStr = e.getClass().getCanonicalName() + ": " + msg + "\r\n"
-					+ TString.indent(TEnv.getStackElementsMessage(e.getStackTrace()), 8);
+			String msgStr = buildMessage(msg, e);
 			Message message = Message.newInstance("WARN", msgStr);
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -113,9 +124,14 @@ public class Logger {
 		}
 	}
 
+	public static void warnf(String msg, Exception e, Object ... args){
+		warn(TString.tokenReplace(msg, args), e);
+	}
+
+
 	public static void error(Object msg) {
 		try {
-			msg = TObject.nullDefault(msg,"null");
+			msg = buildMessage(msg, null);
 			Message message = Message.newInstance("ERROR", msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -125,10 +141,13 @@ public class Logger {
 		}
 	}
 
+	public static void errorf(String msg, Object ... args){
+		error(TString.tokenReplace(msg, args));
+	}
+
 	public static void error(Exception e) {
 		try {
-			String msg = e.getClass().getCanonicalName() + ": " + e.getMessage() + "\r\n"
-					+ TString.indent(TEnv.getStackElementsMessage(e.getStackTrace()), 8);
+			String msg = buildMessage(null, e);
 			Message message = Message.newInstance("ERROR", msg);
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -140,9 +159,7 @@ public class Logger {
 
 	public static void error(Object msg, Exception e) {
 		try {
-			msg = TObject.nullDefault(msg,"null");
-			String msgStr = msg + " => " +  e.getClass().getCanonicalName() + ": " + e.getMessage() + "\r\n"
-					+ TString.indent(TEnv.getStackElementsMessage(e.getStackTrace()), 8);
+			String msgStr = buildMessage(msg, e);
 			Message message = Message.newInstance("ERROR", msgStr);
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -152,9 +169,13 @@ public class Logger {
 		}
 	}
 
+	public static void errorf(String msg, Exception e, Object ... args){
+		error(TString.tokenReplace(msg, args), e);
+	}
+
 	public static void fatal(Object msg) {
 		try {
-			msg = TObject.nullDefault(msg,"null");
+			msg = buildMessage(msg);
 			Message message = Message.newInstance("FATAL", msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -164,10 +185,13 @@ public class Logger {
 		}
 	}
 
+	public static void fatalf(String msg, Object ... args){
+		fatal(TString.tokenReplace(msg, args));
+	}
+
 	public static void fatal(Exception e) {
 		try {
-			String msg = e.getClass().getCanonicalName() + ": " + e.getMessage() + "\r\n"
-					+ TString.indent(TEnv.getStackElementsMessage(e.getStackTrace()), 8);
+			String msg = buildMessage(e.getMessage(), e);
 			Message message = Message.newInstance("FATAL", msg);
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -179,9 +203,7 @@ public class Logger {
 
 	public static void fatal(Object msg, Exception e) {
 		try {
-			msg = TObject.nullDefault(msg,"null");
-			String msgStr = e.getClass().getCanonicalName() + ": " + msg + "\r\n"
-					+ TString.indent(TEnv.getStackElementsMessage(e.getStackTrace()), 8);
+			String msgStr = buildMessage(msg, e);
 			Message message = Message.newInstance("FATAL", msgStr);
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -191,9 +213,14 @@ public class Logger {
 		}
 	}
 
+	public static void fatalf(String msg, Exception e, Object ... args){
+		fatal(TString.tokenReplace(msg, args), e);
+	}
+
+
 	public static void simple(Object msg) {
 		try {
-			msg = TObject.nullDefault(msg,"null");
+			msg = buildMessage(msg);
 			Message message = Message.newInstance("SIMPLE", msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
@@ -201,5 +228,37 @@ public class Logger {
 			System.out.println(TEnv.getStackElementsMessage(oe.getStackTrace()));
 			System.out.println("Output message is: " + msg);
 		}
+	}
+
+	public static void simplef(String msg, Object ... args){
+		error(TString.tokenReplace(msg, args));
+	}
+
+
+	/**
+	 * 构造消息
+	 * @param msg 消息对象
+	 * @param exception 异常消息
+	 * @return 消息
+	 */
+	private static String buildMessage(Object msg, Exception exception){
+		msg = TObject.nullDefault(msg,"");
+		if(exception==null){
+			return msg.toString();
+		} else {
+			return  ( msg.toString().isEmpty() ? "" : (msg + " => ") ) +
+					exception.getClass().getCanonicalName() + ": " +
+					exception.getMessage() + "\r\n"
+					+ TString.indent(TEnv.getStackElementsMessage(exception.getStackTrace()), 8);
+		}
+	}
+
+	/**
+	 * 构造消息
+	 * @param msg 消息对象
+	 * @return 消息
+	 */
+	private static String buildMessage(Object msg){
+		return buildMessage(msg, null);
 	}
 }
