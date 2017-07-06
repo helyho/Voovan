@@ -25,7 +25,6 @@ import java.util.*;
  */
 public class WebSocketDispatcher {
 	private WebServerConfig webConfig;
-	private SessionManager sessionManager;
 
 	/**
 	 * [Key] = Route path ,[Value] = WebSocketBizHandler对象
@@ -38,13 +37,10 @@ public class WebSocketDispatcher {
 
 	/**
 	 * 构造函数
-	 * 
 	 * @param webConfig WEB 配置对象
-	 *            根目录
 	 */
-	public WebSocketDispatcher(WebServerConfig webConfig, SessionManager sessionManager) {
+	public WebSocketDispatcher(WebServerConfig webConfig) {
 		this.webConfig = webConfig;
-		this.sessionManager = sessionManager;
 
 		routes =  new TreeMap<String, WebSocketRouter>(new Comparator<String>() {
 			@Override
@@ -134,6 +130,7 @@ public class WebSocketDispatcher {
 							try {
 								session.syncSend(WebSocketFrame.newInstance(true, Opcode.PING, false, null));
 							} catch (SendMessageException e) {
+								session.close();
 								Logger.error("Send WebSocket ping error", e);
 							}
 						}
@@ -181,6 +178,7 @@ public class WebSocketDispatcher {
 	 * 触发 WebSocket Open 事件
 	 * @param session socket 会话对象
 	 * @param request http 请求对象
+	 * @return WebSocketFrame WebSocket 帧
 	 */
 	public WebSocketFrame fireOpenEvent(IoSession session, HttpRequest request){
 		//触发 onOpen 事件
@@ -191,7 +189,7 @@ public class WebSocketDispatcher {
 	 * 触发 WebSocket Received 事件
 	 * @param session socket 会话对象
 	 * @param request http 请求对象
-	 * @param byteBuffer ByteBuffer 对象
+	 * @return WebSocketFrame WebSocket 帧
 	 */
 	public  WebSocketFrame fireReceivedEvent(IoSession session, HttpRequest request, ByteBuffer byteBuffer){
 		return process(WebSocketEvent.RECIVED, session, request, byteBuffer);
@@ -223,7 +221,7 @@ public class WebSocketDispatcher {
 	 * 触发 WebSocket Ping 事件
 	 * @param session socket 会话对象
 	 * @param request http 请求对象
-	 * @param byteBuffer ByteBuffer 对象
+	 * @return WebSocketFrame WebSocket 帧
 	 */
 	public WebSocketFrame firePingEvent(IoSession session, HttpRequest request, ByteBuffer byteBuffer){
 		return process(WebSocketEvent.PING, session, request, byteBuffer);

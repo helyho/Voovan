@@ -32,6 +32,7 @@ public class HttpSession {
 	 *
 	 * @param config  WEB服务配置对象
 	 * @param sessionManager Session管理器
+	 * @param socketSession   Socket会话对象
 	 */
 	public HttpSession(WebServerConfig config, SessionManager sessionManager, IoSession socketSession){
 		attributes = new ConcurrentHashMap<String, Object>();

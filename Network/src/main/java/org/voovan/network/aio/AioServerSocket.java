@@ -82,7 +82,7 @@ public class AioServerSocket extends SocketContext{
 	/**
 	 *  启动同步监听
 	 *  	非阻塞方法
-	 * @throws IOException
+	 * @throws IOException IO异常
 	 */
 	public void syncStart() throws IOException {
 		InetSocketAddress socketAddress = new InetSocketAddress(host, port);

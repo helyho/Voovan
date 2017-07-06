@@ -334,6 +334,7 @@ public class WebServerHandler implements IoHandler {
 				try {
 					session.syncSend(webSocketFrame);
 				} catch (SendMessageException e) {
+					session.close();
 					Logger.error("WebSocket Open event send frame error", e);
 				}
 			}
