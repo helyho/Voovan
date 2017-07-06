@@ -10,6 +10,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * 事件的实际逻辑处理
@@ -69,9 +70,9 @@ public class EventProcess {
 
 		SocketContext socketContext = event.getSession().socketContext();
 		if (socketContext != null && session != null) {
-			Object result = socketContext.handler().onConnect(session);
-			result =filterEncoder(session,result);
-			sendMessage(session, result);
+			Object original = socketContext.handler().onConnect(session);
+			Object result =filterEncoder(session,original);
+			sendMessage(session, result, original);
 		}
 	}
 
@@ -142,6 +143,8 @@ public class EventProcess {
 
 				// 返回的结果不为空的时候才发送
 				if (result != null) {
+					Object original = result;
+
 					// ------------------Filter 加密处理-----------------
 					result = filterEncoder(session,result);
 					// ---------------------------------------------------
@@ -149,7 +152,7 @@ public class EventProcess {
 					// 发送消息
 					if(result!=null) {
 						//触发发送事件
-						sendMessage(session, result);
+						sendMessage(session, result, original);
 					}
 				}
 			}
@@ -201,11 +204,11 @@ public class EventProcess {
 	 * @param sendObj 发送的对象
 	 * @throws SendMessageException  消息发送异常
 	 */
-	public static void sendMessage(IoSession session, Object sendObj) throws SendMessageException {
+	public static void sendMessage(IoSession session, Object sendObj, Object reciveRtnObj) throws SendMessageException {
 
 		if(sendObj != null) {
 			//触发发送事件
-			EventTrigger.fireSentThread(session, sendObj);
+			EventTrigger.fireSentThread(session, TObject.asList(sendObj, reciveRtnObj));
 		}
 	}
 
@@ -221,53 +224,32 @@ public class EventProcess {
 	public static void onSent(Event event, Object sendObj) throws IOException {
 		SocketContext socketContext = event.getSession().socketContext();
 		IoSession session = event.getSession();
-		try {
-			ByteBuffer resultBuf = null;
-			// 根据消息类型,封装消息
-			if (sendObj != null) {
-				if (sendObj instanceof ByteBuffer) {
-					resultBuf = TObject.cast(sendObj);
+			if(sendObj instanceof List) {
+                List objs = (List) sendObj;
+                ByteBuffer resultBuf = (ByteBuffer) objs.get(0);
+                Object original = objs.get(1);
 
-					//判断是否需要 rewind 操作
-					if(!resultBuf.hasRemaining()) {
-						resultBuf.rewind();
-					}
-				} else if (sendObj instanceof String) {
-					String sendString = TObject.cast(sendObj);
-					resultBuf = ByteBuffer.wrap(sendString.getBytes());
-				} else if (sendObj instanceof byte[]) {
-					byte[] sendBuffer = TObject.cast(sendObj);
-					resultBuf = ByteBuffer.wrap(sendBuffer);
-				} else {
-					throw new SendMessageException("Expect Object type is 'java.nio.ByteBuffer' or 'java.lang.String',reality got type is '"
-							+ sendObj.getClass() + "'");
-				}
-			}
+                // 发送消息
+                if (resultBuf != null && session.isOpen()) {
+                    if (resultBuf.limit() > 0) {
+                        session.send(resultBuf);
+                        resultBuf.rewind();
+                    }
 
-			// 发送消息
-			if (resultBuf != null && session.isOpen()) {
-				if(resultBuf.limit() >0) {
-					session.send(resultBuf);
-					resultBuf.rewind();
-				}
-				//Event event = new Event(session, EventName.ON_SENT, resultBuf);
+                    if (sendObj != null && !sendObj.equals(resultBuf)) {
+                        TByteBuffer.release(resultBuf);
+                    }
 
-				if(sendObj!=null && !sendObj.equals(resultBuf)){
-					TByteBuffer.release(resultBuf);
-				}
+                    if (socketContext != null) {
+                        socketContext.handler().onSent(session, original);
 
-				if (socketContext != null) {
-					socketContext.handler().onSent(session, sendObj);
-
-					//如果 obj 是 ByteBuffer 进行释放
-					if(sendObj instanceof ByteBuffer){
-						TByteBuffer.release((ByteBuffer)sendObj);
-					}
-				}
-			}
-		}catch(IOException e){
-			throw new SendMessageException(e);
-		}
+                        //如果 obj 是 ByteBuffer 进行释放
+                        if (sendObj instanceof ByteBuffer) {
+                            TByteBuffer.release((ByteBuffer) sendObj);
+                        }
+                    }
+                }
+            }
 	}
 
 	/**

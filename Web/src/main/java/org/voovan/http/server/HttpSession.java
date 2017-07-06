@@ -4,7 +4,6 @@ import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TString;
-import org.voovan.tools.UniqueId;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

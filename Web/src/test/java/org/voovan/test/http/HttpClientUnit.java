@@ -7,12 +7,11 @@ import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Part;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.http.websocket.filter.StringFilter;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 /**
  * 测试用例中的方法需要单独执行
@@ -108,31 +107,30 @@ public class HttpClientUnit extends TestCase {
 		httpClient.webSocket("/websocket", new WebSocketRouter() {
 
 			@Override
-			public ByteBuffer onOpen(WebSocketSession webSocketSession) {
+			public Object onOpen(WebSocketSession webSocketSession) {
 				Logger.simple("WebSocket open");
-				return ByteBuffer.wrap("OPEN_MSG".getBytes());
+				return "OPEN_MSG";
 			}
 
 			@Override
-			public ByteBuffer onRecived(WebSocketSession webSocketSession, ByteBuffer message) {
-				Logger.simple("Recive: "+TByteBuffer.toString(message));
+			public Object onRecived(WebSocketSession webSocketSession, Object message) {
+				Logger.simple("Recive: "+message);
 				try {
-					return ByteBuffer.wrap("RECIVE_MSG".getBytes());
+					return "RECIVE_MSG";
 				}finally {
 					webSocketSession.close();
 				}
 			}
 
 			@Override
-			public void onSent(WebSocketSession webSocketSession, ByteBuffer message){
-				String msg = TByteBuffer.toString(message);
-				Logger.simple("Send: "+TByteBuffer.toString(message));
+			public void onSent(WebSocketSession webSocketSession, Object message){
+				Logger.simple("Send: " + message);
 			}
 
 			@Override
 			public void onClose(WebSocketSession webSocketSession) {
 				Logger.simple("WebSocket close");
 			}
-		});
+		}.addFilterChain(new StringFilter()));
 	}
 }

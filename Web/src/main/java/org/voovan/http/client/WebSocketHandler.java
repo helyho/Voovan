@@ -96,18 +96,25 @@ public class WebSocketHandler implements IoHandler{
         }else if(reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.CONTINUOUS){
             byteBufferChannel.writeEnd(reqWebSocketFrame.getFrameData());
         }
-        // WS_RECIVE 文本和二进制消息出发 Recived 事件
+        // WS_RECIVE 文本和二进制消息触发 Recived 事件
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.TEXT || reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.BINARY) {
+            Object result = null;
 
             byteBufferChannel.writeEnd(reqWebSocketFrame.getFrameData());
 
-            //触发 onRecive
-            ByteBuffer respData = webSocketRouter.onRecived(webSocketSession, byteBufferChannel.getByteBuffer());
+            //解包
+            result = webSocketRouter.filterDecoder(webSocketSession, byteBufferChannel.getByteBuffer());
             byteBufferChannel.compact();
+
+            //触发 onRecive
+            result = webSocketRouter.onRecived(webSocketSession, result);
+
+            //封包
+            ByteBuffer buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
 
             //判断解包是否有错
             if (reqWebSocketFrame.getErrorCode() == 0) {
-                respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, respData);
+                respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
             } else {
                 //解析时出现异常,返回关闭消息
                 respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(reqWebSocketFrame.getErrorCode(), 2)));
@@ -119,7 +126,7 @@ public class WebSocketHandler implements IoHandler{
 
     @Override
     public void onSent(IoSession session, Object obj) {
-        WebSocketFrame webSocketFrame = WebSocketFrame.parse((ByteBuffer)obj);
+        WebSocketFrame webSocketFrame = (WebSocketFrame)obj;
         if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING){
             session.close();
             return;
@@ -129,8 +136,12 @@ public class WebSocketHandler implements IoHandler{
                 webSocketFrame.getOpcode() != WebSocketFrame.Opcode.PONG &&
                 webSocketFrame.getOpcode() != WebSocketFrame.Opcode.CLOSING) {
             ByteBuffer data = webSocketFrame.getFrameData();
+
+            //解包
+            obj = webSocketRouter.filterDecoder(webSocketSession, data);
+
             //触发 onSent
-            webSocketRouter.onSent(webSocketSession, data);
+            webSocketRouter.onSent(webSocketSession, obj);
         }
     }
 
