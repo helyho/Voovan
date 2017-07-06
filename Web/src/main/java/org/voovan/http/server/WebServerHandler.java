@@ -2,7 +2,6 @@ package org.voovan.http.server;
 
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
-import org.voovan.http.server.WebSocketDispatcher.WebSocketEvent;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.websocket.WebSocketFrame;
@@ -12,7 +11,6 @@ import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
