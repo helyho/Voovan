@@ -6,11 +6,15 @@ import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
+import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * 处理 WebSocket 相关的 IoHandler 事件
@@ -91,8 +95,16 @@ public class WebSocketHandler implements IoHandler{
         }
         // WS_PING 收到 pong 帧则返回 ping 帧
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
-            TEnv.sleep(1000);
-            return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null);
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    try {
+                        session.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+                    } catch (SendMessageException e) {
+                        Logger.error("Send websocket ping error", e);
+                    }
+                }
+            },session.socketContext().getReadTimeout()/3);
         }else if(reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.CONTINUOUS){
             byteBufferChannel.writeEnd(reqWebSocketFrame.getFrameData());
         }

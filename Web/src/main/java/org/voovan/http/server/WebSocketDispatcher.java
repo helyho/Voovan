@@ -7,11 +7,11 @@ import org.voovan.http.websocket.WebSocketFrame.Opcode;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.network.IoSession;
+import org.voovan.network.exception.SendMessageException;
+import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * 
@@ -33,7 +33,7 @@ public class WebSocketDispatcher {
 	private Map<String, WebSocketRouter> routes;
 
 	public enum WebSocketEvent {
-		OPEN, RECIVED, SENT, CLOSE
+		OPEN, RECIVED, SENT, CLOSE, PING, PONG
 	}
 
 	/**
@@ -112,18 +112,34 @@ public class WebSocketDispatcher {
 					result = webSocketRouter.onRecived(webSocketSession, result);
 					//封包
 					responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
-				} else if (event == WebSocketEvent.SENT) {
+				}
+
+				//将返回消息包装称WebSocketFrame
+				if (responseMessage != null) {
+					return WebSocketFrame.newInstance(true, Opcode.TEXT, false, responseMessage);
+				}
+
+				if (event == WebSocketEvent.SENT) {
 					//封包
 					result = webSocketRouter.filterDecoder(webSocketSession, byteBuffer);
 					webSocketRouter.onSent(webSocketSession, result);
 				} else if (event == WebSocketEvent.CLOSE) {
 					webSocketRouter.onClose(webSocketSession);
+				} else if(event == WebSocketEvent.PING){
+					return WebSocketFrame.newInstance(true, Opcode.PONG, false, byteBuffer);
+				} else if(event == WebSocketEvent.PONG){
+					new Timer().schedule(new TimerTask() {
+						@Override
+						public void run() {
+							try {
+								session.syncSend(WebSocketFrame.newInstance(true, Opcode.PING, false, null));
+							} catch (SendMessageException e) {
+								Logger.error("Send websocket ping error", e);
+							}
+						}
+					},session.socketContext().getReadTimeout()/3);
 				}
 				
-				//将返回消息包装称WebSocketFrame
-				if (responseMessage != null) {
-					return WebSocketFrame.newInstance(true, Opcode.TEXT, false, responseMessage);
-				}
 				break;
 			}
 		}
@@ -197,6 +213,26 @@ public class WebSocketDispatcher {
 		if ("WebSocket".equals(WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.TYPE))) {
 				// 触发一个 WebSocket Close 事件
 				process(WebSocketEvent.CLOSE, session, WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.HTTP_REQUEST), null);
-			}
+		}
+	}
+
+	/**
+	 * 触发 WebSocket Ping 事件
+	 * @param session socket 会话对象
+	 * @param request http 请求对象
+	 * @param byteBuffer ByteBuffer 对象
+	 */
+	public WebSocketFrame firePingEvent(IoSession session, HttpRequest request, ByteBuffer byteBuffer){
+		return process(WebSocketEvent.PING, session, request, byteBuffer);
+	}
+
+	/**
+	 * 触发 WebSocket Pone 事件
+	 * @param session socket 会话对象
+	 * @param request http 请求对象
+	 * @param byteBuffer ByteBuffer 对象
+	 */
+	public void firePoneEvent(IoSession session, HttpRequest request, ByteBuffer byteBuffer){
+		process(WebSocketEvent.PONG, session, request, byteBuffer);
 	}
 }
