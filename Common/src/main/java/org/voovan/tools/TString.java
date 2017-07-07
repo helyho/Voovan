@@ -162,6 +162,18 @@ public class TString {
 		}
 	}
 
+
+	private static Pattern getCachedPattern(String regex){
+		Pattern pattern = null;
+		if(regexPattern.containsKey(regex.hashCode())){
+			pattern = regexPattern.get(regex.hashCode());
+		}else{
+			pattern = Pattern.compile(regex);
+			regexPattern.put(regex.hashCode(), pattern);
+		}
+		return pattern;
+	}
+
 	/**
 	 * 正则表达式查找,匹配的被提取出来做数组
 	 * @param source 目标字符串
@@ -173,19 +185,25 @@ public class TString {
 			return null;
 		}
 
-		Pattern pattern = null;
-		if(regexPattern.containsKey(regex.hashCode())){
-			pattern = regexPattern.get(regex.hashCode());
-		}else{
-			pattern = Pattern.compile(regex);
-			regexPattern.put(regex.hashCode(), pattern);
-		}
+		Pattern pattern = getCachedPattern(regex);
 		Matcher matcher = pattern.matcher(source);
 		ArrayList<String> result = new ArrayList<String>();
 		while(matcher.find()){
 			result.add(matcher.group());
 		}
 		return result.toArray(new String[0]);
+	}
+
+	/**
+	 * 快速字符串替换算法
+	 * @param source  源字符串
+	 * @param regex   正则字符串
+	 * @param replacement 替换字符串
+	 * @return 替换后的字符串
+	 */
+	public static String fastReplaceAll(String source, String regex, String replacement){
+		Pattern pattern = getCachedPattern(regex);
+		return pattern.matcher(source).replaceAll(replacement);
 	}
 
 	/**
@@ -210,7 +228,7 @@ public class TString {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * 按照标识符 Map 进行替换
 	 * @param source		源字符串,标识符使用"{{标识}}"进行包裹,这些标识符将会被替换
@@ -259,22 +277,35 @@ public class TString {
 		return source;
 	}
 
+	public static String TOKEN_PREFIX_REGEX="\\{\\{";
+	public static String TOKEN_SUFFIX_REGEX="\\}\\}";
+
+
+
 	/**
 	 * 按照标识符进行替换
+	 * 		tokenName 为 null 则使用 {{}} 进行替换
+	 * 	    如果为 tokenName 为数字 可以不在标识中填写数字标识,会自动按照标识的先后顺序进行替换
 	 * @param source		源字符串,标识符使用"{{标识}}"进行包裹
 	 * @param tokenName		标识符
 	 * @param tokenValue    标志符值
 	 * @return 替换后的字符串
 	 */
 	public static String oneTokenReplace(String source,String tokenName,String tokenValue){
+		String TOKEN_PREFIX = TString.fastReplaceAll(TOKEN_PREFIX_REGEX, "\\\\", "");
+		String TOKEN_SUFFIX = TString.fastReplaceAll(TOKEN_SUFFIX_REGEX, "\\\\", "");
+		String TOKEN_EMPTY = TOKEN_PREFIX + TOKEN_SUFFIX;
+
 		if(source==null){
 			return null;
 		}
 
-		if(source.contains("{{"+tokenName+"}}")) {
-			return source.replaceAll("\\{\\{" + tokenName + "\\}\\}", Matcher.quoteReplacement(tokenValue));
-		} else if(TString.isInteger(tokenName) && source.contains("{{}}")) {
-			return TString.replaceFirst(source, "{{}}", tokenValue);
+		if(source.contains(TOKEN_PREFIX + tokenName + TOKEN_SUFFIX)) {
+			return fastReplaceAll(source, TOKEN_PREFIX_REGEX + tokenName + TOKEN_SUFFIX_REGEX,
+										tokenValue==null ? "null" : Matcher.quoteReplacement(tokenValue));
+		} else if((tokenName==null || TString.isInteger(tokenName)) &&
+						source.contains( TOKEN_EMPTY )) {
+			return TString.replaceFirst(source, TOKEN_EMPTY, tokenValue);
 		} else {
 			return source;
 		}
@@ -330,7 +361,7 @@ public class TString {
 				indent.append(" ");
 			}
 			source = indent.toString() + source;
-			source = source.replaceAll("\n", "\n" + indent.toString());
+			source = TString.fastReplaceAll(source, "\n", "\n" + indent.toString());
 		}
 		return source;
 	}

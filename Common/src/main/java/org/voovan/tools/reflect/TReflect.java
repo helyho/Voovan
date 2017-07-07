@@ -134,7 +134,7 @@ public class TReflect {
 				result[i] = (Class)actualType[i];
 			}else if(actualType[i] instanceof Type){
 				String classStr = actualType[i].toString();
-				classStr = classStr.replaceAll("<.*>", "");
+				classStr = TString.fastReplaceAll(classStr, "<.*>", "");
 				result[i] = Class.forName(classStr);
 			}
 		}
