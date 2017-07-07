@@ -8,6 +8,7 @@ import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
 import org.voovan.tools.THash;
+import org.voovan.tools.TString;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +46,7 @@ public class MimeFileRouter implements HttpRouter {
 			// 根据扩展名,设置 MIME 类型
 			response.header().put("Content-Type", MimeTools.getMimeByFileExtension(fileExtension));
 			// 转换请求Path 里的文件路劲分割符为系统默认分割符
-			urlPath = urlPath.replaceAll("//", File.separator);
+			urlPath = TString.fastReplaceAll(urlPath, "//", File.separator);
 			// 拼装文件实际存储路径
 			String filePath = rootPath + urlPath;
 			File responseFile = new File(filePath);

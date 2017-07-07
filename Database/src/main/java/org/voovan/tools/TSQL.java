@@ -45,7 +45,7 @@ public class TSQL {
 	 * @return				将所有的:引导的参数转换成? (select * from table where x=? and y=?)
 	 */
 	public static String preparedSql(String sqlStr){
-		return sqlStr.replaceAll("::[^,\\s\\)]+", "?");
+		return TString.fastReplaceAll(sqlStr, "::[^,\\s\\)]+", "?");
 	}
 	
 	/**
@@ -217,7 +217,7 @@ public class TSQL {
 	public static String assembleSQLWithMap(String sqlStr,Map<String ,Object> argMap) {
 		if(argMap!=null) {
 			for (Entry<String, Object> arg : argMap.entrySet()) {
-				sqlStr = sqlStr.replaceAll("::" + arg.getKey(), getSQLString(argMap.get(arg.getKey())));
+				sqlStr = TString.fastReplaceAll(sqlStr, "::" + arg.getKey(), getSQLString(argMap.get(arg.getKey())));
 			}
 		}
 		return sqlStr;
@@ -268,7 +268,7 @@ public class TSQL {
 		//对象转换时,模糊匹配属性,去除掉所有的
 		HashMap<String,Object> newMap = new HashMap<String,Object>();
 		for(Entry<String,Object> entry : rowMap.entrySet()){
-			String key = entry.getKey().replaceAll("[^a-z|A-Z|0-9]","");
+			String key = TString.fastReplaceAll(entry.getKey(), "[^a-z|A-Z|0-9]", "");
 			newMap.put(key,entry.getValue());
 		}
 		rowMap.clear();

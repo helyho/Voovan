@@ -89,7 +89,7 @@ public class Formater {
 		String msg = message.getMessage();
 		if(infoIndent!=null && !infoIndent.isEmpty()){
 			msg = infoIndent + msg;
-			msg = msg.replaceAll("\n", "\n" + infoIndent);
+			msg = TString.fastReplaceAll(msg, "\n", "\n" + infoIndent);
 			message.setMessage(msg);
 		}
 		return msg;

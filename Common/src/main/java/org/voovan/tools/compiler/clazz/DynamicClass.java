@@ -169,7 +169,7 @@ public class DynamicClass {
     private String genCode() {
         getCode();
         this.name = DynamicCompiler.getClassNameFromCode(code);
-        code = code.replaceAll("class[ ]+" + name, "class {{CLASSNAME}}");
+        code = TString.fastReplaceAll(code, "class[ ]+" + name, "class {{CLASSNAME}}");
         genClassName();
 
         this.javaCode = TString.tokenReplace(code, TObject.asMap(

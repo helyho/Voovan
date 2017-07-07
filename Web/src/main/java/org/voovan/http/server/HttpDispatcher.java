@@ -106,7 +106,7 @@ public class HttpDispatcher {
 	 */
 	public void addRouteHandler(String method, String routeRegexPath, HttpRouter router) {
 		if (methodRouters.keySet().contains(method)) {
-			routeRegexPath = routeRegexPath.replaceAll("\\/{2,9}","/");
+			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "\\/{2,9}", "/");
 			methodRouters.get(method).put(routeRegexPath, router);
 		}
 	}
@@ -217,8 +217,8 @@ public class HttpDispatcher {
 	 * @return  转换后的正则匹配路径
      */
 	public static String routePath2RegexPath(String routePath){
-		String routeRegexPath = routePath.replaceAll("\\*",".*?");
-		routeRegexPath = routeRegexPath.replaceAll(":[^/?]*", "[^/?]*");
+		String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
+		routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^/?]*", "[^/?]*");
 		return routeRegexPath;
 	}
 
