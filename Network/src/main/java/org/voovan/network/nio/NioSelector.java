@@ -93,9 +93,7 @@ public class NioSelector {
 												session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 												//如果 Socket 流达到结尾,则关闭连接
 												while(session.isConnected()) {
-													if (session.getByteBufferChannel().size() == 0) {
-														session.close();
-													}
+													session.tryClose();
 												}
 												break;
 											}else if(readSize>0){
