@@ -150,7 +150,8 @@ public class JSON {
 	 * @return 清理null节点的结果
 	 */
 	public static String removeNullNode(String jsonStr){
-		jsonStr	= jsonStr.replaceAll("\\\"\\w+?\\\":null","").replaceAll("null","");
+		jsonStr	= TString.fastReplaceAll(jsonStr, "\\\"\\w+?\\\":null", "");
+		jsonStr	= TString.fastReplaceAll(jsonStr, "null", "");
 		return fixJSON(jsonStr);
 	}
 
@@ -162,13 +163,13 @@ public class JSON {
 	protected 	 static String fixJSON(String jsonStr){
 
 		while(TString.searchByRegex(jsonStr,",[\\s\\r\\n]*,").length>0) {
-			jsonStr = jsonStr.replaceAll(",[\\s\\r\\n]*,", ",");
+			jsonStr = TString.fastReplaceAll(jsonStr, ",[\\s\\r\\n]*,", ",");
 		}
 
-		jsonStr	= jsonStr.replaceAll("(?:[\\{])[\\s\\r\\n]*,","{");
-		jsonStr	= jsonStr.replaceAll("(?:[\\[])[\\s\\r\\n]*,","[");
-		jsonStr	= jsonStr.replaceAll(",[\\s\\r\\n]*(?:[\\}])","}");
-		jsonStr	= jsonStr.replaceAll(",[\\s\\r\\n]*(?:[\\]])","]");
+		jsonStr	= TString.fastReplaceAll(jsonStr, "(?:[\\{])[\\s\\r\\n]*,","{");
+		jsonStr	= TString.fastReplaceAll(jsonStr, "(?:[\\[])[\\s\\r\\n]*,","[");
+		jsonStr	= TString.fastReplaceAll(jsonStr, ",[\\s\\r\\n]*(?:[\\}])","}");
+		jsonStr	= TString.fastReplaceAll(jsonStr, ",[\\s\\r\\n]*(?:[\\]])","]");
 
 		return jsonStr;
 	}

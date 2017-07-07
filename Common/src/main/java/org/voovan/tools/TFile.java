@@ -384,7 +384,9 @@ public class TFile {
 				if(TString.regexMatch(fileName,"\\$\\d\\.class")>0){
 					continue;
 				}
-				fileName = fileName.replace(rootfile.getCanonicalPath() + "/", "").replaceAll("/", "\\.").replaceAll("\\.class$","");
+				fileName = fileName.replace(rootfile.getCanonicalPath() + "/", "");
+				fileName = TString.fastReplaceAll(fileName, "/", "\\.");
+				fileName = TString.fastReplaceAll(fileName, "\\.class$", "");
 				try {
 					result.add(Class.forName(fileName));
 				} catch (ClassNotFoundException e) {
@@ -413,7 +415,8 @@ public class TFile {
 				if (TString.regexMatch(fileName, "\\$\\d\\.class") > 0) {
 					continue;
 				}
-				fileName = fileName.replaceAll("/", "\\.").replaceAll("\\.class$", "");
+				fileName = TString.fastReplaceAll(fileName, "/", "\\.");
+				fileName = TString.fastReplaceAll(fileName, "\\.class$", "");
 				try {
 					result.add(Class.forName(fileName));
 				} catch (Throwable e) {
