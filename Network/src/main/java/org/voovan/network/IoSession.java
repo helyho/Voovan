@@ -303,7 +303,40 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return	true: 打开,false: 关闭
 	 */
 	public abstract boolean isOpen();
-	
+
+	/**
+	 * 等待所有处理都被处理完成
+	 * 		ByteBufferChannel.size() = 0时,或者超时后退出
+	 * @param waitTime 超时事件
+	 * @return true: 数据处理完退出, false:超时退出
+	 */
+	public boolean wait(int waitTime){
+		int count= 0;
+		while(getByteBufferChannel().size() > 0 &&
+				isReceiving()){
+			TEnv.sleep(1);
+			count ++;
+
+			if(count > waitTime){
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * 尝试关闭连接
+	 * 		等待通道内的数据都被处理完成
+	 */
+	public void tryClose(){
+		int waitTime = 0;
+		while(isConnected()) {
+			wait(socketContext.getReadTimeout());
+			close();
+		}
+	}
+
 	/**
 	 * 关闭会话
 	 * @return 是否关闭
