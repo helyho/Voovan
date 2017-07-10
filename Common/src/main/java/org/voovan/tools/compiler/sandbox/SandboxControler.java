@@ -22,6 +22,8 @@ public class SandboxControler {
     private boolean exec;
     private boolean exit;
     private boolean factory;
+    private boolean securityAccess;
+    private boolean createClassLoader;
     private List<String> packageAccess;     //null 全部允许访问
     private List<String> packageDefintion;  //null 全部允许访问
 
@@ -36,6 +38,8 @@ public class SandboxControler {
         exit = true;
         packageAccess = null;
         packageDefintion = null;
+        securityAccess = true;
+        createClassLoader = true;
     }
 
 
@@ -109,6 +113,22 @@ public class SandboxControler {
 
     public void setFactory(boolean factory) {
         this.factory = factory;
+    }
+
+    public boolean isSecurityAccess() {
+        return securityAccess;
+    }
+
+    public void setSecurityAccess(boolean securityAccess) {
+        this.securityAccess = securityAccess;
+    }
+
+    public boolean isCreateClassLoader() {
+        return createClassLoader;
+    }
+
+    public void setCreateClassLoader(boolean createClassLoader) {
+        this.createClassLoader = createClassLoader;
     }
 
     public List<String> getPackageAccess() {
