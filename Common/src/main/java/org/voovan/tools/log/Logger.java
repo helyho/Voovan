@@ -246,9 +246,16 @@ public class Logger {
 		if(exception==null){
 			return msg.toString();
 		} else {
+			Throwable messageException = exception;
+			if(exception.getMessage() == null){
+				while(messageException.getMessage()==null){
+					messageException = messageException.getCause();
+				}
+			}
+
 			return  ( msg.toString().isEmpty() ? "" : (msg + " => ") ) +
 					exception.getClass().getCanonicalName() + ": " +
-					exception.getMessage() + "\r\n"
+					messageException.getMessage() + "\r\n"
 					+ TString.indent(TEnv.getStackElementsMessage(exception.getStackTrace()), 8);
 		}
 	}
