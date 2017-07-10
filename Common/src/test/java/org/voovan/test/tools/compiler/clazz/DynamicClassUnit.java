@@ -3,9 +3,9 @@ package org.voovan.test.tools.compiler.clazz;
 import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.compiler.DynamicCompilerManager;
-import org.voovan.tools.compiler.sandbox.DynamicCompilerSecurityManager;
+import org.voovan.tools.compiler.sandbox.SandboxSecurity;
 import org.voovan.tools.compiler.clazz.DynamicClass;
-import org.voovan.tools.compiler.sandbox.SecurityModel;
+import org.voovan.tools.compiler.sandbox.SandboxControler;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -24,9 +24,10 @@ public class DynamicClassUnit extends TestCase{
     private String code;
 
     public void setUp(){
-        SecurityModel securityModel = new SecurityModel();
-        securityModel.setExit(false);
-        System.setSecurityManager( new DynamicCompilerSecurityManager(securityModel));
+        SandboxControler sandboxControler = new SandboxControler();
+        //用来测试安全控制
+        //sandboxControler.setExit(false);
+        System.setSecurityManager( new SandboxSecurity(sandboxControler));
         code =  "package org.hocate.test;\r\n\r\n"
                 + "import org.voovan.tools.TString;\r\n"
                 + "public class testSay {\r\n"
