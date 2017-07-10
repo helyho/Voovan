@@ -402,6 +402,9 @@ public class TSQL {
 	 */
 	public static String getSQLString(Object argObj)
 	{
+		if(argObj==null){
+			return "null";
+		}
 		//处理List变成SQL语法的in操作字符串，包括两端的括号“（）”
 		if(argObj instanceof List)
 		{

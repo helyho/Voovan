@@ -111,7 +111,7 @@ public class DynamicClass {
             }
         }
 
-         codeClassName = DynamicCompiler.getClassNameFromCode(getCode());
+         codeClassName = DynamicCompiler.getClassNameFromCode(this.code);
          return code;
     }
 
