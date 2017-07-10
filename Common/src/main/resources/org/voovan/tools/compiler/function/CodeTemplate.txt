@@ -2,7 +2,8 @@ package {{PACKAGE}};
 import org.voovan.tools.TObject;
 {{IMPORT}}
 public class {{CLASSNAME}} {
-    public synchronized static Object execute(Object ... args){
+    {{IMPORTFUNCTION}}
+    public synchronized static Object execute(Object ... args) throws Exception{
         {{PREPAREARG}}
         {{CODE}}
     }

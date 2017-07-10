@@ -4,6 +4,7 @@ import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.compiler.DynamicCompiler;
+import org.voovan.tools.compiler.DynamicCompilerManager;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
@@ -22,10 +23,10 @@ public class DynamicClass {
     //动态编译相关的对象
     private String name;
     private String className;
+    private String codeClassName;
     private String code;
     private String javaCode;
     private Class clazz;
-
 
     private File codeFile;
     private String fileCharset;
@@ -36,11 +37,14 @@ public class DynamicClass {
 
     /**
      * 构造函数
+     * @param name 命名的名称
      * @param  code 用户代码
      */
-    public DynamicClass(String code) {
+    public DynamicClass(String name, String code) {
         init();
+        this.name = name;
         this.code = code;
+        DynamicCompilerManager.addClazz(this);
     }
 
     /**
@@ -52,9 +56,13 @@ public class DynamicClass {
      */
     public DynamicClass(File file, String charset) throws UnsupportedEncodingException {
         init();
+        String fileName = TFile.getFileName(file.getPath());
+        this.name = fileName.substring(0, fileName.lastIndexOf("."));
         this.codeFile = file;
         this.fileCharset = charset;
         this.lastFileTimeStamp = file.lastModified();
+        DynamicCompilerManager.addClazz(this);
+
     }
 
     /**
@@ -78,12 +86,7 @@ public class DynamicClass {
      * @return 命名的名称
      */
     public String getName() {
-        if(this.className == null) {
-            return this.name;
-        }else{
-            int index = this.className.indexOf(this.name);
-            return this.className.substring(0, index+this.name.length());
-        }
+       return this.name;
     }
 
     /**
@@ -95,7 +98,11 @@ public class DynamicClass {
         this.name = name;
     }
 
-    public String getCode() {
+    /**
+     * 获取源代码
+     * @return
+     */
+     private String getCode() {
         if (codeFile != null) {
             try {
                 this.code = new String(TFile.loadFile(this.codeFile), this.fileCharset);
@@ -104,7 +111,8 @@ public class DynamicClass {
             }
         }
 
-        return code;
+         codeClassName = DynamicCompiler.getClassNameFromCode(getCode());
+         return code;
     }
 
     /**
@@ -157,9 +165,8 @@ public class DynamicClass {
      * 生成编译时混淆的类名
      */
     private void genClassName() {
-        this.className = this.name + TString.generateShortUUID();
+        this.className = codeClassName + "$" + TString.generateShortUUID();
     }
-
 
     /**
      * 生成代码
@@ -168,11 +175,10 @@ public class DynamicClass {
      */
     private String genCode() {
         getCode();
-        this.name = DynamicCompiler.getClassNameFromCode(code);
-        code = TString.fastReplaceAll(code, "class[ ]+" + name, "class {{CLASSNAME}}");
+        String javaCode = TString.fastReplaceAll(code, "class +" + codeClassName, "class {{CLASSNAME}}");
         genClassName();
 
-        this.javaCode = TString.tokenReplace(code, TObject.asMap(
+        this.javaCode = TString.tokenReplace(javaCode, TObject.asMap(
                 "CLASSNAME", className //类名
         ));
 

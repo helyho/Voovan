@@ -766,8 +766,10 @@ public class ByteBufferChannel {
         }
 
         if(size()>0 && lineStr.isEmpty()){
-        	lineStr = TByteBuffer.toString(this.getByteBuffer());
-        	this.compact();
+        	ByteBuffer lineBuffer = ByteBuffer.allocateDirect(size());
+			if(readHead(lineBuffer) > 0) {
+				lineStr = TByteBuffer.toString(lineBuffer);
+			}
 		}
 
         return lineStr.isEmpty() ? null : lineStr;
