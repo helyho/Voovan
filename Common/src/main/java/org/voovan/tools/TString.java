@@ -195,6 +195,16 @@ public class TString {
 	}
 
 	/**
+	 * 正则匹配
+	 * @param source 目标字符串
+	 * @param regex 正则表达式
+	 * @return 正则搜索后得到的匹配数量
+	 */
+	public static int regexMatch(String source,String regex){
+		return searchByRegex(source,regex).length;
+	}
+
+	/**
 	 * 快速字符串替换算法
 	 * @param source  源字符串
 	 * @param regex   正则字符串
@@ -206,16 +216,6 @@ public class TString {
 		return pattern.matcher(source).replaceAll(replacement);
 	}
 
-	/**
-	 * 正则匹配
-	 * @param source 目标字符串
-	 * @param regex 正则表达式
-     * @return 正则搜索后得到的匹配数量
-     */
-	public static int regexMatch(String source,String regex){
-		return searchByRegex(source,regex).length;
-	}
-	
 	/**
 	 * 判断字符串空指针或者内容为空
 	 * @param source 字符串
