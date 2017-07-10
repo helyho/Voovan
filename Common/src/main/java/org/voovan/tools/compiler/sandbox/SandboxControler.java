@@ -12,7 +12,7 @@ import java.util.Vector;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class SecurityModel {
+public class SandboxControler {
     private List<String> network;           //null 全部允许访问
     private List<String> file;              //null 全部允许访问
     private boolean thread;
@@ -25,7 +25,7 @@ public class SecurityModel {
     private List<String> packageAccess;     //null 全部允许访问
     private List<String> packageDefintion;  //null 全部允许访问
 
-    public SecurityModel(){
+    public SandboxControler(){
         network = null;
         file = null;
         thread = true;

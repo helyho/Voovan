@@ -14,20 +14,20 @@ import java.util.List;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class DynamicCompilerSecurityManager extends SecurityManager{
-    private SecurityManager systemSecurityManager;
-    private SecurityModel securityModel;
+public class SandboxSecurity extends java.lang.SecurityManager {
+    private java.lang.SecurityManager systemSecurityManager;
+    private SandboxControler securityModel;
 
-    public DynamicCompilerSecurityManager(SecurityModel securityModel){
+    public SandboxSecurity(SandboxControler securityModel){
         this.securityModel = securityModel;
 
         systemSecurityManager = System.getSecurityManager();
-        if(systemSecurityManager instanceof  DynamicCompilerSecurityManager){
-            systemSecurityManager = ((DynamicCompilerSecurityManager)systemSecurityManager).getSystemSecurityManager();
+        if(systemSecurityManager instanceof SandboxSecurity){
+            systemSecurityManager = ((SandboxSecurity)systemSecurityManager).getSystemSecurityManager();
         }
     }
 
-    public SecurityManager getSystemSecurityManager(){
+    public java.lang.SecurityManager getSystemSecurityManager(){
         return systemSecurityManager;
     }
 

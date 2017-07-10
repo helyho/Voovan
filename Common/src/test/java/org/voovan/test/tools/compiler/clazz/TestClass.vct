@@ -8,7 +8,8 @@ public class testSay {
 		    System.out.println("helloword");
 		    return TString.removePrefix("finished");
 		}finally{
-            System.exit(1);
+		    // 用来测试安全控制
+            // System.exit(1);
 		}
 
 	 }
