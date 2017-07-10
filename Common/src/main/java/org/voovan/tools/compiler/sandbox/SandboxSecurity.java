@@ -31,6 +31,10 @@ public class SandboxSecurity extends java.lang.SecurityManager {
         return systemSecurityManager;
     }
 
+    /**
+     * 判断是否是动态对象
+     * @return true:是, false:否
+     */
     private boolean isDynamicObject(){
         for(StackTraceElement stackTraceElement : Thread.currentThread().getStackTrace()){
             //动态
@@ -43,6 +47,12 @@ public class SandboxSecurity extends java.lang.SecurityManager {
         return false;
     }
 
+    /**
+     * 用正则的方式判断是否存在于字符串列表中
+     * @param restricts 约束 List
+     * @param param 被判断参数
+     * @return true:在列表中, falsel:不在列表中
+     */
     public boolean isInList(List<String> restricts, String param){
         if(restricts == null){
             return true;
@@ -59,6 +69,12 @@ public class SandboxSecurity extends java.lang.SecurityManager {
         return result;
     }
 
+    /**
+     * 通用判断函数
+     * @param condiction 判断条件可以为 List 或者 boolean 数据
+     * @param param 被判断参数
+     * @return true:检查成功符合效验条件, false: 检查失败不符合效验条件,返回这个结果可能在被调用处抛出异常
+     */
     public boolean commonCheck(Object condiction, Object param){
 
         if(!isDynamicObject()){
@@ -320,6 +336,28 @@ public class SandboxSecurity extends java.lang.SecurityManager {
 
         if(systemSecurityManager!=null){
             systemSecurityManager.checkSetFactory();
+        }
+    }
+
+    public void checkSecurityAccess(String target){
+        //ServerSocket or Socket 的工厂操作
+        if(!commonCheck(securityModel.isSecurityAccess(), null)){
+            throwException("Security access");
+        }
+
+        if(systemSecurityManager!=null){
+            systemSecurityManager.checkSecurityAccess(target);
+        }
+    }
+
+    public void checkCreateClassLoader(){
+        //ServerSocket or Socket 的工厂操作
+        if(!commonCheck(securityModel.isCreateClassLoader(), null)){
+            throwException("Create ClassLoader");
+        }
+
+        if(systemSecurityManager!=null){
+            systemSecurityManager.checkCreateClassLoader();
         }
     }
 }

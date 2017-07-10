@@ -5,6 +5,8 @@ import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 /**
  * 内存文件管理实现
@@ -17,8 +19,11 @@ import java.io.IOException;
 public class MemFileManager extends ForwardingJavaFileManager<JavaFileManager> {
 
 	private JavaMemClass javaMemClass;
-	protected MemFileManager(JavaFileManager fileManager) {
+	private ClassLoader classLoader;
+
+	protected MemFileManager(JavaFileManager fileManager, ClassLoader classLoader) {
 		super(fileManager);
+		this.classLoader = classLoader;
 	}
 	
 	public JavaMemClass getJavaMemClass() {
@@ -31,7 +36,7 @@ public class MemFileManager extends ForwardingJavaFileManager<JavaFileManager> {
             JavaFileObject.Kind kind,
             FileObject sibling)
      throws IOException{
-		javaMemClass = new JavaMemClass(className, kind);
+		javaMemClass = new JavaMemClass(className, kind, classLoader);
 		return javaMemClass;
 		
 	}

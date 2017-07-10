@@ -5,6 +5,8 @@ import org.voovan.tools.log.Logger;
 
 import javax.tools.*;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,12 +19,14 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class DynamicCompiler {
-	
+	private static ClassLoader classLoader = new URLClassLoader(new URL[]{}, DynamicCompiler.class.getClassLoader());;
+
 	private JavaCompiler compiler = null ;
 	private JavaFileManager fileManager = null ;
 	private Iterable<String> options = null ;
 	private DiagnosticCollector<JavaFileObject> diagnosticCollector;
 	private Class clazz = null;
+
 
 	/**
 	 * 编译器
@@ -57,7 +61,8 @@ public class DynamicCompiler {
 	 */
 	public Boolean compileCode(String javaSourceCode){
 		String className = getClassNameFromCode(javaSourceCode);
-		fileManager = new MemFileManager(compiler.getStandardFileManager(diagnosticCollector, null, null));
+		fileManager = new MemFileManager(compiler.getStandardFileManager(diagnosticCollector, null, null),
+											classLoader);
 		JavaFileObject file = new JavaMemSource(className, javaSourceCode);
 		Iterable<? extends JavaFileObject> compilationUnits = Arrays.asList(file) ;
 		return basicCompileCode(compilationUnits);
