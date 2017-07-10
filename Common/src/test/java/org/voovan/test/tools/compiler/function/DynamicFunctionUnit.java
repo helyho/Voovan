@@ -27,7 +27,7 @@ public class DynamicFunctionUnit extends TestCase{
                 "ArrayList list = new ArrayList();\n" +
                 "System.out.println(temp1+ temp2); \n" +
                 "SubFunCode();\n" +
-                "return asssssl;\n";
+                "return list;\n";
         System.out.println("=============Source code=============");
         System.out.println(code);
 
