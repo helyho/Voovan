@@ -3,8 +3,9 @@ package org.voovan.test.tools.compiler.clazz;
 import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.compiler.DynamicCompilerManager;
+import org.voovan.tools.compiler.sandbox.DynamicCompilerSecurityManager;
 import org.voovan.tools.compiler.clazz.DynamicClass;
-import org.voovan.tools.log.Logger;
+import org.voovan.tools.compiler.sandbox.SecurityModel;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
@@ -22,6 +23,8 @@ public class DynamicClassUnit extends TestCase{
     private String code;
 
     public void setUp(){
+
+        System.setSecurityManager(new DynamicCompilerSecurityManager(new SecurityModel()));
         code =  "package org.hocate.test;\r\n\r\n"
                 + "import org.voovan.tools.TString;\r\n"
                 + "public class testSay {\r\n"
@@ -32,6 +35,7 @@ public class DynamicClassUnit extends TestCase{
                 + "}\r\n";
         System.out.println("=============Source code=============");
         System.out.println(code);
+
     }
 
     public void testRun() throws Exception{
@@ -51,5 +55,6 @@ public class DynamicClassUnit extends TestCase{
             System.out.println("==>RunTime: " + (System.currentTimeMillis()-startTime )+"\r\n==>Result: " + obj);
             TEnv.sleep( 1000 );
         }
+
     }
 }
