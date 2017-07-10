@@ -2,6 +2,7 @@ package org.voovan.tools.compiler.function;
 
 import org.voovan.tools.*;
 import org.voovan.tools.compiler.DynamicCompiler;
+import org.voovan.tools.compiler.DynamicCompilerManager;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -52,6 +53,10 @@ public class DynamicFunction {
 
     private boolean needCompile;
 
+    private String importFunctionCode;
+    private ArrayList<String> importFunctions;
+
+
 
     /**
      * 构造函数
@@ -63,6 +68,7 @@ public class DynamicFunction {
         init();
         this.name = name;
         this.code = code;
+        DynamicCompilerManager.addFunction(this);
     }
 
     /**
@@ -75,11 +81,11 @@ public class DynamicFunction {
     public DynamicFunction(File file, String charset) throws UnsupportedEncodingException {
         init();
         String fileName = TFile.getFileName(file.getPath());
-        fileName = fileName.substring(0, fileName.lastIndexOf("."));
-        this.name = fileName;
+        this.name = fileName.substring(0, fileName.lastIndexOf("."));
         this.codeFile = file;
         this.fileCharset = charset;
         this.lastFileTimeStamp = file.lastModified();
+        DynamicCompilerManager.addFunction(this);
     }
 
     /**
@@ -101,6 +107,9 @@ public class DynamicFunction {
 
         this.importClasses = new ArrayList<Class>();
         this.args = new MultiMap<Integer, Object>();
+
+        this.importFunctionCode = "";
+        this.importFunctions = new ArrayList<String>();
     }
 
     /**
@@ -128,7 +137,7 @@ public class DynamicFunction {
      * @return 命名的名称
      */
     public String getName() {
-        return name;
+        return this.name;
     }
 
     /**
@@ -209,10 +218,10 @@ public class DynamicFunction {
      *
      * @param argIndex  调用参数的索引
      * @param argClazz  调用参数的类
-     * @param name      调用参数的名称
+     * @param argName      调用参数的名称
      */
-    public void addPrepareArg(int argIndex, Class argClazz, String name) {
-        args.putValues(argIndex, argClazz, name);
+    public void addPrepareArg(int argIndex, Class argClazz, String argName) {
+        args.putValues(argIndex, argClazz, argName);
     }
 
     /**
@@ -261,11 +270,47 @@ public class DynamicFunction {
         this.importCode = this.importCode + TFile.getLineSeparator();
     }
 
+
+    /**
+     * 增加一个导入函数
+     * @param name 动态函数名称
+     */
+    public void addImportFunction(String name){
+        importFunctions.add(name);
+        if(!importClasses.contains(DynamicCompilerManager.class)) {
+            importClasses.add(DynamicCompilerManager.class);
+        }
+    }
+
+    /**
+     * 获取导入函数集合
+     * @return List导入函数集合
+     */
+    public List<String> getImportFunctionx( ){
+        return importFunctions;
+    }
+
+    /**
+     * 清空导入函数集合
+     */
+    public void clearImportFunctions(){
+        importFunctions.clear();
+        importClasses.remove(DynamicCompilerManager.class);
+    }
+
+    private void genImportFunction(){
+        for(String dynamicFunctionName : importFunctions){
+            importFunctionCode = importFunctionCode + "public static Object "+dynamicFunctionName+"(Object ... args) throws Exception { \r\n "+
+                    "        return DynamicCompilerManager.callFunction(\""+dynamicFunctionName+"\", args); \r\n" +
+                    "    } \r\n" ;
+        }
+    }
+
     /**
      * 生成编译时混淆的类名
      */
     private void genClassName() {
-        this.className = name + TString.generateShortUUID();
+        this.className = this.name + "$" + TString.generateShortUUID();
     }
 
     /**
@@ -276,8 +321,8 @@ public class DynamicFunction {
         for (Map.Entry<Integer, List<Object>> prepareArg : args.entrySet()) {
             int argIndex = prepareArg.getKey();
             Class argClazz = TObject.cast(args.getValue(argIndex, 0));
-            String name = TObject.cast(args.getValue(argIndex, 1));
-            this.argCode = this.argCode + "        " + argClazz.getCanonicalName() + " " + name +
+            String argName = TObject.cast(args.getValue(argIndex, 1));
+            this.argCode = this.argCode + "        " + argClazz.getCanonicalName() + " " + argName +
                     " = TObject.cast(args[" + argIndex + "]);" + TFile.getLineSeparator();
         }
         this.argCode = this.argCode.trim();
@@ -328,16 +373,18 @@ public class DynamicFunction {
     private String genCode() {
 
         genImports();
+        genImportFunction();
         genClassName();
         genArgCode();
         parseCode();
 
         this.javaCode = TString.tokenReplace(CODE_TEMPLATE, TObject.asMap(
-                "PACKAGE", packageName, //包名
-                "IMPORT", importCode,   //解析获得
-                "CLASSNAME", className, //类名
-                "PREPAREARG", argCode,  //参数
-                "CODE", bodyCode        //解析获得
+                "PACKAGE", packageName,                 //包名
+                "IMPORT", importCode,                   //解析获得
+                "IMPORTFUNCTION", importFunctionCode,   //生成导入函数的映射函数
+                "CLASSNAME", className,                 //类名
+                "PREPAREARG", argCode,                  //参数
+                "CODE", bodyCode                        //解析获得
         ));
 
         return this.javaCode;
