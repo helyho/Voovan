@@ -380,6 +380,9 @@ public class TReflect {
 	 */
 	public static Object invokeMethod(Object obj, String name, Object... args)
 			throws ReflectiveOperationException {
+		if(args==null){
+			args = new Object[0];
+		}
 		Class<?>[] parameterTypes = getArrayClasses(args);
 		Method method = null;
 		Class objClass = (obj instanceof Class) ? (Class)obj : obj.getClass();
@@ -458,22 +461,25 @@ public class TReflect {
 	 * 	通过参数中的构造参数对象parameters,选择特定的构造方法构造
 	 * @param <T>           范型
 	 * @param clazz			类对象
-	 * @param parameters	构造方法参数
+	 * @param args	构造方法参数
 	 * @return 新的对象
 	 * @throws ReflectiveOperationException 反射异常
 	 */
-	public static <T> T newInstance(Class<T> clazz, Object ...parameters)
+	public static <T> T newInstance(Class<T> clazz, Object ...args)
 			throws ReflectiveOperationException {
-		Class<?>[] parameterTypes = getArrayClasses(parameters);
+		if(args==null){
+			args = new Object[0];
+		}
+		Class<?>[] parameterTypes = getArrayClasses(args);
 		Constructor<T> constructor = null;
 		try {
-			if (parameters.length == 0) {
+			if (args.length == 0) {
 				constructor = clazz.getConstructor();
 			} else {
 				constructor = clazz.getConstructor(parameterTypes);
 			}
 
-			return constructor.newInstance(parameters);
+			return constructor.newInstance(args);
 		}catch(Exception e){
 			Exception lastExecption = e;
 			if(constructor==null) {
@@ -481,24 +487,24 @@ public class TReflect {
 				for (Constructor similarConstructor : constructors) {
 					Class[] methodParamTypes = similarConstructor.getParameterTypes();
 					//匹配参数数量相等的方法
-					if (methodParamTypes.length == parameters.length) {
+					if (methodParamTypes.length == args.length) {
 						try {
-							Object[] convertedParams = new Object[parameters.length];
+							Object[] convertedParams = new Object[args.length];
 							for (int i = 0; i < methodParamTypes.length; i++) {
 								Class parameterType = methodParamTypes[i];
 								//参数类型转换
 								String value = "";
 
-								Class parameterClass = parameters[i].getClass();
+								Class parameterClass = args[i].getClass();
 
 								//复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
-								if (parameters[i] instanceof Collection ||
-										parameters[i] instanceof Map ||
+								if (args[i] instanceof Collection ||
+										args[i] instanceof Map ||
 										parameterClass.isArray() ||
 										!TReflect.isBasicType(parameterClass)) {
-									value = JSON.toJSON(parameters[i]);
+									value = JSON.toJSON(args[i]);
 								} else {
-									value = parameters[i].toString();
+									value = args[i].toString();
 								}
 
 								convertedParams[i] = TString.toObject(value, parameterType);
@@ -558,6 +564,10 @@ public class TReflect {
 	 * @return 类数组
 	 */
 	public static Class<?>[] getArrayClasses(Object[] objs){
+		if(objs == null){
+			return new Class<?>[0];
+		}
+
 		Class<?>[] parameterTypes= new Class<?>[objs.length];
 		for(int i=0;i<objs.length;i++){
 			if(objs[i]==null){
