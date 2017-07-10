@@ -449,7 +449,7 @@ public class TReflect {
 			}
 
 			if ( !(lastExecption instanceof ReflectiveOperationException) ) {
-				lastExecption = new ReflectiveOperationException(lastExecption);
+				lastExecption = new ReflectiveOperationException(lastExecption.getMessage(), lastExecption);
 			}
 
 			throw (ReflectiveOperationException)lastExecption;
@@ -520,7 +520,7 @@ public class TReflect {
 			}
 
 			if ( !(lastExecption instanceof ReflectiveOperationException) ) {
-				lastExecption = new ReflectiveOperationException(lastExecption);
+				lastExecption = new ReflectiveOperationException(lastExecption.getMessage(), lastExecption);
 			}
 
 			//尝试使用 Unsafe 分配

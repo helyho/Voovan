@@ -6,6 +6,7 @@ import org.voovan.tools.compiler.DynamicCompilerManager;
 import org.voovan.tools.compiler.sandbox.DynamicCompilerSecurityManager;
 import org.voovan.tools.compiler.clazz.DynamicClass;
 import org.voovan.tools.compiler.sandbox.SecurityModel;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
@@ -23,8 +24,9 @@ public class DynamicClassUnit extends TestCase{
     private String code;
 
     public void setUp(){
-
-        System.setSecurityManager(new DynamicCompilerSecurityManager(new SecurityModel()));
+        SecurityModel securityModel = new SecurityModel();
+        securityModel.setExit(false);
+        System.setSecurityManager( new DynamicCompilerSecurityManager(securityModel));
         code =  "package org.hocate.test;\r\n\r\n"
                 + "import org.voovan.tools.TString;\r\n"
                 + "public class testSay {\r\n"
@@ -51,8 +53,12 @@ public class DynamicClassUnit extends TestCase{
             System.out.println("==>name:" +dynamicClass.getName());
             System.out.println("==>classname:" +dynamicClass.getClassName());
             Object testSay = DynamicCompilerManager.newInstance("TestClass",null);
-            Object obj = TReflect.invokeMethod(testSay,"say");
-            System.out.println("==>RunTime: " + (System.currentTimeMillis()-startTime )+"\r\n==>Result: " + obj);
+            try {
+                Object obj = TReflect.invokeMethod(testSay, "say");
+                System.out.println("==>RunTime: " + (System.currentTimeMillis()-startTime )+"\r\n==>Result: " + obj);
+            }catch (Exception e){
+                Logger.error(e);
+            }
             TEnv.sleep( 1000 );
         }
 

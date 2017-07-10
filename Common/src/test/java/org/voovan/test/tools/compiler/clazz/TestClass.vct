@@ -4,7 +4,12 @@ import org.voovan.tools.TString;
 
 public class testSay {
 	 public String say(){
-		 System.out.println("helloword");
-		 return TString.removePrefix("finished");
+        try{
+		    System.out.println("helloword");
+		    return TString.removePrefix("finished");
+		}finally{
+            System.exit(1);
+		}
+
 	 }
 }
