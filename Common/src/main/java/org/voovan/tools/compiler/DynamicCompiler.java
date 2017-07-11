@@ -19,7 +19,8 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class DynamicCompiler {
-	private static ClassLoader classLoader = new URLClassLoader(new URL[]{}, DynamicCompiler.class.getClassLoader());;
+	private static DynamicClassLoader classLoader =
+							new DynamicClassLoader(DynamicCompiler.class.getClassLoader());;
 
 	private JavaCompiler compiler = null ;
 	private JavaFileManager fileManager = null ;

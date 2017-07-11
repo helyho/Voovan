@@ -19,10 +19,12 @@ import java.util.List;
 public class SandboxControler {
     private static File	configFile = getConfigFile();
 
-    private List<String> network;           //null 全部允许访问, size=0为全部进制
-    private List<String> file;              //null 全部允许访问, size=0为全部进制
-    private List<String> packageAccess;     //null 全部允许访问, size=0为全部进制
-    private List<String> packageDefintion;  //null 全部允许访问, size=0为全部进制
+    private List<String> forbiddenClasses;  //null 全部允许访问, size=0为全部禁止
+    private List<String> network;           //null 全部允许访问, size=0为全部禁止
+    private List<String> file;              //null 全部允许访问, size=0为全部禁止
+    private List<String> packageAccess;     //null 全部允许访问, size=0为全部禁止
+    private List<String> packageDefintion;  //null 全部允许访问, size=0为全部禁止
+
     private boolean thread;
     private boolean link;
     private boolean properties;
@@ -78,6 +80,7 @@ public class SandboxControler {
      * 从配置文件读取配置信息
      */
     public void loadConfig(){
+        this.forbiddenClasses = setControlField(ControlType.LIST, TProperties.getString(configFile, "forbiddenClasses"));
         this.network = setControlField(ControlType.LIST, TProperties.getString(configFile, "network"));
         this.file = setControlField(ControlType.LIST, TProperties.getString(configFile, "file"));
         this.packageAccess = setControlField(ControlType.LIST, TProperties.getString(configFile, "packageAccess"));
@@ -138,6 +141,13 @@ public class SandboxControler {
         return TObject.cast(result);
     }
 
+    public List<String> getForbiddenClasses() {
+        return forbiddenClasses;
+    }
+
+    public void setForbiddenClasses(List<String> forbiddenClasses) {
+        this.forbiddenClasses = forbiddenClasses;
+    }
 
     public List<String> getNetwork() {
         return network;

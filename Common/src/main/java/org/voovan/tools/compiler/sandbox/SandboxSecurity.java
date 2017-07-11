@@ -16,10 +16,14 @@ import java.util.List;
  */
 public class SandboxSecurity extends java.lang.SecurityManager {
     private java.lang.SecurityManager systemSecurityManager;
-    private SandboxControler securityModel;
+    private SandboxControler sandboxControler;
 
-    public SandboxSecurity(SandboxControler securityModel){
-        this.securityModel = securityModel;
+    /**
+     * 构造函数
+     * @param sandboxControler 安全模型
+     */
+    public SandboxSecurity(SandboxControler sandboxControler) {
+        this.sandboxControler = sandboxControler;
 
         systemSecurityManager = System.getSecurityManager();
         if(systemSecurityManager instanceof SandboxSecurity){
@@ -27,19 +31,22 @@ public class SandboxSecurity extends java.lang.SecurityManager {
         }
     }
 
+    /**
+     * 获取系统的安全管理器
+     * @return 系统的安全管理器
+     */
     public java.lang.SecurityManager getSystemSecurityManager(){
         return systemSecurityManager;
     }
 
     /**
      * 判断是否是动态对象
+     *      从当前线程中检查是否存在动态编译的类
      * @return true:是, false:否
      */
     private boolean isDynamicObject(){
         for(StackTraceElement stackTraceElement : Thread.currentThread().getStackTrace()){
-            //动态
             if(stackTraceElement.getClassName().contains("$VDC$")){
-                //动态 class
                 return true;
             }
         }
@@ -77,20 +84,34 @@ public class SandboxSecurity extends java.lang.SecurityManager {
      */
     public boolean commonCheck(Object condiction, Object param){
 
-        if(!isDynamicObject()){
-            return true;
+        boolean result = true;
+
+        if(isDynamicObject() && condiction instanceof Boolean && param==null){
+            result = (boolean)condiction;
+        } else if(isDynamicObject() && condiction instanceof List){
+            result = isInList((List)condiction, (String)param);
         }
 
-        if(condiction instanceof Boolean && param==null){
-            return (boolean)condiction;
+        return result;
+    }
+
+    /**
+     * 抛出异常
+     * @param resource 异常信息
+     */
+    public void throwException(String resource){
+        throw new SecurityException("Access to protected resource [" + resource + "] is restricted in Sandbox mode");
+    }
+
+    /**
+     * 进制某些 class 在动态调用时被加载到 JVM
+     * @param className 类名
+     */
+    public void checkLoadClass(String className) throws ClassNotFoundException {
+        //ServerSocket or Socket 的工厂操作
+        if(isDynamicObject() && isInList(sandboxControler.getForbiddenClasses(), className)){
+            throw new ClassNotFoundException("Access to protected resource [ Load Class: " + className + "] is restricted in Sandbox mode");
         }
-
-        if(condiction instanceof List){
-            return isInList((List)condiction, (String)param);
-        }
-
-        return true;
-
     }
 
     @Override
@@ -100,14 +121,10 @@ public class SandboxSecurity extends java.lang.SecurityManager {
         }
     }
 
-    public void throwException(String resource){
-        throw new SecurityException("Access to protected resource [" + resource + "] is restricted in Sandbox mode");
-    }
-
     @Override
     public void checkAccess(Thread t) {
         //线程的 stop, suspend, resume, setPriority, setName, setDaemon这些操作
-        if(!commonCheck(securityModel.isThread(), null)){
+        if(!commonCheck(sandboxControler.isThread(), null)){
             throwException("Thread Operation");
         }
 
@@ -119,7 +136,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkAccess(ThreadGroup g) {
         //线程的created, setDaemon, setMaxPriority, stop, suspend, resume, destroy这些操作
-        if(!commonCheck(securityModel.isThread(), null)){
+        if(!commonCheck(sandboxControler.isThread(), null)){
             throwException("ThreadGroup Operation");
         }
 
@@ -131,7 +148,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkExit(int status) {
         //System.exit 操作
-        if(!commonCheck(securityModel.isExit(), null)){
+        if(!commonCheck(sandboxControler.isExit(), null)){
             throwException("Exit Operation");
         }
 
@@ -143,7 +160,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkExec(String cmd) {
         //启动新的进程的操作
-        if(!commonCheck(securityModel.isExec(), null)){
+        if(!commonCheck(sandboxControler.isExec(), null)){
             throwException("Execute " + cmd);
         }
 
@@ -155,7 +172,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkLink(String lib) {
         //读取JNI库操作
-        if(!commonCheck(securityModel.isLink(), null)){
+        if(!commonCheck(sandboxControler.isLink(), null)){
             throwException("Link "+lib);
         }
 
@@ -168,7 +185,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkRead(String file) {
         //读文件操作
-        if(!commonCheck(securityModel.getFile(), file)){
+        if(!commonCheck(sandboxControler.getFile(), file)){
             throwException("Read "+file);
         }
 
@@ -181,7 +198,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkWrite(String file) {
         //修改文件操作
-        if(!commonCheck(securityModel.getFile(), file)){
+        if(!commonCheck(sandboxControler.getFile(), file)){
             throwException("Write "+file);
         }
 
@@ -193,7 +210,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkDelete(String file) {
         //删除文件操作
-        if(!commonCheck(securityModel.getFile(), file)){
+        if(!commonCheck(sandboxControler.getFile(), file)){
             throwException("Delete "+file);
         }
 
@@ -206,7 +223,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     public void checkConnect(String host, int port) {
         //Socket 连接操作
         String addrsss = host + ":" + port;
-        if(!commonCheck(securityModel.getNetwork(), addrsss)){
+        if(!commonCheck(sandboxControler.getNetwork(), addrsss)){
             throwException("Connect "+addrsss);
         }
 
@@ -219,7 +236,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     public void checkConnect(String host, int port, Object context) {
         //Socket 连接操作
         String addrsss = host + ":" + port;
-        if(!commonCheck(securityModel.getNetwork(), addrsss)){
+        if(!commonCheck(sandboxControler.getNetwork(), addrsss)){
             throwException("Connect "+addrsss);
         }
 
@@ -232,7 +249,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     public void checkListen(int port) {
         //Socket 监听操作
         String addrsss = ":"+port;
-        if(!commonCheck(securityModel.getNetwork(), addrsss)){
+        if(!commonCheck(sandboxControler.getNetwork(), addrsss)){
             throwException("Listen "+addrsss);
         }
 
@@ -245,7 +262,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     public void checkAccept(String host, int port) {
         //接受连接操作
         String addrsss = host+":"+port;
-        if(!commonCheck(securityModel.getNetwork(), addrsss)){
+        if(!commonCheck(sandboxControler.getNetwork(), addrsss)){
             throwException("Accept "+addrsss);
         }
 
@@ -258,7 +275,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     public void checkMulticast(InetAddress maddr) {
         //广播操作
         String addrsss = maddr.getHostAddress();
-        if(!commonCheck(securityModel.getNetwork(), addrsss)){
+        if(!commonCheck(sandboxControler.getNetwork(), addrsss)){
             throwException("Multicast "+addrsss);
         }
 
@@ -270,7 +287,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkPropertiesAccess() {
         //系统属性的访问操作
-        if(!commonCheck(securityModel.isProperties(), null)){
+        if(!commonCheck(sandboxControler.isProperties(), null)){
             throwException("System Property");
         }
 
@@ -282,7 +299,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkPropertyAccess(String key) {
         //特定系统属性访问操作
-        if(!commonCheck(securityModel.isProperties(), null)){
+        if(!commonCheck(sandboxControler.isProperties(), null)){
             throwException("System Property");
         }
 
@@ -294,7 +311,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkPrintJobAccess() {
         //文件打印操作
-        if(!commonCheck(securityModel.isPrintJob(), null)){
+        if(!commonCheck(sandboxControler.isPrintJob(), null)){
             throwException("Print Job");
         }
 
@@ -306,7 +323,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkPackageAccess(String pkg) {
         //包访问操作
-        if(!commonCheck(securityModel.getPackageAccess(), pkg)) {
+        if(!commonCheck(sandboxControler.getPackageAccess(), pkg)) {
             throwException("Package "+pkg);
         }
 
@@ -318,7 +335,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkPackageDefinition(String pkg) {
         //包定义操作
-        if (!commonCheck(securityModel.getPackageDefintion(), pkg)) {
+        if (!commonCheck(sandboxControler.getPackageDefintion(), pkg)) {
             throwException("Package "+pkg);
         }
 
@@ -330,7 +347,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     @Override
     public void checkSetFactory() {
         //ServerSocket or Socket 的工厂操作
-        if(!commonCheck(securityModel.isFactory(), null)){
+        if(!commonCheck(sandboxControler.isFactory(), null)){
             throwException("Socket Factory");
         }
 
@@ -341,7 +358,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
 
     public void checkSecurityAccess(String target){
         //ServerSocket or Socket 的工厂操作
-        if(!commonCheck(securityModel.isSecurityAccess(), null)){
+        if(!commonCheck(sandboxControler.isSecurityAccess(), null)){
             throwException("Security Access");
         }
 
@@ -352,7 +369,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
 
     public void checkCreateClassLoader(){
         //ServerSocket or Socket 的工厂操作
-        if(!commonCheck(securityModel.isCreateClassLoader(), null)){
+        if(!commonCheck(sandboxControler.isCreateClassLoader(), null)){
             throwException("Create ClassLoader");
         }
 
