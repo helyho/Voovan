@@ -1,9 +1,6 @@
 package org.voovan.tools;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 对象工具类
@@ -56,11 +53,7 @@ public class TObject {
 	 */
 	@SuppressWarnings("rawtypes")
 	public static List asList(Object ...objs){
-		ArrayList<Object> list = new ArrayList<Object>();
-		for(Object obj:objs){
-			list.add(obj);
-		}
-		return list;
+		return Arrays.asList(objs);
 	}
 	
 	/**

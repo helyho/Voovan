@@ -17,7 +17,7 @@ import java.io.File;
  */
 public class StaticParam {
 	private static long		startTimeMillis	= System.currentTimeMillis();
-	private static File		configFile		= loadConfig();
+	private static File		configFile		= getConfigFile();
 
 	public final static String LOG_LEVEL = "ALL";
 	public final static String LOG_FILE = null;
@@ -32,7 +32,7 @@ public class StaticParam {
 	 * 读取日志配置文件信息
 	 * @return 日志配置文件对象
      */
-	protected static File loadConfig(){
+	protected static File getConfigFile(){
 		File tmpFile = TFile.getResourceFile("logger.properties");
 
 		//如果找不日志配置文件则从classes 目录中查找

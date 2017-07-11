@@ -25,8 +25,8 @@ public class DynamicClassUnit extends TestCase{
 
     public void setUp(){
         SandboxControler sandboxControler = new SandboxControler();
-        //用来测试安全控制
-        sandboxControler.setExit(false);
+//        用来测试安全控制
+//        sandboxControler.setExit(false);
         System.setSecurityManager( new SandboxSecurity(sandboxControler));
         code =  "package org.hocate.test;\r\n\r\n"
                 + "import org.voovan.tools.TString;\r\n"
