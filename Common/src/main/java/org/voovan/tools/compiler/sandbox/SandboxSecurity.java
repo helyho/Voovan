@@ -77,6 +77,28 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     }
 
     /**
+     * 用正则的方式判断是否不存在于字符串列表中
+     * @param restricts 约束 List
+     * @param param 被判断参数
+     * @return true:不在列表中, falsel:在列表中
+     */
+    public boolean isNotInList(List<String> restricts, String param){
+        if(restricts == null){
+            return true;
+        }
+
+        boolean result = false;
+        for(String restrict : restricts){
+            if(TString.regexMatch(param,restrict.trim())>0){
+                result  = false;
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    /**
      * 通用判断函数
      * @param condiction 判断条件可以为 List 或者 boolean 数据
      * @param param 被判断参数
@@ -109,7 +131,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
      */
     public void checkLoadClass(String className) throws ClassNotFoundException {
         //ServerSocket or Socket 的工厂操作
-        if(isDynamicObject() && isInList(sandboxControler.getForbiddenClasses(), className)){
+        if(isDynamicObject() && !isNotInList(sandboxControler.getForbiddenClasses(), className)){
             throw new ClassNotFoundException("Access to protected resource [ Load Class: " + className + "] is restricted in Sandbox mode");
         }
     }
