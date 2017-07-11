@@ -5,8 +5,6 @@ import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
 
 /**
  * 内存文件管理实现

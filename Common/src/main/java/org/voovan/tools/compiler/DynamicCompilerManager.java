@@ -2,6 +2,8 @@ package org.voovan.tools.compiler;
 
 import org.voovan.tools.compiler.clazz.DynamicClass;
 import org.voovan.tools.compiler.function.DynamicFunction;
+import org.voovan.tools.compiler.sandbox.SandboxControler;
+import org.voovan.tools.compiler.sandbox.SandboxSecurity;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
@@ -21,7 +23,6 @@ public class DynamicCompilerManager {
 
     private static  Map<String, DynamicFunction> functions = new ConcurrentHashMap<String, DynamicFunction>();
     private static  Map<String, DynamicClass> classes = new ConcurrentHashMap<String, DynamicClass>();
-
 
     /**
      * 增加一个动态函数

@@ -1,0 +1,16 @@
+package org.voovan.test.tools.compiler.clazz;
+
+import org.voovan.tools.TFile;
+import org.voovan.tools.TString;
+
+public class TestSay {
+    public String say() {
+        try {
+            System.out.println("helloword");
+            System.out.println(TFile.fileExists("/Users/helyho/.zshrcbak"));
+            return TString.removePrefix("finished");
+        } finally {
+            //System.exit(1);
+        }
+    }
+}
