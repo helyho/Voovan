@@ -7,7 +7,7 @@ import java.security.Permission;
 import java.util.List;
 
 /**
- * 类文字命名
+ * 沙盒安全控制类
  *
  * @author: helyho
  * Voovan Framework.
@@ -60,7 +60,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
 
         boolean result = false;
         for(String restrict : restricts){
-            if(TString.regexMatch(param,restrict)>0){
+            if(TString.regexMatch(param,restrict.trim())>0){
                 result  = true;
                 break;
             }
@@ -101,14 +101,14 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     }
 
     public void throwException(String resource){
-        throw new SecurityException("Access deny with an protected resource [" + resource + "] in Sandbox mode");
+        throw new SecurityException("Access to protected resource [" + resource + "] is restricted in Sandbox mode");
     }
 
     @Override
     public void checkAccess(Thread t) {
         //线程的 stop, suspend, resume, setPriority, setName, setDaemon这些操作
         if(!commonCheck(securityModel.isThread(), null)){
-            throwException("Thread operation");
+            throwException("Thread Operation");
         }
 
         if(systemSecurityManager!=null){
@@ -120,7 +120,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     public void checkAccess(ThreadGroup g) {
         //线程的created, setDaemon, setMaxPriority, stop, suspend, resume, destroy这些操作
         if(!commonCheck(securityModel.isThread(), null)){
-            throwException("ThreadGroup operation");
+            throwException("ThreadGroup Operation");
         }
 
         if(systemSecurityManager!=null){
@@ -132,7 +132,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     public void checkExit(int status) {
         //System.exit 操作
         if(!commonCheck(securityModel.isExit(), null)){
-            throwException("Exit operation");
+            throwException("Exit Operation");
         }
 
         if(systemSecurityManager!=null){
@@ -295,7 +295,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     public void checkPrintJobAccess() {
         //文件打印操作
         if(!commonCheck(securityModel.isPrintJob(), null)){
-            throwException("Print job");
+            throwException("Print Job");
         }
 
         if(systemSecurityManager!=null){
@@ -331,7 +331,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     public void checkSetFactory() {
         //ServerSocket or Socket 的工厂操作
         if(!commonCheck(securityModel.isFactory(), null)){
-            throwException("Socket factory");
+            throwException("Socket Factory");
         }
 
         if(systemSecurityManager!=null){
@@ -342,7 +342,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     public void checkSecurityAccess(String target){
         //ServerSocket or Socket 的工厂操作
         if(!commonCheck(securityModel.isSecurityAccess(), null)){
-            throwException("Security access");
+            throwException("Security Access");
         }
 
         if(systemSecurityManager!=null){
