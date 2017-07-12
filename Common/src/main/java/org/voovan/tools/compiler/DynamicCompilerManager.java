@@ -200,8 +200,8 @@ public class DynamicCompilerManager {
      * @return 动态类的实例化对象
      * @throws ReflectiveOperationException 反射异常
      */
-    public static Object newInstance(String name, Object ... args) throws ReflectiveOperationException {
-        return TReflect.newInstance(classes.get(name).getClazz(), args);
+    public static <T> T newInstance(String name, Object ... args) throws ReflectiveOperationException {
+        return (T)TReflect.newInstance(classes.get(name).getClazz(), args);
     }
 
 }
