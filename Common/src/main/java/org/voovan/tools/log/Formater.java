@@ -90,7 +90,6 @@ public class Formater {
 		if(infoIndent!=null && !infoIndent.isEmpty()){
 			msg = infoIndent + msg;
 			msg = TString.fastReplaceAll(msg, "\n", "\n" + infoIndent);
-			message.setMessage(msg);
 		}
 		return msg;
 	}
@@ -142,8 +141,7 @@ public class Formater {
      */
 	public String simpleFormat(Message message){
 		//消息缩进
-		Map<String, String> tokens = newLogtokens(message);
-		preIndentMessage(message);
+		Map<String, String> tokens = newLogtokens(new Message());
 		return TString.tokenReplace(message.getMessage(), tokens);
 	}
 	

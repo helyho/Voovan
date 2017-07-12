@@ -4,14 +4,14 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 
-public class TestSay {
+public class TestSay1 {
     public String say() {
         try {
-            System.out.println("helloword");
-            System.out.println(TFile.fileExists("/Users/helyho/.zshrcbak"));
-            TEnv.sleep(1000);
+            System.out.println("helloword 123");
+            System.out.println(TFile.fileExists("/Users/helyho/.zshrc"));
+            TEnv.sleep(500);
             System.out.println(this.getClass().getClassLoader());
-            return TString.removePrefix("finished");
+            return TString.removePrefix("ffinished");
         } finally {
             //System.exit(1);
         }
