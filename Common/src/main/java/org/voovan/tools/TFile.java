@@ -432,7 +432,6 @@ public class TFile {
 	 * @param file    特定的文件或文件目录
 	 * @param pattern  确认匹配的正则表达式
 	 * @return 匹配到的文件对象集合
-	 * @throws IOException IO 异常
 	 */
 	public static List<File> scanFile(File file, String pattern)   {
 		pattern = TObject.nullDefault(pattern,".*");

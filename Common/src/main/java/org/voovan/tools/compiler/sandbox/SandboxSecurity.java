@@ -128,6 +128,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
     /**
      * 进制某些 class 在动态调用时被加载到 JVM
      * @param className 类名
+     * @throws ClassNotFoundException 类无法找到异常
      */
     public void checkLoadClass(String className) throws ClassNotFoundException {
         //ServerSocket or Socket 的工厂操作
