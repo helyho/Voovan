@@ -434,14 +434,14 @@ public class TFile {
 	 * @return 匹配到的文件对象集合
 	 * @throws IOException IO 异常
 	 */
-	public static List<File> scanFile(File file, String pattern) throws IOException {
+	public static List<File> scanFile(File file, String pattern)   {
 		pattern = TObject.nullDefault(pattern,".*");
 		ArrayList<File> result = new ArrayList<File>();
 		if(file.isDirectory()){
 			for(File subFile : file.listFiles()){
 				result.addAll(scanFile(subFile,pattern));
 			}
-		} else if(TString.regexMatch(file.getCanonicalPath(),pattern) > 0) {
+		} else if(TString.regexMatch(file.getPath(),pattern) > 0) {
 			result.add(file);
 		}
 		return result;
