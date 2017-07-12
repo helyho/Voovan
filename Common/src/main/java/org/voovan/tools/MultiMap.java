@@ -13,9 +13,10 @@ package org.voovan.tools;
 import org.voovan.tools.json.JSON;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MultiMap<K,V>
-        extends HashMap<K, List<V>>
+        extends ConcurrentHashMap<K, List<V>>
 {
     public MultiMap() {}
 

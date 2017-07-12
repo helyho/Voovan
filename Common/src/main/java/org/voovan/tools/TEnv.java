@@ -10,6 +10,8 @@ import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 系统环境相关
@@ -142,7 +144,15 @@ public class TEnv {
 
 		try {
 			if (file.isDirectory() || file.getPath().toLowerCase().endsWith(".jar")) {
-				URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+				URLClassLoader urlClassLoader = null;
+
+				ClassLoader currentClassLoader = TEnv.class.getClassLoader();
+				if(currentClassLoader instanceof URLClassLoader){
+					urlClassLoader = (URLClassLoader)currentClassLoader;
+				} else {
+					urlClassLoader = (URLClassLoader)ClassLoader.getSystemClassLoader();
+				}
+
 				Method method = TReflect.findMethod(URLClassLoader.class, "addURL", URL.class);
 				method.setAccessible(true);
 				TReflect.invokeMethod(urlClassLoader, method, file.toURI().toURL());
@@ -188,7 +198,7 @@ public class TEnv {
 			});
 			//遍历或者加载文件
 			if(files!=null){
-				for(File file:files){
+				for(File file : files){
 					if(file.isDirectory()){
 						loadJars(file.getPath());
 					}else if(file.getPath().toLowerCase().endsWith(".jar")){
@@ -209,5 +219,23 @@ public class TEnv {
 	public static void loadJars(String directoryPath) throws IOException, NoSuchMethodException {
 		File file = new File(directoryPath);
 		loadJars(file);
+	}
+
+	/**
+	 * 获取类JVM 的 Class Path
+	 *   因部分 ide 会自动增加全部的 jvm 的 classpath, 所以这里会自动剔除 classpath 中 jvm 的 classPath
+	 * @return 获得用户的类加载路径
+	 */
+	public static List<String> getClassPath(){
+		ArrayList<String> userClassPath = new ArrayList<String>();
+		String javaHome = System.getProperty("java.home");
+		javaHome = javaHome.replaceAll("\\/[a-zA-z0-9\\_\\$]*$","");
+		String [] classPaths = System.getProperty("java.class.path").split(File.pathSeparator);
+		for(String classPath : classPaths){
+			if(!classPath.startsWith(javaHome)){
+				userClassPath.add(classPath);
+			}
+		}
+		return userClassPath;
 	}
 }
