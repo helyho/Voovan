@@ -363,9 +363,9 @@ public class TReflect {
 	 * @return					方法返回结果
 	 * @throws ReflectiveOperationException 反射异常
 	 */
-	public static Object invokeMethod(Object obj, Method method, Object... parameters)
+	public static <T> T invokeMethod(Object obj, Method method, Object... parameters)
 			throws ReflectiveOperationException {
-		return method.invoke(obj, parameters);
+		return (T)method.invoke(obj, parameters);
 	}
 
 	/**
@@ -378,7 +378,7 @@ public class TReflect {
 	 * @return					方法返回结果
 	 * @throws ReflectiveOperationException		反射异常
 	 */
-	public static Object invokeMethod(Object obj, String name, Object... args)
+	public static <T> T invokeMethod(Object obj, String name, Object... args)
 			throws ReflectiveOperationException {
 		if(args==null){
 			args = new Object[0];
@@ -389,7 +389,7 @@ public class TReflect {
 		try {
 			 method = findMethod(objClass, name, parameterTypes);
 			 method.setAccessible(true);
-			 return method.invoke(obj, args);
+			 return (T)method.invoke(obj, args);
 		}catch(Exception e){
 			Exception lastExecption = e;
 
@@ -439,7 +439,7 @@ public class TReflect {
 							}
 							method = similarMethod;
 							method.setAccessible(true);
-							return method.invoke(obj, convertedParams);
+							return (T)method.invoke(obj, convertedParams);
 						} catch (Exception ex) {
 							lastExecption = (Exception) ex.getCause();
 							continue;
