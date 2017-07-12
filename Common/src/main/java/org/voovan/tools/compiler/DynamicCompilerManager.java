@@ -30,6 +30,7 @@ public class DynamicCompilerManager {
      * @param charSet 字符集
      * @throws UnsupportedEncodingException 字符集异常
      * @throws ReflectiveOperationException  反射异常
+     * @return DynamicFunction对象
      */
     public static DynamicFunction addFunction(File file, String charSet) throws UnsupportedEncodingException, ReflectiveOperationException {
         DynamicFunction dynamicFunction = new DynamicFunction(file, charSet);
@@ -43,6 +44,7 @@ public class DynamicCompilerManager {
      * @param file 文件对象
      * @throws UnsupportedEncodingException 字符集异常
      * @throws ReflectiveOperationException 反射异常
+     * @return DynamicFunction对象
      */
     public static DynamicFunction addFunction(File file) throws UnsupportedEncodingException, ReflectiveOperationException {
         DynamicFunction dynamicFunction = new DynamicFunction(file, "UTF-8");
@@ -56,6 +58,7 @@ public class DynamicCompilerManager {
      * @param name 动态函数名称
      * @param code 动态函数代码
      * @throws ReflectiveOperationException 反射异常
+     * @return DynamicFunction对象
      */
     public static DynamicFunction addFunction(String name, String code) throws ReflectiveOperationException {
         DynamicFunction dynamicFunction = new DynamicFunction(name, code);
@@ -67,6 +70,7 @@ public class DynamicCompilerManager {
     /**
      * 增加一个动态函数
      * @param dynamicFunction 动态函数对象
+     * @return DynamicFunction对象
      */
     public static DynamicFunction addFunction(DynamicFunction dynamicFunction) {
         functions.put(dynamicFunction.getName(), dynamicFunction);
@@ -117,6 +121,7 @@ public class DynamicCompilerManager {
      * @param charSet 字符集
      * @throws UnsupportedEncodingException 字符集异常
      * @throws ReflectiveOperationException  反射异常
+     * @return DynamicClass对象
      */
     public static DynamicClass addClazz(File file, String charSet) throws UnsupportedEncodingException, ReflectiveOperationException {
         DynamicClass dynamicClass = new DynamicClass(file, charSet);
@@ -130,6 +135,7 @@ public class DynamicCompilerManager {
      * @param file  文件对象
      * @throws UnsupportedEncodingException 字符集异常
      * @throws ReflectiveOperationException  反射异常
+     * @return DynamicClass对象
      */
     public static DynamicClass addClazz(File file) throws UnsupportedEncodingException, ReflectiveOperationException {
         DynamicClass dynamicClass = new DynamicClass(file, "UTF-8");
@@ -140,8 +146,10 @@ public class DynamicCompilerManager {
 
     /**
      * 增加一个动态类
+     * @param name 动态类命名
      * @param code 动态类代码
      * @throws ReflectiveOperationException 反射异常
+     * @return DynamicClass对象
      */
     public static DynamicClass addClazz(String name, String code) throws ReflectiveOperationException {
         DynamicClass dynamicClass = new DynamicClass(name, code);
@@ -153,6 +161,7 @@ public class DynamicCompilerManager {
     /**
      * 增加一个动态类
      * @param dynamicClass 动态类对象
+     * @return DynamicClass对象
      */
     public static DynamicClass addClazz(DynamicClass dynamicClass) {
         classes.put(dynamicClass.getName(), dynamicClass);
