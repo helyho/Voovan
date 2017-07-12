@@ -32,8 +32,8 @@ public class HotSwapUnit {
 
             if (i == 0) {
                 DynamicCompiler dynamicCompiler = new DynamicCompiler();
-                dynamicCompiler.compileCode(TObject.asList("/Users/helyho/Work/Java/Voovan/Common/src/test/java/org/voovan/test/tools/compiler/TestSay.java"),
-                        "/Users/helyho/Work/Java/Voovan/target/test/Common/");
+                dynamicCompiler.compileCode(TObject.asList("/Users/helyho/Work/Java/Voovan/Common/src/test/java/org/voovan/test/tools/compiler/hotswap/TestSay.java"),
+                        "/Users/helyho/Work/Java/Voovan/target/test-classes/Common/");
                 hotSwaper.autoReloadClass();
             }
 
