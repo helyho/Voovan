@@ -112,6 +112,7 @@ public class WebSocketSession {
     /**
      * 发送 websocket 消息
      * @param obj 消息对象
+     * @throws SendMessageException 发送异常
      */
     public synchronized void send(Object obj) throws SendMessageException {
 
@@ -123,6 +124,7 @@ public class WebSocketSession {
     /**
      * 发送 websocket 帧
      * @param webSocketFrame 帧
+     * @throws SendMessageException 发送异常
      */
     protected synchronized void send(WebSocketFrame webSocketFrame) throws SendMessageException {
         this.socketSession.syncSend(webSocketFrame);

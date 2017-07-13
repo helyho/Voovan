@@ -99,7 +99,7 @@ public class TEnv {
 			stackInfo.append("\r\n");
 		}
 		
-		return stackInfo.toString();
+		return stackInfo.toString().trim();
 	}
 
 	/**
@@ -139,7 +139,7 @@ public class TEnv {
 	 */
 	public static void loadBinary(File file) throws NoSuchMethodException, SecurityException, IOException {
 		if(!file.exists()){
-			Logger.warn("Method loadBinary, This ["+file.getCanonicalPath()+"] is not exists");
+			Logger.simple("[WARN] Method loadBinary, This ["+file.getCanonicalPath()+"] is not exists");
 		}
 
 		try {
@@ -182,7 +182,7 @@ public class TEnv {
 	 */
 	public static void loadJars(File rootFile) throws IOException, NoSuchMethodException {
 		if(!rootFile.exists()){
-			Logger.warn("Method loadJars, This ["+rootFile.getCanonicalPath()+"] is not exists");
+			Logger.simple("[WARN] Method loadJars, This ["+rootFile.getCanonicalPath()+"] is not exists");
 		}
 		if(rootFile.isDirectory()){
 			//文件过滤器取目录中的文件

@@ -18,15 +18,10 @@ public class DynamicAgent {
     }
 
     public static void agentmain(String agentArgs, Instrumentation inst) {
-        Object var2 = lockObject;
         synchronized(lockObject) {
             if(instrumentation == null) {
                 instrumentation = inst;
-                System.out.println("0->" + inst);
-            } else {
-                System.out.println("1->" + inst);
             }
-
         }
     }
 

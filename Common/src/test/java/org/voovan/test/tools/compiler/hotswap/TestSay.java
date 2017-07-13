@@ -17,7 +17,6 @@ public class TestSay {
         System.out.println("hello world");
         System.out.println(TFile.fileExists("/Users/helyho/.zshrcbak"));
         TEnv.sleep(1000);
-        System.out.println(this.getClass().getClassLoader());
         return TString.removePrefix("finished");
     }
 }
