@@ -6,6 +6,7 @@ import org.voovan.tools.reflect.TReflect;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -595,5 +596,50 @@ public class TString {
 		}
 		return shortBuffer.toString();
 
+	}
+
+	/**
+	 * 获取字符串中最长一行的长度
+	 * @param source unicode 字符串
+	 * @return 最长一行的长度
+	 */
+	public static int maxLineLength(String source){
+		String[] lines = source.split("\n");
+
+		int maxLineLength = -1;
+
+        for(String line : lines){
+            if(maxLineLength < line.length()){
+                maxLineLength = line.length();
+            }
+        }
+
+        return maxLineLength;
+	}
+
+	/**
+	 * 根据分割符把字符串分割成一个数组
+	 * @param source 源字符串
+	 * @param regex 正则分割符
+	 * @return 字符串数组
+	 */
+	public static String[] split(String source, String regex){
+		if(source == null){
+			return null;
+		}
+
+		ArrayList<String> items = new ArrayList<String>();
+		for(int position = source.indexOf(regex);
+                position>0;
+                position = source.indexOf(regex)){
+			items.add(source.substring(0, position));
+			source = source.substring(position+1, source.length());
+		}
+
+		if(!source.isEmpty()){
+			items.add(source);
+		}
+
+		return items.toArray(new String[0]);
 	}
 }
