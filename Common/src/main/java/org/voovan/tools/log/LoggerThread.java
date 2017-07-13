@@ -2,8 +2,10 @@ package org.voovan.tools.log;
 
 import org.voovan.tools.TEnv;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -88,6 +90,10 @@ public class LoggerThread implements Runnable {
                     if (formatedMessage != null && outputStreams!=null) {
                         for (OutputStream outputStream : outputStreams) {
                             if (outputStream != null) {
+                            	if(!(outputStream instanceof PrintStream)){
+                            		//文件写入踢出着色部分
+									formatedMessage = formatedMessage.replaceAll("\033\\[\\d{2}m", "");
+								}
                                 outputStream.write(formatedMessage.getBytes());
                                 outputStream.flush();
                             }
