@@ -7,7 +7,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 /**
- * 类文字命名
+ * 动态类加载器
  *
  * @author: helyho
  * Voovan Framework.

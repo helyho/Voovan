@@ -189,6 +189,7 @@ public class WebSocketDispatcher {
 	 * 触发 WebSocket Received 事件
 	 * @param session socket 会话对象
 	 * @param request http 请求对象
+	 * @param byteBuffer ping的报文数据
 	 * @return WebSocketFrame WebSocket 帧
 	 */
 	public  WebSocketFrame fireReceivedEvent(IoSession session, HttpRequest request, ByteBuffer byteBuffer){
@@ -221,6 +222,7 @@ public class WebSocketDispatcher {
 	 * 触发 WebSocket Ping 事件
 	 * @param session socket 会话对象
 	 * @param request http 请求对象
+	 * @param byteBuffer ping的报文数据
 	 * @return WebSocketFrame WebSocket 帧
 	 */
 	public WebSocketFrame firePingEvent(IoSession session, HttpRequest request, ByteBuffer byteBuffer){

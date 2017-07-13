@@ -1,5 +1,7 @@
 package org.voovan.tools.log;
 
+import java.util.Map;
+
 /**
  * 日志消息对象
  * 
@@ -12,6 +14,7 @@ package org.voovan.tools.log;
 public class Message {
 	private String	level;
 	private String	message;
+	private Map<String, String> tokens;
 
 	public Message() {
 
@@ -36,6 +39,14 @@ public class Message {
 
 	public void setMessage(String message) {
 		this.message = message;
+	}
+
+	public Map<String, String> getTokens() {
+		return tokens;
+	}
+
+	public void setTokens(Map<String, String> tokens) {
+		this.tokens = tokens;
 	}
 
 	public static Message newInstance(String priority, String message) {

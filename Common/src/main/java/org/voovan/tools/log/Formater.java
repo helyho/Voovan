@@ -15,6 +15,7 @@ import java.util.Vector;
  *	格式化日志信息并输出
  *
  *使用包括特殊的定义{{}}
+ *{{NF}}  当前行不进行行头行尾的格式化
  *{{s}}:  一个空格
  *{{t}}:  制表符
  *{{n}}:  换行
@@ -28,6 +29,9 @@ import java.util.Vector;
  *{{T}}:  当前线程名
  *{{D}}:  当前系统时间
  *{{R}}:  从启动到当前代码执行的事件
+ * ================================
+ * {{F?}} 前景颜色: ?为0-7,分别为: 0=黑,1=红,2=绿,3=黄,4=蓝,5=紫,6=青,7=白
+ * {{B?}} 背景颜色: ?为0-7,分别为: 0=黑,1=红,2=绿,3=黄,4=蓝,5=紫,6=青,7=白
  * @author helyho
  * 
  * Voovan Framework.
@@ -38,7 +42,10 @@ public class Formater {
 	private String template;
 	private LoggerThread loggerThread;
 	private List<String> logLevel;
-	private String dateStamp; 
+	private String dateStamp;
+	private int maxLineLength = -1;
+	private String lineHead;
+	private String lineTail;
 
 	/**
 	 * 构造函数
@@ -46,10 +53,12 @@ public class Formater {
 	 */
 	public Formater(String template) {
 		this.template = template;
+		this.maxLineLength = Integer.valueOf(StaticParam.getLogConfig("MaxLineLength",StaticParam.MAX_LINE_LENGTH));
+		lineHead = StaticParam.getLogConfig("LineHead",StaticParam.LINE_HEAD);
+		lineTail = StaticParam.getLogConfig("LineTail",StaticParam.LINE_TAIL);
+
 		logLevel = new Vector<String>();
-		for(String level : StaticParam.getLogConfig("LogLevel",StaticParam.LOG_LEVEL).split(",")){
-			logLevel.add(level.trim());
-		}
+		logLevel.addAll(TObject.asList(StaticParam.getLogConfig("LogLevel",StaticParam.LOG_LEVEL).split(",")));
 		dateStamp = TDateTime.now("YYYYMMdd");
 	}
 
@@ -79,38 +88,143 @@ public class Formater {
 		return currentThread.getName()+" : "+currentThread.getId();
 	}
 
+	private int realLength(String str){
+		return str.replaceAll("\\{\\{n\\}\\}","").replaceAll("\\{\\{.*\\}\\}"," ").replaceAll("\033\\[\\d{2}m", "").length();
+	}
+
 	/**
 	 * 消息缩进
 	 * @param message 消息对象
 	 * @return 随进后的消息
 	 */
-	private String preIndentMessage(Message message){
-		String infoIndent = StaticParam.getLogConfig("InfoIndent",StaticParam.LOG_INFO_INDENT);
-		String msg = message.getMessage();
-		if(infoIndent!=null && !infoIndent.isEmpty()){
-			msg = infoIndent + msg;
-			msg = TString.fastReplaceAll(msg, "\n", "\n" + infoIndent);
+	private String lineFormat(Message message){
+		boolean lineAlignLeft = Boolean.valueOf(StaticParam.getLogConfig("LineAlignLeft",StaticParam.LINE_ALIGN_LEFT));
+
+		String msg = TString.tokenReplace(template, message.getTokens());
+
+		StringBuilder msgBuilder = new StringBuilder();
+
+		String tmpLineHead = TString.tokenReplace(lineHead, message.getTokens());
+		String tmpLineTail = TString.tokenReplace(lineTail, message.getTokens());
+
+		if(tmpLineHead!=null && tmpLineTail != null){
+
+			String[] lines = TString.split(msg, "\n");
+
+			for(String line : lines){
+				line = line.replaceAll("[\r\n]","");
+				boolean isFormatLine = line.contains("{{NF}}");
+
+				int currentMaxLineLength = this.maxLineLength;
+
+				//不格式化消息内容
+				if(isFormatLine){
+					line = line.replace("{{NF}}","");
+				}else{
+					currentMaxLineLength = currentMaxLineLength - realLength(tmpLineHead) - realLength(tmpLineTail);
+				}
+
+				if (isFormatLine) {
+					msgBuilder.append(line).append(TFile.getLineSeparator());
+					continue;
+				}
+
+				while(true) {
+                    int linePostion = (line.length() > currentMaxLineLength && currentMaxLineLength > 0) ? currentMaxLineLength : line.length();
+                    String subLine = line.substring(0, linePostion);
+                    line = line.substring(linePostion, line.length());
+
+                    // 不格式化,但是控制长度自动换行
+//					if (isFormatLine) {
+//						msgBuilder.append(line).append(TFile.getLineSeparator());
+//						break;
+//					}
+
+                    if (lineAlignLeft && currentMaxLineLength > 1) {
+                        if (subLine.endsWith(tmpLineTail)) {
+                            subLine = subLine.substring(0, subLine.length() - tmpLineTail.length());
+                        }
+
+						int stylePatch = TString.regexMatch(subLine, "\033\\[\\d{2}m") * 5;
+                        subLine = TString.rightPad(subLine, currentMaxLineLength + stylePatch - 1, ' ');
+                    }
+
+                    msgBuilder.append(tmpLineHead)
+                            .append(subLine)
+                            .append(tmpLineTail)
+                            .append(TFile.getLineSeparator());
+
+                    if (line.isEmpty()) {
+                        break;
+                    }
+				}
+			}
+
 		}
-		return msg;
+		return msgBuilder.toString();
 	}
 
 	/**
 	 * 构造消息格式化 Token
 	 * @param message 消息对象
-	 * @return  token 集合
      */
-	public Map<String, String> newLogtokens(Message message){
+	public void fillTokens(Message message){
 		Map<String, String> tokens = new HashMap<String, String>();
+		message.setTokens(tokens);
 		StackTraceElement stackTraceElement = currentStackLine();
-		
+
+		String os = System.getProperty("os.name").toUpperCase();
+
+		if(!os.toUpperCase().contains("WINDOWS")){
+			tokens.put("F0","\033[30m");
+			tokens.put("F1","\033[31m");
+			tokens.put("F2","\033[32m");
+			tokens.put("F3","\033[33m");
+			tokens.put("F4","\033[34m");
+			tokens.put("F5","\033[35m");
+			tokens.put("F6","\033[36m");
+			tokens.put("F7","\033[37m");
+			tokens.put("FD","\033[39m");
+
+			tokens.put("B0","\033[40m");
+			tokens.put("B1","\033[41m");
+			tokens.put("B2","\033[42m");
+			tokens.put("B3","\033[43m");
+			tokens.put("B4","\033[44m");
+			tokens.put("B5","\033[45m");
+			tokens.put("B6","\033[46m");
+			tokens.put("B7","\033[47m");
+			tokens.put("BD","\033[49m");
+		} else{
+			tokens.put("F0","");
+			tokens.put("F1","");
+			tokens.put("F2","");
+			tokens.put("F3","");
+			tokens.put("F4","");
+			tokens.put("F5","");
+			tokens.put("F6","");
+			tokens.put("F7","");
+			tokens.put("FD","");
+
+			tokens.put("B0","");
+			tokens.put("B1","");
+			tokens.put("B2","");
+			tokens.put("B3","");
+			tokens.put("B4","");
+			tokens.put("B5","");
+			tokens.put("B6","");
+			tokens.put("B7","");
+			tokens.put("BD","");
+		}
+
 		//Message和栈信息公用
 		tokens.put("t", "\t");
 		tokens.put("s", " ");
-		tokens.put("n", "\r\n");
-		tokens.put("I", preIndentMessage(message)); //日志消息
-		
+		tokens.put("n", TFile.getLineSeparator());
+		tokens.put("I", message.getMessage());
+
+
 		//栈信息独享
-		
 		tokens.put("P", TObject.nullDefault(message.getLevel(),"INFO"));			//信息级别
 		tokens.put("SI", stackTraceElement.toString());									//堆栈信息
 		tokens.put("L", Integer.toString((stackTraceElement.getLineNumber())));			//行号
@@ -120,8 +234,6 @@ public class Formater {
 		tokens.put("T", currentThreadName());											//线程
 		tokens.put("D", TDateTime.now("YYYY-MM-dd HH:mm:ss:SS z"));						//当前时间 
 		tokens.put("R", Long.toString(System.currentTimeMillis() - StaticParam.getStartTimeMillis())); //系统运行时间
-		
-		return tokens;
 	}
 	
 	/**
@@ -130,8 +242,8 @@ public class Formater {
 	 * @return 格式化后的消息
 	 */
 	public String format(Message message) {
-		Map<String, String> tokens = newLogtokens(message);
-		return TString.tokenReplace(template, tokens);
+		fillTokens(message);
+		return lineFormat(message);
 	}
 
 	/**
@@ -141,8 +253,8 @@ public class Formater {
      */
 	public String simpleFormat(Message message){
 		//消息缩进
-		Map<String, String> tokens = newLogtokens(new Message());
-		return TString.tokenReplace(message.getMessage(), tokens);
+		fillTokens(message);
+		return TString.tokenReplace(message.getMessage(), message.getTokens());
 	}
 	
 	/**

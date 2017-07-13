@@ -358,7 +358,7 @@ public class TFile {
 				if(classPathFile.exists() && classPathFile.isDirectory()){
 					clazzes.addAll(getDirectorClass(classPathFile,pattern));
 				} else if(classPathFile.exists() && classPathFile.isFile() && classPathFile.getName().endsWith(".jar")) {
-					clazzes.addAll( getJarClass(classPathFile,"org.voovan.tools.*"));
+					clazzes.addAll( getJarClass(classPathFile, pattern) );
 				}
 			}
 		}

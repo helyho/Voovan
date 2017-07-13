@@ -128,7 +128,7 @@ public class LoggerThread implements Runnable {
 	 */
 	public static LoggerThread start(OutputStream[] outputStreams) {
 		LoggerThread loggerThread = new LoggerThread(outputStreams);
-	Thread loggerMainThread = new Thread(loggerThread,"VOOVAN@LOGGER_THREAD");
+		Thread loggerMainThread = new Thread(loggerThread,"VOOVAN@LOGGER_THREAD");
 		loggerMainThread.start();
 		return loggerThread;
 	}

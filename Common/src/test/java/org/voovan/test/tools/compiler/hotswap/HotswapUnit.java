@@ -1,9 +1,10 @@
 package org.voovan.test.tools.compiler.hotswap;
 
+import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.compiler.DynamicCompiler;
-import org.voovan.tools.compiler.hotswap.HotSwaper;
+import org.voovan.tools.compiler.hotswap.Hotswaper;
 import org.voovan.tools.log.Logger;
 
 /**
@@ -14,11 +15,11 @@ import org.voovan.tools.log.Logger;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class HotSwapUnit {
+public class HotswapUnit extends TestCase{
 
     public static void main(String[] args) throws Exception {
 
-        HotSwaper hotSwaper = new HotSwaper("/Users/helyho/Work/Java/Voovan/Common/voovan-common.jar");
+        Hotswaper hotSwaper = new Hotswaper();
 
         System.out.println("=============Run=============");
         for (int i = 0; i < 2; i++) {
@@ -28,7 +29,9 @@ public class HotSwapUnit {
             Object result = testSay.say();
             Logger.info("==>RunTime: " + (System.currentTimeMillis() - startTime) + "\r\n==>Result: " + result);
             //运行脚本
-            TEnv.sleep(1000);
+            TEnv.sleep(100);
+
+            hotSwaper.autoReloadClass();
 
             if (i == 0) {
                 DynamicCompiler dynamicCompiler = new DynamicCompiler();

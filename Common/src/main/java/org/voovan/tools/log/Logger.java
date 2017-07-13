@@ -249,6 +249,9 @@ public class Logger {
 			Throwable messageException = exception;
 			if(exception.getMessage() == null){
 				while(messageException.getMessage()==null){
+					if(messageException.getCause() == null){
+						break;
+					}
 					messageException = messageException.getCause();
 				}
 			}

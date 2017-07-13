@@ -26,7 +26,10 @@ public class StaticParam {
 										"{{n}}[{{P}}] [{{D}}] [Thread:{{T}}] [Time:{{R}}] ({{F}}:{{L}}) {{n}}" +
 										"--------------------------------------------------------------------------------------------------------------------------------------------------" +
 										"{{n}}{{I}}{{n}}{{n}}";
-	public final static String LOG_INFO_INDENT = "";
+	public final static String LINE_HEAD = "";
+	public final static String LINE_TAIL = "";
+	public final static String LINE_ALIGN_LEFT = "";
+	public final static String MAX_LINE_LENGTH = "-1";
 
 	/**
 	 * 读取日志配置文件信息

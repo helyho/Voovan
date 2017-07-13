@@ -360,6 +360,7 @@ public class TReflect {
 	 * @param obj				执行方法的对象
 	 * @param method			方法对象
 	 * @param parameters        多个参数
+	 * @param <T> 范型
 	 * @return					方法返回结果
 	 * @throws ReflectiveOperationException 反射异常
 	 */
@@ -375,6 +376,7 @@ public class TReflect {
 	 * @param obj				执行方法的对象,如果调用静态方法直接传 Class 类型的对象
 	 * @param name				执行方法名
 	 * @param args		方法参数
+	 * @param <T> 范型
 	 * @return					方法返回结果
 	 * @throws ReflectiveOperationException		反射异常
 	 */
