@@ -1,11 +1,9 @@
 package org.voovan.network;
 
-import org.voovan.Global;
 import org.voovan.tools.Chain;
 
 import java.io.IOException;
 import java.net.SocketOption;
-import java.nio.channels.AsynchronousChannelGroup;
 
 /**
  * socket 上下文
@@ -48,6 +46,7 @@ public abstract class SocketContext {
 	 * 构造函数
 	 * @param host    主机地址
 	 * @param port    主机端口
+	 * @param idleInterval   空闲事件触发时间, 单位: 秒
 	 * @param readTimeout 超时时间
 	 */
 	public SocketContext(String host,int port,int readTimeout, int idleInterval) {

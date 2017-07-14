@@ -61,6 +61,13 @@ public class TByteBuffer {
         return toString(bytebuffer, "UTF-8");
     }
 
+    /**
+     * 查找特定 byte 标识的位置
+     *     byte 标识数组第一个字节的索引位置
+     * @param byteBuffer Bytebuffer 对象
+     * @param mark byte 标识数组
+     * @return 第一个字节的索引位置
+     */
     public static int indexOf(ByteBuffer byteBuffer, byte[] mark){
 
         if(byteBuffer.remaining() == 0){
