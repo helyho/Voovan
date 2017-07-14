@@ -196,7 +196,6 @@ public abstract class IoSession<T extends SocketContext> {
 	/**
 	 * 获取会话参数
 	 * @param key 参数名
-	 * @param <V> 范型
 	 * @return    参数对象
 	 */
 	public Object getAttribute(Object key) {
@@ -415,8 +414,8 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	public boolean wait(int waitTime){
 		int count= 0;
-		while(getByteBufferChannel().size() > 0 &&
-				state == State.RECEIVE){
+		messageLoader.close();
+		while(state == State.RECEIVE){
 			TEnv.sleep(1);
 			count ++;
 
@@ -425,19 +424,8 @@ public abstract class IoSession<T extends SocketContext> {
 			}
 		}
 
-		return true;
-	}
 
-	/**
-	 * 尝试关闭连接
-	 * 		等待通道内的数据都被处理完成
-	 */
-	public void tryClose(){
-		int waitTime = 0;
-		while(isConnected()) {
-			wait(socketContext.getReadTimeout());
-			close();
-		}
+		return true;
 	}
 
 	/**
@@ -445,7 +433,9 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return 是否关闭
 	 */
 	public abstract boolean close();
-	
+
+
+
 	@Override
 	public abstract String toString();
 }

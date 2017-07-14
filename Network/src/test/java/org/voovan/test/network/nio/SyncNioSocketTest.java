@@ -19,6 +19,6 @@ public class SyncNioSocketTest {
 			e.printStackTrace();
 		}
 		socket.close();
-		Logger.simple("Terminate");
+		Logger.simple("==================================Terminate==================================");
 	}
 }

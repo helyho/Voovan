@@ -132,7 +132,15 @@ public class MessageLoader {
 	public void reset(){
 		readZeroCount = 0;
 	}
-	
+
+	/**
+	 * 关闭 MessageLoader
+	 */
+	public void close(){
+		stopType = StopType.SOCKET_CLOSED;
+	}
+
+
 	/**
 	 * 读取 socket 中的数据
 	 * 	逐字节读取数据,并用消息截断器判断消息包是否完整,消息粘包有两种截断方式:
@@ -175,9 +183,10 @@ public class MessageLoader {
 				isConnect = session.isConnected();
 			}
 
-			//如果连接关闭,且读取缓冲区内没有数据时,退出循环
-			if(!isConnect && session.getByteBufferChannel().size()==0){
+			//如果连接关闭,
+			if(!isConnect){
 				stopType = StopType.SOCKET_CLOSED;
+				return null;
 			}
 
 			int readsize = byteBufferChannel.size() - oldByteChannelSize;
