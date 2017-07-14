@@ -24,5 +24,7 @@ public class AioSSLClient {
 
 		//重连操作
 		socket.reStart();
+		Logger.simple("==================================Terminate==================================");
+		socket.getSession().reStart();
 	}
 }

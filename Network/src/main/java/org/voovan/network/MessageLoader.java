@@ -111,9 +111,11 @@ public class MessageLoader {
 	 * @return 是否意外断开
 	 */
 	public static boolean isRemoteClosed(byte[] buffer, Integer length) {
+
 		if(length==-1){
 			return true;
 		}
+
 		//如果 buffer 被冲满,且起始、中位、结束的字节都是结束符(Ascii=4)则连接意外结束
 		if(length>2
 				&& buffer[0]==4 //起始判断

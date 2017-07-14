@@ -1,11 +1,9 @@
 package org.voovan.test.network.aio;
 
-import junit.framework.TestCase;
 import org.voovan.network.aio.AioSocket;
 import org.voovan.network.filter.StringFilter;
 import org.voovan.network.messagesplitter.LineMessageSplitter;
 import org.voovan.test.network.ClientHandlerTest;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 public class AioSocketTest {
