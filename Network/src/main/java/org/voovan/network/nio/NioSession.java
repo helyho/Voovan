@@ -152,6 +152,7 @@ public class NioSession extends IoSession<NioSocket> {
 	 * 关闭会话
 	 */
 	public boolean close() {
+		this.cancelIdle();
 		return this.socketContext().close();
 	}
 

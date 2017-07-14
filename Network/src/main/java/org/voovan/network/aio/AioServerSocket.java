@@ -1,5 +1,6 @@
 package org.voovan.network.aio;
 
+import org.voovan.Global;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.TEnv;
@@ -34,9 +35,31 @@ public class AioServerSocket extends SocketContext{
 	 */
 	public AioServerSocket(String host,int port,int readTimeout) throws IOException{
 		super(host, port, readTimeout);
-		AsynchronousChannelGroup asynchronousChannelGroup = SocketContext.getAsynchronousChannelGroup();
+		init();
+	}
+
+	/**
+	 * 构造函数
+	 * @param host    主机地址
+	 * @param port    主机端口
+	 * @param idleInterval	空闲事件触发时间
+	 * @param readTimeout 超时时间
+	 * @throws IOException IO 异常
+	 */
+	public AioServerSocket(String host,int port,int readTimeout, int idleInterval) throws IOException{
+		super(host, port, readTimeout, idleInterval);
+		init();
+	}
+
+	private void init() throws IOException {
+		AsynchronousChannelGroup asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(Global.getThreadPool());
 		serverSocketChannel = AsynchronousServerSocketChannel.open(asynchronousChannelGroup);
 		acceptCompletionHandler = new AcceptCompletionHandler();
+	}
+
+	@Override
+	public void setIdleInterval(int idleInterval) {
+		this.idleInterval = idleInterval;
 	}
 
 	/**

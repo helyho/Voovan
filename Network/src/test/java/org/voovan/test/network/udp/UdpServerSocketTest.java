@@ -3,6 +3,7 @@ package org.voovan.test.network.udp;
 import org.voovan.network.filter.StringFilter;
 import org.voovan.network.messagesplitter.LineMessageSplitter;
 import org.voovan.network.udp.UdpServerSocket;
+import org.voovan.test.network.ServerHandlerTest;
 
 import java.io.IOException;
 
@@ -18,7 +19,7 @@ import java.io.IOException;
 public class UdpServerSocketTest {
 
     public static void main(String[] args) throws IOException {
-        UdpServerSocket udpServerSocket = new UdpServerSocket("0.0.0.0",60000,50);
+        UdpServerSocket udpServerSocket = new UdpServerSocket("0.0.0.0",60000,500, 1);
         udpServerSocket.messageSplitter(new LineMessageSplitter());
         udpServerSocket.filterChain().add(new StringFilter());
         udpServerSocket.handler(new ServerHandlerTest());

@@ -35,6 +35,11 @@ public class ServerBenchHandlerTest implements IoHandler {
     }
 
     @Override
+    public void onIdle(IoSession session) {
+        Logger.info("idle");
+    }
+
+    @Override
     public void onSent(IoSession session, Object obj) {
         session.close();
     }

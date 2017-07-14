@@ -13,7 +13,7 @@ public class AioSSLClient {
 		String certFile = System.getProperty("user.dir")+"/Network/src/test/java/org/voovan/test/network/ssl/ssl_ks";
 		sslManager.loadCertificate(certFile, "passStr","123123");
 		
-		AioSocket socket = new AioSocket("127.0.0.1",2031,1000000);
+		AioSocket socket = new AioSocket("127.0.0.1",2031,1000000,1);
 		socket.setSSLManager(sslManager);
 		socket.handler(new ClientHandlerTest());
 		socket.filterChain().add(new StringFilter());

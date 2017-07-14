@@ -47,6 +47,24 @@ public class AioSocket extends SocketContext {
 	 */
 	public AioSocket(String host, int port, int readTimeout) throws IOException {
 		super(host, port, readTimeout);
+		init();
+	}
+
+	/**
+	 * 构造函数
+	 *
+	 * @param host   主机地址
+	 * @param port   主机端口
+	 * @param idleInterval	空闲事件触发时间
+	 * @param readTimeout 主机超时时间 (milliseconds)
+	 * @throws IOException IO 异常
+	 */
+	public AioSocket(String host, int port, int readTimeout, int idleInterval) throws IOException {
+		super(host, port, readTimeout, idleInterval);
+		init();
+	}
+
+	private void init() throws IOException {
 		//这里不能使用已有线程池作为参数调用AsynchronousChannelGroup.open(threadPool)会导致线程不释放的问题
 		this.socketChannel = AsynchronousSocketChannel.open();
 		session = new AioSession(this);
@@ -73,11 +91,17 @@ public class AioSocket extends SocketContext {
 		connectModel = ConnectModel.SERVER;
 	}
 
+	@Override
+	public void setIdleInterval(int idleInterval) {
+		this.idleInterval = idleInterval;
+	}
+
 	/**
 	 * 设置 Socket 的 Option 选项
 	 *
 	 * @param name   SocketOption类型的枚举, 参照:AsynchronousSocketChannel.setOption的说明
 	 * @param value  SocketOption参数
+	 * @param <T> 范型
 	 * @throws IOException IO异常
 	 */
 	public <T> void setOption(SocketOption<T> name, T value) throws IOException {
@@ -146,13 +170,10 @@ public class AioSocket extends SocketContext {
 
 		syncStart();
 
-		//如果是 ServerSocket 的 AioSocket 不需要阻塞进程
-		if(connectModel == ConnectModel.CLIENT ){
-            // 等待ServerSocketChannel关闭,结束进程
-            while (isConnected()) {
-                TEnv.sleep(1);
-            }
-		}
+        // 等待ServerSocketChannel关闭,结束进程
+        while (isConnected()) {
+            TEnv.sleep(1);
+        }
 	}
 
 	/**
@@ -176,7 +197,6 @@ public class AioSocket extends SocketContext {
 				catchConnected();
 			}catch (IOException e){
 				EventTrigger.fireException(session,e);
-				Logger.error(e);
 				return;
 			}
 		}

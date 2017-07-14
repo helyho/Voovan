@@ -33,6 +33,11 @@ public class ServerHandlerTest implements IoHandler {
 	}
 
 	@Override
+	public void onIdle(IoSession session) {
+		Logger.info("idle");
+	}
+
+	@Override
 	public void onSent(IoSession session, Object obj) {
 		String sad = (String)obj;
 		Logger.simple("Server onSent: " + sad);

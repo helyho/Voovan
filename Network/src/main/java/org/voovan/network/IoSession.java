@@ -2,6 +2,7 @@ package org.voovan.network;
 
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
@@ -10,6 +11,8 @@ import org.voovan.tools.log.Logger;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -27,10 +30,16 @@ public abstract class IoSession<T extends SocketContext> {
 	private Map<Object, Object> attributes;
 	private SSLParser sslParser;
 
-	private boolean receiving;
+	private State state;
 	private MessageLoader messageLoader;
 	private ByteBufferChannel byteBufferChannel;
 	private T socketContext;
+	private long lastReciveTime = -1;
+	private Timer checkIdleTimer;
+
+	public enum State {
+		INIT, RECEIVE, SEND, IDLE, CLOSE
+	}
 
 	/**
 	 * 构造函数
@@ -39,16 +48,114 @@ public abstract class IoSession<T extends SocketContext> {
 	public IoSession(T socketContext){
 		attributes = new ConcurrentHashMap<Object, Object>();
 		this.socketContext = socketContext;
+		this.state = State.INIT;
 		byteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
 		messageLoader = new MessageLoader(this);
+		checkIdle();
 	}
 
-	public boolean isReceiving() {
-		return receiving;
+	/**
+	 * 启动空闲事件触发
+	 */
+	public void checkIdle(){
+		if(socketContext.getIdleInterval() > 0) {
+
+            if(checkIdleTimer == null){
+            	String timerName = "VOOVAN@IDLE_TIMER[" +
+						( (socketContext.getHost()==null) ? "0.0.0.0" : socketContext.getHost() )+
+						":"+socketContext.getPort() + "]";
+                checkIdleTimer = new Timer();
+            }
+
+			IoSession session = this;
+			checkIdleTimer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					boolean isConnect = false;
+
+					//初始化状态
+					if(session.getState() == State.INIT){
+						return;
+					}
+
+					//检测会话状态
+					if(session.getState() == State.CLOSE){
+						session.cancelIdle();
+						return;
+					}
+
+					//获取连接状态
+					if(session.socketContext() instanceof UdpSocket) {
+						isConnect = session.isOpen();
+					}else {
+						isConnect = session.isConnected();
+					}
+
+					if(!isConnect){
+						session.cancelIdle();
+						return;
+					}
+
+					//检查空间时间
+					if(socketContext.getIdleInterval() < 1){
+						return;
+					}
+
+					//触发空闲事件
+					long timeDiff = System.currentTimeMillis() - lastReciveTime;
+					if (timeDiff >= socketContext.getIdleInterval() * 1000) {
+						EventTrigger.fireIdleThread(session);
+						lastReciveTime = System.currentTimeMillis();
+					}
+
+				}
+			}, 0, 1000);
+		}
 	}
 
-	protected void setReceiving(boolean receiving) {
-		this.receiving = receiving;
+	/**
+	 * 停止空闲事件触发
+	 */
+	public void cancelIdle(){
+		if(checkIdleTimer!=null) {
+			checkIdleTimer.cancel();
+			checkIdleTimer = null;
+		}
+	}
+
+	/**
+	 * 获取会话状态
+	 * @return IoSession.State 枚举
+	 */
+	public State getState() {
+		return state;
+	}
+
+	/**
+	 * 设置当前会话状态
+	 * @param state IoSession.State 枚举
+	 */
+	protected void setState(State state) {
+		if(state == State.IDLE) {
+			lastReciveTime = System.currentTimeMillis();
+		}
+		this.state = state;
+	}
+
+	/**
+	 * 获取空闲事件时间
+	 * @return 空闲事件时间
+	 */
+	public int getIdleInterval() {
+		return socketContext.getIdleInterval();
+	}
+
+	/**
+	 * 设置空闲事件时间
+	 * @param idleInterval  空闲事件时间
+	 */
+	public void setIdleInterval(int idleInterval) {
+		socketContext.setIdleInterval(idleInterval);
 	}
 
 	/**
@@ -217,17 +324,13 @@ public abstract class IoSession<T extends SocketContext> {
 
 		if (obj != null) {
 			try {
-				Object sendObj = EventProcess.filterEncoder(this,obj);
-
-				EventProcess.sendMessage(this, sendObj, obj, true);
+				EventProcess.sendMessage(this, obj, true);
 			}catch (Exception e){
 				throw new SendMessageException("Method syncSend error! Error by "+
 						e.getClass().getSimpleName() + ".",e);
 			}
 		}
 	}
-
-
 
 	/**
 	 * 设置是否使用分割器读取
@@ -237,16 +340,16 @@ public abstract class IoSession<T extends SocketContext> {
 		messageLoader.setUseSpliter(useSpliter);
 	}
 
-
 	/**
-	 * 发送SSL消息
-	 * 		注意直接调用不会出发 onSent 事件
+	 * 直接向缓冲区发送消息
+	 * 		注意直接调用不会触发 onSent 事件, 也不会经过任何过滤器
 	 * 	@param buffer byte缓冲区
 	 * 	@return 发送的数据大小
 	 */
 	public int send(ByteBuffer buffer){
         try {
             if(sslParser!=null && sslParser.isHandShakeDone()) {
+            	//warpData 内置调用 session.send0 将数据送至发送缓冲区
                 sslParser.warpData(buffer);
                 return buffer.limit();
             }else{
@@ -313,7 +416,7 @@ public abstract class IoSession<T extends SocketContext> {
 	public boolean wait(int waitTime){
 		int count= 0;
 		while(getByteBufferChannel().size() > 0 &&
-				isReceiving()){
+				state == State.RECEIVE){
 			TEnv.sleep(1);
 			count ++;
 
