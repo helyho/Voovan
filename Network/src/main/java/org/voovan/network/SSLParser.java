@@ -213,29 +213,29 @@ public class SSLParser {
 	 * 读取SSL消息到缓冲区
 	 * @param session Socket 会话对象
 	 * @param netByteBufferChannel Socket SSL 加密后的数据
-	 * @param appByteBufferChannel Socket SSL 解密后的数据
-	 * @return 接收数据大小
+	 * @return 接收数据的ByteBuffer
 	 * @throws IOException  IO异常
 	 */
-	public int unWarpByteBufferChannel(IoSession session, ByteBufferChannel netByteBufferChannel, ByteBufferChannel appByteBufferChannel) throws IOException{
+	public ByteBuffer unWarpByteBufferChannel(IoSession session, ByteBufferChannel netByteBufferChannel) throws IOException{
 		int readSize = 0;
-
+		ByteBuffer appByteBuffer = this.buildAppDataBuffer();
 		if(session.isConnected() && netByteBufferChannel.size()>0){
 			SSLEngineResult engineResult = null;
-			appData.clear();
+			appByteBuffer.clear();
 			ByteBuffer byteBuffer = netByteBufferChannel.getByteBuffer();
 
-			unwarpData(byteBuffer, appData);
+			unwarpData(byteBuffer, appByteBuffer);
 			netByteBufferChannel.compact();
 
-			appData.flip();
-			appByteBufferChannel.writeEnd(appData);
+			appByteBuffer.flip();
 
-			if(byteBuffer.remaining()==0) {
-				TEnv.sleep(1);
-			}
+//			if(byteBuffer.remaining()==0) {
+//				TEnv.sleep(1);
+//			}
+
+			byteBuffer.compact();
 		}
-		return readSize;
+		return appByteBuffer;
 	}
 
 	public void release(){

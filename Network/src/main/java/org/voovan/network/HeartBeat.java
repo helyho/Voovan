@@ -23,6 +23,7 @@ public class HeartBeat {
     private ByteBuffer pong;
     private boolean isFirstBeat = true;
     private LinkedBlockingDeque<Integer> queue;
+    private int fieldCount = 0;
 
 
     /**
@@ -53,6 +54,10 @@ public class HeartBeat {
 
     public ByteBuffer getPong() {
         return pong;
+    }
+
+    public int getFieldCount() {
+        return fieldCount;
     }
 
 //    /**
@@ -163,15 +168,20 @@ public class HeartBeat {
             if (beatType == 1) {
                 session.getMessageLoader().reset();
                 session.send(heartBeat.pong);
+                heartBeat.fieldCount = 0;
                 return true;
             } else if (beatType == 2) {
                 session.getMessageLoader().reset();
                 session.send(heartBeat.ping);
+                heartBeat.fieldCount = 0;
                 return true;
             } else {
+                heartBeat.fieldCount++;
                 return false;
             }
         }
+
+        heartBeat.fieldCount++;
         return false;
     }
     /**

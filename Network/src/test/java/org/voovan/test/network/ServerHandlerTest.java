@@ -39,16 +39,19 @@ public class ServerHandlerTest implements IoHandler {
         session.close();
 	}
 
-	private HeartBeat heartBeat;
 	@Override
 	public void onIdle(IoSession session) {
 		//心跳依赖于 idle 时间,这个参数在构造 socket 的时候设置具体查看org.voovan.network.aio.AioServerSocket
 
-		//心跳绑定到 Session
-		HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
+		//服务端和客户端使用了两种不同的心跳绑定方式,这是其中一种
+		//心跳绑定到 Session, 绑定过一次以后每次返回的都是第一次绑定的对象
+		HeartBeat heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
 
 		//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-		Logger.simple("==>"+heartBeat.beat(session));
+		System.out.println("==>"+heartBeat.beat(session));
+		if(heartBeat.getFieldCount()>5){
+			session.close();
+		}
 	}
 
 	@Override

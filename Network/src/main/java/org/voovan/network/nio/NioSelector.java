@@ -101,16 +101,17 @@ public class NioSelector {
 											}else if(readSize>0){
 												readTempBuffer.flip();
 
-												//检查心跳
-												HeartBeat.interceptHeartBeat(session, readTempBuffer);
 
 												// 接收数据
 												if(session.getSSLParser()!=null && session.getSSLParser().isHandShakeDone()){
 													netByteBufferChannel.writeEnd(readTempBuffer);
-													session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, appByteBufferChannel);
-												}else{
-													appByteBufferChannel.writeEnd(readTempBuffer);
+													readTempBuffer = session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel);
 												}
+
+												//检查心跳
+												HeartBeat.interceptHeartBeat(session, readTempBuffer);
+												appByteBufferChannel.writeEnd(readTempBuffer);
+
 												readTempBuffer.clear();
 											}
 
