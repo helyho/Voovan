@@ -15,11 +15,11 @@ public class NioSocketTest {
 		socket.messageSplitter(new LineMessageSplitter());
 		socket.start();
 
-		Logger.simple("==================================Terminate==================================");
-
-		//重连操作
-		socket.reStart();
-		Logger.simple("==================================Terminate==================================");
-		socket.getSession().reStart();
+//		Logger.simple("==================================Terminate==================================");
+//
+//		//重连操作
+//		socket.reStart();
+//		Logger.simple("==================================Terminate==================================");
+//		socket.getSession().reStart();
 	}
 }
