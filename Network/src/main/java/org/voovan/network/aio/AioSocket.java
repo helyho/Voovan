@@ -55,7 +55,7 @@ public class AioSocket extends SocketContext {
 	 *
 	 * @param host   主机地址
 	 * @param port   主机端口
-	 * @param idleInterval	空闲事件触发时间
+	 * @param idleInterval	空闲事件触发时间, 单位: 秒
 	 * @param readTimeout 主机超时时间 (milliseconds)
 	 * @throws IOException IO 异常
 	 */

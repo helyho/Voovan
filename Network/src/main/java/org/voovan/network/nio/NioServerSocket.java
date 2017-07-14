@@ -44,7 +44,7 @@ public class NioServerSocket extends SocketContext{
 	 * 构造函数
 	 * @param host      监听地址
 	 * @param port		监听端口
-	 * @param idleInterval	空闲事件触发时间
+	 * @param idleInterval	空闲事件触发时间, 单位: 秒
 	 * @param readTimeout   超时时间
 	 * @throws IOException	异常
 	 */
