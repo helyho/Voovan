@@ -131,11 +131,15 @@ public class HeartBeat {
                 //心跳处理
                 if (heartBeat != null) {
                     if (TByteBuffer.indexOf(byteBuffer, heartBeat.getPing().array()) == 0) {
-                        TByteBuffer.moveData(byteBuffer, heartBeat.getPing().limit());
+                        if(byteBuffer.remaining() != heartBeat.getPing().limit()) {
+                            TByteBuffer.moveData(byteBuffer, heartBeat.getPing().limit());
+                        }
                         heartBeat.getQueue().addLast(1);
                     }
                     if (TByteBuffer.indexOf(byteBuffer, heartBeat.getPong().array()) == 0) {
-                        TByteBuffer.moveData(byteBuffer, heartBeat.getPong().limit());
+                        if(byteBuffer.remaining() != heartBeat.getPing().limit()) {
+                            TByteBuffer.moveData(byteBuffer, heartBeat.getPong().limit());
+                        }
                         heartBeat.getQueue().addLast(2);
                     }
                 }
