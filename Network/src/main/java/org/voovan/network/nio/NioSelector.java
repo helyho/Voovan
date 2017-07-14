@@ -152,7 +152,7 @@ public class NioSelector {
 		} finally{
 			// 触发连接断开事件
 			if(session!=null) {
-				EventTrigger.fireDisconnect(session);
+				EventTrigger.fireDisconnectThread(session);
 				TByteBuffer.release(readTempBuffer);
 			}
 		}

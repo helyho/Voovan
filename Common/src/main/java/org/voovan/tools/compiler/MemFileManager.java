@@ -29,7 +29,7 @@ public class MemFileManager extends ForwardingJavaFileManager<JavaFileManager> {
 	}
 	
 	@Override
-	public JavaFileObject getJavaFileForOutput(JavaFileManager.Location location,
+	public JavaFileObject getJavaFileForOutput(Location location,
             String className,
             JavaFileObject.Kind kind,
             FileObject sibling)

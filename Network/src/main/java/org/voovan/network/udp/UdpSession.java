@@ -115,7 +115,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 	}
 
 	@Override
-	protected synchronized int send0(ByteBuffer buffer) throws IOException {
+	protected int send0(ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
 		if (isOpen() && buffer != null) {
 			//循环发送直到全不内容发送完毕

@@ -198,7 +198,7 @@ public class AioSocket extends SocketContext {
 				// 捕获 connect 事件
 				catchConnected();
 			}catch (IOException e){
-				EventTrigger.fireException(session,e);
+				EventTrigger.fireExceptionThread(session,e);
 				return;
 			}
 		}
@@ -284,7 +284,7 @@ public class AioSocket extends SocketContext {
 				// 关闭 Socket 连接
 				 if (isConnected()) {
 					 // 触发 DisConnect 事件
-					 EventTrigger.fireDisconnect(session);
+					 EventTrigger.fireDisconnectThread(session);
 					 socketChannel.close();
 
 					 //如果有未读数据等待数据处理完成

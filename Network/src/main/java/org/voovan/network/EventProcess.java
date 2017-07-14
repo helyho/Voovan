@@ -310,7 +310,7 @@ public class EventProcess {
 		try {
 			if (eventName == EventName.ON_ACCEPTED) {
 				SocketContext socketContext = TObject.cast(event.getSession().socketContext());
-				socketContext.start();
+				socketContext.syncStart();
 			} else if (eventName == EventName.ON_CONNECT) {
 				EventProcess.onConnect(event);
 			} else if (eventName == EventName.ON_DISCONNECT) {

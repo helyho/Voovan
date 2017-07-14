@@ -47,7 +47,9 @@ public class EventTrigger {
 	}
 
 	public static void fireIdleThread(IoSession session){
-		fireEventThread(session, EventName.ON_IDLE, null);
+		if(session.getIdleInterval() >0 ) {
+			fireEventThread(session, EventName.ON_IDLE, null);
+		}
 	}
 
 	public static void fireExceptionThread(IoSession session,Exception exception){
@@ -80,7 +82,9 @@ public class EventTrigger {
 	}
 
 	public static void fireIdle(IoSession session){
-		fireEvent(session, EventName.ON_IDLE, null);
+		if(session.getIdleInterval() >0 ) {
+			fireEvent(session, EventName.ON_IDLE, null);
+		}
 	}
 
 	public static void fireException(IoSession session,Exception exception){
@@ -102,7 +106,7 @@ public class EventTrigger {
 	 * @param name     事件名称
 	 * @param other 附属对象
 	 */
-	public static void fireEventThread(IoSession session,Event.EventName name,Object other){
+	public static void fireEventThread(IoSession session,EventName name,Object other){
 		if(!eventThreadPool.isShutdown()){
 			Event event = Event.getInstance(session,name,other);
 			eventThreadPool.execute(new EventThread(event));
@@ -116,7 +120,7 @@ public class EventTrigger {
 	 * @param name     事件名称
 	 * @param other 附属对象
 	 */
-	public static void fireEvent(IoSession session, Event.EventName name, Object other){
+	public static void fireEvent(IoSession session, EventName name, Object other){
 		Event event = Event.getInstance(session,name,other);
 		EventProcess.process(event);
 	}
