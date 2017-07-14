@@ -87,10 +87,10 @@ public class MessageLoader {
 	 */
 	public static boolean isRemoteClosed(ByteBuffer buffer, Integer length) {
 //		length==-1时流结束并不是消息断开
-		if(length==-1){
-			//触发 disconnect 事件
-			return true;
-		}
+//		if(length==-1){
+//			//触发 disconnect 事件
+//			return true;
+//		}
 
 
 		//如果 buffer 被冲满,且起始、中位、结束的字节都是结束符(Ascii=4)则连接意外结束
@@ -123,6 +123,14 @@ public class MessageLoader {
 		}
 
 		return false;
+	}
+
+	/**
+	 * 重置计数
+	 * 		读取超时时间回0
+	 */
+	public void reset(){
+		readZeroCount = 0;
 	}
 	
 	/**

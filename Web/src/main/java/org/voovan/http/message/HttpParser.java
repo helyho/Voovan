@@ -285,7 +285,7 @@ public class HttpParser {
 						int index = byteBufferChannel.indexOf(boundary.getBytes("UTF-8"));
 
 						//跳过 boundary
-						byteBufferChannel.shrink((index + boundary.length()) * -1);
+						byteBufferChannel.shrink((index + boundary.length()));
 
 						//取 boundary 结尾字符
 						boundaryEnd.clear();
@@ -427,7 +427,7 @@ public class HttpParser {
 						}
 
 						//跳过换行符号
-						byteBufferChannel.shrink(-2);
+						byteBufferChannel.shrink(2);
 					}
 
 					byte[] value = dealBodyContent(packetMap, chunkedByteBufferChannel.array());

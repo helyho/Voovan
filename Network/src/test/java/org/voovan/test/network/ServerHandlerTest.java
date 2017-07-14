@@ -1,9 +1,16 @@
 package org.voovan.test.network;
 
 
+import org.voovan.network.ConnectModel;
+import org.voovan.network.HeartBeat;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
+
+import java.nio.ByteBuffer;
 
 public class ServerHandlerTest implements IoHandler {
 
@@ -32,9 +39,12 @@ public class ServerHandlerTest implements IoHandler {
         session.close();
 	}
 
+	private HeartBeat heartBeat;
 	@Override
 	public void onIdle(IoSession session) {
 		Logger.info("idle");
+		HeartBeat.attachSession(session, ConnectModel.SERVER, 2, "PINGq", "PONGq");
+		heartBeat.start(session);
 	}
 
 	@Override
