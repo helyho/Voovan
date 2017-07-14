@@ -57,6 +57,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 						netByteBufferChannel.writeEnd(buffer);
 						buffer = session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel);
 					}
+
 					//检查心跳
 					HeartBeat.interceptHeartBeat(session, buffer);
 

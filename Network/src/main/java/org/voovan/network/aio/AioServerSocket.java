@@ -137,7 +137,7 @@ public class AioServerSocket extends SocketContext{
 		if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
 			try{
 				//触发 DisConnect 事件
-				EventTrigger.fireDisconnect(null);
+				EventTrigger.fireDisconnectThread(null);
 
 				//关闭 Socket 连接
 				if(serverSocketChannel.isOpen()){

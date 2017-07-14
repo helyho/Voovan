@@ -358,7 +358,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 * 	@param buffer byte缓冲区
 	 * 	@return 发送的数据大小
 	 */
-	public synchronized int send(ByteBuffer buffer){
+	public int send(ByteBuffer buffer){
         try {
             if(sslParser!=null && sslParser.isHandShakeDone()) {
             	//warpData 内置调用 session.send0 将数据送至发送缓冲区
@@ -380,7 +380,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return  读取的字节数
 	 * @throws IOException IO异常
 	 * */
-	public synchronized int read(ByteBuffer byteBuffer) throws IOException {
+	public int read(ByteBuffer byteBuffer) throws IOException {
 
 		int readSize = -1;
 

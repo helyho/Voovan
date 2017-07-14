@@ -228,12 +228,6 @@ public class SSLParser {
 			netByteBufferChannel.compact();
 
 			appByteBuffer.flip();
-
-//			if(byteBuffer.remaining()==0) {
-//				TEnv.sleep(1);
-//			}
-
-			byteBuffer.compact();
 		}
 		return appByteBuffer;
 	}
