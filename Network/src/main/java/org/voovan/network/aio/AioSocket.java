@@ -70,7 +70,6 @@ public class AioSocket extends SocketContext {
 		session = new AioSession(this);
 
 		readCompletionHandler = new ReadCompletionHandler(this,  session.getByteBufferChannel());
-		this.handler = new SynchronousHandler();
 		connectModel = ConnectModel.CLIENT;
 	}
 
@@ -183,6 +182,9 @@ public class AioSocket extends SocketContext {
 	 * @exception IOException IO异常
 	 */
 	public void syncStart() throws IOException {
+		if(this.handler==null){
+			this.handler = new SynchronousHandler();
+		}
 
 		initSSL();
 
@@ -215,6 +217,15 @@ public class AioSocket extends SocketContext {
 				TEnv.sleep(1);
 			}
 		}
+	}
+
+	/**
+	 * 重连当前连接
+	 * @throws IOException IO 异常
+	 */
+	public void reStart() throws IOException {
+		init();
+		this.start();
 	}
 
 	/**
