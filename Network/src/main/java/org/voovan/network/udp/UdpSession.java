@@ -32,6 +32,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 		if (udpSocket != null) {
 			this.datagramChannel = udpSocket.datagramChannel();
 			this.remoteAddress = remoteAddress;
+			this.setIdleInterval(0);
 		}else{
 			Logger.error("Socket is null, please check it.");
 		}
@@ -154,6 +155,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 	 * 关闭会话
 	 */
 	public boolean close() {
+		this.cancelIdle();
 		return this.socketContext().close();
 	}
 

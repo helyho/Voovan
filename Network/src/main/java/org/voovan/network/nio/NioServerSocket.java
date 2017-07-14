@@ -26,8 +26,7 @@ public class NioServerSocket extends SocketContext{
 	private SelectorProvider provider;
 	private Selector selector;
 	private ServerSocketChannel serverSocketChannel;
-	 
-	 
+
 	/**
 	 * 构造函数
 	 * @param host      监听地址
@@ -37,11 +36,42 @@ public class NioServerSocket extends SocketContext{
 	 */
 	public NioServerSocket(String host,int port,int readTimeout) throws IOException{
 		super(host, port, readTimeout);
+		init();
+	}
+
+
+	/**
+	 * 构造函数
+	 * @param host      监听地址
+	 * @param port		监听端口
+	 * @param idleInterval	空闲事件触发时间
+	 * @param readTimeout   超时时间
+	 * @throws IOException	异常
+	 */
+	public NioServerSocket(String host,int port,int readTimeout, int idleInterval) throws IOException{
+		super(host, port, readTimeout, idleInterval);
+		init();
+	}
+
+	/**
+	 * 初始化函数
+	 * @throws IOException
+	 */
+	private void init() throws IOException{
 		provider = SelectorProvider.provider();
 		serverSocketChannel = provider.openServerSocketChannel();
 		serverSocketChannel.socket().setSoTimeout(this.readTimeout);
 		serverSocketChannel.configureBlocking(false);
-		init();
+		selector = provider.openSelector();
+		serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+		serverSocketChannel.bind(new InetSocketAddress(host, port));
+	}
+
+
+
+	@Override
+	public void setIdleInterval(int idleInterval) {
+		this.idleInterval = idleInterval;
 	}
 
 	/**
@@ -61,16 +91,6 @@ public class NioServerSocket extends SocketContext{
 	 */
 	public ServerSocketChannel socketChannel(){
 		return this.serverSocketChannel;
-	}
-	
-	/**
-	 * 初始化函数
-	 * @throws IOException
-	 */
-	private void init() throws IOException{
-		selector = provider.openSelector();
-		serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-		serverSocketChannel.bind(new InetSocketAddress(host, port));
 	}
 	
 	/**

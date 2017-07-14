@@ -45,4 +45,10 @@ public interface IoHandler {
 	 * @param e 异常信息
 	 */
 	public void onException(IoSession session, Exception e);
+
+	/**
+	 * 空闲事件
+	 * @param session Session 对象
+	 */
+	public void onIdle(IoSession session);
 }

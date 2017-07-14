@@ -2,6 +2,7 @@ package org.voovan.test.network;
 
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 public class ClientHandlerTest implements IoHandler {
@@ -25,6 +26,7 @@ public class ClientHandlerTest implements IoHandler {
 		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
 		Logger.simple("Client onRecive: "+obj.toString());
 		Logger.simple("Attribute onRecive: "+session.getAttribute("key"));
+		TEnv.sleep(10000);
 		session.close();
 		return null;
 	}
@@ -34,6 +36,11 @@ public class ClientHandlerTest implements IoHandler {
 		Logger.simple("Client Exception: "+ e.getClass() + " => " +e.getMessage());
 		Logger.error(e);
 		session.close();
+	}
+
+	@Override
+	public void onIdle(IoSession session) {
+		Logger.info("idle");
 	}
 
 	@Override
