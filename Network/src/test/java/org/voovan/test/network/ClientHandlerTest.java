@@ -1,9 +1,14 @@
 package org.voovan.test.network;
 
+import org.voovan.network.ConnectModel;
+import org.voovan.network.HeartBeat;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
+
+import java.nio.ByteBuffer;
 
 public class ClientHandlerTest implements IoHandler {
 
@@ -27,7 +32,7 @@ public class ClientHandlerTest implements IoHandler {
 		Logger.simple("Client onRecive: "+obj.toString());
 		Logger.simple("Attribute onRecive: "+session.getAttribute("key"));
 		TEnv.sleep(10000);
-		session.close();
+//		session.close();
 		return null;
 	}
 
@@ -38,9 +43,16 @@ public class ClientHandlerTest implements IoHandler {
 		session.close();
 	}
 
+	private HeartBeat heartBeat;
+
 	@Override
 	public void onIdle(IoSession session) {
-		Logger.info("idle");
+		Logger.simple("idle");
+		HeartBeat.attachSession(session, ConnectModel.SERVER, 2, "PINGq", "PONGq");
+		heartBeat.start(session);
+
+		//判断心跳是否断开了
+		Logger.simple("====>2"+HeartBeat.checkHeartStop(session, 6));
 	}
 
 	@Override

@@ -252,10 +252,12 @@ public class ByteBufferChannel {
 	/**
 	 * 收缩通道内的数据
 	 *
-	 * @param shrinkSize 收缩的偏移量, 大于0,从尾部收缩数据,小于0 从头部收缩数据
+	 * @param shrinkSize 收缩的偏移量: 大于0: 从头部向尾部收缩数据, 小于0: 从尾部向头部收缩数据
 	 * @return true: 成功, false: 失败
 	 */
 	public boolean shrink(int shrinkSize){
+		shrinkSize = shrinkSize*-1;
+
 		if(isReleased()){
 		    return false;
 		}
@@ -810,7 +812,7 @@ public class ByteBufferChannel {
         TByteBuffer.release(resultBuffer);
 
         //跳过分割符
-        shrink(splitByte.length * -1);
+        shrink(splitByte.length);
 
         return resultBuffer;
 
