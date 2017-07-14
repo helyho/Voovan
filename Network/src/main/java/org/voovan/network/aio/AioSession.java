@@ -111,7 +111,7 @@ public class AioSession extends IoSession<AioSocket>  {
 	}
 
 	@Override
-	protected synchronized int send0(ByteBuffer buffer) throws IOException {
+	protected int send0(ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
 		if (isConnected() && buffer != null) {
 			//循环发送直到全部内容发送完毕
@@ -157,7 +157,7 @@ public class AioSession extends IoSession<AioSocket>  {
 	}
 
 	@Override
-	public synchronized boolean close() {
+	public boolean close() {
 		this.cancelIdle();
 
 		// 关闭 socket

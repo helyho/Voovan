@@ -79,7 +79,7 @@ public class MultiMap<K,V>
      */
     public void putAllValues(Map<K, V> input)
     {
-        for (Map.Entry<K, V> entry : input.entrySet()) {
+        for (Entry<K, V> entry : input.entrySet()) {
             putValue((K)entry.getKey(), entry.getValue());
         }
     }
@@ -165,7 +165,7 @@ public class MultiMap<K,V>
         if ((map == null) || (map.isEmpty())) {
             return merged;
         }
-        for (Map.Entry<K, List<V>> entry : map.entrySet())
+        for (Entry<K, List<V>> entry : map.entrySet())
         {
             K name = (K)entry.getKey();
             List<V> values = (List)entry.getValue();

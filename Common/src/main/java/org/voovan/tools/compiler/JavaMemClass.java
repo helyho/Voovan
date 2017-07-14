@@ -26,7 +26,7 @@ public class JavaMemClass extends SimpleJavaFileObject {
         new ByteArrayOutputStream();
  
  
-    public JavaMemClass(String name, JavaFileObject.Kind kind, ClassLoader classLoader) {
+    public JavaMemClass(String name, Kind kind, ClassLoader classLoader) {
         super(URI.create("string:///" + name.replace('.', '/')
             + kind.extension), kind);
         this.classLoader = classLoader;

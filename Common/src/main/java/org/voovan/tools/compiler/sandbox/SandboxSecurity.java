@@ -14,8 +14,8 @@ import java.util.List;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class SandboxSecurity extends java.lang.SecurityManager {
-    private java.lang.SecurityManager systemSecurityManager;
+public class SandboxSecurity extends SecurityManager {
+    private SecurityManager systemSecurityManager;
     private SandboxControler sandboxControler;
 
     /**
@@ -35,7 +35,7 @@ public class SandboxSecurity extends java.lang.SecurityManager {
      * 获取系统的安全管理器
      * @return 系统的安全管理器
      */
-    public java.lang.SecurityManager getSystemSecurityManager(){
+    public SecurityManager getSystemSecurityManager(){
         return systemSecurityManager;
     }
 

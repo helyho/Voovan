@@ -114,7 +114,7 @@ public class WebSocketSession {
      * @param obj 消息对象
      * @throws SendMessageException 发送异常
      */
-    public synchronized void send(Object obj) throws SendMessageException {
+    public void send(Object obj) throws SendMessageException {
 
         ByteBuffer byteBuffer = (ByteBuffer)webSocketRouter.filterEncoder(this, obj);
         WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, byteBuffer);
@@ -126,7 +126,7 @@ public class WebSocketSession {
      * @param webSocketFrame 帧
      * @throws SendMessageException 发送异常
      */
-    protected synchronized void send(WebSocketFrame webSocketFrame) throws SendMessageException {
+    protected void send(WebSocketFrame webSocketFrame) throws SendMessageException {
         this.socketSession.syncSend(webSocketFrame);
 
         if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.TEXT ||

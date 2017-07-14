@@ -1,5 +1,6 @@
 package org.voovan.network;
 
+import org.voovan.network.messagesplitter.TrasnferSplitter;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.Exception.MemoryReleasedException;
@@ -8,6 +9,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TransferQueue;
 
 
 /**
@@ -87,10 +89,10 @@ public class MessageLoader {
 	 */
 	public static boolean isRemoteClosed(ByteBuffer buffer, Integer length) {
 //		length==-1时流结束并不是消息断开
-//		if(length==-1){
-//			//触发 disconnect 事件
-//			return true;
-//		}
+		if(length==-1){
+			//触发 disconnect 事件
+			return true;
+		}
 
 
 		//如果 buffer 被冲满,且起始、中位、结束的字节都是结束符(Ascii=4)则连接意外结束
@@ -207,7 +209,12 @@ public class MessageLoader {
 
 			//使用消息划分器进行消息划分
 			if(readsize == 0 && dataByteBuffer.limit() > 0) {
-				splitLength = messageSplitter.canSplite(session,  dataByteBuffer);
+				if(messageSplitter instanceof TrasnferSplitter){
+					splitLength = dataByteBuffer.limit();
+				}else{
+					splitLength = messageSplitter.canSplite(session, dataByteBuffer);
+				}
+
 				if (splitLength >= 0) {
 					stopType = StopType.MSG_SPLITTER ;
 				}
