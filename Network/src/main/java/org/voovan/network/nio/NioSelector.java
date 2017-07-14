@@ -113,12 +113,14 @@ public class NioSelector {
 												appByteBufferChannel.writeEnd(readTempBuffer);
 
 												readTempBuffer.clear();
+
+												// 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
+												EventTrigger.fireReceiveThread(session);
 											}
 
 											readTempBuffer.clear();
 
-											// 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
-											EventTrigger.fireReceiveThread(session);
+
 										break;
 									}
 									default: {
