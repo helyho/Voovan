@@ -61,6 +61,25 @@ public class TByteBuffer {
         return toString(bytebuffer, "UTF-8");
     }
 
+    public static int indexOf(ByteBuffer byteBuffer, byte[] mark){
+
+        if(byteBuffer.remaining() == 0){
+            return -1;
+        }
+
+        int index = -1;
+        byte[] tmp = new byte[mark.length];
+        for(int offset = 0;offset <= byteBuffer.remaining() - mark.length; offset++){
+            byteBuffer.get(tmp, offset, tmp.length);
+            if(Arrays.equals(mark, tmp)){
+                index = offset;
+                break;
+            }
+        }
+
+        return index;
+    }
+
     /**
      * 重新分配 byteBuffer 中的空间大小
      * @param byteBuffer byteBuffer对象

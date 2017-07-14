@@ -36,6 +36,7 @@ public abstract class IoSession<T extends SocketContext> {
 	private T socketContext;
 	private long lastReciveTime = -1;
 	private Timer checkIdleTimer;
+	private HeartBeat heartBeat;
 
 	public enum State {
 		INIT, RECEIVE, SEND, IDLE, CLOSE
@@ -52,6 +53,14 @@ public abstract class IoSession<T extends SocketContext> {
 		byteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
 		messageLoader = new MessageLoader(this);
 		checkIdle();
+	}
+
+	public HeartBeat getHeartBeat() {
+		return heartBeat;
+	}
+
+	public void setHeartBeat(HeartBeat heartBeat) {
+		this.heartBeat = heartBeat;
 	}
 
 	/**
@@ -336,7 +345,11 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @param useSpliter true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
 	 */
 	public void enabledMessageSpliter(boolean useSpliter) {
+		if(state!=State.RECEIVE && !useSpliter){
+			EventTrigger.fireReceiveThread(this);
+		}
 		messageLoader.setUseSpliter(useSpliter);
+
 	}
 
 	/**
@@ -345,7 +358,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 * 	@param buffer byte缓冲区
 	 * 	@return 发送的数据大小
 	 */
-	public int send(ByteBuffer buffer){
+	public synchronized int send(ByteBuffer buffer){
         try {
             if(sslParser!=null && sslParser.isHandShakeDone()) {
             	//warpData 内置调用 session.send0 将数据送至发送缓冲区
@@ -367,7 +380,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return  读取的字节数
 	 * @throws IOException IO异常
 	 * */
-	public int read(ByteBuffer byteBuffer) throws IOException {
+	public synchronized int read(ByteBuffer byteBuffer) throws IOException {
 
 		int readSize = -1;
 
