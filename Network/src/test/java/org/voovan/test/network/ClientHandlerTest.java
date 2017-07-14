@@ -47,10 +47,12 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public void onIdle(IoSession session) {
+		//心跳依赖于 idle 时间,这个参数在构造 socket 的时候设置具体查看 org.voovan.network.aio.AioSocket
+
 		//心跳绑定到 Session
 		HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
 
-		//心跳一次
+		//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
 		Logger.simple("==>"+heartBeat.beat(session));
 	}
 

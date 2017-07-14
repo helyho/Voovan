@@ -51,7 +51,7 @@ public class UdpSocket extends SocketContext{
      * socket 连接
      * @param host      监听地址
      * @param port		监听端口
-     * @param idleInterval	空闲事件触发时间
+     * @param idleInterval	空闲事件触发时间, 单位: 秒
      * @param readTimeout   超时事件
      * @throws IOException	IO异常
      */
