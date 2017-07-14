@@ -18,12 +18,12 @@
         <dependency>
             <groupId>org.voovan</groupId>
             <artifactId>voovan-common</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.voovan</groupId>
             <artifactId>voovan-network</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
 </project>

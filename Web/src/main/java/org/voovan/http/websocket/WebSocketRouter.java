@@ -1,6 +1,5 @@
 package org.voovan.http.websocket;
 
-import org.voovan.network.exception.IoFilterException;
 import org.voovan.tools.Chain;
 
 /**

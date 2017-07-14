@@ -5,8 +5,6 @@ import org.voovan.tools.log.Logger;
 
 import javax.tools.*;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.List;
 

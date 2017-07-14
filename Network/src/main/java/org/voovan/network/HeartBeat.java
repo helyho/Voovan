@@ -1,13 +1,8 @@
 package org.voovan.network;
 
-import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.TEnv;
-import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
-import java.time.temporal.IsoFields;
-import java.util.concurrent.DelayQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -44,18 +39,35 @@ public class HeartBeat {
         }
     }
 
-    public LinkedBlockingDeque<Integer> getQueue() {
+    /**
+     * 获取心跳包队列
+     * @return 心跳包队列
+     */
+    private LinkedBlockingDeque<Integer> getQueue() {
         return queue;
     }
 
+    /**
+     * 获取 ping 报文
+     * @return ping 报文
+     */
     public ByteBuffer getPing() {
         return ping;
     }
 
+    /**
+     * 获取 pong 报文
+     * @return pong 报文
+     */
     public ByteBuffer getPong() {
         return pong;
     }
 
+    /**
+     * 获取连续失败次数
+     *      每次成功会被归零
+     * @return 失败次数
+     */
     public int getFieldCount() {
         return fieldCount;
     }
@@ -128,6 +140,11 @@ public class HeartBeat {
 //        }
 //    }
 
+    /**
+     * 截断心跳消息
+     * @param session 会话对象
+     * @param byteBuffer 保存消息 ByteBuffer 对象
+     */
     public static void interceptHeartBeat(IoSession session, ByteBuffer byteBuffer){
         if(session==null || byteBuffer==null){
             return;
@@ -155,6 +172,9 @@ public class HeartBeat {
         }
     }
 
+    /**
+     * 一次心跳动作
+     */
     public static boolean beat(IoSession session){
 
         HeartBeat heartBeat = session.getHeartBeat();

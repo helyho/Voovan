@@ -3,9 +3,7 @@ package org.voovan.test.tools.compiler.function;
 import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.compiler.function.DynamicFunction;
-import org.voovan.tools.log.Logger;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 

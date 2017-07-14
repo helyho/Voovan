@@ -1,14 +1,8 @@
 package org.voovan.test;
 
-import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.regex.Matcher;
 
 /**
  * 类文字命名
