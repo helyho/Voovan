@@ -47,12 +47,11 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public void onIdle(IoSession session) {
-		Logger.simple("idle");
-		HeartBeat.attachSession(session, ConnectModel.SERVER, 2, "PINGq", "PONGq");
-		heartBeat.start(session);
+		//心跳绑定到 Session
+		HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
 
-		//判断心跳是否断开了
-		Logger.simple("====>2"+HeartBeat.checkHeartStop(session, 6));
+		//心跳一次
+		Logger.simple("==>"+heartBeat.beat(session));
 	}
 
 	@Override
