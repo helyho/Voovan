@@ -159,6 +159,14 @@ public class UdpSession extends IoSession<UdpSocket> {
 		return this.socketContext().close();
 	}
 
+	/**
+	 * 重连当前连接
+	 * @throws IOException IO 异常
+	 */
+	public void reStart() throws IOException {
+		socketContext().reStart();
+	}
+
 	@Override
 	public String toString() {
 		return "[" + this.loaclAddress() + ":" + this.loaclPort() + "] -> [" + this.remoteAddress() + ":" + this.remotePort() + "]";

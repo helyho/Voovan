@@ -20,7 +20,7 @@ public class AioSSLClient {
 		socket.filterChain().add(new StringFilter());
 		socket.messageSplitter(new LineMessageSplitter());
 		socket.start();
-		Logger.simple("Terminate");
+		Logger.simple("==================================Terminate==================================");
 
 		//重连操作
 		socket.reStart();

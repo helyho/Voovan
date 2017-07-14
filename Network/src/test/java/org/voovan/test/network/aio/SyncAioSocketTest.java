@@ -19,6 +19,6 @@ public class SyncAioSocketTest {
 			e.printStackTrace();
 		}
 		socket.close();
-		Logger.simple("Terminate");
+		Logger.simple("==================================Terminate==================================");
 	}
 }
