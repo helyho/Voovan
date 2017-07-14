@@ -3,6 +3,7 @@ package org.voovan.network.nio;
 import org.voovan.Global;
 import org.voovan.network.ConnectModel;
 import org.voovan.network.SocketContext;
+import org.voovan.network.aio.AioSession;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
@@ -14,6 +15,7 @@ import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketOption;
+import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -66,7 +68,6 @@ public class NioSocket extends SocketContext{
 		socketChannel.socket().setSoTimeout(this.readTimeout);
 		session = new NioSession(this);
 		connectModel = ConnectModel.CLIENT;
-		this.handler = new SynchronousHandler();
 	}
 
 	/**
@@ -150,6 +151,9 @@ public class NioSocket extends SocketContext{
 	 * @throws IOException IO 异常
 	 */
 	public void start() throws IOException  {
+		if(this.handler==null){
+			this.handler = new SynchronousHandler();
+		}
 
 		if(connectModel == ConnectModel.CLIENT) {
 			socketChannel.connect(new InetSocketAddress(this.host, this.port));
@@ -202,6 +206,15 @@ public class NioSocket extends SocketContext{
 				!this.session.getSSLParser().isHandShakeDone()){
 			TEnv.sleep(1);
 		}
+	}
+
+	/**
+	 * 重连当前连接
+	 * @throws IOException IO 异常
+	 */
+	public void reStart() throws IOException {
+		init();
+		this.start();
 	}
 
 	@Override

@@ -4,6 +4,7 @@ import org.voovan.network.filter.StringFilter;
 import org.voovan.network.messagesplitter.LineMessageSplitter;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.test.network.ClientHandlerTest;
+import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 
@@ -24,5 +25,9 @@ public class UdpSocketTest {
         udpSocket.filterChain().add(new StringFilter());
         udpSocket.handler(new ClientHandlerTest());
         udpSocket.start();
+        Logger.simple("Terminate");
+
+        //重连操作
+        udpSocket.reStart();
     }
 }

@@ -5,6 +5,7 @@ import org.voovan.network.aio.AioSocket;
 import org.voovan.network.filter.StringFilter;
 import org.voovan.network.messagesplitter.LineMessageSplitter;
 import org.voovan.test.network.ClientHandlerTest;
+import org.voovan.tools.log.Logger;
 
 public class AioSSLClient {
 	
@@ -19,5 +20,9 @@ public class AioSSLClient {
 		socket.filterChain().add(new StringFilter());
 		socket.messageSplitter(new LineMessageSplitter());
 		socket.start();
+		Logger.simple("Terminate");
+
+		//重连操作
+		socket.reStart();
 	}
 }

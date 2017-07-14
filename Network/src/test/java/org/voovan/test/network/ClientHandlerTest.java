@@ -31,8 +31,8 @@ public class ClientHandlerTest implements IoHandler {
 		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
 		Logger.simple("Client onRecive: "+obj.toString());
 		Logger.simple("Attribute onRecive: "+session.getAttribute("key"));
-		TEnv.sleep(10000);
-//		session.close();
+		TEnv.sleep(3000);
+		session.close();
 		return null;
 	}
 

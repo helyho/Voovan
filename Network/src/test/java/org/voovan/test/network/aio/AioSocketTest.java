@@ -15,5 +15,8 @@ public class AioSocketTest {
 		socket.messageSplitter(new LineMessageSplitter());
 		socket.start();
 		Logger.simple("Terminate");
+
+		//重连操作
+		socket.reStart();
 	}
 }

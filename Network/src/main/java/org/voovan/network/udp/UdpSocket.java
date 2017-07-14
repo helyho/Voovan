@@ -68,7 +68,6 @@ public class UdpSocket extends SocketContext{
         datagramChannel.connect(address);
         session = new UdpSession(this,address);
         datagramChannel.configureBlocking(false);
-        this.handler = new SynchronousHandler();
         connectModel = ConnectModel.CLIENT;
     }
 
@@ -133,6 +132,10 @@ public class UdpSocket extends SocketContext{
 
     @Override
     public void start() throws IOException {
+        if(this.handler==null){
+            this.handler = new SynchronousHandler();
+        }
+
         //如果没有消息分割器默认使用透传分割器
         if(messageSplitter == null){
             messageSplitter = new TrasnferSplitter();
@@ -159,6 +162,15 @@ public class UdpSocket extends SocketContext{
                }
            }
         });
+    }
+
+    /**
+     * 重连当前连接
+     * @throws IOException IO 异常
+     */
+    public void reStart() throws IOException {
+        init();
+        this.start();
     }
 
     /**
