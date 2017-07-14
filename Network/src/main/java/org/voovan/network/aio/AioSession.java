@@ -158,6 +158,8 @@ public class AioSession extends IoSession<AioSocket>  {
 
 	@Override
 	public synchronized boolean close() {
+		this.cancelIdle();
+
 		// 关闭 socket
 		if(isConnected()) {
 			return this.socketContext().close();

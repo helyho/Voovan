@@ -163,4 +163,9 @@ public class WebSocketHandler implements IoHandler{
     public void onException(IoSession session, Exception e) {
 
     }
+
+    @Override
+    public void onIdle(IoSession session) {
+
+    }
 }

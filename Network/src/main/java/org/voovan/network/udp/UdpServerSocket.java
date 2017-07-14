@@ -40,16 +40,36 @@ public class UdpServerSocket extends SocketContext{
      */
     public UdpServerSocket(String host, int port, int readTimeout) throws IOException{
         super(host, port, readTimeout);
-        this.readTimeout = readTimeout;
+        init();
+    }
+
+    /**
+     * socket 连接
+     * @param host      监听地址
+     * @param port		监听端口
+     * @param idleInterval	空闲事件触发时间
+     * @param readTimeout   超时事件
+     * @throws IOException	IO异常
+     */
+    public UdpServerSocket(String host, int port, int readTimeout, int idleInterval) throws IOException{
+        super(host, port, readTimeout, idleInterval);
+        init();
+    }
+
+    private void init() throws IOException {
         provider = SelectorProvider.provider();
         datagramChannel = provider.openDatagramChannel();
         datagramChannel.socket().setSoTimeout(this.readTimeout);
-        this.connectModel = connectModel;
         InetSocketAddress address = new InetSocketAddress(this.host, this.port);
         datagramChannel.bind(new InetSocketAddress(this.host, this.port));
         datagramChannel.configureBlocking(false);
         this.handler = new SynchronousHandler();
-        init();
+    }
+
+
+    @Override
+    public void setIdleInterval(int idleInterval) {
+        this.idleInterval = idleInterval;
     }
 
     /**
@@ -66,7 +86,7 @@ public class UdpServerSocket extends SocketContext{
     /**
      * 初始化函数
      */
-    private void init()  {
+    private void registerSelector()  {
         try{
             selector = provider.openSelector();
             datagramChannel.register(selector, SelectionKey.OP_READ);
@@ -99,6 +119,8 @@ public class UdpServerSocket extends SocketContext{
         if(messageSplitter == null){
             messageSplitter = new TrasnferSplitter();
         }
+
+        registerSelector();
 
         if(datagramChannel!=null && datagramChannel.isOpen()){
             UdpSelector udpSelector = new UdpSelector(selector,this);

@@ -370,4 +370,9 @@ public class WebServerHandler implements IoHandler {
 		}
 		session.close();
 	}
+
+	@Override
+	public void onIdle(IoSession session) {
+
+	}
 }

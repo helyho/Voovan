@@ -39,7 +39,8 @@ public class EventProcess {
 	public static void onAccepted(Event event) throws IOException {
 		SocketContext socketContext = event.getSession().socketContext();
 		if (socketContext != null) {
-			socketContext.start();
+
+			socketContext.syncStart();
 		}
 	}
 
@@ -70,8 +71,7 @@ public class EventProcess {
 		SocketContext socketContext = event.getSession().socketContext();
 		if (socketContext != null && session != null) {
 			Object original = socketContext.handler().onConnect(session);
-			Object result =filterEncoder(session,original);
-			sendMessage(session, result, original, false);
+			sendMessage(session, original, false);
 		}
 	}
 
@@ -142,17 +142,9 @@ public class EventProcess {
 
 				// 返回的结果不为空的时候才发送
 				if (result != null) {
-					Object original = result;
 
-					// ------------------Filter 加密处理-----------------
-					result = filterEncoder(session,result);
-					// ---------------------------------------------------
-
-					// 发送消息
-					if(result!=null) {
-						//触发发送事件
-						sendMessage(session, result, original, false);
-					}
+                    //触发发送事件
+                    sendMessage(session, result, false);
 				}
 			}
 
@@ -215,7 +207,7 @@ public class EventProcess {
 				TByteBuffer.release((ByteBuffer) sendObj);
 			}
 		} else if(sendObj != null) {
-			Logger.error(" Latest send object must by ByteBuffer, " +
+			Logger.error(" Latest send object must be ByteBuffer, " +
 					"please check you filter be sure the latest filter return Object's type is ByteBuffer.");
 		}
 	}
@@ -224,24 +216,29 @@ public class EventProcess {
 	 * 在一个独立的线程中并行的发送消息
 	 *
 	 * @param session Session 对象
-	 * @param sendObj 发送的对象
 	 * @param original 原始对象
 	 * @param block true: 阻塞发送, false:非阻塞发送
 	 * @throws SendMessageException  消息发送异常
+	 * @throws IoFilterException 过滤器异常
 	 */
-	public static void sendMessage(IoSession session, Object sendObj,
-											 Object original, boolean block)
-			throws SendMessageException {
+	public static void sendMessage(IoSession session, Object original, boolean block)
+			throws SendMessageException, IoFilterException {
 
-		sendMessageCommon(session, sendObj);
+		session.setState(IoSession.State.SEND);
 
-		if(sendObj != null) {
-			//触发发送事件
-			if(block) {
-				EventTrigger.fireSent(session, original);
-			}else{
-				EventTrigger.fireSentThread(session, original);
-			}
+		// ------------------Filter 加密处理-----------------
+		Object sendObj = filterEncoder(session, original);
+		// ---------------------------------------------------
+
+		if(sendObj!=null) {
+			sendMessageCommon(session, sendObj);
+
+            //触发发送事件
+            if (block) {
+                EventTrigger.fireSent(session, original);
+            } else {
+                EventTrigger.fireSentThread(session, original);
+            }
 		}
 	}
 
@@ -264,6 +261,20 @@ public class EventProcess {
                 TByteBuffer.release((ByteBuffer) sendObj);
             }
         }
+	}
+
+	/**
+	 * 空闲事件触发
+	 *
+	 * @param event 事件对象
+	 */
+	public static void onIdle(Event event) {
+		SocketContext socketContext = event.getSession().socketContext();
+		if (socketContext != null) {
+			IoSession session = event.getSession();
+
+			socketContext.handler().onIdle(session);
+		}
 	}
 
 	/**
@@ -303,12 +314,19 @@ public class EventProcess {
 			} else if (eventName == EventName.ON_CONNECT) {
 				EventProcess.onConnect(event);
 			} else if (eventName == EventName.ON_DISCONNECT) {
+				//设置空闲状态
+				event.getSession().setState(IoSession.State.CLOSE);
 				EventProcess.onDisconnect(event);
 			} else if (eventName == EventName.ON_RECEIVE) {
 				EventProcess.onRead(event);
-				event.getSession().setReceiving(false);
+				//设置空闲状态
+				event.getSession().setState(IoSession.State.IDLE);
 			} else if (eventName == EventName.ON_SENT) {
 				EventProcess.onSent(event, event.getOther());
+				//设置空闲状态
+				event.getSession().setState(IoSession.State.IDLE);
+			} else if (eventName == EventName.ON_IDLE) {
+				EventProcess.onIdle(event);
 			} else if (eventName == EventName.ON_EXCEPTION) {
 				EventProcess.onException(event, (Exception)event.getOther());
 			}

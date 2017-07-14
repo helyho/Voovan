@@ -34,6 +34,7 @@ public class NioSocket extends SocketContext{
 	private SocketChannel socketChannel;
 	private NioSession session;
 	private NioSelector nioSelector;
+
 	/**
 	 * socket 连接
 	 * @param host      监听地址
@@ -43,7 +44,23 @@ public class NioSocket extends SocketContext{
 	 */
 	public NioSocket(String host,int port,int readTimeout) throws IOException{
 		super(host, port, readTimeout);
-		this.readTimeout = readTimeout;
+		init();
+	}
+
+	/**
+	 * socket 连接
+	 * @param host      监听地址
+	 * @param port		监听端口
+     * @param idleInterval	空闲事件触发时间
+	 * @param readTimeout   超时时间 (milliseconds)
+	 * @throws IOException	IO异常
+	 */
+	public NioSocket(String host,int port,int readTimeout, int idleInterval) throws IOException{
+		super(host, port, readTimeout, idleInterval);
+		init();
+	}
+
+	private void init() throws IOException {
 		provider = SelectorProvider.provider();
 		socketChannel = provider.openSocketChannel();
 		socketChannel.socket().setSoTimeout(this.readTimeout);
@@ -73,11 +90,17 @@ public class NioSocket extends SocketContext{
 		}
 	}
 
+	@Override
+	public void setIdleInterval(int idleInterval) {
+		this.idleInterval = idleInterval;
+	}
+
 	/**
 	 * 设置 Socket 的 Option 选项
 	 *
 	 * @param name   SocketOption类型的枚举, 参照:SocketChannel.setOption的说明
 	 * @param value  SocketOption参数
+	 * @param <T> 范型
 	 * @throws IOException IO异常
 	 */
 	public <T> void setOption(SocketOption<T> name, T value) throws IOException {
@@ -96,7 +119,7 @@ public class NioSocket extends SocketContext{
 	/**
 	 * 初始化函数
 	 */
-	private void init()  {
+	private void registerSelector()  {
 		try{
 			selector = provider.openSelector();
 			socketChannel.register(selector, SelectionKey.OP_READ);
@@ -133,7 +156,7 @@ public class NioSocket extends SocketContext{
 			socketChannel.configureBlocking(false);
 		}
 
-		init();
+		registerSelector();
 
 		initSSL();
 		

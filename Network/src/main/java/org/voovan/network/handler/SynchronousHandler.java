@@ -38,4 +38,9 @@ public class SynchronousHandler implements IoHandler {
     public void onException(IoSession session, Exception e) {
         session.setAttribute("SocketException",e);
     }
+
+    @Override
+    public void onIdle(IoSession session) {
+
+    }
 }

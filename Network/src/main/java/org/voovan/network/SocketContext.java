@@ -28,17 +28,7 @@ public abstract class SocketContext {
 	protected ConnectModel connectModel;
 	protected int bufferSize = 20480;
 
-
-	public synchronized static AsynchronousChannelGroup getAsynchronousChannelGroup() throws IOException {
-		AsynchronousChannelGroup asynchronousChannelGroup = null;
-		if(asynchronousChannelGroup == null ){
-			asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(Global.getThreadPool());
-		}
-		return asynchronousChannelGroup;
-	}
-
-	public abstract  <T> void setOption(SocketOption<T> name, T value) throws IOException;
-
+	protected int idleInterval = 0;
 
 	/**
 	 * 构造函数
@@ -53,7 +43,22 @@ public abstract class SocketContext {
 		connectModel = null;
 		filterChain = new Chain<IoFilter>();
 	}
-	
+
+	/**
+	 * 构造函数
+	 * @param host    主机地址
+	 * @param port    主机端口
+	 * @param readTimeout 超时时间
+	 */
+	public SocketContext(String host,int port,int readTimeout, int idleInterval) {
+		this.host = host;
+		this.port = port;
+		this.readTimeout = readTimeout;
+		this.idleInterval = idleInterval;
+		connectModel = null;
+		filterChain = new Chain<IoFilter>();
+	}
+
 	/**
 	 * 克隆对象
 	 * @param parentSocketContext 父 socket 对象
@@ -65,7 +70,32 @@ public abstract class SocketContext {
 		this.messageSplitter = parentSocketContext.messageSplitter;
 		this.sslManager = parentSocketContext.sslManager;
 		this.bufferSize = parentSocketContext.bufferSize;
+		this.idleInterval = parentSocketContext.idleInterval;
 	}
+
+    /**
+     * 获取空闲事件时间
+     * @return  空闲事件时间, 单位:秒
+     */
+	public int getIdleInterval() {
+		return idleInterval;
+	}
+
+	/**
+	 * 设置空闲事件时间
+	 * @param idleInterval  空闲事件时间, 单位:秒
+	 */
+	public abstract void setIdleInterval(int idleInterval);
+
+	/**
+	 * 设置 Socket 的 Option 选项
+	 *
+	 * @param name   SocketOption类型的枚举, 参照:AsynchronousSocketChannel.setOption的说明
+	 * @param value  SocketOption参数
+	 * @param <T> 范型
+	 * @throws IOException IO异常
+	 */
+	public abstract  <T> void setOption(SocketOption<T> name, T value) throws IOException;
 
 	/**
 	 * 获取缓冲区大小
@@ -182,9 +212,18 @@ public abstract class SocketContext {
 	
 	/**
 	 * 启动上下文连接
+	 *		阻塞方法
 	 * @throws IOException IO 异常
 	 */
 	public abstract void start() throws IOException;
+
+	/**
+	 * 启动同步的上下文连接
+	 * 		非阻塞方法
+	 *
+	 * @exception IOException IO异常
+	 */
+	public abstract void syncStart() throws IOException;
 
 	/**
 	 * 上下文连接是否打开
