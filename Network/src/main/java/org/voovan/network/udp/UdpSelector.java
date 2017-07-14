@@ -1,6 +1,7 @@
 package org.voovan.network.udp;
 
 import org.voovan.network.EventTrigger;
+import org.voovan.network.HeartBeat;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.TByteBuffer;
@@ -86,6 +87,8 @@ public class UdpSelector {
                                         //发起的连接isConnected 是 true
                                         if(datagramChannel.isConnected()) {
                                             readSize = datagramChannel.read(readTempBuffer);
+                                            //检查心跳
+                                            HeartBeat.interceptHeartBeat(session, readTempBuffer);
                                         }else{
                                             SocketAddress address = datagramChannel.receive(readTempBuffer);
                                             readSize = readTempBuffer.position();
@@ -105,6 +108,10 @@ public class UdpSelector {
                                             break;
                                         } else if (readSize > 0) {
                                             readTempBuffer.flip();
+
+                                            //检查心跳
+                                            HeartBeat.interceptHeartBeat(session, readTempBuffer);
+
                                             clientSession.getByteBufferChannel().writeEnd(readTempBuffer);
                                             readTempBuffer.clear();
                                         }

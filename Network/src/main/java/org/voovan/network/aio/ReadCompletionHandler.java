@@ -1,6 +1,7 @@
 package org.voovan.network.aio;
 
 import org.voovan.network.EventTrigger;
+import org.voovan.network.HeartBeat;
 import org.voovan.network.MessageLoader;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
@@ -48,6 +49,8 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 				session.close();
 			} else {
 				buffer.flip();
+				//检查心跳
+				HeartBeat.interceptHeartBeat(session, buffer);
 			
 				if (length > 0) {
 
