@@ -14,7 +14,8 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public Object onConnect(IoSession session) {
-		Logger.simple("onConnect");
+		System.out.println("onConnect");
+		System.out.println("Connect from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.loaclPort());
 		session.setAttribute("key", "attribute value");
 		String msg = new String("test message\r\n");
 		return msg;
@@ -22,15 +23,15 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public void onDisconnect(IoSession session) {
-		Logger.simple("onDisconnect");
+		System.out.println("onDisconnect");
 	}
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		Logger.simple("Recive from: "+session.remoteAddress()+":"+session.remotePort());
+		System.out.println("Recive from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.loaclPort());
 		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
-		Logger.simple("Client onRecive: "+obj.toString());
-		Logger.simple("Attribute onRecive: "+session.getAttribute("key"));
+		System.out.println("Client onRecive: "+obj.toString());
+		System.out.println("Attribute onRecive: "+session.getAttribute("key"));
 		TEnv.sleep(3000);
 		session.close();
 		return null;
@@ -38,12 +39,10 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		Logger.simple("Client Exception: "+ e.getClass() + " => " +e.getMessage());
+		System.out.println("Client Exception: "+ e.getClass() + " => " +e.getMessage());
 		Logger.error(e);
 		session.close();
 	}
-
-	private HeartBeat heartBeat;
 
 	@Override
 	public void onIdle(IoSession session) {
@@ -53,13 +52,13 @@ public class ClientHandlerTest implements IoHandler {
 		HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
 
 		//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-		Logger.simple("==>"+heartBeat.beat(session));
+		System.out.println("==>"+HeartBeat.beat(session));
 	}
 
 	@Override
 	public void onSent(IoSession session, Object obj) {
 		String sad = (String)obj;
-		Logger.simple("Client onSent: "+ sad);
+		System.out.println("Client onSent: "+ sad);
 	}
 
 }

@@ -1,6 +1,7 @@
 package org.voovan.network.nio;
 
 import org.voovan.network.EventTrigger;
+import org.voovan.network.HeartBeat;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.ByteBufferChannel;
@@ -87,6 +88,7 @@ public class NioSelector {
 									// 有数据读取
 									case SelectionKey.OP_READ: {
                                             int readSize = socketChannel.read(readTempBuffer);
+
 											//判断连接是否关闭
 											if(MessageLoader.isRemoteClosed(readTempBuffer, readSize) && session.isConnected()){
 
@@ -98,6 +100,10 @@ public class NioSelector {
 												break;
 											}else if(readSize>0){
 												readTempBuffer.flip();
+
+												//检查心跳
+												HeartBeat.interceptHeartBeat(session, readTempBuffer);
+
 												// 接收数据
 												if(session.getSSLParser()!=null && session.getSSLParser().isHandShakeDone()){
 													netByteBufferChannel.writeEnd(readTempBuffer);

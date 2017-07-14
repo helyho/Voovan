@@ -1,11 +1,14 @@
 package org.voovan.network;
 
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
 import java.time.temporal.IsoFields;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * 类文字命名
@@ -16,9 +19,11 @@ import java.time.temporal.IsoFields;
  * Licence: Apache v2 License
  */
 public class HeartBeat {
-    private String ping;
-    private String pong;
+    private ByteBuffer ping;
+    private ByteBuffer pong;
     private boolean isFirstBeat = true;
+    private LinkedBlockingDeque<Integer> queue;
+
 
     /**
      * 构造方法
@@ -29,83 +34,142 @@ public class HeartBeat {
      * @return 心跳消息对象
      */
     private HeartBeat(IoSession session, ConnectModel connectModel, String ping, String pong){
-        this.ping = ping;
-        this.pong = pong;
+        this.ping = ByteBuffer.wrap(ping.getBytes());
+        this.pong = ByteBuffer.wrap(pong.getBytes());
+        queue = new LinkedBlockingDeque<Integer>();
 
         if(session.socketContext().getConnectModel() == connectModel){
             session.send(ByteBuffer.wrap(ping.getBytes()));
         }
     }
 
-    /**
-     * 判断会话中是否这个作为消息开始
-     * @param msg 消息
-     * @return true: 是, false: 否
-     */
-    private boolean isHeadOfMsg(IoSession session, String msg){
-        ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
+    public LinkedBlockingDeque<Integer> getQueue() {
+        return queue;
+    }
 
-        if( byteBufferChannel.size() >= msg.length()){
-            if(byteBufferChannel.indexOf(msg.getBytes()) == 0) {
-                //收缩通道内的数据
-                byteBufferChannel.shrink(msg.length());
-                try {
-                    return true;
-                }finally {
-                    if(byteBufferChannel.size()!=0) {
-                        while (isHeadOfMsg(session, msg)) {
-                            continue;
-                        }
+    public ByteBuffer getPing() {
+        return ping;
+    }
+
+    public ByteBuffer getPong() {
+        return pong;
+    }
+
+//    /**
+//     * 判断会话中是否这个作为消息开始
+//     * @param msg 消息
+//     * @return true: 是, false: 否
+//     */
+//    private boolean isHeadOfMsg(IoSession session, ByteBuffer msg){
+//        ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
+//
+//        if( byteBufferChannel.size() >= msg.capacity()){
+//            if(byteBufferChannel.indexOf(msg.array()) == 0) {
+//                //收缩通道内的数据
+//                byteBufferChannel.shrink(msg.capacity());
+//                try {
+//                    return true;
+//                }finally {
+//                    if(byteBufferChannel.size()!=0) {
+//                        while (isHeadOfMsg(session, msg)) {
+//                            continue;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        return false;
+//    }
+//
+//    /**
+//     * 检测是否是 Pong 消息
+//     * @return true: 是, false: 否
+//     */
+//    public boolean isPing(IoSession session){
+//        return isHeadOfMsg(session, ping);
+//    }
+//
+//    /**
+//     * 检测是否是 Pong 消息
+//     * @return true: 是, false: 否
+//     */
+//    public boolean isPong(IoSession session){
+//        return isHeadOfMsg(session, pong);
+//    }
+//
+//    /**
+//     * 一次心跳动作
+//     */
+//    public static boolean beat_old(IoSession session){
+//
+//        HeartBeat heartBeat = session.getHeartBeat();
+//
+//        if(heartBeat.isFirstBeat){
+//            heartBeat.isFirstBeat=false;
+//            return true;
+//        }
+//        //收到 PING 发送 PONG
+//        if(heartBeat.isPing(session)){
+//            session.getMessageLoader().reset();
+//            session.send(heartBeat.pong);
+//            return true;
+//        } else if(heartBeat.isPong(session)){
+//            session.getMessageLoader().reset();
+//            session.send(heartBeat.ping);
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
+
+    public static void interceptHeartBeat(IoSession session, ByteBuffer byteBuffer){
+        HeartBeat heartBeat = session.getHeartBeat();
+        String mms = TByteBuffer.toString(byteBuffer);
+        if(heartBeat!=null) {
+            if (byteBuffer.hasRemaining()) {
+                //心跳处理
+                if (heartBeat != null) {
+                    if (TByteBuffer.indexOf(byteBuffer, heartBeat.getPing().array()) == 0) {
+                        TByteBuffer.moveData(byteBuffer, heartBeat.getPing().limit());
+                        heartBeat.getQueue().addLast(1);
+                    }
+                    if (TByteBuffer.indexOf(byteBuffer, heartBeat.getPong().array()) == 0) {
+                        TByteBuffer.moveData(byteBuffer, heartBeat.getPong().limit());
+                        heartBeat.getQueue().addLast(2);
                     }
                 }
             }
         }
-
-        return false;
     }
 
-    /**
-     * 检测是否是 Pong 消息
-     * @return true: 是, false: 否
-     */
-    public boolean isPing(IoSession session){
-        return isHeadOfMsg(session, ping);
-    }
-
-    /**
-     * 检测是否是 Pong 消息
-     * @return true: 是, false: 否
-     */
-    public boolean isPong(IoSession session){
-        return isHeadOfMsg(session, pong);
-    }
-
-    /**
-     * 一次心跳动作
-     */
     public static boolean beat(IoSession session){
 
+        HeartBeat heartBeat = session.getHeartBeat();
 
-        HeartBeat heartBeat = (HeartBeat)session.getAttribute("HEART_BEAT");
-
+        //收个心跳返回成功
         if(heartBeat.isFirstBeat){
             heartBeat.isFirstBeat=false;
             return true;
         }
-        //收到 PING 发送 PONG
-        if(heartBeat.isPing(session)){
-            session.getMessageLoader().reset();
-            session.send(ByteBuffer.wrap(heartBeat.pong.getBytes()));
-            return true;
-        } else if(heartBeat.isPong(session)){
-            session.getMessageLoader().reset();
-            session.send(ByteBuffer.wrap(heartBeat.ping.getBytes()));
-            return true;
-        } else {
-            return false;
-        }
-    }
 
+        if(heartBeat.getQueue().size() > 0) {
+            int beatType = heartBeat.getQueue().pollFirst();
+
+            if (beatType == 1) {
+                session.getMessageLoader().reset();
+                session.send(heartBeat.pong);
+                return true;
+            } else if (beatType == 2) {
+                session.getMessageLoader().reset();
+                session.send(heartBeat.ping);
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
     /**
      * 将心跳绑定到 Session
      * @param session   会话
@@ -116,11 +180,11 @@ public class HeartBeat {
      */
     public static HeartBeat attachSession(IoSession session, ConnectModel connectModel, String ping, String pong){
         HeartBeat heartBeat = null;
-        if(session.getAttribute("HEART_BEAT")==null) {
+        if(session.getHeartBeat()==null) {
             heartBeat = new HeartBeat(session, connectModel, ping, pong);
-            session.setAttribute("HEART_BEAT", heartBeat);
+            session.setHeartBeat(heartBeat);
         } else{
-            heartBeat = (HeartBeat)session.getAttribute("HEART_BEAT");
+            heartBeat = session.getHeartBeat();
         }
         return heartBeat;
 
@@ -135,11 +199,11 @@ public class HeartBeat {
      */
     public static HeartBeat attachSession(IoSession session, ConnectModel connectModel){
         HeartBeat heartBeat = null;
-        if(session.getAttribute("HEART_BEAT")==null) {
+        if(session.getHeartBeat()==null) {
             heartBeat = new HeartBeat(session, connectModel, "PING", "PONG");
-            session.setAttribute("HEART_BEAT", heartBeat);
+            session.setHeartBeat(heartBeat);
         }else{
-            heartBeat = (HeartBeat)session.getAttribute("HEART_BEAT");
+            heartBeat = session.getHeartBeat();
         }
 
         return heartBeat;
