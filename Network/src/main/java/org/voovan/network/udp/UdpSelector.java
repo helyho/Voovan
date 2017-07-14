@@ -114,13 +114,11 @@ public class UdpSelector {
 
                                             clientSession.getByteBufferChannel().writeEnd(readTempBuffer);
                                             readTempBuffer.clear();
+                                            // 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
+                                            EventTrigger.fireReceiveThread(clientSession);
                                         }
 
                                         readTempBuffer.clear();
-
-                                        // 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
-                                        EventTrigger.fireReceiveThread(clientSession);
-
                                         break;
                                     } default: {
                                         Logger.debug("Nothing to do ,SelectionKey is:"
