@@ -2,7 +2,6 @@ package org.voovan.tools.log;
 
 import org.voovan.tools.TEnv;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;

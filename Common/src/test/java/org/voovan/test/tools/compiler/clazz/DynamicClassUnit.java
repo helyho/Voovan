@@ -3,9 +3,7 @@ package org.voovan.test.tools.compiler.clazz;
 import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.compiler.DynamicCompilerManager;
-import org.voovan.tools.compiler.sandbox.SandboxSecurity;
 import org.voovan.tools.compiler.clazz.DynamicClass;
-import org.voovan.tools.compiler.sandbox.SandboxControler;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 

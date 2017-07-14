@@ -1,8 +1,6 @@
 package org.voovan.test.tools.compiler.function;
 
-import org.voovan.tools.TFile;
-
-ArrayList asssssl = new ArrayList();
-System.out.println(" arg1: "+temp1);
-System.out.println(" arg2: "+temp2);
-return asssssl;
+ArrayList asssssl=new ArrayList();
+        System.out.println(" arg1: "+temp1);
+        System.out.println(" arg2: "+temp2);
+        return asssssl;
