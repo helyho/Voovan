@@ -129,8 +129,11 @@ public class HeartBeat {
 //    }
 
     public static void interceptHeartBeat(IoSession session, ByteBuffer byteBuffer){
+        if(session==null || byteBuffer==null){
+            return;
+        }
+
         HeartBeat heartBeat = session.getHeartBeat();
-        String mms = TByteBuffer.toString(byteBuffer);
         if(heartBeat!=null) {
             if (byteBuffer.hasRemaining()) {
                 //心跳处理
