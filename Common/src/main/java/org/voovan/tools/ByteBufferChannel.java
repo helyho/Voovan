@@ -344,12 +344,14 @@ public class ByteBufferChannel {
 
 		lock.lock();
 		try {
-            if(offset >= 0 && length <= size - offset) {
+			int availableCount = size - offset;
 
-                int arrSize = length;
+            if(offset >= 0 &&  availableCount> 0) {
 
-                if(length > size){
-                    arrSize = size;
+                int arrSize = availableCount;
+
+                if(length < availableCount){
+                    arrSize = length;
                 }
 
                 unsafe.copyMemory(null, address + offset, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
