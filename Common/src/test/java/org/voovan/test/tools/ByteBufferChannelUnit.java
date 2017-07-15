@@ -88,7 +88,7 @@ public class ByteBufferChannelUnit extends TestCase {
 	public void testGetByteArray(){
 		init();
 		byte[] tmp = new byte[6];
-		byteBufferChannel.get(0, tmp, 6);
+		byteBufferChannel.get(tmp, 0, 6);
 		assertEquals("helyho", new String(tmp));
 	}
 

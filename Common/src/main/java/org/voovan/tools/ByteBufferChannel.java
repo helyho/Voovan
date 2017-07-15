@@ -330,12 +330,12 @@ public class ByteBufferChannel {
 	/**
 	 * 获取某个偏移量位置的 byte 数据数组
 	 *     该操作不会导致通道内的数据发生变化
-	 * @param offset  偏移量
 	 * @param dst     目标数组
+	 * @param offset  偏移量
 	 * @param length  长度
 	 * @return 获取数据的长度
 	 */
-	public int get(int offset, byte[] dst, int length) throws IndexOutOfBoundsException {
+	public int get(byte[] dst, int offset, int length) throws IndexOutOfBoundsException {
 		tryRelease();
 
 		if(size()==0){
@@ -373,7 +373,7 @@ public class ByteBufferChannel {
 	public int get(byte[] dst){
 		tryRelease();
 
-		return get(0, dst, dst.length);
+		return get(dst, 0, dst.length);
 	}
 
 	/**
@@ -727,7 +727,7 @@ public class ByteBufferChannel {
 		int index = -1;
 		byte[] tmp = new byte[mark.length];
 		for(int offset = 0;offset <= size() - mark.length; offset++){
-            get(offset, tmp, tmp.length);
+            get(tmp, offset, tmp.length);
             if(Arrays.equals(mark, tmp)){
             	index = offset;
                 break;
@@ -844,7 +844,7 @@ public class ByteBufferChannel {
             int loadSize = bufferSize;
             while (length > 0) {
                 loadSize = length > bufferSize ? bufferSize : new Long(length).intValue();
-                get(0, buffer, loadSize);
+                get(buffer, 0, loadSize);
                 randomAccessFile.write(buffer, 0, loadSize);
 
                 length = length - loadSize;
