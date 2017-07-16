@@ -508,7 +508,8 @@ public class HttpClient {
 
 		//处理升级后的消息
 		if(response.protocol().getStatus()==101){
-
+			//这里需要效验Sec-WebSocket-Accept
+			socket.getSession().setAttribute(WebServerHandler.SessionParam.TYPE, "WebSocket");
 
 			WebSocketSession webSocketSession =
 					new WebSocketSession(socket.getSession(), null,
@@ -519,9 +520,6 @@ public class HttpClient {
 			webSocketRouter.setSession(webSocketSession);
 
 			isWebSocket = true;
-
-			//这里需要效验Sec-WebSocket-Accept
-			socket.getSession().setAttribute(WebServerHandler.SessionParam.TYPE, "WebSocket");
 
 			socket.handler(webSocketHandler);
 
@@ -535,7 +533,6 @@ public class HttpClient {
 					buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
 					WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
 					sendWebSocketData(webSocketFrame);
-					webSocketFrame.getFrameData().flip();
 				} catch (WebSocketFilterException e) {
 					Logger.error(e);
 				}
