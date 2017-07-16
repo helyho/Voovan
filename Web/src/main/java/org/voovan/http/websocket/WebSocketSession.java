@@ -114,6 +114,7 @@ public class WebSocketSession {
      * 发送 websocket 消息
      * @param obj 消息对象
      * @throws SendMessageException 发送异常
+     * @throws WebSocketFilterException WebSocket过滤器异常
      */
     public void send(Object obj) throws SendMessageException, WebSocketFilterException {
 
