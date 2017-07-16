@@ -346,6 +346,11 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @param useSpliter true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
 	 */
 	public void enabledMessageSpliter(boolean useSpliter) {
+		if(useSpliter){
+			this.setState(State.IDLE);
+		}else{
+			this.setState(State.RECEIVE);
+		}
 		messageLoader.setUseSpliter(useSpliter);
 	}
 

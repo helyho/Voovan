@@ -3,6 +3,7 @@ package org.voovan.tools.compiler.sandbox;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
+import org.voovan.tools.log.Logger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -70,8 +71,8 @@ public class SandboxControler {
         if(tmpFile!=null && tmpFile.exists()){
             return tmpFile;
         }else{
-            System.out.println("Sandbox Waring: Can't found log config file!");
-            System.out.println("Sandbox Waring: System will be use default config, all check will be permission");
+            Logger.warn("Sandbox Waring: Can't found log config file!");
+            Logger.warn("Sandbox Waring: System will be use default config, all check will be permission");
             return null;
         }
     }

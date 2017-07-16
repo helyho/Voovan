@@ -760,7 +760,6 @@ public class ByteBufferChannel {
 
         String lineStr = "";
         int index = indexOf("\n".getBytes());
-		System.out.println(index);
 
         if (index >= 0) {
 

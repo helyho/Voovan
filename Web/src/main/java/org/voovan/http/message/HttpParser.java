@@ -401,7 +401,6 @@ public class HttpParser {
 						try {
 							chunkedLength = Integer.parseInt(chunkedLengthLine, 16);
 						}catch(Exception e){
-							System.out.println(chunkedLengthLine);
 							e.printStackTrace();
 							break;
 						}

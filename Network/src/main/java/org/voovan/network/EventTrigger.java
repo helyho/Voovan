@@ -25,6 +25,9 @@ public class EventTrigger {
 	}
 	
 	public static void fireConnectThread(IoSession session){
+		//设置连接状态
+		session.setState(IoSession.State.CONNECT);
+
 		fireEventThread(session, EventName.ON_CONNECT,null);
 	}
 	
@@ -33,15 +36,24 @@ public class EventTrigger {
 		// 所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
 		// !hasEventDisposeing(EventName.ON_CONNECT) &&
 		if (session.isOpen() && isHandShakeDone(session) && session.getState() != IoSession.State.RECEIVE) {
+			//设置接受状态
+			session.setState(IoSession.State.RECEIVE);
+
 			fireEventThread(session,EventName.ON_RECEIVE, null);
 		}
 	}
 	
 	public static void fireSentThread(IoSession session, Object obj){
+		//设置发送状态
+		session.setState(IoSession.State.SEND);
+
 		fireEventThread(session, EventName.ON_SENT, obj);
 	}
 
 	public static void fireDisconnectThread(IoSession session){
+		//设置断开状态,Close是最终状态
+		session.setState(IoSession.State.CLOSE);
+
 		fireEventThread(session, EventName.ON_DISCONNECT, null);
 	}
 
@@ -52,6 +64,9 @@ public class EventTrigger {
 	}
 
 	public static void fireExceptionThread(IoSession session,Exception exception){
+		//设置空闲状态
+		session.setState(IoSession.State.IDLE);
+
 		fireEventThread(session,EventName.ON_EXCEPTION,exception);
 	}
 	
@@ -60,6 +75,9 @@ public class EventTrigger {
 	}
 
 	public static void fireConnect(IoSession session){
+		////设置连接状态
+		session.setState(IoSession.State.CONNECT);
+
 		fireEvent(session, EventName.ON_CONNECT,null);
 	}
 	
@@ -67,15 +85,24 @@ public class EventTrigger {
 		//当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
 		//所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
 		if (session.isOpen() && isHandShakeDone(session) && session.getState() != IoSession.State.RECEIVE) {
+			//设置接受状态
+			session.setState(IoSession.State.RECEIVE);
+
 			fireEvent(session, EventName.ON_RECEIVE,null);
 		}
 	}
 	
 	public static void fireSent(IoSession session, Object obj){
+		//设置发送状态
+		session.setState(IoSession.State.SEND);
+
 		fireEvent(session, EventName.ON_SENT, obj);
 	}
 	
 	public static void fireDisconnect(IoSession session){
+		//设置断开状态,Close是最终状态
+		session.setState(IoSession.State.CLOSE);
+
 		fireEvent(session,EventName.ON_DISCONNECT,null);
 	}
 
@@ -86,6 +113,9 @@ public class EventTrigger {
 	}
 
 	public static void fireException(IoSession session,Exception exception){
+		//设置空闲状态
+		session.setState(IoSession.State.IDLE);
+
 		fireEvent(session, EventName.ON_EXCEPTION,exception);
 	}
 
