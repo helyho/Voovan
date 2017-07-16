@@ -216,18 +216,18 @@ public class EventProcess {
 	 * 在一个独立的线程中并行的发送消息
 	 *
 	 * @param session Session 对象
-	 * @param original 原始对象
+	 * @param obj 待发送的对象
 	 * @param block true: 阻塞发送, false:非阻塞发送
 	 * @throws SendMessageException  消息发送异常
 	 * @throws IoFilterException 过滤器异常
 	 */
-	public static void sendMessage(IoSession session, Object original, boolean block)
+	public static void sendMessage(IoSession session, Object obj, boolean block)
 			throws SendMessageException, IoFilterException {
 
 		session.setState(IoSession.State.SEND);
 
 		// ------------------Filter 加密处理-----------------
-		Object sendObj = filterEncoder(session, original);
+		Object sendObj = filterEncoder(session, obj);
 		// ---------------------------------------------------
 
 		if(sendObj!=null) {
@@ -235,9 +235,9 @@ public class EventProcess {
 
             //触发发送事件
             if (block) {
-                EventTrigger.fireSent(session, original);
+                EventTrigger.fireSent(session, obj);
             } else {
-                EventTrigger.fireSentThread(session, original);
+                EventTrigger.fireSentThread(session, obj);
             }
 		}
 	}
