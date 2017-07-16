@@ -4,6 +4,7 @@ import org.voovan.Global;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TObject;
@@ -90,15 +91,12 @@ public class EventProcess {
         IoSession session = event.getSession();
 		SocketContext socketContext = event.getSession().socketContext();
 
-        //设置断开状态
+        //设置断开状态,Close是最终状态
 		session.setState(IoSession.State.CLOSE);
 
 		if (socketContext != null) {
 			socketContext.handler().onDisconnect(session);
 		}
-
-		//设置空闲状态
-		session.setState(IoSession.State.IDLE);
 	}
 
 	/**
@@ -265,15 +263,24 @@ public class EventProcess {
 	 * @throws IOException IO 异常
 	 */
 	public static void onSent(Event event, Object sendObj) throws IOException {
-		SocketContext socketContext = event.getSession().socketContext();
+		IoSession session = event.getSession();
+		SocketContext socketContext = session.socketContext();
         if (socketContext != null) {
-            socketContext.handler().onSent(event.getSession(), sendObj);
+            socketContext.handler().onSent(session, sendObj);
 
             //如果 obj 是 ByteBuffer 进行释放
             if (sendObj instanceof ByteBuffer) {
                 TByteBuffer.release((ByteBuffer) sendObj);
             }
+
+            //如果是 Udp 通信则在发送完成后触发关闭事件
+            if(session.socketContext() instanceof UdpSocket) {
+            	session.setState(IoSession.State.CLOSE);
+				EventTrigger.fireDisconnectThread(session);
+			}
         }
+
+
 	}
 
 	/**

@@ -5,6 +5,7 @@ import org.voovan.network.ConnectModel;
 import org.voovan.network.HeartBeat;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.network.udp.UdpServerSocket;
 import org.voovan.tools.log.Logger;
 
 public class ServerHandlerTest implements IoHandler {
@@ -44,8 +45,13 @@ public class ServerHandlerTest implements IoHandler {
 
 		//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
 		System.out.println("==>"+heartBeat.beat(session));
-		if(heartBeat.getFieldCount()>5){
-			session.close();
+
+		//UdpSocket是 Server 模式关闭可能导致关闭异常
+		//如果是 UdpServer 模式这里只能作为心跳响应
+		if(session.socketContext().getConnectModel() != ConnectModel.SERVER) {
+			if (heartBeat.getFieldCount() > 5) {
+				session.close();
+			}
 		}
 	}
 
