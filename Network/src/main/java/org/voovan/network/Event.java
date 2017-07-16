@@ -32,6 +32,9 @@ public class Event {
 	 * @param other 附加对象
 	 */
 	public Event(IoSession session,EventName name,Object other){
+		if(session == null){
+			throw new NullPointerException("Can't create Event with session parameter is nullp");
+		}
 		this.session = session;
 		this.name = name;
 		this.other = other;

@@ -1,5 +1,6 @@
 package org.voovan.network;
 
+import org.voovan.Global;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
@@ -10,6 +11,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Callable;
 
 /**
  * 事件的实际逻辑处理
@@ -49,30 +51,33 @@ public class EventProcess {
 	 *
 	 * @param event
 	 *            事件对象
-	 * @throws SendMessageException  消息发送异常
-	 * @throws IOException  IO 异常
-	 * @throws IoFilterException IoFilter 异常
 	 */
-	public static void onConnect(Event event) throws SendMessageException, IOException, IoFilterException  {
+	public static void onConnect(Event event)   {
 
 		IoSession session = event.getSession();
 
-		// SSL 握手
-		if (session!=null && session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
-			try {
-				session.getSSLParser().doHandShake();
-			} catch (Exception e) {
-				Logger.error("SSL hand shake failed",e);
-				session.close();
-				return;
-			}
-		}
+        // SSL 握手
+        if (session != null && session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
+            try {
+                session.getSSLParser().doHandShake();
+            } catch (Exception e) {
+                Logger.error("SSL hand shake failed", e);
+                session.close();
+                return;
+            }
+        }
+
+		//设置连接状态
+		session.setState(IoSession.State.CONNECT);
 
 		SocketContext socketContext = event.getSession().socketContext();
 		if (socketContext != null && session != null) {
 			Object original = socketContext.handler().onConnect(session);
-			sendMessage(session, original, false);
+			sendMessage(session, original);
 		}
+
+		//设置空闲状态
+		session.setState(IoSession.State.IDLE);
 	}
 
 	/**
@@ -82,12 +87,18 @@ public class EventProcess {
 	 *            事件对象
 	 */
 	public static void onDisconnect(Event event) {
+        IoSession session = event.getSession();
 		SocketContext socketContext = event.getSession().socketContext();
-		if (socketContext != null) {
-			IoSession session = event.getSession();
 
+        //设置断开状态
+		session.setState(IoSession.State.CLOSE);
+
+		if (socketContext != null) {
 			socketContext.handler().onDisconnect(session);
 		}
+
+		//设置空闲状态
+		session.setState(IoSession.State.IDLE);
 	}
 
 	/**
@@ -100,9 +111,9 @@ public class EventProcess {
 	 * @throws IoFilterException IoFilter 异常
 	 */
 	public static void onRead(Event event) throws IOException, SendMessageException, IoFilterException {
-		SocketContext socketContext = event.getSession().socketContext();
 		IoSession session = event.getSession();
-		if (socketContext != null && session != null) {
+		SocketContext socketContext = session.socketContext();
+		if (socketContext != null) {
 			ByteBuffer byteBuffer = null;
 
 
@@ -127,10 +138,10 @@ public class EventProcess {
 					return;
 				}
 
-				Object result = byteBuffer;
+				Object result = null;
 
 				// -----------------Filter 解密处理-----------------
-				result = filterDecoder(session,result);
+				result = filterDecoder(session,byteBuffer);
 				// -------------------------------------------------
 
 				// -----------------Handler 业务处理-----------------
@@ -144,7 +155,7 @@ public class EventProcess {
 				if (result != null) {
 
                     //触发发送事件
-                    sendMessage(session, result, false);
+                    sendMessage(session, result);
 				}
 			}
 
@@ -155,11 +166,12 @@ public class EventProcess {
 	/**
 	 * 使用过滤器过滤解码结果
 	 * @param session      Session 对象
-	 * @param result	   需解码的对象
+	 * @param readedBuffer	   需解码的对象
 	 * @return  解码后的对象
 	 * @throws IoFilterException 过滤器异常
 	 */
-	public static Object filterDecoder(IoSession session,Object result) throws IoFilterException{
+	public static Object filterDecoder(IoSession session, ByteBuffer readedBuffer) throws IoFilterException{
+		Object result = readedBuffer;
 		Chain<IoFilter> filterChain = session.socketContext().filterChain().clone();
 		while (filterChain.hasNext()) {
 			IoFilter fitler = filterChain.next();
@@ -176,7 +188,7 @@ public class EventProcess {
 	 * @return  编码后的对象
 	 * @throws IoFilterException 过滤器异常
 	 */
-	public static Object filterEncoder(IoSession session,Object result) throws IoFilterException{
+	public static ByteBuffer filterEncoder(IoSession session,Object result) throws IoFilterException{
 		Chain<IoFilter> filterChain = session.socketContext().filterChain().clone();
 		filterChain.rewind();
 		while (filterChain.hasPrevious()) {
@@ -184,30 +196,11 @@ public class EventProcess {
 			result = fitler.encode(session, result);
 		}
 		filterChain.clear();
-		return result;
-	}
 
-	/**
-	 * 发送消息的公共函数
-	 * @param session Socket 会话对象
-	 * @param sendObj 发送的报文
-	 */
-	private static void sendMessageCommon(IoSession session, Object sendObj){
-		if(sendObj instanceof ByteBuffer) {
-
-			ByteBuffer resultBuf = (ByteBuffer) sendObj;
-
-			// 发送消息
-			if (resultBuf != null && session.isOpen()) {
-				if (resultBuf.limit() > 0) {
-					session.send(resultBuf);
-					resultBuf.rewind();
-				}
-
-				TByteBuffer.release((ByteBuffer) sendObj);
-			}
-		} else if(sendObj != null) {
-			Logger.error(" Latest send object must be ByteBuffer, " +
+		if(result instanceof ByteBuffer || result == null) {
+			return (ByteBuffer)result;
+		}else{
+			throw new IoFilterException("Send object must be ByteBuffer, " +
 					"please check you filter be sure the latest filter return Object's type is ByteBuffer.");
 		}
 	}
@@ -217,29 +210,49 @@ public class EventProcess {
 	 *
 	 * @param session Session 对象
 	 * @param obj 待发送的对象
-	 * @param block true: 阻塞发送, false:非阻塞发送
 	 * @throws SendMessageException  消息发送异常
 	 * @throws IoFilterException 过滤器异常
 	 */
-	public static void sendMessage(IoSession session, Object obj, boolean block)
-			throws SendMessageException, IoFilterException {
+	public static void sendMessage(IoSession session, Object obj) {
 
-		session.setState(IoSession.State.SEND);
+		Global.getThreadPool().submit(new Callable<Object>() {
+			@Override
+			public Object call() {
+				int sendCount = -1;
 
-		// ------------------Filter 加密处理-----------------
-		Object sendObj = filterEncoder(session, obj);
-		// ---------------------------------------------------
+				//设置发送状态
+				session.setState(IoSession.State.SEND);
 
-		if(sendObj!=null) {
-			sendMessageCommon(session, sendObj);
+				try {
+					// ------------------Filter 加密处理-----------------
+					ByteBuffer sendBuffer = EventProcess.filterEncoder(session, obj);
+					// ---------------------------------------------------
 
-            //触发发送事件
-            if (block) {
-                EventTrigger.fireSent(session, obj);
-            } else {
-                EventTrigger.fireSentThread(session, obj);
-            }
-		}
+					if (sendBuffer != null) {
+
+						// 发送消息
+						if (sendBuffer != null && session.isOpen()) {
+							if (sendBuffer.limit() > 0) {
+								sendCount = session.send(sendBuffer);
+								sendBuffer.rewind();
+							}
+
+							TByteBuffer.release((ByteBuffer) sendBuffer);
+						}
+
+						//触发发送事件
+						EventTrigger.fireSent(session, obj);
+					}
+				}catch(IoFilterException e){
+					EventTrigger.fireException(session, e);
+				}
+
+				//设置空闲状态
+				session.setState(IoSession.State.IDLE);
+
+				return sendCount;
+			}
+		});
 	}
 
 	/**
@@ -285,12 +298,13 @@ public class EventProcess {
 	 * @param e 异常对象
 	 */
 	public static void onException(Event event, Exception e) {
-		if (event != null
-				&& event.getSession() != null
-				&& event.getSession().socketContext() != null) {
-			SocketContext socketContext = event.getSession().socketContext();
-			IoSession session = event.getSession();
 
+		IoSession session = event.getSession();
+		//设置空闲状态
+		session.setState(IoSession.State.IDLE);
+
+		SocketContext socketContext = event.getSession().socketContext();
+		if (socketContext != null) {
 			if (socketContext.handler() != null) {
 				socketContext.handler().onException(session, e);
 			}
@@ -315,22 +329,17 @@ public class EventProcess {
 				EventProcess.onConnect(event);
 			} else if (eventName == EventName.ON_DISCONNECT) {
 				//设置空闲状态
-				event.getSession().setState(IoSession.State.CLOSE);
 				EventProcess.onDisconnect(event);
 			} else if (eventName == EventName.ON_RECEIVE) {
 				EventProcess.onRead(event);
-				//设置空闲状态
-				event.getSession().setState(IoSession.State.IDLE);
 			} else if (eventName == EventName.ON_SENT) {
 				EventProcess.onSent(event, event.getOther());
-				//设置空闲状态
-				event.getSession().setState(IoSession.State.IDLE);
 			} else if (eventName == EventName.ON_IDLE) {
 				EventProcess.onIdle(event);
 			} else if (eventName == EventName.ON_EXCEPTION) {
 				EventProcess.onException(event, (Exception)event.getOther());
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			EventProcess.onException(event, e);
 		}
 	}

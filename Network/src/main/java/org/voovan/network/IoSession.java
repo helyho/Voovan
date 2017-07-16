@@ -39,7 +39,7 @@ public abstract class IoSession<T extends SocketContext> {
 	private HeartBeat heartBeat;
 
 	public enum State {
-		INIT, RECEIVE, SEND, IDLE, CLOSE
+		INIT, CONNECT, RECEIVE, SEND, IDLE, CLOSE
 	}
 
 	/**
@@ -83,7 +83,8 @@ public abstract class IoSession<T extends SocketContext> {
 					boolean isConnect = false;
 
 					//初始化状态
-					if(session.getState() == State.INIT){
+					if(session.getState() == State.INIT ||
+							session.getState() == State.CONNECT){
 						return;
 					}
 
@@ -332,7 +333,7 @@ public abstract class IoSession<T extends SocketContext> {
 
 		if (obj != null) {
 			try {
-				EventProcess.sendMessage(this, obj, true);
+				EventProcess.sendMessage(this, obj);
 			}catch (Exception e){
 				throw new SendMessageException("Method syncSend error! Error by "+
 						e.getClass().getSimpleName() + ".",e);
