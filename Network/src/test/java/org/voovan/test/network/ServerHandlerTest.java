@@ -6,6 +6,7 @@ import org.voovan.network.HeartBeat;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.udp.UdpServerSocket;
+import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.log.Logger;
 
 public class ServerHandlerTest implements IoHandler {
@@ -41,16 +42,19 @@ public class ServerHandlerTest implements IoHandler {
 
 		//服务端和客户端使用了两种不同的心跳绑定方式,这是其中一种
 		//心跳绑定到 Session, 绑定过一次以后每次返回的都是第一次绑定的对象
-		HeartBeat heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
 
-		//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-		System.out.println("==>"+heartBeat.beat(session));
 
-		//UdpSocket是 Server 模式关闭可能导致关闭异常
-		//如果是 UdpServer 模式这里只能作为心跳响应
-		if(session.socketContext().getConnectModel() != ConnectModel.SERVER) {
-			if (heartBeat.getFieldCount() > 5) {
-				session.close();
+		//Udp通信,因其是无状态协议,不会保持连接,所以Udp 通信的心跳检测毫无意义,所以排除所有的 UDP 通信
+		if((session.socketContext() instanceof UdpSocket)) {
+			HeartBeat heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
+
+			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
+			System.out.println("==>" + heartBeat.beat(session));
+
+			if (session.socketContext().getConnectModel() != ConnectModel.SERVER) {
+				if (heartBeat.getFieldCount() > 5) {
+					session.close();
+				}
 			}
 		}
 	}
