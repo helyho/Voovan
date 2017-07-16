@@ -381,8 +381,12 @@ public class ByteBufferChannel {
 	/**
 	 * 获取缓冲区
 	 *     返回 0 到 size 的有效数据
-	 *	   为了保证数据一致性, 这里会加锁, 在调用getByteBuffer()方法后,所有读写操作都会被阻塞
-	 *	   所以必须配合 compact() 方法使用,否则会导致锁死.
+	 *	   为了保证数据一致性, 这里会加锁
+	 *	   在调用getByteBuffer()方法后,跨线程的读写操作都会被阻塞.
+	 *	   但在调用getByteBuffer()方法后,同一线程内的所有读写操作是可以操作,
+	 *	   为保证数据一致性,除非特殊需要,否则在编码时应当被严格禁止.
+	 *	   在调用getByteBuffer()方法后,所以必须配合 compact() 方法使用,
+	 *	   已保证对 byteBuffer 的所有读写操作都在 ByteBufferChannel上生效.
 	 * @return ByteBuffer 对象
 	 */
 	public ByteBuffer getByteBuffer(){
