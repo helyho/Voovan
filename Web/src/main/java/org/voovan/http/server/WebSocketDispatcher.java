@@ -6,6 +6,7 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketFrame.Opcode;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
+import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.log.Logger;
@@ -95,48 +96,52 @@ public class WebSocketDispatcher {
 				// 获取路径变量
 				ByteBuffer responseMessage = null;
 
-				Object result = byteBuffer;
-				//WebSocket 事件处理
-				if (event == WebSocketEvent.OPEN) {
-					result = webSocketRouter.onOpen(webSocketSession);
-					//封包
-					responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
-				} else if (event == WebSocketEvent.RECIVED) {
-					//解包
-					result = webSocketRouter.filterDecoder(webSocketSession, result);
-					//触发 onRecive 事件
-					result = webSocketRouter.onRecived(webSocketSession, result);
-					//封包
-					responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
-				}
+				try {
+					Object result = byteBuffer;
+					//WebSocket 事件处理
+					if (event == WebSocketEvent.OPEN) {
+						result = webSocketRouter.onOpen(webSocketSession);
+						//封包
+						responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+					} else if (event == WebSocketEvent.RECIVED) {
+						//解包
+						result = webSocketRouter.filterDecoder(webSocketSession, result);
+						//触发 onRecive 事件
+						result = webSocketRouter.onRecived(webSocketSession, result);
+						//封包
+						responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+					}
 
-				//将返回消息包装称WebSocketFrame
-				if (responseMessage != null) {
-					return WebSocketFrame.newInstance(true, Opcode.TEXT, false, responseMessage);
-				}
+					//将返回消息包装称WebSocketFrame
+					if (responseMessage != null) {
+						return WebSocketFrame.newInstance(true, Opcode.TEXT, false, responseMessage);
+					}
 
-				if (event == WebSocketEvent.SENT) {
-					//封包
-					result = webSocketRouter.filterDecoder(webSocketSession, byteBuffer);
-					webSocketRouter.onSent(webSocketSession, result);
-				} else if (event == WebSocketEvent.CLOSE) {
-					webSocketRouter.onClose(webSocketSession);
-				} else if(event == WebSocketEvent.PING){
-					return WebSocketFrame.newInstance(true, Opcode.PONG, false, byteBuffer);
-				} else if(event == WebSocketEvent.PONG){
-					new Timer("VOOVAN_WEB@PONE_TIMER").schedule(new TimerTask() {
-						@Override
-						public void run() {
-							try {
-								session.syncSend(WebSocketFrame.newInstance(true, Opcode.PING, false, null));
-							} catch (SendMessageException e) {
-								session.close();
-								Logger.error("Send WebSocket ping error", e);
+					if (event == WebSocketEvent.SENT) {
+						//封包
+						result = webSocketRouter.filterDecoder(webSocketSession, byteBuffer);
+						webSocketRouter.onSent(webSocketSession, result);
+					} else if (event == WebSocketEvent.CLOSE) {
+						webSocketRouter.onClose(webSocketSession);
+					} else if (event == WebSocketEvent.PING) {
+						return WebSocketFrame.newInstance(true, Opcode.PONG, false, byteBuffer);
+					} else if (event == WebSocketEvent.PONG) {
+						new Timer("VOOVAN_WEB@PONE_TIMER").schedule(new TimerTask() {
+							@Override
+							public void run() {
+								try {
+									session.syncSend(WebSocketFrame.newInstance(true, Opcode.PING, false, null));
+								} catch (SendMessageException e) {
+									session.close();
+									Logger.error("Send WebSocket ping error", e);
+								}
 							}
-						}
-					},session.socketContext().getReadTimeout()/3);
+						}, session.socketContext().getReadTimeout() / 3);
+					}
+				}catch(WebSocketFilterException e){
+					Logger.error(e);
 				}
-				
+
 				break;
 			}
 		}

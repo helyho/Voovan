@@ -9,6 +9,7 @@ import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
+import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioSocket;
@@ -529,11 +530,15 @@ public class HttpClient {
 			result = webSocketRouter.onOpen(webSocketSession);
 			if(result!=null) {
 				//封包
-				ByteBuffer buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
-
-				WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
-				sendWebSocketData(webSocketFrame);
-				webSocketFrame.getFrameData().flip();
+				ByteBuffer buffer = null;
+				try {
+					buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+					WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
+					sendWebSocketData(webSocketFrame);
+					webSocketFrame.getFrameData().flip();
+				} catch (WebSocketFilterException e) {
+					Logger.error(e);
+				}
 			}
 
 		}else{
