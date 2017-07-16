@@ -42,7 +42,7 @@ public class HttpClientUnit extends TestCase {
 	}
 	
 	public void testGet() throws Exception{
-		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 30);
+		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 10);
 		Response response  = getClient.setMethod("GET")
 			.putParameters("name", "测试Get")
 			.putParameters("age", "32").send();
@@ -52,7 +52,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testPost() throws Exception {
-		HttpClient postClient = new HttpClient("http://127.0.0.1:28080","GB2312");
+		HttpClient postClient = new HttpClient("http://127.0.0.1:28080","GB2312",10);
 		Response response = postClient.setMethod("POST") 
 			.putParameters("name", "测试Post")
 			.putParameters("age", "32").send();
@@ -62,7 +62,7 @@ public class HttpClientUnit extends TestCase {
 	}
 	
 	public void testMultiPart() throws Exception {
-		HttpClient mpClient = new HttpClient("http://127.0.0.1:28080", 50000);
+		HttpClient mpClient = new HttpClient("http://127.0.0.1:28080", 10);
 		Response response = mpClient.setMethod("POST")
 			.addPart(new Part("name","测试MultiPart","GB2312"))
 			.addPart(new Part("age","23","GB2312")).send();
@@ -73,7 +73,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testFileUpload() throws Exception {
-		HttpClient ulClient = new HttpClient("http://127.0.0.1:28080", 50000);
+		HttpClient ulClient = new HttpClient("http://127.0.0.1:28080", 10);
 		ulClient.setMethod("POST");
 		ulClient.addPart(new Part("name","测试Upload","GB2312"));
 		ulClient.uploadFile("file",new File("./pom.xml"));
@@ -84,14 +84,14 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testHTTPSRequest() throws Exception {
-		HttpClient httpClient = new HttpClient("https://www.oschina.net/","UTF-8", 50000);
+		HttpClient httpClient = new HttpClient("https://www.oschina.net/","UTF-8", 10);
 		httpClient.putHeader("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36");
 		System.out.println(httpClient.send("/").body().getBodyString());
 		httpClient.close();
 	}
 	
 	public void testSeriesRequest() throws Exception {
-		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080/","GBK2312",10000);
+		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080","GBK2312",100);
 		Logger.simple(httpClient.send("/").body().getBodyString());
 		Logger.simple("=========================================");
 		Logger.simple(httpClient.send("/").body().getBodyString());
@@ -103,7 +103,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testWebSocket() throws Exception {
-		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/","GBK2312",500);
+		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/","GBK2312",10);
 		httpClient.webSocket("/websocket", new WebSocketRouter() {
 
 			@Override

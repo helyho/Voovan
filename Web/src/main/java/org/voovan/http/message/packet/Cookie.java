@@ -180,7 +180,8 @@ public class Cookie {
 	 * @return Cookie 对象
 	 */
 	public static Cookie newInstance(Request request,String name,String value,int maxAge){
-		String domain = request.header().get("Host").split(":")[0];
+		String Host =  request.header().get("Host");
+		String domain = Host.split(":")[0];
 		return newInstance(domain, name, value, maxAge);
 	}
 	

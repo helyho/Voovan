@@ -48,7 +48,7 @@ public class ClientHandlerTest implements IoHandler {
 
 		//服务端和客户端使用了两种不同的心跳绑定方式,这是其中一种
 		//Udp通信,因其是无状态协议,不会保持连接,所以Udp 通信的心跳检测毫无意义,所以排除所有的 UDP 通信
-		if((session.socketContext() instanceof UdpSocket)) {
+		if(!(session.socketContext() instanceof UdpSocket)) {
 			HeartBeat heartBeat = session.getHeartBeat();
 			if (heartBeat == null) {
 				//心跳绑定到 Session

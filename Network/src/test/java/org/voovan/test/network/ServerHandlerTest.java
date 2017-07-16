@@ -45,7 +45,7 @@ public class ServerHandlerTest implements IoHandler {
 
 
 		//Udp通信,因其是无状态协议,不会保持连接,所以Udp 通信的心跳检测毫无意义,所以排除所有的 UDP 通信
-		if((session.socketContext() instanceof UdpSocket)) {
+		if(!(session.socketContext() instanceof UdpSocket)) {
 			HeartBeat heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
