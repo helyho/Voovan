@@ -3,6 +3,7 @@ package org.voovan.test.http;
 import org.voovan.http.server.WebServer;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
+import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.http.websocket.filter.StringFilter;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TDateTime;
@@ -111,7 +112,7 @@ public class WebServerDemo {
 				try {
 					webSocketSession.send("Send by persistent Object's send method in onOpen");
 					webSocketSession.send("Send by send method in onOpen");
-				} catch (SendMessageException e) {
+				} catch (SendMessageException | WebSocketFilterException e) {
 					e.printStackTrace();
 				}
 
@@ -127,7 +128,7 @@ public class WebServerDemo {
 				//调用发送函数发送
 				try {
 					webSocketSession.send("Send by send method in onRecive");
-				} catch (SendMessageException e) {
+				} catch (SendMessageException | WebSocketFilterException e) {
 					e.printStackTrace();
 				}
 				return msg;
