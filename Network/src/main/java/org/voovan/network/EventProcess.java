@@ -68,9 +68,6 @@ public class EventProcess {
             }
         }
 
-		//设置连接状态
-		session.setState(IoSession.State.CONNECT);
-
 		SocketContext socketContext = event.getSession().socketContext();
 		if (socketContext != null && session != null) {
 			Object original = socketContext.handler().onConnect(session);
@@ -91,9 +88,6 @@ public class EventProcess {
         IoSession session = event.getSession();
 		SocketContext socketContext = event.getSession().socketContext();
 
-        //设置断开状态,Close是最终状态
-		session.setState(IoSession.State.CLOSE);
-
 		if (socketContext != null) {
 			socketContext.handler().onDisconnect(session);
 		}
@@ -111,6 +105,7 @@ public class EventProcess {
 	public static void onRead(Event event) throws IOException, SendMessageException, IoFilterException {
 		IoSession session = event.getSession();
 		SocketContext socketContext = session.socketContext();
+
 		if (socketContext != null) {
 			ByteBuffer byteBuffer = null;
 
@@ -127,9 +122,6 @@ public class EventProcess {
 			// 有可能缓冲区没有读完
 			// 按消息包出发 onRecive 事件
 			while (session.getByteBufferChannel().size() > 0) {
-
-				//设置接受状态
-				session.setState(IoSession.State.RECEIVE);
 
 				byteBuffer = messageLoader.read();
 
@@ -224,9 +216,6 @@ public class EventProcess {
 			public Object call() {
 				int sendCount = -1;
 
-				//设置发送状态
-				session.setState(IoSession.State.SEND);
-
 				try {
 					// ------------------Filter 加密处理-----------------
 					ByteBuffer sendBuffer = EventProcess.filterEncoder(session, obj);
@@ -281,7 +270,6 @@ public class EventProcess {
 
             //如果是 Udp 通信则在发送完成后触发关闭事件
             if(session.socketContext() instanceof UdpSocket) {
-            	session.setState(IoSession.State.CLOSE);
 				EventTrigger.fireDisconnectThread(session);
 			}
         }
@@ -313,8 +301,6 @@ public class EventProcess {
 	public static void onException(Event event, Exception e) {
 
 		IoSession session = event.getSession();
-		//设置空闲状态
-		session.setState(IoSession.State.IDLE);
 
 		SocketContext socketContext = event.getSession().socketContext();
 		if (socketContext != null) {
