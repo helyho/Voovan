@@ -81,28 +81,33 @@ public class UdpSelector {
 
                                         int readSize = - 1;
                                         UdpSocket clientUdpSocket = null;
-                                        UdpSession clientSession = session;
+                                        UdpSession commonSession = session;
 
                                         //接受的连接isConnected 是 false
                                         //发起的连接isConnected 是 true
                                         if(datagramChannel.isConnected()) {
                                             readSize = datagramChannel.read(readTempBuffer);
-                                            //检查心跳
-                                            HeartBeat.interceptHeartBeat(session, readTempBuffer);
+
                                         }else{
                                             SocketAddress address = datagramChannel.receive(readTempBuffer);
                                             readSize = readTempBuffer.position();
                                             clientUdpSocket = new UdpSocket(socketContext,(InetSocketAddress)address);
-                                            clientSession = clientUdpSocket.getSession();
+                                            commonSession = clientUdpSocket.getSession();
+                                            //触发连接时间, 关闭事件在触发 onSent 之后触发
+                                            EventTrigger.fireConnectThread(commonSession);
                                         }
-                                        //判断连接是否关闭
-                                        if (MessageLoader.isRemoteClosed(readTempBuffer, readSize) && clientSession.isConnected()) {
 
-                                            session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
+                                        //检查心跳
+                                        HeartBeat.interceptHeartBeat(commonSession, readTempBuffer);
+
+                                        //判断连接是否关闭
+                                        if (MessageLoader.isRemoteClosed(readTempBuffer, readSize) && commonSession.isConnected()) {
+
+                                            commonSession.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
                                             //如果 Socket 流达到结尾,则关闭连接
-                                            while(session.isConnected()) {
-                                                if (session.getByteBufferChannel().size() == 0) {
-                                                    session.close();
+                                            while(commonSession.isConnected()) {
+                                                if (commonSession.getByteBufferChannel().size() == 0) {
+                                                    commonSession.close();
                                                 }
                                             }
                                             break;
@@ -110,12 +115,12 @@ public class UdpSelector {
                                             readTempBuffer.flip();
 
                                             //检查心跳
-                                            HeartBeat.interceptHeartBeat(session, readTempBuffer);
+                                            HeartBeat.interceptHeartBeat(commonSession, readTempBuffer);
 
-                                            clientSession.getByteBufferChannel().writeEnd(readTempBuffer);
+                                            commonSession.getByteBufferChannel().writeEnd(readTempBuffer);
                                             readTempBuffer.clear();
                                             // 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
-                                            EventTrigger.fireReceiveThread(clientSession);
+                                            EventTrigger.fireReceiveThread(commonSession);
                                         }
 
                                         readTempBuffer.clear();
@@ -137,7 +142,7 @@ public class UdpSelector {
         }finally{
             // 触发连接断开事件
             if(session!=null) {
-                EventTrigger.fireDisconnectThread(session);
+//                EventTrigger.fireDisconnectThread(session);
                 TByteBuffer.release(readTempBuffer);
             }
         }
