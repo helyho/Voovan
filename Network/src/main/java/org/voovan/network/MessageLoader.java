@@ -154,9 +154,6 @@ public class MessageLoader {
 	 */
 	public ByteBuffer read() throws IOException {
 
-		//设置接受状态
-		session.setState(IoSession.State.RECEIVE);
-
 		ByteBuffer result = ByteBuffer.allocate(0);
 		int oldByteChannelSize = 0;
 
@@ -257,9 +254,6 @@ public class MessageLoader {
 		} else {
 			return ByteBuffer.allocate(0);
 		}
-
-		//设置空闲状态
-		session.setState(IoSession.State.IDLE);
 
 		return result;
 	}

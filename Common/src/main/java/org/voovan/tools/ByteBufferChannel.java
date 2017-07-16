@@ -344,7 +344,7 @@ public class ByteBufferChannel {
 
 		lock.lock();
 		try {
-			int availableCount = size - offset;
+			int availableCount = size() - offset;
 
             if(offset >= 0 &&  availableCount> 0) {
 
@@ -760,6 +760,7 @@ public class ByteBufferChannel {
 
         String lineStr = "";
         int index = indexOf("\n".getBytes());
+		System.out.println(index);
 
         if (index >= 0) {
 
@@ -868,5 +869,13 @@ public class ByteBufferChannel {
 	@Override
 	public String toString(){
 		return "{size="+size+", released="+(address==0)+"}";
+	}
+
+	/**
+	 * 获取内容
+	 * @return 内容字符串
+	 */
+	public String content(){
+		return new String(array());
 	}
 }
