@@ -49,23 +49,28 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 			} else {
 				buffer.flip();
 
+				ByteBuffer tempBuffer = buffer;
+
 				if (length > 0) {
 
 					// 接收数据
 					if(session.getSSLParser()!=null && session.getSSLParser().isHandShakeDone()){
 						netByteBufferChannel.writeEnd(buffer);
-						buffer = session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel);
+						tempBuffer = session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel);
 					}
 
 					//检查心跳
-					HeartBeat.interceptHeartBeat(session, buffer);
+					HeartBeat.interceptHeartBeat(session, tempBuffer);
 
-					appByteBufferChannel.writeEnd(buffer);
+					if(tempBuffer.remaining() > 0) {
+						appByteBufferChannel.writeEnd(tempBuffer);
 
-					// 触发 onReceive 事件
-					EventTrigger.fireReceiveThread(session);
+						// 触发 onReceive 事件
+						EventTrigger.fireReceiveThread(session);
+					}
 					
 					// 接收完成后重置buffer对象
+					tempBuffer.clear();
 					buffer.clear();
 
 					// 继续接收 Read 请求
