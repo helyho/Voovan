@@ -174,6 +174,8 @@ public class HeartBeat {
 
     /**
      * 一次心跳动作
+     * @param session 会话对象
+     * @return true:心跳成功,false: 心跳失败
      */
     public static boolean beat(IoSession session){
 
