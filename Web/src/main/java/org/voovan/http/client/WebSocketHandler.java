@@ -4,6 +4,7 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.WebSocketTools;
+import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
@@ -116,22 +117,18 @@ public class WebSocketHandler implements IoHandler{
 
             byteBufferChannel.writeEnd(reqWebSocketFrame.getFrameData());
 
-            //解包
-            result = webSocketRouter.filterDecoder(webSocketSession, byteBufferChannel.getByteBuffer());
-            byteBufferChannel.compact();
+            try {
+                //解包
+                result = webSocketRouter.filterDecoder(webSocketSession, byteBufferChannel.getByteBuffer());
+                byteBufferChannel.compact();
 
-            //触发 onRecive
-            result = webSocketRouter.onRecived(webSocketSession, result);
+                //触发 onRecive
+                result = webSocketRouter.onRecived(webSocketSession, result);
 
-            //封包
-            ByteBuffer buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
-
-            //判断解包是否有错
-            if (reqWebSocketFrame.getErrorCode() == 0) {
-                respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
-            } else {
-                //解析时出现异常,返回关闭消息
-                respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(reqWebSocketFrame.getErrorCode(), 2)));
+                //封包
+                ByteBuffer buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+            }catch (WebSocketFilterException e){
+                Logger.error(e);
             }
         }
 
@@ -152,10 +149,14 @@ public class WebSocketHandler implements IoHandler{
             ByteBuffer data = webSocketFrame.getFrameData();
 
             //解包
-            obj = webSocketRouter.filterDecoder(webSocketSession, data);
+            try {
+                obj = webSocketRouter.filterDecoder(webSocketSession, data);
 
-            //触发 onSent
-            webSocketRouter.onSent(webSocketSession, obj);
+                //触发 onSent
+                webSocketRouter.onSent(webSocketSession, obj);
+            } catch (WebSocketFilterException e) {
+                Logger.error(e);
+            }
         }
     }
 

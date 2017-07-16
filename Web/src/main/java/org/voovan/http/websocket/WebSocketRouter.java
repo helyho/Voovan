@@ -1,6 +1,9 @@
 package org.voovan.http.websocket;
 
+import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.tools.Chain;
+
+import java.nio.ByteBuffer;
 
 /**
  * WebSocket 处理句柄
@@ -13,26 +16,26 @@ import org.voovan.tools.Chain;
 public abstract class WebSocketRouter implements Cloneable{
 	private WebSocketSession session;
 
-	protected Chain<WebSocketFilter> webFilterChain;
+	protected Chain<WebSocketFilter> webSocketFilterChain;
 
 	public WebSocketRouter(){
 
-		webFilterChain = new Chain<WebSocketFilter>();
+		webSocketFilterChain = new Chain<WebSocketFilter>();
 
 	}
 
 	public WebSocketRouter addFilterChain(WebSocketFilter webSocketFilter) {
-		webFilterChain.add(webSocketFilter);
+		webSocketFilterChain.add(webSocketFilter);
 		return this;
 	}
 
 	public WebSocketRouter clearFilterChain(WebSocketFilter webSocketFilter) {
-		webFilterChain.clear();
+		webSocketFilterChain.clear();
 		return this;
 	}
 
 	public WebSocketRouter removeFilterChain(WebSocketFilter webSocketFilter) {
-		webFilterChain.remove(webSocketFilter);
+		webSocketFilterChain.remove(webSocketFilter);
 		return this;
 	}
 
@@ -43,8 +46,8 @@ public abstract class WebSocketRouter implements Cloneable{
 	 * @param result   解码对象,上一个过滤器的返回值
 	 * @return 解码后对象
 	 */
-	public Object filterDecoder(WebSocketSession session, Object result) {
-		Chain<WebSocketFilter> tmpWebFilterChain = webFilterChain.clone();
+	public Object filterDecoder(WebSocketSession session, Object result) throws WebSocketFilterException {
+		Chain<WebSocketFilter> tmpWebFilterChain = webSocketFilterChain.clone();
 		tmpWebFilterChain.rewind();
 		while (tmpWebFilterChain.hasNext()) {
 			WebSocketFilter fitler = tmpWebFilterChain.next();
@@ -59,14 +62,20 @@ public abstract class WebSocketRouter implements Cloneable{
 	 * @param result	   需编码的对象
 	 * @return  编码后的对象
 	 */
-	public Object filterEncoder(WebSocketSession session,Object result) {
-		Chain<WebSocketFilter> tmpWebFilterChain = webFilterChain.clone();
+	public Object filterEncoder(WebSocketSession session,Object result) throws WebSocketFilterException {
+		Chain<WebSocketFilter> tmpWebFilterChain = webSocketFilterChain.clone();
 		tmpWebFilterChain.rewind();
 		while (tmpWebFilterChain.hasPrevious()) {
 			WebSocketFilter fitler = tmpWebFilterChain.previous();
 			result = fitler.encode(session, result);
 		}
-		return result;
+
+		if(result instanceof ByteBuffer || result == null) {
+			return (ByteBuffer)result;
+		}else{
+			throw new WebSocketFilterException("Send object must be ByteBuffer, " +
+					"please check you filter be sure the latest filter return Object's type is ByteBuffer.");
+		}
 	}
 
 	/**
