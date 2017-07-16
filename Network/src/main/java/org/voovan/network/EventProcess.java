@@ -128,7 +128,13 @@ public class EventProcess {
 			// 按消息包出发 onRecive 事件
 			while (session.getByteBufferChannel().size() > 0) {
 
+				//设置接受状态
+				session.setState(IoSession.State.RECEIVE);
+
 				byteBuffer = messageLoader.read();
+
+				//设置空闲状态
+				session.setState(IoSession.State.IDLE);
 
 				// 如果读出的消息为 null 则关闭连接
 				if (byteBuffer == null) {
