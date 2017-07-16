@@ -45,6 +45,7 @@ public abstract class WebSocketRouter implements Cloneable{
 	 * @param session  session 对象
 	 * @param result   解码对象,上一个过滤器的返回值
 	 * @return 解码后对象
+	 * @throws WebSocketFilterException WebSocket过滤器异常
 	 */
 	public Object filterDecoder(WebSocketSession session, Object result) throws WebSocketFilterException {
 		Chain<WebSocketFilter> tmpWebFilterChain = webSocketFilterChain.clone();
@@ -61,6 +62,7 @@ public abstract class WebSocketRouter implements Cloneable{
 	 * @param session      Session 对象
 	 * @param result	   需编码的对象
 	 * @return  编码后的对象
+	 * @throws WebSocketFilterException WebSocket过滤器异常
 	 */
 	public Object filterEncoder(WebSocketSession session,Object result) throws WebSocketFilterException {
 		Chain<WebSocketFilter> tmpWebFilterChain = webSocketFilterChain.clone();
