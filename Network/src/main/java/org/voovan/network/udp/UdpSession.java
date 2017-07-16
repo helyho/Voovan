@@ -32,6 +32,8 @@ public class UdpSession extends IoSession<UdpSocket> {
 		if (udpSocket != null) {
 			this.datagramChannel = udpSocket.datagramChannel();
 			this.remoteAddress = remoteAddress;
+
+			//UDP 是无状态协议,所以无心跳,也无空闲事件,所以这里设置为0
 			this.setIdleInterval(0);
 		}else{
 			Logger.error("Socket is null, please check it.");
