@@ -1,5 +1,6 @@
 package org.voovan.http.websocket;
 
+import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.log.Logger;
@@ -114,7 +115,7 @@ public class WebSocketSession {
      * @param obj 消息对象
      * @throws SendMessageException 发送异常
      */
-    public void send(Object obj) throws SendMessageException {
+    public void send(Object obj) throws SendMessageException, WebSocketFilterException {
 
         ByteBuffer byteBuffer = (ByteBuffer)webSocketRouter.filterEncoder(this, obj);
         WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, byteBuffer);
