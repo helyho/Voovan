@@ -8,6 +8,7 @@ import org.voovan.http.message.packet.Part;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.filter.StringFilter;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
@@ -42,7 +43,7 @@ public class HttpClientUnit extends TestCase {
 	}
 	
 	public void testGet() throws Exception{
-		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 10);
+		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 60);
 		Response response  = getClient.setMethod("GET")
 			.putParameters("name", "测试Get")
 			.putParameters("age", "32").send();
@@ -52,7 +53,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testPost() throws Exception {
-		HttpClient postClient = new HttpClient("http://127.0.0.1:28080","GB2312",10);
+		HttpClient postClient = new HttpClient("http://127.0.0.1:28080","GB2312",60);
 		Response response = postClient.setMethod("POST") 
 			.putParameters("name", "测试Post")
 			.putParameters("age", "32").send();
@@ -62,7 +63,7 @@ public class HttpClientUnit extends TestCase {
 	}
 	
 	public void testMultiPart() throws Exception {
-		HttpClient mpClient = new HttpClient("http://127.0.0.1:28080", 10);
+		HttpClient mpClient = new HttpClient("http://127.0.0.1:28080", 60);
 		Response response = mpClient.setMethod("POST")
 			.addPart(new Part("name","测试MultiPart","GB2312"))
 			.addPart(new Part("age","23","GB2312")).send();
@@ -73,7 +74,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testFileUpload() throws Exception {
-		HttpClient ulClient = new HttpClient("http://127.0.0.1:28080", 10);
+		HttpClient ulClient = new HttpClient("http://127.0.0.1:28080", 60);
 		ulClient.setMethod("POST");
 		ulClient.addPart(new Part("name","测试Upload","GB2312"));
 		ulClient.uploadFile("file",new File("./pom.xml"));
@@ -84,14 +85,14 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testHTTPSRequest() throws Exception {
-		HttpClient httpClient = new HttpClient("https://www.oschina.net/","UTF-8", 10);
+		HttpClient httpClient = new HttpClient("https://www.oschina.net/","UTF-8", 60);
 		httpClient.putHeader("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36");
 		System.out.println(httpClient.send("/").body().getBodyString());
 		httpClient.close();
 	}
 	
 	public void testSeriesRequest() throws Exception {
-		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080","GBK2312",100);
+		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080","GBK2312",10000);
 		Logger.simple(httpClient.send("/").body().getBodyString());
 		Logger.simple("=========================================");
 		Logger.simple(httpClient.send("/").body().getBodyString());
@@ -103,7 +104,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testWebSocket() throws Exception {
-		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/","GBK2312",10);
+		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/","GBK2312",60);
 		httpClient.webSocket("/websocket", new WebSocketRouter() {
 
 			@Override
@@ -112,14 +113,21 @@ public class HttpClientUnit extends TestCase {
 				return "OPEN_MSG";
 			}
 
+			int count = 0;
 			@Override
 			public Object onRecived(WebSocketSession webSocketSession, Object message) {
 				Logger.simple("Recive: "+message);
-				try {
+
+				if(count==0){
+					count++;
 					return "RECIVE_MSG";
-				}finally {
+				}
+
+				if(((String)message).contains("RECIVE_MSG")){
 					webSocketSession.close();
 				}
+
+				return null;
 			}
 
 			@Override
@@ -132,5 +140,6 @@ public class HttpClientUnit extends TestCase {
 				Logger.simple("WebSocket close");
 			}
 		}.addFilterChain(new StringFilter()));
+
 	}
 }

@@ -121,12 +121,17 @@ public class WebSocketHandler implements IoHandler{
                 //解包
                 result = webSocketRouter.filterDecoder(webSocketSession, byteBufferChannel.getByteBuffer());
                 byteBufferChannel.compact();
+                byteBufferChannel.clear();
 
                 //触发 onRecive
                 result = webSocketRouter.onRecived(webSocketSession, result);
 
-                //封包
-                ByteBuffer buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+                if(result!=null) {
+                    //封包
+                    ByteBuffer buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+
+                    respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
+                }
             }catch (WebSocketFilterException e){
                 Logger.error(e);
             }
@@ -162,7 +167,7 @@ public class WebSocketHandler implements IoHandler{
 
     @Override
     public void onException(IoSession session, Exception e) {
-
+        Logger.error(e);
     }
 
     @Override
