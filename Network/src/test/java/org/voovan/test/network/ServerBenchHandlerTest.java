@@ -30,7 +30,7 @@ public class ServerBenchHandlerTest implements IoHandler {
 
     @Override
     public void onException(IoSession session, Exception e) {
-        Logger.error("Server Exception", e);
+        Logger.error("Server exception", e);
         session.close();
     }
 

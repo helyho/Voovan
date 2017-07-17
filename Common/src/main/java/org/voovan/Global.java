@@ -17,8 +17,6 @@ public class Global {
 
     private static ThreadPoolExecutor threadPool;
 
-
-
     /**
      * 返回公用线程池
      * @return 公用线程池

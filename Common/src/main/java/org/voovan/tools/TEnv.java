@@ -129,6 +129,25 @@ public class TEnv {
 		return null;
 	}
 
+	/**
+	 * 判断主线程是否结束
+	 * @return true: 主线程结束, false: 主线程未结束
+	 */
+	public static boolean isMainThreadShutDown(){
+		Thread mainThread = getMainThread();
+		//如果主线程结束,则线程池也关闭
+		if(mainThread!=null && mainThread.getState() == Thread.State.TERMINATED) {
+		    return true;
+		}
+
+		//如果主线程没有的,则线程池也关闭
+		if(mainThread==null){
+			return true;
+		}
+
+		return false;
+	}
+
 
 	/**
 	 * 为JVM加载一个jar包 或者一个目录到 classpath

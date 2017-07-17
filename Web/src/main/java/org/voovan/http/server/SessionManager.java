@@ -36,7 +36,7 @@ public class SessionManager{
 			Logger.warn("Create session container from config file failed,now use defaul session container.");
 		}
 
-		checkSessionTimer = new Timer("VOOVAN_WEB@CHECK_SESSION_TASK");
+		checkSessionTimer = new Timer("VOOVAN_WEB@CHECK_SESSION_TIMER");
 		initKeepAliveTimer();
 	}
 
