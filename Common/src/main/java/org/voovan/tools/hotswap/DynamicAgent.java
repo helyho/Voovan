@@ -1,4 +1,4 @@
-package org.voovan.tools.compiler.hotswap;
+package org.voovan.tools.hotswap;
 
 import java.lang.instrument.Instrumentation;
 

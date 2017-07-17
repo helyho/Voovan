@@ -1,4 +1,4 @@
-package org.voovan.tools.compiler.hotswap;
+package org.voovan.tools.hotswap;
 
 import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
@@ -17,6 +17,8 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -32,6 +34,8 @@ public class Hotswaper {
     private Instrumentation instrumentation;
     private List<ClassFileInfo> classFileInfos;
     private List<String> excludePackages;
+    private Timer realoadTimer;
+    private int reloadIntervals;
 
     /**
      * 构造函数
@@ -57,7 +61,9 @@ public class Hotswaper {
     }
 
     private void init(File agentJar) throws AgentInitializationException, AgentLoadException, AttachNotSupportedException, IOException {
+        reloadIntervals = 5;
         classFileInfos = new ArrayList<ClassFileInfo>();
+
         excludePackages = TObject.asList("java.","sun.","javax.","com.sun","com.oracle");
 
         if(agentJar == null) {
@@ -133,7 +139,7 @@ public class Hotswaper {
     private boolean isExcludeClass(Class clazz){
         String className = clazz.getCanonicalName();
 
-
+        //基本类型部排除
         if(clazz.isPrimitive()){
             return true;
         }
@@ -181,7 +187,7 @@ public class Hotswaper {
     }
 
     /**
-     * 重新读取 Class
+     * 重新热加载Class
      * @param changedFiles 有过变更的文件信息
      * @throws UnmodifiableClassException  不可修改的 Class 异常
      * @throws ClassNotFoundException Class未找到异常
@@ -199,7 +205,7 @@ public class Hotswaper {
     }
 
     /**
-     * 重新读取 class
+     * 重新热加载 Class
      * @param customClasses class 数组
      * @throws UnmodifiableClassException  不可修改的 Class 异常
      * @throws ClassNotFoundException Class未找到异常
@@ -215,13 +221,51 @@ public class Hotswaper {
     }
 
     /**
-     * 自动重读 Class
+     * 获取当前自动热部署间隔事件
+     * @return 自动热部署间隔事件
+     */
+    public int getReloadIntervals() {
+        return reloadIntervals;
+    }
+
+    /**
+     * 自动热加载 Class
+     * @param  intervals 自动重读的时间间隔
      * @throws UnmodifiableClassException  不可修改的 Class 异常
      * @throws ClassNotFoundException Class未找到异常
      */
-    public void autoReloadClass() throws UnmodifiableClassException, ClassNotFoundException {
-        List<ClassFileInfo> changedFiles = fileWatcher();
-        reloadClass(changedFiles);
+    public void autoReload(int intervals) throws UnmodifiableClassException, ClassNotFoundException {
+        this.reloadIntervals = intervals;
+
+        cancelAutoReload();
+        realoadTimer =  new Timer("VOOVAN@HOTSWAP_TIMER");
+
+        Logger.info("[HOTSWAP] Start auto reload and hotswap every " + intervals + " seconds");
+
+        realoadTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if(TEnv.isMainThreadShutDown()){
+                    realoadTimer.cancel();
+                }
+
+                try {
+                    List<ClassFileInfo> changedFiles = fileWatcher();
+                    reloadClass(changedFiles);
+                } catch (UnmodifiableClassException |ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 0, intervals*1000);
+    }
+
+    /**
+     * 取消自动热加载操作
+     */
+    public void cancelAutoReload(){
+        if(realoadTimer != null) {
+            realoadTimer.cancel();
+        }
     }
 
     /**

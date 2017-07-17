@@ -1,4 +1,4 @@
-package org.voovan.tools.Exception;
+package org.voovan.tools.exception;
 
 /**
  * 类文字命名
