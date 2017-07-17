@@ -106,6 +106,12 @@ public class WebSocketFrame {
 	 * @return  WebSocket 帧对象
 	 */
 	public static WebSocketFrame parse(ByteBuffer byteBuffer) {
+
+	    //如果 byteBuffer 内没有数据则放弃
+		if(!byteBuffer.hasRemaining()){
+			return null;
+		}
+
 		int errorCode = 0;
 		// 接受数据的大小
 		int maxpacketsize = byteBuffer.remaining();

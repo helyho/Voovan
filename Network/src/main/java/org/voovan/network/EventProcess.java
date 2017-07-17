@@ -71,7 +71,10 @@ public class EventProcess {
 		SocketContext socketContext = event.getSession().socketContext();
 		if (socketContext != null && session != null) {
 			Object original = socketContext.handler().onConnect(session);
-			sendMessage(session, original);
+			//null 不发送
+			if(original!=null) {
+				sendMessage(session, original);
+			}
 		}
 
 		//设置空闲状态
