@@ -293,6 +293,8 @@ public class HttpParser {
 
 						//确认 boundary 结尾字符, 如果是"--" 则标识报文结束
 						if (Arrays.equals(boundaryEnd.array(), "--".getBytes())) {
+							//收缩掉尾部的换行
+						    byteBufferChannel.shrink(2);
 							break;
 						}
 
@@ -465,8 +467,6 @@ public class HttpParser {
 				headerLength = headerLength+currentLine.length()+2;
 			}
 		}
-
-		byteBufferChannel.clear();
 
 		return packetMap;
 	}

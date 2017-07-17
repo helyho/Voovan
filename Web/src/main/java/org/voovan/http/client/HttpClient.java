@@ -10,6 +10,7 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
+import org.voovan.network.EventTrigger;
 import org.voovan.network.IoSession;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioSocket;
@@ -508,8 +509,12 @@ public class HttpClient {
 
 		//处理升级后的消息
 		if(response.protocol().getStatus()==101){
+			IoSession session = socket.getSession();
+
+			session.enabledMessageSpliter(false);
+
 			//这里需要效验Sec-WebSocket-Accept
-			socket.getSession().setAttribute(WebServerHandler.SessionParam.TYPE, "WebSocket");
+			session.setAttribute(WebServerHandler.SessionParam.TYPE, "WebSocket");
 
 			WebSocketSession webSocketSession =
 					new WebSocketSession(socket.getSession(), null,
@@ -523,9 +528,13 @@ public class HttpClient {
 
 			socket.handler(webSocketHandler);
 
+			session.enabledMessageSpliter(true);
+
 			Object result = null;
 
 			result = webSocketRouter.onOpen(webSocketSession);
+
+
 			if(result!=null) {
 				//封包
 				ByteBuffer buffer = null;
