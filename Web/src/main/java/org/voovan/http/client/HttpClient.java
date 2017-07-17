@@ -10,7 +10,6 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
-import org.voovan.network.EventTrigger;
 import org.voovan.network.IoSession;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioSocket;
@@ -293,6 +292,17 @@ public class HttpClient {
 	}
 
 	/**
+	 * 设置请求参数
+	 * @param name 参数名
+	 * @param value 参数值
+	 * @return  HttpClient 对象
+	 */
+	public HttpClient putParameters(String name, String value){
+		parameters.put(name, value);
+		return this;
+	}
+
+	/**
 	 * 设置POST多段请求
 	 * 		类似 Form 的 Actiong="POST" enctype="multipart/form-data"
 	 * @param part POST 请求包文对象
@@ -304,19 +314,13 @@ public class HttpClient {
 	}
 
 	/**
-	 * 设置请求参数
+	 * 上传文件
 	 * @param name 参数名
-	 * @param value 参数值
-	 * @return  HttpClient 对象
+	 * @param file 文件对象
 	 */
-	public HttpClient putParameters(String name,Object value){
-		parameters.put(name, value);
-		return this;
-	}
-
 	public void uploadFile(String name, File file){
-		Part filePart = new Part(name, file);
-		addPart(filePart);
+		setBodyType(Request.RequestType.BODY_MULTIPART);
+		parameters.put(name, file);
 	}
 
 	/**
@@ -376,9 +380,10 @@ public class HttpClient {
 					Part part = new Part();
 					part.header().put("name", parameter.getKey());
 					if(parameter.getValue() instanceof String) {
-						part.body().write(URLEncoder.encode(parameter.getValue().toString(), charset).getBytes(charset));
+						part.body().changeToBytes(URLEncoder.encode(parameter.getValue().toString(), charset).getBytes(charset));
 					}else if(parameter.getValue() instanceof File){
-						part.body().write(TFile.loadFile((File) parameter.getValue()));
+						//参数类型如果是文件则默认采用文件的形式
+						part.body().changeToFile((File) parameter.getValue());
 					}
 					request.parts().add(part);
 				}
@@ -390,18 +395,18 @@ public class HttpClient {
 		//3.请求报文Body 使用流类型
 		else if(request.getBodyType() == Request.RequestType.BODY_URLENCODED){
 			String queryString = getQueryString();
-			request.body().write(queryString,charset);
+			request.body().write(queryString, charset);
 		}
 	}
 
 	/**
 	 * 连接并发送请求
-	 * @param urlString 请求 URL
+	 * @param location 请求 URL
 	 * @return Response 对象
 	 * @throws SendMessageException  发送异常
 	 * @throws ReadMessageException  读取异常
 	 */
-	public Response send(String urlString) throws SendMessageException, ReadMessageException {
+	public Response send(String location) throws SendMessageException, ReadMessageException {
 
 		if(isWebSocket){
 			throw new SendMessageException("The WebSocket is connect, you can't send http request.");
@@ -410,14 +415,14 @@ public class HttpClient {
 		//设置默认的报文 Body 类型
 		if(request.protocol().getMethod().equals("POST") && request.parts().size()>0){
 			setBodyType(Request.RequestType.BODY_MULTIPART);
-		}else if(request.protocol().getMethod().equals("POST") && getParameters().size()>0){
+		}else if(request.protocol().getMethod().equals("POST")) {
 			setBodyType(Request.RequestType.BODY_URLENCODED);
 		}else{
 			setBodyType(Request.RequestType.NORMAL);
 		}
 
 		//构造 Request 对象
-		buildRequest(TString.isNullOrEmpty(urlString)?"/":urlString);
+		buildRequest(TString.isNullOrEmpty(location)?"/":location);
 
 		//发送报文
 		try {
@@ -435,7 +440,6 @@ public class HttpClient {
 		}else{
 			response = (Response) readObject;
 		}
-
 
 		//结束操作
 		finished(request, response);
@@ -466,7 +470,7 @@ public class HttpClient {
 		}
 
 		 try {
-			 request.body().chaneToBytes(new byte[0]);
+			 request.body().changeToBytes(new byte[0]);
 		 } catch (IOException e) {
 			 request.body();
 		 }
@@ -476,7 +480,6 @@ public class HttpClient {
 		request.body().clear();
 		request.parts().clear();
 		request.header().remove("Content-Type");
-		request.header().remove("Content-Length");
 		request.header().remove("Content-Length");
 	}
 
@@ -491,26 +494,39 @@ public class HttpClient {
 	}
 
 	/**
-	 * 连接 Websocket
-	 * @param urlString URL地址
-	 * @param webSocketRouter WebSocker的路由
-	 * @throws SendMessageException  发送异常
-	 * @throws ReadMessageException  读取异常
+	 * 升级协议
+	 * @param location URL地址
+	 * @return true: 升级成功, false: 升级失败
+	 * @throws SendMessageException 发送消息异常
+	 * @throws ReadMessageException 读取消息异常
 	 */
-	public void webSocket(String urlString, WebSocketRouter webSocketRouter) throws SendMessageException, ReadMessageException {
+	private boolean doWebSocketUpgrade(String location) throws SendMessageException, ReadMessageException {
 		IoSession session = socket.getSession();
+		session.removeAttribute(WebServerHandler.SessionParam.TYPE);
 
-		// 处理协议升级
-		request.header().put("Connection","Upgrade");
+        request.header().put("Connection","Upgrade");
 		request.header().put("Upgrade", "websocket");
 		request.header().put("Pragma","no-cache");
 		request.header().put("Origin", this.urlString);
 		request.header().put("Sec-WebSocket-Version","13");
 		request.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
-		Response response = send(urlString);
+		Response response = send(location);
+		return response.protocol().getStatus()==101 &&
+				response.header().get("Sec-WebSocket-Accept").equals("F2D56gI8wPj3dJw+vgY0KFJEtIM=");
+	}
+
+	/**
+	 * 连接 Websocket
+	 * @param location URL地址
+	 * @param webSocketRouter WebSocker的路由
+	 * @throws SendMessageException  发送异常
+	 * @throws ReadMessageException  读取异常
+	 */
+	public void webSocket(String location, WebSocketRouter webSocketRouter) throws SendMessageException, ReadMessageException {
+		IoSession session = socket.getSession();
 
 		//处理升级后的消息
-		if(response.protocol().getStatus()==101){
+		if(doWebSocketUpgrade(location)){
 
 			//这里需要效验Sec-WebSocket-Accept
 
@@ -524,7 +540,7 @@ public class HttpClient {
 			//触发打开事件
 			result = webSocketRouter.onOpen(webSocketSession);
 
-			//先注册业务句柄,在打开 消息分割器中 WebSocket 开关
+			//先注册业务句柄,再打开消息分割器中 WebSocket 开关
 			socket.handler(webSocketHandler);
 			session.setAttribute(WebServerHandler.SessionParam.TYPE, "WebSocket");
 			isWebSocket = true;
@@ -553,11 +569,14 @@ public class HttpClient {
 		}
 	}
 
+	/**
+	 * 发送 WebSocket 帧
+	 * @param webSocketFrame WebSocket 帧
+	 * @throws SendMessageException 发送异常
+	 */
 	private void sendWebSocketData(WebSocketFrame webSocketFrame) throws SendMessageException {
 		socket.getSession().syncSend(webSocketFrame);
 	}
-
-
 
 	/**
 	 * 关闭 HTTP 连接

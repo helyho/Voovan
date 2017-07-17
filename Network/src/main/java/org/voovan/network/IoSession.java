@@ -296,19 +296,37 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @throws ReadMessageException  读取消息异常
 	 */
 	public Object syncRead() throws ReadMessageException {
-		Object readObject = null;
-		while(true){
-			if(!isConnected()){
-				break;
-			}
 
-			//如果响应对象不存在则继续循环
-			if(!((SynchronousHandler)socketContext.handler()).hasNextResponse()){
+		Object readObject = null;
+		SynchronousHandler synchronousHandler = null;
+		int waitedTime = 0;
+
+		if(socketContext.handler() instanceof SynchronousHandler) {
+			synchronousHandler = (SynchronousHandler) socketContext.handler();
+		}else{
+			throw new ReadMessageException("Use the syncRead method must set an object of SynchronousHandler into the socket handler ");
+		}
+
+		while(true){
+			//如果响应对象不存在则继续循环等待直到结果出现
+			if(!synchronousHandler.hasNextResponse()){
 				TEnv.sleep(1);
+
+				//超时判断
+				waitedTime++;
+				if(waitedTime >= socketContext.getReadTimeout()){
+					throw new ReadMessageException("syncRead read timeout");
+				}
+
+				//连接状态检测
+				if(!isConnected()){
+					throw new ReadMessageException("Socket is disconnect");
+				}
 				continue;
 			}
 
 			readObject = ((SynchronousHandler)socketContext.handler()).getResponse();
+
 			if(readObject instanceof Throwable){
 				Exception exception = (Exception) readObject;
 				if (exception != null) {
@@ -319,12 +337,7 @@ public abstract class IoSession<T extends SocketContext> {
 			} else {
 				return readObject;
 			}
-
-
-
 		}
-
-		return readObject;
 	}
 
 	/**
