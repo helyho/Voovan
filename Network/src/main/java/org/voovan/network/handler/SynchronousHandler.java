@@ -67,7 +67,7 @@ public class SynchronousHandler implements IoHandler {
 
     /**
      * 是否存在下一个响应对象
-     * @return
+     * @return true: 存在, false: 不存在
      */
     public boolean hasNextResponse(){
         return socketResponses.size() > 0;

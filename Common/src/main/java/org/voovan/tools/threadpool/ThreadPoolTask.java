@@ -30,8 +30,6 @@ public class ThreadPoolTask extends TimerTask {
 
 	@Override
 	public void run() {
-		Thread mainThread = TEnv.getMainThread();
-
 		if (threadPoolInstance.isShutdown()) {
 			this.cancel();
 			timer.cancel();
@@ -79,12 +77,7 @@ public class ThreadPoolTask extends TimerTask {
 		}
 
 		//如果主线程结束,则线程池也关闭
-		if(mainThread!=null && mainThread.getState() == Thread.State.TERMINATED) {
-			threadPoolInstance.shutdown();
-		}
-
-		//如果主线程没有的,则线程池也关闭
-		if(mainThread==null){
+		if( TEnv.isMainThreadShutDown()) {
 			threadPoolInstance.shutdown();
 		}
 	}

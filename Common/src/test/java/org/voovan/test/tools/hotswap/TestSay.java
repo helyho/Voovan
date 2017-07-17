@@ -1,4 +1,4 @@
-package org.voovan.test.tools.compiler.hotswap;
+package org.voovan.test.tools.hotswap;
 
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
