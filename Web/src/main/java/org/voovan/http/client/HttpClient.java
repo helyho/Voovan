@@ -498,6 +498,8 @@ public class HttpClient {
 	 * @throws ReadMessageException  读取异常
 	 */
 	public void webSocket(String urlString, WebSocketRouter webSocketRouter) throws SendMessageException, ReadMessageException {
+		IoSession session = socket.getSession();
+
 		// 处理协议升级
 		request.header().put("Connection","Upgrade");
 		request.header().put("Upgrade", "websocket");
@@ -509,31 +511,23 @@ public class HttpClient {
 
 		//处理升级后的消息
 		if(response.protocol().getStatus()==101){
-			IoSession session = socket.getSession();
-
-			session.enabledMessageSpliter(false);
 
 			//这里需要效验Sec-WebSocket-Accept
-			session.setAttribute(WebServerHandler.SessionParam.TYPE, "WebSocket");
 
-			WebSocketSession webSocketSession =
-					new WebSocketSession(socket.getSession(), null,
-											this.socket.getHost(), this.socket.getPort());
+			WebSocketSession webSocketSession = new WebSocketSession(socket.getSession(), null, this.socket.getHost(), this.socket.getPort());
 			WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketSession, webSocketRouter);
 			webSocketSession.setWebSocketRouter(webSocketRouter);
-
 			webSocketRouter.setSession(webSocketSession);
-
-			isWebSocket = true;
-
-			socket.handler(webSocketHandler);
-
-			session.enabledMessageSpliter(true);
 
 			Object result = null;
 
+			//触发打开事件
 			result = webSocketRouter.onOpen(webSocketSession);
 
+			//先注册业务句柄,在打开 消息分割器中 WebSocket 开关
+			socket.handler(webSocketHandler);
+			session.setAttribute(WebServerHandler.SessionParam.TYPE, "WebSocket");
+			isWebSocket = true;
 
 			if(result!=null) {
 				//封包
@@ -546,7 +540,6 @@ public class HttpClient {
 					Logger.error(e);
 				}
 			}
-
 		}else{
 			//异常发送关闭帧
 			WebSocketFrame errWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(new byte[]{}));

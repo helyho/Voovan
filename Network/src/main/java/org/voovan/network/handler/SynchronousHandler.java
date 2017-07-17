@@ -3,6 +3,8 @@ package org.voovan.network.handler;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 
+import java.util.concurrent.LinkedBlockingDeque;
+
 /**
  * Socket 同步通信 handler
  *
@@ -13,6 +15,9 @@ import org.voovan.network.IoSession;
  * Licence: Apache v2 License
  */
 public class SynchronousHandler implements IoHandler {
+
+    //Socket 响应队列
+    private LinkedBlockingDeque<Object> socketResponses  = new LinkedBlockingDeque<Object>();
 
     @Override
     public Object onConnect(IoSession session) {
@@ -25,7 +30,7 @@ public class SynchronousHandler implements IoHandler {
 
     @Override
     public Object onReceive(IoSession session, Object obj) {
-        session.setAttribute("SocketResponse",obj);
+        socketResponses.addLast(obj);
         return null;
     }
 
@@ -36,11 +41,35 @@ public class SynchronousHandler implements IoHandler {
 
     @Override
     public void onException(IoSession session, Exception e) {
-        session.setAttribute("SocketException",e);
+        socketResponses.addLast(e);
     }
 
     @Override
     public void onIdle(IoSession session) {
 
+    }
+
+    /**
+     * 获取下一个响应对象
+     * @return 响应对象
+     */
+    public Object getResponse(){
+        return socketResponses.pollFirst();
+    }
+
+    /**
+     * 获取响应对象数量
+     * @return 获取响应对象数量
+     */
+    public int responseCount(){
+        return socketResponses.size();
+    }
+
+    /**
+     * 是否存在下一个响应对象
+     * @return
+     */
+    public boolean hasNextResponse(){
+        return socketResponses.size() > 0;
     }
 }
