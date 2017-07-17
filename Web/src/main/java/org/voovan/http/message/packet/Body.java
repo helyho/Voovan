@@ -41,7 +41,7 @@ public class Body {
 	public Body(){
 		type = BodyType.BYTES;
 		try{
-            chaneToBytes("".getBytes());
+            changeToBytes("".getBytes());
 			bodyFile = null;
         } catch (IOException e){
             Logger.error("Construct Body error",e);
@@ -56,7 +56,7 @@ public class Body {
 	public Body(byte[] content){
 		type = BodyType.BYTES;
 		try {
-			chaneToBytes(content);
+			changeToBytes(content);
 			bodyFile = null;
 		} catch (IOException e){
 			Logger.error("Construct Body error",e);
@@ -127,7 +127,7 @@ public class Body {
 	 * @param content 字节内容
 	 * @throws IOException 文件未找到异常
 	 */
-	public void chaneToBytes(byte[] content) throws IOException {
+	public void changeToBytes(byte[] content) throws IOException {
 		if(byteBufferChannel == null || byteBufferChannel.isReleased()){
 			byteBufferChannel = new ByteBufferChannel();
 		}

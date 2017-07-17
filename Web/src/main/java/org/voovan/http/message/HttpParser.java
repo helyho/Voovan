@@ -530,7 +530,7 @@ public class HttpParser {
 						for(Entry<String, Object> parsedPartMapItem : parsedPartMap.entrySet()){
 							//填充 Value 中的值到 body 中
 							if(parsedPartMapItem.getKey().equals(BODY_VALUE)){
-								part.body().chaneToBytes((byte[])parsedPartMapItem.getValue());
+								part.body().changeToBytes((byte[])parsedPartMapItem.getValue());
 							} if(parsedPartMapItem.getKey().equals(BODY_FILE)){
 								String filePath = new String((byte[])parsedPartMapItem.getValue());
 								part.body().changeToFile(new File(filePath));
