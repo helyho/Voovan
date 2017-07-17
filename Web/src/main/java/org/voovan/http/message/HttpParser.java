@@ -434,6 +434,7 @@ public class HttpParser {
 					byte[] value = dealBodyContent(packetMap, chunkedByteBufferChannel.array());
 					chunkedByteBufferChannel.release();
 					packetMap.put(BODY_VALUE, value);
+					byteBufferChannel.shrink(2);
 				}
 				//3. HTTP(请求和响应) 报文的内容段中Content-Length 提供长度,按长度读取 body 内容段
 				else if(packetMap.containsKey(HEAD_CONTENT_LENGTH)){
@@ -456,10 +457,9 @@ public class HttpParser {
 				else if(packetMap.get(BODY_VALUE)==null || packetMap.get(BODY_VALUE).toString().isEmpty()){
 					byte[] contentBytes = byteBufferChannel.array();
 					if(contentBytes!=null && contentBytes.length>0){
-						contentBytes = Arrays.copyOf(contentBytes, contentBytes.length);
+						byte[] value = dealBodyContent(packetMap, contentBytes);
+						packetMap.put(BODY_VALUE, value);
 					}
-					byte[] value = dealBodyContent(packetMap, contentBytes);
-					packetMap.put(BODY_VALUE, value);
 				}
 
 				break;

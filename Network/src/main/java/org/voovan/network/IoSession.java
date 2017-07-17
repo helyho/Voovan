@@ -2,6 +2,7 @@ package org.voovan.network;
 
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
@@ -297,23 +298,30 @@ public abstract class IoSession<T extends SocketContext> {
 	public Object syncRead() throws ReadMessageException {
 		Object readObject = null;
 		while(true){
-			readObject = getAttribute("SocketResponse");
-			if(readObject!=null){
-				removeAttribute("SocketResponse");
+			if(!isConnected()){
 				break;
-			}else {
-				Exception exception = TObject.cast(getAttribute("SocketException"));
+			}
+
+			//如果响应对象不存在则继续循环
+			if(!((SynchronousHandler)socketContext.handler()).hasNextResponse()){
+				TEnv.sleep(1);
+				continue;
+			}
+
+			readObject = ((SynchronousHandler)socketContext.handler()).getResponse();
+			if(readObject instanceof Throwable){
+				Exception exception = (Exception) readObject;
 				if (exception != null) {
 					removeAttribute("SocketException");
 					throw new ReadMessageException("Method syncRead error! Error by " +
 							exception.getClass().getSimpleName() + ". " + exception.getMessage(), exception);
 				}
+			} else {
+				return readObject;
 			}
 
-			if(!isConnected()){
-				break;
-			}
-			TEnv.sleep(1);
+
+
 		}
 
 		return readObject;
