@@ -21,7 +21,7 @@ public class StringFilter implements IoFilter {
 	@Override
 	public Object encode(IoSession session,Object object) {
 		if(object instanceof String){
-			String sourceString = TObject.cast(object);
+			String sourceString = object.toString();
 			return ByteBuffer.wrap(sourceString.getBytes());
 		}
 		return object;

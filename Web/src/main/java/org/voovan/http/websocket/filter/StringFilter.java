@@ -21,7 +21,7 @@ public class StringFilter implements WebSocketFilter {
 	@Override
 	public Object encode(WebSocketSession session, Object object) {
 		if(object instanceof String){
-			String sourceString = TObject.cast(object);
+			String sourceString = (String)object;
 			return ByteBuffer.wrap(sourceString.getBytes());
 		}
 		return object;

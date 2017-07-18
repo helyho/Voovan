@@ -172,10 +172,10 @@ public class NioSelector {
 		Object unknowChannel = selectionKey.channel();
 		//  根据通道的类来判断类型是 ServerSocketChannel 还是 SocketChannel
 		if (unknowChannel instanceof ServerSocketChannel) {
-			ServerSocketChannel serverSocketChannel = TObject.cast( unknowChannel );
+			ServerSocketChannel serverSocketChannel = (ServerSocketChannel)unknowChannel;
 			socketChannel = serverSocketChannel.accept();
 		} else if (unknowChannel instanceof SocketChannel) {
-			socketChannel = TObject.cast( unknowChannel );
+			socketChannel = (SocketChannel)unknowChannel;
 		}
 		return socketChannel;
 	}

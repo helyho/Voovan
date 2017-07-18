@@ -25,9 +25,9 @@ public class JSONPath {
     public JSONPath(String jsonStr) {
         Object result = JSON.parse(jsonStr);
         if (result instanceof List) {
-            parsedObj = TObject.cast(result);
+            parsedObj = (List)result;
         } else if (result instanceof Map) {
-            parsedObj = TObject.cast(result);
+            parsedObj = (Map)result;
         }
     }
 
@@ -104,10 +104,10 @@ public class JSONPath {
         }
 
         if (TReflect.isSystemType(clazz)) {
-                return (T)TObject.cast(value);
+                return (T)value;
         } else {
             Object obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
-            return TObject.cast(obj);
+            return (T)obj;
         }
     }
 

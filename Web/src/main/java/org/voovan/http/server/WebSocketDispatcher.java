@@ -126,13 +126,14 @@ public class WebSocketDispatcher {
 					} else if (event == WebSocketEvent.PING) {
 						return WebSocketFrame.newInstance(true, Opcode.PONG, false, byteBuffer);
 					} else if (event == WebSocketEvent.PONG) {
+						final IoSession poneTimerSession = session;
 						new Timer("VOOVAN_WEB@PONE_TIMER").schedule(new TimerTask() {
 							@Override
 							public void run() {
 								try {
-									session.syncSend(WebSocketFrame.newInstance(true, Opcode.PING, false, null));
+                                    poneTimerSession.syncSend(WebSocketFrame.newInstance(true, Opcode.PING, false, null));
 								} catch (SendMessageException e) {
-									session.close();
+                                    poneTimerSession.close();
 									Logger.error("Send WebSocket ping error", e);
 								}
 							}
@@ -219,7 +220,7 @@ public class WebSocketDispatcher {
 		//检查是否是WebSocket
 		if ("WebSocket".equals(WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.TYPE))) {
 				// 触发一个 WebSocket Close 事件
-				process(WebSocketEvent.CLOSE, session, WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.HTTP_REQUEST), null);
+				process(WebSocketEvent.CLOSE, session, (HttpRequest) WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.HTTP_REQUEST), null);
 		}
 	}
 

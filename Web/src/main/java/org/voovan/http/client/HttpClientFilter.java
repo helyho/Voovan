@@ -31,7 +31,7 @@ public class HttpClientFilter implements IoFilter {
 			return ((WebSocketFrame)object).toByteBuffer();
 		}
 		if(object instanceof Request){
-			Request request = TObject.cast(object);
+			Request request = (Request)object;
 			try {
 				request.send(session);
 			} catch (IOException e) {
@@ -52,7 +52,7 @@ public class HttpClientFilter implements IoFilter {
 
 			if(object instanceof ByteBuffer){
 				session.enabledMessageSpliter(false);
-				ByteBuffer byteBuffer = TObject.cast(object);
+				ByteBuffer byteBuffer = (ByteBuffer)object;
 				Response response = HttpParser.parseResponse(byteBufferChannel, session.socketContext().getReadTimeout());
 				session.enabledMessageSpliter(true);
 				return response;

@@ -72,7 +72,7 @@ public class Event {
 	@Override
 	public boolean equals(Object obj){
 		if(obj != null && obj instanceof Event){
-			Event compareEvent = TObject.cast( obj );
+			Event compareEvent = (Event) obj;
 			if(session!=null && name != null
 					&& session.equals(compareEvent.getSession())
 					&& name.equals(compareEvent.getName())) {

@@ -7,7 +7,6 @@ import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -212,6 +211,8 @@ public class EventProcess {
 	 */
 	public static void sendMessage(IoSession session, Object obj) {
 
+		final IoSession sendSession = session;
+		final Object sendObj = obj;
 		Global.getThreadPool().submit(new Callable<Object>() {
 			@Override
 			public Object call() {
@@ -219,15 +220,15 @@ public class EventProcess {
 
 				try {
 					// ------------------Filter 加密处理-----------------
-					ByteBuffer sendBuffer = EventProcess.filterEncoder(session, obj);
+					ByteBuffer sendBuffer = EventProcess.filterEncoder(sendSession, sendObj);
 					// ---------------------------------------------------
 
 					if (sendBuffer != null) {
 
 						// 发送消息
-						if (sendBuffer != null && session.isOpen()) {
+						if (sendBuffer != null && sendSession.isOpen()) {
 							if (sendBuffer.limit() > 0) {
-								sendCount = session.send(sendBuffer);
+								sendCount = sendSession.send(sendBuffer);
 								sendBuffer.rewind();
 							}
 
@@ -235,14 +236,14 @@ public class EventProcess {
 						}
 
 						//触发发送事件
-						EventTrigger.fireSent(session, obj);
+						EventTrigger.fireSent(sendSession, sendObj);
 					}
 				}catch(IoFilterException e){
-					EventTrigger.fireException(session, e);
+					EventTrigger.fireException(sendSession, e);
 				}
 
 				//设置空闲状态
-				session.setState(IoSession.State.IDLE);
+				sendSession.setState(IoSession.State.IDLE);
 
 				return sendCount;
 			}
@@ -323,7 +324,7 @@ public class EventProcess {
 		// 根据事件名称处理事件
 		try {
 			if (eventName == EventName.ON_ACCEPTED) {
-				SocketContext socketContext = TObject.cast(event.getSession().socketContext());
+				SocketContext socketContext = (SocketContext)event.getSession().socketContext();
 				socketContext.syncStart();
 			} else if (eventName == EventName.ON_CONNECT) {
 				EventProcess.onConnect(event);

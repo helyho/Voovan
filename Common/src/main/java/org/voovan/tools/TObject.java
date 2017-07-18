@@ -14,6 +14,8 @@ import java.util.*;
 public class TObject {
 	/**
 	 * 类型转换
+	 * 	JDK 1.8 使用效果最好,否则有可能会转换失败
+	 *
 	 * @param <T> 范型
 	 * @param obj 被转换对象
 	 * @return	转换后的对象
@@ -22,9 +24,10 @@ public class TObject {
 	public static <T> T cast(Object obj){
 		return (T)obj;
 	}
-	
+
 	/**
 	 * 转换成指定类型
+	 * 	JDK 1.8 使用效果最好,否则有可能会转换失败
 	 * @param <T> 范型
 	 * @param obj   被转换对象
 	 * @param t		指定的类型
@@ -63,7 +66,7 @@ public class TObject {
 	 */
 	@SuppressWarnings("rawtypes")
 	public static Map asMap(Object ...objs){
-		HashMap<Object,Object> map = new HashMap<Object,Object>();
+		TreeMap<Object,Object> map = new TreeMap<Object,Object>();
 		for(int i=1;i<objs.length;i+=2){
 			map.put(objs[i-1], objs[i]);
 		}
@@ -105,7 +108,7 @@ public class TObject {
 	 * @return 转换后的 Map  [序号, 值]
 	 */
 	public static <T> Map<String, T> arrayToMap(T[] objs){
-		HashMap<String ,T> arrayMap = new HashMap<String ,T>();
+		TreeMap<String ,T> arrayMap = new TreeMap<String ,T>();
 		for(int i=0;i<objs.length;i++){
 			arrayMap.put(Integer.toString(i+1), objs[i]);
 		}

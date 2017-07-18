@@ -1,6 +1,8 @@
 package org.voovan.test.http;
 
-import com.sun.tools.javadoc.Start;
+import org.voovan.http.server.HttpRequest;
+import org.voovan.http.server.HttpResponse;
+import org.voovan.http.server.HttpRouter;
 import org.voovan.http.server.WebServer;
 import org.voovan.http.server.context.WebServerConfig;
 
@@ -20,10 +22,13 @@ public class TestWebServer {
         wsc.setAccessLog(false);
         wsc.setPort(8800);
         wsc.setTimeout(10000);
-        wsc.setContextPath(Start.class.getResource("/").getPath());
+        wsc.setContextPath(TestWebServer.class.getResource("/").getPath());
         WebServer ws = WebServer.newInstance(wsc);
-        ws.get("/", (req1,resp1)->{
-            resp1.write("this is test1 Message.");
+        ws.get("/", new HttpRouter() {
+            @Override
+            public void process(HttpRequest request, HttpResponse response) throws Exception {
+                response.write("this is test1 Message.");
+            }
         });
         ws.serve();
         System.out.println("已经启动了...");
