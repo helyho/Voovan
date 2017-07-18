@@ -644,7 +644,7 @@ public class TReflect {
 			if(Modifier.isAbstract(clazz.getModifiers()) && Modifier.isInterface(clazz.getModifiers())){
 				clazz = HashMap.class;
 			}
-			Map mapObject = TObject.cast(newInstance(clazz));
+			Map mapObject = (Map)newInstance(clazz);
 
 			if(genericType!=null) {
 				Iterator iterator = mapArg.entrySet().iterator();
@@ -680,7 +680,7 @@ public class TReflect {
 			if(Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())){
 				clazz = ArrayList.class;
 			}
-            Collection listObject = TObject.cast(newInstance(clazz));
+            Collection listObject = (Collection)newInstance(clazz);
 
 			if(singleValue!=null){
 				if(genericType!=null){

@@ -139,7 +139,7 @@ public class SandboxControler {
                 result = TObject.asList(value.split(","));
             }
         }
-        return TObject.cast(result);
+        return (T)result;
     }
 
     public List<String> getForbiddenClasses() {

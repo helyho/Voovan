@@ -320,10 +320,10 @@ public class DynamicFunction {
         this.argCode = "";
         for (Map.Entry<Integer, List<Object>> prepareArg : args.entrySet()) {
             int argIndex = prepareArg.getKey();
-            Class argClazz = TObject.cast(args.getValue(argIndex, 0));
-            String argName = TObject.cast(args.getValue(argIndex, 1));
+            Class argClazz = (Class)args.getValue(argIndex, 0);
+            String argName = (String)args.getValue(argIndex, 1);
             this.argCode = this.argCode + "        " + argClazz.getCanonicalName() + " " + argName +
-                    " = TObject.cast(args[" + argIndex + "]);" + TFile.getLineSeparator();
+                    " = ("+argClazz.getSimpleName()+")args[" + argIndex + "];" + TFile.getLineSeparator();
         }
         this.argCode = this.argCode.trim();
     }
@@ -442,7 +442,7 @@ public class DynamicFunction {
         synchronized (this.clazz) {
             compileCode();
             Object result = TReflect.invokeMethod(this.clazz, "execute", new Object[]{args});
-            return TObject.cast(result);
+            return (T)result;
         }
     }
 

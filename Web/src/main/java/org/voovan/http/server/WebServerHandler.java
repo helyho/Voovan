@@ -65,7 +65,7 @@ public class WebServerHandler implements IoHandler {
 	 * @return  参数
 	 */
 	public static <T> T getAttribute(IoSession session, int sessionParam){
-		return TObject.cast(session.getAttribute(sessionParam));
+		return (T)session.getAttribute(sessionParam);
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class WebServerHandler implements IoHandler {
 	 * @param <T>           范型
 	 */
 	public static <T> void  setAttribute(IoSession session, int sessionParam, T value){
-		 session.setAttribute(sessionParam, value);
+		session.setAttribute(sessionParam, value);
 	}
 	
 	/**
@@ -123,7 +123,7 @@ public class WebServerHandler implements IoHandler {
 			webSocketDispatcher.fireCloseEvent(session);
 
 			//WebSocket 要考虑释放缓冲区
-			ByteBufferChannel byteBufferChannel = TObject.cast(session.getAttribute("WebSocketByteBufferChannel"));
+			ByteBufferChannel byteBufferChannel = (ByteBufferChannel)session.getAttribute("WebSocketByteBufferChannel");
 			if (byteBufferChannel != null && !byteBufferChannel.isReleased()) {
 				byteBufferChannel.release();
 			}
@@ -141,7 +141,7 @@ public class WebServerHandler implements IoHandler {
 		// Http 请求
 		if (obj instanceof Request) {
 			// 构造请求对象
-			Request request = TObject.cast(obj);
+			Request request = (Request)obj;
 			
 			// 构造响应对象
 			Response response = new Response();
@@ -255,7 +255,7 @@ public class WebServerHandler implements IoHandler {
 			byteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
 			session.setAttribute("WebSocketByteBufferChannel",byteBufferChannel);
 		}else{
-			byteBufferChannel = TObject.cast(session.getAttribute("WebSocketByteBufferChannel"));
+			byteBufferChannel = (ByteBufferChannel)session.getAttribute("WebSocketByteBufferChannel");
 		}
 
 		HttpRequest reqWebSocket = getAttribute(session, SessionParam.HTTP_REQUEST);

@@ -231,7 +231,7 @@ public class JSONDecode {
 				if (value != null && jsonResult != null) {
 					//判断取值不是任何对象
 					if (value instanceof String) {
-						String stringValue = TObject.cast(value);
+						String stringValue = (String)value;
 
 						//判断是字符串去掉头尾的冒号
 						if (stringValue.startsWith("\"") && stringValue.endsWith("\"")) {

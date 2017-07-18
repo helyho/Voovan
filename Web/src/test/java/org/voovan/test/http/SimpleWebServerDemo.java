@@ -1,5 +1,8 @@
 package org.voovan.test.http;
 
+import org.voovan.http.server.HttpRequest;
+import org.voovan.http.server.HttpResponse;
+import org.voovan.http.server.HttpRouter;
 import org.voovan.http.server.WebServer;
 
 /**
@@ -13,10 +16,16 @@ import org.voovan.http.server.WebServer;
  */
 public class SimpleWebServerDemo {
     public static void main(String[] args) {
-        WebServer.newInstance(20001).get("/test",(req, resp)->{
-            resp.write("this is test Message.");
-        }).get("/test1",(req1,resp1)->{
-            resp1.write("this is test1 Message.");
+        WebServer.newInstance(20001).get("/test", new HttpRouter() {
+            @Override
+            public void process(HttpRequest request, HttpResponse response) throws Exception {
+                response.write("this is test Message.");
+            }
+        }).get("/test1", new HttpRouter() {
+            @Override
+            public void process(HttpRequest request, HttpResponse response) throws Exception {
+                response.write("this is test1 Message.");
+            }
         }).serve();
     }
 }

@@ -87,20 +87,6 @@
     function sleep(d){
         for(var t = Date.now();Date.now() - t <= d;);
     }
-
-    function socketio(){
-        var socket = io.connect('ws://127.0.0.1:28080/websocket');
-        socket.on('connect',function(){
-            alert("socket.io connect")
-            socket.emit('message','连接成功！');
-        });
-        socket.on('disconnect',function(data){
-            alert("socket.io disconnect")
-        });
-        socket.on("error",function(){
-            socket.close()
-        })
-    }
 </script>
 <body>
 <img src="img/logo.jpg"/>
@@ -139,9 +125,6 @@
         WEBSOCKET测试: <input style="margin:5px 0px 0px 5px" type="button" onclick="wsopen()" value="Open">
         <input type="button" onclick="wssend()" value="Send">
         <input type="button" onclick="wsclose()" value="Close">
-    </div>
-    <div>
-        <input type="button" onclick="socketio()" value="SocketIo">
     </div>
 </form>
 <hr>

@@ -34,7 +34,7 @@ public class JSONEncodeUnit extends TestCase {
 		testObject.getTb2().getMap().put("tb2 map item", "tb2 map item");
 		String jsonStr = JSONEncode.fromObject(testObject);
 		jsonStr = JSON.removeNullNode(jsonStr);
-		testObject = TObject.cast(JSONDecode.fromJSON(jsonStr,TestObject.class));
+		testObject = JSONDecode.fromJSON(jsonStr,TestObject.class);
 		assertEquals(jsonStr,targetStr);
 
 	}
