@@ -49,7 +49,7 @@ public class ServerHandlerTest implements IoHandler {
 			HeartBeat heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-			System.out.println("==>" + heartBeat.beat(session));
+			System.out.println("HB==>" + heartBeat.beat(session));
 
 			if (session.socketContext().getConnectModel() != ConnectModel.SERVER) {
 				if (heartBeat.getFailedCount() > 5) {

@@ -30,7 +30,7 @@ public class ClientHandlerTest implements IoHandler {
 		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
 		System.out.println("Client onRecive: "+obj.toString());
 		System.out.println("Attribute onRecive: "+session.getAttribute("key"));
-		TEnv.sleep(3000);
+		TEnv.sleep(6000);
 		session.close();
 		return null;
 	}
@@ -56,7 +56,7 @@ public class ClientHandlerTest implements IoHandler {
 			}
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-			System.out.println("==>" + heartBeat.beat(session));
+			System.out.println("HB==>" + heartBeat.beat(session));
 			if (heartBeat.getFailedCount() > 5) {
 				session.close();
 			}
