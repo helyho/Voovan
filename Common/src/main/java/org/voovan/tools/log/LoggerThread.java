@@ -1,6 +1,7 @@
 package org.voovan.tools.log;
 
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TString;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -91,7 +92,7 @@ public class LoggerThread implements Runnable {
                             if (outputStream != null) {
                             	if(!(outputStream instanceof PrintStream)){
                             		//文件写入踢出着色部分
-									formatedMessage = formatedMessage.replaceAll("\033\\[\\d{2}m", "");
+									formatedMessage = TString.fastReplaceAll(formatedMessage, "\033\\[\\d{2}m", "");
 								}
                                 outputStream.write(formatedMessage.getBytes());
                                 outputStream.flush();
