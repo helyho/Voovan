@@ -97,9 +97,6 @@ public class UdpSelector {
                                             EventTrigger.fireConnectThread(commonSession);
                                         }
 
-                                        //检查心跳
-                                        HeartBeat.interceptHeartBeat(commonSession, readTempBuffer);
-
                                         //判断连接是否关闭
                                         if (MessageLoader.isRemoteClosed(readTempBuffer, readSize) && commonSession.isConnected()) {
 
@@ -114,10 +111,11 @@ public class UdpSelector {
                                         } else if (readSize > 0) {
                                             readTempBuffer.flip();
 
-                                            //检查心跳
-                                            HeartBeat.interceptHeartBeat(commonSession, readTempBuffer);
-
                                             commonSession.getByteBufferChannel().writeEnd(readTempBuffer);
+
+                                            //检查心跳
+                                            HeartBeat.interceptHeartBeat(commonSession,  commonSession.getByteBufferChannel());
+
                                             readTempBuffer.clear();
                                             // 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
                                             EventTrigger.fireReceiveThread(commonSession);
