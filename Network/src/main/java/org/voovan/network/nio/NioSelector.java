@@ -112,7 +112,6 @@ public class NioSelector {
 
 												//检查心跳
 												HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
-												appByteBufferChannel.compact();
 
 												if(appByteBufferChannel.size() > 0) {
 													// 触发 onReceive 事件
