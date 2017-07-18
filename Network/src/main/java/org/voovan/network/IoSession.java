@@ -56,11 +56,15 @@ public abstract class IoSession<T extends SocketContext> {
 		checkIdle();
 	}
 
+	/**
+	 * 获取心跳对象
+	 * @return 心跳对象
+	 */
 	public HeartBeat getHeartBeat() {
 		return heartBeat;
 	}
 
-	public void setHeartBeat(HeartBeat heartBeat) {
+	protected void setHeartBeat(HeartBeat heartBeat) {
 		this.heartBeat = heartBeat;
 	}
 

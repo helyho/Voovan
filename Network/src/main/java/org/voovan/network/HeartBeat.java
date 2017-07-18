@@ -68,7 +68,7 @@ public class HeartBeat {
      *      每次成功会被归零
      * @return 失败次数
      */
-    public int getFieldCount() {
+    public int getFailedCount() {
         return fieldCount;
     }
 
@@ -232,7 +232,7 @@ public class HeartBeat {
     /**
      * 将心跳绑定到 Session
      *      默认使用 PING, PONG 作为心跳消息
-     * @param session   会话
+     * @param session   Socket会话
      * @param connectModel  模式,指定发送第一个 PING 的模式,服务端先发,或者客户端先发
      * @return 心跳消息对象
      */
