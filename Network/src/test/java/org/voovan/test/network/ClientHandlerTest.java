@@ -5,13 +5,19 @@ import org.voovan.network.HeartBeat;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.udp.UdpSocket;
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
+import java.util.Date;
+
 public class ClientHandlerTest implements IoHandler {
+
+	private int reciveCount = 0;
 
 	@Override
 	public Object onConnect(IoSession session) {
+		reciveCount = 0;
 		System.out.println("onConnect");
 		System.out.println("Connect from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.loaclPort());
 		session.setAttribute("key", "attribute value");
@@ -30,9 +36,13 @@ public class ClientHandlerTest implements IoHandler {
 		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
 		System.out.println("Client onRecive: "+obj.toString());
 		System.out.println("Attribute onRecive: "+session.getAttribute("key"));
-		TEnv.sleep(6000);
-		session.close();
-		return null;
+		TEnv.sleep(2000);
+		reciveCount ++;
+
+		if(reciveCount >= 5) {
+			session.close();
+		}
+		return "some data\r\n";
 	}
 
 	@Override
@@ -47,7 +57,6 @@ public class ClientHandlerTest implements IoHandler {
 		//心跳依赖于 idle 时间,这个参数在构造 socket 的时候设置具体查看 org.voovan.network.aio.AioSocket
 
 		//服务端和客户端使用了两种不同的心跳绑定方式,这是其中一种
-		//Udp通信,因其是无状态协议,不会保持连接,所以Udp 通信的心跳检测毫无意义,所以排除所有的 UDP 通信
 		if(!(session.socketContext() instanceof UdpSocket)) {
 			HeartBeat heartBeat = session.getHeartBeat();
 			if (heartBeat == null) {
@@ -56,7 +65,7 @@ public class ClientHandlerTest implements IoHandler {
 			}
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-			System.out.println("HB==>" + heartBeat.beat(session));
+			System.out.println("HB==>" + heartBeat.beat(session) );
 			if (heartBeat.getFailedCount() > 5) {
 				session.close();
 			}

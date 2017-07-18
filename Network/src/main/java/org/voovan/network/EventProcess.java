@@ -132,7 +132,7 @@ public class EventProcess {
 
 				// 如果读出的消息为 null 则关闭连接
 				if (byteBuffer == null) {
-					session.close();
+//					session.close();
 					return;
 				}
 

@@ -7,7 +7,10 @@ import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.udp.UdpServerSocket;
 import org.voovan.network.udp.UdpSocket;
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.log.Logger;
+
+import java.util.Date;
 
 public class ServerHandlerTest implements IoHandler {
 
@@ -42,14 +45,11 @@ public class ServerHandlerTest implements IoHandler {
 
 		//服务端和客户端使用了两种不同的心跳绑定方式,这是其中一种
 		//心跳绑定到 Session, 绑定过一次以后每次返回的都是第一次绑定的对象
-
-
-		//Udp通信,因其是无状态协议,不会保持连接,所以Udp 通信的心跳检测毫无意义,所以排除所有的 UDP 通信
 		if(!(session.socketContext() instanceof UdpSocket)) {
 			HeartBeat heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-			System.out.println("HB==>" + heartBeat.beat(session));
+			System.out.println("HB==>" + heartBeat.beat(session) );
 
 			if (session.socketContext().getConnectModel() != ConnectModel.SERVER) {
 				if (heartBeat.getFailedCount() > 5) {
