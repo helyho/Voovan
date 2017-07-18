@@ -4,6 +4,7 @@ import org.voovan.network.EventTrigger;
 import org.voovan.network.HeartBeat;
 import org.voovan.network.MessageLoader;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -61,7 +62,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					}
 
 					//检查心跳
-					HeartBeat.interceptHeartBeat(session, appByteBufferChannel.getByteBuffer());
+					HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
 					appByteBufferChannel.compact();
 
 					if(appByteBufferChannel.size() > 0) {

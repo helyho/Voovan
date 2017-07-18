@@ -1,5 +1,6 @@
 package org.voovan.network;
 
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 
 import java.nio.ByteBuffer;
@@ -143,31 +144,28 @@ public class HeartBeat {
     /**
      * 截断心跳消息
      * @param session 会话对象
-     * @param byteBuffer 保存消息 ByteBuffer 对象
+     * @param byteBufferChannel 保存消息 ByteBufferChannel 对象
      */
-    public static void interceptHeartBeat(IoSession session, ByteBuffer byteBuffer){
-        if(session==null || byteBuffer==null){
+    public static void interceptHeartBeat(IoSession session, ByteBufferChannel byteBufferChannel){
+        if(session==null || byteBufferChannel==null){
             return;
         }
 
         HeartBeat heartBeat = session.getHeartBeat();
         if(heartBeat!=null) {
-            if (byteBuffer.hasRemaining()) {
+            if (byteBufferChannel.size() > 0) {
                 //心跳处理
                 if (heartBeat != null) {
-                    if (TByteBuffer.indexOf(byteBuffer, heartBeat.getPing()) == 0) {
-                        if(byteBuffer.remaining() != heartBeat.getPing().length) {
-                            TByteBuffer.moveData(byteBuffer, heartBeat.getPing().length);
-                        }
+                    if (byteBufferChannel.indexOf(heartBeat.getPing()) == 0) {
+                        byteBufferChannel.shrink(heartBeat.getPing().length);
                         heartBeat.getQueue().addLast(1);
                         return;
                     }
 
-                    if (TByteBuffer.indexOf(byteBuffer, heartBeat.getPong()) == 0) {
-                        if(byteBuffer.remaining() != heartBeat.getPing().length) {
-                            TByteBuffer.moveData(byteBuffer, heartBeat.getPong().length);
-                        }
-                        heartBeat.getQueue().addLast(2);
+                    if (byteBufferChannel.indexOf(heartBeat.getPong()) == 0) {
+                        byteBufferChannel.shrink(heartBeat.getPong().length);
+                        heartBeat.getQueue().addLast(1);
+                        return;
                     }
                 }
             }
@@ -189,16 +187,24 @@ public class HeartBeat {
             return true;
         }
 
+        //弥补双方发送的时间差,等待心跳到来,如果超过空闲事件周期则认为是失败
+        int waitCount = 0;
+        while(heartBeat.getQueue().size() == 0){
+            session.wait(1);
+            waitCount++;
+            if(waitCount >= session.getIdleInterval()*1000){
+                break;
+            }
+        }
+
         if(heartBeat.getQueue().size() > 0) {
             int beatType = heartBeat.getQueue().pollFirst();
 
             if (beatType == 1) {
-                session.getMessageLoader().reset();
                 session.send(ByteBuffer.wrap(heartBeat.pong));
                 heartBeat.fieldCount = 0;
                 return true;
             } else if (beatType == 2) {
-                session.getMessageLoader().reset();
                 session.send(ByteBuffer.wrap(heartBeat.ping));
                 heartBeat.fieldCount = 0;
                 return true;
