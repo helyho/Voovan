@@ -35,7 +35,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 	}
 
 	@Override
-	public void completed(Integer length, ByteBuffer buffer) {
+	public void completed(Integer length, ByteBuffer readTempBuffer) {
 		try {
 
 			if(netByteBufferChannel== null && session.getSSLParser()!=null) {
@@ -43,39 +43,38 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 			}
 
 			// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
-			if (MessageLoader.isRemoteClosed(buffer, length) || !session.isConnected()) {
+			if (MessageLoader.isRemoteClosed(readTempBuffer, length) || !session.isConnected()) {
 				session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 				session.close();
 			} else {
-				buffer.flip();
+				readTempBuffer.flip();
 
-				ByteBuffer tempBuffer = buffer;
 
 				if (length > 0) {
 
 					// 接收数据
 					if(session.getSSLParser()!=null && session.getSSLParser().isHandShakeDone()){
-						netByteBufferChannel.writeEnd(buffer);
-						tempBuffer = session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel);
+						netByteBufferChannel.writeEnd(readTempBuffer);
+						session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, appByteBufferChannel);
+					}else{
+						appByteBufferChannel.writeEnd(readTempBuffer);
 					}
 
 					//检查心跳
-					HeartBeat.interceptHeartBeat(session, tempBuffer);
+					HeartBeat.interceptHeartBeat(session, appByteBufferChannel.getByteBuffer());
+					appByteBufferChannel.compact();
 
-					if(tempBuffer.remaining() > 0) {
-						appByteBufferChannel.writeEnd(tempBuffer);
-
+					if(appByteBufferChannel.size() > 0) {
 						// 触发 onReceive 事件
 						EventTrigger.fireReceiveThread(session);
 					}
 					
 					// 接收完成后重置buffer对象
-					tempBuffer.clear();
-					buffer.clear();
+					readTempBuffer.clear();
 
 					// 继续接收 Read 请求
 					if(aioSocket.isConnected()) {
-						aioSocket.catchRead(buffer);
+						aioSocket.catchRead(readTempBuffer);
 					}
 				}
 			}

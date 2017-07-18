@@ -86,6 +86,8 @@ public class TByteBuffer {
             }
         }
 
+        byteBuffer.position(position);
+
         return index;
     }
 

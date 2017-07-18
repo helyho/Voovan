@@ -65,7 +65,6 @@ public class UdpSocket extends SocketContext{
         datagramChannel = provider.openDatagramChannel();
         datagramChannel.socket().setSoTimeout(this.readTimeout);
         InetSocketAddress address = new InetSocketAddress(this.host, this.port);
-        datagramChannel.connect(address);
         session = new UdpSession(this,address);
         datagramChannel.configureBlocking(false);
         connectModel = ConnectModel.CLIENT;
@@ -132,14 +131,8 @@ public class UdpSocket extends SocketContext{
 
     @Override
     public void start() throws IOException {
-        if(this.handler==null){
-            this.handler = new SynchronousHandler();
-        }
-
-        //如果没有消息分割器默认使用透传分割器
-        if(messageSplitter == null){
-            messageSplitter = new TrasnferSplitter();
-        }
+        InetSocketAddress address = new InetSocketAddress(this.host, this.port);
+        datagramChannel.connect(address);
 
         registerSelector();
 
@@ -162,6 +155,11 @@ public class UdpSocket extends SocketContext{
                }
            }
         });
+    }
+
+    @Override
+    protected void acceptStart() throws IOException {
+        throw new RuntimeException("Unsupport method");
     }
 
     /**

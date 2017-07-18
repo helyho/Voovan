@@ -105,17 +105,19 @@ public class NioSelector {
 												// 接收数据
 												if(session.getSSLParser()!=null && session.getSSLParser().isHandShakeDone()){
 													netByteBufferChannel.writeEnd(readTempBuffer);
-													readTempBuffer = session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel);
+													session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, appByteBufferChannel);
+												}else{
+													appByteBufferChannel.writeEnd(readTempBuffer);
 												}
 
 												//检查心跳
-												HeartBeat.interceptHeartBeat(session, readTempBuffer);
-												appByteBufferChannel.writeEnd(readTempBuffer);
+												HeartBeat.interceptHeartBeat(session, appByteBufferChannel.getByteBuffer());
+												appByteBufferChannel.compact();
 
-												readTempBuffer.clear();
-
-												// 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
-												EventTrigger.fireReceiveThread(session);
+												if(appByteBufferChannel.size() > 0) {
+													// 触发 onReceive 事件
+													EventTrigger.fireReceiveThread(session);
+												}
 											}
 
 											readTempBuffer.clear();

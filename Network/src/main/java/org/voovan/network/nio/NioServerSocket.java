@@ -110,6 +110,7 @@ public class NioServerSocket extends SocketContext{
 	 * 		非阻赛方法
 	 * @throws IOException  IO 异常
 	 */
+	@Override
 	public void syncStart() throws IOException {
 		Global.getThreadPool().execute(new Runnable(){
 			public void run() {
@@ -120,6 +121,11 @@ public class NioServerSocket extends SocketContext{
 				}
 			}
 		});
+	}
+
+	@Override
+	protected void acceptStart() throws IOException {
+		throw new RuntimeException("Unsupport method");
 	}
 
 	@Override
