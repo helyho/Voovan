@@ -7,6 +7,7 @@ import com.sun.tools.attach.VirtualMachine;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
@@ -287,7 +288,7 @@ public class Hotswaper {
 
         private long getClassLastModified(){
             if(classNamePath == null){
-                this.classNamePath = clazz.getCanonicalName().replaceAll("\\.", File.separator)+".class";
+                this.classNamePath = TString.fastReplaceAll(clazz.getCanonicalName(), "\\.", File.separator)+".class";
             }
 
             try {
