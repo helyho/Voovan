@@ -118,10 +118,10 @@ public class JSONEncode {
             Map<Object, Object> mapObject = (Map<Object, Object>) object;
             value = mapObject(mapObject);
         } else if (object instanceof Collection) {
-            List<Object> listObject = TObject.cast(object);
+            List<Object> listObject = (List<Object>)object;
             value = CollectionObject(listObject);
         } else if (object.getClass().isArray()) {
-            Object[] arrayObject = TObject.cast(object);
+            Object[] arrayObject = (Object[])object;
             value = arrayObject(arrayObject);
         } else if (object instanceof Integer ||  object instanceof Float ||
                 object instanceof Double || object instanceof Boolean ||

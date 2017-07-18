@@ -71,7 +71,7 @@ public class WebContext {
 			try {
 				fileContent = new String(TFile.loadFileFromContextPath(filePath),"UTF-8");
 				Object configObject = JSONDecode.parse(fileContent);
-				return TObject.cast(configObject);
+				return (Map<String, Object>)configObject;
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
@@ -223,7 +223,7 @@ public class WebContext {
 		byte[] mimeDefBytes = TFile.loadResource("org/voovan/http/server/conf/mime.json");
 		Map<String, Object> mimeDefMap = new ConcurrentHashMap<String, Object>();
 		try {
-			Map<String, Object> systemMimeDef = TObject.cast(JSONDecode.parse(new String(mimeDefBytes,"UTF-8")));
+			Map<String, Object> systemMimeDef = (Map<String, Object>)JSONDecode.parse(new String(mimeDefBytes,"UTF-8"));
 			mimeDefMap.putAll(systemMimeDef);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();

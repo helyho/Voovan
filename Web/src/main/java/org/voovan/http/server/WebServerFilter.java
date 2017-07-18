@@ -34,7 +34,7 @@ public class WebServerFilter implements IoFilter {
 		// 对 Websocket 进行处理
 		if (object instanceof Response) {
 			session.enabledMessageSpliter(true);
-			Response response = TObject.cast(object);
+			Response response = (Response)object;
 			try {
 				response.send(session);
 			}catch(Exception e){
@@ -42,7 +42,7 @@ public class WebServerFilter implements IoFilter {
 			}
 			return ByteBuffer.allocateDirect(0);
 		} else if(object instanceof WebSocketFrame){
-			WebSocketFrame webSocketFrame = TObject.cast(object);
+			WebSocketFrame webSocketFrame = (WebSocketFrame)object;
 			return webSocketFrame.toByteBuffer();
 		}
 		return null;
@@ -53,7 +53,7 @@ public class WebServerFilter implements IoFilter {
 	 */
 	@Override
 	public Object decode(IoSession session, Object object) {
-		ByteBuffer byteBuffer = TObject.cast(object);
+		ByteBuffer byteBuffer = (ByteBuffer)object;
 		ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
 		if (isHttpRequest(byteBufferChannel)) {
 			try {

@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class DynamicCompiler {
 	private static DynamicClassLoader classLoader =
-							new DynamicClassLoader(DynamicCompiler.class.getClassLoader());;
+							new DynamicClassLoader(DynamicCompiler.class.getClassLoader());
 
 	private JavaCompiler compiler = null ;
 	private JavaFileManager fileManager = null ;
@@ -75,7 +75,7 @@ public class DynamicCompiler {
 	 */
 	public Boolean compileCode(List<String> javaFileNameList,String classDir){
 		fileManager = compiler.getStandardFileManager(diagnosticCollector, null, null);
-		StandardJavaFileManager standardJavaFileManager = TObject.cast(fileManager,StandardJavaFileManager.class);
+		StandardJavaFileManager standardJavaFileManager = (StandardJavaFileManager) fileManager;
 		Iterable<? extends JavaFileObject> compilationUnits = standardJavaFileManager.getJavaFileObjectsFromStrings(javaFileNameList);
 		options = Arrays.asList("-d", classDir); 
 		return basicCompileCode(compilationUnits) ;
@@ -127,7 +127,7 @@ public class DynamicCompiler {
 		
 		//对在内存中编译的进行特殊处理
 		if(success && fileManager instanceof MemFileManager){
-			MemFileManager memFileManager = TObject.cast(fileManager);
+			MemFileManager memFileManager = (MemFileManager)fileManager;
 			JavaMemClass javaMemClass = memFileManager.getJavaMemClass();
 			clazz = javaMemClass.loadThisClass();
 		}else{
@@ -147,6 +147,16 @@ public class DynamicCompiler {
 			}
 		}
 		return success ;
+	}
+
+	/**
+	 * 获取一个动态编译器中的 Class
+	 * @param className class 名称
+	 * @return Class 对象
+	 * @throws ClassNotFoundException 类未找到的异常
+	 */
+	public static Class getClassByName(String className) throws ClassNotFoundException {
+		return DynamicCompiler.classLoader.loadClass(className);
 	}
 	
 	/**

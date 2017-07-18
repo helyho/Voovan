@@ -55,7 +55,7 @@ public class WebSocketHandler implements IoHandler{
         webSocketRouter.onClose(webSocketSession);
 
         //WebSocket 要考虑释放缓冲区
-        ByteBufferChannel byteBufferChannel = TObject.cast(session.getAttribute("WebSocketByteBufferChannel"));
+        ByteBufferChannel byteBufferChannel = (ByteBufferChannel)session.getAttribute("WebSocketByteBufferChannel");
         if (byteBufferChannel != null && !byteBufferChannel.isReleased()) {
             byteBufferChannel.release();
         }
@@ -68,10 +68,10 @@ public class WebSocketHandler implements IoHandler{
         //分片 (2) fin=0 , opcode=0
         //分片 (3) fin=1 , opcode=0
 
-        WebSocketFrame respWebSocketFrame = null;
         WebSocketFrame reqWebSocketFrame = null;
+        WebSocketFrame respWebSocketFrame = null;
         if(obj instanceof WebSocketFrame) {
-            reqWebSocketFrame = TObject.cast(obj);
+            reqWebSocketFrame = (WebSocketFrame)obj;
         }else{
             return null;
         }
@@ -81,7 +81,7 @@ public class WebSocketHandler implements IoHandler{
             byteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
             session.setAttribute("WebSocketByteBufferChannel",byteBufferChannel);
         }else{
-            byteBufferChannel = TObject.cast(session.getAttribute("WebSocketByteBufferChannel"));
+            byteBufferChannel = (ByteBufferChannel)session.getAttribute("WebSocketByteBufferChannel");
         }
 
 
@@ -95,13 +95,15 @@ public class WebSocketHandler implements IoHandler{
         }
         // WS_PONG 收到 pong 帧则返回 ping 帧
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
+            final IoSession poneTimerSession = session;
+
             new Timer("VOOVAN_WEB@PONE_TIMER").schedule(new TimerTask() {
                 @Override
                 public void run() {
                     try {
-                        session.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+                        poneTimerSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
                     } catch (SendMessageException e) {
-                        session.close();
+                        poneTimerSession.close();
                         Logger.error("WebSocket Open event send frame error", e);
                     }
                 }

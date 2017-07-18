@@ -162,7 +162,7 @@ public class UdpSelector {
         Object unknowChannel = selectionKey.channel();
 
         if (unknowChannel instanceof DatagramChannel) {
-            datagramChannel = TObject.cast( unknowChannel );
+            datagramChannel = (DatagramChannel)unknowChannel;
         }
         return datagramChannel;
     }

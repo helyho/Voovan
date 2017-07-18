@@ -77,7 +77,8 @@ public abstract class IoSession<T extends SocketContext> {
                 checkIdleTimer = new Timer();
             }
 
-			IoSession session = this;
+			final IoSession session = this;
+
 			checkIdleTimer.schedule(new TimerTask() {
 				@Override
 				public void run() {

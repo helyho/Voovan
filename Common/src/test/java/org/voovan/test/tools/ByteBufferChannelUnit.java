@@ -79,9 +79,9 @@ public class ByteBufferChannelUnit extends TestCase {
 	public void testShrink(){
 		init();
 		byte[] tmp = new byte[6];
-		byteBufferChannel.shrink(-3);
-		assertEquals("yho is a hero!!!",TByteBuffer.toString(byteBufferChannel.getByteBuffer()));
 		byteBufferChannel.shrink(3);
+		assertEquals("yho is a hero!!!",TByteBuffer.toString(byteBufferChannel.getByteBuffer()));
+		byteBufferChannel.shrink(-3);
 		assertEquals("yho is a hero",TByteBuffer.toString(byteBufferChannel.getByteBuffer()));
 	}
 

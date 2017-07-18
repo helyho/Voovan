@@ -26,7 +26,8 @@ public class DynamicCompilerUnit extends TestCase {
 	}
 	
 	public void testRun() throws Exception{
-		Object testSay = TReflect.newInstance("org.hocate.test1.testSay");
+		Class testSayClass = DynamicCompiler.getClassByName("org.hocate.test1.testSay");
+		Object testSay = TReflect.newInstance(testSayClass);
 		assertEquals(testSay.getClass().getName(),"org.hocate.test1.testSay");
 		Object obj = TReflect.invokeMethod(testSay, "say");
 		assertEquals(obj,"inished");

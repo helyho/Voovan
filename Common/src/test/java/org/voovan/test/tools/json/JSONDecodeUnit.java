@@ -44,13 +44,13 @@ public class JSONDecodeUnit extends TestCase {
 								"\"nullValue\":null"+
 							"} ";
 
-		Map<String, Object> obj = TObject.cast(JSONDecode.parse(jsonString));
+		Map<String, Object> obj = (Map<String, Object>)JSONDecode.parse(jsonString);
 		assertTrue((Integer)obj.size()==7);
 		assertTrue((Integer)obj.get("bint")==32);
 		assertEquals((String)obj.get("string"),"helyho");
 		assertTrue(((List)obj.get("list")).size() == 3);
 		assertTrue(((Map)obj.get("map")).size() == 2);
-		Map<String, Object> tb2 = TObject.cast(obj.get("tb2"));
+		Map<String, Object> tb2 = (Map<String, Object>)obj.get("tb2");
 		assertTrue((Integer)tb2.get("bint")==56);
 		assertEquals((String)tb2.get("string"),"bi\\\"ngo");
 		assertTrue(((List)tb2.get("list")).size() == 1);
