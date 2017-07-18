@@ -24,12 +24,13 @@ public abstract class SocketContext {
 	protected MessageSplitter messageSplitter;
 	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
-	protected int bufferSize = 20480;
+	protected int bufferSize = 1024;
 
 	protected int idleInterval = 0;
 
 	/**
 	 * 构造函数
+	 * 		默认不会出发空闲事件
 	 * @param host    主机地址
 	 * @param port    主机端口
 	 * @param readTimeout 超时时间

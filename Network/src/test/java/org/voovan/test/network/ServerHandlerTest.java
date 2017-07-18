@@ -52,7 +52,7 @@ public class ServerHandlerTest implements IoHandler {
 			System.out.println("==>" + heartBeat.beat(session));
 
 			if (session.socketContext().getConnectModel() != ConnectModel.SERVER) {
-				if (heartBeat.getFieldCount() > 5) {
+				if (heartBeat.getFailedCount() > 5) {
 					session.close();
 				}
 			}
