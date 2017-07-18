@@ -90,7 +90,9 @@ public abstract class IoSession<T extends SocketContext> {
 
 					//初始化状态
 					if(session.getState() == State.INIT ||
-							session.getState() == State.CONNECT){
+							session.getState() == State.CONNECT ||
+							session.getState() == State.RECEIVE ||
+							session.getState() == State.SEND){
 						return;
 					}
 
