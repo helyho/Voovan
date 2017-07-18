@@ -2,6 +2,7 @@ package org.voovan.network.nio;
 
 import org.voovan.Global;
 import org.voovan.network.ConnectModel;
+import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
@@ -14,6 +15,7 @@ import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketOption;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -135,39 +137,20 @@ public class NioSocket extends SocketContext{
 	public NioSession getSession(){
 		return session;
 	}
-	
-	private void initSSL() throws SSLException{
-		if (connectModel == ConnectModel.SERVER && sslManager != null) {
-			sslManager.createServerSSLParser(session);
-		} else if (connectModel == ConnectModel.CLIENT && sslManager != null) {
-			sslManager.createClientSSLParser(session);
-		}
-	}
-	
+
 	/**
 	 * 启动同步的上下文连接,
 	 * 		阻塞方法
 	 * @throws IOException IO 异常
 	 */
 	public void start() throws IOException  {
-		if(this.handler==null){
-			this.handler = new SynchronousHandler();
-		}
+		initSSL(session);
 
-		if(connectModel == ConnectModel.CLIENT) {
-			socketChannel.connect(new InetSocketAddress(this.host, this.port));
-			socketChannel.configureBlocking(false);
-		}
+		socketChannel.connect(new InetSocketAddress(this.host, this.port));
+		socketChannel.configureBlocking(false);
 
 		registerSelector();
 
-		initSSL();
-		
-		//如果没有消息分割器默认使用透传分割器
-		if(messageSplitter == null){
-			messageSplitter = new TrasnferSplitter();
-		}
-		
 		if(socketChannel!=null && socketChannel.isOpen()){
 			nioSelector = new NioSelector(selector,this);
 			nioSelector.eventChose();
@@ -190,21 +173,29 @@ public class NioSocket extends SocketContext{
 			}
 		});
 
-		//等待连接完成
-		int waitConnectTime = 0;
-		while(!isConnected()){
-			TEnv.sleep(1);
-			waitConnectTime++;
-			if(waitConnectTime >= readTimeout){
-				break;
-			}
-		}
+		waitConnected(session);
+	}
 
-		//等待 SSL 握手操作完成
-		while(this.session.getSSLParser()!=null &&
-				!this.session.getSSLParser().isHandShakeDone()){
-			TEnv.sleep(1);
-		}
+	protected void acceptStart() throws IOException {
+		final NioSocket nioSocket = this;
+
+		Global.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					initSSL(session);
+
+					registerSelector();
+
+					if (socketChannel != null && socketChannel.isOpen()) {
+						nioSelector = new NioSelector(selector, nioSocket);
+						nioSelector.eventChose();
+					}
+				}catch(IOException e){
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 
 	/**

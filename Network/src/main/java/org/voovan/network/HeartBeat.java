@@ -14,8 +14,8 @@ import java.util.concurrent.LinkedBlockingDeque;
  * Licence: Apache v2 License
  */
 public class HeartBeat {
-    private ByteBuffer ping;
-    private ByteBuffer pong;
+    private byte[] ping;
+    private byte[] pong;
     private boolean isFirstBeat = true;
     private LinkedBlockingDeque<Integer> queue;
     private int fieldCount = 0;
@@ -30,8 +30,8 @@ public class HeartBeat {
      * @return 心跳消息对象
      */
     private HeartBeat(IoSession session, ConnectModel connectModel, String ping, String pong){
-        this.ping = ByteBuffer.wrap(ping.getBytes());
-        this.pong = ByteBuffer.wrap(pong.getBytes());
+        this.ping = ping.getBytes();
+        this.pong = pong.getBytes();
         queue = new LinkedBlockingDeque<Integer>();
 
         if(session.socketContext().getConnectModel() == connectModel){
@@ -51,7 +51,7 @@ public class HeartBeat {
      * 获取 ping 报文
      * @return ping 报文
      */
-    public ByteBuffer getPing() {
+    public byte[] getPing() {
         return ping;
     }
 
@@ -59,7 +59,7 @@ public class HeartBeat {
      * 获取 pong 报文
      * @return pong 报文
      */
-    public ByteBuffer getPong() {
+    public byte[] getPong() {
         return pong;
     }
 
@@ -155,15 +155,17 @@ public class HeartBeat {
             if (byteBuffer.hasRemaining()) {
                 //心跳处理
                 if (heartBeat != null) {
-                    if (TByteBuffer.indexOf(byteBuffer, heartBeat.getPing().array()) == 0) {
-                        if(byteBuffer.remaining() != heartBeat.getPing().limit()) {
-                            TByteBuffer.moveData(byteBuffer, heartBeat.getPing().limit());
+                    if (TByteBuffer.indexOf(byteBuffer, heartBeat.getPing()) == 0) {
+                        if(byteBuffer.remaining() != heartBeat.getPing().length) {
+                            TByteBuffer.moveData(byteBuffer, heartBeat.getPing().length);
                         }
                         heartBeat.getQueue().addLast(1);
+                        return;
                     }
-                    if (TByteBuffer.indexOf(byteBuffer, heartBeat.getPong().array()) == 0) {
-                        if(byteBuffer.remaining() != heartBeat.getPing().limit()) {
-                            TByteBuffer.moveData(byteBuffer, heartBeat.getPong().limit());
+
+                    if (TByteBuffer.indexOf(byteBuffer, heartBeat.getPong()) == 0) {
+                        if(byteBuffer.remaining() != heartBeat.getPing().length) {
+                            TByteBuffer.moveData(byteBuffer, heartBeat.getPong().length);
                         }
                         heartBeat.getQueue().addLast(2);
                     }
@@ -192,12 +194,12 @@ public class HeartBeat {
 
             if (beatType == 1) {
                 session.getMessageLoader().reset();
-                session.send(heartBeat.pong);
+                session.send(ByteBuffer.wrap(heartBeat.pong));
                 heartBeat.fieldCount = 0;
                 return true;
             } else if (beatType == 2) {
                 session.getMessageLoader().reset();
-                session.send(heartBeat.ping);
+                session.send(ByteBuffer.wrap(heartBeat.ping));
                 heartBeat.fieldCount = 0;
                 return true;
             } else {

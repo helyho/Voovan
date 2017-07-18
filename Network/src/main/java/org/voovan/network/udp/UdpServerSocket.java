@@ -134,6 +134,7 @@ public class UdpServerSocket extends SocketContext{
      * 		非阻赛方法
      * @throws IOException  IO 异常
      */
+    @Override
     public void syncStart() throws IOException {
         Global.getThreadPool().execute(new Runnable(){
             public void run() {
@@ -144,6 +145,11 @@ public class UdpServerSocket extends SocketContext{
                 }
             }
         });
+    }
+
+    @Override
+    protected void acceptStart() throws IOException {
+
     }
 
     @Override

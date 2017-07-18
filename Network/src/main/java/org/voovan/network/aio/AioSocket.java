@@ -39,10 +39,10 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 构造函数
-	 * 		默认不会触发空闲事件
+	 *
 	 * @param host   主机地址
 	 * @param port   主机端口
-	 * @param readTimeout 超时时间, 单位: 毫秒
+	 * @param readTimeout 主机超时时间 (milliseconds)
 	 * @throws IOException IO 异常
 	 */
 	public AioSocket(String host, int port, int readTimeout) throws IOException {
@@ -56,7 +56,7 @@ public class AioSocket extends SocketContext {
 	 * @param host   主机地址
 	 * @param port   主机端口
 	 * @param idleInterval	空闲事件触发时间, 单位: 秒
-	 * @param readTimeout 超时时间, 单位: 毫秒
+	 * @param readTimeout 主机超时时间 (milliseconds)
 	 * @throws IOException IO 异常
 	 */
 	public AioSocket(String host, int port, int readTimeout, int idleInterval) throws IOException {
@@ -148,18 +148,6 @@ public class AioSocket extends SocketContext {
 	}
 
 	/**
-	 * 初始化 SSL 环境
-	 * @throws SSLException SSL 异常
-     */
-	private void initSSL() throws SSLException{
-		if (connectModel == ConnectModel.SERVER && sslManager != null) {
-			sslManager.createServerSSLParser(session);
-		} else if (connectModel == ConnectModel.CLIENT && sslManager != null) {
-			sslManager.createClientSSLParser(session);
-		}
-	}
-
-	/**
 	 * 启动上下文连接
 	 *		阻塞方法
 	 * @throws IOException  IO 异常
@@ -182,41 +170,36 @@ public class AioSocket extends SocketContext {
 	 * @exception IOException IO异常
 	 */
 	public void syncStart() throws IOException {
-		if(this.handler==null){
-			this.handler = new SynchronousHandler();
-		}
 
-		initSSL();
+		initSSL(session);
 
-		//如果没有消息分割器默认使用透传分割器
-		if(messageSplitter == null){
-			messageSplitter = new TrasnferSplitter();
-		}
+        try {
+            // 捕获 connect 事件
+            catchConnected();
+        }catch (IOException e){
+            EventTrigger.fireExceptionThread(session,e);
+            return;
+        }
 
-		if (connectModel == ConnectModel.CLIENT) {
-			try {
-				// 捕获 connect 事件
-				catchConnected();
-			}catch (IOException e){
-				EventTrigger.fireExceptionThread(session,e);
-				return;
-			}
-		}
+        //捕获输入事件
+        readByteBuffer = ByteBuffer.allocateDirect(this.getBufferSize());
+        catchRead(readByteBuffer);
 
-		if(isConnected()) {
-			//捕获输入事件
-			readByteBuffer = ByteBuffer.allocateDirect(this.getBufferSize());
-			catchRead(readByteBuffer);
+        //触发 connect 事件
+        EventTrigger.fireConnectThread(session);
 
-			//触发 connect 事件
-			EventTrigger.fireConnectThread(session);
+        waitConnected(session);
+	}
 
-			//等待 SSL 握手操作完成
-			while(this.session.getSSLParser()!=null &&
-					!this.session.getSSLParser().isHandShakeDone()){
-				TEnv.sleep(1);
-			}
-		}
+	protected void acceptStart() throws IOException {
+		initSSL(session);
+
+		//捕获输入事件
+		readByteBuffer = ByteBuffer.allocateDirect(this.getBufferSize());
+		catchRead(readByteBuffer);
+
+		//触发 connect 事件
+		EventTrigger.fireConnectThread(session);
 	}
 
 	/**

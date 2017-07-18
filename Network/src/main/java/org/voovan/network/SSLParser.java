@@ -137,7 +137,7 @@ public class SSLParser {
 	private HandshakeStatus doHandShakeUnwarp() throws IOException{
 			HandshakeStatus handshakeStatus =engine.getHandshakeStatus();
 			SSLEngineResult engineResult = null;
-			do{
+			while(true){
 				clearBuffer();
 				ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
 
@@ -148,16 +148,20 @@ public class SSLParser {
 					handshakeStatus = runDelegatedTasks();
 					byteBufferChannel.compact();
 
-					if(engineResult!=null && engineResult.getStatus()==Status.OK){
-						if (byteBuffer.remaining() == 0) {
-							TEnv.sleep(1);
-							break;
-						}
+					if(engineResult!=null && engineResult.getStatus()==Status.OK && byteBuffer.remaining() == 0){
+						break;
 					}
+
+					if(engineResult!=null &&
+							(engineResult.getStatus() == Status.BUFFER_OVERFLOW || engineResult.getStatus() == Status.CLOSED)
+					){
+						break;
+					}
+
 				} else {
 					TEnv.sleep(1);
 				}
-			}while(true);
+			};
 			return handshakeStatus;
 	}
 	
@@ -213,23 +217,38 @@ public class SSLParser {
 	 * 读取SSL消息到缓冲区
 	 * @param session Socket 会话对象
 	 * @param netByteBufferChannel Socket SSL 加密后的数据
-	 * @return 接收数据的ByteBuffer
+	 * @param appByteBufferChannel Socket SSL 解密后的数据
+	 * @return 接收数据大小
 	 * @throws IOException  IO异常
 	 */
-	public ByteBuffer unWarpByteBufferChannel(IoSession session, ByteBufferChannel netByteBufferChannel) throws IOException{
+	public int unWarpByteBufferChannel(IoSession session, ByteBufferChannel netByteBufferChannel, ByteBufferChannel appByteBufferChannel) throws IOException{
 		int readSize = 0;
-		ByteBuffer appByteBuffer = this.buildAppDataBuffer();
+
 		if(session.isConnected() && netByteBufferChannel.size()>0){
 			SSLEngineResult engineResult = null;
-			appByteBuffer.clear();
-			ByteBuffer byteBuffer = netByteBufferChannel.getByteBuffer();
 
-			unwarpData(byteBuffer, appByteBuffer);
-			netByteBufferChannel.compact();
+			while(true) {
+				appData.clear();
+				ByteBuffer byteBuffer = netByteBufferChannel.getByteBuffer();
 
-			appByteBuffer.flip();
+				engineResult = unwarpData(byteBuffer, appData);
+				netByteBufferChannel.compact();
+
+				appData.flip();
+				appByteBufferChannel.writeEnd(appData);
+
+				if(engineResult!=null && engineResult.getStatus()==Status.OK  && byteBuffer.remaining() == 0){
+					break;
+				}
+
+				if(engineResult!=null &&
+						(engineResult.getStatus() == Status.BUFFER_OVERFLOW || engineResult.getStatus() == Status.CLOSED)
+				){
+					break;
+				}
+			}
 		}
-		return appByteBuffer;
+		return readSize;
 	}
 
 	public void release(){

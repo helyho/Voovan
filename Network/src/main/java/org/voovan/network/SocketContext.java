@@ -1,7 +1,11 @@
 package org.voovan.network;
 
+import org.voovan.network.handler.SynchronousHandler;
+import org.voovan.network.messagesplitter.TrasnferSplitter;
 import org.voovan.tools.Chain;
+import org.voovan.tools.TEnv;
 
+import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.SocketOption;
 
@@ -36,11 +40,7 @@ public abstract class SocketContext {
 	 * @param readTimeout 超时时间
      */
 	public SocketContext(String host,int port,int readTimeout) {
-		this.host = host;
-		this.port = port;
-		this.readTimeout = readTimeout;
-		connectModel = null;
-		filterChain = new Chain<IoFilter>();
+		init(host, port, readTimeout, this.idleInterval);
 	}
 
 	/**
@@ -51,12 +51,26 @@ public abstract class SocketContext {
 	 * @param readTimeout 超时时间
 	 */
 	public SocketContext(String host,int port,int readTimeout, int idleInterval) {
+		init(host, port, readTimeout, idleInterval);
+	}
+
+	private void init(String host,int port,int readTimeout, int idleInterval){
 		this.host = host;
 		this.port = port;
 		this.readTimeout = readTimeout;
 		this.idleInterval = idleInterval;
 		connectModel = null;
 		filterChain = new Chain<IoFilter>();
+		this.messageSplitter = new TrasnferSplitter();
+		this.handler = new SynchronousHandler();
+	}
+
+	protected void initSSL(IoSession session) throws SSLException {
+		if (sslManager != null && connectModel == ConnectModel.SERVER) {
+			sslManager.createServerSSLParser(session);
+		} else if (sslManager != null && connectModel == ConnectModel.CLIENT) {
+			sslManager.createClientSSLParser(session);
+		}
 	}
 
 	/**
@@ -224,6 +238,33 @@ public abstract class SocketContext {
 	 * @exception IOException IO异常
 	 */
 	public abstract void syncStart() throws IOException;
+
+	/**
+	 * 用于针对 Accept 进来的 Socket 连接的启动
+	 * @throws IOException
+	 */
+	protected abstract void acceptStart() throws IOException;
+
+	/**
+	 * 等待连接完成
+	 * @param session socket 会话对象
+	 */
+	protected void waitConnected(IoSession session){
+		int waitConnectTime = 0;
+		while(!isConnected()){
+			TEnv.sleep(1);
+			waitConnectTime++;
+			if(waitConnectTime >= readTimeout){
+				break;
+			}
+		}
+
+		//等待 SSL 握手操作完成
+		while(session.getSSLParser()!=null &&
+				!session.getSSLParser().isHandShakeDone()){
+			TEnv.sleep(1);
+		}
+	}
 
 	/**
 	 * 上下文连接是否打开

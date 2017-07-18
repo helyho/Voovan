@@ -28,10 +28,10 @@ public class AioServerSocket extends SocketContext{
 
 	/**
 	 * 构造函数
-	 * 		默认不会触发空闲事件
+	 *
 	 * @param host    主机地址
 	 * @param port    主机端口
-	 * @param readTimeout 超时时间, 单位: 毫秒
+	 * @param readTimeout 超时时间
 	 * @throws IOException IO 异常
 	 */
 	public AioServerSocket(String host,int port,int readTimeout) throws IOException{
@@ -44,7 +44,7 @@ public class AioServerSocket extends SocketContext{
 	 * @param host    主机地址
 	 * @param port    主机端口
 	 * @param idleInterval	空闲事件触发时间, 单位: 秒
-	 * @param readTimeout 超时时间, 单位: 毫秒
+	 * @param readTimeout 超时时间
 	 * @throws IOException IO 异常
 	 */
 	public AioServerSocket(String host,int port,int readTimeout, int idleInterval) throws IOException{
@@ -108,10 +108,16 @@ public class AioServerSocket extends SocketContext{
 	 *  	非阻塞方法
 	 * @throws IOException IO异常
 	 */
+	@Override
 	public void syncStart() throws IOException {
 		InetSocketAddress socketAddress = new InetSocketAddress(host, port);
 		serverSocketChannel.bind(socketAddress, 1000);
 		catchAccept();
+	}
+
+	@Override
+	protected void acceptStart() throws IOException {
+		throw new RuntimeException("Unsupport method");
 	}
 
 	@Override

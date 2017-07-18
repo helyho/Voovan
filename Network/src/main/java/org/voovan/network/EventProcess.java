@@ -325,7 +325,7 @@ public class EventProcess {
 		try {
 			if (eventName == EventName.ON_ACCEPTED) {
 				SocketContext socketContext = (SocketContext)event.getSession().socketContext();
-				socketContext.syncStart();
+				socketContext.acceptStart();
 			} else if (eventName == EventName.ON_CONNECT) {
 				EventProcess.onConnect(event);
 			} else if (eventName == EventName.ON_DISCONNECT) {
