@@ -1,7 +1,6 @@
 package org.voovan.network;
 
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TByteBuffer;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -73,74 +72,6 @@ public class HeartBeat {
         return fieldCount;
     }
 
-//    /**
-//     * 判断会话中是否这个作为消息开始
-//     * @param msg 消息
-//     * @return true: 是, false: 否
-//     */
-//    private boolean isHeadOfMsg(IoSession session, ByteBuffer msg){
-//        ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
-//
-//        if( byteBufferChannel.size() >= msg.capacity()){
-//            if(byteBufferChannel.indexOf(msg.array()) == 0) {
-//                //收缩通道内的数据
-//                byteBufferChannel.shrink(msg.capacity());
-//                try {
-//                    return true;
-//                }finally {
-//                    if(byteBufferChannel.size()!=0) {
-//                        while (isHeadOfMsg(session, msg)) {
-//                            continue;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//        return false;
-//    }
-//
-//    /**
-//     * 检测是否是 Pong 消息
-//     * @return true: 是, false: 否
-//     */
-//    public boolean isPing(IoSession session){
-//        return isHeadOfMsg(session, ping);
-//    }
-//
-//    /**
-//     * 检测是否是 Pong 消息
-//     * @return true: 是, false: 否
-//     */
-//    public boolean isPong(IoSession session){
-//        return isHeadOfMsg(session, pong);
-//    }
-//
-//    /**
-//     * 一次心跳动作
-//     */
-//    public static boolean beat_old(IoSession session){
-//
-//        HeartBeat heartBeat = session.getHeartBeat();
-//
-//        if(heartBeat.isFirstBeat){
-//            heartBeat.isFirstBeat=false;
-//            return true;
-//        }
-//        //收到 PING 发送 PONG
-//        if(heartBeat.isPing(session)){
-//            session.getMessageLoader().reset();
-//            session.send(heartBeat.pong);
-//            return true;
-//        } else if(heartBeat.isPong(session)){
-//            session.getMessageLoader().reset();
-//            session.send(heartBeat.ping);
-//            return true;
-//        } else {
-//            return false;
-//        }
-//    }
-
     /**
      * 截断心跳消息
      * @param session 会话对象
@@ -152,21 +83,26 @@ public class HeartBeat {
         }
 
         HeartBeat heartBeat = session.getHeartBeat();
-        if(heartBeat!=null) {
-            if (byteBufferChannel.size() > 0) {
-                //心跳处理
-                if (heartBeat != null) {
-                    if (byteBufferChannel.indexOf(heartBeat.getPing()) == 0) {
-                        byteBufferChannel.shrink(heartBeat.getPing().length);
-                        heartBeat.getQueue().addLast(1);
-                        return;
-                    }
+        if (heartBeat != null && byteBufferChannel.size() > 0) {
+            //心跳处理
+            if (heartBeat != null) {
+                int pingPosition = byteBufferChannel.indexOf(heartBeat.getPing());
+                if (pingPosition >= 0) {
+                    byteBufferChannel.shrink(pingPosition, heartBeat.getPing().length);
+                    heartBeat.getQueue().addLast(1);
+                    return;
+                }
 
-                    if (byteBufferChannel.indexOf(heartBeat.getPong()) == 0) {
-                        byteBufferChannel.shrink(heartBeat.getPong().length);
-                        heartBeat.getQueue().addLast(1);
-                        return;
-                    }
+                int pongPosition = byteBufferChannel.indexOf(heartBeat.getPong());
+                if (pongPosition >= 0) {
+                    byteBufferChannel.shrink(pongPosition, heartBeat.getPing().length);
+                    heartBeat.getQueue().addLast(2);
+                    return;
+                }
+
+                if (byteBufferChannel.content().contains(new String(heartBeat.getPing())) ||
+                        byteBufferChannel.content().contains(new String(heartBeat.getPong()))) {
+                    System.out.println("Omit HeartBeat Message" + byteBufferChannel.content());
                 }
             }
         }
@@ -184,6 +120,10 @@ public class HeartBeat {
         //收个心跳返回成功
         if(heartBeat.isFirstBeat){
             heartBeat.isFirstBeat=false;
+            return true;
+        }
+
+        if(session.getState().isReceive() || session.getState().isSend()){
             return true;
         }
 

@@ -242,7 +242,9 @@ public class SSLParser {
 				}
 
 				if(engineResult!=null &&
-						(engineResult.getStatus() == Status.BUFFER_OVERFLOW || engineResult.getStatus() == Status.CLOSED)
+						(engineResult.getStatus() == Status.BUFFER_OVERFLOW ||
+								engineResult.getStatus() == Status.BUFFER_UNDERFLOW  ||
+								engineResult.getStatus() == Status.CLOSED)
 				){
 					break;
 				}

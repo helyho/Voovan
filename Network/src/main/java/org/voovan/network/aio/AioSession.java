@@ -2,7 +2,7 @@ package org.voovan.network.aio;
 
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
-import org.voovan.tools.TObject;
+import org.voovan.network.exception.RestartException;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -172,8 +172,8 @@ public class AioSession extends IoSession<AioSocket>  {
 	 * 重连当前连接
 	 * @throws IOException IO 异常
 	 */
-	public void reStart() throws IOException {
-		socketContext().reStart();
+	public void restart() throws IOException, RestartException {
+		socketContext().restart();
 	}
 
 	@Override

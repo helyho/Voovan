@@ -164,7 +164,7 @@ public class Body {
 	public byte[] getBodyBytes(){
 		if(type == BodyType.FILE){
 			return TFile.loadFile(bodyFile);
-		}else {
+		} else {
 			return byteBufferChannel.array();
 		}
 	}

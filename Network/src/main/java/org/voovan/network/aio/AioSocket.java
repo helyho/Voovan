@@ -4,14 +4,12 @@ import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
+import org.voovan.network.exception.RestartException;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.network.handler.SynchronousHandler;
-import org.voovan.network.messagesplitter.TrasnferSplitter;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
-import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketOption;
@@ -206,9 +204,14 @@ public class AioSocket extends SocketContext {
 	 * 重连当前连接
 	 * @throws IOException IO 异常
 	 */
-	public void reStart() throws IOException {
-		init();
-		this.start();
+	public AioSocket restart() throws IOException, RestartException {
+		if(this.connectModel == ConnectModel.CLIENT) {
+			init();
+			this.start();
+			return this;
+		}else{
+			throw new RestartException("Can't invoke reStart method in server mode");
+		}
 	}
 
 	/**
@@ -271,11 +274,15 @@ public class AioSocket extends SocketContext {
 					 socketChannel.close();
 
 					 //如果有未读数据等待数据处理完成
-					 session.wait(this.getReadTimeout());
+					/**
+	 * 从缓冲区头部读取数据
+	 * @param dst 需要读入数据的缓冲区ByteBuffer 对象
+	 * @return 读出的数据大小
+	 */	 session.wait(this.getReadTimeout());
 
-					 readCompletionHandler.release();
-					 session.getByteBufferChannel().release();
-					 TByteBuffer.release(readByteBuffer);
+//					 readCompletionHandler.release();
+//					 session.getByteBufferChannel().release();
+//					 TByteBuffer.release(readByteBuffer);
 					 if(session.getSSLParser()!=null){
 					 	 session.getSSLParser().release();
 					 }
