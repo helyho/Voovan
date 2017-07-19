@@ -145,12 +145,14 @@ public class TByteBuffer {
 
             if(!byteBuffer.hasArray()) {
                 long address = TReflect.getFieldValue(byteBuffer, "address");
-                long startAddress = address + byteBuffer.position();
-                long targetAddress = address + position;
-                if(address > targetAddress) {
-                    targetAddress = address;
+                if(address!=0) {
+                    long startAddress = address + byteBuffer.position();
+                    long targetAddress = address + position;
+                    if (address > targetAddress) {
+                        targetAddress = address;
+                    }
+                    TUnsafe.getUnsafe().copyMemory(startAddress, targetAddress, byteBuffer.remaining());
                 }
-                TUnsafe.getUnsafe().copyMemory(startAddress, targetAddress, byteBuffer.remaining());
             }else{
                 byte[] hb = byteBuffer.array();
                 System.arraycopy(hb, byteBuffer.position(), hb, position, byteBuffer.remaining());

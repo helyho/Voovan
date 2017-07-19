@@ -5,11 +5,8 @@ import org.voovan.network.HeartBeat;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.udp.UdpSocket;
-import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
-
-import java.util.Date;
 
 public class ClientHandlerTest implements IoHandler {
 
@@ -65,7 +62,7 @@ public class ClientHandlerTest implements IoHandler {
 			}
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-			System.out.println("HB==>" + heartBeat.beat(session) );
+			System.out.println("HB==>" + heartBeat.beat(session));
 			if (heartBeat.getFailedCount() > 5) {
 				session.close();
 			}

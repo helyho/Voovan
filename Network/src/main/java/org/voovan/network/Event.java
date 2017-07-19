@@ -1,7 +1,5 @@
 package org.voovan.network;
 
-import org.voovan.tools.TObject;
-
 /**
  * 事件对象
  * 

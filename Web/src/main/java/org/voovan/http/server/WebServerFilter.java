@@ -7,7 +7,6 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 

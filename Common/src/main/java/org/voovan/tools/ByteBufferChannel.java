@@ -29,7 +29,7 @@ public class ByteBufferChannel {
 	private Unsafe unsafe = TUnsafe.getUnsafe();
 	private ByteBuffer byteBuffer;
 	private int size;
-	private ReentrantLock lock ;
+	private ReentrantLock lock;
 
 	private Deallocator deallocator;
 	private Cleaner cleaner;
@@ -102,7 +102,7 @@ public class ByteBufferChannel {
 	/**
 	 * 测试是否被释放
 	 */
-	private void tryRelease(){
+	private void checkRelease(){
 		if(isReleased()){
 			throw new MemoryReleasedException("ByteBufferChannel is released.");
 		}
@@ -151,6 +151,8 @@ public class ByteBufferChannel {
 	 * 重新设置当前内存地址
 	 */
 	private void resetAddress(){
+		checkRelease();
+
 		lock.lock();
 		try {
 			this.address = TReflect.getFieldValue(byteBuffer, "address");
@@ -187,6 +189,7 @@ public class ByteBufferChannel {
 		if(isReleased()){
 		    return -1;
 		}
+
 		lock.lock();
 		try {
 			return byteBuffer.capacity();
@@ -215,7 +218,7 @@ public class ByteBufferChannel {
 	 * @return 缓冲区有效字节数组. null: 已释放
 	 */
 	public byte[] array(){
-		tryRelease();
+		checkRelease();
 
 		if(size()==0){
 			return new byte[]{};
@@ -225,7 +228,7 @@ public class ByteBufferChannel {
 		lock.lock();
 		try {
 			byte[] temp = new byte[size];
-			unsafe.copyMemory(null, address, temp, Unsafe.ARRAY_BYTE_BASE_OFFSET, size);
+			get(temp, 0, size);
 			return temp;
 		} finally {
 			lock.unlock();
@@ -250,20 +253,35 @@ public class ByteBufferChannel {
 	}
 
 	/**
-	 * 收缩通道内的数据
-	 *
-	 * @param shrinkSize 收缩的偏移量: 大于0: 从头部向尾部收缩数据, 小于0: 从尾部向头部收缩数据
-	 * @return true: 成功, false: 失败
+	 * 从某一个偏移量位置开始收缩数据
+	 * @param shrinkPosition      收缩的偏移量位置
+	 * @param shrinkSize  收缩的数据大小, 大于0: 向尾部收缩, 小于0: 向头部收缩
+ 	 * @return true: 成功, false: 失败
 	 */
-	public boolean shrink(int shrinkSize){
-		shrinkSize = shrinkSize*-1;
+	public boolean shrink(int shrinkPosition, int shrinkSize){
 
 		if(isReleased()){
-		    return false;
+			return false;
 		}
 
 		if(size()==0){
 			return true;
+		}
+
+		if(shrinkSize==0){
+			return true;
+		}
+
+		if(shrinkPosition < 0){
+			return false;
+		}
+
+		if(shrinkSize < 0 && shrinkPosition + shrinkSize < 0){
+			shrinkSize = shrinkPosition * -1;
+		}
+
+		if(shrinkSize > 0 && shrinkPosition + shrinkSize > size()){
+			shrinkSize = size() - shrinkPosition;
 		}
 
 		if(Math.abs(shrinkSize) > size){
@@ -272,29 +290,45 @@ public class ByteBufferChannel {
 
 		lock.lock();
 		try{
-            if(shrinkSize>0){
-                size = size - shrinkSize;
-                byteBuffer.limit(size);
+            int position = byteBuffer.position();
+			byteBuffer.position(shrinkPosition);
+			if(shrinkSize > 0){
+				byteBuffer.position(shrinkPosition + shrinkSize);
+			}
+            if (TByteBuffer.moveData(byteBuffer, Math.abs(shrinkSize)*-1)) {
+				if(position > shrinkPosition){
+					position = position + shrinkPosition;
+				}
+                byteBuffer.position(position);
+				size = size - Math.abs(shrinkSize);
                 return true;
-            }else if(shrinkSize < 0 ){
-                int position = byteBuffer.position();
-                byteBuffer.position(shrinkSize * -1);
-                if (TByteBuffer.moveData(byteBuffer, shrinkSize)) {
-                    size = size + shrinkSize;
-                    byteBuffer.limit(size);
-
-                    int newPosition = position+shrinkSize;
-                    newPosition = newPosition < 0 ? 0 : newPosition;
-                    byteBuffer.position(newPosition);
-                    return true;
-                }else{
-                    //收缩失败了,重置原 position 的位置
-                    byteBuffer.position(position);
-                    return false;
-                }
-            } else{
-                return true;
+            }else{
+                //收缩失败了,重置原 position 的位置
+                byteBuffer.position(position);
+                return false;
             }
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	/**
+	 * 收缩通道内的数据
+	 *
+	 * @param shrinkSize 收缩的偏移量: 大于0: 从头部向尾部收缩数据, 小于0: 从尾部向头部收缩数据
+	 * @return true: 成功, false: 失败
+	 */
+	public boolean shrink(int shrinkSize){
+
+		lock.lock();
+
+		try{
+            if(shrinkSize==0){
+                return true;
+            }else if(shrinkSize > 0)
+                return shrink(0, shrinkSize);
+            else
+                return shrink(size, shrinkSize);
 		} finally {
 			lock.unlock();
 		}
@@ -302,13 +336,13 @@ public class ByteBufferChannel {
 
 
 	/**
-	 * 获取某个偏移量位置的 byte 数据
+	 * 获取某个位置的 byte 数据
 	 *     该操作不会导致通道内的数据发生变化
-	 * @param offset 偏移量
+	 * @param position 位置
 	 * @return byte 数据
 	 */
-	public byte get(int offset) throws IndexOutOfBoundsException {
-		tryRelease();
+	public byte get(int position) throws IndexOutOfBoundsException {
+		checkRelease();
 
 		if(size()==0){
 			throw new IndexOutOfBoundsException();
@@ -316,8 +350,8 @@ public class ByteBufferChannel {
 
 		lock.lock();
 		try{
-            if(offset >= 0 && offset <= size) {
-                    byte result = unsafe.getByte(address + offset);
+            if(position >= 0 && position <= size) {
+                    byte result = unsafe.getByte(address + position);
                     return result;
             } else {
                 throw new IndexOutOfBoundsException();
@@ -328,15 +362,15 @@ public class ByteBufferChannel {
 	}
 
 	/**
-	 * 获取某个偏移量位置的 byte 数据数组
+	 * 获取某个位置的 byte 数据数组
 	 *     该操作不会导致通道内的数据发生变化
 	 * @param dst     目标数组
-	 * @param offset  偏移量
+	 * @param position  位置
 	 * @param length  长度
 	 * @return 获取数据的长度
 	 */
-	public int get(byte[] dst, int offset, int length) throws IndexOutOfBoundsException {
-		tryRelease();
+	public int get(byte[] dst, int position, int length) throws IndexOutOfBoundsException {
+		checkRelease();
 
 		if(size()==0){
 			return 0;
@@ -344,9 +378,9 @@ public class ByteBufferChannel {
 
 		lock.lock();
 		try {
-			int availableCount = size() - offset;
+			int availableCount = size() - position;
 
-            if(offset >= 0 &&  availableCount> 0) {
+            if(position >= 0 &&  availableCount> 0) {
 
                 int arrSize = availableCount;
 
@@ -354,7 +388,7 @@ public class ByteBufferChannel {
                     arrSize = length;
                 }
 
-                unsafe.copyMemory(null, address + offset, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
+                unsafe.copyMemory(null, address + position, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
 
                 return arrSize;
 
@@ -373,8 +407,7 @@ public class ByteBufferChannel {
 	 * @return 获取数据的长度
 	 */
 	public int get(byte[] dst){
-		tryRelease();
-
+		checkRelease();
 		return get(dst, 0, dst.length);
 	}
 
@@ -390,7 +423,7 @@ public class ByteBufferChannel {
 	 * @return ByteBuffer 对象
 	 */
 	public ByteBuffer getByteBuffer(){
-		tryRelease();
+		checkRelease();
 
 		//这里上锁,在compact()方法解锁
 		lock.lock();
@@ -495,6 +528,8 @@ public class ByteBufferChannel {
 	 * @return true:成功, false:失败
 	 */
 	public boolean reallocate(int newSize){
+		checkRelease();
+
 		if (TByteBuffer.reallocate(byteBuffer, newSize)) {
 			resetAddress();
 			return true;
@@ -504,12 +539,67 @@ public class ByteBufferChannel {
 	}
 
 	/**
+	 * 缓冲区某个位置写入数据
+	 * @param writePosition 缓冲取中的位置
+	 * @param src 需要写入的缓冲区 ByteBuffer 对象
+	 * @return 读出的数据大小
+	 */
+	public int write(int writePosition, ByteBuffer src) {
+		checkRelease();
+
+		if(src.remaining() == 0){
+			return 0;
+		}
+
+		if (src == null) {
+			return -1;
+		}
+
+		lock.lock();
+		try {
+
+			int writeSize = src.limit() - src.position();
+
+			if (writeSize > 0) {
+				//是否扩容
+				if (available() < writeSize) {
+					int newSize = byteBuffer.capacity() + writeSize;
+					reallocate(newSize);
+				}
+
+				int position = byteBuffer.position();
+				byteBuffer.position(writePosition);
+
+				//内容移动到 writeSize 之后
+				if (TByteBuffer.moveData(byteBuffer, writeSize)) {
+
+					byteBuffer.position(writePosition);
+					byteBuffer.put(src);
+
+					size = size + writeSize;
+					byteBuffer.limit(size);
+
+					if(position > writePosition) {
+						position = position + writeSize;
+					}
+					byteBuffer.position(position);
+				}
+			}
+
+			return writeSize;
+
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	/**
 	 * 缓冲区头部写入
 	 * @param src 需要写入的缓冲区 ByteBuffer 对象
 	 * @return 写入的数据大小
 	 */
 	public int writeEnd(ByteBuffer src) {
-		tryRelease();
+		checkRelease();
 
 		if(src.remaining() == 0){
 			return 0;
@@ -532,7 +622,7 @@ public class ByteBufferChannel {
 					reallocate(newSize);
 				}
 
-			    int position = byteBuffer.position();
+				int position = byteBuffer.position();
 				byteBuffer.position(size);
 
 				int old = byteBuffer.limit();
@@ -559,14 +649,14 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int writeHead(ByteBuffer src) {
-		tryRelease();
+		checkRelease();
 
 		if(src.remaining() == 0){
 			return 0;
 		}
 
 		if (src == null) {
-			 return -1;
+			return -1;
 		}
 
 		lock.lock();
@@ -614,7 +704,7 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int readHead(ByteBuffer dst) {
-		tryRelease();
+		checkRelease();
 
 		if(dst.remaining() == 0){
 			return 0;
@@ -625,7 +715,7 @@ public class ByteBufferChannel {
 		}
 
 		lock.lock();
-	 	try {
+		try {
 
 			int readSize = 0;
 
@@ -673,7 +763,7 @@ public class ByteBufferChannel {
 	 * @return 读出的数据大小
 	 */
 	public int readEnd(ByteBuffer dst) {
-		tryRelease();
+		checkRelease();
 
 		if(dst.remaining() == 0){
 			return 0;
@@ -718,13 +808,73 @@ public class ByteBufferChannel {
 	}
 
 	/**
+	 * 从缓冲区某个位置开始读取数据
+	 * @param readPosition 缓冲取中的位置
+	 * @param dst 需要读入数据的缓冲区ByteBuffer 对象
+	 * @return 读出的数据大小
+	 */
+	public int read(int readPosition, ByteBuffer dst) {
+		checkRelease();
+
+		if(dst.remaining() == 0){
+			return 0;
+		}
+
+		if(dst==null){
+			return -1;
+		}
+
+		lock.lock();
+		try {
+
+			int readSize = 0;
+
+			//确定读取大小
+			if (dst.remaining() > size - readPosition) {
+				readSize = size - readPosition;
+			} else {
+				readSize = dst.remaining();
+			}
+
+			if (readSize != 0) {
+				int position = byteBuffer.position();
+				byteBuffer.position(readPosition);
+
+				for (int i = 0; i < readSize; i++) {
+					dst.put(byteBuffer.get());
+				}
+
+				if (TByteBuffer.moveData(byteBuffer, (readSize*-1))) {
+					size = size - readSize;
+					byteBuffer.limit(size);
+
+					if(position > readPosition){
+						position = position + (readSize*-1);
+					}
+
+					byteBuffer.position(position);
+				} else {
+					dst.reset();
+				}
+			}
+
+			dst.flip();
+			return readSize;
+
+		} finally {
+			lock.unlock();
+		}
+
+	}
+
+	/**
 	 * 查找特定 byte 标识的位置
 	 *     byte 标识数组第一个字节的索引位置
 	 * @param mark byte 标识数组
 	 * @return 第一个字节的索引位置
 	 */
 	public int indexOf(byte[] mark){
-		tryRelease();
+		checkRelease();
 
 		if(size() == 0){
 			return -1;
@@ -732,10 +882,10 @@ public class ByteBufferChannel {
 
 		int index = -1;
 		byte[] tmp = new byte[mark.length];
-		for(int offset = 0;offset <= size() - mark.length; offset++){
-            get(tmp, offset, tmp.length);
+		for(int position = 0; position <= size() - mark.length; position++){
+            get(tmp, position, tmp.length);
             if(Arrays.equals(mark, tmp)){
-            	index = offset;
+            	index = position;
                 break;
             }
 		}
@@ -748,7 +898,7 @@ public class ByteBufferChannel {
 	 * @return 字符串
 	 */
 	public String readLine() {
-		tryRelease();
+		checkRelease();
 
 		if(size() == 0){
 			return null;
@@ -791,7 +941,7 @@ public class ByteBufferChannel {
 	 * @return 字节数组
 	 */
 	public ByteBuffer readWithSplit(byte[] splitByte) {
-		tryRelease();
+		checkRelease();
 
 		if(size() == 0){
 			return ByteBuffer.allocateDirect(0);
@@ -825,7 +975,7 @@ public class ByteBufferChannel {
 	}
 
 	public void saveToFile(String filePath, long length) throws IOException{
-		tryRelease();
+		checkRelease();
 
 		if(size() == 0){
 			return;
@@ -867,7 +1017,7 @@ public class ByteBufferChannel {
 
 	@Override
 	public String toString(){
-		return "{size="+size+", released="+(address==0)+"}";
+		return "{size="+size+", capacity="+capacity()+", released="+(address==0)+"}";
 	}
 
 	/**

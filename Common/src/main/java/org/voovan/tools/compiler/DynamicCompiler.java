@@ -1,6 +1,5 @@
 package org.voovan.tools.compiler;
 
-import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import javax.tools.*;

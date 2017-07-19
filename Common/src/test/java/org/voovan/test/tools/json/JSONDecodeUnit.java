@@ -1,7 +1,6 @@
 package org.voovan.test.tools.json;
 
 import junit.framework.TestCase;
-import org.voovan.tools.TObject;
 import org.voovan.tools.json.JSONDecode;
 
 import java.util.List;

@@ -2,20 +2,15 @@ package org.voovan.network.nio;
 
 import org.voovan.Global;
 import org.voovan.network.ConnectModel;
-import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
+import org.voovan.network.exception.RestartException;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.network.handler.SynchronousHandler;
-import org.voovan.network.messagesplitter.TrasnferSplitter;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
-import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketOption;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -202,9 +197,14 @@ public class NioSocket extends SocketContext{
 	 * 重连当前连接
 	 * @throws IOException IO 异常
 	 */
-	public void reStart() throws IOException {
-		init();
-		this.start();
+	public NioSocket restart() throws IOException, RestartException {
+		if(this.connectModel == ConnectModel.CLIENT) {
+			init();
+			this.start();
+			return this;
+		}else{
+			throw new RestartException("Can't invoke reStart method in server mode");
+		}
 	}
 
 	@Override

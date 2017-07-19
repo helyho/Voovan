@@ -9,7 +9,6 @@ import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;

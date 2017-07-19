@@ -6,7 +6,6 @@ import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -31,16 +30,63 @@ public abstract class IoSession<T extends SocketContext> {
 	private Map<Object, Object> attributes;
 	private SSLParser sslParser;
 
-	private State state;
 	private MessageLoader messageLoader;
 	private ByteBufferChannel byteBufferChannel;
 	private T socketContext;
-	private long lastReciveTime = -1;
+	private long lastIdleTime = -1;
 	private Timer checkIdleTimer;
 	private HeartBeat heartBeat;
+	private State state;
 
-	public enum State {
-		INIT, CONNECT, RECEIVE, SEND, IDLE, CLOSE
+	/**
+	 * 会话状态管理
+	 */
+	public class State {
+		private boolean init = true;
+		private boolean connect = false;
+		private boolean receive = false;
+		private boolean send = false;
+		private boolean close = false;
+
+		public boolean isInit() {
+			return init;
+		}
+
+		public void setInit(boolean init) {
+			this.init = init;
+		}
+
+		public boolean isConnect() {
+			return connect;
+		}
+
+		public void setConnect(boolean connect) {
+			this.connect = connect;
+		}
+
+		public boolean isReceive() {
+			return receive;
+		}
+
+		public void setReceive(boolean receive) {
+			this.receive = receive;
+		}
+
+		public boolean isSend() {
+			return send;
+		}
+
+		public void setSend(boolean send) {
+			this.send = send;
+		}
+
+		public boolean isClose() {
+			return close;
+		}
+
+		public void setClose(boolean close) {
+			this.close = close;
+		}
 	}
 
 	/**
@@ -50,7 +96,7 @@ public abstract class IoSession<T extends SocketContext> {
 	public IoSession(T socketContext){
 		attributes = new ConcurrentHashMap<Object, Object>();
 		this.socketContext = socketContext;
-		this.state = State.INIT;
+		this.state = new State();
 		byteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
 		messageLoader = new MessageLoader(this);
 		checkIdle();
@@ -66,6 +112,10 @@ public abstract class IoSession<T extends SocketContext> {
 
 	protected void setHeartBeat(HeartBeat heartBeat) {
 		this.heartBeat = heartBeat;
+	}
+
+	public State getState() {
+		return state;
 	}
 
 	/**
@@ -89,15 +139,15 @@ public abstract class IoSession<T extends SocketContext> {
 					boolean isConnect = false;
 
 					//初始化状态
-					if(session.getState() == State.INIT ||
-							session.getState() == State.CONNECT ||
-							session.getState() == State.RECEIVE ||
-							session.getState() == State.SEND){
+					if(session.state.isInit() ||
+							session.state.isConnect() ||
+							session.state.isReceive() ||
+							session.state.isSend() ){
 						return;
 					}
 
 					//检测会话状态
-					if(session.getState() == State.CLOSE){
+					if(session.state.isClose()){
 						session.cancelIdle();
 						return;
 					}
@@ -120,10 +170,10 @@ public abstract class IoSession<T extends SocketContext> {
 					}
 
 					//触发空闲事件
-					long timeDiff = System.currentTimeMillis() - lastReciveTime;
+					long timeDiff = System.currentTimeMillis() - lastIdleTime;
 					if (timeDiff >= socketContext.getIdleInterval() * 1000) {
 						EventTrigger.fireIdleThread(session);
-						lastReciveTime = System.currentTimeMillis();
+						lastIdleTime = System.currentTimeMillis();
 					}
 
 				}
@@ -136,29 +186,14 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	public void cancelIdle(){
 		if(checkIdleTimer!=null) {
+			if(heartBeat!=null){
+				heartBeat = null;
+			}
 			checkIdleTimer.cancel();
 			checkIdleTimer = null;
 		}
 	}
 
-	/**
-	 * 获取会话状态
-	 * @return IoSession.State 枚举
-	 */
-	public State getState() {
-		return state;
-	}
-
-	/**
-	 * 设置当前会话状态
-	 * @param state IoSession.State 枚举
-	 */
-	protected void setState(State state) {
-		if(state == State.IDLE) {
-			lastReciveTime = System.currentTimeMillis();
-		}
-		this.state = state;
-	}
 
 	/**
 	 * 获取空闲事件时间
@@ -374,11 +409,6 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @param useSpliter true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
 	 */
 	public void enabledMessageSpliter(boolean useSpliter) {
-		if(useSpliter){
-			this.setState(State.IDLE);
-		}else{
-			this.setState(State.RECEIVE);
-		}
 		messageLoader.setUseSpliter(useSpliter);
 	}
 
@@ -459,7 +489,7 @@ public abstract class IoSession<T extends SocketContext> {
 	public boolean wait(int waitTime){
 		int count= 0;
 		messageLoader.close();
-		while(state == State.RECEIVE){
+		while(state.isReceive()){
 			TEnv.sleep(1);
 			count ++;
 
@@ -467,7 +497,6 @@ public abstract class IoSession<T extends SocketContext> {
 				return false;
 			}
 		}
-
 
 		return true;
 	}

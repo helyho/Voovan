@@ -17,7 +17,6 @@ import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 

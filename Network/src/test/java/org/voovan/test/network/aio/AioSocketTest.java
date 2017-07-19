@@ -17,8 +17,8 @@ public class AioSocketTest {
 		Logger.simple("==================================Terminate==================================");
 
 		//重连操作
-		socket.reStart();
+		socket.restart();
 		Logger.simple("==================================Terminate==================================");
-		socket.getSession().reStart();
+		socket.getSession().restart();
 	}
 }
