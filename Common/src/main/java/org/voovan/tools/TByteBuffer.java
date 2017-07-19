@@ -136,10 +136,14 @@ public class TByteBuffer {
                 return true;
             }
 
+            if(byteBuffer.limit() == 0){
+                return true;
+            }
+
             int limit = byteBuffer.limit()+offset;
             int position = byteBuffer.position() + offset;
 
-            if(limit > byteBuffer.capacity() && position < 0){
+            if(limit > byteBuffer.capacity() || position < 0){
                 return false;
             }
 

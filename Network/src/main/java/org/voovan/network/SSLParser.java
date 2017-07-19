@@ -148,12 +148,16 @@ public class SSLParser {
 					handshakeStatus = runDelegatedTasks();
 					byteBufferChannel.compact();
 
-					if(engineResult!=null && engineResult.getStatus()==Status.OK && byteBuffer.remaining() == 0){
+					if(engineResult!=null &&
+							engineResult.getStatus()==Status.OK &&
+							byteBuffer.remaining() == 0){
 						break;
 					}
 
 					if(engineResult!=null &&
-							(engineResult.getStatus() == Status.BUFFER_OVERFLOW || engineResult.getStatus() == Status.CLOSED)
+							(engineResult.getStatus() == Status.BUFFER_OVERFLOW ||
+									engineResult.getStatus() == Status.BUFFER_UNDERFLOW ||
+									engineResult.getStatus() == Status.CLOSED)
 					){
 						break;
 					}
@@ -237,7 +241,9 @@ public class SSLParser {
 				appData.flip();
 				appByteBufferChannel.writeEnd(appData);
 
-				if(engineResult!=null && engineResult.getStatus()==Status.OK  && byteBuffer.remaining() == 0){
+				if(engineResult!=null &&
+						engineResult.getStatus()==Status.OK  &&
+						byteBuffer.remaining() == 0){
 					break;
 				}
 
