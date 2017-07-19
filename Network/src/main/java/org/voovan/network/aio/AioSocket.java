@@ -274,15 +274,11 @@ public class AioSocket extends SocketContext {
 					 socketChannel.close();
 
 					 //如果有未读数据等待数据处理完成
-					/**
-	 * 从缓冲区头部读取数据
-	 * @param dst 需要读入数据的缓冲区ByteBuffer 对象
-	 * @return 读出的数据大小
-	 */	 session.wait(this.getReadTimeout());
+					 session.wait(this.getReadTimeout());
 
-//					 readCompletionHandler.release();
-//					 session.getByteBufferChannel().release();
-//					 TByteBuffer.release(readByteBuffer);
+					 readCompletionHandler.release();
+					 session.getByteBufferChannel().release();
+					 TByteBuffer.release(readByteBuffer);
 					 if(session.getSSLParser()!=null){
 					 	 session.getSSLParser().release();
 					 }

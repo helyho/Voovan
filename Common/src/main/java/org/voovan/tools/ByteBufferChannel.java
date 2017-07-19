@@ -245,7 +245,7 @@ public class ByteBufferChannel {
 
 		lock.lock();
 		try{
-			byteBuffer.clear();
+			byteBuffer.limit(0);
 			size = 0;
 		} finally {
 			lock.unlock();
@@ -567,23 +567,23 @@ public class ByteBufferChannel {
 					reallocate(newSize);
 				}
 
+
 				int position = byteBuffer.position();
-				byteBuffer.position(writePosition);
 
-				//内容移动到 writeSize 之后
-				if (TByteBuffer.moveData(byteBuffer, writeSize)) {
+                byteBuffer.position(writePosition);
 
-					byteBuffer.position(writePosition);
-					byteBuffer.put(src);
+                TByteBuffer.moveData(byteBuffer, writeSize);
 
-					size = size + writeSize;
-					byteBuffer.limit(size);
+                size = size + writeSize;
+                byteBuffer.limit(size);
+                byteBuffer.position(writePosition);
+                byteBuffer.put(src);
 
-					if(position > writePosition) {
-						position = position + writeSize;
-					}
-					byteBuffer.position(position);
-				}
+                if (position > writePosition) {
+                    position = position + writeSize;
+                }
+
+                byteBuffer.position(position);
 			}
 
 			return writeSize;
@@ -601,43 +601,9 @@ public class ByteBufferChannel {
 	public int writeEnd(ByteBuffer src) {
 		checkRelease();
 
-		if(src.remaining() == 0){
-			return 0;
-		}
-
-		if(src==null){
-			return -1;
-		}
-
 		lock.lock();
 		try {
-			int writeSize = src.limit() - src.position();
-
-			int limit = byteBuffer.limit();
-
-			if (writeSize > 0) {
-				//是否扩容
-				if (available() < writeSize) {
-					int newSize = byteBuffer.capacity() + writeSize;
-					reallocate(newSize);
-				}
-
-				int position = byteBuffer.position();
-				byteBuffer.position(size);
-
-				int old = byteBuffer.limit();
-
-				size = size + writeSize;
-				byteBuffer.limit(size);
-
-				byteBuffer.put(src);
-
-				byteBuffer.position(position);
-
-			}
-
-			return writeSize;
-
+			return write(size(), src);
 		} finally {
 			lock.unlock();
 		}
@@ -651,51 +617,12 @@ public class ByteBufferChannel {
 	public int writeHead(ByteBuffer src) {
 		checkRelease();
 
-		if(src.remaining() == 0){
-			return 0;
-		}
-
-		if (src == null) {
-			return -1;
-		}
-
 		lock.lock();
 		try {
-
-			byte[] srcByte = src.array();
-			int writeSize = src.limit() - src.position();
-
-			if (writeSize > 0) {
-				//是否扩容
-				if (available() < writeSize) {
-					int newSize = byteBuffer.capacity() + writeSize;
-					reallocate(newSize);
-				}
-
-				int position = byteBuffer.position();
-				byteBuffer.position(0);
-
-				//内容移动到 writeSize 之后
-				if (TByteBuffer.moveData(byteBuffer, writeSize)) {
-
-					byteBuffer.position(0);
-					byteBuffer.put(src);
-
-					size = size + writeSize;
-					byteBuffer.limit(size);
-
-					position = position + writeSize;
-					position = position > size ? size : position;
-					byteBuffer.position(position);
-				}
-			}
-
-			return writeSize;
-
+			return write(0, src);
 		} finally {
 			lock.unlock();
 		}
-
 	}
 
 	/**
@@ -706,55 +633,12 @@ public class ByteBufferChannel {
 	public int readHead(ByteBuffer dst) {
 		checkRelease();
 
-		if(dst.remaining() == 0){
-			return 0;
-		}
-
-		if(dst==null){
-			return -1;
-		}
-
 		lock.lock();
 		try {
-
-			int readSize = 0;
-
-			//确定读取大小
-			if (dst.remaining() > size) {
-				readSize = size;
-			} else {
-				readSize = dst.remaining();
-			}
-
-			int limit = byteBuffer.limit();
-
-			if (readSize != 0) {
-				int position = byteBuffer.position();
-				byteBuffer.position(0);
-
-				for (int i = 0; i < readSize; i++) {
-					dst.put(byteBuffer.get());
-				}
-
-				if (TByteBuffer.moveData(byteBuffer, (readSize*-1))) {
-					size = size - readSize;
-					byteBuffer.limit(size);
-
-					position = position+ (readSize*-1);
-					position = position < 0 ? 0 : position;
-					byteBuffer.position(position);
-				} else {
-					dst.reset();
-				}
-			}
-
-			dst.flip();
-			return readSize;
-
+			return read(0, dst);
 		} finally {
 			lock.unlock();
 		}
-
 	}
 
 	/**
@@ -765,43 +649,9 @@ public class ByteBufferChannel {
 	public int readEnd(ByteBuffer dst) {
 		checkRelease();
 
-		if(dst.remaining() == 0){
-			return 0;
-		}
-
-		if(dst==null){
-			return -1;
-		}
-
 		lock.lock();
 		try {
-
-			int readSize = 0;
-
-			//确定读取大小
-			if (dst.remaining() > size) {
-				readSize = size;
-			} else {
-				readSize = dst.remaining();
-			}
-
-			if (readSize != 0) {
-				int position = byteBuffer.position();
-
-				byteBuffer.position(size - readSize);
-				for (int i = 0; i < readSize; i++) {
-					dst.put(byteBuffer.get());
-				}
-				size = size - readSize;
-				byteBuffer.limit(size);
-
-				position = position > size ? size : position;
-				byteBuffer.position(position);
-			}
-
-			dst.flip();
-
-			return readSize;
+			return read( size-dst.limit(), dst );
 		} finally {
 			lock.unlock();
 		}
