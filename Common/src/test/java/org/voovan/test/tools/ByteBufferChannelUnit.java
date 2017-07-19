@@ -24,18 +24,38 @@ public class ByteBufferChannelUnit extends TestCase {
 		byteBufferChannel.writeEnd(buffer);
 		assertEquals(byteBufferChannel.size(),19);
 	}
+
+	public void testWrite() throws IOException{
+		init();
+		int size = byteBufferChannel.size();
+		byteBufferChannel.write(1, ByteBuffer.wrap(tmp2.getBytes()));
+		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()), "h -=======!elyho is a hero!!!");
+		byteBufferChannel.release();
+	}
 	
 	public void testWriteEnd() throws IOException{
 		init();
 		int size = byteBufferChannel.size();
 		byteBufferChannel.writeEnd(ByteBuffer.wrap(tmp2.getBytes()));
 		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),tmp1+tmp2);
+		byteBufferChannel.release();
 	}
 
 	public void testWriteHead() throws IOException{
 		init();
 		byteBufferChannel.writeHead(ByteBuffer.wrap(tmp2.getBytes()));
 		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),tmp2+tmp1);
+		byteBufferChannel.release();
+	}
+
+	public void testRead() throws IOException{
+		init();
+		ByteBuffer buffer1 = ByteBuffer.allocate(3);
+		int size = byteBufferChannel.read(6, buffer1);
+		assertEquals(size, 3);
+		assertEquals(TByteBuffer.toString(buffer1), " is");
+		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),"helyho a hero!!!");
+		byteBufferChannel.release();
 	}
 	
 	public void testReadHead() throws IOException{
@@ -45,6 +65,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		assertEquals(size, 5);
 		assertEquals(TByteBuffer.toString(buffer1), "helyh");
 		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),"o is a hero!!!");
+		byteBufferChannel.release();
 	}
 
 	public void testReadEnd() throws IOException{
@@ -54,11 +75,13 @@ public class ByteBufferChannelUnit extends TestCase {
 		assertEquals(size, 5);
 		assertEquals(TByteBuffer.toString(buffer1), "ro!!!");
 		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),"helyho is a he");
+		byteBufferChannel.release();
 	}
 
 	public void testArray(){
 		init();
 		assertEquals(new String(byteBufferChannel.array()), tmp1);
+		byteBufferChannel.release();
 	}
 
 	public void testGetByte(){
@@ -67,22 +90,42 @@ public class ByteBufferChannelUnit extends TestCase {
 		assertEquals('e', byteBufferChannel.get(1));
 		assertEquals('l', byteBufferChannel.get(2));
 		assertEquals('y', byteBufferChannel.get(3));
+		byteBufferChannel.release();
 	}
 
 	public void testIndex(){
 		init();
-		byte[] tmp = new byte[6];
-		int index = byteBufferChannel.indexOf("y".getBytes());
-		assertEquals(index,3);
+		byteBufferChannel.clear();
+		byteBufferChannel.writeEnd(ByteBuffer.wrap("PINGq==== test message =====".getBytes()));
+		int index = byteBufferChannel.indexOf("PINGq".getBytes());
+		assertEquals(index,0);
+		byteBufferChannel.release();
+	}
+
+	public void testShrinkCommon(){
+		//向前
+		init();
+		byteBufferChannel.shrink(3, 3); //3 向右缩减2个
+		assertEquals("hel is a hero!!!",TByteBuffer.toString(byteBufferChannel.getByteBuffer()));
+		byteBufferChannel.release();
+
+		init();
+		byteBufferChannel.shrink(3, -3); //2 向左缩减2个
+		assertEquals("yho is a hero!!!",TByteBuffer.toString(byteBufferChannel.getByteBuffer()));
+		byteBufferChannel.release();
+
 	}
 
 	public void testShrink(){
 		init();
-		byte[] tmp = new byte[6];
 		byteBufferChannel.shrink(3);
 		assertEquals("yho is a hero!!!",TByteBuffer.toString(byteBufferChannel.getByteBuffer()));
+		byteBufferChannel.release();
+
+		init();
 		byteBufferChannel.shrink(-3);
-		assertEquals("yho is a hero",TByteBuffer.toString(byteBufferChannel.getByteBuffer()));
+		assertEquals("helyho is a hero",TByteBuffer.toString(byteBufferChannel.getByteBuffer()));
+		byteBufferChannel.release();
 	}
 
 	public void testGetByteArray(){
@@ -90,6 +133,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		byte[] tmp = new byte[6];
 		byteBufferChannel.get(tmp, 0, 6);
 		assertEquals("helyho", new String(tmp));
+		byteBufferChannel.release();
 	}
 
 	public void testCompact(){
@@ -103,8 +147,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		byteBufferChannel1.getByteBuffer().position(2);
 		byteBufferChannel1.compact();
 		assertEquals("ccddee",TByteBuffer.toString(byteBufferChannel1.getByteBuffer()));
-
-
+		byteBufferChannel.release();
 	}
 
 	public void testReadLine(){
@@ -118,6 +161,7 @@ public class ByteBufferChannelUnit extends TestCase {
 			}
 			Logger.simple("lineCount: "+tmp);
 		}
+		byteBufferChannel.release();
 	}
 
 	public void testReadWithSplit(){
@@ -142,12 +186,14 @@ public class ByteBufferChannelUnit extends TestCase {
 			}
 			Logger.simple("splitedContent: "+ TByteBuffer.toString(byteBuffer));
 		}
+		byteBufferChannel.release();
 	}
 
 	public void testSaveToFile() throws IOException {
 		init();
 		byteBufferChannel.shrink(-3);
 		byteBufferChannel.saveToFile("/Users/helyho/Downloads/test.txt",byteBufferChannel.size()-3);
+		byteBufferChannel.release();
 	}
 
 	public void testAll() throws IOException {

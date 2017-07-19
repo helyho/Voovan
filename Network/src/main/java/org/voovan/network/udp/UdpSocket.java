@@ -4,9 +4,8 @@ import org.voovan.Global;
 import org.voovan.network.ConnectModel;
 import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
+import org.voovan.network.exception.RestartException;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.network.handler.SynchronousHandler;
-import org.voovan.network.messagesplitter.TrasnferSplitter;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -166,9 +165,14 @@ public class UdpSocket extends SocketContext{
      * 重连当前连接
      * @throws IOException IO 异常
      */
-    public void reStart() throws IOException {
-        init();
-        this.start();
+    public UdpSocket restart() throws IOException, RestartException {
+        if(this.connectModel == ConnectModel.CLIENT) {
+            init();
+            this.start();
+            return this;
+        }else{
+            throw new RestartException("Can't invoke reStart method in server mode");
+        }
     }
 
     /**

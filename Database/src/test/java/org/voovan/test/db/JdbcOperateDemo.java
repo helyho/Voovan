@@ -5,11 +5,9 @@ import com.alibaba.druid.pool.DruidDataSourceFactory;
 import org.voovan.db.CallType;
 import org.voovan.db.JdbcOperate;
 import org.voovan.tools.TFile;
-import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.log.Logger;
 
-import javax.sql.DataSource;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;

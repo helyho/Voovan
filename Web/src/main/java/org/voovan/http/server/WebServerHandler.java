@@ -11,7 +11,6 @@ import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;

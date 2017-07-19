@@ -77,7 +77,7 @@ public class EventProcess {
 		}
 
 		//设置空闲状态
-		session.setState(IoSession.State.IDLE);
+		session.getState().setConnect(false);
 	}
 
 	/**
@@ -116,6 +116,8 @@ public class EventProcess {
 
 			//如果没有使用分割器,则跳过
 			if(!messageLoader.isUseSpliter()){
+				//设置空闲状态
+				session.getState().setReceive(false);
 				return;
 			}
 
@@ -128,7 +130,7 @@ public class EventProcess {
 				byteBuffer = messageLoader.read();
 
 				//设置空闲状态
-				session.setState(IoSession.State.IDLE);
+				session.getState().setReceive(false);
 
 				// 如果读出的消息为 null 则关闭连接
 				if (byteBuffer == null) {
@@ -243,7 +245,7 @@ public class EventProcess {
 				}
 
 				//设置空闲状态
-				sendSession.setState(IoSession.State.IDLE);
+				sendSession.getState().setSend(false);
 
 				return sendCount;
 			}

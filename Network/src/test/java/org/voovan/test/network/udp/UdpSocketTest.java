@@ -6,8 +6,6 @@ import org.voovan.network.udp.UdpSocket;
 import org.voovan.test.network.ClientHandlerTest;
 import org.voovan.tools.log.Logger;
 
-import java.io.IOException;
-
 /**
  * 类文字命名
  *
@@ -19,7 +17,7 @@ import java.io.IOException;
  */
 public class UdpSocketTest {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         UdpSocket udpSocket = new UdpSocket("127.0.0.1",60000,500, 1);
         udpSocket.messageSplitter(new LineMessageSplitter());
         udpSocket.filterChain().add(new StringFilter());
@@ -28,8 +26,8 @@ public class UdpSocketTest {
         Logger.simple("==================================Terminate==================================");
 
         //重连操作
-        udpSocket.reStart();
+        udpSocket.restart();
         Logger.simple("==================================Terminate==================================");
-        udpSocket.getSession().reStart();
+        udpSocket.getSession().restart();
     }
 }

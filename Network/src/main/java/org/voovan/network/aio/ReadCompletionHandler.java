@@ -4,10 +4,8 @@ import org.voovan.network.EventTrigger;
 import org.voovan.network.HeartBeat;
 import org.voovan.network.MessageLoader;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ClosedChannelException;
@@ -27,8 +25,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 	private ByteBufferChannel netByteBufferChannel;
 	private ByteBufferChannel appByteBufferChannel;
 	private AioSession session;
-	private Method readSSLMethod;
-	
+
 	public ReadCompletionHandler(AioSocket aioSocket, ByteBufferChannel byteBufferChannel){
 		this.aioSocket = aioSocket;
 		this.appByteBufferChannel = byteBufferChannel;
@@ -60,6 +57,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					}else{
 						appByteBufferChannel.writeEnd(readTempBuffer);
 					}
+
 
 					//检查心跳
 					HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
