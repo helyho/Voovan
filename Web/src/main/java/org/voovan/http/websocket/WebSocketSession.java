@@ -1,5 +1,8 @@
 package org.voovan.http.websocket;
 
+import org.voovan.http.server.HttpRequest;
+import org.voovan.http.server.HttpSession;
+import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
@@ -39,6 +42,24 @@ public class WebSocketSession {
         this.remotePort = remotePort;
         this.webSocketRouter = webSocketRouter;
         attributes = new ConcurrentHashMap<String, Object>();
+    }
+
+    /**
+     * 获取WebSocket的地址
+     * @return WebSocket的地址
+     */
+    public String getLocation(){
+        HttpRequest request = (HttpRequest)socketSession.getAttribute(WebServerHandler.SessionParam.HTTP_REQUEST);
+        return request.protocol().getPath();
+    }
+
+    /**
+     * 获取 Http 的 session
+     * @return HttpSession对象
+     */
+    public HttpSession getHttpSession(){
+        HttpRequest request = (HttpRequest)socketSession.getAttribute(WebServerHandler.SessionParam.HTTP_REQUEST);
+        return request.getSession();
     }
 
     /**
