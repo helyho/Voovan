@@ -73,7 +73,12 @@ public class WebServer {
 			String method = httpRouterConfig.getMethod();
 			String route = httpRouterConfig.getRoute();
 			String className = httpRouterConfig.getClassName();
-			otherMethod(method,route,httpRouterConfig.getHttpRouterInstance());
+
+			if(!method.equals("WEBSOCKET")) {
+				otherMethod(method, route, httpRouterConfig.getHttpRouterInstance());
+			}else{
+				socket(route, httpRouterConfig.getWebSocketRouterInstance());
+			}
 		}
 	}
 
