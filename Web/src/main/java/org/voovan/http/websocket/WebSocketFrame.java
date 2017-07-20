@@ -317,6 +317,6 @@ public class WebSocketFrame {
 	@Override
 	public String toString() {
 		return "Framedata={FIN: " + this.isFin() + " , Mask: " + this.isTransfereMask() + " , OpCode: " + getOpcode() + " , Data: "
-				+ new String(getFrameData().array()) + "}";
+				+ TByteBuffer.toString(getFrameData())+ "}";
 	}
 }

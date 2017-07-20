@@ -1,6 +1,7 @@
 package org.voovan.http.server.context;
 
 import org.voovan.http.server.HttpRouter;
+import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -22,6 +23,7 @@ public class HttpRouterConfig {
     private String className;
     private String method;
     private HttpRouter httpRouter;
+    private WebSocketRouter webSocketRouter;
 
     /**
      * 构造函数
@@ -114,7 +116,7 @@ public class HttpRouterConfig {
     }
 
     /**
-     * 获取HttpBuizFilter过滤器实例
+     * 获取HttpRouter路由处理实例
      *
      * @return 过滤器实例
      */
@@ -125,6 +127,25 @@ public class HttpRouterConfig {
                 httpRouter = TReflect.newInstance(className);
             }
             return httpRouter;
+        } catch (ReflectiveOperationException e) {
+            Logger.error("[ERROR] New HttpRouter ["+className+"] error.");
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * 获取WebSocketRouter路由处理实例
+     *
+     * @return 过滤器实例
+     */
+    public WebSocketRouter getWebSocketRouterInstance() {
+        try {
+            //单例模式
+            if (webSocketRouter == null) {
+                webSocketRouter = TReflect.newInstance(className);
+            }
+            return webSocketRouter;
         } catch (ReflectiveOperationException e) {
             Logger.error("[ERROR] New HttpRouter ["+className+"] error.");
             e.printStackTrace();
