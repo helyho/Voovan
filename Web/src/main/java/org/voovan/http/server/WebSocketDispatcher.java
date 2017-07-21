@@ -51,7 +51,7 @@ public class WebSocketDispatcher {
 				} else if(o1.length() < o2.length()){
 					return 1;
 				} else {
-					return 0;
+					return 1;
 				}
 			}
 		});
@@ -90,8 +90,6 @@ public class WebSocketDispatcher {
 				WebSocketRouter webSocketRouter = routeEntry.getValue();
 
 				WebSocketSession webSocketSession = disposeSession(request, webSocketRouter);
-
-				webSocketRouter.setSession(webSocketSession);
 
 				// 获取路径变量
 				ByteBuffer responseMessage = null;
