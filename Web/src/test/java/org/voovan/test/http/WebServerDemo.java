@@ -1,9 +1,14 @@
 package org.voovan.test.http;
 
+import org.voovan.http.extend.engineio.EIODispatcher;
+import org.voovan.http.extend.engineio.EIOHandler;
+import org.voovan.http.extend.socketio.SIODispatcher;
+import org.voovan.http.extend.socketio.SIOHandler;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpRouter;
 import org.voovan.http.server.WebServer;
+import org.voovan.http.extend.engineio.Config;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
@@ -164,6 +169,89 @@ public class WebServerDemo {
 				Logger.info("WebSocket close!");
 			}
 		}.addFilterChain(new StringFilter()));
+
+		//engine.io 测试用例
+		webServer.socket("/engineio", new EIODispatcher(new Config())
+				.on("connection", new EIOHandler() {
+					@Override
+					public String execute(String msg) {
+						try {
+							this.send("asdfasdf");
+						} catch (SendMessageException e) {
+							e.printStackTrace();
+						} catch (WebSocketFilterException e) {
+							e.printStackTrace();
+						}
+						Logger.simple("connected");
+						return "server connected";
+					}
+				}).on("close", new EIOHandler() {
+					@Override
+					public String execute(String msg) {
+						Logger.simple("closed");
+						return null;
+					}
+				}).on("message", new EIOHandler() {
+					@Override
+					public String execute(String msg) {
+						Logger.simple("message: " + msg);
+						return "server "+msg;
+					}
+				}).on("ping", new EIOHandler() {
+					@Override
+					public String execute(String msg) {
+						Logger.simple("ping");
+						return null;
+					}
+				}).on("pong", new EIOHandler() {
+					@Override
+					public String execute(String msg) {
+						Logger.simple("pong");
+						return null;
+					}
+				}));
+
+		//socket.io 测试用例
+		webServer.socket("/socketio", new SIODispatcher(new Config())
+            .on("connect", new SIOHandler() {
+                @Override
+                public String execute(Object... args) {
+                    Logger.simple("connect");
+                    return null;
+                }
+            })
+            .on("disconnect", new SIOHandler() {
+                @Override
+                public String execute(Object... args) {
+                    Logger.simple("disconnect");
+                    return null;
+                }
+            })
+            .on("hello", new SIOHandler() {
+                @Override
+                public Object execute(Object... args) {
+                    Logger.simple("hello: "+ args);
+
+                    //触发前端的事件
+					try {
+						//事件名, 回掉, 事件参数
+						emit("show", new SIOHandler() {
+                            @Override
+                            public Object execute(Object... args) {
+                                Logger.simple(args);
+                                return null;
+                            }
+                        }, "aaaa");
+					} catch (SendMessageException e) {
+						e.printStackTrace();
+					} catch (WebSocketFilterException e) {
+						e.printStackTrace();
+					}
+
+					return "hello back message";
+                }
+            })
+		);
 
         webServer.serve();
 

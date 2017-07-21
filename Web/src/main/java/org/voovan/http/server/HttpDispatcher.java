@@ -89,7 +89,7 @@ public class HttpDispatcher {
 					} else if(o1.length() < o2.length() &&!o1.equals(o2)){
 						return 1;
 					}else{
-						return 0;
+						return 1;
 					}
 				}
 			});
