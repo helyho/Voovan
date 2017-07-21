@@ -1,0 +1,82 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+    please open the console to look the test message
+    <hr>
+    <button onclick="engineio()">engineio</button>
+    <button onclick="message()">message</button>
+    <button onclick="engineClose()">message</button>
+    <hr/>
+    <button onclick="socketio()">socketio</button>
+    <button onclick="emit()">emit</button>
+    <button onclick="socketClose()">message</button>
+
+</body>
+<script src="https://cdn.staticfile.org/socket.io/2.0.3/socket.io.js"></script>
+<script src="https://cdn.staticfile.org/engine.io-client/2.1.1/engine.io.js"></script>
+<script>
+    var engineObj;
+    var socketObj;
+    function engineio() {
+        engineObj = new eio.Socket('http://127.0.0.1:28080/engineio', {
+            reconnection: false,
+            forceNew: true,
+            transports: ['websocket', 'polling'],
+            path: "/engineio"});
+
+        engineObj.on('open', function(){
+            console.log("open");
+        });
+
+        engineObj.on('message', function(data){
+            console.log(data);
+        });
+
+        engineObj.on('close', function(data){
+            console.log(data);
+        });
+    }
+
+    function message(){
+        engineObj.send("ffff");
+    }
+
+    function engineClose(){
+        engineObj.close();
+    }
+
+    function socketio() {
+        socketObj = io.connect('http://127.0.0.1:28080/socketio', {
+            reconnection: false,
+            forceNew: true,
+            transports: ['websocket', 'polling'],
+            path: "/socketio"
+        });
+
+        socketObj.on("connect", function (x) {
+            console.log("connect")
+        })
+        socketObj.on("disconnect", function (x) {
+            console.log("disconnect")
+        })
+
+        socketObj.on("show", function (x) {
+            console.log("show " + x)
+            return "show back"
+        })
+
+    }
+
+    function emit() {
+        socketObj.emit('hello', {testData: '123456'}, function(a){
+            console.log(a)
+        });
+    }
+
+    function socketClose(){
+        socketObj.close();
+    }
+
+</script>
+</html>
+

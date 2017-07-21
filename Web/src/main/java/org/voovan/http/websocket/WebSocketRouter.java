@@ -14,14 +14,11 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public abstract class WebSocketRouter implements Cloneable{
-	private WebSocketSession session;
 
 	protected Chain<WebSocketFilter> webSocketFilterChain;
 
 	public WebSocketRouter(){
-
 		webSocketFilterChain = new Chain<WebSocketFilter>();
-
 	}
 
 	public WebSocketRouter addFilterChain(WebSocketFilter webSocketFilter) {
@@ -78,14 +75,6 @@ public abstract class WebSocketRouter implements Cloneable{
 			throw new WebSocketFilterException("Send object must be ByteBuffer, " +
 					"please check you filter be sure the latest filter return Object's type is ByteBuffer.");
 		}
-	}
-
-	/**
-	 * 设置会话
-	 * @param session IoSession 会话对象
-	 */
-	public void setSession(WebSocketSession session){
-		this.session = session;
 	}
 
 	/**

@@ -532,7 +532,6 @@ public class HttpClient {
 			WebSocketSession webSocketSession = new WebSocketSession(socket.getSession(), null, this.socket.getHost(), this.socket.getPort());
 			WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketSession, webSocketRouter);
 			webSocketSession.setWebSocketRouter(webSocketRouter);
-			webSocketRouter.setSession(webSocketSession);
 
 			Object result = null;
 
