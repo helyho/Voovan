@@ -98,6 +98,11 @@ public class WebServerFilter implements IoFilter {
 	 */
 	public static boolean isHttpRequest(ByteBufferChannel byteBufferChannel) {
 		String testStr = null;
+
+		if(byteBufferChannel.isReleased()){
+			return false;
+		}
+
         int lineEndIndex = byteBufferChannel.indexOf("\n".getBytes());
 
         if(lineEndIndex>0) {

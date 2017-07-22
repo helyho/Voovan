@@ -1,5 +1,6 @@
 package org.voovan.http.client;
 
+import org.voovan.Global;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
@@ -8,6 +9,7 @@ import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
@@ -93,19 +95,21 @@ public class WebSocketHandler implements IoHandler{
         }
         // WS_PONG 收到 pong 帧则返回 ping 帧
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
-            final IoSession poneTimerSession = session;
+            final IoSession poneSession = session;
 
-            new Timer("VOOVAN_WEB@PONE_TIMER").schedule(new TimerTask() {
+            Global.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
+                    TEnv.sleep(poneSession.socketContext().getReadTimeout()/3);
                     try {
-                        poneTimerSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+                        Logger.simple("PONG");
+                        poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
                     } catch (SendMessageException e) {
-                        poneTimerSession.close();
-                        Logger.error("WebSocket Open event send frame error", e);
+                        poneSession.close();
+                        Logger.error("WebSocket Pong event send Ping frame error", e);
                     }
                 }
-            }, session.socketContext().getReadTimeout()/3);
+            });
         }
         // CONTINUOUS 收到 pong 帧则返回 ping 帧
         else if(reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.CONTINUOUS){

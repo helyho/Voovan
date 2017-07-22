@@ -46,7 +46,6 @@ public class EIODispatcher extends WebSocketRouter{
     public Object onRecived(WebSocketSession session, Object obj) {
         try {
             if(EIOParser.isEngineIOMessage((String)obj)){
-                Logger.simple((String)obj);
                 EIOPacket eioPacket = EIOParser.decode((String)obj);
 
                 if(eioPacket.getEngineType() == EIOPacket.MESSAGE){
