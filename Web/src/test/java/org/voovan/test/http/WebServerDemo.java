@@ -16,6 +16,7 @@ import org.voovan.http.websocket.filter.StringFilter;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
@@ -171,7 +172,7 @@ public class WebServerDemo {
 		}.addFilterChain(new StringFilter()));
 
 		//engine.io 测试用例
-		webServer.socket("/engineio", new EIODispatcher(new Config())
+		webServer.socket("/engine.io", new EIODispatcher(new Config())
 				.on("connection", new EIOHandler() {
 					@Override
 					public String execute(String msg) {
@@ -212,7 +213,7 @@ public class WebServerDemo {
 				}));
 
 		//socket.io 测试用例
-		webServer.socket("/socketio", new SIODispatcher(new Config())
+		webServer.socket("/socket.io", new SIODispatcher(new Config())
             .on("connect", new SIOHandler() {
                 @Override
                 public String execute(Object... args) {
@@ -230,7 +231,7 @@ public class WebServerDemo {
             .on("hello", new SIOHandler() {
                 @Override
                 public Object execute(Object... args) {
-                    Logger.simple("hello: "+ args);
+                    Logger.simple("hello: "+ JSON.toJSON(args));
 
                     //触发前端的事件
 					try {

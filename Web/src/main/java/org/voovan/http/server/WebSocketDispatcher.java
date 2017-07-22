@@ -1,5 +1,6 @@
 package org.voovan.http.server;
 
+import org.voovan.Global;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.websocket.WebSocketFrame;
@@ -9,6 +10,7 @@ import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
@@ -124,18 +126,19 @@ public class WebSocketDispatcher {
 					} else if (event == WebSocketEvent.PING) {
 						return WebSocketFrame.newInstance(true, Opcode.PONG, false, byteBuffer);
 					} else if (event == WebSocketEvent.PONG) {
-						final IoSession poneTimerSession = session;
-						new Timer("VOOVAN_WEB@PONE_TIMER").schedule(new TimerTask() {
+						final IoSession poneSession = session;
+						Global.getThreadPool().execute(new Runnable() {
 							@Override
 							public void run() {
+								TEnv.sleep(poneSession.socketContext().getReadTimeout() / 3);
 								try {
-                                    poneTimerSession.syncSend(WebSocketFrame.newInstance(true, Opcode.PING, false, null));
+									poneSession.syncSend(WebSocketFrame.newInstance(true, Opcode.PING, false, null));
 								} catch (SendMessageException e) {
-                                    poneTimerSession.close();
+									poneSession.close();
 									Logger.error("Send WebSocket ping error", e);
 								}
 							}
-						}, session.socketContext().getReadTimeout() / 3);
+						});
 					}
 				}catch(WebSocketFilterException e){
 					Logger.error(e);

@@ -19,10 +19,8 @@
     var socketObj;
     function engineio() {
         engineObj = new eio.Socket('http://127.0.0.1:28080/engineio', {
-            reconnection: false,
-            forceNew: true,
-            transports: ['websocket', 'polling'],
-            path: "/engineio"});
+            transports: ['websocket'],
+            path: "/engine.io"});
 
         engineObj.on('open', function(){
             console.log("open");
@@ -47,10 +45,8 @@
 
     function socketio() {
         socketObj = io.connect('http://127.0.0.1:28080/socketio', {
-            reconnection: false,
-            forceNew: true,
-            transports: ['websocket', 'polling'],
-            path: "/socketio"
+            transports: ['websocket'],
+            path: "/socket.io"
         });
 
         socketObj.on("connect", function (x) {
