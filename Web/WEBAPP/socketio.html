@@ -18,7 +18,7 @@
     var engineObj;
     var socketObj;
     function engineio() {
-        engineObj = new eio.Socket('http://127.0.0.1:28080/engineio', {
+        engineObj = new eio.Socket('/engineio', {
             transports: ['websocket'],
             path: "/engine.io"});
 
@@ -44,7 +44,7 @@
     }
 
     function socketio() {
-        socketObj = io.connect('http://127.0.0.1:28080/socketio', {
+        socketObj = io.connect('/socketio', {
             transports: ['websocket'],
             path: "/socket.io"
         });
