@@ -1,5 +1,6 @@
 package org.voovan.http.extend.engineio;
 
+import org.voovan.http.extend.socketio.SIOSession;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.exception.SendMessageException;
@@ -15,13 +16,22 @@ import org.voovan.network.exception.SendMessageException;
 public abstract class EIOHandler {
 
     private WebSocketSession webSocketSession;
+    private EIOSession eioSession;
 
-    protected void setWebSocketSession(WebSocketSession webSocketSession) {
-        this.webSocketSession = webSocketSession;
+    public void setWebSocketSession(WebSocketSession webSocketSession) {
+         this.webSocketSession = webSocketSession;
+    }
+
+    public EIOSession getEIOSession(){
+        if(eioSession == null){
+            eioSession = new EIOSession(this.webSocketSession, this);
+        }
+
+        return eioSession;
     }
 
     public void send(String msg) throws SendMessageException, WebSocketFilterException {
-        webSocketSession.send(EIOParser.encode(new EIOPacket(4, msg)));
+        this.getEIOSession().send(msg);
     }
 
     public abstract String execute(String msg);
