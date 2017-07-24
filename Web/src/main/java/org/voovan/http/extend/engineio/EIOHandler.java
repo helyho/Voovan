@@ -1,6 +1,5 @@
 package org.voovan.http.extend.engineio;
 
-import org.voovan.http.extend.socketio.SIOSession;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.exception.SendMessageException;

@@ -1,8 +1,8 @@
 package org.voovan.http.extend.engineio;
 
+import org.voovan.http.extend.ParserException;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
-import org.voovan.http.extend.ParserException;
 
 /**
  * engine.io 报文解析

@@ -4,7 +4,6 @@ import org.voovan.network.EventTrigger;
 import org.voovan.network.HeartBeat;
 import org.voovan.network.MessageLoader;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TByteBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
