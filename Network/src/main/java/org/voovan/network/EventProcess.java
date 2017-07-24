@@ -111,7 +111,6 @@ public class EventProcess {
 		if (socketContext != null) {
 			ByteBuffer byteBuffer = null;
 
-
 			MessageLoader messageLoader = session.getMessageLoader();
 
 			//如果没有使用分割器,则跳过
@@ -124,7 +123,7 @@ public class EventProcess {
 			// 循环读取完整的消息包.
 			// 由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.
 			// 有可能缓冲区没有读完
-			// 按消息包出发 onRecive 事件
+			// 按消息包触发 onRecive 事件
 			while (session.getByteBufferChannel().size() > 0) {
 
 				byteBuffer = messageLoader.read();
@@ -132,9 +131,8 @@ public class EventProcess {
 				//设置空闲状态
 				session.getState().setReceive(false);
 
-				// 如果读出的消息为 null 则关闭连接
+				//如果读出的数据为 null 则直接返回
 				if (byteBuffer == null) {
-//					session.close();
 					return;
 				}
 

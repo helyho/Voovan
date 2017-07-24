@@ -97,7 +97,7 @@ public class UdpSelector {
                                         }
 
                                         //判断连接是否关闭
-                                        if (MessageLoader.isRemoteClosed(readTempBuffer, readSize) && commonSession.isConnected()) {
+                                        if (MessageLoader.isStreamEnd(readTempBuffer, readSize) && commonSession.isConnected()) {
 
                                             commonSession.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
                                             //如果 Socket 流达到结尾,则关闭连接

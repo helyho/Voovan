@@ -59,7 +59,6 @@ public class MessageLoader {
 		RUNNING,
 		SOCKET_CLOSED,
 		STREAM_END,
-		REMOTE_DISCONNECT,
 		MSG_SPLITTER,
 		EXCEPTION
 	}
@@ -81,15 +80,14 @@ public class MessageLoader {
 	}
 
 	/**
-	 * 判断连接是否意外断开
+	 * 判断字节所属流是否结束
 	 * @param buffer  缓冲区
 	 * @param length  长度
 	 * @return 是否意外断开
 	 */
-	public static boolean isRemoteClosed(ByteBuffer buffer, Integer length) {
+	public static boolean isStreamEnd(ByteBuffer buffer, Integer length) {
 //		length==-1时流结束并不是消息断开
 		if(length==-1){
-			//触发 disconnect 事件
 			return true;
 		}
 
@@ -106,12 +104,12 @@ public class MessageLoader {
 	}
 
 	/**
-	 * 判断连接是否意外断开
+	 * 判断字节所属流是否结束
 	 * @param buffer  缓冲区
 	 * @param length  长度
 	 * @return 是否意外断开
 	 */
-	public static boolean isRemoteClosed(byte[] buffer, Integer length) {
+	public static boolean isStreamEnd(byte[] buffer, Integer length) {
 
 		if(length==-1){
 			return true;
@@ -197,12 +195,12 @@ public class MessageLoader {
 			try {
 				dataByteBuffer = dataByteBufferChannel.getByteBuffer();
 			}catch(MemoryReleasedException e){
-				stopType = StopType.STREAM_END;
+				stopType = StopType.SOCKET_CLOSED;
 			}
 
 			//判断连接是否关闭
-			if (isRemoteClosed(dataByteBuffer, dataByteBufferChannel.size())) {
-				stopType = StopType.REMOTE_DISCONNECT;
+			if (isStreamEnd(dataByteBuffer, dataByteBufferChannel.size())) {
+				stopType = StopType.STREAM_END;
 			}
 
 
@@ -237,12 +235,12 @@ public class MessageLoader {
 		}
 
 		//如果是流结束,对方关闭,本地关闭这三种情况则返回 null
-		// 返回是 null 则在EventProcess中会自动关闭连接
+		// 返回是 null 则在EventProcess中直接返回,不做任何处理
 		if(stopType == StopType.STREAM_END ||
-				stopType == StopType.REMOTE_DISCONNECT ||
 				stopType == StopType.SOCKET_CLOSED){
 			result = null;
 		 }
+
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		else if(stopType== StopType.MSG_SPLITTER) {
 			if(splitLength!=0) {
