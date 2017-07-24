@@ -128,7 +128,7 @@ public abstract class IoSession<T extends SocketContext> {
             	String timerName = "VOOVAN@IDLE_TIMER[" +
 						( (socketContext.getHost()==null) ? "0.0.0.0" : socketContext.getHost() )+
 						":"+socketContext.getPort() + "]";
-                checkIdleTimer = new Timer();
+                checkIdleTimer = new Timer(timerName);
             }
 
 			final IoSession session = this;
