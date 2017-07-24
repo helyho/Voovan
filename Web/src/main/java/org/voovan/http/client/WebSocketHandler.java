@@ -13,8 +13,6 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * 处理 WebSocket 相关的 IoHandler 事件
