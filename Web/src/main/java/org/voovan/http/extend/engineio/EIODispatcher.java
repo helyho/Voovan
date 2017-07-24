@@ -4,7 +4,6 @@ import org.voovan.http.extend.ParserException;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.filter.StringFilter;
-import org.voovan.tools.log.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
