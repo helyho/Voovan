@@ -71,7 +71,13 @@ public class MultiMap<K,V>
         if (value == null) {
             return (List)super.put(key, null);
         }
-        List<V> vals = new ArrayList();
+
+        List<V> vals = get(key);
+        if(vals == null) {
+            vals = new ArrayList();
+            put(key, vals);
+        }
+
         vals.add(value);
         return (List)super.put((K)key, vals);
     }
@@ -134,7 +140,7 @@ public class MultiMap<K,V>
      */
     public void addValues(K key, List<V> values)
     {
-        List<V> lo = (List)get(key);
+        List<V> lo = get(key);
         if (lo == null) {
             lo = new ArrayList();
         }
@@ -178,6 +184,26 @@ public class MultiMap<K,V>
             addValues(name, values);
         }
         return merged;
+    }
+
+    /**
+     * 移除某个值
+     * @param key  键
+     * @param index 值索引位置
+     * @return  成功:返回移除的对象 , 失败:返回 null
+     */
+    public V removeValue(K key, int index)
+    {
+        List<V> lo = (List)get(key);
+        if ((lo == null) || (lo.isEmpty())) {
+            return null;
+        }
+
+        V ret = lo.remove(index);
+        if (lo.isEmpty()) {
+            remove(key);
+        }
+        return ret;
     }
 
     /**
