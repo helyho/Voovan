@@ -67,7 +67,7 @@ public class WebServerDemo {
             }
 		});
 
-		//带路劲参数的 GET 请求
+		//带路径参数的 GET 请求
         webServer.get("/Star/:name/:age",  new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
 				Logger.info("Client info: " + req.getRemoteAddres() + ":" + req.getRemotePort());
@@ -81,16 +81,14 @@ public class WebServerDemo {
 			}
 		});
 
-		//带路劲参数的 GET 请求
+		//路径模糊匹配
         webServer.get("/test/t*t/kkk/*",  new HttpRouter() {
             public void process(HttpRequest req, HttpResponse resp) throws Exception {
                 Logger.info("Client info: " + req.getRemoteAddres() + ":" + req.getRemotePort());
                 Logger.simple("Request info: " + req.protocol());
                 resp.write(fileContent);
                 resp.write("{"
-                        + "\"Method\":\"FuzzyMatching\","
-                        + "\"name\":\"" + req.getParameter("name") + "\","
-                        + "\"age\":\"" + req.getParameter("age") + "\""
+                        + "\"Method\":\"FuzzyMatching\""
                         + "}");
             }
 		});
