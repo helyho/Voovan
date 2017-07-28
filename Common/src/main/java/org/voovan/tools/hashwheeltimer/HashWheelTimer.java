@@ -4,7 +4,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * 类文字命名
+ * 时间轮定时器
  *
  * @author: helyho
  * Voovan Framework.
@@ -37,12 +37,24 @@ public class HashWheelTimer {
 
     /**
      * 增加任务
+     *      同步方式执行
      * @param task 任务对象
      * @return true 增加任务成功, false: 增加任务失败, 任务的Interval必须大于0
      */
     public boolean addTask(HashWheelTask task, int interval){
-        return wheel.addTask(task, interval);
+        return addTask(task, interval, false);
     }
+
+    /**
+     * 增加任务
+     * @param task 任务对象
+     * @param asynchronous 是否异步执行
+     * @return true 增加任务成功, false: 增加任务失败, 任务的Interval必须大于0
+     */
+    public boolean addTask(HashWheelTask task, int interval, boolean asynchronous){
+        return wheel.addTask(task, interval, asynchronous);
+    }
+
 
     /**
      * 移除任务
