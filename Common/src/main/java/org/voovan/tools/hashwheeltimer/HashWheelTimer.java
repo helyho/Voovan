@@ -77,7 +77,7 @@ public class HashWheelTimer {
         }
 
         final HashWheel rotateWheel = wheel;
-        timer = new Timer();
+        timer = new Timer("VOOVAN@HASH_WHEEL");
         timer.schedule(new TimerTask(){
 
             @Override
