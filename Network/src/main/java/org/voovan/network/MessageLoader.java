@@ -60,6 +60,7 @@ public class MessageLoader {
 		SOCKET_CLOSED,
 		STREAM_END,
 		MSG_SPLITTER,
+		PAUSE,
 		EXCEPTION
 	}
 
@@ -77,6 +78,20 @@ public class MessageLoader {
 	 */
 	public void setStopType(StopType stopType) {
 		this.stopType = stopType;
+	}
+
+	/**
+	 * 暂停
+	 */
+	public void pause(){
+		this.stopType = StopType.PAUSE;
+	}
+
+	/**
+	 * 恢复
+	 */
+	public void unpause(){
+		this.stopType = StopType.RUNNING;
 	}
 
 	/**
@@ -176,7 +191,12 @@ public class MessageLoader {
 
 		boolean isConnect = true;
 
-		while ( isConnect && useSpliter && stopType== StopType.RUNNING ) {
+		while ( isConnect && useSpliter &&
+				(stopType== StopType.RUNNING || stopType == StopType.PAUSE)) {
+
+			if(stopType == StopType.PAUSE){
+				continue;
+			}
 
 			if(session.socketContext() instanceof UdpSocket) {
 				isConnect = session.isOpen();

@@ -1,5 +1,6 @@
 package org.voovan;
 
+import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import java.util.concurrent.ThreadPoolExecutor;
@@ -16,6 +17,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class Global {
 
     private static ThreadPoolExecutor threadPool;
+    private static HashWheelTimer hashWheelTimer;
 
     /**
      * 返回公用线程池
@@ -28,6 +30,22 @@ public class Global {
 
        return threadPool;
     }
+
+    /**
+     * 获取一个全局的秒定时器
+     *      60个槽位, 每个槽位步长1s
+     * @return HashWheelTimer对象
+     */
+    public synchronized  static HashWheelTimer getHashWheelTimer(){
+        if(hashWheelTimer == null) {
+            hashWheelTimer = new HashWheelTimer(60, 1);
+            final HashWheelTimer tempTimer = hashWheelTimer;
+            hashWheelTimer.rotate();
+        }
+
+        return hashWheelTimer;
+    }
+
 
     /**
      * 获取当前 Voovan 版本号

@@ -88,6 +88,7 @@ public class EventProcess {
 	 */
 	public static void onDisconnect(Event event) {
         IoSession session = event.getSession();
+		session.cancelIdle();
 		SocketContext socketContext = event.getSession().socketContext();
 
 		if (socketContext != null) {
