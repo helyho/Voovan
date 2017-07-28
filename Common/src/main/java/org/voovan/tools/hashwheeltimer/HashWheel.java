@@ -8,7 +8,7 @@ import java.util.List;
 
 
 /**
- * 类文字命名
+ * 时间轮对象
  *
  * @author: helyho
  * Voovan Framework.
@@ -35,9 +35,10 @@ public class HashWheel {
     /**
      * 增加任务
      * @param task 任务对象
+     * @param asynchronous 是否异步执行
      * @return true 增加任务成功, false: 增加任务失败, 任务的Interval必须大于0
      */
-    public boolean addTask(HashWheelTask task, int interval){
+    public boolean addTask(HashWheelTask task, int interval, boolean asynchronous){
 
         if(interval<0){
             //这里考虑抛出异常
@@ -45,22 +46,21 @@ public class HashWheel {
         }
 
         task.setInterval(interval);
+        task.setAsynchronous(asynchronous);
 
         int nextTick = currentTick + task.getInterval();
 
-
-        int skipTick = 0;
-
-        //初始化或者相等情况不加跳跃数据
-        if(nextTick == size && !init){
-            skipTick = 0;
-        }else{
-            //计算跳跃次数
-            skipTick = nextTick/size;
-        }
+        int skipTick = interval/size;
 
         //计算 SLot 位置
         int targetTick = nextTick%size;
+
+        //对于步长小于槽数,且跳跃轮==1的情况,不需要进行跳跃
+        if(interval<=size && skipTick == 1 && !init){
+            skipTick --;
+        }
+
+        //Logger.simple("ST: "+skipTick+" TT: "+targetTick);
 
         //重置跳跃次数
         task.setSkipTick(skipTick);
@@ -73,12 +73,23 @@ public class HashWheel {
 
     /**
      * 增加任务
+     *      同步方式执行
+     * @param task 任务对象
+     * @return true 增加任务成功, false: 增加任务失败, 任务的Interval必须大于0
+     */
+    public boolean addTask(HashWheelTask task, int interval){
+        return addTask(task, task.getInterval(), false);
+    }
+
+
+    /**
+     * 增加任务
      *
      * @param task 任务对象
      * @return true 增加任务成功, false: 增加任务失败, 任务的Interval必须大于0
      */
     private boolean addTask(HashWheelTask task){
-        return addTask(task, task.getInterval());
+        return addTask(task, task.getInterval(), task.isAsynchronous());
     }
 
     /**
