@@ -23,35 +23,47 @@ public class HashWheelTimerUnit extends TestCase {
     private HashWheelTimer hashWheelTimer;
 
     public void setUp() throws IOException {
-        hashWheelTimer = new HashWheelTimer(5,2);
+        hashWheelTimer = new HashWheelTimer(5, 1);
 
-//        hashWheelTimer.addTask(new HashWheelTask() {
-//            @Override
-//            public void run() {
-//                Logger.simple("\t1: "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
-//            }
-//        }, 1);
+        //1个步长
+        hashWheelTimer.addTask(new HashWheelTask() {
+            @Override
+            public void run() {
+                Logger.simple("\t1: Async"+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
+            }
+        }, 1, true);
 
+//        //两个步长
 //        hashWheelTimer.addTask(new HashWheelTask() {
 //            @Override
 //            public void run() {
 //                Logger.simple("\t2: "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
 //            }
 //        }, 2);
-//
+
+        //5个步长
         hashWheelTimer.addTask(new HashWheelTask() {
             @Override
             public void run() {
-                Logger.simple("\t5: "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
+                Logger.simple("\t5: Sync"+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
             }
         }, 5);
 
-        hashWheelTimer.addTask(new HashWheelTask() {
-            @Override
-            public void run() {
-                Logger.simple("\t6: "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
-            }
-        }, 6);
+//        //6个步长
+//        hashWheelTimer.addTask(new HashWheelTask() {
+//            @Override
+//            public void run() {
+//                Logger.simple("\t6: "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
+//            }
+//        }, 6);
+//
+//        //12个步长
+//        hashWheelTimer.addTask(new HashWheelTask() {
+//            @Override
+//            public void run() {
+//                Logger.simple("\t12: "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
+//            }
+//        }, 12);
     }
 
     public void testRotateWheel(){
