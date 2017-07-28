@@ -29,41 +29,41 @@ public class HashWheelTimerUnit extends TestCase {
         hashWheelTimer.addTask(new HashWheelTask() {
             @Override
             public void run() {
-                Logger.simple("\t1: Async"+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
+                Logger.simple("\t 1: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
             }
-        }, 1, true);
+        }, 1);
 
-//        //两个步长
-//        hashWheelTimer.addTask(new HashWheelTask() {
-//            @Override
-//            public void run() {
-//                Logger.simple("\t2: "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
-//            }
-//        }, 2);
+        //两个步长
+        hashWheelTimer.addTask(new HashWheelTask() {
+            @Override
+            public void run() {
+                Logger.simple("\t 2: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
+            }
+        }, 2);
 
         //5个步长
         hashWheelTimer.addTask(new HashWheelTask() {
             @Override
             public void run() {
-                Logger.simple("\t5: Sync"+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
+                Logger.simple("\t 5: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
             }
         }, 5);
 
-//        //6个步长
-//        hashWheelTimer.addTask(new HashWheelTask() {
-//            @Override
-//            public void run() {
-//                Logger.simple("\t6: "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
-//            }
-//        }, 6);
-//
-//        //12个步长
-//        hashWheelTimer.addTask(new HashWheelTask() {
-//            @Override
-//            public void run() {
-//                Logger.simple("\t12: "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
-//            }
-//        }, 12);
+        //6个步长
+        hashWheelTimer.addTask(new HashWheelTask() {
+            @Override
+            public void run() {
+                Logger.simple("\t 6: Async: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
+            }
+        }, 6, true);
+
+        //12个步长
+        hashWheelTimer.addTask(new HashWheelTask() {
+            @Override
+            public void run() {
+                Logger.simple("\t12: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
+            }
+        }, 12);
     }
 
     public void testRotateWheel(){
