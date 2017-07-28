@@ -1,5 +1,6 @@
 package org.voovan.http.server;
 
+import org.voovan.Global;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
@@ -11,13 +12,12 @@ import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.InterruptedByTimeoutException;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Vector;
 
 /**
@@ -33,7 +33,6 @@ public class WebServerHandler implements IoHandler {
 	private HttpDispatcher		httpDispatcher;
 	private WebSocketDispatcher	webSocketDispatcher;
 	private WebServerConfig webConfig;
-	private Timer keepAliveTimer;
 	private List<IoSession> keepAliveSessionList;
 
 
@@ -51,7 +50,6 @@ public class WebServerHandler implements IoHandler {
 		this.webConfig = webConfig;
 		keepAliveSessionList = new Vector<IoSession>();
 
-		keepAliveTimer = new Timer("VOOVAN_WEB@KEEPALIVE_TIMER");
 		initKeepAliveTimer();
 
 	}
@@ -83,7 +81,8 @@ public class WebServerHandler implements IoHandler {
 	 */
 	public void initKeepAliveTimer(){
 
-		TimerTask keepAliveTask = new TimerTask() {
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+
 			@Override
 			public void run() {
 
@@ -103,9 +102,7 @@ public class WebServerHandler implements IoHandler {
 					}
 				}
 			}
-		};
-
-		keepAliveTimer.schedule(keepAliveTask, 1 , 1000);
+		} ,1 , true);
 	}
 
 	@Override

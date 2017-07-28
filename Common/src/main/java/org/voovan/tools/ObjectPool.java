@@ -1,8 +1,9 @@
 package org.voovan.tools;
 
+import org.voovan.Global;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
+
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -17,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ObjectPool {
 
     private Map<String,PooledObject> objects;
-    private Timer timer;
     private long aliveTime = 5;
     private boolean autoRefreshOnGet = true;
 
@@ -29,7 +29,6 @@ public class ObjectPool {
     public ObjectPool(long aliveTime,boolean autoRefreshOnGet){
         objects = new ConcurrentHashMap<String, PooledObject>();
         this.aliveTime = aliveTime;
-        timer = new Timer("VOOVAN@OBJECT_POOL_TIMER");
         this.autoRefreshOnGet = autoRefreshOnGet;
         removeDeadObject();
     }
@@ -41,7 +40,6 @@ public class ObjectPool {
     public ObjectPool(long aliveTime){
         objects = new ConcurrentHashMap<String,PooledObject>();
         this.aliveTime = aliveTime;
-        timer = new Timer("VOOVAN@OBJECT_POOL_TIMER");
         removeDeadObject();
     }
 
@@ -51,7 +49,6 @@ public class ObjectPool {
      */
     public ObjectPool(boolean autoRefreshOnGet){
         objects = new ConcurrentHashMap<String,PooledObject>();
-        timer = new Timer("VOOVAN@OBJECT_POOL_TIMER");
         this.autoRefreshOnGet = autoRefreshOnGet;
         removeDeadObject();
     }
@@ -61,7 +58,6 @@ public class ObjectPool {
      */
     public ObjectPool(){
         objects = new ConcurrentHashMap<String,PooledObject>();
-        timer = new Timer("VOOVAN@OBJECT_POOL_TIMER");
         removeDeadObject();
     }
 
@@ -151,7 +147,7 @@ public class ObjectPool {
     }
 
     private void removeDeadObject(){
-        TimerTask aliveTask = new TimerTask() {
+        Global.getHashWheelTimer().addTask(new HashWheelTask() {
             @Override
             public void run() {
                 try {
@@ -164,8 +160,7 @@ public class ObjectPool {
                     e.printStackTrace();
                 }
             }
-        };
-        timer.schedule(aliveTask,1,1000);
+        },1, true);
     }
 
     /**

@@ -100,6 +100,9 @@ public class NioSelector {
 											}else if(readSize>0){
 												readTempBuffer.flip();
 
+												if(session.getHeartBeat()!=null) {
+													session.getMessageLoader().pause();
+												}
 
 												// 接收数据
 												if(session.getSSLParser()!=null && session.getSSLParser().isHandShakeDone()){
@@ -111,6 +114,10 @@ public class NioSelector {
 
 												//检查心跳
 												HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
+
+												if(session.getHeartBeat()!=null) {
+													session.getMessageLoader().unpause();
+												}
 
 												if(appByteBufferChannel.size() > 0) {
 													// 触发 onReceive 事件

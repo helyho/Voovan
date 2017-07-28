@@ -2,10 +2,9 @@ package org.voovan.tools.threadpool;
 
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TPerformance;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -17,14 +16,12 @@ import java.util.concurrent.ThreadPoolExecutor;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class ThreadPoolTask extends TimerTask {
-	private Timer				timer;
+public class ThreadPoolTask extends HashWheelTask {
 	private ThreadPoolExecutor	threadPoolInstance;
 	private int					cpuCoreCount;
 
-	public ThreadPoolTask(ThreadPoolExecutor threadPoolInstance, Timer timer) {
+	public ThreadPoolTask(ThreadPoolExecutor threadPoolInstance) {
 		cpuCoreCount = Runtime.getRuntime().availableProcessors();
-		this.timer = timer;
 		this.threadPoolInstance = threadPoolInstance;
 	}
 
@@ -32,7 +29,6 @@ public class ThreadPoolTask extends TimerTask {
 	public void run() {
 		if (threadPoolInstance.isShutdown()) {
 			this.cancel();
-			timer.cancel();
 		}
 		
 //		String threadPoolInfo = "PoolInfo:" + threadPoolInstance.getActiveCount() + "/" + threadPoolInstance.getCorePoolSize() + "/"

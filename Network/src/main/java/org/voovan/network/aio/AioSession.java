@@ -32,7 +32,7 @@ public class AioSession extends IoSession<AioSocket>  {
 	 * 
 	 * @param socket
 	 */
-	AioSession(AioSocket socket) {
+	public AioSession(AioSocket socket) {
 		super(socket);
 		if (socket != null) {
 			this.socketChannel = socket.socketChannel();

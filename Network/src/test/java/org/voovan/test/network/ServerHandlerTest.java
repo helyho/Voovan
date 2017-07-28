@@ -12,6 +12,12 @@ public class ServerHandlerTest implements IoHandler {
 
 	@Override
 	public Object onConnect(IoSession session) {
+		if(!(session.socketContext() instanceof UdpSocket)) {
+			HeartBeat heartBeat = session.getHeartBeat();
+			if (heartBeat == null) {
+				heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
+			}
+		}
 		Logger.simple("========================onConnect========================");
 		return null;
 	}
@@ -42,7 +48,7 @@ public class ServerHandlerTest implements IoHandler {
 		//服务端和客户端使用了两种不同的心跳绑定方式,这是其中一种
 		//心跳绑定到 Session, 绑定过一次以后每次返回的都是第一次绑定的对象
 		if(!(session.socketContext() instanceof UdpSocket)) {
-			HeartBeat heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
+			HeartBeat heartBeat = session.getHeartBeat();
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
 			System.out.println("HB==>" + heartBeat.beat(session) );

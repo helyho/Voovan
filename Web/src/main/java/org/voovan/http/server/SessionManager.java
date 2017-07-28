@@ -1,14 +1,14 @@
 package org.voovan.http.server;
 
+import org.voovan.Global;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SessionManager{
 	private  Map<String, HttpSession>	httpSessions;
 	private WebServerConfig webConfig;
-	private Timer checkSessionTimer;
 	/**
 	 * 构造函数
 	 * @param webConfig Web 服务配置对象
@@ -36,7 +35,6 @@ public class SessionManager{
 			Logger.warn("Create session container from config file failed,now use defaul session container.");
 		}
 
-		checkSessionTimer = new Timer("VOOVAN_WEB@CHECK_SESSION_TIMER");
 		initKeepAliveTimer();
 	}
 
@@ -45,7 +43,7 @@ public class SessionManager{
 	 */
 	public void initKeepAliveTimer(){
 
-		TimerTask checkSessionTask = new TimerTask() {
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 			@Override
 			public void run() {
 
@@ -59,8 +57,7 @@ public class SessionManager{
 					}
 				}
 			}
-		};
-		checkSessionTimer.schedule(checkSessionTask, 1 , 60*1000);
+		}, 1, true);
 	}
 
 	/**

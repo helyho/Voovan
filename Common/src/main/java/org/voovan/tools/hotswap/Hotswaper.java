@@ -4,10 +4,12 @@ import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
+import org.voovan.Global;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
@@ -18,13 +20,13 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 /**
- * 类文字命名
+ * 热部署核心类
+ *      采用 JavaAgent 方式进行类的热部署
+ *      使用这种热部署方式,不能新增方法和属性,也就说类的结构不能发生变化
  *
  * @author: helyho
  * Voovan Framework.
@@ -35,8 +37,8 @@ public class Hotswaper {
     private Instrumentation instrumentation;
     private List<ClassFileInfo> classFileInfos;
     private List<String> excludePackages;
-    private Timer realoadTimer;
     private int reloadIntervals;
+    private HashWheelTask reloadTask;
 
     /**
      * 构造函数
@@ -239,15 +241,14 @@ public class Hotswaper {
         this.reloadIntervals = intervals;
 
         cancelAutoReload();
-        realoadTimer =  new Timer("VOOVAN@HOTSWAP_TIMER");
 
         Logger.info("[HOTSWAP] Start auto reload and hotswap every " + intervals + " seconds");
 
-        realoadTimer.schedule(new TimerTask() {
+        reloadTask = new HashWheelTask() {
             @Override
             public void run() {
                 if(TEnv.isMainThreadShutDown()){
-                    realoadTimer.cancel();
+                    this.cancel();
                 }
 
                 try {
@@ -257,15 +258,17 @@ public class Hotswaper {
                     e.printStackTrace();
                 }
             }
-        }, 0, intervals*1000);
+        };
+
+        Global.getHashWheelTimer().addTask(reloadTask, intervals, true);
     }
 
     /**
      * 取消自动热加载操作
      */
     public void cancelAutoReload(){
-        if(realoadTimer != null) {
-            realoadTimer.cancel();
+        if(reloadTask != null) {
+            reloadTask.cancel();
         }
     }
 

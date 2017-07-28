@@ -40,8 +40,6 @@ public class HotswapUnit extends TestCase{
                         "/Users/helyho/Work/Java/Voovan/target/test-classes/Common/");
                 TEnv.sleep(1000);
             }
-
-            hotSwaper.autoReload(5);
         }
     }
 }
