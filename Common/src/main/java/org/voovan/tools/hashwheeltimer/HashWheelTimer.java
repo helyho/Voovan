@@ -1,5 +1,7 @@
 package org.voovan.tools.hashwheeltimer;
 
+import org.voovan.tools.TEnv;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -23,6 +25,7 @@ public class HashWheelTimer {
      */
     public HashWheelTimer(int size){
         wheel = new HashWheel(size);
+        timer = new Timer("VOOVAN@HASH_WHEEL");
     }
 
     /**
@@ -32,6 +35,7 @@ public class HashWheelTimer {
      */
     public HashWheelTimer(int size, int tickStep){
         wheel = new HashWheel(size);
+        timer = new Timer("VOOVAN@HASH_WHEEL");
         this.tickStep = tickStep;
     }
 
@@ -58,12 +62,11 @@ public class HashWheelTimer {
 
     /**
      * 移除任务
-     * @param tick 槽位号
      * @param task 任务
      * @return true:移除任务成功, false:移除任务失败,或任务不存在
      */
-    public boolean removeTask(int tick, HashWheelTask task){
-        return wheel.removeTask(tick, task);
+    public boolean removeTask(HashWheelTask task){
+        return wheel.removeTask(task);
     }
 
 
@@ -72,17 +75,21 @@ public class HashWheelTimer {
      * @return true:成功启动, false:时间轮已经启动
      */
     public boolean rotate(){
-        if(timer != null){
-            return false;
-        }
 
         final HashWheel rotateWheel = wheel;
-        timer = new Timer("VOOVAN@HASH_WHEEL");
+
+        final HashWheelTimer tempTimer = this;
+
         timer.schedule(new TimerTask(){
 
             @Override
             public void run() {
-                rotateWheel.run();
+                rotateWheel.Tick();
+
+                //如果进程结束自动结束当前定时器
+                if(TEnv.isMainThreadShutDown()){
+                    tempTimer.cancel();
+                }
             }
         }, 0, tickStep*1000);
 

@@ -110,13 +110,21 @@ public class UdpSelector {
                                         } else if (readSize > 0) {
                                             readTempBuffer.flip();
 
+                                            if(session.getHeartBeat()!=null) {
+                                                session.getMessageLoader().pause();
+                                            }
+
                                             commonSession.getByteBufferChannel().writeEnd(readTempBuffer);
 
                                             //检查心跳
                                             HeartBeat.interceptHeartBeat(commonSession,  commonSession.getByteBufferChannel());
 
+                                            if(session.getHeartBeat()!=null) {
+                                                session.getMessageLoader().unpause();
+                                            }
+
                                             readTempBuffer.clear();
-                                            // 触发 onRead 事件,如果正在处理 onRead 事件则本次事件触发忽略
+                                            // 触发 onRead 事件,如果正在处理 onRecive 事件则本次事件触发忽略
                                             EventTrigger.fireReceiveThread(commonSession);
                                         }
 

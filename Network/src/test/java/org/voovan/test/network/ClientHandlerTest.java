@@ -19,6 +19,15 @@ public class ClientHandlerTest implements IoHandler {
 		System.out.println("Connect from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.loaclPort());
 		session.setAttribute("key", "attribute value");
 		String msg = new String("test message\r\n");
+
+		if(!(session.socketContext() instanceof UdpSocket)) {
+			HeartBeat heartBeat = session.getHeartBeat();
+			if (heartBeat == null) {
+				//心跳绑定到 Session
+				heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
+			}
+		}
+
 		return msg;
 	}
 
@@ -56,10 +65,6 @@ public class ClientHandlerTest implements IoHandler {
 		//服务端和客户端使用了两种不同的心跳绑定方式,这是其中一种
 		if(!(session.socketContext() instanceof UdpSocket)) {
 			HeartBeat heartBeat = session.getHeartBeat();
-			if (heartBeat == null) {
-				//心跳绑定到 Session
-				heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
-			}
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
 			System.out.println("HB==>" + heartBeat.beat(session));

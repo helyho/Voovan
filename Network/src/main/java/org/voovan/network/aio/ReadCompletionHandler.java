@@ -49,6 +49,10 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 				if (length > 0) {
 
+					if(session.getHeartBeat()!=null) {
+						session.getMessageLoader().pause();
+					}
+
 					// 接收数据
 					if(session.getSSLParser()!=null && session.getSSLParser().isHandShakeDone()){
 						netByteBufferChannel.writeEnd(readTempBuffer);
@@ -57,9 +61,12 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 						appByteBufferChannel.writeEnd(readTempBuffer);
 					}
 
+                    //检查心跳
+                    HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
 
-					//检查心跳
-					HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
+					if(session.getHeartBeat()!=null) {
+                        session.getMessageLoader().unpause();
+					}
 
 					if(appByteBufferChannel.size() > 0) {
 						// 触发 onReceive 事件

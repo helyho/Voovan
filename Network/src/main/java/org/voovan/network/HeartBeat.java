@@ -1,7 +1,11 @@
 package org.voovan.network;
 
+import org.voovan.network.aio.AioSession;
+import org.voovan.network.aio.AioSocket;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TEnv;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -16,6 +20,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class HeartBeat {
     private byte[] ping;
     private byte[] pong;
+    private ConnectModel connectModel;
     private boolean isFirstBeat = true;
     private LinkedBlockingDeque<Integer> queue;
     private int fieldCount = 0;
@@ -33,10 +38,7 @@ public class HeartBeat {
         this.ping = ping.getBytes();
         this.pong = pong.getBytes();
         queue = new LinkedBlockingDeque<Integer>();
-
-        if(session.socketContext().getConnectModel() == connectModel){
-            session.send(ByteBuffer.wrap(ping.getBytes()));
-        }
+        this.connectModel = connectModel;
     }
 
     /**
@@ -120,6 +122,11 @@ public class HeartBeat {
         //收个心跳返回成功
         if(heartBeat.isFirstBeat){
             heartBeat.isFirstBeat=false;
+            if(session.socketContext().getConnectModel() == heartBeat.connectModel){
+                //等待这个时间的目的是为了等待客户端那边的心跳检测启动
+                TEnv.sleep(session.getIdleInterval());
+                session.send(ByteBuffer.wrap(heartBeat.ping));
+            }
             return true;
         }
 
@@ -194,5 +201,12 @@ public class HeartBeat {
         }
 
         return heartBeat;
+    }
+
+    public static void main(String[] args) throws IOException {
+        AioSession session = new AioSession(new AioSocket("127.0.0.1",1,1));
+        session.getByteBufferChannel().writeHead(ByteBuffer.wrap("==== some data =====\r\nPINGq".getBytes()));
+        HeartBeat.attachSession(session, ConnectModel.CLIENT, "PINGq", "PONGq");
+        HeartBeat.interceptHeartBeat(session, session.getByteBufferChannel());
     }
 }

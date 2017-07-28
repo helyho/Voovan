@@ -1,18 +1,18 @@
 package org.voovan.network;
 
+import org.voovan.Global;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -34,7 +34,7 @@ public abstract class IoSession<T extends SocketContext> {
 	private ByteBufferChannel byteBufferChannel;
 	private T socketContext;
 	private long lastIdleTime = -1;
-	private Timer checkIdleTimer;
+	private HashWheelTask checkIdleTask;
 	private HeartBeat heartBeat;
 	private State state;
 
@@ -124,60 +124,60 @@ public abstract class IoSession<T extends SocketContext> {
 	public void checkIdle(){
 		if(socketContext.getIdleInterval() > 0) {
 
-            if(checkIdleTimer == null){
-            	String timerName = "VOOVAN@IDLE_TIMER[" +
-						( (socketContext.getHost()==null) ? "0.0.0.0" : socketContext.getHost() )+
-						":"+socketContext.getPort() + "]";
-                checkIdleTimer = new Timer(timerName);
+            if(checkIdleTask == null){
+				final IoSession session = this;
+
+				checkIdleTask = new HashWheelTask() {
+					@Override
+					public void run() {
+						boolean isConnect = false;
+
+						//初始化状态
+						if(session.state.isInit() ||
+								session.state.isConnect() ||
+								session.state.isReceive() ||
+								session.state.isSend() ){
+							return;
+						}
+
+						//检测会话状态
+						if(session.state.isClose()){
+							session.cancelIdle();
+							return;
+						}
+
+						//获取连接状态
+						if(session.socketContext() instanceof UdpSocket) {
+							isConnect = session.isOpen();
+						}else {
+							isConnect = session.isConnected();
+						}
+
+						if(!isConnect){
+							session.cancelIdle();
+							return;
+						}
+
+						//检查空间时间
+						if(socketContext.getIdleInterval() < 1){
+							return;
+						}
+
+						//触发空闲事件
+						long timeDiff = System.currentTimeMillis() - lastIdleTime;
+						if (timeDiff >= socketContext.getIdleInterval() * 1000) {
+							EventTrigger.fireIdleThread(session);
+							lastIdleTime = System.currentTimeMillis();
+						}
+
+					}
+				};
+
+				checkIdleTask.run();
             }
 
-			final IoSession session = this;
 
-			checkIdleTimer.schedule(new TimerTask() {
-				@Override
-				public void run() {
-					boolean isConnect = false;
-
-					//初始化状态
-					if(session.state.isInit() ||
-							session.state.isConnect() ||
-							session.state.isReceive() ||
-							session.state.isSend() ){
-						return;
-					}
-
-					//检测会话状态
-					if(session.state.isClose()){
-						session.cancelIdle();
-						return;
-					}
-
-					//获取连接状态
-					if(session.socketContext() instanceof UdpSocket) {
-						isConnect = session.isOpen();
-					}else {
-						isConnect = session.isConnected();
-					}
-
-					if(!isConnect){
-						session.cancelIdle();
-						return;
-					}
-
-					//检查空间时间
-					if(socketContext.getIdleInterval() < 1){
-						return;
-					}
-
-					//触发空闲事件
-					long timeDiff = System.currentTimeMillis() - lastIdleTime;
-					if (timeDiff >= socketContext.getIdleInterval() * 1000) {
-						EventTrigger.fireIdleThread(session);
-						lastIdleTime = System.currentTimeMillis();
-					}
-
-				}
-			}, 0, 1000);
+			Global.getHashWheelTimer().addTask(checkIdleTask, 1);
 		}
 	}
 
@@ -185,12 +185,12 @@ public abstract class IoSession<T extends SocketContext> {
 	 * 停止空闲事件触发
 	 */
 	public void cancelIdle(){
-		if(checkIdleTimer!=null) {
+		if(checkIdleTask!=null) {
 			if(heartBeat!=null){
 				heartBeat = null;
 			}
-			checkIdleTimer.cancel();
-			checkIdleTimer = null;
+			checkIdleTask.cancel();
+			checkIdleTask = null;
 		}
 	}
 

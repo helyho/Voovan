@@ -1,7 +1,6 @@
 package org.voovan.tools.hashwheeltimer;
 
 import org.voovan.Global;
-import org.voovan.tools.log.Logger;
 
 /**
  * 时间轮任务对象
@@ -15,6 +14,8 @@ public abstract class HashWheelTask {
     private int interval;
     private int skipTick = 0;
     private boolean asynchronous;
+    private HashWheel hashWheel;
+    private int slot;
 
     public HashWheelTask(){
         this.interval = 0;
@@ -27,6 +28,14 @@ public abstract class HashWheelTask {
         this.interval = interval;
         this.skipTick = 0;
         this.asynchronous=asynchronous;
+    }
+
+    public void init(int skipTick, int interval, boolean asynchronous,  HashWheel hashWheel, int slot){
+        this.skipTick = skipTick;
+        this.interval = interval;
+        this.asynchronous = asynchronous;
+        this.hashWheel = hashWheel;
+        this.slot = slot;
     }
 
     /**
@@ -75,6 +84,22 @@ public abstract class HashWheelTask {
      */
     public void setAsynchronous(boolean asynchronous) {
         this.asynchronous = asynchronous;
+    }
+
+    /**
+     * 获取当前任务的槽位
+     * @return
+     */
+    public int getSlot() {
+        return slot;
+    }
+
+    /**
+     * 取消当前任务
+     * @return
+     */
+    public boolean cancel(){
+         return hashWheel.removeTask(this);
     }
 
     /**

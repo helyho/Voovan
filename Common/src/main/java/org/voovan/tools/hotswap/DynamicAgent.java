@@ -3,7 +3,7 @@ package org.voovan.tools.hotswap;
 import java.lang.instrument.Instrumentation;
 
 /**
- * 类文字命名
+ * JavaAgent对象
  *
  * @author: helyho
  * Voovan Framework.
