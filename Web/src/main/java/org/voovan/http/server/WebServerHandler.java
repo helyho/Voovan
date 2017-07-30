@@ -102,7 +102,7 @@ public class WebServerHandler implements IoHandler {
 					}
 				}
 			}
-		} ,1 , true);
+		} ,1);
 	}
 
 	@Override
