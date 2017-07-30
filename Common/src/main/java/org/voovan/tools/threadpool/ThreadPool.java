@@ -60,7 +60,7 @@ public class ThreadPool {
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPoolInstance.allowCoreThreadTimeOut(true);
 
-		Global.getHashWheelTimer().addTask(new ThreadPoolTask(threadPoolInstance), 1, true);
+		Global.getHashWheelTimer().addTask(new ThreadPoolTask(threadPoolInstance), 1);
 		return threadPoolInstance;
 	}
 	
