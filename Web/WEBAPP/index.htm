@@ -9,10 +9,25 @@
     </style>
 </head>
 <script lang="javascrit">
+    var wslocation;
+    var websocket;
+    var host;
 
+    function getHost() {
+        url = window.location.href;
+        first = url.indexOf("//");
+        last = url.indexOf("/", first + 2);
+        host = url.substring(first + 2, last);
+        protocol = url.substring(0, first);
+        return protocol+"//"+host;
+    }
+
+    host = getHost();
 
     function wsopen() {
-        websocket = new WebSocket("/websocket");
+        ws_host = host.replace("http","ws");
+        wslocation = ws_host + "/websocket";
+        websocket = new WebSocket(wslocation);
         websocket.onopen = function (evt) {
             onOpen(evt)
         };
@@ -27,7 +42,6 @@
         };
 
         function onOpen(evt) {
-            websocket.send('webbrower open.');
             alert("连接成功.");
         }
 
@@ -45,7 +59,7 @@
     }
 
     function wssend() {
-        websocket.send('[send] This is send by "Send" button.');
+        websocket.send('[SEND] This is send by "Send" button.');
         websocket.send('serial send,small package demo.');
     }
 
