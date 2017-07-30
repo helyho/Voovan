@@ -57,7 +57,7 @@ public class SessionManager{
 					}
 				}
 			}
-		}, 1, true);
+		}, 1);
 	}
 
 	/**

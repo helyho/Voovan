@@ -35,11 +35,17 @@ public class HttpMessageSplitter implements MessageSplitter {
 
         if( "WebSocket".equals(session.getAttribute(0x1111)) ){
             result = isWebSocketFrame(byteBuffer);
-            result = result==0 ? -1 : result;
         }else{
             result = isHttpFrame(byteBuffer);
-            result = result==0 ? -1 : 0;
+
+            if(result>0){
+                result = 0;
+            }else if(result == -1){
+                session.close();
+            }
         }
+
+
 
         return result;
 	}
@@ -70,7 +76,7 @@ public class HttpMessageSplitter implements MessageSplitter {
             return bodyTagIndex;
 
         }else{
-            return 0;
+            return -1;
         }
     }
 
