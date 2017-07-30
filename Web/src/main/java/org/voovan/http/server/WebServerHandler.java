@@ -17,6 +17,7 @@ import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.InterruptedByTimeoutException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -48,7 +49,7 @@ public class WebServerHandler implements IoHandler {
 		this.httpDispatcher = httpDispatcher;
 		this.webSocketDispatcher = webSocketDispatcher;
 		this.webConfig = webConfig;
-		keepAliveSessionList = new Vector<IoSession>();
+		keepAliveSessionList = new ArrayList<IoSession>();
 
 		initKeepAliveTimer();
 
