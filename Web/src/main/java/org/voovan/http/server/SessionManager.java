@@ -48,16 +48,13 @@ public class SessionManager{
 			public void run() {
 
 				//遍历所有的 session
-				for(String sessionId : httpSessions.keySet().toArray(new String[]{})){
-
-					HttpSession session = httpSessions.get(sessionId);
-
+				for(HttpSession session : httpSessions.values().toArray(new HttpSession[]{})){
 					if(session.isInvalid()){
 						session.removeFromSessionManager();
 					}
 				}
 			}
-		}, 1);
+		}, 1, true);
 	}
 
 	/**
