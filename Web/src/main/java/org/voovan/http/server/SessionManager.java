@@ -13,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * WebServer session 管理器
+ *
+ * 用到的 Map 接口的实现类的方法: values, containsKey, put, get, remove
  * 
  * @author helyho
  *

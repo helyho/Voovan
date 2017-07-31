@@ -291,17 +291,22 @@ public class Hotswaper {
 
         private long getClassLastModified(){
             if(classNamePath == null){
-                this.classNamePath = TString.fastReplaceAll(clazz.getCanonicalName(), "\\.", File.separator)+".class";
+                this.classNamePath = TEnv.classToResource(clazz);
             }
 
             try {
-                if (location.endsWith(".jar")) {
+                if(location.endsWith(".jar")) {
                     try(JarFile jarFile = new JarFile(location)) {
                         JarEntry jarEntry = jarFile.getJarEntry(classNamePath);
                         return jarEntry.getTime();
                     }
                 } else if (location.endsWith(File.separator)) {
-                    return new File(location+classNamePath).lastModified();
+                    File classFile = new File(location+classNamePath);
+                    if(classFile.exists()) {
+                        return classFile.lastModified();
+                    }else{
+                        return -1;
+                    }
                 } else {
                     return -1;
                 }

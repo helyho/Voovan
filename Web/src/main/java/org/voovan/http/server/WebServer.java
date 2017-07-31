@@ -262,10 +262,10 @@ public class WebServer {
 	/**
 	 * 读取Classes目录和lib目录中的class或者jar文件
 	 */
-	private static void loadContextBin(){
+	private static void initClassPath(){
 		try {
-			TEnv.loadBinary(TFile.getSystemPath("classes"));
-			TEnv.loadJars(TFile.getSystemPath("lib"));
+			TEnv.addClassPath(TFile.getSystemPath("classes"));
+			TEnv.addClassPath(TFile.getSystemPath("lib"));
 		} catch (NoSuchMethodException | IOException | SecurityException e) {
 			Logger.warn("Voovan WebServer Loader ./classes or ./lib error." ,e);
 		}
@@ -279,7 +279,7 @@ public class WebServer {
 		WebContext.welcome(config);
 		WebContext.initWebServerPlugin();
 
-		loadContextBin();
+		initClassPath();
 		initConfigedRouter();
 		initModule();
 		Logger.simple("Process ID: "+ TEnv.getCurrentPID());
