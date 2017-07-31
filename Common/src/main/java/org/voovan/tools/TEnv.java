@@ -4,14 +4,13 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.JarEntry;
 
 /**
  * 系统环境相关
@@ -148,33 +147,56 @@ public class TEnv {
 		return false;
 	}
 
+	/**
+	 * 获取指定的 Class 的 URLClassLoader
+	 * 		如果指定的 Class 不是使用 URLClassLoader 加载的
+	 * 		则使用 ClassLoader.getSystemClassLoader()获取 JVM 的 ClassLoader
+	 * @param clazz clazz 对象
+	 * @return URLClassLoader对象
+	 */
+	public static URLClassLoader getURLClassLoader(Class clazz){
+		if(clazz == null){
+			clazz = TEnv.class;
+		}
+
+		URLClassLoader urlClassLoader = null;
+		ClassLoader currentClassLoader = clazz.getClassLoader();
+		if(currentClassLoader instanceof URLClassLoader){
+			urlClassLoader = (URLClassLoader)currentClassLoader;
+		} else {
+			urlClassLoader = (URLClassLoader)ClassLoader.getSystemClassLoader();
+		}
+
+		return urlClassLoader;
+	}
+
 
 	/**
-	 * 为JVM加载一个jar包 或者一个目录到 classpath
+	 * 为JVM加载一个jar包, 一个目录内的所有 jar 包 或者一个目录到 classpath
 	 * @param file 文件路径
 	 * @throws SecurityException  安全性异常
 	 * @throws NoSuchMethodException  无方法异常
 	 * @throws IOException IO异常
 	 */
-	public static void loadBinary(File file) throws NoSuchMethodException, SecurityException, IOException {
+	public static void addClassPath(File file) throws NoSuchMethodException, SecurityException, IOException {
 		if(!file.exists()){
 			Logger.simple("[WARN] Method loadBinary, This ["+file.getCanonicalPath()+"] is not exists");
 		}
 
+		URLClassLoader urlClassLoader = getURLClassLoader(null);
+
 		try {
-			if (file.isDirectory() || file.getPath().toLowerCase().endsWith(".jar")) {
-				URLClassLoader urlClassLoader = null;
-
-				ClassLoader currentClassLoader = TEnv.class.getClassLoader();
-				if(currentClassLoader instanceof URLClassLoader){
-					urlClassLoader = (URLClassLoader)currentClassLoader;
-				} else {
-					urlClassLoader = (URLClassLoader)ClassLoader.getSystemClassLoader();
+			if (file.isDirectory()) {
+				List<File> subfiles = TFile.scanFile(file, "\\.jar$");
+				if(subfiles.size()>0){
+					for(File subFile :subfiles) {
+						addClassPath(subFile);
+					}
+				}else{
+					TReflect.invokeMethod(urlClassLoader, "addURL", file.toURI().toURL());
 				}
-
-				Method method = TReflect.findMethod(URLClassLoader.class, "addURL", URL.class);
-				method.setAccessible(true);
-				TReflect.invokeMethod(urlClassLoader, method, file.toURI().toURL());
+			}else if(file.getPath().toLowerCase().endsWith(".jar")){
+                TReflect.invokeMethod(urlClassLoader, "addURL", file.toURI().toURL());
 			}
 		} catch (IOException | ReflectiveOperationException e) {
 			Logger.error("Load jar or class failed",e);
@@ -187,58 +209,97 @@ public class TEnv {
 	 * @throws NoSuchMethodException 异常信息
 	 * @throws IOException 异常信息
 	 */
-	public static void loadBinary(String filePath) throws NoSuchMethodException, IOException {
+	public static void addClassPath(String filePath) throws NoSuchMethodException, IOException {
 		File file = new File(filePath);
-		loadBinary(file);
+		addClassPath(file);
 	}
 
+
 	/**
-	 * 从目录读取所有 Jar 文件,递归并加载到JVM
-	 *
-	 * @param rootFile 传入一个File 对象
-	 * @throws IOException IO异常
-	 * @throws NoSuchMethodException 异常信息
+	 * 从当前进程的ClassPath中寻找 Class
+	 * @param pattern  确认匹配的正则表达式
+	 * @return  匹配到的 class 集合
+	 * @throws IOException IO 异常
 	 */
-	public static void loadJars(File rootFile) throws IOException, NoSuchMethodException {
-		if(!rootFile.exists()){
-			Logger.simple("[WARN] Method loadJars, This ["+rootFile.getCanonicalPath()+"] is not exists");
-		}
-		if(rootFile.isDirectory()){
-			//文件过滤器取目录中的文件
-			File[] files = rootFile.listFiles(new FileFilter() {
-				@Override
-				public boolean accept(File pathname) {
-					if(pathname.isDirectory() || pathname.getPath().toLowerCase().endsWith(".jar")){
-						return true;
-					}else{
-						return false;
-					}
-				}
-			});
-			//遍历或者加载文件
-			if(files!=null){
-				for(File file : files){
-					if(file.isDirectory()){
-						loadJars(file.getPath());
-					}else if(file.getPath().toLowerCase().endsWith(".jar")){
-						loadBinary(file);
-					}
+	public static List<Class> searchClassInEnv(String pattern) throws IOException {
+		String userDir = System.getProperty("user.dir");
+		List<String> classPaths = getClassPath();
+		ArrayList<Class> clazzes = new ArrayList<Class>();
+		for(String classPath : classPaths){
+			if(classPath.startsWith(userDir)) {
+				File classPathFile = new File(classPath);
+				if(classPathFile.exists() && classPathFile.isDirectory()){
+					clazzes.addAll(getDirectorClass(classPathFile, pattern));
+				} else if(classPathFile.exists() && classPathFile.isFile() && classPathFile.getName().endsWith(".jar")) {
+					clazzes.addAll( getJarClass(classPathFile, pattern) );
 				}
 			}
 		}
+
+		return clazzes;
 	}
 
 	/**
-	 * 从目录读取所有 Jar 文件,递归并加载到JVM
-	 *
-	 * @param directoryPath 传入一个目录
-	 * @throws IOException 异常信息
-	 * @throws NoSuchMethodException 异常信息
+	 * 从指定 File 对象寻找 Class
+	 * @param rootfile 文件目录 File 对象
+	 * @param pattern  确认匹配的正则表达式
+	 * @return  匹配到的 class 集合
+	 * @throws IOException IO 异常
 	 */
-	public static void loadJars(String directoryPath) throws IOException, NoSuchMethodException {
-		File file = new File(directoryPath);
-		loadJars(file);
+	public static List<Class> getDirectorClass(File rootfile, String pattern) throws IOException {
+		pattern = TObject.nullDefault(pattern,".*");
+		pattern = pattern.replace("\\S\\.\\S","/");
+		ArrayList<Class> result = new ArrayList<Class>();
+		List<File> files = TFile.scanFile(rootfile, pattern);
+		for(File file : files){
+			String fileName = file.getCanonicalPath();
+			if(fileName.endsWith("class")) {
+				if(TString.regexMatch(fileName,"\\$\\d\\.class")>0){
+					continue;
+				}
+				fileName = fileName.replace(rootfile.getCanonicalPath() + "/", "");
+				fileName = TString.fastReplaceAll(fileName, "/", "\\.");
+				fileName = TString.fastReplaceAll(fileName, "\\.class$", "");
+				try {
+					result.add(Class.forName(fileName));
+				} catch (ClassNotFoundException e) {
+					Logger.warn("Try to load class["+fileName+"] failed",e);
+				}
+			}
+		}
+		return result;
 	}
+
+	/**
+	 * 从指定jar 文件中寻找 Class
+	 * @param jarFile  jar 文件 File 对象
+	 * @param pattern  确认匹配的正则表达式
+	 * @return  匹配到的 class
+	 * @throws IOException IO 异常
+	 */
+	public static List<Class> getJarClass(File jarFile, String pattern) throws IOException {
+		pattern = TObject.nullDefault(pattern,".*");
+		pattern = pattern.replace("\\S\\.\\S","/");
+		ArrayList<Class> result = new ArrayList<Class>();
+		List<JarEntry> jarEntrys = TFile.scanJar(jarFile,pattern);
+		for(JarEntry jarEntry : jarEntrys){
+			String fileName = jarEntry.getName();
+			if(fileName.endsWith("class")) {
+				if (TString.regexMatch(fileName, "\\$\\d\\.class") > 0) {
+					continue;
+				}
+				fileName = TString.fastReplaceAll(fileName, "/", "\\.");
+				fileName = TString.fastReplaceAll(fileName, "\\.class$", "");
+				try {
+					result.add(Class.forName(fileName));
+				} catch (Throwable e) {
+					fileName = null;
+				}
+			}
+		}
+		return result;
+	}
+
 
 	/**
 	 * 获取类JVM 的 Class Path
@@ -248,13 +309,53 @@ public class TEnv {
 	public static List<String> getClassPath(){
 		ArrayList<String> userClassPath = new ArrayList<String>();
 		String javaHome = System.getProperty("java.home");
+
+		//去除 javahome 的最后一个路径节点,扩大搜索范文
 		javaHome = javaHome.replaceAll("\\/[a-zA-z0-9\\_\\$]*$","");
-		String [] classPaths = System.getProperty("java.class.path").split(File.pathSeparator);
-		for(String classPath : classPaths){
+
+		for(URL url : getURLClassLoader(null).getURLs()){
+			String classPath = url.getPath();
 			if(!classPath.startsWith(javaHome)){
 				userClassPath.add(classPath);
 			}
 		}
 		return userClassPath;
 	}
+
+	/**
+	 * 将class 转换成 资源资源文件路径
+	 * @param clazz Class对象
+	 * @return 资源文件路径
+	 */
+	public static String classToResource(Class clazz){
+		return TString.fastReplaceAll(clazz.getCanonicalName(), "\\.", File.separator)+".class";
+	}
+
+	/**
+	 * 将资源文件路径 转换成 Class
+	 * @param resourcePath 资源资源文件路径
+	 * @return Class对象
+	 * @throws ClassNotFoundException 类未找到异常
+	 */
+	public static Class resourceToClass(String resourcePath) throws ClassNotFoundException {
+		String className = null;
+		URLClassLoader urlClassLoader = getURLClassLoader(null);
+
+		if(resourcePath.startsWith(File.separator)){
+			resourcePath = TString.removePrefix(resourcePath);
+		}
+
+		className = TString.fastReplaceAll(resourcePath, "\\$.*\\.class$", ".class");
+		className = TString.fastReplaceAll(className, ".class$", "");
+
+		className = TString.fastReplaceAll(className, File.separator, "\\.");
+
+		try {
+
+			return Class.forName(className);
+		}catch (Exception ex) {
+			throw new ClassNotFoundException("load and define class "+className+" failed");
+		}
+	}
+
 }
