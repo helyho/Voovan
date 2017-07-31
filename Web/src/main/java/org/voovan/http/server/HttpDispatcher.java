@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.*;
+import java.util.regex.Matcher;
 
 /**
  * 
@@ -218,8 +219,9 @@ public class HttpDispatcher {
      */
 	public static String routePath2RegexPath(String routePath){
 		String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
-		routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^/?]*", "[^/?]*");
-		return routeRegexPath;
+		routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/");
+		routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/_-]*", "[^:?/_-]*");
+		return "^/?"+routeRegexPath+"/?$";
 	}
 
 	/**
@@ -232,7 +234,7 @@ public class HttpDispatcher {
 	public static boolean matchPath(String requestPath, String routePath,boolean matchRouteIgnoreCase){
 		//转换成可以配置的正则,主要是处理:后的参数表达式
 		//把/home/:name转换成^[/]?/home/[/]?+来匹配
-		String routeRegexPath = "^/?"+routePath2RegexPath(routePath)+"/?$";
+		String routeRegexPath = routePath2RegexPath(routePath);
 		//匹配路由不区分大小写
 		if(matchRouteIgnoreCase){
 			requestPath = requestPath.toLowerCase();
@@ -253,25 +255,28 @@ public class HttpDispatcher {
 	 */
 	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) {
 		Map<String, String> resultMap = new HashMap<String, String>();
-		String[] requestPathPieces = requestPath.substring(1,requestPath.length()).split("/");
-		String[] routePathPieces = routePath.substring(1, routePath.length()).split("/");
+		String routePathMathchRegex = routePath;
 
-		if(requestPathPieces.length == routePathPieces.length){
-			try {
-				for (int i = 1; i <= routePathPieces.length; i++) {
-					int routePathPiecesLength = routePathPieces.length;
-					int pathPiecesLength = requestPathPieces.length;
-					String routePathPiece = routePathPieces[routePathPiecesLength - i];
-					if (routePathPiece.startsWith(":")) {
-						String name = TString.removePrefix(routePathPiece);
-						String value = URLDecoder.decode(requestPathPieces[pathPiecesLength - i], "UTF-8");
-						resultMap.put(name, value);
-					}
-				}
-			} catch (UnsupportedEncodingException e) {
-				Logger.error("RoutePath URLDecoder.decode failed by charset: UTF-8", e);
+		try {
+			//抽取路径中的变量名
+			String[] names = TString.searchByRegex(routePath, ":[^:?/_-]*");
+			for (int i = 0; i < names.length; i++) {
+				names[i] = TString.removePrefix(names[i]);
+				String name = names[i];
+				//拼装通过命名抽取数据的正则表达式
+				routePathMathchRegex = routePathMathchRegex.replace(":" + name, "(?<" + name + ">.*)");
 			}
+
+			//运行正则
+			Matcher matcher = TString.doRegex(requestPath, routePathMathchRegex);
+
+			for (String name : names) {
+				resultMap.put(name, URLDecoder.decode(matcher.group(name), "UTF-8"));
+			}
+		} catch (UnsupportedEncodingException e) {
+			Logger.error("RoutePath URLDecoder.decode failed by charset: UTF-8", e);
 		}
+
 		return resultMap;
 	}
 	

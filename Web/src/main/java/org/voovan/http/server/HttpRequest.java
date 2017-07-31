@@ -372,7 +372,7 @@ public class HttpRequest extends Request {
 					String name = parameterEqual.substring(0, equalFlagPos);
 					String value = parameterEqual.substring(equalFlagPos+1, parameterEqual.length());
 					try {
-						parameters.put(name, URLDecoder.decode(value,characterSet));
+						parameters.put(name, URLDecoder.decode(value, "UTF-8"));
 					} catch (UnsupportedEncodingException e) {
 						Logger.error("QueryString URLDecoder.decode failed by charset"+characterSet,e);
 					}

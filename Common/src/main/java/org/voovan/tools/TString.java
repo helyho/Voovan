@@ -175,7 +175,29 @@ public class TString {
 	}
 
 	/**
-	 * 正则表达式查找,匹配的被提取出来做数组
+	 * 执行正则运算
+	 *
+	 * @param source 目标字符串
+	 * @param regex 正则表达式
+	 * @return  Matcher对象
+	 */
+	public static Matcher doRegex(String source, String regex){
+		if(source==null){
+			return null;
+		}
+
+		Pattern pattern = getCachedPattern(regex);
+		Matcher matcher = pattern.matcher(source);
+		if(matcher.find()){
+			return matcher;
+		}else{
+			return null;
+		}
+	}
+
+	/**
+	 * 正则表达式查找
+	 * 		匹配的被提取出来做数组
 	 * @param source 目标字符串
 	 * @param regex 正则表达式
 	 * @return  匹配的字符串数组
@@ -185,11 +207,13 @@ public class TString {
 			return null;
 		}
 
-		Pattern pattern = getCachedPattern(regex);
-		Matcher matcher = pattern.matcher(source);
 		ArrayList<String> result = new ArrayList<String>();
-		while(matcher.find()){
-			result.add(matcher.group());
+
+		Matcher matcher = doRegex(source, regex);
+		if(matcher!=null) {
+			do {
+				result.add(matcher.group());
+			} while (matcher.find());
 		}
 		return result.toArray(new String[0]);
 	}
