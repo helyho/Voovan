@@ -202,7 +202,9 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 重连当前连接
+	 * @return AioSocket对象
 	 * @throws IOException IO 异常
+	 * @throws RestartException 重新启动的异常
 	 */
 	public AioSocket restart() throws IOException, RestartException {
 		if(this.connectModel == ConnectModel.CLIENT) {

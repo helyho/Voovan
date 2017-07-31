@@ -163,7 +163,9 @@ public class UdpSocket extends SocketContext{
 
     /**
      * 重连当前连接
+     * @return UdpSocket对象
      * @throws IOException IO 异常
+     * @throws RestartException 重新启动的异常
      */
     public UdpSocket restart() throws IOException, RestartException {
         if(this.connectModel == ConnectModel.CLIENT) {

@@ -30,7 +30,7 @@ public class AioSession extends IoSession<AioSocket>  {
 	/**
 	 * 构造函数
 	 * 
-	 * @param socket
+	 * @param socket AioSocket对象
 	 */
 	public AioSession(AioSocket socket) {
 		super(socket);
@@ -171,6 +171,7 @@ public class AioSession extends IoSession<AioSocket>  {
 	/**
 	 * 重连当前连接
 	 * @throws IOException IO 异常
+	 * @throws RestartException 重新启动的异常
 	 */
 	public void restart() throws IOException, RestartException {
 		socketContext().restart();

@@ -160,6 +160,7 @@ public class NioSession extends IoSession<NioSocket> {
 	/**
 	 * 重连当前连接
 	 * @throws IOException IO 异常
+	 * @throws RestartException 重新启动的异常
 	 */
 	public void restart() throws IOException, RestartException {
 		socketContext().restart();

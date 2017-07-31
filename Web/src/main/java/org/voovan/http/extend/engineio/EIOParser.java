@@ -24,12 +24,10 @@ public class EIOParser {
     }
 
     /**
-     * socket.io 报文解析
-     *
-     * @author: helyho
-     * Voovan Framework.
-     * WebSite: https://github.com/helyho/Voovan
-     * Licence: Apache v2 License
+     * 解析 engine.io 报文
+     * @param msg 报文内容
+     * @return EIOPacket 对象
+     * @throws ParserException 解析异常
      */
     public static EIOPacket decode(String msg) throws ParserException {
         EIOPacket engineIOPacket = new EIOPacket();
@@ -51,7 +49,7 @@ public class EIOParser {
 
     /**
      * 编码 Packet 成 字符串
-     * @param packet Packet 对象
+     * @param packet SIOPacket 对象
      * @return 字符串
      */
     public static String encode(EIOPacket packet){
