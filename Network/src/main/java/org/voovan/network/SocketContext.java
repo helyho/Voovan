@@ -241,7 +241,7 @@ public abstract class SocketContext {
 
 	/**
 	 * 用于针对 Accept 进来的 Socket 连接的启动
-	 * @throws IOException
+	 * @throws IOException IO异常
 	 */
 	protected abstract void acceptStart() throws IOException;
 

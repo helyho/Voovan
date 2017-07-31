@@ -88,7 +88,7 @@ public abstract class HashWheelTask {
 
     /**
      * 获取当前任务的槽位
-     * @return
+     * @return 当前任务的槽位
      */
     public int getSlot() {
         return slot;
@@ -96,7 +96,7 @@ public abstract class HashWheelTask {
 
     /**
      * 取消当前任务
-     * @return
+     * @return true: 成功, false:失败
      */
     public boolean cancel(){
          return hashWheel.removeTask(this);
