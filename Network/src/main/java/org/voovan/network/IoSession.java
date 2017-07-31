@@ -285,7 +285,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 * 获取本地 IP 地址
 	 * @return	本地 IP 地址
 	 */
-	public abstract String loaclAddress();
+	public abstract String localAddress();
 	
 	/**
 	 * 获取本地端口
