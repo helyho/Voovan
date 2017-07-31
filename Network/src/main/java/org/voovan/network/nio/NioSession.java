@@ -42,7 +42,7 @@ public class NioSession extends IoSession<NioSocket> {
 	 * 
 	 * @return 本地 IP 地址
 	 */
-	public String loaclAddress() {
+	public String localAddress() {
 		if (socketChannel.isOpen()) {
 			return socketChannel.socket().getLocalAddress().getHostAddress();
 		} else {
@@ -167,6 +167,6 @@ public class NioSession extends IoSession<NioSocket> {
 
 	@Override
 	public String toString() {
-		return "[" + this.loaclAddress() + ":" + this.loaclPort() + "] -> [" + this.remoteAddress() + ":" + this.remotePort() + "]";
+		return "[" + this.localAddress() + ":" + this.loaclPort() + "] -> [" + this.remoteAddress() + ":" + this.remotePort() + "]";
 	}
 }

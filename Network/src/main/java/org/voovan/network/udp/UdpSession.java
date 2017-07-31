@@ -48,7 +48,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 	 * 
 	 * @return 本地 IP 地址
 	 */
-	public String loaclAddress() {
+	public String localAddress() {
 		if (datagramChannel.isOpen()) {
 			return datagramChannel.socket().getLocalAddress().getHostAddress();
 		} else {
@@ -172,6 +172,6 @@ public class UdpSession extends IoSession<UdpSocket> {
 
 	@Override
 	public String toString() {
-		return "[" + this.loaclAddress() + ":" + this.loaclPort() + "] -> [" + this.remoteAddress() + ":" + this.remotePort() + "]";
+		return "[" + this.localAddress() + ":" + this.loaclPort() + "] -> [" + this.remoteAddress() + ":" + this.remotePort() + "]";
 	}
 }
