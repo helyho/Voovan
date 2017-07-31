@@ -19,7 +19,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.InterruptedByTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * WebServer Socket 事件处理类
