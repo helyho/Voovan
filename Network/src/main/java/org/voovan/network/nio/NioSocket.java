@@ -195,7 +195,9 @@ public class NioSocket extends SocketContext{
 
 	/**
 	 * 重连当前连接
+	 * @return NioSocket对象
 	 * @throws IOException IO 异常
+	 * @throws RestartException 重新启动的异常
 	 */
 	public NioSocket restart() throws IOException, RestartException {
 		if(this.connectModel == ConnectModel.CLIENT) {

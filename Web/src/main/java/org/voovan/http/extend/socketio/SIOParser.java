@@ -29,7 +29,8 @@ public class SIOParser {
     /**
      * 解析字符串成 Packet 对象
      * @param msg 字符串
-     * @return Packet 对象
+     * @return SIOPacket 对象
+     * @throws ParserException 解析异常
      */
     public static SIOPacket decode(String msg) throws ParserException {
         SIOPacket packet = new SIOPacket();
@@ -68,7 +69,7 @@ public class SIOParser {
 
     /**
      * 编码 Packet 成 字符串
-     * @param packet Packet 对象
+     * @param packet SIOPacket 对象
      * @return 字符串
      */
     public static String encode(SIOPacket packet){
