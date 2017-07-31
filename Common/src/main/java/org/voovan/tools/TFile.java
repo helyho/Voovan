@@ -155,7 +155,7 @@ public class TFile {
 	public static byte[] loadResource(String resourcePath) {
 		try {
 			resourcePath = URLDecoder.decode(resourcePath,"utf-8");
-			InputStream inputStream = TEnv.class.getClassLoader().getResourceAsStream(resourcePath);
+			InputStream inputStream = TEnv.getURLClassLoader(null).getResourceAsStream(resourcePath);
 			return TStream.readAll(inputStream);
 		} catch (IOException e) {
 			Logger.error("Load resource URLDecoder.decode failed",e);
@@ -343,97 +343,13 @@ public class TFile {
 	}
 
 	/**
-	 * 从当前进程的ClassPath中寻找 Class
-	 * @param pattern  确认匹配的正则表达式
-	 * @return  匹配到的 class 集合
-	 * @throws IOException IO 异常
-	 */
-	public static List<Class> searchClassInEnv(String pattern) throws IOException {
-		String userDir = System.getProperty("user.dir");
-		String[] classPaths = System.getProperty("java.class.path").split(File.pathSeparator);
-		ArrayList<Class> clazzes = new ArrayList<Class>();
-		for(String classPath : classPaths){
-			if(classPath.startsWith(userDir)) {
-				File classPathFile = new File(classPath);
-				if(classPathFile.exists() && classPathFile.isDirectory()){
-					clazzes.addAll(getDirectorClass(classPathFile,pattern));
-				} else if(classPathFile.exists() && classPathFile.isFile() && classPathFile.getName().endsWith(".jar")) {
-					clazzes.addAll( getJarClass(classPathFile, pattern) );
-				}
-			}
-		}
-
-		return clazzes;
-	}
-
-	/**
-	 * 从指定 File 对象寻找 Class
-	 * @param rootfile 文件目录 File 对象
-	 * @param pattern  确认匹配的正则表达式
-	 * @return  匹配到的 class 集合
-	 * @throws IOException IO 异常
-	 */
-	public static List<Class> getDirectorClass(File rootfile, String pattern) throws IOException {
-		pattern = TObject.nullDefault(pattern,".*");
-		pattern = pattern.replace("\\S\\.\\S","/");
-		ArrayList<Class> result = new ArrayList<Class>();
-		List<File> files = scanFile(rootfile,pattern);
-		for(File file : files){
-			String fileName = file.getCanonicalPath();
-			if(fileName.endsWith("class")) {
-				if(TString.regexMatch(fileName,"\\$\\d\\.class")>0){
-					continue;
-				}
-				fileName = fileName.replace(rootfile.getCanonicalPath() + "/", "");
-				fileName = TString.fastReplaceAll(fileName, "/", "\\.");
-				fileName = TString.fastReplaceAll(fileName, "\\.class$", "");
-				try {
-					result.add(Class.forName(fileName));
-				} catch (ClassNotFoundException e) {
-					Logger.warn("Try to load class["+fileName+"] failed",e);
-				}
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * 从指定jar 文件中寻找 Class
-	 * @param jarFile  jar 文件 File 对象
-	 * @param pattern  确认匹配的正则表达式
-	 * @return  匹配到的 class
-	 * @throws IOException IO 异常
-	 */
-	public static List<Class> getJarClass(File jarFile, String pattern) throws IOException {
-		pattern = TObject.nullDefault(pattern,".*");
-		pattern = pattern.replace("\\S\\.\\S","/");
-		ArrayList<Class> result = new ArrayList<Class>();
-		List<JarEntry> jarEntrys = scanJar(jarFile,pattern);
-		for(JarEntry jarEntry : jarEntrys){
-			String fileName = jarEntry.getName();
-			if(fileName.endsWith("class")) {
-				if (TString.regexMatch(fileName, "\\$\\d\\.class") > 0) {
-					continue;
-				}
-				fileName = TString.fastReplaceAll(fileName, "/", "\\.");
-				fileName = TString.fastReplaceAll(fileName, "\\.class$", "");
-				try {
-					result.add(Class.forName(fileName));
-				} catch (Throwable e) {
-					fileName = null;
-				}
-			}
-		}
-		return result;
-	}
-
-	/**
 	 * 遍历指定文件对象
 	 * @param file    特定的文件或文件目录
 	 * @param pattern  确认匹配的正则表达式
 	 * @return 匹配到的文件对象集合
 	 */
-	public static List<File> scanFile(File file, String pattern)   {
+	public static List<File> scanFile(File file, String pattern) {
+		pattern = pattern.isEmpty() ? null : pattern;
 		pattern = TObject.nullDefault(pattern,".*");
 		ArrayList<File> result = new ArrayList<File>();
 		if(file.isDirectory()){
