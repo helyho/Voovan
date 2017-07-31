@@ -76,7 +76,7 @@
             testFrom.enctype = type;
             testForm.submit()
         } else if (type == "normal/get") {
-            window.location = host + "/?name=" + encodeURI(name) + "&age=" + age;
+            window.location = host + "/?name=" + name + "&age=" + age;
         } else if (type == "path/get") {
             window.location = host + "/Star/" + encodeURI(name) + "/" + encodeURI(age);
         } else if (type == "split/get") {
