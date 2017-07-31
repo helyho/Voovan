@@ -42,7 +42,7 @@ public class AioSession extends IoSession<AioSocket>  {
 	}
 
 	@Override
-	public String loaclAddress() {
+	public String localAddress() {
 		if (this.isConnected()) {
 			try {
 				InetSocketAddress socketAddress = (InetSocketAddress)socketChannel.getLocalAddress();
@@ -178,6 +178,6 @@ public class AioSession extends IoSession<AioSocket>  {
 
 	@Override
 	public String toString() {
-		return "[" + this.loaclAddress() + ":" + this.loaclPort() + "] -> [" + this.remoteAddress() + ":" + this.remotePort() + "]";
+		return "[" + this.localAddress() + ":" + this.loaclPort() + "] -> [" + this.remoteAddress() + ":" + this.remotePort() + "]";
 	}
 }
