@@ -76,9 +76,11 @@
             testFrom.enctype = type;
             testForm.submit()
         } else if (type == "normal/get") {
-            window.location = host + "/?name=" + name + "&age=" + age;
+            window.location = host + "/?name=" + encodeURI(name) + "&age=" + age;
         } else if (type == "path/get") {
             window.location = host + "/Star/" + encodeURI(name) + "/" + encodeURI(age);
+        } else if (type == "split/get") {
+            window.location = host + "/split-" + encodeURI(name) + "-" + encodeURI(age);
         }
     }
 
@@ -113,6 +115,7 @@
     <div>
         GET方法测试: <input style="margin:5px 0px 0px 30px" type="button" value="NormalGet" onClick="mySubmit('normal/get')">
         <input type="button" value="PathGet" onClick="mySubmit('path/get')">
+        <input type="button" value="SplitGet" onClick="mySubmit('split/get')">
     </div>
     <div>
         POST方法测试: <input style="margin:5px 0px 0px 23px" type="button" value="URLEncoded"
