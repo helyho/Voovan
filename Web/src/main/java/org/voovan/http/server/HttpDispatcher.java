@@ -107,6 +107,7 @@ public class HttpDispatcher {
 	 */
 	public void addRouteHandler(String method, String routeRegexPath, HttpRouter router) {
 		if (methodRouters.keySet().contains(method)) {
+			//把连续的////替换成/
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "\\/{2,9}", "/");
 			methodRouters.get(method).put(routeRegexPath, router);
 		}
