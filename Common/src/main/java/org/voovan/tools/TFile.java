@@ -350,13 +350,12 @@ public class TFile {
 	 */
 	public static List<File> scanFile(File file, String pattern) {
 		pattern = pattern.isEmpty() ? null : pattern;
-		pattern = TObject.nullDefault(pattern,".*");
 		ArrayList<File> result = new ArrayList<File>();
 		if(file.isDirectory()){
 			for(File subFile : file.listFiles()){
 				result.addAll(scanFile(subFile,pattern));
 			}
-		} else if(TString.regexMatch(file.getPath(),pattern) > 0) {
+		} else if(pattern==null || TString.regexMatch(file.getPath(),pattern) > 0) {
 			result.add(file);
 		}
 		return result;
