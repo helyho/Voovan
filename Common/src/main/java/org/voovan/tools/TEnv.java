@@ -233,7 +233,7 @@ public class TEnv {
 			if(classPath.startsWith(userDir)) {
 				File classPathFile = new File(classPath);
 				if(classPathFile.exists() && classPathFile.isDirectory()){
-					clazzes.addAll(getDirectorClass(classPathFile, pattern, filters));
+					clazzes.addAll( getDirectorClass(classPathFile, pattern, filters));
 				} else if(classPathFile.exists() && classPathFile.isFile() && classPathFile.getName().endsWith(".jar")) {
 					clazzes.addAll( getJarClass(classPathFile, pattern, filters) );
 				}
@@ -258,15 +258,14 @@ public class TEnv {
 		List<File> files = TFile.scanFile(rootfile, pattern);
 		for(File file : files){
 			String fileName = file.getCanonicalPath();
-			if(fileName.endsWith("class")) {
+			if(TFile.getFileExtension(fileName).equals("class")) {
+				//如果是内部类则跳过
 				if(TString.regexMatch(fileName,"\\$\\d\\.class")>0){
 					continue;
 				}
 				fileName = fileName.replace(rootfile.getCanonicalPath() + "/", "");
-				fileName = TString.fastReplaceAll(fileName, "/", "\\.");
-				fileName = TString.fastReplaceAll(fileName, "\\.class$", "");
 				try {
-					Class clazz = Class.forName(fileName);
+					Class clazz = resourceToClass(fileName);
 					if(TReflect.classChecker(clazz, filters)) {
 						result.add(clazz);
 					}
@@ -293,14 +292,14 @@ public class TEnv {
 		List<JarEntry> jarEntrys = TFile.scanJar(jarFile, pattern);
 		for(JarEntry jarEntry : jarEntrys){
 			String fileName = jarEntry.getName();
-			if(fileName.endsWith("class")) {
+			if(TFile.getFileExtension(fileName).equals("class")) {
+				//如果是内部类则跳过
 				if (TString.regexMatch(fileName, "\\$\\d\\.class") > 0) {
 					continue;
 				}
-				fileName = TString.fastReplaceAll(fileName, "/", "\\.");
-				fileName = TString.fastReplaceAll(fileName, "\\.class$", "");
+
 				try {
-					Class clazz = Class.forName(fileName);
+					Class clazz = resourceToClass(fileName);
 					if(TReflect.classChecker(clazz, filters)) {
 						result.add(clazz);
 					}

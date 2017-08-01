@@ -14,6 +14,7 @@ import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * WebServer 对象
@@ -317,6 +318,13 @@ public class WebServer {
 			Logger.error("Start HTTP server error",e);
 		}
 		return this;
+	}
+
+	/**
+	 * 是否处于服务状态
+	 */
+	public boolean isServing(){
+		return aioServerSocket.isConnected();
 	}
 
 	/**
