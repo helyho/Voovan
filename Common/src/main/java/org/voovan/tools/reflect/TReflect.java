@@ -1029,10 +1029,20 @@ public class TReflect {
 	 * @return true: 是基本类型, false:非基本类型
 	 */
 	public static boolean isSystemType(Class clazz){
-		if( clazz.isPrimitive() || clazz.getName().contains("java.")){
+		List<String> systemPackages = TObject.asList("java.","sun.","javax.","com.sun","com.oracle");
+
+
+		if( clazz.isPrimitive()){
 			return true;
-		}else{
-			return false;
 		}
+
+		//排除的包中的 class 不加载
+		for(String systemPackage : systemPackages){
+			if(clazz.getName().startsWith(systemPackage)){
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
