@@ -13,6 +13,7 @@ import org.voovan.http.server.HttpRouter;
  *         WebSite: https://github.com/helyho/Voovan
  *         Licence: Apache v2 License
  */
+@TestAnnotation
 public class HttpTestRouter implements HttpRouter {
     @Override
     public void process(HttpRequest request, HttpResponse response) throws Exception {
