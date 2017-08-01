@@ -10,6 +10,7 @@ import org.voovan.tools.json.annotation.NotJSON;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 import sun.reflect.generics.reflectiveObjects.TypeVariableImpl;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -908,6 +909,42 @@ public class TReflect {
 		}while(superClass!=null && Object.class != superClass);
 
 		return false;
+	}
+
+	/**
+	 * 类检查器
+	 * 		是否符合 filters 中的约束条件, 注解/类/接口等
+	 * @param clazz    Class 对象
+	 * @param filters  过滤器
+	 * @return true: 符合约束, false: 不符合约束
+	 */
+	public static boolean classChecker(Class clazz, Class[] filters){
+		int matchCount = 0;
+		List<Annotation> annontations = TObject.asList(clazz.getAnnotations());
+
+		if(clazz.isAnonymousClass()) {
+			return false;
+		}
+
+		for(Class filterClazz : filters){
+			if(clazz == filterClazz){
+				break;
+			}
+
+			if(filterClazz.isAnnotation() && clazz.isAnnotationPresent(filterClazz)){
+				matchCount++;
+			}else if(filterClazz.isInterface() && TReflect.isImpByInterface(clazz, filterClazz)){
+				matchCount++;
+			}else if(TReflect.isExtendsByClass(clazz, filterClazz)){
+				matchCount++;
+			}
+		}
+
+		if(matchCount < filters.length){
+			return false;
+		}else{
+			return true;
+		}
 	}
 
 	/**

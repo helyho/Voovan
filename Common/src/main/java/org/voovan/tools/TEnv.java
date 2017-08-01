@@ -5,10 +5,13 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.jar.JarEntry;
 
@@ -218,10 +221,11 @@ public class TEnv {
 	/**
 	 * 从当前进程的ClassPath中寻找 Class
 	 * @param pattern  确认匹配的正则表达式
+	 * @param filters  过滤的 class, 满足这些条件的 class 才会被搜索到(注解,接口,继承的类)
 	 * @return  匹配到的 class 集合
 	 * @throws IOException IO 异常
 	 */
-	public static List<Class> searchClassInEnv(String pattern) throws IOException {
+	public static List<Class> searchClassInEnv(String pattern, Class[] filters) throws IOException {
 		String userDir = System.getProperty("user.dir");
 		List<String> classPaths = getClassPath();
 		ArrayList<Class> clazzes = new ArrayList<Class>();
@@ -229,9 +233,9 @@ public class TEnv {
 			if(classPath.startsWith(userDir)) {
 				File classPathFile = new File(classPath);
 				if(classPathFile.exists() && classPathFile.isDirectory()){
-					clazzes.addAll(getDirectorClass(classPathFile, pattern));
+					clazzes.addAll(getDirectorClass(classPathFile, pattern, filters));
 				} else if(classPathFile.exists() && classPathFile.isFile() && classPathFile.getName().endsWith(".jar")) {
-					clazzes.addAll( getJarClass(classPathFile, pattern) );
+					clazzes.addAll( getJarClass(classPathFile, pattern, filters) );
 				}
 			}
 		}
@@ -243,10 +247,11 @@ public class TEnv {
 	 * 从指定 File 对象寻找 Class
 	 * @param rootfile 文件目录 File 对象
 	 * @param pattern  确认匹配的正则表达式
+	 * @param filters  过滤的 class, 满足这些条件的 class 才会被搜索到(注解,接口,继承的类)
 	 * @return  匹配到的 class 集合
 	 * @throws IOException IO 异常
 	 */
-	public static List<Class> getDirectorClass(File rootfile, String pattern) throws IOException {
+	public static List<Class> getDirectorClass(File rootfile, String pattern, Class[] filters) throws IOException {
 		pattern = TObject.nullDefault(pattern,".*");
 		pattern = pattern.replace("\\S\\.\\S","/");
 		ArrayList<Class> result = new ArrayList<Class>();
@@ -261,7 +266,10 @@ public class TEnv {
 				fileName = TString.fastReplaceAll(fileName, "/", "\\.");
 				fileName = TString.fastReplaceAll(fileName, "\\.class$", "");
 				try {
-					result.add(Class.forName(fileName));
+					Class clazz = Class.forName(fileName);
+					if(TReflect.classChecker(clazz, filters)) {
+						result.add(clazz);
+					}
 				} catch (ClassNotFoundException e) {
 					Logger.warn("Try to load class["+fileName+"] failed",e);
 				}
@@ -274,14 +282,15 @@ public class TEnv {
 	 * 从指定jar 文件中寻找 Class
 	 * @param jarFile  jar 文件 File 对象
 	 * @param pattern  确认匹配的正则表达式
+	 * @param filters  过滤的 class, 满足这些条件的 class 才会被搜索到(注解,接口,继承的类)
 	 * @return  匹配到的 class
 	 * @throws IOException IO 异常
 	 */
-	public static List<Class> getJarClass(File jarFile, String pattern) throws IOException {
+	public static List<Class> getJarClass(File jarFile, String pattern, Class[] filters) throws IOException {
 		pattern = TObject.nullDefault(pattern,".*");
 		pattern = pattern.replace("\\S\\.\\S","/");
 		ArrayList<Class> result = new ArrayList<Class>();
-		List<JarEntry> jarEntrys = TFile.scanJar(jarFile,pattern);
+		List<JarEntry> jarEntrys = TFile.scanJar(jarFile, pattern);
 		for(JarEntry jarEntry : jarEntrys){
 			String fileName = jarEntry.getName();
 			if(fileName.endsWith("class")) {
@@ -291,7 +300,10 @@ public class TEnv {
 				fileName = TString.fastReplaceAll(fileName, "/", "\\.");
 				fileName = TString.fastReplaceAll(fileName, "\\.class$", "");
 				try {
-					result.add(Class.forName(fileName));
+					Class clazz = Class.forName(fileName);
+					if(TReflect.classChecker(clazz, filters)) {
+						result.add(clazz);
+					}
 				} catch (Throwable e) {
 					fileName = null;
 				}
@@ -357,5 +369,4 @@ public class TEnv {
 			throw new ClassNotFoundException("load and define class "+className+" failed");
 		}
 	}
-
 }
