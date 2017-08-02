@@ -232,7 +232,7 @@ public class Hotswaper {
 
     /**
      * 自动热加载 Class
-     * @param  intervals 自动重读的时间间隔
+     * @param  intervals 自动重读的时间间隔, 单位: 秒
      * @throws UnmodifiableClassException  不可修改的 Class 异常
      * @throws ClassNotFoundException Class未找到异常
      */
@@ -275,48 +275,23 @@ public class Hotswaper {
      * Class 文件信息
      */
     public class ClassFileInfo {
-        private String location;
         private Class clazz;
         private long lastModified;
         private String classNamePath;
 
         public ClassFileInfo(Class clazz, boolean isAutoChek) {
-            this.location = clazz.getProtectionDomain().getCodeSource().getLocation().getFile();
             this.clazz = clazz;
+            this.classNamePath = TEnv.classToResource(clazz);
             if(isAutoChek) {
-                this.lastModified = getClassLastModified();
+                this.lastModified = TEnv.getClassModifyTime(clazz);
             }
         }
 
-        private long getClassLastModified(){
-            if(classNamePath == null){
-                this.classNamePath = TEnv.classToResource(clazz);
-            }
 
-            try {
-                if(location.endsWith(".jar")) {
-                    try(JarFile jarFile = new JarFile(location)) {
-                        JarEntry jarEntry = jarFile.getJarEntry(classNamePath);
-                        return jarEntry.getTime();
-                    }
-                } else if (location.endsWith(File.separator)) {
-                    File classFile = new File(location+classNamePath);
-                    if(classFile.exists()) {
-                        return classFile.lastModified();
-                    }else{
-                        return -1;
-                    }
-                } else {
-                    return -1;
-                }
-            }catch (IOException e){
-                return -1;
-            }
-        }
 
         public boolean isChanged(){
 
-            long currentModified = getClassLastModified();
+            long currentModified = TEnv.getClassModifyTime(clazz);
 
             if(currentModified < 0 ){
                 return false;
