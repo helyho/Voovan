@@ -15,6 +15,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * WebServer 对象
@@ -318,6 +319,22 @@ public class WebServer {
 			Logger.error("Start HTTP server error",e);
 		}
 		return this;
+	}
+
+	/**
+	 * 获取 Http 的路由配置
+	 * @return 路由配置信息
+	 */
+	public Map<String, Map<String, HttpRouter>> getHttpRouters(){
+		return httpDispatcher.getRoutes();
+	}
+
+	/**
+	 * 获取 WebSocket 的路由配置
+	 * @return 路由配置信息
+	 */
+	public Map<String, WebSocketRouter> getWebSocketRouters(){
+		return webSocketDispatcher.getRoutes();
 	}
 
 	/**

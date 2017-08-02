@@ -62,6 +62,14 @@ public class WebSocketDispatcher {
 	}
 
 	/**
+	 * 获取 WebSocket 的路由配置
+	 * @return 路由配置信息
+	 */
+	public Map<String, WebSocketRouter> getRoutes(){
+		return routes;
+	}
+
+	/**
 	 * 增加一个路由规则
 	 * 
 	 * @param routeRegexPath 匹配路径
