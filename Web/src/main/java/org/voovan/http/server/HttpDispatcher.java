@@ -76,6 +76,14 @@ public class HttpDispatcher {
 	}
 
 	/**
+	 * 获取 Http 的路由配置
+	 * @return 路由配置信息
+	 */
+	public Map<String, Map<String, HttpRouter>> getRoutes(){
+		return methodRouters;
+	}
+
+	/**
 	 * 增加新的路由方法,例如:HTTP 方法 GET、POST 等等
 	 * 
 	 * @param method HTTP 请求方法
@@ -261,18 +269,20 @@ public class HttpDispatcher {
 		try {
 			//抽取路径中的变量名
 			String[] names = TString.searchByRegex(routePath, ":[^:?/_-]*");
-			for (int i = 0; i < names.length; i++) {
-				names[i] = TString.removePrefix(names[i]);
-				String name = names[i];
-				//拼装通过命名抽取数据的正则表达式
-				routePathMathchRegex = routePathMathchRegex.replace(":" + name, "(?<" + name + ">.*)");
-			}
+			if(names.length > 0) {
+				for (int i = 0; i < names.length; i++) {
+					names[i] = TString.removePrefix(names[i]);
+					String name = names[i];
+					//拼装通过命名抽取数据的正则表达式
+					routePathMathchRegex = routePathMathchRegex.replace(":" + name, "(?<" + name + ">.*)");
+				}
 
-			//运行正则
-			Matcher matcher = TString.doRegex(requestPath, routePathMathchRegex);
+				//运行正则
+				Matcher matcher = TString.doRegex(requestPath, routePathMathchRegex);
 
-			for (String name : names) {
-				resultMap.put(name, URLDecoder.decode(matcher.group(name), "UTF-8"));
+				for (String name : names) {
+					resultMap.put(name, URLDecoder.decode(matcher.group(name), "UTF-8"));
+				}
 			}
 		} catch (UnsupportedEncodingException e) {
 			Logger.error("RoutePath URLDecoder.decode failed by charset: UTF-8", e);
