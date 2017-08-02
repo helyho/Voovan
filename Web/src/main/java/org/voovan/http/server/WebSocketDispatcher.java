@@ -54,7 +54,9 @@ public class WebSocketDispatcher {
 					return -1;
 				} else if(o1.length() < o2.length()){
 					return 1;
-				} else {
+				} else if(o1.equals(o2)){
+					return 0;
+				} else{
 					return 1;
 				}
 			}

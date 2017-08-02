@@ -5,15 +5,13 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.Array;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * 系统环境相关
@@ -311,6 +309,34 @@ public class TEnv {
 		return result;
 	}
 
+	/**
+	 * 获取 Class 的修改时间
+	 * @param clazz Class 对象
+	 * @return 修改时间, 返回: -1 文件不存在 / 文件不是 Class 文件 / IO 异常
+	 */
+	public static long getClassModifyTime(Class clazz){
+		String location = location = clazz.getProtectionDomain().getCodeSource().getLocation().getFile();
+		String classNamePath = TEnv.classToResource(clazz);
+		try {
+			if(location.endsWith(".jar")) {
+				try(JarFile jarFile = new JarFile(location)) {
+					JarEntry jarEntry = jarFile.getJarEntry(classNamePath);
+					return jarEntry.getTime();
+				}
+			} else if (location.endsWith(File.separator)) {
+				File classFile = new File(location+classNamePath);
+				if(classFile.exists()) {
+					return classFile.lastModified();
+				}else{
+					return -1;
+				}
+			} else {
+				return -1;
+			}
+		}catch (IOException e){
+			return -1;
+		}
+	}
 
 	/**
 	 * 获取类JVM 的 Class Path
@@ -339,7 +365,11 @@ public class TEnv {
 	 * @return 资源文件路径
 	 */
 	public static String classToResource(Class clazz){
-		return TString.fastReplaceAll(clazz.getCanonicalName(), "\\.", File.separator)+".class";
+		String classNamePath = clazz.getName();
+		if(clazz.isMemberClass()) {
+			classNamePath = TString.fastReplaceAll(classNamePath, "\\$.*$", "");
+		}
+		return TString.fastReplaceAll(classNamePath, "\\.", File.separator)+".class";
 	}
 
 	/**
