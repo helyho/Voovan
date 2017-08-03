@@ -118,6 +118,12 @@ public class HttpDispatcher {
 	public void addRouteHandler(String method, String routeRegexPath, HttpRouter router) {
 		if (methodRouters.keySet().contains(method)) {
 			//把连续的////替换成/
+
+			//对于结束符为"/"的路径,清理这个符号,以便更好完成的匹配
+			if(routeRegexPath.endsWith("/")){
+				routeRegexPath = TString.removePrefix(routeRegexPath);
+			}
+
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "\\/{2,9}", "/");
 			methodRouters.get(method).put(routeRegexPath, router);
 		}
