@@ -41,6 +41,6 @@ public class AnnotationRouterTest {
 
     @Router("/sp")
     public String seqparams(String aa, int bb){
-        return "params: param1=" + aa + ", param2=" + bb;
+        return "seqparams: param1=" + aa + ", param2=" + bb;
     }
 }
