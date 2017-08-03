@@ -39,7 +39,7 @@ public class AnnotationRouterTest {
         return "head: " + aa;
     }
 
-    @Router
+    @Router("/sp")
     public String seqparams(String aa, int bb){
         return "params: param1=" + aa + ", param2=" + bb;
     }
