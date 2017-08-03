@@ -237,7 +237,7 @@ public class TString {
 	 */
 	public static String fastReplaceAll(String source, String regex, String replacement){
 		Pattern pattern = getCachedPattern(regex);
-		return pattern.matcher(source).replaceAll(replacement);
+		return pattern.matcher(source).replaceAll(Matcher.quoteReplacement(replacement));
 	}
 
 	/**

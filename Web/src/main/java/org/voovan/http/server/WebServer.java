@@ -11,10 +11,11 @@ import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
+import org.voovan.tools.hotswap.Hotswaper;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +44,21 @@ public class WebServer {
 	public WebServer(WebServerConfig config) throws IOException {
 		this.config = config;
 
+		initClassPath();
+		initHotSwap();
+		initSocketServer(config);
+
+        //更新 ClassPath, 步长1秒, 槽数60个;
+        org.voovan.Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			@Override
+			public void run() {
+				//更新 ClassPath , 这样有新的 jar 包才会被加载进来
+				WebServer.initClassPath();
+			}
+		}, 10);
+	}
+
+	private void initSocketServer(WebServerConfig config) throws IOException{
 		//[Socket] 准备 socket 监听
 		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout()*1000);
 
@@ -67,10 +83,34 @@ public class WebServer {
 		aioServerSocket.messageSplitter(new HttpMessageSplitter());
 	}
 
+	private static void initHotSwap() {
+		//热加载
+		{
+			try {
+				Hotswaper hotSwaper = new Hotswaper();
+				hotSwaper.autoReload(10);
+			} catch (Exception e) {
+				Logger.error("初始化热部署失败", e);
+			}
+		}
+	}
+
+	/**
+	 * 读取Classes目录和lib目录中的class或者jar文件
+	 */
+	private static void initClassPath(){
+		try {
+			TEnv.addClassPath(TFile.getSystemPath("classes"));
+			TEnv.addClassPath(TFile.getSystemPath("lib"));
+		} catch (NoSuchMethodException | IOException | SecurityException e) {
+			Logger.warn("Voovan WebServer Loader ./classes or ./lib error." ,e);
+		}
+	}
+
 	/**
 	 * 将配置文件中的 Router 配置载入到 WebServer
      */
-	private void  initConfigedRouter(){
+	private void initConfigedRouter(){
 		for(HttpRouterConfig httpRouterConfig : config.getRouterConfigs()){
 			String method = httpRouterConfig.getMethod();
 			String route = httpRouterConfig.getRoute();
@@ -262,18 +302,6 @@ public class WebServer {
 	}
 
 	/**
-	 * 读取Classes目录和lib目录中的class或者jar文件
-	 */
-	private static void initClassPath(){
-		try {
-			TEnv.addClassPath(TFile.getSystemPath("classes"));
-			TEnv.addClassPath(TFile.getSystemPath("lib"));
-		} catch (NoSuchMethodException | IOException | SecurityException e) {
-			Logger.warn("Voovan WebServer Loader ./classes or ./lib error." ,e);
-		}
-	}
-
-	/**
 	 * 通用服务启动
 	 */
 	private void commonServe(){
@@ -281,7 +309,7 @@ public class WebServer {
 		WebContext.welcome(config);
 		WebContext.initWebServerPlugin();
 
-		initClassPath();
+
 		initConfigedRouter();
 		initModule();
 		Logger.simple("Process ID: "+ TEnv.getCurrentPID());
