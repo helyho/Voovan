@@ -85,12 +85,14 @@ public class WebServer {
 		aioServerSocket.messageSplitter(new HttpMessageSplitter());
 	}
 
-	private static void initHotSwap() {
+	private void initHotSwap() {
 		//热加载
 		{
 			try {
-				Hotswaper hotSwaper = new Hotswaper();
-				hotSwaper.autoReload(10);
+				if(config.getHotSwapInterval() > 0) {
+					Hotswaper hotSwaper = new Hotswaper();
+					hotSwaper.autoReload(config.getHotSwapInterval());
+				}
 			} catch (Exception e) {
 				Logger.error("初始化热部署失败", e);
 			}
@@ -109,22 +111,25 @@ public class WebServer {
 		}
 	}
 
-	private void initAnnonationRouter(){
+	private void initAnnonationRouter() {
 		String scanRouterPackate = this.config.getScanRouterPackage();
-		if(scanRouterPackate!=null){
-				AnnotationRouter.scanRouterClassAndRegister(this);
+		if (scanRouterPackate != null) {
+			AnnotationRouter.scanRouterClassAndRegister(this);
 		}
 
-		final WebServer webServer = this;
-		//更新 ClassPath, 步长1秒, 槽数60个;
-		org.voovan.Global.getHashWheelTimer().addTask(new HashWheelTask() {
-			@Override
-			public void run() {
-				//查找并刷新新的@Route 注解类
-				AnnotationRouter.scanRouterClassAndRegister(webServer);
-			}
-		}, 10);
+		if(scanRouterPackate != null && config.getScanRouterInterval() > 0){
+			final WebServer webServer = this;
+			//更新 ClassPath, 步长1秒, 槽数60个;
+			org.voovan.Global.getHashWheelTimer().addTask(new HashWheelTask() {
+				@Override
+				public void run() {
+					//查找并刷新新的@Route 注解类
+					AnnotationRouter.scanRouterClassAndRegister(webServer);
+				}
+			}, config.getScanRouterInterval());
 
+			Logger.simple("Start scan annotation router.");
+		}
 	}
 
 	/**
