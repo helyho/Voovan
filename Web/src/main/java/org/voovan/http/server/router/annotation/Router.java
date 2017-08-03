@@ -18,7 +18,13 @@ public @interface Router {
       * 请求的 URL
        * @return
       */
-    String path() default "/";
+    String path() default "";
+
+    /**
+     *
+     * @return
+     */
+    String value() default "";
 
      /**
       * 请求的方法
