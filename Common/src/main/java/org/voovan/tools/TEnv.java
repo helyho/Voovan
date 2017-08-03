@@ -250,8 +250,9 @@ public class TEnv {
 	 * @throws IOException IO 异常
 	 */
 	public static List<Class> getDirectorClass(File rootfile, String pattern, Class[] filters) throws IOException {
-		pattern = TObject.nullDefault(pattern,".*");
-		pattern = pattern.replace("\\S\\.\\S","/");
+		if(pattern!=null) {
+			pattern = pattern.replace(".", File.separator);
+		}
 		ArrayList<Class> result = new ArrayList<Class>();
 		List<File> files = TFile.scanFile(rootfile, pattern);
 		for(File file : files){
@@ -284,8 +285,9 @@ public class TEnv {
 	 * @throws IOException IO 异常
 	 */
 	public static List<Class> getJarClass(File jarFile, String pattern, Class[] filters) throws IOException {
-		pattern = TObject.nullDefault(pattern,".*");
-		pattern = pattern.replace("\\S\\.\\S","/");
+		if(pattern!=null) {
+			pattern = pattern.replace(".", File.separator);
+		}
 		ArrayList<Class> result = new ArrayList<Class>();
 		List<JarEntry> jarEntrys = TFile.scanJar(jarFile, pattern);
 		for(JarEntry jarEntry : jarEntrys){
@@ -389,7 +391,7 @@ public class TEnv {
 		className = TString.fastReplaceAll(resourcePath, "\\$.*\\.class$", ".class");
 		className = TString.fastReplaceAll(className, ".class$", "");
 
-		className = TString.fastReplaceAll(className, File.separator, "\\.");
+		className = TString.fastReplaceAll(className, File.separator, ".");
 
 		try {
 

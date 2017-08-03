@@ -154,6 +154,7 @@ public class WebContext {
 		Logger.simple(TString.rightPad("  MatchRouteIgnoreCase:",35,' ')+config.isMatchRouteIgnoreCase());
 		Logger.simple(TString.rightPad("  Gzip:",35,' ')+ config.isGzip());
 		Logger.simple(TString.rightPad("  AccessLog:",35,' ')+ config.isAccessLog());
+		Logger.simple(TString.rightPad("  RouterScanPackage:",35,' ')+ config.getScanRouterPackage());
 		if(config.isHttps()) {
 			Logger.simple(TString.rightPad("  CertificateFile:",35,' ')+config.getHttps().getCertificateFile());
 			Logger.simple(TString.rightPad("  CertificatePassword:",35,' ')+config.getHttps().getCertificatePassword());

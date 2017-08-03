@@ -350,6 +350,7 @@ public class TFile {
 	 */
 	public static List<File> scanFile(File file, String pattern) {
 		pattern = pattern.isEmpty() ? null : pattern;
+
 		ArrayList<File> result = new ArrayList<File>();
 		if(file.isDirectory()){
 			for(File subFile : file.listFiles()){
@@ -370,7 +371,7 @@ public class TFile {
 	 * @throws IOException IO 异常
 	 */
 	public static List<JarEntry> scanJar(File file, String pattern) throws IOException {
-		pattern = TObject.nullDefault(pattern,".*");
+		pattern = pattern.isEmpty() ? null : pattern;
 
 		ArrayList<JarEntry> result = new ArrayList<JarEntry>();
 		JarFile jarFile = new JarFile(file);
@@ -378,7 +379,7 @@ public class TFile {
 		while(jarEntrys.hasMoreElements()){
 			JarEntry jarEntry = jarEntrys.nextElement();
 			String fileName = jarEntry.getName();
-			if(TString.regexMatch(fileName,pattern) > 0) {
+			if(pattern==null || TString.regexMatch(fileName,pattern) > 0) {
 				result.add(jarEntry);
 			}
 		}

@@ -265,7 +265,7 @@ public class HttpDispatcher {
 	 * @return     路径抽取参数 Map
 	 */
 	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) {
-		Map<String, String> resultMap = new HashMap<String, String>();
+		Map<String, String> resultMap = new LinkedHashMap<String, String>();
 		String routePathMathchRegex = routePath;
 
 		try {
@@ -382,7 +382,7 @@ public class HttpDispatcher {
 		String requestMethod = request.protocol().getMethod();
 		String requestPath = request.protocol().getPath();
 		String className = e.getClass().getName();
-		String errorMessage = e.toString();
+		String errorMessage = e.toString().replace(TFile.getLineSeparator(), "<br/>");
 		String stackInfo = TEnv.getStackMessage();
 		//转换成能在 HTML 中展示的超文本字符串
 		stackInfo = TString.indent(stackInfo,1).replace("\n", "<br>");

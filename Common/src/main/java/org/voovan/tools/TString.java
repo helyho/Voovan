@@ -529,21 +529,28 @@ public class TString {
 			return (T)value;
 		}
 
-		if(value == null){
+		if(value == null && !clazz.isPrimitive()){
 			return null;
 		}else if(clazz == int.class || clazz == Integer.class){
+			value = value==null? "0" : value;
 			return (T)Integer.valueOf(value);
 		}else if(clazz == float.class || clazz == Float.class){
+			value = value==null? "0" : value;
 			return (T)Float.valueOf(value);
 		}else if(clazz == double.class || clazz == Double.class){
+			value = value==null? "0" : value;
 			return (T)Double.valueOf(value);
 		}else if(clazz == boolean.class || clazz == Boolean.class){
+			value = value==null? "false" : value;
 			return (T)Boolean.valueOf(value);
 		}else if(clazz == long.class || clazz == Long.class){
+			value = value==null? "0" : value;
 			return (T)Long.valueOf(value);
 		}else if(clazz == short.class || clazz == Short.class){
+			value = value==null? "0" : value;
 			return (T)Short.valueOf(value);
 		}else if(clazz == byte.class || clazz == Byte.class){
+			value = value==null? "0" : value;
 			return (T)Byte.valueOf(value);
 		}else if(clazz == char.class || clazz == Character.class){
 			Object tmpValue = value!=null ? value.charAt(0) : null;
