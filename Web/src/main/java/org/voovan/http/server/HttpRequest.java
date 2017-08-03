@@ -13,10 +13,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * WebServer 请求对象
@@ -45,7 +42,7 @@ public class HttpRequest extends Request {
 	protected HttpRequest(Request request,String characterSet, IoSession socketSession){
 		super(request);
 		this.characterSet=characterSet;
-		parameters = new HashMap<String, String>();
+		parameters = new LinkedHashMap<String, String>();
 		attributes = new HashMap<String, Object>();
 		parseQueryString();
 		this.socketSession = socketSession;
