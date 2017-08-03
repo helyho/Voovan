@@ -124,6 +124,11 @@ public class HttpDispatcher {
 				routeRegexPath = TString.removePrefix(routeRegexPath);
 			}
 
+			//对于起始符不为"/"的路径,补充这个符号,以便更好完成的匹配
+			if(!routeRegexPath.startsWith("/")){
+				routeRegexPath = "/" + routeRegexPath;
+			}
+
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "\\/{2,9}", "/");
 			methodRouters.get(method).put(routeRegexPath, router);
 		}

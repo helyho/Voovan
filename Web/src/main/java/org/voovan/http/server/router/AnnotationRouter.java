@@ -213,9 +213,11 @@ public class AnnotationRouter implements HttpRouter {
             }
 
             //没有注解的参数,按顺序处理
-            String value = request.getParameter("param"+String.valueOf(i+1));
-            params[i] = TString.toObject(value, parameterTypes[i]);
-            continue;
+            if(params[i]==null) {
+                String value = request.getParameter("param" + String.valueOf(i + 1));
+                params[i] = TString.toObject(value, parameterTypes[i]);
+                continue;
+            }
 
         }
 
