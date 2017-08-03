@@ -33,6 +33,7 @@ public class WebServerConfig {
     private boolean gzip            = true;
     private HttpsConfig https;
     private String indexFiles = "index.htm,index.html,default.htm,default.htm";
+    private String scanRouterPackage = null;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
@@ -144,6 +145,14 @@ public class WebServerConfig {
 
     public void setIndexFiles(String indexFiles) {
         this.indexFiles = indexFiles;
+    }
+
+    public String getScanRouterPackage() {
+        return scanRouterPackage;
+    }
+
+    public void setScanRouterPackage(String scanRouterPackage) {
+        this.scanRouterPackage = scanRouterPackage;
     }
 
     public Chain<HttpFilterConfig> getFilterConfigs() {
