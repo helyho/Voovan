@@ -40,6 +40,9 @@ public class HttpSession {
 		this.id = TString.generateShortUUID();
 		lastTimeillis = System.currentTimeMillis();
 		int sessionTimeout = config.getSessionTimeout();
+		if(sessionTimeout<=0){
+			sessionTimeout = 1;
+		}
 		this.maxInactiveInterval = sessionTimeout*60*1000;
 		this.sessionManager = sessionManager;
 		this.socketSession = socketSession;
