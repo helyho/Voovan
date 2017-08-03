@@ -4,6 +4,7 @@ import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.server.context.HttpRouterConfig;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
+import org.voovan.http.server.router.AnnotationRouter;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioServerSocket;
@@ -47,6 +48,7 @@ public class WebServer {
 		initClassPath();
 		initHotSwap();
 		initSocketServer(config);
+		initAnnonationRouter();
 
         //更新 ClassPath, 步长1秒, 槽数60个;
         org.voovan.Global.getHashWheelTimer().addTask(new HashWheelTask() {
@@ -105,6 +107,24 @@ public class WebServer {
 		} catch (NoSuchMethodException | IOException | SecurityException e) {
 			Logger.warn("Voovan WebServer Loader ./classes or ./lib error." ,e);
 		}
+	}
+
+	private void initAnnonationRouter(){
+		String scanRouterPackate = this.config.getScanRouterPackage();
+		if(scanRouterPackate!=null){
+				AnnotationRouter.scanRouterClassAndRegister(this);
+		}
+
+		final WebServer webServer = this;
+		//更新 ClassPath, 步长1秒, 槽数60个;
+		org.voovan.Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			@Override
+			public void run() {
+				//查找并刷新新的@Route 注解类
+				AnnotationRouter.scanRouterClassAndRegister(webServer);
+			}
+		}, 10);
+
 	}
 
 	/**
