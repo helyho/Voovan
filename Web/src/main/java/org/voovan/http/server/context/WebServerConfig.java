@@ -12,6 +12,7 @@ import java.util.Vector;
 
 /**
  * WebServer 配置类
+ *      参数说明部分,请参考  /conf/web.json 的注释
  *
  * @author helyho
  *
@@ -34,6 +35,8 @@ public class WebServerConfig {
     private HttpsConfig https;
     private String indexFiles = "index.htm,index.html,default.htm,default.htm";
     private String scanRouterPackage = null;
+    private int scanRouterInterval = 0;
+    private int hotSwapInterval = 0;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
@@ -153,6 +156,22 @@ public class WebServerConfig {
 
     public void setScanRouterPackage(String scanRouterPackage) {
         this.scanRouterPackage = scanRouterPackage;
+    }
+
+    public int getScanRouterInterval() {
+        return scanRouterInterval;
+    }
+
+    public void setScanRouterInterval(int scanRouterInterval) {
+        this.scanRouterInterval = scanRouterInterval;
+    }
+
+    public int getHotSwapInterval() {
+        return hotSwapInterval;
+    }
+
+    public void setHotSwapInterval(int hotSwapInterval) {
+        hotSwapInterval = hotSwapInterval;
     }
 
     public Chain<HttpFilterConfig> getFilterConfigs() {
