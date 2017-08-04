@@ -56,7 +56,10 @@ public class SIOParser {
         }
 
         if(dotPosition>0 && dataPosition>0 && dotPosition < dataPosition ){
-            packet.setSeq(Integer.valueOf(msg.substring(dotPosition + 1, dotPosition + 2)));
+            String seqValue = msg.substring(dotPosition + 1, dotPosition + 2);
+            if(TString.isNumber(seqValue, 10)) {
+                packet.setSeq(Integer.valueOf(msg.substring(dotPosition + 1, dotPosition + 2)));
+            }
         }
 
         if(dataPosition>0) {
@@ -108,6 +111,11 @@ public class SIOParser {
         mm = "0/socketio,";
         packet = SIOParser.decode(mm);
         Logger.simple(SIOParser.isSocketIOMessage(mm));
+        Logger.simple(SIOParser.encode(packet));
+
+        mm = "2/socketio,[\"show\", \"kkkk\"]";
+        Logger.simple(SIOParser.isSocketIOMessage(mm));
+        packet = SIOParser.decode(mm);
         Logger.simple(SIOParser.encode(packet));
     }
 }
