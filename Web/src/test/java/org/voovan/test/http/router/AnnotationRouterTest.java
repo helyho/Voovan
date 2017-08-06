@@ -3,10 +3,7 @@ package org.voovan.test.http.router;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
-import org.voovan.http.server.router.annotation.Cookie;
-import org.voovan.http.server.router.annotation.Head;
-import org.voovan.http.server.router.annotation.Param;
-import org.voovan.http.server.router.annotation.Router;
+import org.voovan.http.server.router.annotation.*;
 
 /**
  * 类文字命名
@@ -39,7 +36,13 @@ public class AnnotationRouterTest {
         return "head: " + aa;
     }
 
-    @Router("/sp")
+    @Router(method="POST")
+    public String body(@Body String aa){
+        return "body: " + aa;
+    }
+
+
+    @Router("/sp\\dp")
     public String seqparams(String aa, int bb){
         return "seqparams: param1=" + aa + ", param2=" + bb;
     }
