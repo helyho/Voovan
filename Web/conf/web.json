@@ -52,7 +52,7 @@
 */
   "Modules": [
     {
-      "Name": "性能监控模块",                                      //模块名称
+      "Name": "注解路由模块",                                      //模块名称
       "Path": "/",                                                 //模块路径
       "ScanRouterPackage"      : "org.voovan.test.http.router",    //注解形式的路由扫描的包路径, 默认: null, 不设置这个属性则会被任务不开启
       "ScanRouterInterval"     : 30,                                //注解形式的路由扫描的包路径的时间间隔. 默认:0秒. 0:关闭
