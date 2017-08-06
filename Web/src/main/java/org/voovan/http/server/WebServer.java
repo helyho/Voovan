@@ -382,6 +382,13 @@ public class WebServer {
 		if(args.length>0){
 			for(int i=0;i<args.length;i++){
 				//服务端口
+				if(args[i].equals("-h")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					i++;
+					config.setHost(args[i]);
+				}
+
+				//服务端口
 				if(args[i].equals("-p")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					i++;
@@ -396,7 +403,7 @@ public class WebServer {
 				}
 
 				//上下文路径
-				if(args[i].equals("-cp")){
+				if(args[i].equals("-cr")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					i++;
 					config.setContextPath(args[i]);
@@ -467,7 +474,7 @@ public class WebServer {
 					Logger.simple("Options:");
 					Logger.simple(TString.rightPad("  -p ",35,' ')+"Webserver bind port number");
 					Logger.simple(TString.rightPad("  -t ",35,' ')+"Socket timeout");
-					Logger.simple(TString.rightPad("  -cp ",35,' ')+"Context path, contain webserver static file");
+					Logger.simple(TString.rightPad("  -cr ",35,' ')+"Context path, contain webserver static file");
 					Logger.simple(TString.rightPad("  -i ",35,' ')+"index file for client access to webserver");
 					Logger.simple(TString.rightPad("  -mri ",35,' ')+"Match route ignore case");
 					Logger.simple(TString.rightPad("  -c ",35,' ')+"set default charset");
