@@ -155,13 +155,6 @@ public class WebContext {
 		Logger.simple(TString.rightPad("  Gzip:",35,' ')+ config.isGzip());
 		Logger.simple(TString.rightPad("  AccessLog:",35,' ')+ config.isAccessLog());
 
-		if(config.getScanRouterPackage()!=null) {
-			Logger.simple(TString.rightPad("  RouterScanPackage:", 35, ' ') + config.getScanRouterPackage());
-			if(config.getScanRouterInterval() >= 0) {
-				Logger.simple(TString.rightPad("  ScanRouterInterval:", 35, ' ') + config.getScanRouterInterval());
-			}
-		}
-
 		if(config.getHotSwapInterval()>0) {
 			Logger.simple(TString.rightPad("  HotSwapInterval:", 35, ' ') + config.getHotSwapInterval());
 		}

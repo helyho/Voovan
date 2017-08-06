@@ -2,6 +2,7 @@ package org.voovan.http.server;
 
 import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.HttpModuleConfig;
+import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.tools.Chain;
 
 /**
@@ -17,8 +18,21 @@ public abstract class HttpModule {
     private WebServer webServer;
     private HttpModuleConfig moduleConfig;
 
-    public HttpModule(){
+    /**
+     * 获取WebServer
+     * @return WebServer对象
+     */
+    public WebServer getWebServer() {
+        return webServer;
+    }
 
+
+    /**
+     * 获取HttpModuleConfig
+     * @return HttpModuleConfig对象
+     */
+    public HttpModuleConfig getModuleConfig() {
+        return moduleConfig;
     }
 
     /**
@@ -137,6 +151,15 @@ public abstract class HttpModule {
      */
     public Chain<HttpFilterConfig> filterChain(){
         return webServer.getWebServerConfig().getFilterConfigs();
+    }
+
+    /**
+     * WebSocket 服务
+     * @param routeRegexPath 匹配路径
+     * @param router WebSocket处理句柄
+     */
+    public void socket(String routeRegexPath, WebSocketRouter router) {
+        webServer.socket(moduleConfig.getPath() + routeRegexPath, router);
     }
 
     /**
