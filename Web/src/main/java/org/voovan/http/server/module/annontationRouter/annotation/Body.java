@@ -1,4 +1,4 @@
-package org.voovan.http.server.router.annotation;
+package org.voovan.http.server.module.annontationRouter.annotation;
 
 import java.lang.annotation.*;
 
@@ -13,6 +13,5 @@ import java.lang.annotation.*;
 @Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface Cookie {
-    String value() default "";
+public @interface Body {
 }
