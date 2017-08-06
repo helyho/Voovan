@@ -200,6 +200,12 @@ public class AnnotationRouter implements HttpRouter {
                     continue;
                 }
 
+                //请求的 Cookie
+                if (annotation instanceof Body) {
+                    params[i] = TString.toObject(request.body().getBodyString(), parameterTypes[i]);
+                    continue;
+                }
+
                 //请求的头
                 if (annotation instanceof Session) {
                     String sessionName = ((Session) annotation).value();
