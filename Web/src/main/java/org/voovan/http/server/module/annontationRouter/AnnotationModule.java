@@ -15,10 +15,18 @@ import org.voovan.tools.log.Logger;
  */
 public class AnnotationModule extends HttpModule {
 
+    /**
+     * 获取扫描注解路由的包路径
+     * @return 注解路由的包路劲
+     */
     public String getScanRouterPackage(){
         return (String)getParamters("ScanRouterPackage");
     }
 
+    /**
+     * 获取注解路由的扫描时间间隔
+     * @return 注解路由的扫描时间间隔
+     */
     public int getScanRouterInterval(){
         return (int)getParamters("ScanRouterInterval");
     }
