@@ -1,8 +1,9 @@
-package org.voovan.http.server.router;
+package org.voovan.http.server.module.annontationRouter.router;
 
 import org.voovan.http.server.*;
+import org.voovan.http.server.module.annontationRouter.AnnotationModule;
+import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.server.exception.AnnotationRouterException;
-import org.voovan.http.server.router.annotation.*;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
@@ -41,16 +42,16 @@ public class AnnotationRouter implements HttpRouter {
     /**
      * 扫描包含Router注解的类
      *
-     * @param webServer   WebServer对象用于注册路由
+     * @param httpModule   AnnotationModule对象用于注册路由
      * @throws IOException                  IO 异常
      * @throws ReflectiveOperationException 反射异常
      */
-    public static void scanRouterClassAndRegister(WebServer webServer) {
+    public static void scanRouterClassAndRegister(AnnotationModule httpModule) {
         int routeMethodNum = 0;
-
+        WebServer webServer = httpModule.getWebServer();
         try {
             //查找
-            List<Class> routerClasses = TEnv.searchClassInEnv(webServer.getWebServerConfig().getScanRouterPackage(), new Class[]{Router.class});
+            List<Class> routerClasses = TEnv.searchClassInEnv(httpModule.getScanRouterPackage(), new Class[]{Router.class});
             for (Class routerClass : routerClasses) {
                 Method[] methods = routerClass.getMethods();
                 Router classRouter = (Router) routerClass.getAnnotation(Router.class);
@@ -109,7 +110,7 @@ public class AnnotationRouter implements HttpRouter {
                             AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method);
 
                             //注册路由,不带路径参数的路由
-                            webServer.otherMethod(routeMethod, routePath, annotationRouter);
+                            httpModule.otherMethod(routeMethod, routePath, annotationRouter);
                             Logger.simple("[Router] add annotation route: " + routeMethod + " - " + routePath);
                             routeMethodNum++;
 
@@ -117,7 +118,7 @@ public class AnnotationRouter implements HttpRouter {
                                 routePath = routePath + paramPath;
 
                                 //注册路由,带路径参数的路由
-                                webServer.otherMethod(routeMethod, routePath, annotationRouter);
+                                httpModule.otherMethod(routeMethod, routePath, annotationRouter);
                                 Logger.simple("[Router] add annotation route: " + routeMethod + " - " + routePath);
                                 routeMethodNum++;
                             }
