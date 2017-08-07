@@ -165,7 +165,7 @@ public class DynamicClass {
      * 生成编译时混淆的类名
      */
     private void genClassName() {
-        this.className = codeClassName + "$VDC$" + TString.generateShortUUID();
+        this.className = codeClassName + "_VDC_" + TString.generateShortUUID();
     }
 
     /**
