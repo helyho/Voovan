@@ -152,7 +152,7 @@ public class TEnv {
 	 * 获取指定的 Class 的 URLClassLoader
 	 * 		如果指定的 Class 不是使用 URLClassLoader 加载的
 	 * 		则使用 ClassLoader.getSystemClassLoader()获取 JVM 的 ClassLoader
-	 * @param clazz clazz 对象
+	 * @param clazz Class 对象
 	 * @return URLClassLoader对象
 	 */
 	public static URLClassLoader getURLClassLoader(Class clazz){

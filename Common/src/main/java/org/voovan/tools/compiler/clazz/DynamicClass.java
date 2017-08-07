@@ -49,7 +49,7 @@ public class DynamicClass {
 
     /**
      * 构造函数
-     *
+     *       默认使用文件名作为命名
      * @param file    脚本文件路径
      * @param charset 脚本文件编码
      * @throws UnsupportedEncodingException 字符集异常
@@ -102,7 +102,7 @@ public class DynamicClass {
      * 获取源代码
      * @return
      */
-     private String getCode() {
+     public String getCode() {
         if (codeFile != null) {
             try {
                 this.code = new String(TFile.loadFile(this.codeFile), this.fileCharset);
