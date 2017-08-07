@@ -193,7 +193,7 @@ public class DynamicCompilerManager {
 
     /**
      * 获取一个动态类的实例
-     * @param name 动态类名称,
+     * @param name 动态类名称
      * @param args 动态类构造方法的参数
      * @param <T> 范型
      * @return 动态类的实例化对象

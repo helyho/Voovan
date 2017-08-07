@@ -249,13 +249,6 @@ public class DynamicFunction {
         this.importClasses.remove(clazz);
     }
 
-    /**
-     *
-     * @param index 导入类对象所在的索引
-     */
-    public void removeImport(int index){
-        this.importClasses.remove(index);
-    }
 
     /**
      * 生成预置导入代码
@@ -286,7 +279,7 @@ public class DynamicFunction {
      * 获取导入函数集合
      * @return List导入函数集合
      */
-    public List<String> getImportFunctionx( ){
+    public List<String> getImportFunctionx(){
         return importFunctions;
     }
 
@@ -431,7 +424,7 @@ public class DynamicFunction {
     }
 
     /**
-     * 执行代码
+     * 执行动态函数
      *
      * @param args 调用参数
      * @param <T>  范型
