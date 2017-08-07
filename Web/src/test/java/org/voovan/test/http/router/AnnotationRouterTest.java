@@ -5,43 +5,55 @@ import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 
-/**
- * 类文字命名
- *
- * @author: helyho
- * Voovan Framework.
- * WebSite: https://github.com/helyho/Voovan
- * Licence: Apache v2 License
- */
+//将当前类注解为一个请求路由处理类, 采用默认的请求方法 GET
+//为当前类指定一个请求路径为:/annon，如果不指定则默认的路径为/AnnotationRouterTest
 @Router("/annon")
 public class AnnotationRouterTest {
 
+    //将当前方法注解为一个请求路由
+    //当前方法的请求路由为:/annon/index,采用方法名作为路由的路径
     @Router
     public String index(){
         return "index";
     }
 
+    //将当前方法注解为一个请求路由
+    //当前方法的请求路由为:/annon/params,采用方法名作为路由的路径
+    //将请求中名为 aa 的 参数在调用时注入成方法的 aa 参数
+    //将请求中名为 bb 的 参数在调用时注入成方法的 bb 参数
     @Router
     public String params(@Param("bb") String aa, @Param("aa") int bb){
         return "params: aa=" + aa + ", bb=" + bb;
     }
 
+    //将当前方法注解为一个请求路由
+    //当前方法的请求路由为:/annon/cookie,采用方法名作为路由的路径
+    //将Cookie中名为 _ga 的 参数在调用时注入成方法的 aa 参数
+    //同时将请求对象,响应对象和会话对象在调用时注入到方法的参数
     @Router
     public String cookie(@Cookie("_ga") String aa, HttpRequest request, HttpResponse response, HttpSession session){
         return "cookie: " + aa + " " +request +" " +response +" " +session ;
     }
 
+    //将当前方法注解为一个请求路由
+    //当前方法的请求路由为:/annon/head,采用方法名作为路由的路径
+    //将head中名为 Connection 的属性在调用时注入成方法的 aa 参数
     @Router
     public String head(@Head("Connection") String aa){
         return "head: " + aa;
     }
 
+    //将当前方法注解为一个请求路由, 并指定请求的方法为 POST,在这里 POST 会覆盖类注解的请求方法 GET
+    //当前方法的请求路由为:/annon/body,采用方法名作为路由的路径
+    //将请求中报文在调用时注入成方法的 aa 参数,在 resetful 中经常被使用到
     @Router(method="POST")
     public String body(@Body String aa){
         return "body: " + aa;
     }
 
-
+    //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
+    //当前方法的请求路由为:/annon/sp
+    //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
     @Router("/sp")
     public String seqparams(String aa, int bb){
         return "seqparams: param1=" + aa + ", param2=" + bb;
