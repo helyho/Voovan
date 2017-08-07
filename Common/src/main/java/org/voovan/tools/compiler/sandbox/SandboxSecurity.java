@@ -46,7 +46,7 @@ public class SandboxSecurity extends SecurityManager {
      */
     private boolean isDynamicObject(){
         for(StackTraceElement stackTraceElement : Thread.currentThread().getStackTrace()){
-            if(stackTraceElement.getClassName().contains("$VDC$")){
+            if(stackTraceElement.getClassName().contains("_VDC_")){
                 return true;
             }
         }
