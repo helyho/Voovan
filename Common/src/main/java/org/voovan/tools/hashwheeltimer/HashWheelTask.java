@@ -17,6 +17,9 @@ public abstract class HashWheelTask {
     private HashWheel hashWheel;
     private int slot;
 
+    /**
+     * 构造函数
+     */
     public HashWheelTask(){
         this.interval = 0;
         this.skipTick = 0;
@@ -24,13 +27,19 @@ public abstract class HashWheelTask {
     }
 
 
+    /**
+     * 构造函数
+     * @param interval      任务的槽间隔数
+     * @param asynchronous  是否异步执行
+     */
     public HashWheelTask(int interval, boolean asynchronous){
         this.interval = interval;
         this.skipTick = 0;
         this.asynchronous=asynchronous;
     }
 
-    public void init(int skipTick, int interval, boolean asynchronous,  HashWheel hashWheel, int slot){
+
+    protected void init(int skipTick, int interval, boolean asynchronous,  HashWheel hashWheel, int slot){
         this.skipTick = skipTick;
         this.interval = interval;
         this.asynchronous = asynchronous;
