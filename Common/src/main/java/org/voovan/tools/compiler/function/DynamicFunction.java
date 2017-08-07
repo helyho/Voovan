@@ -303,7 +303,7 @@ public class DynamicFunction {
      * 生成编译时混淆的类名
      */
     private void genClassName() {
-        this.className = this.name + "$VDC$" + TString.generateShortUUID();
+        this.className = this.name + "_VDC_" + TString.generateShortUUID();
     }
 
     /**
