@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 通过注解实现的路由
@@ -26,17 +28,30 @@ import java.util.List;
  */
 public class AnnotationRouter implements HttpRouter {
 
+    private static Map<Class, Object> singletonObjs = new ConcurrentHashMap<Class, Object>();
+
     private Class clazz;
     private Method method;
+    private Router classRouter;
 
     /**
      * 构造函数
      * @param clazz   Class对象
      * @param method  方法对象
      */
-    public AnnotationRouter(Class clazz, Method method) {
+    public AnnotationRouter(Class clazz, Method method, Router classRouter) {
         this.clazz = clazz;
         this.method = method;
+        this.classRouter = classRouter;
+
+        //如果是单例,则进行预实例化
+        if(classRouter.singleton() && !singletonObjs.containsKey(clazz)){
+            try {
+                singletonObjs.put(clazz, clazz.newInstance());
+            } catch (Exception e) {
+                Logger.error("New a singleton object error", e);
+            }
+        }
     }
 
     /**
@@ -54,9 +69,9 @@ public class AnnotationRouter implements HttpRouter {
             List<Class> routerClasses = TEnv.searchClassInEnv(httpModule.getScanRouterPackage(), new Class[]{Router.class});
             for (Class routerClass : routerClasses) {
                 Method[] methods = routerClass.getMethods();
-                Router classRouter = (Router) routerClass.getAnnotation(Router.class);
-                String classRouterPath = classRouter.path().isEmpty() ? classRouter.value() : classRouter.path();
-                String classRouterMethod = classRouter.method();
+                Router annonClassRouter = (Router) routerClass.getAnnotation(Router.class);
+                String classRouterPath = annonClassRouter.path().isEmpty() ? annonClassRouter.value() : annonClassRouter.path();
+                String classRouterMethod = annonClassRouter.method();
 
                 //使用类名指定默认路径
                 if (classRouterPath.isEmpty()) {
@@ -65,9 +80,9 @@ public class AnnotationRouter implements HttpRouter {
 
                 for (Method method : methods) {
                     if (method.isAnnotationPresent(Router.class)) {
-                        Router methodRouter = method.getAnnotation(Router.class);
-                        String methodRouterPath = methodRouter.path().isEmpty() ? methodRouter.value() : methodRouter.path();;
-                        String methodRouterMethod = methodRouter.method();
+                        Router annonMethodRouter = method.getAnnotation(Router.class);
+                        String methodRouterPath = annonMethodRouter.path().isEmpty() ? annonMethodRouter.value() : annonMethodRouter.path();;
+                        String methodRouterMethod = annonMethodRouter.method();
 
                         //使用方法名指定默认路径
                         if (methodRouterPath.isEmpty()) {
@@ -107,7 +122,7 @@ public class AnnotationRouter implements HttpRouter {
                                 !webServer.getHttpRouters().get(routeMethod).containsKey(routePath)) {
 
                             //构造注解路由器
-                            AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method);
+                            AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method, annonClassRouter);
 
                             //注册路由,不带路径参数的路由
                             httpModule.otherMethod(routeMethod, routePath, annotationRouter);
@@ -145,8 +160,17 @@ public class AnnotationRouter implements HttpRouter {
      * @return  返回值
      * @throws Exception 调用过程中的异常
      */
-    public static Object invokeRouterMethod(HttpRequest request, HttpResponse response, Class clazz, Method method) throws Exception {
-        Object annotationObj = clazz.newInstance();
+    public Object invokeRouterMethod(HttpRequest request, HttpResponse response, Class clazz, Method method) throws Exception {
+
+        Object annotationObj = null;
+
+        //如果是单例模式则使用预先初始话好的
+        if(this.classRouter.singleton()){
+            annotationObj = singletonObjs.get(clazz);
+        } else {
+            annotationObj = clazz.newInstance();
+        }
+
         Class[] parameterTypes = method.getParameterTypes();
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
 
