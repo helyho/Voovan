@@ -72,4 +72,9 @@ public class AnnotationRouterTest {
         lastPath = "/annon/sp, time:" + System.currentTimeMillis();
         return "seqparams: param1=" + aa + ", param2=" + bb + ", lastPath="+oldPath;
     }
+
+    @Router()
+    public String error(String aa, int bb){
+       throw new RuntimeException("my exception.");
+    }
 }
