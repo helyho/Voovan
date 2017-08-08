@@ -7,14 +7,18 @@ import org.voovan.http.server.module.annontationRouter.annotation.*;
 
 //将当前类注解为一个请求路由处理类, 采用默认的请求方法 GET
 //为当前类指定一个请求路径为:/annon，如果不指定则默认的路径为/AnnotationRouterTest
-@Router("/annon")
+@Router(value = "/annon", singleton = true)
 public class AnnotationRouterTest {
+
+    private String lastPath = "";
 
     //将当前方法注解为一个请求路由
     //当前方法的请求路由为:/annon/index,采用方法名作为路由的路径
     @Router
     public String index(){
-        return "index";
+        String oldPath = lastPath;
+        lastPath = "/annon/index, time:" + System.currentTimeMillis();
+        return "index, lastPath="+oldPath;
     }
 
     //将当前方法注解为一个请求路由
@@ -23,7 +27,9 @@ public class AnnotationRouterTest {
     //将请求中名为 bb 的 参数在调用时注入成方法的 bb 参数
     @Router
     public String params(@Param("bb") String aa, @Param("aa") int bb){
-        return "params: aa=" + aa + ", bb=" + bb;
+        String oldPath = lastPath;
+        lastPath = "/annon/parms, time:" + System.currentTimeMillis();
+        return "params: aa=" + aa + ", bb=" + bb+ ", lastPath="+oldPath;
     }
 
     //将当前方法注解为一个请求路由
@@ -32,7 +38,9 @@ public class AnnotationRouterTest {
     //同时将请求对象,响应对象和会话对象在调用时注入到方法的参数
     @Router
     public String cookie(@Cookie("_ga") String aa, HttpRequest request, HttpResponse response, HttpSession session){
-        return "cookie: " + aa + " " +request +" " +response +" " +session ;
+        String oldPath = lastPath;
+        lastPath = "/annon/cookie, time:" + System.currentTimeMillis();
+        return "cookie: " + aa + " " +request +" " +response +" " +session + ", lastPath="+oldPath;
     }
 
     //将当前方法注解为一个请求路由
@@ -40,7 +48,9 @@ public class AnnotationRouterTest {
     //将head中名为 Connection 的属性在调用时注入成方法的 aa 参数
     @Router
     public String head(@Head("Connection") String aa){
-        return "head: " + aa;
+        String oldPath = lastPath;
+        lastPath = "/annon/head, time:" + System.currentTimeMillis();
+        return "head: " + aa+ ", lastPath="+oldPath;
     }
 
     //将当前方法注解为一个请求路由, 并指定请求的方法为 POST,在这里 POST 会覆盖类注解的请求方法 GET
@@ -48,7 +58,9 @@ public class AnnotationRouterTest {
     //将请求中报文在调用时注入成方法的 aa 参数,在 resetful 中经常被使用到
     @Router(method="POST")
     public String body(@Body String aa){
-        return "body: " + aa;
+        String oldPath = lastPath;
+        lastPath = "/annon/body, time:" + System.currentTimeMillis();
+        return "body: " + aa + ", lastPath="+oldPath;
     }
 
     //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
@@ -56,6 +68,8 @@ public class AnnotationRouterTest {
     //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
     @Router("/sp")
     public String seqparams(String aa, int bb){
-        return "seqparams: param1=" + aa + ", param2=" + bb;
+        String oldPath = lastPath;
+        lastPath = "/annon/sp, time:" + System.currentTimeMillis();
+        return "seqparams: param1=" + aa + ", param2=" + bb + ", lastPath="+oldPath;
     }
 }

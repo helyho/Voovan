@@ -31,4 +31,11 @@ public @interface Router {
       * @return
       */
     String method() default "GET";
+
+    /**
+     * 定义路由类是否采用单例模式
+     * 在类上则标识类会被提前实例化, 在路由方法上,则使用提前实例化的类进行调用
+     * 在方法上无效
+     */
+    boolean singleton() default false;
 }
