@@ -1,6 +1,7 @@
 package org.voovan.http.server.context;
 
 import org.voovan.tools.Chain;
+import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -21,6 +22,7 @@ import java.util.Vector;
  * Licence: Apache v2 License
  */
 public class WebServerConfig {
+    private String serverName;
     private String host             = "0.0.0.0";
     private int port                = 28080;
     private int timeout             = 30;
@@ -39,6 +41,14 @@ public class WebServerConfig {
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
     private List<HttpModuleConfig> moduleConfigs = new Vector<HttpModuleConfig>();
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
 
     public void setHost(String host) {
         this.host = host;
