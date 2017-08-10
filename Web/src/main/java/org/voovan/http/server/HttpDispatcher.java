@@ -157,6 +157,8 @@ public class HttpDispatcher {
 			disposeRoute(request, response);
 		}
 
+		request.getSession().save();
+
 		//反向过滤器处理
 		filterResult = disposeInvertedFilter(filterConfigs,request,response);
 
@@ -311,28 +313,11 @@ public class HttpDispatcher {
 	 */
 	public void disposeSession(HttpRequest request, HttpResponse response){
 		
-		//获取请求的 Cookie中的session标识
-		Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
+        // 构建 session
+        HttpSession httpSession = sessionManager.newHttpSession(request, response);
 
-        //如果 session 不存在,创建新的 session
-        if (sessionCookie==null || !sessionManager.containsSession(sessionCookie)) {
-            // 构建 session
-            HttpSession httpSession = sessionManager.newHttpSession(request, response);
-
-            // 请求增加 Session
-            request.setSession(httpSession);
-        } else {
-            // 通过 Cookie 中的 session 标识获取 Session
-            HttpSession httpSession = sessionManager.getSession(sessionCookie.getValue());
-
-            // 保持 Socket 会话同步
-			if(!request.getSocketSession().equals(httpSession.getSocketSession())) {
-				httpSession.setSocketSession(request.getSocketSession());
-			}
-
-			// 请求增加 Session
-            request.setSession(httpSession);
-        }
+        // 请求增加 Session
+        request.setSession(httpSession);
 	}
 
 	/**

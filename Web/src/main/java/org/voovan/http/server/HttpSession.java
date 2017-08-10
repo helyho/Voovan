@@ -4,6 +4,7 @@ import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TString;
+import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,8 +23,11 @@ public class HttpSession {
 	private String id ;
 	private int maxInactiveInterval;
 	private long lastTimeillis;
+	@NotSerialization
 	private SessionManager sessionManager;
+	@NotSerialization
 	private IoSession socketSession;
+	@NotSerialization
 	private WebSocketSession webSocketSession;
 
 	
@@ -41,9 +45,19 @@ public class HttpSession {
 		lastTimeillis = System.currentTimeMillis();
 		int sessionTimeout = config.getSessionTimeout();
 		if(sessionTimeout<=0){
-			sessionTimeout = 1;
+			sessionTimeout = 30;
 		}
 		this.maxInactiveInterval = sessionTimeout*60*1000;
+		this.sessionManager = sessionManager;
+		this.socketSession = socketSession;
+	}
+
+	/**
+	 * 用于从会话池中取出的会话实例化
+	 * @param sessionManager Session管理器
+	 * @param socketSession Socket会话对象
+	 */
+	public void init(SessionManager sessionManager, IoSession socketSession){
 		this.sessionManager = sessionManager;
 		this.socketSession = socketSession;
 	}
@@ -87,6 +101,7 @@ public class HttpSession {
 	 */
 	public HttpSession refresh(){
 		lastTimeillis = System.currentTimeMillis();
+		save();
 		return this;
 	}
 	
@@ -180,6 +195,14 @@ public class HttpSession {
 	public boolean isInvalid(){
 		int intervalTime = (int)(System.currentTimeMillis() - lastTimeillis);
 		return intervalTime > maxInactiveInterval;
-		
+	}
+
+	/**
+	 * 保存 Session
+	 */
+	public void save(){
+		if(sessionManager!=null) {
+			sessionManager.saveSession(this);
+		}
 	}
 }
