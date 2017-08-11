@@ -9,7 +9,7 @@
   "CharacterSet"           : "GB2312",                    // 默认字符集,默认 UTF-8
 
   "SessionContainer"       : "java.util.concurrent.ConcurrentHashMap",    // Session 容器类,默认java.util.ConcurrentHashMap
-  //使用 Redis 作为集群 Session 共享的样例, 使用 Redis 作为 Session 集群共享会严重影响并发性能,大概下降为原来的50%
+  //使用 Redis 作为集群 Session 共享的样例, 使用 Redis 作为 Session 集群共享会对并发性能有一定的影响
   //"SessionContainer"       : "org.voovan.http.server.RedisSessionContainerTest",
   "SessionTimeout"         : 1,                           // Session 会话超时时间(m),默认30分钟, 如果设置小于等于0,则会被默认设置为30分钟
 
