@@ -43,6 +43,9 @@ public class WebServerConfig {
     private List<HttpModuleConfig> moduleConfigs = new Vector<HttpModuleConfig>();
 
     public String getServerName() {
+        if(serverName==null){
+            serverName = TString.generateShortUUID();
+        }
         return serverName;
     }
 

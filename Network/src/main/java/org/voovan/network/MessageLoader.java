@@ -1,6 +1,6 @@
 package org.voovan.network;
 
-import org.voovan.network.messagesplitter.TrasnferSplitter;
+import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
@@ -226,7 +226,7 @@ public class MessageLoader {
 
 			//使用消息划分器进行消息划分
 			if(readsize == 0 && dataByteBuffer.limit() > 0) {
-				if(messageSplitter instanceof TrasnferSplitter){
+				if(messageSplitter instanceof TransferSplitter){
 					splitLength = dataByteBuffer.limit();
 				}else{
 					splitLength = messageSplitter.canSplite(session, dataByteBuffer);
