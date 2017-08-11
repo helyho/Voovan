@@ -50,7 +50,7 @@ public class TPerformance {
 	 * 获取当前系统 CPU 数
 	 * @return 系统 CPU 数
      */
-	public static double getProcessorCount(){
+	public static int getProcessorCount(){
 		return osmxb.getAvailableProcessors();
 	}
 
