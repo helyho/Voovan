@@ -20,12 +20,7 @@ public class RedisMapUnit extends TestCase{
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        redisMap = new RedisMap("127.0.0.1", 6379, "test");
-        if(redisMap.auth("123456")){
-            Logger.simple("Auth ok");
-        }else{
-            Logger.simple("Auth failed");
-        }
+        redisMap = new RedisMap(null, "127.0.0.1", 6379, "test", "123456");
     }
 
     public void testPut(){
