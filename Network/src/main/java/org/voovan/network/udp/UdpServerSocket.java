@@ -3,7 +3,7 @@ package org.voovan.network.udp;
 import org.voovan.Global;
 import org.voovan.network.SocketContext;
 import org.voovan.network.handler.SynchronousHandler;
-import org.voovan.network.messagesplitter.TrasnferSplitter;
+import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -118,7 +118,7 @@ public class UdpServerSocket extends SocketContext{
     public void start() throws IOException {
         //如果没有消息分割器默认使用透传割器
         if(messageSplitter == null){
-            messageSplitter = new TrasnferSplitter();
+            messageSplitter = new TransferSplitter();
         }
 
         registerSelector();

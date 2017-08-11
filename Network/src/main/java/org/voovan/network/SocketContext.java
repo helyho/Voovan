@@ -1,7 +1,7 @@
 package org.voovan.network;
 
 import org.voovan.network.handler.SynchronousHandler;
-import org.voovan.network.messagesplitter.TrasnferSplitter;
+import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TEnv;
 
@@ -61,7 +61,7 @@ public abstract class SocketContext {
 		this.idleInterval = idleInterval;
 		connectModel = null;
 		filterChain = new Chain<IoFilter>();
-		this.messageSplitter = new TrasnferSplitter();
+		this.messageSplitter = new TransferSplitter();
 		this.handler = new SynchronousHandler();
 	}
 
