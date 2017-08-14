@@ -41,7 +41,7 @@ public class WebServerHandler implements IoHandler {
 		public static final int HTTP_REQUEST = 0x2222;
 		public static final int HTTP_RESPONSE = 0x3333;
 		public static final int KEEP_ALIVE = 0x4444;
-		public static final int TIMEOUT = 0x5555;
+		public static final int KEEP_ALIVE_TIMEOUT = 0x5555;
 	}
 
 	public WebServerHandler(WebServerConfig webConfig, HttpDispatcher httpDispatcher, WebSocketDispatcher webSocketDispatcher) {
@@ -91,7 +91,12 @@ public class WebServerHandler implements IoHandler {
 				for(int i=0; i<keepAliveSessionList.size(); i++){
 
 					IoSession session = keepAliveSessionList.get(i);
-					long timeoutValue = getAttribute(session, SessionParam.TIMEOUT);
+
+					if(session==null){
+						continue;
+					}
+
+					long timeoutValue = getAttribute(session, SessionParam.KEEP_ALIVE_TIMEOUT);
 					
 					if(timeoutValue < currentTimeValue){
                         //如果超时则结束当前连接
@@ -296,7 +301,7 @@ public class WebServerHandler implements IoHandler {
 	private void refreshTimeout(IoSession session){
 		int keepAliveTimeout = webConfig.getKeepAliveTimeout();
 		long timeoutValue = System.currentTimeMillis()+keepAliveTimeout*1000;
-		setAttribute(session, SessionParam.TIMEOUT, timeoutValue);
+		setAttribute(session, SessionParam.KEEP_ALIVE_TIMEOUT, timeoutValue);
 
 	}
 
