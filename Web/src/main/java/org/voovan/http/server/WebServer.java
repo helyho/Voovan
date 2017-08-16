@@ -378,10 +378,19 @@ public class WebServer {
 	 * @param args 启动参数
 	 */
 	public static void main(String[] args) {
-		 WebServerConfig config = null;
+		WebServerConfig config = WebContext.getWebServerConfig();
+
 		if(args.length>0){
 			for(int i=0;i<args.length;i++){
-				//服务端口
+
+				//服务监听地址
+				if(args[i].equals("--config")){
+					i++;
+					config = WebContext.newWebServerConfig(WebContext.loadMapFromFile(args[i]));
+					break;
+				}
+
+				//服务监听地址
 				if(args[i].equals("-h")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					i++;
@@ -403,7 +412,7 @@ public class WebServer {
 				}
 
 				//上下文路径
-				if(args[i].equals("-cr")){
+				if(args[i].equals("-r")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					i++;
 					config.setContextPath(args[i]);
@@ -423,7 +432,7 @@ public class WebServer {
 				}
 
 				//默认字符集,默认 UTF-8
-				if(args[i].equals("-c")){
+				if(args[i].equals("--charset")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					i++;
 					config.setCharacterSet(args[i]);
@@ -472,18 +481,19 @@ public class WebServer {
 					Logger.simple("Start voovan webserver");
 					Logger.simple("");
 					Logger.simple("Options:");
+					Logger.simple(TString.rightPad("  -h ",35,' ')+"Webserver bind host ip address");
 					Logger.simple(TString.rightPad("  -p ",35,' ')+"Webserver bind port number");
 					Logger.simple(TString.rightPad("  -t ",35,' ')+"Socket timeout");
-					Logger.simple(TString.rightPad("  -cr ",35,' ')+"Context root path, contain webserver static file");
+					Logger.simple(TString.rightPad("  -r ",35,' ')+"Context root path, contain webserver static file");
 					Logger.simple(TString.rightPad("  -i ",35,' ')+"index file for client access to webserver");
 					Logger.simple(TString.rightPad("  -mri ",35,' ')+"Match route ignore case");
-					Logger.simple(TString.rightPad("  -c ",35,' ')+"set default charset");
+					Logger.simple(TString.rightPad("  --charset ",35,' ')+"set default charset");
 					Logger.simple(TString.rightPad("  --noGzip ",35,' ')+"Do not use gzip for client");
 					Logger.simple(TString.rightPad("  --noAccessLog ",35,' ')+"Do not write access log to access.log");
 					Logger.simple(TString.rightPad("  --https.CertificateFile ",35,' ')+"Certificate file for https");
 					Logger.simple(TString.rightPad("  --https.CertificatePassword ",35,' ')+"ertificate file for https");
 					Logger.simple(TString.rightPad("  --https.KeyPassword ",35,' ')+"Certificate file for https");
-					Logger.simple(TString.rightPad("  -h or --help ",35,' ')+"how to use this command");
+					Logger.simple(TString.rightPad("  --help ",35,' ')+"how to use this command");
 					Logger.simple(TString.rightPad("  -v ",35,' ')+"Show the version information");
 					Logger.simple("");
 
@@ -497,7 +507,7 @@ public class WebServer {
 				}
 			}
 		}
-		config = config==null?WebContext.getWebServerConfig():config;
+
 
 		WebServer webServer = WebServer.newInstance(config);
 
