@@ -383,7 +383,7 @@ public class WebServer {
 		if(args.length>0){
 			for(int i=0;i<args.length;i++){
 
-				//服务监听地址
+				//指定服务启动时使用的配置文件
 				if(args[i].equals("--config")){
 					i++;
 					config = WebContext.buildWebServerConfig(WebContext.loadMapFromFile(args[i]));
@@ -487,6 +487,7 @@ public class WebServer {
 					Logger.simple(TString.rightPad("  -r ",35,' ')+"Context root path, contain webserver static file");
 					Logger.simple(TString.rightPad("  -i ",35,' ')+"index file for client access to webserver");
 					Logger.simple(TString.rightPad("  -mri ",35,' ')+"Match route ignore case");
+					Logger.simple(TString.rightPad("  --config ",35,' ')+"Webserver config file");
 					Logger.simple(TString.rightPad("  --charset ",35,' ')+"set default charset");
 					Logger.simple(TString.rightPad("  --noGzip ",35,' ')+"Do not use gzip for client");
 					Logger.simple(TString.rightPad("  --noAccessLog ",35,' ')+"Do not write access log to access.log");
