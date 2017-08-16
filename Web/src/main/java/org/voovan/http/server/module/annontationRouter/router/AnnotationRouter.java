@@ -14,6 +14,7 @@ import org.voovan.tools.reflect.TReflect;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -117,25 +118,33 @@ public class AnnotationRouter implements HttpRouter {
                             }
                         }
 
+                        //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
+
+
                         //判断路由是否注册过
-                        if (webServer.getHttpRouters().get(routeMethod) == null ||
-                                !webServer.getHttpRouters().get(routeMethod).containsKey(routePath)) {
+                        if (webServer.getHttpRouters().get(routeMethod) == null) {
 
-                            //构造注解路由器
-                            AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method, annonClassRouter);
+                            //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
+                            Map routerMaps = new HashMap();
+                            routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
 
-                            //注册路由,不带路径参数的路由
-                            httpModule.otherMethod(routeMethod, routePath, annotationRouter);
-                            Logger.simple("[Router] add annotation route: " + routeMethod + " - " + routePath);
-                            routeMethodNum++;
+                            if(!routerMaps.containsKey(routePath)) {
+                                //构造注解路由器
+                                AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method, annonClassRouter);
 
-                            if(!paramPath.isEmpty()) {
-                                routePath = routePath + paramPath;
-
-                                //注册路由,带路径参数的路由
+                                //注册路由,不带路径参数的路由
                                 httpModule.otherMethod(routeMethod, routePath, annotationRouter);
                                 Logger.simple("[Router] add annotation route: " + routeMethod + " - " + routePath);
                                 routeMethodNum++;
+
+                                if (!paramPath.isEmpty()) {
+                                    routePath = routePath + paramPath;
+
+                                    //注册路由,带路径参数的路由
+                                    httpModule.otherMethod(routeMethod, routePath, annotationRouter);
+                                    Logger.simple("[Router] add annotation route: " + routeMethod + " - " + routePath);
+                                    routeMethodNum++;
+                                }
                             }
                         }
                     }
