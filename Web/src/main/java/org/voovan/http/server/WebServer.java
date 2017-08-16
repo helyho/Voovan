@@ -308,7 +308,7 @@ public class WebServer {
 	 */
 	private void commonServe(){
 		//输出欢迎信息
-		WebContext.welcome(config);
+		WebContext.welcome();
 		WebContext.initWebServerPlugin();
 
 
@@ -386,7 +386,7 @@ public class WebServer {
 				//服务监听地址
 				if(args[i].equals("--config")){
 					i++;
-					config = WebContext.newWebServerConfig(WebContext.loadMapFromFile(args[i]));
+					config = WebContext.buildWebServerConfig(WebContext.loadMapFromFile(args[i]));
 					break;
 				}
 

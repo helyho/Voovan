@@ -37,7 +37,7 @@ public class WebContext {
 	/**
 	 * Web Config
 	 */
-	private static final Map<String, Object> WEB_CONFIG = loadMapFromFile("/conf/web.json");
+	private static Map<String, Object> WEB_CONFIG = loadMapFromFile("/conf/web.json");
 
 	/**
 	 * MimeMap
@@ -54,7 +54,7 @@ public class WebContext {
 	 */
 	private static final String ACCESS_LOG_FILE_NAME = TFile.getContextPath()+File.separator+"logs"+File.separator+"access.log";
 
-	private static WebServerConfig webServerConfig = newWebServerConfig(WEB_CONFIG);
+	private static WebServerConfig webServerConfig = buildWebServerConfig(WEB_CONFIG);
 
 	private WebContext(){
 		
@@ -84,13 +84,14 @@ public class WebContext {
 	 * @param configMap 配置对象的 Map
 	 * @return WebServerConfig 对象
 	 */
-	public static WebServerConfig newWebServerConfig(Map<String, Object> configMap){
-		WebServerConfig config = new WebServerConfig();
+	public static WebServerConfig buildWebServerConfig(Map<String, Object> configMap){
+		WebContext.WEB_CONFIG = configMap;
+		WebContext.webServerConfig = new WebServerConfig();
 
 		//使用反射工具自动加载配置信息
 		try {
-			config = (WebServerConfig) TReflect.getObjectFromMap(WebServerConfig.class, configMap, true);
-			config = TObject.nullDefault(config, new WebServerConfig());
+			WebContext.webServerConfig = (WebServerConfig) TReflect.getObjectFromMap(WebServerConfig.class, configMap, true);
+			WebContext.webServerConfig = TObject.nullDefault(WebContext.webServerConfig, new WebServerConfig());
 		} catch (ReflectiveOperationException e) {
 			Logger.error(e);
 		} catch (ParseException e) {
@@ -98,14 +99,14 @@ public class WebContext {
 		}
 
 		//如果是相对路径则转换成绝对路
-		if(!config.getContextPath().startsWith(File.separator)){
-			config.setContextPath(System.getProperty("user.dir")+File.separator+config.getContextPath());
+		if(!WebContext.webServerConfig.getContextPath().startsWith(File.separator)){
+			WebContext.webServerConfig.setContextPath(System.getProperty("user.dir")+File.separator + WebContext.webServerConfig.getContextPath());
 		}
-		if(config.getContextPath().endsWith(File.separator)){
-			config.setContextPath(TString.removeSuffix(config.getContextPath()));
+		if(WebContext.webServerConfig.getContextPath().endsWith(File.separator)){
+			WebContext.webServerConfig.setContextPath(TString.removeSuffix(WebContext.webServerConfig.getContextPath()));
 		}
 
-		return config;
+		return WebContext.webServerConfig;
 	}
 
 	public static void initWebServerPlugin(){
@@ -130,9 +131,9 @@ public class WebContext {
 
 	/**
 	 * 显示欢迎信息
-	 * @param config WebServer配置对象
      */
-	public static void welcome(WebServerConfig config){
+	public static void welcome(){
+		WebServerConfig config = WebContext.webServerConfig;
 		Logger.simple("*********************************************************************************************");
 		Logger.simple("");
 		Logger.simple("   ==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==	");
