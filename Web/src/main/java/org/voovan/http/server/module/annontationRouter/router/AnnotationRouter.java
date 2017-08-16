@@ -122,7 +122,7 @@ public class AnnotationRouter implements HttpRouter {
 
 
                         //判断路由是否注册过
-                        if (webServer.getHttpRouters().get(routeMethod) == null) {
+                        if (webServer.getHttpRouters().get(routeMethod) != null) {
 
                             //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
                             Map routerMaps = new HashMap();
