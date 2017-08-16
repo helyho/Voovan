@@ -54,7 +54,7 @@ public class WebContext {
 	 */
 	private static final String ACCESS_LOG_FILE_NAME = TFile.getContextPath()+File.separator+"logs"+File.separator+"access.log";
 
-	private static WebServerConfig webServerConfig = initWebServerConfig();
+	private static WebServerConfig webServerConfig = newWebServerConfig(WEB_CONFIG);
 
 	private WebContext(){
 		
@@ -62,10 +62,10 @@ public class WebContext {
 															
 	/**
 	 * 从 js 配置文件读取配置信息到 Map
-	 * @param filePath
-	 * @return
+	 * @param filePath 配置文件的路径
+	 * @return Map 对象
 	 */
-	private static Map<String, Object> loadMapFromFile(String filePath){
+	 public static Map<String, Object> loadMapFromFile(String filePath){
 		if(TFile.fileExists(TFile.getSystemPath(filePath))) {
 			String fileContent = null;
 			try {
@@ -78,18 +78,19 @@ public class WebContext {
 		}
 		return new HashMap<String,Object>();
 	}
-	
+
 	/**
-	 * 从配置文件初始化 config 对象
-	 * @return
+	 * 获取一个 WebServer 的配置对象
+	 * @param configMap 配置对象的 Map
+	 * @return WebServerConfig 对象
 	 */
-	private static WebServerConfig initWebServerConfig() {
+	public static WebServerConfig newWebServerConfig(Map<String, Object> configMap){
 		WebServerConfig config = new WebServerConfig();
 
 		//使用反射工具自动加载配置信息
 		try {
-			config = (WebServerConfig) TReflect.getObjectFromMap(WebServerConfig.class, WEB_CONFIG, true);
-            config = TObject.nullDefault(config, new WebServerConfig());
+			config = (WebServerConfig) TReflect.getObjectFromMap(WebServerConfig.class, configMap, true);
+			config = TObject.nullDefault(config, new WebServerConfig());
 		} catch (ReflectiveOperationException e) {
 			Logger.error(e);
 		} catch (ParseException e) {
