@@ -4,6 +4,7 @@ import org.voovan.tools.MultiMap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -18,17 +19,17 @@ public class HashWheel {
     private MultiMap<Integer, HashWheelTask> wheel;
     private int size = 0;
     private int currentSlot;
-    private boolean init;
+    private ReentrantLock lock;
 
     /**
      * 构造函数
      * @param size 时间轮的槽数
      */
     public HashWheel(int size){
-        init = true;
         currentSlot = 0;
         this.size = size;
         wheel = new MultiMap<Integer, HashWheelTask>();
+        lock = new ReentrantLock();
     }
 
     /**
@@ -40,32 +41,38 @@ public class HashWheel {
      */
     public boolean addTask(HashWheelTask task, int interval, boolean asynchronous){
 
-        if(interval<0){
-            //这里考虑抛出异常
-            return false;
+        lock.lock();
+        try {
+
+            if (interval < 0) {
+                //这里考虑抛出异常
+                return false;
+            }
+
+
+            int nextSlot = currentSlot + interval;
+
+            int skipSlot = interval / size;
+
+            //计算 SLot 位置
+            int targetSlot = nextSlot % size;
+
+            //对于步长等于槽数,的特殊处理
+            if(interval%size == 0 && skipSlot > 0 && task.getDoCount() !=0 ){
+                skipSlot--;
+            }
+
+//            Logger.simple("ST: "+skipSlot+" TT: "+targetSlot+ " CS:" +currentSlot + " I:" + interval);
+
+            //重新安置任务
+            wheel.putValue(targetSlot, task);
+
+            task.init(skipSlot, interval, asynchronous, this, targetSlot);
+
+            return true;
+        }finally {
+            lock.unlock();
         }
-
-
-        int nextSlot = currentSlot + interval;
-
-        int skipSlot = interval/size;
-
-        //计算 SLot 位置
-        int targetSlot = nextSlot%size;
-
-        //对于步长小于槽数,且跳跃轮==1的情况,不需要进行跳跃
-        if(interval<=size && skipSlot == 1 && !init){
-            skipSlot --;
-        }
-
-        //Logger.simple("ST: "+skipSlot+" TT: "+targetTick);
-
-        //重新安置任务
-        wheel.putValue(targetSlot, task);
-
-        task.init(skipSlot, interval, asynchronous, this, targetSlot);
-
-        return true;
     }
 
     /**
@@ -103,29 +110,31 @@ public class HashWheel {
      * 执行一个步长
      */
     public void Tick(){
-        if(init) {
-            init = false;
-        }
+        lock.lock();
+        try {
 
-        if(currentSlot == size){
-            currentSlot = 0;
-        }
+            if (currentSlot == size) {
+                currentSlot = 0;
+            }
 
-        List<HashWheelTask> tasks = wheel.get(currentSlot);
+            List<HashWheelTask> tasks = wheel.get(currentSlot);
 
-        if(tasks != null) {
-            List<HashWheelTask> tmpList = new ArrayList<HashWheelTask>();
-            tmpList.addAll(tasks);
+            if (tasks != null) {
+                List<HashWheelTask> tmpList = new ArrayList<HashWheelTask>();
+                tmpList.addAll(tasks);
 
-            for (HashWheelTask task : tmpList) {
-                if (task.doTask()) {
-                    removeTask(task);
-                    addTask(task);
+                for (HashWheelTask task : tmpList) {
+                    if (task.doTask()) {
+                        removeTask(task);
+                        addTask(task);
+                    }
                 }
             }
-        }
 
-        currentSlot++;
+            currentSlot++;
+        }finally {
+            lock.unlock();
+        }
 
 //        Logger.simple(currentSlot);
 

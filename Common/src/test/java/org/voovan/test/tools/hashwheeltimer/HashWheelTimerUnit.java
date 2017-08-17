@@ -29,7 +29,7 @@ public class HashWheelTimerUnit extends TestCase {
         hashWheelTimer.addTask(new HashWheelTask() {
             @Override
             public void run() {
-                Logger.simple("\t 1: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
+                Logger.simple("\t 1: Sync: "+Thread.currentThread().getName()+" "+ TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
             }
         }, 1);
 
@@ -48,6 +48,14 @@ public class HashWheelTimerUnit extends TestCase {
                 Logger.simple("\t 5: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
             }
         }, 5);
+
+        //5个步长
+        hashWheelTimer.addTask(new HashWheelTask() {
+            @Override
+            public void run() {
+                Logger.simple("\t10: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
+            }
+        }, 10);
 
         //6个步长
         hashWheelTimer.addTask(new HashWheelTask() {

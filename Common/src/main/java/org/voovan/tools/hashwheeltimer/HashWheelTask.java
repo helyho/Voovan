@@ -16,6 +16,7 @@ public abstract class HashWheelTask {
     private boolean asynchronous;
     private HashWheel hashWheel;
     private int slot;
+    private long doCount;
 
     /**
      * 构造函数
@@ -45,6 +46,7 @@ public abstract class HashWheelTask {
         this.asynchronous = asynchronous;
         this.hashWheel = hashWheel;
         this.slot = slot;
+        doCount = 0;
     }
 
     /**
@@ -104,11 +106,19 @@ public abstract class HashWheelTask {
     }
 
     /**
+     * 获取任务执行的次数
+     * @return 任务执行的次数
+     */
+    public long getDoCount() {
+        return doCount;
+    }
+
+    /**
      * 取消当前任务
      * @return true: 成功, false:失败
      */
     public boolean cancel(){
-         return hashWheel.removeTask(this);
+        return hashWheel.removeTask(this);
     }
 
     /**
@@ -121,6 +131,12 @@ public abstract class HashWheelTask {
      * @return true: 执行了这个任务, false: 未执行这个任务
      */
     public boolean doTask(){
+        doCount++;
+
+        if(doCount == Long.MAX_VALUE){
+            doCount = 0;
+        }
+
         if(skipTick > 0){
             skipTick--;
             return false;
