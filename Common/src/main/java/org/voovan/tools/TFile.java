@@ -389,12 +389,12 @@ public class TFile {
 
 	/**
 	 * 使用相对路径获得系统的完整路径
-	 * @param absolutePath 相对路径
+	 * @param relativePath 相对路径
 	 * @return 系统的完整路径
 	 */
-	public static String getSystemPath(String absolutePath) {
-		String spliter = absolutePath.startsWith(File.separator) == true ? "" : File.separator;
-		return getContextPath() + spliter + absolutePath;
+	public static String getSystemPath(String relativePath) {
+		String spliter = relativePath.startsWith(File.separator) == true ? "" : File.separator;
+		return getContextPath() + spliter + relativePath;
 	}
 
 	/**
