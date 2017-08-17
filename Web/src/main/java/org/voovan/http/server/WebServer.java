@@ -15,6 +15,7 @@ import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hotswap.Hotswaper;
 import org.voovan.tools.log.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -386,8 +387,13 @@ public class WebServer {
 				//指定服务启动时使用的配置文件
 				if(args[i].equals("--config")){
 					i++;
-					config = WebContext.buildWebServerConfig(WebContext.loadMapFromFile(args[i]));
-					break;
+					String configFilePath = TFile.getContextPath()+ File.separator + (args[i]);
+					if(new File(configFilePath).exists()) {
+						config = WebContext.buildWebServerConfig(WebContext.loadMapFromFile(args[i]));
+						break;
+					}else{
+						Logger.warn("The config file: " + configFilePath + " is not exists, now use default config.");
+					}
 				}
 
 				//服务监听地址
