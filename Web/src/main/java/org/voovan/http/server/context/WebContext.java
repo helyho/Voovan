@@ -3,10 +3,8 @@ package org.voovan.http.server.context;
 import org.voovan.Global;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
-import org.voovan.tools.TDateTime;
-import org.voovan.tools.TFile;
-import org.voovan.tools.TObject;
-import org.voovan.tools.TString;
+import org.voovan.http.server.WebServer;
+import org.voovan.tools.*;
 import org.voovan.tools.json.JSONDecode;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.log.SingleLogger;
@@ -42,12 +40,12 @@ public class WebContext {
 	/**
 	 * MimeMap
 	 */
-	private static final Map<String, Object> MIME_TYPES = getMimeDefine();
+	private static Map<String, Object> MIME_TYPES = loadMapFromFile("/conf/mime.json");
 
 	/**
 	 * 错误输出 Map
 	 */
-	private static final Map<String, Object> ERROR_DEFINE = loadMapFromFile("/conf/error.json");
+	private static Map<String, Object> ERROR_DEFINE = loadMapFromFile("/conf/error.json");
 
 	/**
 	 *  accessLog 的文件路径
@@ -227,7 +225,7 @@ public class WebContext {
 	 * @return  MIME 定义 Map
 	 */
    public static Map<String, Object> getMimeDefine() {
-		byte[] mimeDefBytes = TFile.loadResource("org/voovan/http/server/conf/mime.json");
+		byte[] mimeDefBytes = TFile.loadResource(TEnv.classToResource(WebServer.class).replaceAll("WebServer.class","conf/mime.json"));
 		Map<String, Object> mimeDefMap = new ConcurrentHashMap<String, Object>();
 		try {
 			Map<String, Object> systemMimeDef = (Map<String, Object>)JSONDecode.parse(new String(mimeDefBytes,"UTF-8"));
@@ -236,7 +234,7 @@ public class WebContext {
 			e.printStackTrace();
 		}
 
-		mimeDefMap.putAll(loadMapFromFile("/conf/mime.json"));
+		mimeDefMap.putAll(MIME_TYPES);
 		return mimeDefMap;
 	}
 	
