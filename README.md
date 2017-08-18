@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 [![](https://maven-badges.herokuapp.com/maven-central/org.voovan/voovan-framework/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.voovan/voovan-framework)
 ![JDK 1.8](https://img.shields.io/badge/JDK-1.8-green.svg "JDK 1.8")
-[![jar size 280K](https://img.shields.io/badge/size-280K-green.svg "size 280K")](https://git.oschina.net/helyho/Voovan/raw/master/voovan-framework.jar)
+[![jar size 497K](https://img.shields.io/badge/size-497K-green.svg "size 497K")](https://git.oschina.net/helyho/Voovan/raw/master/voovan-framework.jar)
 
 ##### Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTTP客户端抓取、动态编译支持、数据库访问封装以及DateTime、String、Log、反射、对象工具、流操作、文件操作、异步双向通道等功能。旨在提供可靠、方便、可单元测试的代码。它是一个无任何依赖的独立工具包，希望能够方便广大开发者快速的实现应用。
 
@@ -20,6 +20,29 @@
     <version>3.0.0</version>
 </dependency>
 ```
+
+---------------------
+Voovan 3.0.0 新特性:
+
+
+**Web模块:**
+  - WebServer 对注解形式路由的支持, 类似一个轻量化的 Spring MVC
+  - WebServer 增加热部署支持, 修改类和 jar 中的类,无须重启 web 服务
+  - WebServer 增加扫描新类和 jar 到 ClassPath 的支持,新增类和 jar 无须重启 web 服务
+  - WebServer 路径变量抽取算法优化, 以获得性能提升
+  - WebServer 路径变量支持通过'_' 和 '-' 来进行变量分
+  - WebServer 实现基于 redis 的 session 共享形式的集群
+
+**Network 模块:**
+  - 提高了 Voovan 对于并发性能的支持,测试结果并发性能提升为10%-15%
+  - 优化ByteBufferChannel增加 shrink \ read \ write 的通用方法
+  - IoSession 的状态模型重构
+  - 增加心跳控制
+
+**Common 模块:**
+  - 新增时间轮定时任务,并且支持异步任务的方式,Voovan 内部所有定时器全部都替换为时间轮的方式,以提升性能
+  - 增加了动态编译以及沙盒对于加载类的安全控制
+  - 提供通用的热部署支持,使任何 JVM 应用都能够支持热部署
 
 ---------------------
 Voovan 迎来了 2.0 新版本,此版本应广大使用者朋友们的要求将 Voovan 拆分成多个模块:
