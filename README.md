@@ -31,7 +31,8 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
   - WebServer 增加扫描新类和 jar 到 ClassPath 的支持,新增类和 jar 无须重启 web 服务
   - WebServer 路径变量抽取算法优化, 以获得性能提升
   - WebServer 路径变量支持通过'_' 和 '-' 来进行变量分
-  - WebServer 实现基于 redis 的 session 共享形式的集群
+  - WebServer 实现基于 redis 的 session 共享形式的集群\
+  - WebServer 提供对基于 Websocket 协议的 socket.io 和 engine.io 的支持
 
 **Network 模块:**
   - 提高了 Voovan 对于并发性能的支持,测试结果并发性能提升为10%-15%
