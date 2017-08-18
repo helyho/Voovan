@@ -43,7 +43,10 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 **Common 模块:**
   - 新增时间轮定时任务,并且支持异步任务的方式,Voovan 内部所有定时器全部都替换为时间轮的方式,以提升性能
   - 增加了动态编译以及沙盒对于加载类的安全控制
-  - 提供通用的热部署支持,使任何 JVM 应用都能够支持热部署
+        - 动态类的的支持,参见:org.voovan.tools.compiler.clazz.DynamicClass
+        - 动态函数的的支持,参见:org.voovan.tools.compiler.function.DynamicFunction
+        - 动态编译部分的沙盒安全支持: /Voovan/Common/src/main/resources/sandbox.properties
+  - 提供通用的热部署支持,使任何 JVM 应用都能够支持热部署, 参见: org.voovan.tools.hotswap.Hotswaper
 
 ---------------------
 **Voovan 迎来了 2.0 新版本,此版本应广大使用者朋友们的要求将 Voovan 拆分成多个模块:**
