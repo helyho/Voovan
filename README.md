@@ -23,7 +23,7 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 
 ---------------------
 **Voovan 3.0.0 新特性:**
-
+[- 详情 -](https://git.oschina.net/helyho/Voovan/releases/v3.0.0)
 
 **Web模块:**
   - WebServer 对注解形式路由的支持, 类似一个轻量化的 Spring MVC
