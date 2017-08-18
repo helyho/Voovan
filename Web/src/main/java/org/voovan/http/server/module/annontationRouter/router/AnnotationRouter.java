@@ -39,6 +39,7 @@ public class AnnotationRouter implements HttpRouter {
      * 构造函数
      * @param clazz   Class对象
      * @param method  方法对象
+     * @param classRouter 类上的 Route 注解
      */
     public AnnotationRouter(Class clazz, Method method, Router classRouter) {
         this.clazz = clazz;
@@ -59,14 +60,12 @@ public class AnnotationRouter implements HttpRouter {
      * 扫描包含Router注解的类
      *
      * @param httpModule   AnnotationModule对象用于注册路由
-     * @throws IOException                  IO 异常
-     * @throws ReflectiveOperationException 反射异常
      */
     public static void scanRouterClassAndRegister(AnnotationModule httpModule) {
         int routeMethodNum = 0;
         WebServer webServer = httpModule.getWebServer();
         try {
-            //查找
+            //查找包含 Router 注解的类
             List<Class> routerClasses = TEnv.searchClassInEnv(httpModule.getScanRouterPackage(), new Class[]{Router.class});
             for (Class routerClass : routerClasses) {
                 Method[] methods = routerClass.getMethods();
@@ -79,6 +78,7 @@ public class AnnotationRouter implements HttpRouter {
                     classRouterPath = "/" + routerClass.getSimpleName();
                 }
 
+                //扫描包含 Router 注解的方法
                 for (Method method : methods) {
                     if (method.isAnnotationPresent(Router.class)) {
                         Router annonMethodRouter = method.getAnnotation(Router.class);
@@ -118,16 +118,16 @@ public class AnnotationRouter implements HttpRouter {
                             }
                         }
 
-                        //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
-
-
-                        //判断路由是否注册过
+                        /**
+                         * 注册路由部分代码在下面
+                         */
                         if (webServer.getHttpRouters().get(routeMethod) != null) {
 
                             //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
                             Map routerMaps = new HashMap();
                             routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
 
+                            //判断路由是否注册过
                             if(!routerMaps.containsKey(routePath)) {
                                 //构造注解路由器
                                 AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method, annonClassRouter);
