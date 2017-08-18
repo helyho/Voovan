@@ -369,6 +369,7 @@ public class WebServer {
 
 	/**
 	 * 是否处于服务状态
+	 * @return true: 当前是服务状态, false: 当前未提供服务
 	 */
 	public boolean isServing(){
 		return aioServerSocket.isConnected();
