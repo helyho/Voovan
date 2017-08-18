@@ -12,6 +12,19 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 
 ---------------------
 
+**文档入口:**【[Voovan 开发手册](http://voovan.mydoc.io/)】
+**入门教程:**【[Voovan 一步步入门](http://voovanturorial.mydoc.io/)】
+
+**交流QQ群** 454201740
+
+**开源协议:** Apache v2 License
+
+**Voovan开源项目源代码主要托管于 Git@OSC.**
+
+**Issues地址:** [Git@OSC](http://git.oschina.net/helyho/Voovan/issues)
+
+---------------------
+
 ###Maven中央库支持:
 ```xml
 <dependency>
@@ -166,17 +179,6 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 
 ---------------------
 
-**文档入口: **【[开发手册](http://voovan.mydoc.io/)】
-
-**交流QQ群：**454201740
-
-**开源协议:**Apache v2 License
-
-**Voovan开源项目源代码主要托管于 Git@OSC.**
-
-**Issues地址:** [Git@OSC](http://git.oschina.net/helyho/Voovan/issues)
-
----------------------
 
 **Voovan 在异步通信的范畴内的同类框架有:**
   - [t-io](http://www.t-io.org:9292/): 长连接异步通信框架,提供心跳和连接保持的支持.
