@@ -65,7 +65,7 @@ public class NioServerSocket extends SocketContext{
 		serverSocketChannel.configureBlocking(false);
 		selector = provider.openSelector();
 		serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-		serverSocketChannel.bind(new InetSocketAddress(host, port));
+		serverSocketChannel.bind(new InetSocketAddress(host, port), 1000);
 	}
 
 
