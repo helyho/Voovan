@@ -193,16 +193,19 @@ public class SessionManager{
 		}
 
 		if(session==null) {
-			session = new HttpSession(webConfig, this, request.getSocketSession());
-			this.saveSession(session);
+			if(request.header().get("Host") != null) {
+                session = new HttpSession(webConfig, this, request.getSocketSession());
+                this.saveSession(session);
 
-			//创建 Cookie
-			Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(),
-					session.getId(),webConfig.getSessionTimeout()*60);
+				//创建 Cookie
+				Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(),
+						session.getId(), webConfig.getSessionTimeout() * 60);
 
-			//响应增加Session 对应的 Cookie
-			response.cookies().add(cookie);
-
+				//响应增加Session 对应的 Cookie
+				response.cookies().add(cookie);
+			}else{
+				Logger.warn("Create session cookie error, the request haven't an header of host.");
+			}
 		} else{
 			session.init(this, request.getSocketSession());
 		}
