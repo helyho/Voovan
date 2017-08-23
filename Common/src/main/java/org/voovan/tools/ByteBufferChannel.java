@@ -380,7 +380,11 @@ public class ByteBufferChannel {
 		try {
 			int availableCount = size() - position;
 
-            if(position >= 0 &&  availableCount> 0) {
+            if(position >= 0 && availableCount >= 0) {
+
+            	if(availableCount == 0){
+            		return 0;
+				}
 
                 int arrSize = availableCount;
 
@@ -388,7 +392,7 @@ public class ByteBufferChannel {
                     arrSize = length;
                 }
 
-                unsafe.copyMemory(null, address + position, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
+				unsafe.copyMemory(null, address + position, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
 
                 return arrSize;
 
@@ -726,21 +730,26 @@ public class ByteBufferChannel {
 	public int indexOf(byte[] mark){
 		checkRelease();
 
-		if(size() == 0){
-			return -1;
-		}
-
-		int index = -1;
-		byte[] tmp = new byte[mark.length];
-		for(int position = 0; position <= size() - mark.length; position++){
-            get(tmp, position, tmp.length);
-            if(Arrays.equals(mark, tmp)){
-            	index = position;
-                break;
+		lock.lock();
+		try {
+            if(size() == 0){
+                return -1;
             }
-		}
 
-		return index;
+            int index = -1;
+            byte[] tmp = new byte[mark.length];
+            for(int position = 0; position <= size() - mark.length; position++){
+                get(tmp, position, tmp.length);
+                if(Arrays.equals(mark, tmp)){
+                    index = position;
+                    break;
+                }
+            }
+
+            return index;
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/**

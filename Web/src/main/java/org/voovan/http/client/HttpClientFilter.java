@@ -44,20 +44,25 @@ public class HttpClientFilter implements IoFilter {
 	@Override
 	public Object decode(IoSession session,Object object) throws IoFilterException{
 		try{
-			ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
-			if("WebSocket".equals(WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.TYPE))){
-				return WebSocketFrame.parse((ByteBuffer)object);
-			}
-
 			if(object instanceof ByteBuffer){
-				session.enabledMessageSpliter(false);
-				ByteBuffer byteBuffer = (ByteBuffer)object;
-				Response response = HttpParser.parseResponse(byteBufferChannel, session.socketContext().getReadTimeout());
-				session.enabledMessageSpliter(true);
-				return response;
+                ByteBuffer byteBuffer = (ByteBuffer)object;
+
+                if(byteBuffer.limit()==0){
+                    session.enabledMessageSpliter(false);
+                }
+
+                ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
+                if("WebSocket".equals(WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.TYPE))){
+                    return WebSocketFrame.parse((ByteBuffer)object);
+                }else {
+					Response response = HttpParser.parseResponse(byteBufferChannel, session.socketContext().getReadTimeout());
+					return response;
+				}
 			}
 		}catch(IOException e){
 			throw new IoFilterException("HttpClientFilter decode Error. "+e.getMessage(),e);
+		}finally {
+			session.enabledMessageSpliter(true);
 		}
 		return null;
 	}

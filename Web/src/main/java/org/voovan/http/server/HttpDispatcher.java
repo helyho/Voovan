@@ -157,7 +157,9 @@ public class HttpDispatcher {
 			disposeRoute(request, response);
 		}
 
-		request.getSession().save();
+		if(request.getSession()!=null) {
+			request.getSession().save();
+		}
 
 		//反向过滤器处理
 		filterResult = disposeInvertedFilter(filterConfigs,request,response);

@@ -8,6 +8,7 @@ import org.voovan.http.message.packet.Part;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.filter.StringFilter;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
@@ -141,4 +142,30 @@ public class HttpClientUnit extends TestCase {
 		}.addFilterChain(new StringFilter()));
 
 	}
+
+
+	public void testMulGet() throws Exception{
+		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 5);
+		for(int i=0;i<1000;i++) {
+			Logger.simple(i);
+			Response response = getClient.setMethod("GET").send("/annon/index");
+			Logger.simple(response.body().getBodyString("GB2312"));
+			assertTrue(response.protocol().getStatus() != 500);
+			TEnv.sleep(100);
+		}
+		getClient.close();
+	}
+
+	public void testMulPost() throws Exception{
+		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 5);
+		for(int i=0;i<1000;i++) {
+			Logger.simple(i);
+			Response response = getClient.setMethod("POST").setData("this is post body").send("/annon/body");
+			Logger.simple(response.body().getBodyString("GB2312"));
+			assertTrue(response.protocol().getStatus() != 500);
+			TEnv.sleep(100);
+		}
+		getClient.close();
+	}
+
 }
