@@ -316,8 +316,10 @@ public class HttpDispatcher {
         // 构建 session
         HttpSession httpSession = sessionManager.newHttpSession(request, response);
 
-        // 请求增加 Session
-        request.setSession(httpSession);
+        if(httpSession!=null) {
+			// 请求增加 Session
+			request.setSession(httpSession);
+		}
 	}
 
 	/**
