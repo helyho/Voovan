@@ -30,9 +30,10 @@ public class WebServerFilter implements IoFilter {
 	 */
 	@Override
 	public Object encode(IoSession session, Object object) {
+		session.enabledMessageSpliter(true);
+
 		// 对 Websocket 进行处理
 		if (object instanceof Response) {
-			session.enabledMessageSpliter(true);
 			Response response = (Response)object;
 			try {
 				response.send(session);
@@ -53,11 +54,15 @@ public class WebServerFilter implements IoFilter {
 	@Override
 	public Object decode(IoSession session, Object object) {
 		ByteBuffer byteBuffer = (ByteBuffer)object;
+
+		if(byteBuffer.limit()==0){
+			session.enabledMessageSpliter(false);
+		}
+
 		ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
 		if (isHttpRequest(byteBufferChannel)) {
 			try {
 				if (object instanceof ByteBuffer) {
-					session.enabledMessageSpliter(false);
 					Request request = HttpParser.parseRequest(byteBufferChannel, session.socketContext().getReadTimeout());
 					if(request!=null){
 						return request;
