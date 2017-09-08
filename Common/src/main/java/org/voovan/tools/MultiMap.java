@@ -235,7 +235,7 @@ public class MultiMap<K,V>
     public boolean containsValues(V value)
     {
         for (List<V> vals : values()) {
-            if ((vals.size() == 1) && (vals.contains(value))) {
+            if ((vals.size() >0) && (vals.contains(value))) {
                 return true;
             }
         }
