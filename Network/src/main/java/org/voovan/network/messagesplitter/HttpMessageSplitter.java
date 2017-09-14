@@ -19,19 +19,19 @@ import java.nio.ByteBuffer;
  */
 public class HttpMessageSplitter implements MessageSplitter {
 
-	private static final String	BODY_TAG	= "\r\n\r\n";
-	private int result = -1;
+    private static final String	BODY_TAG	= "\r\n\r\n";
+    private int result = -1;
 
-	private int contentLength = -1;
+    private int contentLength = -1;
     boolean isChunked = false;
 
 
     @Override
-	public int canSplite(IoSession session, ByteBuffer byteBuffer) {
+    public int canSplite(IoSession session, ByteBuffer byteBuffer) {
 
-		if(byteBuffer.limit()==0){
-			return -1;
-		}
+        if(byteBuffer.limit()==0){
+            return -1;
+        }
 
         if( "WebSocket".equals(session.getAttribute(0x1111)) ){
             result = isWebSocketFrame(byteBuffer);
@@ -48,13 +48,19 @@ public class HttpMessageSplitter implements MessageSplitter {
 
 
         return result;
-	}
+    }
 
     private int isHttpFrame(ByteBuffer byteBuffer){
         int bodyTagIndex = 0;
         byte[] buffer = TByteBuffer.toArray(byteBuffer);
         StringBuilder stringBuilder = new StringBuilder();
         String httpHead = null;
+
+        //非 HTTP 请求直接关闭连接
+        if(TByteBuffer.indexOf(byteBuffer, "HTTP/1.".getBytes()) != 0 ) {
+            return -1;
+        }
+
         for(int x=0;x<buffer.length-3;x++){
             if(buffer[x] == '\r' && buffer[x+1] == '\n' && buffer[x+2] == '\r' && buffer[x+3] == '\n'){
                 bodyTagIndex = x + 3;
@@ -76,7 +82,7 @@ public class HttpMessageSplitter implements MessageSplitter {
             return bodyTagIndex;
 
         }else{
-            return -1;
+            return -2;
         }
     }
 
