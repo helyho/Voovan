@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 
 /**
  * SSL 解析器
- * 		1.握手信息 
+ * 		1.握手信息
  * 		2.报文信息
  * @author helyho
  *
@@ -41,7 +41,7 @@ public class SSLParser {
 		this.appData= buildAppDataBuffer();
 		this.netData = buildNetDataBuffer();
 	}
-	
+
 	/**
 	 * 判断握手是否完成
 	 * @return 握手是否完成
@@ -57,19 +57,19 @@ public class SSLParser {
 	public SSLEngine getSSLEngine(){
 		return engine;
 	}
-	
+
 	public ByteBuffer buildNetDataBuffer() {
 		SSLSession sslSession = engine.getSession();
 		int newBufferMax = sslSession.getPacketBufferSize();
 		return ByteBuffer.allocateDirect(newBufferMax);
 	}
-	
+
 	public ByteBuffer buildAppDataBuffer() {
 		SSLSession sslSession = engine.getSession();
 		int newBufferMax = sslSession.getPacketBufferSize();
 		return ByteBuffer.allocateDirect(newBufferMax);
 	}
-	
+
 	/**
 	 * 清理缓冲区
 	 */
@@ -77,7 +77,7 @@ public class SSLParser {
 		appData.clear();
 		netData.clear();
 	}
-	
+
 	/**
 	 * 打包并发送数据
 	 * @param buffer       需要的数据缓冲区
@@ -95,14 +95,13 @@ public class SSLParser {
 			}
 			netData.clear();
 		}while(engineResult.getStatus() == Status.OK && buffer.hasRemaining());
-		TEnv.sleep(1);
 		return engineResult;
 	}
-	
+
 	/**
 	 * 处理握手 Warp;
 	 * @return
-	 * @throws IOException 
+	 * @throws IOException
 	 * @throws Exception
 	 */
 	private HandshakeStatus doHandShakeWarp() throws IOException {
@@ -113,7 +112,7 @@ public class SSLParser {
 		HandshakeStatus handshakeStatus = runDelegatedTasks();
 		return handshakeStatus;
 	}
-	
+
 	/**
 	 * 解包数据
 	 * @param netBuffer    	接受解包数据的缓冲区
@@ -124,51 +123,54 @@ public class SSLParser {
 	public SSLEngineResult unwarpData(ByteBuffer netBuffer,ByteBuffer appBuffer) throws SSLException{
 		SSLEngineResult engineResult = null;
 		engineResult = engine.unwrap(netBuffer, appBuffer);
-		TEnv.sleep(1);
 		return engineResult;
 	}
-	
+
 	/**
 	 * 处理握手 Unwarp;
 	 * @return
-	 * @throws IOException 
+	 * @throws IOException
 	 * @throws Exception
 	 */
 	private HandshakeStatus doHandShakeUnwarp() throws IOException{
-			HandshakeStatus handshakeStatus =engine.getHandshakeStatus();
-			SSLEngineResult engineResult = null;
-			while(true){
-				clearBuffer();
-				ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
+		HandshakeStatus handshakeStatus =engine.getHandshakeStatus();
+		SSLEngineResult engineResult = null;
+		while(true){
+			clearBuffer();
+			ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
 
-				if(byteBufferChannel.size() > 0)  {
-					ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
-					engineResult = unwarpData(byteBuffer, appData);
-					//如果有 HandShake Task 则执行
-					handshakeStatus = runDelegatedTasks();
-					byteBufferChannel.compact();
+			if(byteBufferChannel.isReleased()){
+				new IOException("Socket is terminate");
+			}
 
-					if(engineResult!=null &&
-							engineResult.getStatus()==Status.OK &&
-							byteBuffer.remaining() == 0){
-						break;
-					}
+			if(byteBufferChannel.size() > 0)  {
+				ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+				engineResult = unwarpData(byteBuffer, appData);
+				//如果有 HandShake Task 则执行
+				handshakeStatus = runDelegatedTasks();
+				byteBufferChannel.compact();
 
-					if(engineResult!=null &&
-							(engineResult.getStatus() == Status.BUFFER_OVERFLOW ||
-									engineResult.getStatus() == Status.BUFFER_UNDERFLOW ||
-									engineResult.getStatus() == Status.CLOSED)
-					){
-						break;
-					}
-
-				} else {
-					TEnv.sleep(1);
+				if(engineResult!=null &&
+						engineResult.getStatus()==Status.OK &&
+						byteBuffer.remaining() == 0){
+					break;
 				}
-			};
-			return handshakeStatus;
+
+				if(engineResult!=null &&
+						(engineResult.getStatus() == Status.BUFFER_OVERFLOW ||
+								engineResult.getStatus() == Status.BUFFER_UNDERFLOW ||
+								engineResult.getStatus() == Status.CLOSED)
+						){
+					break;
+				}
+
+			}
+
+			TEnv.sleep(1);
+		};
+		return handshakeStatus;
 	}
-	
+
 	/**
 	 * 执行委派任务
 	 * @throws Exception
@@ -185,9 +187,9 @@ public class SSLParser {
 		}
 		return null;
 	}
-	
+
 	public boolean doHandShake() throws IOException{
-		
+
 		engine.beginHandshake();
 		int handShakeCount = 0;
 		HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
@@ -202,7 +204,7 @@ public class SSLParser {
 					break;
 				case NEED_UNWRAP:
 					handshakeStatus = doHandShakeUnwarp();
- 					break;
+					break;
 				case FINISHED:
 					handshakeStatus = engine.getHandshakeStatus();
 					break;
@@ -251,7 +253,7 @@ public class SSLParser {
 						(engineResult.getStatus() == Status.BUFFER_OVERFLOW ||
 								engineResult.getStatus() == Status.BUFFER_UNDERFLOW  ||
 								engineResult.getStatus() == Status.CLOSED)
-				){
+						){
 					break;
 				}
 			}
