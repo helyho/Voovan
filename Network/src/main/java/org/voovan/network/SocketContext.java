@@ -261,7 +261,8 @@ public abstract class SocketContext {
 
 		//等待 SSL 握手操作完成
 		while(session.getSSLParser()!=null &&
-				!session.getSSLParser().isHandShakeDone()){
+				!session.getSSLParser().isHandShakeDone() &&
+				isConnected()){
 			TEnv.sleep(1);
 		}
 	}

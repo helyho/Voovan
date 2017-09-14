@@ -140,7 +140,7 @@ public class SSLParser {
 			ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
 
 			if(byteBufferChannel.isReleased()){
-				throw new IOException("Socket is terminate");
+				throw new IOException("Socket is disconnect");
 			}
 
 			if(byteBufferChannel.size() > 0)  {
