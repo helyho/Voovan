@@ -77,7 +77,8 @@ public class TByteBuffer {
         int index = -1;
         int position = byteBuffer.position();
         byte[] tmp = new byte[mark.length];
-        for(int offset = 0; (offset + position <= byteBuffer.remaining() - mark.length); offset++){
+        int length = byteBuffer.remaining();
+        for(int offset = 0; (offset + position <= length - mark.length); offset++){
             byteBuffer.position(position + offset);
             byteBuffer.get(tmp, 0, tmp.length);
             if(Arrays.equals(mark, tmp)){
