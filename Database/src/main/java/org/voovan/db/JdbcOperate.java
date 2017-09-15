@@ -17,9 +17,9 @@ import java.util.Map;
  * jdbc 操作类
  * 		每个数据库操作函数 开启关闭一次连接. 使用:开始来标识参数,例如: Map 和对象形式用:":arg", List 和 Array
  * 形式用":1"
- * 
+ *
  * @author helyho
- * 
+ *
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
@@ -38,7 +38,7 @@ public class JdbcOperate {
 		this.dataSource = dataSource;
 		this.isTrancation = false;
 	}
-	
+
 	/**
 	 * 构造函数
 	 * @param dataSource	数据源
@@ -51,7 +51,7 @@ public class JdbcOperate {
 
 	/**
 	 * 获取连接
-	 * 
+	 *
 	 * @return 获取数据库连接
 	 * @throws SQLException SQL 异常
 	 */
@@ -78,7 +78,7 @@ public class JdbcOperate {
 			closeConnection(connection);
 		}
 	}
-	
+
 	/**
 	 * 回滚事物
 	 * @param isClose 是否关闭数据库连接
@@ -106,9 +106,9 @@ public class JdbcOperate {
 	public void rollback() throws SQLException{
 		connection.rollback();
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串
 	 * @param mapArg
@@ -133,7 +133,7 @@ public class JdbcOperate {
 
 	/**
 	 * 执行数据库更新
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串
 	 * @param mapArg
@@ -162,7 +162,7 @@ public class JdbcOperate {
 
 	/**
 	 * 执行数据库批量更新
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串
 	 * @param mapArgs
@@ -170,7 +170,7 @@ public class JdbcOperate {
 	 * @return 每条 SQL 更新记录数
 	 * @throws SQLException SQL 异常
 	 */
-	private int[] baseBatch(String sqlText, List<Map<String, Object>> mapArgs) throws SQLException {
+	private int[] baseBatch(String sqlText, List<Map<String, ?>> mapArgs) throws SQLException {
 		Connection conn = getConnection();
 		PreparedStatement preparedStatement = null;
 		try {
@@ -184,12 +184,17 @@ public class JdbcOperate {
 			List<String> sqlParams = TSQL.getSqlParamNames(sqlText);
 			preparedStatement = (PreparedStatement) conn.prepareStatement(TSQL.preparedSql(sqlText));
 			if (mapArgs != null) {
-				for (Map<String, Object> magArg : mapArgs) {
+				for (Map<String, ?> magArg : mapArgs) {
 					// 用 sqlParams 对照 给 preparestatement 填充参数
 					TSQL.setPreparedParams(preparedStatement, sqlParams, magArg);
 					preparedStatement.addBatch();
 				}
 			}
+
+			if(Logger.isLogLevel("DEBUG")) {
+				Logger.debug("[SQL_Executed]: " + sqlText);
+			}
+
 			int[] result = preparedStatement.executeBatch();
 
 			// 非事物模式执行
@@ -226,11 +231,11 @@ public class JdbcOperate {
 		}
 		return null;
 	}
-	
-	
+
+
 	/**
 	 * 执行数据库更新
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @return 更新记录数
@@ -242,7 +247,7 @@ public class JdbcOperate {
 
 	/**
 	 * 执行数据库更新,Object作为参数 字段名和对象属性名大消息必须大小写一致
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param arg
@@ -262,7 +267,7 @@ public class JdbcOperate {
 
 	/**
 	 * 执行数据库更新,Map作为参数,字段名和Map键名大消息必须大小写一致
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param mapArg
@@ -276,7 +281,7 @@ public class JdbcOperate {
 
 	/**
 	 * 执行数据库更新,Map作为参数,字段名和Map键名大消息必须大小写一致
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为索引标识,引导一个索引标识,索引标识从1开始,例如where id=::1
 	 * @param args
@@ -291,9 +296,9 @@ public class JdbcOperate {
 
 	/**
 	 * 查询对象集合,无参数 字段名和对象属性名大消息必须大小写一致
-	 * 
+	 *
 	 * @param <T> 范型
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串
 	 * @param t
@@ -307,12 +312,12 @@ public class JdbcOperate {
 			return (List<T>) resultInfo.getObjectList(t);
 		}
 		return new ArrayList<T>();
-		
+
 	}
 
 	/**
 	 * 查询单个对象,Object作为参数 字段名和对象属性名大消息必须大小写一致
-	 * 
+	 *
 	 * @param <T> 范型
 	 *
 	 * @param sqlText
@@ -340,9 +345,9 @@ public class JdbcOperate {
 
 	/**
 	 * 查询对象集合,map作为参数,字段名和Map键名大消息必须大小写一致
-	 * 
+	 *
 	 * @param <T>  范型
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param mapArg
@@ -362,9 +367,9 @@ public class JdbcOperate {
 
 	/**
 	 * 查询对象集合,map作为参数,字段名和Map键名大消息必须大小写一致
-	 * 
+	 *
 	 * @param <T> 范型
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为索引标识,引导一个索引标识,索引标识从1开始,例如where id=::1
 	 * @param args
@@ -385,7 +390,7 @@ public class JdbcOperate {
 
 	/**
 	 * 查询对象集合,无参数
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串
 	 * @return 返回结果集 List[Map]
@@ -425,7 +430,7 @@ public class JdbcOperate {
 
 	/**
 	 * 查询对象集合,map作为参数,字段名和Map键名大消息必须大小写一致
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param mapArg
@@ -461,7 +466,7 @@ public class JdbcOperate {
 	}
 
 	/**
-	 * 查询单个对象,无参数 
+	 * 查询单个对象,无参数
 	 *
 	 * @param <T> 范型
 	 *
@@ -560,7 +565,7 @@ public class JdbcOperate {
 
 	/**
 	 * 查询单行,返回 Map,无参数
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串
 	 * @return 结果对象 Map
@@ -578,7 +583,7 @@ public class JdbcOperate {
 
 	/**
 	 * 查询单行,返回 Map,Object作为参数
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"引导一个标识,例如where id=::id,中 id 就是标识。
 	 * @param arg
@@ -603,7 +608,7 @@ public class JdbcOperate {
 
 	/**
 	 * 查询单行,返回 Map,map作为参数,字段名和Map键名大消息必须大小写一致
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"引导一个标识,例如where id=::id,中 id 就是标识。
 	 * @param mapArg
@@ -621,7 +626,7 @@ public class JdbcOperate {
 
 	/**
 	 * 查询单行,返回 Map,Array作为参数
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"引导一个索引标识,引导一个索引标识,索引标识从1开始,例如where id=::1
 	 * @param args
@@ -640,7 +645,7 @@ public class JdbcOperate {
 
 	/**
 	 * 执行数据库批量更新 字段名和对象属性名大消息必须大小写一致
-	 * 
+	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param objects
@@ -649,8 +654,8 @@ public class JdbcOperate {
 	 * @throws SQLException SQL 异常
 	 * @throws ReflectiveOperationException 反射异常
 	 */
-	public int[] batchObject(String sqlText, List<Object> objects) throws SQLException, ReflectiveOperationException {
-		List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
+	public int[] batchObject(String sqlText, List<?> objects) throws SQLException, ReflectiveOperationException {
+		List<Map<String, ?>> mapList = new ArrayList<Map<String, ?>>();
 		for (Object object : objects) {
 			mapList.add(TReflect.getMapfromObject(object));
 		}
@@ -659,13 +664,13 @@ public class JdbcOperate {
 
 	/**
 	 * 执行数据库批量更新
-	 * 
+	 *
 	 * @param sqlText sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param maps 批量处理SQL的参数
 	 * @return 每条 SQL 更新记录数
 	 * @throws SQLException SQL 异常
 	 */
-	public int[] batchMap(String sqlText, List<Map<String, Object>> maps) throws SQLException {
+	public int[] batchMap(String sqlText, List<Map<String, ?>> maps) throws SQLException {
 		return this.baseBatch(sqlText, maps);
 	}
 	/**
@@ -677,10 +682,10 @@ public class JdbcOperate {
 	public List<Object> call(String sqlText) throws SQLException {
 		return this.baseCall(sqlText,null,null);
 	}
-	
+
 	/**
 	 *  调用存储过程,map作为参数,字段名和Map键名大消息必须大小写一致
-	 *            
+	 *
 	 * @param sqlText
 	 * 				sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param callTypes
@@ -693,10 +698,10 @@ public class JdbcOperate {
 	public List<Object> call(String sqlText, CallType[] callTypes, Map<String, Object> maps) throws SQLException {
 		return this.baseCall(sqlText ,callTypes ,maps);
 	}
-	
+
 	/**
 	 *  调用存储过程,对象作为参数
-	 *            
+	 *
 	 * @param sqlText
 	 * 				sql字符串 参数使用"::"作为标识,例如where id=::id
 	 * @param callTypes
@@ -714,9 +719,9 @@ public class JdbcOperate {
 			Map<String, Object> paramsMap  = TReflect.getMapfromObject(arg);
 			return this.baseCall(sqlText,callTypes, paramsMap);
 		}
-		
+
 	}
-	
+
 	/**
 	 * 调用存储过程,Array作为参数
 	 * @param sqlText
@@ -732,7 +737,7 @@ public class JdbcOperate {
 		Map<String, Object> paramsMap  = TObject.arrayToMap(args);
 		return this.baseCall(sqlText,callTypes, paramsMap);
 	}
-	
+
 
 	/**
 	 * 关闭连接
@@ -766,7 +771,7 @@ public class JdbcOperate {
 			Logger.error(e);
 		}
 	}
-	
+
 	/**
 	 * 关闭连接
 	 * @param connection 连接对象
@@ -780,23 +785,23 @@ public class JdbcOperate {
 			Logger.error(e);
 		}
 	}
-	
+
 	/**
 	 * 关闭结果集
 	 * @param resultSet 结果集
 	 */
 	protected static void closeResult(ResultSet resultSet){
 		try {
-            if(resultSet!=null) {
-                Statement statement = resultSet.getStatement();
+			if(resultSet!=null) {
+				Statement statement = resultSet.getStatement();
 				resultSet.close();
-                closeStatement(statement);
-            }
+				closeStatement(statement);
+			}
 		} catch (SQLException e) {
 			Logger.error(e);
 		}
 	}
-	
+
 	/**
 	 * 关闭 Statement
 	 * @param statement Statement 对象

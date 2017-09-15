@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 
 /**
  * SQL处理帮助类
- * 
+ *
  * 注意所有的时间都用TDateTime.STANDER_DATETIME_TEMPLATE的格式
  * @author helyho
  *
@@ -38,7 +38,7 @@ public class TSQL {
 		}
 		return sqlParamNames;
 	}
-	
+
 	/**
 	 * 转换preparedStatement对象为可用的 sql 字符串(参数用?表示)
 	 * @param sqlStr		原始 sql 字符串 (select * from table where x=:x and y=::y)
@@ -47,16 +47,16 @@ public class TSQL {
 	public static String preparedSql(String sqlStr){
 		return TString.fastReplaceAll(sqlStr, "::[^,\\s\\)]+", "?");
 	}
-	
+
 	/**
 	 * 给preparedStatement对象设置参数
-	 * 	
+	 *
 	 * @param preparedStatement  preparedStatement对象
 	 * @param sqlParamNames			sql 参数表
 	 * @param params			参数键值 Map
 	 * @throws SQLException SQL 异常
 	 */
-	public static void setPreparedParams(PreparedStatement preparedStatement,List<String> sqlParamNames,Map<String, Object> params) throws SQLException{
+	public static void setPreparedParams(PreparedStatement preparedStatement,List<String> sqlParamNames,Map<String, ?> params) throws SQLException{
 		for(int i=0;i<sqlParamNames.size();i++){
 			String paramName = sqlParamNames.get(i);
 			//去掉前面::号
@@ -70,7 +70,7 @@ public class TSQL {
 			}
 		}
 	}
-	
+
 	/**
 	 * 创建PreparedStatement
 	 * @param conn      数据库连接
@@ -105,7 +105,7 @@ public class TSQL {
 		TSQL.setPreparedParams(preparedStatement,sqlParamNames,params);
 		return preparedStatement;
 	}
-	
+
 	/**
 	 * 创建PreparedStatement
 	 * @param conn      数据库连接
@@ -121,7 +121,7 @@ public class TSQL {
 		List<String> sqlParamNames = TSQL.getSqlParamNames(sqlStr);
 		//获取preparedStatement可用的 SQL
 		String preparedSql = TSQL.preparedSql(sqlStr);
-		
+
 		//定义 jdbc statement 对象
 		CallableStatement callableStatement = (CallableStatement) conn.prepareCall(preparedSql);
 
@@ -141,10 +141,10 @@ public class TSQL {
 				callableStatement.registerOutParameter(i + 1, parameterMetaData.getParameterType(i + 1));
 			}
 		}
-		
+
 		return callableStatement;
 	}
-	
+
 	/**
 	 * 解析存储过程结果集
 	 * @param callableStatement  callableStatement对象
@@ -154,11 +154,11 @@ public class TSQL {
 	public static List<Object> getCallableStatementResult(CallableStatement callableStatement) throws SQLException{
 		ArrayList<Object> result = new ArrayList<Object>();
 		ParameterMetaData parameterMetaData =  callableStatement.getParameterMetaData();
-		
+
 		//遍历参数信息
 		for(int i=0;i<parameterMetaData.getParameterCount();i++){
 			int paramMode = parameterMetaData.getParameterMode(i+1);
-			
+
 			//如果是带有 out 属性的参数,则对其进行取值操作
 			if(paramMode == ParameterMetaData.parameterModeOut || paramMode == ParameterMetaData.parameterModeInOut){
 				//取值方法名
@@ -167,11 +167,11 @@ public class TSQL {
 				try {
 					//获得取值方法参数参数是 int 类型的对应方法
 					Method method = TReflect.findMethod(CallableStatement.class,methodName,new Class[]{int.class});
-					
+
 					//反射调用方法
 					value = TReflect.invokeMethod(callableStatement, method,i+1);
 					result.add(value);
-					
+
 				} catch (ReflectiveOperationException e) {
 					e.printStackTrace();
 				}
@@ -179,9 +179,9 @@ public class TSQL {
 		}
 		return result;
 	}
-	
 
-	
+
+
 	/**
 	 * 使用数组参数的属性组装SQL
 	 * @param sqlStr SQL 字符串
@@ -193,7 +193,7 @@ public class TSQL {
 		Map<String,Object> argMap = TObject.arrayToMap(args);
 		return assembleSQLWithMap(sqlStr,argMap);
 	}
-	
+
 	/**
 	 * 使用argObjectj参数的属性组装SQL
 	 * @param sqlStr    SQL 字符串
@@ -206,7 +206,7 @@ public class TSQL {
 		Map<String,Object> argMap = TReflect.getMapfromObject(argObjectj);
 		return assembleSQLWithMap(sqlStr,argMap);
 	}
-	
+
 	/**
 	 *  使用argMap参数的KV组装SQL
 	 *  		SQL字符串中以:开始的相同字符串将被替换
@@ -222,8 +222,8 @@ public class TSQL {
 		}
 		return sqlStr;
 	}
-	
-	
+
+
 	/**
 	 * 包装resultSet中单行记录成Map
 	 * @param resultset 查询结果集
@@ -231,12 +231,12 @@ public class TSQL {
 	 * @throws SQLException  SQL 异常
 	 * @throws ReflectiveOperationException  反射异常
 	 */
-    public static Map<String, Object> getOneRowWithMap(ResultSet resultset)
+	public static Map<String, Object> getOneRowWithMap(ResultSet resultset)
 			throws SQLException, ReflectiveOperationException {
-		 
+
 		HashMap<String, Object> resultMap = new HashMap<String,Object>();
 		HashMap<String,Integer> columns = new HashMap<String,Integer>();
-		
+
 		//遍历结果集字段信息
 		int columnCount = resultset.getMetaData().getColumnCount();
 		for(int i=1;i<=columnCount;i++){
@@ -251,19 +251,19 @@ public class TSQL {
 		}
 		return resultMap;
 	}
-    
-    /**
-     * 包装resultSet中单行记录成指定对象
-     * @param clazz 类对象
-     * @param resultset 查询结果集
-     * @return 转换后的对象
-     * @throws ReflectiveOperationException 反射异常
-     * @throws SQLException  SQL 异常
-     * @throws ParseException  解析异常
-     */
-    public static Object getOneRowWithObject(Class<?> clazz,ResultSet resultset)
+
+	/**
+	 * 包装resultSet中单行记录成指定对象
+	 * @param clazz 类对象
+	 * @param resultset 查询结果集
+	 * @return 转换后的对象
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws SQLException  SQL 异常
+	 * @throws ParseException  解析异常
+	 */
+	public static Object getOneRowWithObject(Class<?> clazz,ResultSet resultset)
 			throws SQLException, ReflectiveOperationException, ParseException {
-    	Map<String,Object>rowMap = getOneRowWithMap(resultset);
+		Map<String,Object>rowMap = getOneRowWithMap(resultset);
 
 		//对象转换时,模糊匹配属性,去除掉所有的
 		HashMap<String,Object> newMap = new HashMap<String,Object>();
@@ -273,42 +273,42 @@ public class TSQL {
 		}
 		rowMap.clear();
 
-    	return TReflect.getObjectFromMap(clazz, newMap,true);
-    }
-    
-    /**
-     * 包装resultSet中所有记录成List,单行元素为Map
-     * @param resultSet 查询结果集
-     * @return 转后的 List[Map]
-     * @throws ReflectiveOperationException 反射异常
-     * @throws SQLException  SQL 异常
-     */
-    public static List<Map<String,Object>> getAllRowWithMapList(ResultSet resultSet)
+		return TReflect.getObjectFromMap(clazz, newMap,true);
+	}
+
+	/**
+	 * 包装resultSet中所有记录成List,单行元素为Map
+	 * @param resultSet 查询结果集
+	 * @return 转后的 List[Map]
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws SQLException  SQL 异常
+	 */
+	public static List<Map<String,Object>> getAllRowWithMapList(ResultSet resultSet)
 			throws SQLException, ReflectiveOperationException {
-    	List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
-    	while(resultSet!=null && resultSet.next()){
-    		resultList.add(getOneRowWithMap(resultSet));
-    	}
-    	return resultList;
-    }
-    
-    /**
-     * 包装resultSet中所有记录成List,单行元素为指定对象
-     * @param clazz 类
-     * @param resultSet 查询结果集
-     * @return 转换候的对象结合
-     * @throws ParseException  解析异常
-     * @throws ReflectiveOperationException 反射异常
-     * @throws SQLException  SQL 异常
-     */
-    public static List<Object> getAllRowWithObjectList(Class<?> clazz,ResultSet resultSet)
+		List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
+		while(resultSet!=null && resultSet.next()){
+			resultList.add(getOneRowWithMap(resultSet));
+		}
+		return resultList;
+	}
+
+	/**
+	 * 包装resultSet中所有记录成List,单行元素为指定对象
+	 * @param clazz 类
+	 * @param resultSet 查询结果集
+	 * @return 转换候的对象结合
+	 * @throws ParseException  解析异常
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws SQLException  SQL 异常
+	 */
+	public static List<Object> getAllRowWithObjectList(Class<?> clazz,ResultSet resultSet)
 			throws SQLException, ReflectiveOperationException, ParseException {
-    	List<Object> resultList = new ArrayList<Object>();
-    	while(resultSet!=null && resultSet.next()){
-    		resultList.add(getOneRowWithObject(clazz,resultSet));
-    	}
-    	return resultList;
-    }
+		List<Object> resultList = new ArrayList<Object>();
+		while(resultSet!=null && resultSet.next()){
+			resultList.add(getOneRowWithObject(clazz,resultSet));
+		}
+		return resultList;
+	}
 
 
 	/**
@@ -316,8 +316,8 @@ public class TSQL {
 	 * @param sqlText SQL 字符串
 	 * @param sqlParamNames sql 参数名集合
 	 * @param params 参数集合
-     * @return 转换后的字符串
-     */
+	 * @return 转换后的字符串
+	 */
 	public static String removeEmptyCondiction(String sqlText,List<String> sqlParamNames,Map<String, Object> params){
 
 		//如果params为空,则新建一个
@@ -352,7 +352,7 @@ public class TSQL {
 	 * 获取解析后的 SQL 的条件
 	 * @param sqlText SQL 字符串
 	 * @return 解析的 SQL 查询条件
-     */
+	 */
 	public static List<String[]> parseSQLCondiction(String sqlText) {
 		ArrayList<String[]> condictionList = new ArrayList<String[]>();
 		sqlText = sqlText.toLowerCase();
@@ -442,7 +442,7 @@ public class TSQL {
 			return argObj.toString();
 		}
 	}
-	
+
 	/**
 	 * 根据 SQL 类型判断 Result 该使用什么方法取值
 	 * @param databaseType 数据库中的数据类型
@@ -451,57 +451,57 @@ public class TSQL {
 	public static String getDataMethod(int databaseType){
 		switch(databaseType){
 			case Types.CHAR :
-		         return  "getString";
+				return  "getString";
 			case Types.VARCHAR :
-			         return "getString";
+				return "getString";
 			case Types.LONGVARCHAR :
-			         return "getString";
+				return "getString";
 			case Types.NCHAR :
-			         return "getString";
+				return "getString";
 			case Types.LONGNVARCHAR :
-			         return "getString";
+				return "getString";
 			case Types.NUMERIC :
-			         return  "getBigDecimal";
+				return  "getBigDecimal";
 			case Types.DECIMAL :
-			         return  "getBigDecimal";
+				return  "getBigDecimal";
 			case Types.BIT :
-			         return "getBoolean";
+				return "getBoolean";
 			case Types.BOOLEAN :
-			         return  "getBoolean";
+				return  "getBoolean";
 			case Types.TINYINT :
-			         return  "getByte";
+				return  "getByte";
 			case Types.SMALLINT :
-			         return  "getShort";
+				return  "getShort";
 			case Types.INTEGER :
-			         return  "getInt";
+				return  "getInt";
 			case Types.BIGINT :
-			         return  "getLong";
+				return  "getLong";
 			case Types.REAL :
-			         return  "getFloat";
+				return  "getFloat";
 			case Types.FLOAT :
-			         return  "getFloat";
+				return  "getFloat";
 			case Types.DOUBLE :
-			         return  "getDouble";
+				return  "getDouble";
 			case Types.BINARY :
-			         return  "getBytes";
+				return  "getBytes";
 			case Types.VARBINARY :
-			         return  "getBytes";
+				return  "getBytes";
 			case Types.LONGVARBINARY :
-			         return  "getBytes";
+				return  "getBytes";
 			case Types.DATE :
-			         return  "getDate";
+				return  "getDate";
 			case Types.TIME :
-			         return  "getTime";
+				return  "getTime";
 			case Types.TIMESTAMP :
-			         return  "getTimestamp";
+				return  "getTimestamp";
 			case Types.CLOB :
-			         return  "getClob";
+				return  "getClob";
 			case Types.BLOB :
-			         return  "getBlob";
+				return  "getBlob";
 			case Types.ARRAY :
-			         return  "getArray";
+				return  "getArray";
 			default:
-					return "getString";
+				return "getString";
 		}
 	}
 
@@ -509,43 +509,43 @@ public class TSQL {
 	 * 根据 JAVA 类型判断该使用什么 SQL 数据类型
 	 * @param obj 对象
 	 * @return 数据库中的数据类型
-     */
+	 */
 	public static int getSqlTypes(Object obj){
 		Class<?> objectClass = obj.getClass();
 		if(char.class == objectClass){
-	         return  Types.CHAR;
+			return  Types.CHAR;
 		}else if(String.class == objectClass){
-			 return Types.VARCHAR ;
+			return Types.VARCHAR ;
 		}else if(BigDecimal.class == objectClass){
-			 return Types.NUMERIC;
+			return Types.NUMERIC;
 		}else if(Boolean.class == objectClass){
-			 return Types.BIT;
+			return Types.BIT;
 		}else if(Byte.class == objectClass){
-			 return Types.TINYINT;
+			return Types.TINYINT;
 		}else if(Short.class == objectClass){
-			 return Types.SMALLINT;
+			return Types.SMALLINT;
 		}else if(Integer.class == objectClass){
-			 return Types.INTEGER;
+			return Types.INTEGER;
 		}else if(Long.class == objectClass){
-			 return Types.BIGINT;
+			return Types.BIGINT;
 		}else if(Float.class == objectClass){
-			 return Types.FLOAT;
+			return Types.FLOAT;
 		}else if(Double.class == objectClass){
-			 return Types.DOUBLE;
+			return Types.DOUBLE;
 		}else if(Byte[].class == objectClass){
-			 return Types.BINARY;
+			return Types.BINARY;
 		}else if(Date.class == objectClass){
-			 return Types.DATE;
+			return Types.DATE;
 		}else if(Time.class == objectClass){
-			 return Types.TIME;
+			return Types.TIME;
 		}else if(Timestamp.class == objectClass){
-			 return Types.TIMESTAMP;
+			return Types.TIMESTAMP;
 		}else if(Clob.class == objectClass){
-			 return Types.CLOB;
+			return Types.CLOB;
 		}else if(Blob.class == objectClass){
-			 return Types.BLOB;
+			return Types.BLOB;
 		}else if(Object[].class == objectClass){
-			 return Types.ARRAY;
+			return Types.ARRAY;
 		}
 		return 0;
 	}
