@@ -42,8 +42,7 @@ public class ThreadPoolTask extends HashWheelTask {
 
 		int poolSize = threadPoolInstance.getPoolSize();
 		// 动态调整线程数,且系统CPU负载值要小于1
-		if (threadPoolInstance.getQueue().size() > 0 &&
-				TPerformance.cpuPerCoreLoadAvg() > 1) {
+		if (threadPoolInstance.getQueue().size() > 0 ) {
 
 			int newPoolSize = (int)(threadPoolInstance.getCorePoolSize() * 1.25);
 
