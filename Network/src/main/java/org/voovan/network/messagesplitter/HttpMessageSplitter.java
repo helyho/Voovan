@@ -57,9 +57,12 @@ public class HttpMessageSplitter implements MessageSplitter {
         String httpHead = null;
 
         //非 HTTP 请求直接关闭连接
-        if(TByteBuffer.indexOf(byteBuffer, "HTTP/1.".getBytes()) != 0 ) {
+        int httpMarkIndex = TByteBuffer.indexOf(byteBuffer, "HTTP/1.".getBytes());
+        int lineSpliterIndex = TByteBuffer.indexOf(byteBuffer, "\r\n".getBytes());
+        if(httpMarkIndex < 0 || httpMarkIndex >= lineSpliterIndex) {
             return -1;
         }
+
 
         for(int x=0;x<buffer.length-3;x++){
             if(buffer[x] == '\r' && buffer[x+1] == '\n' && buffer[x+2] == '\r' && buffer[x+3] == '\n'){
