@@ -1,7 +1,6 @@
 package org.voovan.http.message;
 
 import org.voovan.http.message.packet.*;
-import org.voovan.http.message.packet.Part.PartType;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.THash;
@@ -30,10 +29,10 @@ import java.util.Vector;
  */
 
 public class Request {
-	private RequestProtocol	protocol;
-	private Header			header;
+	private RequestProtocol protocol;
+	private Header header;
 	private List<Cookie>	cookies;
-	private Body			body;
+	private Body body;
 	private List<Part>		parts;
 	private String boundary = THash.encryptBASE64(TString.generateShortUUID());
 	private static final String CONTENT_TYPE = "Content-Type";
@@ -152,7 +151,7 @@ public class Request {
 		else if (getBodyType() == RequestType.BODY_MULTIPART) {
 			StringBuilder result = new StringBuilder();
 			for (Part part : parts) {
-				if (part.getType() == PartType.TEXT) {
+				if (part.getType() == Part.PartType.TEXT) {
 					String name = part.header().get("name");
 					String value = part.body().getBodyString(charset);
 					result.append(name);
@@ -297,7 +296,7 @@ public class Request {
         }
 
         TByteBuffer.release(byteBuffer);
-//        body.free();
+        body.free();
 	}
 
 

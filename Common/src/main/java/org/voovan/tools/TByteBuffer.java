@@ -178,14 +178,14 @@ public class TByteBuffer {
      * @param byteBuffer bytebuffer 对象
      */
     public static void release(ByteBuffer byteBuffer){
-        if(byteBuffer!=null && !byteBuffer.hasArray()) {
-            try {
-                Cleaner cleaner = TReflect.getFieldValue(byteBuffer, "cleaner");
-                cleaner.clean();
-            } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
-            }
-        }
+//        if(byteBuffer!=null && !byteBuffer.hasArray()) {
+//            try {
+//                Cleaner cleaner = TReflect.getFieldValue(byteBuffer, "cleaner");
+//                cleaner.clean();
+//            } catch (ReflectiveOperationException e) {
+//                e.printStackTrace();
+//            }
+//        }
     }
 
 }
