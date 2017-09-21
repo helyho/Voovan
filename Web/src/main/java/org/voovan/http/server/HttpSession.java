@@ -172,7 +172,7 @@ public class HttpSession {
 	/**
 	 * 获取最大活动时间
 	 *
-	 * @return 最大活动时间
+	 * @return 最大活动时间, 单位: 毫秒
 	 */
 	public int getMaxInactiveInterval() {
 		return maxInactiveInterval;
@@ -181,7 +181,7 @@ public class HttpSession {
 	/**
 	 * 设置最大活动时间
 	 *
-	 * @param maxInactiveInterval 最大活动时间
+	 * @param maxInactiveInterval 最大活动时间, 单位: 毫秒
 	 */
 	public void setMaxInactiveInterval(int maxInactiveInterval) {
 		this.maxInactiveInterval = maxInactiveInterval;

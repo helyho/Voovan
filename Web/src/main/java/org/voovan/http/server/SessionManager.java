@@ -48,39 +48,39 @@ public class SessionManager{
 			httpSessions.put("SESSION_MANAGER_SERVER", serverName);
 		}
 
-		initKeepAliveTimer();
+//		initKeepAliveTimer();
 
 	}
 
-	/**
-	 * 初始化连接保持 Timer
-	 */
-	public void initKeepAliveTimer(){
-
-		Global.getHashWheelTimer().addTask(new HashWheelTask() {
-			@Override
-			public void run() {
-
-				String serverName = httpSessions.get("SESSION_MANAGER_SERVER");
-
-				if(serverName==null){
-					serverName = webConfig.getServerName();
-					httpSessions.put("SESSION_MANAGER_SERVER", serverName);
-				}
-
-				//判断是否是 Server 管理节点, 保证只有一个节点处理 Session 移除动作
-				if(serverName.equals(webConfig.getServerName())) {
-					//遍历所有的 session
-					for (String key : httpSessions.keySet().toArray(new String[]{})) {
-						HttpSession session = JSON.toObject(httpSessions.get(key), HttpSession.class);
-						if (session != null && session.isInvalid()) {
-							removeSession(session);
-						}
-					}
-				}
-			}
-		}, 60, true);
-	}
+//	/**
+//	 * 初始化连接保持 Timer
+//	 */
+//	public void initKeepAliveTimer(){
+//
+//		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+//			@Override
+//			public void run() {
+//
+//				String serverName = httpSessions.get("SESSION_MANAGER_SERVER");
+//
+//				if(serverName==null){
+//					serverName = webConfig.getServerName();
+//					httpSessions.put("SESSION_MANAGER_SERVER", serverName);
+//				}
+//
+//				//判断是否是 Server 管理节点, 保证只有一个节点处理 Session 移除动作
+//				if(serverName.equals(webConfig.getServerName())) {
+//					//遍历所有的 session
+//					for (String key : httpSessions.keySet().toArray(new String[]{})) {
+//						HttpSession session = JSON.toObject(httpSessions.get(key), HttpSession.class);
+//						if (session != null && session.isInvalid()) {
+//							removeSession(session);
+//						}
+//					}
+//				}
+//			}
+//		}, 60, true);
+//	}
 
 	/**
 	 * 获取 Session 容器
@@ -209,6 +209,14 @@ public class SessionManager{
 		} else{
 			session.init(this, request.getSocketSession());
 		}
+
+		final HttpSession innerSession = session;
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			@Override
+			public void run() {
+				innerSession.removeFromSessionManager();
+			}
+		}, session.getMaxInactiveInterval()/60/1000);
 
 		return session;
 	}
