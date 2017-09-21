@@ -151,6 +151,11 @@ public class Hotswaper {
             return true;
         }
 
+        //如果是内部类则排除
+        if(clazz.isMemberClass()){
+            return true;
+        }
+
         //CodeSource 对象为空的不加载
         if(clazz.getProtectionDomain().getCodeSource() == null){
             return true;
