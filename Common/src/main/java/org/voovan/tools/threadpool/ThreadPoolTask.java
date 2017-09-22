@@ -59,7 +59,7 @@ public class ThreadPoolTask extends HashWheelTask {
 		else if(threadPoolInstance.getActiveCount() <= threadPoolInstance.getPoolSize()/2 &&
 				 threadPoolInstance.getCorePoolSize() > ThreadPool.MIN_POOL_SIZE){
 
-			int newPoolsize = (int)(threadPoolInstance.getCorePoolSize()*0.75);
+			int newPoolsize = (int)(threadPoolInstance.getCorePoolSize()*0.8);
 
 			if(newPoolsize < ThreadPool.MIN_POOL_SIZE){
 				newPoolsize = ThreadPool.MIN_POOL_SIZE;
