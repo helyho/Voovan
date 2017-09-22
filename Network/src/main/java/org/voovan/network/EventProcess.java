@@ -155,7 +155,10 @@ public class EventProcess {
 
                     //触发发送事件
                     sendMessage(session, result);
+				} else {
+					break;
 				}
+
 			}
 
 			TByteBuffer.release(byteBuffer);
