@@ -139,7 +139,7 @@ public class SSLParser {
 		SSLEngineResult engineResult = null;
 		int waitCount = 0;
 		while(true){
-			if(waitCount*1000 >= session.socketContext().getReadTimeout()){
+			if(waitCount >= session.socketContext().getReadTimeout()){
 				throw new SocketDisconnectByRemote("Hand shake on: "+ session.remoteAddress() + ":" + session.remotePort()+" timeout");
 			}
 
