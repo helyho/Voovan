@@ -203,6 +203,7 @@ public class MultiMap<K,V>
         if (lo.isEmpty()) {
             remove(key);
         }
+
         return ret;
     }
 
@@ -221,9 +222,8 @@ public class MultiMap<K,V>
         boolean ret = lo.remove(value);
         if (lo.isEmpty()) {
             remove(key);
-        } else {
-            super.put(key, lo);
         }
+
         return ret;
     }
 
@@ -235,7 +235,7 @@ public class MultiMap<K,V>
     public boolean containsValues(V value)
     {
         for (List<V> vals : values()) {
-            if ((vals.size() >0) && (vals.contains(value))) {
+            if ((vals.size() > 0) && (vals.contains(value))) {
                 return true;
             }
         }

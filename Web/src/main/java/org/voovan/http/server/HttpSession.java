@@ -1,9 +1,11 @@
 package org.voovan.http.server;
 
+import org.voovan.Global;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TString;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.util.Map;
@@ -11,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * WebServer session 类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -30,7 +32,7 @@ public class HttpSession {
 	@NotSerialization
 	private WebSocketSession webSocketSession;
 
-	
+
 	/**
 	 * 构造函数
 	 *
@@ -50,6 +52,18 @@ public class HttpSession {
 		this.maxInactiveInterval = sessionTimeout*60*1000;
 		this.sessionManager = sessionManager;
 		this.socketSession = socketSession;
+
+		final HttpSession innerSession = this;
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			@Override
+			public void run() {
+				if(innerSession.isInvalid()){
+					innerSession.removeFromSessionManager();
+					this.cancel();
+				}
+			}
+		}, innerSession.getMaxInactiveInterval()/1000);
+
 	}
 
 	/**
@@ -104,7 +118,7 @@ public class HttpSession {
 		save();
 		return this;
 	}
-	
+
 	/**
 	 * 获取当前 Session 属性
 	 * @param name 属性名
@@ -131,7 +145,7 @@ public class HttpSession {
 	public void setAttribute(String name,Object value) {
 		attributes.put(name, value);
 	}
-	
+
 	/**
 	 *  删除当前 Session 属性
 	 * @param name	属性名
@@ -186,7 +200,7 @@ public class HttpSession {
 	public void setMaxInactiveInterval(int maxInactiveInterval) {
 		this.maxInactiveInterval = maxInactiveInterval;
 	}
-	
+
 	/**
 	 * 当前 Session 是否失效
 	 *
