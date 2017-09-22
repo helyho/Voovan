@@ -1,9 +1,12 @@
 package org.voovan.tools.json;
 
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.TString;
 import org.voovan.tools.reflect.TReflect;
 
+import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -113,6 +116,10 @@ public class JSONEncode {
 
         if (object == null) {
             value = "null";
+        } else if (object instanceof BigDecimal) {
+            value = ((BigDecimal)object).toString();
+        } else if (object instanceof Date) {
+            value = "\"" + TDateTime.format(((Date)object), TDateTime.STANDER_DATETIME_TEMPLATE)+ "\"";;
         } else if (object instanceof Map) {
             Map<Object, Object> mapObject = (Map<Object, Object>) object;
             value = mapObject(mapObject);
