@@ -1,8 +1,10 @@
 package org.voovan.network;
 
+import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
@@ -135,7 +137,12 @@ public class SSLParser {
 	private HandshakeStatus doHandShakeUnwarp() throws IOException{
 		HandshakeStatus handshakeStatus =engine.getHandshakeStatus();
 		SSLEngineResult engineResult = null;
+		int waitCount = 0;
 		while(true){
+			if(waitCount*1000 >= session.socketContext().getReadTimeout()){
+				throw new SocketDisconnectByRemote("Hand shake on: "+ session.remoteAddress() + ":" + session.remotePort()+" timeout");
+			}
+
 			clearBuffer();
 			ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
 
@@ -146,8 +153,10 @@ public class SSLParser {
 			if(byteBufferChannel.size() > 0)  {
 				ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 				engineResult = unwarpData(byteBuffer, appData);
-				//如果有 HandShake Task 则执行
-				handshakeStatus = runDelegatedTasks();
+				if(engineResult.getStatus() == Status.OK) {
+					//如果有 HandShake Task 则执行
+					handshakeStatus = runDelegatedTasks();
+				}
 				byteBufferChannel.compact();
 
 				if(engineResult!=null &&
@@ -163,9 +172,9 @@ public class SSLParser {
 						){
 					break;
 				}
-
 			}
 
+			waitCount++;
 			TEnv.sleep(1);
 		};
 		return handshakeStatus;

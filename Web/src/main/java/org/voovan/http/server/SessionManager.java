@@ -216,7 +216,7 @@ public class SessionManager{
 			public void run() {
 				innerSession.removeFromSessionManager();
 			}
-		}, session.getMaxInactiveInterval()/60/1000);
+		}, session.getMaxInactiveInterval()/1000);
 
 		return session;
 	}
