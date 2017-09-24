@@ -23,7 +23,7 @@ public class HashWheelTimerUnit extends TestCase {
     private HashWheelTimer hashWheelTimer;
 
     public void setUp() throws IOException {
-        hashWheelTimer = new HashWheelTimer(5, 1000);
+        hashWheelTimer = new HashWheelTimer(5, 1);
 
         //1个步长
         hashWheelTimer.addTask(new HashWheelTask() {
