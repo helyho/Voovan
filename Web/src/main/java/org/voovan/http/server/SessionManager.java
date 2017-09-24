@@ -48,39 +48,39 @@ public class SessionManager{
 			httpSessions.put("SESSION_MANAGER_SERVER", serverName);
 		}
 
-		initKeepAliveTimer();
+//		initKeepAliveTimer();
 
 	}
 
-	/**
-	 * 初始化连接保持 Timer
-	 */
-	public void initKeepAliveTimer(){
-
-		Global.getHashWheelTimer().addTask(new HashWheelTask() {
-			@Override
-			public void run() {
-
-				String serverName = httpSessions.get("SESSION_MANAGER_SERVER");
-
-				if(serverName==null){
-					serverName = webConfig.getServerName();
-					httpSessions.put("SESSION_MANAGER_SERVER", serverName);
-				}
-
-				//判断是否是 Server 管理节点, 保证只有一个节点处理 Session 移除动作
-				if(serverName.equals(webConfig.getServerName())) {
-					//遍历所有的 session
-					for (String key : httpSessions.keySet().toArray(new String[]{})) {
-						HttpSession session = JSON.toObject(httpSessions.get(key), HttpSession.class);
-						if (session != null && session.isInvalid()) {
-							removeSession(session);
-						}
-					}
-				}
-			}
-		}, 60, true);
-	}
+//	/**
+//	 * 初始化连接保持 Timer
+//	 */
+//	public void initKeepAliveTimer(){
+//
+//		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+//			@Override
+//			public void run() {
+//
+//				String serverName = httpSessions.get("SESSION_MANAGER_SERVER");
+//
+//				if(serverName==null){
+//					serverName = webConfig.getServerName();
+//					httpSessions.put("SESSION_MANAGER_SERVER", serverName);
+//				}
+//
+//				//判断是否是 Server 管理节点, 保证只有一个节点处理 Session 移除动作
+//				if(serverName.equals(webConfig.getServerName())) {
+//					//遍历所有的 session
+//					for (String key : httpSessions.keySet().toArray(new String[]{})) {
+//						HttpSession session = JSON.toObject(httpSessions.get(key), HttpSession.class);
+//						if (session != null && session.isInvalid()) {
+//							removeSession(session);
+//						}
+//					}
+//				}
+//			}
+//		}, 60, true);
+//	}
 
 	/**
 	 * 获取 Session 容器
@@ -101,33 +101,33 @@ public class SessionManager{
 			}
 		}
 	}
-	
+
 	/**
 	 * 保存 Session
-	 * 
+	 *
 	 * @param session HTTP-Session对象
 	 */
-	public void saveSession(HttpSession session) {
+	public void saveSession(org.voovan.http.server.HttpSession session) {
 		httpSessions.put(session.getId(), JSON.toJSON(session));
 	}
 
 	/**
 	 * 获取 Session
-	 * 
+	 *
 	 * @param id session Id
 	 * @return HTTP-Session对象
 	 */
-	public HttpSession getSession(String id) {
-        if (id!=null && httpSessions.containsKey(id)) {
-			HttpSession httpSession = JSON.toObject(httpSessions.get(id), HttpSession.class);
+	public org.voovan.http.server.HttpSession getSession(String id) {
+		if (id!=null && httpSessions.containsKey(id)) {
+			org.voovan.http.server.HttpSession httpSession = JSON.toObject(httpSessions.get(id), org.voovan.http.server.HttpSession.class);
 			httpSession.refresh();
 			if(httpSession.isInvalid()){
 				httpSession.removeFromSessionManager();
 				return null;
 			}
 			return httpSession;
-        }
-        return null;
+		}
+		return null;
 	}
 
 	/**
@@ -136,13 +136,13 @@ public class SessionManager{
 	 * @param cookie cookie 对象
 	 * @return HTTP-Session对象
 	 */
-	public HttpSession getSession(Cookie cookie) {
-        if (cookie!=null && httpSessions.containsKey(cookie.getValue())) {
-			HttpSession httpSession = getSession(cookie.getValue());
+	public org.voovan.http.server.HttpSession getSession(Cookie cookie) {
+		if (cookie!=null && httpSessions.containsKey(cookie.getValue())) {
+			org.voovan.http.server.HttpSession httpSession = getSession(cookie.getValue());
 			httpSession.refresh();
-            return httpSession;
-        }
-        return null;
+			return httpSession;
+		}
+		return null;
 	}
 
 	/**
@@ -151,11 +151,11 @@ public class SessionManager{
 	 * @return 是否存在
 	 */
 	public boolean containsSession(Cookie cookie) {
-        if(cookie==null){
-            return false;
-        } else {
-            return getSession(cookie) != null;
-        }
+		if(cookie==null){
+			return false;
+		} else {
+			return getSession(cookie) != null;
+		}
 	}
 
 	/**
@@ -171,7 +171,7 @@ public class SessionManager{
 	 * 移除会话
 	 * @param seesion HttpSession 对象
 	 */
-	public void removeSession(HttpSession seesion){
+	public void removeSession(org.voovan.http.server.HttpSession seesion){
 		removeSession(seesion.getId());
 	}
 
@@ -181,7 +181,7 @@ public class SessionManager{
 	 * @param response  HTTP 响应对象
 	 * @return HTTP-Session对象
 	 */
-	public HttpSession newHttpSession(HttpRequest request,HttpResponse response){
+	public HttpSession newHttpSession(HttpRequest request, HttpResponse response){
 
 
 		HttpSession session = null;
@@ -194,8 +194,8 @@ public class SessionManager{
 
 		if(session==null) {
 			if(request.header().get("Host") != null) {
-                session = new HttpSession(webConfig, this, request.getSocketSession());
-                this.saveSession(session);
+				session = new HttpSession(webConfig, this, request.getSocketSession());
+				this.saveSession(session);
 
 				//创建 Cookie
 				Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(),
@@ -217,7 +217,7 @@ public class SessionManager{
 	 * 构造一个 SessionManager
 	 * @param config WEB 配置对象
 	 * @return SessionManager对象
-     */
+	 */
 	public static SessionManager newInstance(WebServerConfig config){
 		return new SessionManager(config);
 	}

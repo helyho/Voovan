@@ -323,11 +323,15 @@ public class TEnv {
 			if(location.endsWith(".jar")) {
 				try(JarFile jarFile = new JarFile(location)) {
 					JarEntry jarEntry = jarFile.getJarEntry(classNamePath);
-					return jarEntry.getTime();
+					if(jarEntry!=null) {
+						return jarEntry.getTime();
+					}else{
+						return -1;
+					}
 				}
 			} else if (location.endsWith(File.separator)) {
 				File classFile = new File(location+classNamePath);
-				if(classFile.exists()) {
+				if(classFile!=null && classFile.exists()) {
 					return classFile.lastModified();
 				}else{
 					return -1;

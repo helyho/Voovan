@@ -4,6 +4,7 @@ import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
@@ -11,7 +12,7 @@ import java.net.SocketOption;
 
 /**
  * socket 上下文
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -22,7 +23,7 @@ public abstract class SocketContext {
 	protected String host;
 	protected int port;
 	protected int readTimeout;
-	
+
 	protected IoHandler handler;
 	protected Chain<IoFilter> filterChain;
 	protected MessageSplitter messageSplitter;
@@ -38,7 +39,7 @@ public abstract class SocketContext {
 	 * @param host    主机地址
 	 * @param port    主机端口
 	 * @param readTimeout 超时时间
-     */
+	 */
 	public SocketContext(String host,int port,int readTimeout) {
 		init(host, port, readTimeout, this.idleInterval);
 	}
@@ -87,10 +88,10 @@ public abstract class SocketContext {
 		this.idleInterval = parentSocketContext.idleInterval;
 	}
 
-    /**
-     * 获取空闲事件时间
-     * @return  空闲事件时间, 单位:秒
-     */
+	/**
+	 * 获取空闲事件时间
+	 * @return  空闲事件时间, 单位:秒
+	 */
 	public int getIdleInterval() {
 		return idleInterval;
 	}
@@ -137,7 +138,7 @@ public abstract class SocketContext {
 	/**
 	 * 获取 SSL 管理器
 	 * @return SSL 管理器
-     */
+	 */
 	public SSLManager getSSLManager() {
 		return sslManager;
 	}
@@ -145,7 +146,7 @@ public abstract class SocketContext {
 	/**
 	 * 设置 SSL 管理器
 	 * @param sslManager SSL 管理器
-     */
+	 */
 	public void setSSLManager(SSLManager sslManager) {
 		if(this.sslManager==null){
 			this.sslManager = sslManager;
@@ -155,7 +156,7 @@ public abstract class SocketContext {
 	/**
 	 * 获取主机地址
 	 * @return 主机地址
-     */
+	 */
 	public String getHost() {
 		return host;
 	}
@@ -163,7 +164,7 @@ public abstract class SocketContext {
 	/**
 	 * 获取主机端口
 	 * @return 主机端口
-     */
+	 */
 	public int getPort() {
 		return port;
 	}
@@ -175,7 +176,7 @@ public abstract class SocketContext {
 	public int getReadTimeout() {
 		return readTimeout;
 	}
-	
+
 	/**
 	 * 获取连接模式
 	 * @return 连接模式
@@ -190,16 +191,16 @@ public abstract class SocketContext {
 	 */
 	public IoHandler handler(){
 		return this.handler;
-	} 
-	
+	}
+
 	/**
 	 * 设置业务处理句柄
 	 * @param handler 业务处理句柄
 	 */
 	public void handler(IoHandler handler){
 		this.handler = handler;
-	} 
-	
+	}
+
 	/**
 	 * 获取过滤器链
 	 * @return 过滤器链
@@ -207,7 +208,7 @@ public abstract class SocketContext {
 	public Chain<IoFilter> filterChain(){
 		return this.filterChain;
 	}
-	
+
 	/**
 	 * 获取消息粘包分割器
 	 * @return 消息粘包分割器
@@ -215,7 +216,7 @@ public abstract class SocketContext {
 	public MessageSplitter messageSplitter() {
 		return this.messageSplitter;
 	}
-	
+
 	/**
 	 * 设置消息粘包分割器
 	 * @param  messageSplitter 消息分割器
@@ -223,7 +224,7 @@ public abstract class SocketContext {
 	public void messageSplitter(MessageSplitter messageSplitter) {
 		this.messageSplitter = messageSplitter;
 	}
-	
+
 	/**
 	 * 启动上下文连接
 	 *		阻塞方法
@@ -250,20 +251,25 @@ public abstract class SocketContext {
 	 * @param session socket 会话对象
 	 */
 	protected void waitConnected(IoSession session){
-		int waitConnectTime = 0;
-		while(!isConnected()){
-			TEnv.sleep(1);
-			waitConnectTime++;
-			if(waitConnectTime >= readTimeout){
-				break;
+		try {
+			int waitConnectTime = 0;
+			while (!isConnected()) {
+				TEnv.sleep(1);
+				waitConnectTime++;
+				if (waitConnectTime >= readTimeout) {
+					break;
+				}
 			}
-		}
 
-		//等待 SSL 握手操作完成
-		while(session.getSSLParser()!=null &&
-				!session.getSSLParser().isHandShakeDone() &&
-				isConnected()){
-			TEnv.sleep(1);
+			//等待 SSL 握手操作完成
+			while (session.getSSLParser() != null &&
+					!session.getSSLParser().isHandShakeDone() &&
+					isConnected()) {
+				TEnv.sleep(1);
+			}
+		}catch(Exception e){
+			Logger.error(e);
+			session.close();
 		}
 	}
 
@@ -279,7 +285,7 @@ public abstract class SocketContext {
 	 * @return true:连接,false:断开
 	 */
 	public abstract boolean isConnected();
-	
+
 	/**
 	 * 关闭连接
 	 * @return 是否关闭

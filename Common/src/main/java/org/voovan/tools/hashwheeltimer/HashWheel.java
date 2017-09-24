@@ -126,7 +126,9 @@ public class HashWheel {
                 for (HashWheelTask task : tmpList) {
                     if (task.doTask()) {
                         removeTask(task);
-                        addTask(task);
+                        if(!task.isCancel()) {
+                            addTask(task);
+                        }
                     }
                 }
             }

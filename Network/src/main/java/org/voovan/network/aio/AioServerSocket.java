@@ -31,7 +31,7 @@ public class AioServerSocket extends SocketContext{
 	 *
 	 * @param host    主机地址
 	 * @param port    主机端口
-	 * @param readTimeout 超时时间
+	 * @param readTimeout 超时时间, 单位:毫秒
 	 * @throws IOException IO 异常
 	 */
 	public AioServerSocket(String host,int port,int readTimeout) throws IOException{
@@ -44,7 +44,7 @@ public class AioServerSocket extends SocketContext{
 	 * @param host    主机地址
 	 * @param port    主机端口
 	 * @param idleInterval	空闲事件触发时间, 单位: 秒
-	 * @param readTimeout 超时时间
+	 * @param readTimeout 超时时间, 单位:毫秒
 	 * @throws IOException IO 异常
 	 */
 	public AioServerSocket(String host,int port,int readTimeout, int idleInterval) throws IOException{
