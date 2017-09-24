@@ -38,7 +38,7 @@ public class Global {
      */
     public synchronized  static HashWheelTimer getHashWheelTimer(){
         if(hashWheelTimer == null) {
-            hashWheelTimer = new HashWheelTimer(60, 1);
+            hashWheelTimer = new HashWheelTimer(60, 1000);
             final HashWheelTimer tempTimer = hashWheelTimer;
             hashWheelTimer.rotate();
         }
