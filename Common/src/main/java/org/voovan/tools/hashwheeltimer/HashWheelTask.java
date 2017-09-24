@@ -17,6 +17,7 @@ public abstract class HashWheelTask {
     private HashWheel hashWheel;
     private int slot;
     private long doCount;
+    private boolean isCancel;
 
     /**
      * 构造函数
@@ -25,6 +26,7 @@ public abstract class HashWheelTask {
         this.interval = 0;
         this.skipTick = 0;
         this.asynchronous=false;
+        this.isCancel = false;
     }
 
 
@@ -37,6 +39,7 @@ public abstract class HashWheelTask {
         this.interval = interval;
         this.skipTick = 0;
         this.asynchronous=asynchronous;
+        this.isCancel = false;
     }
 
 
@@ -47,6 +50,15 @@ public abstract class HashWheelTask {
         this.hashWheel = hashWheel;
         this.slot = slot;
         doCount = 0;
+        this.isCancel = false;
+    }
+
+    /**
+     * 判断任务是否已经取消
+     * @return true:已经取消, false: 未取消
+     */
+    public boolean isCancel() {
+        return isCancel;
     }
 
     /**
@@ -118,6 +130,7 @@ public abstract class HashWheelTask {
      * @return true: 成功, false:失败
      */
     public boolean cancel(){
+        this.isCancel = true;
         return hashWheel.removeTask(this);
     }
 
