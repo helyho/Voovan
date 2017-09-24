@@ -1,5 +1,6 @@
 package org.voovan.http.server;
 
+import org.voovan.Global;
 import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.server.context.HttpRouterConfig;
 import org.voovan.http.server.context.WebContext;
@@ -14,6 +15,7 @@ import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hotswap.Hotswaper;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,15 +23,15 @@ import java.util.Map;
 
 /**
  * WebServer 对象
- * 
+ *
  * @author helyho
- * 
+ *
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
 public class WebServer {
-	private AioServerSocket	aioServerSocket;
+	private AioServerSocket aioServerSocket;
 	private HttpDispatcher	httpDispatcher;
 	private WebSocketDispatcher webSocketDispatcher;
 	private SessionManager sessionManager;
@@ -37,7 +39,7 @@ public class WebServer {
 
 	/**
 	 * 构造函数
-	 * 
+	 *
 	 * @param config  WEB 配对对象
 	 * @throws IOException
 	 *             异常
@@ -49,8 +51,8 @@ public class WebServer {
 		initHotSwap();
 		initSocketServer(config);
 
-        //更新 ClassPath, 步长1秒, 槽数60个;
-        org.voovan.Global.getHashWheelTimer().addTask(new HashWheelTask() {
+		//更新 ClassPath, 步长1秒, 槽数60个;
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 			@Override
 			public void run() {
 				//更新 ClassPath , 这样有新的 jar 包才会被加载进来
@@ -112,7 +114,7 @@ public class WebServer {
 
 	/**
 	 * 将配置文件中的 Router 配置载入到 WebServer
-     */
+	 */
 	private void initConfigedRouter(){
 		for(HttpRouterConfig httpRouterConfig : config.getRouterConfigs()){
 			String method = httpRouterConfig.getMethod();
@@ -129,7 +131,7 @@ public class WebServer {
 
 	/**
 	 * 模块安装
-     */
+	 */
 	public void initModule() {
 		for (HttpModuleConfig httpModuleConfig : config.getModuleonfigs()) {
 			HttpModule httpModule = httpModuleConfig.getHttpModuleInstance(this);
@@ -143,7 +145,7 @@ public class WebServer {
 	/**
 	 * 获取 Http 服务配置对象
 	 * @return 返回 Http 服务配置对象
-     */
+	 */
 	public WebServerConfig getWebServerConfig() {
 		return config;
 	}
@@ -156,8 +158,8 @@ public class WebServer {
 	 * GET 请求
 	 * @param routeRegexPath 匹配路径
 	 * @param router  HTTP处理请求句柄
-     * @return WebServer对象
-     */
+	 * @return WebServer对象
+	 */
 	public WebServer get(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("GET", routeRegexPath, router);
 		return this;
@@ -168,7 +170,7 @@ public class WebServer {
 	 * @param routeRegexPath 匹配路径
 	 * @param router  HTTP处理请求句柄
 	 * @return WebServer对象
-     */
+	 */
 	public WebServer post(String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteHandler("POST", routeRegexPath, router);
 		return this;
@@ -258,7 +260,7 @@ public class WebServer {
 	 * @param routeRegexPath 匹配路径
 	 * @param router WebSocket处理句柄
 	 * @return WebServer对象
-     */
+	 */
 	public WebServer socket(String routeRegexPath, WebSocketRouter router) {
 		webSocketDispatcher.addRouteHandler(routeRegexPath, router);
 		return this;
@@ -312,12 +314,46 @@ public class WebServer {
 		WebContext.welcome();
 		WebContext.initWebServerPlugin();
 
-
 		initConfigedRouter();
 		initModule();
+
+
+		//运行初始化 Class
+		runInitClass(this);
+
 		Logger.simple("Process ID: "+ TEnv.getCurrentPID());
 		Logger.simple("WebServer working on: http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
 
+	}
+
+	/**
+	 * 执行启动初始化类
+	 * @param webServer WebServer对象
+	 */
+	private void runInitClass(WebServer webServer){
+		String initClass = WebContext.getWebServerConfig().getInitClass();
+
+		if(initClass==null){
+			return;
+		}
+
+		if(initClass.isEmpty()){
+			return;
+		}
+
+		try {
+			WebServerInit webServerInit = null;
+
+			Class clazz = Class.forName(initClass);
+			if(TReflect.isImpByInterface(clazz, WebServerInit.class)){
+				webServerInit = (WebServerInit)TReflect.newInstance(clazz);
+				webServerInit.init(webServer);
+			}else{
+				Logger.warn("The init class " + initClass + " is not a class implement by " + WebServerInit.class.getName());
+			}
+		} catch (Exception e) {
+			Logger.error("Initialize WebServer init class error: " + e);
+		}
 	}
 
 	/**
@@ -369,7 +405,6 @@ public class WebServer {
 
 	/**
 	 * 是否处于服务状态
-	 * @return true: 当前是服务状态, false: 当前未提供服务
 	 */
 	public boolean isServing(){
 		return aioServerSocket.isConnected();
@@ -385,7 +420,7 @@ public class WebServer {
 		if(args.length>0){
 			for(int i=0;i<args.length;i++){
 
-				//指定服务启动时使用的配置文件
+				//服务监听地址
 				if(args[i].equals("--config")){
 					i++;
 					String configFilePath = TFile.getContextPath()+ File.separator + (args[i]);
@@ -519,6 +554,7 @@ public class WebServer {
 
 		WebServer webServer = WebServer.newInstance(config);
 
+		//启动服务
 		webServer.serve();
 	}
 }

@@ -17,6 +17,7 @@
   "Gzip"                   : true,                        // 是否启用Gzip压缩,默认 true
   "AccessLog"              : true,                        // 是否记录access.log,默认 true
   "HotSwapInterval"        : 30,                            //热加载检测时间间隔. 默认:0秒. 0:关闭
+  "InitClass"              : "org.voovan.test.http.WebInitClass", //配置在Web 服务启动时加载并运行初始化类, 该类需继承:org.voovan.http.server.WebServerInit
 
   //HTTPS证书配置
 //  "Https": {
