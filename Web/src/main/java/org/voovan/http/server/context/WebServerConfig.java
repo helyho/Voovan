@@ -37,6 +37,7 @@ public class WebServerConfig {
     private HttpsConfig https;
     private String indexFiles = "index.htm,index.html,default.htm,default.htm";
     private int hotSwapInterval = 0;
+    private String initClass = null;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
@@ -167,6 +168,14 @@ public class WebServerConfig {
 
     public void setHotSwapInterval(int hotSwapInterval) {
         hotSwapInterval = hotSwapInterval;
+    }
+
+    public String getInitClass() {
+        return initClass;
+    }
+
+    public void setInitClass(String initClass) {
+        this.initClass = initClass;
     }
 
     public Chain<HttpFilterConfig> getFilterConfigs() {
