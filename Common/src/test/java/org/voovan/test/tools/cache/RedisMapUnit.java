@@ -1,9 +1,8 @@
-package org.voovan.test.tools;
+package org.voovan.test.tools.cache;
 
 import junit.framework.TestCase;
-import org.voovan.tools.RedisMap;
+import org.voovan.tools.cache.RedisMap;
 import org.voovan.tools.TObject;
-import org.voovan.tools.log.Logger;
 
 /**
  * 类文字命名
@@ -20,7 +19,7 @@ public class RedisMapUnit extends TestCase{
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        redisMap = new RedisMap(null, "127.0.0.1", 6379, "test", "123456");
+        redisMap = new RedisMap("10.0.0.101", 6379, 2000, 100, "test", null);
     }
 
     public void testPut(){

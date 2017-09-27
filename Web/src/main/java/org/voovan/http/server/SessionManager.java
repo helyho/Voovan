@@ -1,14 +1,13 @@
 package org.voovan.http.server;
 
-import org.voovan.Global;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
-import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,6 +28,9 @@ public class SessionManager{
 	private  Map<String, String> httpSessions;
 
 	private WebServerConfig webConfig;
+
+	private Method expirePutMethod = null;
+
 	/**
 	 * 构造函数
 	 * @param webConfig Web 服务配置对象
@@ -41,46 +43,25 @@ public class SessionManager{
 			Logger.warn("Create session container from config file failed,now use defaul session container.");
 		}
 
-		String serverName = httpSessions.get("SESSION_MANAGER_SERVER");
-
-		if(serverName==null){
-			serverName = webConfig.getServerName();
-			httpSessions.put("SESSION_MANAGER_SERVER", serverName);
-		}
-
-//		initKeepAliveTimer();
-
+		autoExpire();
 	}
 
-//	/**
-//	 * 初始化连接保持 Timer
-//	 */
-//	public void initKeepAliveTimer(){
-//
-//		Global.getHashWheelTimer().addTask(new HashWheelTask() {
-//			@Override
-//			public void run() {
-//
-//				String serverName = httpSessions.get("SESSION_MANAGER_SERVER");
-//
-//				if(serverName==null){
-//					serverName = webConfig.getServerName();
-//					httpSessions.put("SESSION_MANAGER_SERVER", serverName);
-//				}
-//
-//				//判断是否是 Server 管理节点, 保证只有一个节点处理 Session 移除动作
-//				if(serverName.equals(webConfig.getServerName())) {
-//					//遍历所有的 session
-//					for (String key : httpSessions.keySet().toArray(new String[]{})) {
-//						HttpSession session = JSON.toObject(httpSessions.get(key), HttpSession.class);
-//						if (session != null && session.isInvalid()) {
-//							removeSession(session);
-//						}
-//					}
-//				}
-//			}
-//		}, 60, true);
-//	}
+	/**
+	 * 判断缓存session 的 map 是否支持自清除
+	 * @return
+	 */
+	public boolean autoExpire(){
+
+		if(expirePutMethod == null) {
+			try {
+				expirePutMethod = TReflect.findMethod(httpSessions.getClass(), "put", String.class, String.class, int.class);
+			} catch (ReflectiveOperationException e) {
+				expirePutMethod = null;
+			}
+		}
+
+		return expirePutMethod == null ? false : true;
+	}
 
 	/**
 	 * 获取 Session 容器
@@ -107,8 +88,16 @@ public class SessionManager{
 	 *
 	 * @param session HTTP-Session对象
 	 */
-	public void saveSession(org.voovan.http.server.HttpSession session) {
-		httpSessions.put(session.getId(), JSON.toJSON(session));
+	public void saveSession(HttpSession session) {
+		if(!autoExpire()) {
+			httpSessions.put(session.getId(), JSON.toJSON(session));
+		}else{
+			try {
+				TReflect.invokeMethod(httpSessions, expirePutMethod, session.getId(), JSON.toJSON(session), session.getMaxInactiveInterval() / 1000);
+			} catch (ReflectiveOperationException e) {
+				httpSessions.put(session.getId(), JSON.toJSON(session));
+			}
+		}
 	}
 
 	/**
@@ -117,13 +106,15 @@ public class SessionManager{
 	 * @param id session Id
 	 * @return HTTP-Session对象
 	 */
-	public org.voovan.http.server.HttpSession getSession(String id) {
+	public HttpSession getSession(String id) {
 		if (id!=null && httpSessions.containsKey(id)) {
-			org.voovan.http.server.HttpSession httpSession = JSON.toObject(httpSessions.get(id), org.voovan.http.server.HttpSession.class);
-			httpSession.refresh();
-			if(httpSession.isInvalid()){
-				httpSession.removeFromSessionManager();
-				return null;
+			HttpSession httpSession = JSON.toObject(httpSessions.get(id), HttpSession.class);
+			if(httpSession!=null) {
+				httpSession.refresh();
+				if (httpSession.isExpire()) {
+					httpSession.removeFromSessionManager();
+					return null;
+				}
 			}
 			return httpSession;
 		}
@@ -136,9 +127,9 @@ public class SessionManager{
 	 * @param cookie cookie 对象
 	 * @return HTTP-Session对象
 	 */
-	public org.voovan.http.server.HttpSession getSession(Cookie cookie) {
+	public HttpSession getSession(Cookie cookie) {
 		if (cookie!=null && httpSessions.containsKey(cookie.getValue())) {
-			org.voovan.http.server.HttpSession httpSession = getSession(cookie.getValue());
+			HttpSession httpSession = getSession(cookie.getValue());
 			httpSession.refresh();
 			return httpSession;
 		}
@@ -166,12 +157,11 @@ public class SessionManager{
 		httpSessions.remove(id);
 	}
 
-
 	/**
 	 * 移除会话
 	 * @param seesion HttpSession 对象
 	 */
-	public void removeSession(org.voovan.http.server.HttpSession seesion){
+	public void removeSession(HttpSession seesion){
 		removeSession(seesion.getId());
 	}
 
@@ -182,7 +172,6 @@ public class SessionManager{
 	 * @return HTTP-Session对象
 	 */
 	public HttpSession newHttpSession(HttpRequest request, HttpResponse response){
-
 
 		HttpSession session = null;
 

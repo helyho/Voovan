@@ -53,17 +53,19 @@ public class HttpSession {
 		this.sessionManager = sessionManager;
 		this.socketSession = socketSession;
 
-		final HttpSession innerSession = this;
-		Global.getHashWheelTimer().addTask(new HashWheelTask() {
-			@Override
-			public void run() {
-				if(innerSession.isInvalid()){
-					innerSession.removeFromSessionManager();
-					this.cancel();
+		//如果 session 可以自清除则不进行清理
+		if(!sessionManager.autoExpire()) {
+			final HttpSession innerSession = this;
+			Global.getHashWheelTimer().addTask(new HashWheelTask() {
+				@Override
+				public void run() {
+					if (innerSession.isExpire()) {
+						innerSession.removeFromSessionManager();
+						this.cancel();
+					}
 				}
-			}
-		}, innerSession.getMaxInactiveInterval()/1000);
-
+			}, innerSession.getMaxInactiveInterval() / 1000);
+		}
 	}
 
 	/**
@@ -206,7 +208,7 @@ public class HttpSession {
 	 *
 	 * @return  true: 失效,false: 有效
 	 */
-	public boolean isInvalid(){
+	public boolean isExpire(){
 		int intervalTime = (int)(System.currentTimeMillis() - lastTimeillis);
 		return intervalTime > maxInactiveInterval;
 	}
