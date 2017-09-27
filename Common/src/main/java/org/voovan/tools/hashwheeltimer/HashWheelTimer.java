@@ -15,7 +15,7 @@ import java.util.TimerTask;
  */
 public class HashWheelTimer {
     private HashWheel wheel;
-    private int tickStep = 1;
+    private int tickStep = 1000;
     private Timer timer;
 
     /**
@@ -31,7 +31,7 @@ public class HashWheelTimer {
     /**
      * 构造函数
      * @param size 时间轮的槽数
-     * @param tickStep 每槽的步长
+     * @param tickStep 每槽的步长, 单位: 毫秒
      */
     public HashWheelTimer(int size, int tickStep){
         wheel = new HashWheel(size);
