@@ -1,8 +1,8 @@
 package org.voovan.test.tools.cache;
 
-import junit.framework.TestCase;
-import org.voovan.tools.cache.RedisMap;
 import org.voovan.tools.TObject;
+import org.voovan.tools.cache.RedisMap;
+import junit.framework.TestCase;
 
 /**
  * 类文字命名
@@ -51,6 +51,16 @@ public class RedisMapUnit extends TestCase{
 
     public void testValues(){
         assertEquals(2, redisMap.values().size());
+    }
+
+    public void testIncr(){
+        redisMap.put("incr", "12");
+        assertEquals(23, redisMap.incr("incr", 11));
+    }
+
+    public void testIncrFloat(){
+        redisMap.put("incrFloat", "12");
+        assertEquals(23.23, redisMap.incrFloat("incrFloat", 11.23));
     }
 
     public void testClear(){
