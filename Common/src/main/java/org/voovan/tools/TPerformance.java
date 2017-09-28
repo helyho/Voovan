@@ -1,6 +1,6 @@
-package org.voovan.tools;
+package com.dd.tools;
 
-import org.voovan.Global;
+import com.dd.Global;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -242,35 +242,35 @@ public class TPerformance {
 	public static Integer[] getSysMemInfo() throws IOException, InterruptedException
 	{
 		if(System.getProperty("os.name").contains("Linux")) {
-			File file = new File("/proc/meminfo");
-			BufferedReader br = new BufferedReader(new InputStreamReader(
-					new FileInputStream(file)));
-			Integer[] result = new Integer[5];
-			String str = null;
-			StringTokenizer token = null;
-			while ((str = br.readLine()) != null) {
-				token = new StringTokenizer(str);
-				if (!token.hasMoreTokens())
-					continue;
+			try(FileInputStream fileInputStream = new FileInputStream("/proc/meminfo")) {
+				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
+				Integer[] result = new Integer[5];
+				String lineStr = null;
+				StringTokenizer token = null;
+				while ((lineStr = bufferedReader.readLine()) != null) {
+					token = new StringTokenizer(lineStr);
+					if (!token.hasMoreTokens())
+						continue;
 
-				str = token.nextToken();
-				if (!token.hasMoreTokens())
-					continue;
+					String tokenStr = token.nextToken();
+					if (!token.hasMoreTokens())
+						continue;
 
-				if (str.equalsIgnoreCase("MemTotal:")) {
-					result[0] = Integer.parseInt(token.nextToken())/1024;
-				} else if (str.equalsIgnoreCase("MemFree:")) {
-					result[1] = Integer.parseInt(token.nextToken())/1024;
-				} else if (str.equalsIgnoreCase("MemAvailable:")) {
-					result[2] = Integer.parseInt(token.nextToken())/1024;
-				} else if (str.equalsIgnoreCase("SwapTotal:")) {
-					result[3] = Integer.parseInt(token.nextToken())/1024;
-				} else if (str.equalsIgnoreCase("SwapFree:")) {
-					result[4] = Integer.parseInt(token.nextToken())/1024;
+					if (tokenStr.equalsIgnoreCase("MemTotal:")) {
+						result[0] = Integer.parseInt(token.nextToken()) / 1024;
+					} else if (tokenStr.equalsIgnoreCase("MemFree:")) {
+						result[1] = Integer.parseInt(token.nextToken()) / 1024;
+					} else if (tokenStr.equalsIgnoreCase("MemAvailable:")) {
+						result[2] = Integer.parseInt(token.nextToken()) / 1024;
+					} else if (tokenStr.equalsIgnoreCase("SwapTotal:")) {
+						result[3] = Integer.parseInt(token.nextToken()) / 1024;
+					} else if (tokenStr.equalsIgnoreCase("SwapFree:")) {
+						result[4] = Integer.parseInt(token.nextToken()) / 1024;
+					}
 				}
-			}
 
-			return result;
+				return result;
+			}
 		} else {
 			return null;
 		}
@@ -286,28 +286,29 @@ public class TPerformance {
 	 */
 	public static Float getSysCpuUsage() throws IOException, InterruptedException {
 		if(System.getProperty("os.name").contains("Linux")) {
-			File file = new File("/proc/stat");
-			BufferedReader br = new BufferedReader(new InputStreamReader(
-					new FileInputStream(file)));
-			StringTokenizer token = new StringTokenizer(br.readLine());
-			token.nextToken();
-			int user1 = Integer.parseInt(token.nextToken());
-			int nice1 = Integer.parseInt(token.nextToken());
-			int sys1 = Integer.parseInt(token.nextToken());
-			int idle1 = Integer.parseInt(token.nextToken());
+			try(FileInputStream fileInputStream = new FileInputStream("/proc/stat")) {
+				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
 
-			Thread.sleep(1000);
+				StringTokenizer token = new StringTokenizer(bufferedReader.readLine());
+				token.nextToken();
+				int user1 = Integer.parseInt(token.nextToken());
+				int nice1 = Integer.parseInt(token.nextToken());
+				int sys1 = Integer.parseInt(token.nextToken());
+				int idle1 = Integer.parseInt(token.nextToken());
 
-			br = new BufferedReader(
-					new InputStreamReader(new FileInputStream(file)));
-			token = new StringTokenizer(br.readLine());
-			token.nextToken();
-			int user2 = Integer.parseInt(token.nextToken());
-			int nice2 = Integer.parseInt(token.nextToken());
-			int sys2 = Integer.parseInt(token.nextToken());
-			int idle2 = Integer.parseInt(token.nextToken());
+				Thread.sleep(1000);
 
-			return (float) ((user2 + sys2 + nice2) - (user1 + sys1 + nice1)) / (float) ((user2 + nice2 + sys2 + idle2) - (user1 + nice1 + sys1 + idle1));
+				bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));;
+
+				token = new StringTokenizer(bufferedReader.readLine());
+				token.nextToken();
+				int user2 = Integer.parseInt(token.nextToken());
+				int nice2 = Integer.parseInt(token.nextToken());
+				int sys2 = Integer.parseInt(token.nextToken());
+				int idle2 = Integer.parseInt(token.nextToken());
+
+				return (float) ((user2 + sys2 + nice2) - (user1 + sys1 + nice1)) / (float) ((user2 + nice2 + sys2 + idle2) - (user1 + nice1 + sys1 + idle1));
+			}
 		}else{
 			return null;
 		}
