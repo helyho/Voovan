@@ -97,7 +97,7 @@ public class HashWheelTimer {
                     tempTimer.cancel();
                 }
             }
-        }, 0, tickStep*1000);
+        }, 0, tickStep);
 
         return true;
     }
