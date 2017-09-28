@@ -2,8 +2,7 @@ package org.voovan.tools;
 
 import org.voovan.Global;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.math.BigDecimal;
@@ -71,7 +70,10 @@ public class TPerformance {
 	 * JVM 虚拟机的内存使用情况
 	 * @return 内存使用情况
 	 * */
-	public static double getJVMMemoryUsage(){
+	public static double getMemoryUsage(){
+		//maxMemory()这个方法返回的是java虚拟机（这个进程）能构从操作系统那里挖到的最大的内存，以字节为单位, -Xmx参数
+		//totalMemory()这个方法返回的是java虚拟机现在已经从操作系统那里挖过来的内存大小
+		//freeMemory() 当前申请到的内存有多少没有使用的空闲内存
 		Runtime runtime = Runtime.getRuntime();
 		double memoryUsage = 1-((double)runtime.freeMemory()+(runtime.maxMemory()-runtime.totalMemory()))/(double)runtime.maxMemory();
 		BigDecimal bg = new BigDecimal(memoryUsage);
@@ -134,7 +136,7 @@ public class TPerformance {
 	 * @return 虚拟机中的对象信息
 	 * @throws IOException IO 异常
 	 */
-	public static Map<String,ObjectInfo> getSysObjectInfo(long pid,String regex) throws IOException {
+	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex) throws IOException {
 		Hashtable<String,ObjectInfo> result = new Hashtable<String,ObjectInfo>();
 		InputStream processInputStream = TEnv.createSysProcess("jmap -histo "+pid).getInputStream();
 		String console = new String(TStream.readAll(processInputStream));
@@ -162,10 +164,10 @@ public class TPerformance {
 	 * @param regex 正则表达式
 	 * @return 系统对象信息的Map
 	 */
-	public static Map<String,TPerformance.ObjectInfo> getSysObjectInfo(String regex) {
+	public static Map<String,TPerformance.ObjectInfo> getJVMObjectInfo(String regex) {
 		Map<String,TPerformance.ObjectInfo> result;
 		try {
-			result = TPerformance.getSysObjectInfo(TEnv.getCurrentPID(),regex);
+			result = TPerformance.getJVMObjectInfo(TEnv.getCurrentPID(),regex);
 		} catch (IOException e) {
 			result = new Hashtable<String,TPerformance.ObjectInfo>();
 		}
@@ -230,7 +232,86 @@ public class TPerformance {
 		return jvmInfo;
 	}
 
+	/**
+	 * 获取当前系统内存使用信息
+	 * 		仅限 Linux
+	 * @return 数组单位 MB, 1: 内存总大小, 2: 空闲内存大小, 3: 可用内存大小, 4: 交换区大小, 5: 交换区空闲大小
+	 * @throws IOException  IO 异常
+	 * @throws InterruptedException 中断异常
+	 */
+	public static Integer[] getSysMemInfo() throws IOException, InterruptedException
+	{
+		if(System.getProperty("os.name").contains("Linux")) {
+			File file = new File("/proc/meminfo");
+			BufferedReader br = new BufferedReader(new InputStreamReader(
+					new FileInputStream(file)));
+			Integer[] result = new Integer[5];
+			String str = null;
+			StringTokenizer token = null;
+			while ((str = br.readLine()) != null) {
+				token = new StringTokenizer(str);
+				if (!token.hasMoreTokens())
+					continue;
 
+				str = token.nextToken();
+				if (!token.hasMoreTokens())
+					continue;
+
+				if (str.equalsIgnoreCase("MemTotal:")) {
+					result[0] = Integer.parseInt(token.nextToken())/1024;
+				} else if (str.equalsIgnoreCase("MemFree:")) {
+					result[1] = Integer.parseInt(token.nextToken())/1024;
+				} else if (str.equalsIgnoreCase("MemAvailable:")) {
+					result[2] = Integer.parseInt(token.nextToken())/1024;
+				} else if (str.equalsIgnoreCase("SwapTotal:")) {
+					result[3] = Integer.parseInt(token.nextToken())/1024;
+				} else if (str.equalsIgnoreCase("SwapFree:")) {
+					result[4] = Integer.parseInt(token.nextToken())/1024;
+				}
+			}
+
+			return result;
+		} else {
+			return null;
+		}
+	}
+
+
+	/**
+	 * 获取当前系统CPU 使用率
+	 * 		仅限 Linux
+	 * @return float efficiency
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public static Float getSysCpuUsage() throws IOException, InterruptedException {
+		if(System.getProperty("os.name").contains("Linux")) {
+			File file = new File("/proc/stat");
+			BufferedReader br = new BufferedReader(new InputStreamReader(
+					new FileInputStream(file)));
+			StringTokenizer token = new StringTokenizer(br.readLine());
+			token.nextToken();
+			int user1 = Integer.parseInt(token.nextToken());
+			int nice1 = Integer.parseInt(token.nextToken());
+			int sys1 = Integer.parseInt(token.nextToken());
+			int idle1 = Integer.parseInt(token.nextToken());
+
+			Thread.sleep(1000);
+
+			br = new BufferedReader(
+					new InputStreamReader(new FileInputStream(file)));
+			token = new StringTokenizer(br.readLine());
+			token.nextToken();
+			int user2 = Integer.parseInt(token.nextToken());
+			int nice2 = Integer.parseInt(token.nextToken());
+			int sys2 = Integer.parseInt(token.nextToken());
+			int idle2 = Integer.parseInt(token.nextToken());
+
+			return (float) ((user2 + sys2 + nice2) - (user1 + sys1 + nice1)) / (float) ((user2 + nice2 + sys2 + idle2) - (user1 + nice1 + sys1 + idle1));
+		}else{
+			return null;
+		}
+	}
 
 	/**
 	 * JVM 中对象信息
