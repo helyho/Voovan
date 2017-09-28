@@ -1,6 +1,6 @@
-package com.dd.tools;
+package org.voovan.tools;
 
-import com.dd.Global;
+import org.voovan.Global;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
