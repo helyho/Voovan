@@ -50,12 +50,18 @@ public class WebContext {
 	/**
 	 *  accessLog 的文件路径
 	 */
-	private static final String ACCESS_LOG_FILE_NAME = TFile.getContextPath()+File.separator+"logs"+File.separator+"access.log";
+	private static final String ACCESS_LOG_FILE_NAME = TFile.getContextPath()+ File.separator+"logs"+ File.separator+"access.log";
 
 	private static WebServerConfig webServerConfig = buildWebServerConfig(WEB_CONFIG);
 
+	private static final String STOP_URL = "/" + TString.generateShortUUID();
+
 	private WebContext(){
 		
+	}
+
+	public static String getStopUrl(){
+		return STOP_URL;
 	}
 															
 	/**
@@ -78,7 +84,7 @@ public class WebContext {
 	}
 
 	/**
-	 * 获取一个 WebServer 的配置对象
+     * 获取一个 WebServer 的配置对象
 	 * @param configMap 配置对象的 Map
 	 * @return WebServerConfig 对象
 	 */
@@ -98,7 +104,7 @@ public class WebContext {
 
 		//如果是相对路径则转换成绝对路
 		if(!WebContext.webServerConfig.getContextPath().startsWith(File.separator)){
-			WebContext.webServerConfig.setContextPath(System.getProperty("user.dir")+File.separator + WebContext.webServerConfig.getContextPath());
+			WebContext.webServerConfig.setContextPath(System.getProperty("user.dir")+ File.separator + WebContext.webServerConfig.getContextPath());
 		}
 		if(WebContext.webServerConfig.getContextPath().endsWith(File.separator)){
 			WebContext.webServerConfig.setContextPath(TString.removeSuffix(WebContext.webServerConfig.getContextPath()));
@@ -181,7 +187,7 @@ public class WebContext {
 	 */
 	private static String genAccessLog(HttpRequest request, HttpResponse response){
 		StringBuilder content = new StringBuilder();
-		content.append("["+TDateTime.now()+"]");
+		content.append("["+ TDateTime.now()+"]");
 		content.append(" "+TString.rightPad(request.getRemoteAddres(),15,' '));
 		content.append(" "+TString.rightPad(request.getRemotePort()+"",5,' '));
 		content.append(" "+request.protocol().getProtocol()+"/"+request.protocol().getVersion()+" "+TString.rightPad(request.protocol().getMethod(),6,' '));
@@ -225,7 +231,7 @@ public class WebContext {
 	 * @return  MIME 定义 Map
 	 */
    public static Map<String, Object> getMimeDefine() {
-		byte[] mimeDefBytes = TFile.loadResource(TEnv.classToResource(WebServer.class).replaceAll("WebServer.class","conf/mime.json"));
+	   byte[] mimeDefBytes = TFile.loadResource(TEnv.classToResource(WebServer.class).replaceAll("WebServer.class","conf/mime.json"));
 		Map<String, Object> mimeDefMap = new ConcurrentHashMap<String, Object>();
 		try {
 			Map<String, Object> systemMimeDef = (Map<String, Object>)JSONDecode.parse(new String(mimeDefBytes,"UTF-8"));

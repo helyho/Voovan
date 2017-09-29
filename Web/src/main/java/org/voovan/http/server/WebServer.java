@@ -139,7 +139,7 @@ public class WebServer {
 	}
 
 	/**
-     * 增加一个 Http 模块
+	 * 增加一个 Http 模块
 	 * @param httpModuleConfig http 模块配置对象
 	 * @return HttpModule对象
 	 */
@@ -328,13 +328,33 @@ public class WebServer {
 		initConfigedRouter();
 		initModule();
 
-
 		//运行初始化 Class
 		runInitClass(this);
 
-		Logger.simple("Process ID: "+ TEnv.getCurrentPID());
-		Logger.simple("WebServer working on: http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort()+" ...");
+		addStopServerRouter();
 
+		Logger.simple("Process ID: "+ TEnv.getCurrentPID());
+		Logger.simple("WebServer working on: \t http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort());
+		Logger.simple("WebServer stop URL: \t http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort()+WebContext.getStopUrl());
+
+	}
+
+	/**
+     * 增加一个停止路由用于停止服务
+	 */
+	public void addStopServerRouter(){
+		final WebServer innerWebServer = this;
+		get(WebContext.getStopUrl(), new HttpRouter() {
+			@Override
+			public void process(HttpRequest request, HttpResponse response) throws Exception {
+			    if(request.getRemoteAddres().equals("127.0.0.1")) {
+                    request.getSocketSession().close();
+                    innerWebServer.stop();
+                }else{
+                    request.getSocketSession().close();
+                }
+			}
+		});
 	}
 
 	/**
