@@ -61,31 +61,6 @@ public class WebServer {
 		}, 10);
 	}
 
-	private void initSocketServer(WebServerConfig config) throws IOException{
-		//[Socket] 准备 socket 监听
-		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout()*1000);
-
-		//[HTTP] 构造 SessionManage
-		sessionManager = SessionManager.newInstance(config);
-
-		//[HTTP]请求派发器创建
-		this.httpDispatcher = new HttpDispatcher(config,sessionManager);
-
-		this.webSocketDispatcher = new WebSocketDispatcher(config);
-
-		//[Socket]确认是否启用 HTTPS 支持
-		if(config.isHttps()) {
-			SSLManager sslManager = new SSLManager("TLS", false);
-			sslManager.loadCertificate(System.getProperty("user.dir") + config.getHttps().getCertificateFile(),
-					config.getHttps().getCertificatePassword(), config.getHttps().getKeyPassword());
-			aioServerSocket.setSSLManager(sslManager);
-		}
-
-		aioServerSocket.handler(new WebServerHandler(config, httpDispatcher,webSocketDispatcher));
-		aioServerSocket.filterChain().add(new WebServerFilter());
-		aioServerSocket.messageSplitter(new HttpMessageSplitter());
-	}
-
 	private void initHotSwap() {
 		//热加载
 		{
@@ -112,6 +87,31 @@ public class WebServer {
 		}
 	}
 
+	private void initSocketServer(WebServerConfig config) throws IOException{
+		//[Socket] 准备 socket 监听
+		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout()*1000);
+
+		//[HTTP] 构造 SessionManage
+		sessionManager = SessionManager.newInstance(config);
+
+		//[HTTP]请求派发器创建
+		this.httpDispatcher = new HttpDispatcher(config,sessionManager);
+
+		this.webSocketDispatcher = new WebSocketDispatcher(config);
+
+		//[Socket]确认是否启用 HTTPS 支持
+		if(config.isHttps()) {
+			SSLManager sslManager = new SSLManager("TLS", false);
+			sslManager.loadCertificate(System.getProperty("user.dir") + config.getHttps().getCertificateFile(),
+					config.getHttps().getCertificatePassword(), config.getHttps().getKeyPassword());
+			aioServerSocket.setSSLManager(sslManager);
+		}
+
+		aioServerSocket.handler(new WebServerHandler(config, httpDispatcher,webSocketDispatcher));
+		aioServerSocket.filterChain().add(new WebServerFilter());
+		aioServerSocket.messageSplitter(new HttpMessageSplitter());
+	}
+
 	/**
 	 * 将配置文件中的 Router 配置载入到 WebServer
 	 */
@@ -134,11 +134,22 @@ public class WebServer {
 	 */
 	public void initModule() {
 		for (HttpModuleConfig httpModuleConfig : config.getModuleonfigs()) {
-			HttpModule httpModule = httpModuleConfig.getHttpModuleInstance(this);
-			if(httpModule!=null){
-				httpModule.install();
-			}
+			addModule(httpModuleConfig);
 		}
+	}
+
+	/**
+     * 增加一个 Http 模块
+	 * @param httpModuleConfig http 模块配置对象
+	 * @return HttpModule对象
+	 */
+	public HttpModule addModule(HttpModuleConfig httpModuleConfig){
+		HttpModule httpModule = httpModuleConfig.getHttpModuleInstance(this);
+		if(httpModule!=null){
+			httpModule.install();
+		}
+
+		return httpModule;
 	}
 
 
@@ -341,19 +352,19 @@ public class WebServer {
 			return;
 		}
 
-		try {
-			WebServerInit webServerInit = null;
+        try {
+            WebServerInit webServerInit = null;
 
-			Class clazz = Class.forName(initClass);
-			if(TReflect.isImpByInterface(clazz, WebServerInit.class)){
-				webServerInit = (WebServerInit)TReflect.newInstance(clazz);
-				webServerInit.init(webServer);
-			}else{
-				Logger.warn("The init class " + initClass + " is not a class implement by " + WebServerInit.class.getName());
-			}
-		} catch (Exception e) {
-			Logger.error("Initialize WebServer init class error: " + e);
-		}
+            Class clazz = Class.forName(initClass);
+            if(TReflect.isImpByInterface(clazz, WebServerInit.class)){
+                webServerInit = (WebServerInit)TReflect.newInstance(clazz);
+                webServerInit.init(webServer);
+            }else{
+                Logger.warn("The init class " + initClass + " is not a class implement by " + WebServerInit.class.getName());
+            }
+        } catch (Exception e) {
+            Logger.error("Initialize WebServer init class error: " + e);
+        }
 	}
 
 	/**
@@ -556,5 +567,12 @@ public class WebServer {
 
 		//启动服务
 		webServer.serve();
+	}
+
+	/**
+	 * 停止 WebServer
+	 */
+	public void stop(){
+		aioServerSocket.close();
 	}
 }

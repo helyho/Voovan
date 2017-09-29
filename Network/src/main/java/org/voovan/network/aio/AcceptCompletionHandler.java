@@ -1,8 +1,10 @@
 package org.voovan.network.aio;
 
 import org.voovan.network.EventTrigger;
+import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
+import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 
@@ -39,9 +41,8 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 
 	@Override
 	public void failed(Throwable exc, AioServerSocket attachment) {
-		if(exc instanceof Exception){
-			//触发 onException 事件
-			EventTrigger.fireExceptionThread(null, ( Exception)exc);
+		if(!(exc instanceof AsynchronousCloseException)) {
+			Logger.error(new Exception(exc));
 		}
 	}
 

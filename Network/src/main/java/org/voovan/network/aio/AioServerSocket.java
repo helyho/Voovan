@@ -1,7 +1,6 @@
 package org.voovan.network.aio;
 
 import org.voovan.Global;
-import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
@@ -21,7 +20,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class AioServerSocket extends SocketContext{
+public class AioServerSocket extends SocketContext {
 
 	private AsynchronousServerSocketChannel serverSocketChannel;
 	private AcceptCompletionHandler acceptCompletionHandler;
@@ -144,7 +143,7 @@ public class AioServerSocket extends SocketContext{
 		if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
 			try{
 				//触发 DisConnect 事件
-				EventTrigger.fireDisconnectThread(null);
+//				EventTrigger.fireDisconnectThread(null);
 
 				//关闭 Socket 连接
 				if(serverSocketChannel.isOpen()){
