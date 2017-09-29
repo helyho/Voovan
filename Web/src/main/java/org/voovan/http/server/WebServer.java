@@ -335,7 +335,7 @@ public class WebServer {
 
 		Logger.simple("Process ID: "+ TEnv.getCurrentPID());
 		Logger.simple("WebServer working on: \t http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort());
-		Logger.simple("WebServer stop URL: \t http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort()+WebContext.getStopUrl());
+		Logger.simple("WebServer stop URL: \t http"+(config.isHttps()?"s":"")+"://127.0.0.1:"+config.getPort()+WebContext.getStopUrl());
 
 	}
 
