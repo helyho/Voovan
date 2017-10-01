@@ -122,6 +122,7 @@ public class HttpSession {
 	 */
 	public HttpSession refresh(){
 		lastTimeillis = System.currentTimeMillis();
+		needSave = true;
 		save();
 		return this;
 	}
