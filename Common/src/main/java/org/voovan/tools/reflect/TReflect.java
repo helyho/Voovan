@@ -16,10 +16,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 反射工具类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -30,12 +33,14 @@ public class TReflect {
 
 	private static Map<String, Field> fields = new HashMap<String ,Field>();
 	private static Map<String, Method> methods = new HashMap<String ,Method>();
+	private static Map<String, Constructor> constructors = new HashMap<String ,Constructor>();
 	private static Map<String, Field[]> fieldArrays = new HashMap<String ,Field[]>();
 	private static Map<String, Method[]> methodArrays = new HashMap<String ,Method[]>();
+	private static Map<String, Constructor[]> constructorArrays = new HashMap<String ,Constructor[]>();
 
 	/**
 	 * 获得类所有的Field
-	 * 
+	 *
 	 * @param clazz 类对象
 	 * @return Field数组
 	 */
@@ -61,7 +66,7 @@ public class TReflect {
 
 	/**
 	 * 查找类特定的Field
-	 * 
+	 *
 	 * @param clazz   类对象
 	 * @param fieldName field 名称
 	 * @return field 对象
@@ -73,24 +78,24 @@ public class TReflect {
 
 		String mark = clazz.getCanonicalName()+"#"+fieldName;
 
-        if(fields.containsKey(mark)){
-            return fields.get(mark);
-        }else {
-            Field field = null;
+		if(fields.containsKey(mark)){
+			return fields.get(mark);
+		}else {
+			Field field = null;
 
-            for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
-                try {
-                    field = clazz.getDeclaredField(fieldName);
-                    break;
-                }catch(ReflectiveOperationException e){
-                    field = null;
-                }
-            }
+			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+				try {
+					field = clazz.getDeclaredField(fieldName);
+					break;
+				}catch(ReflectiveOperationException e){
+					field = null;
+				}
+			}
 
-            fields.put(mark, field);
+			fields.put(mark, field);
 
-            return field;
-        }
+			return field;
+		}
 	}
 
 	/**
@@ -100,7 +105,7 @@ public class TReflect {
 	 * @param fieldName Field 名称
 	 * @return Field 对象
 	 * @throws ReflectiveOperationException 反射异常
-     */
+	 */
 	public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName)
 			throws ReflectiveOperationException{
 
@@ -176,14 +181,14 @@ public class TReflect {
 	/**
 	 * 更新对象中指定的Field的值
 	 * 		注意:对 private 等字段有效
-	 * 
+	 *
 	 * @param obj  对象
 	 * @param fieldName field 名称
 	 * @param fieldValue field 值
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static void setFieldValue(Object obj, String fieldName,
-			Object fieldValue) throws ReflectiveOperationException {
+									 Object fieldValue) throws ReflectiveOperationException {
 		Field field = findField(obj.getClass(), fieldName);
 		field.setAccessible(true);
 		field.set(obj, fieldValue);
@@ -191,7 +196,7 @@ public class TReflect {
 
 	/**
 	 * 将对象中的field和其值组装成Map 静态字段(static修饰的)不包括
-	 * 
+	 *
 	 * @param obj 对象
 	 * @return 所有 field 名称-值拼装的 Map
 	 * @throws ReflectiveOperationException 反射异常
@@ -214,7 +219,7 @@ public class TReflect {
 	/**
 	 * 查找类中的方法
 	 * @param clazz        类对象
-	 * @param name		   方法名	
+	 * @param name		   方法名
 	 * @param paramTypes   参数类型
 	 * @return			   方法对象
 	 * @throws ReflectiveOperationException 反射异常
@@ -254,7 +259,7 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Method[] findMethod(Class<?> clazz, String name,
-									int paramCount) throws ReflectiveOperationException {
+									  int paramCount) throws ReflectiveOperationException {
 		Method[] methods = null;
 
 		String mark = clazz.getCanonicalName()+"#"+name+"@"+paramCount;
@@ -277,11 +282,11 @@ public class TReflect {
 		return methods;
 	}
 
-    /**
-     * 获取类的方法集合
-     * @param clazz		类对象
-     * @return Method 对象数组
-     */
+	/**
+	 * 获取类的方法集合
+	 * @param clazz		类对象
+	 * @return Method 对象数组
+	 */
 	public static Method[] getMethods(Class<?> clazz) {
 
 		Method[] methods = null;
@@ -302,12 +307,12 @@ public class TReflect {
 		}
 		return methods;
 	}
-	
+
 	/**
 	 * 获取类的特定方法的集合
 	 * 		类中可能存在同名方法
 	 * @param clazz		类对象
-	 * @param name		方法名	
+	 * @param name		方法名
 	 * @return Method 对象数组
 	 */
 	public static Method[] getMethods(Class<?> clazz,String name) {
@@ -354,7 +359,7 @@ public class TReflect {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * 使用对象执行它的一个方法
 	 * 		对对象执行一个指定Method对象的方法
@@ -390,9 +395,9 @@ public class TReflect {
 		Method method = null;
 		Class objClass = (obj instanceof Class) ? (Class)obj : obj.getClass();
 		try {
-			 method = findMethod(objClass, name, parameterTypes);
-			 method.setAccessible(true);
-			 return (T)method.invoke(obj, args);
+			method = findMethod(objClass, name, parameterTypes);
+			method.setAccessible(true);
+			return (T)method.invoke(obj, args);
 		}catch(Exception e){
 			Exception lastExecption = e;
 
@@ -475,18 +480,42 @@ public class TReflect {
 		}
 		Class<?>[] parameterTypes = getArrayClasses(args);
 		Constructor<T> constructor = null;
+
+		String mark = clazz.getCanonicalName();
+		for(Class<?> paramType : parameterTypes){
+			mark = mark + "$" + paramType.getCanonicalName();
+		}
+
 		try {
-			if (args.length == 0) {
-				constructor = clazz.getConstructor();
-			} else {
-				constructor = clazz.getConstructor(parameterTypes);
+
+			if(constructors.containsKey(mark)){
+				constructor = constructors.get(mark);
+			}else {
+				if (args.length == 0) {
+					constructor = clazz.getConstructor();
+				} else {
+					constructor = clazz.getConstructor(parameterTypes);
+				}
+
+				constructors.put(mark, constructor);
 			}
 
 			return constructor.newInstance(args);
+
 		}catch(Exception e){
 			Exception lastExecption = e;
 			if(constructor==null) {
-				Constructor[] constructors = clazz.getConstructors();
+				Constructor[] constructors = null;
+
+				//缓存构造函数
+				mark = clazz.getCanonicalName();
+				if(constructorArrays.containsKey(mark)){
+					constructors = constructorArrays.get(mark);
+				}else {
+					constructors = clazz.getConstructors();
+					constructorArrays.put(mark, constructors);
+				}
+
 				for (Constructor similarConstructor : constructors) {
 					Class[] methodParamTypes = similarConstructor.getParameterTypes();
 					//匹配参数数量相等的方法
@@ -535,7 +564,7 @@ public class TReflect {
 		}
 
 	}
-	
+
 	/**
 	 * 构造新的对象
 	 * @param <T> 范型
@@ -558,9 +587,9 @@ public class TReflect {
 	 * @throws InstantiationException 实例化异常
 	 */
 	public static <T> T allocateInstance(Class<T> clazz) throws InstantiationException {
-		return (T)TUnsafe.getUnsafe().allocateInstance(clazz);
+		return (T) TUnsafe.getUnsafe().allocateInstance(clazz);
 	}
-	
+
 	/**
 	 * 将对象数组转换成,对象类型的数组
 	 * @param objs	对象类型数组
@@ -584,7 +613,7 @@ public class TReflect {
 
 	/**
 	 * 将Map转换成指定的对象
-	 * 
+	 *
 	 * @param type			类对象
 	 * @param mapArg		Map 对象
 	 * @param ignoreCase    匹配属性名是否不区分大小写
@@ -681,21 +710,21 @@ public class TReflect {
 			if(Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())){
 				clazz = ArrayList.class;
 			}
-            Collection listObject = (Collection)newInstance(clazz);
+			Collection listObject = (Collection)newInstance(clazz);
 
 			if(singleValue!=null){
 				if(genericType!=null){
-                    for (Object listItem : (Collection)singleValue) {
-                        Map valueOfMap = null;
-                        if (listItem instanceof Map) {
-                            valueOfMap = (Map) listItem;
-                        } else {
-                            valueOfMap = TObject.asMap("value", listItem);
-                        }
+					for (Object listItem : (Collection)singleValue) {
+						Map valueOfMap = null;
+						if (listItem instanceof Map) {
+							valueOfMap = (Map) listItem;
+						} else {
+							valueOfMap = TObject.asMap("value", listItem);
+						}
 
-                        Object item = getObjectFromMap(genericType[0], valueOfMap, ignoreCase);
-                        listObject.add(item);
-                    }
+						Object item = getObjectFromMap(genericType[0], valueOfMap, ignoreCase);
+						listObject.add(item);
+					}
 				}else{
 					listObject.addAll((Collection)singleValue);
 				}
@@ -739,17 +768,17 @@ public class TReflect {
 							//通过 JSON 将,String类型的 value转换,将 String 转换成 Collection, Map 或者 复杂类型 对象作为参数
 							if( value instanceof String &&
 									(
-										isImpByInterface(fieldType, Map.class) ||
-										isImpByInterface(fieldType, Collection.class) ||
-										!TReflect.isBasicType(fieldType)
+											isImpByInterface(fieldType, Map.class) ||
+													isImpByInterface(fieldType, Collection.class) ||
+													!TReflect.isBasicType(fieldType)
 									)
-								){
+									){
 								value = TString.toObject(value.toString(), fieldType);
 							}
 
 							//对于 目标对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
 							if (isImpByInterface(fieldType, Map.class) && value instanceof Map) {
-                                value = getObjectFromMap(fieldGenericType, (Map<String,?>)value, ignoreCase);
+								value = getObjectFromMap(fieldGenericType, (Map<String,?>)value, ignoreCase);
 							}
 							//对于 目标对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
 							else if (isImpByInterface(fieldType, Collection.class) && value instanceof Collection) {
@@ -789,7 +818,7 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Map<String, Object> getMapfromObject(Object obj) throws ReflectiveOperationException{
-		
+
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 
 		//如果是 java 标准类型
@@ -805,7 +834,7 @@ public class TReflect {
 			Collection collection = (Collection) newInstance(obj.getClass());
 			for(Object collectionItem : (Collection)obj) {
 				Map<String, Object> item = getMapfromObject(collectionItem);
-                collection.add( (item.size()==1 && item.containsKey(null)) ? item.get(null) : item);
+				collection.add( (item.size()==1 && item.containsKey(null)) ? item.get(null) : item);
 			}
 			mapResult.put(null, collection);
 		}
@@ -820,6 +849,10 @@ public class TReflect {
 				Array.set(targetArray, i, (item.size()==1 && item.containsKey(null)) ? item.get(null) : item);
 			}
 			mapResult.put(null, targetArray);
+		}
+		//对 Atom 类型的处理
+		else if (obj instanceof AtomicLong || obj instanceof AtomicInteger || obj instanceof AtomicBoolean) {
+			mapResult.put(null, TReflect.invokeMethod(obj, "get"));
 		}
 		//对 Map 类型的处理
 		else if(obj instanceof Map){
@@ -862,7 +895,7 @@ public class TReflect {
 		}
 		return mapResult;
 	}
-	
+
 	/**
 	 * 判断某个类型是否实现了某个接口
 	 * 		包括判断其父接口
@@ -887,7 +920,7 @@ public class TReflect {
 	}
 
 
-	
+
 	/**
 	 * 判断某个类型是否继承于某个类
 	 * 		包括判断其父类
@@ -972,7 +1005,7 @@ public class TReflect {
 	 * 获取类的 json 形式的描述
 	 * @param clazz  Class 类型对象
 	 * @return 类的 json 形式的描述
-     */
+	 */
 	public static String getClazzJSONModel(Class clazz){
 		StringBuilder jsonStrBuilder = new StringBuilder();
 		if(TReflect.isBasicType(clazz)){
