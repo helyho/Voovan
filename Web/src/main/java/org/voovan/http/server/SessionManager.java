@@ -166,12 +166,12 @@ public class SessionManager{
 	}
 
 	/**
-	 * 获得一个新的 Session
+	 * 获得 Session 如果没有对应的 session 则创建一个新的 Session
 	 * @param request  HTTP 请求对象
 	 * @param response  HTTP 响应对象
 	 * @return HTTP-Session对象
 	 */
-	public HttpSession newHttpSession(HttpRequest request, HttpResponse response){
+	public HttpSession getHttpSession(HttpRequest request, HttpResponse response){
 
 		HttpSession session = null;
 

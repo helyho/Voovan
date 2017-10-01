@@ -32,6 +32,9 @@ public class HttpSession {
 	@NotSerialization
 	private WebSocketSession webSocketSession;
 
+	//是否需要持久化
+	private boolean needSave;
+
 
 	/**
 	 * 构造函数
@@ -66,6 +69,8 @@ public class HttpSession {
 				}
 			}, innerSession.getMaxInactiveInterval() / 1000);
 		}
+
+		needSave = false;
 	}
 
 	/**
@@ -146,6 +151,7 @@ public class HttpSession {
 	 */
 	public void setAttribute(String name,Object value) {
 		attributes.put(name, value);
+		needSave = true;
 	}
 
 	/**
@@ -154,6 +160,7 @@ public class HttpSession {
 	 */
 	public void removeAttribute(String name) {
 		attributes.remove(name);
+		needSave = true;
 	}
 
 	/**
@@ -217,8 +224,9 @@ public class HttpSession {
 	 * 保存 Session
 	 */
 	public void save(){
-		if(sessionManager!=null) {
+		if(sessionManager!=null && needSave) {
 			sessionManager.saveSession(this);
+			needSave = false;
 		}
 	}
 }

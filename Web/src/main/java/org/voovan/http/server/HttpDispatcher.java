@@ -1,14 +1,13 @@
 package org.voovan.http.server;
 
-import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.router.MimeFileRouter;
-import org.voovan.tools.*;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.*;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -17,10 +16,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 
 /**
- * 
+ *
  * 根据 Request 请求分派到处理路由
- * 
- * 
+ *
+ *
  * GET 请求获取Request-URI所标识的资源
  * POST 在Request-URI所标识的资源后附加新的数据
  * HEAD 请求获取由Request-URI所标识的资源的响应消息报头
@@ -29,7 +28,7 @@ import java.util.regex.Matcher;
  * TRACE 请求服务器回送收到的请求信息，主要用于测试或诊断
  * CONNECT 保留将来使用
  * OPTIONS 请求查询服务器的性能，或者查询与资源相关的选项和需求
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -48,7 +47,7 @@ public class HttpDispatcher {
 
 	/**
 	 * 构造函数
-	 * 
+	 *
 	 * @param webConfig    Web 服务配置对象
 	 * @param sessionManager Session 管理器
 	 */
@@ -58,7 +57,7 @@ public class HttpDispatcher {
 		this.sessionManager = sessionManager;
 
 		//拆分首页索引文件的名称
-        indexFiles = webConfig.getIndexFiles();
+		indexFiles = webConfig.getIndexFiles();
 
 		// 初始化所有的 HTTP 请求方法
 		this.addRouteMethod("GET");
@@ -69,7 +68,7 @@ public class HttpDispatcher {
 		this.addRouteMethod("TRACE");
 		this.addRouteMethod("CONNECT");
 		this.addRouteMethod("OPTIONS");
-		
+
 		// Mime静态文件默认请求处理
 		mimeFileRouter = new MimeFileRouter(webConfig.getContextPath());
 		addRouteHandler("GET", MimeTools.getMimeTypeRegex(), mimeFileRouter);
@@ -85,12 +84,12 @@ public class HttpDispatcher {
 
 	/**
 	 * 增加新的路由方法,例如:HTTP 方法 GET、POST 等等
-	 * 
+	 *
 	 * @param method HTTP 请求方法
 	 */
 	protected void addRouteMethod(String method) {
 		if (!methodRouters.containsKey(method)) {
-		 Map<String,HttpRouter> routers = new TreeMap<String, HttpRouter>(new Comparator<String>() {
+			Map<String,HttpRouter> routers = new TreeMap<String, HttpRouter>(new Comparator<String>() {
 				@Override
 				public int compare(String o1, String o2) {
 					if(o1.length() > o2.length() && !o1.equals(o2)){
@@ -110,7 +109,7 @@ public class HttpDispatcher {
 
 	/**
 	 * 增加一个路由规则
-	 * 
+	 *
 	 * @param method          Http 请求方法
 	 * @param routeRegexPath  路径匹配正则
 	 * @param router         请求处理句柄
@@ -136,7 +135,7 @@ public class HttpDispatcher {
 
 	/**
 	 * Http 请求响应处理函数,入口函数
-	 * 
+	 *
 	 * @param request    HTTP 请求
 	 * @param response   HTTP 响应
 	 */
@@ -172,7 +171,7 @@ public class HttpDispatcher {
 	 * Http 路由处理函数
 	 * @param request    Http请求对象
 	 * @param response   Http 响应对象
-     */
+	 */
 	public void disposeRoute(HttpRequest request, HttpResponse response){
 		String requestPath 		= request.protocol().getPath();
 		String requestMethod 	= request.protocol().getMethod();
@@ -196,7 +195,7 @@ public class HttpDispatcher {
 					request.getParameters().putAll(pathVariables);
 
 					//处理路由请求
-                    router.process(request, response);
+					router.process(request, response);
 
 				} catch (Exception e) {
 					exceptionMessage(request, response, e);
@@ -218,8 +217,8 @@ public class HttpDispatcher {
 	 * 尝试用定义首页索引文件的名称
 	 * @param request   Http 请求对象
 	 * @param response  Http 响应对象
-     * @return 成功匹配到定义首页索引文件的名返回 true,否则返回 false
-     */
+	 * @return 成功匹配到定义首页索引文件的名返回 true,否则返回 false
+	 */
 	public boolean tryIndex(HttpRequest request,HttpResponse response){
 		for (String indexFile : indexFiles) {
 			String requestPath 	= request.protocol().getPath();
@@ -242,7 +241,7 @@ public class HttpDispatcher {
 	 * 将路径转换成正则表达式形式的路径
 	 * @param routePath   匹配路径参数
 	 * @return  转换后的正则匹配路径
-     */
+	 */
 	public static String routePath2RegexPath(String routePath){
 		String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
 		routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/");
@@ -272,7 +271,7 @@ public class HttpDispatcher {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * 获取路径变量,形如/:test/:name 的路径匹配的请求路径/test/var1后得到{name:var1}
 	 * @param requestPath   请求路径
@@ -307,18 +306,18 @@ public class HttpDispatcher {
 
 		return resultMap;
 	}
-	
+
 	/**
 	 * 处理 Session
 	 * @param request   HTTP 请求
 	 * @param response  HTTP 响应
 	 */
 	public void disposeSession(HttpRequest request, HttpResponse response){
-		
-        // 构建 session
-        HttpSession httpSession = sessionManager.newHttpSession(request, response);
 
-        if(httpSession!=null) {
+		// 构建 session
+		HttpSession httpSession = sessionManager.getHttpSession(request, response);
+
+		if(httpSession!=null) {
 			// 请求增加 Session
 			request.setSession(httpSession);
 		}
@@ -330,7 +329,7 @@ public class HttpDispatcher {
 	 * @param request		  请求对象
 	 * @param response		  响应对象
 	 * @return 过滤器最后的结果
-     */
+	 */
 	public Object disposeFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
 		filterConfigs.rewind();
 		Object filterResult = null;
@@ -351,7 +350,7 @@ public class HttpDispatcher {
 	 * @param request		  请求对象
 	 * @param response		  响应对象
 	 * @return 过滤器最后的结果
-     */
+	 */
 	public Object disposeInvertedFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
 		filterConfigs.rewind();
 		Object filterResult = null;
@@ -365,16 +364,16 @@ public class HttpDispatcher {
 
 		return filterResult;
 	}
-	
+
 	/**
 	 * 异常消息处理
-	 * 
+	 *
 	 * @param request  请求对象
 	 * @param response 响应对象
 	 * @param e  异常对象
 	 */
 	public void exceptionMessage(HttpRequest request, HttpResponse response, Exception e) {
-		
+
 		//获取配置文件异常定义
 		Map<String, Object> errorDefine = WebContext.getErrorDefine();
 
@@ -400,7 +399,7 @@ public class HttpDispatcher {
 		}
 		error.put("Page", "Error.html");
 		error.put("Description", stackInfo);
-		
+
 		//匹配 error 定义,如果有可用消息则会覆盖上面定义的初始内容
 		if (errorDefine.containsKey(className)) {
 			error.putAll((Map<String,Object>)errorDefine.get(className));
@@ -409,7 +408,7 @@ public class HttpDispatcher {
 			error.putAll((Map<String,Object>)errorDefine.get("Other"));
 			response.protocol().setStatus((int)error.get("StatusCode"));
 		}
-		
+
 		//消息拼装
 		String errorPageContent = WebContext.getDefaultErrorPage();
 		if(TFile.fileExists(TFile.getSystemPath("/conf/error-page/" + error.get("Page")))) {
