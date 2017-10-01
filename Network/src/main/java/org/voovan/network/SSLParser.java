@@ -6,12 +6,9 @@ import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.*;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSession;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -159,17 +156,18 @@ public class SSLParser {
 				}
 				byteBufferChannel.compact();
 
-				if(engineResult!=null &&
-						engineResult.getStatus()==Status.OK &&
-						byteBuffer.remaining() == 0){
+				if(engineResult.getStatus() == Status.CLOSED ||
+						engineResult.getStatus() == Status.BUFFER_OVERFLOW) {
+					Logger.error(new SSLHandshakeException("Handshake failed: "+engineResult.getStatus()));
 					break;
 				}
 
-				if(engineResult!=null &&
-						(engineResult.getStatus() == Status.BUFFER_OVERFLOW ||
-								engineResult.getStatus() == Status.BUFFER_UNDERFLOW ||
-								engineResult.getStatus() == Status.CLOSED)
-						){
+				if(engineResult.getStatus() == Status.BUFFER_UNDERFLOW && !session.isConnected()){
+					Logger.error(new SSLHandshakeException("Handshake failed: "+engineResult.getStatus()));
+					break;
+				}
+
+				if(engineResult.getStatus() == Status.OK) {
 					break;
 				}
 			}
