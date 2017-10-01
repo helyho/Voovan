@@ -7,12 +7,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * String 工具类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -21,7 +22,7 @@ import java.util.regex.Pattern;
  */
 public class TString {
 
-	private static Hashtable<Integer,Pattern> regexPattern = new Hashtable<Integer,Pattern>();
+	private static Map<Integer,Pattern> regexPattern = new ConcurrentHashMap<Integer,Pattern>();
 
 	/**
 	 * 单词首字母大写
@@ -49,7 +50,7 @@ public class TString {
 		}
 		return source.substring(1,source.length());
 	}
-	
+
 	/**
 	 * 移除字符串后缀
 	 * @param source 目标字符串
@@ -83,7 +84,7 @@ public class TString {
 		}
 		return sb.append(source).toString();
 	}
-	
+
 	/**
 	 * 右补齐
 	 * @param source 目标字符串
@@ -102,7 +103,7 @@ public class TString {
 		}
 		return sb.toString();
 	}
-	
+
 	/**
 	 * 判断是否是指定进制的数字字符串
 	 * @param numberString  目标字符串
@@ -122,7 +123,7 @@ public class TString {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * 判断是否是整形数
 	 * @param integerString 数字字符串
@@ -135,7 +136,7 @@ public class TString {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * 判断是否是浮点数
 	 * @param floadString  浮点数字符串
@@ -297,7 +298,7 @@ public class TString {
 			return null;
 		}
 
-        source = tokenReplace(source, TObject.arrayToMap(args));
+		source = tokenReplace(source, TObject.arrayToMap(args));
 		return source;
 	}
 
@@ -326,15 +327,15 @@ public class TString {
 
 		if(source.contains(TOKEN_PREFIX + tokenName + TOKEN_SUFFIX)) {
 			return fastReplaceAll(source, TOKEN_PREFIX_REGEX + tokenName + TOKEN_SUFFIX_REGEX,
-										tokenValue==null ? "null" : Matcher.quoteReplacement(tokenValue));
+					tokenValue==null ? "null" : Matcher.quoteReplacement(tokenValue));
 		} else if((tokenName==null || TString.isInteger(tokenName)) &&
-						source.contains( TOKEN_EMPTY )) {
+				source.contains( TOKEN_EMPTY )) {
 			return TString.replaceFirst(source, TOKEN_EMPTY, tokenValue);
 		} else {
 			return source;
 		}
 	}
-	
+
 	/**
 	 * 替换第一个标志字符串
 	 * @param source  字符串
@@ -353,7 +354,7 @@ public class TString {
 		source = source.substring(0, head)+replacement+source.substring(tail, source.length());
 		return source;
 	}
-	
+
 	/**
 	 * 替换最后一个标志字符串
 	 * @param source  字符串
@@ -371,7 +372,7 @@ public class TString {
 		source = source.substring(0, head)+replacement+source.substring(tail, source.length());
 		return source;
 	}
-	
+
 	/**
 	 * 缩进字符串
 	 * @param source			待缩进的字符串
@@ -394,7 +395,7 @@ public class TString {
 	 * 翻转字符串 输入1234 输出4321
 	 * @param source  字符串
 	 * @return 翻转后的字符串
-     */
+	 */
 	public static String reverse(String source){
 		if(source!=null){
 			char[] array = source.toCharArray();
@@ -562,6 +563,8 @@ public class TString {
 		}else if(TString.searchByRegex(value,"^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0
 				|| TString.searchByRegex(value,"^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0 ){
 			return JSON.toObject(value, type, ignoreCase);
+		}if(value.startsWith("\"") && value.endsWith("\"")){
+			return (T) value.substring(1, value.length()-1);
 		}else{
 			return (T)value;
 		}
@@ -638,13 +641,13 @@ public class TString {
 
 		int maxLineLength = -1;
 
-        for(String line : lines){
-            if(maxLineLength < line.length()){
-                maxLineLength = line.length();
-            }
-        }
+		for(String line : lines){
+			if(maxLineLength < line.length()){
+				maxLineLength = line.length();
+			}
+		}
 
-        return maxLineLength;
+		return maxLineLength;
 	}
 
 	/**
@@ -660,8 +663,8 @@ public class TString {
 
 		ArrayList<String> items = new ArrayList<String>();
 		for(int position = source.indexOf(regex);
-                position>0;
-                position = source.indexOf(regex)){
+			position>0;
+			position = source.indexOf(regex)){
 			items.add(source.substring(0, position));
 			source = source.substring(position+1, source.length());
 		}

@@ -183,8 +183,6 @@ public class SessionManager{
 			//响应增加Session 对应的 Cookie
 			response.cookies().add(cookie);
 
-			//持久化 session
-			this.saveSession(session);
 		}else{
 			Logger.warn("Create session cookie error, the request haven't an header of host.");
 		}
