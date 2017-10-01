@@ -129,9 +129,7 @@ public class SessionManager{
 	 */
 	public HttpSession getSession(Cookie cookie) {
 		if (cookie!=null && httpSessions.containsKey(cookie.getValue())) {
-			HttpSession httpSession = getSession(cookie.getValue());
-			httpSession.refresh();
-			return httpSession;
+			return getSession(cookie.getValue());
 		}
 		return null;
 	}
@@ -171,32 +169,24 @@ public class SessionManager{
 	 * @param response  HTTP 响应对象
 	 * @return HTTP-Session对象
 	 */
-	public HttpSession getHttpSession(HttpRequest request, HttpResponse response){
+	public HttpSession newSession(HttpRequest request, HttpResponse response){
 
 		HttpSession session = null;
 
-		//获取请求的 Cookie中的session标识
-		Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
-		if(sessionCookie!=null) {
-			session = getSession(sessionCookie.getValue());
-		}
+		if(request.header().get("Host") != null) {
+			session = new HttpSession(webConfig, this, request.getSocketSession());
 
-		if(session==null) {
-			if(request.header().get("Host") != null) {
-				session = new HttpSession(webConfig, this, request.getSocketSession());
-				this.saveSession(session);
+			//创建 Cookie
+			Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(),
+					session.getId(), webConfig.getSessionTimeout() * 60);
 
-				//创建 Cookie
-				Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(),
-						session.getId(), webConfig.getSessionTimeout() * 60);
+			//响应增加Session 对应的 Cookie
+			response.cookies().add(cookie);
 
-				//响应增加Session 对应的 Cookie
-				response.cookies().add(cookie);
-			}else{
-				Logger.warn("Create session cookie error, the request haven't an header of host.");
-			}
-		} else{
-			session.init(this, request.getSocketSession());
+			//持久化 session
+			this.saveSession(session);
+		}else{
+			Logger.warn("Create session cookie error, the request haven't an header of host.");
 		}
 
 		return session;

@@ -1,5 +1,6 @@
 package org.voovan.http.server;
 
+import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
@@ -314,10 +315,20 @@ public class HttpDispatcher {
 	 */
 	public void disposeSession(HttpRequest request, HttpResponse response){
 
-		// 构建 session
-		HttpSession httpSession = sessionManager.getHttpSession(request, response);
+		HttpSession httpSession = null;
+
+		//获取请求的 Cookie中的session标识
+		Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
+		if(sessionCookie!=null) {
+			httpSession = sessionManager.getSession(sessionCookie.getValue());
+		}else{
+			httpSession = sessionManager.newSession(request, response);
+		}
+
 
 		if(httpSession!=null) {
+			httpSession.init(sessionManager, request.getSocketSession());
+
 			// 请求增加 Session
 			request.setSession(httpSession);
 		}
