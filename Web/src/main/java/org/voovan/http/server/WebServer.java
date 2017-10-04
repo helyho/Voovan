@@ -298,6 +298,48 @@ public class WebServer {
 	}
 
 	/**
+	 * 构建新的 WebServer,从配置JSON中读取配置
+	 *   方便从集中配置中心加载配置
+	 * @param json  WebServer配置JSON
+	 * @return WebServer 对象
+	 */
+	public static WebServer newInstance(String json) {
+
+		try {
+			if(json!=null) {
+				return new WebServer(WebContext.buildWebServerConfig(json));
+			}else{
+				Logger.error("Create WebServer failed: WebServerConfig object is null.");
+			}
+		} catch (IOException e) {
+			Logger.error("Create WebServer failed",e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * 构建新的 WebServer,从配置文件中读取配置
+	 *   方便从集中配置中心加载配置
+	 * @param configFile  WebServer配置文件
+	 * @return WebServer 对象
+	 */
+	public static WebServer newInstance(File configFile) {
+
+		try {
+			if(configFile!=null && configFile.exists()) {
+				return new WebServer(WebContext.buildWebServerConfig(configFile));
+			}else{
+				Logger.error("Create WebServer failed: WebServerConfig object is null.");
+			}
+		} catch (IOException e) {
+			Logger.error("Create WebServer failed",e);
+		}
+
+		return null;
+	}
+
+	/**
 	 * 构建新的 WebServer,指定服务端口
 	 * @param port  HTTP 服务的端口号
 	 * @return WebServer 对象
@@ -340,19 +382,19 @@ public class WebServer {
 	}
 
 	/**
-     * 增加一个停止路由用于停止服务
+	 * 增加一个停止路由用于停止服务
 	 */
 	public void addStopServerRouter(){
 		final WebServer innerWebServer = this;
 		get(WebContext.getStopUrl(), new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
-			    if(request.getRemoteAddres().equals("127.0.0.1")) {
-                    request.getSocketSession().close();
-                    innerWebServer.stop();
-                }else{
-                    request.getSocketSession().close();
-                }
+				if(request.getRemoteAddres().equals("127.0.0.1")) {
+					request.getSocketSession().close();
+					innerWebServer.stop();
+				}else{
+					request.getSocketSession().close();
+				}
 			}
 		});
 	}
@@ -372,19 +414,19 @@ public class WebServer {
 			return;
 		}
 
-        try {
-            WebServerInit webServerInit = null;
+		try {
+			WebServerInit webServerInit = null;
 
-            Class clazz = Class.forName(initClass);
-            if(TReflect.isImpByInterface(clazz, WebServerInit.class)){
-                webServerInit = (WebServerInit)TReflect.newInstance(clazz);
-                webServerInit.init(webServer);
-            }else{
-                Logger.warn("The init class " + initClass + " is not a class implement by " + WebServerInit.class.getName());
-            }
-        } catch (Exception e) {
-            Logger.error("Initialize WebServer init class error: " + e);
-        }
+			Class clazz = Class.forName(initClass);
+			if(TReflect.isImpByInterface(clazz, WebServerInit.class)){
+				webServerInit = (WebServerInit)TReflect.newInstance(clazz);
+				webServerInit.init(webServer);
+			}else{
+				Logger.warn("The init class " + initClass + " is not a class implement by " + WebServerInit.class.getName());
+			}
+		} catch (Exception e) {
+			Logger.error("Initialize WebServer init class error: " + e);
+		}
 	}
 
 	/**
@@ -455,8 +497,9 @@ public class WebServer {
 				if(args[i].equals("--config")){
 					i++;
 					String configFilePath = TFile.getContextPath()+ File.separator + (args[i]);
-					if(new File(configFilePath).exists()) {
-						config = WebContext.buildWebServerConfig(WebContext.loadMapFromFile(args[i]));
+					File configFile = new File(configFilePath);
+					if(configFile.exists()) {
+						config = WebContext.buildWebServerConfig(configFile);
 						break;
 					}else{
 						Logger.warn("The config file: " + configFilePath + " is not exists, now use default config.");

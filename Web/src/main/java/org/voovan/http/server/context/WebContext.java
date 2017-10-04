@@ -4,11 +4,11 @@ import org.voovan.Global;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.WebServer;
-import org.voovan.tools.*;
 import org.voovan.tools.json.JSONDecode;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.log.SingleLogger;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.*;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class WebContext {
-	
+
 	private static final String VERSION = "Voovan-WebServer/v"+ Global.getVersion();
 
 	private static final String SESSION_NAME = "VOOVAN_SESSIONID";
@@ -35,17 +35,17 @@ public class WebContext {
 	/**
 	 * Web Config
 	 */
-	private static Map<String, Object> WEB_CONFIG = loadMapFromFile("/conf/web.json");
+	private static Map<String, Object> WEB_CONFIG = loadJsonFromFile(new File(TFile.getSystemPath("/conf/web.json")));
 
 	/**
 	 * MimeMap
 	 */
-	private static Map<String, Object> MIME_TYPES = loadMapFromFile("/conf/mime.json");
+	private static Map<String, Object> MIME_TYPES = loadJsonFromFile(new File(TFile.getSystemPath("/conf/mime.json")));
 
 	/**
 	 * 错误输出 Map
 	 */
-	private static Map<String, Object> ERROR_DEFINE = loadMapFromFile("/conf/error.json");
+	private static Map<String, Object> ERROR_DEFINE = loadJsonFromFile(new File(TFile.getSystemPath("/conf/error.json")));
 
 	/**
 	 *  accessLog 的文件路径
@@ -57,24 +57,24 @@ public class WebContext {
 	private static final String STOP_URL = "/" + TString.generateShortUUID();
 
 	private WebContext(){
-		
+
 	}
 
 	public static String getStopUrl(){
 		return STOP_URL;
 	}
-															
+
 	/**
 	 * 从 js 配置文件读取配置信息到 Map
-	 * @param filePath 配置文件的路径
+	 * @param configFile 配置文件的路径
 	 * @return Map 对象
 	 */
-	 public static Map<String, Object> loadMapFromFile(String filePath){
-		if(TFile.fileExists(TFile.getSystemPath(filePath))) {
+	private static Map<String, Object> loadJsonFromFile(File configFile){
+		if(configFile.exists()) {
 			String fileContent = null;
 			try {
-				fileContent = new String(TFile.loadFileFromContextPath(filePath),"UTF-8");
-				Object configObject = JSONDecode.parse(fileContent);
+				fileContent = new String(TFile.loadFile(configFile),"UTF-8");
+				Object configObject = loadJsonFromJSON(fileContent);
 				return (Map<String, Object>)configObject;
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
@@ -84,7 +84,20 @@ public class WebContext {
 	}
 
 	/**
-     * 获取一个 WebServer 的配置对象
+	 * 从 js 配置字符串读取配置信息到 Map
+	 * @param json 配置字符串
+	 * @return Map 对象
+	 */
+	private static Map<String, Object> loadJsonFromJSON(String json){
+		if(json != null) {
+			Object configObject = JSONDecode.parse(json);
+			return (Map<String, Object>)configObject;
+		}
+		return new HashMap<String,Object>();
+	}
+
+	/**
+	 * 获取一个 WebServer 的配置对象
 	 * @param configMap 配置对象的 Map
 	 * @return WebServerConfig 对象
 	 */
@@ -113,6 +126,24 @@ public class WebContext {
 		return WebContext.webServerConfig;
 	}
 
+	/**
+	 * 从一个配置文件, 获取一个 WebServer 的配置对象
+	 * @param configFile 配置文件
+	 * @return WebServerConfig 对象
+	 */
+	public static WebServerConfig buildWebServerConfig(File configFile) {
+		return buildWebServerConfig(loadJsonFromFile(configFile));
+	}
+
+	/**
+	 * 从一个配置字符串, 获取一个 WebServer 的配置对象
+	 * @param json 配置文件
+	 * @return WebServerConfig 对象
+	 */
+	public static WebServerConfig buildWebServerConfig(String json){
+		return buildWebServerConfig(loadJsonFromJSON(json));
+	}
+
 	public static void initWebServerPlugin(){
 		//初始化过滤器
 		webServerConfig.addFilterByList(getContextParameter("Filters",new ArrayList<Map<String,Object>>()));
@@ -128,14 +159,14 @@ public class WebContext {
 	/**
 	 * 获取WebServer配置对象
 	 * @return WebServer配置对象
-     */
+	 */
 	public static WebServerConfig getWebServerConfig(){
 		return webServerConfig;
 	}
 
 	/**
 	 * 显示欢迎信息
-     */
+	 */
 	public static void welcome(){
 		WebServerConfig config = WebContext.webServerConfig;
 		Logger.simple("*********************************************************************************************");
@@ -199,21 +230,21 @@ public class WebContext {
 		content.append("\r\n");
 		return content.toString();
 	}
-	
+
 	/**
 	 * 写入access.log
 	 * @param webServerConfig WebServer 配置对象
 	 * @param request HTTP 请求对象
 	 * @param response HTTP 响应对象
 	 */
-    public static void writeAccessLog(WebServerConfig webServerConfig, HttpRequest request,HttpResponse response){
+	public static void writeAccessLog(WebServerConfig webServerConfig, HttpRequest request,HttpResponse response){
 		//配置文件控制是否写入 access.log
 		//监控程序的不写出 access.log
 		if(webServerConfig.isAccessLog() && !request.protocol().getPath().contains("/VoovanMonitor/")) {
 			SingleLogger.writeLog(ACCESS_LOG_FILE_NAME, genAccessLog(request, response));
 		}
 	}
-	
+
 	/**
 	 * 取配置中的参数定义
 	 * @param <T> 范型
@@ -225,13 +256,13 @@ public class WebContext {
 	public static <T> T getContextParameter(String name, T defaultValue) {
 		return TObject.nullDefault((T) WEB_CONFIG.get(name),defaultValue);
 	}
-	
+
 	/**
 	 * 获取 mime 定义
 	 * @return  MIME 定义 Map
 	 */
-   public static Map<String, Object> getMimeDefine() {
-	   byte[] mimeDefBytes = TFile.loadResource(TEnv.classToResource(WebServer.class).replaceAll("WebServer.class","conf/mime.json"));
+	public static Map<String, Object> getMimeDefine() {
+		byte[] mimeDefBytes = TFile.loadResource(TEnv.classToResource(WebServer.class).replaceAll("WebServer.class","conf/mime.json"));
 		Map<String, Object> mimeDefMap = new ConcurrentHashMap<String, Object>();
 		try {
 			Map<String, Object> systemMimeDef = (Map<String, Object>)JSONDecode.parse(new String(mimeDefBytes,"UTF-8"));
@@ -243,12 +274,12 @@ public class WebContext {
 		mimeDefMap.putAll(MIME_TYPES);
 		return mimeDefMap;
 	}
-	
+
 	/**
 	 * 获取错误输出定义
 	 * @return  错误输出定义
 	 */
-    public static Map<String, Object> getErrorDefine() {
+	public static Map<String, Object> getErrorDefine() {
 		return ERROR_DEFINE;
 	}
 
@@ -259,7 +290,7 @@ public class WebContext {
 	public final static String getVERSION() {
 		return VERSION;
 	}
-	
+
 	/**
 	 * 获取在 Cookie 中保存 session id 的名称
 	 * @return session id 的名称
@@ -271,8 +302,8 @@ public class WebContext {
 	/**
 	 * 默认错误输出定义
 	 * @return 错误输出定义
-     */
-    public static String getDefaultErrorPage(){
+	 */
+	public static String getDefaultErrorPage(){
 		return "RequestMethod: {{RequestMethod}} <hr/>" +
 				"StatusCode: {{StatusCode}} <hr/>" +
 				"RequestPath: {{RequestPath}} <hr/>" +
