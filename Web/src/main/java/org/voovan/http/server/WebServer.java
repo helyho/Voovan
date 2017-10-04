@@ -1,6 +1,8 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
+import org.voovan.http.client.HttpClient;
+import org.voovan.http.message.Response;
 import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.server.context.HttpRouterConfig;
 import org.voovan.http.server.context.WebContext;
@@ -19,6 +21,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 
 /**
@@ -502,7 +505,25 @@ public class WebServer {
 						config = WebContext.buildWebServerConfig(configFile);
 						break;
 					}else{
-						Logger.warn("The config file: " + configFilePath + " is not exists, now use default config.");
+						Logger.warn("Use the config file: " + configFilePath + " is not exists, now use default config.");
+					}
+				}
+
+				//服务监听地址
+				if(args[i].equals("--remoteConfig")){
+					i++;
+					try {
+						URL url = new URL(args[i]);
+						HttpClient httpClient = new HttpClient(url.getProtocol()+"://"+url.getHost()+":"+url.getPort());
+						Response response = httpClient.send(url.getPath());
+						if(response.protocol().getStatus() == 200) {
+							config = WebContext.buildWebServerConfig(response.body().getBodyString());
+							break;
+						}else{
+							throw new IOException("Get the config url: \" + args[i] + \" error");
+						}
+					} catch (Exception e) {
+						Logger.error("Use the config url: " + args[i] + " error", e);
 					}
 				}
 
@@ -591,7 +612,7 @@ public class WebServer {
 					return;
 				}
 
-				if(args[i].equals("--help") || args[i].equals("-h") || args[i].equals("-?")){
+				if(args[i].equals("--help") || args[i].equals("-?")){
 					Logger.simple("Usage: java -jar voovan-framework.jar [Options]");
 					Logger.simple("");
 					Logger.simple("Start voovan webserver");
@@ -603,14 +624,15 @@ public class WebServer {
 					Logger.simple(TString.rightPad("  -r ",35,' ')+"Context root path, contain webserver static file");
 					Logger.simple(TString.rightPad("  -i ",35,' ')+"index file for client access to webserver");
 					Logger.simple(TString.rightPad("  -mri ",35,' ')+"Match route ignore case");
-					Logger.simple(TString.rightPad("  --config ",35,' ')+"Webserver config file");
+					Logger.simple(TString.rightPad("  --config ",35,' ')+" Webserver config file");
+					Logger.simple(TString.rightPad("  --remoteConfig ",35,' ')+" Remote Webserver config with a HTTP URL address");
 					Logger.simple(TString.rightPad("  --charset ",35,' ')+"set default charset");
 					Logger.simple(TString.rightPad("  --noGzip ",35,' ')+"Do not use gzip for client");
 					Logger.simple(TString.rightPad("  --noAccessLog ",35,' ')+"Do not write access log to access.log");
-					Logger.simple(TString.rightPad("  --https.CertificateFile ",35,' ')+"Certificate file for https");
-					Logger.simple(TString.rightPad("  --https.CertificatePassword ",35,' ')+"ertificate file for https");
-					Logger.simple(TString.rightPad("  --https.KeyPassword ",35,' ')+"Certificate file for https");
-					Logger.simple(TString.rightPad("  --help ",35,' ')+"how to use this command");
+					Logger.simple(TString.rightPad("  --https.CertificateFile ",35,' ')+" Certificate file for https");
+					Logger.simple(TString.rightPad("  --https.CertificatePassword ",35,' ')+" Certificate passwork for https");
+					Logger.simple(TString.rightPad("  --https.KeyPassword ",35,' ')+"Certificate key for https");
+					Logger.simple(TString.rightPad("  --help, -?",35,' ')+"how to use this command");
 					Logger.simple(TString.rightPad("  -v ",35,' ')+"Show the version information");
 					Logger.simple("");
 
