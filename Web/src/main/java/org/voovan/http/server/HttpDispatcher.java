@@ -117,7 +117,7 @@ public class HttpDispatcher {
 	 */
 	public void addRouteHandler(String method, String routeRegexPath, HttpRouter router) {
 		if (methodRouters.keySet().contains(method)) {
-			//把连续的////替换成/
+
 
 			//对于结束符为"/"的路径,清理这个符号,以便更好完成的匹配
 			if(routeRegexPath.endsWith("/")){
@@ -129,6 +129,7 @@ public class HttpDispatcher {
 				routeRegexPath = "/" + routeRegexPath;
 			}
 
+			//把连续的////替换成/
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "\\/{2,9}", "/");
 			methodRouters.get(method).put(routeRegexPath, router);
 		}
@@ -321,10 +322,11 @@ public class HttpDispatcher {
 		Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
 		if(sessionCookie!=null) {
 			httpSession = sessionManager.getSession(sessionCookie.getValue());
-		}else{
-			httpSession = sessionManager.newSession(request, response);
 		}
 
+		if(httpSession == null){
+			httpSession = sessionManager.newSession(request, response);
+		}
 
 		if(httpSession!=null) {
 			httpSession.init(sessionManager, request.getSocketSession());

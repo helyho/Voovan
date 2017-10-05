@@ -70,7 +70,7 @@ public class HttpSession {
 			}, innerSession.getMaxInactiveInterval() / 1000);
 		}
 
-		needSave = false;
+		needSave = true;
 	}
 
 	/**
