@@ -4,6 +4,7 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import javax.tools.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,10 +39,7 @@ public class DynamicCompiler {
 	}
 
 	/**
-	 * 构造函数
-	 * @param classPath classPath参数
-	 * @param extDirs   扩展目录
-	 * @param classDir  编译后的 class 存放目录
+	 * 编译器
 	 */
 	public DynamicCompiler(String classPath, String extDirs, String classDir) {
 		if(classPath!=null) {
@@ -100,9 +98,22 @@ public class DynamicCompiler {
 	public Boolean compileCode(List<String> javaFileNameList){
 		fileManager = compiler.getStandardFileManager(diagnosticCollector, null, null);
 
-
 		StandardJavaFileManager standardJavaFileManager = (StandardJavaFileManager) fileManager;
 		Iterable<? extends JavaFileObject> compilationUnits = standardJavaFileManager.getJavaFileObjectsFromStrings(javaFileNameList);
+		return basicCompileCode(compilationUnits) ;
+	}
+
+	/**
+	 * 编译多个系统中的java源文件为class文件
+	 * @param javaFileArray java文件列表
+	 * @return  是否编译成功
+	 */
+	public Boolean compileCode(File[] javaFileArray){
+		fileManager = compiler.getStandardFileManager(diagnosticCollector, null, null);
+
+
+		StandardJavaFileManager standardJavaFileManager = (StandardJavaFileManager) fileManager;
+		Iterable<? extends JavaFileObject> compilationUnits = standardJavaFileManager.getJavaFileObjects(javaFileArray);
 		return basicCompileCode(compilationUnits) ;
 	}
 
@@ -110,7 +121,7 @@ public class DynamicCompiler {
 	 * 获取编译时的诊断信息
 	 * @return 诊断信息列表
 	 */
-	private List<Diagnostic<? extends JavaFileObject>> getDiagnostics(){
+	public List<Diagnostic<? extends JavaFileObject>> getDiagnostics(){
 		return diagnosticCollector.getDiagnostics();
 	}
 
@@ -132,11 +143,6 @@ public class DynamicCompiler {
 			clazz = javaMemClass.loadThisClass();
 		}else{
 			clazz = null;
-		}
-
-
-		for(Diagnostic diagnostic : diagnosticCollector.getDiagnostics()){
-			Logger.simple(diagnostic.toString());
 		}
 
 		if(fileManager != null){
