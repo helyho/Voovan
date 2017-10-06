@@ -35,9 +35,8 @@ public class HotswapUnit extends TestCase{
             TEnv.sleep(1000);
 
             if (i == 0) {
-                DynamicCompiler dynamicCompiler = new DynamicCompiler();
-                dynamicCompiler.compileCode(TObject.asList("/Users/helyho/Work/Java/Voovan/Common/src/test/java/org/voovan/test/tools/hotswap/TestSay.java"),
-                        "/Users/helyho/Work/Java/Voovan/Common/classes");
+                DynamicCompiler dynamicCompiler = new DynamicCompiler(null, null, "/Users/helyho/Work/Java/Voovan/Common/classes");
+                dynamicCompiler.compileCode(TObject.asList("/Users/helyho/Work/Java/Voovan/Common/src/test/java/org/voovan/test/tools/hotswap/TestSay.java"));
                 TEnv.sleep(1000);
             }
         }
