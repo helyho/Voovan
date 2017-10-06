@@ -33,7 +33,7 @@ public class WebContext {
 	public static String SERVICE_URL = null;
 
 	/**
-	 * 管理手令
+	 * 管理令牌
 	 */
 
 	public static String AUTH_TOKEN = TString.generateShortUUID();
