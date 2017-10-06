@@ -61,17 +61,17 @@ public class SandboxControler {
      * @return 配置文件的文件对象
      */
     protected static File getConfigFile(){
-        File tmpFile = TFile.getResourceFile("sandbox.properties");
+        File tmpFile =  tmpFile = new File("./classes/sandbox.properties");
 
-        //如果找不日志配置文件则从classes 目录中查找
+        //如果从 classes 目录中找不到,则从 classpath 中寻找
         if(tmpFile==null || !tmpFile.exists()){
-            tmpFile = new File("./classes/sandbox.properties");
+            tmpFile = TFile.getResourceFile("sandbox.properties");
         }
 
-        if(tmpFile!=null && tmpFile.exists()){
+        if(tmpFile!=null){
             return tmpFile;
         }else{
-            Logger.warn("Sandbox Waring: Can't found log config file!");
+            Logger.warn("Sandbox Waring: Can't found sandbox config file!");
             Logger.warn("Sandbox Waring: System will be use default config, all check will be permission");
             return null;
         }
