@@ -29,7 +29,14 @@ public class TProperties {
 		try {
 			if (!propertiesCache.containsKey(file)) {
 				Properties properites = new Properties();
-				String content = new String(TFile.loadFile(file));
+				String content = null;
+				if(!file.getPath().contains("!"+File.separator)) {
+					content = new String(TFile.loadFile(file));
+				}else{
+					String filePath = file.getPath();
+					String resourcePath = filePath.substring(filePath.indexOf("!"+File.separator)+2, filePath.length());
+					content = new String(TFile.loadResource(resourcePath));
+				}
 				properites.load(new StringReader(content));
 				propertiesCache.put(file, properites);
 			}
