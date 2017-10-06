@@ -376,25 +376,72 @@ public class WebServer {
 		//运行初始化 Class
 		runInitClass(this);
 
-		addStopServerRouter();
+		addManagerRouter();
 
 		Logger.simple("Process ID: "+ TEnv.getCurrentPID());
-		Logger.simple("WebServer working on: \t http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort());
-		Logger.simple("WebServer stop URL: \t http"+(config.isHttps()?"s":"")+"://127.0.0.1:"+config.getPort()+WebContext.getStopUrl());
+		Logger.simple("WebServer working on: \t" + WebContext.SERVICE_URL);
 
 	}
 
 	/**
-	 * 增加一个停止路由用于停止服务
+	 * 增加服务管理相关的路由
 	 */
-	public void addStopServerRouter(){
+	public void addManagerRouter(){
 		final WebServer innerWebServer = this;
-		get(WebContext.getStopUrl(), new HttpRouter() {
+
+		otherMethod("ADMIN", "/status", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
-				if(request.getRemoteAddres().equals("127.0.0.1")) {
+				String authToken = request.header().get("AUTH-TOKEN");
+				String status = "RUNNING";
+				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
+					if(WebContext.PAUSE){
+						status = "PAUSE";
+					}
+					response.write(status);
+				}else{
+					request.getSocketSession().close();
+				}
+			}
+		});
+
+
+		otherMethod("ADMIN", "/shutdown", new HttpRouter() {
+			@Override
+			public void process(HttpRequest request, HttpResponse response) throws Exception {
+				String authToken = request.header().get("AUTH-TOKEN");
+				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
 					request.getSocketSession().close();
 					innerWebServer.stop();
+					Logger.info("WebServer is stoped");
+				}else{
+					request.getSocketSession().close();
+				}
+			}
+		});
+
+		otherMethod("ADMIN", "/pause", new HttpRouter() {
+			@Override
+			public void process(HttpRequest request, HttpResponse response) throws Exception {
+				String authToken = request.header().get("AUTH-TOKEN");
+				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
+					WebContext.PAUSE = true;
+					response.write("OK");
+					Logger.info("WebServer is paused");
+				}else{
+					request.getSocketSession().close();
+				}
+			}
+		});
+
+		otherMethod("ADMIN", "/unpause", new HttpRouter() {
+			@Override
+			public void process(HttpRequest request, HttpResponse response) throws Exception {
+				String authToken = request.header().get("AUTH-TOKEN");
+				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
+					WebContext.PAUSE = false;
+					response.write("OK");
+					Logger.info("WebServer is running");
 				}else{
 					request.getSocketSession().close();
 				}

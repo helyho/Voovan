@@ -38,6 +38,7 @@ public class WebServerConfig {
     private String indexFiles = "index.htm,index.html,default.htm,default.htm";
     private int hotSwapInterval = 0;
     private String initClass = null;
+    private String pauseURL = null;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
@@ -176,6 +177,14 @@ public class WebServerConfig {
 
     public void setInitClass(String initClass) {
         this.initClass = initClass;
+    }
+
+    public String getPauseURL() {
+        return pauseURL;
+    }
+
+    public void setPauseURL(String pauseURL) {
+        this.pauseURL = pauseURL;
     }
 
     public Chain<HttpFilterConfig> getFilterConfigs() {
