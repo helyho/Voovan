@@ -27,6 +27,21 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class WebContext {
+	/**
+	 * 默认的路由
+	 */
+	public static String SERVICE_URL = null;
+
+	/**
+	 * 管理手令
+	 */
+
+	public static String AUTH_TOKEN = TString.generateShortUUID();
+
+	/**
+	 * 暂停标记
+	 */
+	public static boolean PAUSE = false;
 
 	private static final String VERSION = "Voovan-WebServer/v"+ Global.getVersion();
 
@@ -54,14 +69,8 @@ public class WebContext {
 
 	private static WebServerConfig webServerConfig = buildWebServerConfig(WEB_CONFIG);
 
-	private static final String STOP_URL = "/" + TString.generateShortUUID();
-
 	private WebContext(){
 
-	}
-
-	public static String getStopUrl(){
-		return STOP_URL;
 	}
 
 	/**
@@ -123,6 +132,8 @@ public class WebContext {
 			WebContext.webServerConfig.setContextPath(TString.removeSuffix(WebContext.webServerConfig.getContextPath()));
 		}
 
+
+		WebContext.SERVICE_URL = "http"+(webServerConfig.isHttps()?"s":"")+"://"+webServerConfig.getHost()+":"+webServerConfig.getPort();
 		return WebContext.webServerConfig;
 	}
 
@@ -201,6 +212,9 @@ public class WebContext {
 			Logger.simple(TString.rightPad("  CertificatePassword:",35,' ')+config.getHttps().getCertificatePassword());
 			Logger.simple(TString.rightPad("  KeyPassword:",35,' ')+config.getHttps().getKeyPassword());
 		}
+
+		Logger.simple(TString.rightPad("  AuthToken:",35,' ')+ AUTH_TOKEN);
+
 		Logger.simple("=============================================================================================");
 		Logger.simple("  This WebServer based on VoovanFramework.");
 		Logger.simple("  Version: "+WebContext.getVERSION());

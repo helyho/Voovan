@@ -6,7 +6,6 @@ import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.websocket.WebSocketFrame;
-import org.voovan.http.websocket.WebSocketFrame.Opcode;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
@@ -22,7 +21,7 @@ import java.util.List;
 
 /**
  * WebServer Socket 事件处理类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -75,7 +74,7 @@ public class WebServerHandler implements IoHandler {
 	public static <T> void  setAttribute(IoSession session, int sessionParam, T value){
 		session.setAttribute(sessionParam, value);
 	}
-	
+
 	/**
 	 * 初始化连接保持 Timer
 	 */
@@ -97,13 +96,13 @@ public class WebServerHandler implements IoHandler {
 					}
 
 					long timeoutValue = getAttribute(session, SessionParam.KEEP_ALIVE_TIMEOUT);
-					
-					if(timeoutValue < currentTimeValue){
-                        //如果超时则结束当前连接
-                        session.close();
 
-                        keepAliveSessionList.remove(session);
-                        i--;
+					if(timeoutValue < currentTimeValue){
+						//如果超时则结束当前连接
+						session.close();
+
+						keepAliveSessionList.remove(session);
+						i--;
 					}
 				}
 			}
@@ -134,16 +133,40 @@ public class WebServerHandler implements IoHandler {
 		keepAliveSessionList.remove(session);
 	}
 
+	/**
+	 * Web 服务暂停检查
+	 * 		如果配置文件指定了 PauseURL 则转到 PauseURL 指定的URL, 否则关闭当前连接
+	 * @param session IoSession: Socket 会话对象
+	 * @param request Request: HTTP 请求对象
+	 */
+	public void checkPause(IoSession session, Request request){
+
+		if(WebContext.PAUSE && !request.protocol().getMethod().equals("ADMIN")){
+			if(webConfig.getPauseURL()!=null){
+				request.protocol().setPath(webConfig.getPauseURL());
+			}else {
+				session.close();
+			}
+		}
+	}
+
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
 		// 获取默认字符集
 		String defaultCharacterSet = webConfig.getCharacterSet();
-	
+
 		// Http 请求
 		if (obj instanceof Request) {
 			// 构造请求对象
 			Request request = (Request)obj;
-			
+
+			//检查服务是否暂停
+			checkPause(session, request);
+
+			if(!session.isConnected()){
+				return null;
+			}
+
 			// 构造响应对象
 			Response response = new Response();
 
@@ -171,12 +194,12 @@ public class WebServerHandler implements IoHandler {
 			else {
 				return disposeHttp(session, httpRequest, httpResponse);
 			}
-		} 
+		}
 		//处理 WEBSocket 报文
 		else if (obj instanceof WebSocketFrame) {
 			return disposeWebSocket(session, (WebSocketFrame)obj);
 		}
-		
+
 		// 如果协议判断失败关闭连接
 		session.close();
 		return null;
@@ -184,7 +207,7 @@ public class WebServerHandler implements IoHandler {
 
 	/**
 	 * Http 请求响应处理
-	 * 
+	 *
 	 * @param session    HTTP-Session 对象
 	 * @param httpRequest  HTTP 请求对象
 	 * @param httpResponse HTTP 响应对象
@@ -218,7 +241,7 @@ public class WebServerHandler implements IoHandler {
 	 * @return HTTP 响应对象
 	 */
 	public HttpResponse disposeUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
-		
+
 		//保存必要参数
 		setAttribute(session, SessionParam.TYPE, "Upgrade");
 		httpDispatcher.disposeSession(httpRequest, httpResponse);
@@ -234,7 +257,7 @@ public class WebServerHandler implements IoHandler {
 			String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get("Sec-WebSocket-Key"));
 			httpResponse.header().put("Sec-WebSocket-Accept", webSocketKey);
 		}
-		
+
 		else if(httpRequest.header()!=null && "h2c".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
 			httpResponse.header().put("Upgrade", "h2c");
 			//这里写 HTTP2的实现,暂时留空
@@ -244,7 +267,7 @@ public class WebServerHandler implements IoHandler {
 
 	/**
 	 * WebSocket 帧处理
-	 * 
+	 *
 	 * @param session 	HTTP-Session 对象
 	 * @param webSocketFrame WebSocket 帧对象
 	 * @return WebSocket 帧对象
@@ -260,29 +283,29 @@ public class WebServerHandler implements IoHandler {
 		}
 
 		HttpRequest reqWebSocket = getAttribute(session, SessionParam.HTTP_REQUEST);
-		
+
 		// WS_CLOSE 如果收到关闭帧则关闭连接
-		if(webSocketFrame.getOpcode() == Opcode.CLOSING) {
-			return WebSocketFrame.newInstance(true, Opcode.CLOSING, false, webSocketFrame.getFrameData());
+		if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING) {
+			return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, webSocketFrame.getFrameData());
 		}
 		// WS_PING 收到 ping 帧则返回 pong 帧
-		else if(webSocketFrame.getOpcode() == Opcode.PING) {
+		else if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.PING) {
 			return webSocketDispatcher.firePingEvent(session, reqWebSocket, webSocketFrame.getFrameData());
 		}
 		// WS_PING 收到 pong 帧则返回 ping 帧
-		else if(webSocketFrame.getOpcode() == Opcode.PONG) {
+		else if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
 			refreshTimeout(session);
 			webSocketDispatcher.firePoneEvent(session, reqWebSocket, webSocketFrame.getFrameData());
 			return null;
-		}else if(webSocketFrame.getOpcode() == Opcode.CONTINUOUS){
+		}else if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.CONTINUOUS){
 			byteBufferChannel.writeEnd(webSocketFrame.getFrameData());
 		}
 		// WS_RECIVE 文本和二进制消息出发 Recived 事件
-		else if (webSocketFrame.getOpcode() == Opcode.TEXT || webSocketFrame.getOpcode() == Opcode.BINARY) {
+		else if (webSocketFrame.getOpcode() == WebSocketFrame.Opcode.TEXT || webSocketFrame.getOpcode() == WebSocketFrame.Opcode.BINARY) {
 
 			byteBufferChannel.writeEnd(webSocketFrame.getFrameData());
 			WebSocketFrame respWebSocketFrame = null;
-			
+
 			//判断解包是否有错
 			if(webSocketFrame.getErrorCode()==0){
 				respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBufferChannel.getByteBuffer());
@@ -290,7 +313,7 @@ public class WebServerHandler implements IoHandler {
 				byteBufferChannel.clear();
 			}else{
 				//解析时出现异常,返回关闭消息
-				respWebSocketFrame = WebSocketFrame.newInstance(true, Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
+				respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
 			}
 			return respWebSocketFrame;
 		}
@@ -314,10 +337,10 @@ public class WebServerHandler implements IoHandler {
 		if(obj instanceof WebSocketFrame){
 			WebSocketFrame webSocketFrame = (WebSocketFrame)obj;
 
-			if(webSocketFrame.getOpcode() == Opcode.CLOSING){
+			if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING){
 				session.close();
-			} else if (webSocketFrame.getOpcode() != Opcode.PING &&
-					webSocketFrame.getOpcode() != Opcode.PONG) {
+			} else if (webSocketFrame.getOpcode() != WebSocketFrame.Opcode.PING &&
+					webSocketFrame.getOpcode() != WebSocketFrame.Opcode.PONG) {
 				webSocketDispatcher.fireSentEvent(session, request, webSocketFrame.getFrameData());
 			}
 		}
@@ -341,26 +364,26 @@ public class WebServerHandler implements IoHandler {
 			}
 
 			//发送 ping 消息
-			WebSocketFrame ping = WebSocketFrame.newInstance(true, Opcode.PING, false, null);
+			WebSocketFrame ping = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null);
 			session.send(ping.toByteBuffer());
 		}
 
-        //处理连接保持
-        if ( getAttribute(session, SessionParam.KEEP_ALIVE) !=null &&
+		//处理连接保持
+		if ( getAttribute(session, SessionParam.KEEP_ALIVE) !=null &&
 				(boolean)getAttribute(session, SessionParam.KEEP_ALIVE) &&
-                webConfig.getKeepAliveTimeout() > 0) {
+				webConfig.getKeepAliveTimeout() > 0) {
 
-            if (!keepAliveSessionList.contains(session)) {
-                keepAliveSessionList.add(session);
-            }
-            //更新会话超时时间
+			if (!keepAliveSessionList.contains(session)) {
+				keepAliveSessionList.add(session);
+			}
+			//更新会话超时时间
 			refreshTimeout(session);
-        } else {
-            if (keepAliveSessionList.contains(session)) {
-                keepAliveSessionList.remove(session);
-            }
-            session.close();
-        }
+		} else {
+			if (keepAliveSessionList.contains(session)) {
+				keepAliveSessionList.remove(session);
+			}
+			session.close();
+		}
 	}
 
 	@Override
