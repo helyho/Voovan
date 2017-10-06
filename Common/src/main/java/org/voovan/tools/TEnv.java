@@ -53,7 +53,7 @@ public class TEnv {
 	 * @throws IOException IO 异常
 	 */
 	public static Process createSysProcess(String command, String[] env, String workDir) throws IOException {
-		return createSysProcess(command, env, new File(workDir));
+		return createSysProcess(command, env, (workDir==null ? null :new File(workDir)) );
 	}
 
 	/**
