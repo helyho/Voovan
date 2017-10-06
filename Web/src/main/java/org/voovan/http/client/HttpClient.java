@@ -20,6 +20,7 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -39,7 +40,7 @@ import java.util.Map.Entry;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class HttpClient {
+public class HttpClient implements Closeable{
 
 	private AioSocket socket;
 	private Request request;
@@ -107,7 +108,7 @@ public class HttpClient {
 	 * 初始化函数
 	 * @param urlString     主机地址
 	 * @param timeOut  超时时间
-     */
+	 */
 	private void init(String urlString,int timeOut){
 		try {
 
@@ -119,6 +120,7 @@ public class HttpClient {
 			if(hostString.toLowerCase().startsWith("ws")){
 				hostString = "http"+hostString.substring(2,hostString.length());
 			}
+
 			if(hostString.toLowerCase().startsWith("http")){
 				URL url = new URL(hostString);
 				hostString = url.getHost();
@@ -171,23 +173,23 @@ public class HttpClient {
 	public ByteBuffer loadStream() throws IOException {
 		IoSession session = socket.getSession();
 
-			ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getBufferSize());
+		ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getBufferSize());
 
-			session.enabledMessageSpliter(false);
-			int readSize = session.read(tmpBuffer);
+		session.enabledMessageSpliter(false);
+		int readSize = session.read(tmpBuffer);
 
-            if(session.getAttribute("SocketException") instanceof Exception){
-                session.close();
-                return null;
-            }else if(readSize > 0) {
-                return tmpBuffer;
-            } else if(readSize == 0){
-				tmpBuffer.flip();
-			}else if(readSize == -1){
-				return null;
-			}
-
+		if(session.getAttribute("SocketException") instanceof Exception){
+			session.close();
+			return null;
+		}else if(readSize > 0) {
 			return tmpBuffer;
+		} else if(readSize == 0){
+			tmpBuffer.flip();
+		}else if(readSize == -1){
+			return null;
+		}
+
+		return tmpBuffer;
 	}
 
 	/**
@@ -329,7 +331,7 @@ public class HttpClient {
 	 *  @param charset 参数的字符集
 	 * @return 请求字符串
 	 */
-	 public static String buildQueryString(Map<String,Object> parameters,String charset){
+	public static String buildQueryString(Map<String,Object> parameters,String charset){
 		String queryString = "";
 		StringBuilder queryStringBuilder = new StringBuilder();
 		try {
@@ -340,7 +342,7 @@ public class HttpClient {
 				queryStringBuilder.append("&");
 			}
 			queryString = queryStringBuilder.toString();
-			queryString = queryStringBuilder.length()>0?TString.removeSuffix(queryString):queryString;
+			queryString = queryStringBuilder.length()>0? TString.removeSuffix(queryString):queryString;
 		} catch (IOException e) {
 			Logger.error("HttpClient getQueryString error",e);
 		}
@@ -459,8 +461,8 @@ public class HttpClient {
 	/**
 	 * 请求完成
 	 * @param response 请求对象
-     */
-	 private void finished(Request request, Response response){
+	 */
+	private void finished(Request request, Response response){
 		//传递 cookie 到 Request 对象
 		if(response!=null
 				&& response.cookies()!=null
@@ -468,11 +470,11 @@ public class HttpClient {
 			request.cookies().addAll(response.cookies());
 		}
 
-		 try {
-			 request.body().changeToBytes(new byte[0]);
-		 } catch (IOException e) {
-			 request.body();
-		 }
+		try {
+			request.body().changeToBytes(new byte[0]);
+		} catch (IOException e) {
+			request.body();
+		}
 
 		//清理请求对象,以便下次请求使用
 		parameters.clear();
@@ -503,7 +505,7 @@ public class HttpClient {
 		IoSession session = socket.getSession();
 		session.removeAttribute(WebServerHandler.SessionParam.TYPE);
 
-        request.header().put("Connection","Upgrade");
+		request.header().put("Connection","Upgrade");
 		request.header().put("Upgrade", "websocket");
 		request.header().put("Pragma","no-cache");
 		request.header().put("Origin", this.urlString);
@@ -579,6 +581,7 @@ public class HttpClient {
 	/**
 	 * 关闭 HTTP 连接
 	 */
+	@Override
 	public void close(){
 		socket.close();
 	}
