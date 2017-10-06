@@ -447,6 +447,24 @@ public class WebServer {
 				}
 			}
 		});
+
+
+		otherMethod("ADMIN", "/authtoken", new HttpRouter() {
+			@Override
+			public void process(HttpRequest request, HttpResponse response) throws Exception {
+				String authToken = request.header().get("AUTH-TOKEN");
+				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
+					if(!request.body().getBodyString().isEmpty()){
+						WebContext.AUTH_TOKEN = request.body().getBodyString();
+						response.write("OK");
+					}else {
+						response.write("NOTHING");
+					}
+				}else{
+					request.getSocketSession().close();
+				}
+			}
+		});
 	}
 
 	/**
