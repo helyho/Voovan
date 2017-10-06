@@ -455,7 +455,6 @@ public class WebServer {
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 				String authToken = request.header().get("AUTH-TOKEN");
 				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
-					WebContext.PAUSE = false;
 					response.write(Long.valueOf(TEnv.getCurrentPID()).toString());
 				}else{
 					request.getSocketSession().close();
