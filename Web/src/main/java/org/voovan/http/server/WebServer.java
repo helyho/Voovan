@@ -378,6 +378,8 @@ public class WebServer {
 
 		addManagerRouter();
 
+
+
 		Logger.simple("Process ID: "+ TEnv.getCurrentPID());
 		Logger.simple("WebServer working on: \t" + WebContext.SERVICE_URL);
 
@@ -448,20 +450,38 @@ public class WebServer {
 			}
 		});
 
+		otherMethod("ADMIN", "/pid", new HttpRouter() {
+			@Override
+			public void process(HttpRequest request, HttpResponse response) throws Exception {
+				String authToken = request.header().get("AUTH-TOKEN");
+				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
+					WebContext.PAUSE = false;
+					response.write(Long.valueOf(TEnv.getCurrentPID()).toString());
+				}else{
+					request.getSocketSession().close();
+				}
+			}
+		});
 
 		otherMethod("ADMIN", "/authtoken", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 				String authToken = request.header().get("AUTH-TOKEN");
-				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
+				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
 					if(!request.body().getBodyString().isEmpty()){
 						WebContext.AUTH_TOKEN = request.body().getBodyString();
 						response.write("OK");
-					}else {
+					} else {
 						response.write("NOTHING");
 					}
 				}else{
-					request.getSocketSession().close();
+					//如果是本机登录,则返回AUTH_TOKEN
+					if(request.getRemoteAddres().equals("127.0.0.1")){
+						response.write(WebContext.AUTH_TOKEN);
+					}else {
+						request.getSocketSession().close();
+					}
+
 				}
 			}
 		});
