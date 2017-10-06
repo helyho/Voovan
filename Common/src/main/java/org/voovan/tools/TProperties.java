@@ -2,15 +2,13 @@ package org.voovan.tools;
 
 import org.voovan.tools.log.Logger;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Properties;
 
 /**
  * properties文件操作类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -23,13 +21,11 @@ public class TProperties {
 
 	/**
 	 * 解析 Properties 文件
-	 * 
+	 *
 	 * @param file 文件对象
 	 * @return Properties 对象
 	 */
 	public static Properties getProperties(File file) {
-		
-
 		try {
 			if (!propertiesCache.containsKey(file)) {
 				Properties properites = new Properties();
@@ -37,9 +33,9 @@ public class TProperties {
 				properites.load(new StringReader(content));
 				propertiesCache.put(file, properites);
 			}
-			
+
 			return propertiesCache.get(file);
-			
+
 		} catch (IOException e) {
 			Logger.error("Get properites file fialed. File:"+file.getAbsolutePath(),e);
 			return null;
@@ -48,14 +44,14 @@ public class TProperties {
 
 	/**
 	 * 从Properties文件读取字符串
-	 * 
+	 *
 	 * @param file 文件对象
 	 * @param name 属性名
 	 * @return 属性值
 	 */
 	public static String getString(File file, String name) {
 		Properties properites = getProperties(file);
-		return TObject.nullDefault(properites.getProperty(name), null);
+		return properites.getProperty(name);
 	}
 
 	/**
@@ -67,7 +63,7 @@ public class TProperties {
 	 */
 	public static int getInt(File file, String name) {
 		String value = getString(file, name);
-		return TObject.nullDefault(Integer.valueOf(value), 0);
+		return Integer.valueOf(value==null?"0":value.trim());
 	}
 
 	/**
@@ -79,7 +75,7 @@ public class TProperties {
 	 */
 	public static float getFloat(File file, String name) {
 		String value = getString(file, name);
-		return TObject.nullDefault(Float.valueOf(value.trim()), 0).floatValue();
+		return Float.valueOf(value==null?"0":value.trim());
 	}
 
 	/**
@@ -91,13 +87,26 @@ public class TProperties {
 	 */
 	public static double getDouble(File file, String name) {
 		String value = getString(file, name);
-		return TObject.nullDefault(Double.valueOf(value.trim()), 0).doubleValue();
+		return Double.valueOf(value==null?"0":value.trim());
+	}
+
+	/**
+	 * 保存信息到 Properties文件
+	 *
+	 * @param file 文件对象
+	 * @param name 属性名
+	 * @param name 属性值
+	 */
+	public static void setString(File file, String name, String value) throws IOException {
+		Properties properites = getProperties(file);
+		properites.setProperty(name, value);
+		properites.store(new FileOutputStream(file), null);
 	}
 
 	/**
 	 * 清空 Properites 缓存
 	 */
 	public void clear(){
-		 propertiesCache.clear();
+		propertiesCache.clear();
 	}
 }

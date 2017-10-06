@@ -70,7 +70,7 @@ public class TPerformance {
 	 * JVM 虚拟机的内存使用情况
 	 * @return 内存使用情况
 	 * */
-	public static double getMemoryUsage(){
+	public static double getJvmMemoryUsage(){
 		//maxMemory()这个方法返回的是java虚拟机（这个进程）能构从操作系统那里挖到的最大的内存，以字节为单位, -Xmx参数
 		//totalMemory()这个方法返回的是java虚拟机现在已经从操作系统那里挖过来的内存大小
 		//freeMemory() 当前申请到的内存有多少没有使用的空闲内存
@@ -86,7 +86,7 @@ public class TPerformance {
 	 * @param memType 获取的信息类型
 	 * @return 当前内存数值
 	 */
-	public static long getMemoryInfo(MEMTYPE memType){
+	public static long getJvmMemoryInfo(MEMTYPE memType){
 		if(memType==MEMTYPE.NOHEAP_INIT){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getInit();
 		} else if(memType==MEMTYPE.NOHEAP_MAX){
@@ -112,17 +112,17 @@ public class TPerformance {
 	 * 获取当前内存信息
 	 * @return  内存信息描述对象
 	 */
-	public static MemoryInfo getMemoryInfo(){
+	public static MemoryInfo getJvmMemoryInfo(){
 		MemoryInfo memoryInfo = new MemoryInfo();
-		memoryInfo.setHeapInit(getMemoryInfo(MEMTYPE.HEAP_INIT));
-		memoryInfo.setHeapUsage(getMemoryInfo(MEMTYPE.HEAP_USAGE));
-		memoryInfo.setHeapCommit(getMemoryInfo(MEMTYPE.HEAP_COMMIT));
-		memoryInfo.setHeapMax(getMemoryInfo(MEMTYPE.HEAP_MAX));
+		memoryInfo.setHeapInit(getJvmMemoryInfo(MEMTYPE.HEAP_INIT));
+		memoryInfo.setHeapUsage(getJvmMemoryInfo(MEMTYPE.HEAP_USAGE));
+		memoryInfo.setHeapCommit(getJvmMemoryInfo(MEMTYPE.HEAP_COMMIT));
+		memoryInfo.setHeapMax(getJvmMemoryInfo(MEMTYPE.HEAP_MAX));
 
-		memoryInfo.setNoHeapInit(getMemoryInfo(MEMTYPE.NOHEAP_INIT));
-		memoryInfo.setNoHeapUsage(getMemoryInfo(MEMTYPE.NOHEAP_USAGE));
-		memoryInfo.setNoHeapCommit(getMemoryInfo(MEMTYPE.NOHEAP_COMMIT));
-		memoryInfo.setNoHeapMax(getMemoryInfo(MEMTYPE.NOHEAP_MAX));
+		memoryInfo.setNoHeapInit(getJvmMemoryInfo(MEMTYPE.NOHEAP_INIT));
+		memoryInfo.setNoHeapUsage(getJvmMemoryInfo(MEMTYPE.NOHEAP_USAGE));
+		memoryInfo.setNoHeapCommit(getJvmMemoryInfo(MEMTYPE.NOHEAP_COMMIT));
+		memoryInfo.setNoHeapMax(getJvmMemoryInfo(MEMTYPE.NOHEAP_MAX));
 		memoryInfo.setFree(Runtime.getRuntime().freeMemory());
 		memoryInfo.setTotal(Runtime.getRuntime().totalMemory());
 		memoryInfo.setMax(Runtime.getRuntime().maxMemory());
@@ -239,12 +239,12 @@ public class TPerformance {
 	 * @throws IOException  IO 异常
 	 * @throws InterruptedException 中断异常
 	 */
-	public static Integer[] getSysMemInfo() throws IOException, InterruptedException
+	public static Map<String, Integer> getSysMemInfo() throws IOException, InterruptedException
 	{
 		if(System.getProperty("os.name").contains("Linux")) {
 			try(FileInputStream fileInputStream = new FileInputStream("/proc/meminfo")) {
 				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
-				Integer[] result = new Integer[5];
+				Map<String, Integer> result = new HashMap<String, Integer>();
 				String lineStr = null;
 				StringTokenizer token = null;
 				while ((lineStr = bufferedReader.readLine()) != null) {
@@ -257,15 +257,15 @@ public class TPerformance {
 						continue;
 
 					if (tokenStr.equalsIgnoreCase("MemTotal:")) {
-						result[0] = Integer.parseInt(token.nextToken()) / 1024;
+						result.put("MemTotal", Integer.parseInt(token.nextToken()) / 1024);
 					} else if (tokenStr.equalsIgnoreCase("MemFree:")) {
-						result[1] = Integer.parseInt(token.nextToken()) / 1024;
+						result.put("MemFree", Integer.parseInt(token.nextToken()) / 1024);
 					} else if (tokenStr.equalsIgnoreCase("MemAvailable:")) {
-						result[2] = Integer.parseInt(token.nextToken()) / 1024;
+						result.put("MemAvailable", Integer.parseInt(token.nextToken()) / 1024);
 					} else if (tokenStr.equalsIgnoreCase("SwapTotal:")) {
-						result[3] = Integer.parseInt(token.nextToken()) / 1024;
+						result.put("SwapTotal", Integer.parseInt(token.nextToken()) / 1024);
 					} else if (tokenStr.equalsIgnoreCase("SwapFree:")) {
-						result[4] = Integer.parseInt(token.nextToken()) / 1024;
+						result.put("SwapFree", Integer.parseInt(token.nextToken()) / 1024);
 					}
 				}
 
