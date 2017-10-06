@@ -138,7 +138,7 @@ public class TPerformance {
 	 */
 	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex) throws IOException {
 		Hashtable<String,ObjectInfo> result = new Hashtable<String,ObjectInfo>();
-		InputStream processInputStream = TEnv.createSysProcess("jmap -histo "+pid).getInputStream();
+		InputStream processInputStream = TEnv.createSysProcess("jmap -histo "+pid, null, (File)null).getInputStream();
 		String console = new String(TStream.readAll(processInputStream));
 		String[] consoleLines = console.split(System.lineSeparator());
 		for(int lineCount = 3;lineCount<consoleLines.length;lineCount++){
@@ -241,7 +241,7 @@ public class TPerformance {
 	 */
 	public static Map<String, Integer> getSysMemInfo() throws IOException, InterruptedException
 	{
-		if(System.getProperty("os.name").contains("Linux")) {
+		if(System.getProperty("os.name").toLowerCase().contains("linux")) {
 			try(FileInputStream fileInputStream = new FileInputStream("/proc/meminfo")) {
 				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
 				Map<String, Integer> result = new HashMap<String, Integer>();
@@ -285,7 +285,7 @@ public class TPerformance {
 	 * @throws InterruptedException
 	 */
 	public static Float getSysCpuUsage() throws IOException, InterruptedException {
-		if(System.getProperty("os.name").contains("Linux")) {
+		if(System.getProperty("os.name").toLowerCase().contains("linux")) {
 			try(FileInputStream fileInputStream = new FileInputStream("/proc/stat")) {
 				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
 
