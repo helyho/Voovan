@@ -1,9 +1,11 @@
 package org.voovan.tools.compiler;
 
+import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import javax.tools.*;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,11 +19,11 @@ import java.util.List;
  */
 public class DynamicCompiler {
 	private static DynamicClassLoader classLoader =
-							new DynamicClassLoader(DynamicCompiler.class.getClassLoader());
+			new DynamicClassLoader(DynamicCompiler.class.getClassLoader());
 
 	private JavaCompiler compiler = null ;
 	private JavaFileManager fileManager = null ;
-	private Iterable<String> options = null ;
+	private List<String> options = new ArrayList<String>();
 	private DiagnosticCollector<JavaFileObject> diagnosticCollector;
 	private Class clazz = null;
 
@@ -30,6 +32,30 @@ public class DynamicCompiler {
 	 * 编译器
 	 */
 	public DynamicCompiler() {
+		this.compiler = this.getComplier();
+		//保存编译的诊断信息
+		diagnosticCollector = new DiagnosticCollector<JavaFileObject>();
+	}
+
+	/**
+	 * 构造函数
+	 * @param classPath classPath参数
+	 * @param extDirs   扩展目录
+	 * @param classDir  编译后的 class 存放目录
+	 */
+	public DynamicCompiler(String classPath, String extDirs, String classDir) {
+		if(classPath!=null) {
+			options.addAll((List<String>)TObject.asList("-classpath", classPath));
+		}
+
+		if(classDir!=null) {
+			options.addAll((List<String>)TObject.asList("-d", classDir));
+		}
+
+		if(extDirs!=null) {
+			options.addAll((List<String>)TObject.asList("-extdirs", extDirs));
+		}
+
 		this.compiler = this.getComplier();
 		//保存编译的诊断信息
 		diagnosticCollector = new DiagnosticCollector<JavaFileObject>();
@@ -49,7 +75,7 @@ public class DynamicCompiler {
 	 * @return 获取 java 编译对象
 	 */
 	private JavaCompiler getComplier(){
-		return ToolProvider.getSystemJavaCompiler(); 
+		return ToolProvider.getSystemJavaCompiler();
 	}
 
 	/**
@@ -60,7 +86,7 @@ public class DynamicCompiler {
 	public Boolean compileCode(String javaSourceCode){
 		String className = getClassNameFromCode(javaSourceCode);
 		fileManager = new MemFileManager(compiler.getStandardFileManager(diagnosticCollector, null, null),
-											classLoader);
+				classLoader);
 		JavaFileObject file = new JavaMemSource(className, javaSourceCode);
 		Iterable<? extends JavaFileObject> compilationUnits = Arrays.asList(file) ;
 		return basicCompileCode(compilationUnits);
@@ -69,40 +95,15 @@ public class DynamicCompiler {
 	/**
 	 * 编译多个系统中的java源文件为class文件
 	 * @param javaFileNameList java文件名列表
-	 * @param classDir			类文件夹
 	 * @return  是否编译成功
 	 */
-	public Boolean compileCode(List<String> javaFileNameList,String classDir){
+	public Boolean compileCode(List<String> javaFileNameList){
 		fileManager = compiler.getStandardFileManager(diagnosticCollector, null, null);
+
+
 		StandardJavaFileManager standardJavaFileManager = (StandardJavaFileManager) fileManager;
 		Iterable<? extends JavaFileObject> compilationUnits = standardJavaFileManager.getJavaFileObjectsFromStrings(javaFileNameList);
-		options = Arrays.asList("-d", classDir); 
 		return basicCompileCode(compilationUnits) ;
-	}
-	
-	/**
-	 * 编译内存中的java源码为目标class文件
-	 * @param classDir 生成的class文件所在的目录
-	 * @param javaSourceCode 需要的java源码字符串
-	 * @return 是否编译成功
-	 */
-	public Boolean compileCode(String classDir,String javaSourceCode){
-		options = Arrays.asList("-d", classDir); 
-		fileManager = compiler.getStandardFileManager(diagnosticCollector, null, null);
-		return compileCode(javaSourceCode) ;
-	}
-	
-	/**
-	 * 编译内存中的java源码为目标class文件
-	 * @param classPath 需要引入的classpath字符串
-	 * @param classDir 生成的class文件所在的目录
-	 * @param javaSourceCode 需要的java源码字符串
-	 * @return 是否编译成功
-	 */
-	public Boolean compileCode(String classPath,String classDir,String javaSourceCode){
-		options = Arrays.asList("-classpath",classPath,"-d", classDir); 
-		fileManager = compiler.getStandardFileManager(diagnosticCollector, null, null);
-		return compileCode(javaSourceCode) ;
 	}
 
 	/**
@@ -121,9 +122,9 @@ public class DynamicCompiler {
 	private Boolean basicCompileCode(Iterable<? extends JavaFileObject> compilationUnits){
 
 		JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticCollector,
-																	options, null, compilationUnits);
-		Boolean success = task.call(); 
-		
+				options, null, compilationUnits);
+		Boolean success = task.call();
+
 		//对在内存中编译的进行特殊处理
 		if(success && fileManager instanceof MemFileManager){
 			MemFileManager memFileManager = (MemFileManager)fileManager;
@@ -137,7 +138,7 @@ public class DynamicCompiler {
 		for(Diagnostic diagnostic : diagnosticCollector.getDiagnostics()){
 			Logger.simple(diagnostic.toString());
 		}
-		
+
 		if(fileManager != null){
 			try {
 				fileManager.close() ;
@@ -157,7 +158,7 @@ public class DynamicCompiler {
 	public static Class getClassByName(String className) throws ClassNotFoundException {
 		return DynamicCompiler.classLoader.loadClass(className);
 	}
-	
+
 	/**
 	 * 从源代码中获取类名称
 	 * @param javaSourceCode java 源代码
