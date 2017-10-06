@@ -15,7 +15,7 @@ import java.util.jar.JarFile;
 
 /**
  * 系统环境相关
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -27,7 +27,7 @@ public class TEnv {
 	/**
 	 * 获取当前进程 PID
 	 * @return 当前进程 ID
-     */
+	 */
 	public static long getCurrentPID(){
 		return Long.parseLong(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
 	}
@@ -37,15 +37,28 @@ public class TEnv {
 	 * @param command 命令行
 	 * @return 控制台输出
 	 * @throws IOException IO 异常
-     */
-	public static Process createSysProcess(String command) throws IOException {
+	 */
+	public static Process createSysProcess(String command, String[] env, File workDir) throws IOException {
 		Runtime runTime  = Runtime.getRuntime();
-		return runTime.exec(command);
+		if(workDir==null || workDir.exists()) {
+			return runTime.exec(command, env, workDir);
+		}
+		return null;
+	}
+
+	/**
+	 * 构造一个系统进程
+	 * @param command 命令行
+	 * @return 控制台输出
+	 * @throws IOException IO 异常
+	 */
+	public static Process createSysProcess(String command, String[] env, String workDir) throws IOException {
+		return createSysProcess(command, env, new File(workDir));
 	}
 
 	/**
 	 * 休眠函数
-	 * 
+	 *
 	 * @param sleepTime 休眠时间
 	 */
 	public static void sleep(int sleepTime) {
@@ -59,14 +72,14 @@ public class TEnv {
 
 	/**
 	 * 获取当前栈信息
-	 * 
+	 *
 	 * @return 当前栈信息
 	 */
 	public static StackTraceElement[] getStackElements() {
 		Throwable ex = new Throwable();
 		return ex.getStackTrace();
 	}
-	
+
 	/**
 	 * 获取当前栈信息
 	 * 		会自动过滤掉栈里的第一行,即当前类的信息
@@ -86,7 +99,7 @@ public class TEnv {
 		}
 		return stackInfo.toString();
 	}
-	
+
 	/**
 	 * 获取当前栈信息
 	 * @param stackTraceElements 栈信息对象数组
@@ -98,7 +111,7 @@ public class TEnv {
 			stackInfo.append(stackTraceElement.toString());
 			stackInfo.append("\r\n");
 		}
-		
+
 		return stackInfo.toString().trim();
 	}
 
@@ -137,7 +150,7 @@ public class TEnv {
 		Thread mainThread = getMainThread();
 		//如果主线程结束,则线程池也关闭
 		if(mainThread!=null && mainThread.getState() == Thread.State.TERMINATED) {
-		    return true;
+			return true;
 		}
 
 		//如果主线程没有的,则线程池也关闭
@@ -197,7 +210,7 @@ public class TEnv {
 					TReflect.invokeMethod(urlClassLoader, "addURL", file.toURI().toURL());
 				}
 			}else if(file.getPath().toLowerCase().endsWith(".jar")){
-                TReflect.invokeMethod(urlClassLoader, "addURL", file.toURI().toURL());
+				TReflect.invokeMethod(urlClassLoader, "addURL", file.toURI().toURL());
 			}
 		} catch (IOException | ReflectiveOperationException e) {
 			Logger.error("Load jar or class failed",e);
@@ -257,7 +270,7 @@ public class TEnv {
 		List<File> files = TFile.scanFile(rootfile, pattern);
 		for(File file : files){
 			String fileName = file.getCanonicalPath();
-			if(TFile.getFileExtension(fileName).equals("class")) {
+			if("class".equals(TFile.getFileExtension(fileName))) {
 				//如果是内部类则跳过
 				if(TString.regexMatch(fileName,"\\$\\d\\.class")>0){
 					continue;
@@ -292,7 +305,7 @@ public class TEnv {
 		List<JarEntry> jarEntrys = TFile.scanJar(jarFile, pattern);
 		for(JarEntry jarEntry : jarEntrys){
 			String fileName = jarEntry.getName();
-			if(TFile.getFileExtension(fileName).equals("class")) {
+			if("class".equals(TFile.getFileExtension(fileName))) {
 				//如果是内部类则跳过
 				if (TString.regexMatch(fileName, "\\$\\d\\.class") > 0) {
 					continue;
@@ -403,5 +416,13 @@ public class TEnv {
 		}catch (Exception ex) {
 			throw new ClassNotFoundException("load and define class "+className+" failed");
 		}
+	}
+
+	/**
+	 * 返回当前 jvm 的 JAVA_HOME 参数
+	 * @return
+	 */
+	public static String getJavaHome(){
+		return System.getProperty("sun.boot.library.path").replace("/jre/lib", "");
 	}
 }
