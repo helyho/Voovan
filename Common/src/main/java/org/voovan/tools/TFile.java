@@ -13,7 +13,7 @@ import java.util.jar.JarFile;
 
 /**
  * 文件操作工具类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -26,11 +26,14 @@ public class TFile {
 	 * 判断文件是否存在
 	 * @param fullPath 文件完整路径
 	 * @return 文件是否存在
-     */
+	 */
 	public static boolean fileExists(String fullPath){
+		if(fullPath.contains("!")){
+			fullPath = fullPath.substring(0, fullPath.indexOf("!"));
+		}
 		return new File(fullPath).exists();
 	}
-	
+
 	/**
 	 * 路径拼装
 	 * @param pathParts 每个由路劲分割符分割的路径字符串
@@ -44,10 +47,10 @@ public class TFile {
 				result.append(File.separator);
 			}
 		}
-		
+
 		return TString.removeSuffix(result.toString());
 	}
-	
+
 	/**
 	 * 获取文件大小
 	 * @param file 文件对象
@@ -65,12 +68,12 @@ public class TFile {
 		}finally {
 			randomAccessFile.close();
 		}
-		
+
 	}
-	
+
 	/**
 	 * 从系统路径读取文件内容
-	 * 
+	 *
 	 * @param filePath 文件路径
 	 * @return 文件内容
 	 */
@@ -82,7 +85,7 @@ public class TFile {
 
 	/**
 	 * 从系统路径读取文件内容
-	 * 
+	 *
 	 * @param filePath 文件路径
 	 * @param beginPos 起始位置
 	 * @param endPos   结束位置
@@ -96,7 +99,7 @@ public class TFile {
 
 	/**
 	 * 从应用的工作根目录为根的相对路径读取文件内容
-	 * 
+	 *
 	 * @param filePath 文件路径
 	 * @param beginPos
 	 *            起始位置
@@ -112,7 +115,7 @@ public class TFile {
 
 	/**
 	 * 获取应用的工作根目录为根的相对路径
-	 * 
+	 *
 	 * @param filePath 文件路径
 	 * @return 文件内容
 	 */
@@ -165,7 +168,7 @@ public class TFile {
 
 	/**
 	 * 读取 File 对象所代表的文件的内容
-	 * 
+	 *
 	 * @param file 文件对象
 	 * @return 文件内容
 	 */
@@ -175,7 +178,7 @@ public class TFile {
 
 	/**
 	 * 读取 File 对象所代表的文件的内容
-	 * 
+	 *
 	 * @param file
 	 *            文件对象
 	 * @param beginPos
@@ -232,9 +235,9 @@ public class TFile {
 	 * 读取文件最后几行记录
 	 * @param file  文件对象
 	 * @param lastLineNum 最后几行的行数
-     * @return 文件内容
+	 * @return 文件内容
 	 * @throws IOException IO 异常
-     */
+	 */
 	public static byte[] loadFileLastLines(File file, int lastLineNum) throws IOException {
 
 		RandomAccessFile randomAccessFile = null;
@@ -245,7 +248,7 @@ public class TFile {
 			int rowCount = 0;
 			while (randomAccessFile.getFilePointer() != 0) {
 				randomAccessFile.seek(fileLength);
-                byte readByte = randomAccessFile.readByte();
+				byte readByte = randomAccessFile.readByte();
 				if (readByte == '\n') {
 					rowCount++;
 				}
@@ -305,7 +308,7 @@ public class TFile {
 			randomAccessFile.close();
 		}
 	}
-	
+
 	/**
 	 * 向文件写入内容
 	 * @param file	文件对象
@@ -431,9 +434,13 @@ public class TFile {
 	 */
 	public static String getFileExtension(String filePath){
 		try {
-			return filePath.substring(filePath.lastIndexOf(".") + 1);
+			if(filePath.lastIndexOf(".")>0) {
+				return filePath.substring(filePath.lastIndexOf(".") + 1);
+			}else{
+				return null;
+			}
 		}catch(IndexOutOfBoundsException e){
-			return "";
+			return null;
 		}
 	}
 
@@ -445,7 +452,10 @@ public class TFile {
 	 */
 	public static String getFileDirectory(String filePath){
 		try {
-			return filePath.substring(0, filePath.lastIndexOf(File.separator) + 1);
+			if(getFileExtension(filePath)!=null) {
+				return filePath.substring(0, filePath.lastIndexOf(File.separator) + 1);
+			}
+			return filePath;
 		}catch(IndexOutOfBoundsException e){
 			return "";
 		}
@@ -473,7 +483,7 @@ public class TFile {
 	 */
 	public static boolean moveFile(File src, File dest) throws IOException{
 		new File(TFile.getFileDirectory(dest.getCanonicalPath())).mkdirs();
-		 return src.renameTo(dest);
+		return src.renameTo(dest);
 	}
 
 	/**
@@ -490,4 +500,43 @@ public class TFile {
 		}
 	}
 
+	/**
+	 * 复制文件
+	 * @param sourceFile 源文件
+	 * @param targetFile 目标文件
+	 */
+	public static void copyFile(File sourceFile, File targetFile) {
+		int loopCount = 0;
+		mkdir(targetFile.getPath());
+		try {
+			while(true) {
+				byte[] tmpbytes = TFile.loadFile(sourceFile, loopCount*10, (loopCount+1)*10);
+				if(tmpbytes == null){
+					break;
+				}
+				TFile.writeFile(targetFile, tmpbytes);
+				loopCount ++;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 删除文件
+	 * @param file 文件对象
+	 */
+	public static void deleteFile(File file) {
+		if (file.exists()) {
+			if (file.isFile()) {
+				file.delete();
+			} else if (file.isDirectory()) {
+				File[] files = file.listFiles();
+				for (int i = 0;i < files.length;i ++) {
+					deleteFile(files[i]);
+				}
+				file.delete();
+			}
+		}
+	}
 }
