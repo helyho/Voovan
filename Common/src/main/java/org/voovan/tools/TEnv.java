@@ -35,7 +35,9 @@ public class TEnv {
 	/**
 	 * 构造一个系统进程
 	 * @param command 命令行
-	 * @return 控制台输出
+	 * @param env 环境变量参数
+	 * @param workDir 工作目录
+	 * @return Process 对象
 	 * @throws IOException IO 异常
 	 */
 	public static Process createSysProcess(String command, String[] env, File workDir) throws IOException {
@@ -49,7 +51,9 @@ public class TEnv {
 	/**
 	 * 构造一个系统进程
 	 * @param command 命令行
-	 * @return 控制台输出
+	 * @param env 环境变量参数
+	 * @param workDir 工作目录
+	 * @return Process 对象
 	 * @throws IOException IO 异常
 	 */
 	public static Process createSysProcess(String command, String[] env, String workDir) throws IOException {
