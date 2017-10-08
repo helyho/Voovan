@@ -13,9 +13,9 @@ import java.util.*;
 
 /**
  * JSON字符串分析成 Map
- * 
+ *
  * @author helyho
- * 
+ *
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
@@ -25,7 +25,7 @@ public class JSONDecode {
 	private static int E_ARRAY = -1;
 
 	public static Object parse(String jsonStr) {
-		return parse(new StringReader(jsonStr.trim()+"\0"));
+		return parse(new StringReader(jsonStr.trim() + "\0"));
 	}
 
 	/**
@@ -34,7 +34,7 @@ public class JSONDecode {
 	 * @param reader	待解析的 JSON 字符串
 	 * @return 解析后的对象
 	 */
-	public static Object parse(StringReader reader) {
+	private static Object parse(StringReader reader) {
 		try {
 
 			if (reader == null) {
@@ -236,7 +236,7 @@ public class JSONDecode {
 						//判断是字符串去掉头尾的冒号
 						if (stringValue.startsWith("\"") && stringValue.endsWith("\"")) {
 							value = stringValue.substring(1, stringValue.length() - 1);
-							value = value.toString().replace("\\u000a", "\n").replace("\\u000d", "\r").replace("\\u0022", "\"");
+							value = TString.unConvertEscapeChar(value.toString());
 						}
 						//判断不包含.即为整形
 						else if (TString.isInteger(stringValue)) {
@@ -288,6 +288,7 @@ public class JSONDecode {
 					break;
 				}
 			}
+
 			return jsonResult;
 		}catch(Exception e){
 			try {
@@ -303,7 +304,7 @@ public class JSONDecode {
 
 		}
 	}
-	
+
 	/**
 	 * 解析 JSON 字符串成为参数指定的类
 	 * @param <T> 		范型
@@ -321,6 +322,11 @@ public class JSONDecode {
 		}
 
 		Object parseObject = parse(jsonStr);
+
+		if(parseObject == null){
+			parseObject = jsonStr;
+		}
+
 		//{}包裹的对象处理
 		if(parseObject instanceof Map){
 			Map<String,Object> mapJSON = (Map<String, Object>) parseObject;
@@ -329,6 +335,10 @@ public class JSONDecode {
 		//[]包裹的对象处理
 		else if(parseObject instanceof Collection){
 			return (T) TReflect.getObjectFromMap(type, TObject.asMap("value",parseObject),false);
+		}
+		//如果传入的是标准类型则尝试用TString.toObject进行转换
+		else if(parseObject instanceof String || parseObject.getClass().isPrimitive()){
+			return TString.toObject(parseObject.toString(), type);
 		}
 		//其他类型处理
 		else{
