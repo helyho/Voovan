@@ -7,8 +7,8 @@ import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.router.MimeFileRouter;
-import org.voovan.tools.log.Logger;
 import org.voovan.tools.*;
+import org.voovan.tools.log.Logger;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -108,6 +108,27 @@ public class HttpDispatcher {
 		}
 	}
 
+
+	/**
+     * 修复路由为规范的可注册的路由
+	 * @param routePath  路由
+	 * @return 规范的可注册的路由
+	 */
+	public static String fixRoutePath(String routePath){
+		//对于结束符为"/"的路径,清理这个符号,以便更好完成的匹配
+		if(routePath.endsWith("/")){
+			routePath = TString.removePrefix(routePath);
+		}
+
+		//对于起始符不为"/"的路径,补充这个符号,以便更好完成的匹配
+		if(!routePath.startsWith("/")){
+			routePath = "/" + routePath;
+		}
+
+		//把连续的////替换成/
+		return TString.fastReplaceAll(routePath, "\\/{2,9}", "/");
+	}
+
 	/**
 	 * 增加一个路由规则
 	 *
@@ -117,21 +138,7 @@ public class HttpDispatcher {
 	 */
 	public void addRouteHandler(String method, String routeRegexPath, HttpRouter router) {
 		if (methodRouters.keySet().contains(method)) {
-
-
-			//对于结束符为"/"的路径,清理这个符号,以便更好完成的匹配
-			if(routeRegexPath.endsWith("/")){
-				routeRegexPath = TString.removePrefix(routeRegexPath);
-			}
-
-			//对于起始符不为"/"的路径,补充这个符号,以便更好完成的匹配
-			if(!routeRegexPath.startsWith("/")){
-				routeRegexPath = "/" + routeRegexPath;
-			}
-
-			//把连续的////替换成/
-			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "\\/{2,9}", "/");
-			methodRouters.get(method).put(routeRegexPath, router);
+			methodRouters.get(method).put(fixRoutePath(routeRegexPath), router);
 		}
 	}
 
@@ -224,7 +231,7 @@ public class HttpDispatcher {
 	public boolean tryIndex(HttpRequest request,HttpResponse response){
 		for (String indexFile : indexFiles) {
 			String requestPath 	= request.protocol().getPath();
-			String filePath = webConfig.getContextPath() + requestPath.replace("/",File.separator) + (requestPath.endsWith("/") ? "" : File.separator) + indexFile;
+			String filePath = webConfig.getContextPath() + requestPath.replace("/", File.separator) + (requestPath.endsWith("/") ? "" : File.separator) + indexFile;
 			if(TFile.fileExists(filePath)){
 				try {
 					String newRequestPath = requestPath + (requestPath.endsWith("/") ? "" : "/") + indexFile;
@@ -258,7 +265,7 @@ public class HttpDispatcher {
 	 * @param matchRouteIgnoreCase 路劲匹配是否忽略大消息
 	 * @return  是否匹配成功
 	 */
-	public static boolean matchPath(String requestPath, String routePath,boolean matchRouteIgnoreCase){
+	public static boolean matchPath(String requestPath, String routePath, boolean matchRouteIgnoreCase){
 		//转换成可以配置的正则,主要是处理:后的参数表达式
 		//把/home/:name转换成^[/]?/home/[/]?+来匹配
 		String routeRegexPath = routePath2RegexPath(routePath);
@@ -280,7 +287,7 @@ public class HttpDispatcher {
 	 * @param routePath     正则匹配路径
 	 * @return     路径抽取参数 Map
 	 */
-	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) {
+	public static Map<String, String> fetchPathVariables(String requestPath, String routePath) {
 		Map<String, String> resultMap = new LinkedHashMap<String, String>();
 		String routePathMathchRegex = routePath;
 
@@ -327,6 +334,7 @@ public class HttpDispatcher {
 		if(httpSession == null){
 			httpSession = sessionManager.newSession(request, response);
 		}
+
 
 		if(httpSession!=null) {
 			httpSession.init(sessionManager, request.getSocketSession());
