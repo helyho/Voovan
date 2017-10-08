@@ -8,7 +8,7 @@ import java.text.ParseException;
 
 /**
  * JAVA 对象和 JSON 对象转换类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -16,7 +16,7 @@ import java.text.ParseException;
  * Licence: Apache v2 License
  */
 public class JSON {
-	
+
 	/**
 	 * 将 Java 对象 转换成 JSON字符串
 	 * @param object   	待转换的对象
@@ -31,7 +31,7 @@ public class JSON {
 		}
 		return jsonString;
 	}
-	
+
 	/**
 	 * 将 JSON字符串 转换成 Java 对象
 	 * @param <T>			范型
@@ -61,8 +61,8 @@ public class JSON {
 	public static <T> T toObject(String jsonStr,Type type){
 		return toObject(jsonStr, type , false);
 	}
-	
-	
+
+
 	/**
 	 * 解析 JSON 字符串
 	 * 		如果是{}包裹的字符串解析成 HashMap,如果是[]包裹的字符串解析成 ArrayList
@@ -160,7 +160,7 @@ public class JSON {
 	 * @param jsonStr json 字符串
 	 * @return 清理后点的结果
 	 */
-	protected 	 static String fixJSON(String jsonStr){
+	protected static String fixJSON(String jsonStr){
 
 		while(TString.searchByRegex(jsonStr,",[\\s\\r\\n]*,").length>0) {
 			jsonStr = TString.fastReplaceAll(jsonStr, ",[\\s\\r\\n]*,", ",");

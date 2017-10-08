@@ -418,7 +418,7 @@ public class TString {
 			return null;
 		}
 
-		return source.replace("\\","\\u005c")
+		return source.replace("\\[^u][^[0-9|a-f]]{4}","\\u005c")
 				.replace("\f","\\u000c")
 				.replace("\'","\\u0027")
 				.replace("\r","\\u000d")
@@ -439,14 +439,14 @@ public class TString {
 			return null;
 		}
 
-		return source.replace("\\\\","\\")
-				.replace("\\f","\f")
-				.replace("\\'","\'")
-				.replace("\\r","\r")
-				.replace("\\\"","\"")
-				.replace("\\b","\b")
-				.replace("\\t","\t")
-				.replace("\\n","\n");
+		return source.replace("\\u005c", "\\")
+				.replace("\\u000c","\f")
+				.replace("\\u0027","\'")
+				.replace("\\u000d","\r")
+				.replace("\\u0022","\"")
+				.replace("\\u0008","\b")
+				.replace("\\u0009","\t")
+				.replace("\\u000a","\n");
 	}
 
 
