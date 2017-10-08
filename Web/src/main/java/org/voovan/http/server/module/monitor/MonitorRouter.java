@@ -112,6 +112,8 @@ public class MonitorRouter implements HttpRouter {
                 String logType = request.getParameter("Param1");
                 int lineNumber = Integer.parseInt(request.getParameter("Param2"));
                 responseStr = readLogs(logType, lineNumber);
+            } else {
+                request.getSession().close();
             }
             response.write(responseStr);
         }else{
