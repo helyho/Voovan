@@ -138,7 +138,7 @@ public class AnnotationRouter implements HttpRouter {
 
                                 //注册路由,不带路径参数的路由
                                 httpModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                Logger.simple("[Router] add annotation route: " + routeMethod + " - " + routePath);
+                                Logger.simple("[Router] add annotation route: " + routeMethod + "\t " + routeFullPath);
                                 routeMethodNum++;
 
                                 if (!paramPath.isEmpty()) {
@@ -146,7 +146,7 @@ public class AnnotationRouter implements HttpRouter {
 
                                     //注册路由,带路径参数的路由
                                     httpModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                    Logger.simple("[Router] add annotation route: " + routeMethod + " - " + routePath);
+                                    Logger.simple("[Router] add annotation route: " + routeMethod + "\t " + routeFullPath+paramPath);
                                     routeMethodNum++;
                                 }
                             }
