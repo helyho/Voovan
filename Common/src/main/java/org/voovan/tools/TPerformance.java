@@ -1,6 +1,7 @@
 package org.voovan.tools;
 
 import org.voovan.Global;
+import org.voovan.tools.log.Logger;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -11,7 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 系统性能相关
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -42,7 +43,7 @@ public class TPerformance {
 	/**
 	 * 获取当前系统的负载情况
 	 * @return 系统的负载情况
-     */
+	 */
 	public static double getSystemLoadAverage(){
 		return osmxb.getSystemLoadAverage();
 	}
@@ -50,7 +51,7 @@ public class TPerformance {
 	/**
 	 * 获取当前系统 CPU 数
 	 * @return 系统 CPU 数
-     */
+	 */
 	public static int getProcessorCount(){
 		return osmxb.getAvailableProcessors();
 	}
@@ -65,7 +66,7 @@ public class TPerformance {
 		perCoreLoadAvg = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 		return perCoreLoadAvg;
 	}
-	
+
 	/**
 	 * JVM 虚拟机的内存使用情况
 	 * @return 内存使用情况
@@ -84,24 +85,24 @@ public class TPerformance {
 	/**
 	 * 获取部分内存信息(栈,非栈)
 	 * @param memType 获取的信息类型
-     * @return 当前内存数值
-     */
+	 * @return 当前内存数值
+	 */
 	public static long getJVMMemoryInfo(MEMTYPE memType){
-		if(memType== MEMTYPE.NOHEAP_INIT){
+		if(memType==MEMTYPE.NOHEAP_INIT){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getInit();
-		} else if(memType== MEMTYPE.NOHEAP_MAX){
+		} else if(memType==MEMTYPE.NOHEAP_MAX){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getMax();
-		} else if(memType== MEMTYPE.NOHEAP_USAGE){
+		} else if(memType==MEMTYPE.NOHEAP_USAGE){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getUsed();
 		} else if(memType== MEMTYPE.NOHEAP_COMMIT){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getCommitted();
-		} else if(memType== MEMTYPE.HEAP_INIT){
+		} else if(memType==MEMTYPE.HEAP_INIT){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getInit();
-		} else if(memType== MEMTYPE.HEAP_MAX){
+		} else if(memType==MEMTYPE.HEAP_MAX){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax();
-		} else if(memType== MEMTYPE.HEAP_USAGE){
+		} else if(memType==MEMTYPE.HEAP_USAGE){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed();
-		} else if(memType== MEMTYPE.HEAP_COMMIT){
+		} else if(memType==MEMTYPE.HEAP_COMMIT){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getCommitted();
 		}else{
 			throw new RuntimeException("getMemoryInfo function arg error!");
@@ -111,7 +112,7 @@ public class TPerformance {
 	/**
 	 * 获取当前内存信息
 	 * @return  内存信息描述对象
-     */
+	 */
 	public static MemoryInfo getJVMMemoryInfo(){
 		MemoryInfo memoryInfo = new MemoryInfo();
 		memoryInfo.setHeapInit(getJVMMemoryInfo(MEMTYPE.HEAP_INIT));
@@ -130,18 +131,56 @@ public class TPerformance {
 	}
 
 	/**
-	 * 获取虚拟机中的对象信息
-	 * @param pid		进程 Id
-	 * @param regex     对象匹配字符串
-	 * @return 虚拟机中的对象信息
+	 * 获取指定进程的 GC 信息
+	 * @param pid 进程 Id
+	 * @return GC信息
 	 * @throws IOException IO 异常
-     */
-	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex) throws IOException {
-		Hashtable<String,ObjectInfo> result = new Hashtable<String,ObjectInfo>();
-		InputStream processInputStream = TEnv.createSysProcess("jmap -histo "+pid, null, (File)null).getInputStream();
+	 */
+	public static Map<String, String> getJVMGCInfo(long pid) throws IOException {
+		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
+		InputStream processInputStream = TEnv.createSysProcess("jstat -gcutil "+pid, null, (File)null).getInputStream();
 		String console = new String(TStream.readAll(processInputStream));
 		String[] consoleLines = console.split(System.lineSeparator());
-		for(int lineCount = 3;lineCount<consoleLines.length;lineCount++){
+		String[] titleLine = consoleLines[0].trim().split("\\s+");
+		String[] dataLine = consoleLines[1].trim().split("\\s+");
+		for(int i=0; i<titleLine.length; i++){
+			result.put(titleLine[i], dataLine[i]);
+		}
+		return result;
+	}
+
+	/**
+	 * 获取当前进程的 GC 信息
+	 * @return GC信息
+	 * @throws IOException IO 异常
+	 */
+	public static Map<String, String> getJVMGCInfo() throws IOException {
+		return getJVMGCInfo(TEnv.getCurrentPID());
+	}
+
+	/**
+	 * 获取指定进程的对象信息
+	 * @param pid		进程 Id
+	 * @param regex     对象匹配字符串
+	 * @param headCount 返回的对象书
+	 * @return 虚拟机中的对象信息
+	 * @throws IOException IO 异常
+	 */
+	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex, Integer headCount) throws IOException {
+		LinkedHashMap<String,ObjectInfo> result = new LinkedHashMap<String,ObjectInfo>();
+		InputStream processInputStream = TEnv.createSysProcess("jmap -histo "+pid, null, (File)null).getInputStream();
+		String console = new String(TStream.readAll(processInputStream));
+
+
+		String[] consoleLines = console.split(System.lineSeparator());
+
+		if(headCount<0){
+			headCount = consoleLines.length;
+		}else{
+			headCount=headCount+3;
+		}
+
+		for(int lineCount = 3;lineCount<headCount;lineCount++){
 			String lineContent = consoleLines[lineCount];
 			long count = Long.parseLong(lineContent.substring(5,19).trim());
 			long size = Long.parseLong(lineContent.substring(19,34).trim());
@@ -164,16 +203,18 @@ public class TPerformance {
 	 * @param regex 正则表达式
 	 * @return 系统对象信息的Map
 	 */
-	public static Map<String,ObjectInfo> getJVMObjectInfo(String regex) {
+	public static Map<String,TPerformance.ObjectInfo> getJVMObjectInfo(String regex, int headCount) {
 		if(regex==null){
 			regex = ".*";
 		}
-		Map<String,ObjectInfo> result;
+
+		Map<String,TPerformance.ObjectInfo> result;
 		try {
-			result = TPerformance.getJVMObjectInfo(TEnv.getCurrentPID(),regex);
+			result = TPerformance.getJVMObjectInfo(TEnv.getCurrentPID(), regex, headCount);
 		} catch (IOException e) {
-			result = new Hashtable<String,ObjectInfo>();
+			result = new Hashtable<String,TPerformance.ObjectInfo>();
 		}
+
 		return result;
 
 	}
@@ -195,19 +236,25 @@ public class TPerformance {
 
 	/**
 	 * 获取当前 JVM 线程信息描述
+	 * @param withStack 是否包含堆栈信息
 	 * @return 线程信息信息集合
 	 */
-	public static List<Map<String,Object>> getThreadDetail(){
+	public static List<Map<String,Object>> getThreadDetail(String state, boolean withStack){
 		ArrayList<Map<String,Object>> threadDetailList = new ArrayList<Map<String,Object>>();
 		for(Thread thread : TEnv.getThreads()){
-			Map<String,Object> threadDetail = new Hashtable<String,Object>();
-			threadDetail.put("Name",thread.getName());
-			threadDetail.put("Id",thread.getId());
-			threadDetail.put("Priority",thread.getPriority());
-			threadDetail.put("ThreadGroup",thread.getThreadGroup().getName());
-			threadDetail.put("StackTrace",TEnv.getStackElementsMessage(thread.getStackTrace()));
-			threadDetail.put("State",thread.getState().name());
-			threadDetailList.add(threadDetail);
+			if(state==null || thread.getState().name().equals(state)) {
+				Map<String, Object> threadDetail = new Hashtable<String, Object>();
+				threadDetail.put("Name", thread.getName());
+				threadDetail.put("Id", thread.getId());
+				threadDetail.put("Priority", thread.getPriority());
+				threadDetail.put("ThreadGroup", thread.getThreadGroup().getName());
+				if (withStack) {
+					threadDetail.put("StackTrace", TEnv.getStackElementsMessage(thread.getStackTrace()));
+				}
+
+				threadDetail.put("State", thread.getState().name());
+				threadDetailList.add(threadDetail);
+			}
 		}
 		return threadDetailList;
 	}
@@ -216,7 +263,7 @@ public class TPerformance {
 	 * 获取处理器信息
 	 * @return 处理器信息 Map
 	 */
-	public static Map<String,Object> getProcessorInfo(){
+	public static Map<String,Object>  getProcessorInfo(){
 		Map<String,Object> processInfo = new Hashtable<String,Object>();
 		processInfo.put("ProcessorCount",TPerformance.getProcessorCount());
 		processInfo.put("SystemLoadAverage",TPerformance.getSystemLoadAverage());
@@ -317,7 +364,7 @@ public class TPerformance {
 		}
 	}
 
-/**
+	/**
 	 * JVM 中对象信息
 	 */
 	public static class ObjectInfo{
@@ -325,7 +372,7 @@ public class TPerformance {
 		private long size;
 		private long count;
 
-		public ObjectInfo(String name, long size, long count){
+		public ObjectInfo(String name,long size,long count){
 			this.name = name;
 			this.size = size;
 			this.count = count;

@@ -90,7 +90,7 @@ public class WebServer {
 		}
 	}
 
-	private void initSocketServer(WebServerConfig config) throws IOException {
+	private void initSocketServer(WebServerConfig config) throws IOException{
 		//[Socket] 准备 socket 监听
 		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout()*1000);
 
@@ -394,6 +394,10 @@ public class WebServer {
 		otherMethod("ADMIN", "/status", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
+				if(!request.getRemoteAddres().equals("127.0.0.1")){
+					request.getSession().close();
+				}
+
 				String authToken = request.header().get("AUTH-TOKEN");
 				String status = "RUNNING";
 				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
@@ -411,20 +415,28 @@ public class WebServer {
 		otherMethod("ADMIN", "/shutdown", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
-				String authToken = request.header().get("AUTH-TOKEN");
-			    if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
-                    request.getSocketSession().close();
-                    innerWebServer.stop();
-                    Logger.info("WebServer is stoped");
-                }else{
+				if(!request.getRemoteAddres().equals("127.0.0.1")){
 					request.getSession().close();
-                }
+				}
+
+				String authToken = request.header().get("AUTH-TOKEN");
+				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
+					request.getSocketSession().close();
+					innerWebServer.stop();
+					Logger.info("WebServer is stoped");
+				}else{
+					request.getSession().close();
+				}
 			}
 		});
 
 		otherMethod("ADMIN", "/pause", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
+				if(!request.getRemoteAddres().equals("127.0.0.1")){
+					request.getSession().close();
+				}
+
 				String authToken = request.header().get("AUTH-TOKEN");
 				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
 					WebContext.PAUSE = true;
@@ -439,6 +451,10 @@ public class WebServer {
 		otherMethod("ADMIN", "/unpause", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
+				if(!request.getRemoteAddres().equals("127.0.0.1")){
+					request.getSession().close();
+				}
+
 				String authToken = request.header().get("AUTH-TOKEN");
 				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
 					WebContext.PAUSE = false;
@@ -453,6 +469,10 @@ public class WebServer {
 		otherMethod("ADMIN", "/pid", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
+				if(!request.getRemoteAddres().equals("127.0.0.1")){
+					request.getSession().close();
+				}
+
 				String authToken = request.header().get("AUTH-TOKEN");
 				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
 					response.write(Long.valueOf(TEnv.getCurrentPID()).toString());
@@ -465,22 +485,21 @@ public class WebServer {
 		otherMethod("ADMIN", "/authtoken", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
+				if(!request.getRemoteAddres().equals("127.0.0.1")){
+					request.getSession().close();
+				}
+
 				String authToken = request.header().get("AUTH-TOKEN");
 				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
 					if(!request.body().getBodyString().isEmpty()){
+						//重置 AUTH_TOKEN
 						WebContext.AUTH_TOKEN = request.body().getBodyString();
 						response.write("OK");
 					} else {
 						response.write("NOTHING");
 					}
-				}else{
-					//如果是本机登录,则返回AUTH_TOKEN
-					if(request.getRemoteAddres().equals("127.0.0.1")){
-						response.write(WebContext.AUTH_TOKEN);
-					}else {
-						request.getSession().close();
-					}
-
+				} else {
+					response.write(WebContext.AUTH_TOKEN);
 				}
 			}
 		});
@@ -501,19 +520,19 @@ public class WebServer {
 			return;
 		}
 
-        try {
-            WebServerInit webServerInit = null;
+		try {
+			WebServerInit webServerInit = null;
 
-            Class clazz = Class.forName(initClass);
-            if(TReflect.isImpByInterface(clazz, WebServerInit.class)){
-                webServerInit = (WebServerInit)TReflect.newInstance(clazz);
-                webServerInit.init(webServer);
-            }else{
-                Logger.warn("The init class " + initClass + " is not a class implement by " + WebServerInit.class.getName());
-            }
-        } catch (Exception e) {
-            Logger.error("Initialize WebServer init class error: " + e);
-        }
+			Class clazz = Class.forName(initClass);
+			if(TReflect.isImpByInterface(clazz, WebServerInit.class)){
+				webServerInit = (WebServerInit)TReflect.newInstance(clazz);
+				webServerInit.init(webServer);
+			}else{
+				Logger.warn("The init class " + initClass + " is not a class implement by " + WebServerInit.class.getName());
+			}
+		} catch (Exception e) {
+			Logger.error("Initialize WebServer init class error: " + e);
+		}
 	}
 
 	/**

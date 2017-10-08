@@ -5,12 +5,11 @@ import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpRouter;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.tools.*;
-import org.voovan.tools.json.JSONEncode;
-import org.voovan.tools.log.Logger;
+import org.voovan.tools.json.JSON;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
 
 /**
  * 监控业务处理类
@@ -22,23 +21,6 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class MonitorRouter implements HttpRouter {
-
-    /**
-     * 对象转换成 JSON 字符串
-     *      json 中的换行被处理成"\\r\\n"
-     * @param obj 待转换的对象
-     * @return JSON 字符串
-     */
-    public static String toJsonWithLF(Object obj){
-        String jsonStr = null;
-        try {
-            jsonStr = JSONEncode.fromObject(obj);
-            return jsonStr;
-        } catch (ReflectiveOperationException e) {
-            Logger.error(e);
-        }
-        return "";
-    }
 
     /**
      * 从尾部读取日志信息
@@ -66,7 +48,7 @@ public class MonitorRouter implements HttpRouter {
      * @return 请求分析信息集合
      */
     public static List<RequestAnalysis> requestInfo() {
-       return (List<RequestAnalysis>) TObject.mapValueToList(MonitorGlobal.REQUEST_ANALYSIS);
+        return (List<RequestAnalysis>) TObject.mapValueToList(MonitorGlobal.REQUEST_ANALYSIS);
     }
 
     /**
@@ -86,33 +68,58 @@ public class MonitorRouter implements HttpRouter {
             String type = request.getParameter("Type");
             String responseStr = "";
             if ("JVM".equals(type)) {
-                responseStr = toJsonWithLF(TPerformance.getJVMInfo());
+                responseStr = JSON.toJSON(TPerformance.getJVMInfo());
             } else if ("CPU".equals(type)) {
-                responseStr = toJsonWithLF(TPerformance.getProcessorInfo());
+                responseStr = JSON.toJSON(TPerformance.getProcessorInfo());
             } else if ("Memory".equals(type)) {
-                responseStr = toJsonWithLF(TPerformance.getJVMMemoryInfo());
+                responseStr = JSON.toJSON(TPerformance.getJVMMemoryInfo());
             } else if ("MemoryUsage".equals(type)) {
-                responseStr = toJsonWithLF(TPerformance.getJVMMemoryUsage());
+                responseStr = JSON.toJSON(TPerformance.getJVMMemoryUsage());
             } else if ("Objects".equals(type)) {
                 String filterWord = request.getParameter("Param1");
-                responseStr = toJsonWithLF(TPerformance.getJVMObjectInfo(filterWord));
-            } else if ("ObjectCount".equals(type)) {
-                responseStr = Integer.toString(TPerformance.getJVMObjectInfo("").size());
+                filterWord = filterWord == null ? ".*" : filterWord;
+                String headCountStr = request.getParameter("Param2");
+                int headCount = headCountStr==null ? 10 : Integer.valueOf(headCountStr);
+
+                responseStr = JSON.toJSON(TPerformance.getJVMObjectInfo(filterWord, headCount));
+            } else if ("GC".equals(type)) {
+                responseStr = JSON.toJSON(TPerformance.getJVMGCInfo());
             } else if ("Threads".equals(type)) {
-                responseStr = toJsonWithLF(TPerformance.getThreadDetail());
+                String state = request.getParameter("Param1");
+                boolean withStack  = Boolean.valueOf(request.getParameter("Param2"));
+
+                responseStr = JSON.toJSON(TPerformance.getThreadDetail(state, withStack));
             } else if ("ThreadCount".equals(type)) {
                 responseStr = Integer.toString(TEnv.getThreads().length);
             } else if ("ThreadPool".equals(type)) {
-                responseStr = toJsonWithLF(TPerformance.getThreadPoolInfo());
+                responseStr = JSON.toJSON(TPerformance.getThreadPoolInfo());
             } else if ("RequestAnalysis".equals(type)) {
-                responseStr = toJsonWithLF(requestInfo());
+                responseStr = JSON.toJSON(requestInfo());
             } else if ("IPAddressAnalysis".equals(type)) {
-                responseStr = toJsonWithLF(ipAddressInfo());
+                responseStr = JSON.toJSON(ipAddressInfo());
             } else if ("Log".equals(type)) {
                 String logType = request.getParameter("Param1");
-                int lineNumber = Integer.parseInt(request.getParameter("Param2"));
+                logType = logType == null? "SYSOUT" : logType;
+                String lineNumberStr = request.getParameter("Param2");
+                int lineNumber = lineNumberStr==null ? 50 : Integer.valueOf(lineNumberStr);
                 responseStr = readLogs(logType, lineNumber);
-            } else {
+            } else if("Summary".equals(type)){
+                Map summary = new LinkedHashMap();
+                summary.put("CPU", TPerformance.getProcessorInfo());
+                summary.put("Memory", TPerformance.getJVMMemoryInfo());
+                summary.put("MemoryUsage", TPerformance.getJVMMemoryUsage());
+                summary.put("ThreadPool", TPerformance.getThreadPoolInfo());
+                summary.put("ThreadCount", TEnv.getThreads().length);
+
+                if(!"fast".equals(request.getParameter("Param1"))) {
+                    summary.put("Objects", TPerformance.getJVMObjectInfo("", 10));
+                    summary.put("GC", TPerformance.getJVMGCInfo());
+                    summary.put("RunningThreads", TPerformance.getThreadDetail("RUNNABLE", false));
+                    summary.put("RequestAnalysis", requestInfo());
+                    summary.put("IPAddressAnalysis", ipAddressInfo());
+                }
+                responseStr = JSON.toJSON(summary);
+            }  else {
                 request.getSession().close();
             }
             response.write(responseStr);
