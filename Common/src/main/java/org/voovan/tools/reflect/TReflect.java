@@ -130,7 +130,7 @@ public class TReflect {
 	 * @return Class 对象
 	 * @throws ClassNotFoundException 类找不到异常
 	 */
-	public static Class[] getGenericClass(ParameterizedType type) throws ClassNotFoundException{
+	public static Class[] getGenericClass(ParameterizedType type) {
 		Class[] result = null;
 		Type[] actualType = type.getActualTypeArguments();
 		result = new Class[actualType.length];
@@ -138,10 +138,16 @@ public class TReflect {
 		for(int i=0;i<actualType.length;i++){
 			if(actualType[i] instanceof Class){
 				result[i] = (Class)actualType[i];
-			}else if(actualType[i] instanceof Type){
+			} else if(actualType[i] instanceof Type){
 				String classStr = actualType[i].toString();
 				classStr = TString.fastReplaceAll(classStr, "<.*>", "");
-				result[i] = Class.forName(classStr);
+				try {
+					result[i] = Class.forName(classStr);
+				} catch(Exception e){
+					result[i] = Object.class;
+				}
+			} else{
+				result[i] = Object.class;
 			}
 		}
 		return result;
@@ -632,11 +638,7 @@ public class TReflect {
 		if(type instanceof ParameterizedType) {
 			ParameterizedType parameterizedType = (ParameterizedType) type;
 			clazz = (Class)parameterizedType.getRawType();
-			try {
-				genericType = getGenericClass(parameterizedType);
-			}catch(ClassNotFoundException e){
-				genericType = new Class[]{Object.class};
-			}
+			genericType = getGenericClass(parameterizedType);
 		}else if(type instanceof Class){
 			clazz = (Class)type;
 		}
@@ -647,19 +649,26 @@ public class TReflect {
 
 		Object singleValue = null;
 
-		if(!mapArg.isEmpty()){
+		if(mapArg.size()==1 && mapArg.containsKey("value")){
 			singleValue = mapArg.values().iterator().next();
 		}
 
 		// java标准对象
-		if (clazz.isPrimitive() || clazz == Object.class){
+		if (clazz.isPrimitive()){
 			if(singleValue.getClass() !=  clazz) {
 				obj = TString.toObject(singleValue.toString(), clazz);
 			} else {
 				obj = (T)singleValue;
 			}
 		}
-
+		//对象类型
+		else if(clazz == Object.class){
+			if(singleValue!=null){
+				obj = (T)singleValue;
+			}else {
+				obj = (T) mapArg;
+			}
+		}
 		//java 日期对象
 		else if(isExtendsByClass(clazz,Date.class)){
 			//取 Map.Values 里的递第一个值
@@ -705,7 +714,7 @@ public class TReflect {
 			obj = (T)mapObject;
 		}
 		//Collection 类型
-		else if(isImpByInterface(clazz,Collection.class)){
+		else if(isImpByInterface(clazz, Collection.class)){
 			//不可构造的类型使用最常用的类型
 			if(Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())){
 				clazz = ArrayList.class;
