@@ -90,7 +90,7 @@ public class WebServer {
 		}
 	}
 
-	private void initSocketServer(WebServerConfig config) throws IOException{
+	private void initSocketServer(WebServerConfig config) throws IOException {
 		//[Socket] 准备 socket 监听
 		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout()*1000);
 
@@ -396,13 +396,13 @@ public class WebServer {
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 				String authToken = request.header().get("AUTH-TOKEN");
 				String status = "RUNNING";
-				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
+				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
 					if(WebContext.PAUSE){
 						status = "PAUSE";
 					}
 					response.write(status);
 				}else{
-					request.getSocketSession().close();
+					request.getSession().close();
 				}
 			}
 		});
@@ -412,13 +412,13 @@ public class WebServer {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 				String authToken = request.header().get("AUTH-TOKEN");
-				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
-					request.getSocketSession().close();
-					innerWebServer.stop();
-					Logger.info("WebServer is stoped");
-				}else{
-					request.getSocketSession().close();
-				}
+			    if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
+                    request.getSocketSession().close();
+                    innerWebServer.stop();
+                    Logger.info("WebServer is stoped");
+                }else{
+					request.getSession().close();
+                }
 			}
 		});
 
@@ -426,12 +426,12 @@ public class WebServer {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 				String authToken = request.header().get("AUTH-TOKEN");
-				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
+				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
 					WebContext.PAUSE = true;
 					response.write("OK");
 					Logger.info("WebServer is paused");
 				}else{
-					request.getSocketSession().close();
+					request.getSession().close();
 				}
 			}
 		});
@@ -440,12 +440,12 @@ public class WebServer {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 				String authToken = request.header().get("AUTH-TOKEN");
-				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
+				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
 					WebContext.PAUSE = false;
 					response.write("OK");
 					Logger.info("WebServer is running");
 				}else{
-					request.getSocketSession().close();
+					request.getSession().close();
 				}
 			}
 		});
@@ -454,10 +454,10 @@ public class WebServer {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 				String authToken = request.header().get("AUTH-TOKEN");
-				if(authToken!=null && authToken.endsWith(WebContext.AUTH_TOKEN)) {
+				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
 					response.write(Long.valueOf(TEnv.getCurrentPID()).toString());
 				}else{
-					request.getSocketSession().close();
+					request.getSession().close();
 				}
 			}
 		});
@@ -478,7 +478,7 @@ public class WebServer {
 					if(request.getRemoteAddres().equals("127.0.0.1")){
 						response.write(WebContext.AUTH_TOKEN);
 					}else {
-						request.getSocketSession().close();
+						request.getSession().close();
 					}
 
 				}
@@ -501,19 +501,19 @@ public class WebServer {
 			return;
 		}
 
-		try {
-			WebServerInit webServerInit = null;
+        try {
+            WebServerInit webServerInit = null;
 
-			Class clazz = Class.forName(initClass);
-			if(TReflect.isImpByInterface(clazz, WebServerInit.class)){
-				webServerInit = (WebServerInit)TReflect.newInstance(clazz);
-				webServerInit.init(webServer);
-			}else{
-				Logger.warn("The init class " + initClass + " is not a class implement by " + WebServerInit.class.getName());
-			}
-		} catch (Exception e) {
-			Logger.error("Initialize WebServer init class error: " + e);
-		}
+            Class clazz = Class.forName(initClass);
+            if(TReflect.isImpByInterface(clazz, WebServerInit.class)){
+                webServerInit = (WebServerInit)TReflect.newInstance(clazz);
+                webServerInit.init(webServer);
+            }else{
+                Logger.warn("The init class " + initClass + " is not a class implement by " + WebServerInit.class.getName());
+            }
+        } catch (Exception e) {
+            Logger.error("Initialize WebServer init class error: " + e);
+        }
 	}
 
 	/**

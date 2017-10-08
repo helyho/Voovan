@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 系统性能相关
- *
+ * 
  * @author helyho
  *
  * Voovan Framework.
@@ -42,7 +42,7 @@ public class TPerformance {
 	/**
 	 * 获取当前系统的负载情况
 	 * @return 系统的负载情况
-	 */
+     */
 	public static double getSystemLoadAverage(){
 		return osmxb.getSystemLoadAverage();
 	}
@@ -50,7 +50,7 @@ public class TPerformance {
 	/**
 	 * 获取当前系统 CPU 数
 	 * @return 系统 CPU 数
-	 */
+     */
 	public static int getProcessorCount(){
 		return osmxb.getAvailableProcessors();
 	}
@@ -65,12 +65,12 @@ public class TPerformance {
 		perCoreLoadAvg = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 		return perCoreLoadAvg;
 	}
-
+	
 	/**
 	 * JVM 虚拟机的内存使用情况
 	 * @return 内存使用情况
 	 * */
-	public static double getJvmMemoryUsage(){
+	public static double getJVMMemoryUsage(){
 		//maxMemory()这个方法返回的是java虚拟机（这个进程）能构从操作系统那里挖到的最大的内存，以字节为单位, -Xmx参数
 		//totalMemory()这个方法返回的是java虚拟机现在已经从操作系统那里挖过来的内存大小
 		//freeMemory() 当前申请到的内存有多少没有使用的空闲内存
@@ -84,24 +84,24 @@ public class TPerformance {
 	/**
 	 * 获取部分内存信息(栈,非栈)
 	 * @param memType 获取的信息类型
-	 * @return 当前内存数值
-	 */
-	public static long getJvmMemoryInfo(MEMTYPE memType){
-		if(memType==MEMTYPE.NOHEAP_INIT){
+     * @return 当前内存数值
+     */
+	public static long getJVMMemoryInfo(MEMTYPE memType){
+		if(memType== MEMTYPE.NOHEAP_INIT){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getInit();
-		} else if(memType==MEMTYPE.NOHEAP_MAX){
+		} else if(memType== MEMTYPE.NOHEAP_MAX){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getMax();
-		} else if(memType==MEMTYPE.NOHEAP_USAGE){
+		} else if(memType== MEMTYPE.NOHEAP_USAGE){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getUsed();
 		} else if(memType== MEMTYPE.NOHEAP_COMMIT){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getCommitted();
-		} else if(memType==MEMTYPE.HEAP_INIT){
+		} else if(memType== MEMTYPE.HEAP_INIT){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getInit();
-		} else if(memType==MEMTYPE.HEAP_MAX){
+		} else if(memType== MEMTYPE.HEAP_MAX){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax();
-		} else if(memType==MEMTYPE.HEAP_USAGE){
+		} else if(memType== MEMTYPE.HEAP_USAGE){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed();
-		} else if(memType==MEMTYPE.HEAP_COMMIT){
+		} else if(memType== MEMTYPE.HEAP_COMMIT){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getCommitted();
 		}else{
 			throw new RuntimeException("getMemoryInfo function arg error!");
@@ -111,18 +111,18 @@ public class TPerformance {
 	/**
 	 * 获取当前内存信息
 	 * @return  内存信息描述对象
-	 */
-	public static MemoryInfo getJvmMemoryInfo(){
+     */
+	public static MemoryInfo getJVMMemoryInfo(){
 		MemoryInfo memoryInfo = new MemoryInfo();
-		memoryInfo.setHeapInit(getJvmMemoryInfo(MEMTYPE.HEAP_INIT));
-		memoryInfo.setHeapUsage(getJvmMemoryInfo(MEMTYPE.HEAP_USAGE));
-		memoryInfo.setHeapCommit(getJvmMemoryInfo(MEMTYPE.HEAP_COMMIT));
-		memoryInfo.setHeapMax(getJvmMemoryInfo(MEMTYPE.HEAP_MAX));
+		memoryInfo.setHeapInit(getJVMMemoryInfo(MEMTYPE.HEAP_INIT));
+		memoryInfo.setHeapUsage(getJVMMemoryInfo(MEMTYPE.HEAP_USAGE));
+		memoryInfo.setHeapCommit(getJVMMemoryInfo(MEMTYPE.HEAP_COMMIT));
+		memoryInfo.setHeapMax(getJVMMemoryInfo(MEMTYPE.HEAP_MAX));
 
-		memoryInfo.setNoHeapInit(getJvmMemoryInfo(MEMTYPE.NOHEAP_INIT));
-		memoryInfo.setNoHeapUsage(getJvmMemoryInfo(MEMTYPE.NOHEAP_USAGE));
-		memoryInfo.setNoHeapCommit(getJvmMemoryInfo(MEMTYPE.NOHEAP_COMMIT));
-		memoryInfo.setNoHeapMax(getJvmMemoryInfo(MEMTYPE.NOHEAP_MAX));
+		memoryInfo.setNoHeapInit(getJVMMemoryInfo(MEMTYPE.NOHEAP_INIT));
+		memoryInfo.setNoHeapUsage(getJVMMemoryInfo(MEMTYPE.NOHEAP_USAGE));
+		memoryInfo.setNoHeapCommit(getJVMMemoryInfo(MEMTYPE.NOHEAP_COMMIT));
+		memoryInfo.setNoHeapMax(getJVMMemoryInfo(MEMTYPE.NOHEAP_MAX));
 		memoryInfo.setFree(Runtime.getRuntime().freeMemory());
 		memoryInfo.setTotal(Runtime.getRuntime().totalMemory());
 		memoryInfo.setMax(Runtime.getRuntime().maxMemory());
@@ -135,7 +135,7 @@ public class TPerformance {
 	 * @param regex     对象匹配字符串
 	 * @return 虚拟机中的对象信息
 	 * @throws IOException IO 异常
-	 */
+     */
 	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex) throws IOException {
 		Hashtable<String,ObjectInfo> result = new Hashtable<String,ObjectInfo>();
 		InputStream processInputStream = TEnv.createSysProcess("jmap -histo "+pid, null, (File)null).getInputStream();
@@ -164,12 +164,15 @@ public class TPerformance {
 	 * @param regex 正则表达式
 	 * @return 系统对象信息的Map
 	 */
-	public static Map<String,TPerformance.ObjectInfo> getJVMObjectInfo(String regex) {
-		Map<String,TPerformance.ObjectInfo> result;
+	public static Map<String,ObjectInfo> getJVMObjectInfo(String regex) {
+		if(regex==null){
+			regex = ".*";
+		}
+		Map<String,ObjectInfo> result;
 		try {
 			result = TPerformance.getJVMObjectInfo(TEnv.getCurrentPID(),regex);
 		} catch (IOException e) {
-			result = new Hashtable<String,TPerformance.ObjectInfo>();
+			result = new Hashtable<String,ObjectInfo>();
 		}
 		return result;
 
@@ -213,7 +216,7 @@ public class TPerformance {
 	 * 获取处理器信息
 	 * @return 处理器信息 Map
 	 */
-	public static Map<String,Object>  getProcessorInfo(){
+	public static Map<String,Object> getProcessorInfo(){
 		Map<String,Object> processInfo = new Hashtable<String,Object>();
 		processInfo.put("ProcessorCount",TPerformance.getProcessorCount());
 		processInfo.put("SystemLoadAverage",TPerformance.getSystemLoadAverage());
@@ -314,7 +317,7 @@ public class TPerformance {
 		}
 	}
 
-	/**
+/**
 	 * JVM 中对象信息
 	 */
 	public static class ObjectInfo{
@@ -322,7 +325,7 @@ public class TPerformance {
 		private long size;
 		private long count;
 
-		public ObjectInfo(String name,long size,long count){
+		public ObjectInfo(String name, long size, long count){
 			this.name = name;
 			this.size = size;
 			this.count = count;

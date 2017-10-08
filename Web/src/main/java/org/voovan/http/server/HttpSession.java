@@ -150,7 +150,7 @@ public class HttpSession {
 	 * @param name	属性名
 	 * @param value	属性值
 	 */
-	public void setAttribute(String name,Object value) {
+	public void setAttribute(String name, Object value) {
 		attributes.put(name, value);
 		needSave = true;
 	}
@@ -229,5 +229,12 @@ public class HttpSession {
 			sessionManager.saveSession(this);
 			needSave = false;
 		}
+	}
+
+	/**
+     * 关闭会话对象
+	 */
+	public void close(){
+		socketSession.close();
 	}
 }

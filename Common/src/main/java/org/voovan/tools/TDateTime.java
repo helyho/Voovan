@@ -2,6 +2,7 @@ package org.voovan.tools;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -47,7 +48,7 @@ public class TDateTime {
 	 * @param format 日期格式模板
 	 * @return 日期字符串
 	 */
-	public static String format(Date date,String format){
+	public static String format(Date date, String format){
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
 		return simpleDateFormat.format(date);
 	}
@@ -59,7 +60,7 @@ public class TDateTime {
 	 * @param local 所在区域
 	 * @return 日期字符串
 	 */
-	public static String format(Date date,String format,Locale local){
+	public static String format(Date date, String format, Locale local){
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format,local);
 		return simpleDateFormat.format(date);
 	}
@@ -72,7 +73,7 @@ public class TDateTime {
 	 * @param local			所在区域
 	 * @return 日期字符串
 	 */
-	public static String format(Date date,String format,String timeZone,Locale local){
+	public static String format(Date date, String format, String timeZone, Locale local){
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format,local);
 		simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
 		return simpleDateFormat.format(date);
@@ -94,7 +95,7 @@ public class TDateTime {
 	 * @return Date 对象
 	 * @throws ParseException 解析异常
 	 */
-	public static Date parse(String source,String format) throws ParseException{
+	public static Date parse(String source, String format) throws ParseException {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
 		return simpleDateFormat.parse(source);
 	}
@@ -107,7 +108,7 @@ public class TDateTime {
 	 * @return Date 对象
 	 * @throws ParseException 解析异常
 	 */
-	public static Date parse(String source,String format,Locale local) throws ParseException{
+	public static Date parse(String source, String format, Locale local) throws ParseException {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
 		return simpleDateFormat.parse(source);
 	}
@@ -121,7 +122,7 @@ public class TDateTime {
 	 * @return 日期字符串
 	 * @throws ParseException 解析异常
 	 */
-	public static Date parse(String source,String format,String timeZone,Locale local) throws ParseException{
+	public static Date parse(String source, String format, String timeZone, Locale local) throws ParseException {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format, local);
 		simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
 		return simpleDateFormat.parse(source);
@@ -133,7 +134,7 @@ public class TDateTime {
 	 * @return Date 对象
 	 * @throws ParseException 解析异常
 	 */
-	public static Date parseToGMT(String source) throws ParseException{
+	public static Date parseToGMT(String source) throws ParseException {
 		return parse(source, INTERNTTION_DATETIME_TEMPLATE, "GMT", Locale.ENGLISH);
 	}
 
@@ -143,7 +144,7 @@ public class TDateTime {
 	 * @param millis	微秒
 	 * @return Date 对象
 	 */
-	public static Date add(Date date,long millis){
+	public static Date add(Date date, long millis){
 		 return new Date(date.getTime()+millis);
 	}
 	
@@ -155,9 +156,22 @@ public class TDateTime {
 	 * @return 日期字符串
 	 * @throws ParseException  解析异常
 	 */
-	public static String add(String time,long millis,String format) throws ParseException{
+	public static String add(String time, long millis, String format) throws ParseException {
 		Date tmpDate = parse(time, format);
 		Date resultDate = add(tmpDate, millis);
 		return format(resultDate, format);
+	}
+
+	/**
+	 * 获取日期中的时间元素
+	 * @param date 日期对象
+	 * @param type 时间元素类型
+	 */
+	public static int getDateAtom(Date date, int type){
+		Calendar calendar = Calendar.getInstance();
+		if(date!=null) {
+			calendar.setTime(date);
+		}
+		return calendar.get(type);
 	}
 }
