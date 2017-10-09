@@ -128,7 +128,13 @@ public class MemcachedMap implements Map<String, String> , Closeable {
         }
     }
 
-
+    /**
+     * 获取 memcached 中的对象
+     * @param key key 名称
+     * @param clazz 对象类型
+     * @param <T> 范型
+     * @return 对象
+     */
     public <T> T getObj(Object key, Class<T> clazz) {
         return (T)JSON.toObject(get(key), clazz);
     }
@@ -148,6 +154,13 @@ public class MemcachedMap implements Map<String, String> , Closeable {
         }
     }
 
+    /**
+     * 向 memcached 中放置字符串数据
+     * @param key key 名称
+     * @param value 数据
+     * @param expire 超时事件
+     * @return true: 成功, false:失败
+     */
     public boolean put(String key, String value, long expire) {
         MemcachedClient memcachedClient = getMemcachedClient();
         try{
@@ -158,14 +171,35 @@ public class MemcachedMap implements Map<String, String> , Closeable {
         }
     }
 
+    /**
+     * 像 memcached 中放置对象数据
+     * @param key key 名称
+     * @param value 数据
+     * @return true: 成功, false:失败
+     */
     public String putObj(String key, Object value) {
         return put(key, JSON.toJSON(value));
     }
 
+    /**
+     * 像 memcached 中放置对象数据
+     * @param key key 名称
+     * @param value 数据
+     * @param expire 超时时间
+     * @return true: 成功, false:失败
+     */
     public boolean putObj(String key, Object value, int expire) {
         return put(key, JSON.toJSON(value), expire);
     }
 
+    /**
+     * 像 memcached 中放置对象数据
+     *      不管数据存在不存在都会将目前设置的数据存储的 memcached，但不等待返回确认
+     * @param key key 名称
+     * @param value 数据
+     * @param expire 超时时间
+     * @return true: 成功, false:失败
+     */
     public Boolean putWithNoReply(String key, Object value, int expire) {
         MemcachedClient memcachedClient = null;
         try {
@@ -214,6 +248,12 @@ public class MemcachedMap implements Map<String, String> , Closeable {
         }
     }
 
+    /**
+     * 原子减少操作
+     * @param key  key 名称
+     * @param value 值
+     * @return 自增后的结果
+     */
     public long decr(String key, long value){
         MemcachedClient memcachedClient = null;
         try {
@@ -225,6 +265,13 @@ public class MemcachedMap implements Map<String, String> , Closeable {
         return 0;
     }
 
+    /**
+     * 原子减少操作
+     * @param key  key 名称
+     * @param value 值
+     * @param initValue 默认值
+     * @return 自增后的结果
+     */
     public long decr(String key, long value , long initValue){
         MemcachedClient memcachedClient = null;
         try {
@@ -236,6 +283,12 @@ public class MemcachedMap implements Map<String, String> , Closeable {
         return 0;
     }
 
+    /**
+     * 原子增加操作
+     * @param key  key 名称
+     * @param value 值
+     * @return 自增后的结果
+     */
     public long incr(String key, long value){
         MemcachedClient memcachedClient = null;
         try {
@@ -247,6 +300,13 @@ public class MemcachedMap implements Map<String, String> , Closeable {
         return 0;
     }
 
+    /**
+     * 原子增加操作
+     * @param key  key 名称
+     * @param value 值
+     * @param initValue 默认值
+     * @return 自增后的结果
+     */
     public long incr(String key, long value , long initValue){
         MemcachedClient memcachedClient = null;
         try {
@@ -258,6 +318,12 @@ public class MemcachedMap implements Map<String, String> , Closeable {
         return 0;
     }
 
+    /**
+     * 向指定的 key 尾部追加数据
+     * @param key key 名称
+     * @param value 数据
+     * @return
+     */
     public boolean append(String key, Object value){
         MemcachedClient memcachedClient = null;
         try {
@@ -269,6 +335,12 @@ public class MemcachedMap implements Map<String, String> , Closeable {
         return false;
     }
 
+    /**
+     * 向指定的 key 头部追加数据
+     * @param key key 名称
+     * @param value 数据
+     * @return
+     */
     public boolean prepend(String key, Object value){
         MemcachedClient memcachedClient = null;
         try {
@@ -280,6 +352,45 @@ public class MemcachedMap implements Map<String, String> , Closeable {
         return false;
     }
 
+    /**
+     * 向指定的 key 尾部追加数据,不等待返回
+     * @param key key 名称
+     * @param value 数据
+     * @return
+     */
+    public void appendWithNoReply(String key, Object value){
+        MemcachedClient memcachedClient = null;
+        try {
+            memcachedClient = getMemcachedClient();
+            memcachedClient.appendWithNoReply(key , value);
+        } catch (Exception e) {
+            Logger.error(e);
+        }
+    }
+
+    /**
+     * 向指定的 key 头部追加数据,不等待返回
+     * @param key key 名称
+     * @param value 数据
+     * @return
+     */
+    public void prependWithNoReply(String key, Object value){
+        MemcachedClient memcachedClient = null;
+        try {
+            memcachedClient = getMemcachedClient();
+            memcachedClient.prependWithNoReply(key , value);
+        } catch (Exception e) {
+            Logger.error(e);
+        }
+    }
+
+    /**
+     * 原子操作
+     * @param key key 名称
+     * @param value 值
+     * @param version 数据版本
+     * @return true: 成功, false:失败
+     */
     public boolean cas(String key, Object value,long version) {
         MemcachedClient memcachedClient = null;
         try {
@@ -291,6 +402,14 @@ public class MemcachedMap implements Map<String, String> , Closeable {
         }
     }
 
+    /**
+     * 原子操作
+     * @param key key 名称
+     * @param value 值
+     * @param time 超时
+     * @param version 数据版本
+     * @return true: 成功, false:失败
+     */
     public boolean cas(String key, Object value, int time, long version) {
         MemcachedClient memcachedClient = null;
         try {
