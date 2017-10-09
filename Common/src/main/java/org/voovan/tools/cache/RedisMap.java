@@ -181,6 +181,13 @@ public class RedisMap implements Map<String, String>, Closeable {
         }
     }
 
+    /**
+     * 获取 redis 中的对象
+     * @param key key 名称
+     * @param clazz 对象类型
+     * @param <T> 范型
+     * @return 对象
+     */
     public <T> T getObj(Object key, Class<T> clazz) {
         return (T) JSON.toObject(get(key), clazz);
     }
@@ -198,6 +205,13 @@ public class RedisMap implements Map<String, String>, Closeable {
         }
     }
 
+    /**
+     * 像 redis 中放置字符串数据
+     * @param key key 名称
+     * @param value 数据
+     * @param expire 超时事件
+     * @return true: 成功, false:失败
+     */
     public boolean put(String key, String value, int expire){
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -208,10 +222,23 @@ public class RedisMap implements Map<String, String>, Closeable {
         }
     }
 
+    /**
+     * 像 redis 中放置对象数据
+     * @param key key 名称
+     * @param value 数据
+     * @return true: 成功, false:失败
+     */
     public String putObj(String key, Object value) {
         return put(key, JSON.toJSON(value));
     }
 
+    /**
+     * 像 redis 中放置对象数据
+     * @param key key 名称
+     * @param value 数据
+     * @param expire 超时事件
+     * @return true: 成功, false:失败
+     */
     public boolean putObj(String key, Object value, int expire) {
         return put(key, JSON.toJSON(value), expire);
     }
@@ -229,6 +256,12 @@ public class RedisMap implements Map<String, String>, Closeable {
         }
     }
 
+    /**
+     * 为 Key 设置超时事件
+     * @param key  key 名称
+     * @param expire 超时事件
+     * @return true: 成功, false:失败
+     */
     public boolean expire(String key, int expire) {
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -239,6 +272,11 @@ public class RedisMap implements Map<String, String>, Closeable {
         }
     }
 
+    /**
+     * 持久化某个
+     * @param key key 名称
+     * @return true: 成功, false:失败
+     */
     public boolean persist(String key) {
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -296,7 +334,12 @@ public class RedisMap implements Map<String, String>, Closeable {
         }
     }
 
-    public Set keySet(String pattern) {
+    /**
+     * 获取键集合
+     * @param pattern 匹配表达式
+     * @return 键集合
+     */
+    public Set<String> keySet(String pattern) {
         try (Jedis jedis = getJedis()) {
             if(name==null){
                 return jedis.keys(pattern);
@@ -322,6 +365,12 @@ public class RedisMap implements Map<String, String>, Closeable {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * 原子增加操作
+     * @param key  key 名称
+     * @param value 值
+     * @return 自增后的结果
+     */
     public long incr(String key, long value) {
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -335,6 +384,12 @@ public class RedisMap implements Map<String, String>, Closeable {
         return -1;
     }
 
+    /**
+     * 原子增加操作
+     * @param key  key 名称
+     * @param value 值
+     * @return 自增后的结果
+     */
     public double incrFloat(String key, double value) {
         try (Jedis jedis = getJedis()) {
             if(name==null){
