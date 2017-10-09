@@ -1,5 +1,6 @@
 package org.voovan.tools.cache;
 
+import org.voovan.tools.cache.CacheStatic;
 import org.voovan.tools.json.JSON;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -27,6 +28,7 @@ import java.util.Set;
 public class RedisMap implements Map<String, String>, Closeable {
     private JedisPool redisPool;
     private String name = null;
+    private int dbIndex = 0;
 
     /**
      * 构造函数
@@ -110,13 +112,29 @@ public class RedisMap implements Map<String, String>, Closeable {
         this.redisPool = CacheStatic.getRedisPool();
     }
 
+    /**
+     * 获取当前选择的数据集
+     * @return 数据集序号
+     */
+    public int getDbIndex() {
+        return dbIndex;
+    }
+
+    /**
+     * 选择当前数据集
+     * @param dbIndex 数据集序号
+     */
+    public void setDbIndex(int dbIndex) {
+        this.dbIndex = dbIndex;
+    }
+
     @Override
     public int size() {
         if(name==null){
             throw new UnsupportedOperationException();
         }
 
-        try(Jedis jedis = redisPool.getResource()) {
+        try(Jedis jedis = getJedis()) {
             return Integer.valueOf(String.valueOf(jedis.hlen(name)));
         }
     }
@@ -130,9 +148,15 @@ public class RedisMap implements Map<String, String>, Closeable {
         return size()==0;
     }
 
+    private Jedis getJedis(){
+        Jedis Jedis = getJedis();
+        Jedis.select(dbIndex);
+        return Jedis;
+    }
+
     @Override
     public boolean containsKey(Object key) {
-        try(Jedis jedis = redisPool.getResource()) {
+        try(Jedis jedis = getJedis()) {
             if(name==null){
                 return jedis.exists(key.toString());
             }else {
@@ -148,7 +172,7 @@ public class RedisMap implements Map<String, String>, Closeable {
 
     @Override
     public String get(Object key) {
-        try(Jedis jedis = redisPool.getResource()) {
+        try(Jedis jedis = getJedis()) {
             if(name==null){
                 return jedis.get(key.toString());
             }else {
@@ -163,7 +187,7 @@ public class RedisMap implements Map<String, String>, Closeable {
 
     @Override
     public String put(String key, String value) {
-        try (Jedis jedis = redisPool.getResource()) {
+        try (Jedis jedis = getJedis()) {
             if(name==null){
                 return jedis.set(key.toString(), value.toString());
             }else {
@@ -175,7 +199,7 @@ public class RedisMap implements Map<String, String>, Closeable {
     }
 
     public boolean put(String key, String value, int expire){
-        try (Jedis jedis = redisPool.getResource()) {
+        try (Jedis jedis = getJedis()) {
             if(name==null){
                 return jedis.setex(key.toString(), expire, value.toString()).equals("OK");
             }else {
@@ -192,18 +216,21 @@ public class RedisMap implements Map<String, String>, Closeable {
         return put(key, JSON.toJSON(value), expire);
     }
 
-    public boolean putOnNull(String key, String value) {
-        try (Jedis jedis = redisPool.getResource()) {
+    @Override
+    public String putIfAbsent(String key, String value) {
+        try (Jedis jedis = getJedis()) {
             if(name==null){
-                return jedis.setnx(key.toString(), value.toString())==1;
+                jedis.setnx(key.toString(), value.toString());
             }else {
-                return jedis.hsetnx(name, key.toString(), value.toString())==1;
+                jedis.hsetnx(name, key.toString(), value.toString());
             }
+
+            return value;
         }
     }
 
     public boolean expire(String key, int expire) {
-        try (Jedis jedis = redisPool.getResource()) {
+        try (Jedis jedis = getJedis()) {
             if(name==null){
                 return jedis.expire(key.toString(), expire)==1;
             }else {
@@ -213,7 +240,7 @@ public class RedisMap implements Map<String, String>, Closeable {
     }
 
     public boolean persist(String key) {
-        try (Jedis jedis = redisPool.getResource()) {
+        try (Jedis jedis = getJedis()) {
             if(name==null){
                 return jedis.persist(key.toString())==1;
             }else {
@@ -224,7 +251,7 @@ public class RedisMap implements Map<String, String>, Closeable {
 
     @Override
     public String remove(Object key) {
-        try(Jedis jedis = redisPool.getResource()) {
+        try(Jedis jedis = getJedis()) {
             String value = null;
             if(name==null){
                 value = jedis.get(key.toString());
@@ -239,7 +266,7 @@ public class RedisMap implements Map<String, String>, Closeable {
 
     @Override
     public void putAll(Map map) {
-        try (Jedis jedis = redisPool.getResource()){
+        try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
                 Entry entry = (Entry) obj;
                 jedis.hset(name, entry.getKey().toString(), entry.getValue().toString());
@@ -249,7 +276,7 @@ public class RedisMap implements Map<String, String>, Closeable {
 
     @Override
     public void clear() {
-        try (Jedis jedis = redisPool.getResource()) {
+        try (Jedis jedis = getJedis()) {
             if(name==null){
                 jedis.flushDB();
             }else {
@@ -260,7 +287,7 @@ public class RedisMap implements Map<String, String>, Closeable {
 
     @Override
     public Set keySet() {
-        try (Jedis jedis = redisPool.getResource()) {
+        try (Jedis jedis = getJedis()) {
             if(name==null){
                 throw new UnsupportedOperationException();
             }else {
@@ -270,7 +297,7 @@ public class RedisMap implements Map<String, String>, Closeable {
     }
 
     public Set keySet(String pattern) {
-        try (Jedis jedis = redisPool.getResource()) {
+        try (Jedis jedis = getJedis()) {
             if(name==null){
                 return jedis.keys(pattern);
             }else {
@@ -281,7 +308,7 @@ public class RedisMap implements Map<String, String>, Closeable {
 
     @Override
     public Collection values() {
-        try (Jedis jedis = redisPool.getResource()) {
+        try (Jedis jedis = getJedis()) {
             if(name==null){
                 throw new UnsupportedOperationException();
             }else {
@@ -296,7 +323,7 @@ public class RedisMap implements Map<String, String>, Closeable {
     }
 
     public long incr(String key, long value) {
-        try (Jedis jedis = redisPool.getResource()) {
+        try (Jedis jedis = getJedis()) {
             if(name==null){
                 value = jedis.incrBy(key, value);
             }else {
@@ -309,7 +336,7 @@ public class RedisMap implements Map<String, String>, Closeable {
     }
 
     public double incrFloat(String key, double value) {
-        try (Jedis jedis = redisPool.getResource()) {
+        try (Jedis jedis = getJedis()) {
             if(name==null){
                 value = jedis.incrByFloat(key, value);
             }else {
