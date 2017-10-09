@@ -150,4 +150,22 @@ public class CacheStatic {
         }
     }
 
+    /**
+     * 获取 Redis 的连接
+     * @param dbIndex 数据集序号
+     * @return Jedis 对象
+     */
+    public static Jedis getRedisClient(int dbIndex){
+
+        if(redisPool==null){
+            getRedisPool();
+        }
+
+        if(redisPool != null) {
+            return redisPool.getResource();
+        }else{
+            return null;
+        }
+    }
+
 }
