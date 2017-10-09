@@ -225,6 +225,20 @@ public class MemcachedMap implements Map<String, String> , Closeable {
         }
     }
 
+    /**
+     * 删除指定的 key,不等待返回
+     * @param key
+     */
+    public void removeWithNoReply(Object key) {
+        MemcachedClient memcachedClient = getMemcachedClient();
+        try{
+            String value = memcachedClient.get(key.toString());
+            memcachedClient.deleteWithNoReply(key.toString());
+        }catch (Exception e){
+            Logger.error(e);
+        }
+    }
+
     @Override
     public void putAll(Map map) {
         MemcachedClient memcachedClient = getMemcachedClient();
