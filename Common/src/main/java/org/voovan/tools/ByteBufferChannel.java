@@ -544,9 +544,9 @@ public class ByteBufferChannel {
 
 	/**
 	 * 缓冲区某个位置写入数据
-	 * @param writePosition 缓冲取中的位置
+	 * @param writePosition 缓冲区中的位置
 	 * @param src 需要写入的缓冲区 ByteBuffer 对象
-	 * @return 读出的数据大小
+	 * @return 写入的数据大小
 	 */
 	public int write(int writePosition, ByteBuffer src) {
 		checkRelease();
@@ -663,7 +663,7 @@ public class ByteBufferChannel {
 
 	/**
 	 * 从缓冲区某个位置开始读取数据
-	 * @param readPosition 缓冲取中的位置
+	 * @param readPosition 缓冲区中的位置
 	 * @param dst 需要读入数据的缓冲区ByteBuffer 对象
 	 * @return 读出的数据大小
 	 */
@@ -794,7 +794,7 @@ public class ByteBufferChannel {
 
 
 	/**
-	 * 从 InputStream 读取一段,使用 byte数组 分割
+	 * 读取一段,使用 byte数组 分割
 	 * 		返回的 byte数组中不包含分割 byte 数组的内容
 	 * @param splitByte 分割字节数组
 	 * @return 字节数组
@@ -833,6 +833,12 @@ public class ByteBufferChannel {
 
 	}
 
+	/**
+	 * 保存到文件
+	 * @param filePath 文件路径
+	 * @param length 需要保存的长度
+	 * @throws IOException Io 异常
+	 */
 	public void saveToFile(String filePath, long length) throws IOException{
 		checkRelease();
 

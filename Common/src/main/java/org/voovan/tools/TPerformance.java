@@ -162,7 +162,7 @@ public class TPerformance {
 	 * 获取指定进程的对象信息
 	 * @param pid		进程 Id
 	 * @param regex     对象匹配字符串
-	 * @param headCount 返回的对象书
+	 * @param headCount 返回的对象数
 	 * @return 虚拟机中的对象信息
 	 * @throws IOException IO 异常
 	 */
@@ -236,8 +236,9 @@ public class TPerformance {
 
 	/**
 	 * 获取当前 JVM 线程信息描述
+	 * @param state 线程状态, nul,返回所有状态的线程
 	 * @param withStack 是否包含堆栈信息
-	 * @return 线程信息信息集合
+	 * @return 线程信息集合
 	 */
 	public static List<Map<String,Object>> getThreadDetail(String state, boolean withStack){
 		ArrayList<Map<String,Object>> threadDetailList = new ArrayList<Map<String,Object>>();

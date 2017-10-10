@@ -1068,7 +1068,7 @@ public class TReflect {
 	/**
 	 * 判读是否是 JDK 中定义的类(java包下的所有类)
 	 * @param clazz Class 对象
-	 * @return true: 是基本类型, false:非基本类型
+	 * @return true: 是JDK 中定义的类, false:非JDK 中定义的类
 	 */
 	public static boolean isSystemType(Class clazz){
 		List<String> systemPackages = TObject.asList("java.","sun.","javax.","com.sun","com.oracle");
