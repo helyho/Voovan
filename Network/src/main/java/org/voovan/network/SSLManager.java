@@ -11,6 +11,15 @@ import java.security.cert.X509Certificate;
 
 /**
  * SSL管理器
+ *
+ * SSL - Supports some version of SSL; may support other versions
+ * SSLv2 - Supports SSL version 2 or later; may support other versions
+ * SSLv3 - Supports SSL version 3; may support other versions
+ * TLS - Supports some version of TLS; may support other versions
+ * TLSv1 - Supports RFC 2246: TLS version 1.0 ; may support other versions
+ * TLSv1.1 - Supports RFC 4346: TLS version 1.1 ; may support other versions
+ * TLSv1.2 - Supports RFC 5246: TLS version 1.2 ; may support other versions
+ *
  * @author helyho
  *
  * Voovan Framework.
