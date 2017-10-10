@@ -649,7 +649,7 @@ public class TReflect {
 
 		Object singleValue = null;
 
-		if(mapArg.size()==1 && mapArg.containsKey("value")){
+		if(mapArg.size()==1){
 			singleValue = mapArg.values().iterator().next();
 		}
 
