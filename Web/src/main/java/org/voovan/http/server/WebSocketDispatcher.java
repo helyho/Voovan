@@ -4,7 +4,6 @@ import org.voovan.Global;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.websocket.WebSocketFrame;
-import org.voovan.http.websocket.WebSocketFrame.Opcode;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
@@ -19,9 +18,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * 
+ *
  * 根据 WebSocket 请求分派到处理路由
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -73,17 +72,18 @@ public class WebSocketDispatcher {
 
 	/**
 	 * 增加一个路由规则
-	 * 
+	 *
 	 * @param routeRegexPath 匹配路径
 	 * @param handler WebSocketRouter 对象
 	 */
 	public void addRouteHandler(String routeRegexPath, WebSocketRouter handler) {
+		routeRegexPath = HttpDispatcher.fixRoutePath(routeRegexPath);
 		routes.put(routeRegexPath, handler);
 	}
 
 	/**
 	 * 路由处理函数
-	 * 
+	 *
 	 * @param event     WebSocket 事件
 	 * @param session   socket连接会话
 	 * @param request   HTTP 请求对象
@@ -126,7 +126,7 @@ public class WebSocketDispatcher {
 
 					//将返回消息包装称WebSocketFrame
 					if (responseMessage != null) {
-						return WebSocketFrame.newInstance(true, Opcode.TEXT, false, responseMessage);
+						return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, responseMessage);
 					}
 
 					if (event == WebSocketEvent.SENT) {
@@ -136,7 +136,7 @@ public class WebSocketDispatcher {
 					} else if (event == WebSocketEvent.CLOSE) {
 						webSocketRouter.onClose(webSocketSession);
 					} else if (event == WebSocketEvent.PING) {
-						return WebSocketFrame.newInstance(true, Opcode.PONG, false, byteBuffer);
+						return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false, byteBuffer);
 					} else if (event == WebSocketEvent.PONG) {
 						final IoSession poneSession = session;
 						Global.getThreadPool().execute(new Runnable() {
@@ -144,7 +144,7 @@ public class WebSocketDispatcher {
 							public void run() {
 								TEnv.sleep(poneSession.socketContext().getReadTimeout() / 3);
 								try {
-									poneSession.syncSend(WebSocketFrame.newInstance(true, Opcode.PING, false, null));
+									poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
 								} catch (SendMessageException e) {
 									poneSession.close();
 									Logger.error("Send WebSocket ping error", e);
@@ -181,7 +181,7 @@ public class WebSocketDispatcher {
 			// 构建 session
 			WebSocketSession webSocketSession =
 					new WebSocketSession(httpSession.getSocketSession(), webSocketRouter,
-											request.getRemoteAddres(), request.getRemotePort());
+							request.getRemoteAddres(), request.getRemotePort());
 
 			httpSession.setWebSocketSession(webSocketSession);
 		}
@@ -232,8 +232,8 @@ public class WebSocketDispatcher {
 	public void fireCloseEvent(IoSession session){
 		//检查是否是WebSocket
 		if ("WebSocket".equals(WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.TYPE))) {
-				// 触发一个 WebSocket Close 事件
-				process(WebSocketEvent.CLOSE, session, (HttpRequest) WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.HTTP_REQUEST), null);
+			// 触发一个 WebSocket Close 事件
+			process(WebSocketEvent.CLOSE, session, (HttpRequest) WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.HTTP_REQUEST), null);
 		}
 	}
 
