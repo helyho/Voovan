@@ -43,7 +43,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 			// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
 			if (MessageLoader.isStreamEnd(readTempBuffer, length) || !session.isConnected()) {
 				session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
-				session.close();
+//				session.close();
 			} else {
 				readTempBuffer.flip();
 

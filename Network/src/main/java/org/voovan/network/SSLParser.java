@@ -36,7 +36,6 @@ public class SSLParser {
 	public SSLParser(SSLEngine engine,IoSession session) {
 		this.engine = engine;
 		this.session = session;
-		session.setSSLParser(this);
 		this.appData= buildAppDataBuffer();
 		this.netData = buildNetDataBuffer();
 	}
@@ -83,18 +82,18 @@ public class SSLParser {
 	 * @return 			   返回成功执行的最后一个或者失败的那个 SSLEnginResult
 	 * @throws IOException IO 异常
 	 */
-	public SSLEngineResult warpData(ByteBuffer buffer) throws IOException{
-		netData.clear();
-		SSLEngineResult engineResult = null;
-		do{
-			engineResult = engine.wrap(buffer, netData);
-			netData.flip();
-			if(session.isConnected() && engineResult.bytesProduced()>0 && netData.limit()>0){
-				session.send0(netData);
-			}
-			netData.clear();
-		}while(engineResult.getStatus() == Status.OK && buffer.hasRemaining());
-		return engineResult;
+	public synchronized SSLEngineResult warpData(ByteBuffer buffer) throws IOException{
+        netData.clear();
+        SSLEngineResult engineResult = null;
+        do {
+            engineResult = engine.wrap(buffer, netData);
+            netData.flip();
+            if (session.isConnected() && engineResult.bytesProduced() > 0 && netData.limit() > 0) {
+                session.send0(netData);
+            }
+            netData.clear();
+        } while (engineResult.getStatus() == Status.OK && buffer.hasRemaining());
+        return engineResult;
 	}
 
 	/**
@@ -103,13 +102,26 @@ public class SSLParser {
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	private HandshakeStatus doHandShakeWarp() throws IOException {
-		clearBuffer();
-		appData.flip();
-		warpData(appData);
-		//如果有 HandShake Task 则执行
-		HandshakeStatus handshakeStatus = runDelegatedTasks();
-		return handshakeStatus;
+	private synchronized HandshakeStatus doHandShakeWarp() throws IOException {
+		int waitCount = 0;
+		while(true) {
+			if (waitCount >= session.socketContext().getReadTimeout()) {
+				throw new SSLException("Hand shake on: " + session.remoteAddress() + ":" + session.remotePort() + " timeout");
+			}
+
+			try {
+				clearBuffer();
+				appData.flip();
+				warpData(appData);
+				//如果有 HandShake Task 则执行
+				HandshakeStatus handshakeStatus = runDelegatedTasks();
+				return handshakeStatus;
+			} catch (SSLException e) {
+				waitCount++;
+				TEnv.sleep(1);
+				continue;
+			}
+		}
 	}
 
 	/**
@@ -119,10 +131,10 @@ public class SSLParser {
 	 * @return				SSLEngineResult 对象
 	 * @throws SSLException SSL 异常
 	 */
-	public SSLEngineResult unwarpData(ByteBuffer netBuffer,ByteBuffer appBuffer) throws SSLException{
-		SSLEngineResult engineResult = null;
-		engineResult = engine.unwrap(netBuffer, appBuffer);
-		return engineResult;
+	public synchronized SSLEngineResult unwarpData(ByteBuffer netBuffer,ByteBuffer appBuffer) throws SSLException{
+        SSLEngineResult engineResult = null;
+        engineResult = engine.unwrap(netBuffer, appBuffer);
+        return engineResult;
 	}
 
 	/**
@@ -131,8 +143,8 @@ public class SSLParser {
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	private HandshakeStatus doHandShakeUnwarp() throws IOException{
-		HandshakeStatus handshakeStatus =engine.getHandshakeStatus();
+	private synchronized HandshakeStatus doHandShakeUnwarp() throws IOException{
+		HandshakeStatus handshakeStatus = null;
 		SSLEngineResult engineResult = null;
 		int waitCount = 0;
 		while(true){
@@ -150,24 +162,27 @@ public class SSLParser {
 			if(byteBufferChannel.size() > 0)  {
 				ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 				engineResult = unwarpData(byteBuffer, appData);
-				if(engineResult.getStatus() == Status.OK) {
-					//如果有 HandShake Task 则执行
-					handshakeStatus = runDelegatedTasks();
-				}
+
 				byteBufferChannel.compact();
 
-				if(engineResult.getStatus() == Status.CLOSED ||
-						engineResult.getStatus() == Status.BUFFER_OVERFLOW) {
-					Logger.error(new SSLHandshakeException("Handshake failed: "+engineResult.getStatus()));
-					break;
+				switch (engineResult.getStatus()){
+					case OK : {
+						return engine.getHandshakeStatus();
+					}
+					case CLOSED : {
+						Logger.error(new SSLHandshakeException("Handshake failed: "+engineResult.getStatus()));
+						session.close();
+						break;
+					}
+					case BUFFER_OVERFLOW : {
+						break;
+					}
+					case BUFFER_UNDERFLOW : {
+						break;
+					}
 				}
 
-				if(engineResult.getStatus() == Status.BUFFER_UNDERFLOW && !session.isConnected()){
-					Logger.error(new SSLHandshakeException("Handshake failed: "+engineResult.getStatus()));
-					break;
-				}
-
-				if(engineResult.getStatus() == Status.OK) {
+				if(!session.isConnected()){
 					break;
 				}
 			}
@@ -175,14 +190,14 @@ public class SSLParser {
 			waitCount++;
 			TEnv.sleep(1);
 		};
-		return handshakeStatus;
+		return handshakeStatus == null ? engine.getHandshakeStatus() : handshakeStatus;
 	}
 
 	/**
 	 * 执行委派任务
 	 * @throws Exception
 	 */
-	private HandshakeStatus runDelegatedTasks()  {
+	private synchronized HandshakeStatus runDelegatedTasks()  {
 		if(handShakeDone==false){
 			if (engine.getHandshakeStatus() == HandshakeStatus.NEED_TASK) {
 				Runnable runnable;
@@ -195,7 +210,7 @@ public class SSLParser {
 		return null;
 	}
 
-	public boolean doHandShake() throws IOException{
+	public synchronized  boolean doHandShake() throws IOException{
 
 		engine.beginHandshake();
 		int handShakeCount = 0;
@@ -223,6 +238,7 @@ public class SSLParser {
 			}
 //			TEnv.sleep(1);
 		}
+
 		return handShakeDone;
 	}
 
@@ -234,7 +250,7 @@ public class SSLParser {
 	 * @return 接收数据大小
 	 * @throws IOException  IO异常
 	 */
-	public int unWarpByteBufferChannel(IoSession session, ByteBufferChannel netByteBufferChannel, ByteBufferChannel appByteBufferChannel) throws IOException{
+	public synchronized int unWarpByteBufferChannel(IoSession session, ByteBufferChannel netByteBufferChannel, ByteBufferChannel appByteBufferChannel) throws IOException{
 		int readSize = 0;
 
 		if(session.isConnected() && netByteBufferChannel.size()>0){
