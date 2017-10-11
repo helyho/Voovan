@@ -5,6 +5,7 @@ import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.udp.UdpSocket;
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
@@ -40,10 +41,7 @@ public class EventProcess {
 	 */
 	public static void onAccepted(Event event) throws IOException {
 		SocketContext socketContext = event.getSession().socketContext();
-		if (socketContext != null) {
-
-			socketContext.syncStart();
-		}
+		socketContext.acceptStart();
 	}
 
 	/**
@@ -52,26 +50,37 @@ public class EventProcess {
 	 * @param event
 	 *            事件对象
 	 */
-	public static void onConnect(Event event)   {
+	public static void onConnect(Event event) {
 
 		IoSession session = event.getSession();
 
-        // SSL 握手
-        if (session != null && session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
-            try {
-                session.getSSLParser().doHandShake();
-            } catch (Exception e) {
-                Logger.error("SSL hand shake failed", e);
-                session.close();
-                return;
-            }
-        }
+		// SSL 握手
+		if (session != null && session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
+			try {
+				if (session.getSSLParser().doHandShake() &&
+						session.getByteBufferChannel().size() > 0 &&
+						!session.getState().isReceive()) {
+
+					//将握手后的剩余数据进行处理, 并触发 onRecive 事件
+					ByteBufferChannel byteBufferChannel = new ByteBufferChannel();
+					session.getSSLParser().unWarpByteBufferChannel(session, session.getByteBufferChannel(), byteBufferChannel);
+					session.getByteBufferChannel().clear();
+					session.getByteBufferChannel().writeHead(byteBufferChannel.getByteBuffer());
+					byteBufferChannel.compact();
+					EventTrigger.fireReceiveThread(session);
+				}
+			} catch (Exception e) {
+				Logger.error("SSL hand shake failed", e);
+				session.close();
+				return;
+			}
+		}
 
 		SocketContext socketContext = event.getSession().socketContext();
 		if (socketContext != null && session != null) {
 			Object original = socketContext.handler().onConnect(session);
 			//null 不发送
-			if(original!=null) {
+			if (original != null) {
 				sendMessage(session, original);
 			}
 		}
@@ -328,8 +337,7 @@ public class EventProcess {
 		// 根据事件名称处理事件
 		try {
 			if (eventName == EventName.ON_ACCEPTED) {
-				SocketContext socketContext = (SocketContext)event.getSession().socketContext();
-				socketContext.acceptStart();
+				EventProcess.onAccepted(event);
 			} else if (eventName == EventName.ON_CONNECT) {
 				EventProcess.onConnect(event);
 			} else if (eventName == EventName.ON_DISCONNECT) {

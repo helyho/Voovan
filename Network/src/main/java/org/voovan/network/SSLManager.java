@@ -137,10 +137,12 @@ public class SSLManager {
 	 * @return SSLParser 对象
 	 * @throws SSLException SSL 异常
 	 */
-	public SSLParser createClientSSLParser(IoSession session) throws SSLException {
+	public synchronized SSLParser createClientSSLParser(IoSession session) throws SSLException {
 		createSSLEngine(protocol, session.socketContext().getHost(), session.socketContext().getPort());
 		engine.setUseClientMode(true);
-		return new SSLParser(engine, session);
+		SSLParser sslParser = new SSLParser(engine, session);
+		session.setSSLParser(sslParser);
+		return sslParser;
 	}
 	
 	/**
@@ -149,11 +151,15 @@ public class SSLManager {
 	 * @return SSLParser对象
 	 * @throws SSLException SSL 异常
 	 */
-	public SSLParser createServerSSLParser(IoSession session) throws SSLException{
+	public synchronized SSLParser createServerSSLParser(IoSession session) throws SSLException{
 		createSSLEngine(protocol, session.socketContext().getHost(), session.socketContext().getPort());
 		engine.setUseClientMode(false);
 		engine.setNeedClientAuth(needClientAuth);
-		return new SSLParser(engine, session);
+
+		SSLParser sslParser = new SSLParser(engine, session);
+		session.setSSLParser(sslParser);
+
+		return sslParser;
 	}
 	
 	private static class DefaultTrustManager implements X509TrustManager {
