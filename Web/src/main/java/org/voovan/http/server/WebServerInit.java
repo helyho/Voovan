@@ -1,7 +1,7 @@
 package org.voovan.http.server;
 
 /**
- * 类文字命名
+ * WebServer初始化类
  *
  * @author: helyho
  * Framework Framework.

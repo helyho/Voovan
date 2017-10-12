@@ -4,6 +4,8 @@ import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.tools.Chain;
+import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 
 /**
  * WebServer的模块
@@ -100,7 +102,7 @@ public abstract class HttpModule {
      * @param router  HTTP处理请求句柄
      */
     public void delete(String routeRegexPath, HttpRouter router) {
-       String routePath = moduleConfig.getPath()+routeRegexPath;
+        String routePath = moduleConfig.getPath()+routeRegexPath;
         webServer.delete(routePath,router);
     }
 
@@ -160,6 +162,37 @@ public abstract class HttpModule {
      */
     public void socket(String routeRegexPath, WebSocketRouter router) {
         webServer.socket(moduleConfig.getPath() + routeRegexPath, router);
+    }
+
+    /**
+     * 加载并运模块行初始化类
+     */
+    protected void runInitClass(){
+        String moduleInitClass = this.moduleConfig.getInitClass();
+
+        if(moduleInitClass==null) {
+            Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] None HttpMoudule init class to load.");
+            return;
+        }
+
+        if(moduleInitClass.isEmpty()){
+            Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] None HttpMoudule init class to load.");
+            return;
+        }
+
+        try {
+            HttpModuleInit moduleInit = null;
+
+            Class clazz = Class.forName(moduleInitClass);
+            if(TReflect.isImpByInterface(clazz, HttpModuleInit.class)){
+                moduleInit = (HttpModuleInit)TReflect.newInstance(clazz);
+                moduleInit.init(this);
+            }else{
+                Logger.warn("["+moduleConfig.getName()+"] The HttpModule init class " + moduleInitClass + " is not a class implement by " + HttpModuleInit.class.getName());
+            }
+        } catch (Exception e) {
+            Logger.error("["+moduleConfig.getName()+"] Initialize HttpModule init class error: " + e);
+        }
     }
 
     /**

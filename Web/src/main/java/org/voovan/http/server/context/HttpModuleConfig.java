@@ -23,6 +23,7 @@ public class HttpModuleConfig {
     private String path;
     private String className;
     private Map<String, Object> paramters = new HashMap<String, Object>();
+    private String initClass = null;
     private HttpModule httpModule;
 
     public HttpModuleConfig(Map<String, Object> configMap) {
@@ -33,6 +34,8 @@ public class HttpModuleConfig {
                 this.path = (String) entry.getValue();
             }else if ("ClassName".equalsIgnoreCase(entry.getKey())) {
                 this.className = (String) entry.getValue();
+            }else if ("InitClass".equalsIgnoreCase(entry.getKey())) {
+                this.initClass = (String) entry.getValue();
             } else {
                 paramters.put(entry.getKey(), entry.getValue());
             }
@@ -79,6 +82,14 @@ public class HttpModuleConfig {
      */
     public Object getParameter(String name) {
         return paramters.get(name);
+    }
+
+    public String getInitClass() {
+        return initClass;
+    }
+
+    public void setInitClass(String initClass) {
+        this.initClass = initClass;
     }
 
     /**
