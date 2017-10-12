@@ -64,6 +64,9 @@ public class WebServer {
 		}, 10);
 	}
 
+	/**
+	 * 初始化热部署
+	 */
 	private void initHotSwap() {
 		//热加载
 		{
@@ -118,7 +121,7 @@ public class WebServer {
 	/**
 	 * 将配置文件中的 Router 配置载入到 WebServer
 	 */
-	private void initConfigedRouter(){
+	private void initRouter(){
 		for(HttpRouterConfig httpRouterConfig : config.getRouterConfigs()){
 			String method = httpRouterConfig.getMethod();
 			String route = httpRouterConfig.getRoute();
@@ -149,6 +152,7 @@ public class WebServer {
 	public HttpModule addModule(HttpModuleConfig httpModuleConfig){
 		HttpModule httpModule = httpModuleConfig.getHttpModuleInstance(this);
 		if(httpModule!=null){
+			httpModule.runInitClass();
 			httpModule.install();
 		}
 
@@ -368,15 +372,21 @@ public class WebServer {
 	private void commonServe(){
 		//输出欢迎信息
 		WebContext.welcome();
-		WebContext.initWebServerPlugin();
 
-		initConfigedRouter();
-		initModule();
+		//加载过滤器,路由,模块
+		WebContext.initWebServerPlugin();
 
 		//运行初始化 Class
 		runInitClass(this);
 
-		addManagerRouter();
+		//初始化路由
+		initRouter();
+
+		//初始化模块
+		initModule();
+
+		//初始化管理路由
+		InitManagerRouter();
 
 
 
@@ -386,9 +396,41 @@ public class WebServer {
 	}
 
 	/**
-	 * 增加服务管理相关的路由
+	 * 加载并运行初始化类
+	 * @param webServer WebServer对象
 	 */
-	public void addManagerRouter(){
+	private void runInitClass(WebServer webServer){
+		String initClass = WebContext.getWebServerConfig().getInitClass();
+
+		if(initClass==null) {
+			Logger.info("None WebServer init class to load.");
+			return;
+		}
+
+		if(initClass.isEmpty()){
+			Logger.info("None WebServer init class to load.");
+			return;
+		}
+
+		try {
+			WebServerInit webServerInit = null;
+
+			Class clazz = Class.forName(initClass);
+			if(TReflect.isImpByInterface(clazz, WebServerInit.class)){
+				webServerInit = (WebServerInit)TReflect.newInstance(clazz);
+				webServerInit.init(webServer);
+			}else{
+				Logger.warn("The WebServer init class " + initClass + " is not a class implement by " + WebServerInit.class.getName());
+			}
+		} catch (Exception e) {
+			Logger.error("Initialize WebServer init class error: " + e);
+		}
+	}
+
+	/**
+	 * 初始化服务管理相关的路由
+	 */
+	public void InitManagerRouter(){
 		final WebServer innerWebServer = this;
 
 		otherMethod("ADMIN", "/status", new HttpRouter() {
@@ -503,36 +545,6 @@ public class WebServer {
 				}
 			}
 		});
-	}
-
-	/**
-	 * 执行启动初始化类
-	 * @param webServer WebServer对象
-	 */
-	private void runInitClass(WebServer webServer){
-		String initClass = WebContext.getWebServerConfig().getInitClass();
-
-		if(initClass==null){
-			return;
-		}
-
-		if(initClass.isEmpty()){
-			return;
-		}
-
-		try {
-			WebServerInit webServerInit = null;
-
-			Class clazz = Class.forName(initClass);
-			if(TReflect.isImpByInterface(clazz, WebServerInit.class)){
-				webServerInit = (WebServerInit)TReflect.newInstance(clazz);
-				webServerInit.init(webServer);
-			}else{
-				Logger.warn("The init class " + initClass + " is not a class implement by " + WebServerInit.class.getName());
-			}
-		} catch (Exception e) {
-			Logger.error("Initialize WebServer init class error: " + e);
-		}
 	}
 
 	/**

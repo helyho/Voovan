@@ -49,7 +49,10 @@ public class AnnotationModule extends HttpModule {
                 }
             }, getScanRouterInterval());
 
-            Logger.simple("Start scan annotation router.");
+            Logger.simple("[SYSTEM] Module ["+this.getModuleConfig().getName()+"] Router scan package: "+ this.getScanRouterPackage());
+            Logger.simple("[SYSTEM] Module ["+this.getModuleConfig().getName()+"] Router scan interval: "+ this.getScanRouterInterval());
+
+            Logger.simple("[SYSTEM] Module ["+this.getModuleConfig().getName()+"] Start auto scan annotation router.");
         }
     }
 }
