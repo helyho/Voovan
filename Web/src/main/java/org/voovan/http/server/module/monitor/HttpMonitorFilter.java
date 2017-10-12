@@ -5,27 +5,18 @@ import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.context.HttpFilterConfig;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 监控用过滤器
  */
 public class HttpMonitorFilter implements HttpFilter {
-	private final static Map<String, Map<Long, Long>> REQUEST_START_TIME = new ConcurrentHashMap<String, Map<Long, Long>>();
+	private final static ThreadLocal<Long> REQUEST_START_TIME = new ThreadLocal<Long>();
 
 	@Override
 	public Object onRequest(HttpFilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult ) {
 		String sessionId = request.getSession().getId();
-		synchronized (REQUEST_START_TIME) {
-			if (!REQUEST_START_TIME.containsKey(sessionId)) {
-				REQUEST_START_TIME.put(sessionId, new ConcurrentHashMap<Long, Long>());
-			}
-		}
 
-		Map<Long, Long> threadMark = REQUEST_START_TIME.get(sessionId);
-
-		threadMark.put(Thread.currentThread().getId(), System.currentTimeMillis());
+		REQUEST_START_TIME.set(System.currentTimeMillis());
 		return prevFilterResult;
 	}
 
@@ -45,15 +36,7 @@ public class HttpMonitorFilter implements HttpFilter {
 	 * @param request 请求对象
 	 */
 	public void requestAnalysis(HttpRequest request){
-		Long startTime = null;
-
-		String sessionId = request.getSession().getId();
-		long threadId = Thread.currentThread().getId();
-		if(REQUEST_START_TIME.containsKey(sessionId) &&
-			REQUEST_START_TIME.get(sessionId).containsKey(threadId)){
-			startTime = REQUEST_START_TIME.get(sessionId).get(threadId);
-			REQUEST_START_TIME.get(sessionId).remove(threadId);
-		}
+		Long startTime = REQUEST_START_TIME.get();
 
 		if(startTime!=null) {
 			String requestPath = request.protocol().getPath();
@@ -69,6 +52,7 @@ public class HttpMonitorFilter implements HttpFilter {
 
 			requestAnalysis.addRequestTime(Long.valueOf(dealTime).intValue());
 		}
+		REQUEST_START_TIME.set(null);
 	}
 
 
