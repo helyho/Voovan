@@ -21,23 +21,24 @@ import java.util.Arrays;
  */
 public class TByteBuffer {
 
+    public static Class DIRECT_BYTE_BUFFER_CLASS = ByteBuffer.allocateDirect(0).getClass();
+    private static Integer BYTEBUFFER_MARK = 19821031;
 
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
         if(Global.isNoHeapManualRelease()) {
             try {
-                ByteBuffer template = TByteBuffer.allocateDirect(0);
-                Constructor c = template.getClass().getDeclaredConstructor(long.class, int.class, Object.class);
+                Constructor c = DIRECT_BYTE_BUFFER_CLASS.getDeclaredConstructor(long.class, int.class, Object.class);
                 c.setAccessible(true);
                 long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
 
-                return (ByteBuffer) c.newInstance(address, capacity, "VOOVAN");
+                return (ByteBuffer) c.newInstance(address, capacity, BYTEBUFFER_MARK);
             } catch (Exception e) {
                 Logger.error("Create ByteBufferChannel error. ", e);
                 return null;
             }
         }else{
-            return TByteBuffer.allocateDirect(capacity);
+            return ByteBuffer.allocateDirect(capacity);
         }
     }
 
@@ -208,14 +209,12 @@ public class TByteBuffer {
 
         synchronized (byteBuffer) {
             try {
-                if (byteBuffer != null && TReflect.findField(byteBuffer.getClass(), "address") != null) {
+                if (byteBuffer != null && byteBuffer.getClass() == DIRECT_BYTE_BUFFER_CLASS) {
                     long address = (Long) TReflect.getFieldValue(byteBuffer, "address");
-                    if (TReflect.findField(byteBuffer.getClass(), "att")!=null){
-                        Object attr = TReflect.getFieldValue(byteBuffer, "att");
-                        if (address != 0 && "VOOVAN".equals(attr)) {
-                            TUnsafe.getUnsafe().freeMemory(address);
-                            TReflect.setFieldValue(byteBuffer, "address", 0);
-                        }
+                    Object attr = TReflect.getFieldValue(byteBuffer, "att");
+                    if (address != 0 && BYTEBUFFER_MARK.equals(attr)) {
+                        TUnsafe.getUnsafe().freeMemory(address);
+                        TReflect.setFieldValue(byteBuffer, "address", 0);
                     }
                 }
             } catch (ReflectiveOperationException e) {

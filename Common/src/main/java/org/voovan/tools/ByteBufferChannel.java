@@ -70,8 +70,7 @@ public class ByteBufferChannel {
 	 */
 	private ByteBuffer newByteBuffer(int capacity){
 		try {
-			ByteBuffer template = TByteBuffer.allocateDirect(0);
-			Constructor c = template.getClass().getDeclaredConstructor(long.class, int.class);
+			Constructor c = TByteBuffer.DIRECT_BYTE_BUFFER_CLASS.getDeclaredConstructor(long.class, int.class);
 			c.setAccessible(true);
 			address.set(TUnsafe.getUnsafe().allocateMemory(capacity));
 
