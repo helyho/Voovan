@@ -14,8 +14,6 @@ public class HttpMonitorFilter implements HttpFilter {
 
 	@Override
 	public Object onRequest(HttpFilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult ) {
-		String sessionId = request.getSession().getId();
-
 		REQUEST_START_TIME.set(System.currentTimeMillis());
 		return prevFilterResult;
 	}
