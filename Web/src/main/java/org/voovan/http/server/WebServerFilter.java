@@ -7,6 +7,7 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
@@ -40,7 +41,7 @@ public class WebServerFilter implements IoFilter {
 			}catch(Exception e){
 				Logger.error(e);
 			}
-			return ByteBuffer.allocateDirect(0);
+			return TByteBuffer.allocateDirect(0);
 		} else if(object instanceof WebSocketFrame){
 			WebSocketFrame webSocketFrame = (WebSocketFrame)object;
 			return webSocketFrame.toByteBuffer();

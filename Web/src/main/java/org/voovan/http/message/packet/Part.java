@@ -167,7 +167,7 @@ public class Part {
 		int readSize = 0;
 
 		//发送缓冲区
-		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024 * 50);
+		ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
 
 		//发送分段开始
 		byteBuffer.put(("--" + boundary + "\r\n").getBytes());

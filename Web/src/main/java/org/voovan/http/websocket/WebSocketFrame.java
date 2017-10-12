@@ -168,7 +168,7 @@ public class WebSocketFrame {
 		}
 
 		// 读取实际接受数据
-		ByteBuffer payload = ByteBuffer.allocateDirect(payloadlength);
+		ByteBuffer payload = TByteBuffer.allocateDirect(payloadlength);
 		if (mask) {
 			byte[] maskskey = new byte[4];
 			byteBuffer.get(maskskey);
@@ -276,7 +276,7 @@ public class WebSocketFrame {
 		}
 		boolean mask = this.isTransfereMask(); 
 		int sizebytes = data.remaining() <= 125 ? 1 : data.remaining() <= 65535 ? 2 : 8;
-		ByteBuffer buf = ByteBuffer.allocateDirect(1 + (sizebytes > 1 ? sizebytes + 1 : sizebytes) + (mask ? 4 : 0) + data.remaining());
+		ByteBuffer buf = TByteBuffer.allocateDirect(1 + (sizebytes > 1 ? sizebytes + 1 : sizebytes) + (mask ? 4 : 0) + data.remaining());
 		byte optcode = fromOpcode(this.getOpcode());
 		byte one = (byte) (this.isFin() ? -128 : 0);
 		one |= optcode;
@@ -296,7 +296,7 @@ public class WebSocketFrame {
 		}
 
 		if (mask) {
-			ByteBuffer maskkey = ByteBuffer.allocateDirect(4);
+			ByteBuffer maskkey = TByteBuffer.allocateDirect(4);
 			Random reuseableRandom = new Random();
 			maskkey.putInt(reuseableRandom.nextInt());
 			maskkey.flip();

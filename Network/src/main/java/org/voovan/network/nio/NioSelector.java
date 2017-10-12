@@ -50,7 +50,7 @@ public class NioSelector {
 	 */
 	public void eventChose() {
 		//读取用的缓冲区
-		ByteBuffer readTempBuffer = ByteBuffer.allocateDirect(socketContext.getBufferSize());
+		ByteBuffer readTempBuffer = TByteBuffer.allocateDirect(socketContext.getBufferSize());
 
 		if( socketContext instanceof NioSocket && netByteBufferChannel== null && session.getSSLParser()!=null) {
 			netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());

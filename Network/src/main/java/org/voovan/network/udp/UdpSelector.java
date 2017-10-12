@@ -51,7 +51,7 @@ public class UdpSelector {
      */
     public void eventChose() {
         //读取用的缓冲区
-        ByteBuffer readTempBuffer = ByteBuffer.allocateDirect(socketContext.getBufferSize());
+        ByteBuffer readTempBuffer = TByteBuffer.allocateDirect(socketContext.getBufferSize());
 
         if (socketContext instanceof UdpSocket) {
             // 连接完成onConnect事件触发

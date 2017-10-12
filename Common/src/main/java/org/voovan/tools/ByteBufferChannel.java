@@ -1,5 +1,6 @@
 package org.voovan.tools;
 
+import org.voovan.Global;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -12,6 +13,7 @@ import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -25,7 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ByteBufferChannel {
 
-	private long address;
+	private volatile AtomicLong address = new AtomicLong(0);
 	private Unsafe unsafe = TUnsafe.getUnsafe();
 	private ByteBuffer byteBuffer;
 	private int size;
@@ -68,14 +70,14 @@ public class ByteBufferChannel {
 	 */
 	private ByteBuffer newByteBuffer(int capacity){
 		try {
-			ByteBuffer template = ByteBuffer.allocateDirect(0);
+			ByteBuffer template = TByteBuffer.allocateDirect(0);
 			Constructor c = template.getClass().getDeclaredConstructor(long.class, int.class);
 			c.setAccessible(true);
-			address = TUnsafe.getUnsafe().allocateMemory(capacity);
+			address.set(TUnsafe.getUnsafe().allocateMemory(capacity));
 
-			ByteBuffer instance = (ByteBuffer) c.newInstance(address, capacity);
+			ByteBuffer instance = (ByteBuffer) c.newInstance(address.get(), capacity);
 
-			deallocator = new Deallocator(address, capacity);
+			deallocator = new Deallocator(address.get(), capacity);
 
 			cleaner = Cleaner.create(this, deallocator);
 
@@ -92,7 +94,7 @@ public class ByteBufferChannel {
 	 * @return true 已释放, false: 未释放
 	 */
 	public boolean isReleased(){
-		if(address == 0){
+		if(address.get() == 0){
 			return true;
 		}else{
 			return false;
@@ -112,15 +114,21 @@ public class ByteBufferChannel {
 	 * 立刻释放内存
 	 */
 	public void release(){
-//		lock.lock();
-//		try{
-//			if(address != 0) {
-//				cleaner.clean();
-//				address = 0;
-//			}
-//		}finally {
-//			lock.unlock();
-//		}
+		//是否手工释放
+		if(!Global.isNoHeapManualRelease()) {
+			return;
+		}
+
+		synchronized (lock) {
+			while(lock.isLocked()){
+				TEnv.sleep(1);
+			}
+
+			if (address.get() != 0) {
+				cleaner.clean();
+				address.set(0);
+			}
+		}
 	}
 
 	private static class Deallocator implements Runnable {
@@ -155,8 +163,8 @@ public class ByteBufferChannel {
 
 		lock.lock();
 		try {
-			this.address = TReflect.getFieldValue(byteBuffer, "address");
-			deallocator.setAddress(address);
+			this.address.set((Long)TReflect.getFieldValue(byteBuffer, "address"));
+			deallocator.setAddress(address.get());
 		}catch (ReflectiveOperationException e){
 			Logger.error("ByteBufferChannel resetAddress() Error: ", e);
 		} finally {
@@ -351,7 +359,7 @@ public class ByteBufferChannel {
 		lock.lock();
 		try{
 			if(position >= 0 && position <= size) {
-				byte result = unsafe.getByte(address + position);
+				byte result = unsafe.getByte(address.get() + position);
 				return result;
 			} else {
 				throw new IndexOutOfBoundsException();
@@ -392,7 +400,7 @@ public class ByteBufferChannel {
 					arrSize = length;
 				}
 
-				unsafe.copyMemory(null, address + position, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
+				unsafe.copyMemory(null, address.get() + position, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
 
 				return arrSize;
 
@@ -772,7 +780,7 @@ public class ByteBufferChannel {
 
 		if (index >= 0) {
 
-			ByteBuffer lineBuffer = ByteBuffer.allocateDirect(index + 1);
+			ByteBuffer lineBuffer = TByteBuffer.allocateDirect(index + 1);
 
 			int readSize = readHead(lineBuffer);
 
@@ -783,7 +791,7 @@ public class ByteBufferChannel {
 		}
 
 		if(size()>0 && lineStr.isEmpty()){
-			ByteBuffer lineBuffer = ByteBuffer.allocateDirect(size());
+			ByteBuffer lineBuffer = TByteBuffer.allocateDirect(size());
 			if(readHead(lineBuffer) > 0) {
 				lineStr = TByteBuffer.toString(lineBuffer);
 			}
@@ -803,7 +811,7 @@ public class ByteBufferChannel {
 		checkRelease();
 
 		if(size() == 0){
-			return ByteBuffer.allocateDirect(0);
+			return TByteBuffer.allocateDirect(0);
 		}
 
 		int index = indexOf(splitByte);
@@ -822,7 +830,7 @@ public class ByteBufferChannel {
 			index = size();
 		}
 
-		ByteBuffer resultBuffer = ByteBuffer.allocateDirect(index);
+		ByteBuffer resultBuffer = TByteBuffer.allocateDirect(index);
 		int readSize = readHead(resultBuffer);
 		TByteBuffer.release(resultBuffer);
 
@@ -882,7 +890,7 @@ public class ByteBufferChannel {
 
 	@Override
 	public String toString(){
-		return "{size="+size+", capacity="+capacity()+", released="+(address==0)+"}";
+		return "{size="+size+", capacity="+capacity()+", released="+(address.get()==0)+"}";
 	}
 
 	/**
