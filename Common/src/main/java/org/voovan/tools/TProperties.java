@@ -98,6 +98,18 @@ public class TProperties {
 	}
 
 	/**
+	 * 从Properties文件读取 Boolean
+	 *
+	 * @param file 文件对象
+	 * @param name 属性名
+	 * @return 属性值
+	 */
+	public static boolean getBoolean(File file, String name) {
+		Properties properites = getProperties(file);
+		return Boolean.valueOf(properites.getProperty(name));
+	}
+
+	/**
 	 * 保存信息到 Properties文件
 	 *
 	 * @param file 文件对象

@@ -1,10 +1,12 @@
 package org.voovan.tools;
 
+import org.voovan.Global;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import sun.misc.Cleaner;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -18,6 +20,27 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
+
+
+    public static ByteBuffer allocateDirect(int capacity) {
+        //是否手工释放
+        if(Global.isNoHeapManualRelease()) {
+            try {
+                ByteBuffer template = TByteBuffer.allocateDirect(0);
+                Constructor c = template.getClass().getDeclaredConstructor(long.class, int.class, Object.class);
+                c.setAccessible(true);
+                long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
+
+                return (ByteBuffer) c.newInstance(address, capacity, "VOOVAN");
+            } catch (Exception e) {
+                Logger.error("Create ByteBufferChannel error. ", e);
+                return null;
+            }
+        }else{
+            return TByteBuffer.allocateDirect(capacity);
+        }
+    }
+
     /**
      * 将ByteBuffer转换成 byte 数组
      * @param bytebuffer ByteBuffer 对象
@@ -178,14 +201,27 @@ public class TByteBuffer {
      * @param byteBuffer bytebuffer 对象
      */
     public static void release(ByteBuffer byteBuffer){
-//        if(byteBuffer!=null && !byteBuffer.hasArray()) {
-//            try {
-//                Cleaner cleaner = TReflect.getFieldValue(byteBuffer, "cleaner");
-//                cleaner.clean();
-//            } catch (ReflectiveOperationException e) {
-//                e.printStackTrace();
-//            }
-//        }
+        //是否手工释放
+        if(!Global.isNoHeapManualRelease()) {
+            return;
+        }
+
+        synchronized (byteBuffer) {
+            try {
+                if (byteBuffer != null && TReflect.findField(byteBuffer.getClass(), "address") != null) {
+                    long address = (Long) TReflect.getFieldValue(byteBuffer, "address");
+                    if (TReflect.findField(byteBuffer.getClass(), "att")!=null){
+                        Object attr = TReflect.getFieldValue(byteBuffer, "att");
+                        if (address != 0 && "VOOVAN".equals(attr)) {
+                            TUnsafe.getUnsafe().freeMemory(address);
+                            TReflect.setFieldValue(byteBuffer, "address", 0);
+                        }
+                    }
+                }
+            } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

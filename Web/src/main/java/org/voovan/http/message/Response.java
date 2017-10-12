@@ -200,7 +200,7 @@ public class Response {
 		if(body.size() != 0) {
 
 			//准备缓冲区
-			ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024 * 50);
+			ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
 			int readSize = 0;
 			while (true) {
 

@@ -308,7 +308,7 @@ public class HttpParser {
 
 
 						//Part 头读取
-						ByteBuffer partHeadBuffer = ByteBuffer.allocateDirect(partHeadEndIndex + 4);
+						ByteBuffer partHeadBuffer = TByteBuffer.allocateDirect(partHeadEndIndex + 4);
 						byteBufferChannel.readHead(partHeadBuffer);
 
 						//构造新的 Bytebufer 递归解析
@@ -415,7 +415,7 @@ public class HttpParser {
 						int readSize = 0;
 						if(chunkedLength > 0) {
 							//按长度读取chunked内容
-							ByteBuffer byteBuffer = ByteBuffer.allocateDirect(chunkedLength);
+							ByteBuffer byteBuffer = TByteBuffer.allocateDirect(chunkedLength);
 							readSize = byteBufferChannel.readHead(byteBuffer);
 
 							if(readSize != chunkedLength){

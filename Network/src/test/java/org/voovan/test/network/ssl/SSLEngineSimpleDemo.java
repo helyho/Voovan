@@ -75,6 +75,7 @@ package org.voovan.test.network.ssl;
  *	unwrap()	...		Finished
  */
 
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.*;
@@ -214,8 +215,8 @@ public class SSLEngineSimpleDemo {
 		clientIn = ByteBuffer.allocate(appBufferMax);
 		serverIn = ByteBuffer.allocate(appBufferMax);
 
-		cTOs = ByteBuffer.allocateDirect(netBufferMax);
-		sTOc = ByteBuffer.allocateDirect(netBufferMax);
+		cTOs = TByteBuffer.allocateDirect(netBufferMax);
+		sTOc = TByteBuffer.allocateDirect(netBufferMax);
 
 		clientOut = ByteBuffer.wrap("Hi Server, I'm Client".getBytes());
 		serverOut = ByteBuffer.wrap("Hello Client, I'm Server".getBytes());

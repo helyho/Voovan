@@ -3,6 +3,7 @@ package org.voovan.network;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
@@ -264,7 +265,7 @@ public class MessageLoader {
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		else if(stopType== StopType.MSG_SPLITTER) {
 			if(splitLength!=0) {
-				result = ByteBuffer.allocateDirect(splitLength);
+				result = TByteBuffer.allocateDirect(splitLength);
 				dataByteBufferChannel.readHead(result);
 			} else {
 				return ByteBuffer.allocate(0);

@@ -259,7 +259,7 @@ public class Request {
         session.send(readHead());
 
         //发送缓冲区
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024 * 50);
+        ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
 
         // 有 BodyBytes 时直接写入包体
         if (body.size() > 0) {
