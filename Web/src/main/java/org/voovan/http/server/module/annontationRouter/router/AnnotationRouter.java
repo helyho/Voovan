@@ -138,7 +138,7 @@ public class AnnotationRouter implements HttpRouter {
 
                                 //注册路由,不带路径参数的路由
                                 httpModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                Logger.simple( "[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
+                                Logger.simple( "\t[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
                                         "] Router add annotation route: " + routeMethod + "\t " + routeFullPath);
                                 routeMethodNum++;
 
@@ -147,7 +147,7 @@ public class AnnotationRouter implements HttpRouter {
 
                                     //注册路由,带路径参数的路由
                                     httpModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                    Logger.simple( "[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
+                                    Logger.simple( "\t[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
                                             "] Router add annotation route: " + routeMethod + "\t " + routeFullPath+paramPath);
                                     routeMethodNum++;
                                 }
@@ -160,7 +160,7 @@ public class AnnotationRouter implements HttpRouter {
             if(routeMethodNum>0) {
                 Logger.simple(TFile.getLineSeparator() + "[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
                         "] Scan some class annotation by Router: " + routerClasses.size() +
-                        ". Unregister Router method annotation by route: " + routeMethodNum + ".");
+                        ". Register Router method annotation by route: " + routeMethodNum + ".");
             }
         } catch (Exception e){
             Logger.error("Scan router class error.", e);
