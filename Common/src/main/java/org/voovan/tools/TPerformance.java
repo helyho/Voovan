@@ -335,30 +335,20 @@ public class TPerformance {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public static Float getSysCpuUsage() throws IOException, InterruptedException {
+	public static Map<String, Integer> getSysCpuInfo() throws IOException, InterruptedException {
 		if(System.getProperty("os.name").toLowerCase().contains("linux")) {
+			Map<String, Integer> result = new HashMap<String, Integer>();
 			try(FileInputStream fileInputStream = new FileInputStream("/proc/stat")) {
 				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
 
 				StringTokenizer token = new StringTokenizer(bufferedReader.readLine());
 				token.nextToken();
-				int user1 = Integer.parseInt(token.nextToken());
-				int nice1 = Integer.parseInt(token.nextToken());
-				int sys1 = Integer.parseInt(token.nextToken());
-				int idle1 = Integer.parseInt(token.nextToken());
+				result.put("User", Integer.parseInt(token.nextToken()));
+				result.put("Nice", Integer.parseInt(token.nextToken()));
+				result.put("Sys", Integer.parseInt(token.nextToken()));
+				result.put("Idle", Integer.parseInt(token.nextToken()));
 
-				Thread.sleep(1000);
-
-				bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));;
-
-				token = new StringTokenizer(bufferedReader.readLine());
-				token.nextToken();
-				int user2 = Integer.parseInt(token.nextToken());
-				int nice2 = Integer.parseInt(token.nextToken());
-				int sys2 = Integer.parseInt(token.nextToken());
-				int idle2 = Integer.parseInt(token.nextToken());
-
-				return (float) ((user2 + sys2 + nice2) - (user1 + sys1 + nice1)) / (float) ((user2 + nice2 + sys2 + idle2) - (user1 + nice1 + sys1 + idle1));
+				return result;
 			}
 		}else{
 			return null;
