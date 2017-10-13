@@ -773,6 +773,7 @@ public class WebServer {
 	 * 停止 WebServer
 	 */
 	public void stop(){
+		Global.getThreadPool().shutdown();
 		aioServerSocket.close();
 	}
 }

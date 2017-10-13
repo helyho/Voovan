@@ -25,7 +25,7 @@ import java.nio.channels.spi.SelectorProvider;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class UdpSocket extends SocketContext{
+public class UdpSocket extends SocketContext {
 
     private SelectorProvider provider;
     private Selector selector;
@@ -146,13 +146,13 @@ public class UdpSocket extends SocketContext{
      */
     public void syncStart(){
         Global.getThreadPool().execute(new Runnable(){
-           public void run() {
-               try {
-                   start();
-               } catch (IOException e) {
-                   e.printStackTrace();
-               }
-           }
+            public void run() {
+                try {
+                    start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         });
     }
 
@@ -222,7 +222,7 @@ public class UdpSocket extends SocketContext{
                 datagramChannel.close();
 
                 //如果有未读数据等待数据处理完成
-                session.wait(this.getReadTimeout());
+                //session.wait(this.getReadTimeout());
 
                 session.getByteBufferChannel().release();
                 return true;

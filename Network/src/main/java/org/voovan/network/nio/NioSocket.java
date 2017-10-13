@@ -18,7 +18,7 @@ import java.nio.channels.spi.SelectorProvider;
 
 /**
  * NioSocket 连接
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -49,7 +49,7 @@ public class NioSocket extends SocketContext{
 	 * socket 连接
 	 * @param host      监听地址
 	 * @param port		监听端口
-     * @param idleInterval	空闲事件触发时间, 单位: 秒
+	 * @param idleInterval	空闲事件触发时间, 单位: 秒
 	 * @param readTimeout   超时时间, 单位: 毫秒
 	 * @throws IOException	IO异常
 	 */
@@ -103,8 +103,8 @@ public class NioSocket extends SocketContext{
 	public <T> void setOption(SocketOption<T> name, T value) throws IOException {
 		socketChannel.setOption(name, value);
 	}
-	
-	
+
+
 	/**
 	 * 获取 SocketChannel 对象
 	 * @return SocketChannel 对象
@@ -112,7 +112,7 @@ public class NioSocket extends SocketContext{
 	public SocketChannel socketChannel(){
 		return this.socketChannel;
 	}
-	
+
 	/**
 	 * 初始化函数
 	 */
@@ -128,7 +128,7 @@ public class NioSocket extends SocketContext{
 	/**
 	 * 获取 Session 对象
 	 * @return Session 对象
-     */
+	 */
 	public NioSession getSession(){
 		return session;
 	}
@@ -257,7 +257,7 @@ public class NioSocket extends SocketContext{
 				socketChannel.close();
 
 				//如果有未读数据等待数据处理完成
-				session.wait(this.getReadTimeout());
+				//session.wait(this.getReadTimeout());
 
 				nioSelector.release();
 				session.getByteBufferChannel().release();

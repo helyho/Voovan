@@ -427,6 +427,7 @@ public class TEnv {
 	 * @return 当前 jvm 的 JAVA_HOME 参数
 	 */
 	public static String getJavaHome(){
-		return System.getProperty("sun.boot.library.path").replace("/jre/lib", "");
+		String sysLibPath = System.getProperty("sun.boot.library.path");
+		return sysLibPath.substring(0, sysLibPath.indexOf("/jre/lib"));
 	}
 }

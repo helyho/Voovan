@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * AioSocket 连接
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -140,7 +140,7 @@ public class AioSocket extends SocketContext {
 	/**
 	 * 获取 Session 对象
 	 * @return  Session 对象
-     */
+	 */
 	public AioSession getSession() {
 		return session;
 	}
@@ -155,10 +155,10 @@ public class AioSocket extends SocketContext {
 
 		syncStart();
 
-        // 等待ServerSocketChannel关闭,结束进程
-        while (isConnected()) {
-            TEnv.sleep(1);
-        }
+		// 等待ServerSocketChannel关闭,结束进程
+		while (isConnected()) {
+			TEnv.sleep(1);
+		}
 	}
 
 	/**
@@ -171,22 +171,22 @@ public class AioSocket extends SocketContext {
 
 		initSSL(session);
 
-        try {
-            // 捕获 connect 事件
-            catchConnected();
-        }catch (IOException e){
-            EventTrigger.fireExceptionThread(session,e);
-            return;
-        }
+		try {
+			// 捕获 connect 事件
+			catchConnected();
+		}catch (IOException e){
+			EventTrigger.fireExceptionThread(session,e);
+			return;
+		}
 
-        //捕获输入事件
-        readByteBuffer = TByteBuffer.allocateDirect(this.getBufferSize());
-        catchRead(readByteBuffer);
+		//捕获输入事件
+		readByteBuffer = TByteBuffer.allocateDirect(this.getBufferSize());
+		catchRead(readByteBuffer);
 
-        //触发 connect 事件
-        EventTrigger.fireConnectThread(session);
+		//触发 connect 事件
+		EventTrigger.fireConnectThread(session);
 
-        waitConnected(session);
+		waitConnected(session);
 	}
 
 	protected void acceptStart() throws IOException {
@@ -218,7 +218,7 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 获取 SocketChannel 对象
-	 * 
+	 *
 	 * @return 异步 Socket 通道
 	 */
 	public AsynchronousSocketChannel socketChannel() {
@@ -268,22 +268,22 @@ public class AioSocket extends SocketContext {
 	@Override
 	public boolean close() {
 		if (socketChannel != null) {
-			 try {
+			try {
 				// 关闭 Socket 连接
-				 if (isConnected()) {
-					 // 触发 DisConnect 事件
-					 EventTrigger.fireDisconnectThread(session);
-					 socketChannel.close();
+				if (isConnected()) {
+					// 触发 DisConnect 事件
+					EventTrigger.fireDisconnectThread(session);
+					socketChannel.close();
 
-					 //如果有未读数据等待数据处理完成
-					 session.wait(this.getReadTimeout());
+					//如果有未读数据等待数据处理完成
+					//session.wait(this.getReadTimeout());
 
-					 readCompletionHandler.release();
-					 session.getByteBufferChannel().release();
-					 TByteBuffer.release(readByteBuffer);
-					 if(session.getSSLParser()!=null){
-					 	 session.getSSLParser().release();
-					 }
+					readCompletionHandler.release();
+					session.getByteBufferChannel().release();
+					TByteBuffer.release(readByteBuffer);
+					if(session.getSSLParser()!=null){
+						session.getSSLParser().release();
+					}
 				}
 
 				return true;

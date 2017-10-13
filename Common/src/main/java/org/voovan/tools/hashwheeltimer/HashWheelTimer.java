@@ -1,6 +1,7 @@
 package org.voovan.tools.hashwheeltimer;
 
 import org.voovan.tools.TEnv;
+import org.voovan.tools.log.Logger;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -90,7 +91,11 @@ public class HashWheelTimer {
                     this.cancel();
                 }
 
-                rotateWheel.Tick();
+                try {
+                    rotateWheel.Tick();
+                } catch (Exception e){
+                    Logger.error("HashWheelTimer tick task error", e);
+                }
 
                 //如果进程结束自动结束当前定时器
                 if(TEnv.isMainThreadShutDown()){
