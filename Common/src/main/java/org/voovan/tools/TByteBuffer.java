@@ -21,7 +21,7 @@ import java.util.Arrays;
 public class TByteBuffer {
 
     public static Class DIRECT_BYTE_BUFFER_CLASS = ByteBuffer.allocateDirect(0).getClass();
-    private static Integer BYTEBUFFER_MARK = 19821031;
+    private static Integer BYTEBUFFER_MARK = 198210310;
 
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
@@ -125,9 +125,9 @@ public class TByteBuffer {
         try {
 
             if(!byteBuffer.hasArray()) {
-                long address = TReflect.getFieldValue(byteBuffer, "address");
+                long address = getAddress(byteBuffer);
                 long newAddress = TUnsafe.getUnsafe().reallocateMemory(address, newSize);
-                TReflect.setFieldValue(byteBuffer, "address", newAddress);
+                setAddress(byteBuffer, newAddress);
 
             }else{
                 byte[] hb = byteBuffer.array();
@@ -172,7 +172,7 @@ public class TByteBuffer {
             }
 
             if(!byteBuffer.hasArray()) {
-                long address = TReflect.getFieldValue(byteBuffer, "address");
+                long address = getAddress(byteBuffer);
                 if(address!=0) {
                     long startAddress = address + byteBuffer.position();
                     long targetAddress = address + position;
@@ -202,18 +202,18 @@ public class TByteBuffer {
      */
     public static void release(ByteBuffer byteBuffer){
         //是否手工释放
-        if(!Global.isNoHeapManualRelease()) {
+        if(!Global.isNoHeapManualRelease() || byteBuffer.getClass() != DIRECT_BYTE_BUFFER_CLASS) {
             return;
         }
 
         synchronized (byteBuffer) {
             try {
-                if (byteBuffer != null && byteBuffer.getClass() == DIRECT_BYTE_BUFFER_CLASS) {
-                    long address = (Long) TReflect.getFieldValue(byteBuffer, "address");
-                    Object attr = TReflect.getFieldValue(byteBuffer, "att");
-                    if (address != 0 && BYTEBUFFER_MARK.equals(attr)) {
+                if (byteBuffer != null && !isReleased(byteBuffer)) {
+                    Object attr = getAtt(byteBuffer);
+                    if (BYTEBUFFER_MARK.equals(attr)) {
+                        long address = getAddress(byteBuffer);
                         TUnsafe.getUnsafe().freeMemory(address);
-                        TReflect.setFieldValue(byteBuffer, "address", 0);
+                        setAddress(byteBuffer, 0);
                     }
                 }
             } catch (ReflectiveOperationException e) {
@@ -221,5 +221,62 @@ public class TByteBuffer {
             }
         }
     }
+
+
+    /**
+     * 判断是否已经释放
+     * @param byteBuffer
+     * @return true: 已释放, false: 未释放
+     */
+    public static boolean isReleased(ByteBuffer byteBuffer){
+        //是否手工释放
+        if(!Global.isNoHeapManualRelease() || byteBuffer.getClass() != DIRECT_BYTE_BUFFER_CLASS) {
+            return false;
+        }
+
+        try {
+            return getAddress(byteBuffer) == 0;
+        }catch (ReflectiveOperationException e){
+            return true;
+        }
+    }
+
+    /**
+     * 获取内存地址
+     * @param byteBuffer bytebuffer 对象
+     * @return 内存地址
+     */
+    public static Long getAddress(ByteBuffer byteBuffer) throws ReflectiveOperationException {
+        return (Long) TReflect.getFieldValue(byteBuffer, "address");
+    }
+
+    /**
+     * 设置内存地址
+     * @param byteBuffer bytebuffer 对象
+     * @param address 内存地址
+     */
+    public static void setAddress(ByteBuffer byteBuffer, long address) throws ReflectiveOperationException {
+        TReflect.setFieldValue(byteBuffer, "address", address);
+    }
+
+    /**
+     * 获取附加对象
+     * @param byteBuffer bytebuffer 对象
+     * @return 附加对象
+     */
+    public static Object getAtt(ByteBuffer byteBuffer) throws ReflectiveOperationException {
+        return TReflect.getFieldValue(byteBuffer, "att");
+    }
+
+    /**
+     * 设置附加对象
+     * @param byteBuffer bytebuffer 对象
+     * @param attr 附加对象
+     */
+    public static void setAttr(ByteBuffer byteBuffer, Object attr) throws ReflectiveOperationException {
+        TReflect.setFieldValue(byteBuffer, "att", attr);
+    }
+
+
 
 }

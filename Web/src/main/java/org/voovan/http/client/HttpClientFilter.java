@@ -9,7 +9,6 @@ import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -18,15 +17,17 @@ import java.nio.ByteBuffer;
 /**
  * HTTP 请求过滤器
  * @author helyho
- * 
+ *
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
 public class HttpClientFilter implements IoFilter {
 
+	private final ByteBuffer emptyByteBuffer = ByteBuffer.allocateDirect(0);
+
 	@Override
-	public Object encode(IoSession session,Object object) {
+	public Object encode(IoSession session, Object object) {
 		if(object instanceof WebSocketFrame){
 			return ((WebSocketFrame)object).toByteBuffer();
 		}
@@ -37,25 +38,25 @@ public class HttpClientFilter implements IoFilter {
 			} catch (IOException e) {
 				Logger.error(e);
 			}
-			return TByteBuffer.allocateDirect(0);
+			return emptyByteBuffer;
 		}
 		return null;
 	}
 
 	@Override
-	public Object decode(IoSession session,Object object) throws IoFilterException{
+	public Object decode(IoSession session,Object object) throws IoFilterException {
 		try{
 			if(object instanceof ByteBuffer){
-                ByteBuffer byteBuffer = (ByteBuffer)object;
+				ByteBuffer byteBuffer = (ByteBuffer)object;
 
-                if(byteBuffer.limit()==0){
-                    session.enabledMessageSpliter(false);
-                }
+				if(byteBuffer.limit()==0){
+					session.enabledMessageSpliter(false);
+				}
 
-                ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
-                if("WebSocket".equals(WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.TYPE))){
-                    return WebSocketFrame.parse((ByteBuffer)object);
-                }else {
+				ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
+				if("WebSocket".equals(WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.TYPE))){
+					return WebSocketFrame.parse((ByteBuffer)object);
+				}else {
 					Response response = HttpParser.parseResponse(byteBufferChannel, session.socketContext().getReadTimeout());
 					return response;
 				}

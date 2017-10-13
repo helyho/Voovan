@@ -9,7 +9,7 @@ import java.util.Random;
 
 /**
  * WebSocket帧解析类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -101,13 +101,13 @@ public class WebSocketFrame {
 
 	/**
 	 * 解析WebSocket报文
-	 * 
+	 *
 	 * @param byteBuffer  字节缓冲对象
 	 * @return  WebSocket 帧对象
 	 */
 	public static WebSocketFrame parse(ByteBuffer byteBuffer) {
 
-	    //如果 byteBuffer 内没有数据则放弃
+		//如果 byteBuffer 内没有数据则放弃
 		if(!byteBuffer.hasRemaining()){
 			return null;
 		}
@@ -132,7 +132,7 @@ public class WebSocketFrame {
 		boolean mask = (maskByte & -128) != 0;
 		int payloadlength = (byte) (maskByte & ~(byte) 128);
 		Opcode opcode = toOpcode((byte) (finByte & 15));
-		
+
 		if(opcode == null){
 			Logger.error("Opcode data error!");
 			errorCode = 1002;
@@ -168,7 +168,7 @@ public class WebSocketFrame {
 		}
 
 		// 读取实际接受数据
-		ByteBuffer payload = TByteBuffer.allocateDirect(payloadlength);
+		ByteBuffer payload = ByteBuffer.allocateDirect(payloadlength);
 		if (mask) {
 			byte[] maskskey = new byte[4];
 			byteBuffer.get(maskskey);
@@ -185,7 +185,7 @@ public class WebSocketFrame {
 
 	/**
 	 * 类型枚举
-	 * 
+	 *
 	 * @author helyho
 	 *
 	 */
@@ -195,33 +195,33 @@ public class WebSocketFrame {
 
 	/**
 	 * 转换 WebSocket 报文类型为枚举类型
-	 * 
+	 *
 	 * @param opcode
 	 * @return
 	 */
 	private static Opcode toOpcode(byte opcode) {
 		switch (opcode) {
-		case 0:
-			return Opcode.CONTINUOUS;
-		case 1:
-			return Opcode.TEXT;
-		case 2:
-			return Opcode.BINARY;
+			case 0:
+				return Opcode.CONTINUOUS;
+			case 1:
+				return Opcode.TEXT;
+			case 2:
+				return Opcode.BINARY;
 			// 3-7 are not yet defined
-		case 8:
-			return Opcode.CLOSING;
-		case 9:
-			return Opcode.PING;
-		case 10:
-			return Opcode.PONG;
-		default:
-			return null;
+			case 8:
+				return Opcode.CLOSING;
+			case 9:
+				return Opcode.PING;
+			case 10:
+				return Opcode.PONG;
+			default:
+				return null;
 		}
 	}
 
 	/**
 	 * opcode转换成 byte
-	 * 
+	 *
 	 * @param opcode 操作码
 	 * @return 字节
 	 */
@@ -249,7 +249,7 @@ public class WebSocketFrame {
 
 	/**
 	 * 转换 long 为 byte
-	 * 
+	 *
 	 * @param value     long 值
 	 * @param bytecount 字节位数
 	 * @return 转换 long 后的 byte
@@ -265,8 +265,8 @@ public class WebSocketFrame {
 
 	/**
 	 * 将 WebSocketFrame 转换成 Bytebuffer 供 socket 通信用
-	 * 
-	 * 
+	 *
+	 *
 	 * @return WebSocketFrame 转换后的 Bytebuffer
 	 */
 	public ByteBuffer toByteBuffer() {
@@ -274,9 +274,9 @@ public class WebSocketFrame {
 		if(data == null){
 			data = ByteBuffer.allocate(0);
 		}
-		boolean mask = this.isTransfereMask(); 
+		boolean mask = this.isTransfereMask();
 		int sizebytes = data.remaining() <= 125 ? 1 : data.remaining() <= 65535 ? 2 : 8;
-		ByteBuffer buf = TByteBuffer.allocateDirect(1 + (sizebytes > 1 ? sizebytes + 1 : sizebytes) + (mask ? 4 : 0) + data.remaining());
+		ByteBuffer buf = ByteBuffer.allocateDirect(1 + (sizebytes > 1 ? sizebytes + 1 : sizebytes) + (mask ? 4 : 0) + data.remaining());
 		byte optcode = fromOpcode(this.getOpcode());
 		byte one = (byte) (this.isFin() ? -128 : 0);
 		one |= optcode;
@@ -308,12 +308,12 @@ public class WebSocketFrame {
 		} else{
 			buf.put(data);
 		}
-		
+
 		buf.flip();
 
 		return buf;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Framedata={FIN: " + this.isFin() + " , Mask: " + this.isTransfereMask() + " , OpCode: " + getOpcode() + " , Data: "

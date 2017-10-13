@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 
 /**
  * Socket消息处理类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -22,6 +22,8 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class MessageLoader {
+	private final ByteBuffer emptyByteBuffer = ByteBuffer.allocateDirect(0);
+
 	private IoSession session;
 	private StopType stopType;
 	private ByteBufferChannel byteBufferChannel;
@@ -109,14 +111,14 @@ public class MessageLoader {
 
 
 		//如果 buffer 被冲满,且起始、中位、结束的字节都是结束符(Ascii=4)则连接意外结束
-	   if(length>2
+		if(length>2
 				&& buffer.get(0)==4 //起始判断
 				&& buffer.get(length/2)==4 //中位判断
 				&& buffer.get(length-1)==4){ //结束判断
-		   return true;
+			return true;
 		}
 
-	   return false;
+		return false;
 	}
 
 	/**
@@ -174,7 +176,7 @@ public class MessageLoader {
 		ByteBufferChannel dataByteBufferChannel = null;
 		ByteBuffer dataByteBuffer = null;
 
-        dataByteBufferChannel = session.getByteBufferChannel();
+		dataByteBufferChannel = session.getByteBufferChannel();
 
 		stopType = StopType.RUNNING;
 
@@ -260,7 +262,7 @@ public class MessageLoader {
 		if(stopType == StopType.STREAM_END ||
 				stopType == StopType.SOCKET_CLOSED){
 			result = null;
-		 }
+		}
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		else if(stopType== StopType.MSG_SPLITTER) {
@@ -268,10 +270,10 @@ public class MessageLoader {
 				result = TByteBuffer.allocateDirect(splitLength);
 				dataByteBufferChannel.readHead(result);
 			} else {
-				return ByteBuffer.allocate(0);
+				return emptyByteBuffer;
 			}
 		} else {
-			return ByteBuffer.allocate(0);
+			return emptyByteBuffer;
 		}
 
 		return result;

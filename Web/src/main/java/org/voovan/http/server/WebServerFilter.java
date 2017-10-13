@@ -7,7 +7,6 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
@@ -16,7 +15,7 @@ import java.nio.ByteBuffer;
 
 /**
  * WebServer 过滤器对象
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -24,7 +23,7 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class WebServerFilter implements IoFilter {
-
+	private final ByteBuffer emptyByteBuffer = ByteBuffer.allocateDirect(0);
 
 	/**
 	 * 将HttpResponse转换成ByteBuffer
@@ -41,7 +40,7 @@ public class WebServerFilter implements IoFilter {
 			}catch(Exception e){
 				Logger.error(e);
 			}
-			return TByteBuffer.allocateDirect(0);
+			return emptyByteBuffer;
 		} else if(object instanceof WebSocketFrame){
 			WebSocketFrame webSocketFrame = (WebSocketFrame)object;
 			return webSocketFrame.toByteBuffer();
@@ -109,9 +108,9 @@ public class WebServerFilter implements IoFilter {
 			return false;
 		}
 
-        int lineEndIndex = byteBufferChannel.indexOf("\n".getBytes());
+		int lineEndIndex = byteBufferChannel.indexOf("\n".getBytes());
 
-        if(lineEndIndex>0) {
+		if(lineEndIndex>0) {
 			byte[] tmpByte = new byte[lineEndIndex];
 			byteBufferChannel.get(tmpByte);
 			testStr = new String(tmpByte);
@@ -122,7 +121,7 @@ public class WebServerFilter implements IoFilter {
 				return false;
 			}
 		}else{
-        	return false;
+			return false;
 		}
 	}
 }
