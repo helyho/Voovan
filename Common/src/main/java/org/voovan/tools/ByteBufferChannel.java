@@ -26,6 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Licence: Apache v2 License
  */
 public class ByteBufferChannel {
+	private final ByteBuffer emptyByteBuffer = ByteBuffer.allocateDirect(0);
 
 	private volatile AtomicLong address = new AtomicLong(0);
 	private Unsafe unsafe = TUnsafe.getUnsafe();
@@ -794,6 +795,7 @@ public class ByteBufferChannel {
 			if(readHead(lineBuffer) > 0) {
 				lineStr = TByteBuffer.toString(lineBuffer);
 			}
+			TByteBuffer.release(lineBuffer);
 		}
 
 		return lineStr.isEmpty() ? null : lineStr;
@@ -810,13 +812,13 @@ public class ByteBufferChannel {
 		checkRelease();
 
 		if(size() == 0){
-			return TByteBuffer.allocateDirect(0);
+			return emptyByteBuffer;
 		}
 
 		int index = indexOf(splitByte);
 
 		if (size() == 0) {
-			return ByteBuffer.allocate(0);
+			return emptyByteBuffer;
 		}
 
 		if (index == 0) {
@@ -829,7 +831,7 @@ public class ByteBufferChannel {
 			index = size();
 		}
 
-		ByteBuffer resultBuffer = TByteBuffer.allocateDirect(index);
+		ByteBuffer resultBuffer = ByteBuffer.allocateDirect(index);
 		int readSize = readHead(resultBuffer);
 		TByteBuffer.release(resultBuffer);
 
