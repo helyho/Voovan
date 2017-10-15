@@ -90,22 +90,23 @@ public class SSLParser {
 	 */
 	public synchronized SSLEngineResult warpData(ByteBuffer buffer) throws IOException {
 		if (session.isConnected()) {
-			netData.clear();
 			SSLEngineResult engineResult = null;
 
 			do {
 				synchronized (netData) {
 					if(!TByteBuffer.isReleased(netData)) {
+						netData.clear();
 						engineResult = engine.wrap(buffer, netData);
+
+						netData.flip();
+						if (session.isConnected() && engineResult.bytesProduced() > 0 && netData.limit() > 0) {
+							session.send0(netData);
+						}
+						netData.clear();
 					} else {
 						return null;
 					}
 				}
-				netData.flip();
-				if (session.isConnected() && engineResult.bytesProduced() > 0 && netData.limit() > 0) {
-					session.send0(netData);
-				}
-				netData.clear();
 			} while (engineResult.getStatus() == Status.OK && buffer.hasRemaining());
 
 			return engineResult;
@@ -279,7 +280,7 @@ public class SSLParser {
 				default:
 					break;
 			}
-//			TEnv.sleep(1);
+//          TEnv.sleep(1);
 		}
 
 		return handShakeDone;
