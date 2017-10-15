@@ -1,8 +1,8 @@
 package org.voovan.test.tools;
 
-import junit.framework.TestCase;
 import org.voovan.tools.Cipher;
 import org.voovan.tools.log.Logger;
+import junit.framework.TestCase;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -21,12 +21,21 @@ import java.security.NoSuchAlgorithmException;
 public class CipherUnit extends TestCase{
 
     public void testCipher() throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchPaddingException {
+        //对称加密
         Cipher cipher = new Cipher("AES","ECB","PKCS5Padding");
-//        cipher.generatPairKey();
         cipher.generateSymmetryKey();
         byte[] msg = cipher.encode("asdfadf".getBytes());
         Logger.simple(new String(msg));
         byte[] msg1 = cipher.decode(msg);
+        Logger.simple(new String(msg1));
+
+
+        //非对称加密
+        cipher = new Cipher("RSA","ECB","PKCS1Padding");
+        cipher.generatPairKey();
+        msg = cipher.encode("asdfadf".getBytes());
+        Logger.simple(new String(msg));
+        msg1 = cipher.decode(msg);
         Logger.simple(new String(msg1));
     }
 }
