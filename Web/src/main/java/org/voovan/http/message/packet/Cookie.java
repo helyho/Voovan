@@ -24,14 +24,14 @@ public class Cookie {
 	private String expires;
 	private boolean secure;
 	private boolean httpOnly;
-	
+
 	private String name;
 	private String value;
-	
+
 	private Cookie(){
 
 	}
-	
+
 	public String getDomain() {
 		return domain;
 	}
@@ -114,7 +114,7 @@ public class Cookie {
 				(this.path!=null ? ("; path="+this.path) : " ")+
 				(this.httpOnly?"; httponly; ":"")+(this.secure?"; secure":"");
 	}
-	
+
 	/**
 	 * 通过 Map 构建一个 Cookie 对象
 	 * @param cookieMap Cookie 属性 Map
@@ -124,28 +124,28 @@ public class Cookie {
 		Cookie cookie = new Cookie();
 		for(Entry<String, String> cookieMapItem : cookieMap.entrySet()){
 			switch(cookieMapItem.getKey().toLowerCase()){
-			case "domain" :
-				cookie.setDomain(cookieMapItem.getValue());
-				break;
-			case "path" :
-				cookie.setPath(cookieMapItem.getValue());
-				break;
-			case "max-age" :
-				cookie.setMaxAge(Integer.parseInt(cookieMapItem.getValue()));
-				break;
-			case "secure" :
-				cookie.setSecure(true);
-				break;
-			case "httponly" :
-				cookie.setHttpOnly(true);
-				break;
-			case "expires" :
-				cookie.setExpires(cookieMapItem.getValue());
-				break;
-			default:
-				cookie.setName(cookieMapItem.getKey());
-				cookie.setValue(cookieMapItem.getValue());
-				break;
+				case "domain" :
+					cookie.setDomain(cookieMapItem.getValue());
+					break;
+				case "path" :
+					cookie.setPath(cookieMapItem.getValue());
+					break;
+				case "max-age" :
+					cookie.setMaxAge(Integer.parseInt(cookieMapItem.getValue()));
+					break;
+				case "secure" :
+					cookie.setSecure(true);
+					break;
+				case "httponly" :
+					cookie.setHttpOnly(true);
+					break;
+				case "expires" :
+					cookie.setExpires(cookieMapItem.getValue());
+					break;
+				default:
+					cookie.setName(cookieMapItem.getKey());
+					cookie.setValue(cookieMapItem.getValue());
+					break;
 			}
 		}
 		return cookie;
@@ -155,16 +155,17 @@ public class Cookie {
 	/**
 	 * 创建一个 Cookie
 	 * @param domain	cookie的受控域
+	 * @param path      cookie路径
 	 * @param name		名称
 	 * @param value		值
 	 * @param maxAge	失效时间,单位秒
 	 * @return Cookie 对象
 	 */
-	public static Cookie newInstance(String domain,String name,String value,int maxAge){
+	public static Cookie newInstance(String domain, String path, String name,String value,int maxAge){
 		Cookie cookie = new Cookie();
 		cookie.setName(name);
 		cookie.setValue(value);
-		cookie.setPath("/");
+		cookie.setPath(path);
 		cookie.setDomain(domain);
 		cookie.setMaxAge(maxAge);
 		cookie.setHttpOnly(true);
@@ -174,17 +175,30 @@ public class Cookie {
 	/**
 	 * 创建一个 Cookie
 	 * @param request	请求对象
+	 * @param path      cookie路径
 	 * @param name		名称
 	 * @param value		值
 	 * @param maxAge	失效时间,单位秒
 	 * @return Cookie 对象
 	 */
-	public static Cookie newInstance(Request request,String name,String value,int maxAge){
+	public static Cookie newInstance(Request request, String path, String name, String value, int maxAge){
 		String Host =  request.header().get("Host");
 		String domain = Host.split(":")[0];
-		return newInstance(domain, name, value, maxAge);
+		return newInstance(domain , path, name, value, maxAge);
 	}
-	
+
+	/**
+	 * 创建一个 Cookie
+	 * @param request	请求对象
+	 * @param path      cookie路径
+	 * @param name		名称
+	 * @param value		值
+	 * @return Cookie 对象
+	 */
+	public static Cookie newInstance(Request request, String path, String name,String value){
+		return newInstance(request, path, name, value,-1);
+	}
+
 	/**
 	 * 创建一个 Cookie
 	 * @param request	请求对象
@@ -193,6 +207,8 @@ public class Cookie {
 	 * @return Cookie 对象
 	 */
 	public static Cookie newInstance(Request request,String name,String value){
-		return newInstance(request,name,value,-1);
+		return newInstance(request, "/",name,value,-1);
 	}
+
+
 }
