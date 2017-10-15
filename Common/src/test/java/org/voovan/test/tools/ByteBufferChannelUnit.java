@@ -1,19 +1,22 @@
 package org.voovan.test.tools;
 
-import junit.framework.TestCase;
+import org.voovan.Global;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
+import junit.framework.TestCase;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 public class ByteBufferChannelUnit extends TestCase {
-	
+
 	private ByteBufferChannel byteBufferChannel;
 	private String tmp1 = "helyho is a hero!!!";
 	private String tmp2 = " -=======!";
-	
+
 	public ByteBufferChannelUnit(String name) {
 		super(name);
 	}
@@ -32,7 +35,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()), "h -=======!elyho is a hero!!!");
 		byteBufferChannel.release();
 	}
-	
+
 	public void testWriteEnd() throws IOException{
 		init();
 		int size = byteBufferChannel.size();
@@ -57,7 +60,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),"helyho a hero!!!");
 		byteBufferChannel.release();
 	}
-	
+
 	public void testReadHead() throws IOException{
 		init();
 		ByteBuffer buffer1 = ByteBuffer.allocate(5);
@@ -242,5 +245,30 @@ public class ByteBufferChannelUnit extends TestCase {
 
 		byteBufferChannel1.release();
 		byteBufferChannel1.release();
+	}
+
+	public void testMulitThread(){
+		ByteBufferChannel byteBufferChannel  = new ByteBufferChannel();
+		for(int i=0; i < 200; i++){
+			Global.getThreadPool().execute(() -> {
+				Random random = new Random();
+				int r = random.nextInt();
+				r = r < 0 ? (r*-1) : r;
+				if(random.nextInt()%2==0){
+					System.out.println("Write: "+r+"_");
+					byteBufferChannel.writeEnd(ByteBuffer.wrap((String.valueOf(r)+"_").getBytes()));
+				}  else if(r%18 == 0){
+					Logger.simple("release");
+					byteBufferChannel.release();
+				} else {
+					ByteBuffer byteBuffer = ByteBuffer.allocate(10);
+					byteBufferChannel.readHead(byteBuffer);
+					System.out.println("Load: "+TByteBuffer.toString(byteBuffer));
+				}
+			});
+		}
+
+		TEnv.sleep(60*1000);
+
 	}
 }
