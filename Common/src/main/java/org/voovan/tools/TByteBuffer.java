@@ -167,8 +167,12 @@ public class TByteBuffer {
             int limit = byteBuffer.limit()+offset;
             int position = byteBuffer.position() + offset;
 
-            if(limit > byteBuffer.capacity() || position < 0){
+            if(position < 0){
                 return false;
+            }
+
+            if(limit > byteBuffer.capacity()){
+                reallocate(byteBuffer, limit);
             }
 
             if(!byteBuffer.hasArray()) {
@@ -200,7 +204,11 @@ public class TByteBuffer {
      *      释放对外的 bytebuffer
      * @param byteBuffer bytebuffer 对象
      */
-    public static void release(ByteBuffer byteBuffer){
+    public static void release(ByteBuffer byteBuffer) {
+        if(byteBuffer == null){
+            return;
+        }
+
         //是否手工释放
         if(!Global.isNoHeapManualRelease() || byteBuffer.getClass() != DIRECT_BYTE_BUFFER_CLASS) {
             return;
