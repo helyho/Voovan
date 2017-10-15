@@ -1,6 +1,7 @@
 package org.voovan.http.message.packet;
 
 import org.voovan.http.message.Request;
+import org.voovan.http.server.context.WebContext;
 import org.voovan.tools.log.Logger;
 
 import java.io.UnsupportedEncodingException;
@@ -196,7 +197,7 @@ public class Cookie {
 	 * @return Cookie 对象
 	 */
 	public static Cookie newInstance(Request request, String path, String name,String value){
-		return newInstance(request, path, name, value, -1);
+		return newInstance(request, path, name, value, WebContext.getWebServerConfig().getSessionTimeout() * 60);
 	}
 
 	/**
@@ -207,7 +208,7 @@ public class Cookie {
 	 * @return Cookie 对象
 	 */
 	public static Cookie newInstance(Request request,String name,String value){
-		return newInstance(request, "/",name,value,-1);
+		return newInstance(request, "/", name, value, WebContext.getWebServerConfig().getSessionTimeout() * 60);
 	}
 
 
