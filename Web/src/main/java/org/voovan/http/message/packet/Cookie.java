@@ -196,7 +196,7 @@ public class Cookie {
 	 * @return Cookie 对象
 	 */
 	public static Cookie newInstance(Request request, String path, String name,String value){
-		return newInstance(request, path, name, value,-1);
+		return newInstance(request, path, name, value, -1);
 	}
 
 	/**
