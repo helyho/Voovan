@@ -4,6 +4,7 @@ import org.voovan.http.message.packet.Body;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.ResponseProtocol;
+import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TString;
@@ -17,7 +18,7 @@ import java.util.List;
 
 /**
  * HTTP 响应对象
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -25,15 +26,15 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class Response {
-	private ResponseProtocol	protocol;
+	private ResponseProtocol protocol;
 	private Header				header;
 	private List<Cookie>		cookies;
-	private Body				body;
+	private Body body;
 	private boolean				isCompress;
 
 	/**
 	 * 构造函数
-	 * 
+	 *
 	 * @param response 响应对象
 	 */
 	protected Response(Response response) {
@@ -57,7 +58,7 @@ public class Response {
 
 	/**
 	 * 是否压缩 默认为 true
-	 * 
+	 *
 	 * @return 是否启用个压缩
 	 */
 	public boolean isCompress() {
@@ -66,7 +67,7 @@ public class Response {
 
 	/**
 	 * 设置压缩属性
-	 * 
+	 *
 	 * @param isCompress 是否启用个压缩
 	 */
 	public void setCompress(boolean isCompress) {
@@ -75,7 +76,7 @@ public class Response {
 
 	/**
 	 * 获取协议对象
-	 * 
+	 *
 	 * @return 返回响应协议对象
 	 */
 	public ResponseProtocol protocol() {
@@ -84,7 +85,7 @@ public class Response {
 
 	/**
 	 * 获取 Header 对象
-	 * 
+	 *
 	 * @return HTTP-Header 对象
 	 */
 	public Header header() {
@@ -102,7 +103,7 @@ public class Response {
 
 	/**
 	 * 获取 Body 对象
-	 * 
+	 *
 	 * @return Body 对象
 	 */
 	public Body body() {
@@ -120,15 +121,17 @@ public class Response {
 		} else {
 			header.put("Content-Length", Integer.toString(body.getBodyBytes().length));
 		}
-		
+
 		if (TString.isNullOrEmpty(header.get("Content-Type"))) {
 			header.put("Content-Type", "text/html");
 		}
+
+		header.put("Content-Type", header.get("Content-Type")+";charset=" + WebContext.getWebServerConfig().getCharacterSet());
 	}
 
 	/**
 	 * 根据 Cookie 对象,生成 HTTP 响应中的 Cookie 字符串 用于报文拼装
-	 * 
+	 *
 	 * @return Cookie 字符串
 	 */
 	private String genCookie() {
@@ -142,10 +145,10 @@ public class Response {
 	}
 
 
-	
+
 	/**
 	 * 根据对象的内容,构造 Http 响应报头
-	 * 
+	 *
 	 * @return ByteBuffer 响应报文的报头
 	 */
 	private ByteBuffer readHead() {
@@ -153,7 +156,7 @@ public class Response {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
 		initHeader();
-		
+
 		try {
 			// 处理协议行
 			outputStream.write(protocol.toString().getBytes("UTF-8"));
