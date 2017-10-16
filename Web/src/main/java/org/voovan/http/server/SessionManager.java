@@ -177,7 +177,7 @@ public class SessionManager{
 			session = new HttpSession(webConfig, this, request.getSocketSession());
 
 			//创建 Cookie
-			Cookie cookie = Cookie.newInstance(request, WebContext.getSessionName(),
+			Cookie cookie = Cookie.newInstance(request,  "/", WebContext.getSessionName(),
 					session.getId(), webConfig.getSessionTimeout() * 60);
 
 			//响应增加Session 对应的 Cookie

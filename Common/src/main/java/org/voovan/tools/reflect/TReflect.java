@@ -8,7 +8,6 @@ import org.voovan.tools.TUnsafe;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.annotation.NotJSON;
 import org.voovan.tools.reflect.annotation.NotSerialization;
-import sun.reflect.generics.reflectiveObjects.TypeVariableImpl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -420,7 +419,7 @@ public class TReflect {
 								Type parameterType = methodParamTypes[i];
 
 								//如果范型类型没有指定则使用 Object 作为默认类型
-								if(parameterType instanceof TypeVariableImpl){
+								if(parameterType instanceof TypeVariable){
 									parameterType = Object.class;
 								}
 
