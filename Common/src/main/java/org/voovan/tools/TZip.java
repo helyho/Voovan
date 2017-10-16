@@ -7,7 +7,7 @@ import java.util.zip.*;
 
 /**
  * 压缩算法
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -105,7 +105,7 @@ public class TZip {
 				fin.close();
 		}
 	}
-	
+
 	/**
 	 * Zip 解压缩
 	 * @param encodeBytes 待解压字节
@@ -119,7 +119,7 @@ public class TZip {
 		zipInputStream.close();
 		return result;
 	}
-	
+
 	/**
 	 * ZIP 压缩
 	 * @param sourceBytes 待压缩字节
@@ -139,5 +139,22 @@ public class TZip {
 		zipOutputStream.close();
 		return result;
 
+	}
+
+
+	/**
+	 * 从 Zip 文件中读取指定的被压缩文件
+	 * @param zipFilePath zip 文件路径
+	 * @param filePath zip 文件中压缩文件路径
+	 * @return 文件内容
+	 * @throws IOException IO 异常
+	 */
+	public static byte[] loadFileFromZip(String zipFilePath, String filePath) throws IOException {
+		try(ZipFile zipFile = new ZipFile(zipFilePath)) {
+			ZipEntry zipEntry = zipFile.getEntry(filePath);
+			try (InputStream inputStream = zipFile.getInputStream(zipEntry)) {
+				return TStream.readAll(inputStream);
+			}
+		}
 	}
 }

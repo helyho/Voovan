@@ -1,15 +1,15 @@
 package org.voovan.tools.hotswap;
 
-import com.sun.tools.attach.AgentInitializationException;
-import com.sun.tools.attach.AgentLoadException;
-import com.sun.tools.attach.AttachNotSupportedException;
-import com.sun.tools.attach.VirtualMachine;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
+import com.sun.tools.attach.AgentInitializationException;
+import com.sun.tools.attach.AgentLoadException;
+import com.sun.tools.attach.AttachNotSupportedException;
+import com.sun.tools.attach.VirtualMachine;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,8 +19,6 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 /**
  * 热部署核心类
@@ -86,7 +84,7 @@ public class Hotswaper {
      * @return AgentJar 文件
      */
     private File findAgentJar(){
-        List<File> agentJars = TFile.scanFile(new File(TFile.getContextPath()), "voovan-(framework|common)-?(\\d\\.?)*\\.?jar$");
+        List<File> agentJars = TFile.scanFile(new File(TFile.getContextPath()), "dd\\.?(\\d\\.?)*\\.?jar$");
         File agentJar = null;
 
         for (File jarFile : agentJars) {
@@ -251,10 +249,6 @@ public class Hotswaper {
         reloadTask = new HashWheelTask() {
             @Override
             public void run() {
-                if(TEnv.isMainThreadShutDown()){
-                    this.cancel();
-                }
-
                 try {
                     List<ClassFileInfo> changedFiles = fileWatcher();
                     reloadClass(changedFiles);
@@ -282,11 +276,9 @@ public class Hotswaper {
     public class ClassFileInfo {
         private Class clazz;
         private long lastModified;
-        private String classNamePath;
 
         public ClassFileInfo(Class clazz, boolean isAutoChek) {
             this.clazz = clazz;
-            this.classNamePath = TEnv.classToResource(clazz);
             if(isAutoChek) {
                 this.lastModified = TEnv.getClassModifyTime(clazz);
             }
@@ -310,8 +302,8 @@ public class Hotswaper {
             }
         }
 
-        public byte[] getBytes(){
-            return TFile.loadResource(classNamePath);
+        public byte[] getBytes() {
+            return TEnv.loadClassBytes(clazz);
         }
 
         public Class getClazz() {

@@ -4,7 +4,9 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -329,12 +331,42 @@ public class TEnv {
 	}
 
 	/**
+	 * 读取 Class 的字节码
+	 * @param clazz Class 对象
+	 * @return 字节码
+	 */
+	public static byte[] loadClassBytes(Class clazz) {
+		InputStream inputStream = null;
+		try {
+			String classLocation = getClassLocation(clazz);
+			String classPathName = TEnv.classToResource(clazz);
+			if (classLocation.endsWith("jar")) {
+				return TZip.loadFileFromZip(classLocation, classPathName);
+			} else {
+				return TFile.loadFileFromSysPath(classLocation+classPathName);
+			}
+		} catch (Exception e){
+			Logger.error("Load   class bytes by " + clazz.getCanonicalName() + "error", e);
+			return null;
+		}
+	}
+
+	/**
+	 * 获取 Class 在物理设备上的文件位置
+	 * @param clazz Class 对象
+	 * @return 在物理设备上的文件位置
+	 */
+	public static String getClassLocation(Class clazz){
+		return clazz.getProtectionDomain().getCodeSource().getLocation().getFile();
+	}
+
+	/**
 	 * 获取 Class 的修改时间
 	 * @param clazz Class 对象
 	 * @return 修改时间, 返回: -1 文件不存在 / 文件不是 Class 文件 / IO 异常
 	 */
 	public static long getClassModifyTime(Class clazz){
-		String location = location = clazz.getProtectionDomain().getCodeSource().getLocation().getFile();
+		String location = getClassLocation(clazz);
 		String classNamePath = TEnv.classToResource(clazz);
 		try {
 			if(location.endsWith(".jar")) {
