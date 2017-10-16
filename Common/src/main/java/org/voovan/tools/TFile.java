@@ -10,6 +10,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * 文件操作工具类
@@ -145,7 +147,6 @@ public class TFile {
 			Logger.error("Load resource URLDecoder.decode failed",e);
 			return null;
 		}
-
 	}
 
 	/**
@@ -159,7 +160,7 @@ public class TFile {
 		try {
 			resourcePath = URLDecoder.decode(resourcePath,"utf-8");
 			InputStream inputStream = TEnv.getURLClassLoader(null).getResourceAsStream(resourcePath);
-			return TStream.readAll(inputStream);
+			return TStream.read(inputStream, inputStream.available());
 		} catch (IOException e) {
 			Logger.error("Load resource URLDecoder.decode failed",e);
 			return null;
