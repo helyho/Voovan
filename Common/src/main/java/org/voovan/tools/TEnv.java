@@ -346,7 +346,7 @@ public class TEnv {
 				return TFile.loadFileFromSysPath(classLocation+classPathName);
 			}
 		} catch (Exception e){
-			Logger.error("Load   class bytes by " + clazz.getCanonicalName() + "error", e);
+			Logger.error("Load class bytes by " + clazz.getCanonicalName() + "error", e);
 			return null;
 		}
 	}
