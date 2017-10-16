@@ -173,4 +173,31 @@ public class JSON {
 
 		return jsonStr;
 	}
+
+	/**
+	 * 判断是否是 JSON 的 map 类型
+	 * @param jsonStr 目标字符串
+	 * @return true: 是, false: 否
+	 */
+	public static boolean isJSONMap(String jsonStr){
+		return TString.searchByRegex(jsonStr, "^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0;
+	}
+
+	/**
+	 * 判断是否是 JSON 的 list/array 类型
+	 * @param jsonStr 目标字符串
+	 * @return true: 是, false: 否
+	 */
+	public static boolean isJSONList(String jsonStr){
+		return TString.searchByRegex(jsonStr, "^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0;
+	}
+
+	/**
+	 * 判断是否是 JSON 的可解析
+	 * @param jsonStr 目标字符串
+	 * @return true: 是, false: 否
+	 */
+	public static boolean isJSON(String jsonStr){
+		return isJSONMap(jsonStr) || isJSONList(jsonStr);
+	}
 }
