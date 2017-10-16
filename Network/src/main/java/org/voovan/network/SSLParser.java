@@ -1,9 +1,9 @@
 package org.voovan.network;
 
-import org.voovan.network.exception.SocketDisconnectByRemote;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.*;
@@ -90,22 +90,23 @@ public class SSLParser {
 	 */
 	public synchronized SSLEngineResult warpData(ByteBuffer buffer) throws IOException {
 		if (session.isConnected()) {
-			netData.clear();
 			SSLEngineResult engineResult = null;
 
 			do {
 				synchronized (netData) {
 					if(!TByteBuffer.isReleased(netData)) {
+						netData.clear();
 						engineResult = engine.wrap(buffer, netData);
+
+						netData.flip();
+						if (session.isConnected() && engineResult.bytesProduced() > 0 && netData.limit() > 0) {
+							session.send0(netData);
+						}
+						netData.clear();
 					} else {
 						return null;
 					}
 				}
-				netData.flip();
-				if (session.isConnected() && engineResult.bytesProduced() > 0 && netData.limit() > 0) {
-					session.send0(netData);
-				}
-				netData.clear();
 			} while (engineResult.getStatus() == Status.OK && buffer.hasRemaining());
 
 			return engineResult;
@@ -125,7 +126,7 @@ public class SSLParser {
 		int waitCount = 0;
 		while (true) {
 			if (waitCount >= session.socketContext().getReadTimeout()) {
-				throw new SSLException("Hand shake on: " + session.remoteAddress() + ":" + session.remotePort() + " timeout");
+				throw new SSLHandshakeException("Hand shake on: " + session.remoteAddress() + ":" + session.remotePort() + " timeout");
 			}
 
 			try {
@@ -182,7 +183,7 @@ public class SSLParser {
 		int waitCount = 0;
 		while (true) {
 			if (waitCount >= session.socketContext().getReadTimeout()) {
-				throw new SocketDisconnectByRemote("Hand shake on: " + session.remoteAddress() + ":" + session.remotePort() + " timeout");
+				throw new SSLHandshakeException("Hand shake on: " + session.remoteAddress() + ":" + session.remotePort() + " timeout");
 			}
 
 			clearBuffer();
@@ -279,7 +280,7 @@ public class SSLParser {
 				default:
 					break;
 			}
-//			TEnv.sleep(1);
+//          TEnv.sleep(1);
 		}
 
 		return handShakeDone;
@@ -294,38 +295,45 @@ public class SSLParser {
 	 * @return 接收数据大小
 	 * @throws IOException IO异常
 	 */
-	public synchronized int unWarpByteBufferChannel(IoSession session, ByteBufferChannel netByteBufferChannel, ByteBufferChannel appByteBufferChannel) throws IOException {
+	public synchronized int unWarpByteBufferChannel(IoSession session, ByteBufferChannel netByteBufferChannel,
+													ByteBufferChannel appByteBufferChannel) throws IOException {
 		int readSize = 0;
 
 		if (session.isConnected() && netByteBufferChannel.size() > 0) {
 			SSLEngineResult engineResult = null;
 
-			while (true) {
-				appData.clear();
-				ByteBuffer byteBuffer = netByteBufferChannel.getByteBuffer();
+			try {
+				while (true) {
+					appData.clear();
+					ByteBuffer byteBuffer = netByteBufferChannel.getByteBuffer();
 
-				engineResult = unwarpData(byteBuffer, appData);
-				netByteBufferChannel.compact();
+					engineResult = unwarpData(byteBuffer, appData);
+					netByteBufferChannel.compact();
 
-				if (engineResult == null) {
-					throw new SSLException("unWarpByteBufferChannel: Socket is disconnect");
+					if (engineResult == null) {
+						throw new SSLException("unWarpByteBufferChannel: Socket is disconnect");
+					}
+
+					appData.flip();
+					appByteBufferChannel.writeEnd(appData);
+
+					if (engineResult != null &&
+							engineResult.getStatus() == Status.OK &&
+							byteBuffer.remaining() == 0) {
+						break;
+					}
+
+					if (engineResult != null &&
+							(engineResult.getStatus() == Status.BUFFER_OVERFLOW ||
+									engineResult.getStatus() == Status.BUFFER_UNDERFLOW ||
+									engineResult.getStatus() == Status.CLOSED)
+							) {
+						break;
+					}
 				}
-
-				appData.flip();
-				appByteBufferChannel.writeEnd(appData);
-
-				if (engineResult != null &&
-						engineResult.getStatus() == Status.OK &&
-						byteBuffer.remaining() == 0) {
-					break;
-				}
-
-				if (engineResult != null &&
-						(engineResult.getStatus() == Status.BUFFER_OVERFLOW ||
-								engineResult.getStatus() == Status.BUFFER_UNDERFLOW ||
-								engineResult.getStatus() == Status.CLOSED)
-						) {
-					break;
+			}catch (MemoryReleasedException e){
+				if(!session.isConnected()) {
+					throw new SSLException("unWarpByteBufferChannel ");
 				}
 			}
 		}

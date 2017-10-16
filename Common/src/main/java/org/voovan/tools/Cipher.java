@@ -4,6 +4,7 @@ import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 /**
@@ -80,8 +81,8 @@ public class Cipher {
      * @return Key 对象
      */
     public SecretKey loadSymmetryKey(byte[] keyBytes) {
-        X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(keyBytes);
-        return new SecretKeySpec(keyBytes, algorithm);
+        this.secretKey = new SecretKeySpec(keyBytes, algorithm);
+        return secretKey;
     }
 
     /**
@@ -94,7 +95,8 @@ public class Cipher {
     public PublicKey loadPublicKey(byte[] keyBytes) throws NoSuchAlgorithmException, InvalidKeySpecException {
         X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(keyBytes);
         KeyFactory keyFactory =  KeyFactory.getInstance(algorithm);
-        return keyFactory.generatePublic(x509EncodedKeySpec);
+        this.publicKey = keyFactory.generatePublic(x509EncodedKeySpec);
+        return publicKey;
     }
 
     /**
@@ -105,9 +107,10 @@ public class Cipher {
      * @throws InvalidKeySpecException 密钥异常
      */
     public PrivateKey loadPrivateKey(byte[] keyBytes) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(keyBytes);
+        PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory keyFactory =  KeyFactory.getInstance(algorithm);
-        return keyFactory.generatePrivate(x509EncodedKeySpec);
+        this.privateKey = keyFactory.generatePrivate(pkcs8EncodedKeySpec);
+        return privateKey;
     }
 
     /**

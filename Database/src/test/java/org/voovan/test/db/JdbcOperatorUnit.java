@@ -2,12 +2,13 @@ package org.voovan.test.db;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
-import junit.framework.TestCase;
 import org.voovan.db.CallType;
 import org.voovan.db.JdbcOperate;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TProperties;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
+import junit.framework.TestCase;
 
 import java.io.File;
 import java.util.HashMap;
@@ -33,7 +34,7 @@ public class JdbcOperatorUnit extends TestCase {
         //只构建一次数据源
         if(dataSource==null) {
             try {
-                String druidpath = TFile.getSystemPath("conf" + File.separator + "datasource.properties");
+                String druidpath = TFile.getSystemPath("/classes/database.properties");
                 Properties druidProperites = TProperties.getProperties(new File(druidpath));
                 dataSource = (DruidDataSource)DruidDataSourceFactory.createDataSource(druidProperites);
                 dataSource.init();
@@ -220,6 +221,79 @@ public class JdbcOperatorUnit extends TestCase {
         List<Map<String, Object>> rollbackResult = jOperate.queryMapList("select version from sc_script");
         Logger.simple("事务误回滚后:" + rollbackResult);
         assert(!rollbackResult.get(0).get("version").equals(Float.valueOf(-1)));
+    }
+
+
+    /**
+     * 更新和事物测试
+     * @throws Exception
+     */
+    public void test_Update_Mutil_Trancation() throws Exception {
+        //使用下面的 sql 做数据准备
+//        DROP TABLE sc_script;
+//        CREATE TABLE `sc_script` (
+//          `id` int(11) NOT NULL,
+//          `version` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+//                PRIMARY KEY (`id`)
+//        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+//        INSERT INTO `Ticker`.`sc_script`(`id`, `version`) VALUES (1, 'ver_1');
+//        INSERT INTO `Ticker`.`sc_script`(`id`, `version`) VALUES (2, 'ver_2');
+//        INSERT INTO `Ticker`.`sc_script`(`id`, `version`) VALUES (3, 'ver_3');
+//        更新三条数据后全部回滚
+//        观察最后的结果数据没有任何变化 依旧是 ver_x 的形式
+
+        JdbcOperate jOperate = new JdbcOperate(dataSource);
+
+        jOperate = new JdbcOperate(dataSource, true);
+        sql = "update sc_script set version=::1 where id = ::2";
+        int updateCount = jOperate.update(sql, "ver_1_1", 1);
+        updateCount += jOperate.update(sql, "ver_2_2", 2);
+        updateCount += jOperate.update(sql, "ver_2_2", 3);
+
+        Logger.simple("事务更新记录数:" + updateCount);
+        List<Map<String, Object>> updateResult = jOperate.queryMapList("select version from sc_script");
+        Logger.simple("事务回滚前:" + JSON.toJSON(updateResult));
+        jOperate.rollback();
+        List<Map<String, Object>> rollbackResult = jOperate.queryMapList("select version from sc_script");
+        Logger.simple("事务误回滚后:" + JSON.toJSON(rollbackResult));
+    }
+
+    /**
+     * 更新和事物测试
+     * @throws Exception
+     */
+    public void test_Update_Mutil_Part_Trancation() throws Exception {
+        //使用下面的 sql 做数据准备
+//        DROP TABLE sc_script;
+//        CREATE TABLE `sc_script` (
+//          `id` int(11) NOT NULL,
+//          `version` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+//                PRIMARY KEY (`id`)
+//        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+//        INSERT INTO `Ticker`.`sc_script`(`id`, `version`) VALUES (1, 'ver_1');
+//        INSERT INTO `Ticker`.`sc_script`(`id`, `version`) VALUES (2, 'ver_2');
+//        INSERT INTO `Ticker`.`sc_script`(`id`, `version`) VALUES (3, 'ver_3');
+//        更新第一条数据后提交,接着更新两条数据后回滚
+//        观察最后的结果数据第一条变成 ver_1_1, 后面两条依旧是 ver_x 的形式
+
+        JdbcOperate jOperate = new JdbcOperate(dataSource);
+
+        jOperate = new JdbcOperate(dataSource, true);
+        sql = "update sc_script set version=::1 where id = ::2";
+        int updateCount = jOperate.update(sql, "ver_1_1", 1);
+        jOperate.commit(false);
+        Logger.simple("只提交第一条:" + updateCount);
+
+        updateCount += jOperate.update(sql, "ver_2_2", 2);
+        updateCount += jOperate.update(sql, "ver_2_2", 3);
+
+        Logger.simple("事务更新记录数:" + updateCount);
+        List<Map<String, Object>> updateResult = jOperate.queryMapList("select version from sc_script");
+        Logger.simple("事务回滚前:" + JSON.toJSON(updateResult));
+        jOperate.rollback();
+        List<Map<String, Object>> rollbackResult = jOperate.queryMapList("select version from sc_script");
+        Logger.simple("事务误回滚后:" + JSON.toJSON(rollbackResult));
+        Logger.simple("");
     }
 
     public void test_Procedure() throws Exception {

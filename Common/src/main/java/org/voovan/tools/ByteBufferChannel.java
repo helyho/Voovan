@@ -119,15 +119,14 @@ public class ByteBufferChannel {
 			return;
 		}
 
-		synchronized (lock) {
-			while(lock.isLocked()){
-				TEnv.sleep(1);
-			}
-
+		lock.lock();
+		try {
 			if (address.get() != 0) {
 				cleaner.clean();
 				address.set(0);
 			}
+		}finally{
+			lock.unlock();
 		}
 	}
 
@@ -541,12 +540,16 @@ public class ByteBufferChannel {
 	 */
 	public boolean reallocate(int newSize){
 		checkRelease();
-
-		if (TByteBuffer.reallocate(byteBuffer, newSize)) {
-			resetAddress();
-			return true;
-		}else{
-			return false;
+		lock.lock();
+		try{
+			if (TByteBuffer.reallocate(byteBuffer, newSize)) {
+				resetAddress();
+				return true;
+			}else{
+				return false;
+			}
+		} finally {
+			lock.unlock();
 		}
 	}
 
@@ -584,18 +587,21 @@ public class ByteBufferChannel {
 
 				byteBuffer.position(writePosition);
 
-				TByteBuffer.moveData(byteBuffer, writeSize);
+				if(TByteBuffer.moveData(byteBuffer, writeSize)){
 
-				size = size + writeSize;
-				byteBuffer.limit(size);
-				byteBuffer.position(writePosition);
-				byteBuffer.put(src);
+					size = size + writeSize;
+					byteBuffer.limit(size);
+					byteBuffer.position(writePosition);
+					byteBuffer.put(src);
 
-				if (position > writePosition) {
-					position = position + writeSize;
+					if (position > writePosition) {
+						position = position + writeSize;
+					}
+
+					byteBuffer.position(position);
+				} else {
+					throw new RuntimeException("move data failed");
 				}
-
-				byteBuffer.position(position);
 			}
 
 			return writeSize;
@@ -902,3 +908,4 @@ public class ByteBufferChannel {
 		return new String(array());
 	}
 }
+
