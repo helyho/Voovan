@@ -1,6 +1,7 @@
 package org.voovan.tools;
 
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.ParameterizedType;
@@ -691,8 +692,8 @@ public class TString {
 
 		ArrayList<String> items = new ArrayList<String>();
 		for (int position = source.indexOf(regex);
-			 position > 0;
-			 position = source.indexOf(regex)) {
+		     position > 0;
+		     position = source.indexOf(regex)) {
 			items.add(source.substring(0, position));
 			source = source.substring(position + 1, source.length());
 		}
@@ -702,5 +703,48 @@ public class TString {
 		}
 
 		return items.toArray(new String[0]);
+	}
+
+	/**
+	 * 在字符串中插入字符
+	 * @param source    源字符串
+	 * @param position  插入位置, 从 1 开始
+	 * @param value     插入的字符串
+	 * @return  插入后的字符串数据
+	 */
+	public static String insert(String source, int position, String value){
+		if(position <=0 ){
+			throw new IllegalArgumentException("parameter position must lager than 0");
+		}
+		return source.substring(0, position-1) + value + source.substring(position-1);
+	}
+
+	/**
+	 * 移除字符串尾部的换行符
+	 * @param source 源字符串
+	 * @return 处理后的字符串
+	 */
+	public static String trimEndLF(String source){
+		return source.replaceAll("[\r\n]*$", "");
+	}
+
+
+	/**
+	 * 获取字符串的缩进
+	 * @param source 源字符串
+	 * @return 缩进
+	 */
+	public static int retract(String source){
+		int currentRetract;
+		for (currentRetract = 0; currentRetract < source.length(); currentRetract++) {
+			if (source.charAt(currentRetract) != ' ') {
+				if (currentRetract > 0) {
+					currentRetract--;
+				}
+				break;
+			}
+		}
+
+		return currentRetract;
 	}
 }
