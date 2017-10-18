@@ -10,6 +10,32 @@ import java.security.spec.X509EncodedKeySpec;
 /**
  * 封装 JDK 的加密解密算法
  *
+ * AES/CBC/NoPadding (128)
+ * AES/CBC/PKCS5Padding (128)
+ * AES/ECB/NoPadding (128)
+ * AES/ECB/PKCS5Padding (128)
+ * DES/CBC/NoPadding (56)
+ * DES/CBC/PKCS5Padding (56)
+ * DES/ECB/NoPadding (56)
+ * DES/ECB/PKCS5Padding (56)
+ * DESede/CBC/NoPadding (168)
+ * DESede/CBC/PKCS5Padding (168)
+ * DESede/ECB/NoPadding (168)
+ * DESede/ECB/PKCS5Padding (168)
+ * RSA/ECB/PKCS1Padding (1024, 2048)
+ * RSA/ECB/OAEPWithSHA-1AndMGF1Padding (1024, 2048)
+ * RSA/ECB/OAEPWithSHA-256AndMGF1Padding (1024, 2048)
+ *
+ * - 第一段是加密算法的名称，如DESede实际上是3-DES。
+ *      这一段还可以放其它的对称加密算法，如Blowfish等。
+ * - 第二段是分组加密的模式，除了CBC和ECB之外，还可以是NONE/CFB/QFB等。最常用的就是CBC和ECB了。
+ *      DES采用分组加密的方式，将明文按8字节（64位）分组分别加密。如果每个组独立处理，则是ECB。
+ *      CBC的处理方式是先用初始向量IV对第一组加密，再用第一组的密文作为密钥对第二组加密，然后依次完成整个加密操作。
+ *      如果明文中有两个分组的内容相同，ECB会得到完全一样的密文，但CBC则不会。
+ * - 第三段是指最后一个分组的填充方式。
+ *      大部分情况下，明文并非刚好64位的倍数。对于最后一个分组，如果长度小于64位，则需要用数据填充至64位。
+ *      PKCS5Padding是常用的填充方式，如果没有指定，默认的方式就是它。
+ *
  * @author: helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
