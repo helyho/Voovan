@@ -113,10 +113,14 @@ public class ByteBufferChannel {
 	/**
 	 * 立刻释放内存
 	 */
-	public void release(){
+	public synchronized void release(){
 		//是否手工释放
 		if(!Global.isNoHeapManualRelease()) {
 			return;
+		}
+
+		while(lock.isLocked()){
+			TEnv.sleep(0);
 		}
 
 		lock.lock();

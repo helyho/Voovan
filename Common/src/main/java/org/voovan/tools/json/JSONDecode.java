@@ -30,8 +30,8 @@ public class JSONDecode {
 
 	/**
 	 * 解析 JSON 字符串
-	 * 		如果是{}包裹的对象解析成 HashMap,如果是[]包裹的对象解析成 ArrayList
-	 * @param reader	待解析的 JSON 字符串
+	 *         如果是{}包裹的对象解析成 HashMap,如果是[]包裹的对象解析成 ArrayList
+	 * @param reader    待解析的 JSON 字符串
 	 * @return 解析后的对象
 	 */
 	private static Object parse(StringReader reader) {
@@ -71,7 +71,7 @@ public class JSONDecode {
 
 			String keyString = null;
 			Object value = null;
-			int stringWarpFlag = 0;
+			char stringWarpFlag = '\0';
 			int functionWarpFlag = 0;
 			boolean isString = false;
 			boolean isFunction = false;
@@ -99,17 +99,19 @@ public class JSONDecode {
 				isFirstChar = false;
 
 				//分析字符串,如果是字符串不作任何处理
-				if (currentChar == '"') {
+				if (currentChar == '"' || currentChar == '\'') {
 					//i小于1的不是转意字符,判断为字符串(因为转意字符要2个字节),大于2的要判断是否\\"的转义字符
 					if (isComment==0 && nextChar != 0 && prevChar != '\\') {
-						stringWarpFlag++;
+
 						//字符串起始的"
-						if (stringWarpFlag == 1) {
+						if (stringWarpFlag == '\0') {
+							stringWarpFlag = currentChar;
 							isString = true;
 						}
+
 						//字符串结束的"
-						else if (stringWarpFlag == 2) {
-							stringWarpFlag = 0;
+						else if (stringWarpFlag != '\0' && currentChar == stringWarpFlag) {
+							stringWarpFlag = '\0';
 							isString = false;
 						}
 					}
@@ -227,17 +229,32 @@ public class JSONDecode {
 					itemString = new StringBuilder();
 				}
 
+				//JSON对象字符串分组,取 value 对象,当前字符是换行, 则取 value
+				if (!isString && !isFunction && currentChar == '\n') {
+					itemString.trimToSize();
+					if (value == null && itemString.length() > 0) {
+						value = itemString.toString().trim();
+					}
+					itemString = new StringBuilder();
+				}
+
 				//返回值处理
 				if (value != null && jsonResult != null) {
 					//判断取值不是任何对象
 					if (value instanceof String) {
 						String stringValue = (String)value;
 
-						//判断是字符串去掉头尾的冒号
+						//判断是字符串去掉头尾的包裹符号
 						if (stringValue.startsWith("\"") && stringValue.endsWith("\"")) {
 							value = stringValue.substring(1, stringValue.length() - 1);
 							value = TString.unConvertEscapeChar(value.toString());
 						}
+						//判断是字符串去掉头尾的包裹符号
+						if (stringValue.startsWith("\'") && stringValue.endsWith("\'")) {
+							value = stringValue.substring(1, stringValue.length() - 1);
+							value = TString.unConvertEscapeChar(value.toString());
+						}
+
 						//判断不包含.即为整形
 						else if (TString.isInteger(stringValue)) {
 							Long longValue = Long.parseLong((String) value);
@@ -266,8 +283,12 @@ public class JSONDecode {
 						@SuppressWarnings("unchecked")
 						HashMap<String, Object> result = (HashMap<String, Object>) jsonResult;
 						if (keyString != null) {
-							//容错,如果是双引号包裹的则去除首尾的双引号
+							//判断是字符串去掉头尾的包裹符号
 							if (keyString.startsWith("\"") && keyString.endsWith("\"")) {
+								keyString = keyString.substring(1, keyString.length() - 1);
+							}
+							//判断是字符串去掉头尾的包裹符号
+							if (keyString.startsWith("\'") && keyString.endsWith("\'")) {
 								keyString = keyString.substring(1, keyString.length() - 1);
 							}
 							result.put(keyString, value);
@@ -307,11 +328,11 @@ public class JSONDecode {
 
 	/**
 	 * 解析 JSON 字符串成为参数指定的类
-	 * @param <T> 		范型
-	 * @param jsonStr	JSON字符串
-	 * @param type		JSON 字符串将要转换的目标类
+	 * @param <T>         范型
+	 * @param jsonStr    JSON字符串
+	 * @param type        JSON 字符串将要转换的目标类
 	 * @param ignoreCase 是否在字段匹配时忽略大小写
-	 * @return					JSON 转换后的 Java 对象
+	 * @return                    JSON 转换后的 Java 对象
 	 * @throws ReflectiveOperationException  反射异常
 	 * @throws ParseException 解析异常
 	 */
@@ -348,11 +369,11 @@ public class JSONDecode {
 
 	/**
 	 * 解析 JSON 字符串成为参数指定的类,默认严格限制字段大小写
-	 * @param <T> 		范型
-	 * @param jsonStr	JSON字符串
-	 * @param clazz		JSON 字符串将要转换的目标类
-	 * @param clazz			转换的目标 java 类
-	 * @return					JSON 转换后的 Java 对象
+	 * @param <T>         范型
+	 * @param jsonStr    JSON字符串
+	 * @param clazz        JSON 字符串将要转换的目标类
+	 * @param clazz            转换的目标 java 类
+	 * @return                    JSON 转换后的 Java 对象
 	 * @throws ReflectiveOperationException  反射异常
 	 * @throws ParseException 解析异常
 	 * @throws IOException IO 异常

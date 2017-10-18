@@ -96,7 +96,7 @@ public class EventProcess {
 	 *            事件对象
 	 */
 	public static void onDisconnect(Event event) {
-        IoSession session = event.getSession();
+		IoSession session = event.getSession();
 		session.cancelIdle();
 		SocketContext socketContext = event.getSession().socketContext();
 
@@ -162,8 +162,8 @@ public class EventProcess {
 				// 返回的结果不为空的时候才发送
 				if (result != null) {
 
-                    //触发发送事件
-                    sendMessage(session, result);
+					//触发发送事件
+					sendMessage(session, result);
 				} else {
 					break;
 				}
@@ -244,8 +244,6 @@ public class EventProcess {
 								sendCount = sendSession.send(sendBuffer);
 								sendBuffer.rewind();
 							}
-
-							TByteBuffer.release((ByteBuffer) sendBuffer);
 						}
 
 						//触发发送事件
@@ -275,21 +273,19 @@ public class EventProcess {
 	public static void onSent(Event event, Object sendObj) throws IOException {
 		IoSession session = event.getSession();
 		SocketContext socketContext = session.socketContext();
-        if (socketContext != null) {
-            socketContext.handler().onSent(session, sendObj);
+		if (socketContext != null) {
+			socketContext.handler().onSent(session, sendObj);
 
-            //如果 obj 是 ByteBuffer 进行释放
-            if (sendObj instanceof ByteBuffer) {
-                TByteBuffer.release((ByteBuffer) sendObj);
-            }
+			//如果 obj 是 ByteBuffer 进行释放
+			if (sendObj instanceof ByteBuffer) {
+				TByteBuffer.release((ByteBuffer) sendObj);
+			}
 
-            //如果是 Udp 通信则在发送完成后触发关闭事件
-            if(session.socketContext() instanceof UdpSocket) {
+			//如果是 Udp 通信则在发送完成后触发关闭事件
+			if(session.socketContext() instanceof UdpSocket) {
 				EventTrigger.fireDisconnectThread(session);
 			}
-        }
-
-
+		}
 	}
 
 	/**
