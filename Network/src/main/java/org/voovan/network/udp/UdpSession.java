@@ -12,7 +12,7 @@ import java.nio.channels.DatagramChannel;
 
 /**
  * UDP NIO 会话连接对象
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -40,12 +40,12 @@ public class UdpSession extends IoSession<UdpSocket> {
 			Logger.error("Socket is null, please check it.");
 		}
 
-		
+
 	}
 
 	/**
 	 * 获取本地 IP 地址
-	 * 
+	 *
 	 * @return 本地 IP 地址
 	 */
 	public String localAddress() {
@@ -58,7 +58,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 
 	/**
 	 * 获取本地端口
-	 * 
+	 *
 	 * @return 返回-1为没有取到本地端口
 	 */
 	public int loaclPort() {
@@ -71,7 +71,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 
 	/**
 	 * 获取对端 IP 地址
-	 * 
+	 *
 	 * @return 对端 ip 地址
 	 */
 	public String remoteAddress() {
@@ -84,7 +84,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 
 	/**
 	 * 获取对端端口
-	 * 
+	 *
 	 * @return 返回-1为没有取到对端端口
 	 */
 	public int remotePort() {
@@ -97,7 +97,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 
 	/**
 	 * DatagramChannel 对象
-	 * 
+	 *
 	 * @return DatagramChannel 对象,连接断开时返回的是null
 	 */
 	protected DatagramChannel datagramChannel() {
@@ -118,7 +118,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 	}
 
 	@Override
-	protected int send0(ByteBuffer buffer) throws IOException {
+	protected synchronized int send0(ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
 		if (isOpen() && buffer != null) {
 			//循环发送直到全不内容发送完毕
@@ -136,7 +136,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 
 	/**
 	 * 会话是否打开
-	 * 
+	 *
 	 * @return true: 打开,false: 关闭
 	 */
 	@Override
