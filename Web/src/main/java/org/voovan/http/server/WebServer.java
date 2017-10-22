@@ -591,7 +591,7 @@ public class WebServer {
 	 * @return 路由配置信息
 	 */
 	public Map<String, WebSocketRouter> getWebSocketRouters(){
-		return webSocketDispatcher.getRoutes();
+		return webSocketDispatcher.getRouters();
 	}
 
 	/**

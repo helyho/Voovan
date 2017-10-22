@@ -20,6 +20,8 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public class Global {
 
+    public static String NAME = "Voovan";
+
     private static ThreadPoolExecutor threadPool;
     private static HashWheelTimer hashWheelTimer;
 

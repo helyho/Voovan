@@ -1,7 +1,7 @@
 package org.voovan.tools;
 
+import org.voovan.Global;
 import org.voovan.tools.json.JSON;
-import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.ParameterizedType;
@@ -614,6 +614,8 @@ public class TString {
 			return null;
 		}
 
+		num = num < 0 ? num*-1 : num;
+
 		String result = "";
 
 		long tmpValue = num;
@@ -657,6 +659,52 @@ public class TString {
 		return shortBuffer.toString();
 
 	}
+
+	/**
+	 * 快速生成短ID
+	 * @return 快速生成短的ID
+	 */
+	public static String generateId() {
+		return generateId(null, null);
+	}
+
+	/**
+	 * 快速生成短ID
+	 * @param obj 生成 id 的对象
+	 * @sign 生成 ID 的标记
+	 * @return 快速生成短的ID
+	 */
+	public static String generateId(Object obj) {
+		return generateId(obj, null);
+	}
+
+	/**
+	 * 快速生成短ID
+	 * @param obj 生成 id 的对象
+	 * @return 快速生成短的ID
+	 */
+	public static String generateId(Object obj, String sign) {
+		Random random = new Random();
+
+		if(sign == null){
+			sign = Global.NAME;
+		}
+
+		if(obj==null){
+			obj = random.nextInt();
+		}
+
+		long currentTime = System.currentTimeMillis();
+		long mark = currentTime ^ random.nextLong();
+
+		random.setSeed(mark);
+		long randomMark = currentTime ^random.nextLong();
+
+		long id = obj.hashCode()^Runtime.getRuntime().freeMemory()^mark^(new Random(randomMark).nextLong())^Long.valueOf(sign, 36);
+		return TString.radixConvert(id, 62);
+	}
+
+
 
 	/**
 	 * 获取字符串中最长一行的长度

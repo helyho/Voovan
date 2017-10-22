@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 日志输出线程
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -32,7 +32,7 @@ public class LoggerThread implements Runnable {
 		this.logQueue = new ArrayBlockingQueue<String>(100000);
 		this.outputStreams = outputStreams;
 	}
-	
+
 	public boolean isFinished() {
 		return finished.get();
 	}
@@ -50,7 +50,7 @@ public class LoggerThread implements Runnable {
 	 * @param outputStreams 输出流数组
 	 */
 	public void setOutputStreams(OutputStream[] outputStreams) {
-        this.outputStreams = outputStreams;
+		this.outputStreams = outputStreams;
 	}
 
 	/**
@@ -72,7 +72,7 @@ public class LoggerThread implements Runnable {
 	 * 增加消息
 	 *
 	 * @param msg 消息字符串
-     */
+	 */
 	public void addLogMessage(String msg) {
 		logQueue.add(msg);
 	}
@@ -85,48 +85,55 @@ public class LoggerThread implements Runnable {
 
 		Thread mainThread = TEnv.getMainThread();
 		try {
-            while (true) {
-                    formatedMessage = logQueue.poll(1000, TimeUnit.MILLISECONDS);
-                    if (formatedMessage != null && outputStreams!=null) {
-                        for (OutputStream outputStream : outputStreams) {
-                            if (outputStream != null) {
-                            	if(!(outputStream instanceof PrintStream)){
-                            		//文件写入踢出着色部分
-									formatedMessage = TString.fastReplaceAll(formatedMessage, "\033\\[\\d{2}m", "");
-								}
-                                outputStream.write(formatedMessage.getBytes());
-                                outputStream.flush();
-                            }
-                        }
-                    }
-                    //如果主线程结束,则日志线程也退出
-                    if(mainThread!=null && mainThread.getState() == Thread.State.TERMINATED){
-                        break;
-                    }
+			while (true) {
 
-                    if(mainThread == null){
-                        break;
-                    }
-            }
+				//优化日志输出事件
+				if(logQueue.size() == 0){
+					TEnv.sleep(1);
+					continue;
+				}
 
-            finished.set(true);
+				formatedMessage = logQueue.poll(1, TimeUnit.MILLISECONDS);
+				if (formatedMessage != null && outputStreams!=null) {
+					for (OutputStream outputStream : outputStreams) {
+						if (outputStream != null) {
+							if(!(outputStream instanceof PrintStream)){
+								//文件写入踢出着色部分
+								formatedMessage = TString.fastReplaceAll(formatedMessage, "\033\\[\\d{2}m", "");
+							}
+							outputStream.write(formatedMessage.getBytes());
+							outputStream.flush();
+						}
+					}
+				}
+				//如果主线程结束,则日志线程也退出
+				if(mainThread!=null && mainThread.getState() == Thread.State.TERMINATED){
+					break;
+				}
+
+				if(mainThread == null){
+					break;
+				}
+			}
+
+			finished.set(true);
 
 		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
 		} finally {
 			try {
-                for (OutputStream outputStream : outputStreams) {
-                    if (outputStream != null) {
-                        outputStream.close();
-                    }
-                }
+				for (OutputStream outputStream : outputStreams) {
+					if (outputStream != null) {
+						outputStream.close();
+					}
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 
 	}
-	
+
 	/**
 	 * 获取 Web 访问日志记录对象
 	 * @param outputStreams 输出流数组
@@ -138,5 +145,5 @@ public class LoggerThread implements Runnable {
 		loggerMainThread.start();
 		return loggerThread;
 	}
-	
+
 }

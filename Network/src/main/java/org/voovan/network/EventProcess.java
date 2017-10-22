@@ -171,6 +171,11 @@ public class EventProcess {
 			}
 
 			TByteBuffer.release(byteBuffer);
+
+			//如果数据没有解析完,重新触发 onRecived 事件
+			if(session.getByteBufferChannel().size() > 0){
+				EventTrigger.fireReceiveThread(session);
+			}
 		}
 	}
 

@@ -1,6 +1,7 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
+import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.network.IoSession;
@@ -9,6 +10,7 @@ import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -46,7 +48,7 @@ public class HttpSession {
 	public HttpSession(WebServerConfig config, SessionManager sessionManager, IoSession socketSession){
 		attributes = new ConcurrentHashMap<String, Object>();
 		//生成一个随机的 ID 用作唯一标识
-		this.id = TString.generateShortUUID();
+		this.id = TString.generateId(this);
 		lastTimeillis = System.currentTimeMillis();
 		int sessionTimeout = config.getSessionTimeout();
 		if(sessionTimeout<=0){
@@ -150,7 +152,7 @@ public class HttpSession {
 	 * @param name	属性名
 	 * @param value	属性值
 	 */
-	public void setAttribute(String name, Object value) {
+	public void setAttribute(String name,Object value) {
 		attributes.put(name, value);
 		needSave = true;
 	}
@@ -232,7 +234,7 @@ public class HttpSession {
 	}
 
 	/**
-     * 关闭会话对象
+	 * 关闭会话对象
 	 */
 	public void close(){
 		socketSession.close();

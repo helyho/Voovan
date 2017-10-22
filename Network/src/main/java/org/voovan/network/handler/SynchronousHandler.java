@@ -19,6 +19,14 @@ public class SynchronousHandler implements IoHandler {
     //Socket 响应队列
     private LinkedBlockingDeque<Object> socketResponses  = new LinkedBlockingDeque<Object>();
 
+    /**
+     * 增加响应对象
+     * @param obj 响应对象
+     */
+    public void addResponse(Object obj){
+        socketResponses.add(obj);
+    }
+
     @Override
     public Object onConnect(IoSession session) {
         return  null;

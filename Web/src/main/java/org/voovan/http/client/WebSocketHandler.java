@@ -10,6 +10,7 @@ import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
@@ -95,19 +96,20 @@ public class WebSocketHandler implements IoHandler{
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
             final IoSession poneSession = session;
 
-            Global.getThreadPool().execute(new Runnable() {
+            Global.getHashWheelTimer().addTask(new HashWheelTask() {
                 @Override
                 public void run() {
-                    TEnv.sleep(poneSession.socketContext().getReadTimeout()/3);
                     try {
                         Logger.simple("PONG");
                         poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
                     } catch (SendMessageException e) {
                         poneSession.close();
                         Logger.error("WebSocket Pong event send Ping frame error", e);
+                    }finally {
+                        this.cancel();
                     }
                 }
-            });
+            }, poneSession.socketContext().getReadTimeout()/3/1000);
         }
         // CONTINUOUS 收到 pong 帧则返回 ping 帧
         else if(reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.CONTINUOUS){

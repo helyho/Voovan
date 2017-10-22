@@ -21,11 +21,11 @@
   "PauseURL"               : "/img/logo.jpg",                                      // 服务器暂停状态下所有请求都会转向这个路由
 
 //  HTTPS证书配置
-  "Https": {
-      "CertificateFile"        : "/src/test/java/org/voovan/test/http/ssl_ks",  // HTTPS 证书
-      "CertificatePassword"    : "passStr",                // HTTPS 证书密码
-      "KeyPassword"            : "123123",                 // HTTPS 证书Key 密码
-  },
+//  "Https": {
+//      "CertificateFile"        : "/src/test/java/org/voovan/test/http/ssl_ks",  // HTTPS 证书
+//      "CertificatePassword"    : "passStr",                // HTTPS 证书密码
+//      "KeyPassword"            : "123123",                 // HTTPS 证书Key 密码
+//  },
 
   // 过滤器配置节点 请求 先执行filter1, 后执行filter2,响应则相反
   /*
