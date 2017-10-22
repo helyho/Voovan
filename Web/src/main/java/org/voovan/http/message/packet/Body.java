@@ -1,5 +1,6 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.http.server.context.WebContext;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
@@ -15,7 +16,7 @@ import java.nio.ByteBuffer;
 /**
  * HTTP的内容对象
  * @author helyho
- * 
+ *
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
@@ -41,11 +42,11 @@ public class Body {
 	public Body(){
 		type = BodyType.BYTES;
 		try{
-            changeToBytes("".getBytes());
+			changeToBytes("".getBytes());
 			bodyFile = null;
-        } catch (IOException e){
-            Logger.error("Construct Body error",e);
-        }
+		} catch (IOException e){
+			Logger.error("Construct Body error",e);
+		}
 	}
 
 
@@ -84,10 +85,10 @@ public class Body {
 		return type;
 	}
 
-    /**
-     * 内容是否是由存储中的文件提供
-     * @return true: 由存储中的文件提供, false: 由字节提供
-     */
+	/**
+	 * 内容是否是由存储中的文件提供
+	 * @return true: 由存储中的文件提供, false: 由字节提供
+	 */
 	public boolean isFile(){
 		return bodyFile==null? false: true;
 	}
@@ -99,11 +100,11 @@ public class Body {
 	 */
 	public void changeToFile(File bodyFile) throws FileNotFoundException{
 
-        if(!bodyFile.exists()){
-            throw new FileNotFoundException("Upload file " + bodyFile.getPath() + " not exists");
-        }
+		if(!bodyFile.exists()){
+			throw new FileNotFoundException("Upload file " + bodyFile.getPath() + " not exists");
+		}
 
-        this.bodyFile = bodyFile;
+		this.bodyFile = bodyFile;
 
 		if(byteBufferChannel != null){
 			byteBufferChannel = null;
@@ -143,7 +144,7 @@ public class Body {
 	/**
 	 * 获取长度
 	 * @return 长度 小于0,则读取失败.
-     */
+	 */
 	public long size(){
 		if(type == BodyType.FILE){
 			try {
@@ -168,7 +169,7 @@ public class Body {
 			return byteBufferChannel.array();
 		}
 	}
-	
+
 	/**
 	 * 获取 body 字符串
 	 * @return body 字符串
@@ -182,8 +183,8 @@ public class Body {
 			return null;
 		}
 	}
-	
-	
+
+
 	/**
 	 * 获取 body 字符串
 	 * @param charset 字符集
@@ -207,17 +208,17 @@ public class Body {
 	public int read(ByteBuffer byteBuffer){
 		int readSize = -1;
 		if(type == BodyType.BYTES) {
-			 readSize = byteBufferChannel.readHead(byteBuffer);
-			 readSize = readSize==0? -1: readSize;
+			readSize = byteBufferChannel.readHead(byteBuffer);
+			readSize = readSize==0? -1: readSize;
 		}else {
 			byte[] fileContent = TFile.loadFile(bodyFile, position, position + byteBuffer.remaining());
 			if (fileContent != null){
 				readSize = fileContent.length;
-                position = position + readSize;
+				position = position + readSize;
 				byteBuffer.put(fileContent);
 				byteBuffer.flip();
-                return readSize;
-            }else{
+				return readSize;
+			}else{
 				readSize = -1;
 			}
 		}
@@ -235,21 +236,21 @@ public class Body {
 	}
 
 	/**
-	 * 写入 body 
+	 * 写入 body
 	 * @param body 字节数组
 	 * @param offset  在Body 对象中的偏移量,即在这个位置开始写入数据
 	 * @param length  写入长度
 	 */
 	public void write(byte[] body,int offset,int length){
 		try {
-            if(type == BodyType.BYTES) {
+			if(type == BodyType.BYTES) {
 				ByteBuffer bodyTmp = ByteBuffer.wrap(body);
 				bodyTmp.position(offset);
 				bodyTmp.limit(length);
 				byteBufferChannel.writeEnd(bodyTmp);
-            }else{
-            	TFile.writeFile(bodyFile,true, body, offset, length);
-            }
+			}else{
+				TFile.writeFile(bodyFile,true, body, offset, length);
+			}
 		} catch (IOException e) {
 			Logger.error("Wirte byte array faild by OutputStream",e);
 		}
@@ -308,7 +309,7 @@ public class Body {
 			TFile.moveFile(bodyFile, destFile);
 		}
 	}
-	
+
 	@Override
 	public String toString(){
 		byte[] bodyBytes = getBodyBytes();
@@ -339,9 +340,9 @@ public class Body {
 
 				//拼文件名
 				String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
-						"org.voovan.webserver",
+						"dd.webserver",
 						"body",
-						"VOOVAN_" + TString.generateShortUUID() + "." + fileName);
+						"VOOVAN_" + TString.generateId(this, WebContext.getWebServerConfig().getServerName()) + "." + fileName);
 
 				new File(TFile.getFileDirectory(localFileName)).mkdirs();
 				File gzipedFile = new File(localFileName);

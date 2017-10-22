@@ -49,6 +49,7 @@ public class HttpClient implements Closeable{
 	private String urlString;
 	private boolean isSSL = false;
 	private boolean isWebSocket = false;
+	private WebSocketRouter webSocketRouter;
 
 	/**
 	 * 构建函数
@@ -145,7 +146,7 @@ public class HttpClient implements Closeable{
 			request.header().put("Connection","keep-alive");
 
 			socket = new AioSocket(hostString, port==-1?80:port, timeOut*1000);
-			socket.filterChain().add(new HttpClientFilter());
+			socket.filterChain().add(new HttpClientFilter(this));
 			socket.messageSplitter(new HttpMessageSplitter());
 
 			if(isSSL){
@@ -162,6 +163,14 @@ public class HttpClient implements Closeable{
 		} catch (IOException e) {
 			Logger.error("HttpClient init error",e);
 		}
+	}
+
+	/**
+	 * 获取 Socket 连接
+	 * @return Socket对象
+	 */
+	protected AioSocket getSocket(){
+		return socket;
 	}
 
 
@@ -432,20 +441,28 @@ public class HttpClient implements Closeable{
 			throw new SendMessageException("HttpClient send error",e);
 		}
 
-		Object readObject = socket.synchronouRead();
-		Response response = null;
+		try {
+			Object readObject = socket.synchronouRead();
+			Response response = null;
 
-		//如果是异常则抛出异常
-		if(readObject instanceof Exception){
-			throw new ReadMessageException((Exception) readObject);
-		}else{
-			response = (Response) readObject;
+			//如果是异常则抛出异常
+			if (readObject instanceof Exception) {
+				throw new ReadMessageException((Exception) readObject);
+			} else {
+				response = (Response) readObject;
+			}
+
+			//结束操作
+			finished(request, response);
+
+			return response;
+		}catch(ReadMessageException e){
+			if(!isWebSocket){
+				throw e;
+			}
 		}
 
-		//结束操作
-		finished(request, response);
-
-		return response;
+		return null;
 	}
 
 	/**
@@ -501,7 +518,7 @@ public class HttpClient implements Closeable{
 	 * @throws SendMessageException 发送消息异常
 	 * @throws ReadMessageException 读取消息异常
 	 */
-	private boolean doWebSocketUpgrade(String location) throws SendMessageException, ReadMessageException {
+	private void doWebSocketUpgrade(String location) throws SendMessageException, ReadMessageException {
 		IoSession session = socket.getSession();
 		session.removeAttribute(WebServerHandler.SessionParam.TYPE);
 
@@ -511,9 +528,7 @@ public class HttpClient implements Closeable{
 		request.header().put("Origin", this.urlString);
 		request.header().put("Sec-WebSocket-Version","13");
 		request.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
-		Response response = send(location);
-		return response.protocol().getStatus()==101 &&
-				response.header().get("Sec-WebSocket-Accept").equals("F2D56gI8wPj3dJw+vgY0KFJEtIM=");
+		send(location);
 	}
 
 	/**
@@ -524,48 +539,52 @@ public class HttpClient implements Closeable{
 	 * @throws ReadMessageException  读取异常
 	 */
 	public void webSocket(String location, WebSocketRouter webSocketRouter) throws SendMessageException, ReadMessageException {
-		IoSession session = socket.getSession();
+		this.webSocketRouter = webSocketRouter;
 
 		//处理升级后的消息
-		if(doWebSocketUpgrade(location)){
-
-			//这里需要效验Sec-WebSocket-Accept
-
-			WebSocketSession webSocketSession = new WebSocketSession(socket.getSession(), null, this.socket.getHost(), this.socket.getPort());
-			WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketSession, webSocketRouter);
-			webSocketSession.setWebSocketRouter(webSocketRouter);
-
-			Object result = null;
-
-			//触发打开事件
-			result = webSocketRouter.onOpen(webSocketSession);
-
-			//先注册业务句柄,再打开消息分割器中 WebSocket 开关
-			socket.handler(webSocketHandler);
-			session.setAttribute(WebServerHandler.SessionParam.TYPE, "WebSocket");
-			isWebSocket = true;
-
-			if(result!=null) {
-				//封包
-				ByteBuffer buffer = null;
-				try {
-					buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
-					WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
-					sendWebSocketData(webSocketFrame);
-				} catch (WebSocketFilterException e) {
-					Logger.error(e);
-				}
-			}
-		}else{
-			//异常发送关闭帧
-			WebSocketFrame errWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(new byte[]{}));
-			sendWebSocketData(errWebSocketFrame);
-			throw new ReadMessageException("Connect WebSocket error!");
-		}
+		doWebSocketUpgrade(location);
 
 		//为异步调用进行阻赛,等待 socket 关闭
-		while(socket.isOpen()){
+		while (socket.isOpen()) {
 			TEnv.sleep(1);
+		}
+	}
+
+	/**
+	 * 初始化 WebSocket
+	 *    在 HttpFilter 中触发
+	 */
+	protected void initWebSocket( ){
+		//设置 WebSocket 标记
+		isWebSocket = true;
+
+		IoSession session = socket.getSession();
+
+		WebSocketSession webSocketSession = new WebSocketSession(socket.getSession(), null, this.socket.getHost(), this.socket.getPort());
+		WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketSession, webSocketRouter);
+		webSocketSession.setWebSocketRouter(webSocketRouter);
+
+		//先注册Socket业务处理句柄,再打开消息分割器中 WebSocket 开关
+		socket.handler(webSocketHandler);
+		session.setAttribute(WebServerHandler.SessionParam.TYPE, "WebSocket");
+
+		Object result = null;
+
+		//触发onOpen事件
+		result = webSocketRouter.onOpen(webSocketSession);
+
+		if(result!=null) {
+			//封包
+			ByteBuffer buffer = null;
+			try {
+				buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+				WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
+				sendWebSocketData(webSocketFrame);
+			} catch (WebSocketFilterException e) {
+				Logger.error(e);
+			} catch (SendMessageException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

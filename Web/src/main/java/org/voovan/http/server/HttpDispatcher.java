@@ -7,13 +7,14 @@ import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.router.MimeFileRouter;
-import org.voovan.tools.*;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.*;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 
 /**
@@ -37,6 +38,9 @@ import java.util.regex.Matcher;
  * Licence: Apache v2 License
  */
 public class HttpDispatcher {
+
+	private static Map<String, String> REGEXED_ROUTE = new ConcurrentHashMap<String, String>();
+
 	/**
 	 * [MainKey] = HTTP method ,[Value] = { [Value Key] = Route path, [Value value] = RouteBuiz对象 }
 	 */
@@ -110,7 +114,7 @@ public class HttpDispatcher {
 
 
 	/**
-     * 修复路由为规范的可注册的路由
+	 * 修复路由为规范的可注册的路由
 	 * @param routePath  路由
 	 * @return 规范的可注册的路由
 	 */
@@ -177,44 +181,54 @@ public class HttpDispatcher {
 	}
 
 	/**
-	 * Http 路由处理函数
-	 * @param request    Http请求对象
-	 * @param response   Http 响应对象
+	 * 获取路由处理对象和注册路由
+	 * @param request 请求对象
+	 * @return 路由信息对象 [ 匹配到的已注册路由, HttpRouter对象 ]
 	 */
-	public void disposeRoute(HttpRequest request, HttpResponse response){
+	public List<Object> getRouter(HttpRequest request){
 		String requestPath 		= request.protocol().getPath();
 		String requestMethod 	= request.protocol().getMethod();
 
-		boolean isMatched = false;
 		Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
-
-		//遍历路由对象
-		for (Map.Entry<String,HttpRouter> routeEntry : routers.entrySet()) {
+		for (Map.Entry<String, HttpRouter> routeEntry : routers.entrySet()) {
 			String routePath = routeEntry.getKey();
 			//寻找匹配的路由对象
-			isMatched = matchPath(requestPath,routePath,webConfig.isMatchRouteIgnoreCase());
-			if (isMatched) {
-
-				//获取路由处理对象
-				HttpRouter router = routeEntry.getValue();
-
-				try {
-					//获取路径变量
-					Map<String, String> pathVariables = fetchPathVariables(requestPath,routePath);
-					request.getParameters().putAll(pathVariables);
-
-					//处理路由请求
-					router.process(request, response);
-
-				} catch (Exception e) {
-					exceptionMessage(request, response, e);
-				}
-
-				break;
+			if(matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())){
+				//[ 匹配到的已注册路由, HttpRouter对象 ]
+				return TObject.asList(routePath, routeEntry.getValue());
 			}
 		}
 
-		if(!isMatched) {
+		return null;
+	}
+
+	/**
+	 * Http 路由处理函数
+	 * @param request    Http请求对象
+	 */
+	public void disposeRoute(HttpRequest request, HttpResponse response){
+		String requestPath = request.protocol().getPath();
+
+		//[ 匹配到的已注册路由, HttpRouter对象 ]
+		List<Object> routerInfo = getRouter(request);
+
+		if (routerInfo!=null) {
+			try {
+				String routePath = (String)routerInfo.get(0);
+				HttpRouter router = (HttpRouter)routerInfo.get(1);
+
+				//获取路径变量
+				Map<String, String> pathVariables = fetchPathVariables(requestPath, routePath);
+				request.getParameters().putAll(pathVariables);
+
+				//处理路由请求
+				router.process(request, response);
+
+			} catch (Exception e) {
+				exceptionMessage(request, response, e);
+			}
+
+		} else {
 			//如果匹配失败,尝试用定义首页索引文件的名称
 			if(!tryIndex(request,response)) {
 				exceptionMessage(request, response, new RouterNotFound("Not avaliable router!"));
@@ -231,7 +245,7 @@ public class HttpDispatcher {
 	public boolean tryIndex(HttpRequest request,HttpResponse response){
 		for (String indexFile : indexFiles) {
 			String requestPath 	= request.protocol().getPath();
-			String filePath = webConfig.getContextPath() + requestPath.replace("/", File.separator) + (requestPath.endsWith("/") ? "" : File.separator) + indexFile;
+			String filePath = webConfig.getContextPath() + requestPath.replace("/",File.separator) + (requestPath.endsWith("/") ? "" : File.separator) + indexFile;
 			if(TFile.fileExists(filePath)){
 				try {
 					String newRequestPath = requestPath + (requestPath.endsWith("/") ? "" : "/") + indexFile;
@@ -252,10 +266,16 @@ public class HttpDispatcher {
 	 * @return  转换后的正则匹配路径
 	 */
 	public static String routePath2RegexPath(String routePath){
-		String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
-		routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/");
-		routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/_-]*", "[^:?/_-]*");
-		return "^/?"+routeRegexPath+"/?$";
+		if(!REGEXED_ROUTE.containsKey(routePath)) {
+			String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
+			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/");
+			routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/_-]*", "[^:?/_-]*");
+			routeRegexPath = "^/?" + routeRegexPath + "/?$";
+			REGEXED_ROUTE.put(routePath, routeRegexPath);
+			return routeRegexPath;
+		} else {
+			return REGEXED_ROUTE.get(routePath);
+		}
 	}
 
 	/**
@@ -265,7 +285,7 @@ public class HttpDispatcher {
 	 * @param matchRouteIgnoreCase 路劲匹配是否忽略大消息
 	 * @return  是否匹配成功
 	 */
-	public static boolean matchPath(String requestPath, String routePath, boolean matchRouteIgnoreCase){
+	public static boolean matchPath(String requestPath, String routePath,boolean matchRouteIgnoreCase){
 		//转换成可以配置的正则,主要是处理:后的参数表达式
 		//把/home/:name转换成^[/]?/home/[/]?+来匹配
 		String routeRegexPath = routePath2RegexPath(routePath);
@@ -287,7 +307,7 @@ public class HttpDispatcher {
 	 * @param routePath     正则匹配路径
 	 * @return     路径抽取参数 Map
 	 */
-	public static Map<String, String> fetchPathVariables(String requestPath, String routePath) {
+	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) {
 		Map<String, String> resultMap = new LinkedHashMap<String, String>();
 		String routePathMathchRegex = routePath;
 
@@ -413,9 +433,11 @@ public class HttpDispatcher {
 
 		//输出异常
 		if( !(e instanceof ResourceNotFound || e instanceof RouterNotFound) ){
+			response.protocol().setStatus(500);
 			error.put("StatusCode", 500);
 			Logger.error(e);
 		}else{
+			response.protocol().setStatus(404);
 			error.put("StatusCode", 404);
 		}
 		error.put("Page", "Error.html");

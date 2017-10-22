@@ -10,10 +10,12 @@ import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -33,7 +35,7 @@ public class WebSocketDispatcher {
 	/**
 	 * [Key] = Route path ,[Value] = WebSocketBizHandler对象
 	 */
-	private Map<String, WebSocketRouter> routes;
+	private Map<String, WebSocketRouter> routers;
 
 	public enum WebSocketEvent {
 		OPEN, RECIVED, SENT, CLOSE, PING, PONG
@@ -46,7 +48,7 @@ public class WebSocketDispatcher {
 	public WebSocketDispatcher(WebServerConfig webConfig) {
 		this.webConfig = webConfig;
 
-		routes =  new TreeMap<String, WebSocketRouter>(new Comparator<String>() {
+		routers =  new TreeMap<String, WebSocketRouter>(new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
 				if(o1.length() > o2.length()){
@@ -66,8 +68,8 @@ public class WebSocketDispatcher {
 	 * 获取 WebSocket 的路由配置
 	 * @return 路由配置信息
 	 */
-	public Map<String, WebSocketRouter> getRoutes(){
-		return routes;
+	public Map<String, WebSocketRouter> getRouters(){
+		return routers;
 	}
 
 	/**
@@ -78,7 +80,24 @@ public class WebSocketDispatcher {
 	 */
 	public void addRouteHandler(String routeRegexPath, WebSocketRouter handler) {
 		routeRegexPath = HttpDispatcher.fixRoutePath(routeRegexPath);
-		routes.put(routeRegexPath, handler);
+		routers.put(routeRegexPath, handler);
+	}
+
+	/**
+	 * 获取路由处理对象和注册路由
+	 * @param request 请求对象
+	 * @return 路由信息对象 [ 匹配到的已注册路由, WebSocketRouter对象 ]
+	 */
+	public List<Object> getRouter(HttpRequest request){
+		String requestPath = request.protocol().getPath();
+		for (Map.Entry<String,WebSocketRouter> routeEntry : routers.entrySet()) {
+			String routePath = routeEntry.getKey();
+			if(HttpDispatcher.matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())){
+				//[ 匹配到的已注册路由, HttpRouter对象 ]
+				return TObject.asList(routePath, routeEntry.getValue());}
+		}
+
+		return null;
 	}
 
 	/**
@@ -92,76 +111,68 @@ public class WebSocketDispatcher {
 	 */
 	public WebSocketFrame process(WebSocketEvent event, IoSession session, HttpRequest request, ByteBuffer byteBuffer) {
 
-		String requestPath = request.protocol().getPath();
+		//[ 匹配到的已注册路由, WebSocketRouter对象 ]
+		List<Object> routerInfo = getRouter(request);
 
-		boolean isMatched = false;
-		for (Map.Entry<String,WebSocketRouter> routeEntry : routes.entrySet()) {
-			String routePath = routeEntry.getKey();
-			// 路由匹配
-			isMatched = HttpDispatcher.matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase());
-			if (isMatched) {
-				// 获取路由处理对象
-				WebSocketRouter webSocketRouter = routeEntry.getValue();
+		if (routerInfo != null) {
+//			String routePath = (String)routerInfo.get(0);
+			WebSocketRouter webSocketRouter = (WebSocketRouter)routerInfo.get(1);
 
-				WebSocketSession webSocketSession = disposeSession(request, webSocketRouter);
+			WebSocketSession webSocketSession = disposeSession(request, webSocketRouter);
 
-				// 获取路径变量
-				ByteBuffer responseMessage = null;
+			// 获取路径变量
+			ByteBuffer responseMessage = null;
 
-				try {
-					Object result = byteBuffer;
-					//WebSocket 事件处理
-					if (event == WebSocketEvent.OPEN) {
-						result = webSocketRouter.onOpen(webSocketSession);
-						//封包
-						responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
-					} else if (event == WebSocketEvent.RECIVED) {
-						//解包
-						result = webSocketRouter.filterDecoder(webSocketSession, result);
-						//触发 onRecive 事件
-						result = webSocketRouter.onRecived(webSocketSession, result);
-						//封包
-						responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
-					}
-
-					//将返回消息包装称WebSocketFrame
-					if (responseMessage != null) {
-						return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, responseMessage);
-					}
-
-					if (event == WebSocketEvent.SENT) {
-						//封包
-						result = webSocketRouter.filterDecoder(webSocketSession, byteBuffer);
-						webSocketRouter.onSent(webSocketSession, result);
-					} else if (event == WebSocketEvent.CLOSE) {
-						webSocketRouter.onClose(webSocketSession);
-					} else if (event == WebSocketEvent.PING) {
-						return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false, byteBuffer);
-					} else if (event == WebSocketEvent.PONG) {
-						final IoSession poneSession = session;
-						Global.getThreadPool().execute(new Runnable() {
-							@Override
-							public void run() {
-								TEnv.sleep(poneSession.socketContext().getReadTimeout() / 3);
-								try {
-									poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
-								} catch (SendMessageException e) {
-									poneSession.close();
-									Logger.error("Send WebSocket ping error", e);
-								}
-							}
-						});
-					}
-				}catch(WebSocketFilterException e){
-					Logger.error(e);
+			try {
+				Object result = byteBuffer;
+				//WebSocket 事件处理
+				if (event == WebSocketEvent.OPEN) {
+					result = webSocketRouter.onOpen(webSocketSession);
+					//封包
+					responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+				} else if (event == WebSocketEvent.RECIVED) {
+					//解包
+					result = webSocketRouter.filterDecoder(webSocketSession, result);
+					//触发 onRecive 事件
+					result = webSocketRouter.onRecived(webSocketSession, result);
+					//封包
+					responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
 				}
 
-				break;
+				//将返回消息包装称WebSocketFrame
+				if (responseMessage != null) {
+					return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, responseMessage);
+				}
+
+				if (event == WebSocketEvent.SENT) {
+					//封包
+					result = webSocketRouter.filterDecoder(webSocketSession, byteBuffer);
+					webSocketRouter.onSent(webSocketSession, result);
+				} else if (event == WebSocketEvent.CLOSE) {
+					webSocketRouter.onClose(webSocketSession);
+				} else if (event == WebSocketEvent.PING) {
+					return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false, byteBuffer);
+				} else if (event == WebSocketEvent.PONG) {
+					final IoSession poneSession = session;
+					Global.getThreadPool().execute(new Runnable() {
+						@Override
+						public void run() {
+							TEnv.sleep(poneSession.socketContext().getReadTimeout() / 3);
+							try {
+								poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+							} catch (SendMessageException e) {
+								poneSession.close();
+								Logger.error("Send WebSocket ping error", e);
+							}
+						}
+					});
+				}
+			} catch (WebSocketFilterException e) {
+				Logger.error(e);
 			}
 		}
-
 		// 没有找寻到匹配的路由处理器
-		if (!isMatched) {
+		else {
 			new RouterNotFound("Not avaliable router!").printStackTrace();
 		}
 		return null;

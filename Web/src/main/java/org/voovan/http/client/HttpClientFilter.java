@@ -8,6 +8,7 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
+import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
@@ -26,6 +27,11 @@ import java.nio.ByteBuffer;
 public class HttpClientFilter implements IoFilter {
 
 	private final ByteBuffer emptyByteBuffer = ByteBuffer.allocateDirect(0);
+	private HttpClient httpClient;
+
+	public HttpClientFilter(HttpClient httpClient){
+		this.httpClient = httpClient;
+	}
 
 	@Override
 	public Object encode(IoSession session, Object object) {
@@ -59,6 +65,13 @@ public class HttpClientFilter implements IoFilter {
 					return WebSocketFrame.parse((ByteBuffer)object);
 				}else {
 					Response response = HttpParser.parseResponse(byteBufferChannel, session.socketContext().getReadTimeout());
+					if(response.protocol().getStatus() == 101 &&
+							response.header().get("Sec-WebSocket-Accept").equals("F2D56gI8wPj3dJw+vgY0KFJEtIM=")){
+
+						//初始化 WebSocket
+						httpClient.initWebSocket();
+
+					}
 					return response;
 				}
 			}

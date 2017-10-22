@@ -15,12 +15,12 @@ import java.util.Vector;
 
 /**
  * HTTP 请求对象
- * 
+ *
  * GET 请求获取Request-URI所标识的资源 POST 在Request-URI所标识的资源后附加新的数据 HEAD
  * 请求获取由Request-URI所标识的资源的响应消息报头 PUT 请求服务器存储一个资源，并用Request-URI作为其标识 DELETE
  * 请求服务器删除Request-URI所标识的资源 TRACE 请求服务器回送收到的请求信息，主要用于测试或诊断 CONNECT 保留将来使用
  * OPTIONS 请求查询服务器的性能，或者查询与资源相关的选项和需求
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -34,7 +34,7 @@ public class Request {
 	private List<Cookie>	cookies;
 	private Body body;
 	private List<Part>		parts;
-	private String boundary = THash.encryptBASE64(TString.generateShortUUID());
+	private String boundary = THash.encryptBASE64(TString.generateId(this));
 	private static final String CONTENT_TYPE = "Content-Type";
 
 	/**
@@ -45,11 +45,11 @@ public class Request {
 	 */
 	public enum RequestType {
 		BODY_URLENCODED, BODY_MULTIPART, NORMAL
-	 }
+	}
 
-	 /**
+	/**
 	 * 构造函数
-	 * 
+	 *
 	 * @param request 请求对象
 	 */
 	protected Request(Request request) {
@@ -109,7 +109,7 @@ public class Request {
 
 	/**
 	 * 获取所有的 Part 对象,返回一个 List
-	 * 
+	 *
 	 * @return POST 请求报文对象
 	 */
 	public List<Part> parts() {
@@ -118,7 +118,7 @@ public class Request {
 
 	/**
 	 * 获取请求类型
-	 * 
+	 *
 	 * @return RequestType枚举
 	 */
 	public RequestType getBodyType() {
@@ -132,7 +132,7 @@ public class Request {
 
 		return RequestType.NORMAL;
 	}
-	
+
 	/**
 	 * 获取QueryStirng 或 将参数拼装成QueryString
 	 * @param charset 字符集
@@ -169,7 +169,7 @@ public class Request {
 
 		return queryString.isEmpty()? null : queryString;
 	}
-	
+
 	/**
 	 * 根据内容构造一些必要的 Header 属性
 	 * 		这里不按照请求方法组装必要的头信息,而是根据 Body 和 parts 对象的内容组装必要的头信息
@@ -177,20 +177,20 @@ public class Request {
 	private void initHeader() {
 		//如果之前设置过 ContentType 则不自动设置 ContentType
 		if(!header.contain(CONTENT_TYPE)){
-            // 如果请求中包含 Part 的处理
-            if (!parts.isEmpty()) {
-                // 产生新的boundary备用
-                String contentType = "multipart/form-data;";
-                header.put(CONTENT_TYPE, contentType);
-            }else if(body.getBodyBytes().length>0){
-                header.put(CONTENT_TYPE, "application/x-www-form-urlencoded");
-            }
+			// 如果请求中包含 Part 的处理
+			if (!parts.isEmpty()) {
+				// 产生新的boundary备用
+				String contentType = "multipart/form-data;";
+				header.put(CONTENT_TYPE, contentType);
+			}else if(body.getBodyBytes().length>0){
+				header.put(CONTENT_TYPE, "application/x-www-form-urlencoded");
+			}
 
-            //生成 Cookie 信息
-            String cookieValue = genCookie();
-            if(!TString.isNullOrEmpty(cookieValue)){
-                header.put("Cookie", genCookie());
-            }
+			//生成 Cookie 信息
+			String cookieValue = genCookie();
+			if(!TString.isNullOrEmpty(cookieValue)){
+				header.put("Cookie", genCookie());
+			}
 		}
 
 		if("multipart/form-data;".equals(header.get(CONTENT_TYPE))){
@@ -204,7 +204,7 @@ public class Request {
 
 	/**
 	 * 根据 Cookie 对象,生成 HTTP 请求中的 Cookie 字符串 用于报文拼装
-	 * 
+	 *
 	 * @return 获取 Cookie 字符串
 	 */
 	private String genCookie() {
@@ -220,7 +220,7 @@ public class Request {
 
 	/**
 	 * 根据对象的内容,构造 Http 请求报文
-	 * 
+	 *
 	 * @return Http 请求报文
 	 */
 	private ByteBuffer readHead() {
@@ -228,7 +228,7 @@ public class Request {
 
 		// Body 对应的 Header 预处理
 		initHeader();
-		
+
 		// 报文组装
 		try {
 			// 处理协议行
@@ -239,7 +239,7 @@ public class Request {
 
 			//头结束插入空行
 			outputStream.write("\r\n".getBytes("UTF-8"));
-			
+
 		} catch (IOException e) {
 			Logger.error("OutputString io error",e);
 		}
@@ -253,50 +253,50 @@ public class Request {
 	 * @throws IOException IO异常
 	 */
 	public void send(IoSession session) throws IOException {
-        int readSize = 0;
+		int readSize = 0;
 
-        //发送报文头
-        session.send(readHead());
+		//发送报文头
+		session.send(readHead());
 
-        //发送缓冲区
-        ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
+		//发送缓冲区
+		ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
 
-        // 有 BodyBytes 时直接写入包体
-        if (body.size() > 0) {
-            while(true) {
-                readSize = body.read(byteBuffer);
-                if (readSize == -1) {
-                    break;
-                }
-                session.send(byteBuffer);
-                byteBuffer.clear();
-            }
-        }
+		// 有 BodyBytes 时直接写入包体
+		if (body.size() > 0) {
+			while(true) {
+				readSize = body.read(byteBuffer);
+				if (readSize == -1) {
+					break;
+				}
+				session.send(byteBuffer);
+				byteBuffer.clear();
+			}
+		}
 
-        byteBuffer.clear();
+		byteBuffer.clear();
 
-        // 有 parts 时按 parts 的格式写入 parts
-        if(!parts.isEmpty()) {
-            // Content-Type存在
-            if (parts.size() != 0) {
+		// 有 parts 时按 parts 的格式写入 parts
+		if(!parts.isEmpty()) {
+			// Content-Type存在
+			if (parts.size() != 0) {
 
-                // 获取 multiPart 标识
-                for (Part part : this.parts) {
-                    //发送 part 报文
-                    part.send(session, boundary);
-                }
+				// 获取 multiPart 标识
+				for (Part part : this.parts) {
+					//发送 part 报文
+					part.send(session, boundary);
+				}
 
-                //发送结尾标识
-                byteBuffer.put(("--" + boundary + "--").getBytes());
-                byteBuffer.flip();
-                session.send(byteBuffer);
-                byteBuffer.clear();
-                // POST结束不需要空行标识结尾
-            }
-        }
+				//发送结尾标识
+				byteBuffer.put(("--" + boundary + "--").getBytes());
+				byteBuffer.flip();
+				session.send(byteBuffer);
+				byteBuffer.clear();
+				// POST结束不需要空行标识结尾
+			}
+		}
 
-        TByteBuffer.release(byteBuffer);
-        body.free();
+		TByteBuffer.release(byteBuffer);
+		body.free();
 	}
 
 

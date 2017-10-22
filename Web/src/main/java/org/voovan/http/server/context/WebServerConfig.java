@@ -1,7 +1,9 @@
 package org.voovan.http.server.context;
 
+import org.voovan.Global;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TString;
+import org.voovan.tools.UniqueId;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -46,7 +48,7 @@ public class WebServerConfig {
 
     public String getServerName() {
         if(serverName==null){
-            serverName = TString.generateShortUUID();
+            serverName = Global.NAME;
         }
         return serverName;
     }

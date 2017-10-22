@@ -5,12 +5,14 @@ import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
+import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
@@ -18,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.InterruptedByTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * WebServer Socket 事件处理类
@@ -242,26 +245,32 @@ public class WebServerHandler implements IoHandler {
 	 */
 	public HttpResponse disposeUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 
-		//保存必要参数
-		setAttribute(session, SessionParam.TYPE, "Upgrade");
-		httpDispatcher.disposeSession(httpRequest, httpResponse);
+		//如果不是匹配的路由则关闭连接
+		if(webSocketDispatcher.getRouter(httpRequest)!=null){
+			setAttribute(session, SessionParam.TYPE, "Upgrade");
+			httpDispatcher.disposeSession(httpRequest, httpResponse);
 
-		//初始化响应消息
-		httpResponse.protocol().setStatus(101);
-		httpResponse.protocol().setStatusCode("Switching Protocols");
-		httpResponse.header().put("Connection", "Upgrade");
+			//初始化响应消息
+			httpResponse.protocol().setStatus(101);
+			httpResponse.protocol().setStatusCode("Switching Protocols");
+			httpResponse.header().put("Connection", "Upgrade");
 
-		if(httpRequest.header()!=null && "websocket".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
+			if(httpRequest.header()!=null && "websocket".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
 
-			httpResponse.header().put("Upgrade", "websocket");
-			String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get("Sec-WebSocket-Key"));
-			httpResponse.header().put("Sec-WebSocket-Accept", webSocketKey);
+				httpResponse.header().put("Upgrade", "websocket");
+				String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get("Sec-WebSocket-Key"));
+				httpResponse.header().put("Sec-WebSocket-Accept", webSocketKey);
+			}
+
+			else if(httpRequest.header()!=null && "h2c".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
+				httpResponse.header().put("Upgrade", "h2c");
+				//这里写 HTTP2的实现,暂时留空
+			}
+		} else {
+			httpDispatcher.exceptionMessage(httpRequest, httpResponse, new RouterNotFound("Not avaliable router!"));
 		}
 
-		else if(httpRequest.header()!=null && "h2c".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
-			httpResponse.header().put("Upgrade", "h2c");
-			//这里写 HTTP2的实现,暂时留空
-		}
+
 		return httpResponse;
 	}
 
@@ -363,9 +372,22 @@ public class WebServerHandler implements IoHandler {
 				}
 			}
 
-			//发送 ping 消息
-			WebSocketFrame ping = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null);
-			session.send(ping.toByteBuffer());
+			//发送第一次心跳消息
+			Global.getHashWheelTimer().addTask(new HashWheelTask() {
+				@Override
+				public void run() {
+					//发送 ping 消息
+					try {
+						WebSocketFrame ping = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null);
+						session.send(ping.toByteBuffer());
+					} catch (Exception e) {
+						session.close();
+						Logger.error("WebSocket send Ping frame error", e);
+					}finally {
+						this.cancel();
+					}
+				}
+			}, session.socketContext().getReadTimeout()/3/1000);
 		}
 
 		//处理连接保持

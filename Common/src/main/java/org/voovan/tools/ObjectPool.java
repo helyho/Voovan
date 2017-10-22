@@ -73,7 +73,7 @@ public class ObjectPool {
      * 生成ObjectId
      * @return 生成的ObjectId
      */
-    private String getObjectId(){
+    private String genObjectId(){
         return TString.generateShortUUID();
     }
 
@@ -109,7 +109,7 @@ public class ObjectPool {
         if(obj == null){
             return null;
         }
-        String id = getObjectId();
+        String id = genObjectId();
         objects.put(id, new PooledObject(this, id, obj));
         return id;
     }
@@ -136,7 +136,7 @@ public class ObjectPool {
      * @return 对象池的大小
      */
     public int size(){
-       return objects.size();
+        return objects.size();
     }
 
     /**
