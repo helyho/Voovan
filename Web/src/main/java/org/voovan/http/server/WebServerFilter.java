@@ -1,5 +1,6 @@
 package org.voovan.http.server;
 
+import org.voovan.Global;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
@@ -35,12 +36,20 @@ public class WebServerFilter implements IoFilter {
 
 		// 对 Websocket 进行处理
 		if (object instanceof Response) {
-			Response response = (Response)object;
-			try {
-				response.send(session);
-			}catch(Exception e){
-				Logger.error(e);
-			}
+			final Response response = (Response)object;
+
+			//开启一个线程发送响应对象,不阻塞 onRecive 事件
+			Global.getThreadPool().execute(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						response.send(session);
+					}catch(Exception e){
+						Logger.error(e);
+					}
+				}
+			});
+
 			return emptyByteBuffer;
 		} else if(object instanceof WebSocketFrame){
 			WebSocketFrame webSocketFrame = (WebSocketFrame)object;

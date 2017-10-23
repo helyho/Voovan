@@ -118,11 +118,9 @@ public class AioSession extends IoSession<AioSocket> {
             while(isConnected() && buffer.remaining()!=0){
                 try {
                     Future<Integer> sendResult = socketChannel.write(buffer);
-                    if(sendResult==null){
-                        break;
-                    }
 
                     try {
+                        //这里会阻赛当前的发送线程
                         totalSendByte += sendResult.get();
                     } catch (InterruptedException | ExecutionException e) {
                         close();
