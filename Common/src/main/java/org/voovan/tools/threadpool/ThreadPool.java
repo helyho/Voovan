@@ -2,6 +2,7 @@ package org.voovan.tools.threadpool;
 
 import org.voovan.Global;
 
+import java.util.Timer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +61,7 @@ public class ThreadPool {
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPoolInstance.allowCoreThreadTimeOut(true);
 
-		Global.getHashWheelTimer().addTask(new ThreadPoolTask(threadPoolInstance), 10);
+		new Timer().schedule(new ThreadPoolTask(threadPoolInstance), 1000);
 		return threadPoolInstance;
 	}
 
