@@ -231,9 +231,11 @@ public class EventProcess {
 
 		final IoSession sendSession = session;
 		final Object sendObj = obj;
-		Global.getThreadPool().submit(new Callable<Object>() {
+
+		//开启一个线程发送消息,不阻塞当前线程
+		Global.getThreadPool().execute(new Runnable() {
 			@Override
-			public Object call() {
+			public void run() {
 				int sendCount = -1;
 
 				try {
@@ -260,8 +262,6 @@ public class EventProcess {
 
 				//设置空闲状态
 				sendSession.getState().setSend(false);
-
-				return sendCount;
 			}
 		});
 	}
