@@ -627,9 +627,10 @@ public class WebServer {
 				//服务监听地址
 				if(args[i].equals("--remoteConfig")){
 					i++;
+					HttpClient httpClient = null;
 					try {
 						URL url = new URL(args[i]);
-						HttpClient httpClient = new HttpClient(url.getProtocol()+"://"+url.getHost()+":"+url.getPort());
+						httpClient = new HttpClient(url.getProtocol()+"://"+url.getHost()+":"+url.getPort());
 						Response response = httpClient.send(url.getPath());
 						if(response.protocol().getStatus() == 200) {
 							config = WebContext.buildWebServerConfig(response.body().getBodyString());
@@ -639,6 +640,10 @@ public class WebServer {
 						}
 					} catch (Exception e) {
 						Logger.error("Use the config url: " + args[i] + " error", e);
+					} finally {
+						if(httpClient!=null){
+							httpClient.close();
+						}
 					}
 				}
 
