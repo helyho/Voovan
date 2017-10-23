@@ -246,7 +246,7 @@ public class WebServerHandler implements IoHandler {
 	public HttpResponse disposeUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 
 		//如果不是匹配的路由则关闭连接
-		if(webSocketDispatcher.getRouter(httpRequest)!=null){
+		if(webSocketDispatcher.findRouter(httpRequest)!=null){
 			setAttribute(session, SessionParam.TYPE, "Upgrade");
 			httpDispatcher.disposeSession(httpRequest, httpResponse);
 

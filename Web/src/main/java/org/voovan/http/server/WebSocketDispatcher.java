@@ -88,7 +88,7 @@ public class WebSocketDispatcher {
 	 * @param request 请求对象
 	 * @return 路由信息对象 [ 匹配到的已注册路由, WebSocketRouter对象 ]
 	 */
-	public List<Object> getRouter(HttpRequest request){
+	public List<Object> findRouter(HttpRequest request){
 		String requestPath = request.protocol().getPath();
 		for (Map.Entry<String,WebSocketRouter> routeEntry : routers.entrySet()) {
 			String routePath = routeEntry.getKey();
@@ -112,7 +112,7 @@ public class WebSocketDispatcher {
 	public WebSocketFrame process(WebSocketEvent event, IoSession session, HttpRequest request, ByteBuffer byteBuffer) {
 
 		//[ 匹配到的已注册路由, WebSocketRouter对象 ]
-		List<Object> routerInfo = getRouter(request);
+		List<Object> routerInfo = findRouter(request);
 
 		if (routerInfo != null) {
 //			String routePath = (String)routerInfo.get(0);

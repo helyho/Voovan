@@ -69,7 +69,6 @@ public class TEnv {
 	 */
 	public static void sleep(int sleepTime) {
 		try {
-			Thread.currentThread();
 			Thread.sleep(sleepTime);
 		} catch (InterruptedException e) {
 			Logger.error("TEnv.sleep interrupted",e);

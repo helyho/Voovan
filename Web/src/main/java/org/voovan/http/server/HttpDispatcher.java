@@ -39,7 +39,8 @@ import java.util.regex.Matcher;
  */
 public class HttpDispatcher {
 
-	private static Map<String, String> REGEXED_ROUTE = new ConcurrentHashMap<String, String>();
+	private static Map<String, String> REGEXED_ROUTER = new ConcurrentHashMap<String, String>();
+	private static Map<String, List<Object>> ROUTER_CACHE = new ConcurrentHashMap<String, List<Object>>();
 
 	/**
 	 * [MainKey] = HTTP method ,[Value] = { [Value Key] = Route path, [Value value] = RouteBuiz对象 }
@@ -185,21 +186,28 @@ public class HttpDispatcher {
 	 * @param request 请求对象
 	 * @return 路由信息对象 [ 匹配到的已注册路由, HttpRouter对象 ]
 	 */
-	public List<Object> getRouter(HttpRequest request){
+	public List<Object> findRouter(HttpRequest request){
 		String requestPath 		= request.protocol().getPath();
 		String requestMethod 	= request.protocol().getMethod();
+		String routerMark = requestPath+requestMethod;
 
-		Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
-		for (Map.Entry<String, HttpRouter> routeEntry : routers.entrySet()) {
-			String routePath = routeEntry.getKey();
-			//寻找匹配的路由对象
-			if(matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())){
-				//[ 匹配到的已注册路由, HttpRouter对象 ]
-				return TObject.asList(routePath, routeEntry.getValue());
+		List<Object> routerInfo = ROUTER_CACHE.get(routerMark);
+
+		if(routerInfo==null) {
+			Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
+			for (Map.Entry<String, HttpRouter> routeEntry : routers.entrySet()) {
+				String routePath = routeEntry.getKey();
+				//寻找匹配的路由对象
+				if (matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())) {
+					//[ 匹配到的已注册路由, HttpRouter对象 ]
+					routerInfo = TObject.asList(routePath, routeEntry.getValue());
+					ROUTER_CACHE.put(routerMark, routerInfo);
+					return routerInfo;
+				}
 			}
 		}
 
-		return null;
+		return routerInfo;
 	}
 
 	/**
@@ -210,7 +218,7 @@ public class HttpDispatcher {
 		String requestPath = request.protocol().getPath();
 
 		//[ 匹配到的已注册路由, HttpRouter对象 ]
-		List<Object> routerInfo = getRouter(request);
+		List<Object> routerInfo = findRouter(request);
 
 		if (routerInfo!=null) {
 			try {
@@ -219,7 +227,9 @@ public class HttpDispatcher {
 
 				//获取路径变量
 				Map<String, String> pathVariables = fetchPathVariables(requestPath, routePath);
-				request.getParameters().putAll(pathVariables);
+				if(pathVariables!=null) {
+					request.getParameters().putAll(pathVariables);
+				}
 
 				//处理路由请求
 				router.process(request, response);
@@ -266,15 +276,15 @@ public class HttpDispatcher {
 	 * @return  转换后的正则匹配路径
 	 */
 	public static String routePath2RegexPath(String routePath){
-		if(!REGEXED_ROUTE.containsKey(routePath)) {
+		if(!REGEXED_ROUTER.containsKey(routePath)) {
 			String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/");
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/_-]*", "[^:?/_-]*");
 			routeRegexPath = "^/?" + routeRegexPath + "/?$";
-			REGEXED_ROUTE.put(routePath, routeRegexPath);
+			REGEXED_ROUTER.put(routePath, routeRegexPath);
 			return routeRegexPath;
 		} else {
-			return REGEXED_ROUTE.get(routePath);
+			return REGEXED_ROUTER.get(routePath);
 		}
 	}
 
@@ -308,32 +318,37 @@ public class HttpDispatcher {
 	 * @return     路径抽取参数 Map
 	 */
 	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) {
-		Map<String, String> resultMap = new LinkedHashMap<String, String>();
-		String routePathMathchRegex = routePath;
+		if(routePath.endsWith("*") && requestPath.equals(TString.removeSuffix(routePath))){
+			return null;
+		} else {
+			Map<String, String> resultMap = new LinkedHashMap<String, String>();
+			String routePathMathchRegex = routePath;
 
-		try {
-			//抽取路径中的变量名
-			String[] names = TString.searchByRegex(routePath, ":[^:?/_-]*");
-			if(names.length > 0) {
-				for (int i = 0; i < names.length; i++) {
-					names[i] = TString.removePrefix(names[i]);
-					String name = names[i];
-					//拼装通过命名抽取数据的正则表达式
-					routePathMathchRegex = routePathMathchRegex.replace(":" + name, "(?<" + name + ">.*)");
+
+			try {
+				//抽取路径中的变量名
+				String[] names = TString.searchByRegex(routePath, ":[^:?/_-]*");
+				if (names.length > 0) {
+					for (int i = 0; i < names.length; i++) {
+						names[i] = TString.removePrefix(names[i]);
+						String name = names[i];
+						//拼装通过命名抽取数据的正则表达式
+						routePathMathchRegex = routePathMathchRegex.replace(":" + name, "(?<" + name + ">.*)");
+					}
+
+					//运行正则
+					Matcher matcher = TString.doRegex(requestPath, routePathMathchRegex);
+
+					for (String name : names) {
+						resultMap.put(name, URLDecoder.decode(matcher.group(name), "UTF-8"));
+					}
 				}
-
-				//运行正则
-				Matcher matcher = TString.doRegex(requestPath, routePathMathchRegex);
-
-				for (String name : names) {
-					resultMap.put(name, URLDecoder.decode(matcher.group(name), "UTF-8"));
-				}
+			} catch (UnsupportedEncodingException e) {
+				Logger.error("RoutePath URLDecoder.decode failed by charset: UTF-8", e);
 			}
-		} catch (UnsupportedEncodingException e) {
-			Logger.error("RoutePath URLDecoder.decode failed by charset: UTF-8", e);
-		}
 
-		return resultMap;
+			return resultMap;
+		}
 	}
 
 	/**
