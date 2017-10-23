@@ -1,5 +1,6 @@
 package org.voovan.http.server.module.annontationRouter;
 
+import org.voovan.Global;
 import org.voovan.http.server.HttpModule;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
@@ -41,7 +42,7 @@ public class AnnotationModule extends HttpModule {
 
         if(scanRouterPackate != null && getScanRouterInterval() > 0){
             //更新 ClassPath, 步长1秒, 槽数60个;
-            org.voovan.Global.getHashWheelTimer().addTask(new HashWheelTask() {
+            Global.getHashWheelTimer().addTask(new HashWheelTask() {
                 @Override
                 public void run() {
                     //查找并刷新新的@Route 注解类
