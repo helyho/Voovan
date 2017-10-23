@@ -158,8 +158,7 @@ public class HttpDispatcher {
 
 		Object filterResult = null;
 
-		//Session预处理
-		disposeSession(request,response);
+		request.setSessionManager(sessionManager);
 
 		//正向过滤器处理,请求有可能被 Redirect 所以过滤器执行放在开始
 		filterResult = disposeFilter(filterConfigs,request,response);
@@ -170,7 +169,17 @@ public class HttpDispatcher {
 			disposeRoute(request, response);
 		}
 
-		if(request.getSession()!=null) {
+		HttpSession session = request.getSession();
+
+		//向 HttpResponse 中放置 Session 的 Cookie
+		if(!request.getSession().attribute().isEmpty()) {
+			//创建 Cookie
+			Cookie cookie = Cookie.newInstance(request,  "/", WebContext.getSessionName(),
+					session.getId(), webConfig.getSessionTimeout() * 60);
+
+			//响应增加Session 对应的 Cookie
+			response.cookies().add(cookie);
+
 			request.getSession().save();
 		}
 
@@ -348,34 +357,6 @@ public class HttpDispatcher {
 			}
 
 			return resultMap;
-		}
-	}
-
-	/**
-	 * 处理 Session
-	 * @param request   HTTP 请求
-	 * @param response  HTTP 响应
-	 */
-	public void disposeSession(HttpRequest request, HttpResponse response){
-
-		HttpSession httpSession = null;
-
-		//获取请求的 Cookie中的session标识
-		Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
-		if(sessionCookie!=null) {
-			httpSession = sessionManager.getSession(sessionCookie.getValue());
-		}
-
-		if(httpSession == null){
-			httpSession = sessionManager.newSession(request, response);
-		}
-
-
-		if(httpSession!=null) {
-			httpSession.init(sessionManager, request.getSocketSession());
-
-			// 请求增加 Session
-			request.setSession(httpSession);
 		}
 	}
 

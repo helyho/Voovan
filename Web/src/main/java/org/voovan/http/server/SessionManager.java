@@ -166,23 +166,14 @@ public class SessionManager{
 	/**
 	 * 获得 Session 如果没有对应的 session 则创建一个新的 Session
 	 * @param request  HTTP 请求对象
-	 * @param response  HTTP 响应对象
 	 * @return HTTP-Session对象
 	 */
-	public HttpSession newSession(HttpRequest request, HttpResponse response){
+	public HttpSession newSession(HttpRequest request){
 
 		HttpSession session = null;
 
 		if(request.header().get("Host") != null) {
 			session = new HttpSession(webConfig, this, request.getSocketSession());
-
-			//创建 Cookie
-			Cookie cookie = Cookie.newInstance(request,  "/", WebContext.getSessionName(),
-					session.getId(), webConfig.getSessionTimeout() * 60);
-
-			//响应增加Session 对应的 Cookie
-			response.cookies().add(cookie);
-
 		}else{
 			Logger.warn("Create session cookie error, the request haven't an header of host.");
 		}

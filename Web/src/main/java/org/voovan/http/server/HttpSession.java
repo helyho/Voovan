@@ -1,7 +1,6 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
-import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.network.IoSession;
@@ -10,7 +9,6 @@ import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -72,7 +70,7 @@ public class HttpSession {
 			}, innerSession.getMaxInactiveInterval() / 1000);
 		}
 
-		needSave = true;
+		needSave = false;
 	}
 
 	/**
@@ -164,6 +162,13 @@ public class HttpSession {
 	public void removeAttribute(String name) {
 		attributes.remove(name);
 		needSave = true;
+	}webserv
+
+	/**
+	 *  返回当前 Session 的属性Map
+	 */
+	public Map<String,Object> attribute() {
+		return attributes;
 	}
 
 	/**
