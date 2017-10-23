@@ -162,7 +162,7 @@ public class HttpSession {
 	public void removeAttribute(String name) {
 		attributes.remove(name);
 		needSave = true;
-	}webserv
+	}
 
 	/**
 	 *  返回当前 Session 的属性Map
