@@ -34,6 +34,7 @@ public class HttpSession {
 
 	//是否需要持久化
 	private boolean needSave;
+	private boolean isAutoCleanRun;
 
 
 	/**
@@ -56,21 +57,27 @@ public class HttpSession {
 		this.sessionManager = sessionManager;
 		this.socketSession = socketSession;
 
-		//如果 session 可以自清除则不进行清理
-		if(!sessionManager.autoExpire()) {
-			final HttpSession innerSession = this;
-			Global.getHashWheelTimer().addTask(new HashWheelTask() {
-				@Override
-				public void run() {
-					if (innerSession.isExpire()) {
-						innerSession.removeFromSessionManager();
-						this.cancel();
-					}
-				}
-			}, innerSession.getMaxInactiveInterval() / 1000);
-		}
-
 		needSave = false;
+		isAutoCleanRun = false;
+	}
+
+	private void autoClean(){
+		if(!isAutoCleanRun) {
+			//如果 session 可以自清除则不进行清理
+			if (!sessionManager.autoExpire()) {
+				final HttpSession innerSession = this;
+				Global.getHashWheelTimer().addTask(new HashWheelTask() {
+					@Override
+					public void run() {
+						if (innerSession.isExpire()) {
+							innerSession.removeFromSessionManager();
+							this.cancel();
+						}
+					}
+				}, innerSession.getMaxInactiveInterval() / 1000);
+			}
+			isAutoCleanRun = true;
+		}
 	}
 
 	/**
@@ -234,6 +241,7 @@ public class HttpSession {
 	public void save(){
 		if(sessionManager!=null && needSave) {
 			sessionManager.saveSession(this);
+			autoClean();
 			needSave = false;
 		}
 	}

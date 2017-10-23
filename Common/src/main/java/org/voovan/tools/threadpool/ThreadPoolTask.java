@@ -5,6 +5,7 @@ import org.voovan.tools.TPerformance;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
+import java.util.TimerTask;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -16,7 +17,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class ThreadPoolTask extends HashWheelTask {
+public class ThreadPoolTask extends TimerTask {
 	private ThreadPoolExecutor	threadPoolInstance;
 	private int					cpuCoreCount;
 
