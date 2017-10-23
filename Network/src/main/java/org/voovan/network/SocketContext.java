@@ -254,11 +254,11 @@ public abstract class SocketContext {
 		try {
 			int waitConnectTime = 0;
 			while (!isConnected()) {
-				TEnv.sleep(1);
 				waitConnectTime++;
 				if (waitConnectTime >= readTimeout) {
 					break;
 				}
+				TEnv.sleep(1);
 			}
 
 			//等待 SSL 握手操作完成

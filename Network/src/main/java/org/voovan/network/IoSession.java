@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 会话抽象类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public abstract class IoSession<T extends SocketContext> {
-	
+
 	private Map<Object, Object> attributes;
 	private SSLParser sslParser;
 
@@ -124,7 +124,7 @@ public abstract class IoSession<T extends SocketContext> {
 	public void checkIdle(){
 		if(socketContext.getIdleInterval() > 0) {
 
-            if(checkIdleTask == null){
+			if(checkIdleTask == null){
 				final IoSession session = this;
 
 				checkIdleTask = new HashWheelTask() {
@@ -174,7 +174,7 @@ public abstract class IoSession<T extends SocketContext> {
 				};
 
 				checkIdleTask.run();
-            }
+			}
 
 
 			Global.getHashWheelTimer().addTask(checkIdleTask, 1);
@@ -217,7 +217,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return 接收的输出流
 	 */
 	public ByteBufferChannel getByteBufferChannel() {
-			return byteBufferChannel;
+		return byteBufferChannel;
 	}
 
 	/**
@@ -227,7 +227,7 @@ public abstract class IoSession<T extends SocketContext> {
 	public SSLParser getSSLParser() {
 		return sslParser;
 	}
-	
+
 	/**
 	 * 获取 SSLParser
 	 * @param sslParser SSL解析对象
@@ -271,7 +271,7 @@ public abstract class IoSession<T extends SocketContext> {
 	public void removeAttribute(Object key) {
 		this.attributes.remove(key);
 	}
-	
+
 	/**
 	 * 检查会话参数是否存在
 	 * @param key     参数名
@@ -286,25 +286,25 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return	本地 IP 地址
 	 */
 	public abstract String localAddress();
-	
+
 	/**
 	 * 获取本地端口
 	 * @return 返回-1为没有取到本地端口
 	 */
 	public abstract int loaclPort();
-	
+
 	/**
 	 * 获取对端 IP 地址
 	 * @return  对端 ip 地址
 	 */
 	public abstract String remoteAddress();
-	
+
 	/**
 	 * 获取对端端口
 	 * @return 	返回-1为没有取到对端端口
 	 */
 	public abstract int remotePort();
-	
+
 	/**
 	 * 获取 socket 连接上下文
 	 * @return	socket 连接上下文, 连接断开时返回的是null
@@ -312,7 +312,7 @@ public abstract class IoSession<T extends SocketContext> {
 	public T socketContext() {
 		return socketContext;
 	};
-	
+
 	/**
 	 * 读取消息到缓冲区
 	 * @param buffer    接收数据的缓冲区
@@ -321,7 +321,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	protected abstract int read0(ByteBuffer buffer) throws IOException;
 
-	
+
 	/**
 	 * 发送消息
 	 * 		注意直接调用不会出发 onSent 事件
@@ -352,7 +352,6 @@ public abstract class IoSession<T extends SocketContext> {
 		while(true){
 			//如果响应对象不存在则继续循环等待直到结果出现
 			if(!synchronousHandler.hasNextResponse()){
-				TEnv.sleep(1);
 
 				//超时判断
 				waitedTime++;
@@ -364,6 +363,8 @@ public abstract class IoSession<T extends SocketContext> {
 				if(!isConnected()){
 					throw new ReadMessageException("Socket is disconnect");
 				}
+
+				TEnv.sleep(1);
 				continue;
 			}
 
@@ -420,17 +421,17 @@ public abstract class IoSession<T extends SocketContext> {
 	 * 	@return 发送的数据大小
 	 */
 	public int send(ByteBuffer buffer){
-        try {
-            if(sslParser!=null && sslParser.isHandShakeDone()) {
-            	//warpData 内置调用 session.send0 将数据送至发送缓冲区
-                sslParser.warpData(buffer);
-                return buffer.limit();
-            }else{
-                return send0(buffer);
-            }
-        } catch (IOException e) {
-            Logger.error("Send data failed" ,e);
-        }
+		try {
+			if(sslParser!=null && sslParser.isHandShakeDone()) {
+				//warpData 内置调用 session.send0 将数据送至发送缓冲区
+				sslParser.warpData(buffer);
+				return buffer.limit();
+			}else{
+				return send0(buffer);
+			}
+		} catch (IOException e) {
+			Logger.error("Send data failed" ,e);
+		}
 
 		return -1;
 	}
@@ -467,7 +468,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return 消息分割处理类
 	 */
 	protected abstract MessageSplitter getMessagePartition();
-	
+
 	/**
 	 * 会话是否连接
 	 * @return	true: 连接,false: 关闭
