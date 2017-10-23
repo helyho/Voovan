@@ -3,6 +3,7 @@ package org.voovan.http.server;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
+import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
@@ -32,6 +33,7 @@ public class HttpRequest extends Request {
 	private Map<String, String> parameters;
 	private Map<String, Object> attributes;
 	private IoSession socketSession;
+	private SessionManager sessionManager;
 
 	/**
 	 * 构造函数
@@ -46,6 +48,10 @@ public class HttpRequest extends Request {
 		attributes = new HashMap<String, Object>();
 		parseQueryString();
 		this.socketSession = socketSession;
+	}
+
+	protected void setSessionManager(SessionManager sessionManager) {
+		this.sessionManager = sessionManager;
 	}
 
 	/**
@@ -85,6 +91,24 @@ public class HttpRequest extends Request {
 	 * @return HTTP-Session 对象
 	 */
 	public HttpSession getSession() {
+		if(session == null){
+
+			//获取请求的 Cookie中的session标识
+			Cookie sessionCookie = getCookie(WebContext.getSessionName());
+			if(sessionCookie!=null) {
+				session = sessionManager.getSession(sessionCookie.getValue());
+			}
+			if(session == null){
+				session = sessionManager.newSession(this);
+			}
+
+			if(session!=null) {
+				session.init(sessionManager, getSocketSession());
+
+				// 请求增加 Session
+				setSession(session);
+			}
+		}
 		return session;
 	}
 
