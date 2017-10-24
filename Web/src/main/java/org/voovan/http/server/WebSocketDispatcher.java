@@ -31,6 +31,7 @@ import java.util.TreeMap;
  */
 public class WebSocketDispatcher {
 	private WebServerConfig webConfig;
+	private SessionManager sessionManager;
 
 	/**
 	 * [Key] = Route path ,[Value] = WebSocketBizHandler对象
@@ -45,8 +46,9 @@ public class WebSocketDispatcher {
 	 * 构造函数
 	 * @param webConfig WEB 配置对象
 	 */
-	public WebSocketDispatcher(WebServerConfig webConfig) {
+	public WebSocketDispatcher(WebServerConfig webConfig, SessionManager sessionManager) {
 		this.webConfig = webConfig;
+		this.sessionManager = sessionManager;
 
 		routers =  new TreeMap<String, WebSocketRouter>(new Comparator<String>() {
 			@Override
@@ -185,8 +187,9 @@ public class WebSocketDispatcher {
 	 * @return WebSocketSession对象
 	 */
 	public WebSocketSession disposeSession(HttpRequest request, WebSocketRouter webSocketRouter){
-
+		request.setSessionManager(sessionManager);
 		HttpSession httpSession = request.getSession();
+
 		//如果 session 不存在,创建新的 session
 		if (httpSession.getWebSocketSession()==null) {
 			// 构建 session

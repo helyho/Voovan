@@ -103,7 +103,7 @@ public class WebServer {
 		//[HTTP]请求派发器创建
 		this.httpDispatcher = new HttpDispatcher(config,sessionManager);
 
-		this.webSocketDispatcher = new WebSocketDispatcher(config);
+		this.webSocketDispatcher = new WebSocketDispatcher(config, sessionManager);
 
 		//[Socket]确认是否启用 HTTPS 支持
 		if(config.isHttps()) {

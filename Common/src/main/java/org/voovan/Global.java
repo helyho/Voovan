@@ -79,7 +79,7 @@ public class Global {
      * 非对内存是否采用手工释放
      * @return true: 收工释放, false: JVM自动释放
      */
-    public static boolean isNoHeapManualRelease() {
+    public synchronized static boolean isNoHeapManualRelease() {
         if(noHeapManualRelease == null) {
             boolean value = false;
             if (frameworkConfigFile != null) {
