@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 public class HttpMessageSplitter implements MessageSplitter {
 
     private static final String	BODY_TAG	= "\r\n\r\n";
+    private static final String HTTP_PROTCOL = "HTTP";
     private int result = -1;
 
     private int contentLength = -1;
@@ -56,14 +57,6 @@ public class HttpMessageSplitter implements MessageSplitter {
         StringBuilder stringBuilder = new StringBuilder();
         String httpHead = null;
 
-        //非 HTTP 请求直接关闭连接
-        int httpMarkIndex = TByteBuffer.indexOf(byteBuffer, "HTTP/1.".getBytes());
-        int lineSpliterIndex = TByteBuffer.indexOf(byteBuffer, "\r\n".getBytes());
-        if(httpMarkIndex < 0 || httpMarkIndex >= lineSpliterIndex) {
-            return -1;
-        }
-
-
         for(int x=0;x<buffer.length-3;x++){
             if(buffer[x] == '\r' && buffer[x+1] == '\n' && buffer[x+2] == '\r' && buffer[x+3] == '\n'){
                 bodyTagIndex = x + 3;
@@ -93,14 +86,12 @@ public class HttpMessageSplitter implements MessageSplitter {
         //判断是否是 HTTP 头
         int firstLineIndex = str.indexOf("\r\n");
         if(firstLineIndex != -1) {
-            String firstLine = str.substring(0, firstLineIndex);
-            if (TString.regexMatch(firstLine, "HTTP\\/\\d\\.\\d\\s\\d{3}\\s.*") <= 0) {
-                if (TString.regexMatch(firstLine, "^[A-Z]*\\s.*\\sHTTP\\/\\d\\.\\d") <= 0) {
-                    return false;
-                }
+            String firstLine = str.substring(0, firstLineIndex-4);
+            if (firstLine.startsWith(HTTP_PROTCOL) || firstLine.endsWith(HTTP_PROTCOL)) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     /**

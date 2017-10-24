@@ -3,9 +3,11 @@ package org.voovan.tools;
 import org.voovan.Global;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import sun.misc.Cleaner;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -21,17 +23,56 @@ import java.util.Arrays;
 public class TByteBuffer {
 
     public static Class DIRECT_BYTE_BUFFER_CLASS = ByteBuffer.allocateDirect(0).getClass();
-    private static Integer BYTEBUFFER_MARK = 198210310;
+
+    public static Constructor DIRECT_BYTE_BUFFER_CONSTURCTOR = getConsturctor();
+    static {
+        DIRECT_BYTE_BUFFER_CONSTURCTOR.setAccessible(true);
+    }
+
+    public static Field addressField = ByteBufferField("address");
+    public static Field limitField = ByteBufferField("limit");
+    public static Field capacityField = ByteBufferField("capacity");
+    public static Field attField = ByteBufferField("att");
+    public static Field cleanerField = ByteBufferField("cleaner");
+
+    private static Constructor getConsturctor(){
+        try {
+            Constructor constructor = DIRECT_BYTE_BUFFER_CLASS.getDeclaredConstructor(long.class, int.class, Object.class);
+            constructor.setAccessible(true);
+            return constructor;
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private static Field ByteBufferField(String fieldName){
+        try {
+            Field field = TReflect.findField(DIRECT_BYTE_BUFFER_CLASS, fieldName);
+            field.setAccessible(true);
+            return field;
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
         if(Global.isNoHeapManualRelease()) {
             try {
-                Constructor c = DIRECT_BYTE_BUFFER_CLASS.getDeclaredConstructor(long.class, int.class, Object.class);
-                c.setAccessible(true);
                 long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
 
-                return (ByteBuffer) c.newInstance(address, capacity, BYTEBUFFER_MARK);
+                Deallocator deallocator = new Deallocator(address, capacity);
+
+                ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
+
+                Cleaner cleaner = Cleaner.create(byteBuffer, deallocator);
+                cleanerField.set(byteBuffer, cleaner);
+
+                return byteBuffer;
+
             } catch (Exception e) {
                 Logger.error("Create ByteBufferChannel error. ", e);
                 return null;
@@ -128,7 +169,6 @@ public class TByteBuffer {
                 long address = getAddress(byteBuffer);
                 long newAddress = TUnsafe.getUnsafe().reallocateMemory(address, newSize);
                 setAddress(byteBuffer, newAddress);
-
             }else{
                 byte[] hb = byteBuffer.array();
                 byte[] newHb = Arrays.copyOf(hb, newSize);
@@ -136,7 +176,7 @@ public class TByteBuffer {
             }
 
             //重置容量
-            TReflect.setFieldValue(byteBuffer, "capacity", newSize);
+            capacityField.set(byteBuffer, newSize);
 
             return true;
 
@@ -190,7 +230,7 @@ public class TByteBuffer {
                 System.arraycopy(hb, byteBuffer.position(), hb, position, byteBuffer.remaining());
             }
 
-            TReflect.setFieldValue(byteBuffer, "limit", limit);
+            limitField.set(byteBuffer, limit);
             byteBuffer.position(position);
             return true;
         }catch (ReflectiveOperationException e){
@@ -218,7 +258,7 @@ public class TByteBuffer {
             try {
                 if (byteBuffer != null && !isReleased(byteBuffer)) {
                     Object attr = getAtt(byteBuffer);
-                    if (BYTEBUFFER_MARK.equals(attr)) {
+                    if (attr!=null && attr.getClass() == Deallocator.class) {
                         long address = getAddress(byteBuffer);
                         TUnsafe.getUnsafe().freeMemory(address);
                         setAddress(byteBuffer, 0);
@@ -255,7 +295,7 @@ public class TByteBuffer {
      * @return 内存地址
      */
     public static Long getAddress(ByteBuffer byteBuffer) throws ReflectiveOperationException {
-        return (Long) TReflect.getFieldValue(byteBuffer, "address");
+        return (Long) addressField.get(byteBuffer);
     }
 
     /**
@@ -264,7 +304,11 @@ public class TByteBuffer {
      * @param address 内存地址
      */
     public static void setAddress(ByteBuffer byteBuffer, long address) throws ReflectiveOperationException {
-        TReflect.setFieldValue(byteBuffer, "address", address);
+        addressField.set(byteBuffer, address);
+        Object obj = getAtt(byteBuffer);
+        if(obj!=null && obj.getClass() == Deallocator.class){
+            ((Deallocator) obj).setAddress(address);
+        }
     }
 
     /**
@@ -273,7 +317,7 @@ public class TByteBuffer {
      * @return 附加对象
      */
     public static Object getAtt(ByteBuffer byteBuffer) throws ReflectiveOperationException {
-        return TReflect.getFieldValue(byteBuffer, "att");
+        return attField.get(byteBuffer);
     }
 
     /**
@@ -282,7 +326,32 @@ public class TByteBuffer {
      * @param attr 附加对象
      */
     public static void setAttr(ByteBuffer byteBuffer, Object attr) throws ReflectiveOperationException {
-        TReflect.setFieldValue(byteBuffer, "att", attr);
+        attField.set(byteBuffer, attr);
+    }
+
+
+    private static class Deallocator implements Runnable {
+        private long address;
+        private int capacity;
+
+        private Deallocator(long address, int capacity) {
+            this.address = address;
+            this.capacity = capacity;
+        }
+
+        public void setAddress(long address){
+            this.address = address;
+        }
+
+        public void run() {
+
+            if (this.address == 0) {
+                return;
+            }
+
+            TUnsafe.getUnsafe().freeMemory(address);
+            address = 0;
+        }
     }
 
 

@@ -1,16 +1,12 @@
 package org.voovan.tools;
 
-import org.voovan.Global;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.reflect.TReflect;
-import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
@@ -34,9 +30,6 @@ public class ByteBufferChannel {
 	private int size;
 	private ReentrantLock lock;
 
-	private Deallocator deallocator;
-	private Cleaner cleaner;
-
 	/**
 	 * 构造函数
 	 * @param capacity 分配的容量
@@ -49,7 +42,7 @@ public class ByteBufferChannel {
 	 * 构造函数
 	 */
 	public ByteBufferChannel() {
-		init(256);
+		init(1024);
 	}
 
 	/**
@@ -71,15 +64,9 @@ public class ByteBufferChannel {
 	 */
 	private ByteBuffer newByteBuffer(int capacity){
 		try {
-			Constructor c = TByteBuffer.DIRECT_BYTE_BUFFER_CLASS.getDeclaredConstructor(long.class, int.class);
-			c.setAccessible(true);
-			address.set(TUnsafe.getUnsafe().allocateMemory(capacity));
 
-			ByteBuffer instance = (ByteBuffer) c.newInstance(address.get(), capacity);
-
-			deallocator = new Deallocator(address.get(), capacity);
-
-			cleaner = Cleaner.create(this, deallocator);
+			ByteBuffer instance = TByteBuffer.allocateDirect(capacity);
+			address.set(TByteBuffer.getAddress(instance));
 
 			return instance;
 
@@ -114,11 +101,6 @@ public class ByteBufferChannel {
 	 * 立刻释放内存
 	 */
 	public synchronized void release(){
-		//是否手工释放
-		if(!Global.isNoHeapManualRelease()) {
-			return;
-		}
-
 		while(lock.isLocked()){
 			TEnv.sleep(1);
 		}
@@ -126,7 +108,7 @@ public class ByteBufferChannel {
 		lock.lock();
 		try {
 			if (address.get() != 0) {
-				cleaner.clean();
+				TByteBuffer.release(byteBuffer);
 				address.set(0);
 			}
 		}finally{
@@ -166,8 +148,7 @@ public class ByteBufferChannel {
 
 		lock.lock();
 		try {
-			this.address.set((Long)TReflect.getFieldValue(byteBuffer, "address"));
-			deallocator.setAddress(address.get());
+			this.address.set(TByteBuffer.getAddress(byteBuffer));
 		}catch (ReflectiveOperationException e){
 			Logger.error("ByteBufferChannel resetAddress() Error: ", e);
 		} finally {
