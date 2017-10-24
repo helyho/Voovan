@@ -118,14 +118,14 @@ public class WebServerFilter implements IoFilter {
 			return false;
 		}
 
-		int lineEndIndex = byteBufferChannel.indexOf("\n".getBytes());
+		int lineEndIndex = byteBufferChannel.indexOf("\r\n".getBytes());
 
 		if(lineEndIndex>0) {
 			byte[] tmpByte = new byte[lineEndIndex];
 			byteBufferChannel.get(tmpByte);
 			testStr = new String(tmpByte);
 
-			if (testStr != null && TString.regexMatch(testStr, "HTTP.{0,4}") == 1) {
+			if (testStr != null && (testStr.endsWith("HTTP/1.1") || testStr.endsWith("HTTP/1.0"))) {
 				return true;
 			} else {
 				return false;

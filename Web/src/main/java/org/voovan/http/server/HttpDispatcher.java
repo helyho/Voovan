@@ -330,7 +330,13 @@ public class HttpDispatcher {
 	 * @return     路径抽取参数 Map
 	 */
 	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) {
-		if(routePath.endsWith("*") && requestPath.equals(TString.removeSuffix(routePath))){
+		//修正请求和匹配路由检查是否存在路径请求参数
+		String compareRoutePath = routePath.endsWith("*") ? TString.removeSuffix(routePath) : routePath;
+		compareRoutePath = compareRoutePath.endsWith("/") ? TString.removeSuffix(compareRoutePath) : compareRoutePath;
+		String compareRequestPath = requestPath.endsWith("/") ? TString.removeSuffix(requestPath) : requestPath;
+
+		//判断是否存在路径请求参数
+		if(compareRequestPath.equals(compareRoutePath)){
 			return null;
 		} else {
 			Map<String, String> resultMap = new LinkedHashMap<String, String>();

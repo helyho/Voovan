@@ -34,7 +34,7 @@ public class Request {
 	private List<Cookie>	cookies;
 	private Body body;
 	private List<Part>		parts;
-	private String boundary = THash.encryptBASE64(TString.generateId(this));
+	private String boundary;
 	private static final String CONTENT_TYPE = "Content-Type";
 
 	/**
@@ -194,6 +194,7 @@ public class Request {
 		}
 
 		if("multipart/form-data;".equals(header.get(CONTENT_TYPE))){
+			boundary = THash.encryptBASE64(TString.generateId(this));
 			header.put(CONTENT_TYPE ,header.get(CONTENT_TYPE)+" boundary=" + boundary);
 		}
 
@@ -279,6 +280,10 @@ public class Request {
 		if(!parts.isEmpty()) {
 			// Content-Type存在
 			if (parts.size() != 0) {
+
+				if(boundary == null){
+					boundary = THash.encryptBASE64(TString.generateId(this));
+				}
 
 				// 获取 multiPart 标识
 				for (Part part : this.parts) {
