@@ -23,8 +23,8 @@ public class HttpMessageSplitter implements MessageSplitter {
     private static final String HTTP_PROTCOL = "HTTP";
     private int result = -1;
 
-    private int contentLength = -1;
-    boolean isChunked = false;
+//    private int contentLength = -1;
+//    boolean isChunked = false;
 
 
     @Override
@@ -69,15 +69,21 @@ public class HttpMessageSplitter implements MessageSplitter {
 
         if(httpHead !=null && isHttpHead(httpHead)) {
 
-            int contentTypeStartIndex = httpHead.indexOf("Content-Length");
-
-            if (contentTypeStartIndex > 0) {
-                int contentTypeEndIndex = httpHead.indexOf("\n", contentTypeStartIndex);
-                String contentLengthLine = httpHead.substring(contentTypeStartIndex, contentTypeEndIndex);
-                contentLength = Integer.parseInt(contentLengthLine.split(" ")[1].trim());
-            }
-
-            isChunked = httpHead.contains("chunked");
+//            int contentTypeStartIndex = httpHead.indexOf("Content-Length");
+//
+//            if (contentTypeStartIndex > 0) {
+//                int contentTypeEndIndex = httpHead.indexOf("\n", contentTypeStartIndex);
+//
+//                //如果是最好一行,则取到字符串的结尾
+//                if(contentTypeEndIndex==-1){
+//                    contentTypeEndIndex = httpHead.length();
+//                }
+//
+//                String contentLengthLine = httpHead.substring(contentTypeStartIndex, contentTypeEndIndex);
+//                contentLength = Integer.parseInt(contentLengthLine.split(" ")[1].trim());
+//            }
+//
+//            isChunked = httpHead.contains("chunked");
             return bodyTagIndex;
 
         }else{

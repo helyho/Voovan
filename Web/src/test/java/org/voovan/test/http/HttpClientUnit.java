@@ -43,10 +43,10 @@ public class HttpClientUnit extends TestCase {
 	}
 	
 	public void testGet() throws Exception{
-		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 60);
+		HttpClient getClient = new HttpClient("http://www.boc.cn","GB2312", 60);
 		Response response  = getClient.setMethod("GET")
 			.putParameters("name", "测试Get")
-			.putParameters("age", "32").send();
+			.putParameters("age", "32").send("/sourcedb/whpj/index.html");
 		Logger.simple(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 		getClient.close();
