@@ -58,26 +58,41 @@ public class TByteBuffer {
         return null;
     }
 
+    /**
+     * 分配可能手工进行释放的 ByteBuffer
+     * @param capacity 容量
+     * @return ByteBuffer 对象
+     */
+    protected static ByteBuffer allocateManualReleaseBuffer(int capacity){
+        try {
+            long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
+
+            Deallocator deallocator = new Deallocator(address, capacity);
+
+            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
+
+            Cleaner cleaner = Cleaner.create(byteBuffer, deallocator);
+            cleanerField.set(byteBuffer, cleaner);
+
+            return byteBuffer;
+
+        } catch (Exception e) {
+            Logger.error("Create ByteBufferChannel error. ", e);
+            return null;
+        }
+    }
+
+
+    /**
+     * 根据框架的非堆内存配置, 分配 ByteBuffer
+     * @param capacity 容量
+     * @return ByteBuffer 对象
+     */
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
         if(Global.isNoHeapManualRelease()) {
-            try {
-                long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
-
-                Deallocator deallocator = new Deallocator(address, capacity);
-
-                ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
-
-                Cleaner cleaner = Cleaner.create(byteBuffer, deallocator);
-                cleanerField.set(byteBuffer, cleaner);
-
-                return byteBuffer;
-
-            } catch (Exception e) {
-                Logger.error("Create ByteBufferChannel error. ", e);
-                return null;
-            }
-        }else{
+            return allocateManualReleaseBuffer(capacity);
+        } else {
             return ByteBuffer.allocateDirect(capacity);
         }
     }
@@ -163,9 +178,13 @@ public class TByteBuffer {
      * @return true:成功, false:失败
      */
     public static boolean reallocate(ByteBuffer byteBuffer, int newSize) {
+
         try {
 
             if(!byteBuffer.hasArray()) {
+                if(getAtt(byteBuffer) == null){
+                    throw new UnsupportedOperationException("JDK's ByteBuffer can't reallocate");
+                }
                 long address = getAddress(byteBuffer);
                 long newAddress = TUnsafe.getUnsafe().reallocateMemory(address, newSize);
                 setAddress(byteBuffer, newAddress);
@@ -260,8 +279,10 @@ public class TByteBuffer {
                     Object attr = getAtt(byteBuffer);
                     if (attr!=null && attr.getClass() == Deallocator.class) {
                         long address = getAddress(byteBuffer);
-                        TUnsafe.getUnsafe().freeMemory(address);
-                        setAddress(byteBuffer, 0);
+                        if(address!=0) {
+                            TUnsafe.getUnsafe().freeMemory(address);
+                            setAddress(byteBuffer, 0);
+                        }
                     }
                 }
             } catch (ReflectiveOperationException e) {
@@ -330,6 +351,9 @@ public class TByteBuffer {
     }
 
 
+    /**
+     * 自动跟对 GC 销毁的类
+     */
     private static class Deallocator implements Runnable {
         private long address;
         private int capacity;
@@ -353,7 +377,4 @@ public class TByteBuffer {
             address = 0;
         }
     }
-
-
-
 }

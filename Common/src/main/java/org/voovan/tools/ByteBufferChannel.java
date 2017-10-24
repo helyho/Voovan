@@ -1,5 +1,6 @@
 package org.voovan.tools;
 
+import org.voovan.Global;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 import sun.misc.Unsafe;
@@ -65,7 +66,7 @@ public class ByteBufferChannel {
 	private ByteBuffer newByteBuffer(int capacity){
 		try {
 
-			ByteBuffer instance = TByteBuffer.allocateDirect(capacity);
+			ByteBuffer instance = TByteBuffer.allocateManualReleaseBuffer(capacity);
 			address.set(TByteBuffer.getAddress(instance));
 
 			return instance;
@@ -101,6 +102,11 @@ public class ByteBufferChannel {
 	 * 立刻释放内存
 	 */
 	public synchronized void release(){
+		//是否手工释放
+		if(!Global.isNoHeapManualRelease() || byteBuffer.getClass() != TByteBuffer.DIRECT_BYTE_BUFFER_CLASS) {
+			return;
+		}
+
 		while(lock.isLocked()){
 			TEnv.sleep(1);
 		}
@@ -113,30 +119,6 @@ public class ByteBufferChannel {
 			}
 		}finally{
 			lock.unlock();
-		}
-	}
-
-	private static class Deallocator implements Runnable {
-		private long address;
-		private int capacity;
-
-		private Deallocator(long address, int capacity) {
-			this.address = address;
-			this.capacity = capacity;
-		}
-
-		public void setAddress(long address){
-			this.address = address;
-		}
-
-		public void run() {
-
-			if (this.address == 0) {
-				return;
-			}
-
-			TUnsafe.getUnsafe().freeMemory(address);
-			address = 0;
 		}
 	}
 
