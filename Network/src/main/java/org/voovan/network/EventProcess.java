@@ -12,7 +12,6 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.Callable;
 
 /**
  * 事件的实际逻辑处理
@@ -213,9 +212,11 @@ public class EventProcess {
 		}
 		filterChain.clear();
 
-		if(result instanceof ByteBuffer || result == null) {
+		if(result instanceof ByteBuffer) {
 			return (ByteBuffer)result;
-		}else{
+		} else if(result==null){
+			return null;
+		} else{
 			throw new IoFilterException("Send object must be ByteBuffer, " +
 					"please check you filter be sure the latest filter return Object's type is ByteBuffer.");
 		}
