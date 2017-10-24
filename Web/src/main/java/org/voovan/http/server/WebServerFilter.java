@@ -1,6 +1,5 @@
 package org.voovan.http.server;
 
-import org.voovan.Global;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
@@ -8,8 +7,6 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -36,19 +33,13 @@ public class WebServerFilter implements IoFilter {
 
 		// 对 Websocket 进行处理
 		if (object instanceof Response) {
-			final Response response = (Response)object;
+			Response response = (Response)object;
 
-			//开启一个线程发送响应对象,不阻塞 onRecive 事件
-			Global.getThreadPool().execute(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						response.send(session);
-					}catch(Exception e){
-						Logger.error(e);
-					}
-				}
-			});
+			try {
+				response.send(session);
+			}catch(Exception e){
+				Logger.error(e);
+			}
 
 			return emptyByteBuffer;
 		} else if(object instanceof WebSocketFrame){
