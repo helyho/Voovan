@@ -26,7 +26,7 @@ public class Global {
     private static HashWheelTimer hashWheelTimer;
 
     private static File frameworkConfigFile = getFrameworkConfigFile();
-    public static Boolean noHeapManualRelease = null;
+    public static volatile Boolean noHeapManualRelease = null;
 
     /**
      * 返回公用线程池
@@ -79,7 +79,7 @@ public class Global {
      * 非对内存是否采用手工释放
      * @return true: 收工释放, false: JVM自动释放
      */
-    public synchronized static boolean isNoHeapManualRelease() {
+    public static boolean isNoHeapManualRelease() {
         if(noHeapManualRelease == null) {
             boolean value = false;
             if (frameworkConfigFile != null) {

@@ -173,6 +173,9 @@ public class HttpDispatcher {
 
 		//向 HttpResponse 中放置 Session 的 Cookie
 		if(!request.getSession().attribute().isEmpty()) {
+
+			request.getSession().save();
+
 			//创建 Cookie
 			Cookie cookie = Cookie.newInstance(request,  "/", WebContext.getSessionName(),
 					session.getId(), webConfig.getSessionTimeout() * 60);
@@ -180,7 +183,7 @@ public class HttpDispatcher {
 			//响应增加Session 对应的 Cookie
 			response.cookies().add(cookie);
 
-			request.getSession().save();
+
 		}
 
 		//反向过滤器处理

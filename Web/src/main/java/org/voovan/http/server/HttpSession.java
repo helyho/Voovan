@@ -45,9 +45,8 @@ public class HttpSession {
 	 * @param socketSession   Socket会话对象
 	 */
 	public HttpSession(WebServerConfig config, SessionManager sessionManager, IoSession socketSession){
+		// ID的创建转义到 save 方法中.在保存时才创建 ID
 		attributes = new ConcurrentHashMap<String, Object>();
-		//生成一个随机的 ID 用作唯一标识
-		this.id = TString.generateId(this);
 		lastTimeillis = System.currentTimeMillis();
 		int sessionTimeout = config.getSessionTimeout();
 		if(sessionTimeout<=0){
@@ -240,6 +239,10 @@ public class HttpSession {
 	 */
 	public void save(){
 		if(sessionManager!=null && needSave) {
+			if(id==null){
+				//生成一个随机的 ID 用作唯一标识
+				this.id = TString.generateId(this);
+			}
 			sessionManager.saveSession(this);
 			autoClean();
 			needSave = false;

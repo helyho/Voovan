@@ -137,7 +137,9 @@ public class Body {
 			bodyFile = null;
 		}
 
-		byteBufferChannel.writeEnd(ByteBuffer.wrap(content));
+		if(content.length!=0) {
+			byteBufferChannel.writeEnd(ByteBuffer.wrap(content));
+		}
 		type = BodyType.BYTES;
 	}
 
