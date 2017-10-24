@@ -69,9 +69,12 @@ public class HttpMessageSplitter implements MessageSplitter {
 
         if(httpHead !=null && isHttpHead(httpHead)) {
 
-            String[] contentLengthLines = TString.searchByRegex(httpHead, "Content-Length: \\d+");
-            if (contentLengthLines.length > 1) {
-                contentLength = Integer.parseInt(contentLengthLines[0].split(" ")[1].trim());
+            int contentTypeStartIndex = httpHead.indexOf("Content-Length");
+
+            if (contentTypeStartIndex > 0) {
+                int contentTypeEndIndex = httpHead.indexOf("\n", contentTypeStartIndex);
+                String contentLengthLine = httpHead.substring(contentTypeStartIndex, contentTypeEndIndex);
+                contentLength = Integer.parseInt(contentLengthLine.split(" ")[1].trim());
             }
 
             isChunked = httpHead.contains("chunked");

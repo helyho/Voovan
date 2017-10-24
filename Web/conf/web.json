@@ -15,7 +15,7 @@
 
   "KeepAliveTimeout"       : 60,                          // KeepAlive 超时时间(s),默认60秒,如果值小于等于0则不启用 KeepAlive 设置 (该参数同样会被应用到 WebSocket 的连接保持上)
   "Gzip"                   : true,                        // 是否启用Gzip压缩,默认 true
-  "AccessLog"              : true,                        // 是否记录access.log,默认 true
+  "AccessLog"              : false,                        // 是否记录access.log,默认 true
   "HotSwapInterval"        : 30,                            //热加载检测时间间隔. 默认:0秒. 0:关闭
   "InitClass"              : "org.voovan.test.http.WebInitClass", //配置在Web 服务启动时加载并运行初始化类, 该类需继承:org.voovan.http.server.WebServerInit
   "PauseURL"               : "/img/logo.jpg",                                      // 服务器暂停状态下所有请求都会转向这个路由
