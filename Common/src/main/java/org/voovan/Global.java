@@ -4,6 +4,7 @@ import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
+import org.voovan.tools.task.TaskManager;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import java.io.File;
@@ -24,9 +25,27 @@ public class Global {
 
     private static ThreadPoolExecutor threadPool;
     private static HashWheelTimer hashWheelTimer;
+    private static TaskManager taskManager;
 
     private static File frameworkConfigFile = getFrameworkConfigFile();
-    public static volatile Boolean noHeapManualRelease = null;
+    public static volatile Boolean NO_HEAP_MANUAL_RELEASE = getNoHeapManualRelease();
+
+    /**
+     * 非对内存是否采用手工释放
+     * @return true: 收工释放, false: JVM自动释放
+     */
+    private  static boolean getNoHeapManualRelease() {
+        if(NO_HEAP_MANUAL_RELEASE == null) {
+            boolean value = false;
+            if (frameworkConfigFile != null) {
+                value = TProperties.getBoolean(frameworkConfigFile, "NoHeapManualRelease");
+            }
+            NO_HEAP_MANUAL_RELEASE = TObject.nullDefault(value, false);
+            System.out.println("[SYSTEM] NoHeap Manual Release: " + NO_HEAP_MANUAL_RELEASE);
+        }
+
+        return NO_HEAP_MANUAL_RELEASE;
+    }
 
     /**
      * 返回公用线程池
@@ -55,6 +74,21 @@ public class Global {
     }
 
     /**
+     * 获取一个全局的秒定时器
+     *      60个槽位, 每个槽位步长1ms
+     * @return HashWheelTimer对象
+     */
+    public synchronized static TaskManager getTaskManager(){
+        if(taskManager == null) {
+            taskManager = new TaskManager();
+            taskManager.scanTask();
+        }
+
+        return taskManager;
+    }
+
+
+    /**
      * 读取非堆内存配置文件信息
      * @return 日志配置文件对象
      */
@@ -73,23 +107,6 @@ public class Global {
             System.out.println("Waring: System will be use default noheap config: {Noheap:false, release:false}");
             return null;
         }
-    }
-
-    /**
-     * 非对内存是否采用手工释放
-     * @return true: 收工释放, false: JVM自动释放
-     */
-    public synchronized static boolean isNoHeapManualRelease() {
-        if(noHeapManualRelease == null) {
-            boolean value = false;
-            if (frameworkConfigFile != null) {
-                value = TProperties.getBoolean(frameworkConfigFile, "NoHeapManualRelease");
-            }
-            noHeapManualRelease = TObject.nullDefault(value, false);
-            System.out.println("NoHeap Manual Release: " + noHeapManualRelease);
-        }
-
-        return noHeapManualRelease;
     }
 
     /**
