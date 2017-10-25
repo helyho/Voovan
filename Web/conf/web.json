@@ -66,11 +66,11 @@
       "ClassName": "org.voovan.http.server.module.annontationRouter.AnnotationModule",               //模块处理器
       "InitClass": "org.voovan.test.http.HttpModuleInitClass"
     },
-    {
-      "Name": "Monitor",                                                    //模块名称
-      "Path": "/monitor",                                                   //模块路径
-      "ClassName": "org.voovan.http.server.module.monitor.MonitorModule",   //模块处理器
-      "AllowIPAddress": ["127.0.0.1", "10.0.0.4"]
-    }
+//    {
+//      "Name": "Monitor",                                                    //模块名称
+//      "Path": "/monitor",                                                   //模块路径
+//      "ClassName": "org.voovan.http.server.module.monitor.MonitorModule",   //模块处理器
+//      "AllowIPAddress": ["127.0.0.1", "10.0.0.4"]
+//    }
   ]
 }
