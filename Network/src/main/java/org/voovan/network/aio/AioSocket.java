@@ -1,5 +1,6 @@
 package org.voovan.network.aio;
 
+import org.voovan.Global;
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketOption;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -64,7 +66,8 @@ public class AioSocket extends SocketContext {
 
 	private void init() throws IOException {
 		//这里不能使用已有线程池作为参数调用AsynchronousChannelGroup.open(threadPool)会导致线程不释放的问题
-		this.socketChannel = AsynchronousSocketChannel.open();
+		AsynchronousChannelGroup asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(Global.getThreadPool());
+		this.socketChannel = AsynchronousSocketChannel.open(asynchronousChannelGroup);
 		session = new AioSession(this);
 
 		readCompletionHandler = new ReadCompletionHandler(this,  session.getByteBufferChannel());
