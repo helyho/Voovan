@@ -103,7 +103,7 @@ public class ByteBufferChannel {
 	 */
 	public synchronized void release(){
 		//是否手工释放
-		if(!Global.isNoHeapManualRelease() || byteBuffer.getClass() != TByteBuffer.DIRECT_BYTE_BUFFER_CLASS) {
+		if(!Global.NO_HEAP_MANUAL_RELEASE || byteBuffer.getClass() != TByteBuffer.DIRECT_BYTE_BUFFER_CLASS) {
 			return;
 		}
 

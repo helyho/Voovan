@@ -90,85 +90,11 @@ public class TByteBuffer {
      */
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
-        if(Global.isNoHeapManualRelease()) {
+        if(Global.NO_HEAP_MANUAL_RELEASE) {
             return allocateManualReleaseBuffer(capacity);
         } else {
             return ByteBuffer.allocateDirect(capacity);
         }
-    }
-
-    /**
-     * 将ByteBuffer转换成 byte 数组
-     * @param bytebuffer ByteBuffer 对象
-     * @return byte 数组
-     */
-    public static byte[] toArray(ByteBuffer bytebuffer){
-        if(!bytebuffer.hasArray()) {
-            int oldPosition = bytebuffer.position();
-            bytebuffer.position(0);
-            int size = bytebuffer.limit();
-            byte[] buffers = new byte[size];
-            bytebuffer.get(buffers);
-            bytebuffer.position(oldPosition);
-            return buffers;
-        }else{
-            return Arrays.copyOfRange(bytebuffer.array(), 0, bytebuffer.limit());
-        }
-    }
-
-    /**
-     * 将 Bytebuffer 转换成 字符串
-     * @param bytebuffer Bytebuffer 对象
-     * @param charset 字符集
-     * @return 字符串对象
-     */
-    public static String toString(ByteBuffer bytebuffer,String charset) {
-        try {
-            return new String(toArray(bytebuffer), charset);
-        } catch (UnsupportedEncodingException e) {
-            Logger.error(charset+" is not supported",e);
-            return null;
-        }
-    }
-
-    /**
-     * 将 Bytebuffer 转换成 字符串
-     * @param bytebuffer Bytebuffer 对象
-     * @return 字符串对象
-     */
-    public static String toString(ByteBuffer bytebuffer) {
-        return toString(bytebuffer, "UTF-8");
-    }
-
-    /**
-     * 查找特定 byte 标识的位置
-     *     byte 标识数组第一个字节的索引位置
-     * @param byteBuffer Bytebuffer 对象
-     * @param mark byte 标识数组
-     * @return 第一个字节的索引位置
-     */
-    public static int indexOf(ByteBuffer byteBuffer, byte[] mark){
-
-        if(byteBuffer.remaining() == 0){
-            return -1;
-        }
-
-        int index = -1;
-        int position = byteBuffer.position();
-        byte[] tmp = new byte[mark.length];
-        int length = byteBuffer.remaining();
-        for(int offset = 0; (offset + position <= length - mark.length); offset++){
-            byteBuffer.position(position + offset);
-            byteBuffer.get(tmp, 0, tmp.length);
-            if(Arrays.equals(mark, tmp)){
-                index = offset;
-                break;
-            }
-        }
-
-        byteBuffer.position(position);
-
-        return index;
     }
 
     /**
@@ -269,7 +195,7 @@ public class TByteBuffer {
         }
 
         //是否手工释放
-        if(!Global.isNoHeapManualRelease() || byteBuffer.getClass() != DIRECT_BYTE_BUFFER_CLASS) {
+        if(!Global.NO_HEAP_MANUAL_RELEASE || byteBuffer.getClass() != DIRECT_BYTE_BUFFER_CLASS) {
             return;
         }
 
@@ -299,7 +225,7 @@ public class TByteBuffer {
      */
     public static boolean isReleased(ByteBuffer byteBuffer){
         //是否手工释放
-        if(!Global.isNoHeapManualRelease() || byteBuffer.getClass() != DIRECT_BYTE_BUFFER_CLASS) {
+        if(!Global.NO_HEAP_MANUAL_RELEASE || byteBuffer.getClass() != DIRECT_BYTE_BUFFER_CLASS) {
             return false;
         }
 
@@ -308,6 +234,80 @@ public class TByteBuffer {
         }catch (ReflectiveOperationException e){
             return true;
         }
+    }
+
+    /**
+     * 将ByteBuffer转换成 byte 数组
+     * @param bytebuffer ByteBuffer 对象
+     * @return byte 数组
+     */
+    public static byte[] toArray(ByteBuffer bytebuffer){
+        if(!bytebuffer.hasArray()) {
+            int oldPosition = bytebuffer.position();
+            bytebuffer.position(0);
+            int size = bytebuffer.limit();
+            byte[] buffers = new byte[size];
+            bytebuffer.get(buffers);
+            bytebuffer.position(oldPosition);
+            return buffers;
+        }else{
+            return Arrays.copyOfRange(bytebuffer.array(), 0, bytebuffer.limit());
+        }
+    }
+
+    /**
+     * 将 Bytebuffer 转换成 字符串
+     * @param bytebuffer Bytebuffer 对象
+     * @param charset 字符集
+     * @return 字符串对象
+     */
+    public static String toString(ByteBuffer bytebuffer,String charset) {
+        try {
+            return new String(toArray(bytebuffer), charset);
+        } catch (UnsupportedEncodingException e) {
+            Logger.error(charset+" is not supported",e);
+            return null;
+        }
+    }
+
+    /**
+     * 将 Bytebuffer 转换成 字符串
+     * @param bytebuffer Bytebuffer 对象
+     * @return 字符串对象
+     */
+    public static String toString(ByteBuffer bytebuffer) {
+        return toString(bytebuffer, "UTF-8");
+    }
+
+    /**
+     * 查找特定 byte 标识的位置
+     *     byte 标识数组第一个字节的索引位置
+     * @param byteBuffer Bytebuffer 对象
+     * @param mark byte 标识数组
+     * @return 第一个字节的索引位置
+     */
+    public static int indexOf(ByteBuffer byteBuffer, byte[] mark){
+
+        if(byteBuffer.remaining() == 0){
+            return -1;
+        }
+
+        int index = -1;
+        int position = byteBuffer.position();
+        byte[] tmp = new byte[mark.length];
+        int length = byteBuffer.remaining();
+        for(int offset = 0; (offset + position <= length - mark.length); offset++){
+            byteBuffer.position(position + offset);
+            byteBuffer.get(tmp, 0, tmp.length);
+            if(Arrays.equals(mark, tmp)){
+                index = offset;
+                break;
+            }
+        }
+
+        byteBuffer.position(position);
+
+        return index;
     }
 
     /**
