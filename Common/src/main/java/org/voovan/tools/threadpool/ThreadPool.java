@@ -61,7 +61,10 @@ public class ThreadPool {
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPoolInstance.allowCoreThreadTimeOut(true);
 
-		new Timer().schedule(new ThreadPoolTask(threadPoolInstance), 1000);
+		Timer timer = new Timer("VOOVAN@THREAD_POOL_TIMER");
+		ThreadPoolTask threadPoolTask = new ThreadPoolTask(threadPoolInstance);
+		timer.schedule(threadPoolTask, 1, 1000);
+
 		return threadPoolInstance;
 	}
 

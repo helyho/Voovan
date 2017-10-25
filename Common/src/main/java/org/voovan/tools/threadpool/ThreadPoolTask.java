@@ -30,6 +30,7 @@ public class ThreadPoolTask extends TimerTask {
 	public void run() {
 		if (threadPoolInstance.isShutdown()) {
 			this.cancel();
+			System.exit(0);
 		}
 		
 //		String threadPoolInfo = "PoolInfo:" + threadPoolInstance.getActiveCount() + "/" + threadPoolInstance.getCorePoolSize() + "/"
