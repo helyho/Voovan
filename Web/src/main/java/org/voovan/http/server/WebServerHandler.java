@@ -144,7 +144,8 @@ public class WebServerHandler implements IoHandler {
 	 */
 	public void checkPause(IoSession session, Request request){
 
-		if(WebContext.PAUSE && !request.protocol().getMethod().equals("ADMIN")){
+		if(WebContext.PAUSE && !request.protocol().getMethod().equals("ADMIN") &&
+				!request.protocol().getMethod().equals("MONITOR")){
 			if(webConfig.getPauseURL()!=null){
 				request.protocol().setPath(webConfig.getPauseURL());
 			}else {
