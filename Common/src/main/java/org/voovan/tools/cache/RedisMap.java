@@ -1,6 +1,5 @@
 package org.voovan.tools.cache;
 
-import org.voovan.tools.cache.CacheStatic;
 import org.voovan.tools.json.JSON;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
