@@ -67,7 +67,7 @@ public class TByteBuffer {
         try {
             long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
 
-            Deallocator deallocator = new Deallocator(address, capacity);
+            Deallocator deallocator = new Deallocator(address);
 
             ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
 
@@ -90,11 +90,11 @@ public class TByteBuffer {
      */
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
-        if(Global.NO_HEAP_MANUAL_RELEASE) {
+//        if(Global.NO_HEAP_MANUAL_RELEASE) {
             return allocateManualReleaseBuffer(capacity);
-        } else {
-            return ByteBuffer.allocateDirect(capacity);
-        }
+//        } else {
+//            return ByteBuffer.allocateDirect(capacity);
+//        }
     }
 
     /**
@@ -202,8 +202,8 @@ public class TByteBuffer {
         synchronized (byteBuffer) {
             try {
                 if (byteBuffer != null && !isReleased(byteBuffer)) {
-                    Object attr = getAtt(byteBuffer);
-                    if (attr!=null && attr.getClass() == Deallocator.class) {
+                    Object att = getAtt(byteBuffer);
+                    if (att!=null && att.getClass() == Deallocator.class) {
                         long address = getAddress(byteBuffer);
                         if(address!=0) {
                             TUnsafe.getUnsafe().freeMemory(address);
@@ -326,9 +326,9 @@ public class TByteBuffer {
      */
     public static void setAddress(ByteBuffer byteBuffer, long address) throws ReflectiveOperationException {
         addressField.set(byteBuffer, address);
-        Object obj = getAtt(byteBuffer);
-        if(obj!=null && obj.getClass() == Deallocator.class){
-            ((Deallocator) obj).setAddress(address);
+        Object att = getAtt(byteBuffer);
+        if(att!=null && att.getClass() == Deallocator.class){
+            ((Deallocator) att).setAddress(address);
         }
     }
 
@@ -352,15 +352,14 @@ public class TByteBuffer {
 
 
     /**
-     * 自动跟对 GC 销毁的类
+     * 自动跟踪 GC 销毁的类
      */
     private static class Deallocator implements Runnable {
         private long address;
         private int capacity;
 
-        private Deallocator(long address, int capacity) {
+        private Deallocator(long address) {
             this.address = address;
-            this.capacity = capacity;
         }
 
         public void setAddress(long address){
