@@ -90,11 +90,11 @@ public class TByteBuffer {
      */
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
-//        if(Global.NO_HEAP_MANUAL_RELEASE) {
+        if(Global.NO_HEAP_MANUAL_RELEASE) {
             return allocateManualReleaseBuffer(capacity);
-//        } else {
-//            return ByteBuffer.allocateDirect(capacity);
-//        }
+        } else {
+            return ByteBuffer.allocateDirect(capacity);
+        }
     }
 
     /**
