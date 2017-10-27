@@ -12,6 +12,7 @@ import org.voovan.tools.*;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URLDecoder;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -428,9 +429,29 @@ public class HttpDispatcher {
 		String requestPath = request.protocol().getPath();
 		String className = e.getClass().getName();
 		String errorMessage = e.toString().replace(TFile.getLineSeparator(), "<br/>");
-		String stackInfo = TEnv.getStackMessage();
+
+		String stackInfo = "";
+
+		if(!errorDefine.containsKey(className)) {
+			Throwable throwable = e;
+			do {
+				stackInfo = stackInfo + "\n\n" + throwable.toString() + "\n" + TEnv.getStackElementsMessage(throwable.getStackTrace());
+				throwable = throwable.getCause();
+
+				if (throwable == null) {
+					break;
+				}
+
+				if (throwable instanceof InvocationTargetException) {
+					throwable = (Exception) throwable.getCause();
+				}
+
+			} while (true);
+		}
+
+
 		//转换成能在 HTML 中展示的超文本字符串
-		stackInfo = TString.indent(stackInfo,1).replace("\n", "<br>");
+		stackInfo = TString.indent(stackInfo.trim(),1).replace("\n", "<br>");
 		response.header().put("Content-Type", "text/html");
 
 		//初始 error 定义,如果下面匹配到了定义的错误则定义的会被覆盖
