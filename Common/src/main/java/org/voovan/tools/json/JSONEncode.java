@@ -4,6 +4,7 @@ import org.voovan.tools.TDateTime;
 import org.voovan.tools.TString;
 import org.voovan.tools.reflect.TReflect;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
@@ -127,7 +128,17 @@ public class JSONEncode {
             List<Object> listObject = (List<Object>)object;
             value = CollectionObject(listObject);
         } else if (object.getClass().isArray()) {
-            Object[] arrayObject = (Object[])object;
+            Object[] arrayObject = null;
+            //如果是 java 基本类型, 则转换成对象数组
+            if(object.getClass().getComponentType().isPrimitive()) {
+                int length = Array.getLength(object);
+                arrayObject = new Object[length];
+                for(int i=0;i<length;i++){
+                    arrayObject[i] = Array.get(object, i);
+                }
+            } else {
+                arrayObject = (Object[])object;
+            }
             value = arrayObject(arrayObject);
         } else if (object instanceof Integer ||  object instanceof Float ||
                 object instanceof Double || object instanceof Boolean ||
