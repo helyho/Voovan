@@ -6,6 +6,7 @@ import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
+import org.voovan.http.websocket.WebSocketType;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
@@ -194,8 +195,7 @@ public class WebSocketDispatcher {
 		if (httpSession.getWebSocketSession()==null) {
 			// 构建 session
 			WebSocketSession webSocketSession =
-					new WebSocketSession(httpSession.getSocketSession(), webSocketRouter,
-							request.getRemoteAddres(), request.getRemotePort());
+					new WebSocketSession(httpSession.getSocketSession(), webSocketRouter, WebSocketType.SERVER);
 
 			httpSession.setWebSocketSession(webSocketSession);
 		}

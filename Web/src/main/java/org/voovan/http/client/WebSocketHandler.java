@@ -86,11 +86,11 @@ public class WebSocketHandler implements IoHandler{
 
         // WS_CLOSE 如果收到关闭帧则关闭连接
         if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING) {
-            return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, reqWebSocketFrame.getFrameData());
+            return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, true, reqWebSocketFrame.getFrameData());
         }
         // WS_PING 收到 ping 帧则返回 pong 帧
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PING) {
-            return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false,  reqWebSocketFrame.getFrameData());
+            return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, true,  reqWebSocketFrame.getFrameData());
         }
         // WS_PONG 收到 pong 帧则返回 ping 帧
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
@@ -101,7 +101,7 @@ public class WebSocketHandler implements IoHandler{
                 public void run() {
                     try {
                         Logger.simple("PONG");
-                        poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+                        poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, true, null));
                     } catch (SendMessageException e) {
                         poneSession.close();
                         Logger.error("WebSocket Pong event send Ping frame error", e);

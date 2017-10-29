@@ -25,6 +25,8 @@ public class WebSocketSession {
     private WebSocketRouter webSocketRouter;
     private String remoteAddres;
     private int remotePort;
+    private WebSocketType webSocketType;
+    private boolean masked;
 
     private Map<String,Object> attributes;
 
@@ -32,16 +34,19 @@ public class WebSocketSession {
      * 构造函数
      * @param socketSession Socket 会话
      * @param webSocketRouter WebSocket 路由处理对象
-     * @param remoteAddres 对端地址
-     * @param remotePort 对端端口
      */
-    public WebSocketSession(IoSession socketSession, WebSocketRouter webSocketRouter,
-                            String remoteAddres, int remotePort){
+    public WebSocketSession(IoSession socketSession, WebSocketRouter webSocketRouter, WebSocketType webSocketType){
         this.socketSession = socketSession;
-        this.remoteAddres = remoteAddres;
-        this.remotePort = remotePort;
+        this.remoteAddres = socketSession.remoteAddress();
+        this.remotePort = socketSession.remotePort();
         this.webSocketRouter = webSocketRouter;
         attributes = new ConcurrentHashMap<String, Object>();
+        this.webSocketType = webSocketType;
+        if(this.webSocketType == webSocketType.SERVER){
+            masked = false;
+        } else {
+            masked = true;
+        }
     }
 
     /**
@@ -68,7 +73,7 @@ public class WebSocketSession {
      * @return 对端连接的 IP
      */
     public String getRemoteAddres() {
-       return this.remoteAddres;
+        return this.remoteAddres;
     }
 
     /**
@@ -140,7 +145,7 @@ public class WebSocketSession {
     public void send(Object obj) throws SendMessageException, WebSocketFilterException {
 
         ByteBuffer byteBuffer = (ByteBuffer)webSocketRouter.filterEncoder(this, obj);
-        WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, false, byteBuffer);
+        WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, masked, byteBuffer);
         this.socketSession.syncSend(webSocketFrame);
     }
 
@@ -176,7 +181,7 @@ public class WebSocketSession {
      */
     public void close() {
         WebSocketFrame closeWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING,
-                false, ByteBuffer.wrap(WebSocketTools.intToByteArray(1000, 2)));
+                masked, ByteBuffer.wrap(WebSocketTools.intToByteArray(1000, 2)));
         try {
             send(closeWebSocketFrame);
         } catch (SendMessageException e) {
@@ -189,7 +194,7 @@ public class WebSocketSession {
         return socketSession;
     }
 
-     public void setSocketSession(IoSession socketSession) {
+    public void setSocketSession(IoSession socketSession) {
         this.socketSession = socketSession;
     }
 
