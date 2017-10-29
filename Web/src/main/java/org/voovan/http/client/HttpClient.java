@@ -9,6 +9,7 @@ import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
+import org.voovan.http.websocket.WebSocketType;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.SSLManager;
@@ -560,7 +561,7 @@ public class HttpClient implements Closeable{
 
 		IoSession session = socket.getSession();
 
-		WebSocketSession webSocketSession = new WebSocketSession(socket.getSession(), null, this.socket.getHost(), this.socket.getPort());
+		WebSocketSession webSocketSession = new WebSocketSession(socket.getSession(), webSocketRouter, WebSocketType.CLIENT);
 		WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketSession, webSocketRouter);
 		webSocketSession.setWebSocketRouter(webSocketRouter);
 
