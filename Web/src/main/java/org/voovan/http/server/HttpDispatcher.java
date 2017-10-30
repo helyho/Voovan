@@ -161,6 +161,9 @@ public class HttpDispatcher {
 
 		request.setSessionManager(sessionManager);
 
+
+
+
 		//正向过滤器处理,请求有可能被 Redirect 所以过滤器执行放在开始
 		filterResult = disposeFilter(filterConfigs,request,response);
 
@@ -171,20 +174,20 @@ public class HttpDispatcher {
 		}
 
 		HttpSession session = request.getSession();
+		session.save();
 
 		//向 HttpResponse 中放置 Session 的 Cookie
-		if(!request.getSession().attribute().isEmpty()) {
+		if(!session.attribute().isEmpty()) {
 
-			request.getSession().save();
+			if(request.getCookie(WebContext.getSessionName())==null) {
 
-			//创建 Cookie
-			Cookie cookie = Cookie.newInstance(request,  "/", WebContext.getSessionName(),
-					session.getId(), webConfig.getSessionTimeout() * 60);
+				//创建 Cookie
+				Cookie cookie = Cookie.newInstance(request, "/", WebContext.getSessionName(),
+						session.getId(), webConfig.getSessionTimeout() * 60);
 
-			//响应增加Session 对应的 Cookie
-			response.cookies().add(cookie);
-
-
+				//响应增加Session 对应的 Cookie
+				response.cookies().add(cookie);
+			}
 		}
 
 		//反向过滤器处理
