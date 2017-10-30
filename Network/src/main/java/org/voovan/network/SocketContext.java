@@ -1,5 +1,6 @@
 package org.voovan.network;
 
+import org.voovan.Global;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.tools.Chain;
@@ -9,6 +10,7 @@ import org.voovan.tools.log.Logger;
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.SocketOption;
+import java.nio.channels.AsynchronousChannelGroup;
 
 /**
  * socket 上下文
@@ -20,6 +22,21 @@ import java.net.SocketOption;
  * Licence: Apache v2 License
  */
 public abstract class SocketContext {
+	protected static AsynchronousChannelGroup ASYNCHRONOUS_CHANNEL_GROUP = buildAsynchronousChannelGroup();
+
+	/**
+	 * 构造一个异步通道线程组
+	 * @return
+	 */
+	public static AsynchronousChannelGroup buildAsynchronousChannelGroup(){
+		try {
+			return AsynchronousChannelGroup.withThreadPool(Global.getThreadPool());
+		} catch (IOException e) {
+			Logger.error("Buile AsynchronousChannelGroup failed", e);
+			return null;
+		}
+	}
+
 	protected String host;
 	protected int port;
 	protected int readTimeout;

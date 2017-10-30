@@ -66,8 +66,7 @@ public class AioSocket extends SocketContext {
 
 	private void init() throws IOException {
 		//这里不能使用已有线程池作为参数调用AsynchronousChannelGroup.open(threadPool)会导致线程不释放的问题
-		AsynchronousChannelGroup asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(Global.getThreadPool());
-		this.socketChannel = AsynchronousSocketChannel.open(asynchronousChannelGroup);
+		this.socketChannel = AsynchronousSocketChannel.open(ASYNCHRONOUS_CHANNEL_GROUP);
 		session = new AioSession(this);
 
 		readCompletionHandler = new ReadCompletionHandler(this,  session.getByteBufferChannel());
