@@ -1,6 +1,7 @@
 package org.voovan.network.aio;
 
 import org.voovan.Global;
+import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
@@ -13,7 +14,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 
 /**
  * AioServerSocket 监听
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -24,6 +25,7 @@ public class AioServerSocket extends SocketContext {
 
 	private AsynchronousServerSocketChannel serverSocketChannel;
 	private AcceptCompletionHandler acceptCompletionHandler;
+
 
 	/**
 	 * 构造函数
@@ -52,8 +54,8 @@ public class AioServerSocket extends SocketContext {
 	}
 
 	private void init() throws IOException {
-		AsynchronousChannelGroup asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(Global.getThreadPool());
-		serverSocketChannel = AsynchronousServerSocketChannel.open(asynchronousChannelGroup);
+
+		serverSocketChannel = AsynchronousServerSocketChannel.open(ASYNCHRONOUS_CHANNEL_GROUP);
 		acceptCompletionHandler = new AcceptCompletionHandler();
 	}
 
@@ -136,10 +138,10 @@ public class AioServerSocket extends SocketContext {
 			return false;
 		}
 	}
-	
+
 	@Override
 	public boolean close(){
-		
+
 		if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
 			try{
 				//触发 DisConnect 事件
