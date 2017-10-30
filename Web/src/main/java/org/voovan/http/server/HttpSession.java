@@ -222,6 +222,7 @@ public class HttpSession {
 	 */
 	public void setMaxInactiveInterval(int maxInactiveInterval) {
 		this.maxInactiveInterval = maxInactiveInterval;
+		needSave = true;
 	}
 
 	/**
