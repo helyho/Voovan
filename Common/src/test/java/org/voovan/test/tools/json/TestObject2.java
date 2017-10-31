@@ -1,9 +1,10 @@
 package org.voovan.test.tools.json;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Vector;
 
-public class TestObject2{
+public class TestObject2 implements Serializable{
 	private String string;
 	private int bint;
 	private HashMap<String, String> map = new HashMap<String, String>();

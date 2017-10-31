@@ -439,14 +439,15 @@ public class TString {
 			return null;
 		}
 
-		return source.replace("\\[^u][^[0-9|a-f]]{4}", "\\u005c")
-				.replace("\f", "\\u000c")
-				.replace("\'", "\\u0027")
-				.replace("\r", "\\u000d")
-				.replace("\"", "\\u0022")
-				.replace("\b", "\\u0008")
-				.replace("\t", "\\u0009")
-				.replace("\n", "\\u000a");
+		source = fastReplaceAll(source, "\\[^u][^[0-9|a-f]]{4}", "\\u005c");
+		source = fastReplaceAll(source, "\f", "\\u000c");
+		source = fastReplaceAll(source, "\'", "\\u0027");
+		source = fastReplaceAll(source, "\r", "\\u000d");
+		source = fastReplaceAll(source, "\"", "\\u0022");
+		source = fastReplaceAll(source, "\b", "\\u0008");
+		source = fastReplaceAll(source, "\t", "\\u0009");
+		source = fastReplaceAll(source, "\n", "\\u000a");
+		return source;
 	}
 
 	/**
@@ -461,14 +462,15 @@ public class TString {
 			return null;
 		}
 
-		return source.replace("\\u005c", "\\")
-				.replace("\\u000c", "\f")
-				.replace("\\u0027", "\'")
-				.replace("\\u000d", "\r")
-				.replace("\\u0022", "\"")
-				.replace("\\u0008", "\b")
-				.replace("\\u0009", "\t")
-				.replace("\\u000a", "\n");
+		source = fastReplaceAll(source, "\\u005c", "\\");
+		source = fastReplaceAll(source, "\\u000c", "\f");
+		source = fastReplaceAll(source, "\\u0027", "\'");
+		source = fastReplaceAll(source, "\\u000d", "\r");
+		source = fastReplaceAll(source, "\\u0022", "\"");
+		source = fastReplaceAll(source, "\\u0008", "\b");
+		source = fastReplaceAll(source, "\\u0009", "\t");
+		source = fastReplaceAll(source, "\\u000a", "\n");
+		return source;
 	}
 
 
