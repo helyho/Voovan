@@ -1,6 +1,7 @@
 package org.voovan.tools;
 
 import java.security.SecureRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 高速ID生成器
@@ -18,7 +19,7 @@ public class UniqueId {
     private static final int signIdLeft = 10;
     private static final int maxsignId = 1 << signIdLeft;
 
-    private Integer orderedIdSequence = SEQ_DEFAULT;
+    private volatile AtomicInteger orderedIdSequence = new AtomicInteger(SEQ_DEFAULT);
     private Long lastTime = 0L;
     private int workId = 0;
 
@@ -68,14 +69,12 @@ public class UniqueId {
         long currentTime = System.currentTimeMillis();
 
         if(lastTime < currentTime){
-            orderedIdSequence = SEQ_DEFAULT;
+            orderedIdSequence.set(SEQ_DEFAULT);
         }else if(lastTime > currentTime){
             throw new RuntimeException("Clock moved backwards.");
         }
 
-        long resultId = (currentTime << (sequenceLeft+signIdLeft) ) | (workId << signIdLeft) | orderedIdSequence;
-
-        orderedIdSequence++;
+        long resultId = (currentTime << (sequenceLeft+signIdLeft) ) | (workId << signIdLeft) | orderedIdSequence.getAndAdd(1);
 
         lastTime = currentTime;
         return resultId;

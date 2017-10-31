@@ -178,15 +178,17 @@ public class HttpDispatcher {
 
 		//向 HttpResponse 中放置 Session 的 Cookie
 		if(!session.attribute().isEmpty()) {
-
-			if(request.getCookie(WebContext.getSessionName())==null) {
-
+			Cookie sessionCookie  = request.getCookie(WebContext.getSessionName());
+			if(sessionCookie==null) {
 				//创建 Cookie
-				Cookie cookie = Cookie.newInstance(request, "/", WebContext.getSessionName(),
+				sessionCookie = Cookie.newInstance(request, "/", WebContext.getSessionName(),
 						session.getId(), webConfig.getSessionTimeout() * 60);
 
 				//响应增加Session 对应的 Cookie
-				response.cookies().add(cookie);
+				response.cookies().add(sessionCookie);
+			} else if(!sessionCookie.getValue().equals(session.getId())){
+				sessionCookie.setValue(session.getId());
+				response.cookies().add(sessionCookie);
 			}
 		}
 

@@ -413,6 +413,12 @@ public class TReflect {
 					Type[] methodParamTypes = similarMethod.getGenericParameterTypes();
 					//匹配参数数量相等的方法
 					if (methodParamTypes.length == args.length) {
+						try{
+							return (T)similarMethod.invoke(obj, args);
+						} catch (Exception ex){
+							//不处理
+						}
+
 						try {
 							Object[] convertedParams = new Object[args.length];
 							for (int i = 0; i < methodParamTypes.length; i++) {
@@ -529,6 +535,13 @@ public class TReflect {
 					Class[] methodParamTypes = similarConstructor.getParameterTypes();
 					//匹配参数数量相等的方法
 					if (methodParamTypes.length == args.length) {
+
+						try{
+							return (T) similarConstructor.newInstance(args);
+						} catch (Exception ex){
+							//不处理
+						}
+
 						try {
 							Object[] convertedParams = new Object[args.length];
 							for (int i = 0; i < methodParamTypes.length; i++) {

@@ -62,6 +62,9 @@ public class TSQL {
 			//去掉前面::号
 			paramName = paramName.substring(2,paramName.length());
 			Object data = params.get(paramName);
+			if(data==null){
+				throw new NullPointerException("SQL param: "+paramName+ " is null");
+			}
 			if(TReflect.isBasicType(data.getClass())) {
 				preparedStatement.setObject(i + 1, params.get(paramName));
 			}else{

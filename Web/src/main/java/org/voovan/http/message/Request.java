@@ -185,12 +185,6 @@ public class Request {
 			}else if(body.getBodyBytes().length>0){
 				header.put(CONTENT_TYPE, "application/x-www-form-urlencoded");
 			}
-
-			//生成 Cookie 信息
-			String cookieValue = genCookie();
-			if(!TString.isNullOrEmpty(cookieValue)){
-				header.put("Cookie", genCookie());
-			}
 		}
 
 		if("multipart/form-data;".equals(header.get(CONTENT_TYPE))){
@@ -200,6 +194,12 @@ public class Request {
 
 		if (body.size() > 0) {
 			header.put("Content-Length", Long.toString(body.size()));
+		}
+
+		//生成 Cookie 信息
+		String cookieValue = genCookie();
+		if(!TString.isNullOrEmpty(cookieValue)){
+			header.put("Cookie", genCookie());
 		}
 	}
 
