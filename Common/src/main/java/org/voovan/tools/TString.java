@@ -462,14 +462,14 @@ public class TString {
 			return null;
 		}
 
-		source = fastReplaceAll(source, "\\u005c", "\\");
-		source = fastReplaceAll(source, "\\u000c", "\f");
-		source = fastReplaceAll(source, "\\u0027", "\'");
-		source = fastReplaceAll(source, "\\u000d", "\r");
-		source = fastReplaceAll(source, "\\u0022", "\"");
-		source = fastReplaceAll(source, "\\u0008", "\b");
-		source = fastReplaceAll(source, "\\u0009", "\t");
-		source = fastReplaceAll(source, "\\u000a", "\n");
+		source = fastReplaceAll(source, "\\\\u005c", "\\");
+		source = fastReplaceAll(source, "\\\\u000c", "\f");
+		source = fastReplaceAll(source, "\\\\u0027", "\'");
+		source = fastReplaceAll(source, "\\\\u000d", "\r");
+		source = fastReplaceAll(source, "\\\\u0022", "\"");
+		source = fastReplaceAll(source, "\\\\u0008", "\b");
+		source = fastReplaceAll(source, "\\\\u0009", "\t");
+		source = fastReplaceAll(source, "\\\\u000a", "\n");
 		return source;
 	}
 

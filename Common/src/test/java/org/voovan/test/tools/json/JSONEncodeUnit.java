@@ -47,36 +47,36 @@ public class JSONEncodeUnit extends TestCase {
 		Logger.simple(System.currentTimeMillis() - s);
 		String jsonStr = JSONEncode.fromObject(testObject);
 		jsonStr = JSON.removeNullNode(jsonStr);
-//		s = System.currentTimeMillis();
-//		for(int i=0;i<10000;i++) {
-//			JSONDecode.fromJSON(jsonStr, TestObject.class);
-//		}
-//		Logger.simple(System.currentTimeMillis() - s);
-//////		assertEquals(jsonStr,targetStr);
-//
-//		ByteArrayOutputStream out = new ByteArrayOutputStream();
-//		ObjectOutputStream ot = new ObjectOutputStream(out);
-//		byte[] bytes=null;
-//		s = System.currentTimeMillis();
-//		for(int i=0;i<10000;i++) {
-//			ot.writeObject(testObject);
-//			if(i==0) {
-//				bytes = out.toByteArray();
-//			}
-//		}
-//		Logger.simple(System.currentTimeMillis() - s);
-//		ot.flush();
-//		ot.close();
-//
-//		s = System.currentTimeMillis();
-//		Object o;
-//		for(int i=0;i<10000;i++) {
-//			ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-//
-//			try (ObjectInputStream oi = new ObjectInputStream(in)) {
-//				o = oi.readObject();
-//			}
-//		}
-//		Logger.simple(System.currentTimeMillis() - s);
+		s = System.currentTimeMillis();
+		for(int i=0;i<10000;i++) {
+			JSONDecode.fromJSON(jsonStr, TestObject.class);
+		}
+		Logger.simple(System.currentTimeMillis() - s);
+////		assertEquals(jsonStr,targetStr);
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ObjectOutputStream ot = new ObjectOutputStream(out);
+		byte[] bytes=null;
+		s = System.currentTimeMillis();
+		for(int i=0;i<10000;i++) {
+			ot.writeObject(testObject);
+			if(i==0) {
+				bytes = out.toByteArray();
+			}
+		}
+		Logger.simple(System.currentTimeMillis() - s);
+		ot.flush();
+		ot.close();
+
+		s = System.currentTimeMillis();
+		Object o;
+		for(int i=0;i<10000;i++) {
+			ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+
+			try (ObjectInputStream oi = new ObjectInputStream(in)) {
+				o = oi.readObject();
+			}
+		}
+		Logger.simple(System.currentTimeMillis() - s);
 	}
 }
