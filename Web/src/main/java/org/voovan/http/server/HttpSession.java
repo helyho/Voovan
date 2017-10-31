@@ -36,6 +36,8 @@ public class HttpSession {
 	private boolean needSave;
 	private boolean isAutoCleanRun;
 
+	private HashWheelTask cleanHashWheelTask= null;
+
 
 	/**
 	 * 构造函数
@@ -65,7 +67,7 @@ public class HttpSession {
 			//如果 session 可以自清除则不进行清理
 			if (!sessionManager.autoExpire()) {
 				final HttpSession innerSession = this;
-				Global.getHashWheelTimer().addTask(new HashWheelTask() {
+				cleanHashWheelTask = new HashWheelTask() {
 					@Override
 					public void run() {
 						if (innerSession.isExpire()) {
@@ -73,7 +75,9 @@ public class HttpSession {
 							this.cancel();
 						}
 					}
-				}, innerSession.getMaxInactiveInterval() / 1000);
+				};
+
+				Global.getHashWheelTimer().addTask(cleanHashWheelTask, innerSession.getMaxInactiveInterval() / 1000);
 			}
 			isAutoCleanRun = true;
 		}
@@ -194,6 +198,9 @@ public class HttpSession {
 	}
 
 	public void removeFromSessionManager(){
+		if(cleanHashWheelTask!=null){
+			cleanHashWheelTask.cancel();
+		}
 		sessionManager.removeSession(this);
 	}
 
