@@ -152,7 +152,9 @@ public class SessionManager{
 	 * @param id 会话 id
 	 */
 	public void removeSession(String id){
-		httpSessions.remove(id);
+		if(httpSessions.containsKey(id)) {
+			httpSessions.remove(id);
+		}
 	}
 
 	/**
@@ -160,7 +162,9 @@ public class SessionManager{
 	 * @param seesion HttpSession 对象
 	 */
 	public void removeSession(HttpSession seesion){
-		removeSession(seesion.getId());
+		if(seesion!=null && seesion.getId()!=null) {
+			removeSession(seesion.getId());
+		}
 	}
 
 	/**
