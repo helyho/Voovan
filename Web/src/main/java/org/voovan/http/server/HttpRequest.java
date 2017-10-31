@@ -92,12 +92,12 @@ public class HttpRequest extends Request {
 	 */
 	public HttpSession getSession() {
 		if(session == null){
-
 			//获取请求的 Cookie中的session标识
 			Cookie sessionCookie = getCookie(WebContext.getSessionName());
 			if(sessionCookie!=null) {
 				session = sessionManager.getSession(sessionCookie.getValue());
 			}
+
 			if(session == null){
 				session = sessionManager.newSession(this);
 			}
@@ -105,7 +105,7 @@ public class HttpRequest extends Request {
 			if(session!=null) {
 				session.init(sessionManager, getSocketSession());
 
-				// 请求增加 Session
+				// 请求关联 Session
 				setSession(session);
 			}
 		}
@@ -182,7 +182,7 @@ public class HttpRequest extends Request {
 	protected void setCharacterSet(String charset) {
 		this.characterSet = charset;
 	}
-	
+
 	/**
 	 * 获取请求字符串
 	 *
@@ -191,7 +191,7 @@ public class HttpRequest extends Request {
 	protected String getQueryString(){
 		return getQueryString(characterSet);
 	}
-	
+
 	/**
 	 * 获取请求参数集合
 	 *
@@ -200,7 +200,7 @@ public class HttpRequest extends Request {
 	public Map<String, String> getParameters() {
 		return parameters;
 	}
-	
+
 	/**
 	 * 获取请求参数
 	 *
@@ -215,7 +215,7 @@ public class HttpRequest extends Request {
 	 * 获取 int 类型的数据
 	 * @param paramName 请求参数名称
 	 * @return int 类型的数据
-     */
+	 */
 	public int getParameterAsInt(String paramName){
 		try {
 			return (int) TString.toObject(parameters.get(paramName), int.class);
@@ -357,7 +357,7 @@ public class HttpRequest extends Request {
 	/**
 	 * 获取请求属性.此属性是会话级的
 	 * @return 返回请求属性
-     */
+	 */
 	public Map<String, Object> getAttributes() {
 		return attributes;
 	}
@@ -366,7 +366,7 @@ public class HttpRequest extends Request {
 	 * 获取请求属性值
 	 * @param attrName 请求属性名称
 	 * @return 请求属性值
-     */
+	 */
 	public Object getAttributes(String attrName){
 		return attributes.get(attrName);
 	}
@@ -375,7 +375,7 @@ public class HttpRequest extends Request {
 	 * 设置请求属性
 	 * @param attrName 请求属性名称
 	 * @param attrValue 请求属性值
-     */
+	 */
 	public void setAttributes(String attrName,Object attrValue){
 		attributes.put(attrName,attrValue);
 	}
@@ -430,9 +430,6 @@ public class HttpRequest extends Request {
 	public void saveUploadedFile(String name, String file) throws IOException {
 		saveUploadedFile(name, new File(file));
 	}
-
-
-
 
 	/**
 	 * 重置请求
