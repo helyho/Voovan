@@ -21,7 +21,7 @@ public class JSONEncodeUnit extends TestCase {
 	public void testRun() throws Exception{
 		String targetStr = "{\"bint\":32,\"string\":\"helyho\",\"tb2\":{\"bint\":56,\"string\":\"bingo\\u000d\\u000asrc\\u005cmain\\u005ckkk\",\"list\":[\"tb2 list item\"],\"map\":{\"tb2 map item\":\"tb2 map item\"}},\"list\":[\"listitem1\",\"listitem2\",\"listitem3\"],\"map\":{\"mapitem2\":\"mapitem2\",\"mapitem1\":\"mapitem1\"}}";
 
-		TEnv.sleep(10000);
+//		TEnv.sleep(10000);
 
 		TestObject testObject = new TestObject();
 		testObject.setString("helyho");
