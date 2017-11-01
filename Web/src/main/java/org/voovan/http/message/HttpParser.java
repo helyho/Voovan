@@ -64,7 +64,7 @@ public class HttpParser {
 		Map<String, Object> protocol = new HashMap<String, Object>();
 		//请求方法
 		String[] lineSplit = protocolLine.split(" ");
-		if(protocolLine.indexOf(HTTP_PROTOCOL)!=0){
+		if(protocolLine.indexOf(HTTP_PROTOCOL) > 0){
 			protocol.put(FL_METHOD, lineSplit[0]);
 			//请求路径和请求串
 			String[] pathSplit = lineSplit[1].split("\\?");
@@ -210,7 +210,7 @@ public class HttpParser {
 
 		//如果是 GZip 则解压缩
 		if(isGZip && contentBytes.length>0){
-			bytesValue =TZip.decodeGZip(contentBytes);
+			bytesValue = TZip.decodeGZip(contentBytes);
 		} else {
 			bytesValue = contentBytes;
 		}
@@ -238,8 +238,8 @@ public class HttpParser {
 		int lineNum = 0;
 		//按行遍历HTTP报文
 		for(String currentLine = byteBufferChannel.readLine();
-			currentLine!=null;
-			currentLine = byteBufferChannel.readLine()){
+		    currentLine!=null;
+		    currentLine = byteBufferChannel.readLine()){
 			currentLine = currentLine.trim();
 			lineNum++;
 			//空行分隔处理,遇到空行标识下面有可能到内容段
@@ -294,7 +294,7 @@ public class HttpParser {
 						//确认 boundary 结尾字符, 如果是"--" 则标识报文结束
 						if (Arrays.equals(boundaryEnd.array(), "--".getBytes())) {
 							//收缩掉尾部的换行
-						    byteBufferChannel.shrink(2);
+							byteBufferChannel.shrink(2);
 							break;
 						}
 
@@ -343,7 +343,7 @@ public class HttpParser {
 
 							//拼文件名
 							String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
-									"org.voovan.webserver",
+									"dd.webserver",
 									"upload",
 									"VOOVAN_" + System.currentTimeMillis() + "." + fileExtName);
 
