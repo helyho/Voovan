@@ -177,6 +177,7 @@ public class HttpDispatcher {
 
 		//向 HttpResponse 中放置 Session 的 Cookie
 		if(!session.attribute().isEmpty()) {
+			session.save();
 			Cookie sessionCookie  = request.getCookie(WebContext.getSessionName());
 			if(sessionCookie==null) {
 				//创建 Cookie
@@ -189,8 +190,6 @@ public class HttpDispatcher {
 				sessionCookie.setValue(session.getId());
 				response.cookies().add(sessionCookie);
 			}
-
-			session.save();
 		} else {
 			session.removeFromSessionManager();
 		}
