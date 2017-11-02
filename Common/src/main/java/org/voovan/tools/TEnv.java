@@ -12,6 +12,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -70,6 +71,19 @@ public class TEnv {
 	public static void sleep(int sleepTime) {
 		try {
 			Thread.sleep(sleepTime);
+		} catch (InterruptedException e) {
+			Logger.error("TEnv.sleep interrupted",e);
+		}
+	}
+
+	/**
+	 * 休眠函数
+	 * @param timeUnit 休眠时间单位
+	 * @param sleepTime 休眠时间
+	 */
+	public static void sleep(TimeUnit timeUnit, int sleepTime) {
+		try {
+			timeUnit.sleep(sleepTime);
 		} catch (InterruptedException e) {
 			Logger.error("TEnv.sleep interrupted",e);
 		}

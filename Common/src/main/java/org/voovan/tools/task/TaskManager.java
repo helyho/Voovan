@@ -7,6 +7,7 @@ import org.voovan.tools.log.Logger;
 
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 任务管理器
@@ -67,12 +68,12 @@ public class TaskManager {
                             if (task.canRun()) {
                                 task.setRunning(true);
                                 Global.getThreadPool().execute(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            task.start();
-                                            task.setRunning(false);
-                                        }
-                                    }
+                                                                   @Override
+                                                                   public void run() {
+                                                                       task.start();
+                                                                       task.setRunning(false);
+                                                                   }
+                                                               }
                                 );
                             }
                         }catch(Exception e){
@@ -83,12 +84,12 @@ public class TaskManager {
 
                         //防止大量任务带来的高 CPU 负载
                         if(tryStartTaskCount >= 100) {
-                            TEnv.sleep(1);
+                            TEnv.sleep(TimeUnit.NANOSECONDS, 1);
                             tryStartTaskCount = 0;
                         }
                     }
 
-                    TEnv.sleep(1);
+                    TEnv.sleep(TimeUnit.NANOSECONDS, 1);
                 }
             }
         });
