@@ -3,6 +3,7 @@ package org.voovan.network.aio;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.network.exception.RestartException;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -12,6 +13,8 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.WritePendingException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * NIO 会话连接对象
@@ -120,9 +123,15 @@ public class AioSession extends IoSession<AioSocket> {
                     Future<Integer> sendResult = socketChannel.write(buffer);
 
                     try {
-                        //这里会阻赛当前的发送线程
-                        totalSendByte += sendResult.get();
-                    } catch (InterruptedException | ExecutionException e) {
+                        while(isConnected()) {
+                            //这里会阻赛当前的发送线程
+                            Integer sentLength = sendResult.get(1, TimeUnit.MILLISECONDS);
+                            if(sentLength!=null){
+                                totalSendByte += sentLength;
+                                break;
+                            }
+                        }
+                    } catch (InterruptedException | ExecutionException | TimeoutException e) {
                         close();
                     }
 
