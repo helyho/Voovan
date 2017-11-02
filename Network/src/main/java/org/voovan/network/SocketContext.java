@@ -278,10 +278,15 @@ public abstract class SocketContext {
 				TEnv.sleep(1);
 			}
 
+			waitConnectTime = 0;
 			//等待 SSL 握手操作完成
 			while (session.getSSLParser() != null &&
 					!session.getSSLParser().isHandShakeDone() &&
 					isConnected()) {
+				if (waitConnectTime >= readTimeout) {
+					break;
+				}
+				waitConnectTime++;
 				TEnv.sleep(1);
 			}
 		}catch(Exception e){
