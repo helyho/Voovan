@@ -193,7 +193,7 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static void setFieldValue(Object obj, String fieldName,
-	                                 Object fieldValue) throws ReflectiveOperationException {
+									 Object fieldValue) throws ReflectiveOperationException {
 		Field field = findField(obj.getClass(), fieldName);
 		field.setAccessible(true);
 		field.set(obj, fieldValue);
@@ -230,7 +230,7 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Method findMethod(Class<?> clazz, String name,
-	                                Class<?>... paramTypes) throws ReflectiveOperationException {
+									Class<?>... paramTypes) throws ReflectiveOperationException {
 		String mark = clazz.getCanonicalName()+"#"+name;
 		for(Class<?> paramType : paramTypes){
 			mark = mark + "$" + paramType.getCanonicalName();
@@ -264,7 +264,7 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Method[] findMethod(Class<?> clazz, String name,
-	                                  int paramCount) throws ReflectiveOperationException {
+									  int paramCount) throws ReflectiveOperationException {
 		Method[] methods = null;
 
 		String mark = clazz.getCanonicalName()+"#"+name+"@"+paramCount;
@@ -857,9 +857,11 @@ public class TReflect {
 		//对 Collection 类型的处理
 		else if(obj instanceof Collection){
 			Collection collection = (Collection) newInstance(obj.getClass());
-			for(Object collectionItem : (Collection)obj) {
-				Map<String, Object> item = getMapfromObject(collectionItem);
-				collection.add( (item.size()==1 && item.containsKey(null)) ? item.get(null) : item);
+			synchronized (obj) {
+				for (Object collectionItem : (Collection) obj) {
+					Map<String, Object> item = getMapfromObject(collectionItem);
+					collection.add((item.size() == 1 && item.containsKey(null)) ? item.get(null) : item);
+				}
 			}
 			mapResult.put(null, collection);
 		}
@@ -882,15 +884,18 @@ public class TReflect {
 		//对 Map 类型的处理
 		else if(obj instanceof Map){
 			Map mapObject = (Map)obj;
+
 			Map map = (Map)newInstance(obj.getClass());
-			Iterator iterator =  mapObject.entrySet().iterator();
-			while(iterator.hasNext()) {
-				Entry<?, ?> entry = (Entry<?, ?>) iterator.next();
-				Map<String, Object> keyItem = getMapfromObject(entry.getKey());
-				Map<String, Object> valueItem = getMapfromObject(entry.getValue());
-				Object key = (keyItem.size()==1 && keyItem.containsKey(null)) ? keyItem.get(null) : keyItem;
-				Object value = (valueItem.size()==1 && valueItem.containsKey(null)) ? valueItem.get(null) : valueItem;
-				map.put(key, value);
+			synchronized (obj) {
+				Iterator iterator = mapObject.entrySet().iterator();
+				while (iterator.hasNext()) {
+					Entry<?, ?> entry = (Entry<?, ?>) iterator.next();
+					Map<String, Object> keyItem = getMapfromObject(entry.getKey());
+					Map<String, Object> valueItem = getMapfromObject(entry.getValue());
+					Object key = (keyItem.size() == 1 && keyItem.containsKey(null)) ? keyItem.get(null) : keyItem;
+					Object value = (valueItem.size() == 1 && valueItem.containsKey(null)) ? valueItem.get(null) : valueItem;
+					map.put(key, value);
+				}
 			}
 			mapResult.put(null, map);
 		}

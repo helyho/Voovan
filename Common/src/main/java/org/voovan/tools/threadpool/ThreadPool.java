@@ -68,6 +68,18 @@ public class ThreadPool {
 		return threadPoolInstance;
 	}
 
+	private static ThreadPoolExecutor createThreadPool(int corePoolSize, int maxPoolSize){
+		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*500));
+		//设置allowCoreThreadTimeOut,允许回收超时的线程
+		threadPoolInstance.allowCoreThreadTimeOut(true);
+
+		Timer timer = new Timer("VOOVAN@THREAD_POOL_TIMER");
+		ThreadPoolTask threadPoolTask = new ThreadPoolTask(threadPoolInstance);
+		timer.schedule(threadPoolTask, 1, 1000);
+
+		return threadPoolInstance;
+	}
+
 	public static ThreadPoolExecutor getNewThreadPool(){
 		return createThreadPool();
 	}
