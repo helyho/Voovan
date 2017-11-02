@@ -14,22 +14,22 @@ import java.nio.channels.spi.SelectorProvider;
 
 /**
  * NioServerSocket 监听
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class NioServerSocket extends SocketContext{
-	
+public class NioServerSocket extends SocketContext {
+
 	private SelectorProvider provider;
 	private Selector selector;
 	private ServerSocketChannel serverSocketChannel;
 
 	/**
 	 * 构造函数
-	 * 		默认不会触发空闲事件
+	 * 		默认不会出发空闲事件, 默认发超时时间: 1s
 	 * @param host      监听地址
 	 * @param port		监听端口
 	 * @param readTimeout   超时时间, 单位: 毫秒
@@ -40,9 +40,9 @@ public class NioServerSocket extends SocketContext{
 		init();
 	}
 
-
 	/**
 	 * 构造函数
+	 *      默认发超时时间: 1s
 	 * @param host      监听地址
 	 * @param port		监听端口
 	 * @param idleInterval	空闲事件触发时间, 单位: 秒
@@ -51,6 +51,20 @@ public class NioServerSocket extends SocketContext{
 	 */
 	public NioServerSocket(String host,int port,int readTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, idleInterval);
+		init();
+	}
+
+	/**
+	 * 构造函数
+	 * @param host      监听地址
+	 * @param port		监听端口
+	 * @param idleInterval	空闲事件触发时间, 单位: 秒
+	 * @param readTimeout   超时时间, 单位: 毫秒
+	 * @param sendTimeout 发超时时间, 单位: 毫秒
+	 * @throws IOException	异常
+	 */
+	public NioServerSocket(String host,int port,int readTimeout, int sendTimeout, int idleInterval) throws IOException{
+		super(host, port, readTimeout, sendTimeout, idleInterval);
 		init();
 	}
 
@@ -85,7 +99,7 @@ public class NioServerSocket extends SocketContext{
 	public <T> void setOption(SocketOption<T> name, T value) throws IOException {
 		serverSocketChannel.setOption(name, value);
 	}
-	
+
 	/**
 	 * 获取 SocketChannel 对象
 	 * @return SocketChannel 对象
@@ -93,7 +107,7 @@ public class NioServerSocket extends SocketContext{
 	public ServerSocketChannel socketChannel(){
 		return this.serverSocketChannel;
 	}
-	
+
 	/**
 	 * 启动监听
 	 * 		阻赛方法
@@ -133,7 +147,7 @@ public class NioServerSocket extends SocketContext{
 		if(serverSocketChannel!=null){
 			return serverSocketChannel.isOpen();
 		}
-		
+
 		return false;
 	}
 

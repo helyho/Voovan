@@ -39,7 +39,7 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 构造函数
-	 *
+	 *      默认不会出发空闲事件, 默认发超时时间: 1s
 	 * @param host   主机地址
 	 * @param port   主机端口
 	 * @param readTimeout 主机超时时间, 单位:毫秒
@@ -52,7 +52,7 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 构造函数
-	 *
+	 *      默认发超时时间: 1s
 	 * @param host   主机地址
 	 * @param port   主机端口
 	 * @param idleInterval	空闲事件触发时间, 单位: 秒
@@ -61,6 +61,21 @@ public class AioSocket extends SocketContext {
 	 */
 	public AioSocket(String host, int port, int readTimeout, int idleInterval) throws IOException {
 		super(host, port, readTimeout, idleInterval);
+		init();
+	}
+
+	/**
+	 * 构造函数
+	 *
+	 * @param host   主机地址
+	 * @param port   主机端口
+	 * @param idleInterval	空闲事件触发时间, 单位: 秒
+	 * @param readTimeout 主机超时时间, 单位:毫秒
+	 * @param sendTimeout 发超时时间, 单位: 毫秒
+	 * @throws IOException IO 异常
+	 */
+	public AioSocket(String host, int port, int readTimeout, int sendTimeout,  int idleInterval) throws IOException {
+		super(host, port, readTimeout, sendTimeout, idleInterval);
 		init();
 	}
 

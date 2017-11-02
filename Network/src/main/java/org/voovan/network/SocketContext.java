@@ -40,6 +40,7 @@ public abstract class SocketContext {
 	protected String host;
 	protected int port;
 	protected int readTimeout;
+	protected int sendTimeout = 1000;
 
 	protected IoHandler handler;
 	protected Chain<IoFilter> filterChain;
@@ -50,32 +51,47 @@ public abstract class SocketContext {
 
 	protected int idleInterval = 0;
 
+
 	/**
 	 * 构造函数
-	 * 		默认不会出发空闲事件
+	 * 		默认不会出发空闲事件, 默认发超时时间: 1s
 	 * @param host    主机地址
 	 * @param port    主机端口
 	 * @param readTimeout 超时时间
 	 */
 	public SocketContext(String host,int port,int readTimeout) {
-		init(host, port, readTimeout, this.idleInterval);
+		init(host, port, readTimeout, sendTimeout, this.idleInterval);
+	}
+
+	/**
+	 * 构造函数
+	 *      默认发超时时间: 1s
+	 * @param host    主机地址
+	 * @param port    主机端口
+	 * @param readTimeout 读超时时间, 单位: 毫秒
+	 * @param idleInterval 空闲事件触发时间
+	 */
+	public SocketContext(String host,int port, int readTimeout, int idleInterval) {
+		init(host, port, readTimeout, sendTimeout, idleInterval);
 	}
 
 	/**
 	 * 构造函数
 	 * @param host    主机地址
 	 * @param port    主机端口
-	 * @param idleInterval   空闲事件触发时间, 单位: 秒
-	 * @param readTimeout 超时时间
+	 * @param readTimeout 读超时时间, 单位: 毫秒
+	 * @param sendTimeout 发超时时间, 单位: 毫秒
+	 * @param idleInterval 空闲事件触发时间
 	 */
-	public SocketContext(String host,int port,int readTimeout, int idleInterval) {
-		init(host, port, readTimeout, idleInterval);
+	public SocketContext(String host,int port,int readTimeout, int sendTimeout, int idleInterval) {
+		init(host, port, readTimeout, sendTimeout, idleInterval);
 	}
 
-	private void init(String host,int port,int readTimeout, int idleInterval){
+	private void init(String host,int port,int readTimeout, int sendTimeout, int idleInterval){
 		this.host = host;
 		this.port = port;
 		this.readTimeout = readTimeout;
+		this.sendTimeout = sendTimeout;
 		this.idleInterval = idleInterval;
 		connectModel = null;
 		filterChain = new Chain<IoFilter>();
@@ -97,6 +113,7 @@ public abstract class SocketContext {
 	 */
 	protected void copyFrom(SocketContext parentSocketContext){
 		this.readTimeout = parentSocketContext.readTimeout;
+		this.sendTimeout = parentSocketContext.sendTimeout;
 		this.handler = parentSocketContext.handler;
 		this.filterChain = parentSocketContext.filterChain;
 		this.messageSplitter = parentSocketContext.messageSplitter;
@@ -192,6 +209,10 @@ public abstract class SocketContext {
 	 */
 	public int getReadTimeout() {
 		return readTimeout;
+	}
+
+	public int getSendTimeout(){
+		return sendTimeout;
 	}
 
 	/**
