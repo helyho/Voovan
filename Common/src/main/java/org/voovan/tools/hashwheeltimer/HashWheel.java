@@ -132,6 +132,10 @@ public class HashWheel {
                 tmpList.addAll(tasks);
 
                 for (HashWheelTask task : tmpList) {
+                    if(task==null){
+                        tasks.remove(task);
+                        continue;
+                    }
                     if (task.doTask()) {
                         removeTask(task);
                         if(!task.isCancel()) {
