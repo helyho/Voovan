@@ -178,6 +178,23 @@ public class UdpSocket extends SocketContext {
     }
 
     /**
+     * 重连当前连接
+     *      同步模式
+     * @return UdpSocket对象
+     * @throws IOException IO 异常
+     * @throws RestartException 重新启动的异常
+     */
+    public UdpSocket syncRestart() throws IOException, RestartException {
+        if(this.connectModel == ConnectModel.CLIENT) {
+            init();
+            this.syncStart();
+            return this;
+        }else{
+            throw new RestartException("Can't invoke reStart method in server mode");
+        }
+    }
+
+    /**
      * 同步读取消息
      * @return 读取出的对象
      * @throws ReadMessageException 读取消息异常

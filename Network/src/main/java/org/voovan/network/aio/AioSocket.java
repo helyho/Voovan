@@ -219,6 +219,23 @@ public class AioSocket extends SocketContext {
 	}
 
 	/**
+	 * 重连当前连接
+	 *      同步模式
+	 * @return AioSocket对象
+	 * @throws IOException IO 异常
+	 * @throws RestartException 重新启动的异常
+	 */
+	public AioSocket syncRestart() throws IOException, RestartException {
+		if(this.connectModel == ConnectModel.CLIENT) {
+			init();
+			this.syncStart();
+			return this;
+		}else{
+			throw new RestartException("Can't invoke reStart method in server mode");
+		}
+	}
+
+	/**
 	 * 获取 SocketChannel 对象
 	 *
 	 * @return 异步 Socket 通道

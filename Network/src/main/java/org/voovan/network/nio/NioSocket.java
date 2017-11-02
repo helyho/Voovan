@@ -209,6 +209,23 @@ public class NioSocket extends SocketContext{
 		}
 	}
 
+	/**
+	 * 重连当前连接
+	 *      同步模式
+	 * @return NioSocket对象
+	 * @throws IOException IO 异常
+	 * @throws RestartException 重新启动的异常
+	 */
+	public NioSocket syncRestart() throws IOException, RestartException {
+		if(this.connectModel == ConnectModel.CLIENT) {
+			init();
+			this.syncRestart();
+			return this;
+		}else{
+			throw new RestartException("Can't invoke reStart method in server mode");
+		}
+	}
+
 	@Override
 	public boolean isOpen() {
 		if(socketChannel!=null){
