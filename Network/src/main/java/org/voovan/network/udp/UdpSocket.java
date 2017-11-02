@@ -35,7 +35,7 @@ public class UdpSocket extends SocketContext {
 
     /**
      * socket 连接
-     *      默认不会触发空闲事件
+     *      默认不会出发空闲事件, 默认发超时时间: 1s
      * @param host      监听地址
      * @param port		监听端口
      * @param readTimeout   超时时间, 单位: 毫秒
@@ -48,6 +48,7 @@ public class UdpSocket extends SocketContext {
 
     /**
      * socket 连接
+     *      默认发超时时间: 1s
      * @param host      监听地址
      * @param port		监听端口
      * @param idleInterval	空闲事件触发时间, 单位: 秒
@@ -56,6 +57,20 @@ public class UdpSocket extends SocketContext {
      */
     public UdpSocket(String host, int port, int readTimeout, int idleInterval) throws IOException{
         super(host, port, readTimeout, idleInterval);
+        init();
+    }
+
+    /**
+     * socket 连接
+     * @param host      监听地址
+     * @param port		监听端口
+     * @param idleInterval	空闲事件触发时间, 单位: 秒
+     * @param readTimeout   超时时间, 单位: 毫秒
+     * @param sendTimeout 发超时时间, 单位: 毫秒
+     * @throws IOException	IO异常
+     */
+    public UdpSocket(String host, int port, int readTimeout, int sendTimeout, int idleInterval) throws IOException{
+        super(host, port, readTimeout, sendTimeout, idleInterval);
         init();
     }
 

@@ -3,11 +3,15 @@ package org.voovan.network.nio;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.network.exception.RestartException;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
+import java.lang.reflect.WildcardType;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * NIO 会话连接对象
@@ -114,10 +118,22 @@ public class NioSession extends IoSession<NioSocket> {
 	@Override
 	protected synchronized int send0(ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
+		int waitCount = 0;
 		if (isConnected() && buffer != null) {
 			//循环发送直到全部内容发送完毕
 			while(isConnected() && buffer.remaining()!=0){
-				totalSendByte+=socketChannel.write(buffer);
+				int sendSize = socketChannel.write(buffer);
+				if(sendSize == 0 ){
+					waitCount++;
+					TEnv.sleep(TimeUnit.MILLISECONDS, 1);
+					if(waitCount >= socketContext().getSendTimeout()){
+						Logger.error("NioSession send timeout", new TimeoutException());
+						break;
+					}
+				} else {
+					waitCount = 0;
+					totalSendByte += sendSize;
+				}
 			}
 		}
 		return totalSendByte;
