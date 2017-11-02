@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -392,7 +393,7 @@ public abstract class IoSession<T extends SocketContext> {
 	public void syncSend(Object obj) throws SendMessageException{
 		//等待 ssl 握手完成
 		while(sslParser!=null && !sslParser.handShakeDone){
-			TEnv.sleep(1);
+			TEnv.sleep(TimeUnit.NANOSECONDS, 1);
 		}
 
 		if (obj != null) {

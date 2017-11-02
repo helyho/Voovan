@@ -102,10 +102,10 @@ public class HeartBeat {
                     return;
                 }
 
-                if (byteBufferChannel.content().contains(new String(heartBeat.getPing())) ||
-                        byteBufferChannel.content().contains(new String(heartBeat.getPong()))) {
-                    System.out.println("Omit HeartBeat Message" + byteBufferChannel.content());
-                }
+//                if (byteBufferChannel.indexOf(heartBeat.getPing()) > 0 ||
+//                        byteBufferChannel.indexOf(heartBeat.getPing()) > 0) {
+//                    System.out.println("Omit HeartBeat Message" + byteBufferChannel.content());
+//                }
             }
         }
     }
