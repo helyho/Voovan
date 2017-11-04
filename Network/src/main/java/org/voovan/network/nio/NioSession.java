@@ -127,8 +127,9 @@ public class NioSession extends IoSession<NioSocket> {
 					waitCount++;
 					TEnv.sleep(TimeUnit.MILLISECONDS, 1);
 					if(waitCount >= socketContext().getSendTimeout()){
-						Logger.error("NioSession send timeout", new TimeoutException());
-						break;
+						Logger.error("AioSession send timeout, Socket will be close");
+						close();
+						return -1;
 					}
 				} else {
 					waitCount = 0;

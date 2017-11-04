@@ -11,7 +11,6 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * UDP NIO 会话连接对象
@@ -132,8 +131,9 @@ public class UdpSession extends IoSession<UdpSocket> {
 					waitCount++;
 					TEnv.sleep(TimeUnit.MILLISECONDS, 1);
 					if(waitCount >= socketContext().getSendTimeout()){
-						Logger.error("AioSession send timeout", new TimeoutException());
-						break;
+						Logger.error("AioSession send timeout, Socket will be close");
+						close();
+						return -1;
 					}
 				} else {
 					waitCount = 0;

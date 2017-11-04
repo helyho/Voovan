@@ -135,7 +135,9 @@ public class AioSession extends IoSession<AioSocket> {
                             }catch (TimeoutException e){
                                 waitCount ++;
                                 if(waitCount >= socketContext().getSendTimeout()){
-                                    Logger.error("AioSession send timeout", e);
+                                    Logger.error("AioSession send timeout, Socket will be close", e);
+                                    close();
+                                    return -1;
                                 }
                             }
                         }
