@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class ThreadPool {
 	private final static int cpuCoreCount = Runtime.getRuntime().availableProcessors();
 	protected static int MIN_POOL_SIZE = 2*cpuCoreCount;
-	protected static int MAX_POOL_SIZE = 10*cpuCoreCount;
+	protected static int MAX_POOL_SIZE = 100*cpuCoreCount;
 
 	/**
 	 * 获取线程池最小活动线程数

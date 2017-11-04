@@ -742,8 +742,8 @@ public class TString {
 
 		ArrayList<String> items = new ArrayList<String>();
 		for (int position = source.indexOf(regex);
-		     position > 0;
-		     position = source.indexOf(regex)) {
+			 position > 0;
+			 position = source.indexOf(regex)) {
 			items.add(source.substring(0, position));
 			source = source.substring(position + 1, source.length());
 		}
@@ -766,7 +766,7 @@ public class TString {
 		if(position <=0 ){
 			throw new IllegalArgumentException("parameter position must lager than 0");
 		}
-		return source.substring(0, position-1) + value + source.substring(position-1);
+		return source.substring(0, position) + value + source.substring(position);
 	}
 
 	/**
