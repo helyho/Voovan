@@ -52,7 +52,7 @@ public class ByteBufferChannel {
 	 * @param capacity 分配的容量
 	 */
 	private void init(int capacity){
-		lock = new ReentrantLock();
+		lock = new ReentrantLock(true);
 		this.byteBuffer = newByteBuffer(capacity);
 		byteBuffer.limit(0);
 		resetAddress();
