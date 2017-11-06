@@ -4,7 +4,7 @@ import java.util.*;
 
 /**
  * 对象工具类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -37,7 +37,7 @@ public class TObject {
 	public static <T> T cast(Object obj,Class<T> t){
 		return (T)obj;
 	}
-	
+
 	/**
 	 * 空值默认值
 	 * @param <T> 范型
@@ -48,7 +48,7 @@ public class TObject {
 	public static <T>T nullDefault(T source,T defValue){
 		return source!=null?source:defValue;
 	}
-	
+
 	/**
 	 * 初始化一个 List
 	 * @param objs List 列表的每一个元素
@@ -56,9 +56,11 @@ public class TObject {
 	 */
 	@SuppressWarnings("rawtypes")
 	public static List asList(Object ...objs){
-		return Arrays.asList(objs);
+		List result = new ArrayList();
+		result.addAll(Arrays.asList(objs));
+		return result;
 	}
-	
+
 	/**
 	 * 初始化一个 Map
 	 * @param objs		每两个参数组成一个键值对，来初始化一个 Map. 如:key1,value1,key2,value2.....
@@ -77,7 +79,7 @@ public class TObject {
 	 * 将 Map 的值转换成 List
 	 * @param map 需转换的 Map 对象
 	 * @return 转后的 Value 的 list
-     */
+	 */
 	public static List<?> mapValueToList(Map<?,?> map){
 		ArrayList<Object> result = new ArrayList<Object>();
 		for(Map.Entry<?,?> entry : map.entrySet()){
