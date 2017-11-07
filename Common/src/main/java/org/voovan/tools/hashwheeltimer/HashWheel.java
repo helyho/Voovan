@@ -52,30 +52,24 @@ public class HashWheel {
 
             final HashWheel innerHashWheel = this;
 
-            Global.getThreadPool().execute(new Runnable() {
-                @Override
-                public void run() {
-                    int nextSlot = currentSlot + interval;
+            int nextSlot = currentSlot + interval;
 
-                    int skipSlot = interval / size;
+            int skipSlot = interval / size;
 
-                    //计算 SLot 位置
-                    int targetSlot = nextSlot % size;
+            //计算 SLot 位置
+            int targetSlot = nextSlot % size;
 
-                    //对于步长等于槽数,的特殊处理
-                    if(interval%size == 0 && skipSlot > 0 && task.getDoCount() !=0 ){
-                        skipSlot--;
-                    }
+            //对于步长等于槽数,的特殊处理
+            if(interval%size == 0 && skipSlot > 0 && task.getDoCount() !=0 ){
+                skipSlot--;
+            }
 
-//            Logger.simple("ST: "+skipSlot+" TT: "+targetSlot+ " CS:" +currentSlot + " I:" + interval);
+//           Logger.simple("ST: "+skipSlot+" TT: "+targetSlot+ " CS:" +currentSlot + " I:" + interval);
 
-                    //重新安置任务
-                    wheel.putValue(targetSlot, task);
+            //重新安置任务
+            wheel.putValue(targetSlot, task);
 
-                    task.init(skipSlot, interval, asynchronous, innerHashWheel, targetSlot);
-                }
-            });
-
+            task.init(skipSlot, interval, asynchronous, innerHashWheel, targetSlot);
 
             return true;
         }finally {
