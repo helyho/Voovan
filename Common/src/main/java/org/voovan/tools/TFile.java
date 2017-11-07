@@ -10,8 +10,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 /**
  * 文件操作工具类
@@ -293,9 +291,14 @@ public class TFile {
 	 * @return 成功返回 true,失败返回 false
 	 */
 	public static boolean writeFile(File file, boolean append, byte[] contents, int offset, int length) throws IOException {
-		RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rwd");
-		try {
 
+		if(append && file.exists()){
+			file.delete();
+		}
+
+		RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rwd");
+
+		try {
 			if(append){
 				randomAccessFile.seek(randomAccessFile.length());
 			}
