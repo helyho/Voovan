@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 
@@ -39,6 +40,7 @@ public abstract class IoSession<T extends SocketContext> {
 	private HeartBeat heartBeat;
 	private State state;
 
+
 	/**
 	 * 会话状态管理
 	 */
@@ -48,6 +50,7 @@ public abstract class IoSession<T extends SocketContext> {
 		private boolean receive = false;
 		private boolean send = false;
 		private boolean close = false;
+		private Semaphore receiveLock = new Semaphore(1, true);
 
 		public boolean isInit() {
 			return init;
@@ -87,6 +90,18 @@ public abstract class IoSession<T extends SocketContext> {
 
 		public void setClose(boolean close) {
 			this.close = close;
+		}
+
+		protected Semaphore getReceiveLock() {
+			return receiveLock;
+		}
+
+		protected boolean receiveLock(){
+			return receiveLock.tryAcquire();
+		}
+
+		protected void receiveUnLock(){
+			receiveLock.release();
 		}
 	}
 

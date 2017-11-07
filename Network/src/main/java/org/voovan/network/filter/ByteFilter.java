@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
  */
 public class ByteFilter implements IoFilter {
 	public static Class BYTE_ARRAY_CLASS = (new byte[0]).getClass();
+	public static byte SPLITER = (byte) 255;
 	public static int HEAD_LEGNTH = 6;
 
 	@Override
@@ -29,9 +30,9 @@ public class ByteFilter implements IoFilter {
 
 			byte[] data = (byte[])object;
 			ByteBuffer byteBuffer = ByteBuffer.allocate(HEAD_LEGNTH + data.length);
-			byteBuffer.put((byte)0);
+			byteBuffer.put(SPLITER);
 			byteBuffer.putInt(data.length);
-			byteBuffer.put((byte)0);
+			byteBuffer.put(SPLITER);
 			byteBuffer.put(data);
 			byteBuffer.flip();
 			return byteBuffer;
@@ -47,14 +48,15 @@ public class ByteFilter implements IoFilter {
 			ByteBuffer byteBuffer = (ByteBuffer) object;
 			int originPosition = byteBuffer.position();
 			try {
-				if(byteBuffer.remaining() < 4){
+				if(byteBuffer.remaining() < HEAD_LEGNTH){
 					Logger.error("ByteFilter decode error: Not enough data length, socket will be close");
-					session.close();
+					return null;
 				}
 
-				if (byteBuffer.get() == 0) {
+				if (byteBuffer.get() == SPLITER) {
 					int length = byteBuffer.getInt();
-					if (byteBuffer.get() == 0) {
+
+					if (byteBuffer.get() == SPLITER) {
 						if (length > 0) {
 							byte[] data = new byte[length];
 							byteBuffer.get(data);
@@ -69,6 +71,9 @@ public class ByteFilter implements IoFilter {
 					Logger.error("ByteFilter decode error: payloadLength head not exists, socket will be close");
 					session.close();
 				}
+			} catch(Exception e){
+				e.printStackTrace();
+				session.close();
 			} finally {
 				if(!success){
 					byteBuffer.position(originPosition);

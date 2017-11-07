@@ -126,6 +126,7 @@ public class EventProcess {
 			if(!messageLoader.isUseSpliter()){
 				//设置空闲状态
 				session.getState().setReceive(false);
+				session.getState().receiveUnLock();
 				return;
 			}
 
@@ -139,6 +140,7 @@ public class EventProcess {
 
 				//设置空闲状态
 				session.getState().setReceive(false);
+				session.getState().receiveUnLock();
 
 				//如果读出的数据为 null 则直接返回
 				if (byteBuffer == null) {
@@ -191,6 +193,9 @@ public class EventProcess {
 		while (filterChain.hasNext()) {
 			IoFilter fitler = filterChain.next();
 			result = fitler.decode(session, result);
+			if(result == null){
+				break;
+			}
 		}
 		filterChain.clear();
 		return result;
@@ -209,6 +214,9 @@ public class EventProcess {
 		while (filterChain.hasPrevious()) {
 			IoFilter fitler = filterChain.previous();
 			result = fitler.encode(session, result);
+			if(result == null){
+				break;
+			}
 		}
 		filterChain.clear();
 
