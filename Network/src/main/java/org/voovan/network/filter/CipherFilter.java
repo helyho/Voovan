@@ -4,6 +4,7 @@ import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.tools.Cipher;
+import org.voovan.tools.log.Logger;
 
 /**
  * 对称密钥加密截断器
@@ -31,7 +32,8 @@ public class CipherFilter implements IoFilter {
 			try {
 				return cipher.decode((byte[]) object);
 			} catch (Exception e) {
-				e.printStackTrace();
+				Logger.error("CipherFilter decode error, socket will be close", e);
+				session.close();
 			}
 		}
 
@@ -44,7 +46,8 @@ public class CipherFilter implements IoFilter {
 			try {
 				return cipher.encode((byte[])object);
 			} catch (Exception e) {
-				e.printStackTrace();
+				Logger.error("CipherFilter encode error, socket will be close", e);
+				session.close();
 			}
 		}
 

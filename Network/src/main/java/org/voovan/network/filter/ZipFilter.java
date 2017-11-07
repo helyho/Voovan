@@ -4,6 +4,7 @@ import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.tools.TZip;
+import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 
@@ -21,7 +22,8 @@ public class ZipFilter implements IoFilter{
             try {
                 return TZip.decodeGZip((byte[])object);
             } catch (IOException e) {
-                e.printStackTrace();
+                Logger.error("ZipFilter decode error, socket will be close");
+                session.close();
             }
         }
         return null;
@@ -33,7 +35,8 @@ public class ZipFilter implements IoFilter{
             try {
                 return TZip.encodeGZip((byte[])object);
             } catch (IOException e) {
-                e.printStackTrace();
+                Logger.error("ZipFilter encode error, socket will be close");
+                session.close();
             }
         }
         return null;

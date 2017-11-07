@@ -2,6 +2,8 @@ package org.voovan.network.filter;
 
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
+import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
 
@@ -10,7 +12,7 @@ import java.nio.ByteBuffer;
  *      encode 传入为 byte[]
  *      decode 返回为 byte[]
  *      0+4位为数据长度+0+数据
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -45,6 +47,11 @@ public class ByteFilter implements IoFilter {
 			ByteBuffer byteBuffer = (ByteBuffer) object;
 			int originPosition = byteBuffer.position();
 			try {
+				if(byteBuffer.remaining() < 4){
+					Logger.error("ByteFilter decode error: Not enough data length, socket will be close");
+					session.close();
+				}
+
 				if (byteBuffer.get() == 0) {
 					int length = byteBuffer.getInt();
 					if (byteBuffer.get() == 0) {
@@ -54,7 +61,13 @@ public class ByteFilter implements IoFilter {
 							success = true;
 							return data;
 						}
+					} else {
+						Logger.error("ByteFilter decode error: payloadLength end not exists, socket will be close");
+						session.close();
 					}
+				} else {
+					Logger.error("ByteFilter decode error: payloadLength head not exists, socket will be close");
+					session.close();
 				}
 			} finally {
 				if(!success){
