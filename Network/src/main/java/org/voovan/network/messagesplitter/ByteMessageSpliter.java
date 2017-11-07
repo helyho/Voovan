@@ -20,10 +20,10 @@ public class ByteMessageSpliter implements MessageSplitter {
 		int originPosition = byteBuffer.position();
 
 		try {
-			if (byteBuffer.get() == 0) {
+			if (byteBuffer.remaining() > 0 && byteBuffer.get() == ByteFilter.SPLITER) {
 				int length = byteBuffer.getInt();
 
-				if (byteBuffer.get() == 0) {
+				if (byteBuffer.get() == ByteFilter.SPLITER) {
 					if (length > 0 && byteBuffer.remaining() >= length) {
 						return ByteFilter.HEAD_LEGNTH + length;
 					}

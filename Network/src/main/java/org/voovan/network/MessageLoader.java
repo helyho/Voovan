@@ -29,8 +29,7 @@ public class MessageLoader {
 	private StopType stopType;
 	private ByteBufferChannel byteBufferChannel;
 	private boolean useSpliter;
-	private int readZeroCount = 0;
-	private int splitLength;
+
 	/**
 	 * 构造函数
 	 * @param session Session 对象
@@ -148,14 +147,6 @@ public class MessageLoader {
 	}
 
 	/**
-	 * 重置计数
-	 * 		读取超时时间回0
-	 */
-	public void reset(){
-		readZeroCount = 0;
-	}
-
-	/**
 	 * 关闭 MessageLoader
 	 */
 	public void close(){
@@ -171,7 +162,9 @@ public class MessageLoader {
 	 * @return 读取的缓冲区数据
 	 * @throws IOException IO 异常
 	 */
-	public ByteBuffer read() throws IOException {
+	public synchronized ByteBuffer read() throws IOException {
+		int readZeroCount = 0;
+		int splitLength = 0;
 
 		ByteBuffer result = ByteBuffer.allocate(0);
 		int oldByteChannelSize = 0;
@@ -274,9 +267,12 @@ public class MessageLoader {
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		else if(stopType== StopType.MSG_SPLITTER) {
-			if(splitLength!=0) {
+			if(splitLength>=0) {
 				result = TByteBuffer.allocateDirect(splitLength);
-				dataByteBufferChannel.readHead(result);
+				int fillSize = dataByteBufferChannel.readHead(result);
+				if(fillSize != splitLength){
+					Logger.error("[WARN] Message is not full");
+				}
 			} else {
 				return emptyByteBuffer;
 			}
