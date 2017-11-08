@@ -50,6 +50,9 @@ public abstract class WebSocketRouter implements Cloneable{
 		while (tmpWebFilterChain.hasNext()) {
 			WebSocketFilter fitler = tmpWebFilterChain.next();
 			result = fitler.decode(session, result);
+			if(result==null){
+				break;
+			}
 		}
 		return result;
 	}
@@ -67,6 +70,9 @@ public abstract class WebSocketRouter implements Cloneable{
 		while (tmpWebFilterChain.hasPrevious()) {
 			WebSocketFilter fitler = tmpWebFilterChain.previous();
 			result = fitler.encode(session, result);
+			if(result==null){
+				break;
+			}
 		}
 
 		if(result instanceof ByteBuffer || result == null) {

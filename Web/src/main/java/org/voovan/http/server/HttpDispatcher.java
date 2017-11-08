@@ -389,6 +389,9 @@ public class HttpDispatcher {
 			HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
 			if(httpFilter!=null) {
 				filterResult = httpFilter.onRequest(filterConfig, request, response, filterResult);
+				if(filterResult==null){
+					break;
+				}
 			}
 		}
 
@@ -410,6 +413,9 @@ public class HttpDispatcher {
 			HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
 			if(httpFilter!=null) {
 				filterResult = httpFilter.onResponse(filterConfig, request, response, filterResult);
+				if(filterResult==null){
+					break;
+				}
 			}
 		}
 
