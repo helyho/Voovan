@@ -97,11 +97,15 @@ public abstract class IoSession<T extends SocketContext> {
 		}
 
 		protected boolean receiveLock(){
-			return receiveLock.tryAcquire();
+			synchronized (receiveLock) {
+				return receiveLock.tryAcquire();
+			}
 		}
 
 		protected void receiveUnLock(){
-			receiveLock.release();
+			synchronized (receiveLock) {
+				receiveLock.release();
+			}
 		}
 	}
 

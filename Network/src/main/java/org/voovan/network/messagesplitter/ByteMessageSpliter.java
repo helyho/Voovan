@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 
 /**
  * Byte数据截断器
- *      0+4位为数据长度+0+数据
+ *      255+4位为数据长度+255+数据
  *
  * @author: helyho
  * Project: DBase
@@ -20,7 +20,7 @@ public class ByteMessageSpliter implements MessageSplitter {
 		int originPosition = byteBuffer.position();
 
 		try {
-			if (byteBuffer.remaining() > 0 && byteBuffer.get() == ByteFilter.SPLITER) {
+			if (byteBuffer.remaining() > ByteFilter.HEAD_LEGNTH && byteBuffer.get() == ByteFilter.SPLITER) {
 				int length = byteBuffer.getInt();
 
 				if (byteBuffer.get() == ByteFilter.SPLITER) {

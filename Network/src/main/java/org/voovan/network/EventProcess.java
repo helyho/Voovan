@@ -124,9 +124,11 @@ public class EventProcess {
 
 			//如果没有使用分割器,则跳过
 			if(!messageLoader.isUseSpliter()){
-				//设置空闲状态
-				session.getState().setReceive(false);
-				session.getState().receiveUnLock();
+				//释放 onRecive 锁
+				{
+					session.getState().setReceive(false);
+					session.getState().receiveUnLock();
+				}
 				return;
 			}
 
@@ -137,10 +139,6 @@ public class EventProcess {
 			while (session.getByteBufferChannel().size() > 0) {
 
 				byteBuffer = messageLoader.read();
-
-				//设置空闲状态
-				session.getState().setReceive(false);
-				session.getState().receiveUnLock();
 
 				//如果读出的数据为 null 则直接返回
 				if (byteBuffer == null) {
@@ -172,6 +170,12 @@ public class EventProcess {
 			}
 
 			TByteBuffer.release(byteBuffer);
+
+			//释放 onRecive 锁
+			{
+				session.getState().setReceive(false);
+				session.getState().receiveUnLock();
+			}
 
 			//如果数据没有解析完,重新触发 onRecived 事件
 			if(session.getByteBufferChannel().size() > 0){
