@@ -162,7 +162,7 @@ public class MessageLoader {
 	 * @return 读取的缓冲区数据
 	 * @throws IOException IO 异常
 	 */
-	public synchronized ByteBuffer read() throws IOException {
+	public ByteBuffer read() throws IOException {
 		int readZeroCount = 0;
 		int splitLength = 0;
 
@@ -222,26 +222,29 @@ public class MessageLoader {
 				stopType = StopType.SOCKET_CLOSED;
 			}
 
-			//判断连接是否关闭
-			if (isStreamEnd(dataByteBuffer, dataByteBufferChannel.size())) {
-				stopType = StopType.STREAM_END;
-			}
-
-
-			//使用消息划分器进行消息划分
-			if(readsize == 0 && dataByteBuffer.limit() > 0) {
-				if(messageSplitter instanceof TransferSplitter){
-					splitLength = dataByteBuffer.limit();
-				}else{
-					splitLength = messageSplitter.canSplite(session, dataByteBuffer);
+			try {
+				//判断连接是否关闭
+				if (isStreamEnd(dataByteBuffer, dataByteBufferChannel.size())) {
+					stopType = StopType.STREAM_END;
 				}
 
-				if (splitLength >= 0) {
-					stopType = StopType.MSG_SPLITTER ;
+
+				//使用消息划分器进行消息划分
+				if (readsize == 0 && dataByteBuffer.limit() > 0) {
+					if (messageSplitter instanceof TransferSplitter) {
+						splitLength = dataByteBuffer.limit();
+					} else {
+						splitLength = messageSplitter.canSplite(session, dataByteBuffer);
+					}
+
+					if (splitLength >= 0) {
+						stopType = StopType.MSG_SPLITTER;
+					}
 				}
+			} finally {
+				dataByteBufferChannel.compact();
 			}
 
-			dataByteBufferChannel.compact();
 
 			//超时判断,防止读0时导致的高 CPU 负载
 			if( readsize==0 && stopType == StopType.RUNNING ){
@@ -271,7 +274,7 @@ public class MessageLoader {
 				result = TByteBuffer.allocateDirect(splitLength);
 				int fillSize = dataByteBufferChannel.readHead(result);
 				if(fillSize != splitLength){
-					Logger.error("[WARN] Message is not full");
+					Logger.error("[WARN] Message is not full, expect: "+ splitLength + ", acutal: "+ fillSize);
 				}
 			} else {
 				return emptyByteBuffer;
