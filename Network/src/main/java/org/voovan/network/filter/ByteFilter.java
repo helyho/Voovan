@@ -2,7 +2,6 @@ package org.voovan.network.filter;
 
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
-import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
@@ -11,7 +10,7 @@ import java.nio.ByteBuffer;
  * Byte数据过滤器
  *      encode 传入为 byte[]
  *      decode 返回为 byte[]
- *      0+4位为数据长度+0+数据
+ *      255+4位为数据长度+255+数据
  *
  * @author helyho
  *
