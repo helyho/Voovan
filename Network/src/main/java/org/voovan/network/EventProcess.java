@@ -118,61 +118,62 @@ public class EventProcess {
 		SocketContext socketContext = session.socketContext();
 
 		if (socketContext != null) {
-			ByteBuffer byteBuffer = null;
 
-			MessageLoader messageLoader = session.getMessageLoader();
+			try {
+				ByteBuffer byteBuffer = null;
 
-			//如果没有使用分割器,则跳过
-			if(!messageLoader.isUseSpliter()){
-				//释放 onRecive 锁
-				{
-					session.getState().setReceive(false);
-					session.getState().receiveUnLock();
-				}
-				return;
-			}
+				MessageLoader messageLoader = session.getMessageLoader();
 
-			// 循环读取完整的消息包.
-			// 由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.
-			// 有可能缓冲区没有读完
-			// 按消息包触发 onRecive 事件
-			while (session.getByteBufferChannel().size() > 0) {
-
-				byteBuffer = messageLoader.read();
-
-				//如果读出的数据为 null 则直接返回
-				if (byteBuffer == null) {
+				//如果没有使用分割器,则跳过
+				if (!messageLoader.isUseSpliter()) {
+					//释放 onRecive 锁
+					{
+						session.getState().setReceive(false);
+						session.getState().receiveUnLock();
+					}
 					return;
 				}
 
-				Object result = null;
+				// 循环读取完整的消息包.
+				// 由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.
+				// 有可能缓冲区没有读完
+				// 按消息包触发 onRecive 事件
+				while (session.getByteBufferChannel().size() > 0) {
 
-				// -----------------Filter 解密处理-----------------
-				result = filterDecoder(session,byteBuffer);
-				// -------------------------------------------------
+					byteBuffer = messageLoader.read();
 
-				// -----------------Handler 业务处理-----------------
-				if (result != null) {
-					IoHandler handler = socketContext.handler();
-					result = handler.onReceive(session, result);
+					//如果读出的数据为 null 则直接返回
+					if (byteBuffer == null) {
+						return;
+					}
+
+					Object result = null;
+
+					// -----------------Filter 解密处理-----------------
+					result = filterDecoder(session, byteBuffer);
+					// -------------------------------------------------
+
+					// -----------------Handler 业务处理-----------------
+					if (result != null) {
+						IoHandler handler = socketContext.handler();
+						result = handler.onReceive(session, result);
+					}
+					// --------------------------------------------------
+
+					// 返回的结果不为空的时候才发送
+					if (result != null) {
+
+						//触发发送事件
+						sendMessage(session, result);
+					} else {
+						break;
+					}
+
 				}
-				// --------------------------------------------------
 
-				// 返回的结果不为空的时候才发送
-				if (result != null) {
-
-					//触发发送事件
-					sendMessage(session, result);
-				} else {
-					break;
-				}
-
-			}
-
-			TByteBuffer.release(byteBuffer);
-
-			//释放 onRecive 锁
-			{
+				TByteBuffer.release(byteBuffer);
+			} finally {
+				//释放 onRecive 锁
 				session.getState().setReceive(false);
 				session.getState().receiveUnLock();
 			}
