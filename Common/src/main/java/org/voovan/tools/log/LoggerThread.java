@@ -139,7 +139,7 @@ public class LoggerThread implements Runnable {
 	 * @param outputStreams 输出流数组
 	 * @return 日志记录线程对象
 	 */
-	public static LoggerThread start(OutputStream[] outputStreams) {
+	public synchronized static LoggerThread start(OutputStream[] outputStreams) {
 		LoggerThread loggerThread = new LoggerThread(outputStreams);
 		Thread loggerMainThread = new Thread(loggerThread,"VOOVAN@LOGGER_THREAD");
 		loggerMainThread.start();
