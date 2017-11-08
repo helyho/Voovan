@@ -20,13 +20,21 @@ public class ByteMessageSpliter implements MessageSplitter {
 		int originPosition = byteBuffer.position();
 
 		try {
-			if (byteBuffer.remaining() > ByteFilter.HEAD_LEGNTH && byteBuffer.get() == ByteFilter.SPLITER) {
-				int length = byteBuffer.getInt();
 
-				if (byteBuffer.get() == ByteFilter.SPLITER) {
-					if (length > 0 && byteBuffer.remaining() >= length) {
-						return ByteFilter.HEAD_LEGNTH + length;
+			if (byteBuffer.remaining() > ByteFilter.HEAD_LEGNTH) {
+				if(byteBuffer.get() == ByteFilter.SPLITER) {
+
+					int length = byteBuffer.getInt();
+
+					if (byteBuffer.get() == ByteFilter.SPLITER) {
+						if (length > 0 && byteBuffer.remaining() >= length) {
+							return ByteFilter.HEAD_LEGNTH + length;
+						}
+					} else {
+						session.close();
 					}
+				} else {
+					session.close();
 				}
 			}
 		} finally {
