@@ -54,7 +54,7 @@ public class WebServerDemo {
                 {
                     String now = TDateTime.now();
                     if (req.getSession() != null && req.getSession().getAttribute("Time") != null) {
-                        Logger.simple("Session saved time is: " + req.getSession().getAttribute("Time") + " SavedTime: " + now);
+                        Logger.simple("Session "+ req.getSession().getId() +" saved time is: " + req.getSession().getAttribute("Time") + " SavedTime: " + now);
                     }
                     req.getSession().setAttribute("Time", now);
                 }

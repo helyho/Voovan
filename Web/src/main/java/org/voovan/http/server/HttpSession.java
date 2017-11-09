@@ -91,6 +91,7 @@ public class HttpSession {
 	public void init(SessionManager sessionManager, IoSession socketSession){
 		this.sessionManager = sessionManager;
 		this.socketSession = socketSession;
+		refresh();
 	}
 
 	/**

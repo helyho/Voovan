@@ -110,7 +110,6 @@ public class SessionManager{
 		if (id!=null && httpSessions.containsKey(id)) {
 			HttpSession httpSession = JSON.toObject(httpSessions.get(id), HttpSession.class);
 			if(httpSession!=null) {
-				httpSession.refresh();
 				if (httpSession.isExpire()) {
 					httpSession.removeFromSessionManager();
 					return null;
