@@ -36,7 +36,8 @@ public class HttpSession {
 	private boolean needSave;
 	private boolean isAutoCleanRun;
 
-	private HashWheelTask cleanHashWheelTask= null;
+	@NotSerialization
+	private CleanTask cleanTask= null;
 
 
 	/**
@@ -67,21 +68,31 @@ public class HttpSession {
 			//如果 session 可以自清除则不进行清理
 			if (!sessionManager.autoExpire()) {
 				final HttpSession innerSession = this;
-				cleanHashWheelTask = new HashWheelTask() {
-					@Override
-					public void run() {
-						if (innerSession.isExpire()) {
-							innerSession.removeFromSessionManager();
-							this.cancel();
-						}
-					}
-				};
+				cleanTask = new CleanTask(this);
 
-				Global.getHashWheelTimer().addTask(cleanHashWheelTask, innerSession.getMaxInactiveInterval() / 1000);
+				Global.getHashWheelTimer().addTask(cleanTask, innerSession.getMaxInactiveInterval() / 1000);
 			}
 			isAutoCleanRun = true;
 		}
 	}
+
+	private class CleanTask extends HashWheelTask {
+
+		@NotSerialization
+		private HttpSession session;
+
+		public CleanTask(HttpSession session) {
+			this.session = session;
+		}
+
+		@Override
+		public void run() {
+			if (session.isExpire()) {
+				session.removeFromSessionManager();
+				this.cancel();
+			}
+		}
+	};
 
 	/**
 	 * 用于从会话池中取出的会话实例化
@@ -199,8 +210,8 @@ public class HttpSession {
 	}
 
 	public void removeFromSessionManager(){
-		if(cleanHashWheelTask!=null){
-			cleanHashWheelTask.cancel();
+		if(cleanTask!=null){
+			cleanTask.cancel();
 		}
 		sessionManager.removeSession(this);
 	}
