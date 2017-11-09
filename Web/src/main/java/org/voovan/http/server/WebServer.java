@@ -195,6 +195,18 @@ public class WebServer {
 	}
 
 	/**
+	 * 同时注册 GET 和 POST 请求
+	 * @param routeRegexPath 匹配路径
+	 * @param router  HTTP处理请求句柄
+	 * @return WebServer对象
+	 */
+	public WebServer getAndPost(String routeRegexPath, HttpRouter router) {
+		get(routeRegexPath, router);
+		post(routeRegexPath, router);
+		return this;
+	}
+
+	/**
 	 * HEAD 请求
 	 * @param routeRegexPath 匹配路径
 	 * @param router  HTTP处理请求句柄
