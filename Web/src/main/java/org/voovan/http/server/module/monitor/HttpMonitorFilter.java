@@ -15,7 +15,7 @@ public class HttpMonitorFilter implements HttpFilter {
 	@Override
 	public Object onRequest(HttpFilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult ) {
 		REQUEST_START_TIME.set(System.currentTimeMillis());
-		return prevFilterResult;
+		return "";
 	}
 
 	@Override
@@ -26,7 +26,7 @@ public class HttpMonitorFilter implements HttpFilter {
 		//处理IP数据分析
 		ipAddressAnalysis(request);
 
-		return prevFilterResult;
+		return "";
 	}
 
 	/**
