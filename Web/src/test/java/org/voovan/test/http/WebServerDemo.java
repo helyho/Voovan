@@ -82,20 +82,6 @@ public class WebServerDemo {
 		});
 
 		//带分割参数的 GET 请求, 这种形式针对 seo 优化
-		webServer.get("/split-:name-:age",  new HttpRouter() {
-			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				Logger.info("Client info: " + req.getRemoteAddres() + ":" + req.getRemotePort());
-				Logger.simple("Request info: " + req.protocol());
-				resp.write(fileContent);
-				resp.write("{"
-						+ "\"Method\":\"PathGET\","
-						+ "\"name\":\"" + req.getParameter("name") + "\","
-						+ "\"age\":\"" + req.getParameter("age") + "\""
-						+ "}");
-			}
-		});
-
-		//带分割参数的 GET 请求, 这种形式针对 seo 优化
 		webServer.get("/split_:name_:age",  new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
 				Logger.info("Client info: " + req.getRemoteAddres() + ":" + req.getRemotePort());

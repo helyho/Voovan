@@ -296,7 +296,7 @@ public class HttpDispatcher {
 		if(!REGEXED_ROUTER.containsKey(routePath)) {
 			String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/");
-			routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/_-]*", "[^:?/_-]*");
+			routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/]*", "[^:?/]*");
 			routeRegexPath = "^/?" + routeRegexPath + "/?$";
 			REGEXED_ROUTER.put(routePath, routeRegexPath);
 			return routeRegexPath;
@@ -350,7 +350,7 @@ public class HttpDispatcher {
 
 			try {
 				//抽取路径中的变量名
-				String[] names = TString.searchByRegex(routePath, ":[^:?/_-]*");
+				String[] names = TString.searchByRegex(routePath, ":[^:?/]*");
 				if (names.length > 0) {
 					for (int i = 0; i < names.length; i++) {
 						names[i] = TString.removePrefix(names[i]);
