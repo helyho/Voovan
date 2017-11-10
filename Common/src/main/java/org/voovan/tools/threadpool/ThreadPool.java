@@ -1,6 +1,7 @@
 package org.voovan.tools.threadpool;
 
 import org.voovan.Global;
+import org.voovan.tools.TProperties;
 
 import java.util.Timer;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -26,15 +27,9 @@ public class ThreadPool {
 	 * @return 线程池最小活动线程数
 	 */
 	public static int getMinPoolSize() {
+		int minPoolTimes = TProperties.getInt(Global.getFrameworkConfigFile(), "ThreadPoolMinSize");
+		MIN_POOL_SIZE = (minPoolTimes == 0 ? 2 : minPoolTimes) * cpuCoreCount;
 		return MIN_POOL_SIZE;
-	}
-
-	/**
-	 * 设置线程池最小活动线程数
-	 * @param minPoolSize 线程池最小活动线程数
-	 */
-	public static void setMinPoolSize(int minPoolSize) {
-		MIN_POOL_SIZE = minPoolSize;
 	}
 
 	/**
@@ -42,22 +37,17 @@ public class ThreadPool {
 	 * @return 线程池最大活动线程数
 	 */
 	public static int getMaxPoolSize() {
+		int maxPoolTimes = TProperties.getInt(Global.getFrameworkConfigFile(), "ThreadPoolMaxSize");
+		MIN_POOL_SIZE = (maxPoolTimes == 0 ? 100 : maxPoolTimes) * cpuCoreCount;
 		return MAX_POOL_SIZE;
 	}
 
-	/**
-	 * 设置线程池最大活动线程数
-	 * @param maxPoolSize 线程池最大活动线程数
-	 */
-	public static void setMaxPoolSize(int maxPoolSize) {
-		MAX_POOL_SIZE = maxPoolSize;
-	}
 
 	private ThreadPool(){
 	}
 
 	private static ThreadPoolExecutor createThreadPool(){
-		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(MIN_POOL_SIZE, MAX_POOL_SIZE, 1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*500));
+		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(getMinPoolSize(), getMaxPoolSize(), 1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*500));
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPoolInstance.allowCoreThreadTimeOut(true);
 
@@ -69,7 +59,7 @@ public class ThreadPool {
 	}
 
 	private static ThreadPoolExecutor createThreadPool(int corePoolSize, int maxPoolSize){
-		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(corePoolSize, maxPoolSize, 1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*500));
+		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(getMinPoolSize(), getMaxPoolSize(), 1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*500));
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPoolInstance.allowCoreThreadTimeOut(true);
 
