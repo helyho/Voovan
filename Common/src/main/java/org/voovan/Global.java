@@ -92,7 +92,7 @@ public class Global {
      * 读取非堆内存配置文件信息
      * @return 日志配置文件对象
      */
-    protected static File getFrameworkConfigFile(){
+    public static File getFrameworkConfigFile(){
         File tmpFile =  tmpFile = new File("./classes/framework.properties");
 
         //如果从 classes 目录中找不到,则从 classpath 中寻找
