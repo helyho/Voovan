@@ -37,7 +37,7 @@ public class EventTrigger {
 		// 所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
 		// !hasEventDisposeing(EventName.ON_CONNECT) &&
 		synchronized (session.getState().getReceiveLock()) {
-			if (session.isOpen() && isHandShakeDone(session) && session.getState().receiveLock()) {
+			if (session.isOpen() && SSLParser.isHandShakeDone(session) && session.getState().receiveLock()) {
 				//设置接受状态
 				session.getState().setReceive(true);
 
@@ -86,7 +86,7 @@ public class EventTrigger {
 		//当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
 		//所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
 		synchronized (session.getState().getReceiveLock()) {
-			if (session.isOpen() && isHandShakeDone(session) && session.getState().receiveLock()) {
+			if (session.isOpen() && SSLParser.isHandShakeDone(session) && session.getState().receiveLock()) {
 				//设置接受状态
 				session.getState().setReceive(true);
 				fireEventThread(session, Event.EventName.ON_RECEIVE, null);
@@ -116,14 +116,6 @@ public class EventTrigger {
 
 	public static void fireException(IoSession session,Exception exception){
 		fireEvent(session, Event.EventName.ON_EXCEPTION,exception);
-	}
-
-	public static boolean isHandShakeDone(IoSession session){
-		if(session==null || session.getSSLParser()==null){
-			return true;
-		}else{
-			return session.getSSLParser().isHandShakeDone();
-		}
 	}
 
 	/**

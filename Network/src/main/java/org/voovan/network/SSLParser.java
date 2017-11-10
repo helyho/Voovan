@@ -125,7 +125,7 @@ public class SSLParser {
 	private synchronized HandshakeStatus doHandShakeWarp() throws IOException {
 		int waitCount = 0;
 		while (true) {
-			if (waitCount >= session.socketContext().getReadTimeout()) {
+			if (waitCount >= session.socketContext().getReadTimeout() || !session.isConnected()) {
 				throw new SSLHandshakeException("Hand shake on: " + session.remoteAddress() + ":" + session.remotePort() + " timeout");
 			}
 
@@ -182,7 +182,7 @@ public class SSLParser {
 		SSLEngineResult engineResult = null;
 		int waitCount = 0;
 		while (true) {
-			if (waitCount >= session.socketContext().getReadTimeout()) {
+			if (waitCount >= session.socketContext().getReadTimeout() || !session.isConnected()) {
 				throw new SSLHandshakeException("Hand shake on: " + session.remoteAddress() + ":" + session.remotePort() + " timeout");
 			}
 
@@ -296,7 +296,7 @@ public class SSLParser {
 	 * @throws IOException IO异常
 	 */
 	public synchronized int unWarpByteBufferChannel(IoSession session, ByteBufferChannel netByteBufferChannel,
-													ByteBufferChannel appByteBufferChannel) throws IOException {
+	                                                ByteBufferChannel appByteBufferChannel) throws IOException {
 		int readSize = 0;
 
 		if (session.isConnected() && netByteBufferChannel.size() > 0) {
@@ -344,4 +344,14 @@ public class SSLParser {
 		TByteBuffer.release(netData);
 		TByteBuffer.release(appData);
 	}
+
+
+	public static boolean isHandShakeDone(IoSession session){
+		if(session==null || session.getSSLParser()==null){
+			return true;
+		}else{
+			return session.getSSLParser().isHandShakeDone();
+		}
+	}
+
 }

@@ -4,6 +4,7 @@ import org.voovan.Global;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.HeartBeat;
 import org.voovan.network.MessageLoader;
+import org.voovan.network.SSLParser;
 import org.voovan.tools.ByteBufferChannel;
 
 import java.io.IOException;
@@ -50,26 +51,31 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 				if (length > 0) {
 
-					if(session.getHeartBeat()!=null) {
+					if(session.getHeartBeat()!=null && SSLParser.isHandShakeDone(session)) {
 						session.getMessageLoader().pause();
 					}
 
-					// 接收数据
-					if(session.getSSLParser()!=null && session.getSSLParser().isHandShakeDone()){
+					//接收SSL数据, SSL握手完成后解包
+					if(session.getSSLParser()!=null && SSLParser.isHandShakeDone(session)){
 						netByteBufferChannel.writeEnd(readTempBuffer);
 						session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, appByteBufferChannel);
-					}else{
+					}
+
+					//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
+					if(session.getSSLParser()==null || !SSLParser.isHandShakeDone(session)){
 						appByteBufferChannel.writeEnd(readTempBuffer);
 					}
 
 					//检查心跳
-					HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
+					if(SSLParser.isHandShakeDone(session)) {
+						HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
+					}
 
-					if(session.getHeartBeat()!=null) {
+					if(session.getHeartBeat()!=null && SSLParser.isHandShakeDone(session)) {
 						session.getMessageLoader().unpause();
 					}
 
-					if(appByteBufferChannel.size() > 0) {
+					if(appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
 						// 触发 onReceive 事件
 						EventTrigger.fireReceiveThread(session);
 					}
