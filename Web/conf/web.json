@@ -11,7 +11,7 @@
   "SessionContainer"       : "java.util.concurrent.ConcurrentHashMap",    // Session 容器类,默认java.util.ConcurrentHashMap
   //使用 Redis 作为集群 Session 共享的样例, 使用 Redis 作为 Session 集群共享会对并发性能有一定的影响
   //"SessionContainer"       : "org.voovan.http.server.RedisSessionContainerTest",
-  "SessionTimeout"         : 30,                           // Session 会话超时时间(m),默认30分钟, 如果设置小于等于0,则会被默认设置为30分钟
+  "SessionTimeout"         : 1,                           // Session 会话超时时间(m),默认30分钟, 如果设置小于等于0,则会被默认设置为30分钟
 
   "KeepAliveTimeout"       : 60,                          // KeepAlive 超时时间(s),默认60秒,如果值小于等于0则不启用 KeepAlive 设置 (该参数同样会被应用到 WebSocket 的连接保持上)
   "Gzip"                   : true,                        // 是否启用Gzip压缩,默认 true
