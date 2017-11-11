@@ -1,6 +1,8 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
+import org.voovan.http.message.packet.Cookie;
+import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.network.IoSession;
@@ -48,6 +50,7 @@ public class HttpSession {
 	 */
 	public HttpSession(WebServerConfig config, SessionManager sessionManager, IoSession socketSession){
 		// ID的创建转义到 save 方法中.在保存时才创建 ID
+		this.id = TString.generateId(this);
 		attributes = new ConcurrentHashMap<String, Object>();
 		lastTimeillis = System.currentTimeMillis();
 		int sessionTimeout = config.getSessionTimeout();
@@ -103,7 +106,6 @@ public class HttpSession {
 	public void init(SessionManager sessionManager, IoSession socketSession){
 		this.sessionManager = sessionManager;
 		this.socketSession = socketSession;
-		refresh();
 	}
 
 	/**
@@ -253,13 +255,37 @@ public class HttpSession {
 	 */
 	public void save(){
 		if(sessionManager!=null && needSave) {
-			if(id==null){
-				//生成一个随机的 ID 用作唯一标识
-				this.id = TString.generateId(this);
-			}
 			sessionManager.saveSession(this);
 			autoClean();
 			needSave = false;
+		}
+	}
+
+	/**
+	 * 绑定当前 Session 到一个 http 请求响应对
+	 * @param request   请求对象
+	 * @param response  响应对象
+	 */
+	public void attach(HttpRequest request, HttpResponse response){
+		if(!this.attribute().isEmpty()) {
+			Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
+			if (sessionCookie == null) {
+				//创建 Cookie
+				sessionCookie = Cookie.newInstance(request, "/", WebContext.getSessionName(),
+						this.getId(), this.maxInactiveInterval * 60);
+
+				//响应增加Session 对应的 Cookie
+				response.cookies().add(sessionCookie);
+			}
+			//判断 Cookie 中的 session 和 WebServer 中的 session 是否一样, 不一样则更新成 Web 服务的 Session
+			else if (!sessionCookie.getValue().equals(this.getId())) {
+				sessionCookie.setValue(this.getId());
+				response.cookies().add(sessionCookie);
+			}
+
+			this.save();
+		} else{
+			sessionManager.removeSession(this);
 		}
 	}
 
