@@ -170,8 +170,6 @@ public class HttpDispatcher {
 			disposeRoute(request, response);
 		}
 
-
-
 		//向 HttpResponse 中放置 Session 的 Cookie
 		if(request.sessionExists()){
 			HttpSession session = request.getSession();
@@ -192,7 +190,7 @@ public class HttpDispatcher {
 					response.cookies().add(sessionCookie);
 				}
 			} else{
-				session.removeFromSessionManager();
+				sessionManager.removeSession(session);
 			}
 		}
 

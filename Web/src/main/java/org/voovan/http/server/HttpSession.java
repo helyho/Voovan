@@ -89,7 +89,7 @@ public class HttpSession {
 		public void run() {
 			HttpSession session = sessionManager.getSession(sessionId);
 			if (session!=null && session.isExpire()) {
-				session.removeFromSessionManager();
+				sessionManager.removeSession(session);
 				this.cancel();
 			}
 		}
@@ -145,7 +145,6 @@ public class HttpSession {
 	 */
 	public HttpSession refresh(){
 		lastTimeillis = System.currentTimeMillis();
-		System.out.println("Refresh to " +lastTimeillis);
 		needSave = true;
 		save();
 		return this;
@@ -211,13 +210,6 @@ public class HttpSession {
 		this.sessionManager = sessionManager;
 	}
 
-	public void removeFromSessionManager(){
-		if(cleanTask!=null){
-			cleanTask.cancel();
-		}
-		sessionManager.removeSession(this);
-	}
-
 	/**
 	 * 获取 Session ID
 	 *
@@ -253,7 +245,6 @@ public class HttpSession {
 	 */
 	public boolean isExpire(){
 		int intervalTime = (int)(System.currentTimeMillis() - lastTimeillis);
-		System.out.println("test to " +lastTimeillis + " "+ intervalTime + " " + (intervalTime > maxInactiveInterval));
 		return intervalTime > maxInactiveInterval;
 	}
 

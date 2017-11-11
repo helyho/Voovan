@@ -111,7 +111,7 @@ public class SessionManager{
 			HttpSession httpSession = JSON.toObject(httpSessions.get(id), HttpSession.class);
 			if(httpSession!=null) {
 				if (httpSession.isExpire()) {
-					httpSession.removeFromSessionManager();
+					removeSession(httpSession);
 					return null;
 				}
 			}
@@ -158,11 +158,11 @@ public class SessionManager{
 
 	/**
 	 * 移除会话
-	 * @param seesion HttpSession 对象
+	 * @param session HttpSession 对象
 	 */
-	public void removeSession(HttpSession seesion){
-		if(seesion!=null && seesion.getId()!=null) {
-			removeSession(seesion.getId());
+	public void removeSession(HttpSession session){
+		if(session!=null && session.getId()!=null) {
+			removeSession(session.getId());
 		}
 	}
 
