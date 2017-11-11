@@ -147,8 +147,6 @@ public class HttpSession {
 	 */
 	public HttpSession refresh(){
 		lastTimeillis = System.currentTimeMillis();
-		needSave = true;
-		save();
 		return this;
 	}
 
@@ -292,7 +290,7 @@ public class HttpSession {
 				sessionCookie.setValue(this.getId());
 				response.cookies().add(sessionCookie);
 			}
-
+			this.refresh();
 			this.save();
 		} else{
 			sessionManager.removeSession(this);
