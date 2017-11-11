@@ -38,7 +38,7 @@ public class ThreadPool {
 	 */
 	public static int getMaxPoolSize() {
 		int maxPoolTimes = TProperties.getInt(Global.getFrameworkConfigFile(), "ThreadPoolMaxSize");
-		MIN_POOL_SIZE = (maxPoolTimes == 0 ? 100 : maxPoolTimes) * cpuCoreCount;
+		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 100 : maxPoolTimes) * cpuCoreCount;
 		return MAX_POOL_SIZE;
 	}
 
@@ -47,25 +47,26 @@ public class ThreadPool {
 	}
 
 	private static ThreadPoolExecutor createThreadPool(){
-		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(getMinPoolSize(), getMaxPoolSize(), 1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*500));
-		//设置allowCoreThreadTimeOut,允许回收超时的线程
-		threadPoolInstance.allowCoreThreadTimeOut(true);
+		ThreadPoolExecutor threadPoolInstance = createThreadPool(getMinPoolSize(), getMaxPoolSize(), 1000*60);
 
+		//启动线程池自动调整任务
 		Timer timer = new Timer("VOOVAN@THREAD_POOL_TIMER");
 		ThreadPoolTask threadPoolTask = new ThreadPoolTask(threadPoolInstance);
 		timer.schedule(threadPoolTask, 1, 1000);
-
 		return threadPoolInstance;
 	}
 
-	private static ThreadPoolExecutor createThreadPool(int corePoolSize, int maxPoolSize){
-		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(getMinPoolSize(), getMaxPoolSize(), 1, TimeUnit.MINUTES,new ArrayBlockingQueue<Runnable>(cpuCoreCount*500));
+	/**
+	 * 创建线程池
+	 * @param mimPoolSize 最小线程数
+	 * @param maxPoolSize 最大线程数
+	 * @param threadTimeout 线程闲置超时时间
+	 * @return 线程池对象
+	 */
+	public static ThreadPoolExecutor createThreadPool(int mimPoolSize, int maxPoolSize, int threadTimeout){
+		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, threadTimeout, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(cpuCoreCount*500));
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPoolInstance.allowCoreThreadTimeOut(true);
-
-		Timer timer = new Timer("VOOVAN@THREAD_POOL_TIMER");
-		ThreadPoolTask threadPoolTask = new ThreadPoolTask(threadPoolInstance);
-		timer.schedule(threadPoolTask, 1, 1000);
 
 		return threadPoolInstance;
 	}
