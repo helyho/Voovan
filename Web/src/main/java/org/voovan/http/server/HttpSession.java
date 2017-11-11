@@ -262,6 +262,16 @@ public class HttpSession {
 	}
 
 	/**
+	 * 释放 Session
+	 */
+	public void release(){
+		if(sessionManager!=null && needSave) {
+			cleanTask.cancel();
+			sessionManager.removeSession(this);
+		}
+	}
+
+	/**
 	 * 绑定当前 Session 到一个 http 请求响应对
 	 * @param request   请求对象
 	 * @param response  响应对象
