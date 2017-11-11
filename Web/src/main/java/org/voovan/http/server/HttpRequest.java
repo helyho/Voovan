@@ -86,6 +86,14 @@ public class HttpRequest extends Request {
 	}
 
 	/**
+	 * 判断 session 是否存在
+	 * @return true: session 存在, false: session 不存在
+	 */
+	public boolean sessionExists(){
+		return session!=null ? true : false;
+	}
+
+	/**
 	 * 获取 Session
 	 *
 	 * @return HTTP-Session 对象

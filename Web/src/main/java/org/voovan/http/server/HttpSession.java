@@ -24,7 +24,7 @@ public class HttpSession {
 	private Map<String,Object> attributes;
 	private String id ;
 	private int maxInactiveInterval;
-	private long lastTimeillis;
+	private volatile long lastTimeillis;
 	@NotSerialization
 	private SessionManager sessionManager;
 	@NotSerialization
@@ -32,7 +32,6 @@ public class HttpSession {
 	@NotSerialization
 	private WebSocketSession webSocketSession;
 
-	//是否需要持久化
 	private boolean needSave;
 	private boolean isAutoCleanRun;
 
@@ -67,10 +66,9 @@ public class HttpSession {
 		if(!isAutoCleanRun) {
 			//如果 session 可以自清除则不进行清理
 			if (!sessionManager.autoExpire()) {
-				final HttpSession innerSession = this;
-				cleanTask = new CleanTask(this);
+				cleanTask = new CleanTask(sessionManager, id);
 
-				Global.getHashWheelTimer().addTask(cleanTask, innerSession.getMaxInactiveInterval() / 1000);
+				Global.getHashWheelTimer().addTask(cleanTask, maxInactiveInterval / 1000);
 			}
 			isAutoCleanRun = true;
 		}
@@ -79,15 +77,18 @@ public class HttpSession {
 	private class CleanTask extends HashWheelTask {
 
 		@NotSerialization
-		private HttpSession session;
+		private String sessionId;
+		private SessionManager sessionManager;
 
-		public CleanTask(HttpSession session) {
-			this.session = session;
+		public CleanTask(SessionManager sessionManager, String sessionId) {
+			this.sessionId = sessionId;
+			this.sessionManager = sessionManager;
 		}
 
 		@Override
 		public void run() {
-			if (session.isExpire()) {
+			HttpSession session = sessionManager.getSession(sessionId);
+			if (session!=null && session.isExpire()) {
 				session.removeFromSessionManager();
 				this.cancel();
 			}
@@ -144,6 +145,7 @@ public class HttpSession {
 	 */
 	public HttpSession refresh(){
 		lastTimeillis = System.currentTimeMillis();
+		System.out.println("Refresh to " +lastTimeillis);
 		needSave = true;
 		save();
 		return this;
@@ -251,6 +253,7 @@ public class HttpSession {
 	 */
 	public boolean isExpire(){
 		int intervalTime = (int)(System.currentTimeMillis() - lastTimeillis);
+		System.out.println("test to " +lastTimeillis + " "+ intervalTime + " " + (intervalTime > maxInactiveInterval));
 		return intervalTime > maxInactiveInterval;
 	}
 
