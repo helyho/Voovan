@@ -21,8 +21,6 @@ public class JSONEncodeUnit extends TestCase {
 	public void testRun() throws Exception{
 		String targetStr = "{\"bint\":32,\"string\":\"helyho\",\"tb2\":{\"bint\":56,\"string\":\"bingo\\u000d\\u000asrc\\u005cmain\\u005ckkk\",\"list\":[\"tb2 list item\"],\"map\":{\"tb2 map item\":\"tb2 map item\"}},\"list\":[\"listitem1\",\"listitem2\",\"listitem3\"],\"map\":{\"mapitem2\":\"mapitem2\",\"mapitem1\":\"mapitem1\"}}";
 
-//		TEnv.sleep(10000);
-
 		TestObject testObject = new TestObject();
 		testObject.setString("helyho");
 		testObject.setBint(32);
@@ -40,6 +38,7 @@ public class JSONEncodeUnit extends TestCase {
 		testObject.getTb2().setBint(56);
 		testObject.getTb2().getList().add("tb2 list item");
 		testObject.getTb2().getMap().put("tb2 map item", "tb2 map item");
+
 		long s = System.currentTimeMillis();
 		for(int i=0;i<10000;i++) {
 			JSONEncode.fromObject(testObject);
@@ -52,7 +51,7 @@ public class JSONEncodeUnit extends TestCase {
 			JSONDecode.fromJSON(jsonStr, TestObject.class);
 		}
 		Logger.simple(System.currentTimeMillis() - s);
-////		assertEquals(jsonStr,targetStr);
+//		assertEquals(jsonStr,targetStr);
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ObjectOutputStream ot = new ObjectOutputStream(out);

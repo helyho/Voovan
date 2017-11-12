@@ -36,6 +36,7 @@ public class TReflect {
 	private static Map<String, Field[]> fieldArrays = new HashMap<String ,Field[]>();
 	private static Map<String, Method[]> methodArrays = new HashMap<String ,Method[]>();
 	private static Map<String, Constructor[]> constructorArrays = new HashMap<String ,Constructor[]>();
+	private static Map<String, Boolean> classHierarchy = new HashMap<String ,Boolean>();
 
 	/**
 	 * 获得类所有的Field
@@ -193,7 +194,7 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static void setFieldValue(Object obj, String fieldName,
-	                                 Object fieldValue) throws ReflectiveOperationException {
+									 Object fieldValue) throws ReflectiveOperationException {
 		Field field = findField(obj.getClass(), fieldName);
 		field.setAccessible(true);
 		field.set(obj, fieldValue);
@@ -230,7 +231,7 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Method findMethod(Class<?> clazz, String name,
-	                                Class<?>... paramTypes) throws ReflectiveOperationException {
+									Class<?>... paramTypes) throws ReflectiveOperationException {
 		String mark = clazz.getCanonicalName()+"#"+name;
 		for(Class<?> paramType : paramTypes){
 			mark = mark + "$" + paramType.getCanonicalName();
@@ -264,7 +265,7 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Method[] findMethod(Class<?> clazz, String name,
-	                                  int paramCount) throws ReflectiveOperationException {
+									  int paramCount) throws ReflectiveOperationException {
 		Method[] methods = null;
 
 		String mark = clazz.getCanonicalName()+"#"+name+"@"+paramCount;
@@ -938,15 +939,24 @@ public class TReflect {
 		if(type==interfaceClass){
 			return true;
 		}
+
+		String marker = type.toString()+interfaceClass.toString();
+		if(classHierarchy.containsKey(marker)){
+			return classHierarchy.get(marker);
+		}
+
 		Class<?>[] interfaces= type.getInterfaces();
 		for (Class<?> interfaceItem : interfaces) {
 			if (interfaceItem.equals(interfaceClass)) {
+				classHierarchy.put(marker, true);
 				return true;
 			}
 			else {
 				return isImpByInterface(interfaceItem,interfaceClass);
 			}
 		}
+
+		classHierarchy.put(marker, false);
 		return false;
 	}
 
@@ -964,14 +974,21 @@ public class TReflect {
 			return true;
 		}
 
+		String marker = type.toString()+extendsClass.toString();
+		if(classHierarchy.containsKey(marker)){
+			return classHierarchy.get(marker);
+		}
+
 		Class<?> superClass = type;
 		do{
 			if(superClass.equals(extendsClass)){
+				classHierarchy.put(marker, true);
 				return true;
 			}
 			superClass = superClass.getSuperclass();
 		}while(superClass!=null && Object.class != superClass);
 
+		classHierarchy.put(marker, false);
 		return false;
 	}
 

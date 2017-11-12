@@ -41,7 +41,7 @@ public class JSONEncode {
      */
     private static String mapObject(Map<?, ?> mapObject) throws ReflectiveOperationException {
         String mapString = "{";
-        StringBuilder ContentStringBuilder = new StringBuilder();
+        StringBuilder contentStringBuilder = new StringBuilder();
         String ContentString = null;
 
         Object[] keys = mapObject.keySet().toArray();
@@ -49,13 +49,13 @@ public class JSONEncode {
         for (Object mapkey : keys) {
             Object key = fromObject(mapkey);
             String Value = fromObject(mapObject.get(mapkey));
-            ContentStringBuilder.append(key);
-            ContentStringBuilder.append(":");
-            ContentStringBuilder.append(Value);
-            ContentStringBuilder.append(",");
+            contentStringBuilder.append(key);
+            contentStringBuilder.append(":");
+            contentStringBuilder.append(Value);
+            contentStringBuilder.append(",");
         }
 
-        ContentString = ContentStringBuilder.toString();
+        ContentString = contentStringBuilder.toString();
         if (!ContentString.trim().isEmpty()){
             ContentString = ContentString.substring(0, ContentString.length() - 1);
         }
@@ -128,7 +128,7 @@ public class JSONEncode {
             List<Object> listObject = (List<Object>)object;
             value = CollectionObject(listObject);
         } else if (object.getClass().isArray()) {
-            Object[] arrayObject = null;
+            Object[] arrayObject = (Object[])object;
             //如果是 java 基本类型, 则转换成对象数组
             if(object.getClass().getComponentType().isPrimitive()) {
                 int length = Array.getLength(object);
