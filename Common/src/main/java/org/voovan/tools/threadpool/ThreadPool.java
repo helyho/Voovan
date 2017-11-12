@@ -29,6 +29,7 @@ public class ThreadPool {
 	public static int getMinPoolSize() {
 		int minPoolTimes = TProperties.getInt(Global.getFrameworkConfigFile(), "ThreadPoolMinSize");
 		MIN_POOL_SIZE = (minPoolTimes == 0 ? 2 : minPoolTimes) * cpuCoreCount;
+		MIN_POOL_SIZE = MIN_POOL_SIZE < 10 ? 10 : MIN_POOL_SIZE;
 		return MIN_POOL_SIZE;
 	}
 
