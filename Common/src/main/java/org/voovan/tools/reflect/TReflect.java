@@ -194,7 +194,7 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static void setFieldValue(Object obj, String fieldName,
-									 Object fieldValue) throws ReflectiveOperationException {
+	                                 Object fieldValue) throws ReflectiveOperationException {
 		Field field = findField(obj.getClass(), fieldName);
 		field.setAccessible(true);
 		field.set(obj, fieldValue);
@@ -231,7 +231,7 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Method findMethod(Class<?> clazz, String name,
-									Class<?>... paramTypes) throws ReflectiveOperationException {
+	                                Class<?>... paramTypes) throws ReflectiveOperationException {
 		String mark = clazz.getCanonicalName()+"#"+name;
 		for(Class<?> paramType : paramTypes){
 			mark = mark + "$" + paramType.getCanonicalName();
@@ -265,7 +265,7 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public static Method[] findMethod(Class<?> clazz, String name,
-									  int paramCount) throws ReflectiveOperationException {
+	                                  int paramCount) throws ReflectiveOperationException {
 		Method[] methods = null;
 
 		String mark = clazz.getCanonicalName()+"#"+name+"@"+paramCount;
@@ -687,7 +687,7 @@ public class TReflect {
 			}
 		}
 		//java 日期对象
-		else if(isExtendsByClass(clazz,Date.class)){
+		else if(isExtendsByClass(clazz, Date.class)){
 			//取 Map.Values 里的递第一个值
 			String value = singleValue==null?null:singleValue.toString();
 			SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
@@ -695,7 +695,7 @@ public class TReflect {
 			obj = (T)TReflect.newInstance(clazz,dateObj.getTime());
 		}
 		//Map 类型
-		else if(isImpByInterface(clazz,Map.class)){
+		else if(isImpByInterface(clazz, Map.class)){
 			//不可构造的类型使用最常用的类型
 			if(Modifier.isAbstract(clazz.getModifiers()) && Modifier.isInterface(clazz.getModifiers())){
 				clazz = HashMap.class;
@@ -919,7 +919,7 @@ public class TReflect {
 						if(resultMap.size()==1 && resultMap.containsKey(null)){
 							mapResult.put(key, resultMap.get(null));
 						}else{
-							mapResult.put(key,resultMap);
+							mapResult.put(key, resultMap);
 						}
 					}
 				}
@@ -940,14 +940,14 @@ public class TReflect {
 			return true;
 		}
 
-		String marker = type.toString()+interfaceClass.toString();
+		String marker = type.toString() + "@" + interfaceClass.toString();
 		if(classHierarchy.containsKey(marker)){
 			return classHierarchy.get(marker);
 		}
 
 		Class<?>[] interfaces= type.getInterfaces();
 		for (Class<?> interfaceItem : interfaces) {
-			if (interfaceItem.equals(interfaceClass)) {
+			if (interfaceItem == interfaceClass) {
 				classHierarchy.put(marker, true);
 				return true;
 			}
@@ -974,14 +974,14 @@ public class TReflect {
 			return true;
 		}
 
-		String marker = type.toString()+extendsClass.toString();
+		String marker = type.toString() + "#" + extendsClass.toString();
 		if(classHierarchy.containsKey(marker)){
 			return classHierarchy.get(marker);
 		}
 
 		Class<?> superClass = type;
 		do{
-			if(superClass.equals(extendsClass)){
+			if(superClass == extendsClass){
 				classHierarchy.put(marker, true);
 				return true;
 			}
