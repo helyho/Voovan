@@ -10,6 +10,7 @@ import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,7 +33,7 @@ public class HttpSession {
 	@NotSerialization
 	private IoSession socketSession;
 	@NotSerialization
-	private WebSocketSession webSocketSession;
+	private Map<IoSession, WebSocketSession> webSocketSessions;
 
 	private boolean needSave;
 	private boolean isAutoCleanRun;
@@ -60,6 +61,7 @@ public class HttpSession {
 		this.maxInactiveInterval = sessionTimeout*60*1000;
 		this.sessionManager = sessionManager;
 		this.socketSession = socketSession;
+		this.webSocketSessions = new ConcurrentHashMap<IoSession, WebSocketSession>();
 
 		needSave = false;
 		isAutoCleanRun = false;
@@ -112,16 +114,16 @@ public class HttpSession {
 	 * 获取 WebSocket 会话对象
 	 * @return socket 会话对象
 	 */
-	protected WebSocketSession getWebSocketSession() {
-		return webSocketSession;
+	protected Map<IoSession, WebSocketSession> getWebSocketSessions() {
+		return webSocketSessions;
 	}
 
 	/**
-	 * 设置 socket 会话对象
-	 * @param webSocketSession WebSocket 会话对象
+	 * 获取绑定这个 Http 会话的 WebSocketSession
+	 * @return 绑定的 WebSocketSession
 	 */
-	protected void setWebSocketSession(WebSocketSession webSocketSession) {
-		this.webSocketSession = webSocketSession;
+	public Collection<WebSocketSession> getBindWebSocketSession(){
+		return webSocketSessions.values();
 	}
 
 	/**

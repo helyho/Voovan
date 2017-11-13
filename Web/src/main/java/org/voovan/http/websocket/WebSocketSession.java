@@ -64,7 +64,11 @@ public class WebSocketSession {
      */
     public HttpSession getHttpSession(){
         HttpRequest request = (HttpRequest)socketSession.getAttribute(WebServerHandler.SessionParam.HTTP_REQUEST);
-        return request.getSession();
+        if(request.sessionExists()) {
+            return request.getSession();
+        } else {
+            return null;
+        }
     }
 
     /**
