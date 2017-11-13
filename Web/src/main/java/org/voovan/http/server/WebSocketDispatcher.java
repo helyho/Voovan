@@ -153,6 +153,9 @@ public class WebSocketDispatcher {
 					webSocketRouter.onSent(webSocketSession, result);
 				} else if (event == WebSocketEvent.CLOSE) {
 					webSocketRouter.onClose(webSocketSession);
+
+					//清理 HttpSession 中关联的 WebSocketSession
+					request.getSession().getWebSocketSessions().remove(session);
 				} else if (event == WebSocketEvent.PING) {
 					return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false, byteBuffer);
 				} else if (event == WebSocketEvent.PONG) {
@@ -190,20 +193,19 @@ public class WebSocketDispatcher {
 	public WebSocketSession disposeSession(HttpRequest request, WebSocketRouter webSocketRouter){
 		request.setSessionManager(sessionManager);
 		HttpSession httpSession = request.getSession();
+		IoSession socketSession = request.getSocketSession();
 
 		//如果 session 不存在,创建新的 session
-		if (httpSession.getWebSocketSession()==null) {
+		if (!httpSession.getWebSocketSessions().containsKey(socketSession)) {
 			// 构建 session
 			WebSocketSession webSocketSession =
 					new WebSocketSession(httpSession.getSocketSession(), webSocketRouter, WebSocketType.SERVER);
 
-			httpSession.setWebSocketSession(webSocketSession);
+			httpSession.getWebSocketSessions().put(socketSession, webSocketSession);
+			return webSocketSession;
+		} else {
+			return httpSession.getWebSocketSessions().get(socketSession);
 		}
-
-		httpSession.getWebSocketSession().setSocketSession(request.getSocketSession());
-
-
-		return httpSession.getWebSocketSession();
 
 	}
 
