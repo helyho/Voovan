@@ -156,12 +156,6 @@ public class WebSocketSession {
      */
     protected void send(WebSocketFrame webSocketFrame) throws SendMessageException {
         this.socketSession.syncSend(webSocketFrame);
-
-        if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.TEXT ||
-                webSocketFrame.getOpcode() == WebSocketFrame.Opcode.BINARY) {
-            //触发发送事件
-            webSocketRouter.onSent(this, webSocketFrame.getFrameData());
-        }
     }
 
     /**
