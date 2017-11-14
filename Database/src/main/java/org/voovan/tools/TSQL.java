@@ -220,12 +220,11 @@ public class TSQL {
 	public static String assembleSQLWithMap(String sqlStr,Map<String ,Object> argMap) {
 		if(argMap!=null) {
 			for (Entry<String, Object> arg : argMap.entrySet()) {
-				sqlStr = TString.fastReplaceAll(sqlStr, "::" + arg.getKey(), getSQLString(argMap.get(arg.getKey())));
+				sqlStr = TString.fastReplaceAll(sqlStr+" ", "::" + arg.getKey()+"\\s", getSQLString(argMap.get(arg.getKey())));
 			}
 		}
-		return sqlStr;
+		return sqlStr.trim();
 	}
-
 
 	/**
 	 * 包装resultSet中单行记录成Map
