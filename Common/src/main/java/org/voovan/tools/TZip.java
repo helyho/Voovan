@@ -114,7 +114,6 @@ public class TZip {
 	 */
 	public static byte[] decodeZip(byte[] encodeBytes) throws IOException{
 		ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(encodeBytes));
-		Logger.simple(zipInputStream.getNextEntry().getName());
 		byte[] result = TStream.readAll(zipInputStream);
 		zipInputStream.close();
 		return result;
