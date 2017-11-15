@@ -13,12 +13,14 @@ import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -33,6 +35,9 @@ import java.util.TreeMap;
 public class WebSocketDispatcher {
 	private WebServerConfig webConfig;
 	private SessionManager sessionManager;
+
+	@NotSerialization
+	private Map<IoSession, WebSocketSession> webSocketSessions;
 
 	/**
 	 * [Key] = Route path ,[Value] = WebSocketBizHandler对象
@@ -50,6 +55,8 @@ public class WebSocketDispatcher {
 	public WebSocketDispatcher(WebServerConfig webConfig, SessionManager sessionManager) {
 		this.webConfig = webConfig;
 		this.sessionManager = sessionManager;
+
+		webSocketSessions = new ConcurrentHashMap<IoSession, WebSocketSession>();
 
 		routers =  new TreeMap<String, WebSocketRouter>(new Comparator<String>() {
 			@Override
@@ -154,8 +161,8 @@ public class WebSocketDispatcher {
 				} else if (event == WebSocketEvent.CLOSE) {
 					webSocketRouter.onClose(webSocketSession);
 
-					//清理 HttpSession 中关联的 WebSocketSession
-					request.getSession().getWebSocketSessions().remove(session);
+					//清理 webSocketSessions 中的 WebSocketSession
+					webSocketSessions.remove(session);
 				} else if (event == WebSocketEvent.PING) {
 					return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false, byteBuffer);
 				} else if (event == WebSocketEvent.PONG) {
@@ -196,15 +203,15 @@ public class WebSocketDispatcher {
 		IoSession socketSession = request.getSocketSession();
 
 		//如果 session 不存在,创建新的 session
-		if (!httpSession.getWebSocketSessions().containsKey(socketSession)) {
+		if (!webSocketSessions.containsKey(socketSession)) {
 			// 构建 session
 			WebSocketSession webSocketSession =
 					new WebSocketSession(httpSession.getSocketSession(), webSocketRouter, WebSocketType.SERVER);
 
-			httpSession.getWebSocketSessions().put(socketSession, webSocketSession);
+			webSocketSessions.put(socketSession, webSocketSession);
 			return webSocketSession;
 		} else {
-			return httpSession.getWebSocketSessions().get(socketSession);
+			return webSocketSessions.get(socketSession);
 		}
 
 	}
