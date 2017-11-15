@@ -32,8 +32,6 @@ public class HttpSession {
 	private SessionManager sessionManager;
 	@NotSerialization
 	private IoSession socketSession;
-	@NotSerialization
-	private Map<IoSession, WebSocketSession> webSocketSessions;
 
 	private boolean needSave;
 	private boolean isAutoCleanRun;
@@ -61,7 +59,6 @@ public class HttpSession {
 		this.maxInactiveInterval = sessionTimeout*60*1000;
 		this.sessionManager = sessionManager;
 		this.socketSession = socketSession;
-		this.webSocketSessions = new ConcurrentHashMap<IoSession, WebSocketSession>();
 
 		needSave = false;
 		isAutoCleanRun = false;
@@ -108,22 +105,6 @@ public class HttpSession {
 	public void init(SessionManager sessionManager, IoSession socketSession){
 		this.sessionManager = sessionManager;
 		this.socketSession = socketSession;
-	}
-
-	/**
-	 * 获取 WebSocket 会话对象
-	 * @return socket 会话对象
-	 */
-	protected Map<IoSession, WebSocketSession> getWebSocketSessions() {
-		return webSocketSessions;
-	}
-
-	/**
-	 * 获取绑定这个 Http 会话的 WebSocketSession
-	 * @return 绑定的 WebSocketSession
-	 */
-	public Collection<WebSocketSession> getBindWebSocketSession(){
-		return webSocketSessions.values();
 	}
 
 	/**
