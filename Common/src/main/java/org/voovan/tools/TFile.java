@@ -292,7 +292,7 @@ public class TFile {
 	 */
 	public static boolean writeFile(File file, boolean append, byte[] contents, int offset, int length) throws IOException {
 
-		if(append && file.exists()){
+		if(!append && file.exists()){
 			file.delete();
 		}
 
