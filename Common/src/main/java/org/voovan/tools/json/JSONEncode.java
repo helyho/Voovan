@@ -21,6 +21,7 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class JSONEncode {
+
     /**
      * 分析自定义对象为JSON字符串
      *
@@ -146,7 +147,10 @@ public class JSONEncode {
             value = object.toString();
         } else if (TReflect.isBasicType(object.getClass())) {
             //这里这么做的目的是方便 js 中通过 eval 方法产生 js 对象
-            String strValue = TString.convertEscapeChar(object.toString());
+            String strValue = object.toString();
+            if(JSON.isConvertEscapeChar()) {
+                strValue = TString.convertEscapeChar(object.toString());
+            }
             value = "\"" + strValue + "\"";
         }  else {
             value = complexObject(object);

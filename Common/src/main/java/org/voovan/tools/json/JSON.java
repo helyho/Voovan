@@ -5,6 +5,7 @@ import org.voovan.tools.log.Logger;
 
 import java.lang.reflect.Type;
 import java.text.ParseException;
+import java.util.function.Supplier;
 
 /**
  * JAVA 对象和 JSON 对象转换类
@@ -18,14 +19,58 @@ import java.text.ParseException;
 public class JSON {
 
 	/**
+	 * 是否进行 EscapeChar 的转换, 默认 true, 当你确定你不存在字符串多行换行的时候可设置为 true
+	 */
+	private static ThreadLocal<Boolean> convertEscapeChar = ThreadLocal.withInitial(new Supplier<Boolean>() {
+		@Override
+		public Boolean get() {
+			return true;
+		}
+	});
+
+	/**
+	 * 是否进行 EscapeChar 的转换
+	 * @return true: 是, false: 否
+	 */
+	public static boolean isConvertEscapeChar() {
+		return convertEscapeChar.get();
+	}
+
+	/**
+	 * 设置是否进行 EscapeChar 的转换
+	 * @return true: 是, false: 否
+	 */
+	public static void setConvertEscapeChar(boolean convertEscapeChar) {
+		JSON.convertEscapeChar.set(convertEscapeChar);
+	}
+
+	/**
 	 * 将 Java 对象 转换成 JSON字符串
 	 * @param object   	待转换的对象
 	 * @return			转换后的 JSON 字符串
 	 */
 	public static String toJSON(Object object){
+		return toJSON(object, true);
+	}
+
+
+	/**
+	 * 将 Java 对象 转换成 JSON字符串
+	 * @param object   	待转换的对象
+	 * @return			转换后的 JSON 字符串
+	 */
+	public static String toJSON(Object object, boolean convertEscapeChar){
 		String jsonString = null;
 		try {
+			//保存旧的 convertEscapeChar 标志
+			boolean oldConvertEscapeChar = isConvertEscapeChar();
+
+			//设置新的 convertEscapeChar 标志
+			setConvertEscapeChar(convertEscapeChar);
 			jsonString = JSONEncode.fromObject(object);
+
+			//恢复旧的 convertEscapeChar 标志
+			setConvertEscapeChar(oldConvertEscapeChar);
 		} catch (ReflectiveOperationException e) {
 			Logger.error("Reflective Operation failed",e);
 		}
