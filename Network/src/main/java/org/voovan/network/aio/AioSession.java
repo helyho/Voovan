@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.WritePendingException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -141,7 +142,9 @@ public class AioSession extends IoSession<AioSocket> {
                                 }
                             }
                         }
-                    } catch (InterruptedException | ExecutionException e) {
+                    } catch ( ExecutionException e) {
+                        break;
+                    } catch (InterruptedException  e){
                         close();
                     }
 
