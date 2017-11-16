@@ -255,14 +255,18 @@ public class JSONDecode {
 						String stringValue = (String)value;
 
 						//判断是字符串去掉头尾的包裹符号
-						if (stringValue.charAt(0) == '\"' && stringValue.charAt(stringValue.length()-1) == '\"') {
+						if (stringValue.length() > 2 && stringValue.charAt(0) == '\"' && stringValue.charAt(stringValue.length()-1) == '\"') {
 							value = stringValue.substring(1, stringValue.length() - 1);
-							value = TString.unConvertEscapeChar(value.toString());
+							if(JSON.isConvertEscapeChar()) {
+								value = TString.unConvertEscapeChar(value.toString());
+							}
 						}
 						//判断是字符串去掉头尾的包裹符号
-						if (stringValue.charAt(0) == '\"' && stringValue.charAt(stringValue.length()-1) == '\"') {
+						if (stringValue.length() > 2 && stringValue.charAt(0) == '\"' && stringValue.charAt(stringValue.length()-1) == '\"') {
 							value = stringValue.substring(1, stringValue.length() - 1);
-							value = TString.unConvertEscapeChar(value.toString());
+							if(JSON.isConvertEscapeChar()) {
+								value = TString.unConvertEscapeChar(value.toString());
+							}
 						}
 
 						//判断不包含.即为整形
