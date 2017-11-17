@@ -8,7 +8,6 @@ import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -49,7 +48,7 @@ public class EventProcess {
 	 * @param event
 	 *            事件对象
 	 */
-	public static void onConnect(Event event) {
+	public static void onConnect(Event event) throws IOException {
 
 		IoSession session = event.getSession();
 
@@ -69,9 +68,8 @@ public class EventProcess {
 					EventTrigger.fireReceiveThread(session);
 				}
 			} catch (Exception e) {
-				Logger.error("SSL hand shake failed", e);
 				session.close();
-				return;
+				throw e;
 			}
 		}
 
