@@ -417,7 +417,7 @@ public class HttpClient implements Closeable{
 	 * @throws SendMessageException  发送异常
 	 * @throws ReadMessageException  读取异常
 	 */
-	public Response send(String location) throws SendMessageException, ReadMessageException {
+	public synchronized Response send(String location) throws SendMessageException, ReadMessageException {
 
 		if(isWebSocket){
 			throw new SendMessageException("The WebSocket is connect, you can't send http request.");
@@ -466,6 +466,17 @@ public class HttpClient implements Closeable{
 		return null;
 	}
 
+
+	/**
+	 * 连接并发送请求
+	 * @return Response 对象
+	 * @throws SendMessageException  发送异常
+	 * @throws ReadMessageException  读取异常
+	 */
+	public synchronized Response send() throws SendMessageException, ReadMessageException {
+		return send("/");
+	}
+
 	/**
 	 * 发送二进制数据
 	 * @param buffer 二进制数据
@@ -500,16 +511,6 @@ public class HttpClient implements Closeable{
 		request.parts().clear();
 		request.header().remove("Content-Type");
 		request.header().remove("Content-Length");
-	}
-
-	/**
-	 * 发送行数
-	 * @return Response 对象
-	 * @throws SendMessageException  发送异常
-	 * @throws ReadMessageException  读取异常
-	 */
-	public Response send() throws SendMessageException, ReadMessageException {
-		return send("/");
 	}
 
 	/**
