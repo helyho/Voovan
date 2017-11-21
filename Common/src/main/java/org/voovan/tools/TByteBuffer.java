@@ -105,6 +105,10 @@ public class TByteBuffer {
      */
     public static boolean reallocate(ByteBuffer byteBuffer, int newSize) {
 
+        if(isReleased(byteBuffer)) {
+            return false;
+        }
+
         try {
 
             if(!byteBuffer.hasArray()) {
@@ -140,6 +144,10 @@ public class TByteBuffer {
      */
     public static boolean moveData(ByteBuffer byteBuffer, int offset) {
         try {
+
+            if(isReleased(byteBuffer)) {
+                return false;
+            }
 
             if(offset==0){
                 return true;
@@ -243,6 +251,9 @@ public class TByteBuffer {
      */
     public static byte[] toArray(ByteBuffer bytebuffer){
         if(!bytebuffer.hasArray()) {
+            if(isReleased(bytebuffer)) {
+                return new byte[0];
+            }
             int oldPosition = bytebuffer.position();
             bytebuffer.position(0);
             int size = bytebuffer.limit();
@@ -287,6 +298,10 @@ public class TByteBuffer {
      * @return 第一个字节的索引位置
      */
     public static int indexOf(ByteBuffer byteBuffer, byte[] mark){
+
+        if(isReleased(byteBuffer)) {
+            return -1;
+        }
 
         if(byteBuffer.remaining() == 0){
             return -1;
