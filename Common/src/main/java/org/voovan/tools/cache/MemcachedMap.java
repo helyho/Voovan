@@ -161,10 +161,10 @@ public class MemcachedMap implements Map<String, String> , Closeable {
      * @param expire 超时事件
      * @return true: 成功, false:失败
      */
-    public boolean put(String key, String value, long expire) {
+    public boolean put(String key, String value, int expire) {
         MemcachedClient memcachedClient = getMemcachedClient();
         try{
-            return memcachedClient.set(key, 0, value, expire);
+            return memcachedClient.set(key, expire, value);
         }catch (Exception e){
             Logger.error(e);
             return false;
