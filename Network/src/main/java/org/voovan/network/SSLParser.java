@@ -193,7 +193,7 @@ public class SSLParser {
 			}
 
 			if (waitCount >= session.socketContext().getReadTimeout()) {
-				throw new SSLHandshakeException("Hand shake on: " + session.remoteAddress() + ":" + session.remotePort() + " timeout");
+				break;
 			}
 
 			clearBuffer();
