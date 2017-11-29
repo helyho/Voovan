@@ -30,10 +30,9 @@ public class SSLManager {
 	private KeyManagerFactory keyManagerFactory;
 	private TrustManagerFactory trustManagerFactory;
 	private SSLContext context;
-	private SSLEngine engine;
 	private boolean needClientAuth;
 	private String protocol;
-	
+
 	/**
 	 * 构造函数
 	 * 		默认使用客户端认证
@@ -44,7 +43,7 @@ public class SSLManager {
 		this.needClientAuth = true;
 		this.protocol = protocol;
 	}
-	
+
 	/**
 	 * 构造函数
 	 * @param protocol  	协议类型
@@ -52,18 +51,10 @@ public class SSLManager {
 	 * @throws SSLException  SSL 异常
 	 */
 	public SSLManager(String protocol,boolean useClientAuth) throws SSLException{
-			this.needClientAuth = useClientAuth;
-			this.protocol = protocol;
+		this.needClientAuth = useClientAuth;
+		this.protocol = protocol;
 	}
 
-	/**
-	 * 获取 SSLEngine
-	 * @return SSLEngine 对象
-     */
-	public SSLEngine getSSLEngine(){
-		return engine;
-	}
-	
 	/**
 	 * 读取管理证书
 	 * @param manageCertFile   证书地址
@@ -77,7 +68,7 @@ public class SSLManager {
 		try{
 			keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
 			trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-			
+
 			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
 			certFIS = new FileInputStream(manageCertFile);
 			keystore.load(certFIS, certPassword.toCharArray());
@@ -96,7 +87,7 @@ public class SSLManager {
 			}
 		}
 	}
-	
+
 	/**
 	 * 初始化
 	 * @param protocol		协议名称 SSL/TLS
@@ -116,21 +107,21 @@ public class SSLManager {
 			}
 			//NoSuchAlgorithmException | KeyManagementException |
 		} catch ( Exception e) {
-			
+
 			throw new SSLException("Init SSLContext Error: "+e.getMessage(),e);
 		}
-		
+
 	}
-	
+
 	/**
 	 * 构造SSLEngine
 	 * @throws SSLException SSL 异常
 	 */
-	private synchronized void createSSLEngine(String protocol, String ipAddress, int port) throws SSLException {
+	private synchronized SSLEngine createSSLEngine(String protocol, String ipAddress, int port) throws SSLException {
 		init(protocol);
-		engine = context.createSSLEngine(ipAddress, port);
+		return context.createSSLEngine(ipAddress, port);
 	}
-	
+
 	/**
 	 * 获取SSLParser
 	 * @param session session 对象
@@ -138,13 +129,13 @@ public class SSLManager {
 	 * @throws SSLException SSL 异常
 	 */
 	public synchronized SSLParser createClientSSLParser(IoSession session) throws SSLException {
-		createSSLEngine(protocol, session.socketContext().getHost(), session.socketContext().getPort());
+		SSLEngine engine = createSSLEngine(protocol, session.socketContext().getHost(), session.socketContext().getPort());
 		engine.setUseClientMode(true);
 		SSLParser sslParser = new SSLParser(engine, session);
 		session.setSSLParser(sslParser);
 		return sslParser;
 	}
-	
+
 	/**
 	 * 获取Server 模式 SSLParser
 	 * @param session session 对象
@@ -152,7 +143,7 @@ public class SSLManager {
 	 * @throws SSLException SSL 异常
 	 */
 	public synchronized SSLParser createServerSSLParser(IoSession session) throws SSLException{
-		createSSLEngine(protocol, session.socketContext().getHost(), session.socketContext().getPort());
+		SSLEngine engine = createSSLEngine(protocol, session.socketContext().getHost(), session.socketContext().getPort());
 		engine.setUseClientMode(false);
 		engine.setNeedClientAuth(needClientAuth);
 
@@ -161,7 +152,7 @@ public class SSLManager {
 
 		return sslParser;
 	}
-	
+
 	private static class DefaultTrustManager implements X509TrustManager {
 
 		@Override
@@ -177,7 +168,7 @@ public class SSLManager {
 		@Override
 		public X509Certificate[] getAcceptedIssuers() {
 			return null;
-		}  
-		
+		}
+
 	}
 }
