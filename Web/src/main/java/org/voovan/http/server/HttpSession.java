@@ -4,13 +4,11 @@ import org.voovan.Global;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
-import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
