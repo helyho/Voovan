@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class SessionManager{
-	private  Map<String, String> httpSessions;
+	private  Map<String, Object> httpSessions;
 
 	private WebServerConfig webConfig;
 
@@ -39,7 +39,7 @@ public class SessionManager{
 		this.webConfig = webConfig;
 		httpSessions = getSessionContainer();
 		if(httpSessions == null){
-			httpSessions = new ConcurrentHashMap<String, String>();
+			httpSessions = new ConcurrentHashMap<String, Object>();
 			Logger.warn("Create session container from config file failed,now use defaul session container.");
 		}
 
@@ -68,7 +68,7 @@ public class SessionManager{
 	 *
 	 * @return Session 容器 Map
 	 */
-	public Map<String, String> getSessionContainer(){
+	public Map<String, Object> getSessionContainer(){
 		if(httpSessions!=null){
 			return httpSessions;
 		}else{
@@ -90,7 +90,7 @@ public class SessionManager{
 	 */
 	public void saveSession(HttpSession session) {
 		if(!autoExpire()) {
-			httpSessions.put(session.getId(), JSON.toJSON(session));
+			httpSessions.put(session.getId(), session);
 		}else{
 			try {
 				TReflect.invokeMethod(httpSessions, expirePutMethod, session.getId(), JSON.toJSON(session), session.getMaxInactiveInterval() / 1000);
@@ -108,7 +108,19 @@ public class SessionManager{
 	 */
 	public HttpSession getSession(String id) {
 		if (id!=null && httpSessions.containsKey(id)) {
-			HttpSession httpSession = JSON.toObject(httpSessions.get(id), HttpSession.class);
+
+			Object sessionObject  = httpSessions.get(id);
+
+			HttpSession httpSession = null;
+
+			if(sessionObject instanceof HttpSession){
+				httpSession = (HttpSession)sessionObject;
+			}
+
+			if(sessionObject instanceof String) {
+				httpSession = JSON.toObject((String)sessionObject, HttpSession.class);
+			}
+
 			if(httpSession!=null) {
 				if (httpSession.isExpire()) {
 					removeSession(httpSession);
