@@ -792,7 +792,7 @@ public class TReflect {
 					try {
 
 						//value 和 fieldType class类型不同时，且　value 不为空时处理
-						if(fieldType != value.getClass() && value != null) {
+						if(value != null && fieldType != value.getClass()) {
 							//通过 JSON 将,String类型的 value转换,将 String 转换成 Collection, Map 或者 复杂类型 对象作为参数
 							if( value instanceof String &&
 									(
