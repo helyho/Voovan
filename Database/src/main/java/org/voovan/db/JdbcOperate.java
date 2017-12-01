@@ -144,19 +144,29 @@ public class JdbcOperate {
 	private int baseUpdate(String sqlText, Map<String, Object> mapArg) throws SQLException {
 		Connection conn = getConnection();
 		PreparedStatement preparedStatement = null;
+		SQLException exception = null;
 		try {
 			preparedStatement = TSQL.createPreparedStatement(conn, sqlText, mapArg);
 			return preparedStatement.executeUpdate();
 		} catch (SQLException e) {
 			Logger.error("Update excution SQL Error! \n SQL is :\n\t " + sqlText + "\nError is: \n\t" ,e);
+			exception = e;
 		} finally {
 			// 非事物模式执行
 			if (!isTrancation) {
 				closeConnection(preparedStatement);
 			}else{
+				if(exception!=null) {
+					rollback();
+				}
 				closeStatement(preparedStatement);
 			}
 		}
+
+		if(exception!=null){
+			throw exception;
+		}
+
 		return -1;
 	}
 
@@ -173,6 +183,7 @@ public class JdbcOperate {
 	private int[] baseBatch(String sqlText, List<Map<String, ?>> mapArgs) throws SQLException {
 		Connection conn = getConnection();
 		PreparedStatement preparedStatement = null;
+		SQLException exception = null;
 		try {
 
 			// 非事物模式执行
@@ -197,38 +208,58 @@ public class JdbcOperate {
 
 			int[] result = preparedStatement.executeBatch();
 
-			// 非事物模式执行
-			if (!isTrancation) {
-				conn.commit();
-				closeConnection(preparedStatement);
-			} else {
-				closeStatement(preparedStatement);
-			}
-
 			return result;
 		} catch (SQLException e) {
 			Logger.error("Batch excution SQL Error! \n SQL is : \n\t" + sqlText + ":\n\t" ,e);
+			exception = e;
 		} finally {
 			// 非事物模式执行
 			if (!isTrancation) {
 				closeConnection(preparedStatement);
+			}else{
+				if(exception!=null) {
+					rollback();
+				}
+				closeStatement(preparedStatement);
 			}
 		}
+
+		if(exception!=null){
+			throw exception;
+		}
+
 		return new int[0];
 	}
 
 
 	private List<Object> baseCall(String sqlText, CallType[] callTypes,Map<String, Object> mapArg) throws SQLException {
 		Connection conn = getConnection();
+		CallableStatement callableStatement = null;
+		SQLException exception = null;
 		try {
-			CallableStatement callableStatement = TSQL.createCallableStatement(conn, sqlText, mapArg, callTypes);
+			callableStatement = TSQL.createCallableStatement(conn, sqlText, mapArg, callTypes);
 			callableStatement.executeUpdate();
 			List<Object> objList = TSQL.getCallableStatementResult(callableStatement);
 			return objList;
 		} catch (SQLException e) {
-			closeConnection(conn);
 			Logger.error("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " ,e);
+			exception = e;
+		} finally {
+			// 非事物模式执行
+			if (!isTrancation) {
+				closeConnection(callableStatement);
+			}else{
+				if(exception!=null) {
+					rollback();
+				}
+				closeStatement(callableStatement);
+			}
 		}
+
+		if(exception!=null){
+			throw exception;
+		}
+
 		return null;
 	}
 
