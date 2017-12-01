@@ -153,11 +153,18 @@ public class Request {
 			for (Part part : parts) {
 				if (part.getType() == Part.PartType.TEXT) {
 					String name = part.header().get("name");
-					String value = part.body().getBodyString(charset);
-					result.append(name);
-					result.append("=");
-					result.append(value);
-					result.append("&");
+					String value = null;
+					if(!part.body().isFile()) {
+						 value = part.body().getBodyString(charset);
+					} else {
+						 value = part.header().get("filename");
+					}
+
+                    result.append(name);
+                    result.append("=");
+                    result.append(value);
+                    result.append("&");
+
 				}
 			}
 			queryString = TString.removeSuffix( queryString+"&"+result.toString() );
