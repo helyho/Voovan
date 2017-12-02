@@ -1,6 +1,5 @@
 package org.voovan.http.server;
 
-import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
@@ -169,6 +168,9 @@ public class HttpDispatcher {
 			//调用处理路由函数
 			disposeRoute(request, response);
 		}
+
+		//反向过滤器处理
+		filterResult = disposeInvertedFilter(filterConfigs,request,response);
 
 		//向 HttpResponse 中放置 Session 的 Cookie
 		if(request.sessionExists()){
