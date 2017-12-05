@@ -162,14 +162,14 @@ public class Cookie {
 	 * @param maxAge	失效时间,单位秒
 	 * @return Cookie 对象
 	 */
-	public static Cookie newInstance(String domain, String path, String name,String value,int maxAge){
+	public static Cookie newInstance(String domain, String path, String name,String value,int maxAge, boolean isHttpOnly){
 		Cookie cookie = new Cookie();
 		cookie.setName(name);
 		cookie.setValue(value);
 		cookie.setPath(path);
 		cookie.setDomain(domain);
 		cookie.setMaxAge(maxAge);
-		cookie.setHttpOnly(true);
+		cookie.setHttpOnly(isHttpOnly);
 		return cookie;
 	}
 
@@ -182,10 +182,10 @@ public class Cookie {
 	 * @param maxAge	失效时间,单位秒
 	 * @return Cookie 对象
 	 */
-	public static Cookie newInstance(Request request, String path, String name, String value, int maxAge){
+	public static Cookie newInstance(Request request, String path, String name, String value, int maxAge, boolean isHttpOnly){
 		String Host =  request.header().get("Host");
 		String domain = Host.split(":")[0];
-		return newInstance(domain , path, name, value, maxAge);
+		return newInstance(domain , path, name, value, maxAge, isHttpOnly);
 	}
 
 	/**
@@ -197,7 +197,7 @@ public class Cookie {
 	 * @return Cookie 对象
 	 */
 	public static Cookie newInstance(Request request, String path, String name,String value){
-		return newInstance(request, path, name, value, WebContext.getWebServerConfig().getSessionTimeout() * 60);
+		return newInstance(request, path, name, value, WebContext.getWebServerConfig().getSessionTimeout() * 60, false);
 	}
 
 	/**
@@ -208,7 +208,7 @@ public class Cookie {
 	 * @return Cookie 对象
 	 */
 	public static Cookie newInstance(Request request,String name,String value){
-		return newInstance(request, "/", name, value, WebContext.getWebServerConfig().getSessionTimeout() * 60);
+		return newInstance(request, "/", name, value, WebContext.getWebServerConfig().getSessionTimeout() * 60, false);
 	}
 
 

@@ -261,7 +261,7 @@ public class HttpSession {
 			if (sessionCookie == null) {
 				//创建 Cookie
 				sessionCookie = Cookie.newInstance(request, "/", WebContext.getSessionName(),
-						this.getId(), this.maxInactiveInterval * 60);
+						this.getId(), this.maxInactiveInterval * 60, true);
 
 				//响应增加Session 对应的 Cookie
 				response.cookies().add(sessionCookie);
