@@ -736,7 +736,7 @@ public class TReflect {
 			if(Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())){
 				clazz = ArrayList.class;
 			}
-			Collection listObject = (Collection)newInstance(clazz);
+			Collection collectionObject = (Collection)newInstance(clazz);
 
 			if(singleValue!=null){
 				if(genericType!=null){
@@ -749,13 +749,13 @@ public class TReflect {
 						}
 
 						Object item = getObjectFromMap(genericType[0], valueOfMap, ignoreCase);
-						listObject.add(item);
+						collectionObject.add(item);
 					}
 				}else{
-					listObject.addAll((Collection)singleValue);
+					collectionObject.addAll((Collection)singleValue);
 				}
 			}
-			obj = (T)listObject;
+			obj = (T)collectionObject;
 		}
 		//Array 类型
 		else if(clazz.isArray()){

@@ -8,7 +8,6 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -73,7 +72,7 @@ public class JSONEncode {
      * @return JSON字符串
      * @throws ReflectiveOperationException
      */
-    private static String CollectionObject(List<Object> listObject) throws ReflectiveOperationException {
+    private static String CollectionObject(Collection<Object> listObject) throws ReflectiveOperationException {
         return arrayObject(listObject.toArray());
     }
 
@@ -126,8 +125,8 @@ public class JSONEncode {
             Map<Object, Object> mapObject = (Map<Object, Object>) object;
             value = mapObject(mapObject);
         } else if (object instanceof Collection) {
-            List<Object> listObject = (List<Object>)object;
-            value = CollectionObject(listObject);
+            Collection<Object> collectionObject = (Collection<Object>)object;
+            value = CollectionObject(collectionObject);
         } else if (object.getClass().isArray()) {
             Object[] arrayObject = (Object[])object;
             //如果是 java 基本类型, 则转换成对象数组
