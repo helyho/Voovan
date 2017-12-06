@@ -22,6 +22,7 @@ import org.voovan.tools.reflect.TReflect;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.channels.ShutdownChannelGroupException;
 import java.util.Map;
 
 /**
@@ -404,7 +405,7 @@ public class WebServer {
 		//保存 PID
 		Long pid = TEnv.getCurrentPID();
 		Logger.simple("Process ID: "+ pid.toString());
-		File pidFile = new File("logs/voovan.pid");
+		File pidFile = new File("logs/.pid");
 		try {
 			TFile.writeFile(pidFile, false, pid.toString().getBytes());
 		} catch (IOException e) {
@@ -412,11 +413,11 @@ public class WebServer {
 		}
 
 		//保存 Token
-		File tokenFile = new File("logs/voovan.token");
+		File tokenFile = new File("logs/.token");
 		try {
 			TFile.writeFile(tokenFile, false, WebContext.AUTH_TOKEN.getBytes());
 		} catch (IOException e) {
-			Logger.error("Write pid to file: " + pidFile.getPath() + " error", e);
+			Logger.error("Write token to file: " + pidFile.getPath() + " error", e);
 		}
 
 		Logger.simple("WebServer working on: \t" + WebContext.SERVICE_URL);
@@ -806,6 +807,10 @@ public class WebServer {
 	 */
 	public void stop(){
 		Global.getThreadPool().shutdown();
-		aioServerSocket.close();
+		try {
+			aioServerSocket.close();
+		}catch(ShutdownChannelGroupException e){
+			return;
+		}
 	}
 }
