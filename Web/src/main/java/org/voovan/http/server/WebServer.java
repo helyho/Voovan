@@ -401,14 +401,24 @@ public class WebServer {
 		InitManagerRouter();
 
 
+		//保存 PID
 		Long pid = TEnv.getCurrentPID();
 		Logger.simple("Process ID: "+ pid.toString());
-		File pidFile = new File(TFile.getSystemPath("logs/"+WebContext.getWebServerConfig().getServerName()+".pid"));
+		File pidFile = new File("logs/"+WebContext.getWebServerConfig().getServerName()+".pid");
 		try {
 			TFile.writeFile(pidFile, false, pid.toString().getBytes());
 		} catch (IOException e) {
 			Logger.error("Write pid to file: " + pidFile.getPath() + " error", e);
 		}
+
+		//保存 Token
+		File tokenFile = new File("logs/"+WebContext.getWebServerConfig().getServerName()+".token");
+		try {
+			TFile.writeFile(tokenFile, false, WebContext.AUTH_TOKEN.getBytes());
+		} catch (IOException e) {
+			Logger.error("Write pid to file: " + pidFile.getPath() + " error", e);
+		}
+
 		Logger.simple("WebServer working on: \t" + WebContext.SERVICE_URL);
 
 	}
@@ -445,6 +455,26 @@ public class WebServer {
 		}
 	}
 
+
+	/**
+	 * 是否具备管理权限
+	 *      这里控制必须是 127.0.0.1的 ip 地址, 并且需要提供 authToken
+	 * @param request
+	 * @return
+	 */
+	public static boolean hasAdminRight(HttpRequest request){
+		if(!request.getRemoteAddres().equals("127.0.0.1")){
+			request.getSession().close();
+		}
+
+		String authToken = request.header().get("AUTH-TOKEN");
+		if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	/**
 	 * 初始化服务管理相关的路由
 	 */
@@ -454,13 +484,8 @@ public class WebServer {
 		otherMethod("ADMIN", "/status", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
-				if(!request.getRemoteAddres().equals("127.0.0.1")){
-					request.getSession().close();
-				}
-
-				String authToken = request.header().get("AUTH-TOKEN");
 				String status = "RUNNING";
-				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
+				if(hasAdminRight(request)) {
 					if(WebContext.PAUSE){
 						status = "PAUSE";
 					}
@@ -475,12 +500,8 @@ public class WebServer {
 		otherMethod("ADMIN", "/shutdown", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
-				if(!request.getRemoteAddres().equals("127.0.0.1")){
-					request.getSession().close();
-				}
 
-				String authToken = request.header().get("AUTH-TOKEN");
-				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
+				if(hasAdminRight(request)) {
 					request.getSocketSession().close();
 					innerWebServer.stop();
 					Logger.info("WebServer is stoped");
@@ -493,12 +514,8 @@ public class WebServer {
 		otherMethod("ADMIN", "/pause", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
-				if(!request.getRemoteAddres().equals("127.0.0.1")){
-					request.getSession().close();
-				}
 
-				String authToken = request.header().get("AUTH-TOKEN");
-				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
+				if(hasAdminRight(request)) {
 					WebContext.PAUSE = true;
 					response.write("OK");
 					Logger.info("WebServer is paused");
@@ -511,12 +528,8 @@ public class WebServer {
 		otherMethod("ADMIN", "/unpause", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
-				if(!request.getRemoteAddres().equals("127.0.0.1")){
-					request.getSession().close();
-				}
 
-				String authToken = request.header().get("AUTH-TOKEN");
-				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
+				if(hasAdminRight(request)) {
 					WebContext.PAUSE = false;
 					response.write("OK");
 					Logger.info("WebServer is running");
@@ -529,12 +542,8 @@ public class WebServer {
 		otherMethod("ADMIN", "/pid", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
-				if(!request.getRemoteAddres().equals("127.0.0.1")){
-					request.getSession().close();
-				}
 
-				String authToken = request.header().get("AUTH-TOKEN");
-				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
+				if(hasAdminRight(request)) {
 					response.write(Long.valueOf(TEnv.getCurrentPID()).toString());
 				}else{
 					request.getSession().close();
