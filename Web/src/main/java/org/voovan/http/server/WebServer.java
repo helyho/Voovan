@@ -401,8 +401,14 @@ public class WebServer {
 		InitManagerRouter();
 
 
-
-		Logger.simple("Process ID: "+ TEnv.getCurrentPID());
+		Long pid = TEnv.getCurrentPID();
+		Logger.simple("Process ID: "+ pid.toString());
+		File pidFile = new File(TFile.getSystemPath("logs/"+WebContext.getWebServerConfig().getServerName()+".pid"));
+		try {
+			TFile.writeFile(pidFile, false, pid.toString().getBytes());
+		} catch (IOException e) {
+			Logger.error("Write pid to file: " + pidFile.getPath() + " error", e);
+		}
 		Logger.simple("WebServer working on: \t" + WebContext.SERVICE_URL);
 
 	}
