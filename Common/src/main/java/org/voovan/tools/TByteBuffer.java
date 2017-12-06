@@ -232,6 +232,11 @@ public class TByteBuffer {
      * @return true: 已释放, false: 未释放
      */
     public static boolean isReleased(ByteBuffer byteBuffer){
+
+        if(byteBuffer==null){
+            return true;
+        }
+
         //是否手工释放
         if(!Global.NO_HEAP_MANUAL_RELEASE || byteBuffer.getClass() != DIRECT_BYTE_BUFFER_CLASS) {
             return false;
