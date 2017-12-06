@@ -186,11 +186,6 @@ public class JdbcOperate {
 		SQLException exception = null;
 		try {
 
-			// 非事物模式执行
-			if (!isTrancation) {
-				conn.setAutoCommit(false);
-			}
-
 			// 获取 SQL 中的参数列表
 			List<String> sqlParams = TSQL.getSqlParamNames(sqlText);
 			preparedStatement = (PreparedStatement) conn.prepareStatement(TSQL.preparedSql(sqlText));
