@@ -63,6 +63,7 @@ public class IPAnalysis {
         if(currentMinute == minute){
             lastMinuteCount ++;
         }else{
+            minute = currentMinute;
             lastMinuteCount = 1;
         }
 
