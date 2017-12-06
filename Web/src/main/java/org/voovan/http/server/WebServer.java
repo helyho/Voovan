@@ -404,7 +404,7 @@ public class WebServer {
 		//保存 PID
 		Long pid = TEnv.getCurrentPID();
 		Logger.simple("Process ID: "+ pid.toString());
-		File pidFile = new File("logs/"+WebContext.getWebServerConfig().getServerName()+".pid");
+		File pidFile = new File("logs/voovan.pid");
 		try {
 			TFile.writeFile(pidFile, false, pid.toString().getBytes());
 		} catch (IOException e) {
@@ -412,7 +412,7 @@ public class WebServer {
 		}
 
 		//保存 Token
-		File tokenFile = new File("logs/"+WebContext.getWebServerConfig().getServerName()+".token");
+		File tokenFile = new File("logs/voovan.token");
 		try {
 			TFile.writeFile(tokenFile, false, WebContext.AUTH_TOKEN.getBytes());
 		} catch (IOException e) {
