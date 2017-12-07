@@ -1,5 +1,6 @@
 package org.voovan.network.messagesplitter;
 
+import org.voovan.Global;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.tools.TByteBuffer;
@@ -44,7 +45,13 @@ public class HttpMessageSplitter implements MessageSplitter {
             }else if(result == -1){
                 return result;
             }else if(result == -2){
-                session.close();
+//                采用异步的方式, 防止导致死锁
+                Global.getThreadPool().execute(new Thread("CHECK_HTTP_HEAD_FAILED") {
+                    @Override
+                    public void run() {
+                        session.close();
+                    }
+                });
             }
         }
 

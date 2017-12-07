@@ -217,12 +217,13 @@ public class MessageLoader {
 			int readsize = byteBufferChannel.size() - oldByteChannelSize;
 
 			try {
-				dataByteBuffer = dataByteBufferChannel.getByteBuffer();
-			}catch(MemoryReleasedException e){
-				stopType = StopType.SOCKET_CLOSED;
-			}
 
-			try {
+				try {
+					dataByteBuffer = dataByteBufferChannel.getByteBuffer();
+				}catch(MemoryReleasedException e){
+					stopType = StopType.SOCKET_CLOSED;
+				}
+
 				//判断连接是否关闭
 				if (isStreamEnd(dataByteBuffer, dataByteBufferChannel.size())) {
 					stopType = StopType.STREAM_END;

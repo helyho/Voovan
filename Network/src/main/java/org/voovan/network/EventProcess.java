@@ -63,8 +63,13 @@ public class EventProcess {
 					ByteBufferChannel byteBufferChannel = new ByteBufferChannel();
 					session.getSSLParser().unWarpByteBufferChannel(session, session.getByteBufferChannel(), byteBufferChannel);
 					session.getByteBufferChannel().clear();
-					session.getByteBufferChannel().writeHead(byteBufferChannel.getByteBuffer());
-					byteBufferChannel.compact();
+
+					try {
+						session.getByteBufferChannel().writeHead(byteBufferChannel.getByteBuffer());
+					}finally {
+						byteBufferChannel.compact();
+					}
+
 					EventTrigger.fireReceiveThread(session);
 				}
 			} catch (Exception e) {
