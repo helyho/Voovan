@@ -9,7 +9,6 @@ import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
@@ -123,9 +122,12 @@ public class WebSocketHandler implements IoHandler{
 
             try {
                 //解包
-                result = webSocketRouter.filterDecoder(webSocketSession, byteBufferChannel.getByteBuffer());
-                byteBufferChannel.compact();
-                byteBufferChannel.clear();
+                try {
+                    result = webSocketRouter.filterDecoder(webSocketSession, byteBufferChannel.getByteBuffer());
+                } finally {
+                    byteBufferChannel.compact();
+                    byteBufferChannel.clear();
+                }
 
                 //触发 onRecive
                 result = webSocketRouter.onRecived(webSocketSession, result);

@@ -803,8 +803,12 @@ public class ByteBufferChannel {
 		}
 
 		if (index == 0) {
-			this.getByteBuffer().position(splitByte.length);
-			compact();
+			try {
+				this.getByteBuffer().position(splitByte.length);
+			} finally {
+				compact();
+			}
+
 			index = indexOf(splitByte);
 		}
 

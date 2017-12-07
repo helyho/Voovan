@@ -145,7 +145,7 @@ public class WebServerHandler implements IoHandler {
 	public void checkPause(IoSession session, Request request){
 
 		if(WebContext.PAUSE && !request.protocol().getMethod().equals("ADMIN") &&
-				!request.protocol().getMethod().equals("MONITOR")){
+				!request.protocol().getMethod().equals("MONITOR")) {
 			if(webConfig.getPauseURL()!=null){
 				request.protocol().setPath(webConfig.getPauseURL());
 			}else {
@@ -317,9 +317,14 @@ public class WebServerHandler implements IoHandler {
 
 			//判断解包是否有错
 			if(webSocketFrame.getErrorCode()==0){
-				respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBufferChannel.getByteBuffer());
-				byteBufferChannel.compact();
-				byteBufferChannel.clear();
+
+				try {
+					respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBufferChannel.getByteBuffer());
+				} finally {
+					byteBufferChannel.compact();
+					byteBufferChannel.clear();
+				}
+
 			}else{
 				//解析时出现异常,返回关闭消息
 				respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
