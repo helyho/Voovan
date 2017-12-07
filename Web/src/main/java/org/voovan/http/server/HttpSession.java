@@ -268,7 +268,8 @@ public class HttpSession {
 			}
 			//判断 Cookie 中的 session 和 WebServer 中的 session 是否一样, 不一样则更新成 Web 服务的 Session
 			else if (!sessionCookie.getValue().equals(this.getId())) {
-				sessionCookie.setValue(this.getId());
+				sessionCookie = Cookie.newInstance(request, "/", WebContext.getSessionName(),
+						this.getId(), this.maxInactiveInterval * 60, true);
 				response.cookies().add(sessionCookie);
 			}
 			this.refresh();
