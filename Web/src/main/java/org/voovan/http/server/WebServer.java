@@ -11,6 +11,7 @@ import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioServerSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
@@ -582,6 +583,16 @@ public class WebServer {
 	 * @return WebServer 对象
 	 */
 	public WebServer serve() {
+		//接受并处理 SIGTERM 消息结束进程
+		final WebServer innerWebServer = this;
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				innerWebServer.stop();
+			}
+		});
+
+
 		try {
 			commonServe();
 			aioServerSocket.start();
@@ -798,7 +809,6 @@ public class WebServer {
 
 		WebServer webServer = WebServer.newInstance(config);
 
-		//启动服务
 		webServer.serve();
 	}
 
@@ -806,9 +816,19 @@ public class WebServer {
 	 * 停止 WebServer
 	 */
 	public void stop(){
-		Global.getThreadPool().shutdown();
 		try {
+
+			System.out.println("=============================================================================================");
+			System.out.println("[" + TDateTime.now() + "] Try to stop WebServer....");
+
 			aioServerSocket.close();
+			System.out.println("[" + TDateTime.now() + "] Socket closed");
+
+			Global.getThreadPool().shutdown();
+			System.out.println("[" + TDateTime.now() + "] Thread pool is shutdown.");
+
+			System.out.println("[" + TDateTime.now() + "] Now webServer is fully stoped.");
+			TEnv.sleep(1000);
 		}catch(ShutdownChannelGroupException e){
 			return;
 		}
