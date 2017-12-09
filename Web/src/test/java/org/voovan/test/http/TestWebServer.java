@@ -21,7 +21,7 @@ public class TestWebServer {
         wsc.setGzip(true);
         wsc.setAccessLog(false);
         wsc.setPort(8800);
-        wsc.setTimeout(10000);
+        wsc.setReadTimeout(10000);
         wsc.setContextPath(TestWebServer.class.getResource("/").getPath());
         WebServer ws = WebServer.newInstance(wsc);
         ws.get("/", new HttpRouter() {

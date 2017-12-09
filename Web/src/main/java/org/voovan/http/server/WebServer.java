@@ -97,7 +97,7 @@ public class WebServer {
 
 	private void initSocketServer(WebServerConfig config) throws IOException{
 		//[Socket] 准备 socket 监听
-		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getTimeout()*1000);
+		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
 
 		//[HTTP] 构造 SessionManage
 		sessionManager = SessionManager.newInstance(config);
@@ -700,11 +700,19 @@ public class WebServer {
 					config.setPort(Integer.parseInt(args[i]));
 				}
 
-				//连接超时时间(s)
-				if(args[i].equals("-t")){
+				//读取超时时间(s)
+				if(args[i].equals("-rt")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					i++;
-					config.setTimeout(Integer.parseInt(args[i]));
+					config.setReadTimeout(Integer.parseInt(args[i]));
+				}
+
+
+				//发送超时时间(s)
+				if(args[i].equals("-st")){
+					config = config==null?WebContext.getWebServerConfig():config;
+					i++;
+					config.setReadTimeout(Integer.parseInt(args[i]));
 				}
 
 				//上下文路径

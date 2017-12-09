@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class WebContext {
+
 	/**
 	 * 默认的路由
 	 */
@@ -193,7 +194,8 @@ public class WebContext {
 		Logger.simple("*********************************************************************************************");
 		Logger.simple("");
 		Logger.simple("============================== [Config file parameter list] =================================");
-		Logger.simple(TString.rightPad("  Timeout:",35,' ')+config.getTimeout());
+		Logger.simple(TString.rightPad("  ReadTimeout:",35,' ')+config.getReadTimeout());
+		Logger.simple(TString.rightPad("  SendTimeout:",35,' ')+config.getSendTimeout());
 		Logger.simple(TString.rightPad("  ContextPath:",35,' ')+config.getContextPath());
 		Logger.simple(TString.rightPad("  CharacterSet: ",35,' ')+config.getCharacterSet());
 		Logger.simple(TString.rightPad("  SessionContainer:",35,' ')+config.getSessionContainer());

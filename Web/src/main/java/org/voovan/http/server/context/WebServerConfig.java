@@ -27,7 +27,8 @@ public class WebServerConfig {
     private String serverName;
     private String host             = "0.0.0.0";
     private int port                = 28080;
-    private int timeout             = 30;
+    private int readTimeout             = 30;
+    private int sendTimeout             = 30;
     private String contextPath      = "WEBAPP";
     private boolean MatchRouteIgnoreCase = false;
     private String characterSet     = "UTF-8";
@@ -65,8 +66,12 @@ public class WebServerConfig {
         this.port = port;
     }
 
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
+    public void setReadTimeout(int readTimeout) {
+        this.readTimeout = readTimeout;
+    }
+
+    public void setSendTimeout(int sendTimeout) {
+        this.sendTimeout = sendTimeout;
     }
 
     public void setContextPath(String contextPath) {
@@ -105,8 +110,12 @@ public class WebServerConfig {
         return port;
     }
 
-    public int getTimeout() {
-        return timeout;
+    public int getReadTimeout() {
+        return readTimeout;
+    }
+
+    public int getSendTimeout() {
+        return sendTimeout;
     }
 
     public String getContextPath() {
