@@ -39,8 +39,8 @@ import java.util.regex.Matcher;
  */
 public class HttpDispatcher {
 
-	private static Map<String, String> REGEXED_ROUTER = new ConcurrentHashMap<String, String>();
-	private static Map<String, List<Object>> ROUTER_CACHE = new ConcurrentHashMap<String, List<Object>>();
+	private static Map<String, String> REGEXED_ROUTER_CACHE = new ConcurrentHashMap<String, String>();
+	private static Map<String, List<Object>> ROUTER_INFO_CACHE = new ConcurrentHashMap<String, List<Object>>();
 
 	/**
 	 * [MainKey] = HTTP method ,[Value] = { [Value Key] = Route path, [Value value] = RouteBuiz对象 }
@@ -58,6 +58,11 @@ public class HttpDispatcher {
 	 * @param sessionManager Session 管理器
 	 */
 	public HttpDispatcher(WebServerConfig webConfig, SessionManager sessionManager) {
+
+		//清理缓存的路由正则
+		REGEXED_ROUTER_CACHE.clear();
+		ROUTER_INFO_CACHE.clear();
+
 		methodRouters = new LinkedHashMap<String, Map<String, HttpRouter>>();
 		this.webConfig = webConfig;
 		this.sessionManager = sessionManager;
@@ -185,14 +190,14 @@ public class HttpDispatcher {
 	/**
 	 * 获取路由处理对象和注册路由
 	 * @param request 请求对象
-	 * @return 路由信息对象 [ 匹配到的已注册路由, HttpRouter对象 ]
+	 * @return 路由信息对象 { 路由标签, [ 匹配到的已注册路由, HttpRouter对象 ] }
 	 */
 	public List<Object> findRouter(HttpRequest request){
 		String requestPath 		= request.protocol().getPath();
 		String requestMethod 	= request.protocol().getMethod();
 		String routerMark = requestPath+requestMethod;
 
-		List<Object> routerInfo = ROUTER_CACHE.get(routerMark);
+		List<Object> routerInfo = ROUTER_INFO_CACHE.get(routerMark);
 
 		if(routerInfo==null) {
 			Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
@@ -202,7 +207,7 @@ public class HttpDispatcher {
 				if (matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())) {
 					//[ 匹配到的已注册路由, HttpRouter对象 ]
 					routerInfo = TObject.asList(routePath, routeEntry.getValue());
-					ROUTER_CACHE.put(routerMark, routerInfo);
+					ROUTER_INFO_CACHE.put(routerMark, routerInfo);
 					return routerInfo;
 				}
 			}
@@ -277,15 +282,15 @@ public class HttpDispatcher {
 	 * @return  转换后的正则匹配路径
 	 */
 	public static String routePath2RegexPath(String routePath){
-		if(!REGEXED_ROUTER.containsKey(routePath)) {
+		if(!REGEXED_ROUTER_CACHE.containsKey(routePath)) {
 			String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/");
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/]*", "[^:?/]*");
 			routeRegexPath = "^/?" + routeRegexPath + "/?$";
-			REGEXED_ROUTER.put(routePath, routeRegexPath);
+			REGEXED_ROUTER_CACHE.put(routePath, routeRegexPath);
 			return routeRegexPath;
 		} else {
-			return REGEXED_ROUTER.get(routePath);
+			return REGEXED_ROUTER_CACHE.get(routePath);
 		}
 	}
 

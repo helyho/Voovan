@@ -1,6 +1,8 @@
 package org.voovan.http.server.context;
 
 import org.voovan.Global;
+import org.voovan.http.client.HttpClient;
+import org.voovan.http.message.Response;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.WebServer;
@@ -11,7 +13,9 @@ import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,24 +55,24 @@ public class WebContext {
 	/**
 	 * Web Config
 	 */
-	private static Map<String, Object> WEB_CONFIG = loadJsonFromFile(new File(TFile.getSystemPath("/conf/web.json")));
+	private static Map<String, Object> WEB_CONFIG = new HashMap<String, Object>();
 
 	/**
 	 * MimeMap
 	 */
-	private static Map<String, Object> MIME_TYPES = loadJsonFromFile(new File(TFile.getSystemPath("/conf/mime.json")));
+	private static Map<String, Object> MIME_TYPES = new HashMap<String, Object>();
 
 	/**
 	 * 错误输出 Map
 	 */
-	private static Map<String, Object> ERROR_DEFINE = loadJsonFromFile(new File(TFile.getSystemPath("/conf/error.json")));
+	private static Map<String, Object> ERROR_DEFINE = new HashMap<String, Object>();
 
 	/**
 	 *  accessLog 的文件路径
 	 */
 	private static final String ACCESS_LOG_FILE_NAME = TFile.getContextPath()+ File.separator+"logs"+ File.separator+"access.log";
 
-	private static WebServerConfig webServerConfig = buildWebServerConfig(WEB_CONFIG);
+	private static WebServerConfig webServerConfig = buildConfigFromMap(WEB_CONFIG);
 
 	private WebContext(){
 
@@ -94,6 +98,23 @@ public class WebContext {
 	}
 
 	/**
+	 * 读取配置文件
+	 */
+	public static void loadWebConfig(){
+		synchronized (WEB_CONFIG) {
+			WEB_CONFIG = loadJsonFromFile(new File(TFile.getSystemPath("/conf/web.json")));
+		}
+
+		synchronized (MIME_TYPES) {
+			MIME_TYPES = loadJsonFromFile(new File(TFile.getSystemPath("/conf/mime.json")));
+		}
+
+		synchronized (ERROR_DEFINE) {
+			ERROR_DEFINE = loadJsonFromFile(new File(TFile.getSystemPath("/conf/error.json")));
+		}
+	}
+
+	/**
 	 * 从 js 配置字符串读取配置信息到 Map
 	 * @param json 配置字符串
 	 * @return Map 对象
@@ -111,8 +132,15 @@ public class WebContext {
 	 * @param configMap 配置对象的 Map
 	 * @return WebServerConfig 对象
 	 */
-	public static WebServerConfig buildWebServerConfig(Map<String, Object> configMap){
-		WebContext.WEB_CONFIG = configMap;
+	public static WebServerConfig buildConfigFromMap(Map<String, Object> configMap){
+
+		//加载默认配置
+		loadWebConfig();
+
+		if(configMap.size() > 0 ) {
+			WebContext.WEB_CONFIG = configMap;
+		}
+
 		WebContext.webServerConfig = new WebServerConfig();
 
 		//使用反射工具自动加载配置信息
@@ -140,11 +168,18 @@ public class WebContext {
 
 	/**
 	 * 从一个配置文件, 获取一个 WebServer 的配置对象
-	 * @param configFile 配置文件
+	 * @param configFilePath 配置文件
 	 * @return WebServerConfig 对象
 	 */
-	public static WebServerConfig buildWebServerConfig(File configFile) {
-		return buildWebServerConfig(loadJsonFromFile(configFile));
+	public static WebServerConfig buildConfigFromFile(String configFilePath) {
+		String configFileFullPath = TFile.getContextPath()+ File.separator + configFilePath;
+		File configFile = new File(configFileFullPath);
+		if(configFile.exists()) {
+			return buildConfigFromMap(loadJsonFromFile(configFile));
+		}else{
+			Logger.warn("Use the config file: " + configFilePath + " is not exists, now use default config.");
+			return null;
+		}
 	}
 
 	/**
@@ -152,18 +187,48 @@ public class WebContext {
 	 * @param json 配置文件
 	 * @return WebServerConfig 对象
 	 */
-	public static WebServerConfig buildWebServerConfig(String json){
-		return buildWebServerConfig(loadJsonFromJSON(json));
+	public static WebServerConfig buildConfigFromJSON(String json){
+		return buildConfigFromMap(loadJsonFromJSON(json));
 	}
 
-	public static void initWebServerPlugin(){
+	/**
+	 * 从一个配置字符串, 获取一个 WebServer 的配置对象
+	 * @param httpUrl 配置文件
+	 * @return WebServerConfig 对象
+	 */
+	public static WebServerConfig buildConfigFromRemote(String httpUrl){
+		HttpClient httpClient = null;
+		try {
+			URL url = new URL(httpUrl);
+			httpClient = new HttpClient(url.getProtocol()+"://"+url.getHost()+":"+url.getPort());
+			Response response = httpClient.send(url.getPath());
+			if(response.protocol().getStatus() == 200) {
+				return WebContext.buildConfigFromJSON(response.body().getBodyString());
+			}else{
+				throw new IOException("Get the config url: \" + args[i] + \" error");
+			}
+		} catch (Exception e) {
+			Logger.error("Use the config url: " + httpUrl + " error", e);
+		} finally {
+			if(httpClient!=null){
+				httpClient.close();
+			}
+		}
+
+		return null;
+	}
+
+	public static void initWebServerPluginConfig(){
 		//初始化过滤器
+		webServerConfig.getFilterConfigs().clear();
 		webServerConfig.addFilterByList(getContextParameter("Filters",new ArrayList<Map<String,Object>>()));
 
 		//初始路由处理器
+		webServerConfig.getRouterConfigs().clear();
 		webServerConfig.addRouterByList(getContextParameter("Routers",new ArrayList<Map<String,Object>>()));
 
 		//初始化模块
+		webServerConfig.getModuleonfigs().clear();
 		webServerConfig.addModuleByList(getContextParameter("Modules",new ArrayList<Map<String,Object>>()));
 		Logger.simple("=============================================================================================");
 	}

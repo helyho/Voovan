@@ -16,6 +16,8 @@ import org.voovan.tools.log.Logger;
  */
 public class AnnotationModule extends HttpModule {
 
+    private HashWheelTask scanRouterTask;
+
     /**
      * 获取扫描注解路由的包路径
      * @return 注解路由的包路劲
@@ -41,19 +43,29 @@ public class AnnotationModule extends HttpModule {
         }
 
         if(scanRouterPackate != null && getScanRouterInterval() > 0){
-            //更新 ClassPath, 步长1秒, 槽数60个;
-            Global.getHashWheelTimer().addTask(new HashWheelTask() {
+
+            scanRouterTask = new HashWheelTask() {
                 @Override
                 public void run() {
                     //查找并刷新新的@Route 注解类
                     AnnotationRouter.scanRouterClassAndRegister(httpModule);
                 }
-            }, getScanRouterInterval());
+            };
+
+            //更新 ClassPath, 步长1秒, 槽数60个;
+            Global.getHashWheelTimer().addTask(scanRouterTask, getScanRouterInterval());
 
             Logger.simple("[SYSTEM] Module ["+this.getModuleConfig().getName()+"] Router scan package: "+ this.getScanRouterPackage());
             Logger.simple("[SYSTEM] Module ["+this.getModuleConfig().getName()+"] Router scan interval: "+ this.getScanRouterInterval());
 
             Logger.simple("[SYSTEM] Module ["+this.getModuleConfig().getName()+"] Start auto scan annotation router.");
+        }
+    }
+
+    @Override
+    public void unInstall() {
+        if(scanRouterTask!=null) {
+            scanRouterTask.cancel();
         }
     }
 }
