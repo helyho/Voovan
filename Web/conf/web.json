@@ -2,7 +2,8 @@
   "ServerName"             : "VoovanWebServer",           //当前服务节点名称
   "Host"                   : "0.0.0.0",                   // 服务 IP 地址,默认0.0.0.0
   "Port"                   : 28080,                       // 服务端口,默认28080
-  "Timeout"                : 30,                          // 连接超时时间(s),默认30秒
+  "ReadTimeout"                : 30,                          // 连接超时时间(s),默认30秒
+  "SendTimeout"                : 30,                          // 连接超时时间(s),默认30秒
   "IndexFiles"             : "index.htm,index.html,default.htm,default.htm", //定义首页索引文件的名称
   "ContextPath"            : "WEBAPP",                    // 上下文路径,绝对路径 "/"起始,相对路径 非"/" 起始,默认是WEBAPP
   "MatchRouteIgnoreCase"   : false,                       // 匹配路由不区分大小写,默认是 false
