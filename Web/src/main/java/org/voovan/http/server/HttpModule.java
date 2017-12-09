@@ -199,4 +199,9 @@ public abstract class HttpModule {
      * 安装模块至 WebServer
      */
     public abstract void install();
+
+    /**
+     * 安装模块至 WebServer
+     */
+    public abstract void unInstall();
 }

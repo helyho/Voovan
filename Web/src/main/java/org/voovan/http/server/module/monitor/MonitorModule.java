@@ -31,4 +31,9 @@ public class MonitorModule extends HttpModule {
         //注册过滤器,用于抓取分析数据
         filterChain().addFirst(HttpFilterConfig.newInstance("MonitorFilter",HttpMonitorFilter.class,null));
     }
+
+    @Override
+    public void unInstall() {
+
+    }
 }

@@ -17,6 +17,7 @@ import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hotswap.Hotswaper;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -143,6 +144,17 @@ public class WebServer {
 	public void initModule() {
 		for (HttpModuleConfig httpModuleConfig : config.getModuleonfigs()) {
 			addModule(httpModuleConfig);
+		}
+	}
+
+	/**
+	 * 模块卸载
+	 */
+	public void unInitModule() {
+		//卸载模块
+		for (HttpModuleConfig moduleConfig : this.config.getModuleonfigs().toArray(new HttpModuleConfig[0])) {
+			moduleConfig.getHttpModuleInstance(this).unInstall();
+			Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] uninstall");
 		}
 	}
 
@@ -328,7 +340,7 @@ public class WebServer {
 
 		try {
 			if(json!=null) {
-				return new WebServer(WebContext.buildWebServerConfig(json));
+				return new WebServer(WebContext.buildConfigFromJSON(json));
 			}else{
 				Logger.error("Create WebServer failed: WebServerConfig object is null.");
 			}
@@ -349,7 +361,7 @@ public class WebServer {
 
 		try {
 			if(configFile!=null && configFile.exists()) {
-				return new WebServer(WebContext.buildWebServerConfig(configFile));
+				return new WebServer(WebContext.buildConfigFromFile(configFile.getCanonicalPath()));
 			}else{
 				Logger.error("Create WebServer failed: WebServerConfig object is null.");
 			}
@@ -387,11 +399,11 @@ public class WebServer {
 		//输出欢迎信息
 		WebContext.welcome();
 
-		//加载过滤器,路由,模块
-		WebContext.initWebServerPlugin();
-
 		//运行初始化 Class
 		runInitClass(this);
+
+		//加载过滤器,路由,模块
+		WebContext.initWebServerPluginConfig();
 
 		//初始化路由
 		initRouter();
@@ -401,7 +413,6 @@ public class WebServer {
 
 		//初始化管理路由
 		InitManagerRouter();
-
 
 		//保存 PID
 		Long pid = TEnv.getCurrentPID();
@@ -423,6 +434,59 @@ public class WebServer {
 
 		Logger.simple("WebServer working on: \t" + WebContext.SERVICE_URL);
 
+	}
+
+	/**
+	 * 重新读取 WebConfig 的配置
+	 * @param reloadInfoJson 重新读取 WebConfig 的配置信息
+	 */
+	public void reload(String reloadInfoJson){
+
+		WebContext.PAUSE = true;
+
+		//卸载模块
+		unInitModule();
+
+		WebServerConfig config = null;
+
+		Map<String, Object> reloadInfo = (Map<String, Object>)JSON.parse(reloadInfoJson);
+		if("FILE".equals(reloadInfo.get("Type"))) {
+			config = WebContext.buildConfigFromFile(reloadInfo.get("Content").toString());
+		}
+
+		if("HTTP".equals(reloadInfo.get("Type"))) {
+			config = WebContext.buildConfigFromRemote(reloadInfo.get("Content").toString());
+		}
+
+		if("JSON".equals(reloadInfo.get("Type"))) {
+			config = WebContext.buildConfigFromJSON(reloadInfo.get("Content").toString());
+		}
+
+		this.config = config;
+
+		//构造新的请求派发器创建
+		this.httpDispatcher = new HttpDispatcher(config,sessionManager);
+		this.webSocketDispatcher = new WebSocketDispatcher(config, sessionManager);
+
+		//更新 WebServer 的 http 和 websocket 的分发
+		aioServerSocket.handler(new WebServerHandler(config, httpDispatcher,webSocketDispatcher));
+
+		//输出欢迎信息
+		WebContext.welcome();
+
+		//加载过滤器,路由,模块
+		WebContext.initWebServerPluginConfig();
+
+		//初始化路由
+		initRouter();
+
+		//初始化模块
+		initModule();
+
+		//初始化管理路由
+		InitManagerRouter();
+
+		WebContext.PAUSE = false;
 	}
 
 	/**
@@ -553,6 +617,19 @@ public class WebServer {
 			}
 		});
 
+		otherMethod("ADMIN", "/reload", new HttpRouter() {
+			@Override
+			public void process(HttpRequest request, HttpResponse response) throws Exception {
+
+				if(hasAdminRight(request)) {
+					reload(request.body().getBodyString());
+					response.write("OK");
+				}else{
+					request.getSession().close();
+				}
+			}
+		});
+
 		otherMethod("ADMIN", "/authtoken", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
@@ -653,37 +730,13 @@ public class WebServer {
 				//服务监听地址
 				if(args[i].equals("--config")){
 					i++;
-					String configFilePath = TFile.getContextPath()+ File.separator + (args[i]);
-					File configFile = new File(configFilePath);
-					if(configFile.exists()) {
-						config = WebContext.buildWebServerConfig(configFile);
-						break;
-					}else{
-						Logger.warn("Use the config file: " + configFilePath + " is not exists, now use default config.");
-					}
+					config = WebContext.buildConfigFromFile(args[i]);
 				}
 
 				//服务监听地址
 				if(args[i].equals("--remoteConfig")){
 					i++;
-					HttpClient httpClient = null;
-					try {
-						URL url = new URL(args[i]);
-						httpClient = new HttpClient(url.getProtocol()+"://"+url.getHost()+":"+url.getPort());
-						Response response = httpClient.send(url.getPath());
-						if(response.protocol().getStatus() == 200) {
-							config = WebContext.buildWebServerConfig(response.body().getBodyString());
-							break;
-						}else{
-							throw new IOException("Get the config url: \" + args[i] + \" error");
-						}
-					} catch (Exception e) {
-						Logger.error("Use the config url: " + args[i] + " error", e);
-					} finally {
-						if(httpClient!=null){
-							httpClient.close();
-						}
-					}
+					config = WebContext.buildConfigFromRemote(args[i]);
 				}
 
 				//服务监听地址
