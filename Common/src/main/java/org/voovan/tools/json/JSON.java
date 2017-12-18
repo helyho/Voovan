@@ -57,6 +57,7 @@ public class JSON {
 	/**
 	 * 将 Java 对象 转换成 JSON字符串
 	 * @param object   	待转换的对象
+	 * @param convertEscapeChar 是否转换转义字符
 	 * @return			转换后的 JSON 字符串
 	 */
 	public static String toJSON(Object object, boolean convertEscapeChar){

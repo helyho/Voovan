@@ -376,13 +376,15 @@ public class HttpClient implements Closeable{
 		//1.没有报文 Body,参数包含于请求URL
 		if (request.getBodyType() == Request.RequestType.NORMAL) {
 			String queryString = getQueryString();
-			String requestPath = request.protocol().getPath();
-			if(requestPath.contains("?")){
-				queryString = "&"+queryString;
-			}else{
-				queryString = "?"+queryString;
+			if(!TString.isNullOrEmpty(queryString)) {
+				String requestPath = request.protocol().getPath();
+				if (requestPath.contains("?")) {
+					queryString = "&" + queryString;
+				} else {
+					queryString = "?" + queryString;
+				}
+				request.protocol().setPath(request.protocol().getPath() + queryString);
 			}
-			request.protocol().setPath(request.protocol().getPath() + queryString);
 		}
 		//2.请求报文Body 使用Part 类型
 		else if(request.getBodyType() == Request.RequestType.BODY_MULTIPART){
@@ -465,7 +467,6 @@ public class HttpClient implements Closeable{
 
 		return null;
 	}
-
 
 	/**
 	 * 连接并发送请求
