@@ -551,7 +551,7 @@ public class HttpParser {
 					}
 					break;
 				default:
-					request.header().put(parsedPacketEntry.getKey(), parsedPacketEntry.getValue().toString());
+					request.header().put(fixHeaderKey(parsedPacketEntry.getKey()), parsedPacketEntry.getValue().toString());
 					break;
 			}
 		}
@@ -560,6 +560,29 @@ public class HttpParser {
 
 		return request;
 	}
+
+	/**
+	 * 校正全小写形式的 Http 头
+	 * @param key http 头的 key
+	 * @return 校正后的 ky
+	 */
+	public static String fixHeaderKey(String key) {
+		if(key.codePointAt(0) > 96){
+			String[] keySplites = key.split("-");
+			StringBuilder stringBuilder = new StringBuilder();
+			for(String keySplite : keySplites){
+				stringBuilder.append((char)(keySplite.codePointAt(0) - 32));
+				stringBuilder.append(TString.removePrefix(keySplite));
+				stringBuilder.append("-");
+			}
+
+			return stringBuilder.substring(0, stringBuilder.length()-1);
+
+		} else {
+			return key;
+		}
+	}
+
 
 	/**
 	 * 解析报文成 HttpResponse 对象

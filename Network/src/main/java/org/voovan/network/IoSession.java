@@ -194,10 +194,9 @@ public abstract class IoSession<T extends SocketContext> {
 				};
 
 				checkIdleTask.run();
+
+				Global.getHashWheelTimer().addTask(checkIdleTask, 1);
 			}
-
-
-			Global.getHashWheelTimer().addTask(checkIdleTask, 1);
 		}
 	}
 
