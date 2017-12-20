@@ -568,8 +568,6 @@ public class HttpParser {
 	 * @return 校正后的http 头的行数据
 	 */
 	public static String fixHeaderLine(String headerLine) {
-
-
 		if(headerLine.codePointAt(0) > 96){
 			String[] headerSplites = headerLine.split(": ");
 			String key = headerSplites[0];
