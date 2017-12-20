@@ -254,6 +254,7 @@ public class HttpParser {
 
 			//处理 cookie 和 header
 			if(!isBodyConent){
+				currentLine = fixHeaderLine(currentLine);
 				if(currentLine.contains(HEAD_COOKIE)){
 					parseCookie(packetMap,currentLine);
 				}else{
@@ -551,7 +552,7 @@ public class HttpParser {
 					}
 					break;
 				default:
-					request.header().put(fixHeaderKey(parsedPacketEntry.getKey()), parsedPacketEntry.getValue().toString());
+					request.header().put(parsedPacketEntry.getKey(), parsedPacketEntry.getValue().toString());
 					break;
 			}
 		}
@@ -563,11 +564,16 @@ public class HttpParser {
 
 	/**
 	 * 校正全小写形式的 Http 头
-	 * @param key http 头的 key
-	 * @return 校正后的 ky
+	 * @param headerLine http 头的行数据
+	 * @return 校正后的http 头的行数据
 	 */
-	public static String fixHeaderKey(String key) {
-		if(key.codePointAt(0) > 96){
+	public static String fixHeaderLine(String headerLine) {
+
+
+		if(headerLine.codePointAt(0) > 96){
+			String[] headerSplites = headerLine.split(": ");
+			String key = headerSplites[0];
+
 			String[] keySplites = key.split("-");
 			StringBuilder stringBuilder = new StringBuilder();
 			for(String keySplite : keySplites){
@@ -576,10 +582,10 @@ public class HttpParser {
 				stringBuilder.append("-");
 			}
 
-			return stringBuilder.substring(0, stringBuilder.length()-1);
+			return stringBuilder.substring(0, stringBuilder.length()-1) + ": " + headerSplites[1];
 
 		} else {
-			return key;
+			return headerLine;
 		}
 	}
 
