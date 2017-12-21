@@ -26,6 +26,9 @@ public class AioServerSocket extends SocketContext {
 	private AsynchronousServerSocketChannel serverSocketChannel;
 	private AcceptCompletionHandler acceptCompletionHandler;
 
+	//用来阻塞当前Socket
+	private Object waitObj = new Object();
+
 
 	/**
 	 * 构造函数
@@ -113,9 +116,13 @@ public class AioServerSocket extends SocketContext {
 	@Override
 	public void start() throws IOException {
 		syncStart();
-		//等待ServerSocketChannel关闭,结束进程
-		while(isConnected()) {
-			TEnv.sleep(1);
+
+		synchronized (waitObj){
+			try {
+				waitObj.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -166,12 +173,18 @@ public class AioServerSocket extends SocketContext {
 				if(serverSocketChannel.isOpen()){
 					serverSocketChannel.close();
 				}
+				synchronized (waitObj) {
+					waitObj.notify();
+				}
 				return true;
 			}catch(IOException e){
 				Logger.error("SocketChannel close failed",e);
 				return false;
 			}
 		}else{
+			synchronized (waitObj) {
+				waitObj.notify();
+			}
 			return true;
 		}
 	}
