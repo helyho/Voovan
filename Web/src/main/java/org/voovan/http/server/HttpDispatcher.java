@@ -82,7 +82,6 @@ public class HttpDispatcher {
 
 		// Mime静态文件默认请求处理
 		mimeFileRouter = new MimeFileRouter(webConfig.getContextPath());
-		addRouteHandler("GET", MimeTools.getMimeTypeRegex(), mimeFileRouter);
 	}
 
 	/**
@@ -188,27 +187,48 @@ public class HttpDispatcher {
 	}
 
 	/**
+	 * 判断当前的请求是否是静态文件
+	 * @param request request 请求对象
+	 * @return true: 存在静态文件, false: 不存在静态文件
+	 */
+	public boolean isStaticFile(HttpRequest request) {
+		File staticFile = mimeFileRouter.getStaticFile(request);
+		if(staticFile.exists() && staticFile.isFile()){
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
 	 * 获取路由处理对象和注册路由
 	 * @param request 请求对象
 	 * @return 路由信息对象 { 路由标签, [ 匹配到的已注册路由, HttpRouter对象 ] }
 	 */
 	public List<Object> findRouter(HttpRequest request){
-		String requestPath 		= request.protocol().getPath();
+		String requestPath   = request.protocol().getPath();
 		String requestMethod 	= request.protocol().getMethod();
-		String routerMark = requestPath+requestMethod;
+		String routerMark    = requestPath+requestMethod;
 
 		List<Object> routerInfo = ROUTER_INFO_CACHE.get(routerMark);
 
 		if(routerInfo==null) {
-			Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
-			for (Map.Entry<String, HttpRouter> routeEntry : routers.entrySet()) {
-				String routePath = routeEntry.getKey();
-				//寻找匹配的路由对象
-				if (matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())) {
-					//[ 匹配到的已注册路由, HttpRouter对象 ]
-					routerInfo = TObject.asList(routePath, routeEntry.getValue());
-					ROUTER_INFO_CACHE.put(routerMark, routerInfo);
-					return routerInfo;
+			//判断是否是静态文件
+			if(isStaticFile(request)){
+				routerInfo = TObject.asList(request.protocol().getPath(), mimeFileRouter);
+				ROUTER_INFO_CACHE.put(routerMark, routerInfo);
+				return routerInfo;
+			} else {
+				Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
+				for (Map.Entry<String, HttpRouter> routeEntry : routers.entrySet()) {
+					String routePath = routeEntry.getKey();
+					//寻找匹配的路由对象
+					if (matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())) {
+						//[ 匹配到的已注册路由, HttpRouter对象 ]
+						routerInfo = TObject.asList(routePath, routeEntry.getValue());
+						ROUTER_INFO_CACHE.put(routerMark, routerInfo);
+						return routerInfo;
+					}
 				}
 			}
 		}
@@ -286,7 +306,7 @@ public class HttpDispatcher {
 			String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/");
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/]*", "[^:?/]*");
-			routeRegexPath = "^/?" + routeRegexPath + "/?$";
+			routeRegexPath = "^\\/?" + routeRegexPath + "\\/?$";
 			REGEXED_ROUTER_CACHE.put(routePath, routeRegexPath);
 			return routeRegexPath;
 		} else {
@@ -310,7 +330,7 @@ public class HttpDispatcher {
 			requestPath = requestPath.toLowerCase();
 			routeRegexPath = routeRegexPath.toLowerCase();
 		}
-		if(TString.regexMatch(requestPath, routeRegexPath ) > 0 ){
+		if(TString.regexMatch(requestPath, routeRegexPath) > 0 ){
 			return true;
 		}else {
 			return false;
