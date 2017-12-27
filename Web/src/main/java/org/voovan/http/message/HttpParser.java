@@ -254,6 +254,7 @@ public class HttpParser {
 
 			//处理 cookie 和 header
 			if(!isBodyConent){
+				currentLine = fixHeaderLine(currentLine);
 				if(currentLine.contains(HEAD_COOKIE)){
 					parseCookie(packetMap,currentLine);
 				}else{
@@ -560,6 +561,32 @@ public class HttpParser {
 
 		return request;
 	}
+
+	/**
+	 * 校正全小写形式的 Http 头
+	 * @param headerLine http 头的行数据
+	 * @return 校正后的http 头的行数据
+	 */
+	public static String fixHeaderLine(String headerLine) {
+		if(headerLine.codePointAt(0) > 96){
+			String[] headerSplites = headerLine.split(": ");
+			String key = headerSplites[0];
+
+			String[] keySplites = key.split("-");
+			StringBuilder stringBuilder = new StringBuilder();
+			for(String keySplite : keySplites){
+				stringBuilder.append((char)(keySplite.codePointAt(0) - 32));
+				stringBuilder.append(TString.removePrefix(keySplite));
+				stringBuilder.append("-");
+			}
+
+			return stringBuilder.substring(0, stringBuilder.length()-1) + ": " + headerSplites[1];
+
+		} else {
+			return headerLine;
+		}
+	}
+
 
 	/**
 	 * 解析报文成 HttpResponse 对象
