@@ -11,6 +11,7 @@ import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -762,6 +763,12 @@ public class TReflect {
 			Class arrayClass = clazz.getComponentType();
 			Object tempArrayObj = Array.newInstance(arrayClass, 0);
 			return (T)((Collection)singleValue).toArray((Object[])tempArrayObj);
+		}
+		//java BigDecimal对象
+		else if (isExtendsByClass(clazz, BigDecimal.class)) {
+			//取 Map.Values 里的递第一个值
+			String value = singleValue==null?null:singleValue.toString();
+			obj = (T)(singleValue==null?null:new BigDecimal(value));
 		}
 		//java基本对象
 		else if (TReflect.isBasicType(clazz)) {
