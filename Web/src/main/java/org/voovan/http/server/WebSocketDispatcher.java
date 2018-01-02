@@ -167,18 +167,20 @@ public class WebSocketDispatcher {
 					return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false, byteBuffer);
 				} else if (event == WebSocketEvent.PONG) {
 					final IoSession poneSession = session;
-					Global.getThreadPool().execute(new Runnable() {
-						@Override
-						public void run() {
-							TEnv.sleep(poneSession.socketContext().getReadTimeout() / 3);
-							try {
-								poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
-							} catch (SendMessageException e) {
-								poneSession.close();
-								Logger.error("Send WebSocket ping error", e);
+					if(poneSession.isConnected()) {
+						Global.getThreadPool().execute(new Runnable() {
+							@Override
+							public void run() {
+								TEnv.sleep(poneSession.socketContext().getReadTimeout() / 3);
+								try {
+									poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+								} catch (SendMessageException e) {
+									poneSession.close();
+									Logger.error("Send WebSocket ping error", e);
+								}
 							}
-						}
-					});
+						});
+					}
 				}
 			} catch (WebSocketFilterException e) {
 				Logger.error(e);
