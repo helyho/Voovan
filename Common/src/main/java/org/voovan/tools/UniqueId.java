@@ -39,10 +39,10 @@ public class UniqueId {
      * @param signId 标识 ID
      */
     public UniqueId(int signId) {
-        if(workId > signIdLeft || signId < 0){
-            throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", signIdLeft));
+        if(workId > maxsignId || signId < 0){
+            throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", maxsignId));
         }
-        workId = 0;
+        workId = signId;
     }
 
     /**
