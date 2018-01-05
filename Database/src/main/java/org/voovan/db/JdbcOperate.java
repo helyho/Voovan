@@ -118,6 +118,7 @@ public class JdbcOperate {
 	 */
 	private ResultInfo baseQuery(String sqlText, Map<String, Object> mapArg) throws SQLException {
 		Connection conn = getConnection();
+		SQLException exception = null;
 		try {
 			//构造PreparedStatement
 			PreparedStatement preparedStatement = TSQL.createPreparedStatement(conn, sqlText, mapArg);
@@ -126,8 +127,14 @@ public class JdbcOperate {
 			return new ResultInfo(rs,this.isTrancation);
 		} catch (SQLException e) {
 			closeConnection(conn);
-			Logger.error("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " ,e);
+			Logger.error("Query execution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " ,e);
+			exception = e;
 		}
+
+		if(exception!=null){
+			throw exception;
+		}
+
 		return null;
 	}
 
@@ -149,7 +156,7 @@ public class JdbcOperate {
 			preparedStatement = TSQL.createPreparedStatement(conn, sqlText, mapArg);
 			return preparedStatement.executeUpdate();
 		} catch (SQLException e) {
-			Logger.error("Update excution SQL Error! \n SQL is :\n\t " + sqlText + "\nError is: \n\t" ,e);
+			Logger.error("Update execution SQL Error! \n SQL is :\n\t " + sqlText + "\nError is: \n\t" ,e);
 			exception = e;
 		} finally {
 			// 非事物模式执行
@@ -205,7 +212,7 @@ public class JdbcOperate {
 
 			return result;
 		} catch (SQLException e) {
-			Logger.error("Batch excution SQL Error! \n SQL is : \n\t" + sqlText + ":\n\t" ,e);
+			Logger.error("Batch execution SQL Error! \n SQL is : \n\t" + sqlText + ":\n\t" ,e);
 			exception = e;
 		} finally {
 			// 非事物模式执行
@@ -237,7 +244,7 @@ public class JdbcOperate {
 			List<Object> objList = TSQL.getCallableStatementResult(callableStatement);
 			return objList;
 		} catch (SQLException e) {
-			Logger.error("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " ,e);
+			Logger.error("Query execution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " ,e);
 			exception = e;
 		} finally {
 			// 非事物模式执行
