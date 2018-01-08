@@ -298,11 +298,11 @@ public class JSONDecode {
 						HashMap<String, Object> result = (HashMap<String, Object>) jsonResult;
 						if (keyString != null) {
 							//判断是字符串去掉头尾的包裹符号
-							if (keyString.charAt(0) == '\"' && keyString.charAt(keyString.length()-1) == '\"') {
+							if (keyString.length() >= 2 && keyString.charAt(0) == '\"' && keyString.charAt(keyString.length()-1) == '\"') {
 								keyString = keyString.substring(1, keyString.length() - 1);
 							}
 							//判断是字符串去掉头尾的包裹符号
-							if (keyString.charAt(0) == '\'' && keyString.charAt(keyString.length()-1) == '\'') {
+							if (keyString.length() >= 2 && keyString.charAt(0) == '\'' && keyString.charAt(keyString.length()-1) == '\'') {
 								keyString = keyString.substring(1, keyString.length() - 1);
 							}
 							result.put(keyString, value);
