@@ -114,7 +114,8 @@ public class TProperties {
 	 *
 	 * @param file 文件对象
 	 * @param name 属性名
-	 * @param name 属性值
+	 * @param value 属性值
+	 * @throws IOException IO异常
 	 */
 	public static void setString(File file, String name, String value) throws IOException {
 		Properties properites = getProperties(file);

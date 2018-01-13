@@ -170,6 +170,7 @@ public class HttpSession {
 
 	/**
 	 *  返回当前 Session 的属性Map
+	 *  @return Session 的属性Map
 	 */
 	public Map<String,Object> attribute() {
 		return attributes;

@@ -128,8 +128,7 @@ public class TReflect {
 	/**
 	 * 获取范型类型
 	 * @param type 类型对象
-	 * @return Class 对象
-	 * @throws ClassNotFoundException 类找不到异常
+	 * @return Class[] 对象
 	 */
 	public static Class[] getGenericClass(ParameterizedType type) {
 		Class[] result = null;

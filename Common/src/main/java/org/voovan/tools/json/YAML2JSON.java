@@ -30,6 +30,7 @@ public class YAML2JSON {
 	 *
 	 * @param byteBufferChannel 待解析的 JSON 字符串
 	 * @return 解析后的对象
+	 * @throws IOException IO异常
 	 */
 	public static String convert(ByteBufferChannel byteBufferChannel) throws IOException {
 

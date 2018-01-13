@@ -56,7 +56,7 @@ public class HttpMonitorFilter implements HttpFilter {
 
 	/**
 	 * ip 数据的分析
-	 * @param request
+	 * @param request Http请求对象
 	 */
 	public void ipAddressAnalysis(HttpRequest request){
 		String requestPath = request.protocol().getPath();

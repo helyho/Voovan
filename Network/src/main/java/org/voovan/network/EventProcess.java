@@ -45,8 +45,9 @@ public class EventProcess {
 	/**
 	 * 连接成功事件 建立连接完成后出发
 	 *
-	 * @param event
-	 *            事件对象
+	 * @param event 事件对象
+	 * @throws IOException IO 异常
+	 *
 	 */
 	public static void onConnect(Event event) throws IOException {
 

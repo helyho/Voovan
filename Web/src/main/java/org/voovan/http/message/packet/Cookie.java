@@ -160,6 +160,7 @@ public class Cookie {
 	 * @param name		名称
 	 * @param value		值
 	 * @param maxAge	失效时间,单位秒
+	 * @param isHttpOnly httpOnly属性
 	 * @return Cookie 对象
 	 */
 	public static Cookie newInstance(String domain, String path, String name,String value,int maxAge, boolean isHttpOnly){
@@ -180,6 +181,7 @@ public class Cookie {
 	 * @param name		名称
 	 * @param value		值
 	 * @param maxAge	失效时间,单位秒
+	 * @param isHttpOnly httpOnly属性
 	 * @return Cookie 对象
 	 */
 	public static Cookie newInstance(Request request, String path, String name, String value, int maxAge, boolean isHttpOnly){

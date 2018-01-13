@@ -201,6 +201,7 @@ public class TPerformance {
 	/**
 	 * 获取当前JVM加载的对象信息(数量,所占内存大小)
 	 * @param regex 正则表达式
+	 * @param headCount 头部记录数
 	 * @return 系统对象信息的Map
 	 */
 	public static Map<String,TPerformance.ObjectInfo> getJVMObjectInfo(String regex, int headCount) {
@@ -331,9 +332,9 @@ public class TPerformance {
 	/**
 	 * 获取当前系统CPU 使用率
 	 * 		仅限 Linux
-	 * @return float efficiency
-	 * @throws IOException
-	 * @throws InterruptedException
+	 * @return cpu信息
+	 * @throws IOException  IO 异常
+	 * @throws InterruptedException 打断异常
 	 */
 	public static Map<String, Integer> getSysCpuInfo() throws IOException, InterruptedException {
 		if(System.getProperty("os.name").toLowerCase().contains("linux")) {

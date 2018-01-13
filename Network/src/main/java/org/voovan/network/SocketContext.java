@@ -26,7 +26,7 @@ public abstract class SocketContext {
 
 	/**
 	 * 构造一个异步通道线程组
-	 * @return
+	 * @return AsynchronousChannelGroup 异步通道线程组
 	 */
 	public static AsynchronousChannelGroup buildAsynchronousChannelGroup(){
 		try {
