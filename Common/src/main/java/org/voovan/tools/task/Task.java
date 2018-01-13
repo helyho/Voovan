@@ -29,6 +29,8 @@ public abstract class Task {
 
     /**
      * 构造函数
+     * @param name 任务名称
+     * @param delay 任务重复执行间隔事件
      */
     public Task(String name, int delay){
         startTime = System.currentTimeMillis();

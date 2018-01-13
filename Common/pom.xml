@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.voovan</groupId>
         <artifactId>voovan-parent</artifactId>
-        <version>3.0.0</version>
+        <version>3.2.0</version>
     </parent>
 
     <dependencies>
@@ -22,13 +22,6 @@
             <version>1.8</version>
             <scope>system</scope>
             <systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>2.9.0</version>
-            <type>jar</type>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>redis.clients</groupId>

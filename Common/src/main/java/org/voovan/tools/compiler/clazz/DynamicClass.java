@@ -100,7 +100,7 @@ public class DynamicClass {
 
     /**
      * 获取源代码
-     * @return
+     * @return 返回源码信息
      */
      public String getCode() {
         if (codeFile != null) {

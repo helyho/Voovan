@@ -40,6 +40,9 @@ public class DynamicCompiler {
 
 	/**
 	 * 编译器
+	 * @param classPath classpath 路径
+	 * @param extDirs 加载的扩展路径
+	 * @param classDir class文件的输出路径
 	 */
 	public DynamicCompiler(String classPath, String extDirs, String classDir) {
 		if(classPath!=null) {
@@ -93,7 +96,7 @@ public class DynamicCompiler {
 	/**
 	 * 编译多个系统中的java源文件为class文件
 	 * @param javaFileNameList java文件名列表
-	 * @return  是否编译成功
+	 * @return  是否编译成功, true: 成功, false: 失败
 	 */
 	public Boolean compileCode(List<String> javaFileNameList){
 		fileManager = compiler.getStandardFileManager(diagnosticCollector, null, null);
@@ -106,7 +109,7 @@ public class DynamicCompiler {
 	/**
 	 * 编译多个系统中的java源文件为class文件
 	 * @param javaFileArray java文件列表
-	 * @return  是否编译成功
+	 * @return  是否编译成功, true: 成功, false: 失败
 	 */
 	public Boolean compileCode(File[] javaFileArray){
 		fileManager = compiler.getStandardFileManager(diagnosticCollector, null, null);
@@ -128,7 +131,7 @@ public class DynamicCompiler {
 	/**
 	 * 编译java源文件，底层函数描述
 	 * @param compilationUnits  编译对象
-	 * @return 是否编译成功
+	 * @return 是否编译成功, true: 成功, false: 失败
 	 */
 	private Boolean basicCompileCode(Iterable<? extends JavaFileObject> compilationUnits){
 

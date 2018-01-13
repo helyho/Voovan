@@ -38,7 +38,7 @@ public class JSON {
 
 	/**
 	 * 设置是否进行 EscapeChar 的转换
-	 * @return true: 是, false: 否
+	 * @param convertEscapeChar true: 是, false: 否
 	 */
 	public static void setConvertEscapeChar(boolean convertEscapeChar) {
 		JSON.convertEscapeChar.set(convertEscapeChar);

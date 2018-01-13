@@ -34,6 +34,7 @@ public class WebSocketSession {
      * 构造函数
      * @param socketSession Socket 会话
      * @param webSocketRouter WebSocket 路由处理对象
+     * @param webSocketType WebSocket类型
      */
     public WebSocketSession(IoSession socketSession, WebSocketRouter webSocketRouter, WebSocketType webSocketType){
         this.socketSession = socketSession;

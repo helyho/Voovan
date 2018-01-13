@@ -228,7 +228,7 @@ public class TByteBuffer {
 
     /**
      * 判断是否已经释放
-     * @param byteBuffer
+     * @param byteBuffer ByteBuffer 对象
      * @return true: 已释放, false: 未释放
      */
     public static boolean isReleased(ByteBuffer byteBuffer){
@@ -334,6 +334,7 @@ public class TByteBuffer {
      * 获取内存地址
      * @param byteBuffer bytebuffer 对象
      * @return 内存地址
+     * @throws ReflectiveOperationException 反射异常
      */
     public static Long getAddress(ByteBuffer byteBuffer) throws ReflectiveOperationException {
         return (Long) addressField.get(byteBuffer);
@@ -343,6 +344,7 @@ public class TByteBuffer {
      * 设置内存地址
      * @param byteBuffer bytebuffer 对象
      * @param address 内存地址
+     * @throws ReflectiveOperationException 反射异常
      */
     public static void setAddress(ByteBuffer byteBuffer, long address) throws ReflectiveOperationException {
         addressField.set(byteBuffer, address);
@@ -356,6 +358,7 @@ public class TByteBuffer {
      * 获取附加对象
      * @param byteBuffer bytebuffer 对象
      * @return 附加对象
+     * @throws ReflectiveOperationException 反射异常
      */
     public static Object getAtt(ByteBuffer byteBuffer) throws ReflectiveOperationException {
         return attField.get(byteBuffer);
@@ -365,6 +368,7 @@ public class TByteBuffer {
      * 设置附加对象
      * @param byteBuffer bytebuffer 对象
      * @param attr 附加对象
+     * @throws ReflectiveOperationException 反射异常
      */
     public static void setAttr(ByteBuffer byteBuffer, Object attr) throws ReflectiveOperationException {
         attField.set(byteBuffer, attr);

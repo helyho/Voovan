@@ -525,8 +525,8 @@ public class WebServer {
 	/**
 	 * 是否具备管理权限
 	 *      这里控制必须是 127.0.0.1的 ip 地址, 并且需要提供 authToken
-	 * @param request
-	 * @return
+	 * @param request http请求对象
+	 * @return true: 具备管理权限, false: 不具备管理权限
 	 */
 	public static boolean hasAdminRight(HttpRequest request){
 		if(!request.getRemoteAddres().equals("127.0.0.1")){
@@ -712,6 +712,7 @@ public class WebServer {
 
 	/**
 	 * 是否处于服务状态
+	 * @return true: 处于服务状态, false: 不处于服务状态
 	 */
 	public boolean isServing(){
 		return aioServerSocket.isConnected();

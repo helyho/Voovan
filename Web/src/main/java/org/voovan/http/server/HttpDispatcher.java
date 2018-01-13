@@ -239,6 +239,7 @@ public class HttpDispatcher {
 	/**
 	 * Http 路由处理函数
 	 * @param request    Http请求对象
+	 * @param response    Http响应对象
 	 */
 	public void disposeRoute(HttpRequest request, HttpResponse response){
 		String requestPath = request.protocol().getPath();

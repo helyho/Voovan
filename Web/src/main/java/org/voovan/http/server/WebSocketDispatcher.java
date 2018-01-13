@@ -51,6 +51,7 @@ public class WebSocketDispatcher {
 	/**
 	 * 构造函数
 	 * @param webConfig WEB 配置对象
+	 * @param sessionManager session 管理器
 	 */
 	public WebSocketDispatcher(WebServerConfig webConfig, SessionManager sessionManager) {
 		this.webConfig = webConfig;

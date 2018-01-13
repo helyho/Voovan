@@ -48,7 +48,7 @@ public class SessionManager{
 
 	/**
 	 * 判断缓存session 的 map 是否支持自清除
-	 * @return
+	 * @return true:支持自清除, false: 不支持自清除
 	 */
 	public boolean autoExpire(){
 

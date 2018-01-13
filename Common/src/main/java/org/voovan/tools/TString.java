@@ -673,7 +673,6 @@ public class TString {
 	/**
 	 * 快速生成短ID
 	 * @param obj 生成 id 的对象
-	 * @sign 生成 ID 的标记
 	 * @return 快速生成短的ID
 	 */
 	public static String generateId(Object obj) {
@@ -683,6 +682,7 @@ public class TString {
 	/**
 	 * 快速生成短ID
 	 * @param obj 生成 id 的对象
+	 * @param sign 生成 ID 的标记
 	 * @return 快速生成短的ID
 	 */
 	public static String generateId(Object obj, String sign) {

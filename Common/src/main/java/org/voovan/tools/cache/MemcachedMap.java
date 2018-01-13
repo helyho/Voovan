@@ -227,7 +227,7 @@ public class MemcachedMap implements Map<String, String> , Closeable {
 
     /**
      * 删除指定的 key,不等待返回
-     * @param key
+     * @param key 键
      */
     public void removeWithNoReply(Object key) {
         MemcachedClient memcachedClient = getMemcachedClient();
@@ -336,7 +336,7 @@ public class MemcachedMap implements Map<String, String> , Closeable {
      * 向指定的 key 尾部追加数据
      * @param key key 名称
      * @param value 数据
-     * @return
+     * @return true: 成功, false: 失败
      */
     public boolean append(String key, Object value){
         MemcachedClient memcachedClient = null;
@@ -353,7 +353,7 @@ public class MemcachedMap implements Map<String, String> , Closeable {
      * 向指定的 key 头部追加数据
      * @param key key 名称
      * @param value 数据
-     * @return
+     * @return true: 成功, false: 失败
      */
     public boolean prepend(String key, Object value){
         MemcachedClient memcachedClient = null;
@@ -370,7 +370,6 @@ public class MemcachedMap implements Map<String, String> , Closeable {
      * 向指定的 key 尾部追加数据,不等待返回
      * @param key key 名称
      * @param value 数据
-     * @return
      */
     public void appendWithNoReply(String key, Object value){
         MemcachedClient memcachedClient = null;
@@ -386,7 +385,6 @@ public class MemcachedMap implements Map<String, String> , Closeable {
      * 向指定的 key 头部追加数据,不等待返回
      * @param key key 名称
      * @param value 数据
-     * @return
      */
     public void prependWithNoReply(String key, Object value){
         MemcachedClient memcachedClient = null;
