@@ -295,6 +295,13 @@ public class AnnotationRouter implements HttpRouter {
         }
     }
 
+    /**
+     * 效验请求参数 和 session 参数是否合法
+     * @param method 请求的业务方法
+     * @param httpRequest 请求对象
+     * @return 响应字符串, null 为效验失败
+     * @throws Exception 异常信息
+     */
     public String check(Method method, HttpRequest httpRequest) throws Exception{
         Check[] methodCheckAnnotations =  method.getAnnotationsByType(Check.class);
         for(Check check : methodCheckAnnotations) {
