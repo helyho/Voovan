@@ -26,10 +26,17 @@ public class AnnotationRouterTest {
     //将请求中名为 aa 的 参数在调用时注入成方法的 aa 参数
     //将请求中名为 bb 的 参数在调用时注入成方法的 bb 参数
     @Router
+//    @Check(name = "bb", value = "null", valueMethod = "org.voovan.test.http.router.AnnotationRouterTest#checkMethod", response = "bb is error")
+    @Check(name = "bb", value = "null", responseMethod = "org.voovan.test.http.router.AnnotationRouterTest#checkMethod")
+    @Check(name = "aa", value = "0")
     public String params(@Param("bb") String aa, @Param("aa") int bb){
         String oldPath = lastPath;
         lastPath = "/annon/parms, time:" + System.currentTimeMillis();
         return "params: aa=" + aa + ", bb=" + bb+ ", lastPath="+oldPath;
+    }
+
+    public static String checkMethod(Object obj){
+        return null;
     }
 
     //将当前方法注解为一个请求路由

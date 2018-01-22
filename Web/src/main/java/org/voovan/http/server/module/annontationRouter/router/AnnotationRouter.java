@@ -11,7 +11,6 @@ import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -276,14 +275,19 @@ public class AnnotationRouter implements HttpRouter {
     public void process(HttpRequest request, HttpResponse response) throws Exception {
 
         try {
-            Object responseObj = invokeRouterMethod(request, response, clazz, method);
-            if (responseObj != null) {
-                if (responseObj instanceof String) {
-                    response.write((String) responseObj);
-                } else if (responseObj instanceof byte[]) {
-                    response.write((byte[]) responseObj);
-                } else {
-                    response.write(JSON.toJSON(responseObj));
+            String checkResult = check(method, request);
+            if(checkResult != null){
+                response.write((String) checkResult);
+            } else {
+                Object responseObj = invokeRouterMethod(request, response, clazz, method);
+                if (responseObj != null) {
+                    if (responseObj instanceof String) {
+                        response.write((String) responseObj);
+                    } else if (responseObj instanceof byte[]) {
+                        response.write((byte[]) responseObj);
+                    } else {
+                        response.write(JSON.toJSON(responseObj));
+                    }
                 }
             }
         }catch(Exception e){
@@ -291,5 +295,53 @@ public class AnnotationRouter implements HttpRouter {
         }
     }
 
+    public String check(Method method, HttpRequest httpRequest) throws Exception{
+        Check[] methodCheckAnnotations =  method.getAnnotationsByType(Check.class);
+        for(Check check : methodCheckAnnotations) {
+
+
+            //检查名称是否为空
+            if(check.name().equals("null")){
+                return null;
+            }
+
+            //获取参数值
+            Object value = null;
+            if(check.Source() == Source.REQ_PARAM) {
+                value = httpRequest.getParameters().get(check.name());
+            } else if(check.Source() == Source.SESSION_PARAM) {
+                value = httpRequest.getSession().getAttribute(check.name());
+            }
+
+            //检查数据是否符合要求
+            if(!check.valueMethod().equals("null")){
+                String[] methodConfig = check.valueMethod().split("#");
+                if(methodConfig.length == 2){
+                    Class methodClass =  Class.forName(methodConfig[0]);
+                    value = TReflect.invokeMethod(methodClass, methodConfig[1], value);
+                }
+            }
+
+            //如果数据为 null 转换为 "null"
+            if(value == null){
+                value = "null";
+            }
+
+            //检查值是否匹配
+            if(check.value().equals(value)){
+                if(check.responseMethod().equals("null")){
+                    return check.response();
+                } else {
+                    String[] methodConfig = check.responseMethod().split("#");
+                    if(methodConfig.length == 2){
+                        Class methodClass =  Class.forName(methodConfig[0]);
+                        return JSON.toJSON(TReflect.invokeMethod(methodClass, methodConfig[1], value));
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
 
 }
