@@ -23,7 +23,7 @@ public @interface Check {
     String response() default "null";
 
     /**
-     * 方法
+     * 响应方法
      * 形式类似 classpath#method
      * @return
      */
@@ -36,7 +36,7 @@ public @interface Check {
     String value() default "null";
 
     /**
-     * 方法
+     * 参数值处理方法
      * 形式类似 classpath#method
      * @return
      */
