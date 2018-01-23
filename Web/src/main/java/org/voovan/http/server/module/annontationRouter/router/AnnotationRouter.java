@@ -123,29 +123,28 @@ public class AnnotationRouter implements HttpRouter {
                         if (webServer.getHttpRouters().get(routeMethod) != null) {
 
                             //生成完整的路由,用来检查路由是否存在
-                            String routeFullPath = httpModule.getModuleConfig().getPath() + routePath;
-                            routeFullPath = HttpDispatcher.fixRoutePath(routeFullPath);
+                            routePath = HttpDispatcher.fixRoutePath(routePath);
 
                             //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
                             Map routerMaps = new HashMap();
                             routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
 
+                            if (!paramPath.isEmpty()) {
+                                routePath = routePath + paramPath;
+                            }
+
                             //判断路由是否注册过
-                            if(!routerMaps.containsKey(routeFullPath)) {
+                            if(!routerMaps.containsKey(httpModule.getModuleConfig().getPath() + routePath)) {
                                 //构造注解路由器
                                 AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method, annonClassRouter);
 
-                                if (!paramPath.isEmpty()) {
-                                    routePath = routePath + paramPath;
-
-                                    //注册路由,带路径参数的路由
-                                    httpModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                }
+                                //注册路由,带路径参数的路由
+                                httpModule.otherMethod(routeMethod, routePath, annotationRouter);
 
                                 //注册路由,不带路径参数的路由
                                 httpModule.otherMethod(routeMethod, routePath, annotationRouter);
                                 Logger.simple( "\t[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
-                                        "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') + routePath);
+                                        "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') + httpModule.getModuleConfig().getPath() + routePath);
                                 routeMethodNum++;
                             }
                         }
