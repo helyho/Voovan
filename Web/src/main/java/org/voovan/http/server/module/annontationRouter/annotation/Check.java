@@ -12,7 +12,8 @@ import java.lang.annotation.*;
  */
 
 @Repeatable(value = Checks.class)
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD})
 public @interface Check {
 
     /**
