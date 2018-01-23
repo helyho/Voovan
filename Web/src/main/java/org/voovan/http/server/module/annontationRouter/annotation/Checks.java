@@ -13,7 +13,8 @@ import java.lang.annotation.*;
 
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target({ElementType.METHOD})
+@Documented
 public @interface Checks {
     Check[] value();
 }
