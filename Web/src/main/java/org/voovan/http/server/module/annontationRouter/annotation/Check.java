@@ -42,8 +42,6 @@ public @interface Check {
      */
     String valueMethod() default "null";
 
-
-
     /**
      * 参数名称
      * @return
