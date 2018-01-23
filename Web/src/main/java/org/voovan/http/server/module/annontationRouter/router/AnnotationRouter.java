@@ -135,21 +135,18 @@ public class AnnotationRouter implements HttpRouter {
                                 //构造注解路由器
                                 AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method, annonClassRouter);
 
-                                //注册路由,不带路径参数的路由
-                                httpModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                Logger.simple( "\t[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
-                                        "] Router add annotation route: " + routeMethod + "\t " + routeFullPath);
-                                routeMethodNum++;
-
                                 if (!paramPath.isEmpty()) {
                                     routePath = routePath + paramPath;
 
                                     //注册路由,带路径参数的路由
                                     httpModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                    Logger.simple( "\t[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
-                                            "] Router add annotation route: " + routeMethod + "\t " + routeFullPath+paramPath);
-                                    routeMethodNum++;
                                 }
+
+                                //注册路由,不带路径参数的路由
+                                httpModule.otherMethod(routeMethod, routePath, annotationRouter);
+                                Logger.simple( "\t[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
+                                        "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') + routePath);
+                                routeMethodNum++;
                             }
                         }
                     }
@@ -305,7 +302,6 @@ public class AnnotationRouter implements HttpRouter {
     public String check(Method method, HttpRequest httpRequest) throws Exception{
         Check[] methodCheckAnnotations =  method.getAnnotationsByType(Check.class);
         for(Check check : methodCheckAnnotations) {
-
 
             //检查名称是否为空
             if(check.name().equals("null")){
