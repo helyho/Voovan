@@ -1,6 +1,5 @@
 package org.voovan.network.aio;
 
-import org.voovan.Global;
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
@@ -8,18 +7,17 @@ import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.RestartException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketOption;
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * AioSocket 连接
@@ -133,7 +131,7 @@ public class AioSocket extends SocketContext {
 		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
 		Future result =  socketChannel.connect(socketAddress);
 		try {
-			result.get();
+			result.get(this.readTimeout, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			this.close();
 			Logger.error(e);
@@ -144,6 +142,9 @@ public class AioSocket extends SocketContext {
 				throw (IOException) causeException;
 			}
 			Logger.error(e);
+		} catch (TimeoutException e) {
+			Logger.error("Socket connect failed on "+this.host+":"+this.port);
+			this.close();
 		}
 	}
 
