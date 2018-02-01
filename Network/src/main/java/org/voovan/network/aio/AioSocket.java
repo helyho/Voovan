@@ -125,27 +125,12 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 捕获 Aio Connect
-	 * @throws IOException  IO 异常
+	 * @throws Exception  异常
 	 */
-	protected void catchConnected() throws IOException {
+	protected void catchConnected() throws Exception {
 		InetSocketAddress socketAddress = new InetSocketAddress(this.host, this.port);
 		Future result =  socketChannel.connect(socketAddress);
-		try {
-			result.get(this.readTimeout, TimeUnit.MILLISECONDS);
-		} catch (InterruptedException e) {
-			this.close();
-			Logger.error(e);
-		} catch (ExecutionException e) {
-			this.close();
-			Throwable causeException = e.getCause();
-			if(causeException!=null && causeException instanceof IOException){
-				throw (IOException) causeException;
-			}
-			Logger.error(e);
-		} catch (TimeoutException e) {
-			Logger.error("Socket connect failed on "+this.host+":"+this.port);
-			this.close();
-		}
+		result.get(this.readTimeout, TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -198,7 +183,7 @@ public class AioSocket extends SocketContext {
 		try {
 			// 捕获 connect 事件
 			catchConnected();
-		}catch (IOException e){
+		}catch (Exception e){
 			EventTrigger.fireExceptionThread(session,e);
 			return;
 		}
