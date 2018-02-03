@@ -33,14 +33,14 @@ import java.util.Vector;
  * {{F?}} 前景颜色: ?为0-7,分别为: 0=黑,1=红,2=绿,3=黄,4=蓝,5=紫,6=青,7=白
  * {{B?}} 背景颜色: ?为0-7,分别为: 0=黑,1=红,2=绿,3=黄,4=蓝,5=紫,6=青,7=白
  * @author helyho
- * 
+ *
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
 public class Formater {
 	private String template;
-	private LoggerThread loggerThread;
+	private volatile LoggerThread loggerThread;
 	private List<String> logLevel;
 	private String dateStamp;
 	private int maxLineLength = -1;
@@ -130,33 +130,33 @@ public class Formater {
 				}
 
 				while(true) {
-                    int linePostion = (line.length() > currentMaxLineLength && currentMaxLineLength > 0) ? currentMaxLineLength : line.length();
-                    String subLine = line.substring(0, linePostion);
-                    line = line.substring(linePostion, line.length());
+					int linePostion = (line.length() > currentMaxLineLength && currentMaxLineLength > 0) ? currentMaxLineLength : line.length();
+					String subLine = line.substring(0, linePostion);
+					line = line.substring(linePostion, line.length());
 
-                    // 不格式化,但是控制长度自动换行
+					// 不格式化,但是控制长度自动换行
 //					if (isFormatLine) {
 //						msgBuilder.append(line).append(TFile.getLineSeparator());
 //						break;
 //					}
 
-                    if (lineAlignLeft && currentMaxLineLength > 1) {
-                        if (subLine.endsWith(tmpLineTail)) {
-                            subLine = subLine.substring(0, subLine.length() - tmpLineTail.length());
-                        }
+					if (lineAlignLeft && currentMaxLineLength > 1) {
+						if (subLine.endsWith(tmpLineTail)) {
+							subLine = subLine.substring(0, subLine.length() - tmpLineTail.length());
+						}
 
 						int stylePatch = TString.regexMatch(subLine, "\033\\[\\d{2}m") * 5;
-                        subLine = TString.rightPad(subLine, currentMaxLineLength + stylePatch - 1, ' ');
-                    }
+						subLine = TString.rightPad(subLine, currentMaxLineLength + stylePatch - 1, ' ');
+					}
 
-                    msgBuilder.append(tmpLineHead)
-                            .append(subLine)
-                            .append(tmpLineTail)
-                            .append(TFile.getLineSeparator());
+					msgBuilder.append(tmpLineHead)
+							.append(subLine)
+							.append(tmpLineTail)
+							.append(TFile.getLineSeparator());
 
-                    if (line.isEmpty()) {
-                        break;
-                    }
+					if (line.isEmpty()) {
+						break;
+					}
 				}
 			}
 
@@ -167,7 +167,7 @@ public class Formater {
 	/**
 	 * 构造消息格式化 Token
 	 * @param message 消息对象
-     */
+	 */
 	public void fillTokens(Message message){
 		Map<String, String> tokens = new HashMap<String, String>();
 		message.setTokens(tokens);
@@ -235,7 +235,7 @@ public class Formater {
 		tokens.put("D", TDateTime.now("YYYY-MM-dd HH:mm:ss:SS z"));						//当前时间 
 		tokens.put("R", Long.toString(System.currentTimeMillis() - StaticParam.getStartTimeMillis())); //系统运行时间
 	}
-	
+
 	/**
 	 * 格式化消息
 	 * @param message 消息对象
@@ -250,13 +250,13 @@ public class Formater {
 	 * 简单格式化
 	 * @param message 消息对象
 	 * @return 格式化后的消息
-     */
+	 */
 	public String simpleFormat(Message message){
 		//消息缩进
 		fillTokens(message);
 		return TString.tokenReplace(message.getMessage(), message.getTokens());
 	}
-	
+
 	/**
 	 * 消息类型是否可以记录
 	 * @param message 消息对象
@@ -272,7 +272,7 @@ public class Formater {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * 写入消息对象,在进行格式化后的写入
 	 * @param message 消息对象
@@ -286,7 +286,7 @@ public class Formater {
 			}
 		}
 	}
-	
+
 	/**
 	 * 写入消息
 	 * @param msg 消息字符串
@@ -300,11 +300,11 @@ public class Formater {
 			if(!dateStamp.equals(TDateTime.now("YYYYMMdd"))){
 				loggerThread.setOutputStreams(getOutputStreams());
 			}
-			
+
 			loggerThread.addLogMessage(msg);
 		}
 	}
-	
+
 	/**
 	 * 获取格式化后的日志文件路径
 	 * @return 返回日志文件名
@@ -329,7 +329,7 @@ public class Formater {
 		}
 		return filePath;
 	}
-	
+
 	/**
 	 * 获得一个实例
 	 * @return 新的实例
@@ -338,7 +338,7 @@ public class Formater {
 		String logTemplate = StaticParam.getLogConfig("LogTemplate",StaticParam.LOG_TEMPLATE);
 		return new Formater(logTemplate);
 	}
-	
+
 	/**
 	 * 获取输出流
 	 * @return 输出流数组
@@ -346,30 +346,30 @@ public class Formater {
 	protected static OutputStream[] getOutputStreams(){
 		String[] LogTypes = StaticParam.getLogConfig("LogType",StaticParam.LOG_TYPE).split(",");
 		String logFile = getFormatedLogFilePath();
-		
-	
+
+
 		OutputStream[] outputStreams = new OutputStream[LogTypes.length];
 		for (int i = 0; i < LogTypes.length; i++) {
 			String logType = LogTypes[i].trim();
 			switch (logType) {
-			case "STDOUT":
-				outputStreams[i] = System.out;
-				break;
-			case "STDERR":
-				outputStreams[i] = System.err;
-				break;
-			case "FILE":
-				try {
-					outputStreams[i] = new FileOutputStream(logFile,true);
-				} catch (FileNotFoundException e) {
-					System.out.println("log file: ["+logFile+"] is not found.\r\n");
-				}
-				break;
-			default:
-				break;
+				case "STDOUT":
+					outputStreams[i] = System.out;
+					break;
+				case "STDERR":
+					outputStreams[i] = System.err;
+					break;
+				case "FILE":
+					try {
+						outputStreams[i] = new FileOutputStream(logFile,true);
+					} catch (FileNotFoundException e) {
+						System.out.println("log file: ["+logFile+"] is not found.\r\n");
+					}
+					break;
+				default:
+					break;
 			}
 		}
 		return outputStreams;
-		
+
 	}
 }

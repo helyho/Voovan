@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class LoggerThread implements Runnable {
 	private ArrayBlockingQueue<String>	logQueue;
 	private OutputStream[] outputStreams;
-	private AtomicBoolean finished = new AtomicBoolean(true);
+	private volatile AtomicBoolean finished = new AtomicBoolean(false);
 
 	/**
 	 * 构造函数
@@ -31,6 +31,7 @@ public class LoggerThread implements Runnable {
 	public LoggerThread(OutputStream[] outputStreams) {
 		this.logQueue = new ArrayBlockingQueue<String>(100000);
 		this.outputStreams = outputStreams;
+
 	}
 
 	public boolean isFinished() {
@@ -81,8 +82,6 @@ public class LoggerThread implements Runnable {
 	public void run() {
 		String formatedMessage = null;
 
-		finished.set(false);
-
 		Thread mainThread = TEnv.getMainThread();
 		try {
 			while (true) {
@@ -107,7 +106,7 @@ public class LoggerThread implements Runnable {
 					}
 				}
 				//如果主线程结束,则日志线程也退出
-				if(mainThread!=null && mainThread.getState() == Thread.State.TERMINATED){
+				if(mainThread !=null && mainThread.getState() == Thread.State.TERMINATED){
 					break;
 				}
 
