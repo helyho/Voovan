@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * WebServer访问日志对象
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SingleLogger {
 	private String fileName;
 	private LoggerThread loggerThread;
-	private static Map<String,SingleLogger> singleLoggerPool = new ConcurrentHashMap<String,SingleLogger>();
+	private volatile static Map<String,SingleLogger> singleLoggerPool = new ConcurrentHashMap<String,SingleLogger>();
 	/**
 	 * 构造函数
 	 * @param fileName  文件名
@@ -41,7 +41,7 @@ public class SingleLogger {
 	/**
 	 * 设置日志记录线程
 	 * @param loggerThread 日志记录线程对象
-     */
+	 */
 	public void setLoggerThread(LoggerThread loggerThread) {
 		this.loggerThread = loggerThread;
 	}
@@ -49,20 +49,20 @@ public class SingleLogger {
 	/**
 	 * 是否完成
 	 * @return 是否完成
-     */
+	 */
 	public boolean isFinished() {
 		return loggerThread.isFinished();
 	}
-	
+
 	/**
 	 * 增加消息
-	 * 
+	 *
 	 * @param msg 消息字符串
 	 */
 	public void addLogMessage(String msg) {
 		loggerThread.addLogMessage(msg);
 	}
-	
+
 	public synchronized static SingleLogger writeLog(String fileName,String msg) {
 		SingleLogger singleLog = null;
 		if(!singleLoggerPool.containsKey(fileName) || singleLoggerPool.get(fileName).isFinished()) {
