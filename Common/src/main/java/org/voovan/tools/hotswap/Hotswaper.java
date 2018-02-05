@@ -84,7 +84,7 @@ public class Hotswaper {
      * @return AgentJar 文件
      */
     private File findAgentJar(){
-        List<File> agentJars = TFile.scanFile(new File(TFile.getContextPath()), "voovan-(framework|common)-?(\\d\\.?)*\\.?jar$");
+        List<File> agentJars = TFile.scanFile(new File(TFile.getContextPath()), "dd\\.?(\\d\\.?)*\\.?jar$");
         File agentJar = null;
 
         for (File jarFile : agentJars) {
@@ -92,7 +92,7 @@ public class Hotswaper {
                 agentJar = jarFile;
             }
 
-            if(jarFile.lastModified() < jarFile.lastModified()){
+            if(agentJar.lastModified() < jarFile.lastModified()){
                 agentJar = jarFile;
             }
         }
