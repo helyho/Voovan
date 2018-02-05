@@ -1092,7 +1092,6 @@ public class TReflect {
 			jsonStrBuilder.deleteCharAt(jsonStrBuilder.length()-1);
 			jsonStrBuilder.append("}");
 		}
-
 		return jsonStrBuilder.toString();
 	}
 
@@ -1104,7 +1103,7 @@ public class TReflect {
 	public static boolean isBasicType(Class clazz){
 		if(clazz == null ||
 				clazz.isPrimitive() ||
-				clazz.getName().startsWith("java.lang")
+				clazz.getName().startsWith("java.")
 				){
 			return true;
 		}else{

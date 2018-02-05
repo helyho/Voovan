@@ -65,6 +65,7 @@ public class TSQL {
 			if(data==null){
 				throw new NullPointerException("SQL param: "+paramName+ " is null");
 			}
+
 			if(TReflect.isBasicType(data.getClass())) {
 				preparedStatement.setObject(i + 1, params.get(paramName));
 			}else{
@@ -105,7 +106,7 @@ public class TSQL {
 		}
 
 		//为preparedStatement参数填充
-		TSQL.setPreparedParams(preparedStatement,sqlParamNames,params);
+		TSQL.setPreparedParams(preparedStatement, sqlParamNames, params);
 		return preparedStatement;
 	}
 
