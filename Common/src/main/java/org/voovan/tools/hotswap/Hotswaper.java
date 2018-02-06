@@ -84,7 +84,7 @@ public class Hotswaper {
      * @return AgentJar 文件
      */
     private File findAgentJar(){
-        List<File> agentJars = TFile.scanFile(new File(TFile.getContextPath()), "dd\\.?(\\d\\.?)*\\.?jar$");
+        List<File> agentJars = TFile.scanFile(new File(TFile.getContextPath()), "(dd\\.?(\\d\\.?)*)|(voovan-((framework)|(common)).*).?jar$");
         File agentJar = null;
 
         for (File jarFile : agentJars) {
