@@ -40,7 +40,7 @@ public class WebServerConfig {
     private HttpsConfig https;
     private String indexFiles = "index.htm,index.html,default.htm,default.htm";
     private int hotSwapInterval = 0;
-    private String initClass = null;
+    private String lifeCycleClass = null;
     private String pauseURL = null;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
@@ -182,12 +182,12 @@ public class WebServerConfig {
         hotSwapInterval = hotSwapInterval;
     }
 
-    public String getInitClass() {
-        return initClass;
+    public String getLifeCycleClass() {
+        return lifeCycleClass;
     }
 
-    public void setInitClass(String initClass) {
-        this.initClass = initClass;
+    public void setLifeCycleClassClass(String lifeCycleClass) {
+        this.lifeCycleClass = lifeCycleClass;
     }
 
     public String getPauseURL() {
