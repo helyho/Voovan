@@ -18,7 +18,7 @@
   "Gzip"                   : true,                        // 是否启用Gzip压缩,默认 true
   "AccessLog"              : false,                        // 是否记录access.log,默认 true
   "HotSwapInterval"        : 30,                            //热加载检测时间间隔. 默认:0秒. 0:关闭
-  "InitClass"              : "org.voovan.test.http.WebInitClass", //配置在Web 服务启动时加载并运行初始化类, 该类需继承:org.voovan.http.server.WebServerInit
+  "LifeCycleClass"              : "org.voovan.test.http.WebLifeCycleClass", //配置在Web 服务启动时加载并运行初始化类, 该类需继承:org.voovan.http.server.WebServerInit
   "PauseURL"               : "/img/logo.jpg",                                      // 服务器暂停状态下所有请求都会转向这个路由
 
 //  HTTPS证书配置
@@ -65,7 +65,7 @@
       "ScanRouterPackage"      : "org.voovan.test.http.router",     //注解形式的路由扫描的包路径, 默认: null, 不设置这个属性则会被任务不开启
       "ScanRouterInterval"     : 30,                                //注解形式的路由扫描的包路径的时间间隔. 默认:0秒. 0:关闭
       "ClassName": "org.voovan.http.server.module.annontationRouter.AnnotationModule",               //模块处理器
-      "InitClass": "org.voovan.test.http.HttpModuleInitClass"
+      "LifeCycleClass": "org.voovan.test.http.HttpModuleLifeCycleClass"
     },
 //    {
 //      "Name": "Monitor",                                                    //模块名称

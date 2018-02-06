@@ -1,7 +1,7 @@
 package org.voovan.test.http;
 
 import org.voovan.http.server.WebServer;
-import org.voovan.http.server.WebServerInit;
+import org.voovan.http.server.WebServerLifeCycle;
 import org.voovan.tools.log.Logger;
 
 /**
@@ -12,9 +12,14 @@ import org.voovan.tools.log.Logger;
  * WebSite: https://github.com/helyho/Framework
  * Licence: Apache v2 License
  */
-public class WebInitClass implements WebServerInit{
+public class WebLifeCycleClass implements WebServerLifeCycle {
     @Override
     public void init(WebServer webServer) {
         Logger.info("Init messsage");
+    }
+
+    @Override
+    public void destory(WebServer webServer) {
+        Logger.info("Destory messsage");
     }
 }

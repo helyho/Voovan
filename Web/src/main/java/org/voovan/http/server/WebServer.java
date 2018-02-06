@@ -1,8 +1,6 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
-import org.voovan.http.client.HttpClient;
-import org.voovan.http.message.Response;
 import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.server.context.HttpRouterConfig;
 import org.voovan.http.server.context.WebContext;
@@ -23,7 +21,6 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.channels.ShutdownChannelGroupException;
 import java.util.Map;
 
@@ -143,7 +140,12 @@ public class WebServer {
 	 */
 	public void initModule() {
 		for (HttpModuleConfig httpModuleConfig : config.getModuleonfigs()) {
-			addModule(httpModuleConfig);
+			HttpModule httpModule = httpModuleConfig.getHttpModuleInstance(this);
+			if(httpModule!=null){
+				httpModule.runModuleInit();
+				httpModule.install();
+			}
+
 		}
 	}
 
@@ -153,26 +155,12 @@ public class WebServer {
 	public void unInitModule() {
 		//卸载模块
 		for (HttpModuleConfig moduleConfig : this.config.getModuleonfigs().toArray(new HttpModuleConfig[0])) {
-			moduleConfig.getHttpModuleInstance(this).unInstall();
+			HttpModule httpModule = moduleConfig.getHttpModuleInstance(this);
+			httpModule.runModuleDestory();
+			httpModule.unInstall();
 			Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] uninstall");
 		}
 	}
-
-	/**
-	 * 增加一个 Http 模块
-	 * @param httpModuleConfig http 模块配置对象
-	 * @return HttpModule对象
-	 */
-	public HttpModule addModule(HttpModuleConfig httpModuleConfig){
-		HttpModule httpModule = httpModuleConfig.getHttpModuleInstance(this);
-		if(httpModule!=null){
-			httpModule.runInitClass();
-			httpModule.install();
-		}
-
-		return httpModule;
-	}
-
 
 	/**
 	 * 获取 Http 服务配置对象
@@ -400,7 +388,7 @@ public class WebServer {
 		WebContext.welcome();
 
 		//运行初始化 Class
-		runInitClass(this);
+		runWebInit(this);
 
 		//加载过滤器,路由,模块
 		WebContext.initWebServerPluginConfig();
@@ -493,31 +481,63 @@ public class WebServer {
 	 * 加载并运行初始化类
 	 * @param webServer WebServer对象
 	 */
-	private void runInitClass(WebServer webServer){
-		String initClass = WebContext.getWebServerConfig().getInitClass();
+	private void runWebInit(WebServer webServer){
+		String lifeCycleClass = WebContext.getWebServerConfig().getLifeCycleClass();
 
-		if(initClass==null) {
-			Logger.info("None WebServer init class to load.");
+		if(lifeCycleClass==null) {
+			Logger.info("None WebServer lifeCycle class to load.");
 			return;
 		}
 
-		if(initClass.isEmpty()){
-			Logger.info("None WebServer init class to load.");
+		if(lifeCycleClass.isEmpty()){
+			Logger.info("None WebServer lifeCycle class to load.");
 			return;
 		}
 
 		try {
-			WebServerInit webServerInit = null;
+			WebServerLifeCycle webServerLifeCycle = null;
 
-			Class clazz = Class.forName(initClass);
-			if(TReflect.isImpByInterface(clazz, WebServerInit.class)){
-				webServerInit = (WebServerInit)TReflect.newInstance(clazz);
-				webServerInit.init(webServer);
+			Class clazz = Class.forName(lifeCycleClass);
+			if(TReflect.isImpByInterface(clazz, WebServerLifeCycle.class)){
+				webServerLifeCycle = (WebServerLifeCycle)TReflect.newInstance(clazz);
+				webServerLifeCycle.init(webServer);
 			}else{
-				Logger.warn("The WebServer init class " + initClass + " is not a class implement by " + WebServerInit.class.getName());
+				Logger.warn("The WebServer lifeCycle class " + lifeCycleClass + " is not a class implement by " + WebServerLifeCycle.class.getName());
 			}
 		} catch (Exception e) {
-			Logger.error("Initialize WebServer init class error: " + e);
+			Logger.error("Initialize WebServer lifeCycle class error: " + e);
+		}
+	}
+
+	/**
+	 * 加载并运行初始化类
+	 * @param webServer WebServer对象
+	 */
+	private void runWebDestory(WebServer webServer){
+		String lifeCycleClass = WebContext.getWebServerConfig().getLifeCycleClass();
+
+		if(lifeCycleClass==null) {
+			Logger.info("None WebServer lifeCycle class to load.");
+			return;
+		}
+
+		if(lifeCycleClass.isEmpty()){
+			Logger.info("None WebServer lifeCycle class to load.");
+			return;
+		}
+
+		try {
+			WebServerLifeCycle webServerLifeCycle = null;
+
+			Class clazz = Class.forName(lifeCycleClass);
+			if(TReflect.isImpByInterface(clazz, WebServerLifeCycle.class)){
+				webServerLifeCycle = (WebServerLifeCycle)TReflect.newInstance(clazz);
+				webServerLifeCycle.destory(webServer);
+			}else{
+				Logger.warn("The WebServer lifeCycle class " + lifeCycleClass + " is not a class implement by " + WebServerLifeCycle.class.getName());
+			}
+		} catch (Exception e) {
+			Logger.error("Initialize WebServer destory lifeCycle error: " + e);
 		}
 	}
 
@@ -561,7 +581,6 @@ public class WebServer {
 				}
 			}
 		});
-
 
 		otherMethod("ADMIN", "/shutdown", new HttpRouter() {
 			@Override
@@ -880,9 +899,11 @@ public class WebServer {
 	 */
 	public void stop(){
 		try {
-
 			System.out.println("=============================================================================================");
 			System.out.println("[" + TDateTime.now() + "] Try to stop WebServer....");
+
+			unInitModule();
+			this.runWebDestory(this);
 
 			aioServerSocket.close();
 			System.out.println("[" + TDateTime.now() + "] Socket closed");

@@ -167,31 +167,62 @@ public abstract class HttpModule {
     /**
      * 加载并运模块行初始化类
      */
-    protected void runInitClass(){
-        String moduleInitClass = this.moduleConfig.getInitClass();
+    protected void runModuleInit(){
+        String lifeCycleClass = this.moduleConfig.getLifeCycleClass();
 
-        if(moduleInitClass==null) {
-            Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] None HttpMoudule init class to load.");
+        if(lifeCycleClass==null) {
+            Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] None HttpMoudule lifeCycle class to load.");
             return;
         }
 
-        if(moduleInitClass.isEmpty()){
-            Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] None HttpMoudule init class to load.");
+        if(lifeCycleClass.isEmpty()){
+            Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] None HttpMoudule lifeCycle class to load.");
             return;
         }
 
         try {
-            HttpModuleInit moduleInit = null;
+            HttpModuleLifeCycle moduleInit = null;
 
-            Class clazz = Class.forName(moduleInitClass);
-            if(TReflect.isImpByInterface(clazz, HttpModuleInit.class)){
-                moduleInit = (HttpModuleInit)TReflect.newInstance(clazz);
+            Class clazz = Class.forName(lifeCycleClass);
+            if(TReflect.isImpByInterface(clazz, HttpModuleLifeCycle.class)){
+                moduleInit = (HttpModuleLifeCycle)TReflect.newInstance(clazz);
                 moduleInit.init(this);
             }else{
-                Logger.warn("["+moduleConfig.getName()+"] The HttpModule init class " + moduleInitClass + " is not a class implement by " + HttpModuleInit.class.getName());
+                Logger.warn("["+moduleConfig.getName()+"] The HttpModule lifeCycle class " + lifeCycleClass + " is not a class implement by " + HttpModuleLifeCycle.class.getName());
             }
         } catch (Exception e) {
-            Logger.error("["+moduleConfig.getName()+"] Initialize HttpModule init class error: " + e);
+            Logger.error("["+moduleConfig.getName()+"] Initialize HttpModule lifeCycle class error: " + e);
+        }
+    }
+
+    /**
+     * 加载并运模块行初始化类
+     */
+    protected void runModuleDestory(){
+        String moduleInitClass = this.moduleConfig.getLifeCycleClass();
+
+        if(moduleInitClass==null) {
+            Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] None HttpMoudule lifeCycle class to load.");
+            return;
+        }
+
+        if(moduleInitClass.isEmpty()){
+            Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] None HttpMoudule lifeCycle class to load.");
+            return;
+        }
+
+        try {
+            HttpModuleLifeCycle moduleInit = null;
+
+            Class clazz = Class.forName(moduleInitClass);
+            if(TReflect.isImpByInterface(clazz, HttpModuleLifeCycle.class)){
+                moduleInit = (HttpModuleLifeCycle)TReflect.newInstance(clazz);
+                moduleInit.destory(this);
+            }else{
+                Logger.warn("["+moduleConfig.getName()+"] The HttpModule lifeCycle class " + moduleInitClass + " is not a class implement by " + HttpModuleLifeCycle.class.getName());
+            }
+        } catch (Exception e) {
+            Logger.error("["+moduleConfig.getName()+"] Initialize HttpModule lifeCycle class error: " + e);
         }
     }
 
