@@ -138,7 +138,9 @@ public class WebContext {
 		loadWebConfig();
 
 		if(configMap.size() > 0 ) {
-			WebContext.WEB_CONFIG = configMap;
+			WebContext.WEB_CONFIG.putAll(configMap);
+		} else {
+			configMap = WebContext.WEB_CONFIG;
 		}
 
 		WebContext.webServerConfig = new WebServerConfig();
