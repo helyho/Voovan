@@ -31,7 +31,7 @@ public class TSQL {
 	 * @return  sql 参数对照表 ([:x,:y])
 	 */
 	public static List<String> getSqlParamNames(String sqlStr){
-		String[] params = TString.searchByRegex(sqlStr, "::[^,\\s\\)]+");
+		String[] params = TString.searchByRegex(sqlStr, "::\\w+\\b");
 		ArrayList<String> sqlParamNames = new ArrayList<String>();
 		for(String param : params){
 			sqlParamNames.add(param);
@@ -45,7 +45,7 @@ public class TSQL {
 	 * @return				将所有的:引导的参数转换成? (select * from table where x=? and y=?)
 	 */
 	public static String preparedSql(String sqlStr){
-		return TString.fastReplaceAll(sqlStr, "::[^,\\s\\)]+", "?");
+		return TString.fastReplaceAll(sqlStr, "::\\w+\\b", "?");
 	}
 
 	/**
@@ -221,7 +221,7 @@ public class TSQL {
 	public static String assembleSQLWithMap(String sqlStr,Map<String ,Object> argMap) {
 		if(argMap!=null) {
 			for (Entry<String, Object> arg : argMap.entrySet()) {
-				sqlStr = TString.fastReplaceAll(sqlStr+" ", "::" + arg.getKey()+"\\s", getSQLString(argMap.get(arg.getKey()))+" ");
+				sqlStr = TString.fastReplaceAll(sqlStr+" ", "::" + arg.getKey()+"\\b", getSQLString(argMap.get(arg.getKey()))+" ");
 			}
 		}
 		return sqlStr.trim();
@@ -271,7 +271,7 @@ public class TSQL {
 		//对象转换时,模糊匹配属性,去除掉所有的
 		HashMap<String,Object> newMap = new HashMap<String,Object>();
 		for(Entry<String,Object> entry : rowMap.entrySet()){
-			String key = TString.fastReplaceAll(entry.getKey(), "[^a-z|A-Z|0-9]", "");
+			String key = TString.fastReplaceAll(entry.getKey(), "\\W", "");
 			newMap.put(key,entry.getValue());
 		}
 		rowMap.clear();
@@ -336,7 +336,7 @@ public class TSQL {
 		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\sor\\s)|(\\sorder\\s)|(\\shaving\\s)|$)";
 		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
 		for(String condiction : sqlCondiction){
-			String[] condictions = TString.searchByRegex(condiction,"::[^,\\s\\)]+");
+			String[] condictions = TString.searchByRegex(condiction,"::\\w+\\b");
 			if(condictions.length>0){
 				if(condiction.trim().toLowerCase().startsWith("where")){
 					sqlText = sqlText.replace(condiction.trim(),"where 1=1");
