@@ -797,4 +797,53 @@ public class TString {
 
 		return currentRetract;
 	}
+
+	/**
+	 * 驼峰命名转下划线命名
+	 * @param param 驼峰命名字符串
+	 * @return 下划线命名字符串
+	 */
+	public static String camelToUnderline(String param){
+		if (param == null||"".equals(param.trim())){
+			return "";
+		}
+		int len = param.length();
+		StringBuilder sb = new StringBuilder(len);
+		sb.append(param.charAt(0));
+		for (int i = 1; i < len; i++) {
+			char c=param.charAt(i);
+			if (Character.isUpperCase(c)){
+				sb.append("_");
+				sb.append(Character.toLowerCase(c));
+			}else{
+				sb.append(c);
+			}
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * 下划线命名转驼峰命名
+	 * @param param 下划线命名字符串
+	 * @return 驼峰命名字符串
+	 */
+	public static String underlineToCamel(String param){
+		if (param == null||"".equals(param.trim())){
+			return "";
+		}
+		int len=param.length();
+		StringBuilder sb=new StringBuilder(len);
+		sb.append(param.charAt(0));
+		for (int i = 1; i < len; i++) {
+			char c = param.charAt(i);
+			if (c == '_'){
+				if (++i<len){
+					sb.append(Character.toUpperCase(param.charAt(i)));
+				}
+			}else{
+				sb.append(c);
+			}
+		}
+		return sb.toString();
+	}
 }
