@@ -11,6 +11,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -28,7 +29,8 @@ public class JdbcOperate {
 
 	private DataSource	dataSource;
 	private Connection	connection;
-	private boolean		isTrancation;
+	private TranscationType	trancation;
+	private static Map<Long, JdbcOperate> threadOfJdbOperate = new ConcurrentHashMap<Long, JdbcOperate>();
 
 	/**
 	 * 构造函数
@@ -36,7 +38,7 @@ public class JdbcOperate {
 	 */
 	public JdbcOperate(DataSource dataSource) {
 		this.dataSource = dataSource;
-		this.isTrancation = false;
+		this.trancation = TranscationType.NONE;
 	}
 
 	/**
@@ -46,7 +48,17 @@ public class JdbcOperate {
 	 */
 	public JdbcOperate(DataSource dataSource,boolean isTrancation){
 		this.dataSource = dataSource;
-		this.isTrancation = isTrancation;
+		this.trancation = (isTrancation? TranscationType.NEST : TranscationType.NONE);
+	}
+
+	/**
+	 * 构造函数
+	 * @param dataSource	数据源
+	 * @param trancation    是否启用事务支持, 设置事务模式
+	 */
+	public JdbcOperate(DataSource dataSource,TranscationType trancation){
+		this.dataSource = dataSource;
+		this.trancation = trancation;
 	}
 
 	/**
@@ -56,19 +68,44 @@ public class JdbcOperate {
 	 * @throws SQLException SQL 异常
 	 */
 	public Connection getConnection() throws SQLException {
+		long threadId = Thread.currentThread().getId();
 		//如果连接不存在,或者连接已关闭则重取一个连接
 		if (connection == null || connection.isClosed()) {
-			connection = dataSource.getConnection();
-			//如果是事务模式,则将自动提交设置为 false
-			if (isTrancation) {
+			//事务嵌套模式
+			if (trancation == TranscationType.NEST) {
+				//判断是否有上层事务
+				if(threadOfJdbOperate.containsKey(threadId)) {
+					connection = threadOfJdbOperate.get(threadId).getConnection();
+				} else {
+					connection = dataSource.getConnection();
+					connection.setAutoCommit(false);
+					threadOfJdbOperate.put(threadId, this);
+				}
+			}
+			//孤立事务模式
+			else if (trancation == TranscationType.ALONE){
+				connection = dataSource.getConnection();
 				connection.setAutoCommit(false);
+			}
+			//非事务模式
+			else if (trancation == TranscationType.NONE){
+				connection = dataSource.getConnection();
+				connection.setAutoCommit(true);
 			}
 		}
 		return connection;
 	}
 
 	/**
-	 * 提交事物
+	 * 返回当前事务形式
+	 * @return
+	 */
+	public TranscationType getTrancation() {
+		return trancation;
+	}
+
+	/**
+	 * 提交事务
 	 * @param isClose 是否关闭数据库连接
 	 * @throws SQLException SQL 异常
 	 */
@@ -80,7 +117,7 @@ public class JdbcOperate {
 	}
 
 	/**
-	 * 回滚事物
+	 * 回滚事务
 	 * @param isClose 是否关闭数据库连接
 	 * @throws SQLException SQL 异常
 	 */
@@ -92,7 +129,7 @@ public class JdbcOperate {
 	}
 
 	/**
-	 * 提交事物不关闭连接
+	 * 提交事务不关闭连接
 	 * @throws SQLException SQL 异常
 	 */
 	public void commit() throws SQLException{
@@ -100,7 +137,7 @@ public class JdbcOperate {
 	}
 
 	/**
-	 * 回滚事物不关闭连接
+	 * 回滚事务不关闭连接
 	 * @throws SQLException SQL 异常
 	 */
 	public void rollback() throws SQLException{
@@ -124,7 +161,7 @@ public class JdbcOperate {
 			PreparedStatement preparedStatement = TSQL.createPreparedStatement(conn, sqlText, mapArg);
 			//执行查询
 			ResultSet rs = preparedStatement.executeQuery();
-			return new ResultInfo(rs,this.isTrancation);
+			return new ResultInfo(rs,this);
 		} catch (SQLException e) {
 			closeConnection(conn);
 			Logger.error("Query execution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " ,e);
@@ -159,8 +196,8 @@ public class JdbcOperate {
 			Logger.error("Update execution SQL Error! \n SQL is :\n\t " + sqlText + "\nError is: \n\t" ,e);
 			exception = e;
 		} finally {
-			// 非事物模式执行
-			if (!isTrancation) {
+			// 非事务模式执行
+			if (trancation == TranscationType.NONE) {
 				closeConnection(preparedStatement);
 			}else{
 				if(exception!=null) {
@@ -215,8 +252,8 @@ public class JdbcOperate {
 			Logger.error("Batch execution SQL Error! \n SQL is : \n\t" + sqlText + ":\n\t" ,e);
 			exception = e;
 		} finally {
-			// 非事物模式执行
-			if (!isTrancation) {
+			// 非事务模式执行
+			if (trancation == TranscationType.NONE) {
 				closeConnection(preparedStatement);
 			}else{
 				if(exception!=null) {
@@ -247,8 +284,8 @@ public class JdbcOperate {
 			Logger.error("Query execution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " ,e);
 			exception = e;
 		} finally {
-			// 非事物模式执行
-			if (!isTrancation) {
+			// 非事务模式执行
+			if (trancation == TranscationType.NONE) {
 				closeConnection(callableStatement);
 			}else{
 				if(exception!=null) {
@@ -812,6 +849,7 @@ public class JdbcOperate {
 	private static void closeConnection(Connection connection) {
 		try {
 			if (connection != null) {
+				threadOfJdbOperate.remove(Thread.currentThread().getId());
 				connection.close();
 			}
 		} catch (SQLException e) {
