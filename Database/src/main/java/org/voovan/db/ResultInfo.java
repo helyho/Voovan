@@ -21,11 +21,15 @@ import java.util.Map;
  */
 public class ResultInfo {
     private ResultSet resultSet;
-    private boolean isTrancation;
+    private JdbcOperate jdbcOperate;
 
-    public ResultInfo(ResultSet resultSet,boolean isTrancation) {
+    public ResultInfo(ResultSet resultSet,JdbcOperate jdbcOperate) {
         this.resultSet = resultSet;
-        this.isTrancation = isTrancation;
+        this.jdbcOperate =jdbcOperate;
+    }
+
+    public JdbcOperate getJdbcOperate() {
+        return jdbcOperate;
     }
 
     @SuppressWarnings("unchecked")
@@ -35,8 +39,8 @@ public class ResultInfo {
         }catch(SQLException | ReflectiveOperationException | ParseException e){
             Logger.error("JdbcOperate.getObjectList error",e);
         }finally{
-            // 非事物模式执行
-            if (!isTrancation) {
+            // 非事务模式执行
+            if (jdbcOperate.getTrancation() == TranscationType.NONE) {
                 JdbcOperate.closeConnection(resultSet);
             }else{
                 JdbcOperate.closeResult(resultSet);
@@ -52,8 +56,8 @@ public class ResultInfo {
         }catch(SQLException | ReflectiveOperationException e){
             Logger.error("JdbcOperate.getMapList error",e);
         }finally{
-            // 非事物模式执行
-            if (!isTrancation) {
+            // 非事务模式执行
+            if (jdbcOperate.getTrancation() == TranscationType.NONE) {
                 JdbcOperate.closeConnection(resultSet);
             }else{
                 JdbcOperate.closeResult(resultSet);
@@ -73,8 +77,8 @@ public class ResultInfo {
         }catch(SQLException | ReflectiveOperationException | ParseException e){
             Logger.error("JdbcOperate.getObject error",e);
         }finally{
-            // 非事物模式执行
-            if (!isTrancation) {
+            // 非事务模式执行
+            if (jdbcOperate.getTrancation() == TranscationType.NONE) {
                 JdbcOperate.closeConnection(resultSet);
             }else{
                 JdbcOperate.closeResult(resultSet);
@@ -93,8 +97,8 @@ public class ResultInfo {
         }catch(SQLException | ReflectiveOperationException e){
             Logger.error("JdbcOperate.getMap error",e);
         }finally{
-            // 非事物模式执行
-            if (!isTrancation) {
+            // 非事务模式执行
+            if (jdbcOperate.getTrancation() == TranscationType.NONE) {
                 JdbcOperate.closeConnection(resultSet);
             }else{
                 JdbcOperate.closeResult(resultSet);
