@@ -1,5 +1,6 @@
 package org.voovan.test.db;
 
+import org.voovan.db.recorder.annotation.NotInsert;
 import org.voovan.db.recorder.annotation.PrimaryKey;
 import org.voovan.db.recorder.annotation.Table;
 import org.voovan.tools.TFile;
@@ -17,6 +18,7 @@ import java.io.IOException;
 @Table("sc_script")
 public class ScriptEntity {
 	@PrimaryKey
+	@NotInsert
 	private int id;
 
 	/**
@@ -58,7 +60,7 @@ public class ScriptEntity {
 	 * @param packagePath		包路径
 	 * @param sourceCode		脚本源文件路径
 	 */
-	public ScriptEntity(String packagePath,String sourceCode){
+	public ScriptEntity(String packagePath, String sourceCode){
 		this.packagePath = packagePath;
 		this.version = 1;
 		this.sourceCode = sourceCode;
@@ -71,7 +73,7 @@ public class ScriptEntity {
 	 * @param version		脚本文件版本
 	 * @param sourcePath	脚本源文件路径
 	 */
-	public ScriptEntity(String packagePath,float version,String sourcePath){
+	public ScriptEntity(String packagePath, float version, String sourcePath){
 		this.packagePath = packagePath;
 		this.version = version;
 		this.sourcePath = sourcePath;

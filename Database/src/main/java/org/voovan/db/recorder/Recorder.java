@@ -2,6 +2,7 @@ package org.voovan.db.recorder;
 
 import org.voovan.db.DataBaseType;
 import org.voovan.db.JdbcOperate;
+import org.voovan.db.recorder.annotation.NotInsert;
 import org.voovan.db.recorder.annotation.PrimaryKey;
 import org.voovan.db.recorder.annotation.Table;
 import org.voovan.db.recorder.exception.RecorderException;
@@ -31,21 +32,21 @@ public class Recorder {
 
     /**
      * 构造函数
-     * @param dbAccess DBAccess 数据库连接对象
+     * @param jdbcOperate DBAccess 数据库连接对象
      */
-    public Recorder(JdbcOperate dbAccess){
-        this.jdbcOperate = dbAccess;
+    public Recorder(JdbcOperate jdbcOperate){
+        this.jdbcOperate = jdbcOperate;
         this.camelToUnderline = true;
     }
 
 
     /**
      * 构造函数
-     * @param dbAccess DBAccess 数据库连接对象
+     * @param jdbcOperate DBAccess 数据库连接对象
      * @param camelToUnderline 是否将驼峰转换为下划线形式
      */
-    public Recorder(JdbcOperate dbAccess, boolean camelToUnderline){
-        this.jdbcOperate = dbAccess;
+    public Recorder(JdbcOperate jdbcOperate, boolean camelToUnderline){
+        this.jdbcOperate = jdbcOperate;
         this.camelToUnderline = camelToUnderline;
     }
 
@@ -177,7 +178,13 @@ public class Recorder {
             mainSql = mainSql + "*";
         } else {
             for (String resultField : query.getResultField()) {
-                mainSql = mainSql + resultField + ",";
+                try {
+                    if(TReflect.findFieldIgnoreCase(obj.getClass(), resultField)!=null) {
+                        mainSql = mainSql + resultField + ",";
+                    }
+                } catch (ReflectiveOperationException e) {
+                    throw new RecorderException("Recorder query result field is failed", e);
+                }
             }
         }
 
@@ -319,7 +326,7 @@ public class Recorder {
             String fieldName = field.getName();
 
             //如果主键为空则不插入主键字段
-            if (field.getAnnotation(PrimaryKey.class) == null) {
+            if (field.getAnnotation(NotInsert.class) == null) {
                 try {
                     Object fieldValue = TReflect.getFieldValue(obj, fieldName);
                     if(fieldValue == null){
