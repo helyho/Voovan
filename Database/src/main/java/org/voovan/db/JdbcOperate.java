@@ -30,6 +30,7 @@ public class JdbcOperate {
 	private DataSource	dataSource;
 	private Connection	connection;
 	private TranscationType	trancation;
+	private DataBaseType dataBaseType;
 	private static Map<Long, JdbcOperate> threadOfJdbOperate = new ConcurrentHashMap<Long, JdbcOperate>();
 
 	/**
@@ -886,4 +887,6 @@ public class JdbcOperate {
 			Logger.error(e);
 		}
 	}
+
+
 }

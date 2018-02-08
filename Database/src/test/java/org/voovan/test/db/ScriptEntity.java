@@ -1,5 +1,7 @@
 package org.voovan.test.db;
 
+import org.voovan.db.recorder.annotation.PrimaryKey;
+import org.voovan.db.recorder.annotation.Table;
 import org.voovan.tools.TFile;
 import org.voovan.tools.THash;
 import org.voovan.tools.log.Logger;
@@ -12,7 +14,11 @@ import java.io.IOException;
  * @author helyho
  *
  */
+@Table("sc_script")
 public class ScriptEntity {
+	@PrimaryKey
+	private int id;
+
 	/**
 	 * 脚本路径
 	 */
@@ -71,7 +77,15 @@ public class ScriptEntity {
 		this.sourcePath = sourcePath;
 		canReload = 1;
 	}
-	
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
 	public String getPackagePath() {
 		return packagePath;
 	}

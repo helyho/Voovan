@@ -20,6 +20,8 @@ public class Query {
     private Map<String, Operate> queryAndField;
     private Map<String, Operate> queryOrField;
     private Map<String[], Boolean> orderField;
+    private int pageNumber = -1;
+    private int pageSize = -1;
 
     public Query() {
         resultField = new ArrayList<>();
@@ -53,9 +55,37 @@ public class Query {
         return this;
     }
 
+    public Query addOrder(String ... fieldNames) {
+        orderField.put(fieldNames, false);
+        return this;
+    }
+
     public Query addOrder(Boolean isDesc, String ... fieldNames) {
         orderField.put(fieldNames, isDesc);
         return this;
+    }
+
+    public Query page(int pageNumber, int pageSize){
+        this.pageNumber = pageNumber;
+        this.pageSize = pageSize;
+
+        return this;
+    }
+
+    public int getPageNumber() {
+        return pageNumber;
+    }
+
+    public void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
+    }
+
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
     }
 
     protected List<String> getResultField() {

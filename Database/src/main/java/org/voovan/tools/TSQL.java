@@ -1,6 +1,7 @@
 package org.voovan.tools;
 
 import org.voovan.db.CallType;
+import org.voovan.db.DataBaseType;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -62,13 +63,12 @@ public class TSQL {
 			//去掉前面::号
 			paramName = paramName.substring(2,paramName.length());
 			Object data = params.get(paramName);
-			if(data==null){
-				throw new NullPointerException("SQL param: "+paramName+ " is null");
-			}
 
-			if(TReflect.isBasicType(data.getClass())) {
+			if(data==null){
+				preparedStatement.setObject(i + 1, null);
+			} else if(TReflect.isBasicType(data.getClass())) {
 				preparedStatement.setObject(i + 1, params.get(paramName));
-			}else{
+			} else{
 				//复杂对象类型,无法直接保存进数据库,进行 JSON 转换后保存
 				preparedStatement.setObject(i + 1, JSON.toJSON(params.get(paramName)));
 			}
@@ -551,5 +551,85 @@ public class TSQL {
 			return Types.ARRAY;
 		}
 		return 0;
+	}
+
+	/**
+	 * 获取当前连接的数据库类型
+	 * @return 数据库类型
+	 * @throws SQLException SQL异常
+	 */
+	public static DataBaseType getDataBaseType(Connection connection) {
+		try {
+
+			//通过driverName是否包含关键字判断
+			if (connection.getMetaData().getDriverName().toUpperCase().indexOf("MYSQL") != -1) {
+				return DataBaseType.MySql;
+			}
+			if (connection.getMetaData().getDriverName().toUpperCase().indexOf("MARIADB") != -1) {
+				return DataBaseType.Mariadb;
+			} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("POSTAGE") != -1) {
+				return DataBaseType.Postage;
+			} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("ORACLE") != -1) {
+				return DataBaseType.Oracle;
+			}
+
+			return DataBaseType.UNKNOW;
+		} catch (SQLException e) {
+			return DataBaseType.UNKNOW;
+		}
+	}
+
+	/**
+	 * 生成 Mysql 分页的 sql
+	 * @param sql Sql语句
+	 * @param pageNumber 页码
+	 * @param pageSize 页面记录数
+	 * @return
+	 */
+	public static String genMysqlPageSql(String sql, int pageNumber, int pageSize){
+		int pageStart 	= (pageNumber-1) * pageSize;
+
+		if(pageSize<0 || pageNumber<0) {
+			return sql;
+		}
+
+		return sql + " limit " + pageStart + ", " + pageSize;
+	}
+
+	/**
+	 * 生成 Postage 分页的 sql
+	 * @param sql Sql语句
+	 * @param pageNumber 页码
+	 * @param pageSize 页面记录数
+	 * @return
+	 */
+	public static String genPostagePageSql(String sql, int pageNumber, int pageSize){
+		int pageStart 	= (pageNumber-1) * pageSize;
+
+		if(pageSize<0 || pageNumber<0) {
+			return sql;
+		}
+
+		return sql + " limit " + pageSize + " offset " + pageStart;
+	}
+
+	/**
+	 * 生成Oracle 分页的 sql
+	 * @param sql Sql语句
+	 * @param pageNumber 页码
+	 * @param pageSize 页面记录数
+	 * @return
+	 */
+	public static String genOraclePageSql(String sql, int pageNumber, int pageSize){
+		int pageStart 	= (pageNumber-1) * pageSize;
+		int pageEnd 	= pageStart + pageSize;
+
+		if(pageSize<0 || pageNumber<0) {
+			return sql;
+		}
+
+		sql = sql.replaceFirst("select", "select rownum rn,");
+		sql = "select pageSql.* from (" + sql + " ) pageSql where rn between " + pageStart + " and " + pageEnd;
+		return sql;
 	}
 }
