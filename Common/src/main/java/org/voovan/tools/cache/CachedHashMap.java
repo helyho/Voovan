@@ -4,13 +4,12 @@ import org.voovan.tools.CollectionSearch;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 进程内缓冲处理类
+ * 进程内缓存处理类
  *
  * @author: helyho
  * DBase Framework.
