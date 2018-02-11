@@ -1,6 +1,6 @@
 package org.voovan.tools.cache;
 
-import org.voovan.tools.json.JSON;
+import org.voovan.tools.TSerialize;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 基于 Redis 的 Map 实现
@@ -24,7 +26,7 @@ import java.util.Set;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class RedisMap implements Map<String, String>, Closeable {
+public class RedisMap<K, V> implements Map<K, V>, Closeable {
     private JedisPool redisPool;
     private String name = null;
     private int dbIndex = 0;
@@ -148,18 +150,20 @@ public class RedisMap implements Map<String, String>, Closeable {
     }
 
     private Jedis getJedis(){
-        Jedis Jedis = getJedis();
+        Jedis Jedis = redisPool.getResource();
         Jedis.select(dbIndex);
         return Jedis;
     }
 
     @Override
     public boolean containsKey(Object key) {
+        byte[] keyByteArray = serialize(key);
+
         try(Jedis jedis = getJedis()) {
             if(name==null){
-                return jedis.exists(key.toString());
+                return jedis.exists(keyByteArray);
             }else {
-                return jedis.hexists(name.toString(), key.toString());
+                return jedis.hexists(name.getBytes(), keyByteArray);
             }
         }
     }
@@ -170,34 +174,31 @@ public class RedisMap implements Map<String, String>, Closeable {
     }
 
     @Override
-    public String get(Object key) {
+    public V get(Object key) {
+        byte[] keyByteArray = serialize(key);
+        byte[] valueByteArray;
+
         try(Jedis jedis = getJedis()) {
             if(name==null){
-                return jedis.get(key.toString());
+                valueByteArray = jedis.get(keyByteArray);
             }else {
-                return jedis.hget(name, key.toString());
+                valueByteArray = jedis.hget(name.getBytes(), keyByteArray);
             }
         }
-    }
 
-    /**
-     * 获取 redis 中的对象
-     * @param key key 名称
-     * @param clazz 对象类型
-     * @param <T> 范型
-     * @return 对象
-     */
-    public <T> T getObj(Object key, Class<T> clazz) {
-        return (T) JSON.toObject(get(key), clazz);
+        return (V)unserialize(valueByteArray);
     }
 
     @Override
-    public String put(String key, String value) {
+    public V put(K key,V value) {
+        byte[] keyByteArray = serialize(key);
+        byte[] valueByteArray = serialize(value);
+
         try (Jedis jedis = getJedis()) {
             if(name==null){
-                return jedis.set(key.toString(), value.toString());
+                jedis.set(keyByteArray, valueByteArray);
             }else {
-                jedis.hset(name, key.toString(), value.toString());
+                jedis.hset(name.getBytes(), keyByteArray, valueByteArray);
             }
             return value;
 
@@ -211,47 +212,37 @@ public class RedisMap implements Map<String, String>, Closeable {
      * @param expire 超时事件
      * @return true: 成功, false:失败
      */
-    public boolean put(String key, String value, int expire){
+    public boolean put(K key, V value, int expire){
+        byte[] keyByteArray = serialize(key);
+        byte[] valueByteArray = serialize(value);
+
         try (Jedis jedis = getJedis()) {
             if(name==null){
-                return jedis.setex(key.toString(), expire, value.toString()).equals("OK");
+                return jedis.setex(keyByteArray, expire, valueByteArray).equals("OK");
             }else {
                 throw new UnsupportedOperationException();
             }
         }
     }
 
-    /**
-     * 像 redis 中放置对象数据
-     * @param key key 名称
-     * @param value 数据
-     * @return true: 成功, false:失败
-     */
-    public String putObj(String key, Object value) {
-        return put(key, JSON.toJSON(value));
-    }
-
-    /**
-     * 像 redis 中放置对象数据
-     * @param key key 名称
-     * @param value 数据
-     * @param expire 超时事件
-     * @return true: 成功, false:失败
-     */
-    public boolean putObj(String key, Object value, int expire) {
-        return put(key, JSON.toJSON(value), expire);
-    }
-
     @Override
-    public String putIfAbsent(String key, String value) {
+    public V putIfAbsent(K key, V value) {
+        byte[] keyByteArray = serialize(key);
+        byte[] valueByteArray = serialize(value);
+
         try (Jedis jedis = getJedis()) {
+            long result = 0;
             if(name==null){
-                jedis.setnx(key.toString(), value.toString());
+               jedis.setnx(keyByteArray, valueByteArray);
             }else {
-                jedis.hsetnx(name, key.toString(), value.toString());
+               jedis.hsetnx(name.getBytes(), keyByteArray, valueByteArray);
             }
 
-            return value;
+            if(result==1) {
+                return value;
+            } else {
+                return null;
+            }
         }
     }
 
@@ -261,10 +252,12 @@ public class RedisMap implements Map<String, String>, Closeable {
      * @param expire 超时事件
      * @return true: 成功, false:失败
      */
-    public boolean expire(String key, int expire) {
+    public boolean expire(K key, int expire) {
+        byte[] keyByteArray = serialize(key);
+
         try (Jedis jedis = getJedis()) {
             if(name==null){
-                return jedis.expire(key.toString(), expire)==1;
+                return jedis.expire(keyByteArray, expire)==1;
             }else {
                 throw new UnsupportedOperationException();
             }
@@ -276,10 +269,12 @@ public class RedisMap implements Map<String, String>, Closeable {
      * @param key key 名称
      * @return true: 成功, false:失败
      */
-    public boolean persist(String key) {
+    public boolean persist(K key) {
+        byte[] keyByteArray = serialize(key);
+
         try (Jedis jedis = getJedis()) {
             if(name==null){
-                return jedis.persist(key.toString())==1;
+                return jedis.persist(keyByteArray)==1;
             }else {
                 throw new UnsupportedOperationException();
             }
@@ -287,26 +282,33 @@ public class RedisMap implements Map<String, String>, Closeable {
     }
 
     @Override
-    public String remove(Object key) {
+    public V remove(Object key) {
+        byte[] keyByteArray = serialize(key);
+        byte[] valueByteArray;
+
         try(Jedis jedis = getJedis()) {
-            String value = null;
+            byte[] value = null;
             if(name==null){
-                value = jedis.get(key.toString());
+                valueByteArray = jedis.get(keyByteArray);
                 jedis.del(key.toString());
             }else {
-                value = jedis.hget(name, key.toString());
+                valueByteArray = jedis.hget(name.getBytes(), keyByteArray);
                 jedis.hdel(name, key.toString());
             }
-            return value;
+            return (V)unserialize(valueByteArray);
         }
     }
 
     @Override
-    public void putAll(Map map) {
+    public void putAll(Map<? extends K, ? extends V> map) {
         try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
                 Entry entry = (Entry) obj;
-                jedis.hset(name, entry.getKey().toString(), entry.getValue().toString());
+
+                byte[] keyByteArray = serialize(entry.getKey());
+                byte[] valueByteArray = serialize(entry.getValue());
+
+                jedis.hset(name.getBytes(), keyByteArray, valueByteArray);
             }
         }
     }
@@ -323,12 +325,17 @@ public class RedisMap implements Map<String, String>, Closeable {
     }
 
     @Override
-    public Set keySet() {
+    public Set<K> keySet() {
         try (Jedis jedis = getJedis()) {
             if(name==null){
                 throw new UnsupportedOperationException();
             }else {
-                return jedis.hkeys(name);
+                return (Set<K>)jedis.hkeys(name.getBytes()).stream().map(new Function<byte[], Object>() {
+                    @Override
+                    public Object apply(byte[] bytes) {
+                        return  (K)unserialize(bytes);
+                    }
+                }).collect(Collectors.toSet());
             }
         }
     }
@@ -338,10 +345,15 @@ public class RedisMap implements Map<String, String>, Closeable {
      * @param pattern 匹配表达式
      * @return 键集合
      */
-    public Set<String> keySet(String pattern) {
+    public Set<K> keySet(String pattern) {
         try (Jedis jedis = getJedis()) {
             if(name==null){
-                return jedis.keys(pattern);
+                return (Set<K>)jedis.hkeys(pattern.getBytes()).stream().map(new Function<byte[], K>() {
+                    @Override
+                    public K apply(byte[] bytes) {
+                        return  (K)unserialize(bytes);
+                    }
+                }).collect(Collectors.toSet());
             }else {
                 throw new UnsupportedOperationException();
             }
@@ -349,18 +361,23 @@ public class RedisMap implements Map<String, String>, Closeable {
     }
 
     @Override
-    public Collection values() {
+    public Collection<V> values() {
         try (Jedis jedis = getJedis()) {
             if(name==null){
                 throw new UnsupportedOperationException();
             }else {
-                return jedis.hvals(name);
+                return jedis.hvals(name.getBytes()).stream().map(new Function<byte[], V>() {
+                    @Override
+                    public V apply(byte[] bytes) {
+                        return  (V)unserialize(bytes);
+                    }
+                }).collect(Collectors.toList());
             }
         }
     }
 
     @Override
-    public Set<Entry<String, String>> entrySet() {
+    public Set<Entry<K, V>> entrySet() {
         throw new UnsupportedOperationException();
     }
 
@@ -370,12 +387,14 @@ public class RedisMap implements Map<String, String>, Closeable {
      * @param value 值
      * @return 自增后的结果
      */
-    public long incr(String key, long value) {
+    public long incr(K key, long value) {
+        byte[] keyByteArray = serialize(key);
+
         try (Jedis jedis = getJedis()) {
             if(name==null){
-                value = jedis.incrBy(key, value);
+                value = jedis.incrBy(keyByteArray, value);
             }else {
-                value = jedis.hincrBy(name, key, value);
+                value = jedis.hincrBy(name.getBytes(), keyByteArray, value);
                 return value;
             }
         }
@@ -389,12 +408,14 @@ public class RedisMap implements Map<String, String>, Closeable {
      * @param value 值
      * @return 自增后的结果
      */
-    public double incrFloat(String key, double value) {
+    public double incrFloat(K key, double value) {
+        byte[] keyByteArray = serialize(key);
+
         try (Jedis jedis = getJedis()) {
             if(name==null){
-                value = jedis.incrByFloat(key, value);
+                value = jedis.incrByFloat(keyByteArray, value);
             }else {
-                value = jedis.hincrByFloat(name, key, value);
+                value = jedis.hincrByFloat(name.getBytes(), keyByteArray, value);
                 return value;
             }
         }
@@ -406,4 +427,43 @@ public class RedisMap implements Map<String, String>, Closeable {
     public void close() throws IOException {
         redisPool.close();
     }
+
+    /**
+     * 序列化
+     * @param obj 待序列化的对象
+     * @return 字节码
+     */
+    public byte[] serialize(Object obj){
+        if( obj instanceof Integer){
+            return ((Integer) obj).toString().getBytes();
+        } else if( obj instanceof Long){
+            return ((Long) obj).toString().getBytes();
+        } else if( obj instanceof Short){
+            return ((Short) obj).toString().getBytes();
+        } else if( obj instanceof Float){
+            return ((Float) obj).toString().getBytes();
+        } else if( obj instanceof Double){
+            return ((Double) obj).toString().getBytes();
+        } else if( obj instanceof Character){
+            return ((Character)obj).toString().getBytes();
+        } else if( obj instanceof String){
+            return ((String)obj).toString().getBytes();
+        } else {
+            return TSerialize.serialize(obj);
+        }
+    }
+
+    /**
+     * 反序列化
+     * @param byteArray 字节码
+     * @return 反序列化的对象
+     */
+    public Object unserialize(byte[] byteArray){
+        if(byteArray[0]==-84 && byteArray[1]==-19 && byteArray[2]==0 && byteArray[3]==5){
+            return TSerialize.unserialize(byteArray);
+        } else {
+            return new String(byteArray);
+        }
+    }
+
 }

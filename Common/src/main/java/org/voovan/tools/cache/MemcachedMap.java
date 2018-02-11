@@ -25,7 +25,7 @@ import static org.voovan.tools.cache.CacheStatic.defaultPoolSize;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class MemcachedMap implements Map<String, String> , Closeable {
+public class MemcachedMap implements Map<String, Object> , Closeable {
     private MemcachedClientBuilder memcachedClientBuilder;
     private MemcachedClient memcachedClient = null;
     private int size;
@@ -140,11 +140,11 @@ public class MemcachedMap implements Map<String, String> , Closeable {
     }
 
     @Override
-    public String put(String key, String value) {
+    public String put(String key, Object value) {
         MemcachedClient memcachedClient = getMemcachedClient();
         try{
             if(memcachedClient.set(key, 0, value)) {
-                return value;
+                return value.toString();
             }else{
                 return null;
             }
@@ -161,7 +161,7 @@ public class MemcachedMap implements Map<String, String> , Closeable {
      * @param expire 超时事件
      * @return true: 成功, false:失败
      */
-    public boolean put(String key, String value, int expire) {
+    public boolean put(String key, Object value, int expire) {
         MemcachedClient memcachedClient = getMemcachedClient();
         try{
             return memcachedClient.set(key, expire, value);
@@ -444,7 +444,7 @@ public class MemcachedMap implements Map<String, String> , Closeable {
     }
 
     @Override
-    public Set<Entry<String, String>> entrySet() {
+    public Set<Entry<String, Object>> entrySet() {
         throw new UnsupportedOperationException();
     }
 
