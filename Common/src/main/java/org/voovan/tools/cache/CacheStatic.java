@@ -2,6 +2,7 @@ package org.voovan.tools.cache;
 
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.TProperties;
+import org.voovan.tools.TSerialize;
 import org.voovan.tools.log.Logger;
 import net.rubyeye.xmemcached.MemcachedClient;
 import net.rubyeye.xmemcached.MemcachedClientBuilder;
@@ -165,6 +166,51 @@ public class CacheStatic {
             return redisPool.getResource();
         }else{
             return null;
+        }
+    }
+
+    /**
+     * 序列化
+     * @param obj 待序列化的对象
+     * @return 字节码
+     */
+    public static byte[] serialize(Object obj){
+        if( obj instanceof Integer){
+            return ((Integer) obj).toString().getBytes();
+        }
+        else if( obj instanceof Long){
+            return ((Long) obj).toString().getBytes();
+        }
+        else if( obj instanceof Short){
+            return ((Short) obj).toString().getBytes();
+        }
+        else if( obj instanceof Float){
+            return ((Float) obj).toString().getBytes();
+        }
+        else if( obj instanceof Double){
+            return ((Double) obj).toString().getBytes();
+        }
+        else if( obj instanceof Character){
+            return ((Character)obj).toString().getBytes();
+        }
+        else if( obj instanceof String){
+            return ((String)obj).toString().getBytes();
+        }
+        else {
+            return TSerialize.serialize(obj);
+        }
+    }
+
+    /**
+     * 反序列化
+     * @param byteArray 字节码
+     * @return 反序列化的对象
+     */
+    public static Object unserialize(byte[] byteArray){
+        if(byteArray[0]==-84 && byteArray[1]==-19 && byteArray[2]==0 && byteArray[3]==5){
+            return TSerialize.unserialize(byteArray);
+        } else {
+            return new String(byteArray);
         }
     }
 

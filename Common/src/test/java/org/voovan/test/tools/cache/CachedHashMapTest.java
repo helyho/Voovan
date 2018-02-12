@@ -39,9 +39,14 @@ public class CachedHashMapTest {
         cachedHashMap.put("key_bbb", "value_bbb");
         cachedHashMap.put("key_ccc", "value_ccc");
 
+        cachedHashMap.build((key) -> {
+            System.out.println(key + " update");
+            return System.currentTimeMillis() + "_" + key;
+        });
+
         int count = 0;
-        while(count<140*1000) {
-            TEnv.sleep(1);
+        while(count<140) {
+            TEnv.sleep(1000);
             count++;
         }
     }
