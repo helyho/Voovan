@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -686,7 +687,7 @@ public class TString {
 	 * @return 快速生成短的ID
 	 */
 	public static String generateId(Object obj, String sign) {
-		Random random = new Random();
+		ThreadLocalRandom random = ThreadLocalRandom.current();
 
 		if(sign == null){
 			sign = Global.NAME;
@@ -699,7 +700,6 @@ public class TString {
 		long currentTime = System.currentTimeMillis();
 		long mark = currentTime ^ random.nextLong();
 
-		random.setSeed(mark);
 		long randomMark = currentTime ^random.nextLong();
 
 		long id = obj.hashCode()^Runtime.getRuntime().freeMemory()^mark^(new Random(randomMark).nextLong())^Long.valueOf(sign, 36);

@@ -30,7 +30,7 @@ public class CollectionSearchTest extends TestCase{
         List<test> tl = new ArrayList<test>();
         for(int i=0;i<30;i++){
             if(i%2==0) {
-                tl.add(new test(i, "fff"));
+                tl.add(new test(i, "fff"+i));
             } else {
                 tl.add(new test(i, "ddd"));
             }
@@ -41,6 +41,8 @@ public class CollectionSearchTest extends TestCase{
         System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).addCondition("aaa", "ddd").sort("bbb", false).page(2,2).search()));
         System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).sort("bbb").limit(4).search()));
         System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).addCondition("aaa", "ddd").sort("bbb", false).page(2, 4).sort("bbb", false).limit(2).search()));
+        System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).addCondition("bbb", CollectionSearch.Operate.GREATER, 20).search()));
+        System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).addCondition("aaa", CollectionSearch.Operate.START_WITH, "fff2").search()));
 
     }
 }

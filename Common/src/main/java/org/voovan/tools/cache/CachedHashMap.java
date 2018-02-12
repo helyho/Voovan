@@ -40,13 +40,15 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
             @Override
             public void run() {
                 //清理过期的
-                for(TimeMark timeMark : (TimeMark[])cachedHashMap.getCacheMark().values().toArray()){
+                for(TimeMark timeMark : (TimeMark[])cachedHashMap.getCacheMark().values().toArray(new TimeMark[0])){
                     if(timeMark.isExpire()){
                         cachedHashMap.remove(timeMark.getKey());
+                        cachedHashMap.cacheMark.remove(timeMark.getKey());
+
                     }
                 }
             }
-        }, 1000);
+        }, 1);
     }
 
     /**
@@ -65,7 +67,9 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      */
     @Override
     public V get(Object key){
-        cacheMark.get(key).refresh(false);
+        if(cacheMark.contains(key)) {
+            cacheMark.get(key).refresh(false);
+        }
         return super.get(key);
     }
 
@@ -75,7 +79,9 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * @return 值
      */
     public V getAndRefresh(Object key){
-        cacheMark.get(key).refresh(true);
+        if(cacheMark.contains(key)) {
+            cacheMark.get(key).refresh(false);
+        }
         return this.get(key);
     }
 
@@ -160,12 +166,20 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      */
     private void fixSize() {
         //如果超出容量限制
-        int diffSize = this.maxSize - maxSize;
+        int diffSize = this.size() - maxSize;
         if (diffSize > 0) {
             //最少访问次数中, 时间最老的进行清楚
-            TimeMark[] removedTimeMark = (TimeMark[]) CollectionSearch.newInstance(cacheMark.values()).sort("visitCount").limit(10 * diffSize).sort("lastTime").limit(diffSize).search().toArray();
+            TimeMark[] removedTimeMark = (TimeMark[]) CollectionSearch.newInstance(cacheMark.values())
+                                                        .addCondition("lastTime", CollectionSearch.Operate.LESS, System.currentTimeMillis()-1000)
+                                                        .sort("visitCount")
+                                                        .limit(10 * diffSize)
+                                                        .sort("lastTime")
+                                                        .limit(diffSize)
+                                                        .search()
+                                                        .toArray(new TimeMark[0]);
             for (TimeMark timeMark : removedTimeMark) {
                 cacheMark.remove(timeMark.getKey());
+                this.remove(timeMark.getKey());
             }
         }
     }
@@ -209,15 +223,16 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
     private class TimeMark<K> {
         private CachedHashMap<K,V> mainMap;
         private K key;
-        private AtomicLong expireTime;
-        private AtomicLong lastTime;
-        private AtomicLong visitCount;
+        private AtomicLong expireTime = new AtomicLong(0);
+        private AtomicLong lastTime = new AtomicLong(0);
+        private AtomicLong visitCount = new AtomicLong(0);
 
         public TimeMark(CachedHashMap<K,V> mainMap, K key, long expireTime){
             this.key = key;
             this.mainMap = mainMap;
+            this.expireTime.set(expireTime);
             visitCount.set(0);
-            refresh(false);
+            refresh(true);
         }
 
         /**
@@ -235,7 +250,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
          * @return true: 已过期, false: 未过期
          */
         public boolean isExpire(){
-            if(System.currentTimeMillis() - lastTime.get() >= expireTime.get()){
+            if(System.currentTimeMillis() - lastTime.get() >= expireTime.get()*1000){
                 return true;
             } else {
                 return false;
