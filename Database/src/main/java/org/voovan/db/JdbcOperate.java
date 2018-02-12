@@ -26,12 +26,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class JdbcOperate {
+	private static Map<Long, JdbcOperate> JDBCOPERATE_THREAD_LIST = new ConcurrentHashMap<Long, JdbcOperate>();
 
 	private DataSource	dataSource;
 	private Connection	connection;
 	private TranscationType transcationType;
 	private DataBaseType dataBaseType;
-	private static Map<Long, JdbcOperate> threadOfJdbOperate = new ConcurrentHashMap<Long, JdbcOperate>();
 	private List<JdbcOperate> jdbcOperateArrayList = new ArrayList<JdbcOperate>();
 
 	/**
@@ -67,12 +67,15 @@ public class JdbcOperate {
 	 * 增加连接事务关联绑定
 	 * 		只能绑定 TranscationType 为 NEST 的事务
 	 * @param jdbcOperate 连接操作对象
+	 * @param bothway true: 双向绑定, false: 单向绑定
 	 * @return true: 增加连接事务绑定成功, false: 增加连接事务绑定失败
 	 */
-	public synchronized boolean addBind(JdbcOperate jdbcOperate){
+	public synchronized boolean addBind(JdbcOperate jdbcOperate, boolean bothway){
 		if(jdbcOperate.transcationType == TranscationType.NEST) {
 			if(!jdbcOperateArrayList.contains(jdbcOperate)) {
-				jdbcOperate.addBind(this);
+				if(bothway) {
+					jdbcOperate.addBind(this, false);
+				}
 				return jdbcOperateArrayList.add(jdbcOperate);
 			}
 		}
@@ -83,10 +86,13 @@ public class JdbcOperate {
 	/**
 	 * 移除连接事务绑定
 	 * @param jdbcOperate 连接操作对象
+	 * @param bothway true: 双向绑定, false: 单向绑定
 	 * @return true: 移除连接事务绑定成功, false: 移除连接事务绑定失败
 	 */
-	public synchronized boolean removeBind(JdbcOperate jdbcOperate){
-		jdbcOperate.removeBind(this);
+	public synchronized boolean removeBind(JdbcOperate jdbcOperate, boolean bothway){
+		if(bothway) {
+			jdbcOperate.removeBind(this, false);
+		}
 		return jdbcOperateArrayList.remove(jdbcOperate);
 	}
 
@@ -103,12 +109,12 @@ public class JdbcOperate {
 			//事务嵌套模式
 			if (transcationType == TranscationType.NEST) {
 				//判断是否有上层事务
-				if(threadOfJdbOperate.containsKey(threadId)) {
-					connection = threadOfJdbOperate.get(threadId).getConnection();
+				if(JDBCOPERATE_THREAD_LIST.containsKey(threadId)) {
+					connection = JDBCOPERATE_THREAD_LIST.get(threadId).getConnection();
 				} else {
 					connection = dataSource.getConnection();
 					connection.setAutoCommit(false);
-					threadOfJdbOperate.put(threadId, this);
+					JDBCOPERATE_THREAD_LIST.put(threadId, this);
 				}
 			}
 			//孤立事务模式
@@ -139,6 +145,7 @@ public class JdbcOperate {
 	 * @throws SQLException SQL 异常
 	 */
 	public void commit(boolean isClose) throws SQLException {
+		//关联事务提交
 		for(JdbcOperate jdbcOperate : jdbcOperateArrayList){
 			if(this.equals(jdbcOperate)) {
 				jdbcOperate.commit(isClose);
@@ -157,6 +164,7 @@ public class JdbcOperate {
 	 * @throws SQLException SQL 异常
 	 */
 	public void rollback(boolean isClose) throws SQLException {
+		//关联事务回滚
 		for(JdbcOperate jdbcOperate : jdbcOperateArrayList){
 			if(this.equals(jdbcOperate)) {
 				jdbcOperate.rollback(isClose);
@@ -890,7 +898,7 @@ public class JdbcOperate {
 	private static void closeConnection(Connection connection) {
 		try {
 			if (connection != null) {
-				threadOfJdbOperate.remove(Thread.currentThread().getId());
+				JDBCOPERATE_THREAD_LIST.remove(Thread.currentThread().getId());
 				connection.close();
 			}
 		} catch (SQLException e) {
