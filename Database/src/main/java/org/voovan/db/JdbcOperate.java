@@ -16,8 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * jdbc 操作类
- * 		每个数据库操作函数 开启关闭一次连接. 使用:开始来标识参数,例如: Map 和对象形式用:":arg", List 和 Array
- * 形式用":1"
+ * 		每个数据库操作函数 开启关闭一次连接. 使用:开始来标识参数,例如: Map 和对象形式用:":arg", List 和 Array 形式用":1"
+ * 		所有行为均为非线程安全
  *
  * @author helyho
  *
@@ -29,9 +29,10 @@ public class JdbcOperate {
 
 	private DataSource	dataSource;
 	private Connection	connection;
-	private TranscationType	trancation;
+	private TranscationType transcationType;
 	private DataBaseType dataBaseType;
 	private static Map<Long, JdbcOperate> threadOfJdbOperate = new ConcurrentHashMap<Long, JdbcOperate>();
+	private List<JdbcOperate> jdbcOperateArrayList = new ArrayList<JdbcOperate>();
 
 	/**
 	 * 构造函数
@@ -39,7 +40,7 @@ public class JdbcOperate {
 	 */
 	public JdbcOperate(DataSource dataSource) {
 		this.dataSource = dataSource;
-		this.trancation = TranscationType.NONE;
+		this.transcationType = TranscationType.NONE;
 	}
 
 	/**
@@ -49,17 +50,44 @@ public class JdbcOperate {
 	 */
 	public JdbcOperate(DataSource dataSource,boolean isTrancation){
 		this.dataSource = dataSource;
-		this.trancation = (isTrancation? TranscationType.NEST : TranscationType.NONE);
+		this.transcationType = (isTrancation? TranscationType.NEST : TranscationType.NONE);
 	}
 
 	/**
 	 * 构造函数
 	 * @param dataSource	数据源
-	 * @param trancation    是否启用事务支持, 设置事务模式
+	 * @param transcationType    是否启用事务支持, 设置事务模式
 	 */
-	public JdbcOperate(DataSource dataSource,TranscationType trancation){
+	public JdbcOperate(DataSource dataSource,TranscationType transcationType){
 		this.dataSource = dataSource;
-		this.trancation = trancation;
+		this.transcationType = transcationType;
+	}
+
+	/**
+	 * 增加连接事务关联绑定
+	 * 		只能绑定 TranscationType 为 NEST 的事务
+	 * @param jdbcOperate 连接操作对象
+	 * @return true: 增加连接事务绑定成功, false: 增加连接事务绑定失败
+	 */
+	public synchronized boolean addBind(JdbcOperate jdbcOperate){
+		if(jdbcOperate.transcationType == TranscationType.NEST) {
+			if(!jdbcOperateArrayList.contains(jdbcOperate)) {
+				jdbcOperate.addBind(this);
+				return jdbcOperateArrayList.add(jdbcOperate);
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * 移除连接事务绑定
+	 * @param jdbcOperate 连接操作对象
+	 * @return true: 移除连接事务绑定成功, false: 移除连接事务绑定失败
+	 */
+	public synchronized boolean removeBind(JdbcOperate jdbcOperate){
+		jdbcOperate.removeBind(this);
+		return jdbcOperateArrayList.remove(jdbcOperate);
 	}
 
 	/**
@@ -73,7 +101,7 @@ public class JdbcOperate {
 		//如果连接不存在,或者连接已关闭则重取一个连接
 		if (connection == null || connection.isClosed()) {
 			//事务嵌套模式
-			if (trancation == TranscationType.NEST) {
+			if (transcationType == TranscationType.NEST) {
 				//判断是否有上层事务
 				if(threadOfJdbOperate.containsKey(threadId)) {
 					connection = threadOfJdbOperate.get(threadId).getConnection();
@@ -84,12 +112,12 @@ public class JdbcOperate {
 				}
 			}
 			//孤立事务模式
-			else if (trancation == TranscationType.ALONE){
+			else if (transcationType == TranscationType.ALONE){
 				connection = dataSource.getConnection();
 				connection.setAutoCommit(false);
 			}
 			//非事务模式
-			else if (trancation == TranscationType.NONE){
+			else if (transcationType == TranscationType.NONE){
 				connection = dataSource.getConnection();
 				connection.setAutoCommit(true);
 			}
@@ -101,8 +129,8 @@ public class JdbcOperate {
 	 * 返回当前事务形式
 	 * @return
 	 */
-	public TranscationType getTrancation() {
-		return trancation;
+	public TranscationType getTranscationType() {
+		return transcationType;
 	}
 
 	/**
@@ -110,7 +138,13 @@ public class JdbcOperate {
 	 * @param isClose 是否关闭数据库连接
 	 * @throws SQLException SQL 异常
 	 */
-	public void commit(boolean isClose) throws SQLException{
+	public void commit(boolean isClose) throws SQLException {
+		for(JdbcOperate jdbcOperate : jdbcOperateArrayList){
+			if(this.equals(jdbcOperate)) {
+				jdbcOperate.commit(isClose);
+			}
+		}
+
 		connection.commit();
 		if(isClose) {
 			closeConnection(connection);
@@ -122,7 +156,13 @@ public class JdbcOperate {
 	 * @param isClose 是否关闭数据库连接
 	 * @throws SQLException SQL 异常
 	 */
-	public void rollback(boolean isClose) throws SQLException{
+	public void rollback(boolean isClose) throws SQLException {
+		for(JdbcOperate jdbcOperate : jdbcOperateArrayList){
+			if(this.equals(jdbcOperate)) {
+				jdbcOperate.rollback(isClose);
+			}
+		}
+
 		connection.rollback();
 		if(isClose) {
 			closeConnection(connection);
@@ -133,16 +173,16 @@ public class JdbcOperate {
 	 * 提交事务不关闭连接
 	 * @throws SQLException SQL 异常
 	 */
-	public void commit() throws SQLException{
-		connection.commit();
+	public void commit() throws SQLException {
+		commit(false);
 	}
 
 	/**
 	 * 回滚事务不关闭连接
 	 * @throws SQLException SQL 异常
 	 */
-	public void rollback() throws SQLException{
-		connection.rollback();
+	public void rollback() throws SQLException {
+		rollback(false);
 	}
 
 	/**
@@ -198,7 +238,7 @@ public class JdbcOperate {
 			exception = e;
 		} finally {
 			// 非事务模式执行
-			if (trancation == TranscationType.NONE) {
+			if (transcationType == TranscationType.NONE) {
 				closeConnection(preparedStatement);
 			}else{
 				if(exception!=null) {
@@ -254,7 +294,7 @@ public class JdbcOperate {
 			exception = e;
 		} finally {
 			// 非事务模式执行
-			if (trancation == TranscationType.NONE) {
+			if (transcationType == TranscationType.NONE) {
 				closeConnection(preparedStatement);
 			}else{
 				if(exception!=null) {
@@ -286,7 +326,7 @@ public class JdbcOperate {
 			exception = e;
 		} finally {
 			// 非事务模式执行
-			if (trancation == TranscationType.NONE) {
+			if (transcationType == TranscationType.NONE) {
 				closeConnection(callableStatement);
 			}else{
 				if(exception!=null) {

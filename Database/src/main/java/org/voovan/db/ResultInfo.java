@@ -40,7 +40,7 @@ public class ResultInfo {
             Logger.error("JdbcOperate.getObjectList error",e);
         }finally{
             // 非事务模式执行
-            if (jdbcOperate.getTrancation() == TranscationType.NONE) {
+            if (jdbcOperate.getTranscationType() == TranscationType.NONE) {
                 JdbcOperate.closeConnection(resultSet);
             }else{
                 JdbcOperate.closeResult(resultSet);
@@ -57,7 +57,7 @@ public class ResultInfo {
             Logger.error("JdbcOperate.getMapList error",e);
         }finally{
             // 非事务模式执行
-            if (jdbcOperate.getTrancation() == TranscationType.NONE) {
+            if (jdbcOperate.getTranscationType() == TranscationType.NONE) {
                 JdbcOperate.closeConnection(resultSet);
             }else{
                 JdbcOperate.closeResult(resultSet);
@@ -78,7 +78,7 @@ public class ResultInfo {
             Logger.error("JdbcOperate.getObject error",e);
         }finally{
             // 非事务模式执行
-            if (jdbcOperate.getTrancation() == TranscationType.NONE) {
+            if (jdbcOperate.getTranscationType() == TranscationType.NONE) {
                 JdbcOperate.closeConnection(resultSet);
             }else{
                 JdbcOperate.closeResult(resultSet);
@@ -98,7 +98,7 @@ public class ResultInfo {
             Logger.error("JdbcOperate.getMap error",e);
         }finally{
             // 非事务模式执行
-            if (jdbcOperate.getTrancation() == TranscationType.NONE) {
+            if (jdbcOperate.getTranscationType() == TranscationType.NONE) {
                 JdbcOperate.closeConnection(resultSet);
             }else{
                 JdbcOperate.closeResult(resultSet);
