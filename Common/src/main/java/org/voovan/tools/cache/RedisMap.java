@@ -1,6 +1,5 @@
 package org.voovan.tools.cache;
 
-import org.voovan.tools.TSerialize;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -30,6 +29,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
     private JedisPool redisPool;
     private String name = null;
     private int dbIndex = 0;
+    public Function<K, V> buildFunction = null;
 
     /**
      * 构造函数
@@ -129,6 +129,10 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
         this.dbIndex = dbIndex;
     }
 
+    public void build(Function<K, V> buildFunction){
+        this.buildFunction = buildFunction;
+    }
+
     @Override
     public int size() {
         if(name==null){
@@ -157,7 +161,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
 
     @Override
     public boolean containsKey(Object key) {
-        byte[] keyByteArray = serialize(key);
+        byte[] keyByteArray = CacheStatic.serialize(key);
 
         try(Jedis jedis = getJedis()) {
             if(name==null){
@@ -175,7 +179,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
 
     @Override
     public V get(Object key) {
-        byte[] keyByteArray = serialize(key);
+        byte[] keyByteArray = CacheStatic.serialize(key);
         byte[] valueByteArray;
 
         try(Jedis jedis = getJedis()) {
@@ -186,13 +190,24 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
             }
         }
 
-        return (V)unserialize(valueByteArray);
+        //如果不存在则重读
+        if(valueByteArray==null){
+            if(buildFunction!=null) {
+                synchronized (buildFunction) {
+                    V value = buildFunction.apply((K) key);
+                    put((K) key, value);
+                    return value;
+                }
+            }
+        }
+
+        return (V)CacheStatic.unserialize(valueByteArray);
     }
 
     @Override
     public V put(K key,V value) {
-        byte[] keyByteArray = serialize(key);
-        byte[] valueByteArray = serialize(value);
+        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] valueByteArray = CacheStatic.serialize(value);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -213,8 +228,8 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
      * @return true: 成功, false:失败
      */
     public boolean put(K key, V value, int expire){
-        byte[] keyByteArray = serialize(key);
-        byte[] valueByteArray = serialize(value);
+        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] valueByteArray = CacheStatic.serialize(value);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -227,15 +242,15 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
 
     @Override
     public V putIfAbsent(K key, V value) {
-        byte[] keyByteArray = serialize(key);
-        byte[] valueByteArray = serialize(value);
+        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] valueByteArray = CacheStatic.serialize(value);
 
         try (Jedis jedis = getJedis()) {
             long result = 0;
             if(name==null){
-               jedis.setnx(keyByteArray, valueByteArray);
+                jedis.setnx(keyByteArray, valueByteArray);
             }else {
-               jedis.hsetnx(name.getBytes(), keyByteArray, valueByteArray);
+                jedis.hsetnx(name.getBytes(), keyByteArray, valueByteArray);
             }
 
             if(result==1) {
@@ -253,7 +268,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
      * @return true: 成功, false:失败
      */
     public boolean expire(K key, int expire) {
-        byte[] keyByteArray = serialize(key);
+        byte[] keyByteArray = CacheStatic.serialize(key);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -270,7 +285,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
      * @return true: 成功, false:失败
      */
     public boolean persist(K key) {
-        byte[] keyByteArray = serialize(key);
+        byte[] keyByteArray = CacheStatic.serialize(key);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -283,7 +298,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
 
     @Override
     public V remove(Object key) {
-        byte[] keyByteArray = serialize(key);
+        byte[] keyByteArray = CacheStatic.serialize(key);
         byte[] valueByteArray;
 
         try(Jedis jedis = getJedis()) {
@@ -295,7 +310,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
                 valueByteArray = jedis.hget(name.getBytes(), keyByteArray);
                 jedis.hdel(name, key.toString());
             }
-            return (V)unserialize(valueByteArray);
+            return (V)CacheStatic.unserialize(valueByteArray);
         }
     }
 
@@ -305,8 +320,8 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
             for (Object obj : map.entrySet()) {
                 Entry entry = (Entry) obj;
 
-                byte[] keyByteArray = serialize(entry.getKey());
-                byte[] valueByteArray = serialize(entry.getValue());
+                byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
+                byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
 
                 jedis.hset(name.getBytes(), keyByteArray, valueByteArray);
             }
@@ -333,7 +348,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
                 return (Set<K>)jedis.hkeys(name.getBytes()).stream().map(new Function<byte[], Object>() {
                     @Override
                     public Object apply(byte[] bytes) {
-                        return  (K)unserialize(bytes);
+                        return  (K)CacheStatic.unserialize(bytes);
                     }
                 }).collect(Collectors.toSet());
             }
@@ -351,7 +366,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
                 return (Set<K>)jedis.hkeys(pattern.getBytes()).stream().map(new Function<byte[], K>() {
                     @Override
                     public K apply(byte[] bytes) {
-                        return  (K)unserialize(bytes);
+                        return  (K)CacheStatic.unserialize(bytes);
                     }
                 }).collect(Collectors.toSet());
             }else {
@@ -369,7 +384,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
                 return jedis.hvals(name.getBytes()).stream().map(new Function<byte[], V>() {
                     @Override
                     public V apply(byte[] bytes) {
-                        return  (V)unserialize(bytes);
+                        return  (V)CacheStatic.unserialize(bytes);
                     }
                 }).collect(Collectors.toList());
             }
@@ -388,7 +403,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
      * @return 自增后的结果
      */
     public long incr(K key, long value) {
-        byte[] keyByteArray = serialize(key);
+        byte[] keyByteArray = CacheStatic.serialize(key);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -409,7 +424,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
      * @return 自增后的结果
      */
     public double incrFloat(K key, double value) {
-        byte[] keyByteArray = serialize(key);
+        byte[] keyByteArray = CacheStatic.serialize(key);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -427,43 +442,4 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
     public void close() throws IOException {
         redisPool.close();
     }
-
-    /**
-     * 序列化
-     * @param obj 待序列化的对象
-     * @return 字节码
-     */
-    public byte[] serialize(Object obj){
-        if( obj instanceof Integer){
-            return ((Integer) obj).toString().getBytes();
-        } else if( obj instanceof Long){
-            return ((Long) obj).toString().getBytes();
-        } else if( obj instanceof Short){
-            return ((Short) obj).toString().getBytes();
-        } else if( obj instanceof Float){
-            return ((Float) obj).toString().getBytes();
-        } else if( obj instanceof Double){
-            return ((Double) obj).toString().getBytes();
-        } else if( obj instanceof Character){
-            return ((Character)obj).toString().getBytes();
-        } else if( obj instanceof String){
-            return ((String)obj).toString().getBytes();
-        } else {
-            return TSerialize.serialize(obj);
-        }
-    }
-
-    /**
-     * 反序列化
-     * @param byteArray 字节码
-     * @return 反序列化的对象
-     */
-    public Object unserialize(byte[] byteArray){
-        if(byteArray[0]==-84 && byteArray[1]==-19 && byteArray[2]==0 && byteArray[3]==5){
-            return TSerialize.unserialize(byteArray);
-        } else {
-            return new String(byteArray);
-        }
-    }
-
 }

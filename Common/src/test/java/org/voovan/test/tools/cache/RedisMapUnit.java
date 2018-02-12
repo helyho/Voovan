@@ -1,7 +1,7 @@
 package org.voovan.test.tools.cache;
 
-import org.voovan.tools.TObject;
 import org.voovan.tools.cache.RedisMap;
+import org.voovan.tools.TObject;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import junit.framework.TestCase;
@@ -43,7 +43,7 @@ public class RedisMapUnit extends TestCase{
     }
 
     public void testPutAll(){
-        redisMapOld.putAll(TObject.asMap("age", "35", "sexType", "male"));
+        redisMapOld.putAll(TObject.asMap("age", 35, "sexType", "male"));
         assertEquals(2, redisMapOld.size());
     }
 
@@ -56,7 +56,7 @@ public class RedisMapUnit extends TestCase{
     }
 
     public void testIncr(){
-        redisMapOld.put("incr", "12");
+        redisMapOld.put("incr", 12);
         assertEquals(23, redisMapOld.incr("incr", 11));
     }
 
@@ -77,6 +77,14 @@ public class RedisMapUnit extends TestCase{
         redisMapOld.put("scriptEntity", scriptEntity);
         scriptEntity = (ScriptEntity)redisMapOld.get("scriptEntity");
         Logger.simple(JSON.toJSON(scriptEntity));
+    }
+
+    public void testLazyLoad(){
+        redisMapOld.build((key) -> {
+            return key+"_loaded";
+        });
+        Object o = redisMapOld.get("nullValue");
+        assertEquals(o, "nullValue_loaded");
     }
 
     @Override

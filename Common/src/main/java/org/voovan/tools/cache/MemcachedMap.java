@@ -1,6 +1,5 @@
 package org.voovan.tools.cache;
 
-import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import net.rubyeye.xmemcached.MemcachedClient;
 import net.rubyeye.xmemcached.MemcachedClientBuilder;
@@ -13,6 +12,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import static org.voovan.tools.cache.CacheStatic.defaultPoolSize;
 
@@ -25,10 +25,10 @@ import static org.voovan.tools.cache.CacheStatic.defaultPoolSize;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class MemcachedMap implements Map<String, Object> , Closeable {
+public class MemcachedMap<String, V> implements Map<String, V> , Closeable {
     private MemcachedClientBuilder memcachedClientBuilder;
     private MemcachedClient memcachedClient = null;
-    private int size;
+    public Function<String, V> buildFunction = null;
 
     /**
      * 构造函数
@@ -56,7 +56,6 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
                 Logger.error("Read ./classes/Memcached.properties error");
             }
         }
-        this.size = 0;
     }
 
     /**
@@ -72,7 +71,6 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
      */
     public MemcachedMap(){
         this.memcachedClientBuilder = CacheStatic.getMemcachedPool();
-        this.size = 0;
     }
 
     /**
@@ -91,6 +89,10 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
         return memcachedClient;
     }
 
+    public void build(Function<String, V> buildFunction){
+        this.buildFunction = buildFunction;
+    }
+
     @Override
     public int size() {
         throw new UnsupportedOperationException();
@@ -105,7 +107,7 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
     public boolean containsKey(Object key) {
         MemcachedClient memcachedClient = getMemcachedClient();
         try{
-            return memcachedClient.get((String) key)!=null;
+            return memcachedClient.get(key.toString())!=null;
         }catch (Exception e){
             Logger.error(e);
             return false;
@@ -118,33 +120,35 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
     }
 
     @Override
-    public String get(Object key) {
+    public V get(Object key) {
         MemcachedClient memcachedClient = getMemcachedClient();
         try{
-            return memcachedClient.get((String) key);
+            String result = memcachedClient.get(key.toString());
+
+            //如果不存在则重读
+            if(result==null){
+                if (buildFunction != null) {
+                    synchronized (buildFunction) {
+                        V value = buildFunction.apply((String) key);
+                        put((String) key, value);
+                        return value;
+                    }
+                }
+            }
         }catch (Exception e){
             Logger.error(e);
-            return null;
         }
+
+        return null;
     }
 
-    /**
-     * 获取 memcached 中的对象
-     * @param key key 名称
-     * @param clazz 对象类型
-     * @param <T> 范型
-     * @return 对象
-     */
-    public <T> T getObj(Object key, Class<T> clazz) {
-        return (T)JSON.toObject(get(key), clazz);
-    }
 
     @Override
-    public String put(String key, Object value) {
+    public V put(String key, V value) {
         MemcachedClient memcachedClient = getMemcachedClient();
         try{
-            if(memcachedClient.set(key, 0, value)) {
-                return value.toString();
+            if(memcachedClient.set((java.lang.String) key, 0, value)) {
+                return (V)value;
             }else{
                 return null;
             }
@@ -164,32 +168,11 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
     public boolean put(String key, Object value, int expire) {
         MemcachedClient memcachedClient = getMemcachedClient();
         try{
-            return memcachedClient.set(key, expire, value);
+            return memcachedClient.set((java.lang.String) key, expire, value);
         }catch (Exception e){
             Logger.error(e);
             return false;
         }
-    }
-
-    /**
-     * 像 memcached 中放置对象数据
-     * @param key key 名称
-     * @param value 数据
-     * @return true: 成功, false:失败
-     */
-    public String putObj(String key, Object value) {
-        return put(key, JSON.toJSON(value));
-    }
-
-    /**
-     * 像 memcached 中放置对象数据
-     * @param key key 名称
-     * @param value 数据
-     * @param expire 超时时间
-     * @return true: 成功, false:失败
-     */
-    public boolean putObj(String key, Object value, int expire) {
-        return put(key, JSON.toJSON(value), expire);
     }
 
     /**
@@ -204,7 +187,7 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
         MemcachedClient memcachedClient = null;
         try {
             memcachedClient = getMemcachedClient();
-            memcachedClient.setWithNoReply(key, expire, value);
+            memcachedClient.setWithNoReply((java.lang.String) key, expire, value);
         } catch (Exception e) {
             Logger.error(e);
             return false;
@@ -213,10 +196,10 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
     }
 
     @Override
-    public String remove(Object key) {
+    public V remove(Object key) {
         MemcachedClient memcachedClient = getMemcachedClient();
         try{
-            String value = memcachedClient.get(key.toString());
+            V value = memcachedClient.get(key.toString());
             memcachedClient.delete(key.toString());
             return value;
         }catch (Exception e){
@@ -272,7 +255,7 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
         MemcachedClient memcachedClient = null;
         try {
             memcachedClient = getMemcachedClient();
-            return memcachedClient.decr(key , value);
+            return memcachedClient.decr((java.lang.String) key, value);
         } catch (Exception e) {
             Logger.error(e);
         }
@@ -290,7 +273,7 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
         MemcachedClient memcachedClient = null;
         try {
             memcachedClient = getMemcachedClient();
-            return memcachedClient.decr(key , value , initValue);
+            return memcachedClient.decr((java.lang.String) key, value , initValue);
         } catch (Exception e) {
             Logger.error(e);
         }
@@ -307,7 +290,7 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
         MemcachedClient memcachedClient = null;
         try {
             memcachedClient = getMemcachedClient();
-            return memcachedClient.incr(key , value);
+            return memcachedClient.incr((java.lang.String) key, value);
         } catch (Exception e) {
             Logger.error(e);
         }
@@ -325,7 +308,7 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
         MemcachedClient memcachedClient = null;
         try {
             memcachedClient = getMemcachedClient();
-            return memcachedClient.incr(key , value , initValue);
+            return memcachedClient.incr((java.lang.String) key, value , initValue);
         } catch (Exception e) {
             Logger.error(e);
         }
@@ -338,11 +321,11 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
      * @param value 数据
      * @return true: 成功, false: 失败
      */
-    public boolean append(String key, Object value){
+    public boolean append(String key, V value){
         MemcachedClient memcachedClient = null;
         try {
             memcachedClient = getMemcachedClient();
-            return memcachedClient.append(key , value);
+            return memcachedClient.append((java.lang.String) key, value);
         } catch (Exception e) {
             Logger.error(e);
         }
@@ -355,11 +338,11 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
      * @param value 数据
      * @return true: 成功, false: 失败
      */
-    public boolean prepend(String key, Object value){
+    public boolean prepend(String key, V value){
         MemcachedClient memcachedClient = null;
         try {
             memcachedClient = getMemcachedClient();
-            return memcachedClient.prepend(key , value);
+            return memcachedClient.prepend((java.lang.String) key, value);
         } catch (Exception e) {
             Logger.error(e);
         }
@@ -371,11 +354,11 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
      * @param key key 名称
      * @param value 数据
      */
-    public void appendWithNoReply(String key, Object value){
+    public void appendWithNoReply(String key, V value){
         MemcachedClient memcachedClient = null;
         try {
             memcachedClient = getMemcachedClient();
-            memcachedClient.appendWithNoReply(key , value);
+            memcachedClient.appendWithNoReply((java.lang.String) key, value);
         } catch (Exception e) {
             Logger.error(e);
         }
@@ -386,11 +369,11 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
      * @param key key 名称
      * @param value 数据
      */
-    public void prependWithNoReply(String key, Object value){
+    public void prependWithNoReply(String key, V value){
         MemcachedClient memcachedClient = null;
         try {
             memcachedClient = getMemcachedClient();
-            memcachedClient.prependWithNoReply(key , value);
+            memcachedClient.prependWithNoReply((java.lang.String) key, value);
         } catch (Exception e) {
             Logger.error(e);
         }
@@ -403,11 +386,11 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
      * @param version 数据版本
      * @return true: 成功, false:失败
      */
-    public boolean cas(String key, Object value,long version) {
+    public boolean cas(String key, V value,long version) {
         MemcachedClient memcachedClient = null;
         try {
             memcachedClient = getMemcachedClient();
-            return  memcachedClient.cas(key, 0, value, version);
+            return  memcachedClient.cas((java.lang.String) key, 0, value, version);
         } catch (Exception e) {
             Logger.error(e);
             return false;
@@ -422,11 +405,11 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
      * @param version 数据版本
      * @return true: 成功, false:失败
      */
-    public boolean cas(String key, Object value, int time, long version) {
+    public boolean cas(String key, V value, int time, long version) {
         MemcachedClient memcachedClient = null;
         try {
             memcachedClient = getMemcachedClient();
-            return  memcachedClient.cas(key, time, value, version);
+            return  memcachedClient.cas((java.lang.String) key, time, value, version);
         } catch (Exception e) {
             Logger.error(e);
             return false;
@@ -444,7 +427,7 @@ public class MemcachedMap implements Map<String, Object> , Closeable {
     }
 
     @Override
-    public Set<Entry<String, Object>> entrySet() {
+    public Set<Entry<String, V>> entrySet() {
         throw new UnsupportedOperationException();
     }
 
