@@ -33,6 +33,7 @@ public class JdbcOperate {
 	private TranscationType transcationType;
 	private DataBaseType dataBaseType;
 	private List<JdbcOperate> jdbcOperateArrayList = new ArrayList<JdbcOperate>();
+	private Savepoint savepoint = null;
 
 	/**
 	 * 构造函数
@@ -111,6 +112,7 @@ public class JdbcOperate {
 				//判断是否有上层事务
 				if(JDBCOPERATE_THREAD_LIST.containsKey(threadId)) {
 					connection = JDBCOPERATE_THREAD_LIST.get(threadId).getConnection();
+					savepoint = connection.setSavepoint();
 				} else {
 					connection = dataSource.getConnection();
 					connection.setAutoCommit(false);
@@ -152,9 +154,14 @@ public class JdbcOperate {
 			}
 		}
 
-		connection.commit();
-		if(isClose) {
-			closeConnection(connection);
+		//没有事务点,  只在主事务中执行 commit
+		//主事务提交并可关闭连接
+		//子事务不可提交
+		if(savepoint==null) {
+			connection.commit();
+			if(isClose) {
+				closeConnection(connection);
+			}
 		}
 	}
 
@@ -171,9 +178,16 @@ public class JdbcOperate {
 			}
 		}
 
-		connection.rollback();
-		if(isClose) {
-			closeConnection(connection);
+		//有事务点则为: 子事务, 无事务点则为: 主事务
+		//主事务回滚并可关闭连接
+		//子事务回滚事务点, 并不可关闭连接
+		if(savepoint!=null) {
+			connection.rollback(savepoint);
+		} else {
+			connection.rollback();
+			if(isClose) {
+				closeConnection(connection);
+			}
 		}
 	}
 
