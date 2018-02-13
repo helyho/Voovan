@@ -29,7 +29,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
     private JedisPool redisPool;
     private String name = null;
     private int dbIndex = 0;
-    public Function<K, V> buildFunction = null;
+    private Function<K, V> buildFunction = null;
 
     /**
      * 构造函数
