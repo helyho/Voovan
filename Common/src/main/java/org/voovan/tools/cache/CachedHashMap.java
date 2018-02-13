@@ -21,8 +21,8 @@ import java.util.function.Function;
 public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
 
     protected final static HashWheelTimer wheelTimer = new HashWheelTimer(60, 1000);
-    public Function<K, V> buildFunction = null;
-    public boolean asyncBuild = true;
+    private Function<K, V> buildFunction = null;
+    private boolean asyncBuild = true;
 
     static {
         wheelTimer.rotate();

@@ -28,7 +28,7 @@ import static org.voovan.tools.cache.CacheStatic.defaultPoolSize;
 public class MemcachedMap<String, V> implements Map<String, V> , Closeable {
     private MemcachedClientBuilder memcachedClientBuilder;
     private MemcachedClient memcachedClient = null;
-    public Function<String, V> buildFunction = null;
+    private Function<String, V> buildFunction = null;
 
     /**
      * 构造函数

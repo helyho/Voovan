@@ -65,6 +65,14 @@ public class WebServer {
 	}
 
 	/**
+	 * 返回 Session 管理器
+	 * @return
+	 */
+	public SessionManager getSessionManager(){
+		return this.sessionManager;
+	}
+
+	/**
 	 * 初始化热部署
 	 */
 	private void initHotSwap() {
