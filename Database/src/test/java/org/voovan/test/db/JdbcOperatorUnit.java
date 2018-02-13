@@ -34,7 +34,7 @@ public class JdbcOperatorUnit extends TestCase {
         //只构建一次数据源
         if(dataSource==null) {
             try {
-                String druidpath = TFile.getSystemPath("/classes/database.properties");
+                String druidpath = TFile.getSystemPath("classes" + File.separator + "database.properties");
                 Properties druidProperites = TProperties.getProperties(new File(druidpath));
                 dataSource = (DruidDataSource)DruidDataSourceFactory.createDataSource(druidProperites);
                 dataSource.init();
@@ -203,7 +203,7 @@ public class JdbcOperatorUnit extends TestCase {
     }
 
     /**
-     * 更新和事物测试
+     * 更新和事务测试
      * @throws Exception
      */
     public void test_Update_Trancation() throws Exception {
@@ -225,7 +225,7 @@ public class JdbcOperatorUnit extends TestCase {
 
 
     /**
-     * 更新和事物测试
+     * 更新和事务测试
      * @throws Exception
      */
     public void test_Update_Mutil_Trancation() throws Exception {
@@ -259,7 +259,7 @@ public class JdbcOperatorUnit extends TestCase {
     }
 
     /**
-     * 更新和事物测试
+     * 更新和事务测试
      * @throws Exception
      */
     public void test_Update_Mutil_Part_Trancation() throws Exception {
@@ -278,22 +278,26 @@ public class JdbcOperatorUnit extends TestCase {
 
         JdbcOperate jOperate = new JdbcOperate(dataSource);
 
+        //事务测试
         jOperate = new JdbcOperate(dataSource, true);
-        sql = "update sc_script set version=::1 where id = ::2";
-        int updateCount = jOperate.update(sql, "ver_1_1", 1);
-        jOperate.commit(false);
-        Logger.simple("只提交第一条:" + updateCount);
-
-        updateCount += jOperate.update(sql, "ver_2_2", 2);
-        updateCount += jOperate.update(sql, "ver_2_2", 3);
-
-        Logger.simple("事务更新记录数:" + updateCount);
+        sql = "update sc_script set version=::1";
+        int updateCount = jOperate.update(sql,-1);
+        Logger.simple("事务1更新记录数:" + updateCount);
         List<Map<String, Object>> updateResult = jOperate.queryMapList("select version from sc_script");
-        Logger.simple("事务回滚前:" + JSON.toJSON(updateResult));
-        jOperate.rollback();
+        Logger.simple("事务1更新后:" + updateResult);
+
+        JdbcOperate jOperate_sub = new JdbcOperate(dataSource, true);
+        updateCount = jOperate_sub.update(sql,-2);
+        Logger.simple("事务2更新记录数:" + updateCount);
+        updateResult = jOperate_sub.queryMapList("select version from sc_script");
+        Logger.simple("事务2回滚后:" + updateResult);
+
+        jOperate_sub.rollback();
+        jOperate_sub.commit(true);
         List<Map<String, Object>> rollbackResult = jOperate.queryMapList("select version from sc_script");
-        Logger.simple("事务误回滚后:" + JSON.toJSON(rollbackResult));
-        Logger.simple("");
+        Logger.simple("事务误回滚后:" + rollbackResult);
+
+        jOperate.commit(true);
     }
 
     public void test_Procedure() throws Exception {

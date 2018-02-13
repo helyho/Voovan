@@ -18,7 +18,7 @@ public class JdbcOperateDemo {
     public static void main(String[] args) throws Exception {
         DruidDataSource dataSource = null;
         try {
-            String druidpath = TFile.getSystemPath("conf" + File.separator + "datasource.properties");
+            String druidpath = TFile.getSystemPath("classes" + File.separator + "database.properties");
             Properties druidProperites = TProperties.getProperties(new File(druidpath));
             dataSource = (DruidDataSource)DruidDataSourceFactory.createDataSource(druidProperites);
             dataSource.init();
@@ -95,12 +95,21 @@ public class JdbcOperateDemo {
         jOperate = new JdbcOperate(dataSource, true);
         sql = "update sc_script set version=::1";
         int updateCount = jOperate.update(sql,-1);
-        Logger.simple("事务更新记录数:" + updateCount);
+        Logger.simple("事务1更新记录数:" + updateCount);
         List<Map<String, Object>> updateResult = jOperate.queryMapList("select version from sc_script");
-        Logger.simple("事务回滚前:" + updateResult);
-        jOperate.rollback();
+        Logger.simple("事务1更新后:" + updateResult);
+
+        JdbcOperate jOperate_sub = new JdbcOperate(dataSource, true);
+        updateCount = jOperate_sub.update(sql,-2);
+        Logger.simple("事务2更新记录数:" + updateCount);
+        updateResult = jOperate_sub.queryMapList("select version from sc_script");
+        Logger.simple("事务2回滚后:" + updateResult);
+
+        jOperate_sub.rollback();
         List<Map<String, Object>> rollbackResult = jOperate.queryMapList("select version from sc_script");
         Logger.simple("事务误回滚后:" + rollbackResult);
+
+        jOperate.commit(true);
 
         //存储过程测试
         jOperate = new JdbcOperate(dataSource);
