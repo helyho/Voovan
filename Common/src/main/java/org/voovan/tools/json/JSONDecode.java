@@ -60,7 +60,7 @@ public class JSONDecode {
 
 			//对象类型构造返回的对象
 			if (E_OBJECT == type) {
-				jsonResult = (Map) new HashMap<String, Object>();
+				jsonResult = (Map) new LinkedHashMap<String, Object>();
 				isFirstChar = false;
 			} else if (E_ARRAY == type) {
 				jsonResult = (List) new ArrayList<Object>();
