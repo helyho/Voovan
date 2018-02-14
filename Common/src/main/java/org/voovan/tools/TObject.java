@@ -68,7 +68,7 @@ public class TObject {
 	 */
 	@SuppressWarnings("rawtypes")
 	public static Map asMap(Object ...objs){
-		TreeMap<Object,Object> map = new TreeMap<Object,Object>();
+		Map<Object,Object> map = new LinkedHashMap<Object,Object>();
 		for(int i=1;i<objs.length;i+=2){
 			map.put(objs[i-1], objs[i]);
 		}
@@ -110,7 +110,7 @@ public class TObject {
 	 * @return 转换后的 Map  [序号, 值]
 	 */
 	public static <T> Map<String, T> arrayToMap(T[] objs){
-		TreeMap<String ,T> arrayMap = new TreeMap<String ,T>();
+		Map<String ,T> arrayMap = new LinkedHashMap<String ,T>();
 		for(int i=0;i<objs.length;i++){
 			arrayMap.put(Integer.toString(i+1), objs[i]);
 		}
