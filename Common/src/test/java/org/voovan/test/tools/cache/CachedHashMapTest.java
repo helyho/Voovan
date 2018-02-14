@@ -18,6 +18,7 @@ public class CachedHashMapTest {
 
     public static void main(String[] args) {
         CachedHashMap cachedHashMap = new CachedHashMap<>(100);
+        cachedHashMap.build((t)-> t + "_"+ System.currentTimeMillis());
 
         for(int i=0;i<100;i++) {
             cachedHashMap.put("key_" + i, "value_" + i, Long.valueOf(5+i));
@@ -34,19 +35,14 @@ public class CachedHashMapTest {
                 }
             });
         }
-        TEnv.sleep(1000);
+        TEnv.sleep(2000);
         cachedHashMap.put("key_aaa", "value_aaa");
         cachedHashMap.put("key_bbb", "value_bbb");
         cachedHashMap.put("key_ccc", "value_ccc");
 
-        cachedHashMap.build((key) -> {
-            System.out.println(key + " update");
-            return System.currentTimeMillis() + "_" + key;
-        });
-
         int count = 0;
-        while(count<140) {
-            TEnv.sleep(1000);
+        while(count<140*1000) {
+            TEnv.sleep(1);
             count++;
         }
     }
