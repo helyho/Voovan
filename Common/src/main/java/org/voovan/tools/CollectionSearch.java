@@ -176,7 +176,7 @@ public class CollectionSearch<T> {
                                     if (stepValue instanceof Comparable) {
                                         if (stepOperate == Operate.EQUAL || stepOperate == Operate.GREATER || stepOperate == Operate.LESS) {
 
-                                            int compareResult = ((Comparable) collectionValue).compareTo(stepValue);
+                                            int compareResult = ((Comparable) stepValue).compareTo(collectionValue);
 
                                             if (compareResult == 0 && stepOperate == Operate.EQUAL) {
                                                 isMatch = true;

@@ -191,7 +191,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
         }
 
         //如果不存在则重读
-        if(valueByteArray==null){
+        if (valueByteArray == null) {
             if(buildFunction!=null) {
                 synchronized (buildFunction) {
                     V value = buildFunction.apply((K) key);

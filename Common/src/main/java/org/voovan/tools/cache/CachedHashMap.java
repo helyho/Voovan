@@ -50,19 +50,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
                             cachedHashMap.remove(timeMark.getKey());
                             cachedHashMap.cacheMark.remove(timeMark.getKey());
                         } else {
-                            //更新缓存数据, 异步
-                            if(asyncBuild) {
-                                Global.getThreadPool().execute(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        cachedHashMap.buildData(timeMark);
-                                    }
-                                });
-                            }
-                            //更新缓存数据, 异步
-                            else {
-                                cachedHashMap.buildData(timeMark);
-                            }
+                            cachedHashMap.buildData(timeMark);
                             timeMark.refresh(true);
                         }
                     }
@@ -80,8 +68,22 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
     }
 
     private void buildData(TimeMark timeMark){
-        V value = buildFunction.apply((K) timeMark.getKey());
-        this.put((K) timeMark.getKey(), value);
+        CachedHashMap cachedHashMap = this;
+        //更新缓存数据, 异步
+        if (asyncBuild) {
+            Global.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+                    V value = buildFunction.apply((K) timeMark.getKey());
+                    cachedHashMap.put((K) timeMark.getKey(), value);
+                }
+            });
+        }
+        //更新缓存数据, 异步
+        else {
+            V value = buildFunction.apply((K) timeMark.getKey());
+            cachedHashMap.put((K) timeMark.getKey(), value);
+        }
     }
 
     /**
@@ -131,8 +133,10 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
         } else {
             //如果不存在则重读
             if(buildFunction!=null) {
-                V value = buildFunction.apply((K) key);
-                put((K) key, value);
+                synchronized (buildFunction) {
+                    V value = buildFunction.apply((K) key);
+                    put((K) key, value);
+                }
             }
         }
         return super.get(key);
@@ -149,8 +153,12 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
         } else {
             //如果不存在则重读
             if(buildFunction!=null) {
-                V value = buildFunction.apply((K) key);
-                put((K) key, value);
+                synchronized (buildFunction) {
+                    if (buildFunction != null) {
+                        V value = buildFunction.apply((K) key);
+                        put((K) key, value);
+                    }
+                }
             }
         }
         return this.get(key);
