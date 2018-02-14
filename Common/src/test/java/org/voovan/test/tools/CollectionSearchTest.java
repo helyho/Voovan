@@ -1,11 +1,12 @@
 package org.voovan.test.tools;
 
+import junit.framework.TestCase;
 import org.voovan.tools.CollectionSearch;
 import org.voovan.tools.json.JSON;
-import junit.framework.TestCase;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * 类文字命名
@@ -43,6 +44,14 @@ public class CollectionSearchTest extends TestCase{
         System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).addCondition("aaa", "ddd").sort("bbb", false).page(2, 4).sort("bbb", false).limit(2).search()));
         System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).addCondition("bbb", CollectionSearch.Operate.GREATER, 20).search()));
         System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).addCondition("aaa", CollectionSearch.Operate.START_WITH, "fff2").search()));
+
+        System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).addCondition(new Predicate<test>() {
+            @Override
+            public boolean test(test test) {
+                return false;
+            }
+        }).search()));
+
 
     }
 }
