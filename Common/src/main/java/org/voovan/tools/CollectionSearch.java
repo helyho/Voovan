@@ -3,8 +3,8 @@ package org.voovan.tools;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
-import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,6 +66,17 @@ public class CollectionSearch<T> {
     }
 
     /**
+     * 增加一个筛选条件
+     *
+     * @param predicate 筛选函数
+     * @return CollectionSearch 对象
+     */
+    public CollectionSearch addCondition(Predicate<T> predicate) {
+        searchStep.put((step++) + "_Condition", TObject.asMap("predicate", predicate));
+        return this;
+    }
+
+    /**
      * 将筛选出的数据排序
      *
      * @param sortField 排序字段
@@ -85,6 +96,17 @@ public class CollectionSearch<T> {
      */
     public CollectionSearch sort(String sortField) {
         searchStep.put((step++) + "_Sort", TObject.asMap("field", sortField, "isAsc", true));
+        return this;
+    }
+
+    /**
+     * 将筛选出的数据排序
+     *
+     * @param comparator 排序函数
+     * @return CollectionSearch 对象
+     */
+    public CollectionSearch sort(Comparator<T> comparator) {
+        searchStep.put((step++) + "_Sort", TObject.asMap("comparator", comparator));
         return this;
     }
 
@@ -127,118 +149,126 @@ public class CollectionSearch<T> {
 
             //筛选条件
             if (stepType.endsWith("Condition")) {
-                stream = stream.filter(new Predicate<T>() {
-                    @Override
-                    public boolean test(T o) {
-                        boolean isMatch = false;
-                        Object collectionValue = null;
-                        try {
-                            String stepField = (String) stepInfo.get("field");
-                            Object stepValue = stepInfo.get("value");
-                            Operate stepOperate = (Operate) stepInfo.get("operate");
+                if(stepInfo.get("predicate")!=null){
+                    stream = stream.filter((Predicate)stepInfo.get("predicate"));
+                } else {
+                    stream = stream.filter(new Predicate<T>() {
+                        @Override
+                        public boolean test(T o) {
+                            boolean isMatch = false;
+                            Object collectionValue = null;
+                            try {
+                                String stepField = (String) stepInfo.get("field");
+                                Object stepValue = stepInfo.get("value");
+                                Operate stepOperate = (Operate) stepInfo.get("operate");
 
-                            collectionValue = TReflect.getFieldValue(o, stepField);
+                                collectionValue = TReflect.getFieldValue(o, stepField);
 
-                            if(collectionValue.getClass().getSimpleName().startsWith("Atomic")){
-                                collectionValue = TReflect.invokeMethod(collectionValue, "get");
-                            }
+                                if (collectionValue.getClass().getSimpleName().startsWith("Atomic")) {
+                                    collectionValue = TReflect.invokeMethod(collectionValue, "get");
+                                }
 
-                            if (collectionValue == null && stepValue == null) {
-                                isMatch = true;
-                            } else if (collectionValue.getClass().equals(stepValue.getClass())) {
+                                if (collectionValue == null && stepValue == null) {
+                                    isMatch = true;
+                                } else if (collectionValue.getClass().equals(stepValue.getClass())) {
 
-                                //带有比较器
-                                if (stepValue instanceof Comparable) {
-                                    if (stepOperate == Operate.EQUAL || stepOperate == Operate.GREATER || stepOperate == Operate.LESS) {
+                                    //带有比较器
+                                    if (stepValue instanceof Comparable) {
+                                        if (stepOperate == Operate.EQUAL || stepOperate == Operate.GREATER || stepOperate == Operate.LESS) {
 
-                                        int compareResult = ((Comparable) collectionValue).compareTo(stepValue);
+                                            int compareResult = ((Comparable) collectionValue).compareTo(stepValue);
 
-                                        if (compareResult == 0 && stepOperate == Operate.EQUAL) {
-                                            isMatch = true;
-                                        } else if (compareResult > 0 && stepOperate == Operate.GREATER) {
-                                            isMatch = true;
-                                        } else if (compareResult < 0 && stepOperate == Operate.LESS) {
-                                            isMatch = true;
+                                            if (compareResult == 0 && stepOperate == Operate.EQUAL) {
+                                                isMatch = true;
+                                            } else if (compareResult > 0 && stepOperate == Operate.GREATER) {
+                                                isMatch = true;
+                                            } else if (compareResult < 0 && stepOperate == Operate.LESS) {
+                                                isMatch = true;
+                                            }
+
                                         }
-
+                                    } else {
+                                        isMatch = false;
                                     }
+
+                                    //字符串的特有比较
+                                    if (stepValue instanceof String && !isMatch) {
+                                        String stringStepValue = (String) stepValue;
+                                        String stringCollectionValue = (String) collectionValue;
+
+                                        if (stepOperate == Operate.START_WITH) {
+                                            isMatch = stringCollectionValue.startsWith(stringStepValue);
+                                        } else if (stepOperate == Operate.END_WITH) {
+                                            isMatch = stringCollectionValue.endsWith(stringStepValue);
+                                        } else if (stepOperate == Operate.CONTAINS) {
+                                            isMatch = stringCollectionValue.contains(stringStepValue);
+                                        } else {
+                                            isMatch = false;
+                                        }
+                                    }
+
+                                    //集合比较
+                                    if (stepValue instanceof Collection && !isMatch) {
+
+                                        Collection collectionStepValue = (Collection) collectionValue;
+
+                                        if (stepOperate == Operate.CONTAINS) {
+                                            isMatch = collectionStepValue.contains(stepValue);
+                                        } else {
+                                            isMatch = false;
+                                        }
+                                    }
+
                                 } else {
                                     isMatch = false;
                                 }
 
-                                //字符串的特有比较
-                                if (stepValue instanceof String && !isMatch) {
-                                    String stringStepValue = (String) stepValue;
-                                    String stringCollectionValue = (String) collectionValue;
 
-                                    if (stepOperate == Operate.START_WITH) {
-                                        isMatch = stringCollectionValue.startsWith(stringStepValue);
-                                    } else if (stepOperate == Operate.END_WITH) {
-                                        isMatch = stringCollectionValue.endsWith(stringStepValue);
-                                    } else if (stepOperate == Operate.CONTAINS) {
-                                        isMatch = stringCollectionValue.contains(stringStepValue);
-                                    } else {
-                                        isMatch = false;
-                                    }
-                                }
-
-                                //集合比较
-                                if (stepValue instanceof Collection && !isMatch) {
-
-                                    Collection collectionStepValue = (Collection) collectionValue;
-
-                                    if (stepOperate == Operate.CONTAINS) {
-                                        isMatch = collectionStepValue.contains(stepValue);
-                                    } else {
-                                        isMatch = false;
-                                    }
-                                }
-
-                            } else {
+                            } catch (ReflectiveOperationException e) {
+                                Logger.error("CollectionSearch filter error", e);
                                 isMatch = false;
                             }
 
-
-                        } catch (ReflectiveOperationException e) {
-                            Logger.error("CollectionSearch filter error", e);
-                            isMatch = false;
+                            return isMatch;
                         }
-
-                        return isMatch;
-                    }
-                });
+                    });
+                }
             }
             //排序
             else if (stepType.endsWith("Sort")) {
-                final String sortField = (String) stepInfo.get("field");
-                final boolean isAsc = (Boolean) stepInfo.get("isAsc");
-                stream = stream.sorted(new Comparator<T>() {
-                    @Override
-                    public int compare(T o1, T o2) {
-                        try {
-                            Object fieldValue1 = TReflect.getFieldValue(o1, sortField);
-                            Object fieldValue2 = TReflect.getFieldValue(o2, sortField);
+                if(stepInfo.get("comparator")!=null){
+                    stream = stream.sorted((Comparator)stepInfo.get("comparator"));
+                } else {
+                    final String sortField = (String) stepInfo.get("field");
+                    final boolean isAsc = (Boolean) stepInfo.get("isAsc");
+                    stream = stream.sorted(new Comparator<T>() {
+                        @Override
+                        public int compare(T o1, T o2) {
+                            try {
+                                Object fieldValue1 = TReflect.getFieldValue(o1, sortField);
+                                Object fieldValue2 = TReflect.getFieldValue(o2, sortField);
 
-                            if(fieldValue1.getClass() == fieldValue2.getClass()){
-                                if(fieldValue1 instanceof Comparable){
+                                if (fieldValue1.getClass() == fieldValue2.getClass()) {
+                                    if (fieldValue1 instanceof Comparable) {
 
-                                    if (isAsc) {
-                                        return ((Comparable) fieldValue1).compareTo(fieldValue2);
+                                        if (isAsc) {
+                                            return ((Comparable) fieldValue1).compareTo(fieldValue2);
+                                        } else {
+                                            return ((Comparable) fieldValue1).compareTo(fieldValue2) * -1;
+                                        }
                                     } else {
-                                        return ((Comparable) fieldValue1).compareTo(fieldValue2) * -1;
+                                        return 0;
                                     }
                                 } else {
                                     return 0;
                                 }
-                            } else {
+                            } catch (ReflectiveOperationException e) {
+                                Logger.error("CollectionSearch sorted error", e);
                                 return 0;
                             }
-                        } catch (ReflectiveOperationException e) {
-                            Logger.error("CollectionSearch sorted error", e);
-                            return 0;
                         }
-                    }
-                });
+                    });
+                }
             }
             //数量限制
             else if (stepType.endsWith("Limit")) {
@@ -261,6 +291,11 @@ public class CollectionSearch<T> {
                     if (end > listResult.size()) {
                         end = listResult.size() - 1;
                     }
+
+                    if(end > listResult.size()-1){
+                        end = listResult.size()-1;
+                    }
+
                     listResult = listResult.subList(start, end);
                 }
 
