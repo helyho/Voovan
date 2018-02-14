@@ -133,12 +133,7 @@ public class CollectionSearch<T> {
         return this;
     }
 
-    /**
-     * 筛选数据
-     *
-     * @return 筛选得到的数据
-     */
-    public Collection<T> search() {
+    public Stream streamRun(){
 
         Stream stream = collection.parallelStream();
 
@@ -303,10 +298,65 @@ public class CollectionSearch<T> {
             }
         }
 
-        //结果集
-        List<T> listResult = (List<T>) stream.collect(Collectors.toList());
+        return stream;
+    }
 
+    /**
+     * 筛选数据
+     *
+     * @return 筛选得到的数据
+     */
+    public Collection<T> search() {
+        //结果集
+        List<T> listResult = (List<T>) streamRun().collect(Collectors.toList());
         return listResult;
+    }
+
+    /**
+     * 筛选数据
+     *
+     * @return 筛选得到的数据
+     */
+    public <R> List<R> fields(String... fieldFilters) {
+        //结果集
+        List<R> listResult = (List<R>) streamRun().map(new Function() {
+            @Override
+            public Object apply(Object o) {
+                return TReflect.fieldFilter(o, fieldFilters);
+            }
+        }).collect(Collectors.toList());
+        return listResult;
+    }
+
+    /**
+     * 筛选数据
+     *
+     * @return 筛选得到的数据
+     */
+    public <R> List<R> map(Function<T, R> function) {
+        //结果集
+        List<R> listResult = (List<R>) streamRun().map(function).collect(Collectors.toList());
+        return listResult;
+    }
+
+    /**
+     * 筛选数据,并扁平化操作
+     *
+     * @return 筛选得到的数据
+     */
+    public <R> List<R> flatMap(Function<T, R> function) {
+        //结果集
+        List<R> listResult = (List<R>) streamRun().map(function).collect(Collectors.toList());
+        return listResult;
+    }
+
+    /**
+     * 获取筛选数据的数量
+     *
+     * @return 筛选得到的数据
+     */
+    public long count() {
+        return streamRun().count();
     }
 
     public enum Operate {

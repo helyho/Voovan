@@ -12,6 +12,7 @@ import org.voovan.tools.reflect.annotation.NotSerialization;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.math.BigDecimal;
+import java.rmi.NotBoundException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -1093,6 +1094,63 @@ public class TReflect {
 			jsonStrBuilder.append("}");
 		}
 		return jsonStrBuilder.toString();
+	}
+
+	/**
+	 * 过滤对象的属性, 产生一个 Map
+	 *      未包含的属性的值将会以 null 返回
+	 * @param obj 对象
+	 * @param fields 保留的属性
+	 * @return 最后产生的 Map
+	 * @throws NotBoundException 属性为找到的异常
+	 */
+	public static Map<String, Object> fieldFilter(Object obj, String ... fields) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		for(String fieldFilter : fields){
+			int firstIndex = fieldFilter.indexOf("[");
+			String field = firstIndex == -1? fieldFilter : fieldFilter.substring(0, firstIndex);
+			;
+			Object value = null;
+
+			//Map
+			if(obj instanceof Map){
+				Map paramMap = (Map)obj;
+				value = paramMap.get(field);
+			}
+			//List/Array
+			else if(obj.getClass().isArray() || obj instanceof List) {
+				if(obj.getClass().isArray()){
+					obj = TObject.asList((Object[])obj);
+				}
+				for(Object subObj : (List)obj){
+					fieldFilter(subObj, fields);
+				}
+			}
+			//complex object
+			else {
+				try {
+					value = TReflect.getFieldValue(obj, field);
+				} catch (ReflectiveOperationException e) {
+					value = null;
+				}
+			}
+
+			if(firstIndex>1) {
+				Map<String, Object> subResultMap = new HashMap<String, Object>();
+				String subFieldStr= fieldFilter.substring(firstIndex);
+				subFieldStr = TString.removeSuffix(subFieldStr);
+				subFieldStr = TString.removePrefix(subFieldStr);
+				String[] subFieldArray = subFieldStr.split(",");
+				for(String subField : subFieldArray) {
+					Map<String, Object> data = fieldFilter(value, subField);
+					subResultMap.putAll(data);
+				}
+				value = subResultMap;
+			}
+
+			resultMap.put(field, value);
+		}
+		return resultMap;
 	}
 
 	/**
