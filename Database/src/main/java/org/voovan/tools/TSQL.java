@@ -271,7 +271,7 @@ public class TSQL {
 		//对象转换时,模糊匹配属性,去除掉所有的
 		HashMap<String,Object> newMap = new HashMap<String,Object>();
 		for(Entry<String,Object> entry : rowMap.entrySet()){
-			String key = TString.fastReplaceAll(entry.getKey(), "\\W", "");
+			String key = TString.underlineToCamel(entry.getKey());
 			newMap.put(key,entry.getValue());
 		}
 		rowMap.clear();
