@@ -117,7 +117,7 @@ public class TReflect {
 			return fields.get(mark);
 		}else {
 			for (Field field : getFields(clazz)) {
-				if (field.getName().equalsIgnoreCase(fieldName)) {
+				if (field.getName().equalsIgnoreCase(fieldName) || field.getName().equalsIgnoreCase(TString.underlineToCamel(fieldName))) {
 					fields.put(mark, field);
 					return field;
 				}

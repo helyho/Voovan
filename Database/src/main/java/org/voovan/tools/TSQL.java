@@ -267,16 +267,7 @@ public class TSQL {
 	public static Object getOneRowWithObject(Class<?> clazz,ResultSet resultset)
 			throws SQLException, ReflectiveOperationException, ParseException {
 		Map<String,Object>rowMap = getOneRowWithMap(resultset);
-
-		//对象转换时,模糊匹配属性,去除掉所有的
-		HashMap<String,Object> newMap = new HashMap<String,Object>();
-		for(Entry<String,Object> entry : rowMap.entrySet()){
-			String key = TString.underlineToCamel(entry.getKey());
-			newMap.put(key,entry.getValue());
-		}
-		rowMap.clear();
-
-		return TReflect.getObjectFromMap(clazz, newMap,true);
+		return TReflect.getObjectFromMap(clazz, rowMap, true);
 	}
 
 	/**
