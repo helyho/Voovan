@@ -53,13 +53,15 @@ public class Recorder {
 
     /**
      * 查询操作
+     * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
+     * @param query 查询条件
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
-    public <T> List<T> query(T obj, Query query) throws RecorderException {
+    public <T> List<T> query(String tableName, T obj, Query query) throws RecorderException {
         try {
-            return (List<T>) jdbcOperate.queryObjectList(buildQuerySqlTemplate(obj, query), obj.getClass(), obj);
+            return (List<T>) jdbcOperate.queryObjectList(buildQuerySqlTemplate(tableName, obj, query), obj.getClass(), obj);
         }catch (Exception e){
             if(e instanceof RecorderException){
                 throw (RecorderException)e;
@@ -72,11 +74,53 @@ public class Recorder {
     /**
      * 查询操作
      * @param obj 数据 ORM 对象
+     * @param query 查询条件
+     * @return 更新数据条数
+     * @throws RecorderException Recorder 操作异常
+     */
+    public <T> List<T> query(T obj, Query query) throws RecorderException {
+        return query(null, obj, query);
+    }
+
+    /**
+     * 查询操作
+     * @param tableName 指定的表名
+     * @param obj 数据 ORM 对象
+     * @return 更新数据条数
+     * @throws RecorderException Recorder 操作异常
+     */
+    public <T> List<T> query(String tableName, T obj) throws RecorderException {
+        return query(tableName, obj, null);
+    }
+
+    /**
+     * 查询操作
+     * @param obj 数据 ORM 对象
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
     public <T> List<T> query(T obj) throws RecorderException {
-        return query(obj, null);
+        return query(null, obj, null);
+    }
+
+    /**
+     * 更新操作
+     * @param tableName 指定的表名
+     * @param obj 数据 ORM 对象
+     * @param query 查询条件
+     * @return 更新数据条数
+     * @throws RecorderException Recorder 操作异常
+     */
+    public <T> int update(String tableName, T obj, Query query) throws RecorderException {
+        try {
+            return jdbcOperate.update(buildUpdateSqlTemplate(tableName, obj, query), obj);
+        }catch (Exception e){
+            if(e instanceof RecorderException){
+                throw (RecorderException)e;
+            } else {
+                throw new RecorderException("Recorder update error: " + JSON.toJSON(obj), e);
+            }
+        }
     }
 
     /**
@@ -87,15 +131,17 @@ public class Recorder {
      * @throws RecorderException Recorder 操作异常
      */
     public <T> int update(T obj, Query query) throws RecorderException {
-        try {
-            return jdbcOperate.update(buildUpdateSqlTemplate(obj, query), obj);
-        }catch (Exception e){
-            if(e instanceof RecorderException){
-                throw (RecorderException)e;
-            } else {
-                throw new RecorderException("Recorder update error: " + JSON.toJSON(obj), e);
-            }
-        }
+        return update(null, obj, query);
+    }
+
+    /**
+     * 更新操作
+     * @param obj 数据 ORM 对象
+     * @return 更新数据条数
+     * @throws RecorderException Recorder 操作异常
+     */
+    public <T> int update(String tableName, T obj) throws RecorderException {
+        return update(tableName, obj, null);
     }
 
     /**
@@ -105,7 +151,27 @@ public class Recorder {
      * @throws RecorderException Recorder 操作异常
      */
     public <T> int update(T obj) throws RecorderException {
-        return update(obj, null);
+        return update(null, obj, null);
+    }
+
+    /**
+     * 删除操作
+     * @param tableName 指定的表名
+     * @param obj 数据 ORM 对象
+     * @param query 查询条件
+     * @return 更新数据条数
+     * @throws RecorderException Recorder 操作异常
+     */
+    public <T> int delete(String tableName, T obj, Query query) throws RecorderException {
+        try {
+            return jdbcOperate.update(buildDeleteSqlTemplate(tableName, obj, query), obj);
+        }catch (Exception e){
+            if(e instanceof RecorderException){
+                throw (RecorderException)e;
+            } else {
+                throw new RecorderException("Recorder update error: " + JSON.toJSON(obj), e);
+            }
+        }
     }
 
     /**
@@ -116,8 +182,41 @@ public class Recorder {
      * @throws RecorderException Recorder 操作异常
      */
     public <T> int delete(T obj, Query query) throws RecorderException {
-        try {
-            return jdbcOperate.update(buildDeleteSqlTemplate(obj, query), obj);
+        return delete(null, obj, query);
+    }
+
+    /**
+     * 删除操作
+     * @param tableName 指定的表名
+     * @param obj 数据 ORM 对象
+     * @return 更新数据条数
+     * @throws RecorderException Recorder 操作异常
+     */
+    public <T> int delete(String tableName, T obj) throws RecorderException {
+        return delete(tableName, obj, null);
+    }
+
+    /**
+     * 删除操作
+     * @param obj 数据 ORM 对象
+     * @return 更新数据条数
+     * @throws RecorderException Recorder 操作异常
+     */
+    public <T> int delete(T obj) throws RecorderException {
+        return delete(null, obj, null);
+    }
+
+
+    /**
+     * 插入操作
+     * @param tableName 指定的表名
+     * @param obj 数据 ORM 对象
+     * @return 更新数据条数
+     * @throws RecorderException Recorder 操作异常
+     */
+    public <T> int insert(String tableName, T obj) throws RecorderException {
+        try{
+            return jdbcOperate.update(buildInsertSqlTemplate(tableName, obj), obj);
         }catch (Exception e){
             if(e instanceof RecorderException){
                 throw (RecorderException)e;
@@ -128,17 +227,6 @@ public class Recorder {
     }
 
     /**
-     * 删除操作
-     * @param obj 数据 ORM 对象
-     * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
-     */
-    public <T> int delete(T obj) throws RecorderException {
-        return delete(obj, null);
-    }
-
-
-    /**
      * 插入操作
      * @param obj 数据 ORM 对象
      * @return 更新数据条数
@@ -146,7 +234,7 @@ public class Recorder {
      */
     public <T> int insert(T obj) throws RecorderException {
         try{
-            return jdbcOperate.update(buildInsertSqlTemplate(obj), obj);
+            return jdbcOperate.update(buildInsertSqlTemplate(null, obj), obj);
         }catch (Exception e){
             if(e instanceof RecorderException){
                 throw (RecorderException)e;
@@ -162,14 +250,12 @@ public class Recorder {
      * @return 拼装的 SQL
      * @throws RecorderException Recorder 操作异常
      */
-    public <T> String buildQuerySqlTemplate(T obj, Query query) throws RecorderException {
+    public <T> String buildQuerySqlTemplate(String tableName, T obj, Query query) throws RecorderException {
         Table table = obj.getClass().getAnnotation(Table.class);
 
-        //处理数据库名
-        String databaseName = getSqlDatabase(obj);
-
-        //处理表名
-        String tableName = getSqlTableName(obj);
+        if(tableName == null){
+            tableName = getTableNameWithDataBase(obj);
+        }
 
         //SQL模板准备
         //准备查询列
@@ -192,7 +278,7 @@ public class Recorder {
             mainSql = TString.removeSuffix(mainSql);
         }
 
-        mainSql = mainSql + " from " + databaseName + tableName;
+        mainSql = mainSql + " from " + tableName;
 
         //处理查询条件
         String whereSql = genWhereSql(obj, query);
@@ -253,17 +339,15 @@ public class Recorder {
      * @return 拼装的 SQL
      * @throws RecorderException Recorder 操作异常
      */
-    public <T> String buildUpdateSqlTemplate(T obj, Query query) throws RecorderException {
+    public <T> String buildUpdateSqlTemplate(String tableName, T obj, Query query) throws RecorderException {
         Table table = obj.getClass().getAnnotation(Table.class);
 
-        //处理数据库名
-        String databaseName = getSqlDatabase(obj);
-
-        //处理表名
-        String tableName = getSqlTableName(obj);
+        if(tableName == null){
+            tableName = getTableNameWithDataBase(obj);
+        }
 
         //SQL模板准备
-        String mainSql = "update " + databaseName + tableName + " set";
+        String mainSql = "update " + tableName + " set";
         String setSql = "";
 
         //Set拼接 sql
@@ -304,17 +388,15 @@ public class Recorder {
      * @return 拼装的 SQL
      * @throws RecorderException Recorder 操作异常
      */
-    public <T> String buildInsertSqlTemplate(T obj) throws RecorderException {
+    public <T> String buildInsertSqlTemplate(String tableName, T obj) throws RecorderException {
         Table table = obj.getClass().getAnnotation(Table.class);
 
-        //处理数据库名
-        String databaseName = getSqlDatabase(obj);
-
-        //处理表名
-        String tableName = getSqlTableName(obj);
+        if(tableName == null){
+            tableName = getTableNameWithDataBase(obj);
+        }
 
         //SQL模板准备
-        String mainSql = "insert into " + databaseName + tableName;
+        String mainSql = "insert into " + tableName;
         String fieldSql = "";
         String fieldValueSql = "";
 
@@ -352,17 +434,15 @@ public class Recorder {
      * @return 拼装的 SQL
      * @throws RecorderException
      */
-    public <T> String buildDeleteSqlTemplate(T obj, Query query) throws RecorderException {
+    public <T> String buildDeleteSqlTemplate(String tableName, T obj, Query query) throws RecorderException {
         Table table = obj.getClass().getAnnotation(Table.class);
 
-        //处理数据库名
-        String databaseName = getSqlDatabase(obj);
-
-        //处理表名
-        String tableName = getSqlTableName(obj);
+        if(tableName == null){
+            tableName = getTableNameWithDataBase(obj);
+        }
 
         //SQL模板准备
-        String mainSql = "delete from " + databaseName + tableName;
+        String mainSql = "delete from " + tableName;
 
         //Where 拼接 sql
         String whereSql = genWhereSql(obj, query);
@@ -532,6 +612,21 @@ public class Recorder {
         }
 
         return tableName;
+    }
+
+    /**
+     * 获取带有数据库名的表名字符串
+     * @param obj 对象
+     * @return 带有数据库名的表名字符串
+     */
+    public String getTableNameWithDataBase(Object obj){
+        //处理数据库名
+        String databaseName = getSqlDatabase(obj);
+
+        //处理表名
+        String tableName = getSqlTableName(obj);
+
+        return databaseName + tableName;
     }
 
     /**

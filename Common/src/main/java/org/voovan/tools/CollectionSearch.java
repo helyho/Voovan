@@ -158,7 +158,11 @@ public class CollectionSearch<T> {
                                 Object stepValue = stepInfo.get("value");
                                 Operate stepOperate = (Operate) stepInfo.get("operate");
 
-                                collectionValue = TReflect.getFieldValue(o, stepField);
+                                if(o instanceof Map){
+                                    collectionValue = ((Map)o).get(stepField);
+                                } else {
+                                    collectionValue = TReflect.getFieldValue(o, stepField);
+                                }
 
                                 if (collectionValue.getClass().getSimpleName().startsWith("Atomic")) {
                                     collectionValue = TReflect.invokeMethod(collectionValue, "get");
@@ -241,8 +245,21 @@ public class CollectionSearch<T> {
                         @Override
                         public int compare(T o1, T o2) {
                             try {
-                                Object fieldValue1 = TReflect.getFieldValue(o1, sortField);
-                                Object fieldValue2 = TReflect.getFieldValue(o2, sortField);
+                                Object fieldValue1 = null;
+                                Object fieldValue2 = null;
+
+                                if(fieldValue1 instanceof Map){
+                                    fieldValue1 = ((Map)o1).get(sortField);
+                                } else {
+                                    fieldValue1 = TReflect.getFieldValue(o1, sortField);
+                                }
+
+                                if(fieldValue2 instanceof Map){
+                                    fieldValue2 = ((Map)o2).get(sortField);
+
+                                } else {
+                                    fieldValue2 = TReflect.getFieldValue(o2, sortField);
+                                    ;                               }
 
                                 if (fieldValue1.getClass() == fieldValue2.getClass()) {
                                     if (fieldValue1 instanceof Comparable) {
@@ -266,6 +283,7 @@ public class CollectionSearch<T> {
                     });
                 }
             }
+
             //数量限制
             else if (stepType.endsWith("Limit")) {
                 final int limit = (Integer) stepInfo.get("limit");
@@ -277,7 +295,6 @@ public class CollectionSearch<T> {
                 int pageSize = (Integer) stepInfo.get("pageSize");
 
                 List listResult = (List) stream.collect(Collectors.toList());
-
 
                 //分页
                 if (pageNum > 0 && pageSize > 0) {
