@@ -66,7 +66,7 @@ public class Recorder {
             if(e instanceof RecorderException){
                 throw (RecorderException)e;
             } else {
-                throw new RecorderException("Recorder update error: " + JSON.toJSON(obj), e);
+                throw new RecorderException("Recorder query error: " + JSON.toJSON(obj), e);
             }
         }
     }
@@ -169,7 +169,7 @@ public class Recorder {
             if(e instanceof RecorderException){
                 throw (RecorderException)e;
             } else {
-                throw new RecorderException("Recorder update error: " + JSON.toJSON(obj), e);
+                throw new RecorderException("Recorder delete error: " + JSON.toJSON(obj), e);
             }
         }
     }
@@ -221,7 +221,7 @@ public class Recorder {
             if(e instanceof RecorderException){
                 throw (RecorderException)e;
             } else {
-                throw new RecorderException("Recorder update error: " + JSON.toJSON(obj), e);
+                throw new RecorderException("Recorder insert error: " + JSON.toJSON(obj), e);
             }
         }
     }
@@ -233,15 +233,7 @@ public class Recorder {
      * @throws RecorderException Recorder 操作异常
      */
     public <T> int insert(T obj) throws RecorderException {
-        try{
-            return jdbcOperate.update(buildInsertSqlTemplate(null, obj), obj);
-        }catch (Exception e){
-            if(e instanceof RecorderException){
-                throw (RecorderException)e;
-            } else {
-                throw new RecorderException("Recorder update error: " + JSON.toJSON(obj), e);
-            }
-        }
+        return insert(null, obj);
     }
 
     /**
@@ -260,7 +252,7 @@ public class Recorder {
         //SQL模板准备
         //准备查询列
         String mainSql = "select ";
-        if(query.getResultField().size()==0){
+        if(query==null || query.getResultField().size()==0){
             mainSql = mainSql + "*";
         } else {
             for (String resultField : query.getResultField()) {
