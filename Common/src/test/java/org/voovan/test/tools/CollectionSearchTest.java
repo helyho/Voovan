@@ -50,6 +50,7 @@ public class CollectionSearchTest extends TestCase{
         System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).addCondition("aaa", "ddd").sort("bbb", false).page(2, 4).sort("bbb", false).limit(2).search()));
         System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).addCondition("bbb", CollectionSearch.Operate.GREATER, 20).search()));
         System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).addCondition("aaa", CollectionSearch.Operate.START_WITH, "fff2").search()));
+        System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).sort("bbb", true).page(6,5).search()));
 
         System.out.println(JSON.toJSON(CollectionSearch.newInstance(tl).addCondition(new Predicate<Test>() {
             @Override
@@ -64,10 +65,13 @@ public class CollectionSearchTest extends TestCase{
     public void testFieldFilter() throws ReflectiveOperationException {
         Test test = new Test(12, "123g");
         Test test1 = new Test(123, "123g");
+        System.out.println("test->" + JSON.toJSON(test));
+        System.out.println("test1->" + JSON.toJSON(test1));
+
         Object obj = TReflect.fieldFilter(test, "bbb", "map[12]");
         System.out.println(JSON.toJSON(obj));
 
-        obj = CollectionSearch.newInstance(TObject.asList(test, test1)).fields("bbb", "map[12]");
+        obj = CollectionSearch.newInstance(TObject.asList(test, test1)).fields("bbb", "map[123]");
         System.out.println(JSON.toJSON(obj));
     }
 }

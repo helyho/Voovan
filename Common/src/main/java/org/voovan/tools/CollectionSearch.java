@@ -3,6 +3,7 @@ package org.voovan.tools;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import java.rmi.NotBoundException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -171,7 +172,7 @@ public class CollectionSearch<T> {
                                     if (stepValue instanceof Comparable) {
                                         if (stepOperate == Operate.EQUAL || stepOperate == Operate.GREATER || stepOperate == Operate.LESS) {
 
-                                            int compareResult = ((Comparable) stepValue).compareTo(collectionValue);
+                                            int compareResult = ((Comparable) collectionValue).compareTo(stepValue);
 
                                             if (compareResult == 0 && stepOperate == Operate.EQUAL) {
                                                 isMatch = true;
@@ -284,14 +285,18 @@ public class CollectionSearch<T> {
                     int end = start + pageSize;
 
                     if (end > listResult.size()) {
-                        end = listResult.size() - 1;
+                        end = listResult.size();
                     }
 
                     if(end > listResult.size()-1){
-                        end = listResult.size()-1;
+                        end = listResult.size();
                     }
 
-                    listResult = listResult.subList(start, end);
+                    if(start < end) {
+                        listResult = listResult.subList(start, end);
+                    } else {
+                        listResult = new ArrayList();
+                    }
                 }
 
                 stream = listResult.stream();
