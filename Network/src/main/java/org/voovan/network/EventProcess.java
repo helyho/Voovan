@@ -254,32 +254,41 @@ public class EventProcess {
 		Global.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
-				int sendCount = -1;
-
 				try {
-					// ------------------Filter 加密处理-----------------
-					ByteBuffer sendBuffer = EventProcess.filterEncoder(sendSession, sendObj);
-					// ---------------------------------------------------
+					sendSession.getState().sendLock();
+					try {
+						int sendCount = -1;
 
-					if (sendBuffer != null) {
+						try {
+							// ------------------Filter 加密处理-----------------
+							ByteBuffer sendBuffer = EventProcess.filterEncoder(sendSession, sendObj);
+							// ---------------------------------------------------
 
-						// 发送消息
-						if (sendBuffer != null && sendSession.isOpen()) {
-							if (sendBuffer.limit() > 0) {
-								sendCount = sendSession.send(sendBuffer);
-								sendBuffer.rewind();
+							if (sendBuffer != null) {
+
+								// 发送消息
+								if (sendBuffer != null && sendSession.isOpen()) {
+									if (sendBuffer.limit() > 0) {
+										sendCount = sendSession.send(sendBuffer);
+										sendBuffer.rewind();
+									}
+								}
+
+								//触发发送事件
+								EventTrigger.fireSent(sendSession, sendObj);
 							}
+						} catch (IoFilterException e) {
+							EventTrigger.fireException(sendSession, e);
 						}
 
-						//触发发送事件
-						EventTrigger.fireSent(sendSession, sendObj);
+
+					} finally {
+						sendSession.getState().sendUnLock();
+						sendSession.getState().setSend(false);
 					}
-				}catch(IoFilterException e){
+				} catch (InterruptedException e) {
 					EventTrigger.fireException(sendSession, e);
 				}
-
-				//设置空闲状态
-				sendSession.getState().setSend(false);
 			}
 		});
 	}

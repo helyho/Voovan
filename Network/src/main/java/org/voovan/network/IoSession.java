@@ -51,6 +51,7 @@ public abstract class IoSession<T extends SocketContext> {
 		private boolean send = false;
 		private boolean close = false;
 		private Semaphore receiveLock = new Semaphore(1, true);
+		private Semaphore sendLock = new Semaphore(1, true);
 
 		public boolean isInit() {
 			return init;
@@ -96,7 +97,13 @@ public abstract class IoSession<T extends SocketContext> {
 			return receiveLock;
 		}
 
-		protected boolean receiveLock(){
+		protected void receiveLock() throws InterruptedException {
+			synchronized (receiveLock) {
+				receiveLock.acquire();
+			}
+		}
+
+		protected boolean receiveTryLock(){
 			synchronized (receiveLock) {
 				return receiveLock.tryAcquire();
 			}
@@ -105,6 +112,28 @@ public abstract class IoSession<T extends SocketContext> {
 		protected void receiveUnLock(){
 			synchronized (receiveLock) {
 				receiveLock.release();
+			}
+		}
+
+		protected Semaphore getSendLock() {
+			return sendLock;
+		}
+
+		protected void sendLock() throws InterruptedException {
+			synchronized (sendLock) {
+				sendLock.acquire();
+			}
+		}
+
+		protected boolean sendTryLock(){
+			synchronized (sendLock) {
+				return sendLock.tryAcquire();
+			}
+		}
+
+		protected void sendUnLock(){
+			synchronized (sendLock) {
+				sendLock.release();
 			}
 		}
 	}
