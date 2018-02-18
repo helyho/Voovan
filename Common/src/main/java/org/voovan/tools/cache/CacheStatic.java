@@ -175,6 +175,10 @@ public class CacheStatic {
      * @return 字节码
      */
     public static byte[] serialize(Object obj){
+        if(obj == null){
+            return null;
+        }
+
         if( obj instanceof Integer){
             return ((Integer) obj).toString().getBytes();
         }
@@ -207,6 +211,10 @@ public class CacheStatic {
      * @return 反序列化的对象
      */
     public static Object unserialize(byte[] byteArray){
+        if(byteArray==null){
+            return null;
+        }
+
         if(byteArray[0]==-84 && byteArray[1]==-19 && byteArray[2]==0 && byteArray[3]==5){
             return TSerialize.unserialize(byteArray);
         } else {
