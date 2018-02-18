@@ -149,7 +149,7 @@ public class Cipher {
      * @throws BadPaddingException       填充操作异常
      * @throws IllegalBlockSizeException 异常
      */
-    public byte[] encode(byte[] data) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    public byte[] encrypt(byte[] data) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 
         String tmp = algorithm + (mode!=null ? ("/"+mode) : "") + (fillMode!=null ? ("/"+fillMode) : "");
         javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance(tmp);
@@ -178,7 +178,7 @@ public class Cipher {
      * @throws BadPaddingException       填充操作异常
      * @throws IllegalBlockSizeException 异常
      */
-    public byte[] decode(byte[] data) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    public byte[] decrypt(byte[] data) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         String tmp = algorithm + (mode!=null ? ("/"+mode) : "") + (fillMode!=null ? ("/"+fillMode) : "");
         javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance(tmp);
         Key key = null;

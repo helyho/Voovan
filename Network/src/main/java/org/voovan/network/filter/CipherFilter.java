@@ -30,7 +30,7 @@ public class CipherFilter implements IoFilter {
 	public Object decode(IoSession session, Object object) throws IoFilterException {
 		if(object.getClass() == ByteFilter.BYTE_ARRAY_CLASS ) {
 			try {
-				return cipher.decode((byte[]) object);
+				return cipher.decrypt((byte[]) object);
 			} catch (Exception e) {
 				Logger.error("CipherFilter decode error, socket will be close", e);
 				session.close();
@@ -44,7 +44,7 @@ public class CipherFilter implements IoFilter {
 	public Object encode(IoSession session, Object object) throws IoFilterException {
 		if(object.getClass() == ByteFilter.BYTE_ARRAY_CLASS ) {
 			try {
-				return cipher.encode((byte[])object);
+				return cipher.encrypt((byte[])object);
 			} catch (Exception e) {
 				Logger.error("CipherFilter encode error, socket will be close", e);
 				session.close();

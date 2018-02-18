@@ -214,8 +214,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * @return
      */
     public V putIfAbsent(K key, V value){
-        putIfAbsent(key, value, Long.MAX_VALUE);
-        return value;
+        return putIfAbsent(key, value, Long.MAX_VALUE);
     }
 
     /**

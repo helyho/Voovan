@@ -3,6 +3,7 @@ package org.voovan.network;
 import org.voovan.tools.TString;
 
 import javax.net.ssl.*;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.*;
@@ -56,7 +57,7 @@ public class SSLManager {
 	}
 
 	/**
-	 * 读取管理证书
+	 * 读取管理证书, 文件形式
 	 * @param manageCertFile   证书地址
 	 * @param certPassword	   证书密码
 	 * @param keyPassword	   密钥
@@ -72,6 +73,40 @@ public class SSLManager {
 			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
 			certFIS = new FileInputStream(manageCertFile);
 			keystore.load(certFIS, certPassword.toCharArray());
+
+			keyManagerFactory.init(keystore , keyPassword.toCharArray());
+			trustManagerFactory.init(keystore );
+		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException e) {
+			throw new SSLException("Init SSLContext Error: "+e.getMessage(),e);
+		}finally {
+			if(certFIS!=null) {
+				try {
+					certFIS.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+
+	/**
+	 * 读取管理证书, 字节形式
+	 * @param manageCert   证书字节码
+	 * @param certPassword	   证书密码
+	 * @param keyPassword	   密钥
+	 * @throws SSLException SSL 异常
+	 */
+	public void loadCertificate(byte[] manageCert, String certPassword,String keyPassword) throws SSLException{
+
+		FileInputStream certFIS = null;
+		try{
+			keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+			trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+
+			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+
+			keystore.load(new ByteArrayInputStream(manageCert), certPassword.toCharArray());
 
 			keyManagerFactory.init(keystore , keyPassword.toCharArray());
 			trustManagerFactory.init(keystore );

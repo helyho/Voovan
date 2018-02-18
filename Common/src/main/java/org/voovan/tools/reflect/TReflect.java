@@ -776,6 +776,14 @@ public class TReflect {
 			String value = singleValue==null?null:singleValue.toString();
 			obj = (T)(singleValue==null?null:newInstance(clazz,  value));
 		}
+		//对 Atom 类型的处理
+		else if (clazz == AtomicLong.class || clazz == AtomicInteger.class || clazz == AtomicBoolean.class) {
+			if(singleValue==null){
+				obj = null;
+			} else {
+				obj = (T) TReflect.newInstance(clazz, singleValue);
+			}
+		}
 		// 复杂对象
 		else {
 			obj = (T)newInstance(clazz);
@@ -891,6 +899,10 @@ public class TReflect {
 		//对 Atom 类型的处理
 		else if (obj instanceof AtomicLong || obj instanceof AtomicInteger || obj instanceof AtomicBoolean) {
 			mapResult.put(null, TReflect.invokeMethod(obj, "get"));
+		}
+		//对 BigDecimal 类型的处理
+		else if (obj instanceof BigDecimal) {
+			mapResult.put(null, obj.toString());
 		}
 		//对 Map 类型的处理
 		else if(obj instanceof Map){
@@ -1161,7 +1173,7 @@ public class TReflect {
 	public static boolean isBasicType(Class clazz){
 		if(clazz == null ||
 				clazz.isPrimitive() ||
-				clazz.getName().startsWith("java.")
+				clazz.getName().startsWith("java.lang")
 				){
 			return true;
 		}else{

@@ -32,13 +32,13 @@ public class CipherUnit extends TestCase{
         Logger.simple("===========读取AES密钥加密===========");
         cipher = new Cipher("AES","ECB","PKCS5Padding");
         cipher.loadSymmetryKey(TBase64.decode(ba64Key));
-        byte[] msg = cipher.encode("asdfadf".getBytes());
+        byte[] msg = cipher.encrypt("asdfadf".getBytes());
         Logger.simple("AES加密后: "+new String(msg));
 
         Logger.simple("===========读取AES密钥解密===========");
         cipher = new Cipher("AES","ECB","PKCS5Padding");
         cipher.loadSymmetryKey(TBase64.decode(ba64Key));
-        byte[] msg1 = cipher.decode(msg);
+        byte[] msg1 = cipher.decrypt(msg);
         Logger.simple("AES解密后:" + new String(msg1));
 
         Logger.simple(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
@@ -56,14 +56,14 @@ public class CipherUnit extends TestCase{
         Logger.simple("===========RSA读取公钥加密===========");
         cipher = new Cipher("RSA","ECB","PKCS1Padding");
         cipher.loadPublicKey(TBase64.decode(ba64Public));
-        msg = cipher.encode("asdfadf".getBytes());
+        msg = cipher.encrypt("asdfadf".getBytes());
         Logger.simple(" RSA加密后: "+new String(msg));
 
 
         Logger.simple("===========RSA读取私钥解密===========");
         cipher = new Cipher("RSA","ECB","PKCS1Padding");
         cipher.loadPrivateKey(TBase64.decode(ba64Private));
-        msg1 = cipher.decode(msg);
+        msg1 = cipher.decrypt(msg);
         Logger.simple("RSA解密后: "+new String(msg1));
     }
 }
