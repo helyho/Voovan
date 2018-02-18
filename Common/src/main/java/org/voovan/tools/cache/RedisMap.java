@@ -248,16 +248,22 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
         try (Jedis jedis = getJedis()) {
             long result = 0;
             if(name==null){
-                jedis.setnx(keyByteArray, valueByteArray);
+                result = jedis.setnx(keyByteArray, valueByteArray);
+                if(result==1) {
+                    value = null;
+                } else {
+                    value = (V)CacheStatic.unserialize(jedis.get(keyByteArray));
+                }
             }else {
-                jedis.hsetnx(name.getBytes(), keyByteArray, valueByteArray);
+                result = jedis.hsetnx(name.getBytes(), keyByteArray, valueByteArray);
+                if(result==1) {
+                    value = null;
+                } else {
+                    value = (V)CacheStatic.unserialize(jedis.hget(name.getBytes(), keyByteArray));
+                }
             }
 
-            if(result==1) {
-                return value;
-            } else {
-                return null;
-            }
+            return value;
         }
     }
 

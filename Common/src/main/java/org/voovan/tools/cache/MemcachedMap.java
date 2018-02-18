@@ -386,7 +386,7 @@ public class MemcachedMap<String, V> implements Map<String, V> , Closeable {
      * @param version 数据版本
      * @return true: 成功, false:失败
      */
-    public boolean cas(String key, V value,long version) {
+    public boolean cas(String key, V value, long version) {
         MemcachedClient memcachedClient = null;
         try {
             memcachedClient = getMemcachedClient();
