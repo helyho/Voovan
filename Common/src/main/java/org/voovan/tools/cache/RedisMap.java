@@ -201,6 +201,7 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
             }
         }
 
+
         return (V)CacheStatic.unserialize(valueByteArray);
     }
 
@@ -240,6 +241,12 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
         }
     }
 
+    /**
+     * 在 Redis 环境下返回的数据不保证是 Redis 中的数据
+     * @param key   更新的 key
+     * @param value 更新的 value,
+     * @return 返回的数据对象, value: null更新成功, value: 有数据返回的情况下仅仅表示更新失败, 返回的数据无法准确视为 Redis 中保存的数据
+     */
     @Override
     public V putIfAbsent(K key, V value) {
         byte[] keyByteArray = CacheStatic.serialize(key);
@@ -249,17 +256,29 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
             long result = 0;
             if(name==null){
                 result = jedis.setnx(keyByteArray, valueByteArray);
+
                 if(result==1) {
                     value = null;
                 } else {
-                    value = (V)CacheStatic.unserialize(jedis.get(keyByteArray));
+                    byte[] valueBytes = jedis.get(keyByteArray);
+                    if(valueBytes == null){
+                        return value;
+                    } else {
+                        value = (V) CacheStatic.unserialize(valueBytes);
+                    }
                 }
             }else {
                 result = jedis.hsetnx(name.getBytes(), keyByteArray, valueByteArray);
+
                 if(result==1) {
                     value = null;
                 } else {
-                    value = (V)CacheStatic.unserialize(jedis.hget(name.getBytes(), keyByteArray));
+                    byte[] valueBytes = jedis.hget(name.getBytes(), keyByteArray);
+                    if(valueBytes == null){
+                        return value;
+                    } else {
+                        value = (V) CacheStatic.unserialize(valueBytes);
+                    }
                 }
             }
 
@@ -311,12 +330,17 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
             byte[] value = null;
             if(name==null){
                 valueByteArray = jedis.get(keyByteArray);
-                jedis.del(key.toString());
+                if(valueByteArray!=null) {
+                    jedis.del(keyByteArray);
+                }
             }else {
                 valueByteArray = jedis.hget(name.getBytes(), keyByteArray);
-                jedis.hdel(name, key.toString());
+                if(valueByteArray!=null) {
+                    jedis.hdel(keyByteArray);
+                }
             }
-            return (V)CacheStatic.unserialize(valueByteArray);
+
+            return (V) CacheStatic.unserialize(valueByteArray);
         }
     }
 

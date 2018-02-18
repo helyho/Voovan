@@ -1,5 +1,7 @@
 package org.voovan.test.tools.cache;
 
+import org.voovan.Global;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.cache.RedisMap;
 import org.voovan.tools.TObject;
 import org.voovan.tools.json.JSON;
@@ -91,5 +93,26 @@ public class RedisMapUnit extends TestCase{
     protected void tearDown() throws Exception {
         super.tearDown();
         redisMapOld.close();
+    }
+
+    public void testLockTest(){
+        RedisMap redisMap = new RedisMap();
+        redisMap.clear();
+
+        for(int i=0;i<1000;i++) {
+            final int t = i;
+            Global.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+                    if(t%100==0){
+                        redisMap.remove("test");
+                        System.out.println("remove-->" + t);
+                    }
+                    System.out.println(redisMap.putIfAbsent("test", "value"));
+                }
+            });
+        }
+
+        TEnv.sleep(60*1000);
     }
 }
