@@ -278,22 +278,24 @@ public class Recorder {
         //处理排序
         String orderSql = "order by ";
 
-        for(Map.Entry<String[], Boolean> entry : query.getOrderField().entrySet()) {
-            for(String orderField : entry.getKey()) {
-                try {
-                    if(TReflect.findFieldIgnoreCase(obj.getClass(), orderField)!=null) {
-                        orderSql = orderSql + orderField + ",";
+        if(query!=null) {
+            for (Map.Entry<String[], Boolean> entry : query.getOrderField().entrySet()) {
+                for (String orderField : entry.getKey()) {
+                    try {
+                        if (TReflect.findFieldIgnoreCase(obj.getClass(), orderField) != null) {
+                            orderSql = orderSql + orderField + ",";
+                        }
+                    } catch (ReflectiveOperationException e) {
+                        throw new RecorderException("Recorder query result field is failed", e);
                     }
-                } catch (ReflectiveOperationException e) {
-                    throw new RecorderException("Recorder query result field is failed", e);
                 }
-            }
 
-            if(orderSql.endsWith(",")) {
-                orderSql = TString.removeSuffix(orderSql);
-            }
+                if (orderSql.endsWith(",")) {
+                    orderSql = TString.removeSuffix(orderSql);
+                }
 
-            orderSql = orderSql + (entry.getValue() ? " desc" : " asc") + ",";
+                orderSql = orderSql + (entry.getValue() ? " desc" : " asc") + ",";
+            }
         }
 
         if(orderSql.equals("order by ")){
@@ -307,21 +309,25 @@ public class Recorder {
         String resultSql = mainSql + " " + whereSql + " " + orderSql;
 
         //自动识别数据库类型选择不同的方言进行分页
-        try {
-            Connection connection = jdbcOperate.getConnection();
-            DataBaseType dataBaseType = TSQL.getDataBaseType(connection);
-            if (dataBaseType.equals(DataBaseType.Mariadb) || dataBaseType.equals(DataBaseType.MySql)) {
-                return genMysqlPageSql(resultSql, query);
-            } else if (dataBaseType.equals(DataBaseType.Oracle)) {
-                return genOraclePageSql(resultSql, query);
-            } else if (dataBaseType.equals(DataBaseType.Postage)) {
-                return genOraclePageSql(resultSql, query);
-            } else {
-                return resultSql;
+        if(query != null) {
+            try {
+                Connection connection = jdbcOperate.getConnection();
+                DataBaseType dataBaseType = TSQL.getDataBaseType(connection);
+                if (dataBaseType.equals(DataBaseType.Mariadb) || dataBaseType.equals(DataBaseType.MySql)) {
+                    return genMysqlPageSql(resultSql, query);
+                } else if (dataBaseType.equals(DataBaseType.Oracle)) {
+                    return genOraclePageSql(resultSql, query);
+                } else if (dataBaseType.equals(DataBaseType.Postage)) {
+                    return genOraclePageSql(resultSql, query);
+                } else {
+                    return resultSql;
+                }
+            } catch (SQLException e) {
+                throw new RecorderException("Recorder builde page failed", e);
             }
-        } catch (SQLException e){
-            return resultSql;
         }
+
+        return resultSql;
     }
 
 

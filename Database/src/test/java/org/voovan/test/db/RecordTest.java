@@ -58,6 +58,7 @@ public class RecordTest extends TestCase{
         Query query = Query.newInstance().addAnd("packagePath").addOrder(true, "id").page(2,10);
 
         //查询测试
+//        System.out.println(new Recorder(new JdbcOperate(dataSource), false).query("sc_script", scriptEntity, query));
         System.out.println(new Recorder(new JdbcOperate(dataSource), false).query(scriptEntity, query));
 
     }
