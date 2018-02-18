@@ -2,10 +2,7 @@ package org.voovan.db.recorder;
 
 import org.voovan.db.recorder.exception.RecorderException;
 
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 查询条件构造
@@ -105,12 +102,13 @@ public class Query {
     }
 
     public enum Operate{
-        EQUAL, GREATER, LESS, GREATER_EQUAL, LESS_EQUAL, LIKE, IN
+        EQUAL, NOT_EQUAL, GREATER, LESS, GREATER_EQUAL, LESS_EQUAL, LIKE, IN
     }
 
     public static String getActualOperate(Operate operate) throws RecorderException {
         switch (operate){
             case EQUAL : return "=";
+            case NOT_EQUAL : return "!=";
             case GREATER : return ">";
             case LESS : return "<";
             case GREATER_EQUAL : return ">=";
