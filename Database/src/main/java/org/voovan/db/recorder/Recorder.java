@@ -515,11 +515,6 @@ public class Recorder {
                     break;
                 }
             }
-
-            if (whereSql.equals("where 1=1")) {
-                throw new RecorderException("Recorder primaryKey annotation is not set");
-            }
-
         } else {
 
             for (Map.Entry<String, Query.Operate> entry : query.getQueryAndField().entrySet()) {
@@ -555,6 +550,10 @@ public class Recorder {
                 int index = whereSql.trim().lastIndexOf(" ");
                 whereSql = whereSql.substring(0, index);
             }
+        }
+
+        if (whereSql.trim().equals("where 1=1")) {
+            throw new RecorderException("Where sql must be have some condiction");
         }
 
         return whereSql;
