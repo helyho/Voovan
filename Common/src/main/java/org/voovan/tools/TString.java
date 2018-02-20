@@ -6,6 +6,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -593,6 +594,8 @@ public class TString {
 			return JSON.toObject(value, type, ignoreCase);
 		} else if (value.startsWith("\"") && value.endsWith("\"")) {
 			return (T) value.substring(1, value.length() - 1);
+		} else if(clazz == BigDecimal.class){
+			return (T)new BigDecimal(value);
 		} else {
 			return (T) value;
 		}
