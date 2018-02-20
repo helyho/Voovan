@@ -4,6 +4,7 @@ import org.voovan.Global;
 import org.voovan.tools.CollectionSearch;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
+import org.voovan.tools.json.annotation.NotJSON;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,10 +20,12 @@ import java.util.function.Function;
  * Licence: Apache v2 License
  */
 public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
+    public static int DEFAULT_SIZE = 1000;
 
-    protected final static HashWheelTimer wheelTimer = new HashWheelTimer(60, 1000);
-    private Function<K, V> buildFunction = null;
+    protected final static HashWheelTimer wheelTimer = new HashWheelTimer(1000, 1);
+    private Function<K, V> supplier = null;
     private boolean asyncBuild = true;
+    private int interval = 1000;
 
     static {
         wheelTimer.rotate();
@@ -35,53 +38,26 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * 构造函数
      * @param maxSize 缓存集合的最大容量, 多余的数据会被移除
      */
-    public CachedHashMap(int maxSize){
+    private CachedHashMap(Integer maxSize){
         cacheMark = new ConcurrentHashMap<K, TimeMark>();
-        this.maxSize = maxSize;
-
-        final CachedHashMap cachedHashMap = this;
-        wheelTimer.addTask(new HashWheelTask() {
-            @Override
-            public void run() {
-                //清理过期的
-                for(TimeMark timeMark : (TimeMark[])cachedHashMap.getCacheMark().values().toArray(new TimeMark[0])){
-                    if(timeMark.isExpire()){
-                        if(cachedHashMap.getBuildFunction() == null) {
-                            cachedHashMap.remove(timeMark.getKey());
-                            cachedHashMap.cacheMark.remove(timeMark.getKey());
-                        } else {
-                            cachedHashMap.buildData(timeMark);
-                            timeMark.refresh(true);
-                        }
-                    }
-                }
-            }
-        }, 1);
+        this.maxSize = maxSize == null ? DEFAULT_SIZE : maxSize;
     }
 
-    /**
-     * 构造函数
-     *      默认容量: 1000
-     */
-    public CachedHashMap(){
-        this(1000);
-    }
-
-    private void buildData(TimeMark timeMark){
+    private void createCache(TimeMark timeMark){
         CachedHashMap cachedHashMap = this;
         //更新缓存数据, 异步
         if (asyncBuild) {
             Global.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
-                    V value = buildFunction.apply((K) timeMark.getKey());
+                    V value = supplier.apply((K) timeMark.getKey());
                     cachedHashMap.put((K) timeMark.getKey(), value);
                 }
             });
         }
         //更新缓存数据, 异步
         else {
-            V value = buildFunction.apply((K) timeMark.getKey());
+            V value = supplier.apply((K) timeMark.getKey());
             cachedHashMap.put((K) timeMark.getKey(), value);
         }
     }
@@ -91,25 +67,70 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * @param buildFunction Function 对象
      * @param asyncBuild 异步构造数据
      */
-    public void build(Function<K, V> buildFunction, boolean asyncBuild){
-        this.buildFunction = buildFunction;
+    public void supplier(Function<K, V> buildFunction, boolean asyncBuild){
+        this.supplier = buildFunction;
         this.asyncBuild = asyncBuild;
     }
 
     /**
      * 设置数据创建 Function 对象
      * @param buildFunction Function 对象
+     * @return CachedHashMap 对象
      */
-    public void build(Function<K, V> buildFunction){
-        build(buildFunction, true);
+    public CachedHashMap<K, V> supplier(Function<K, V> buildFunction){
+        supplier(buildFunction, true);
+        return this;
+    }
+
+    /**
+     * 设置最大容量
+     * @param maxSize 最大容量
+     * @return CachedHashMap 对象
+     */
+    public CachedHashMap<K, V> maxSize(int maxSize) {
+        this.maxSize = maxSize;
+        return this;
+    }
+
+    /**
+     * 设置最失效对象检查周期
+     * @param interval 检查周期
+     * @return CachedHashMap 对象
+     */
+    public CachedHashMap<K, V> interval(int interval) {
+        this.interval = interval;
+        return this;
+    }
+
+    public CachedHashMap<K, V> create(){
+        final CachedHashMap cachedHashMap = this;
+        wheelTimer.addTask(new HashWheelTask() {
+            @Override
+            public void run() {
+                //清理过期的
+                for(TimeMark timeMark : (TimeMark[])cachedHashMap.getCacheMark().values().toArray(new TimeMark[0])){
+                    if(timeMark.isExpire()){
+                        if(cachedHashMap.getSupplier() == null) {
+                            cachedHashMap.remove(timeMark.getKey());
+                            cachedHashMap.cacheMark.remove(timeMark.getKey());
+                        } else {
+                            cachedHashMap.createCache(timeMark);
+                            timeMark.refresh(true);
+                        }
+                    }
+                }
+            }
+        }, interval);
+
+        return this;
     }
 
     /**
      * 获取数据创建 Function 对象
      * @return Function 对象
      */
-    protected Function<K, V> getBuildFunction(){
-        return buildFunction;
+    protected Function<K, V> getSupplier(){
+        return supplier;
     }
 
     /**
@@ -128,13 +149,13 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      */
     @Override
     public V get(Object key){
-        if(cacheMark.contains(key)) {
+        if(cacheMark.containsKey(key)) {
             cacheMark.get(key).refresh(false);
         } else {
             //如果不存在则重读
-            if(buildFunction!=null) {
-                synchronized (buildFunction) {
-                    V value = buildFunction.apply((K) key);
+            if(supplier !=null) {
+                synchronized (supplier) {
+                    V value = supplier.apply((K) key);
                     put((K) key, value);
                 }
             }
@@ -152,10 +173,10 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
             cacheMark.get(key).refresh(false);
         } else {
             //如果不存在则重读
-            if(buildFunction!=null) {
-                synchronized (buildFunction) {
-                    if (buildFunction != null) {
-                        V value = buildFunction.apply((K) key);
+            if(supplier !=null) {
+                synchronized (supplier) {
+                    if (supplier != null) {
+                        V value = supplier.apply((K) key);
                         put((K) key, value);
                     }
                 }
@@ -296,14 +317,26 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
         super.clear();
     }
 
+    public static <K, V> CachedHashMap<K, V> newInstance(){
+        return new CachedHashMap<K, V>(null);
+    }
+
+    public static <K, V> CachedHashMap<K, V> newInstance(int maxSize){
+        return new CachedHashMap<K, V>(maxSize);
+    }
+
     /**
      * 缓存时间标签类
      */
     private class TimeMark<K> {
+        @NotJSON
         private CachedHashMap<K,V> mainMap;
         private K key;
+        //超时时间
         private AtomicLong expireTime = new AtomicLong(0);
+        //最后访问时间
         private AtomicLong lastTime = new AtomicLong(0);
+        //访问次数
         private AtomicLong visitCount = new AtomicLong(0);
 
         public TimeMark(CachedHashMap<K,V> mainMap, K key, long expireTime){
@@ -319,6 +352,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
          */
         public synchronized void refresh(boolean updateLastTime){
             visitCount.incrementAndGet();
+
             if(updateLastTime) {
                 this.lastTime.set(System.currentTimeMillis());
             }
