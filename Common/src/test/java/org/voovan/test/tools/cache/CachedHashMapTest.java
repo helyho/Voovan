@@ -3,6 +3,7 @@ package org.voovan.test.tools.cache;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.cache.CachedHashMap;
+import junit.framework.TestCase;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -14,11 +15,14 @@ import java.util.concurrent.ThreadLocalRandom;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class CachedHashMapTest {
+public class CachedHashMapTest extends TestCase{
 
-    public static void main(String[] args) {
-        CachedHashMap cachedHashMap = new CachedHashMap<>(100);
-        cachedHashMap.build((t)-> t + "_"+ System.currentTimeMillis());
+    public void testBasic() {
+        CachedHashMap cachedHashMap = CachedHashMap.newInstance()
+                .maxSize(100)
+                .interval(1)
+                .supplier((t)-> t + "_"+ System.currentTimeMillis())
+                .create();
 
         for(int i=0;i<100;i++) {
             cachedHashMap.put("key_" + i, "value_" + i, Long.valueOf(5+i));
@@ -45,5 +49,22 @@ public class CachedHashMapTest {
             TEnv.sleep(1);
             count++;
         }
+    }
+
+    public void testLockTest(){
+        CachedHashMap cachedHashMap = CachedHashMap.newInstance().create();
+
+        for(int i=0;i<10;i++) {
+            Global.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+                    for(int x=0; x<500; x++) {
+                        System.out.println(cachedHashMap.putIfAbsent("test", "value"));
+                    }
+                }
+            });
+        }
+
+        TEnv.sleep(60*1000);
     }
 }
