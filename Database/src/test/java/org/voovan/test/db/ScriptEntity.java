@@ -1,6 +1,7 @@
 package org.voovan.test.db;
 
 import org.voovan.db.recorder.annotation.NotInsert;
+import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.annotation.PrimaryKey;
 import org.voovan.db.recorder.annotation.Table;
 import org.voovan.tools.TFile;
@@ -9,6 +10,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * 脚本实体
@@ -16,7 +18,7 @@ import java.io.IOException;
  *
  */
 @Table("sc_script")
-public class ScriptEntity {
+public class ScriptEntity implements Serializable{
 	@PrimaryKey
 	@NotInsert
 	private int id;
@@ -24,6 +26,7 @@ public class ScriptEntity {
 	/**
 	 * 脚本路径
 	 */
+	@NotUpdate
 	private String packagePath;
 	/**
 	 * 脚本版本
@@ -37,43 +40,43 @@ public class ScriptEntity {
 	 * 脚本代码内容
 	 */
 	private String sourceCode;
-	
+
 	/**
 	 * 脚本实体文件更新日期
 	 */
 	private long fileDate;
-	
+
 	/**
-	 * 脚本是否可以自动重载最新的内容 
-	 * 		1:可重新加载 
+	 * 脚本是否可以自动重载最新的内容
+	 * 		1:可重新加载
 	 * 		0:不可重新加载
 	 */
 	private int canReload;
-	
+
 	public ScriptEntity(){
 		//默认可重新加载
 		canReload = 1;
 	}
-	
+
 	/**
 	 * 构造函数
 	 * @param packagePath		包路径
 	 * @param sourceCode		脚本源文件路径
 	 */
-	public ScriptEntity(String packagePath, String sourceCode){
+	public ScriptEntity(String packagePath,String sourceCode){
 		this.packagePath = packagePath;
 		this.version = 1;
 		this.sourceCode = sourceCode;
 		canReload = 1;
 	}
-	
+
 	/**
 	 * 构造函数
 	 * @param packagePath	包路径
 	 * @param version		脚本文件版本
 	 * @param sourcePath	脚本源文件路径
 	 */
-	public ScriptEntity(String packagePath, float version, String sourcePath){
+	public ScriptEntity(String packagePath,float version,String sourcePath){
 		this.packagePath = packagePath;
 		this.version = version;
 		this.sourcePath = sourcePath;
@@ -127,7 +130,7 @@ public class ScriptEntity {
 	public void setSourcePath(String sourcePath) {
 		this.sourcePath = sourcePath;
 	}
-	
+
 	/**
 	 * 是否可重新读取
 	 * @return
@@ -142,13 +145,13 @@ public class ScriptEntity {
 	 */
 	public boolean isChanged(){
 		File sourceFile = new File(sourcePath);
-		
+
 		if(!sourceFile.exists())
 		{
 			Logger.warn("Script File :"+sourcePath+" is not exists.");
 			return false;
 		}
-		
+
 		if(fileDate==0){
 			fileDate = sourceFile.lastModified();
 			return true;
@@ -160,7 +163,7 @@ public class ScriptEntity {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * 从文件读取脚本内容
 	 */
@@ -170,13 +173,13 @@ public class ScriptEntity {
 		sourceCode = new String(TFile.loadFileFromSysPath(sourcePath));
 		Logger.debug("Reload script code : "+sourcePath);
 	}
-	
-	
+
+
 	/**
 	 * 将入参对象的属性 copy 到本地属性
 	 * @param source
-	 * @throws ScriptException 
-	 * @throws IOException 
+	 * @throws ScriptException
+	 * @throws IOException
 	 */
 	public void copy(ScriptEntity source){
 		this.packagePath = source.packagePath;
@@ -186,12 +189,12 @@ public class ScriptEntity {
 		this.canReload = source.canReload;
 		this.fileDate = source.fileDate;
 	}
-	
+
 	@Override
 	public String toString(){
 		return "{PackagePath="+this.packagePath+",Version="+this.version+",SourcePath="+sourcePath+"}";
 	}
-	
+
 	/**
 	 * 判断两个对象实体是否相等
 	 * @param entity
@@ -212,14 +215,14 @@ public class ScriptEntity {
 			return false;
 		}
 	}
-	
+
 	@Override
 	public int hashCode(){
 		return genHashCode(packagePath,version);
-	} 
-	
+	}
+
 	public static int genHashCode(String packagePath,float version){
 		return THash.hash_time33(packagePath+version);
 	}
-	
+
 }

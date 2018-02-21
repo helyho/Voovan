@@ -2,14 +2,18 @@ package org.voovan.tools.cache;
 
 import org.voovan.Global;
 import org.voovan.tools.CollectionSearch;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.json.annotation.NotJSON;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 /**
@@ -47,28 +51,53 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
 
     private void createCache(K key, Function<K, V> supplier){
         CachedHashMap cachedHashMap = this;
-        //更新缓存数据, 异步
-        if (asyncBuild) {
-            Global.getThreadPool().execute(new Runnable() {
-                @Override
-                public void run() {
-                    if(supplier !=null) {
+
+        TimeMark timeMark = null;
+
+        synchronized (cacheMark) {
+            timeMark = cacheMark.get(key);
+
+            if (timeMark == null) {
+                timeMark = new TimeMark(this, key, Long.MAX_VALUE);
+                cacheMark.put(key, timeMark);
+            }
+        }
+
+        synchronized (timeMark.createFlag) {
+            if (!timeMark.isOnCreate()) {
+                timeMark.tryLockOnCreate();
+
+                //更新缓存数据, 异步
+                if (asyncBuild) {
+                    TimeMark finalTimeMark = timeMark;
+                    Global.getThreadPool().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (supplier != null) {
+                                synchronized (supplier) {
+                                    V value = supplier.apply(key);
+                                    cachedHashMap.put(key, value);
+                                }
+                                finalTimeMark.releaseCreateLock();
+                            }
+                        }
+                    });
+                }
+                //更新缓存数据, 异步
+                else {
+                    if (supplier != null) {
                         synchronized (supplier) {
                             V value = supplier.apply(key);
                             cachedHashMap.put(key, value);
                         }
+                        timeMark.releaseCreateLock();
                     }
                 }
-            });
-        }
-        //更新缓存数据, 异步
-        else {
-            if(supplier !=null) {
-                synchronized (supplier) {
-                    V value = supplier.apply(key);
-                    cachedHashMap.put(key, value);
-                }
             }
+        }
+
+        while(timeMark.isOnCreate()){
+            TEnv.sleep(TimeUnit.NANOSECONDS, 1);
         }
     }
 
@@ -172,12 +201,15 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      */
     @Override
     public V get(Object key){
-        if(cacheMark.containsKey(key) && !cacheMark.get(key).isExpire()) {
+        if(cacheMark.containsKey(key) &&
+                !cacheMark.get(key).isExpire() &&
+                !cacheMark.get(key).isOnCreate()) {
             cacheMark.get(key).refresh(false);
         } else {
             //如果不存在则重读
             createCache((K)key, this.supplier);
         }
+
         return super.get(key);
     }
 
@@ -190,12 +222,15 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * @return 值
      */
     public V get(Object key, Function<K, V> appointedSupplier){
-        if(cacheMark.containsKey(key) && !cacheMark.get(key).isExpire()) {
+        if(cacheMark.containsKey(key) &&
+                !cacheMark.get(key).isExpire() &&
+                !cacheMark.get(key).isOnCreate()) {
             cacheMark.get(key).refresh(false);
         } else {
             //如果不存在则重读
             createCache((K)key,appointedSupplier);
         }
+
         return super.get(key);
     }
 
@@ -206,12 +241,15 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * @return 值
      */
     public V getAndRefresh(Object key){
-        if(cacheMark.contains(key) && !cacheMark.get(key).isExpire()) {
+        if(cacheMark.containsKey(key) &&
+                !cacheMark.get(key).isExpire() &&
+                !cacheMark.get(key).isOnCreate()) {
             cacheMark.get(key).refresh(true);
         } else {
             //如果不存在则重读
             createCache((K)key, this.supplier);
         }
+
         return this.get(key);
     }
 
@@ -222,12 +260,15 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * @return 值
      */
     public V getAndRefresh(Object key, Function<K, V> appointedSupplier){
-        if(cacheMark.contains(key) && !cacheMark.get(key).isExpire()) {
+        if(cacheMark.containsKey(key) &&
+                !cacheMark.get(key).isExpire() &&
+                !cacheMark.get(key).isOnCreate()) {
             cacheMark.get(key).refresh(true);
         } else {
             //如果不存在则重读
             createCache((K)key,appointedSupplier);
         }
+
         return this.get(key);
     }
 
@@ -277,7 +318,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
             throw new NullPointerException();
         }
 
-        cacheMark.put(key, new TimeMark(this, key, expire));
+        cacheMark.putIfAbsent(key, new TimeMark(this, key, expire));
         super.put(key, value);
         fixSize();
         return value;
@@ -307,10 +348,10 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
 
         V result = super.putIfAbsent(key, value);
         if(result!=null){
-            cacheMark.putIfAbsent(key, new TimeMark(this, key, expire));
-            fixSize();
             return result;
         } else {
+            cacheMark.putIfAbsent(key, new TimeMark(this, key, expire));
+            fixSize();
             return null;
         }
     }
@@ -347,7 +388,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      */
     public void expire(K key, long expire) {
         TimeMark timeMark = cacheMark.get(key);
-        if(timeMark==null){
+        if(timeMark==null && !cacheMark.containsKey(key)){
             cacheMark.put(key, new TimeMark(this, key, expire));
         } else {
             timeMark.setExpireTime(expire);
@@ -392,10 +433,10 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
         //最后访问时间
         private AtomicLong lastTime = new AtomicLong(0);
         //访问次数
-        private AtomicLong visitCount = new AtomicLong(0);
+        private volatile AtomicLong visitCount = new AtomicLong(0);
 
         //是否正在生成数据
-        private AtomicBoolean isCreating = new AtomicBoolean(false);
+        private volatile AtomicBoolean createFlag = new AtomicBoolean(false);
 
         public TimeMark(CachedHashMap<K,V> mainMap, K key, long expireTime){
             this.key = key;
@@ -422,7 +463,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
          */
         public boolean isExpire(){
             if(expireTime.get()!=Long.MAX_VALUE &&
-                    System.currentTimeMillis() - lastTime.get() >= expireTime.get()*1000){
+                    System.currentTimeMillis() - lastTime.get() >= expireTime.get()){
                 return true;
             } else {
                 return false;
@@ -453,8 +494,16 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
             return visitCount;
         }
 
-        public synchronized boolean setIsCreating(boolean isCreating){
-            return this.isCreating.compareAndSet(!isCreating, isCreating);
+        public boolean isOnCreate(){
+            return createFlag.get();
+        }
+
+        public boolean tryLockOnCreate() {
+            return createFlag.compareAndSet(false, true);
+        }
+
+        public void releaseCreateLock() {
+            createFlag.set(false);
         }
     }
 }

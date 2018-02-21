@@ -2,6 +2,7 @@ package org.voovan.db.recorder;
 
 import org.voovan.db.DataBaseType;
 import org.voovan.db.recorder.annotation.NotInsert;
+import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.annotation.PrimaryKey;
 import org.voovan.db.recorder.annotation.Table;
 import org.voovan.db.recorder.exception.RecorderException;
@@ -10,6 +11,7 @@ import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.db.JdbcOperate;
+import com.sun.tools.corba.se.idl.constExpr.Not;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -361,6 +363,16 @@ public class Recorder {
                 if(fieldValue == null){
                     continue;
                 }
+
+                if(field.getAnnotation(PrimaryKey.class)!=null){
+                    continue;
+                }
+
+                NotUpdate notUpdate = field.getAnnotation(NotUpdate.class);
+                if(notUpdate!=null && (notUpdate.value().equals("ANY_VALUE") || notUpdate.value().equals(fieldValue.toString()))){
+                    continue;
+                }
+
             } catch (ReflectiveOperationException e) {
                 e.printStackTrace();
             }
