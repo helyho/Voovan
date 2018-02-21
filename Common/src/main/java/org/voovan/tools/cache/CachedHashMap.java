@@ -50,6 +50,10 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
     }
 
     private void createCache(K key, Function<K, V> supplier){
+        if(supplier==null){
+            return;
+        }
+
         CachedHashMap cachedHashMap = this;
 
         TimeMark timeMark = null;
@@ -73,25 +77,21 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
                     Global.getThreadPool().execute(new Runnable() {
                         @Override
                         public void run() {
-                            if (supplier != null) {
-                                synchronized (supplier) {
-                                    V value = supplier.apply(key);
-                                    cachedHashMap.put(key, value);
-                                }
-                                finalTimeMark.releaseCreateLock();
+                            synchronized (supplier) {
+                                V value = supplier.apply(key);
+                                cachedHashMap.put(key, value);
                             }
+                            finalTimeMark.releaseCreateLock();
                         }
                     });
                 }
                 //更新缓存数据, 异步
                 else {
-                    if (supplier != null) {
-                        synchronized (supplier) {
-                            V value = supplier.apply(key);
-                            cachedHashMap.put(key, value);
-                        }
-                        timeMark.releaseCreateLock();
+                    synchronized (supplier) {
+                        V value = supplier.apply(key);
+                        cachedHashMap.put(key, value);
                     }
+                    timeMark.releaseCreateLock();
                 }
             }
         }

@@ -13,52 +13,59 @@ import java.util.*;
  * Licence: Apache v2 License
  */
 public class Query {
-    private List<String> resultField;
-    private Map<String, Operate> queryAndField;
-    private Map<String, Operate> queryOrField;
-    private Map<String[], Boolean> orderField;
+    private List<String> resultFields;
+    private Map<String, Operate> queryAndFields;
+    private Map<String, Operate> queryOrFields;
+    private Map<String[], Boolean> orderFields;
+    private List<String> customCondictions;
     private int pageNumber = -1;
     private int pageSize = -1;
 
     public Query() {
-        resultField = new ArrayList<>();
-        queryAndField = new IdentityHashMap<String, Operate>();
-        queryOrField = new IdentityHashMap<String, Operate>();
-        orderField = new IdentityHashMap<String[], Boolean>();
+        resultFields = new ArrayList<String>();
+        queryAndFields = new IdentityHashMap<String, Operate>();
+        queryOrFields = new IdentityHashMap<String, Operate>();
+        orderFields = new IdentityHashMap<String[], Boolean>();
+        customCondictions = new ArrayList<String>();
     }
 
     public Query addResult(String fieldName) {
-        resultField.add(fieldName);
+        resultFields.add(fieldName);
         return this;
     }
 
     public Query addAnd(String fieldName, Operate operator) {
-        queryAndField.put(fieldName, operator);
+        queryAndFields.put(fieldName, operator);
         return this;
     }
 
     public Query AddOr(String fieldName, Operate operator) {
-        queryOrField.put(fieldName, operator);
+        queryOrFields.put(fieldName, operator);
         return this;
     }
 
     public Query addAnd(String fieldName) {
-        queryAndField.put(fieldName, Operate.EQUAL);
+        queryAndFields.put(fieldName, Operate.EQUAL);
         return this;
     }
 
     public Query AddOr(String fieldName) {
-        queryOrField.put(fieldName, Operate.EQUAL);
+        queryOrFields.put(fieldName, Operate.EQUAL);
+        return this;
+    }
+
+    public Query addCustomCondiction(String customCondiction){
+        customCondictions.add(customCondiction);
         return this;
     }
 
     public Query addOrder(String ... fieldNames) {
-        orderField.put(fieldNames, false);
+        orderFields.put(fieldNames, false);
         return this;
     }
 
     public Query addOrder(Boolean isDesc, String ... fieldNames) {
-        orderField.put(fieldNames, isDesc);
+        orderFields.put(fieldNames, isDesc);
         return this;
     }
 
@@ -85,20 +92,25 @@ public class Query {
         this.pageSize = pageSize;
     }
 
-    protected List<String> getResultField() {
-        return resultField;
+    protected List<String> getResultFields() {
+        return resultFields;
     }
 
-    protected Map<String, Operate> getQueryAndField() {
-        return queryAndField;
+    protected Map<String, Operate> getQueryAndFields() {
+        return queryAndFields;
     }
 
-    protected Map<String, Operate> getQueryOrField() {
-        return queryOrField;
+    protected Map<String, Operate> getQueryOrFields() {
+        return queryOrFields;
     }
 
-    protected Map<String[], Boolean> getOrderField() {
-        return orderField;
+
+    public List<String> getCustomCondictions() {
+        return customCondictions;
+    }
+
+    protected Map<String[], Boolean> getOrderFields() {
+        return orderFields;
     }
 
     public enum Operate{
