@@ -6,6 +6,7 @@ import org.voovan.tools.cache.CachedHashMap;
 import junit.framework.TestCase;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 类文字命名
@@ -55,16 +56,60 @@ public class CachedHashMapTest extends TestCase{
         CachedHashMap cachedHashMap = CachedHashMap.newInstance().create();
 
         for(int i=0;i<10;i++) {
+            final int fi = i;
             Global.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
                     for(int x=0; x<500; x++) {
-                        System.out.println(cachedHashMap.putIfAbsent("test", "value"));
+                        System.out.println(fi + " " + x + " " + cachedHashMap.putIfAbsent("test", "value"));
                     }
                 }
             });
         }
 
         TEnv.sleep(60*1000);
+    }
+
+    public void testSuppler(){
+        CachedHashMap cachedHashMap = CachedHashMap.newInstance().autoRemove(false).create();
+
+        final AtomicInteger x = new AtomicInteger(0);
+
+        for(int i=0;i<100;i++) {
+            Global.getThreadPool().execute(() -> {
+                Object m = cachedHashMap.get("test", (key) -> {
+                    String result = System.currentTimeMillis() + " " + key;
+                    TEnv.sleep(1000);
+                    cachedHashMap.expire(key, 3000);
+                    System.out.println("gen "+result);
+                    return result;
+                });
+
+                System.out.println(x.getAndIncrement() + " " + m);
+            });
+        }
+
+        TEnv.sleep(3000);
+
+        for(int i=0;i<10;i++) {
+            Global.getThreadPool().execute(() -> {
+                Object m = cachedHashMap.get("test", (key) -> {
+                    String result = System.currentTimeMillis() + " " + key;
+                    TEnv.sleep(1000);
+                    cachedHashMap.expire(key, 3000);
+                    System.out.println("gen "+result);
+                    return result;
+                });
+
+                System.out.println(x.getAndIncrement() + " " + m);
+            });
+        }
+
+
+        TEnv.sleep(60*1000);
+
+
+
+
     }
 }
