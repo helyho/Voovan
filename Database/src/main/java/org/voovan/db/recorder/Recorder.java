@@ -6,12 +6,12 @@ import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.annotation.PrimaryKey;
 import org.voovan.db.recorder.annotation.Table;
 import org.voovan.db.recorder.exception.RecorderException;
+import org.voovan.tools.TObject;
 import org.voovan.tools.TSQL;
 import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.db.JdbcOperate;
-import com.sun.tools.corba.se.idl.constExpr.Not;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -254,10 +254,10 @@ public class Recorder {
         //SQL模板准备
         //准备查询列
         String mainSql = "select ";
-        if(query==null || query.getResultField().size()==0){
+        if(query==null || query.getResultFields().size()==0){
             mainSql = mainSql + "*";
         } else {
-            for (String resultField : query.getResultField()) {
+            for (String resultField : query.getResultFields()) {
                 try {
                     if(TReflect.findFieldIgnoreCase(obj.getClass(), resultField)!=null) {
                         mainSql = mainSql + resultField + ",";
@@ -281,7 +281,7 @@ public class Recorder {
         String orderSql = "order by ";
 
         if(query!=null) {
-            for (Map.Entry<String[], Boolean> entry : query.getOrderField().entrySet()) {
+            for (Map.Entry<String[], Boolean> entry : query.getOrderFields().entrySet()) {
                 for (String orderField : entry.getKey()) {
                     try {
                         if (TReflect.findFieldIgnoreCase(obj.getClass(), orderField) != null) {
@@ -370,6 +370,10 @@ public class Recorder {
 
                 NotUpdate notUpdate = field.getAnnotation(NotUpdate.class);
                 if(notUpdate!=null && (notUpdate.value().equals("ANY_VALUE") || notUpdate.value().equals(fieldValue.toString()))){
+                    continue;
+                }
+
+                if(query.getResultFields().size() > 0 && !query.getResultFields().contains(sqlFieldName)){
                     continue;
                 }
 
@@ -529,7 +533,7 @@ public class Recorder {
             }
         } else {
 
-            for (Map.Entry<String, Query.Operate> entry : query.getQueryAndField().entrySet()) {
+            for (Map.Entry<String, Query.Operate> entry : query.getQueryAndFields().entrySet()) {
                 try {
                     if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
                         String sqlField = entry.getKey();
@@ -543,7 +547,7 @@ public class Recorder {
                 }
             }
 
-            for (Map.Entry<String, Query.Operate> entry : query.getQueryOrField().entrySet()) {
+            for (Map.Entry<String, Query.Operate> entry : query.getQueryOrFields().entrySet()) {
                 try {
                     if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
                         String sqlField = entry.getKey();
@@ -562,6 +566,10 @@ public class Recorder {
                 int index = whereSql.trim().lastIndexOf(" ");
                 whereSql = whereSql.substring(0, index);
             }
+        }
+
+        for(String customCondiction : query.getCustomCondictions()){
+            whereSql = whereSql + " " + customCondiction;
         }
 
         if (whereSql.trim().equals("where 1=1")) {
@@ -672,5 +680,25 @@ public class Recorder {
 
         return fieldName;
     }
+
+    /**
+     * 根据需要更新的字段构造一个更新对象
+     * @param data  对象
+     * @param updateFilds 更新的字段
+     * @param <R> 对象
+     * @return 可用户更新的对象
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public static <R> R buildUpdateBaseObject(R data, String ... updateFilds) throws ReflectiveOperationException {
+        List<String> updateFieldList = TObject.asList(updateFilds);
+        for(Field field : TReflect.getFields(data.getClass())){
+            if(field.getAnnotation(PrimaryKey.class)==null && !updateFieldList.contains(field.getName())) {
+                TReflect.setFieldValue(data, field.getName(), null);
+            }
+        }
+
+        return null;
+    }
+
 
 }
