@@ -173,7 +173,7 @@ public class CollectionSearch<T> {
 
                                     //带有比较器
                                     if (stepValue instanceof Comparable) {
-                                        if (stepOperate == Operate.EQUAL || stepOperate == Operate.GREATER || stepOperate == Operate.LESS) {
+                                        if (stepOperate == Operate.EQUAL || stepOperate == Operate.GREATER || stepOperate == Operate.LESS || stepOperate == Operate.NOT_EQUAL) {
 
                                             int compareResult = ((Comparable) collectionValue).compareTo(stepValue);
 
