@@ -26,7 +26,7 @@ public class ScriptEntity implements Serializable{
 	/**
 	 * 脚本路径
 	 */
-	@NotUpdate
+	@NotInsert
 	private String packagePath;
 	/**
 	 * 脚本版本
@@ -178,7 +178,6 @@ public class ScriptEntity implements Serializable{
 	/**
 	 * 将入参对象的属性 copy 到本地属性
 	 * @param source
-	 * @throws ScriptException
 	 * @throws IOException
 	 */
 	public void copy(ScriptEntity source){
