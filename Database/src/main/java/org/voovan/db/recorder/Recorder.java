@@ -373,7 +373,7 @@ public class Recorder {
                     continue;
                 }
 
-                if(query.getResultFields().size() > 0 && !query.getResultFields().contains(sqlFieldName)){
+                if(query!=null && query.getResultFields().size() > 0 && !query.getResultFields().contains(sqlFieldName)){
                     continue;
                 }
 
@@ -431,6 +431,8 @@ public class Recorder {
                 } catch (ReflectiveOperationException e) {
                     e.printStackTrace();
                 }
+            } else {
+                continue;
             }
 
             fieldSql = fieldSql + sqlFieldName + ",";
