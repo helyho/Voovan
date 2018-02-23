@@ -9,11 +9,9 @@ import org.voovan.tools.json.annotation.NotJSON;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 /**
@@ -44,10 +42,19 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * 构造函数
      * @param maxSize 缓存集合的最大容量, 多余的数据会被移除
      */
-    private CachedHashMap(Integer maxSize){
+    public CachedHashMap(Integer maxSize){
         cacheMark = new ConcurrentHashMap<K, TimeMark>();
         this.maxSize = maxSize == null ? DEFAULT_SIZE : maxSize;
     }
+
+    /**
+     * 构造函数
+     */
+    public CachedHashMap(){
+        cacheMark = new ConcurrentHashMap<K, TimeMark>();
+        this.maxSize =  DEFAULT_SIZE;
+    }
+
 
     private void createCache(K key, Function<K, V> supplier){
         if(supplier==null){
@@ -79,6 +86,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
                         public void run() {
                             synchronized (supplier) {
                                 V value = supplier.apply(key);
+                                finalTimeMark.refresh(true);
                                 cachedHashMap.put(key, value);
                             }
                             finalTimeMark.releaseCreateLock();
@@ -89,6 +97,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
                 else {
                     synchronized (supplier) {
                         V value = supplier.apply(key);
+                        timeMark.refresh(true);
                         cachedHashMap.put(key, value);
                     }
                     timeMark.releaseCreateLock();
@@ -159,15 +168,17 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
         wheelTimer.addTask(new HashWheelTask() {
             @Override
             public void run() {
-                //清理过期的
-                for(TimeMark timeMark : (TimeMark[])cachedHashMap.getCacheMark().values().toArray(new TimeMark[0])){
-                    if(timeMark.isExpire()){
-                        if(autoRemove) {
-                            cachedHashMap.remove(timeMark.getKey());
-                            cachedHashMap.cacheMark.remove(timeMark.getKey());
-                        } else if(cachedHashMap.getSupplier() != null){
-                            cachedHashMap.createCache(timeMark.getKey(), cachedHashMap.supplier);
-                            timeMark.refresh(true);
+                if(!cachedHashMap.getCacheMark().isEmpty()) {
+                    //清理过期的
+                    for (TimeMark timeMark : (TimeMark[]) cachedHashMap.getCacheMark().values().toArray(new TimeMark[0])) {
+                        if (timeMark.isExpire()) {
+                            if (autoRemove) {
+                                cachedHashMap.remove(timeMark.getKey());
+                                cachedHashMap.cacheMark.remove(timeMark.getKey());
+                            } else if (cachedHashMap.getSupplier() != null) {
+                                cachedHashMap.createCache(timeMark.getKey(), cachedHashMap.supplier);
+                                timeMark.refresh(true);
+                            }
                         }
                     }
                 }
@@ -411,14 +422,6 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
     public void clear() {
         cacheMark.clear();
         super.clear();
-    }
-
-    public static <K, V> CachedHashMap<K, V> newInstance(){
-        return new CachedHashMap<K, V>(null);
-    }
-
-    public static <K, V> CachedHashMap<K, V> newInstance(int maxSize){
-        return new CachedHashMap<K, V>(maxSize);
     }
 
     /**
