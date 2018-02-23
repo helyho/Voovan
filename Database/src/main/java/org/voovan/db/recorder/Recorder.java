@@ -357,22 +357,25 @@ public class Recorder {
             String sqlFieldName = getSqlFieldName(field);
             String fieldName = field.getName();
 
-            //检查字段是否为空,为空的字段不更新
             try {
                 Object fieldValue = TReflect.getFieldValue(obj, fieldName);
+                //检查字段是否为空,为空的字段不更新
                 if(fieldValue == null){
                     continue;
                 }
 
+                //主键不更新
                 if(field.getAnnotation(PrimaryKey.class)!=null){
                     continue;
                 }
 
+                //NotUpdate 注解不更新
                 NotUpdate notUpdate = field.getAnnotation(NotUpdate.class);
                 if(notUpdate!=null && (notUpdate.value().equals("ANY_VALUE") || notUpdate.value().equals(fieldValue.toString()))){
                     continue;
                 }
 
+                //如果有指定更新的列,则使用指定更新的列
                 if(query!=null && query.getResultFields().size() > 0 && !query.getResultFields().contains(sqlFieldName)){
                     continue;
                 }
@@ -531,7 +534,7 @@ public class Recorder {
 
                 String sqlFieldName = getSqlFieldName(field);
                 String fieldName = field.getName();
-
+                //如果没有指定查询条件,则使用主键作为条件
                 if (field.getAnnotation(PrimaryKey.class) != null) {
                     whereSql = whereSql + " and " + sqlFieldName + " =::" + fieldName;
                     break;
@@ -694,6 +697,7 @@ public class Recorder {
     public static <R> R buildUpdateBaseObject(R data, String ... updateFilds) throws ReflectiveOperationException {
         List<String> updateFieldList = TObject.asList(updateFilds);
         for(Field field : TReflect.getFields(data.getClass())){
+            //主键不更新
             if(field.getAnnotation(PrimaryKey.class)==null && !updateFieldList.contains(field.getName())) {
                 TReflect.setFieldValue(data, field.getName(), null);
             }
