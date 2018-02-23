@@ -26,7 +26,7 @@ public class ScriptEntity implements Serializable{
 	/**
 	 * 脚本路径
 	 */
-	@NotUpdate
+	@NotInsert
 	private String packagePath;
 	/**
 	 * 脚本版本
