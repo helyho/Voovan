@@ -309,7 +309,7 @@ public class YAML2JSON {
 
 			if (!value.isEmpty() &&
 					!value.startsWith("\"") && !value.endsWith("\"") &&
-					!TString.isNumber(value, 10) && !TString.isFloat(value)) {
+					!TString.isNumber(value, 10) && !TString.isDecimal(value)) {
 				value = "\"" + value + "\"";
 			}
 
@@ -318,7 +318,7 @@ public class YAML2JSON {
 		//数组处理
 		else {
 
-			if (!TString.isNumber(line, 10) && !TString.isFloat(line)) {
+			if (!TString.isNumber(line, 10) && !TString.isDecimal(line)) {
 				line = "\"" + line + "\"";
 			}
 		}

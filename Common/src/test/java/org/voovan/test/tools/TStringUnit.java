@@ -1,8 +1,8 @@
 package org.voovan.test.tools;
 
-import junit.framework.TestCase;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import junit.framework.TestCase;
 
 import java.util.Map;
 
@@ -48,8 +48,8 @@ public class TStringUnit extends TestCase {
 	}
 
 	public void testIsFloat() {
-		assertTrue(TString.isFloat("1.0"));
-		assertTrue(!TString.isFloat("1"));
+		assertTrue(TString.isDecimal("1.0"));
+		assertTrue(!TString.isDecimal("1"));
 	}
 
 	public void testSearchByRegex() {

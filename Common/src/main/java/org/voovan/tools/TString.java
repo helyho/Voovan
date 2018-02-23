@@ -149,11 +149,11 @@ public class TString {
 	/**
 	 * 判断是否是浮点数
 	 *
-	 * @param floadString 浮点数字符串
+	 * @param decimalString 浮点数字符串
 	 * @return 是否是浮点数
 	 */
-	public static boolean isFloat(String floadString) {
-		if (floadString != null && regexMatch(floadString, "^-?\\d+\\.\\d+$") > 0) {
+	public static boolean isDecimal(String decimalString) {
+		if (decimalString != null && regexMatch(decimalString, "^-?\\d+\\.\\d+$") > 0) {
 			return true;
 		} else {
 			return false;
