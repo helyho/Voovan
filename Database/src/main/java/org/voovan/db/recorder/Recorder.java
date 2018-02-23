@@ -391,6 +391,10 @@ public class Recorder {
         //Where 拼接 sql
         String whereSql = genWhereSql(obj, query);
 
+        if (whereSql.trim().equals("where 1=1")) {
+            throw new RecorderException("Where sql must be have some condiction");
+        }
+
         String resultSql = mainSql + " " + setSql + " " + whereSql;
 
         return resultSql;
@@ -572,10 +576,6 @@ public class Recorder {
             for(String customCondiction : query.getCustomCondictions()){
                 whereSql = whereSql + " " + customCondiction;
             }
-        }
-
-        if (whereSql.trim().equals("where 1=1")) {
-            throw new RecorderException("Where sql must be have some condiction");
         }
 
         return whereSql;
