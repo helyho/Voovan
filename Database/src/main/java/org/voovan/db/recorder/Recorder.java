@@ -566,10 +566,10 @@ public class Recorder {
                 int index = whereSql.trim().lastIndexOf(" ");
                 whereSql = whereSql.substring(0, index);
             }
-        }
 
-        for(String customCondiction : query.getCustomCondictions()){
-            whereSql = whereSql + " " + customCondiction;
+            for(String customCondiction : query.getCustomCondictions()){
+                whereSql = whereSql + " " + customCondiction;
+            }
         }
 
         if (whereSql.trim().equals("where 1=1")) {
