@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CachedHashMapTest extends TestCase{
 
     public void testBasic() {
-        CachedHashMap cachedHashMap = CachedHashMap.newInstance()
+        CachedHashMap cachedHashMap = new CachedHashMap()
                 .maxSize(100)
                 .interval(1)
                 .supplier((t)-> t + "_"+ System.currentTimeMillis())
@@ -53,7 +53,7 @@ public class CachedHashMapTest extends TestCase{
     }
 
     public void testLockTest(){
-        CachedHashMap cachedHashMap = CachedHashMap.newInstance().create();
+        CachedHashMap cachedHashMap = new CachedHashMap().create();
 
         for(int i=0;i<10;i++) {
             final int fi = i;
@@ -71,7 +71,7 @@ public class CachedHashMapTest extends TestCase{
     }
 
     public void testSuppler(){
-        CachedHashMap cachedHashMap = CachedHashMap.newInstance().autoRemove(false).create();
+        CachedHashMap cachedHashMap = new CachedHashMap().autoRemove(false).create();
 
         final AtomicInteger x = new AtomicInteger(0);
 
