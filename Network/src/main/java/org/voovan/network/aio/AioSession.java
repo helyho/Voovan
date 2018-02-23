@@ -117,7 +117,6 @@ public class AioSession extends IoSession<AioSocket> {
     @Override
     protected synchronized int send0(ByteBuffer buffer) throws IOException {
         int totalSendByte = 0;
-        int waitCount = 0;
         if (isConnected() && buffer != null) {
             //循环发送直到全部内容发送完毕
             while(isConnected() && buffer.remaining()!=0){
@@ -127,19 +126,15 @@ public class AioSession extends IoSession<AioSocket> {
                         while(isConnected()) {
                             //这里会阻赛当前的发送线程
                             try {
-                                Integer sentLength = sendResult.get(1, TimeUnit.MILLISECONDS);
+                                Integer sentLength = sendResult.get(socketContext().getSendTimeout(), TimeUnit.NANOSECONDS);
                                 if (sentLength != null) {
                                     totalSendByte += sentLength;
-                                    waitCount = 0;
                                     break;
                                 }
                             }catch (TimeoutException e){
-                                waitCount ++;
-                                if(waitCount >= socketContext().getSendTimeout()){
-                                    Logger.error("AioSession send timeout, Socket will be close", e);
-                                    close();
-                                    return -1;
-                                }
+                                Logger.error("AioSession send timeout, Socket will be close", e);
+                                close();
+                                return -1;
                             }
                         }
                     } catch ( ExecutionException e) {
