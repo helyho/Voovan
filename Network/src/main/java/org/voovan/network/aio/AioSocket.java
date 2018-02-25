@@ -14,10 +14,8 @@ import java.net.InetSocketAddress;
 import java.net.SocketOption;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * AioSocket 连接
@@ -193,7 +191,7 @@ public class AioSocket extends SocketContext {
 		catchRead(readByteBuffer);
 
 		//触发 connect 事件
-		EventTrigger.fireConnectThread(session);
+		EventTrigger.fireConnect(session);
 
 		waitConnected(session);
 	}
@@ -206,7 +204,7 @@ public class AioSocket extends SocketContext {
 		catchRead(readByteBuffer);
 
 		//触发 connect 事件
-		EventTrigger.fireConnectThread(session);
+		EventTrigger.fireConnect(session);
 	}
 
 	/**

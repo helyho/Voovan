@@ -307,10 +307,10 @@ public class EventProcess {
 				TByteBuffer.release((ByteBuffer) sendObj);
 			}
 
-			//如果是 Udp 通信则在发送完成后触发关闭事件
-			if(session.socketContext() instanceof UdpSocket) {
-				EventTrigger.fireDisconnectThread(session);
-			}
+//			//如果是 Udp 通信则在发送完成后触发关闭事件
+//			if(session.socketContext() instanceof UdpSocket && session.socketContext().connectModel==ConnectModel.SERVER) {
+//				EventTrigger.fireDisconnectThread(session);
+//			}
 		}
 	}
 

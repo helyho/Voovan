@@ -89,10 +89,10 @@ public class UdpSocket extends SocketContext {
      * @param parentSocketContext 父 SocketChannel 对象
      * @param socketAddress SocketAddress 对象
      */
-    protected UdpSocket(SocketContext parentSocketContext,InetSocketAddress socketAddress){
+    protected UdpSocket(SocketContext parentSocketContext, DatagramChannel datagramChannel, InetSocketAddress socketAddress){
         try {
             provider = SelectorProvider.provider();
-            this.datagramChannel = ((UdpServerSocket)parentSocketContext).datagramChannel();
+            this.datagramChannel = datagramChannel;
             this.copyFrom(parentSocketContext);
             session = new UdpSession(this, socketAddress);
             connectModel = ConnectModel.SERVER;
