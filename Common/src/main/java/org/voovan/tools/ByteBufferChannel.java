@@ -11,7 +11,6 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -32,7 +31,6 @@ public class ByteBufferChannel {
 	private ByteBuffer byteBuffer;
 	private int size;
 	private ReentrantLock lock;
-	private volatile AtomicBoolean isBufferBorrowed = new AtomicBoolean(false);
 
 	/**
 	 * 构造函数
@@ -405,17 +403,12 @@ public class ByteBufferChannel {
 	 *	   已保证对 byteBuffer 的所有读写操作都在 ByteBufferChannel上生效.
 	 * @return ByteBuffer 对象
 	 */
-	public ByteBuffer getByteBuffer(){
+	public ByteBuffer getByteBuffer() {
 		checkRelease();
 
-		if(!isBufferBorrowed.get()) {
-			//这里上锁,在compact()方法解锁
-			lock.lock();
-			isBufferBorrowed.set(true);
-			return byteBuffer;
-		} else {
-			throw new RuntimeException("Bytebuffer is already borrowed");
-		}
+		//这里上锁,在compact()方法解锁
+		lock.lock();
+		return byteBuffer;
 	}
 
 	/**
@@ -427,7 +420,7 @@ public class ByteBufferChannel {
 	 * @return 是否compact成功,true:成功, false:失败
 	 */
 	public boolean compact(){
-		if(isReleased() || !isBufferBorrowed.get()){
+		if(isReleased()){
 			return false;
 		}
 
@@ -460,8 +453,6 @@ public class ByteBufferChannel {
 			if(lock.isLocked()) {
 				lock.unlock();
 			}
-
-			isBufferBorrowed.set(false);
 		}
 	}
 
