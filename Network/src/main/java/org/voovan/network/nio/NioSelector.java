@@ -1,9 +1,6 @@
 package org.voovan.network.nio;
 
-import org.voovan.network.EventTrigger;
-import org.voovan.network.HeartBeat;
-import org.voovan.network.MessageLoader;
-import org.voovan.network.SocketContext;
+import org.voovan.network.*;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
@@ -16,7 +13,7 @@ import java.util.Set;
 
 /**
  * 事件监听器
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -24,13 +21,15 @@ import java.util.Set;
  * Licence: Apache v2 License
  */
 public class NioSelector {
-	
+
 	private Selector selector;
 	private SocketContext socketContext;
 	private ByteBufferChannel netByteBufferChannel;
-	private ByteBufferChannel appByteBufferChannel;
+	private ByteBufferChannel sessionByteBufferChannel;
+	private ByteBufferChannel tmpByteBufferChannel;
+
 	private NioSession session;
-	
+
 	/**
 	 * 事件监听器构造
 	 * @param selector   对象Selector
@@ -41,7 +40,8 @@ public class NioSelector {
 		this.socketContext = socketContext;
 		if (socketContext instanceof NioSocket){
 			this.session = ((NioSocket)socketContext).getSession();
-			this.appByteBufferChannel = session.getByteBufferChannel();
+			this.sessionByteBufferChannel = session.getByteBufferChannel();
+			this.tmpByteBufferChannel = new ByteBufferChannel();
 		}
 	}
 
@@ -55,11 +55,11 @@ public class NioSelector {
 		if( socketContext instanceof NioSocket && netByteBufferChannel== null && session.getSSLParser()!=null) {
 			netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
 		}
-		
+
 		if (socketContext instanceof NioSocket) {
 			EventTrigger.fireConnectThread(session);
 		}
-		
+
 		// 事件循环
 		try {
 			while (socketContext != null && socketContext.isConnected()) {
@@ -74,7 +74,7 @@ public class NioSelector {
 							SocketChannel socketChannel = getSocketChannel(selectionKey);
 							if (socketChannel.isOpen() && selectionKey.isValid()) {
 								// 事件分发,包含时间 onRead onAccept
-								
+
 								switch (selectionKey.readyOps()) {
 									// Server接受连接
 									case SelectionKey.OP_ACCEPT: {
@@ -86,47 +86,49 @@ public class NioSelector {
 									}
 									// 有数据读取
 									case SelectionKey.OP_READ: {
-                                            int readSize = socketChannel.read(readTempBuffer);
+										int readSize = socketChannel.read(readTempBuffer);
 
-											//判断连接是否关闭
-											if(MessageLoader.isStreamEnd(readTempBuffer, readSize) && session.isConnected()){
+										//判断连接是否关闭
+										if(MessageLoader.isStreamEnd(readTempBuffer, readSize) && session.isConnected()){
 
-												session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
-												//如果 Socket 流达到结尾,则关闭连接
-												while(session.isConnected()) {
-													session.close();
-												}
-												break;
-											}else if(readSize>0){
-												readTempBuffer.flip();
+											session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
+											//如果 Socket 流达到结尾,则关闭连接
+											while(session.isConnected()) {
+												session.close();
+											}
+											break;
+										}else if(readSize>0){
+											readTempBuffer.flip();
 
-												if(session.getHeartBeat()!=null) {
-													session.getMessageLoader().pause();
-												}
+											tmpByteBufferChannel.clear();
 
-												// 接收数据
-												if(session.getSSLParser()!=null && session.getSSLParser().isHandShakeDone()){
-													netByteBufferChannel.writeEnd(readTempBuffer);
-													session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, appByteBufferChannel);
-												}else{
-													appByteBufferChannel.writeEnd(readTempBuffer);
-												}
-
-												//检查心跳
-												HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
-
-												if(session.getHeartBeat()!=null) {
-													session.getMessageLoader().unpause();
-												}
-
-												if(appByteBufferChannel.size() > 0) {
-													// 触发 onReceive 事件
-													EventTrigger.fireReceiveThread(session);
-												}
+											//接收SSL数据, SSL握手完成后解包
+											if(session.getSSLParser()!=null && SSLParser.isHandShakeDone(session)){
+												netByteBufferChannel.writeEnd(readTempBuffer);
+												session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, tmpByteBufferChannel);
 											}
 
-											readTempBuffer.clear();
+											//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
+											if(session.getSSLParser()==null || !SSLParser.isHandShakeDone(session)){
+												tmpByteBufferChannel.writeEnd(readTempBuffer);
+											}
 
+											//检查心跳
+											if(SSLParser.isHandShakeDone(session)) {
+												HeartBeat.interceptHeartBeat(session, tmpByteBufferChannel);
+											}
+
+											if(tmpByteBufferChannel.size() > 0) {
+												sessionByteBufferChannel.writeEnd(tmpByteBufferChannel.getByteBuffer());
+												tmpByteBufferChannel.compact();
+
+												// 触发 onReceive 事件
+												EventTrigger.fireReceiveThread(session);
+											}
+										}
+
+										// 接收完成后重置buffer对象
+										readTempBuffer.clear();
 
 										break;
 									}
@@ -167,7 +169,7 @@ public class NioSelector {
 
 	/**
 	 * 获取 socket 通道
-	 * 
+	 *
 	 * @param selectionKey  当前 Selectionkey
 	 * @return SocketChannel 对象
 	 * @throws IOException  IO 异常

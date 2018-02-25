@@ -11,6 +11,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * UDP NIO 会话连接对象
@@ -125,8 +126,13 @@ public class UdpSession extends IoSession<UdpSocket> {
 		int waitCount = 0;
 		if (isOpen() && buffer != null) {
 			//循环发送直到全部内容发送完毕
-			while(isConnected() && buffer.remaining()!=0){
-				int sendSize = datagramChannel.write(buffer);
+			while(buffer.remaining()!=0){
+				int sendSize = 0;
+				if(datagramChannel.getRemoteAddress()!=null) {
+					datagramChannel.write(buffer);
+				} else {
+					datagramChannel.send(buffer, this.remoteAddress);
+				}
 				if(sendSize == 0 ){
 					waitCount++;
 					TEnv.sleep(TimeUnit.MILLISECONDS, 1);

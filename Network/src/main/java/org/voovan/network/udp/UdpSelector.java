@@ -1,9 +1,7 @@
 package org.voovan.network.udp;
 
-import org.voovan.network.EventTrigger;
-import org.voovan.network.HeartBeat;
-import org.voovan.network.MessageLoader;
-import org.voovan.network.SocketContext;
+import org.voovan.network.*;
+import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
@@ -31,6 +29,7 @@ public class UdpSelector {
 
     private Selector selector;
     private SocketContext socketContext;
+    private ByteBufferChannel tmpByteBufferChannel;
     private UdpSession session;
 
     /**
@@ -44,6 +43,8 @@ public class UdpSelector {
         if (socketContext instanceof UdpSocket){
             session = ((UdpSocket)socketContext).getSession();
         }
+
+        this.tmpByteBufferChannel = new ByteBufferChannel();
     }
 
     /**
@@ -85,14 +86,13 @@ public class UdpSelector {
                                         //发起的连接isConnected 是 true
                                         if(datagramChannel.isConnected()) {
                                             readSize = datagramChannel.read(readTempBuffer);
-
                                         }else{
                                             SocketAddress address = datagramChannel.receive(readTempBuffer);
                                             readSize = readTempBuffer.position();
-                                            clientUdpSocket = new UdpSocket(socketContext,(InetSocketAddress)address);
+                                            clientUdpSocket = new UdpSocket(socketContext, datagramChannel, (InetSocketAddress)address);
                                             session = clientUdpSocket.getSession();
                                             //触发连接时间, 关闭事件在触发 onSent 之后触发
-                                            EventTrigger.fireConnectThread(session);
+                                            EventTrigger.fireConnect(session);
                                         }
 
                                         //判断连接是否关闭
@@ -109,22 +109,20 @@ public class UdpSelector {
                                         } else if (readSize > 0) {
                                             readTempBuffer.flip();
 
-                                            if(session.getHeartBeat()!=null) {
-                                                session.getMessageLoader().pause();
-                                            }
-
-                                            session.getByteBufferChannel().writeEnd(readTempBuffer);
+                                            tmpByteBufferChannel.writeEnd(readTempBuffer);
 
                                             //检查心跳
-                                            HeartBeat.interceptHeartBeat(session,  session.getByteBufferChannel());
+                                            HeartBeat.interceptHeartBeat(session,  tmpByteBufferChannel);
 
-                                            if(session.getHeartBeat()!=null) {
-                                                session.getMessageLoader().unpause();
+                                            if(tmpByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
+                                                session.getByteBufferChannel().writeEnd(tmpByteBufferChannel.getByteBuffer());
+                                                tmpByteBufferChannel.compact();
+
+                                                // 触发 onReceive 事件
+                                                EventTrigger.fireReceiveThread(session);
                                             }
 
                                             readTempBuffer.clear();
-                                            // 触发 onRead 事件,如果正在处理 onRecive 事件则本次事件触发忽略
-                                            EventTrigger.fireReceiveThread(session);
                                         }
 
                                         readTempBuffer.clear();
