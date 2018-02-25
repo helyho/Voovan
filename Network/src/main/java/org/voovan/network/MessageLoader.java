@@ -262,28 +262,34 @@ public class MessageLoader {
 			oldByteChannelSize = byteBufferChannel.size();
 		}
 
-		//如果是流结束,对方关闭,本地关闭这三种情况则返回 null
-		// 返回是 null 则在EventProcess中直接返回,不做任何处理
-		if(stopType == StopType.STREAM_END ||
-				stopType == StopType.SOCKET_CLOSED){
-			result = null;
-		}
+		try {
+			//如果是流结束,对方关闭,本地关闭这三种情况则返回 null
+			// 返回是 null 则在EventProcess中直接返回,不做任何处理
+			if (stopType == StopType.STREAM_END ||
+					stopType == StopType.SOCKET_CLOSED) {
+				result = null;
+			}
 
-		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
-		else if(stopType== StopType.MSG_SPLITTER) {
-			if(splitLength>=0) {
-				result = TByteBuffer.allocateDirect(splitLength);
-				int fillSize = dataByteBufferChannel.readHead(result);
-				if(fillSize != splitLength){
-					Logger.error("[WARN] Message is not full, expect: "+ splitLength + ", acutal: "+ fillSize);
+			//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
+			else if (stopType == StopType.MSG_SPLITTER) {
+				if (splitLength >= 0) {
+					result = TByteBuffer.allocateDirect(splitLength);
+					int fillSize = dataByteBufferChannel.readHead(result);
+					if (fillSize != splitLength) {
+						Logger.error("[WARN] Message is not full, expect: " + splitLength + ", acutal: " + fillSize);
+					}
+				} else {
+					return emptyByteBuffer;
 				}
 			} else {
 				return emptyByteBuffer;
 			}
-		} else {
-			return emptyByteBuffer;
-		}
 
-		return result;
+			return result;
+		} finally {
+			//释放 onRecive 锁
+			session.getState().setReceive(false);
+			session.getState().receiveUnLock();
+		}
 	}
 }
