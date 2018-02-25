@@ -42,7 +42,7 @@ public class ClientHandlerTest implements IoHandler {
 		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
 		System.out.println("Client onRecive: "+obj.toString());
 		System.out.println("Attribute onRecive: "+session.getAttribute("key"));
-		TEnv.sleep(2000);
+		TEnv.sleep(3000);
 		reciveCount ++;
 
 		if(reciveCount >= 5) {
@@ -60,7 +60,7 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public void onIdle(IoSession session) {
-		//心跳依赖于 idle 时间,这个参数在构造 socket 的时候设置具体查看 org.voovan.network.aio.AioSocket
+		//心跳依赖于 idle 时间,这个参数在构造 socket 的时候设置具体查看 AioSocket
 
 		//服务端和客户端使用了两种不同的心跳绑定方式,这是其中一种
 		if(!(session.socketContext() instanceof UdpSocket)) {
