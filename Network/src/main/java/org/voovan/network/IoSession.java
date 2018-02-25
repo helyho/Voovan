@@ -98,21 +98,15 @@ public abstract class IoSession<T extends SocketContext> {
 		}
 
 		protected void receiveLock() throws InterruptedException {
-			synchronized (receiveLock) {
-				receiveLock.acquire();
-			}
+			receiveLock.acquire();
 		}
 
 		protected boolean receiveTryLock(){
-			synchronized (receiveLock) {
-				return receiveLock.tryAcquire();
-			}
+			return receiveLock.tryAcquire();
 		}
 
 		protected void receiveUnLock(){
-			synchronized (receiveLock) {
-				receiveLock.release();
-			}
+			receiveLock.release();
 		}
 
 		protected Semaphore getSendLock() {
@@ -120,21 +114,15 @@ public abstract class IoSession<T extends SocketContext> {
 		}
 
 		protected void sendLock() throws InterruptedException {
-			synchronized (sendLock) {
-				sendLock.acquire();
-			}
+			sendLock.acquire();
 		}
 
 		protected boolean sendTryLock(){
-			synchronized (sendLock) {
-				return sendLock.tryAcquire();
-			}
+			return sendLock.tryAcquire();
 		}
 
 		protected void sendUnLock(){
-			synchronized (sendLock) {
-				sendLock.release();
-			}
+			sendLock.release();
 		}
 	}
 
