@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class RedisMap<K, V> implements Map<K, V>, Closeable {
+public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     private JedisPool redisPool;
     private String name = null;
     private int dbIndex = 0;
@@ -228,13 +228,17 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
      * @param expire 超时事件
      * @return true: 成功, false:失败
      */
-    public boolean put(K key, V value, int expire){
+    public V put(K key, V value, int expire){
         byte[] keyByteArray = CacheStatic.serialize(key);
         byte[] valueByteArray = CacheStatic.serialize(value);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
-                return jedis.setex(keyByteArray, expire, valueByteArray).equals("OK");
+                if(jedis.setex(keyByteArray, expire, valueByteArray).equals("OK")) {
+                    return value;
+                } else {
+                    return null;
+                }
             }else {
                 throw new UnsupportedOperationException();
             }
@@ -280,6 +284,34 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
                         value = (V) CacheStatic.unserialize(valueBytes);
                     }
                 }
+            }
+
+            return value;
+        }
+    }
+
+    public V putIfAbsent(K key, V value, int expire) {
+        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] valueByteArray = CacheStatic.serialize(value);
+
+        try (Jedis jedis = getJedis()) {
+            long result = 0;
+            if (name == null) {
+                result = jedis.setnx(keyByteArray, valueByteArray);
+                jedis.expire(keyByteArray, expire);
+
+                if (result == 1) {
+                    value = null;
+                } else {
+                    byte[] valueBytes = jedis.get(keyByteArray);
+                    if (valueBytes == null) {
+                        return value;
+                    } else {
+                        value = (V) CacheStatic.unserialize(valueBytes);
+                    }
+                }
+            } else {
+                throw new UnsupportedOperationException();
             }
 
             return value;
@@ -353,7 +385,28 @@ public class RedisMap<K, V> implements Map<K, V>, Closeable {
                 byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
                 byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
 
-                jedis.hset(name.getBytes(), keyByteArray, valueByteArray);
+                if(name==null){
+                    jedis.set(keyByteArray, valueByteArray);
+                }else {
+                    jedis.hset(name.getBytes(), keyByteArray, valueByteArray);
+                }
+            }
+        }
+    }
+
+    public void putAll(Map<? extends K, ? extends V> map, int expire) {
+        try (Jedis jedis = getJedis()){
+            for (Object obj : map.entrySet()) {
+                Entry entry = (Entry) obj;
+
+                byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
+                byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
+
+                if(name==null) {
+                    jedis.setex(keyByteArray, expire, valueByteArray);
+                } else {
+                    throw new UnsupportedOperationException();
+                }
             }
         }
     }

@@ -188,7 +188,7 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
 
     @Override
     public String pollLast() {
-        return removeLast();
+       return removeLast();
     }
 
     @Override
