@@ -1,11 +1,8 @@
 package org.voovan.network;
 
-import org.voovan.network.aio.AioSession;
-import org.voovan.network.aio.AioSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -101,11 +98,6 @@ public class HeartBeat {
                     heartBeat.getQueue().addLast(2);
                     return;
                 }
-
-//                if (byteBufferChannel.indexOf(heartBeat.getPing()) > 0 ||
-//                        byteBufferChannel.indexOf(heartBeat.getPing()) > 0) {
-//                    System.out.println("Omit HeartBeat Message" + byteBufferChannel.content());
-//                }
             }
         }
     }
@@ -122,7 +114,7 @@ public class HeartBeat {
         //收个心跳返回成功
         if(heartBeat.isFirstBeat){
             heartBeat.isFirstBeat=false;
-            if(session.socketContext().getConnectModel() == heartBeat.connectModel){
+            if(session.socketContext().getConnectModel() == ConnectModel.CLIENT){
                 //等待这个时间的目的是为了等待客户端那边的心跳检测启动
                 TEnv.sleep(session.getIdleInterval());
                 session.send(ByteBuffer.wrap(heartBeat.ping));
@@ -201,12 +193,5 @@ public class HeartBeat {
         }
 
         return heartBeat;
-    }
-
-    public static void main(String[] args) throws IOException {
-        AioSession session = new AioSession(new AioSocket("127.0.0.1",1,1));
-        session.getByteBufferChannel().writeHead(ByteBuffer.wrap("==== some data =====\r\nPINGq".getBytes()));
-        HeartBeat.attachSession(session, ConnectModel.CLIENT, "PINGq", "PONGq");
-        HeartBeat.interceptHeartBeat(session, session.getByteBufferChannel());
     }
 }
