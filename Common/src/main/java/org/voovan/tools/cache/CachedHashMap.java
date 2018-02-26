@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
@@ -22,7 +23,7 @@ import java.util.function.Function;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
+public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheMap<K, V>{
     public static int DEFAULT_SIZE = 1000;
 
     protected final static HashWheelTimer wheelTimer = new HashWheelTimer(1000, 1);
@@ -58,7 +59,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
 
     private void createCache(K key, Function<K, V> supplier){
         if(supplier==null){
-            return;
+           return;
         }
 
         CachedHashMap cachedHashMap = this;
@@ -69,7 +70,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
             timeMark = cacheMark.get(key);
 
             if (timeMark == null) {
-                timeMark = new TimeMark(this, key, Long.MAX_VALUE);
+                timeMark = new TimeMark(this, key, Integer.MAX_VALUE);
                 cacheMark.put(key, timeMark);
             }
         }
@@ -285,7 +286,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m){
-        putAll(m, Long.MAX_VALUE);
+        putAll(m, Integer.MAX_VALUE);
     }
 
     /**
@@ -293,7 +294,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * @param m Map对象
      * @param expire 超时时间
      */
-    public void putAll(Map<? extends K, ? extends V> m, long expire){
+    public void putAll(Map<? extends K, ? extends V> m, int expire){
         for (Entry<? extends K, ? extends V> e : m.entrySet()) {
             cacheMark.put(e.getKey(), new TimeMark(this, e.getKey(), expire));
         }
@@ -304,7 +305,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
 
     @Override
     public V put(K key, V value){
-        put(key, value, Long.MAX_VALUE);
+        put(key, value, Integer.MAX_VALUE);
         return value;
     }
 
@@ -324,7 +325,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * @param expire 超时时间
      * @return
      */
-    public V put(K key, V value, long expire){
+    public V put(K key, V value, int expire){
         if (key == null || value == null){
             throw new NullPointerException();
         }
@@ -342,7 +343,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * @return
      */
     public V putIfAbsent(K key, V value){
-        return putIfAbsent(key, value, Long.MAX_VALUE);
+        return putIfAbsent(key, value, Integer.MAX_VALUE);
     }
 
     /**
@@ -352,7 +353,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * @param expire 超时时间
      * @return
      */
-    public V putIfAbsent(K key, V value, long expire){
+    public V putIfAbsent(K key, V value, int expire){
         if (key == null || value == null){
             throw new NullPointerException();
         }
@@ -375,7 +376,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
         int diffSize = this.size() - maxSize;
         if (diffSize > 0) {
             //最少访问次数中, 时间最老的进行清楚
-            TimeMark[] removedTimeMark = (TimeMark[]) CollectionSearch.newInstance(cacheMark.values()).addCondition("expireTime", CollectionSearch.Operate.NOT_EQUAL, Long.MAX_VALUE)
+            TimeMark[] removedTimeMark = (TimeMark[]) CollectionSearch.newInstance(cacheMark.values()).addCondition("expireTime", CollectionSearch.Operate.NOT_EQUAL, Integer.MAX_VALUE)
                     .addCondition("lastTime", CollectionSearch.Operate.LESS, System.currentTimeMillis()-1000)
                     .sort("visitCount")
                     .limit(10 * diffSize)
@@ -397,7 +398,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
      * @param key 键
      * @param expire 超时时间
      */
-    public void expire(K key, long expire) {
+    public void expire(K key, int expire) {
         TimeMark timeMark = cacheMark.get(key);
         if(timeMark==null && !cacheMark.containsKey(key)){
             cacheMark.put(key, new TimeMark(this, key, expire));
@@ -432,7 +433,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
         private CachedHashMap<K,V> mainMap;
         private K key;
         //超时时间
-        private AtomicLong expireTime = new AtomicLong(0);
+        private AtomicInteger expireTime = new AtomicInteger(0);
         //最后访问时间
         private AtomicLong lastTime = new AtomicLong(0);
         //访问次数
@@ -441,7 +442,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
         //是否正在生成数据
         private volatile AtomicBoolean createFlag = new AtomicBoolean(false);
 
-        public TimeMark(CachedHashMap<K,V> mainMap, K key, long expireTime){
+        public TimeMark(CachedHashMap<K,V> mainMap, K key, int expireTime){
             this.key = key;
             this.mainMap = mainMap;
             this.expireTime.set(expireTime);
@@ -481,11 +482,11 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
             return key;
         }
 
-        public Long getExpireTime() {
+        public int getExpireTime() {
             return expireTime.get();
         }
 
-        public void setExpireTime(Long expireTime) {
+        public void setExpireTime(int expireTime) {
             this.expireTime.set(expireTime);
         }
 
@@ -498,7 +499,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V>{
         }
 
         public boolean isOnCreate(){
-            return createFlag.get();
+           return createFlag.get();
         }
 
         public boolean tryLockOnCreate() {

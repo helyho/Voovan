@@ -20,13 +20,13 @@ public class CachedHashMapTest extends TestCase{
 
     public void testBasic() {
         CachedHashMap cachedHashMap = new CachedHashMap()
-                .maxSize(100)
-                .interval(1)
-                .supplier((t)-> t + "_"+ System.currentTimeMillis())
-                .create();
+                    .maxSize(100)
+                    .interval(1)
+                    .supplier((t)-> t + "_"+ System.currentTimeMillis())
+                    .create();
 
         for(int i=0;i<100;i++) {
-            cachedHashMap.put("key_" + i, "value_" + i, Long.valueOf(5+i));
+            cachedHashMap.put("key_" + i, "value_" + i, (5+i));
         }
         TEnv.sleep(1000);
 
@@ -71,7 +71,7 @@ public class CachedHashMapTest extends TestCase{
     }
 
     public void testSuppler(){
-        CachedHashMap cachedHashMap = new CachedHashMap().autoRemove(false).create();
+        CachedHashMap cachedHashMap = new CachedHashMap().autoRemove(true).create();
 
         final AtomicInteger x = new AtomicInteger(0);
 
@@ -106,10 +106,9 @@ public class CachedHashMapTest extends TestCase{
         }
 
 
-        TEnv.sleep(60*1000);
-
-
-
+        for (int i=0;i<60*1000;i++){
+            TEnv.sleep(1);
+        }
 
     }
 }
