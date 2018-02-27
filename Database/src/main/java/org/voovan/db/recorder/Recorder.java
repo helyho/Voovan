@@ -359,25 +359,30 @@ public class Recorder {
 
             try {
                 Object fieldValue = TReflect.getFieldValue(obj, fieldName);
-                //检查字段是否为空,为空的字段不更新
-                if(fieldValue == null){
-                    continue;
-                }
 
-                //主键不更新
-                if(field.getAnnotation(PrimaryKey.class)!=null){
-                    continue;
-                }
+                //如果指定了列则不做一下判断
+                if(query.getResultFields().size() == 0) {
+                    //检查字段是否为空
+                    if (fieldValue == null) {
+                        continue;
+                    }
 
-                //NotUpdate 注解不更新
-                NotUpdate notUpdate = field.getAnnotation(NotUpdate.class);
-                if(notUpdate!=null && (notUpdate.value().equals("ANY_VALUE") || notUpdate.value().equals(fieldValue.toString()))){
-                    continue;
-                }
+                    //主键不更新, 如果指定了列, 则不做主键的判断
+                    if (field.getAnnotation(PrimaryKey.class) != null) {
+                        continue;
+                    }
 
-                //如果有指定更新的列,则使用指定更新的列
-                if(query!=null && query.getResultFields().size() > 0 && !query.getResultFields().contains(sqlFieldName)){
-                    continue;
+                    //NotUpdate 注解不更新
+                    NotUpdate notUpdate = field.getAnnotation(NotUpdate.class);
+                    if (notUpdate != null && (notUpdate.value().equals("ANY_VALUE") || notUpdate.value().equals(fieldValue.toString()))){
+                        continue;
+                    }
+
+                } else {
+                    //如果有指定更新的列,则使用指定更新的列
+                    if (query != null && query.getResultFields().size() > 0 && !query.getResultFields().contains(sqlFieldName)) {
+                        continue;
+                    }
                 }
 
             } catch (ReflectiveOperationException e) {
