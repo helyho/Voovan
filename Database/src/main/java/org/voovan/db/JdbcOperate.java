@@ -103,7 +103,7 @@ public class JdbcOperate {
 	 * @return 获取数据库连接
 	 * @throws SQLException SQL 异常
 	 */
-	public Connection getConnection() throws SQLException {
+	public synchronized Connection getConnection() throws SQLException {
 		long threadId = Thread.currentThread().getId();
 		//如果连接不存在,或者连接已关闭则重取一个连接
 		if (connection == null || connection.isClosed()) {

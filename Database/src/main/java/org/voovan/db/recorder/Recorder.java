@@ -260,7 +260,7 @@ public class Recorder {
             for (String resultField : query.getResultFields()) {
                 try {
                     if(TReflect.findFieldIgnoreCase(obj.getClass(), resultField)!=null) {
-                        mainSql = mainSql + resultField + ",";
+                        mainSql = TSQL.wrapSqlField(jdbcOperate, mainSql) + resultField + ",";
                     }
                 } catch (ReflectiveOperationException e) {
                     throw new RecorderException("Recorder query result field is failed", e);
@@ -285,7 +285,7 @@ public class Recorder {
                 for (String orderField : entry.getKey()) {
                     try {
                         if (TReflect.findFieldIgnoreCase(obj.getClass(), orderField) != null) {
-                            orderSql = orderSql + orderField + ",";
+                            orderSql = orderSql + TSQL.wrapSqlField(jdbcOperate, orderField) + ",";
                         }
                     } catch (ReflectiveOperationException e) {
                         throw new RecorderException("Recorder query result field is failed", e);
@@ -384,7 +384,7 @@ public class Recorder {
                 e.printStackTrace();
             }
 
-            setSql = setSql + sqlFieldName + "=::" + fieldName + ",";
+            setSql = setSql + TSQL.wrapSqlField(jdbcOperate, sqlFieldName) + "=::" + fieldName + ",";
         }
 
         if(setSql.endsWith(",")){
@@ -442,7 +442,7 @@ public class Recorder {
                 continue;
             }
 
-            fieldSql = fieldSql + sqlFieldName + ",";
+            fieldSql = fieldSql + TSQL.wrapSqlField(jdbcOperate, sqlFieldName) + ",";
             fieldValueSql = fieldValueSql + "::" + fieldName + ",";
         }
 
@@ -549,7 +549,7 @@ public class Recorder {
                         if (camelToUnderline) {
                             sqlField = TString.camelToUnderline(sqlField);
                         }
-                        whereSql = whereSql + " and " + sqlField + Query.getActualOperate(entry.getValue()) + "::" + entry.getKey();
+                        whereSql = whereSql + " and " + TSQL.wrapSqlField(jdbcOperate, sqlField) + Query.getActualOperate(entry.getValue()) + "::" + entry.getKey();
                     }
                 } catch (ReflectiveOperationException e) {
                     throw new RecorderException("Recorder query result field is failed", e);
@@ -564,7 +564,7 @@ public class Recorder {
                             sqlField = TString.camelToUnderline(sqlField);
                         }
 
-                        whereSql = whereSql + " or " + sqlField + Query.getActualOperate(entry.getValue()) + "::" + entry.getKey();
+                        whereSql = whereSql + " or " + TSQL.wrapSqlField(jdbcOperate, sqlField) + Query.getActualOperate(entry.getValue()) + "::" + entry.getKey();
                     }
                 } catch (ReflectiveOperationException e) {
                     throw new RecorderException("Recorder query result field is failed", e);
