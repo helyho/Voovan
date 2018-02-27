@@ -2,6 +2,8 @@ package org.voovan.tools;
 
 import org.voovan.db.CallType;
 import org.voovan.db.DataBaseType;
+import org.voovan.db.JdbcOperate;
+import org.voovan.db.recorder.exception.RecorderException;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -568,6 +570,33 @@ public class TSQL {
 		} catch (SQLException e) {
 			return DataBaseType.UNKNOW;
 		}
+	}
+
+
+	/**
+	 * 包括 SQL 关键字
+	 * @param jdbcOperate jdbcOperate 对象
+	 * @param sqlField sql 关键字
+	 * @return
+	 */
+	public static String wrapSqlField(JdbcOperate jdbcOperate, String sqlField){
+		try {
+			Connection connection = jdbcOperate.getConnection();
+			DataBaseType dataBaseType = TSQL.getDataBaseType(connection);
+			if (dataBaseType.equals(DataBaseType.Mariadb) || dataBaseType.equals(DataBaseType.MySql)) {
+				return "`"+sqlField+"`";
+			} else if (dataBaseType.equals(DataBaseType.Oracle)) {
+				return "\""+sqlField+"\"";
+			} else if (dataBaseType.equals(DataBaseType.Postage)) {
+				return "`"+sqlField+"`";
+			} else {
+				return sqlField;
+			}
+		} catch (SQLException e) {
+			Logger.error("wrap sql field error", e);
+			return sqlField;
+		}
+
 	}
 
 	/**
