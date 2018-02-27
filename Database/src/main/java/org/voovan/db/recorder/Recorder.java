@@ -260,7 +260,7 @@ public class Recorder {
             for (String resultField : query.getResultFields()) {
                 try {
                     if(TReflect.findFieldIgnoreCase(obj.getClass(), resultField)!=null) {
-                        mainSql = TSQL.wrapSqlField(jdbcOperate, mainSql) + resultField + ",";
+                        mainSql = mainSql + TSQL.wrapSqlField(jdbcOperate, TString.camelToUnderline(resultField)) + ",";
                     }
                 } catch (ReflectiveOperationException e) {
                     throw new RecorderException("Recorder query result field is failed", e);
@@ -285,7 +285,7 @@ public class Recorder {
                 for (String orderField : entry.getKey()) {
                     try {
                         if (TReflect.findFieldIgnoreCase(obj.getClass(), orderField) != null) {
-                            orderSql = orderSql + TSQL.wrapSqlField(jdbcOperate, orderField) + ",";
+                            orderSql = orderSql + orderField + ",";
                         }
                     } catch (ReflectiveOperationException e) {
                         throw new RecorderException("Recorder query result field is failed", e);
@@ -354,14 +354,14 @@ public class Recorder {
         Field[] fields = TReflect.getFields(obj.getClass());
         for(Field field : fields){
 
-            String sqlFieldName = getSqlFieldName(field);
+            String sqlFieldName = getSqlFieldName(jdbcOperate, field);
             String fieldName = field.getName();
 
             try {
                 Object fieldValue = TReflect.getFieldValue(obj, fieldName);
 
                 //如果指定了列则不做一下判断
-                if(query.getResultFields().size() == 0) {
+                if(query==null || query.getResultFields().size() == 0) {
                     //检查字段是否为空
                     if (fieldValue == null) {
                         continue;
@@ -374,13 +374,12 @@ public class Recorder {
 
                     //NotUpdate 注解不更新
                     NotUpdate notUpdate = field.getAnnotation(NotUpdate.class);
-                    if (notUpdate != null && (notUpdate.value().equals("ANY_VALUE") || notUpdate.value().equals(fieldValue.toString()))){
+                    if (notUpdate != null && (notUpdate.value().equals("ANY_VALUE") || notUpdate.value().equals(fieldValue.toString()))) {
                         continue;
                     }
-
                 } else {
                     //如果有指定更新的列,则使用指定更新的列
-                    if (query != null && query.getResultFields().size() > 0 && !query.getResultFields().contains(sqlFieldName)) {
+                    if (query != null && query.getResultFields().size() > 0 && !query.getResultFields().contains(fieldName)) {
                         continue;
                     }
                 }
@@ -389,7 +388,7 @@ public class Recorder {
                 e.printStackTrace();
             }
 
-            setSql = setSql + TSQL.wrapSqlField(jdbcOperate, sqlFieldName) + "=::" + fieldName + ",";
+            setSql = setSql + sqlFieldName + "=::" + fieldName + ",";
         }
 
         if(setSql.endsWith(",")){
@@ -430,7 +429,7 @@ public class Recorder {
         Field[] fields = TReflect.getFields(obj.getClass());
         for(Field field : fields){
 
-            String sqlFieldName = getSqlFieldName(field);
+            String sqlFieldName = getSqlFieldName(jdbcOperate, field);
             String fieldName = field.getName();
 
             //如果主键为空则不插入主键字段
@@ -447,7 +446,7 @@ public class Recorder {
                 continue;
             }
 
-            fieldSql = fieldSql + TSQL.wrapSqlField(jdbcOperate, sqlFieldName) + ",";
+            fieldSql = fieldSql + sqlFieldName + ",";
             fieldValueSql = fieldValueSql + "::" + fieldName + ",";
         }
 
@@ -537,7 +536,7 @@ public class Recorder {
             //字段拼接 sql
             for (Field field : fields) {
 
-                String sqlFieldName = getSqlFieldName(field);
+                String sqlFieldName = getSqlFieldName(jdbcOperate, field);
                 String fieldName = field.getName();
                 //如果没有指定查询条件,则使用主键作为条件
                 if (field.getAnnotation(PrimaryKey.class) != null) {
@@ -554,7 +553,7 @@ public class Recorder {
                         if (camelToUnderline) {
                             sqlField = TString.camelToUnderline(sqlField);
                         }
-                        whereSql = whereSql + " and " + TSQL.wrapSqlField(jdbcOperate, sqlField) + Query.getActualOperate(entry.getValue()) + "::" + entry.getKey();
+                        whereSql = whereSql + " and " + sqlField + Query.getActualOperate(entry.getValue()) + "::" + entry.getKey();
                     }
                 } catch (ReflectiveOperationException e) {
                     throw new RecorderException("Recorder query result field is failed", e);
@@ -569,7 +568,7 @@ public class Recorder {
                             sqlField = TString.camelToUnderline(sqlField);
                         }
 
-                        whereSql = whereSql + " or " + TSQL.wrapSqlField(jdbcOperate, sqlField) + Query.getActualOperate(entry.getValue()) + "::" + entry.getKey();
+                        whereSql = whereSql + " or " + sqlField + Query.getActualOperate(entry.getValue()) + "::" + entry.getKey();
                     }
                 } catch (ReflectiveOperationException e) {
                     throw new RecorderException("Recorder query result field is failed", e);
@@ -661,7 +660,7 @@ public class Recorder {
      * @param field 字段对象
      * @return 字段名
      */
-    public String getSqlFieldName(Field field) {
+    public String getSqlFieldName(JdbcOperate jdbcOperate, Field field) {
         String fieldName = "";
 
         org.voovan.db.recorder.annotation.Field fieldAnnotation = field.getAnnotation(org.voovan.db.recorder.annotation.Field.class);
@@ -688,7 +687,7 @@ public class Recorder {
             }
         }
 
-        return fieldName;
+        return TSQL.wrapSqlField(jdbcOperate, fieldName);
     }
 
     /**
