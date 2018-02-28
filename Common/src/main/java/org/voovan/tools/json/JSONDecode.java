@@ -384,7 +384,7 @@ public class JSONDecode {
 		}
 		//[]包裹的对象处理
 		else if(parseObject instanceof Collection){
-			return (T) TReflect.getObjectFromMap(type, TObject.asMap("value",parseObject),false);
+			return (T) TReflect.getObjectFromMap(type, TObject.asMap(TReflect.SINGLE_VALUE_KEY, parseObject),false);
 		}
 		//如果传入的是标准类型则尝试用TString.toObject进行转换
 		else if(parseObject instanceof String || parseObject.getClass().isPrimitive()){
