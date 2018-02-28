@@ -663,13 +663,13 @@ public class TReflect {
 			clazz = (Class)type;
 		}
 
-		if(mapArg==null){
+		if(mapArg==null || mapArg.isEmpty()){
 			return null;
 		}
 
 		Object singleValue = mapArg;
 		Object firstKey = mapArg.keySet().iterator().next();
-		boolean isSingleValue = mapArg.size()==1 ? firstKey.equals(SINGLE_VALUE_KEY) : false;
+		boolean isSingleValue = (!mapArg.isEmpty()) ? firstKey.equals(SINGLE_VALUE_KEY) : false;
 
 		if(isSingleValue){
 			singleValue = mapArg.values().iterator().next();
