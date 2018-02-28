@@ -635,6 +635,8 @@ public class TReflect {
 		return parameterTypes;
 	}
 
+	//只有值的 Map 的键数据
+	public static Object SINGLE_VALUE_KEY = new Object();
 	/**
 	 * 将Map转换成指定的对象
 	 *
@@ -665,9 +667,11 @@ public class TReflect {
 			return null;
 		}
 
-		Object singleValue = null;
+		Object singleValue = mapArg;
+		Object firstKey = mapArg.keySet().iterator().next();
+		boolean isSingleValue = mapArg.size()==1 ? firstKey.equals(SINGLE_VALUE_KEY) : false;
 
-		if(mapArg.size()==1){
+		if(isSingleValue){
 			singleValue = mapArg.values().iterator().next();
 		}
 
@@ -681,7 +685,7 @@ public class TReflect {
 		}
 		//对象类型
 		else if(clazz == Object.class){
-			obj = (T) mapArg;
+			obj = (T)singleValue;
 		}
 		//java 日期对象
 		else if(isExtendsByClass(clazz, Date.class)){
@@ -709,13 +713,13 @@ public class TReflect {
 					if (entry.getKey() instanceof Map) {
 						keyOfMap = (Map) entry.getKey();
 					} else {
-						keyOfMap = TObject.asMap("value", entry.getKey());
+						keyOfMap = TObject.asMap(SINGLE_VALUE_KEY, entry.getKey());
 					}
 
 					if (entry.getValue() instanceof Map) {
 						valueOfMap = (Map) entry.getValue();
 					} else {
-						valueOfMap = TObject.asMap("value", entry.getValue());
+						valueOfMap = TObject.asMap(SINGLE_VALUE_KEY, entry.getValue());
 					}
 
 					Object keyObj = getObjectFromMap(genericType[0], keyOfMap, ignoreCase);
@@ -742,7 +746,7 @@ public class TReflect {
 						if (listItem instanceof Map) {
 							valueOfMap = (Map) listItem;
 						} else {
-							valueOfMap = TObject.asMap("value", listItem);
+							valueOfMap = TObject.asMap(SINGLE_VALUE_KEY, listItem);
 						}
 
 						Object item = getObjectFromMap(genericType[0], valueOfMap, ignoreCase);
@@ -821,14 +825,14 @@ public class TReflect {
 							}
 							//对于 目标对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
 							else if (isImpByInterface(fieldType, Collection.class) && value instanceof Collection) {
-								value = getObjectFromMap(fieldGenericType, TObject.asMap("value", value), ignoreCase);
+								value = getObjectFromMap(fieldGenericType, TObject.asMap(SINGLE_VALUE_KEY, value), ignoreCase);
 							}
 							//对于 目标对象类型不是 Map,则认定为复杂类型
 							else if (!isImpByInterface(fieldType, Map.class)) {
 								if (value instanceof Map) {
 									value = getObjectFromMap(fieldType, (Map<String, ?>) value, ignoreCase);
 								} else {
-									value = getObjectFromMap(fieldType, TObject.asMap("value", value), ignoreCase);
+									value = getObjectFromMap(fieldType, TObject.asMap(SINGLE_VALUE_KEY, value), ignoreCase);
 								}
 							}else{
 								throw new ReflectiveOperationException("Conver field object error! Exception type: " +
