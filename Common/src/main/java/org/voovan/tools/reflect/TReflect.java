@@ -681,11 +681,7 @@ public class TReflect {
 		}
 		//对象类型
 		else if(clazz == Object.class){
-			if(singleValue!=null){
-				obj = (T)singleValue;
-			}else {
-				obj = (T) mapArg;
-			}
+			obj = (T) mapArg;
 		}
 		//java 日期对象
 		else if(isExtendsByClass(clazz, Date.class)){
@@ -829,9 +825,9 @@ public class TReflect {
 							}
 							//对于 目标对象类型不是 Map,则认定为复杂类型
 							else if (!isImpByInterface(fieldType, Map.class)) {
-								if(value instanceof Map) {
+								if (value instanceof Map) {
 									value = getObjectFromMap(fieldType, (Map<String, ?>) value, ignoreCase);
-								}else{
+								} else {
 									value = getObjectFromMap(fieldType, TObject.asMap("value", value), ignoreCase);
 								}
 							}else{
