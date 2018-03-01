@@ -874,7 +874,7 @@ public class TReflect {
 		}
 		//对 Collection 类型的处理
 		else if(obj instanceof Collection){
-			Collection collection = (Collection) newInstance(obj.getClass());
+			Collection collection = new ArrayList();
 			synchronized (obj) {
 				Object[] objectArray = ((Collection) obj).toArray(new Object[0]);
 				for (Object collectionItem : objectArray) {
@@ -908,7 +908,7 @@ public class TReflect {
 		else if(obj instanceof Map){
 			Map mapObject = (Map)obj;
 
-			Map map = (Map)newInstance(obj.getClass());
+			Map map = new HashMap();
 			synchronized (obj) {
 				Iterator iterator = mapObject.entrySet().iterator();
 				while (iterator.hasNext()) {
