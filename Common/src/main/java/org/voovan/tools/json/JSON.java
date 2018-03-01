@@ -70,6 +70,11 @@ public class JSON {
 			setConvertEscapeChar(convertEscapeChar);
 			jsonString = JSONEncode.fromObject(object);
 
+			if(jsonString.startsWith("\"") && jsonString.endsWith("\"")){
+				jsonString = TString.removeSuffix(jsonString);
+				jsonString = TString.removePrefix(jsonString);
+			}
+
 			//恢复旧的 convertEscapeChar 标志
 			setConvertEscapeChar(oldConvertEscapeChar);
 		} catch (ReflectiveOperationException e) {
