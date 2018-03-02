@@ -52,7 +52,7 @@ public class WebServer {
 
 		initClassPath();
 		initHotSwap();
-		initSocketServer(config);
+		initWebContext(config);
 
 		//更新 ClassPath, 步长1秒, 槽数60个;
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
@@ -101,17 +101,21 @@ public class WebServer {
 		}
 	}
 
-	private void initSocketServer(WebServerConfig config) throws IOException{
-		//[Socket] 准备 socket 监听
-		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
-
+	private void initWebContext(WebServerConfig config) {
 		//[HTTP] 构造 SessionManage
-		sessionManager = SessionManager.newInstance(config);
+		this.sessionManager = SessionManager.newInstance(config);
 
 		//[HTTP]请求派发器创建
-		this.httpDispatcher = new HttpDispatcher(config,sessionManager);
+		this.httpDispatcher = new HttpDispatcher(config, sessionManager);
 
 		this.webSocketDispatcher = new WebSocketDispatcher(config, sessionManager);
+	}
+
+
+	private void initSocketServer(WebServerConfig config) throws IOException{
+
+		//[Socket] 准备 socket 监听
+		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
 
 		//[Socket]确认是否启用 HTTPS 支持
 		if(config.isHttps()) {
@@ -121,7 +125,7 @@ public class WebServer {
 			aioServerSocket.setSSLManager(sslManager);
 		}
 
-		aioServerSocket.handler(new WebServerHandler(config, httpDispatcher,webSocketDispatcher));
+		aioServerSocket.handler(new WebServerHandler(config, httpDispatcher, webSocketDispatcher));
 		aioServerSocket.filterChain().add(new WebServerFilter());
 		aioServerSocket.messageSplitter(new HttpMessageSplitter());
 	}
@@ -391,7 +395,7 @@ public class WebServer {
 	/**
 	 * 通用服务启动
 	 */
-	private void commonServe(){
+	private void commonServe() throws IOException {
 		//输出欢迎信息
 		WebContext.welcome();
 
@@ -409,6 +413,8 @@ public class WebServer {
 
 		//初始化管理路由
 		InitManagerRouter();
+
+		initSocketServer(this.config);
 
 		//保存 PID
 		Long pid = TEnv.getCurrentPID();
