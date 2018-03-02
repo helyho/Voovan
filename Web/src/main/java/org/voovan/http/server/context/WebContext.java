@@ -33,11 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebContext {
 
 	/**
-	 * 默认的路由
-	 */
-	public static String SERVICE_URL = null;
-
-	/**
 	 * 管理令牌
 	 */
 
@@ -138,9 +133,7 @@ public class WebContext {
 		loadWebConfig();
 
 		if(configMap.size() > 0 ) {
-			WebContext.WEB_CONFIG.putAll(configMap);
-		} else {
-			configMap = WebContext.WEB_CONFIG;
+			WebContext.WEB_CONFIG = configMap;
 		}
 
 		WebContext.webServerConfig = new WebServerConfig();
@@ -164,7 +157,6 @@ public class WebContext {
 		}
 
 
-		WebContext.SERVICE_URL = "http"+(webServerConfig.isHttps()?"s":"")+"://"+webServerConfig.getHost()+":"+webServerConfig.getPort();
 		return WebContext.webServerConfig;
 	}
 
@@ -243,11 +235,8 @@ public class WebContext {
 		return webServerConfig;
 	}
 
-	/**
-	 * 显示欢迎信息
-	 */
-	public static void welcome(){
-		WebServerConfig config = WebContext.webServerConfig;
+
+	public static void logo(){
 		Logger.simple("*********************************************************************************************");
 		Logger.simple("");
 		Logger.simple("   ==            ==  ==========   ==========  ==            ==  ====       ==  ==       ==	");
@@ -259,7 +248,13 @@ public class WebContext {
 		Logger.simple("         ====        ==========   ==========        ====  ==            == ==        == ==	");
 		Logger.simple("");
 		Logger.simple("*********************************************************************************************");
-		Logger.simple("");
+	}
+
+	/**
+	 * 显示欢迎信息
+	 */
+	public static void welcome(){
+		WebServerConfig config = WebContext.webServerConfig;
 		Logger.simple("============================== [Config file parameter list] =================================");
 		Logger.simple(TString.rightPad("  ReadTimeout:",35,' ')+config.getReadTimeout());
 		Logger.simple(TString.rightPad("  SendTimeout:",35,' ')+config.getSendTimeout());

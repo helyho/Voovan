@@ -9,6 +9,8 @@ import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Vector;
@@ -155,15 +157,15 @@ public class Request {
 					String name = part.header().get("name");
 					String value = null;
 					if(!part.body().isFile()) {
-						 value = part.body().getBodyString(charset);
+						value = part.body().getBodyString(charset);
 					} else {
-						 value = part.header().get("filename");
+						value = part.header().get("filename");
 					}
 
-                    result.append(name);
-                    result.append("=");
-                    result.append(value);
-                    result.append("&");
+					result.append(name);
+					result.append("=");
+					result.append(value);
+					result.append("&");
 
 				}
 			}
@@ -174,7 +176,11 @@ public class Request {
 			queryString = TString.removePrefix(queryString);
 		}
 
-		return queryString.isEmpty()? null : queryString;
+		try {
+			return queryString.isEmpty()? null : URLDecoder.decode(queryString, "UTF8");
+		} catch (UnsupportedEncodingException e) {
+			return null;
+		}
 	}
 
 	/**

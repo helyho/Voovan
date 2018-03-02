@@ -400,11 +400,7 @@ public class HttpRequest extends Request {
 				if(equalFlagPos>0){
 					String name = parameterEqual.substring(0, equalFlagPos);
 					String value = parameterEqual.substring(equalFlagPos+1, parameterEqual.length());
-					try {
-						parameters.put(name, URLDecoder.decode(value,characterSet));
-					} catch (UnsupportedEncodingException e) {
-						Logger.error("QueryString URLDecoder.decode failed by charset"+characterSet,e);
-					}
+					parameters.put(name, value);
 				}else{
 					parameters.put(parameterEqual, null);
 				}

@@ -52,7 +52,7 @@ public class WebServer {
 
 		initClassPath();
 		initHotSwap();
-		initWebContext(config);
+		initWebServer(config);
 
 		//更新 ClassPath, 步长1秒, 槽数60个;
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
@@ -101,7 +101,7 @@ public class WebServer {
 		}
 	}
 
-	private void initWebContext(WebServerConfig config) {
+	private void initWebServer(WebServerConfig config) {
 		//[HTTP] 构造 SessionManage
 		this.sessionManager = SessionManager.newInstance(config);
 
@@ -396,8 +396,8 @@ public class WebServer {
 	 * 通用服务启动
 	 */
 	private void commonServe() throws IOException {
-		//输出欢迎信息
-		WebContext.welcome();
+
+		WebContext.logo();
 
 		//运行初始化 Class
 		runWebInit(this);
@@ -415,6 +415,9 @@ public class WebServer {
 		InitManagerRouter();
 
 		initSocketServer(this.config);
+
+		//输出欢迎信息
+		WebContext.welcome();
 
 		//保存 PID
 		Long pid = TEnv.getCurrentPID();
@@ -434,7 +437,8 @@ public class WebServer {
 			Logger.error("Write token to file: " + pidFile.getPath() + " error", e);
 		}
 
-		Logger.simple("WebServer working on: \t" + WebContext.SERVICE_URL);
+		String serviceUrl = "http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort();
+		Logger.simple("WebServer working on: \t" + serviceUrl);
 
 	}
 
