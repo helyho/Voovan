@@ -147,11 +147,16 @@ public class JdbcOperate {
 	 * @throws SQLException SQL 异常
 	 */
 	public void commit(boolean isClose) throws SQLException {
+
 		//关联事务提交
 		for(JdbcOperate jdbcOperate : jdbcOperateArrayList){
 			if(this.equals(jdbcOperate)) {
 				jdbcOperate.commit(isClose);
 			}
+		}
+
+		if(connection==null){
+			return ;
 		}
 
 		//没有事务点,  只在主事务中执行 commit
@@ -176,6 +181,10 @@ public class JdbcOperate {
 			if(this.equals(jdbcOperate)) {
 				jdbcOperate.rollback(isClose);
 			}
+		}
+
+		if(connection==null){
+			return ;
 		}
 
 		//有事务点则为: 子事务, 无事务点则为: 主事务
