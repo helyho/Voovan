@@ -70,7 +70,16 @@ public class ResultInfo {
     public <T> Object getObject(Class<T> t){
         try{
             if(resultSet.next()){
-                return (T) TSQL.getOneRowWithObject(t, this.resultSet);
+                Object obj = TSQL.getOneRowWithObject(t, this.resultSet);
+                if(obj instanceof Map){
+                    Map map = (Map)obj;
+                    if(map.size() > 0){
+                        obj = map.values().iterator().next().toString();
+                    } else {
+                        obj = null;
+                    }
+                }
+                return (T)obj;
             }else{
                 return null;
             }
