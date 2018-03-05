@@ -675,21 +675,37 @@ public class TReflect {
 			singleValue = mapArg.values().iterator().next();
 		}
 
-		// java标准对象
-		if (clazz.isPrimitive()){
+		//对象类型
+		if(clazz == Object.class){
+			obj = (T)singleValue;
+		}
+		//java标准对象
+		else if (clazz.isPrimitive()){
 			if(singleValue.getClass() !=  clazz) {
 				obj = TString.toObject(mapArg.values().iterator().next().toString(), clazz);
 			} else {
 				obj = (T)singleValue;
 			}
 		}
-		// String类型
-		else if(clazz == String.class){
-			obj = (T)singleValue;
+		//java基本对象
+		else if (TReflect.isBasicType(clazz)) {
+			//取 Map.Values 里的递第一个值
+			String value = (singleValue instanceof Map)?mapArg.values().iterator().next().toString():singleValue.toString();
+			obj = (T)(singleValue==null?null:newInstance(clazz,  value));
 		}
-		//对象类型
-		else if(clazz == Object.class){
-			obj = (T)singleValue;
+		//java BigDecimal对象
+		else if (clazz == BigDecimal.class) {
+			//取 Map.Values 里的递第一个值
+			String value = singleValue==null?null:singleValue.toString();
+			obj = (T)(singleValue==null?null:new BigDecimal(value));
+		}
+		//对 Atom 类型的处理
+		else if (clazz == AtomicLong.class || clazz == AtomicInteger.class || clazz == AtomicBoolean.class) {
+			if(singleValue==null){
+				obj = null;
+			} else {
+				obj = (T) TReflect.newInstance(clazz, singleValue);
+			}
 		}
 		//java 日期对象
 		else if(isExtendsByClass(clazz, Date.class)){
@@ -767,26 +783,6 @@ public class TReflect {
 			Class arrayClass = clazz.getComponentType();
 			Object tempArrayObj = Array.newInstance(arrayClass, 0);
 			return (T)((Collection)singleValue).toArray((Object[])tempArrayObj);
-		}
-		//java BigDecimal对象
-		else if (isExtendsByClass(clazz, BigDecimal.class)) {
-			//取 Map.Values 里的递第一个值
-			String value = singleValue==null?null:singleValue.toString();
-			obj = (T)(singleValue==null?null:new BigDecimal(value));
-		}
-		//java基本对象
-		else if (TReflect.isBasicType(clazz)) {
-			//取 Map.Values 里的递第一个值
-			String value = singleValue==null?null:singleValue.toString();
-			obj = (T)(singleValue==null?null:newInstance(clazz,  value));
-		}
-		//对 Atom 类型的处理
-		else if (clazz == AtomicLong.class || clazz == AtomicInteger.class || clazz == AtomicBoolean.class) {
-			if(singleValue==null){
-				obj = null;
-			} else {
-				obj = (T) TReflect.newInstance(clazz, singleValue);
-			}
 		}
 		// 复杂对象
 		else {
