@@ -678,10 +678,14 @@ public class TReflect {
 		// java标准对象
 		if (clazz.isPrimitive()){
 			if(singleValue.getClass() !=  clazz) {
-				obj = TString.toObject(singleValue.toString(), clazz);
+				obj = TString.toObject(mapArg.values().iterator().next().toString(), clazz);
 			} else {
 				obj = (T)singleValue;
 			}
+		}
+		// String类型
+		else if(clazz == String.class){
+			obj = (T)singleValue;
 		}
 		//对象类型
 		else if(clazz == Object.class){
