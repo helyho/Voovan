@@ -212,17 +212,23 @@ public class WebContext {
 		return null;
 	}
 
-	public static void initWebServerPluginConfig(){
+	public static void initWebServerPluginConfig(boolean isInit){
 		//初始化过滤器
-		webServerConfig.getFilterConfigs().clear();
+		if(!isInit) {
+			webServerConfig.getFilterConfigs().clear();
+		}
 		webServerConfig.addFilterByList(getContextParameter("Filters",new ArrayList<Map<String,Object>>()));
 
 		//初始路由处理器
-		webServerConfig.getRouterConfigs().clear();
+		if(!isInit) {
+			webServerConfig.getRouterConfigs().clear();
+		}
 		webServerConfig.addRouterByList(getContextParameter("Routers",new ArrayList<Map<String,Object>>()));
 
 		//初始化模块
-		webServerConfig.getModuleonfigs().clear();
+		if(!isInit) {
+			webServerConfig.getModuleonfigs().clear();
+		}
 		webServerConfig.addModuleByList(getContextParameter("Modules",new ArrayList<Map<String,Object>>()));
 		Logger.simple("=============================================================================================");
 	}
