@@ -403,7 +403,7 @@ public class WebServer {
 		runWebInit(this);
 
 		//加载过滤器,路由,模块
-		WebContext.initWebServerPluginConfig();
+		WebContext.initWebServerPluginConfig(true);
 
 		//初始化路由
 		initRouter();
@@ -481,7 +481,7 @@ public class WebServer {
 		WebContext.welcome();
 
 		//加载过滤器,路由,模块
-		WebContext.initWebServerPluginConfig();
+		WebContext.initWebServerPluginConfig(false);
 
 		//初始化路由
 		initRouter();
