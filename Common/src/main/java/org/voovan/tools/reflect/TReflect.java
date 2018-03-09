@@ -668,21 +668,25 @@ public class TReflect {
 		}
 
 		Object singleValue = mapArg;
-		Object firstKey = mapArg.keySet().iterator().next();
-		boolean isSingleValue = (!mapArg.isEmpty()) ? firstKey.equals(SINGLE_VALUE_KEY) : false;
 
-		if(isSingleValue){
+		if(mapArg.containsKey(SINGLE_VALUE_KEY)){
+			singleValue = mapArg.get(SINGLE_VALUE_KEY);
+		} else if(mapArg.size() == 1) {
 			singleValue = mapArg.values().iterator().next();
 		}
 
 		//对象类型
 		if(clazz == Object.class){
-			obj = (T)singleValue;
+			if(mapArg.containsKey(SINGLE_VALUE_KEY)) {
+				obj = (T) singleValue;
+			} else {
+				obj = (T) mapArg;
+			}
 		}
 		//java标准对象
 		else if (clazz.isPrimitive()){
 			if(singleValue.getClass() !=  clazz) {
-				obj = TString.toObject(mapArg.values().iterator().next().toString(), clazz);
+				obj = TString.toObject(singleValue.toString(), clazz);
 			} else {
 				obj = (T)singleValue;
 			}
@@ -690,7 +694,7 @@ public class TReflect {
 		//java基本对象
 		else if (TReflect.isBasicType(clazz)) {
 			//取 Map.Values 里的递第一个值
-			String value = (singleValue instanceof Map)?mapArg.values().iterator().next().toString():singleValue.toString();
+			String value = singleValue.toString();
 			obj = (T)(singleValue==null?null:newInstance(clazz,  value));
 		}
 		//java BigDecimal对象
@@ -844,7 +848,7 @@ public class TReflect {
 						setFieldValue(obj, fieldName, value);
 					}catch(Exception e){
 						throw new ReflectiveOperationException("Fill object " + obj.getClass().getCanonicalName() +
-								"#"+fieldName+" failed",e);
+								"#"+fieldName+" failed", e);
 					}
 				}
 			}
