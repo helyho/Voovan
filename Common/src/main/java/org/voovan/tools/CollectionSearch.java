@@ -157,10 +157,18 @@ public class CollectionSearch<T> {
                                 Object stepValue = stepInfo.get("value");
                                 Operate stepOperate = (Operate) stepInfo.get("operate");
 
+                                if(o==null){
+                                    return false;
+                                }
+
                                 if(o instanceof Map){
                                     collectionValue = ((Map)o).get(stepField);
                                 } else {
                                     collectionValue = TReflect.getFieldValue(o, stepField);
+                                }
+
+                                if(collectionValue==null){
+                                    return false;
                                 }
 
                                 if (collectionValue.getClass().getSimpleName().startsWith("Atomic")) {
@@ -250,6 +258,10 @@ public class CollectionSearch<T> {
                                 Object fieldValue1 = null;
                                 Object fieldValue2 = null;
 
+                                if(o1 == null || o2 == null){
+                                    return -1;
+                                }
+
                                 if(fieldValue1 instanceof Map){
                                     fieldValue1 = ((Map)o1).get(sortField);
                                 } else {
@@ -261,7 +273,11 @@ public class CollectionSearch<T> {
 
                                 } else {
                                     fieldValue2 = TReflect.getFieldValue(o2, sortField);
-                                    ;                               }
+                                }
+
+                                if(fieldValue1==null || fieldValue2==null){
+                                    return -1;
+                                }
 
                                 if (fieldValue1.getClass() == fieldValue2.getClass()) {
                                     if (fieldValue1 instanceof Comparable) {

@@ -377,8 +377,12 @@ public class JSONDecode {
 			parseObject = jsonStr;
 		}
 
+		if(type == Map.class && parseObject instanceof Map){
+			return (T)parseObject;
+		}
+
 		//{}包裹的对象处理
-		if(parseObject instanceof Map){
+		else if(parseObject instanceof Map){
 			Map<String,Object> mapJSON = (Map<String, Object>) parseObject;
 			return (T) TReflect.getObjectFromMap(type, mapJSON,ignoreCase);
 		}
