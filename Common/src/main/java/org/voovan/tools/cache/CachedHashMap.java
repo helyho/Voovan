@@ -59,7 +59,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
 
     private void createCache(K key, Function<K, V> supplier){
         if(supplier==null){
-           return;
+            return;
         }
 
         CachedHashMap cachedHashMap = this;
@@ -182,6 +182,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                             }
                         }
                     }
+                    fixSize();
                 }
             }
         }, interval);
@@ -300,7 +301,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
         }
 
         super.putAll(m);
-        fixSize();
+//        fixSize();
     }
 
     @Override
@@ -332,7 +333,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
 
         cacheMark.putIfAbsent(key, new TimeMark(this, key, expire));
         super.put(key, value);
-        fixSize();
+//        fixSize();
         return value;
     }
 
@@ -363,7 +364,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
             return result;
         } else {
             cacheMark.putIfAbsent(key, new TimeMark(this, key, expire));
-            fixSize();
+//            fixSize();
             return null;
         }
     }
@@ -499,7 +500,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
         }
 
         public boolean isOnCreate(){
-           return createFlag.get();
+            return createFlag.get();
         }
 
         public boolean tryLockOnCreate() {
