@@ -202,7 +202,7 @@ public class Request {
 
 		if("multipart/form-data;".equals(header.get(CONTENT_TYPE))){
 			boundary = THash.encryptBASE64(TString.generateId(this));
-			header.put(CONTENT_TYPE ,header.get(CONTENT_TYPE)+" boundary=" + boundary);
+			header.put(CONTENT_TYPE, TString.assembly(header.get(CONTENT_TYPE), " boundary=", boundary));
 		}
 
 		if (body.size() > 0) {
@@ -305,7 +305,7 @@ public class Request {
 				}
 
 				//发送结尾标识
-				byteBuffer.put(("--" + boundary + "--").getBytes());
+				byteBuffer.put(TString.assembly("--" + boundary + "--").getBytes());
 				byteBuffer.flip();
 				session.send(byteBuffer);
 				byteBuffer.clear();

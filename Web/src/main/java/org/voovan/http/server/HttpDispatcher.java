@@ -131,7 +131,7 @@ public class HttpDispatcher {
 
 		//对于起始符不为"/"的路径,补充这个符号,以便更好完成的匹配
 		if(!routePath.startsWith("/")){
-			routePath = "/" + routePath;
+			routePath = TString.assembly("/", routePath);
 		}
 
 		//把连续的////替换成/
@@ -307,7 +307,7 @@ public class HttpDispatcher {
 			String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/");
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/]*", "[^:?/]*");
-			routeRegexPath = "^\\/?" + routeRegexPath + "\\/?$";
+			routeRegexPath = TString.assembly("^\\/?", routeRegexPath, "\\/?$");
 			REGEXED_ROUTER_CACHE.put(routePath, routeRegexPath);
 			return routeRegexPath;
 		} else {
@@ -455,7 +455,7 @@ public class HttpDispatcher {
 		if(!errorDefine.containsKey(className)) {
 			Throwable throwable = e;
 			do {
-				stackInfo = stackInfo + "\n\n" + throwable.toString() + "\n" + TEnv.getStackElementsMessage(throwable.getStackTrace());
+				stackInfo = TString.assembly(stackInfo, "\n\n", throwable.toString(), "\n", TEnv.getStackElementsMessage(throwable.getStackTrace()));
 				throwable = throwable.getCause();
 
 				if (throwable == null) {

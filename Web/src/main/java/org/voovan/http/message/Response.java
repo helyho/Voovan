@@ -126,7 +126,7 @@ public class Response {
 			header.put("Content-Type", "text/html");
 		}
 
-		header.put("Content-Type", header.get("Content-Type")+";charset=" + WebContext.getWebServerConfig().getCharacterSet());
+		header.put("Content-Type", TString.assembly(header.get("Content-Type"), ";charset=", WebContext.getWebServerConfig().getCharacterSet()));
 	}
 
 	/**

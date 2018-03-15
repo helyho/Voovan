@@ -344,7 +344,7 @@ public class Body {
 				String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
 						"dd.webserver",
 						"body",
-						"VOOVAN_" + TString.generateId(this) + "." + fileName);
+						TString.assembly("VOOVAN_", TString.generateId(this), ".", fileName));
 
 				new File(TFile.getFileDirectory(localFileName)).mkdirs();
 				File gzipedFile = new File(localFileName);

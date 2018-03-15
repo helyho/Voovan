@@ -74,7 +74,7 @@ public class AnnotationRouter implements HttpRouter {
 
                 //使用类名指定默认路径
                 if (classRouterPath.isEmpty()) {
-                    classRouterPath = "/" + routerClass.getSimpleName();
+                    classRouterPath = TString.assembly("/", routerClass.getSimpleName());
                 }
 
                 //扫描包含 Router 注解的方法
@@ -86,7 +86,7 @@ public class AnnotationRouter implements HttpRouter {
 
                         //使用方法名指定默认路径
                         if (methodRouterPath.isEmpty()) {
-                            methodRouterPath = "/" + method.getName();
+                            methodRouterPath = TString.assembly("/", method.getName());
                         }
 
                         //拼装路径
@@ -112,7 +112,7 @@ public class AnnotationRouter implements HttpRouter {
 
                             for (Annotation annotation : annotations) {
                                 if (annotation instanceof Param) {
-                                    paramPath = paramPath + "/:" + ((Param) annotation).value();
+                                    paramPath = TString.assembly(paramPath, "/:", ((Param) annotation).value());
                                 }
                             }
                         }

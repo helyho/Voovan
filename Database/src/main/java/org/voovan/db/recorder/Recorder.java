@@ -272,7 +272,7 @@ public class Recorder {
             mainSql = TString.removeSuffix(mainSql);
         }
 
-        mainSql = mainSql + " from " + tableName;
+        mainSql = TString.assembly(mainSql, " from ", tableName);
 
         //处理查询条件
         String whereSql = genWhereSql(obj, query);
@@ -308,7 +308,7 @@ public class Recorder {
             orderSql = TString.removeSuffix(orderSql);
         }
 
-        String resultSql = mainSql + " " + whereSql + " " + orderSql;
+        String resultSql = TString.assembly(mainSql, " ", whereSql, " ", orderSql);
 
         //自动识别数据库类型选择不同的方言进行分页
         if(query != null) {
@@ -347,7 +347,7 @@ public class Recorder {
         }
 
         //SQL模板准备
-        String mainSql = "update " + tableName + " set";
+        String mainSql = TString.assembly("update " , tableName , " set");
         String setSql = "";
 
         //Set拼接 sql
@@ -388,7 +388,7 @@ public class Recorder {
                 e.printStackTrace();
             }
 
-            setSql = setSql + sqlFieldName + "=::" + fieldName + ",";
+            setSql = TString.assembly(setSql, sqlFieldName, "=::", fieldName, ",");
         }
 
         if(setSql.endsWith(",")){
@@ -402,7 +402,7 @@ public class Recorder {
             throw new RecorderException("Where sql must be have some condiction");
         }
 
-        String resultSql = mainSql + " " + setSql + " " + whereSql;
+        String resultSql = TString.assembly(mainSql, " ", setSql, " ", whereSql);
 
         return resultSql;
     }
@@ -421,7 +421,7 @@ public class Recorder {
         }
 
         //SQL模板准备
-        String mainSql = "insert into " + tableName;
+        String mainSql = TString.assembly("insert into ", tableName);
         String fieldSql = "";
         String fieldValueSql = "";
 
@@ -447,10 +447,10 @@ public class Recorder {
             }
 
             fieldSql = fieldSql + sqlFieldName + ",";
-            fieldValueSql = fieldValueSql + "::" + fieldName + ",";
+            fieldValueSql = TString.assembly(fieldValueSql, "::", fieldName, ",");
         }
 
-        String resultSql = mainSql + " ("+ TString.removeSuffix(fieldSql) + ") " + "values ("+ TString.removeSuffix(fieldValueSql) + ") ";
+        String resultSql = TString.assembly(mainSql, " (", TString.removeSuffix(fieldSql), ") ", "values (", TString.removeSuffix(fieldValueSql), ") ");
 
         return resultSql;
     }
@@ -469,12 +469,12 @@ public class Recorder {
         }
 
         //SQL模板准备
-        String mainSql = "delete from " + tableName;
+        String mainSql = TString.assembly("delete from ", tableName);
 
         //Where 拼接 sql
         String whereSql = genWhereSql(obj, query);
 
-        String resultSql = mainSql + " " + whereSql;
+        String resultSql = TString.assembly(mainSql, " ", whereSql);
 
         return resultSql;
     }
@@ -540,7 +540,7 @@ public class Recorder {
                 String fieldName = field.getName();
                 //如果没有指定查询条件,则使用主键作为条件
                 if (field.getAnnotation(PrimaryKey.class) != null) {
-                    whereSql = whereSql + " and " + sqlFieldName + " =::" + fieldName;
+                    whereSql = TString.assembly(whereSql, " and ", sqlFieldName, " =::", fieldName);
                     break;
                 }
             }
@@ -553,7 +553,7 @@ public class Recorder {
                         if (camelToUnderline) {
                             sqlField = TString.camelToUnderline(sqlField);
                         }
-                        whereSql = whereSql + " and " + sqlField + Query.getActualOperate(entry.getValue()) + "::" + entry.getKey();
+                        whereSql = TString.assembly(whereSql, " and ", sqlField, Query.getActualOperate(entry.getValue()), "::", entry.getKey());
                     }
                 } catch (ReflectiveOperationException e) {
                     throw new RecorderException("Recorder query result field is failed", e);
@@ -568,7 +568,7 @@ public class Recorder {
                             sqlField = TString.camelToUnderline(sqlField);
                         }
 
-                        whereSql = whereSql + " or " + sqlField + Query.getActualOperate(entry.getValue()) + "::" + entry.getKey();
+                        whereSql = TString.assembly(whereSql, " or ", sqlField, Query.getActualOperate(entry.getValue()), "::", entry.getKey());
                     }
                 } catch (ReflectiveOperationException e) {
                     throw new RecorderException("Recorder query result field is failed", e);
@@ -581,7 +581,7 @@ public class Recorder {
             }
 
             for(String customCondiction : query.getCustomCondictions()){
-                whereSql = whereSql + " " + customCondiction;
+                whereSql = TString.assembly(whereSql, " ", customCondiction);
             }
         }
 
