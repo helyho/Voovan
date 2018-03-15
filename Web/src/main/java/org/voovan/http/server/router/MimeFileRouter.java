@@ -95,7 +95,7 @@ public class MimeFileRouter implements HttpRouter {
 		}
 
 		//文件的 ETag
-		String eTag = "\"" + THash.encryptMD5(Integer.toString(responseFile.hashCode()+fileModifyDate.hashCode())).toUpperCase() + "\"";
+		String eTag = TString.assembly("\"", THash.encryptMD5(Integer.toString(responseFile.hashCode()+fileModifyDate.hashCode())).toUpperCase(), "\"");
 
 		//请求中的 ETag
 		String requestETag = request.header().get("If-None-Match");
@@ -159,7 +159,7 @@ public class MimeFileRouter implements HttpRouter {
 				endPos   = Long.parseLong(ranges[1]);
 			}
 			fileByte = TFile.loadFileFromSysPath(responseFile.getPath(), beginPos, endPos);
-			response.header().put("Content-Range", "bytes " + rangeStr + "/" + fileSize);
+			response.header().put("Content-Range", TString.assembly("bytes ", rangeStr, "/", fileSize));
 			response.body().write(fileByte);
 
 		} else {

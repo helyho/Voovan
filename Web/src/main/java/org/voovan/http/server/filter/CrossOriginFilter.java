@@ -4,6 +4,7 @@ import org.voovan.http.server.HttpFilter;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.context.HttpFilterConfig;
+import org.voovan.tools.TString;
 
 /**
  * 支持跨域的过滤方式(JSONP 或者 跨域请求的方式)
@@ -30,7 +31,14 @@ public class CrossOriginFilter implements HttpFilter{
 
         //跨域请求头配置
         if(filterConfig.getParameters().containsKey("allowOrigin")) {
-            response.header().put("Access-Control-Allow-Origin", (String) filterConfig.getParameter("allowOrigin"));
+            String allowOrigin = filterConfig.getParameter("allowOrigin").toString();
+
+            if("*".equals(allowOrigin)){
+                allowOrigin = request.header().get("Origin");
+            }
+
+            response.header().put("Access-Control-Allow-Origin", allowOrigin);
+
             response.header().put("Access-Control-Allow-Methods", (String) filterConfig.getParameter("allowMethods"));
             response.header().put("Access-Control-Allow-Credentials", "true");
             response.header().put("Access-Control-Expose-Headers", "Access-Control-Allow-Origin,Access-Control-Allow-Credentials");
@@ -41,7 +49,7 @@ public class CrossOriginFilter implements HttpFilter{
             String functionParamName = (String) filterConfig.getParameter("functionParamName");
             String functionName = request.getParameter(functionParamName);
             if (functionName != null) {
-                String jsonpResponse = functionName + "(" + response.body().getBodyString() + ")";
+                String jsonpResponse = TString.assembly(functionName, "(", response.body().getBodyString(), ")");
                 response.clear();
                 response.body().write(jsonpResponse.getBytes());
             }

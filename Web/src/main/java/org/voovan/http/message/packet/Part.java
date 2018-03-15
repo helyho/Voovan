@@ -3,6 +3,7 @@ package org.voovan.http.message.packet;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TFile;
+import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
@@ -31,8 +32,8 @@ public class Part {
 	 */
 	public enum PartType{
 		BINARY,TEXT
-	} 
-	
+	}
+
 	/**
 	 * 构造函数
 	 */
@@ -40,7 +41,7 @@ public class Part {
 		header = new  Header();
 		body = new Body();
 	}
-	
+
 	/**
 	 * 构造函数
 	 * @param name 参数名
@@ -53,7 +54,7 @@ public class Part {
 		header.put("name", name);
 		body.write(value,charset);
 	}
-	
+
 	/**
 	 * 构造函数
 	 * @param name 参数名
@@ -89,7 +90,7 @@ public class Part {
 	public Header header(){
 		return header;
 	}
-	
+
 	/**
 	 * Part 的 body 对象
 	 * @return Body 对象
@@ -97,7 +98,7 @@ public class Part {
 	public Body body(){
 		return body;
 	}
-	
+
 	/**
 	 * 获取 Part 的名称
 	 * @return Part 的名称
@@ -134,7 +135,7 @@ public class Part {
 	public void saveAsFile(File file) throws IOException {
 		body.saveAsFile(file);
 	}
-	
+
 	/**
 	 * 将 Part 的内容保存为文件
 	 * @param fileName    Part 的内容保存为文件
@@ -170,7 +171,7 @@ public class Part {
 		ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
 
 		//发送分段开始
-		byteBuffer.put(("--" + boundary + "\r\n").getBytes());
+		byteBuffer.put(TString.assembly("--", boundary, "\r\n").getBytes());
 		byteBuffer.flip();
 		session.send(byteBuffer);
 		byteBuffer.clear();

@@ -238,8 +238,8 @@ public class HttpParser {
 		int lineNum = 0;
 		//按行遍历HTTP报文
 		for(String currentLine = byteBufferChannel.readLine();
-		    currentLine!=null;
-		    currentLine = byteBufferChannel.readLine()){
+			currentLine!=null;
+			currentLine = byteBufferChannel.readLine()){
 			currentLine = currentLine.trim();
 			lineNum++;
 			//空行分隔处理,遇到空行标识下面有可能到内容段
@@ -274,7 +274,7 @@ public class HttpParser {
 					List<Map<String, Object>> bodyPartList = new ArrayList<Map<String, Object>>();
 
 					//取boundary 用于 part 内容分段
-					String boundary = "--" + getPerprotyEqualValue(packetMap, HEAD_CONTENT_TYPE, "boundary");
+					String boundary = TString.assembly("--", getPerprotyEqualValue(packetMap, HEAD_CONTENT_TYPE, "boundary"));
 
 					ByteBuffer boundaryEnd = ByteBuffer.allocate(2);
 					while(true) {
@@ -346,7 +346,7 @@ public class HttpParser {
 							String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
 									"dd.webserver",
 									"upload",
-									"VOOVAN_" + System.currentTimeMillis() + "." + fileExtName);
+									TString.assembly("VOOVAN_", System.currentTimeMillis(), ".", fileExtName));
 
 							//等待数据
 							while (byteBufferChannel.waitData(boundary.getBytes(), timeOut)){

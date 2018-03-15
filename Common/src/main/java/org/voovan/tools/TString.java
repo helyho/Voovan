@@ -849,4 +849,18 @@ public class TString {
 		}
 		return sb.toString();
 	}
+
+	/**
+	 * 字符串快捷拼装方法
+	 * @param items 需要瓶装的字符串
+	 * @return 瓶装后的字符串
+	 */
+	public static String assembly(Object ... items){
+		StringBuilder stringBuilder = new StringBuilder();
+		for(Object item : items){
+			stringBuilder.append(item);
+		}
+
+		return stringBuilder.toString();
+	}
 }
