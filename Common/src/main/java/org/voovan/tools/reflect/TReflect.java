@@ -48,11 +48,9 @@ public class TReflect {
 	 */
 	public static Field[] getFields(Class<?> clazz) {
 		String mark = clazz.getCanonicalName();
-		Field[] fields = null;
+		Field[] fields = fieldArrays.get(mark);
 
-		if(fieldArrays.containsKey(mark)){
-			fields = fieldArrays.get(mark);
-		}else {
+		if(fields == null){
 			ArrayList<Field> fieldArray = new ArrayList<Field>();
 			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
 				Field[] tmpFields = clazz.getDeclaredFields();
@@ -78,12 +76,11 @@ public class TReflect {
 	public static Field findField(Class<?> clazz, String fieldName)
 			throws ReflectiveOperationException {
 
-		String mark = clazz.getCanonicalName()+"#"+fieldName;
+		String mark = new StringBuilder(clazz.getCanonicalName()).append("#").append(fieldName).toString();
 
-		if(fields.containsKey(mark)){
-			return fields.get(mark);
-		}else {
-			Field field = null;
+		Field field = fields.get(mark);
+
+		if(field==null){
 
 			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
 				try {
@@ -96,8 +93,9 @@ public class TReflect {
 
 			fields.put(mark, field);
 
-			return field;
 		}
+
+		return field;
 	}
 
 	/**
@@ -111,19 +109,19 @@ public class TReflect {
 	public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName)
 			throws ReflectiveOperationException{
 
-		String mark = clazz.getCanonicalName()+"#"+fieldName;
+		String mark = new StringBuilder(clazz.getCanonicalName()).append("#").append(fieldName).toString();
 
-		if(fields.containsKey(mark)){
-			return fields.get(mark);
-		}else {
-			for (Field field : getFields(clazz)) {
-				if (field.getName().equalsIgnoreCase(fieldName) || field.getName().equalsIgnoreCase(TString.underlineToCamel(fieldName))) {
-					fields.put(mark, field);
-					return field;
+		Field field = fields.get(mark);
+		if (field==null){
+			for (Field fieldItem : getFields(clazz)) {
+				if (fieldItem.getName().equalsIgnoreCase(fieldName) || fieldItem.getName().equalsIgnoreCase(TString.underlineToCamel(fieldName))) {
+					fields.put(mark, fieldItem);
+					field = fieldItem;
+					break;
 				}
 			}
 		}
-		return null;
+		return field;
 	}
 
 	/**
@@ -233,15 +231,15 @@ public class TReflect {
 	 */
 	public static Method findMethod(Class<?> clazz, String name,
 									Class<?>... paramTypes) throws ReflectiveOperationException {
-		String mark = clazz.getCanonicalName()+"#"+name;
+		StringBuilder markBuilder = new StringBuilder(clazz.getCanonicalName()).append("#").append(name);
 		for(Class<?> paramType : paramTypes){
-			mark = mark + "$" + paramType.getCanonicalName();
+			markBuilder.append("$").append(paramType.getCanonicalName());
 		}
 
-		if(methods.containsKey(mark)){
-			return methods.get(mark);
-		}else {
-			Method method = null;
+		String mark = markBuilder.toString();
+
+		Method method = methods.get(mark);
+		if (method == null){
 
 			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
 				try {
@@ -253,8 +251,9 @@ public class TReflect {
 			}
 
 			methods.put(mark, method);
-			return method;
 		}
+
+		return method;
 	}
 
 	/**
@@ -267,13 +266,11 @@ public class TReflect {
 	 */
 	public static Method[] findMethod(Class<?> clazz, String name,
 									  int paramCount) throws ReflectiveOperationException {
-		Method[] methods = null;
+		String mark = new StringBuilder(clazz.getCanonicalName()).append("#").append(name).append("@").append(paramCount).toString();
 
-		String mark = clazz.getCanonicalName()+"#"+name+"@"+paramCount;
+		Method[] methods = methodArrays.get(mark);
 
-		if(methodArrays.containsKey(mark)){
-			return methodArrays.get(mark);
-		} else {
+		if (methods==null){
 			ArrayList<Method> methodList = new ArrayList<Method>();
 			Method[] allMethods = getMethods(clazz, name);
 			for (Method method : allMethods) {
@@ -326,7 +323,7 @@ public class TReflect {
 
 		Method[] methods = null;
 
-		String mark = clazz.getCanonicalName()+"#"+name;
+		String mark = new StringBuilder(clazz.getCanonicalName()).append("#").append(name).toString();
 
 		if(methodArrays.containsKey(mark)){
 			return methodArrays.get(mark);
@@ -492,18 +489,19 @@ public class TReflect {
 			args = new Object[0];
 		}
 		Class<?>[] parameterTypes = getArrayClasses(args);
-		Constructor<T> constructor = null;
 
-		String mark = clazz.getCanonicalName();
+		StringBuilder markBuilder = new StringBuilder(clazz.getCanonicalName());
 		for(Class<?> paramType : parameterTypes){
-			mark = mark + "$" + paramType.getCanonicalName();
+			markBuilder.append("$").append(paramType.getCanonicalName());
 		}
+
+		String mark = markBuilder.toString();
+
+		Constructor<T> constructor = constructors.get(mark);
 
 		try {
 
-			if(constructors.containsKey(mark)){
-				constructor = constructors.get(mark);
-			}else {
+			if (constructor == null){
 				if (args.length == 0) {
 					try {
 						constructor = clazz.getConstructor();
@@ -522,13 +520,11 @@ public class TReflect {
 		}catch(Exception e){
 			Exception lastExecption = e;
 			if(constructor==null) {
-				Constructor[] constructors = null;
 
 				//缓存构造函数
 				mark = clazz.getCanonicalName();
-				if(constructorArrays.containsKey(mark)){
-					constructors = constructorArrays.get(mark);
-				}else {
+				Constructor[] constructors =  constructorArrays.get(mark);
+				if(constructors == null){
 					constructors = clazz.getConstructors();
 					constructorArrays.put(mark, constructors);
 				}
@@ -965,23 +961,26 @@ public class TReflect {
 			return true;
 		}
 
-		String marker = type.toString() + "@" + interfaceClass.toString();
-		if(classHierarchy.containsKey(marker)){
-			return classHierarchy.get(marker);
+		String marker = new StringBuilder(type.toString()).append("@").append(interfaceClass.toString()).toString();
+
+		Boolean result = classHierarchy.get(marker);
+
+
+		if(result==null) {
+			Class<?>[] interfaces = type.getInterfaces();
+			for (Class<?> interfaceItem : interfaces) {
+				if (interfaceItem == interfaceClass) {
+					classHierarchy.put(marker, true);
+					return true;
+				} else {
+					return isImpByInterface(interfaceItem, interfaceClass);
+				}
+			}
+
+			classHierarchy.put(marker, false);
+			return false;
 		}
 
-		Class<?>[] interfaces= type.getInterfaces();
-		for (Class<?> interfaceItem : interfaces) {
-			if (interfaceItem == interfaceClass) {
-				classHierarchy.put(marker, true);
-				return true;
-			}
-			else {
-				return isImpByInterface(interfaceItem,interfaceClass);
-			}
-		}
-
-		classHierarchy.put(marker, false);
 		return false;
 	}
 
@@ -999,21 +998,23 @@ public class TReflect {
 			return true;
 		}
 
-		String marker = type.toString() + "#" + extendsClass.toString();
-		if(classHierarchy.containsKey(marker)){
-			return classHierarchy.get(marker);
+		String marker = new StringBuilder(type.toString()).append("#").append(extendsClass.toString()).toString();
+		Boolean result = classHierarchy.get(marker);
+
+		if(result == null) {
+			Class<?> superClass = type;
+			do {
+				if (superClass == extendsClass) {
+					classHierarchy.put(marker, true);
+					return true;
+				}
+				superClass = superClass.getSuperclass();
+			} while (superClass != null && Object.class != superClass);
+
+			classHierarchy.put(marker, false);
+			return false;
 		}
 
-		Class<?> superClass = type;
-		do{
-			if(superClass == extendsClass){
-				classHierarchy.put(marker, true);
-				return true;
-			}
-			superClass = superClass.getSuperclass();
-		}while(superClass!=null && Object.class != superClass);
-
-		classHierarchy.put(marker, false);
 		return false;
 	}
 
