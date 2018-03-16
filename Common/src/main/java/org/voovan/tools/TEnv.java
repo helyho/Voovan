@@ -100,6 +100,25 @@ public class TEnv {
 	}
 
 	/**
+	 * 判断指定的 Class 是否在当前的线程栈中
+	 * @param clazzName 类对象
+	 * @param method 方法名
+	 * @return true: 在当前的线程栈中, false: 不在当前的线程栈中
+	 */
+	public static boolean classInCurrentStack(String clazzName, String method){
+		for(StackTraceElement stackTraceElement : getStackElements()){
+			if(clazzName!=null && stackTraceElement.getClassName().contains(clazzName)){
+				if(method == null || stackTraceElement.getMethodName().equals(method)){
+					return true;
+				}
+			} else {
+				continue;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * 获取当前栈信息
 	 * 		会自动过滤掉栈里的第一行,即当前类的信息
 	 *
