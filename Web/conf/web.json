@@ -20,6 +20,7 @@
   "HotSwapInterval"        : 30,                            //热加载检测时间间隔. 默认:0秒. 0:关闭
   "LifeCycleClass"              : "org.voovan.test.http.WebLifeCycleClass", //配置在Web 服务启动时加载并运行初始化类, 该类需继承:org.voovan.http.server.WebServerInit
   "PauseURL"               : "/img/logo.jpg",                                      // 服务器暂停状态下所有请求都会转向这个路由
+//  "ScanAopPackage"         : "org.voovan"
 
 //  HTTPS证书配置
 //  "Https": {

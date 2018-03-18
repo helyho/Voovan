@@ -13,6 +13,7 @@ import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
+import org.voovan.tools.aop.Aop;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hotswap.Hotswaper;
 import org.voovan.tools.json.JSON;
@@ -51,6 +52,7 @@ public class WebServer {
 		this.config = config;
 
 		initClassPath();
+		initAop();
 		initHotSwap();
 		initWebServer(config);
 
@@ -84,7 +86,21 @@ public class WebServer {
 					hotSwaper.autoReload(config.getHotSwapInterval());
 				}
 			} catch (Exception e) {
-				Logger.error("初始化热部署失败", e);
+				Logger.error("Init hotswap failed", e);
+			}
+		}
+	}
+
+	/**
+	 * 初始化热部署
+	 */
+	private void initAop() {
+		//热加载
+		{
+			try {
+				Aop.init(config.getScanAopPackage());
+			} catch (Exception e) {
+				Logger.error("Init aop failed", e);
 			}
 		}
 	}
