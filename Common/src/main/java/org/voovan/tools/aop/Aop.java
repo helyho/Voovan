@@ -53,6 +53,7 @@ public class Aop {
         if(scanPackage==null){
             return;
         }
+
         Aop.scanAopClass(scanPackage);
         IS_AOP_ON = true;
         instrumentation = TEnv.agentAttach(agentJarPath);
