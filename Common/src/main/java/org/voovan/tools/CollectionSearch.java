@@ -18,7 +18,8 @@ import java.util.stream.Stream;
  * Licence: Apache v2 License
  */
 public class CollectionSearch<T> {
-    int step = 0;
+    private int step = 0;
+    private boolean parallelStream = true;
     private Collection<T> collection;
     private Map<String, Map<String, Object>> searchStep = new TreeMap<String, Map<String, Object>>();
 
@@ -39,6 +40,25 @@ public class CollectionSearch<T> {
      */
     public static <P> CollectionSearch<P> newInstance(Collection<P> collection) {
         return new CollectionSearch<P>(collection);
+    }
+
+
+    /**
+     * 设置是否并行处理
+     * @return true:并行处理, false: 单线程处理
+     */
+    public boolean isParallelStream() {
+        return parallelStream;
+    }
+
+    /**
+     * 设置是否并行处理
+     * @param parallelStream true:并行处理, false: 单线程处理
+     * @return CollectionSearch 对象
+     */
+    public CollectionSearch setParallelStream(boolean parallelStream) {
+        this.parallelStream = parallelStream;
+        return this;
     }
 
     /**
@@ -135,12 +155,16 @@ public class CollectionSearch<T> {
 
     public Stream streamRun(){
 
-        Stream stream = collection.parallelStream();
+        Stream stream = null;
+        if(this.parallelStream) {
+            stream = collection.parallelStream();
+        } else {
+            stream = collection.stream();
+        }
 
         for (Map.Entry<String, Map<String, Object>> step : searchStep.entrySet()) {
             String stepType = step.getKey();
             Map<String, Object> stepInfo = step.getValue();
-
 
             //筛选条件
             if (stepType.endsWith("Condition")) {

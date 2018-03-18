@@ -1,12 +1,15 @@
 package org.voovan.tools;
 
+import org.voovan.tools.hotswap.DynamicAgent;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import com.sun.tools.attach.AgentInitializationException;
+import com.sun.tools.attach.AgentLoadException;
+import com.sun.tools.attach.AttachNotSupportedException;
+import com.sun.tools.attach.VirtualMachine;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -479,10 +482,9 @@ public class TEnv {
 		className = TString.fastReplaceAll(className, File.separator, ".");
 
 		try {
-
 			return Class.forName(className);
 		}catch (Exception ex) {
-			throw new ClassNotFoundException("load and define class "+className+" failed");
+			throw new ClassNotFoundException("load and define class " + className + " failed");
 		}
 	}
 
@@ -493,5 +495,51 @@ public class TEnv {
 	public static String getJavaHome(){
 		String sysLibPath = System.getProperty("sun.boot.library.path");
 		return sysLibPath.substring(0, sysLibPath.indexOf("/jre/lib"));
+	}
+
+	/**
+	 * 查找 AgentJar 文件
+	 * @return AgentJar 文件
+	 */
+	private static File findAgentJar(){
+		List<File> agentJars = TFile.scanFile(new File(TFile.getContextPath()), "((dd\\.?(\\d\\.?)*)|(voovan-((framework)|(common)).*)).?jar$");
+		File agentJar = null;
+
+		for (File jarFile : agentJars) {
+			if(agentJar == null){
+				agentJar = jarFile;
+			}
+
+			if(agentJar.lastModified() < jarFile.lastModified()){
+				agentJar = jarFile;
+			}
+		}
+
+		return agentJar;
+	}
+
+	/**
+	 * 附加 Agentjar 到目标地址
+	 * @param agentJarPath AgentJar 文件
+	 * @throws IOException IO 异常
+	 * @throws AttachNotSupportedException 附加指定进程失败
+	 * @throws AgentLoadException Agent 加载异常
+	 * @throws AgentInitializationException Agent 初始化异常
+	 */
+	public static Instrumentation agentAttach(String agentJarPath) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException {
+		if(agentJarPath==null){
+			File agentJar = findAgentJar();
+			if(agentJar != null && agentJar.exists()) {
+				agentJarPath = agentJar.getAbsolutePath();
+				Logger.info("[System] Choose an agent jar file: " + agentJarPath);
+			} else {
+				throw new FileNotFoundException("The agent jar file not found");
+			}
+		}
+		VirtualMachine vm = VirtualMachine.attach(Long.toString(TEnv.getCurrentPID()));
+		vm.loadAgent(agentJarPath);
+		Instrumentation instrumentation = DynamicAgent.getInstrumentation();
+		vm.detach();
+		return instrumentation;
 	}
 }
