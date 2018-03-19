@@ -32,13 +32,13 @@ public class CutPointUtil {
         System.out.println("before========>");
     }
 
-    @After("* org.voovan.test.tools.aop.CutPointUtil@testMethod(java.lang.String)")
+    @After("* org.voovan.test.*.*.CutPointUtil@testMethod(java.lang.String)")
     public static String cutPointAfter(InterceptInfo interceptInfo){
         System.out.println("after========>" + JSON.toJSON(interceptInfo));
         return "-----////";
     }
 
-    @After("* org.voovan.test.http.router.AnnotationRouterTest@index()")
+    @After("* org.voovan.test.service.web.IndexMethod@index()")
     public static String indexMethodAfter(InterceptInfo interceptInfo){
         System.out.println("after========>" + JSON.toJSON(interceptInfo));
         return "-----////";

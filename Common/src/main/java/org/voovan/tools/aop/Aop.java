@@ -93,7 +93,20 @@ public class Aop {
                 //遍历可用于当前方法注入的切面点
                 List<CutPointInfo> avaliableCutPointInfo = (List<CutPointInfo>) CollectionSearch.newInstance(AopUtils.CUT_POINTINFO_LIST)
                         .setParallelStream(false)
-                        .addCondition("clazzName", className) //比对类名称
+                        .addCondition(new Predicate() {
+                            @Override
+                            public boolean test(Object o) {
+                                CutPointInfo cutPointInfo = (CutPointInfo)o;
+
+                                String cutPointClassName = cutPointInfo.getClazzName().replaceAll("\\.", "\\\\.");
+                                cutPointClassName = cutPointClassName.replaceAll("\\*", ".*?");
+                                if(TString.searchByRegex(className, cutPointClassName).length > 0){
+                                    return true;
+                                } else {
+                                    return false;
+                                }
+                            }
+                        }) //比对类名称
                         .addCondition("methodName", ctMethod.getName()) //比对方法名称
                         .addCondition(new Predicate() {
                             @Override
