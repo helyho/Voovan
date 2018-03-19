@@ -38,7 +38,7 @@ public class CutPointUtil {
         return "-----////";
     }
 
-    @After("* org.voovan.test.service.web.IndexMethod@index()")
+    @After("* org.voovan.test.http.router.AnnotationRouterTest@index()")
     public static String indexMethodAfter(InterceptInfo interceptInfo){
         System.out.println("after========>" + JSON.toJSON(interceptInfo));
         return "-----////";
