@@ -107,7 +107,24 @@ public class Aop {
                                 }
                             }
                         }) //比对类名称
-                        .addCondition("methodName", ctMethod.getName()) //比对方法名称
+                        .addCondition(new Predicate() {
+                            @Override
+                            public boolean test(Object o) {
+                                CutPointInfo cutPointInfo = (CutPointInfo)o;
+
+                                if(cutPointInfo.getMethodName().equals("*")){
+                                    return true;
+                                }
+
+                                String innerMethodName = cutPointInfo.getMethodName().replaceAll("\\*", ".*?");
+
+                                if(TString.searchByRegex(ctMethod.getName(), innerMethodName).length > 0){
+                                    return true;
+                                } else {
+                                    return false;
+                                }
+                            }
+                        }) //比对方法名称
                         .addCondition(new Predicate() {
                             @Override
                             public boolean test(Object o) {
