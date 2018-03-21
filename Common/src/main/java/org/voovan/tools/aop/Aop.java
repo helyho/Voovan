@@ -84,7 +84,12 @@ public class Aop {
             if(className.startsWith("sun") || className.startsWith("com.sun") || className.startsWith("com.oracle")){
                 return classfileBuffer;
             }
-            ctClass = AopUtils.CLASSPOOL.get(className);
+
+            try {
+                ctClass = AopUtils.CLASSPOOL.get(className);
+            } catch (NotFoundException e){
+                return classfileBuffer;
+            }
             //撤销上次的修改
             ctClass.detach();
 
