@@ -216,7 +216,10 @@ public class TEnv {
 				continue;
 			}
 
-			classPath = TFile.assemblyPath(userDir, classPath);
+			if(!classPath.contains(userDir)) {
+				classPath = TFile.assemblyPath(userDir, classPath);
+			}
+
 			if(classPath.startsWith(userDir)) {
 				File classPathFile = new File(classPath);
 				if(classPathFile.exists() && classPathFile.isDirectory()){
