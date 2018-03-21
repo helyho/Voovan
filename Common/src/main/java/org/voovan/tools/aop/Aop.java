@@ -65,7 +65,7 @@ public class Aop {
                     return Inject(className, classfileBuffer);
                 }
             });
-            Logger.error("[AOP] Enable aop success ");
+            Logger.info("[AOP] Enable aop success ");
         } else {
             Logger.error("[AOP] Enable aop failed ");
         }

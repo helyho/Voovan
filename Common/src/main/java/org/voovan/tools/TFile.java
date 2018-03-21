@@ -157,7 +157,7 @@ public class TFile {
 	public static byte[] loadResource(String resourcePath) {
 		try {
 			resourcePath = URLDecoder.decode(resourcePath,"utf-8");
-			InputStream inputStream = TEnv.getURLClassLoader(null).getResourceAsStream(resourcePath);
+			InputStream inputStream = TEnv.class.getClassLoader().getResourceAsStream(resourcePath);
 			return TStream.readAll(inputStream);
 		} catch (IOException e) {
 			Logger.error("Load resource URLDecoder.decode failed",e);
