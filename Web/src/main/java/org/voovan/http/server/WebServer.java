@@ -14,7 +14,6 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 import org.voovan.tools.aop.Aop;
-import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hotswap.Hotswaper;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
@@ -51,19 +50,9 @@ public class WebServer {
 	public WebServer(WebServerConfig config) throws IOException {
 		this.config = config;
 
-		initClassPath();
 		initAop();
 		initHotSwap();
 		initWebServer(config);
-
-		//更新 ClassPath, 步长1秒, 槽数60个;
-		Global.getHashWheelTimer().addTask(new HashWheelTask() {
-			@Override
-			public void run() {
-				//更新 ClassPath , 这样有新的 jar 包才会被加载进来
-				WebServer.initClassPath();
-			}
-		}, 10);
 	}
 
 	/**
@@ -102,18 +91,6 @@ public class WebServer {
 			} catch (Exception e) {
 				Logger.error("Init aop failed", e);
 			}
-		}
-	}
-
-	/**
-	 * 读取Classes目录和lib目录中的class或者jar文件
-	 */
-	private static void initClassPath(){
-		try {
-			TEnv.addClassPath(TFile.getSystemPath("classes"));
-			TEnv.addClassPath(TFile.getSystemPath("lib"));
-		} catch (NoSuchMethodException | IOException | SecurityException e) {
-			Logger.warn("Voovan WebServer Loader ./classes or ./lib error." ,e);
 		}
 	}
 
