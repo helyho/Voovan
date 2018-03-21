@@ -11,7 +11,6 @@ import com.sun.tools.attach.VirtualMachine;
 import java.io.*;
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -212,6 +211,12 @@ public class TEnv {
 		List<String> classPaths = getClassPath();
 		ArrayList<Class> clazzes = new ArrayList<Class>();
 		for(String classPath : classPaths){
+
+			if(TString.isNullOrEmpty(classPath)){
+				continue;
+			}
+
+			classPath = TFile.assemblyPath(userDir, classPath);
 			if(classPath.startsWith(userDir)) {
 				File classPathFile = new File(classPath);
 				if(classPathFile.exists() && classPathFile.isDirectory()){
