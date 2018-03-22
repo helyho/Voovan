@@ -916,6 +916,9 @@ public class TReflect {
 		}
 		//对 BigDecimal 类型的处理
 		else if (obj instanceof BigDecimal) {
+			if(BigDecimal.ZERO.compareTo((BigDecimal)obj)==0){
+				obj = BigDecimal.ZERO;
+			}
 			mapResult.put(null, obj.toString());
 		}
 		//对 Map 类型的处理

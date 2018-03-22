@@ -118,7 +118,11 @@ public class JSONEncode {
         if (object == null) {
             value = "null";
         } else if (object instanceof BigDecimal) {
-            value = ((BigDecimal)object).toString();
+            if(BigDecimal.ZERO.compareTo((BigDecimal)object)==0){
+                object = BigDecimal.ZERO;
+            }
+
+            value = ((BigDecimal) object).toString();
         } else if (object instanceof Date) {
             value = "\"" + TDateTime.format(((Date)object), TDateTime.STANDER_DATETIME_TEMPLATE)+ "\"";;
         } else if (object instanceof Map) {
