@@ -27,7 +27,7 @@ public class AnnotationRouterTest {
     //将请求中名为 bb 的 参数在调用时注入成方法的 bb 参数
     @Router
 //    @Check(name = "bb", value = "null", valueMethod = "org.voovan.test.http.router.AnnotationRouterTest#checkMethod", response = "bb is error")
-    @Check(name = "bb", value = "null", responseMethod = "org.voovan.test.http.router.AnnotationRouterTest#checkMethod")
+    @Check(name = "bb", value = "null", responseMethod = "org.voovan.test.http.router.AnnotationRouterTest@checkMethod")
     @Check(name = "aa", value = "0")
     public String params(@Param("bb") String aa, @Param("aa") int bb){
         String oldPath = lastPath;
