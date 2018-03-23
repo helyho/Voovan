@@ -86,7 +86,12 @@ public class AnnotationRouter implements HttpRouter {
 
                         //使用方法名指定默认路径
                         if (methodRouterPath.isEmpty()) {
-                            methodRouterPath = TString.assembly("/", method.getName());
+                            //如果方法名为: index 则为默认路由
+                            if(method.getName().equals("index")){
+                                methodRouterPath = "/";
+                            } else {
+                                methodRouterPath = TString.assembly("/", method.getName());
+                            }
                         }
 
                         //拼装路径
@@ -317,7 +322,7 @@ public class AnnotationRouter implements HttpRouter {
 
             //检查数据是否符合要求
             if(!check.valueMethod().equals("null")){
-                String[] methodConfig = check.valueMethod().split("#");
+                String[] methodConfig = check.valueMethod().split("@");
                 if(methodConfig.length == 2){
                     Class methodClass =  Class.forName(methodConfig[0]);
                     value = TReflect.invokeMethod(methodClass, methodConfig[1], value);

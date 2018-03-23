@@ -66,53 +66,9 @@ public class Hotswaper {
 
         excludePackages = TObject.asList("java.","sun.","javax.","com.sun","com.oracle");
 
-        if(agentJar == null) {
-            agentJar = findAgentJar();
-        }
+        instrumentation = TEnv.agentAttach(null);
+        loadCustomClass();
 
-        if(agentJar != null && agentJar.exists()) {
-            Logger.info("[HOTSWAP] System choose an agent jar file: "+agentJar.getAbsolutePath());
-            agentAttach(agentJar.getPath());
-            loadCustomClass();
-        } else {
-            throw new FileNotFoundException("The agent jar file not found");
-        }
-    }
-
-    /**
-     * 查找 AgentJar 文件
-     * @return AgentJar 文件
-     */
-    private File findAgentJar(){
-        List<File> agentJars = TFile.scanFile(new File(TFile.getContextPath()), "((dd\\.?(\\d\\.?)*)|(voovan-((framework)|(common)).*)).?jar$");
-        File agentJar = null;
-
-        for (File jarFile : agentJars) {
-            if(agentJar == null){
-                agentJar = jarFile;
-            }
-
-            if(agentJar.lastModified() < jarFile.lastModified()){
-                agentJar = jarFile;
-            }
-        }
-
-        return agentJar;
-    }
-
-    /**
-     * 附加 Agentjar 到目标地址
-     * @param agentJarPath AgentJar 文件
-     * @throws IOException IO 异常
-     * @throws AttachNotSupportedException 附加指定进程失败
-     * @throws AgentLoadException Agent 加载异常
-     * @throws AgentInitializationException Agent 初始化异常
-     */
-    private void agentAttach(String agentJarPath) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException {
-        VirtualMachine vm = VirtualMachine.attach(Long.toString(TEnv.getCurrentPID()));
-        vm.loadAgent(agentJarPath);
-        instrumentation = DynamicAgent.getInstrumentation();
-        vm.detach();
     }
 
     /**

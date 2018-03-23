@@ -62,6 +62,11 @@ public class WebContext {
 	 */
 	private static Map<String, Object> ERROR_DEFINE = new HashMap<String, Object>();
 
+	static {
+		//加载默认配置
+		loadWebConfig();
+	}
+
 	/**
 	 *  accessLog 的文件路径
 	 */
@@ -128,9 +133,6 @@ public class WebContext {
 	 * @return WebServerConfig 对象
 	 */
 	public static WebServerConfig buildConfigFromMap(Map<String, Object> configMap){
-
-		//加载默认配置
-		loadWebConfig();
 
 		if(configMap.size() > 0 ) {
 			WebContext.WEB_CONFIG = configMap;

@@ -1,15 +1,16 @@
 package org.voovan.tools;
 
+import org.voovan.tools.hotswap.DynamicAgent;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import com.sun.tools.attach.AgentInitializationException;
+import com.sun.tools.attach.AgentLoadException;
+import com.sun.tools.attach.AttachNotSupportedException;
+import com.sun.tools.attach.VirtualMachine;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +27,6 @@ import java.util.jar.JarFile;
  * Licence: Apache v2 License
  */
 public class TEnv {
-
 	/**
 	 * 获取当前进程 PID
 	 * @return 当前进程 ID
@@ -97,6 +97,25 @@ public class TEnv {
 	public static StackTraceElement[] getStackElements() {
 		Throwable ex = new Throwable();
 		return ex.getStackTrace();
+	}
+
+	/**
+	 * 判断指定的 Class 是否在当前的线程栈中
+	 * @param clazzName 类对象
+	 * @param method 方法名
+	 * @return true: 在当前的线程栈中, false: 不在当前的线程栈中
+	 */
+	public static boolean classInCurrentStack(String clazzName, String method){
+		for(StackTraceElement stackTraceElement : getStackElements()){
+			if(clazzName!=null && stackTraceElement.getClassName().contains(clazzName)){
+				if(method == null || stackTraceElement.getMethodName().equals(method)){
+					return true;
+				}
+			} else {
+				continue;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -181,74 +200,6 @@ public class TEnv {
 	}
 
 	/**
-	 * 获取指定的 Class 的 URLClassLoader
-	 * 		如果指定的 Class 不是使用 URLClassLoader 加载的
-	 * 		则使用 ClassLoader.getSystemClassLoader()获取 JVM 的 ClassLoader
-	 * @param clazz Class 对象
-	 * @return URLClassLoader对象
-	 */
-	public static URLClassLoader getURLClassLoader(Class clazz){
-		if(clazz == null){
-			clazz = TEnv.class;
-		}
-
-		URLClassLoader urlClassLoader = null;
-		ClassLoader currentClassLoader = clazz.getClassLoader();
-		if(currentClassLoader instanceof URLClassLoader){
-			urlClassLoader = (URLClassLoader)currentClassLoader;
-		} else {
-			urlClassLoader = (URLClassLoader)ClassLoader.getSystemClassLoader();
-		}
-
-		return urlClassLoader;
-	}
-
-
-	/**
-	 * 为JVM加载一个jar包, 一个目录内的所有 jar 包 或者一个目录到 classpath
-	 * @param file 文件路径
-	 * @throws SecurityException  安全性异常
-	 * @throws NoSuchMethodException  无方法异常
-	 * @throws IOException IO异常
-	 */
-	public static void addClassPath(File file) throws NoSuchMethodException, SecurityException, IOException {
-		if(!file.exists()){
-			Logger.simple("[WARN] Method loadBinary, This ["+file.getCanonicalPath()+"] is not exists");
-		}
-
-		URLClassLoader urlClassLoader = getURLClassLoader(null);
-
-		try {
-			if (file.isDirectory()) {
-				List<File> subfiles = TFile.scanFile(file, "\\.jar$");
-				if(subfiles.size()>0){
-					for(File subFile :subfiles) {
-						addClassPath(subFile);
-					}
-				}else{
-					TReflect.invokeMethod(urlClassLoader, "addURL", file.toURI().toURL());
-				}
-			}else if(file.getPath().toLowerCase().endsWith(".jar")){
-				TReflect.invokeMethod(urlClassLoader, "addURL", file.toURI().toURL());
-			}
-		} catch (IOException | ReflectiveOperationException e) {
-			Logger.error("Load jar or class failed",e);
-		}
-	}
-
-	/**
-	 * 为JVM加载一个jar包 或者一个目录到 classpath
-	 * @param filePath  文件路径
-	 * @throws NoSuchMethodException 异常信息
-	 * @throws IOException 异常信息
-	 */
-	public static void addClassPath(String filePath) throws NoSuchMethodException, IOException {
-		File file = new File(filePath);
-		addClassPath(file);
-	}
-
-
-	/**
 	 * 从当前进程的ClassPath中寻找 Class
 	 * @param pattern  确认匹配的正则表达式
 	 * @param filters  过滤的 class, 满足这些条件的 class 才会被搜索到(注解,接口,继承的类)
@@ -260,6 +211,15 @@ public class TEnv {
 		List<String> classPaths = getClassPath();
 		ArrayList<Class> clazzes = new ArrayList<Class>();
 		for(String classPath : classPaths){
+
+			if(TString.isNullOrEmpty(classPath)){
+				continue;
+			}
+
+			if(!classPath.contains(userDir)) {
+				classPath = TFile.assemblyPath(userDir, classPath);
+			}
+
 			if(classPath.startsWith(userDir)) {
 				File classPathFile = new File(classPath);
 				if(classPathFile.exists() && classPathFile.isDirectory()){
@@ -418,8 +378,8 @@ public class TEnv {
 		//去除 javahome 的最后一个路径节点,扩大搜索范文
 		javaHome = javaHome.replaceAll("\\/[a-zA-z0-9\\_\\$]*$","");
 
-		for(URL url : getURLClassLoader(null).getURLs()){
-			String classPath = url.getPath();
+		String[] classPaths = System.getProperty("java.class.path").split(File.pathSeparator);
+		for(String classPath : classPaths){
 			if(!classPath.startsWith(javaHome)){
 				userClassPath.add(classPath);
 			}
@@ -448,7 +408,6 @@ public class TEnv {
 	 */
 	public static Class resourceToClass(String resourcePath) throws ClassNotFoundException {
 		String className = null;
-		URLClassLoader urlClassLoader = getURLClassLoader(null);
 
 		if(resourcePath.startsWith(File.separator)){
 			resourcePath = TString.removePrefix(resourcePath);
@@ -460,10 +419,9 @@ public class TEnv {
 		className = TString.fastReplaceAll(className, File.separator, ".");
 
 		try {
-
 			return Class.forName(className);
 		}catch (Exception ex) {
-			throw new ClassNotFoundException("load and define class "+className+" failed");
+			throw new ClassNotFoundException("load and define class " + className + " failed");
 		}
 	}
 
@@ -474,5 +432,59 @@ public class TEnv {
 	public static String getJavaHome(){
 		String sysLibPath = System.getProperty("sun.boot.library.path");
 		return sysLibPath.substring(0, sysLibPath.indexOf("/jre/lib"));
+	}
+
+	/**
+	 * 查找 AgentJar 文件
+	 * @return AgentJar 文件
+	 */
+	private static File findAgentJar(){
+		List<File> agentJars = TFile.scanFile(new File(TFile.getContextPath()), "((dd\\.?(\\d\\.?)*)|(voovan-((framework)|(common)).*)).?jar$");
+		File agentJar = null;
+
+		for (File jarFile : agentJars) {
+			if(agentJar == null){
+				agentJar = jarFile;
+			}
+
+			if(agentJar.lastModified() < jarFile.lastModified()){
+				agentJar = jarFile;
+			}
+		}
+
+		return agentJar;
+	}
+
+	/**
+	 * 附加 Agentjar 到目标地址
+	 * @param agentJarPath AgentJar 文件
+	 * @throws IOException IO 异常
+	 * @throws AttachNotSupportedException 附加指定进程失败
+	 * @throws AgentLoadException Agent 加载异常
+	 * @throws AgentInitializationException Agent 初始化异常
+	 */
+	public static Instrumentation agentAttach(String agentJarPath) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException {
+		if(agentJarPath==null){
+			File agentJar = findAgentJar();
+			if(agentJar != null && agentJar.exists()) {
+				agentJarPath = agentJar.getAbsolutePath();
+				Logger.info("[System] Choose an agent jar file: " + agentJarPath);
+			} else {
+				throw new FileNotFoundException("The agent jar file not found");
+			}
+		}
+
+		try {
+			VirtualMachine vm = VirtualMachine.attach(Long.toString(TEnv.getCurrentPID()));
+			vm.loadAgent(agentJarPath);
+			Instrumentation instrumentation = DynamicAgent.getInstrumentation();
+			vm.detach();
+			return instrumentation;
+		} catch(IOException e) {
+			if(e.getMessage().contains("attach to current VM")) {
+				e = new IOException("please use -Djdk.attach.allowAttachSelf=true with java command.", e);
+			}
+			throw e;
+		}
 	}
 }
