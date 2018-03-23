@@ -7,7 +7,7 @@ import org.voovan.http.server.MimeTools;
 import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
-import org.voovan.tools.THash;
+import org.voovan.tools.security.THash;
 import org.voovan.tools.TString;
 
 import java.io.File;

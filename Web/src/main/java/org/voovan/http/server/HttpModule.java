@@ -7,6 +7,9 @@ import org.voovan.tools.Chain;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * WebServer的模块
  *
@@ -19,6 +22,7 @@ import org.voovan.tools.reflect.TReflect;
 public abstract class HttpModule {
     private WebServer webServer;
     private HttpModuleConfig moduleConfig;
+    private Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
 
     /**
      * 获取WebServer
@@ -54,6 +58,49 @@ public abstract class HttpModule {
      */
     public Object getParamters(String name){
         return moduleConfig.getParameters().get(name);
+    }
+
+    /**
+     * 获取当前属性
+     * @param name 属性名
+     * @return 属性值
+     */
+    public Object getAttribute(String name) {
+        return attributes.get(name);
+    }
+
+    /**
+     * 判断当前属性是否存在
+     * @param name 属性名
+     * @return true: 存在, false: 不存在
+     */
+    public boolean containAttribute(String name) {
+        return attributes.containsKey(name);
+    }
+
+    /**
+     * 设置当前属性
+     * @param name	属性名
+     * @param value	属性值
+     */
+    public void setAttribute(String name,Object value) {
+        attributes.put(name, value);
+    }
+
+    /**
+     *  删除当前属性
+     * @param name	属性名
+     */
+    public void removeAttribute(String name) {
+        attributes.remove(name);
+    }
+
+    /**
+     *  返回当前的属性Map
+     *  @return 属性Map
+     */
+    public Map<String,Object> attribute() {
+        return attributes;
     }
 
     /**

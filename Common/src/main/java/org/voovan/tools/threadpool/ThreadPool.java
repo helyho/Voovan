@@ -1,6 +1,5 @@
 package org.voovan.tools.threadpool;
 
-import org.voovan.Global;
 import org.voovan.tools.TProperties;
 
 import java.util.Timer;
@@ -27,7 +26,7 @@ public class ThreadPool {
 	 * @return 线程池最小活动线程数
 	 */
 	public static int getMinPoolSize() {
-		int minPoolTimes = TProperties.getInt(Global.getFrameworkConfigFile(), "ThreadPoolMinSize");
+		int minPoolTimes = TProperties.getInt("framework", "ThreadPoolMinSize");
 		MIN_POOL_SIZE = (minPoolTimes == 0 ? 2 : minPoolTimes) * cpuCoreCount;
 		MIN_POOL_SIZE = MIN_POOL_SIZE < 10 ? 10 : MIN_POOL_SIZE;
 		return MIN_POOL_SIZE;
@@ -38,7 +37,7 @@ public class ThreadPool {
 	 * @return 线程池最大活动线程数
 	 */
 	public static int getMaxPoolSize() {
-		int maxPoolTimes = TProperties.getInt(Global.getFrameworkConfigFile(), "ThreadPoolMaxSize");
+		int maxPoolTimes = TProperties.getInt("framework", "ThreadPoolMaxSize");
 		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 100 : maxPoolTimes) * cpuCoreCount;
 		return MAX_POOL_SIZE;
 	}

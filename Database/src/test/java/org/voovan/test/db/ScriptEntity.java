@@ -5,7 +5,7 @@ import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.annotation.PrimaryKey;
 import org.voovan.db.recorder.annotation.Table;
 import org.voovan.tools.TFile;
-import org.voovan.tools.THash;
+import org.voovan.tools.security.THash;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;

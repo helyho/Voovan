@@ -42,6 +42,7 @@ public class WebServerConfig {
     private int hotSwapInterval = 0;
     private String lifeCycleClass = null;
     private String pauseURL = null;
+    private String scanAopPackage = null;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
@@ -209,6 +210,11 @@ public class WebServerConfig {
     public List<HttpModuleConfig> getModuleonfigs() {
         return moduleConfigs;
     }
+
+    public String getScanAopPackage() {
+        return scanAopPackage;
+    }
+
     /**
      * 使用列表初始话过滤器链
      *

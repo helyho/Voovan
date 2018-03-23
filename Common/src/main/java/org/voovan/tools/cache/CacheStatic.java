@@ -28,8 +28,8 @@ public class CacheStatic {
 
     private static MemcachedClientBuilder memcachedClientBuilder = null;
     private static JedisPool redisPool = null;
-    private static File memecacheConfigFile = new File("./classes/memcached.properties");
-    private static File redisConfigFile = new File("./classes/redis.properties");
+////    private static File memecacheConfigFile = new File("./classes/memcached.properties");
+//    private static File redisConfigFile = new File("./classes/redis.properties");
 
 
     /**
@@ -39,10 +39,10 @@ public class CacheStatic {
     public static MemcachedClientBuilder getMemcachedPool(){
         if(memcachedClientBuilder == null) {
             try {
-                String host = TProperties.getString(memecacheConfigFile, "Host");
-                int port = TProperties.getInt(memecacheConfigFile, "Port");
-                int timeout = TProperties.getInt(memecacheConfigFile, "Timeout");
-                int poolSize = TProperties.getInt(memecacheConfigFile, "PoolSize");
+                String host = TProperties.getString("memcached", "Host");
+                int port = TProperties.getInt("memcached", "Port");
+                int timeout = TProperties.getInt("memcached", "Timeout");
+                int poolSize = TProperties.getInt("memcached", "PoolSize");
 
                 if(host==null){
                     return null;
@@ -74,11 +74,11 @@ public class CacheStatic {
     public static JedisPool getRedisPool(){
         if(redisPool == null) {
             try {
-                String host = TProperties.getString(redisConfigFile, "Host");
-                int port = TProperties.getInt(redisConfigFile, "Port");
-                int timeout = TProperties.getInt(redisConfigFile, "Timeout");
-                String password = TProperties.getString(redisConfigFile, "Password");
-                int poolSize = TProperties.getInt(redisConfigFile, "PoolSize");
+                String host = TProperties.getString("redis", "Host");
+                int port = TProperties.getInt("redis", "Port");
+                int timeout = TProperties.getInt("redis", "Timeout");
+                String password = TProperties.getString("redis", "Password");
+                int poolSize = TProperties.getInt("redis", "PoolSize");
 
                 if(host==null){
                     return null;

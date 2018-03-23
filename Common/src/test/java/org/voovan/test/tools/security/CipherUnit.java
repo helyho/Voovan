@@ -1,7 +1,7 @@
-package org.voovan.test.tools;
+package org.voovan.test.tools.security;
 
-import org.voovan.tools.Cipher;
-import org.voovan.tools.TBase64;
+import org.voovan.tools.security.Cipher;
+import org.voovan.tools.security.TBase64;
 import org.voovan.tools.log.Logger;
 import junit.framework.TestCase;
 

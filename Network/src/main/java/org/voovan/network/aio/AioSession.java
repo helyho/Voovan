@@ -126,7 +126,7 @@ public class AioSession extends IoSession<AioSocket> {
                         while(isConnected()) {
                             //这里会阻赛当前的发送线程
                             try {
-                                Integer sentLength = sendResult.get(socketContext().getSendTimeout(), TimeUnit.NANOSECONDS);
+                                Integer sentLength = sendResult.get(socketContext().getSendTimeout(), TimeUnit.MILLISECONDS);
                                 if (sentLength != null) {
                                     totalSendByte += sentLength;
                                     break;

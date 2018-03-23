@@ -1,10 +1,7 @@
 package org.voovan.tools.reflect;
 
 
-import org.voovan.tools.TDateTime;
-import org.voovan.tools.TObject;
-import org.voovan.tools.TString;
-import org.voovan.tools.TUnsafe;
+import org.voovan.tools.*;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.annotation.NotJSON;
 import org.voovan.tools.reflect.annotation.NotSerialization;
@@ -212,10 +209,15 @@ public class TReflect {
 		Field[] fields = getFields(obj.getClass());
 		for (Field field : fields) {
 			if (!Modifier.isStatic(field.getModifiers()) &&
-					field.getAnnotation(NotJSON.class)==null &&
 					field.getAnnotation(NotSerialization.class)==null) {
+
+				if(field.getAnnotation(NotJSON.class)!=null && TEnv.classInCurrentStack(".tools.json.", null)) {
+					continue;
+				}
+
 				Object value = getFieldValue(obj, field.getName());
 				result.put(field, value);
+
 			}
 		}
 		return result;
@@ -485,12 +487,32 @@ public class TReflect {
 	 */
 	public static <T> T newInstance(Class<T> clazz, Object ...args)
 			throws ReflectiveOperationException {
+
 		if(args==null){
 			args = new Object[0];
 		}
+
+		Class targetClazz = clazz;
+
+		//不可构造的类型使用最常用的类型
+		if(isImpByInterface(clazz, List.class) && (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers()))){
+			targetClazz = ArrayList.class;
+		}
+
+		//不可构造的类型使用最常用的类型
+		if(isImpByInterface(clazz, Set.class) && (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers()))){
+			targetClazz = HashSet.class;
+		}
+
+		//不可构造的类型使用最常用的类型
+		if(isImpByInterface(clazz, Map.class) && (Modifier.isAbstract(clazz.getModifiers()) && Modifier.isInterface(clazz.getModifiers()))){
+			targetClazz = HashMap.class;
+		}
+
+
 		Class<?>[] parameterTypes = getArrayClasses(args);
 
-		StringBuilder markBuilder = new StringBuilder(clazz.getCanonicalName());
+		StringBuilder markBuilder = new StringBuilder(targetClazz.getCanonicalName());
 		for(Class<?> paramType : parameterTypes){
 			markBuilder.append("$").append(paramType.getCanonicalName());
 		}
@@ -504,12 +526,12 @@ public class TReflect {
 			if (constructor == null){
 				if (args.length == 0) {
 					try {
-						constructor = clazz.getConstructor();
+						constructor = targetClazz.getConstructor();
 					}catch (Exception e) {
-						return (T) TUnsafe.getUnsafe().allocateInstance(clazz);
+						return (T) TUnsafe.getUnsafe().allocateInstance(targetClazz);
 					}
 				} else {
-					constructor = clazz.getConstructor(parameterTypes);
+					constructor = targetClazz.getConstructor(parameterTypes);
 				}
 
 				constructors.put(mark, constructor);
@@ -522,10 +544,10 @@ public class TReflect {
 			if(constructor==null) {
 
 				//缓存构造函数
-				mark = clazz.getCanonicalName();
+				mark = targetClazz.getCanonicalName();
 				Constructor[] constructors =  constructorArrays.get(mark);
 				if(constructors == null){
-					constructors = clazz.getConstructors();
+					constructors = targetClazz.getConstructors();
 					constructorArrays.put(mark, constructors);
 				}
 
@@ -577,7 +599,7 @@ public class TReflect {
 
 			//尝试使用 Unsafe 分配
 			try{
-				return allocateInstance(clazz);
+				return (T)allocateInstance(targetClazz);
 			}catch(Exception ex) {
 				throw e;
 			}
@@ -717,10 +739,6 @@ public class TReflect {
 		}
 		//Map 类型
 		else if(isImpByInterface(clazz, Map.class)){
-			//不可构造的类型使用最常用的类型
-			if(Modifier.isAbstract(clazz.getModifiers()) && Modifier.isInterface(clazz.getModifiers())){
-				clazz = HashMap.class;
-			}
 			Map mapObject = (Map)newInstance(clazz);
 
 			if(genericType!=null) {
@@ -753,10 +771,6 @@ public class TReflect {
 		}
 		//Collection 类型
 		else if(isImpByInterface(clazz, Collection.class)){
-			//不可构造的类型使用最常用的类型
-			if(Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers())){
-				clazz = ArrayList.class;
-			}
 			Collection collectionObject = (Collection)newInstance(clazz);
 
 			if(singleValue!=null){
@@ -902,6 +916,9 @@ public class TReflect {
 		}
 		//对 BigDecimal 类型的处理
 		else if (obj instanceof BigDecimal) {
+			if(BigDecimal.ZERO.compareTo((BigDecimal)obj)==0){
+				obj = BigDecimal.ZERO;
+			}
 			mapResult.put(null, obj.toString());
 		}
 		//对 Map 类型的处理
@@ -981,7 +998,7 @@ public class TReflect {
 			return false;
 		}
 
-		return false;
+		return result;
 	}
 
 
@@ -1015,7 +1032,7 @@ public class TReflect {
 			return false;
 		}
 
-		return false;
+		return result;
 	}
 
 	/**

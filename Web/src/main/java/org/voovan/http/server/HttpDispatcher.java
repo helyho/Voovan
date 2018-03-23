@@ -126,7 +126,7 @@ public class HttpDispatcher {
 	public static String fixRoutePath(String routePath){
 		//对于结束符为"/"的路径,清理这个符号,以便更好完成的匹配
 		if(routePath.endsWith("/")){
-			routePath = TString.removePrefix(routePath);
+			routePath = TString.removeSuffix(routePath);
 		}
 
 		//对于起始符不为"/"的路径,补充这个符号,以便更好完成的匹配

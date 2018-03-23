@@ -3,7 +3,7 @@ package org.voovan.network.filter;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
-import org.voovan.tools.Cipher;
+import org.voovan.tools.security.Cipher;
 import org.voovan.tools.log.Logger;
 
 /**

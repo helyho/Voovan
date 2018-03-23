@@ -3,8 +3,6 @@ package org.voovan.tools;
 import org.voovan.Global;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
-import sun.misc.Cleaner;
-
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -33,7 +31,6 @@ public class TByteBuffer {
     public static Field limitField = ByteBufferField("limit");
     public static Field capacityField = ByteBufferField("capacity");
     public static Field attField = ByteBufferField("att");
-    public static Field cleanerField = ByteBufferField("cleaner");
 
     private static Constructor getConsturctor(){
         try {
@@ -71,8 +68,7 @@ public class TByteBuffer {
 
             ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
 
-            Cleaner cleaner = Cleaner.create(byteBuffer, deallocator);
-            cleanerField.set(byteBuffer, cleaner);
+            Cleaner.register(byteBuffer, deallocator);
 
             return byteBuffer;
 
