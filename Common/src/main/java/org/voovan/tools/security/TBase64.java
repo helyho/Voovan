@@ -1,8 +1,7 @@
-package org.voovan.tools;
+package org.voovan.tools.security;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Base64;
 
 /**
  * Base64算法
@@ -122,9 +121,9 @@ public class TBase64 {
                     break;
                 }
 
-                throw new IllegalArgumentException(
-                        "Illegal base64 character " +
-                                Integer.toString(src[sp - 1], 16));
+				throw new IllegalArgumentException(
+						"Illegal base64 character " +
+								Integer.toString(src[sp - 1], 16));
             }
             bits |= (b << shiftto);
             shiftto -= 6;
