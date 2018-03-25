@@ -38,10 +38,8 @@ public class WebServerDemo {
 		//性能测试请求
 		webServer.post("/upload", new HttpRouter(){
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				req.saveUploadedFile("file", "./upload_file.xml");
-				if (new File("./upload_file.xml").exists()) {
-					resp.write("Success");
-				}
+				req.saveUploadedFile("file", "./" + req.getParameter("file"));
+                resp.write("Success");
 			}
 		});
 
