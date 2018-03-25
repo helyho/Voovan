@@ -334,8 +334,7 @@ public class HttpParser {
 
 
 							ByteBuffer bodyByteBuffer = ByteBuffer.allocate(index - 2);
-							int readSize = byteBufferChannel.readHead(bodyByteBuffer);
-							index = index - readSize;
+							byteBufferChannel.readHead(bodyByteBuffer);
 							partMap.put(BODY_VALUE, bodyByteBuffer.array());
 						} else {
 
@@ -348,15 +347,38 @@ public class HttpParser {
 									"upload",
 									TString.assembly("VOOVAN_", System.currentTimeMillis(), ".", fileExtName));
 
-							//等待数据
-							while (byteBufferChannel.waitData(boundary.getBytes(), timeOut)){
-								index = byteBufferChannel.indexOf(boundary.getBytes("UTF-8"));
+							//文件是否接收完成
+							boolean isFileRecvDone = false;
+							while (true){
+								byteBufferChannel.getByteBuffer();
+								int dataLength = byteBufferChannel.size();
+								//等待数据
+								if(byteBufferChannel.waitData(boundary.getBytes(), 1)){
+									isFileRecvDone = true;
+								}
+								byteBufferChannel.compact();
 
-								int length = index == -1 ? byteBufferChannel.size() : (index - 2);
-								if(index > 0 ) {
-									byteBufferChannel.saveToFile(localFileName, index - 2);
+								if(!isFileRecvDone) {
+									if(byteBufferChannel.size() > 1024*10) {
+										byteBufferChannel.saveToFile(localFileName, dataLength);
+									} else {
+										continue;
+									}
+								} else {
+									index = byteBufferChannel.indexOf(boundary.getBytes("UTF-8"));
+									int length = index == -1 ? byteBufferChannel.size() : (index - 2);
+									if (index > 0) {
+										byteBufferChannel.saveToFile(localFileName, length);
+									}
+								}
+
+
+								if(!isFileRecvDone){
+                                    TEnv.sleep(500);
+								} else {
 									break;
 								}
+
 							}
 
 							if(index == -1){

@@ -459,7 +459,7 @@ public class ByteBufferChannel {
 	/**
 	 * 等待期望的数据长度
 	 * @param length  期望的数据长度
-	 * @param timeout 超时时间,单位: 秒
+	 * @param timeout 超时时间,单位: 毫秒
 	 * @return true: 具备期望长度的数据, false: 等待数据超时
 	 */
 	public boolean waitData(int length,int timeout){
@@ -472,7 +472,7 @@ public class ByteBufferChannel {
 				return true;
 			}
 			timeout -- ;
-			TEnv.sleep(TimeUnit.NANOSECONDS, 1);
+			TEnv.sleep(1);
 		}
 		return false;
 	}
@@ -481,7 +481,7 @@ public class ByteBufferChannel {
 	/**
 	 * 等待收到期望的数据
 	 * @param mark  期望出现的数据
-	 * @param timeout 超时时间,单位: 秒
+	 * @param timeout 超时时间,单位: 毫秒
 	 * @return true: 具备期望长度的数据, false: 等待数据超时
 	 */
 	public boolean waitData(byte[] mark, int timeout){
@@ -848,15 +848,22 @@ public class ByteBufferChannel {
 			randomAccessFile.seek(randomAccessFile.length());
 
 			int loadSize = bufferSize;
+			ByteBuffer tempByteBuffer = ByteBuffer.wrap(buffer);
 			while (length > 0) {
 				loadSize = length > bufferSize ? bufferSize : new Long(length).intValue();
-				get(buffer, 0, loadSize);
+
+				tempByteBuffer.limit(loadSize);
+
+				this.readHead(tempByteBuffer);
+
 				randomAccessFile.write(buffer, 0, loadSize);
 
 				length = length - loadSize;
+
+				tempByteBuffer.clear();
 			}
 
-			compact();
+//			System.out.println(filePath);
 		} catch (IOException e) {
 			throw e;
 		} finally {
