@@ -487,7 +487,16 @@ public class TFile {
 	 */
 	public static boolean moveFile(File src, File dest) throws IOException{
 		new File(TFile.getFileDirectory(dest.getCanonicalPath())).mkdirs();
-		return src.renameTo(dest);
+		if(src.renameTo(dest)){
+			return true;
+		} else {
+			if(copyFile(src, dest)){
+				return true;
+			} else {
+				return false;
+			}
+		}
+
 	}
 
 	/**
@@ -506,24 +515,47 @@ public class TFile {
 
 	/**
 	 * 复制文件
-	 * @param sourceFile 源文件
-	 * @param targetFile 目标文件
+	 * @param src 源文件
+	 * @param dest 目标文件
 	 */
-	public static void copyFile(File sourceFile, File targetFile) {
-		int loopCount = 0;
-		mkdir(targetFile.getPath());
+	public static boolean copyFile(File src, File dest) {
+		RandomAccessFile srcFileAccess = null;
+		RandomAccessFile destFileAccess = null;
 		try {
-			while(true) {
-				byte[] tmpbytes = TFile.loadFile(sourceFile, loopCount*10, (loopCount+1)*10);
-				if(tmpbytes == null){
-					break;
+			int bufferSize = 1024 * 512;
+			byte[] buffer = new byte[bufferSize];
+			long srcLength = src.length();
+			srcFileAccess = new RandomAccessFile(src, "r");
+			destFileAccess = new RandomAccessFile(dest, "rwd");
+			while (srcLength > 0) {
+				int loadSize = srcLength >= bufferSize ? bufferSize : (int) srcLength;
+				loadSize = srcFileAccess.read(buffer, 0, loadSize);
+				destFileAccess.write(buffer, 0, loadSize);
+				srcLength = srcLength - loadSize;
+
+				if (srcLength == 0) {
+					if (dest.exists()) {
+						dest.setLastModified(src.lastModified());
+						src.delete();
+					} else {
+						return false;
+					}
+					return true;
 				}
-				TFile.writeFile(targetFile, tmpbytes);
-				loopCount ++;
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+			return false;
+		} finally {
+			try {
+				srcFileAccess.close();
+				destFileAccess.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
+
+		return false;
 	}
 
 	/**
