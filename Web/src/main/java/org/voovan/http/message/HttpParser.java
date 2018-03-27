@@ -343,7 +343,8 @@ public class HttpParser {
 
 							//拼文件名
 							String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
-									"dd.webserver",
+									"voovan",
+									"webserver",
 									"upload",
 									TString.assembly("VOOVAN_", System.currentTimeMillis(), ".", fileExtName));
 
@@ -374,7 +375,7 @@ public class HttpParser {
 
 
 								if(!isFileRecvDone){
-                                    TEnv.sleep(500);
+									TEnv.sleep(500);
 								} else {
 									break;
 								}

@@ -342,7 +342,8 @@ public class Body {
 
 				//拼文件名
 				String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
-						"dd.webserver",
+						"voovan",
+						"webserver",
 						"body",
 						TString.assembly("VOOVAN_", TString.generateId(this), ".", fileName));
 
