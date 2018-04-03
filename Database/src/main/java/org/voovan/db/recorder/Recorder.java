@@ -16,8 +16,7 @@ import org.voovan.db.JdbcOperate;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 数据库记录操作类
@@ -352,7 +351,8 @@ public class Recorder {
 
         //Set拼接 sql
         Field[] fields = TReflect.getFields(obj.getClass());
-        for(Field field : fields){
+        TreeSet<Field> fieldsSet = new TreeSet<Field>(Arrays.asList(fields));
+        for(Field field : fieldsSet){
 
             String sqlFieldName = getSqlFieldName(jdbcOperate, field);
             String fieldName = field.getName();
@@ -427,7 +427,8 @@ public class Recorder {
 
         //字段拼接 sql
         Field[] fields = TReflect.getFields(obj.getClass());
-        for(Field field : fields){
+        TreeSet<Field> fieldsSet = new TreeSet<Field>(Arrays.asList(fields));
+        for(Field field : fieldsSet){
 
             String sqlFieldName = getSqlFieldName(jdbcOperate, field);
             String fieldName = field.getName();
@@ -533,8 +534,9 @@ public class Recorder {
 
         if (query == null) {
             Field[] fields = TReflect.getFields(obj.getClass());
+            TreeSet<Field> fielsSet = new TreeSet<Field>(Arrays.asList(fields));
             //字段拼接 sql
-            for (Field field : fields) {
+            for (Field field : fielsSet) {
 
                 String sqlFieldName = getSqlFieldName(jdbcOperate, field);
                 String fieldName = field.getName();
@@ -700,7 +702,9 @@ public class Recorder {
      */
     public static <R> R buildUpdateBaseObject(R data, String ... updateFilds) throws ReflectiveOperationException {
         List<String> updateFieldList = TObject.asList(updateFilds);
-        for(Field field : TReflect.getFields(data.getClass())){
+        Field[] fields = TReflect.getFields(data.getClass());
+        TreeSet<Field> fieldsSet = new TreeSet<Field>(Arrays.asList(fields));
+        for(Field field : fieldsSet){
             //主键不更新
             if(field.getAnnotation(PrimaryKey.class)==null && !updateFieldList.contains(field.getName())) {
                 TReflect.setFieldValue(data, field.getName(), null);
