@@ -254,7 +254,7 @@ public class TEnv {
 				if(TString.regexMatch(fileName,"\\$\\d\\.class")>0){
 					continue;
 				}
-				fileName = fileName.replace(rootfile.getCanonicalPath() + "/", "");
+				fileName = fileName.replace(rootfile.getCanonicalPath() + File.separator, "");
 				try {
 					Class clazz = resourceToClass(fileName);
 					if(TReflect.classChecker(clazz, filters)) {
