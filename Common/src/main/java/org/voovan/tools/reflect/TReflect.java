@@ -48,7 +48,7 @@ public class TReflect {
 		Field[] fields = fieldArrays.get(mark);
 
 		if(fields == null){
-			ArrayList<Field> fieldArray = new ArrayList<Field>();
+			HashSet<Field> fieldArray = new HashSet<Field>();
 			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
 				Field[] tmpFields = clazz.getDeclaredFields();
 				fieldArray.addAll(Arrays.asList(tmpFields));
@@ -273,7 +273,7 @@ public class TReflect {
 		Method[] methods = methodArrays.get(mark);
 
 		if (methods==null){
-			ArrayList<Method> methodList = new ArrayList<Method>();
+			HashSet<Method> methodList = new HashSet<Method>();
 			Method[] allMethods = getMethods(clazz, name);
 			for (Method method : allMethods) {
 				if (method.getParameterTypes().length == paramCount) {
@@ -302,7 +302,7 @@ public class TReflect {
 		if(methodArrays.containsKey(mark)){
 			return methodArrays.get(mark);
 		} else {
-			List<Method> methodList = new ArrayList<Method>();
+			HashSet<Method> methodList = new HashSet<Method>();
 			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
 				Method[] tmpMethods = clazz.getDeclaredMethods();
 				methodList.addAll(Arrays.asList(tmpMethods));
@@ -330,7 +330,7 @@ public class TReflect {
 		if(methodArrays.containsKey(mark)){
 			return methodArrays.get(mark);
 		} else {
-			ArrayList<Method> methodList = new ArrayList<Method>();
+			HashSet<Method> methodList = new HashSet<Method>();
 			Method[] allMethods = getMethods(clazz);
 			for (Method method : allMethods) {
 				if (method.getName().equals(name))
@@ -1081,7 +1081,7 @@ public class TReflect {
 			return null;
 		}
 
-		ArrayList<Class> classes = new ArrayList<Class>();
+		HashSet<Class> classes = new HashSet<Class>();
 
 		Class<?> superClass = type;
 		do{
