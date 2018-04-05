@@ -52,10 +52,10 @@ public class RecordTest extends TestCase{
     public void test_Query() throws RecorderException {
 
         ScriptEntity scriptEntity = new ScriptEntity();
-        scriptEntity.setPackagePath("org.hocate.test.main");
+        scriptEntity.setPackagePath("org.hocate.test");
 
         //构造查询条件
-        Query query = Query.newInstance().addAnd("packagePath").addOrder(true, "id").page(2,10);
+        Query query = Query.newInstance().addResult("version").addAnd("packagePath").addOrder(true, "id").page(2,10);
 
         //查询测试
 //        System.out.println(new Recorder(new JdbcOperate(dataSource), false).query("sc_script", scriptEntity, query));
@@ -71,10 +71,10 @@ public class RecordTest extends TestCase{
 
         ScriptEntity scriptEntity = new ScriptEntity();
         scriptEntity.setId(1);
-        scriptEntity.setPackagePath("org.hocate.test");
+        scriptEntity.setPackagePath("org.hocate.test.main");
 
         //更新测试
-        System.out.println(new Recorder(new JdbcOperate(dataSource), false).update(scriptEntity, Query.newInstance().addAnd("id")));
+        System.out.println(new Recorder(new JdbcOperate(dataSource), false).update(scriptEntity, Query.newInstance().addResult("packagePath").addAnd("id")));
     }
 
     /**
@@ -101,7 +101,7 @@ public class RecordTest extends TestCase{
     public void test_Delete() throws RecorderException {
 
         ScriptEntity scriptEntity = new ScriptEntity();
-        scriptEntity.setId(123);
+        scriptEntity.setId(100);
 
         //更新测试
         System.out.println(new Recorder(new JdbcOperate(dataSource), false).delete(scriptEntity, Query.newInstance().addAnd("id")));

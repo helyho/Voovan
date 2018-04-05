@@ -351,8 +351,8 @@ public class Recorder {
 
         //Set拼接 sql
         Field[] fields = TReflect.getFields(obj.getClass());
-        TreeSet<Field> fieldsSet = new TreeSet<Field>(Arrays.asList(fields));
-        for(Field field : fieldsSet){
+
+        for(Field field : fields){
 
             String sqlFieldName = getSqlFieldName(jdbcOperate, field);
             String fieldName = field.getName();
@@ -427,8 +427,8 @@ public class Recorder {
 
         //字段拼接 sql
         Field[] fields = TReflect.getFields(obj.getClass());
-        TreeSet<Field> fieldsSet = new TreeSet<Field>(Arrays.asList(fields));
-        for(Field field : fieldsSet){
+
+        for(Field field : fields){
 
             String sqlFieldName = getSqlFieldName(jdbcOperate, field);
             String fieldName = field.getName();
@@ -703,8 +703,8 @@ public class Recorder {
     public static <R> R buildUpdateBaseObject(R data, String ... updateFilds) throws ReflectiveOperationException {
         List<String> updateFieldList = TObject.asList(updateFilds);
         Field[] fields = TReflect.getFields(data.getClass());
-        TreeSet<Field> fieldsSet = new TreeSet<Field>(Arrays.asList(fields));
-        for(Field field : fieldsSet){
+
+        for(Field field : fields){
             //主键不更新
             if(field.getAnnotation(PrimaryKey.class)==null && !updateFieldList.contains(field.getName())) {
                 TReflect.setFieldValue(data, field.getName(), null);

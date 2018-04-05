@@ -22,7 +22,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 DROP TABLE IF EXISTS `sc_script`;
 CREATE TABLE `sc_script` (
-  `id` int(11) NOT NULL DEFAULT '0',
+  `id` int(11) unsigned zerofill NOT NULL AUTO_INCREMENT,
   `packagePath` varchar(500) COLLATE utf8_bin DEFAULT NULL,
   `version` decimal(10,3) DEFAULT NULL,
   `sourcePath` varchar(500) COLLATE utf8_bin DEFAULT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE `sc_script` (
   `fileDate` bigint(20) DEFAULT NULL,
   `canReload` int(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 -- ----------------------------
 -- Records of sc_script
