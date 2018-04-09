@@ -534,9 +534,8 @@ public class Recorder {
 
         if (query == null) {
             Field[] fields = TReflect.getFields(obj.getClass());
-            TreeSet<Field> fielsSet = new TreeSet<Field>(Arrays.asList(fields));
             //字段拼接 sql
-            for (Field field : fielsSet) {
+            for (Field field : fields) {
 
                 String sqlFieldName = getSqlFieldName(jdbcOperate, field);
                 String fieldName = field.getName();
