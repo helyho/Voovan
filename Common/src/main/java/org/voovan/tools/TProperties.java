@@ -4,6 +4,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Properties;
 
 /**
@@ -238,6 +239,20 @@ public class TProperties {
 		Properties properites = getProperties(fileName);
 		properites.setProperty(name, value);
 		properites.store(new FileOutputStream(TString.assembly("./classes/", fileName, ".properties")), null);
+	}
+
+	/**
+	 * 清空 指定文件的 Properites 缓存
+	 * @param fileName 文件名, 可以是完整文件名,也可以是不带扩展名的文件名
+	 */
+	public static void clear(String fileName){
+		Iterator<File> iterator = propertiesCache.keySet().iterator();
+		while(true){
+			File file = iterator.next();
+			if (file.getName().startsWith(fileName)){
+				iterator.remove();
+			}
+		}
 	}
 
 	/**
