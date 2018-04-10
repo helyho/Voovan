@@ -145,7 +145,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
 
     /**
      * 设置最失效对象检查周期
-     * @param interval 检查周期
+     * @param interval 检查周期, 单位:毫秒, 小于零不做超时处理
      * @return CachedHashMap 对象
      */
     public CachedHashMap<K, V> interval(int interval) {
@@ -166,27 +166,28 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
 
     public CachedHashMap<K, V> create(){
         final CachedHashMap cachedHashMap = this;
-        wheelTimer.addTask(new HashWheelTask() {
-            @Override
-            public void run() {
-                if(!cachedHashMap.getCacheMark().isEmpty()) {
-                    //清理过期的
-                    for (TimeMark timeMark : (TimeMark[]) cachedHashMap.getCacheMark().values().toArray(new TimeMark[0])) {
-                        if (timeMark.isExpire()) {
-                            if (autoRemove) {
-                                cachedHashMap.remove(timeMark.getKey());
-                                cachedHashMap.cacheMark.remove(timeMark.getKey());
-                            } else if (cachedHashMap.getSupplier() != null) {
-                                cachedHashMap.createCache(timeMark.getKey(), cachedHashMap.supplier);
-                                timeMark.refresh(true);
+        if(interval > 1) {
+            wheelTimer.addTask(new HashWheelTask() {
+                @Override
+                public void run() {
+                    if (!cachedHashMap.getCacheMark().isEmpty()) {
+                        //清理过期的
+                        for (TimeMark timeMark : (TimeMark[]) cachedHashMap.getCacheMark().values().toArray(new TimeMark[0])) {
+                            if (timeMark.isExpire()) {
+                                if (autoRemove) {
+                                    cachedHashMap.remove(timeMark.getKey());
+                                    cachedHashMap.cacheMark.remove(timeMark.getKey());
+                                } else if (cachedHashMap.getSupplier() != null) {
+                                    cachedHashMap.createCache(timeMark.getKey(), cachedHashMap.supplier);
+                                    timeMark.refresh(true);
+                                }
                             }
                         }
+                        fixSize();
                     }
-                    fixSize();
                 }
-            }
-        }, interval);
-
+            }, interval);
+        }
         return this;
     }
 
