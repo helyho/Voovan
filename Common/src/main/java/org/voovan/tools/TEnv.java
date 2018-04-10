@@ -439,7 +439,7 @@ public class TEnv {
 	 * @return AgentJar 文件
 	 */
 	private static File findAgentJar(){
-		List<File> agentJars = TFile.scanFile(new File(TFile.getContextPath()), "((dd*?(\\d\\.?)*)|(voovan-((framework)|(common)).*)).?jar$");
+		List<File> agentJars = TFile.scanFile(new File(TFile.getContextPath()), "((dd[^a-zA-Z]?(\\d\\.?)*)|(voovan-((framework)|(common)).*)).?jar$");
 		File agentJar = null;
 
 		for (File jarFile : agentJars) {

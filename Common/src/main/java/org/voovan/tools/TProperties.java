@@ -247,7 +247,7 @@ public class TProperties {
 	 */
 	public static void clear(String fileName){
 		Iterator<File> iterator = propertiesCache.keySet().iterator();
-		while(true){
+		while(iterator.hasNext()){
 			File file = iterator.next();
 			if (file.getName().startsWith(fileName)){
 				iterator.remove();
