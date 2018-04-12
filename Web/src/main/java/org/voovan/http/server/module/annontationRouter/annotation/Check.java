@@ -18,39 +18,39 @@ public @interface Check {
 
     /**
      * 信息
-     * @return
+     * @return 信息
      */
     String response() default "null";
 
     /**
      * 响应方法
      * 形式类似 classpath#method
-     * @return
+     * @return 响应方法
      */
     String responseMethod() default "null";
 
     /**
      * 数据值
-     * @return
+     * @return 数据值
      */
     String value() default "null";
 
     /**
      * 参数值处理方法
      * 形式类似 classpath#method
-     * @return
+     * @return 参数值处理方法
      */
     String valueMethod() default "null";
 
     /**
      * 参数名称
-     * @return
+     * @return 参数名称
      */
     String name() default "null";
 
     /**
      * 数据来源
-     * @return
+     * @return 数据来源
      */
     Source Source() default Source.REQ_PARAM;
 

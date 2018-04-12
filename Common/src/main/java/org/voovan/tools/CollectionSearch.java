@@ -36,8 +36,11 @@ public class CollectionSearch<T> {
      * 静态构造方法
      *
      * @param collection 将被用于筛选 Collection 对象
+     * @param <P> 集合元素的范型
      * @return CollectionSearch 对象
+     *
      */
+
     public static <P> CollectionSearch<P> newInstance(Collection<P> collection) {
         return new CollectionSearch<P>(collection);
     }
@@ -77,6 +80,7 @@ public class CollectionSearch<T> {
      * 增加一个筛选条件
      *
      * @param field 被筛选字段
+     * @param operate 操作符美居
      * @param value 筛选的值
      * @return CollectionSearch 对象
      */
@@ -378,7 +382,8 @@ public class CollectionSearch<T> {
 
     /**
      * 筛选数据
-     *
+     * @param fieldFilters 字段集合
+     * @param <R> 范型类型
      * @return 筛选得到的数据
      */
     public <R> List<R> fields(String... fieldFilters) {
@@ -394,7 +399,8 @@ public class CollectionSearch<T> {
 
     /**
      * 筛选数据
-     *
+     * @param function map 的业务函数 function 对象
+     * @param <R> 范型类型
      * @return 筛选得到的数据
      */
     public <R> List<R> map(Function<T, R> function) {
@@ -405,7 +411,8 @@ public class CollectionSearch<T> {
 
     /**
      * 筛选数据,并扁平化操作
-     *
+     * @param function flatMap 的业务函数 function 对象
+     * @param <R> 范型类型
      * @return 筛选得到的数据
      */
     public <R> List<R> flatMap(Function<T, R> function) {

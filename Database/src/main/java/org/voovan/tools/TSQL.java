@@ -547,8 +547,9 @@ public class TSQL {
 
 	/**
 	 * 获取当前连接的数据库类型
+	 *
+	 * @param connection 连接对象
 	 * @return 数据库类型
-	 * @throws SQLException SQL异常
 	 */
 	public static DataBaseType getDataBaseType(Connection connection) {
 		try {
@@ -576,7 +577,7 @@ public class TSQL {
 	 * 包括 SQL 关键字
 	 * @param jdbcOperate jdbcOperate 对象
 	 * @param sqlField sql 关键字
-	 * @return
+	 * @return sql字符串
 	 */
 	public static String wrapSqlField(JdbcOperate jdbcOperate, String sqlField){
 		try {
@@ -603,7 +604,7 @@ public class TSQL {
 	 * @param sql Sql语句
 	 * @param pageNumber 页码
 	 * @param pageSize 页面记录数
-	 * @return
+	 * @return sql字符串
 	 */
 	public static String genMysqlPageSql(String sql, int pageNumber, int pageSize){
 		int pageStart 	= (pageNumber-1) * pageSize;
@@ -620,7 +621,7 @@ public class TSQL {
 	 * @param sql Sql语句
 	 * @param pageNumber 页码
 	 * @param pageSize 页面记录数
-	 * @return
+	 * @return sql字符串
 	 */
 	public static String genPostagePageSql(String sql, int pageNumber, int pageSize){
 		int pageStart 	= (pageNumber-1) * pageSize;
@@ -637,7 +638,7 @@ public class TSQL {
 	 * @param sql Sql语句
 	 * @param pageNumber 页码
 	 * @param pageSize 页面记录数
-	 * @return
+	 * @return sql字符串
 	 */
 	public static String genOraclePageSql(String sql, int pageNumber, int pageSize){
 		int pageStart 	= (pageNumber-1) * pageSize;

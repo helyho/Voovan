@@ -201,7 +201,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
 
     /**
      * 获取缓存标记对象
-     * @return
+     * @return 缓存数据标记的键值对
      */
     public ConcurrentHashMap<K, TimeMark> getCacheMark() {
         return cacheMark;
@@ -271,6 +271,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
     /**
      * 获取并刷新对象
      * @param key 键
+     * @param appointedSupplier 指定数据构造器
      * @return 值
      */
     public V getAndRefresh(Object key, Function<K, V> appointedSupplier){
@@ -325,7 +326,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * @param key  键
      * @param value 值
      * @param expire 超时时间
-     * @return
+     * @return 被置入的对象
      */
     public V put(K key, V value, int expire){
         if (key == null || value == null){
@@ -342,7 +343,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * 写入如果对象为空
      * @param key  键
      * @param value 值
-     * @return
+     * @return 如果数据存在返回已经存在对象, 如果数据不存在,新的对象被置入,则返回: null
      */
     public V putIfAbsent(K key, V value){
         return putIfAbsent(key, value, Integer.MAX_VALUE);
@@ -353,7 +354,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * @param key  键
      * @param value 值
      * @param expire 超时时间
-     * @return
+     * @return 如果数据存在返回已经存在对象, 如果数据不存在,新的对象被置入,则返回: null
      */
     public V putIfAbsent(K key, V value, int expire){
         if (key == null || value == null){

@@ -57,6 +57,7 @@ public class Recorder {
      * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
      * @param query 查询条件
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -76,6 +77,7 @@ public class Recorder {
      * 查询操作
      * @param obj 数据 ORM 对象
      * @param query 查询条件
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -87,6 +89,7 @@ public class Recorder {
      * 查询操作
      * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -97,6 +100,7 @@ public class Recorder {
     /**
      * 查询操作
      * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -109,6 +113,7 @@ public class Recorder {
      * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
      * @param query 查询条件
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -128,6 +133,7 @@ public class Recorder {
      * 更新操作
      * @param obj 数据 ORM 对象
      * @param query 查询条件
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -137,7 +143,9 @@ public class Recorder {
 
     /**
      * 更新操作
+     * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -148,6 +156,7 @@ public class Recorder {
     /**
      * 更新操作
      * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -160,6 +169,7 @@ public class Recorder {
      * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
      * @param query 查询条件
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -179,6 +189,7 @@ public class Recorder {
      * 删除操作
      * @param obj 数据 ORM 对象
      * @param query 查询条件
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -190,6 +201,7 @@ public class Recorder {
      * 删除操作
      * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -201,6 +213,7 @@ public class Recorder {
      * 删除操作
      * @param obj 数据 ORM 对象
      * @return 更新数据条数
+     * @param <T> 范型类型
      * @throws RecorderException Recorder 操作异常
      */
     public <T> int delete(T obj) throws RecorderException {
@@ -212,6 +225,7 @@ public class Recorder {
      * 插入操作
      * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -230,6 +244,7 @@ public class Recorder {
     /**
      * 插入操作
      * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
      * @return 更新数据条数
      * @throws RecorderException Recorder 操作异常
      */
@@ -239,7 +254,10 @@ public class Recorder {
 
     /**
      * 构造查询的 SQL
+     * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
+     * @param query 查询条件
+     * @param <T> 范型类型
      * @return 拼装的 SQL
      * @throws RecorderException Recorder 操作异常
      */
@@ -334,7 +352,10 @@ public class Recorder {
 
     /**
      * 构造更新的 SQL
+     * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
+     * @param query 查询条件
+     * @param <T> 范型类型
      * @return 拼装的 SQL
      * @throws RecorderException Recorder 操作异常
      */
@@ -409,7 +430,9 @@ public class Recorder {
 
     /**
      * 构造插入的 SQL
+     * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
      * @return 拼装的 SQL
      * @throws RecorderException Recorder 操作异常
      */
@@ -458,9 +481,12 @@ public class Recorder {
 
     /**
      * 构造删除的 SQL
+     * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
+     * @param query 查询对象
+     * @param <T> 范型类型
      * @return 拼装的 SQL
-     * @throws RecorderException
+     * @throws RecorderException Recorder 操作异常
      */
     public <T> String buildDeleteSqlTemplate(String tableName, T obj, Query query) throws RecorderException {
         Table table = obj.getClass().getAnnotation(Table.class);
@@ -482,9 +508,9 @@ public class Recorder {
 
     /**
      * 生成 Mysql 分页的 sql
-     * @param sql
-     * @param query
-     * @return
+     * @param sql sql 字符串
+     * @param query 查询对象
+     * @return 处理后的 sql 字符串
      */
     public String genMysqlPageSql(String sql, Query query){
         if(query.getPageSize()<0 || query.getPageNumber()<0) {
@@ -496,9 +522,9 @@ public class Recorder {
 
     /**
      * 生成 Postage 分页的 sql
-     * @param sql
-     * @param query
-     * @return
+     * @param sql sql 字符串
+     * @param query 查询对象
+     * @return  处理后的 sql 字符串
      */
     public String genPostagePageSql(String sql, Query query){
         if(query.getPageSize()<0 || query.getPageNumber()<0) {
@@ -510,9 +536,9 @@ public class Recorder {
 
     /**
      * 生成Oracle 分页的 sql
-     * @param sql
-     * @param query
-     * @return
+     * @param sql sql 字符串
+     * @param query 查询对象
+     * @return  处理后的 sql 字符串
      */
     public String genOraclePageSql(String sql, Query query){
         if(query.getPageSize()<0 || query.getPageNumber()<0) {
@@ -527,7 +553,8 @@ public class Recorder {
      * @param obj  数据对象
      * @param query 查询对象
      * @return where 后面的 sql
-     * @throws RecorderException
+     * @throws RecorderException Recorder 操作异常
+     *
      */
     public String genWhereSql(Object obj, Query query) throws RecorderException {
         String whereSql = "where 1=1";
@@ -592,6 +619,7 @@ public class Recorder {
     /**
      * 获取数据库名
      * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
      * @return 数据库名
      */
     public <T> String getSqlDatabase(T obj){
@@ -609,6 +637,7 @@ public class Recorder {
     /**
      * 获取表名
      * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
      * @return 表名
      */
     public <T> String getSqlTableName(T obj){
@@ -658,6 +687,7 @@ public class Recorder {
 
     /**
      * 获取字段名
+     * @param jdbcOperate JdbcOperate 对象
      * @param field 字段对象
      * @return 字段名
      */

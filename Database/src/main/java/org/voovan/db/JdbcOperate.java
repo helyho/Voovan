@@ -135,7 +135,7 @@ public class JdbcOperate {
 
 	/**
 	 * 返回当前事务形式
-	 * @return
+	 * @return 事务类型
 	 */
 	public TranscationType getTranscationType() {
 		return transcationType;
