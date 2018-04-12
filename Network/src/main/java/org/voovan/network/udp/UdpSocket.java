@@ -87,6 +87,7 @@ public class UdpSocket extends SocketContext {
     /**
      * 构造函数
      * @param parentSocketContext 父 SocketChannel 对象
+     * @param datagramChannel UDP通信对象
      * @param socketAddress SocketAddress 对象
      */
     protected UdpSocket(SocketContext parentSocketContext, DatagramChannel datagramChannel, InetSocketAddress socketAddress){

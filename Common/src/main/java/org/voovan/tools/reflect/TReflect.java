@@ -1136,8 +1136,7 @@ public class TReflect {
 	 * @param obj 对象
 	 * @param fields 保留的属性
 	 * @return 最后产生的 Map
-	 * @throws NotBoundException 属性为找到的异常
-	 */
+ */
 	public static Map<String, Object> fieldFilter(Object obj, String ... fields) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		for(String fieldFilter : fields){

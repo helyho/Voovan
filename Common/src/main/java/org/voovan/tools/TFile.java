@@ -517,6 +517,7 @@ public class TFile {
 	 * 复制文件
 	 * @param src 源文件
 	 * @param dest 目标文件
+	 * @return true:成功, false:失败
 	 */
 	public static boolean copyFile(File src, File dest) {
 		RandomAccessFile srcFileAccess = null;

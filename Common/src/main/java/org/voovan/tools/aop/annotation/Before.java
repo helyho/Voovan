@@ -16,7 +16,7 @@ import java.lang.annotation.*;
 public @interface Before {
     /**
      * 切入点 java.lang.String com.dd.test.service.web@IndexMethod(java.lang.String, java.lang.String)
-     * @return
+     * @return 切入点
      */
     String value() default "* *(..)";
 }

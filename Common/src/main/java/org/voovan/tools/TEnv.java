@@ -462,6 +462,7 @@ public class TEnv {
 	 * @throws AttachNotSupportedException 附加指定进程失败
 	 * @throws AgentLoadException Agent 加载异常
 	 * @throws AgentInitializationException Agent 初始化异常
+	 * @return Instrumentation 对象
 	 */
 	public static Instrumentation agentAttach(String agentJarPath) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException {
 		if(agentJarPath==null){

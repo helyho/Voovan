@@ -32,10 +32,8 @@ public class Aop {
 
     /**
      * 构造函数
-     * @throws IOException IO 异常
-     * @throws AttachNotSupportedException 附加指定进程失败
-     * @throws AgentLoadException Agent 加载异常
-     * @throws AgentInitializationException Agent 初始化异常
+     * @param scanPackage 扫描的包路径
+     * @throws Exception IO 异常
      */
     public static void init(String scanPackage) throws Exception {
         init(null, scanPackage);
@@ -43,11 +41,13 @@ public class Aop {
 
     /**
      * 构造函数
+     * @param scanPackage 扫描的包路径
      * @param agentJarPath AgentJar 文件
      * @throws IOException IO 异常
      * @throws AttachNotSupportedException 附加指定进程失败
      * @throws AgentLoadException Agent 加载异常
      * @throws AgentInitializationException Agent 初始化异常
+     * @throws ClassNotFoundException 类找不到异常
      */
     public static void init(String agentJarPath, String scanPackage) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException, ClassNotFoundException {
         if(scanPackage==null){
@@ -75,7 +75,7 @@ public class Aop {
      * 切面代码注入
      * @param className 注入的类全限定名
      * @param classfileBuffer 注入的类的字节码
-     * @return
+     * @return 注入代码后的类的字节码
      */
     public static byte[] Inject(String className, byte[] classfileBuffer){
 
