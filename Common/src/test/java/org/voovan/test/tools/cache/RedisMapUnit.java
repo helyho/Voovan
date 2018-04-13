@@ -82,7 +82,7 @@ public class RedisMapUnit extends TestCase{
     }
 
     public void testLazyLoad(){
-        redisMapOld.build((key) -> {
+        redisMapOld.supplier((key) -> {
             return key+"_loaded";
         });
         Object o = redisMapOld.get("nullValue");
