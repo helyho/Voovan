@@ -164,8 +164,14 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
     }
 
 
+    /**
+     * 创建CachedHashMap
+     * @return CachedHashMap 对象
+     */
     public CachedHashMap<K, V> create(){
         final CachedHashMap cachedHashMap = this;
+
+        //启动超时清理任务
         if(interval > 1) {
             wheelTimer.addTask(new HashWheelTask() {
                 @Override

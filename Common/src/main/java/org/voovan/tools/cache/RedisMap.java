@@ -26,6 +26,12 @@ import java.util.stream.Collectors;
  * Licence: Apache v2 License
  */
 public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
+   public static final String LOCK_SUCCESS = "OK";
+   public static final Long   UNLOCK_SUCCESS = 1L;
+   public static final String SET_NOT_EXIST = "NX";
+   public static final String SET_EXPIRE_TIME = "PX";
+
+
     private JedisPool redisPool;
     private String name = null;
     private int dbIndex = 0;
@@ -129,7 +135,17 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
         this.dbIndex = dbIndex;
     }
 
-    public void build(Function<K, V> buildFunction){
+    private Jedis getJedis(){
+        Jedis Jedis = redisPool.getResource();
+        Jedis.select(dbIndex);
+        return Jedis;
+    }
+
+    /**
+     * 如果参数为空的默认构造方法
+     * @param buildFunction
+     */
+    public void supplier(Function<K, V> buildFunction){
         this.buildFunction = buildFunction;
     }
 
@@ -151,12 +167,6 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
         }
 
         return size()==0;
-    }
-
-    private Jedis getJedis(){
-        Jedis Jedis = redisPool.getResource();
-        Jedis.select(dbIndex);
-        return Jedis;
     }
 
     @Override
@@ -201,6 +211,40 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
             }
         }
 
+
+        return (V)CacheStatic.unserialize(valueByteArray);
+    }
+
+    /**
+     * 获取对象
+     *
+     * @param key 键
+     * @param appointedSupplier 在指定的 key 不存在的时候使用指定的获取器构造对象
+     * @return 值
+     */
+    public V get(Object key, Function<K, V> appointedSupplier){
+        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] valueByteArray;
+
+        try(Jedis jedis = getJedis()) {
+            if(name==null){
+                valueByteArray = jedis.get(keyByteArray);
+            }else {
+                valueByteArray = jedis.hget(name.getBytes(), keyByteArray);
+            }
+        }
+
+
+        //如果不存在则重读
+        if (valueByteArray == null) {
+            if(buildFunction!=null) {
+                synchronized (appointedSupplier) {
+                    V value = appointedSupplier.apply((K) key);
+                    put((K) key, value);
+                    return value;
+                }
+            }
+        }
 
         return (V)CacheStatic.unserialize(valueByteArray);
     }
@@ -295,20 +339,13 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
         byte[] valueByteArray = CacheStatic.serialize(value);
 
         try (Jedis jedis = getJedis()) {
-            long result = 0;
             if (name == null) {
-                result = jedis.setnx(keyByteArray, valueByteArray);
-                jedis.expire(keyByteArray, expire);
+                String result = jedis.set(keyByteArray, valueByteArray, SET_NOT_EXIST.getBytes(), SET_EXPIRE_TIME.getBytes(), expire);
 
-                if (result == 1) {
+                if (LOCK_SUCCESS.equals(result)) {
                     value = null;
                 } else {
-                    byte[] valueBytes = jedis.get(keyByteArray);
-                    if (valueBytes == null) {
-                        return value;
-                    } else {
-                        value = (V) CacheStatic.unserialize(valueBytes);
-                    }
+                    return value;
                 }
             } else {
                 throw new UnsupportedOperationException();

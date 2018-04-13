@@ -85,18 +85,18 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
         return dbIndex;
     }
 
+    private Jedis getJedis(){
+        Jedis Jedis = redisPool.getResource();
+        Jedis.select(dbIndex);
+        return Jedis;
+    }
+
     /**
      * 选择当前数据集
      * @param dbIndex 数据集序号
      */
     public void setDbIndex(int dbIndex) {
         this.dbIndex = dbIndex;
-    }
-
-    private Jedis getJedis(){
-        Jedis Jedis = redisPool.getResource();
-        Jedis.select(dbIndex);
-        return Jedis;
     }
 
     @Override
@@ -188,7 +188,7 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
 
     @Override
     public String pollLast() {
-       return removeLast();
+        return removeLast();
     }
 
     @Override
