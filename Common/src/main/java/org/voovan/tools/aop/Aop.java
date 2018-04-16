@@ -175,7 +175,7 @@ public class Aop {
 
                         //Before 方法
                         if (cutPointInfo.getType() == -1) {
-                            ctMethod.insertBefore("{" + cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.org.voovan(\""+ctClass.getName()+"\",\""+ctMethod.getName()+"\", $args, null));}");
+                            ctMethod.insertBefore("{" + cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.InterceptInfo(\""+ctClass.getName()+"\",\""+ctMethod.getName()+"\", $args, null));}");
                             System.out.println("[AOP] CutPoint before: " + cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName());
                         }
 
@@ -187,7 +187,7 @@ public class Aop {
                             } else {
                                 packageCode = "$_;";
                             }
-                            ctMethod.insertAfter("{ Object r =" + packageCode + cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.org.voovan(\""+ctClass.getName()+"\",\""+ctMethod.getName()+"\",$args, r));}");
+                            ctMethod.insertAfter("{ Object r =" + packageCode + cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.InterceptInfo(\""+ctClass.getName()+"\",\""+ctMethod.getName()+"\",$args, r));}");
                             System.out.println("[AOP] CutPoint after: " + cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName());
                         }
                     } catch (CannotCompileException e) {

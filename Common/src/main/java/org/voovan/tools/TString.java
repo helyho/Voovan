@@ -273,7 +273,6 @@ public class TString {
 	 * 按照标识符 Map 进行替换
 	 *
 	 * @param source 源字符串,标识符使用"{{标识}}"进行包裹,这些标识符将会被替换
-	 * @param tokens 标识符Map集合
 	 * @return 替换后的字符串
 	 */
 	public static String tokenReplace(String source, Map<String, ?> tokens) {
@@ -283,7 +282,7 @@ public class TString {
 
 		for (Entry<String, ?> entry : tokens.entrySet()) {
 			String value = entry.getValue() == null ? "null" : entry.getValue().toString();
-			source = oneTokenReplace(source, entry.getKey(), entry.getValue().toString());
+			source = oneTokenReplace(source, entry.getKey(), value);
 		}
 		return source;
 	}

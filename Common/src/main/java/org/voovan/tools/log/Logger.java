@@ -1,12 +1,13 @@
 package org.voovan.tools.log;
 
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 
 /**
  * 日志工具类
- * 
+ *
  * @author helyho
  *
  *         Voovan Framework. WebSite: https://github.com/helyho/Voovan Licence:
@@ -15,10 +16,10 @@ import org.voovan.tools.TString;
 public class Logger {
 	private static Formater	formater	= Formater.newInstance();
 	private static boolean state = true;
-	
+
 	/**
 	 * 日志输出状态
-	 * 		
+	 *
 	 * @return true:输出日志,false 不输出任何日志
 	 */
 	public static boolean isState() {
@@ -241,26 +242,24 @@ public class Logger {
 	 * @param exception 异常消息
 	 * @return 消息
 	 */
-	private static String buildMessage(Object msg, Exception exception){
-		msg = TObject.nullDefault(msg,"");
-		if(exception==null){
-			return msg.toString();
-		} else {
-			Throwable messageException = exception;
-			if(exception.getMessage() == null){
-				while(messageException.getMessage()==null){
-					if(messageException.getCause() == null){
-						break;
-					}
-					messageException = messageException.getCause();
-				}
-			}
+	private static String buildMessage(Object msg, Throwable exception){
+		msg = TObject.nullDefault(msg, "");
+		String stackMessage = "";
 
-			return  ( msg.toString().isEmpty() ? "" : (msg + " => ") ) +
-					exception.getClass().getCanonicalName() + ": " +
-					messageException.getMessage() + "\r\n"
-					+ TString.indent(TEnv.getStackElementsMessage(exception.getStackTrace()), 8);
+		if (exception == null) {
+			return msg.toString();
 		}
+
+		do{
+			stackMessage = stackMessage + exception.getClass().getCanonicalName() + ": " +
+					exception.getMessage() + TFile.getLineSeparator() +
+					TString.indent(TEnv.getStackElementsMessage(exception.getStackTrace()),8) +
+					TFile.getLineSeparator();
+			exception = exception.getCause();
+
+		} while(exception!=null);
+
+		return (msg.toString().isEmpty() ? "" : (msg + " => ")) + stackMessage;
 	}
 
 	/**

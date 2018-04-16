@@ -460,7 +460,7 @@ public class TReflect {
 							method.setAccessible(true);
 							return (T)method.invoke(obj, convertedParams);
 						} catch (Exception ex) {
-							lastExecption = (Exception) ex.getCause();
+							lastExecption = ex;
 							continue;
 						}
 					}
