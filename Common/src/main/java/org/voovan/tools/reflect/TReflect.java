@@ -9,7 +9,6 @@ import org.voovan.tools.reflect.annotation.NotSerialization;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.math.BigDecimal;
-import java.rmi.NotBoundException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -1136,7 +1135,7 @@ public class TReflect {
 	 * @param obj 对象
 	 * @param fields 保留的属性
 	 * @return 最后产生的 Map
- */
+	 */
 	public static Map<String, Object> fieldFilter(Object obj, String ... fields) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		for(String fieldFilter : fields){
@@ -1225,3 +1224,4 @@ public class TReflect {
 		return false;
 	}
 }
+

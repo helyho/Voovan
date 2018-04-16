@@ -13,6 +13,7 @@ import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
@@ -415,7 +416,9 @@ public class WebServerHandler implements IoHandler {
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		Logger.error("Http Server Error", e);
+		if(!(e instanceof MemoryReleasedException)) {
+			Logger.error("Http Server Error", e);
+		}
 	}
 
 	@Override
