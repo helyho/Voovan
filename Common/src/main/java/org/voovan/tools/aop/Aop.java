@@ -175,16 +175,21 @@ public class Aop {
 
                         //Before 方法
                         if (cutPointInfo.getType() == -1) {
-                            ctMethod.insertBefore("{" + cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.InterceptInfo(\""+ctClass.getName()+"\",\""+ctMethod.getName()+"\", $args, null));}");
+                            ctMethod.insertBefore("{" + cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.org.voovan(\""+ctClass.getName()+"\",\""+ctMethod.getName()+"\", $args, null));}");
                             System.out.println("[AOP] CutPoint before: " + cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName());
                         }
 
                         //After 方法
                         if (cutPointInfo.getType() == 1) {
-                            ctMethod.insertAfter("{" + cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.InterceptInfo(\""+ctClass.getName()+"\",\""+ctMethod.getName()+"\",$args, $_));}");
+                            String packageCode = getPackageType(ctMethod.getReturnType().getName());
+                            if(packageCode!=null){
+                                packageCode = packageCode +".valueOf($_);";
+                            } else {
+                                packageCode = "$_;";
+                            }
+                            ctMethod.insertAfter("{ Object r =" + packageCode + cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.org.voovan(\""+ctClass.getName()+"\",\""+ctMethod.getName()+"\",$args, r));}");
                             System.out.println("[AOP] CutPoint after: " + cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName());
                         }
-
                     } catch (CannotCompileException e) {
                         e.printStackTrace();
                     }
@@ -198,6 +203,25 @@ public class Aop {
         }
 
         return classfileBuffer;
+    }
+
+    /**
+     * 获得装箱类型
+     * @param primitiveType 原始类型
+     * @return 装箱类型
+     */
+    public static String getPackageType(String primitiveType){
+        switch (primitiveType){
+            case "int": return "java.lang.Integer";
+            case "byte": return "java.lang.Byte";
+            case "short": return "java.lang.Short";
+            case "long": return "java.lang.Long";
+            case "float": return "java.lang.Float";
+            case "double": return "java.lang.Double";
+            case "char": return "java.lang.Character";
+            case "boolean": return "java.lang.Boolean";
+            default : return null;
+        }
     }
 
     /**

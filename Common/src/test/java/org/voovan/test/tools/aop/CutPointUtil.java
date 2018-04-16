@@ -1,5 +1,6 @@
 package org.voovan.test.tools.aop;
 
+import junit.framework.TestCase;
 import org.voovan.tools.aop.InterceptInfo;
 import org.voovan.tools.aop.annotation.After;
 import org.voovan.tools.aop.annotation.Aop;
@@ -15,7 +16,7 @@ import org.voovan.tools.json.JSON;
  * Licence: Apache v2 License
  */
 @Aop
-public class CutPointUtil {
+public class CutPointUtil extends TestCase{
 
     public String testMethod(String mm){
         System.out.println("testMethod--->" + mm);
