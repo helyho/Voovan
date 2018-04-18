@@ -1201,14 +1201,14 @@ public class TReflect {
 		}
 	}
 
+	private static List<String> systemPackages = TObject.asList("java.","sun.","javax.","com.sun","com.oracle");
+
 	/**
 	 * 判读是否是 JDK 中定义的类(java包下的所有类)
 	 * @param clazz Class 对象
 	 * @return true: 是JDK 中定义的类, false:非JDK 中定义的类
 	 */
 	public static boolean isSystemType(Class clazz){
-		List<String> systemPackages = TObject.asList("java.","sun.","javax.","com.sun","com.oracle");
-
 
 		if( clazz.isPrimitive()){
 			return true;
@@ -1217,6 +1217,26 @@ public class TReflect {
 		//排除的包中的 class 不加载
 		for(String systemPackage : systemPackages){
 			if(clazz.getName().startsWith(systemPackage)){
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * 判读是否是 JDK 中定义的类(java包下的所有类)
+	 * @param className Class 对象完全限定名
+	 * @return true: 是JDK 中定义的类, false:非JDK 中定义的类
+	 */
+	public static boolean isSystemType(String className){
+		if( className.indexOf(".")==-1){
+			return true;
+		}
+
+		//排除的包中的 class 不加载
+		for(String systemPackage : systemPackages){
+			if(className.startsWith(systemPackage)){
 				return true;
 			}
 		}
