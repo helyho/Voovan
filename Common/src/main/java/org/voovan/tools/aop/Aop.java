@@ -4,6 +4,7 @@ import org.voovan.tools.*;
 import org.voovan.tools.aop.annotation.After;
 import org.voovan.tools.aop.annotation.Before;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
@@ -62,7 +63,11 @@ public class Aop {
                 @Override
                 public byte[] transform(ClassLoader loader, String classPath, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
                     String className = classPath.replaceAll(File.separator, ".");
-                    return Inject(className, classfileBuffer);
+                    if(!isSystemType(className)) {
+                        return Inject(className, classfileBuffer);
+                    } else {
+                        return classfileBuffer;
+                    }
                 }
             });
             Logger.info("[AOP] Enable aop success ");
@@ -222,6 +227,28 @@ public class Aop {
             case "boolean": return "java.lang.Boolean";
             default : return null;
         }
+    }
+
+    private static List<String> systemPackages = TObject.asList("java.","sun.","javax.","com.sun","com.oracle");
+
+    /**
+     * 判读是否是 JDK 中定义的类(java包下的所有类)
+     * @param className Class 对象完全限定名
+     * @return true: 是JDK 中定义的类, false:非JDK 中定义的类
+     */
+    public static boolean isSystemType(String className){
+        if( className.indexOf(".")==-1){
+            return true;
+        }
+
+        //排除的包中的 class 不加载
+        for(String systemPackage : systemPackages){
+            if(className.startsWith(systemPackage)){
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
