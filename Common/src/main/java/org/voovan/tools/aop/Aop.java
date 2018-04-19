@@ -5,6 +5,7 @@ import org.voovan.tools.aop.annotation.After;
 import org.voovan.tools.aop.annotation.Around;
 import org.voovan.tools.aop.annotation.Before;
 import org.voovan.tools.aop.annotation.Exception;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
@@ -208,10 +209,13 @@ public class Aop {
 
                             //获取原函数的注解
                             AnnotationsAttribute attribute = (AnnotationsAttribute)ctMethod.getMethodInfo().getAttribute(AnnotationsAttribute.visibleTag);
-                            ctMethod.getMethodInfo().removeAttribute(attribute.getName());
+                            if(attribute!=null) {
+                                //移除取原函数的注解
+                                ctMethod.getMethodInfo().removeAttribute(attribute.getName());
 
-                            //迁移原函数的注解到新函数
-                            ctNewMethod.getMethodInfo().addAttribute(attribute);
+                                //迁移原函数的注解到新函数
+                                ctNewMethod.getMethodInfo().addAttribute(attribute);
+                            }
 
                             ctClass.addMethod(ctNewMethod);
                             ctNewMethod.setBody("{ return "+ cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.InterceptInfo($class, \""+ctNewMethod.getName()+"\", this, $sig, $args, null, null, null));}");
@@ -281,7 +285,7 @@ public class Aop {
      * @throws ClassNotFoundException 类未找到异常
      */
     public static void scanAopClass(String scanPackage) throws IOException, ClassNotFoundException {
-
+        System.out.println("[AOP] Scan from package: " + scanPackage);
         List<CtClass> aopClasses = AopUtils.searchClassInJavassist(scanPackage, new Class[]{org.voovan.tools.aop.annotation.Aop.class});
 
         for(CtClass clazz : aopClasses){
@@ -297,6 +301,7 @@ public class Aop {
                     cutPointInfo.setType(-1);
                     cutPointInfo.setMethod(method);
                     AopUtils.CUT_POINTINFO_LIST.add(cutPointInfo);
+                    System.out.println("[AOP] Add cutpoint: " + JSON.toJSON(cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName()));
                 }
 
                 if(onAfter!=null){
@@ -304,6 +309,7 @@ public class Aop {
                     cutPointInfo.setType(1);
                     cutPointInfo.setMethod(method);
                     AopUtils.CUT_POINTINFO_LIST.add(cutPointInfo);
+                    System.out.println("[AOP] Add cutpoint: " + JSON.toJSON(cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName()));
                 }
 
                 if(onException !=null){
@@ -311,6 +317,7 @@ public class Aop {
                     cutPointInfo.setType(2);
                     cutPointInfo.setMethod(method);
                     AopUtils.CUT_POINTINFO_LIST.add(cutPointInfo);
+                    System.out.println("[AOP] Add cutpoint: " + JSON.toJSON(cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName()));
                 }
 
                 if(onAround !=null){
@@ -318,6 +325,7 @@ public class Aop {
                     cutPointInfo.setType(3);
                     cutPointInfo.setMethod(method);
                     AopUtils.CUT_POINTINFO_LIST.add(cutPointInfo);
+                    System.out.println("[AOP] Add cutpoint: " + JSON.toJSON(cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName()));
                 }
             }
         }
