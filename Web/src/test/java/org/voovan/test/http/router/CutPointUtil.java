@@ -17,6 +17,7 @@ import org.voovan.tools.json.JSON;
 @Aop
 public class CutPointUtil {
 
+
     @After("* org.voovan.test.http.router.AnnotationRouterTest@index()")
     public static String indexMethodAfter(InterceptInfo interceptInfo){
         System.out.println("after========>" + JSON.toJSON(interceptInfo));

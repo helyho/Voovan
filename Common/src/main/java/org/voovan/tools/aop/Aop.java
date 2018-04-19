@@ -2,9 +2,10 @@ package org.voovan.tools.aop;
 
 import org.voovan.tools.*;
 import org.voovan.tools.aop.annotation.After;
+import org.voovan.tools.aop.annotation.Around;
 import org.voovan.tools.aop.annotation.Before;
+import org.voovan.tools.aop.annotation.Exception;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.reflect.TReflect;
 import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
@@ -36,7 +37,7 @@ public class Aop {
      * @param scanPackage 扫描的包路径
      * @throws Exception IO 异常
      */
-    public static void init(String scanPackage) throws Exception {
+    public static void init(String scanPackage) throws java.lang.Exception {
         init(null, scanPackage);
     }
 
@@ -167,7 +168,7 @@ public class Aop {
                                     }
 
                                     return parameterTypeEqual && resultTypeEqual;
-                                } catch (Exception e){
+                                } catch (java.lang.Exception e){
                                     return false;
                                 }
                             }
@@ -180,20 +181,31 @@ public class Aop {
 
                         //Before 方法
                         if (cutPointInfo.getType() == -1) {
-                            ctMethod.insertBefore("{" + cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.InterceptInfo(\""+ctClass.getName()+"\",\""+ctMethod.getName()+"\", $args, null));}");
+                            ctMethod.insertBefore("{" + cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.InterceptInfo($class, \""+ctMethod.getName()+"\", this, $sig, $args, null, null, null));}");
                             System.out.println("[AOP] CutPoint before: " + cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName());
                         }
 
                         //After 方法
                         if (cutPointInfo.getType() == 1) {
-                            String packageCode = getPackageType(ctMethod.getReturnType().getName());
-                            if(packageCode!=null){
-                                packageCode = packageCode +".valueOf($_);";
-                            } else {
-                                packageCode = "$_;";
-                            }
-                            ctMethod.insertAfter("{ Object r =" + packageCode + cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.InterceptInfo(\""+ctClass.getName()+"\",\""+ctMethod.getName()+"\",$args, r));}");
+                            ctMethod.insertAfter("{"+ cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.InterceptInfo($class, \""+ctMethod.getName()+"\", this, $sig, $args, $type, ($w)$_, null));}");
                             System.out.println("[AOP] CutPoint after: " + cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName());
+                        }
+
+                        //Catch 方法
+                        if (cutPointInfo.getType() == 2) {
+                            CtClass exceptionType = ClassPool.getDefault().get("java.lang.Exception");
+                            ctMethod.addCatch("{"+ cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.InterceptInfo($class, \""+ctMethod.getName()+"\", this, $sig, $args, null, null, $e));  throw $e;}", exceptionType);
+                            System.out.println("[AOP] CutPoint after: " + cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName());
+                        }
+
+                        //Around 方法
+                        if (cutPointInfo.getType() == 3){
+                            String methodName = ctMethod.getName();
+                            CtMethod ctNewMethod = CtNewMethod.copy(ctMethod, ctClass, null);
+                            ctNewMethod.setName(methodName);
+                            ctMethod.setName(ctMethod.getName()+"$origin");
+                            ctClass.addMethod(ctNewMethod);
+                            ctNewMethod.setBody("{ return "+ cutPointInfo.getMethod().getDeclaringClass().getName() + "." + cutPointInfo.getMethod().getName() + "(new org.voovan.tools.aop.InterceptInfo($class, \""+ctNewMethod.getName()+"\", this, $sig, $args, null, null, null));}");
                         }
                     } catch (CannotCompileException e) {
                         e.printStackTrace();
@@ -203,7 +215,7 @@ public class Aop {
 
             classfileBuffer = ctClass.toBytecode();
 
-        } catch (Exception e) {
+        } catch (java.lang.Exception e) {
             e.printStackTrace();
         }
 
@@ -264,19 +276,35 @@ public class Aop {
         for(CtClass clazz : aopClasses){
             CtMethod[] methods = clazz.getMethods();
             for(CtMethod method : methods){
-                Before before = (Before) method.getAnnotation(Before.class);
-                After after = (After)method.getAnnotation(After.class);
+                Before onBefore = (Before) method.getAnnotation(Before.class);
+                After onAfter = (After)method.getAnnotation(After.class);
+                Exception onException = (Exception)method.getAnnotation(Exception.class);
+                Around onAround = (Around)method.getAnnotation(Around.class);
 
-                if(before!=null){
-                    CutPointInfo cutPointInfo = CutPointInfo.parse(before.value());
+                if(onBefore!=null){
+                    CutPointInfo cutPointInfo = CutPointInfo.parse(onBefore.value());
                     cutPointInfo.setType(-1);
                     cutPointInfo.setMethod(method);
                     AopUtils.CUT_POINTINFO_LIST.add(cutPointInfo);
                 }
 
-                if(after!=null){
-                    CutPointInfo cutPointInfo = CutPointInfo.parse(after.value());
+                if(onAfter!=null){
+                    CutPointInfo cutPointInfo = CutPointInfo.parse(onAfter.value());
                     cutPointInfo.setType(1);
+                    cutPointInfo.setMethod(method);
+                    AopUtils.CUT_POINTINFO_LIST.add(cutPointInfo);
+                }
+
+                if(onException !=null){
+                    CutPointInfo cutPointInfo = CutPointInfo.parse(onException.value());
+                    cutPointInfo.setType(2);
+                    cutPointInfo.setMethod(method);
+                    AopUtils.CUT_POINTINFO_LIST.add(cutPointInfo);
+                }
+
+                if(onAround !=null){
+                    CutPointInfo cutPointInfo = CutPointInfo.parse(onAround.value());
+                    cutPointInfo.setType(3);
                     cutPointInfo.setMethod(method);
                     AopUtils.CUT_POINTINFO_LIST.add(cutPointInfo);
                 }
