@@ -1,7 +1,10 @@
 package org.voovan.test.tools.aop;
 
 import org.voovan.tools.aop.Aop;
+import org.voovan.tools.log.Logger;
 import junit.framework.TestCase;
+
+import java.io.IOException;
 
 /**
  * 类文字命名
@@ -16,11 +19,20 @@ public class AopUnit extends TestCase{
         Aop.init("org.voovan.test");
     }
 
-    public void testMethod(){
+    public void testMethod() throws Exception {
         CutPointUtil cutPointUtil = new CutPointUtil();
-        cutPointUtil.testMethod("aaa");
 
-        System.out.println("==============================================");
-        cutPointUtil.testMethod(123);
+        System.out.println("======================Before========================");
+        cutPointUtil.testBefore(123);
+
+        System.out.println("======================After========================");
+        cutPointUtil.testAfter("aaa");
+
+        System.out.println("======================Around========================");
+        Logger.simple(cutPointUtil.testAround(123));
+
+        System.out.println("======================Exception========================");
+        cutPointUtil.testException(123);
+
     }
 }

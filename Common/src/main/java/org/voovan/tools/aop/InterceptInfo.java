@@ -1,5 +1,10 @@
 package org.voovan.tools.aop;
 
+import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
+
+import java.lang.reflect.Method;
+
 /**
  * 切面调用信息
  *
@@ -9,16 +14,24 @@ package org.voovan.tools.aop;
  * Licence: Apache v2 License
  */
 public class InterceptInfo {
-    private String className;
+    private Class clazz;
     private String methodName;
+    private Object originObject;
+    private Class[] argTypes;
     private Object[] args;
+    private Class returnType;
     private Object result;
+    private Exception exception;
 
-    public InterceptInfo(String className, String methodName, Object[] args, Object result) {
-        this.className = className;
+    public InterceptInfo(Class clazz, String methodName, Object originObject, Class[] argTypes, Object[] args, Class returnType, Object result, Exception exception) {
+        this.clazz = clazz;
         this.methodName = methodName;
+        this.originObject = originObject;
+        this.argTypes = argTypes;
         this.args = args;
+        this.returnType = returnType;
         this.result = result;
+        this.exception = exception;
     }
 
     public Object[] getArgs() {
@@ -35,6 +48,20 @@ public class InterceptInfo {
 
     public void setResult(Object result) {
         this.result = result;
+    }
+
+    public Object process(){
+        try {
+            Method originMethod = TReflect.findMethod(originObject.getClass(), methodName+"$origin", argTypes);
+            if(originMethod==null){
+                throw new NoSuchMethodException("[AOP] Method \"methodName\" not found or the cut point isn't around");
+            }
+
+            return TReflect.invokeMethod(originObject, originMethod, args);
+        } catch (ReflectiveOperationException e) {
+            Logger.error("[AOP] Around process failed", e);
+            return null;
+        }
     }
 
 }
