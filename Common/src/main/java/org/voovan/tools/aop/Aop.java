@@ -285,7 +285,7 @@ public class Aop {
         List<CtClass> aopClasses = AopUtils.searchClassInJavassist(scanPackage, new Class[]{org.voovan.tools.aop.annotation.Aop.class});
 
         for(CtClass clazz : aopClasses){
-            CtMethod[] methods = clazz.getMethods();
+            CtMethod[] methods = clazz.getDeclaredMethods();
             for(CtMethod method : methods){
                 Before onBefore = (Before) method.getAnnotation(Before.class);
                 After onAfter = (After)method.getAnnotation(After.class);
