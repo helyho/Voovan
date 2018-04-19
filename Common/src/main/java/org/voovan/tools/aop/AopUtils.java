@@ -37,13 +37,11 @@ public class AopUtils {
         List<String> classPaths = TEnv.getClassPath();
         ArrayList<CtClass> clazzes = new ArrayList<CtClass>();
         for(String classPath : classPaths){
-            if(classPath.startsWith(userDir)) {
-                File classPathFile = new File(classPath);
-                if(classPathFile.exists() && classPathFile.isDirectory()){
-                    clazzes.addAll( getDirectorClass(classPathFile, pattern, filters));
-                } else if(classPathFile.exists() && classPathFile.isFile() && classPathFile.getName().endsWith(".jar")) {
-                    clazzes.addAll( getJarClass(classPathFile, pattern, filters) );
-                }
+            File classPathFile = new File(classPath);
+            if(classPathFile.exists() && classPathFile.isDirectory()){
+                clazzes.addAll( getDirectorClass(classPathFile, pattern, filters));
+            } else if(classPathFile.exists() && classPathFile.isFile() && classPathFile.getName().endsWith(".jar")) {
+                clazzes.addAll( getJarClass(classPathFile, pattern, filters) );
             }
         }
 
