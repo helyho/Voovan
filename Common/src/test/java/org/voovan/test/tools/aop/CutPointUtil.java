@@ -19,7 +19,6 @@ import org.voovan.tools.json.JSON;
 @Aop
 public class CutPointUtil extends TestCase{
 
-
     public String testBefore(int mm){
         System.out.println("testMethod2--->" + mm);
         return "ffff";
@@ -44,6 +43,10 @@ public class CutPointUtil extends TestCase{
         return "ffff" + mm;
     }
 
+    private void mmm(){
+
+    }
+
     @Before("* org.voovan.test.tools.aop.CutPointUtil@testBefore(..)")
     public static void cutPointBefore(InterceptInfo interceptInfo){
         System.out.println("before========>");
@@ -64,6 +67,12 @@ public class CutPointUtil extends TestCase{
 
     @org.voovan.tools.aop.annotation.Exception("* org.voovan.test.*.*.CutPointUtil@testException(int)")
     public static String cutPointCatch(InterceptInfo interceptInfo){
+        System.out.println("after========>" + JSON.toJSON(interceptInfo));
+        return "-----////";
+    }
+
+    @After("void org.voovan.test.*.*.CutPointUtil@mmm()")
+    public static String testmmmm(InterceptInfo interceptInfo){
         System.out.println("after========>" + JSON.toJSON(interceptInfo));
         return "-----////";
     }
