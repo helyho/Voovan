@@ -122,7 +122,7 @@ public class JSONEncode {
                 object = BigDecimal.ZERO;
             }
 
-            value = ((BigDecimal) object).toString();
+            value = ((BigDecimal) object).toPlainString();
         } else if (object instanceof Date) {
             value = "\"" + TDateTime.format(((Date)object), TDateTime.STANDER_DATETIME_TEMPLATE)+ "\"";;
         } else if (object instanceof Map) {
