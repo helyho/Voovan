@@ -192,6 +192,7 @@ public abstract class IoSession<T extends SocketContext> {
 
 						if(!isConnect){
 							session.cancelIdle();
+							this.cancel();
 							return;
 						}
 
