@@ -72,7 +72,7 @@ public class CutPointInfo {
 
         String[] descInfo = cutPointDesc.split("\\@");
 
-        String[] resultAndClass = descInfo[0].split(" ");
+        String[] resultAndClass = descInfo[0].split(" +");
         cutPointInfo.setResultType(resultAndClass[0]);
         cutPointInfo.setClazzName(resultAndClass[1]);
 
