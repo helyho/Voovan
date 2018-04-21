@@ -18,6 +18,7 @@ import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
@@ -348,7 +349,7 @@ public class HttpClient implements Closeable{
 			for (Entry<String, Object> parameter : parameters.entrySet()) {
 				queryStringBuilder.append(parameter.getKey());
 				queryStringBuilder.append("=");
-				queryStringBuilder.append(URLEncoder.encode(parameter.getValue().toString(), charset));
+				queryStringBuilder.append(URLEncoder.encode(TObject.nullDefault(parameter.getValue(),"").toString(), charset));
 				queryStringBuilder.append("&");
 			}
 			queryString = queryStringBuilder.toString();

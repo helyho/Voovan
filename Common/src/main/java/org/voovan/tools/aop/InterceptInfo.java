@@ -2,6 +2,7 @@ package org.voovan.tools.aop;
 
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.lang.reflect.Method;
 
@@ -16,6 +17,7 @@ import java.lang.reflect.Method;
 public class InterceptInfo {
     private Class clazz;
     private String methodName;
+    @NotSerialization
     private Object originObject;
     private Class[] argTypes;
     private Object[] args;
@@ -50,7 +52,7 @@ public class InterceptInfo {
         this.result = result;
     }
 
-    public Object process(){
+    public Object process() throws Throwable{
         try {
             Method originMethod = TReflect.findMethod(originObject.getClass(), methodName+"$origin", argTypes);
             if(originMethod==null){
@@ -59,8 +61,19 @@ public class InterceptInfo {
 
             return TReflect.invokeMethod(originObject, originMethod, args);
         } catch (ReflectiveOperationException e) {
-            Logger.error("[AOP] Around process failed", e);
-            return null;
+
+            Throwable exception = e;
+
+            do {
+                exception = exception.getCause();
+
+            } while(exception.getCause()!=null && exception instanceof ReflectiveOperationException);
+
+            if(exception == null){
+                throw e;
+            } else {
+                throw exception;
+            }
         }
     }
 
