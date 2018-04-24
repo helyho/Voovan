@@ -31,6 +31,7 @@ public class Cleaner {
                     }
 
                     Runnable runnable = taskMap.get(object);
+                    taskMap.remove(object);
                     runnable.run();
                     System.out.println("========> cleaner");
                 } catch (Exception e) {
