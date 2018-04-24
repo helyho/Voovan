@@ -1,6 +1,5 @@
 package org.voovan.tools.aop;
 
-import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
@@ -54,7 +53,7 @@ public class InterceptInfo {
 
     public Object process() throws Throwable{
         try {
-            Method originMethod = TReflect.findMethod(originObject.getClass(), methodName+"$origin", argTypes);
+            Method originMethod = TReflect.findMethod(clazz, methodName+"$origin", argTypes);
             if(originMethod==null){
                 throw new NoSuchMethodException("[AOP] Method \"methodName\" not found or the cut point isn't around");
             }

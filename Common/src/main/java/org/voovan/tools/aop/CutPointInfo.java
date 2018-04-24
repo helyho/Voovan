@@ -17,7 +17,8 @@ public class CutPointInfo {
     private String methodName;
     private String[] parameterTypes = new String[0];
     private Integer type;
-    private CtMethod method;
+    private CtMethod cutPointMethod; //带有切点注解的切面方法类
+    private boolean interceptLambda; //是否拦截 lambda 表达式
 
     public String getResultType() {
         return resultType;
@@ -59,12 +60,20 @@ public class CutPointInfo {
         this.type = type;
     }
 
-    public CtMethod getMethod() {
-        return method;
+    public CtMethod getCutPointMethod() {
+        return cutPointMethod;
     }
 
-    public void setMethod(CtMethod method) {
-        this.method = method;
+    public void setCutPointMethod(CtMethod cutPointMethod) {
+        this.cutPointMethod = cutPointMethod;
+    }
+
+    public boolean isInterceptLambda() {
+        return interceptLambda;
+    }
+
+    public void setInterceptLambda(boolean interceptLambda) {
+        this.interceptLambda = interceptLambda;
     }
 
     public static CutPointInfo parse(String cutPointDesc){

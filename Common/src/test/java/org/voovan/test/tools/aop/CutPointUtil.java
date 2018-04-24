@@ -65,7 +65,7 @@ public class CutPointUtil extends TestCase{
         return "-----////" + result;
     }
 
-    @org.voovan.tools.aop.annotation.Exception("* org.voovan.test.*.*.CutPointUtil@testException(int)")
+    @org.voovan.tools.aop.annotation.Abnormal("* org.voovan.test.*.*.CutPointUtil@testException(int)")
     public static String cutPointCatch(InterceptInfo interceptInfo){
         System.out.println("after========>" + JSON.toJSON(interceptInfo));
         return "-----////";
