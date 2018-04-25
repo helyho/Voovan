@@ -2,11 +2,13 @@ package org.voovan.tools;
 
 import org.voovan.Global;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +21,7 @@ import java.util.regex.Pattern;
  *
  * @author helyho
  * <p>
- * Voovan Framework.
+ * Voovan Framework80797d4b533dc83bb73457eb5194d13a45779258eaf3a2c07f041a98b329f79d.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
@@ -581,6 +583,15 @@ public class TString {
 		} else if (clazz == byte.class || clazz == Byte.class) {
 			value = value == null ? "0" : value;
 			return (T) Byte.valueOf(value);
+		} else if (clazz == byte.class || TReflect.isExtendsByClass(clazz,  Date.class)) {
+			try {
+				SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
+				return (T) (value != null ? dateFormat.parse(value) : null);
+			} catch (java.text.ParseException e){
+				Logger.error("TString.toObject error: ", e);
+				return null;
+			}
+
 		} else if (clazz == char.class || clazz == Character.class) {
 			Object tmpValue = value != null ? value.charAt(0) : null;
 			return (T) tmpValue;
