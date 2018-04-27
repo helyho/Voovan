@@ -108,10 +108,10 @@ public class JdbcOperate {
 		//如果连接不存在,或者连接已关闭则重取一个连接
 		if (connection == null || connection.isClosed()) {
 			//事务嵌套模式
-			if (transcationType == TranscationType.NEST) {
+			if (!connection.isClosed() && transcationType == TranscationType.NEST) {
 				//判断是否有上层事务
 				if(JDBCOPERATE_THREAD_LIST.containsKey(threadId)) {
-					connection = JDBCOPERATE_THREAD_LIST.get(threadId).getConnection();
+					connection = JDBCOPERATE_THREAD_LIST.get(threadId).connection;
 					savepoint = connection.setSavepoint();
 				} else {
 					connection = dataSource.getConnection();
@@ -120,7 +120,7 @@ public class JdbcOperate {
 				}
 			}
 			//孤立事务模式
-			else if (transcationType == TranscationType.ALONE){
+			else if (!connection.isClosed() && transcationType == TranscationType.ALONE){
 				connection = dataSource.getConnection();
 				connection.setAutoCommit(false);
 			}
