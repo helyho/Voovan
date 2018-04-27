@@ -34,13 +34,13 @@ public class Aop {
      * @param scanPackage 扫描的包路径
      * @throws Exception IO 异常
      */
-    public static void init(String scanPackage) throws Exception {
+    public static void init(String scanPackage) throws java.lang.Exception {
         init(null, scanPackage);
     }
 
     /**
      * 构造函数
-     * @param scanPackage 扫描的包路径
+     * @param scanPackages 扫描的包路径, 可都好分割多个包
      * @param agentJarPath AgentJar 文件
      * @throws IOException IO 异常
      * @throws AttachNotSupportedException 附加指定进程失败
@@ -48,13 +48,15 @@ public class Aop {
      * @throws AgentInitializationException Agent 初始化异常
      * @throws ClassNotFoundException 类找不到异常
      */
-    public static void init(String agentJarPath, String scanPackage) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException, ClassNotFoundException {
-        if(scanPackage==null){
+    public static void init(String agentJarPath, String scanPackages) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException, ClassNotFoundException {
+        if(scanPackages==null){
             return;
         }
 
         //扫描带有 Aop 的切点方法
-        AopUtils.scanAopClass(scanPackage);
+        for(String scanPackage : scanPackages.split(",")) {
+            AopUtils.scanAopClass(scanPackage);
+        }
         IS_AOP_ON = true;
         instrumentation = TEnv.agentAttach(agentJarPath);
         if(instrumentation!=null) {
@@ -169,7 +171,7 @@ public class Aop {
                                     }
 
                                     return parameterTypeEqual && resultTypeEqual;
-                                } catch (Exception e){
+                                } catch (java.lang.Exception e){
                                     return false;
                                 }
                             }
@@ -248,7 +250,7 @@ public class Aop {
             ctClass.debugDump = "./dump";
             classfileBuffer = ctClass.toBytecode();
 
-        } catch (Exception e) {
+        } catch (java.lang.Exception e) {
             e.printStackTrace();
         }
 

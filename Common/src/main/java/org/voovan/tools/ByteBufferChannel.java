@@ -11,6 +11,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -31,6 +32,7 @@ public class ByteBufferChannel {
 	private ByteBuffer byteBuffer;
 	private int size;
 	private ReentrantLock lock;
+	private AtomicBoolean borrowed = new AtomicBoolean(false);
 
 	/**
 	 * 构造函数
@@ -110,6 +112,14 @@ public class ByteBufferChannel {
 
 		synchronized (byteBuffer) {
 			while(lock.isLocked()){
+
+				//如果加锁成功说明是自锁, 解锁并继续
+				if(borrowed.compareAndSet(true, false) && lock.tryLock()){
+					lock.unlock();
+					lock.unlock();
+					break;
+				}
+
 				TEnv.sleep(TimeUnit.NANOSECONDS, 1);
 			}
 
@@ -408,6 +418,7 @@ public class ByteBufferChannel {
 
 		//这里上锁,在compact()方法解锁
 		lock.lock();
+		borrowed.compareAndSet(false, true);
 		return byteBuffer;
 	}
 
@@ -425,7 +436,7 @@ public class ByteBufferChannel {
 		}
 
 		if(size()==0){
-			if(lock.isLocked()){
+			if(borrowed.compareAndSet(true, false)){
 				lock.unlock();
 			}
 			return true;
@@ -450,7 +461,7 @@ public class ByteBufferChannel {
 			return result;
 
 		} finally {
-			if(lock.isLocked()) {
+			if(borrowed.compareAndSet(true, false)) {
 				lock.unlock();
 			}
 		}
