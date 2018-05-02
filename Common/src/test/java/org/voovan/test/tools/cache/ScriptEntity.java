@@ -163,7 +163,7 @@ public class ScriptEntity implements Serializable{
 		File sourceFile = new File(sourcePath);
 		this.fileDate = sourceFile.lastModified();
 		sourceCode = new String(TFile.loadFileFromSysPath(sourcePath));
-		Logger.debug("Reload script code : "+sourcePath);
+		Logger.fremawork("Reload script code : "+sourcePath);
 	}
 	
 	

@@ -314,7 +314,7 @@ public class JdbcOperate {
 			}
 
 			if(Logger.isLogLevel("DEBUG")) {
-				Logger.debug("[SQL_Executed]: " + sqlText);
+				Logger.fremawork("[SQL_Executed]: " + sqlText);
 			}
 
 			int[] result = preparedStatement.executeBatch();
