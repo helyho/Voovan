@@ -67,6 +67,22 @@ public class Logger {
 		info(TString.tokenReplace(msg, args));
 	}
 
+	public static void fremawork(Object msg) {
+		try {
+			msg = buildMessage(msg);
+			Message message = Message.newInstance("FRAMEWORK", msg.toString());
+			formater.writeFormatedLog(message);
+		} catch (Exception oe) {
+			simple("Logger system error:"+oe.getMessage()+"\r\n");
+			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
+			simple("Output message is: " + msg);
+		}
+	}
+
+	public static void fremaworkf(String msg, Object ... args){
+		info(TString.tokenReplace(msg, args));
+	}
+
 	public static void debug(Object msg) {
 		try {
 			msg = buildMessage(msg);

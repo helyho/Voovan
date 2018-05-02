@@ -2,7 +2,6 @@ package org.voovan.tools.threadpool;
 
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TPerformance;
-import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.util.TimerTask;
@@ -10,7 +9,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 线程池监控类
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -32,21 +31,21 @@ public class ThreadPoolTask extends TimerTask {
 			this.cancel();
 			System.exit(0);
 		}
-		
-//		String threadPoolInfo = "PoolInfo:" + threadPoolInstance.getActiveCount() + "/" + threadPoolInstance.getCorePoolSize() + "/"
-//				+ threadPoolInstance.getLargestPoolSize()+ "/" + threadPoolInstance.getMaximumPoolSize() + " TaskCount: "
-//				+ threadPoolInstance.getCompletedTaskCount() + "/"
-//				+ threadPoolInstance.getTaskCount() + " QueueSize:" + threadPoolInstance.getQueue().size() + " PerCoreLoadAvg:"
-//				+ TPerformance.cpuPerCoreLoadAvg();
-//		if (threadPoolInstance.getActiveCount() != 0) {
-//			System.out.println(TDateTime.now() + " ShutDown:" + threadPoolInstance.isShutdown() + " " + threadPoolInfo);
-//		}
+
+		String threadPoolInfo = "[PoolInfo]: " + threadPoolInstance.getActiveCount() + "/" + threadPoolInstance.getCorePoolSize() + "/"
+				+ threadPoolInstance.getLargestPoolSize()+ "/" + threadPoolInstance.getMaximumPoolSize() + " \t[TaskCount]: "
+				+ threadPoolInstance.getCompletedTaskCount() + "/"
+				+ threadPoolInstance.getTaskCount() + " \t[QueueSize]: " + threadPoolInstance.getQueue().size() + " \t[PerCoreLoadAvg]: "
+				+ TPerformance.cpuPerCoreLoadAvg();
+		if (threadPoolInstance.getActiveCount() != 0) {
+			Logger.fremawork("[ShutDown]: " + threadPoolInstance.isShutdown() + " \t" + threadPoolInfo);
+		}
 
 		int poolSize = threadPoolInstance.getPoolSize();
 		// 动态调整线程数,且系统CPU负载值要小于1
 		if (threadPoolInstance.getQueue().size() > 0 ) {
 
-			int newPoolSize = (int)(threadPoolInstance.getCorePoolSize() * 1.25);
+			int newPoolSize = (int)(threadPoolInstance.getCorePoolSize() * 1.20);
 
 			if(newPoolSize > ThreadPool.MAX_POOL_SIZE){
 				newPoolSize = ThreadPool.MAX_POOL_SIZE;
@@ -54,12 +53,12 @@ public class ThreadPoolTask extends TimerTask {
 
 			if(newPoolSize!=poolSize) {
 				threadPoolInstance.setCorePoolSize(newPoolSize);
-				Logger.debug("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
+				Logger.fremawork("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
 			}
 		}
 
 		else if(threadPoolInstance.getActiveCount() <= threadPoolInstance.getPoolSize()/2 &&
-				 threadPoolInstance.getCorePoolSize() > ThreadPool.MIN_POOL_SIZE){
+				threadPoolInstance.getCorePoolSize() > ThreadPool.MIN_POOL_SIZE){
 
 			int newPoolsize = (int)(threadPoolInstance.getCorePoolSize()*0.8);
 
@@ -69,7 +68,7 @@ public class ThreadPoolTask extends TimerTask {
 
 			if(newPoolsize != poolSize) {
 				threadPoolInstance.setCorePoolSize(newPoolsize);
-				Logger.debug("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
+				Logger.fremawork("PoolSizeChange: " + poolSize + "->" + threadPoolInstance.getCorePoolSize());
 			}
 		}
 
