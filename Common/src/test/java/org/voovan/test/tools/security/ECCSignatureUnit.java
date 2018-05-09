@@ -1,5 +1,6 @@
 package org.voovan.test.tools.security;
 
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.ECCSignature;
 import junit.framework.TestCase;
@@ -26,6 +27,7 @@ public class ECCSignatureUnit extends TestCase{
         }catch(Exception e) {
             throw new RuntimeException(e);
         }
+        TEnv.sleep(1000);
     }
 
 }
