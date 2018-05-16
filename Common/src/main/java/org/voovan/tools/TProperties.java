@@ -42,7 +42,7 @@ public class TProperties {
 				}
 			}
 
-		}, 1, true);
+		}, 5, true);
 	}
 
 
