@@ -1,14 +1,18 @@
 package org.voovan.tools;
 
+import org.voovan.Global;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.io.*;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 /**
  * properties文件操作类
+ * 		当properties 文件变更后自动移除缓存内的数据, 下次访问时会重新读取文件内容
  *
  * @author helyho
  *
@@ -19,6 +23,28 @@ import java.util.Properties;
 public class TProperties {
 
 	private static HashMap<File, Properties> propertiesCache = new HashMap<File, Properties>();
+	private static String TIME_STAMP_NAME = "$$LMT";
+
+	static {
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			@Override
+			public void run() {
+				Iterator<Map.Entry<File, Properties>> iterator = propertiesCache.entrySet().iterator();
+				while (iterator.hasNext()) {
+					Map.Entry<File, Properties> entry = iterator.next();
+					if(entry.getKey().exists() && entry.getValue().contains(TIME_STAMP_NAME)) {
+						String lastTimeStamp = String.valueOf(entry.getKey().lastModified());
+						String cachedTimeStamp = entry.getValue().getProperty(TIME_STAMP_NAME);
+						if (!lastTimeStamp.equals(cachedTimeStamp)) {
+							iterator.remove();
+						}
+					}
+				}
+			}
+
+		}, 1, true);
+	}
+
 
 	/**
 	 * 解析 Properties 文件
@@ -39,7 +65,11 @@ public class TProperties {
 					content = new String(TFile.loadResource(resourcePath));
 				}
 				properites.load(new StringReader(content));
+				properites.setProperty(TIME_STAMP_NAME, String.valueOf(file.lastModified()));
 				propertiesCache.put(file, properites);
+				System.out.println("load from file");
+			} else {
+				System.out.println("load from cache");
 			}
 
 			return propertiesCache.get(file);
@@ -61,33 +91,20 @@ public class TProperties {
 			fileName = fileName + ".properties";
 		}
 		String filePath = TString.assembly("./classes/", fileName);
+		String mavenFilePath = TString.assembly("./target/classes/", fileName);
 
-		try {
-			File file = new File(filePath);
-			if(file==null || !file.exists()){
+		File file = new File(filePath);
+		File mavaenFile = new File(mavenFilePath);
+		if(file==null || !file.exists()){
+			if(mavaenFile==null || !mavaenFile.exists()) {
 				Logger.error("properites file not exists. File: " + filePath);
 				return null;
+			} else {
+				file = mavaenFile;
 			}
-			if (!propertiesCache.containsKey(file)) {
-				Properties properites = new Properties();
-				String content = null;
-				if(!file.getPath().contains("!"+File.separator)) {
-					content = new String(TFile.loadFile(file));
-				}else{
-					filePath = file.getPath();
-					String resourcePath = filePath.substring(filePath.indexOf("!"+File.separator)+2, filePath.length());
-					content = new String(TFile.loadResource(resourcePath));
-				}
-				properites.load(new StringReader(content));
-				propertiesCache.put(file, properites);
-			}
-
-			return propertiesCache.get(file);
-
-		} catch (IOException e) {
-			Logger.error("Get properites file fialed. File:" + filePath,e);
-			return null;
 		}
+
+		return getProperties(file);
 	}
 
 	/**
@@ -238,6 +255,7 @@ public class TProperties {
 	public static void setString(String fileName, String name, String value) throws IOException {
 		Properties properites = getProperties(fileName);
 		properites.setProperty(name, value);
+		properites.remove(TIME_STAMP_NAME);
 		properites.store(new FileOutputStream(TString.assembly("./classes/", fileName, ".properties")), null);
 	}
 
