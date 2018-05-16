@@ -1,6 +1,5 @@
 package org.voovan.tools.security;
 
-import sun.security.ec.SunEC;
 
 import java.security.*;
 import java.security.interfaces.ECPrivateKey;
@@ -30,13 +29,6 @@ public class ECCSignature {
     }
 
     public void generateKey() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
-        Provider sunEC = new SunEC();
-        Security.addProvider(sunEC);
-        for(Provider.Service service : sunEC.getServices()) {
-            System.out.println(service.getType() + ": "
-                    + service.getAlgorithm());
-        }
-
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECDSA", "BC");
         SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
         ECGenParameterSpec ecSpec = new ECGenParameterSpec("prime192v1");

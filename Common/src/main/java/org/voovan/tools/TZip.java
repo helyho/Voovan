@@ -1,7 +1,5 @@
 package org.voovan.tools;
 
-import org.voovan.tools.log.Logger;
-
 import java.io.*;
 import java.util.zip.*;
 

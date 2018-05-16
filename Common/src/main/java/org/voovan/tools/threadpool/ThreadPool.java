@@ -20,6 +20,7 @@ public class ThreadPool {
 	private final static int cpuCoreCount = Runtime.getRuntime().availableProcessors();
 	protected static int MIN_POOL_SIZE = 10*cpuCoreCount;
 	protected static int MAX_POOL_SIZE = 100*cpuCoreCount;
+	protected static int STATUS_INTERVAL = 3000;
 
 	/**
 	 * 获取线程池最小活动线程数
@@ -27,7 +28,7 @@ public class ThreadPool {
 	 */
 	public static int getMinPoolSize() {
 		int minPoolTimes = TProperties.getInt("framework", "ThreadPoolMinSize");
-		MIN_POOL_SIZE = (minPoolTimes == 0 ? 5 : minPoolTimes) * cpuCoreCount;
+		MIN_POOL_SIZE = (minPoolTimes == 0 ? 2 : minPoolTimes) * cpuCoreCount;
 		MIN_POOL_SIZE = MIN_POOL_SIZE < 10 ? 10 : MIN_POOL_SIZE;
 		return MIN_POOL_SIZE;
 	}
@@ -42,17 +43,32 @@ public class ThreadPool {
 		return MAX_POOL_SIZE;
 	}
 
+	/**
+	 * 获取线程池最大活动线程数
+	 * @return 线程池最大活动线程数
+	 */
+	public static int getStatusInterval() {
+		int statusInterval = TProperties.getInt("framework", "ThreadPoolStatusInterval");
+		STATUS_INTERVAL = statusInterval < 1000 ? 1000 : statusInterval;
+		return STATUS_INTERVAL;
+	}
+
+	static{
+		getMinPoolSize();
+		getMaxPoolSize();
+		getStatusInterval();
+	}
 
 	private ThreadPool(){
 	}
 
 	private static ThreadPoolExecutor createThreadPool(){
-		ThreadPoolExecutor threadPoolInstance = createThreadPool(getMinPoolSize(), getMaxPoolSize(), 1000*60);
+		ThreadPoolExecutor threadPoolInstance = createThreadPool(MIN_POOL_SIZE, MAX_POOL_SIZE, 1000*60);
 
 		//启动线程池自动调整任务
 		Timer timer = new Timer("VOOVAN@THREAD_POOL_TIMER");
 		ThreadPoolTask threadPoolTask = new ThreadPoolTask(threadPoolInstance);
-		timer.schedule(threadPoolTask, 1, 1000);
+		timer.schedule(threadPoolTask, 1, STATUS_INTERVAL);
 		return threadPoolInstance;
 	}
 
