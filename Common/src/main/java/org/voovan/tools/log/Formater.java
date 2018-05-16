@@ -2,10 +2,7 @@ package org.voovan.tools.log;
 
 import org.voovan.tools.*;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -232,7 +229,7 @@ public class Formater {
 		tokens.put("F", stackTraceElement.getFileName());								//源文件名
 		tokens.put("C", stackTraceElement.getClassName());								//类名
 		tokens.put("T", currentThreadName());											//线程
-		tokens.put("D", TDateTime.now("YYYY-MM-dd HH:mm:ss:SS z"));						//当前时间 
+		tokens.put("D", TDateTime.now("YYYY-MM-dd HH:mm:ss:SS z"));						//当前时间
 		tokens.put("R", Long.toString(System.currentTimeMillis() - StaticParam.getStartTimeMillis())); //系统运行时间
 	}
 
@@ -301,7 +298,32 @@ public class Formater {
 				loggerThread.setOutputStreams(getOutputStreams());
 			}
 
+			//压缩历史日志文件
+			packLogFile();
+
 			loggerThread.addLogMessage(msg);
+		}
+	}
+
+	/**
+	 * 压缩历史日志文件
+	 */
+	private void packLogFile(){
+		long packSize = (long) (Double.valueOf(StaticParam.getLogConfig("PackSize", "1024")) * 1024L * 1024L);
+		String logFilePath = getFormatedLogFilePath();
+
+		File logFile = new File(logFilePath);
+
+		if(packSize > 0 && logFile.length() > packSize){
+			try {
+				File packFile = new File(logFilePath + "." + System.currentTimeMillis() + ".gz");
+				TZip.encodeGZip(logFile, packFile);
+			} catch (Exception e) {
+				System.out.println("[ERROR] Pack log file " + logFilePath + "error: ");
+				e.printStackTrace();
+			}
+			TFile.deleteFile(logFile);
+			loggerThread.setOutputStreams(getOutputStreams());
 		}
 	}
 
@@ -311,7 +333,7 @@ public class Formater {
 	 */
 	public static String getFormatedLogFilePath(){
 		String filePath = "";
-		String logFile = StaticParam.getLogConfig("LogFile",StaticParam.LOG_FILE);
+		String logFile = StaticParam.getLogConfig("LogFile", StaticParam.LOG_FILE);
 		if(logFile!=null) {
 			Map<String, String> tokens = new HashMap<String, String>();
 			tokens.put("D", TDateTime.now("YYYYMMdd"));
@@ -345,8 +367,7 @@ public class Formater {
 	 */
 	protected static OutputStream[] getOutputStreams(){
 		String[] LogTypes = StaticParam.getLogConfig("LogType",StaticParam.LOG_TYPE).split(",");
-		String logFile = getFormatedLogFilePath();
-
+		String logFilePath = getFormatedLogFilePath();
 
 		OutputStream[] outputStreams = new OutputStream[LogTypes.length];
 		for (int i = 0; i < LogTypes.length; i++) {
@@ -360,9 +381,9 @@ public class Formater {
 					break;
 				case "FILE":
 					try {
-						outputStreams[i] = new FileOutputStream(logFile,true);
+						outputStreams[i] = new FileOutputStream(logFilePath,true);
 					} catch (FileNotFoundException e) {
-						System.out.println("log file: ["+logFile+"] is not found.\r\n");
+						System.out.println("log file: ["+logFilePath+"] is not found.\r\n");
 					}
 					break;
 				default:

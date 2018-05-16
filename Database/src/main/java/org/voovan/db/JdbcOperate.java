@@ -110,8 +110,8 @@ public class JdbcOperate {
 			//事务嵌套模式
 			if (transcationType == TranscationType.NEST) {
 				//判断是否有上层事务
-				if(JDBCOPERATE_THREAD_LIST.containsKey(threadId)) {
-					connection = JDBCOPERATE_THREAD_LIST.get(threadId).getConnection();
+				if (JDBCOPERATE_THREAD_LIST.containsKey(threadId)) {
+					connection = JDBCOPERATE_THREAD_LIST.get(threadId).connection;
 					savepoint = connection.setSavepoint();
 				} else {
 					connection = dataSource.getConnection();
@@ -314,7 +314,7 @@ public class JdbcOperate {
 			}
 
 			if(Logger.isLogLevel("DEBUG")) {
-				Logger.debug("[SQL_Executed]: " + sqlText);
+				Logger.fremawork("[SQL_Executed]: " + sqlText);
 			}
 
 			int[] result = preparedStatement.executeBatch();

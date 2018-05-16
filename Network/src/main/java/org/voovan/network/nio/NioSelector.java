@@ -133,7 +133,7 @@ public class NioSelector {
 										break;
 									}
 									default: {
-										Logger.debug("Nothing to do ,SelectionKey is:"
+										Logger.fremawork("Nothing to do ,SelectionKey is:"
 												+ selectionKey.readyOps());
 									}
 								}

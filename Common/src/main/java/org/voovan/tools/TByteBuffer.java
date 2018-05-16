@@ -68,7 +68,7 @@ public class TByteBuffer {
 
             ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
 
-            Cleaner.register(byteBuffer, deallocator);
+//            Cleaner.register(byteBuffer, deallocator);
 
             return byteBuffer;
 
