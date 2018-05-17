@@ -67,9 +67,6 @@ public class TProperties {
 				properites.load(new StringReader(content));
 				properites.setProperty(TIME_STAMP_NAME, String.valueOf(file.lastModified()));
 				propertiesCache.put(file, properites);
-				System.out.println("load from file");
-			} else {
-				System.out.println("load from cache");
 			}
 
 			return propertiesCache.get(file);
