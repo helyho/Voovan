@@ -27,6 +27,26 @@ import java.util.jar.JarFile;
  * Licence: Apache v2 License
  */
 public class TEnv {
+
+	//环境名称, 用于多环境条件下的配置文件读取
+	private static String ENV_NAME = null;
+
+	/**
+	 * 获取环境的配置名
+	 * @return 环境的配置名
+	 */
+	public static String getEnvName(){
+		return ENV_NAME;
+	}
+
+	/**
+	 * 设置环境的配置名
+	 * @param envName 环境的配置名
+	 */
+	public static void setEnvName(String envName){
+		ENV_NAME = envName;
+	}
+
 	/**
 	 * 获取当前进程 PID
 	 * @return 当前进程 ID
