@@ -80,28 +80,36 @@ public class TProperties {
 	/**
 	 * 解析 Properties 文件
 	 *
-	 * @param fileName 文件对象
+	 * @param fileName 文件名, 不包含扩展名, 或自动瓶装环境参数和扩展名
+	 *                 传入 database 参数会拼装出 database-环境名.properties 作为文件名
+	 *                 并且在 classes 或者 target/classes 目录下寻找指定文件.
+	 *                 如果没有指定环境名的配置文件则使用默认的配置文件
 	 * @return Properties 对象
 	 */
 	public static Properties getProperties(String fileName) {
+		String configFileNameWithEnv = null;
+		String configFileName = "";
 		if(!fileName.contains(".properties")){
-			fileName = fileName + ".properties";
-		}
-		String filePath = TString.assembly("./classes/", fileName);
-		String mavenFilePath = TString.assembly("./target/classes/", fileName);
 
-		File file = new File(filePath);
-		File mavaenFile = new File(mavenFilePath);
-		if(file==null || !file.exists()){
-			if(mavaenFile==null || !mavaenFile.exists()) {
-				Logger.error("properites file not exists. File: " + filePath);
-				return null;
-			} else {
-				file = mavaenFile;
-			}
+			String envName = TEnv.getEnvName();
+			envName = envName==null ? "" : "-"+envName;
+			configFileNameWithEnv = fileName + envName + ".properties";
+			configFileName = fileName + ".properties";
 		}
 
-		return getProperties(file);
+		File configFile = TFile.getResourceFile(configFileName);
+		File configFileWithEnv = TFile.getResourceFile(configFileNameWithEnv);
+
+		if(configFileWithEnv!=null){
+			return getProperties(configFileWithEnv);
+		}
+
+		if(configFile!=null){
+			return getProperties(configFileWithEnv);
+		}
+
+		Logger.error("Get properites file failed. File:" + fileName, new FileNotFoundException());
+		return null;
 	}
 
 	/**

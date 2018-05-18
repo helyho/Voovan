@@ -771,6 +771,12 @@ public class WebServer {
 				}
 
 				//服务监听地址
+				if(args[i].equals("--env") || args[i].equals("-e")){
+					i++;
+					TEnv.setEnvName(args[i]);
+				}
+
+				//服务监听地址
 				if(args[i].equals("-h")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					i++;
@@ -785,7 +791,7 @@ public class WebServer {
 				}
 
 				//读取超时时间(s)
-				if(args[i].equals("-rt")){
+				if(args[i].equals("-rto")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					i++;
 					config.setReadTimeout(Integer.parseInt(args[i]));
@@ -793,7 +799,7 @@ public class WebServer {
 
 
 				//发送超时时间(s)
-				if(args[i].equals("-st")){
+				if(args[i].equals("-sto")){
 					config = config==null?WebContext.getWebServerConfig():config;
 					i++;
 					config.setReadTimeout(Integer.parseInt(args[i]));
@@ -871,8 +877,9 @@ public class WebServer {
 					Logger.simple("Options:");
 					Logger.simple(TString.rightPad("  -h ",35,' ')+"Webserver bind host ip address");
 					Logger.simple(TString.rightPad("  -p ",35,' ')+"Webserver bind port number");
-					Logger.simple(TString.rightPad("  -rt ",35,' ')+"Socket read timeout");
-					Logger.simple(TString.rightPad("  -st ",35,' ')+"Socket send timeout");
+					Logger.simple(TString.rightPad("  --env ",35,' ') + "Webserver environment name");
+					Logger.simple(TString.rightPad("  -rto ",35,' ')+"Socket read timeout");
+					Logger.simple(TString.rightPad("  -sto ",35,' ')+"Socket send timeout");
 					Logger.simple(TString.rightPad("  -r ",35,' ')+"Context root path, contain webserver static file");
 					Logger.simple(TString.rightPad("  -i ",35,' ')+"index file for client access to webserver");
 					Logger.simple(TString.rightPad("  -mri ",35,' ')+"Match route ignore case");
