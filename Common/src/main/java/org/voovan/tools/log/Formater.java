@@ -50,12 +50,12 @@ public class Formater {
 	 */
 	public Formater(String template) {
 		this.template = template;
-		this.maxLineLength = Integer.valueOf(StaticParam.getLogConfig("MaxLineLength",StaticParam.MAX_LINE_LENGTH));
-		lineHead = StaticParam.getLogConfig("LineHead",StaticParam.LINE_HEAD);
-		lineTail = StaticParam.getLogConfig("LineTail",StaticParam.LINE_TAIL);
+		this.maxLineLength = Integer.valueOf(LoggerStatic.getLogConfig("MaxLineLength", LoggerStatic.MAX_LINE_LENGTH));
+		lineHead = LoggerStatic.getLogConfig("LineHead", LoggerStatic.LINE_HEAD);
+		lineTail = LoggerStatic.getLogConfig("LineTail", LoggerStatic.LINE_TAIL);
 
 		logLevel = new Vector<String>();
-		logLevel.addAll(TObject.asList(StaticParam.getLogConfig("LogLevel",StaticParam.LOG_LEVEL).split(",")));
+		logLevel.addAll(TObject.asList(LoggerStatic.getLogConfig("LogLevel", LoggerStatic.LOG_LEVEL).split(",")));
 		dateStamp = TDateTime.now("YYYYMMdd");
 	}
 
@@ -95,7 +95,7 @@ public class Formater {
 	 * @return 随进后的消息
 	 */
 	private String lineFormat(Message message){
-		boolean lineAlignLeft = Boolean.valueOf(StaticParam.getLogConfig("LineAlignLeft",StaticParam.LINE_ALIGN_LEFT));
+		boolean lineAlignLeft = Boolean.valueOf(LoggerStatic.getLogConfig("LineAlignLeft", LoggerStatic.LINE_ALIGN_LEFT));
 
 		String msg = TString.tokenReplace(template, message.getTokens());
 
@@ -230,7 +230,7 @@ public class Formater {
 		tokens.put("C", stackTraceElement.getClassName());								//类名
 		tokens.put("T", currentThreadName());											//线程
 		tokens.put("D", TDateTime.now("YYYY-MM-dd HH:mm:ss:SS z"));						//当前时间
-		tokens.put("R", Long.toString(System.currentTimeMillis() - StaticParam.getStartTimeMillis())); //系统运行时间
+		tokens.put("R", Long.toString(System.currentTimeMillis() - LoggerStatic.getStartTimeMillis())); //系统运行时间
 	}
 
 	/**
@@ -309,7 +309,7 @@ public class Formater {
 	 * 压缩历史日志文件
 	 */
 	private void packLogFile(){
-		long packSize = (long) (Double.valueOf(StaticParam.getLogConfig("PackSize", "1024")) * 1024L * 1024L);
+		long packSize = (long) (Double.valueOf(LoggerStatic.getLogConfig("PackSize", "1024")) * 1024L * 1024L);
 		String logFilePath = getFormatedLogFilePath();
 
 		File logFile = new File(logFilePath);
@@ -333,7 +333,7 @@ public class Formater {
 	 */
 	public static String getFormatedLogFilePath(){
 		String filePath = "";
-		String logFile = StaticParam.getLogConfig("LogFile", StaticParam.LOG_FILE);
+		String logFile = LoggerStatic.getLogConfig("LogFile", LoggerStatic.LOG_FILE);
 		if(logFile!=null) {
 			Map<String, String> tokens = new HashMap<String, String>();
 			tokens.put("D", TDateTime.now("YYYYMMdd"));
@@ -357,7 +357,7 @@ public class Formater {
 	 * @return 新的实例
 	 */
 	public static Formater newInstance() {
-		String logTemplate = StaticParam.getLogConfig("LogTemplate",StaticParam.LOG_TEMPLATE);
+		String logTemplate = LoggerStatic.getLogConfig("LogTemplate", LoggerStatic.LOG_TEMPLATE);
 		return new Formater(logTemplate);
 	}
 
@@ -366,7 +366,7 @@ public class Formater {
 	 * @return 输出流数组
 	 */
 	protected static OutputStream[] getOutputStreams(){
-		String[] LogTypes = StaticParam.getLogConfig("LogType",StaticParam.LOG_TYPE).split(",");
+		String[] LogTypes = LoggerStatic.getLogConfig("LogType", LoggerStatic.LOG_TYPE).split(",");
 		String logFilePath = getFormatedLogFilePath();
 
 		OutputStream[] outputStreams = new OutputStream[LogTypes.length];
