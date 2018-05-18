@@ -105,7 +105,7 @@ public class TProperties {
 		}
 
 		if(configFile!=null){
-			return getProperties(configFileWithEnv);
+			return getProperties(configFile);
 		}
 
 		Logger.error("Get properites file failed. File:" + fileName, new FileNotFoundException());

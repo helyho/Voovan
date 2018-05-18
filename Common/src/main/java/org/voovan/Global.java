@@ -27,7 +27,6 @@ public class Global {
     private static HashWheelTimer hashWheelTimer;
     private static TaskManager taskManager;
 
-    private static File frameworkConfigFile = getFrameworkConfigFile();
     public static volatile Boolean NO_HEAP_MANUAL_RELEASE = getNoHeapManualRelease();
 
     /**
@@ -37,9 +36,7 @@ public class Global {
     private  static boolean getNoHeapManualRelease() {
         if(NO_HEAP_MANUAL_RELEASE == null) {
             boolean value = false;
-            if (frameworkConfigFile != null) {
-                value = TProperties.getBoolean(frameworkConfigFile, "NoHeapManualRelease");
-            }
+            value = TProperties.getBoolean("framework", "NoHeapManualRelease");
             NO_HEAP_MANUAL_RELEASE = TObject.nullDefault(value, false);
             System.out.println("[SYSTEM] NoHeap Manual Release: " + NO_HEAP_MANUAL_RELEASE);
         }
@@ -85,28 +82,6 @@ public class Global {
         }
 
         return taskManager;
-    }
-
-
-    /**
-     * 读取非堆内存配置文件信息
-     * @return 日志配置文件对象
-     */
-    public static File getFrameworkConfigFile(){
-        File tmpFile =  tmpFile = new File("./classes/framework.properties");
-
-        //如果从 classes 目录中找不到,则从 classpath 中寻找
-        if(tmpFile==null || !tmpFile.exists()){
-            tmpFile = TFile.getResourceFile("framework.properties");
-        }
-
-        if(tmpFile!=null){
-            return tmpFile;
-        }else{
-            System.out.println("Waring: Can't found log noheap file!");
-            System.out.println("Waring: System will be use default noheap config: {Noheap:false, release:false}");
-            return null;
-        }
     }
 
     /**

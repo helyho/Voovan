@@ -18,8 +18,6 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class SandboxControler {
-    private static File	configFile = getConfigFile();
-
     private List<String> forbiddenClasses;  //null 全部允许访问, size=0为全部禁止
     private List<String> network;           //null 全部允许访问, size=0为全部禁止
     private List<String> file;              //null 全部允许访问, size=0为全部禁止
@@ -51,50 +49,27 @@ public class SandboxControler {
         securityAccess = true;
         createClassLoader = true;
 
-        if(configFile != null){
-            loadConfig();
-        }
-    }
-
-    /**
-     * 选择配置文件
-     * @return 配置文件的文件对象
-     */
-    protected static File getConfigFile(){
-        File tmpFile =  tmpFile = new File("./classes/sandbox.properties");
-
-        //如果从 classes 目录中找不到,则从 classpath 中寻找
-        if(tmpFile==null || !tmpFile.exists()){
-            tmpFile = TFile.getResourceFile("sandbox.properties");
-        }
-
-        if(tmpFile!=null){
-            return tmpFile;
-        }else{
-            Logger.warn("Sandbox Waring: Can't found sandbox config file!");
-            Logger.warn("Sandbox Waring: System will be use default config, all check will be permission");
-            return null;
-        }
+        loadConfig();
     }
 
     /**
      * 从配置文件读取配置信息
      */
     public void loadConfig(){
-        this.forbiddenClasses = setControlField(ControlType.LIST, TProperties.getString(configFile, "forbiddenClasses"));
-        this.network = setControlField(ControlType.LIST, TProperties.getString(configFile, "network"));
-        this.file = setControlField(ControlType.LIST, TProperties.getString(configFile, "file"));
-        this.packageAccess = setControlField(ControlType.LIST, TProperties.getString(configFile, "packageAccess"));
-        this.packageDefintion = setControlField(ControlType.LIST, TProperties.getString(configFile, "packageDefintion"));
-        this.thread = setControlField(ControlType.BOOLEAN, TProperties.getString(configFile, "thread"));
-        this.link = setControlField(ControlType.BOOLEAN, TProperties.getString(configFile, "link"));
-        this.properties = setControlField(ControlType.BOOLEAN, TProperties.getString(configFile, "properties"));
-        this.printJob = setControlField(ControlType.BOOLEAN, TProperties.getString(configFile, "printJob"));
-        this.exec = setControlField(ControlType.BOOLEAN, TProperties.getString(configFile, "exec"));
-        this.exit = setControlField(ControlType.BOOLEAN, TProperties.getString(configFile, "exit"));
-        this.factory = setControlField(ControlType.BOOLEAN, TProperties.getString(configFile, "factory"));
-        this.securityAccess = setControlField(ControlType.BOOLEAN, TProperties.getString(configFile, "securityAccess"));
-        this.createClassLoader = setControlField(ControlType.BOOLEAN, TProperties.getString(configFile, "createClassLoader"));
+        this.forbiddenClasses = setControlField(ControlType.LIST, TProperties.getString("sandbox", "forbiddenClasses"));
+        this.network = setControlField(ControlType.LIST, TProperties.getString("sandbox", "network"));
+        this.file = setControlField(ControlType.LIST, TProperties.getString("sandbox", "file"));
+        this.packageAccess = setControlField(ControlType.LIST, TProperties.getString("sandbox", "packageAccess"));
+        this.packageDefintion = setControlField(ControlType.LIST, TProperties.getString("sandbox", "packageDefintion"));
+        this.thread = setControlField(ControlType.BOOLEAN, TProperties.getString("sandbox", "thread"));
+        this.link = setControlField(ControlType.BOOLEAN, TProperties.getString("sandbox", "link"));
+        this.properties = setControlField(ControlType.BOOLEAN, TProperties.getString("sandbox", "properties"));
+        this.printJob = setControlField(ControlType.BOOLEAN, TProperties.getString("sandbox", "printJob"));
+        this.exec = setControlField(ControlType.BOOLEAN, TProperties.getString("sandbox", "exec"));
+        this.exit = setControlField(ControlType.BOOLEAN, TProperties.getString("sandbox", "exit"));
+        this.factory = setControlField(ControlType.BOOLEAN, TProperties.getString("sandbox", "factory"));
+        this.securityAccess = setControlField(ControlType.BOOLEAN, TProperties.getString("sandbox", "securityAccess"));
+        this.createClassLoader = setControlField(ControlType.BOOLEAN, TProperties.getString("sandbox", "createClassLoader"));
     }
 
     /**

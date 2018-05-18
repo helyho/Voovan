@@ -28,9 +28,6 @@ public class CacheStatic {
 
     private static MemcachedClientBuilder memcachedClientBuilder = null;
     private static JedisPool redisPool = null;
-////    private static File memecacheConfigFile = new File("./classes/memcached.properties");
-//    private static File redisConfigFile = new File("./classes/redis.properties");
-
 
     /**
      * 获取一个 MemcachedClientBuilder 也就是 Memcached的连接池
