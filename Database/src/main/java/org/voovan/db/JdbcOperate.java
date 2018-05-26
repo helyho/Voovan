@@ -153,24 +153,19 @@ public class JdbcOperate {
 			return ;
 		}
 
-		//没有事务点,  只在主事务中执行 commit
-		//主事务提交并可关闭连接
-		//子事务不可提交
-		if(savepoint==null) {
-			//关联事务提交
-			for(JdbcOperate bindJdbcOperate : bindedJdbcOperate){
-				if(this.equals(bindJdbcOperate)) {
-					if(!bindJdbcOperate.isTransactionFinished) {
-						bindJdbcOperate.commit(isClose);
-					}
+		//关联事务提交
+		for(JdbcOperate bindJdbcOperate : bindedJdbcOperate){
+			if(this.equals(bindJdbcOperate)) {
+				if(!bindJdbcOperate.isTransactionFinished) {
+					bindJdbcOperate.commit(isClose);
 				}
 			}
-			connection.commit();
-			if(isClose) {
-				closeConnection(connection);
-			}
-			isTransactionFinished = true;
 		}
+		connection.commit();
+		if(isClose) {
+			closeConnection(connection);
+		}
+		isTransactionFinished = true;
 	}
 
 	/**
