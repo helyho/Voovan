@@ -162,6 +162,7 @@ public class JdbcOperate {
 			}
 		}
 		connection.commit();
+
 		if(isClose) {
 			closeConnection(connection);
 		}
@@ -193,6 +194,7 @@ public class JdbcOperate {
 				}
 			}
 			connection.rollback();
+
 			if(isClose) {
 				closeConnection(connection);
 			}
