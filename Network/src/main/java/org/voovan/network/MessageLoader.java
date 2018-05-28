@@ -246,7 +246,7 @@ public class MessageLoader {
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		else if (stopType == StopType.MSG_SPLITTER) {
-			if (splitLength >= 0) {
+			if (splitLength > 0) {
 				result = TByteBuffer.allocateDirect(splitLength);
 				int fillSize = dataByteBufferChannel.readHead(result);
 				if (fillSize != splitLength) {
