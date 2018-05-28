@@ -31,9 +31,10 @@ public class JdbcOperate {
 	private DataSource	dataSource;
 	private Connection	connection;
 	private TranscationType transcationType;
-	private DataBaseType dataBaseType;
-	private List<JdbcOperate> jdbcOperateArrayList = new ArrayList<JdbcOperate>();
 	private Savepoint savepoint = null;
+
+	private List<JdbcOperate> bindedJdbcOperate = new ArrayList<JdbcOperate>();
+	private boolean isTransactionFinished = false;
 
 	/**
 	 * 构造函数
@@ -47,7 +48,7 @@ public class JdbcOperate {
 	/**
 	 * 构造函数
 	 * @param dataSource	数据源
-	 * @param isTrancation   是否启用事物支持
+	 * @param isTrancation   是否启用事物支持, 默认使用的`NEST`(嵌套事务)的事物方式
 	 */
 	public JdbcOperate(DataSource dataSource,boolean isTrancation){
 		this.dataSource = dataSource;
@@ -67,17 +68,18 @@ public class JdbcOperate {
 	/**
 	 * 增加连接事务关联绑定
 	 * 		只能绑定 TranscationType 为 NEST 的事务
-	 * @param jdbcOperate 连接操作对象
-	 * @param bothway true: 双向绑定, false: 单向绑定
+	 * @param subJdbcOperate 连接操作对象
+	 * @param bothway true: 双向绑定, false: 单向绑定,只建立当前连接和目标连接的绑定关系
+	 *                双向绑定意味这任意一个节点的 commit 或者 rollback 操作都会直接联动所有的事物同时操作, 如果是单向绑定,只会联动下级事物同时操作
 	 * @return true: 增加连接事务绑定成功, false: 增加连接事务绑定失败
 	 */
-	public synchronized boolean addBind(JdbcOperate jdbcOperate, boolean bothway){
-		if(jdbcOperate.transcationType == TranscationType.NEST) {
-			if(!jdbcOperateArrayList.contains(jdbcOperate)) {
+	public synchronized boolean addBind(JdbcOperate subJdbcOperate, boolean bothway){
+		if(subJdbcOperate.transcationType == TranscationType.NEST) {
+			if(!bindedJdbcOperate.contains(subJdbcOperate)) {
 				if(bothway) {
-					jdbcOperate.addBind(this, false);
+					subJdbcOperate.bindedJdbcOperate.add(this);
 				}
-				return jdbcOperateArrayList.add(jdbcOperate);
+				return bindedJdbcOperate.add(subJdbcOperate);
 			}
 		}
 
@@ -86,15 +88,15 @@ public class JdbcOperate {
 
 	/**
 	 * 移除连接事务绑定
-	 * @param jdbcOperate 连接操作对象
-	 * @param bothway true: 双向绑定, false: 单向绑定
+	 * @param subJdbcOperate 连接操作对象
+	 * @param bothway true: 双向绑定, 解出当前连接和目标连接两个连接相互的绑定关系, : 单向绑定, 只接触当前连接和目标连接的绑定关系
 	 * @return true: 移除连接事务绑定成功, false: 移除连接事务绑定失败
 	 */
-	public synchronized boolean removeBind(JdbcOperate jdbcOperate, boolean bothway){
+	public synchronized boolean removeBind(JdbcOperate subJdbcOperate, boolean bothway){
 		if(bothway) {
-			jdbcOperate.removeBind(this, false);
+			subJdbcOperate.bindedJdbcOperate.remove(this);
 		}
-		return jdbcOperateArrayList.remove(jdbcOperate);
+		return bindedJdbcOperate.remove(subJdbcOperate);
 	}
 
 	/**
@@ -146,28 +148,25 @@ public class JdbcOperate {
 	 * @param isClose 是否关闭数据库连接
 	 * @throws SQLException SQL 异常
 	 */
-	public void commit(boolean isClose) throws SQLException {
-
-		//关联事务提交
-		for(JdbcOperate jdbcOperate : jdbcOperateArrayList){
-			if(this.equals(jdbcOperate)) {
-				jdbcOperate.commit(isClose);
-			}
-		}
-
+	public synchronized void commit(boolean isClose) throws SQLException {
 		if(connection==null){
 			return ;
 		}
 
-		//没有事务点,  只在主事务中执行 commit
-		//主事务提交并可关闭连接
-		//子事务不可提交
-		if(savepoint==null) {
-			connection.commit();
-			if(isClose) {
-				closeConnection(connection);
+		//关联事务提交
+		for(JdbcOperate bindJdbcOperate : bindedJdbcOperate){
+			if(this.equals(bindJdbcOperate)) {
+				if(!bindJdbcOperate.isTransactionFinished) {
+					bindJdbcOperate.commit(isClose);
+				}
 			}
 		}
+		connection.commit();
+
+		if(isClose) {
+			closeConnection(connection);
+		}
+		isTransactionFinished = true;
 	}
 
 	/**
@@ -175,14 +174,7 @@ public class JdbcOperate {
 	 * @param isClose 是否关闭数据库连接
 	 * @throws SQLException SQL 异常
 	 */
-	public void rollback(boolean isClose) throws SQLException {
-		//关联事务回滚
-		for(JdbcOperate jdbcOperate : jdbcOperateArrayList){
-			if(this.equals(jdbcOperate)) {
-				jdbcOperate.rollback(isClose);
-			}
-		}
-
+	public synchronized void rollback(boolean isClose) throws SQLException {
 		if(connection==null){
 			return ;
 		}
@@ -193,10 +185,20 @@ public class JdbcOperate {
 		if(savepoint!=null) {
 			connection.rollback(savepoint);
 		} else {
+			//关联事务回滚
+			for(JdbcOperate bindJdbcOperate : bindedJdbcOperate){
+				if(this.equals(bindJdbcOperate)) {
+					if(!bindJdbcOperate.isTransactionFinished) {
+						bindJdbcOperate.rollback(isClose);
+					}
+				}
+			}
 			connection.rollback();
+
 			if(isClose) {
 				closeConnection(connection);
 			}
+			isTransactionFinished = true;
 		}
 	}
 
