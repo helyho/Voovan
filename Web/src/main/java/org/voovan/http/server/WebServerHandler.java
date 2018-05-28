@@ -411,6 +411,10 @@ public class WebServerHandler implements IoHandler {
 			session.close();
 		}
 
+		if(request.protocol().getVersion()==1.0 && getAttribute(session, SessionParam.KEEP_ALIVE) == null ){
+			session.close();
+		}
+
 		request.release();
 	}
 

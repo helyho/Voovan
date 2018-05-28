@@ -897,7 +897,7 @@ public class ByteBufferChannel {
 
 	@Override
 	public String toString(){
-		return "{size="+size+", capacity="+capacity()+", released="+(address.get()==0)+"}";
+		return "{size="+size+", capacity="+capacity()+", released="+(byteBuffer==null)+"}";
 	}
 
 	/**
