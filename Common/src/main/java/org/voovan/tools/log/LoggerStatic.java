@@ -1,10 +1,7 @@
 package org.voovan.tools.log;
 
-import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
-
-import java.io.File;
 
 /**
  * 静态对象类

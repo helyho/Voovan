@@ -19,8 +19,6 @@ import org.voovan.tools.TFile;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 
-import java.io.File;
-
 
 public class WebServerDemo {
 	private static byte[] fileContent = TFile.loadFileFromContextPath("WEBAPP/index.htm");

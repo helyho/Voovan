@@ -1,12 +1,11 @@
 package org.voovan.test.db;
 
 import org.voovan.db.recorder.annotation.NotInsert;
-import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.annotation.PrimaryKey;
 import org.voovan.db.recorder.annotation.Table;
 import org.voovan.tools.TFile;
-import org.voovan.tools.security.THash;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.security.THash;
 
 import java.io.File;
 import java.io.IOException;

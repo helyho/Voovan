@@ -1,8 +1,8 @@
 package org.voovan.test.tools.aop;
 
+import junit.framework.TestCase;
 import org.voovan.tools.aop.CutPointInfo;
 import org.voovan.tools.json.JSON;
-import junit.framework.TestCase;
 
 /**
  * 类文字命名

@@ -4,7 +4,6 @@ import org.voovan.Global;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;

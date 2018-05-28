@@ -1,10 +1,8 @@
 package org.voovan.test.tools.aop;
 
+import junit.framework.TestCase;
 import org.voovan.tools.aop.Aop;
 import org.voovan.tools.log.Logger;
-import junit.framework.TestCase;
-
-import java.io.IOException;
 
 /**
  * 类文字命名

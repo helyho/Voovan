@@ -1,11 +1,11 @@
 package org.voovan.tools.cache;
 
-import org.voovan.tools.log.Logger;
 import net.rubyeye.xmemcached.MemcachedClient;
 import net.rubyeye.xmemcached.MemcachedClientBuilder;
 import net.rubyeye.xmemcached.XMemcachedClientBuilder;
 import net.rubyeye.xmemcached.command.BinaryCommandFactory;
 import net.rubyeye.xmemcached.utils.AddrUtil;
+import org.voovan.tools.log.Logger;
 
 import java.io.Closeable;
 import java.io.IOException;

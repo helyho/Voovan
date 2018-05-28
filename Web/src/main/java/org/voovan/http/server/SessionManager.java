@@ -1,7 +1,6 @@
 package org.voovan.http.server;
 
 import org.voovan.http.message.packet.Cookie;
-import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;

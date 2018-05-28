@@ -7,11 +7,8 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
-import java.lang.reflect.WildcardType;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * NIO 会话连接对象
@@ -125,7 +122,7 @@ public class NioSession extends IoSession<NioSocket> {
 				int sendSize = socketChannel.write(buffer);
 				if(sendSize == 0 ){
 					waitCount++;
-					TEnv.sleep(TimeUnit.MILLISECONDS, 1);
+					TEnv.sleep(1);
 					if(waitCount >= socketContext().getSendTimeout()){
 						Logger.error("AioSession send timeout, Socket will be close");
 						close();

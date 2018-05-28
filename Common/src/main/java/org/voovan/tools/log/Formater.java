@@ -1,8 +1,13 @@
 package org.voovan.tools.log;
 
+import org.voovan.Global;
 import org.voovan.tools.*;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +62,20 @@ public class Formater {
 		logLevel = new Vector<String>();
 		logLevel.addAll(TObject.asList(LoggerStatic.getLogConfig("LogLevel", LoggerStatic.LOG_LEVEL).split(",")));
 		dateStamp = TDateTime.now("YYYYMMdd");
+
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			@Override
+			public void run() {
+
+				//如果日志发生变化则产生新的文件
+				if(!dateStamp.equals(TDateTime.now("YYYYMMdd"))){
+					loggerThread.setOutputStreams(getOutputStreams());
+				}
+
+				//压缩历史日志文件
+				packLogFile();
+			}
+		}, 1);
 	}
 
 	/**
@@ -293,13 +312,7 @@ public class Formater {
 			if (loggerThread == null || loggerThread.isFinished()) {
 				this.loggerThread = LoggerThread.start(getOutputStreams());
 			}
-			//如果日志发生变化则产生新的文件
-			if(!dateStamp.equals(TDateTime.now("YYYYMMdd"))){
-				loggerThread.setOutputStreams(getOutputStreams());
-			}
 
-			//压缩历史日志文件
-			packLogFile();
 
 			loggerThread.addLogMessage(msg);
 		}

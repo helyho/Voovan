@@ -1,9 +1,9 @@
 package org.voovan.test.tools.security;
 
+import junit.framework.TestCase;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.Cipher;
 import org.voovan.tools.security.TBase64;
-import org.voovan.tools.log.Logger;
-import junit.framework.TestCase;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
