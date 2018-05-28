@@ -1,8 +1,8 @@
 package org.voovan.test.tools;
 
+import junit.framework.TestCase;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
-import junit.framework.TestCase;
 
 import java.util.Map;
 

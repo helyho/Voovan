@@ -9,7 +9,6 @@ import org.voovan.tools.json.annotation.NotJSON;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -17,6 +16,7 @@ import java.util.function.Function;
 
 /**
  * 进程内缓存处理类
+ *      可字发现对象,在对象没有时自动同步对象到缓存,具备超时, 按照 LRU 的原则清理过期数据
  *
  * @author: helyho
  * DBase Framework.
@@ -36,7 +36,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
         wheelTimer.rotate();
     }
 
-    private ConcurrentHashMap<K, TimeMark> cacheMark;
+    private ConcurrentHashMap<K, TimeMark> cacheMark = new ConcurrentHashMap<K, TimeMark>();;
     private int maxSize;
 
     /**
@@ -44,7 +44,6 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * @param maxSize 缓存集合的最大容量, 多余的数据会被移除
      */
     public CachedHashMap(Integer maxSize){
-        cacheMark = new ConcurrentHashMap<K, TimeMark>();
         this.maxSize = maxSize == null ? DEFAULT_SIZE : maxSize;
     }
 
@@ -52,7 +51,6 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * 构造函数
      */
     public CachedHashMap(){
-        cacheMark = new ConcurrentHashMap<K, TimeMark>();
         this.maxSize =  DEFAULT_SIZE;
     }
 
@@ -107,7 +105,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
         }
 
         while(timeMark.isOnCreate()){
-            TEnv.sleep(TimeUnit.NANOSECONDS, 1);
+            TEnv.sleep(1);
         }
     }
 

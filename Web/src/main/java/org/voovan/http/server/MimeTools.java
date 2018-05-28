@@ -2,9 +2,6 @@ package org.voovan.http.server;
 
 import org.voovan.http.server.context.WebContext;
 import org.voovan.tools.TObject;
-import org.voovan.tools.TString;
-
-import java.util.Map;
 
 /**
  * MIME 相关处理

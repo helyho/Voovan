@@ -1,10 +1,10 @@
 package org.voovan.test.tools.cache;
 
+import junit.framework.TestCase;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.cache.RedisLock;
 import org.voovan.tools.cache.RedisMap;
-import junit.framework.TestCase;
 
 import java.util.ArrayList;
 

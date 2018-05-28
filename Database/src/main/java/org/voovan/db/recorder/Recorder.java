@@ -1,6 +1,7 @@
 package org.voovan.db.recorder;
 
 import org.voovan.db.DataBaseType;
+import org.voovan.db.JdbcOperate;
 import org.voovan.db.recorder.annotation.NotInsert;
 import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.annotation.PrimaryKey;
@@ -11,12 +12,12 @@ import org.voovan.tools.TSQL;
 import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.reflect.TReflect;
-import org.voovan.db.JdbcOperate;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 数据库记录操作类

@@ -1,11 +1,8 @@
 package org.voovan.tools.compiler.sandbox;
 
-import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
-import org.voovan.tools.log.Logger;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 

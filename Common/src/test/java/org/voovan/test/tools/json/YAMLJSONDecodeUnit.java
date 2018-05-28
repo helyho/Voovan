@@ -1,9 +1,9 @@
 package org.voovan.test.tools.json;
 
+import junit.framework.TestCase;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.YAML2JSON;
 import org.voovan.tools.log.Logger;
-import junit.framework.TestCase;
 
 public class YAMLJSONDecodeUnit extends TestCase {
 

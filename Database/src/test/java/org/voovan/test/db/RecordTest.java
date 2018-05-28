@@ -2,12 +2,12 @@ package org.voovan.test.db;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
+import junit.framework.TestCase;
 import org.voovan.db.JdbcOperate;
 import org.voovan.db.recorder.Query;
 import org.voovan.db.recorder.Recorder;
 import org.voovan.db.recorder.annotation.Table;
 import org.voovan.db.recorder.exception.RecorderException;
-import junit.framework.TestCase;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.log.Logger;

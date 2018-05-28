@@ -1,9 +1,9 @@
 package org.voovan.test.tools.security;
 
+import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.ECCSignature;
-import junit.framework.TestCase;
 
 /**
  * 类文字命名

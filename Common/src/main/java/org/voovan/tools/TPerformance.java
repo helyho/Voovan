@@ -1,7 +1,6 @@
 package org.voovan.tools;
 
 import org.voovan.Global;
-import org.voovan.tools.log.Logger;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;

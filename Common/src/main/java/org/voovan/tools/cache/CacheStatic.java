@@ -1,19 +1,18 @@
 package org.voovan.tools.cache;
 
-import org.voovan.tools.TPerformance;
-import org.voovan.tools.TProperties;
-import org.voovan.tools.TSerialize;
-import org.voovan.tools.log.Logger;
 import net.rubyeye.xmemcached.MemcachedClient;
 import net.rubyeye.xmemcached.MemcachedClientBuilder;
 import net.rubyeye.xmemcached.XMemcachedClientBuilder;
 import net.rubyeye.xmemcached.command.BinaryCommandFactory;
 import net.rubyeye.xmemcached.utils.AddrUtil;
+import org.voovan.tools.TPerformance;
+import org.voovan.tools.TProperties;
+import org.voovan.tools.TSerialize;
+import org.voovan.tools.log.Logger;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-import java.io.File;
 import java.io.IOException;
 
 /**

@@ -10,7 +10,6 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -229,7 +228,7 @@ public class MessageLoader {
 					stopType = StopType.STREAM_END;
 				}else {
 					readZeroCount++;
-					TEnv.sleep(TimeUnit.NANOSECONDS, 1);
+					TEnv.sleep(1);
 				}
 			}else{
 				readZeroCount = 0;

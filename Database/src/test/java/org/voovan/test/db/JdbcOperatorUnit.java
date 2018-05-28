@@ -2,13 +2,13 @@ package org.voovan.test.db;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
+import junit.framework.TestCase;
 import org.voovan.db.CallType;
 import org.voovan.db.JdbcOperate;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
-import junit.framework.TestCase;
 
 import java.io.File;
 import java.util.HashMap;

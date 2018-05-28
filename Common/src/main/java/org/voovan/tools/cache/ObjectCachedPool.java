@@ -1,13 +1,18 @@
-package org.voovan.tools;
+package org.voovan.tools.cache;
 
 import org.voovan.Global;
+import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * 对象池
+ *      支持超时清理,并且支持指定对象的借出和归还操作
+ *      仅仅按照时间长短控制对象的存活周期
  *
  * @author helyho
  * <p>
@@ -15,19 +20,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * WebSite: https://github.com/helyho/Vestful
  * Licence: Apache v2 License
  */
-public class ObjectPool {
+public class ObjectCachedPool {
 
     private Map<String,PooledObject> objects;
-    private long aliveTime = 5;
+    private long aliveTime = 0;
     private boolean autoRefreshOnGet = true;
 
     /**
      * 构造一个对象池
-     * @param aliveTime 对象存活时间,单位:秒
+     * @param aliveTime 对象存活时间,小于等于0时为一直存活,单位:秒
      * @param autoRefreshOnGet 获取对象时刷新对象存活时间
      */
-    public ObjectPool(long aliveTime,boolean autoRefreshOnGet){
-        objects = new ConcurrentHashMap<String, PooledObject>();
+    public ObjectCachedPool(long aliveTime, boolean autoRefreshOnGet){
+        objects = new ConcurrentSkipListMap<String,PooledObject>();
         this.aliveTime = aliveTime;
         this.autoRefreshOnGet = autoRefreshOnGet;
         removeDeadObject();
@@ -37,7 +42,7 @@ public class ObjectPool {
      * 构造一个对象池
      * @param aliveTime 对象存活时间,单位:秒
      */
-    public ObjectPool(long aliveTime){
+    public ObjectCachedPool(long aliveTime){
         objects = new ConcurrentHashMap<String,PooledObject>();
         this.aliveTime = aliveTime;
         removeDeadObject();
@@ -45,18 +50,8 @@ public class ObjectPool {
 
     /**
      * 构造一个对象池,默认对象存活事件 5 s
-     * @param autoRefreshOnGet 获取对象时刷新对象存活时间
      */
-    public ObjectPool(boolean autoRefreshOnGet){
-        objects = new ConcurrentHashMap<String,PooledObject>();
-        this.autoRefreshOnGet = autoRefreshOnGet;
-        removeDeadObject();
-    }
-
-    /**
-     * 构造一个对象池,默认对象存活事件 5 s
-     */
-    public ObjectPool(){
+    public ObjectCachedPool(){
         objects = new ConcurrentHashMap<String,PooledObject>();
         removeDeadObject();
     }
@@ -103,7 +98,7 @@ public class ObjectPool {
     /**
      * 增加池中的对象
      * @param obj 增加到池中的对象
-     * @return 对象的 hash 值 ,如果返回 0 ,则增加的是 null 值
+     * @return 对象的 id 值
      */
     public String add(Object obj){
         if(obj == null){
@@ -146,6 +141,30 @@ public class ObjectPool {
         objects.clear();
     }
 
+    /**
+     * 借出这个对象
+     * @return 借出的对象的 ID
+     */
+    public String borrow(){
+        Iterator<PooledObject> iterator = objects.values().iterator();
+        while(iterator.hasNext()){
+            PooledObject object = iterator.next();
+            String objectId = object.borrow();
+            if(objectId!=null){
+                return objectId;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 归还借出的对象
+     */
+    public void release(String objectId){
+        objects.get(objectId).release();
+    }
+
     private void removeDeadObject(){
         Global.getHashWheelTimer().addTask(new HashWheelTask() {
             @Override
@@ -170,9 +189,10 @@ public class ObjectPool {
         private long lastVisiediTime;
         private String id;
         private Object object;
-        private ObjectPool objectPool;
+        private ObjectCachedPool objectPool;
+        private volatile boolean isBorrowed = false;
 
-        public PooledObject(ObjectPool objectPool,String id,Object object) {
+        public PooledObject(ObjectCachedPool objectPool, String id, Object object) {
             this.objectPool = objectPool;
             this.lastVisiediTime = System.currentTimeMillis();
             this.id = id;
@@ -205,6 +225,31 @@ public class ObjectPool {
             this.object = object;
         }
 
+        /**
+         * 借出这个对象
+         * @return 借出的对象的 ID
+         */
+        public String borrow(){
+            synchronized (this) {
+                if (!isBorrowed) {
+                    isBorrowed = true;
+                    return id;
+                } else {
+                    return null;
+                }
+            }
+        }
+
+        /**
+         * 归还借出的对象
+         */
+        public void release(){
+            synchronized (this) {
+                if (isBorrowed) {
+                    isBorrowed = false;
+                }
+            }
+        }
 
         public String getId() {
             return id;
@@ -215,6 +260,10 @@ public class ObjectPool {
          * @return
          */
         public boolean isAlive(){
+            if(objectPool.aliveTime<=0){
+                return true;
+            }
+
             long currentAliveTime = System.currentTimeMillis() - lastVisiediTime;
             if (currentAliveTime >= objectPool.aliveTime*1000){
                 return false;
