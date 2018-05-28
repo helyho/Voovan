@@ -394,7 +394,7 @@ public class WebServerHandler implements IoHandler {
 		}
 
 		//处理连接保持
-		if ( getAttribute(session, SessionParam.KEEP_ALIVE) !=null &&
+		if (getAttribute(session, SessionParam.KEEP_ALIVE) !=null &&
 				(boolean)getAttribute(session, SessionParam.KEEP_ALIVE) &&
 				webConfig.getKeepAliveTimeout() > 0) {
 
@@ -403,12 +403,15 @@ public class WebServerHandler implements IoHandler {
 			}
 			//更新会话超时时间
 			refreshTimeout(session);
+
 		} else {
 			if (keepAliveSessionList.contains(session)) {
 				keepAliveSessionList.remove(session);
 			}
 			session.close();
 		}
+
+		request.release();
 	}
 
 	@Override

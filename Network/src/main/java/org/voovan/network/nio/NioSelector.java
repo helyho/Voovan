@@ -24,7 +24,6 @@ public class NioSelector {
 
 	private Selector selector;
 	private SocketContext socketContext;
-	private ByteBufferChannel netByteBufferChannel;
 	private ByteBufferChannel sessionByteBufferChannel;
 	private ByteBufferChannel tmpByteBufferChannel;
 
@@ -51,10 +50,6 @@ public class NioSelector {
 	public void eventChose() {
 		//读取用的缓冲区
 		ByteBuffer readTempBuffer = TByteBuffer.allocateDirect(socketContext.getBufferSize());
-
-		if( socketContext instanceof NioSocket && netByteBufferChannel== null && session.getSSLParser()!=null) {
-			netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
-		}
 
 		if (socketContext instanceof NioSocket) {
 			EventTrigger.fireConnectThread(session);
@@ -104,8 +99,7 @@ public class NioSelector {
 
 											//接收SSL数据, SSL握手完成后解包
 											if(session.getSSLParser()!=null && SSLParser.isHandShakeDone(session)){
-												netByteBufferChannel.writeEnd(readTempBuffer);
-												session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, tmpByteBufferChannel);
+												session.getSSLParser().unWarpByteBufferChannel(session, new ByteBufferChannel(readTempBuffer), tmpByteBufferChannel);
 											}
 
 											//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
@@ -190,8 +184,8 @@ public class NioSelector {
 	}
 
 	public void release(){
-		if(netByteBufferChannel!=null) {
-			netByteBufferChannel.release();
+		if(tmpByteBufferChannel!=null) {
+			tmpByteBufferChannel.release();
 		}
 	}
 }

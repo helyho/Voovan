@@ -4,10 +4,10 @@ import org.voovan.Global;
 import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
-import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 对象池
@@ -22,7 +22,10 @@ import java.util.concurrent.ConcurrentSkipListMap;
  */
 public class ObjectCachedPool {
 
-    private Map<String,PooledObject> objects;
+    private Map<String, PooledObject> objects = new ConcurrentSkipListMap<String, PooledObject>();
+    private ConcurrentLinkedDeque<String> unborrowedObjectIdList  = new ConcurrentLinkedDeque<String>();
+
+//    private ConcurrentSkipListMap<String,String> borrowedObjectIdList  = new ConcurrentSkipListMap<String,String>();
     private long aliveTime = 0;
     private boolean autoRefreshOnGet = true;
 
@@ -32,7 +35,6 @@ public class ObjectCachedPool {
      * @param autoRefreshOnGet 获取对象时刷新对象存活时间
      */
     public ObjectCachedPool(long aliveTime, boolean autoRefreshOnGet){
-        objects = new ConcurrentSkipListMap<String,PooledObject>();
         this.aliveTime = aliveTime;
         this.autoRefreshOnGet = autoRefreshOnGet;
         removeDeadObject();
@@ -43,7 +45,6 @@ public class ObjectCachedPool {
      * @param aliveTime 对象存活时间,单位:秒
      */
     public ObjectCachedPool(long aliveTime){
-        objects = new ConcurrentHashMap<String,PooledObject>();
         this.aliveTime = aliveTime;
         removeDeadObject();
     }
@@ -52,7 +53,6 @@ public class ObjectCachedPool {
      * 构造一个对象池,默认对象存活事件 5 s
      */
     public ObjectCachedPool(){
-        objects = new ConcurrentHashMap<String,PooledObject>();
         removeDeadObject();
     }
 
@@ -106,6 +106,22 @@ public class ObjectCachedPool {
         }
         String id = genObjectId();
         objects.put(id, new PooledObject(this, id, obj));
+        unborrowedObjectIdList.offer(id);
+        return id;
+    }
+
+    /**
+     * 增加池中的对象
+     * @param obj 增加到池中的对象ID
+     * @param obj 增加到池中的对象
+     * @return 对象的 id 值
+     */
+    public String add(String id, Object obj){
+        if(obj == null){
+            return null;
+        }
+        objects.put(id, new PooledObject(this, id, obj));
+        unborrowedObjectIdList.offer(id);
         return id;
     }
 
@@ -124,6 +140,7 @@ public class ObjectCachedPool {
      */
     public void remove(String id){
         objects.remove(id);
+        unborrowedObjectIdList.remove(id);
     }
 
     /**
@@ -139,6 +156,7 @@ public class ObjectCachedPool {
      */
     public void clear(){
         objects.clear();
+        unborrowedObjectIdList.clear();
     }
 
     /**
@@ -146,23 +164,20 @@ public class ObjectCachedPool {
      * @return 借出的对象的 ID
      */
     public String borrow(){
-        Iterator<PooledObject> iterator = objects.values().iterator();
-        while(iterator.hasNext()){
-            PooledObject object = iterator.next();
-            String objectId = object.borrow();
-            if(objectId!=null){
-                return objectId;
-            }
+        String objectId = unborrowedObjectIdList.poll();
+        if(objectId!=null){
+//            borrowedObjectIdList.put(objectId, TEnv.getStackMessage());
+            return objectId;
         }
-
         return null;
     }
 
     /**
      * 归还借出的对象
      */
-    public void release(String objectId){
-        objects.get(objectId).release();
+    public void restitution(String objectId){
+        unborrowedObjectIdList.addFirst(objectId);
+//        borrowedObjectIdList.remove(objectId);
     }
 
     private void removeDeadObject(){
@@ -190,7 +205,7 @@ public class ObjectCachedPool {
         private String id;
         private Object object;
         private ObjectCachedPool objectPool;
-        private volatile boolean isBorrowed = false;
+        private AtomicBoolean isBorrowed = new AtomicBoolean(false);
 
         public PooledObject(ObjectCachedPool objectPool, String id, Object object) {
             this.objectPool = objectPool;
@@ -223,32 +238,6 @@ public class ObjectCachedPool {
          */
         public void setObject(Object object) {
             this.object = object;
-        }
-
-        /**
-         * 借出这个对象
-         * @return 借出的对象的 ID
-         */
-        public String borrow(){
-            synchronized (this) {
-                if (!isBorrowed) {
-                    isBorrowed = true;
-                    return id;
-                } else {
-                    return null;
-                }
-            }
-        }
-
-        /**
-         * 归还借出的对象
-         */
-        public void release(){
-            synchronized (this) {
-                if (isBorrowed) {
-                    isBorrowed = false;
-                }
-            }
         }
 
         public String getId() {

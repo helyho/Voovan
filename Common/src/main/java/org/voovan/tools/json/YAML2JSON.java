@@ -21,7 +21,9 @@ public class YAML2JSON {
 	public static String convert(String jsonStr) throws IOException {
 		ByteBufferChannel byteBufferChannel = new ByteBufferChannel(jsonStr.length());
 		byteBufferChannel.writeHead(ByteBuffer.wrap(jsonStr.getBytes()));
-		return convert(byteBufferChannel);
+		String result = convert(byteBufferChannel);
+		byteBufferChannel.release();
+		return result;
 	}
 
 	/**

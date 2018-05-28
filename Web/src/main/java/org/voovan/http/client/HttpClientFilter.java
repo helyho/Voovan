@@ -33,18 +33,18 @@ public class HttpClientFilter implements IoFilter {
 
 	@Override
 	public Object encode(IoSession session, Object object) {
-		if(object instanceof WebSocketFrame){
-			return ((WebSocketFrame)object).toByteBuffer();
-		}
-		if(object instanceof Request){
-			Request request = (Request)object;
-			try {
-				request.send(session);
-			} catch (IOException e) {
-				Logger.error(e);
-			}
-			return emptyByteBuffer;
-		}
+//		if(object instanceof WebSocketFrame){
+//			return ((WebSocketFrame)object).toByteBuffer();
+//		}
+//		if(object instanceof Request){
+//			Request request = (Request)object;
+//			try {
+//				request.send(session);
+//			} catch (IOException e) {
+//				Logger.error(e);
+//			}
+//			return emptyByteBuffer;
+//		}
 		return null;
 	}
 
