@@ -47,7 +47,7 @@ public abstract class SocketContext {
 	protected MessageSplitter messageSplitter;
 	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
-	protected int bufferSize = 1024;
+	protected int bufferSize = 1024*5;
 
 	protected int idleInterval = 0;
 

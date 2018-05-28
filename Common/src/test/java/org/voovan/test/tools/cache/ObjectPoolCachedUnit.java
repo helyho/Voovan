@@ -67,10 +67,10 @@ public class ObjectPoolCachedUnit extends TestCase {
         }
 
         System.out.println("===================");
-        objectPool.release(arrayList.get(0));
-        objectPool.release(arrayList.get(1));
-        objectPool.release(arrayList.get(2));
-        objectPool.release(arrayList.get(3));
+        objectPool.restitution(arrayList.get(0));
+        objectPool.restitution(arrayList.get(1));
+        objectPool.restitution(arrayList.get(2));
+        objectPool.restitution(arrayList.get(3));
         System.out.println(arrayList.get(0));
         System.out.println(arrayList.get(1));
         System.out.println(arrayList.get(2));

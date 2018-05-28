@@ -1,6 +1,7 @@
 package org.voovan.tools;
 
 import org.voovan.Global;
+import org.voovan.tools.cache.ObjectCachedPool;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -21,17 +22,46 @@ import java.util.Arrays;
  */
 public class TByteBuffer {
 
+    public static UniqueId uniqueId = new UniqueId();
     public static Class DIRECT_BYTE_BUFFER_CLASS = ByteBuffer.allocateDirect(0).getClass();
-
     public static Constructor DIRECT_BYTE_BUFFER_CONSTURCTOR = getConsturctor();
-    static {
-        DIRECT_BYTE_BUFFER_CONSTURCTOR.setAccessible(true);
-    }
 
     public static Field addressField = ByteBufferField("address");
     public static Field limitField = ByteBufferField("limit");
     public static Field capacityField = ByteBufferField("capacity");
     public static Field attField = ByteBufferField("att");
+
+
+    public static ObjectCachedPool OBJECT_CACHED_POOL = new ObjectCachedPool();
+    static {
+        DIRECT_BYTE_BUFFER_CONSTURCTOR.setAccessible(true);
+
+        for(int i=0;i<10000*2;i++) {
+            ByteBuffer byteBuffer = allocateManualReleaseBuffer(1024 * 1024);
+            try {
+                OBJECT_CACHED_POOL.add(getAtt(byteBuffer).toString(), byteBuffer);
+            } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static ByteBuffer borrow(){
+        String borrowedId = OBJECT_CACHED_POOL.borrow();
+        return (ByteBuffer) OBJECT_CACHED_POOL.get(borrowedId);
+    }
+
+    public static boolean restitution(ByteBuffer byteBuffer){
+        try {
+            byteBuffer.clear();
+            OBJECT_CACHED_POOL.restitution(getAtt(byteBuffer).toString());
+            return true;
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 
     private static Constructor getConsturctor(){
         try {
@@ -65,11 +95,13 @@ public class TByteBuffer {
         try {
             long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
 
-            Deallocator deallocator = new Deallocator(address);
+//            Deallocator deallocator = new Deallocator(address);
 
-            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
+//            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
 
 //            Cleaner.register(byteBuffer, deallocator);
+
+            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, uniqueId.nextString());
 
             return byteBuffer;
 
@@ -150,26 +182,27 @@ public class TByteBuffer {
                 return true;
             }
 
-            if(byteBuffer.limit() == 0){
+            if(offset > 0 && byteBuffer.capacity() - byteBuffer.position() > offset){
                 return true;
             }
 
-            int limit = byteBuffer.limit()+offset;
-            int position = byteBuffer.position() + offset;
+            int newLimit = byteBuffer.limit()+offset;
+            int newPosition = byteBuffer.position() + offset;
 
-            if(position < 0){
+            if(newPosition < 0){
                 return false;
             }
 
-            if(limit > byteBuffer.capacity()){
-                reallocate(byteBuffer, limit);
+            if(newLimit > byteBuffer.capacity()){
+                reallocate(byteBuffer, newLimit);
+                System.out.println("movendfdaddf");
             }
 
             if(!byteBuffer.hasArray()) {
                 long address = getAddress(byteBuffer);
                 if(address!=0) {
                     long startAddress = address + byteBuffer.position();
-                    long targetAddress = address + position;
+                    long targetAddress = address + newPosition;
                     if (address > targetAddress) {
                         targetAddress = address;
                     }
@@ -177,11 +210,11 @@ public class TByteBuffer {
                 }
             }else{
                 byte[] hb = byteBuffer.array();
-                System.arraycopy(hb, byteBuffer.position(), hb, position, byteBuffer.remaining());
+                System.arraycopy(hb, byteBuffer.position(), hb, newPosition, byteBuffer.remaining());
             }
 
-            limitField.set(byteBuffer, limit);
-            byteBuffer.position(position);
+            limitField.set(byteBuffer, newLimit);
+            byteBuffer.position(newPosition);
             return true;
         }catch (ReflectiveOperationException e){
             Logger.error("TByteBuffer.moveData() Error.", e);

@@ -43,6 +43,17 @@ public class ByteBufferChannel {
 
 	/**
 	 * 构造函数
+	 * @param byteBuffer 分配的容量
+	 */
+	public ByteBufferChannel(ByteBuffer byteBuffer) {
+		lock = new ReentrantLock(true);
+		this.byteBuffer = byteBuffer;
+		resetAddress();
+		this.size = byteBuffer.remaining();
+	}
+
+	/**
+	 * 构造函数
 	 */
 	public ByteBufferChannel() {
 		init(1024);
@@ -67,8 +78,7 @@ public class ByteBufferChannel {
 	 */
 	private ByteBuffer newByteBuffer(int capacity){
 		try {
-
-			ByteBuffer instance = TByteBuffer.allocateManualReleaseBuffer(capacity);
+			ByteBuffer instance = TByteBuffer.borrow();
 			address.set(TByteBuffer.getAddress(instance));
 
 			return instance;
@@ -84,7 +94,7 @@ public class ByteBufferChannel {
 	 * @return true 已释放, false: 未释放
 	 */
 	public boolean isReleased(){
-		if(address.get() == 0){
+		if(this.byteBuffer == null){
 			return true;
 		}else{
 			return false;
@@ -104,6 +114,10 @@ public class ByteBufferChannel {
 	 * 立刻释放内存
 	 */
 	public synchronized void release(){
+		if(isReleased()){
+			return;
+		}
+
 		//是否手工释放
 		if(!Global.NO_HEAP_MANUAL_RELEASE || byteBuffer.getClass() != TByteBuffer.DIRECT_BYTE_BUFFER_CLASS) {
 			return;
@@ -112,25 +126,24 @@ public class ByteBufferChannel {
 		synchronized (byteBuffer) {
 			while(lock.isLocked()){
 
+				borrowed.set(false);
+
 				//如果加锁成功说明是自锁, 解锁并继续
-				if(borrowed.compareAndSet(true, false) && lock.tryLock()){
-					lock.unlock();
-					lock.unlock();
-					break;
+				if(lock.tryLock()){
+					while(true){
+						if(lock.getHoldCount()!=0) {
+							lock.unlock();
+						}
+						break;
+					}
 				}
 
 				TEnv.sleep(1);
 			}
 
-			lock.lock();
-			try {
-				if (address.get() != 0) {
-					TByteBuffer.release(byteBuffer);
-					address.set(0);
-				}
-			} finally {
-				lock.unlock();
-			}
+			this.byteBuffer.clear();
+			TByteBuffer.restitution(byteBuffer);
+			this.byteBuffer = null;
 		}
 	}
 
@@ -231,7 +244,7 @@ public class ByteBufferChannel {
 
 		lock.lock();
 		try{
-			byteBuffer.limit(0);
+			byteBuffer.clear();
 			size = 0;
 		} finally {
 			lock.unlock();

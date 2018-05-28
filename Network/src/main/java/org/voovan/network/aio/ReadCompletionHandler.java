@@ -24,7 +24,6 @@ import java.nio.channels.CompletionHandler;
  */
 public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBuffer>{
 	private AioSocket aioSocket;
-	private ByteBufferChannel netByteBufferChannel;
 	private ByteBufferChannel sessionByteBufferChannel;
 	private ByteBufferChannel tmpByteBufferChannel;
 	private AioSession session;
@@ -40,10 +39,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 	public void completed(Integer length, ByteBuffer readTempBuffer) {
 		try {
 
-			if(netByteBufferChannel== null && session.getSSLParser()!=null) {
-				netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
-			}
-
 			// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
 			if (MessageLoader.isStreamEnd(readTempBuffer, length) || !session.isConnected()) {
 				session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
@@ -57,8 +52,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 					//接收SSL数据, SSL握手完成后解包
 					if(session.getSSLParser()!=null && SSLParser.isHandShakeDone(session)){
-						netByteBufferChannel.writeEnd(readTempBuffer);
-						session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, tmpByteBufferChannel);
+						session.getSSLParser().unWarpByteBufferChannel(session, new ByteBufferChannel(readTempBuffer), tmpByteBufferChannel);
 					}
 
 					//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
@@ -124,8 +118,8 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 	}
 
 	public void release(){
-		if(netByteBufferChannel!=null) {
-			netByteBufferChannel.release();
+		if(tmpByteBufferChannel!=null) {
+			tmpByteBufferChannel.release();
 		}
 	}
 }

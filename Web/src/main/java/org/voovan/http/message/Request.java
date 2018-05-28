@@ -314,10 +314,17 @@ public class Request {
 		}
 
 		TByteBuffer.release(byteBuffer);
-		body.free();
+		release();
 	}
 
 
+	public void release(){
+		for (Part part : this.parts) {
+			part.body().release();
+		}
+
+		body.release();
+	}
 
 	/**
 	 * 清理
