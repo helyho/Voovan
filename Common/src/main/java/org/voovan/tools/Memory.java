@@ -210,7 +210,7 @@ public class Memory {
      * @param blockSize
      * @return
      */
-    private synchronized MemBlock malloc(long blockSize){
+    private MemBlock malloc(long blockSize){
         SortedMap<Long, ConcurrentLinkedDeque<MemBlock>> avaliableBlockSizeMap = freedMemBlocksMapBySize.tailMap(blockSize);
         long fixedSize = avaliableBlockSizeMap.firstKey();
         MemBlock result = null;
@@ -247,7 +247,7 @@ public class Memory {
         return result;
     }
 
-    public Long allocate(long blockSize) {
+    public synchronized Long allocate(long blockSize) {
         while(true){
             MemBlock result = malloc(blockSize);
             if(result==null){
@@ -258,8 +258,6 @@ public class Memory {
         }
     }
 
-
-
     /**
      *
      * @param realAddress
@@ -268,6 +266,7 @@ public class Memory {
         long address = realAddress - this.address;
         MemBlock backBlock = memBlocksMapByStartAddress.get(address);
         MemBlock memBlock = backBlock;
+        freedMemBlocksMapBySize.get(backBlock.getSize()).addLast(backBlock);
         do{
             memBlock =  merge(memBlock, true);
         }while(memBlock != null);
@@ -277,7 +276,6 @@ public class Memory {
         }while(memBlock != null);
 
         backBlock.setUsed(false);
-        freedMemBlocksMapBySize.get(backBlock.getSize()).addLast(backBlock);
     }
 
 
