@@ -115,6 +115,10 @@ public class ByteBufferChannel {
 	 * 立刻释放内存
 	 */
 	public synchronized void release(){
+		if(byteBuffer==null){
+			return;
+		}
+
 		//是否手工释放
 		if(!Global.NO_HEAP_MANUAL_RELEASE || byteBuffer.getClass() != TByteBuffer.DIRECT_BYTE_BUFFER_CLASS) {
 			return;

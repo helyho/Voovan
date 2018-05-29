@@ -26,7 +26,7 @@ public class Other {
         long address = memory.allocate(1024*1024);
         System.out.println(address);
 
-        TEnv.sleep(10000);
+        TEnv.sleep(10);
 
         for(int i=0;i<100;i++) {
             address = memory.allocate(1024 * 1024);
