@@ -16,8 +16,8 @@ import java.util.concurrent.*;
  */
 public class Memory {
 
-    private long address;
-    private long capacity; //单位 byte
+    private volatile long address;
+    private volatile long capacity; //单位 byte
 
     //Key: 分配的内存大小, 只保存可以分配的
     private ConcurrentSkipListMap<Long, ConcurrentLinkedDeque<MemBlock>> freedMemBlocksMapBySize = new ConcurrentSkipListMap<Long, ConcurrentLinkedDeque<MemBlock>>();
@@ -151,7 +151,7 @@ public class Memory {
      * 合并空闲内存
      * @param centerMemBlock 需要合并的内存块
      */
-    private MemBlock merge(MemBlock centerMemBlock, boolean isPrev) {
+    private  MemBlock merge(MemBlock centerMemBlock, boolean isPrev) {
         if(centerMemBlock==null){
             return null;
         }
@@ -210,7 +210,7 @@ public class Memory {
      * @param blockSize
      * @return
      */
-    private MemBlock malloc(long blockSize){
+    private synchronized MemBlock malloc(long blockSize){
         SortedMap<Long, ConcurrentLinkedDeque<MemBlock>> avaliableBlockSizeMap = freedMemBlocksMapBySize.tailMap(blockSize);
         long fixedSize = avaliableBlockSizeMap.firstKey();
         MemBlock result = null;
@@ -225,9 +225,10 @@ public class Memory {
                         //拆分内块
                         while (split(memBlock)) {
                             maxFreedSize = maxFreedSize / 2;
-                            memBlock = freedMemBlocksMapBySize.get(maxFreedSize).poll();
                             if (maxFreedSize == fixedSize) {
                                 break;
+                            } else {
+                                memBlock = freedMemBlocksMapBySize.get(maxFreedSize).poll();
                             }
                         }
                         result = avaliableBlockSizeMap.get(fixedSize).poll();
@@ -241,10 +242,6 @@ public class Memory {
             }
         } else {
             result = avaliableBlockSizeMap.get(fixedSize).poll();
-        }
-
-        if (result != null) {
-            result.setUsed(true);
         }
 
         return result;
@@ -270,9 +267,6 @@ public class Memory {
     public void release(long realAddress){
         long address = realAddress - this.address;
         MemBlock backBlock = memBlocksMapByStartAddress.get(address);
-        if(backBlock==null){
-            return;
-        }
         freedMemBlocksMapBySize.get(backBlock.getSize()).addLast(backBlock);
         MemBlock memBlock = null;
         do{
@@ -292,7 +286,7 @@ public class Memory {
         private long startAddress;
         private long endAddress;
         private long size;
-        private boolean isUsed;
+        private volatile boolean isUsed;
 
         public MemBlock(long startAddress, long endAddress, long size) {
             this.startAddress = startAddress;

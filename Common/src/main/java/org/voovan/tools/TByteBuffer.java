@@ -115,6 +115,7 @@ public class TByteBuffer {
                 if(getAtt(byteBuffer) == null){
                     throw new UnsupportedOperationException("JDK's ByteBuffer can't reallocate");
                 }
+
                 long address = getAddress(byteBuffer);
                 long newAddress = memory.allocate(newSize); //TUnsafe.getUnsafe().reallocateMemory(address, newSize);
                 TUnsafe.getUnsafe().copyMemory(address, newAddress, byteBuffer.capacity());
