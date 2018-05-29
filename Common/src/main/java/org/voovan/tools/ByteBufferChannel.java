@@ -78,7 +78,8 @@ public class ByteBufferChannel {
 	 */
 	private ByteBuffer newByteBuffer(int capacity){
 		try {
-			ByteBuffer instance = TByteBuffer.borrow();
+
+			ByteBuffer instance = TByteBuffer.allocateManualReleaseBuffer(capacity);
 			address.set(TByteBuffer.getAddress(instance));
 
 			return instance;
@@ -94,7 +95,7 @@ public class ByteBufferChannel {
 	 * @return true 已释放, false: 未释放
 	 */
 	public boolean isReleased(){
-		if(this.byteBuffer == null){
+		if(address.get() == 0){
 			return true;
 		}else{
 			return false;
@@ -114,10 +115,6 @@ public class ByteBufferChannel {
 	 * 立刻释放内存
 	 */
 	public synchronized void release(){
-		if(isReleased()){
-			return;
-		}
-
 		//是否手工释放
 		if(!Global.NO_HEAP_MANUAL_RELEASE || byteBuffer.getClass() != TByteBuffer.DIRECT_BYTE_BUFFER_CLASS) {
 			return;
@@ -127,7 +124,6 @@ public class ByteBufferChannel {
 			while(lock.isLocked()){
 
 				borrowed.set(false);
-
 				//如果加锁成功说明是自锁, 解锁并继续
 				if(lock.tryLock()){
 					while(true){
@@ -141,9 +137,16 @@ public class ByteBufferChannel {
 				TEnv.sleep(1);
 			}
 
-			this.byteBuffer.clear();
-			TByteBuffer.restitution(byteBuffer);
-			this.byteBuffer = null;
+			lock.lock();
+			try {
+				if (address.get() != 0) {
+					TByteBuffer.release(byteBuffer);
+					address.set(0);
+					size = -1;
+				}
+			} finally {
+				lock.unlock();
+			}
 		}
 	}
 
@@ -244,7 +247,7 @@ public class ByteBufferChannel {
 
 		lock.lock();
 		try{
-			byteBuffer.clear();
+			byteBuffer.limit(0);
 			size = 0;
 		} finally {
 			lock.unlock();
@@ -353,6 +356,7 @@ public class ByteBufferChannel {
 				byte result = unsafe.getByte(address.get() + position);
 				return result;
 			} else {
+				checkRelease();
 				throw new IndexOutOfBoundsException();
 			}
 		} finally {
@@ -396,6 +400,7 @@ public class ByteBufferChannel {
 				return arrSize;
 
 			} else {
+				checkRelease();
 				throw new IndexOutOfBoundsException();
 			}
 		} finally {
@@ -487,9 +492,7 @@ public class ByteBufferChannel {
 	 */
 	public boolean waitData(int length,int timeout){
 		while(timeout > 0){
-			if(isReleased()){
-				throw new MemoryReleasedException("ByteBufferChannel is released.");
-			}
+			checkRelease();
 
 			if(size() >= length){
 				return true;
@@ -509,9 +512,7 @@ public class ByteBufferChannel {
 	 */
 	public boolean waitData(byte[] mark, int timeout){
 		while(timeout > 0){
-			if(isReleased()){
-				throw new MemoryReleasedException("ByteBufferChannel is released.");
-			}
+			checkRelease();
 
 			if(indexOf(mark) != -1){
 				return true;
@@ -589,6 +590,7 @@ public class ByteBufferChannel {
 
 					byteBuffer.position(position);
 				} else {
+					checkRelease();
 					throw new RuntimeException("move data failed");
 				}
 			}
@@ -897,7 +899,7 @@ public class ByteBufferChannel {
 
 	@Override
 	public String toString(){
-		return "{size="+size+", capacity="+capacity()+", released="+(byteBuffer==null)+"}";
+		return "{size="+size+", capacity="+capacity()+", released="+(address.get()==0)+"}";
 	}
 
 	/**

@@ -1,5 +1,7 @@
 package org.voovan.test;
 
+import org.voovan.tools.Memory;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
@@ -17,9 +19,28 @@ import java.util.regex.Matcher;
 public class Other {
 
     public static void main(String[] args) throws IOException {
-        Matcher matcher = TString.doRegex("http://127.0.0.1:28080/Star/%E4%B8%AD%E6%96%87%E6%B5%8B%E8%AF%95/100",
-                "\\/Star\\/(?<name>.*)\\/(?<age>.*)");
-        Logger.simple(matcher);
-    }
+        Memory memory = new Memory(1024*1024*1024*2L);
+        Logger.info("start");
+        System.out.println(memory);
 
+        long address = memory.allocate(1024*1024);
+        System.out.println(address);
+
+        TEnv.sleep(10000);
+
+        for(int i=0;i<100;i++) {
+            address = memory.allocate(1024 * 1024);
+            if(i%10<9){
+                memory.release(address);
+            }
+            System.out.println(address);
+        }
+
+
+        Logger.info("end");
+
+        while (true){
+            TEnv.sleep(1);
+        }
+    }
 }

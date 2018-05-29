@@ -1,7 +1,6 @@
 package org.voovan.tools;
 
 import org.voovan.Global;
-import org.voovan.tools.cache.ObjectCachedPool;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -22,46 +21,19 @@ import java.util.Arrays;
  */
 public class TByteBuffer {
 
-    public static UniqueId uniqueId = new UniqueId();
+    public static Memory memory = new Memory(1024*1024*128);
+
     public static Class DIRECT_BYTE_BUFFER_CLASS = ByteBuffer.allocateDirect(0).getClass();
+
     public static Constructor DIRECT_BYTE_BUFFER_CONSTURCTOR = getConsturctor();
+    static {
+        DIRECT_BYTE_BUFFER_CONSTURCTOR.setAccessible(true);
+    }
 
     public static Field addressField = ByteBufferField("address");
     public static Field limitField = ByteBufferField("limit");
     public static Field capacityField = ByteBufferField("capacity");
     public static Field attField = ByteBufferField("att");
-
-
-    public static ObjectCachedPool OBJECT_CACHED_POOL = new ObjectCachedPool();
-    static {
-        DIRECT_BYTE_BUFFER_CONSTURCTOR.setAccessible(true);
-
-        for(int i=0;i<10000*2;i++) {
-            ByteBuffer byteBuffer = allocateManualReleaseBuffer(1024 * 1024);
-            try {
-                OBJECT_CACHED_POOL.add(getAtt(byteBuffer).toString(), byteBuffer);
-            } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public static ByteBuffer borrow(){
-        String borrowedId = OBJECT_CACHED_POOL.borrow();
-        return (ByteBuffer) OBJECT_CACHED_POOL.get(borrowedId);
-    }
-
-    public static boolean restitution(ByteBuffer byteBuffer){
-        try {
-            byteBuffer.clear();
-            OBJECT_CACHED_POOL.restitution(getAtt(byteBuffer).toString());
-            return true;
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
 
     private static Constructor getConsturctor(){
         try {
@@ -93,15 +65,14 @@ public class TByteBuffer {
      */
     protected static ByteBuffer allocateManualReleaseBuffer(int capacity){
         try {
-            long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
+            long address = memory.allocate(capacity);//(TUnsafe.getUnsafe().allocateMemory(capacity));
 
-//            Deallocator deallocator = new Deallocator(address);
+            Deallocator deallocator = new Deallocator(address);
 
-//            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
+            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
 
+            //内存自动释放部分有问题? 需要研究
 //            Cleaner.register(byteBuffer, deallocator);
-
-            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, uniqueId.nextString());
 
             return byteBuffer;
 
@@ -145,8 +116,11 @@ public class TByteBuffer {
                     throw new UnsupportedOperationException("JDK's ByteBuffer can't reallocate");
                 }
                 long address = getAddress(byteBuffer);
-                long newAddress = TUnsafe.getUnsafe().reallocateMemory(address, newSize);
+                long newAddress = memory.allocate(newSize); //TUnsafe.getUnsafe().reallocateMemory(address, newSize);
+                TUnsafe.getUnsafe().copyMemory(address, newAddress, byteBuffer.capacity());
                 setAddress(byteBuffer, newAddress);
+
+                memory.release(address);
             }else{
                 byte[] hb = byteBuffer.array();
                 byte[] newHb = Arrays.copyOf(hb, newSize);
@@ -173,7 +147,6 @@ public class TByteBuffer {
      */
     public static boolean moveData(ByteBuffer byteBuffer, int offset) {
         try {
-
             if(isReleased(byteBuffer)) {
                 return false;
             }
@@ -244,7 +217,7 @@ public class TByteBuffer {
                     if (att!=null && att.getClass() == Deallocator.class) {
                         long address = getAddress(byteBuffer);
                         if(address!=0) {
-                            TUnsafe.getUnsafe().freeMemory(address);
+                            memory.release(address);
                             setAddress(byteBuffer, 0);
                         }
                     }
