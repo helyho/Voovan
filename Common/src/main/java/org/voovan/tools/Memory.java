@@ -267,8 +267,7 @@ public class Memory {
     public void release(long realAddress){
         long address = realAddress - this.address;
         MemBlock backBlock = memBlocksMapByStartAddress.get(address);
-        freedMemBlocksMapBySize.get(backBlock.getSize()).addLast(backBlock);
-        MemBlock memBlock = null;
+        MemBlock memBlock = backBlock;
         do{
             memBlock =  merge(memBlock, true);
         }while(memBlock != null);
@@ -278,6 +277,7 @@ public class Memory {
         }while(memBlock != null);
 
         backBlock.setUsed(false);
+        freedMemBlocksMapBySize.get(backBlock.getSize()).addLast(backBlock);
     }
 
 
