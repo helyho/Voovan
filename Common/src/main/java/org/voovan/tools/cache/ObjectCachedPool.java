@@ -4,6 +4,7 @@ import org.voovan.Global;
 import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -25,7 +26,6 @@ public class ObjectCachedPool {
     private Map<String, PooledObject> objects = new ConcurrentSkipListMap<String, PooledObject>();
     private ConcurrentLinkedDeque<String> unborrowedObjectIdList  = new ConcurrentLinkedDeque<String>();
 
-//    private ConcurrentSkipListMap<String,String> borrowedObjectIdList  = new ConcurrentSkipListMap<String,String>();
     private long aliveTime = 0;
     private boolean autoRefreshOnGet = true;
 
@@ -166,7 +166,6 @@ public class ObjectCachedPool {
     public String borrow(){
         String objectId = unborrowedObjectIdList.poll();
         if(objectId!=null){
-//            borrowedObjectIdList.put(objectId, TEnv.getStackMessage());
             return objectId;
         }
         return null;
@@ -185,7 +184,9 @@ public class ObjectCachedPool {
             @Override
             public void run() {
                 try {
-                    for (PooledObject pooledObject : objects.values().toArray(new PooledObject[]{})) {
+                    Iterator<PooledObject> iterator = objects.values().iterator();
+                    while (iterator.hasNext()) {
+                        PooledObject pooledObject = iterator.next();
                         if (!pooledObject.isAlive()) {
                             remove(pooledObject.getId());
                         }
@@ -194,7 +195,7 @@ public class ObjectCachedPool {
                     e.printStackTrace();
                 }
             }
-        },1, true);
+        }, 5, true);
     }
 
     /**
@@ -205,7 +206,6 @@ public class ObjectCachedPool {
         private String id;
         private Object object;
         private ObjectCachedPool objectPool;
-        private AtomicBoolean isBorrowed = new AtomicBoolean(false);
 
         public PooledObject(ObjectCachedPool objectPool, String id, Object object) {
             this.objectPool = objectPool;
