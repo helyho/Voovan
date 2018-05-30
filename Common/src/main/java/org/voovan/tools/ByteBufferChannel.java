@@ -95,7 +95,7 @@ public class ByteBufferChannel {
 	 * @return true 已释放, false: 未释放
 	 */
 	public boolean isReleased(){
-		if(address.get() == 0){
+		if(address.get() == 0 || byteBuffer == null){
 			return true;
 		}else{
 			return false;
@@ -150,6 +150,7 @@ public class ByteBufferChannel {
 				if (address.get() != 0) {
 					TByteBuffer.release(byteBuffer);
 					address.set(0);
+					byteBuffer = null;
 					size = -1;
 				}
 			} finally {
