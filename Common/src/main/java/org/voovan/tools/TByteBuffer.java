@@ -3,6 +3,7 @@ package org.voovan.tools;
 import org.voovan.Global;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import sun.misc.Cleaner;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
@@ -20,8 +21,6 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
-
-    public static Memory memory = new Memory(1024*1024*128);
 
     public static Class DIRECT_BYTE_BUFFER_CLASS = ByteBuffer.allocateDirect(0).getClass();
 
@@ -65,14 +64,14 @@ public class TByteBuffer {
      */
     protected static ByteBuffer allocateManualReleaseBuffer(int capacity){
         try {
-            long address = memory.allocate(capacity);//(TUnsafe.getUnsafe().allocateMemory(capacity));
+            long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
 
-            Deallocator deallocator = new Deallocator(address);
+            Deallocator deallocator = new Deallocator(new Long(address));
 
             ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
 
             //内存自动释放部分有问题? 需要研究
-//            Cleaner.register(byteBuffer, deallocator);
+            Cleaner.create(byteBuffer, deallocator);
 
             return byteBuffer;
 
@@ -115,13 +114,9 @@ public class TByteBuffer {
                 if(getAtt(byteBuffer) == null){
                     throw new UnsupportedOperationException("JDK's ByteBuffer can't reallocate");
                 }
-
                 long address = getAddress(byteBuffer);
-                long newAddress = memory.allocate(newSize); //TUnsafe.getUnsafe().reallocateMemory(address, newSize);
-                TUnsafe.getUnsafe().copyMemory(address, newAddress, byteBuffer.capacity());
+                long newAddress = TUnsafe.getUnsafe().reallocateMemory(address, newSize);
                 setAddress(byteBuffer, newAddress);
-
-                memory.release(address);
             }else{
                 byte[] hb = byteBuffer.array();
                 byte[] newHb = Arrays.copyOf(hb, newSize);
@@ -218,7 +213,7 @@ public class TByteBuffer {
                     if (att!=null && att.getClass() == Deallocator.class) {
                         long address = getAddress(byteBuffer);
                         if(address!=0) {
-                            memory.release(address);
+                            TUnsafe.getUnsafe().freeMemory(address);
                             setAddress(byteBuffer, 0);
                         }
                     }
