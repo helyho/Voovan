@@ -1,10 +1,11 @@
 package org.voovan.tools;
 
-import org.voovan.Global;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.json.annotation.NotJSON;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 类文字命名
@@ -23,8 +24,8 @@ public class Memory {
     private ConcurrentSkipListMap<Long, ConcurrentLinkedDeque<MemBlock>> freedMemBlocksMapBySize = new ConcurrentSkipListMap<Long, ConcurrentLinkedDeque<MemBlock>>();
 
     //按地址保存所有的内存块
-    private ConcurrentHashMap<Long, MemBlock> memBlocksMapByStartAddress = new ConcurrentHashMap<Long, MemBlock>();
-    private ConcurrentHashMap<Long, MemBlock> memBlocksMapByEndAddress = new ConcurrentHashMap<Long, MemBlock>();
+    protected ConcurrentHashMap<Long, MemBlock> memBlocksMapByStartAddress = new ConcurrentHashMap<Long, MemBlock>();
+    protected ConcurrentHashMap<Long, MemBlock> memBlocksMapByEndAddress = new ConcurrentHashMap<Long, MemBlock>();
 
     /**
      * 构造函数
@@ -59,7 +60,6 @@ public class Memory {
             }
         }
 
-
         this.capacity = capacity;
         this.address = TUnsafe.getUnsafe().allocateMemory(capacity);
 
@@ -67,7 +67,7 @@ public class Memory {
         {
             tempCapacity = capacity;
             freedMemBlocksMapBySize.put(tempCapacity, new ConcurrentLinkedDeque<MemBlock>());
-            MemBlock rootBlock = new MemBlock(0, capacity, capacity);
+            MemBlock rootBlock = new MemBlock(this, 0, capacity - 1, capacity);
             freedMemBlocksMapBySize.get(tempCapacity).addLast(rootBlock);
             tempCapacity = tempCapacity / 2;
             while (true) {
@@ -101,8 +101,7 @@ public class Memory {
         }
 
         freedMemBlocksMapBySize.get(memBlock.getSize()).remove(memBlock);
-        memBlocksMapByStartAddress.remove(memBlock.getStartAddress(), memBlock);
-        memBlocksMapByEndAddress.remove(memBlock.getEndAddress(), memBlock);
+        memBlock.remove();
     }
 
     /**
@@ -116,8 +115,32 @@ public class Memory {
             }
 
             freedMemBlocksMapBySize.get(memBlocks[i].getSize()).offer(memBlocks[i]);
-            memBlocksMapByStartAddress.put(memBlocks[i].getStartAddress(), memBlocks[i]);
-            memBlocksMapByEndAddress.put(memBlocks[i].getEndAddress(), memBlocks[i]);
+        }
+    }
+
+    //获取标准的内存块大小
+    private long getStanderBlockSize(long size){
+        SortedMap<Long, ConcurrentLinkedDeque<MemBlock>> avaliableBlockSizeMap = freedMemBlocksMapBySize.tailMap(size);
+        return avaliableBlockSizeMap.firstKey();
+    }
+
+    /**
+     * 探测可以拆分的内存块
+     * @param fixedSize
+     * @return
+     */
+    private MemBlock findTopSplitBlock(long fixedSize){
+        //探测可用来进行分配的最大尺寸内存快
+        long maxFreedSize = fixedSize * 2;
+        while (true) {
+            ConcurrentLinkedDeque<MemBlock> memBlockLinkDeque = freedMemBlocksMapBySize.get(maxFreedSize);
+            if (!memBlockLinkDeque.isEmpty()) {
+                return memBlockLinkDeque.poll();
+            }
+            maxFreedSize = maxFreedSize * 2;
+            if(maxFreedSize > capacity){
+               return null;
+            }
         }
     }
 
@@ -125,33 +148,83 @@ public class Memory {
      * 内存分割
      * @param parentMemBlock 需要拆分的内存块
      */
-    private boolean split(MemBlock parentMemBlock){
+    private synchronized MemBlock split(MemBlock parentMemBlock, long targetSize){
         if(parentMemBlock==null || parentMemBlock.isUsed()){
-            return false;
+            return null;
         }
 
         if(parentMemBlock.getSize()==1024){
-            return false;
+            return null;
         }
         long spliteSize = parentMemBlock.getSize()/2;
 
 
         //拆分块
-        MemBlock memBlock1 = new MemBlock(parentMemBlock.getStartAddress(), parentMemBlock.getStartAddress() + spliteSize, spliteSize);
-        MemBlock memBlock2 = new MemBlock(parentMemBlock.getStartAddress() + spliteSize, parentMemBlock.getEndAddress(), spliteSize);
+        MemBlock memBlockForStore = new MemBlock(this, parentMemBlock.getStartAddress(), parentMemBlock.getStartAddress() + spliteSize - 1, spliteSize);
+        MemBlock memBlockForUse = new MemBlock(this, parentMemBlock.getStartAddress() + spliteSize, parentMemBlock.getEndAddress(), spliteSize);
 
         //重新分配链表上的块
-        addBlock(memBlock1, memBlock2);
         removeBlock(parentMemBlock);
+        addBlock(memBlockForStore);
 
-        return true;
+        if(spliteSize!=targetSize){
+            memBlockForUse = split(memBlockForUse, targetSize);
+        }
+
+        return memBlockForUse;
+    }
+
+    /**
+     * 分配内存
+     * @param blockSize
+     * @return
+     */
+    private MemBlock malloc(long blockSize){
+
+        long fixedSize = getStanderBlockSize(blockSize);
+
+        MemBlock result = null;
+
+        if(freedMemBlocksMapBySize.get(fixedSize).isEmpty()) {
+
+            //探测可用户拆分的内存块
+            MemBlock memBlock = findTopSplitBlock(fixedSize);
+
+            //拆分内存块
+            memBlock = split(memBlock, fixedSize);
+            if(memBlock==null){
+               return null;
+            } else {
+                return memBlock;
+            }
+
+        } else {
+            result = freedMemBlocksMapBySize.get(fixedSize).poll();
+        }
+
+        return result;
+    }
+
+    public Long allocate(long blockSize) {
+        while(true) {
+            MemBlock result = malloc(blockSize);
+            if(result==null){
+                continue;
+            }
+            synchronized (result) {
+                result.setUsed(true);
+                TUnsafe.getUnsafe().setMemory(this.address + result.getStartAddress(), result.getSize(), (byte)0);
+
+                return address + result.getStartAddress();
+            }
+        }
     }
 
     /**
      * 合并空闲内存
      * @param centerMemBlock 需要合并的内存块
      */
-    private  MemBlock merge(MemBlock centerMemBlock, boolean isPrev) {
+    private synchronized MemBlock merge(MemBlock centerMemBlock, boolean isPrev) {
         if(centerMemBlock==null){
             return null;
         }
@@ -162,30 +235,30 @@ public class Memory {
         long size = centerMemBlock.getSize();
 
         if(isPrev) {
-                tmpMemBlock = memBlocksMapByEndAddress.get(startAddress - 1);
+            tmpMemBlock = memBlocksMapByEndAddress.get(startAddress - 1);
 
-                if(tmpMemBlock!=null && !tmpMemBlock.isUsed()) {
-                    if(tmpMemBlock.getSize() != centerMemBlock.getSize()){
-                        return null;
-                    }
-
-                    removeBlock(tmpMemBlock);
-                } else {
+            if(tmpMemBlock!=null && !tmpMemBlock.isUsed()) {
+                if(tmpMemBlock.getSize() != centerMemBlock.getSize()){
                     return null;
                 }
+
+                removeBlock(tmpMemBlock);
+            } else {
+                return null;
+            }
 
 
         } else {
-                tmpMemBlock = memBlocksMapByStartAddress.get(endAddress + 1);
+            tmpMemBlock = memBlocksMapByStartAddress.get(endAddress + 1);
 
-                if(tmpMemBlock!=null && !tmpMemBlock.isUsed()) {
-                    if(tmpMemBlock.getSize() != centerMemBlock.getSize()){
-                        return null;
-                    }
-                    removeBlock(tmpMemBlock);
-                } else {
+            if(tmpMemBlock!=null && !tmpMemBlock.isUsed()) {
+                if(tmpMemBlock.getSize() != centerMemBlock.getSize()){
                     return null;
                 }
+                removeBlock(tmpMemBlock);
+            } else {
+                return null;
+            }
         }
 
         if (isPrev) {
@@ -197,65 +270,10 @@ public class Memory {
         }
 
 
-        MemBlock mergedMemBlock = new MemBlock(startAddress, endAddress, size);
-        addBlock(mergedMemBlock);
+        MemBlock mergedMemBlock = new MemBlock(this, startAddress, endAddress, size);
         removeBlock(centerMemBlock);
-        removeBlock(tmpMemBlock);
 
         return mergedMemBlock;
-    }
-
-    /**
-     * 分配内存
-     * @param blockSize
-     * @return
-     */
-    private MemBlock malloc(long blockSize){
-        SortedMap<Long, ConcurrentLinkedDeque<MemBlock>> avaliableBlockSizeMap = freedMemBlocksMapBySize.tailMap(blockSize);
-        long fixedSize = avaliableBlockSizeMap.firstKey();
-        MemBlock result = null;
-        if(avaliableBlockSizeMap.get(fixedSize).isEmpty()) {
-            //探测可用来进行分配的最大尺寸内存快
-            long maxFreedSize = fixedSize * 2;
-            while (true) {
-                ConcurrentLinkedDeque<MemBlock> memBlockLinkDeque = avaliableBlockSizeMap.get(maxFreedSize);
-                if (!memBlockLinkDeque.isEmpty()) {
-                    MemBlock memBlock = memBlockLinkDeque.poll();
-                    if (memBlock != null) {
-                        //拆分内块
-                        while (split(memBlock)) {
-                            maxFreedSize = maxFreedSize / 2;
-                            if (maxFreedSize == fixedSize) {
-                                break;
-                            } else {
-                                memBlock = freedMemBlocksMapBySize.get(maxFreedSize).poll();
-                            }
-                        }
-                        result = avaliableBlockSizeMap.get(fixedSize).poll();
-                        break;
-                    }
-                }
-                maxFreedSize = maxFreedSize * 2;
-                if(maxFreedSize > capacity){
-                    break;
-                }
-            }
-        } else {
-            result = avaliableBlockSizeMap.get(fixedSize).poll();
-        }
-
-        return result;
-    }
-
-    public synchronized Long allocate(long blockSize) {
-        while(true){
-            MemBlock result = malloc(blockSize);
-            if(result==null){
-                continue;
-            }
-            result.setUsed(true);
-            return address + result.getStartAddress();
-        }
     }
 
     /**
@@ -266,30 +284,41 @@ public class Memory {
         long address = realAddress - this.address;
         MemBlock backBlock = memBlocksMapByStartAddress.get(address);
         MemBlock memBlock = backBlock;
-        freedMemBlocksMapBySize.get(backBlock.getSize()).addLast(backBlock);
-        do{
-            memBlock =  merge(memBlock, true);
-        }while(memBlock != null);
+        MemBlock lastMemBlock = null;
 
-        do{
-            memBlock =  merge(memBlock, false);
-        }while(memBlock != null);
+//        do {
+//            lastMemBlock = memBlock;
+//            memBlock = merge(memBlock, true);
+//        } while (memBlock != null);
+//        addBlock(lastMemBlock);
+//
+//        do {
+//            lastMemBlock = memBlock;
+//            memBlock = merge(memBlock, false);
+//        } while (memBlock != null);
+//        addBlock(lastMemBlock);
 
-        backBlock.setUsed(false);
+        synchronized (backBlock) {
+            backBlock.setUsed(false);
+        }
     }
-
-
 
     public class MemBlock {
         private long startAddress;
         private long endAddress;
         private long size;
-        private volatile boolean isUsed;
+        private AtomicBoolean isUsed = new AtomicBoolean(false);
+        @NotJSON
+        private Memory memory;
+        String mm="";
 
-        public MemBlock(long startAddress, long endAddress, long size) {
+        public MemBlock(Memory memory, long startAddress, long endAddress, long size) {
             this.startAddress = startAddress;
             this.endAddress = endAddress;
             this.size = size;
+            this.memory = memory;
+            memory.memBlocksMapByStartAddress.put(startAddress, this);
+            memory.memBlocksMapByEndAddress.put(endAddress, this);
         }
 
         public long getStartAddress() {
@@ -317,11 +346,26 @@ public class Memory {
         }
 
         public boolean isUsed() {
-            return isUsed;
+            return isUsed.get();
         }
 
-        public void setUsed(boolean used) {
-            isUsed = used;
+        public void setUsed(boolean isUsed) {
+            this.isUsed.getAndSet(isUsed);
+            if(isUsed){
+                memory.freedMemBlocksMapBySize.get(size).remove(this);
+            } else {
+                memory.freedMemBlocksMapBySize.get(size).add(this);
+            }
+        }
+
+        public void remove(){
+            mm = mm + TEnv.getStackMessage() +"\r\n  =================\r\n" ;
+            memory.memBlocksMapByStartAddress.remove(this);
+            memory.memBlocksMapByEndAddress.remove(this);
+        }
+
+        public String toString(){
+            return JSON.toJSON(this);
         }
     }
 }
