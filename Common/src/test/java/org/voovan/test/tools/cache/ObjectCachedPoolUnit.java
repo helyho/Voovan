@@ -1,10 +1,10 @@
 package org.voovan.test.tools.cache;
 
-import junit.framework.TestCase;
 import org.voovan.Global;
-import org.voovan.tools.cache.ObjectCachedPool;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.cache.ObjectCachedPool;
 import org.voovan.tools.log.Logger;
+import junit.framework.TestCase;
 
 import java.util.ArrayList;
 
@@ -17,15 +17,15 @@ import java.util.ArrayList;
  *         WebSite: https://github.com/helyho/Voovan
  *         Licence: Apache v2 License
  */
-public class ObjectPoolCachedUnit extends TestCase {
+public class ObjectCachedPoolUnit extends TestCase {
 
 
     public void testAddAndLiveTime(){
-        String pooledId = null;
+        Object pooledId = null;
 
         ObjectCachedPool objectPool = new ObjectCachedPool(2);
         for(int i=0;i<30;i++) {
-            String item = "element " + i;
+            Object item = "element " + i;
             if(pooledId==null) {
                 pooledId = objectPool.add(item);
             }else{
@@ -43,11 +43,11 @@ public class ObjectPoolCachedUnit extends TestCase {
     }
 
     public void testBorrow() {
-        String pooledId = null;
+        Object pooledId = null;
         ObjectCachedPool objectPool = new ObjectCachedPool();
 
         for(int i=0;i<100;i++) {
-            String item = "element " + i;
+            Object item = "element " + i;
             if(pooledId==null) {
                 pooledId = objectPool.add(item);
             }else{
@@ -57,10 +57,10 @@ public class ObjectPoolCachedUnit extends TestCase {
 
         TEnv.sleep(3000);
 
-        ArrayList<String> arrayList = new ArrayList<String>();
+        ArrayList<Object> arrayList = new ArrayList<Object>();
         for(int i=0;i<50;i++){
             Global.getThreadPool().execute(()->{
-                String objectId = objectPool.borrow();
+                Object objectId = objectPool.borrow();
                 arrayList.add(objectId);
                 Logger.simple("borrow1->" + objectId);
             });
@@ -80,7 +80,7 @@ public class ObjectPoolCachedUnit extends TestCase {
 
         for(int i=0;i<50;i++){
             Global.getThreadPool().execute(()->{
-                String objectId = objectPool.borrow();
+                Object objectId = objectPool.borrow();
                 arrayList.add(objectId);
                 Logger.simple("borrow2->" +objectId);
             });
