@@ -65,6 +65,7 @@ public class TByteBuffer {
     protected static ByteBuffer allocateManualReleaseBuffer(int capacity){
         try {
             long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
+            TUnsafe.getUnsafe().setMemory(address, capacity, (byte) 0);
 
             Deallocator deallocator = new Deallocator(new Long(address));
 
