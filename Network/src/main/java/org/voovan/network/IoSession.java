@@ -171,8 +171,7 @@ public abstract class IoSession<T extends SocketContext> {
 						//初始化状态
 						if(session.state.isInit() ||
 								session.state.isConnect() ||
-								session.state.isReceive() ||
-								session.state.isSend() ){
+								session.state.isSend()) {
 							return;
 						}
 

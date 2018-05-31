@@ -163,8 +163,6 @@ public class ByteBufferChannel {
 	 * 重新设置当前内存地址
 	 */
 	private void resetAddress(){
-		checkRelease();
-
 		lock.lock();
 		try {
 			this.address.set(TByteBuffer.getAddress(byteBuffer));

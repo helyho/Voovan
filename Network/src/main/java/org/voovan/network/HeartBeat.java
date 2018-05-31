@@ -122,10 +122,6 @@ public class HeartBeat {
             return true;
         }
 
-        if(session.getState().isReceive() || session.getState().isSend()){
-            return true;
-        }
-
         //弥补双方发送的时间差,等待心跳到来,如果超过空闲事件周期则认为是失败
         int waitCount = 0;
         while(heartBeat.getQueue().size() == 0){
