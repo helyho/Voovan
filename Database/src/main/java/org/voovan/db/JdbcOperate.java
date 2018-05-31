@@ -298,7 +298,7 @@ public class JdbcOperate {
 	 * @return 每条 SQL 更新记录数
 	 * @throws SQLException SQL 异常
 	 */
-	private int[] baseBatch(String sqlText, List<Map<String, ?>> mapArgs) throws SQLException {
+	private int[] baseBatch(String sqlText, List<Map<String, Object>> mapArgs) throws SQLException {
 		Connection conn = getConnection();
 		PreparedStatement preparedStatement = null;
 		SQLException exception = null;
@@ -308,7 +308,7 @@ public class JdbcOperate {
 			List<String> sqlParams = TSQL.getSqlParamNames(sqlText);
 			preparedStatement = (PreparedStatement) conn.prepareStatement(TSQL.preparedSql(sqlText));
 			if (mapArgs != null) {
-				for (Map<String, ?> magArg : mapArgs) {
+				for (Map<String, Object> magArg : mapArgs) {
 					// 用 sqlParams 对照 给 preparestatement 填充参数
 					TSQL.setPreparedParams(preparedStatement, sqlParams, magArg);
 					preparedStatement.addBatch();
@@ -799,7 +799,7 @@ public class JdbcOperate {
 	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public int[] batchObject(String sqlText, List<?> objects) throws SQLException, ReflectiveOperationException {
-		List<Map<String, ?>> mapList = new ArrayList<Map<String, ?>>();
+		List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
 		for (Object object : objects) {
 			mapList.add(TReflect.getMapfromObject(object));
 		}
@@ -814,7 +814,7 @@ public class JdbcOperate {
 	 * @return 每条 SQL 更新记录数
 	 * @throws SQLException SQL 异常
 	 */
-	public int[] batchMap(String sqlText, List<Map<String, ?>> maps) throws SQLException {
+	public int[] batchMap(String sqlText, List<Map<String, Object>> maps) throws SQLException {
 		return this.baseBatch(sqlText, maps);
 	}
 	/**
