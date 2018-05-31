@@ -53,8 +53,8 @@ public class THash {
 	public static String encryptSHA(String str){
 		return digest("SHA", str);
 	}
-	
-	private static String digest(String code,String str) {  
+
+	public static String digest(String code,String str) {
 
         try {
 			//code 可选 hash 算法
