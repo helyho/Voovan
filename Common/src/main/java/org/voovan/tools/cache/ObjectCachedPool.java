@@ -3,12 +3,13 @@ package org.voovan.tools.cache;
 import org.voovan.Global;
 import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
+import org.voovan.tools.json.JSON;
+import org.voovan.tools.json.annotation.NotJSON;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 /**
  * 对象池
@@ -23,11 +24,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ObjectCachedPool {
 
-    private Map<String, PooledObject> objects = new ConcurrentSkipListMap<String, PooledObject>();
-    private ConcurrentLinkedDeque<String> unborrowedObjectIdList  = new ConcurrentLinkedDeque<String>();
+    private volatile ConcurrentSkipListMap<Object, PooledObject> objects = new ConcurrentSkipListMap<Object, PooledObject>();
+    private volatile ConcurrentLinkedDeque<Object> unborrowedObjectIdList  = new ConcurrentLinkedDeque<Object>();
 
     private long aliveTime = 0;
     private boolean autoRefreshOnGet = true;
+    private Function destory;
 
     /**
      * 构造一个对象池
@@ -54,6 +56,24 @@ public class ObjectCachedPool {
      */
     public ObjectCachedPool(){
         removeDeadObject();
+    }
+
+    /**
+     * 获取对象销毁函数
+     *      在对象被销毁前工作
+     * @return 对象销毁函数
+     */
+    public Function getDestory() {
+        return destory;
+    }
+
+    /**
+     * 设置对象销毁函数
+     *      在对象被销毁前工作
+     * @param destory 对象销毁函数, 如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
+     */
+    public void setDestory(Function destory) {
+        this.destory = destory;
     }
 
     /**
@@ -86,7 +106,7 @@ public class ObjectCachedPool {
      * @param id 对象的 hash 值
      * @return 池中的对象
      */
-    public Object get(String id){
+    public Object get(Object id){
         PooledObject pooledObject = objects.get(id);
         if(pooledObject!=null) {
             return pooledObject.getObject();
@@ -95,16 +115,18 @@ public class ObjectCachedPool {
         }
     }
 
+
+
     /**
      * 增加池中的对象
      * @param obj 增加到池中的对象
      * @return 对象的 id 值
      */
-    public String add(Object obj){
+    public Object add(Object obj){
         if(obj == null){
             return null;
         }
-        String id = genObjectId();
+        Object id = genObjectId();
         objects.put(id, new PooledObject(this, id, obj));
         unborrowedObjectIdList.offer(id);
         return id;
@@ -116,7 +138,7 @@ public class ObjectCachedPool {
      * @param obj 增加到池中的对象
      * @return 对象的 id 值
      */
-    public String add(String id, Object obj){
+    public Object add(Object id, Object obj){
         if(obj == null){
             return null;
         }
@@ -130,7 +152,7 @@ public class ObjectCachedPool {
      * @param id 对象的 hash 值
      * @return true: 存在, false: 不存在
      */
-    public boolean contains(String id){
+    public boolean contains(Object id){
         return objects.containsKey(id);
     }
 
@@ -138,7 +160,7 @@ public class ObjectCachedPool {
      * 移除池中的对象
      * @param id 对象的 hash 值
      */
-    public void remove(String id){
+    public void remove(Object id){
         objects.remove(id);
         unborrowedObjectIdList.remove(id);
     }
@@ -163,8 +185,8 @@ public class ObjectCachedPool {
      * 借出这个对象
      * @return 借出的对象的 ID
      */
-    public String borrow(){
-        String objectId = unborrowedObjectIdList.poll();
+    public Object borrow(){
+        Object objectId = unborrowedObjectIdList.poll();
         if(objectId!=null){
             return objectId;
         }
@@ -174,9 +196,8 @@ public class ObjectCachedPool {
     /**
      * 归还借出的对象
      */
-    public void restitution(String objectId){
-        unborrowedObjectIdList.addFirst(objectId);
-//        borrowedObjectIdList.remove(objectId);
+    public void restitution(Object objectId){
+        unborrowedObjectIdList.addLast(objectId);
     }
 
     private void removeDeadObject(){
@@ -187,8 +208,23 @@ public class ObjectCachedPool {
                     Iterator<PooledObject> iterator = objects.values().iterator();
                     while (iterator.hasNext()) {
                         PooledObject pooledObject = iterator.next();
+
+                        //被借出的对象不进行清理
+                        if(unborrowedObjectIdList.contains(pooledObject.getId())){
+                            continue;
+                        }
+
                         if (!pooledObject.isAlive()) {
-                            remove(pooledObject.getId());
+                            if(destory!=null){
+                                //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
+                                if(destory.apply(pooledObject)==null){
+                                    remove(pooledObject.getId());
+                                } else {
+                                    pooledObject.refresh();
+                                }
+                            } else {
+                                remove(pooledObject.getId());
+                            }
                         }
                     }
                 }catch(Exception e){
@@ -201,13 +237,15 @@ public class ObjectCachedPool {
     /**
      * 池中缓存的对象模型
      */
-    private class PooledObject{
+    public class PooledObject{
         private long lastVisiediTime;
-        private String id;
+        private Object id;
+        @NotJSON
         private Object object;
+        @NotJSON
         private ObjectCachedPool objectPool;
 
-        public PooledObject(ObjectCachedPool objectPool, String id, Object object) {
+        public PooledObject(ObjectCachedPool objectPool, Object id, Object object) {
             this.objectPool = objectPool;
             this.lastVisiediTime = System.currentTimeMillis();
             this.id = id;
@@ -240,7 +278,7 @@ public class ObjectCachedPool {
             this.object = object;
         }
 
-        public String getId() {
+        public Object getId() {
             return id;
         }
 
@@ -260,6 +298,14 @@ public class ObjectCachedPool {
                 return true;
             }
         }
+
+        public String toString(){
+            return JSON.toJSON(this).replace("\"","");
+        }
+    }
+
+    public String toString(){
+        return "{Total:" + objects.size() + ", unborrow:" + unborrowedObjectIdList.size()+"}";
     }
 }
 
