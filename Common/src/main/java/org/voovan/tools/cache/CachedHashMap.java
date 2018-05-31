@@ -31,6 +31,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
     private boolean asyncBuild = true;
     private int interval = 1000;
     private boolean autoRemove = true;
+    private Function destory;
 
     static {
         wheelTimer.rotate();
@@ -132,6 +133,22 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
     }
 
     /**
+     * 获取对象销毁函数
+     * @return 对象销毁函数
+     */
+    public Function getDestory() {
+        return destory;
+    }
+
+    /**
+     * 设置对象销毁函数
+     * @param destory 对象销毁函数, 如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
+     */
+    public void setDestory(Function destory) {
+        this.destory = destory;
+    }
+
+    /**
      * 设置最大容量
      * @param maxSize 最大容量
      * @return CachedHashMap 对象
@@ -161,7 +178,6 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
         return this;
     }
 
-
     /**
      * 创建CachedHashMap
      * @return CachedHashMap 对象
@@ -179,8 +195,14 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                         for (TimeMark timeMark : (TimeMark[]) cachedHashMap.getCacheMark().values().toArray(new TimeMark[0])) {
                             if (timeMark.isExpire()) {
                                 if (autoRemove) {
-                                    cachedHashMap.remove(timeMark.getKey());
-                                    cachedHashMap.cacheMark.remove(timeMark.getKey());
+                                    //如果返回 null 则 清理对象, 如果返回为非 null 则 刷新对象
+                                    if(destory.apply(cachedHashMap.get(timeMark.key))==null){
+                                        cachedHashMap.remove(timeMark.getKey());
+                                        cachedHashMap.cacheMark.remove(timeMark.getKey());
+                                    } else {
+                                        timeMark.refresh(true);
+                                    }
+
                                 } else if (cachedHashMap.getSupplier() != null) {
                                     cachedHashMap.createCache(timeMark.getKey(), cachedHashMap.supplier);
                                     timeMark.refresh(true);

@@ -1,8 +1,11 @@
 package org.voovan.tools;
 
+import org.voovan.tools.reflect.TReflect;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -112,5 +115,61 @@ public class TUnsafe {
         return unsafe.getDouble(obj, getFieldOffset(field));
     }
 
+    /**
+     * 获取对象所占内存的大小
+     * @param object 对象
+     * @return 对象所占内存的大小
+     */
+    public static long sizeOf(Object object) {
+        HashSet<Field> fields = new HashSet<Field>();
+        Class c = object.getClass();
+        while (c != Object.class) {
+            for (Field f : TReflect.getFields(c)) {
+                if ((f.getModifiers() & Modifier.STATIC) == 0) {
+                    fields.add(f);
+                }
+            }
+            c = c.getSuperclass();
+        }
 
+        long maxSize = 0;
+        for (Field f : fields) {
+            long offset = unsafe.objectFieldOffset(f);
+            if (offset > maxSize) {
+                maxSize = offset;
+            }
+        }
+
+        return ((maxSize/8) + 1) * 8;
+    }
+
+    /**
+     * 获取对象的内存的基地址
+     * @param object 对象
+     * @return 内存的基地址
+     * @throws Exception
+     */
+    public static long addressOf(Object object) {
+
+        Object[] array = new Object[] { object };
+
+        long baseOffset = unsafe.arrayBaseOffset(Object[].class);
+
+        int addressSize = unsafe.addressSize();
+
+        long objectAddress;
+
+        switch (addressSize) {
+            case 4:
+                objectAddress = unsafe.getInt(array, baseOffset);
+                break;
+            case 8:
+                objectAddress = unsafe.getLong(array, baseOffset);
+                break;
+            default:
+                throw new Error("unsupported address size: " + addressSize);
+        }
+
+        return objectAddress;
+    }
 }
