@@ -195,12 +195,16 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                         for (TimeMark timeMark : (TimeMark[]) cachedHashMap.getCacheMark().values().toArray(new TimeMark[0])) {
                             if (timeMark.isExpire()) {
                                 if (autoRemove) {
-                                    //如果返回 null 则 清理对象, 如果返回为非 null 则 刷新对象
-                                    if(destory.apply(cachedHashMap.get(timeMark.key))==null){
-                                        cachedHashMap.remove(timeMark.getKey());
-                                        cachedHashMap.cacheMark.remove(timeMark.getKey());
+                                    if(destory!= null) {
+                                        //如果返回 null 则 清理对象, 如果返回为非 null 则 刷新对象
+                                        if (destory.apply(cachedHashMap.get(timeMark.key)) == null) {
+                                            cachedHashMap.remove(timeMark.getKey());
+                                            cachedHashMap.cacheMark.remove(timeMark.getKey());
+                                        } else {
+                                            timeMark.refresh(true);
+                                        }
                                     } else {
-                                        timeMark.refresh(true);
+                                        cachedHashMap.cacheMark.remove(timeMark.getKey());
                                     }
 
                                 } else if (cachedHashMap.getSupplier() != null) {
