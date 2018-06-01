@@ -167,7 +167,6 @@ public class TByteBuffer {
 
             if(newLimit > byteBuffer.capacity()){
                 reallocate(byteBuffer, newLimit);
-                System.out.println("movendfdaddf");
             }
 
             if(!byteBuffer.hasArray()) {
