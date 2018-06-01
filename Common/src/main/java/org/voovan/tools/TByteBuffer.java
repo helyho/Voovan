@@ -62,7 +62,7 @@ public class TByteBuffer {
      * @param capacity 容量
      * @return ByteBuffer 对象
      */
-    protected static ByteBuffer allocateManualReleaseBuffer(int capacity){
+    protected static ByteBuffer allocateManualReleaseBuffer(int capacity, boolean cleanByJVM){
         try {
             long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
             TUnsafe.getUnsafe().setMemory(address, capacity, (byte) 0);
@@ -71,8 +71,10 @@ public class TByteBuffer {
 
             ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
 
-            //内存自动释放部分有问题? 需要研究
-            Cleaner.create(byteBuffer, deallocator);
+            //内存自动释放部分
+            if(cleanByJVM) {
+                Cleaner.create(byteBuffer, deallocator);
+            }
 
             return byteBuffer;
 
@@ -91,7 +93,7 @@ public class TByteBuffer {
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
         if(Global.NO_HEAP_MANUAL_RELEASE) {
-            return allocateManualReleaseBuffer(capacity);
+            return allocateManualReleaseBuffer(capacity, true);
         } else {
             return ByteBuffer.allocateDirect(capacity);
         }

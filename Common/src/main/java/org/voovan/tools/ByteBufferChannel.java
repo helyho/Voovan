@@ -79,7 +79,7 @@ public class ByteBufferChannel {
 	private ByteBuffer newByteBuffer(int capacity){
 		try {
 
-			ByteBuffer instance = TByteBuffer.allocateManualReleaseBuffer(capacity);
+			ByteBuffer instance = TByteBuffer.allocateManualReleaseBuffer(capacity, false);
 			address.set(TByteBuffer.getAddress(instance));
 
 			return instance;
