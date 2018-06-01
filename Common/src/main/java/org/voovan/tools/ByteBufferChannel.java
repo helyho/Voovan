@@ -127,12 +127,14 @@ public class ByteBufferChannel {
 		synchronized (byteBuffer) {
 			while(lock.isLocked()){
 
-				if(borrowed.compareAndSet(true, false)){
-					lock.unlock();
-				}
 
 				//如果加锁成功说明是自锁, 解锁并继续
 				if(lock.isHeldByCurrentThread()){
+
+					if(borrowed.compareAndSet(true, false)){
+						lock.unlock();
+					}
+
 					while(true){
 						if(lock.getHoldCount()!=0) {
 							lock.unlock();
