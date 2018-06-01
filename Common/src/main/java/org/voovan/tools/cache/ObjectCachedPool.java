@@ -122,7 +122,7 @@ public class ObjectCachedPool {
      * @param obj 增加到池中的对象
      * @return 对象的 id 值
      */
-    public Object add(Object obj){
+    public synchronized Object add(Object obj){
         if(obj == null){
             return null;
         }
@@ -138,12 +138,26 @@ public class ObjectCachedPool {
      * @param obj 增加到池中的对象
      * @return 对象的 id 值
      */
-    public Object add(Object id, Object obj){
+    public synchronized Object add(Object id, Object obj){
         if(obj == null){
             return null;
         }
         objects.put(id, new PooledObject(this, id, obj));
         unborrowedObjectIdList.offer(id);
+        return id;
+    }
+
+    /**
+     * 增加池中的对象
+     * @param obj 增加到池中的对象ID
+     * @param obj 增加到池中的对象
+     * @return 对象的 id 值
+     */
+    public Object addAndBorrow(Object id, Object obj){
+        if(obj == null){
+            return null;
+        }
+        objects.put(id, new PooledObject(this, id, obj));
         return id;
     }
 
@@ -160,7 +174,7 @@ public class ObjectCachedPool {
      * 移除池中的对象
      * @param id 对象的 hash 值
      */
-    public void remove(Object id){
+    public synchronized void remove(Object id){
         objects.remove(id);
         unborrowedObjectIdList.remove(id);
     }
@@ -176,7 +190,7 @@ public class ObjectCachedPool {
     /**
      * 清理池中所有的对象
      */
-    public void clear(){
+    public synchronized void clear(){
         objects.clear();
         unborrowedObjectIdList.clear();
     }
@@ -186,11 +200,7 @@ public class ObjectCachedPool {
      * @return 借出的对象的 ID
      */
     public Object borrow(){
-        Object objectId = unborrowedObjectIdList.poll();
-        if(objectId!=null){
-            return objectId;
-        }
-        return null;
+        return unborrowedObjectIdList.poll();
     }
 
     /**
