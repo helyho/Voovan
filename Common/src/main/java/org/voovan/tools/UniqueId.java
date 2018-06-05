@@ -15,9 +15,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class UniqueId {
     private static final int SEQ_DEFAULT = 0;
     private static final int RADIX = 62;
-    private static final int sequenceLeft = 12;
-    private static final int signIdLeft = 10;
-    private static final int maxsignId = 1 << signIdLeft;
+    private static final int SEQUENCE_LEFT = 12;
+    private static final int SIGNID_LEFT = 10;
+    private static final int MAX_SIGNID = 1 << SIGNID_LEFT;
 
     private volatile AtomicInteger orderedIdSequence = new AtomicInteger(SEQ_DEFAULT);
     private Long lastTime = 0L;
@@ -27,9 +27,9 @@ public class UniqueId {
      * 构造函数
      */
     public UniqueId() {
-        int workId = (new SecureRandom()).nextInt(maxsignId);
-        if(workId > maxsignId || workId < 0){
-            throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", maxsignId));
+        int workId = (new SecureRandom()).nextInt(MAX_SIGNID);
+        if(workId > MAX_SIGNID || workId < 0){
+            throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", MAX_SIGNID));
         }
         workId = 0;
     }
@@ -39,8 +39,8 @@ public class UniqueId {
      * @param signId 标识 ID
      */
     public UniqueId(int signId) {
-        if(workId > maxsignId || signId < 0){
-            throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", maxsignId));
+        if(signId > MAX_SIGNID || signId < 0){
+            throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", MAX_SIGNID));
         }
         workId = signId;
     }
@@ -74,7 +74,11 @@ public class UniqueId {
             throw new RuntimeException("Clock moved backwards.");
         }
 
-        long resultId = (currentTime << (sequenceLeft+signIdLeft) ) | (workId << signIdLeft) | orderedIdSequence.getAndAdd(1);
+        if(orderedIdSequence.get() > 2096){
+            TEnv.sleep(1);
+        }
+
+        long resultId = (currentTime << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (workId << SEQUENCE_LEFT) | orderedIdSequence.getAndAdd(1);
 
         lastTime = currentTime;
         return resultId;
