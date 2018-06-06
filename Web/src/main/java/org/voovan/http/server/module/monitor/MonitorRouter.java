@@ -127,7 +127,7 @@ public class MonitorRouter implements HttpRouter {
 
             response.header().put("Content-Type", "application/json");
             response.write(responseStr);
-        }else{
+        } else {
             request.getSession().close();
         }
     }

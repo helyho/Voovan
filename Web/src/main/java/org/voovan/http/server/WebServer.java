@@ -5,6 +5,7 @@ import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.server.context.HttpRouterConfig;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
+import org.voovan.http.server.router.OptionsRouter;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioServerSocket;
@@ -663,12 +664,7 @@ public class WebServer {
 		otherMethod("ADMIN", "/authtoken", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
-				if(!request.getRemoteAddres().equals("127.0.0.1")){
-					request.getSession().close();
-				}
-
-				String authToken = request.header().get("AUTH-TOKEN");
-				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
+				if(hasAdminRight(request)) {
 					if(!request.body().getBodyString().isEmpty()){
 						//重置 AUTH_TOKEN
 						WebContext.AUTH_TOKEN = request.body().getBodyString();
@@ -677,10 +673,12 @@ public class WebServer {
 						response.write("NOTHING");
 					}
 				} else {
-					response.write(WebContext.AUTH_TOKEN);
+					request.getSession().close();
 				}
 			}
 		});
+
+		this.options("/*", new OptionsRouter("ADMIN", "*", "auth-token"));
 	}
 
 	/**
