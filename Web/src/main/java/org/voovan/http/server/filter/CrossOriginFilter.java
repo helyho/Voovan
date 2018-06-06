@@ -40,8 +40,8 @@ public class CrossOriginFilter implements HttpFilter{
             response.header().put("Access-Control-Allow-Origin", allowOrigin);
 
             response.header().put("Access-Control-Allow-Methods", (String) filterConfig.getParameter("allowMethods"));
+            response.header().put("Access-Control-Allow-Headers", (String) filterConfig.getParameter("allowHeaders"));
             response.header().put("Access-Control-Allow-Credentials", "true");
-            response.header().put("Access-Control-Expose-Headers", "Access-Control-Allow-Origin,Access-Control-Allow-Credentials");
         }
 
         //JSONP 形式的跨域配置
