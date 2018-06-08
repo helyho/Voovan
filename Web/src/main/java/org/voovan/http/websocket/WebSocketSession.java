@@ -155,6 +155,19 @@ public class WebSocketSession {
     }
 
     /**
+     * 发送 websocket 二进制消息
+     * @param obj 消息对象
+     * @throws SendMessageException 发送异常
+     * @throws WebSocketFilterException WebSocket过滤器异常
+     */
+    public void sendBinary(Object obj) throws SendMessageException, WebSocketFilterException {
+
+        ByteBuffer byteBuffer = (ByteBuffer)webSocketRouter.filterEncoder(this, obj);
+        WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.BINARY, masked, byteBuffer);
+        this.socketSession.syncSend(webSocketFrame);
+    }
+
+    /**
      * 发送 websocket 帧
      * @param webSocketFrame 帧
      * @throws SendMessageException 发送异常
