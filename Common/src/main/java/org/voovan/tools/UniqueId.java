@@ -81,7 +81,7 @@ public class UniqueId {
 
         long resultId = (currentTime << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (workId << SEQUENCE_LEFT) | orderedIdSequence.getAndAdd(1);
 
-        lastTime = currentTime;
+        lastTime = System.currentTimeMillis();
         return resultId;
     }
 }
