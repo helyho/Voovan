@@ -39,7 +39,7 @@ public class UniqueId {
      * @param signId 标识 ID
      */
     public UniqueId(int signId) {
-        if(signId > MAX_SIGNID || signId < 0){
+        if(signId >= MAX_SIGNID || signId < 0){
             throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", MAX_SIGNID));
         }
         workId = signId;
@@ -74,8 +74,9 @@ public class UniqueId {
             throw new RuntimeException("Clock moved backwards.");
         }
 
-        if(orderedIdSequence.get() > 2096){
+        if(orderedIdSequence.get() >= 4096){
             TEnv.sleep(1);
+            orderedIdSequence.set(SEQ_DEFAULT);
         }
 
         long resultId = (currentTime << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (workId << SEQUENCE_LEFT) | orderedIdSequence.getAndAdd(1);
