@@ -104,6 +104,8 @@ public class TZip {
 		}
 	}
 
+
+
 	/**
 	 * Zip 解压缩
 	 * @param encodeBytes 待解压字节
@@ -152,6 +154,100 @@ public class TZip {
 			try (InputStream inputStream = zipFile.getInputStream(zipEntry)) {
 				return TStream.readAll(inputStream);
 			}
+		}
+	}
+
+
+
+
+	/**
+	 * deflater 解压缩
+	 * @param encodeBytes 待解压字节
+	 * @return 解压后的字节
+	 * @throws IOException IO 异常
+	 */
+	public static byte[] Inflater(byte[] encodeBytes) throws IOException{
+		InflaterInputStream inflaterInputStream = new InflaterInputStream(new ByteArrayInputStream(encodeBytes));
+		byte[] result = TStream.readAll(inflaterInputStream);
+		inflaterInputStream.close();
+		return result;
+	}
+
+	/**
+	 * deflater 解压文件
+	 *
+	 * @param inputFile 源文件
+	 * @param outputFile 目标文件
+	 * @throws IOException IO异常
+	 */
+	public static void Inflater(File inputFile, File outputFile)
+			throws IOException {
+		FileInputStream fin = null;
+		InflaterInputStream ifin = null;
+		FileOutputStream fout = null;
+		try {
+			fin = new FileInputStream(inputFile);
+			fout = new FileOutputStream(outputFile);
+			ifin = new InflaterInputStream(fin);
+			byte[] buf = new byte[1024];
+			int num;
+			while ((num = ifin.read(buf, 0, buf.length)) != -1) {
+				fout.write(buf, 0, num);
+			}
+		} finally {
+			if (fout != null)
+				fout.close();
+			if (ifin != null)
+				ifin.close();
+			if (fin != null)
+				fin.close();
+		}
+	}
+
+	/**
+	 * Inflater 压缩
+	 * @param sourceBytes 待压缩字节
+	 * @return 压缩后的字节
+	 * @throws IOException IO 异常
+	 */
+	public static byte[] Deflater(byte[] sourceBytes) throws IOException{
+		ByteArrayOutputStream zipedBodyOutputStream = new ByteArrayOutputStream();
+		DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(zipedBodyOutputStream);
+		deflaterOutputStream.write(sourceBytes);
+		deflaterOutputStream.finish();
+		byte[] result = zipedBodyOutputStream.toByteArray();
+		deflaterOutputStream.close();
+		zipedBodyOutputStream.close();
+		return result;
+	}
+
+	/**
+	 * Inflater 文件压缩处理
+	 *
+	 * @param inputFile 源文件
+	 * @param outputFile 目标文件
+	 * @throws IOException IO异常
+	 */
+	public static void Deflater(File inputFile, File outputFile) throws IOException{
+		FileInputStream fin = null;
+		FileOutputStream fout = null;
+		DeflaterOutputStream dfout = null;
+		try {
+			fin = new FileInputStream(inputFile);
+			fout = new FileOutputStream(outputFile);
+			dfout = new DeflaterOutputStream(fout);
+			byte[] buf = new byte[1024];
+			int num;
+			while ((num = fin.read(buf)) != -1) {
+				dfout.write(buf, 0, num);
+			}
+		} finally {
+			if (dfout != null)
+				dfout.close();
+			if (fout != null)
+				fout.close();
+			if (fin != null)
+				fin.close();
 		}
 	}
 }
