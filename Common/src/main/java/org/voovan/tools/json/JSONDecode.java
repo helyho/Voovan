@@ -162,9 +162,6 @@ public class JSONDecode {
 						reader.skip(-1);
 						//递归解析处理,取 value 对象
 						value = JSONDecode.parse(reader);
-						if (currentChar == 65535) {
-							return jsonResult;
-						}
 						continue;
 					} else if (currentChar == ']') {
 						//最后一个元素,追加一个,号来将其附加到结果集
@@ -263,7 +260,7 @@ public class JSONDecode {
 							}
 						}
 						//判断是字符串去掉头尾的包裹符号
-						if (stringValue.length() >= 2 && stringValue.charAt(0) == '\"' && stringValue.charAt(stringValue.length()-1) == '\"') {
+						else if (stringValue.length() >= 2 && stringValue.charAt(0) == '\'' && stringValue.charAt(stringValue.length()-1) == '\'') {
 							value = stringValue.substring(1, stringValue.length() - 1);
 							if(JSON.isConvertEscapeChar()) {
 								value = TString.unConvertEscapeChar(value.toString());
@@ -302,6 +299,8 @@ public class JSONDecode {
 							value = Boolean.parseBoolean((String) value);
 						} else if (value.equals("null")) {
 							value = null;
+						} else if(value.equals("")){
+							value = null;
 						}
 					}
 
@@ -326,7 +325,7 @@ public class JSONDecode {
 						@SuppressWarnings("unchecked")
 						ArrayList<Object> result = (ArrayList<Object>) jsonResult;
 						result.add(value);
-					} else {
+					} else if(jsonResult==null){
 						jsonResult = value;
 					}
 					//处理完侯将 value 放空
