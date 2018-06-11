@@ -4,6 +4,7 @@ import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.compiler.function.DynamicFunction;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,9 +40,9 @@ public class DynamicFunctionUnit extends TestCase{
     }
 
     public void testRun() throws Exception{
-        DynamicFunction dynamicFunction = new DynamicFunction("TestCode",code);  //字符串形式的脚本
-//        File codeFile = new File("./src/test/java/org/voovan/test/tools/compiler/function/TestFunction.vct");
-//        DynamicFunction dynamicFunction = new DynamicFunction( codeFile, "UTF-8");   // 文件形式的脚本
+//        DynamicFunction dynamicFunction = new DynamicFunction("TestCode",code);  //字符串形式的脚本
+        File codeFile = new File("./src/test/java/org/voovan/test/tools/compiler/function/TestFunction.vct");
+        DynamicFunction dynamicFunction = new DynamicFunction( codeFile, "UTF-8");   // 文件形式的脚本
 
         //增加默认导入
         dynamicFunction.addImport(ArrayList.class);

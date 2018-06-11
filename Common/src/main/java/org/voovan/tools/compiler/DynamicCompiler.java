@@ -146,6 +146,12 @@ public class DynamicCompiler {
 			clazz = javaMemClass.loadThisClass();
 		}else{
 			clazz = null;
+			String message = "";
+			for(Diagnostic diagnostics : diagnosticCollector.getDiagnostics()) {
+				message = message + "\r\n" + diagnostics.toString();
+			}
+
+			Logger.error("Compile code error :", new Exception(message));
 		}
 
 		if(fileManager != null){
