@@ -40,6 +40,21 @@ public class DynamicFunctionUnit extends TestCase{
     }
 
     public void testRun() throws Exception{
+        String code =  "import java.util.ArrayList;\n\n" +
+                "ArrayList list = new ArrayList();\n" +
+                "System.out.println(temp1+ temp2);\n" +
+                "list.add(temp1);" +
+                "list.add(temp2);" +
+                "return list;\n";
+        DynamicFunction function = new DynamicFunction("testFunction",code);
+        function.enableImportInCode(true);
+        function.addPrepareArg(0, String.class, "temp1");
+        function.addPrepareArg(1, String.class, "temp2");
+        System.out.println(function.call("1111", "2222").toString());
+    }
+
+
+    public void testSubRun() throws Exception{
 //        DynamicFunction dynamicFunction = new DynamicFunction("TestCode",code);  //字符串形式的脚本
         File codeFile = new File("./src/test/java/org/voovan/test/tools/compiler/function/TestFunction.vct");
         DynamicFunction dynamicFunction = new DynamicFunction( codeFile, "UTF-8");   // 文件形式的脚本
