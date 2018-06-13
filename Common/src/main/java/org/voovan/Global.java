@@ -21,7 +21,6 @@ public class Global {
 
     public static String NAME = "Voovan";
 
-    private static ThreadPoolExecutor threadPool;
     private static HashWheelTimer hashWheelTimer;
     private static TaskManager taskManager;
 
@@ -42,16 +41,41 @@ public class Global {
         return NO_HEAP_MANUAL_RELEASE;
     }
 
+    private enum ThreadPoolEnum {
+        THREAD_POOL;
+
+        private ThreadPoolExecutor threadPoolExecutor;
+
+        ThreadPoolEnum(){
+            threadPoolExecutor = ThreadPool.getNewThreadPool();
+        }
+
+        public ThreadPoolExecutor getValue(){
+            return threadPoolExecutor;
+        }
+    }
+
     /**
      * 返回公用线程池
      * @return 公用线程池
      */
-    public synchronized static ThreadPoolExecutor getThreadPool(){
-        if(threadPool==null || threadPool.isShutdown()){
-            threadPool = ThreadPool.getNewThreadPool();
+    public static ThreadPoolExecutor getThreadPool(){
+        return ThreadPoolEnum.THREAD_POOL.getValue();
+    }
+
+
+    private enum HashTimeWheelEnum {
+        HASHWHEEL;
+
+        private HashWheelTimer hashWheelTimer;
+        HashTimeWheelEnum (){
+            hashWheelTimer = new HashWheelTimer(60, 1000);
+            hashWheelTimer.rotate();
         }
 
-        return threadPool;
+        public HashWheelTimer getValue(){
+            return hashWheelTimer;
+        }
     }
 
     /**
@@ -59,13 +83,22 @@ public class Global {
      *      60个槽位, 每个槽位步长1s
      * @return HashWheelTimer对象
      */
-    public synchronized static HashWheelTimer getHashWheelTimer(){
-        if(hashWheelTimer == null) {
-            hashWheelTimer = new HashWheelTimer(60, 1000);
-            hashWheelTimer.rotate();
-        }
+    public static HashWheelTimer getHashWheelTimer(){
+        return HashTimeWheelEnum.HASHWHEEL.getValue();
+    }
 
-        return hashWheelTimer;
+
+    private enum TaskManagerEnum {
+        TASK_MANAGER;
+
+        private TaskManager taskManager;
+        TaskManagerEnum(){
+            taskManager = new TaskManager();
+            taskManager.scanTask();
+        }
+        public TaskManager getValue(){
+            return taskManager;
+        }
     }
 
     /**
@@ -73,13 +106,9 @@ public class Global {
      *      60个槽位, 每个槽位步长1ms
      * @return HashWheelTimer对象
      */
-    public synchronized static TaskManager getTaskManager(){
-        if(taskManager == null) {
-            taskManager = new TaskManager();
-            taskManager.scanTask();
-        }
+    public static TaskManager getTaskManager(){
 
-        return taskManager;
+        return TaskManagerEnum.TASK_MANAGER.getValue();
     }
 
     /**
