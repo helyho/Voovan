@@ -21,9 +21,6 @@ public class Global {
 
     public static String NAME = "Voovan";
 
-    private static HashWheelTimer hashWheelTimer;
-    private static TaskManager taskManager;
-
     public static volatile Boolean NO_HEAP_MANUAL_RELEASE = getNoHeapManualRelease();
 
     /**
