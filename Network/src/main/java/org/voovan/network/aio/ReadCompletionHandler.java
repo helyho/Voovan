@@ -24,20 +24,23 @@ import java.nio.channels.CompletionHandler;
  */
 public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBuffer>{
 	private AioSocket aioSocket;
-	private ByteBufferChannel sessionByteBufferChannel;
-	private ByteBufferChannel tmpByteBufferChannel;
+	private ByteBufferChannel netByteBufferChannel;
+	private ByteBufferChannel appByteBufferChannel;
 	private AioSession session;
 
 	public ReadCompletionHandler(AioSocket aioSocket, ByteBufferChannel byteBufferChannel){
 		this.aioSocket = aioSocket;
-		this.sessionByteBufferChannel = byteBufferChannel;
-		this.tmpByteBufferChannel = new ByteBufferChannel();
+		this.appByteBufferChannel = byteBufferChannel;
 		this.session = aioSocket.getSession();
 	}
 
 	@Override
 	public void completed(Integer length, ByteBuffer readTempBuffer) {
 		try {
+
+			if(netByteBufferChannel== null && session.getSSLParser()!=null) {
+				netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+			}
 
 			// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
 			if (MessageLoader.isStreamEnd(readTempBuffer, length) || !session.isConnected()) {
@@ -48,43 +51,39 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 				if (length > 0) {
 
-					tmpByteBufferChannel.clear();
-
 					//接收SSL数据, SSL握手完成后解包
 					if(session.getSSLParser()!=null && SSLParser.isHandShakeDone(session)){
-						session.getSSLParser().unWarpByteBufferChannel(session, new ByteBufferChannel(readTempBuffer), tmpByteBufferChannel);
+						netByteBufferChannel.writeEnd(readTempBuffer);
+						session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, appByteBufferChannel);
 					}
 
 					//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
 					if(session.getSSLParser()==null || !SSLParser.isHandShakeDone(session)){
-						tmpByteBufferChannel.writeEnd(readTempBuffer);
+						appByteBufferChannel.writeEnd(readTempBuffer);
 					}
 
 					//检查心跳
 					if(SSLParser.isHandShakeDone(session)) {
-						HeartBeat.interceptHeartBeat(session, tmpByteBufferChannel);
+						HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
 					}
 
-					if(tmpByteBufferChannel.size() > 0) {
-						sessionByteBufferChannel.writeEnd(tmpByteBufferChannel.getByteBuffer());
-						tmpByteBufferChannel.compact();
-
+					if(appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
 						// 触发 onReceive 事件
 						EventTrigger.fireReceiveThread(session);
 					}
 
 					// 接收完成后重置buffer对象
 					readTempBuffer.clear();
-				}
 
-				// 继续接收 Read 请求
-				if(aioSocket.isConnected()) {
-					Global.getThreadPool().execute(new Runnable() {
-						@Override
-						public void run() {
-							aioSocket.catchRead(readTempBuffer);
-						}
-					});
+					// 继续接收 Read 请求
+					if(aioSocket.isConnected()) {
+						Global.getThreadPool().execute(new Runnable() {
+							@Override
+							public void run() {
+								aioSocket.catchRead(readTempBuffer);
+							}
+						});
+					}
 				}
 			}
 		} catch (IOException e) {
@@ -118,8 +117,8 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 	}
 
 	public void release(){
-		if(tmpByteBufferChannel!=null) {
-			tmpByteBufferChannel.release();
+		if(netByteBufferChannel!=null) {
+			netByteBufferChannel.release();
 		}
 	}
 }
