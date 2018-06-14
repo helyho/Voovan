@@ -91,15 +91,11 @@ public class Hotswaper {
      */
     private boolean isExcludeClass(Class clazz){
         try {
-            String className = clazz.getCanonicalName();
+
+            String packageName = clazz.getPackage().getName();
 
             //基本类型部排除
             if (clazz.isPrimitive()) {
-                return true;
-            }
-
-            //没有完全现定名的 class 不加载
-            if (className == null) {
                 return true;
             }
 
@@ -113,9 +109,14 @@ public class Hotswaper {
                 return true;
             }
 
+            //没有完全现定名的 class 不加载
+            if (packageName == null) {
+                return true;
+            }
+
             //排除的包中的 class 不加载
             for (String excludePackage : excludePackages) {
-                if (className.startsWith(excludePackage)) {
+                if (packageName.startsWith(excludePackage)) {
                     return true;
                 }
             }
@@ -128,8 +129,8 @@ public class Hotswaper {
             }
 
             return false;
-        } catch (Exception e){
-            return false;
+        } catch (Throwable e){
+            return true;
         }
     }
 
