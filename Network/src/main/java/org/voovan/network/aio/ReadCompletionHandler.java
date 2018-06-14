@@ -53,6 +53,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 					//接收SSL数据, SSL握手完成后解包
 					if(session.getSSLParser()!=null && SSLParser.isHandShakeDone(session)){
+						//一次接受并完成 SSL 解码后, 常常有剩余无法解码数据, 所以用 netByteBufferChannel 这个通道进行保存
 						netByteBufferChannel.writeEnd(readTempBuffer);
 						session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, appByteBufferChannel);
 					}
