@@ -21,20 +21,21 @@ public class Global {
 
     public static String NAME = "Voovan";
 
-    public static volatile Boolean NO_HEAP_MANUAL_RELEASE = getNoHeapManualRelease();
-
-    /**
-     * 非对内存是否采用手工释放
-     * @return true: 收工释放, false: JVM自动释放
-     */
-    private  static boolean getNoHeapManualRelease() {
+    public static volatile Boolean NO_HEAP_MANUAL_RELEASE;
+    static {
         if(NO_HEAP_MANUAL_RELEASE == null) {
             boolean value = false;
             value = TProperties.getBoolean("framework", "NoHeapManualRelease");
             NO_HEAP_MANUAL_RELEASE = TObject.nullDefault(value, false);
             System.out.println("[SYSTEM] NoHeap Manual Release: " + NO_HEAP_MANUAL_RELEASE);
         }
+    }
 
+    /**
+     * 非对内存是否采用手工释放
+     * @return true: 收工释放, false: JVM自动释放
+     */
+    private static boolean getNoHeapManualRelease() {
         return NO_HEAP_MANUAL_RELEASE;
     }
 
