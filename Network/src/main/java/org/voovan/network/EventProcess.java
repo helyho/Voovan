@@ -251,46 +251,41 @@ public class EventProcess {
 		final Object sendObj = obj;
 
 		//开启一个线程发送消息,不阻塞当前线程
-		Global.getThreadPool().execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					sendSession.getState().sendLock();
-					try {
-						int sendCount = -1;
+            try {
+                sendSession.getState().sendLock();
+                try {
+                    int sendCount = -1;
 
-						try {
-							// ------------------Filter 加密处理-----------------
-							ByteBuffer sendBuffer = EventProcess.filterEncoder(sendSession, sendObj);
-							// ---------------------------------------------------
+                    try {
+                        // ------------------Filter 加密处理-----------------
+                        ByteBuffer sendBuffer = EventProcess.filterEncoder(sendSession, sendObj);
+                        // ---------------------------------------------------
 
-							if (sendBuffer != null) {
+                        if (sendBuffer != null) {
 
-								// 发送消息
-								if (sendBuffer != null && sendSession.isOpen()) {
-									if (sendBuffer.limit() > 0) {
-										sendCount = sendSession.send(sendBuffer);
-										sendBuffer.rewind();
-									}
-								}
+                            // 发送消息
+                            if (sendBuffer != null && sendSession.isOpen()) {
+                                if (sendBuffer.limit() > 0) {
+                                    sendCount = sendSession.send(sendBuffer);
+                                    sendBuffer.rewind();
+                                }
+                            }
 
-								//触发发送事件
-								EventTrigger.fireSent(sendSession, sendObj);
-							}
-						} catch (IoFilterException e) {
-							EventTrigger.fireException(sendSession, e);
-						}
+                            //触发发送事件
+                            EventTrigger.fireSent(sendSession, sendObj);
+                        }
+                    } catch (IoFilterException e) {
+                        EventTrigger.fireException(sendSession, e);
+                    }
 
 
-					} finally {
-						sendSession.getState().sendUnLock();
-						sendSession.getState().setSend(false);
-					}
-				} catch (InterruptedException e) {
-					EventTrigger.fireException(sendSession, e);
-				}
-			}
-		});
+                } finally {
+                    sendSession.getState().sendUnLock();
+                    sendSession.getState().setSend(false);
+                }
+            } catch (InterruptedException e) {
+                EventTrigger.fireException(sendSession, e);
+            }
 	}
 
 	/**
