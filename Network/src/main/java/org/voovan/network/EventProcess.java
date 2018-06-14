@@ -252,39 +252,29 @@ public class EventProcess {
 
 		//开启一个线程发送消息,不阻塞当前线程
         try {
-            sendSession.getState().sendLock();
             try {
-                int sendCount = -1;
+                // ------------------Filter 加密处理-----------------
+                ByteBuffer sendBuffer = EventProcess.filterEncoder(sendSession, sendObj);
+                // ---------------------------------------------------
 
-                try {
-                    // ------------------Filter 加密处理-----------------
-                    ByteBuffer sendBuffer = EventProcess.filterEncoder(sendSession, sendObj);
-                    // ---------------------------------------------------
+                if (sendBuffer != null) {
 
-                    if (sendBuffer != null) {
-
-                        // 发送消息
-                        if (sendBuffer != null && sendSession.isOpen()) {
-                            if (sendBuffer.limit() > 0) {
-                                sendCount = sendSession.send(sendBuffer);
-                                sendBuffer.rewind();
-                            }
+                    // 发送消息
+                    if (sendBuffer != null && sendSession.isOpen()) {
+                        if (sendBuffer.limit() > 0) {
+                            sendSession.send(sendBuffer);
+                            sendBuffer.rewind();
                         }
-
-                        //触发发送事件
-                        EventTrigger.fireSent(sendSession, sendObj);
                     }
-                } catch (IoFilterException e) {
-                    EventTrigger.fireException(sendSession, e);
+
+                    //触发发送事件
+                    EventTrigger.fireSent(sendSession, sendObj);
                 }
-
-
-            } finally {
-                sendSession.getState().sendUnLock();
-                sendSession.getState().setSend(false);
+            } catch (IoFilterException e) {
+                EventTrigger.fireException(sendSession, e);
             }
-        } catch (InterruptedException e) {
-            EventTrigger.fireException(sendSession, e);
+        } finally {
+            sendSession.getState().setSend(false);
         }
 	}
 
