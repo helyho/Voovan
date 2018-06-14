@@ -1,6 +1,5 @@
 package org.voovan.network.aio;
 
-import org.voovan.Global;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.HeartBeat;
 import org.voovan.network.MessageLoader;
@@ -78,12 +77,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 					// 继续接收 Read 请求
 					if(aioSocket.isConnected()) {
-						Global.getThreadPool().execute(new Runnable() {
-							@Override
-							public void run() {
-								aioSocket.catchRead(readTempBuffer);
-							}
-						});
+                        aioSocket.catchRead(readTempBuffer);
 					}
 				}
 			}
