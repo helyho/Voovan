@@ -1,13 +1,13 @@
 package org.voovan.tools.hotswap;
 
-import com.sun.tools.attach.AgentInitializationException;
-import com.sun.tools.attach.AgentLoadException;
-import com.sun.tools.attach.AttachNotSupportedException;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
+import com.sun.tools.attach.AgentInitializationException;
+import com.sun.tools.attach.AgentLoadException;
+import com.sun.tools.attach.AttachNotSupportedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,43 +90,47 @@ public class Hotswaper {
      * @return true:排除的 class, false:未排除的 class
      */
     private boolean isExcludeClass(Class clazz){
-        String className = clazz.getCanonicalName();
+        try {
+            String className = clazz.getCanonicalName();
 
-        //基本类型部排除
-        if(clazz.isPrimitive()){
-            return true;
-        }
-
-        //没有完全现定名的 class 不加载
-        if(className == null){
-            return true;
-        }
-
-        //如果是内部类则排除
-        if(clazz.isMemberClass()){
-            return true;
-        }
-
-        //CodeSource 对象为空的不加载
-        if(clazz.getProtectionDomain().getCodeSource() == null){
-            return true;
-        }
-
-        //排除的包中的 class 不加载
-        for(String excludePackage : excludePackages){
-            if(className.startsWith(excludePackage)){
+            //基本类型部排除
+            if (clazz.isPrimitive()) {
                 return true;
             }
-        }
 
-        //加载过的 class 不加载
-        for(ClassFileInfo classFileInfo: classFileInfos){
-            if(classFileInfo.getClazz() == clazz){
+            //没有完全现定名的 class 不加载
+            if (className == null) {
                 return true;
             }
-        }
 
-        return false;
+            //如果是内部类则排除
+            if (clazz.isMemberClass()) {
+                return true;
+            }
+
+            //CodeSource 对象为空的不加载
+            if (clazz.getProtectionDomain().getCodeSource() == null) {
+                return true;
+            }
+
+            //排除的包中的 class 不加载
+            for (String excludePackage : excludePackages) {
+                if (className.startsWith(excludePackage)) {
+                    return true;
+                }
+            }
+
+            //加载过的 class 不加载
+            for (ClassFileInfo classFileInfo : classFileInfos) {
+                if (classFileInfo.getClazz() == clazz) {
+                    return true;
+                }
+            }
+
+            return false;
+        } catch (Exception e){
+            return false;
+        }
     }
 
     /**
