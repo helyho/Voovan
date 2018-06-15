@@ -156,11 +156,13 @@ public class Part {
 	private String readHead(){
 		header.put("Content-Disposition", "form-data");
 		if(header.get("name")!=null){
-			header.put("Content-Disposition", header.get("Content-Disposition")+"; name=\""+header.get("name")+"\"");
+			String value = header.get("Content-Disposition")+"; name=\""+header.get("name")+"\"";
+			if(header.get("filename")!=null) {
+				value = value + "; filename=\""+header.get("filename")+"\"";
+			}
+			header.put("Content-Disposition", value);
 		}
-		if(header.get("filename")!=null){
-			header.put("Content-Disposition", header.get("Content-Disposition")+"; filename=\""+header.get("filename")+"\"");
-		}
+
 		return header.toString()+"\r\n";
 	}
 

@@ -396,8 +396,10 @@ public class HttpClient implements Closeable{
 					if(parameter.getValue() instanceof String) {
 						part.body().changeToBytes(URLEncoder.encode(parameter.getValue().toString(), charset).getBytes(charset));
 					}else if(parameter.getValue() instanceof File){
+						File file = (File) parameter.getValue();
 						//参数类型如果是文件则默认采用文件的形式
-						part.body().changeToFile((File) parameter.getValue());
+						part.body().changeToFile(file);
+						part.header().put("filename", file.getName());
 					}
 					request.parts().add(part);
 				}
