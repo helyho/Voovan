@@ -41,6 +41,7 @@ public class WebServerConfig {
     private String lifeCycleClass = null;
     private String pauseURL = null;
     private String scanAopPackage = null;
+    private int maxRequestSize = 1024;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
@@ -211,6 +212,14 @@ public class WebServerConfig {
 
     public String getScanAopPackage() {
         return scanAopPackage;
+    }
+
+    public int getMaxRequestSize() {
+        return maxRequestSize;
+    }
+
+    public void setMaxRequestSize(int maxRequestSize) {
+        this.maxRequestSize = maxRequestSize;
     }
 
     /**

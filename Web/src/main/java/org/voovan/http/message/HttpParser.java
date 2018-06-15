@@ -2,6 +2,7 @@ package org.voovan.http.message;
 
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
+import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.tools.*;
 
 import java.io.File;
@@ -227,12 +228,13 @@ public class HttpParser {
 	 * 			5.body     解析成 key=BODY_VALUE 的Map 元素
 	 * @param byteBufferChannel 输入流
 	 * @param timeOut 读取超时时间参数
+	 * @upLoadFileMaxSize 上传文件的最大尺寸, 单位: kb
 	 * @return 解析后的 Map
 	 * @throws IOException IO 异常
 	 */
-	public static Map<String, Object> parser(ByteBufferChannel byteBufferChannel, int timeOut) throws IOException{
+	public static Map<String, Object> parser(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
 		Map<String, Object> packetMap = new HashMap<String, Object>();
-
+		long totalLength = 0;
 		int headerLength = 0;
 		boolean isBodyConent = false;
 		int lineNum = 0;
@@ -240,6 +242,9 @@ public class HttpParser {
 		for(String currentLine = byteBufferChannel.readLine();
 			currentLine!=null;
 			currentLine = byteBufferChannel.readLine()){
+
+			totalLength = totalLength + currentLine.length();
+
 			currentLine = currentLine.trim();
 			lineNum++;
 			//空行分隔处理,遇到空行标识下面有可能到内容段
@@ -290,7 +295,14 @@ public class HttpParser {
 
 						//取 boundary 结尾字符
 						boundaryEnd.clear();
-						byteBufferChannel.readHead(boundaryEnd);
+						int readSize = byteBufferChannel.readHead(boundaryEnd);
+
+                        //累计请求大小
+						totalLength = totalLength + readSize;
+						//请求过大的处理
+						if(totalLength > requestMaxSize * 1024){
+							throw new RequestTooLarge("Request is too large: { path" + packetMap.get(FL_PATH).toString() + ", max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+						}
 
 						//确认 boundary 结尾字符, 如果是"--" 则标识报文结束
 						if (Arrays.equals(boundaryEnd.array(), "--".getBytes())) {
@@ -315,11 +327,15 @@ public class HttpParser {
 						//构造新的 Bytebufer 递归解析
 						ByteBufferChannel partByteBufferChannel = new ByteBufferChannel(partHeadEndIndex + 4); //包含换行符
 						partByteBufferChannel.writeEnd(partHeadBuffer);
-						Map<String, Object> partMap = parser(partByteBufferChannel, timeOut);
+						Map<String, Object> partMap = parser(partByteBufferChannel, timeOut, requestMaxSize);
 						TByteBuffer.release(partHeadBuffer);
 						partByteBufferChannel.release();
 
 						String fileName = getPerprotyEqualValue(partMap, "Content-Disposition", "filename");
+						if(fileName.isEmpty()){
+							break;
+						}
+
 
 						//解析 Part 报文体
 						//重置 index
@@ -350,6 +366,7 @@ public class HttpParser {
 
 							//文件是否接收完成
 							boolean isFileRecvDone = false;
+
 							while (true){
 								byteBufferChannel.getByteBuffer();
 								int dataLength = byteBufferChannel.size();
@@ -362,6 +379,8 @@ public class HttpParser {
 								if(!isFileRecvDone) {
 									if(byteBufferChannel.size() > 1024*10) {
 										byteBufferChannel.saveToFile(localFileName, dataLength);
+										//累计请求大小
+										totalLength = totalLength + dataLength;
 									} else {
 										continue;
 									}
@@ -370,7 +389,14 @@ public class HttpParser {
 									int length = index == -1 ? byteBufferChannel.size() : (index - 2);
 									if (index > 0) {
 										byteBufferChannel.saveToFile(localFileName, length);
+										totalLength = totalLength + dataLength;
 									}
+								}
+
+								//请求过大的处理
+								if(totalLength > requestMaxSize * 1024){
+									TFile.deleteFile(new File(localFileName));
+									throw new RequestTooLarge("Request is too large: { path" + packetMap.get(FL_PATH).toString() + ", max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
 								}
 
 
@@ -403,6 +429,7 @@ public class HttpParser {
 
 					ByteBufferChannel chunkedByteBufferChannel = new ByteBufferChannel(3);
 					String chunkedLengthLine = "";
+
 					while(chunkedLengthLine!=null){
 
 						// 等待数据
@@ -442,6 +469,9 @@ public class HttpParser {
 							ByteBuffer byteBuffer = TByteBuffer.allocateDirect(chunkedLength);
 							readSize = byteBufferChannel.readHead(byteBuffer);
 
+							//累计请求大小
+							totalLength = totalLength + readSize;
+							//请求过大的处理
 							if(readSize != chunkedLength){
 								throw new IOException("Http Parser read chunked data error");
 							}
@@ -449,6 +479,11 @@ public class HttpParser {
 							//如果多次读取则拼接
 							chunkedByteBufferChannel.writeEnd(byteBuffer);
 							TByteBuffer.release(byteBuffer);
+						}
+
+						//请求过大的处理
+						if(totalLength > requestMaxSize * 1024){
+							throw new RequestTooLarge("Request is too large: { path" + packetMap.get(FL_PATH).toString() + ", max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
 						}
 
 						//跳过换行符号
@@ -463,6 +498,15 @@ public class HttpParser {
 				//3. HTTP(请求和响应) 报文的内容段中Content-Length 提供长度,按长度读取 body 内容段
 				else if(packetMap.containsKey(HEAD_CONTENT_LENGTH)){
 					int contentLength = Integer.parseInt(packetMap.get(HEAD_CONTENT_LENGTH).toString());
+
+					//累计请求大小
+					totalLength = totalLength + contentLength;
+
+					//请求过大的处理
+					if(totalLength > requestMaxSize * 1024){
+						throw new RequestTooLarge("Request is too large: { path" + packetMap.get(FL_PATH).toString() + ", max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+					}
+
 
 					// 等待数据
 					if(!byteBufferChannel.waitData(contentLength, timeOut)){
@@ -479,6 +523,14 @@ public class HttpParser {
 				}
 				//4. 容错,没有标识长度则默认读取全部内容段
 				else if(packetMap.get(BODY_VALUE)==null || packetMap.get(BODY_VALUE).toString().isEmpty()){
+                    //累计请求大小
+					totalLength = totalLength + byteBufferChannel.size();
+
+					//请求过大的处理
+					if(totalLength > requestMaxSize * 1024){
+						throw new RequestTooLarge("Request is too large: { path" + packetMap.get(FL_PATH).toString() + ", max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+					}
+
 					byte[] contentBytes = byteBufferChannel.array();
 					if(contentBytes!=null && contentBytes.length>0){
 						byte[] value = dealBodyContent(packetMap, contentBytes);
@@ -503,8 +555,8 @@ public class HttpParser {
 	 * @throws IOException IO 异常
 	 */
 	@SuppressWarnings("unchecked")
-	public static Request parseRequest(ByteBufferChannel byteBufferChannel, int timeOut) throws IOException{
-		Map<String, Object> parsedPacket = parser(byteBufferChannel, timeOut);
+	public static Request parseRequest(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
+		Map<String, Object> parsedPacket = parser(byteBufferChannel, timeOut, requestMaxSize);
 
 		//如果解析的Map为空,则直接返回空
 		if(parsedPacket==null || parsedPacket.isEmpty()){
@@ -622,7 +674,7 @@ public class HttpParser {
 	public static Response parseResponse(ByteBufferChannel byteBufferChannel, int timeOut) throws IOException{
 		Response response = new Response();
 
-		Map<String, Object> parsedPacket = parser(byteBufferChannel, timeOut);
+		Map<String, Object> parsedPacket = parser(byteBufferChannel, timeOut, -1);
 
 		//填充报文到响应对象
 		Set<Entry<String, Object>> parsedItems= parsedPacket.entrySet();

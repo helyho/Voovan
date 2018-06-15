@@ -3,9 +3,12 @@ package org.voovan.http.server;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
+import org.voovan.http.server.context.WebContext;
+import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
+import org.voovan.network.aio.AioSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.log.Logger;
 
@@ -62,9 +65,11 @@ public class WebServerFilter implements IoFilter {
 
 		ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
 		if (isHttpRequest(byteBufferChannel)) {
+
+			Request request = null;
 			try {
 				if (object instanceof ByteBuffer) {
-					Request request = HttpParser.parseRequest(byteBufferChannel, session.socketContext().getReadTimeout());
+					request = HttpParser.parseRequest(byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
 					if(request!=null){
 						return request;
 					}else{
@@ -74,6 +79,24 @@ public class WebServerFilter implements IoFilter {
 					return null;
 				}
 			} catch (IOException e) {
+				Response response = new Response();
+				response.protocol().setStatus(500);
+
+				//如果请求过大的异常处理
+				if(e instanceof RequestTooLarge){
+					response.protocol().setStatus(413);
+					response.body().write("false");
+				}
+
+				try {
+					response.send(session);
+					((AioSocket)session.socketContext()).socketChannel().shutdownInput();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+
+				session.close();
+
 				Logger.error("ParseRequest failed",e);
 				return null;
 			}
