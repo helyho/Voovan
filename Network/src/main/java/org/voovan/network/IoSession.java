@@ -526,7 +526,7 @@ public abstract class IoSession<T extends SocketContext> {
 	public boolean wait(int waitTime){
 		messageLoader.close();
 		try {
-			TEnv.wait(waitTime, ()->!state.isReceive());
+			TEnv.wait(waitTime, ()->state.isReceive());
 			return true;
 		} catch (TimeoutException e) {
 			return false;

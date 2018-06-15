@@ -290,8 +290,8 @@ public abstract class SocketContext {
 	 */
 	protected void waitConnected(IoSession session){
 		try {
-			TEnv.wait(readTimeout, ()-> isConnected());
-			TEnv.wait(readTimeout, ()-> session.getSSLParser() != null && session.getSSLParser().isHandShakeDone() && isConnected());
+			TEnv.wait(readTimeout, ()-> !isConnected());
+			TEnv.wait(readTimeout, ()-> session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone() && isConnected());
 		}catch(Exception e){
 			Logger.error(e);
 			session.close();
