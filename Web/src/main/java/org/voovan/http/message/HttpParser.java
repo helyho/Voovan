@@ -356,6 +356,9 @@ public class HttpParser {
 
 							String fileExtName = TFile.getFileExtension(fileName);
 							fileExtName = fileExtName.equals("") ? ".tmp" : fileExtName;
+							if(fileName.isEmpty()){
+								break;
+							}
 
 							//拼文件名
 							String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
