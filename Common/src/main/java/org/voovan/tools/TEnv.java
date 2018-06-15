@@ -511,12 +511,12 @@ public class TEnv {
 	/**
 	 * 等待函数
 	 * @param waitTime 等待时间
-	 * @param supplier 满足等待预期,跳出等待的方法, 如果该方法返回 true 则达到等待的预期, false 则继续等待
+     * @param supplier 满足条件时一直灯胆, 如果该方法返回 true 一直等待, false 达到预期退出等待
 	 * @return true: 满足逻辑需要正常退出, false: 超时退出
 	 */
 	public static void wait(int waitTime, Supplier<Boolean> supplier) throws TimeoutException {
 		while(waitTime >=0 ){
-			if(!supplier.get()){
+			if(supplier.get()){
 				TEnv.sleep(1);
 			} else {
 				return;

@@ -55,7 +55,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 					//如果缓冲队列已慢, 则等待可用, 超时时间为读超时
 					try {
-						TEnv.wait(session.socketContext().getReadTimeout(), ()-> appByteBufferChannel.size() + readTempBuffer.limit() < appByteBufferChannel.getMaxSize() );
+						TEnv.wait(session.socketContext().getReadTimeout(), ()-> appByteBufferChannel.size() + readTempBuffer.limit() >= appByteBufferChannel.getMaxSize() );
 					} catch (TimeoutException e) {
 						e.printStackTrace();
 					}
