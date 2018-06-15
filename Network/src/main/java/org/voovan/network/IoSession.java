@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeoutException;
 
 
 /**
@@ -133,7 +134,7 @@ public abstract class IoSession<T extends SocketContext> {
 		attributes = new ConcurrentHashMap<Object, Object>();
 		this.socketContext = socketContext;
 		this.state = new State();
-		byteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
+		byteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize(), socketContext.getBufferSize()*32);
 		messageLoader = new MessageLoader(this);
 		checkIdle();
 	}
@@ -523,18 +524,13 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return true: 数据处理完退出, false:超时退出
 	 */
 	public boolean wait(int waitTime){
-		int count= 0;
 		messageLoader.close();
-		while(state.isReceive()){
-			TEnv.sleep(1);
-			count ++;
-
-			if(count > waitTime){
-				return false;
-			}
+		try {
+			TEnv.wait(waitTime, ()->!state.isReceive());
+			return true;
+		} catch (TimeoutException e) {
+			return false;
 		}
-
-		return true;
 	}
 
 	/**

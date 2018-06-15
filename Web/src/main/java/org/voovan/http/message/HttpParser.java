@@ -375,7 +375,7 @@ public class HttpParser {
 
 
 								if(!isFileRecvDone){
-									TEnv.sleep(500);
+									TEnv.sleep(100);
 								} else {
 									break;
 								}
