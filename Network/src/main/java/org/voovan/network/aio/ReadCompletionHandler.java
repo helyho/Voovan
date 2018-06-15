@@ -1,16 +1,19 @@
 package org.voovan.network.aio;
 
+import org.voovan.Global;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.HeartBeat;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.SSLParser;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TEnv;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.CompletionHandler;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Aio 读取事件
@@ -50,6 +53,13 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 				if (length > 0) {
 
+					//如果缓冲队列已慢, 则等待可用, 超时时间为读超时
+					try {
+						TEnv.wait(session.socketContext().getReadTimeout(), ()-> appByteBufferChannel.size() + readTempBuffer.limit() < appByteBufferChannel.getMaxSize() );
+					} catch (TimeoutException e) {
+						e.printStackTrace();
+					}
+
 					//接收SSL数据, SSL握手完成后解包
 					if(session.getSSLParser()!=null && SSLParser.isHandShakeDone(session)){
 						//一次接受并完成 SSL 解码后, 常常有剩余无法解码数据, 所以用 netByteBufferChannel 这个通道进行保存
@@ -77,7 +87,9 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 					// 继续接收 Read 请求
 					if(aioSocket.isConnected()) {
-                        aioSocket.catchRead(readTempBuffer);
+						Global.getThreadPool().execute(()->{
+							aioSocket.catchRead(readTempBuffer);
+						});
 					}
 				}
 			}

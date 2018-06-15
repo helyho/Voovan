@@ -1,6 +1,7 @@
 package org.voovan.tools;
 
 import org.voovan.Global;
+import org.voovan.tools.exception.LargerThanMaxSizeException;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 import sun.misc.Unsafe;
@@ -32,6 +33,7 @@ public class ByteBufferChannel {
 	private int size;
 	private ReentrantLock lock;
 	private AtomicBoolean borrowed = new AtomicBoolean(false);
+	private int maxSize = 1024*256;
 
 	/**
 	 * 构造函数
@@ -39,6 +41,15 @@ public class ByteBufferChannel {
 	 */
 	public ByteBufferChannel(int capacity) {
 		init(capacity);
+	}
+
+	/**
+	 * 构造函数
+	 * @param capacity 分配的容量
+	 */
+	public ByteBufferChannel(int capacity, Integer maxSize) {
+		init(capacity);
+		this.maxSize = maxSize;
 	}
 
 	/**
@@ -57,6 +68,14 @@ public class ByteBufferChannel {
 	 */
 	public ByteBufferChannel() {
 		init(1024);
+	}
+
+	/**
+	 * 缓冲通道是否已满
+	 * @return
+	 */
+	public boolean isFull(){
+		return maxSize <= size;
 	}
 
 	/**
@@ -88,6 +107,14 @@ public class ByteBufferChannel {
 			Logger.error("Create ByteBufferChannel error. ", e);
 			return null;
 		}
+	}
+
+	public int getMaxSize() {
+		return maxSize;
+	}
+
+	public void setMaxSize(int maxSize) {
+		this.maxSize = maxSize;
 	}
 
 	/**
@@ -537,7 +564,13 @@ public class ByteBufferChannel {
 	 * @param newSize  重新分配的空间大小
 	 * @return true:成功, false:失败
 	 */
-	public boolean reallocate(int newSize){
+	public boolean reallocate(int newSize) {
+
+		//检查分配内存是否超过限额
+		if(maxSize < newSize){
+            throw new LargerThanMaxSizeException("MaxSize: " + maxSize + ", expect: " + newSize);
+		}
+
 		checkRelease();
 		lock.lock();
 		try{
@@ -908,7 +941,7 @@ public class ByteBufferChannel {
 
 	@Override
 	public String toString(){
-		return "{size="+size+", capacity="+capacity()+", released="+(address.get()==0)+"}";
+		return "{size="+size+", capacity="+capacity()+", released="+(address.get()==0)+", maxSize=" + maxSize + "}";
 	}
 
 	/**

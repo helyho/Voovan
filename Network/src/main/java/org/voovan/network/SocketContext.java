@@ -47,7 +47,7 @@ public abstract class SocketContext {
 	protected MessageSplitter messageSplitter;
 	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
-	protected int bufferSize = 1024*5;
+	protected int bufferSize = 1024*8;
 
 	protected int idleInterval = 0;
 
@@ -290,26 +290,8 @@ public abstract class SocketContext {
 	 */
 	protected void waitConnected(IoSession session){
 		try {
-			int waitConnectTime = 0;
-			while (!isConnected()) {
-				waitConnectTime++;
-				if (waitConnectTime >= readTimeout) {
-					break;
-				}
-				TEnv.sleep(1);
-			}
-
-			waitConnectTime = 0;
-			//等待 SSL 握手操作完成
-			while (session.getSSLParser() != null &&
-					!session.getSSLParser().isHandShakeDone() &&
-					isConnected()) {
-				if (waitConnectTime >= readTimeout) {
-					break;
-				}
-				waitConnectTime++;
-				TEnv.sleep(1);
-			}
+			TEnv.wait(readTimeout, ()-> isConnected());
+			TEnv.wait(readTimeout, ()-> session.getSSLParser() != null && session.getSSLParser().isHandShakeDone() && isConnected());
 		}catch(Exception e){
 			Logger.error(e);
 			session.close();

@@ -42,9 +42,9 @@ public class HttpMessageSplitter implements MessageSplitter {
 
             if(result>0){
                 result = 0;
-            }else if(result == -1){
+            } else if(result == -1){
                 return result;
-            }else if(result == -2){
+            } else if(result == -2){
 //                采用异步的方式, 防止导致死锁
                 Global.getThreadPool().execute(new Thread("CHECK_HTTP_HEAD_FAILED") {
                     @Override

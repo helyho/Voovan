@@ -8,24 +8,24 @@ package org.voovan.tools.exception;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class MemoryReleasedException extends RuntimeException{
+public class LargerThanMaxSizeException extends RuntimeException{
 
-    public MemoryReleasedException() {
+    public LargerThanMaxSizeException() {
         super();
     }
 
 
-    public MemoryReleasedException(String message) {
+    public LargerThanMaxSizeException(String message) {
         super(message);
     }
 
 
-    public MemoryReleasedException(String message, Throwable cause) {
+    public LargerThanMaxSizeException(String message, Throwable cause) {
         super(message, cause);
     }
 
 
-    public MemoryReleasedException(Throwable cause) {
+    public LargerThanMaxSizeException(Throwable cause) {
         super(cause);
     }
 }
