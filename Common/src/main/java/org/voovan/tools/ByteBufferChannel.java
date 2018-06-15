@@ -568,7 +568,7 @@ public class ByteBufferChannel {
 
 		//检查分配内存是否超过限额
 		if(maxSize < newSize){
-            throw new LargerThanMaxSizeException("MaxSize: " + maxSize + ", expect: " + newSize);
+            throw new LargerThanMaxSizeException("Max size: " + maxSize + ", expect size: " + newSize);
 		}
 
 		checkRelease();

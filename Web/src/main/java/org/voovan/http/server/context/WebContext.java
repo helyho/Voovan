@@ -274,9 +274,15 @@ public class WebContext {
 		Logger.simple(TString.rightPad("  MatchRouteIgnoreCase:",35,' ')+config.isMatchRouteIgnoreCase());
 		Logger.simple(TString.rightPad("  Gzip:",35,' ')+ config.isGzip());
 		Logger.simple(TString.rightPad("  AccessLog:",35,' ')+ config.isAccessLog());
+		Logger.simple(TString.rightPad("  PauseURL:",35,' ')+ config.getPauseURL());
+		Logger.simple(TString.rightPad("  MaxRequestSize:",35,' ')+ config.getMaxRequestSize());
 
 		if(config.getHotSwapInterval()>0) {
 			Logger.simple(TString.rightPad("  HotSwapInterval:", 35, ' ') + config.getHotSwapInterval());
+		}
+
+		if(config.getScanAopPackage()!=null) {
+			Logger.simple(TString.rightPad("  ScanAopPackage:", 35, ' ') + config.getScanAopPackage());
 		}
 
 		if(config.isHttps()) {
