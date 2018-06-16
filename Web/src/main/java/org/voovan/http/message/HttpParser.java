@@ -117,7 +117,7 @@ public class HttpParser {
 	 */
 	public static Map<String, String> getEqualMap(String str){
 		Map<String, String> equalMap = new HashMap<String, String>();
-		String[] searchedStrings = TString.searchByRegex(str,"([^ ;,]+=[^ ;,]+)");
+		String[] searchedStrings = TString.searchByRegex(str,"([^ ;,]+=[^;,]+)");
 		for(String groupString : searchedStrings){
 			//这里不用 split 的原因是有可能等号后的值字符串中出现等号
 			String[] equalStrings = new String[2];
@@ -339,7 +339,6 @@ public class HttpParser {
 							break;
 						}
 
-
 						//解析 Part 报文体
 						//重置 index
 						index = -1;
@@ -358,7 +357,7 @@ public class HttpParser {
 						} else {
 
 							String fileExtName = TFile.getFileExtension(fileName);
-							fileExtName = fileExtName.equals("") ? ".tmp" : fileExtName;
+							fileExtName = fileExtName==null || fileExtName.equals("") ? ".tmp" : fileExtName;
 
 							//拼文件名
 							String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
