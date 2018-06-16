@@ -385,24 +385,10 @@ public abstract class IoSession<T extends SocketContext> {
 			throw new ReadMessageException("Use the syncRead method must set an object of SynchronousHandler into the socket handler ");
 		}
 
-		while(true){
+		try {
 			//如果响应对象不存在则继续循环等待直到结果出现
-			if(!synchronousHandler.hasNextResponse()){
-
-				//超时判断
-				waitedTime++;
-				if(waitedTime >= socketContext.getReadTimeout()){
-					throw new ReadMessageException("syncRead read timeout");
-				}
-
-				//连接状态检测
-				if(!isConnected()){
-					throw new ReadMessageException("Socket is disconnect");
-				}
-
-				TEnv.sleep(1);
-				continue;
-			}
+			SynchronousHandler finalSynchronousHandler = synchronousHandler;
+			TEnv.wait(socketContext.getReadTimeout(), ()->!finalSynchronousHandler.hasNextResponse() || !isConnected());
 
 			readObject = ((SynchronousHandler)socketContext.handler()).getResponse();
 
@@ -416,7 +402,10 @@ public abstract class IoSession<T extends SocketContext> {
 			} else {
 				return readObject;
 			}
+		} catch (TimeoutException e) {
+			throw new ReadMessageException("syncRead read timeout or socket is disconnect");
 		}
+		return readObject;
 	}
 
 	/**
@@ -427,18 +416,22 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	public void syncSend(Object obj) throws SendMessageException{
 		//等待 ssl 握手完成
-		while(sslParser!=null && !sslParser.handShakeDone){
-			TEnv.sleep(1);
+		try {
+			TEnv.wait(socketContext.getReadTimeout(), ()->sslParser!=null && !sslParser.handShakeDone);
+			if (obj != null) {
+				try {
+					EventProcess.sendMessage(this, obj);
+				}catch (Exception e){
+					throw new SendMessageException("Method syncSend error! Error by "+
+							e.getClass().getSimpleName() + ".",e);
+				}
+			}
+		} catch (TimeoutException e) {
+			throw new SendMessageException("Method syncSend error! Error by "+
+					e.getClass().getSimpleName() + ".",e);
 		}
 
-		if (obj != null) {
-			try {
-				EventProcess.sendMessage(this, obj);
-			}catch (Exception e){
-				throw new SendMessageException("Method syncSend error! Error by "+
-						e.getClass().getSimpleName() + ".",e);
-			}
-		}
+
 	}
 
 	/**

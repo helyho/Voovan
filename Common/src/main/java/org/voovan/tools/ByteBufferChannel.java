@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
@@ -153,8 +154,6 @@ public class ByteBufferChannel {
 
 		synchronized (byteBuffer) {
 			while(lock.isLocked()){
-
-
 				//如果加锁成功说明是自锁, 解锁并继续
 				if(lock.isHeldByCurrentThread()){
 
@@ -171,7 +170,7 @@ public class ByteBufferChannel {
 					}
 				}
 
-				TEnv.sleep(1);
+				TEnv.sleep(0);
 			}
 
 			lock.lock();
@@ -527,16 +526,15 @@ public class ByteBufferChannel {
 	 * @return true: 具备期望长度的数据, false: 等待数据超时
 	 */
 	public boolean waitData(int length,int timeout){
-		while(timeout > 0){
-			checkRelease();
-
-			if(size() >= length){
-				return true;
-			}
-			timeout -- ;
-			TEnv.sleep(1);
+		try {
+			TEnv.wait(timeout, ()->{
+				checkRelease();
+				return size() < length;
+			});
+			return true;
+		} catch (TimeoutException e) {
+			return false;
 		}
-		return false;
 	}
 
 
@@ -547,16 +545,16 @@ public class ByteBufferChannel {
 	 * @return true: 具备期望长度的数据, false: 等待数据超时
 	 */
 	public boolean waitData(byte[] mark, int timeout){
-		while(timeout > 0){
-			checkRelease();
 
-			if(indexOf(mark) != -1){
-				return true;
-			}
-			timeout -- ;
-			TEnv.sleep(1);
+		try {
+			TEnv.wait(timeout, ()->{
+                checkRelease();
+                return indexOf(mark) == -1;
+            });
+			return true;
+		} catch (TimeoutException e) {
+			return false;
 		}
-		return false;
 	}
 
 	/**

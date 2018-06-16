@@ -73,14 +73,14 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                 cacheMark.put(key, timeMark);
             }
         }
-
+        TimeMark finalTimeMark = timeMark;
         synchronized (timeMark.createFlag) {
             if (!timeMark.isOnCreate()) {
                 timeMark.tryLockOnCreate();
 
                 //更新缓存数据, 异步
                 if (asyncBuild) {
-                    TimeMark finalTimeMark = timeMark;
+
                     Global.getThreadPool().execute(new Runnable() {
                         @Override
                         public void run() {
@@ -105,9 +105,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
             }
         }
 
-        while(timeMark.isOnCreate()){
-            TEnv.sleep(1);
-        }
+        TEnv.wait(()-> finalTimeMark.isOnCreate());
     }
 
     /**

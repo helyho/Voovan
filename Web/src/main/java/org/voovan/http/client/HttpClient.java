@@ -552,7 +552,7 @@ public class HttpClient implements Closeable{
 
 		//为异步调用进行阻赛,等待 socket 关闭
 		while (socket.isOpen()) {
-			TEnv.sleep(1);
+			TEnv.sleep(0);
 		}
 	}
 

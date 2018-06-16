@@ -146,6 +146,8 @@ public class RedisLock {
             lockValue = String.valueOf(System.currentTimeMillis());
             this.lockValue = lockValue;
         }
+
+        long start = System.currentTimeMillis();
         while(true) {
             try (Jedis jedis = getJedis()) {
                 String result = jedis.set(this.lockName, lockValue,  RedisMap.SET_NOT_EXIST,  RedisMap.SET_EXPIRE_TIME, lockExpireTime);
@@ -153,13 +155,12 @@ public class RedisLock {
                 if (RedisMap.LOCK_SUCCESS.equals(result)) {
                     return true;
                 }
-                timewait--;
 
-                if(timewait<=0){
+                if(System.currentTimeMillis() - start > timewait){
                     break;
                 }
 
-                TEnv.sleep(1);
+                TEnv.sleep(0);
                 continue;
             }
         }

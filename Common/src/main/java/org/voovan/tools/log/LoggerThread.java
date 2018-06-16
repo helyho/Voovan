@@ -88,7 +88,7 @@ public class LoggerThread implements Runnable {
 
 				//优化日志输出事件
 				if(logQueue.size() == 0){
-					TEnv.sleep(1);
+					TEnv.sleep(0);
 					continue;
 				}
 

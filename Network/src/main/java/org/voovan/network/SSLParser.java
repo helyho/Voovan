@@ -123,14 +123,14 @@ public class SSLParser {
 	 * @throws Exception
 	 */
 	private synchronized HandshakeStatus doHandShakeWarp() throws IOException {
-		int waitCount = 0;
+		long start = System.currentTimeMillis();
 		while (true) {
 
 			if(!session.isConnected()){
 				return null;
 			}
 
-			if (waitCount >= session.socketContext().getReadTimeout()) {
+			if (System.currentTimeMillis() - start >= session.socketContext().getReadTimeout()) {
 				throw new SSLHandshakeException("Hand shake on: " + session.remoteAddress() + ":" + session.remotePort() + " timeout");
 			}
 
@@ -144,7 +144,6 @@ public class SSLParser {
 				HandshakeStatus handshakeStatus = runDelegatedTasks();
 				return handshakeStatus;
 			} catch (SSLException e) {
-				waitCount++;
 				TEnv.sleep(1);
 				continue;
 			}
@@ -185,14 +184,14 @@ public class SSLParser {
 	private synchronized HandshakeStatus doHandShakeUnwarp() throws IOException {
 		HandshakeStatus handshakeStatus = null;
 		SSLEngineResult engineResult = null;
-		int waitCount = 0;
+		long start = System.currentTimeMillis();
 		while (true) {
 
 			if(!session.isConnected()){
 				break;
 			}
 
-			if (waitCount >= session.socketContext().getReadTimeout()) {
+			if (System.currentTimeMillis() - start >= session.socketContext().getReadTimeout()) {
 				break;
 			}
 
@@ -238,10 +237,9 @@ public class SSLParser {
 				}
 			}
 
-			waitCount++;
-			TEnv.sleep(1);
+			TEnv.sleep(0);
 		}
-		;
+
 		return handshakeStatus == null ? engine.getHandshakeStatus() : handshakeStatus;
 	}
 
