@@ -238,6 +238,9 @@ public class HttpParser {
 		int headerLength = 0;
 		boolean isBodyConent = false;
 		int lineNum = 0;
+
+		requestMaxSize = requestMaxSize < 0 ? Integer.MAX_VALUE : requestMaxSize;
+
 		//按行遍历HTTP报文
 		for(String currentLine = byteBufferChannel.readLine();
 			currentLine!=null;
@@ -301,7 +304,7 @@ public class HttpParser {
 						totalLength = totalLength + readSize;
 						//请求过大的处理
 						if(totalLength > requestMaxSize * 1024){
-							throw new RequestTooLarge("Request is too large: { path" + packetMap.get(FL_PATH).toString() + ", max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+							throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
 						}
 
 						//确认 boundary 结尾字符, 如果是"--" 则标识报文结束
@@ -332,7 +335,7 @@ public class HttpParser {
 						partByteBufferChannel.release();
 
 						String fileName = getPerprotyEqualValue(partMap, "Content-Disposition", "filename");
-						if(fileName.isEmpty()){
+						if(fileName!=null && fileName.isEmpty()){
 							break;
 						}
 
@@ -356,9 +359,6 @@ public class HttpParser {
 
 							String fileExtName = TFile.getFileExtension(fileName);
 							fileExtName = fileExtName.equals("") ? ".tmp" : fileExtName;
-							if(fileName.isEmpty()){
-								break;
-							}
 
 							//拼文件名
 							String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
@@ -399,7 +399,7 @@ public class HttpParser {
 								//请求过大的处理
 								if(totalLength > requestMaxSize * 1024){
 									TFile.deleteFile(new File(localFileName));
-									throw new RequestTooLarge("Request is too large: { path" + packetMap.get(FL_PATH).toString() + ", max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+									throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
 								}
 
 
@@ -486,7 +486,7 @@ public class HttpParser {
 
 						//请求过大的处理
 						if(totalLength > requestMaxSize * 1024){
-							throw new RequestTooLarge("Request is too large: { path" + packetMap.get(FL_PATH).toString() + ", max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+							throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
 						}
 
 						//跳过换行符号
@@ -507,7 +507,7 @@ public class HttpParser {
 
 					//请求过大的处理
 					if(totalLength > requestMaxSize * 1024){
-						throw new RequestTooLarge("Request is too large: { path" + packetMap.get(FL_PATH).toString() + ", max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
 					}
 
 
@@ -531,7 +531,7 @@ public class HttpParser {
 
 					//请求过大的处理
 					if(totalLength > requestMaxSize * 1024){
-						throw new RequestTooLarge("Request is too large: { path" + packetMap.get(FL_PATH).toString() + ", max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
 					}
 
 					byte[] contentBytes = byteBufferChannel.array();
