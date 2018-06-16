@@ -121,7 +121,7 @@ public class NioSession extends IoSession<NioSocket> {
 			while(isConnected() && buffer.remaining()!=0){
 				int sendSize = socketChannel.write(buffer);
 				if(sendSize == 0 ){
-					TEnv.sleep(1);
+					TEnv.sleep(0);
 					if(System.currentTimeMillis() - start >= socketContext().getSendTimeout()){
 						Logger.error("AioSession send timeout, Socket will be close");
 						close();
