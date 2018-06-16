@@ -1,6 +1,7 @@
 package org.voovan.http.message;
 
 import org.voovan.http.message.packet.*;
+import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TString;
@@ -177,7 +178,7 @@ public class Request {
 		}
 
 		try {
-			return queryString.isEmpty()? null : URLDecoder.decode(queryString, "UTF8");
+			return queryString.isEmpty()? null : URLDecoder.decode(queryString, WebContext.getWebServerConfig().getCharacterSet());
 		} catch (UnsupportedEncodingException e) {
 			return null;
 		}
