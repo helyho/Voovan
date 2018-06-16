@@ -46,7 +46,7 @@ public class ServerBenchHandlerTest implements IoHandler {
 
     @Override
     public void onSent(IoSession session, Object obj) {
-        session.close();
+//        session.close();
     }
 
 }

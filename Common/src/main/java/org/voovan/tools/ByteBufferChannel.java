@@ -816,23 +816,20 @@ public class ByteBufferChannel {
 		int index = indexOf("\n".getBytes());
 
 		if (index >= 0) {
-
-			ByteBuffer lineBuffer = TByteBuffer.allocateDirect(index + 1);
-
-			int readSize = readHead(lineBuffer);
-
-			if (readSize == index + 1) {
-				lineStr = TByteBuffer.toString(lineBuffer);
-			}
-			TByteBuffer.release(lineBuffer);
+			ByteBuffer byteBuffer = getByteBuffer();
+			int limit = byteBuffer.limit();
+			byteBuffer.limit(index-1);
+			lineStr = TByteBuffer.toString(byteBuffer);
+			byteBuffer.limit(limit);
+			byteBuffer.position(index+1);
+			compact();
 		}
 
 		if(size()>0 && lineStr.isEmpty()){
-			ByteBuffer lineBuffer = TByteBuffer.allocateDirect(size());
-			if(readHead(lineBuffer) > 0) {
-				lineStr = TByteBuffer.toString(lineBuffer);
-			}
-			TByteBuffer.release(lineBuffer);
+			ByteBuffer byteBuffer = getByteBuffer();
+		    lineStr = TByteBuffer.toString(byteBuffer);
+			byteBuffer.position(byteBuffer.limit());
+		    compact();
 		}
 
 		return lineStr.isEmpty() ? null : lineStr;
