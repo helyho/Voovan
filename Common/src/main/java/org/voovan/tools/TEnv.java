@@ -511,19 +511,34 @@ public class TEnv {
 	/**
 	 * 等待函数
 	 * @param waitTime 等待时间
-     * @param supplier 满足条件时一直灯胆, 如果该方法返回 true 一直等待, false 达到预期退出等待
+     * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
 	 * @return true: 满足逻辑需要正常退出, false: 超时退出
 	 */
 	public static void wait(int waitTime, Supplier<Boolean> supplier) throws TimeoutException {
-		while(waitTime >=0 ){
+		long start = System.currentTimeMillis();
+		while(true){
 			if(supplier.get()){
-				TEnv.sleep(1);
+				TEnv.sleep(0);
 			} else {
 				return;
 			}
-			waitTime--;
-		}
 
-		throw new TimeoutException("TEnv.wait time out");
+			if(System.currentTimeMillis()-start>=waitTime){
+				throw new TimeoutException("TEnv.wait time out");
+			}
+		}
+	}
+
+	/**
+	 * 等待函数
+	 * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
+	 * @return true: 满足逻辑需要正常退出, false: 超时退出
+	 */
+	public static void wait(Supplier<Boolean> supplier) {
+		try {
+			wait(Integer.MAX_VALUE, supplier);
+		} catch (TimeoutException e) {
+			e.printStackTrace();
+		}
 	}
 }

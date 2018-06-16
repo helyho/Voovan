@@ -228,7 +228,7 @@ public class MessageLoader {
 					stopType = StopType.STREAM_END;
 				}else {
 					readZeroCount++;
-					TEnv.sleep(1);
+					TEnv.sleep(0);
 				}
 			}else{
 				readZeroCount = 0;

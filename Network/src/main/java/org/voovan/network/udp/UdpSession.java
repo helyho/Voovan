@@ -121,7 +121,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 	@Override
 	protected synchronized int send0(ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
-		int waitCount = 0;
+		long start = System.currentTimeMillis();
 		if (isOpen() && buffer != null) {
 			//循环发送直到全部内容发送完毕
 			while(buffer.remaining()!=0){
@@ -132,15 +132,14 @@ public class UdpSession extends IoSession<UdpSocket> {
 					datagramChannel.send(buffer, this.remoteAddress);
 				}
 				if(sendSize == 0 ){
-					waitCount++;
-					TEnv.sleep(1);
-					if(waitCount >= socketContext().getSendTimeout()){
+					TEnv.sleep(0);
+					if(System.currentTimeMillis() - start >= socketContext().getSendTimeout()){
 						Logger.error("AioSession send timeout, Socket will be close");
 						close();
 						return -1;
 					}
 				} else {
-					waitCount = 0;
+					start = System.currentTimeMillis();
 					totalSendByte += sendSize;
 				}
 			}

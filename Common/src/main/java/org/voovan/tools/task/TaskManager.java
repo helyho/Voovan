@@ -83,12 +83,12 @@ public class TaskManager {
 
                         //防止大量任务带来的高 CPU 负载
                         if(tryStartTaskCount >= 100) {
-                            TEnv.sleep(1);
+                            TEnv.sleep(0);
                             tryStartTaskCount = 0;
                         }
                     }
 
-                    TEnv.sleep(1);
+                    TEnv.sleep(0);
                 }
             }
         });

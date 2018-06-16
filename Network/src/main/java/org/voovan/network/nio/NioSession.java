@@ -115,21 +115,20 @@ public class NioSession extends IoSession<NioSocket> {
 	@Override
 	protected synchronized int send0(ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
-		int waitCount = 0;
+		long start = System.currentTimeMillis();
 		if (isConnected() && buffer != null) {
 			//循环发送直到全部内容发送完毕
 			while(isConnected() && buffer.remaining()!=0){
 				int sendSize = socketChannel.write(buffer);
 				if(sendSize == 0 ){
-					waitCount++;
 					TEnv.sleep(1);
-					if(waitCount >= socketContext().getSendTimeout()){
+					if(System.currentTimeMillis() - start >= socketContext().getSendTimeout()){
 						Logger.error("AioSession send timeout, Socket will be close");
 						close();
 						return -1;
 					}
 				} else {
-					waitCount = 0;
+					start = System.currentTimeMillis();
 					totalSendByte += sendSize;
 				}
 			}
