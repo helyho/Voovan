@@ -469,7 +469,7 @@ public class ByteBufferChannel {
 		//这里上锁,在compact()方法解锁
 		lock.lock();
 		borrowed.compareAndSet(false, true);
-        return byteBuffer;
+		return byteBuffer;
 	}
 
 	/**
@@ -546,9 +546,9 @@ public class ByteBufferChannel {
 
 		try {
 			TEnv.wait(timeout, ()->{
-                checkRelease();
-                return indexOf(mark) == -1;
-            });
+				checkRelease();
+				return indexOf(mark) == -1;
+			});
 			return true;
 		} catch (TimeoutException e) {
 			return false;
@@ -564,7 +564,7 @@ public class ByteBufferChannel {
 
 		//检查分配内存是否超过限额
 		if(maxSize < newSize){
-            throw new LargerThanMaxSizeException("Max size: " + maxSize + ", expect size: " + newSize);
+			throw new LargerThanMaxSizeException("Max size: " + maxSize + ", expect size: " + newSize);
 		}
 
 		checkRelease();
@@ -816,21 +816,21 @@ public class ByteBufferChannel {
 		if (index >= 0) {
 			ByteBuffer byteBuffer = getByteBuffer();
 			int limit = byteBuffer.limit();
-			byteBuffer.limit(index-1);
+			byteBuffer.limit(index+1);
 			lineStr = TByteBuffer.toString(byteBuffer);
 			byteBuffer.limit(limit);
 			byteBuffer.position(index+1);
 			compact();
 		}
 
-		if(size()>0 && lineStr.isEmpty()){
+		if(size()>0 && index==-1){
 			ByteBuffer byteBuffer = getByteBuffer();
-		    lineStr = TByteBuffer.toString(byteBuffer);
+			lineStr = TByteBuffer.toString(byteBuffer);
 			byteBuffer.position(byteBuffer.limit());
-		    compact();
+			compact();
 		}
 
-		return lineStr.isEmpty() ? null : lineStr;
+		return lineStr.isEmpty() && index==-1 ? null : lineStr;
 	}
 
 
