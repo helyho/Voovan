@@ -222,12 +222,18 @@ public class WebServerHandler implements IoHandler {
 		// 处理响应请求
 		httpDispatcher.process(httpRequest, httpResponse);
 
+		//对于1.1协议的特殊处理
+		if(httpRequest.protocol().getVersion()==1.1F){
+			setAttribute(session, SessionParam.KEEP_ALIVE, true);
+			httpResponse.header().put("Connection", "keep-alive");
+		}
 		//如果是长连接则填充响应报文
-		if (httpRequest.header().contain("Connection")
+		else if (httpRequest.header().contain("Connection")
 				&& httpRequest.header().get("Connection").toLowerCase().contains("keep-alive")) {
 			setAttribute(session, SessionParam.KEEP_ALIVE, true);
 			httpResponse.header().put("Connection", httpRequest.header().get("Connection"));
 		}
+
 
 		httpResponse.header().put("Server", WebContext.getVERSION());
 
@@ -408,10 +414,6 @@ public class WebServerHandler implements IoHandler {
 			if (keepAliveSessionList.contains(session)) {
 				keepAliveSessionList.remove(session);
 			}
-			session.close();
-		}
-
-		if(request.protocol().getVersion()==1.0 && getAttribute(session, SessionParam.KEEP_ALIVE) == null ){
 			session.close();
 		}
 
