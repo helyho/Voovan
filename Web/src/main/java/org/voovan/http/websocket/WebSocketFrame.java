@@ -272,7 +272,7 @@ public class WebSocketFrame {
 	public ByteBuffer toByteBuffer() {
 		ByteBuffer data = this.getFrameData();
 		if(data == null){
-			data = ByteBuffer.allocate(0);
+			data = TByteBuffer.EMPTY_BYTE_BUFFER;
 		}
 		boolean mask = this.isTransfereMask();
 		int sizebytes = data.remaining() <= 125 ? 1 : data.remaining() <= 65535 ? 2 : 8;

@@ -22,7 +22,9 @@ import java.util.Arrays;
  */
 public class TByteBuffer {
 
-    public static Class DIRECT_BYTE_BUFFER_CLASS = ByteBuffer.allocateDirect(0).getClass();
+    public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
+
+    public static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
 
     public static Constructor DIRECT_BYTE_BUFFER_CONSTURCTOR = getConsturctor();
     static {

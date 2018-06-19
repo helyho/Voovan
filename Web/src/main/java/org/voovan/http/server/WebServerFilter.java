@@ -10,6 +10,7 @@ import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.aio.AioSocket;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -25,7 +26,6 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class WebServerFilter implements IoFilter {
-	private final ByteBuffer emptyByteBuffer = ByteBuffer.allocateDirect(0);
 
 	/**
 	 * 将HttpResponse转换成ByteBuffer
@@ -44,7 +44,7 @@ public class WebServerFilter implements IoFilter {
 				Logger.error(e);
 			}
 
-			return emptyByteBuffer;
+			return TByteBuffer.EMPTY_BYTE_BUFFER;
 		} else if(object instanceof WebSocketFrame){
 			WebSocketFrame webSocketFrame = (WebSocketFrame)object;
 			return webSocketFrame.toByteBuffer();
