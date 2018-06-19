@@ -35,11 +35,12 @@ public class HttpParser {
 	private static final String FL_QUERY_STRING = "FL_QueryString";
 
 
-	private static final String HEAD_CONTENT_ENCODING	= "Content-Encoding";
-	private static final String HEAD_CONTENT_TYPE 		= "Content-Type";
-	private static final String HEAD_TRANSFER_ENCODING 	= "Transfer-Encoding";
-	private static final String HEAD_CONTENT_LENGTH 	= "Content-Length";
-	private static final String HEAD_COOKIE 			= "Cookie";
+	private static final String HEAD_CONTENT_ENCODING		= "Content-Encoding";
+	private static final String HEAD_CONTENT_TYPE 			= "Content-Type";
+	private static final String HEAD_TRANSFER_ENCODING 		= "Transfer-Encoding";
+	private static final String HEAD_CONTENT_LENGTH 		= "Content-Length";
+	private static final String HEAD_COOKIE 				= "Cookie";
+	private static final String HEAD_CONTENT_DISPOSITION	= "Content-Disposition";
 
 
 	private static final String BODY_PARTS = "Body_Parts";
@@ -334,7 +335,7 @@ public class HttpParser {
 						TByteBuffer.release(partHeadBuffer);
 						partByteBufferChannel.release();
 
-						String fileName = getPerprotyEqualValue(partMap, "Content-Disposition", "filename");
+						String fileName = getPerprotyEqualValue(partMap, HEAD_CONTENT_DISPOSITION, "filename");
 						if(fileName!=null && fileName.isEmpty()){
 							break;
 						}
@@ -439,9 +440,7 @@ public class HttpParser {
 							throw new IOException("Http Parser read data error");
 						}
 
-						String chunkedLengthLine1 = byteBufferChannel.readLine();
-
-						chunkedLengthLine = chunkedLengthLine1.trim();
+						chunkedLengthLine = byteBufferChannel.readLine().trim();
 
 						if("0".equals(chunkedLengthLine)){
 							break;
@@ -617,7 +616,7 @@ public class HttpParser {
 								String partedHeaderKey = parsedPartMapItem.getKey();
 								String partedHeaderValue = parsedPartMapItem.getValue().toString();
 								part.header().put(partedHeaderKey, partedHeaderValue);
-								if("Content-Disposition".equals(partedHeaderKey)){
+								if(HEAD_CONTENT_DISPOSITION.equals(partedHeaderKey)){
 									//对Content-Disposition中的"name=xxx"进行处理,方便直接使用
 									Map<String, String> contentDispositionValue = HttpParser.getEqualMap(partedHeaderValue);
 									part.header().putAll(contentDispositionValue);
