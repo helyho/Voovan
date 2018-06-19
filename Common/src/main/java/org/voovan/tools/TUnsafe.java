@@ -5,6 +5,7 @@ import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,7 +48,7 @@ public class TUnsafe {
     }
 
     public static <T> T allocateInstance(Class clazz) throws InstantiationException {
-        return (T) TUnsafe.getUnsafe().allocateInstance(clazz);
+        return (T) TUnsafe.unsafe.allocateInstance(clazz);
     }
 
     public static void putObject(Object obj, Field field, Object value){
@@ -149,7 +150,7 @@ public class TUnsafe {
      * @return 内存的基地址
      * @throws Exception
      */
-    public static long addressOf(Object object) {
+    public static long getAddress(Object object) {
 
         Object[] array = new Object[] { object };
 
@@ -171,5 +172,72 @@ public class TUnsafe {
         }
 
         return objectAddress;
+    }
+
+    /**
+     * 将一个对象的地址, 转换为对象
+     * @param address 地址
+     * @return 对象
+     */
+    public static Object fromAddress(long address) {
+        Object[] array = new Object[] {null};
+        long baseOffset = unsafe.arrayBaseOffset(Object[].class);
+        unsafe.putLong(array, baseOffset, address);
+        return array[0];
+    }
+
+    /**
+     * 将一个地址的数据, 复制到目标对象
+     * @param srcAddress
+     * @param dest
+     */
+    public static void copyMemory(long srcAddress, Object dest) {
+        unsafe.copyMemory(null, srcAddress, dest, 0, sizeOf(dest));
+    }
+
+    /**
+     * 获得第一个字段的偏移量
+     * @param clazz 对象类型
+     * @return 一个字段的偏移量
+     */
+    public static long getFirstFieldOffset(Class clazz) {
+        long minSize = 0L;
+
+        // Find the min offset for all the classes, up the class hierarchy.
+        while (clazz != Object.class) {
+            for (Field field : clazz.getDeclaredFields()) {
+                if ((field.getModifiers() & Modifier.STATIC) == 0) {
+                    long offset = getFieldOffset(field);
+                    if (offset < minSize) {
+                        minSize = offset;
+                    }
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+
+        return minSize;
+    }
+
+    /**
+     * 活的字段的大小
+     * @param clazz 对象类型
+     * @return 字段的大小
+     */
+    public static long getSizeOfFields(Class clazz) {
+        return sizeOf(clazz) - getFirstFieldOffset(clazz);
+    }
+
+    /**
+     * 将对象转换为字节数组
+     *
+     * @param obj 对象
+     * @return 字节数组
+     */
+    public static byte[] getObjectByteArray(Object obj) {
+        int len = (int) sizeOf(obj);
+        byte[] bytes = new byte[len];
+        unsafe.copyMemory(obj, 0, bytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, bytes.length);
+        return bytes;
     }
 }
