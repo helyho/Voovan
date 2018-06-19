@@ -468,11 +468,8 @@ public class ByteBufferChannel {
 
 		//这里上锁,在compact()方法解锁
 		lock.lock();
-		if(borrowed.compareAndSet(false, true)) {
-			return byteBuffer;
-		} else {
-			return null;
-		}
+		borrowed.compareAndSet(false, true);
+        return byteBuffer;
 	}
 
 	/**
