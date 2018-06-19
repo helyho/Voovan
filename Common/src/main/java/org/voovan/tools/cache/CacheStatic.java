@@ -159,7 +159,9 @@ public class CacheStatic {
         }
 
         if(redisPool != null) {
-            return redisPool.getResource();
+            Jedis jedis =  redisPool.getResource();
+            jedis.select(dbIndex);
+            return jedis;
         }else{
             return null;
         }
