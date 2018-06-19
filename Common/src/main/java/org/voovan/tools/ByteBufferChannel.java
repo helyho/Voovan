@@ -32,7 +32,7 @@ public class ByteBufferChannel {
 	private int size;
 	private ReentrantLock lock;
 	private AtomicBoolean borrowed = new AtomicBoolean(false);
-	private int maxSize = 1024*256;
+	private int maxSize = 1024*512;
 
 	/**
 	 * 构造函数
