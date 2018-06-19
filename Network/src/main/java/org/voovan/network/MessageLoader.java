@@ -22,7 +22,6 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class MessageLoader {
-	private final ByteBuffer emptyByteBuffer = ByteBuffer.allocateDirect(0);
 
 	private IoSession session;
 	private StopType stopType;
@@ -150,7 +149,7 @@ public class MessageLoader {
 		int readZeroCount = 0;
 		int splitLength = 0;
 
-		ByteBuffer result = ByteBuffer.allocate(0);
+		ByteBuffer result = TByteBuffer.EMPTY_BYTE_BUFFER;
 		int oldByteChannelSize = 0;
 
 		ByteBufferChannel dataByteBufferChannel = null;
@@ -253,10 +252,10 @@ public class MessageLoader {
 					Logger.error("[WARN] Message is not full, expect: " + splitLength + ", acutal: " + fillSize);
 				}
 			} else {
-				return emptyByteBuffer;
+				return TByteBuffer.EMPTY_BYTE_BUFFER;
 			}
 		} else {
-			return emptyByteBuffer;
+			return TByteBuffer.EMPTY_BYTE_BUFFER;
 		}
 
 		return result;

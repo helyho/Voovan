@@ -170,7 +170,7 @@ public class Part {
 		int readSize = 0;
 
 		//发送缓冲区
-		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024 * 50);
+		ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
 
 		//发送分段开始
 		byteBuffer.put(TString.assembly("--", boundary, "\r\n").getBytes());
@@ -201,6 +201,8 @@ public class Part {
 		byteBuffer.flip();
 		session.send(byteBuffer);
 		byteBuffer.clear();
+
+		TByteBuffer.release(byteBuffer);
 
 	}
 

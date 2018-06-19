@@ -9,6 +9,7 @@ import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -24,7 +25,6 @@ import java.nio.ByteBuffer;
  */
 public class HttpClientFilter implements IoFilter {
 
-	private final ByteBuffer emptyByteBuffer = ByteBuffer.allocateDirect(0);
 	private HttpClient httpClient;
 
 	public HttpClientFilter(HttpClient httpClient){
@@ -43,7 +43,7 @@ public class HttpClientFilter implements IoFilter {
 			} catch (IOException e) {
 				Logger.error(e);
 			}
-			return emptyByteBuffer;
+			return TByteBuffer.EMPTY_BYTE_BUFFER;
 		}
 		return null;
 	}

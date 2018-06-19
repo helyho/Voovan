@@ -177,7 +177,7 @@ public class Response {
 		if (isCompress) {
 			return ByteBuffer.wrap("0\r\n\r\n".getBytes());
 		}else{
-			return ByteBuffer.allocate(0);
+			return TByteBuffer.EMPTY_BYTE_BUFFER;
 		}
 	}
 
