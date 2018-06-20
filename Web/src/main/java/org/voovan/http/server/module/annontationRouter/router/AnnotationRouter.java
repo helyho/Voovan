@@ -283,10 +283,12 @@ public class AnnotationRouter implements HttpRouter {
                 Object responseObj = invokeRouterMethod(request, response, clazz, method);
                 if (responseObj != null) {
                     if (responseObj instanceof String) {
+                        response.header().put("Content-Type", HttpContentType.getHttpContentType(HttpContentType.TEXT));
                         response.write((String) responseObj);
                     } else if (responseObj instanceof byte[]) {
                         response.write((byte[]) responseObj);
                     } else {
+                        response.header().put("Content-Type", HttpContentType.getHttpContentType(HttpContentType.JSON));
                         response.write(JSON.toJSON(responseObj));
                     }
                 }
