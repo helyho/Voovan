@@ -560,9 +560,17 @@ public class TString {
 			return (T) value;
 		}
 
+
+
 		if (value == null && !clazz.isPrimitive()) {
 			return null;
-		} else if (clazz == int.class || clazz == Integer.class) {
+		}
+
+		if(value.equals("null") && !clazz.isPrimitive()){
+			value = null;
+		}
+
+		if (clazz == int.class || clazz == Integer.class) {
 			value = value == null ? "0" : value;
 			return (T) Integer.valueOf(value);
 		} else if (clazz == float.class || clazz == Float.class) {
@@ -586,8 +594,8 @@ public class TString {
 		} else if (clazz == byte.class || TReflect.isExtendsByClass(clazz,  Date.class)) {
 			try {
 				SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
-				return (T) (value != null ? dateFormat.parse(value) : null);
-			} catch (java.text.ParseException e){
+				return (T) (value != null ? TReflect.newInstance(clazz, dateFormat.parse(value).getTime()): null);
+			} catch (Exception e){
 				Logger.error("TString.toObject error: ", e);
 				return null;
 			}
