@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeoutException;
 
 /**
  * HTTP 请求调用
@@ -551,8 +552,11 @@ public class HttpClient implements Closeable{
 		doWebSocketUpgrade(location);
 
 		//为异步调用进行阻赛,等待 socket 关闭
-		while (socket.isOpen()) {
-			TEnv.sleep(0);
+
+		try {
+			TEnv.wait(socket.getReadTimeout(), ()->socket.isOpen());
+		} catch (TimeoutException e) {
+			e.printStackTrace();
 		}
 	}
 
