@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
  * Licence: Apache v2 License
  */
 public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
-   public static final String LOCK_SUCCESS = "OK";
-   public static final Long   UNLOCK_SUCCESS = 1L;
-   public static final String SET_NOT_EXIST = "NX";
-   public static final String SET_EXPIRE_TIME = "PX";
+    public static final String LOCK_SUCCESS = "OK";
+    public static final Long   UNLOCK_SUCCESS = 1L;
+    public static final String SET_NOT_EXIST = "NX";
+    public static final String SET_EXPIRE_TIME = "PX";
 
 
     private JedisPool redisPool;
@@ -405,7 +405,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
             }else {
                 valueByteArray = jedis.hget(name.getBytes(), keyByteArray);
                 if(valueByteArray!=null) {
-                    jedis.hdel(keyByteArray);
+                    jedis.hdel(name.getBytes(), keyByteArray);
                 }
             }
 
@@ -417,7 +417,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public void putAll(Map<? extends K, ? extends V> map) {
         try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
-                Entry entry = (Entry) obj;
+                Map.Entry entry = (Map.Entry) obj;
 
                 byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
                 byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
@@ -434,7 +434,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public void putAll(Map<? extends K, ? extends V> map, int expire) {
         try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
-                Entry entry = (Entry) obj;
+                Map.Entry entry = (Map.Entry) obj;
 
                 byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
                 byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
@@ -512,7 +512,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     }
 
     @Override
-    public Set<Entry<K, V>> entrySet() {
+    public Set<Map.Entry<K, V>> entrySet() {
         throw new UnsupportedOperationException();
     }
 

@@ -177,7 +177,10 @@ public class CacheStatic {
             return null;
         }
 
-        if( obj instanceof Integer){
+        if( obj instanceof Boolean){
+            return ((Boolean) obj).toString().getBytes();
+        }
+        else if( obj instanceof Integer){
             return ((Integer) obj).toString().getBytes();
         }
         else if( obj instanceof Long){
