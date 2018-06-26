@@ -3,9 +3,11 @@ package org.voovan.tools.cache;
 import redis.clients.jedis.*;
 import redis.clients.jedis.params.sortedset.ZAddParams;
 
-import java.util.ArrayList;
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -16,7 +18,7 @@ import java.util.Set;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class RedisZSet<V>  {
+public class RedisSortedSet<V> implements Closeable {
     private JedisPool redisPool;
     private String name = null;
     private int dbIndex = 0;
@@ -30,7 +32,7 @@ public class RedisZSet<V>  {
      * @param name        在 redis 中的 HashMap的名称
      * @param password    redis 服务密码
      */
-    public RedisZSet(String host, int port, int timeout, int poolsize, String name, String password){
+    public RedisSortedSet(String host, int port, int timeout, int poolsize, String name, String password){
         super();
 
         //如果没有指定JedisPool的配置文件,则使用默认的
@@ -55,7 +57,7 @@ public class RedisZSet<V>  {
      * @param poolsize    redis 连接池的大小
      * @param name        在 redis 中的 HashMap的名称
      */
-    public RedisZSet(String host, int port, int timeout, int poolsize, String name){
+    public RedisSortedSet(String host, int port, int timeout, int poolsize, String name){
         super();
 
         //如果没有指定JedisPool的配置文件,则使用默认的
@@ -71,7 +73,7 @@ public class RedisZSet<V>  {
      * 构造函数
      * @param name 在 redis 中的 HashMap的名称
      */
-    public RedisZSet(String name){
+    public RedisSortedSet(String name){
         this.redisPool = CacheStatic.getRedisPool();
         this.name = name;
     }
@@ -98,51 +100,90 @@ public class RedisZSet<V>  {
         this.dbIndex = dbIndex;
     }
 
-    public long addIfAbsent(double score, V value){
+    /**
+     * 新增一个元素
+     * @param values 新的元素
+     * @return 新增元素的数量
+     */
+    public long addAll(Map<V, Double> values){
         try (Jedis jedis = getJedis()) {
-            byte[] valueByteArray = CacheStatic.serialize(value);
-            return jedis.zadd(name.getBytes(), score, valueByteArray, ZAddParams.zAddParams().nx());
+            HashMap<byte[], Double> byteMap = new HashMap<byte[], Double>();
+            for(Map.Entry<V, Double> value : values.entrySet()){
+                byteMap.put(CacheStatic.serialize(value.getKey()), value.getValue());
+            }
+
+            return jedis.zadd(name.getBytes(), byteMap);
         }
     }
 
-    public long update(double score, V value){
+    /**
+     * 新增一个元素
+     * @param score 元素的分
+     * @param value 新的元素
+     * @return 新增元素的数量
+     */
+    public long add(double score, V value){
         try (Jedis jedis = getJedis()) {
             byte[] valueByteArray = CacheStatic.serialize(value);
-            return jedis.zadd(name.getBytes(), score, valueByteArray, ZAddParams.zAddParams().xx().ch());
+            return jedis.zadd(name.getBytes(), score, valueByteArray);
         }
     }
 
-    public double increase(double score, V value){
+    /**
+     * 对 Score 进行自增
+     * @param value 进行自增操作的元素
+     * @param score 增加值
+     * @return 自增后的 score
+     */
+    public double increase(V value, double score){
         try (Jedis jedis = getJedis()) {
             byte[] valueByteArray = CacheStatic.serialize(value);
             return jedis.zincrby(name.getBytes(), score, valueByteArray);
         }
     }
 
-    public long size(double score, V value){
+    /**
+     * 获取前集合的大小
+     * @return 集合的大小
+     */
+    public long size(){
         try (Jedis jedis = getJedis()) {
             return jedis.zcard(name.getBytes());
         }
     }
 
-    public long rangeCount(double score, double min, double max){
+    /**
+     * 某一个特定的 score 范围内的成员数量, 包含 min 和 max 的数据
+     * @param min score 的最小值
+     * @param max score 的最大值
+     * @return 成员的数量
+     */
+    public long scoreRangeCount(double min, double max){
         try (Jedis jedis = getJedis()) {
             return jedis.zcount(name.getBytes(), min, max);
         }
     }
 
-    public long scoreRangeCount(double score, double min, double max){
+    /**
+     * 某一个成员区间内的成员数量, 包含 min 和 max 的数据
+     * @param min value 的最小值
+     * @param max value 的最大值
+     * @return 成员的数量
+     */
+    public long valueRangeCount(V min, V max){
         try (Jedis jedis = getJedis()) {
-            return jedis.zcount(name.getBytes(), min, max);
+            byte[] minByteValue = CacheStatic.serialize(min);
+            byte[] maxByteValue = CacheStatic.serialize(max);
+            return jedis.zlexcount(name.getBytes(), minByteValue, maxByteValue);
         }
     }
 
-    public long valueRangeCount(byte[] min, byte[] max){
-        try (Jedis jedis = getJedis()) {
-            return jedis.zlexcount(name.getBytes(), min, max);
-        }
-    }
-
+    /**
+     * 某一个特定倒序索引区间内的所有成员, 包含 start 和 end 的数据
+     * @param start 索引起始位置
+     * @param end value 索引结束位置
+     * @return 成员对象的集合
+     */
     public Set<V> rangeByIndex(long start, long end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -154,6 +195,13 @@ public class RedisZSet<V>  {
         }
     }
 
+
+    /**
+     * 某一个特定倒序索引区间内的所有成员, 包含 start 和 end 的数据
+     * @param start 索引起始位置
+     * @param end value 索引结束位置
+     * @return 成员对象的集合
+     */
     public Set<V> revRangeByIndex(long start, long end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -165,6 +213,12 @@ public class RedisZSet<V>  {
         }
     }
 
+    /**
+     * 某一个特定值区间内的所有成员, 包含 start 和 end 的数据
+     * @param start value 的最小值
+     * @param end value 的最大值
+     * @return 成员对象的集合
+     */
     public Set<V> rangeByValue(V start, V end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -179,6 +233,15 @@ public class RedisZSet<V>  {
         }
     }
 
+
+    /**
+     * 某一个特定值区间内的所有成员, 包含 start 和 end 的数据
+     * @param start value 的最小值
+     * @param end value 的最大值
+     * @param offset 偏移量
+     * @param size 数量
+     * @return 成员对象的集合
+     */
     public Set<V> rangeByValue(V start, V end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -193,6 +256,12 @@ public class RedisZSet<V>  {
         }
     }
 
+    /**
+     * 某一个特定值倒序区间内的所有成员, 包含 start 和 end 的数据
+     * @param start value 的最大值
+     * @param end value 的最小值
+     * @return 成员对象的集合
+     */
     public Set<V> revRangeByValue(V start, V end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -207,6 +276,14 @@ public class RedisZSet<V>  {
         }
     }
 
+    /**
+     * 某一个特定值倒序区间内的所有成员, 包含 start 和 end 的数据
+     * @param start value 的最大值
+     * @param end value 的最小值
+     * @param offset 偏移量
+     * @param size 数量
+     * @return 成员对象的集合
+     */
     public Set<V> revRangeByValue(V start, V end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -221,6 +298,12 @@ public class RedisZSet<V>  {
         }
     }
 
+    /**
+     * 某一个Score区间内的所有成员, 包含 start 和 end 的数据
+     * @param start value 的最小值
+     * @param end value 的最大值
+     * @return 成员对象的集合
+     */
     public Set<V> rangeByScore(double start, double end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -235,6 +318,14 @@ public class RedisZSet<V>  {
         }
     }
 
+    /**
+     * 某一个Score区间内的所有成员, 包含 start 和 end 的数据
+     * @param start value 的最小值
+     * @param end value 的最大值
+     * @param offset 偏移量
+     * @param size 数量
+     * @return 成员对象的集合
+     */
     public Set<V> rangeByScore(double start, double end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -249,6 +340,12 @@ public class RedisZSet<V>  {
         }
     }
 
+    /**
+     * 某一个Score倒序区间内的所有成员, 包含 start 和 end 的数据
+     * @param start value 的最大值
+     * @param end value 的最小值
+     * @return 成员对象的集合
+     */
     public Set<V> revRangeByScore(double start, double end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -263,6 +360,14 @@ public class RedisZSet<V>  {
         }
     }
 
+    /**
+     * 某一个Score倒序区间内的所有成员, 包含 start 和 end 的数据
+     * @param start value 的最大值
+     * @param end value 的最小值
+     * @param offset 偏移量
+     * @param size 数量
+     * @return 成员对象的集合
+     */
     public Set<V> revRangeByScore(double start, double end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -277,6 +382,11 @@ public class RedisZSet<V>  {
         }
     }
 
+    /**
+     * 获得当前值的索引位置
+     * @param value 值
+     * @return 索引诶只
+     */
     public long indexOf(V value){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -286,6 +396,11 @@ public class RedisZSet<V>  {
         }
     }
 
+    /**
+     * 获得当前值的倒序索引位置
+     * @param value 值
+     * @return 索引诶只
+     */
     public long revIndexOf(V value){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -295,6 +410,10 @@ public class RedisZSet<V>  {
         }
     }
 
+    /**
+     * 移除某个特定 value
+     * @return 移除元素的索引
+     */
     public long remove(V value){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
@@ -304,6 +423,12 @@ public class RedisZSet<V>  {
         }
     }
 
+    /**
+     * 移除某个特定 value 区间的数据
+     * @param start value 的最大值
+     * @param end value 的最小值
+     * @return 移除元素的数量
+     */
     public long removeRangeByValue(V start, V end){
         try (Jedis jedis = getJedis()) {
             byte[] startByteArray = CacheStatic.serialize(start);
@@ -313,18 +438,35 @@ public class RedisZSet<V>  {
         }
     }
 
+    /**
+     * 移除某个特定索引区间的数据
+     * @param start 索引起始位置
+     * @param end value 索引结束位置
+     * @return 移除元素的数量
+     */
     public long removeRangeByIndex(int start, int end){
         try (Jedis jedis = getJedis()) {
             return jedis.zremrangeByRank(name.getBytes(), start, end);
         }
     }
 
-    public long removeRangeByIndex(double start, double end){
+    /**
+     * 移除某个特定Score区间的数据
+     * @param min score 的最小值
+     * @param max score 的最大值
+     * @return 移除元素的数量
+     */
+    public long removeRangeByScore(double min, double max){
         try (Jedis jedis = getJedis()) {
-            return jedis.zremrangeByScore(name.getBytes(), start, end);
+            return jedis.zremrangeByScore(name.getBytes(), min, max);
         }
     }
 
+    /**
+     * 获取某个特定值的 Score
+     * @param value 值
+     * @return 对应的 Score
+     */
     public double getScore(V value){
         try (Jedis jedis = getJedis()) {
             byte[] valueByteArray = CacheStatic.serialize(value);
@@ -332,12 +474,17 @@ public class RedisZSet<V>  {
         }
     }
 
-    public ScanedObject newScan(String cursor, V matchValue, int count){
+    public ScanedObject scan(String cursor, V matchValue, Integer count){
         try (Jedis jedis = getJedis()) {
             byte[] matchValueByteArray = CacheStatic.serialize(matchValue);
             ScanParams scanParams = new ScanParams();
-            scanParams.match(matchValueByteArray);
-            scanParams.count(count);
+            if(matchValue!=null) {
+                scanParams.match(matchValueByteArray);
+            }
+
+            if(count!=null) {
+                scanParams.count(count);
+            }
             ScanResult<Tuple> scanResult = jedis.zscan(name.getBytes(), cursor.getBytes(), scanParams);
 
             ScanedObject scanedObject = new ScanedObject(scanResult.getStringCursor());
@@ -348,30 +495,8 @@ public class RedisZSet<V>  {
         }
     }
 
-
-    public class  ScanedObject<V>{
-        private String cursor;
-        private List<V> resultList;
-
-        public ScanedObject(String cursor) {
-            this.cursor = cursor;
-            this.resultList = new ArrayList<V>();
-        }
-
-        public String getCursor() {
-            return cursor;
-        }
-
-        public void setCursor(String cursor) {
-            this.cursor = cursor;
-        }
-
-        public List<V> getResultList() {
-            return resultList;
-        }
-
-        public void setResultList(List<V> resultList) {
-            this.resultList = resultList;
-        }
+    @Override
+    public void close() throws IOException {
+        redisPool.close();
     }
 }
