@@ -1,6 +1,7 @@
 package org.voovan.tools.cache;
 
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TString;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -19,7 +20,7 @@ public class RedisLock {
     private JedisPool redisPool;
     private String lockName = null;
     private int dbIndex = 0;
-    private String lockValue = null;
+    private String lockValue = TString.generateShortUUID();;
 
     /**
      * 构造函数
@@ -135,7 +136,6 @@ public class RedisLock {
     /**
      * 尝试加锁
      *      超时时间 timewait 是尝试加锁的最长时间
-     * @param lockValue 锁的值
      * @param lockExpireTime 锁的键值对的超时时间
      * @param timewait 获取锁的等待时间, 单位: 毫秒
      * @return true: 成功, false: 失败
@@ -143,8 +143,7 @@ public class RedisLock {
     public boolean lock(String lockValue, int lockExpireTime, int timewait){
 
         if(lockValue==null){
-            lockValue = String.valueOf(System.currentTimeMillis());
-            this.lockValue = lockValue;
+            lockValue = this.lockValue;
         }
 
         long start = System.currentTimeMillis();
@@ -181,10 +180,9 @@ public class RedisLock {
 
     /**
      * 释放锁
-     * @param lockValue 锁
      * @return true: 成功, false: 失败
      */
-    public boolean unLock(String lockValue) {
+    public boolean unLock() {
 
         try (Jedis jedis = getJedis()) {
             String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
@@ -202,10 +200,14 @@ public class RedisLock {
      * 释放锁
      * @return true: 成功, false: 失败
      */
-    public boolean unLock() {
+    public boolean unLock(String lockValue) {
 
         try (Jedis jedis = getJedis()) {
-            String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+            String script = "if redis.call('get', KEYS[1]) == ARGV[1] then " +
+                    "return redis.call('del', KEYS[1]) " +
+                    "else " +
+                    "return 0 " +
+                    "end";
             Object result = jedis.eval(script, Collections.singletonList(this.lockName), Collections.singletonList(this.lockValue));
 
             if ( RedisMap.UNLOCK_SUCCESS.equals(result)) {
