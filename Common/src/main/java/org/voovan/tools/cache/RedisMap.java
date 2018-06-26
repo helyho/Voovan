@@ -1,14 +1,10 @@
 package org.voovan.tools.cache;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.*;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -561,5 +557,41 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     @Override
     public void close() throws IOException {
         redisPool.close();
+    }
+
+    public ScanedObject scan(String cursor, V matchValue, Integer count){
+        try (Jedis jedis = getJedis()) {
+            byte[] matchValueByteArray = CacheStatic.serialize(matchValue);
+            ScanParams scanParams = new ScanParams();
+            if(matchValue!=null) {
+                scanParams.match(matchValueByteArray);
+            }
+
+            if(count!=null) {
+                scanParams.count(count);
+            }
+
+            if(name==null){
+                ScanResult<byte[]> scanResult = jedis.scan(cursor.getBytes(), scanParams);
+                ScanedObject scanedObject = new ScanedObject(scanResult.getStringCursor());
+                for(byte[] keyBytes : scanResult.getResult()){
+                    scanedObject.getResultList().add((V)CacheStatic.unserialize(keyBytes));
+                }
+                return scanedObject;
+            }else {
+                ScanResult<Map.Entry<byte[], byte[]>> scanResult = jedis.hscan(name.getBytes(), cursor.getBytes(), scanParams);
+                ScanedObject scanedObject = new ScanedObject(scanResult.getStringCursor());
+
+                for(Map.Entry<byte[], byte[]> entryItem : scanResult.getResult()){
+
+                    Map.Entry<K, V> entry = new AbstractMap.SimpleEntry<K, V>((K)CacheStatic.unserialize(entryItem.getKey()), (V)CacheStatic.unserialize(entryItem.getValue()));
+                    scanedObject.getResultList().add(entry);
+                }
+                return scanedObject;
+            }
+
+
+
+        }
     }
 }
