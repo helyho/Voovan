@@ -181,6 +181,18 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
         }
     }
 
+    public List<String> removeFirst(int timeout) {
+        try (Jedis jedis = getJedis()) {
+            return jedis.blpop(timeout, name);
+        }
+    }
+
+    public List<String> removeLast(int timeout) {
+        try (Jedis jedis = getJedis()) {
+            return jedis.brpop(timeout, name);
+        }
+    }
+
     @Override
     public String pollFirst() {
         return removeFirst();
