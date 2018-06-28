@@ -107,11 +107,11 @@ public class RedisHashsWithSortedSet implements Closeable {
      * 执行 jedis 的脚本
      * @param jedis
      * @param command
-     * @param zsetName
+     * @param itemName
      * @param values
      * @return
      */
-    public Object eval(Jedis jedis, String command, String zsetName,Object ... values){
+    public Object eval(Jedis jedis, String command, String itemName,Object ... values){
         String params = ", ";
 
         String cachedKey = command+values.length;
@@ -124,7 +124,7 @@ public class RedisHashsWithSortedSet implements Closeable {
             values[i] = values[i].toString();
         }
 
-        List valueList = TObject.asList(this.name, zsetName);
+        List valueList = TObject.asList(this.name, itemName);
         valueList.addAll(TObject.asList(values));
 
         if(scriptHash==null){
@@ -132,14 +132,14 @@ public class RedisHashsWithSortedSet implements Closeable {
 
             params = TString.removeSuffix(params.trim());
 
-            String script = "local zsetKey = redis.call('HEXISTS', ARGV[1], ARGV[2]);\n" +
-                    "if (zsetKey == 0) then\n" +
-                    "    zsetKey = tostring(ARGV[1])..'-'..tostring(ARGV[2]);\n" +
-                    "    redis.call('hset', ARGV[1], zsetKey, zsetKey);\n" +
+            String script = "local innerKey = redis.call('HEXISTS', ARGV[1], ARGV[2]);\n" +
+                    "if (innerKey == 0) then\n" +
+                    "    innerKey = tostring(ARGV[1])..'-'..tostring(ARGV[2]);\n" +
+                    "    redis.call('hset', ARGV[1], innerKey, innerKey);\n" +
                     "else \n" +
-                    "    zsetKey = tostring(ARGV[1])..'-'..tostring(ARGV[2]);\n" +
+                    "    innerKey = tostring(ARGV[1])..'-'..tostring(ARGV[2]);\n" +
                     "end\n" +
-                    "return redis.call('" + command + "', zsetKey" + params + ");";
+                    "return redis.call('" + command + "', innerKey" + params + ");";
             scriptHash =jedis.scriptLoad(script);
             scriptHashMap.put(cachedKey, scriptHash);
 
@@ -168,9 +168,9 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param values 新的元素
      * @return 新增元素的数量
      */
-    public long addAll(String zsetName, Map<String, Double> values){
+    public long addAll(String itemName, Map<String, Double> values){
         try (Jedis jedis = getJedis()) {
-            return (Long)eval(jedis, "zadd", zsetName, convertScoreMembersToArrays(values).toArray());
+            return (Long)eval(jedis, "zadd", itemName, convertScoreMembersToArrays(values).toArray());
         }
     }
 
@@ -180,9 +180,9 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param value 新的元素
      * @return 新增元素的数量
      */
-    public long add(String zsetName, double score, String value){
+    public long add(String itemName, double score, String value){
         try (Jedis jedis = getJedis()) {
-            return (Long)eval(jedis, "zadd", zsetName, score, value);
+            return (Long)eval(jedis, "zadd", itemName, score, value);
         }
     }
 
@@ -192,9 +192,9 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param score 增加值
      * @return 自增后的 score
      */
-    public double increase(String zsetName, String value, double score){
+    public double increase(String itemName, String value, double score){
         try (Jedis jedis = getJedis()) {
-            return Double.valueOf((String)eval(jedis, "zincrby", zsetName, score, value));
+            return Double.valueOf((String)eval(jedis, "zincrby", itemName, score, value));
         }
     }
 
@@ -212,9 +212,9 @@ public class RedisHashsWithSortedSet implements Closeable {
      * 获取前集合的大小
      * @return 集合的大小
      */
-    public long size(String zsetName){
+    public long size(String itemName){
         try (Jedis jedis = getJedis()) {
-            return (Long)eval(jedis, "zcard", zsetName);
+            return (Long)eval(jedis, "zcard", itemName);
         }
     }
 
@@ -224,9 +224,9 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param max score 的最大值
      * @return 成员的数量
      */
-    public long scoreRangeCount(String zsetName, double min, double max){
+    public long scoreRangeCount(String itemName, double min, double max){
         try (Jedis jedis = getJedis()) {
-            return (Long)eval(jedis, "zcount", zsetName, min, max);
+            return (Long)eval(jedis, "zcount", itemName, min, max);
         }
     }
 
@@ -236,9 +236,9 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param max value 的最大值
      * @return 成员的数量
      */
-    public long valueRangeCount(String zsetName, String min, String max){
+    public long valueRangeCount(String itemName, String min, String max){
         try (Jedis jedis = getJedis()) {
-            return (Long)eval(jedis, "zlexcount", zsetName, min, max);
+            return (Long)eval(jedis, "zlexcount", itemName, min, max);
         }
     }
 
@@ -248,10 +248,10 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param end value 索引结束位置
      * @return 成员对象的集合
      */
-    public Set<String> getRangeByIndex(String zsetName, long start, long end){
+    public Set<String> getRangeByIndex(String itemName, long start, long end){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
-            result.addAll((Collection<String>)eval(jedis, "zrange", zsetName, start, end));
+            result.addAll((Collection<String>)eval(jedis, "zrange", itemName, start, end));
             return result;
         }
     }
@@ -263,10 +263,10 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param end value 索引结束位置
      * @return 成员对象的集合
      */
-    public Set<String> getRevRangeByIndex(String zsetName, long start, long end){
+    public Set<String> getRevRangeByIndex(String itemName, long start, long end){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
-            result.addAll((Collection<String>)eval(jedis, "zrevrange", zsetName, start, end));
+            result.addAll((Collection<String>)eval(jedis, "zrevrange", itemName, start, end));
             return result;
         }
     }
@@ -277,10 +277,10 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param end value 的最大值
      * @return 成员对象的集合
      */
-    public Set<String> getRangeByValue(String zsetName, String start, String end){
+    public Set<String> getRangeByValue(String itemName, String start, String end){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
-            result.addAll((Collection<String>)eval(jedis, "zrangeByLex", zsetName, start, end));
+            result.addAll((Collection<String>)eval(jedis, "zrangeByLex", itemName, start, end));
             return result;
         }
     }
@@ -294,10 +294,10 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param size 数量
      * @return 成员对象的集合
      */
-    public Set<String> getRangeByValue(String zsetName, String start, String end, int offset, int size){
+    public Set<String> getRangeByValue(String itemName, String start, String end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
-            result.addAll((Collection<String>)eval(jedis, "zrangeByLex", zsetName, start, end, "LIMIT", offset, size));
+            result.addAll((Collection<String>)eval(jedis, "zrangeByLex", itemName, start, end, "LIMIT", offset, size));
             return result;
         }
     }
@@ -308,10 +308,10 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param end value 的最小值
      * @return 成员对象的集合
      */
-    public Set<String> getRevRangeByValue(String zsetName, String start, String end){
+    public Set<String> getRevRangeByValue(String itemName, String start, String end){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
-            result.addAll((Collection<String>)eval(jedis, "zrevrangeByLex", zsetName, start, end));
+            result.addAll((Collection<String>)eval(jedis, "zrevrangeByLex", itemName, start, end));
             return result;
         }
     }
@@ -324,10 +324,10 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param size 数量
      * @return 成员对象的集合
      */
-    public Set<String> getRevRangeByValue(String zsetName, String start, String end, int offset, int size){
+    public Set<String> getRevRangeByValue(String itemName, String start, String end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
-            result.addAll((Collection<String>)eval(jedis, "zrevrangeByLex", zsetName, start, end, "LIMIT", offset, size));
+            result.addAll((Collection<String>)eval(jedis, "zrevrangeByLex", itemName, start, end, "LIMIT", offset, size));
             return result;
         }
     }
@@ -338,10 +338,10 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param end value 的最大值
      * @return 成员对象的集合
      */
-    public Set<String> getRangeByScore(String zsetName, double start, double end){
+    public Set<String> getRangeByScore(String itemName, double start, double end){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
-            result.addAll((Collection<String>)eval(jedis, "zrangeByScore", zsetName, start, end));
+            result.addAll((Collection<String>)eval(jedis, "zrangeByScore", itemName, start, end));
             return result;
         }
     }
@@ -354,10 +354,10 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param size 数量
      * @return 成员对象的集合
      */
-    public Set<String> getRangeByScore(String zsetName, double start, double end, int offset, int size){
+    public Set<String> getRangeByScore(String itemName, double start, double end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
-            result.addAll((Collection<String>)eval(jedis, "zrangeByScore", zsetName, start, end, "LIMIT", offset, size));
+            result.addAll((Collection<String>)eval(jedis, "zrangeByScore", itemName, start, end, "LIMIT", offset, size));
             return result;
         }
     }
@@ -368,10 +368,10 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param end value 的最小值
      * @return 成员对象的集合
      */
-    public Set<String> getRevRangeByScore(String zsetName, double start, double end){
+    public Set<String> getRevRangeByScore(String itemName, double start, double end){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
-            result.addAll((Collection<String>)eval(jedis, "zrevrangeByScore", zsetName, start, end));
+            result.addAll((Collection<String>)eval(jedis, "zrevrangeByScore", itemName, start, end));
             return result;
         }
     }
@@ -384,10 +384,10 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param size 数量
      * @return 成员对象的集合
      */
-    public Set<String> getRevRangeByScore(String zsetName, double start, double end, int offset, int size){
+    public Set<String> getRevRangeByScore(String itemName, double start, double end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
-            result.addAll((Collection<String>)eval(jedis, "zrevrangeByScore", zsetName, start, end, "LIMIT", offset, size));
+            result.addAll((Collection<String>)eval(jedis, "zrevrangeByScore", itemName, start, end, "LIMIT", offset, size));
             return result;
         }
     }
@@ -397,9 +397,9 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param value 值
      * @return 索引诶只
      */
-    public long indexOf(String zsetName, String value){
+    public long indexOf(String itemName, String value){
         try (Jedis jedis = getJedis()) {
-            return (long)eval(jedis, "zrank", zsetName, value);
+            return (long)eval(jedis, "zrank", itemName, value);
         }
     }
 
@@ -408,9 +408,9 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param value 值
      * @return 索引诶只
      */
-    public long revIndexOf(String zsetName, String value){
+    public long revIndexOf(String itemName, String value){
         try (Jedis jedis = getJedis()) {
-            return (long)eval(jedis, "zrevrank", zsetName, value);
+            return (long)eval(jedis, "zrevrank", itemName, value);
         }
     }
 
@@ -418,9 +418,9 @@ public class RedisHashsWithSortedSet implements Closeable {
      * 移除某个特定 value
      * @return 移除元素的索引
      */
-    public long remove(String zsetName, String value){
+    public long remove(String itemName, String value){
         try (Jedis jedis = getJedis()) {
-            return (long)eval(jedis, "zrem", zsetName, value);
+            return (long)eval(jedis, "zrem", itemName, value);
         }
     }
 
@@ -430,9 +430,9 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param end value 的最小值
      * @return 移除元素的数量
      */
-    public long removeRangeByValue(String zsetName,String start, String end){
+    public long removeRangeByValue(String itemName,String start, String end){
         try (Jedis jedis = getJedis()) {
-            return (long)eval(jedis, "zremrangeByLex", zsetName, start, end);
+            return (long)eval(jedis, "zremrangeByLex", itemName, start, end);
         }
     }
 
@@ -442,9 +442,9 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param end value 索引结束位置
      * @return 移除元素的数量
      */
-    public long removeRangeByIndex(String zsetName,int start, int end){
+    public long removeRangeByIndex(String itemName,int start, int end){
         try (Jedis jedis = getJedis()) {
-            return (long)eval(jedis, "zremrangeByRank", zsetName, start, end);
+            return (long)eval(jedis, "zremrangeByRank", itemName, start, end);
         }
     }
 
@@ -454,9 +454,9 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param max score 的最大值
      * @return 移除元素的数量
      */
-    public long removeRangeByScore(String zsetName,double min, double max){
+    public long removeRangeByScore(String itemName,double min, double max){
         try (Jedis jedis = getJedis()) {
-            return (long)eval(jedis, "zremrangeByScore", zsetName, min, max);
+            return (long)eval(jedis, "zremrangeByScore", itemName, min, max);
         }
     }
 
@@ -465,13 +465,13 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param value 值
      * @return 对应的 Score
      */
-    public double getScore(String zsetName,String value){
+    public double getScore(String itemName,String value){
         try (Jedis jedis = getJedis()) {
-            return Double.valueOf((String)eval(jedis, "zscore", zsetName, value));
+            return Double.valueOf((String)eval(jedis, "zscore", itemName, value));
         }
     }
 
-    public ScanedObject scan(String zsetName, String cursor, String matchValue, Integer count){
+    public ScanedObject scan(String itemName, String cursor, String matchValue, Integer count){
         try (Jedis jedis = getJedis()) {
 
             ArrayList paramList = new ArrayList();
@@ -485,7 +485,7 @@ public class RedisHashsWithSortedSet implements Closeable {
                 paramList.add(count);
             }
 
-            ArrayList<ArrayList> resultList = (ArrayList<ArrayList> )eval(jedis, "zscan", zsetName, paramList.toArray());
+            ArrayList<ArrayList> resultList = (ArrayList<ArrayList> )eval(jedis, "zscan", itemName, paramList.toArray());
 
             Object cursorValue = resultList.get(0);
             ScanedObject scanedObject = new ScanedObject((String)cursorValue);
