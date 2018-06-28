@@ -59,38 +59,38 @@ public class RedisHashsWithSortedSetUnit extends TestCase {
     }
 
     public void testRangeByIndex(){
-        Object value = redisHashsWithSortedSet.rangeByIndex("sn", 0,9);
+        Object value = redisHashsWithSortedSet.getRangeByIndex("sn", 0,9);
         System.out.println(value);
 
-        value = redisHashsWithSortedSet.revRangeByIndex("sn", 0,1);
+        value = redisHashsWithSortedSet.getRevRangeByIndex("sn", 0,1);
         System.out.println(value);
     }
 
     public void testRangeByValue(){
-        Object value = redisHashsWithSortedSet.rangeByValue("sn","[a", "+");
+        Object value = redisHashsWithSortedSet.getRangeByValue("sn","[a", "+");
         System.out.println(value);
 
-        value = redisHashsWithSortedSet.revRangeByValue("sn","+", "[a");
+        value = redisHashsWithSortedSet.getRevRangeByValue("sn","+", "[a");
         System.out.println(value);
 
-        value = redisHashsWithSortedSet.rangeByValue("sn","[a", "+", 2, 1);
+        value = redisHashsWithSortedSet.getRangeByValue("sn","[a", "+", 2, 1);
         System.out.println(value);
 
-        value = redisHashsWithSortedSet.revRangeByValue("sn","+", "[a", 2, 1);
+        value = redisHashsWithSortedSet.getRevRangeByValue("sn","+", "[a", 2, 1);
         System.out.println(value);
     }
 
     public void testRangeByScore(){
-        Object value = redisHashsWithSortedSet.rangeByScore("sn",12, 14);
+        Object value = redisHashsWithSortedSet.getRangeByScore("sn",12, 14);
         System.out.println(value);
 
-        value = redisHashsWithSortedSet.revRangeByScore("sn",14, 12);
+        value = redisHashsWithSortedSet.getRevRangeByScore("sn",14, 12);
         System.out.println(value);
 
-        value = redisHashsWithSortedSet.rangeByScore("sn",12, 14, 1, 1);
+        value = redisHashsWithSortedSet.getRangeByScore("sn",12, 14, 1, 1);
         System.out.println(value);
 
-        value = redisHashsWithSortedSet.revRangeByScore("sn",14, 12, 1, 1);
+        value = redisHashsWithSortedSet.getRevRangeByScore("sn",14, 12, 1, 1);
         System.out.println(value);
     }
 
