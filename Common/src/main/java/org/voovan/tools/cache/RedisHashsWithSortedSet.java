@@ -2,11 +2,10 @@ package org.voovan.tools.cache;
 
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.ScanParams;
+import javassist.compiler.ast.ASTList;
+import redis.clients.jedis.*;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -112,7 +111,7 @@ public class RedisHashsWithSortedSet implements Closeable {
      * @param values
      * @return
      */
-    public Object eval(Jedis jedis, String command, String zsetName, Object ... values){
+    public Object eval(Jedis jedis, String command, String zsetName,Object ... values){
         String params = ", ";
 
         String cachedKey = command+values.length;
@@ -145,7 +144,6 @@ public class RedisHashsWithSortedSet implements Closeable {
             scriptHashMap.put(cachedKey, scriptHash);
 
             Logger.fremawork("Create " + cachedKey + ": " + scriptHash);
-            Logger.simple(script);
         }
 
 
