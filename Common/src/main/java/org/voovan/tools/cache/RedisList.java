@@ -17,7 +17,7 @@ import java.util.*;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class RedisList implements List<String>, Deque<String>, Closeable {
+public class RedisList<V> implements List<V>, Deque<V>, Closeable {
     private JedisPool redisPool;
     private String name = null;
     private int dbIndex = 0;
@@ -122,13 +122,13 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
     }
 
     @Override
-    public Iterator<String> iterator() {
-        return (Iterator<String>)new RedisListIterator(this, false);
+    public Iterator<V> iterator() {
+        return (Iterator<V>)new RedisListIterator(this, false);
     }
 
     @Override
-    public Iterator<String> descendingIterator() {
-        return (Iterator<String>)new RedisListIterator(this, true);
+    public Iterator<V> descendingIterator() {
+        return (Iterator<V>)new RedisListIterator(this, true);
     }
 
     @Override
@@ -142,88 +142,98 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
     }
 
     @Override
-    public boolean offerFirst(String s) {
+    public boolean offerFirst(V s) {
         try (Jedis jedis = getJedis()) {
-            jedis.lpush(name, s);
+            jedis.lpush(name.getBytes(), CacheStatic.serialize(s));
             return true;
         }
     }
 
     @Override
-    public boolean offerLast(String s) {
+    public boolean offerLast(V s) {
         try (Jedis jedis = getJedis()) {
-            jedis.rpush(name, s);
+            jedis.rpush(name.getBytes(), CacheStatic.serialize(s));
             return true;
         }
     }
 
     @Override
-    public void addFirst(String s) {
+    public void addFirst(V s) {
         offerFirst(s);
     }
 
     @Override
-    public void addLast(String s) {
+    public void addLast(V s) {
         offerLast(s);
     }
 
     @Override
-    public String removeFirst() {
+    public V removeFirst() {
         try (Jedis jedis = getJedis()) {
-            return jedis.lpop(name);
+            return (V)CacheStatic.unserialize(jedis.lpop(name.getBytes()));
         }
     }
 
     @Override
-    public String removeLast() {
+    public V removeLast() {
         try (Jedis jedis = getJedis()) {
-            return jedis.rpop(name);
+            return (V)CacheStatic.unserialize(jedis.rpop(name.getBytes()));
         }
     }
 
-    public List<String> removeFirst(int timeout) {
+    public List<V> removeFirst(int timeout) {
         try (Jedis jedis = getJedis()) {
-            return jedis.blpop(timeout, name);
+            ArrayList<V> result = new ArrayList<V>();
+            List<byte[]> queryResult = jedis.blpop(timeout, name.getBytes());
+            for(byte[] bytes : queryResult){
+                result.add((V)CacheStatic.unserialize(bytes));
+            }
+            return result;
         }
     }
 
-    public List<String> removeLast(int timeout) {
+    public List<V> removeLast(int timeout) {
         try (Jedis jedis = getJedis()) {
-            return jedis.brpop(timeout, name);
+            ArrayList<V> result = new ArrayList<V>();
+            List<byte[]> queryResult = jedis.blpop(timeout, name.getBytes());
+            for(byte[] bytes : queryResult){
+                result.add((V)CacheStatic.unserialize(bytes));
+            }
+            return result;
         }
     }
 
     @Override
-    public String pollFirst() {
+    public V pollFirst() {
         return removeFirst();
     }
 
     @Override
-    public String pollLast() {
+    public V pollLast() {
         return removeLast();
     }
 
     @Override
-    public String getFirst() {
+    public V getFirst() {
         try (Jedis jedis = getJedis()) {
-            return jedis.lindex(name, 0);
+            return (V)CacheStatic.unserialize(jedis.lindex(name.getBytes(), 0));
         }
     }
 
     @Override
-    public String getLast() {
+    public V getLast() {
         try (Jedis jedis = getJedis()) {
-            return jedis.lindex(name, -1);
+            return (V)CacheStatic.unserialize(jedis.lindex(name.getBytes(), -1));
         }
     }
 
     @Override
-    public String peekFirst() {
+    public V peekFirst() {
         return getFirst();
     }
 
     @Override
-    public String peekLast() {
+    public V peekLast() {
         return getLast();
     }
 
@@ -244,42 +254,42 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
     }
 
     @Override
-    public boolean add(String s) {
+    public boolean add(V s) {
         return offerLast(s);
     }
 
     @Override
-    public boolean offer(String s) {
+    public boolean offer(V s) {
         return offerLast(s);
     }
 
     @Override
-    public String remove() {
+    public V remove() {
         return removeFirst();
     }
 
     @Override
-    public String poll() {
+    public V poll() {
         return pollFirst();
     }
 
     @Override
-    public String element() {
+    public V element() {
         return getFirst();
     }
 
     @Override
-    public String peek() {
+    public V peek() {
         return peekFirst();
     }
 
     @Override
-    public void push(String s) {
+    public void push(V s) {
         addFirst(s);
     }
 
     @Override
-    public String pop() {
+    public V pop() {
         return removeFirst();
     }
 
@@ -297,19 +307,19 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
     }
 
     @Override
-    public boolean addAll(Collection<? extends String> c) {
-        for(String item : c){
+    public boolean addAll(Collection<? extends V> c) {
+        for(V item : c){
             add(item);
         }
         return true;
     }
 
     @Override
-    public boolean addAll(int index, Collection<? extends String> c) {
+    public boolean addAll(int index, Collection<? extends V> c) {
         try (Jedis jedis = getJedis()) {
-            String pivot = get(index);
-            for(String item : c){
-                jedis.linsert(name, BinaryClient.LIST_POSITION.AFTER, pivot, item);
+            byte[] pivot = jedis.lindex(name.getBytes(), index);
+            for(V item : c){
+                jedis.linsert(name.getBytes(), BinaryClient.LIST_POSITION.AFTER, pivot, CacheStatic.serialize(item));
             }
         }
 
@@ -338,32 +348,33 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
     }
 
     @Override
-    public String get(int index) {
+    public V get(int index) {
         try (Jedis jedis = getJedis()) {
-            return jedis.lindex(name, index);
+            return (V)CacheStatic.unserialize(jedis.lindex(name.getBytes(), index));
         }
     }
 
     @Override
-    public String set(int index, String element) {
+    public V set(int index, V element) {
         try (Jedis jedis = getJedis()) {
-            return jedis.lset(name, index, element);
+            jedis.lset(name.getBytes(), index, CacheStatic.serialize(element));
+            return element;
         }
     }
 
     @Override
-    public void add(int index, String element) {
+    public void add(int index, V element) {
         try (Jedis jedis = getJedis()) {
-            String pivot = get(index);
-            jedis.linsert(name, BinaryClient.LIST_POSITION.AFTER, pivot, element);
+            byte[] pivot = jedis.lindex(name.getBytes(), index);
+            jedis.linsert(name.getBytes(), BinaryClient.LIST_POSITION.AFTER, pivot, CacheStatic.serialize(element));
         }
     }
 
     @Override
-    public String remove(int index) {
+    public V remove(int index) {
         try (Jedis jedis = getJedis()) {
-            String value = get(index);
-            jedis.lrem(name, 1, value);
+            V value = get(index);
+            jedis.lrem(name.getBytes(), 1, CacheStatic.serialize(value));
             return value;
         }
     }
@@ -379,17 +390,17 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
     }
 
     @Override
-    public ListIterator<String> listIterator() {
+    public ListIterator<V> listIterator() {
         return new RedisListIterator(this, false);
     }
 
     @Override
-    public ListIterator<String> listIterator(int index) {
+    public ListIterator<V> listIterator(int index) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<String> subList(int fromIndex, int toIndex) {
+    public List<V> subList(int fromIndex, int toIndex) {
         throw new UnsupportedOperationException();
     }
 
@@ -411,16 +422,22 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
      * @param end  结束偏移量, 0 是列表里的第一个元素（表头），1 是第二个元素,-1 表示列表里的最后一个元素， -2 表示倒数第二个
      * @return 修剪后的 list 长度
      */
-    public List<String> range(int start, int end){
+    public List<V> range(int start, int end){
         try (Jedis jedis = getJedis()) {
-            return jedis.lrange(name, Long.valueOf(start), Long.valueOf(end));
+            ArrayList<V> result = new ArrayList<V>();
+            List<byte[]> queryResult = jedis.lrange(name.getBytes(), Long.valueOf(start), Long.valueOf(end));
+            for(byte[] bytes : queryResult){
+                result.add((V)CacheStatic.unserialize(bytes));
+            }
+
+            return result;
         }
     }
 
     /**
      * RedisList 的迭代器
      */
-    public class RedisListIterator implements ListIterator<String> {
+    public class RedisListIterator implements ListIterator<V> {
 
         private RedisList redisList;
         private int size = 0;
@@ -448,12 +465,12 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
         }
 
         @Override
-        public String next() {
+        public V next() {
             if(position==size){
                 return null;
             }
 
-            String value = redisList.get(position);
+            V value = (V)redisList.get(position);
             if(isDesc){
                 position--;
             } else {
@@ -472,12 +489,12 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
         }
 
         @Override
-        public String previous() {
+        public V previous() {
             if(position==0){
                 return null;
             }
 
-            String value = redisList.get(position);
+            V value = (V)redisList.get(position);
             if(isDesc){
                 position++;
             } else {
@@ -512,12 +529,12 @@ public class RedisList implements List<String>, Deque<String>, Closeable {
         }
 
         @Override
-        public void set(String s) {
+        public void set(V s) {
             redisList.set(position, s);
         }
 
         @Override
-        public void add(String s) {
+        public void add(V s) {
             redisList.add(position, s);
         }
     }
