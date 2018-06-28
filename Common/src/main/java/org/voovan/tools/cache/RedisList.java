@@ -195,7 +195,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
     public List<V> removeLast(int timeout) {
         try (Jedis jedis = getJedis()) {
             ArrayList<V> result = new ArrayList<V>();
-            List<byte[]> queryResult = jedis.blpop(timeout, name.getBytes());
+            List<byte[]> queryResult = jedis.brpop(timeout, name.getBytes());
             for(byte[] bytes : queryResult){
                 result.add((V)CacheStatic.unserialize(bytes));
             }
