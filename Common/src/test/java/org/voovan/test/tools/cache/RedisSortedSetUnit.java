@@ -1,5 +1,6 @@
 package org.voovan.test.tools.cache;
 
+import org.voovan.tools.cache.RedisMap;
 import org.voovan.tools.cache.RedisSortedSet;
 import junit.framework.TestCase;
 
@@ -14,7 +15,7 @@ import java.util.Map;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class RedisSortedSetUnit extends TestCase {
+public class RedisSortedSetUnit  extends TestCase {
     private RedisSortedSet redisSortedSet;
 
     @Override
@@ -58,38 +59,38 @@ public class RedisSortedSetUnit extends TestCase {
     }
 
     public void testRangeByIndex(){
-        Object value = redisSortedSet.rangeByIndex(0,1);
+        Object value = redisSortedSet.getRangeByIndex(0,1);
         System.out.println(value);
 
-        value = redisSortedSet.revRangeByIndex(0,1);
+        value = redisSortedSet.getRevRangeByIndex(0,1);
         System.out.println(value);
     }
 
     public void testRangeByValue(){
-        Object value = redisSortedSet.rangeByValue("[a", "+");
+        Object value = redisSortedSet.getRrangeByValue("[a", "+");
         System.out.println(value);
 
-        value = redisSortedSet.revRangeByValue("+", "[a");
+        value = redisSortedSet.getRevRangeByValue("+", "[a");
         System.out.println(value);
 
-        value = redisSortedSet.rangeByValue("[a", "+", 2, 1);
+        value = redisSortedSet.getRangeByValue("[a", "+", 2, 1);
         System.out.println(value);
 
-        value = redisSortedSet.revRangeByValue("+", "[a", 2, 1);
+        value = redisSortedSet.getRevRangeByValue("+", "[a", 2, 1);
         System.out.println(value);
     }
 
     public void testRangeByScore(){
-        Object value = redisSortedSet.rangeByScore(12, 14);
+        Object value = redisSortedSet.getRangeByScore(12, 14);
         System.out.println(value);
 
-        value = redisSortedSet.revRangeByScore(14, 12);
+        value = redisSortedSet.getRevRangeByScore(14, 12);
         System.out.println(value);
 
-        value = redisSortedSet.rangeByScore(12, 14, 1, 1);
+        value = redisSortedSet.getRangeByScore(12, 14, 1, 1);
         System.out.println(value);
 
-        value = redisSortedSet.revRangeByScore(14, 12, 1, 1);
+        value = redisSortedSet.getRevRangeByScore(14, 12, 1, 1);
         System.out.println(value);
     }
 

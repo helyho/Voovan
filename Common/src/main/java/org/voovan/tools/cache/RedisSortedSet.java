@@ -184,7 +184,7 @@ public class RedisSortedSet<V> implements Closeable {
      * @param end value 索引结束位置
      * @return 成员对象的集合
      */
-    public Set<V> rangeByIndex(long start, long end){
+    public Set<V> getRangeByIndex(long start, long end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
             Set<byte[]> bytesSet = jedis.zrange(name.getBytes(), start, end);
@@ -202,7 +202,7 @@ public class RedisSortedSet<V> implements Closeable {
      * @param end value 索引结束位置
      * @return 成员对象的集合
      */
-    public Set<V> revRangeByIndex(long start, long end){
+    public Set<V> getRevRangeByIndex(long start, long end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
             Set<byte[]> bytesSet = jedis.zrevrange(name.getBytes(), start, end);
@@ -219,7 +219,7 @@ public class RedisSortedSet<V> implements Closeable {
      * @param end value 的最大值
      * @return 成员对象的集合
      */
-    public Set<V> rangeByValue(V start, V end){
+    public Set<V> getRrangeByValue(V start, V end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
             byte[] startByteArray = CacheStatic.serialize(start);
@@ -242,7 +242,7 @@ public class RedisSortedSet<V> implements Closeable {
      * @param size 数量
      * @return 成员对象的集合
      */
-    public Set<V> rangeByValue(V start, V end, int offset, int size){
+    public Set<V> getRangeByValue(V start, V end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
             byte[] startByteArray = CacheStatic.serialize(start);
@@ -262,7 +262,7 @@ public class RedisSortedSet<V> implements Closeable {
      * @param end value 的最小值
      * @return 成员对象的集合
      */
-    public Set<V> revRangeByValue(V start, V end){
+    public Set<V> getRevRangeByValue(V start, V end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
             byte[] startByteArray = CacheStatic.serialize(start);
@@ -284,7 +284,7 @@ public class RedisSortedSet<V> implements Closeable {
      * @param size 数量
      * @return 成员对象的集合
      */
-    public Set<V> revRangeByValue(V start, V end, int offset, int size){
+    public Set<V> getRevRangeByValue(V start, V end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
             byte[] startByteArray = CacheStatic.serialize(start);
@@ -304,7 +304,7 @@ public class RedisSortedSet<V> implements Closeable {
      * @param end value 的最大值
      * @return 成员对象的集合
      */
-    public Set<V> rangeByScore(double start, double end){
+    public Set<V> getRangeByScore(double start, double end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
             byte[] startByteArray = CacheStatic.serialize(start);
@@ -326,7 +326,7 @@ public class RedisSortedSet<V> implements Closeable {
      * @param size 数量
      * @return 成员对象的集合
      */
-    public Set<V> rangeByScore(double start, double end, int offset, int size){
+    public Set<V> getRangeByScore(double start, double end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
             byte[] startByteArray = CacheStatic.serialize(start);
@@ -346,7 +346,7 @@ public class RedisSortedSet<V> implements Closeable {
      * @param end value 的最小值
      * @return 成员对象的集合
      */
-    public Set<V> revRangeByScore(double start, double end){
+    public Set<V> getRevRangeByScore(double start, double end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
             byte[] startByteArray = CacheStatic.serialize(start);
@@ -368,7 +368,7 @@ public class RedisSortedSet<V> implements Closeable {
      * @param size 数量
      * @return 成员对象的集合
      */
-    public Set<V> revRangeByScore(double start, double end, int offset, int size){
+    public Set<V> getRevRangeByScore(double start, double end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
             byte[] startByteArray = CacheStatic.serialize(start);
