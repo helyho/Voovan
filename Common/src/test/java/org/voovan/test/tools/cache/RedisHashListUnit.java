@@ -24,7 +24,7 @@ public class RedisHashListUnit extends TestCase{
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        redisHashList = new RedisHashList("127.0.0.1", 6379, 2000, 100, "test_list", null);
+        redisHashList = new RedisHashList("127.0.0.1", 6379, 2000, 100, "HashList", null);
     }
 
     public void testAdd(){
@@ -34,17 +34,17 @@ public class RedisHashListUnit extends TestCase{
 
     public void testAddFirst(){
         redisHashList.addFirst(itemName, "message -1");
-        assertEquals(2, redisHashList.size());
+        assertEquals(1, redisHashList.size());
     }
 
     public void testGet(){
         String value = (String) redisHashList.get(itemName, 0);
-        assertEquals("message -1", value);
+        assertEquals("message 0", value);
     }
 
     public void testPoll(){
         String value = (String) redisHashList.poll(itemName);
-        assertEquals("message 0", value);
+        assertEquals(" new value", value);
         redisHashList.poll(itemName);
     }
 
@@ -65,17 +65,17 @@ public class RedisHashListUnit extends TestCase{
 
     public void testPeakFirst(){
         String value = (String) redisHashList.peekFirst(itemName);
-        assertEquals("message 1", value);
+        assertEquals("message 2", value);
     }
 
     public void testPollFirst(){
         String value = (String) redisHashList.pollFirst(itemName);
-        assertEquals("message 1", value);
+        assertEquals("message -1", value);
     }
 
     public void testPollLast(){
         String value = (String) redisHashList.pollLast(itemName);
-        assertEquals("message 3", value);
+        assertEquals("message 2", value);
     }
 
     public void testTrim(){
