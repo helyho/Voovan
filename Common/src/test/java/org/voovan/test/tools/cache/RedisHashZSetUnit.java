@@ -21,7 +21,7 @@ public class RedisHashZSetUnit extends TestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        redisHashsWithSortedSet = new RedisHashZSet("127.0.0.1", 6379, 2000, 100, "keyzsetTest", null);
+        redisHashsWithSortedSet = new RedisHashZSet("127.0.0.1", 6379, 2000, 100, "HashZSet", null);
     }
 
     public void testAdd(){

@@ -1,9 +1,9 @@
 package org.voovan.test.tools.cache;
 
-import junit.framework.TestCase;
 import org.voovan.tools.cache.RedisList;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
+import junit.framework.TestCase;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -23,7 +23,7 @@ public class RedisListUnit extends TestCase{
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        redisList = new RedisList("10.0.0.101", 6379, 2000, 100, "test_list", null);
+        redisList = new RedisList("10.0.0.101", 6379, 2000, 100, "List", null);
     }
 
     public void testAdd(){

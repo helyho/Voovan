@@ -21,7 +21,7 @@ public class RedisZSetZSetUnit extends TestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        redisZsetZSet = new RedisZSetZSet("127.0.0.1", 6379, 2000, 100, "keyzsetTest", null);
+        redisZsetZSet = new RedisZSetZSet("127.0.0.1", 6379, 2000, 100, "ZSetZSet", null);
     }
 
     public void testAdd(){

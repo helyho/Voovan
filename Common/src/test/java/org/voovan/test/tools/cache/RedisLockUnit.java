@@ -28,7 +28,7 @@ public class RedisLockUnit extends TestCase{
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        redisLock = new RedisLock("127.0.0.1", 6379, 2000, 100, "DisLock_1", null);
+        redisLock = new RedisLock("127.0.0.1", 6379, 2000, 100, "DisLock", null);
     }
 
     public void testLockTest(){
