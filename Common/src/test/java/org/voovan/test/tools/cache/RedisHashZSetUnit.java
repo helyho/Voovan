@@ -1,6 +1,6 @@
 package org.voovan.test.tools.cache;
 
-import org.voovan.tools.cache.RedisHashsWithSortedSet;
+import org.voovan.tools.cache.RedisHashZSet;
 import org.voovan.tools.json.JSON;
 import junit.framework.TestCase;
 
@@ -15,13 +15,13 @@ import java.util.Map;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class RedisHashsWithSortedSetUnit extends TestCase {
-    private RedisHashsWithSortedSet redisHashsWithSortedSet;
+public class RedisHashZSetUnit extends TestCase {
+    private RedisHashZSet redisHashsWithSortedSet;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        redisHashsWithSortedSet = new RedisHashsWithSortedSet("127.0.0.1", 6379, 2000, 100, "keyzsetTest", null);
+        redisHashsWithSortedSet = new RedisHashZSet("127.0.0.1", 6379, 2000, 100, "keyzsetTest", null);
     }
 
     public void testAdd(){

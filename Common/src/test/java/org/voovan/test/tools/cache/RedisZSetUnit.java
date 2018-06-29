@@ -1,7 +1,6 @@
 package org.voovan.test.tools.cache;
 
-import org.voovan.tools.cache.RedisMap;
-import org.voovan.tools.cache.RedisSortedSet;
+import org.voovan.tools.cache.RedisZSet;
 import junit.framework.TestCase;
 
 import java.util.HashMap;
@@ -15,13 +14,13 @@ import java.util.Map;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class RedisSortedSetUnit  extends TestCase {
-    private RedisSortedSet redisSortedSet;
+public class RedisZSetUnit extends TestCase {
+    private RedisZSet redisSortedSet;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        redisSortedSet = new RedisSortedSet("127.0.0.1", 6379, 2000, 100, "zsetTest", null);
+        redisSortedSet = new RedisZSet("127.0.0.1", 6379, 2000, 100, "keyzsetTest", null);
     }
 
     public void testAdd(){
@@ -37,19 +36,19 @@ public class RedisSortedSetUnit  extends TestCase {
         testMap.put("ccc", new Double(14));
         Object value = redisSortedSet.addAll(testMap);
         System.out.println(value);
-        assertEquals(1, redisSortedSet.size());
+        assertEquals(4, redisSortedSet.size());
     }
 
     public void testIncrease(){
-        Object value = redisSortedSet.increase("helyho3", 11d);
+        Object value = redisSortedSet.increase("heffff", 11d);
         System.out.println(value);
-        assertEquals(1, redisSortedSet.size());
+        assertEquals(22D, value);
     }
 
     public void testScoreRanageCount(){
         Object value = redisSortedSet.scoreRangeCount(12, 14);
         System.out.println(value);
-        assertEquals(1, redisSortedSet.size());
+        assertEquals(4, redisSortedSet.size());
     }
 
     public void testValueRanageCount(){
@@ -116,12 +115,12 @@ public class RedisSortedSetUnit  extends TestCase {
     }
 
     public void testScore(){
-        Object value = redisSortedSet.getScore("helyho31");
+        Object value = redisSortedSet.getScore("heffff");
         System.out.println(value);
     }
 
     public void testScan(){
-        Object value = redisSortedSet.scan("99", "h*", 1);
+        Object value = redisSortedSet.scan("99", "*", 1);
         System.out.println(value);
     }
 }
