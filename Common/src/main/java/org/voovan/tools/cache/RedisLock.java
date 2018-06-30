@@ -159,7 +159,7 @@ public class RedisLock {
                     break;
                 }
 
-                TEnv.sleep(0);
+                TEnv.sleep(1);
                 continue;
             }
         }

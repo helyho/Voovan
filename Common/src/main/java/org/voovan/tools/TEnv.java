@@ -518,7 +518,7 @@ public class TEnv {
 		long start = System.currentTimeMillis();
 		while(true){
 			if(supplier.get()){
-				TEnv.sleep(0);
+				TEnv.sleep(1);
 			} else {
 				return;
 			}

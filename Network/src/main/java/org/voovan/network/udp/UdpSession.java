@@ -132,7 +132,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 					datagramChannel.send(buffer, this.remoteAddress);
 				}
 				if(sendSize == 0 ){
-					TEnv.sleep(0);
+					TEnv.sleep(1);
 					if(System.currentTimeMillis() - start >= socketContext().getSendTimeout()){
 						Logger.error("AioSession send timeout, Socket will be close");
 						close();

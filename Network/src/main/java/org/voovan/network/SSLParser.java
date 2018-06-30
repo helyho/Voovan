@@ -237,7 +237,7 @@ public class SSLParser {
 				}
 			}
 
-			TEnv.sleep(0);
+			TEnv.sleep(1);
 		}
 
 		return handshakeStatus == null ? engine.getHandshakeStatus() : handshakeStatus;
