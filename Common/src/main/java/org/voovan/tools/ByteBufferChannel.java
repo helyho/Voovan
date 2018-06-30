@@ -168,7 +168,7 @@ public class ByteBufferChannel {
 					}
 				}
 
-				TEnv.sleep(0);
+				TEnv.sleep(1);
 			}
 
 			lock.lock();
