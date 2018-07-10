@@ -1,9 +1,9 @@
 package org.voovan.test.tools.cache;
 
-import junit.framework.TestCase;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.cache.CachedHashMap;
+import junit.framework.TestCase;
 
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,15 +20,16 @@ public class CachedHashMapTest extends TestCase{
 
     public void testBasic() {
         CachedHashMap cachedHashMap = new CachedHashMap()
-                    .maxSize(100)
-                    .interval(1)
-                    .supplier((t)-> t + "_"+ System.currentTimeMillis())
-                    .create();
+                .maxSize(100)
+                .interval(1)
+                .supplier((t)-> t + "_"+ System.currentTimeMillis())
+                .autoRemove(true)
+                .create();
 
         for(int i=0;i<100;i++) {
             cachedHashMap.put("key_" + i, "value_" + i, (5+i));
         }
-        TEnv.sleep(1000);
+        TEnv.sleep(2000);
 
         for(int x=0;x<10000;x++) {
             Global.getThreadPool().execute(new Runnable() {
