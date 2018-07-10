@@ -262,6 +262,9 @@ public class HttpDispatcher {
 				router.process(request, response);
 
 			} catch (Exception e) {
+				if(e instanceof Throwable){
+					e = new Exception((Throwable)e);
+				}
 				exceptionMessage(request, response, e);
 			}
 
@@ -463,7 +466,7 @@ public class HttpDispatcher {
 				}
 
 				if (throwable instanceof InvocationTargetException) {
-					throwable = (Exception) throwable.getCause();
+					throwable = throwable.getCause();
 				}
 
 			} while (true);
