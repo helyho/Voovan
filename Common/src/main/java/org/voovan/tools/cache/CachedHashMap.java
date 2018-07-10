@@ -184,7 +184,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
         final CachedHashMap cachedHashMap = this;
 
         //启动超时清理任务
-        if(interval > 1) {
+        if(interval >= 1) {
             wheelTimer.addTask(new HashWheelTask() {
                 @Override
                 public void run() {
@@ -203,6 +203,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                                         }
                                     } else {
                                         cachedHashMap.cacheMark.remove(timeMark.getKey());
+                                        cachedHashMap.remove(timeMark.getKey());
                                     }
 
                                 } else if (cachedHashMap.getSupplier() != null) {
