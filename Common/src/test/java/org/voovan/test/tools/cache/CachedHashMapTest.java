@@ -80,8 +80,8 @@ public class CachedHashMapTest extends TestCase{
             Global.getThreadPool().execute(() -> {
                 Object m = cachedHashMap.get("test", (key) -> {
                     String result = System.currentTimeMillis() + " " + key;
-                    TEnv.sleep(1000);
-                    cachedHashMap.expire(key, 3000);
+                    TEnv.sleep(1);
+                    cachedHashMap.expire(key, 1000);
                     System.out.println("gen "+result);
                     return result;
                 });
