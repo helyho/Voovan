@@ -1,11 +1,14 @@
 package org.voovan.db;
 
+import org.voovan.db.exception.UpdateCountException;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TSQL;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import javax.sql.DataSource;
+import java.io.Closeable;
+import java.io.IOException;
 import java.sql.*;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -25,13 +28,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class JdbcOperate {
+public class JdbcOperate implements Closeable {
 	private static Map<Long, JdbcOperate> JDBCOPERATE_THREAD_LIST = new ConcurrentHashMap<Long, JdbcOperate>();
 
 	private DataSource	dataSource;
 	private Connection	connection;
 	private TranscationType transcationType;
 	private Savepoint savepoint = null;
+	private Statement statement;
+	private ResultSet resultSet;
 
 	private List<JdbcOperate> bindedJdbcOperate = new ArrayList<JdbcOperate>();
 	private boolean isTransactionFinished = false;
@@ -234,8 +239,8 @@ public class JdbcOperate {
 			//构造PreparedStatement
 			PreparedStatement preparedStatement = TSQL.createPreparedStatement(conn, sqlText, mapArg);
 			//执行查询
-			ResultSet rs = preparedStatement.executeQuery();
-			return new ResultInfo(rs,this);
+			resultSet = preparedStatement.executeQuery();
+			return new ResultInfo(resultSet,this);
 		} catch (SQLException e) {
 			closeConnection(conn);
 			Logger.error("Query execution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " ,e);
@@ -265,6 +270,7 @@ public class JdbcOperate {
 		SQLException exception = null;
 		try {
 			preparedStatement = TSQL.createPreparedStatement(conn, sqlText, mapArg);
+			statement = preparedStatement;
 			return preparedStatement.executeUpdate();
 		} catch (SQLException e) {
 			Logger.error("Update execution SQL Error! \n SQL is :\n\t " + sqlText + "\nError is: \n\t" ,e);
@@ -319,6 +325,7 @@ public class JdbcOperate {
 				Logger.fremawork("[SQL_Executed]: " + sqlText);
 			}
 
+			statement = preparedStatement;
 			int[] result = preparedStatement.executeBatch();
 
 			return result;
@@ -351,6 +358,7 @@ public class JdbcOperate {
 		SQLException exception = null;
 		try {
 			callableStatement = TSQL.createCallableStatement(conn, sqlText, mapArg, callTypes);
+			statement = callableStatement;
 			callableStatement.executeUpdate();
 			List<Object> objList = TSQL.getCallableStatementResult(callableStatement);
 			return objList;
@@ -436,6 +444,82 @@ public class JdbcOperate {
 	public int update(String sqlText, Object... args) throws SQLException {
 		Map<String, Object> paramsMap = TObject.arrayToMap(args);
 		return this.baseUpdate(sqlText, paramsMap);
+	}
+
+	/**
+	 * 执行数据库更新
+	 *
+	 * @param sqlText
+	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
+	 * @return 更新记录数
+	 * @throws SQLException SQL 异常
+	 */
+	public int update(String sqlText, int updateCount) throws SQLException {
+		int count = update(sqlText);
+		if(count!=updateCount){
+			throw new UpdateCountException("Update row count error, expect: " + updateCount + "actual: " + count + ".");
+		}
+
+		return count;
+	}
+
+	/**
+	 * 执行数据库更新,Object作为参数 字段名和对象属性名大消息必须大小写一致
+	 *
+	 * @param sqlText
+	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
+	 * @param arg
+	 *            object为参数的对象
+	 * @return SQL 异常
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws SQLException SQL 异常
+	 */
+	public int update(String sqlText, int updateCount, Object arg) throws SQLException, ReflectiveOperationException {
+		int count = update(sqlText, arg);
+		if(count!=updateCount){
+			throw new UpdateCountException("Update row count error, expect: " + updateCount + "actual: " + count + ".");
+		}
+
+		return count;
+	}
+
+	/**
+	 * 执行数据库更新,Map作为参数,字段名和Map键名大消息必须大小写一致
+	 *
+	 * @param sqlText
+	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
+	 * @param mapArg
+	 *            map为参数的对象
+	 * @return 更新记录数
+	 * @throws SQLException SQL 异常
+	 */
+	public int update(String sqlText, int updateCount, Map<String, Object> mapArg) throws SQLException {
+		int count = update(sqlText, mapArg);
+		if(count!=updateCount){
+			throw new UpdateCountException("Update row count error, expect: " + updateCount + "actual: " + count + ".");
+		}
+
+		return count;
+	}
+
+	/**
+	 * 执行数据库更新,Map作为参数,字段名和Map键名大消息必须大小写一致
+	 *
+	 * @param sqlText
+	 *            sql字符串 参数使用"::"作为索引标识,引导一个索引标识,索引标识从1开始,例如where id=::1
+	 * @param args
+	 *            多参数
+	 * @return 更新记录数
+	 * @throws SQLException  SQL 异常
+	 */
+	public int update(String sqlText, int updateCount, Object... args) throws SQLException {
+		Map<String, Object> paramsMap = TObject.arrayToMap(args);
+		int count = update(sqlText, paramsMap);
+		if(count!=updateCount){
+			throw new UpdateCountException("Update row count error, expect: " + updateCount + "actual: " + count + ".");
+		}
+
+		return count;
 	}
 
 	/**
@@ -962,4 +1046,15 @@ public class JdbcOperate {
 	}
 
 
+	@Override
+	public void close() throws IOException {
+		if(resultSet!=null){
+			closeConnection(this.resultSet);
+		} else if(statement!=null){
+			closeConnection(statement);
+		} else {
+			closeConnection(connection);
+		}
+
+	}
 }
