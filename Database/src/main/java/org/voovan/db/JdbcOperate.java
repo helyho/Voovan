@@ -207,7 +207,7 @@ public class JdbcOperate {
 	 * @throws SQLException SQL 异常
 	 */
 	public void commit() throws SQLException {
-		commit(false);
+		commit(true);
 	}
 
 	/**
@@ -215,7 +215,7 @@ public class JdbcOperate {
 	 * @throws SQLException SQL 异常
 	 */
 	public void rollback() throws SQLException {
-		rollback(false);
+		rollback(true);
 	}
 
 	/**
