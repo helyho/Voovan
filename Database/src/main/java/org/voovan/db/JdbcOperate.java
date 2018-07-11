@@ -454,7 +454,7 @@ public class JdbcOperate implements Closeable {
 	 * @return 更新记录数
 	 * @throws SQLException SQL 异常
 	 */
-	public int update(String sqlText, int updateCount) throws SQLException {
+	public int updateAndCheck(String sqlText, int updateCount) throws SQLException {
 		int count = update(sqlText);
 		if(count!=updateCount){
 			throw new UpdateCountException("Update row count error, expect: " + updateCount + "actual: " + count + ".");
@@ -474,7 +474,7 @@ public class JdbcOperate implements Closeable {
 	 * @throws ReflectiveOperationException 反射异常
 	 * @throws SQLException SQL 异常
 	 */
-	public int update(String sqlText, int updateCount, Object arg) throws SQLException, ReflectiveOperationException {
+	public int updateAndCheck(String sqlText, int updateCount, Object arg) throws SQLException, ReflectiveOperationException {
 		int count = update(sqlText, arg);
 		if(count!=updateCount){
 			throw new UpdateCountException("Update row count error, expect: " + updateCount + "actual: " + count + ".");
@@ -493,7 +493,7 @@ public class JdbcOperate implements Closeable {
 	 * @return 更新记录数
 	 * @throws SQLException SQL 异常
 	 */
-	public int update(String sqlText, int updateCount, Map<String, Object> mapArg) throws SQLException {
+	public int updateAndCheck(String sqlText, int updateCount, Map<String, Object> mapArg) throws SQLException {
 		int count = update(sqlText, mapArg);
 		if(count!=updateCount){
 			throw new UpdateCountException("Update row count error, expect: " + updateCount + "actual: " + count + ".");
@@ -512,7 +512,7 @@ public class JdbcOperate implements Closeable {
 	 * @return 更新记录数
 	 * @throws SQLException  SQL 异常
 	 */
-	public int update(String sqlText, int updateCount, Object... args) throws SQLException {
+	public int updateAndCheck(String sqlText, int updateCount, Object... args) throws SQLException {
 		Map<String, Object> paramsMap = TObject.arrayToMap(args);
 		int count = update(sqlText, paramsMap);
 		if(count!=updateCount){
