@@ -24,7 +24,6 @@ import java.util.function.Function;
  * Licence: Apache v2 License
  */
 public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheMap<K, V>{
-    public static int DEFAULT_SIZE = 1000;
 
     protected final static HashWheelTimer wheelTimer = new HashWheelTimer(1000, 1);
     private Function<K, V> supplier = null;
@@ -45,14 +44,14 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * @param maxSize 缓存集合的最大容量, 多余的数据会被移除
      */
     public CachedHashMap(Integer maxSize){
-        this.maxSize = maxSize == null ? DEFAULT_SIZE : maxSize;
+        this.maxSize = maxSize == null ? Integer.MAX_VALUE : maxSize;
     }
 
     /**
      * 构造函数
      */
     public CachedHashMap(){
-        this.maxSize =  DEFAULT_SIZE;
+        this.maxSize = Integer.MAX_VALUE;
     }
 
 
