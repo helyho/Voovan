@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class LeakBucket {
+public class LeakBucket implements Bucket {
 
     private AtomicInteger atomicInteger = new AtomicInteger(0);
 
@@ -34,7 +34,7 @@ public class LeakBucket {
             public void run() {
                 atomicInteger.set(tokenSize);
             }
-        }, interval, interval);
+        }, 0, interval);
     }
 
     /**
