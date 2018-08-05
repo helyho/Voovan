@@ -458,7 +458,17 @@ public class TEnv {
 	 * @return AgentJar 文件
 	 */
 	private static File findAgentJar(){
-		List<File> agentJars = TFile.scanFile(new File(TFile.getContextPath()), "((dd[\\.\\-](\\d\\.?)*.*?)|(voovan-((framework)|(common))[\\.\\-].*?)).?jar$");
+		List<File> agentJars = new ArrayList<File>();
+		for(String classPath : System.getProperty("java.class.path").split(File.pathSeparator)) {
+			if(TString.regexMatch(classPath, "((dd[\\.\\-](\\d\\.?)*.*?)|(voovan-((framework)|(common))[\\.\\-].*?)).?jar$")!=0){
+				agentJars.add(new File(classPath));
+			}
+		}
+
+		if(agentJars.size() == 0) {
+			agentJars = TFile.scanFile(new File(TFile.getContextPath()), "((dd[\\.\\-](\\d\\.?)*.*?)|(voovan-((framework)|(common))[\\.\\-].*?)).?jar$");
+		}
+
 		File agentJar = null;
 
 		for (File jarFile : agentJars) {
@@ -511,7 +521,7 @@ public class TEnv {
 	/**
 	 * 等待函数
 	 * @param waitTime 等待时间
-     * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
+	 * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
 	 * @return true: 满足逻辑需要正常退出, false: 超时退出
 	 */
 	public static void wait(int waitTime, Supplier<Boolean> supplier) throws TimeoutException {
