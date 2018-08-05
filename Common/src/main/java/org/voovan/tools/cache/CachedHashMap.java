@@ -32,6 +32,8 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
     private boolean autoRemove = true;
     private Function destory;
 
+    private int expire = Integer.MAX_VALUE;
+
     static {
         wheelTimer.rotate();
     }
@@ -86,7 +88,13 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                             synchronized (supplier) {
                                 V value = supplier.apply(key);
                                 finalTimeMark.refresh(true);
-                                cachedHashMap.put(key, value);
+
+                                if(expire==Integer.MAX_VALUE) {
+                                    cachedHashMap.put(key, value);
+                                } else {
+                                    cachedHashMap.put(key, value, expire);
+                                }
+
                             }
                             finalTimeMark.releaseCreateLock();
                         }
@@ -97,7 +105,11 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                     synchronized (supplier) {
                         V value = supplier.apply(key);
                         timeMark.refresh(true);
-                        cachedHashMap.put(key, value);
+                        if(expire==Integer.MAX_VALUE) {
+                            cachedHashMap.put(key, value);
+                        } else {
+                            cachedHashMap.put(key, value, expire);
+                        }
                     }
                     timeMark.releaseCreateLock();
                 }
@@ -172,6 +184,23 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      */
     public CachedHashMap<K, V> autoRemove(boolean autoRemove) {
         this.autoRemove = autoRemove;
+        return this;
+    }
+
+    /**
+     * 获取默认超时时间
+     * @return
+     */
+    public int getExpire() {
+        return expire;
+    }
+
+    /**
+     * 设置默认超时时间
+     * @param expire
+     */
+    public CachedHashMap expire(int expire) {
+        this.expire = expire;
         return this;
     }
 
