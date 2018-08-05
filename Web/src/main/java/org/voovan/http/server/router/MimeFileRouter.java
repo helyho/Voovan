@@ -159,7 +159,7 @@ public class MimeFileRouter implements HttpRouter {
 				endPos   = Long.parseLong(ranges[1]);
 			}
 			fileByte = TFile.loadFileFromSysPath(responseFile.getPath(), beginPos, endPos);
-			response.header().put("Content-Range", TString.assembly("bytes ", rangeStr, "/", fileSize));
+			response.header().put("Content-Range", TString.assembly("bytes ", rangeStr, File.separator, fileSize));
 			response.body().write(fileByte);
 
 		} else {
