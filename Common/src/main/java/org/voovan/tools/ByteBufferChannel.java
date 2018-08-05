@@ -26,13 +26,15 @@ import java.util.concurrent.locks.ReentrantLock;
  * Licence: Apache v2 License
  */
 public class ByteBufferChannel {
+	private static int BYTEBUFFERCHANNEL_MAX_SIZE = TProperties.getInt("framework", "ByteBufferChannelMaxSize");
 	private volatile AtomicLong address = new AtomicLong(0);
 	private Unsafe unsafe = TUnsafe.getUnsafe();
 	private ByteBuffer byteBuffer;
 	private int size;
 	private ReentrantLock lock;
 	private AtomicBoolean borrowed = new AtomicBoolean(false);
-	private int maxSize = 1024*512;
+
+	private int maxSize = BYTEBUFFERCHANNEL_MAX_SIZE==0 ? 1024*1024*2 : BYTEBUFFERCHANNEL_MAX_SIZE;
 
 	/**
 	 * 构造函数
