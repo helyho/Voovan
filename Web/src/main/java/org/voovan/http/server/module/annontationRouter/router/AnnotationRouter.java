@@ -212,12 +212,28 @@ public class AnnotationRouter implements HttpRouter {
                 continue;
             }
 
+            String bodyString = "";
+            Map bodyMap = null;
+            if(request.body().size() > 0) {
+                bodyString = request.body().getBodyString();
+                bodyMap = JSON.isJSONMap(bodyString) ? (Map) JSON.parse(bodyString) : null;
+            }
+
             for(Annotation annotation : parameterAnnotations[i]) {
 
                 //请求的参数
                 if (annotation instanceof Param) {
                     String paramName = ((Param) annotation).value();
                     params[i] = TString.toObject(request.getParameter(paramName), parameterTypes[i]);
+                    continue;
+                }
+
+                //请求的参数
+                if (annotation instanceof BodyParam) {
+                    String paramName = ((BodyParam) annotation).value();
+                    if(bodyMap != null && bodyMap instanceof Map) {
+                        params[i] = TString.toObject(bodyMap.get(paramName).toString(), parameterTypes[i]);
+                    }
                     continue;
                 }
 
@@ -241,9 +257,9 @@ public class AnnotationRouter implements HttpRouter {
                     continue;
                 }
 
-                //请求的 Cookie
+                //请求的 Body
                 if (annotation instanceof Body) {
-                    params[i] = TString.toObject(request.body().getBodyString(), parameterTypes[i]);
+                    params[i] = TString.toObject(bodyString, parameterTypes[i]);
                     continue;
                 }
 
