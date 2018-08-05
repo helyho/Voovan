@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class TokenBucket {
+public class TokenBucket implements Bucket{
 
     private AtomicInteger atomicInteger = new AtomicInteger(0);
 
@@ -36,7 +36,7 @@ public class TokenBucket {
                     if(val >= tokenSize){
                         return tokenSize;
                     } else {
-                        return val+1;
+                        return val+tokenSize;
                     }
                 });
             }
