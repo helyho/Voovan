@@ -4,7 +4,10 @@ import redis.clients.jedis.*;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -26,6 +29,8 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public static final Long   UNLOCK_SUCCESS = 1L;
     public static final String SET_NOT_EXIST = "NX";
     public static final String SET_EXPIRE_TIME = "PX";
+
+    private int expire = Integer.MAX_VALUE;
 
 
     private JedisPool redisPool;
@@ -145,6 +150,22 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
         this.buildFunction = buildFunction;
     }
 
+    /**
+     * 获取默认超时时间
+     * @return
+     */
+    public int getExpire() {
+        return expire;
+    }
+
+    /**
+     * 设置默认超时时间
+     * @param expire
+     */
+    public void expire(int expire) {
+        this.expire = expire;
+    }
+
     @Override
     public int size() {
         if(name==null){
@@ -201,7 +222,11 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
             if(buildFunction!=null) {
                 synchronized (buildFunction) {
                     V value = buildFunction.apply((K) key);
-                    put((K) key, value);
+                    if(expire==Integer.MAX_VALUE) {
+                        put((K) key, value);
+                    } else {
+                        put((K) key, value, expire);
+                    }
                     return value;
                 }
             }
@@ -236,7 +261,11 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
             if(buildFunction!=null) {
                 synchronized (appointedSupplier) {
                     V value = appointedSupplier.apply((K) key);
-                    put((K) key, value);
+                    if(expire==Integer.MAX_VALUE) {
+                        put((K) key, value);
+                    } else {
+                        put((K) key, value, expire);
+                    }
                     return value;
                 }
             }
@@ -306,7 +335,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
                 } else {
                     byte[] valueBytes = jedis.get(keyByteArray);
                     if(valueBytes == null){
-                        return value;
+                        return get(keyByteArray);
                     } else {
                         value = (V) CacheStatic.unserialize(valueBytes);
                     }
@@ -341,7 +370,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
                 if (LOCK_SUCCESS.equals(result)) {
                     value = null;
                 } else {
-                    return value;
+                    return get(keyByteArray);
                 }
             } else {
                 throw new UnsupportedOperationException();
@@ -413,7 +442,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public void putAll(Map<? extends K, ? extends V> map) {
         try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
-                Map.Entry entry = (Map.Entry) obj;
+                Entry entry = (Entry) obj;
 
                 byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
                 byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
@@ -430,7 +459,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public void putAll(Map<? extends K, ? extends V> map, int expire) {
         try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
-                Map.Entry entry = (Map.Entry) obj;
+                Entry entry = (Entry) obj;
 
                 byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
                 byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
@@ -508,7 +537,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     }
 
     @Override
-    public Set<Map.Entry<K, V>> entrySet() {
+    public Set<Entry<K, V>> entrySet() {
         throw new UnsupportedOperationException();
     }
 
@@ -579,12 +608,12 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
                 }
                 return scanedObject;
             }else {
-                ScanResult<Map.Entry<byte[], byte[]>> scanResult = jedis.hscan(name.getBytes(), cursor.getBytes(), scanParams);
+                ScanResult<Entry<byte[], byte[]>> scanResult = jedis.hscan(name.getBytes(), cursor.getBytes(), scanParams);
                 ScanedObject scanedObject = new ScanedObject(scanResult.getStringCursor());
 
-                for(Map.Entry<byte[], byte[]> entryItem : scanResult.getResult()){
+                for(Entry<byte[], byte[]> entryItem : scanResult.getResult()){
 
-                    Map.Entry<K, V> entry = new AbstractMap.SimpleEntry<K, V>((K)CacheStatic.unserialize(entryItem.getKey()), (V)CacheStatic.unserialize(entryItem.getValue()));
+                    Entry<K, V> entry = new AbstractMap.SimpleEntry<K, V>((K)CacheStatic.unserialize(entryItem.getKey()), (V)CacheStatic.unserialize(entryItem.getValue()));
                     scanedObject.getResultList().add(entry);
                 }
                 return scanedObject;
