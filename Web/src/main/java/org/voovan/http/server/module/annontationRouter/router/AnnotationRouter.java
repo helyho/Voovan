@@ -296,10 +296,14 @@ public class AnnotationRouter implements HttpRouter {
             if(checkResult != null){
                 response.write((String) checkResult);
             } else {
+                Router router = method.getAnnotation(Router.class);
+
+                //根据 Page 注解的标记设置响应的Content-Type
+                response.header().put("Content-Type", HttpContentType.getHttpContentType(router.ContentType()));
+
                 Object responseObj = invokeRouterMethod(request, response, clazz, method);
                 if (responseObj != null) {
                     if (responseObj instanceof String) {
-                        response.header().put("Content-Type", HttpContentType.getHttpContentType(HttpContentType.TEXT));
                         response.write((String) responseObj);
                     } else if (responseObj instanceof byte[]) {
                         response.write((byte[]) responseObj);
