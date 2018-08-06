@@ -1,5 +1,6 @@
 package org.voovan.test.http.router;
 
+import org.voovan.http.server.HttpContentType;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
@@ -14,7 +15,7 @@ public class AnnotationRouterTest {
 
     //将当前方法注解为一个请求路由
     //当前方法的请求路由为:/annon/index,采用方法名作为路由的路径
-    @Router
+    @Router(ContentType = HttpContentType.IMAGE_GIF)
     public String index(){
         String oldPath = lastPath;
         lastPath = "/annon/index, time:" + System.currentTimeMillis();
