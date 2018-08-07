@@ -751,6 +751,18 @@ public class WebServer {
 	 * @param args 启动参数
 	 */
 	public static void main(String[] args) {
+
+		//先初始化环境参数, 否则会导致 framework.properties 无法加载到对应环境的配置
+		for(int i=0;i<args.length;i++){
+			if(args[i].equals("--env") || args[i].equals("-e")){
+				i++;
+				TEnv.setEnvName(args[i]);
+				break;
+			} else {
+				continue;
+			}
+		}
+
 		WebServerConfig config = WebContext.getWebServerConfig();
 
 		if(args.length>0){
@@ -768,11 +780,7 @@ public class WebServer {
 					config = WebContext.buildConfigFromRemote(args[i]);
 				}
 
-				//服务监听地址
-				if(args[i].equals("--env") || args[i].equals("-e")){
-					i++;
-					TEnv.setEnvName(args[i]);
-				}
+
 
 				//服务监听地址
 				if(args[i].equals("-h")){
