@@ -1,6 +1,8 @@
 package org.voovan.tools.cache;
 
+import org.voovan.Global;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -15,9 +17,21 @@ import java.util.concurrent.atomic.AtomicInteger;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class LeakBucket implements Bucket {
+public class LeakBucket extends Bucket {
 
     private AtomicInteger atomicInteger = new AtomicInteger(0);
+    private long lastVisitTime = System.currentTimeMillis();
+    private int releaseTime = 10*1000;
+
+    /**
+     * 令牌桶构造函数
+     * @param tokenSize 令牌桶的初始数量
+     * @param interval 令牌桶的新增周期, 每次触发将重置令牌桶的数量, 单位: 毫秒
+     * @param releaseTime 令牌桶失效并自动移除的时间
+     */
+    public LeakBucket(int tokenSize, int interval, int releaseTime){
+        init(tokenSize, interval, releaseTime);
+    }
 
     /**
      * 令牌桶构造函数
@@ -25,16 +39,24 @@ public class LeakBucket implements Bucket {
      * @param interval 令牌桶的新增周期, 每次触发将重置令牌桶的数量, 单位: 毫秒
      */
     public LeakBucket(int tokenSize, int interval){
+        releaseTime = interval * 10;
+        init(tokenSize, interval, releaseTime);
+    }
 
+
+    public void init(int tokenSize, int interval, int releaseTime){
         atomicInteger.set(tokenSize);
         //重置令牌桶的任务
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
+        Bucket.BUCKET_HASH_WHEEL_TIMER.addTask(new HashWheelTask() {
             @Override
             public void run() {
-                atomicInteger.set(tokenSize);
+                if(System.currentTimeMillis() - lastVisitTime >= releaseTime){
+                    this.cancel();
+                } else {
+                    atomicInteger.set(tokenSize);
+                }
             }
-        }, 0, interval);
+        }, interval, true);
     }
 
     /**
@@ -42,6 +64,7 @@ public class LeakBucket implements Bucket {
      * @return true: 拿到令牌, false: 没有拿到令牌
      */
     public boolean acquire() {
+        lastVisitTime = System.currentTimeMillis();
         int value = atomicInteger.getAndUpdate((val) -> {
             if(val <= 0){
                 return 0;
@@ -49,7 +72,6 @@ public class LeakBucket implements Bucket {
                 return val-1;
             }
         });
-
         return value > 0 ;
     }
 
@@ -60,6 +82,7 @@ public class LeakBucket implements Bucket {
      * @throws TimeoutException 超时异常
      */
     public void acquire(int timeout) throws TimeoutException {
+        lastVisitTime = System.currentTimeMillis();
         TEnv.wait(timeout, ()->!acquire());
     }
 }

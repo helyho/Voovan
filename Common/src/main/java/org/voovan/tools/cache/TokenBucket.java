@@ -1,6 +1,8 @@
 package org.voovan.tools.cache;
 
+import org.voovan.Global;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -15,9 +17,22 @@ import java.util.concurrent.atomic.AtomicInteger;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class TokenBucket implements Bucket{
+public class TokenBucket extends Bucket{
 
     private AtomicInteger atomicInteger = new AtomicInteger(0);
+    private long lastVisitTime = System.currentTimeMillis();
+    private int releaseTime = 10*1000;
+
+
+    /**
+     * 令牌桶构造函数
+     * @param tokenSize 令牌桶默认大小
+     * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 毫秒
+     * @param releaseTime 令牌桶失效并自动移除的时间
+     */
+    public TokenBucket(int tokenSize, int interval, int releaseTime){
+        init(tokenSize, interval, releaseTime);
+    }
 
     /**
      * 令牌桶构造函数
@@ -25,22 +40,35 @@ public class TokenBucket implements Bucket{
      * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 毫秒
      */
     public TokenBucket(int tokenSize, int interval){
+        releaseTime = interval * 10;
+        init(tokenSize, interval, releaseTime);
+    }
+
+    /**
+     * 令牌桶构造函数
+     * @param tokenSize 令牌桶默认大小
+     * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 毫秒
+     */
+    public void init(int tokenSize, int interval, int releaseTime){
 
         atomicInteger.set(tokenSize);
         //刷新令牌桶的任务
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
+        Bucket.BUCKET_HASH_WHEEL_TIMER.addTask(new HashWheelTask() {
             @Override
             public void run() {
-                atomicInteger.getAndUpdate((val)->{
-                    if(val >= tokenSize){
-                        return tokenSize;
-                    } else {
-                        return val+tokenSize;
-                    }
-                });
+                if (System.currentTimeMillis() - lastVisitTime >= releaseTime) {
+                    this.cancel();
+                } else {
+                    atomicInteger.getAndUpdate((val) -> {
+                        if (val >= tokenSize) {
+                            return tokenSize;
+                        } else {
+                            return val + tokenSize;
+                        }
+                    });
+                }
             }
-        }, interval, interval);
+        }, interval, true);
     }
 
     /**
@@ -48,6 +76,7 @@ public class TokenBucket implements Bucket{
      * @return true: 拿到令牌, false: 没有拿到令牌
      */
     public boolean acquire() {
+        lastVisitTime = System.currentTimeMillis();
         int value = atomicInteger.getAndUpdate((val) -> {
             if(val <= 0){
                 return 0;
@@ -66,6 +95,7 @@ public class TokenBucket implements Bucket{
      * @throws TimeoutException 超时异常
      */
     public void acquire(int timeout) throws TimeoutException {
+        lastVisitTime = System.currentTimeMillis();
         TEnv.wait(timeout, ()->!acquire());
     }
 }
