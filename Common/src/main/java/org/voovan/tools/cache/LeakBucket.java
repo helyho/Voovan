@@ -18,7 +18,7 @@ public class LeakBucket extends Bucket {
 
     private AtomicInteger atomicInteger = new AtomicInteger(0);
     private long lastVisitTime = System.currentTimeMillis();
-    private int releaseTime = 10*1000;
+    private int releaseTime = Integer.MAX_VALUE;
 
     /**
      * 令牌桶构造函数
@@ -41,6 +41,8 @@ public class LeakBucket extends Bucket {
 
 
     public void init(int tokenSize, int interval, int releaseTime){
+        this.releaseTime = releaseTime;
+
         atomicInteger.set(tokenSize);
         //重置令牌桶的任务
         Bucket.BUCKET_HASH_WHEEL_TIMER.addTask(new HashWheelTask() {
@@ -53,6 +55,14 @@ public class LeakBucket extends Bucket {
                 }
             }
         }, interval, true);
+    }
+
+    public int getReleaseTime() {
+        return releaseTime;
+    }
+
+    public void setReleaseTime(int releaseTime) {
+        this.releaseTime = releaseTime;
     }
 
     /**
