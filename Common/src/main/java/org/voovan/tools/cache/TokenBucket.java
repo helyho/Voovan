@@ -18,8 +18,7 @@ public class TokenBucket extends Bucket{
 
     private AtomicInteger atomicInteger = new AtomicInteger(0);
     private long lastVisitTime = System.currentTimeMillis();
-    private int releaseTime = 10*1000;
-
+    private int releaseTime = Integer.MAX_VALUE;
 
     /**
      * 令牌桶构造函数
@@ -46,6 +45,7 @@ public class TokenBucket extends Bucket{
      * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 毫秒
      */
     public void init(int tokenSize, int interval, int releaseTime){
+        this.releaseTime = releaseTime;
 
         atomicInteger.set(tokenSize);
         //刷新令牌桶的任务
@@ -65,6 +65,14 @@ public class TokenBucket extends Bucket{
                 }
             }
         }, interval, true);
+    }
+
+    public int getReleaseTime() {
+        return releaseTime;
+    }
+
+    public void setReleaseTime(int releaseTime) {
+        this.releaseTime = releaseTime;
     }
 
     /**
