@@ -1,11 +1,8 @@
 package org.voovan.tools.cache;
 
-import org.voovan.Global;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,8 +37,7 @@ public class TokenBucket extends Bucket{
      * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 毫秒
      */
     public TokenBucket(int tokenSize, int interval){
-        releaseTime = interval * 10;
-        init(tokenSize, interval, releaseTime);
+        init(tokenSize, interval, Integer.MAX_VALUE);
     }
 
     /**
