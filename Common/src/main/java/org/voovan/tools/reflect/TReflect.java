@@ -702,7 +702,7 @@ public class TReflect {
 		}
 		//java标准对象
 		else if (clazz.isPrimitive()){
-			if(singleValue.getClass() !=  clazz) {
+			if(singleValue!=null && singleValue.getClass() !=  clazz) {
 				obj = TString.toObject(singleValue.toString(), clazz);
 			} else {
 				obj = (T)singleValue;
@@ -711,14 +711,13 @@ public class TReflect {
 		//java基本对象
 		else if (TReflect.isBasicType(clazz)) {
 			//取 Map.Values 里的递第一个值
-			String value = singleValue.toString();
-			obj = (T)(singleValue==null?null:newInstance(clazz,  value));
+			obj = (T)(singleValue==null ? null : newInstance(clazz,  singleValue.toString()));
 		}
 		//java BigDecimal对象
 		else if (clazz == BigDecimal.class) {
 			//取 Map.Values 里的递第一个值
-			String value = singleValue==null?null:singleValue.toString();
-			obj = (T)(singleValue==null?null:new BigDecimal(value));
+			String value = singleValue==null ? null:singleValue.toString();
+			obj = (T)(singleValue==null ? null : new BigDecimal(value));
 		}
 		//对 Atom 类型的处理
 		else if (clazz == AtomicLong.class || clazz == AtomicInteger.class || clazz == AtomicBoolean.class) {
@@ -731,9 +730,9 @@ public class TReflect {
 		//java 日期对象
 		else if(isExtendsByClass(clazz, Date.class)){
 			//取 Map.Values 里的递第一个值
-			String value = singleValue==null?null:singleValue.toString();
+			String value = singleValue == null ? null : singleValue.toString();
 			SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
-			Date dateObj = singleValue!=null?dateFormat.parse(value.toString()):null;
+			Date dateObj = singleValue != null ? dateFormat.parse(value.toString()) : null;
 			obj = (T)TReflect.newInstance(clazz,dateObj.getTime());
 		}
 		//Map 类型
