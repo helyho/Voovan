@@ -9,22 +9,29 @@ import org.voovan.tools.cache.Bucket;
 import org.voovan.tools.cache.CachedHashMap;
 import org.voovan.tools.cache.LeakBucket;
 import org.voovan.tools.cache.TokenBucket;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 
 public class RateLimiterFilter implements HttpFilter {
 
     private static MultiMap<String, Limiter> LIMITER_DEFINE_MAP = new MultiMap<String, Limiter>();
 
-    private static CachedHashMap<String, Limiter> URL_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1000).create();
-    private static CachedHashMap<String, Limiter> IP_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1000).create();
-    private static CachedHashMap<String, Limiter> HEADER_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1000).create();
-    private static CachedHashMap<String, Limiter> SESSION_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1000).create();
+    private static Function<Limiter, Object> bucketRelease = (limiter) -> {
+        limiter.getBucket().release();
+        return null;
+    };
+
+    private static CachedHashMap<String, Limiter> URL_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1000).destory(bucketRelease).create();
+    private static CachedHashMap<String, Limiter> IP_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1000).destory(bucketRelease).create();
+    private static CachedHashMap<String, Limiter> HEADER_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1000).destory(bucketRelease).create();
+    private static CachedHashMap<String, Limiter> SESSION_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1000).destory(bucketRelease).create();
 
     private AtomicBoolean isInit = new AtomicBoolean(false);
 
