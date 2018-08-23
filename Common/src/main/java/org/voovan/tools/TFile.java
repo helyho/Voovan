@@ -10,6 +10,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
 
 /**
  * 文件操作工具类
@@ -358,12 +359,15 @@ public class TFile {
 	public static List<File> scanFile(File file, String pattern) {
 		pattern = pattern.isEmpty() ? null : pattern;
 
+		//兼容 windows
+		String innerPattern = File.separator.equals("\\") ? Matcher.quoteReplacement(pattern) : pattern;
+
 		ArrayList<File> result = new ArrayList<File>();
 		if(file.isDirectory()){
 			for(File subFile : file.listFiles()){
-				result.addAll(scanFile(subFile,pattern));
+				result.addAll(scanFile(subFile, pattern));
 			}
-		} else if(pattern==null || TString.regexMatch(file.getPath(),pattern) > 0) {
+		} else if(innerPattern==null || TString.regexMatch(file.getPath(), innerPattern) > 0) {
 			result.add(file);
 		}
 		return result;
