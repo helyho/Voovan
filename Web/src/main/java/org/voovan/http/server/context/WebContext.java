@@ -302,6 +302,25 @@ public class WebContext {
 		Logger.simple("=============================================================================================");
 	}
 
+
+	/**
+	 * 获取 AuthToken
+	 */
+	public static void getAuthToken(){
+		//保存 Token
+		File tokenFile = new File("logs/.token");
+
+		if(tokenFile.exists()){
+			WebContext.AUTH_TOKEN = new String(TFile.loadFile(tokenFile));
+		} else {
+			try {
+				TFile.writeFile(tokenFile, false, WebContext.AUTH_TOKEN.getBytes());
+			} catch (IOException e) {
+				Logger.error("Write token to file: " + tokenFile.getPath() + " error", e);
+			}
+		}
+	}
+
 	/**
 	 * 生成 accessLog 日志
 	 * @param request   HTTP 请求对象

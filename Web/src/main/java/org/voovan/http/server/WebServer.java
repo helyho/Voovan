@@ -391,6 +391,8 @@ public class WebServer {
 	 */
 	private void commonServe() throws IOException {
 
+		WebContext.getAuthToken();
+
 		WebContext.logo();
 
 		//运行初始化 Class
@@ -421,14 +423,6 @@ public class WebServer {
 			TFile.writeFile(pidFile, false, pid.toString().getBytes());
 		} catch (IOException e) {
 			Logger.error("Write pid to file: " + pidFile.getPath() + " error", e);
-		}
-
-		//保存 Token
-		File tokenFile = new File("logs/.token");
-		try {
-			TFile.writeFile(tokenFile, false, WebContext.AUTH_TOKEN.getBytes());
-		} catch (IOException e) {
-			Logger.error("Write token to file: " + pidFile.getPath() + " error", e);
 		}
 
 		String serviceUrl = "http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort();
