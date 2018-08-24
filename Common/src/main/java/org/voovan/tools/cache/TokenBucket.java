@@ -47,9 +47,7 @@ public class TokenBucket extends Bucket{
     public void init(int tokenSize, int interval, int releaseTime){
         this.releaseTime = releaseTime;
 
-        atomicInteger.set(tokenSize);
-        //刷新令牌桶的任务
-        Bucket.BUCKET_HASH_WHEEL_TIMER.addTask(new HashWheelTask() {
+        this.hashWheelTask = new HashWheelTask() {
             @Override
             public void run() {
                 if (System.currentTimeMillis() - lastVisitTime >= releaseTime) {
@@ -64,7 +62,11 @@ public class TokenBucket extends Bucket{
                     });
                 }
             }
-        }, interval, true);
+        };
+
+        atomicInteger.set(tokenSize);
+        //刷新令牌桶的任务
+        Bucket.BUCKET_HASH_WHEEL_TIMER.addTask(hashWheelTask, interval);
     }
 
     public int getReleaseTime() {

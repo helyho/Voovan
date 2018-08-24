@@ -1,6 +1,8 @@
 package org.voovan.tools.cache;
 
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
+import sun.misc.Cleaner;
 
 import java.util.concurrent.TimeoutException;
 
@@ -14,8 +16,21 @@ import java.util.concurrent.TimeoutException;
  */
 public abstract class Bucket {
     public static HashWheelTimer BUCKET_HASH_WHEEL_TIMER = new HashWheelTimer(1000, 1);
+    protected HashWheelTask hashWheelTask= null;
     static {
         BUCKET_HASH_WHEEL_TIMER.rotate();
+    }
+
+    public HashWheelTask getHashWheelTask() {
+        return hashWheelTask;
+    }
+
+    public void setHashWheelTask(HashWheelTask hashWheelTask) {
+        this.hashWheelTask = hashWheelTask;
+    }
+
+    public void release(){
+        hashWheelTask.cancel();
     }
 
     public abstract boolean acquire();

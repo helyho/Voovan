@@ -4,10 +4,7 @@ import redis.clients.jedis.*;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.AbstractMap;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -282,11 +279,15 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
         try (Jedis jedis = getJedis()) {
             if(name==null){
                 jedis.set(keyByteArray, valueByteArray);
+                //无论是否存在都会返回 OK, 所以默认返回 value
+                return value;
             }else {
-                jedis.hset(name.getBytes(), keyByteArray, valueByteArray);
+                if(jedis.hset(name.getBytes(), keyByteArray, valueByteArray)==1){
+                    return null;
+                } else {
+                    return value;
+                }
             }
-            return value;
-
         }
     }
 
@@ -335,7 +336,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
                 } else {
                     byte[] valueBytes = jedis.get(keyByteArray);
                     if(valueBytes == null){
-                        return get(keyByteArray);
+                        return get(key);
                     } else {
                         value = (V) CacheStatic.unserialize(valueBytes);
                     }
@@ -348,7 +349,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
                 } else {
                     byte[] valueBytes = jedis.hget(name.getBytes(), keyByteArray);
                     if(valueBytes == null){
-                        return value;
+                        return get(key);
                     } else {
                         value = (V) CacheStatic.unserialize(valueBytes);
                     }
@@ -370,7 +371,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
                 if (LOCK_SUCCESS.equals(result)) {
                     value = null;
                 } else {
-                    return get(keyByteArray);
+                    return get(key);
                 }
             } else {
                 throw new UnsupportedOperationException();
@@ -442,7 +443,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public void putAll(Map<? extends K, ? extends V> map) {
         try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
-                Entry entry = (Entry) obj;
+                Map.Entry entry = (Map.Entry) obj;
 
                 byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
                 byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
@@ -459,7 +460,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public void putAll(Map<? extends K, ? extends V> map, int expire) {
         try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
-                Entry entry = (Entry) obj;
+                Map.Entry entry = (Map.Entry) obj;
 
                 byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
                 byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
@@ -537,7 +538,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     }
 
     @Override
-    public Set<Entry<K, V>> entrySet() {
+    public Set<Map.Entry<K, V>> entrySet() {
         throw new UnsupportedOperationException();
     }
 
@@ -608,12 +609,12 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
                 }
                 return scanedObject;
             }else {
-                ScanResult<Entry<byte[], byte[]>> scanResult = jedis.hscan(name.getBytes(), cursor.getBytes(), scanParams);
+                ScanResult<Map.Entry<byte[], byte[]>> scanResult = jedis.hscan(name.getBytes(), cursor.getBytes(), scanParams);
                 ScanedObject scanedObject = new ScanedObject(scanResult.getStringCursor());
 
-                for(Entry<byte[], byte[]> entryItem : scanResult.getResult()){
+                for(Map.Entry<byte[], byte[]> entryItem : scanResult.getResult()){
 
-                    Entry<K, V> entry = new AbstractMap.SimpleEntry<K, V>((K)CacheStatic.unserialize(entryItem.getKey()), (V)CacheStatic.unserialize(entryItem.getValue()));
+                    Map.Entry<K, V> entry = new AbstractMap.SimpleEntry<K, V>((K)CacheStatic.unserialize(entryItem.getKey()), (V)CacheStatic.unserialize(entryItem.getValue()));
                     scanedObject.getResultList().add(entry);
                 }
                 return scanedObject;
