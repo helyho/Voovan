@@ -322,14 +322,16 @@ public class Formater {
 	 * 压缩历史日志文件
 	 */
 	private void packLogFile(){
-		long packSize = (long) (Double.valueOf(LoggerStatic.getLogConfig("PackSize", "1024")) * 1024L * 1024L);
+		long packSize = (long) (Double.valueOf(LoggerStatic.getLogConfig("PackSize", "1024")) * 1024L);
 		String logFilePath = getFormatedLogFilePath();
 
 		File logFile = new File(logFilePath);
 
 		if(packSize > 0 && logFile.length() > packSize){
+			String logFileExtendNam = TFile.getFileExtension(logFilePath);
+			logFilePath = logFilePath.replace("."+logFileExtendNam,"");
 			try {
-				File packFile = new File(logFilePath + "." + System.currentTimeMillis() + ".gz");
+				File packFile = new File(logFilePath + TDateTime.now("HHmmss") + "." + logFileExtendNam +".gz");
 				TZip.encodeGZip(logFile, packFile);
 			} catch (Exception e) {
 				System.out.println("[ERROR] Pack log file " + logFilePath + "error: ");
