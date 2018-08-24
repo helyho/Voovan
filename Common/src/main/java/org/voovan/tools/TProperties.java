@@ -32,7 +32,7 @@ public class TProperties {
 				Iterator<Map.Entry<File, Properties>> iterator = propertiesCache.entrySet().iterator();
 				while (iterator.hasNext()) {
 					Map.Entry<File, Properties> entry = iterator.next();
-					if(entry.getKey().exists() && entry.getValue().contains(TIME_STAMP_NAME)) {
+					if(entry.getKey().exists() && entry.getValue().containsKey(TIME_STAMP_NAME)) {
 						String lastTimeStamp = String.valueOf(entry.getKey().lastModified());
 						String cachedTimeStamp = entry.getValue().getProperty(TIME_STAMP_NAME);
 						if (!lastTimeStamp.equals(cachedTimeStamp)) {

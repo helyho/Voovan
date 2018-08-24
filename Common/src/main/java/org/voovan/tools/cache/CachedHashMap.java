@@ -120,14 +120,23 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
     }
 
     /**
+     * 获取数据创建 Function 对象
+     * @return Function 对象
+     */
+    protected Function<K, V> getSupplier(){
+        return supplier;
+    }
+
+    /**
      * 设置数据创建 Function 对象
      * @param buildFunction Function 对象
      * @param asyncBuild 异步构造数据
      */
-    public void supplier(Function<K, V> buildFunction, boolean asyncBuild){
+    public CachedHashMap<K, V> supplier(Function<K, V> buildFunction, boolean asyncBuild){
         this.supplier = buildFunction;
         this.asyncBuild = asyncBuild;
         this.autoRemove = false;
+        return this;
     }
 
     /**
@@ -153,8 +162,9 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * 设置对象销毁函数
      * @param destory 对象销毁函数, 如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
      */
-    public void setDestory(Function destory) {
+    public CachedHashMap<K, V> destory(Function destory) {
         this.destory = destory;
+        return this;
     }
 
     /**
@@ -246,14 +256,6 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
             }, interval);
         }
         return this;
-    }
-
-    /**
-     * 获取数据创建 Function 对象
-     * @return Function 对象
-     */
-    protected Function<K, V> getSupplier(){
-        return supplier;
     }
 
     /**

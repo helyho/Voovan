@@ -44,8 +44,8 @@ public class LeakBucket extends Bucket {
         this.releaseTime = releaseTime;
 
         atomicInteger.set(tokenSize);
-        //重置令牌桶的任务
-        Bucket.BUCKET_HASH_WHEEL_TIMER.addTask(new HashWheelTask() {
+
+        this.hashWheelTask = new HashWheelTask() {
             @Override
             public void run() {
                 if(System.currentTimeMillis() - lastVisitTime >= releaseTime){
@@ -54,7 +54,10 @@ public class LeakBucket extends Bucket {
                     atomicInteger.set(tokenSize);
                 }
             }
-        }, interval, true);
+        };
+
+        //重置令牌桶的任务
+        Bucket.BUCKET_HASH_WHEEL_TIMER.addTask(this.hashWheelTask, interval);
     }
 
     public int getReleaseTime() {

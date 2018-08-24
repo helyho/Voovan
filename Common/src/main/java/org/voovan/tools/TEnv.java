@@ -21,6 +21,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
 
 /**
  * 系统环境相关
@@ -435,7 +436,7 @@ public class TEnv {
 		className = TString.fastReplaceAll(resourcePath, "\\$.*\\.class$", ".class");
 		className = TString.fastReplaceAll(className, ".class$", "");
 
-		className = TString.fastReplaceAll(className, File.separator, ".");
+		className = TString.fastReplaceAll(className, Matcher.quoteReplacement(File.separator), ".");
 
 		try {
 			return Class.forName(className);
