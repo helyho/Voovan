@@ -3,7 +3,7 @@ package org.voovan.tools.cache;
 import java.util.Map;
 
 /**
- * 类文字命名
+ * 缓存的基础类
  *
  * @author: helyho
  * DBase Framework.
@@ -12,9 +12,9 @@ import java.util.Map;
  */
 public interface CacheMap<K, V> extends Map<K,V>{
 
-    public V put(K key, V value, int expire);
+    public V put(K key, V value, long expire);
 
-    public V putIfAbsent(K key, V value, int expire);
+    public V putIfAbsent(K key, V value, long expire);
 
     public void putAll(Map<? extends K, ? extends V> map, int expire);
 }

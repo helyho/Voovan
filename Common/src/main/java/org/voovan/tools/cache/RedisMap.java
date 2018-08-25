@@ -298,13 +298,13 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      * @param expire 超时事件
      * @return true: 成功, false:失败
      */
-    public V put(K key, V value, int expire){
+    public V put(K key, V value, long expire){
         byte[] keyByteArray = CacheStatic.serialize(key);
         byte[] valueByteArray = CacheStatic.serialize(value);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
-                if(jedis.setex(keyByteArray, expire, valueByteArray).equals("OK")) {
+                if(jedis.setex(keyByteArray, (int) expire, valueByteArray).equals("OK")) {
                     return value;
                 } else {
                     return null;
@@ -360,7 +360,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
         }
     }
 
-    public V putIfAbsent(K key, V value, int expire) {
+    public V putIfAbsent(K key, V value, long expire) {
         byte[] keyByteArray = CacheStatic.serialize(key);
         byte[] valueByteArray = CacheStatic.serialize(value);
 
