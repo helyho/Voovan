@@ -387,7 +387,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * @param expire 超时时间
      * @return 被置入的对象
      */
-    public V put(K key, V value, int expire){
+    public V put(K key, V value, long expire){
         if (key == null || value == null){
             throw new NullPointerException();
         }
@@ -415,7 +415,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * @param expire 超时时间
      * @return 如果数据存在返回已经存在对象, 如果数据不存在,新的对象被置入,则返回: null
      */
-    public V putIfAbsent(K key, V value, int expire){
+    public V putIfAbsent(K key, V value, long expire){
         if (key == null || value == null){
             throw new NullPointerException();
         }
@@ -495,7 +495,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
         private CachedHashMap<K,V> mainMap;
         private K key;
         //超时时间
-        private AtomicInteger expireTime = new AtomicInteger(0);
+        private AtomicLong expireTime = new AtomicLong(0);
         //最后访问时间
         private AtomicLong lastTime = new AtomicLong(0);
         //访问次数
@@ -504,7 +504,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
         //是否正在生成数据
         private volatile AtomicBoolean createFlag = new AtomicBoolean(false);
 
-        public TimeMark(CachedHashMap<K,V> mainMap, K key, int expireTime){
+        public TimeMark(CachedHashMap<K,V> mainMap, K key, long expireTime){
             this.key = key;
             this.mainMap = mainMap;
             this.expireTime.set(expireTime);
@@ -544,11 +544,11 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
             return key;
         }
 
-        public int getExpireTime() {
+        public long getExpireTime() {
             return expireTime.get();
         }
 
-        public void setExpireTime(int expireTime) {
+        public void setExpireTime(long expireTime) {
             this.expireTime.set(expireTime);
         }
 
