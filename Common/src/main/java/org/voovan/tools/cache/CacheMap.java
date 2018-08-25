@@ -16,5 +16,5 @@ public interface CacheMap<K, V> extends Map<K,V>{
 
     public V putIfAbsent(K key, V value, long expire);
 
-    public void putAll(Map<? extends K, ? extends V> map, int expire);
+    public void putAll(Map<? extends K, ? extends V> map, long expire);
 }
