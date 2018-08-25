@@ -6,3 +6,4 @@ Archiver-Version: Plexus Archiver
 Implementation-URL: http://www.voovan.org
 Agent-Class: org.voovan.tools.hotswap.DynamicAgent
 Can-Redefine-Classes: true
+Add-Exports: java.base/jdk.internal.ref
