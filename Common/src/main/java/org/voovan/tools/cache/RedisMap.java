@@ -27,7 +27,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public static final String SET_NOT_EXIST = "NX";
     public static final String SET_EXPIRE_TIME = "PX";
 
-    private int expire = Integer.MAX_VALUE;
+    private long expire = Long.MAX_VALUE;
 
 
     private JedisPool redisPool;
@@ -151,7 +151,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      * 获取默认超时时间
      * @return
      */
-    public int getExpire() {
+    public long getExpire() {
         return expire;
     }
 
@@ -159,7 +159,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      * 设置默认超时时间
      * @param expire
      */
-    public void expire(int expire) {
+    public void expire(long expire) {
         this.expire = expire;
     }
 
@@ -387,12 +387,12 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      * @param expire 超时事件
      * @return true: 成功, false:失败
      */
-    public boolean expire(K key, int expire) {
+    public boolean expire(K key, long expire) {
         byte[] keyByteArray = CacheStatic.serialize(key);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
-                return jedis.expire(keyByteArray, expire)==1;
+                return jedis.expire(keyByteArray, (int)expire)==1;
             }else {
                 throw new UnsupportedOperationException();
             }
