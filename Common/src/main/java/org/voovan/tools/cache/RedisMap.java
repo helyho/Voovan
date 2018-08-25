@@ -366,7 +366,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
 
         try (Jedis jedis = getJedis()) {
             if (name == null) {
-                String result = jedis.set(keyByteArray, valueByteArray, SET_NOT_EXIST.getBytes(), SET_EXPIRE_TIME.getBytes(), expire/1000);
+                String result = jedis.set(keyByteArray, valueByteArray, SET_NOT_EXIST.getBytes(), SET_EXPIRE_TIME.getBytes(), expire*1000);
 
                 if (LOCK_SUCCESS.equals(result)) {
                     value = null;
