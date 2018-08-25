@@ -53,7 +53,7 @@ public class SessionManager{
 
 		if(expirePutMethod == null) {
 			try {
-				expirePutMethod = TReflect.findMethod(httpSessions.getClass(), "put", String.class, String.class, int.class);
+				expirePutMethod = TReflect.findMethod(httpSessions.getClass(), "put", String.class, String.class, long.class);
 			} catch (ReflectiveOperationException e) {
 				expirePutMethod = null;
 			}
