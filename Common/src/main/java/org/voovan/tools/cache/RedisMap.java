@@ -457,7 +457,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
         }
     }
 
-    public void putAll(Map<? extends K, ? extends V> map, int expire) {
+    public void putAll(Map<? extends K, ? extends V> map, long expire) {
         try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
                 Map.Entry entry = (Map.Entry) obj;
@@ -466,7 +466,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
                 byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
 
                 if(name==null) {
-                    jedis.setex(keyByteArray, expire, valueByteArray);
+                    jedis.setex(keyByteArray, (int) expire, valueByteArray);
                 } else {
                     throw new UnsupportedOperationException();
                 }
