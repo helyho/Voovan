@@ -38,7 +38,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
         wheelTimer.rotate();
     }
 
-    private ConcurrentHashMap<K, TimeMark> cacheMark = new ConcurrentHashMap<K, TimeMark>();;
+    private ConcurrentHashMap<K, TimeMark> cacheMark = new ConcurrentHashMap<K, TimeMark>();
     private int maxSize;
 
     /**
@@ -460,7 +460,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * @param key 键
      * @param expire 超时时间
      */
-    public void expire(K key, int expire) {
+    public void expire(K key, long expire) {
         TimeMark timeMark = cacheMark.get(key);
         if(timeMark==null && !cacheMark.containsKey(key)){
             cacheMark.put(key, new TimeMark(this, key, expire));
