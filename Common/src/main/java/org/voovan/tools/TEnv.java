@@ -33,6 +33,7 @@ import java.util.regex.Matcher;
  * Licence: Apache v2 License
  */
 public class TEnv {
+	public static Float JDK_VERSION = Float.valueOf(System.getProperty("java.vm.specification.version"));
 
 	//环境名称, 用于多环境条件下的配置文件读取
 	private static String ENV_NAME = null;
