@@ -322,7 +322,7 @@ public class Formater {
 	 * 压缩历史日志文件
 	 */
 	private void packLogFile(){
-		long packSize = (long) (Double.valueOf(LoggerStatic.getLogConfig("PackSize", "1024")) * 1024L);
+		long packSize = (long) (Double.valueOf(LoggerStatic.getLogConfig("PackSize", "1024")) * 1024L * 1024L);
 		String logFilePath = getFormatedLogFilePath();
 
 		File logFile = new File(logFilePath);
