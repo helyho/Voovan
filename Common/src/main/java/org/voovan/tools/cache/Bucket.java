@@ -2,7 +2,6 @@ package org.voovan.tools.cache;
 
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
-import sun.misc.Cleaner;
 
 import java.util.concurrent.TimeoutException;
 
