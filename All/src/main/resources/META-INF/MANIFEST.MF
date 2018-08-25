@@ -7,3 +7,4 @@ Implementation-URL: http://www.voovan.org
 Main-Class: org.voovan.http.server.WebServer
 Agent-Class: org.voovan.tools.hotswap.DynamicAgent
 Can-Redefine-Classes: true
+Add-Exports: java.base/jdk.internal.ref
