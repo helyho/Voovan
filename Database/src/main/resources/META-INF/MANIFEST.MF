@@ -4,3 +4,4 @@ Implementation-Version: 1.0
 Implementation-Vendor-Id: org.voovan
 Archiver-Version: Plexus Archiver
 Implementation-URL: http://www.voovan.org
+Add-Exports: java.base/jdk.internal.ref
