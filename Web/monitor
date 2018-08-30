@@ -1,0 +1,4 @@
+#!/bin/sh
+token=`cat logs/.token`
+cmd="curl $1 -X MONITOR -H 'AUTH-TOKEN: $token' --compressed"
+eval $cmd
