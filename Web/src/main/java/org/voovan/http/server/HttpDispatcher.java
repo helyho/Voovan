@@ -152,6 +152,15 @@ public class HttpDispatcher {
 	}
 
 	/**
+	 * 是否是系统请求
+	 * @param request HTTP 请求
+	 * @return true: 框架请求, false: 非框架请求
+	 */
+	public boolean isFrameWorkRequest(HttpRequest request){
+		return (request.protocol().getMethod().equals("ADMIN") || request.protocol().getMethod().equals("MONITOR")) && request.header().contain("AUTH-TOKEN");
+	}
+
+	/**
 	 * Http 请求响应处理函数,入口函数
 	 *
 	 * @param request    HTTP 请求
@@ -165,7 +174,7 @@ public class HttpDispatcher {
 		request.setSessionManager(sessionManager);
 
 		//管理请求不经过过滤器
-		if(!(request.protocol().getMethod().equals("ADMIN") && request.header().contain("AUTH-TOKEN"))) {
+		if(!isFrameWorkRequest(request)) {
 			//正向过滤器处理,请求有可能被 Redirect 所以过滤器执行放在开始
 			filterResult = disposeFilter(filterConfigs, request, response);
 		}
@@ -177,7 +186,7 @@ public class HttpDispatcher {
 		}
 
 		//管理请求不经过过滤器
-		if(!(request.protocol().getMethod().equals("ADMIN") && request.header().contain("AUTH-TOKEN"))) {
+		if(!isFrameWorkRequest(request)) {
 			//反向过滤器处理
 			filterResult = disposeInvertedFilter(filterConfigs, request, response);
 		}
