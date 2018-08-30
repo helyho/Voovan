@@ -27,10 +27,10 @@ public class RateLimiterFilter implements HttpFilter {
         return null;
     };
 
-    private static CachedHashMap<String, Limiter> URL_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1000).destory(bucketRelease).create();
-    private static CachedHashMap<String, Limiter> IP_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1000).destory(bucketRelease).create();
-    private static CachedHashMap<String, Limiter> HEADER_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1000).destory(bucketRelease).create();
-    private static CachedHashMap<String, Limiter> SESSION_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1000).destory(bucketRelease).create();
+    private static CachedHashMap<String, Limiter> URL_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1).destory(bucketRelease).create();
+    private static CachedHashMap<String, Limiter> IP_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1).destory(bucketRelease).create();
+    private static CachedHashMap<String, Limiter> HEADER_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1).destory(bucketRelease).create();
+    private static CachedHashMap<String, Limiter> SESSION_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1).destory(bucketRelease).create();
 
     private AtomicBoolean isInit = new AtomicBoolean(false);
 
