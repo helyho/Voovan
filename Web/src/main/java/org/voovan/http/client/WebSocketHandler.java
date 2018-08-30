@@ -124,13 +124,13 @@ public class WebSocketHandler implements IoHandler{
                 //解包
                 try {
                     result = webSocketRouter.filterDecoder(webSocketSession, byteBufferChannel.getByteBuffer());
+
+                    //触发 onRecive
+                    result = webSocketRouter.onRecived(webSocketSession, result);
                 } finally {
                     byteBufferChannel.compact();
                     byteBufferChannel.clear();
                 }
-
-                //触发 onRecive
-                result = webSocketRouter.onRecived(webSocketSession, result);
 
                 if(result!=null) {
                     //封包
