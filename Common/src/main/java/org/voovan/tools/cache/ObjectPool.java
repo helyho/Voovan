@@ -22,7 +22,7 @@ import java.util.function.Function;
  * WebSite: https://github.com/helyho/Vestful
  * Licence: Apache v2 License
  */
-public class ObjectCachedPool {
+public class ObjectPool {
 
     private volatile ConcurrentSkipListMap<Object, PooledObject> objects = new ConcurrentSkipListMap<Object, PooledObject>();
     private volatile ConcurrentLinkedDeque<Object> unborrowedObjectIdList  = new ConcurrentLinkedDeque<Object>();
@@ -36,7 +36,7 @@ public class ObjectCachedPool {
      * @param aliveTime 对象存活时间,小于等于0时为一直存活,单位:秒
      * @param autoRefreshOnGet 获取对象时刷新对象存活时间
      */
-    public ObjectCachedPool(long aliveTime, boolean autoRefreshOnGet){
+    public ObjectPool(long aliveTime, boolean autoRefreshOnGet){
         this.aliveTime = aliveTime;
         this.autoRefreshOnGet = autoRefreshOnGet;
         removeDeadObject();
@@ -46,16 +46,15 @@ public class ObjectCachedPool {
      * 构造一个对象池
      * @param aliveTime 对象存活时间,单位:秒
      */
-    public ObjectCachedPool(long aliveTime){
+    public ObjectPool(long aliveTime){
         this.aliveTime = aliveTime;
         removeDeadObject();
     }
 
     /**
-     * 构造一个对象池,默认对象存活事件 5 s
+     * 构造一个对象池
      */
-    public ObjectCachedPool(){
-        removeDeadObject();
+    public ObjectPool(){
     }
 
     /**
@@ -253,10 +252,10 @@ public class ObjectCachedPool {
         @NotJSON
         private Object object;
         @NotJSON
-        private ObjectCachedPool objectPool;
+        private ObjectPool objectCachedPool;
 
-        public PooledObject(ObjectCachedPool objectPool, Object id, Object object) {
-            this.objectPool = objectPool;
+        public PooledObject(ObjectPool objectCachedPool, Object id, Object object) {
+            this.objectCachedPool = objectCachedPool;
             this.lastVisiediTime = System.currentTimeMillis();
             this.id = id;
             this.object = object;
@@ -274,7 +273,7 @@ public class ObjectCachedPool {
          * @return
          */
         public Object getObject() {
-            if(objectPool.isAutoRefreshOnGet()) {
+            if(objectCachedPool.isAutoRefreshOnGet()) {
                 refresh();
             }
             return object;
@@ -297,12 +296,12 @@ public class ObjectCachedPool {
          * @return
          */
         public boolean isAlive(){
-            if(objectPool.aliveTime<=0){
+            if(objectCachedPool.aliveTime<=0){
                 return true;
             }
 
             long currentAliveTime = System.currentTimeMillis() - lastVisiediTime;
-            if (currentAliveTime >= objectPool.aliveTime*1000){
+            if (objectCachedPool.aliveTime>0 && currentAliveTime >= objectCachedPool.aliveTime*1000){
                 return false;
             }else{
                 return true;
