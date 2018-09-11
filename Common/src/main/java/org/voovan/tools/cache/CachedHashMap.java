@@ -527,7 +527,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
          * @return true: 已过期, false: 未过期
          */
         public boolean isExpire(){
-            if(expireTime.get()!=Long.MAX_VALUE &&
+            if(expireTime.get()>0 && expireTime.get()!=Long.MAX_VALUE &&
                     System.currentTimeMillis() - lastTime.get() >= expireTime.get()*1000){
                 return true;
             } else {

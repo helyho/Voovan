@@ -2,7 +2,7 @@ package org.voovan.test.tools.cache;
 
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.cache.ObjectCachedPool;
+import org.voovan.tools.cache.ObjectPool;
 import org.voovan.tools.log.Logger;
 import junit.framework.TestCase;
 
@@ -23,7 +23,7 @@ public class ObjectCachedPoolUnit extends TestCase {
     public void testAddAndLiveTime(){
         Object pooledId = null;
 
-        ObjectCachedPool objectPool = new ObjectCachedPool(2);
+        ObjectPool objectPool = new ObjectPool(2);
         for(int i=0;i<30;i++) {
             Object item = "element " + i;
             if(pooledId==null) {
@@ -44,7 +44,7 @@ public class ObjectCachedPoolUnit extends TestCase {
 
     public void testBorrow() {
         Object pooledId = null;
-        ObjectCachedPool objectPool = new ObjectCachedPool();
+        ObjectPool objectPool = new ObjectPool();
 
         for(int i=0;i<100;i++) {
             Object item = "element " + i;
