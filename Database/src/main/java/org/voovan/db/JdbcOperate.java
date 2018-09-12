@@ -3,6 +3,7 @@ package org.voovan.db;
 import org.voovan.db.exception.UpdateCountException;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TSQL;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -292,6 +293,54 @@ public class JdbcOperate implements Closeable {
 		}
 
 		return -1;
+	}
+
+	/**
+	 * 执行数据库批量更新
+	 *
+	 * @param sqlTexts
+	 *            sql字符串
+	 * @return 每条 SQL 更新记录数
+	 * @throws SQLException SQL 异常
+	 */
+	private int[] baseBatch(String[] sqlTexts) throws SQLException {
+		Connection conn = getConnection();
+		Statement statement = null;
+		SQLException exception = null;
+		try {
+
+			statement = (Statement) conn.createStatement();
+
+			for(String sqlText : sqlTexts)
+				if(Logger.isLogLevel("DEBUG")) {
+					statement.addBatch(sqlText);
+					Logger.fremawork("[SQL_Executed]: " + sqlText);
+				}
+
+
+			int[] result = statement.executeBatch();
+
+			return result;
+		} catch (SQLException e) {
+			Logger.error("Batch execution SQL Error! \n SQL is : \n\t" + JSON.toJSON(sqlTexts) + ":\n\t" ,e);
+			exception = e;
+		} finally {
+			// 非事务模式执行
+			if (transcationType == TranscationType.NONE) {
+				closeConnection(statement);
+			}else{
+				if(exception!=null) {
+					rollback();
+				}
+				closeStatement(statement);
+			}
+		}
+
+		if(exception!=null){
+			throw exception;
+		}
+
+		return new int[0];
 	}
 
 	/**
@@ -901,6 +950,21 @@ public class JdbcOperate implements Closeable {
 	public int[] batchMap(String sqlText, List<Map<String, Object>> maps) throws SQLException {
 		return this.baseBatch(sqlText, maps);
 	}
+
+	/**
+	 * 执行数据库批量更新
+	 *
+	 * @param sqlTexts
+	 *            sql字符串
+	 * @return 每条 SQL 更新记录数
+	 * @throws SQLException SQL 异常
+	 * @throws ReflectiveOperationException 反射异常
+	 */
+	public int[] batch(String[] sqlTexts) throws SQLException, ReflectiveOperationException {
+
+		return this.baseBatch(sqlTexts);
+	}
+
 	/**
 	 * 调用存储过程,无参数
 	 * @param sqlText sql字符串 参数使用"::"作为标识,例如where id=::id
