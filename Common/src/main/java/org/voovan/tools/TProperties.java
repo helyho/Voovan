@@ -250,21 +250,6 @@ public class TProperties {
 	}
 
 	/**
-	 * 保存信息到 Properties文件
-	 *
-	 * @param fileName 文件名, 完整文件名
-	 * @param name 属性名
-	 * @param value 属性值
-	 * @throws IOException IO异常
-	 */
-	public static void setString(String fileName, String name, String value) throws IOException {
-		Properties properites = getProperties(fileName);
-		properites.setProperty(name, value);
-		properites.remove(TIME_STAMP_NAME);
-		properites.store(new FileOutputStream(fileName), null);
-	}
-
-	/**
 	 * 清空 指定文件的 Properites 缓存
 	 * @param fileName 文件名, 可以是完整文件名,也可以是不带扩展名的文件名
 	 */
