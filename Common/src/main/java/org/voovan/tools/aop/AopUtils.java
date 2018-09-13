@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarEntry;
+import java.util.regex.Matcher;
 
 /**
  * 切面工具类
@@ -66,8 +67,12 @@ public class AopUtils {
         if(pattern!=null) {
             pattern = pattern.replace(".", File.separator);
         }
+
+        //兼容 windows
+        String innerPattern = File.separator.equals("\\") ? Matcher.quoteReplacement(pattern) : pattern;
+
         ArrayList<CtClass> result = new ArrayList<CtClass>();
-        List<File> files = TFile.scanFile(rootfile, pattern);
+        List<File> files = TFile.scanFile(rootfile, innerPattern);
         for(File file : files){
             String fileName = file.getCanonicalPath();
             if("class".equals(TFile.getFileExtension(fileName))) {
@@ -136,7 +141,7 @@ public class AopUtils {
         className = TString.fastReplaceAll(resourcePath, "\\$.*\\.class$", ".class");
         className = TString.fastReplaceAll(className, ".class$", "");
 
-        className = TString.fastReplaceAll(className, File.separator, ".");
+        className = TString.fastReplaceAll(className, Matcher.quoteReplacement(File.separator), ".");
 
         try {
             return CLASSPOOL.get(className);
