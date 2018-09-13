@@ -261,7 +261,7 @@ public class TProperties {
 		Properties properites = getProperties(fileName);
 		properites.setProperty(name, value);
 		properites.remove(TIME_STAMP_NAME);
-		properites.store(new FileOutputStream(TString.assembly("./classes/", fileName, ".properties")), null);
+		properites.store(new FileOutputStream(fileName), null);
 	}
 
 	/**
