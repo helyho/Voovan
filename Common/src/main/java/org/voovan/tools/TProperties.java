@@ -252,7 +252,7 @@ public class TProperties {
 	/**
 	 * 保存信息到 Properties文件
 	 *
-	 * @param fileName 文件对象
+	 * @param fileName 文件名, 完整文件名
 	 * @param name 属性名
 	 * @param value 属性值
 	 * @throws IOException IO异常
