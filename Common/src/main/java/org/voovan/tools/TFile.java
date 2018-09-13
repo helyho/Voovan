@@ -384,13 +384,16 @@ public class TFile {
 	public static List<JarEntry> scanJar(File file, String pattern) throws IOException {
 		pattern = pattern.isEmpty() ? null : pattern;
 
+		//兼容 windows
+		String innerPattern = File.separator.equals("\\") ? Matcher.quoteReplacement(pattern) : pattern;
+
 		ArrayList<JarEntry> result = new ArrayList<JarEntry>();
 		JarFile jarFile = new JarFile(file);
 		Enumeration<JarEntry > jarEntrys = jarFile.entries();
 		while(jarEntrys.hasMoreElements()){
 			JarEntry jarEntry = jarEntrys.nextElement();
 			String fileName = jarEntry.getName();
-			if(pattern==null || TString.regexMatch(fileName,pattern) > 0) {
+			if(innerPattern==null || TString.regexMatch(fileName,innerPattern) > 0) {
 				result.add(jarEntry);
 			}
 		}
