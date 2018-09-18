@@ -15,7 +15,9 @@ import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 热部署核心类
@@ -28,7 +30,6 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class Hotswaper {
-    private Instrumentation instrumentation;
     private List<ClassFileInfo> classFileInfos;
     private List<String> excludePackages;
     private int reloadIntervals;
@@ -63,7 +64,12 @@ public class Hotswaper {
 
         excludePackages = TObject.asList("java.","sun.","javax.","com.sun","com.oracle");
 
-        instrumentation = TEnv.agentAttach(null);
+        TEnv.agentAttach(null);
+
+        if(TEnv.instrumentation==null){
+            throw new AgentInitializationException("instrumentation is not inited");
+        }
+
         loadCustomClass();
 
     }
@@ -73,7 +79,7 @@ public class Hotswaper {
      * @return 用户类信息
      */
     private void loadCustomClass(){
-        for(Class clazz : instrumentation.getAllLoadedClasses()){
+        for(Class clazz : TEnv.instrumentation.getAllLoadedClasses()){
 
             if(isExcludeClass(clazz)){
                 continue;
@@ -151,36 +157,38 @@ public class Hotswaper {
 
     /**
      * 重新热加载Class
+     * @param clazzDefines 有过变更的文件信息
+     * @throws UnmodifiableClassException  不可修改的 Class 异常
+     * @throws ClassNotFoundException Class未找到异常
+     */
+    public static void reloadClass(Map<Class, byte[]> clazzDefines) throws UnmodifiableClassException, ClassNotFoundException {
+        List<ClassDefinition> classDefinitions = new ArrayList<ClassDefinition>();
+
+        for(Map.Entry<Class, byte[]> clazzDefine : clazzDefines.entrySet()){
+            Class clazz = clazzDefine.getKey();
+            byte[] classBytes = clazzDefine.getValue();
+            ClassDefinition classDefinition = new ClassDefinition(clazz, classBytes);
+            Logger.info("[HOTSWAP] class:" + clazz + " will reload.");
+            classDefinitions.add(classDefinition);
+        }
+
+        TEnv.instrumentation.redefineClasses(classDefinitions.toArray(new ClassDefinition[0]));
+    }
+
+    /**
+     * 重新热加载Class
      * @param changedFiles 有过变更的文件信息
      * @throws UnmodifiableClassException  不可修改的 Class 异常
      * @throws ClassNotFoundException Class未找到异常
      */
     public void reloadClass(List<ClassFileInfo> changedFiles) throws UnmodifiableClassException, ClassNotFoundException {
-        List<ClassDefinition> classDefinitions = new ArrayList<ClassDefinition>();
-
+        HashMap<Class, byte[]> classDefines = new HashMap<Class, byte[]>();
         for(ClassFileInfo classFileInfo : changedFiles) {
-            ClassDefinition classDefinition = new ClassDefinition(classFileInfo.getClazz(), classFileInfo.getBytes());
-            Logger.info("[HOTSWAP] class:" + classFileInfo.getClazz() + " will reload.");
-            classDefinitions.add(classDefinition);
+            classDefines.put(classFileInfo.getClazz(), classFileInfo.getBytes());
         }
 
-        instrumentation.redefineClasses(classDefinitions.toArray(new ClassDefinition[0]));
-    }
+        reloadClass(classDefines);
 
-    /**
-     * 重新热加载 Class
-     * @param customClasses class 数组
-     * @throws UnmodifiableClassException  不可修改的 Class 异常
-     * @throws ClassNotFoundException Class未找到异常
-     */
-    public void reloadClass(Class[] customClasses) throws UnmodifiableClassException, ClassNotFoundException {
-        ArrayList<ClassFileInfo> customClassFileInfos = new ArrayList<ClassFileInfo>();
-        for(Class clazz : customClasses){
-            ClassFileInfo classFileInfo = new ClassFileInfo(clazz, false);
-            customClassFileInfos.add(classFileInfo);
-        }
-
-        reloadClass(customClassFileInfos);
     }
 
     /**

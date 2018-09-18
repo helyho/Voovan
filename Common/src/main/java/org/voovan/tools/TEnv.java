@@ -35,6 +35,8 @@ import java.util.regex.Matcher;
 public class TEnv {
 	public static Float JDK_VERSION = Float.valueOf(System.getProperty("java.vm.specification.version"));
 
+	public static Instrumentation instrumentation;
+
 	//环境名称, 用于多环境条件下的配置文件读取
 	private static String ENV_NAME = null;
 
@@ -496,27 +498,32 @@ public class TEnv {
 	 * @return Instrumentation 对象
 	 */
 	public static Instrumentation agentAttach(String agentJarPath) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException {
-		if(agentJarPath==null){
-			File agentJar = findAgentJar();
-			if(agentJar != null && agentJar.exists()) {
-				agentJarPath = agentJar.getAbsolutePath();
-				Logger.info("[System] Choose an agent jar file: " + agentJarPath);
-			} else {
-				throw new FileNotFoundException("The agent jar file not found");
-			}
-		}
+		if(instrumentation==null) {
 
-		try {
-			VirtualMachine vm = VirtualMachine.attach(Long.toString(TEnv.getCurrentPID()));
-			vm.loadAgent(agentJarPath);
-			Instrumentation instrumentation = DynamicAgent.getInstrumentation();
-			vm.detach();
-			return instrumentation;
-		} catch(IOException e) {
-			if(e.getMessage().contains("attach to current VM")) {
-				e = new IOException("please use -Djdk.attach.allowAttachSelf=true with java command.", e);
+			if (agentJarPath == null) {
+				File agentJar = findAgentJar();
+				if (agentJar != null && agentJar.exists()) {
+					agentJarPath = agentJar.getAbsolutePath();
+					Logger.info("[System] Choose an agent jar file: " + agentJarPath);
+				} else {
+					throw new FileNotFoundException("The agent jar file not found");
+				}
 			}
-			throw e;
+
+			try {
+				VirtualMachine vm = VirtualMachine.attach(Long.toString(TEnv.getCurrentPID()));
+				vm.loadAgent(agentJarPath);
+				TEnv.instrumentation = DynamicAgent.getInstrumentation();
+				vm.detach();
+				return TEnv.instrumentation;
+			} catch (IOException e) {
+				if (e.getMessage().contains("attach to current VM")) {
+					e = new IOException("please use -Djdk.attach.allowAttachSelf=true with java command.", e);
+				}
+				throw e;
+			}
+		} else {
+			return TEnv.instrumentation;
 		}
 	}
 
