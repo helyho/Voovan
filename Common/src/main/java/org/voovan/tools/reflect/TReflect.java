@@ -827,7 +827,7 @@ public class TReflect {
 													isImpByInterface(fieldType, Collection.class) ||
 													!TReflect.isBasicType(fieldType)
 									)
-									){
+							){
 								value = TString.toObject(value.toString(), fieldType);
 							}
 
@@ -1042,7 +1042,7 @@ public class TReflect {
 	 */
 	public static boolean classChecker(Class clazz, Class[] filters){
 		int matchCount = 0;
-		List<Annotation> annontations = TObject.asList(clazz.getAnnotations());
+		List<Annotation> annotations = TObject.asList(clazz.getAnnotations());
 
 		if(clazz.isAnonymousClass()) {
 			return false;
@@ -1193,7 +1193,7 @@ public class TReflect {
 		if(clazz == null ||
 				clazz.isPrimitive() ||
 				clazz.getName().startsWith("java.lang")
-				){
+		){
 			return true;
 		}else{
 			return false;
@@ -1228,8 +1228,8 @@ public class TReflect {
 	 * @param className Class 对象完全限定名
 	 * @return true: 是JDK 中定义的类, false:非JDK 中定义的类
 	 */
-	public static boolean isSystemType(String className){
-		if( className.indexOf(".")==-1){
+	public static boolean isSystemType(String className) {
+		if(className.indexOf(".")==-1){
 			return true;
 		}
 
@@ -1241,6 +1241,25 @@ public class TReflect {
 		}
 
 		return false;
+	}
+
+	/**
+	 * 获得装箱类型
+	 * @param primitiveType 原始类型
+	 * @return 装箱类型
+	 */
+	public static String getPackageType(String primitiveType){
+		switch (primitiveType){
+			case "int": return "java.lang.Integer";
+			case "byte": return "java.lang.Byte";
+			case "short": return "java.lang.Short";
+			case "long": return "java.lang.Long";
+			case "float": return "java.lang.Float";
+			case "double": return "java.lang.Double";
+			case "char": return "java.lang.Character";
+			case "boolean": return "java.lang.Boolean";
+			default : return null;
+		}
 	}
 }
 

@@ -4,7 +4,6 @@ import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
-import org.voovan.tools.hotswap.DynamicAgent;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -353,7 +352,11 @@ public class TEnv {
 	 * @return 在物理设备上的文件位置
 	 */
 	public static String getClassLocation(Class clazz){
-		return clazz.getProtectionDomain().getCodeSource().getLocation().getFile();
+		if(clazz.getProtectionDomain().getCodeSource().getLocation()!=null) {
+			return clazz.getProtectionDomain().getCodeSource().getLocation().getFile();
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -363,6 +366,9 @@ public class TEnv {
 	 */
 	public static long getClassModifyTime(Class clazz){
 		String location = getClassLocation(clazz);
+		if(location==null){
+			return -1;
+		}
 		String classNamePath = TEnv.classToResource(clazz);
 		try {
 			if(location.endsWith(".jar")) {
@@ -498,7 +504,7 @@ public class TEnv {
 	 * @return Instrumentation 对象
 	 */
 	public static Instrumentation agentAttach(String agentJarPath) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException {
-		if(instrumentation==null) {
+		if(TEnv.instrumentation==null) {
 
 			if (agentJarPath == null) {
 				File agentJar = findAgentJar();

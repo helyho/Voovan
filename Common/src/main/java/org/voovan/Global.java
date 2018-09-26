@@ -22,10 +22,13 @@ public class Global {
     public static String NAME = "Voovan";
 
     public static volatile Boolean NO_HEAP_MANUAL_RELEASE;
+    public static volatile String REMOTE_CLASS_SOURCE;
+
     static {
         if(NO_HEAP_MANUAL_RELEASE == null) {
             boolean value = false;
             value = TProperties.getBoolean("framework", "NoHeapManualRelease");
+            REMOTE_CLASS_SOURCE = TProperties.getString("framework", "RemoteClassSource");
             NO_HEAP_MANUAL_RELEASE = TObject.nullDefault(value, false);
             System.out.println("[SYSTEM] NoHeap Manual Release: " + NO_HEAP_MANUAL_RELEASE);
         }

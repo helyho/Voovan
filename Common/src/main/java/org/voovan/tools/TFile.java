@@ -161,7 +161,7 @@ public class TFile {
 			InputStream inputStream = TEnv.class.getClassLoader().getResourceAsStream(resourcePath);
 			return TStream.readAll(inputStream);
 		} catch (IOException e) {
-			Logger.error("Load resource URLDecoder.decode failed",e);
+			Logger.error("Load resource " + resourcePath + " failed",e);
 			return null;
 		}
 	}
