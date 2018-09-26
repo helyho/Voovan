@@ -2,9 +2,9 @@ package org.voovan.tools.aop;
 
 import org.voovan.tools.CollectionSearch;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
@@ -60,6 +60,7 @@ public class Aop {
         for(String scanPackage : scanPackages.split(",")) {
             AopUtils.scanAopClass(scanPackage);
         }
+
         IS_AOP_ON = true;
         instrumentation = TEnv.agentAttach(agentJarPath);
         if(instrumentation!=null) {
@@ -67,7 +68,7 @@ public class Aop {
                 @Override
                 public byte[] transform(ClassLoader loader, String classPath, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
                     String className = classPath.replaceAll(File.separator, ".");
-                    if(!isSystemType(className)) {
+                    if(!TReflect.isSystemType(className)) {
                         return Inject(className, classfileBuffer);
                     } else {
                         return classfileBuffer;
@@ -95,6 +96,8 @@ public class Aop {
             }
 
             try {
+
+                //这里加载两次是为了防止热加载失效
                 ctClass = AopUtils.CLASSPOOL.get(className);
                 ctClass.detach();
                 ctClass = AopUtils.CLASSPOOL.get(className);
@@ -261,46 +264,4 @@ public class Aop {
 
         return classfileBuffer;
     }
-
-    /**
-     * 获得装箱类型
-     * @param primitiveType 原始类型
-     * @return 装箱类型
-     */
-    public static String getPackageType(String primitiveType){
-        switch (primitiveType){
-            case "int": return "java.lang.Integer";
-            case "byte": return "java.lang.Byte";
-            case "short": return "java.lang.Short";
-            case "long": return "java.lang.Long";
-            case "float": return "java.lang.Float";
-            case "double": return "java.lang.Double";
-            case "char": return "java.lang.Character";
-            case "boolean": return "java.lang.Boolean";
-            default : return null;
-        }
-    }
-
-    private static List<String> systemPackages = TObject.asList("java.","sun.","javax.","com.sun","com.oracle");
-
-    /**
-     * 判读是否是 JDK 中定义的类(java包下的所有类)
-     * @param className Class 对象完全限定名
-     * @return true: 是JDK 中定义的类, false:非JDK 中定义的类
-     */
-    public static boolean isSystemType(String className){
-        if( className.indexOf(".")==-1){
-            return true;
-        }
-
-        //排除的包中的 class 不加载
-        for(String systemPackage : systemPackages){
-            if(className.startsWith(systemPackage)){
-                return true;
-            }
-        }
-
-        return false;
-    }
-
 }

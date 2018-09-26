@@ -12,7 +12,6 @@ import com.sun.tools.attach.AttachNotSupportedException;
 import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.ClassDefinition;
-import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -236,6 +235,14 @@ public class Hotswaper {
         }
     }
 
+    public List<ClassFileInfo> getClassFileInfos() {
+        return classFileInfos;
+    }
+
+    public void setClassFileInfos(List<ClassFileInfo> classFileInfos) {
+        this.classFileInfos = classFileInfos;
+    }
+
     /**
      * Class 文件信息
      */
@@ -249,8 +256,6 @@ public class Hotswaper {
                 this.lastModified = TEnv.getClassModifyTime(clazz);
             }
         }
-
-
 
         public boolean isChanged(){
 
@@ -267,6 +272,8 @@ public class Hotswaper {
                 return false;
             }
         }
+
+
 
         public byte[] getBytes() {
             return TEnv.loadClassBytes(clazz);
