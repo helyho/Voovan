@@ -1112,12 +1112,16 @@ public class JdbcOperate implements Closeable {
 
 	@Override
 	public void close() throws IOException {
-		if(resultSet!=null){
-			closeConnection(this.resultSet);
-		} else if(statement!=null){
-			closeConnection(statement);
-		} else {
-			closeConnection(connection);
+		try {
+			if (resultSet != null && !resultSet.isClosed()) {
+				closeConnection(this.resultSet);
+			} else if (statement != null && !statement.isClosed()) {
+				closeConnection(statement);
+			} else {
+				closeConnection(connection);
+			}
+		} catch (Exception e){
+			throw new IOException(e);
 		}
 
 	}
