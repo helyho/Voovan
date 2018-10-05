@@ -7,6 +7,7 @@ import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -144,37 +145,27 @@ public class EventProcess {
 				while (session.getByteBufferChannel().size() > 0) {
 
 					byteBuffer = messageLoader.read();
+					if(byteBuffer!=null) {
 
-					//如果读出的数据为 null 则直接返回
-					if (byteBuffer == null) {
-						return;
+						//如果 ByteBuffer 无有效数据, 说明需要使用流的方式读取, 则阻赛处理
+						if (!byteBuffer.hasRemaining()){
+							doRecive(session, byteBuffer);
+						}
+						//如果 ByteBuffer 存在有效数据, 说明报文分割有效, 则异步处理
+						else{
+							ByteBuffer finalByteBuffer = byteBuffer;
+							Global.getThreadPool().execute(() -> {
+								try {
+									doRecive(session, finalByteBuffer);
+								} catch (IoFilterException e) {
+									Logger.error("EventProcess.doRecive error: ", e);
+								}
+							});
+						}
 					}
-
-					Object result = null;
-
-					// -----------------Filter 解密处理-----------------
-					result = filterDecoder(session, byteBuffer);
-					// -------------------------------------------------
-
-					// -----------------Handler 业务处理-----------------
-					if (result != null) {
-						IoHandler handler = socketContext.handler();
-						result = handler.onReceive(session, result);
-					}
-					// --------------------------------------------------
-
-					// 返回的结果不为空的时候才发送
-					if (result != null) {
-
-						//触发发送事件
-						sendMessage(session, result);
-					} else {
-						break;
-					}
-
 				}
 
-				TByteBuffer.release(byteBuffer);
+
 			} finally {
 				//释放 onRecive 锁
 				session.getState().setReceive(false);
@@ -187,6 +178,47 @@ public class EventProcess {
 			}
 		}
 
+	}
+
+	/**
+	 * 接收的消息处理函数
+	 * @param session  会话对象
+	 * @param byteBuffer 报文对象
+	 * @return 产生的响应
+	 * @throws IoFilterException
+	 */
+	public static Object doRecive(IoSession session, ByteBuffer byteBuffer) throws IoFilterException {
+		try {
+			//如果读出的数据为 null 则直接返回
+			if (byteBuffer == null) {
+				return null;
+			}
+
+			Object result = null;
+
+			// -----------------Filter 解密处理-----------------
+			result = filterDecoder(session, byteBuffer);
+			// -------------------------------------------------
+
+			// -----------------Handler 业务处理-----------------
+			if (result != null) {
+				IoHandler handler = session.socketContext().handler();
+				result = handler.onReceive(session, result);
+			}
+			// --------------------------------------------------
+
+			// 返回的结果不为空的时候才发送
+			if (result != null) {
+
+				//触发发送事件
+				sendMessage(session, result);
+				return result;
+			} else {
+				return null;
+			}
+		} finally {
+			TByteBuffer.release(byteBuffer);
+		}
 	}
 
 	/**
@@ -251,31 +283,35 @@ public class EventProcess {
 		final Object sendObj = obj;
 
 		//开启一个线程发送消息,不阻塞当前线程
-        try {
-            try {
-                // ------------------Filter 加密处理-----------------
-                ByteBuffer sendBuffer = EventProcess.filterEncoder(sendSession, sendObj);
-                // ---------------------------------------------------
+		try {
+			try {
+				// ------------------Filter 加密处理-----------------
+				ByteBuffer sendBuffer = EventProcess.filterEncoder(sendSession, sendObj);
+				// ---------------------------------------------------
 
-                if (sendBuffer != null) {
+				if (sendBuffer != null) {
 
-                    // 发送消息
-                    if (sendBuffer != null && sendSession.isOpen()) {
-                        if (sendBuffer.limit() > 0) {
-                            sendSession.send(sendBuffer);
-                            sendBuffer.rewind();
-                        }
-                    }
+					// 发送消息
+					if (sendBuffer != null && sendSession.isOpen()) {
+						if (sendBuffer.limit() > 0) {
+							int sendLength = sendSession.send(sendBuffer);
+							if(sendLength >= 0) {
+								sendBuffer.rewind();
+							} else {
+								throw new IOException("EventProcess.sendMessage faild, send length: " + sendLength);
+							}
+						}
+					}
 
-                    //触发发送事件
-                    EventTrigger.fireSent(sendSession, sendObj);
-                }
-            } catch (IoFilterException e) {
-                EventTrigger.fireException(sendSession, e);
-            }
-        } finally {
-            sendSession.getState().setSend(false);
-        }
+					//触发发送事件
+					EventTrigger.fireSent(sendSession, sendObj);
+				}
+			} catch (IOException e) {
+				EventTrigger.fireException(sendSession, e);
+			}
+		} finally {
+			sendSession.getState().setSend(false);
+		}
 	}
 
 	/**

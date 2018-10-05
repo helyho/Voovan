@@ -10,7 +10,6 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.WritePendingException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -123,25 +122,21 @@ public class AioSession extends IoSession<AioSocket> {
                     try {
                         while(isConnected()) {
                             //这里会阻赛当前的发送线程
-                            try {
-                                Integer sentLength = sendResult.get(socketContext().getSendTimeout(), TimeUnit.MILLISECONDS);
-                                if (sentLength != null) {
-                                    totalSendByte += sentLength;
-                                    break;
-                                }
-                            }catch (TimeoutException e){
-                                Logger.error("AioSession send timeout, Socket will be close", e);
-                                close();
-                                return -1;
+                            Integer sentLength = sendResult.get(socketContext().getSendTimeout(), TimeUnit.MILLISECONDS);
+                            if (sentLength != null) {
+                                totalSendByte += sentLength;
+                                break;
                             }
                         }
-                    } catch ( ExecutionException e) {
-                        break;
-                    } catch (InterruptedException  e){
+                    } catch (Exception e) {
+                        if(e instanceof TimeoutException){
+                            throw new IOException(e);
+                        }
                         close();
+                        return -1;
                     }
 
-                }catch(WritePendingException e){
+                } catch(WritePendingException e){
                     continue;
                 }
             }
