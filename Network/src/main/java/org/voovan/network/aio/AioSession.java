@@ -3,6 +3,7 @@ package org.voovan.network.aio;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.network.exception.RestartException;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -10,7 +11,6 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.WritePendingException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -116,6 +116,7 @@ public class AioSession extends IoSession<AioSocket> {
     protected synchronized int send0(ByteBuffer buffer) throws IOException {
         int totalSendByte = 0;
         if (isConnected() && buffer != null) {
+            int waitTime = 0;
             //循环发送直到全部内容发送完毕
             while(isConnected() && buffer.remaining()!=0){
                 try {
@@ -123,25 +124,26 @@ public class AioSession extends IoSession<AioSocket> {
                     try {
                         while(isConnected()) {
                             //这里会阻赛当前的发送线程
-                            try {
-                                Integer sentLength = sendResult.get(socketContext().getSendTimeout(), TimeUnit.MILLISECONDS);
-                                if (sentLength != null) {
-                                    totalSendByte += sentLength;
-                                    break;
-                                }
-                            }catch (TimeoutException e){
-                                Logger.error("AioSession send timeout, Socket will be close", e);
-                                close();
-                                return -1;
+                            Integer sentLength = sendResult.get(socketContext().getSendTimeout(), TimeUnit.MILLISECONDS);
+                            if (sentLength != null) {
+                                totalSendByte += sentLength;
+                                break;
                             }
                         }
-                    } catch ( ExecutionException e) {
-                        break;
-                    } catch (InterruptedException  e){
+                    } catch (Exception e) {
+                        if(e instanceof TimeoutException){
+                            throw new IOException(e);
+                        }
                         close();
+                        return -1;
                     }
 
-                }catch(WritePendingException e){
+                } catch(WritePendingException e){
+                    waitTime++;
+                    TEnv.sleep(1);
+                    if(waitTime > socketContext().getSendTimeout()){
+                        throw new IOException(new TimeoutException("AioSession.send0 WritePending timeout"));
+                    }
                     continue;
                 }
             }
