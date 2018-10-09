@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
  * Byte数据过滤器
  *      encode 传入为 byte[]
  *      decode 返回为 byte[]
- *      255+4位为数据长度+255+数据
+ *      -128 + -128+4位为数据长度+ -128 +数据
  *
  * @author helyho
  *
@@ -20,8 +20,8 @@ import java.nio.ByteBuffer;
  */
 public class ByteFilter implements IoFilter {
 	public static Class BYTE_ARRAY_CLASS = (new byte[0]).getClass();
-	public static byte SPLITER = (byte) 255;
-	public static int HEAD_LEGNTH = 6;
+	public static byte SPLITER = -128;
+	public static int HEAD_LEGNTH = 7;
 
 	@Override
 	public Object encode(IoSession session, Object object) {
@@ -29,6 +29,7 @@ public class ByteFilter implements IoFilter {
 
 			byte[] data = (byte[])object;
 			ByteBuffer byteBuffer = ByteBuffer.allocate(HEAD_LEGNTH + data.length);
+			byteBuffer.put(SPLITER);
 			byteBuffer.put(SPLITER);
 			byteBuffer.putInt(data.length);
 			byteBuffer.put(SPLITER);
@@ -52,7 +53,7 @@ public class ByteFilter implements IoFilter {
 					return null;
 				}
 
-				if (byteBuffer.get() == SPLITER) {
+				if (byteBuffer.get() == SPLITER && byteBuffer.get() == SPLITER) {
 					int length = byteBuffer.getInt();
 
 					if (byteBuffer.get() == SPLITER) {
