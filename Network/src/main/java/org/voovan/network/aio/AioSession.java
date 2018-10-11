@@ -142,6 +142,7 @@ public class AioSession extends IoSession<AioSocket> {
                     waitTime++;
                     TEnv.sleep(1);
                     if(waitTime > socketContext().getSendTimeout()){
+                        close();
                         throw new IOException(new TimeoutException("AioSession.send0 WritePending timeout"));
                     }
                     continue;
