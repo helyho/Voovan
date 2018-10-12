@@ -68,7 +68,7 @@ public class ThreadPool {
 		//启动线程池自动调整任务
 		Timer timer = new Timer("VOOVAN@THREAD_POOL_TIMER");
 		ThreadPoolTask threadPoolTask = new ThreadPoolTask(threadPoolInstance);
-		timer.schedule(threadPoolTask, 1, STATUS_INTERVAL);
+		timer.schedule(threadPoolTask, 1, 1000);
 		return threadPoolInstance;
 	}
 
