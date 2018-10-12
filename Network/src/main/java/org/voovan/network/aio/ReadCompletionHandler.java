@@ -74,7 +74,10 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 					//检查心跳
 					if(SSLParser.isHandShakeDone(session)) {
+						//锁住appByteBufferChannel防止异步问题
+						appByteBufferChannel.getByteBuffer();
 						HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
+						appByteBufferChannel.compact();
 					}
 
 					if(appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
@@ -84,13 +87,13 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 					// 接收完成后重置buffer对象
 					readTempBuffer.clear();
+				}
 
-					// 继续接收 Read 请求
-					if(aioSocket.isConnected()) {
-						Global.getThreadPool().execute(()->{
-							aioSocket.catchRead(readTempBuffer);
-						});
-					}
+				// 继续接收 Read 请求
+				if(aioSocket.isConnected()) {
+					Global.getThreadPool().execute(()->{
+						aioSocket.catchRead(readTempBuffer);
+					});
 				}
 			}
 		} catch (IOException e) {
