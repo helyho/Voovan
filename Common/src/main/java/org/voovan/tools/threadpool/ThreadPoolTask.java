@@ -19,6 +19,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class ThreadPoolTask extends TimerTask {
 	private ThreadPoolExecutor	threadPoolInstance;
 	private int					cpuCoreCount;
+	private int 				count = 0;
 
 	public ThreadPoolTask(ThreadPoolExecutor threadPoolInstance) {
 		cpuCoreCount = Runtime.getRuntime().availableProcessors();
@@ -27,19 +28,27 @@ public class ThreadPoolTask extends TimerTask {
 
 	@Override
 	public void run() {
+
+
 		try {
 			if (threadPoolInstance.isShutdown()) {
 				this.cancel();
 			}
 
-			String threadPoolInfo = "[PoolInfo]: " + threadPoolInstance.getActiveCount() + "/" + threadPoolInstance.getCorePoolSize() + "/"
-					+ threadPoolInstance.getLargestPoolSize() + "/" + threadPoolInstance.getMaximumPoolSize() + " \t[TaskCount]: "
-					+ threadPoolInstance.getCompletedTaskCount() + "/"
-					+ threadPoolInstance.getTaskCount() + " \t[QueueSize]: " + threadPoolInstance.getQueue().size() + " \t[PerCoreLoadAvg]: "
-					+ TPerformance.cpuPerCoreLoadAvg();
-			if (threadPoolInstance.getActiveCount() != 0) {
-				Logger.fremawork("[ShutDown]: " + threadPoolInstance.isShutdown() + " \t" + threadPoolInfo);
+
+			if(count*1000 % ThreadPool.getStatusInterval()  == 0) {
+
+				String threadPoolInfo = "[PoolInfo]: A:" + threadPoolInstance.getActiveCount() + "/ S:" + threadPoolInstance.getCorePoolSize() + "/ L:"
+						+ threadPoolInstance.getLargestPoolSize() + "/ M:" + threadPoolInstance.getMaximumPoolSize() + " \t[TaskCount]: "
+						+ threadPoolInstance.getCompletedTaskCount() + "/"
+						+ threadPoolInstance.getTaskCount() + " \t[QueueSize]: " + threadPoolInstance.getQueue().size() + " \t[PerCoreLoadAvg]: "
+						+ TPerformance.cpuPerCoreLoadAvg();
+				if (threadPoolInstance.getActiveCount() != 0) {
+					Logger.fremawork("[ShutDown]: " + threadPoolInstance.isShutdown() + " \t" + threadPoolInfo);
+				}
 			}
+
+			count++;
 
 			int poolSize = threadPoolInstance.getPoolSize();
 			// 动态调整线程数,且系统CPU负载值要小于1
