@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 
 /**
  * Byte数据截断器
- *     	-128 + -128+4位为数据长度+ -128 +数据
+ *      -128 + -128+4位为数据长度+ -128 +数据
  *
  * @author: helyho
  * Project: DBase
@@ -33,8 +33,6 @@ public class ByteMessageSpliter implements MessageSplitter {
 					} else {
 						session.close();
 					}
-				} else {
-					session.close();
 				}
 			}
 		} finally {
