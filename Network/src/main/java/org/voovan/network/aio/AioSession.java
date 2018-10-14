@@ -3,6 +3,7 @@ package org.voovan.network.aio;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.network.exception.RestartException;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -115,6 +116,7 @@ public class AioSession extends IoSession<AioSocket> {
     protected synchronized int send0(ByteBuffer buffer) throws IOException {
         int totalSendByte = 0;
         if (isConnected() && buffer != null) {
+            int waitTime = 0;
             //循环发送直到全部内容发送完毕
             while(isConnected() && buffer.remaining()!=0){
                 try {
@@ -137,6 +139,12 @@ public class AioSession extends IoSession<AioSocket> {
                     }
 
                 } catch(WritePendingException e){
+                    waitTime++;
+                    TEnv.sleep(1);
+                    if(waitTime > socketContext().getSendTimeout()){
+                        close();
+                        throw new IOException(new TimeoutException("AioSession.send0 WritePending timeout"));
+                    }
                     continue;
                 }
             }

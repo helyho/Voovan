@@ -1,5 +1,7 @@
 package org.voovan.tools.exception;
 
+import java.io.IOException;
+
 /**
  * 内存已被释放的异常
  *
@@ -8,7 +10,7 @@ package org.voovan.tools.exception;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class LargerThanMaxSizeException extends RuntimeException{
+public class LargerThanMaxSizeException extends IOException{
 
     public LargerThanMaxSizeException() {
         super();

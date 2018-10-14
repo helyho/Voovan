@@ -562,7 +562,7 @@ public class ByteBufferChannel {
 	 * @param newSize  重新分配的空间大小
 	 * @return true:成功, false:失败
 	 */
-	public boolean reallocate(int newSize) {
+	public boolean reallocate(int newSize) throws LargerThanMaxSizeException {
 
 		//检查分配内存是否超过限额
 		if(maxSize < newSize){
@@ -604,12 +604,32 @@ public class ByteBufferChannel {
 		try {
 
 			int writeSize = src.limit() - src.position();
+			int waitCount = 0;
 
 			if (writeSize > 0) {
 				//是否扩容
 				if (available() < writeSize) {
 					int newSize = byteBuffer.capacity() + writeSize;
-					reallocate(newSize);
+					try {
+						reallocate(newSize);
+					} catch (LargerThanMaxSizeException e){
+						//等待
+						Logger.simple("ByteBuffer is full, wait 1 s. ");
+
+						while(true) {
+							if(available() < writeSize) {
+								TEnv.sleep(1);
+								waitCount++;
+							} else {
+								Logger.simple("ByteBuffer is full, wait avaliable size, contiune.");
+								break;
+							}
+
+							if(waitCount >= 1000){
+								throw new RuntimeException(e);
+							}
+						}
+					}
 				}
 
 
