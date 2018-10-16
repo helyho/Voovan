@@ -390,7 +390,6 @@ public class WebServer {
 	 * 通用服务启动
 	 */
 	private void commonServe() throws IOException {
-
 		WebContext.getAuthToken();
 
 		WebContext.logo();
@@ -425,7 +424,9 @@ public class WebServer {
 			Logger.error("Write pid to file: " + pidFile.getPath() + " error", e);
 		}
 
-		String serviceUrl = "http"+(config.isHttps()?"s":"")+"://"+config.getHost()+":"+config.getPort();
+		String serviceUrl = "http" + (config.isHttps()?"s":"") + "://"
+				+ (config.getHost().equals("0.0.0.0") ? "127.0.0.1" : config.getHost())
+				+ ":"+config.getPort();
 		Logger.simple("WebServer working on: \t" + serviceUrl);
 
 	}
