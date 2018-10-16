@@ -209,14 +209,14 @@ public class Aop {
                         if (cutPointInfo.getType() == -1) {
                             originMethod.insertBefore("{" + cutPointClassName + "." + cutPointMethodName + "(new org.voovan.tools.aop.InterceptInfo($class, \""+originMethod.getName()+"\", "
                                     + thisParam +", $sig, $args, null, null, null));}");
-                            System.out.println("[AOP] Code weaved -> BEFORE:\t\t " + cutPointInfo.getClazzName() + "@" + cutPointMethodName);
+                            System.out.println("[AOP] Code weaved -> BEFORE:\t\t " + cutPointInfo.getClazzName() + "@" + cutPointMethodName + " -> " + cutPointInfo.getClazzName());
                         }
 
                         //After 方法
                         if (cutPointInfo.getType() == 1) {
                             originMethod.insertAfter("{"+ cutPointClassName + "." + cutPointMethodName + "(new org.voovan.tools.aop.InterceptInfo($class, \""+originMethod.getName()+"\", "
                                     + thisParam +", $sig, $args, $type, ($w)$_, null));}");
-                            System.out.println("[AOP] Code weaved -> AFTER:\t\t     " + cutPointInfo.getClazzName() + "@" + cutPointMethodName);
+                            System.out.println("[AOP] Code weaved -> AFTER:\t\t     " + cutPointInfo.getClazzName() + "@" + cutPointMethodName + " -> " + cutPointInfo.getClazzName());
                         }
 
                         //Exception 方法
@@ -224,7 +224,7 @@ public class Aop {
                             CtClass exceptionType = ClassPool.getDefault().get("java.lang.Exception");
                             originMethod.addCatch("{"+ cutPointClassName + "." + cutPointMethodName + "(new org.voovan.tools.aop.InterceptInfo($class, \""+originMethod.getName()+"\", "
                                     + thisParam +", $sig, $args, null, null, $e));  throw $e;}", exceptionType);
-                            System.out.println("[AOP] Code weaved -> EXCEPTION:\t\t " + cutPointInfo.getClazzName() + "@" + cutPointMethodName);
+                            System.out.println("[AOP] Code weaved -> EXCEPTION:\t\t " + cutPointInfo.getClazzName() + "@" + cutPointMethodName + " -> " + cutPointInfo.getClazzName());
                         }
 
                         //Around 方法
@@ -247,7 +247,7 @@ public class Aop {
                             ctClass.addMethod(ctNewMethod);
                             ctNewMethod.setBody("{ return "+ cutPointClassName + "." + cutPointMethodName + "(new org.voovan.tools.aop.InterceptInfo($class, \""+ originMethodName +"\", "
                                     + thisParam +", $sig, $args, null, null, null));}");
-                            System.out.println("[AOP] Code weaved -> AROUND:\t\t " + cutPointInfo.getClazzName() + "@" + cutPointMethodName);
+                            System.out.println("[AOP] Code weaved -> AROUND:\t\t " + cutPointInfo.getClazzName() + "@" + cutPointMethodName + " -> " + cutPointInfo.getClazzName());
                         }
                     } catch (CannotCompileException e) {
                         e.printStackTrace();
