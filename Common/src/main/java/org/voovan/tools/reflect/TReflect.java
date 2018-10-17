@@ -46,7 +46,7 @@ public class TReflect {
 		String mark = clazz.getCanonicalName();
 		Field[] fields = fieldArrays.get(mark);
 
-		if(fields == null){
+		if(fields==null && !fieldArrays.containsKey(mark)){
 			HashSet<Field> fieldArray = new HashSet<Field>();
 			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
 				Field[] tmpFields = clazz.getDeclaredFields();
@@ -76,7 +76,7 @@ public class TReflect {
 
 		Field field = fields.get(mark);
 
-		if(field==null){
+		if(field==null && !fields.containsKey(mark)){
 
 			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
 				try {
@@ -108,7 +108,7 @@ public class TReflect {
 		String mark = new StringBuilder(clazz.getCanonicalName()).append("#").append(fieldName).toString();
 
 		Field field = fields.get(mark);
-		if (field==null){
+		if (field==null && !fields.containsKey(mark)){
 			for (Field fieldItem : getFields(clazz)) {
 				if (fieldItem.getName().equalsIgnoreCase(fieldName) || fieldItem.getName().equalsIgnoreCase(TString.underlineToCamel(fieldName))) {
 					fields.put(mark, fieldItem);
@@ -240,7 +240,7 @@ public class TReflect {
 		String mark = markBuilder.toString();
 
 		Method method = methods.get(mark);
-		if (method == null){
+		if (method==null && !methods.containsKey(mark)){
 
 			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
 				try {
@@ -271,7 +271,7 @@ public class TReflect {
 
 		Method[] methods = methodArrays.get(mark);
 
-		if (methods==null){
+		if (methods==null && !methodArrays.containsKey(mark)){
 			HashSet<Method> methodList = new HashSet<Method>();
 			Method[] allMethods = getMethods(clazz, name);
 			for (Method method : allMethods) {
@@ -298,9 +298,9 @@ public class TReflect {
 
 		String mark = clazz.getCanonicalName();
 
-		if(methodArrays.containsKey(mark)){
-			return methodArrays.get(mark);
-		} else {
+		methods = methodArrays.get(mark);
+
+		if(methods==null && !methodArrays.containsKey(mark)){
 			HashSet<Method> methodList = new HashSet<Method>();
 			for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
 				Method[] tmpMethods = clazz.getDeclaredMethods();
@@ -309,7 +309,9 @@ public class TReflect {
 			methods = methodList.toArray(new Method[]{});
 			methodList.clear();
 			methodArrays.put(mark,methods);
+
 		}
+
 		return methods;
 	}
 
@@ -325,10 +327,9 @@ public class TReflect {
 		Method[] methods = null;
 
 		String mark = new StringBuilder(clazz.getCanonicalName()).append("#").append(name).toString();
+		methods = methodArrays.get(mark);
+		if(methods==null && methods==null && !methodArrays.containsKey(mark)){
 
-		if(methodArrays.containsKey(mark)){
-			return methodArrays.get(mark);
-		} else {
 			HashSet<Method> methodList = new HashSet<Method>();
 			Method[] allMethods = getMethods(clazz);
 			for (Method method : allMethods) {
@@ -339,6 +340,7 @@ public class TReflect {
 			methodList.clear();
 			methodArrays.put(mark,methods);
 		}
+
 		return methods;
 	}
 
@@ -522,7 +524,7 @@ public class TReflect {
 
 		try {
 
-			if (constructor == null){
+			if (constructor==null && !constructors.containsKey(constructor)){
 				if (args.length == 0) {
 					try {
 						constructor = targetClazz.getConstructor();
@@ -545,7 +547,7 @@ public class TReflect {
 				//缓存构造函数
 				mark = targetClazz.getCanonicalName();
 				Constructor[] constructors =  constructorArrays.get(mark);
-				if(constructors == null){
+				if(constructors==null && !constructorArrays.containsKey(mark)){
 					constructors = targetClazz.getConstructors();
 					constructorArrays.put(mark, constructors);
 				}
@@ -981,7 +983,7 @@ public class TReflect {
 		Boolean result = classHierarchy.get(marker);
 
 
-		if(result==null) {
+		if(result==null && !classHierarchy.containsKey(marker)) {
 			Class<?>[] interfaces = type.getInterfaces();
 			for (Class<?> interfaceItem : interfaces) {
 				if (interfaceItem == interfaceClass) {
