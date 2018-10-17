@@ -1202,7 +1202,7 @@ public class TReflect {
 		}
 	}
 
-	private static List<String> systemPackages = TObject.asList("java.","jdk.","sun.","javax.","com.sun","com.oracle");
+	private static List<String> systemPackages = TObject.asList("java.","jdk.","sun.","javax.","com.sun","com.oracle","javassist");
 
 	/**
 	 * 判读是否是 JDK 中定义的类(java包下的所有类)
