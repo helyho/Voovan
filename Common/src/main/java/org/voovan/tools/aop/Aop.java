@@ -91,21 +91,14 @@ public class Aop {
 
         CtClass ctClass = null;
         try {
-            if(className.startsWith("sun") || className.startsWith("com.sun") || className.startsWith("com.oracle")){
-                return classfileBuffer;
-            }
 
             try {
-
                 //这里加载两次是为了防止热加载失效
                 ctClass = AopUtils.CLASSPOOL.get(className);
                 ctClass.detach();
-                ctClass = AopUtils.CLASSPOOL.get(className);
             } catch (NotFoundException e){
                 return classfileBuffer;
             }
-            //撤销上次的修改
-            ctClass.detach();
 
             //扫描目标方法并进行注入
             for(CtMethod originMethod : ctClass.getDeclaredMethods()){
