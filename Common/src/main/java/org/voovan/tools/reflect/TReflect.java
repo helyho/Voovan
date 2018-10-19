@@ -998,7 +998,7 @@ public class TReflect {
 			return false;
 		}
 
-		return result;
+		return result == null ? false : result;
 	}
 
 

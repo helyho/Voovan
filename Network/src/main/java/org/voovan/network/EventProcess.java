@@ -165,16 +165,10 @@ public class EventProcess {
 					}
 				}
 
-
 			} finally {
 				//释放 onRecive 锁
 				session.getState().setReceive(false);
 				session.getState().receiveUnLock();
-			}
-
-			//如果数据没有解析完,重新触发 onRecived 事件
-			if (session.getByteBufferChannel().size() > 0) {
-				EventTrigger.fireReceiveThread(session);
 			}
 		}
 
@@ -218,6 +212,11 @@ public class EventProcess {
 			}
 		} finally {
 			TByteBuffer.release(byteBuffer);
+
+			//如果数据没有解析完,重新触发 onRecived 事件
+			if (session.getByteBufferChannel().size() > 0) {
+				EventTrigger.fireReceiveThread(session);
+			}
 		}
 	}
 
