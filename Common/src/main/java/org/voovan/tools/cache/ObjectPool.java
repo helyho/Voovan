@@ -143,13 +143,8 @@ public class ObjectPool {
      * @return 对象的 id 值
      */
     public Object add(Object obj){
-        if(obj == null){
-            return null;
-        }
         Object id = genObjectId();
-        objects.put(id, new PooledObject(this, id, obj));
-        unborrowedObjectIdList.offer(id);
-        return id;
+        return add(id, obj);
     }
 
     /**
@@ -159,12 +154,12 @@ public class ObjectPool {
      * @return 对象的 id 值
      */
     public Object add(Object id, Object obj){
-        if(obj == null){
+        if(addAndBorrow(id, obj)!=null) {
+            unborrowedObjectIdList.offer(id);
+            return id;
+        } else {
             return null;
         }
-        objects.put(id, new PooledObject(this, id, obj));
-        unborrowedObjectIdList.offer(id);
-        return id;
     }
 
     /**
