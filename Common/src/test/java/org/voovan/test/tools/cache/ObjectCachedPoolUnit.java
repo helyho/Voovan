@@ -1,12 +1,14 @@
 package org.voovan.test.tools.cache;
 
-import org.voovan.Global;
-import org.voovan.tools.TEnv;
-import org.voovan.tools.cache.ObjectPool;
-import org.voovan.tools.log.Logger;
 import junit.framework.TestCase;
+import org.voovan.Global;
+import org.voovan.tools.cache.ObjectPool;
+import org.voovan.tools.TEnv;
+import org.voovan.tools.log.Logger;
 
 import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 类文字命名
@@ -46,7 +48,7 @@ public class ObjectCachedPoolUnit extends TestCase {
         Object pooledId = null;
         ObjectPool objectPool = new ObjectPool();
 
-        for(int i=0;i<100;i++) {
+        for(int i=0;i<1000;i++) {
             Object item = "element " + i;
             if(pooledId==null) {
                 pooledId = objectPool.add(item);
@@ -55,7 +57,7 @@ public class ObjectCachedPoolUnit extends TestCase {
             }
         }
 
-        TEnv.sleep(3000);
+        TEnv.sleep(1000);
 
         ArrayList<Object> arrayList = new ArrayList<Object>();
         for(int i=0;i<50;i++){
@@ -88,5 +90,55 @@ public class ObjectCachedPoolUnit extends TestCase {
         }
 
         TEnv.sleep(1000);
+    }
+
+
+    public void testBorrowConcurrent() {
+        Object pooledId = null;
+        ObjectPool objectPool = new ObjectPool();
+
+        for(int i=0;i<30;i++) {
+            Object item = "element " + i;
+            if(pooledId==null) {
+                pooledId = objectPool.add(item);
+            }else{
+                objectPool.add(item);
+            }
+        }
+        LinkedBlockingDeque<Object> arrayList = new LinkedBlockingDeque<Object>();
+
+        int count = 0;
+
+        while(true){
+            Global.getThreadPool().execute(()->{
+
+                if((int)(Math.random()*10 % 2) == 0) {
+                    Object objectId = objectPool.borrow();
+                    if(objectId!=null) {
+                        arrayList.offer(objectId);
+                        Logger.simple("borrow->" + objectId);
+                    } else {
+                        Logger.simple("borrow failed ================");
+                    }
+                } else {
+                    Object objectId = arrayList.poll();
+                    if(objectId!=null) {
+                        objectPool.restitution(objectId);
+                        Logger.simple("restitution->" + objectId);
+                    }
+                }
+            });
+            count++;
+            if(count >= 100000){
+                break;
+            }
+        }
+
+        count = count*10;
+
+        while(count>=0) {
+            count--;
+            TEnv.sleep(1);
+        }
     }
 }

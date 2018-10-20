@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * 对象池
@@ -30,6 +31,7 @@ public class ObjectPool {
     private long aliveTime = 0;
     private boolean autoRefreshOnGet = true;
     private Function destory;
+    private Supplier supplier = null;
 
     /**
      * 构造一个对象池
@@ -39,7 +41,6 @@ public class ObjectPool {
     public ObjectPool(long aliveTime, boolean autoRefreshOnGet){
         this.aliveTime = aliveTime;
         this.autoRefreshOnGet = autoRefreshOnGet;
-        removeDeadObject();
     }
 
     /**
@@ -48,13 +49,32 @@ public class ObjectPool {
      */
     public ObjectPool(long aliveTime){
         this.aliveTime = aliveTime;
-        removeDeadObject();
     }
 
     /**
      * 构造一个对象池
      */
     public ObjectPool(){
+    }
+
+    /**
+     * 获取对象构造函数
+     *      在对象被构造工作
+     * @return 对象构造函数
+     */
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    /**
+     * 设置对象构造函数
+     *      对象被构造是用的函数
+     * @param supplier 对象构造函数
+     * @return ObjectPool 对象
+     */
+    public ObjectPool setSupplier(Supplier supplier) {
+        this.supplier = supplier;
+        return this;
     }
 
     /**
@@ -69,18 +89,22 @@ public class ObjectPool {
     /**
      * 设置对象销毁函数
      *      在对象被销毁前工作
-     * @param destory 对象销毁函数, 如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
+     * @param destory 对象销毁函数
+     * @return ObjectPool 对象
      */
-    public void setDestory(Function destory) {
+    public ObjectPool setDestory(Function destory) {
         this.destory = destory;
+        return this;
     }
 
     /**
      * 设置对象池的对象存活时间
      * @param aliveTime 对象存活时间,单位:秒
+     * @return ObjectPool 对象
      */
-    public void setAliveTime(long aliveTime) {
+    public ObjectPool setAliveTime(long aliveTime) {
         this.aliveTime = aliveTime;
+        return this;
     }
 
     /**
@@ -90,7 +114,6 @@ public class ObjectPool {
     private String genObjectId(){
         return TString.generateShortUUID();
     }
-
 
     /**
      * 是否获取对象时刷新对象存活时间
@@ -114,14 +137,12 @@ public class ObjectPool {
         }
     }
 
-
-
     /**
      * 增加池中的对象
      * @param obj 增加到池中的对象
      * @return 对象的 id 值
      */
-    public synchronized Object add(Object obj){
+    public Object add(Object obj){
         if(obj == null){
             return null;
         }
@@ -137,7 +158,7 @@ public class ObjectPool {
      * @param obj 增加到池中的对象
      * @return 对象的 id 值
      */
-    public synchronized Object add(Object id, Object obj){
+    public Object add(Object id, Object obj){
         if(obj == null){
             return null;
         }
@@ -196,10 +217,16 @@ public class ObjectPool {
 
     /**
      * 借出这个对象
+     *         如果有提供 supplier 函数, 在没有可借出对象时会构造一个新的对象, 否则返回 null
      * @return 借出的对象的 ID
      */
     public Object borrow(){
-        return unborrowedObjectIdList.poll();
+        Object borrowedObject = unborrowedObjectIdList.poll();
+        if(borrowedObject==null && supplier!=null){
+            borrowedObject = addAndBorrow(genObjectId(), supplier.get());
+        }
+
+        return borrowedObject;
     }
 
     /**
@@ -209,7 +236,11 @@ public class ObjectPool {
         unborrowedObjectIdList.addLast(objectId);
     }
 
-    private void removeDeadObject(){
+    /**
+     * 创建ObjectPool
+     * @return ObjectPool 对象
+     */
+    public ObjectPool create(){
         Global.getHashWheelTimer().addTask(new HashWheelTask() {
             @Override
             public void run() {
@@ -241,6 +272,8 @@ public class ObjectPool {
                 }
             }
         }, 5, true);
+
+        return this;
     }
 
     /**
