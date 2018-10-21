@@ -92,19 +92,16 @@ public class ObjectCachedPoolUnit extends TestCase {
         TEnv.sleep(1000);
     }
 
-
+    private static Integer item = 0;
     public void testBorrowConcurrent() {
-        Object pooledId = null;
-        ObjectPool objectPool = new ObjectPool();
 
-        for(int i=0;i<30;i++) {
-            Object item = "element " + i;
-            if(pooledId==null) {
-                pooledId = objectPool.add(item);
-            }else{
-                objectPool.add(item);
-            }
-        }
+        Object pooledId = null;
+        ObjectPool objectPool = new ObjectPool().minSize(3).maxSize(1000).aliveTime(5).setSupplier(()->{
+            return item++;
+        }).create();
+
+
+
         LinkedBlockingDeque<Object> arrayList = new LinkedBlockingDeque<Object>();
 
         int count = 0;
@@ -113,7 +110,7 @@ public class ObjectCachedPoolUnit extends TestCase {
             Global.getThreadPool().execute(()->{
 
                 if((int)(Math.random()*10 % 2) == 0) {
-                    Object objectId = objectPool.borrow();
+                    Object objectId = objectPool.borrow(1000);
                     if(objectId!=null) {
                         arrayList.offer(objectId);
                         Logger.simple("borrow->" + objectId);

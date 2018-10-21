@@ -1,6 +1,7 @@
 package org.voovan.tools.cache;
 
 import org.voovan.Global;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSON;
@@ -32,6 +33,9 @@ public class ObjectPool {
     private boolean autoRefreshOnGet = true;
     private Function destory;
     private Supplier supplier = null;
+    private int minSize = 0;
+    private int maxSize = Integer.MAX_VALUE;
+    private int interval = 5;
 
     /**
      * 构造一个对象池
@@ -55,6 +59,42 @@ public class ObjectPool {
      * 构造一个对象池
      */
     public ObjectPool(){
+    }
+
+    public long getAliveTime() {
+        return aliveTime;
+    }
+
+    public ObjectPool autoRefreshOnGet(boolean autoRefreshOnGet) {
+        this.autoRefreshOnGet = autoRefreshOnGet;
+        return this;
+    }
+
+    public int getMinSize() {
+        return minSize;
+    }
+
+    public ObjectPool minSize(int minSize) {
+        this.minSize = minSize;
+        return this;
+    }
+
+    public int getMaxSize() {
+        return maxSize;
+    }
+
+    public ObjectPool maxSize(int maxSize) {
+        this.maxSize = maxSize;
+        return this;
+    }
+
+    public int getInterval() {
+        return interval;
+    }
+
+    public ObjectPool interval(int interval) {
+        this.interval = interval;
+        return this;
     }
 
     /**
@@ -102,7 +142,7 @@ public class ObjectPool {
      * @param aliveTime 对象存活时间,单位:秒
      * @return ObjectPool 对象
      */
-    public ObjectPool setAliveTime(long aliveTime) {
+    public ObjectPool aliveTime(long aliveTime) {
         this.aliveTime = aliveTime;
         return this;
     }
@@ -172,6 +212,12 @@ public class ObjectPool {
         if(obj == null){
             return null;
         }
+
+        if(objects.size() >= maxSize){
+            new RuntimeException("ObjectPool is full.").printStackTrace();
+            return null;
+        }
+
         objects.put(id, new PooledObject(this, id, obj));
         return id;
     }
@@ -203,6 +249,23 @@ public class ObjectPool {
     }
 
     /**
+     * 出借的对象数
+     * @return 出借的对象数
+     */
+    public int borrowedSize(){
+        return objects.size() - unborrowedObjectIdList.size();
+    }
+
+    /**
+     * 可用的对象数
+     * @return 可用的对象数
+     */
+    public int avaliableSize(){
+        return unborrowedObjectIdList.size();
+    }
+
+
+    /**
      * 清理池中所有的对象
      */
     public synchronized void clear(){
@@ -224,6 +287,21 @@ public class ObjectPool {
         return borrowedObject;
     }
 
+    public Object borrow(int waitTime){
+        Object objectId = null;
+        while(waitTime>=0) {
+            objectId = borrow();
+            if (objectId == null) {
+                TEnv.sleep(1);
+            } else {
+                break;
+            }
+        }
+
+        return objectId;
+    }
+
+
     /**
      * 归还借出的对象
      */
@@ -242,10 +320,15 @@ public class ObjectPool {
                 try {
                     Iterator<PooledObject> iterator = objects.values().iterator();
                     while (iterator.hasNext()) {
+
+                        if(objects.size() <= minSize){
+                            return;
+                        }
+
                         PooledObject pooledObject = iterator.next();
 
                         //被借出的对象不进行清理
-                        if(unborrowedObjectIdList.contains(pooledObject.getId())){
+                        if(!unborrowedObjectIdList.contains(pooledObject.getId())){
                             continue;
                         }
 
@@ -266,7 +349,7 @@ public class ObjectPool {
                     e.printStackTrace();
                 }
             }
-        }, 5, true);
+        }, this.interval, true);
 
         return this;
     }
