@@ -278,9 +278,12 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
-                jedis.set(keyByteArray, valueByteArray);
-                //无论是否存在都会返回 OK, 所以默认返回 value
-                return value;
+                if(jedis.set(keyByteArray, valueByteArray).equals(LOCK_SUCCESS)) {
+                    //无论是否存在都会返回 OK, 所以默认返回 value
+                    return value;
+                } else {
+                    return null;
+                }
             }else {
                 if(jedis.hset(name.getBytes(), keyByteArray, valueByteArray)==1){
                     return null;

@@ -682,7 +682,7 @@ public class TReflect {
 			clazz = (Class)type;
 		}
 
-		if(mapArg==null || mapArg.isEmpty()){
+		if(mapArg==null || clazz.isInterface()){
 			return null;
 		}
 
