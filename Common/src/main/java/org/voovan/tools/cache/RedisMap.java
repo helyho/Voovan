@@ -492,9 +492,14 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public Set<K> keySet() {
         try (Jedis jedis = getJedis()) {
             if(name==null){
-                throw new UnsupportedOperationException();
+                return (Set<K>) jedis.keys("*".getBytes()).parallelStream().map(new Function<byte[], Object>() {
+                    @Override
+                    public Object apply(byte[] bytes) {
+                        return  (K)CacheStatic.unserialize(bytes);
+                    }
+                }).collect(Collectors.toSet());
             }else {
-                return (Set<K>)jedis.hkeys(name.getBytes()).stream().map(new Function<byte[], Object>() {
+                return (Set<K>)jedis.hkeys(name.getBytes()).parallelStream().map(new Function<byte[], Object>() {
                     @Override
                     public Object apply(byte[] bytes) {
                         return  (K)CacheStatic.unserialize(bytes);
@@ -519,7 +524,12 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
                     }
                 }).collect(Collectors.toSet());
             }else {
-                throw new UnsupportedOperationException();
+                return (Set<K>) jedis.keys(pattern.getBytes()).parallelStream().map(new Function<byte[], Object>() {
+                    @Override
+                    public Object apply(byte[] bytes) {
+                        return  (K)CacheStatic.unserialize(bytes);
+                    }
+                }).collect(Collectors.toSet());
             }
         }
     }
