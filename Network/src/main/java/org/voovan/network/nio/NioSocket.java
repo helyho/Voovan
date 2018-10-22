@@ -42,7 +42,6 @@ public class NioSocket extends SocketContext{
 	 */
 	public NioSocket(String host,int port,int readTimeout) throws IOException{
 		super(host, port, readTimeout);
-		init();
 	}
 
 	/**
@@ -56,7 +55,6 @@ public class NioSocket extends SocketContext{
 	 */
 	public NioSocket(String host,int port,int readTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, idleInterval);
-		init();
 	}
 
 	/**
@@ -70,7 +68,6 @@ public class NioSocket extends SocketContext{
 	 */
 	public NioSocket(String host,int port,int readTimeout, int sendTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, sendTimeout, idleInterval);
-		init();
 	}
 
 	private void init() throws IOException {
@@ -154,6 +151,7 @@ public class NioSocket extends SocketContext{
 	 * @throws IOException IO 异常
 	 */
 	public void start() throws IOException  {
+		init();
 		initSSL(session);
 
 		socketChannel.connect(new InetSocketAddress(this.host, this.port));

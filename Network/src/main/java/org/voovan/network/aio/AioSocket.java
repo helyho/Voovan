@@ -46,7 +46,6 @@ public class AioSocket extends SocketContext {
 	 */
 	public AioSocket(String host, int port, int readTimeout) throws IOException {
 		super(host, port, readTimeout);
-		init();
 	}
 
 	/**
@@ -60,7 +59,6 @@ public class AioSocket extends SocketContext {
 	 */
 	public AioSocket(String host, int port, int readTimeout, int idleInterval) throws IOException {
 		super(host, port, readTimeout, idleInterval);
-		init();
 	}
 
 	/**
@@ -75,7 +73,6 @@ public class AioSocket extends SocketContext {
 	 */
 	public AioSocket(String host, int port, int readTimeout, int sendTimeout,  int idleInterval) throws IOException {
 		super(host, port, readTimeout, sendTimeout, idleInterval);
-		init();
 	}
 
 	private void init() throws IOException {
@@ -176,6 +173,7 @@ public class AioSocket extends SocketContext {
 	 */
 	public void syncStart() throws IOException {
 
+		init();
 		initSSL(session);
 
 		try {
@@ -215,7 +213,6 @@ public class AioSocket extends SocketContext {
 	 */
 	public AioSocket restart() throws IOException, RestartException {
 		if(this.connectModel == ConnectModel.CLIENT) {
-			init();
 			this.start();
 			return this;
 		}else{
