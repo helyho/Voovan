@@ -157,6 +157,10 @@ public class TByteBuffer {
     public static boolean reallocate(ByteBuffer byteBuffer, int newSize) {
 
         try {
+            if(byteBuffer.capacity() > newSize){
+                byteBuffer.limit(newSize);
+                return true;
+            }
 
             if(!byteBuffer.hasArray()) {
                 if(getAtt(byteBuffer) == null){
@@ -358,12 +362,27 @@ public class TByteBuffer {
             return -1;
         }
 
-        int index = -1;
-        int position = byteBuffer.position();
-        byte[] tmp = new byte[mark.length];
+        int originPosition = byteBuffer.position();
         int length = byteBuffer.remaining();
-        for(int offset = 0; (offset + position <= length - mark.length); offset++){
-            byteBuffer.position(position + offset);
+
+        if(length < mark.length){
+            return -1;
+        }
+
+        int index = -1;
+        byte[] tmp = new byte[mark.length];
+
+        if(length == mark.length){
+            byteBuffer.get(tmp, 0, mark.length);
+            if(Arrays.equals(mark, tmp)){
+                return 0;
+            } else {
+                return index;
+            }
+        }
+
+        for(int offset = 0; (offset + originPosition <= length - mark.length); offset++){
+            byteBuffer.position(originPosition + offset);
             byteBuffer.get(tmp, 0, tmp.length);
             if(Arrays.equals(mark, tmp)){
                 index = offset;
@@ -371,7 +390,7 @@ public class TByteBuffer {
             }
         }
 
-        byteBuffer.position(position);
+        byteBuffer.position(originPosition);
 
         return index;
     }
@@ -394,15 +413,30 @@ public class TByteBuffer {
             return -1;
         }
 
-        int index = -1;
         int originPosition = byteBuffer.position();
-        byte[] tmp = new byte[mark.length];
         int length = byteBuffer.remaining();
+
+        if(length < mark.length){
+            return -1;
+        }
+
+        int index = -1;
+        byte[] tmp = new byte[mark.length];
+
+        if(length == mark.length){
+            byteBuffer.get(tmp, 0, mark.length);
+            if(Arrays.equals(mark, tmp)){
+                return 0;
+            } else {
+                return index;
+            }
+        }
+
         for(int offset = mark.length; (length - offset > mark.length); offset++){
             byteBuffer.position(length - offset);
             byteBuffer.get(tmp, 0, tmp.length);
             if(Arrays.equals(mark, tmp)){
-                index = offset;
+                index = length-offset;
                 break;
             }
         }

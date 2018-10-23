@@ -145,8 +145,8 @@ public class WebServerDemo {
 
                 //调用发送函数发送
 				try {
-					webSocketSession.send("Send by persistent Object's send method in onOpen");
-					webSocketSession.send("Send by send method in onOpen");
+					webSocketSession.send("[Server] Send by persistent Object's send method in onOpen");
+					webSocketSession.send("[Server] Send by send method in onOpen");
 				} catch (SendMessageException | WebSocketFilterException e) {
 					e.printStackTrace();
 				}
@@ -162,7 +162,7 @@ public class WebServerDemo {
 
 				//调用发送函数发送
 				try {
-					webSocketSession.send("Send by send method in onRecive");
+					webSocketSession.send("[Server] Send by send method in onRecive");
 				} catch (SendMessageException | WebSocketFilterException e) {
 					e.printStackTrace();
 				}
