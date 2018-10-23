@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * ByteBuffer 工具类
@@ -21,6 +22,8 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
+
+    public static ConcurrentLinkedQueue<ByteBuffer> BYTE_BUFFER_MANUAL_RELEASE_POOL = new ConcurrentLinkedQueue<ByteBuffer>();
 
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
 
@@ -80,7 +83,7 @@ public class TByteBuffer {
      * @param capacity 容量
      * @return ByteBuffer 对象
      */
-    protected static ByteBuffer allocateManualReleaseBuffer(int capacity, boolean cleanByJVM){
+    protected static ByteBuffer allocateManualReleaseBuffer(int capacity){
         try {
             long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
             TUnsafe.getUnsafe().setMemory(address, capacity, (byte) 0);
@@ -90,10 +93,7 @@ public class TByteBuffer {
             ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
 
             //内存自动释放部分
-            if(cleanByJVM) {
-
-                TReflect.invokeMethod(CLEANER_ClASS, CLEANER_CREATE_METHOD, byteBuffer, deallocator);
-            }
+            TReflect.invokeMethod(CLEANER_ClASS, CLEANER_CREATE_METHOD, byteBuffer, deallocator);
 
             return byteBuffer;
 
@@ -101,6 +101,36 @@ public class TByteBuffer {
             Logger.error("Create ByteBufferChannel error. ", e);
             return null;
         }
+    }
+
+    /**
+     * 借出缓冲对象
+     * @param capacity
+     * @return 容量
+     */
+    public static ByteBuffer borrowBuffer(int capacity){
+        ByteBuffer byteBuffer = BYTE_BUFFER_MANUAL_RELEASE_POOL.poll();
+        if(byteBuffer == null){
+            return allocateManualReleaseBuffer(capacity);
+        }
+
+        if(byteBuffer.capacity() >= capacity){
+            return byteBuffer;
+        } else if(reallocate(byteBuffer, capacity)){
+            return byteBuffer;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * 归还缓冲对象
+     * @param byteBuffer
+     */
+    public static void returnBuffer(ByteBuffer byteBuffer){
+        byteBuffer.position(0);
+        byteBuffer.limit(byteBuffer.capacity());
+        BYTE_BUFFER_MANUAL_RELEASE_POOL.offer(byteBuffer);
     }
 
 
@@ -112,7 +142,7 @@ public class TByteBuffer {
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
         if(Global.NO_HEAP_MANUAL_RELEASE) {
-            return allocateManualReleaseBuffer(capacity, true);
+            return allocateManualReleaseBuffer(capacity);
         } else {
             return ByteBuffer.allocateDirect(capacity);
         }
@@ -125,10 +155,6 @@ public class TByteBuffer {
      * @return true:成功, false:失败
      */
     public static boolean reallocate(ByteBuffer byteBuffer, int newSize) {
-
-        if(isReleased(byteBuffer)) {
-            return false;
-        }
 
         try {
 
@@ -346,6 +372,42 @@ public class TByteBuffer {
         }
 
         byteBuffer.position(position);
+
+        return index;
+    }
+
+
+    /**
+     * 反向查找特定 byte 标识的位置
+     *     byte 标识数组第一个字节的索引位置
+     * @param byteBuffer Bytebuffer 对象
+     * @param mark byte 标识数组
+     * @return 第一个字节的索引位置
+     */
+    public static int revIndexOf(ByteBuffer byteBuffer, byte[] mark){
+
+        if(isReleased(byteBuffer)) {
+            return -1;
+        }
+
+        if(byteBuffer.remaining() == 0){
+            return -1;
+        }
+
+        int index = -1;
+        int originPosition = byteBuffer.position();
+        byte[] tmp = new byte[mark.length];
+        int length = byteBuffer.remaining();
+        for(int offset = mark.length; (length - offset > mark.length); offset++){
+            byteBuffer.position(length - offset);
+            byteBuffer.get(tmp, 0, tmp.length);
+            if(Arrays.equals(mark, tmp)){
+                index = offset;
+                break;
+            }
+        }
+
+        byteBuffer.position(originPosition);
 
         return index;
     }
