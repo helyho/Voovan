@@ -68,7 +68,7 @@ public class ByteBufferChannel {
 	 * 构造函数
 	 */
 	public ByteBufferChannel() {
-		init(1024);
+		init(1024*8);
 	}
 
 	/**
@@ -99,7 +99,7 @@ public class ByteBufferChannel {
 	private ByteBuffer newByteBuffer(int capacity){
 		try {
 
-			ByteBuffer instance = TByteBuffer.allocateManualReleaseBuffer(capacity, false);
+			ByteBuffer instance = TByteBuffer.borrowBuffer(capacity);
 			address.set(TByteBuffer.getAddress(instance));
 
 			return instance;
@@ -176,7 +176,8 @@ public class ByteBufferChannel {
 			lock.lock();
 			try {
 				if (address.get() != 0) {
-					TByteBuffer.release(byteBuffer);
+					TByteBuffer.returnBuffer(byteBuffer);
+//                    TByteBuffer.release(byteBuffer);
 					address.set(0);
 					byteBuffer = null;
 					size = -1;
@@ -828,15 +829,16 @@ public class ByteBufferChannel {
 			return null;
 		}
 
-		if (size() == 0) {
-			return null;
-		}
-
 		String lineStr = "";
 		int index = indexOf("\n".getBytes());
 
 		if (index >= 0) {
 			ByteBuffer byteBuffer = getByteBuffer();
+
+			if(byteBuffer==null){
+				return null;
+			}
+
 			int limit = byteBuffer.limit();
 			byteBuffer.limit(index+1);
 			lineStr = TByteBuffer.toString(byteBuffer);
@@ -889,9 +891,9 @@ public class ByteBufferChannel {
 			index = size();
 		}
 
-		ByteBuffer resultBuffer = ByteBuffer.allocateDirect(index);
+		ByteBuffer resultBuffer = TByteBuffer.borrowBuffer(index);
 		int readSize = readHead(resultBuffer);
-		TByteBuffer.release(resultBuffer);
+		TByteBuffer.returnBuffer(resultBuffer);
 
 		//跳过分割符
 		shrink(splitByte.length);

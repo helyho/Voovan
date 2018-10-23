@@ -60,38 +60,20 @@ public class HttpMessageSplitter implements MessageSplitter {
 
     private int isHttpFrame(ByteBuffer byteBuffer){
         int bodyTagIndex = -1;
-        byte[] buffer = TByteBuffer.toArray(byteBuffer);
+        int protocolLineIndex = -1;
         StringBuilder stringBuilder = new StringBuilder();
-        String httpHead = null;
+        String protocolLine = null;
 
-        for(int x=0;x<buffer.length-3;x++){
-            if(buffer[x] == '\r' && buffer[x+1] == '\n' && buffer[x+2] == '\r' && buffer[x+3] == '\n'){
-                bodyTagIndex = x + 3;
-                break;
-            }else{
-                stringBuilder.append((char)buffer[x]);
-            }
-        }
+        bodyTagIndex = TByteBuffer.revIndexOf(byteBuffer, "\r\n\r\n".getBytes());
+        protocolLineIndex = TByteBuffer.indexOf(byteBuffer, "\r\n".getBytes());
 
-        httpHead = stringBuilder.toString();
+        byte[] protocolLineBytes = new byte[protocolLineIndex-4];
+        byteBuffer.get(protocolLineBytes);
+        byteBuffer.position(0);
 
-        if(httpHead !=null && isHttpHead(httpHead)) {
+        protocolLine = new String(protocolLineBytes);
 
-//            int contentTypeStartIndex = httpHead.indexOf("Content-Length");
-//
-//            if (contentTypeStartIndex > 0) {
-//                int contentTypeEndIndex = httpHead.indexOf("\n", contentTypeStartIndex);
-//
-//                //如果是最好一行,则取到字符串的结尾
-//                if(contentTypeEndIndex==-1){
-//                    contentTypeEndIndex = httpHead.length();
-//                }
-//
-//                String contentLengthLine = httpHead.substring(contentTypeStartIndex, contentTypeEndIndex);
-//                contentLength = Integer.parseInt(contentLengthLine.split(" ")[1].trim());
-//            }
-//
-//            isChunked = httpHead.contains("chunked");
+        if(bodyTagIndex > 0 && protocolLine !=null && isHttpHead(protocolLine)) {
             if(bodyTagIndex > 0) {
                 return bodyTagIndex;
             } else {
@@ -105,12 +87,8 @@ public class HttpMessageSplitter implements MessageSplitter {
 
     private boolean isHttpHead(String str){
         //判断是否是 HTTP 头
-        int firstLineIndex = str.indexOf("\r\n");
-        if(firstLineIndex != -1) {
-            String firstLine = str.substring(0, firstLineIndex-4);
-            if (firstLine.startsWith(HTTP_PROTCOL) || firstLine.endsWith(HTTP_PROTCOL)) {
-                return true;
-            }
+        if (str.startsWith(HTTP_PROTCOL) || str.endsWith(HTTP_PROTCOL)) {
+            return true;
         }
         return false;
     }

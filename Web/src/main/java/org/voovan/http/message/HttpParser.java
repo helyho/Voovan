@@ -244,7 +244,7 @@ public class HttpParser {
 
 		//按行遍历HTTP报文
 		for(String currentLine = byteBufferChannel.readLine();
-			currentLine!=null;
+			currentLine!=null && !byteBufferChannel.isReleased();
 			currentLine = byteBufferChannel.readLine()){
 
 			totalLength = totalLength + currentLine.length();
@@ -301,7 +301,7 @@ public class HttpParser {
 						boundaryEnd.clear();
 						int readSize = byteBufferChannel.readHead(boundaryEnd);
 
-                        //累计请求大小
+						//累计请求大小
 						totalLength = totalLength + readSize;
 						//请求过大的处理
 						if(totalLength > requestMaxSize * 1024){
@@ -325,14 +325,14 @@ public class HttpParser {
 
 
 						//Part 头读取
-						ByteBuffer partHeadBuffer = TByteBuffer.allocateDirect(partHeadEndIndex + 4);
+						ByteBuffer partHeadBuffer = TByteBuffer.borrowBuffer(partHeadEndIndex + 4);
 						byteBufferChannel.readHead(partHeadBuffer);
 
 						//构造新的 Bytebufer 递归解析
 						ByteBufferChannel partByteBufferChannel = new ByteBufferChannel(partHeadEndIndex + 4); //包含换行符
 						partByteBufferChannel.writeEnd(partHeadBuffer);
 						Map<String, Object> partMap = parser(partByteBufferChannel, timeOut, requestMaxSize);
-						TByteBuffer.release(partHeadBuffer);
+						TByteBuffer.returnBuffer(partHeadBuffer);
 						partByteBufferChannel.release();
 
 						String fileName = getPerprotyEqualValue(partMap, HEAD_CONTENT_DISPOSITION, "filename");
@@ -467,7 +467,7 @@ public class HttpParser {
 						int readSize = 0;
 						if(chunkedLength > 0) {
 							//按长度读取chunked内容
-							ByteBuffer byteBuffer = TByteBuffer.allocateDirect(chunkedLength);
+							ByteBuffer byteBuffer = TByteBuffer.borrowBuffer(chunkedLength);
 							readSize = byteBufferChannel.readHead(byteBuffer);
 
 							//累计请求大小
@@ -479,7 +479,7 @@ public class HttpParser {
 
 							//如果多次读取则拼接
 							chunkedByteBufferChannel.writeEnd(byteBuffer);
-							TByteBuffer.release(byteBuffer);
+							TByteBuffer.returnBuffer(byteBuffer);
 						}
 
 						//请求过大的处理
@@ -524,7 +524,7 @@ public class HttpParser {
 				}
 				//4. 容错,没有标识长度则默认读取全部内容段
 				else if(packetMap.get(BODY_VALUE)==null || packetMap.get(BODY_VALUE).toString().isEmpty()){
-                    //累计请求大小
+					//累计请求大小
 					totalLength = totalLength + byteBufferChannel.size();
 
 					//请求过大的处理

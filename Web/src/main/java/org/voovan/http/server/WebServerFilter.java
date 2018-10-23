@@ -135,11 +135,11 @@ public class WebServerFilter implements IoFilter {
 		int lineEndIndex = byteBufferChannel.indexOf("\r\n".getBytes());
 
 		if(lineEndIndex>0) {
-			byte[] tmpByte = new byte[lineEndIndex];
+			byte[] tmpByte = new byte[lineEndIndex-4];
 			byteBufferChannel.get(tmpByte);
 			testStr = new String(tmpByte);
 
-			if (testStr != null && (testStr.endsWith("HTTP/1.1") || testStr.endsWith("HTTP/1.0"))) {
+			if (testStr != null && testStr.endsWith("HTTP")) {
 				return true;
 			} else {
 				return false;
