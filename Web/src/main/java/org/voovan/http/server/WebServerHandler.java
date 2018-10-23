@@ -315,25 +315,27 @@ public class WebServerHandler implements IoHandler {
 		}
 		// WS_RECIVE 文本和二进制消息出发 Recived 事件
 		else if (webSocketFrame.getOpcode() == WebSocketFrame.Opcode.TEXT || webSocketFrame.getOpcode() == WebSocketFrame.Opcode.BINARY) {
+			synchronized (byteBufferChannel) {
+				byteBufferChannel.writeEnd(webSocketFrame.getFrameData());
+				WebSocketFrame respWebSocketFrame = null;
 
-			byteBufferChannel.writeEnd(webSocketFrame.getFrameData());
-			WebSocketFrame respWebSocketFrame = null;
+				//判断解包是否有错
+				if (webSocketFrame.getErrorCode() == 0) {
 
-			//判断解包是否有错
-			if(webSocketFrame.getErrorCode()==0){
+					try {
+						respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBufferChannel.getByteBuffer());
+					} finally {
+						byteBufferChannel.compact();
+						byteBufferChannel.clear();
+					}
 
-				try {
-					respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBufferChannel.getByteBuffer());
-				} finally {
-					byteBufferChannel.compact();
-					byteBufferChannel.clear();
+				} else {
+					//解析时出现异常,返回关闭消息
+					respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
 				}
 
-			}else{
-				//解析时出现异常,返回关闭消息
-				respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
+				return respWebSocketFrame;
 			}
-			return respWebSocketFrame;
 		}
 
 		return null;

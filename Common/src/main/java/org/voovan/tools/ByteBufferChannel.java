@@ -550,7 +550,7 @@ public class ByteBufferChannel {
 		try {
 			TEnv.wait(timeout, ()->{
 				checkRelease();
-				return indexOf(mark) == -1;
+				return revIndexOf(mark) == -1;
 			});
 			return true;
 		} catch (TimeoutException e) {
@@ -802,17 +802,28 @@ public class ByteBufferChannel {
 				return -1;
 			}
 
-			int index = -1;
-			byte[] tmp = new byte[mark.length];
-			for(int position = 0; position <= size() - mark.length; position++){
-				get(tmp, position, tmp.length);
-				if(Arrays.equals(mark, tmp)){
-					index = position;
-					break;
-				}
+			return TByteBuffer.indexOf(byteBuffer, mark);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	/**
+	 * 反向查找特定 byte 标识的位置
+	 *     byte 标识数组第一个字节的索引位置
+	 * @param mark byte 标识数组
+	 * @return 第一个字节的索引位置
+	 */
+	public int revIndexOf(byte[] mark){
+		checkRelease();
+
+		lock.lock();
+		try {
+			if(size() == 0){
+				return -1;
 			}
 
-			return index;
+			return TByteBuffer.revIndexOf(byteBuffer, mark);
 		} finally {
 			lock.unlock();
 		}
