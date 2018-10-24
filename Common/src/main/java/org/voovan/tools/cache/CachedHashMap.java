@@ -514,7 +514,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
         /**
          * 刷新缓存
          */
-        public synchronized void refresh(boolean updateLastTime){
+        public void refresh(boolean updateLastTime){
             visitCount.incrementAndGet();
 
             if(updateLastTime) {
