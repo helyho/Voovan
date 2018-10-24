@@ -540,7 +540,7 @@ public class ByteBufferChannel {
 
 
 	/**
-	 * 等待收到期望的数据
+	 * 从头部开始判断是否收到期望的数据
 	 * @param mark  期望出现的数据
 	 * @param timeout 超时时间,单位: 毫秒
 	 * @return true: 具备期望长度的数据, false: 等待数据超时
@@ -551,6 +551,25 @@ public class ByteBufferChannel {
 			TEnv.wait(timeout, ()->{
 				checkRelease();
 				return indexOf(mark) == -1;
+			});
+			return true;
+		} catch (TimeoutException e) {
+			return false;
+		}
+	}
+
+	/**
+	 * 从尾部开始判断是否收到期望的数据
+	 * @param mark  期望出现的数据
+	 * @param timeout 超时时间,单位: 毫秒
+	 * @return true: 具备期望长度的数据, false: 等待数据超时
+	 */
+	public boolean waitRevData(byte[] mark, int timeout){
+
+		try {
+			TEnv.wait(timeout, ()->{
+				checkRelease();
+				return revIndexOf(mark) == -1;
 			});
 			return true;
 		} catch (TimeoutException e) {
