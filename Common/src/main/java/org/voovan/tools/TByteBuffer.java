@@ -345,6 +345,7 @@ public class TByteBuffer {
         return toString(bytebuffer, "UTF-8");
     }
 
+
     /**
      * 查找特定 byte 标识的位置
      *     byte 标识数组第一个字节的索引位置
@@ -353,6 +354,17 @@ public class TByteBuffer {
      * @return 第一个字节的索引位置
      */
     public static int indexOf(ByteBuffer byteBuffer, byte[] mark){
+        return indexOf(byteBuffer, null, null , mark);
+    }
+
+    /**
+     * 查找特定 byte 标识的位置
+     *     byte 标识数组第一个字节的索引位置
+     * @param byteBuffer Bytebuffer 对象
+     * @param mark byte 标识数组
+     * @return 第一个字节的索引位置
+     */
+    public static int indexOf(ByteBuffer byteBuffer, Integer startOffset, Integer endOffset, byte[] mark){
 
         if(isReleased(byteBuffer)) {
             return -1;
@@ -362,27 +374,15 @@ public class TByteBuffer {
             return -1;
         }
 
-        int originPosition = byteBuffer.position();
-        int length = byteBuffer.remaining();
-
-        if(length < mark.length){
-            return -1;
-        }
+        startOffset = startOffset==null ? 0 : startOffset;
+        endOffset = endOffset==null ? byteBuffer.limit() : endOffset;
 
         int index = -1;
+        int originPosition = byteBuffer.position();
         byte[] tmp = new byte[mark.length];
-
-        if(length == mark.length){
-            byteBuffer.get(tmp, 0, mark.length);
-            if(Arrays.equals(mark, tmp)){
-                return 0;
-            } else {
-                return index;
-            }
-        }
-
-        for(int offset = 0; (offset + originPosition <= length - mark.length); offset++){
-            byteBuffer.position(originPosition + offset);
+        int length = byteBuffer.remaining();
+        for(int offset = startOffset; (offset + position <= length - mark.length && position + offset <= endOffset ); offset++){
+            byteBuffer.position(position + offset);
             byteBuffer.get(tmp, 0, tmp.length);
             if(Arrays.equals(mark, tmp)){
                 index = offset;
@@ -404,6 +404,17 @@ public class TByteBuffer {
      * @return 第一个字节的索引位置
      */
     public static int revIndexOf(ByteBuffer byteBuffer, byte[] mark){
+        return revIndexOf(byteBuffer, null, null , mark);
+    }
+
+    /**
+     * 反向查找特定 byte 标识的位置
+     *     byte 标识数组第一个字节的索引位置
+     * @param byteBuffer Bytebuffer 对象
+     * @param mark byte 标识数组
+     * @return 第一个字节的索引位置
+     */
+    public static int revIndexOf(ByteBuffer byteBuffer, Integer startOffset, Integer endOffset, byte[] mark){
 
         if(isReleased(byteBuffer)) {
             return -1;
@@ -413,30 +424,18 @@ public class TByteBuffer {
             return -1;
         }
 
-        int originPosition = byteBuffer.position();
-        int length = byteBuffer.remaining();
-
-        if(length < mark.length){
-            return -1;
-        }
+        startOffset = startOffset==null ? byteBuffer.limit() : startOffset;
+        endOffset = endOffset==null ? 0 : endOffset;
 
         int index = -1;
+        int originPosition = byteBuffer.position();
         byte[] tmp = new byte[mark.length];
-
-        if(length == mark.length){
-            byteBuffer.get(tmp, 0, mark.length);
-            if(Arrays.equals(mark, tmp)){
-                return 0;
-            } else {
-                return index;
-            }
-        }
-
-        for(int offset = mark.length; (length - offset > mark.length); offset++){
+        int length = byteBuffer.remaining();
+        for(int offset = startOffset + mark.length; (length - offset > mark.length && length - offset >= endOffset ); offset++){
             byteBuffer.position(length - offset);
             byteBuffer.get(tmp, 0, tmp.length);
             if(Arrays.equals(mark, tmp)){
-                index = length-offset;
+                index = offset;
                 break;
             }
         }
