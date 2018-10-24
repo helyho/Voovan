@@ -550,7 +550,7 @@ public class ByteBufferChannel {
 		try {
 			TEnv.wait(timeout, ()->{
 				checkRelease();
-				return revIndexOf(mark) == -1;
+				return indexOf(mark) == -1;
 			});
 			return true;
 		} catch (TimeoutException e) {
