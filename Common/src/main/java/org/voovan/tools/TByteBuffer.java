@@ -118,6 +118,7 @@ public class TByteBuffer {
             byteBuffer.limit(capacity);
             return byteBuffer;
         } else if(reallocate(byteBuffer, capacity)){
+            byteBuffer.limit(capacity);
             return byteBuffer;
         } else {
             return null;
