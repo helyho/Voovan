@@ -376,6 +376,7 @@ public class TByteBuffer {
 
         if(length == mark.length){
             byteBuffer.get(tmp, 0, mark.length);
+            byteBuffer.position(originPosition);
             if(Arrays.equals(mark, tmp)){
                 return 0;
             } else {
@@ -427,6 +428,7 @@ public class TByteBuffer {
 
         if(length == mark.length){
             byteBuffer.get(tmp, 0, mark.length);
+            byteBuffer.position(originPosition);
             if(Arrays.equals(mark, tmp)){
                 return 0;
             } else {
