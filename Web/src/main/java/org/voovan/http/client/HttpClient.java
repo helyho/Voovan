@@ -5,6 +5,7 @@ import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
+import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
@@ -46,7 +47,7 @@ import java.util.concurrent.TimeoutException;
 public class HttpClient implements Closeable{
 
 	private AioSocket socket;
-	private Request request;
+	private HttpRequest httpRequest;
 	private Map<String, Object> parameters;
 	private String charset="UTF-8";
 	private String urlString;
@@ -139,15 +140,6 @@ public class HttpClient implements Closeable{
 
 			parameters = new HashMap<String, Object>();
 
-			request = new Request();
-			//初始化请求参数,默认值
-			request.header().put("Host", hostString);
-			request.header().put("Pragma", "no-cache");
-			request.header().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-			request.header().put("User-Agent", "Voovan Http Client");
-			request.header().put("Accept-Encoding","gzip");
-			request.header().put("Connection","keep-alive");
-
 			socket = new AioSocket(hostString, port==-1?80:port, timeOut*1000);
 			socket.filterChain().add(new HttpClientFilter(this));
 			socket.messageSplitter(new HttpMessageSplitter());
@@ -162,6 +154,15 @@ public class HttpClient implements Closeable{
 			}
 
 			socket.syncStart();
+
+			httpRequest = new HttpRequest(new Request(), this.charset, socket.getSession());
+			//初始化请求参数,默认值
+			httpRequest.header().put("Host", hostString);
+			httpRequest.header().put("Pragma", "no-cache");
+			httpRequest.header().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+			httpRequest.header().put("User-Agent", "Voovan Http Client");
+			httpRequest.header().put("Accept-Encoding","gzip");
+			httpRequest.header().put("Connection","keep-alive");
 
 		} catch (IOException e) {
 			Logger.error("HttpClient init error",e);
@@ -210,7 +211,7 @@ public class HttpClient implements Closeable{
 	 * @return    HttpClient 对象
 	 */
 	public HttpClient setMethod(String method){
-		request.protocol().setMethod(method);
+		httpRequest.protocol().setMethod(method);
 		return this;
 	}
 
@@ -222,11 +223,11 @@ public class HttpClient implements Closeable{
 	public HttpClient setBodyType(Request.RequestType bodyType){
 
 		//如果之前设置过 ContentType 则不自动设置 ContentType
-		if(!request.header().contain("Content-Type")) {
+		if(!httpRequest.header().contain("Content-Type")) {
 			if (bodyType == Request.RequestType.BODY_MULTIPART) {
-				request.header().put("Content-Type", "multipart/form-data;");
+				httpRequest.header().put("Content-Type", "multipart/form-data;");
 			} else if (bodyType == Request.RequestType.BODY_URLENCODED) {
-				request.header().put("Content-Type", "application/x-www-form-urlencoded");
+				httpRequest.header().put("Content-Type", "application/x-www-form-urlencoded");
 			}
 		}
 		return this;
@@ -239,7 +240,7 @@ public class HttpClient implements Closeable{
 	 */
 	public HttpClient setData(byte[] data){
 		if(data!=null) {
-			request.body().write(data);
+			httpRequest.body().write(data);
 		}
 		return this;
 	}
@@ -251,7 +252,7 @@ public class HttpClient implements Closeable{
 	 */
 	public HttpClient setData(String data){
 		if(data!=null) {
-			request.body().write(data);
+			httpRequest.body().write(data);
 		}
 		return this;
 	}
@@ -264,7 +265,7 @@ public class HttpClient implements Closeable{
 	 */
 	public HttpClient setData(String data, String charset){
 		if(data!=null) {
-			request.body().write(data, charset);
+			httpRequest.body().write(data, charset);
 		}
 		return this;
 	}
@@ -274,7 +275,7 @@ public class HttpClient implements Closeable{
 	 * @return Header 对象
 	 */
 	public Header getHeader(){
-		return request.header();
+		return httpRequest.header();
 	}
 
 	/**
@@ -284,7 +285,7 @@ public class HttpClient implements Closeable{
 	 * @return  HttpClient 对象
 	 */
 	public HttpClient putHeader(String name ,String value){
-		request.header().put(name, value);
+		httpRequest.header().put(name, value);
 		return this;
 	}
 
@@ -293,7 +294,7 @@ public class HttpClient implements Closeable{
 	 * @return Cookie集合
 	 */
 	public List<Cookie> getCookies(){
-		return request.cookies();
+		return httpRequest.cookies();
 	}
 
 	/**
@@ -322,7 +323,7 @@ public class HttpClient implements Closeable{
 	 * @return  HttpClient 对象
 	 */
 	public HttpClient addPart(Part part){
-		request.parts().add(part);
+		httpRequest.parts().add(part);
 		return this;
 	}
 
@@ -374,22 +375,22 @@ public class HttpClient implements Closeable{
 	 * 构建请求
 	 */
 	private void buildRequest(String urlString){
-		request.protocol().setPath(urlString.isEmpty()?"/":urlString);
+		httpRequest.protocol().setPath(urlString.isEmpty()?"/":urlString);
 		//1.没有报文 Body,参数包含于请求URL
-		if (request.getBodyType() == Request.RequestType.NORMAL) {
+		if (httpRequest.getBodyType() == Request.RequestType.NORMAL) {
 			String queryString = getQueryString();
 			if(!TString.isNullOrEmpty(queryString)) {
-				String requestPath = request.protocol().getPath();
+				String requestPath = httpRequest.protocol().getPath();
 				if (requestPath.contains("?")) {
 					queryString = "&" + queryString;
 				} else {
 					queryString = "?" + queryString;
 				}
-				request.protocol().setPath(request.protocol().getPath() + queryString);
+				httpRequest.protocol().setPath(httpRequest.protocol().getPath() + queryString);
 			}
 		}
 		//2.请求报文Body 使用Part 类型
-		else if(request.getBodyType() == Request.RequestType.BODY_MULTIPART){
+		else if(httpRequest.getBodyType() == Request.RequestType.BODY_MULTIPART){
 			try{
 				for (Entry<String, Object> parameter : parameters.entrySet()) {
 					Part part = new Part();
@@ -402,7 +403,7 @@ public class HttpClient implements Closeable{
 						part.body().changeToFile(file);
 						part.header().put("filename", file.getName());
 					}
-					request.parts().add(part);
+					httpRequest.parts().add(part);
 				}
 			} catch (IOException e) {
 				Logger.error("HttpClient buildRequest error",e);
@@ -410,9 +411,9 @@ public class HttpClient implements Closeable{
 
 		}
 		//3.请求报文Body 使用流类型
-		else if(request.getBodyType() == Request.RequestType.BODY_URLENCODED){
+		else if(httpRequest.getBodyType() == Request.RequestType.BODY_URLENCODED){
 			String queryString = getQueryString();
-			request.body().write(queryString, charset);
+			httpRequest.body().write(queryString, charset);
 		}
 	}
 
@@ -430,9 +431,9 @@ public class HttpClient implements Closeable{
 		}
 
 		//设置默认的报文 Body 类型
-		if(request.protocol().getMethod().equals("POST") && request.parts().size()>0){
+		if(httpRequest.protocol().getMethod().equals("POST") && httpRequest.parts().size()>0){
 			setBodyType(Request.RequestType.BODY_MULTIPART);
-		}else if(request.protocol().getMethod().equals("POST")) {
+		}else if(httpRequest.protocol().getMethod().equals("POST")) {
 			setBodyType(Request.RequestType.BODY_URLENCODED);
 		}else{
 			setBodyType(Request.RequestType.NORMAL);
@@ -443,7 +444,7 @@ public class HttpClient implements Closeable{
 
 		//发送报文
 		try {
-			request.send(socket.getSession());
+			httpRequest.send(socket.getSession());
 		}catch(IOException e){
 			throw new SendMessageException("HttpClient send error",e);
 		}
@@ -460,7 +461,7 @@ public class HttpClient implements Closeable{
 			}
 
 			//结束操作
-			finished(request, response);
+			finished(httpRequest, response);
 
 			return response;
 		}catch(ReadMessageException e){
@@ -489,7 +490,7 @@ public class HttpClient implements Closeable{
 	 * @throws IOException IO 异常
 	 */
 	public int send(ByteBuffer buffer) throws IOException {
-		return socket.getSession().send(buffer);
+		return this.httpRequest.send(buffer);
 	}
 
 	/**
@@ -529,12 +530,12 @@ public class HttpClient implements Closeable{
 		IoSession session = socket.getSession();
 		session.removeAttribute(WebServerHandler.SessionParam.TYPE);
 
-		request.header().put("Connection","Upgrade");
-		request.header().put("Upgrade", "websocket");
-		request.header().put("Pragma","no-cache");
-		request.header().put("Origin", this.urlString);
-		request.header().put("Sec-WebSocket-Version","13");
-		request.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
+		httpRequest.header().put("Connection","Upgrade");
+		httpRequest.header().put("Upgrade", "websocket");
+		httpRequest.header().put("Pragma","no-cache");
+		httpRequest.header().put("Origin", this.urlString);
+		httpRequest.header().put("Sec-WebSocket-Version","13");
+		httpRequest.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
 		send(location);
 	}
 

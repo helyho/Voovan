@@ -1,8 +1,8 @@
 package org.voovan.http.client;
 
 import org.voovan.http.message.HttpParser;
-import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
+import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
@@ -36,10 +36,10 @@ public class HttpClientFilter implements IoFilter {
 		if(object instanceof WebSocketFrame){
 			return ((WebSocketFrame)object).toByteBuffer();
 		}
-		if(object instanceof Request){
-			Request request = (Request)object;
+		if(object instanceof HttpRequest){
+			HttpRequest httpRequest = (HttpRequest)object;
 			try {
-				request.send(session);
+				httpRequest.send();
 			} catch (IOException e) {
 				Logger.error(e);
 			}
