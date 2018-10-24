@@ -4,6 +4,8 @@ import org.voovan.http.message.Response;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TDateTime;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Date;
 
 /**
@@ -96,6 +98,27 @@ public class HttpResponse extends Response {
 		if(strs!=null){
 			body().write(strs, characterSet);
 		}
+	}
+
+	/**
+	 * 发送响应
+	 * @throws IOException IO 异常
+	 */
+	public void send() throws IOException {
+		super.send(socketSession);
+	}
+
+	/**
+	 * 追加形式发送数据
+	 * @param byteBuffer 发送的缓冲区
+	 * @return 发送的字节数
+	 * @throws IOException IOException IO 异常
+	 */
+	public int send(ByteBuffer byteBuffer) throws IOException {
+		if(!super.basicSend) {
+		    send();
+		}
+		return socketSession.send(byteBuffer);
 	}
 	
 	/**

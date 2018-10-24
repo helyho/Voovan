@@ -33,12 +33,13 @@ import java.util.Vector;
 
 public class Request {
 	private RequestProtocol protocol;
-	private Header header;
+	private Header 			header;
 	private List<Cookie>	cookies;
-	private Body body;
+	private Body 			body;
 	private List<Part>		parts;
-	private String boundary;
+	private String 			boundary;
 	private static final String CONTENT_TYPE = "Content-Type";
+	protected boolean 		basicSend = false;
 
 	/**
 	 * HTTP 请求的枚举对象
@@ -316,6 +317,8 @@ public class Request {
 
 		TByteBuffer.release(byteBuffer);
 		release();
+
+		basicSend = true;
 	}
 
 

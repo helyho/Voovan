@@ -10,6 +10,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.*;
 
@@ -38,7 +39,7 @@ public class HttpRequest extends Request {
 	 * @param characterSet  字符集
 	 * @param socketSession socket 会话对象
 	 */
-	protected HttpRequest(Request request,String characterSet, IoSession socketSession){
+	public HttpRequest(Request request, String characterSet, IoSession socketSession){
 		super(request);
 		this.characterSet=characterSet;
 		parameters = new LinkedHashMap<String, String>();
@@ -404,6 +405,28 @@ public class HttpRequest extends Request {
 			}
 		}
 	}
+
+	/**
+	 * 发送响应
+	 * @throws IOException IO 异常
+	 */
+	public void send() throws IOException {
+		super.send(socketSession);
+	}
+
+	/**
+	 * 追加形式发送数据
+	 * @param byteBuffer 发送的缓冲区
+	 * @return 发送的字节数
+	 * @throws IOException IOException IO 异常
+	 */
+	public int send(ByteBuffer byteBuffer) throws IOException {
+		if(!super.basicSend) {
+			send();
+		}
+		return socketSession.send(byteBuffer);
+	}
+
 
 	/**
 	 * 保存上传的文件

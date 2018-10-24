@@ -35,11 +35,11 @@ public class WebServerFilter implements IoFilter {
 		session.enabledMessageSpliter(true);
 
 		// 对 Websocket 进行处理
-		if (object instanceof Response) {
-			Response response = (Response)object;
+		if (object instanceof HttpResponse) {
+			HttpResponse httpResponse = (HttpResponse)object;
 
 			try {
-				response.send(session);
+				httpResponse.send();
 			}catch(Exception e){
 				Logger.error(e);
 			}

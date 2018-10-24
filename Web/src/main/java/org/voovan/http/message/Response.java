@@ -23,11 +23,12 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class Response {
-	private ResponseProtocol protocol;
+	private ResponseProtocol 	protocol;
 	private Header				header;
 	private List<Cookie>		cookies;
-	private Body body;
+	private Body 				body;
 	private boolean				isCompress;
+	protected boolean 			basicSend = false;
 
 	/**
 	 * 构造函数
@@ -232,6 +233,8 @@ public class Response {
 			TByteBuffer.release(byteBuffer);
 			release();
 		}
+
+		basicSend = true;
 	}
 
 	public void release(){
