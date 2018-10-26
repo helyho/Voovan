@@ -65,7 +65,16 @@ public class HttpMessageSplitter implements MessageSplitter {
         String protocolLine = null;
 
         bodyTagIndex = TByteBuffer.revIndexOf(byteBuffer, "\r\n\r\n".getBytes());
+
+        if(bodyTagIndex <= 0){
+            return -1;
+        }
+
         protocolLineIndex = TByteBuffer.indexOf(byteBuffer, "\r\n".getBytes());
+        if(protocolLineIndex <= 0){
+            return -1;
+        }
+
 
         byte[] protocolLineBytes = new byte[protocolLineIndex-4];
         byteBuffer.get(protocolLineBytes);
@@ -73,7 +82,7 @@ public class HttpMessageSplitter implements MessageSplitter {
 
         protocolLine = new String(protocolLineBytes);
 
-        if(bodyTagIndex > 0 && protocolLine !=null && isHttpHead(protocolLine)) {
+        if(protocolLine !=null && isHttpHead(protocolLine)) {
             if(bodyTagIndex > 0) {
                 return bodyTagIndex;
             } else {
