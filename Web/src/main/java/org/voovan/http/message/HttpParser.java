@@ -325,14 +325,14 @@ public class HttpParser {
 
 
 						//Part 头读取
-						ByteBuffer partHeadBuffer = TByteBuffer.borrowBuffer(partHeadEndIndex + 4);
+						ByteBuffer partHeadBuffer = TByteBuffer.allocateDirect(partHeadEndIndex + 4);
 						byteBufferChannel.readHead(partHeadBuffer);
 
 						//构造新的 Bytebufer 递归解析
 						ByteBufferChannel partByteBufferChannel = new ByteBufferChannel(partHeadEndIndex + 4); //包含换行符
 						partByteBufferChannel.writeEnd(partHeadBuffer);
 						Map<String, Object> partMap = parser(partByteBufferChannel, timeOut, requestMaxSize);
-						TByteBuffer.returnBuffer(partHeadBuffer);
+						TByteBuffer.release(partHeadBuffer);
 						partByteBufferChannel.release();
 
 						String fileName = getPerprotyEqualValue(partMap, HEAD_CONTENT_DISPOSITION, "filename");
@@ -467,7 +467,7 @@ public class HttpParser {
 						int readSize = 0;
 						if(chunkedLength > 0) {
 							//按长度读取chunked内容
-							ByteBuffer byteBuffer = TByteBuffer.borrowBuffer(chunkedLength);
+							ByteBuffer byteBuffer = TByteBuffer.allocateDirect(chunkedLength);
 							readSize = byteBufferChannel.readHead(byteBuffer);
 
 							//累计请求大小
@@ -479,7 +479,7 @@ public class HttpParser {
 
 							//如果多次读取则拼接
 							chunkedByteBufferChannel.writeEnd(byteBuffer);
-							TByteBuffer.returnBuffer(byteBuffer);
+							TByteBuffer.release(byteBuffer);
 						}
 
 						//请求过大的处理
