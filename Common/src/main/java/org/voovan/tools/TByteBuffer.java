@@ -10,7 +10,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * ByteBuffer 工具类
@@ -22,8 +21,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
-
-    public static ConcurrentLinkedQueue<ByteBuffer> BYTE_BUFFER_MANUAL_RELEASE_POOL = new ConcurrentLinkedQueue<ByteBuffer>();
 
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
 
@@ -103,37 +100,7 @@ public class TByteBuffer {
         }
     }
 
-    /**
-     * 借出缓冲对象
-     * @param capacity
-     * @return 容量
-     */
-    public static ByteBuffer borrowBuffer(int capacity){
-        ByteBuffer byteBuffer = BYTE_BUFFER_MANUAL_RELEASE_POOL.poll();
-        if(byteBuffer == null){
-            return allocateManualReleaseBuffer(capacity);
-        }
 
-        if(byteBuffer.capacity() >= capacity){
-            byteBuffer.limit(capacity);
-            return byteBuffer;
-        } else if(reallocate(byteBuffer, capacity)){
-            byteBuffer.limit(capacity);
-            return byteBuffer;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * 归还缓冲对象
-     * @param byteBuffer
-     */
-    public static void returnBuffer(ByteBuffer byteBuffer){
-        byteBuffer.position(0);
-        byteBuffer.limit(byteBuffer.capacity());
-        BYTE_BUFFER_MANUAL_RELEASE_POOL.offer(byteBuffer);
-    }
 
 
     /**
