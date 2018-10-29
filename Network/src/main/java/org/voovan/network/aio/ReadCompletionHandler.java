@@ -7,6 +7,7 @@ import org.voovan.network.MessageLoader;
 import org.voovan.network.SSLParser;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -57,7 +58,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					try {
 						TEnv.wait(session.socketContext().getReadTimeout(), ()-> appByteBufferChannel.size() + readTempBuffer.limit() >= appByteBufferChannel.getMaxSize() );
 					} catch (TimeoutException e) {
-						e.printStackTrace();
+						Logger.error("Session.byteByteBuffer is not enough:", e);
 					}
 
 					//接收SSL数据, SSL握手完成后解包
