@@ -29,7 +29,7 @@ public class Global {
             boolean value = false;
             value = TProperties.getBoolean("framework", "NoHeapManualRelease");
             REMOTE_CLASS_SOURCE = TProperties.getString("framework", "RemoteClassSource");
-            NO_HEAP_MANUAL_RELEASE = TObject.nullDefault(value, false);
+            NO_HEAP_MANUAL_RELEASE = TObject.nullDefault(value, true);
             System.out.println("[SYSTEM] NoHeap Manual Release: " + NO_HEAP_MANUAL_RELEASE);
         }
     }
