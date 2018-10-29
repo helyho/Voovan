@@ -85,12 +85,7 @@ public class TByteBuffer {
             long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
             TUnsafe.getUnsafe().setMemory(address, capacity, (byte) 0);
 
-            Deallocator deallocator = new Deallocator(new Long(address));
-
-            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
-
-            //内存自动释放部分
-            TReflect.invokeMethod(CLEANER_ClASS, CLEANER_CREATE_METHOD, byteBuffer, deallocator);
+            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, Integer.MIN_VALUE);
 
             return byteBuffer;
 
@@ -230,7 +225,7 @@ public class TByteBuffer {
             try {
                 if (byteBuffer != null && !isReleased(byteBuffer)) {
                     Object att = getAtt(byteBuffer);
-                    if (att!=null && att.getClass() == Deallocator.class) {
+                    if (att!=null && att.equals(Integer.MIN_VALUE)) {
                         long address = getAddress(byteBuffer);
                         if(address!=0) {
                             TUnsafe.getUnsafe().freeMemory(address);
@@ -435,10 +430,6 @@ public class TByteBuffer {
      */
     public static void setAddress(ByteBuffer byteBuffer, long address) throws ReflectiveOperationException {
         addressField.set(byteBuffer, address);
-        Object att = getAtt(byteBuffer);
-        if(att!=null && att.getClass() == Deallocator.class){
-            ((Deallocator) att).setAddress(address);
-        }
     }
 
     /**
@@ -459,32 +450,5 @@ public class TByteBuffer {
      */
     public static void setAttr(ByteBuffer byteBuffer, Object attr) throws ReflectiveOperationException {
         attField.set(byteBuffer, attr);
-    }
-
-
-    /**
-     * 自动跟踪 GC 销毁的类
-     */
-    private static class Deallocator implements Runnable {
-        private long address;
-        private int capacity;
-
-        private Deallocator(long address) {
-            this.address = address;
-        }
-
-        public void setAddress(long address){
-            this.address = address;
-        }
-
-        public void run() {
-
-            if (this.address == 0) {
-                return;
-            }
-
-            TUnsafe.getUnsafe().freeMemory(address);
-            address = 0;
-        }
     }
 }
