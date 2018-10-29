@@ -165,21 +165,18 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
 
     @Override
     public int size() {
-        if(name==null){
-            throw new UnsupportedOperationException();
-        }
-
         try(Jedis jedis = getJedis()) {
-            return Integer.valueOf(String.valueOf(jedis.hlen(name)));
+            if(name==null){
+                return Integer.valueOf(String.valueOf(jedis.dbSize()));
+            }else {
+                return Integer.valueOf(String.valueOf(jedis.hlen(name)));
+            }
+
         }
     }
 
     @Override
     public boolean isEmpty() {
-        if(name==null){
-            throw new UnsupportedOperationException();
-        }
-
         return size()==0;
     }
 
