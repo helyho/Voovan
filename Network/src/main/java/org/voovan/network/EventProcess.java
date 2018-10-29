@@ -211,7 +211,10 @@ public class EventProcess {
 				return null;
 			}
 		} finally {
-			TByteBuffer.release(byteBuffer);
+			//特殊处理 MessageLoader 会返回 TByteBuffer.EMPTY_BYTE_BUFFER
+			if(byteBuffer!=TByteBuffer.EMPTY_BYTE_BUFFER) {
+				TByteBuffer.release(byteBuffer);
+			}
 
 			//如果数据没有解析完,重新触发 onRecived 事件
 			if (session.getByteBufferChannel().size() > 0) {
@@ -282,35 +285,38 @@ public class EventProcess {
 		final Object sendObj = obj;
 
 		//开启一个线程发送消息,不阻塞当前线程
-		try {
+		Global.getThreadPool().execute(()->{
 			try {
-				// ------------------Filter 加密处理-----------------
-				ByteBuffer sendBuffer = EventProcess.filterEncoder(sendSession, sendObj);
-				// ---------------------------------------------------
+				try {
+					// ------------------Filter 加密处理-----------------
+					ByteBuffer sendBuffer = EventProcess.filterEncoder(sendSession, sendObj);
+					// ---------------------------------------------------
 
-				if (sendBuffer != null) {
+					if (sendBuffer != null) {
 
-					// 发送消息
-					if (sendBuffer != null && sendSession.isOpen()) {
-						if (sendBuffer.limit() > 0) {
-							int sendLength = sendSession.send(sendBuffer);
-							if(sendLength >= 0) {
-								sendBuffer.rewind();
-							} else {
-								throw new IOException("EventProcess.sendMessage faild, send length: " + sendLength);
+						// 发送消息
+						if (sendBuffer != null && sendSession.isOpen()) {
+							if (sendBuffer.limit() > 0) {
+								int sendLength = sendSession.send(sendBuffer);
+								if(sendLength >= 0) {
+									sendBuffer.rewind();
+								} else {
+									throw new IOException("EventProcess.sendMessage faild, send length: " + sendLength);
+								}
 							}
 						}
-					}
 
-					//触发发送事件
-					EventTrigger.fireSent(sendSession, sendObj);
+						//触发发送事件
+						EventTrigger.fireSent(sendSession, sendObj);
+					}
+				} catch (IOException e) {
+					EventTrigger.fireException(sendSession, e);
 				}
-			} catch (IOException e) {
-				EventTrigger.fireException(sendSession, e);
+			} finally {
+				sendSession.getState().setSend(false);
 			}
-		} finally {
-			sendSession.getState().setSend(false);
-		}
+		});
+
 	}
 
 	/**
@@ -329,9 +335,9 @@ public class EventProcess {
 			socketContext.handler().onSent(session, sendObj);
 
 			//如果 obj 是 ByteBuffer 进行释放
-			if (sendObj instanceof ByteBuffer) {
-				TByteBuffer.release((ByteBuffer) sendObj);
-			}
+//			if (sendObj instanceof ByteBuffer) {
+//				TByteBuffer.release((ByteBuffer) sendObj);
+//			}
 
 //			//如果是 Udp 通信则在发送完成后触发关闭事件
 //			if(session.socketContext() instanceof UdpSocket && session.socketContext().connectModel==ConnectModel.SERVER) {
