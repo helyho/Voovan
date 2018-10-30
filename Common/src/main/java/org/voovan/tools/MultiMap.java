@@ -12,10 +12,7 @@ package org.voovan.tools;
 
 import org.voovan.tools.json.JSON;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MultiMap<K,V>
@@ -72,12 +69,7 @@ public class MultiMap<K,V>
             return (List)super.put(key, null);
         }
 
-        List<V> vals = get(key);
-        if(vals == null) {
-            vals = new ArrayList();
-            put(key, vals);
-        }
-
+        List<V> vals = getValueList(key);
         vals.add(value);
         return (List)super.put((K)key, vals);
     }
@@ -104,6 +96,18 @@ public class MultiMap<K,V>
         return (List)super.put(key, values);
     }
 
+    private List<V> getValueList(K key){
+        List<V> lo = (List) get(key);
+
+        if (lo == null) {
+            lo = new Vector<V>();
+            List retValue = putIfAbsent(key, lo);
+            lo = retValue == null ? lo : retValue;
+        }
+
+        return lo;
+    }
+
     /**
      * 一次插入一个键值
      * @param key 键
@@ -113,7 +117,7 @@ public class MultiMap<K,V>
     @SafeVarargs
     public final List<V> putValues(K key, V... values)
     {
-        List<V> list = new ArrayList();
+        List<V> list = getValueList(key);
         list.addAll(Arrays.asList(values));
         return (List)super.put(key, list);
     }
@@ -125,10 +129,7 @@ public class MultiMap<K,V>
      */
     public void add(K key, V value)
     {
-        List<V> lo = (List)get(key);
-        if (lo == null) {
-            lo = new ArrayList();
-        }
+        List<V> lo = getValueList(key);
         lo.add(value);
         super.put(key, lo);
     }
@@ -140,10 +141,7 @@ public class MultiMap<K,V>
      */
     public void addValues(K key, List<V> values)
     {
-        List<V> lo = get(key);
-        if (lo == null) {
-            lo = new ArrayList();
-        }
+        List<V> lo = getValueList(key);
         lo.addAll(values);
         super.put(key, lo);
     }
@@ -155,10 +153,7 @@ public class MultiMap<K,V>
      */
     public void addValues(K key, V[] values)
     {
-        List<V> lo = (List)get(key);
-        if (lo == null) {
-            lo = new ArrayList();
-        }
+        List<V> lo = getValueList(key);
         lo.addAll(Arrays.asList(values));
         super.put(key, lo);
     }

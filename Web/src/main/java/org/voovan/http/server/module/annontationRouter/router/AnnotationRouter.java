@@ -148,7 +148,7 @@ public class AnnotationRouter implements HttpRouter {
 
                                 //注册路由,不带路径参数的路由
                                 httpModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                Logger.simple( "\t[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
+                                Logger.simple( "[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
                                         "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') + httpModule.getModuleConfig().getPath() + routePath);
                                 routeMethodNum++;
                             }
