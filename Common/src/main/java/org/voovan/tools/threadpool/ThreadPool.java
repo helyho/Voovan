@@ -17,7 +17,8 @@ import java.util.concurrent.TimeUnit;
  * Licence: Apache v2 License
  */
 public class ThreadPool {
-	private final static int cpuCoreCount = Runtime.getRuntime().availableProcessors();
+	private static int cpuCoreCount = Runtime.getRuntime().availableProcessors();
+
 	protected static int MIN_POOL_SIZE = 10*cpuCoreCount;
 	protected static int MAX_POOL_SIZE = 100*cpuCoreCount;
 	protected static int STATUS_INTERVAL = 3000;
@@ -30,6 +31,7 @@ public class ThreadPool {
 		int minPoolTimes = TProperties.getInt("framework", "ThreadPoolMinSize");
 		MIN_POOL_SIZE = (minPoolTimes == 0 ? 2 : minPoolTimes) * cpuCoreCount;
 		MIN_POOL_SIZE = MIN_POOL_SIZE < 20 ? 20 : MIN_POOL_SIZE;
+		System.out.println("[THREAD_POOL] Min size: " + minPoolTimes + "/" + MIN_POOL_SIZE);
 		return MIN_POOL_SIZE;
 	}
 
@@ -40,6 +42,7 @@ public class ThreadPool {
 	public static int getMaxPoolSize() {
 		int maxPoolTimes = TProperties.getInt("framework", "ThreadPoolMaxSize");
 		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 100 : maxPoolTimes) * cpuCoreCount;
+		System.out.println("[THREAD_POOL] Max size: " + maxPoolTimes + "/" + MAX_POOL_SIZE);
 		return MAX_POOL_SIZE;
 	}
 
