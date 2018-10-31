@@ -73,8 +73,26 @@ public class RedisZSet<V> implements Closeable {
      * @param name 在 redis 中的 HashMap的名称
      */
     public RedisZSet(String name){
-        this.redisPool = CacheStatic.getRedisPool();
+        this.redisPool = CacheStatic.getDefaultRedisPool();
         this.name = name;
+    }
+
+    /**
+     * 构造函数
+     * @param jedisPool redis 连接池
+     * @param name 在 redis 中的 HashMap的名称
+     */
+    public RedisZSet(JedisPool jedisPool, String name){
+        this.redisPool = jedisPool;
+        this.name = name;
+    }
+
+    /**
+     * 构造函数
+     * @param jedisPool redis 连接池
+     */
+    public RedisZSet(JedisPool jedisPool){
+        this.redisPool = jedisPool;
     }
 
     /**

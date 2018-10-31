@@ -73,8 +73,26 @@ public class RedisLock {
      * @param lockName 锁的键名
      */
     public RedisLock(String lockName){
-        this.redisPool = CacheStatic.getRedisPool();
+        this.redisPool = CacheStatic.getDefaultRedisPool();
         this.lockName = lockName;
+    }
+
+    /**
+     * 构造函数
+     * @param jedisPool redis 连接池
+     * @param name 在 redis 中的 HashMap的名称
+     */
+    public RedisLock(JedisPool jedisPool, String name){
+        this.redisPool = jedisPool;
+        this.lockName = lockName;
+    }
+
+    /**
+     * 构造函数
+     * @param jedisPool redis 连接池
+     */
+    public RedisLock(JedisPool jedisPool){
+        this.redisPool = jedisPool;
     }
 
     /**
@@ -186,10 +204,10 @@ public class RedisLock {
 
         try (Jedis jedis = getJedis()) {
             String script = "if redis.call('get', KEYS[1]) == ARGV[1] then " +
-                    "return redis.call('del', KEYS[1]) " +
-                    "else " +
-                    "return 0 " +
-                    "end";
+                                "return redis.call('del', KEYS[1]) " +
+                            "else " +
+                                "return 0 " +
+                            "end";
             Object result = jedis.eval(script, Collections.singletonList(this.lockName), Collections.singletonList(lockValue));
 
             if ( RedisMap.UNLOCK_SUCCESS.equals(result)) {
@@ -208,10 +226,10 @@ public class RedisLock {
 
         try (Jedis jedis = getJedis()) {
             String script = "if redis.call('get', KEYS[1]) == ARGV[1] then " +
-                    "return redis.call('del', KEYS[1]) " +
-                    "else " +
-                    "return 0 " +
-                    "end";
+                                "return redis.call('del', KEYS[1]) " +
+                            "else " +
+                                "return 0 " +
+                            "end";
             Object result = jedis.eval(script, Collections.singletonList(this.lockName), Collections.singletonList(this.lockValue));
 
             if ( RedisMap.UNLOCK_SUCCESS.equals(result)) {

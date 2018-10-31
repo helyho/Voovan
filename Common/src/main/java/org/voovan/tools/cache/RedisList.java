@@ -73,8 +73,26 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
      * @param name 在 redis 中的 HashMap的名称
      */
     public RedisList(String name){
-        this.redisPool = CacheStatic.getRedisPool();
+        this.redisPool = CacheStatic.getDefaultRedisPool();
         this.name = name;
+    }
+
+    /**
+     * 构造函数
+     * @param jedisPool redis 连接池
+     * @param name 在 redis 中的 HashMap的名称
+     */
+    public RedisList(JedisPool jedisPool, String name){
+        this.redisPool = jedisPool;
+        this.name = name;
+    }
+
+    /**
+     * 构造函数
+     * @param jedisPool redis 连接池
+     */
+    public RedisList(JedisPool jedisPool){
+        this.redisPool = jedisPool;
     }
 
     /**
@@ -210,7 +228,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
 
     @Override
     public V pollLast() {
-        return removeLast();
+       return removeLast();
     }
 
     @Override

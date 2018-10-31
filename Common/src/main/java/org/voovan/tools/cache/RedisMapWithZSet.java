@@ -20,7 +20,7 @@ import java.util.*;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class RedisZSetZSet implements Closeable {
+public class RedisMapWithZSet implements Closeable {
     private JedisPool redisPool;
     private String name = null;
     private int dbIndex = 0;
@@ -36,7 +36,7 @@ public class RedisZSetZSet implements Closeable {
      * @param name        在 redis 中的 HashMap的名称
      * @param password    redis 服务密码
      */
-    public RedisZSetZSet(String host, int port, int timeout, int poolsize, String name, String password){
+    public RedisMapWithZSet(String host, int port, int timeout, int poolsize, String name, String password){
         super();
 
         //如果没有指定JedisPool的配置文件,则使用默认的
@@ -61,7 +61,7 @@ public class RedisZSetZSet implements Closeable {
      * @param poolsize    redis 连接池的大小
      * @param name        在 redis 中的 HashMap的名称
      */
-    public RedisZSetZSet(String host, int port, int timeout, int poolsize, String name){
+    public RedisMapWithZSet(String host, int port, int timeout, int poolsize, String name){
         super();
 
         //如果没有指定JedisPool的配置文件,则使用默认的
@@ -77,9 +77,27 @@ public class RedisZSetZSet implements Closeable {
      * 构造函数
      * @param name 在 redis 中的 HashMap的名称
      */
-    public RedisZSetZSet(String name){
-        this.redisPool = CacheStatic.getRedisPool();
+    public RedisMapWithZSet(String name){
+        this.redisPool = CacheStatic.getDefaultRedisPool();
         this.name = name;
+    }
+
+    /**
+     * 构造函数
+     * @param jedisPool redis 连接池
+     * @param name 在 redis 中的 HashMap的名称
+     */
+    public RedisMapWithZSet(JedisPool jedisPool, String name){
+        this.redisPool = jedisPool;
+        this.name = name;
+    }
+
+    /**
+     * 构造函数
+     * @param jedisPool redis 连接池
+     */
+    public RedisMapWithZSet(JedisPool jedisPool){
+        this.redisPool = jedisPool;
     }
 
     /**
@@ -112,7 +130,7 @@ public class RedisZSetZSet implements Closeable {
      * @param values
      * @return
      */
-    public Object eval(Jedis jedis, String command, double itemName, Object ... values){
+    public Object eval(Jedis jedis, String command, String itemName, Object ... values){
         String params = ", ";
 
         String cachedKey = command+values.length;
@@ -125,27 +143,26 @@ public class RedisZSetZSet implements Closeable {
             values[i] = values[i].toString();
         }
 
-        List valueList = TObject.asList(this.name, String.valueOf(itemName));
+        List valueList = TObject.asList(this.name, itemName);
         valueList.addAll(TObject.asList(values));
 
         if(scriptHash==null){
 
+
             params = TString.removeSuffix(params.trim());
 
-            String script = "local innerKey = redis.call('zcount', ARGV[1], ARGV[2], ARGV[2]);\n" +
+            String script = "local innerKey = redis.call('HEXISTS', ARGV[1], ARGV[2]);\n" +
                     "if (innerKey == 0) then\n" +
-                    "    innerKey = '100000'..ARGV[2];\n" +
-                    "    redis.call('zadd', ARGV[1], innerKey, innerKey);\n" +
+                    "    innerKey = tostring(ARGV[1])..'-'..tostring(ARGV[2]);\n" +
+                    "    redis.call('hset', ARGV[1], innerKey, innerKey);\n" +
                     "else \n" +
-                    "    innerKey = ARGV[2];\n" +
+                    "    innerKey = tostring(ARGV[1])..'-'..tostring(ARGV[2]);\n" +
                     "end\n" +
                     "return redis.call('" + command + "', innerKey" + params + ");";
             scriptHash =jedis.scriptLoad(script);
             scriptHashMap.put(cachedKey, scriptHash);
 
             Logger.fremawork("Create " + cachedKey + ": " + scriptHash);
-            System.out.println(script);
-            System.out.println(valueList);
         }
 
 
@@ -170,7 +187,7 @@ public class RedisZSetZSet implements Closeable {
      * @param values 新的元素
      * @return 新增元素的数量
      */
-    public long addAll(double itemName, Map<String, Double> values){
+    public long addAll(String itemName, Map<String, Double> values){
         try (Jedis jedis = getJedis()) {
             return (Long)eval(jedis, "zadd", itemName, convertScoreMembersToArrays(values).toArray());
         }
@@ -182,7 +199,7 @@ public class RedisZSetZSet implements Closeable {
      * @param value 新的元素
      * @return 新增元素的数量
      */
-    public long add(double itemName, double score, String value){
+    public long add(String itemName, double score, String value){
         try (Jedis jedis = getJedis()) {
             return (Long)eval(jedis, "zadd", itemName, score, value);
         }
@@ -194,7 +211,7 @@ public class RedisZSetZSet implements Closeable {
      * @param score 增加值
      * @return 自增后的 score
      */
-    public double increase(double itemName, String value, double score){
+    public double increase(String itemName, String value, double score){
         try (Jedis jedis = getJedis()) {
             return Double.valueOf((String)eval(jedis, "zincrby", itemName, score, value));
         }
@@ -206,15 +223,15 @@ public class RedisZSetZSet implements Closeable {
      */
     public long size(){
         try (Jedis jedis = getJedis()) {
-                return jedis.zcard(this.name);
+            return jedis.hlen(this.name);
         }
     }
 
-   /**
+    /**
      * 获取前集合的大小
      * @return 集合的大小
      */
-    public long size(double itemName){
+    public long size(String itemName){
         try (Jedis jedis = getJedis()) {
             return (Long)eval(jedis, "zcard", itemName);
         }
@@ -226,7 +243,7 @@ public class RedisZSetZSet implements Closeable {
      * @param max score 的最大值
      * @return 成员的数量
      */
-    public long scoreRangeCount(double itemName, double min, double max){
+    public long scoreRangeCount(String itemName, double min, double max){
         try (Jedis jedis = getJedis()) {
             return (Long)eval(jedis, "zcount", itemName, min, max);
         }
@@ -238,7 +255,7 @@ public class RedisZSetZSet implements Closeable {
      * @param max value 的最大值
      * @return 成员的数量
      */
-    public long valueRangeCount(double itemName, String min, String max){
+    public long valueRangeCount(String itemName, String min, String max){
         try (Jedis jedis = getJedis()) {
             return (Long)eval(jedis, "zlexcount", itemName, min, max);
         }
@@ -250,7 +267,7 @@ public class RedisZSetZSet implements Closeable {
      * @param end value 索引结束位置
      * @return 成员对象的集合
      */
-    public Set<String> getRangeByIndex(double itemName, long start, long end){
+    public Set<String> getRangeByIndex(String itemName, long start, long end){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
             result.addAll((Collection<String>)eval(jedis, "zrange", itemName, start, end));
@@ -265,7 +282,7 @@ public class RedisZSetZSet implements Closeable {
      * @param end value 索引结束位置
      * @return 成员对象的集合
      */
-    public Set<String> getRevRangeByIndex(double itemName, long start, long end){
+    public Set<String> getRevRangeByIndex(String itemName, long start, long end){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
             result.addAll((Collection<String>)eval(jedis, "zrevrange", itemName, start, end));
@@ -279,7 +296,7 @@ public class RedisZSetZSet implements Closeable {
      * @param end value 的最大值
      * @return 成员对象的集合
      */
-    public Set<String> getRangeByValue(double itemName, String start, String end){
+    public Set<String> getRangeByValue(String itemName, String start, String end){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
             result.addAll((Collection<String>)eval(jedis, "zrangeByLex", itemName, start, end));
@@ -296,7 +313,7 @@ public class RedisZSetZSet implements Closeable {
      * @param size 数量
      * @return 成员对象的集合
      */
-    public Set<String> getRangeByValue(double itemName, String start, String end, int offset, int size){
+    public Set<String> getRangeByValue(String itemName, String start, String end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
             result.addAll((Collection<String>)eval(jedis, "zrangeByLex", itemName, start, end, "LIMIT", offset, size));
@@ -310,7 +327,7 @@ public class RedisZSetZSet implements Closeable {
      * @param end value 的最小值
      * @return 成员对象的集合
      */
-    public Set<String> getRevRangeByValue(double itemName, String start, String end){
+    public Set<String> getRevRangeByValue(String itemName, String start, String end){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
             result.addAll((Collection<String>)eval(jedis, "zrevrangeByLex", itemName, start, end));
@@ -326,7 +343,7 @@ public class RedisZSetZSet implements Closeable {
      * @param size 数量
      * @return 成员对象的集合
      */
-    public Set<String> getRevRangeByValue(double itemName, String start, String end, int offset, int size){
+    public Set<String> getRevRangeByValue(String itemName, String start, String end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
             result.addAll((Collection<String>)eval(jedis, "zrevrangeByLex", itemName, start, end, "LIMIT", offset, size));
@@ -340,7 +357,7 @@ public class RedisZSetZSet implements Closeable {
      * @param end value 的最大值
      * @return 成员对象的集合
      */
-    public Set<String> getRangeByScore(double itemName, double start, double end){
+    public Set<String> getRangeByScore(String itemName, double start, double end){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
             result.addAll((Collection<String>)eval(jedis, "zrangeByScore", itemName, start, end));
@@ -356,7 +373,7 @@ public class RedisZSetZSet implements Closeable {
      * @param size 数量
      * @return 成员对象的集合
      */
-    public Set<String> getRangeByScore(double itemName, double start, double end, int offset, int size){
+    public Set<String> getRangeByScore(String itemName, double start, double end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
             result.addAll((Collection<String>)eval(jedis, "zrangeByScore", itemName, start, end, "LIMIT", offset, size));
@@ -370,7 +387,7 @@ public class RedisZSetZSet implements Closeable {
      * @param end value 的最小值
      * @return 成员对象的集合
      */
-    public Set<String> getRevRangeByScore(double itemName, double start, double end){
+    public Set<String> getRevRangeByScore(String itemName, double start, double end){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
             result.addAll((Collection<String>)eval(jedis, "zrevrangeByScore", itemName, start, end));
@@ -386,7 +403,7 @@ public class RedisZSetZSet implements Closeable {
      * @param size 数量
      * @return 成员对象的集合
      */
-    public Set<String> getRevRangeByScore(double itemName, double start, double end, int offset, int size){
+    public Set<String> getRevRangeByScore(String itemName, double start, double end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<String> result = new HashSet<String>();
             result.addAll((Collection<String>)eval(jedis, "zrevrangeByScore", itemName, start, end, "LIMIT", offset, size));
@@ -399,7 +416,7 @@ public class RedisZSetZSet implements Closeable {
      * @param value 值
      * @return 索引诶只
      */
-    public long indexOf(double itemName, String value){
+    public long indexOf(String itemName, String value){
         try (Jedis jedis = getJedis()) {
             return (long)eval(jedis, "zrank", itemName, value);
         }
@@ -410,7 +427,7 @@ public class RedisZSetZSet implements Closeable {
      * @param value 值
      * @return 索引诶只
      */
-    public long revIndexOf(double itemName, String value){
+    public long revIndexOf(String itemName, String value){
         try (Jedis jedis = getJedis()) {
             return (long)eval(jedis, "zrevrank", itemName, value);
         }
@@ -420,7 +437,7 @@ public class RedisZSetZSet implements Closeable {
      * 移除某个特定 value
      * @return 移除元素的索引
      */
-    public long remove(double itemName, String value){
+    public long remove(String itemName, String value){
         try (Jedis jedis = getJedis()) {
             return (long)eval(jedis, "zrem", itemName, value);
         }
@@ -432,7 +449,7 @@ public class RedisZSetZSet implements Closeable {
      * @param end value 的最小值
      * @return 移除元素的数量
      */
-    public long removeRangeByValue(double itemName,String start, String end){
+    public long removeRangeByValue(String itemName,String start, String end){
         try (Jedis jedis = getJedis()) {
             return (long)eval(jedis, "zremrangeByLex", itemName, start, end);
         }
@@ -444,7 +461,7 @@ public class RedisZSetZSet implements Closeable {
      * @param end value 索引结束位置
      * @return 移除元素的数量
      */
-    public long removeRangeByIndex(double itemName,int start, int end){
+    public long removeRangeByIndex(String itemName,int start, int end){
         try (Jedis jedis = getJedis()) {
             return (long)eval(jedis, "zremrangeByRank", itemName, start, end);
         }
@@ -456,7 +473,7 @@ public class RedisZSetZSet implements Closeable {
      * @param max score 的最大值
      * @return 移除元素的数量
      */
-    public long removeRangeByScore(double itemName,double min, double max){
+    public long removeRangeByScore(String itemName,double min, double max){
         try (Jedis jedis = getJedis()) {
             return (long)eval(jedis, "zremrangeByScore", itemName, min, max);
         }
@@ -467,13 +484,13 @@ public class RedisZSetZSet implements Closeable {
      * @param value 值
      * @return 对应的 Score
      */
-    public double getScore(double itemName,String value){
+    public double getScore(String itemName,String value){
         try (Jedis jedis = getJedis()) {
             return Double.valueOf((String)eval(jedis, "zscore", itemName, value));
         }
     }
 
-    public ScanedObject scan(double itemName, String cursor, String matchValue, Integer count){
+    public ScanedObject scan(String itemName, String cursor, String matchValue, Integer count){
         try (Jedis jedis = getJedis()) {
 
             ArrayList paramList = new ArrayList();

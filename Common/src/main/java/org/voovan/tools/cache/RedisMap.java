@@ -4,7 +4,10 @@ import redis.clients.jedis.*;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -105,8 +108,26 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      * @param name 在 redis 中的 HashMap的名称
      */
     public RedisMap(String name){
-        this.redisPool = CacheStatic.getRedisPool();
+        this.redisPool = CacheStatic.getDefaultRedisPool();
         this.name = name;
+    }
+
+    /**
+     * 构造函数
+     * @param jedisPool redis 连接池
+     * @param name 在 redis 中的 HashMap的名称
+     */
+    public RedisMap(JedisPool jedisPool, String name){
+        this.redisPool = jedisPool;
+        this.name = name;
+    }
+
+    /**
+     * 构造函数
+     * @param jedisPool redis 连接池
+     */
+    public RedisMap(JedisPool jedisPool){
+        this.redisPool = jedisPool;
     }
 
     /**
@@ -114,7 +135,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      *      如果 name 为 null,则采用 redis 的顶层键值系统
      */
     public RedisMap(){
-        this.redisPool = CacheStatic.getRedisPool();
+        this.redisPool = CacheStatic.getDefaultRedisPool();
     }
 
     /**

@@ -96,7 +96,7 @@ public class ObjectCachedPoolUnit extends TestCase {
     public void testBorrowConcurrent() {
 
         Object pooledId = null;
-        ObjectPool objectPool = new ObjectPool().minSize(3).maxSize(1000).aliveTime(5).setSupplier(()->{
+        ObjectPool objectPool = new ObjectPool().minSize(3).maxSize(1000).aliveTime(5).supplier(()->{
             return item++;
         }).create();
 

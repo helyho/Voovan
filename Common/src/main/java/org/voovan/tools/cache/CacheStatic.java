@@ -1,19 +1,17 @@
 package org.voovan.tools.cache;
 
-import net.rubyeye.xmemcached.MemcachedClient;
-import net.rubyeye.xmemcached.MemcachedClientBuilder;
-import net.rubyeye.xmemcached.XMemcachedClientBuilder;
-import net.rubyeye.xmemcached.command.BinaryCommandFactory;
-import net.rubyeye.xmemcached.utils.AddrUtil;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.TSerialize;
 import org.voovan.tools.log.Logger;
-import redis.clients.jedis.Jedis;
+import net.rubyeye.xmemcached.MemcachedClientBuilder;
+import net.rubyeye.xmemcached.XMemcachedClientBuilder;
+import net.rubyeye.xmemcached.command.BinaryCommandFactory;
+import net.rubyeye.xmemcached.utils.AddrUtil;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 缓存静态类
@@ -25,14 +23,16 @@ import java.io.IOException;
  */
 public class CacheStatic {
 
-    private static MemcachedClientBuilder memcachedClientBuilder = null;
-    private static JedisPool redisPool = null;
+    private static final String DEFAULT = "system_default";
+    private static ConcurrentHashMap<String, MemcachedClientBuilder> MEMCACHED_CLIENT_BUILDER_CACHE = new ConcurrentHashMap<String, MemcachedClientBuilder>();
+    private static ConcurrentHashMap<String, JedisPool> REDIS_POOL_CACHE = new ConcurrentHashMap<String, JedisPool>();
 
     /**
      * 获取一个 MemcachedClientBuilder 也就是 Memcached的连接池
      * @return MemcachedClientBuilder 对象
      */
-    public static MemcachedClientBuilder getMemcachedPool(){
+    public static MemcachedClientBuilder getDefalutMemcachedPool(){
+        MemcachedClientBuilder memcachedClientBuilder = MEMCACHED_CLIENT_BUILDER_CACHE.get(DEFAULT);
         if(memcachedClientBuilder == null) {
             try {
                 String host = TProperties.getString("memcached", "Host");
@@ -40,24 +40,51 @@ public class CacheStatic {
                 int timeout = TProperties.getInt("memcached", "Timeout");
                 int poolSize = TProperties.getInt("memcached", "PoolSize");
 
-                if(host==null){
-                    return null;
-                }
-
-                if (poolSize == 0) {
-                    poolSize = defaultPoolSize();
-                }
-
-                memcachedClientBuilder = new XMemcachedClientBuilder(
-                        AddrUtil.getAddresses(host + ":" + port));
-                memcachedClientBuilder.setFailureMode(true);
-                memcachedClientBuilder.setCommandFactory(new BinaryCommandFactory());
-                memcachedClientBuilder.setConnectionPoolSize(poolSize);
-                memcachedClientBuilder.setConnectTimeout(timeout);
+                memcachedClientBuilder = createMemcachedPool(DEFAULT, host, port, timeout, poolSize);
             }catch (Exception e){
                 Logger.error("Read ./classes/Memcached.properties error");
             }
         }
+
+        return memcachedClientBuilder;
+    }
+
+    /**
+     * 根据名称获取一个 Memcached 连接池
+     * @param name Memcached 连接池名称
+     * @return Memcached 连接池
+     */
+    public static MemcachedClientBuilder getMemcachedPool(String name){
+        return MEMCACHED_CLIENT_BUILDER_CACHE.get(name);
+    }
+
+    /**
+     * 获取一个 MemcachedClientBuilder 也就是 Memcached的连接池
+     * @return MemcachedClientBuilder 对象
+     */
+    public synchronized static MemcachedClientBuilder createMemcachedPool(String name, String host, int port, int timeout, int poolSize) {
+        MemcachedClientBuilder memcachedClientBuilder = MEMCACHED_CLIENT_BUILDER_CACHE.get(name);
+
+        if(memcachedClientBuilder != null){
+            return memcachedClientBuilder;
+        }
+
+        if(host==null){
+            return null;
+        }
+
+        if (poolSize == 0) {
+            poolSize = defaultPoolSize();
+        }
+
+        memcachedClientBuilder = new XMemcachedClientBuilder(
+                AddrUtil.getAddresses(host + ":" + port));
+        memcachedClientBuilder.setFailureMode(true);
+        memcachedClientBuilder.setCommandFactory(new BinaryCommandFactory());
+        memcachedClientBuilder.setConnectionPoolSize(poolSize);
+        memcachedClientBuilder.setConnectTimeout(timeout);
+
+        MEMCACHED_CLIENT_BUILDER_CACHE.put(name, memcachedClientBuilder);
 
         return memcachedClientBuilder;
     }
@@ -67,7 +94,8 @@ public class CacheStatic {
      * 获取一个 RedisPool 连接池
      * @return JedisPool 对象
      */
-    public static JedisPool getRedisPool(){
+    public static JedisPool getDefaultRedisPool(){
+        JedisPool redisPool = REDIS_POOL_CACHE.get(DEFAULT);
         if(redisPool == null) {
             try {
                 String host = TProperties.getString("redis", "Host");
@@ -76,26 +104,7 @@ public class CacheStatic {
                 String password = TProperties.getString("redis", "Password");
                 int poolSize = TProperties.getInt("redis", "PoolSize");
 
-                if(host==null){
-                    return null;
-                }
-
-                if (poolSize == 0) {
-                    poolSize = defaultPoolSize();
-                }
-
-                JedisPoolConfig poolConfig = new JedisPoolConfig();
-                poolConfig.setMaxTotal(poolSize);
-                poolConfig.setMaxIdle(poolSize);
-                poolConfig.setTestOnBorrow(true);
-                poolConfig.setTestOnReturn(true);
-
-
-                if (password == null) {
-                    redisPool = new JedisPool(poolConfig, host, port, timeout);
-                } else {
-                    redisPool = new JedisPool(poolConfig, host, port, timeout, password);
-                }
+                redisPool = createRedisPool(DEFAULT, host, port, timeout, password, poolSize);
             }catch (Exception e){
                 Logger.error("Read ./classes/Memcached.properties error");
             }
@@ -105,66 +114,58 @@ public class CacheStatic {
     }
 
     /**
+     * 根据名称获取一个 Redis 连接池
+     * @param name Redis 连接池名称
+     * @return Redis 连接池
+     */
+    public static JedisPool getRedisPool(String name){
+        return REDIS_POOL_CACHE.get(name);
+    }
+
+
+    /**
+     * 获取一个 RedisPool 连接池
+     * @return JedisPool 对象
+     */
+    public synchronized static JedisPool createRedisPool(String name, String host, int port, int timeout, String password, int poolSize){
+
+        JedisPool redisPool = REDIS_POOL_CACHE.get(name);
+
+        if(redisPool!=null){
+            return redisPool;
+        }
+
+        if(host==null){
+            return null;
+        }
+
+        if (poolSize == 0) {
+            poolSize = defaultPoolSize();
+        }
+
+        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        poolConfig.setMaxTotal(poolSize);
+        poolConfig.setMaxIdle(poolSize);
+        poolConfig.setTestOnBorrow(true);
+        poolConfig.setTestOnReturn(true);
+
+
+        if (password == null) {
+            redisPool = new JedisPool(poolConfig, host, port, timeout);
+        } else {
+            redisPool = new JedisPool(poolConfig, host, port, timeout, password);
+        }
+
+        REDIS_POOL_CACHE.put(name, redisPool);
+        return redisPool;
+    }
+
+    /**
      * 获取系统自动计算的连接池的大小
      * @return 连接池的大小
      */
     public static int defaultPoolSize(){
         return TPerformance.getProcessorCount() * 10;
-    }
-
-    /**
-     * 获取 memcached 连接
-     * @return MemcachedClient 对象
-     * @throws IOException io 异常
-     */
-    public static MemcachedClient getMemcachedClient() throws IOException {
-
-        if(memcachedClientBuilder==null){
-            getMemcachedPool();
-        }
-
-        if(memcachedClientBuilder != null) {
-            return memcachedClientBuilder.build();
-        }else{
-            return null;
-        }
-    }
-
-    /**
-     * 获取 Redis 的连接
-     * @return Jedis 对象
-     */
-    public static Jedis getRedisClient(){
-
-        if(redisPool==null){
-            getRedisPool();
-        }
-
-        if(redisPool != null) {
-            return redisPool.getResource();
-        }else{
-            return null;
-        }
-    }
-
-    /**
-     * 获取 Redis 的连接
-     * @param dbIndex 数据集序号
-     * @return Jedis 对象
-     */
-    public static Jedis getRedisClient(int dbIndex){
-
-        if(redisPool==null){
-            getRedisPool();
-        }
-
-        if(redisPool != null) {
-            Jedis jedis =  redisPool.getResource();
-            jedis.select(dbIndex);
-            return jedis;
-        }else{
-            return null;
-        }
     }
 
     /**
