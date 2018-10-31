@@ -19,7 +19,7 @@ import java.util.*;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class RedisHashList implements Closeable {
+public class RedisMapWithList implements Closeable {
     private JedisPool redisPool;
     private String name = null;
     private int dbIndex = 0;
@@ -35,7 +35,7 @@ public class RedisHashList implements Closeable {
      * @param name        在 redis 中的 HashMap的名称
      * @param password    redis 服务密码
      */
-    public RedisHashList(String host, int port, int timeout, int poolsize, String name, String password){
+    public RedisMapWithList(String host, int port, int timeout, int poolsize, String name, String password){
         super();
 
         //如果没有指定JedisPool的配置文件,则使用默认的
@@ -60,7 +60,7 @@ public class RedisHashList implements Closeable {
      * @param poolsize    redis 连接池的大小
      * @param name        在 redis 中的 HashMap的名称
      */
-    public RedisHashList(String host, int port, int timeout, int poolsize, String name){
+    public RedisMapWithList(String host, int port, int timeout, int poolsize, String name){
         super();
 
         //如果没有指定JedisPool的配置文件,则使用默认的
@@ -76,9 +76,27 @@ public class RedisHashList implements Closeable {
      * 构造函数
      * @param name 在 redis 中的 HashMap的名称
      */
-    public RedisHashList(String name){
-        this.redisPool = CacheStatic.getRedisPool();
+    public RedisMapWithList(String name){
+        this.redisPool = CacheStatic.getDefaultRedisPool();
         this.name = name;
+    }
+
+    /**
+     * 构造函数
+     * @param jedisPool redis 连接池
+     * @param name 在 redis 中的 HashMap的名称
+     */
+    public RedisMapWithList(JedisPool jedisPool, String name){
+        this.redisPool = jedisPool;
+        this.name = name;
+    }
+
+    /**
+     * 构造函数
+     * @param jedisPool redis 连接池
+     */
+    public RedisMapWithList(JedisPool jedisPool){
+        this.redisPool = jedisPool;
     }
 
     /**

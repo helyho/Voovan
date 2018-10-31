@@ -112,7 +112,7 @@ public class ObjectPool {
      * @param supplier 对象构造函数
      * @return ObjectPool 对象
      */
-    public ObjectPool setSupplier(Supplier supplier) {
+    public ObjectPool supplier(Supplier supplier) {
         this.supplier = supplier;
         return this;
     }
