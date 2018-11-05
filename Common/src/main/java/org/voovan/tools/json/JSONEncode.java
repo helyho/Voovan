@@ -117,6 +117,8 @@ public class JSONEncode {
 
         if (object == null) {
             value = "null";
+        } else if (object instanceof Class) {
+            return ((Class)object).getCanonicalName();
         } else if (object instanceof BigDecimal) {
             if(BigDecimal.ZERO.compareTo((BigDecimal)object)==0){
                 object = BigDecimal.ZERO;

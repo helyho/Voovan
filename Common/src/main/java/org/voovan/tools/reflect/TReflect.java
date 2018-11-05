@@ -121,13 +121,22 @@ public class TReflect {
 	}
 
 	/**
-	 * 获取范型类型
+	 * 获取类型的范型类型
 	 * @param type 类型对象
 	 * @return Class[] 对象
 	 */
-	public static Class[] getGenericClass(ParameterizedType type) {
+	public static Class[] getGenericClass(Type type) {
+		ParameterizedType parameterizedType = null;
+		if(type instanceof ParameterizedType) {
+			parameterizedType = (ParameterizedType) type;
+		}
+
+		if(parameterizedType==null){
+			return null;
+		}
+
 		Class[] result = null;
-		Type[] actualType = type.getActualTypeArguments();
+		Type[] actualType = parameterizedType.getActualTypeArguments();
 		result = new Class[actualType.length];
 
 		for(int i=0;i<actualType.length;i++){
@@ -147,6 +156,30 @@ public class TReflect {
 		}
 		return result;
 	}
+	/**
+	 * 获取对象的范型类型
+	 * @param object 对象
+	 * @return Class[] 对象
+	 */
+	public static Class[] getGenericClass(Object object) {
+		Class[] genericClazzs = TReflect.getGenericClass(object.getClass());
+
+		if (genericClazzs == null) {
+			if (object instanceof Map) {
+				if (((Map) object).size() > 0) {
+					Map.Entry entry = (Map.Entry) ((Map) object).entrySet().iterator().next();
+					genericClazzs = new Class[]{entry.getKey().getClass(), entry.getValue().getClass()};
+				}
+			} else if (object instanceof Collection) {
+				if (((Collection) object).size() > 0) {
+					Object obj = ((Collection) object).iterator().next();
+					genericClazzs = new Class[]{obj.getClass()};
+				}
+			}
+		}
+
+		return genericClazzs;
+	}
 
 
 	/**
@@ -157,10 +190,7 @@ public class TReflect {
 	 */
 	public static Class[] getFieldGenericType(Field field) throws ClassNotFoundException {
 		Type fieldType = field.getGenericType();
-		if(fieldType instanceof ParameterizedType){
-			return getGenericClass((ParameterizedType)fieldType);
-		}
-		return null;
+		return getGenericClass((ParameterizedType)fieldType);
 	}
 
 	/**
@@ -361,10 +391,7 @@ public class TReflect {
 			parameterType = method.getGenericParameterTypes()[parameterIndex];
 		}
 
-		if(parameterType instanceof ParameterizedType){
-			return getGenericClass((ParameterizedType)parameterType);
-		}
-		return null;
+		return getGenericClass(parameterType);
 	}
 
 	/**
@@ -654,8 +681,6 @@ public class TReflect {
 		return parameterTypes;
 	}
 
-	//只有值的 Map 的键数据
-	public static Object SINGLE_VALUE_KEY = new Object();
 	/**
 	 * 将Map转换成指定的对象
 	 *
@@ -667,22 +692,45 @@ public class TReflect {
 	 * @throws ReflectiveOperationException 反射异常
 	 * @throws ParseException 解析异常
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T>T getObjectFromMap(Type type, Map<String, ?> mapArg, boolean ignoreCase)
-			throws ReflectiveOperationException, ParseException {
-		T obj = null;
-		Class<?> clazz = null;
+	public static <T>T getObjectFromMap(Type type, Map<String, ?> mapArg,  boolean ignoreCase) throws ParseException, ReflectiveOperationException {
 		Class[] genericType = null;
 
 		if(type instanceof ParameterizedType) {
 			ParameterizedType parameterizedType = (ParameterizedType) type;
-			clazz = (Class)parameterizedType.getRawType();
 			genericType = getGenericClass(parameterizedType);
+		}
+
+		return getObjectFromMap(type, mapArg, genericType, ignoreCase);
+	}
+
+	//只有值的 Map 的键数据
+	public final static Object SINGLE_VALUE_KEY = new Object();
+
+	/**
+	 * 将Map转换成指定的对象
+	 *
+	 * @param type			类对象
+	 * @param mapArg		Map 对象
+	 * @param genericType   范型类型描述
+	 * @param ignoreCase    匹配属性名是否不区分大小写
+	 * @return 转换后的对象
+	 * @param <T> 范型
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws ParseException 解析异常
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static <T>T getObjectFromMap(Type type, Map<String, ?> mapArg, Class[] genericType,  boolean ignoreCase)
+			throws ReflectiveOperationException, ParseException {
+		T obj = null;
+		Class<?> clazz = null;
+		if(type instanceof ParameterizedType) {
+			ParameterizedType parameterizedType = (ParameterizedType) type;
+			clazz = (Class)parameterizedType.getRawType();
 		}else if(type instanceof Class){
 			clazz = (Class)type;
 		}
 
-		if(mapArg==null || mapArg.isEmpty()){
+		if(mapArg==null){
 			return null;
 		}
 
@@ -702,6 +750,7 @@ public class TReflect {
 				obj = (T) mapArg;
 			}
 		}
+
 		//java标准对象
 		else if (clazz.isPrimitive()){
 			if(singleValue!=null && singleValue.getClass() !=  clazz) {
@@ -1102,7 +1151,7 @@ public class TReflect {
 		if(TReflect.isBasicType(clazz)){
 			jsonStrBuilder.append(clazz.getName());
 		} else if(clazz.isArray()){
-			String clazzName = clazz.getName();
+			String clazzName = clazz.getCanonicalName();
 			clazzName = clazzName.substring(clazzName.lastIndexOf(".")+1,clazzName.length()-2)+"[]";
 			jsonStrBuilder.append(clazzName);
 		} else {
@@ -1217,7 +1266,7 @@ public class TReflect {
 
 		//排除的包中的 class 不加载
 		for(String systemPackage : systemPackages){
-			if(clazz.getName().startsWith(systemPackage)){
+			if(clazz.getCanonicalName().startsWith(systemPackage)){
 				return true;
 			}
 		}
