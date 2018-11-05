@@ -104,7 +104,7 @@ public class JSONPath {
         }
 
         if (TReflect.isSystemType(clazz)) {
-                return (T)value;
+            return (T)value;
         } else {
             Object obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
             return (T)obj;
@@ -126,7 +126,42 @@ public class JSONPath {
     }
 
     /**
-     * 获取节点值并转换成相应的对象,忽略段大小写
+     * 获取节点值并转换成相应的 Map 对象,忽略段大小写
+     * @param <T>      范型指代对象
+     * @param pathQry  JSONPath 路径
+     * @param genericType 对象范型类型
+     * @return  转换后的对象
+     * @throws ParseException  解析异常
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public <T> T mapObject(String pathQry, Class[] genericType) throws ParseException, ReflectiveOperationException {
+        List<T> resultList = new ArrayList<T>();
+        Map<String,?> mapValue = value(pathQry,Map.class);
+
+        if(mapValue==null){
+            return null;
+        }
+
+        return (T)TReflect.getObjectFromMap(Map.class, mapValue, genericType, false);
+    }
+
+    /**
+     * 获取节点值并转换成相应的 Map 对象,忽略段大小写
+     * @param <T>      范型指代对象
+     * @param pathQry  JSONPath 路径
+     * @param genericType 对象范型类型
+     * @param defaultValue 对象默认值
+     * @return  转换后的对象
+     * @throws ParseException  解析异常
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public <T> Object mapObject(String pathQry, Class[] genericType, T defaultValue) throws ParseException, ReflectiveOperationException {
+        return TObject.nullDefault(mapObject(pathQry, genericType), defaultValue);
+    }
+
+
+    /**
+     * 获取节点值并转换成相应的 List 对象,忽略段大小写
      * @param <T>      范型指代对象
      * @param pathQry  JSONPath 路径
      * @param elemClazz    List 元素对象的 class
@@ -167,7 +202,7 @@ public class JSONPath {
      * @throws ParseException  解析异常
      * @throws ReflectiveOperationException 反射异常
      */
-    public <T> List<T> listObject(String pathQry, Class<T> elemClazz,List<T> defaultValue) throws ParseException, ReflectiveOperationException {
+    public <T> List<T> listObject(String pathQry, Class<T> elemClazz, List<T> defaultValue) throws ParseException, ReflectiveOperationException {
         List<T> result = listObject(pathQry,elemClazz);
         if(result==null){
             return defaultValue;
@@ -177,17 +212,17 @@ public class JSONPath {
     }
 
 
-        /**
-         * 将 JSON 中的对象中的一个节点自动 转换成 java 中的对象,忽略段大小写
-         * @param pathQry        JSONPath 路径
-         * @param keyFieldName   key 值在 java 对象中对应的字段
-         * @param elemClazz      对象的 class
-         * @param <T>            范型指代对象
-         * @return  转换后的对象
-         * @throws ParseException  解析异常
-         * @throws ReflectiveOperationException 反射异常
-         */
-    public <T> List<T> mapToListObject(String pathQry,String keyFieldName,Class<?> elemClazz) throws ParseException, ReflectiveOperationException {
+    /**
+     * 将 JSON 中的对象中的一个节点自动 转换成 java 中的对象,忽略段大小写
+     * @param pathQry        JSONPath 路径
+     * @param keyFieldName   key 值在 java 对象中对应的字段
+     * @param elemClazz      对象的 class
+     * @param <T>            范型指代对象
+     * @return  转换后的对象
+     * @throws ParseException  解析异常
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public <T> List<T> mapToListObject(String pathQry, String keyFieldName, Class<?> elemClazz) throws ParseException, ReflectiveOperationException {
         List<T> resultList = new ArrayList<T>();
         Map<String,?> mapValue = value(pathQry,Map.class);
 
@@ -232,11 +267,11 @@ public class JSONPath {
         }
     }
 
-        /**
-         * 构造默认的对象
-         * @param jsonStr JSONPath 路径
-         * @return  转换后的对象
-         */
+    /**
+     * 构造默认的对象
+     * @param jsonStr JSONPath 路径
+     * @return  转换后的对象
+     */
     public static JSONPath newInstance(String jsonStr){
         return new JSONPath(jsonStr);
     }
