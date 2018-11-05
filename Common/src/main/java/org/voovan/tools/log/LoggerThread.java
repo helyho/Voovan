@@ -89,6 +89,11 @@ public class LoggerThread implements Runnable {
 				//优化日志输出事件
 				if(logQueue.size() == 0){
 					TEnv.sleep(1);
+
+					//如果主线程结束,则日志线程也退出
+					if(mainThread !=null && mainThread.getState() == Thread.State.TERMINATED){
+						break;
+					}
 					continue;
 				}
 
@@ -105,10 +110,7 @@ public class LoggerThread implements Runnable {
 						}
 					}
 				}
-				//如果主线程结束,则日志线程也退出
-				if(mainThread !=null && mainThread.getState() == Thread.State.TERMINATED){
-					break;
-				}
+
 
 				if(mainThread == null){
 					break;
