@@ -544,7 +544,7 @@ public class WebServer {
 				Logger.warn("The WebServer lifeCycle class " + lifeCycleClass + " is not a class implement by " + WebServerLifeCycle.class.getName());
 			}
 		} catch (Exception e) {
-			Logger.error("Initialize WebServer destory lifeCycle error: " + e);
+			Logger.error("Initialize WebServer destory lifeCycle error: ", e);
 		}
 	}
 
@@ -739,6 +739,20 @@ public class WebServer {
 	 */
 	public boolean isServing(){
 		return aioServerSocket.isConnected();
+	}
+
+	/**
+	 * 服务暂停
+	 */
+	public void pause(){
+		WebContext.PAUSE = true;
+	}
+
+	/**
+	 * 服务恢复
+	 */
+	public void unpause(){
+		WebContext.PAUSE = false;
 	}
 
 	/**
