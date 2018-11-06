@@ -751,7 +751,7 @@ public class WebServer {
 	/**
 	 * 服务恢复
 	 */
-	public void unpause(){
+	public void unPause(){
 		WebContext.PAUSE = false;
 	}
 
