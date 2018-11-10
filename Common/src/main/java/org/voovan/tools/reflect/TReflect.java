@@ -47,7 +47,7 @@ public class TReflect {
         Field[] fields = fieldArrays.get(mark);
 
         if(fields==null && !fieldArrays.containsKey(mark)){
-            HashSet<Field> fieldArray = new HashSet<Field>();
+            LinkedHashSet<Field> fieldArray = new LinkedHashSet<Field>();
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 Field[] tmpFields = clazz.getDeclaredFields();
                 fieldArray.addAll(Arrays.asList(tmpFields));
@@ -234,7 +234,7 @@ public class TReflect {
      */
     public static Map<Field, Object> getFieldValues(Object obj)
             throws ReflectiveOperationException {
-        HashMap<Field, Object> result = new HashMap<Field, Object>();
+        LinkedHashMap<Field, Object> result = new LinkedHashMap<Field, Object>();
         Field[] fields = getFields(obj.getClass());
         for (Field field : fields) {
             if (!Modifier.isStatic(field.getModifiers()) &&
@@ -302,7 +302,7 @@ public class TReflect {
         Method[] methods = methodArrays.get(mark);
 
         if (methods==null && !methodArrays.containsKey(mark)){
-            HashSet<Method> methodList = new HashSet<Method>();
+            LinkedHashSet<Method> methodList = new LinkedHashSet<Method>();
             Method[] allMethods = getMethods(clazz, name);
             for (Method method : allMethods) {
                 if (method.getParameterTypes().length == paramCount) {
@@ -331,7 +331,7 @@ public class TReflect {
         methods = methodArrays.get(mark);
 
         if(methods==null && !methodArrays.containsKey(mark)){
-            HashSet<Method> methodList = new HashSet<Method>();
+            LinkedHashSet<Method> methodList = new LinkedHashSet<Method>();
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 Method[] tmpMethods = clazz.getDeclaredMethods();
                 methodList.addAll(Arrays.asList(tmpMethods));
@@ -360,7 +360,7 @@ public class TReflect {
         methods = methodArrays.get(mark);
         if(methods==null && methods==null && !methodArrays.containsKey(mark)){
 
-            HashSet<Method> methodList = new HashSet<Method>();
+            LinkedHashSet<Method> methodList = new LinkedHashSet<Method>();
             Method[] allMethods = getMethods(clazz);
             for (Method method : allMethods) {
                 if (method.getName().equals(name))
@@ -529,12 +529,12 @@ public class TReflect {
 
         //不可构造的类型使用最常用的类型
         if(isImpByInterface(clazz, Set.class) && (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers()))){
-            targetClazz = HashSet.class;
+            targetClazz = LinkedHashSet.class;
         }
 
         //不可构造的类型使用最常用的类型
         if(isImpByInterface(clazz, Map.class) && (Modifier.isAbstract(clazz.getModifiers()) && Modifier.isInterface(clazz.getModifiers()))){
-            targetClazz = HashMap.class;
+            targetClazz = LinkedHashMap.class;
         }
 
 
@@ -929,7 +929,7 @@ public class TReflect {
      */
     public static Map<String, Object> getMapfromObject(Object obj) throws ReflectiveOperationException{
 
-        Map<String, Object> mapResult = new HashMap<String, Object>();
+        LinkedHashMap<String, Object> mapResult = new LinkedHashMap<String, Object>();
 
         //如果是 java 标准类型
         if(obj==null || TReflect.isBasicType(obj.getClass())){
@@ -978,7 +978,7 @@ public class TReflect {
         else if(obj instanceof Map){
             Map mapObject = (Map)obj;
 
-            Map map = new HashMap();
+            Map map = new LinkedHashMap();
             synchronized (obj) {
                 Iterator iterator = mapObject.entrySet().iterator();
                 while (iterator.hasNext()) {
@@ -1134,7 +1134,7 @@ public class TReflect {
             return null;
         }
 
-        HashSet<Class> classes = new HashSet<Class>();
+        LinkedHashSet<Class> classes = new LinkedHashSet<Class>();
 
         Class<?> superClass = type;
         do{
@@ -1191,7 +1191,7 @@ public class TReflect {
      * @return 最后产生的 Map
      */
     public static Map<String, Object> fieldFilter(Object obj, String ... fields) {
-        Map<String, Object> resultMap = new HashMap<String, Object>();
+        Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
         for(String fieldFilter : fields){
             int firstIndex = fieldFilter.indexOf("[");
             String field = firstIndex == -1? fieldFilter : fieldFilter.substring(0, firstIndex);
@@ -1222,7 +1222,7 @@ public class TReflect {
             }
 
             if(firstIndex>1) {
-                Map<String, Object> subResultMap = new HashMap<String, Object>();
+                Map<String, Object> subResultMap = new LinkedHashMap<String, Object>();
                 String subFieldStr= fieldFilter.substring(firstIndex);
                 subFieldStr = TString.removeSuffix(subFieldStr);
                 subFieldStr = TString.removePrefix(subFieldStr);
