@@ -224,7 +224,7 @@ public class AnnotationRouter implements HttpRouter {
                 //请求的参数
                 if (annotation instanceof Param) {
                     String paramName = ((Param) annotation).value();
-                    params[i] = TString.toObject(request.getParameter(paramName), parameterTypes[i]);
+                    params[i] = TString.toObject(request.getParameter(paramName), parameterTypes[i], true);
                     continue;
                 }
 
@@ -232,7 +232,7 @@ public class AnnotationRouter implements HttpRouter {
                 if (annotation instanceof BodyParam) {
                     String paramName = ((BodyParam) annotation).value();
                     if(bodyMap != null && bodyMap instanceof Map) {
-                        params[i] = TString.toObject(bodyMap.get(paramName).toString(), parameterTypes[i]);
+                        params[i] = TString.toObject(bodyMap.get(paramName).toString(), parameterTypes[i], true);
                     }
                     continue;
                 }
@@ -240,7 +240,7 @@ public class AnnotationRouter implements HttpRouter {
                 //请求的头
                 if (annotation instanceof Head) {
                     String headName = ((Head) annotation).value();
-                    params[i] = TString.toObject(request.header().get(headName), parameterTypes[i]);
+                    params[i] = TString.toObject(request.header().get(headName), parameterTypes[i], true);
                     continue;
                 }
 
@@ -253,13 +253,13 @@ public class AnnotationRouter implements HttpRouter {
                         cookieValue = cookie.getValue();
                     }
 
-                    params[i] = TString.toObject(cookieValue, parameterTypes[i]);
+                    params[i] = TString.toObject(cookieValue, parameterTypes[i], true);
                     continue;
                 }
 
                 //请求的 Body
                 if (annotation instanceof Body) {
-                    params[i] = TString.toObject(bodyString, parameterTypes[i]);
+                    params[i] = TString.toObject(bodyString, parameterTypes[i], true);
                     continue;
                 }
 
@@ -278,7 +278,7 @@ public class AnnotationRouter implements HttpRouter {
             //没有注解的参数,按顺序处理
             if(params[i]==null) {
                 String value = request.getParameter("param" + String.valueOf(i + 1));
-                params[i] = TString.toObject(value, parameterTypes[i]);
+                params[i] = TString.toObject(value, parameterTypes[i], true);
                 continue;
             }
 
