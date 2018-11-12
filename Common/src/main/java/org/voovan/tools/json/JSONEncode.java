@@ -28,8 +28,8 @@ public class JSONEncode {
      * @return JSON字符串
      * @throws ReflectiveOperationException
      */
-    private static String complexObject(Object object) throws ReflectiveOperationException {
-        return mapObject(TReflect.getMapfromObject(object));
+    private static String complexObject(Object object, boolean allField) throws ReflectiveOperationException {
+        return mapObject(TReflect.getMapfromObject(object, allField), allField);
     }
 
     /**
@@ -39,7 +39,7 @@ public class JSONEncode {
      * @return JSON字符串
      * @throws ReflectiveOperationException
      */
-    private static String mapObject(Map<?, ?> mapObject) throws ReflectiveOperationException {
+    private static String mapObject(Map<?, ?> mapObject, boolean allField) throws ReflectiveOperationException {
         String mapString = "{";
         StringBuilder contentStringBuilder = new StringBuilder();
         String ContentString = null;
@@ -47,8 +47,8 @@ public class JSONEncode {
         Object[] keys = mapObject.keySet().toArray();
 
         for (Object mapkey : keys) {
-            Object key = fromObject(mapkey);
-            String Value = fromObject(mapObject.get(mapkey));
+            Object key = fromObject(mapkey, allField);
+            String Value = fromObject(mapObject.get(mapkey), allField);
             contentStringBuilder.append(key);
             contentStringBuilder.append(":");
             contentStringBuilder.append(Value);
@@ -72,8 +72,8 @@ public class JSONEncode {
      * @return JSON字符串
      * @throws ReflectiveOperationException
      */
-    private static String CollectionObject(Collection<Object> listObject) throws ReflectiveOperationException {
-        return arrayObject(listObject.toArray());
+    private static String CollectionObject(Collection<Object> listObject, boolean allField) throws ReflectiveOperationException {
+        return arrayObject(listObject.toArray(), allField);
     }
 
     /**
@@ -83,13 +83,13 @@ public class JSONEncode {
      * @throws ReflectiveOperationException
      * @return JSON字符串
      */
-    private static String arrayObject(Object[] arrayObject) throws ReflectiveOperationException {
+    private static String arrayObject(Object[] arrayObject, boolean allField) throws ReflectiveOperationException {
         String arrayString = "[";
         String ContentString = "";
         StringBuilder ContentStringBuilder = new StringBuilder();
 
         for (Object object : arrayObject) {
-            String Value = fromObject(object);
+            String Value = fromObject(object, allField);
             ContentStringBuilder.append(Value);
             ContentStringBuilder.append(",");
         }
@@ -113,6 +113,18 @@ public class JSONEncode {
      */
     @SuppressWarnings("unchecked")
     public static String fromObject(Object object) throws ReflectiveOperationException {
+        return fromObject(object, false);
+    }
+
+    /**
+     * 将对象转换成JSON字符串
+     *
+     * @param object 要转换的对象
+     * @return 类型:String 		对象对应的JSON字符串
+     * @throws ReflectiveOperationException 反射异常
+     */
+    @SuppressWarnings("unchecked")
+    public static String fromObject(Object object, boolean allField) throws ReflectiveOperationException {
         String value = null;
 
         if (object == null) {
@@ -129,10 +141,10 @@ public class JSONEncode {
             value = "\"" + TDateTime.format(((Date)object), TDateTime.STANDER_DATETIME_TEMPLATE)+ "\"";;
         } else if (object instanceof Map) {
             Map<Object, Object> mapObject = (Map<Object, Object>) object;
-            value = mapObject(mapObject);
+            value = mapObject(mapObject, allField);
         } else if (object instanceof Collection) {
             Collection<Object> collectionObject = (Collection<Object>)object;
-            value = CollectionObject(collectionObject);
+            value = CollectionObject(collectionObject, allField);
         } else if (object.getClass().isArray()) {
             Object[] arrayObject = (Object[])object;
             //如果是 java 基本类型, 则转换成对象数组
@@ -145,7 +157,7 @@ public class JSONEncode {
             } else {
                 arrayObject = (Object[])object;
             }
-            value = arrayObject(arrayObject);
+            value = arrayObject(arrayObject, allField);
         } else if (object instanceof Integer ||  object instanceof Float ||
                 object instanceof Double || object instanceof Boolean ||
                 object instanceof Long || object instanceof Short) {
@@ -158,7 +170,7 @@ public class JSONEncode {
             }
             value = "\"" + strValue + "\"";
         }  else {
-            value = complexObject(object);
+            value = complexObject(object, allField);
         }
 
         return value;
