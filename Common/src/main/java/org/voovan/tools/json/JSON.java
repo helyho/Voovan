@@ -3,9 +3,11 @@ package org.voovan.tools.json;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Type;
 import java.text.ParseException;
+import java.util.TreeMap;
 import java.util.function.Supplier;
 
 /**
@@ -19,6 +21,7 @@ import java.util.function.Supplier;
  */
 public class JSON {
 	public final static String JSON_CONVERT_ESCAPE_CHAR = TProperties.getString("framework", "JSONConvertEscapeChar");
+
 	/**
 	 * 是否进行 EscapeChar 的转换, 默认 true, 当你确定你不存在字符串多行换行的时候可设置为 false
 	 */
@@ -54,13 +57,24 @@ public class JSON {
 		JSON.convertEscapeChar.set(convertEscapeChar);
 	}
 
+
 	/**
 	 * 将 Java 对象 转换成 JSON字符串
 	 * @param object   	待转换的对象
 	 * @return			转换后的 JSON 字符串
 	 */
 	public static String toJSON(Object object){
-		return toJSON(object, true);
+		return toJSON(object, true, false);
+	}
+
+	/**
+	 * 将 Java 对象 转换成 JSON字符串
+	 * @param object   	待转换的对象
+	 * @param allField  是否序列化所有的属性
+	 * @return			转换后的 JSON 字符串
+	 */
+	public static String toJSON(Object object, boolean allField){
+		return toJSON(object, true, allField);
 	}
 
 
@@ -68,9 +82,10 @@ public class JSON {
 	 * 将 Java 对象 转换成 JSON字符串
 	 * @param object   	待转换的对象
 	 * @param convertEscapeChar 是否转换转义字符
+	 * @param allField  是否序列化所有的属性
 	 * @return			转换后的 JSON 字符串
 	 */
-	public static String toJSON(Object object, boolean convertEscapeChar){
+	public static String toJSON(Object object, boolean convertEscapeChar, boolean allField){
 		String jsonString = null;
 		try {
 			//保存旧的 convertEscapeChar 标志
@@ -78,7 +93,11 @@ public class JSON {
 
 			//设置新的 convertEscapeChar 标志
 			setConvertEscapeChar(convertEscapeChar);
-			jsonString = JSONEncode.fromObject(object);
+			if(allField) {
+				jsonString = JSONEncode.fromObject(TReflect.getMapfromObject(object, allField), allField);
+			} else {
+				jsonString = JSONEncode.fromObject(object, false);
+			}
 
 			if(jsonString.startsWith("\"") && jsonString.endsWith("\"")){
 				jsonString = TString.removeSuffix(jsonString);
