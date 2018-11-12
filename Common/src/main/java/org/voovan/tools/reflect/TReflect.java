@@ -13,6 +13,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -28,13 +29,13 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class TReflect {
 
-    private static Map<String, Field> fields = new HashMap<String ,Field>();
-    private static Map<String, Method> methods = new HashMap<String ,Method>();
-    private static Map<String, Constructor> constructors = new HashMap<String ,Constructor>();
-    private static Map<String, Field[]> fieldArrays = new HashMap<String ,Field[]>();
-    private static Map<String, Method[]> methodArrays = new HashMap<String ,Method[]>();
-    private static Map<String, Constructor[]> constructorArrays = new HashMap<String ,Constructor[]>();
-    private static Map<String, Boolean> classHierarchy = new HashMap<String ,Boolean>();
+    private static Map<String, Field> fields = new ConcurrentHashMap<String ,Field>();
+    private static Map<String, Method> methods = new ConcurrentHashMap<String ,Method>();
+    private static Map<String, Constructor> constructors = new ConcurrentHashMap<String ,Constructor>();
+    private static Map<String, Field[]> fieldArrays = new ConcurrentHashMap<String ,Field[]>();
+    private static Map<String, Method[]> methodArrays = new ConcurrentHashMap<String ,Method[]>();
+    private static Map<String, Constructor[]> constructorArrays = new ConcurrentHashMap<String ,Constructor[]>();
+    private static Map<String, Boolean> classHierarchy = new ConcurrentHashMap<String ,Boolean>();
 
     /**
      * 获得类所有的Field
@@ -43,17 +44,17 @@ public class TReflect {
      * @return Field数组
      */
     public static Field[] getFields(Class<?> clazz) {
-        String mark = clazz.getCanonicalName();
-        Field[] fields = fieldArrays.get(mark);
+        String marker = clazz.getCanonicalName();
+        Field[] fields = fieldArrays.get(marker);
 
-        if(fields==null && !fieldArrays.containsKey(mark)){
+        if(fields==null && !fieldArrays.containsKey(marker)){
             LinkedHashSet<Field> fieldArray = new LinkedHashSet<Field>();
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 Field[] tmpFields = clazz.getDeclaredFields();
                 fieldArray.addAll(Arrays.asList(tmpFields));
             }
             fields = fieldArray.toArray(new Field[]{});
-            fieldArrays.put(mark, fields);
+            fieldArrays.put(marker, fields);
             fieldArray.clear();
         }
 
@@ -105,13 +106,13 @@ public class TReflect {
     public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName)
             throws ReflectiveOperationException{
 
-        String mark = new StringBuilder(clazz.getCanonicalName()).append("#").append(fieldName).toString();
+        String marker = new StringBuilder(clazz.getCanonicalName()).append("#").append(fieldName).toString();
 
-        Field field = fields.get(mark);
-        if (field==null && !fields.containsKey(mark)){
+        Field field = fields.get(marker);
+        if (field==null && !fields.containsKey(marker)){
             for (Field fieldItem : getFields(clazz)) {
                 if (fieldItem.getName().equalsIgnoreCase(fieldName) || fieldItem.getName().equalsIgnoreCase(TString.underlineToCamel(fieldName))) {
-                    fields.put(mark, fieldItem);
+                    fields.put(marker, fieldItem);
                     field = fieldItem;
                     break;
                 }
@@ -267,10 +268,10 @@ public class TReflect {
             markBuilder.append("$").append(paramType.getCanonicalName());
         }
 
-        String mark = markBuilder.toString();
+        String marker = markBuilder.toString();
 
-        Method method = methods.get(mark);
-        if (method==null && !methods.containsKey(mark)){
+        Method method = methods.get(marker);
+        if (method==null && !methods.containsKey(marker)){
 
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 try {
@@ -281,7 +282,7 @@ public class TReflect {
                 }
             }
 
-            methods.put(mark, method);
+            methods.put(marker, method);
         }
 
         return method;
@@ -297,11 +298,11 @@ public class TReflect {
      */
     public static Method[] findMethod(Class<?> clazz, String name,
                                       int paramCount) throws ReflectiveOperationException {
-        String mark = new StringBuilder(clazz.getCanonicalName()).append("#").append(name).append("@").append(paramCount).toString();
+        String marker = new StringBuilder(clazz.getCanonicalName()).append("#").append(name).append("@").append(paramCount).toString();
 
-        Method[] methods = methodArrays.get(mark);
+        Method[] methods = methodArrays.get(marker);
 
-        if (methods==null && !methodArrays.containsKey(mark)){
+        if (methods==null && !methodArrays.containsKey(marker)){
             LinkedHashSet<Method> methodList = new LinkedHashSet<Method>();
             Method[] allMethods = getMethods(clazz, name);
             for (Method method : allMethods) {
@@ -310,7 +311,7 @@ public class TReflect {
                 }
             }
             methods = methodList.toArray(new Method[]{});
-            methodArrays.put(mark,methods);
+            methodArrays.put(marker,methods);
             methodList.clear();
         }
 
@@ -326,11 +327,11 @@ public class TReflect {
 
         Method[] methods = null;
 
-        String mark = clazz.getCanonicalName();
+        String marker = clazz.getCanonicalName();
 
-        methods = methodArrays.get(mark);
+        methods = methodArrays.get(marker);
 
-        if(methods==null && !methodArrays.containsKey(mark)){
+        if(methods==null && !methodArrays.containsKey(marker)){
             LinkedHashSet<Method> methodList = new LinkedHashSet<Method>();
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 Method[] tmpMethods = clazz.getDeclaredMethods();
@@ -338,7 +339,7 @@ public class TReflect {
             }
             methods = methodList.toArray(new Method[]{});
             methodList.clear();
-            methodArrays.put(mark,methods);
+            methodArrays.put(marker,methods);
 
         }
 
@@ -356,9 +357,9 @@ public class TReflect {
 
         Method[] methods = null;
 
-        String mark = new StringBuilder(clazz.getCanonicalName()).append("#").append(name).toString();
-        methods = methodArrays.get(mark);
-        if(methods==null && methods==null && !methodArrays.containsKey(mark)){
+        String marker = new StringBuilder(clazz.getCanonicalName()).append("#").append(name).toString();
+        methods = methodArrays.get(marker);
+        if(methods==null && methods==null && !methodArrays.containsKey(marker)){
 
             LinkedHashSet<Method> methodList = new LinkedHashSet<Method>();
             Method[] allMethods = getMethods(clazz);
@@ -368,7 +369,7 @@ public class TReflect {
             }
             methods = methodList.toArray(new Method[0]);
             methodList.clear();
-            methodArrays.put(mark,methods);
+            methodArrays.put(marker,methods);
         }
 
         return methods;
@@ -545,13 +546,13 @@ public class TReflect {
             markBuilder.append("$").append(paramType.getCanonicalName());
         }
 
-        String mark = markBuilder.toString();
+        String marker = markBuilder.toString();
 
-        Constructor<T> constructor = constructors.get(mark);
+        Constructor<T> constructor = constructors.get(marker);
 
         try {
 
-            if (constructor==null && !constructors.containsKey(constructor)){
+            if (constructor==null && !constructors.containsKey(marker)){
                 if (args.length == 0) {
                     try {
                         constructor = targetClazz.getConstructor();
@@ -562,7 +563,7 @@ public class TReflect {
                     constructor = targetClazz.getConstructor(parameterTypes);
                 }
 
-                constructors.put(mark, constructor);
+                constructors.put(marker, constructor);
             }
 
             return constructor.newInstance(args);
@@ -572,11 +573,11 @@ public class TReflect {
             if(constructor==null) {
 
                 //缓存构造函数
-                mark = targetClazz.getCanonicalName();
-                Constructor[] constructors =  constructorArrays.get(mark);
-                if(constructors==null && !constructorArrays.containsKey(mark)){
+                marker = targetClazz.getCanonicalName();
+                Constructor[] constructors =  constructorArrays.get(marker);
+                if(constructors==null && !constructorArrays.containsKey(marker)){
                     constructors = targetClazz.getConstructors();
-                    constructorArrays.put(mark, constructors);
+                    constructorArrays.put(marker, constructors);
                 }
 
                 for (Constructor similarConstructor : constructors) {
