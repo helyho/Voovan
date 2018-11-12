@@ -13,7 +13,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -238,6 +237,12 @@ public class TReflect {
         LinkedHashMap<Field, Object> result = new LinkedHashMap<Field, Object>();
         Field[] fields = getFields(obj.getClass());
         for (Field field : fields) {
+
+            //静态属性不序列化
+            if(Modifier.isStatic(field.getModifiers())){
+                continue;
+            }
+
             Object value = getFieldValue(obj, field.getName());
             result.put(field, value);
         }
@@ -859,7 +864,7 @@ public class TReflect {
                     field = findField(clazz, key);
                 }
 
-                if(field!=null) {
+                if(field!=null && !Modifier.isFinal(field.getModifiers())) {
                     String fieldName = field.getName();
                     Class fieldType = field.getType();
                     Type fieldGenericType = field.getGenericType();
@@ -1004,8 +1009,7 @@ public class TReflect {
                 Field field = entry.getKey();
 
                 //过滤不可序列化的字段
-                if (!allField && !Modifier.isStatic(field.getModifiers())) {
-
+                if (!allField) {
                     if((field.getAnnotation(NotSerialization.class)!=null || field.getAnnotation(NotJSON.class)!=null)
                             && TEnv.classInCurrentStack(".tools.json.", null)) {
                         continue;
