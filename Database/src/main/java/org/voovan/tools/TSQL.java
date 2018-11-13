@@ -333,12 +333,9 @@ public class TSQL {
 				if(condiction.trim().toLowerCase().startsWith("where")){
 					sqlText = sqlText.replace(condiction.trim(),"where 1=1");
 				} else {
-					if(condiction.trim().endsWith(")") &&
-							TString.searchByRegex(condiction.trim(), "\\(").length%2==1 ){
-						condiction = TString.removeSuffix(condiction.trim());
-					}
 					sqlText = sqlText.replace(condiction.trim(),"");
 				}
+
 				sqlParamNames.remove(condictions[0]);
 			}
 		}
