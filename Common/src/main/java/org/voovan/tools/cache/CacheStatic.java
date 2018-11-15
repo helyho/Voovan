@@ -1,13 +1,13 @@
 package org.voovan.tools.cache;
 
-import org.voovan.tools.TPerformance;
-import org.voovan.tools.TProperties;
-import org.voovan.tools.TSerialize;
-import org.voovan.tools.log.Logger;
 import net.rubyeye.xmemcached.MemcachedClientBuilder;
 import net.rubyeye.xmemcached.XMemcachedClientBuilder;
 import net.rubyeye.xmemcached.command.BinaryCommandFactory;
 import net.rubyeye.xmemcached.utils.AddrUtil;
+import org.voovan.tools.TPerformance;
+import org.voovan.tools.TProperties;
+import org.voovan.tools.TSerialize;
+import org.voovan.tools.log.Logger;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -24,8 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CacheStatic {
 
     private static final String DEFAULT = "system_default";
-    private static ConcurrentHashMap<String, MemcachedClientBuilder> MEMCACHED_CLIENT_BUILDER_CACHE = new ConcurrentHashMap<String, MemcachedClientBuilder>();
-    private static ConcurrentHashMap<String, JedisPool> REDIS_POOL_CACHE = new ConcurrentHashMap<String, JedisPool>();
+    private static ConcurrentHashMap<String,MemcachedClientBuilder> MEMCACHED_CLIENT_BUILDER_CACHE = new ConcurrentHashMap<String,MemcachedClientBuilder>();
+    private static ConcurrentHashMap<String,JedisPool> REDIS_POOL_CACHE = new ConcurrentHashMap<String, JedisPool>();
 
     /**
      * 获取一个 MemcachedClientBuilder 也就是 Memcached的连接池
@@ -56,6 +56,15 @@ public class CacheStatic {
      */
     public static MemcachedClientBuilder getMemcachedPool(String name){
         return MEMCACHED_CLIENT_BUILDER_CACHE.get(name);
+    }
+
+    /**
+     * 获取一个 MemcachedClientBuilder 连接池
+     * @return MemcachedClientBuilder 对象
+     */
+    @Deprecated
+    public static MemcachedClientBuilder getMemcachedPool(){
+        return getDefalutMemcachedPool();
     }
 
     /**
@@ -118,10 +127,19 @@ public class CacheStatic {
      * @param name Redis 连接池名称
      * @return Redis 连接池
      */
+
     public static JedisPool getRedisPool(String name){
         return REDIS_POOL_CACHE.get(name);
     }
 
+    /**
+     * 获取一个 RedisPool 连接池
+     * @return JedisPool 对象
+     */
+    @Deprecated
+    public static JedisPool getRedisPool(){
+        return getDefaultRedisPool();
+    }
 
     /**
      * 获取一个 RedisPool 连接池
@@ -178,33 +196,7 @@ public class CacheStatic {
             return null;
         }
 
-        if( obj instanceof Boolean){
-            return ((Boolean) obj).toString().getBytes();
-        }
-        else if( obj instanceof Integer){
-            return ((Integer) obj).toString().getBytes();
-        }
-        else if( obj instanceof Long){
-            return ((Long) obj).toString().getBytes();
-        }
-        else if( obj instanceof Short){
-            return ((Short) obj).toString().getBytes();
-        }
-        else if( obj instanceof Float){
-            return ((Float) obj).toString().getBytes();
-        }
-        else if( obj instanceof Double){
-            return ((Double) obj).toString().getBytes();
-        }
-        else if( obj instanceof Character){
-            return ((Character)obj).toString().getBytes();
-        }
-        else if( obj instanceof String){
-            return ((String)obj).toString().getBytes();
-        }
-        else {
-            return TSerialize.serialize(obj);
-        }
+        return TSerialize.serialize(obj);
     }
 
     /**
@@ -217,11 +209,7 @@ public class CacheStatic {
             return null;
         }
 
-        if(byteArray[0]==-84 && byteArray[1]==-19 && byteArray[2]==0 && byteArray[3]==5){
-            return TSerialize.unserialize(byteArray);
-        } else {
-            return new String(byteArray);
-        }
+        return TSerialize.unserialize(byteArray);
     }
 
 }
