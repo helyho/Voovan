@@ -325,16 +325,17 @@ public class TSQL {
 			sqlText = sqlText.replace("::"+paramName,"``"+paramName);
 		}
 
-		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\sor\\s)|(\\sgroup by\\s)|(\\sorder\\s)|(\\shaving\\s)|(\\slimit\\s)|$)";
+		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\sand\\s)|(\\sor\\s)|(\\sgroup by\\s)|(\\sorder\\s)|(\\shaving\\s)|(\\slimit\\s)|$)";
 		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
 		for(String condiction : sqlCondiction){
 			String[] condictions = TString.searchByRegex(condiction,"::\\w+\\b");
 			if(condictions.length>0){
 				if(condiction.trim().toLowerCase().startsWith("where")){
 					sqlText = sqlText.replace(condiction.trim(),"where 1=1");
-				}else{
+				} else {
 					sqlText = sqlText.replace(condiction.trim(),"");
 				}
+
 				sqlParamNames.remove(condictions[0]);
 			}
 		}
@@ -372,7 +373,7 @@ public class TSQL {
 			if(condictionArr.length>1){
 				if((condictionArr[1].trim().startsWith("'") && condictionArr[1].trim().endsWith("'")) ||
 						(condictionArr[1].trim().startsWith("(") && condictionArr[1].trim().endsWith(")"))
-						){
+				){
 					condictionArr[1] = condictionArr[1].substring(1,condictionArr[1].length()-1);
 				}
 				if(operatorChar.contains("in")){
