@@ -167,10 +167,13 @@ public class JdbcOperate implements Closeable {
 				}
 			}
 		}
-		connection.commit();
 
-		if(isClose) {
-			closeConnection(connection);
+		if(!connection.isClosed()) {
+			connection.commit();
+
+			if (isClose) {
+				closeConnection(connection);
+			}
 		}
 		isTransactionFinished = true;
 	}
@@ -199,10 +202,13 @@ public class JdbcOperate implements Closeable {
 					}
 				}
 			}
-			connection.rollback();
 
-			if(isClose) {
-				closeConnection(connection);
+			if(!connection.isClosed()) {
+				connection.rollback();
+
+				if (isClose) {
+					closeConnection(connection);
+				}
 			}
 			isTransactionFinished = true;
 		}

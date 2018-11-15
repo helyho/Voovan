@@ -4,10 +4,7 @@ import org.voovan.Global;
 import org.voovan.tools.*;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -338,6 +335,18 @@ public class Formater {
 				e.printStackTrace();
 			}
 			TFile.deleteFile(logFile);
+
+			//关闭文件输出流
+			for(OutputStream outputStream : loggerThread.getOutputStreams()){
+				if(outputStream instanceof FileOutputStream){
+					try {
+						outputStream.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+
 			loggerThread.setOutputStreams(getOutputStreams());
 		}
 	}
