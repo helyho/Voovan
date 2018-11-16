@@ -506,6 +506,7 @@ public class JdbcOperate implements Closeable {
 	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
+	 * @param updateCount 期望的更新记录数, 如果不符合会抛出异常
 	 * @return 更新记录数
 	 * @throws SQLException SQL 异常
 	 */
@@ -523,6 +524,7 @@ public class JdbcOperate implements Closeable {
 	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
+	 * @param updateCount 期望的更新记录数, 如果不符合会抛出异常
 	 * @param arg
 	 *            object为参数的对象
 	 * @return SQL 异常
@@ -543,6 +545,7 @@ public class JdbcOperate implements Closeable {
 	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为标识,例如where id=::id
+	 * @param updateCount 期望的更新记录数, 如果不符合会抛出异常
 	 * @param mapArg
 	 *            map为参数的对象
 	 * @return 更新记录数
@@ -562,6 +565,7 @@ public class JdbcOperate implements Closeable {
 	 *
 	 * @param sqlText
 	 *            sql字符串 参数使用"::"作为索引标识,引导一个索引标识,索引标识从1开始,例如where id=::1
+	 * @param updateCount 期望的更新记录数, 如果不符合会抛出异常
 	 * @param args
 	 *            多参数
 	 * @return 更新记录数
