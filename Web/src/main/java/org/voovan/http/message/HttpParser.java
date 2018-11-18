@@ -105,7 +105,7 @@ public class HttpParser {
 		if(propertySplit.length==2){
 			String propertyName = propertySplit[0];
 			String properyValue = propertySplit[1];
-			property.put(propertyName, properyValue);
+			property.put(propertyName, properyValue.trim());
 		}
 		return property;
 	}
