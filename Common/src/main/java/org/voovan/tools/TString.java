@@ -275,6 +275,7 @@ public class TString {
 	 * 按照标识符 Map 进行替换
 	 *
 	 * @param source 源字符串,标识符使用"{{标识}}"进行包裹,这些标识符将会被替换
+	 * @param tokens 标识符 Map, 包含匹配字符串和替换字符串
 	 * @return 替换后的字符串
 	 */
 	public static String tokenReplace(String source, Map<String, ?> tokens) {

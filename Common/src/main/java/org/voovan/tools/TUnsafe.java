@@ -147,7 +147,6 @@ public class TUnsafe {
      * 获取对象的内存的基地址
      * @param object 对象
      * @return 内存的基地址
-     * @throws Exception
      */
     public static long getAddress(Object object) {
 
@@ -187,8 +186,8 @@ public class TUnsafe {
 
     /**
      * 将一个地址的数据, 复制到目标对象
-     * @param srcAddress
-     * @param dest
+     * @param srcAddress 源内存地址
+     * @param dest 目标内存地址
      */
     public static void copyMemory(long srcAddress, Object dest) {
         unsafe.copyMemory(null, srcAddress, dest, 0, sizeOf(dest));

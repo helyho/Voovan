@@ -46,6 +46,7 @@ public class ByteBufferChannel {
     /**
      * 构造函数
      * @param capacity 分配的容量
+     * @param maxSize 通道地最大容量
      */
     public ByteBufferChannel(int capacity, Integer maxSize) {
         init(capacity);
@@ -72,7 +73,7 @@ public class ByteBufferChannel {
 
     /**
      * 缓冲通道是否已满
-     * @return
+     * @return true: 通道已满, false: 通道未满
      */
     public boolean isFull(){
         return maxSize <= size;
@@ -580,6 +581,7 @@ public class ByteBufferChannel {
      * 重新分配内存空间的大小
      * @param newSize  重新分配的空间大小
      * @return true:成功, false:失败
+     * @throws LargerThanMaxSizeException 通道容量不足的一场
      */
     public boolean reallocate(int newSize) throws LargerThanMaxSizeException {
 

@@ -130,6 +130,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * 设置数据创建 Function 对象
      * @param buildFunction Function 对象
      * @param asyncBuild 异步构造数据
+     * @return CachedHashMap 对象
      */
     public CachedHashMap<K, V> supplier(Function<K, V> buildFunction, boolean asyncBuild){
         this.supplier = buildFunction;
@@ -160,6 +161,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
     /**
      * 设置对象销毁函数
      * @param destory 对象销毁函数, 如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
+     * @return CachedHashMap 对象
      */
     public CachedHashMap<K, V> destory(Function destory) {
         this.destory = destory;
@@ -197,8 +199,8 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
     }
 
     /**
-     * 获取默认超时时间
-     * @return
+     * 获取超时时间
+     * @return 获取超时时间
      */
     public long getExpire() {
         return expire;
@@ -206,7 +208,8 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
 
     /**
      * 设置默认超时时间
-     * @param expire
+     * @param expire 超时时间
+     * @return CachedHashMap 对象
      */
     public CachedHashMap expire(long expire) {
         this.expire = expire;

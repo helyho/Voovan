@@ -154,6 +154,7 @@ public class RedisLock {
     /**
      * 尝试加锁
      *      超时时间 timewait 是尝试加锁的最长时间
+     * @param lockValue 锁的名称
      * @param lockExpireTime 锁的键值对的超时时间
      * @param timewait 获取锁的等待时间, 单位: 毫秒
      * @return true: 成功, false: 失败
@@ -220,6 +221,7 @@ public class RedisLock {
 
     /**
      * 释放锁
+     * @param lockValue 锁的名称
      * @return true: 成功, false: 失败
      */
     public boolean unLock(String lockValue) {

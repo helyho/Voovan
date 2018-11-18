@@ -43,6 +43,7 @@ public class TokenBucket extends Bucket{
      * 令牌桶构造函数
      * @param tokenSize 令牌桶默认大小
      * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 毫秒
+     * @param releaseTime 令牌存活自动释放时间
      */
     public void init(int tokenSize, int interval, int releaseTime){
         this.releaseTime = releaseTime;

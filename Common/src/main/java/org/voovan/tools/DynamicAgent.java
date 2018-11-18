@@ -47,8 +47,8 @@ public class DynamicAgent {
 
     /**
      * 读取 Class 的 byte 字节
-     * @param classPath
-     * @return
+     * @param classPath 类路径
+     * @return 返回类的字节码
      */
     public static byte[] getClassBytes(String classPath){
         String path = classPath.replace(".", "/") + ".class";

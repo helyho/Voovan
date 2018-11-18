@@ -69,6 +69,11 @@ public class CacheStatic {
 
     /**
      * 获取一个 MemcachedClientBuilder 也就是 Memcached的连接池
+     * @param name 连接池名称
+     * @param host 连接地址
+     * @param port 连接端口
+     * @param timeout 超时时间
+     * @param poolSize 池的大小
      * @return MemcachedClientBuilder 对象
      */
     public synchronized static MemcachedClientBuilder createMemcachedPool(String name, String host, int port, int timeout, int poolSize) {
@@ -143,6 +148,12 @@ public class CacheStatic {
 
     /**
      * 获取一个 RedisPool 连接池
+     * @param name 连接池名称
+     * @param host 连接地址
+     * @param port 连接端口
+     * @param timeout 超时时间
+     * @param password redis 密码
+     * @param poolSize 池的大小
      * @return JedisPool 对象
      */
     public synchronized static JedisPool createRedisPool(String name, String host, int port, int timeout, String password, int poolSize){

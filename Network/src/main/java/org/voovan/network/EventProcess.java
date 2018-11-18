@@ -179,7 +179,7 @@ public class EventProcess {
 	 * @param session  会话对象
 	 * @param byteBuffer 报文对象
 	 * @return 产生的响应
-	 * @throws IoFilterException
+	 * @throws IoFilterException 过滤器异常
 	 */
 	public static Object doRecive(IoSession session, ByteBuffer byteBuffer) throws IoFilterException {
 		try {

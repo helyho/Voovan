@@ -124,11 +124,11 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 执行 jedis 的脚本
-     * @param jedis
-     * @param command
-     * @param itemName
-     * @param values
-     * @return
+     * @param jedis jedis对象
+     * @param command 执行的脚本
+     * @param itemName 内部 zset 名称
+     * @param values 值
+     * @return 脚本执行返回的值
      */
     public Object eval(Jedis jedis, String command, String itemName, Object ... values){
         String params = ", ";
@@ -184,6 +184,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 新增一个元素
+     * @param itemName zset名称
      * @param values 新的元素
      * @return 新增元素的数量
      */
@@ -195,6 +196,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 新增一个元素
+     * @param itemName zset名称
      * @param score 元素的分
      * @param value 新的元素
      * @return 新增元素的数量
@@ -207,6 +209,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 对 Score 进行自增
+     * @param itemName zset名称
      * @param value 进行自增操作的元素
      * @param score 增加值
      * @return 自增后的 score
@@ -229,6 +232,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 获取前集合的大小
+     * @param itemName zset名称
      * @return 集合的大小
      */
     public long size(String itemName){
@@ -239,6 +243,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 某一个特定的 score 范围内的成员数量, 包含 min 和 max 的数据
+     * @param itemName zset名称
      * @param min score 的最小值
      * @param max score 的最大值
      * @return 成员的数量
@@ -251,6 +256,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 某一个成员区间内的成员数量, 包含 min 和 max 的数据
+     * @param itemName zset名称
      * @param min value 的最小值
      * @param max value 的最大值
      * @return 成员的数量
@@ -263,6 +269,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 某一个特定倒序索引区间内的所有成员, 包含 start 和 end 的数据
+     * @param itemName zset名称
      * @param start 索引起始位置
      * @param end value 索引结束位置
      * @return 成员对象的集合
@@ -278,6 +285,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 某一个特定倒序索引区间内的所有成员, 包含 start 和 end 的数据
+     * @param itemName zset名称
      * @param start 索引起始位置
      * @param end value 索引结束位置
      * @return 成员对象的集合
@@ -292,6 +300,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 某一个特定值区间内的所有成员, 包含 start 和 end 的数据
+     * @param itemName zset名称
      * @param start value 的最小值
      * @param end value 的最大值
      * @return 成员对象的集合
@@ -307,6 +316,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 某一个特定值区间内的所有成员, 包含 start 和 end 的数据
+     * @param itemName zset名称
      * @param start value 的最小值
      * @param end value 的最大值
      * @param offset 偏移量
@@ -323,6 +333,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 某一个特定值倒序区间内的所有成员, 包含 start 和 end 的数据
+     * @param itemName zset名称
      * @param start value 的最大值
      * @param end value 的最小值
      * @return 成员对象的集合
@@ -337,6 +348,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 某一个特定值倒序区间内的所有成员, 包含 start 和 end 的数据
+     * @param itemName zset名称
      * @param start value 的最大值
      * @param end value 的最小值
      * @param offset 偏移量
@@ -353,6 +365,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 某一个Score区间内的所有成员, 包含 start 和 end 的数据
+     * @param itemName zset名称
      * @param start value 的最小值
      * @param end value 的最大值
      * @return 成员对象的集合
@@ -367,6 +380,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 某一个Score区间内的所有成员, 包含 start 和 end 的数据
+     * @param itemName zset名称
      * @param start value 的最小值
      * @param end value 的最大值
      * @param offset 偏移量
@@ -383,6 +397,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 某一个Score倒序区间内的所有成员, 包含 start 和 end 的数据
+     * @param itemName zset名称
      * @param start value 的最大值
      * @param end value 的最小值
      * @return 成员对象的集合
@@ -397,6 +412,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 某一个Score倒序区间内的所有成员, 包含 start 和 end 的数据
+     * @param itemName zset名称
      * @param start value 的最大值
      * @param end value 的最小值
      * @param offset 偏移量
@@ -413,6 +429,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 获得当前值的索引位置
+     * @param itemName zset名称
      * @param value 值
      * @return 索引诶只
      */
@@ -424,6 +441,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 获得当前值的倒序索引位置
+     * @param itemName zset名称
      * @param value 值
      * @return 索引诶只
      */
@@ -435,6 +453,8 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 移除某个特定 value
+     * @param itemName zset名称
+     * @param value zset中数据的值
      * @return 移除元素的索引
      */
     public long remove(String itemName, String value){
@@ -445,6 +465,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 移除某个特定 value 区间的数据
+     * @param itemName zset名称
      * @param start value 的最大值
      * @param end value 的最小值
      * @return 移除元素的数量
@@ -457,6 +478,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 移除某个特定索引区间的数据
+     * @param itemName zset名称
      * @param start 索引起始位置
      * @param end value 索引结束位置
      * @return 移除元素的数量
@@ -469,6 +491,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 移除某个特定Score区间的数据
+     * @param itemName zset名称
      * @param min score 的最小值
      * @param max score 的最大值
      * @return 移除元素的数量
@@ -481,6 +504,7 @@ public class RedisMapWithZSet implements Closeable {
 
     /**
      * 获取某个特定值的 Score
+     * @param itemName zset名称
      * @param value 值
      * @return 对应的 Score
      */
@@ -490,6 +514,14 @@ public class RedisMapWithZSet implements Closeable {
         }
     }
 
+    /**
+     * 检索对象
+     * @param itemName zset名称
+     * @param cursor 游标名称
+     * @param matchValue 匹配的数据
+     * @param count 数量
+     * @return ScanedObject对象
+     */
     public ScanedObject scan(String itemName, String cursor, String matchValue, Integer count){
         try (Jedis jedis = getJedis()) {
 

@@ -162,23 +162,23 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
 
     /**
      * 如果参数为空的默认构造方法
-     * @param buildFunction
+     * @param buildFunction 创建函数
      */
     public void supplier(Function<K, V> buildFunction){
         this.buildFunction = buildFunction;
     }
 
     /**
-     * 获取默认超时时间
-     * @return
+     * 获取超时时间
+     * @return 超时时间
      */
     public long getExpire() {
         return expire;
     }
 
     /**
-     * 设置默认超时时间
-     * @param expire
+     * 设置超时时间
+     * @param expire 超时时间
      */
     public void expire(long expire) {
         this.expire = expire;

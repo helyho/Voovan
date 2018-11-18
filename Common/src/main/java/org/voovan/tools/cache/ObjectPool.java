@@ -189,7 +189,7 @@ public class ObjectPool {
 
     /**
      * 增加池中的对象
-     * @param obj 增加到池中的对象ID
+     * @param id 增加到池中的对象ID
      * @param obj 增加到池中的对象
      * @return 对象的 id 值
      */
@@ -204,7 +204,7 @@ public class ObjectPool {
 
     /**
      * 增加池中的对象
-     * @param obj 增加到池中的对象ID
+     * @param id 增加到池中的对象ID
      * @param obj 增加到池中的对象
      * @return 对象的 id 值
      */
@@ -287,6 +287,11 @@ public class ObjectPool {
         return borrowedObject;
     }
 
+    /**
+     * 借出对象
+     * @param waitTime 超时时间
+     * @return 借出地对象, 超时返回 null
+     */
     public Object borrow(int waitTime){
         Object objectId = null;
         while(waitTime>=0) {
@@ -304,9 +309,10 @@ public class ObjectPool {
 
     /**
      * 归还借出的对象
+     * @param id 借出对象ID
      */
-    public void restitution(Object objectId){
-        unborrowedObjectIdList.addLast(objectId);
+    public void restitution(Object id){
+        unborrowedObjectIdList.addLast(id);
     }
 
     /**
@@ -381,7 +387,7 @@ public class ObjectPool {
 
         /**
          * 获取对象
-         * @return
+         * @return 池中的对象
          */
         public Object getObject() {
             if(objectCachedPool.isAutoRefreshOnGet()) {
@@ -392,19 +398,23 @@ public class ObjectPool {
 
         /**
          * 设置设置对象
-         * @param object
+         * @param object 池中的对象
          */
         public void setObject(Object object) {
             this.object = object;
         }
 
+        /**
+         * 缓存的 id
+         * @return 缓存的 id
+         */
         public Object getId() {
             return id;
         }
 
         /**
          * 判断对象是否存活
-         * @return
+         * @return true: 对象存活, false: 对象超时
          */
         public boolean isAlive(){
             if(objectCachedPool.aliveTime<=0){

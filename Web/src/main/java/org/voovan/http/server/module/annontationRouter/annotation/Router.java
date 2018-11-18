@@ -18,19 +18,19 @@ import java.lang.annotation.*;
 public @interface Router {
     /**
      * 请求的 URL
-     * @return
+     * @return 请求路径
      */
     String path() default "";
 
     /**
      *
-     * @return
+     * @return 默认路径
      */
     String value() default "";
 
     /**
      * 请求的方法
-     * @return
+     * @return 请求的方法
      */
     String method() default "GET";
 
@@ -40,6 +40,7 @@ public @interface Router {
      * 定义路由类是否采用单例模式
      * 在类上则标识类会被提前实例化, 在路由方法上,则使用提前实例化的类进行调用
      * 在方法上无效
+     * @return true: 单例模式, false: 非单例模式
      */
     boolean singleton() default false;
 }
