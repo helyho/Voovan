@@ -122,7 +122,7 @@ public class ObjectPool {
      *      在对象被销毁前工作
      * @return 对象销毁函数
      */
-    public Function getDestory() {
+    public Function destory() {
         return destory;
     }
 
@@ -132,7 +132,7 @@ public class ObjectPool {
      * @param destory 对象销毁函数
      * @return ObjectPool 对象
      */
-    public ObjectPool setDestory(Function destory) {
+    public ObjectPool destory(Function destory) {
         this.destory = destory;
         return this;
     }
