@@ -229,7 +229,7 @@ public class HttpParser {
 	 * 			5.body     解析成 key=BODY_VALUE 的Map 元素
 	 * @param byteBufferChannel 输入流
 	 * @param timeOut 读取超时时间参数
-	 * @upLoadFileMaxSize 上传文件的最大尺寸, 单位: kb
+	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
 	 * @return 解析后的 Map
 	 * @throws IOException IO 异常
 	 */
@@ -552,6 +552,7 @@ public class HttpParser {
 	 * 解析报文成 HttpRequest 对象
 	 * @param byteBufferChannel  输入字节流
 	 * @param timeOut 读取超时时间参数
+	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
 	 * @return   返回请求报文
 	 * @throws IOException IO 异常
 	 */

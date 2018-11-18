@@ -123,13 +123,13 @@ public class RedisMapWithList implements Closeable {
 
     /**
      * 执行 jedis 的脚本
-     * @param jedis
-     * @param command
-     * @param innerName
-     * @param values
-     * @return
+     * @param jedis jedis对象
+     * @param command 执行的脚本
+     * @param itemName 内部 list 名称
+     * @param values 值
+     * @return 脚本执行返回的值
      */
-    public Object eval(Jedis jedis, String command, String innerName, Object ... values){
+    public Object eval(Jedis jedis, String command, String itemName, Object ... values){
         String params = ", ";
 
         String cachedKey = command+values.length;
@@ -142,7 +142,7 @@ public class RedisMapWithList implements Closeable {
             values[i] = values[i].toString();
         }
 
-        List valueList = TObject.asList(this.name, innerName);
+        List valueList = TObject.asList(this.name, itemName);
         valueList.addAll(TObject.asList(values));
 
         if(scriptHash==null){
@@ -325,6 +325,7 @@ public class RedisMapWithList implements Closeable {
 
     /**
      * 修剪当前 list
+     * @param itemName list名称
      * @param start 起始偏移量,  0 是列表里的第一个元素（表头），1 是第二个元素,-1 表示列表里的最后一个元素， -2 表示倒数第二个
      * @param end  结束偏移量, 0 是列表里的第一个元素（表头），1 是第二个元素,-1 表示列表里的最后一个元素， -2 表示倒数第二个
      * @return 修剪后的 list 长度
@@ -337,6 +338,7 @@ public class RedisMapWithList implements Closeable {
 
     /**
      * 返回存储在列表里指定范围内的元素
+     * @param itemName list名称
      * @param start 起始偏移量,  0 是列表里的第一个元素（表头），1 是第二个元素,-1 表示列表里的最后一个元素， -2 表示倒数第二个
      * @param end  结束偏移量, 0 是列表里的第一个元素（表头），1 是第二个元素,-1 表示列表里的最后一个元素， -2 表示倒数第二个
      * @return 修剪后的 list 长度

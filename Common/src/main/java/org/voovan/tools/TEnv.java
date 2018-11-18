@@ -537,7 +537,7 @@ public class TEnv {
 	 * 等待函数
 	 * @param waitTime 等待时间
 	 * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
-	 * @return true: 满足逻辑需要正常退出, false: 超时退出
+	 * @throws TimeoutException 超时异常
 	 */
 	public static void wait(int waitTime, Supplier<Boolean> supplier) throws TimeoutException {
 		long start = System.currentTimeMillis();
@@ -557,7 +557,6 @@ public class TEnv {
 	/**
 	 * 等待函数
 	 * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
-	 * @return true: 满足逻辑需要正常退出, false: 超时退出
 	 */
 	public static void wait(Supplier<Boolean> supplier) {
 		try {
