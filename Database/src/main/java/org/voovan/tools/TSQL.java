@@ -325,7 +325,7 @@ public class TSQL {
 			sqlText = sqlText.replace("::"+paramName,"``"+paramName);
 		}
 
-		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\sand\\s)|(\\sor\\s)|(\\sgroup by\\s)|(\\sorder\\s)|(\\shaving\\s)|(\\slimit\\s)|$)";
+		String sqlRegx = "(?:(\\swhere\\s)|(\\sand\\s)|(\\sor\\s))(?:\\(?)([\\s\\S]+?)(?=\\)|(\\swhere\\s)|(\\sand\\s)|(\\sor\\s)|(\\sgroup by\\s)|(\\sorder\\s)|(\\shaving\\s)|(\\slimit\\s)|$)";
 		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
 		for(String condiction : sqlCondiction){
 			String[] condictions = TString.searchByRegex(condiction,"::\\w+\\b");
@@ -335,13 +335,21 @@ public class TSQL {
 				} else {
 					sqlText = sqlText.replace(condiction.trim(),"");
 				}
-
 				sqlParamNames.remove(condictions[0]);
 			}
 		}
 
 		//转换存在参数的变量从``paramName 到 ::paramName
 		return sqlText.replace("``","::");
+	}
+
+	public static void main(String[] args) {
+		String s = "select * from deposit_request where status != 2 \n" +
+				"                            and (client_account_name like ::1 or client_card_number like ::2) \n" +
+				"                            and (post_script = ::3 or deposit_amount = ::4 or random_deposit_amount = ::4)\n" +
+				"                            and state = 1";
+
+		removeEmptyCondiction(s, getSqlParamNames(s), null);
 	}
 
 	/**
