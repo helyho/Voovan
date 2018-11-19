@@ -343,15 +343,6 @@ public class TSQL {
 		return sqlText.replace("``","::");
 	}
 
-	public static void main(String[] args) {
-		String s = "select * from deposit_request where status != 2 \n" +
-				"                            and (client_account_name like ::1 or client_card_number like ::2) \n" +
-				"                            and (post_script = ::3 or deposit_amount = ::4 or random_deposit_amount = ::4)\n" +
-				"                            and state = 1";
-
-		removeEmptyCondiction(s, getSqlParamNames(s), null);
-	}
-
 	/**
 	 * 获取解析后的 SQL 的条件
 	 * @param sqlText SQL 字符串
