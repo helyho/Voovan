@@ -69,12 +69,10 @@ public class WebServer {
 	 */
 	private void initHotSwap() {
 		//热加载
-		{
+		if(config.getHotSwapInterval() > 0) {
 			try {
-				if(config.getHotSwapInterval() > 0) {
-					Hotswaper hotSwaper = new Hotswaper();
-					hotSwaper.autoReload(config.getHotSwapInterval());
-				}
+				Hotswaper hotSwaper = new Hotswaper();
+				hotSwaper.autoReload(config.getHotSwapInterval());
 			} catch (Exception e) {
 				Logger.error("Init hotswap failed", e);
 			}
@@ -86,7 +84,7 @@ public class WebServer {
 	 */
 	private void initAop() {
 		//热加载
-		{
+		if(config.getScanAopPackage()!=null) {
 			try {
 				Aop.init(config.getScanAopPackage());
 			} catch (Exception e) {
