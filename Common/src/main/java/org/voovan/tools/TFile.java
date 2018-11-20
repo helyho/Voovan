@@ -583,4 +583,12 @@ public class TFile {
 			}
 		}
 	}
+
+	/**
+	 * 删除文件
+	 * @param filePath 文件路径
+	 */
+	public static void deleteFile(String filePath) {
+		deleteFile(new File(filePath));
+	}
 }

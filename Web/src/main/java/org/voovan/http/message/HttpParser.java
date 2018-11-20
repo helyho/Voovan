@@ -334,6 +334,7 @@ public class HttpParser {
 						Map<String, Object> partMap = parser(partByteBufferChannel, timeOut, requestMaxSize);
 						TByteBuffer.release(partHeadBuffer);
 						partByteBufferChannel.release();
+						TByteBuffer.release(partHeadBuffer);
 
 						String fileName = getPerprotyEqualValue(partMap, HEAD_CONTENT_DISPOSITION, "filename");
 						if(fileName!=null && fileName.isEmpty()){

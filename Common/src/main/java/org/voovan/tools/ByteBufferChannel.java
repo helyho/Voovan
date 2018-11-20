@@ -177,7 +177,6 @@ public class ByteBufferChannel {
             try {
                 if (address.get() != 0) {
                     TByteBuffer.release(byteBuffer);
-//                    TByteBuffer.release(byteBuffer);
                     address.set(0);
                     byteBuffer = null;
                     size = -1;
