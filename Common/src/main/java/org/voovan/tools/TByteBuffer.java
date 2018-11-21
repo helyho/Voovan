@@ -21,7 +21,6 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
-
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
 
     public static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
@@ -85,7 +84,12 @@ public class TByteBuffer {
             long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
             TUnsafe.getUnsafe().setMemory(address, capacity, (byte) 0);
 
-            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, Integer.MIN_VALUE);
+            Deallocator deallocator = new Deallocator(new Long(address), capacity, TEnv.getStackMessage());
+
+            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
+
+            //内存自动释放部分
+            TReflect.invokeMethod(CLEANER_ClASS, CLEANER_CREATE_METHOD, byteBuffer, deallocator);
 
             return byteBuffer;
 
@@ -94,9 +98,6 @@ public class TByteBuffer {
             return null;
         }
     }
-
-
-
 
     /**
      * 根据框架的非堆内存配置, 分配 ByteBuffer
@@ -119,6 +120,10 @@ public class TByteBuffer {
      * @return true:成功, false:失败
      */
     public static boolean reallocate(ByteBuffer byteBuffer, int newSize) {
+
+        if(isReleased(byteBuffer)) {
+            return false;
+        }
 
         try {
             if(byteBuffer.capacity() > newSize){
@@ -225,7 +230,7 @@ public class TByteBuffer {
             try {
                 if (byteBuffer != null && !isReleased(byteBuffer)) {
                     Object att = getAtt(byteBuffer);
-                    if (att!=null && att.equals(Integer.MIN_VALUE)) {
+                    if (att!=null && att.getClass() == Deallocator.class) {
                         long address = getAddress(byteBuffer);
                         if(address!=0) {
                             TUnsafe.getUnsafe().freeMemory(address);
@@ -430,6 +435,10 @@ public class TByteBuffer {
      */
     public static void setAddress(ByteBuffer byteBuffer, long address) throws ReflectiveOperationException {
         addressField.set(byteBuffer, address);
+        Object att = getAtt(byteBuffer);
+        if(att!=null && att.getClass() == Deallocator.class){
+            ((Deallocator) att).setAddress(address);
+        }
     }
 
     /**
@@ -450,5 +459,34 @@ public class TByteBuffer {
      */
     public static void setAttr(ByteBuffer byteBuffer, Object attr) throws ReflectiveOperationException {
         attField.set(byteBuffer, attr);
+    }
+
+
+    /**
+     * 自动跟踪 GC 销毁的类
+     */
+    private static class Deallocator implements Runnable {
+        private long address;
+        private int capacity;
+        private String stacks;
+
+        private Deallocator(long address, int capacity, String stacks) {
+            this.address = address;
+            this.capacity = capacity;
+            this.stacks = stacks;
+        }
+
+        public void setAddress(long address){
+            this.address = address;
+        }
+
+        public void run() {
+
+            if (this.address == 0) {
+                return;
+            }
+            TUnsafe.getUnsafe().freeMemory(address);
+            address = 0;
+        }
     }
 }
