@@ -5,9 +5,9 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -22,28 +22,13 @@ import java.util.Arrays;
  */
 public class TByteBuffer {
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
+    private static final ReferenceQueue<ByteBuffer> dummyQueue = new ReferenceQueue<ByteBuffer>();
 
     public static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
 
     public static Constructor DIRECT_BYTE_BUFFER_CONSTURCTOR = getConsturctor();
     static {
         DIRECT_BYTE_BUFFER_CONSTURCTOR.setAccessible(true);
-    }
-
-    public static Class CLEANER_ClASS = null;
-    public static Method CLEANER_CREATE_METHOD = null;
-    static {
-        try {
-            if (TEnv.JDK_VERSION < 9F) {
-                CLEANER_ClASS = Class.forName("sun.misc.Cleaner");
-            } else {
-                CLEANER_ClASS = Class.forName("jdk.internal.ref.Cleaner");
-            }
-
-            CLEANER_CREATE_METHOD = TReflect.findMethod(CLEANER_ClASS, "create", Object.class, Runnable.class);
-        } catch (Exception e){
-            Logger.error("Cleaner class not found: ", e);
-        }
     }
 
     public static Field addressField = ByteBufferField("address");
@@ -88,8 +73,7 @@ public class TByteBuffer {
 
             ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
 
-            //内存自动释放部分
-            TReflect.invokeMethod(CLEANER_ClASS, CLEANER_CREATE_METHOD, byteBuffer, deallocator);
+            Cleaner.create(byteBuffer, deallocator);
 
             return byteBuffer;
 

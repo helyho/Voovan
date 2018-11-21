@@ -964,7 +964,7 @@ public class ByteBufferChannel {
             int loadSize = bufferSize;
             ByteBuffer tempByteBuffer = ByteBuffer.wrap(buffer);
             while (length > 0) {
-                loadSize = length > bufferSize ? bufferSize : new Long(length).intValue();
+                loadSize = length > bufferSize ? bufferSize : Long.valueOf(length).intValue();
 
                 tempByteBuffer.limit(loadSize);
 
