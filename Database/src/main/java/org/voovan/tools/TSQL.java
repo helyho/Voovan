@@ -86,11 +86,11 @@ public class TSQL {
 	 */
 	public static PreparedStatement createPreparedStatement(Connection conn,String sqlStr,Map<String, Object> params) throws SQLException{
 
+		//将没有提供查询参数的条件移除
+		sqlStr = TSQL.removeEmptyCondiction(sqlStr, params);
+
 		//获取参数列表
 		List<String> sqlParamNames = TSQL.getSqlParamNames(sqlStr);
-
-		//将没有提供查询参数的条件移除
-		sqlStr = TSQL.removeEmptyCondiction(sqlStr,sqlParamNames,params);
 
 		if(Logger.isLogLevel("DEBUG")) {
 			Logger.fremawork("[SQL_Executed]: " + assembleSQLWithMap(sqlStr, params));
@@ -184,7 +184,6 @@ public class TSQL {
 		}
 		return result;
 	}
-
 
 
 	/**
@@ -309,38 +308,41 @@ public class TSQL {
 	/**
 	 * 将SQL 语句中,没有提供查询参数的条件移除
 	 * @param sqlText SQL 字符串
-	 * @param sqlParamNames sql 参数名集合
 	 * @param params 参数集合
 	 * @return 转换后的字符串
 	 */
-	public static String removeEmptyCondiction(String sqlText,List<String> sqlParamNames,Map<String, Object> params){
+	public static String removeEmptyCondiction(String sqlText, Map<String, Object> params){
 
 		//如果params为空,则新建一个
 		if(params==null){
 			params = new Hashtable<String, Object>();
 		}
 
-		//转换存在参数的变量从::paramName 到 ``paramName
-		for(String paramName : params.keySet()){
-			sqlText = sqlText.replace("::"+paramName,"``"+paramName);
-		}
-
-		String sqlRegx = "(?:(\\swhere\\s)|(\\sand\\s)|(\\sor\\s))(?:\\(?)([\\s\\S]+?)(?=\\)|(\\swhere\\s)|(\\sand\\s)|(\\sor\\s)|(\\sgroup by\\s)|(\\sorder\\s)|(\\shaving\\s)|(\\slimit\\s)|$)";
-		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
-		for(String condiction : sqlCondiction){
-			String[] condictions = TString.searchByRegex(condiction,"::\\w+\\b");
-			if(condictions.length>0){
-				if(condiction.trim().toLowerCase().startsWith("where")){
-					sqlText = sqlText.replace(condiction.trim(),"where 1=1");
-				} else {
-					sqlText = sqlText.replace(condiction.trim(),"");
+		List<String[]> condictionList = parseSQLCondiction(sqlText);
+		for(String[] condictionArr : condictionList){
+			if(!params.containsKey(condictionArr[2]) && condictionArr[4].contains("::")){
+				String orginCondiction = condictionArr[0];
+				String replaceCondiction = " 1=1";
+				if("or".equals(condictionArr[1]) || "or".equals(condictionArr[5])){
+					replaceCondiction = " 1!= 1";
 				}
-				sqlParamNames.remove(condictions[0]);
+				replaceCondiction = TString.fastReplaceAll(orginCondiction, condictionArr[2]+"\\s*"+ condictionArr[3]+"\\s*"+condictionArr[4], replaceCondiction);
+				sqlText = sqlText.replace(orginCondiction, replaceCondiction);
 			}
 		}
 
-		//转换存在参数的变量从``paramName 到 ::paramName
-		return sqlText.replace("``","::");
+		return sqlText;
+	}
+
+	public static void main(String[] args) {
+		String s = "select * from deposit_request where status != 2 \n" +
+				"                            and  (client_account_name >= ::1 or client_card_number <= ::2) \n" +
+				"                            and  (client_account_nam1 != ::1 or client_card_numbe1 > ::2) \n" +
+				"                            and (post_script >= ::3 or deposit_amount = ::4 or random_deposit_amount = ::4)\n" +
+				"                            and state = 1";
+
+		System.out.println(removeEmptyCondiction(s, TObject.asMap("client_account_name", null, "deposit_amount", null, "client_card_numbe1", null)));
+//		parseSQLCondiction(s);
 	}
 
 	/**
@@ -354,13 +356,14 @@ public class TSQL {
 		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\sor\\s)|(\\sgroup by\\s)|(\\sorder\\s)|(\\slimit\\s)|$)";
 		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
 		for(String condiction : sqlCondiction){
+			String originCondiction = condiction;
 			condiction = condiction.trim();
 			String concateMethod = condiction.substring(0,condiction.indexOf(" ")+1).trim();
 			condiction = condiction.substring(condiction.indexOf(" ")+1,condiction.length()).trim();
-			String operatorChar = TString.searchByRegex(condiction, "(\\slike\\s*)|(\\sin\\s*)|(>=)|(<=)|[=<>]")[0].trim();
+			String operatorChar = TString.searchByRegex(condiction, "(\\slike\\s*)|(\\sin\\s*)|(\\!=)|(>=)|(<=)|[=<>]")[0].trim();
 
 
-			String[] condictionArr = condiction.split("(\\slike\\s*)|(\\sin\\s*)|(>=)|(<=)|[=<>]");
+			String[] condictionArr = condiction.split("(\\slike\\s*)|(\\sin\\s*)|(\\!=)|(>=)|(<=)|[=<>]");
 			condictionArr[0] = condictionArr[0].trim();
 			condictionArr[1] = condictionArr[1].trim();
 			if(condictionArr[0].trim().indexOf(".")>1){
@@ -379,12 +382,26 @@ public class TSQL {
 					condictionArr[1] = condictionArr[1].replace("'", "");
 				}
 				//System.out.println("操作符: "+concateMethod+" \t查询字段: "+condictionArr[0]+" \t查询关系: "+operatorChar+" \t查询值: "+condictionArr[1]);
-				condictionList.add(new String[]{concateMethod, condictionArr[0], operatorChar, condictionArr[1]});
+
+				if(condictionArr[0].startsWith("(")){
+					condictionArr[0] = TString.removePrefix(condictionArr[0]);
+				}
+
+				if(condictionArr[1].endsWith(")")){
+					condictionArr[1] = TString.removeSuffix(condictionArr[1]);
+				}
+
+				condictionList.add(new String[]{originCondiction, concateMethod, condictionArr[0].trim(), operatorChar, condictionArr[1].trim(), null});
 			}else{
 				Logger.error("Parse SQL condiction error");
 			}
 
 		}
+
+		for(int i=condictionList.size()-2; i>=0; i--){
+			condictionList.get(i)[5] = condictionList.get(i+1)[1];
+		}
+
 		return condictionList;
 	}
 
