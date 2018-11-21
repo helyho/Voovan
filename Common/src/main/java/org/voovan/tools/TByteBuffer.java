@@ -84,7 +84,7 @@ public class TByteBuffer {
             long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
             TUnsafe.getUnsafe().setMemory(address, capacity, (byte) 0);
 
-            Deallocator deallocator = new Deallocator(new Long(address), capacity, TEnv.getStackMessage());
+            Deallocator deallocator = new Deallocator(new Long(address));
 
             ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
 
@@ -467,13 +467,9 @@ public class TByteBuffer {
      */
     private static class Deallocator implements Runnable {
         private long address;
-        private int capacity;
-        private String stacks;
 
-        private Deallocator(long address, int capacity, String stacks) {
+        private Deallocator(long address) {
             this.address = address;
-            this.capacity = capacity;
-            this.stacks = stacks;
         }
 
         public void setAddress(long address){
