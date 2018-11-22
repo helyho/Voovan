@@ -305,6 +305,8 @@ public class TSQL {
 	}
 
 
+	private static String EQUAL_CONDICTION = " 1=1";
+	private static String NOT_EQUAL_CONDICTION = " 1=1";
 	/**
 	 * 将SQL 语句中,没有提供查询参数的条件移除
 	 * @param sqlText SQL 字符串
@@ -320,13 +322,20 @@ public class TSQL {
 
 		List<String[]> condictionList = parseSQLCondiction(sqlText);
 		for(String[] condictionArr : condictionList){
-			if(!params.containsKey(condictionArr[2]) && condictionArr[4].contains("::")){
-				String orginCondiction = condictionArr[0];
-				String replaceCondiction = " 1=1";
-				if("or".equals(condictionArr[1]) || "or".equals(condictionArr[5])){
-					replaceCondiction = " 1!= 1";
+			//检查条件是否带参数, 检查参数是否存在
+			String orginCondiction 			= condictionArr[0];
+			String beforeCondictionMethod 	= condictionArr[1];
+			String condictionName 			= condictionArr[2];
+			String operatorChar 			= condictionArr[3];
+			String condictionParam 			= condictionArr[4];
+			String afterCondictionMethod 	= condictionArr[5];
+
+			if(condictionParam.startsWith("::") && !params.containsKey(condictionParam.replace("::",""))){
+				String replaceCondiction = EQUAL_CONDICTION;
+				if("or".equals(beforeCondictionMethod) || "or".equals(afterCondictionMethod)){
+					replaceCondiction = NOT_EQUAL_CONDICTION;
 				}
-				replaceCondiction = TString.fastReplaceAll(orginCondiction, condictionArr[2]+"\\s*"+ condictionArr[3]+"\\s*"+condictionArr[4], replaceCondiction);
+				replaceCondiction = TString.fastReplaceAll(orginCondiction, condictionName + "\\s*" + operatorChar + "\\s*" + condictionParam, replaceCondiction);
 				sqlText = sqlText.replace(orginCondiction, replaceCondiction);
 			}
 		}
@@ -335,14 +344,14 @@ public class TSQL {
 	}
 
 	public static void main(String[] args) {
-		String s = "select * from deposit_request where status != 2 \n" +
+		String s = "select * from deposit_request where status != 2 and `random_deposit_amountx` = ::5 \n" +
 				"                            and  (client_account_name >= ::1 or client_card_number <= ::2) \n" +
-				"                            and  (client_account_nam1 != ::1 or client_card_numbe1 > ::2) \n" +
-				"                            and (post_script >= ::3 or deposit_amount = ::4 or random_deposit_amount = ::4)\n" +
+				"                            and  (client_account_name != ::3 or client_card_numbe1 > ::4) \n" +
+				"                            and (post_script >= ::6 or deposit_amount = ::7 or random_deposit_amount = ::8)\n" +
+				"							 " +
 				"                            and state = 1";
 
-		System.out.println(removeEmptyCondiction(s, TObject.asMap("client_account_name", null, "deposit_amount", null, "client_card_numbe1", null)));
-//		parseSQLCondiction(s);
+		System.out.println(removeEmptyCondiction(s, TObject.asMap("1", null, "4", null, "7", null, "5", null)));
 	}
 
 	/**
