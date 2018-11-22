@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 /**
  * SQL处理帮助类
@@ -306,7 +307,7 @@ public class TSQL {
 
 
 	private static String EQUAL_CONDICTION = " 1=1";
-	private static String NOT_EQUAL_CONDICTION = " 1=1";
+	private static String NOT_EQUAL_CONDICTION = " 1!=1";
 	/**
 	 * 将SQL 语句中,没有提供查询参数的条件移除
 	 * @param sqlText SQL 字符串
@@ -327,16 +328,41 @@ public class TSQL {
 			String beforeCondictionMethod 	= condictionArr[1];
 			String condictionName 			= condictionArr[2];
 			String operatorChar 			= condictionArr[3];
-			String condictionParam 			= condictionArr[4];
+			String originCondictionParams   = condictionArr[4];
 			String afterCondictionMethod 	= condictionArr[5];
 
-			if(condictionParam.startsWith("::") && !params.containsKey(condictionParam.replace("::",""))){
-				String replaceCondiction = EQUAL_CONDICTION;
-				if("or".equals(beforeCondictionMethod) || "or".equals(afterCondictionMethod)){
-					replaceCondiction = NOT_EQUAL_CONDICTION;
+			String replaceCondiction = orginCondiction;
+			String condictionParams = originCondictionParams;
+
+			if(originCondictionParams.contains("::")) {
+				String[] condictions = TString.searchByRegex(originCondictionParams, "::\\w+\\b");
+				if(condictions.length > 0) {
+					for (String condictionParam : condictions){
+						if (!params.containsKey(condictionParam.replace("::", ""))) {
+							if(operatorChar.equals("in")) {
+								//遍历所有的 in 的条件, 去除没有参数的条件
+								condictionParams = TString.fastReplaceAll(condictionParams, condictionParam+"\\s*,?", "");
+							} else {
+								replaceCondiction = EQUAL_CONDICTION;
+								if ("or".equals(beforeCondictionMethod) || "or".equals(afterCondictionMethod)) {
+									replaceCondiction = NOT_EQUAL_CONDICTION;
+								}
+								//从原查询条件, 生成替换用的查询条件, 这样可以保留原查询条件种的 ( 或 )
+								replaceCondiction = TString.fastReplaceAll(orginCondiction, condictionName + "\\s*" + operatorChar + "\\s*" + originCondictionParams, replaceCondiction);
+							}
+						}
+					}
+
+					if(operatorChar.equals("in")) {
+						condictionParams = condictionParams.trim();
+						if(condictionParams.endsWith(",")){
+							condictionParams = TString.removeSuffix(condictionParams);
+						}
+						replaceCondiction = TString.fastReplaceAll(replaceCondiction, originCondictionParams, condictionParams);
+					}
+
+					sqlText = sqlText.replace(orginCondiction, replaceCondiction);
 				}
-				replaceCondiction = TString.fastReplaceAll(orginCondiction, condictionName + "\\s*" + operatorChar + "\\s*" + condictionParam, replaceCondiction);
-				sqlText = sqlText.replace(orginCondiction, replaceCondiction);
 			}
 		}
 
@@ -344,14 +370,14 @@ public class TSQL {
 	}
 
 	public static void main(String[] args) {
-		String s = "select * from deposit_request where status != 2 and `random_deposit_amountx` = ::5 \n" +
+		String s = "select * from deposit_request where status != 2 AND `random_deposit_amountx` = ::5 \n" +
+				"							 and  mmm in (::10, ::11, ::12, ::13)" +
 				"                            and  (client_account_name >= ::1 or client_card_number <= ::2) \n" +
 				"                            and  (client_account_name != ::3 or client_card_numbe1 > ::4) \n" +
-				"                            and (post_script >= ::6 or deposit_amount = ::7 or random_deposit_amount = ::8)\n" +
-				"							 " +
+				"                            and  (post_script >= ::6 or deposit_amount = ::7 or random_deposit_amount = ::8)\n" +
 				"                            and state = 1";
 
-		System.out.println(removeEmptyCondiction(s, TObject.asMap("1", null, "4", null, "7", null, "5", null)));
+		System.out.println(removeEmptyCondiction(s, TObject.asMap("1", null, "4", null, "7", null, "10", null)));
 	}
 
 	/**
@@ -361,9 +387,8 @@ public class TSQL {
 	 */
 	public static List<String[]> parseSQLCondiction(String sqlText) {
 		ArrayList<String[]> condictionList = new ArrayList<String[]>();
-		sqlText = sqlText.toLowerCase();
 		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\sor\\s)|(\\sgroup by\\s)|(\\sorder\\s)|(\\slimit\\s)|$)";
-		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx);
+		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx, Pattern.CASE_INSENSITIVE);
 		for(String condiction : sqlCondiction){
 			String originCondiction = condiction;
 			condiction = condiction.trim();
