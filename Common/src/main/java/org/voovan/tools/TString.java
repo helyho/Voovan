@@ -176,13 +176,13 @@ public class TString {
 		}
 	}
 
-
-	private static Pattern getCachedPattern(String regex) {
+	private static Pattern getCachedPattern(String regex, Integer flags) {
 		Pattern pattern = null;
+		flags = flags == null ? 0 : flags;
 		if (regexPattern.containsKey(regex.hashCode())) {
 			pattern = regexPattern.get(regex.hashCode());
 		} else {
-			pattern = Pattern.compile(regex);
+			pattern = Pattern.compile(regex, flags);
 			regexPattern.put(regex.hashCode(), pattern);
 		}
 		return pattern;
@@ -196,11 +196,23 @@ public class TString {
 	 * @return Matcher对象
 	 */
 	public static Matcher doRegex(String source, String regex) {
+		return doRegex(source, regex, 0);
+	}
+
+	/**
+	 * 执行正则运算
+	 *
+	 * @param source 目标字符串
+	 * @param regex  正则表达式
+	 * @param flags  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
+	 * @return Matcher对象
+	 */
+	public static Matcher doRegex(String source, String regex, Integer flags) {
 		if (source == null) {
 			return null;
 		}
 
-		Pattern pattern = getCachedPattern(regex);
+		Pattern pattern = getCachedPattern(regex, flags);
 		Matcher matcher = pattern.matcher(source);
 		if (matcher.find()) {
 			return matcher;
@@ -218,13 +230,26 @@ public class TString {
 	 * @return 匹配的字符串数组
 	 */
 	public static String[] searchByRegex(String source, String regex) {
+		return searchByRegex(source, regex, 0);
+	}
+
+	/**
+	 * 正则表达式查找
+	 * 匹配的被提取出来做数组
+	 *
+	 * @param source 目标字符串
+	 * @param regex  正则表达式
+	 * @param flags  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
+	 * @return 匹配的字符串数组
+	 */
+	public static String[] searchByRegex(String source, String regex, Integer flags) {
 		if (source == null) {
 			return null;
 		}
 
 		ArrayList<String> result = new ArrayList<String>();
 
-		Matcher matcher = doRegex(source, regex);
+		Matcher matcher = doRegex(source, regex, flags);
 		if (matcher != null) {
 			do {
 				result.add(matcher.group());
@@ -241,7 +266,19 @@ public class TString {
 	 * @return 正则搜索后得到的匹配数量
 	 */
 	public static int regexMatch(String source, String regex) {
-		return searchByRegex(source, regex).length;
+		return regexMatch(source, regex, 0);
+	}
+
+	/**
+	 * 正则匹配
+	 *
+	 * @param source 目标字符串
+	 * @param regex  正则表达式
+	 * @param flags  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
+	 * @return 正则搜索后得到的匹配数量
+	 */
+	public static int regexMatch(String source, String regex, Integer flags) {
+		return searchByRegex(source, regex, flags).length;
 	}
 
 	/**
@@ -253,7 +290,20 @@ public class TString {
 	 * @return 替换后的字符串
 	 */
 	public static String fastReplaceAll(String source, String regex, String replacement) {
-		Pattern pattern = getCachedPattern(regex);
+		return fastReplaceAll(source, regex, replacement, 0);
+	}
+
+	/**
+	 * 快速字符串替换算法
+	 *
+	 * @param source      源字符串
+	 * @param regex       正则字符串
+	 * @param replacement 替换字符串
+	 * @param flags  	  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
+	 * @return 替换后的字符串
+	 */
+	public static String fastReplaceAll(String source, String regex, String replacement, Integer flags) {
+		Pattern pattern = getCachedPattern(regex, flags);
 		return pattern.matcher(source).replaceAll(Matcher.quoteReplacement(replacement));
 	}
 
