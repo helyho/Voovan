@@ -334,15 +334,17 @@ public class TSQL {
 			String replaceCondiction = orginCondiction;
 			String condictionParams = originCondictionParams;
 
-			if(originCondictionParams.contains("::")) {
+			if(originCondictionParams!=null && originCondictionParams.contains("::")) {
 				String[] condictions = TString.searchByRegex(originCondictionParams, "::\\w+\\b");
 				if(condictions.length > 0) {
 					for (String condictionParam : condictions){
 						if (!params.containsKey(condictionParam.replace("::", ""))) {
-							if(operatorChar.equals("in")) {
+							if(operatorChar.equals("in") || operatorChar.equals("not in")) {
 								//遍历所有的 in 的条件, 去除没有参数的条件
 								condictionParams = TString.fastReplaceAll(condictionParams, condictionParam+"\\s*,?", "");
-							} else {
+							} /*else if(TString.regexMatch(condiction,"\\sbetween\\s")>0){
+
+							} */else {
 								replaceCondiction = EQUAL_CONDICTION;
 								if ("or".equals(beforeCondictionMethod) || "or".equals(afterCondictionMethod)) {
 									replaceCondiction = NOT_EQUAL_CONDICTION;
@@ -353,7 +355,7 @@ public class TSQL {
 						}
 					}
 
-					if(operatorChar.equals("in")) {
+					if(operatorChar.equals("in") || operatorChar.equals("not in")) {
 						condictionParams = condictionParams.trim();
 						if(condictionParams.endsWith(",")){
 							condictionParams = TString.removeSuffix(condictionParams);
@@ -369,17 +371,6 @@ public class TSQL {
 		return sqlText;
 	}
 
-	public static void main(String[] args) {
-		String s = "select * from deposit_request where status != 2 AND `random_deposit_amountx` = ::5 \n" +
-				"							 and  mmm in (::10, ::11, ::12, ::13)" +
-				"                            and  (client_account_name >= ::1 or client_card_number <= ::2) \n" +
-				"                            and  (client_account_name != ::3 or client_card_numbe1 > ::4) \n" +
-				"                            and  (post_script >= ::6 or deposit_amount = ::7 or random_deposit_amount = ::8)\n" +
-				"                            and state = 1";
-
-		System.out.println(removeEmptyCondiction(s, TObject.asMap("1", null, "4", null, "7", null, "10", null)));
-	}
-
 	/**
 	 * 获取解析后的 SQL 的条件
 	 * @param sqlText SQL 字符串
@@ -388,47 +379,60 @@ public class TSQL {
 	public static List<String[]> parseSQLCondiction(String sqlText) {
 		ArrayList<String[]> condictionList = new ArrayList<String[]>();
 		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\sor\\s)|(\\sgroup by\\s)|(\\sorder\\s)|(\\slimit\\s)|$)";
-		String[] sqlCondiction = TString.searchByRegex(sqlText,sqlRegx, Pattern.CASE_INSENSITIVE);
-		for(String condiction : sqlCondiction){
+		String[] sqlCondictions = TString.searchByRegex(sqlText,sqlRegx, Pattern.CASE_INSENSITIVE);
+		for(int i=0;i<sqlCondictions.length;i++){
+			String condiction = sqlCondictions[i];
+
+			//between 则拼接下一段
+			if(TString.regexMatch(condiction,"\\sbetween\\s")>0){
+				i = i+1;
+				condiction = condiction + sqlCondictions[i];
+			}
+
 			String originCondiction = condiction;
 			condiction = condiction.trim();
 			String concateMethod = condiction.substring(0,condiction.indexOf(" ")+1).trim();
 			condiction = condiction.substring(condiction.indexOf(" ")+1,condiction.length()).trim();
-			String operatorChar = TString.searchByRegex(condiction, "(\\slike\\s*)|(\\sin\\s*)|(\\!=)|(>=)|(<=)|[=<>]")[0].trim();
+			String[] splitedCondicction = TString.searchByRegex(condiction, "(\\sbetween\\s*)|(\\sis\\s*)|(\\slike\\s*)|(\\s(not\\s)?in\\s*)|(\\!=)|(>=)|(<=)|[=<>]");
+			if(splitedCondicction.length == 1) {
+				String operatorChar = splitedCondicction[0].trim();
+				String[] condictionArr = condiction.split("(\\sbetween\\s*)|(\\sis\\s*)|(\\slike\\s*)|(\\s(not\\s)?in\\s*)|(\\!=)|(>=)|(<=)|[=<>]");
+				condictionArr[0] = condictionArr[0].trim();
+				condictionArr[1] = condictionArr[1].trim();
+				if(condictionArr[0].trim().indexOf(".")>1){
 
+					condictionArr[0] = condictionArr[0].split("\\.")[1];
+					condictionArr[0] = condictionArr[0].substring(condictionArr[0].lastIndexOf(" ")+1);
+				}
 
-			String[] condictionArr = condiction.split("(\\slike\\s*)|(\\sin\\s*)|(\\!=)|(>=)|(<=)|[=<>]");
-			condictionArr[0] = condictionArr[0].trim();
-			condictionArr[1] = condictionArr[1].trim();
-			if(condictionArr[0].trim().indexOf(".")>1){
+				if(condictionArr.length>1){
+					if((condictionArr[1].trim().startsWith("'") && condictionArr[1].trim().endsWith("'")) ||
+							(condictionArr[1].trim().startsWith("(") && condictionArr[1].trim().endsWith(")"))
+					){
+						condictionArr[1] = condictionArr[1].substring(1,condictionArr[1].length()-1);
+					}
+					if(operatorChar.contains("in")){
+						condictionArr[1] = condictionArr[1].replace("'", "");
+					}
 
-				condictionArr[0] = condictionArr[0].split("\\.")[1];
-				condictionArr[0] = condictionArr[0].substring(condictionArr[0].lastIndexOf(" ")+1);
+					if(condictionArr[0].startsWith("(")){
+						condictionArr[0] = TString.removePrefix(condictionArr[0]);
+					}
+
+					if(condictionArr[1].endsWith(")")){
+						condictionArr[1] = TString.removeSuffix(condictionArr[1]);
+					}
+
+					condictionList.add(new String[]{originCondiction, concateMethod, condictionArr[0].trim(), operatorChar, condictionArr[1].trim(), null});
+				}else{
+					Logger.error("Parse SQL condiction error");
+				}
+			} else {
+				condictionList.add(new String[]{originCondiction, null, null, null, null, null});
 			}
 
-			if(condictionArr.length>1){
-				if((condictionArr[1].trim().startsWith("'") && condictionArr[1].trim().endsWith("'")) ||
-						(condictionArr[1].trim().startsWith("(") && condictionArr[1].trim().endsWith(")"))
-				){
-					condictionArr[1] = condictionArr[1].substring(1,condictionArr[1].length()-1);
-				}
-				if(operatorChar.contains("in")){
-					condictionArr[1] = condictionArr[1].replace("'", "");
-				}
-				//System.out.println("操作符: "+concateMethod+" \t查询字段: "+condictionArr[0]+" \t查询关系: "+operatorChar+" \t查询值: "+condictionArr[1]);
 
-				if(condictionArr[0].startsWith("(")){
-					condictionArr[0] = TString.removePrefix(condictionArr[0]);
-				}
 
-				if(condictionArr[1].endsWith(")")){
-					condictionArr[1] = TString.removeSuffix(condictionArr[1]);
-				}
-
-				condictionList.add(new String[]{originCondiction, concateMethod, condictionArr[0].trim(), operatorChar, condictionArr[1].trim(), null});
-			}else{
-				Logger.error("Parse SQL condiction error");
-			}
 
 		}
 

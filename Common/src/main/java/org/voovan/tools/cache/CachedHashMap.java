@@ -350,7 +350,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m){
-        putAll(m, Long.MAX_VALUE);
+        putAll(m, expire);
     }
 
     /**
@@ -369,7 +369,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
 
     @Override
     public V put(K key, V value){
-        put(key, value, Long.MAX_VALUE);
+        put(key, value, expire);
         return value;
     }
 
