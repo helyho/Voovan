@@ -342,9 +342,7 @@ public class TSQL {
 							if(operatorChar.equals("in") || operatorChar.equals("not in")) {
 								//遍历所有的 in 的条件, 去除没有参数的条件
 								condictionParams = TString.fastReplaceAll(condictionParams, condictionParam+"\\s*,?", "");
-							} /*else if(TString.regexMatch(condiction,"\\sbetween\\s")>0){
-
-							} */else {
+							} else {
 								replaceCondiction = EQUAL_CONDICTION;
 								if ("or".equals(beforeCondictionMethod) || "or".equals(afterCondictionMethod)) {
 									replaceCondiction = NOT_EQUAL_CONDICTION;
