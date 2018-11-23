@@ -145,7 +145,10 @@ public class UdpSelector {
             // 触发连接断开事件
             if(session!=null) {
 //                EventTrigger.fireDisconnectThread(session);
+                TByteBuffer.release(readTempBuffer);
             }
+
+            tmpByteBufferChannel.release();
         }
     }
 

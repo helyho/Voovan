@@ -74,7 +74,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					}
 
 					//检查心跳
-					if(SSLParser.isHandShakeDone(session)) {
+					if(session.getHeartBeat()!=null && SSLParser.isHandShakeDone(session)) {
 						//锁住appByteBufferChannel防止异步问题
 						appByteBufferChannel.getByteBuffer();
 						HeartBeat.interceptHeartBeat(session, appByteBufferChannel);

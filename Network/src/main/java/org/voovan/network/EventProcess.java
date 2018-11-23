@@ -69,6 +69,7 @@ public class EventProcess {
 						session.getByteBufferChannel().writeHead(byteBufferChannel.getByteBuffer());
 					}finally {
 						byteBufferChannel.compact();
+						byteBufferChannel.release();
 					}
 
 					EventTrigger.fireReceiveThread(session);

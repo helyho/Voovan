@@ -165,6 +165,9 @@ public class NioSelector {
 				EventTrigger.fireDisconnectThread(session);
 				TByteBuffer.release(readTempBuffer);
 			}
+
+			tmpByteBufferChannel.release();
+			netByteBufferChannel.release();
 		}
 	}
 
