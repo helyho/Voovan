@@ -5,7 +5,6 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
@@ -22,7 +21,6 @@ import java.util.Arrays;
  */
 public class TByteBuffer {
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
-    private static final ReferenceQueue<ByteBuffer> dummyQueue = new ReferenceQueue<ByteBuffer>();
 
     public static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
 
@@ -67,7 +65,6 @@ public class TByteBuffer {
     protected static ByteBuffer allocateManualReleaseBuffer(int capacity){
         try {
             long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
-            TUnsafe.getUnsafe().setMemory(address, capacity, (byte) 0);
 
             Deallocator deallocator = new Deallocator(new Long(address));
 

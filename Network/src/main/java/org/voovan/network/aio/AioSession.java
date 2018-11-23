@@ -113,7 +113,7 @@ public class AioSession extends IoSession<AioSocket> {
     }
 
     @Override
-    protected synchronized int send0(ByteBuffer buffer) throws IOException {
+    protected int send0(ByteBuffer buffer) throws IOException {
         int totalSendByte = 0;
         if (isConnected() && buffer != null) {
             int waitTime = 0;
