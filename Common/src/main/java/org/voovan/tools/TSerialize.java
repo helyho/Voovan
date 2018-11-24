@@ -19,9 +19,14 @@ import java.util.concurrent.ExecutionException;
  * Licence: Apache v2 License
  */
 public class TSerialize {
-    public final static String SERIALIZE_TYPE = TProperties.getString("framework", "SerializeType");
+    public static int SERIALIZE_TYPE = 0;
     static {
-        Logger.simple("[SYSTEM] Cache serialize type is " + SERIALIZE_TYPE);
+        String serializeType = TProperties.getString("framework", "SerializeType");
+        if("JSON".equalsIgnoreCase(serializeType)){
+            SERIALIZE_TYPE = 1;
+        }
+
+        Logger.simple("[SYSTEM] Cache serialize type: " + (SERIALIZE_TYPE == 0 ? "JDK" : "JSON"));
     }
 
     /**
@@ -151,9 +156,9 @@ public class TSerialize {
      * @return 序列化的字节
      */
     public static byte[] serialize(Object object) {
-        if("JDK".equalsIgnoreCase(SERIALIZE_TYPE)){
+        if(SERIALIZE_TYPE==0){
             return serializeJDK(object);
-        } else if("JSON".equalsIgnoreCase(SERIALIZE_TYPE)){
+        } else if(SERIALIZE_TYPE==1){
             return serializeJSON(object);
         } else {
             return serializeJDK(object);
@@ -166,9 +171,9 @@ public class TSerialize {
      * @return 反序列化的对象
      */
     public static Object unserialize(byte[] bytes) {
-        if("JDK".equalsIgnoreCase(SERIALIZE_TYPE)){
+        if(SERIALIZE_TYPE==0){
             return unserializeJDK(bytes);
-        } else if("JSON".equalsIgnoreCase(SERIALIZE_TYPE)){
+        } else if(SERIALIZE_TYPE==1){
             return unserializeJSON(bytes);
         } else {
             return unserializeJDK(bytes);

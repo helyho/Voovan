@@ -6,6 +6,8 @@ import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Cleaner 非对内存释放类
@@ -21,9 +23,15 @@ public class Cleaner extends PhantomReference<Object> {
     private Cleaner next = null;
     private Cleaner prev = null;
     private final Runnable thunk;
+    private static final Timer timer;
 
     static {
-        Global.getHashWheelTimer().addTask(new HashWheelTask() {
+
+        Integer noHeapReleaseInterval = TProperties.getInt("framework", "NoHeapReleaseInterval");
+        noHeapReleaseInterval = noHeapReleaseInterval ==0 ? 30 : noHeapReleaseInterval;
+        timer = new Timer();
+
+        timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 while(true) {
@@ -36,7 +44,7 @@ public class Cleaner extends PhantomReference<Object> {
                     }
                 }
             }
-        }, 1);
+        }, 1000, noHeapReleaseInterval*1000);
     }
 
     private static synchronized Cleaner add(Cleaner cleaner) {
