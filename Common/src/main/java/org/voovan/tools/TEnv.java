@@ -565,4 +565,15 @@ public class TEnv {
 			e.printStackTrace();
 		}
 	}
+
+    /**
+     * 性能测试方法
+     * @param supplier 执行器
+     * @return 执行时间
+     */
+    public static long measureTime(Supplier<Long> supplier){
+        long startTime = System.currentTimeMillis();
+        supplier.get();
+        return System.currentTimeMillis() - startTime;
+    }
 }
