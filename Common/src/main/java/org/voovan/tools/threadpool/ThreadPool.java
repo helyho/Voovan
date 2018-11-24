@@ -41,7 +41,7 @@ public class ThreadPool {
 	 */
 	public static int getMaxPoolSize() {
 		int maxPoolTimes = TProperties.getInt("framework", "ThreadPoolMaxSize");
-		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 100 : maxPoolTimes) * cpuCoreCount;
+		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 50 : maxPoolTimes) * cpuCoreCount;
 		System.out.println("[THREAD_POOL] Max size: " + maxPoolTimes + "/" + MAX_POOL_SIZE);
 		return MAX_POOL_SIZE;
 	}

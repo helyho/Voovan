@@ -457,6 +457,10 @@ public class TByteBuffer {
             this.address = address;
         }
 
+        public long getAddress() {
+            return address;
+        }
+
         public void run() {
 
             if (this.address == 0) {
