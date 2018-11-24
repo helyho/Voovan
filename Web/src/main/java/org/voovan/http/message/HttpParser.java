@@ -1,5 +1,6 @@
 package org.voovan.http.message;
 
+import org.voovan.Global;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.exception.RequestTooLarge;
@@ -25,7 +26,6 @@ public class HttpParser {
 
 	private static final String HTTP_PROTOCOL = "HTTP/";
 
-
 	private static final String FL_METHOD 		= "FL_Method";
 	private static final String FL_PATH 		= "FL_Path";
 	private static final String FL_PROTOCOL		= "FL_Protocol";
@@ -42,10 +42,25 @@ public class HttpParser {
 	private static final String HEAD_COOKIE 				= "Cookie";
 	private static final String HEAD_CONTENT_DISPOSITION	= "Content-Disposition";
 
+	public static final String MULTIPART_FORM_DATA = "multipart/form-data";
+	public static final String CHUNKED = "chunked";
 
 	private static final String BODY_PARTS = "Body_Parts";
 	private static final String BODY_VALUE = "Body_Value";
 	private static final String BODY_FILE = "Body_File";
+
+	public static final String GZIP = "gzip";
+	public static final String HTTP = "HTTP";
+	public static final String BOUNDARY = "boundary";
+	public static final String BODY_MARK = "\r\n\r\n";
+	public static final String SET_COOKIE = "Set-Cookie";
+	public static final String SECURE = "secure";
+	public static final String HTTPONLY = "httponly";
+
+	public static final String UPLOAD_PATH = TFile.assemblyPath(TFile.getTemporaryPath(),"voovan", "webserver", "upload");
+
+	public static final String propertyLineRegex = ": ";
+	public static final String equalMapRegex = "([^ ;,]+=[^;,]+)";
 
 	/**
 	 * 私有构造函数
@@ -65,21 +80,22 @@ public class HttpParser {
 	private static Map<String, Object> parseProtocol(String protocolLine) throws UnsupportedEncodingException{
 		Map<String, Object> protocol = new HashMap<String, Object>();
 		//请求方法
-		String[] lineSplit = protocolLine.split(" ");
+		String[] lineSplit = TString.split(protocolLine, Global.CHAR_WHITESPACE);
+
 		if(protocolLine.indexOf(HTTP_PROTOCOL) > 0){
 			protocol.put(FL_METHOD, lineSplit[0]);
 			//请求路径和请求串
-			String[] pathSplit = lineSplit[1].split("\\?");
+			String[] pathSplit = lineSplit[1].split(Global.CHAR_QUESTION);
 			protocol.put(FL_PATH, pathSplit[0]);
 			if(pathSplit.length==2){
 				protocol.put(FL_QUERY_STRING, pathSplit[1]);
 			}
 			//协议和协议版本
-			String[] protocolSplit= lineSplit[2].split("/");
+			String[] protocolSplit= lineSplit[2].split(Global.CHAR_BACKSLASH);
 			protocol.put(FL_PROTOCOL, protocolSplit[0]);
 			protocol.put(FL_VERSION, protocolSplit[1]);
 		}else if(protocolLine.indexOf(HTTP_PROTOCOL)==0){
-			String[] protocolSplit= lineSplit[0].split("/");
+			String[] protocolSplit= lineSplit[0].split(Global.CHAR_BACKSLASH);
 			protocol.put(FL_PROTOCOL, protocolSplit[0]);
 			protocol.put(FL_VERSION, protocolSplit[1]);
 			protocol.put(FL_STATUS, lineSplit[1]);
@@ -101,12 +117,14 @@ public class HttpParser {
 	 */
 	private static Map<String,String> parsePropertyLine(String propertyLine){
 		Map<String,String> property = new HashMap<String, String>();
-		String[] propertySplit = propertyLine.split(": ");
-		if(propertySplit.length==2){
-			String propertyName = propertySplit[0];
-			String properyValue = propertySplit[1];
+
+		int index = propertyLine.indexOf(propertyLineRegex);
+		if(index > 0){
+			String propertyName = propertyLine.substring(0, index);
+			String properyValue = propertyLine.substring(index+2, propertyLine.length());
 			property.put(propertyName, properyValue.trim());
 		}
+
 		return property;
 	}
 
@@ -118,17 +136,17 @@ public class HttpParser {
 	 */
 	public static Map<String, String> getEqualMap(String str){
 		Map<String, String> equalMap = new HashMap<String, String>();
-		String[] searchedStrings = TString.searchByRegex(str,"([^ ;,]+=[^;,]+)");
+		String[] searchedStrings = TString.searchByRegex(str, equalMapRegex);
 		for(String groupString : searchedStrings){
 			//这里不用 split 的原因是有可能等号后的值字符串中出现等号
 			String[] equalStrings = new String[2];
-			int equalCharIndex= groupString.indexOf("=");
+			int equalCharIndex= groupString.indexOf(Global.CHAR_EQUAL);
 			equalStrings[0] = groupString.substring(0,equalCharIndex);
 			equalStrings[1] = groupString.substring(equalCharIndex+1,groupString.length());
 			if(equalStrings.length==2){
 				String key = equalStrings[0];
 				String value = equalStrings[1];
-				if(value.startsWith("\"") && value.endsWith("\"")){
+				if(value.startsWith(Global.CHAR_QUOTATION) && value.endsWith(Global.CHAR_QUOTATION)){
 					value = value.substring(1,value.length()-1);
 				}
 				equalMap.put(key, value);
@@ -172,13 +190,13 @@ public class HttpParser {
 		Map<String, String>cookieMap = getEqualMap(cookieLine);
 
 		//响应 response 的 cookie 形式 一个cookie 一行
-		if(cookieLine.contains("Set-Cookie")){
+		if(cookieLine.contains(SET_COOKIE)){
 			//处理非键值的 cookie 属性
-			if(cookieLine.toLowerCase().contains("httponly")){
-				cookieMap.put("httponly", "");
+			if(cookieLine.toLowerCase().contains(HTTPONLY)){
+				cookieMap.put(HTTPONLY, Global.EMPTY_STRING);
 			}
-			if(cookieLine.toLowerCase().contains("secure")){
-				cookieMap.put("secure", "");
+			if(cookieLine.toLowerCase().contains(SECURE)){
+				cookieMap.put(SECURE, Global.EMPTY_STRING);
 			}
 			cookies.add(cookieMap);
 		}
@@ -208,7 +226,7 @@ public class HttpParser {
 		}
 
 		//是否支持 GZip
-		boolean isGZip = packetMap.get(HEAD_CONTENT_ENCODING)==null ? false : packetMap.get(HEAD_CONTENT_ENCODING).toString().contains("gzip");
+		boolean isGZip = packetMap.get(HEAD_CONTENT_ENCODING)==null ? false : packetMap.get(HEAD_CONTENT_ENCODING).toString().contains(GZIP);
 
 		//如果是 GZip 则解压缩
 		if(isGZip && contentBytes.length>0){
@@ -233,6 +251,7 @@ public class HttpParser {
 	 * @return 解析后的 Map
 	 * @throws IOException IO 异常
 	 */
+
 	public static Map<String, Object> parser(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
 		Map<String, Object> packetMap = new HashMap<String, Object>();
 		long totalLength = 0;
@@ -257,8 +276,9 @@ public class HttpParser {
 			}
 
 			//解析 HTTP 协议行
-			if(!isBodyConent && currentLine.contains("HTTP") && lineNum==1){
+			if(!isBodyConent && currentLine.contains(HTTP) && lineNum==1){
 				packetMap.putAll(parseProtocol(currentLine));
+				continue;
 			}
 
 			//处理 cookie 和 header
@@ -269,21 +289,23 @@ public class HttpParser {
 				}else{
 					packetMap.putAll(parsePropertyLine(currentLine));
 				}
+
+				continue;
 			}
 
 
 			//解析 HTTP 请求 body
 			if(isBodyConent){
-				String contentType =packetMap.get(HEAD_CONTENT_TYPE)==null ? "" : packetMap.get(HEAD_CONTENT_TYPE).toString();
+				String contentType =packetMap.get(HEAD_CONTENT_TYPE)==null ? Global.EMPTY_STRING : packetMap.get(HEAD_CONTENT_TYPE).toString();
 				String transferEncoding = packetMap.get(HEAD_TRANSFER_ENCODING)==null ? "" : packetMap.get(HEAD_TRANSFER_ENCODING).toString();
 
 				//1. 解析 HTTP 的 POST 请求 body part
-				if(contentType.contains("multipart/form-data")){
+				if(contentType.contains(MULTIPART_FORM_DATA)){
 					//用来保存 Part 的 list
 					List<Map<String, Object>> bodyPartList = new ArrayList<Map<String, Object>>();
 
 					//取boundary 用于 part 内容分段
-					String boundary = TString.assembly("--", getPerprotyEqualValue(packetMap, HEAD_CONTENT_TYPE, "boundary"));
+					String boundary = TString.assembly("--", getPerprotyEqualValue(packetMap, HEAD_CONTENT_TYPE, BOUNDARY));
 
 					ByteBuffer boundaryEnd = ByteBuffer.allocate(2);
 					while(true) {
@@ -292,7 +314,7 @@ public class HttpParser {
 							throw new IOException("Http Parser read data error");
 						}
 
-						int index = byteBufferChannel.indexOf(boundary.getBytes("UTF-8"));
+						int index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
 
 						//跳过 boundary
 						byteBufferChannel.shrink((index + boundary.length()));
@@ -315,7 +337,7 @@ public class HttpParser {
 							break;
 						}
 
-						byte[] mark = "\r\n\r\n".getBytes();
+						byte[] mark = BODY_MARK.getBytes();
 						//等待数据
 						if (!byteBufferChannel.waitData(mark, timeOut)) {
 							throw new IOException("Http Parser read data error");
@@ -350,7 +372,7 @@ public class HttpParser {
 								throw new IOException("Http Parser read data error");
 							}
 
-							index = byteBufferChannel.indexOf(boundary.getBytes("UTF-8"));
+							index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
 
 
 							ByteBuffer bodyByteBuffer = ByteBuffer.allocate(index - 2);
@@ -359,14 +381,10 @@ public class HttpParser {
 						} else {
 
 							String fileExtName = TFile.getFileExtension(fileName);
-							fileExtName = fileExtName==null || fileExtName.equals("") ? ".tmp" : fileExtName;
+							fileExtName = fileExtName==null || fileExtName.equals(Global.EMPTY_STRING) ? ".tmp" : fileExtName;
 
 							//拼文件名
-							String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
-									"voovan",
-									"webserver",
-									"upload",
-									TString.assembly("VOOVAN_", System.currentTimeMillis(), ".", fileExtName));
+							String localFileName = UPLOAD_PATH + TString.assembly(Global.NAME, System.currentTimeMillis(), ".", fileExtName);
 
 							//文件是否接收完成
 							boolean isFileRecvDone = false;
@@ -389,7 +407,7 @@ public class HttpParser {
 										continue;
 									}
 								} else {
-									index = byteBufferChannel.indexOf(boundary.getBytes("UTF-8"));
+									index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
 									int length = index == -1 ? byteBufferChannel.size() : (index - 2);
 									if (index > 0) {
 										byteBufferChannel.saveToFile(localFileName, length);
@@ -429,7 +447,7 @@ public class HttpParser {
 				}
 
 				//2. 解析 HTTP 响应 body 内容段的 chunked
-				else if("chunked".equals(transferEncoding)){
+				else if(CHUNKED.equals(transferEncoding)){
 
 					ByteBufferChannel chunkedByteBufferChannel = new ByteBufferChannel(3);
 					String chunkedLengthLine = "";
