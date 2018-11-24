@@ -122,10 +122,9 @@ public class Formater {
 
 		if(tmpLineHead!=null && tmpLineTail != null){
 
-			String[] lines = TString.split(msg, "\n");
+			String[] lines = msg.split("\r?\n");
 
 			for(String line : lines){
-				line = line.replaceAll("[\r\n]","");
 				boolean isFormatLine = line.contains("{{NF}}");
 
 				int currentMaxLineLength = this.maxLineLength;
@@ -174,6 +173,8 @@ public class Formater {
 			}
 
 		}
+
+		msgBuilder.append(TFile.getLineSeparator());
 		return msgBuilder.toString();
 	}
 

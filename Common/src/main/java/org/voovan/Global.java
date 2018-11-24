@@ -19,6 +19,18 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public class Global {
 
+    public static final String CHAR_EQUAL = "=";
+    public static final String CHAR_QUOTATION = "\"";
+    public static final String CHAR_WHITESPACE = " ";
+    public static final String CHAR_SLASH = "\\";
+    public static final String CHAR_BACKSLASH = "/";
+    public static final String CHAR_QUESTION = "\\?";
+
+    public static final String EMPTY_STRING = "";
+    public static final String CS_UTF_8 = "UTF-8";
+    public static final String CS_GBK = "GBK";
+
+
     public static String NAME = "Voovan";
 
     public static volatile Boolean NO_HEAP_MANUAL_RELEASE;

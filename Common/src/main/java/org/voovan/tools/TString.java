@@ -387,8 +387,8 @@ public class TString {
 	 * @return 替换后的字符串
 	 */
 	public static String oneTokenReplace(String source, String tokenName, String tokenValue) {
-		String TOKEN_PREFIX = TString.fastReplaceAll(TOKEN_PREFIX_REGEX, "\\\\", "");
-		String TOKEN_SUFFIX = TString.fastReplaceAll(TOKEN_SUFFIX_REGEX, "\\\\", "");
+		String TOKEN_PREFIX = org.voovan.tools.TString.fastReplaceAll(TOKEN_PREFIX_REGEX, "\\\\", "");
+		String TOKEN_SUFFIX = org.voovan.tools.TString.fastReplaceAll(TOKEN_SUFFIX_REGEX, "\\\\", "");
 		String TOKEN_EMPTY = TOKEN_PREFIX + TOKEN_SUFFIX;
 
 		if (source == null) {
@@ -398,9 +398,9 @@ public class TString {
 		if (source.contains(TOKEN_PREFIX + tokenName + TOKEN_SUFFIX)) {
 			return fastReplaceAll(source, TOKEN_PREFIX_REGEX + tokenName + TOKEN_SUFFIX_REGEX,
 					tokenValue == null ? "null" : Matcher.quoteReplacement(tokenValue));
-		} else if ((tokenName == null || TString.isInteger(tokenName)) &&
+		} else if ((tokenName == null || org.voovan.tools.TString.isInteger(tokenName)) &&
 				source.contains(TOKEN_EMPTY)) {
-			return TString.replaceFirst(source, TOKEN_EMPTY, tokenValue);
+			return org.voovan.tools.TString.replaceFirst(source, TOKEN_EMPTY, tokenValue);
 		} else {
 			return source;
 		}
@@ -459,7 +459,7 @@ public class TString {
 				indent.append(" ");
 			}
 			source = indent.toString() + source;
-			source = TString.fastReplaceAll(source, "\n", "\n" + indent.toString());
+			source = org.voovan.tools.TString.fastReplaceAll(source, "\n", "\n" + indent.toString());
 		}
 		return source;
 	}
@@ -794,7 +794,7 @@ public class TString {
 		long randomMark = currentTime ^random.nextLong();
 
 		long id = obj.hashCode()^Runtime.getRuntime().freeMemory()^mark^(new Random(randomMark).nextLong())^Long.valueOf(sign, 36);
-		return TString.radixConvert(id, 62);
+		return org.voovan.tools.TString.radixConvert(id, 62);
 	}
 
 
@@ -831,19 +831,15 @@ public class TString {
 			return null;
 		}
 
+		StringTokenizer stringTokenizer = new StringTokenizer(source, regex);
 		ArrayList<String> items = new ArrayList<String>();
-		for (int position = source.indexOf(regex);
-			 position > 0;
-			 position = source.indexOf(regex)) {
-			items.add(source.substring(0, position));
-			source = source.substring(position + 1, source.length());
+
+		while (stringTokenizer.hasMoreTokens()){
+			items.add(stringTokenizer.nextToken());
 		}
 
-		if (!source.isEmpty()) {
-			items.add(source);
-		}
 
-		return items.toArray(new String[0]);
+		return items.toArray(new String[items.size()]);
 	}
 
 	/**
