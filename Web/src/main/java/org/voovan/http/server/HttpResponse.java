@@ -1,8 +1,10 @@
 package org.voovan.http.server;
 
+import org.voovan.Global;
 import org.voovan.http.message.Response;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TDateTime;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -10,7 +12,7 @@ import java.util.Date;
 
 /**
  * WebServer 响应对象
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -20,18 +22,28 @@ import java.util.Date;
 public class HttpResponse extends Response {
 	private String	characterSet;
 	private IoSession socketSession;
+	private static String GMT_TIME = TDateTime.formatToGMT(new Date());
+
+	static{
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			@Override
+			public void run() {
+				GMT_TIME = TDateTime.formatToGMT(new Date());
+			}
+		}, 1);
+	}
 
 	/**
 	 * 构造 HTTP 响应对象
 	 * @param response     响应对象
 	 * @param socketSession   Socket会话对象
 	 * @param characterSet 字符集
-     */
+	 */
 	protected HttpResponse(Response response,String characterSet, IoSession socketSession) {
 		super(response);
 		this.characterSet=characterSet;
 		//设置当前响应的时间
-		this.header().put("Date",TDateTime.formatToGMT(new Date()));
+		this.header().put("Date", GMT_TIME);
 		this.socketSession = socketSession;
 	}
 
@@ -53,7 +65,7 @@ public class HttpResponse extends Response {
 
 	/**
 	 * 获取当前默认字符集
-	 * 
+	 *
 	 * @return 默认字符集
 	 */
 	public String getCharacterSet() {
@@ -62,7 +74,7 @@ public class HttpResponse extends Response {
 
 	/**
 	 * 设置当前默认字符集
-	 * 
+	 *
 	 * @param characterSet 默认字符集
 	 */
 	public void setCharacterSet(String characterSet) {
@@ -71,7 +83,7 @@ public class HttpResponse extends Response {
 
 	/**
 	 * 写入一个 byte 数组
-	 * 
+	 *
 	 * @param bytes  byte 数组
 	 */
 	public void write(byte[] bytes) {
@@ -80,7 +92,7 @@ public class HttpResponse extends Response {
 
 	/**
 	 * 写入一个 byte 数组
-	 * 
+	 *
 	 * @param bytes  byte 数组
 	 * @param offset 偏移量
 	 * @param length 写入长度
@@ -91,7 +103,7 @@ public class HttpResponse extends Response {
 
 	/**
 	 * 写入一个字符串
-	 * 
+	 *
 	 * @param strs 字符串
 	 */
 	public void write(String strs) {
@@ -116,11 +128,11 @@ public class HttpResponse extends Response {
 	 */
 	public int send(ByteBuffer byteBuffer) throws IOException {
 		if(!super.basicSend) {
-		    send();
+			send();
 		}
 		return socketSession.send(byteBuffer);
 	}
-	
+
 	/**
 	 * 清理报文
 	 */
