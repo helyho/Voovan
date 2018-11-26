@@ -209,8 +209,6 @@ public class WebServerHandler implements IoHandler {
 	 * @return HTTP 响应对象
 	 */
 	public HttpResponse disposeHttp(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
-		setAttribute(session, HttpSessionParam.TYPE, HttpRequestType.HTTP);
-
 
 		// 处理响应请求
 		httpDispatcher.process(httpRequest, httpResponse);

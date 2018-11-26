@@ -37,7 +37,9 @@ public class HttpMessageSplitter implements MessageSplitter {
             result = isHttpFrame(byteBuffer);
 
             if(result>0){
-                session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.HTTP);
+                if (!session.containAttribute(HttpSessionParam.TYPE)) {
+                    session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.HTTP);
+                }
                 result = 0;
             } else if(result == -1){
                 return result;
