@@ -291,7 +291,7 @@ public class Body {
 	 * 清空缓冲
 	 */
 	public void clear(){
-		if(type == BodyType.BYTES) {
+		if(type == BodyType.BYTES && byteBufferChannel!=null && !byteBufferChannel.isReleased()) {
 			byteBufferChannel.clear();
 		} else if(type == BodyType.FILE){
 			if(bodyFile.getPath().startsWith(TFile.getTemporaryPath())) {
