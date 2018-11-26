@@ -53,10 +53,10 @@ public class HttpParser {
 	public static final String HTTP = "HTTP";
 	public static final String BOUNDARY = "boundary";
 	public static final String BODY_MARK = "\r\n\r\n";
+	public static final String LINE_MARK	= "\r\n";
 	public static final String SET_COOKIE = "Set-Cookie";
 	public static final String SECURE = "secure";
 	public static final String HTTPONLY = "httponly";
-
 	public static final String UPLOAD_PATH = TFile.assemblyPath(TFile.getTemporaryPath(),"voovan", "webserver", "upload");
 
 	public static final String propertyLineRegex = ": ";

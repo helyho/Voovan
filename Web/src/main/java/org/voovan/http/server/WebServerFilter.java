@@ -1,5 +1,7 @@
 package org.voovan.http.server;
 
+import org.voovan.http.HttpSessionParam;
+import org.voovan.http.HttpRequestType;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
@@ -64,7 +66,7 @@ public class WebServerFilter implements IoFilter {
 		}
 
 		ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
-		if (isHttpRequest(byteBufferChannel)) {
+		if (HttpRequestType.HTTP.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))) {
 
 			Request request = null;
 			try {
@@ -102,9 +104,10 @@ public class WebServerFilter implements IoFilter {
 			}
 		}
 		//如果包含Type为 WebSocket 说明是 WebSocket 通信,转换成 WebSocketFrame 对象
-		else if("WebSocket".equals(WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.TYPE))){
+		else if(HttpRequestType.WEBSOCKET.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))){
 			if (object instanceof ByteBuffer && byteBuffer.limit()!=0) {
 				WebSocketFrame webSocketFrame = WebSocketFrame.parse(byteBuffer);
+
 				if(webSocketFrame.getErrorCode()==0){
 					return webSocketFrame;
 				}else{
@@ -118,34 +121,5 @@ public class WebServerFilter implements IoFilter {
 			session.close();
 		}
 		return null;
-	}
-
-	/**
-	 * 判断是否是 HTTP 请求
-	 * @param byteBufferChannel 请求字节换缓冲对象
-	 * @return  是否是 HTTP 请求
-	 */
-	public static boolean isHttpRequest(ByteBufferChannel byteBufferChannel) {
-		String testStr = null;
-
-		if(byteBufferChannel.isReleased()){
-			return false;
-		}
-
-		int lineEndIndex = byteBufferChannel.indexOf("\r\n".getBytes());
-
-		if(lineEndIndex>0) {
-			byte[] tmpByte = new byte[lineEndIndex-4];
-			byteBufferChannel.get(tmpByte);
-			testStr = new String(tmpByte);
-
-			if (testStr != null && testStr.endsWith("HTTP")) {
-				return true;
-			} else {
-				return false;
-			}
-		}else{
-			return false;
-		}
 	}
 }

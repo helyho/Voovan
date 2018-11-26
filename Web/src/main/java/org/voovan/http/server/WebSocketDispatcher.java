@@ -1,6 +1,8 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
+import org.voovan.http.HttpSessionParam;
+import org.voovan.http.HttpRequestType;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.websocket.WebSocketFrame;
@@ -257,9 +259,9 @@ public class WebSocketDispatcher {
 	 */
 	public void fireCloseEvent(IoSession session){
 		//检查是否是WebSocket
-		if ("WebSocket".equals(WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.TYPE))) {
+		if (HttpRequestType.WEBSOCKET.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))) {
 			// 触发一个 WebSocket Close 事件
-			process(WebSocketEvent.CLOSE, session, (HttpRequest) WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.HTTP_REQUEST), null);
+			process(WebSocketEvent.CLOSE, session, (HttpRequest) WebServerHandler.getAttribute(session, HttpSessionParam.HTTP_REQUEST), null);
 		}
 	}
 
