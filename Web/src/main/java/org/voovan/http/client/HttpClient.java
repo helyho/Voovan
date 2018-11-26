@@ -1,12 +1,13 @@
 package org.voovan.http.client;
 
+import org.voovan.http.HttpSessionParam;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.HttpRequest;
-import org.voovan.http.server.WebServerHandler;
+import org.voovan.http.HttpRequestType;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
@@ -528,7 +529,7 @@ public class HttpClient implements Closeable{
 	 */
 	private void doWebSocketUpgrade(String location) throws SendMessageException, ReadMessageException {
 		IoSession session = socket.getSession();
-		session.removeAttribute(WebServerHandler.SessionParam.TYPE);
+		session.removeAttribute(HttpSessionParam.TYPE);
 
 		httpRequest.header().put("Connection","Upgrade");
 		httpRequest.header().put("Upgrade", "websocket");
@@ -577,7 +578,7 @@ public class HttpClient implements Closeable{
 
 		//先注册Socket业务处理句柄,再打开消息分割器中 WebSocket 开关
 		socket.handler(webSocketHandler);
-		session.setAttribute(WebServerHandler.SessionParam.TYPE, "WebSocket");
+		session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.WEBSOCKET);
 
 		Object result = null;
 

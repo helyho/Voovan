@@ -1,6 +1,9 @@
 package org.voovan.network.messagesplitter;
 
 import org.voovan.Global;
+import org.voovan.http.HttpSessionParam;
+import org.voovan.http.message.HttpParser;
+import org.voovan.http.HttpRequestType;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.tools.TByteBuffer;
@@ -18,14 +21,7 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class HttpMessageSplitter implements MessageSplitter {
-
-    private static final String	BODY_TAG	= "\r\n\r\n";
-    private static final String HTTP_PROTCOL = "HTTP";
     private int result = -1;
-
-//    private int contentLength = -1;
-//    boolean isChunked = false;
-
 
     @Override
     public int canSplite(IoSession session, ByteBuffer byteBuffer) {
@@ -35,12 +31,13 @@ public class HttpMessageSplitter implements MessageSplitter {
             return -1;
         }
 
-        if( "WebSocket".equals(session.getAttribute(0x1111)) ){
+        if(HttpRequestType.WEBSOCKET.equals(session.getAttribute(HttpSessionParam.TYPE)) ){
             result = isWebSocketFrame(byteBuffer);
         }else{
             result = isHttpFrame(byteBuffer);
 
             if(result>0){
+                session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.HTTP);
                 result = 0;
             } else if(result == -1){
                 return result;
@@ -64,13 +61,13 @@ public class HttpMessageSplitter implements MessageSplitter {
         StringBuilder stringBuilder = new StringBuilder();
         String protocolLine = null;
 
-        bodyTagIndex = TByteBuffer.revIndexOf(byteBuffer, "\r\n\r\n".getBytes());
+        bodyTagIndex = TByteBuffer.revIndexOf(byteBuffer, HttpParser.BODY_MARK.getBytes());
 
         if(bodyTagIndex <= 0){
             return -1;
         }
 
-        protocolLineIndex = TByteBuffer.indexOf(byteBuffer, "\r\n".getBytes());
+        protocolLineIndex = TByteBuffer.indexOf(byteBuffer,  HttpParser.LINE_MARK.getBytes());
         if(protocolLineIndex <= 0){
             return -1;
         }
@@ -96,7 +93,7 @@ public class HttpMessageSplitter implements MessageSplitter {
 
     private boolean isHttpHead(String str){
         //判断是否是 HTTP 头
-        if (str.startsWith(HTTP_PROTCOL) || str.endsWith(HTTP_PROTCOL)) {
+        if (str.startsWith(HttpParser.HTTP) || str.endsWith(HttpParser.HTTP)) {
             return true;
         }
         return false;

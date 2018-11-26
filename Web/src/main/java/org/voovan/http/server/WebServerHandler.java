@@ -1,6 +1,8 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
+import org.voovan.http.HttpSessionParam;
+import org.voovan.http.HttpRequestType;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
@@ -35,15 +37,6 @@ public class WebServerHandler implements IoHandler {
 	private WebServerConfig webConfig;
 	private List<IoSession> keepAliveSessionList;
 
-
-	public class SessionParam{
-		public static final int TYPE = 0x1111;
-		public static final int HTTP_REQUEST = 0x2222;
-		public static final int HTTP_RESPONSE = 0x3333;
-		public static final int KEEP_ALIVE = 0x4444;
-		public static final int KEEP_ALIVE_TIMEOUT = 0x5555;
-	}
-
 	public WebServerHandler(WebServerConfig webConfig, HttpDispatcher httpDispatcher, WebSocketDispatcher webSocketDispatcher) {
 		this.httpDispatcher = httpDispatcher;
 		this.webSocketDispatcher = webSocketDispatcher;
@@ -61,7 +54,7 @@ public class WebServerHandler implements IoHandler {
 	 * @param <T>           范型
 	 * @return  参数
 	 */
-	public static <T> T getAttribute(IoSession session, int sessionParam){
+	public static <T> T getAttribute(IoSession session, HttpSessionParam sessionParam){
 		return (T)session.getAttribute(sessionParam);
 	}
 
@@ -72,7 +65,7 @@ public class WebServerHandler implements IoHandler {
 	 * @param value  参数
 	 * @param <T>           范型
 	 */
-	public static <T> void  setAttribute(IoSession session, int sessionParam, T value){
+	public static <T> void  setAttribute(IoSession session, HttpSessionParam sessionParam, T value){
 		session.setAttribute(sessionParam, value);
 	}
 
@@ -96,7 +89,7 @@ public class WebServerHandler implements IoHandler {
 						continue;
 					}
 
-					long timeoutValue = getAttribute(session, SessionParam.KEEP_ALIVE_TIMEOUT);
+					long timeoutValue = getAttribute(session, HttpSessionParam.KEEP_ALIVE_TIMEOUT);
 
 					if(timeoutValue < currentTimeValue){
 						//如果超时则结束当前连接
@@ -118,7 +111,7 @@ public class WebServerHandler implements IoHandler {
 	@Override
 	public void onDisconnect(IoSession session) {
 
-		if ("WebSocket".equals(getAttribute(session, SessionParam.TYPE))) {
+		if (HttpRequestType.WEBSOCKET.equals(getAttribute(session, HttpSessionParam.TYPE))) {
 
 			// 触发一个 WebSocket Close 事件
 			webSocketDispatcher.fireCloseEvent(session);
@@ -181,8 +174,8 @@ public class WebServerHandler implements IoHandler {
 			HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet, session);
 			HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet, session);
 
-			setAttribute(session, SessionParam.HTTP_REQUEST, httpRequest);
-			setAttribute(session, SessionParam.HTTP_RESPONSE, httpResponse);
+			setAttribute(session, HttpSessionParam.HTTP_REQUEST, httpRequest);
+			setAttribute(session, HttpSessionParam.HTTP_RESPONSE, httpResponse);
 
 			// 填充远程连接的IP 地址和端口
 			httpRequest.setRemoteAddres(session.remoteAddress());
@@ -216,7 +209,7 @@ public class WebServerHandler implements IoHandler {
 	 * @return HTTP 响应对象
 	 */
 	public HttpResponse disposeHttp(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
-		setAttribute(session, SessionParam.TYPE, "HTTP");
+		setAttribute(session, HttpSessionParam.TYPE, HttpRequestType.HTTP);
 
 
 		// 处理响应请求
@@ -224,13 +217,13 @@ public class WebServerHandler implements IoHandler {
 
 		//对于1.1协议的特殊处理
 		if(httpRequest.protocol().getVersion()==1.1F){
-			setAttribute(session, SessionParam.KEEP_ALIVE, true);
+			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
 			httpResponse.header().put("Connection", "keep-alive");
 		}
 		//如果是长连接则填充响应报文
 		else if (httpRequest.header().contain("Connection")
 				&& httpRequest.header().get("Connection").toLowerCase().contains("keep-alive")) {
-			setAttribute(session, SessionParam.KEEP_ALIVE, true);
+			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
 			httpResponse.header().put("Connection", httpRequest.header().get("Connection"));
 		}
 
@@ -252,7 +245,7 @@ public class WebServerHandler implements IoHandler {
 
 		//如果不是匹配的路由则关闭连接
 		if(webSocketDispatcher.findRouter(httpRequest)!=null){
-			setAttribute(session, SessionParam.TYPE, "Upgrade");
+			setAttribute(session, HttpSessionParam.TYPE, HttpRequestType.UPGRADE);
 
 			//初始化响应消息
 			httpResponse.protocol().setStatus(101);
@@ -285,7 +278,7 @@ public class WebServerHandler implements IoHandler {
 	 * @param webSocketFrame WebSocket 帧对象
 	 * @return WebSocket 帧对象
 	 */
-	public WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
+	public synchronized WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
 
 		ByteBufferChannel byteBufferChannel = null;
 		if(!session.containAttribute("WebSocketByteBufferChannel")){
@@ -295,7 +288,7 @@ public class WebServerHandler implements IoHandler {
 			byteBufferChannel = (ByteBufferChannel)session.getAttribute("WebSocketByteBufferChannel");
 		}
 
-		HttpRequest reqWebSocket = getAttribute(session, SessionParam.HTTP_REQUEST);
+		HttpRequest reqWebSocket = getAttribute(session, HttpSessionParam.HTTP_REQUEST);
 
 		// WS_CLOSE 如果收到关闭帧则关闭连接
 		if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING) {
@@ -315,27 +308,25 @@ public class WebServerHandler implements IoHandler {
 		}
 		// WS_RECIVE 文本和二进制消息出发 Recived 事件
 		else if (webSocketFrame.getOpcode() == WebSocketFrame.Opcode.TEXT || webSocketFrame.getOpcode() == WebSocketFrame.Opcode.BINARY) {
-			synchronized (byteBufferChannel) {
-				byteBufferChannel.writeEnd(webSocketFrame.getFrameData());
-				WebSocketFrame respWebSocketFrame = null;
 
-				//判断解包是否有错
-				if (webSocketFrame.getErrorCode() == 0) {
+			byteBufferChannel.writeEnd(webSocketFrame.getFrameData());
+			WebSocketFrame respWebSocketFrame = null;
 
-					try {
-						respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBufferChannel.getByteBuffer());
-					} finally {
-						byteBufferChannel.compact();
-						byteBufferChannel.clear();
-					}
+			//判断解包是否有错
+			if(webSocketFrame.getErrorCode()==0){
 
-				} else {
-					//解析时出现异常,返回关闭消息
-					respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
+				try {
+					respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBufferChannel.getByteBuffer());
+				} finally {
+					byteBufferChannel.compact();
+					byteBufferChannel.clear();
 				}
 
-				return respWebSocketFrame;
+			}else{
+				//解析时出现异常,返回关闭消息
+				respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
 			}
+			return respWebSocketFrame;
 		}
 
 		return null;
@@ -344,14 +335,14 @@ public class WebServerHandler implements IoHandler {
 	private void refreshTimeout(IoSession session){
 		int keepAliveTimeout = webConfig.getKeepAliveTimeout();
 		long timeoutValue = System.currentTimeMillis()+keepAliveTimeout*1000;
-		setAttribute(session, SessionParam.KEEP_ALIVE_TIMEOUT, timeoutValue);
+		setAttribute(session, HttpSessionParam.KEEP_ALIVE_TIMEOUT, timeoutValue);
 
 	}
 
 	@Override
 	public void onSent(IoSession session, Object obj) {
-		HttpRequest request = getAttribute(session,SessionParam.HTTP_REQUEST);
-		HttpResponse response = getAttribute(session,SessionParam.HTTP_RESPONSE);
+		HttpRequest request = getAttribute(session,HttpSessionParam.HTTP_REQUEST);
+		HttpResponse response = getAttribute(session,HttpSessionParam.HTTP_RESPONSE);
 
 		//WebSocket 协议处理
 		if(obj instanceof WebSocketFrame){
@@ -366,9 +357,9 @@ public class WebServerHandler implements IoHandler {
 		}
 
 		//针对 WebSocket 的处理协议升级
-		if("Upgrade".equals(getAttribute(session, SessionParam.TYPE))){
-			setAttribute(session, SessionParam.TYPE, "WebSocket");
-			setAttribute(session, SessionParam.KEEP_ALIVE, true);
+		if(HttpRequestType.UPGRADE.equals(getAttribute(session, HttpSessionParam.TYPE))){
+			setAttribute(session, HttpSessionParam.TYPE, HttpRequestType.WEBSOCKET);
+			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
 
 			//触发 onOpen 事件
 			WebSocketFrame webSocketFrame = webSocketDispatcher.fireOpenEvent(session, request);
@@ -402,8 +393,8 @@ public class WebServerHandler implements IoHandler {
 		}
 
 		//处理连接保持
-		if (getAttribute(session, SessionParam.KEEP_ALIVE) !=null &&
-				(boolean)getAttribute(session, SessionParam.KEEP_ALIVE) &&
+		if (getAttribute(session, HttpSessionParam.KEEP_ALIVE) !=null &&
+				(boolean)getAttribute(session, HttpSessionParam.KEEP_ALIVE) &&
 				webConfig.getKeepAliveTimeout() > 0) {
 
 			if (!keepAliveSessionList.contains(session)) {
