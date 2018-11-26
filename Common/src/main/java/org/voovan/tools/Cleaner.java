@@ -1,8 +1,5 @@
 package org.voovan.tools;
 
-import org.voovan.Global;
-import org.voovan.tools.hashwheeltimer.HashWheelTask;
-
 import java.lang.ref.PhantomReference;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
