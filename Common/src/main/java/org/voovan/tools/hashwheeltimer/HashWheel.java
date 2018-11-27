@@ -36,7 +36,7 @@ public class HashWheel {
      * 增加任务
      * @param task 任务对象
      * @param interval 任务间隔的槽数
-     * @param asynchronous 是否异步执行˚
+     * @param asynchronous 是否异步执行
      * @return true 增加任务成功, false: 增加任务失败, 任务的Interval必须大于0
      */
     public boolean addTask(HashWheelTask task, int interval, boolean asynchronous){
@@ -91,6 +91,7 @@ public class HashWheel {
     /**
      * 增加任务
      *
+     *
      * @param task 任务对象
      * @return true 增加任务成功, false: 增加任务失败, 任务的Interval必须大于0
      */
@@ -105,6 +106,14 @@ public class HashWheel {
      */
     public boolean removeTask(HashWheelTask task){
         return wheel.removeValue(task.getSlot(), task);
+    }
+
+    /**
+     * 清理所有的任务
+     *        请注意系统任务也会被清理
+     */
+    public void clear(){
+        wheel.clear();
     }
 
     /**

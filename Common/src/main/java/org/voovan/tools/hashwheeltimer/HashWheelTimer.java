@@ -108,6 +108,14 @@ public class HashWheelTimer {
     }
 
     /**
+     * 清理所有的任务
+     *        请注意系统任务也会被清理
+     */
+    public void clear(){
+        wheel.clear();
+    }
+
+    /**
      * 停止时间轮的轮转
      */
     public void cancel(){

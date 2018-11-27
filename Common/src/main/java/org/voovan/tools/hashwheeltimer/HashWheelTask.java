@@ -156,12 +156,16 @@ public abstract class HashWheelTask {
         }else {
             if(asynchronous){
                 final HashWheelTask task = this;
-                Global.getThreadPool().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        task.run();
-                    }
-                });
+                if(!Global.getThreadPool().isShutdown()) {
+                    Global.getThreadPool().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            task.run();
+                        }
+                    });
+                } else {
+                    task.cancel();
+                }
             }else{
                 run();
             }
