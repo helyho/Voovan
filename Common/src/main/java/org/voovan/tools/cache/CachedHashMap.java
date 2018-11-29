@@ -56,7 +56,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
     }
 
 
-    private void createCache(K key, Function<K, V> supplier){
+    private void createCache(K key, Function<K, V> supplier, Long createExpire){
         if(supplier==null){
             return;
         }
@@ -69,17 +69,21 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
             timeMark = cacheMark.get(key);
 
             if (timeMark == null) {
-                timeMark = new TimeMark(this, key, Long.MAX_VALUE);
+                timeMark = new TimeMark(this, key, createExpire);
                 cacheMark.put(key, timeMark);
             }
         }
+
         TimeMark finalTimeMark = timeMark;
+        Long finalCreateExpire = createExpire;
+
         synchronized (timeMark.createFlag) {
             if (!timeMark.isOnCreate()) {
                 timeMark.tryLockOnCreate();
 
                 //更新缓存数据, 异步
                 if (asyncBuild) {
+
 
                     Global.getThreadPool().execute(new Runnable() {
                         @Override
@@ -91,7 +95,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                                 if(expire==Long.MAX_VALUE) {
                                     cachedHashMap.put(key, value);
                                 } else {
-                                    cachedHashMap.put(key, value, expire);
+                                    cachedHashMap.put(key, value, finalCreateExpire);
                                 }
 
                             }
@@ -104,10 +108,11 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                     synchronized (supplier) {
                         V value = supplier.apply(key);
                         timeMark.refresh(true);
+
                         if(expire==Long.MAX_VALUE) {
                             cachedHashMap.put(key, value);
                         } else {
-                            cachedHashMap.put(key, value, expire);
+                            cachedHashMap.put(key, value, finalCreateExpire);
                         }
                     }
                     timeMark.releaseCreateLock();
@@ -247,7 +252,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                                     }
 
                                 } else if (cachedHashMap.getSupplier() != null) {
-                                    cachedHashMap.createCache(timeMark.getKey(), cachedHashMap.supplier);
+                                    cachedHashMap.createCache(timeMark.getKey(), cachedHashMap.supplier, timeMark.getExpireTime());
                                     timeMark.refresh(true);
                                 }
                             }
@@ -272,80 +277,24 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * 获取对象
      *      不会刷新对象的时间戳
      * @param key 键
+     * @param appointedSupplier 指定的获取器
+     * @param createExpire 超时时间
+     * @param refresh 刷新超时时间
      * @return 值
      */
     @Override
-    public V get(Object key){
+    public V get(Object key, Function<K, V> appointedSupplier, Long createExpire, boolean refresh){
         if(cacheMark.containsKey(key) &&
                 !cacheMark.get(key).isExpire() &&
                 !cacheMark.get(key).isOnCreate()) {
-            cacheMark.get(key).refresh(false);
+            cacheMark.get(key).refresh(refresh);
         } else {
-            //如果不存在则重读
-            createCache((K)key, this.supplier);
+            appointedSupplier = appointedSupplier==null ? supplier : appointedSupplier;
+            createExpire = createExpire==null ? expire : createExpire;
+            createCache((K)key, appointedSupplier, createExpire);
         }
 
         return super.get(key);
-    }
-
-
-    /**
-     * 获取对象
-     *      不会刷新对象的时间戳
-     * @param key 键
-     * @param appointedSupplier 指定的获取器
-     * @return 值
-     */
-    public V get(Object key, Function<K, V> appointedSupplier){
-        if(cacheMark.containsKey(key) &&
-                !cacheMark.get(key).isExpire() &&
-                !cacheMark.get(key).isOnCreate()) {
-            cacheMark.get(key).refresh(false);
-        } else {
-            //如果不存在则重读
-            createCache((K)key,appointedSupplier);
-        }
-
-        return super.get(key);
-    }
-
-
-    /**
-     * 获取并刷新对象
-     * @param key 键
-     * @return 值
-     */
-    public V getAndRefresh(Object key){
-        if(cacheMark.containsKey(key) &&
-                !cacheMark.get(key).isExpire() &&
-                !cacheMark.get(key).isOnCreate()) {
-            cacheMark.get(key).refresh(true);
-        } else {
-            //如果不存在则重读
-            createCache((K)key, this.supplier);
-        }
-
-        return this.get(key);
-    }
-
-
-    /**
-     * 获取并刷新对象
-     * @param key 键
-     * @param appointedSupplier 指定数据构造器
-     * @return 值
-     */
-    public V getAndRefresh(Object key, Function<K, V> appointedSupplier){
-        if(cacheMark.containsKey(key) &&
-                !cacheMark.get(key).isExpire() &&
-                !cacheMark.get(key).isOnCreate()) {
-            cacheMark.get(key).refresh(true);
-        } else {
-            //如果不存在则重读
-            createCache((K)key,appointedSupplier);
-        }
-
-        return this.get(key);
     }
 
     @Override
@@ -462,14 +411,24 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      * @param key 键
      * @param expire 超时时间
      */
-    public void expire(K key, long expire) {
+    @Override
+    public boolean expire(K key, long expire) {
         TimeMark timeMark = cacheMark.get(key);
         if(timeMark==null && !cacheMark.containsKey(key)){
-            cacheMark.put(key, new TimeMark(this, key, expire));
+//            cacheMark.put(key, new TimeMark(this, key, expire));
+            return false;
         } else {
             timeMark.setExpireTime(expire);
         }
+
+        return true;
     }
+
+    @Override
+    public long expire(K key) {
+        return cacheMark.get(key).getExpireTime();
+    }
+
 
     @Override
     public V remove(Object key){

@@ -36,7 +36,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     private JedisPool redisPool;
     private String name = null;
     private int dbIndex = 0;
-    private Function<K, V> buildFunction = null;
+    private Function<K, V> supplier = null;
 
     /**
      * 构造函数
@@ -150,8 +150,9 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      * 选择当前数据集
      * @param dbIndex 数据集序号
      */
-    public void setDbIndex(int dbIndex) {
+    public RedisMap<K, V> setDbIndex(int dbIndex) {
         this.dbIndex = dbIndex;
+        return this;
     }
 
     private Jedis getJedis(){
@@ -162,10 +163,11 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
 
     /**
      * 如果参数为空的默认构造方法
-     * @param buildFunction 创建函数
+     * @param supplier 创建函数
      */
-    public void supplier(Function<K, V> buildFunction){
-        this.buildFunction = buildFunction;
+    public RedisMap<K, V> supplier(Function<K, V> supplier){
+        this.supplier = supplier;
+        return this;
     }
 
     /**
@@ -180,8 +182,9 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      * 设置超时时间
      * @param expire 超时时间
      */
-    public void expire(long expire) {
+    public RedisMap<K, V> expire(long expire) {
         this.expire = expire;
+        return this;
     }
 
     @Override
@@ -219,38 +222,6 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public V get(Object key) {
-        byte[] keyByteArray = CacheStatic.serialize(key);
-        byte[] valueByteArray;
-
-        try(Jedis jedis = getJedis()) {
-            if(name==null){
-                valueByteArray = jedis.get(keyByteArray);
-            }else {
-                valueByteArray = jedis.hget(name.getBytes(), keyByteArray);
-            }
-        }
-
-        //如果不存在则重读
-        if (valueByteArray == null) {
-            if(buildFunction!=null) {
-                synchronized (buildFunction) {
-                    V value = buildFunction.apply((K) key);
-                    if(expire==Integer.MAX_VALUE) {
-                        put((K) key, value);
-                    } else {
-                        put((K) key, value, expire);
-                    }
-                    return value;
-                }
-            }
-        }
-
-
-        return (V)CacheStatic.unserialize(valueByteArray);
-    }
-
     /**
      * 获取对象
      *
@@ -258,7 +229,8 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      * @param appointedSupplier 在指定的 key 不存在的时候使用指定的获取器构造对象
      * @return 值
      */
-    public V get(Object key, Function<K, V> appointedSupplier){
+    @Override
+    public V get(Object key, Function<K, V> appointedSupplier, Long createExpire, boolean refresh){
         byte[] keyByteArray = CacheStatic.serialize(key);
         byte[] valueByteArray;
 
@@ -270,19 +242,29 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
             }
         }
 
+        appointedSupplier = appointedSupplier==null ? supplier : appointedSupplier;
+        createExpire = createExpire==null ? expire : createExpire;
 
         //如果不存在则重读
         if (valueByteArray == null) {
-            if(buildFunction!=null) {
+            if(appointedSupplier!=null) {
                 synchronized (appointedSupplier) {
                     V value = appointedSupplier.apply((K) key);
-                    if(expire==Integer.MAX_VALUE) {
+
+                    if(createExpire==Long.MAX_VALUE) {
                         put((K) key, value);
                     } else {
-                        put((K) key, value, expire);
+                        put((K) key, value, createExpire);
                     }
                     return value;
                 }
+            }
+        }
+
+        //是否刷新超时时间
+        if(refresh && name==null){
+            if(createExpire!=null) {
+                this.expire((K) key, createExpire);
             }
         }
 
@@ -403,17 +385,35 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     }
 
     /**
-     * 为 Key 设置超时事件
-     * @param key  key 名称
-     * @param expire 超时事件
-     * @return true: 成功, false:失败
+     * 更新某个对象的超时时间
+     *      可以为某个没有配置超时时间的键值对配置超时时间
+     * @param key 键
+     * @param expire 超时时间
      */
+    @Override
     public boolean expire(K key, long expire) {
         byte[] keyByteArray = CacheStatic.serialize(key);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
                 return jedis.expire(keyByteArray, (int)expire)==1;
+            }else {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+
+    /**
+     * 为 Key 获取 key 的超时时间
+     * @param key  key 名称
+     * @return 超时时间
+     */
+    public long expire(K key) {
+        byte[] keyByteArray = CacheStatic.serialize(key);
+
+        try (Jedis jedis = getJedis()) {
+            if(name==null){
+                return jedis.ttl(keyByteArray);
             }else {
                 throw new UnsupportedOperationException();
             }
