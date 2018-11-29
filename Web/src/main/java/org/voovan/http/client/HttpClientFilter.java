@@ -1,8 +1,10 @@
 package org.voovan.http.client;
 
+import org.voovan.http.HttpSessionParam;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.HttpRequest;
+import org.voovan.http.HttpRequestType;
 import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
@@ -59,7 +61,7 @@ public class HttpClientFilter implements IoFilter {
 				}
 
 				ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
-				if("WebSocket".equals(WebServerHandler.getAttribute(session, WebServerHandler.SessionParam.TYPE))){
+				if(HttpRequestType.WEBSOCKET.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))){
 					return WebSocketFrame.parse((ByteBuffer)object);
 				}else {
 					Response response = HttpParser.parseResponse(byteBufferChannel, session.socketContext().getReadTimeout());
