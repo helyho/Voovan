@@ -345,18 +345,22 @@ public class Formater {
             }
             TFile.deleteFile(logFile);
 
-            //关闭文件输出流
+            OutputStream fileOutPutStream = null;
+            //查找旧的文件输出流
             for(OutputStream outputStream : loggerThread.getOutputStreams()){
                 if(outputStream instanceof FileOutputStream){
-                    try {
-                        outputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    fileOutPutStream = outputStream;
                 }
             }
 
             loggerThread.setOutputStreams(getOutputStreams());
+
+            //关闭旧的文件输出流
+            try {
+                fileOutPutStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -389,7 +390,7 @@ public class TSQL {
 	 */
 	public static List<String[]> parseSQLCondiction(String sqlText) {
 		ArrayList<String[]> condictionList = new ArrayList<String[]>();
-		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\sand\\s)|(\\sor\\s))(?=(\\sgroup by\\s)|(\\sorder\\s)|(\\slimit\\s)|$)?";
+		String sqlRegx = "((\\s?where\\s)|(\\s?and\\s)|(\\s?or\\s))[\\S\\s]+?(?=(\\s?where\\s)|(\\s?and\\s)|(\\s?or\\s)|(\\s?group by\\s)|(\\s?order\\s)|(\\s?limit\\s)|$)";
 		String[] sqlCondictions = TString.searchByRegex(sqlText,sqlRegx, Pattern.CASE_INSENSITIVE);
 		for(int i=0;i<sqlCondictions.length;i++){
 			String condiction = sqlCondictions[i];
@@ -404,10 +405,10 @@ public class TSQL {
 			condiction = condiction.trim();
 			String concateMethod = condiction.substring(0,condiction.indexOf(" ")+1).trim();
 			condiction = condiction.substring(condiction.indexOf(" ")+1,condiction.length()).trim();
-			String[] splitedCondicction = TString.searchByRegex(condiction, "(\\sbetween\\s+)|(\\sis\\s+)|(\\slike\\s+)|(\\s(not\\s)?in\\s+)|(\\!=)|(>=)|(<=)|[=<>]");
+			String[] splitedCondicction = TString.searchByRegex(condiction, "(\\sbetween\\s*)|(\\sis\\s*)|(\\slike\\s*)|(\\s(not\\s)?in\\s*)|(\\!=)|(>=)|(<=)|[=<>]");
 			if(splitedCondicction.length == 1) {
 				String operatorChar = splitedCondicction[0].trim();
-				String[] condictionArr = condiction.split("(\\sbetween\\s+)|(\\sis\\s+)|(\\slike\\s+)|(\\s(not\\s)?in\\s+)|(\\!=)|(>=)|(<=)|[=<>]");
+				String[] condictionArr = condiction.split("(\\sbetween\\s*)|(\\sis\\s*)|(\\slike\\s*)|(\\s(not\\s)?in\\s*)|(\\!=)|(>=)|(<=)|[=<>]");
 				condictionArr[0] = condictionArr[0].trim();
 				condictionArr[1] = condictionArr[1].trim();
 
