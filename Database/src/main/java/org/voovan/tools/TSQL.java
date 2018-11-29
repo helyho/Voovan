@@ -335,24 +335,37 @@ public class TSQL {
 			String condictionParams = originCondictionParams;
 
 			if(originCondictionParams!=null && originCondictionParams.contains("::")) {
+				//找出所有的参数
 				String[] condictions = TString.searchByRegex(originCondictionParams, "::\\w+\\b");
 				if(condictions.length > 0) {
 					for (String condictionParam : condictions){
+
+						//判断参数是否存在并做移除的处理
 						if (!params.containsKey(condictionParam.replace("::", ""))) {
+
+							//遍历所有的 in 的条件, 去除没有参数的条件
 							if(operatorChar.equals("in") || operatorChar.equals("not in")) {
-								//遍历所有的 in 的条件, 去除没有参数的条件
+
 								condictionParams = TString.fastReplaceAll(condictionParams, condictionParam+"\\s*,?", "");
-							} else {
+							}
+							//遍历常规条件
+							else {
 								replaceCondiction = EQUAL_CONDICTION;
 								if ("or".equals(beforeCondictionMethod) || "or".equals(afterCondictionMethod)) {
 									replaceCondiction = NOT_EQUAL_CONDICTION;
 								}
 								//从原查询条件, 生成替换用的查询条件, 这样可以保留原查询条件种的 ( 或 )
-								replaceCondiction = TString.fastReplaceAll(orginCondiction, condictionName + "\\s*" + operatorChar + "\\s*" + originCondictionParams, replaceCondiction);
+								String targetCondiction = condictionName + "\\s*" + operatorChar + "\\s*" + originCondictionParams;
+								targetCondiction = targetCondiction.replaceAll("\\(", "\\\\(");
+								targetCondiction = targetCondiction.replaceAll("\\)", "\\\\)");
+								targetCondiction = targetCondiction.replaceAll("\\[", "\\\\[");
+								targetCondiction = targetCondiction.replaceAll("\\]", "\\\\]");
+								replaceCondiction = TString.fastReplaceAll(orginCondiction, targetCondiction , replaceCondiction);
 							}
 						}
 					}
 
+					//in 或者 not in 之前已经有移除了参数, 这里做最后的, 处理
 					if(operatorChar.equals("in") || operatorChar.equals("not in")) {
 						condictionParams = condictionParams.trim();
 						if(condictionParams.endsWith(",")){
@@ -376,7 +389,7 @@ public class TSQL {
 	 */
 	public static List<String[]> parseSQLCondiction(String sqlText) {
 		ArrayList<String[]> condictionList = new ArrayList<String[]>();
-		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\s\\)\\s)|(\\sand\\s)|(\\sor\\s)|(\\sgroup by\\s)|(\\sorder\\s)|(\\slimit\\s)|$)";
+		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\sand\\s)|(\\sor\\s))(?=(\\sgroup by\\s)|(\\sorder\\s)|(\\slimit\\s)|$)?";
 		String[] sqlCondictions = TString.searchByRegex(sqlText,sqlRegx, Pattern.CASE_INSENSITIVE);
 		for(int i=0;i<sqlCondictions.length;i++){
 			String condiction = sqlCondictions[i];
@@ -391,47 +404,41 @@ public class TSQL {
 			condiction = condiction.trim();
 			String concateMethod = condiction.substring(0,condiction.indexOf(" ")+1).trim();
 			condiction = condiction.substring(condiction.indexOf(" ")+1,condiction.length()).trim();
-			String[] splitedCondicction = TString.searchByRegex(condiction, "(\\sbetween\\s*)|(\\sis\\s*)|(\\slike\\s*)|(\\s(not\\s)?in\\s*)|(\\!=)|(>=)|(<=)|[=<>]");
+			String[] splitedCondicction = TString.searchByRegex(condiction, "(\\sbetween\\s+)|(\\sis\\s+)|(\\slike\\s+)|(\\s(not\\s)?in\\s+)|(\\!=)|(>=)|(<=)|[=<>]");
 			if(splitedCondicction.length == 1) {
 				String operatorChar = splitedCondicction[0].trim();
-				String[] condictionArr = condiction.split("(\\sbetween\\s*)|(\\sis\\s*)|(\\slike\\s*)|(\\s(not\\s)?in\\s*)|(\\!=)|(>=)|(<=)|[=<>]");
+				String[] condictionArr = condiction.split("(\\sbetween\\s+)|(\\sis\\s+)|(\\slike\\s+)|(\\s(not\\s)?in\\s+)|(\\!=)|(>=)|(<=)|[=<>]");
 				condictionArr[0] = condictionArr[0].trim();
 				condictionArr[1] = condictionArr[1].trim();
-				if(condictionArr[0].trim().indexOf(".")>1){
-
-					condictionArr[0] = condictionArr[0].split("\\.")[1];
-					condictionArr[0] = condictionArr[0].substring(condictionArr[0].lastIndexOf(" ")+1);
-				}
 
 				if(condictionArr.length>1){
 					if((condictionArr[1].trim().startsWith("'") && condictionArr[1].trim().endsWith("'")) ||
+							(condictionArr[1].trim().startsWith("\"") && condictionArr[1].trim().endsWith("\""))||
+							(condictionArr[1].trim().startsWith("`") && condictionArr[1].trim().endsWith("`"))||
 							(condictionArr[1].trim().startsWith("(") && condictionArr[1].trim().endsWith(")"))
 					){
 						condictionArr[1] = condictionArr[1].substring(1,condictionArr[1].length()-1);
 					}
+
 					if(operatorChar.contains("in")){
 						condictionArr[1] = condictionArr[1].replace("'", "");
 					}
 
-					if(condictionArr[0].startsWith("(")){
+					if(condictionArr[0].startsWith("(") && TString.regexMatch(condictionArr[1], "\\(") > TString.regexMatch(condictionArr[1], "\\)")){
 						condictionArr[0] = TString.removePrefix(condictionArr[0]);
 					}
 
-					if(condictionArr[1].endsWith(")")){
+					if(condictionArr[1].endsWith(")") && TString.regexMatch(condictionArr[1], "\\(") < TString.regexMatch(condictionArr[1], "\\)")){
 						condictionArr[1] = TString.removeSuffix(condictionArr[1]);
 					}
 
-					condictionList.add(new String[]{originCondiction, concateMethod, condictionArr[0].trim(), operatorChar, condictionArr[1].trim(), null});
+					condictionList.add(new String[]{originCondiction.trim(), concateMethod, condictionArr[0].trim(), operatorChar, condictionArr[1].trim(), null});
 				}else{
 					Logger.error("Parse SQL condiction error");
 				}
 			} else {
 				condictionList.add(new String[]{originCondiction, null, null, null, null, null});
 			}
-
-
-
-
 		}
 
 		for(int i=condictionList.size()-2; i>=0; i--){
