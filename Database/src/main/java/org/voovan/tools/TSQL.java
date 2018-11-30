@@ -395,8 +395,8 @@ public class TSQL {
 			String condiction = sqlCondictions[i];
 
 			//如果包含 ) 并且不在字符串中, 则移除后面的内容, 防止解析出 1=1) m2, gggg m3  导致替换问题
-			if(TString.regexMatch(condiction, "\\(") != TString.regexMatch(condiction, "\\)") && TString.searchByRegex(condiction, "[\\\"`'].*?\\).*?[\\\"`']").length == 0) {
-				int indexClosePair = condiction.indexOf(")");
+			if(TString.regexMatch(condiction, "\\(") < TString.regexMatch(condiction, "\\)") && TString.searchByRegex(condiction, "[\\\"`'].*?\\).*?[\\\"`']").length == 0) {
+				int indexClosePair = condiction.lastIndexOf(")");
 				if (indexClosePair != -1) {
 					condiction = condiction.substring(0, indexClosePair + 1);
 				}
