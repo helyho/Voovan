@@ -11,10 +11,11 @@ package org.voovan.tools;
 public class TSQLUnit {
 
     public static void main(String[] args) {
-        String s = "select * from deposit_request m1, (select 1 from adfa where mmmm=::111 and kkkk=::kkk) m2, gggg m3 \n" +
-                "                            where status != '1111)ooo' \n" +
+        String s = "select * from deposit_request m1 \n" +
+                " , (select 1 from adfa where mmmm=::111 and kkkk=::kkk)m2, gggg m3 \n" +
+                "                            where status != '1111) ooo' \n" +
                 "                            and onceDrawLimit = ::onceDrawLimit \n" +
-                "                            AND `random_deposit_amountx` = ::kkand \n" +
+                "                            AND `t1.random_deposit_amountx` = ::kkand \n" +
                 "                            AND `random_deposit_amountx` = ::kkand \n" +
                 "							 and  mmm not in (::10, ::11, ::12, ::13)\n" +
                 "							 and  mmm in (::10, ::11, ::12, ::13)\n" +
@@ -24,7 +25,7 @@ public class TSQLUnit {
                 "                            and  (select * from xx where kk=::6)\n" +
                 "                            and  exists (select * from xx where kk=::6)\n" +
                 "                            and  not exists (select * from xx where kk=::6)\n" +
-                "                            and `user_name` like CONCAT('%', CONCAT( ::userName,'%')) \n"+
+                "                            and `user_name` like CONCAT('!%', CONCAT( ::userName,'%')) \n"+
                 "                            and `ip` like CONCAT('%', CONCAT( ::ip,'%')) \n"+
                 "                            and state = 1 limit 10, 100";
 
@@ -34,8 +35,13 @@ public class TSQLUnit {
 //		} catch (SQLException e) {
 //			e.printStackTrace();
 //		}
-        System.out.println(s);
-        System.out.println(TSQL.removeEmptyCondiction(s, TObject.asMap("1", null, "4", null, "7", null, "10", null, "11", null)));
+
+        System.out.println(
+                TEnv.measureTime(()->{
+                    System.out.println(s);
+                    return TSQL.removeEmptyCondiction(s, TObject.asMap("1", null, "4", null, "7", null, "10", null, "11", null, "userName", 111));
+                })
+        );
 
 
 //        s = "select * from ec_menu em where 1=1 \n" +
