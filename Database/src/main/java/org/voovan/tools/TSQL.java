@@ -371,6 +371,10 @@ public class TSQL {
 						if(condictionParams.endsWith(",")){
 							condictionParams = TString.removeSuffix(condictionParams);
 						}
+						originCondictionParams = originCondictionParams.replaceAll("\\(", "\\\\(");
+						originCondictionParams = originCondictionParams.replaceAll("\\)", "\\\\)");
+						originCondictionParams = originCondictionParams.replaceAll("\\[", "\\\\[");
+						originCondictionParams = originCondictionParams.replaceAll("\\]", "\\\\]");
 						replaceCondiction = TString.fastReplaceAll(replaceCondiction, originCondictionParams, condictionParams);
 					}
 
