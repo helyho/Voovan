@@ -13,6 +13,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -1011,20 +1012,27 @@ public class TReflect {
 
                 //过滤不可序列化的字段
                 if (!allField) {
-                    if((field.getAnnotation(NotSerialization.class)!=null || field.getAnnotation(NotJSON.class)!=null)
-                            && TEnv.classInCurrentStack(".tools.json.", null)) {
+                    if(	field.getAnnotation(NotSerialization.class)!=null ||
+                            (field.getAnnotation(NotJSON.class)!=null && TEnv.classInCurrentStack(".tools.json.", null))) {
                         continue;
                     }
                 }
 
                 String key = entry.getKey().getName();
                 Object value = entry.getValue();
+
                 if(value == null){
-                    mapResult.put(key, value);
+                    //由于属性是按子类->父类顺序处理的, 所以如果子类和父类有重复属性, 则只在子类为空时用父类的属性覆盖
+                    if(mapResult.get(key) == null) {
+                        mapResult.put(key, value);
+                    }
                 }else if(!key.contains("$")){
                     Class valueClass = entry.getValue().getClass();
                     if(TReflect.isBasicType(valueClass)){
-                        mapResult.put(key, value);
+                        //由于属性是按子类->父类顺序处理的, 所以如果子类和父类有重复属性, 则只在子类为空时用父类的属性覆盖
+                        if(mapResult.get(key) == null) {
+                            mapResult.put(key, value);
+                        }
                     }else {
                         //如果是复杂类型则递归调用
                         Map resultMap = getMapfromObject(value, allField);
