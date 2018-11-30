@@ -11,10 +11,11 @@ package org.voovan.tools;
 public class TSQLUnit {
 
     public static void main(String[] args) {
-        String s = "select * from deposit_request where status != 2 \n" +
+        String s = "select * from deposit_request m1, (select 1 from adfa where mmmm=::111 and kkkk=::kkk) m2, gggg m3 \n" +
+                "                            where status != '1111)ooo' \n" +
                 "                            and onceDrawLimit = ::onceDrawLimit \n" +
                 "                            AND `random_deposit_amountx` = ::kkand \n" +
-                "							 and  mmmk  between ::1 and ::4 \n" +
+                "                            AND `random_deposit_amountx` = ::kkand \n" +
                 "							 and  mmm not in (::10, ::11, ::12, ::13)\n" +
                 "							 and  mmm in (::10, ::11, ::12, ::13)\n" +
                 "                            and  (client_account_name >= ::1 or client_card_number <= ::2) \n" +
@@ -31,7 +32,7 @@ public class TSQLUnit {
 //		} catch (SQLException e) {
 //			e.printStackTrace();
 //		}
-
+        System.out.println(s);
         System.out.println(TSQL.removeEmptyCondiction(s, TObject.asMap("1", null, "4", null, "7", null, "10", null, "11", null)));
 
 

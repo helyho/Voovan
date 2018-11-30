@@ -243,7 +243,8 @@ public class TReflect {
                 continue;
             }
 
-            Object value = getFieldValue(obj, field.getName());
+            field.setAccessible(true);
+            Object value = field.get(obj);
             result.put(field, value);
         }
         return result;

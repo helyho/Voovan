@@ -355,7 +355,7 @@ public class TSQL {
 									replaceCondiction = NOT_EQUAL_CONDICTION;
 								}
 								//从原查询条件, 生成替换用的查询条件, 这样可以保留原查询条件种的 ( 或 )
-								String targetCondiction = condictionName + "\\s*" + operatorChar + "\\s*" + originCondictionParams;
+								String targetCondiction = condictionName + "\\s*" + operatorChar + "\\s*" + condictionParam;
 								targetCondiction = targetCondiction.replaceAll("\\(", "\\\\(");
 								targetCondiction = targetCondiction.replaceAll("\\)", "\\\\)");
 								targetCondiction = targetCondiction.replaceAll("\\[", "\\\\[");
@@ -394,6 +394,14 @@ public class TSQL {
 		for(int i=0;i<sqlCondictions.length;i++){
 			String condiction = sqlCondictions[i];
 
+			//如果包含 ) 并且不在字符串中, 则移除后面的内容, 防止解析出 1=1) m2, gggg m3  导致替换问题
+			if(TString.searchByRegex(condiction, "[\\\"`'].*?\\).*?[\\\"`']").length == 0) {
+				int indexClosePair = condiction.indexOf(")");
+				if (indexClosePair != -1) {
+					condiction = condiction.substring(0, indexClosePair + 1);
+				}
+			}
+
 			//between 则拼接下一段
 			if(TString.regexMatch(condiction,"\\sbetween\\s")>0){
 				i = i+1;
@@ -409,7 +417,12 @@ public class TSQL {
 				String operatorChar = splitedCondicction[0].trim();
 				String[] condictionArr = condiction.split("(\\sbetween\\s+)|(\\sis\\s+)|(\\slike\\s+)|(\\s(not\\s)?in\\s+)|(\\!=)|(>=)|(<=)|[=<>]");
 				condictionArr[0] = condictionArr[0].trim();
+				if(condictionArr[0].startsWith("(")){
+					condictionArr[0] = TString.removePrefix(condictionArr[0]);
+				}
+
 				condictionArr[1] = condictionArr[1].trim();
+				boolean isClosedPair = TString.regexMatch(condictionArr[1], "\\(") < TString.regexMatch(condictionArr[1], "\\)");
 
 				if(condictionArr.length>1){
 					if((condictionArr[1].trim().startsWith("'") && condictionArr[1].trim().endsWith("'")) ||
@@ -424,11 +437,11 @@ public class TSQL {
 						condictionArr[1] = condictionArr[1].replace("'", "");
 					}
 
-					if(condictionArr[0].startsWith("(") && TString.regexMatch(condictionArr[1], "\\(") > TString.regexMatch(condictionArr[1], "\\)")){
+					if(condictionArr[0].startsWith("(") && isClosedPair){
 						condictionArr[0] = TString.removePrefix(condictionArr[0]);
 					}
 
-					if(condictionArr[1].endsWith(")") && TString.regexMatch(condictionArr[1], "\\(") < TString.regexMatch(condictionArr[1], "\\)")){
+					if(condictionArr[1].endsWith(")") && isClosedPair){
 						condictionArr[1] = TString.removeSuffix(condictionArr[1]);
 					}
 
