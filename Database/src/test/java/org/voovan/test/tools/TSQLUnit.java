@@ -24,6 +24,8 @@ public class TSQLUnit {
                 "                            and  (select * from xx where kk=::6)\n" +
                 "                            and  exists (select * from xx where kk=::6)\n" +
                 "                            and  not exists (select * from xx where kk=::6)\n" +
+                "                            and `user_name` like CONCAT('%', CONCAT( ::userName,'%')) \n"+
+                "                            and `ip` like CONCAT('%', CONCAT( ::ip,'%')) \n"+
                 "                            and state = 1 limit 10, 100";
 
 //		String s = "SELECT count(0) from 90_entrust where 1=1 and status in (0,1,2,3) and user_id = '7hJvVarCrMe' and original_market_id = '90' and type in (0,1) and xx is null";
