@@ -6,8 +6,7 @@ import org.voovan.tools.TString;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -20,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Licence: Apache v2 License
  */
 public class LoggerThread implements Runnable {
-	private ArrayBlockingQueue<String>	logQueue;
+	private ConcurrentLinkedDeque<String> logQueue;
 	private OutputStream[] outputStreams;
 	private volatile AtomicBoolean finished = new AtomicBoolean(false);
 
@@ -29,7 +28,7 @@ public class LoggerThread implements Runnable {
 	 * @param outputStreams 输出流数组
 	 */
 	public LoggerThread(OutputStream[] outputStreams) {
-		this.logQueue = new ArrayBlockingQueue<String>(100000);
+		this.logQueue = new ConcurrentLinkedDeque<String>();
 		this.outputStreams = outputStreams;
 
 	}
@@ -75,7 +74,7 @@ public class LoggerThread implements Runnable {
 	 * @param msg 消息字符串
 	 */
 	public void addLogMessage(String msg) {
-		logQueue.add(msg);
+		logQueue.offer(msg);
 	}
 
 	@Override
@@ -96,7 +95,7 @@ public class LoggerThread implements Runnable {
 					continue;
 				}
 
-				formatedMessage = logQueue.poll(1, TimeUnit.MILLISECONDS);
+				formatedMessage = logQueue.poll();
 				if (formatedMessage != null && outputStreams!=null) {
 					for (OutputStream outputStream : outputStreams) {
 						if (outputStream != null) {
