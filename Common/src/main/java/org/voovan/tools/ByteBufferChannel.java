@@ -275,17 +275,19 @@ public class ByteBufferChannel {
     /**
      * 清空通道
      */
-    public void clear(){
-        if(isReleased()){
+    public void clear() {
+        if (isReleased()) {
             return;
         }
 
-        lock.lock();
-        try{
-            byteBuffer.limit(0);
-            size = 0;
-        } finally {
-            lock.unlock();
+        if (byteBuffer != null) {
+            lock.lock();
+            try {
+                byteBuffer.limit(0);
+                size = 0;
+            } finally{
+                lock.unlock();
+            }
         }
     }
 
