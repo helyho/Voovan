@@ -5,13 +5,15 @@ import org.voovan.tools.*;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 /**
  *	格式化日志信息并输出
  *
  *使用包括特殊的定义{{}}
- *{{NF}}  当前行不进行行头行尾的格式化
  *{{s}}:  一个空格
  *{{t}}:  制表符
  *{{n}}:  换行
@@ -60,9 +62,6 @@ public class Formater {
      */
     public Formater(String template) {
         this.template = template;
-        this.maxLineLength = Integer.valueOf(LoggerStatic.getLogConfig("MaxLineLength", LoggerStatic.MAX_LINE_LENGTH));
-        lineHead = LoggerStatic.getLogConfig("LineHead", LoggerStatic.LINE_HEAD);
-        lineTail = LoggerStatic.getLogConfig("LineTail", LoggerStatic.LINE_TAIL);
 
         logLevel = new Vector<String>();
         logLevel.addAll(TObject.asList(LoggerStatic.getLogConfig("LogLevel", LoggerStatic.LOG_LEVEL).split(",")));
@@ -106,7 +105,7 @@ public class Formater {
      */
     private static String currentThreadName() {
         Thread currentThread = Thread.currentThread();
-        return currentThread.getName()+" : "+currentThread.getId();
+        return currentThread.getName();
     }
 
     private int realLength(String str){
@@ -119,71 +118,7 @@ public class Formater {
      * @return 随进后的消息
      */
     private String lineFormat(Message message){
-        boolean lineAlignLeft = Boolean.valueOf(LoggerStatic.getLogConfig("LineAlignLeft", LoggerStatic.LINE_ALIGN_LEFT));
-
-        String msg = TString.tokenReplace(template, message.getTokens());
-
-        StringBuilder msgBuilder = new StringBuilder();
-
-        String tmpLineHead = TString.tokenReplace(lineHead, message.getTokens());
-        String tmpLineTail = TString.tokenReplace(lineTail, message.getTokens());
-
-        if(tmpLineHead!=null && tmpLineTail != null){
-
-            String[] lines = msg.split("\r?\n");
-
-            for(String line : lines){
-                boolean isFormatLine = line.contains("{{NF}}");
-
-                int currentMaxLineLength = this.maxLineLength;
-
-                //不格式化消息内容
-                if(isFormatLine){
-                    line = line.replace("{{NF}}","");
-                }else{
-                    currentMaxLineLength = currentMaxLineLength - realLength(tmpLineHead) - realLength(tmpLineTail);
-                }
-
-                if (isFormatLine) {
-                    msgBuilder.append(line).append(TFile.getLineSeparator());
-                    continue;
-                }
-
-                while(true) {
-                    int linePostion = (line.length() > currentMaxLineLength && currentMaxLineLength > 0) ? currentMaxLineLength : line.length();
-                    String subLine = line.substring(0, linePostion);
-                    line = line.substring(linePostion, line.length());
-
-                    // 不格式化,但是控制长度自动换行
-//					if (isFormatLine) {
-//						msgBuilder.append(line).append(TFile.getLineSeparator());
-//						break;
-//					}
-
-                    if (lineAlignLeft && currentMaxLineLength > 1) {
-                        if (subLine.endsWith(tmpLineTail)) {
-                            subLine = subLine.substring(0, subLine.length() - tmpLineTail.length());
-                        }
-
-                        int stylePatch = TString.regexMatch(subLine, "\033\\[\\d{2}m") * 5;
-                        subLine = TString.rightPad(subLine, currentMaxLineLength + stylePatch - 1, ' ');
-                    }
-
-                    msgBuilder.append(tmpLineHead)
-                            .append(subLine)
-                            .append(tmpLineTail)
-                            .append(TFile.getLineSeparator());
-
-                    if (line.isEmpty()) {
-                        break;
-                    }
-                }
-            }
-
-        }
-
-        msgBuilder.append(TFile.getLineSeparator());
-        return msgBuilder.toString();
+        return TString.tokenReplace(template, message.getTokens()) + TFile.getLineSeparator();
     }
 
     /**
