@@ -82,11 +82,25 @@ public class LoggerThread implements Runnable {
 		String formatedMessage = null;
 
 		Thread mainThread = TEnv.getMainThread();
+
+		boolean needFlush = false;
+
 		try {
 			while (true) {
 
 				//优化日志输出事件
-				if(logQueue.size() == 0){
+				if(logQueue.size() == 0) {
+
+					if(needFlush) {
+						for (OutputStream outputStream : outputStreams) {
+							if (outputStream != null) {
+								outputStream.flush();
+							}
+						}
+
+						needFlush = false;
+					}
+
 					Thread.sleep(1);
 					//如果主线程结束,则日志线程也退出
 					if(mainThread !=null && mainThread.getState() == Thread.State.TERMINATED){
@@ -105,6 +119,8 @@ public class LoggerThread implements Runnable {
 							}
 							outputStream.write(formatedMessage.getBytes());
 							outputStream.flush();
+
+							needFlush = true;
 						}
 					}
 				}
