@@ -23,10 +23,6 @@ public class LoggerStatic {
 			"{{n}}[{{P}}] [{{D}}] [Thread:{{T}}] [Time:{{R}}] ({{F}}:{{L}}) {{n}}" +
 			"--------------------------------------------------------------------------------------------------------------------------------------------------" +
 			"{{n}}{{I}}{{n}}{{n}}";
-	public final static String LINE_HEAD = "";
-	public final static String LINE_TAIL = "";
-	public final static String LINE_ALIGN_LEFT = "";
-	public final static String MAX_LINE_LENGTH = "-1";
 	public final static String LOG_TEMPLATE = LoggerStatic.getLogConfig("LogTemplate", LoggerStatic.DEFAULT_LOG_TEMPLATE);
 
 	public static boolean HAS_COLOR = TString.regexMatch(LOG_TEMPLATE, "\\{\\{[FB][0-7D]\\}\\}") > 0;

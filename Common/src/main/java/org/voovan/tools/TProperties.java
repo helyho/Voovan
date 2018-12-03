@@ -2,10 +2,8 @@ package org.voovan.tools;
 
 import org.voovan.Global;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
-import org.voovan.tools.log.Logger;
 
 import java.io.*;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -75,7 +73,7 @@ public class TProperties {
 			return propertiesCache.get(file);
 
 		} catch (IOException e) {
-			Logger.error("Get properites file failed. File:" + file.getAbsolutePath(),e);
+			System.out.println("Get properites file failed. File:" + file.getAbsolutePath() + "-->" + e.getMessage());
 			return null;
 		}
 	}
@@ -125,7 +123,7 @@ public class TProperties {
 		if(file!=null) {
 			return getProperties(file);
 		} else {
-			Logger.error("Get properites file failed. File:" + fileName, new FileNotFoundException());
+			System.out.println("Get properites file failed. File:" + fileName);
 			return null;
 		}
 	}
