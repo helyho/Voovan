@@ -193,51 +193,6 @@ public class Formater {
     public void fillTokens(Message message){
         Map<String, String> tokens = new HashMap<String, String>();
         message.setTokens(tokens);
-        StackTraceElement stackTraceElement = currentStackLine();
-
-        String os = System.getProperty("os.name").toUpperCase();
-
-        if(!os.toUpperCase().contains("WINDOWS")){
-            tokens.put("F0","\033[30m");
-            tokens.put("F1","\033[31m");
-            tokens.put("F2","\033[32m");
-            tokens.put("F3","\033[33m");
-            tokens.put("F4","\033[34m");
-            tokens.put("F5","\033[35m");
-            tokens.put("F6","\033[36m");
-            tokens.put("F7","\033[37m");
-            tokens.put("FD","\033[39m");
-
-            tokens.put("B0","\033[40m");
-            tokens.put("B1","\033[41m");
-            tokens.put("B2","\033[42m");
-            tokens.put("B3","\033[43m");
-            tokens.put("B4","\033[44m");
-            tokens.put("B5","\033[45m");
-            tokens.put("B6","\033[46m");
-            tokens.put("B7","\033[47m");
-            tokens.put("BD","\033[49m");
-        } else{
-            tokens.put("F0","");
-            tokens.put("F1","");
-            tokens.put("F2","");
-            tokens.put("F3","");
-            tokens.put("F4","");
-            tokens.put("F5","");
-            tokens.put("F6","");
-            tokens.put("F7","");
-            tokens.put("FD","");
-
-            tokens.put("B0","");
-            tokens.put("B1","");
-            tokens.put("B2","");
-            tokens.put("B3","");
-            tokens.put("B4","");
-            tokens.put("B5","");
-            tokens.put("B6","");
-            tokens.put("B7","");
-            tokens.put("BD","");
-        }
 
         //Message和栈信息公用
         tokens.put("t", "\t");
@@ -245,17 +200,75 @@ public class Formater {
         tokens.put("n", TFile.getLineSeparator());
         tokens.put("I", message.getMessage());
 
+        if(LoggerStatic.HAS_COLOR) {
 
-        //栈信息独享
-        tokens.put("P", TObject.nullDefault(message.getLevel(),"INFO"));			//信息级别
-        tokens.put("SI", stackTraceElement.toString());									//堆栈信息
-        tokens.put("L", Integer.toString((stackTraceElement.getLineNumber())));			//行号
-        tokens.put("M", stackTraceElement.getMethodName());								//方法名
-        tokens.put("F", stackTraceElement.getFileName());								//源文件名
-        tokens.put("C", stackTraceElement.getClassName());								//类名
-        tokens.put("T", currentThreadName());											//线程
-        tokens.put("D", TDateTime.now("YYYY-MM-dd HH:mm:ss:SS z"));						//当前时间
-        tokens.put("R", Long.toString(System.currentTimeMillis() - LoggerStatic.getStartTimeMillis())); //系统运行时间
+            if (!TEnv.OS_NAME.toUpperCase().contains("WINDOWS")) {
+                tokens.put("F0", "\033[30m");
+                tokens.put("F1", "\033[31m");
+                tokens.put("F2", "\033[32m");
+                tokens.put("F3", "\033[33m");
+                tokens.put("F4", "\033[34m");
+                tokens.put("F5", "\033[35m");
+                tokens.put("F6", "\033[36m");
+                tokens.put("F7", "\033[37m");
+                tokens.put("FD", "\033[39m");
+
+                tokens.put("B0", "\033[40m");
+                tokens.put("B1", "\033[41m");
+                tokens.put("B2", "\033[42m");
+                tokens.put("B3", "\033[43m");
+                tokens.put("B4", "\033[44m");
+                tokens.put("B5", "\033[45m");
+                tokens.put("B6", "\033[46m");
+                tokens.put("B7", "\033[47m");
+                tokens.put("BD", "\033[49m");
+            } else {
+                tokens.put("F0", "");
+                tokens.put("F1", "");
+                tokens.put("F2", "");
+                tokens.put("F3", "");
+                tokens.put("F4", "");
+                tokens.put("F5", "");
+                tokens.put("F6", "");
+                tokens.put("F7", "");
+                tokens.put("FD", "");
+
+                tokens.put("B0", "");
+                tokens.put("B1", "");
+                tokens.put("B2", "");
+                tokens.put("B3", "");
+                tokens.put("B4", "");
+                tokens.put("B5", "");
+                tokens.put("B6", "");
+                tokens.put("B7", "");
+                tokens.put("BD", "");
+            }
+        }
+
+        if(LoggerStatic.HAS_LEVEL) {
+            tokens.put("P", TObject.nullDefault(message.getLevel(), "INFO"));                //信息级别
+        }
+
+        if(LoggerStatic.HAS_THREAD) {
+            tokens.put("T", currentThreadName());                                            //线程
+        }
+
+        if(LoggerStatic.HAS_DATE) {
+            tokens.put("D", TDateTime.now("YYYY-MM-dd HH:mm:ss:SS z"));                      //当前时间
+        }
+
+        if(LoggerStatic.HAS_RUNTIME) {
+            tokens.put("R", Long.toString(System.currentTimeMillis() - LoggerStatic.getStartTimeMillis())); //系统运行时间
+        }
+
+        if(LoggerStatic.HAS_STACK) {
+            StackTraceElement stackTraceElement = currentStackLine();
+            tokens.put("SI", stackTraceElement.toString());                                 //堆栈信息
+            tokens.put("L", Integer.toString((stackTraceElement.getLineNumber())));			//行号
+            tokens.put("M", stackTraceElement.getMethodName());								//方法名
+            tokens.put("F", stackTraceElement.getFileName());								//源文件名
+            tokens.put("C", stackTraceElement.getClassName());								//类名
+        }
     }
 
     /**
@@ -394,8 +407,7 @@ public class Formater {
      * @return 新的实例
      */
     public static Formater newInstance() {
-        String logTemplate = LoggerStatic.getLogConfig("LogTemplate", LoggerStatic.LOG_TEMPLATE);
-        return new Formater(logTemplate);
+        return new Formater(LoggerStatic.LOG_TEMPLATE);
     }
 
     /**

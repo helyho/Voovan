@@ -113,8 +113,8 @@ public class LoggerThread implements Runnable {
 				if (formatedMessage != null && outputStreams!=null) {
 					for (OutputStream outputStream : outputStreams) {
 						if (outputStream != null) {
-							if(!(outputStream instanceof PrintStream)){
-								//文件写入踢出着色部分
+							if(LoggerStatic.HAS_COLOR && !(outputStream instanceof PrintStream)){
+								//文件写入剔除出着色部分
 								formatedMessage = TString.fastReplaceAll(formatedMessage, "\033\\[\\d{2}m", "");
 							}
 							outputStream.write(formatedMessage.getBytes());

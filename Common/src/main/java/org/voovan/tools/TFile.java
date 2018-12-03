@@ -23,6 +23,8 @@ import java.util.regex.Matcher;
  */
 public class TFile {
 
+	private static String LINE_SEPARATOR = System.getProperty("line.separator");
+
 	/**
 	 * 判断文件是否存在
 	 * @param fullPath 文件完整路径
@@ -134,18 +136,12 @@ public class TFile {
 	 * @return File 对象
 	 */
 	public static File getResourceFile(String resourcePath) {
-		try {
-			resourcePath = URLDecoder.decode(resourcePath,"utf-8");
-			URL url = TEnv.class.getClassLoader().getResource(resourcePath);
-			if(url!=null){
-				File file = new File(url.getFile());
-				return file;
-			}
-			return null;
-		} catch (UnsupportedEncodingException e) {
-			Logger.error("Load resource URLDecoder.decode failed",e);
-			return null;
+		URL url = TEnv.class.getClassLoader().getResource(resourcePath);
+		if(url!=null){
+			File file = new File(url.getFile());
+			return file;
 		}
+		return null;
 	}
 
 	/**
@@ -435,7 +431,7 @@ public class TFile {
 	 * @return 系统默认的换行符号
 	 */
 	public static String getLineSeparator() {
-		return System.getProperty("line.separator");
+		return LINE_SEPARATOR;
 	}
 
 	/**
