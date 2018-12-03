@@ -292,7 +292,7 @@ public class TPerformance {
 	 */
 	public static Map<String, Integer> getSysMemInfo() throws IOException, InterruptedException
 	{
-		if(System.getProperty("os.name").toLowerCase().contains("linux")) {
+		if(TEnv.OS_NAME.toLowerCase().contains("linux")) {
 			try(FileInputStream fileInputStream = new FileInputStream("/proc/meminfo")) {
 				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
 				Map<String, Integer> result = new HashMap<String, Integer>();
@@ -336,7 +336,7 @@ public class TPerformance {
 	 * @throws InterruptedException 打断异常
 	 */
 	public static Map<String, Integer> getSysCpuInfo() throws IOException, InterruptedException {
-		if(System.getProperty("os.name").toLowerCase().contains("linux")) {
+		if(TEnv.OS_NAME.toLowerCase().contains("linux")) {
 			Map<String, Integer> result = new HashMap<String, Integer>();
 			try(FileInputStream fileInputStream = new FileInputStream("/proc/stat")) {
 				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));

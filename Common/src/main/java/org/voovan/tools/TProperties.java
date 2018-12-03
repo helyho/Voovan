@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * properties文件操作类
@@ -22,7 +23,8 @@ import java.util.Properties;
  */
 public class TProperties {
 
-	private static HashMap<File, Properties> propertiesCache = new HashMap<File, Properties>();
+	private static ConcurrentHashMap<File, Properties> propertiesCache = new ConcurrentHashMap<File, Properties>();
+	private static ConcurrentHashMap<String, File> propertiesFile = new ConcurrentHashMap<String, File>();
 	private static String TIME_STAMP_NAME = "$$LMT";
 
 	static {
@@ -88,29 +90,44 @@ public class TProperties {
 	 * @return Properties 对象
 	 */
 	public static Properties getProperties(String fileName) {
-		String configFileNameWithEnv = null;
-		String configFileName = "";
-		if(!fileName.contains(".properties")){
+		File file = null;
 
-			String envName = TEnv.getEnvName();
-			envName = envName==null ? "" : "-"+envName;
-			configFileNameWithEnv = fileName + envName + ".properties";
-			configFileName = fileName + ".properties";
+		if(!propertiesFile.containsKey(fileName)) {
+
+			String configFileNameWithEnv = null;
+			String configFileName = "";
+			if (!fileName.contains(".properties")) {
+
+				String envName = TEnv.getEnvName();
+				envName = envName == null ? "" : "-" + envName;
+				configFileNameWithEnv = fileName + envName + ".properties";
+				configFileName = fileName + ".properties";
+			}
+
+			File configFile = TFile.getResourceFile(configFileName);
+			File configFileWithEnv = TFile.getResourceFile(configFileNameWithEnv);
+
+
+			if (configFileWithEnv != null) {
+				file = configFileWithEnv;
+			}
+
+			if (configFile != null) {
+				file = configFile;
+			}
+
+			propertiesFile.put(fileName, file);
+
+		} else {
+			file = propertiesFile.get(fileName);
 		}
 
-		File configFile = TFile.getResourceFile(configFileName);
-		File configFileWithEnv = TFile.getResourceFile(configFileNameWithEnv);
-
-		if(configFileWithEnv!=null){
-			return getProperties(configFileWithEnv);
+		if(file!=null) {
+			return getProperties(file);
+		} else {
+			Logger.error("Get properites file failed. File:" + fileName, new FileNotFoundException());
+			return null;
 		}
-
-		if(configFile!=null){
-			return getProperties(configFile);
-		}
-
-		Logger.error("Get properites file failed. File:" + fileName, new FileNotFoundException());
-		return null;
 	}
 
 	/**

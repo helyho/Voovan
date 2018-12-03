@@ -33,6 +33,8 @@ import java.util.regex.Matcher;
  */
 public class TEnv {
 	public static Float JDK_VERSION = Float.valueOf(System.getProperty("java.vm.specification.version"));
+	public static String OS_NAME = System.getProperty("os.name").toUpperCase();
+
 
 	public static Instrumentation instrumentation;
 
