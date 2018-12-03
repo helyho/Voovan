@@ -18,17 +18,28 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class CachedHashMapTest extends TestCase{
 
+    public void testput() {
+        CachedHashMap cachedHashMap = new CachedHashMap();
+        cachedHashMap.put("aaa", "aaa");
+
+        TEnv.sleep(2000);
+
+        System.out.println(cachedHashMap.get("aaa"));
+    }
+
     public void testBasic() {
         CachedHashMap cachedHashMap = new CachedHashMap()
                 .maxSize(100)
                 .interval(1)
+                .expire(1)
                 .supplier((t)-> t + "_"+ System.currentTimeMillis())
                 .autoRemove(true)
                 .create();
 
         for(int i=0;i<100;i++) {
-            cachedHashMap.put("key_" + i, "value_" + i, (5+i));
+            cachedHashMap.put("key_" + i, "value_" + i);
         }
+
         TEnv.sleep(2000);
 
         for(int x=0;x<10000;x++) {
@@ -42,6 +53,7 @@ public class CachedHashMapTest extends TestCase{
             });
         }
         TEnv.sleep(2000);
+        cachedHashMap.expire(0);
         cachedHashMap.put("key_aaa", "value_aaa");
         cachedHashMap.put("key_bbb", "value_bbb");
         cachedHashMap.put("key_ccc", "value_ccc");
@@ -54,7 +66,7 @@ public class CachedHashMapTest extends TestCase{
     }
 
     public void testLockTest(){
-        CachedHashMap cachedHashMap = new CachedHashMap().create();
+        CachedHashMap cachedHashMap = new CachedHashMap().create().expire(1);
 
         for(int i=0;i<10;i++) {
             final int fi = i;
@@ -62,7 +74,8 @@ public class CachedHashMapTest extends TestCase{
                 @Override
                 public void run() {
                     for(int x=0; x<500; x++) {
-                        System.out.println(fi + " " + x + " " + cachedHashMap.putIfAbsent("test", "value"));
+                        TEnv.sleep(10);
+                        System.out.println(fi + " " + x + " " + cachedHashMap.putIfAbsent("test", "value" + fi+"_" +x));
                     }
                 }
             });
@@ -77,37 +90,33 @@ public class CachedHashMapTest extends TestCase{
         final AtomicInteger x = new AtomicInteger(0);
 
         for(int i=0;i<100;i++) {
-            Global.getThreadPool().execute(() -> {
-                Object m = cachedHashMap.get("test", (key) -> {
-                    String result = System.currentTimeMillis() + " " + key;
-                    TEnv.sleep(1);
-                    cachedHashMap.expire(key, 1000);
-                    System.out.println("gen "+result);
-                    return result;
-                });
-
-                System.out.println(x.getAndIncrement() + " " + m);
-            });
+            int finali = i;
+            Object m = cachedHashMap.get("test" + finali, (key) -> {
+                String result = System.currentTimeMillis() + " " + key;
+                TEnv.sleep(1);
+                System.out.println("gen "+result);
+                return result;
+            }, 1l);
         }
 
-        TEnv.sleep(3000);
+        System.out.println("before: " + cachedHashMap.size());
+        TEnv.sleep(2000);
+        System.out.println("after: " + cachedHashMap.size());
 
         for(int i=0;i<10;i++) {
-            Global.getThreadPool().execute(() -> {
-                Object m = cachedHashMap.get("test", (key) -> {
-                    String result = System.currentTimeMillis() + " " + key;
-                    TEnv.sleep(1000);
-                    cachedHashMap.expire(key, 3000);
-                    System.out.println("gen "+result);
-                    return result;
-                });
+            Object m = cachedHashMap.get("test", (key) -> {
+                String result = System.currentTimeMillis() + " " + key;
+                TEnv.sleep(1000);
+                System.out.println("gen "+result);
+                return result;
+            }, 5l);
 
-                System.out.println(x.getAndIncrement() + " " + m);
-            });
+            System.out.println(x.getAndIncrement() + " " + m);
         }
 
 
         for (int i=0;i<60*1000;i++){
+            cachedHashMap.getAndRefresh("test");
             TEnv.sleep(1);
         }
 
