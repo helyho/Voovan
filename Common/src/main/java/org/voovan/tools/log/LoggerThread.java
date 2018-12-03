@@ -118,7 +118,6 @@ public class LoggerThread implements Runnable {
 								formatedMessage = TString.fastReplaceAll(formatedMessage, "\033\\[\\d{2}m", "");
 							}
 							outputStream.write(formatedMessage.getBytes());
-							outputStream.flush();
 
 							needFlush = true;
 						}
