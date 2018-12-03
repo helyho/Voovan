@@ -2,11 +2,14 @@ package org.voovan.test.tools.cache;
 
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TObject;
+import org.voovan.tools.cache.CachedHashMap;
 import org.voovan.tools.cache.RedisMap;
+import org.voovan.tools.TObject;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import junit.framework.TestCase;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 类文字命名
@@ -51,6 +54,10 @@ public class RedisMapUnit extends TestCase{
 
     public void testKeySet(){
         assertEquals(2, redisMapOld.keySet().size());
+    }
+
+    public void testKeySets(){
+        assertEquals(2, redisMapOld.keySet("a*").size());
     }
 
     public void testValues(){
@@ -114,5 +121,77 @@ public class RedisMapUnit extends TestCase{
         }
 
         TEnv.sleep(60*1000);
+    }
+
+    public void testBasicSuppler(){
+        redisMapOld = new RedisMap("127.0.0.1", 6379, 2000, 100).supplier((key) -> {
+            String result = System.currentTimeMillis() + " " + key;
+            TEnv.sleep(1);
+            System.out.println("gen "+result);
+            return result;
+        }).expire(1);
+
+        final AtomicInteger x = new AtomicInteger(0);
+
+        for(int i=0;i<100;i++) {
+            int finali = i;
+            Object m = redisMapOld.get("test" + finali);
+        }
+
+        System.out.println("before" + redisMapOld.size());
+        TEnv.sleep(2000);
+        System.out.println("after: " +redisMapOld.size());
+
+
+        redisMapOld.expire(10L);
+        for(int i=0;i<10;i++) {
+            Object m = redisMapOld.get("test");
+
+            System.out.println(x.getAndIncrement() + " " + m);
+        }
+
+
+        for (int i=0;i<60*1000;i++){
+            TEnv.sleep(1);
+        }
+
+    }
+
+    public void testSuppler(){
+        redisMapOld = new RedisMap("127.0.0.1", 6379, 2000, 100).expire(5l);
+
+        final AtomicInteger x = new AtomicInteger(0);
+
+        for(int i=0;i<100;i++) {
+            int finali = i;
+            Object m = redisMapOld.get("test" + finali, (key) -> {
+                String result = System.currentTimeMillis() + " " + key;
+                TEnv.sleep(1);
+                System.out.println("gen "+result);
+                return result;
+            }, 1l);
+        }
+
+        System.out.println(redisMapOld.size());
+        TEnv.sleep(1500);
+        System.out.println(redisMapOld.size());
+
+        for(int i=0;i<10;i++) {
+            Object m = redisMapOld.get("test", (key) -> {
+                String result = System.currentTimeMillis() + " " + key;
+                TEnv.sleep(1000);
+                System.out.println("gen "+result);
+                return result;
+            });
+
+            System.out.println(x.getAndIncrement() + " " + m);
+        }
+
+
+        for (int i=0;i<60*1000;i++){
+            redisMapOld.getAndRefresh("test");
+            TEnv.sleep(1000);
+        }
+
     }
 }

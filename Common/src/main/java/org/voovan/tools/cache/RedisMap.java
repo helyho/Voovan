@@ -30,7 +30,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public static final String SET_NOT_EXIST = "NX";
     public static final String SET_EXPIRE_TIME = "PX";
 
-    private long expire = Long.MAX_VALUE;
+    private long expire = 0;
 
 
     private JedisPool redisPool;
@@ -162,6 +162,14 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     }
 
     /**
+     * 获取数据创建 Function 对象
+     * @return Function 对象
+     */
+    public Function<K, V> getSupplier(){
+        return supplier;
+    }
+
+    /**
      * 如果参数为空的默认构造方法
      * @param supplier 创建函数
      */
@@ -251,7 +259,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
                 synchronized (appointedSupplier) {
                     V value = appointedSupplier.apply((K) key);
 
-                    if(createExpire==Long.MAX_VALUE) {
+                    if(createExpire==0) {
                         put((K) key, value);
                     } else {
                         put((K) key, value, createExpire);
@@ -264,7 +272,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
         //是否刷新超时时间
         if(refresh && name==null){
             if(createExpire!=null) {
-                this.expire((K) key, createExpire);
+                this.setTTL((K) key, createExpire);
             }
         }
 
@@ -273,6 +281,10 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
 
     @Override
     public V put(K key,V value) {
+        if(expire!=0){
+            return put(key, value, expire);
+        }
+
         byte[] keyByteArray = CacheStatic.serialize(key);
         byte[] valueByteArray = CacheStatic.serialize(value);
 
@@ -326,6 +338,10 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      */
     @Override
     public V putIfAbsent(K key, V value) {
+        if(expire!=0){
+            return putIfAbsent(key, value, expire);
+        }
+
         byte[] keyByteArray = CacheStatic.serialize(key);
         byte[] valueByteArray = CacheStatic.serialize(value);
 
@@ -390,8 +406,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      * @param key 键
      * @param expire 超时时间
      */
-    @Override
-    public boolean expire(K key, long expire) {
+    public boolean setTTL(K key, long expire) {
         byte[] keyByteArray = CacheStatic.serialize(key);
 
         try (Jedis jedis = getJedis()) {
@@ -408,7 +423,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      * @param key  key 名称
      * @return 超时时间
      */
-    public long expire(K key) {
+    public long getTTL(K key) {
         byte[] keyByteArray = CacheStatic.serialize(key);
 
         try (Jedis jedis = getJedis()) {
@@ -464,7 +479,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public void putAll(Map<? extends K, ? extends V> map) {
         try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
-                Map.Entry entry = (Map.Entry) obj;
+                Entry entry = (Entry) obj;
 
                 byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
                 byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
@@ -481,7 +496,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public void putAll(Map<? extends K, ? extends V> map, long expire) {
         try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
-                Map.Entry entry = (Map.Entry) obj;
+                Entry entry = (Entry) obj;
 
                 byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
                 byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
@@ -569,7 +584,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     }
 
     @Override
-    public Set<Map.Entry<K, V>> entrySet() {
+    public Set<Entry<K, V>> entrySet() {
         throw new UnsupportedOperationException();
     }
 
@@ -640,12 +655,12 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
                 }
                 return scanedObject;
             }else {
-                ScanResult<Map.Entry<byte[], byte[]>> scanResult = jedis.hscan(name.getBytes(), cursor.getBytes(), scanParams);
+                ScanResult<Entry<byte[], byte[]>> scanResult = jedis.hscan(name.getBytes(), cursor.getBytes(), scanParams);
                 ScanedObject scanedObject = new ScanedObject(scanResult.getStringCursor());
 
-                for(Map.Entry<byte[], byte[]> entryItem : scanResult.getResult()){
+                for(Entry<byte[], byte[]> entryItem : scanResult.getResult()){
 
-                    Map.Entry<K, V> entry = new AbstractMap.SimpleEntry<K, V>((K)CacheStatic.unserialize(entryItem.getKey()), (V)CacheStatic.unserialize(entryItem.getValue()));
+                    Entry<K, V> entry = new AbstractMap.SimpleEntry<K, V>((K)CacheStatic.unserialize(entryItem.getKey()), (V)CacheStatic.unserialize(entryItem.getValue()));
                     scanedObject.getResultList().add(entry);
                 }
                 return scanedObject;
