@@ -21,12 +21,12 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class HttpMessageSplitter implements MessageSplitter {
-    private int result = -1;
 
     @Override
     public int canSplite(IoSession session, ByteBuffer byteBuffer) {
-        //返回 -1: 报文未完整接受, -2: 报文异常, 管理连接
+        int result = -1;
 
+        //返回 -1: 报文未完整接受, -2: 报文异常, 管理连接
         if(byteBuffer.limit()==0){
             return -1;
         }
@@ -36,7 +36,7 @@ public class HttpMessageSplitter implements MessageSplitter {
         }else{
             result = isHttpFrame(byteBuffer);
 
-            if(result>0){
+            if(result > 0){
                 if (!session.containAttribute(HttpSessionParam.TYPE)) {
                     session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.HTTP);
                 }
@@ -60,7 +60,6 @@ public class HttpMessageSplitter implements MessageSplitter {
     private int isHttpFrame(ByteBuffer byteBuffer){
         int bodyTagIndex = -1;
         int protocolLineIndex = -1;
-        StringBuilder stringBuilder = new StringBuilder();
         String protocolLine = null;
 
         bodyTagIndex = TByteBuffer.revIndexOf(byteBuffer, HttpParser.BODY_MARK.getBytes());

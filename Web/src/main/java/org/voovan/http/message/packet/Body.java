@@ -366,7 +366,6 @@ public class Body {
 	}
 
 	public void release(){
-		clear();
 		if(byteBufferChannel!=null) {
 			byteBufferChannel.release();
 		}

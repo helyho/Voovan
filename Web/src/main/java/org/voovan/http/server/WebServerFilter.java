@@ -59,6 +59,10 @@ public class WebServerFilter implements IoFilter {
 	 */
 	@Override
 	public Object decode(IoSession session, Object object) {
+		if(!session.isConnected()){
+			return null;
+		}
+
 		ByteBuffer byteBuffer = (ByteBuffer)object;
 
 		if(byteBuffer.limit()==0){
@@ -66,17 +70,20 @@ public class WebServerFilter implements IoFilter {
 		}
 
 		ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
+
 		if (HttpRequestType.HTTP.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))) {
 
 			Request request = null;
 			try {
 				if (object instanceof ByteBuffer) {
 					request = HttpParser.parseRequest(byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
+
 					if(request!=null){
 						return request;
 					}else{
 						session.close();
 					}
+
 				} else {
 					return null;
 				}
