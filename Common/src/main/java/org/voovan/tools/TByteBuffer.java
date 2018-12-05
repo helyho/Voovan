@@ -47,14 +47,9 @@ public class TByteBuffer {
     }
 
     private static Field ByteBufferField(String fieldName){
-        try {
-            Field field = TReflect.findField(DIRECT_BYTE_BUFFER_CLASS, fieldName);
-            field.setAccessible(true);
-            return field;
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-        }
-        return null;
+        Field field = TReflect.findField(DIRECT_BYTE_BUFFER_CLASS, fieldName);
+        field.setAccessible(true);
+        return field;
     }
 
     /**
