@@ -421,7 +421,7 @@ public class TSQL {
 				String operatorChar = splitedCondicction[0].trim();
 				String[] condictionArr = condiction.split("(\\sbetween\\s+)|(\\sis\\s+)|(\\slike\\s+)|(\\s(not\\s)?in\\s+)|(\\!=)|(>=)|(<=)|[=<>]");
 				condictionArr[0] = condictionArr[0].trim();
-				if(condictionArr[0].startsWith("(")){
+				if(TString.regexMatch(condiction, "\\(") < TString.regexMatch(condiction, "\\)") && condictionArr[0].startsWith("(")){
 					condictionArr[0] = TString.removePrefix(condictionArr[0]);
 				}
 
