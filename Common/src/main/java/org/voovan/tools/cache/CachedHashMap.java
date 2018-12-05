@@ -420,6 +420,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
             return false;
         } else {
             timeMark.setExpireTime(expire);
+            timeMark.refresh(true);
         }
 
         return true;

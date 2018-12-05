@@ -2,20 +2,16 @@ package org.voovan.http.server;
 
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.server.context.WebServerConfig;
+import org.voovan.tools.cache.CacheMap;
+import org.voovan.tools.cache.CachedHashMap;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
-import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * WebServer session 管理器
- * 在 nosql 中指定默认的超时 Session 清理节点(key=SESSION_MANAGER_SERVER)的服务名
- * 可以保证集群中只有一个节点进行超时 Session 的清理工作
  *
- * 用到的 Map 接口的实现类的方法: keySet, containsKey, put, get, remove
+ * 用到的 CacheMap 接口的实现类的方法
  *
  * @author helyho
  *
@@ -24,11 +20,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class SessionManager{
-	private  Map<String, Object> httpSessions;
+	private CacheMap<String, Object> httpSessions;
 
 	private WebServerConfig webConfig;
 
-	private Method expirePutMethod = null;
 
 	/**
 	 * 构造函数
@@ -37,29 +32,15 @@ public class SessionManager{
 	public SessionManager(WebServerConfig webConfig){
 		this.webConfig = webConfig;
 		httpSessions = getSessionContainer();
+
+		if(httpSessions instanceof CachedHashMap){
+			((CachedHashMap)httpSessions).create();
+		}
+
 		if(httpSessions == null){
-			httpSessions = new ConcurrentHashMap<String, Object>();
-			Logger.warn("Create session container from config file failed,now use defaul session container.");
+			httpSessions = new CachedHashMap<String, Object>();
+			Logger.warn("Create session container from config file failed,now use CachedHashMap as defaul session container.");
 		}
-
-		autoExpire();
-	}
-
-	/**
-	 * 判断缓存session 的 map 是否支持自清除
-	 * @return true:支持自清除, false: 不支持自清除
-	 */
-	public boolean autoExpire(){
-
-		if(expirePutMethod == null) {
-			try {
-				expirePutMethod = TReflect.findMethod(httpSessions.getClass(), "put", String.class, String.class, long.class);
-			} catch (ReflectiveOperationException e) {
-				expirePutMethod = null;
-			}
-		}
-
-		return expirePutMethod == null ? false : true;
 	}
 
 	/**
@@ -67,7 +48,7 @@ public class SessionManager{
 	 *
 	 * @return Session 容器 Map
 	 */
-	public Map<String, Object> getSessionContainer(){
+	public CacheMap<String, Object> getSessionContainer(){
 		if(httpSessions!=null){
 			return httpSessions;
 		}else{
@@ -76,7 +57,7 @@ public class SessionManager{
 				//根据 Class 构造一个 Session 容器
 				return TReflect.newInstance(sessionContainerClassName);
 			} catch (ReflectiveOperationException e) {
-				Logger.error("Reflective operation error",e);
+				Logger.error("SessionManager.getSessionContainer Reflective operation error",e);
 				return null;
 			}
 		}
@@ -88,14 +69,10 @@ public class SessionManager{
 	 * @param session HTTP-Session对象
 	 */
 	public void saveSession(HttpSession session) {
-		if(!autoExpire()) {
-			httpSessions.put(session.getId(), session);
-		}else{
-			try {
-				TReflect.invokeMethod(httpSessions, expirePutMethod, session.getId(), JSON.toJSON(session), session.getMaxInactiveInterval() / 1000);
-			} catch (ReflectiveOperationException e) {
-				httpSessions.put(session.getId(), JSON.toJSON(session));
-			}
+		if(httpSessions instanceof CachedHashMap){
+			httpSessions.put(session.getId(), session, session.getMaxInactiveInterval());
+		} else {
+			httpSessions.put(session.getId(), JSON.toJSON(session), session.getMaxInactiveInterval());
 		}
 	}
 
@@ -108,7 +85,7 @@ public class SessionManager{
 	public HttpSession getSession(String id) {
 		if (id!=null && httpSessions.containsKey(id)) {
 
-			Object sessionObject  = httpSessions.get(id);
+			Object sessionObject  = httpSessions.getAndRefresh(id);
 
 			HttpSession httpSession = null;
 
@@ -120,12 +97,6 @@ public class SessionManager{
 				httpSession = JSON.toObject((String)sessionObject, HttpSession.class);
 			}
 
-			if(httpSession!=null) {
-				if (httpSession.isExpire()) {
-					removeSession(httpSession);
-					return null;
-				}
-			}
 			return httpSession;
 		}
 		return null;
