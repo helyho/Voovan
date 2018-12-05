@@ -14,11 +14,13 @@ public class TSQLUnit {
         String s = "select * from deposit_request m1 \n" +
                 " , (select 1 from adfa where mmmm=::111 and kkkk=::kkk)m2, gggg m3 \n" +
                 "                            where status != '1111) ooo' \n" +
+                "                            and  kkk+ppp > ::0 \n" +
+                "                            and  (kkk+ppp) > ::0 \n" +
                 "                            and onceDrawLimit = ::onceDrawLimit \n" +
                 "                            AND `t1.random_deposit_amountx` = ::kkand \n" +
                 "                            AND `random_deposit_amountx` = ::kkand \n" +
-                "							 and  mmm not in ('111', ::10, ::11, ::12, ::13)\n" +
-                "							 and  mmm in (124, ::10, ::11, ::12, ::13)\n" +
+                "							 and  mmm not in (::10, ::11, ::12, ::13)\n" +
+                "							 and  mmm in (::10, ::11, ::12, ::13)\n" +
                 "                            and  (client_account_name >= ::1 or client_card_number <= ::2) \n" +
                 "                            and  (client_account_name != ::3 or client_card_numbe1 > ::4) \n" +
                 "                            and  (post_script >= ::6 or deposit_amount = ::7 or random_deposit_amount = ::8)\n" +

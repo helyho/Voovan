@@ -360,6 +360,7 @@ public class TSQL {
 								targetCondiction = targetCondiction.replaceAll("\\)", "\\\\)");
 								targetCondiction = targetCondiction.replaceAll("\\[", "\\\\[");
 								targetCondiction = targetCondiction.replaceAll("\\]", "\\\\]");
+								targetCondiction = targetCondiction.replaceAll("\\+", "\\\\+");
 								replaceCondiction = TString.fastReplaceAll(orginCondiction, targetCondiction , replaceCondiction);
 							}
 						}
@@ -375,6 +376,7 @@ public class TSQL {
 						originCondictionParams = originCondictionParams.replaceAll("\\)", "\\\\)");
 						originCondictionParams = originCondictionParams.replaceAll("\\[", "\\\\[");
 						originCondictionParams = originCondictionParams.replaceAll("\\]", "\\\\]");
+						originCondictionParams = originCondictionParams.replaceAll("\\+", "\\\\+");
 						replaceCondiction = TString.fastReplaceAll(replaceCondiction, originCondictionParams, condictionParams);
 					}
 
