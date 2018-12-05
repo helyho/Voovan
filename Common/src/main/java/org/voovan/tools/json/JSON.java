@@ -7,7 +7,6 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Type;
 import java.text.ParseException;
-import java.util.TreeMap;
 import java.util.function.Supplier;
 
 /**
@@ -28,16 +27,17 @@ public class JSON {
 	private static ThreadLocal<Boolean> convertEscapeChar = ThreadLocal.withInitial(new Supplier<Boolean>() {
 		@Override
 		public Boolean get() {
-
-			Logger.simple("[SYSTEM] JSON convert escape_char: " + (JSON_CONVERT_ESCAPE_CHAR==null?"true":"false"));
+			boolean isEscapeChare = true;
 
 			if("true".equalsIgnoreCase(JSON_CONVERT_ESCAPE_CHAR)) {
-				return true;
+				isEscapeChare = true;
 			} if("false".equalsIgnoreCase(JSON_CONVERT_ESCAPE_CHAR)) {
-				return false;
+				isEscapeChare = false;
 			} else {
-				return true;
+				isEscapeChare = true;
 			}
+
+			return isEscapeChare;
 		}
 	});
 
