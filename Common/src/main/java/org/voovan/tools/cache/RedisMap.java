@@ -150,7 +150,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
      * 选择当前数据集
      * @param dbIndex 数据集序号
      */
-    public RedisMap<K, V> setDbIndex(int dbIndex) {
+    public RedisMap<K, V> dbIndex(int dbIndex) {
         this.dbIndex = dbIndex;
         return this;
     }
@@ -479,7 +479,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public void putAll(Map<? extends K, ? extends V> map) {
         try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
-                Entry entry = (Entry) obj;
+                Map.Entry entry = (Map.Entry) obj;
 
                 byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
                 byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
@@ -496,7 +496,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     public void putAll(Map<? extends K, ? extends V> map, long expire) {
         try (Jedis jedis = getJedis()){
             for (Object obj : map.entrySet()) {
-                Entry entry = (Entry) obj;
+                Map.Entry entry = (Map.Entry) obj;
 
                 byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
                 byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
@@ -584,7 +584,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     }
 
     @Override
-    public Set<Entry<K, V>> entrySet() {
+    public Set<Map.Entry<K, V>> entrySet() {
         throw new UnsupportedOperationException();
     }
 
@@ -655,12 +655,12 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
                 }
                 return scanedObject;
             }else {
-                ScanResult<Entry<byte[], byte[]>> scanResult = jedis.hscan(name.getBytes(), cursor.getBytes(), scanParams);
+                ScanResult<Map.Entry<byte[], byte[]>> scanResult = jedis.hscan(name.getBytes(), cursor.getBytes(), scanParams);
                 ScanedObject scanedObject = new ScanedObject(scanResult.getStringCursor());
 
-                for(Entry<byte[], byte[]> entryItem : scanResult.getResult()){
+                for(Map.Entry<byte[], byte[]> entryItem : scanResult.getResult()){
 
-                    Entry<K, V> entry = new AbstractMap.SimpleEntry<K, V>((K)CacheStatic.unserialize(entryItem.getKey()), (V)CacheStatic.unserialize(entryItem.getValue()));
+                    Map.Entry<K, V> entry = new AbstractMap.SimpleEntry<K, V>((K)CacheStatic.unserialize(entryItem.getKey()), (V)CacheStatic.unserialize(entryItem.getValue()));
                     scanedObject.getResultList().add(entry);
                 }
                 return scanedObject;
