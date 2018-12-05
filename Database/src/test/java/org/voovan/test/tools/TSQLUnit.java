@@ -17,8 +17,8 @@ public class TSQLUnit {
                 "                            and onceDrawLimit = ::onceDrawLimit \n" +
                 "                            AND `t1.random_deposit_amountx` = ::kkand \n" +
                 "                            AND `random_deposit_amountx` = ::kkand \n" +
-                "							 and  mmm not in (::10, ::11, ::12, ::13)\n" +
-                "							 and  mmm in (::10, ::11, ::12, ::13)\n" +
+                "							 and  mmm not in ('111', ::10, ::11, ::12, ::13)\n" +
+                "							 and  mmm in (124, ::10, ::11, ::12, ::13)\n" +
                 "                            and  (client_account_name >= ::1 or client_card_number <= ::2) \n" +
                 "                            and  (client_account_name != ::3 or client_card_numbe1 > ::4) \n" +
                 "                            and  (post_script >= ::6 or deposit_amount = ::7 or random_deposit_amount = ::8)\n" +
