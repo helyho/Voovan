@@ -13,6 +13,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -28,13 +29,13 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class TReflect {
 
-    private static Map<String, Field> fields = new HashMap<String ,Field>();
-    private static Map<String, Method> methods = new HashMap<String ,Method>();
-    private static Map<String, Constructor> constructors = new HashMap<String ,Constructor>();
-    private static Map<String, Field[]> fieldArrays = new HashMap<String ,Field[]>();
-    private static Map<String, Method[]> methodArrays = new HashMap<String ,Method[]>();
-    private static Map<String, Constructor[]> constructorArrays = new HashMap<String ,Constructor[]>();
-    private static Map<String, Boolean> classHierarchy = new HashMap<String ,Boolean>();
+    private static Map<String, Field> fields = new ConcurrentHashMap<String ,Field>();
+    private static Map<String, Method> methods = new ConcurrentHashMap<String ,Method>();
+    private static Map<String, Constructor> constructors = new ConcurrentHashMap<String ,Constructor>();
+    private static Map<String, Field[]> fieldArrays = new ConcurrentHashMap<String ,Field[]>();
+    private static Map<String, Method[]> methodArrays = new ConcurrentHashMap<String ,Method[]>();
+    private static Map<String, Constructor[]> constructorArrays = new ConcurrentHashMap<String ,Constructor[]>();
+    private static Map<String, Boolean> classHierarchy = new ConcurrentHashMap<String ,Boolean>();
 
     /**
      * 获得类所有的Field
@@ -69,8 +70,7 @@ public class TReflect {
      * @throws NoSuchFieldException 无 Field 异常
      * @throws SecurityException 安全性异常
      */
-    public static Field findField(Class<?> clazz, String fieldName)
-            throws ReflectiveOperationException {
+    public static Field findField(Class<?> clazz, String fieldName) {
 
         String mark = new StringBuilder(clazz.getCanonicalName()).append("#").append(fieldName).toString();
 
