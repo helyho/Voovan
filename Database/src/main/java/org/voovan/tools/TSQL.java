@@ -428,16 +428,8 @@ public class TSQL {
 				condictionArr[1] = condictionArr[1].trim();
 
 				if(condictionArr.length>1){
-					if((condictionArr[1].trim().startsWith("'") && condictionArr[1].trim().endsWith("'")) ||
-							(condictionArr[1].trim().startsWith("\"") && condictionArr[1].trim().endsWith("\""))||
-							(condictionArr[1].trim().startsWith("`") && condictionArr[1].trim().endsWith("`"))||
-							(condictionArr[1].trim().startsWith("(") && condictionArr[1].trim().endsWith(")"))
-					){
+					if(operatorChar.contains("in") && condictionArr[1].trim().startsWith("(") && condictionArr[1].trim().endsWith(")")){
 						condictionArr[1] = condictionArr[1].substring(1,condictionArr[1].length()-1);
-					}
-
-					if(operatorChar.contains("in")){
-						condictionArr[1] = condictionArr[1].replace("'", "");
 					}
 
 					if(condictionArr[0].startsWith("(") && TString.regexMatch(condictionArr[1], "\\(") > TString.regexMatch(condictionArr[1], "\\)")){
