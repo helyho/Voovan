@@ -421,24 +421,15 @@ public class TSQL {
 				String operatorChar = splitedCondicction[0].trim();
 				String[] condictionArr = condiction.split("(\\sbetween\\s+)|(\\sis\\s+)|(\\slike\\s+)|(\\s(not\\s)?in\\s+)|(\\!=)|(>=)|(<=)|[=<>]");
 				condictionArr[0] = condictionArr[0].trim();
-				if(TString.regexMatch(condiction, "\\(") < TString.regexMatch(condiction, "\\)") && condictionArr[0].startsWith("(")){
+
+				//查询的主字段 ( 的处理
+				if(TString.regexMatch(condiction, "\\(") > TString.regexMatch(condiction, "\\)") && condictionArr[0].startsWith("(")){
 					condictionArr[0] = TString.removePrefix(condictionArr[0]);
 				}
 
 				condictionArr[1] = condictionArr[1].trim();
 
 				if(condictionArr.length>1){
-					if((condictionArr[1].trim().startsWith("'") && condictionArr[1].trim().endsWith("'")) ||
-							(condictionArr[1].trim().startsWith("\"") && condictionArr[1].trim().endsWith("\""))||
-							(condictionArr[1].trim().startsWith("`") && condictionArr[1].trim().endsWith("`"))||
-							(condictionArr[1].trim().startsWith("(") && condictionArr[1].trim().endsWith(")"))
-					){
-						condictionArr[1] = condictionArr[1].substring(1,condictionArr[1].length()-1);
-					}
-
-					if(operatorChar.contains("in")){
-						condictionArr[1] = condictionArr[1].replace("'", "");
-					}
 
 					if(condictionArr[0].startsWith("(") && TString.regexMatch(condictionArr[1], "\\(") > TString.regexMatch(condictionArr[1], "\\)")){
 						condictionArr[0] = TString.removePrefix(condictionArr[0]);
