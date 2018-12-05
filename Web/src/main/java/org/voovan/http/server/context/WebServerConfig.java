@@ -30,7 +30,7 @@ public class WebServerConfig {
     private String contextPath      = "WEBAPP";
     private boolean MatchRouteIgnoreCase = false;
     private String characterSet     = "UTF-8";
-    private String sessionContainer = "java.util.concurrent.ConcurrentHashMap";
+    private String sessionContainer = "org.voovan.tools.cache.CachedHashMap";
     private int sessionTimeout      = 30;
     private int keepAliveTimeout    = 60;
     private boolean accessLog       = false;

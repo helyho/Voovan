@@ -1,12 +1,10 @@
 package org.voovan.http.server;
 
-import org.voovan.Global;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TString;
-import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.util.Map;
@@ -25,17 +23,15 @@ public class HttpSession {
 	private Map<String,Object> attributes;
 	private String id ;
 	private int maxInactiveInterval;
-	private volatile long lastTimeillis;
+
 	@NotSerialization
 	private SessionManager sessionManager;
+
 	@NotSerialization
 	private IoSession socketSession;
 
-	private boolean needSave;
-	private boolean isAutoCleanRun;
-
 	@NotSerialization
-	private CleanTask cleanTask= null;
+	private boolean needSave;
 
 
 	/**
@@ -49,51 +45,16 @@ public class HttpSession {
 		// ID的创建转义到 save 方法中.在保存时才创建 ID
 		this.id = TString.generateId(this);
 		attributes = new ConcurrentHashMap<String, Object>();
-		lastTimeillis = System.currentTimeMillis();
 		int sessionTimeout = config.getSessionTimeout();
 		if(sessionTimeout<=0){
 			sessionTimeout = 30;
 		}
-		this.maxInactiveInterval = sessionTimeout*60*1000;
+		this.maxInactiveInterval = sessionTimeout*60;
 		this.sessionManager = sessionManager;
 		this.socketSession = socketSession;
 
 		needSave = false;
-		isAutoCleanRun = false;
 	}
-
-	private void autoClean(){
-		if(!isAutoCleanRun) {
-			//如果 session 可以自清除则不进行清理
-			if (!sessionManager.autoExpire()) {
-				cleanTask = new CleanTask(sessionManager, id);
-
-				Global.getHashWheelTimer().addTask(cleanTask, maxInactiveInterval / 1000);
-			}
-			isAutoCleanRun = true;
-		}
-	}
-
-	private class CleanTask extends HashWheelTask {
-
-		@NotSerialization
-		private String sessionId;
-		private SessionManager sessionManager;
-
-		public CleanTask(SessionManager sessionManager, String sessionId) {
-			this.sessionId = sessionId;
-			this.sessionManager = sessionManager;
-		}
-
-		@Override
-		public void run() {
-			HttpSession session = sessionManager.getSession(sessionId);
-			if (session!=null && session.isExpire()) {
-				sessionManager.removeSession(session);
-				this.cancel();
-			}
-		}
-	};
 
 	/**
 	 * 用于从会话池中取出的会话实例化
@@ -127,7 +88,7 @@ public class HttpSession {
 	 * @return HTTP-Session 对象
 	 */
 	public HttpSession refresh(){
-		lastTimeillis = System.currentTimeMillis();
+		sessionManager.getSessionContainer().setTTL(this.id, maxInactiveInterval);
 		return this;
 	}
 
@@ -221,22 +182,11 @@ public class HttpSession {
 	}
 
 	/**
-	 * 当前 Session 是否失效
-	 *
-	 * @return  true: 失效,false: 有效
-	 */
-	public boolean isExpire(){
-		int intervalTime = (int)(System.currentTimeMillis() - lastTimeillis);
-		return intervalTime > maxInactiveInterval;
-	}
-
-	/**
 	 * 保存 Session
 	 */
 	public void save(){
 		if(sessionManager!=null && needSave) {
 			sessionManager.saveSession(this);
-			autoClean();
 			needSave = false;
 		}
 	}
@@ -246,7 +196,6 @@ public class HttpSession {
 	 */
 	public void release(){
 		if(sessionManager!=null && needSave) {
-			cleanTask.cancel();
 			sessionManager.removeSession(this);
 		}
 	}
@@ -273,7 +222,9 @@ public class HttpSession {
 						this.getId(), this.maxInactiveInterval * 60, true);
 				response.cookies().add(sessionCookie);
 			}
-			this.refresh();
+
+			//刷新 session
+			refresh();
 			this.save();
 		} else{
 			sessionManager.removeSession(this);
