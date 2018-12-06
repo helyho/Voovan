@@ -71,7 +71,7 @@ public class MultiMap<K,V>
 
         List<V> vals = getValueList(key);
         vals.add(value);
-        return (List)super.put((K)key, vals);
+        return vals;
     }
 
     /**
