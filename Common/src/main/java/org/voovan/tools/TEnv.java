@@ -34,6 +34,7 @@ import java.util.regex.Matcher;
 public class TEnv {
 	public static Float JDK_VERSION = Float.valueOf(System.getProperty("java.vm.specification.version"));
 	public static String OS_NAME = System.getProperty("os.name").toUpperCase();
+	public static Thread MAIN_THREAD = getMainThread();
 
 
 	public static Instrumentation instrumentation;
@@ -215,14 +216,13 @@ public class TEnv {
 	 * @return true: 主线程结束, false: 主线程未结束
 	 */
 	public static boolean isMainThreadShutDown(){
-		Thread mainThread = getMainThread();
 		//如果主线程结束,则线程池也关闭
-		if(mainThread!=null && mainThread.getState() == Thread.State.TERMINATED) {
+		if(MAIN_THREAD!=null && MAIN_THREAD.getState() == Thread.State.TERMINATED) {
 			return true;
 		}
 
 		//如果主线程没有的,则线程池也关闭
-		if(mainThread==null){
+		if(MAIN_THREAD==null){
 			return true;
 		}
 
