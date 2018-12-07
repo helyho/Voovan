@@ -88,8 +88,10 @@ public class LoggerThread implements Runnable {
 		try {
 			while (true) {
 
+				formatedMessage = logQueue.poll();
+
 				//优化日志输出事件
-				if(logQueue.size() == 0) {
+				if(formatedMessage == null) {
 
 					if(needFlush) {
 						for (OutputStream outputStream : outputStreams) {
@@ -109,7 +111,7 @@ public class LoggerThread implements Runnable {
 					continue;
 				}
 
-				formatedMessage = logQueue.poll();
+
 				if (formatedMessage != null && outputStreams!=null) {
 					for (OutputStream outputStream : outputStreams) {
 						if (outputStream != null) {
