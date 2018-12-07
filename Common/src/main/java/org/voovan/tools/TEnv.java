@@ -525,8 +525,8 @@ public class TEnv {
 				vm.detach();
 				return TEnv.instrumentation;
 			} catch (IOException e) {
-				if (e.getMessage().contains("attach to current VM")) {
-					e = new IOException("please use -Djdk.attach.allowAttachSelf=true with java command.", e);
+				if (e.getMessage().contains("allowAttachSelf")) {
+					e = new IOException("You should add java command arguments: -Djdk.attach.allowAttachSelf=true with java command.");
 				}
 				throw e;
 			}
