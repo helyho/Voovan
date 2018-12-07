@@ -9,6 +9,7 @@ import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpRouter;
 import org.voovan.http.server.WebServer;
+import org.voovan.http.server.context.WebContext;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
@@ -21,7 +22,7 @@ import org.voovan.tools.log.Logger;
 
 
 public class WebServerDemo {
-	private static byte[] fileContent = TFile.loadFileFromContextPath("files/index.htm");
+	private static byte[] fileContent = TFile.loadFileFromContextPath(WebContext.getWebServerConfig().getContextPath()+"/index.htm");
 
 	public static void main(String[] args) {
 		WebServer webServer = WebServer.newInstance();
