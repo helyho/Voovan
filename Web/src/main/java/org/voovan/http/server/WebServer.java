@@ -10,10 +10,7 @@ import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioServerSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
-import org.voovan.tools.TDateTime;
-import org.voovan.tools.TEnv;
-import org.voovan.tools.TFile;
-import org.voovan.tools.TString;
+import org.voovan.tools.*;
 import org.voovan.tools.aop.Aop;
 import org.voovan.tools.hotswap.Hotswaper;
 import org.voovan.tools.json.JSON;
@@ -74,7 +71,7 @@ public class WebServer {
 				Hotswaper hotSwaper = new Hotswaper();
 				hotSwaper.autoReload(config.getHotSwapInterval());
 			} catch (Exception e) {
-				Logger.error("Init hotswap failed", e);
+				Logger.error("Init hotswap failed: " + e.getMessage());
 			}
 		}
 	}
@@ -88,7 +85,7 @@ public class WebServer {
 			try {
 				Aop.init(config.getScanAopPackage());
 			} catch (Exception e) {
-				Logger.error("Init aop failed", e);
+				Logger.error("Init aop failed: " + e.getMessage());
 			}
 		}
 	}
