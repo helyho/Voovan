@@ -122,10 +122,33 @@ public class HttpParser {
 		if(index > 0){
 			String propertyName = propertyLine.substring(0, index);
 			String properyValue = propertyLine.substring(index+2, propertyLine.length());
-			property.put(propertyName, properyValue.trim());
+
+			property.put(fixHeaderName(propertyName), properyValue.trim());
 		}
 
 		return property;
+	}
+
+	/**
+	 * 校正全小写形式的 Http 头
+	 * @param headerName http 头的行数据
+	 * @return 校正后的http 头的行数据
+	 */
+	public static String fixHeaderName(String headerName) {
+		String[] headerNameSplits = headerName.split("-");
+		StringBuilder stringBuilder = new StringBuilder();
+		for(String headerNameSplit : headerNameSplits) {
+			if(Character.isLowerCase(headerNameSplit.codePointAt(0))){
+				stringBuilder.append((char)(headerNameSplit.codePointAt(0) - 32));
+				stringBuilder.append(TString.removePrefix(headerNameSplit));
+			} else {
+				stringBuilder.append(headerNameSplit);
+			}
+
+			stringBuilder.append("-");
+		}
+
+		return TString.removeSuffix(stringBuilder.toString());
 	}
 
 	/**
@@ -283,7 +306,6 @@ public class HttpParser {
 
 			//处理 cookie 和 header
 			if(!isBodyConent){
-				currentLine = fixHeaderLine(currentLine);
 				if(currentLine.contains(HEAD_COOKIE)){
 					parseCookie(packetMap,currentLine);
 				}else{
@@ -551,7 +573,10 @@ public class HttpParser {
 						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
 					}
 
-					byte[] contentBytes = byteBufferChannel.array();
+					byte[] contentBytes = new byte[byteBufferChannel.size()];
+					byteBufferChannel.getByteBuffer().get(contentBytes);
+					byteBufferChannel.compact();
+
 					if(contentBytes!=null && contentBytes.length>0){
 						byte[] value = dealBodyContent(packetMap, contentBytes);
 						packetMap.put(BODY_VALUE, value);
@@ -657,32 +682,6 @@ public class HttpParser {
 
 		return request;
 	}
-
-	/**
-	 * 校正全小写形式的 Http 头
-	 * @param headerLine http 头的行数据
-	 * @return 校正后的http 头的行数据
-	 */
-	public static String fixHeaderLine(String headerLine) {
-		if(headerLine.codePointAt(0) > 96){
-			String[] headerSplites = headerLine.split(": ");
-			String key = headerSplites[0];
-
-			String[] keySplites = key.split("-");
-			StringBuilder stringBuilder = new StringBuilder();
-			for(String keySplite : keySplites){
-				stringBuilder.append((char)(keySplite.codePointAt(0) - 32));
-				stringBuilder.append(TString.removePrefix(keySplite));
-				stringBuilder.append("-");
-			}
-
-			return stringBuilder.substring(0, stringBuilder.length()-1) + ": " + headerSplites[1];
-
-		} else {
-			return headerLine;
-		}
-	}
-
 
 	/**
 	 * 解析报文成 HttpResponse 对象
