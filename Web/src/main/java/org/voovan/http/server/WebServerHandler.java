@@ -19,8 +19,8 @@ import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 /**
  * WebServer Socket 事件处理类
@@ -41,7 +41,7 @@ public class WebServerHandler implements IoHandler {
 		this.httpDispatcher = httpDispatcher;
 		this.webSocketDispatcher = webSocketDispatcher;
 		this.webConfig = webConfig;
-		keepAliveSessionList = new ArrayList<IoSession>();
+		keepAliveSessionList = new Vector<IoSession>();
 
 		initKeepAliveTimer();
 
@@ -125,6 +125,8 @@ public class WebServerHandler implements IoHandler {
 
 		//清理 IoSession
 		keepAliveSessionList.remove(session);
+
+		release(session);
 	}
 
 	/**
@@ -421,5 +423,17 @@ public class WebServerHandler implements IoHandler {
 	@Override
 	public void onIdle(IoSession session) {
 
+	}
+
+	public void release(IoSession session){
+		HttpRequest request = getAttribute(session, HttpSessionParam.HTTP_REQUEST);
+		HttpResponse response = getAttribute(session, HttpSessionParam.HTTP_RESPONSE);
+		if(request != null) {
+			request.release();
+		}
+
+		if(response != null) {
+			response.release();
+		}
 	}
 }
