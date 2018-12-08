@@ -693,6 +693,8 @@ public class WebServer {
 			aioServerSocket.start();
 		} catch (IOException e) {
 			Logger.error("Start HTTP server error",e);
+			TEnv.sleep(1000);
+			System.exit(0);
 		}
 		return this;
 	}
