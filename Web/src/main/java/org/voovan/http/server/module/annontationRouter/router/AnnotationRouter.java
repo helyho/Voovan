@@ -190,6 +190,13 @@ public class AnnotationRouter implements HttpRouter {
         Class[] parameterTypes = method.getParameterTypes();
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
 
+        String bodyString = "";
+        Map bodyMap = null;
+        if(request.body().size() > 0 && JSON.isJSONMap(bodyString)) {
+            bodyString = request.body().getBodyString();
+            bodyMap =  (Map) JSON.parse(bodyString);
+        }
+
         //准备参数
         Object[] params = new Object[parameterTypes.length];
         for(int i=0; i < parameterAnnotations.length; i++){
@@ -210,13 +217,6 @@ public class AnnotationRouter implements HttpRouter {
             if(parameterTypes[i] == HttpSession.class){
                 params[i] = request.getSession();
                 continue;
-            }
-
-            String bodyString = "";
-            Map bodyMap = null;
-            if(request.body().size() > 0) {
-                bodyString = request.body().getBodyString();
-                bodyMap = JSON.isJSONMap(bodyString) ? (Map) JSON.parse(bodyString) : null;
             }
 
             for(Annotation annotation : parameterAnnotations[i]) {
