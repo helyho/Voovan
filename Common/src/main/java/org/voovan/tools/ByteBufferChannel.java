@@ -280,15 +280,15 @@ public class ByteBufferChannel {
             return;
         }
 
-        if (byteBuffer != null) {
             lock.lock();
             try {
-                byteBuffer.limit(0);
-                size = 0;
+                if (byteBuffer != null) {
+                    byteBuffer.limit(0);
+                    size = 0;
+                }
             } finally{
                 lock.unlock();
             }
-        }
     }
 
     /**
