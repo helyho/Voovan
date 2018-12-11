@@ -575,6 +575,6 @@ public class TEnv {
 	 */
 	public static List<Object> measureTime(Supplier supplier){
 		long startTime = System.currentTimeMillis();
-		return TObject.asList(System.currentTimeMillis() - startTime, supplier.get());
+		return TObject.asList(supplier.get(), System.currentTimeMillis() - startTime);
 	}
 }
