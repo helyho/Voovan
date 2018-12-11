@@ -32,317 +32,315 @@ import java.util.Vector;
  */
 
 public class Request {
-	private RequestProtocol protocol;
-	private Header 			header;
-	private List<Cookie>	cookies;
-	private Body 			body;
-	private List<Part>		parts;
-	private String 			boundary;
-	private static final String CONTENT_TYPE = "Content-Type";
-	protected boolean 		basicSend = false;
+    private RequestProtocol protocol;
+    private Header 			header;
+    private List<Cookie>	cookies;
+    private Body 			body;
+    private List<Part>		parts;
+    private String 			boundary;
+    private static final String CONTENT_TYPE = "Content-Type";
+    protected boolean 		basicSend = false;
 
-	/**
-	 * HTTP 请求的枚举对象
-	 *
-	 * @author helyho
-	 *
-	 */
-	public enum RequestType {
-		BODY_URLENCODED, BODY_MULTIPART, NORMAL
-	}
+    /**
+     * HTTP 请求的枚举对象
+     *
+     * @author helyho
+     *
+     */
+    public enum RequestType {
+        BODY_URLENCODED, BODY_MULTIPART, NORMAL
+    }
 
-	/**
-	 * 构造函数
-	 *
-	 * @param request 请求对象
-	 */
-	protected Request(Request request) {
-		this.protocol = request.protocol;
-		this.header = request.header;
-		this.body = request.body;
-		this.cookies = request.cookies;
-		this.parts = request.parts;
-	}
+    /**
+     * 构造函数
+     *
+     * @param request 请求对象
+     */
+    protected Request(Request request) {
+        this.protocol = request.protocol;
+        this.header = request.header;
+        this.body = request.body;
+        this.cookies = request.cookies;
+        this.parts = request.parts;
+    }
 
-	/**
-	 * 构造函数
-	 */
-	public Request() {
-		protocol = new RequestProtocol();
-		header = new Header();
-		cookies = new Vector<Cookie>();
-		body = new Body();
-		parts = new Vector<Part>();
-	}
+    /**
+     * 构造函数
+     */
+    public Request() {
+        protocol = new RequestProtocol();
+        header = new Header();
+        cookies = new Vector<Cookie>();
+        body = new Body();
+        parts = new Vector<Part>();
+    }
 
-	/**
-	 * 获取协议对象
-	 *
-	 * @return 请求协议对象
-	 */
-	public RequestProtocol protocol() {
-		return protocol;
-	}
+    /**
+     * 获取协议对象
+     *
+     * @return 请求协议对象
+     */
+    public RequestProtocol protocol() {
+        return protocol;
+    }
 
-	/**
-	 * 获取 Header 对象
-	 *
-	 * @return HTTP-Header 对象
-	 */
-	public Header header() {
-		return header;
-	}
+    /**
+     * 获取 Header 对象
+     *
+     * @return HTTP-Header 对象
+     */
+    public Header header() {
+        return header;
+    }
 
-	/**
-	 * 获取所有的Cookies对象,返回一个 List
-	 *
-	 * @return Cookie 对象
-	 */
-	public List<Cookie> cookies() {
-		return cookies;
-	}
+    /**
+     * 获取所有的Cookies对象,返回一个 List
+     *
+     * @return Cookie 对象
+     */
+    public List<Cookie> cookies() {
+        return cookies;
+    }
 
-	/**
-	 * 获取 Body 对象
-	 *
-	 * @return Body对象
-	 */
-	public Body body() {
-		return body;
-	}
+    /**
+     * 获取 Body 对象
+     *
+     * @return Body对象
+     */
+    public Body body() {
+        return body;
+    }
 
-	/**
-	 * 获取所有的 Part 对象,返回一个 List
-	 *
-	 * @return POST 请求报文对象
-	 */
-	public List<Part> parts() {
-		return parts;
-	}
+    /**
+     * 获取所有的 Part 对象,返回一个 List
+     *
+     * @return POST 请求报文对象
+     */
+    public List<Part> parts() {
+        return parts;
+    }
 
-	/**
-	 * 获取请求类型
-	 *
-	 * @return RequestType枚举
-	 */
-	public RequestType getBodyType() {
-		if (header.get(CONTENT_TYPE) != null) {
-			if (header.get(CONTENT_TYPE).contains("application/x-www-form-urlencoded")) {
-				return RequestType.BODY_URLENCODED;
-			} else if (header.get(CONTENT_TYPE).contains("multipart/form-data")) {
-				return RequestType.BODY_MULTIPART;
-			}
-		}
+    /**
+     * 获取请求类型
+     *
+     * @return RequestType枚举
+     */
+    public RequestType getBodyType() {
+        if (header.get(CONTENT_TYPE) != null) {
+            if (header.get(CONTENT_TYPE).contains("application/x-www-form-urlencoded")) {
+                return RequestType.BODY_URLENCODED;
+            } else if (header.get(CONTENT_TYPE).contains("multipart/form-data")) {
+                return RequestType.BODY_MULTIPART;
+            }
+        }
 
-		return RequestType.NORMAL;
-	}
+        return RequestType.NORMAL;
+    }
 
-	/**
-	 * 获取QueryStirng 或 将参数拼装成QueryString
-	 * @param charset 字符集
-	 * @return 请求字符串
-	 */
-	public String getQueryString(String charset) {
-		String queryString = "";
-		//请求路径内包含的参数
-		queryString = protocol.getQueryString();
+    /**
+     * 获取QueryStirng 或 将参数拼装成QueryString
+     * @param charset 字符集
+     * @return 请求字符串
+     */
+    public String getQueryString(String charset) {
+        String queryString = "";
+        //请求路径内包含的参数
+        queryString = protocol.getQueryString();
 
-		// POST_URLENCODED 请求类型的处理
-		if (getBodyType() == RequestType.BODY_URLENCODED ) {
-			queryString = queryString+"&"+body.getBodyString();
-		}
-		// POST_MULTIPART 请求类型的处理
-		else if (getBodyType() == RequestType.BODY_MULTIPART) {
-			StringBuilder result = new StringBuilder();
-			for (Part part : parts) {
-				if (part.getType() == Part.PartType.TEXT) {
-					String name = part.header().get("name");
-					String value = null;
-					if(!part.body().isFile()) {
-						value = part.body().getBodyString(charset);
-					} else {
-						value = part.header().get("filename");
-					}
+        // POST_URLENCODED 请求类型的处理
+        if (getBodyType() == RequestType.BODY_URLENCODED ) {
+            queryString = queryString+"&"+body.getBodyString();
+        }
+        // POST_MULTIPART 请求类型的处理
+        else if (getBodyType() == RequestType.BODY_MULTIPART) {
+            StringBuilder result = new StringBuilder();
+            for (Part part : parts) {
+                if (part.getType() == Part.PartType.TEXT) {
+                    String name = part.header().get("name");
+                    String value = null;
+                    if(!part.body().isFile()) {
+                        value = part.body().getBodyString(charset);
+                    } else {
+                        value = part.header().get("filename");
+                    }
 
-					result.append(name);
-					result.append("=");
-					result.append(value);
-					result.append("&");
+                    result.append(name);
+                    result.append("=");
+                    result.append(value);
+                    result.append("&");
 
-				}
-			}
-			queryString = TString.removeSuffix( queryString+"&"+result.toString() );
-		}
+                }
+            }
+            queryString = TString.removeSuffix( queryString+"&"+result.toString() );
+        }
 
-		if(queryString.startsWith("&")){
-			queryString = TString.removePrefix(queryString);
-		}
+        if(queryString.startsWith("&")){
+            queryString = TString.removePrefix(queryString);
+        }
 
-		try {
-			return queryString.isEmpty()? null : URLDecoder.decode(queryString, WebContext.getWebServerConfig().getCharacterSet());
-		} catch (UnsupportedEncodingException e) {
-			return null;
-		}
-	}
+        try {
+            return queryString.isEmpty()? null : URLDecoder.decode(queryString, WebContext.getWebServerConfig().getCharacterSet());
+        } catch (UnsupportedEncodingException e) {
+            return null;
+        }
+    }
 
-	/**
-	 * 根据内容构造一些必要的 Header 属性
-	 * 		这里不按照请求方法组装必要的头信息,而是根据 Body 和 parts 对象的内容组装必要的头信息
-	 */
-	private void initHeader() {
-		//如果之前设置过 ContentType 则不自动设置 ContentType
-		if(!header.contain(CONTENT_TYPE)){
-			// 如果请求中包含 Part 的处理
-			if (!parts.isEmpty()) {
-				// 产生新的boundary备用
-				String contentType = "multipart/form-data;";
-				header.put(CONTENT_TYPE, contentType);
-			}else if(body.getBodyBytes().length>0){
-				header.put(CONTENT_TYPE, "application/x-www-form-urlencoded");
-			}
-		}
+    /**
+     * 根据内容构造一些必要的 Header 属性
+     * 		这里不按照请求方法组装必要的头信息,而是根据 Body 和 parts 对象的内容组装必要的头信息
+     */
+    private void initHeader() {
+        //如果之前设置过 ContentType 则不自动设置 ContentType
+        if(!header.contain(CONTENT_TYPE)){
+            // 如果请求中包含 Part 的处理
+            if (!parts.isEmpty()) {
+                // 产生新的boundary备用
+                String contentType = "multipart/form-data;";
+                header.put(CONTENT_TYPE, contentType);
+            }else if(body.getBodyBytes().length>0){
+                header.put(CONTENT_TYPE, "application/x-www-form-urlencoded");
+            }
+        }
 
-		if("multipart/form-data;".equals(header.get(CONTENT_TYPE))){
-			boundary = THash.encryptBASE64(TString.generateId(this));
-			header.put(CONTENT_TYPE, TString.assembly(header.get(CONTENT_TYPE), " boundary=", boundary));
-		}
+        if("multipart/form-data;".equals(header.get(CONTENT_TYPE))){
+            boundary = THash.encryptBASE64(TString.generateId(this));
+            header.put(CONTENT_TYPE, TString.assembly(header.get(CONTENT_TYPE), " boundary=", boundary));
+        }
 
-		if (body.size() > 0) {
-			header.put("Content-Length", Long.toString(body.size()));
-		}
+        if (body.size() > 0) {
+            header.put("Content-Length", Long.toString(body.size()));
+        }
 
-		//生成 Cookie 信息
-		String cookieValue = genCookie();
-		if(!TString.isNullOrEmpty(cookieValue)){
-			header.put("Cookie", genCookie());
-		}
-	}
+        //生成 Cookie 信息
+        String cookieValue = genCookie();
+        if(!TString.isNullOrEmpty(cookieValue)){
+            header.put("Cookie", genCookie());
+        }
+    }
 
-	/**
-	 * 根据 Cookie 对象,生成 HTTP 请求中的 Cookie 字符串 用于报文拼装
-	 *
-	 * @return 获取 Cookie 字符串
-	 */
-	private String genCookie() {
-		StringBuilder cookieString = new StringBuilder();
-		for (Cookie cookie : cookies) {
-			cookieString.append(cookie.getName());
-			cookieString.append("=");
-			cookieString.append(cookie.getValue());
-			cookieString.append("; ");
-		}
-		return cookieString.toString();
-	}
+    /**
+     * 根据 Cookie 对象,生成 HTTP 请求中的 Cookie 字符串 用于报文拼装
+     *
+     * @return 获取 Cookie 字符串
+     */
+    private String genCookie() {
+        StringBuilder cookieString = new StringBuilder();
+        for (Cookie cookie : cookies) {
+            cookieString.append(cookie.getName());
+            cookieString.append("=");
+            cookieString.append(cookie.getValue());
+            cookieString.append("; ");
+        }
+        return cookieString.toString();
+    }
 
-	/**
-	 * 根据对象的内容,构造 Http 请求报文
-	 *
-	 * @return Http 请求报文
-	 */
-	private ByteBuffer readHead() {
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    /**
+     * 根据对象的内容,构造 Http 请求报文
+     *
+     * @return Http 请求报文
+     */
+    private ByteBuffer readHead() {
 
-		// Body 对应的 Header 预处理
-		initHeader();
+        StringBuilder stringBuilder = new StringBuilder();
 
-		// 报文组装
-		try {
-			// 处理协议行
-			outputStream.write(protocol.toString().getBytes("UTF-8"));
+        initHeader();
 
-			// 处理 Header
-			outputStream.write(header.toString().getBytes("UTF-8"));
-
-			//头结束插入空行
-			outputStream.write("\r\n".getBytes("UTF-8"));
-
-		} catch (IOException e) {
-			Logger.error("OutputString io error",e);
-		}
-
-		return ByteBuffer.wrap(outputStream.toByteArray());
-	}
-
-	/**
-	 * 发送数据
-	 * @param session socket 会话对象
-	 * @throws IOException IO异常
-	 */
-	public void send(IoSession session) throws IOException {
-		int readSize = 0;
-
-		//发送报文头
-		session.send(readHead());
-
-		//发送缓冲区
-		ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
-
-		// 有 BodyBytes 时直接写入包体
-		if (body.size() > 0) {
-			while(true) {
-				readSize = body.read(byteBuffer);
-				if (readSize == -1) {
-					break;
-				}
-				session.send(byteBuffer);
-				byteBuffer.clear();
-			}
-		}
-
-		byteBuffer.clear();
-
-		// 有 parts 时按 parts 的格式写入 parts
-		if(!parts.isEmpty()) {
-			// Content-Type存在
-			if (parts.size() != 0) {
-
-				if(boundary == null){
-					boundary = THash.encryptBASE64(TString.generateId(this));
-				}
-
-				// 获取 multiPart 标识
-				for (Part part : this.parts) {
-					//发送 part 报文
-					part.send(session, boundary);
-				}
-
-				//发送结尾标识
-				byteBuffer.put(TString.assembly("--" + boundary + "--").getBytes());
-				byteBuffer.flip();
-				session.send(byteBuffer);
-				byteBuffer.clear();
-				// POST结束不需要空行标识结尾
-			}
-		}
-
-		TByteBuffer.release(byteBuffer);
-		release();
-
-		basicSend = true;
-	}
+        stringBuilder.append(protocol.toString());
 
 
-	public void release(){
-		for (Part part : this.parts) {
-			part.body().release();
-		}
+        stringBuilder.append(header.toString());
 
-		body.release();
-	}
+        stringBuilder.append("\r\n");
 
-	/**
-	 * 清理
-	 */
-	public void clear(){
-		this.header().clear();
-		this.cookies().clear();
-		this.protocol().clear();
-		this.body().clear();
-		this.parts().clear();
-	}
+        try {
+            return ByteBuffer.wrap(stringBuilder.toString().getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            Logger.error("Response.readHead io error",e);
+            return null;
+        }
 
-	@Override
-	public String toString() {
-		return new String(TByteBuffer.toString(readHead()));
-	}
+    }
+
+    /**
+     * 发送数据
+     * @param session socket 会话对象
+     * @throws IOException IO异常
+     */
+    public void send(IoSession session) throws IOException {
+        int readSize = 0;
+
+        //发送报文头
+        session.send(readHead());
+
+        //发送缓冲区
+        ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
+
+        // 有 BodyBytes 时直接写入包体
+        if (body.size() > 0) {
+            while(true) {
+                readSize = body.read(byteBuffer);
+                if (readSize == -1) {
+                    break;
+                }
+                session.send(byteBuffer);
+                byteBuffer.clear();
+            }
+        }
+
+        byteBuffer.clear();
+
+        // 有 parts 时按 parts 的格式写入 parts
+        if(!parts.isEmpty()) {
+            // Content-Type存在
+            if (parts.size() != 0) {
+
+                if(boundary == null){
+                    boundary = THash.encryptBASE64(TString.generateId(this));
+                }
+
+                // 获取 multiPart 标识
+                for (Part part : this.parts) {
+                    //发送 part 报文
+                    part.send(session, boundary);
+                }
+
+                //发送结尾标识
+                byteBuffer.put(TString.assembly("--" + boundary + "--").getBytes());
+                byteBuffer.flip();
+                session.send(byteBuffer);
+                byteBuffer.clear();
+                // POST结束不需要空行标识结尾
+            }
+        }
+
+        TByteBuffer.release(byteBuffer);
+        release();
+
+        basicSend = true;
+    }
+
+
+    public void release(){
+        for (Part part : this.parts) {
+            part.body().release();
+        }
+
+        body.release();
+    }
+
+    /**
+     * 清理
+     */
+    public void clear(){
+        this.header().clear();
+        this.cookies().clear();
+        this.protocol().clear();
+        this.body().clear();
+        this.parts().clear();
+    }
+
+    @Override
+    public String toString() {
+        return new String(TByteBuffer.toString(readHead()));
+    }
 }

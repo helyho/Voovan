@@ -9,6 +9,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -151,27 +152,28 @@ public class Response {
 	 */
 	private ByteBuffer readHead() {
 
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		StringBuilder stringBuilder = new StringBuilder();
 
 		initHeader();
 
+		stringBuilder.append(protocol.toString());
+
+
+		stringBuilder.append(header.toString());
+
+
+		stringBuilder.append(genCookie());
+
+
+		stringBuilder.append("\r\n");
+
+
 		try {
-			// 处理协议行
-			outputStream.write(protocol.toString().getBytes("UTF-8"));
-
-			// 处理 Header
-			outputStream.write(header.toString().getBytes("UTF-8"));
-
-			// 处理 Cookie
-			outputStream.write(genCookie().getBytes("UTF-8"));
-
-			//头结束插入空行
-			outputStream.write("\r\n".getBytes("UTF-8"));
-
-		} catch (IOException e) {
-			Logger.error("OutputString io error",e);
+			return ByteBuffer.wrap(stringBuilder.toString().getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			Logger.error("Response.readHead io error",e);
+			return null;
 		}
-		return ByteBuffer.wrap(outputStream.toByteArray());
 	}
 
 	private ByteBuffer readEnd(){
@@ -190,7 +192,13 @@ public class Response {
 	public void send(IoSession session) throws IOException {
 
 		//发送报文头
-		session.send(readHead());
+		ByteBuffer byteBuffer = readHead();
+
+		if(byteBuffer == null){
+			return;
+		}
+
+		session.send(byteBuffer);
 
 		//是否需要压缩
 		if(isCompress){
@@ -201,7 +209,7 @@ public class Response {
 		if(body.size() != 0) {
 
 			//准备缓冲区
-			ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
+			byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
 			int readSize = 0;
 			while (true) {
 
