@@ -25,7 +25,7 @@ public class TByteBuffer {
 
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
 
-    public static final ObjectPool BYTE_BUFFER_POOL = new ObjectPool().minSize(10000).interval(5).aliveTime(60).create();
+    public static final ObjectPool BYTE_BUFFER_POOL = new ObjectPool().minSize(10000).interval(5).aliveTime(10).create();
 
     public static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
 
@@ -514,6 +514,7 @@ public class TByteBuffer {
             if (this.address == 0) {
                 return;
             }
+            BYTE_BUFFER_POOL.restitution(poolId);
             TUnsafe.getUnsafe().freeMemory(address);
             address = 0;
         }
