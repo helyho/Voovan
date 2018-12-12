@@ -68,7 +68,7 @@ public class ByteBufferChannel {
      * 构造函数
      */
     public ByteBufferChannel() {
-        init(1024);
+        init(1024 * 16);
     }
 
     /**

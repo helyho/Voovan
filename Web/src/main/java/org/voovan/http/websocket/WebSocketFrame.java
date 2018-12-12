@@ -296,7 +296,7 @@ public class WebSocketFrame {
 		}
 
 		if (mask) {
-			ByteBuffer maskkey = TByteBuffer.allocateDirect(4);
+			ByteBuffer maskkey = TByteBuffer.allocateDirect();
 			Random reuseableRandom = new Random();
 			maskkey.putInt(reuseableRandom.nextInt());
 			maskkey.flip();

@@ -5,9 +5,9 @@ import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TString;
+import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -192,7 +192,15 @@ public class Response {
 	public void send(IoSession session) throws IOException {
 
 		//发送报文头
-		ByteBuffer byteBuffer = readHead();
+		ByteBuffer byteBuffer = null;
+
+		try {
+			byteBuffer = readHead();
+		} catch (Throwable e){
+            if(!(e instanceof MemoryReleasedException)){
+                Logger.error("Response send error: ", (Exception) e);
+            }
+        }
 
 		if(byteBuffer == null){
 			return;
@@ -209,37 +217,42 @@ public class Response {
 		if(body.size() != 0) {
 
 			//准备缓冲区
-			byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
+			byteBuffer = TByteBuffer.allocateDirect();
 			int readSize = 0;
-			while (true) {
+			try{
+                while (true) {
 
-				readSize = body.read(byteBuffer);
+                    readSize = body.read(byteBuffer);
 
-				if (readSize == -1) {
-					break;
+                    if (readSize == -1) {
+                        break;
+                    }
+
+                    //判断是否需要发送 chunked 段长度
+                    if (isCompress() && readSize!=0) {
+                        String chunkedLengthLine = Integer.toHexString(readSize) + "\r\n";
+                        session.send(ByteBuffer.wrap(chunkedLengthLine.getBytes()));
+                    }
+
+                    session.send(byteBuffer);
+                    byteBuffer.clear();
+
+                    //判断是否需要发送 chunked 结束符号
+                    if (isCompress() && readSize!=0) {
+                        session.send(ByteBuffer.wrap("\r\n".getBytes()));
+                    }
+                }
+			} catch (Throwable e){
+				if(!(e instanceof MemoryReleasedException)){
+					Logger.error("Response send error: ", (Exception) e);
 				}
-
-				//判断是否需要发送 chunked 段长度
-				if (isCompress() && readSize!=0) {
-					String chunkedLengthLine = Integer.toHexString(readSize) + "\r\n";
-					session.send(ByteBuffer.wrap(chunkedLengthLine.getBytes()));
-				}
-
-				session.send(byteBuffer);
-				byteBuffer.clear();
-
-				//判断是否需要发送 chunked 结束符号
-				if (isCompress() && readSize!=0) {
-					session.send(ByteBuffer.wrap("\r\n".getBytes()));
-				}
+				return;
+			} finally {
+				//发送报文结束符
+				session.send(readEnd());
+				TByteBuffer.release(byteBuffer);
+				release();
 			}
-
-			byteBuffer.clear();
-
-			//发送报文结束符
-			session.send(readEnd());
-			TByteBuffer.release(byteBuffer);
-			release();
 		}
 
 		basicSend = true;

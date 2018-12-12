@@ -5,10 +5,10 @@ import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TString;
+import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -270,11 +270,25 @@ public class Request {
         int readSize = 0;
 
         //发送报文头
-        session.send(readHead());
+        ByteBuffer byteBuffer = null;
+
+        try {
+            byteBuffer = readHead();
+        } catch (Throwable e){
+            if(!(e instanceof MemoryReleasedException)){
+                Logger.error("Response send error: ", (Exception) e);
+            }
+        }
+
+        if(byteBuffer == null){
+            return;
+        }
+
 
         //发送缓冲区
-        ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
+        byteBuffer = TByteBuffer.allocateDirect();
 
+        try{
         // 有 BodyBytes 时直接写入包体
         if (body.size() > 0) {
             while(true) {
@@ -312,9 +326,15 @@ public class Request {
                 // POST结束不需要空行标识结尾
             }
         }
-
-        TByteBuffer.release(byteBuffer);
-        release();
+        } catch (Throwable e){
+            if(!(e instanceof MemoryReleasedException)){
+                Logger.error("Response send error: ", (Exception) e);
+            }
+            return;
+        } finally {
+            TByteBuffer.release(byteBuffer);
+            release();
+        }
 
         basicSend = true;
     }
