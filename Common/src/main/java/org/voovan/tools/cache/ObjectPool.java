@@ -8,8 +8,8 @@ import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.annotation.NotJSON;
 
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -26,7 +26,7 @@ import java.util.function.Supplier;
  */
 public class ObjectPool {
 
-    private volatile ConcurrentSkipListMap<Object, PooledObject> objects = new ConcurrentSkipListMap<Object, PooledObject>();
+    private volatile ConcurrentHashMap<Object, PooledObject> objects = new ConcurrentHashMap<Object, PooledObject>();
     private volatile ConcurrentLinkedDeque<Object> unborrowedObjectIdList  = new ConcurrentLinkedDeque<Object>();
 
     private long aliveTime = 0;
@@ -320,6 +320,8 @@ public class ObjectPool {
      * @return ObjectPool 对象
      */
     public ObjectPool create(){
+        final ObjectPool finalobjectPool = this;
+
         Global.getHashWheelTimer().addTask(new HashWheelTask() {
             @Override
             public void run() {
@@ -351,6 +353,7 @@ public class ObjectPool {
                             }
                         }
                     }
+                    System.out.println(finalobjectPool.toString());
                 }catch(Exception e){
                     e.printStackTrace();
                 }
@@ -418,7 +421,7 @@ public class ObjectPool {
          */
         public boolean isAlive(){
             if(objectCachedPool.aliveTime<=0){
-                return true;
+                return false;
             }
 
             long currentAliveTime = System.currentTimeMillis() - lastVisiediTime;
