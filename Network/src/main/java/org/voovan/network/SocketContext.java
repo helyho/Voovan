@@ -4,6 +4,7 @@ import org.voovan.Global;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.tools.Chain;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
@@ -47,7 +48,7 @@ public abstract class SocketContext {
 	protected MessageSplitter messageSplitter;
 	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
-	protected int bufferSize = 1024*8;
+	protected int bufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
 
 	protected int idleInterval = 0;
 

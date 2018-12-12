@@ -369,7 +369,7 @@ public class HttpParser {
 
 
 						//Part 头读取
-						ByteBuffer partHeadBuffer = TByteBuffer.allocateDirect(partHeadEndIndex + 4);
+						ByteBuffer partHeadBuffer = TByteBuffer.allocateDirect();
 						byteBufferChannel.readHead(partHeadBuffer);
 
 						//构造新的 Bytebufer 递归解析

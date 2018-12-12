@@ -5,10 +5,13 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * ByteBuffer 工具类
@@ -20,6 +23,16 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
+    public static int DEFAULT_BYTE_BUFFER_SIZE=1024*16;
+
+    public static int THREAD_LOCAL_MAX_SIZE = 10;
+
+    public static int GLOBAL_MAX_SIZE = 1000;
+
+    public static final ConcurrentLinkedQueue<ByteBuffer> GLOBAL_POOL = new ConcurrentLinkedQueue<ByteBuffer>();
+
+    public static final ThreadLocal<LinkedList<WeakReference<ByteBuffer>>> THREAD_LOCAL_BYTE_BUFFER_POOL = new ThreadLocal<LinkedList<WeakReference<ByteBuffer>>>();
+
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
 
     public static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
@@ -75,6 +88,23 @@ public class TByteBuffer {
         }
     }
 
+    public static LinkedList<WeakReference<ByteBuffer>> getThreadLoaclPool(){
+        LinkedList<WeakReference<ByteBuffer>> byteBufferPool = THREAD_LOCAL_BYTE_BUFFER_POOL.get();
+        if(byteBufferPool == null){
+            byteBufferPool = new LinkedList<WeakReference<ByteBuffer>>();
+            THREAD_LOCAL_BYTE_BUFFER_POOL.set(byteBufferPool);
+        }
+        return byteBufferPool;
+    }
+
+    /**
+     * 根据框架的非堆内存配置, 分配 ByteBuffer
+     * @return ByteBuffer 对象
+     */
+    public static ByteBuffer allocateDirect() {
+        return allocateDirect(DEFAULT_BYTE_BUFFER_SIZE);
+    }
+
     /**
      * 根据框架的非堆内存配置, 分配 ByteBuffer
      * @param capacity 容量
@@ -83,7 +113,27 @@ public class TByteBuffer {
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
         if(Global.NO_HEAP_MANUAL_RELEASE) {
-            return allocateManualReleaseBuffer(capacity);
+            LinkedList<WeakReference<ByteBuffer>> threadLocalPool = getThreadLoaclPool();
+            WeakReference<ByteBuffer> byteBufferWeakRef = threadLocalPool.poll();
+
+            ByteBuffer byteBuffer = null;
+
+            //从线程中的池中取 ByteBuffer
+            if(byteBufferWeakRef!=null) {
+                byteBuffer = byteBufferWeakRef.get();
+            }
+
+            //从全局的池中取 ByteBuffer
+            if(byteBuffer==null){
+                byteBuffer = GLOBAL_POOL.poll();
+            }
+
+            //创建一个新的 ByteBuffer
+            if(byteBuffer==null) {
+                byteBuffer = allocateManualReleaseBuffer(capacity);
+            }
+
+            return byteBuffer;
         } else {
             return ByteBuffer.allocateDirect(capacity);
         }
@@ -202,21 +252,37 @@ public class TByteBuffer {
             return;
         }
 
-        synchronized (byteBuffer) {
-            try {
-                if (byteBuffer != null && !isReleased(byteBuffer)) {
-                    Object att = getAtt(byteBuffer);
-                    if (att!=null && att.getClass() == Deallocator.class) {
-                        long address = getAddress(byteBuffer);
-                        if(address!=0) {
+        try {
+            if (byteBuffer != null && !isReleased(byteBuffer)) {
+                Object att = getAtt(byteBuffer);
+                if (att!=null && att.getClass() == Deallocator.class) {
+                    long address = getAddress(byteBuffer);
+                    if(address!=0) {
+                        byteBuffer.clear();
+
+                        if(byteBuffer.capacity() > DEFAULT_BYTE_BUFFER_SIZE){
+                            reallocate(byteBuffer, DEFAULT_BYTE_BUFFER_SIZE);
+                        }
+
+                        LinkedList<WeakReference<ByteBuffer>> threadLocalPool = getThreadLoaclPool();
+                        //如果小于线程中池的大小则放入线程中的池
+                        if(threadLocalPool.size() < THREAD_LOCAL_MAX_SIZE) {
+                            threadLocalPool.offer(new WeakReference<ByteBuffer>(byteBuffer));
+                        }
+                        //如果小于全局池的大小, 则放入全局池中
+                        else if(GLOBAL_POOL.size() < GLOBAL_MAX_SIZE){
+                            GLOBAL_POOL.offer(byteBuffer);
+                        }
+                        //如果不满足上面两个条件则释放
+                        else {
                             TUnsafe.getUnsafe().freeMemory(address);
                             setAddress(byteBuffer, 0);
                         }
                     }
                 }
-            } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
             }
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
         }
     }
 
