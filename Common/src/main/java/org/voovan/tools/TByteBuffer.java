@@ -1,7 +1,6 @@
 package org.voovan.tools;
 
 import org.voovan.Global;
-import org.voovan.tools.cache.ObjectPool;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -21,11 +20,7 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
-    public static final UniqueId UNIQUE_ID = new UniqueId();
-
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
-
-    public static final ObjectPool BYTE_BUFFER_POOL = new ObjectPool().minSize(10000).interval(5).aliveTime(10).create();
 
     public static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
 
@@ -64,40 +59,15 @@ public class TByteBuffer {
      */
     protected static ByteBuffer allocateManualReleaseBuffer(int capacity){
         try {
-            Long borrowId = (Long) BYTE_BUFFER_POOL.borrow();
-
             long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
 
-            //池中没有创建新的 ByteBuffer
-            if(borrowId == null) {
-                borrowId = UNIQUE_ID.generateId();
+            Deallocator deallocator = new Deallocator(new Long(address));
 
-                Deallocator deallocator = new Deallocator(borrowId, new Long(address));
+            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
 
-                ByteBuffer byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
+            Cleaner.create(byteBuffer, deallocator);
 
-                Cleaner.create(byteBuffer, deallocator);
-
-                BYTE_BUFFER_POOL.addAndBorrow(borrowId, byteBuffer);
-
-                return byteBuffer;
-            }
-            //池中存在则从池中取 ByteBuffer
-            else {
-
-                ByteBuffer byteBuffer = (ByteBuffer) BYTE_BUFFER_POOL.get(borrowId);
-                Deallocator deallocator = (Deallocator) getAtt(byteBuffer);
-
-                //重新初始化 ByteBuffer
-                setAddress(byteBuffer, address);
-                setCapacity(byteBuffer, capacity);
-                byteBuffer.flip();
-                byteBuffer.limit(capacity);
-                byteBuffer.position(0);
-                deallocator.setAddress(address);
-
-                return byteBuffer;
-            }
+            return byteBuffer;
 
         } catch (Exception e) {
             Logger.error("Create ByteBufferChannel error. ", e);
@@ -241,9 +211,6 @@ public class TByteBuffer {
                         if(address!=0) {
                             TUnsafe.getUnsafe().freeMemory(address);
                             setAddress(byteBuffer, 0);
-
-                            //归还ByteBuffer 到池中
-                            BYTE_BUFFER_POOL.restitution(((Deallocator)att).getPoolId());
                         }
                     }
                 }
@@ -470,27 +437,15 @@ public class TByteBuffer {
         attField.set(byteBuffer, attr);
     }
 
-    /**
-     * 设置容量
-     * @param byteBuffer bytebuffer 对象
-     * @param capacity 容量
-     * @throws ReflectiveOperationException 反射异常
-     */
-    public static void setCapacity(ByteBuffer byteBuffer, int capacity) throws ReflectiveOperationException {
-        capacityField.set(byteBuffer, capacity);
-    }
-
 
     /**
      * 自动跟踪 GC 销毁的类
      */
     private static class Deallocator implements Runnable {
         private long address;
-        private Long poolId;
 
-        private Deallocator(Long poolId, long address) {
+        private Deallocator(long address) {
             this.address = address;
-            this.poolId = poolId;
         }
 
         public void setAddress(long address){
@@ -501,20 +456,11 @@ public class TByteBuffer {
             return address;
         }
 
-        public Long getPoolId() {
-            return poolId;
-        }
-
-        public void setPoolId(Long poolId) {
-            this.poolId = poolId;
-        }
-
         public void run() {
 
             if (this.address == 0) {
                 return;
             }
-            BYTE_BUFFER_POOL.restitution(poolId);
             TUnsafe.getUnsafe().freeMemory(address);
             address = 0;
         }
