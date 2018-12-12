@@ -353,7 +353,6 @@ public class ObjectPool {
                             }
                         }
                     }
-                    System.out.println(finalobjectPool.toString());
                 }catch(Exception e){
                     e.printStackTrace();
                 }
