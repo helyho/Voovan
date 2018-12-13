@@ -107,6 +107,8 @@ public class TByteBuffer {
                 reallocate(byteBuffer, capacity);
             }
 
+            byteBuffer.position(0);
+
             return byteBuffer;
         } else {
             return ByteBuffer.allocateDirect(capacity);
