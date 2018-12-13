@@ -99,7 +99,7 @@ public class TByteBuffer {
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
         if(Global.NO_HEAP_MANUAL_RELEASE) {
-            ByteBuffer byteBuffer = THREAD_LOCAL_POOL.getObject(()->allocateManualReleaseBuffer(capacity));
+            ByteBuffer byteBuffer = THREAD_LOCAL_POOL.get(()->allocateManualReleaseBuffer(capacity));
 
             if(capacity <= byteBuffer.capacity()) {
                 byteBuffer.limit(capacity);

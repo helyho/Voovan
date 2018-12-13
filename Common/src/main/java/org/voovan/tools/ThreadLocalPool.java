@@ -20,6 +20,9 @@ public class ThreadLocalPool<T> {
     private int globalMaxSize = 1000;
     private int threadLocalMaxSize = 10;
 
+    public ThreadLocalPool() {
+    }
+
     public ThreadLocalPool(int globalMaxSize, int threadLocalMaxSize) {
         this.threadLocalMaxSize = threadLocalMaxSize;
         this.globalMaxSize = globalMaxSize;
@@ -50,7 +53,7 @@ public class ThreadLocalPool<T> {
         return threadLocalPool;
     }
 
-    public T getObject(Supplier<T> supplier){
+    public T get(Supplier<T> supplier){
         LinkedList<WeakReference<T>> threadLocalPool = getThreadLoaclPool();
         WeakReference<T> localWeakRef = threadLocalPool.poll();
 
