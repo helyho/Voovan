@@ -77,36 +77,34 @@ public class HttpParser {
 	 *              Http 报文协议行字符串
 	 * @throws UnsupportedEncodingException
 	 */
-	private static Map<String, Object> parseProtocol(String protocolLine) throws UnsupportedEncodingException{
-		Map<String, Object> protocol = new HashMap<String, Object>();
+	private static void parseProtocol(Map<String, Object> packetMap, String protocolLine) throws UnsupportedEncodingException{
 		//请求方法
 		String[] lineSplit = TString.split(protocolLine, Global.CHAR_WHITESPACE);
 
 		if(protocolLine.indexOf(HTTP_PROTOCOL) > 0){
-			protocol.put(FL_METHOD, lineSplit[0]);
+			packetMap.put(FL_METHOD, lineSplit[0]);
 			//请求路径和请求串
 			String[] pathSplit = lineSplit[1].split(Global.CHAR_QUESTION);
-			protocol.put(FL_PATH, pathSplit[0]);
+			packetMap.put(FL_PATH, pathSplit[0]);
 			if(pathSplit.length==2){
-				protocol.put(FL_QUERY_STRING, pathSplit[1]);
+				packetMap.put(FL_QUERY_STRING, pathSplit[1]);
 			}
 			//协议和协议版本
 			String[] protocolSplit= lineSplit[2].split(Global.CHAR_BACKSLASH);
-			protocol.put(FL_PROTOCOL, protocolSplit[0]);
-			protocol.put(FL_VERSION, protocolSplit[1]);
+			packetMap.put(FL_PROTOCOL, protocolSplit[0]);
+			packetMap.put(FL_VERSION, protocolSplit[1]);
 		}else if(protocolLine.indexOf(HTTP_PROTOCOL)==0){
 			String[] protocolSplit= lineSplit[0].split(Global.CHAR_BACKSLASH);
-			protocol.put(FL_PROTOCOL, protocolSplit[0]);
-			protocol.put(FL_VERSION, protocolSplit[1]);
-			protocol.put(FL_STATUS, lineSplit[1]);
+			packetMap.put(FL_PROTOCOL, protocolSplit[0]);
+			packetMap.put(FL_VERSION, protocolSplit[1]);
+			packetMap.put(FL_STATUS, lineSplit[1]);
 			String statusCode = "";
 			for(int i=2;i<lineSplit.length;i++){
 				statusCode += lineSplit[i]+" ";
 			}
 			statusCode = TString.removeSuffix(statusCode);
-			protocol.put(FL_STATUSCODE, statusCode);
+			packetMap.put(FL_STATUSCODE, statusCode);
 		}
-		return protocol;
 	}
 
 	/**
@@ -115,18 +113,19 @@ public class HttpParser {
 	 *              Http 报文头属性行字符串
 	 * @return
 	 */
-	private static Map<String,String> parsePropertyLine(String propertyLine){
-		Map<String,String> property = new HashMap<String, String>();
+	private static void parsePropertyLine(Map<String,Object> propertyMap, String propertyLine){
 
 		int index = propertyLine.indexOf(propertyLineRegex);
 		if(index > 0){
-			String propertyName = propertyLine.substring(0, index);
+			String propertyName = fixHeaderName(propertyLine.substring(0, index));
 			String properyValue = propertyLine.substring(index+2, propertyLine.length());
 
-			property.put(fixHeaderName(propertyName), properyValue.trim());
+			if(propertyName.contains(HEAD_COOKIE)){
+				parseCookie(propertyMap, propertyName, properyValue);
+			} else {
+				propertyMap.put(propertyName, properyValue.trim());
+			}
 		}
-
-		return property;
 	}
 
 	/**
@@ -136,7 +135,9 @@ public class HttpParser {
 	 */
 	public static String fixHeaderName(String headerName) {
 		String[] headerNameSplits = headerName.split("-");
+
 		StringBuilder stringBuilder = new StringBuilder();
+
 		for(String headerNameSplit : headerNameSplits) {
 			if(Character.isLowerCase(headerNameSplit.codePointAt(0))){
 				stringBuilder.append((char)(headerNameSplit.codePointAt(0) - 32));
@@ -200,31 +201,32 @@ public class HttpParser {
 	/**
 	 * 处理消息的Cookie
 	 * @param packetMap         报文 MAp 对象
-	 * @param cookieLine        Http 头中 Cookie 报文行
+	 * @param name         Cookie-name
+	 * @param value        Cookie-value
 	 */
 	@SuppressWarnings("unchecked")
-	private static void parseCookie(Map<String, Object> packetMap,String cookieLine){
+	private static void parseCookie(Map<String, Object> packetMap,String name, String value){
 		if(!packetMap.containsKey(HEAD_COOKIE)){
 			packetMap.put(HEAD_COOKIE, new ArrayList<Map<String, String>>());
 		}
 		List<Map<String, String>> cookies = (List<Map<String, String>>) packetMap.get(HEAD_COOKIE);
 
 		//解析 Cookie 行
-		Map<String, String>cookieMap = getEqualMap(cookieLine);
+		Map<String, String>cookieMap = getEqualMap(value);
 
 		//响应 response 的 cookie 形式 一个cookie 一行
-		if(cookieLine.contains(SET_COOKIE)){
+		if(name.contains(SET_COOKIE)){
 			//处理非键值的 cookie 属性
-			if(cookieLine.toLowerCase().contains(HTTPONLY)){
+			if(value.toLowerCase().contains(HTTPONLY)){
 				cookieMap.put(HTTPONLY, Global.EMPTY_STRING);
 			}
-			if(cookieLine.toLowerCase().contains(SECURE)){
+			if(value.toLowerCase().contains(SECURE)){
 				cookieMap.put(SECURE, Global.EMPTY_STRING);
 			}
 			cookies.add(cookieMap);
 		}
 		//请求 request 的 cookie 形式 多个cookie 一行
-		else if(cookieLine.contains(HEAD_COOKIE)){
+		else if(name.contains(HEAD_COOKIE)){
 			for(Entry<String,String> cookieMapEntry: cookieMap.entrySet()){
 				HashMap<String, String> cookieOneMap = new HashMap<String, String>();
 				cookieOneMap.put(cookieMapEntry.getKey(), cookieMapEntry.getValue());
@@ -300,18 +302,13 @@ public class HttpParser {
 
 			//解析 HTTP 协议行
 			if(!isBodyConent && currentLine.contains(HTTP) && lineNum==1){
-				packetMap.putAll(parseProtocol(currentLine));
+				parseProtocol(packetMap, currentLine);
 				continue;
 			}
 
 			//处理 cookie 和 header
 			if(!isBodyConent){
-				if(currentLine.contains(HEAD_COOKIE)){
-					parseCookie(packetMap,currentLine);
-				}else{
-					packetMap.putAll(parsePropertyLine(currentLine));
-				}
-
+				parsePropertyLine(packetMap, currentLine);
 				continue;
 			}
 
@@ -369,7 +366,7 @@ public class HttpParser {
 
 
 						//Part 头读取
-						ByteBuffer partHeadBuffer = TByteBuffer.allocateDirect();
+						ByteBuffer partHeadBuffer = TByteBuffer.allocateDirect(partHeadEndIndex + 4);
 						byteBufferChannel.readHead(partHeadBuffer);
 
 						//构造新的 Bytebufer 递归解析
