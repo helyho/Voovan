@@ -294,7 +294,7 @@ public class Body {
 		if(type == BodyType.BYTES && byteBufferChannel!=null && !byteBufferChannel.isReleased()) {
 			byteBufferChannel.clear();
 		} else if(type == BodyType.FILE){
-			if(bodyFile.getPath().startsWith(TFile.getTemporaryPath())) {
+			if(bodyFile!=null && bodyFile.getPath().startsWith(TFile.getTemporaryPath())) {
 				bodyFile.delete();
 			}
 			bodyFile = null;

@@ -21,7 +21,7 @@
   "LifeCycleClass"              : "org.voovan.test.http.WebLifeCycleClass", //配置在Web 服务启动时加载并运行初始化类, 该类需继承:org.voovan.http.server.WebServerInit
   "PauseURL"               : "/img/logo.jpg",                // 服务器暂停状态下所有请求都会转向这个路由
   "ScanAopPackage"         : "org.voovan",
-  "maxRequestSize"         : 1024 ,                           //请求大小的限制(单位:kb), 大于这个值的连接将会被放弃, -1 不限制上传文件的大小. 默认值: 1024k
+  "maxRequestSize"         : 22528 ,                           //请求大小的限制(单位:kb), 大于这个值的连接将会被放弃, -1 不限制上传文件的大小. 默认值: 1024k
 
 //  HTTPS证书配置
 //  "Https": {
