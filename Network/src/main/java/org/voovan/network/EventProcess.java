@@ -233,7 +233,7 @@ public class EventProcess {
 	 */
 	public static Object filterDecoder(IoSession session, ByteBuffer readedBuffer) throws IoFilterException{
 		Object result = readedBuffer;
-		Chain<IoFilter> filterChain = session.socketContext().filterChain().clone();
+		Chain<IoFilter> filterChain = session.socketContext().filterChain().rewind();
 		while (filterChain.hasNext()) {
 			IoFilter fitler = filterChain.next();
 			result = fitler.decode(session, result);
@@ -241,7 +241,7 @@ public class EventProcess {
 				break;
 			}
 		}
-		filterChain.clear();
+
 		return result;
 	}
 
@@ -253,7 +253,7 @@ public class EventProcess {
 	 * @throws IoFilterException 过滤器异常
 	 */
 	public static ByteBuffer filterEncoder(IoSession session,Object result) throws IoFilterException{
-		Chain<IoFilter> filterChain = session.socketContext().filterChain().clone();
+		Chain<IoFilter> filterChain = session.socketContext().filterChain().rewind();
 		filterChain.rewind();
 		while (filterChain.hasPrevious()) {
 			IoFilter fitler = filterChain.previous();
@@ -262,7 +262,6 @@ public class EventProcess {
 				break;
 			}
 		}
-		filterChain.clear();
 
 		if(result instanceof ByteBuffer) {
 			return (ByteBuffer)result;

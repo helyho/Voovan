@@ -230,7 +230,7 @@ public class WebServerConfig {
     public void addFilterByList(List<Map<String, Object>> filterInfoList) {
         for (Map<String, Object> filterConfigMap : filterInfoList) {
             HttpFilterConfig httpFilterConfig = new HttpFilterConfig(filterConfigMap);
-            filterConfigs.addLast(httpFilterConfig);
+            filterConfigs.add(httpFilterConfig);
             Logger.simple("Load HttpFilter ["+httpFilterConfig.getName()+
                     "] by ["+ httpFilterConfig.getClassName()+"]");
             filterConfigs.rewind();

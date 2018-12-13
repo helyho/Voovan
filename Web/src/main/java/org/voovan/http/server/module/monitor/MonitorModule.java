@@ -1,9 +1,6 @@
 package org.voovan.http.server.module.monitor;
 
 import org.voovan.http.server.HttpModule;
-import org.voovan.http.server.HttpRequest;
-import org.voovan.http.server.HttpResponse;
-import org.voovan.http.server.HttpRouter;
 import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.router.OptionsRouter;
 
@@ -33,7 +30,7 @@ public class MonitorModule extends HttpModule {
         this.otherMethod("MONITOR", "/:Type/:Param1/:Param2",new MonitorRouter());
         this.options("/*", new OptionsRouter("MONITOR", "*", "auth-token"));
         //注册过滤器,用于抓取分析数据
-        filterChain().addFirst(HttpFilterConfig.newInstance("MonitorFilter",HttpMonitorFilter.class,null));
+        filterChain().add(HttpFilterConfig.newInstance("MonitorFilter",HttpMonitorFilter.class,null));
     }
 
     @Override

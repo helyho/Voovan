@@ -167,7 +167,7 @@ public class HttpDispatcher {
 	 * @param response   HTTP 响应
 	 */
 	public void process(HttpRequest request, HttpResponse response){
-		Chain<HttpFilterConfig> filterConfigs = webConfig.getFilterConfigs().clone();
+		Chain<HttpFilterConfig> filterConfigs = webConfig.getFilterConfigs();
 
 		Object filterResult = null;
 
