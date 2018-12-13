@@ -3,7 +3,6 @@ package org.voovan.tools;
 import java.lang.ref.WeakReference;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -78,10 +77,12 @@ public class ThreadLocalPool<T> {
 
     public void release(T t, Supplier destory){
         LinkedList<WeakReference<T>> threadLocalPool = getThreadLoaclPool();
+
         //如果小于线程中池的大小则放入线程中的池
         if(threadLocalPool.size() < threadLocalMaxSize) {
             threadLocalPool.offer(new WeakReference<T>(t));
         }
+
         //如果小于全局池的大小, 则放入全局池中
         else if(GLOBAL_POOL.size() < globalMaxSize){
             GLOBAL_POOL.offer(t);
