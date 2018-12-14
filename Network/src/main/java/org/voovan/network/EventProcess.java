@@ -162,6 +162,7 @@ public class EventProcess {
 									Logger.error("EventProcess.doRecive error: ", e);
 								}
 							});
+
 						}
 					}
 				}
@@ -170,6 +171,11 @@ public class EventProcess {
 				//释放 onRecive 锁
 				session.getState().setReceive(false);
 				session.getState().receiveUnLock();
+
+				//如果数据没有解析完,重新触发 onRecived 事件
+				if (session.getByteBufferChannel().size() > 0) {
+					EventTrigger.fireReceive(session);
+				}
 			}
 		}
 
@@ -215,11 +221,6 @@ public class EventProcess {
 			//特殊处理 MessageLoader 会返回 TByteBuffer.EMPTY_BYTE_BUFFER
 			if(byteBuffer!=TByteBuffer.EMPTY_BYTE_BUFFER) {
 				TByteBuffer.release(byteBuffer);
-			}
-
-			//如果数据没有解析完,重新触发 onRecived 事件
-			if (session.getByteBufferChannel().size() > 0) {
-				EventTrigger.fireReceiveThread(session);
 			}
 		}
 	}
