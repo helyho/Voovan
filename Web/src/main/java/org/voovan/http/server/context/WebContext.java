@@ -263,43 +263,43 @@ public class WebContext {
 	 */
 	public static void welcome(){
 		WebServerConfig config = WebContext.webServerConfig;
-		Logger.simple("============================== [Config file parameter list] =================================");
-		Logger.simple(TString.rightPad("  ReadTimeout:",35,' ')+config.getReadTimeout());
-		Logger.simple(TString.rightPad("  SendTimeout:",35,' ')+config.getSendTimeout());
-		Logger.simple(TString.rightPad("  ContextPath:",35,' ')+config.getContextPath());
-		Logger.simple(TString.rightPad("  CharacterSet: ",35,' ')+config.getCharacterSet());
-		Logger.simple(TString.rightPad("  SessionContainer:",35,' ')+config.getSessionContainer());
-		Logger.simple(TString.rightPad("  SessionTimeout:",35,' ')+config.getSessionTimeout());
-		Logger.simple(TString.rightPad("  KeepAliveTimeout:",35,' ')+config.getKeepAliveTimeout());
-		Logger.simple(TString.rightPad("  MatchRouteIgnoreCase:",35,' ')+config.isMatchRouteIgnoreCase());
-		Logger.simple(TString.rightPad("  Gzip:",35,' ')+ config.isGzip());
-		Logger.simple(TString.rightPad("  AccessLog:",35,' ')+ config.isAccessLog());
-		Logger.simple(TString.rightPad("  PauseURL:",35,' ')+ config.getPauseURL());
-		Logger.simple(TString.rightPad("  MaxRequestSize:",35,' ')+ config.getMaxRequestSize());
+		System.out.println("============================== [Config file parameter list] =================================");
+		System.out.println(TString.rightPad("  ReadTimeout:",35,' ')+config.getReadTimeout());
+		System.out.println(TString.rightPad("  SendTimeout:",35,' ')+config.getSendTimeout());
+		System.out.println(TString.rightPad("  ContextPath:",35,' ')+config.getContextPath());
+		System.out.println(TString.rightPad("  CharacterSet: ",35,' ')+config.getCharacterSet());
+		System.out.println(TString.rightPad("  SessionContainer:",35,' ')+config.getSessionContainer());
+		System.out.println(TString.rightPad("  SessionTimeout:",35,' ')+config.getSessionTimeout());
+		System.out.println(TString.rightPad("  KeepAliveTimeout:",35,' ')+config.getKeepAliveTimeout());
+		System.out.println(TString.rightPad("  MatchRouteIgnoreCase:",35,' ')+config.isMatchRouteIgnoreCase());
+		System.out.println(TString.rightPad("  Gzip:",35,' ')+ config.isGzip());
+		System.out.println(TString.rightPad("  AccessLog:",35,' ')+ config.isAccessLog());
+		System.out.println(TString.rightPad("  PauseURL:",35,' ')+ config.getPauseURL());
+		System.out.println(TString.rightPad("  MaxRequestSize:",35,' ')+ config.getMaxRequestSize());
 
 		if(config.getHotSwapInterval()>0) {
-			Logger.simple(TString.rightPad("  HotSwapInterval:", 35, ' ') + config.getHotSwapInterval());
+			System.out.println(TString.rightPad("  HotSwapInterval:", 35, ' ') + config.getHotSwapInterval());
 		}
 
 		if(config.getScanAopPackage()!=null) {
-			Logger.simple(TString.rightPad("  ScanAopPackage:", 35, ' ') + config.getScanAopPackage());
+			System.out.println(TString.rightPad("  ScanAopPackage:", 35, ' ') + config.getScanAopPackage());
 		}
 
 		if(config.isHttps()) {
-			Logger.simple(TString.rightPad("  CertificateFile:",35,' ')+config.getHttps().getCertificateFile());
-			Logger.simple(TString.rightPad("  CertificatePassword:",35,' ')+config.getHttps().getCertificatePassword());
-			Logger.simple(TString.rightPad("  KeyPassword:",35,' ')+config.getHttps().getKeyPassword());
+			System.out.println(TString.rightPad("  CertificateFile:",35,' ')+config.getHttps().getCertificateFile());
+			System.out.println(TString.rightPad("  CertificatePassword:",35,' ')+config.getHttps().getCertificatePassword());
+			System.out.println(TString.rightPad("  KeyPassword:",35,' ')+config.getHttps().getKeyPassword());
 		}
 
-		Logger.simple(TString.rightPad("  AuthToken:",35,' ')+ AUTH_TOKEN);
+		System.out.println(TString.rightPad("  AuthToken:",35,' ')+ AUTH_TOKEN);
 
-		Logger.simple("=============================================================================================");
-		Logger.simple("  This WebServer based on VoovanFramework.");
-		Logger.simple("  Version: "+WebContext.getVERSION());
-		Logger.simple("  WebSite: http://www.voovan.org");
-		Logger.simple("  Author: helyho");
-		Logger.simple("  E-mail: helyho@gmail.com");
-		Logger.simple("=============================================================================================");
+		System.out.println("=============================================================================================");
+		System.out.println("  This WebServer based on VoovanFramework.");
+		System.out.println("  Version: "+WebContext.getVERSION());
+		System.out.println("  WebSite: http://www.voovan.org");
+		System.out.println("  Author: helyho");
+		System.out.println("  E-mail: helyho@gmail.com");
+		System.out.println("=============================================================================================");
 	}
 
 

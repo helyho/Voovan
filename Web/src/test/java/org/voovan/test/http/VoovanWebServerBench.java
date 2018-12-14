@@ -43,7 +43,10 @@ public class VoovanWebServerBench {
 			}
 		});
 
+		Logger.setState(false);
+
 		webServer.serve();
+
 
 	}
 }
