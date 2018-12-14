@@ -3,7 +3,6 @@ package org.voovan.http.message;
 import org.voovan.Global;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
-import org.voovan.http.server.exception.ParserException;
 import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.tools.*;
 
@@ -72,23 +71,61 @@ public class HttpParser {
 	}
 
 	/**
+	 * 解析协议信息
+	 * 		http 头的第一行
+	 * @param protocolLine
+	 *              Http 报文协议行字符串
+	 * @throws UnsupportedEncodingException
+	 */
+	private static void parseProtocol(Map<String, Object> packetMap, String protocolLine) throws UnsupportedEncodingException{
+		//请求方法
+		String[] lineSplit = TString.split(protocolLine, Global.CHAR_WHITESPACE);
+
+		if(protocolLine.indexOf(HTTP_PROTOCOL) > 0){
+			packetMap.put(FL_METHOD, lineSplit[0]);
+			//请求路径和请求串
+			String[] pathSplit = lineSplit[1].split(Global.CHAR_QUESTION);
+			packetMap.put(FL_PATH, pathSplit[0]);
+			if(pathSplit.length==2){
+				packetMap.put(FL_QUERY_STRING, pathSplit[1]);
+			}
+			//协议和协议版本
+			String[] protocolSplit= lineSplit[2].split(Global.CHAR_BACKSLASH);
+			packetMap.put(FL_PROTOCOL, protocolSplit[0]);
+			packetMap.put(FL_VERSION, protocolSplit[1]);
+		}else if(protocolLine.indexOf(HTTP_PROTOCOL)==0){
+			String[] protocolSplit= lineSplit[0].split(Global.CHAR_BACKSLASH);
+			packetMap.put(FL_PROTOCOL, protocolSplit[0]);
+			packetMap.put(FL_VERSION, protocolSplit[1]);
+			packetMap.put(FL_STATUS, lineSplit[1]);
+			String statusCode = "";
+			for(int i=2;i<lineSplit.length;i++){
+				statusCode += lineSplit[i]+" ";
+			}
+			statusCode = TString.removeSuffix(statusCode);
+			packetMap.put(FL_STATUSCODE, statusCode);
+		}
+	}
+
+	/**
 	 * 解析 HTTP Header属性行
 	 * @param propertyLine
 	 *              Http 报文头属性行字符串
 	 * @return
 	 */
-	private static Map<String,String> parsePropertyLine(String propertyLine){
-		Map<String,String> property = new HashMap<String, String>();
+	private static void parsePropertyLine(Map<String,Object> propertyMap, String propertyLine){
 
 		int index = propertyLine.indexOf(propertyLineRegex);
 		if(index > 0){
-			String propertyName = propertyLine.substring(0, index);
+			String propertyName = fixHeaderName(propertyLine.substring(0, index));
 			String properyValue = propertyLine.substring(index+2, propertyLine.length());
 
-			property.put(fixHeaderName(propertyName), properyValue.trim());
+			if(propertyName.contains(HEAD_COOKIE)){
+				parseCookie(propertyMap, propertyName, properyValue);
+			} else {
+				propertyMap.put(propertyName, properyValue.trim());
+			}
 		}
-
-		return property;
 	}
 
 	/**
@@ -98,7 +135,9 @@ public class HttpParser {
 	 */
 	public static String fixHeaderName(String headerName) {
 		String[] headerNameSplits = headerName.split("-");
+
 		StringBuilder stringBuilder = new StringBuilder();
+
 		for(String headerNameSplit : headerNameSplits) {
 			if(Character.isLowerCase(headerNameSplit.codePointAt(0))){
 				stringBuilder.append((char)(headerNameSplit.codePointAt(0) - 32));
@@ -162,32 +201,32 @@ public class HttpParser {
 	/**
 	 * 处理消息的Cookie
 	 * @param packetMap         报文 MAp 对象
-	 * @param cookieName        Http 头中 Cookie 报文行
-	 * @param cookieValue        Http 头中 Cookie 报文行
+	 * @param name         Cookie-name
+	 * @param value        Cookie-value
 	 */
 	@SuppressWarnings("unchecked")
-	private static void parseCookie(Map<String, Object> packetMap,String cookieName, String cookieValue){
+	private static void parseCookie(Map<String, Object> packetMap,String name, String value){
 		if(!packetMap.containsKey(HEAD_COOKIE)){
 			packetMap.put(HEAD_COOKIE, new ArrayList<Map<String, String>>());
 		}
 		List<Map<String, String>> cookies = (List<Map<String, String>>) packetMap.get(HEAD_COOKIE);
 
 		//解析 Cookie 行
-		Map<String, String>cookieMap = getEqualMap(cookieValue);
+		Map<String, String>cookieMap = getEqualMap(value);
 
 		//响应 response 的 cookie 形式 一个cookie 一行
-		if(SET_COOKIE.equalsIgnoreCase(cookieName)){
+		if(name.contains(SET_COOKIE)){
 			//处理非键值的 cookie 属性
-			if(cookieValue.toLowerCase().contains(HTTPONLY)){
+			if(value.toLowerCase().contains(HTTPONLY)){
 				cookieMap.put(HTTPONLY, Global.EMPTY_STRING);
 			}
-			if(cookieValue.toLowerCase().contains(SECURE)){
+			if(value.toLowerCase().contains(SECURE)){
 				cookieMap.put(SECURE, Global.EMPTY_STRING);
 			}
 			cookies.add(cookieMap);
 		}
 		//请求 request 的 cookie 形式 多个cookie 一行
-		else if(HEAD_COOKIE.equalsIgnoreCase(cookieName)){
+		else if(name.contains(HEAD_COOKIE)){
 			for(Entry<String,String> cookieMapEntry: cookieMap.entrySet()){
 				HashMap<String, String> cookieOneMap = new HashMap<String, String>();
 				cookieOneMap.put(cookieMapEntry.getKey(), cookieMapEntry.getValue());
@@ -224,191 +263,6 @@ public class HttpParser {
 	}
 
 	/**
-	 * 解析 HTTP 请求写一行
-	 * @param packetMap 解析后数据的容器
-	 * @param byteBufferChannel ByteBufferChannel对象
-	 * @return 解析后的便宜量
-	 * @throws ParserException
-	 */
-	public static int parserProtocol(Map<String, Object> packetMap, ByteBufferChannel byteBufferChannel) throws ParserException {
-		ByteBuffer tmpByteBuffer = TByteBuffer.allocateDirect(1024 * 2);
-
-		try {
-			int position = 0;
-
-			//遍历 Protocol
-			int segment = 0;
-			int protocolType = 0; //0: request, 1:response
-			byte prevByte = '\0';
-			byte currentByte = '\0';
-
-			while (!byteBufferChannel.isReleased() && byteBufferChannel.size() > 0) {
-				if(position >= byteBufferChannel.size()){
-					throw new ParserException("Parse header reach the stream end");
-				}
-
-				currentByte = byteBufferChannel.get(position);
-				position++;
-
-
-				if (currentByte == '/') {
-					if (segment == 0 || segment == 2) {
-						tmpByteBuffer.flip();
-						if (tmpByteBuffer.limit() == 4 && TByteBuffer.indexOf(tmpByteBuffer, HTTP.getBytes()) >= 0) {
-							if (segment == 0) {
-								protocolType = 1;
-							}
-							packetMap.put(FL_PROTOCOL, HTTP);
-							tmpByteBuffer.clear();
-						}
-
-						continue;
-					}
-				}
-
-				if (currentByte == ' ') {
-					if (segment == 0) {
-						tmpByteBuffer.flip();
-						if (protocolType == 0) {
-							packetMap.put(FL_METHOD, TByteBuffer.toString(tmpByteBuffer));
-						} else {
-							packetMap.put(FL_VERSION, TByteBuffer.toString(tmpByteBuffer));
-						}
-
-						tmpByteBuffer.clear();
-
-						segment = 1;
-						continue;
-					}
-
-					if (segment == 1) {
-						tmpByteBuffer.flip();
-						if (protocolType == 0) {
-							if (packetMap.containsKey(FL_PATH)) {
-								packetMap.put(FL_QUERY_STRING, TByteBuffer.toString(tmpByteBuffer));
-							} else {
-								packetMap.put(FL_PATH, TByteBuffer.toString(tmpByteBuffer));
-							}
-						} else {
-							packetMap.put(FL_STATUSCODE, TByteBuffer.toString(tmpByteBuffer));
-						}
-						tmpByteBuffer.clear();
-						segment = 2;
-					}
-
-					continue;
-				}
-
-				if (currentByte == '?') {
-					if (segment == 1) {
-						tmpByteBuffer.flip();
-						packetMap.put(FL_PATH, TByteBuffer.toString(tmpByteBuffer));
-						tmpByteBuffer.clear();
-						continue;
-					}
-				}
-
-				if (prevByte == '\r' && currentByte == '\n' && segment == 2) {
-					tmpByteBuffer.flip();
-					if (protocolType == 0) {
-						packetMap.put(FL_VERSION, TByteBuffer.toString(tmpByteBuffer));
-					} else {
-						packetMap.put(FL_STATUS, TByteBuffer.toString(tmpByteBuffer));
-					}
-					tmpByteBuffer.clear();
-					break;
-				}
-
-
-				prevByte = currentByte;
-				if (currentByte == '\r') {
-					continue;
-				}
-				tmpByteBuffer.put(currentByte);
-			}
-
-			if(!packetMap.containsKey(FL_PROTOCOL)){
-				packetMap.clear();
-				position = 0;
-			}
-
-			return position;
-		} finally {
-			TByteBuffer.release(tmpByteBuffer);
-		}
-	}
-
-	/**
-	 * 解析 HTTP 请求头
-	 * @param packetMap 解析后数据的容器
-	 * @param offset 解析开始的偏移量位置
-	 * @param byteBufferChannel ByteBufferChannel对象
-	 * @return 解析后的便宜量
-	 * @throws ParserException
-	 */
-	public static int parseHeader(Map<String, Object> packetMap, int offset, ByteBufferChannel byteBufferChannel) throws ParserException {
-		ByteBuffer tmpByteBuffer = TByteBuffer.allocateDirect(1024 * 2);
-
-		try {
-			int position = offset;
-
-			//遍历 Protocol
-			boolean isHeaderName = true;
-			byte prevByte = '\0';
-			byte currentByte = '\0';
-			String headerName = null;
-			String headerValue = null;
-
-			while (!byteBufferChannel.isReleased() && byteBufferChannel.size() > 0) {
-				if(position >= byteBufferChannel.size()){
-					throw new ParserException("Parse header reach the stream end");
-				}
-
-				currentByte = byteBufferChannel.get(position);
-				position++;
-
-				if(isHeaderName && prevByte==':' && currentByte==' ') {
-					tmpByteBuffer.flip();
-					headerName = TByteBuffer.toString(tmpByteBuffer);
-					tmpByteBuffer.clear();
-					isHeaderName = false;
-					continue;
-				}
-
-				if(!isHeaderName && prevByte=='\r' && currentByte=='\n') {
-					tmpByteBuffer.flip();
-					headerValue = TByteBuffer.toString(tmpByteBuffer);
-					tmpByteBuffer.clear();
-					break;
-				}
-
-				//http 头结束了
-				if(isHeaderName && prevByte=='\r' && currentByte=='\n' && position == offset + 2){
-					packetMap.put(null, null);
-					return position;
-				}
-
-				prevByte = currentByte;
-
-				if(isHeaderName && currentByte==':') {
-					continue;
-				}
-
-				if(!isHeaderName && currentByte=='\r') {
-					continue;
-				}
-
-				tmpByteBuffer.put(currentByte);
-			}
-
-			packetMap.put(headerName, headerValue);
-			return position;
-		} finally {
-			TByteBuffer.release(tmpByteBuffer);
-		}
-	}
-
-	/**
 	 * 解析 HTTP 报文
 	 * 		解析称 Map 形式,其中:
 	 * 			1.protocol 解析成 key/value 形式
@@ -426,52 +280,38 @@ public class HttpParser {
 	public static Map<String, Object> parser(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
 		Map<String, Object> packetMap = new HashMap<String, Object>();
 		long totalLength = 0;
+		int headerLength = 0;
 		boolean isBodyConent = false;
+		int lineNum = 0;
 
 		requestMaxSize = requestMaxSize < 0 ? Integer.MAX_VALUE : requestMaxSize;
 
-		int position = 0;
-
 		//按行遍历HTTP报文
-		while(position < byteBufferChannel.size()){
+		for(String currentLine = byteBufferChannel.readLine();
+			currentLine!=null && !byteBufferChannel.isReleased();
+			currentLine = byteBufferChannel.readLine()){
 
-			position = parserProtocol(packetMap, byteBufferChannel);
+			totalLength = totalLength + currentLine.length();
 
-			String cookieName = null;
-			String cookieValue = null;
-
-			while(!packetMap.containsKey(null)) {
-				position = parseHeader(packetMap, position, byteBufferChannel);
+			currentLine = currentLine.trim();
+			lineNum++;
+			//空行分隔处理,遇到空行标识下面有可能到内容段
+			if(currentLine.isEmpty()){
+				isBodyConent = true;
 			}
 
-			if(packetMap.containsKey(SET_COOKIE)){
-				cookieName = SET_COOKIE;
-				cookieValue = packetMap.get(SET_COOKIE).toString();
-				packetMap.remove(SET_COOKIE);
+			//解析 HTTP 协议行
+			if(!isBodyConent && currentLine.contains(HTTP) && lineNum==1){
+				parseProtocol(packetMap, currentLine);
+				continue;
 			}
 
-			if(packetMap.containsKey(HEAD_COOKIE)){
-				cookieName = HEAD_COOKIE;
-				cookieValue = packetMap.get(HEAD_COOKIE).toString();
-				packetMap.remove(HEAD_COOKIE);
+			//处理 cookie 和 header
+			if(!isBodyConent){
+				parsePropertyLine(packetMap, currentLine);
+				continue;
 			}
 
-			if(cookieName!=null){
-				parseCookie(packetMap, cookieName, cookieValue);
-			}
-
-			packetMap.remove(null);
-
-			byteBufferChannel.shrink(position);
-
-			//如果 消息缓冲通道没有数据或已关闭
-			if(byteBufferChannel.size() <= 0) {
-			    break;
-			}
-
-			isBodyConent = true;
-
-			totalLength = position;
 
 			//解析 HTTP 请求 body
 			if(isBodyConent){
@@ -545,7 +385,6 @@ public class HttpParser {
 						//解析 Part 报文体
 						//重置 index
 						index = -1;
-						//普通参数处理
 						if (fileName == null) {
 							//等待数据
 							if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut)) {
@@ -558,9 +397,7 @@ public class HttpParser {
 							ByteBuffer bodyByteBuffer = ByteBuffer.allocate(index - 2);
 							byteBufferChannel.readHead(bodyByteBuffer);
 							partMap.put(BODY_VALUE, bodyByteBuffer.array());
-						}
-						//文件处理
-						else {
+						} else {
 
 							String fileExtName = TFile.getFileExtension(fileName);
 							fileExtName = fileExtName==null || fileExtName.equals(Global.EMPTY_STRING) ? ".tmp" : fileExtName;
@@ -574,8 +411,7 @@ public class HttpParser {
 							while (true){
 								byteBufferChannel.getByteBuffer();
 								int dataLength = byteBufferChannel.size();
-
-								//等待数据, 1毫秒超时
+								//等待数据
 								if(byteBufferChannel.waitData(boundary.getBytes(), 1)){
 									isFileRecvDone = true;
 								}
@@ -698,7 +534,6 @@ public class HttpParser {
 					packetMap.put(BODY_VALUE, value);
 					byteBufferChannel.shrink(2);
 				}
-
 				//3. HTTP(请求和响应) 报文的内容段中Content-Length 提供长度,按长度读取 body 内容段
 				else if(packetMap.containsKey(HEAD_CONTENT_LENGTH)){
 					int contentLength = Integer.parseInt(packetMap.get(HEAD_CONTENT_LENGTH).toString());
@@ -725,8 +560,29 @@ public class HttpParser {
 					byte[] value = dealBodyContent(packetMap, contentBytes);
 					packetMap.put(BODY_VALUE, value);
 				}
+				//4. 容错,没有标识长度则默认读取全部内容段
+				else if(packetMap.get(BODY_VALUE)==null || packetMap.get(BODY_VALUE).toString().isEmpty()){
+					//累计请求大小
+					totalLength = totalLength + byteBufferChannel.size();
+
+					//请求过大的处理
+					if(totalLength > requestMaxSize * 1024){
+						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+					}
+
+					byte[] contentBytes = new byte[byteBufferChannel.size()];
+					byteBufferChannel.getByteBuffer().get(contentBytes);
+					byteBufferChannel.compact();
+
+					if(contentBytes!=null && contentBytes.length>0){
+						byte[] value = dealBodyContent(packetMap, contentBytes);
+						packetMap.put(BODY_VALUE, value);
+					}
+				}
 
 				break;
+			}else{
+				headerLength = headerLength+currentLine.length()+2;
 			}
 		}
 
@@ -746,14 +602,14 @@ public class HttpParser {
 		Map<String, Object> parsedPacket = parser(byteBufferChannel, timeOut, requestMaxSize);
 
 		//如果解析的Map为空,则直接返回空
-		if(parsedPacket==null || parsedPacket.isEmpty() || byteBufferChannel.isReleased()){
+		if(parsedPacket==null || parsedPacket.isEmpty()){
 			return null;
 		}
 
 		Request request = new Request();
 		//填充报文到请求对象
 		Set<Entry<String, Object>> parsedItems= parsedPacket.entrySet();
-		for(Entry<String, Object> parsedPacketEntry: parsedItems) {
+		for(Entry<String, Object> parsedPacketEntry: parsedItems){
 			String key = parsedPacketEntry.getKey();
 			switch (key) {
 				case FL_METHOD:
@@ -814,7 +670,7 @@ public class HttpParser {
 					}
 					break;
 				default:
-                    request.header().put(parsedPacketEntry.getKey(), parsedPacketEntry.getValue().toString());
+					request.header().put(parsedPacketEntry.getKey(), parsedPacketEntry.getValue().toString());
 					break;
 			}
 		}
