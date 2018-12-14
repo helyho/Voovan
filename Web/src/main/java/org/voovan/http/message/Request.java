@@ -197,7 +197,7 @@ public class Request {
                 // 产生新的boundary备用
                 String contentType = "multipart/form-data;";
                 header.put(CONTENT_TYPE, contentType);
-            }else if(body.getBodyBytes().length>0){
+            }else if(body.size()>0){
                 header.put(CONTENT_TYPE, "application/x-www-form-urlencoded");
             }
         }
