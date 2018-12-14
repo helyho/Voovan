@@ -15,7 +15,7 @@ import java.util.function.Supplier;
  */
 public class ThreadLocalPool<T> {
     private final ConcurrentLinkedQueue<T> GLOBAL_POOL = new ConcurrentLinkedQueue<T>();
-    private final ThreadLocal<LinkedList<WeakReference<T>>> THREAD_LOCAL_BYTE_BUFFER_POOL = new ThreadLocal<LinkedList<WeakReference<T>>>();
+    private final ThreadLocal<LinkedList<WeakReference<T>>> THREAD_LOCAL_POOL = new ThreadLocal<LinkedList<WeakReference<T>>>();
 
     private int globalMaxSize = 1000;
     private int threadLocalMaxSize = 10;
@@ -45,10 +45,10 @@ public class ThreadLocalPool<T> {
     }
 
     public LinkedList<WeakReference<T>> getThreadLoaclPool(){
-        LinkedList<WeakReference<T>> threadLocalPool = THREAD_LOCAL_BYTE_BUFFER_POOL.get();
+        LinkedList<WeakReference<T>> threadLocalPool = THREAD_LOCAL_POOL.get();
         if(threadLocalPool == null){
             threadLocalPool = new LinkedList<WeakReference<T>>();
-            THREAD_LOCAL_BYTE_BUFFER_POOL.set(threadLocalPool);
+            THREAD_LOCAL_POOL.set(threadLocalPool);
         }
         return threadLocalPool;
     }
