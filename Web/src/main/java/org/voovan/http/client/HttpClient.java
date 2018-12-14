@@ -614,7 +614,9 @@ public class HttpClient implements Closeable{
 	 */
 	@Override
 	public void close(){
-		socket.close();
+		if(socket!=null) {
+			socket.close();
+		}
 	}
 
 	/**
@@ -622,7 +624,11 @@ public class HttpClient implements Closeable{
 	 * @return 是否连接
 	 */
 	public boolean isConnect(){
-		return socket.isConnected();
+		if(socket!=null) {
+			return socket.isConnected();
+		} else {
+			return false;
+		}
 	}
 
 }
