@@ -6,10 +6,10 @@ import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.exception.ParserException;
 import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.tools.*;
+import org.voovan.tools.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
@@ -490,7 +490,7 @@ public class HttpParser {
                     while(true) {
                         //等待数据
                         if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut)) {
-                            throw new IOException("Http Parser read data error");
+                            throw new ParserException("Http Parser read data error");
                         }
 
                         int index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
@@ -519,7 +519,7 @@ public class HttpParser {
                         byte[] mark = BODY_MARK.getBytes();
                         //等待数据
                         if (!byteBufferChannel.waitData(mark, timeOut)) {
-                            throw new IOException("Http Parser read data error");
+                            throw new ParserException("Http Parser read data error");
                         }
 
                         int partHeadEndIndex = byteBufferChannel.indexOf(mark);
@@ -549,7 +549,7 @@ public class HttpParser {
                         if (fileName == null) {
                             //等待数据
                             if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut)) {
-                                throw new IOException("Http Parser read data error");
+                                throw new ParserException("Http Parser read data error");
                             }
 
                             index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
@@ -615,7 +615,7 @@ public class HttpParser {
 
                             if(index == -1){
                                 new File(localFileName).delete();
-                                throw new IOException("Http Parser read data error");
+                                throw new ParserException("Http Parser read data error");
                             }else{
                                 partMap.remove(BODY_VALUE);
                                 partMap.put(BODY_FILE, localFileName.getBytes());
@@ -639,7 +639,7 @@ public class HttpParser {
 
                         // 等待数据
                         if(!byteBufferChannel.waitData("\r\n".getBytes(), timeOut)){
-                            throw new IOException("Http Parser read data error");
+                            throw new ParserException("Http Parser read data error");
                         }
 
                         chunkedLengthLine = byteBufferChannel.readLine().trim();
@@ -663,7 +663,7 @@ public class HttpParser {
 
                         // 等待数据
                         if(!byteBufferChannel.waitData(chunkedLength, timeOut)){
-                            throw new IOException("Http Parser read data error");
+                            throw new ParserException("Http Parser read data error");
                         }
 
                         int readSize = 0;
@@ -676,7 +676,7 @@ public class HttpParser {
                             totalLength = totalLength + readSize;
                             //请求过大的处理
                             if(readSize != chunkedLength){
-                                throw new IOException("Http Parser read chunked data error");
+                                throw new ParserException("Http Parser read chunked data error");
                             }
 
                             //如果多次读取则拼接
@@ -708,13 +708,13 @@ public class HttpParser {
 
                     //请求过大的处理
                     if(totalLength > requestMaxSize * 1024){
-                        throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+                        throw new ParserException("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
                     }
 
 
                     // 等待数据
                     if(!byteBufferChannel.waitData(contentLength, timeOut)){
-                        throw new IOException("Http Parser read data error");
+                        throw new ParserException("Http Parser read data error");
                     }
 
                     ByteBuffer byteBuffer = ByteBuffer.allocate(contentLength);
@@ -743,7 +743,14 @@ public class HttpParser {
      */
     @SuppressWarnings("unchecked")
     public static Request parseRequest(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
-        Map<String, Object> parsedPacket = parser(byteBufferChannel, timeOut, requestMaxSize);
+
+        Map<String, Object> parsedPacket = null;
+        try {
+            parsedPacket = parser(byteBufferChannel, timeOut, requestMaxSize);
+        } catch (ParserException e) {
+            Logger.warn("HttpParser.parser: " + e.getMessage());
+            return null;
+        }
 
         //如果解析的Map为空,则直接返回空
         if(parsedPacket==null || parsedPacket.isEmpty() || byteBufferChannel.isReleased()){
