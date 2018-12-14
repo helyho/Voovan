@@ -118,7 +118,7 @@ public class Response {
 			header.put("Transfer-Encoding", "chunked");
 			header.put("Content-Encoding", "gzip");
 		} else {
-			header.put("Content-Length", Integer.toString(body.getBodyBytes().length));
+			header.put("Content-Length", Integer.toString((int)body.size()));
 		}
 
 		if (TString.isNullOrEmpty(header.get("Content-Type"))) {
@@ -197,10 +197,10 @@ public class Response {
 		try {
 			byteBuffer = readHead();
 		} catch (Throwable e){
-            if(!(e instanceof MemoryReleasedException)){
-                Logger.error("Response send error: ", (Exception) e);
-            }
-        }
+			if(!(e instanceof MemoryReleasedException)){
+				Logger.error("Response send error: ", (Exception) e);
+			}
+		}
 
 		if(byteBuffer == null){
 			return;
@@ -220,28 +220,28 @@ public class Response {
 			byteBuffer = TByteBuffer.allocateDirect();
 			int readSize = 0;
 			try{
-                while (true) {
+				while (true) {
 
-                    readSize = body.read(byteBuffer);
+					readSize = body.read(byteBuffer);
 
-                    if (readSize == -1) {
-                        break;
-                    }
+					if (readSize == -1) {
+						break;
+					}
 
-                    //判断是否需要发送 chunked 段长度
-                    if (isCompress() && readSize!=0) {
-                        String chunkedLengthLine = Integer.toHexString(readSize) + "\r\n";
-                        session.send(ByteBuffer.wrap(chunkedLengthLine.getBytes()));
-                    }
+					//判断是否需要发送 chunked 段长度
+					if (isCompress() && readSize!=0) {
+						String chunkedLengthLine = Integer.toHexString(readSize) + "\r\n";
+						session.send(ByteBuffer.wrap(chunkedLengthLine.getBytes()));
+					}
 
-                    session.send(byteBuffer);
-                    byteBuffer.clear();
+					session.send(byteBuffer);
+					byteBuffer.clear();
 
-                    //判断是否需要发送 chunked 结束符号
-                    if (isCompress() && readSize!=0) {
-                        session.send(ByteBuffer.wrap("\r\n".getBytes()));
-                    }
-                }
+					//判断是否需要发送 chunked 结束符号
+					if (isCompress() && readSize!=0) {
+						session.send(ByteBuffer.wrap("\r\n".getBytes()));
+					}
+				}
 			} catch (Throwable e){
 				if(!(e instanceof MemoryReleasedException)){
 					Logger.error("Response send error: ", (Exception) e);
