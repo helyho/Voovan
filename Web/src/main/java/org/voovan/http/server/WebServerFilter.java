@@ -13,6 +13,7 @@ import org.voovan.network.IoSession;
 import org.voovan.network.aio.AioSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.ThreadLocalPool;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -28,6 +29,7 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class WebServerFilter implements IoFilter {
+	private static ThreadLocalPool<ByteBufferChannel> THREAD_LOCAL_MULIT_BUFFER_CHANNEL = new ThreadLocalPool<ByteBufferChannel>();
 
 	/**
 	 * 将HttpResponse转换成ByteBuffer
@@ -41,7 +43,9 @@ public class WebServerFilter implements IoFilter {
 			HttpResponse httpResponse = (HttpResponse)object;
 
 			try {
-				httpResponse.send();
+				synchronized (session) {
+					httpResponse.send();
+				}
 			}catch(Exception e){
 				Logger.error(e);
 			}
@@ -63,13 +67,21 @@ public class WebServerFilter implements IoFilter {
 			return null;
 		}
 
+		boolean needRelease = false;
+
 		ByteBuffer byteBuffer = (ByteBuffer)object;
+
+		ByteBufferChannel byteBufferChannel = null;
 
 		if(byteBuffer.limit()==0){
 			session.enabledMessageSpliter(false);
+			byteBufferChannel = session.getByteBufferChannel();
+		} else {
+			//兼容 http 的 pipeline 模式,  GET 请求直接返回指定的长度
+			byteBufferChannel = THREAD_LOCAL_MULIT_BUFFER_CHANNEL.get(()->new ByteBufferChannel(TByteBuffer.EMPTY_BYTE_BUFFER));
+			byteBufferChannel.init(byteBuffer);
+			needRelease = true;
 		}
-
-		ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
 
 		if (HttpRequestType.HTTP.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))) {
 
@@ -108,6 +120,10 @@ public class WebServerFilter implements IoFilter {
 
 				Logger.error("ParseRequest failed",e);
 				return null;
+			} finally {
+				if(needRelease) {
+					THREAD_LOCAL_MULIT_BUFFER_CHANNEL.release(byteBufferChannel, null);
+				}
 			}
 		}
 		//如果包含Type为 WebSocket 说明是 WebSocket 通信,转换成 WebSocketFrame 对象

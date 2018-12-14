@@ -36,11 +36,10 @@ public class HttpMessageSplitter implements MessageSplitter {
         }else{
             result = isHttpFrame(byteBuffer);
 
-            if(result > 0){
+            if(result >= 0){
                 if (!session.containAttribute(HttpSessionParam.TYPE)) {
                     session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.HTTP);
                 }
-                result = 0;
             } else if(result == -1){
                 return result;
             } else if(result == -2){
@@ -62,7 +61,7 @@ public class HttpMessageSplitter implements MessageSplitter {
         int protocolLineIndex = -1;
         String protocolLine = null;
 
-        bodyTagIndex = TByteBuffer.revIndexOf(byteBuffer, HttpParser.BODY_MARK.getBytes());
+        bodyTagIndex = TByteBuffer.indexOf(byteBuffer, HttpParser.BODY_MARK.getBytes());
 
         if(bodyTagIndex <= 0){
             return -1;
@@ -82,7 +81,12 @@ public class HttpMessageSplitter implements MessageSplitter {
 
         if(protocolLine !=null && isHttpHead(protocolLine)) {
             if(bodyTagIndex > 0) {
-                return bodyTagIndex;
+                //兼容 http 的 pipeline 模式,  GET 请求直接返回指定的长度
+                if(byteBuffer.get(0)=='G' && byteBuffer.get(1)=='E' && byteBuffer.get(2)=='T') {
+                    return bodyTagIndex + 4;
+                } else {
+                    return 0;
+                }
             } else {
                 return -1;
             }

@@ -58,25 +58,15 @@ public class ByteBufferChannel {
      * @param byteBuffer 分配的容量
      */
     public ByteBufferChannel(ByteBuffer byteBuffer) {
-        lock = new ReentrantLock(true);
-        this.byteBuffer = byteBuffer;
-        resetAddress();
-        this.size = byteBuffer.remaining();
+        init(byteBuffer);
     }
+
 
     /**
      * 构造函数
      */
     public ByteBufferChannel() {
         init(1024 * 16);
-    }
-
-    /**
-     * 缓冲通道是否已满
-     * @return true: 通道已满, false: 通道未满
-     */
-    public boolean isFull(){
-        return maxSize <= size;
     }
 
     /**
@@ -89,6 +79,17 @@ public class ByteBufferChannel {
         byteBuffer.limit(0);
         resetAddress();
         this.size = 0;
+    }
+
+    /**
+     * 初始化函数
+     * @param byteBuffer 初始化用的 ByteBuffer
+     */
+    public void init(ByteBuffer byteBuffer){
+        lock = new ReentrantLock(true);
+        this.byteBuffer = byteBuffer;
+        resetAddress();
+        this.size = byteBuffer.remaining();
     }
 
     /**
@@ -116,6 +117,14 @@ public class ByteBufferChannel {
 
     public void setMaxSize(int maxSize) {
         this.maxSize = maxSize;
+    }
+
+    /**
+     * 缓冲通道是否已满
+     * @return true: 通道已满, false: 通道未满
+     */
+    public boolean isFull(){
+        return maxSize <= size;
     }
 
     /**
