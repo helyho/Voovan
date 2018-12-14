@@ -248,7 +248,9 @@ public class Body {
 				ByteBuffer bodyTmp = ByteBuffer.wrap(body);
 				bodyTmp.position(offset);
 				bodyTmp.limit(length);
-				byteBufferChannel.writeEnd(bodyTmp);
+				if(!byteBufferChannel.isReleased()) {
+					byteBufferChannel.writeEnd(bodyTmp);
+				}
 			}else{
 				TFile.writeFile(bodyFile,true, body, offset, length);
 			}
