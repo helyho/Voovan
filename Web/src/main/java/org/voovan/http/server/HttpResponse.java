@@ -134,13 +134,6 @@ public class HttpResponse extends Response {
 	}
 
 	/**
-	 * 清理报文
-	 */
-	public void clear() {
-		body().clear();
-	}
-
-	/**
 	 * 重定向
 	 * @param path 重定向路径
 	 */

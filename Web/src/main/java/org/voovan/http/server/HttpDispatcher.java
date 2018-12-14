@@ -533,7 +533,7 @@ public class HttpDispatcher {
 			errorPageContent = TString.oneTokenReplace(errorPageContent, "Description", error.get("Description").toString());
 			errorPageContent = TString.oneTokenReplace(errorPageContent, "Version", WebContext.getVERSION());
 			errorPageContent = TString.oneTokenReplace(errorPageContent, "DateTime", TDateTime.now());
-			response.clear();
+			response.body().clear();
 			response.write(errorPageContent);
 		}
 	}
