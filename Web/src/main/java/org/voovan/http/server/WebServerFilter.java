@@ -122,7 +122,11 @@ public class WebServerFilter implements IoFilter {
 				return null;
 			} finally {
 				if(needRelease) {
-					THREAD_LOCAL_MULIT_BUFFER_CHANNEL.release(byteBufferChannel, null);
+					ByteBufferChannel finalByteBufferChannel = byteBufferChannel;
+					THREAD_LOCAL_MULIT_BUFFER_CHANNEL.release(byteBufferChannel, ()->{
+						finalByteBufferChannel.release();
+						return false;
+					});
 				}
 			}
 		}

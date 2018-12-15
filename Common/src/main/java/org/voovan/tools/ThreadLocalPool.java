@@ -17,8 +17,8 @@ public class ThreadLocalPool<T> {
     private final ConcurrentLinkedQueue<T> GLOBAL_POOL = new ConcurrentLinkedQueue<T>();
     private final ThreadLocal<LinkedList<WeakReference<T>>> THREAD_LOCAL_POOL = new ThreadLocal<LinkedList<WeakReference<T>>>();
 
-    private int globalMaxSize = 1000;
-    private int threadLocalMaxSize = 10;
+    private int globalMaxSize = 0;
+    private int threadLocalMaxSize = 4;
 
     public ThreadLocalPool() {
     }

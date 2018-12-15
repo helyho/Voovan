@@ -22,9 +22,9 @@ import java.util.Arrays;
 public class TByteBuffer {
     public static int DEFAULT_BYTE_BUFFER_SIZE=1024*16;
 
-    public static int THREAD_LOCAL_MAX_SIZE = 10;
+    public static int THREAD_LOCAL_MAX_SIZE = 4;
 
-    public static int GLOBAL_MAX_SIZE = 1000;
+    public static int GLOBAL_MAX_SIZE = 0;
 
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
 

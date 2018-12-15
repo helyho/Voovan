@@ -282,42 +282,35 @@ public class EventProcess {
 	 */
 	public static void sendMessage(IoSession session, Object obj) {
 
-		final IoSession sendSession = session;
 		final Object sendObj = obj;
 
-		//开启一个线程发送消息,不阻塞当前线程
-		Global.getThreadPool().execute(()->{
-			try {
-				try {
-					// ------------------Filter 加密处理-----------------
-					ByteBuffer sendBuffer = EventProcess.filterEncoder(sendSession, sendObj);
-					// ---------------------------------------------------
+        try {
+            // ------------------Filter 加密处理-----------------
+            ByteBuffer sendBuffer = EventProcess.filterEncoder(session, sendObj);
+            // ---------------------------------------------------
 
-					if (sendBuffer != null) {
+            if (sendBuffer != null) {
 
-						// 发送消息
-						if (sendBuffer != null && sendSession.isOpen()) {
-							if (sendBuffer.limit() > 0) {
-								int sendLength = sendSession.send(sendBuffer);
-								if(sendLength >= 0) {
-									sendBuffer.rewind();
-								} else {
-									throw new IOException("EventProcess.sendMessage faild, send length: " + sendLength);
-								}
-							}
-						}
+                // 发送消息
+                if (sendBuffer != null && session.isOpen()) {
+                    if (sendBuffer.limit() > 0) {
+                        int sendLength = session.send(sendBuffer);
+                        if(sendLength >= 0) {
+                            sendBuffer.rewind();
+                        } else {
+                            throw new IOException("EventProcess.sendMessage faild, send length: " + sendLength);
+                        }
+                    }
+                }
 
-						//触发发送事件
-						EventTrigger.fireSent(sendSession, sendObj);
-					}
-				} catch (IOException e) {
-					EventTrigger.fireException(sendSession, e);
-				}
-			} finally {
-				sendSession.getState().setSend(false);
-			}
-		});
+                //触发发送事件
+                EventTrigger.fireSent(session, sendObj);
+            }
+        } catch (IOException e) {
+            EventTrigger.fireException(session, e);
+        }
 
+		session.getState().setSend(false);
 	}
 
 	/**
