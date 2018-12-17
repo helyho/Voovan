@@ -116,37 +116,24 @@ public class AioSession extends IoSession<AioSocket> {
     protected int send0(ByteBuffer buffer) throws IOException {
         int totalSendByte = 0;
         if (isConnected() && buffer != null) {
-            int waitTime = 0;
             //循环发送直到全部内容发送完毕
-            while(isConnected() && buffer.remaining()!=0){
-                try {
-                    Future<Integer> sendResult = socketChannel.write(buffer);
-                    try {
-                        while(isConnected()) {
-                            //这里会阻赛当前的发送线程
-                            Integer sentLength = sendResult.get(socketContext().getSendTimeout(), TimeUnit.MILLISECONDS);
-                            if (sentLength != null) {
-                                totalSendByte += sentLength;
-                                break;
-                            }
-                        }
-                    } catch (Exception e) {
-                        if(e instanceof TimeoutException){
-                            throw new IOException(e);
-                        }
-                        close();
-                        return -1;
-                    }
 
-                } catch(WritePendingException e){
-                    waitTime++;
-                    TEnv.sleep(1);
-                    if(waitTime > socketContext().getSendTimeout()){
-                        close();
-                        throw new IOException(new TimeoutException("AioSession.send0 WritePending timeout"));
+            try{
+                while(isConnected() && buffer.remaining()!=0){
+                    Future<Integer> sendResult = socketChannel.write(buffer);
+                    //这里会阻赛当前的发送线程
+                    Integer sentLength = sendResult.get(socketContext().getSendTimeout(), TimeUnit.MILLISECONDS);
+                    if (sentLength != null) {
+                        totalSendByte += sentLength;
+                        break;
                     }
-                    continue;
                 }
+            } catch(Exception e){
+                if(e instanceof TimeoutException) {
+                    throw new IOException(e);
+                }
+                close();
+                return -1;
             }
         }
         return totalSendByte;
