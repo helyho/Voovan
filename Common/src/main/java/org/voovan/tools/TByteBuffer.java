@@ -108,6 +108,7 @@ public class TByteBuffer {
             }
 
             byteBuffer.position(0);
+            byteBuffer.limit(capacity);
 
             return byteBuffer;
         } else {
