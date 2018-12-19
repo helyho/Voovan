@@ -44,6 +44,7 @@ public class NioSelector {
 	private ByteBufferChannel sessionByteBufferChannel;
 	private ByteBufferChannel tmpByteBufferChannel;
 	private ByteBuffer readTempBuffer;
+	private int waitCount = 0;
 
 	private NioSession session;
 
@@ -91,6 +92,7 @@ public class NioSelector {
 					Iterator<SelectionKey> selectionKeyIterator = selectionKeys
 							.iterator();
 					while (selectionKeyIterator.hasNext()) {
+						waitCount = 0;
 						SelectionKey selectionKey = selectionKeyIterator.next();
 						if (selectionKey.isValid()) {
 							// 获取 socket 通道
@@ -103,8 +105,7 @@ public class NioSelector {
 									case SelectionKey.OP_ACCEPT: {
 										NioServerSocket serverSocket = (NioServerSocket)socketContext;
 										NioSocket socket = new NioSocket(serverSocket,socketChannel);
-										session = socket.getSession();
-										EventTrigger.fireAccept(session);
+										EventTrigger.fireAccept(socket.getSession());
 										break;
 									}
 									// 有数据读取
@@ -161,6 +162,12 @@ public class NioSelector {
 								selectionKeyIterator.remove();
 							}
 						}
+					}
+				} else {
+					//ReadTimeout 控制
+					waitCount++;
+					if(socketContext instanceof NioSocket && waitCount >= socketContext.getReadTimeout()) {
+						session.close();
 					}
 				}
 			}
