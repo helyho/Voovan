@@ -18,7 +18,7 @@ import org.voovan.tools.log.Logger;
 public class UdpSocketTest {
 
     public static void main(String[] args) throws Exception {
-        UdpSocket udpSocket = new UdpSocket("127.0.0.1",60000,500, 1);
+        UdpSocket udpSocket = new UdpSocket("127.0.0.1",60000,5000, 1);
         udpSocket.messageSplitter(new LineMessageSplitter());
         udpSocket.filterChain().add(new StringFilter());
         udpSocket.handler(new ClientHandlerTest());

@@ -19,7 +19,7 @@ import java.io.IOException;
 public class UdpServerSocketTest {
 
     public static void main(String[] args) throws IOException {
-        UdpServerSocket udpServerSocket = new UdpServerSocket("0.0.0.0",60000,500, 1);
+        UdpServerSocket udpServerSocket = new UdpServerSocket("127.0.0.1",60000,5000, 1);
         udpServerSocket.messageSplitter(new LineMessageSplitter());
         udpServerSocket.filterChain().add(new StringFilter());
         udpServerSocket.handler(new ServerHandlerTest());

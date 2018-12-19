@@ -2,10 +2,12 @@ package org.voovan.network.udp;
 
 import org.voovan.Global;
 import org.voovan.network.ConnectModel;
+import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.RestartException;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.network.nio.NioSelector;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -31,6 +33,10 @@ public class UdpSocket extends SocketContext {
     private Selector selector;
     private DatagramChannel datagramChannel;
     private UdpSession session;
+    private UdpSelector udpSelector;
+
+    //用来阻塞当前Socket
+    private Object waitObj = new Object();
 
 
     /**
@@ -78,9 +84,9 @@ public class UdpSocket extends SocketContext {
         provider = SelectorProvider.provider();
         datagramChannel = provider.openDatagramChannel();
         datagramChannel.socket().setSoTimeout(this.readTimeout);
+
         InetSocketAddress address = new InetSocketAddress(this.host, this.port);
-        session = new UdpSession(this,address);
-        datagramChannel.configureBlocking(false);
+        session = new UdpSession(this, address);
         connectModel = ConnectModel.CLIENT;
     }
 
@@ -126,6 +132,8 @@ public class UdpSocket extends SocketContext {
         try{
             selector = provider.openSelector();
             datagramChannel.register(selector, SelectionKey.OP_READ);
+            udpSelector = new UdpSelector(selector, this);
+            UdpSelector.register(udpSelector);
         }catch(IOException e){
             Logger.error("init SocketChannel failed by openSelector",e);
         }
@@ -146,30 +154,27 @@ public class UdpSocket extends SocketContext {
 
     @Override
     public void start() throws IOException {
-        InetSocketAddress address = new InetSocketAddress(this.host, this.port);
-        datagramChannel.connect(address);
+        syncStart();
 
-        registerSelector();
-
-        if(datagramChannel!=null && datagramChannel.isOpen()){
-            UdpSelector udpSelector = new UdpSelector(selector,this);
-            udpSelector.eventChose();
+        synchronized (waitObj){
+            try {
+                waitObj.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     /**
      * 启动同步的上下文连接,同步读写时使用
      */
-    public void syncStart(){
-        Global.getThreadPool().execute(new Runnable(){
-            public void run() {
-                try {
-                    start();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+    public void syncStart() throws IOException {
+        datagramChannel.connect(new InetSocketAddress(this.host, this.port));
+        datagramChannel.configureBlocking(false);
+
+        registerSelector();
+
+        EventTrigger.fireConnectThread(session);
     }
 
     @Override
@@ -254,16 +259,22 @@ public class UdpSocket extends SocketContext {
             try{
                 datagramChannel.close();
 
-                //如果有未读数据等待数据处理完成
-                //session.wait(this.getReadTimeout());
-
+                UdpSelector.unregister(udpSelector);
+                udpSelector.release();
+                selector.close();
                 session.getByteBufferChannel().release();
+                synchronized (waitObj) {
+                    waitObj.notify();
+                }
                 return true;
             } catch(IOException e){
                 Logger.error("Close SocketChannel failed",e);
                 return false;
             }
         }else{
+            synchronized (waitObj) {
+                waitObj.notify();
+            }
             return true;
         }
     }

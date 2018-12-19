@@ -1,12 +1,11 @@
 package org.voovan.network.udp;
 
-import org.voovan.Global;
 import org.voovan.network.SocketContext;
 import org.voovan.network.handler.SynchronousHandler;
-import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.SocketOption;
 import java.nio.channels.DatagramChannel;
@@ -28,8 +27,11 @@ public class UdpServerSocket extends SocketContext {
     private SelectorProvider provider;
     private Selector selector;
     private DatagramChannel datagramChannel;
-    private UdpSession session;
 
+    private UdpSelector udpSelector;
+
+    //用来阻塞当前Socket
+    private Object waitObj = new Object();
 
     /**
      * socket 连接
@@ -76,9 +78,6 @@ public class UdpServerSocket extends SocketContext {
         provider = SelectorProvider.provider();
         datagramChannel = provider.openDatagramChannel();
         datagramChannel.socket().setSoTimeout(this.readTimeout);
-        InetSocketAddress address = new InetSocketAddress(this.host, this.port);
-        datagramChannel.bind(new InetSocketAddress(this.host, this.port));
-        datagramChannel.configureBlocking(false);
         this.handler = new SynchronousHandler();
     }
 
@@ -106,65 +105,46 @@ public class UdpServerSocket extends SocketContext {
         try{
             selector = provider.openSelector();
             datagramChannel.register(selector, SelectionKey.OP_READ);
+
+            if(datagramChannel!=null && datagramChannel.isOpen()) {
+                udpSelector = new UdpSelector(selector, this);
+                UdpSelector.register(udpSelector);
+            }
         }catch(IOException e){
             Logger.error("init SocketChannel failed by openSelector",e);
         }
-    }
-
-
-    /**
-     * 获取 Session 对象
-     * @return Session 对象
-     */
-    public UdpSession getSession(){
-        return session;
     }
 
     public DatagramChannel datagramChannel(){
         return this.datagramChannel;
     }
 
-    /**
-     * 启动同步监听
-     * 		非阻赛方法
-     * @throws IOException  IO 异常
-     */
     @Override
     public void start() throws IOException {
-        //如果没有消息分割器默认使用透传割器
-        if(messageSplitter == null){
-            messageSplitter = new TransferSplitter();
-        }
+        syncStart();
 
-        registerSelector();
-
-        if(datagramChannel!=null && datagramChannel.isOpen()){
-            UdpSelector udpSelector = new UdpSelector(selector,this);
-            udpSelector.eventChose();
+        synchronized (waitObj){
+            try {
+                waitObj.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     /**
-     * 启动同步监听
-     * 		非阻赛方法
-     * @throws IOException  IO 异常
+     * 启动同步的上下文连接,同步读写时使用
      */
-    @Override
     public void syncStart() throws IOException {
-        Global.getThreadPool().execute(new Runnable(){
-            public void run() {
-                try {
-                    start();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        datagramChannel.bind(new InetSocketAddress(this.host, this.port));
+        datagramChannel.configureBlocking(false);
+
+        registerSelector();
     }
 
     @Override
     protected void acceptStart() throws IOException {
-
+        throw new UnsupportedEncodingException();
     }
 
     @Override
@@ -190,6 +170,11 @@ public class UdpServerSocket extends SocketContext {
         if(datagramChannel!=null){
             try{
                 datagramChannel.close();
+                UdpSelector.unregister(udpSelector);
+                synchronized (waitObj) {
+                    waitObj.notify();
+                }
+
                 return true;
             } catch(IOException e){
                 Logger.error("Close SocketChannel failed",e);

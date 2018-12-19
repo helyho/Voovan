@@ -79,6 +79,7 @@ public class NioSocket extends SocketContext{
 		provider = SelectorProvider.provider();
 		socketChannel = provider.openSocketChannel();
 		socketChannel.socket().setSoTimeout(this.readTimeout);
+
 		session = new NioSession(this);
 		connectModel = ConnectModel.CLIENT;
 	}
@@ -177,13 +178,13 @@ public class NioSocket extends SocketContext{
 	 * 		非阻塞方法
 	 */
 	public void syncStart() throws IOException {
-        init();
-        initSSL(session);
+		init();
+		initSSL(session);
 
-        socketChannel.connect(new InetSocketAddress(this.host, this.port));
-        socketChannel.configureBlocking(false);
+		socketChannel.connect(new InetSocketAddress(this.host, this.port));
+		socketChannel.configureBlocking(false);
 
-        registerSelector();
+		registerSelector();
 
 		EventTrigger.fireConnectThread(session);
 
@@ -193,19 +194,19 @@ public class NioSocket extends SocketContext{
 	protected void acceptStart() throws IOException {
 		final NioSocket nioSocket = this;
 
-        try {
-            initSSL(session);
+		try {
+			initSSL(session);
 
-            registerSelector();
+			registerSelector();
 
-            if (socketChannel != null && socketChannel.isOpen()) {
-                nioSelector = new NioSelector(selector, nioSocket);
-            }
+			if (socketChannel != null && socketChannel.isOpen()) {
+				nioSelector = new NioSelector(selector, nioSocket);
+			}
 
 			EventTrigger.fireConnectThread(session);
-        }catch(IOException e){
-            e.printStackTrace();
-        }
+		}catch(IOException e){
+			e.printStackTrace();
+		}
 	}
 
 	/**
