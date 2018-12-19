@@ -118,6 +118,7 @@ public class NioSelector {
 													session.close();
 												} else {
 													readTempBuffer.flip();
+													netByteBufferChannel.clear();
 
 													if (length > 0) {
 

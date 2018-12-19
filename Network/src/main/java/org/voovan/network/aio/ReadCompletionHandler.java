@@ -50,6 +50,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 				session.close();
 			} else {
 				readTempBuffer.flip();
+				netByteBufferChannel.clear();
 
 				if (length > 0) {
 
