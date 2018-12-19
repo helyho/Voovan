@@ -83,7 +83,7 @@ public class NioSelector {
 		// 事件循环
 		try {
 			if (socketContext != null && socketContext.isConnected()) {
-				if (selector.select(1) > 0) {
+				if (selector.selectNow() > 0) {
 					Set<SelectionKey> selectionKeys = selector.selectedKeys();
 					Iterator<SelectionKey> selectionKeyIterator = selectionKeys.iterator();
 
