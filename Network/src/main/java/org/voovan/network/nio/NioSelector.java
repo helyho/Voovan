@@ -41,6 +41,14 @@ public class NioSelector {
 		});
 	}
 
+	public static void register(NioSelector selector){
+		SELECTORS.add(selector);
+	}
+
+	public static void unregister(NioSelector selector){
+		SELECTORS.remove(selector);
+	}
+
 	private Selector selector;
 	private SocketContext socketContext;
 	private ByteBufferChannel netByteBufferChannel;
@@ -71,13 +79,6 @@ public class NioSelector {
 		}
 	}
 
-	public static void register(NioSelector selector){
-		SELECTORS.add(selector);
-	}
-
-	public static void unregister(NioSelector selector){
-		SELECTORS.remove(selector);
-	}
 
 	/**
 	 * 所有的事件均在这里触发
@@ -118,7 +119,9 @@ public class NioSelector {
 													session.close();
 												} else {
 													readTempBuffer.flip();
-													netByteBufferChannel.clear();
+													if(session.getSSLParser()!=null) {
+														netByteBufferChannel.clear();
+													}
 
 													if (length > 0) {
 
