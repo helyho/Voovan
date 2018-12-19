@@ -1,5 +1,6 @@
 package org.voovan.network.nio;
 
+import org.voovan.Global;
 import org.voovan.network.*;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
@@ -9,7 +10,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  * 事件监听器
@@ -22,11 +25,25 @@ import java.util.Set;
  */
 public class NioSelector {
 
+	public static ConcurrentLinkedDeque<NioSelector> SELECTORS = new ConcurrentLinkedDeque<NioSelector>();
+	static {
+		Global.getThreadPool().execute(()->{
+			while(true){
+				NioSelector nioSelector = SELECTORS.poll();
+				if(nioSelector!=null && nioSelector.socketContext.isConnected()) {
+					nioSelector.eventChose();
+					SELECTORS.offer(nioSelector);
+				}
+			}
+		});
+	}
+
 	private Selector selector;
 	private SocketContext socketContext;
 	private ByteBufferChannel netByteBufferChannel;
 	private ByteBufferChannel sessionByteBufferChannel;
 	private ByteBufferChannel tmpByteBufferChannel;
+	private ByteBuffer readTempBuffer;
 
 	private NioSession session;
 
@@ -38,32 +55,38 @@ public class NioSelector {
 	public NioSelector(Selector selector, SocketContext socketContext) {
 		this.selector = selector;
 		this.socketContext = socketContext;
+
+		//读取用的缓冲区
+		readTempBuffer = TByteBuffer.allocateDirect(socketContext.getBufferSize());
+
 		if (socketContext instanceof NioSocket){
 			this.session = ((NioSocket)socketContext).getSession();
 			this.sessionByteBufferChannel = session.getByteBufferChannel();
 			this.tmpByteBufferChannel = new ByteBufferChannel();
+
+			if(netByteBufferChannel== null && session.getSSLParser()!=null){
+				netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+
+			}
 		}
+	}
+
+	public static void register(NioSelector selector){
+		SELECTORS.add(selector);
+	}
+
+	public static void unregister(NioSelector selector){
+		SELECTORS.remove(selector);
 	}
 
 	/**
 	 * 所有的事件均在这里触发
 	 */
-	public void eventChose() {
-		//读取用的缓冲区
-		ByteBuffer readTempBuffer = TByteBuffer.allocateDirect(socketContext.getBufferSize());
-
-		if( socketContext instanceof NioSocket && netByteBufferChannel== null && session.getSSLParser()!=null) {
-			netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
-		}
-
-		if (socketContext instanceof NioSocket) {
-			EventTrigger.fireConnectThread(session);
-		}
-
+	private void eventChose() {
 		// 事件循环
 		try {
-			while (socketContext != null && socketContext.isConnected()) {
-				if (selector.select(1000) > 0) {
+			if (socketContext != null && socketContext.isConnected()) {
+				if (selector.select(1) > 0) {
 					Set<SelectionKey> selectionKeys = selector.selectedKeys();
 					Iterator<SelectionKey> selectionKeyIterator = selectionKeys
 							.iterator();
@@ -81,7 +104,7 @@ public class NioSelector {
 										NioServerSocket serverSocket = (NioServerSocket)socketContext;
 										NioSocket socket = new NioSocket(serverSocket,socketChannel);
 										session = socket.getSession();
-										EventTrigger.fireAcceptThread(session);
+										EventTrigger.fireAccept(session);
 										break;
 									}
 									// 有数据读取
@@ -92,10 +115,7 @@ public class NioSelector {
 										if(MessageLoader.isStreamEnd(readTempBuffer, readSize) && session.isConnected()){
 
 											session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
-											//如果 Socket 流达到结尾,则关闭连接
-											while(session.isConnected()) {
-												session.close();
-											}
+											session.close();
 											break;
 										}else if(readSize>0){
 											readTempBuffer.flip();
@@ -159,15 +179,6 @@ public class NioSelector {
 				//触发 onException 事件
 				EventTrigger.fireExceptionThread(session, e);
 			}
-		} finally{
-			// 触发连接断开事件
-			if(session!=null) {
-				EventTrigger.fireDisconnectThread(session);
-				TByteBuffer.release(readTempBuffer);
-			}
-
-			tmpByteBufferChannel.release();
-			netByteBufferChannel.release();
 		}
 	}
 
@@ -194,8 +205,16 @@ public class NioSelector {
 	}
 
 	public void release(){
+		if(readTempBuffer!=null){
+			TByteBuffer.release(readTempBuffer);
+		}
+
 		if(netByteBufferChannel!=null) {
 			netByteBufferChannel.release();
+		}
+
+		if(tmpByteBufferChannel!=null) {
+			tmpByteBufferChannel.release();
 		}
 	}
 }
