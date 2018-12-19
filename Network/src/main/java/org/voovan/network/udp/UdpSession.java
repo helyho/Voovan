@@ -127,9 +127,9 @@ public class UdpSession extends IoSession<UdpSocket> {
 			while(buffer.remaining()!=0){
 				int sendSize = 0;
 				if(datagramChannel.getRemoteAddress()!=null) {
-					datagramChannel.write(buffer);
+					sendSize = datagramChannel.write(buffer);
 				} else {
-					datagramChannel.send(buffer, this.remoteAddress);
+					sendSize = datagramChannel.send(buffer, this.remoteAddress);
 				}
 				if(sendSize == 0 ){
 					TEnv.sleep(1);

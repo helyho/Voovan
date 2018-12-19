@@ -81,8 +81,6 @@ public class NioServerSocket extends SocketContext {
 		provider = SelectorProvider.provider();
 		serverSocketChannel = provider.openServerSocketChannel();
 		serverSocketChannel.socket().setSoTimeout(this.readTimeout);
-		serverSocketChannel.configureBlocking(false);
-		serverSocketChannel.bind(new InetSocketAddress(host, port), 1000);
 	}
 
 	/**
@@ -153,6 +151,9 @@ public class NioServerSocket extends SocketContext {
 	 */
 	@Override
 	public void syncStart() throws IOException {
+		serverSocketChannel.bind(new InetSocketAddress(host, port), 1000);
+		serverSocketChannel.configureBlocking(false);
+
 		registerSelector();
 	}
 
