@@ -185,9 +185,9 @@ public class NioSocket extends SocketContext{
 
         registerSelector();
 
-        waitConnected(session);
-
 		EventTrigger.fireConnectThread(session);
+
+		waitConnected(session);
 	}
 
 	protected void acceptStart() throws IOException {

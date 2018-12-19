@@ -72,10 +72,6 @@ public class NioSelector {
 		if (socketContext instanceof NioSocket){
 			this.session = ((NioSocket)socketContext).getSession();
 			this.appByteBufferChannel = session.getByteBufferChannel();
-
-			if(netByteBufferChannel== null && session.getSSLParser()!=null){
-				netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
-			}
 		}
 	}
 
@@ -118,10 +114,11 @@ public class NioSelector {
 													session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 													session.close();
 												} else {
-													readTempBuffer.flip();
-													if(session.getSSLParser()!=null) {
-														netByteBufferChannel.clear();
+													if(netByteBufferChannel== null && session.getSSLParser()!=null){
+														netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
 													}
+
+													readTempBuffer.flip();
 
 													if (length > 0) {
 
