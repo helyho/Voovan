@@ -86,8 +86,7 @@ public class UdpSelector {
             if (socketContext != null && socketContext.isOpen()) {
                 if (selector.selectNow() > 0) {
                     Set<SelectionKey> selectionKeys = selector.selectedKeys();
-                    Iterator<SelectionKey> selectionKeyIterator = selectionKeys
-                            .iterator();
+                    Iterator<SelectionKey> selectionKeyIterator = selectionKeys.iterator();
                     while (selectionKeyIterator.hasNext()) {
                         SelectionKey selectionKey = selectionKeyIterator.next();
                         if (selectionKey.isValid()) {
@@ -145,8 +144,7 @@ public class UdpSelector {
                                                 }
                                                 break;
                                             } default: {
-                                                Logger.fremawork("Nothing to do ,SelectionKey is:"
-                                                        + selectionKey.readyOps());
+                                                Logger.fremawork("Nothing to do ,SelectionKey is:" + selectionKey.readyOps());
                                             }
                                         }
                                         selectionKeyIterator.remove();

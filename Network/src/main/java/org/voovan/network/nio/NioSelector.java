@@ -162,8 +162,7 @@ public class NioSelector {
 												break;
 											}
 											default: {
-												Logger.fremawork("Nothing to do ,SelectionKey is:"
-														+ selectionKey.readyOps());
+												Logger.fremawork("Nothing to do ,SelectionKey is:" + selectionKey.readyOps());
 											}
 										}
 										selectionKeyIterator.remove();
