@@ -201,8 +201,10 @@ public class Body {
 	public int read(ByteBuffer byteBuffer){
 		int readSize = -1;
 		if(type == BodyType.BYTES) {
-			readSize = byteBufferChannel.readHead(byteBuffer);
-			readSize = readSize==0? -1: readSize;
+			if(!byteBufferChannel.isReleased() && byteBufferChannel.size() > 0) {
+				readSize = byteBufferChannel.readHead(byteBuffer);
+				readSize = readSize == 0 ? -1 : readSize;
+			}
 		}else {
 			byte[] fileContent = TFile.loadFile(bodyFile, position, position + byteBuffer.remaining());
 			if (fileContent != null){
