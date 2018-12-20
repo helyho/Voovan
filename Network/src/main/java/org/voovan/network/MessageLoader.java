@@ -257,6 +257,8 @@ public class MessageLoader {
 						TByteBuffer.reallocate(result, splitLength);
 					}
 
+					result.limit(splitLength);
+
 					int fillSize = dataByteBufferChannel.readHead(result);
 					if (fillSize != splitLength) {
 						Logger.error("[WARN] Message is not full, expect: " + splitLength + ", acutal: " + fillSize);
