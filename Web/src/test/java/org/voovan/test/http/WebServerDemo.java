@@ -218,15 +218,16 @@ public class WebServerDemo {
 			public Object onOpen(WebSocketSession webSocketSession) {
 				Logger.info("onOpen: WebSocket connect!");
 
-				//调用发送函数发送
-				try {
-					webSocketSession.send("Send by persistent Object's send method in onOpen");
-					webSocketSession.send("Send by send method in onOpen");
-				} catch (SendMessageException | WebSocketFilterException e) {
-					e.printStackTrace();
-				}
+//				//调用发送函数发送
+//				try {
+//					webSocketSession.send("Send by persistent Object's send method in onOpen");
+//					webSocketSession.send("Send by send method in onOpen");
+//				} catch (SendMessageException | WebSocketFilterException e) {
+//					e.printStackTrace();
+//				}
 
-				return "Server send: onOpen";
+//				return "Server send: onOpen";
+				return null;
 			}
 
 			@Override

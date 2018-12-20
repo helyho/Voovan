@@ -250,13 +250,15 @@ public class Response {
 					Logger.error("Response send error: ", (Exception) e);
 				}
 				return;
-			} finally {
-				//发送报文结束符
-				byteBuffer.put(readEnd());
-				session.send(byteBuffer);
-				clear();
 			}
+		} else {
+			byteBuffer.flip();
 		}
+
+		//发送报文结束符
+		byteBuffer.put(readEnd());
+		session.send(byteBuffer);
+		clear();
 
 		basicSend = true;
 	}
