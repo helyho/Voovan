@@ -19,18 +19,20 @@ import java.util.concurrent.TimeUnit;
 public class ThreadPool {
 	private static int cpuCoreCount = Runtime.getRuntime().availableProcessors();
 
-	protected static int MIN_POOL_SIZE = 10*cpuCoreCount;
-	protected static int MAX_POOL_SIZE = 100*cpuCoreCount;
+	protected static int MIN_POOL_SIZE = cpuCoreCount;
+	protected static int MAX_POOL_SIZE = cpuCoreCount;
 	protected static int STATUS_INTERVAL = 3000;
+
+	protected static int minPoolTimes = TProperties.getInt("framework", "ThreadPoolMinSize");
+	protected static int maxPoolTimes = TProperties.getInt("framework", "ThreadPoolMaxSize");
 
 	/**
 	 * 获取线程池最小活动线程数
 	 * @return 线程池最小活动线程数
 	 */
 	public static int getMinPoolSize() {
-		int minPoolTimes = TProperties.getInt("framework", "ThreadPoolMinSize");
-		MIN_POOL_SIZE = (minPoolTimes == 0 ? 2 : minPoolTimes) * cpuCoreCount;
-		MIN_POOL_SIZE = MIN_POOL_SIZE < 20 ? 20 : MIN_POOL_SIZE;
+		MIN_POOL_SIZE = (minPoolTimes == 0 ? 1 : minPoolTimes) * cpuCoreCount;
+		MIN_POOL_SIZE = MIN_POOL_SIZE < 0 ? cpuCoreCount : MIN_POOL_SIZE;
 		System.out.println("[THREAD_POOL] Min size: " + minPoolTimes + "/" + MIN_POOL_SIZE);
 		return MIN_POOL_SIZE;
 	}
@@ -40,8 +42,11 @@ public class ThreadPool {
 	 * @return 线程池最大活动线程数
 	 */
 	public static int getMaxPoolSize() {
-		int maxPoolTimes = TProperties.getInt("framework", "ThreadPoolMaxSize");
-		MAX_POOL_SIZE = (maxPoolTimes < MIN_POOL_SIZE ? MIN_POOL_SIZE : maxPoolTimes) * cpuCoreCount;
+		if(minPoolTimes > maxPoolTimes){
+			maxPoolTimes = minPoolTimes;
+		}
+		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 1 : maxPoolTimes) * cpuCoreCount;
+		MAX_POOL_SIZE = MAX_POOL_SIZE < 0 ? cpuCoreCount : MAX_POOL_SIZE;
 		System.out.println("[THREAD_POOL] Max size: " + maxPoolTimes + "/" + MAX_POOL_SIZE);
 		return MAX_POOL_SIZE;
 	}
