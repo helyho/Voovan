@@ -40,12 +40,8 @@ public class Body {
 	 */
 	public Body(){
 		type = BodyType.BYTES;
-		try{
-			changeToBytes("".getBytes());
-			bodyFile = null;
-		} catch (IOException e){
-			Logger.error("Construct Body error",e);
-		}
+        changeToBytes("".getBytes());
+        bodyFile = null;
 	}
 
 
@@ -55,12 +51,8 @@ public class Body {
 	 */
 	public Body(byte[] content){
 		type = BodyType.BYTES;
-		try {
-			changeToBytes(content);
-			bodyFile = null;
-		} catch (IOException e){
-			Logger.error("Construct Body error",e);
-		}
+        changeToBytes(content);
+        bodyFile = null;
 	}
 
 	/**
@@ -127,7 +119,7 @@ public class Body {
 	 * @param content 字节内容
 	 * @throws IOException 文件未找到异常
 	 */
-	public void changeToBytes(byte[] content) throws IOException {
+	public void changeToBytes(byte[] content) {
 		if(byteBufferChannel == null || byteBufferChannel.isReleased()){
 			byteBufferChannel = new ByteBufferChannel();
 		}
@@ -301,6 +293,8 @@ public class Body {
 			}
 			bodyFile = null;
 		}
+
+        changeToBytes(new byte[0]);
 	}
 
 	public void saveAsFile(File destFile) throws IOException {

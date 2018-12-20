@@ -28,6 +28,8 @@ public class MessageLoader {
 	private ByteBufferChannel byteBufferChannel;
 	private boolean useSpliter;
 
+	public static ThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
+
 	/**
 	 * 构造函数
 	 * @param session Session 对象
@@ -246,10 +248,19 @@ public class MessageLoader {
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		else if (stopType == StopType.MSG_SPLITTER) {
 			if (splitLength > 0) {
-				result = TByteBuffer.allocateDirect(splitLength);
-				int fillSize = dataByteBufferChannel.readHead(result);
-				if (fillSize != splitLength) {
-					Logger.error("[WARN] Message is not full, expect: " + splitLength + ", acutal: " + fillSize);
+				//========================将数据复制到本地线程中========================
+				{
+					result = THREAD_BYTE_BUFFER.get();
+					result.clear();
+
+					if (result.capacity() < splitLength) {
+						TByteBuffer.reallocate(result, splitLength);
+					}
+
+					int fillSize = dataByteBufferChannel.readHead(result);
+					if (fillSize != splitLength) {
+						Logger.error("[WARN] Message is not full, expect: " + splitLength + ", acutal: " + fillSize);
+					}
 				}
 			} else {
 				return TByteBuffer.EMPTY_BYTE_BUFFER;

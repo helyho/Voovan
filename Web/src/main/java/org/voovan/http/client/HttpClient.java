@@ -506,11 +506,7 @@ public class HttpClient implements Closeable{
 			request.cookies().addAll(response.cookies());
 		}
 
-		try {
-			request.body().changeToBytes(new byte[0]);
-		} catch (IOException e) {
-			request.body();
-		}
+        request.body().changeToBytes(new byte[0]);
 
 		//清理请求对象,以便下次请求使用
 		parameters.clear();

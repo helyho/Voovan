@@ -64,6 +64,7 @@ public class HttpParser {
     public static final String equalMapRegex = "([^ ;,]+=[^;,]+)";
 
     public static ThreadLocal<Map<String, Object>> THREAD_PACKET_MAP = ThreadLocal.withInitial(()->new HashMap<String, Object>());
+    public static ThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect(1024*4));
     public static ThreadLocal<Request> THREAD_REQUEST = ThreadLocal.withInitial(()->new Request());
     public static ThreadLocal<Response> THREAD_RESPONSE = ThreadLocal.withInitial(()->new Response());
 
@@ -235,111 +236,108 @@ public class HttpParser {
      * @throws ParserException
      */
     public static int parserProtocol(Map<String, Object> packetMap, ByteBufferChannel byteBufferChannel) throws ParserException {
-        ByteBuffer tmpByteBuffer = TByteBuffer.allocateDirect(1024 * 2);
+        ByteBuffer tmpByteBuffer = THREAD_BYTE_BUFFER.get();
+        tmpByteBuffer.rewind();
 
-        try {
-            int position = 0;
+        int position = 0;
 
-            //遍历 Protocol
-            int segment = 0;
-            int protocolType = 0; //0: request, 1:response
-            byte prevByte = '\0';
-            byte currentByte = '\0';
+        //遍历 Protocol
+        int segment = 0;
+        int protocolType = 0; //0: request, 1:response
+        byte prevByte = '\0';
+        byte currentByte = '\0';
 
-            while (!byteBufferChannel.isReleased() && byteBufferChannel.size() > 0) {
-                if(position >= byteBufferChannel.size()){
-                    throw new ParserException("Parse header reach the stream end");
-                }
+        while (!byteBufferChannel.isReleased() && byteBufferChannel.size() > 0) {
+            if(position >= byteBufferChannel.size()){
+                throw new ParserException("Parse header reach the stream end");
+            }
 
-                currentByte = byteBufferChannel.get(position);
-                position++;
+            currentByte = byteBufferChannel.get(position);
+            position++;
 
 
-                if (currentByte == '/') {
-                    if (segment == 0 || segment == 2) {
-                        tmpByteBuffer.flip();
-                        if (tmpByteBuffer.limit() == 4 && TByteBuffer.indexOf(tmpByteBuffer, HTTP.getBytes()) >= 0) {
-                            if (segment == 0) {
-                                protocolType = 1;
-                            }
-                            packetMap.put(FL_PROTOCOL, HTTP);
-                            tmpByteBuffer.clear();
+            if (currentByte == '/') {
+                if (segment == 0 || segment == 2) {
+                    tmpByteBuffer.flip();
+                    if (tmpByteBuffer.limit() == 4 && TByteBuffer.indexOf(tmpByteBuffer, HTTP.getBytes()) >= 0) {
+                        if (segment == 0) {
+                            protocolType = 1;
                         }
-
-                        continue;
-                    }
-                }
-
-                if (currentByte == ' ') {
-                    if (segment == 0) {
-                        tmpByteBuffer.flip();
-                        if (protocolType == 0) {
-                            packetMap.put(FL_METHOD, TByteBuffer.toString(tmpByteBuffer));
-                        } else {
-                            packetMap.put(FL_VERSION, TByteBuffer.toString(tmpByteBuffer));
-                        }
-
+                        packetMap.put(FL_PROTOCOL, HTTP);
                         tmpByteBuffer.clear();
-
-                        segment = 1;
-                        continue;
-                    }
-
-                    if (segment == 1) {
-                        tmpByteBuffer.flip();
-                        if (protocolType == 0) {
-                            if (packetMap.containsKey(FL_PATH)) {
-                                packetMap.put(FL_QUERY_STRING, TByteBuffer.toString(tmpByteBuffer));
-                            } else {
-                                packetMap.put(FL_PATH, TByteBuffer.toString(tmpByteBuffer));
-                            }
-                        } else {
-                            packetMap.put(FL_STATUSCODE, TByteBuffer.toString(tmpByteBuffer));
-                        }
-                        tmpByteBuffer.clear();
-                        segment = 2;
                     }
 
                     continue;
                 }
+            }
 
-                if (currentByte == '?') {
-                    if (segment == 1) {
-                        tmpByteBuffer.flip();
-                        packetMap.put(FL_PATH, TByteBuffer.toString(tmpByteBuffer));
-                        tmpByteBuffer.clear();
-                        continue;
-                    }
-                }
-
-                if (prevByte == '\r' && currentByte == '\n' && segment == 2) {
+            if (currentByte == ' ') {
+                if (segment == 0) {
                     tmpByteBuffer.flip();
                     if (protocolType == 0) {
-                        packetMap.put(FL_VERSION, TByteBuffer.toString(tmpByteBuffer));
+                        packetMap.put(FL_METHOD, TByteBuffer.toString(tmpByteBuffer));
                     } else {
-                        packetMap.put(FL_STATUS, TByteBuffer.toString(tmpByteBuffer));
+                        packetMap.put(FL_VERSION, TByteBuffer.toString(tmpByteBuffer));
                     }
+
                     tmpByteBuffer.clear();
-                    break;
-                }
 
-
-                prevByte = currentByte;
-                if (currentByte == '\r') {
+                    segment = 1;
                     continue;
                 }
-                tmpByteBuffer.put(currentByte);
+
+                if (segment == 1) {
+                    tmpByteBuffer.flip();
+                    if (protocolType == 0) {
+                        if (packetMap.containsKey(FL_PATH)) {
+                            packetMap.put(FL_QUERY_STRING, TByteBuffer.toString(tmpByteBuffer));
+                        } else {
+                            packetMap.put(FL_PATH, TByteBuffer.toString(tmpByteBuffer));
+                        }
+                    } else {
+                        packetMap.put(FL_STATUSCODE, TByteBuffer.toString(tmpByteBuffer));
+                    }
+                    tmpByteBuffer.clear();
+                    segment = 2;
+                }
+
+                continue;
             }
 
-            if(!packetMap.containsKey(FL_PROTOCOL)){
-                packetMap.clear();
-                position = 0;
+            if (currentByte == '?') {
+                if (segment == 1) {
+                    tmpByteBuffer.flip();
+                    packetMap.put(FL_PATH, TByteBuffer.toString(tmpByteBuffer));
+                    tmpByteBuffer.clear();
+                    continue;
+                }
             }
 
-            return position;
-        } finally {
-            TByteBuffer.release(tmpByteBuffer);
+            if (prevByte == '\r' && currentByte == '\n' && segment == 2) {
+                tmpByteBuffer.flip();
+                if (protocolType == 0) {
+                    packetMap.put(FL_VERSION, TByteBuffer.toString(tmpByteBuffer));
+                } else {
+                    packetMap.put(FL_STATUS, TByteBuffer.toString(tmpByteBuffer));
+                }
+                tmpByteBuffer.clear();
+                break;
+            }
+
+
+            prevByte = currentByte;
+            if (currentByte == '\r') {
+                continue;
+            }
+            tmpByteBuffer.put(currentByte);
         }
+
+        if(!packetMap.containsKey(FL_PROTOCOL)){
+            packetMap.clear();
+            position = 0;
+        }
+
+        return position;
     }
 
     /**
@@ -351,65 +349,64 @@ public class HttpParser {
      * @throws ParserException
      */
     public static int parseHeader(Map<String, Object> packetMap, int offset, ByteBufferChannel byteBufferChannel) throws ParserException {
-        ByteBuffer tmpByteBuffer = TByteBuffer.allocateDirect(1024 * 2);
+        ByteBuffer tmpByteBuffer = THREAD_BYTE_BUFFER.get();
+        tmpByteBuffer.rewind();
 
-        try {
-            int position = offset;
+        int position = offset;
 
-            //遍历 Protocol
-            boolean isHeaderName = true;
-            byte prevByte = '\0';
-            byte currentByte = '\0';
-            String headerName = null;
-            String headerValue = null;
+        //遍历 Protocol
+        boolean isHeaderName = true;
+        byte prevByte = '\0';
+        byte currentByte = '\0';
+        String headerName = null;
+        String headerValue = null;
 
-            while (!byteBufferChannel.isReleased() && byteBufferChannel.size() > 0) {
-                if(position >= byteBufferChannel.size()){
-                    throw new ParserException("Parse header reach the stream end");
-                }
-
-                currentByte = byteBufferChannel.get(position);
-                position++;
-
-                if(isHeaderName && prevByte==':' && currentByte==' ') {
-                    tmpByteBuffer.flip();
-                    headerName = TByteBuffer.toString(tmpByteBuffer);
-                    tmpByteBuffer.clear();
-                    isHeaderName = false;
-                    continue;
-                }
-
-                if(!isHeaderName && prevByte=='\r' && currentByte=='\n') {
-                    tmpByteBuffer.flip();
-                    headerValue = TByteBuffer.toString(tmpByteBuffer);
-                    tmpByteBuffer.clear();
-                    break;
-                }
-
-                //http 头结束了
-                if(isHeaderName && prevByte=='\r' && currentByte=='\n' && position == offset + 2){
-                    packetMap.put(null, null);
-                    return position;
-                }
-
-                prevByte = currentByte;
-
-                if(isHeaderName && currentByte==':') {
-                    continue;
-                }
-
-                if(!isHeaderName && currentByte=='\r') {
-                    continue;
-                }
-
-                tmpByteBuffer.put(currentByte);
+        while (!byteBufferChannel.isReleased() && byteBufferChannel.size() > 0) {
+            if(position >= byteBufferChannel.size()){
+                throw new ParserException("Parse header reach the stream end");
             }
 
-            packetMap.put(headerName, headerValue);
-            return position;
-        } finally {
-            TByteBuffer.release(tmpByteBuffer);
+            currentByte = byteBufferChannel.get(position);
+            position++;
+
+            if(isHeaderName && prevByte==':' && currentByte==' ') {
+                tmpByteBuffer.flip();
+                headerName = TByteBuffer.toString(tmpByteBuffer);
+                tmpByteBuffer.clear();
+                isHeaderName = false;
+                continue;
+            }
+
+            if(!isHeaderName && prevByte=='\r' && currentByte=='\n') {
+                tmpByteBuffer.flip();
+                headerValue = TByteBuffer.toString(tmpByteBuffer);
+                tmpByteBuffer.clear();
+                break;
+            }
+
+            //http 头结束了
+            if(isHeaderName && prevByte=='\r' && currentByte=='\n' && position == offset + 2){
+                packetMap.put(null, null);
+                return position;
+            }
+
+            prevByte = currentByte;
+
+            if(isHeaderName && currentByte==':') {
+                continue;
+            }
+
+            if(!isHeaderName && currentByte=='\r') {
+                continue;
+            }
+
+            tmpByteBuffer.put(currentByte);
+
         }
+
+        packetMap.put(headerName, headerValue);
+        return position;
+
     }
 
     /**
@@ -426,7 +423,6 @@ public class HttpParser {
      * @return 解析后的 Map
      * @throws IOException IO 异常
      */
-
 
     public static Map<String, Object> parser(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
         Map<String, Object> packetMap = THREAD_PACKET_MAP.get();

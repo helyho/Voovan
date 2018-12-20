@@ -31,6 +31,8 @@ public class Response {
 	private boolean				isCompress;
 	protected boolean 			basicSend = false;
 
+	public static ThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
+
 	/**
 	 * 构造函数
 	 *
@@ -154,7 +156,7 @@ public class Response {
 	 *
 	 * @return ByteBuffer 响应报文的报头
 	 */
-	private ByteBuffer readHead() {
+	private byte[] readHead() {
 
 		StringBuilder stringBuilder = new StringBuilder();
 
@@ -173,7 +175,7 @@ public class Response {
 
 
 		try {
-			return ByteBuffer.wrap(stringBuilder.toString().getBytes("UTF-8"));
+			return stringBuilder.toString().getBytes("UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			Logger.error("Response.readHead io error",e);
 			return null;
@@ -196,21 +198,16 @@ public class Response {
 	public void send(IoSession session) throws IOException {
 
 		//发送报文头
-		ByteBuffer byteBuffer = null;
+		ByteBuffer byteBuffer = THREAD_BYTE_BUFFER.get();
+		byteBuffer.clear();
 
 		try {
-			byteBuffer = readHead();
+			byteBuffer.put(readHead());
 		} catch (Throwable e){
 			if(!(e instanceof MemoryReleasedException)){
 				Logger.error("Response send error: ", (Exception) e);
 			}
 		}
-
-		if(byteBuffer == null){
-			return;
-		}
-
-		session.send(byteBuffer);
 
 		//是否需要压缩
 		if(isCompress){
@@ -221,7 +218,6 @@ public class Response {
 		if(body.size() != 0) {
 
 			//准备缓冲区
-			byteBuffer = TByteBuffer.allocateDirect();
 			int readSize = 0;
 			try{
 				while (true) {
@@ -238,13 +234,19 @@ public class Response {
 						session.send(ByteBuffer.wrap(chunkedLengthLine.getBytes()));
 					}
 
-					session.send(byteBuffer);
-					byteBuffer.clear();
+					if(byteBuffer.limit()==byteBuffer.capacity()) {
+						session.send(byteBuffer);
+						byteBuffer.clear();
+					}
 
 					//判断是否需要发送 chunked 结束符号
 					if (isCompress() && readSize!=0) {
 						session.send(ByteBuffer.wrap("\r\n".getBytes()));
 					}
+				}
+
+				if(byteBuffer.remaining()!=0) {
+					session.send(byteBuffer);
 				}
 
 
@@ -256,7 +258,6 @@ public class Response {
 			} finally {
 				//发送报文结束符
 				session.send(readEnd());
-				TByteBuffer.release(byteBuffer);
 				clear();
 			}
 		}
@@ -280,6 +281,6 @@ public class Response {
 
 	@Override
 	public String toString() {
-		return new String(TByteBuffer.toString(readHead()));
+		return new String(readHead());
 	}
 }

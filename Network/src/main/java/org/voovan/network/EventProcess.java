@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class EventProcess {
+	public static ThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
 
 	/**
 	 * 私有构造函数,防止被实例化
@@ -146,15 +147,35 @@ public class EventProcess {
 				while (session.getByteBufferChannel().size() > 0) {
 
 					byteBuffer = messageLoader.read();
+
+
 					if(byteBuffer!=null) {
+
+						//获取线程本地变量
+						ByteBuffer localByteBuffer = THREAD_BYTE_BUFFER.get();
+
+						//========================将数据复制到本地线程中========================
+						{
+							//清空线程本地变量
+							localByteBuffer.clear();
+
+							//扩容线程本地变量
+							if (localByteBuffer.capacity() < byteBuffer.capacity()) {
+								TByteBuffer.reallocate(localByteBuffer, byteBuffer.capacity());
+							}
+
+							//传递数据到线程本地变量
+							localByteBuffer.put(byteBuffer);
+							localByteBuffer.flip();
+						}
 
 						//如果 ByteBuffer 无有效数据, 说明需要使用流的方式读取, 则阻赛处理
 						if (!byteBuffer.hasRemaining()){
-							doRecive(session, byteBuffer);
+							doRecive(session, localByteBuffer);
 						}
 						//如果 ByteBuffer 存在有效数据, 说明报文分割有效, 则异步处理
 						else{
-							ByteBuffer finalByteBuffer = byteBuffer;
+							ByteBuffer finalByteBuffer = localByteBuffer;
 							Global.getThreadPool().execute(() -> {
 								try {
 									doRecive(session, finalByteBuffer);
@@ -189,39 +210,32 @@ public class EventProcess {
 	 * @throws IoFilterException 过滤器异常
 	 */
 	public static Object doRecive(IoSession session, ByteBuffer byteBuffer) throws IoFilterException {
-		try {
-			//如果读出的数据为 null 则直接返回
-			if (byteBuffer == null) {
-				return null;
-			}
+		//如果读出的数据为 null 则直接返回
+		if (byteBuffer == null) {
+			return null;
+		}
 
-			Object result = null;
+		Object result = null;
 
-			// -----------------Filter 解密处理-----------------
-			result = filterDecoder(session, byteBuffer);
-			// -------------------------------------------------
+		// -----------------Filter 解密处理-----------------
+		result = filterDecoder(session, byteBuffer);
+		// -------------------------------------------------
 
-			// -----------------Handler 业务处理-----------------
-			if (result != null) {
-				IoHandler handler = session.socketContext().handler();
-				result = handler.onReceive(session, result);
-			}
-			// --------------------------------------------------
+		// -----------------Handler 业务处理-----------------
+		if (result != null) {
+			IoHandler handler = session.socketContext().handler();
+			result = handler.onReceive(session, result);
+		}
+		// --------------------------------------------------
 
-			// 返回的结果不为空的时候才发送
-			if (result != null) {
+		// 返回的结果不为空的时候才发送
+		if (result != null) {
 
-				//触发发送事件
-				sendMessage(session, result);
-				return result;
-			} else {
-				return null;
-			}
-		} finally {
-			//特殊处理 MessageLoader 会返回 TByteBuffer.EMPTY_BYTE_BUFFER
-			if(byteBuffer!=TByteBuffer.EMPTY_BYTE_BUFFER) {
-				TByteBuffer.release(byteBuffer);
-			}
+			//触发发送事件
+			sendMessage(session, result);
+			return result;
+		} else {
+			return null;
 		}
 	}
 
@@ -284,31 +298,31 @@ public class EventProcess {
 
 		final Object sendObj = obj;
 
-        try {
-            // ------------------Filter 加密处理-----------------
-            ByteBuffer sendBuffer = EventProcess.filterEncoder(session, sendObj);
-            // ---------------------------------------------------
+		try {
+			// ------------------Filter 加密处理-----------------
+			ByteBuffer sendBuffer = EventProcess.filterEncoder(session, sendObj);
+			// ---------------------------------------------------
 
-            if (sendBuffer != null) {
+			if (sendBuffer != null) {
 
-                // 发送消息
-                if (sendBuffer != null && session.isOpen()) {
-                    if (sendBuffer.limit() > 0) {
-                        int sendLength = session.send(sendBuffer);
-                        if(sendLength >= 0) {
-                            sendBuffer.rewind();
-                        } else {
-                            throw new IOException("EventProcess.sendMessage faild, send length: " + sendLength);
-                        }
-                    }
-                }
+				// 发送消息
+				if (sendBuffer != null && session.isOpen()) {
+					if (sendBuffer.limit() > 0) {
+						int sendLength = session.send(sendBuffer);
+						if(sendLength >= 0) {
+							sendBuffer.rewind();
+						} else {
+							throw new IOException("EventProcess.sendMessage faild, send length: " + sendLength);
+						}
+					}
+				}
 
-                //触发发送事件
-                EventTrigger.fireSent(session, sendObj);
-            }
-        } catch (IOException e) {
-            EventTrigger.fireException(session, e);
-        }
+				//触发发送事件
+				EventTrigger.fireSent(session, sendObj);
+			}
+		} catch (IOException e) {
+			EventTrigger.fireException(session, e);
+		}
 
 		session.getState().setSend(false);
 	}
