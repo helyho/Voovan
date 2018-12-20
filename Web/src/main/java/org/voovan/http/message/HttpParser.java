@@ -63,6 +63,10 @@ public class HttpParser {
     public static final String propertyLineRegex = ": ";
     public static final String equalMapRegex = "([^ ;,]+=[^;,]+)";
 
+    public static ThreadLocal<Map<String, Object>> THREAD_PACKET_MAP = ThreadLocal.withInitial(()->new HashMap<String, Object>());
+    public static ThreadLocal<Request> THREAD_REQUEST = ThreadLocal.withInitial(()->new Request());
+    public static ThreadLocal<Response> THREAD_RESPONSE = ThreadLocal.withInitial(()->new Response());
+
     /**
      * 私有构造函数
      * 该类无法被实例化
@@ -423,8 +427,10 @@ public class HttpParser {
      * @throws IOException IO 异常
      */
 
+
     public static Map<String, Object> parser(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
-        Map<String, Object> packetMap = new HashMap<String, Object>();
+        Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
+
         long totalLength = 0;
         boolean isBodyConent = false;
 
@@ -744,22 +750,22 @@ public class HttpParser {
     @SuppressWarnings("unchecked")
     public static Request parseRequest(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
 
-        Map<String, Object> parsedPacket = null;
+        Map<String, Object> packetMap = null;
         try {
-            parsedPacket = parser(byteBufferChannel, timeOut, requestMaxSize);
+            packetMap = parser(byteBufferChannel, timeOut, requestMaxSize);
         } catch (ParserException e) {
             Logger.warn("HttpParser.parser: " + e.getMessage());
             return null;
         }
 
         //如果解析的Map为空,则直接返回空
-        if(parsedPacket==null || parsedPacket.isEmpty() || byteBufferChannel.isReleased()){
+        if(packetMap==null || packetMap.isEmpty() || byteBufferChannel.isReleased()){
             return null;
         }
 
-        Request request = new Request();
+        Request request = THREAD_REQUEST.get();
         //填充报文到请求对象
-        Set<Entry<String, Object>> parsedItems= parsedPacket.entrySet();
+        Set<Entry<String, Object>> parsedItems= packetMap.entrySet();
         for(Entry<String, Object> parsedPacketEntry: parsedItems) {
             String key = parsedPacketEntry.getKey();
             switch (key) {
@@ -779,7 +785,7 @@ public class HttpParser {
                     request.protocol().setPath(parsedPacketEntry.getValue().toString());
                     break;
                 case HEAD_COOKIE:
-                    List<Map<String, String>> cookieMap = (List<Map<String, String>>)parsedPacket.get(HEAD_COOKIE);
+                    List<Map<String, String>> cookieMap = (List<Map<String, String>>)packetMap.get(HEAD_COOKIE);
                     //遍历 Cookie,并构建 Cookie 对象
                     for(Map<String,String> cookieMapItem : cookieMap){
                         Cookie cookie = Cookie.buildCookie(cookieMapItem);
@@ -826,7 +832,7 @@ public class HttpParser {
             }
         }
 
-        parsedPacket.clear();
+        packetMap.clear();
 
         return request;
     }
@@ -839,13 +845,24 @@ public class HttpParser {
      * @throws IOException IO 异常
      */
     @SuppressWarnings("unchecked")
-    public static Response parseResponse(ByteBufferChannel byteBufferChannel, int timeOut) throws IOException{
-        Response response = new Response();
+    public static Response parseResponse(ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
+        Map<String, Object> packetMap = null;
+        try {
+            packetMap = parser(byteBufferChannel, timeOut, -1);
+        } catch (ParserException e) {
+            Logger.warn("HttpParser.parser: " + e.getMessage());
+            return null;
+        }
 
-        Map<String, Object> parsedPacket = parser(byteBufferChannel, timeOut, -1);
+        //如果解析的Map为空,则直接返回空
+        if(packetMap==null || packetMap.isEmpty() || byteBufferChannel.isReleased()){
+            return null;
+        }
+
+        Response response = THREAD_RESPONSE.get();
 
         //填充报文到响应对象
-        Set<Entry<String, Object>> parsedItems= parsedPacket.entrySet();
+        Set<Entry<String, Object>> parsedItems= packetMap.entrySet();
         for(Entry<String, Object> parsedPacketEntry: parsedItems){
             String key = parsedPacketEntry.getKey();
             switch (key) {
@@ -877,7 +894,7 @@ public class HttpParser {
                     break;
             }
         }
-        parsedPacket.clear();
+        packetMap.clear();
         return response;
     }
 }

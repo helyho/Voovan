@@ -48,6 +48,21 @@ public class HttpRequest extends Request {
 		this.socketSession = socketSession;
 	}
 
+
+	/**
+	 * 构造函数
+	 * @param characterSet  字符集
+	 * @param socketSession socket 会话对象
+	 */
+	public HttpRequest(String characterSet, IoSession socketSession){
+		this.characterSet=characterSet;
+		parameters = new LinkedHashMap<String, String>();
+		attributes = new HashMap<String, Object>();
+		parseQueryString();
+		this.socketSession = socketSession;
+	}
+
+
 	protected void setSessionManager(SessionManager sessionManager) {
 		this.sessionManager = sessionManager;
 	}
