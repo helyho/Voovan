@@ -28,30 +28,21 @@ public class Cleaner extends PhantomReference<Object> {
         Integer finalNoHeapReleaseInterval = noHeapReleaseInterval ==0 ? 3 : noHeapReleaseInterval;
         timer = new Timer();
 
-
         timer.schedule(new TimerTask() {
-            int releaseCount = 0;
 
             @Override
             public void run() {
                 while(true) {
                     Reference cleanerRef= dummyQueue.poll();
                     if(cleanerRef == null){
-
-                        if(releaseCount == finalNoHeapReleaseInterval){
-                            System.gc();
-                        }
-
-                        releaseCount ++;
                         break;
                     } else if(cleanerRef instanceof Cleaner){
                         Cleaner cleaner = (Cleaner) cleanerRef;
                         cleaner.clean();
-                        releaseCount = 0;
                     }
                 }
             }
-        }, 1000, 1000);
+        }, 1000, finalNoHeapReleaseInterval);
     }
 
     private static synchronized Cleaner add(Cleaner cleaner) {
