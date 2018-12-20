@@ -41,7 +41,7 @@ public class ThreadPool {
 	 */
 	public static int getMaxPoolSize() {
 		int maxPoolTimes = TProperties.getInt("framework", "ThreadPoolMaxSize");
-		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 50 : maxPoolTimes) * cpuCoreCount;
+		MAX_POOL_SIZE = (maxPoolTimes < 20 ? 20 : maxPoolTimes) * cpuCoreCount;
 		System.out.println("[THREAD_POOL] Max size: " + maxPoolTimes + "/" + MAX_POOL_SIZE);
 		return MAX_POOL_SIZE;
 	}
@@ -65,8 +65,8 @@ public class ThreadPool {
 	private ThreadPool(){
 	}
 
-	private static ThreadPoolExecutor createThreadPool(){
-		ThreadPoolExecutor threadPoolInstance = createThreadPool(MIN_POOL_SIZE, MAX_POOL_SIZE, 1000*60);
+	private static ThreadPoolExecutor createThreadPool(String poolName){
+		ThreadPoolExecutor threadPoolInstance = createThreadPool(poolName, MIN_POOL_SIZE, MAX_POOL_SIZE, 1000*60);
 
 		//启动线程池自动调整任务
 		Timer timer = new Timer("VOOVAN@THREAD_POOL_TIMER");
@@ -82,15 +82,15 @@ public class ThreadPool {
 	 * @param threadTimeout 线程闲置超时时间
 	 * @return 线程池对象
 	 */
-	public static ThreadPoolExecutor createThreadPool(int mimPoolSize, int maxPoolSize, int threadTimeout){
-		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, threadTimeout, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(cpuCoreCount*500));
+	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int threadTimeout){
+		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, threadTimeout, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(cpuCoreCount*500), new DefaultThreadFactory(poolName));
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPoolInstance.allowCoreThreadTimeOut(true);
 
 		return threadPoolInstance;
 	}
 
-	public static ThreadPoolExecutor getNewThreadPool(){
-		return createThreadPool();
+	public static ThreadPoolExecutor getNewThreadPool(String name){
+		return createThreadPool(name);
 	}
 }
