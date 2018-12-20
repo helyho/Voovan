@@ -787,9 +787,7 @@ public class ByteBufferChannel {
                 }
             }
 
-            if(readSize != 0) {
-                dst.flip();
-            }
+            dst.flip();
             return readSize;
 
         } finally {
