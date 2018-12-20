@@ -60,7 +60,7 @@ public class Global {
         private ThreadPoolExecutor threadPoolExecutor;
 
         ThreadPoolEnum(){
-            threadPoolExecutor = ThreadPool.getNewThreadPool();
+            threadPoolExecutor = ThreadPool.getNewThreadPool("Default");
         }
 
         public ThreadPoolExecutor getValue(){

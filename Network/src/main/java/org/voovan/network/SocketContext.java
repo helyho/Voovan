@@ -6,7 +6,9 @@ import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.threadpool.DefaultThreadFactory;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
@@ -31,7 +33,7 @@ public abstract class SocketContext {
 	 */
 	public static AsynchronousChannelGroup buildAsynchronousChannelGroup(){
 		try {
-			return AsynchronousChannelGroup.withCachedThreadPool(Global.getThreadPool(), 10);
+			return AsynchronousChannelGroup.withFixedThreadPool(TPerformance.getProcessorCount(), new DefaultThreadFactory("Socket"));
 		} catch (IOException e) {
 			Logger.error("Buile AsynchronousChannelGroup failed", e);
 			return null;
