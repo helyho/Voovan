@@ -59,6 +59,13 @@ public class HttpResponse extends Response {
 		this.socketSession = socketSession;
 	}
 
+	public void init(String characterSet, IoSession socketSession){
+		this.characterSet=characterSet;
+		//设置当前响应的时间
+		this.header().put("Date", GMT_TIME);
+		this.socketSession = socketSession;
+	}
+
 	/**
 	 * 获取 socket 会话对象
 	 * @return socket 会话对象

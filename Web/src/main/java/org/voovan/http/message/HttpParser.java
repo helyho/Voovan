@@ -32,7 +32,7 @@ public class HttpParser {
     private static final String FL_PROTOCOL		= "FL_Protocol";
     private static final String FL_VERSION		= "FL_Version";
     private static final String FL_STATUS		= "FL_Status";
-    private static final String FL_STATUSCODE	= "FL_StatusCode";
+    private static final String FL_STATUS_CODE = "FL_StatusCode";
     private static final String FL_QUERY_STRING = "FL_QueryString";
 
 
@@ -295,7 +295,7 @@ public class HttpParser {
                             packetMap.put(FL_PATH, TByteBuffer.toString(tmpByteBuffer));
                         }
                     } else {
-                        packetMap.put(FL_STATUSCODE, TByteBuffer.toString(tmpByteBuffer));
+                        packetMap.put(FL_STATUS, TByteBuffer.toString(tmpByteBuffer));
                     }
                     tmpByteBuffer.clear();
                     segment = 2;
@@ -318,7 +318,7 @@ public class HttpParser {
                 if (protocolType == 0) {
                     packetMap.put(FL_VERSION, TByteBuffer.toString(tmpByteBuffer));
                 } else {
-                    packetMap.put(FL_STATUS, TByteBuffer.toString(tmpByteBuffer));
+                    packetMap.put(FL_STATUS_CODE, TByteBuffer.toString(tmpByteBuffer));
                 }
                 tmpByteBuffer.clear();
                 break;
@@ -424,9 +424,7 @@ public class HttpParser {
      * @throws IOException IO 异常
      */
 
-    public static Map<String, Object> parser(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
-        Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
-
+    public static Map<String, Object> parser(Map<String, Object> packetMap, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
         long totalLength = 0;
         boolean isBodyConent = false;
 
@@ -534,7 +532,8 @@ public class HttpParser {
                         //构造新的 Bytebufer 递归解析
                         ByteBufferChannel partByteBufferChannel = new ByteBufferChannel(partHeadEndIndex + 4); //包含换行符
                         partByteBufferChannel.writeEnd(partHeadBuffer);
-                        Map<String, Object> partMap = parser(partByteBufferChannel, timeOut, requestMaxSize);
+                        Map<String, Object> partMap = new HashMap<String, Object>();
+                        partMap = parser(partMap, partByteBufferChannel, timeOut, requestMaxSize);
                         TByteBuffer.release(partHeadBuffer);
                         partByteBufferChannel.release();
                         TByteBuffer.release(partHeadBuffer);
@@ -746,9 +745,9 @@ public class HttpParser {
     @SuppressWarnings("unchecked")
     public static Request parseRequest(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
 
-        Map<String, Object> packetMap = null;
+        Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
         try {
-            packetMap = parser(byteBufferChannel, timeOut, requestMaxSize);
+            packetMap = parser(packetMap, byteBufferChannel, timeOut, requestMaxSize);
         } catch (ParserException e) {
             Logger.warn("HttpParser.parser: " + e.getMessage());
             return null;
@@ -760,6 +759,7 @@ public class HttpParser {
         }
 
         Request request = THREAD_REQUEST.get();
+        request.clear();
         //填充报文到请求对象
         Set<Entry<String, Object>> parsedItems= packetMap.entrySet();
         for(Entry<String, Object> parsedPacketEntry: parsedItems) {
@@ -842,9 +842,9 @@ public class HttpParser {
      */
     @SuppressWarnings("unchecked")
     public static Response parseResponse(ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
-        Map<String, Object> packetMap = null;
+        Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
         try {
-            packetMap = parser(byteBufferChannel, timeOut, -1);
+            packetMap = parser(packetMap, byteBufferChannel, timeOut, -1);
         } catch (ParserException e) {
             Logger.warn("HttpParser.parser: " + e.getMessage());
             return null;
@@ -856,7 +856,7 @@ public class HttpParser {
         }
 
         Response response = THREAD_RESPONSE.get();
-
+        response.clear();
         //填充报文到响应对象
         Set<Entry<String, Object>> parsedItems= packetMap.entrySet();
         for(Entry<String, Object> parsedPacketEntry: parsedItems){
@@ -871,7 +871,7 @@ public class HttpParser {
                 case FL_STATUS:
                     response.protocol().setStatus(Integer.parseInt(parsedPacketEntry.getValue().toString()));
                     break;
-                case FL_STATUSCODE:
+                case FL_STATUS_CODE:
                     response.protocol().setStatusCode(parsedPacketEntry.getValue().toString());
                     break;
                 case HEAD_COOKIE:

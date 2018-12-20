@@ -288,6 +288,8 @@ public class Request {
             return;
         }
 
+        //发送报文头
+        session.send(byteBuffer);
 
         //发送缓冲区
         byteBuffer = TByteBuffer.allocateDirect();
