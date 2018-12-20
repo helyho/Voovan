@@ -14,6 +14,7 @@ import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.ThreadLocalPool;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
@@ -32,6 +33,10 @@ import java.util.Vector;
  * Licence: Apache v2 License
  */
 public class WebServerHandler implements IoHandler {
+	ThreadLocal<HttpRequest> THREAD_HTTP_REQUEST = new ThreadLocal<HttpRequest>();
+	ThreadLocal<HttpResponse> THREAD_HTTP_RESPONSE = new ThreadLocal<HttpResponse>();
+
+
 	private HttpDispatcher		httpDispatcher;
 	private WebSocketDispatcher	webSocketDispatcher;
 	private WebServerConfig webConfig;
@@ -125,8 +130,6 @@ public class WebServerHandler implements IoHandler {
 
 		//清理 IoSession
 		keepAliveSessionList.remove(session);
-
-		release(session);
 	}
 
 	/**
@@ -165,16 +168,34 @@ public class WebServerHandler implements IoHandler {
 			}
 
 			// 构造响应对象
-			Response response = new Response();
+
+
+
+			// 构造 Http 请求/响应 对象
+			HttpRequest httpRequest = THREAD_HTTP_REQUEST.get();
+			if(httpRequest==null) {
+				httpRequest = new HttpRequest(request, defaultCharacterSet, session);
+				THREAD_HTTP_REQUEST.set(httpRequest);
+			} else {
+				httpRequest.init(request);
+				httpRequest.setCharacterSet(defaultCharacterSet);
+				httpRequest.setSocketSession(session);
+			}
+
+			HttpResponse httpResponse = THREAD_HTTP_RESPONSE.get();
+			if(httpResponse==null) {
+				httpResponse = new HttpResponse(defaultCharacterSet, session);
+				THREAD_HTTP_RESPONSE.set(httpResponse);
+			} else {
+				httpResponse.setCharacterSet(defaultCharacterSet);
+				httpResponse.setSocketSession(session);
+			}
 
 			if(webConfig.isGzip() && request.header().contain("Accept-Encoding") &&
 					request.header().get("Accept-Encoding").contains("gzip")) {
-				response.setCompress(true);
+				httpResponse.setCompress(true);
 			}
 
-			// 构造 Http 请求/响应 对象
-			HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet, session);
-			HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet, session);
 
 			setAttribute(session, HttpSessionParam.HTTP_REQUEST, httpRequest);
 			setAttribute(session, HttpSessionParam.HTTP_RESPONSE, httpResponse);
@@ -423,17 +444,5 @@ public class WebServerHandler implements IoHandler {
 	@Override
 	public void onIdle(IoSession session) {
 
-	}
-
-	public void release(IoSession session){
-		HttpRequest request = getAttribute(session, HttpSessionParam.HTTP_REQUEST);
-		HttpResponse response = getAttribute(session, HttpSessionParam.HTTP_RESPONSE);
-		if(request != null) {
-			request.release();
-		}
-
-		if(response != null) {
-			response.release();
-		}
 	}
 }

@@ -37,6 +37,10 @@ public class Response {
 	 * @param response 响应对象
 	 */
 	protected Response(Response response) {
+		init(response);
+	}
+
+	public void init(Response response){
 		this.protocol = response.protocol;
 		this.header = response.header;
 		this.body = response.body;
@@ -242,6 +246,8 @@ public class Response {
 						session.send(ByteBuffer.wrap("\r\n".getBytes()));
 					}
 				}
+
+
 			} catch (Throwable e){
 				if(!(e instanceof MemoryReleasedException)){
 					Logger.error("Response send error: ", (Exception) e);
@@ -251,7 +257,7 @@ public class Response {
 				//发送报文结束符
 				session.send(readEnd());
 				TByteBuffer.release(byteBuffer);
-				release();
+				clear();
 			}
 		}
 

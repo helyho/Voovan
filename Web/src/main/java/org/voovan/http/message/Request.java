@@ -57,6 +57,10 @@ public class Request {
      * @param request 请求对象
      */
     protected Request(Request request) {
+        init(request);
+    }
+
+    public void init(Request request){
         this.protocol = request.protocol;
         this.header = request.header;
         this.body = request.body;
@@ -333,7 +337,7 @@ public class Request {
             return;
         } finally {
             TByteBuffer.release(byteBuffer);
-            release();
+            clear();
         }
 
         basicSend = true;

@@ -48,6 +48,18 @@ public class HttpResponse extends Response {
 	}
 
 	/**
+	 * 构造 HTTP 响应对象
+	 * @param socketSession   Socket会话对象
+	 * @param characterSet 字符集
+	 */
+	protected HttpResponse(String characterSet, IoSession socketSession) {
+		this.characterSet=characterSet;
+		//设置当前响应的时间
+		this.header().put("Date", GMT_TIME);
+		this.socketSession = socketSession;
+	}
+
+	/**
 	 * 获取 socket 会话对象
 	 * @return socket 会话对象
 	 */
