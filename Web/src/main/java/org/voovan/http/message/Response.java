@@ -182,11 +182,11 @@ public class Response {
 		}
 	}
 
-	private ByteBuffer readEnd(){
+	private byte[] readEnd(){
 		if (isCompress) {
-			return ByteBuffer.wrap("0\r\n\r\n".getBytes());
+			return "0\r\n\r\n".getBytes();
 		}else{
-			return TByteBuffer.EMPTY_BYTE_BUFFER;
+			return new byte[0];
 		}
 	}
 
@@ -234,6 +234,7 @@ public class Response {
 						session.send(ByteBuffer.wrap(chunkedLengthLine.getBytes()));
 					}
 
+					//如果缓冲区满了,则发送一次
 					if(byteBuffer.limit()==byteBuffer.capacity()) {
 						session.send(byteBuffer);
 						byteBuffer.clear();
@@ -244,12 +245,6 @@ public class Response {
 						session.send(ByteBuffer.wrap("\r\n".getBytes()));
 					}
 				}
-
-				if(byteBuffer.remaining()!=0) {
-					session.send(byteBuffer);
-				}
-
-
 			} catch (Throwable e){
 				if(!(e instanceof MemoryReleasedException)){
 					Logger.error("Response send error: ", (Exception) e);
@@ -257,7 +252,8 @@ public class Response {
 				return;
 			} finally {
 				//发送报文结束符
-				session.send(readEnd());
+				byteBuffer.put(readEnd());
+				session.send(byteBuffer);
 				clear();
 			}
 		}
