@@ -177,9 +177,7 @@ public class WebServerHandler implements IoHandler {
 				httpRequest = new HttpRequest(request, defaultCharacterSet, session);
 				THREAD_HTTP_REQUEST.set(httpRequest);
 			} else {
-				httpRequest.init(request);
-				httpRequest.setCharacterSet(defaultCharacterSet);
-				httpRequest.setSocketSession(session);
+				httpRequest.init(request, defaultCharacterSet, session);
 			}
 
 			HttpResponse httpResponse = THREAD_HTTP_RESPONSE.get();
@@ -187,8 +185,7 @@ public class WebServerHandler implements IoHandler {
 				httpResponse = new HttpResponse(defaultCharacterSet, session);
 				THREAD_HTTP_RESPONSE.set(httpResponse);
 			} else {
-				httpResponse.setCharacterSet(defaultCharacterSet);
-				httpResponse.setSocketSession(session);
+				httpResponse.init(defaultCharacterSet, session);
 			}
 
 			if(webConfig.isGzip() && request.header().contain("Accept-Encoding") &&

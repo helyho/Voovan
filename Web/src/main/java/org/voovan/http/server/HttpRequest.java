@@ -62,6 +62,14 @@ public class HttpRequest extends Request {
 		this.socketSession = socketSession;
 	}
 
+	public void init(Request request, String characterSet, IoSession socketSession){
+		super.init(request);
+		this.characterSet=characterSet;
+		parameters = new LinkedHashMap<String, String>();
+		attributes = new HashMap<String, Object>();
+		parseQueryString();
+		this.socketSession = socketSession;
+	}
 
 	protected void setSessionManager(SessionManager sessionManager) {
 		this.sessionManager = sessionManager;
