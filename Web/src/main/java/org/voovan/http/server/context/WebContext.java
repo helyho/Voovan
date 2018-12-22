@@ -334,7 +334,7 @@ public class WebContext {
 		content.append(" "+TString.rightPad(request.getRemotePort()+"",5,' '));
 		content.append(" "+request.protocol().getProtocol()+"/"+request.protocol().getVersion()+" "+TString.rightPad(request.protocol().getMethod(),6,' '));
 		content.append(" "+response.protocol().getStatus());
-		content.append(" "+response.body().getBodyBytes().length);
+		content.append(" "+response.body().size());
 		content.append("\t "+request.protocol().getPath());
 		content.append("\t "+TObject.nullDefault(request.header().get("User-Agent"),""));
 		content.append("\t "+TObject.nullDefault(request.header().get("Referer"),""));
