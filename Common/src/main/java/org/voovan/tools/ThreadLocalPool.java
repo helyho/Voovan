@@ -2,7 +2,6 @@ package org.voovan.tools;
 
 import java.lang.ref.WeakReference;
 import java.util.LinkedList;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 
 /**
@@ -14,18 +13,15 @@ import java.util.function.Supplier;
  * Licence: Apache v2 License
  */
 public class ThreadLocalPool<T> {
-    private final ConcurrentLinkedQueue<T> GLOBAL_POOL = new ConcurrentLinkedQueue<T>();
-    private final ThreadLocal<LinkedList<WeakReference<T>>> THREAD_LOCAL_POOL = new ThreadLocal<LinkedList<WeakReference<T>>>();
+    private final ThreadLocal<LinkedList<T>> THREAD_LOCAL_POOL = new ThreadLocal<LinkedList<T>>();
 
-    private int globalMaxSize = 0;
     private int threadLocalMaxSize = 4;
 
     public ThreadLocalPool() {
     }
 
-    public ThreadLocalPool(int globalMaxSize, int threadLocalMaxSize) {
+    public ThreadLocalPool(int threadLocalMaxSize) {
         this.threadLocalMaxSize = threadLocalMaxSize;
-        this.globalMaxSize = globalMaxSize;
     }
 
     public int getThreadLocalMaxSize() {
@@ -36,39 +32,20 @@ public class ThreadLocalPool<T> {
         this.threadLocalMaxSize = threadLocalMaxSize;
     }
 
-    public int getGlobalMaxSize() {
-        return globalMaxSize;
-    }
-
-    public void setGlobalMaxSize(int globalMaxSize) {
-        this.globalMaxSize = globalMaxSize;
-    }
-
-    public LinkedList<WeakReference<T>> getThreadLoaclPool(){
-        LinkedList<WeakReference<T>> threadLocalPool = THREAD_LOCAL_POOL.get();
+    public LinkedList<T> getThreadLoaclPool(){
+        LinkedList<T> threadLocalPool = THREAD_LOCAL_POOL.get();
         if(threadLocalPool == null){
-            threadLocalPool = new LinkedList<WeakReference<T>>();
+            threadLocalPool = new LinkedList<T>();
             THREAD_LOCAL_POOL.set(threadLocalPool);
         }
         return threadLocalPool;
     }
 
     public T get(Supplier<T> supplier){
-        LinkedList<WeakReference<T>> threadLocalPool = getThreadLoaclPool();
-        WeakReference<T> localWeakRef = threadLocalPool.poll();
+        LinkedList<T> threadLocalPool = getThreadLoaclPool();
+        T localWeakRef = threadLocalPool.poll();
 
         T t = null;
-
-        //从线程中的池中取 t
-        if(localWeakRef!=null) {
-            t = localWeakRef.get();
-            localWeakRef.clear();
-        }
-
-        //从全局的池中取 t
-        if(t==null){
-            t = GLOBAL_POOL.poll();
-        }
 
         //创建一个新的 t
         if(t==null) {
@@ -79,16 +56,11 @@ public class ThreadLocalPool<T> {
     }
 
     public void release(T t, Supplier destory){
-        LinkedList<WeakReference<T>> threadLocalPool = getThreadLoaclPool();
+        LinkedList<T> threadLocalPool = getThreadLoaclPool();
 
         //如果小于线程中池的大小则放入线程中的池
         if(threadLocalPool.size() < threadLocalMaxSize) {
-            threadLocalPool.offer(new WeakReference<T>(t));
-        }
-
-        //如果小于全局池的大小, 则放入全局池中
-        else if(GLOBAL_POOL.size() < globalMaxSize){
-            GLOBAL_POOL.offer(t);
+            threadLocalPool.offer(t);
         } else {
             destory.get();
         }
