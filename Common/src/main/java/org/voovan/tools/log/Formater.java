@@ -262,11 +262,13 @@ public class Formater {
      * @param msg 消息字符串
      */
     public synchronized void writeLog(String msg) {
+        if(Logger.isState()){
             if (loggerThread == null || loggerThread.isFinished()) {
                 this.loggerThread = LoggerThread.start(getOutputStreams());
             }
 
             loggerThread.addLogMessage(msg);
+        }
     }
 
     /**
@@ -274,37 +276,53 @@ public class Formater {
      */
     private void packLogFile(){
         long packSize = (long) (Double.valueOf(LoggerStatic.getLogConfig("PackSize", "1024")) * 1024L * 1024L);
-        String logFilePath = getFormatedLogFilePath();
+        final String logFilePath = getFormatedLogFilePath();
+        final String tmpFilePath = TFile.getFileDirectory(logFilePath) + ".tmpPackLog";
 
         File logFile = new File(logFilePath);
+        File tmpLogFile = new File(tmpFilePath);
 
         if(packSize > 0 && logFile.length() > packSize){
-            String logFileExtendNam = TFile.getFileExtension(logFilePath);
-            logFilePath = logFilePath.replace("."+logFileExtendNam,"");
+            //暂停日志输出
             try {
-                File packFile = new File(logFilePath + TDateTime.now("HHmmss") + "." + logFileExtendNam +".gz");
-                TZip.encodeGZip(logFile, packFile);
-            } catch (Exception e) {
-                System.out.println("[ERROR] Pack log file " + logFilePath + "error: ");
-                e.printStackTrace();
-            }
-            TFile.deleteFile(logFile);
+                if (loggerThread.pause()) {
+                    try {
+                        TFile.moveFile(logFile, tmpLogFile);
+                        //开启独立线程进行文件压缩
+                        Global.getThreadPool().execute(()->{
+                            String logFileExtendNam = TFile.getFileExtension(logFilePath);
+                            String innerLogFilePath = logFilePath.replace("." + logFileExtendNam, "");
+                            try {
+                                File packFile = new File(innerLogFilePath + TDateTime.now("HHmmss") + "." + logFileExtendNam + ".gz");
+                                TZip.encodeGZip(tmpLogFile, packFile);
+                                TFile.deleteFile(tmpLogFile);
+                            } catch (Exception e) {
+                                System.out.println("[ERROR] Pack log file " + innerLogFilePath + "error: ");
+                                e.printStackTrace();
+                            }
+                        });
 
-            OutputStream fileOutPutStream = null;
-            //查找旧的文件输出流
-            for(OutputStream outputStream : loggerThread.getOutputStreams()){
-                if(outputStream instanceof FileOutputStream){
-                    fileOutPutStream = outputStream;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    //查找并关闭旧的文件输出流
+                    for (OutputStream outputStream : loggerThread.getOutputStreams()) {
+                        if (outputStream instanceof FileOutputStream) {
+                            try {
+                                ((FileOutputStream)outputStream).close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    //重置文件输出流
+                    loggerThread.setOutputStreams(getOutputStreams());
                 }
-            }
-
-            loggerThread.setOutputStreams(getOutputStreams());
-
-            //关闭旧的文件输出流
-            try {
-                fileOutPutStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } finally {
+                //恢复日志输出
+                loggerThread.unpause();
             }
         }
     }
