@@ -143,6 +143,10 @@ public class EventProcess {
 
 				if(splitLength==0) {
                     doRecive(session, splitLength);
+                    //如果有消息未处理完, 触发下一个 onRead
+					if (session.getByteBufferChannel().size() > 0) {
+						onRead(session);
+					}
 				} else if(splitLength > 0){
 					ReciveThread reciveThread = new ReciveThread(session, splitLength);
 					Global.getThreadPool().execute(reciveThread);
@@ -194,8 +198,8 @@ public class EventProcess {
 		if(session.isConnected()) {
 			session.getByteBufferChannel().readHead(byteBuffer);
 
-			//如果数据没有解析完,重新触发 onRecived 事件
-			if (session.getByteBufferChannel().size() > 0) {
+			//如果数据没有解析完,重新触发 onRead 方法
+			if (splitLength > 0 && session.getByteBufferChannel().size() > 0) {
 				onRead(session);
 			}
 
