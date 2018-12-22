@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -22,6 +23,7 @@ public class LoggerThread implements Runnable {
 	private ConcurrentLinkedDeque<String> logQueue;
 	private OutputStream[] outputStreams;
 	private volatile AtomicBoolean finished = new AtomicBoolean(false);
+	private volatile int pause = 0; // 0: 正常 , 1: 暂停中, 2: 暂停
 
 	/**
 	 * 构造函数
@@ -33,8 +35,34 @@ public class LoggerThread implements Runnable {
 
 	}
 
+	/**
+	 * 是否已经结束
+	 * @return true: 结束, false: 运行中
+	 */
 	public boolean isFinished() {
 		return finished.get();
+	}
+
+	/**
+	 * 暂停日志输出
+	 * @return
+	 */
+	public boolean pause(){
+		pause = 1;
+		try {
+			TEnv.wait(3000, ()-> pause != 2);
+			return true;
+		} catch (TimeoutException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	/**
+	 * 恢复日志输出
+	 */
+	public void unpause(){
+		pause = 0;
 	}
 
 	/**
@@ -69,6 +97,21 @@ public class LoggerThread implements Runnable {
 	}
 
 	/**
+	 * 刷新日志到目标设备
+	 */
+	public void flush(){
+		for (OutputStream outputStream : outputStreams) {
+			if (outputStream != null) {
+				try {
+					outputStream.flush();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	/**
 	 * 增加消息
 	 *
 	 * @param msg 消息字符串
@@ -88,29 +131,29 @@ public class LoggerThread implements Runnable {
 		try {
 			while (true) {
 
+				if(this.pause == 1){
+					flush();
+					this.pause = 2;
+				}
+
+				if(this.pause != 0){
+					Thread.sleep(1);
+					continue;
+				}
+
 				formatedMessage = logQueue.poll();
 
 				//优化日志输出事件
 				if(formatedMessage == null) {
 
 					if(needFlush) {
-						for (OutputStream outputStream : outputStreams) {
-							if (outputStream != null) {
-								outputStream.flush();
-							}
-						}
-
+						flush();
 						needFlush = false;
 					}
 
 					Thread.sleep(1);
-					//如果主线程结束,则日志线程也退出
-					if(mainThread !=null && mainThread.getState() == Thread.State.TERMINATED){
-						break;
-					}
 					continue;
 				}
-
 
 				if (formatedMessage != null && outputStreams!=null) {
 					for (OutputStream outputStream : outputStreams) {
@@ -158,6 +201,7 @@ public class LoggerThread implements Runnable {
 	public synchronized static LoggerThread start(OutputStream[] outputStreams) {
 		LoggerThread loggerThread = new LoggerThread(outputStreams);
 		Thread loggerMainThread = new Thread(loggerThread,"VOOVAN@LOGGER_THREAD");
+		loggerMainThread.setDaemon(true);
 		loggerMainThread.start();
 		return loggerThread;
 	}
