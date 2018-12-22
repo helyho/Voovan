@@ -22,6 +22,8 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class EventProcess {
+	public static ThreadLocal<ByteBuffer> THREAD_BYTE_BYTE = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
+
 	/**
 	 * 私有构造函数,防止被实例化
 	 */
@@ -108,20 +110,22 @@ public class EventProcess {
 		}
 	}
 
+	public static void onRead(Event event) throws IOException {
+		onRead(event.getSession());
+	}
+
 	/**
 	 * 读取事件 在消息接受完成后触发
 	 *
-	 * @param event
+	 * @param session
 	 *            事件对象
 	 * @throws SendMessageException  消息发送异常
 	 * @throws IOException  IO 异常
 	 * @throws IoFilterException IoFilter 异常
 	 */
-	public static void onRead(Event event) throws IOException, SendMessageException, IoFilterException {
-		IoSession session = event.getSession();
-		SocketContext socketContext = session.socketContext();
+	public static void onRead(IoSession session) throws IOException {
 
-		if (socketContext != null) {
+		if (session != null) {
 
 			MessageLoader messageLoader = session.getMessageLoader();
 
@@ -135,95 +139,109 @@ public class EventProcess {
 				// 由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.
 				// 有可能缓冲区没有读完
 				// 按消息包触发 onRecive 事件
-				while (session.getByteBufferChannel().size() > 0) {
+				int splitLength = messageLoader.read();
 
-					int splitLength = messageLoader.read();
-
-					if(splitLength>=0) {
-						//如果 ByteBuffer 无有效数据, 说明需要使用流的方式读取, 则阻赛处理
-						if (splitLength == 0){
-							doRecive(session, TByteBuffer.EMPTY_BYTE_BUFFER);
-						}
-
-						//如果 splitLength 存在有效数据, 说明报文分割有效, 则异步处理
-						else{
-							//获取线程本地变量
-							ByteBuffer byteBuffer = TByteBuffer.allocateDirect(splitLength);
-							byteBuffer.clear();
-
-							//扩容线程本地变量
-							if (byteBuffer.capacity() < splitLength) {
-								TByteBuffer.reallocate(byteBuffer, splitLength);
-							}
-
-							session.getByteBufferChannel().readHead(byteBuffer);
-
-							Global.getThreadPool().execute(() -> {
-								try {
-									doRecive(session, byteBuffer);
-								} catch (IoFilterException e) {
-									Logger.error("EventProcess.doRecive error: ", e);
-								}
-							});
-						}
-					}
+				if(splitLength==0) {
+                    doRecive(session, splitLength);
+				} else if(splitLength > 0){
+					ReciveThread reciveThread = new ReciveThread(session, splitLength);
+					Global.getThreadPool().execute(reciveThread);
 				}
-
 			} finally {
 				//释放 onRecive 锁
 				session.getState().setReceive(false);
 				session.getState().receiveUnLock();
-
-				//如果数据没有解析完,重新触发 onRecived 事件
-				if (session.getByteBufferChannel().size() > 0) {
-					EventTrigger.fireReceive(session);
-				}
 			}
 		}
+	}
 
+	private static class ReciveThread implements Runnable {
+		public static ThreadLocal<ByteBuffer> THREAD_BYTE_BYTE = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
+
+		private IoSession session;
+		private int splitLength;
+
+		public ReciveThread(IoSession session, int splitLength) {
+			this.session = session;
+			this.splitLength = splitLength;
+		}
+
+		@Override
+		public void run() {
+			try {
+				doRecive(session, splitLength);
+			} catch (IOException e) {
+				EventTrigger.fireException(session, e);
+			}
+		}
+	}
+
+	public static ByteBuffer loadSplitData(IoSession session, int splitLength) throws IOException {
+		ByteBuffer byteBuffer = THREAD_BYTE_BYTE.get();
+		byteBuffer.clear();
+
+		//扩容线程本地变量
+		if (byteBuffer.capacity() < splitLength) {
+			TByteBuffer.reallocate(byteBuffer, splitLength);
+		}
+
+		try {
+			byteBuffer.limit(splitLength);
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+
+		if(session.isConnected()) {
+			session.getByteBufferChannel().readHead(byteBuffer);
+
+			//如果数据没有解析完,重新触发 onRecived 事件
+			if (session.getByteBufferChannel().size() > 0) {
+				onRead(session);
+			}
+
+			return byteBuffer;
+		} else {
+			return null;
+		}
 	}
 
 	/**
 	 * 接收的消息处理函数
 	 * @param session  会话对象
-	 * @param byteBuffer 报文对象
+	 * @param splitLength 分割有效自己数
 	 * @return 产生的响应
 	 * @throws IoFilterException 过滤器异常
 	 */
-	public static Object doRecive(IoSession session, ByteBuffer byteBuffer) throws IoFilterException {
-		try {
-			//如果读出的数据为 null 则直接返回
-			if (byteBuffer == null) {
-				return null;
-			}
+	public static Object doRecive(IoSession session, int splitLength) throws IOException {
+        ByteBuffer byteBuffer = loadSplitData(session, splitLength);
 
-			Object result = null;
+        //如果读出的数据为 null 则直接返回
+        if (byteBuffer == null) {
+            return null;
+        }
 
-			// -----------------Filter 解密处理-----------------
-			result = filterDecoder(session, byteBuffer);
-			// -------------------------------------------------
+        Object result = null;
 
-			// -----------------Handler 业务处理-----------------
-			if (result != null) {
-				IoHandler handler = session.socketContext().handler();
-				result = handler.onReceive(session, result);
-			}
-			// --------------------------------------------------
+        // -----------------Filter 解密处理-----------------
+        result = filterDecoder(session, byteBuffer);
+        // -------------------------------------------------
 
-			// 返回的结果不为空的时候才发送
-			if (result != null) {
+        // -----------------Handler 业务处理-----------------
+        if (result != null) {
+            IoHandler handler = session.socketContext().handler();
+            result = handler.onReceive(session, result);
+        }
+        // --------------------------------------------------
 
-				//触发发送事件
-				sendMessage(session, result);
-				return result;
-			} else {
-				return null;
-			}
-		} finally {
-			if(byteBuffer.capacity() > 0) {
-				TByteBuffer.release(byteBuffer);
-			}
-		}
+        // 返回的结果不为空的时候才发送
+        if (result != null) {
+
+            //触发发送事件
+            sendMessage(session, result);
+            return result;
+        } else {
+            return null;
+        }
 	}
 
 	/**
