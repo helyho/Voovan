@@ -49,7 +49,7 @@ public class WebServerFilter implements IoFilter {
 				Logger.error(e);
 			}
 
-			return TByteBuffer.EMPTY_BYTE_BUFFER;
+			return null;
 		} else if(object instanceof WebSocketFrame){
 			WebSocketFrame webSocketFrame = (WebSocketFrame)object;
 			return webSocketFrame.toByteBuffer();

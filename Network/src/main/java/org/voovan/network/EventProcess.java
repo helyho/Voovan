@@ -312,23 +312,21 @@ public class EventProcess {
 			ByteBuffer sendBuffer = EventProcess.filterEncoder(session, sendObj);
 			// ---------------------------------------------------
 
-			if (sendBuffer != null) {
+            // 发送消息
+            if (sendBuffer != null && session.isOpen()) {
+                if (sendBuffer.limit() > 0) {
+                    int sendLength = session.send(sendBuffer);
+                    if(sendLength >= 0) {
+                        sendBuffer.rewind();
+                    } else {
+                        throw new IOException("EventProcess.sendMessage faild, send length: " + sendLength);
+                    }
+                }
+            }
 
-				// 发送消息
-				if (sendBuffer != null && session.isOpen()) {
-					if (sendBuffer.limit() > 0) {
-						int sendLength = session.send(sendBuffer);
-						if(sendLength >= 0) {
-							sendBuffer.rewind();
-						} else {
-							throw new IOException("EventProcess.sendMessage faild, send length: " + sendLength);
-						}
-					}
-				}
+            //触发发送事件
+            EventTrigger.fireSent(session, sendObj);
 
-				//触发发送事件
-				EventTrigger.fireSent(session, sendObj);
-			}
 		} catch (IOException e) {
 			EventTrigger.fireException(session, e);
 		}
