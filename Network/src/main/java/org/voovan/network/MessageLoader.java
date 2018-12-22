@@ -26,9 +26,7 @@ public class MessageLoader {
 	private IoSession session;
 	private StopType stopType;
 	private ByteBufferChannel byteBufferChannel;
-	private boolean useSpliter;
-
-	public static ThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
+	private boolean enable;
 
 	/**
 	 * 构造函数
@@ -36,7 +34,7 @@ public class MessageLoader {
 	 */
 	public MessageLoader(IoSession session) {
 		this.session = session;
-		useSpliter = true;
+		enable = true;
 		//准备缓冲流
 		byteBufferChannel = session.getByteBufferChannel();
 	}
@@ -46,16 +44,16 @@ public class MessageLoader {
 	 *
 	 * @return true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
 	 */
-	public boolean isUseSpliter() {
-		return useSpliter;
+	public boolean isEnable() {
+		return enable;
 	}
 
 	/**
 	 * 设置是否是否使用分割器读取
-	 * @param useSpliter true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
+	 * @param enable true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
 	 */
-	public void setUseSpliter(boolean useSpliter) {
-		this.useSpliter = useSpliter;
+	public void enable(boolean enable) {
+		this.enable = enable;
 	}
 
 	public enum StopType {
@@ -147,7 +145,7 @@ public class MessageLoader {
 	 * @return 读取的缓冲区数据
 	 * @throws IOException IO 异常
 	 */
-	public ByteBuffer read() throws IOException {
+	public int read() throws IOException {
 		int readZeroCount = 0;
 		int splitLength = 0;
 
@@ -162,7 +160,7 @@ public class MessageLoader {
 		stopType = StopType.RUNNING;
 
 		if(session==null){
-			return null;
+			return -1;
 		}
 
 		//获取消息分割器
@@ -170,12 +168,12 @@ public class MessageLoader {
 
 		if(messageSplitter==null){
 			Logger.error("[Error] MessageSplitter is null, you need to invoke SocketContext object's messageSplitter method to set MessageSplitter Object in it.");
-			return null;
+			return -1;
 		}
 
 		boolean isConnect = true;
 
-		while ( isConnect && useSpliter &&
+		while ( isConnect && enable &&
 				(stopType== StopType.RUNNING )) {
 
 			if(session.socketContext() instanceof UdpSocket) {
@@ -187,7 +185,7 @@ public class MessageLoader {
 			//如果连接关闭,
 			if(!isConnect){
 				stopType = StopType.SOCKET_CLOSED;
-				return null;
+				return -1;
 			}
 
 			int readsize = byteBufferChannel.size() - oldByteChannelSize;
@@ -247,30 +245,15 @@ public class MessageLoader {
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		else if (stopType == StopType.MSG_SPLITTER) {
-			if (splitLength > 0) {
-				//========================将数据复制到本地线程中========================
-				{
-					result = THREAD_BYTE_BUFFER.get();
-					result.clear();
-
-					if (result.capacity() < splitLength) {
-						TByteBuffer.reallocate(result, splitLength);
-					}
-
-					result.limit(splitLength);
-
-					int fillSize = dataByteBufferChannel.readHead(result);
-					if (fillSize != splitLength) {
-						Logger.error("[WARN] Message is not full, expect: " + splitLength + ", acutal: " + fillSize);
-					}
-				}
+			if (splitLength >= 0) {
+				return splitLength;
 			} else {
-				return TByteBuffer.EMPTY_BYTE_BUFFER;
+				return -1;
 			}
 		} else {
-			return TByteBuffer.EMPTY_BYTE_BUFFER;
+			return -1;
 		}
 
-		return result;
+		return -1;
 	}
 }

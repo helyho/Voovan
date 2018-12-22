@@ -22,8 +22,6 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class EventProcess {
-	public static ThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
-
 	/**
 	 * 私有构造函数,防止被实例化
 	 */
@@ -125,17 +123,10 @@ public class EventProcess {
 
 		if (socketContext != null) {
 
-			ByteBuffer byteBuffer = null;
-
 			MessageLoader messageLoader = session.getMessageLoader();
 
 			//如果没有使用分割器,则跳过
-			if (!messageLoader.isUseSpliter()) {
-				//释放 onRecive 锁
-				{
-					session.getState().setReceive(false);
-					session.getState().receiveUnLock();
-				}
+			if (!messageLoader.isEnable()) {
 				return;
 			}
 
@@ -146,44 +137,34 @@ public class EventProcess {
 				// 按消息包触发 onRecive 事件
 				while (session.getByteBufferChannel().size() > 0) {
 
-					byteBuffer = messageLoader.read();
+					int splitLength = messageLoader.read();
 
+					if(splitLength>=0) {
+						//如果 ByteBuffer 无有效数据, 说明需要使用流的方式读取, 则阻赛处理
+						if (splitLength == 0){
+							doRecive(session, TByteBuffer.EMPTY_BYTE_BUFFER);
+						}
 
-					if(byteBuffer!=null) {
-
-						//获取线程本地变量
-						ByteBuffer localByteBuffer = THREAD_BYTE_BUFFER.get();
-
-						//========================将数据复制到本地线程中========================
-						{
-							//清空线程本地变量
-							localByteBuffer.clear();
+						//如果 splitLength 存在有效数据, 说明报文分割有效, 则异步处理
+						else{
+							//获取线程本地变量
+							ByteBuffer byteBuffer = TByteBuffer.allocateDirect(splitLength);
+							byteBuffer.clear();
 
 							//扩容线程本地变量
-							if (localByteBuffer.capacity() < byteBuffer.capacity()) {
-								TByteBuffer.reallocate(localByteBuffer, byteBuffer.capacity());
+							if (byteBuffer.capacity() < splitLength) {
+								TByteBuffer.reallocate(byteBuffer, splitLength);
 							}
 
-							//传递数据到线程本地变量
-							localByteBuffer.put(byteBuffer);
-							localByteBuffer.flip();
-						}
+							session.getByteBufferChannel().readHead(byteBuffer);
 
-						//如果 ByteBuffer 无有效数据, 说明需要使用流的方式读取, 则阻赛处理
-						if (!byteBuffer.hasRemaining()){
-							doRecive(session, localByteBuffer);
-						}
-						//如果 ByteBuffer 存在有效数据, 说明报文分割有效, 则异步处理
-						else{
-							ByteBuffer finalByteBuffer = localByteBuffer;
 							Global.getThreadPool().execute(() -> {
 								try {
-									doRecive(session, finalByteBuffer);
+									doRecive(session, byteBuffer);
 								} catch (IoFilterException e) {
 									Logger.error("EventProcess.doRecive error: ", e);
 								}
 							});
-
 						}
 					}
 				}
@@ -210,32 +191,38 @@ public class EventProcess {
 	 * @throws IoFilterException 过滤器异常
 	 */
 	public static Object doRecive(IoSession session, ByteBuffer byteBuffer) throws IoFilterException {
-		//如果读出的数据为 null 则直接返回
-		if (byteBuffer == null) {
-			return null;
-		}
+		try {
+			//如果读出的数据为 null 则直接返回
+			if (byteBuffer == null) {
+				return null;
+			}
 
-		Object result = null;
+			Object result = null;
 
-		// -----------------Filter 解密处理-----------------
-		result = filterDecoder(session, byteBuffer);
-		// -------------------------------------------------
+			// -----------------Filter 解密处理-----------------
+			result = filterDecoder(session, byteBuffer);
+			// -------------------------------------------------
 
-		// -----------------Handler 业务处理-----------------
-		if (result != null) {
-			IoHandler handler = session.socketContext().handler();
-			result = handler.onReceive(session, result);
-		}
-		// --------------------------------------------------
+			// -----------------Handler 业务处理-----------------
+			if (result != null) {
+				IoHandler handler = session.socketContext().handler();
+				result = handler.onReceive(session, result);
+			}
+			// --------------------------------------------------
 
-		// 返回的结果不为空的时候才发送
-		if (result != null) {
+			// 返回的结果不为空的时候才发送
+			if (result != null) {
 
-			//触发发送事件
-			sendMessage(session, result);
-			return result;
-		} else {
-			return null;
+				//触发发送事件
+				sendMessage(session, result);
+				return result;
+			} else {
+				return null;
+			}
+		} finally {
+			if(byteBuffer.capacity() > 0) {
+				TByteBuffer.release(byteBuffer);
+			}
 		}
 	}
 

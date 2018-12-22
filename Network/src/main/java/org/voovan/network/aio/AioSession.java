@@ -114,7 +114,7 @@ public class AioSession extends IoSession<AioSocket> {
 
     @Override
     protected int send0(ByteBuffer buffer) throws IOException {
-        int totalSendByte = 0;
+        int totalSendByte = -1;
         if (isConnected() && buffer != null) {
             //循环发送直到全部内容发送完毕
 
@@ -132,10 +132,14 @@ public class AioSession extends IoSession<AioSocket> {
                 if(e instanceof TimeoutException) {
                     throw new IOException(e);
                 }
-                close();
-                return -1;
+                totalSendByte = -1;
             }
         }
+
+        if(totalSendByte == -1) {
+            close();
+        }
+
         return totalSendByte;
     }
 
