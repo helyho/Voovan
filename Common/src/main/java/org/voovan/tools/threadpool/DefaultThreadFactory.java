@@ -33,7 +33,7 @@ public class DefaultThreadFactory implements ThreadFactory {
 
     @Override
     public Thread newThread(Runnable r) {
-        Thread thread = new Thread(r, name + "-" + threadCount);
+        Thread thread = new Thread(r, name + "-" + threadCount.getAndIncrement());
 
         try {
             if (thread.isDaemon()) {
