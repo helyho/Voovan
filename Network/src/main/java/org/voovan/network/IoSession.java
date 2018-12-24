@@ -442,12 +442,12 @@ public abstract class IoSession<T extends SocketContext> {
      * 发送消息到发送缓冲区
      * @throws SendMessageException  消息发送异常
      */
-    public int sendToBuffer(ByteBuffer buffer) {
+    public int sendByBuffer(ByteBuffer buffer) {
     	try {
 			return sendByteBufferChannel.writeEnd(buffer);
 		} catch (Exception e) {
             if (socketContext.isConnected()) {
-                Logger.error("IoSession.sendToBuffer buffer failed", e);
+                Logger.error("IoSession.sendByBuffer buffer failed", e);
             }
 		}
 
@@ -494,7 +494,7 @@ public abstract class IoSession<T extends SocketContext> {
 				sslParser.warpData(buffer);
 				return buffer.limit();
 			}else{
-				return sendToBuffer(buffer);
+				return sendByBuffer(buffer);
 			}
 		} catch (IOException e) {
 			Logger.error("IoSession.send data failed" ,e);
