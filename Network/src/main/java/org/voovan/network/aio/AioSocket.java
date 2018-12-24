@@ -80,7 +80,7 @@ public class AioSocket extends SocketContext {
 		this.socketChannel = AsynchronousSocketChannel.open(ASYNCHRONOUS_CHANNEL_GROUP);
 		session = new AioSession(this);
 
-		readCompletionHandler = new ReadCompletionHandler(this,  session.getByteBufferChannel());
+		readCompletionHandler = new ReadCompletionHandler(this,  session.getReadByteBufferChannel());
 		connectModel = ConnectModel.CLIENT;
 	}
 
@@ -97,7 +97,7 @@ public class AioSocket extends SocketContext {
 		this.copyFrom(parentSocketContext);
 		session = new AioSession(this);
 
-		readCompletionHandler = new ReadCompletionHandler(this, session.getByteBufferChannel());
+		readCompletionHandler = new ReadCompletionHandler(this, session.getReadByteBufferChannel());
 		connectModel = ConnectModel.SERVER;
 	}
 
@@ -300,7 +300,7 @@ public class AioSocket extends SocketContext {
 					//session.wait(this.getReadTimeout());
 
 					readCompletionHandler.release();
-					session.getByteBufferChannel().release();
+					session.getReadByteBufferChannel().release();
 					TByteBuffer.release(readByteBuffer);
 					if(session.getSSLParser()!=null){
 						session.getSSLParser().release();

@@ -67,7 +67,7 @@ public class UdpSelector {
         this.socketContext = socketContext;
         if (socketContext instanceof UdpSocket){
             session = ((UdpSocket)socketContext).getSession();
-            appByteBufferChannel = session.getByteBufferChannel();
+            appByteBufferChannel = session.getReadByteBufferChannel();
         }
 
         readTempBuffer = TByteBuffer.allocateDirect(socketContext.getBufferSize());
@@ -113,7 +113,7 @@ public class UdpSelector {
                                                     readSize = readTempBuffer.position();
                                                     clientUdpSocket = new UdpSocket(socketContext, datagramChannel, (InetSocketAddress)address);
                                                     session = clientUdpSocket.getSession();
-                                                    appByteBufferChannel = session.getByteBufferChannel();
+                                                    appByteBufferChannel = session.getReadByteBufferChannel();
                                                     //触发连接时间, 关闭事件在触发 onSent 之后触发
                                                     EventTrigger.fireConnect(session);
                                                 }

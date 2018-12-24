@@ -33,7 +33,7 @@ public abstract class IoSession<T extends SocketContext> {
 	private SSLParser sslParser;
 
 	private MessageLoader messageLoader;
-	private ByteBufferChannel byteBufferChannel;
+	private ByteBufferChannel readByteBufferChannel;
 	private T socketContext;
 	private long lastIdleTime = -1;
 	private HashWheelTask checkIdleTask;
@@ -134,7 +134,7 @@ public abstract class IoSession<T extends SocketContext> {
 		attributes = new ConcurrentHashMap<Object, Object>();
 		this.socketContext = socketContext;
 		this.state = new State();
-		byteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
+		readByteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
 		messageLoader = new MessageLoader(this);
 		checkIdle();
 	}
@@ -252,8 +252,8 @@ public abstract class IoSession<T extends SocketContext> {
 	 *
 	 * @return 接收的输出流
 	 */
-	public ByteBufferChannel getByteBufferChannel() {
-		return byteBufferChannel;
+	public ByteBufferChannel getReadByteBufferChannel() {
+		return readByteBufferChannel;
 	}
 
 	/**

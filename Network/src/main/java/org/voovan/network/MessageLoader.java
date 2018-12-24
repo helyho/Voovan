@@ -36,7 +36,7 @@ public class MessageLoader {
 		this.session = session;
 		enable = true;
 		//准备缓冲流
-		byteBufferChannel = session.getByteBufferChannel();
+		byteBufferChannel = session.getReadByteBufferChannel();
 	}
 
 	/**
@@ -155,7 +155,7 @@ public class MessageLoader {
 		ByteBufferChannel dataByteBufferChannel = null;
 		ByteBuffer dataByteBuffer = null;
 
-		dataByteBufferChannel = session.getByteBufferChannel();
+		dataByteBufferChannel = session.getReadByteBufferChannel();
 
 		stopType = StopType.RUNNING;
 

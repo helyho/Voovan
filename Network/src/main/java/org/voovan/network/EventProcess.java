@@ -7,7 +7,6 @@ import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -58,16 +57,16 @@ public class EventProcess {
 		if (session != null && session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
 			try {
 				if (session.getSSLParser().doHandShake() &&
-						session.getByteBufferChannel().size() > 0 &&
+						session.getReadByteBufferChannel().size() > 0 &&
 						!session.getState().isReceive()) {
 
 					//将握手后的剩余数据进行处理, 并触发 onRecive 事件
 					ByteBufferChannel byteBufferChannel = new ByteBufferChannel();
-					session.getSSLParser().unWarpByteBufferChannel(session, session.getByteBufferChannel(), byteBufferChannel);
-					session.getByteBufferChannel().clear();
+					session.getSSLParser().unWarpByteBufferChannel(session, session.getReadByteBufferChannel(), byteBufferChannel);
+					session.getReadByteBufferChannel().clear();
 
 					try {
-						session.getByteBufferChannel().writeHead(byteBufferChannel.getByteBuffer());
+						session.getReadByteBufferChannel().writeHead(byteBufferChannel.getByteBuffer());
 					}finally {
 						byteBufferChannel.compact();
 						byteBufferChannel.release();
@@ -144,7 +143,7 @@ public class EventProcess {
 				if(splitLength==0) {
                     doRecive(session, splitLength);
                     //如果有消息未处理完, 触发下一个 onRead
-					if (session.getByteBufferChannel().size() > 0) {
+					if (session.getReadByteBufferChannel().size() > 0) {
 						onRead(session);
 					}
 				} else if(splitLength > 0){
@@ -196,10 +195,10 @@ public class EventProcess {
 		}
 
 		if(session.isConnected()) {
-			session.getByteBufferChannel().readHead(byteBuffer);
+			session.getReadByteBufferChannel().readHead(byteBuffer);
 
 			//如果数据没有解析完,重新触发 onRead 方法
-			if (splitLength > 0 && session.getByteBufferChannel().size() > 0) {
+			if (splitLength > 0 && session.getReadByteBufferChannel().size() > 0) {
 				onRead(session);
 			}
 

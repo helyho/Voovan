@@ -3,14 +3,12 @@ package org.voovan.network.aio;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.network.exception.RestartException;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.WritePendingException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -106,8 +104,8 @@ public class AioSession extends IoSession<AioSocket> {
     @Override
     protected int read0(ByteBuffer buffer) throws IOException {
         int readSize = 0;
-        if (buffer != null && !this.getByteBufferChannel().isReleased()) {
-            readSize = this.getByteBufferChannel().readHead(buffer);
+        if (buffer != null && !this.getReadByteBufferChannel().isReleased()) {
+            readSize = this.getReadByteBufferChannel().readHead(buffer);
         }
         return readSize;
     }
