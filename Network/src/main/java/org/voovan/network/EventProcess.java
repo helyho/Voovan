@@ -4,6 +4,7 @@ import org.voovan.Global;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;
@@ -86,6 +87,7 @@ public class EventProcess {
 			//null 不发送
 			if (original != null) {
 				sendMessage(session, original);
+				session.flush();
 			}
 		}
 
@@ -140,15 +142,15 @@ public class EventProcess {
 				// 按消息包触发 onRecive 事件
 				int splitLength = messageLoader.read();
 
-				if(splitLength==0) {
+				if(splitLength>=0) {
                     doRecive(session, splitLength);
+
                     //如果有消息未处理完, 触发下一个 onRead
 					if (session.getReadByteBufferChannel().size() > 0) {
 						onRead(session);
 					}
-				} else if(splitLength > 0){
-					ReciveThread reciveThread = new ReciveThread(session, splitLength);
-					Global.getThreadPool().execute(reciveThread);
+
+					session.flush();
 				}
 			} finally {
 				//释放 onRecive 锁
@@ -158,28 +160,7 @@ public class EventProcess {
 		}
 	}
 
-	private static class ReciveThread implements Runnable {
-		public static ThreadLocal<ByteBuffer> THREAD_BYTE_BYTE = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
-
-		private IoSession session;
-		private int splitLength;
-
-		public ReciveThread(IoSession session, int splitLength) {
-			this.session = session;
-			this.splitLength = splitLength;
-		}
-
-		@Override
-		public void run() {
-			try {
-				doRecive(session, splitLength);
-			} catch (IOException e) {
-				EventTrigger.fireException(session, e);
-			}
-		}
-	}
-
-	public static ByteBuffer loadSplitData(IoSession session, int splitLength) throws IOException {
+	public static ByteBuffer loadSplitData(IoSession session, int splitLength) {
 		ByteBuffer byteBuffer = THREAD_BYTE_BYTE.get();
 		byteBuffer.clear();
 
@@ -194,18 +175,12 @@ public class EventProcess {
 			e.printStackTrace();
 		}
 
-		if(session.isConnected()) {
-			session.getReadByteBufferChannel().readHead(byteBuffer);
-
-			//如果数据没有解析完,重新触发 onRead 方法
-			if (splitLength > 0 && session.getReadByteBufferChannel().size() > 0) {
-				onRead(session);
-			}
-
-			return byteBuffer;
-		} else {
-			return null;
-		}
+        if ((session.socketContext() instanceof UdpSocket && session.isOpen()) || session.isConnected()) {
+            session.getReadByteBufferChannel().readHead(byteBuffer);
+            return byteBuffer;
+        } else {
+            return null;
+        }
 	}
 
 	/**

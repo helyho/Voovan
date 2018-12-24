@@ -33,7 +33,8 @@ public abstract class IoSession<T extends SocketContext> {
 	private SSLParser sslParser;
 
 	private MessageLoader messageLoader;
-	private ByteBufferChannel readByteBufferChannel;
+	protected ByteBufferChannel readByteBufferChannel;
+	protected ByteBufferChannel sendByteBufferChannel;
 	private T socketContext;
 	private long lastIdleTime = -1;
 	private HashWheelTask checkIdleTask;
@@ -135,6 +136,7 @@ public abstract class IoSession<T extends SocketContext> {
 		this.socketContext = socketContext;
 		this.state = new State();
 		readByteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
+		sendByteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
 		messageLoader = new MessageLoader(this);
 		checkIdle();
 	}
@@ -257,6 +259,15 @@ public abstract class IoSession<T extends SocketContext> {
 	}
 
 	/**
+	 * 获取发送收的输出流
+	 *
+	 * @return 发送的输出流
+	 */
+	public ByteBufferChannel getSendByteBufferChannel() {
+		return sendByteBufferChannel;
+	}
+
+	/**
 	 * 获取 SSLParser
 	 * @return SSLParser对象
 	 */
@@ -357,15 +368,24 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	protected abstract int read0(ByteBuffer buffer) throws IOException;
 
-
 	/**
-	 * 发送消息
-	 * 		注意直接调用不会出发 onSent 事件
-	 * @param buffer  发送缓冲区
-	 * @return 读取的字节数
-	 * @throws IOException IO 异常
-	 */
-	protected abstract int send0(ByteBuffer buffer) throws IOException;
+	 * 直接从缓冲区读取数据
+	 * @param byteBuffer 字节缓冲对象ByteBuffer,读取 前需要使用 enabledMessageSpliter(false) 停止分割器的工作,除非有特殊的需求.
+	 * @return  读取的字节数
+	 * @throws IOException IO异常
+	 * */
+	public int read(ByteBuffer byteBuffer) throws IOException {
+
+		int readSize = -1;
+
+		readSize = this.read0(byteBuffer);
+
+		if(!this.isConnected() && readSize <= 0){
+			readSize = -1;
+		}
+
+		return readSize;
+	}
 
 	/**
 	 * 同步读取消息
@@ -408,6 +428,24 @@ public abstract class IoSession<T extends SocketContext> {
 		return readObject;
 	}
 
+
+	/**
+	 * 发送消息
+	 * 		注意直接调用不会出发 onSent 事件
+	 * @param buffer  发送缓冲区
+	 * @return 读取的字节数
+	 * @throws IOException IO 异常
+	 */
+	protected abstract int send0(ByteBuffer buffer) throws IOException;
+
+    /**
+     * 发送消息到发送缓冲区
+     * @throws SendMessageException  消息发送异常
+     */
+    public int sendToBuffer(ByteBuffer buffer) throws SendMessageException{
+		return sendByteBufferChannel.writeEnd(buffer);
+    }
+
 	/**
 	 * 同步发送消息
 	 * 			消息会经过 filter 的 encoder 函数处理后再发送
@@ -421,6 +459,7 @@ public abstract class IoSession<T extends SocketContext> {
 			if (obj != null) {
 				try {
 					EventProcess.sendMessage(this, obj);
+					flush();
 				}catch (Exception e){
 					throw new SendMessageException("Method syncSend error! Error by "+
 							e.getClass().getSimpleName() + ".",e);
@@ -435,15 +474,6 @@ public abstract class IoSession<T extends SocketContext> {
 	}
 
 	/**
-	 * 设置是否使用分割器读取
-	 * @param useSpliter true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
-	 */
-	public void enabledMessageSpliter(boolean useSpliter) {
-		messageLoader.enable(useSpliter);
-	}
-
-
-	/**
 	 * 直接向缓冲区发送消息
 	 * 		注意直接调用不会触发 onSent 事件, 也不会经过任何过滤器
 	 * 	@param buffer byte缓冲区
@@ -456,7 +486,7 @@ public abstract class IoSession<T extends SocketContext> {
 				sslParser.warpData(buffer);
 				return buffer.limit();
 			}else{
-				return send0(buffer);
+				return sendToBuffer(buffer);
 			}
 		} catch (IOException e) {
 			Logger.error("IoSession.send data failed" ,e);
@@ -465,23 +495,18 @@ public abstract class IoSession<T extends SocketContext> {
 		return -1;
 	}
 
-	/**
-	 * 直接从缓冲区读取数据
-	 * @param byteBuffer 字节缓冲对象ByteBuffer,读取 前需要使用 enabledMessageSpliter(false) 停止分割器的工作,除非有特殊的需求.
-	 * @return  读取的字节数
-	 * @throws IOException IO异常
-	 * */
-	public int read(ByteBuffer byteBuffer) throws IOException {
-
-		int readSize = -1;
-
-		readSize = this.read0(byteBuffer);
-
-		if(!this.isConnected() && readSize <= 0){
-			readSize = -1;
+    /**
+     * 推送缓冲区的数据到 socketChannel
+     */
+	public void flush() {
+		if(sendByteBufferChannel.size()>0) {
+			try {
+				send0(sendByteBufferChannel.getByteBuffer());
+			} catch (IOException e) {
+				Logger.error("Flush buffer failed", e);
+			}
+			sendByteBufferChannel.compact();
 		}
-
-		return readSize;
 	}
 
 	/**
@@ -497,6 +522,14 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return 消息分割处理类
 	 */
 	protected abstract MessageSplitter getMessagePartition();
+
+	/**
+	 * 设置是否使用分割器读取
+	 * @param useSpliter true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
+	 */
+	public void enabledMessageSpliter(boolean useSpliter) {
+		messageLoader.enable(useSpliter);
+	}
 
 	/**
 	 * 会话是否连接
