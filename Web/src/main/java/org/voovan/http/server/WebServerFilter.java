@@ -72,7 +72,7 @@ public class WebServerFilter implements IoFilter {
 
 		if(byteBuffer.limit()==0){
 			session.enabledMessageSpliter(false);
-			byteBufferChannel = session.getByteBufferChannel();
+			byteBufferChannel = session.getReadByteBufferChannel();
 		} else {
 			//兼容 http 的 pipeline 模式,  GET 请求直接返回指定的长度
 			byteBufferChannel = THREAD_BUFFER_CHANNEL.get();

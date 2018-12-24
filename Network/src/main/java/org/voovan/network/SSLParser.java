@@ -196,7 +196,7 @@ public class SSLParser {
 			}
 
 			clearBuffer();
-			ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
+			ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
 
 			if (byteBufferChannel.isReleased()) {
 				throw new IOException("Socket is disconnect");

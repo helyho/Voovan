@@ -1,6 +1,5 @@
 package org.voovan.network.nio;
 
-import org.voovan.Global;
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
@@ -294,7 +293,7 @@ public class NioSocket extends SocketContext{
 				NioSelector.unregister(nioSelector);
 				nioSelector.release();
 				selector.close();
-				session.getByteBufferChannel().release();
+				session.getReadByteBufferChannel().release();
 				if(session.getSSLParser()!=null){
 					session.getSSLParser().release();
 				}

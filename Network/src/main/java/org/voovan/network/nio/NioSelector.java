@@ -6,16 +6,13 @@ import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.threadpool.ThreadPool;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -71,7 +68,7 @@ public class NioSelector {
 
 		if (socketContext instanceof NioSocket){
 			this.session = ((NioSocket)socketContext).getSession();
-			this.appByteBufferChannel = session.getByteBufferChannel();
+			this.appByteBufferChannel = session.getReadByteBufferChannel();
 		}
 	}
 

@@ -1,13 +1,11 @@
 package org.voovan.network.udp;
 
-import org.voovan.Global;
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.RestartException;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.network.nio.NioSelector;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -262,7 +260,7 @@ public class UdpSocket extends SocketContext {
                 UdpSelector.unregister(udpSelector);
                 udpSelector.release();
                 selector.close();
-                session.getByteBufferChannel().release();
+                session.getReadByteBufferChannel().release();
                 synchronized (waitObj) {
                     waitObj.notify();
                 }

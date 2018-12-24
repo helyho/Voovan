@@ -113,7 +113,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 	protected int read0(ByteBuffer buffer) throws IOException {
 		int readSize = 0;
 		if (buffer != null) {
-			readSize = this.getByteBufferChannel().readHead(buffer);
+			readSize = this.getReadByteBufferChannel().readHead(buffer);
 		}
 		return readSize;
 	}
