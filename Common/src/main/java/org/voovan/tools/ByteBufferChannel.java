@@ -29,7 +29,7 @@ public class ByteBufferChannel {
     private volatile AtomicLong address = new AtomicLong(0);
     private Unsafe unsafe = TUnsafe.getUnsafe();
     private ByteBuffer byteBuffer;
-    private int size;
+    private volatile int size;
     private ReentrantLock lock;
     private AtomicBoolean borrowed = new AtomicBoolean(false);
 
@@ -650,7 +650,11 @@ public class ByteBufferChannel {
 
                 int position = byteBuffer.position();
 
-                byteBuffer.position(writePosition);
+                try {
+                    byteBuffer.position(writePosition);
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
 
                 if(TByteBuffer.moveData(byteBuffer, writeSize)){
 
@@ -683,7 +687,15 @@ public class ByteBufferChannel {
      * @return 写入的数据大小
      */
     public synchronized int writeEnd(ByteBuffer src) {
-        return write(size(), src);
+        //这里加锁的作用是防止 size 发生变化
+        lock.lock();
+        checkRelease();
+
+        try {
+            return write(size(), src);
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -710,7 +722,15 @@ public class ByteBufferChannel {
      * @return 读出的数据大小
      */
     public synchronized int readEnd(ByteBuffer dst) {
-        return read( size-dst.limit(), dst );
+        //这里加锁的作用是防止 size 发生变化
+        lock.lock();
+        checkRelease();
+
+        try {
+            return read( size()-dst.limit(), dst );
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**

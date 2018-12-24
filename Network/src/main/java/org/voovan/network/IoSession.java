@@ -442,8 +442,16 @@ public abstract class IoSession<T extends SocketContext> {
      * 发送消息到发送缓冲区
      * @throws SendMessageException  消息发送异常
      */
-    public int sendToBuffer(ByteBuffer buffer) throws SendMessageException{
-		return sendByteBufferChannel.writeEnd(buffer);
+    public int sendToBuffer(ByteBuffer buffer) {
+    	try {
+			return sendByteBufferChannel.writeEnd(buffer);
+		} catch (Exception e) {
+            if (socketContext.isConnected()) {
+                Logger.error("IoSession.sendToBuffer buffer failed", e);
+            }
+		}
+
+    	return -1;
     }
 
 	/**
@@ -503,7 +511,11 @@ public abstract class IoSession<T extends SocketContext> {
 			try {
 				send0(sendByteBufferChannel.getByteBuffer());
 			} catch (IOException e) {
-				Logger.error("Flush buffer failed", e);
+				if(isConnected()) {
+					if (socketContext.isConnected()) {
+						Logger.error("IoSession.flush buffer failed", e);
+					}
+				}
 			}
 			sendByteBufferChannel.compact();
 		}
