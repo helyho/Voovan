@@ -111,20 +111,17 @@ public class EventProcess {
 		}
 	}
 
-	public static void onRead(Event event) throws IOException {
-		onRead(event.getSession());
-	}
-
 	/**
 	 * 读取事件 在消息接受完成后触发
 	 *
-	 * @param session
+	 * @param event
 	 *            事件对象
 	 * @throws SendMessageException  消息发送异常
 	 * @throws IOException  IO 异常
 	 * @throws IoFilterException IoFilter 异常
 	 */
-	public static void onRead(IoSession session) throws IOException {
+	public static void onRead(Event event, boolean isStackRoot) throws IOException {
+		IoSession session = event.getSession();
 
 		if (session != null) {
 
@@ -147,10 +144,12 @@ public class EventProcess {
 
                     //如果有消息未处理完, 触发下一个 onRead
 					if (session.getReadByteBufferChannel().size() > 0) {
-						onRead(session);
+						onRead(event, false);
 					}
 
-					session.flush();
+					if(isStackRoot && session.getSendByteBufferChannel().size() > 0) {
+						session.flush();
+					}
 				}
 			} finally {
 				//释放 onRecive 锁
@@ -387,7 +386,7 @@ public class EventProcess {
 				//设置空闲状态
 				EventProcess.onDisconnect(event);
 			} else if (eventName == EventName.ON_RECEIVE) {
-				EventProcess.onRead(event);
+				EventProcess.onRead(event, true);
 			} else if (eventName == EventName.ON_SENT) {
 				EventProcess.onSent(event, event.getOther());
 			} else if (eventName == EventName.ON_IDLE) {
