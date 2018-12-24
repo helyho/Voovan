@@ -294,6 +294,7 @@ public class NioSocket extends SocketContext{
 				nioSelector.release();
 				selector.close();
 				session.getReadByteBufferChannel().release();
+				session.getSendByteBufferChannel().release();
 				if(session.getSSLParser()!=null){
 					session.getSSLParser().release();
 				}

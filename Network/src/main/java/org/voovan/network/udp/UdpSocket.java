@@ -261,6 +261,7 @@ public class UdpSocket extends SocketContext {
                 udpSelector.release();
                 selector.close();
                 session.getReadByteBufferChannel().release();
+                session.getSendByteBufferChannel().release();
                 synchronized (waitObj) {
                     waitObj.notify();
                 }

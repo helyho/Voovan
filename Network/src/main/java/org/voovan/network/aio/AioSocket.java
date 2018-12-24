@@ -301,6 +301,7 @@ public class AioSocket extends SocketContext {
 
 					readCompletionHandler.release();
 					session.getReadByteBufferChannel().release();
+					session.getSendByteBufferChannel().release();
 					TByteBuffer.release(readByteBuffer);
 					if(session.getSSLParser()!=null){
 						session.getSSLParser().release();
