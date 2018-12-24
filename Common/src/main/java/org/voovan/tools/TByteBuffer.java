@@ -171,7 +171,7 @@ public class TByteBuffer {
                 return true;
             }
 
-            if(offset > 0 && byteBuffer.capacity() - byteBuffer.position() > offset){
+            if(byteBuffer.remaining() == 0){
                 return true;
             }
 

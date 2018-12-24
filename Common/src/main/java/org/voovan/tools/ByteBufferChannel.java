@@ -326,7 +326,11 @@ public class ByteBufferChannel {
                 if(position > shrinkPosition){
                     position = position + shrinkPosition;
                 }
-                byteBuffer.position(position);
+
+                if(position < byteBuffer.limit()) {
+                    byteBuffer.position(position);
+                }
+
                 size = size - Math.abs(shrinkSize);
                 return true;
             }else{
