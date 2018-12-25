@@ -2,7 +2,7 @@ package org.voovan.network;
 
 /**
  * 事件处理线程
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -10,28 +10,42 @@ package org.voovan.network;
  * Licence: Apache v2 License
  */
 public class EventThread  implements Runnable{
-	
-	private Event event;
-	
+	public static ThreadLocal<Event> THREAD_EVENT = ThreadLocal.withInitial(()->new Event());
+
+	private IoSession session;
+	private Event.EventName name;
+	private Object other;
+
 	/**
 	 * 事件处理 Thread
-	 * @param event 事件
+	 *
 	 */
-	public EventThread(Event event){
-		this.event = event;
+	public EventThread(){
 	}
-	
+
 	/**
-	 * 获取事件
-	 * @return 事件对象
+	 * 事件处理 Thread
+	 *
+	 * @param session
+	 * @param name
+	 * @param other
 	 */
-	public Event getEvent(){
-		return event;
+	public EventThread(IoSession session, Event.EventName name, Object other){
+		init(session, name, other);
+	}
+
+	public void init(IoSession session, Event.EventName name, Object other){
+		this.session = session;
+		this.name = name;
+		this.other = other;
 	}
 
 	@Override
-	public void run() { 
+	public void run() {
+		Event event = THREAD_EVENT.get();
+		event.init(session, name, other);
+
 		EventProcess.process(event);
 	}
-	
+
 }
