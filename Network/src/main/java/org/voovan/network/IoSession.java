@@ -412,6 +412,10 @@ public abstract class IoSession<T extends SocketContext> {
 
 			readObject = ((SynchronousHandler)socketContext.handler()).getResponse();
 
+			if(readObject == null && !isConnected()){
+				throw new ReadMessageException("Method syncRead error! Socket is disconnected");
+			}
+
 			if(readObject instanceof Throwable){
 				Exception exception = (Exception) readObject;
 				if (exception != null) {
