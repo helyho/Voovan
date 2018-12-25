@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * Licence: Apache v2 License
  */
 public class EventTrigger {
+	public static ThreadLocal<Event> THREAD_EVENT = ThreadLocal.withInitial(()->new Event());
 
 	private static ThreadPoolExecutor eventThreadPool = Global.getThreadPool();
 
@@ -126,8 +127,8 @@ public class EventTrigger {
 	 */
 	public static void fireEventThread(IoSession session, Event.EventName name, Object other){
 		if(!eventThreadPool.isShutdown()){
-			Event event = Event.getInstance(session,name,other);
-			eventThreadPool.execute(new EventThread(event));
+			EventThread eventThread = new EventThread(session,name,other);
+			eventThreadPool.execute(eventThread);
 		}
 	}
 
@@ -139,7 +140,8 @@ public class EventTrigger {
 	 * @param other 附属对象
 	 */
 	public static void fireEvent(IoSession session, Event.EventName name, Object other){
-		Event event = Event.getInstance(session,name,other);
+		Event event = THREAD_EVENT.get();
+		event.init(session,name,other);
 		EventProcess.process(event);
 	}
 
