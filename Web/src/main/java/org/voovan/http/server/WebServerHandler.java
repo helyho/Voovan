@@ -4,7 +4,6 @@ import org.voovan.Global;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.HttpRequestType;
 import org.voovan.http.message.Request;
-import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
@@ -14,7 +13,6 @@ import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.ThreadLocalPool;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
@@ -233,18 +231,23 @@ public class WebServerHandler implements IoHandler {
 		// 处理响应请求
 		httpDispatcher.process(httpRequest, httpResponse);
 
+		//如果是长连接则填充响应报文
+		if (httpRequest.header().contain("Connection")) {
+			if(httpRequest.header().get("Connection").toLowerCase().contains("keep-alive")) {
+				setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
+				httpResponse.header().put("Connection", httpRequest.header().get("Connection"));
+			}
+
+			if(httpRequest.header().get("Connection").toLowerCase().contains("close")) {
+				setAttribute(session, HttpSessionParam.KEEP_ALIVE, false);
+				httpResponse.header().remove("Connection");
+			}
+		}
 		//对于1.1协议的特殊处理
-		if(httpRequest.protocol().getVersion()==1.1F){
+		else if(httpRequest.protocol().getVersion()==1.1F){
 			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
 			httpResponse.header().put("Connection", "keep-alive");
 		}
-		//如果是长连接则填充响应报文
-		else if (httpRequest.header().contain("Connection")
-				&& httpRequest.header().get("Connection").toLowerCase().contains("keep-alive")) {
-			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
-			httpResponse.header().put("Connection", httpRequest.header().get("Connection"));
-		}
-
 
 		httpResponse.header().put("Server", WebContext.getVERSION());
 
@@ -425,6 +428,7 @@ public class WebServerHandler implements IoHandler {
 			if (keepAliveSessionList.contains(session)) {
 				keepAliveSessionList.remove(session);
 			}
+			session.flush();
 			session.close();
 		}
 
