@@ -121,9 +121,8 @@ public class AioSession extends IoSession<AioSocket> {
                     Future<Integer> sendResult = socketChannel.write(buffer);
                     //这里会阻赛当前的发送线程
                     Integer sentLength = sendResult.get(socketContext().getSendTimeout(), TimeUnit.MILLISECONDS);
-                    if (sentLength != null) {
+                    if (sentLength != null && sentLength > 0) {
                         totalSendByte += sentLength;
-                        break;
                     }
                 }
             } catch(Exception e){
