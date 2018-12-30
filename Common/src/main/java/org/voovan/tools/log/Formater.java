@@ -51,7 +51,7 @@ public class Formater {
         Global.getHashWheelTimer().addTask(new HashWheelTask() {
             @Override
             public void run() {
-                DATE = TDateTime.now("YYYYMMdd");
+                DATE = TDateTime.now("yyyyMMdd");
             }
         }, 1);
     }
@@ -189,7 +189,7 @@ public class Formater {
         }
 
         if(LoggerStatic.HAS_DATE) {
-            tokens.put("D", TDateTime.now("YYYY-MM-dd HH:mm:ss:SS z"));                      //当前时间
+            tokens.put("D", TDateTime.now("yyyy-MM-dd HH:mm:ss:SS z"));                      //当前时间
         }
 
         if(LoggerStatic.HAS_RUNTIME) {
