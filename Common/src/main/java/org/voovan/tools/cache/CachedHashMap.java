@@ -6,6 +6,7 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.json.annotation.NotJSON;
+import org.voovan.tools.log.Logger;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -230,41 +231,56 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
 
         synchronized (timeMark.createFlag) {
             if (!timeMark.isOnCreate()) {
-                timeMark.tryLockOnCreate();
 
                 //更新缓存数据, 异步
                 if (asyncBuild) {
                     Global.getThreadPool().execute(new Runnable() {
                         @Override
                         public void run() {
-                            synchronized (supplier) {
-                                V value = supplier.apply(key);
-                                finalTimeMark.refresh(true);
+                            try {
+                                synchronized (supplier) {
+                                    finalTimeMark.tryLockOnCreate();
+                                    V value = supplier.apply(key);
+                                    finalTimeMark.refresh(true);
 
-                                if(expire==0L) {
-                                    cachedHashMap.put(key, value);
-                                } else {
-                                    cachedHashMap.put(key, value, finalCreateExpire);
+                                    if(value != null) {
+                                        if (expire == Long.MAX_VALUE) {
+                                            cachedHashMap.put(key, value);
+                                        } else {
+                                            cachedHashMap.put(key, value, finalCreateExpire);
+                                        }
+                                    }
+
                                 }
-
+                            } catch (Throwable e) {
+                                Logger.error("CacheHashMap create value failed: ", e);
+                            } finally {
+                                finalTimeMark.releaseCreateLock();
                             }
-                            finalTimeMark.releaseCreateLock();
                         }
                     });
                 }
                 //更新缓存数据, 异步
                 else {
-                    synchronized (supplier) {
-                        V value = supplier.apply(key);
-                        timeMark.refresh(true);
+                    try{
+                        synchronized (supplier) {
+                            timeMark.tryLockOnCreate();
+                            V value = supplier.apply(key);
+                            timeMark.refresh(true);
 
-                        if(expire==0L) {
-                            cachedHashMap.put(key, value);
-                        } else {
-                            cachedHashMap.put(key, value, finalCreateExpire);
+                            if(value != null) {
+                                if (expire == Long.MAX_VALUE) {
+                                    cachedHashMap.put(key, value);
+                                } else {
+                                    cachedHashMap.put(key, value, finalCreateExpire);
+                                }
+                            }
                         }
+                    } catch (Throwable e) {
+                        Logger.error("CacheHashMap create value failed: ", e);
+                    } finally {
+                        finalTimeMark.releaseCreateLock();
                     }
-                    timeMark.releaseCreateLock();
                 }
             }
         }

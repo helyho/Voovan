@@ -45,7 +45,7 @@ public class Formater {
     private String lineHead;
     private String lineTail;
 
-    private static String DATE = TDateTime.now("YYYYMMdd");
+    private static String DATE = TDateTime.now("yyyyMMdd");
 
     static{
         Global.getHashWheelTimer().addTask(new HashWheelTask() {
