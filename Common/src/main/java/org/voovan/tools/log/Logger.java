@@ -149,7 +149,7 @@ public class Logger {
 	}
 
 
-	public static void warn(Exception e) {
+	public static void warn(Throwable e) {
 		if(!Logger.isState()){
 			return;
 		}
@@ -165,7 +165,7 @@ public class Logger {
 		}
 	}
 
-	public static void warn(Object msg, Exception e) {
+	public static void warn(Object msg, Throwable e) {
 		if(!Logger.isState()){
 			return;
 		}
@@ -181,7 +181,7 @@ public class Logger {
 		}
 	}
 
-	public static void warnf(String msg, Exception e, Object ... args){
+	public static void warnf(String msg, Throwable e, Object ... args){
 		if(!Logger.isState()){
 			return;
 		}
@@ -214,7 +214,7 @@ public class Logger {
 		error(TString.tokenReplace(msg, args));
 	}
 
-	public static void error(Exception e) {
+	public static void error(Throwable e) {
 		if(!Logger.isState()){
 			return;
 		}
@@ -230,7 +230,7 @@ public class Logger {
 		}
 	}
 
-	public static void error(Object msg, Exception e) {
+	public static void error(Object msg, Throwable e) {
 		if(!Logger.isState()){
 			return;
 		}
@@ -246,7 +246,7 @@ public class Logger {
 		}
 	}
 
-	public static void errorf(String msg, Exception e, Object ... args){
+	public static void errorf(String msg, Throwable e, Object ... args){
 		if(!Logger.isState()){
 			return;
 		}
