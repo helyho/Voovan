@@ -278,7 +278,7 @@ public class Logger {
 		fatal(TString.tokenReplace(msg, args));
 	}
 
-	public static void fatal(Exception e) {
+	public static void fatal(Throwable e) {
 		if(!Logger.isState()){
 			return;
 		}
@@ -294,7 +294,7 @@ public class Logger {
 		}
 	}
 
-	public static void fatal(Object msg, Exception e) {
+	public static void fatal(Object msg, Throwable e) {
 		if(!Logger.isState()){
 			return;
 		}
