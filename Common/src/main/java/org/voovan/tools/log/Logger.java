@@ -310,7 +310,7 @@ public class Logger {
 		}
 	}
 
-	public static void fatalf(String msg, Exception e, Object ... args){
+	public static void fatalf(String msg, Throwable e, Object ... args){
 		if(!Logger.isState()){
 			return;
 		}
