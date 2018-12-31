@@ -481,8 +481,6 @@ public abstract class IoSession<T extends SocketContext> {
 			throw new SendMessageException("Method syncSend error! Error by "+
 					e.getClass().getSimpleName() + ".",e);
 		}
-
-
 	}
 
 	/**
@@ -497,7 +495,11 @@ public abstract class IoSession<T extends SocketContext> {
 				//warpData 内置调用 session.send0 将数据送至发送缓冲区
 				sslParser.warpData(buffer);
 				return buffer.limit();
-			}else{
+			} else {
+				//如果大于缓冲区,则现发送一次
+				if(buffer.limit() + sendByteBufferChannel.size() > sendByteBufferChannel.getMaxSize()){
+					flush();
+				}
 				return sendByBuffer(buffer);
 			}
 		} catch (IOException e) {
