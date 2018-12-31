@@ -247,21 +247,20 @@ public class Response {
 						session.send(ByteBuffer.wrap("\r\n".getBytes()));
 					}
 				}
+
+
+				//发送报文结束符
+				byteBuffer.clear();
+				byteBuffer.put(readEnd());
+				byteBuffer.flip();
+				session.send(byteBuffer);
 			} catch (Throwable e){
 				if(!(e instanceof MemoryReleasedException)){
 					Logger.error("Response send error: ", (Exception) e);
 				}
 				return;
 			}
-		} else {
-			byteBuffer.flip();
 		}
-
-		//发送报文结束符
-		byteBuffer.clear();
-		byteBuffer.put(readEnd());
-		byteBuffer.flip();
-		session.send(byteBuffer);
 
 		clear();
 
