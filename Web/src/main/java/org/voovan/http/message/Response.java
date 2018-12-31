@@ -209,6 +209,11 @@ public class Response {
 			}
 		}
 
+		//发送头
+		byteBuffer.flip();
+		session.send(byteBuffer);
+		byteBuffer.clear();
+
 		//是否需要压缩
 		if(isCompress){
 			body.compress();
@@ -234,11 +239,8 @@ public class Response {
 						session.send(ByteBuffer.wrap(chunkedLengthLine.getBytes()));
 					}
 
-					//如果缓冲区满了,则发送一次
-					if(byteBuffer.limit()==byteBuffer.capacity()) {
-						session.send(byteBuffer);
-						byteBuffer.clear();
-					}
+					session.send(byteBuffer);
+					byteBuffer.clear();
 
 					//判断是否需要发送 chunked 结束符号
 					if (isCompress() && readSize!=0) {
@@ -256,8 +258,11 @@ public class Response {
 		}
 
 		//发送报文结束符
+		byteBuffer.clear();
 		byteBuffer.put(readEnd());
+		byteBuffer.flip();
 		session.send(byteBuffer);
+
 		clear();
 
 		basicSend = true;
