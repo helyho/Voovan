@@ -2,6 +2,7 @@ package org.voovan.http.server.context;
 
 import org.voovan.Global;
 import org.voovan.tools.Chain;
+import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -35,6 +36,8 @@ public class WebServerConfig {
     private int keepAliveTimeout    = 60;
     private boolean accessLog       = false;
     private boolean gzip            = true;
+    private int gzipMinSize = 2048;
+    private List<String> gzipMimeType = TObject.asList("text/html","text/xml","text/javascript","application/javascript","text/css","text/plain","text/json","application/json");
     private HttpsConfig https;
     private String indexFiles = "index.htm,index.html,default.htm,default.htm";
     private int hotSwapInterval = 0;
@@ -144,6 +147,18 @@ public class WebServerConfig {
 
     public void setGzip(boolean gzip) {
         this.gzip = gzip;
+    }
+
+    public int getGzipMinSize() {
+        return gzipMinSize;
+    }
+
+    public void setGzipMinSize(int gzipMinSize) {
+        this.gzipMinSize = gzipMinSize;
+    }
+
+    public List<String> getGzipMimeType() {
+        return gzipMimeType;
     }
 
     public boolean isAccessLog() {

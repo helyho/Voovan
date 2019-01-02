@@ -64,6 +64,7 @@ public class HttpResponse extends Response {
 		//设置当前响应的时间
 		this.header().put("Date", GMT_TIME);
 		this.socketSession = socketSession;
+		this.setCompress(false);
 	}
 
 	/**

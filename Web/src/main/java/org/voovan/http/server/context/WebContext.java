@@ -273,6 +273,8 @@ public class WebContext {
 		System.out.println(TString.rightPad("  KeepAliveTimeout:",35,' ')+config.getKeepAliveTimeout());
 		System.out.println(TString.rightPad("  MatchRouteIgnoreCase:",35,' ')+config.isMatchRouteIgnoreCase());
 		System.out.println(TString.rightPad("  Gzip:",35,' ')+ config.isGzip());
+		System.out.println(TString.rightPad("  GzipMinSize:",35,' ')+ config.getGzipMinSize());
+		System.out.println(TString.rightPad("  GzipMimeType:",35,' ')+ config.getGzipMimeType());
 		System.out.println(TString.rightPad("  AccessLog:",35,' ')+ config.isAccessLog());
 		System.out.println(TString.rightPad("  PauseURL:",35,' ')+ config.getPauseURL());
 		System.out.println(TString.rightPad("  MaxRequestSize:",35,' ')+ config.getMaxRequestSize());
