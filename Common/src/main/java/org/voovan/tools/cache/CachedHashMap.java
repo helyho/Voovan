@@ -252,7 +252,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                                     }
 
                                 }
-                            } catch (Throwable e) {
+                            } catch (Exception e) {
                                 Logger.error("CacheHashMap create value failed: ", e);
                             } finally {
                                 finalTimeMark.releaseCreateLock();
@@ -276,7 +276,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                                 }
                             }
                         }
-                    } catch (Throwable e) {
+                    } catch (Exception e) {
                         Logger.error("CacheHashMap create value failed: ", e);
                     } finally {
                         finalTimeMark.releaseCreateLock();
