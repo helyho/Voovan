@@ -165,9 +165,6 @@ public class WebServerHandler implements IoHandler {
 				return null;
 			}
 
-			// 构造响应对象
-
-
 
 			// 构造 Http 请求/响应 对象
 			HttpRequest httpRequest = THREAD_HTTP_REQUEST.get();
@@ -185,12 +182,6 @@ public class WebServerHandler implements IoHandler {
 			} else {
 				httpResponse.init(defaultCharacterSet, session);
 			}
-
-			if(webConfig.isGzip() && request.header().contain("Accept-Encoding") &&
-					request.header().get("Accept-Encoding").contains("gzip")) {
-				httpResponse.setCompress(true);
-			}
-
 
 			setAttribute(session, HttpSessionParam.HTTP_REQUEST, httpRequest);
 			setAttribute(session, HttpSessionParam.HTTP_RESPONSE, httpResponse);
@@ -250,6 +241,21 @@ public class WebServerHandler implements IoHandler {
 		}
 
 		httpResponse.header().put("Server", WebContext.getVERSION());
+
+		//============================是否启用 gzip 压缩============================
+		if(webConfig.isGzip() && httpRequest.header().contain("Accept-Encoding") &&
+				httpRequest.header().get("Accept-Encoding").contains("gzip") &&
+				httpResponse.header().get("Content-Type") != null) {
+			//检查 body 大小是否启用 gzip
+			if(httpResponse.body().size() > webConfig.getGzipMinSize()){
+				//检查 MimeType 是否启用 gzip
+				for(String gzipMimeType : webConfig.getGzipMimeType()){
+					if(httpResponse.header().get("Content-Type").contains(gzipMimeType)){
+						httpResponse.setCompress(true);
+					}
+				}
+			}
+		}
 
 		return httpResponse;
 	}
