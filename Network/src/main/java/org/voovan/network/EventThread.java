@@ -26,9 +26,9 @@ public class EventThread  implements Runnable{
 	/**
 	 * 事件处理 Thread
 	 *
-	 * @param session
-	 * @param name
-	 * @param other
+	 * @param session IoSession对象
+	 * @param name  事件名称
+	 * @param other 附属对象
 	 */
 	public EventThread(IoSession session, Event.EventName name, Object other){
 		init(session, name, other);

@@ -444,7 +444,8 @@ public abstract class IoSession<T extends SocketContext> {
 
     /**
      * 发送消息到发送缓冲区
-     * @throws SendMessageException  消息发送异常
+	 * @param buffer 发送到缓冲区的 ByteBuffer 对象
+	 * @return 添加至缓冲区的字节数
      */
     public int sendByBuffer(ByteBuffer buffer) {
     	try {

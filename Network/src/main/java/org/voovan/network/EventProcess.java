@@ -116,6 +116,7 @@ public class EventProcess {
 	 *
 	 * @param event
 	 *            事件对象
+	 * @param isStackRoot 是否是栈的根对象
 	 * @throws SendMessageException  消息发送异常
 	 * @throws IOException  IO 异常
 	 * @throws IoFilterException IoFilter 异常

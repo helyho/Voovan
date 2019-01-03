@@ -117,7 +117,6 @@ public class Body {
 	/**
 	 * 转换成字节形式
 	 * @param content 字节内容
-	 * @throws IOException 文件未找到异常
 	 */
 	public void changeToBytes(byte[] content) {
 		if(byteBufferChannel == null || byteBufferChannel.isReleased()){

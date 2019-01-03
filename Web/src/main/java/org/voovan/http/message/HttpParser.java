@@ -233,7 +233,7 @@ public class HttpParser {
      * @param packetMap 解析后数据的容器
      * @param byteBufferChannel ByteBufferChannel对象
      * @return 解析后的便宜量
-     * @throws ParserException
+     * @throws ParserException 解析异常
      */
     public static int parserProtocol(Map<String, Object> packetMap, ByteBufferChannel byteBufferChannel) throws ParserException {
         ByteBuffer tmpByteBuffer = THREAD_BYTE_BUFFER.get();
@@ -346,7 +346,7 @@ public class HttpParser {
      * @param offset 解析开始的偏移量位置
      * @param byteBufferChannel ByteBufferChannel对象
      * @return 解析后的便宜量
-     * @throws ParserException
+     * @throws ParserException 解析异常
      */
     public static int parseHeader(Map<String, Object> packetMap, int offset, ByteBufferChannel byteBufferChannel) throws ParserException {
         ByteBuffer tmpByteBuffer = THREAD_BYTE_BUFFER.get();
@@ -417,6 +417,7 @@ public class HttpParser {
      * 			3.cookie   解析成 List[Map[String,String]] 形式
      * 			3.part     解析成 List[Map[Stirng,Object]](因为是递归,参考 HTTP 解析形式) 形式
      * 			5.body     解析成 key=BODY_VALUE 的Map 元素
+     * @param packetMap 用于填充的解析 map
      * @param byteBufferChannel 输入流
      * @param timeOut 读取超时时间参数
      * @param requestMaxSize 上传文件的最大尺寸, 单位: kb

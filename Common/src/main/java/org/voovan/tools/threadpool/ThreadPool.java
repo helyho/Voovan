@@ -82,6 +82,7 @@ public class ThreadPool {
 
 	/**
 	 * 创建线程池
+	 * @param poolName 池的名称
 	 * @param mimPoolSize 最小线程数
 	 * @param maxPoolSize 最大线程数
 	 * @param threadTimeout 线程闲置超时时间
