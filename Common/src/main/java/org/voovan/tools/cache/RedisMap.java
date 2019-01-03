@@ -149,6 +149,7 @@ public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
     /**
      * 选择当前数据集
      * @param dbIndex 数据集序号
+     * @return RedisMap 对象
      */
     public RedisMap<K, V> dbIndex(int dbIndex) {
         this.dbIndex = dbIndex;

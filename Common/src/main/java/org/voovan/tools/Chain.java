@@ -28,6 +28,7 @@ public class Chain<E>  extends ArrayList<E> {
 
 	/**
 	 * 重置链的迭代器
+	 * @return 链对象
 	 */
 	public Chain<E> rewind(){
 		isStop = false;

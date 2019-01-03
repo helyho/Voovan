@@ -45,7 +45,7 @@ public class LoggerThread implements Runnable {
 
 	/**
 	 * 暂停日志输出
-	 * @return
+	 * @return true: 成功, false: 失败
 	 */
 	public boolean pause(){
 		pause = 1;
