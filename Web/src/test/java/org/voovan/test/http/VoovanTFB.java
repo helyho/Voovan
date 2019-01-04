@@ -17,13 +17,13 @@ public class VoovanTFB {
 		webServerConfig.setAccessLog(false);
 		webServerConfig.setKeepAliveTimeout(1000);
 		WebServer webServer = WebServer.newInstance(webServerConfig);
-//		Logger.setState(false);
+		Logger.setState(false);
 
 		//性能测试请求
 		webServer.get("/plaintext", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
 				resp.header().put("Content-Type", "text/plain");
-				resp.write("Hello, World!");
+				resp.write("OK");
 			}
 		});
 

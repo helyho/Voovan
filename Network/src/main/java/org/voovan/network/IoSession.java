@@ -525,16 +525,25 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	public void flush() {
 		if(sendByteBufferChannel.size()>0) {
-            try {
-                send0(sendByteBufferChannel.getByteBuffer());
-            } catch (IOException e) {
-                if(isConnected()) {
-                    if (socketContext.isConnected()) {
-                        Logger.error("IoSession.flush buffer failed", e);
-                    }
-                }
-            }
-            sendByteBufferChannel.compact();
+			try {
+				if(getState().sendTryLock()) {
+					try {
+						getState().setSend(true);
+						send0(sendByteBufferChannel.getByteBuffer());
+					} finally {
+						getState().sendUnLock();
+						getState().setSend(false);
+						sendByteBufferChannel.compact();
+					}
+				}
+			} catch (IOException e) {
+				if(isConnected()) {
+					if (socketContext.isConnected()) {
+						Logger.error("IoSession.flush buffer failed", e);
+					}
+				}
+			}
+
 		}
 	}
 

@@ -312,8 +312,6 @@ public class EventProcess {
 		} catch (IOException e) {
 			EventTrigger.fireException(session, e);
 		}
-
-		session.getState().setSend(false);
 	}
 
 	/**
