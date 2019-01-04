@@ -2,6 +2,7 @@ package org.voovan.network;
 
 import org.voovan.Global;
 
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -53,6 +54,11 @@ public class EventTrigger {
 		fireEventThread(session, Event.EventName.ON_SENT, obj);
 	}
 
+
+	public static void fireFlushThread(IoSession session, List<Object> flushedObjects){
+		fireEventThread(session, Event.EventName.ON_FLUSH, flushedObjects);
+	}
+
 	public static void fireDisconnectThread(IoSession session){
 		//设置断开状态,Close是最终状态
 		session.getState().setClose(true);
@@ -101,8 +107,11 @@ public class EventTrigger {
 		fireEvent(session, Event.EventName.ON_SENT, obj);
 	}
 
+	public static void fireFlush(IoSession session, List<Object> flushedObjects){
+		fireEvent(session, Event.EventName.ON_FLUSH, flushedObjects);
+	}
+
 	public static void fireDisconnect(IoSession session){
-		//设置断开状态,Close是最终状态
 		session.getState().setClose(true);
 
 		fireEvent(session, Event.EventName.ON_DISCONNECT,null);

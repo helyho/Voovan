@@ -51,9 +51,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 				session.close();
 			} else {
 				readTempBuffer.flip();
-				if(session.getSSLParser()!=null) {
-					netByteBufferChannel.clear();
-				}
 
 				if (length > 0) {
 
@@ -101,9 +98,9 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 				}
 			}
 		} catch (IOException e) {
-			// 触发 onException 事件
-			session.getMessageLoader().setStopType(MessageLoader.StopType.EXCEPTION);
-			EventTrigger.fireExceptionThread(session, e);
+            // 触发 onException 事件
+            session.getMessageLoader().setStopType(MessageLoader.StopType.EXCEPTION);
+            EventTrigger.fireExceptionThread(session, e);
 		}
 
 	}

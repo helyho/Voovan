@@ -3,6 +3,7 @@ package org.voovan.network.handler;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 
+import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -44,6 +45,11 @@ public class SynchronousHandler implements IoHandler {
 
     @Override
     public void onSent(IoSession session, Object obj) {
+
+    }
+
+    @Override
+    public void onFlush(IoSession session, List<Object> obj) {
 
     }
 
