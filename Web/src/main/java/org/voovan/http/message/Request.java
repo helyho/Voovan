@@ -66,6 +66,7 @@ public class Request {
         this.body = request.body;
         this.cookies = request.cookies;
         this.parts = request.parts;
+        this.basicSend = false;
     }
 
     /**
@@ -77,6 +78,7 @@ public class Request {
         cookies = new Vector<Cookie>();
         body = new Body();
         parts = new Vector<Part>();
+        this.basicSend = false;
     }
 
     /**
@@ -276,73 +278,75 @@ public class Request {
         //发送报文头
         ByteBuffer byteBuffer = null;
 
-        try {
-            byteBuffer = readHead();
-        } catch (Throwable e){
-            if(!(e instanceof MemoryReleasedException)){
-                Logger.error("Response send error: ", (Exception) e);
-            }
-        }
-
-        if(byteBuffer == null){
-            return;
-        }
-
-        //发送报文头
-        session.send(byteBuffer);
-
-        //发送缓冲区
-        byteBuffer = TByteBuffer.allocateDirect();
-
         try{
-        // 有 BodyBytes 时直接写入包体
-        if (body.size() > 0) {
-            while(true) {
-                readSize = body.read(byteBuffer);
-                if (readSize == -1) {
-                    break;
+            try {
+                byteBuffer = readHead();
+            } catch (Throwable e){
+                if(!(e instanceof MemoryReleasedException)){
+                    Logger.error("Response send error: ", (Exception) e);
                 }
-                session.send(byteBuffer);
-                byteBuffer.clear();
             }
-        }
 
-        byteBuffer.clear();
-
-        // 有 parts 时按 parts 的格式写入 parts
-        if(!parts.isEmpty()) {
-            // Content-Type存在
-            if (parts.size() != 0) {
-
-                if(boundary == null){
-                    boundary = THash.encryptBASE64(TString.generateId(this));
-                }
-
-                // 获取 multiPart 标识
-                for (Part part : this.parts) {
-                    //发送 part 报文
-                    part.send(session, boundary);
-                }
-
-                //发送结尾标识
-                byteBuffer.put(TString.assembly("--" + boundary + "--").getBytes());
-                byteBuffer.flip();
-                session.send(byteBuffer);
-                byteBuffer.clear();
-                // POST结束不需要空行标识结尾
+            if(byteBuffer == null){
+                return;
             }
-        }
+
+            //发送报文头
+            session.send(byteBuffer);
+
+            //发送缓冲区
+            byteBuffer = TByteBuffer.allocateDirect();
+
+            // 有 BodyBytes 时直接写入包体
+            if (body.size() > 0) {
+                while(true) {
+                    readSize = body.read(byteBuffer);
+                    if (readSize == -1) {
+                        break;
+                    }
+                    session.send(byteBuffer);
+                    byteBuffer.clear();
+                }
+            }
+
+            byteBuffer.clear();
+
+            // 有 parts 时按 parts 的格式写入 parts
+            if(!parts.isEmpty()) {
+                // Content-Type存在
+                if (parts.size() != 0) {
+
+                    if(boundary == null){
+                        boundary = THash.encryptBASE64(TString.generateId(this));
+                    }
+
+                    // 获取 multiPart 标识
+                    for (Part part : this.parts) {
+                        //发送 part 报文
+                        part.send(session, boundary);
+                    }
+
+                    //发送结尾标识
+                    byteBuffer.put(TString.assembly("--" + boundary + "--").getBytes());
+                    byteBuffer.flip();
+                    session.send(byteBuffer);
+                    byteBuffer.clear();
+                    // POST结束不需要空行标识结尾
+                }
+            }
+
+            basicSend = true;
         } catch (Throwable e){
             if(!(e instanceof MemoryReleasedException)){
                 Logger.error("Response send error: ", (Exception) e);
             }
             return;
         } finally {
-            TByteBuffer.release(byteBuffer);
+            if(byteBuffer!=null) {
+                TByteBuffer.release(byteBuffer);
+            }
             clear();
         }
-
-        basicSend = true;
     }
 
 

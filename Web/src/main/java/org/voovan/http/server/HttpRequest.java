@@ -450,6 +450,12 @@ public class HttpRequest extends Request {
 		return socketSession.send(byteBuffer);
 	}
 
+	/**
+	 * 将数据发送到 Socket 缓存
+	 */
+	public void flush(){
+		socketSession.flush();
+	}
 
 	/**
 	 * 保存上传的文件

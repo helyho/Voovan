@@ -3,6 +3,7 @@ package org.voovan.http.server;
 import org.voovan.Global;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.HttpRequestType;
+import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
@@ -146,6 +147,12 @@ public class WebServerHandler implements IoHandler {
 				session.close();
 			}
 		}
+	}
+
+	private void resetThreadLocal(){
+		HttpParser.resetThreadLocal();
+		THREAD_HTTP_REQUEST.set(null);
+		THREAD_HTTP_RESPONSE.set(null);
 	}
 
 	@Override
@@ -294,7 +301,7 @@ public class WebServerHandler implements IoHandler {
 			httpDispatcher.exceptionMessage(httpRequest, httpResponse, new RouterNotFound("Not avaliable router!"));
 		}
 
-
+		resetThreadLocal();
 		return httpResponse;
 	}
 
@@ -369,7 +376,6 @@ public class WebServerHandler implements IoHandler {
 	@Override
 	public void onSent(IoSession session, Object obj) {
 		HttpRequest request = getAttribute(session,HttpSessionParam.HTTP_REQUEST);
-		HttpResponse response = getAttribute(session,HttpSessionParam.HTTP_RESPONSE);
 
 		//WebSocket 协议处理
 		if(obj instanceof WebSocketFrame){
@@ -418,6 +424,11 @@ public class WebServerHandler implements IoHandler {
 				}
 			}, session.socketContext().getReadTimeout()/3/1000);
 		}
+	}
+
+	@Override
+	public void onFlush(IoSession session, List<Object> flushedObjects) {
+		HttpRequest request = getAttribute(session,HttpSessionParam.HTTP_REQUEST);
 
 		//处理连接保持
 		if (getAttribute(session, HttpSessionParam.KEEP_ALIVE) !=null &&

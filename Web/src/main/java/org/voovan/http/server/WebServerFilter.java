@@ -42,9 +42,7 @@ public class WebServerFilter implements IoFilter {
 			HttpResponse httpResponse = (HttpResponse)object;
 
 			try {
-				synchronized (session) {
-					httpResponse.send();
-				}
+                httpResponse.send();
 			}catch(Exception e){
 				Logger.error(e);
 			}
