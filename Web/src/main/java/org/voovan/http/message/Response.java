@@ -48,6 +48,7 @@ public class Response {
 		this.body = response.body;
 		this.cookies = response.cookies;
 		this.isCompress = response.isCompress;
+		this.basicSend = false;
 	}
 
 	/**
@@ -59,6 +60,7 @@ public class Response {
 		cookies = new ArrayList<Cookie>();
 		body = new Body();
 		isCompress = false;
+        this.basicSend = false;
 	}
 
 	/**
@@ -197,74 +199,76 @@ public class Response {
 	 */
 	public void send(IoSession session) throws IOException {
 
-		//发送报文头
-		ByteBuffer byteBuffer = THREAD_BYTE_BUFFER.get();
-		byteBuffer.clear();
-
 		try {
-			byteBuffer.put(readHead());
-		} catch (Throwable e){
-			if(!(e instanceof MemoryReleasedException)){
-				Logger.error("Response send error: ", (Exception) e);
-			}
-		}
+			//发送报文头
+			ByteBuffer byteBuffer = THREAD_BYTE_BUFFER.get();
+			byteBuffer.clear();
 
-		//发送头
-		byteBuffer.flip();
-		session.send(byteBuffer);
-		byteBuffer.clear();
-
-		//是否需要压缩
-		if(isCompress){
-			body.compress();
-		}
-
-		//发送报文主体
-		if(body.size() != 0) {
-
-			//准备缓冲区
-			int readSize = 0;
-			try{
-				while (true) {
-
-					readSize = body.read(byteBuffer);
-
-					if (readSize == -1) {
-						break;
-					}
-
-					//判断是否需要发送 chunked 段长度
-					if (isCompress() && readSize!=0) {
-						String chunkedLengthLine = Integer.toHexString(readSize) + "\r\n";
-						session.send(ByteBuffer.wrap(chunkedLengthLine.getBytes()));
-					}
-
-					session.send(byteBuffer);
-					byteBuffer.clear();
-
-					//判断是否需要发送 chunked 结束符号
-					if (isCompress() && readSize!=0) {
-						session.send(ByteBuffer.wrap("\r\n".getBytes()));
-					}
-				}
-
-
-				//发送报文结束符
-				byteBuffer.clear();
-				byteBuffer.put(readEnd());
-				byteBuffer.flip();
-				session.send(byteBuffer);
-			} catch (Throwable e){
-				if(!(e instanceof MemoryReleasedException)){
+			try {
+				byteBuffer.put(readHead());
+			} catch (Throwable e) {
+				if (!(e instanceof MemoryReleasedException)) {
 					Logger.error("Response send error: ", (Exception) e);
 				}
-				return;
 			}
+
+			//发送头
+			byteBuffer.flip();
+			session.send(byteBuffer);
+			byteBuffer.clear();
+
+			//是否需要压缩
+			if (isCompress) {
+				body.compress();
+			}
+
+			//发送报文主体
+			if (body.size() != 0) {
+
+				//准备缓冲区
+				int readSize = 0;
+				try {
+					while (true) {
+
+						readSize = body.read(byteBuffer);
+
+						if (readSize == -1) {
+							break;
+						}
+
+						//判断是否需要发送 chunked 段长度
+						if (isCompress() && readSize != 0) {
+							String chunkedLengthLine = Integer.toHexString(readSize) + "\r\n";
+							session.send(ByteBuffer.wrap(chunkedLengthLine.getBytes()));
+						}
+
+						session.send(byteBuffer);
+						byteBuffer.clear();
+
+						//判断是否需要发送 chunked 结束符号
+						if (isCompress() && readSize != 0) {
+							session.send(ByteBuffer.wrap("\r\n".getBytes()));
+						}
+					}
+
+
+					//发送报文结束符
+					byteBuffer.clear();
+					byteBuffer.put(readEnd());
+					byteBuffer.flip();
+					session.send(byteBuffer);
+				} catch (Throwable e) {
+					if (!(e instanceof MemoryReleasedException)) {
+						Logger.error("Response send error: ", (Exception) e);
+					}
+					return;
+				}
+			}
+
+			basicSend = true;
+		} finally {
+			clear();
 		}
-
-		clear();
-
-		basicSend = true;
 	}
 
 	public void release(){

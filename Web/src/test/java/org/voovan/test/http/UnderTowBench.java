@@ -25,6 +25,7 @@ public class UnderTowBench {
                     @Override
                     public void handleRequest(final HttpServerExchange exchange) throws Exception {
                         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
+                        exchange.getResponseHeaders().put(Headers.SERVER, "Voovan-WebServer/v4.0.0");
                         exchange.getResponseSender().send(tmp);
                     }
                 }).build();

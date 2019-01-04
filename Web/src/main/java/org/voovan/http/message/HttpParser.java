@@ -894,4 +894,9 @@ public class HttpParser {
         packetMap.clear();
         return response;
     }
+
+    public static void resetThreadLocal(){
+        THREAD_REQUEST.set(new Request());
+        THREAD_RESPONSE.set(new Response());
+    }
 }

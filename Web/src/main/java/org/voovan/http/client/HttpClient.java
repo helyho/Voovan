@@ -446,6 +446,7 @@ public class HttpClient implements Closeable{
 		//发送报文
 		try {
 			httpRequest.send(socket.getSession());
+			httpRequest.flush();
 		}catch(IOException e){
 			throw new SendMessageException("HttpClient send error",e);
 		}

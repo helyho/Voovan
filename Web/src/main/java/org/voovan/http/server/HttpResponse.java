@@ -154,6 +154,13 @@ public class HttpResponse extends Response {
 	}
 
 	/**
+	 * 将数据发送到 Socket 缓存
+	 */
+	public void flush(){
+		socketSession.flush();
+	}
+
+	/**
 	 * 重定向
 	 * @param path 重定向路径
 	 */
