@@ -129,6 +129,6 @@ public class Global {
      * @return Voovan 版本号
      */
     public static String getVersion(){
-        return "4.0.0";
+        return "4.0.1";
     }
 }

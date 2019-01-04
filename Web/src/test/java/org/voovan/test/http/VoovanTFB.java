@@ -15,8 +15,9 @@ public class VoovanTFB {
 		WebServerConfig webServerConfig = WebContext.getWebServerConfig();
 		webServerConfig.setGzip(false);
 		webServerConfig.setAccessLog(false);
+		webServerConfig.setKeepAliveTimeout(1000);
 		WebServer webServer = WebServer.newInstance(webServerConfig);
-		Logger.setState(false);
+//		Logger.setState(false);
 
 		//性能测试请求
 		webServer.get("/plaintext", new HttpRouter() {
