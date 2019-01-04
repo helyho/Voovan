@@ -48,9 +48,6 @@ public class EventTrigger {
 	}
 
 	public static void fireSentThread(IoSession session, Object obj){
-		//设置发送状态
-		session.getState().setSend(true);
-
 		fireEventThread(session, Event.EventName.ON_SENT, obj);
 	}
 
@@ -101,9 +98,6 @@ public class EventTrigger {
 	}
 
 	public static void fireSent(IoSession session, Object obj){
-		//设置发送状态
-		session.getState().setSend(true);
-
 		fireEvent(session, Event.EventName.ON_SENT, obj);
 	}
 
