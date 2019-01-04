@@ -151,7 +151,7 @@ public class ByteBufferChannel {
     /**
      * 立刻释放内存
      */
-    public synchronized void release(){
+    public void release(){
         if(byteBuffer==null){
             return;
         }
@@ -161,18 +161,16 @@ public class ByteBufferChannel {
             return;
         }
 
-        synchronized (byteBuffer) {
-            lock.lock();
-            try {
-                if (address.get() != 0) {
-                    TByteBuffer.release(byteBuffer);
-                    address.set(0);
-                    byteBuffer = null;
-                    size = -1;
-                }
-            } finally {
-                lock.unlock();
+        lock.lock();
+        try {
+            if (address.get() != 0) {
+                TByteBuffer.release(byteBuffer);
+                address.set(0);
+                byteBuffer = null;
+                size = -1;
             }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -686,7 +684,7 @@ public class ByteBufferChannel {
      * @param src 需要写入的缓冲区 ByteBuffer 对象
      * @return 写入的数据大小
      */
-    public synchronized int writeEnd(ByteBuffer src) {
+    public int writeEnd(ByteBuffer src) {
         //这里加锁的作用是防止 size 发生变化
         lock.lock();
         checkRelease();
@@ -703,7 +701,7 @@ public class ByteBufferChannel {
      * @param src 需要写入的缓冲区 ByteBuffer 对象
      * @return 读出的数据大小
      */
-    public synchronized int writeHead(ByteBuffer src) {
+    public int writeHead(ByteBuffer src) {
         return write(0, src);
     }
 
@@ -712,7 +710,7 @@ public class ByteBufferChannel {
      * @param dst 需要读入数据的缓冲区ByteBuffer 对象
      * @return 读出的数据大小
      */
-    public synchronized int readHead(ByteBuffer dst) {
+    public int readHead(ByteBuffer dst) {
         return read(0, dst);
     }
 
@@ -721,7 +719,7 @@ public class ByteBufferChannel {
      * @param dst 需要读入数据的缓冲区ByteBuffer 对象
      * @return 读出的数据大小
      */
-    public synchronized int readEnd(ByteBuffer dst) {
+    public int readEnd(ByteBuffer dst) {
         //这里加锁的作用是防止 size 发生变化
         lock.lock();
         checkRelease();

@@ -8,6 +8,8 @@ import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
+import java.util.List;
+
 public class ClientHandlerTest implements IoHandler {
 
 	private int reciveCount = 0;
@@ -78,6 +80,11 @@ public class ClientHandlerTest implements IoHandler {
 	public void onSent(IoSession session, Object obj) {
 		String sad = (String)obj;
 		System.out.println("Client onSent: "+ sad);
+	}
+
+	@Override
+	public void onFlush(IoSession session, List<Object> flushedObjects) {
+
 	}
 
 }

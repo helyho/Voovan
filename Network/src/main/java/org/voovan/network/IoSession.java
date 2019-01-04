@@ -12,6 +12,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
@@ -40,6 +41,7 @@ public abstract class IoSession<T extends SocketContext> {
 	private HashWheelTask checkIdleTask;
 	private HeartBeat heartBeat;
 	private State state;
+	private ArrayList<Object> flushedObjects = new ArrayList<>(24);
 
 
 	/**
@@ -360,6 +362,14 @@ public abstract class IoSession<T extends SocketContext> {
 		return socketContext;
 	};
 
+	public ArrayList<Object> getFlushedObjects() {
+		return flushedObjects;
+	}
+
+	public void setFlushedObjects(ArrayList<Object> flushedObjects) {
+		this.flushedObjects = flushedObjects;
+	}
+
 	/**
 	 * 读取消息到缓冲区
 	 * @param buffer    接收数据的缓冲区
@@ -442,22 +452,22 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	protected abstract int send0(ByteBuffer buffer) throws IOException;
 
-    /**
-     * 发送消息到发送缓冲区
+	/**
+	 * 发送消息到发送缓冲区
 	 * @param buffer 发送到缓冲区的 ByteBuffer 对象
 	 * @return 添加至缓冲区的字节数
-     */
-    public int sendByBuffer(ByteBuffer buffer) {
-    	try {
+	 */
+	public int sendByBuffer(ByteBuffer buffer) {
+		try {
 			return sendByteBufferChannel.writeEnd(buffer);
 		} catch (Exception e) {
-            if (socketContext.isConnected()) {
-                Logger.error("IoSession.sendByBuffer buffer failed", e);
-            }
+			if (socketContext.isConnected()) {
+				Logger.error("IoSession.sendByBuffer buffer failed", e);
+			}
 		}
 
-    	return -1;
-    }
+		return -1;
+	}
 
 	/**
 	 * 同步发送消息
@@ -510,21 +520,21 @@ public abstract class IoSession<T extends SocketContext> {
 		return -1;
 	}
 
-    /**
-     * 推送缓冲区的数据到 socketChannel
-     */
+	/**
+	 * 推送缓冲区的数据到 socketChannel
+	 */
 	public void flush() {
 		if(sendByteBufferChannel.size()>0) {
-			try {
-				send0(sendByteBufferChannel.getByteBuffer());
-			} catch (IOException e) {
-				if(isConnected()) {
-					if (socketContext.isConnected()) {
-						Logger.error("IoSession.flush buffer failed", e);
-					}
-				}
-			}
-			sendByteBufferChannel.compact();
+            try {
+                send0(sendByteBufferChannel.getByteBuffer());
+            } catch (IOException e) {
+                if(isConnected()) {
+                    if (socketContext.isConnected()) {
+                        Logger.error("IoSession.flush buffer failed", e);
+                    }
+                }
+            }
+            sendByteBufferChannel.compact();
 		}
 	}
 

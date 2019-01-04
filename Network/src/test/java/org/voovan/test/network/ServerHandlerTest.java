@@ -8,6 +8,8 @@ import org.voovan.network.IoSession;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.log.Logger;
 
+import java.util.List;
+
 public class ServerHandlerTest implements IoHandler {
 
 	@Override
@@ -65,6 +67,11 @@ public class ServerHandlerTest implements IoHandler {
 		Logger.simple("Server onSent: " + sad);
 		//jmeter 测试是需要打开,和客户端测试时关闭
 //		session.close();
+	}
+
+	@Override
+	public void onFlush(IoSession session, List<Object> flushedObjects) {
+
 	}
 
 }

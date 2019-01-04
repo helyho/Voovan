@@ -1,6 +1,5 @@
 package org.voovan.network;
 
-import org.voovan.Global;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
@@ -11,6 +10,7 @@ import org.voovan.tools.TByteBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * 事件的实际逻辑处理
@@ -124,6 +124,11 @@ public class EventProcess {
 	public static void onRead(Event event, boolean isStackRoot) throws IOException {
 		IoSession session = event.getSession();
 
+		//首次出发清理对象
+		if(isStackRoot){
+			session.getFlushedObjects().clear();
+		}
+
 		if (session != null) {
 
 			MessageLoader messageLoader = session.getMessageLoader();
@@ -141,7 +146,8 @@ public class EventProcess {
 				int splitLength = messageLoader.read();
 
 				if(splitLength>=0) {
-                    doRecive(session, splitLength);
+                    Object result = doRecive(session, splitLength);
+                    session.getFlushedObjects().add(result);
 
                     //如果有消息未处理完, 触发下一个 onRead
 					if (session.getReadByteBufferChannel().size() > 0) {
@@ -150,6 +156,8 @@ public class EventProcess {
 
 					if(isStackRoot && session.getSendByteBufferChannel().size() > 0) {
 						session.flush();
+						//触发发送事件
+						EventTrigger.fireFlush(session, session.getFlushedObjects());
 					}
 				}
 			} finally {
@@ -322,16 +330,24 @@ public class EventProcess {
 		SocketContext socketContext = session.socketContext();
 		if (socketContext != null) {
 			socketContext.handler().onSent(session, sendObj);
+		}
+	}
 
-			//如果 obj 是 ByteBuffer 进行释放
-//			if (sendObj instanceof ByteBuffer) {
-//				TByteBuffer.release((ByteBuffer) sendObj);
-//			}
-
-//			//如果是 Udp 通信则在发送完成后触发关闭事件
-//			if(session.socketContext() instanceof UdpSocket && session.socketContext().connectModel==ConnectModel.SERVER) {
-//				EventTrigger.fireDisconnectThread(session);
-//			}
+	/**
+	 * 发送到 Socket 缓冲区事件
+	 *
+	 * @param event
+	 *            事件对象
+	 * @param flushedObjects
+	 *            flushed 发送的对象
+	 * @throws IOException IO 异常
+	 */
+	public static void onFlush(Event event, List<Object> flushedObjects) throws IOException {
+		IoSession session = event.getSession();
+		SocketContext socketContext = session.socketContext();
+		if (socketContext != null) {
+			socketContext.handler().onFlush(session, flushedObjects);
+//			session.getFlushedObjects().clear();
 		}
 	}
 
@@ -390,6 +406,8 @@ public class EventProcess {
 				EventProcess.onRead(event, true);
 			} else if (eventName == EventName.ON_SENT) {
 				EventProcess.onSent(event, event.getOther());
+			} else if (eventName == EventName.ON_FLUSH) {
+				EventProcess.onFlush(event, (List<Object>) event.getOther());
 			} else if (eventName == EventName.ON_IDLE) {
 				EventProcess.onIdle(event);
 			} else if (eventName == EventName.ON_EXCEPTION) {
