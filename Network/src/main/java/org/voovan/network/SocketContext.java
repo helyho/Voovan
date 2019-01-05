@@ -1,6 +1,5 @@
 package org.voovan.network;
 
-import org.voovan.Global;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.tools.Chain;
@@ -53,6 +52,8 @@ public abstract class SocketContext {
 	protected int bufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
 
 	protected int idleInterval = 0;
+
+	protected int readRecursionDepth = 1;
 
 
 	/**
@@ -123,6 +124,7 @@ public abstract class SocketContext {
 		this.sslManager = parentSocketContext.sslManager;
 		this.bufferSize = parentSocketContext.bufferSize;
 		this.idleInterval = parentSocketContext.idleInterval;
+		this.readRecursionDepth = parentSocketContext.readRecursionDepth;
 	}
 
 	/**
@@ -163,6 +165,22 @@ public abstract class SocketContext {
 	 */
 	public void setBufferSize(int bufferSize) {
 		this.bufferSize = bufferSize;
+	}
+
+	/**
+	 * 获取读递归深度控制
+	 * @return 读递归深度
+	 */
+	public int getReadRecursionDepth() {
+		return readRecursionDepth;
+	}
+
+	/**
+	 * 设置读递归深度控制
+	 * @param readRecursionDepth 读递归深度
+	 */
+	public void setReadRecursionDepth(int readRecursionDepth) {
+		this.readRecursionDepth = readRecursionDepth;
 	}
 
 	/**

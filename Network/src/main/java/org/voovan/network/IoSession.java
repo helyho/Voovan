@@ -137,7 +137,7 @@ public abstract class IoSession<T extends SocketContext> {
 		attributes = new ConcurrentHashMap<Object, Object>();
 		this.socketContext = socketContext;
 		this.state = new State();
-		readByteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
+		readByteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize()*2);
 		sendByteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
 		messageLoader = new MessageLoader(this);
 		checkIdle();
@@ -362,11 +362,11 @@ public abstract class IoSession<T extends SocketContext> {
 		return socketContext;
 	};
 
-	public ArrayList<Object> getFlushedObjects() {
+	protected ArrayList<Object> getFlushedObjects() {
 		return flushedObjects;
 	}
 
-	public void setFlushedObjects(ArrayList<Object> flushedObjects) {
+	protected void setFlushedObjects(ArrayList<Object> flushedObjects) {
 		this.flushedObjects = flushedObjects;
 	}
 
@@ -530,6 +530,8 @@ public abstract class IoSession<T extends SocketContext> {
 					try {
 						getState().setSend(true);
 						send0(sendByteBufferChannel.getByteBuffer());
+						//触发发送事件
+						EventTrigger.fireFlush(this, getFlushedObjects());
 					} finally {
 						getState().sendUnLock();
 						getState().setSend(false);

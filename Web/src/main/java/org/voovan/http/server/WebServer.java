@@ -105,6 +105,7 @@ public class WebServer {
 
 		//[Socket] 准备 socket 监听
 		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
+		aioServerSocket.setReadRecursionDepth(128);
 
 		//[Socket]确认是否启用 HTTPS 支持
 		if(config.isHttps()) {
