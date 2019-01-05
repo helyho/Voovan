@@ -6,8 +6,7 @@ import org.voovan.network.HeartBeat;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.SSLParser;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TEnv;
-import org.voovan.tools.log.Logger;
+import org.voovan.tools.exception.LargerThanMaxSizeException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -54,13 +53,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 				if (length > 0) {
 
-					//如果缓冲队列已慢, 则等待可用, 超时时间为读超时
-					try {
-						TEnv.wait(session.socketContext().getReadTimeout(), ()-> appByteBufferChannel.size() + readTempBuffer.limit() >= appByteBufferChannel.getMaxSize() );
-					} catch (TimeoutException e) {
-						Logger.error("Session.byteByteBuffer is not enough:", e);
-					}
-
 					//接收SSL数据, SSL握手完成后解包
 					if(session.getSSLParser()!=null && SSLParser.isHandShakeDone(session)){
 						//一次接受并完成 SSL 解码后, 常常有剩余无法解码数据, 所以用 netByteBufferChannel 这个通道进行保存
@@ -69,8 +61,19 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					}
 
 					//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
-					if(session.getSSLParser()==null || !SSLParser.isHandShakeDone(session)){
-						appByteBufferChannel.writeEnd(readTempBuffer);
+					if(session.getSSLParser()==null || !SSLParser.isHandShakeDone(session)) {
+						try {
+							appByteBufferChannel.writeEnd(readTempBuffer);
+						} catch (Throwable e) {
+							if(e instanceof LargerThanMaxSizeException) {
+								while (appByteBufferChannel.size() + length > appByteBufferChannel.getMaxSize()) {
+									if (!session.getState().isReceive()) {
+										// 触发 onReceive 事件
+										EventTrigger.fireReceiveThread(session);
+									}
+								}
+							}
+						}
 					}
 
 					//检查心跳
@@ -98,9 +101,9 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 				}
 			}
 		} catch (IOException e) {
-            // 触发 onException 事件
-            session.getMessageLoader().setStopType(MessageLoader.StopType.EXCEPTION);
-            EventTrigger.fireExceptionThread(session, e);
+			// 触发 onException 事件
+			session.getMessageLoader().setStopType(MessageLoader.StopType.EXCEPTION);
+			EventTrigger.fireExceptionThread(session, e);
 		}
 
 	}

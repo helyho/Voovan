@@ -79,6 +79,7 @@ public class ByteBufferChannel {
         byteBuffer.limit(0);
         resetAddress();
         this.size = 0;
+        this.maxSize = maxSize < capacity ? capacity : maxSize;
     }
 
     /**
@@ -606,7 +607,7 @@ public class ByteBufferChannel {
         lock.lock();
         checkRelease();
 
-            try {
+        try {
 
             if(src.remaining() == 0){
                 return 0;
@@ -623,26 +624,7 @@ public class ByteBufferChannel {
                 //是否扩容
                 if (available() < writeSize) {
                     int newSize = byteBuffer.capacity() + writeSize;
-                    try {
-                        reallocate(newSize);
-                    } catch (LargerThanMaxSizeException e){
-                        //等待
-                        Logger.simple("ByteBuffer is full, wait 1 s. ");
-
-                        while(true) {
-                            if(available() < writeSize) {
-                                TEnv.sleep(1);
-                                waitCount++;
-                            } else {
-                                Logger.simple("ByteBuffer is full, wait avaliable size, contiune.");
-                                break;
-                            }
-
-                            if(waitCount >= 1000){
-                                throw new RuntimeException(e);
-                            }
-                        }
-                    }
+                    reallocate(newSize);
                 }
 
 
