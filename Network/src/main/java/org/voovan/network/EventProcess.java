@@ -165,12 +165,14 @@ public class EventProcess {
                     session.getState().receiveUnLock();
 
 
-                    if(session.getReadByteBufferChannel().size() > 0) {
+                    if(session.getSendByteBufferChannel().size() > 0) {
                         //异步处理 flush
                         Global.getThreadPool().execute(()->{
                             session.flush();
                         });
+                    }
 
+                    if(session.getReadByteBufferChannel().size() > 0){
                         //如果还有数据继续触发 onReceive 事件
                         EventTrigger.fireReceiveThread(session);
                     }
