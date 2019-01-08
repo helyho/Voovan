@@ -191,35 +191,32 @@ public class MessageLoader {
 			int readsize = byteBufferChannel.size() - oldByteChannelSize;
 
 			try {
-
+				dataByteBuffer = dataByteBufferChannel.getByteBuffer();
 				try {
-					dataByteBuffer = dataByteBufferChannel.getByteBuffer();
-				}catch(MemoryReleasedException e){
-					stopType = StopType.SOCKET_CLOSED;
-				}
 
-				//判断连接是否关闭
-				if (isStreamEnd(dataByteBuffer, dataByteBufferChannel.size())) {
-					stopType = StopType.STREAM_END;
-				}
-
-
-				//使用消息划分器进行消息划分
-				if (readsize == 0 && dataByteBuffer.limit() > 0) {
-					if (messageSplitter instanceof TransferSplitter) {
-						splitLength = dataByteBuffer.limit();
-					} else {
-						splitLength = messageSplitter.canSplite(session, dataByteBuffer);
+					//判断连接是否关闭
+					if (isStreamEnd(dataByteBuffer, dataByteBufferChannel.size())) {
+						stopType = StopType.STREAM_END;
 					}
 
-					if (splitLength >= 0) {
-						stopType = StopType.MSG_SPLITTER;
+					//使用消息划分器进行消息划分
+					if (readsize == 0 && dataByteBuffer.limit() > 0) {
+						if (messageSplitter instanceof TransferSplitter) {
+							splitLength = dataByteBuffer.limit();
+						} else {
+							splitLength = messageSplitter.canSplite(session, dataByteBuffer);
+						}
+
+						if (splitLength >= 0) {
+							stopType = StopType.MSG_SPLITTER;
+						}
 					}
+				} finally {
+					dataByteBufferChannel.compact();
 				}
-			} finally {
-				dataByteBufferChannel.compact();
+			}catch(MemoryReleasedException e){
+				stopType = StopType.SOCKET_CLOSED;
 			}
-
 
 			//超时判断,防止读0时导致的高 CPU 负载
 			if( readsize==0 && stopType == StopType.RUNNING ){

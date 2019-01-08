@@ -171,7 +171,9 @@ public class ByteBufferChannel {
                 size = -1;
             }
         } finally {
-            lock.unlock();
+            while(lock.isLocked()) {
+                lock.unlock();
+            }
         }
     }
 
@@ -248,9 +250,10 @@ public class ByteBufferChannel {
         }
 
         lock.lock();
-        checkRelease();
 
         try {
+            checkRelease();
+
             byte[] temp = new byte[size];
             get(temp, 0, size);
             return temp;
@@ -285,9 +288,9 @@ public class ByteBufferChannel {
      * @return true: 成功, false: 失败
      */
     public boolean shrink(int shrinkPosition, int shrinkSize){
-        checkRelease();
         lock.lock();
         try{
+            checkRelease();
 
             if(isReleased()){
                 return false;
@@ -374,9 +377,10 @@ public class ByteBufferChannel {
      */
     public byte get(int position) throws IndexOutOfBoundsException {
         lock.lock();
-        checkRelease();
 
         try{
+            checkRelease();
+
             if(size()==0){
                 throw new IndexOutOfBoundsException();
             }
@@ -403,8 +407,9 @@ public class ByteBufferChannel {
      */
     public int get(byte[] dst, int position, int length) throws IndexOutOfBoundsException {
         lock.lock();
-        checkRelease();
+
         try {
+            checkRelease();
 
             if(size()==0){
                 return 0;
@@ -461,10 +466,15 @@ public class ByteBufferChannel {
     public ByteBuffer getByteBuffer() {
         //这里上锁,在compact()方法解锁
         lock.lock();
-        checkRelease();
+        try {
+            checkRelease();
 
-        borrowed.compareAndSet(false, true);
-        return byteBuffer;
+            borrowed.compareAndSet(false, true);
+            return byteBuffer;
+        } catch (Exception e) {
+            lock.unlock();
+            return null;
+        }
     }
 
     /**
@@ -477,6 +487,9 @@ public class ByteBufferChannel {
      */
     public boolean compact(){
         if(isReleased()){
+            if(borrowed.compareAndSet(true, false)) {
+                lock.unlock();
+            }
             return false;
         }
 
@@ -577,9 +590,9 @@ public class ByteBufferChannel {
      */
     public boolean reallocate(int newSize) throws LargerThanMaxSizeException {
         lock.lock();
-        checkRelease();
 
         try{
+            checkRelease();
 
             //检查分配内存是否超过限额
             if(maxSize < newSize){
@@ -605,9 +618,9 @@ public class ByteBufferChannel {
      */
     public int write(int writePosition, ByteBuffer src) {
         lock.lock();
-        checkRelease();
 
         try {
+            checkRelease();
 
             if(src.remaining() == 0){
                 return 0;
@@ -669,9 +682,10 @@ public class ByteBufferChannel {
     public int writeEnd(ByteBuffer src) {
         //这里加锁的作用是防止 size 发生变化
         lock.lock();
-        checkRelease();
 
         try {
+            checkRelease();
+
             return write(size(), src);
         } finally {
             lock.unlock();
@@ -704,9 +718,10 @@ public class ByteBufferChannel {
     public int readEnd(ByteBuffer dst) {
         //这里加锁的作用是防止 size 发生变化
         lock.lock();
-        checkRelease();
 
         try {
+            checkRelease();
+
             return read( size()-dst.limit(), dst );
         } finally {
             lock.unlock();
@@ -721,9 +736,10 @@ public class ByteBufferChannel {
      */
     public int read(int readPosition, ByteBuffer dst) {
         lock.lock();
-        checkRelease();
 
         try {
+            checkRelease();
+
             if(dst.remaining() == 0){
                 return 0;
             }
@@ -780,9 +796,10 @@ public class ByteBufferChannel {
      */
     public int indexOf(byte[] mark){
         lock.lock();
-        checkRelease();
 
         try {
+            checkRelease();
+
             if(size() == 0){
                 return -1;
             }
@@ -801,9 +818,10 @@ public class ByteBufferChannel {
      */
     public int revIndexOf(byte[] mark){
         lock.lock();
-        checkRelease();
 
         try {
+            checkRelease();
+
             if(size() == 0){
                 return -1;
             }

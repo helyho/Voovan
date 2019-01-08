@@ -523,7 +523,7 @@ public abstract class IoSession<T extends SocketContext> {
 	/**
 	 * 推送缓冲区的数据到 socketChannel
 	 */
-	public void flush() {
+	public synchronized void flush() {
 		if(sendByteBufferChannel.size()>0) {
 			try {
 				if(getState().sendTryLock()) {
@@ -533,9 +533,9 @@ public abstract class IoSession<T extends SocketContext> {
 						//触发发送事件
 						EventTrigger.fireFlush(this, getFlushedObjects());
 					} finally {
+						sendByteBufferChannel.compact();
 						getState().sendUnLock();
 						getState().setSend(false);
-						sendByteBufferChannel.compact();
 					}
 				}
 			} catch (IOException e) {
