@@ -185,7 +185,7 @@ public class AioSocket extends SocketContext {
 		}
 
 		//捕获输入事件
-		readByteBuffer = TByteBuffer.allocateDirect(this.getBufferSize());
+		readByteBuffer = TByteBuffer.allocateDirect(this.getReadBufferSize());
 		catchRead(readByteBuffer);
 
 		//触发 connect 事件
@@ -198,7 +198,7 @@ public class AioSocket extends SocketContext {
 		initSSL(session);
 
 		//捕获输入事件
-		readByteBuffer = TByteBuffer.allocateDirect(this.getBufferSize());
+		readByteBuffer = TByteBuffer.allocateDirect(this.getReadBufferSize());
 		catchRead(readByteBuffer);
 
 		//触发 connect 事件

@@ -137,8 +137,8 @@ public abstract class IoSession<T extends SocketContext> {
 		attributes = new ConcurrentHashMap<Object, Object>();
 		this.socketContext = socketContext;
 		this.state = new State();
-		readByteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize()*2);
-		sendByteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
+		readByteBufferChannel = new ByteBufferChannel(socketContext.getReadBufferSize());
+		sendByteBufferChannel = new ByteBufferChannel(socketContext.getSendBufferSize());
 		messageLoader = new MessageLoader(this);
 		checkIdle();
 	}

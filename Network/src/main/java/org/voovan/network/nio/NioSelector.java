@@ -64,7 +64,7 @@ public class NioSelector {
 		this.socketContext = socketContext;
 
 		//读取用的缓冲区
-		readTempBuffer = TByteBuffer.allocateDirect(socketContext.getBufferSize());
+		readTempBuffer = TByteBuffer.allocateDirect(socketContext.getReadBufferSize());
 
 		if (socketContext instanceof NioSocket){
 			this.session = ((NioSocket)socketContext).getSession();
@@ -112,7 +112,7 @@ public class NioSelector {
 													session.close();
 												} else {
 													if(netByteBufferChannel== null && session.getSSLParser()!=null){
-														netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+														netByteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
 													}
 
 													readTempBuffer.flip();

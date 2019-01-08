@@ -49,7 +49,8 @@ public abstract class SocketContext {
 	protected MessageSplitter messageSplitter;
 	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
-	protected int bufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
+	protected int readBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
+	protected int sendBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
 
 	protected int idleInterval = 0;
 
@@ -122,7 +123,8 @@ public abstract class SocketContext {
 		this.filterChain = parentSocketContext.filterChain;
 		this.messageSplitter = parentSocketContext.messageSplitter;
 		this.sslManager = parentSocketContext.sslManager;
-		this.bufferSize = parentSocketContext.bufferSize;
+		this.readBufferSize = parentSocketContext.readBufferSize;
+		this.sendBufferSize = parentSocketContext.sendBufferSize;
 		this.idleInterval = parentSocketContext.idleInterval;
 		this.readRecursionDepth = parentSocketContext.readRecursionDepth;
 	}
@@ -151,20 +153,20 @@ public abstract class SocketContext {
 	 */
 	public abstract  <T> void setOption(SocketOption<T> name, T value) throws IOException;
 
-	/**
-	 * 获取缓冲区大小
-	 * @return 缓冲区大小 (default:1024)
-	 */
-	public int getBufferSize() {
-		return bufferSize;
+	public int getReadBufferSize() {
+		return readBufferSize;
 	}
 
-	/**
-	 * 设置缓冲区大小
-	 * @param bufferSize 缓冲区大小 (default:1024)
-	 */
-	public void setBufferSize(int bufferSize) {
-		this.bufferSize = bufferSize;
+	public void setReadBufferSize(int readBufferSize) {
+		this.readBufferSize = readBufferSize;
+	}
+
+	public int getSendBufferSize() {
+		return sendBufferSize;
+	}
+
+	public void setSendBufferSize(int sendBufferSize) {
+		this.sendBufferSize = sendBufferSize;
 	}
 
 	/**

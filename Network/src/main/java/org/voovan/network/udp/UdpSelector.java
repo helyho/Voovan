@@ -70,7 +70,7 @@ public class UdpSelector {
             appByteBufferChannel = session.getReadByteBufferChannel();
         }
 
-        readTempBuffer = TByteBuffer.allocateDirect(socketContext.getBufferSize());
+        readTempBuffer = TByteBuffer.allocateDirect(socketContext.getReadBufferSize());
     }
 
     /**
