@@ -142,8 +142,11 @@ public class NioSelector {
 														if (session.getHeartBeat() != null && SSLParser.isHandShakeDone(session)) {
 															//锁住appByteBufferChannel防止异步问题
 															appByteBufferChannel.getByteBuffer();
-															HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
-															appByteBufferChannel.compact();
+															try {
+																HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
+															} finally {
+																appByteBufferChannel.compact();
+															}
 														}
 
 														if (appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {

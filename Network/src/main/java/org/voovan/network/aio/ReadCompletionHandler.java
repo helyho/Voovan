@@ -6,6 +6,7 @@ import org.voovan.network.HeartBeat;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.SSLParser;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.exception.LargerThanMaxSizeException;
 
 import java.io.IOException;
@@ -13,7 +14,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.CompletionHandler;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Aio 读取事件
@@ -62,26 +62,26 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 					//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
 					if(session.getSSLParser()==null || !SSLParser.isHandShakeDone(session)) {
-						try {
-							appByteBufferChannel.writeEnd(readTempBuffer);
-						} catch (Throwable e) {
-							if(e instanceof LargerThanMaxSizeException) {
-								while (appByteBufferChannel.size() + length > appByteBufferChannel.getMaxSize()) {
-									if (!session.getState().isReceive()) {
-										// 触发 onReceive 事件
-										EventTrigger.fireReceiveThread(session);
-									}
-								}
+						while (session.isConnected() && appByteBufferChannel.size() + length > appByteBufferChannel.getMaxSize()) {
+							if (!session.getState().isReceive()) {
+								// 触发 onReceive 事件
+								EventTrigger.fireReceiveThread(session);
+								TEnv.sleep(1);
 							}
 						}
+
+						appByteBufferChannel.writeEnd(readTempBuffer);
 					}
 
 					//检查心跳
 					if(session.getHeartBeat()!=null && SSLParser.isHandShakeDone(session)) {
 						//锁住appByteBufferChannel防止异步问题
 						appByteBufferChannel.getByteBuffer();
-						HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
-						appByteBufferChannel.compact();
+						try {
+							HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
+						} finally {
+							appByteBufferChannel.compact();
+						}
 					}
 
 					if(appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
