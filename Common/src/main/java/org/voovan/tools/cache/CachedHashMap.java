@@ -213,8 +213,6 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
             return;
         }
 
-        CachedHashMap cachedHashMap = this;
-
         TimeMark timeMark = null;
 
         synchronized (cacheMark) {
