@@ -405,7 +405,12 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
 
     @Override
     public long getTTL(K key) {
-        return cacheMark.get(key).getExpireTime();
+        TimeMark timeMark = cacheMark.get(key);
+        if(timeMark!=null) {
+            return timeMark.getExpireTime();
+        } else {
+            return -1;
+        }
     }
 
     /**
@@ -416,15 +421,16 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      */
     @Override
     public boolean setTTL(K key, long expire) {
+
         TimeMark timeMark = cacheMark.get(key);
-        if(timeMark==null && !cacheMark.containsKey(key)){
+        if(timeMark==null){
             return false;
         } else {
             timeMark.setExpireTime(expire);
             timeMark.refresh(true);
+            return true;
         }
 
-        return true;
     }
 
     @Override
