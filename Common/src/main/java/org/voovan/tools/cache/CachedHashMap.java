@@ -235,7 +235,6 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
                     Global.getThreadPool().execute(new Runnable() {
                         @Override
                         public void run() {
-                            System.out.println("create");
                             generator(key, supplier, finalTimeMark, finalCreateExpire);
                         }
                     });
