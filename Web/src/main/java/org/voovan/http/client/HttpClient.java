@@ -187,7 +187,7 @@ public class HttpClient implements Closeable{
 	public ByteBuffer loadStream() throws IOException {
 		IoSession session = socket.getSession();
 
-		ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getBufferSize());
+		ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getReadBufferSize());
 
 		session.enabledMessageSpliter(false);
 		int readSize = session.read(tmpBuffer);

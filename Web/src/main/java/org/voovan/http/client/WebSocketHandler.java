@@ -77,7 +77,7 @@ public class WebSocketHandler implements IoHandler{
 
         ByteBufferChannel byteBufferChannel = null;
         if(!session.containAttribute("WebSocketByteBufferChannel")){
-            byteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+            byteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
             session.setAttribute("WebSocketByteBufferChannel",byteBufferChannel);
         }else{
             byteBufferChannel = (ByteBufferChannel)session.getAttribute("WebSocketByteBufferChannel");

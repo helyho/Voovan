@@ -41,7 +41,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 		try {
 
 			if(netByteBufferChannel== null && session.getSSLParser()!=null) {
-				netByteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+				netByteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
 			}
 
 			// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
