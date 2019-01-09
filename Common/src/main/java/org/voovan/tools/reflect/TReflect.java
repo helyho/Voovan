@@ -28,14 +28,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class TReflect {
-
-    private static Map<String, Field> fields = new ConcurrentHashMap<String ,Field>();
-    private static Map<String, Method> methods = new ConcurrentHashMap<String ,Method>();
-    private static Map<String, Constructor> constructors = new ConcurrentHashMap<String ,Constructor>();
-    private static Map<String, Field[]> fieldArrays = new ConcurrentHashMap<String ,Field[]>();
-    private static Map<String, Method[]> methodArrays = new ConcurrentHashMap<String ,Method[]>();
-    private static Map<String, Constructor[]> constructorArrays = new ConcurrentHashMap<String ,Constructor[]>();
-    private static Map<String, Boolean> classHierarchy = new ConcurrentHashMap<String ,Boolean>();
+    //这里不用 ConcurrentHashMap 的原因是 key 和 value 都不能是 null
+    private static Map<String, Field> FIELDS = new ConcurrentHashMap<String ,Field>();
+    private static Map<String, Method> METHODS = new ConcurrentHashMap<String ,Method>();
+    private static Map<String, Constructor> CONSTRUCTORS = new ConcurrentHashMap<String ,Constructor>();
+    private static Map<String, Field[]> FIELD_ARRAYS = new ConcurrentHashMap<String ,Field[]>();
+    private static Map<String, Method[]> METHOD_ARRAYS = new ConcurrentHashMap<String ,Method[]>();
+    private static Map<String, Constructor[]> CONSTRUCTOR_ARRAYS = new ConcurrentHashMap<String ,Constructor[]>();
+    private static Map<String, Boolean> CLASS_HIERARCHY = new ConcurrentHashMap<String ,Boolean>();
 
     /**
      * 获得类所有的Field
@@ -45,17 +45,21 @@ public class TReflect {
      */
     public static Field[] getFields(Class<?> clazz) {
         String marker = clazz.getCanonicalName();
-        Field[] fields = fieldArrays.get(marker);
+        Field[] fields = FIELD_ARRAYS.get(marker);
 
-        if(fields==null && !fieldArrays.containsKey(marker)){
+        if(fields==null){
             LinkedHashSet<Field> fieldArray = new LinkedHashSet<Field>();
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 Field[] tmpFields = clazz.getDeclaredFields();
                 fieldArray.addAll(Arrays.asList(tmpFields));
             }
+
             fields = fieldArray.toArray(new Field[]{});
-            fieldArrays.put(marker, fields);
-            fieldArray.clear();
+
+            if(marker!=null && fields!=null) {
+                FIELD_ARRAYS.put(marker, fields);
+                fieldArray.clear();
+            }
         }
 
         return fields;
@@ -67,14 +71,16 @@ public class TReflect {
      * @param clazz   类对象
      * @param fieldName field 名称
      * @return field 对象
+     * @throws NoSuchFieldException 无 Field 异常
+     * @throws SecurityException 安全性异常
      */
     public static Field findField(Class<?> clazz, String fieldName) {
 
         String mark = new StringBuilder(clazz.getCanonicalName()).append("#").append(fieldName).toString();
 
-        Field field = fields.get(mark);
+        Field field = FIELDS.get(mark);
 
-        if(field==null && !fields.containsKey(mark)){
+        if(field==null){
 
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 try {
@@ -85,7 +91,9 @@ public class TReflect {
                 }
             }
 
-            fields.put(mark, field);
+            if(mark!=null && field!=null) {
+                FIELDS.put(mark, field);
+            }
 
         }
 
@@ -105,13 +113,16 @@ public class TReflect {
 
         String marker = new StringBuilder(clazz.getCanonicalName()).append("#").append(fieldName).toString();
 
-        Field field = fields.get(marker);
-        if (field==null && !fields.containsKey(marker)){
+        Field field = FIELDS.get(marker);
+        if (field==null){
             for (Field fieldItem : getFields(clazz)) {
                 if (fieldItem.getName().equalsIgnoreCase(fieldName) || fieldItem.getName().equalsIgnoreCase(TString.underlineToCamel(fieldName))) {
-                    fields.put(marker, fieldItem);
-                    field = fieldItem;
-                    break;
+                    if(marker!=null && fieldItem!=null) {
+                        FIELDS.put(marker, fieldItem);
+                        field = fieldItem;
+                        break;
+                    }
+
                 }
             }
         }
@@ -265,8 +276,8 @@ public class TReflect {
 
         String marker = markBuilder.toString();
 
-        Method method = methods.get(marker);
-        if (method==null && !methods.containsKey(marker)){
+        Method method = METHODS.get(marker);
+        if (method==null){
 
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 try {
@@ -277,7 +288,9 @@ public class TReflect {
                 }
             }
 
-            methods.put(marker, method);
+            if(marker!=null && method!=null) {
+                METHODS.put(marker, method);
+            }
         }
 
         return method;
@@ -295,9 +308,9 @@ public class TReflect {
                                       int paramCount) throws ReflectiveOperationException {
         String marker = new StringBuilder(clazz.getCanonicalName()).append("#").append(name).append("@").append(paramCount).toString();
 
-        Method[] methods = methodArrays.get(marker);
+        Method[] methods = METHOD_ARRAYS.get(marker);
 
-        if (methods==null && !methodArrays.containsKey(marker)){
+        if (methods==null){
             LinkedHashSet<Method> methodList = new LinkedHashSet<Method>();
             Method[] allMethods = getMethods(clazz, name);
             for (Method method : allMethods) {
@@ -305,9 +318,13 @@ public class TReflect {
                     methodList.add(method);
                 }
             }
+
             methods = methodList.toArray(new Method[]{});
-            methodArrays.put(marker,methods);
-            methodList.clear();
+
+            if(marker!=null && methods!=null) {
+                METHOD_ARRAYS.put(marker, methods);
+                methodList.clear();
+            }
         }
 
         return methods;
@@ -324,17 +341,21 @@ public class TReflect {
 
         String marker = clazz.getCanonicalName();
 
-        methods = methodArrays.get(marker);
+        methods = METHOD_ARRAYS.get(marker);
 
-        if(methods==null && !methodArrays.containsKey(marker)){
+        if(methods==null){
             LinkedHashSet<Method> methodList = new LinkedHashSet<Method>();
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 Method[] tmpMethods = clazz.getDeclaredMethods();
                 methodList.addAll(Arrays.asList(tmpMethods));
             }
+
             methods = methodList.toArray(new Method[]{});
-            methodList.clear();
-            methodArrays.put(marker,methods);
+
+            if(marker!=null && methods!=null) {
+                METHOD_ARRAYS.put(marker, methods);
+                methodList.clear();
+            }
 
         }
 
@@ -353,8 +374,8 @@ public class TReflect {
         Method[] methods = null;
 
         String marker = new StringBuilder(clazz.getCanonicalName()).append("#").append(name).toString();
-        methods = methodArrays.get(marker);
-        if(methods==null && methods==null && !methodArrays.containsKey(marker)){
+        methods = METHOD_ARRAYS.get(marker);
+        if(methods==null){
 
             LinkedHashSet<Method> methodList = new LinkedHashSet<Method>();
             Method[] allMethods = getMethods(clazz);
@@ -362,9 +383,13 @@ public class TReflect {
                 if (method.getName().equals(name))
                     methodList.add(method);
             }
+
             methods = methodList.toArray(new Method[0]);
-            methodList.clear();
-            methodArrays.put(marker,methods);
+
+            if(marker!=null && methods!=null) {
+                METHOD_ARRAYS.put(marker, methods);
+                methodList.clear();
+            }
         }
 
         return methods;
@@ -543,11 +568,11 @@ public class TReflect {
 
         String mark = markBuilder.toString();
 
-        Constructor<T> constructor = constructors.get(mark);
+        Constructor<T> constructor = CONSTRUCTORS.get(mark);
 
         try {
 
-            if (constructor==null && !constructors.containsKey(mark)){
+            if (constructor==null){
                 if (args.length == 0) {
                     try {
                         constructor = targetClazz.getConstructor();
@@ -558,7 +583,9 @@ public class TReflect {
                     constructor = targetClazz.getConstructor(parameterTypes);
                 }
 
-                constructors.put(mark, constructor);
+                if(mark!=null && constructor!=null) {
+                    CONSTRUCTORS.put(mark, constructor);
+                }
             }
 
             return constructor.newInstance(args);
@@ -569,10 +596,14 @@ public class TReflect {
 
                 //缓存构造函数
                 mark = targetClazz.getCanonicalName();
-                Constructor[] constructors =  constructorArrays.get(mark);
-                if(constructors==null && !constructorArrays.containsKey(mark)){
+                Constructor[] constructors =  CONSTRUCTOR_ARRAYS.get(mark);
+                if(constructors==null){
+
                     constructors = targetClazz.getConstructors();
-                    constructorArrays.put(mark, constructors);
+
+                    if(mark!=null && constructor!=null) {
+                        CONSTRUCTOR_ARRAYS.put(mark, constructors);
+                    }
                 }
 
                 for (Constructor similarConstructor : constructors) {
@@ -1059,21 +1090,26 @@ public class TReflect {
 
         String marker = new StringBuilder(type.toString()).append("@").append(interfaceClass.toString()).toString();
 
-        Boolean result = classHierarchy.get(marker);
+        Boolean result = CLASS_HIERARCHY.get(marker);
 
 
-        if(result==null && !classHierarchy.containsKey(marker)) {
+        if(result==null) {
+
             Class<?>[] interfaces = type.getInterfaces();
             for (Class<?> interfaceItem : interfaces) {
                 if (interfaceItem == interfaceClass) {
-                    classHierarchy.put(marker, true);
+                    if(marker!=null) {
+                        CLASS_HIERARCHY.put(marker, true);
+                    }
                     return true;
                 } else {
                     return isImpByInterface(interfaceItem, interfaceClass);
                 }
             }
 
-            classHierarchy.put(marker, false);
+            if(marker!=null) {
+                CLASS_HIERARCHY.put(marker, false);
+            }
             return false;
         }
 
@@ -1095,19 +1131,19 @@ public class TReflect {
         }
 
         String marker = new StringBuilder(type.toString()).append("#").append(extendsClass.toString()).toString();
-        Boolean result = classHierarchy.get(marker);
+        Boolean result = CLASS_HIERARCHY.get(marker);
 
         if(result == null) {
             Class<?> superClass = type;
             do {
                 if (superClass == extendsClass) {
-                    classHierarchy.put(marker, true);
+                    CLASS_HIERARCHY.put(marker, true);
                     return true;
                 }
                 superClass = superClass.getSuperclass();
             } while (superClass != null && Object.class != superClass);
 
-            classHierarchy.put(marker, false);
+            CLASS_HIERARCHY.put(marker, false);
             return false;
         }
 
