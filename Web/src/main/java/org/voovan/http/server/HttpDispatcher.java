@@ -207,9 +207,14 @@ public class HttpDispatcher {
 	 * @return true: 存在静态文件, false: 不存在静态文件
 	 */
 	public boolean isStaticFile(HttpRequest request) {
-		File staticFile = mimeFileRouter.getStaticFile(request);
-		if(staticFile.exists() && staticFile.isFile()){
-			return true;
+		String extentsion = TFile.getFileExtension(request.protocol().getPath());
+		if(extentsion!=null && WebContext.getMimeDefine().containsKey(extentsion)) {
+			File staticFile = mimeFileRouter.getStaticFile(request);
+			if (staticFile.exists() && staticFile.isFile()) {
+				return true;
+			} else {
+				return false;
+			}
 		} else {
 			return false;
 		}
@@ -229,22 +234,24 @@ public class HttpDispatcher {
 
 		if(routerInfo==null) {
 			//判断是否是静态文件
+			Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
+			for (Map.Entry<String, HttpRouter> routeEntry : routers.entrySet()) {
+				String routePath = routeEntry.getKey();
+				//寻找匹配的路由对象
+				if (matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())) {
+					//[ 匹配到的已注册路由, HttpRouter对象 ]
+					routerInfo = TObject.asList(routePath, routeEntry.getValue());
+					ROUTER_INFO_CACHE.put(routerMark, routerInfo);
+					return routerInfo;
+				}
+			}
+		}
+
+		if(routerInfo == null){
 			if(isStaticFile(request)){
 				routerInfo = TObject.asList(request.protocol().getPath(), mimeFileRouter);
 				ROUTER_INFO_CACHE.put(routerMark, routerInfo);
 				return routerInfo;
-			} else {
-				Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
-				for (Map.Entry<String, HttpRouter> routeEntry : routers.entrySet()) {
-					String routePath = routeEntry.getKey();
-					//寻找匹配的路由对象
-					if (matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())) {
-						//[ 匹配到的已注册路由, HttpRouter对象 ]
-						routerInfo = TObject.asList(routePath, routeEntry.getValue());
-						ROUTER_INFO_CACHE.put(routerMark, routerInfo);
-						return routerInfo;
-					}
-				}
 			}
 		}
 

@@ -95,9 +95,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 				// 继续接收 Read 请求
 				if(aioSocket.isConnected()) {
-					Global.getThreadPool().execute(()->{
-						aioSocket.catchRead(readTempBuffer);
-					});
+					aioSocket.catchRead(readTempBuffer);
 				}
 			}
 		} catch (IOException e) {

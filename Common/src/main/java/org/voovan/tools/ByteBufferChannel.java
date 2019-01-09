@@ -230,10 +230,6 @@ public class ByteBufferChannel {
      * @return 数据大小 . -1: 已释放
      */
     public int size(){
-        if(isReleased()){
-            return -1;
-        }
-
         return size;
     }
 
