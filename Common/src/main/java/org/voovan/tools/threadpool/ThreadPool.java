@@ -89,7 +89,7 @@ public class ThreadPool {
 	 * @return 线程池对象
 	 */
 	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int threadTimeout){
-		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, threadTimeout, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(cpuCoreCount*500), new DefaultThreadFactory(poolName));
+		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, threadTimeout, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(cpuCoreCount*1000), new DefaultThreadFactory(poolName));
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPoolInstance.allowCoreThreadTimeOut(true);
 

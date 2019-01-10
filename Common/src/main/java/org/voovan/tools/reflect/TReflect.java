@@ -71,8 +71,6 @@ public class TReflect {
      * @param clazz   类对象
      * @param fieldName field 名称
      * @return field 对象
-     * @throws NoSuchFieldException 无 Field 异常
-     * @throws SecurityException 安全性异常
      */
     public static Field findField(Class<?> clazz, String fieldName) {
 
