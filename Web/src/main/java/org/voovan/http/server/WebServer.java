@@ -552,7 +552,7 @@ public class WebServer {
 	 * @return true: 具备管理权限, false: 不具备管理权限
 	 */
 	public static boolean hasAdminRight(HttpRequest request){
-		if(!request.getRemoteAddres().equals("127.0.0.1")){
+		if(!TPerformance.getLocalIpAddrs().contains(request.getRemoteAddres())){
 			request.getSession().close();
 		}
 
