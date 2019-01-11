@@ -99,7 +99,7 @@ public class ByteBufferChannelUnit extends TestCase {
 	public void testIndex(){
 		init();
 		byteBufferChannel.clear();
-		byteBufferChannel.writeEnd(ByteBuffer.wrap("==== PINGqtest message =====".getBytes()));
+		byteBufferChannel.writeEnd(ByteBuffer.wrap("PINGq==== test message =====".getBytes()));
 		int index = byteBufferChannel.indexOf("NGq".getBytes());
 		assertEquals(index,2);
 		byteBufferChannel.release();

@@ -59,7 +59,6 @@ public class HttpMessageSplitter implements MessageSplitter {
     private int isHttpFrame(ByteBuffer byteBuffer){
         int bodyTagIndex = -1;
         int protocolLineIndex = -1;
-        String protocolLine = null;
 
         bodyTagIndex = TByteBuffer.indexOf(byteBuffer, HttpParser.BODY_MARK.getBytes());
 
@@ -72,14 +71,11 @@ public class HttpMessageSplitter implements MessageSplitter {
             return -1;
         }
 
+        if(TByteBuffer.indexOf(byteBuffer, "HTTP".getBytes()) > protocolLineIndex){
+            return -1;
+        }
 
-        byte[] protocolLineBytes = new byte[protocolLineIndex-4];
-        byteBuffer.get(protocolLineBytes);
-        byteBuffer.position(0);
-
-        protocolLine = new String(protocolLineBytes);
-
-        if(protocolLine !=null && isHttpHead(protocolLine)) {
+        if(protocolLineIndex != -1) {
             if(bodyTagIndex > 0) {
                 //兼容 http 的 pipeline 模式,  GET 请求直接返回指定的长度
                 if(byteBuffer.get(0)=='G' && byteBuffer.get(1)=='E' && byteBuffer.get(2)=='T') {
