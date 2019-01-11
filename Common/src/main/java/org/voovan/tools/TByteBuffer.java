@@ -353,24 +353,33 @@ public class TByteBuffer {
         }
 
         int index = -1;
-        byte[] tmp = new byte[mark.length];
 
-        if(length == mark.length){
-            byteBuffer.get(tmp, 0, mark.length);
-            byteBuffer.position(originPosition);
-            if(Arrays.equals(mark, tmp)){
-                return 0;
-            } else {
-                return index;
-            }
-        }
+        int i = 0;
+        int j = 0;
 
-        for(int offset = 0; (offset + originPosition <= length - mark.length); offset++){
-            byteBuffer.position(originPosition + offset);
-            byteBuffer.get(tmp, 0, tmp.length);
-            if(Arrays.equals(mark, tmp)){
-                index = offset;
-                break;
+        while(i <= (byteBuffer.limit() - mark.length + j )  ){
+            if(byteBuffer.get(i) != mark[j] ){
+                if(i == (byteBuffer.limit() - mark.length + j )){
+                    break;
+                }
+                int pos = contains(mark, byteBuffer.get(i+mark.length-j));
+                if( pos== -1){
+                    i = i + mark.length + 1 - j;
+                    j = 0 ;
+                }else{
+                    i = i + mark.length - pos - j;
+                    j = 0;
+                }
+            }else{
+                if(j == (mark.length - 1)){
+                    i = i - j + 1 ;
+                    j = 0;
+                    index  = i-j - 1;
+                    break;
+                }else{
+                    i++;
+                    j++;
+                }
             }
         }
 
@@ -379,56 +388,13 @@ public class TByteBuffer {
         return index;
     }
 
-
-    /**
-     * 反向查找特定 byte 标识的位置
-     *     byte 标识数组第一个字节的索引位置
-     * @param byteBuffer Bytebuffer 对象
-     * @param mark byte 标识数组
-     * @return 第一个字节的索引位置
-     */
-    public static int revIndexOf(ByteBuffer byteBuffer, byte[] mark){
-
-        if(isReleased(byteBuffer)) {
-            return -1;
-        }
-
-        if(byteBuffer.remaining() == 0){
-            return -1;
-        }
-
-        int originPosition = byteBuffer.position();
-        int length = byteBuffer.remaining();
-
-        if(length < mark.length){
-            return -1;
-        }
-
-        int index = -1;
-        byte[] tmp = new byte[mark.length];
-
-        if(length == mark.length){
-            byteBuffer.get(tmp, 0, mark.length);
-            byteBuffer.position(originPosition);
-            if(Arrays.equals(mark, tmp)){
-                return 0;
-            } else {
-                return index;
+    private static int contains(byte[] mark, byte target){
+        for(int i = mark.length-1 ; i >= 0; i--){
+            if(mark[i] == target){
+                return i ;
             }
         }
-
-        for(int offset = mark.length; (length - offset > mark.length); offset++){
-            byteBuffer.position(length - offset);
-            byteBuffer.get(tmp, 0, tmp.length);
-            if(Arrays.equals(mark, tmp)){
-                index = length-offset;
-                break;
-            }
-        }
-
-        byteBuffer.position(originPosition);
-
-        return index;
+        return -1;
     }
 
     /**

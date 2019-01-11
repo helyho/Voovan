@@ -560,25 +560,6 @@ public class ByteBufferChannel {
     }
 
     /**
-     * 从尾部开始判断是否收到期望的数据
-     * @param mark  期望出现的数据
-     * @param timeout 超时时间,单位: 毫秒
-     * @return true: 具备期望长度的数据, false: 等待数据超时
-     */
-    public boolean waitRevData(byte[] mark, int timeout){
-
-        try {
-            TEnv.wait(timeout, ()->{
-                checkRelease();
-                return revIndexOf(mark) == -1;
-            });
-            return true;
-        } catch (TimeoutException e) {
-            return false;
-        }
-    }
-
-    /**
      * 重新分配内存空间的大小
      * @param newSize  重新分配的空间大小
      * @return true:成功, false:失败
@@ -801,28 +782,6 @@ public class ByteBufferChannel {
             }
 
             return TByteBuffer.indexOf(byteBuffer, mark);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    /**
-     * 反向查找特定 byte 标识的位置
-     *     byte 标识数组第一个字节的索引位置
-     * @param mark byte 标识数组
-     * @return 第一个字节的索引位置
-     */
-    public int revIndexOf(byte[] mark){
-        lock.lock();
-
-        try {
-            checkRelease();
-
-            if(size() == 0){
-                return -1;
-            }
-
-            return TByteBuffer.revIndexOf(byteBuffer, mark);
         } finally {
             lock.unlock();
         }
