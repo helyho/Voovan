@@ -92,7 +92,7 @@ public class EventTrigger {
 			if (session.isOpen() && SSLParser.isHandShakeDone(session) && session.getState().receiveTryLock()) {
 				//设置接受状态
 				session.getState().setReceive(true);
-				fireEventThread(session, Event.EventName.ON_RECEIVE, null);
+				fireEvent(session, Event.EventName.ON_RECEIVE, null);
 			}
 		}
 	}
