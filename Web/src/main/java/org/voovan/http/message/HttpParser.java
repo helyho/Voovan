@@ -64,7 +64,6 @@ public class HttpParser {
     public static final String equalMapRegex = "([^ ;,]+=[^;,]+)";
 
     public static ThreadLocal<Map<String, Object>> THREAD_PACKET_MAP = ThreadLocal.withInitial(()->new HashMap<String, Object>());
-    public static ThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect(1024*4));
     public static ThreadLocal<Request> THREAD_REQUEST = ThreadLocal.withInitial(()->new Request());
     public static ThreadLocal<Response> THREAD_RESPONSE = ThreadLocal.withInitial(()->new Response());
 
@@ -236,101 +235,100 @@ public class HttpParser {
      * @throws ParserException 解析异常
      */
     public static int parserProtocol(Map<String, Object> packetMap, ByteBufferChannel byteBufferChannel) throws ParserException {
-        ByteBuffer tmpByteBuffer = THREAD_BYTE_BUFFER.get();
-        tmpByteBuffer.rewind();
+        StringBuilder stringBuilder = new StringBuilder();
 
         int position = 0;
 
         //遍历 Protocol
         int segment = 0;
         int protocolType = 0; //0: request, 1:response
-        byte prevByte = '\0';
-        byte currentByte = '\0';
+        char prevChar = '\0';
+        char currentChar = '\0';
+
+        ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
         while (!byteBufferChannel.isReleased() && byteBufferChannel.size() > 0) {
             if(position >= byteBufferChannel.size()){
                 throw new ParserException("Parse header reach the stream end");
             }
 
-            currentByte = byteBufferChannel.get(position);
+            currentChar = (char)(byteBuffer.get(position) & 0xFF);
             position++;
 
 
-            if (currentByte == '/') {
+            if (currentChar == '/') {
                 if (segment == 0 || segment == 2) {
-                    tmpByteBuffer.flip();
-                    if (tmpByteBuffer.limit() == 4 && TByteBuffer.indexOf(tmpByteBuffer, HTTP.getBytes()) >= 0) {
+                    if (stringBuilder.length()== 4 && stringBuilder.indexOf(HTTP) == 0) {
                         if (segment == 0) {
                             protocolType = 1;
                         }
                         packetMap.put(FL_PROTOCOL, HTTP);
-                        tmpByteBuffer.clear();
+                        stringBuilder = new StringBuilder();
                     }
 
                     continue;
                 }
             }
 
-            if (currentByte == ' ') {
+            if (currentChar == ' ') {
                 if (segment == 0) {
-                    tmpByteBuffer.flip();
                     if (protocolType == 0) {
-                        packetMap.put(FL_METHOD, TByteBuffer.toString(tmpByteBuffer));
+                        packetMap.put(FL_METHOD, stringBuilder.toString());
                     } else {
-                        packetMap.put(FL_VERSION, TByteBuffer.toString(tmpByteBuffer));
+                        packetMap.put(FL_VERSION, stringBuilder.toString());
                     }
 
-                    tmpByteBuffer.clear();
-
+                    stringBuilder = new StringBuilder();
                     segment = 1;
                     continue;
                 }
 
                 if (segment == 1) {
-                    tmpByteBuffer.flip();
                     if (protocolType == 0) {
                         if (packetMap.containsKey(FL_PATH)) {
-                            packetMap.put(FL_QUERY_STRING, TByteBuffer.toString(tmpByteBuffer));
+                            packetMap.put(FL_QUERY_STRING, stringBuilder.toString());
                         } else {
-                            packetMap.put(FL_PATH, TByteBuffer.toString(tmpByteBuffer));
+                            packetMap.put(FL_PATH, stringBuilder.toString());
                         }
                     } else {
-                        packetMap.put(FL_STATUS, TByteBuffer.toString(tmpByteBuffer));
+                        packetMap.put(FL_STATUS,stringBuilder.toString());
                     }
-                    tmpByteBuffer.clear();
+
+                    stringBuilder = new StringBuilder();
                     segment = 2;
                 }
 
                 continue;
             }
 
-            if (currentByte == '?') {
+            if (currentChar == '?') {
                 if (segment == 1) {
-                    tmpByteBuffer.flip();
-                    packetMap.put(FL_PATH, TByteBuffer.toString(tmpByteBuffer));
-                    tmpByteBuffer.clear();
+                    packetMap.put(FL_PATH, stringBuilder.toString());
+                    stringBuilder = new StringBuilder();
                     continue;
                 }
             }
 
-            if (prevByte == '\r' && currentByte == '\n' && segment == 2) {
-                tmpByteBuffer.flip();
+            if (prevChar == '\r' && currentChar == '\n' && segment == 2) {
                 if (protocolType == 0) {
-                    packetMap.put(FL_VERSION, TByteBuffer.toString(tmpByteBuffer));
+                    packetMap.put(FL_VERSION, stringBuilder.toString());
                 } else {
-                    packetMap.put(FL_STATUS_CODE, TByteBuffer.toString(tmpByteBuffer));
+                    packetMap.put(FL_STATUS_CODE, stringBuilder.toString());
                 }
-                tmpByteBuffer.clear();
+                stringBuilder = new StringBuilder();
                 break;
             }
 
 
-            prevByte = currentByte;
-            if (currentByte == '\r') {
+            prevChar = currentChar;
+            if (currentChar == '\r') {
                 continue;
             }
-            tmpByteBuffer.put(currentByte);
+
+            stringBuilder.append(currentChar);
         }
+
+        byteBufferChannel.compact();
 
         if(!packetMap.containsKey(FL_PROTOCOL)){
             packetMap.clear();
@@ -349,60 +347,59 @@ public class HttpParser {
      * @throws ParserException 解析异常
      */
     public static int parseHeader(Map<String, Object> packetMap, int offset, ByteBufferChannel byteBufferChannel) throws ParserException {
-        ByteBuffer tmpByteBuffer = THREAD_BYTE_BUFFER.get();
-        tmpByteBuffer.rewind();
+        StringBuilder stringBuilder = new StringBuilder();
 
         int position = offset;
 
         //遍历 Protocol
         boolean isHeaderName = true;
-        byte prevByte = '\0';
-        byte currentByte = '\0';
+        char prevChar = '\0';
+        char currentChar = '\0';
         String headerName = null;
         String headerValue = null;
+
+        ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
         while (!byteBufferChannel.isReleased() && byteBufferChannel.size() > 0) {
             if(position >= byteBufferChannel.size()){
                 throw new ParserException("Parse header reach the stream end");
             }
 
-            currentByte = byteBufferChannel.get(position);
+            currentChar = (char)(byteBuffer.get(position) & 0xFF);
             position++;
 
-            if(isHeaderName && prevByte==':' && currentByte==' ') {
-                tmpByteBuffer.flip();
-                headerName = TByteBuffer.toString(tmpByteBuffer);
-                tmpByteBuffer.clear();
+            if(isHeaderName && prevChar==':' && currentChar==' ') {
+                headerName = stringBuilder.toString();
                 isHeaderName = false;
                 continue;
             }
 
-            if(!isHeaderName && prevByte=='\r' && currentByte=='\n') {
-                tmpByteBuffer.flip();
-                headerValue = TByteBuffer.toString(tmpByteBuffer);
-                tmpByteBuffer.clear();
+            if(!isHeaderName && prevChar=='\r' && currentChar=='\n') {
+                headerValue = stringBuilder.toString();
                 break;
             }
 
             //http 头结束了
-            if(isHeaderName && prevByte=='\r' && currentByte=='\n' && position == offset + 2){
+            if(isHeaderName && prevChar=='\r' && currentChar=='\n' && position == offset + 2){
                 packetMap.put(null, null);
                 return position;
             }
 
-            prevByte = currentByte;
+            prevChar = currentChar;
 
-            if(isHeaderName && currentByte==':') {
+            if(isHeaderName && currentChar==':') {
                 continue;
             }
 
-            if(!isHeaderName && currentByte=='\r') {
+            if(!isHeaderName && currentChar=='\r') {
                 continue;
             }
 
-            tmpByteBuffer.put(currentByte);
+            stringBuilder.append(currentChar);
 
         }
+
+        byteBufferChannel.compact();
 
         packetMap.put(headerName, headerValue);
         return position;
