@@ -65,7 +65,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 						while (session.isConnected() && appByteBufferChannel.size() + length > appByteBufferChannel.getMaxSize()) {
 							if (!session.getState().isReceive()) {
 								// 触发 onReceive 事件
-								EventTrigger.fireReceiveThread(session);
+								EventTrigger.fireReceive(session);
 								TEnv.sleep(1);
 							}
 						}
