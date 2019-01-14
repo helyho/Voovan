@@ -35,29 +35,12 @@ public class HttpParser {
     private static final String FL_STATUS_CODE = "FL_StatusCode";
     private static final String FL_QUERY_STRING = "FL_QueryString";
 
-
-    private static final String HEAD_CONTENT_ENCODING		= "Content-Encoding";
-    private static final String HEAD_CONTENT_TYPE 			= "Content-Type";
-    private static final String HEAD_TRANSFER_ENCODING 		= "Transfer-Encoding";
-    private static final String HEAD_CONTENT_LENGTH 		= "Content-Length";
-    private static final String HEAD_COOKIE 				= "Cookie";
-    private static final String HEAD_CONTENT_DISPOSITION	= "Content-Disposition";
-
     public static final String MULTIPART_FORM_DATA = "multipart/form-data";
-    public static final String CHUNKED = "chunked";
 
     private static final String BODY_PARTS = "Body_Parts";
     private static final String BODY_VALUE = "Body_Value";
     private static final String BODY_FILE = "Body_File";
 
-    public static final String GZIP = "gzip";
-    public static final String HTTP = "HTTP";
-    public static final String BOUNDARY = "boundary";
-    public static final String BODY_MARK = "\r\n\r\n";
-    public static final String LINE_MARK	= "\r\n";
-    public static final String SET_COOKIE = "Set-Cookie";
-    public static final String SECURE = "secure";
-    public static final String HTTPONLY = "httponly";
     public static final String UPLOAD_PATH = TFile.assemblyPath(TFile.getTemporaryPath(),"voovan", "webserver", "upload");
 
     public static final String propertyLineRegex = ": ";
@@ -101,6 +84,9 @@ public class HttpParser {
      * @return 校正后的http 头的行数据
      */
     public static String fixHeaderName(String headerName) {
+        if(headerName==null){
+            return null;
+        }
         String[] headerNameSplits = headerName.split("-");
         StringBuilder stringBuilder = new StringBuilder();
         for(String headerNameSplit : headerNameSplits) {
@@ -171,27 +157,27 @@ public class HttpParser {
      */
     @SuppressWarnings("unchecked")
     private static void parseCookie(Map<String, Object> packetMap,String cookieName, String cookieValue){
-        if(!packetMap.containsKey(HEAD_COOKIE)){
-            packetMap.put(HEAD_COOKIE, new ArrayList<Map<String, String>>());
+        if(!packetMap.containsKey(HttpStatic.COOKIE_STRING)){
+            packetMap.put(HttpStatic.COOKIE_STRING, new ArrayList<Map<String, String>>());
         }
-        List<Map<String, String>> cookies = (List<Map<String, String>>) packetMap.get(HEAD_COOKIE);
+        List<Map<String, String>> cookies = (List<Map<String, String>>) packetMap.get(HttpStatic.COOKIE_STRING);
 
         //解析 Cookie 行
         Map<String, String>cookieMap = getEqualMap(cookieValue);
 
         //响应 response 的 cookie 形式 一个cookie 一行
-        if(SET_COOKIE.equalsIgnoreCase(cookieName)){
+        if(HttpStatic.SET_COOKIE_STRING.equalsIgnoreCase(cookieName)){
             //处理非键值的 cookie 属性
-            if(cookieValue.toLowerCase().contains(HTTPONLY)){
-                cookieMap.put(HTTPONLY, Global.EMPTY_STRING);
+            if(cookieValue.toLowerCase().contains(HttpStatic.HTTPONLY_STRING)){
+                cookieMap.put(HttpStatic.HTTPONLY_STRING, Global.EMPTY_STRING);
             }
-            if(cookieValue.toLowerCase().contains(SECURE)){
-                cookieMap.put(SECURE, Global.EMPTY_STRING);
+            if(cookieValue.toLowerCase().contains(HttpStatic.SECURE_STRING)){
+                cookieMap.put(HttpStatic.SECURE_STRING, Global.EMPTY_STRING);
             }
             cookies.add(cookieMap);
         }
         //请求 request 的 cookie 形式 多个cookie 一行
-        else if(HEAD_COOKIE.equalsIgnoreCase(cookieName)){
+        else if(HttpStatic.COOKIE_STRING.equalsIgnoreCase(cookieName)){
             for(Entry<String,String> cookieMapEntry: cookieMap.entrySet()){
                 HashMap<String, String> cookieOneMap = new HashMap<String, String>();
                 cookieOneMap.put(cookieMapEntry.getKey(), cookieMapEntry.getValue());
@@ -216,7 +202,7 @@ public class HttpParser {
         }
 
         //是否支持 GZip
-        boolean isGZip = packetMap.get(HEAD_CONTENT_ENCODING)==null ? false : packetMap.get(HEAD_CONTENT_ENCODING).toString().contains(GZIP);
+        boolean isGZip = packetMap.get(HttpStatic.CONTENT_ENCODING_STRING)==null ? false : packetMap.get(HttpStatic.CONTENT_ENCODING_STRING).toString().contains(HttpStatic.GZIP_STRING);
 
         //如果是 GZip 则解压缩
         if(isGZip && contentBytes.length>0){
@@ -258,11 +244,11 @@ public class HttpParser {
 
             if (currentChar == '/') {
                 if (segment == 0 || segment == 2) {
-                    if (stringBuilder.length()== 4 && stringBuilder.indexOf(HTTP) == 0) {
+                    if (stringBuilder.length()== 4 && stringBuilder.indexOf(HttpStatic.HTTP_STRING) == 0) {
                         if (segment == 0) {
                             protocolType = 1;
                         }
-                        packetMap.put(FL_PROTOCOL, HTTP);
+                        packetMap.put(FL_PROTOCOL, HttpStatic.HTTP_STRING);
                         stringBuilder = new StringBuilder();
                     }
 
@@ -401,7 +387,7 @@ public class HttpParser {
 
         byteBufferChannel.compact();
 
-        packetMap.put(headerName, headerValue);
+        packetMap.put(fixHeaderName(headerName), headerValue);
         return position;
 
     }
@@ -442,16 +428,16 @@ public class HttpParser {
                 position = parseHeader(packetMap, position, byteBufferChannel);
             }
 
-            if(packetMap.containsKey(SET_COOKIE)){
-                cookieName = SET_COOKIE;
-                cookieValue = packetMap.get(SET_COOKIE).toString();
-                packetMap.remove(SET_COOKIE);
+            if(packetMap.containsKey(HttpStatic.SET_COOKIE_STRING)){
+                cookieName = HttpStatic.SET_COOKIE_STRING;
+                cookieValue = packetMap.get(HttpStatic.SET_COOKIE_STRING).toString();
+                packetMap.remove(HttpStatic.SET_COOKIE_STRING);
             }
 
-            if(packetMap.containsKey(HEAD_COOKIE)){
-                cookieName = HEAD_COOKIE;
-                cookieValue = packetMap.get(HEAD_COOKIE).toString();
-                packetMap.remove(HEAD_COOKIE);
+            if(packetMap.containsKey(HttpStatic.COOKIE_STRING)){
+                cookieName = HttpStatic.COOKIE_STRING;
+                cookieValue = packetMap.get(HttpStatic.COOKIE_STRING).toString();
+                packetMap.remove(HttpStatic.COOKIE_STRING);
             }
 
             if(cookieName!=null){
@@ -473,8 +459,8 @@ public class HttpParser {
 
             //解析 HTTP 请求 body
             if(isBodyConent){
-                String contentType =packetMap.get(HEAD_CONTENT_TYPE)==null ? Global.EMPTY_STRING : packetMap.get(HEAD_CONTENT_TYPE).toString();
-                String transferEncoding = packetMap.get(HEAD_TRANSFER_ENCODING)==null ? "" : packetMap.get(HEAD_TRANSFER_ENCODING).toString();
+                String contentType =packetMap.get(HttpStatic.CONTENT_TYPE_STRING)==null ? Global.EMPTY_STRING : packetMap.get(HttpStatic.CONTENT_TYPE_STRING).toString();
+                String transferEncoding = packetMap.get(HttpStatic.TRANSFER_ENCODING_STRING)==null ? "" : packetMap.get(HttpStatic.TRANSFER_ENCODING_STRING).toString();
 
                 //1. 解析 HTTP 的 POST 请求 body part
                 if(contentType.contains(MULTIPART_FORM_DATA)){
@@ -482,7 +468,7 @@ public class HttpParser {
                     List<Map<String, Object>> bodyPartList = new ArrayList<Map<String, Object>>();
 
                     //取boundary 用于 part 内容分段
-                    String boundary = TString.assembly("--", getPerprotyEqualValue(packetMap, HEAD_CONTENT_TYPE, BOUNDARY));
+                    String boundary = TString.assembly("--", getPerprotyEqualValue(packetMap, HttpStatic.CONTENT_TYPE_STRING, HttpStatic.BOUNDARY_STRING));
 
                     ByteBuffer boundaryEnd = ByteBuffer.allocate(2);
                     while(true) {
@@ -514,7 +500,7 @@ public class HttpParser {
                             break;
                         }
 
-                        byte[] mark = BODY_MARK.getBytes();
+                        byte[] mark = HttpStatic.BODY_MARK.getBytes();
                         //等待数据
                         if (!byteBufferChannel.waitData(mark, timeOut)) {
                             throw new ParserException("Http Parser read data error");
@@ -536,7 +522,7 @@ public class HttpParser {
                         partByteBufferChannel.release();
                         TByteBuffer.release(partHeadBuffer);
 
-                        String fileName = getPerprotyEqualValue(partMap, HEAD_CONTENT_DISPOSITION, "filename");
+                        String fileName = getPerprotyEqualValue(partMap, HttpStatic.CONTENT_DISPOSITION_STRING, "filename");
                         if(fileName!=null && fileName.isEmpty()){
                             break;
                         }
@@ -633,7 +619,7 @@ public class HttpParser {
                 }
 
                 //2. 解析 HTTP 响应 body 内容段的 chunked
-                else if(CHUNKED.equals(transferEncoding)){
+                else if(HttpStatic.CHUNKED_STRING.equals(transferEncoding)){
 
                     ByteBufferChannel chunkedByteBufferChannel = new ByteBufferChannel(3);
                     String chunkedLengthLine = "";
@@ -703,8 +689,8 @@ public class HttpParser {
                 }
 
                 //3. HTTP(请求和响应) 报文的内容段中Content-Length 提供长度,按长度读取 body 内容段
-                else if(packetMap.containsKey(HEAD_CONTENT_LENGTH)){
-                    int contentLength = Integer.parseInt(packetMap.get(HEAD_CONTENT_LENGTH).toString());
+                else if(packetMap.containsKey(HttpStatic.CONTENT_LENGTH_STRING)){
+                    int contentLength = Integer.parseInt(packetMap.get(HttpStatic.CONTENT_LENGTH_STRING).toString());
 
                     //累计请求大小
                     totalLength = totalLength + contentLength;
@@ -777,13 +763,13 @@ public class HttpParser {
                     request.protocol().setQueryString(parsedPacketEntry.getValue().toString());
                     break;
                 case FL_VERSION:
-                    request.protocol().setVersion(Float.valueOf(parsedPacketEntry.getValue().toString()));
+                    request.protocol().setVersion(parsedPacketEntry.getValue().toString());
                     break;
                 case FL_PATH:
                     request.protocol().setPath(parsedPacketEntry.getValue().toString());
                     break;
-                case HEAD_COOKIE:
-                    List<Map<String, String>> cookieMap = (List<Map<String, String>>)packetMap.get(HEAD_COOKIE);
+                case HttpStatic.COOKIE_STRING:
+                    List<Map<String, String>> cookieMap = (List<Map<String, String>>)packetMap.get(HttpStatic.COOKIE_STRING);
                     //遍历 Cookie,并构建 Cookie 对象
                     for(Map<String,String> cookieMapItem : cookieMap){
                         Cookie cookie = Cookie.buildCookie(cookieMapItem);
@@ -813,7 +799,7 @@ public class HttpParser {
                                 String partedHeaderKey = parsedPartMapItem.getKey();
                                 String partedHeaderValue = parsedPartMapItem.getValue().toString();
                                 part.header().put(partedHeaderKey, partedHeaderValue);
-                                if(HEAD_CONTENT_DISPOSITION.equals(partedHeaderKey)){
+                                if(HttpStatic.CONTENT_DISPOSITION_STRING.equals(partedHeaderKey)){
                                     //对Content-Disposition中的"name=xxx"进行处理,方便直接使用
                                     Map<String, String> contentDispositionValue = HttpParser.getEqualMap(partedHeaderValue);
                                     part.header().putAll(contentDispositionValue);
@@ -868,7 +854,7 @@ public class HttpParser {
                     response.protocol().setProtocol(parsedPacketEntry.getValue().toString());
                     break;
                 case FL_VERSION:
-                    response.protocol().setVersion(Float.parseFloat(parsedPacketEntry.getValue().toString()));
+                    response.protocol().setVersion(parsedPacketEntry.getValue().toString());
                     break;
                 case FL_STATUS:
                     response.protocol().setStatus(Integer.parseInt(parsedPacketEntry.getValue().toString()));
@@ -876,7 +862,7 @@ public class HttpParser {
                 case FL_STATUS_CODE:
                     response.protocol().setStatusCode(parsedPacketEntry.getValue().toString());
                     break;
-                case HEAD_COOKIE:
+                case HttpStatic.COOKIE_STRING:
                     List<Map<String, String>> cookieMap = (List<Map<String, String>>)parsedPacketEntry.getValue();
                     //遍历 Cookie,并构建 Cookie 对象
                     for(Map<String,String> cookieMapItem : cookieMap){

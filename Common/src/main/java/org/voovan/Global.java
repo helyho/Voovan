@@ -2,6 +2,7 @@ package org.voovan;
 
 import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
+import org.voovan.tools.UniqueId;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.task.TaskManager;
 import org.voovan.tools.threadpool.ThreadPool;
@@ -35,6 +36,9 @@ public class Global {
 
     public static volatile Boolean NO_HEAP_MANUAL_RELEASE;
     public static volatile String REMOTE_CLASS_SOURCE;
+
+
+    public static UniqueId UNIQUE_ID = new UniqueId((int) (Math.random()*1024));
 
     static {
         if(NO_HEAP_MANUAL_RELEASE == null) {
