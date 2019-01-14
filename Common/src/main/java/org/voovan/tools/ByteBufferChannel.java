@@ -468,7 +468,6 @@ public class ByteBufferChannel {
             borrowed.compareAndSet(false, true);
             return byteBuffer;
         } catch (Exception e) {
-            lock.unlock();
             return null;
         }
     }
