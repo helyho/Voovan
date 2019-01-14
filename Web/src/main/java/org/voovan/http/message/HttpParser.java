@@ -357,6 +357,7 @@ public class HttpParser {
             if(isHeaderName && prevChar==':' && currentChar==' ') {
                 headerName = stringBuilder.toString();
                 isHeaderName = false;
+                stringBuilder = new StringBuilder();
                 continue;
             }
 
