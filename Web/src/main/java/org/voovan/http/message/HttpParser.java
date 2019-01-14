@@ -256,9 +256,7 @@ public class HttpParser {
 
 				        continue;
 			        }
-		        }
-
-		        if (currentChar == ' ') {
+		        } else if (currentChar == ' ') {
 			        if (segment == 0) {
 				        if (protocolType == 0) {
 					        packetMap.put(FL_METHOD, stringBuilder.toString());
@@ -287,9 +285,7 @@ public class HttpParser {
 			        }
 
 			        continue;
-		        }
-
-		        if (currentChar == '?') {
+		        } else if (currentChar == '?') {
 			        if (segment == 1) {
 				        packetMap.put(FL_PATH, stringBuilder.toString());
 				        stringBuilder = new StringBuilder();
@@ -365,9 +361,7 @@ public class HttpParser {
                     isHeaderName = false;
                     stringBuilder = new StringBuilder();
                     continue;
-                }
-
-                if (!isHeaderName && prevChar == '\r' && currentChar == '\n') {
+                } else if (!isHeaderName && prevChar == '\r' && currentChar == '\n') {
                     headerValue = stringBuilder.toString();
                     break;
                 }
@@ -382,9 +376,7 @@ public class HttpParser {
 
                 if (isHeaderName && currentChar == ':') {
                     continue;
-                }
-
-                if (!isHeaderName && currentChar == '\r') {
+                } else if (!isHeaderName && currentChar == '\r') {
                     continue;
                 }
 
