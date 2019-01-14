@@ -2,8 +2,8 @@ package org.voovan.network.messagesplitter;
 
 import org.voovan.Global;
 import org.voovan.http.HttpSessionParam;
-import org.voovan.http.message.HttpParser;
 import org.voovan.http.HttpRequestType;
+import org.voovan.http.message.HttpStatic;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.tools.TByteBuffer;
@@ -60,18 +60,18 @@ public class HttpMessageSplitter implements MessageSplitter {
         int bodyTagIndex = -1;
         int protocolLineIndex = -1;
 
-        bodyTagIndex = TByteBuffer.indexOf(byteBuffer, HttpParser.BODY_MARK.getBytes());
+        bodyTagIndex = TByteBuffer.indexOf(byteBuffer, HttpStatic.BODY_MARK.getBytes());
 
         if(bodyTagIndex <= 0){
             return -1;
         }
 
-        protocolLineIndex = TByteBuffer.indexOf(byteBuffer,  HttpParser.LINE_MARK.getBytes());
+        protocolLineIndex = TByteBuffer.indexOf(byteBuffer,  HttpStatic.LINE_MARK.getBytes());
         if(protocolLineIndex <= 0){
             return -1;
         }
 
-        if(TByteBuffer.indexOf(byteBuffer, "HTTP".getBytes()) > protocolLineIndex){
+        if(TByteBuffer.indexOf(byteBuffer,  HttpStatic.HTTP.getBytes()) > protocolLineIndex){
             return -1;
         }
 
@@ -94,7 +94,7 @@ public class HttpMessageSplitter implements MessageSplitter {
 
     private boolean isHttpHead(String str){
         //判断是否是 HTTP 头
-        if (str.startsWith(HttpParser.HTTP) || str.endsWith(HttpParser.HTTP)) {
+        if (str.startsWith(HttpStatic.HTTP_STRING) || str.endsWith(HttpStatic.HTTP_STRING)) {
             return true;
         }
         return false;

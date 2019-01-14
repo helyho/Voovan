@@ -242,7 +242,7 @@ public class WebServerHandler implements IoHandler {
 			}
 		}
 		//对于1.1协议的特殊处理
-		else if(httpRequest.protocol().getVersion()==1.1F){
+		else if(httpRequest.protocol().getVersion().endsWith("1.1")){
 			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
 			httpResponse.header().put("Connection", "keep-alive");
 		}

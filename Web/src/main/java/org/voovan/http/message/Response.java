@@ -160,7 +160,7 @@ public class Response {
 	 */
 	private byte[] readHead() {
 
-		StringBuilder stringBuilder = new StringBuilder();
+		StringBuilder stringBuilder = new StringBuilder(256);
 
 		initHeader();
 
@@ -175,13 +175,7 @@ public class Response {
 
 		stringBuilder.append("\r\n");
 
-
-		try {
-			return stringBuilder.toString().getBytes("UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			Logger.error("Response.readHead io error",e);
-			return null;
-		}
+		return TString.toAsciiBytes(stringBuilder.toString());
 	}
 
 	private byte[] readEnd(){

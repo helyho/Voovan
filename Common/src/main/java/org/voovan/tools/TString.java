@@ -947,4 +947,18 @@ public class TString {
 
 		return stringBuilder.toString();
 	}
+
+	/**
+	 * 将字符串转化成 Ascii 的不同三个月左右
+	 * @param str
+	 * @return
+	 */
+	public static byte[] toAsciiBytes(String str) {
+		byte[] bytes = new byte[str.length()];
+		for(int i=0;i<str.length();i++){
+			bytes[i] = (byte)str.charAt(i);
+		}
+
+		return bytes;
+	}
 }
