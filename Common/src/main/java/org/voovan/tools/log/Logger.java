@@ -15,23 +15,27 @@ import org.voovan.tools.TString;
  */
 public class Logger {
 	private static Formater	formater	= Formater.newInstance();
-	private static boolean state = true;
+	private static boolean enable = true;
 
 	/**
 	 * 日志输出状态
 	 *
 	 * @return true:输出日志,false 不输出任何日志
 	 */
-	public static boolean isState() {
-		return state;
+	public static boolean isEnable() {
+		return enable;
 	}
 
 	/**
 	 * 设置日志输出状态
-	 * @param state true:输出日志,false 不输出任何日志
+	 * @param enable true:输出日志,false 不输出任何日志
 	 */
-	public static void setState(boolean state) {
-		Logger.state = state;
+	public static void setEnable(boolean enable) {
+		Logger.enable = enable;
+	}
+
+	public static void stopLoggerThread(){
+
 	}
 
 	/**
@@ -52,7 +56,7 @@ public class Logger {
 	}
 
 	public static void info(Object msg) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -68,7 +72,7 @@ public class Logger {
 	}
 
 	public static void infof(String msg, Object ... args){
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -76,7 +80,7 @@ public class Logger {
 	}
 
 	public static void fremawork(Object msg) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -92,7 +96,7 @@ public class Logger {
 	}
 
 	public static void fremaworkf(String msg, Object ... args){
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -100,7 +104,7 @@ public class Logger {
 	}
 
 	public static void debug(Object msg) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -116,7 +120,7 @@ public class Logger {
 	}
 
 	public static void debugf(String msg, Object ... args){
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -125,7 +129,7 @@ public class Logger {
 
 
 	public static void warn(Object msg) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -141,7 +145,7 @@ public class Logger {
 	}
 
 	public static void warnf(String msg, Object ... args){
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -150,7 +154,7 @@ public class Logger {
 
 
 	public static void warn(Exception e) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -166,7 +170,7 @@ public class Logger {
 	}
 
 	public static void warn(Object msg, Exception e) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -182,7 +186,7 @@ public class Logger {
 	}
 
 	public static void warnf(String msg, Exception e, Object ... args){
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -191,7 +195,7 @@ public class Logger {
 
 
 	public static void error(Object msg) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -207,7 +211,7 @@ public class Logger {
 	}
 
 	public static void errorf(String msg, Object ... args){
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -215,7 +219,7 @@ public class Logger {
 	}
 
 	public static void error(Exception e) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -231,7 +235,7 @@ public class Logger {
 	}
 
 	public static void error(Object msg, Exception e) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -247,7 +251,7 @@ public class Logger {
 	}
 
 	public static void errorf(String msg, Exception e, Object ... args){
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -255,7 +259,7 @@ public class Logger {
 	}
 
 	public static void fatal(Object msg) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -271,7 +275,7 @@ public class Logger {
 	}
 
 	public static void fatalf(String msg, Object ... args){
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -279,7 +283,7 @@ public class Logger {
 	}
 
 	public static void fatal(Exception e) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -295,7 +299,7 @@ public class Logger {
 	}
 
 	public static void fatal(Object msg, Exception e) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -311,7 +315,7 @@ public class Logger {
 	}
 
 	public static void fatalf(String msg, Exception e, Object ... args){
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -320,7 +324,7 @@ public class Logger {
 
 
 	public static void simple(Object msg) {
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 
@@ -336,7 +340,7 @@ public class Logger {
 	}
 
 	public static void simplef(String msg, Object ... args){
-		if(!Logger.isState()){
+		if(!Logger.isEnable()){
 			return;
 		}
 

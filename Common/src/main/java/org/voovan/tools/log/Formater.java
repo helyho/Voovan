@@ -262,7 +262,7 @@ public class Formater {
      * @param msg 消息字符串
      */
     public synchronized void writeLog(String msg) {
-        if(Logger.isState()){
+        if(Logger.isEnable()){
             if (loggerThread == null || loggerThread.isFinished()) {
                 this.loggerThread = LoggerThread.start(getOutputStreams());
             }
