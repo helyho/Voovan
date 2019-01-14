@@ -417,20 +417,24 @@ public class HttpDispatcher {
 	 * @return 过滤器最后的结果
 	 */
 	public Object disposeFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
-		filterConfigs.rewind();
-		Object filterResult = null;
-		while(filterConfigs.hasNext()){
-			HttpFilterConfig filterConfig = filterConfigs.next();
-			HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
-			if(httpFilter!=null) {
-				filterResult = httpFilter.onRequest(filterConfig, request, response, filterResult);
-				if(filterResult==null){
-					break;
+		if(filterConfigs.size() > 0) {
+			filterConfigs.rewind();
+			Object filterResult = null;
+			while (filterConfigs.hasNext()) {
+				HttpFilterConfig filterConfig = filterConfigs.next();
+				HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
+				if (httpFilter != null) {
+					filterResult = httpFilter.onRequest(filterConfig, request, response, filterResult);
+					if (filterResult == null) {
+						break;
+					}
 				}
 			}
-		}
 
-		return filterResult;
+			return filterResult;
+		}  else {
+			return null;
+		}
 	}
 
 	/**
@@ -441,20 +445,24 @@ public class HttpDispatcher {
 	 * @return 过滤器最后的结果
 	 */
 	public Object disposeInvertedFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
-		filterConfigs.rewind();
-		Object filterResult = null;
-		while(filterConfigs.hasPrevious()){
-			HttpFilterConfig filterConfig = filterConfigs.previous();
-			HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
-			if(httpFilter!=null) {
-				filterResult = httpFilter.onResponse(filterConfig, request, response, filterResult);
-				if(filterResult==null){
-					break;
+		if(filterConfigs.size() > 0) {
+			filterConfigs.rewind();
+			Object filterResult = null;
+			while (filterConfigs.hasPrevious()) {
+				HttpFilterConfig filterConfig = filterConfigs.previous();
+				HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
+				if (httpFilter != null) {
+					filterResult = httpFilter.onResponse(filterConfig, request, response, filterResult);
+					if (filterResult == null) {
+						break;
+					}
 				}
 			}
-		}
 
-		return filterResult;
+			return filterResult;
+		} else {
+			return null;
+		}
 	}
 
 	/**
