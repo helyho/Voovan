@@ -129,7 +129,7 @@ public class LoggerThread implements Runnable {
 		boolean needFlush = false;
 
 		try {
-			while (Logger.isState()) {
+			while (Logger.isEnable()) {
 
 				if(this.pause == 1){
 					flush();
