@@ -33,71 +33,14 @@ public class HttpMessageSplitter implements MessageSplitter {
 
         if(HttpRequestType.WEBSOCKET.equals(session.getAttribute(HttpSessionParam.TYPE)) ){
             result = isWebSocketFrame(byteBuffer);
-        }else{
-            result = isHttpFrame(byteBuffer);
-
-            if(result >= 0){
-                if (!session.containAttribute(HttpSessionParam.TYPE)) {
-                    session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.HTTP);
-                }
-            } else if(result == -1){
-                return result;
-            } else if(result == -2){
-//                采用异步的方式, 防止导致死锁
-                Global.getThreadPool().execute(new Thread("CHECK_HTTP_HEAD_FAILED") {
-                    @Override
-                    public void run() {
-                        session.close();
-                    }
-                });
-            }
+        } else {
+			if (!session.containAttribute(HttpSessionParam.TYPE)) {
+				session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.HTTP);
+			}
+	        return 0;
         }
 
         return result;
-    }
-
-    private int isHttpFrame(ByteBuffer byteBuffer){
-        int bodyTagIndex = -1;
-        int protocolLineIndex = -1;
-
-        bodyTagIndex = TByteBuffer.indexOf(byteBuffer, HttpStatic.BODY_MARK.getBytes());
-
-        if(bodyTagIndex <= 0){
-            return -1;
-        }
-
-        protocolLineIndex = TByteBuffer.indexOf(byteBuffer,  HttpStatic.LINE_MARK.getBytes());
-        if(protocolLineIndex <= 0){
-            return -1;
-        }
-
-        if(TByteBuffer.indexOf(byteBuffer,  HttpStatic.HTTP.getBytes()) > protocolLineIndex){
-            return -1;
-        }
-
-        if(protocolLineIndex != -1) {
-            if(bodyTagIndex > 0) {
-                //兼容 http 的 pipeline 模式,  GET 请求直接返回指定的长度
-                if(byteBuffer.get(0)=='G' && byteBuffer.get(1)=='E' && byteBuffer.get(2)=='T') {
-                    return bodyTagIndex + 4;
-                } else {
-                    return 0;
-                }
-            } else {
-                return -1;
-            }
-
-        }else{
-            return -2;
-        }
-    }
-
-    private boolean isHttpHead(String str){
-        //判断是否是 HTTP 头
-        if (str.startsWith(HttpStatic.HTTP_STRING) || str.endsWith(HttpStatic.HTTP_STRING)) {
-            return true;
-        }
-        return false;
     }
 
     /**

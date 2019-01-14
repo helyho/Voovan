@@ -96,7 +96,7 @@ public class Header {
 		for(Entry<String,String> headerItemEntry : this.headers.entrySet()){
 			String key = headerItemEntry.getKey();
 			String value = headerItemEntry.getValue();
-			if(!key.isEmpty() && Character.isUpperCase(key.charAt(0))){
+			if(!key.isEmpty()){
 				headerContent.append(key);
 				headerContent.append(": ");
 				headerContent.append(value);
