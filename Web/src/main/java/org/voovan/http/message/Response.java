@@ -24,6 +24,9 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class Response {
+	private static ThreadLocal<StringBuilder> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new StringBuilder(512));
+	public static ThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
+
 	private ResponseProtocol 	protocol;
 	private Header				header;
 	private List<Cookie>		cookies;
@@ -31,7 +34,6 @@ public class Response {
 	private boolean				isCompress;
 	protected boolean 			basicSend = false;
 
-	public static ThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
 
 	/**
 	 * 构造函数
@@ -160,7 +162,8 @@ public class Response {
 	 */
 	private byte[] readHead() {
 
-		StringBuilder stringBuilder = new StringBuilder(256);
+		StringBuilder stringBuilder = THREAD_STRING_BUILDER.get();
+		stringBuilder.setLength(0);
 
 		initHeader();
 

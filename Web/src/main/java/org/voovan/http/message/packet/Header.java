@@ -14,7 +14,8 @@ import java.util.Map.Entry;
  */
 public class Header {
 	private Map<String, String> headers;
-	
+	private static ThreadLocal<StringBuilder> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new StringBuilder(512));
+
 	/**
 	 * 构造函数
 	 */
@@ -92,7 +93,8 @@ public class Header {
 	
 	@Override 
 	public String toString(){
-		StringBuilder headerContent = new StringBuilder();
+		StringBuilder headerContent = THREAD_STRING_BUILDER.get();
+		headerContent.setLength(0);
 		for(Entry<String,String> headerItemEntry : this.headers.entrySet()){
 			String key = headerItemEntry.getKey();
 			String value = headerItemEntry.getValue();
