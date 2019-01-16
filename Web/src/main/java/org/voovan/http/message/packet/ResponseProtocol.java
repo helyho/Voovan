@@ -15,6 +15,7 @@ import java.net.URLEncoder;
  * Licence: Apache v2 License
  */
 public class ResponseProtocol extends Protocol {
+	private static ThreadLocal<StringBuilder> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new StringBuilder(512));
 
 	/**
 	 * 状态代码
@@ -61,6 +62,9 @@ public class ResponseProtocol extends Protocol {
 
 	@Override
 	public String toString(){
-		return TString.assembly(this.protocol, "/", this.version, " ", this.status, " ", this.statusCode, "\r\n");
+		StringBuilder stringBuilder = THREAD_STRING_BUILDER.get();
+		stringBuilder.setLength(0);
+		stringBuilder.append(this.protocol).append("/").append(this.version).append(" ").append(this.status).append(" ").append(this.statusCode).append("\r\n");
+		return stringBuilder.toString();
 	}
 }
