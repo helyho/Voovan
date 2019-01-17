@@ -31,6 +31,7 @@ public class WebServerConfig {
     private String contextPath      = "WEBAPP";
     private boolean MatchRouteIgnoreCase = false;
     private String characterSet     = "UTF-8";
+    private String responseCharacterSet     = "";
     private String sessionContainer = "org.voovan.tools.cache.CachedHashMap";
     private int sessionTimeout      = 30;
     private int keepAliveTimeout    = 60;
@@ -91,6 +92,11 @@ public class WebServerConfig {
 
     public void setCharacterSet(String characterSet) {
         this.characterSet = characterSet;
+        this.responseCharacterSet = ";charset="+ characterSet;
+    }
+
+    public String getResponseCharacterSet() {
+        return responseCharacterSet;
     }
 
     public void setSessionContainer(String sessionContainer) {
