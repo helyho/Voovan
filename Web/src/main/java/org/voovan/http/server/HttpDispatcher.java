@@ -233,7 +233,7 @@ public class HttpDispatcher {
 		List<Object> routerInfo = ROUTER_INFO_CACHE.get(routerMark);
 
 		if(routerInfo==null) {
-			//判断是否是静态文件
+
 			Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
 			for (Map.Entry<String, HttpRouter> routeEntry : routers.entrySet()) {
 				String routePath = routeEntry.getKey();
@@ -247,6 +247,7 @@ public class HttpDispatcher {
 			}
 		}
 
+		//判断是否是静态文件
 		if(routerInfo == null){
 			if(isStaticFile(request)){
 				routerInfo = TObject.asList(request.protocol().getPath(), mimeFileRouter);
