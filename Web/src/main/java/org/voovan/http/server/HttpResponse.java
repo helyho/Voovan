@@ -1,6 +1,7 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Response;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TDateTime;
@@ -43,7 +44,7 @@ public class HttpResponse extends Response {
 		super(response);
 		this.characterSet=characterSet;
 		//设置当前响应的时间
-		this.header().put("Date", GMT_TIME);
+		this.header().put(HttpStatic.DATE_STRING, GMT_TIME);
 		this.socketSession = socketSession;
 	}
 
