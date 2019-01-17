@@ -1,5 +1,6 @@
 package org.voovan.test.http;
 
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpRouter;
@@ -24,7 +25,8 @@ public class VoovanTFB {
 		//性能测试请求
 		webServer.get("/plaintext", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				resp.header().put("Content-Type", "text/plain");
+				resp.header().put(HttpStatic.CONTENT_TYPE_STRING, "text/plain");
+				resp.header().remove(HttpStatic.CONNECTION_STRING);
 				resp.write("OK");
 			}
 		});
