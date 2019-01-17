@@ -163,9 +163,6 @@ public class TByteBuffer {
      */
     public static boolean moveData(ByteBuffer byteBuffer, int offset) {
         try {
-            if(isReleased(byteBuffer)) {
-                return false;
-            }
 
             if(offset==0){
                 return true;
