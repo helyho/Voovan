@@ -49,6 +49,7 @@ public class HttpParser {
     public static ThreadLocal<Map<String, Object>> THREAD_PACKET_MAP = ThreadLocal.withInitial(()->new HashMap<String, Object>());
     public static ThreadLocal<Request> THREAD_REQUEST = ThreadLocal.withInitial(()->new Request());
     public static ThreadLocal<Response> THREAD_RESPONSE = ThreadLocal.withInitial(()->new Response());
+    private static ThreadLocal<StringBuilder> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new StringBuilder(512));
 
     /**
      * 私有构造函数
@@ -221,8 +222,8 @@ public class HttpParser {
      * @throws ParserException 解析异常
      */
     public static int parserProtocol(Map<String, Object> packetMap, ByteBufferChannel byteBufferChannel) throws ParserException {
-        StringBuilder stringBuilder = new StringBuilder();
-
+        StringBuilder stringBuilder = THREAD_STRING_BUILDER.get();
+        stringBuilder.setLength(0);
         int position = 0;
 
         //遍历 Protocol
@@ -251,7 +252,7 @@ public class HttpParser {
 						        protocolType = 1;
 					        }
 					        packetMap.put(FL_PROTOCOL, HttpStatic.HTTP_STRING);
-					        stringBuilder = new StringBuilder();
+					        stringBuilder.setLength(0);
 				        }
 
 				        continue;
@@ -264,7 +265,7 @@ public class HttpParser {
 					        packetMap.put(FL_VERSION, stringBuilder.toString());
 				        }
 
-				        stringBuilder = new StringBuilder();
+				        stringBuilder.setLength(0);
 				        segment = 1;
 				        continue;
 			        }
@@ -280,7 +281,7 @@ public class HttpParser {
 					        packetMap.put(FL_STATUS, stringBuilder.toString());
 				        }
 
-				        stringBuilder = new StringBuilder();
+				        stringBuilder.setLength(0);
 				        segment = 2;
 			        }
 
@@ -288,7 +289,7 @@ public class HttpParser {
 		        } else if (currentChar == '?') {
 			        if (segment == 1) {
 				        packetMap.put(FL_PATH, stringBuilder.toString());
-				        stringBuilder = new StringBuilder();
+                        stringBuilder.setLength(0);
 				        continue;
 			        }
 		        }
@@ -299,7 +300,7 @@ public class HttpParser {
 			        } else {
 				        packetMap.put(FL_STATUS_CODE, stringBuilder.toString());
 			        }
-			        stringBuilder = new StringBuilder();
+                    stringBuilder.setLength(0);
 			        break;
 		        }
 
@@ -333,8 +334,8 @@ public class HttpParser {
      * @throws ParserException 解析异常
      */
     public static int parseHeader(Map<String, Object> packetMap, int offset, ByteBufferChannel byteBufferChannel) throws ParserException {
-        StringBuilder stringBuilder = new StringBuilder();
-
+        StringBuilder stringBuilder = THREAD_STRING_BUILDER.get();
+        stringBuilder.setLength(0);
         int position = offset;
 
         //遍历 Protocol
@@ -359,7 +360,7 @@ public class HttpParser {
                 if (isHeaderName && prevChar == ':' && currentChar == ' ') {
                     headerName = stringBuilder.toString();
                     isHeaderName = false;
-                    stringBuilder = new StringBuilder();
+                    stringBuilder.setLength(0);
                     continue;
                 } else if (!isHeaderName && prevChar == '\r' && currentChar == '\n') {
                     headerValue = stringBuilder.toString();
