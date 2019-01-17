@@ -4,6 +4,7 @@ import org.voovan.Global;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.HttpRequestType;
 import org.voovan.http.message.HttpParser;
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Request;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
@@ -230,34 +231,34 @@ public class WebServerHandler implements IoHandler {
 		httpDispatcher.process(httpRequest, httpResponse);
 
 		//如果是长连接则填充响应报文
-		if (httpRequest.header().contain("Connection")) {
-			if(httpRequest.header().get("Connection").toLowerCase().contains("keep-alive")) {
+		if (httpRequest.header().contain(HttpStatic.CONNECTION_STRING)) {
+			if(httpRequest.header().get(HttpStatic.CONNECTION_STRING).toLowerCase().contains(HttpStatic.KEEP_ALIVE_STRING)) {
 				setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
-				httpResponse.header().put("Connection", httpRequest.header().get("Connection"));
+				httpResponse.header().put(HttpStatic.CONNECTION_STRING, httpRequest.header().get(HttpStatic.CONNECTION_STRING));
 			}
 
-			if(httpRequest.header().get("Connection").toLowerCase().contains("close")) {
+			if(httpRequest.header().get(HttpStatic.CONNECTION_STRING).toLowerCase().contains(HttpStatic.CLOSE_STRING)) {
 				setAttribute(session, HttpSessionParam.KEEP_ALIVE, false);
-				httpResponse.header().remove("Connection");
+				httpResponse.header().remove(HttpStatic.CONNECTION_STRING);
 			}
 		}
 		//对于1.1协议的特殊处理
 		else if(httpRequest.protocol().getVersion().endsWith("1.1")){
 			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
-			httpResponse.header().put("Connection", "keep-alive");
+			httpResponse.header().put(HttpStatic.CONNECTION_STRING, HttpStatic.KEEP_ALIVE_STRING);
 		}
 
-		httpResponse.header().put("Server", WebContext.getVERSION());
+		httpResponse.header().put(HttpStatic.SERVER_STRING, WebContext.getVERSION());
 
 		//============================是否启用 gzip 压缩============================
-		if(webConfig.isGzip() && httpRequest.header().contain("Accept-Encoding") &&
-				httpRequest.header().get("Accept-Encoding").contains("gzip") &&
-				httpResponse.header().get("Content-Type") != null) {
+		if(webConfig.isGzip() && httpRequest.header().contain(HttpStatic.ACCEPT_ENCODING_STRING) &&
+				httpRequest.header().get(HttpStatic.ACCEPT_ENCODING_STRING).contains(HttpStatic.GZIP_STRING) &&
+				httpResponse.header().get(HttpStatic.CONTENT_TYPE_STRING) != null) {
 			//检查 body 大小是否启用 gzip
 			if(httpResponse.body().size() > webConfig.getGzipMinSize()){
 				//检查 MimeType 是否启用 gzip
 				for(String gzipMimeType : webConfig.getGzipMimeType()){
-					if(httpResponse.header().get("Content-Type").contains(gzipMimeType)){
+					if(httpResponse.header().get(HttpStatic.CONTENT_TYPE_STRING).contains(gzipMimeType)){
 						httpResponse.setCompress(true);
 					}
 				}
@@ -275,6 +276,7 @@ public class WebServerHandler implements IoHandler {
 	 * @param httpResponse HTTP 响应对象
 	 * @return HTTP 响应对象
 	 */
+	private static String upgradeStatusCode = "Switching Protocols";
 	public HttpResponse disposeUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 
 		//如果不是匹配的路由则关闭连接
@@ -283,18 +285,18 @@ public class WebServerHandler implements IoHandler {
 
 			//初始化响应消息
 			httpResponse.protocol().setStatus(101);
-			httpResponse.protocol().setStatusCode("Switching Protocols");
-			httpResponse.header().put("Connection", "Upgrade");
+			httpResponse.protocol().setStatusCode(upgradeStatusCode);
+			httpResponse.header().put(HttpStatic.CONNECTION_STRING, HttpStatic.UPGRADE_STRING);
 
-			if(httpRequest.header()!=null && "websocket".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
+			if(httpRequest.header()!=null && HttpStatic.WEB_SOCKET_STRING.equals(httpRequest.header().get(HttpStatic.UPGRADE_STRING))){
 
-				httpResponse.header().put("Upgrade", "websocket");
-				String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get("Sec-WebSocket-Key"));
-				httpResponse.header().put("Sec-WebSocket-Accept", webSocketKey);
+				httpResponse.header().put(HttpStatic.UPGRADE_STRING, HttpStatic.WEB_SOCKET_STRING);
+				String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get(HttpStatic.SEC_WEB_SOCKET_KEY_STRING));
+				httpResponse.header().put(HttpStatic.SEC_WEB_SOCKET_ACCEPT_STRING, webSocketKey);
 			}
 
-			else if(httpRequest.header()!=null && "h2c".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
-				httpResponse.header().put("Upgrade", "h2c");
+			else if(httpRequest.header()!=null && "h2c".equals(httpRequest.header().get(HttpStatic.UPGRADE_STRING))){
+				httpResponse.header().put(HttpStatic.UPGRADE_STRING, "h2c");
 				//这里写 HTTP2的实现,暂时留空
 			}
 		} else {
