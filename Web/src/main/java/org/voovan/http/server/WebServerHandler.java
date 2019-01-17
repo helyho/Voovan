@@ -227,9 +227,6 @@ public class WebServerHandler implements IoHandler {
 	 */
 	public HttpResponse disposeHttp(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 
-		// 处理响应请求
-		httpDispatcher.process(httpRequest, httpResponse);
-
 		//如果是长连接则填充响应报文
 		if (httpRequest.header().contain(HttpStatic.CONNECTION_STRING)) {
 			if(httpRequest.header().get(HttpStatic.CONNECTION_STRING).toLowerCase().contains(HttpStatic.KEEP_ALIVE_STRING)) {
@@ -264,6 +261,9 @@ public class WebServerHandler implements IoHandler {
 				}
 			}
 		}
+
+		// 处理响应请求
+		httpDispatcher.process(httpRequest, httpResponse);
 
 		return httpResponse;
 	}
