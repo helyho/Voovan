@@ -1,5 +1,7 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.http.message.HttpStatic;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -100,9 +102,9 @@ public class Header {
 			String value = headerItemEntry.getValue();
 			if(!key.isEmpty()){
 				headerContent.append(key);
-				headerContent.append(": ");
+				headerContent.append(HttpStatic.HEADER_SPLITER_STRING);
 				headerContent.append(value);
-				headerContent.append("\r\n");
+				headerContent.append(HttpStatic.LINE_MARK_STRING);
 			}
 		}
 		return headerContent.toString();

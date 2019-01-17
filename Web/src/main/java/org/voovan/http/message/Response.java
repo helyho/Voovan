@@ -228,7 +228,7 @@ public class Response {
 
 					//判断是否需要发送 chunked 段长度
 					if (isCompress() && readSize != 0) {
-						String chunkedLengthLine = Integer.toHexString(readSize) + "\r\n";
+						String chunkedLengthLine = Integer.toHexString(readSize) + HttpStatic.LINE_MARK_STRING;
 						byteBuffer.put(chunkedLengthLine.getBytes());
 					}
 

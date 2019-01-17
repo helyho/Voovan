@@ -15,6 +15,8 @@ public class HttpStatic {
 
 	public static final Map<String, HttpItem> HTTP_ITEM_MAP = new ConcurrentHashMap<String, HttpItem>();
 
+	public static final String HEADER_SPLITER_STRING = ": ";
+
 	// headers
 	public static final String ACCEPT_STRING = "Accept";
 	public static final String ACCEPT_CHARSET_STRING = "Accept-Charset";
