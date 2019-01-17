@@ -175,16 +175,18 @@ public class Response {
 		stringBuilder.append(genCookie());
 
 
-		stringBuilder.append("\r\n");
+		stringBuilder.append(HttpStatic.LINE_MARK_STRING);
 
 		return TString.toAsciiBytes(stringBuilder.toString());
 	}
 
+	public static byte[] EMPTY_BYTES = new byte[0];
+
 	private byte[] readEnd(){
 		if (isCompress) {
-			return "0\r\n\r\n".getBytes();
+			return TString.toAsciiBytes("0" + HttpStatic.BODY_MARK_STRING);
 		}else{
-			return new byte[0];
+			return EMPTY_BYTES;
 		}
 	}
 
