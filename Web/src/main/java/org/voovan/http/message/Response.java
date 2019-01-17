@@ -9,7 +9,6 @@ import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -125,17 +124,17 @@ public class Response {
 	private void initHeader() {
 		// 根据压缩属性确定 Header 的一些属性内容
 		if (body.size()!=0 && isCompress) {
-			header.put("Transfer-Encoding", "chunked");
-			header.put("Content-Encoding", "gzip");
+			header.put(HttpStatic.TRANSFER_ENCODING_STRING, HttpStatic.CHUNKED_STRING);
+			header.put(HttpStatic.CONTENT_ENCODING_STRING, HttpStatic.GZIP_STRING);
 		} else {
-			header.put("Content-Length", Integer.toString((int)body.size()));
+			header.put(HttpStatic.CONTENT_LENGTH_STRING, Integer.toString((int)body.size()));
 		}
 
-		if (TString.isNullOrEmpty(header.get("Content-Type"))) {
-			header.put("Content-Type", "text/html");
+		if (TString.isNullOrEmpty(header.get(HttpStatic.CONTENT_TYPE_STRING))) {
+			header.put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.TEXT_HTML_STRING  + ";charset=" + WebContext.getWebServerConfig().getCharacterSet());
+		} else {
+			header.put(HttpStatic.CONTENT_TYPE_STRING, header.get(HttpStatic.CONTENT_TYPE_STRING) + ";charset=" + WebContext.getWebServerConfig().getCharacterSet());
 		}
-
-		header.put("Content-Type", TString.assembly(header.get("Content-Type"), ";charset=", WebContext.getWebServerConfig().getCharacterSet()));
 	}
 
 	/**
@@ -148,7 +147,7 @@ public class Response {
 		for (Cookie cookie : cookies) {
 			cookieString.append("Set-Cookie: ");
 			cookieString.append(cookie.toString());
-			cookieString.append("\r\n");
+			cookieString.append(HttpStatic.LINE_MARK_STRING);
 		}
 		return cookieString.toString();
 	}
