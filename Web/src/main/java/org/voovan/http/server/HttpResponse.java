@@ -56,14 +56,14 @@ public class HttpResponse extends Response {
 	protected HttpResponse(String characterSet, IoSession socketSession) {
 		this.characterSet=characterSet;
 		//设置当前响应的时间
-		this.header().put("Date", GMT_TIME);
+		this.header().put(HttpStatic.DATE_STRING, GMT_TIME);
 		this.socketSession = socketSession;
 	}
 
 	public void init(String characterSet, IoSession socketSession){
 		this.characterSet=characterSet;
 		//设置当前响应的时间
-		this.header().put("Date", GMT_TIME);
+		this.header().put(HttpStatic.DATE_STRING, GMT_TIME);
 		this.socketSession = socketSession;
 		this.setCompress(false);
 	}
@@ -168,7 +168,7 @@ public class HttpResponse extends Response {
 	public void redirct(String path){
 		protocol().setStatus(302);
 		protocol().setStatusCode("Moved Permanently");
-		header().put("Location", path);
+		header().put(HttpStatic.LOCATION_STRING, path);
 		this.body().write(" ");
 	}
 }
