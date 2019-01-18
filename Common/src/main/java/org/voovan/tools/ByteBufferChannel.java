@@ -607,7 +607,6 @@ public class ByteBufferChannel {
             }
 
             int writeSize = src.limit() - src.position();
-            int waitCount = 0;
 
             if (writeSize > 0) {
                 //是否扩容
@@ -616,14 +615,8 @@ public class ByteBufferChannel {
                     reallocate(newSize);
                 }
 
-
                 int position = byteBuffer.position();
-
-                try {
-                    byteBuffer.position(writePosition);
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
+				byteBuffer.position(writePosition);
 
                 if(TByteBuffer.moveData(byteBuffer, writeSize)){
 
