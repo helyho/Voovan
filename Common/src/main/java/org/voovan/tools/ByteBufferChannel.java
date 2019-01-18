@@ -498,6 +498,7 @@ public class ByteBufferChannel {
         try{
 
             if(byteBuffer.position() == 0){
+                this.size = byteBuffer.limit();
                 return true;
             }
 
