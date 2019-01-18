@@ -388,7 +388,8 @@ public class HttpParser {
             byteBufferChannel.compact();
         }
 
-        packetMap.put(fixHeaderName(headerName), headerValue);
+        packetMap.put(headerName, headerValue);
+//        packetMap.put(fixHeaderName(headerName), headerValue);
         return position;
 
     }
