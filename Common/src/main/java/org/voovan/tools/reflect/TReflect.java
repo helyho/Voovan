@@ -1,6 +1,7 @@
 package org.voovan.tools.reflect;
 
 
+import org.voovan.Global;
 import org.voovan.tools.*;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.annotation.NotJSON;
@@ -28,6 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class TReflect {
+
     //这里不用 ConcurrentHashMap 的原因是 key 和 value 都不能是 null
     private static Map<String, Field> FIELDS = new ConcurrentHashMap<String ,Field>();
     private static Map<String, Method> METHODS = new ConcurrentHashMap<String ,Method>();
@@ -74,7 +76,7 @@ public class TReflect {
      */
     public static Field findField(Class<?> clazz, String fieldName) {
 
-        String mark = new StringBuilder(clazz.getCanonicalName()).append("#").append(fieldName).toString();
+        String mark = new StringBuilder(clazz.getCanonicalName()).append(Global.CHAR_SHAPE).append(fieldName).toString();
 
         Field field = FIELDS.get(mark);
 
@@ -109,7 +111,7 @@ public class TReflect {
     public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName)
             throws ReflectiveOperationException{
 
-        String marker = new StringBuilder(clazz.getCanonicalName()).append("#").append(fieldName).toString();
+        String marker = new StringBuilder(clazz.getCanonicalName()).append(Global.CHAR_SHAPE).append(fieldName).toString();
 
         Field field = FIELDS.get(marker);
         if (field==null){
@@ -267,7 +269,7 @@ public class TReflect {
      */
     public static Method findMethod(Class<?> clazz, String name,
                                     Class<?>... paramTypes) throws ReflectiveOperationException {
-        StringBuilder markBuilder = new StringBuilder(clazz.getCanonicalName()).append("#").append(name);
+        StringBuilder markBuilder = new StringBuilder(clazz.getCanonicalName()).append(Global.CHAR_SHAPE).append(name);
         for(Class<?> paramType : paramTypes){
             markBuilder.append("$").append(paramType.getCanonicalName());
         }
@@ -304,7 +306,7 @@ public class TReflect {
      */
     public static Method[] findMethod(Class<?> clazz, String name,
                                       int paramCount) throws ReflectiveOperationException {
-        String marker = new StringBuilder(clazz.getCanonicalName()).append("#").append(name).append("@").append(paramCount).toString();
+        String marker = new StringBuilder(clazz.getCanonicalName()).append(Global.CHAR_SHAPE).append(name).append(Global.CHAR_AT).append(paramCount).toString();
 
         Method[] methods = METHOD_ARRAYS.get(marker);
 
@@ -371,7 +373,7 @@ public class TReflect {
 
         Method[] methods = null;
 
-        String marker = new StringBuilder(clazz.getCanonicalName()).append("#").append(name).toString();
+        String marker = new StringBuilder(clazz.getCanonicalName()).append(Global.CHAR_SHAPE).append(name).toString();
         methods = METHOD_ARRAYS.get(marker);
         if(methods==null){
 
@@ -936,7 +938,7 @@ public class TReflect {
                         setFieldValue(obj, fieldName, value);
                     }catch(Exception e){
                         throw new ReflectiveOperationException("Fill object " + obj.getClass().getCanonicalName() +
-                                "#"+fieldName+" failed", e);
+                                Global.CHAR_SHAPE+fieldName+" failed", e);
                     }
                 }
             }
@@ -1086,7 +1088,7 @@ public class TReflect {
             return true;
         }
 
-        String marker = new StringBuilder(type.toString()).append("@").append(interfaceClass.toString()).toString();
+        String marker = new StringBuilder(type.toString()).append(Global.CHAR_AT).append(interfaceClass.toString()).toString();
 
         Boolean result = CLASS_HIERARCHY.get(marker);
 
@@ -1128,7 +1130,7 @@ public class TReflect {
             return true;
         }
 
-        String marker = new StringBuilder(type.toString()).append("#").append(extendsClass.toString()).toString();
+        String marker = new StringBuilder(type.toString()).append(Global.CHAR_SHAPE).append(extendsClass.toString()).toString();
         Boolean result = CLASS_HIERARCHY.get(marker);
 
         if(result == null) {
@@ -1216,25 +1218,25 @@ public class TReflect {
             jsonStrBuilder.append(clazz.getName());
         } else if(clazz.isArray()){
             String clazzName = clazz.getCanonicalName();
-            clazzName = clazzName.substring(clazzName.lastIndexOf(".")+1,clazzName.length()-2)+"[]";
+            clazzName = clazzName.substring(clazzName.lastIndexOf(Global.STR_POINT)+1,clazzName.length()-2)+"[]";
             jsonStrBuilder.append(clazzName);
         } else {
-            jsonStrBuilder.append("{");
+            jsonStrBuilder.append(Global.STR_LC_BRACES);
             for (Field field : TReflect.getFields(clazz)) {
-                jsonStrBuilder.append("\"");
+                jsonStrBuilder.append(Global.STR_QUOTE);
                 jsonStrBuilder.append(field.getName());
-                jsonStrBuilder.append("\":");
+                jsonStrBuilder.append(Global.STR_QUOTE).append(Global.STR_COLON);
                 String filedValueModel = getClazzJSONModel(field.getType());
-                if(filedValueModel.startsWith("{") && filedValueModel.endsWith("}")) {
+                if(filedValueModel.startsWith(Global.STR_LC_BRACES) && filedValueModel.endsWith(Global.STR_RC_BRACES)) {
                     jsonStrBuilder.append(filedValueModel);
-                    jsonStrBuilder.append(",");
-                } else if(filedValueModel.startsWith("[") && filedValueModel.endsWith("]")) {
+                    jsonStrBuilder.append(Global.STR_COMMA);
+                } else if(filedValueModel.startsWith(Global.STR_LS_BRACES) && filedValueModel.endsWith(Global.STR_RS_BRACES)) {
                     jsonStrBuilder.append(filedValueModel);
-                    jsonStrBuilder.append(",");
+                    jsonStrBuilder.append(Global.STR_COMMA);
                 } else {
-                    jsonStrBuilder.append("\"");
+                    jsonStrBuilder.append(Global.STR_QUOTE);
                     jsonStrBuilder.append(filedValueModel);
-                    jsonStrBuilder.append("\",");
+                    jsonStrBuilder.append(Global.STR_QUOTE).append(Global.STR_COMMA);
                 }
             }
             jsonStrBuilder.deleteCharAt(jsonStrBuilder.length()-1);
@@ -1253,7 +1255,7 @@ public class TReflect {
     public static Map<String, Object> fieldFilter(Object obj, String ... fields) {
         Map<String, Object> resultMap = new LinkedHashMap<String, Object>();
         for(String fieldFilter : fields){
-            int firstIndex = fieldFilter.indexOf("[");
+            int firstIndex = fieldFilter.indexOf(Global.STR_LS_BRACES);
             String field = firstIndex == -1? fieldFilter : fieldFilter.substring(0, firstIndex);
             ;
             Object value = null;
@@ -1344,7 +1346,7 @@ public class TReflect {
      * @return true: 是JDK 中定义的类, false:非JDK 中定义的类
      */
     public static boolean isSystemType(String className) {
-        if(className.indexOf(".")==-1){
+        if(className.indexOf(Global.STR_POINT)==-1){
             return true;
         }
 

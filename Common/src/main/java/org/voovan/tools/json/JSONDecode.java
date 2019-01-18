@@ -1,5 +1,6 @@
 package org.voovan.tools.json;
 
+import org.voovan.Global;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
@@ -50,11 +51,11 @@ public class JSONDecode {
 			if (type == 0) {
 				char flag = (char) reader.read();
 
-				if (flag == '{') {
+				if (flag == Global.CHAR_LC_BRACES) {
 					type = E_OBJECT;
 				}
 
-				if (flag == '[') {
+				if (flag == Global.CHAR_LS_BRACES) {
 					type = E_ARRAY;
 				}
 			}
@@ -100,19 +101,19 @@ public class JSONDecode {
 				isFirstChar = false;
 
 				//分析字符串,如果是字符串不作任何处理
-				if (currentChar == '"' || currentChar == '\'') {
+				if (currentChar == Global.CHAR_QUOTE || currentChar == Global.CHAR_S_QUOTE) {
 					//i小于1的不是转意字符,判断为字符串(因为转意字符要2个字节),大于2的要判断是否\\"的转义字符
-					if (isComment==0 && nextChar != 0 && prevChar != '\\') {
+					if (isComment==0 && nextChar != 0 && prevChar != Global.CHAR_SLASH) {
 
 						//字符串起始的"
-						if (stringWarpFlag == '\0') {
+						if (stringWarpFlag == Global.CHAR_EOF) {
 							stringWarpFlag = currentChar;
 							isString = true;
 						}
 
 						//字符串结束的"
-						else if (stringWarpFlag != '\0' && currentChar == stringWarpFlag) {
-							stringWarpFlag = '\0';
+						else if (stringWarpFlag != Global.CHAR_EOF && currentChar == stringWarpFlag) {
+							stringWarpFlag = Global.CHAR_EOF;
 							isString = false;
 						}
 					}
@@ -121,12 +122,12 @@ public class JSONDecode {
 				//处理注释
 				if (!isString) {
 
-					if(currentChar == '/' && isComment == 0) {
-						if (nextChar != 0 && nextChar == '/'){
+					if(currentChar == Global.CHAR_BACKSLASH && isComment == 0) {
+						if (nextChar != 0 && nextChar == Global.CHAR_BACKSLASH){
 							isComment = 1; //单行注释
 						}
 
-						if (nextChar != 0 && nextChar == '*') {
+						if (nextChar != 0 && nextChar == Global.CHAR_STAR) {
 							isComment = 2; //多行注释
 							if (currentChar == 65535) {
 								return jsonResult;
@@ -136,11 +137,11 @@ public class JSONDecode {
 					}
 
 					if(isComment > 0) {
-						if (isComment == 1 && currentChar == '\n' ) {
+						if (isComment == 1 && currentChar == Global.CHAR_LF ) {
 							isComment = 0; //单行注释结束
 						}
 
-						if (isComment == 2 && currentChar == '/' && (prevChar != 0 && prevChar == '*')) {
+						if (isComment == 2 && currentChar == Global.CHAR_BACKSLASH && (prevChar != 0 && prevChar == Global.CHAR_STAR)) {
 							isComment = 0; //多行注释结束
 							if (currentChar == 65535) {
 								return jsonResult;
@@ -158,15 +159,15 @@ public class JSONDecode {
 				//处理对象的包裹
 				if(!isString &&  !isFunction) {
 					//JSON数组字符串分组,以符号对称的方式取 []
-					if (currentChar == '[') {
+					if (currentChar == Global.CHAR_LS_BRACES) {
 						reader.skip(-1);
 						//递归解析处理,取 value 对象
 						value = JSONDecode.parse(reader);
 						continue;
-					} else if (currentChar == ']') {
+					} else if (currentChar == Global.CHAR_RS_BRACES) {
 						//最后一个元素,追加一个,号来将其附加到结果集
 						if (itemString.length() != 0 || value != null) {
-							currentChar = ',';
+							currentChar = Global.CHAR_COMMA;
 							reader.skip(-1);
 						} else {
 							return jsonResult;
@@ -174,15 +175,15 @@ public class JSONDecode {
 					}
 
 					//JSON对象字符串分组,以符号对称的方式取 {}
-					else if (currentChar == '{') {
+					else if (currentChar == Global.CHAR_LC_BRACES) {
 						reader.skip(-1);
 						//递归解析处理,取 value 对象
 						value = JSONDecode.parse(reader);
 						continue;
-					} else if (currentChar == '}') {
+					} else if (currentChar == Global.CHAR_RC_BRACES) {
 						//最后一个元素,追加一个,号来将其附加到结果集
 						if (itemString.length() != 0 || value != null) {
-							currentChar = ',';
+							currentChar = Global.CHAR_COMMA;
 							reader.skip(-1);
 						} else {
 							return jsonResult;
@@ -205,9 +206,9 @@ public class JSONDecode {
 					//如果是函数 function 起始
 					if (!isString && itemString.toString().trim().startsWith("function")) {
 
-						if (currentChar == '{') {
+						if (currentChar == Global.CHAR_LC_BRACES) {
 							functionWarpFlag++;
-						} else if (currentChar == '}') {
+						} else if (currentChar == Global.CHAR_RC_BRACES) {
 							functionWarpFlag--;
 
 							if (functionWarpFlag == 0) {
@@ -222,13 +223,13 @@ public class JSONDecode {
 
 					if(!isFunction) {
 						//JSON对象字符串分组,取 Key 对象,当前字符是:则取 Key
-						if (currentChar == ':' || currentChar == '=') {
+						if (currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_EQUAL) {
 							keyString = itemString.substring(0, itemString.length() - 1).trim();
 							itemString = new StringBuilder();
 						}
 
 						//JSON对象字符串分组,取 value 对象,当前字符是,则取 value
-						if (currentChar == ',') {
+						if (currentChar == Global.CHAR_COMMA) {
 							if (value == null) {
 								value = itemString.substring(0, itemString.length() - 1).trim();
 							}
@@ -253,14 +254,14 @@ public class JSONDecode {
 						String stringValue = (String)value;
 
 						//判断是字符串去掉头尾的包裹符号
-						if (stringValue.length() >= 2 && stringValue.charAt(0) == '\"' && stringValue.charAt(stringValue.length()-1) == '\"') {
+						if (stringValue.length() >= 2 && stringValue.charAt(0) == Global.CHAR_QUOTE && stringValue.charAt(stringValue.length()-1) == Global.CHAR_QUOTE) {
 							value = stringValue.substring(1, stringValue.length() - 1);
 							if(JSON.isConvertEscapeChar()) {
 								value = TString.unConvertEscapeChar(value.toString());
 							}
 						}
 						//判断是字符串去掉头尾的包裹符号
-						else if (stringValue.length() >= 2 && stringValue.charAt(0) == '\'' && stringValue.charAt(stringValue.length()-1) == '\'') {
+						else if (stringValue.length() >= 2 && stringValue.charAt(0) == Global.CHAR_S_QUOTE && stringValue.charAt(stringValue.length()-1) == Global.CHAR_S_QUOTE) {
 							value = stringValue.substring(1, stringValue.length() - 1);
 							if(JSON.isConvertEscapeChar()) {
 								value = TString.unConvertEscapeChar(value.toString());
@@ -312,11 +313,11 @@ public class JSONDecode {
 						HashMap<String, Object> result = (HashMap<String, Object>) jsonResult;
 						if (keyString != null) {
 							//判断是字符串去掉头尾的包裹符号
-							if (keyString.length() >= 2 && keyString.charAt(0) == '\"' && keyString.charAt(keyString.length()-1) == '\"') {
+							if (keyString.length() >= 2 && keyString.charAt(0) == Global.CHAR_QUOTE && keyString.charAt(keyString.length()-1) == Global.CHAR_QUOTE) {
 								keyString = keyString.substring(1, keyString.length() - 1);
 							}
 							//判断是字符串去掉头尾的包裹符号
-							if (keyString.length() >= 2 && keyString.charAt(0) == '\'' && keyString.charAt(keyString.length()-1) == '\'') {
+							if (keyString.length() >= 2 && keyString.charAt(0) == Global.CHAR_S_QUOTE && keyString.charAt(keyString.length()-1) == Global.CHAR_S_QUOTE) {
 								keyString = keyString.substring(1, keyString.length() - 1);
 							}
 							result.put(keyString, value);

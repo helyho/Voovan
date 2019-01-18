@@ -116,13 +116,13 @@ public class HttpParser {
         for(String groupString : searchedStrings){
             //这里不用 split 的原因是有可能等号后的值字符串中出现等号
             String[] equalStrings = new String[2];
-            int equalCharIndex= groupString.indexOf(Global.CHAR_EQUAL);
+            int equalCharIndex= groupString.indexOf(Global.STR_EQUAL);
             equalStrings[0] = groupString.substring(0,equalCharIndex);
             equalStrings[1] = groupString.substring(equalCharIndex+1,groupString.length());
             if(equalStrings.length==2){
                 String key = equalStrings[0];
                 String value = equalStrings[1];
-                if(value.startsWith(Global.CHAR_QUOTATION) && value.endsWith(Global.CHAR_QUOTATION)){
+                if(value.startsWith(Global.STR_QUOTE) && value.endsWith(Global.STR_QUOTE)){
                     value = value.substring(1,value.length()-1);
                 }
                 equalMap.put(key, value);
@@ -221,6 +221,8 @@ public class HttpParser {
      * @return 解析后的便宜量
      * @throws ParserException 解析异常
      */
+
+
     public static int parserProtocol(Map<String, Object> packetMap, ByteBufferChannel byteBufferChannel) throws ParserException {
         StringBuilder stringBuilder = THREAD_STRING_BUILDER.get();
         stringBuilder.setLength(0);
@@ -229,8 +231,8 @@ public class HttpParser {
         //遍历 Protocol
         int segment = 0;
         int protocolType = 0; //0: request, 1:response
-        char prevChar = '\0';
-        char currentChar = '\0';
+        byte prevByte = '\0';
+        byte currentByte = '\0';
 
         ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
@@ -241,11 +243,11 @@ public class HttpParser {
 			        throw new ParserException("Parse header reach the stream end");
 		        }
 
-		        currentChar = (char) (byteBuffer.get(position) & 0xFF);
+		        currentByte = byteBuffer.get(position);
 		        position++;
 
 
-		        if (currentChar == '/') {
+		        if (currentByte == Global.BYTE_BACKSLASH) {
 			        if (segment == 0 || segment == 2) {
 				        if (stringBuilder.length() == 4 && stringBuilder.indexOf(HttpStatic.HTTP_STRING) == 0) {
 					        if (segment == 0) {
@@ -257,7 +259,7 @@ public class HttpParser {
 
 				        continue;
 			        }
-		        } else if (currentChar == ' ') {
+		        } else if (currentByte == Global.BYTE_SPACE) {
 			        if (segment == 0) {
 				        if (protocolType == 0) {
 					        packetMap.put(FL_METHOD, stringBuilder.toString());
@@ -286,15 +288,13 @@ public class HttpParser {
 			        }
 
 			        continue;
-		        } else if (currentChar == '?') {
+		        } else if (currentByte == Global.BYTE_QUESTION) {
 			        if (segment == 1) {
 				        packetMap.put(FL_PATH, stringBuilder.toString());
                         stringBuilder.setLength(0);
 				        continue;
 			        }
-		        }
-
-		        if (prevChar == '\r' && currentChar == '\n' && segment == 2) {
+		        } else if (prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && segment == 2) {
 			        if (protocolType == 0) {
 				        packetMap.put(FL_VERSION, stringBuilder.toString());
 			        } else {
@@ -304,13 +304,13 @@ public class HttpParser {
 			        break;
 		        }
 
+		        prevByte = currentByte;
 
-		        prevChar = currentChar;
-		        if (currentChar == '\r') {
-			        continue;
-		        }
+                if (currentByte == Global.BYTE_CR) {
+                    continue;
+                }
 
-		        stringBuilder.append(currentChar);
+		        stringBuilder.append((char)(currentByte & 0xFF));
 	        }
         } finally {
             byteBufferChannel.compact();
@@ -340,8 +340,8 @@ public class HttpParser {
 
         //遍历 Protocol
         boolean isHeaderName = true;
-        char prevChar = '\0';
-        char currentChar = '\0';
+        byte prevByte = '\0';
+        byte currentByte = '\0';
         String headerName = null;
         String headerValue = null;
 
@@ -354,34 +354,34 @@ public class HttpParser {
                     throw new ParserException("Parse header reach the stream end");
                 }
 
-                currentChar = (char) (byteBuffer.get(position) & 0xFF);
+                currentByte = byteBuffer.get(position);
                 position++;
 
-                if (isHeaderName && prevChar == ':' && currentChar == ' ') {
+                if (isHeaderName && prevByte == Global.BYTE_COLON && currentByte == Global.BYTE_SPACE) {
                     headerName = stringBuilder.toString();
                     isHeaderName = false;
                     stringBuilder.setLength(0);
                     continue;
-                } else if (!isHeaderName && prevChar == '\r' && currentChar == '\n') {
+                } else if (!isHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
                     headerValue = stringBuilder.toString();
                     break;
                 }
 
                 //http 头结束了
-                if (isHeaderName && prevChar == '\r' && currentChar == '\n' && position == offset + 2) {
+                if (isHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && position == offset + 2) {
                     packetMap.put(null, null);
                     return position;
                 }
 
-                prevChar = currentChar;
+                prevByte = currentByte;
 
-                if (isHeaderName && currentChar == ':') {
+                if (isHeaderName && currentByte == Global.BYTE_COLON) {
                     continue;
-                } else if (!isHeaderName && currentChar == '\r') {
+                } else if (!isHeaderName && currentByte == Global.BYTE_CR) {
                     continue;
                 }
 
-                stringBuilder.append(currentChar);
+                stringBuilder.append((char)(currentByte & 0xFF));
 
             }
         } finally {
