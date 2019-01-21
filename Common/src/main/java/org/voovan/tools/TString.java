@@ -949,7 +949,7 @@ public class TString {
 	}
 
 	/**
-	 * 将字符串转化成 Ascii 的不同三个月左右
+	 * 将字符串转化成 Ascii 的不同
 	 * @param str
 	 * @return
 	 */
@@ -960,5 +960,20 @@ public class TString {
 		}
 
 		return bytes;
+	}
+
+	/**
+	 * byte 转字符串
+	 * @param bytes
+	 * @param length
+	 * @return
+	 */
+	public static String toAsciiString(byte[] bytes, int length) {
+		StringBuilder stringBuilder = new StringBuilder(length);
+		for(int i=0;i<length;i++){
+			stringBuilder.append((char)(bytes[i] & 0xFF));
+		}
+
+		return stringBuilder.toString();
 	}
 }
