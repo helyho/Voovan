@@ -248,8 +248,12 @@ public class HttpStatic {
 	public static final HttpItem BODY_MARK = new HttpItem(BODY_MARK_STRING);
 	public static final HttpItem LINE_MARK = new HttpItem(LINE_MARK_STRING);
 
-	public static final String TEXT_HTML_STRING = "test/html";
+	public static final String TEXT_HTML_STRING = "text/html";
 //	public static final HttpItem TEXT_HTML = new HttpItem(TEXT_HTML_STRING);
+
+
+	public static final String TEXT_PLAIN_STRING = "text/plain";
+//	public static final HttpItem TEXT_PLAIN = new HttpItem(TEXT_PLAIN_STRING);
 
 	public static final String WEB_SOCKET_STRING = "websocket";
 //	public static final HttpItem WEB_SOCKET = new HttpItem(WEB_SOCKET_STRING);
