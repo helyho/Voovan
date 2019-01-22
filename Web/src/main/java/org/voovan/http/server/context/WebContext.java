@@ -79,18 +79,6 @@ public class WebContext {
 	}
 
 	/**
-	 * 是否开启请求缓存机制
-	 * @return true 开启
-	 */
-	public static boolean isRequestCache(){
-		if(webServerConfig != null){
-			return webServerConfig.isRequestCache();
-		} else {
-			return false;
-		}
-	}
-
-	/**
 	 * 从 js 配置文件读取配置信息到 Map
 	 * @param configFile 配置文件的路径
 	 * @return Map 对象
