@@ -98,7 +98,7 @@ public class WebServerFilter implements IoFilter {
 				if (object instanceof ByteBuffer) {
 					int hashcode = -1;
 
-					//获取缓存控制
+					//获取请求缓存
 					if(WebContext.isRequestCache()) {
 						byteBufferChannel.getByteBuffer();
 						int bodyMark = byteBufferChannel.indexOf(HttpStatic.BODY_MARK.getBytes());
@@ -113,7 +113,7 @@ public class WebServerFilter implements IoFilter {
 
 					if(request==null){
 						request = HttpParser.parseRequest(byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
-						//增加缓存控制
+						//增加请求缓存
 						if(WebContext.isRequestCache()) {
 
 							if (request.protocol().getMethod().equals("GET")
