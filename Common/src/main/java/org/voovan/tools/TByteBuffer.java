@@ -208,6 +208,28 @@ public class TByteBuffer {
     }
 
     /**
+     * 复制一个 Bytebuffer 对象
+     * @param byteBuffer 原 ByteBuffer 对象
+     * @return 复制出的对象
+     * @throws ReflectiveOperationException
+     */
+    public static ByteBuffer copy(ByteBuffer byteBuffer) throws ReflectiveOperationException {
+
+        ByteBuffer newByteBuffer = TByteBuffer.allocateDirect(byteBuffer.capacity());
+
+        if(byteBuffer.hasRemaining()) {
+            long address = getAddress(byteBuffer);
+            long newAddress = getAddress(newByteBuffer);
+            TUnsafe.getUnsafe().copyMemory(address, newAddress + byteBuffer.position(), byteBuffer.remaining());
+        }
+
+        newByteBuffer.position(byteBuffer.position());
+        newByteBuffer.limit(byteBuffer.limit());
+
+        return newByteBuffer;
+    }
+
+    /**
      * 释放byteBuffer
      *      释放对外的 bytebuffer
      * @param byteBuffer bytebuffer 对象
