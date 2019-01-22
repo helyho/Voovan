@@ -96,35 +96,7 @@ public class WebServerFilter implements IoFilter {
 			Request request = null;
 			try {
 				if (object instanceof ByteBuffer) {
-					int hashcode = -1;
-					int bodyMarkIndex = -1;
-					//获取请求缓存
-					if(WebContext.isRequestCache()) {
-						byteBufferChannel.getByteBuffer();
-						bodyMarkIndex = byteBufferChannel.indexOf(HttpStatic.BODY_MARK.getBytes()) + 4;
-						hashcode = byteBufferChannel.slice(bodyMarkIndex).hashCode();
-						byteBufferChannel.compact();
-
-						//缓存控制
-						if (hashcode != -1) {
-							request = REQUEST_CACHE.get(hashcode);
-						}
-					}
-
-					if(request==null) {
-						request = HttpParser.parseRequest(byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
-						//增加请求缓存
-						if (WebContext.isRequestCache()) {
-							if (request.protocol().getMethod().equals("GET")
-									&& !request.header().contain(HttpStatic.COOKIE_STRING)) {
-								REQUEST_CACHE.put(hashcode, request);
-								HttpParser.THREAD_REQUEST.set(new Request());
-							}
-						}
-					} else {
-						//清理缓冲区
-						byteBufferChannel.shrink(bodyMarkIndex);
-					}
+					request = HttpParser.parseRequest(byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
 
 					if(request!=null){
 						return request;

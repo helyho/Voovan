@@ -37,7 +37,6 @@ public class WebServerConfig {
     private int keepAliveTimeout    = 60;
     private boolean accessLog       = false;
     private boolean gzip            = true;
-    private boolean requestCache    = true;
     private int gzipMinSize = 2048;
     private List<String> gzipMimeType = TObject.asList("text/html","text/xml","text/javascript","application/javascript","text/css","text/plain","text/json","application/json");
     private HttpsConfig https;
@@ -154,14 +153,6 @@ public class WebServerConfig {
 
     public void setGzip(boolean gzip) {
         this.gzip = gzip;
-    }
-
-    public boolean isRequestCache() {
-        return requestCache;
-    }
-
-    public void setRequestCache(boolean requestCache) {
-        this.requestCache = requestCache;
     }
 
     public int getGzipMinSize() {
