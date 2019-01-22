@@ -26,10 +26,6 @@ import java.util.regex.Matcher;
 public class Other {
 
     public static void main(String[] args) throws IOException {
-        long address = TUnsafe.getUnsafe().allocateMemory(1024);
-        TUnsafe.getUnsafe().setMemory(address, 1024, (byte) 9);
-        TUnsafe.getUnsafe().putByte(address, (byte) 51);
-        TUnsafe.getUnsafe().freeMemory(address);
-        System.out.println(TUnsafe.getUnsafe().getByte(address));
+        Object[] a = new Object[Integer.MAX_VALUE/2];
     }
 }
