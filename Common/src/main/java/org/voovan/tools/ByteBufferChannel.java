@@ -152,7 +152,7 @@ public class ByteBufferChannel {
     /**
      * 立刻释放内存
      */
-    public void release(){
+    public synchronized void release(){
         if(byteBuffer==null){
             return;
         }
@@ -171,7 +171,7 @@ public class ByteBufferChannel {
                 size = -1;
             }
         } finally {
-            while(lock.isLocked()) {
+            while(lock.isLocked() && lock.isHeldByCurrentThread()) {
                 lock.unlock();
             }
         }
@@ -476,15 +476,17 @@ public class ByteBufferChannel {
      * 获取 bytebuffer 的 hashcode
      * @return bytebuffer 的 hashcode
      */
-    public int getByteBufferHashCode(){
+    public ByteBuffer slice(int size){
 
         lock.lock();
+        int oldLimit = byteBuffer.limit();
         try {
             checkRelease();
-            return byteBuffer.hashCode();
-        } catch (MemoryReleasedException e) {
-            return -1;
+
+            byteBuffer.limit(byteBuffer.position()+size);
+            return byteBuffer.slice();
         } finally {
+            byteBuffer.limit(oldLimit);
             lock.unlock();
         }
     }

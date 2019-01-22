@@ -6,6 +6,7 @@ import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.exception.ParserException;
 import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.tools.*;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
@@ -13,6 +14,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 
 /**
@@ -51,7 +54,19 @@ public class HttpParser {
     public static ThreadLocal<Response> THREAD_RESPONSE = ThreadLocal.withInitial(()->new Response());
     private static ThreadLocal<StringBuilder> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new StringBuilder(512));
 
-    /**
+
+    private static ConcurrentSkipListMap<Integer, Request> REQUEST_CACHE = new ConcurrentSkipListMap<Integer, Request>();
+
+    static {
+        Global.getHashWheelTimer().addTask(new HashWheelTask() {
+            @Override
+            public void run() {
+                REQUEST_CACHE.clear();
+            }
+        }, 1);
+    }
+
+	/**
      * 私有构造函数
      * 该类无法被实例化
      */
@@ -737,7 +752,18 @@ public class HttpParser {
      * @throws IOException IO 异常
      */
     @SuppressWarnings("unchecked")
-    public static Request parseRequest(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
+    public static Request parseRequest(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException {
+        Request request = null;
+        int bodyMark = byteBufferChannel.indexOf(HttpStatic.BODY_MARK.getBytes());
+        int hashcode = byteBufferChannel.slice(bodyMark).hashCode();
+
+    	//缓存控制
+        if(hashcode!=-1) {
+            request = REQUEST_CACHE.get(hashcode);
+            if (request != null) {
+                return request;
+            }
+        }
 
         Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
         try {
@@ -752,7 +778,7 @@ public class HttpParser {
             return null;
         }
 
-        Request request = THREAD_REQUEST.get();
+        request = THREAD_REQUEST.get();
         request.clear();
         //填充报文到请求对象
         Set<Entry<String, Object>> parsedItems= packetMap.entrySet();
@@ -824,6 +850,13 @@ public class HttpParser {
 
         packetMap.clear();
 
+
+        //缓存控制
+        if(request.protocol().getMethod().equals("GET")
+		        && !request.header().contain(HttpStatic.COOKIE_STRING)){
+	        REQUEST_CACHE.put(hashcode, request);
+	        THREAD_REQUEST.set(new Request());
+        }
         return request;
     }
 
