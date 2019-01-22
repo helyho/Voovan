@@ -41,7 +41,7 @@ public class WebServerFilter implements IoFilter {
 			public void run() {
 				REQUEST_CACHE.clear();
 			}
-		}, 1);
+		}, 1000);
 	}
 
 	/**
