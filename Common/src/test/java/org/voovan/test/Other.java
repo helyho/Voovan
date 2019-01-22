@@ -3,6 +3,7 @@ package org.voovan.test;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
+import org.voovan.tools.TUnsafe;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 
@@ -25,6 +26,10 @@ import java.util.regex.Matcher;
 public class Other {
 
     public static void main(String[] args) throws IOException {
-
+        long address = TUnsafe.getUnsafe().allocateMemory(1024);
+        TUnsafe.getUnsafe().setMemory(address, 1024, (byte) 9);
+        TUnsafe.getUnsafe().putByte(address, (byte) 51);
+        TUnsafe.getUnsafe().freeMemory(address);
+        System.out.println(TUnsafe.getUnsafe().getByte(address));
     }
 }

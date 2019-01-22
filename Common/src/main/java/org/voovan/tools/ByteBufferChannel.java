@@ -473,6 +473,23 @@ public class ByteBufferChannel {
     }
 
     /**
+     * 获取 bytebuffer 的 hashcode
+     * @return bytebuffer 的 hashcode
+     */
+    public int getByteBufferHashCode(){
+
+        lock.lock();
+        try {
+            checkRelease();
+            return byteBuffer.hashCode();
+        } catch (MemoryReleasedException e) {
+            return -1;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
      * 收缩通道
      *      将通过 getByteBuffer() 方法获得 ByteBuffer 对象的操作同步到 ByteBufferChannel
      * 		如果之前最后一次通过 getByteBuffer() 方法获得过 ByteBuffer,则使用这个 ByteBuffer 来收缩通道
@@ -482,14 +499,14 @@ public class ByteBufferChannel {
      */
     public boolean compact(){
         if(isReleased()){
-            if(borrowed.compareAndSet(true, false)) {
+            if(lock.isHeldByCurrentThread() && borrowed.compareAndSet(true, false)) {
                 lock.unlock();
             }
             return false;
         }
 
-        if(size()==0){
-            if(borrowed.compareAndSet(true, false)){
+        if(size()==0 && !byteBuffer.hasRemaining()){
+            if(lock.isHeldByCurrentThread() && borrowed.compareAndSet(true, false)){
                 lock.unlock();
             }
             return true;
