@@ -1,8 +1,10 @@
 package org.voovan.http.server;
 
+import org.voovan.Global;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.HttpRequestType;
 import org.voovan.http.message.HttpParser;
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
@@ -13,10 +15,12 @@ import org.voovan.network.IoSession;
 import org.voovan.network.aio.AioSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * WebServer 过滤器对象
@@ -29,6 +33,16 @@ import java.nio.ByteBuffer;
  */
 public class WebServerFilter implements IoFilter {
 	private static ThreadLocal<ByteBufferChannel> THREAD_BUFFER_CHANNEL = ThreadLocal.withInitial(()->new ByteBufferChannel(TByteBuffer.EMPTY_BYTE_BUFFER));
+	private static ConcurrentSkipListMap<Integer, Request> REQUEST_CACHE = new ConcurrentSkipListMap<Integer, Request>();
+
+	static {
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			@Override
+			public void run() {
+				REQUEST_CACHE.clear();
+			}
+		}, 1);
+	}
 
 	/**
 	 * 将HttpResponse转换成ByteBuffer
@@ -82,7 +96,33 @@ public class WebServerFilter implements IoFilter {
 			Request request = null;
 			try {
 				if (object instanceof ByteBuffer) {
-					request = HttpParser.parseRequest(byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
+					int hashcode = -1;
+
+					//获取缓存控制
+					if(WebContext.isRequestCache()) {
+						byteBufferChannel.getByteBuffer();
+						int bodyMark = byteBufferChannel.indexOf(HttpStatic.BODY_MARK.getBytes());
+						hashcode = byteBufferChannel.slice(bodyMark).hashCode();
+						byteBufferChannel.compact();
+
+						//缓存控制
+						if (hashcode != -1) {
+							request = REQUEST_CACHE.get(hashcode);
+						}
+					}
+
+					if(request==null){
+						request = HttpParser.parseRequest(byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
+						//增加缓存控制
+						if(WebContext.isRequestCache()) {
+
+							if (request.protocol().getMethod().equals("GET")
+									&& !request.header().contain(HttpStatic.COOKIE_STRING)) {
+								REQUEST_CACHE.put(hashcode, request);
+								HttpParser.THREAD_REQUEST.set(new Request());
+							}
+						}
+					}
 
 					if(request!=null){
 						return request;

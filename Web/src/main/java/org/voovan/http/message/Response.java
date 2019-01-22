@@ -131,7 +131,7 @@ public class Response {
 		}
 
 		if (TString.isNullOrEmpty(header.get(HttpStatic.CONTENT_TYPE_STRING))) {
-			header.put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.TEXT_PLAIN_STRING  + WebContext.getWebServerConfig().getResponseCharacterSet());
+			header.put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.TEXT_HTML_STRING  + WebContext.getWebServerConfig().getResponseCharacterSet());
 		} else {
 			header.put(HttpStatic.CONTENT_TYPE_STRING, header.get(HttpStatic.CONTENT_TYPE_STRING) + WebContext.getWebServerConfig().getResponseCharacterSet());
 		}
