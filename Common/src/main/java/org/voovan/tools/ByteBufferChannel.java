@@ -152,7 +152,7 @@ public class ByteBufferChannel {
     /**
      * 立刻释放内存
      */
-    public synchronized void release(){
+    public void release(){
         if(byteBuffer==null){
             return;
         }
