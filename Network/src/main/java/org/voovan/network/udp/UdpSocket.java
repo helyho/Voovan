@@ -172,7 +172,7 @@ public class UdpSocket extends SocketContext {
 
         registerSelector();
 
-        EventTrigger.fireConnectThread(session);
+        EventTrigger.fireConnect(session);
     }
 
     @Override

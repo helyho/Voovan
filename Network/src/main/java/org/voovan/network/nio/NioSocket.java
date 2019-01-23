@@ -185,7 +185,7 @@ public class NioSocket extends SocketContext{
 
 		registerSelector();
 
-		EventTrigger.fireConnectThread(session);
+		EventTrigger.fireConnect(session);
 
 		waitConnected(session);
 	}
@@ -202,7 +202,7 @@ public class NioSocket extends SocketContext{
 				nioSelector = new NioSelector(selector, nioSocket);
 			}
 
-			EventTrigger.fireConnectThread(session);
+			EventTrigger.fireConnect(session);
 		}catch(IOException e){
 			e.printStackTrace();
 		}
@@ -288,7 +288,7 @@ public class NioSocket extends SocketContext{
 			try{
 				socketChannel.close();
 
-				EventTrigger.fireDisconnectThread(session);
+				EventTrigger.fireDisconnect(session);
 
 				NioSelector.unregister(nioSelector);
 				nioSelector.release();

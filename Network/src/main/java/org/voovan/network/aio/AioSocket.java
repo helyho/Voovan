@@ -293,7 +293,7 @@ public class AioSocket extends SocketContext {
 				// 关闭 Socket 连接
 				if (isConnected()) {
 					// 触发 DisConnect 事件
-					EventTrigger.fireDisconnectThread(session);
+					EventTrigger.fireDisconnect(session);
 					socketChannel.close();
 
 					//如果有未读数据等待数据处理完成

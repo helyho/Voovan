@@ -151,7 +151,7 @@ public class NioSelector {
 
 														if (appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
 															// 触发 onReceive 事件
-															EventTrigger.fireReceiveThread(session);
+															EventTrigger.fireReceive(session);
 														}
 
 														// 接收完成后重置buffer对象
