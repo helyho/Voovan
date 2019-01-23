@@ -137,7 +137,7 @@ public class UdpSelector {
 
                                                     if(appByteBufferChannel.size() > 0) {
                                                         // 触发 onReceive 事件
-                                                        EventTrigger.fireReceiveThread(session);
+                                                        EventTrigger.fireReceive(session);
                                                     }
 
                                                     readTempBuffer.clear();
