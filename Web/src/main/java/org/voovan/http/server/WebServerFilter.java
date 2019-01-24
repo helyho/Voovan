@@ -56,7 +56,9 @@ public class WebServerFilter implements IoFilter {
 			HttpResponse httpResponse = (HttpResponse)object;
 
 			try {
-                httpResponse.send();
+				if(httpResponse.isAutoSend()) {
+					httpResponse.send();
+				}
 			}catch(Exception e){
 				Logger.error(e);
 			}
