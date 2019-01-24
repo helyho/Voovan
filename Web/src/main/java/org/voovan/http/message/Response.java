@@ -32,6 +32,7 @@ public class Response {
 	private Body 				body;
 	private boolean				isCompress;
 	protected boolean 			basicSend = false;
+	private boolean             autoSend = true;
 
 
 	/**
@@ -80,6 +81,22 @@ public class Response {
 	 */
 	public void setCompress(boolean isCompress) {
 		this.isCompress = isCompress;
+	}
+
+	/**
+	 * 是否在路由响应式自动发送
+	 * @return true: 自动发送, false: 手动发送
+	 */
+	public boolean isAutoSend() {
+		return autoSend;
+	}
+
+	/**
+	 * 是否在路由响应式自动发送
+	 * @param autoSend true: 自动发送, false: 手动发送
+	 */
+	public void setAutoSend(boolean autoSend) {
+		this.autoSend = autoSend;
 	}
 
 	/**
@@ -277,6 +294,9 @@ public class Response {
 		this.cookies().clear();
 		this.protocol().clear();
 		this.body().clear();
+		isCompress = false;
+		basicSend = false;
+		autoSend = true;
 	}
 
 	@Override
