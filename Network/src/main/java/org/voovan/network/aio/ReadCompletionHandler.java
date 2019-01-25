@@ -84,6 +84,11 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 						}
 					}
 
+					// 继续接收 Read 请求
+					if(aioSocket.isConnected()) {
+						aioSocket.catchRead();
+					}
+
 					if(appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
 						// 触发 onReceive 事件
 						EventTrigger.fireReceiveThread(session);
@@ -91,11 +96,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 					// 接收完成后重置buffer对象
 					readTempBuffer.clear();
-				}
-
-				// 继续接收 Read 请求
-				if(aioSocket.isConnected()) {
-					aioSocket.catchRead(readTempBuffer);
 				}
 			}
 		} catch (IOException e) {
