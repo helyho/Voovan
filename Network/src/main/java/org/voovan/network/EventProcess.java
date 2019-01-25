@@ -181,6 +181,11 @@ public class EventProcess {
     }
 
     public static ByteBuffer loadSplitData(IoSession session, int splitLength) {
+
+        if(splitLength == 0){
+            return TByteBuffer.EMPTY_BYTE_BUFFER;
+        }
+
         ByteBuffer byteBuffer = THREAD_BYTE_BYTE.get();
         byteBuffer.clear();
 
