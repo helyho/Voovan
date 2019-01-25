@@ -81,6 +81,7 @@ public class AioSocket extends SocketContext {
 		session = new AioSession(this);
 
 		readCompletionHandler = new ReadCompletionHandler(this,  session.getReadByteBufferChannel());
+		readByteBuffer = TByteBuffer.allocateDirect(this.getReadBufferSize());
 		connectModel = ConnectModel.CLIENT;
 	}
 
@@ -98,6 +99,7 @@ public class AioSocket extends SocketContext {
 		session = new AioSession(this);
 
 		readCompletionHandler = new ReadCompletionHandler(this, session.getReadByteBufferChannel());
+		readByteBuffer = TByteBuffer.allocateDirect(this.getReadBufferSize());
 		connectModel = ConnectModel.SERVER;
 	}
 
@@ -130,11 +132,13 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 捕获 Aio Read
-	 * @param buffer 缓冲区
 	 */
-	protected void catchRead(ByteBuffer buffer) {
+	protected void catchRead() {
 		if(socketChannel.isOpen()) {
-			socketChannel.read(buffer, readTimeout, TimeUnit.MILLISECONDS, buffer, readCompletionHandler);
+
+			// 接收完成后重置buffer对象
+			readByteBuffer.clear();
+			socketChannel.read(readByteBuffer, readTimeout, TimeUnit.MILLISECONDS, readByteBuffer, readCompletionHandler);
 		}
 	}
 
@@ -185,8 +189,7 @@ public class AioSocket extends SocketContext {
 		}
 
 		//捕获输入事件
-		readByteBuffer = TByteBuffer.allocateDirect(this.getReadBufferSize());
-		catchRead(readByteBuffer);
+		catchRead();
 
 		//触发 connect 事件
 		EventTrigger.fireConnect(session);
@@ -198,8 +201,7 @@ public class AioSocket extends SocketContext {
 		initSSL(session);
 
 		//捕获输入事件
-		readByteBuffer = TByteBuffer.allocateDirect(this.getReadBufferSize());
-		catchRead(readByteBuffer);
+		catchRead();
 
 		//触发 connect 事件
 		EventTrigger.fireConnect(session);
