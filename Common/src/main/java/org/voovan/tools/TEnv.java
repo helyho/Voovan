@@ -35,6 +35,17 @@ public class TEnv {
 	public static Float JDK_VERSION = Float.valueOf(System.getProperty("java.vm.specification.version"));
 	public static String OS_NAME = System.getProperty("os.name").toUpperCase();
 	public static Thread MAIN_THREAD = getMainThread();
+	public static volatile boolean IS_SHUTDOWN = false;
+
+	static {
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				TEnv.IS_SHUTDOWN = true;
+			}
+		});
+	}
+
 
 
 	public static Instrumentation instrumentation;
@@ -209,24 +220,6 @@ public class TEnv {
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * 判断主线程是否结束
-	 * @return true: 主线程结束, false: 主线程未结束
-	 */
-	public static boolean isMainThreadShutDown(){
-		//如果主线程结束,则线程池也关闭
-		if(MAIN_THREAD!=null && MAIN_THREAD.getState() == Thread.State.TERMINATED) {
-			return true;
-		}
-
-		//如果主线程没有的,则线程池也关闭
-		if(MAIN_THREAD==null){
-			return true;
-		}
-
-		return false;
 	}
 
 	/**
