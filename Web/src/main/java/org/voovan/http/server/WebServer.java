@@ -931,7 +931,7 @@ public class WebServer {
 
 		WebServer webServer = WebServer.newInstance(config);
 
-		webServer.serve();
+		webServer.syncServe();
 	}
 
 	/**

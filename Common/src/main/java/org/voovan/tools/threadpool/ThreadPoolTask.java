@@ -80,7 +80,7 @@ public class ThreadPoolTask extends TimerTask {
 			}
 
 			//如果主线程结束,则线程池也关闭
-			if (TEnv.isMainThreadShutDown()) {
+			if (TEnv.IS_SHUTDOWN) {
 				threadPoolInstance.shutdown();
 			}
 		} catch (Exception e){

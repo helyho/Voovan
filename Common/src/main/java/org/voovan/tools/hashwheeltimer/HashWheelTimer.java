@@ -87,10 +87,6 @@ public class HashWheelTimer {
 
             @Override
             public void run() {
-                if(TEnv.isMainThreadShutDown()){
-                    this.cancel();
-                }
-
                 try {
                     rotateWheel.Tick();
                 } catch (Exception e){
@@ -98,7 +94,7 @@ public class HashWheelTimer {
                 }
 
                 //如果进程结束自动结束当前定时器
-                if(TEnv.isMainThreadShutDown()){
+                if(TEnv.IS_SHUTDOWN){
                     tempTimer.cancel();
                 }
             }
