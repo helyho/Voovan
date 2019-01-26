@@ -155,7 +155,9 @@ public class MessageLoader {
 		boolean isConnect = true;
 
 		while ( isConnect && enable &&
-				(stopType== StopType.RUNNING )) {
+				(stopType== StopType.RUNNING ) &&
+				dataByteBufferChannel.size() > 0
+		) {
 
 			if(session.socketContext() instanceof UdpSocket) {
 				isConnect = session.isOpen();
@@ -205,6 +207,7 @@ public class MessageLoader {
 					stopType = StopType.STREAM_END;
 				}else {
 					readZeroCount++;
+					HeartBeat.interceptHeartBeat(session, dataByteBufferChannel);
 					TEnv.sleep(1);
 				}
 			}else{
