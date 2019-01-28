@@ -220,74 +220,40 @@ public class HttpParser {
      * @return 解析后的便宜量
      * @throws ParserException 解析异常
      */
-    public static void parserProtocol(Map<String, Object> packetMap, ByteBuffer byteBuffer) throws ParserException {
+    public static void parserProtocol(Map<String, Object> packetMap, int type, ByteBuffer byteBuffer) throws ParserException {
         StringBuilder stringBuilder = THREAD_STRING_BUILDER.get();
         stringBuilder.setLength(0);
         int position = 0;
 
         //遍历 Protocol
         int segment = 0;
-        int protocolType = 0; //0: request, 1:response
+        String segment_1 = "";
+        String segment_2 = "";
+	    String segment_3 = "";
+	    int questPositiion = -1;
         byte prevByte = '\0';
         byte currentByte = '\0';
 
-		while (byteBuffer.remaining() > 0) {
+        while (byteBuffer.remaining() > 0) {
 
 			currentByte = byteBuffer.get();
 
-			if (currentByte == Global.BYTE_BACKSLASH) {
-				if (segment == 0 || segment == 2) {
-					if (stringBuilder.length() == 4 && stringBuilder.indexOf(HttpStatic.HTTP_STRING) == 0) {
-						if (segment == 0) {
-							protocolType = 1;
-						}
-						packetMap.put(FL_PROTOCOL, HttpStatic.HTTP_STRING);
-						stringBuilder.setLength(0);
-					}
-
-					continue;
-				}
-			} else if (currentByte == Global.BYTE_SPACE) {
+			if (currentByte == Global.BYTE_SPACE) {
 				if (segment == 0) {
-					if (protocolType == 0) {
-						packetMap.put(FL_METHOD, stringBuilder.toString());
-					} else {
-						packetMap.put(FL_VERSION, stringBuilder.toString());
-					}
-
-					stringBuilder.setLength(0);
-					segment = 1;
-					continue;
+					segment_1 = stringBuilder.toString();
+				} else if (segment == 1) {
+					segment_2 = stringBuilder.toString();
 				}
-
-				if (segment == 1) {
-					if (protocolType == 0) {
-						if (packetMap.containsKey(FL_PATH)) {
-							packetMap.put(FL_QUERY_STRING, stringBuilder.toString());
-						} else {
-							packetMap.put(FL_PATH, stringBuilder.toString());
-						}
-					} else {
-						packetMap.put(FL_STATUS, stringBuilder.toString());
-					}
-
-					stringBuilder.setLength(0);
-					segment = 2;
-				}
-
+				stringBuilder.setLength(0);
+				segment++;
 				continue;
 			} else if (currentByte == Global.BYTE_QUESTION) {
 				if (segment == 1) {
-					packetMap.put(FL_PATH, stringBuilder.toString());
-					stringBuilder.setLength(0);
+                    questPositiion = byteBuffer.position();
 					continue;
 				}
 			} else if (prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && segment == 2) {
-				if (protocolType == 0) {
-					packetMap.put(FL_VERSION, stringBuilder.toString());
-				} else {
-					packetMap.put(FL_STATUS_CODE, stringBuilder.toString());
-				}
+		        segment_3 = stringBuilder.toString();
 				stringBuilder.setLength(0);
 				break;
 			}
@@ -298,13 +264,35 @@ public class HttpParser {
 				continue;
 			}
 
-			stringBuilder.append((char)(currentByte & 0xFF));
+			stringBuilder.append((char) (currentByte & 0xFF));
 		}
 
+        if(type == 0) {
+            questPositiion = questPositiion - segment_1.length() - 1;
+        	packetMap.put(FL_PROTOCOL, HttpStatic.HTTP_STRING);
+            packetMap.put(FL_METHOD, segment_1);
+            switch (segment_3.charAt(7)){
+                case '1': packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING); break;
+                case '0': packetMap.put(FL_VERSION, HttpStatic.HTTP_10_STRING); break;
+                case '9': packetMap.put(FL_VERSION, HttpStatic.HTTP_09_STRING); break;
+                default: packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
+            }
+            packetMap.put(FL_PATH, questPositiion > 0 ? segment_2.substring(0, questPositiion-1) : segment_2);
+            if(questPositiion > 0) {
+                packetMap.put(FL_QUERY_STRING, segment_2.substring(questPositiion-1));
+            }
+        }
 
-        if(!packetMap.containsKey(FL_PROTOCOL)){
-            packetMap.clear();
-            byteBuffer.position(0);
+        if(type == 1){
+            packetMap.put(FL_PROTOCOL, HttpStatic.HTTP);
+            switch (segment_1.charAt(7)){
+                case '1': packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING); break;
+                case '0': packetMap.put(FL_VERSION, HttpStatic.HTTP_10_STRING); break;
+                case '9': packetMap.put(FL_VERSION, HttpStatic.HTTP_09_STRING); break;
+                default: packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
+            }
+            packetMap.put(FL_STATUS, segment_2);
+			packetMap.put(FL_STATUS_CODE, segment_3);
         }
     }
 
@@ -378,7 +366,7 @@ public class HttpParser {
      * @throws IOException IO 异常
      */
 
-    public static Map<String, Object> parser(Map<String, Object> packetMap, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
+    public static Map<String, Object> parser(Map<String, Object> packetMap, int type, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
         long totalLength = 0;
         boolean isBodyConent = false;
 
@@ -389,7 +377,7 @@ public class HttpParser {
 	        ByteBuffer innerByteBuffer = byteBufferChannel.getByteBuffer();
 
 	        try {
-		         parserProtocol(packetMap, innerByteBuffer);
+		         parserProtocol(packetMap, type, innerByteBuffer);
 
 		        if (!packetMap.containsKey("FL_Protocol")) {
 			        return null;
@@ -713,7 +701,7 @@ public class HttpParser {
 
         Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
         try {
-            packetMap = parser(packetMap, byteBufferChannel, timeOut, requestMaxSize);
+            packetMap = parser(packetMap, 0, byteBufferChannel, timeOut, requestMaxSize);
         } catch (ParserException e) {
             Logger.warn("HttpParser.parser: " + e.getMessage());
             return null;
@@ -810,7 +798,7 @@ public class HttpParser {
     public static Response parseResponse(ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
         Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
         try {
-            packetMap = parser(packetMap, byteBufferChannel, timeOut, -1);
+            packetMap = parser(packetMap, 1, byteBufferChannel, timeOut, -1);
         } catch (ParserException e) {
             Logger.warn("HttpParser.parser: " + e.getMessage());
             return null;
