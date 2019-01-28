@@ -216,8 +216,8 @@ public class HttpParser {
     /**
      * 解析 HTTP 请求写一行
      * @param packetMap 解析后数据的容器
+     * @param type 解析的报文类型
      * @param byteBuffer ByteBuffer对象
-     * @return 解析后的便宜量
      * @throws ParserException 解析异常
      */
     public static void parserProtocol(Map<String, Object> packetMap, int type, ByteBuffer byteBuffer) throws ParserException {
@@ -267,40 +267,54 @@ public class HttpParser {
 			stringBuilder.append((char) (currentByte & 0xFF));
 		}
 
-        if(type == 0) {
-            questPositiion = questPositiion - segment_1.length() - 1;
-        	packetMap.put(FL_PROTOCOL, HttpStatic.HTTP_STRING);
-            packetMap.put(FL_METHOD, segment_1);
-            switch (segment_3.charAt(7)){
-                case '1': packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING); break;
-                case '0': packetMap.put(FL_VERSION, HttpStatic.HTTP_10_STRING); break;
-                case '9': packetMap.put(FL_VERSION, HttpStatic.HTTP_09_STRING); break;
-                default: packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
-            }
-            packetMap.put(FL_PATH, questPositiion > 0 ? segment_2.substring(0, questPositiion-1) : segment_2);
-            if(questPositiion > 0) {
-                packetMap.put(FL_QUERY_STRING, segment_2.substring(questPositiion-1));
-            }
-        }
+		if (type == 0) {
+			questPositiion = questPositiion - segment_1.length() - 1;
+			packetMap.put(FL_PROTOCOL, HttpStatic.HTTP_STRING);
+			packetMap.put(FL_METHOD, segment_1);
+			switch (segment_3.charAt(7)) {
+				case '1':
+					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
+					break;
+				case '0':
+					packetMap.put(FL_VERSION, HttpStatic.HTTP_10_STRING);
+					break;
+				case '9':
+					packetMap.put(FL_VERSION, HttpStatic.HTTP_09_STRING);
+					break;
+				default:
+					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
+			}
+			packetMap.put(FL_PATH, questPositiion > 0 ? segment_2.substring(0, questPositiion - 1) : segment_2);
+			if (questPositiion > 0) {
+				packetMap.put(FL_QUERY_STRING, segment_2.substring(questPositiion - 1));
+			}
+		}
 
-        if(type == 1){
-            packetMap.put(FL_PROTOCOL, HttpStatic.HTTP);
-            switch (segment_1.charAt(7)){
-                case '1': packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING); break;
-                case '0': packetMap.put(FL_VERSION, HttpStatic.HTTP_10_STRING); break;
-                case '9': packetMap.put(FL_VERSION, HttpStatic.HTTP_09_STRING); break;
-                default: packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
-            }
-            packetMap.put(FL_STATUS, segment_2);
+		if (type == 1) {
+			packetMap.put(FL_PROTOCOL, HttpStatic.HTTP);
+			switch (segment_1.charAt(7)) {
+				case '1':
+					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
+					break;
+				case '0':
+					packetMap.put(FL_VERSION, HttpStatic.HTTP_10_STRING);
+					break;
+				case '9':
+					packetMap.put(FL_VERSION, HttpStatic.HTTP_09_STRING);
+					break;
+				default:
+					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
+			}
+			packetMap.put(FL_STATUS, segment_2);
 			packetMap.put(FL_STATUS_CODE, segment_3);
-        }
+		}
     }
 
     /**
      * 解析 HTTP 请求头
      * @param packetMap 解析后数据的容器
      * @param byteBuffer ByteBuffer对象
-     * @return 解析后的便宜量
+     * @return true: Header解析未完成, false: Header解析完成
      * @throws ParserException 解析异常
      */
     public static boolean parseHeader(Map<String, Object> packetMap, ByteBuffer byteBuffer) throws ParserException {
@@ -359,13 +373,13 @@ public class HttpParser {
      * 			3.part     解析成 List[Map[Stirng,Object]](因为是递归,参考 HTTP 解析形式) 形式
      * 			5.body     解析成 key=BODY_VALUE 的Map 元素
      * @param packetMap 用于填充的解析 map
+     * @param type 解析的报文类型
      * @param byteBufferChannel 输入流
      * @param timeOut 读取超时时间参数
      * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
      * @return 解析后的 Map
      * @throws IOException IO 异常
      */
-
     public static Map<String, Object> parser(Map<String, Object> packetMap, int type, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
         long totalLength = 0;
         boolean isBodyConent = false;
@@ -412,13 +426,11 @@ public class HttpParser {
 	        }
 
             //如果 消息缓冲通道没有数据或已关闭
-            if(byteBufferChannel.size() <= 0) {
+            if(byteBufferChannel.size() <= 0 && !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
                 break;
             }
 
             isBodyConent = true;
-
-
 
             //解析 HTTP 请求 body
             if(isBodyConent){

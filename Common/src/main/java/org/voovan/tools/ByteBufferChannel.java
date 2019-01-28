@@ -474,6 +474,7 @@ public class ByteBufferChannel {
 
     /**
      * 获取 bytebuffer 的 hashcode
+     * @param size slice 的数据大小
      * @return bytebuffer 的 hashcode
      */
     public ByteBuffer slice(int size){

@@ -211,7 +211,7 @@ public class TByteBuffer {
      * 复制一个 Bytebuffer 对象
      * @param byteBuffer 原 ByteBuffer 对象
      * @return 复制出的对象
-     * @throws ReflectiveOperationException
+     * @throws ReflectiveOperationException 反射错误
      */
     public static ByteBuffer copy(ByteBuffer byteBuffer) throws ReflectiveOperationException {
 
