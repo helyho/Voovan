@@ -33,13 +33,14 @@ import java.util.concurrent.ConcurrentSkipListMap;
  */
 public class WebServerFilter implements IoFilter {
 	private static ThreadLocal<ByteBufferChannel> THREAD_BUFFER_CHANNEL = ThreadLocal.withInitial(()->new ByteBufferChannel(TByteBuffer.EMPTY_BYTE_BUFFER));
-	private static ConcurrentSkipListMap<Integer, Request> REQUEST_CACHE = new ConcurrentSkipListMap<Integer, Request>();
+
+	private static ConcurrentSkipListMap<String, byte[]> RESPONSE_CACHE = new ConcurrentSkipListMap<String, byte[]>();
 
 	static {
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 			@Override
 			public void run() {
-				REQUEST_CACHE.clear();
+				RESPONSE_CACHE.clear();
 			}
 		}, 1000);
 	}
@@ -55,9 +56,28 @@ public class WebServerFilter implements IoFilter {
 		if (object instanceof HttpResponse) {
 			HttpResponse httpResponse = (HttpResponse)object;
 
-			try {
+			try{
 				if(httpResponse.isAutoSend()) {
-					httpResponse.send();
+					byte[] cacheBytes = null;
+					String cacheMark = httpResponse.getCacheMark();
+
+					if(cacheMark!=null) {
+						cacheBytes = RESPONSE_CACHE.get(cacheMark);
+					}
+
+					if(cacheBytes==null) {
+						httpResponse.send();
+						if(cacheMark!=null) {
+							ByteBufferChannel sendByteBufferChannel = session.getSendByteBufferChannel();
+							cacheBytes = new byte[session.getSendByteBufferChannel().size()];
+							sendByteBufferChannel.get(cacheBytes);
+							RESPONSE_CACHE.put(cacheMark, cacheBytes);
+						}
+					} else {
+						session.sendByBuffer(ByteBuffer.wrap(cacheBytes));
+						session.sendByBuffer(ByteBuffer.wrap(cacheBytes));
+						httpResponse.clear();
+					}
 				}
 			}catch(Exception e){
 				Logger.error(e);

@@ -33,6 +33,7 @@ public class Response {
 	private boolean				isCompress;
 	protected boolean 			basicSend = false;
 	private boolean             autoSend = true;
+	private String              cacheMark = null;
 
 
 	/**
@@ -97,6 +98,14 @@ public class Response {
 	 */
 	public void setAutoSend(boolean autoSend) {
 		this.autoSend = autoSend;
+	}
+
+	public String getCacheMark() {
+		return cacheMark;
+	}
+
+	public void setCacheMark(String cacheMark) {
+		this.cacheMark = cacheMark;
 	}
 
 	/**
@@ -297,6 +306,7 @@ public class Response {
 		isCompress = false;
 		basicSend = false;
 		autoSend = true;
+		cacheMark = null;
 	}
 
 	@Override
