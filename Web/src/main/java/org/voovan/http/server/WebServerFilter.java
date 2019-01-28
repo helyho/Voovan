@@ -74,9 +74,6 @@ public class WebServerFilter implements IoFilter {
 							RESPONSE_CACHE.put(cacheMark, cacheBytes);
 						}
 					} else {
-						if(session.getReadByteBufferChannel().size() >0) {
-							session.sendByBuffer(ByteBuffer.wrap(cacheBytes));
-						}
 						session.sendByBuffer(ByteBuffer.wrap(cacheBytes));
 						httpResponse.clear();
 					}
