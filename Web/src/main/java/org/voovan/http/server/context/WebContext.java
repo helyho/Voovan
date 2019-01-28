@@ -43,7 +43,7 @@ public class WebContext {
 	 */
 	public static boolean PAUSE = false;
 
-	private static final String VERSION = "Voovan-WebServer/v"+ Global.getVersion();
+	private static final String VERSION = "Voovan";
 
 	private static final String SESSION_NAME = "VOOVAN_SESSIONID";
 
