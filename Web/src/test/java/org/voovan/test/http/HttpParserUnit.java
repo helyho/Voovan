@@ -72,7 +72,7 @@ public class HttpParserUnit extends TestCase {
 		ByteBufferChannel b = new ByteBufferChannel();
 		b.writeEnd(ByteBuffer.wrap(httpRequestGet.getBytes()));
 		Request request = HttpParser.parseRequest(b, 30000, -1);
-		assertEquals(request.header().size(),3);
+		assertEquals(request.header().size(),6);
 		assertEquals(request.protocol().getPath(),"/test/t");
 		assertEquals(request.protocol().getMethod(),"GET");
 		assertEquals(request.getQueryString("UTF-8"),"name=helyho");
@@ -85,7 +85,7 @@ public class HttpParserUnit extends TestCase {
 		assertEquals(request.header().size(),5);
 		assertEquals(request.protocol().getPath(),"/test/t");
 		assertEquals(request.protocol().getMethod(),"POST");
-		assertEquals(request.getQueryString("UTF-8"),"name=helyho&age=32%3D&address=wlmq");
+		assertEquals(request.getQueryString("UTF-8"),"name=helyho&age=32=&address=wlmq");
 	}
 
 	public void testPostComplex() throws IOException{
@@ -95,10 +95,10 @@ public class HttpParserUnit extends TestCase {
 		request.toString();
 		request.parts().get(3).body().write("\r\n helyho");
 		request.parts().get(3).saveAsFile("/Users/helyho/Downloads/helyho.txt");
-		assertEquals(request.header().size(),5);
+		assertEquals(request.header().size(),6);
 		assertEquals(request.protocol().getPath(),"/test/t");
 		assertEquals(request.protocol().getMethod(),"POST");
-			assertEquals(request.getQueryString("UTF-8"),"name=helyho&age=32%3D&address=wlmq");
+		assertEquals(request.getQueryString("UTF-8"),"name=helyho&age=32=&address=wlmq");
 	}
 
 	public static void main(String[] args) {

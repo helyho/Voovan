@@ -243,6 +243,10 @@ public class HttpStatic {
 	public static final String HTTP_STRING = "HTTP";
 	public static final HttpItem HTTP = new HttpItem(HTTP_STRING);
 
+	public static final String HTTP_11_STRING = "1.1";
+	public static final String HTTP_10_STRING = "1.0";
+	public static final String HTTP_09_STRING = "0.9";
+
 	public static final String BODY_MARK_STRING = "\r\n\r\n";
 	public static final String LINE_MARK_STRING	= "\r\n";
 	public static final HttpItem BODY_MARK = new HttpItem(BODY_MARK_STRING);
