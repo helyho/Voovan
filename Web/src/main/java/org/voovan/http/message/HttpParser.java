@@ -216,13 +216,11 @@ public class HttpParser {
     /**
      * 解析 HTTP 请求写一行
      * @param packetMap 解析后数据的容器
-     * @param byteBufferChannel ByteBufferChannel对象
+     * @param byteBuffer ByteBuffer对象
      * @return 解析后的便宜量
      * @throws ParserException 解析异常
      */
-
-
-    public static int parserProtocol(Map<String, Object> packetMap, ByteBufferChannel byteBufferChannel) throws ParserException {
+    public static void parserProtocol(Map<String, Object> packetMap, ByteBuffer byteBuffer) throws ParserException {
         StringBuilder stringBuilder = THREAD_STRING_BUILDER.get();
         stringBuilder.setLength(0);
         int position = 0;
@@ -233,109 +231,93 @@ public class HttpParser {
         byte prevByte = '\0';
         byte currentByte = '\0';
 
-        ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+		while (byteBuffer.remaining() > 0) {
 
-        try {
+			currentByte = byteBuffer.get();
 
-	        while (!byteBufferChannel.isReleased() && byteBufferChannel.size() > 0) {
-		        if (position >= byteBufferChannel.size()) {
-			        throw new ParserException("Parse header reach the stream end");
-		        }
+			if (currentByte == Global.BYTE_BACKSLASH) {
+				if (segment == 0 || segment == 2) {
+					if (stringBuilder.length() == 4 && stringBuilder.indexOf(HttpStatic.HTTP_STRING) == 0) {
+						if (segment == 0) {
+							protocolType = 1;
+						}
+						packetMap.put(FL_PROTOCOL, HttpStatic.HTTP_STRING);
+						stringBuilder.setLength(0);
+					}
 
-		        currentByte = byteBuffer.get(position);
-		        position++;
+					continue;
+				}
+			} else if (currentByte == Global.BYTE_SPACE) {
+				if (segment == 0) {
+					if (protocolType == 0) {
+						packetMap.put(FL_METHOD, stringBuilder.toString());
+					} else {
+						packetMap.put(FL_VERSION, stringBuilder.toString());
+					}
 
+					stringBuilder.setLength(0);
+					segment = 1;
+					continue;
+				}
 
-		        if (currentByte == Global.BYTE_BACKSLASH) {
-			        if (segment == 0 || segment == 2) {
-				        if (stringBuilder.length() == 4 && stringBuilder.indexOf(HttpStatic.HTTP_STRING) == 0) {
-					        if (segment == 0) {
-						        protocolType = 1;
-					        }
-					        packetMap.put(FL_PROTOCOL, HttpStatic.HTTP_STRING);
-					        stringBuilder.setLength(0);
-				        }
+				if (segment == 1) {
+					if (protocolType == 0) {
+						if (packetMap.containsKey(FL_PATH)) {
+							packetMap.put(FL_QUERY_STRING, stringBuilder.toString());
+						} else {
+							packetMap.put(FL_PATH, stringBuilder.toString());
+						}
+					} else {
+						packetMap.put(FL_STATUS, stringBuilder.toString());
+					}
 
-				        continue;
-			        }
-		        } else if (currentByte == Global.BYTE_SPACE) {
-			        if (segment == 0) {
-				        if (protocolType == 0) {
-					        packetMap.put(FL_METHOD, stringBuilder.toString());
-				        } else {
-					        packetMap.put(FL_VERSION, stringBuilder.toString());
-				        }
+					stringBuilder.setLength(0);
+					segment = 2;
+				}
 
-				        stringBuilder.setLength(0);
-				        segment = 1;
-				        continue;
-			        }
+				continue;
+			} else if (currentByte == Global.BYTE_QUESTION) {
+				if (segment == 1) {
+					packetMap.put(FL_PATH, stringBuilder.toString());
+					stringBuilder.setLength(0);
+					continue;
+				}
+			} else if (prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && segment == 2) {
+				if (protocolType == 0) {
+					packetMap.put(FL_VERSION, stringBuilder.toString());
+				} else {
+					packetMap.put(FL_STATUS_CODE, stringBuilder.toString());
+				}
+				stringBuilder.setLength(0);
+				break;
+			}
 
-			        if (segment == 1) {
-				        if (protocolType == 0) {
-					        if (packetMap.containsKey(FL_PATH)) {
-						        packetMap.put(FL_QUERY_STRING, stringBuilder.toString());
-					        } else {
-						        packetMap.put(FL_PATH, stringBuilder.toString());
-					        }
-				        } else {
-					        packetMap.put(FL_STATUS, stringBuilder.toString());
-				        }
+			prevByte = currentByte;
 
-				        stringBuilder.setLength(0);
-				        segment = 2;
-			        }
+			if (currentByte == Global.BYTE_CR) {
+				continue;
+			}
 
-			        continue;
-		        } else if (currentByte == Global.BYTE_QUESTION) {
-			        if (segment == 1) {
-				        packetMap.put(FL_PATH, stringBuilder.toString());
-                        stringBuilder.setLength(0);
-				        continue;
-			        }
-		        } else if (prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && segment == 2) {
-			        if (protocolType == 0) {
-				        packetMap.put(FL_VERSION, stringBuilder.toString());
-			        } else {
-				        packetMap.put(FL_STATUS_CODE, stringBuilder.toString());
-			        }
-                    stringBuilder.setLength(0);
-			        break;
-		        }
-
-		        prevByte = currentByte;
-
-                if (currentByte == Global.BYTE_CR) {
-                    continue;
-                }
-
-		        stringBuilder.append((char)(currentByte & 0xFF));
-	        }
-        } finally {
-            byteBufferChannel.compact();
-        }
+			stringBuilder.append((char)(currentByte & 0xFF));
+		}
 
 
         if(!packetMap.containsKey(FL_PROTOCOL)){
             packetMap.clear();
-            position = 0;
+            byteBuffer.position(0);
         }
-
-        return position;
     }
 
     /**
      * 解析 HTTP 请求头
      * @param packetMap 解析后数据的容器
-     * @param offset 解析开始的偏移量位置
-     * @param byteBufferChannel ByteBufferChannel对象
+     * @param byteBuffer ByteBuffer对象
      * @return 解析后的便宜量
      * @throws ParserException 解析异常
      */
-    public static int parseHeader(Map<String, Object> packetMap, int offset, ByteBufferChannel byteBufferChannel) throws ParserException {
+    public static boolean parseHeader(Map<String, Object> packetMap, ByteBuffer byteBuffer) throws ParserException {
         StringBuilder stringBuilder = THREAD_STRING_BUILDER.get();
         stringBuilder.setLength(0);
-        int position = offset;
 
         //遍历 Protocol
         boolean isHeaderName = true;
@@ -344,53 +326,40 @@ public class HttpParser {
         String headerName = null;
         String headerValue = null;
 
-        ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+		while (byteBuffer.remaining() > 0) {
 
-        try {
+			currentByte = byteBuffer.get();
 
-            while (!byteBufferChannel.isReleased() && byteBufferChannel.size() > 0) {
-                if (position >= byteBufferChannel.size()) {
-                    throw new ParserException("Parse header reach the stream end");
-                }
+			if (isHeaderName && prevByte == Global.BYTE_COLON && currentByte == Global.BYTE_SPACE) {
+				headerName = stringBuilder.toString();
+				isHeaderName = false;
+				stringBuilder.setLength(0);
+				continue;
+			} else if (!isHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
+				headerValue = stringBuilder.toString();
+				break;
+			}
 
-                currentByte = byteBuffer.get(position);
-                position++;
+			//http 头结束了
+			if (isHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
+				return true;
+			}
 
-                if (isHeaderName && prevByte == Global.BYTE_COLON && currentByte == Global.BYTE_SPACE) {
-                    headerName = stringBuilder.toString();
-                    isHeaderName = false;
-                    stringBuilder.setLength(0);
-                    continue;
-                } else if (!isHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
-                    headerValue = stringBuilder.toString();
-                    break;
-                }
+			prevByte = currentByte;
 
-                //http 头结束了
-                if (isHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && position == offset + 2) {
-                    packetMap.put(null, null);
-                    return position;
-                }
+			if (isHeaderName && currentByte == Global.BYTE_COLON) {
+				continue;
+			} else if (!isHeaderName && currentByte == Global.BYTE_CR) {
+				continue;
+			}
 
-                prevByte = currentByte;
+			stringBuilder.append((char)(currentByte & 0xFF));
 
-                if (isHeaderName && currentByte == Global.BYTE_COLON) {
-                    continue;
-                } else if (!isHeaderName && currentByte == Global.BYTE_CR) {
-                    continue;
-                }
-
-                stringBuilder.append((char)(currentByte & 0xFF));
-
-            }
-        } finally {
-            byteBufferChannel.compact();
-        }
+		}
 
         packetMap.put(headerName, headerValue);
+	    return false;
 //        packetMap.put(fixHeaderName(headerName), headerValue);
-        return position;
-
     }
 
     /**
@@ -415,43 +384,44 @@ public class HttpParser {
 
         requestMaxSize = requestMaxSize < 0 ? Integer.MAX_VALUE : requestMaxSize;
 
-        int position = 0;
-
         //按行遍历HTTP报文
-        while(position < byteBufferChannel.size()){
+        while(byteBufferChannel.size() > 0){
+	        ByteBuffer innerByteBuffer = byteBufferChannel.getByteBuffer();
 
-            position = parserProtocol(packetMap, byteBufferChannel);
+	        try {
+		         parserProtocol(packetMap, innerByteBuffer);
 
-            if(!packetMap.containsKey("FL_Protocol")){
-                return null;
-            }
+		        if (!packetMap.containsKey("FL_Protocol")) {
+			        return null;
+		        }
 
-            String cookieName = null;
-            String cookieValue = null;
+		        String cookieName = null;
+		        String cookieValue = null;
 
-            while(!packetMap.containsKey(null)) {
-                position = parseHeader(packetMap, position, byteBufferChannel);
-            }
+		        while (!parseHeader(packetMap, innerByteBuffer)) {
 
-            if(packetMap.containsKey(HttpStatic.SET_COOKIE_STRING)){
-                cookieName = HttpStatic.SET_COOKIE_STRING;
-                cookieValue = packetMap.get(HttpStatic.SET_COOKIE_STRING).toString();
-                packetMap.remove(HttpStatic.SET_COOKIE_STRING);
-            }
+		        }
 
-            if(packetMap.containsKey(HttpStatic.COOKIE_STRING)){
-                cookieName = HttpStatic.COOKIE_STRING;
-                cookieValue = packetMap.get(HttpStatic.COOKIE_STRING).toString();
-                packetMap.remove(HttpStatic.COOKIE_STRING);
-            }
+		        if (packetMap.containsKey(HttpStatic.SET_COOKIE_STRING)) {
+			        cookieName = HttpStatic.SET_COOKIE_STRING;
+			        cookieValue = packetMap.get(HttpStatic.SET_COOKIE_STRING).toString();
+			        packetMap.remove(HttpStatic.SET_COOKIE_STRING);
+		        }
 
-            if(cookieName!=null){
-                parseCookie(packetMap, cookieName, cookieValue);
-            }
+		        if (packetMap.containsKey(HttpStatic.COOKIE_STRING)) {
+			        cookieName = HttpStatic.COOKIE_STRING;
+			        cookieValue = packetMap.get(HttpStatic.COOKIE_STRING).toString();
+			        packetMap.remove(HttpStatic.COOKIE_STRING);
+		        }
 
-            packetMap.remove(null);
+		        if (cookieName != null) {
+			        parseCookie(packetMap, cookieName, cookieValue);
+		        }
 
-            byteBufferChannel.shrink(position);
+	        } finally {
+		        totalLength = innerByteBuffer.position();
+	        	byteBufferChannel.compact();
+	        }
 
             //如果 消息缓冲通道没有数据或已关闭
             if(byteBufferChannel.size() <= 0) {
@@ -460,7 +430,7 @@ public class HttpParser {
 
             isBodyConent = true;
 
-            totalLength = position;
+
 
             //解析 HTTP 请求 body
             if(isBodyConent){
@@ -522,7 +492,9 @@ public class HttpParser {
                         ByteBufferChannel partByteBufferChannel = new ByteBufferChannel(partHeadEndIndex + 4); //包含换行符
                         partByteBufferChannel.writeEnd(partHeadBuffer);
                         Map<String, Object> partMap = new HashMap<String, Object>();
-                        parseHeader(partMap, 0, partByteBufferChannel);
+                        parseHeader(partMap, partByteBufferChannel.getByteBuffer());
+                        partByteBufferChannel.compact();
+
                         TByteBuffer.release(partHeadBuffer);
                         partByteBufferChannel.release();
                         TByteBuffer.release(partHeadBuffer);
