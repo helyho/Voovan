@@ -266,7 +266,8 @@ public class WebServerHandler implements IoHandler {
 		httpDispatcher.process(httpRequest, httpResponse);
 
 		if(httpRequest.protocol().getMethod().equals("GET") && !httpResponse.body().isFile()){
-			httpResponse.setCacheMark(httpRequest.protocol().getPath() + httpRequest.protocol().getQueryString() + httpResponse.body().size());
+			String cacheMark = httpRequest.protocol().getPath() + httpRequest.protocol().getQueryString() + httpResponse.body().size();
+			httpResponse.setCacheMark(cacheMark);
 		}
 
 		return httpResponse;
