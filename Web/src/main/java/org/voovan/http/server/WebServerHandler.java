@@ -265,6 +265,10 @@ public class WebServerHandler implements IoHandler {
 		// 处理响应请求
 		httpDispatcher.process(httpRequest, httpResponse);
 
+		if(httpRequest.protocol().getMethod().equals("GET") && !httpResponse.body().isFile()){
+			httpResponse.setCacheMark(httpRequest.protocol().getPath() + httpRequest.protocol().getQueryString() + httpResponse.body().size());
+		}
+
 		return httpResponse;
 	}
 
