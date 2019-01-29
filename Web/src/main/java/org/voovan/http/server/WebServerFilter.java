@@ -61,7 +61,7 @@ public class WebServerFilter implements IoFilter {
 					byte[] cacheBytes = null;
 					String cacheMark = httpResponse.getCacheMark();
 
-					if(cacheMark!=null) {
+					if(WebContext.isCache() && cacheMark!=null) {
 						cacheBytes = RESPONSE_CACHE.get(cacheMark);
 					}
 

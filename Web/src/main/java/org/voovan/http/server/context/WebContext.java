@@ -79,6 +79,18 @@ public class WebContext {
 	}
 
 	/**
+	 * 是否开启请求缓存机制
+	 * @return true 开启
+	 */
+	public static boolean isCache(){
+		if(webServerConfig != null){
+			return webServerConfig.isCache();
+		} else {
+			return false;
+		}
+	}
+
+	/**
 	 * 从 js 配置文件读取配置信息到 Map
 	 * @param configFile 配置文件的路径
 	 * @return Map 对象
@@ -276,6 +288,7 @@ public class WebContext {
 		System.out.println(TString.rightPad("  GzipMinSize:",35,' ')+ config.getGzipMinSize());
 		System.out.println(TString.rightPad("  GzipMimeType:",35,' ')+ config.getGzipMimeType());
 		System.out.println(TString.rightPad("  AccessLog:",35,' ')+ config.isAccessLog());
+		System.out.println(TString.rightPad("  Cache:",35,' ')+ config.isCache());
 		System.out.println(TString.rightPad("  PauseURL:",35,' ')+ config.getPauseURL());
 		System.out.println(TString.rightPad("  MaxRequestSize:",35,' ')+ config.getMaxRequestSize());
 
