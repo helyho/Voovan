@@ -268,14 +268,23 @@ public class HttpParser {
 		}
 
 		if (type == 0) {
+			//1
+			packetMap.put(FL_METHOD, segment_1);
 
+			//2
+			questPositiion = questPositiion - segment_1.length() - 1;
+			packetMap.put(FL_PATH, questPositiion > 0 ? segment_2.substring(0, questPositiion - 1) : segment_2);
+			if (questPositiion > 0) {
+				packetMap.put(FL_QUERY_STRING, segment_2.substring(questPositiion - 1));
+			}
+
+			//3
 			if(segment_3.charAt(0)=='H' && segment_3.charAt(1)=='T' && segment_3.charAt(2)=='T' && segment_3.charAt(3)=='P') {
 				packetMap.put(FL_PROTOCOL, HttpStatic.HTTP);
 			} else {
 				throw new ParserException("Not a http packet");
 			}
 
-			packetMap.put(FL_METHOD, segment_1);
 			switch (segment_3.charAt(7)) {
 				case '1':
 					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
@@ -289,15 +298,10 @@ public class HttpParser {
 				default:
 					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
 			}
-
-			questPositiion = questPositiion - segment_1.length() - 1;
-			packetMap.put(FL_PATH, questPositiion > 0 ? segment_2.substring(0, questPositiion - 1) : segment_2);
-			if (questPositiion > 0) {
-				packetMap.put(FL_QUERY_STRING, segment_2.substring(questPositiion - 1));
-			}
 		}
 
 		if (type == 1) {
+			//1
 			if(segment_1.charAt(0)=='H' && segment_1.charAt(1)=='T' && segment_1.charAt(2)=='T' && segment_1.charAt(3)=='P') {
 				packetMap.put(FL_PROTOCOL, HttpStatic.HTTP);
 			} else {
@@ -317,7 +321,11 @@ public class HttpParser {
 				default:
 					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
 			}
+
+			//2
 			packetMap.put(FL_STATUS, segment_2);
+
+			//3
 			packetMap.put(FL_STATUS_CODE, segment_3);
 		}
     }
