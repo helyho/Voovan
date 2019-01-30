@@ -268,8 +268,13 @@ public class HttpParser {
 		}
 
 		if (type == 0) {
-			questPositiion = questPositiion - segment_1.length() - 1;
-			packetMap.put(FL_PROTOCOL, HttpStatic.HTTP_STRING);
+
+			if(segment_3.charAt(0)=='H' && segment_3.charAt(1)=='T' && segment_3.charAt(2)=='T' && segment_3.charAt(3)=='P') {
+				packetMap.put(FL_PROTOCOL, HttpStatic.HTTP);
+			} else {
+				throw new ParserException("Not a http packet");
+			}
+
 			packetMap.put(FL_METHOD, segment_1);
 			switch (segment_3.charAt(7)) {
 				case '1':
@@ -284,6 +289,8 @@ public class HttpParser {
 				default:
 					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
 			}
+
+			questPositiion = questPositiion - segment_1.length() - 1;
 			packetMap.put(FL_PATH, questPositiion > 0 ? segment_2.substring(0, questPositiion - 1) : segment_2);
 			if (questPositiion > 0) {
 				packetMap.put(FL_QUERY_STRING, segment_2.substring(questPositiion - 1));
@@ -291,7 +298,12 @@ public class HttpParser {
 		}
 
 		if (type == 1) {
-			packetMap.put(FL_PROTOCOL, HttpStatic.HTTP);
+			if(segment_1.charAt(0)=='H' && segment_1.charAt(1)=='T' && segment_1.charAt(2)=='T' && segment_1.charAt(3)=='P') {
+				packetMap.put(FL_PROTOCOL, HttpStatic.HTTP);
+			} else {
+				throw new ParserException("Not a http packet");
+			}
+
 			switch (segment_1.charAt(7)) {
 				case '1':
 					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
@@ -322,7 +334,7 @@ public class HttpParser {
         stringBuilder.setLength(0);
 
         //遍历 Protocol
-        boolean isHeaderName = true;
+        boolean onHeaderName = true;
         byte prevByte = '\0';
         byte currentByte = '\0';
         String headerName = null;
@@ -332,26 +344,26 @@ public class HttpParser {
 
 			currentByte = byteBuffer.get();
 
-			if (isHeaderName && prevByte == Global.BYTE_COLON && currentByte == Global.BYTE_SPACE) {
+			if (onHeaderName && prevByte == Global.BYTE_COLON && currentByte == Global.BYTE_SPACE) {
 				headerName = stringBuilder.toString();
-				isHeaderName = false;
+				onHeaderName = false;
 				stringBuilder.setLength(0);
 				continue;
-			} else if (!isHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
+			} else if (!onHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
 				headerValue = stringBuilder.toString();
 				break;
 			}
 
 			//http 头结束了
-			if (isHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
+			if (onHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
 				return true;
 			}
 
 			prevByte = currentByte;
 
-			if (isHeaderName && currentByte == Global.BYTE_COLON) {
+			if (onHeaderName && currentByte == Global.BYTE_COLON) {
 				continue;
-			} else if (!isHeaderName && currentByte == Global.BYTE_CR) {
+			} else if (!onHeaderName && currentByte == Global.BYTE_CR) {
 				continue;
 			}
 
