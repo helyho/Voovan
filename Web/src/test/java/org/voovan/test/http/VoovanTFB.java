@@ -17,6 +17,7 @@ public class VoovanTFB {
 		webServerConfig.setGzip(false);
 		webServerConfig.setAccessLog(false);
 		webServerConfig.setKeepAliveTimeout(1000);
+		webServerConfig.setCache(true);
 		webServerConfig.getModuleonfigs().clear();
 		webServerConfig.getRouterConfigs().clear();
 		WebServer webServer = WebServer.newInstance(webServerConfig);
