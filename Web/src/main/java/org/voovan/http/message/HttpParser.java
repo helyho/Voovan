@@ -512,7 +512,9 @@ public class HttpParser {
                         ByteBufferChannel partByteBufferChannel = new ByteBufferChannel(partHeadEndIndex + 4); //包含换行符
                         partByteBufferChannel.writeEnd(partHeadBuffer);
                         Map<String, Object> partMap = new HashMap<String, Object>();
-                        parseHeader(partMap, partByteBufferChannel.getByteBuffer());
+                        while(parseHeader(partMap, partByteBufferChannel.getByteBuffer())){
+
+                        }
                         partByteBufferChannel.compact();
 
                         TByteBuffer.release(partHeadBuffer);

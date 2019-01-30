@@ -163,6 +163,9 @@ public class Part {
 			header.put("Content-Disposition", value);
 		}
 
+		header.remove("name");
+		header.remove("filename");
+
 		return header.toString()+"\r\n";
 	}
 
