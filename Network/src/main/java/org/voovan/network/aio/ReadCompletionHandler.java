@@ -93,9 +93,6 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 						// 触发 onReceive 事件
 						EventTrigger.fireReceiveThread(session);
 					}
-
-					// 接收完成后重置buffer对象
-					readTempBuffer.clear();
 				}
 			}
 		} catch (IOException e) {
