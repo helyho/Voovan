@@ -1,7 +1,5 @@
 package org.voovan.tools;
 
-import org.voovan.tools.json.JSON;
-import org.voovan.tools.json.annotation.NotJSON;
 import sun.misc.Unsafe;
 
 import java.io.IOException;
@@ -16,9 +14,7 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class DirectRingBuffer {
-    @NotJSON
     private Unsafe unsafe = TUnsafe.getUnsafe();
-    @NotJSON
     private TByteBuffer.Deallocator deallocator;
     private long address;
     private int readPositon = 0;
