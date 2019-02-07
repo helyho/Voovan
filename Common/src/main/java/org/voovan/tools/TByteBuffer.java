@@ -464,10 +464,10 @@ public class TByteBuffer {
     /**
      * 自动跟踪 GC 销毁的类
      */
-    private static class Deallocator implements Runnable {
+    public final static class Deallocator implements Runnable {
         private long address;
 
-        private Deallocator(long address) {
+        Deallocator(long address) {
             this.address = address;
         }
 
