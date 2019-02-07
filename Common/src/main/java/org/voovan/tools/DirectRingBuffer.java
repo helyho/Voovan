@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * 循环缓冲区
+ * 环形缓冲区
  *
  * @author: helyho
  * Voovan Framework.
@@ -26,7 +26,7 @@ public class DirectRingBuffer {
     private int capacity;
 
     /**
-     * 使用默认容量构造一个循环缓冲区
+     * 使用默认容量构造一个环形缓冲区
      */
     public DirectRingBuffer(){
         this(TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE);
@@ -46,8 +46,8 @@ public class DirectRingBuffer {
     }
 
     /**
-     * 获得循环缓冲区的基地址
-     * @return 循环缓冲区的基地址
+     * 获得环形缓冲区的基地址
+     * @return 环形缓冲区的基地址
      */
     public long getAddress() {
         return address;
@@ -102,13 +102,14 @@ public class DirectRingBuffer {
     }
 
     /**
-     * 获得基于基地址偏移量的数据
+     * 获得基于索引位置的数据
      * @param offset 偏移量
      * @return byte 数据
      */
     public byte get(int offset){
-        if(offset<capacity) {
-            return unsafe.getByte(address + offset);
+        if(offset < remaining()) {
+            int realOffset = (readPositon + offset) % capacity;
+            return unsafe.getByte(address + realOffset);
         } else {
             throw new IndexOutOfBoundsException();
         }
