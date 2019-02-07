@@ -224,7 +224,7 @@ public class DirectRingBuffer {
 
     @Override
     public String toString(){
-        return JSON.toJSON(this);
+        return "readPositon=" + readPositon+", writePositon="+writePositon+", capacity="+capacity+", remaining="+remaining()+", avaliable="+avaliable()+", address="+address;
     }
 
     public static void main(String[] args) throws IOException {
