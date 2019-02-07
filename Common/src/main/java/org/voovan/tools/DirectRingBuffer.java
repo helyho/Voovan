@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class DirectRingBuffer {
-    private Unsafe unsafe = TUnsafe.getUnsafe();
+    private static Unsafe unsafe = TUnsafe.getUnsafe();
     private TByteBuffer.Deallocator deallocator;
     private long address;
     private int readPositon = 0;
@@ -216,6 +216,13 @@ public class DirectRingBuffer {
             }
             this.capacity = newCapacity;
         }
+    }
+
+    /**
+     * 释放内存中的数据
+     */
+    public void release(){
+        unsafe.freeMemory(address);
     }
 
     @Override
