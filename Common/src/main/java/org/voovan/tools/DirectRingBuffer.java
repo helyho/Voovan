@@ -112,6 +112,60 @@ public class DirectRingBuffer {
     }
 
     /**
+     * 读取所有缓冲区的数据
+     *      不影响读写位置
+     * @param byteBuffer ByteBuffer 对象
+     * @return 读取数据大小
+     * @throws IOException IO 异常
+     */
+    public int getAll(ByteBuffer byteBuffer) throws IOException {
+        int size = byteBuffer.remaining();
+        if(size > remaining()){
+            size = remaining();
+        }
+
+        for(int i=0;i<size;i++){
+            byteBuffer.put(get(i));
+        }
+
+        return size;
+    }
+
+    /**
+     * 读取所有缓冲区的数据
+     *      不影响读写位置
+     * @param bytes 用于读取数据的 byte 数组
+     * @param offset 偏移量
+     * @return 读取数据大小
+     * @throws IOException IO 异常
+     */
+    public int getAll(byte[] bytes, int offset) throws IOException {
+        int size = bytes.length - offset;
+        if(size > remaining()){
+            size = remaining();
+        }
+
+        for(int i=offset;i<offset+size;i++){
+            bytes[i] = get(i);
+        }
+
+        return size;
+    }
+
+
+    /**
+     * 读取所有缓冲区的数据
+     *      不影响读写位置
+     * @return 读取数据
+     * @throws IOException IO 异常
+     */
+    public byte[] getAll() throws IOException {
+        byte[] bytes = new byte[remaining()];
+        getAll(bytes, 0);
+        return bytes;
+    }
+
+    /**
      * 写入一个 byte
      * @param b byte 数据
      * @throws IOException IO 异常
@@ -198,6 +252,17 @@ public class DirectRingBuffer {
         }
 
         return size;
+    }
+
+    /**
+     * 读取所有缓冲区的数据
+     * @return 读取的字节数组
+     * @throws IOException IO 异常
+     */
+    public byte[] readAll() throws IOException {
+        byte[] bytes = new byte[remaining()];
+        readAll(bytes, 0);
+        return bytes;
     }
 
     /**
