@@ -26,7 +26,7 @@ public class DirectRingBufferUnit extends TestCase {
 		}
 		System.out.println(i);
 		byte[] a = new byte[directRingBuffer.getCapacity()];
-		directRingBuffer.readAll(a, 5);
+		directRingBuffer.read(a, 5, directRingBuffer.getCapacity() - 5);
 
 		directRingBuffer.write((byte)80);
 		directRingBuffer.write((byte)80);
@@ -40,7 +40,7 @@ public class DirectRingBufferUnit extends TestCase {
 		}
 
 		ByteBuffer b = ByteBuffer.wrap(a);
-		directRingBuffer.readAll(b);
+		directRingBuffer.read(b);
 		TEnv.sleep(100000);
 	}
 }
