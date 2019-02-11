@@ -92,7 +92,7 @@ public class HeartBeat {
 
                 int pongPosition = byteBufferChannel.indexOf(heartBeat.getPong());
                 if (pongPosition >= 0) {
-                    byteBufferChannel.shrink(pongPosition, heartBeat.getPing().length);
+                    byteBufferChannel.shrink(pongPosition, heartBeat.getPong().length);
                     heartBeat.getQueue().addLast(2);
                     return;
                 }
