@@ -373,7 +373,7 @@ public class TByteBuffer {
 
         int index = -1;
 
-        int i = 0;
+        int i = byteBuffer.position();
         int j = 0;
 
         while(i <= (byteBuffer.limit() - mark.length + j )  ){
