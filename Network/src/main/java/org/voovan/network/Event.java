@@ -2,7 +2,7 @@ package org.voovan.network;
 
 /**
  * 事件对象
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
@@ -20,16 +20,33 @@ public class Event {
 	 *
 	 */
 	public enum EventName {
-		ON_ACCEPTED, ON_CONNECT, ON_DISCONNECT, ON_RECEIVE, ON_SENT, ON_IDLE, ON_EXCEPTION
+		ON_ACCEPTED, ON_CONNECT, ON_DISCONNECT, ON_RECEIVE, ON_SENT, ON_FLUSH, ON_IDLE, ON_EXCEPTION
 	}
-	
+
+	/**
+	 * 构造函数
+	 */
+	public Event(){
+
+	}
+
 	/**
 	 * 构造函数
 	 * @param session  会话对象
 	 * @param name		事件名
 	 * @param other 附加对象
 	 */
-	public Event(IoSession session,EventName name,Object other){
+	public Event (IoSession session,EventName name,Object other){
+		init(session, name, other);
+	}
+
+	/**
+	 * 构造函数
+	 * @param session  会话对象
+	 * @param name		事件名
+	 * @param other 附加对象
+	 */
+	public void init (IoSession session,EventName name,Object other){
 		if(session == null){
 			throw new NullPointerException("Can't create Event with session parameter is nullp");
 		}
@@ -66,7 +83,7 @@ public class Event {
 	public int hashCode(){
 		return session.hashCode()+name.hashCode();
 	}
-	
+
 	@Override
 	public boolean equals(Object obj){
 		if(obj != null && obj instanceof Event){
@@ -88,10 +105,10 @@ public class Event {
 	 * @param session   Session 对象
 	 * @param name      事件名称
 	 * @param other     附属对象
-     * @return   事件对象
-     */
+	 * @return   事件对象
+	 */
 	public static Event getInstance(IoSession session, EventName name,Object other){
 		return new Event(session, name, other);
 	}
-	
+
 }

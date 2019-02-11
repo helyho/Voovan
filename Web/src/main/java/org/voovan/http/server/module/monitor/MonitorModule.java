@@ -1,14 +1,11 @@
 package org.voovan.http.server.module.monitor;
 
 import org.voovan.http.server.HttpModule;
-import org.voovan.http.server.HttpRequest;
-import org.voovan.http.server.HttpResponse;
-import org.voovan.http.server.HttpRouter;
 import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.router.OptionsRouter;
+import org.voovan.tools.TPerformance;
 
 import java.util.List;
-import java.util.Vector;
 
 /**
  * 监控器类
@@ -23,7 +20,7 @@ public class MonitorModule extends HttpModule {
 
     @Override
     public void install() {
-        Vector<String> allowIPAddress = new Vector<String>();
+        List<String> allowIPAddress = TPerformance.getLocalIpAddrs();
         allowIPAddress.addAll((List<String>)getParamters("AllowIPAddress"));
         MonitorGlobal.ALLOW_IP_ADDRESS = allowIPAddress;
 
@@ -33,7 +30,7 @@ public class MonitorModule extends HttpModule {
         this.otherMethod("MONITOR", "/:Type/:Param1/:Param2",new MonitorRouter());
         this.options("/*", new OptionsRouter("MONITOR", "*", "auth-token"));
         //注册过滤器,用于抓取分析数据
-        filterChain().addFirst(HttpFilterConfig.newInstance("MonitorFilter",HttpMonitorFilter.class,null));
+        filterChain().add(HttpFilterConfig.newInstance("MonitorFilter",HttpMonitorFilter.class,null));
     }
 
     @Override

@@ -18,7 +18,7 @@ public enum HttpContentType {
 
     public static String getHttpContentType(HttpContentType httpContentType){
         if(httpContentType == HttpContentType.TEXT){
-            return "text/html";
+            return "text/plain";
         }
         else if(httpContentType == HttpContentType.XML){
             return "text/xml";

@@ -2,8 +2,8 @@ package org.voovan.network.messagesplitter;
 
 import org.voovan.Global;
 import org.voovan.http.HttpSessionParam;
-import org.voovan.http.message.HttpParser;
 import org.voovan.http.HttpRequestType;
+import org.voovan.http.message.HttpStatic;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.tools.TByteBuffer;
@@ -33,71 +33,14 @@ public class HttpMessageSplitter implements MessageSplitter {
 
         if(HttpRequestType.WEBSOCKET.equals(session.getAttribute(HttpSessionParam.TYPE)) ){
             result = isWebSocketFrame(byteBuffer);
-        }else{
-            result = isHttpFrame(byteBuffer);
-
-            if(result > 0){
-                if (!session.containAttribute(HttpSessionParam.TYPE)) {
-                    session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.HTTP);
-                }
-                result = 0;
-            } else if(result == -1){
-                return result;
-            } else if(result == -2){
-//                采用异步的方式, 防止导致死锁
-                Global.getThreadPool().execute(new Thread("CHECK_HTTP_HEAD_FAILED") {
-                    @Override
-                    public void run() {
-                        session.close();
-                    }
-                });
-            }
+        } else {
+			if (!session.containAttribute(HttpSessionParam.TYPE)) {
+				session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.HTTP);
+			}
+	        return 0;
         }
 
         return result;
-    }
-
-    private int isHttpFrame(ByteBuffer byteBuffer){
-        int bodyTagIndex = -1;
-        int protocolLineIndex = -1;
-        String protocolLine = null;
-
-        bodyTagIndex = TByteBuffer.revIndexOf(byteBuffer, HttpParser.BODY_MARK.getBytes());
-
-        if(bodyTagIndex <= 0){
-            return -1;
-        }
-
-        protocolLineIndex = TByteBuffer.indexOf(byteBuffer,  HttpParser.LINE_MARK.getBytes());
-        if(protocolLineIndex <= 0){
-            return -1;
-        }
-
-
-        byte[] protocolLineBytes = new byte[protocolLineIndex-4];
-        byteBuffer.get(protocolLineBytes);
-        byteBuffer.position(0);
-
-        protocolLine = new String(protocolLineBytes);
-
-        if(protocolLine !=null && isHttpHead(protocolLine)) {
-            if(bodyTagIndex > 0) {
-                return bodyTagIndex;
-            } else {
-                return -1;
-            }
-
-        }else{
-            return -2;
-        }
-    }
-
-    private boolean isHttpHead(String str){
-        //判断是否是 HTTP 头
-        if (str.startsWith(HttpParser.HTTP) || str.endsWith(HttpParser.HTTP)) {
-            return true;
-        }
-        return false;
     }
 
     /**

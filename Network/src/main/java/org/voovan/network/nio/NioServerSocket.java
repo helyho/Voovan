@@ -26,6 +26,11 @@ public class NioServerSocket extends SocketContext {
 	private SelectorProvider provider;
 	private Selector selector;
 	private ServerSocketChannel serverSocketChannel;
+	private NioSelector nioSelector;
+
+	//用来阻塞当前Socket
+	private Object waitObj = new Object();
+
 
 	/**
 	 * 构造函数
@@ -76,12 +81,24 @@ public class NioServerSocket extends SocketContext {
 		provider = SelectorProvider.provider();
 		serverSocketChannel = provider.openServerSocketChannel();
 		serverSocketChannel.socket().setSoTimeout(this.readTimeout);
-		serverSocketChannel.configureBlocking(false);
-		selector = provider.openSelector();
-		serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-		serverSocketChannel.bind(new InetSocketAddress(host, port), 1000);
 	}
 
+	/**
+	 * 初始化函数
+	 */
+	private void registerSelector()  {
+		try{
+			selector = provider.openSelector();
+			serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+
+			if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
+				nioSelector = new NioSelector(selector,this);
+				NioSelector.register(nioSelector);
+			}
+		}catch(IOException e){
+			Logger.error("init SocketChannel failed by openSelector",e);
+		}
+	}
 
 
 	@Override
@@ -115,8 +132,16 @@ public class NioServerSocket extends SocketContext {
 	 */
 	@Override
 	public void start() throws IOException {
-		NioSelector eventListener = new NioSelector(selector,this);
-		eventListener.eventChose();
+
+		syncStart();
+
+		synchronized (waitObj){
+			try {
+				waitObj.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
@@ -126,15 +151,10 @@ public class NioServerSocket extends SocketContext {
 	 */
 	@Override
 	public void syncStart() throws IOException {
-		Global.getThreadPool().execute(new Runnable(){
-			public void run() {
-				try {
-					start();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		serverSocketChannel.bind(new InetSocketAddress(host, port), 1000);
+		serverSocketChannel.configureBlocking(false);
+
+		registerSelector();
 	}
 
 	@Override
@@ -165,12 +185,19 @@ public class NioServerSocket extends SocketContext {
 		if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
 			try{
 				serverSocketChannel.close();
+				NioSelector.unregister(nioSelector);
+				synchronized (waitObj) {
+					waitObj.notify();
+				}
 				return true;
 			} catch(IOException e){
 				Logger.error("SocketChannel close failed",e);
 				return false;
 			}
 		}else{
+			synchronized (waitObj) {
+				waitObj.notify();
+			}
 			return true;
 		}
 	}

@@ -5,11 +5,10 @@ import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TString;
+import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,12 +23,18 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class Response {
+	private static ThreadLocal<StringBuilder> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new StringBuilder(512));
+	public static ThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
+
 	private ResponseProtocol 	protocol;
 	private Header				header;
 	private List<Cookie>		cookies;
 	private Body 				body;
 	private boolean				isCompress;
 	protected boolean 			basicSend = false;
+	private boolean             autoSend = true;
+	private String              cacheMark = null;
+
 
 	/**
 	 * 构造函数
@@ -37,11 +42,16 @@ public class Response {
 	 * @param response 响应对象
 	 */
 	protected Response(Response response) {
+		init(response);
+	}
+
+	public void init(Response response){
 		this.protocol = response.protocol;
 		this.header = response.header;
 		this.body = response.body;
 		this.cookies = response.cookies;
 		this.isCompress = response.isCompress;
+		this.basicSend = false;
 	}
 
 	/**
@@ -53,6 +63,7 @@ public class Response {
 		cookies = new ArrayList<Cookie>();
 		body = new Body();
 		isCompress = false;
+		this.basicSend = false;
 	}
 
 	/**
@@ -71,6 +82,30 @@ public class Response {
 	 */
 	public void setCompress(boolean isCompress) {
 		this.isCompress = isCompress;
+	}
+
+	/**
+	 * 是否在路由响应式自动发送
+	 * @return true: 自动发送, false: 手动发送
+	 */
+	public boolean isAutoSend() {
+		return autoSend;
+	}
+
+	/**
+	 * 是否在路由响应式自动发送
+	 * @param autoSend true: 自动发送, false: 手动发送
+	 */
+	public void setAutoSend(boolean autoSend) {
+		this.autoSend = autoSend;
+	}
+
+	public String getCacheMark() {
+		return cacheMark;
+	}
+
+	public void setCacheMark(String cacheMark) {
+		this.cacheMark = cacheMark;
 	}
 
 	/**
@@ -115,17 +150,17 @@ public class Response {
 	private void initHeader() {
 		// 根据压缩属性确定 Header 的一些属性内容
 		if (body.size()!=0 && isCompress) {
-			header.put("Transfer-Encoding", "chunked");
-			header.put("Content-Encoding", "gzip");
+			header.put(HttpStatic.TRANSFER_ENCODING_STRING, HttpStatic.CHUNKED_STRING);
+			header.put(HttpStatic.CONTENT_ENCODING_STRING, HttpStatic.GZIP_STRING);
 		} else {
-			header.put("Content-Length", Integer.toString(body.getBodyBytes().length));
+			header.put(HttpStatic.CONTENT_LENGTH_STRING, Integer.toString((int)body.size()));
 		}
 
-		if (TString.isNullOrEmpty(header.get("Content-Type"))) {
-			header.put("Content-Type", "text/html");
+		if (TString.isNullOrEmpty(header.get(HttpStatic.CONTENT_TYPE_STRING))) {
+			header.put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.TEXT_HTML_STRING  + WebContext.getWebServerConfig().getResponseCharacterSet());
+		} else {
+			header.put(HttpStatic.CONTENT_TYPE_STRING, header.get(HttpStatic.CONTENT_TYPE_STRING) + WebContext.getWebServerConfig().getResponseCharacterSet());
 		}
-
-		header.put("Content-Type", TString.assembly(header.get("Content-Type"), ";charset=", WebContext.getWebServerConfig().getCharacterSet()));
 	}
 
 	/**
@@ -138,7 +173,7 @@ public class Response {
 		for (Cookie cookie : cookies) {
 			cookieString.append("Set-Cookie: ");
 			cookieString.append(cookie.toString());
-			cookieString.append("\r\n");
+			cookieString.append(HttpStatic.LINE_MARK_STRING);
 		}
 		return cookieString.toString();
 	}
@@ -150,9 +185,10 @@ public class Response {
 	 *
 	 * @return ByteBuffer 响应报文的报头
 	 */
-	private ByteBuffer readHead() {
+	private byte[] readHead() {
 
-		StringBuilder stringBuilder = new StringBuilder();
+		StringBuilder stringBuilder = THREAD_STRING_BUILDER.get();
+		stringBuilder.setLength(0);
 
 		initHeader();
 
@@ -165,22 +201,18 @@ public class Response {
 		stringBuilder.append(genCookie());
 
 
-		stringBuilder.append("\r\n");
+		stringBuilder.append(HttpStatic.LINE_MARK_STRING);
 
-
-		try {
-			return ByteBuffer.wrap(stringBuilder.toString().getBytes("UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			Logger.error("Response.readHead io error",e);
-			return null;
-		}
+		return TString.toAsciiBytes(stringBuilder.toString());
 	}
 
-	private ByteBuffer readEnd(){
+	public static byte[] EMPTY_BYTES = new byte[0];
+
+	private byte[] readEnd(){
 		if (isCompress) {
-			return ByteBuffer.wrap("0\r\n\r\n".getBytes());
+			return TString.toAsciiBytes("0" + HttpStatic.BODY_MARK_STRING);
 		}else{
-			return TByteBuffer.EMPTY_BYTE_BUFFER;
+			return EMPTY_BYTES;
 		}
 	}
 
@@ -191,58 +223,72 @@ public class Response {
 	 */
 	public void send(IoSession session) throws IOException {
 
-		//发送报文头
-		ByteBuffer byteBuffer = readHead();
+		try {
+			//发送报文头
+			ByteBuffer byteBuffer = THREAD_BYTE_BUFFER.get();
+			byteBuffer.clear();
 
-		if(byteBuffer == null){
-			return;
-		}
-
-		session.send(byteBuffer);
-
-		//是否需要压缩
-		if(isCompress){
-			body.compress();
-		}
-
-		//发送报文主体
-		if(body.size() != 0) {
-
-			//准备缓冲区
-			byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
-			int readSize = 0;
-			while (true) {
-
-				readSize = body.read(byteBuffer);
-
-				if (readSize == -1) {
-					break;
-				}
-
-				//判断是否需要发送 chunked 段长度
-				if (isCompress() && readSize!=0) {
-					String chunkedLengthLine = Integer.toHexString(readSize) + "\r\n";
-					session.send(ByteBuffer.wrap(chunkedLengthLine.getBytes()));
-				}
-
-				session.send(byteBuffer);
-				byteBuffer.clear();
-
-				//判断是否需要发送 chunked 结束符号
-				if (isCompress() && readSize!=0) {
-					session.send(ByteBuffer.wrap("\r\n".getBytes()));
+			try {
+				byteBuffer.put(readHead());
+			} catch (Throwable e) {
+				if (!(e instanceof MemoryReleasedException)) {
+					Logger.error("Response send error: ", (Exception) e);
 				}
 			}
 
-			byteBuffer.clear();
+			//是否需要压缩
+			if (isCompress) {
+				body.compress();
+			}
 
-			//发送报文结束符
-			session.send(readEnd());
-			TByteBuffer.release(byteBuffer);
-			release();
+			//发送报文主体
+			int readSize = 0;
+			try {
+				int totalBodySize = (int) body.size();
+
+				while ( totalBodySize > 0) {
+					//预留写入 chunked 结束符的位置
+					byteBuffer.limit(byteBuffer.capacity() - 10);
+					readSize = byteBuffer.remaining() > totalBodySize ? totalBodySize : byteBuffer.remaining();
+					totalBodySize = totalBodySize - readSize;
+
+					//判断是否需要发送 chunked 段长度
+					if (isCompress() && readSize != 0) {
+						String chunkedLengthLine = Integer.toHexString(readSize) + HttpStatic.LINE_MARK_STRING;
+						byteBuffer.put(chunkedLengthLine.getBytes());
+					}
+
+					body.read(byteBuffer);
+					byteBuffer.position(byteBuffer.limit());
+					byteBuffer.limit(byteBuffer.capacity() - 10);
+
+					//判断是否需要发送 chunked 结束符号
+					if (isCompress() && readSize != 0 &&  byteBuffer.remaining() > 0) {
+						byteBuffer.put(HttpStatic.LINE_MARK.getBytes());
+					}
+
+					if(byteBuffer.position() == byteBuffer.limit()) {
+						byteBuffer.flip();
+						session.send(byteBuffer);
+						byteBuffer.clear();
+					}
+				}
+
+				//发送报文结束符
+				byteBuffer.put(readEnd());
+				byteBuffer.flip();
+				session.send(byteBuffer);
+			} catch (Throwable e) {
+				if (!(e instanceof MemoryReleasedException)) {
+					Logger.error("Response send error: ", (Exception) e);
+				}
+				return;
+			}
+
+			basicSend = true;
+		} finally {
+			clear();
 		}
-
-		basicSend = true;
 	}
 
 	public void release(){
@@ -257,10 +303,14 @@ public class Response {
 		this.cookies().clear();
 		this.protocol().clear();
 		this.body().clear();
+		isCompress = false;
+		basicSend = false;
+		autoSend = true;
+		cacheMark = null;
 	}
 
 	@Override
 	public String toString() {
-		return new String(TByteBuffer.toString(readHead()));
+		return new String(readHead());
 	}
 }

@@ -947,4 +947,33 @@ public class TString {
 
 		return stringBuilder.toString();
 	}
+
+	/**
+	 * 将字符串转化成 Ascii 的不同
+	 * @param str 字符串
+	 * @return 转换后的字节队列
+	 */
+	public static byte[] toAsciiBytes(String str) {
+		byte[] bytes = new byte[str.length()];
+		for(int i=0;i<str.length();i++){
+			bytes[i] = (byte)str.charAt(i);
+		}
+
+		return bytes;
+	}
+
+	/**
+	 * byte 转字符串
+	 * @param bytes  字节数据
+	 * @param length 长度
+	 * @return 转换后的字符串
+	 */
+	public static String toAsciiString(byte[] bytes, int length) {
+		StringBuilder stringBuilder = new StringBuilder(length);
+		for(int i=0;i<length;i++){
+			stringBuilder.append((char)(bytes[i] & 0xFF));
+		}
+
+		return stringBuilder.toString();
+	}
 }

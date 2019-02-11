@@ -15,23 +15,27 @@ import org.voovan.tools.TString;
  */
 public class Logger {
 	private static Formater	formater	= Formater.newInstance();
-	private static boolean state = true;
+	private static boolean enable = true;
 
 	/**
 	 * 日志输出状态
 	 *
 	 * @return true:输出日志,false 不输出任何日志
 	 */
-	public static boolean isState() {
-		return state;
+	public static boolean isEnable() {
+		return enable;
 	}
 
 	/**
 	 * 设置日志输出状态
-	 * @param state true:输出日志,false 不输出任何日志
+	 * @param enable true:输出日志,false 不输出任何日志
 	 */
-	public static void setState(boolean state) {
-		Logger.state = state;
+	public static void setEnable(boolean enable) {
+		Logger.enable = enable;
+	}
+
+	public static void stopLoggerThread(){
+
 	}
 
 	/**
@@ -52,6 +56,10 @@ public class Logger {
 	}
 
 	public static void info(Object msg) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			msg = buildMessage(msg);
 			Message message = Message.newInstance("INFO", msg.toString());
@@ -64,10 +72,18 @@ public class Logger {
 	}
 
 	public static void infof(String msg, Object ... args){
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		info(TString.tokenReplace(msg, args));
 	}
 
 	public static void fremawork(Object msg) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			msg = buildMessage(msg);
 			Message message = Message.newInstance("FRAMEWORK", msg.toString());
@@ -80,10 +96,18 @@ public class Logger {
 	}
 
 	public static void fremaworkf(String msg, Object ... args){
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		info(TString.tokenReplace(msg, args));
 	}
 
 	public static void debug(Object msg) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			msg = buildMessage(msg);
 			Message message = Message.newInstance("DEBUG", msg.toString());
@@ -96,11 +120,19 @@ public class Logger {
 	}
 
 	public static void debugf(String msg, Object ... args){
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		debug(TString.tokenReplace(msg, args));
 	}
 
 
 	public static void warn(Object msg) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			msg = buildMessage(msg);
 			Message message = Message.newInstance("WARN", msg.toString());
@@ -113,11 +145,19 @@ public class Logger {
 	}
 
 	public static void warnf(String msg, Object ... args){
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		warn(TString.tokenReplace(msg, args));
 	}
 
 
 	public static void warn(Exception e) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			String msg = buildMessage(null, e);
 			Message message = Message.newInstance("WARN", msg);
@@ -130,6 +170,10 @@ public class Logger {
 	}
 
 	public static void warn(Object msg, Exception e) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			String msgStr = buildMessage(msg, e);
 			Message message = Message.newInstance("WARN", msgStr);
@@ -142,11 +186,19 @@ public class Logger {
 	}
 
 	public static void warnf(String msg, Exception e, Object ... args){
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		warn(TString.tokenReplace(msg, args), e);
 	}
 
 
 	public static void error(Object msg) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			msg = buildMessage(msg, null);
 			Message message = Message.newInstance("ERROR", msg.toString());
@@ -159,10 +211,18 @@ public class Logger {
 	}
 
 	public static void errorf(String msg, Object ... args){
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		error(TString.tokenReplace(msg, args));
 	}
 
 	public static void error(Exception e) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			String msg = buildMessage(null, e);
 			Message message = Message.newInstance("ERROR", msg);
@@ -175,6 +235,10 @@ public class Logger {
 	}
 
 	public static void error(Object msg, Exception e) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			String msgStr = buildMessage(msg, e);
 			Message message = Message.newInstance("ERROR", msgStr);
@@ -187,10 +251,18 @@ public class Logger {
 	}
 
 	public static void errorf(String msg, Exception e, Object ... args){
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		error(TString.tokenReplace(msg, args), e);
 	}
 
 	public static void fatal(Object msg) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			msg = buildMessage(msg);
 			Message message = Message.newInstance("FATAL", msg.toString());
@@ -203,10 +275,18 @@ public class Logger {
 	}
 
 	public static void fatalf(String msg, Object ... args){
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		fatal(TString.tokenReplace(msg, args));
 	}
 
 	public static void fatal(Exception e) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			String msg = buildMessage(e.getMessage(), e);
 			Message message = Message.newInstance("FATAL", msg);
@@ -219,6 +299,10 @@ public class Logger {
 	}
 
 	public static void fatal(Object msg, Exception e) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			String msgStr = buildMessage(msg, e);
 			Message message = Message.newInstance("FATAL", msgStr);
@@ -231,11 +315,19 @@ public class Logger {
 	}
 
 	public static void fatalf(String msg, Exception e, Object ... args){
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		fatal(TString.tokenReplace(msg, args), e);
 	}
 
 
 	public static void simple(Object msg) {
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		try {
 			msg = buildMessage(msg);
 			Message message = Message.newInstance("SIMPLE", msg.toString());
@@ -248,6 +340,10 @@ public class Logger {
 	}
 
 	public static void simplef(String msg, Object ... args){
+		if(!Logger.isEnable()){
+			return;
+		}
+
 		error(TString.tokenReplace(msg, args));
 	}
 

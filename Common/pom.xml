@@ -11,10 +11,18 @@
     <parent>
         <groupId>org.voovan</groupId>
         <artifactId>voovan-parent</artifactId>
-        <version>3.2.0</version>
+        <version>4.0.7</version>
     </parent>
 
     <dependencies>
+        <!-- tools.jar -->
+        <dependency>
+            <groupId>jdk.tools</groupId>
+            <artifactId>jdk.tools</artifactId>
+            <version>1.8</version>
+            <scope>system</scope>
+            <systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
+        </dependency>
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>

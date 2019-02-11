@@ -12,6 +12,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
@@ -33,12 +34,14 @@ public abstract class IoSession<T extends SocketContext> {
 	private SSLParser sslParser;
 
 	private MessageLoader messageLoader;
-	private ByteBufferChannel byteBufferChannel;
+	protected ByteBufferChannel readByteBufferChannel;
+	protected ByteBufferChannel sendByteBufferChannel;
 	private T socketContext;
 	private long lastIdleTime = -1;
 	private HashWheelTask checkIdleTask;
 	private HeartBeat heartBeat;
 	private State state;
+	private ArrayList<Object> flushedObjects = new ArrayList<>(24);
 
 
 	/**
@@ -134,7 +137,8 @@ public abstract class IoSession<T extends SocketContext> {
 		attributes = new ConcurrentHashMap<Object, Object>();
 		this.socketContext = socketContext;
 		this.state = new State();
-		byteBufferChannel = new ByteBufferChannel(socketContext.getBufferSize());
+		readByteBufferChannel = new ByteBufferChannel(socketContext.getReadBufferSize());
+		sendByteBufferChannel = new ByteBufferChannel(socketContext.getSendBufferSize());
 		messageLoader = new MessageLoader(this);
 		checkIdle();
 	}
@@ -252,8 +256,17 @@ public abstract class IoSession<T extends SocketContext> {
 	 *
 	 * @return 接收的输出流
 	 */
-	public ByteBufferChannel getByteBufferChannel() {
-		return byteBufferChannel;
+	public ByteBufferChannel getReadByteBufferChannel() {
+		return readByteBufferChannel;
+	}
+
+	/**
+	 * 获取发送收的输出流
+	 *
+	 * @return 发送的输出流
+	 */
+	public ByteBufferChannel getSendByteBufferChannel() {
+		return sendByteBufferChannel;
 	}
 
 	/**
@@ -349,6 +362,14 @@ public abstract class IoSession<T extends SocketContext> {
 		return socketContext;
 	};
 
+	protected ArrayList<Object> getFlushedObjects() {
+		return flushedObjects;
+	}
+
+	protected void setFlushedObjects(ArrayList<Object> flushedObjects) {
+		this.flushedObjects = flushedObjects;
+	}
+
 	/**
 	 * 读取消息到缓冲区
 	 * @param buffer    接收数据的缓冲区
@@ -357,15 +378,24 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	protected abstract int read0(ByteBuffer buffer) throws IOException;
 
-
 	/**
-	 * 发送消息
-	 * 		注意直接调用不会出发 onSent 事件
-	 * @param buffer  发送缓冲区
-	 * @return 读取的字节数
-	 * @throws IOException IO 异常
-	 */
-	protected abstract int send0(ByteBuffer buffer) throws IOException;
+	 * 直接从缓冲区读取数据
+	 * @param byteBuffer 字节缓冲对象ByteBuffer,读取 前需要使用 enabledMessageSpliter(false) 停止分割器的工作,除非有特殊的需求.
+	 * @return  读取的字节数
+	 * @throws IOException IO异常
+	 * */
+	public int read(ByteBuffer byteBuffer) throws IOException {
+
+		int readSize = -1;
+
+		readSize = this.read0(byteBuffer);
+
+		if(!this.isConnected() && readSize <= 0){
+			readSize = -1;
+		}
+
+		return readSize;
+	}
 
 	/**
 	 * 同步读取消息
@@ -392,6 +422,10 @@ public abstract class IoSession<T extends SocketContext> {
 
 			readObject = ((SynchronousHandler)socketContext.handler()).getResponse();
 
+			if(readObject == null && !isConnected()){
+				throw new ReadMessageException("Method syncRead error! Socket is disconnected");
+			}
+
 			if(readObject instanceof Throwable){
 				Exception exception = (Exception) readObject;
 				if (exception != null) {
@@ -408,6 +442,33 @@ public abstract class IoSession<T extends SocketContext> {
 		return readObject;
 	}
 
+
+	/**
+	 * 发送消息
+	 * 		注意直接调用不会出发 onSent 事件
+	 * @param buffer  发送缓冲区
+	 * @return 读取的字节数
+	 * @throws IOException IO 异常
+	 */
+	protected abstract int send0(ByteBuffer buffer) throws IOException;
+
+	/**
+	 * 发送消息到发送缓冲区
+	 * @param buffer 发送到缓冲区的 ByteBuffer 对象
+	 * @return 添加至缓冲区的字节数
+	 */
+	public int sendByBuffer(ByteBuffer buffer) {
+		try {
+			return sendByteBufferChannel.writeEnd(buffer);
+		} catch (Exception e) {
+			if (socketContext.isConnected()) {
+				Logger.error("IoSession.sendByBuffer buffer failed", e);
+			}
+		}
+
+		return -1;
+	}
+
 	/**
 	 * 同步发送消息
 	 * 			消息会经过 filter 的 encoder 函数处理后再发送
@@ -421,6 +482,7 @@ public abstract class IoSession<T extends SocketContext> {
 			if (obj != null) {
 				try {
 					EventProcess.sendMessage(this, obj);
+					flush();
 				}catch (Exception e){
 					throw new SendMessageException("Method syncSend error! Error by "+
 							e.getClass().getSimpleName() + ".",e);
@@ -430,18 +492,7 @@ public abstract class IoSession<T extends SocketContext> {
 			throw new SendMessageException("Method syncSend error! Error by "+
 					e.getClass().getSimpleName() + ".",e);
 		}
-
-
 	}
-
-	/**
-	 * 设置是否使用分割器读取
-	 * @param useSpliter true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
-	 */
-	public void enabledMessageSpliter(boolean useSpliter) {
-		messageLoader.setUseSpliter(useSpliter);
-	}
-
 
 	/**
 	 * 直接向缓冲区发送消息
@@ -455,8 +506,12 @@ public abstract class IoSession<T extends SocketContext> {
 				//warpData 内置调用 session.send0 将数据送至发送缓冲区
 				sslParser.warpData(buffer);
 				return buffer.limit();
-			}else{
-				return send0(buffer);
+			} else {
+				//如果大于缓冲区,则现发送一次
+				if(buffer.limit() + sendByteBufferChannel.size() > sendByteBufferChannel.getMaxSize()){
+					flush();
+				}
+				return sendByBuffer(buffer);
 			}
 		} catch (IOException e) {
 			Logger.error("IoSession.send data failed" ,e);
@@ -466,22 +521,32 @@ public abstract class IoSession<T extends SocketContext> {
 	}
 
 	/**
-	 * 直接从缓冲区读取数据
-	 * @param byteBuffer 字节缓冲对象ByteBuffer,读取 前需要使用 enabledMessageSpliter(false) 停止分割器的工作,除非有特殊的需求.
-	 * @return  读取的字节数
-	 * @throws IOException IO异常
-	 * */
-	public int read(ByteBuffer byteBuffer) throws IOException {
+	 * 推送缓冲区的数据到 socketChannel
+	 */
+	public synchronized void flush() {
+		if(sendByteBufferChannel.size()>0) {
+			try {
+				if(getState().sendTryLock()) {
+					try {
+						getState().setSend(true);
+						send0(sendByteBufferChannel.getByteBuffer());
+						//触发发送事件
+						EventTrigger.fireFlush(this, getFlushedObjects());
+					} finally {
+						sendByteBufferChannel.compact();
+						getState().sendUnLock();
+						getState().setSend(false);
+					}
+				}
+			} catch (IOException e) {
+				if(isConnected()) {
+					if (socketContext.isConnected()) {
+						Logger.error("IoSession.flush buffer failed", e);
+					}
+				}
+			}
 
-		int readSize = -1;
-
-		readSize = this.read0(byteBuffer);
-
-		if(!this.isConnected() && readSize <= 0){
-			readSize = -1;
 		}
-
-		return readSize;
 	}
 
 	/**
@@ -497,6 +562,14 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return 消息分割处理类
 	 */
 	protected abstract MessageSplitter getMessagePartition();
+
+	/**
+	 * 设置是否使用分割器读取
+	 * @param useSpliter true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
+	 */
+	public void enabledMessageSpliter(boolean useSpliter) {
+		messageLoader.enable(useSpliter);
+	}
 
 	/**
 	 * 会话是否连接

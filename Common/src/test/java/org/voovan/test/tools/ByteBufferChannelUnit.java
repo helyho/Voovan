@@ -105,16 +105,6 @@ public class ByteBufferChannelUnit extends TestCase {
 		byteBufferChannel.release();
 	}
 
-	public void testRevIndex(){
-		init();
-		byteBufferChannel.clear();
-		byteBufferChannel.writeEnd(ByteBuffer.wrap("PINGq==== test message =====".getBytes()));
-		int index = byteBufferChannel.revIndexOf("message".getBytes());
-		assertEquals(index,15);
-		byteBufferChannel.release();
-	}
-
-
 	public void testShrinkCommon(){
 		//向前
 		init();

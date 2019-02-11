@@ -6,9 +6,11 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.json.annotation.NotJSON;
+import org.voovan.tools.log.Logger;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -206,13 +208,10 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
     }
 
 
-
     private void createCache(K key, Function<K, V> supplier, Long createExpire){
         if(supplier==null){
             return;
         }
-
-        CachedHashMap cachedHashMap = this;
 
         TimeMark timeMark = null;
 
@@ -229,47 +228,48 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
         Long finalCreateExpire = createExpire;
 
         synchronized (timeMark.createFlag) {
-            if (!timeMark.isOnCreate()) {
-                timeMark.tryLockOnCreate();
-
+            //加锁必须在外部, 否则会导致上面的 timeMark.createFlag 同步锁都解锁了,内部的线程还没有加到锁的问题
+            if (timeMark.tryLockOnCreate()) {
                 //更新缓存数据, 异步
                 if (asyncBuild) {
                     Global.getThreadPool().execute(new Runnable() {
                         @Override
                         public void run() {
-                            synchronized (supplier) {
-                                V value = supplier.apply(key);
-                                finalTimeMark.refresh(true);
-
-                                if(expire==0L) {
-                                    cachedHashMap.put(key, value);
-                                } else {
-                                    cachedHashMap.put(key, value, finalCreateExpire);
-                                }
-
-                            }
-                            finalTimeMark.releaseCreateLock();
+                            generator(key, supplier, finalTimeMark, finalCreateExpire);
                         }
                     });
                 }
                 //更新缓存数据, 异步
                 else {
-                    synchronized (supplier) {
-                        V value = supplier.apply(key);
-                        timeMark.refresh(true);
-
-                        if(expire==0L) {
-                            cachedHashMap.put(key, value);
-                        } else {
-                            cachedHashMap.put(key, value, finalCreateExpire);
-                        }
-                    }
-                    timeMark.releaseCreateLock();
+                    generator(key, supplier, timeMark, createExpire);
                 }
             }
         }
+        try {
+            TEnv.wait(10*1000, ()-> finalTimeMark.isOnCreate());
+        } catch (TimeoutException e) {
+            Logger.error("wait supplier timeout: ", e);
+        }
+    }
 
-        TEnv.wait(()-> finalTimeMark.isOnCreate());
+
+    private void generator(K key, Function<K, V> supplier, TimeMark timeMark, Long createExpire){
+        try {
+            synchronized (supplier) {
+                V value = supplier.apply(key);
+                timeMark.refresh(true);
+
+                if(expire==Long.MAX_VALUE) {
+                    this.put(key, value);
+                } else {
+                    this.put(key, value, createExpire);
+                }
+            }
+        } catch (Exception e){
+            Logger.error("Create with supplier failed: ", e);
+        } finally {
+            timeMark.releaseCreateLock();
+        }
     }
 
     /**
@@ -404,7 +404,12 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
 
     @Override
     public long getTTL(K key) {
-        return cacheMark.get(key).getExpireTime();
+        TimeMark timeMark = cacheMark.get(key);
+        if(timeMark!=null) {
+            return timeMark.getExpireTime();
+        } else {
+            return -1;
+        }
     }
 
     /**
@@ -415,15 +420,16 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
      */
     @Override
     public boolean setTTL(K key, long expire) {
+
         TimeMark timeMark = cacheMark.get(key);
-        if(timeMark==null && !cacheMark.containsKey(key)){
+        if(timeMark==null){
             return false;
         } else {
             timeMark.setExpireTime(expire);
             timeMark.refresh(true);
+            return true;
         }
 
-        return true;
     }
 
     @Override

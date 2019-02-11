@@ -163,6 +163,9 @@ public class Part {
 			header.put("Content-Disposition", value);
 		}
 
+		header.remove("name");
+		header.remove("filename");
+
 		return header.toString()+"\r\n";
 	}
 
@@ -170,7 +173,7 @@ public class Part {
 		int readSize = 0;
 
 		//发送缓冲区
-		ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
+		ByteBuffer byteBuffer = TByteBuffer.allocateDirect();
 
 		//发送分段开始
 		byteBuffer.put(TString.assembly("--", boundary, "\r\n").getBytes());

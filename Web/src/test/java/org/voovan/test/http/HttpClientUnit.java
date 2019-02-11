@@ -43,10 +43,10 @@ public class HttpClientUnit extends TestCase {
 	}
 	
 	public void testGet() throws Exception{
-		HttpClient getClient = new HttpClient("http://www.boc.cn","GB2312", 60);
+		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 60);
 		Response response  = getClient.setMethod("GET")
 			.putParameters("name", "测试Get")
-			.putParameters("age", "32").send("/sourcedb/whpj/index.html");
+			.putParameters("age", "32").send();
 		Logger.simple(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 		getClient.close();
@@ -94,12 +94,13 @@ public class HttpClientUnit extends TestCase {
 	public void testSeriesRequest() throws Exception {
 		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080","GBK2312",10000);
 		Logger.simple(httpClient.send("/").body().getBodyString());
-		Logger.simple("=========================================");
+		Logger.simple("1=========================================");
 		Logger.simple(httpClient.send("/").body().getBodyString());
-		Logger.simple("=========================================");
+		Logger.simple("2=========================================");
 		Logger.simple(httpClient.send("/").body().getBodyString());
-		Logger.simple("=========================================");
+		Logger.simple("3=========================================");
 		Logger.simple(httpClient.send("/").body().getBodyString());
+		TEnv.sleep(10);
 		httpClient.close();
 	}
 

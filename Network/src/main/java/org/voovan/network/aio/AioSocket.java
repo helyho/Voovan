@@ -80,7 +80,8 @@ public class AioSocket extends SocketContext {
 		this.socketChannel = AsynchronousSocketChannel.open(ASYNCHRONOUS_CHANNEL_GROUP);
 		session = new AioSession(this);
 
-		readCompletionHandler = new ReadCompletionHandler(this,  session.getByteBufferChannel());
+		readCompletionHandler = new ReadCompletionHandler(this,  session.getReadByteBufferChannel());
+		readByteBuffer = TByteBuffer.allocateDirect(this.getReadBufferSize());
 		connectModel = ConnectModel.CLIENT;
 	}
 
@@ -97,7 +98,8 @@ public class AioSocket extends SocketContext {
 		this.copyFrom(parentSocketContext);
 		session = new AioSession(this);
 
-		readCompletionHandler = new ReadCompletionHandler(this, session.getByteBufferChannel());
+		readCompletionHandler = new ReadCompletionHandler(this, session.getReadByteBufferChannel());
+		readByteBuffer = TByteBuffer.allocateDirect(this.getReadBufferSize());
 		connectModel = ConnectModel.SERVER;
 	}
 
@@ -130,11 +132,13 @@ public class AioSocket extends SocketContext {
 
 	/**
 	 * 捕获 Aio Read
-	 * @param buffer 缓冲区
 	 */
-	protected void catchRead(ByteBuffer buffer) {
+	protected void catchRead() {
 		if(socketChannel.isOpen()) {
-			socketChannel.read(buffer, readTimeout, TimeUnit.MILLISECONDS, buffer, readCompletionHandler);
+
+			// 接收完成后重置buffer对象
+			readByteBuffer.clear();
+			socketChannel.read(readByteBuffer, readTimeout, TimeUnit.MILLISECONDS, readByteBuffer, readCompletionHandler);
 		}
 	}
 
@@ -185,8 +189,7 @@ public class AioSocket extends SocketContext {
 		}
 
 		//捕获输入事件
-		readByteBuffer = TByteBuffer.allocateDirect(this.getBufferSize());
-		catchRead(readByteBuffer);
+		catchRead();
 
 		//触发 connect 事件
 		EventTrigger.fireConnect(session);
@@ -198,8 +201,7 @@ public class AioSocket extends SocketContext {
 		initSSL(session);
 
 		//捕获输入事件
-		readByteBuffer = TByteBuffer.allocateDirect(this.getBufferSize());
-		catchRead(readByteBuffer);
+		catchRead();
 
 		//触发 connect 事件
 		EventTrigger.fireConnect(session);
@@ -293,14 +295,15 @@ public class AioSocket extends SocketContext {
 				// 关闭 Socket 连接
 				if (isConnected()) {
 					// 触发 DisConnect 事件
-					EventTrigger.fireDisconnectThread(session);
+					EventTrigger.fireDisconnect(session);
 					socketChannel.close();
 
 					//如果有未读数据等待数据处理完成
 					//session.wait(this.getReadTimeout());
 
 					readCompletionHandler.release();
-					session.getByteBufferChannel().release();
+					session.getReadByteBufferChannel().release();
+					session.getSendByteBufferChannel().release();
 					TByteBuffer.release(readByteBuffer);
 					if(session.getSSLParser()!=null){
 						session.getSSLParser().release();

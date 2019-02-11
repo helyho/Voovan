@@ -187,7 +187,7 @@ public class HttpClient implements Closeable{
 	public ByteBuffer loadStream() throws IOException {
 		IoSession session = socket.getSession();
 
-		ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getBufferSize());
+		ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getReadBufferSize());
 
 		session.enabledMessageSpliter(false);
 		int readSize = session.read(tmpBuffer);
@@ -446,6 +446,7 @@ public class HttpClient implements Closeable{
 		//发送报文
 		try {
 			httpRequest.send(socket.getSession());
+			httpRequest.flush();
 		}catch(IOException e){
 			throw new SendMessageException("HttpClient send error",e);
 		}
@@ -506,11 +507,7 @@ public class HttpClient implements Closeable{
 			request.cookies().addAll(response.cookies());
 		}
 
-		try {
-			request.body().changeToBytes(new byte[0]);
-		} catch (IOException e) {
-			request.body();
-		}
+        request.body().changeToBytes(new byte[0]);
 
 		//清理请求对象,以便下次请求使用
 		parameters.clear();
@@ -614,7 +611,9 @@ public class HttpClient implements Closeable{
 	 */
 	@Override
 	public void close(){
-		socket.close();
+		if(socket!=null) {
+			socket.close();
+		}
 	}
 
 	/**
@@ -622,7 +621,11 @@ public class HttpClient implements Closeable{
 	 * @return 是否连接
 	 */
 	public boolean isConnect(){
-		return socket.isConnected();
+		if(socket!=null) {
+			return socket.isConnected();
+		} else {
+			return false;
+		}
 	}
 
 }

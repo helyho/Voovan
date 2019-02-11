@@ -60,7 +60,7 @@ public class HttpClientFilter implements IoFilter {
 					session.enabledMessageSpliter(false);
 				}
 
-				ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
+				ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
 				if(HttpRequestType.WEBSOCKET.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))){
 					return WebSocketFrame.parse((ByteBuffer)object);
 				}else {

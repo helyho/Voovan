@@ -2,6 +2,7 @@ package org.voovan.network;
 
 import org.voovan.Global;
 
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -16,6 +17,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * Licence: Apache v2 License
  */
 public class EventTrigger {
+	public static ThreadLocal<Event> THREAD_EVENT = ThreadLocal.withInitial(()->new Event());
 
 	private static ThreadPoolExecutor eventThreadPool = Global.getThreadPool();
 
@@ -46,10 +48,12 @@ public class EventTrigger {
 	}
 
 	public static void fireSentThread(IoSession session, Object obj){
-		//设置发送状态
-		session.getState().setSend(true);
-
 		fireEventThread(session, Event.EventName.ON_SENT, obj);
+	}
+
+
+	public static void fireFlushThread(IoSession session, List<Object> flushedObjects){
+		fireEventThread(session, Event.EventName.ON_FLUSH, flushedObjects);
 	}
 
 	public static void fireDisconnectThread(IoSession session){
@@ -88,20 +92,20 @@ public class EventTrigger {
 			if (session.isOpen() && SSLParser.isHandShakeDone(session) && session.getState().receiveTryLock()) {
 				//设置接受状态
 				session.getState().setReceive(true);
-				fireEventThread(session, Event.EventName.ON_RECEIVE, null);
+				fireEvent(session, Event.EventName.ON_RECEIVE, null);
 			}
 		}
 	}
 
 	public static void fireSent(IoSession session, Object obj){
-		//设置发送状态
-		session.getState().setSend(true);
-
 		fireEvent(session, Event.EventName.ON_SENT, obj);
 	}
 
+	public static void fireFlush(IoSession session, List<Object> flushedObjects){
+		fireEvent(session, Event.EventName.ON_FLUSH, flushedObjects);
+	}
+
 	public static void fireDisconnect(IoSession session){
-		//设置断开状态,Close是最终状态
 		session.getState().setClose(true);
 
 		fireEvent(session, Event.EventName.ON_DISCONNECT,null);
@@ -126,8 +130,8 @@ public class EventTrigger {
 	 */
 	public static void fireEventThread(IoSession session, Event.EventName name, Object other){
 		if(!eventThreadPool.isShutdown()){
-			Event event = Event.getInstance(session,name,other);
-			eventThreadPool.execute(new EventThread(event));
+			EventThread eventThread = new EventThread(session,name,other);
+			eventThreadPool.execute(eventThread);
 		}
 	}
 
@@ -139,7 +143,8 @@ public class EventTrigger {
 	 * @param other 附属对象
 	 */
 	public static void fireEvent(IoSession session, Event.EventName name, Object other){
-		Event event = Event.getInstance(session,name,other);
+		Event event = THREAD_EVENT.get();
+		event.init(session,name,other);
 		EventProcess.process(event);
 	}
 

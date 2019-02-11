@@ -20,6 +20,10 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
+    public static ThreadLocalPool<ByteBuffer> THREAD_LOCAL_POOL = new ThreadLocalPool<ByteBuffer>();
+
+    public static int DEFAULT_BYTE_BUFFER_SIZE=1024*8;
+
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
 
     public static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
@@ -77,13 +81,32 @@ public class TByteBuffer {
 
     /**
      * 根据框架的非堆内存配置, 分配 ByteBuffer
+     * @return ByteBuffer 对象
+     */
+    public static ByteBuffer allocateDirect() {
+        return allocateDirect(DEFAULT_BYTE_BUFFER_SIZE);
+    }
+
+    /**
+     * 根据框架的非堆内存配置, 分配 ByteBuffer
      * @param capacity 容量
      * @return ByteBuffer 对象
      */
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
         if(Global.NO_HEAP_MANUAL_RELEASE) {
-            return allocateManualReleaseBuffer(capacity);
+            ByteBuffer byteBuffer = THREAD_LOCAL_POOL.get(()->allocateManualReleaseBuffer(capacity));
+
+            if(capacity <= byteBuffer.capacity()) {
+                byteBuffer.limit(capacity);
+            } else {
+                reallocate(byteBuffer, capacity);
+            }
+
+            byteBuffer.position(0);
+            byteBuffer.limit(capacity);
+
+            return byteBuffer;
         } else {
             return ByteBuffer.allocateDirect(capacity);
         }
@@ -140,15 +163,12 @@ public class TByteBuffer {
      */
     public static boolean moveData(ByteBuffer byteBuffer, int offset) {
         try {
-            if(isReleased(byteBuffer)) {
-                return false;
-            }
 
             if(offset==0){
                 return true;
             }
 
-            if(offset > 0 && byteBuffer.capacity() - byteBuffer.position() > offset){
+            if(byteBuffer.remaining() == 0){
                 return true;
             }
 
@@ -188,6 +208,28 @@ public class TByteBuffer {
     }
 
     /**
+     * 复制一个 Bytebuffer 对象
+     * @param byteBuffer 原 ByteBuffer 对象
+     * @return 复制出的对象
+     * @throws ReflectiveOperationException 反射错误
+     */
+    public static ByteBuffer copy(ByteBuffer byteBuffer) throws ReflectiveOperationException {
+
+        ByteBuffer newByteBuffer = TByteBuffer.allocateDirect(byteBuffer.capacity());
+
+        if(byteBuffer.hasRemaining()) {
+            long address = getAddress(byteBuffer);
+            long newAddress = getAddress(newByteBuffer);
+            TUnsafe.getUnsafe().copyMemory(address, newAddress + byteBuffer.position(), byteBuffer.remaining());
+        }
+
+        newByteBuffer.position(byteBuffer.position());
+        newByteBuffer.limit(byteBuffer.limit());
+
+        return newByteBuffer;
+    }
+
+    /**
      * 释放byteBuffer
      *      释放对外的 bytebuffer
      * @param byteBuffer bytebuffer 对象
@@ -202,21 +244,36 @@ public class TByteBuffer {
             return;
         }
 
-        synchronized (byteBuffer) {
-            try {
-                if (byteBuffer != null && !isReleased(byteBuffer)) {
-                    Object att = getAtt(byteBuffer);
-                    if (att!=null && att.getClass() == Deallocator.class) {
-                        long address = getAddress(byteBuffer);
-                        if(address!=0) {
-                            TUnsafe.getUnsafe().freeMemory(address);
-                            setAddress(byteBuffer, 0);
+        try {
+            if (byteBuffer != null && !isReleased(byteBuffer)) {
+                Object att = getAtt(byteBuffer);
+                if (att!=null && att.getClass() == Deallocator.class) {
+                    long address = getAddress(byteBuffer);
+                    if(address!=0) {
+                        byteBuffer.clear();
+
+                        if(byteBuffer.capacity() > DEFAULT_BYTE_BUFFER_SIZE){
+                            reallocate(byteBuffer, DEFAULT_BYTE_BUFFER_SIZE);
                         }
+
+                        THREAD_LOCAL_POOL.release(byteBuffer, ()->{
+                            try {
+                                TUnsafe.getUnsafe().freeMemory(address);
+                                setAddress(byteBuffer, 0);
+                                return true;
+                            } catch (ReflectiveOperationException e) {
+                                e.printStackTrace();
+                            }
+
+                            return false;
+                        });
+
+
                     }
                 }
-            } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
             }
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
         }
     }
 
@@ -315,24 +372,33 @@ public class TByteBuffer {
         }
 
         int index = -1;
-        byte[] tmp = new byte[mark.length];
 
-        if(length == mark.length){
-            byteBuffer.get(tmp, 0, mark.length);
-            byteBuffer.position(originPosition);
-            if(Arrays.equals(mark, tmp)){
-                return 0;
-            } else {
-                return index;
-            }
-        }
+        int i = byteBuffer.position();
+        int j = 0;
 
-        for(int offset = 0; (offset + originPosition <= length - mark.length); offset++){
-            byteBuffer.position(originPosition + offset);
-            byteBuffer.get(tmp, 0, tmp.length);
-            if(Arrays.equals(mark, tmp)){
-                index = offset;
-                break;
+        while(i <= (byteBuffer.limit() - mark.length + j )  ){
+            if(byteBuffer.get(i) != mark[j] ){
+                if(i == (byteBuffer.limit() - mark.length + j )){
+                    break;
+                }
+                int pos = contains(mark, byteBuffer.get(i+mark.length-j));
+                if( pos== -1){
+                    i = i + mark.length + 1 - j;
+                    j = 0 ;
+                }else{
+                    i = i + mark.length - pos - j;
+                    j = 0;
+                }
+            }else{
+                if(j == (mark.length - 1)){
+                    i = i - j + 1 ;
+                    j = 0;
+                    index  = i-j - 1;
+                    break;
+                }else{
+                    i++;
+                    j++;
+                }
             }
         }
 
@@ -341,56 +407,13 @@ public class TByteBuffer {
         return index;
     }
 
-
-    /**
-     * 反向查找特定 byte 标识的位置
-     *     byte 标识数组第一个字节的索引位置
-     * @param byteBuffer Bytebuffer 对象
-     * @param mark byte 标识数组
-     * @return 第一个字节的索引位置
-     */
-    public static int revIndexOf(ByteBuffer byteBuffer, byte[] mark){
-
-        if(isReleased(byteBuffer)) {
-            return -1;
-        }
-
-        if(byteBuffer.remaining() == 0){
-            return -1;
-        }
-
-        int originPosition = byteBuffer.position();
-        int length = byteBuffer.remaining();
-
-        if(length < mark.length){
-            return -1;
-        }
-
-        int index = -1;
-        byte[] tmp = new byte[mark.length];
-
-        if(length == mark.length){
-            byteBuffer.get(tmp, 0, mark.length);
-            byteBuffer.position(originPosition);
-            if(Arrays.equals(mark, tmp)){
-                return 0;
-            } else {
-                return index;
+    private static int contains(byte[] mark, byte target){
+        for(int i = mark.length-1 ; i >= 0; i--){
+            if(mark[i] == target){
+                return i ;
             }
         }
-
-        for(int offset = mark.length; (length - offset > mark.length); offset++){
-            byteBuffer.position(length - offset);
-            byteBuffer.get(tmp, 0, tmp.length);
-            if(Arrays.equals(mark, tmp)){
-                index = length-offset;
-                break;
-            }
-        }
-
-        byteBuffer.position(originPosition);
-
-        return index;
+        return -1;
     }
 
     /**
@@ -441,10 +464,10 @@ public class TByteBuffer {
     /**
      * 自动跟踪 GC 销毁的类
      */
-    private static class Deallocator implements Runnable {
+    public final static class Deallocator implements Runnable {
         private long address;
 
-        private Deallocator(long address) {
+        Deallocator(long address) {
             this.address = address;
         }
 

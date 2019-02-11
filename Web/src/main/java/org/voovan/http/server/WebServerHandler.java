@@ -3,8 +3,9 @@ package org.voovan.http.server;
 import org.voovan.Global;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.HttpRequestType;
+import org.voovan.http.message.HttpParser;
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Request;
-import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
@@ -32,6 +33,10 @@ import java.util.Vector;
  * Licence: Apache v2 License
  */
 public class WebServerHandler implements IoHandler {
+	ThreadLocal<HttpRequest> THREAD_HTTP_REQUEST = new ThreadLocal<HttpRequest>();
+	ThreadLocal<HttpResponse> THREAD_HTTP_RESPONSE = new ThreadLocal<HttpResponse>();
+
+
 	private HttpDispatcher		httpDispatcher;
 	private WebSocketDispatcher	webSocketDispatcher;
 	private WebServerConfig webConfig;
@@ -125,8 +130,6 @@ public class WebServerHandler implements IoHandler {
 
 		//清理 IoSession
 		keepAliveSessionList.remove(session);
-
-		release(session);
 	}
 
 	/**
@@ -147,6 +150,12 @@ public class WebServerHandler implements IoHandler {
 		}
 	}
 
+	private void resetThreadLocal(){
+		HttpParser.resetThreadLocal();
+		THREAD_HTTP_REQUEST.set(null);
+		THREAD_HTTP_RESPONSE.set(null);
+	}
+
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
 		// 获取默认字符集
@@ -164,17 +173,23 @@ public class WebServerHandler implements IoHandler {
 				return null;
 			}
 
-			// 构造响应对象
-			Response response = new Response();
-
-			if(webConfig.isGzip() && request.header().contain("Accept-Encoding") &&
-					request.header().get("Accept-Encoding").contains("gzip")) {
-				response.setCompress(true);
-			}
 
 			// 构造 Http 请求/响应 对象
-			HttpRequest httpRequest = new HttpRequest(request, defaultCharacterSet, session);
-			HttpResponse httpResponse = new HttpResponse(response, defaultCharacterSet, session);
+			HttpRequest httpRequest = THREAD_HTTP_REQUEST.get();
+			if(httpRequest==null) {
+				httpRequest = new HttpRequest(request, defaultCharacterSet, session);
+				THREAD_HTTP_REQUEST.set(httpRequest);
+			} else {
+				httpRequest.init(request, defaultCharacterSet, session);
+			}
+
+			HttpResponse httpResponse = THREAD_HTTP_RESPONSE.get();
+			if(httpResponse==null) {
+				httpResponse = new HttpResponse(defaultCharacterSet, session);
+				THREAD_HTTP_RESPONSE.set(httpResponse);
+			} else {
+				httpResponse.init(defaultCharacterSet, session);
+			}
 
 			setAttribute(session, HttpSessionParam.HTTP_REQUEST, httpRequest);
 			setAttribute(session, HttpSessionParam.HTTP_RESPONSE, httpResponse);
@@ -212,23 +227,48 @@ public class WebServerHandler implements IoHandler {
 	 */
 	public HttpResponse disposeHttp(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 
+		//如果是长连接则填充响应报文
+		if (httpRequest.header().contain(HttpStatic.CONNECTION_STRING)) {
+			if(httpRequest.header().get(HttpStatic.CONNECTION_STRING).toLowerCase().contains(HttpStatic.KEEP_ALIVE_STRING)) {
+				setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
+				httpResponse.header().put(HttpStatic.CONNECTION_STRING, httpRequest.header().get(HttpStatic.CONNECTION_STRING));
+			}
+
+			if(httpRequest.header().get(HttpStatic.CONNECTION_STRING).toLowerCase().contains(HttpStatic.CLOSE_STRING)) {
+				setAttribute(session, HttpSessionParam.KEEP_ALIVE, false);
+				httpResponse.header().remove(HttpStatic.CONNECTION_STRING);
+			}
+		}
+		//对于1.1协议的特殊处理
+		else if(httpRequest.protocol().getVersion().endsWith("1.1")){
+			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
+			httpResponse.header().put(HttpStatic.CONNECTION_STRING, HttpStatic.KEEP_ALIVE_STRING);
+		}
+
+		httpResponse.header().put(HttpStatic.SERVER_STRING, WebContext.getVERSION());
+
+		//============================是否启用 gzip 压缩============================
+		if(webConfig.isGzip() && httpRequest.header().contain(HttpStatic.ACCEPT_ENCODING_STRING) &&
+				httpRequest.header().get(HttpStatic.ACCEPT_ENCODING_STRING).contains(HttpStatic.GZIP_STRING) &&
+				httpResponse.header().get(HttpStatic.CONTENT_TYPE_STRING) != null) {
+			//检查 body 大小是否启用 gzip
+			if(httpResponse.body().size() > webConfig.getGzipMinSize()){
+				//检查 MimeType 是否启用 gzip
+				for(String gzipMimeType : webConfig.getGzipMimeType()){
+					if(httpResponse.header().get(HttpStatic.CONTENT_TYPE_STRING).contains(gzipMimeType)){
+						httpResponse.setCompress(true);
+					}
+				}
+			}
+		}
+
 		// 处理响应请求
 		httpDispatcher.process(httpRequest, httpResponse);
 
-		//对于1.1协议的特殊处理
-		if(httpRequest.protocol().getVersion()==1.1F){
-			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
-			httpResponse.header().put("Connection", "keep-alive");
+		if(WebContext.isCache() && httpRequest.protocol().getMethod().equals("GET") && !httpResponse.body().isFile()){
+			String cacheMark = httpRequest.protocol().getPath() + httpRequest.protocol().getQueryString() + httpResponse.body().size();
+			httpResponse.setCacheMark(cacheMark);
 		}
-		//如果是长连接则填充响应报文
-		else if (httpRequest.header().contain("Connection")
-				&& httpRequest.header().get("Connection").toLowerCase().contains("keep-alive")) {
-			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
-			httpResponse.header().put("Connection", httpRequest.header().get("Connection"));
-		}
-
-
-		httpResponse.header().put("Server", WebContext.getVERSION());
 
 		return httpResponse;
 	}
@@ -241,6 +281,7 @@ public class WebServerHandler implements IoHandler {
 	 * @param httpResponse HTTP 响应对象
 	 * @return HTTP 响应对象
 	 */
+	private static String upgradeStatusCode = "Switching Protocols";
 	public HttpResponse disposeUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 
 		//如果不是匹配的路由则关闭连接
@@ -249,25 +290,25 @@ public class WebServerHandler implements IoHandler {
 
 			//初始化响应消息
 			httpResponse.protocol().setStatus(101);
-			httpResponse.protocol().setStatusCode("Switching Protocols");
-			httpResponse.header().put("Connection", "Upgrade");
+			httpResponse.protocol().setStatusCode(upgradeStatusCode);
+			httpResponse.header().put(HttpStatic.CONNECTION_STRING, HttpStatic.UPGRADE_STRING);
 
-			if(httpRequest.header()!=null && "websocket".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
+			if(httpRequest.header()!=null && HttpStatic.WEB_SOCKET_STRING.equals(httpRequest.header().get(HttpStatic.UPGRADE_STRING))){
 
-				httpResponse.header().put("Upgrade", "websocket");
-				String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get("Sec-WebSocket-Key"));
-				httpResponse.header().put("Sec-WebSocket-Accept", webSocketKey);
+				httpResponse.header().put(HttpStatic.UPGRADE_STRING, HttpStatic.WEB_SOCKET_STRING);
+				String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get(HttpStatic.SEC_WEB_SOCKET_KEY_STRING));
+				httpResponse.header().put(HttpStatic.SEC_WEB_SOCKET_ACCEPT_STRING, webSocketKey);
 			}
 
-			else if(httpRequest.header()!=null && "h2c".equalsIgnoreCase(httpRequest.header().get("Upgrade"))){
-				httpResponse.header().put("Upgrade", "h2c");
+			else if(httpRequest.header()!=null && "h2c".equals(httpRequest.header().get(HttpStatic.UPGRADE_STRING))){
+				httpResponse.header().put(HttpStatic.UPGRADE_STRING, "h2c");
 				//这里写 HTTP2的实现,暂时留空
 			}
 		} else {
 			httpDispatcher.exceptionMessage(httpRequest, httpResponse, new RouterNotFound("Not avaliable router!"));
 		}
 
-
+		resetThreadLocal();
 		return httpResponse;
 	}
 
@@ -282,7 +323,7 @@ public class WebServerHandler implements IoHandler {
 
 		ByteBufferChannel byteBufferChannel = null;
 		if(!session.containAttribute("WebSocketByteBufferChannel")){
-			byteBufferChannel = new ByteBufferChannel(session.socketContext().getBufferSize());
+			byteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
 			session.setAttribute("WebSocketByteBufferChannel",byteBufferChannel);
 		}else{
 			byteBufferChannel = (ByteBufferChannel)session.getAttribute("WebSocketByteBufferChannel");
@@ -342,7 +383,6 @@ public class WebServerHandler implements IoHandler {
 	@Override
 	public void onSent(IoSession session, Object obj) {
 		HttpRequest request = getAttribute(session,HttpSessionParam.HTTP_REQUEST);
-		HttpResponse response = getAttribute(session,HttpSessionParam.HTTP_RESPONSE);
 
 		//WebSocket 协议处理
 		if(obj instanceof WebSocketFrame){
@@ -391,6 +431,11 @@ public class WebServerHandler implements IoHandler {
 				}
 			}, session.socketContext().getReadTimeout()/3/1000);
 		}
+	}
+
+	@Override
+	public void onFlush(IoSession session, List<Object> flushedObjects) {
+		HttpRequest request = getAttribute(session,HttpSessionParam.HTTP_REQUEST);
 
 		//处理连接保持
 		if (getAttribute(session, HttpSessionParam.KEEP_ALIVE) !=null &&
@@ -407,6 +452,7 @@ public class WebServerHandler implements IoHandler {
 			if (keepAliveSessionList.contains(session)) {
 				keepAliveSessionList.remove(session);
 			}
+			session.flush();
 			session.close();
 		}
 
@@ -423,17 +469,5 @@ public class WebServerHandler implements IoHandler {
 	@Override
 	public void onIdle(IoSession session) {
 
-	}
-
-	public void release(IoSession session){
-		HttpRequest request = getAttribute(session, HttpSessionParam.HTTP_REQUEST);
-		HttpResponse response = getAttribute(session, HttpSessionParam.HTTP_RESPONSE);
-		if(request != null) {
-			request.release();
-		}
-
-		if(response != null) {
-			response.release();
-		}
 	}
 }

@@ -16,12 +16,15 @@
 
   "KeepAliveTimeout"       : 60,                          // KeepAlive 超时时间(s),默认60秒,如果值小于等于0则不启用 KeepAlive 设置 (该参数同样会被应用到 WebSocket 的连接保持上)
   "Gzip"                   : true,                        // 是否启用Gzip压缩,默认 true
+  "GzipMinSize"            : 1024,                         // 启用Gzip压缩的最小响应报文, 默认 2048 byte 以上启用 gzip 压缩
+  "GzipMimeType"           : ["text/html","text/xml","text/javascript","application/javascript","text/css","text/plain","text/json","application/json"],  // 启用Gzip压缩的最小响应报文, 默认 2048 byte 以上启用 gzip 压缩
   "AccessLog"              : false,                        // 是否记录access.log,默认 true
   "HotSwapInterval"        : 30,                            //热加载检测时间间隔. 默认:0秒. 0:关闭
-  "LifeCycleClass"              : "org.voovan.test.http.WebLifeCycleClass", //配置在Web 服务启动时加载并运行初始化类, 该类需继承:org.voovan.http.server.WebServerInit
+  "LifeCycleClass"         : "org.voovan.test.http.WebLifeCycleClass", //配置在Web 服务启动时加载并运行初始化类, 该类需继承:org.voovan.http.server.WebServerInit
   "PauseURL"               : "/img/logo.jpg",                // 服务器暂停状态下所有请求都会转向这个路由
+  "Cache"                  : false,
   "ScanAopPackage"         : "org.voovan",
-  "maxRequestSize"         : 1024 ,                           //请求大小的限制(单位:kb), 大于这个值的连接将会被放弃, -1 不限制上传文件的大小. 默认值: 1024k
+  "maxRequestSize"         : 22528 ,                           //请求大小的限制(单位:kb), 大于这个值的连接将会被放弃, -1 不限制上传文件的大小. 默认值: 1024k
 
 //  HTTPS证书配置
 //  "Https": {
@@ -99,14 +102,14 @@
   ],
 */
   "Modules": [
-    {
-      "Name": "注解路由模块",                                       //模块名称
-      "Path": "/ar",                                                  //模块路径
-      "ScanRouterPackage"      : "org.voovan.test.http.router",     //注解形式的路由扫描的包路径, 默认: null, 不设置这个属性则会被任务不开启
-      "ScanRouterInterval"     : 30,                                //注解形式的路由扫描的包路径的时间间隔. 默认:0秒. 0:关闭
-      "ClassName": "org.voovan.http.server.module.annontationRouter.AnnotationModule",               //模块处理器
-      "LifeCycleClass": "org.voovan.test.http.HttpModuleLifeCycleClass"
-    },
+//    {
+//      "Name": "注解路由模块",                                       //模块名称
+//      "Path": "/ar",                                                  //模块路径
+//      "ScanRouterPackage"      : "org.voovan.test.http.router",     //注解形式的路由扫描的包路径, 默认: null, 不设置这个属性则会被任务不开启
+//      "ScanRouterInterval"     : 30,                                //注解形式的路由扫描的包路径的时间间隔. 默认:0秒. 0:关闭
+//      "ClassName": "org.voovan.http.server.module.annontationRouter.AnnotationModule",               //模块处理器
+//      "LifeCycleClass": "org.voovan.test.http.HttpModuleLifeCycleClass"
+//    },
 //    {
 //      "Name": "Monitor",                                                    //模块名称
 //      "Path": "/monitor",                                                   //模块路径

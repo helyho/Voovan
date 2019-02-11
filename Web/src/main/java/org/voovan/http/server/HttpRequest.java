@@ -48,6 +48,29 @@ public class HttpRequest extends Request {
 		this.socketSession = socketSession;
 	}
 
+
+	/**
+	 * 构造函数
+	 * @param characterSet  字符集
+	 * @param socketSession socket 会话对象
+	 */
+	public HttpRequest(String characterSet, IoSession socketSession){
+		this.characterSet=characterSet;
+		parameters = new LinkedHashMap<String, String>();
+		attributes = new HashMap<String, Object>();
+		parseQueryString();
+		this.socketSession = socketSession;
+	}
+
+	public void init(Request request, String characterSet, IoSession socketSession){
+		super.init(request);
+		this.characterSet=characterSet;
+		parameters = new LinkedHashMap<String, String>();
+		attributes = new HashMap<String, Object>();
+		parseQueryString();
+		this.socketSession = socketSession;
+	}
+
 	protected void setSessionManager(SessionManager sessionManager) {
 		this.sessionManager = sessionManager;
 	}
@@ -427,6 +450,12 @@ public class HttpRequest extends Request {
 		return socketSession.send(byteBuffer);
 	}
 
+	/**
+	 * 将数据发送到 Socket 缓存
+	 */
+	public void flush(){
+		socketSession.flush();
+	}
 
 	/**
 	 * 保存上传的文件

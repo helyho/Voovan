@@ -50,7 +50,7 @@ public class CrossOriginFilter implements HttpFilter{
             String functionName = request.getParameter(functionParamName);
             if (functionName != null) {
                 String jsonpResponse = TString.assembly(functionName, "(", response.body().getBodyString(), ")");
-                response.clear();
+                response.body().clear();
                 response.body().write(jsonpResponse.getBytes());
             }
         }

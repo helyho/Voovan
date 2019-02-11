@@ -19,18 +19,20 @@ import java.util.concurrent.TimeUnit;
 public class ThreadPool {
 	private static int cpuCoreCount = Runtime.getRuntime().availableProcessors();
 
-	protected static int MIN_POOL_SIZE = 10*cpuCoreCount;
-	protected static int MAX_POOL_SIZE = 100*cpuCoreCount;
+	protected static int MIN_POOL_SIZE = cpuCoreCount;
+	protected static int MAX_POOL_SIZE = cpuCoreCount;
 	protected static int STATUS_INTERVAL = 3000;
+
+	protected static int minPoolTimes = TProperties.getInt("framework", "ThreadPoolMinSize");
+	protected static int maxPoolTimes = TProperties.getInt("framework", "ThreadPoolMaxSize");
 
 	/**
 	 * 获取线程池最小活动线程数
 	 * @return 线程池最小活动线程数
 	 */
 	public static int getMinPoolSize() {
-		int minPoolTimes = TProperties.getInt("framework", "ThreadPoolMinSize");
-		MIN_POOL_SIZE = (minPoolTimes == 0 ? 2 : minPoolTimes) * cpuCoreCount;
-		MIN_POOL_SIZE = MIN_POOL_SIZE < 20 ? 20 : MIN_POOL_SIZE;
+		MIN_POOL_SIZE = (minPoolTimes == 0 ? 1 : minPoolTimes) * cpuCoreCount;
+		MIN_POOL_SIZE = MIN_POOL_SIZE < 0 ? cpuCoreCount : MIN_POOL_SIZE;
 		System.out.println("[THREAD_POOL] Min size: " + minPoolTimes + "/" + MIN_POOL_SIZE);
 		return MIN_POOL_SIZE;
 	}
@@ -40,8 +42,11 @@ public class ThreadPool {
 	 * @return 线程池最大活动线程数
 	 */
 	public static int getMaxPoolSize() {
-		int maxPoolTimes = TProperties.getInt("framework", "ThreadPoolMaxSize");
-		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 50 : maxPoolTimes) * cpuCoreCount;
+		if(minPoolTimes > maxPoolTimes){
+			maxPoolTimes = minPoolTimes;
+		}
+		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 1 : maxPoolTimes) * cpuCoreCount;
+		MAX_POOL_SIZE = MAX_POOL_SIZE < 0 ? cpuCoreCount : MAX_POOL_SIZE;
 		System.out.println("[THREAD_POOL] Max size: " + maxPoolTimes + "/" + MAX_POOL_SIZE);
 		return MAX_POOL_SIZE;
 	}
@@ -65,8 +70,8 @@ public class ThreadPool {
 	private ThreadPool(){
 	}
 
-	private static ThreadPoolExecutor createThreadPool(){
-		ThreadPoolExecutor threadPoolInstance = createThreadPool(MIN_POOL_SIZE, MAX_POOL_SIZE, 1000*60);
+	private static ThreadPoolExecutor createThreadPool(String poolName){
+		ThreadPoolExecutor threadPoolInstance = createThreadPool(poolName, MIN_POOL_SIZE, MAX_POOL_SIZE, 1000*60);
 
 		//启动线程池自动调整任务
 		Timer timer = new Timer("VOOVAN@THREAD_POOL_TIMER");
@@ -77,20 +82,21 @@ public class ThreadPool {
 
 	/**
 	 * 创建线程池
+	 * @param poolName 池的名称
 	 * @param mimPoolSize 最小线程数
 	 * @param maxPoolSize 最大线程数
 	 * @param threadTimeout 线程闲置超时时间
 	 * @return 线程池对象
 	 */
-	public static ThreadPoolExecutor createThreadPool(int mimPoolSize, int maxPoolSize, int threadTimeout){
-		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, threadTimeout, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(cpuCoreCount*500));
+	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int threadTimeout){
+		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, threadTimeout, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(cpuCoreCount*1000), new DefaultThreadFactory(poolName));
 		//设置allowCoreThreadTimeOut,允许回收超时的线程
 		threadPoolInstance.allowCoreThreadTimeOut(true);
 
 		return threadPoolInstance;
 	}
 
-	public static ThreadPoolExecutor getNewThreadPool(){
-		return createThreadPool();
+	public static ThreadPoolExecutor getNewThreadPool(String name){
+		return createThreadPool(name);
 	}
 }

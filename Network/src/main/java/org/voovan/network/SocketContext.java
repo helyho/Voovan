@@ -4,6 +4,7 @@ import org.voovan.Global;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.tools.Chain;
+import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
@@ -30,7 +31,7 @@ public abstract class SocketContext {
 	 */
 	public static AsynchronousChannelGroup buildAsynchronousChannelGroup(){
 		try {
-			return AsynchronousChannelGroup.withCachedThreadPool(Global.getThreadPool(), 10);
+			return AsynchronousChannelGroup.withCachedThreadPool(Global.getThreadPool(), 2);
 		} catch (IOException e) {
 			Logger.error("Buile AsynchronousChannelGroup failed", e);
 			return null;
@@ -47,9 +48,12 @@ public abstract class SocketContext {
 	protected MessageSplitter messageSplitter;
 	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
-	protected int bufferSize = 1024*8;
+	protected int readBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
+	protected int sendBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
 
 	protected int idleInterval = 0;
+
+	protected int readRecursionDepth = 1;
 
 
 	/**
@@ -118,8 +122,10 @@ public abstract class SocketContext {
 		this.filterChain = parentSocketContext.filterChain;
 		this.messageSplitter = parentSocketContext.messageSplitter;
 		this.sslManager = parentSocketContext.sslManager;
-		this.bufferSize = parentSocketContext.bufferSize;
+		this.readBufferSize = parentSocketContext.readBufferSize;
+		this.sendBufferSize = parentSocketContext.sendBufferSize;
 		this.idleInterval = parentSocketContext.idleInterval;
+		this.readRecursionDepth = parentSocketContext.readRecursionDepth;
 	}
 
 	/**
@@ -146,20 +152,36 @@ public abstract class SocketContext {
 	 */
 	public abstract  <T> void setOption(SocketOption<T> name, T value) throws IOException;
 
-	/**
-	 * 获取缓冲区大小
-	 * @return 缓冲区大小 (default:1024)
-	 */
-	public int getBufferSize() {
-		return bufferSize;
+	public int getReadBufferSize() {
+		return readBufferSize;
+	}
+
+	public void setReadBufferSize(int readBufferSize) {
+		this.readBufferSize = readBufferSize;
+	}
+
+	public int getSendBufferSize() {
+		return sendBufferSize;
+	}
+
+	public void setSendBufferSize(int sendBufferSize) {
+		this.sendBufferSize = sendBufferSize;
 	}
 
 	/**
-	 * 设置缓冲区大小
-	 * @param bufferSize 缓冲区大小 (default:1024)
+	 * 获取读递归深度控制
+	 * @return 读递归深度
 	 */
-	public void setBufferSize(int bufferSize) {
-		this.bufferSize = bufferSize;
+	public int getReadRecursionDepth() {
+		return readRecursionDepth;
+	}
+
+	/**
+	 * 设置读递归深度控制
+	 * @param readRecursionDepth 读递归深度
+	 */
+	public void setReadRecursionDepth(int readRecursionDepth) {
+		this.readRecursionDepth = readRecursionDepth;
 	}
 
 	/**

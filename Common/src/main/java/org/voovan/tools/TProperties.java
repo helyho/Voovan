@@ -105,12 +105,9 @@ public class TProperties {
 			File configFile = TFile.getResourceFile(configFileName);
 			File configFileWithEnv = TFile.getResourceFile(configFileNameWithEnv);
 
-
 			if (configFileWithEnv != null) {
 				file = configFileWithEnv;
-			}
-
-			if (configFile != null) {
+			} else if (configFile != null) {
 				file = configFile;
 			}
 
@@ -123,7 +120,7 @@ public class TProperties {
 		if(file!=null) {
 			return getProperties(file);
 		} else {
-			System.out.println("Get properites file failed. File:" + fileName);
+			System.out.println("Get properites file failed. File:" + file.getName());
 			return null;
 		}
 	}

@@ -167,7 +167,7 @@ public class HttpDispatcher {
 	 * @param response   HTTP 响应
 	 */
 	public void process(HttpRequest request, HttpResponse response){
-		Chain<HttpFilterConfig> filterConfigs = webConfig.getFilterConfigs().clone();
+		Chain<HttpFilterConfig> filterConfigs = webConfig.getFilterConfigs();
 
 		Object filterResult = null;
 
@@ -207,9 +207,14 @@ public class HttpDispatcher {
 	 * @return true: 存在静态文件, false: 不存在静态文件
 	 */
 	public boolean isStaticFile(HttpRequest request) {
-		File staticFile = mimeFileRouter.getStaticFile(request);
-		if(staticFile.exists() && staticFile.isFile()){
-			return true;
+		String extentsion = TFile.getFileExtension(request.protocol().getPath());
+		if(extentsion!=null && WebContext.getMimeDefine().containsKey(extentsion)) {
+			File staticFile = mimeFileRouter.getStaticFile(request);
+			if (staticFile.exists() && staticFile.isFile()) {
+				return true;
+			} else {
+				return false;
+			}
 		} else {
 			return false;
 		}
@@ -228,23 +233,26 @@ public class HttpDispatcher {
 		List<Object> routerInfo = ROUTER_INFO_CACHE.get(routerMark);
 
 		if(routerInfo==null) {
-			//判断是否是静态文件
+
+			Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
+			for (Map.Entry<String, HttpRouter> routeEntry : routers.entrySet()) {
+				String routePath = routeEntry.getKey();
+				//寻找匹配的路由对象
+				if (matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())) {
+					//[ 匹配到的已注册路由, HttpRouter对象 ]
+					routerInfo = TObject.asList(routePath, routeEntry.getValue());
+					ROUTER_INFO_CACHE.put(routerMark, routerInfo);
+					return routerInfo;
+				}
+			}
+		}
+
+		//判断是否是静态文件
+		if(routerInfo == null){
 			if(isStaticFile(request)){
 				routerInfo = TObject.asList(request.protocol().getPath(), mimeFileRouter);
 				ROUTER_INFO_CACHE.put(routerMark, routerInfo);
 				return routerInfo;
-			} else {
-				Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
-				for (Map.Entry<String, HttpRouter> routeEntry : routers.entrySet()) {
-					String routePath = routeEntry.getKey();
-					//寻找匹配的路由对象
-					if (matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())) {
-						//[ 匹配到的已注册路由, HttpRouter对象 ]
-						routerInfo = TObject.asList(routePath, routeEntry.getValue());
-						ROUTER_INFO_CACHE.put(routerMark, routerInfo);
-						return routerInfo;
-					}
-				}
 			}
 		}
 
@@ -410,20 +418,24 @@ public class HttpDispatcher {
 	 * @return 过滤器最后的结果
 	 */
 	public Object disposeFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
-		filterConfigs.rewind();
-		Object filterResult = null;
-		while(filterConfigs.hasNext()){
-			HttpFilterConfig filterConfig = filterConfigs.next();
-			HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
-			if(httpFilter!=null) {
-				filterResult = httpFilter.onRequest(filterConfig, request, response, filterResult);
-				if(filterResult==null){
-					break;
+		if(filterConfigs.size() > 0) {
+			filterConfigs.rewind();
+			Object filterResult = null;
+			while (filterConfigs.hasNext()) {
+				HttpFilterConfig filterConfig = filterConfigs.next();
+				HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
+				if (httpFilter != null) {
+					filterResult = httpFilter.onRequest(filterConfig, request, response, filterResult);
+					if (filterResult == null) {
+						break;
+					}
 				}
 			}
-		}
 
-		return filterResult;
+			return filterResult;
+		}  else {
+			return null;
+		}
 	}
 
 	/**
@@ -434,20 +446,24 @@ public class HttpDispatcher {
 	 * @return 过滤器最后的结果
 	 */
 	public Object disposeInvertedFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
-		filterConfigs.rewind();
-		Object filterResult = null;
-		while(filterConfigs.hasPrevious()){
-			HttpFilterConfig filterConfig = filterConfigs.previous();
-			HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
-			if(httpFilter!=null) {
-				filterResult = httpFilter.onResponse(filterConfig, request, response, filterResult);
-				if(filterResult==null){
-					break;
+		if(filterConfigs.size() > 0) {
+			filterConfigs.rewind();
+			Object filterResult = null;
+			while (filterConfigs.hasPrevious()) {
+				HttpFilterConfig filterConfig = filterConfigs.previous();
+				HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
+				if (httpFilter != null) {
+					filterResult = httpFilter.onResponse(filterConfig, request, response, filterResult);
+					if (filterResult == null) {
+						break;
+					}
 				}
 			}
-		}
 
-		return filterResult;
+			return filterResult;
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -533,7 +549,7 @@ public class HttpDispatcher {
 			errorPageContent = TString.oneTokenReplace(errorPageContent, "Description", error.get("Description").toString());
 			errorPageContent = TString.oneTokenReplace(errorPageContent, "Version", WebContext.getVERSION());
 			errorPageContent = TString.oneTokenReplace(errorPageContent, "DateTime", TDateTime.now());
-			response.clear();
+			response.body().clear();
 			response.write(errorPageContent);
 		}
 	}

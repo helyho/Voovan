@@ -57,6 +57,7 @@ public interface CacheMap<K, V> extends Map<K,V>{
      *      可以为某个没有配置超时时间的键值对配置超时时间
      * @param key 键
      * @param expire 超时时间
+     * @return true: 成功, false: 失败
      */
     public boolean setTTL(K key, long expire);
 
