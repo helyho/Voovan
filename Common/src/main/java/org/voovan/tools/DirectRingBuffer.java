@@ -3,6 +3,8 @@ package org.voovan.tools;
 import sun.misc.Unsafe;
 
 import java.io.IOException;
+import java.nio.BufferOverflowException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 /**
@@ -170,9 +172,9 @@ public class DirectRingBuffer {
      * @param b byte 数据
      * @throws IOException IO 异常
      */
-    public void write(byte b) throws IOException {
+    public void write(byte b) {
         if (isFull()) {
-            throw new IOException("Buffer is full");
+            throw new BufferOverflowException();
         }
 
         unsafe.putByte(address + writePositon, b);
@@ -184,9 +186,9 @@ public class DirectRingBuffer {
      * @return byte 数据
      * @throws IOException IO 异常
      */
-    public byte read() throws IOException {
+    public byte read() {
         if (isEmpty()) {
-            throw new IOException("Not enough data");
+            throw new BufferUnderflowException();
         }
         byte result = unsafe.getByte(address+readPositon);
         readPositon = (readPositon + 1) % capacity;
@@ -212,7 +214,7 @@ public class DirectRingBuffer {
      * @return 缓冲区可写空间
      */
     public int avaliable(){
-       return capacity - remaining() - 1;
+        return capacity - remaining() - 1;
     }
 
     /**
@@ -293,33 +295,5 @@ public class DirectRingBuffer {
     @Override
     public String toString(){
         return "readPositon=" + readPositon+", writePositon="+writePositon+", capacity="+capacity+", remaining="+remaining()+", avaliable="+avaliable()+", address="+address;
-    }
-
-    public static void main(String[] args) throws IOException {
-        DirectRingBuffer directRingBuffer = new DirectRingBuffer(10);
-
-        int i=0;
-        while(directRingBuffer.avaliable() > 0) {
-            i++;
-            directRingBuffer.write((byte) (60+i));
-        }
-        System.out.println(i);
-        byte[] a = new byte[directRingBuffer.capacity];
-        directRingBuffer.readAll(a, 5);
-
-        directRingBuffer.write((byte)80);
-        directRingBuffer.write((byte)80);
-        directRingBuffer.write((byte)80);
-        directRingBuffer.write((byte)80);
-        directRingBuffer.resize(30);
-
-        i=0;
-        while(directRingBuffer.avaliable() > 0) {
-            directRingBuffer.write((byte) (70+i));
-        }
-
-        ByteBuffer b = ByteBuffer.wrap(a);
-        directRingBuffer.readAll(b);
-        TEnv.sleep(100000);
     }
 }
