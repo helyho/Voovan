@@ -131,4 +131,14 @@ public class TStream {
 		System.arraycopy(lastBytes, 0, target, firstBytes.length,lastBytesLength);
 		return target;
 	}
+
+
+	public static int contains(byte[] mark, byte target){
+		for(int i = mark.length-1 ; i >= 0; i--){
+			if(mark[i] == target){
+				return i ;
+			}
+		}
+		return -1;
+	}
 }

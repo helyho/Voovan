@@ -381,7 +381,7 @@ public class TByteBuffer {
                 if(i == (byteBuffer.limit() - mark.length + j )){
                     break;
                 }
-                int pos = contains(mark, byteBuffer.get(i+mark.length-j));
+                int pos = TStream.contains(mark, byteBuffer.get(i+mark.length-j));
                 if( pos== -1){
                     i = i + mark.length + 1 - j;
                     j = 0 ;
@@ -407,14 +407,6 @@ public class TByteBuffer {
         return index;
     }
 
-    private static int contains(byte[] mark, byte target){
-        for(int i = mark.length-1 ; i >= 0; i--){
-            if(mark[i] == target){
-                return i ;
-            }
-        }
-        return -1;
-    }
 
     /**
      * 获取内存地址
