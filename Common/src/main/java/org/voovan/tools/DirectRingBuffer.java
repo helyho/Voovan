@@ -362,7 +362,7 @@ public class DirectRingBuffer {
 
         int index = -1;
 
-        int i = readPositon;
+        int i = 0;
         int j = 0;
 
         while(i <= (remaining() - mark.length + j )  ){
