@@ -1,7 +1,7 @@
 package org.voovan.network.nio;
 
-import org.voovan.Global;
 import org.voovan.network.ConnectModel;
+import org.voovan.network.EventTrigger;
 import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.RestartException;
@@ -31,6 +31,10 @@ public class NioSocket extends SocketContext{
 	private SocketChannel socketChannel;
 	private NioSession session;
 	private NioSelector nioSelector;
+
+	//用来阻塞当前Socket
+	private Object waitObj = new Object();
+
 
 	/**
 	 * socket 连接
@@ -74,6 +78,7 @@ public class NioSocket extends SocketContext{
 		provider = SelectorProvider.provider();
 		socketChannel = provider.openSocketChannel();
 		socketChannel.socket().setSoTimeout(this.readTimeout);
+
 		session = new NioSession(this);
 		connectModel = ConnectModel.CLIENT;
 	}
@@ -132,6 +137,11 @@ public class NioSocket extends SocketContext{
 		try{
 			selector = provider.openSelector();
 			socketChannel.register(selector, SelectionKey.OP_READ);
+
+			if(socketChannel!=null && socketChannel.isOpen()){
+				nioSelector = new NioSelector(selector,this);
+				NioSelector.register(nioSelector);
+			}
 		}catch(IOException e){
 			Logger.error("init SocketChannel failed by openSelector",e);
 		}
@@ -151,6 +161,22 @@ public class NioSocket extends SocketContext{
 	 * @throws IOException IO 异常
 	 */
 	public void start() throws IOException  {
+		syncStart();
+
+		synchronized (waitObj){
+			try {
+				waitObj.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * 启动同步的上下文连接
+	 * 		非阻塞方法
+	 */
+	public void syncStart() throws IOException {
 		init();
 		initSSL(session);
 
@@ -159,27 +185,7 @@ public class NioSocket extends SocketContext{
 
 		registerSelector();
 
-		if(socketChannel!=null && socketChannel.isOpen()){
-			nioSelector = new NioSelector(selector,this);
-			nioSelector.eventChose();
-		}
-	}
-
-	/**
-	 * 启动同步的上下文连接
-	 * 		非阻塞方法
-	 */
-	public void syncStart(){
-
-		Global.getThreadPool().execute(new Runnable(){
-			public void run() {
-				try {
-					start();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		EventTrigger.fireConnect(session);
 
 		waitConnected(session);
 	}
@@ -187,23 +193,19 @@ public class NioSocket extends SocketContext{
 	protected void acceptStart() throws IOException {
 		final NioSocket nioSocket = this;
 
-		Global.getThreadPool().execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					initSSL(session);
+		try {
+			initSSL(session);
 
-					registerSelector();
+			registerSelector();
 
-					if (socketChannel != null && socketChannel.isOpen()) {
-						nioSelector = new NioSelector(selector, nioSocket);
-						nioSelector.eventChose();
-					}
-				}catch(IOException e){
-					e.printStackTrace();
-				}
+			if (socketChannel != null && socketChannel.isOpen()) {
+				nioSelector = new NioSelector(selector, nioSocket);
 			}
-		});
+
+			EventTrigger.fireConnect(session);
+		}catch(IOException e){
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -286,13 +288,18 @@ public class NioSocket extends SocketContext{
 			try{
 				socketChannel.close();
 
-				//如果有未读数据等待数据处理完成
-				//session.wait(this.getReadTimeout());
+				EventTrigger.fireDisconnect(session);
 
+				NioSelector.unregister(nioSelector);
 				nioSelector.release();
-				session.getByteBufferChannel().release();
+				selector.close();
+				session.getReadByteBufferChannel().release();
+				session.getSendByteBufferChannel().release();
 				if(session.getSSLParser()!=null){
 					session.getSSLParser().release();
+				}
+				synchronized (waitObj) {
+					waitObj.notify();
 				}
 				return true;
 			} catch(IOException e){
@@ -300,6 +307,9 @@ public class NioSocket extends SocketContext{
 				return false;
 			}
 		}else{
+			synchronized (waitObj) {
+				waitObj.notify();
+			}
 			return true;
 		}
 	}

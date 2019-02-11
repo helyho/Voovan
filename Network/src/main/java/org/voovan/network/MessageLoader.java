@@ -26,7 +26,7 @@ public class MessageLoader {
 	private IoSession session;
 	private StopType stopType;
 	private ByteBufferChannel byteBufferChannel;
-	private boolean useSpliter;
+	private boolean enable;
 
 	/**
 	 * 构造函数
@@ -34,9 +34,9 @@ public class MessageLoader {
 	 */
 	public MessageLoader(IoSession session) {
 		this.session = session;
-		useSpliter = true;
+		enable = true;
 		//准备缓冲流
-		byteBufferChannel = session.getByteBufferChannel();
+		byteBufferChannel = session.getReadByteBufferChannel();
 	}
 
 	/**
@@ -44,16 +44,16 @@ public class MessageLoader {
 	 *
 	 * @return true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
 	 */
-	public boolean isUseSpliter() {
-		return useSpliter;
+	public boolean isEnable() {
+		return enable;
 	}
 
 	/**
 	 * 设置是否是否使用分割器读取
-	 * @param useSpliter true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
+	 * @param enable true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
 	 */
-	public void setUseSpliter(boolean useSpliter) {
-		this.useSpliter = useSpliter;
+	public void enable(boolean enable) {
+		this.enable = enable;
 	}
 
 	public enum StopType {
@@ -87,20 +87,9 @@ public class MessageLoader {
 	 * @return 是否意外断开
 	 */
 	public static boolean isStreamEnd(ByteBuffer buffer, Integer length) {
-//		length==-1时流结束并不是消息断开
+//		length==-1时流结束
 		if(length==-1){
 			return true;
-		}
-
-		synchronized (buffer) {
-			//如果 buffer 被冲满,且起始、中位、结束的字节都是结束符(Ascii=4)则连接意外结束
-			if (!TByteBuffer.isReleased(buffer)
-					&& length > 2
-					&& buffer.get(0) == 4 //起始判断
-					&& buffer.get(length / 2) == 4 //中位判断
-					&& buffer.get(length - 1) == 4) { //结束判断
-				return true;
-			}
 		}
 
 		return false;
@@ -115,14 +104,6 @@ public class MessageLoader {
 	public static boolean isStreamEnd(byte[] buffer, Integer length) {
 
 		if(length==-1){
-			return true;
-		}
-
-		//如果 buffer 被冲满,且起始、中位、结束的字节都是结束符(Ascii=4)则连接意外结束
-		if(length>2
-				&& buffer[0]==4 //起始判断
-				&& buffer[length/2]==4 //中位判断
-				&& buffer[length-1]==4){ //结束判断
 			return true;
 		}
 
@@ -145,7 +126,7 @@ public class MessageLoader {
 	 * @return 读取的缓冲区数据
 	 * @throws IOException IO 异常
 	 */
-	public ByteBuffer read() throws IOException {
+	public int read() throws IOException {
 		int readZeroCount = 0;
 		int splitLength = 0;
 
@@ -155,12 +136,12 @@ public class MessageLoader {
 		ByteBufferChannel dataByteBufferChannel = null;
 		ByteBuffer dataByteBuffer = null;
 
-		dataByteBufferChannel = session.getByteBufferChannel();
+		dataByteBufferChannel = session.getReadByteBufferChannel();
 
 		stopType = StopType.RUNNING;
 
 		if(session==null){
-			return null;
+			return -1;
 		}
 
 		//获取消息分割器
@@ -168,13 +149,15 @@ public class MessageLoader {
 
 		if(messageSplitter==null){
 			Logger.error("[Error] MessageSplitter is null, you need to invoke SocketContext object's messageSplitter method to set MessageSplitter Object in it.");
-			return null;
+			return -1;
 		}
 
 		boolean isConnect = true;
 
-		while ( isConnect && useSpliter &&
-				(stopType== StopType.RUNNING )) {
+		while ( isConnect && enable &&
+				(stopType== StopType.RUNNING ) &&
+				dataByteBufferChannel.size() > 0
+		) {
 
 			if(session.socketContext() instanceof UdpSocket) {
 				isConnect = session.isOpen();
@@ -185,41 +168,38 @@ public class MessageLoader {
 			//如果连接关闭,
 			if(!isConnect){
 				stopType = StopType.SOCKET_CLOSED;
-				return null;
+				return -1;
 			}
 
 			int readsize = byteBufferChannel.size() - oldByteChannelSize;
 
 			try {
-
+				dataByteBuffer = dataByteBufferChannel.getByteBuffer();
 				try {
-					dataByteBuffer = dataByteBufferChannel.getByteBuffer();
-				}catch(MemoryReleasedException e){
-					stopType = StopType.SOCKET_CLOSED;
-				}
 
-				//判断连接是否关闭
-				if (isStreamEnd(dataByteBuffer, dataByteBufferChannel.size())) {
-					stopType = StopType.STREAM_END;
-				}
-
-
-				//使用消息划分器进行消息划分
-				if (readsize == 0 && dataByteBuffer.limit() > 0) {
-					if (messageSplitter instanceof TransferSplitter) {
-						splitLength = dataByteBuffer.limit();
-					} else {
-						splitLength = messageSplitter.canSplite(session, dataByteBuffer);
+					//判断连接是否关闭
+					if (isStreamEnd(dataByteBuffer, dataByteBufferChannel.size())) {
+						stopType = StopType.STREAM_END;
 					}
 
-					if (splitLength >= 0) {
-						stopType = StopType.MSG_SPLITTER;
+					//使用消息划分器进行消息划分
+					if (readsize == 0 && dataByteBuffer.limit() > 0) {
+						if (messageSplitter instanceof TransferSplitter) {
+							splitLength = dataByteBuffer.limit();
+						} else {
+							splitLength = messageSplitter.canSplite(session, dataByteBuffer);
+						}
+
+						if (splitLength >= 0) {
+							stopType = StopType.MSG_SPLITTER;
+						}
 					}
+				} finally {
+					dataByteBufferChannel.compact();
 				}
-			} finally {
-				dataByteBufferChannel.compact();
+			}catch(MemoryReleasedException e){
+				stopType = StopType.SOCKET_CLOSED;
 			}
-
 
 			//超时判断,防止读0时导致的高 CPU 负载
 			if( readsize==0 && stopType == StopType.RUNNING ){
@@ -227,6 +207,7 @@ public class MessageLoader {
 					stopType = StopType.STREAM_END;
 				}else {
 					readZeroCount++;
+					HeartBeat.interceptHeartBeat(session, dataByteBufferChannel);
 					TEnv.sleep(1);
 				}
 			}else{
@@ -245,19 +226,15 @@ public class MessageLoader {
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
 		else if (stopType == StopType.MSG_SPLITTER) {
-			if (splitLength > 0) {
-				result = TByteBuffer.allocateDirect(splitLength);
-				int fillSize = dataByteBufferChannel.readHead(result);
-				if (fillSize != splitLength) {
-					Logger.error("[WARN] Message is not full, expect: " + splitLength + ", acutal: " + fillSize);
-				}
+			if (splitLength >= 0) {
+				return splitLength;
 			} else {
-				return TByteBuffer.EMPTY_BYTE_BUFFER;
+				return -1;
 			}
 		} else {
-			return TByteBuffer.EMPTY_BYTE_BUFFER;
+			return -1;
 		}
 
-		return result;
+		return -1;
 	}
 }

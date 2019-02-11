@@ -6,6 +6,9 @@ import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.math.BigDecimal;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -21,6 +24,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class TPerformance {
 
 	private static OperatingSystemMXBean osmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+
+	private static List<String> LOCAL_IP_ADDRESSES = new ArrayList<String>();
 
 	/**
 	 * 内存信息类型枚举
@@ -53,6 +58,26 @@ public class TPerformance {
 	 */
 	public static int getProcessorCount(){
 		return osmxb.getAvailableProcessors();
+	}
+
+
+	public static List<String> getLocalIpAddrs() {
+		if (LOCAL_IP_ADDRESSES.size() == 0) {
+			try {
+				Enumeration netInterfaces = NetworkInterface.getNetworkInterfaces();
+				InetAddress ip = null;
+				while (netInterfaces.hasMoreElements()) {
+					NetworkInterface ni = (NetworkInterface) netInterfaces.nextElement();
+					ip = (InetAddress) ni.getInetAddresses().nextElement();
+					LOCAL_IP_ADDRESSES.add(ip.getHostAddress());
+				}
+			} catch (SocketException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		return LOCAL_IP_ADDRESSES;
 	}
 
 	/**

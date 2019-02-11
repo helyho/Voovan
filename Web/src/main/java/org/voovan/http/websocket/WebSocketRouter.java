@@ -45,7 +45,7 @@ public abstract class WebSocketRouter implements Cloneable{
 	 * @throws WebSocketFilterException WebSocket过滤器异常
 	 */
 	public Object filterDecoder(WebSocketSession session, Object result) throws WebSocketFilterException {
-		Chain<WebSocketFilter> tmpWebFilterChain = webSocketFilterChain.clone();
+		Chain<WebSocketFilter> tmpWebFilterChain = webSocketFilterChain.rewind();
 		tmpWebFilterChain.rewind();
 		while (tmpWebFilterChain.hasNext()) {
 			WebSocketFilter fitler = tmpWebFilterChain.next();
@@ -65,7 +65,7 @@ public abstract class WebSocketRouter implements Cloneable{
 	 * @throws WebSocketFilterException WebSocket过滤器异常
 	 */
 	public Object filterEncoder(WebSocketSession session,Object result) throws WebSocketFilterException {
-		Chain<WebSocketFilter> tmpWebFilterChain = webSocketFilterChain.clone();
+		Chain<WebSocketFilter> tmpWebFilterChain = webSocketFilterChain.rewind();
 		tmpWebFilterChain.rewind();
 		while (tmpWebFilterChain.hasPrevious()) {
 			WebSocketFilter fitler = tmpWebFilterChain.previous();

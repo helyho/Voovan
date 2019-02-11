@@ -1,22 +1,23 @@
 package org.voovan.tools;
 
-import java.util.ArrayDeque;
-import java.util.Iterator;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * 对象链
- * 
+ *
  * @author helyho
  *
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class Chain<E>  extends ArrayDeque<E> implements Cloneable{
-	private Iterator<E> iterator;
-	private Iterator<E> invertedIterator;
+public class Chain<E>  extends ArrayList<E> {
+	public ThreadLocal<AtomicInteger> iteratorLocal = new ThreadLocal<AtomicInteger>();
+	public ThreadLocal<AtomicInteger> invertedIteratorLocal = new ThreadLocal<AtomicInteger>();
 	private boolean isStop;
 	private E currentObj;
-	
+
 	/**
 	 * 构造函数
 	 */
@@ -24,16 +25,28 @@ public class Chain<E>  extends ArrayDeque<E> implements Cloneable{
 		isStop = false;
 		rewind();
 	}
-	
+
 	/**
 	 * 重置链的迭代器
+	 * @return 链对象
 	 */
-	public void rewind(){
+	public Chain<E> rewind(){
 		isStop = false;
-		iterator = this.iterator();
-		invertedIterator = this.descendingIterator();
+		if(iteratorLocal.get()==null) {
+			iteratorLocal.set(new AtomicInteger(0));
+		} else {
+			iteratorLocal.get().set(0);
+		}
+
+		if(invertedIteratorLocal.get() == null) {
+			invertedIteratorLocal.set(new AtomicInteger(this.size() - 1));
+		} else {
+			invertedIteratorLocal.get().set(this.size() - 1);
+		}
+
+		return this;
 	}
-	
+
 	/**
 	 * 迭代完成
 	 */
@@ -57,9 +70,8 @@ public class Chain<E>  extends ArrayDeque<E> implements Cloneable{
 		if(isStop){
 			return null;
 		} else {
-			if(iterator.hasNext()){
-				currentObj = iterator.next();
-				return currentObj;
+			if(this.hasNext()){
+				return this.get(iteratorLocal.get().getAndIncrement());
 			} else {
 				return null;
 			}
@@ -74,7 +86,7 @@ public class Chain<E>  extends ArrayDeque<E> implements Cloneable{
 		if(isStop){
 			return false;
 		} else {
-			return iterator.hasNext();
+			return iteratorLocal.get().get() <= this.size() - 1;
 		}
 	}
 
@@ -86,9 +98,8 @@ public class Chain<E>  extends ArrayDeque<E> implements Cloneable{
 		if(isStop){
 			return null;
 		} else {
-			if(invertedIterator.hasNext()){
-				currentObj = invertedIterator.next();
-				return currentObj;
+			if(this.hasPrevious()){
+				return this.get(invertedIteratorLocal.get().getAndDecrement());
 			} else {
 				return null;
 			}
@@ -103,21 +114,8 @@ public class Chain<E>  extends ArrayDeque<E> implements Cloneable{
 		if(isStop){
 			return false;
 		} else {
-			return invertedIterator.hasNext();
+			return invertedIteratorLocal.get().get() >= 0;
 		}
 	}
 
-	/**
-	 *  从当前对象克隆一个 Chain
-	 *  @return 克隆后的对象
-	 */
-	@Override
-	public Chain<E> clone(){
-		ArrayDeque<E> cloned = super.clone();
-		Chain<E> chain = new Chain<E>();
-		chain.addAll(cloned);
-		chain.rewind();
-		cloned.clear();
-		return chain;
-	}
 }

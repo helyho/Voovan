@@ -1,6 +1,7 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Response;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TDateTime;
@@ -43,8 +44,28 @@ public class HttpResponse extends Response {
 		super(response);
 		this.characterSet=characterSet;
 		//设置当前响应的时间
-		this.header().put("Date", GMT_TIME);
+		this.header().put(HttpStatic.DATE_STRING, GMT_TIME);
 		this.socketSession = socketSession;
+	}
+
+	/**
+	 * 构造 HTTP 响应对象
+	 * @param socketSession   Socket会话对象
+	 * @param characterSet 字符集
+	 */
+	protected HttpResponse(String characterSet, IoSession socketSession) {
+		this.characterSet=characterSet;
+		//设置当前响应的时间
+		this.header().put(HttpStatic.DATE_STRING, GMT_TIME);
+		this.socketSession = socketSession;
+	}
+
+	public void init(String characterSet, IoSession socketSession){
+		this.characterSet=characterSet;
+		//设置当前响应的时间
+		this.header().put(HttpStatic.DATE_STRING, GMT_TIME);
+		this.socketSession = socketSession;
+		this.setCompress(false);
 	}
 
 	/**
@@ -134,10 +155,10 @@ public class HttpResponse extends Response {
 	}
 
 	/**
-	 * 清理报文
+	 * 将数据发送到 Socket 缓存
 	 */
-	public void clear() {
-		body().clear();
+	public void flush(){
+		socketSession.flush();
 	}
 
 	/**
@@ -147,7 +168,7 @@ public class HttpResponse extends Response {
 	public void redirct(String path){
 		protocol().setStatus(302);
 		protocol().setStatusCode("Moved Permanently");
-		header().put("Location", path);
+		header().put(HttpStatic.LOCATION_STRING, path);
 		this.body().write(" ");
 	}
 }

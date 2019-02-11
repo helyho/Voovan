@@ -31,7 +31,7 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 			AioSocket socket = new AioSocket(serverSocket,socketChannel);
 			
 			//触发 Accept 事件
-			EventTrigger.fireAcceptThread(socket.getSession());
+			EventTrigger.fireAccept(socket.getSession());
 			
 			
 		} catch (IOException e) {

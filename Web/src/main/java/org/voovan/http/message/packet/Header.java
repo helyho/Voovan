@@ -1,5 +1,7 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.http.message.HttpStatic;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,7 +16,8 @@ import java.util.Map.Entry;
  */
 public class Header {
 	private Map<String, String> headers;
-	
+	private static ThreadLocal<StringBuilder> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new StringBuilder(512));
+
 	/**
 	 * 构造函数
 	 */
@@ -92,15 +95,16 @@ public class Header {
 	
 	@Override 
 	public String toString(){
-		StringBuilder headerContent = new StringBuilder();
+		StringBuilder headerContent = THREAD_STRING_BUILDER.get();
+		headerContent.setLength(0);
 		for(Entry<String,String> headerItemEntry : this.headers.entrySet()){
 			String key = headerItemEntry.getKey();
 			String value = headerItemEntry.getValue();
-			if(!key.isEmpty() && Character.isUpperCase(key.charAt(0))){
+			if(!key.isEmpty()){
 				headerContent.append(key);
-				headerContent.append(": ");
+				headerContent.append(HttpStatic.HEADER_SPLITER_STRING);
 				headerContent.append(value);
-				headerContent.append("\r\n");
+				headerContent.append(HttpStatic.LINE_MARK_STRING);
 			}
 		}
 		return headerContent.toString();

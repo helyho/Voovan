@@ -1,6 +1,8 @@
 package org.voovan.network;
 
 
+import java.util.List;
+
 /**
  * Socket 连接业务接口
  * @author helyho
@@ -38,6 +40,13 @@ public interface IoHandler {
 	 * @param obj 发送的对象
 	 */
 	public void onSent(IoSession session, Object obj);
+
+	/**
+	 * Socket 缓冲区发送事件
+	 * @param session  session Session 对象
+	 * @param flushedObjects obj 发送的对象集合
+	 */
+	public void onFlush(IoSession session, List<Object> flushedObjects);
 
 	/**
 	 * 异常事件

@@ -5,10 +5,10 @@ import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TString;
+import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -57,11 +57,16 @@ public class Request {
      * @param request 请求对象
      */
     protected Request(Request request) {
+        init(request);
+    }
+
+    public void init(Request request){
         this.protocol = request.protocol;
         this.header = request.header;
         this.body = request.body;
         this.cookies = request.cookies;
         this.parts = request.parts;
+        this.basicSend = false;
     }
 
     /**
@@ -73,6 +78,7 @@ public class Request {
         cookies = new Vector<Cookie>();
         body = new Body();
         parts = new Vector<Part>();
+        this.basicSend = false;
     }
 
     /**
@@ -197,7 +203,7 @@ public class Request {
                 // 产生新的boundary备用
                 String contentType = "multipart/form-data;";
                 header.put(CONTENT_TYPE, contentType);
-            }else if(body.getBodyBytes().length>0){
+            }else if(body.size()>0){
                 header.put(CONTENT_TYPE, "application/x-www-form-urlencoded");
             }
         }
@@ -270,53 +276,77 @@ public class Request {
         int readSize = 0;
 
         //发送报文头
-        session.send(readHead());
+        ByteBuffer byteBuffer = null;
 
-        //发送缓冲区
-        ByteBuffer byteBuffer = TByteBuffer.allocateDirect(1024 * 50);
-
-        // 有 BodyBytes 时直接写入包体
-        if (body.size() > 0) {
-            while(true) {
-                readSize = body.read(byteBuffer);
-                if (readSize == -1) {
-                    break;
+        try{
+            try {
+                byteBuffer = readHead();
+            } catch (Throwable e){
+                if(!(e instanceof MemoryReleasedException)){
+                    Logger.error("Response send error: ", (Exception) e);
                 }
-                session.send(byteBuffer);
-                byteBuffer.clear();
             }
-        }
 
-        byteBuffer.clear();
-
-        // 有 parts 时按 parts 的格式写入 parts
-        if(!parts.isEmpty()) {
-            // Content-Type存在
-            if (parts.size() != 0) {
-
-                if(boundary == null){
-                    boundary = THash.encryptBASE64(TString.generateId(this));
-                }
-
-                // 获取 multiPart 标识
-                for (Part part : this.parts) {
-                    //发送 part 报文
-                    part.send(session, boundary);
-                }
-
-                //发送结尾标识
-                byteBuffer.put(TString.assembly("--" + boundary + "--").getBytes());
-                byteBuffer.flip();
-                session.send(byteBuffer);
-                byteBuffer.clear();
-                // POST结束不需要空行标识结尾
+            if(byteBuffer == null){
+                return;
             }
+
+            //发送报文头
+            session.send(byteBuffer);
+
+            //发送缓冲区
+            byteBuffer = TByteBuffer.allocateDirect();
+
+            // 有 BodyBytes 时直接写入包体
+            if (body.size() > 0) {
+                while(true) {
+                    readSize = body.read(byteBuffer);
+                    if (readSize == -1) {
+                        break;
+                    }
+                    session.send(byteBuffer);
+                    byteBuffer.clear();
+                }
+            }
+
+            byteBuffer.clear();
+
+            // 有 parts 时按 parts 的格式写入 parts
+            if(!parts.isEmpty()) {
+                // Content-Type存在
+                if (parts.size() != 0) {
+
+                    if(boundary == null){
+                        boundary = THash.encryptBASE64(TString.generateId(this));
+                    }
+
+                    // 获取 multiPart 标识
+                    for (Part part : this.parts) {
+                        //发送 part 报文
+                        part.send(session, boundary);
+                    }
+
+                    //发送结尾标识
+                    byteBuffer.put(TString.assembly("--" + boundary + "--").getBytes());
+                    byteBuffer.flip();
+                    session.send(byteBuffer);
+                    byteBuffer.clear();
+                    // POST结束不需要空行标识结尾
+                }
+            }
+
+            basicSend = true;
+        } catch (Throwable e){
+            if(!(e instanceof MemoryReleasedException)){
+                Logger.error("Response send error: ", (Exception) e);
+            }
+            return;
+        } finally {
+            if(byteBuffer!=null) {
+                TByteBuffer.release(byteBuffer);
+            }
+            clear();
         }
-
-        TByteBuffer.release(byteBuffer);
-        release();
-
-        basicSend = true;
     }
 
 

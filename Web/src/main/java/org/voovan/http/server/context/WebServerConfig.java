@@ -2,6 +2,7 @@ package org.voovan.http.server.context;
 
 import org.voovan.Global;
 import org.voovan.tools.Chain;
+import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -30,11 +31,14 @@ public class WebServerConfig {
     private String contextPath      = "WEBAPP";
     private boolean MatchRouteIgnoreCase = false;
     private String characterSet     = "UTF-8";
+    private String responseCharacterSet     = "";
     private String sessionContainer = "org.voovan.tools.cache.CachedHashMap";
     private int sessionTimeout      = 30;
     private int keepAliveTimeout    = 60;
     private boolean accessLog       = false;
     private boolean gzip            = true;
+    private int gzipMinSize = 2048;
+    private List<String> gzipMimeType = TObject.asList("text/html","text/xml","text/javascript","application/javascript","text/css","text/plain","text/json","application/json");
     private HttpsConfig https;
     private String indexFiles = "index.htm,index.html,default.htm,default.htm";
     private int hotSwapInterval = 0;
@@ -42,6 +46,7 @@ public class WebServerConfig {
     private String pauseURL = null;
     private String scanAopPackage = null;
     private int maxRequestSize = 1024;
+    private boolean cache    = true;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
@@ -88,6 +93,11 @@ public class WebServerConfig {
 
     public void setCharacterSet(String characterSet) {
         this.characterSet = characterSet;
+        this.responseCharacterSet = ";charset="+ characterSet;
+    }
+
+    public String getResponseCharacterSet() {
+        return responseCharacterSet;
     }
 
     public void setSessionContainer(String sessionContainer) {
@@ -146,6 +156,18 @@ public class WebServerConfig {
         this.gzip = gzip;
     }
 
+    public int getGzipMinSize() {
+        return gzipMinSize;
+    }
+
+    public void setGzipMinSize(int gzipMinSize) {
+        this.gzipMinSize = gzipMinSize;
+    }
+
+    public List<String> getGzipMimeType() {
+        return gzipMimeType;
+    }
+
     public boolean isAccessLog() {
         return accessLog;
     }
@@ -198,6 +220,14 @@ public class WebServerConfig {
         this.pauseURL = pauseURL;
     }
 
+    public boolean isCache() {
+        return cache;
+    }
+
+    public void setCache(boolean cache) {
+        this.cache = cache;
+    }
+
     public Chain<HttpFilterConfig> getFilterConfigs() {
         return filterConfigs;
     }
@@ -230,7 +260,7 @@ public class WebServerConfig {
     public void addFilterByList(List<Map<String, Object>> filterInfoList) {
         for (Map<String, Object> filterConfigMap : filterInfoList) {
             HttpFilterConfig httpFilterConfig = new HttpFilterConfig(filterConfigMap);
-            filterConfigs.addLast(httpFilterConfig);
+            filterConfigs.add(httpFilterConfig);
             Logger.simple("Load HttpFilter ["+httpFilterConfig.getName()+
                     "] by ["+ httpFilterConfig.getClassName()+"]");
             filterConfigs.rewind();

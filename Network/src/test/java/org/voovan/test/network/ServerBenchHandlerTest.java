@@ -6,6 +6,7 @@ import org.voovan.network.IoSession;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 
 public class ServerBenchHandlerTest implements IoHandler {
 
@@ -47,6 +48,11 @@ public class ServerBenchHandlerTest implements IoHandler {
     @Override
     public void onSent(IoSession session, Object obj) {
 //        session.close();
+    }
+
+    @Override
+    public void onFlush(IoSession session, List<Object> obj) {
+
     }
 
 }

@@ -17,14 +17,14 @@ public class Protocol {
 	/**
 	 * 版本
 	 */
-	protected float version;
+	protected String version;
 	
 	/**
 	 * 构造函数
 	 */
 	public Protocol(){
 		this.protocol = "HTTP";
-		this.version = 1.1F;
+		this.version = "1.1";
 	}
 	
 	public String getProtocol() {
@@ -36,11 +36,11 @@ public class Protocol {
 	}
 
 
-	public float getVersion() {
+	public String getVersion() {
 		return version;
 	}
 
-	public void setVersion(float version) {
+	public void setVersion(String version) {
 		this.version = version;
 	}
 
@@ -49,6 +49,6 @@ public class Protocol {
 	 */
 	public void clear(){
 		this.protocol = "HTTP";
-		this.version = 1.1F;
+		this.version = "1.1";
 	}
 }

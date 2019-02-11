@@ -52,7 +52,7 @@ public class TaskManager {
             @Override
             public void run() {
                 while(true){
-                    if(TEnv.isMainThreadShutDown()){
+                    if(TEnv.IS_SHUTDOWN){
                         break;
                     }
 

@@ -40,12 +40,8 @@ public class Body {
 	 */
 	public Body(){
 		type = BodyType.BYTES;
-		try{
-			changeToBytes("".getBytes());
-			bodyFile = null;
-		} catch (IOException e){
-			Logger.error("Construct Body error",e);
-		}
+        changeToBytes("".getBytes());
+        bodyFile = null;
 	}
 
 
@@ -55,12 +51,8 @@ public class Body {
 	 */
 	public Body(byte[] content){
 		type = BodyType.BYTES;
-		try {
-			changeToBytes(content);
-			bodyFile = null;
-		} catch (IOException e){
-			Logger.error("Construct Body error",e);
-		}
+        changeToBytes(content);
+        bodyFile = null;
 	}
 
 	/**
@@ -125,9 +117,8 @@ public class Body {
 	/**
 	 * 转换成字节形式
 	 * @param content 字节内容
-	 * @throws IOException 文件未找到异常
 	 */
-	public void changeToBytes(byte[] content) throws IOException {
+	public void changeToBytes(byte[] content) {
 		if(byteBufferChannel == null || byteBufferChannel.isReleased()){
 			byteBufferChannel = new ByteBufferChannel();
 		}
@@ -209,8 +200,10 @@ public class Body {
 	public int read(ByteBuffer byteBuffer){
 		int readSize = -1;
 		if(type == BodyType.BYTES) {
-			readSize = byteBufferChannel.readHead(byteBuffer);
-			readSize = readSize==0? -1: readSize;
+			if(!byteBufferChannel.isReleased() && byteBufferChannel.size() > 0) {
+				readSize = byteBufferChannel.readHead(byteBuffer);
+				readSize = readSize == 0 ? -1 : readSize;
+			}
 		}else {
 			byte[] fileContent = TFile.loadFile(bodyFile, position, position + byteBuffer.remaining());
 			if (fileContent != null){
@@ -248,7 +241,9 @@ public class Body {
 				ByteBuffer bodyTmp = ByteBuffer.wrap(body);
 				bodyTmp.position(offset);
 				bodyTmp.limit(length);
-				byteBufferChannel.writeEnd(bodyTmp);
+				if(!byteBufferChannel.isReleased()) {
+					byteBufferChannel.writeEnd(bodyTmp);
+				}
 			}else{
 				TFile.writeFile(bodyFile,true, body, offset, length);
 			}
@@ -294,11 +289,13 @@ public class Body {
 		if(type == BodyType.BYTES && byteBufferChannel!=null && !byteBufferChannel.isReleased()) {
 			byteBufferChannel.clear();
 		} else if(type == BodyType.FILE){
-			if(bodyFile.getPath().startsWith(TFile.getTemporaryPath())) {
+			if(bodyFile!=null && bodyFile.getPath().startsWith(TFile.getTemporaryPath())) {
 				bodyFile.delete();
 			}
 			bodyFile = null;
 		}
+
+        changeToBytes(new byte[0]);
 	}
 
 	public void saveAsFile(File destFile) throws IOException {
@@ -367,8 +364,5 @@ public class Body {
 
 	public void release(){
 		clear();
-		if(byteBufferChannel!=null) {
-			byteBufferChannel.release();
-		}
 	}
 }

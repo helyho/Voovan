@@ -1,8 +1,10 @@
 package org.voovan.http.server;
 
+import org.voovan.Global;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.HttpRequestType;
 import org.voovan.http.message.HttpParser;
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
@@ -13,10 +15,12 @@ import org.voovan.network.IoSession;
 import org.voovan.network.aio.AioSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * WebServer 过滤器对象
@@ -28,6 +32,18 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class WebServerFilter implements IoFilter {
+	private static ThreadLocal<ByteBufferChannel> THREAD_BUFFER_CHANNEL = ThreadLocal.withInitial(()->new ByteBufferChannel(TByteBuffer.EMPTY_BYTE_BUFFER));
+
+	private static ConcurrentSkipListMap<String, byte[]> RESPONSE_CACHE = new ConcurrentSkipListMap<String, byte[]>();
+
+	static {
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			@Override
+			public void run() {
+				RESPONSE_CACHE.clear();
+			}
+		}, 1000);
+	}
 
 	/**
 	 * 将HttpResponse转换成ByteBuffer
@@ -40,13 +56,33 @@ public class WebServerFilter implements IoFilter {
 		if (object instanceof HttpResponse) {
 			HttpResponse httpResponse = (HttpResponse)object;
 
-			try {
-				httpResponse.send();
+			try{
+				if(httpResponse.isAutoSend()) {
+					byte[] cacheBytes = null;
+					String cacheMark = httpResponse.getCacheMark();
+
+					if(WebContext.isCache() && cacheMark!=null) {
+						cacheBytes = RESPONSE_CACHE.get(cacheMark);
+					}
+
+					if(cacheBytes==null) {
+						httpResponse.send();
+						if(cacheMark!=null) {
+							ByteBufferChannel sendByteBufferChannel = session.getSendByteBufferChannel();
+							cacheBytes = new byte[session.getSendByteBufferChannel().size()];
+							sendByteBufferChannel.get(cacheBytes);
+							RESPONSE_CACHE.put(cacheMark, cacheBytes);
+						}
+					} else {
+						session.sendByBuffer(ByteBuffer.wrap(cacheBytes));
+						httpResponse.clear();
+					}
+				}
 			}catch(Exception e){
 				Logger.error(e);
 			}
 
-			return TByteBuffer.EMPTY_BYTE_BUFFER;
+			return null;
 		} else if(object instanceof WebSocketFrame){
 			WebSocketFrame webSocketFrame = (WebSocketFrame)object;
 			return webSocketFrame.toByteBuffer();
@@ -65,11 +101,16 @@ public class WebServerFilter implements IoFilter {
 
 		ByteBuffer byteBuffer = (ByteBuffer)object;
 
+		ByteBufferChannel byteBufferChannel = null;
+
 		if(byteBuffer.limit()==0){
 			session.enabledMessageSpliter(false);
+			byteBufferChannel = session.getReadByteBufferChannel();
+		} else {
+			//兼容 http 的 pipeline 模式,  GET 请求直接返回指定的长度
+			byteBufferChannel = THREAD_BUFFER_CHANNEL.get();
+			byteBufferChannel.init(byteBuffer);
 		}
-
-		ByteBufferChannel byteBufferChannel = session.getByteBufferChannel();
 
 		if (HttpRequestType.HTTP.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))) {
 

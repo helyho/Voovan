@@ -10,7 +10,7 @@ import java.io.IOException;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class LargerThanMaxSizeException extends IOException{
+public class LargerThanMaxSizeException extends RuntimeException{
 
     public LargerThanMaxSizeException() {
         super();

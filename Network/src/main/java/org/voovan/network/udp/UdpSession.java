@@ -113,7 +113,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 	protected int read0(ByteBuffer buffer) throws IOException {
 		int readSize = 0;
 		if (buffer != null) {
-			readSize = this.getByteBufferChannel().readHead(buffer);
+			readSize = this.getReadByteBufferChannel().readHead(buffer);
 		}
 		return readSize;
 	}
@@ -127,9 +127,9 @@ public class UdpSession extends IoSession<UdpSocket> {
 			while(buffer.remaining()!=0){
 				int sendSize = 0;
 				if(datagramChannel.getRemoteAddress()!=null) {
-					datagramChannel.write(buffer);
+					sendSize = datagramChannel.write(buffer);
 				} else {
-					datagramChannel.send(buffer, this.remoteAddress);
+					sendSize = datagramChannel.send(buffer, this.remoteAddress);
 				}
 				if(sendSize == 0 ){
 					TEnv.sleep(1);
