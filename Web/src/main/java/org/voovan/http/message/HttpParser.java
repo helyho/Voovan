@@ -570,9 +570,11 @@ public class HttpParser {
                                 }
 
                                 if(!isFileRecvDone) {
-									byteBufferChannel.saveToFile(localFileName, dataLength);
-									//累计请求大小
-									totalLength = totalLength + dataLength;
+                                    if(dataLength!=0) {
+                                        byteBufferChannel.saveToFile(localFileName, dataLength);
+                                        //累计请求大小
+                                        totalLength = totalLength + dataLength;
+                                    }
 									continue;
                                 } else {
                                     index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
