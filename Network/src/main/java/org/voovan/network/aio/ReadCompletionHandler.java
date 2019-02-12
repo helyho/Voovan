@@ -62,15 +62,14 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 					//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
 					if(session.getSSLParser()==null || !SSLParser.isHandShakeDone(session)) {
-						while (session.isConnected() && appByteBufferChannel.size() + length > appByteBufferChannel.getMaxSize()) {
-							if (!session.getState().isReceive()) {
-								// 触发 onReceive 事件
-								EventTrigger.fireReceive(session);
-								TEnv.sleep(1);
+						do {
+							try {
+								appByteBufferChannel.writeEnd(readTempBuffer);
+								break;
+							} catch (LargerThanMaxSizeException e) {
+								EventTrigger.fireReceiveThread(session);
 							}
-						}
-
-						appByteBufferChannel.writeEnd(readTempBuffer);
+						} while (session.isConnected());
 					}
 
 					//检查心跳
