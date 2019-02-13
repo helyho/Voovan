@@ -34,7 +34,7 @@ public class HttpItem {
 	public HttpItem(String string) {
 		this.string = string;
 		this.bytes = string.getBytes();
-		this.hashcode = THash.hash_time31(bytes, 0, bytes.length);
+		this.hashcode = THash.hashTime31(bytes, 0, bytes.length);
 
 		HTTP_ITEM_MAP.putIfAbsent(string, this);
 		HTTP_ITEM_LENGTH_LIST[bytes.length].put(hashcode, this);
@@ -46,7 +46,7 @@ public class HttpItem {
 		this.bytes = bytes;
 		this.string = new String(bytes, Global.CS_ASCII);
 
-		this.hashcode = THash.hash_time31(bytes, 0, length);
+		this.hashcode = THash.hashTime31(bytes, 0, length);
 
 		HTTP_ITEM_MAP.putIfAbsent(string, this);
 		HTTP_ITEM_LENGTH_LIST[bytes.length].put(hashcode, this);
@@ -61,7 +61,7 @@ public class HttpItem {
 	}
 
 	public static HttpItem getHttpItem(byte[] bytes, int offset, int length){
-		int hashcode = THash.hash_time31(bytes, offset, length);
+		int hashcode = THash.hashTime31(bytes, offset, length);
 		HttpItem httpItem = ((Map<Integer, HttpItem>)HTTP_ITEM_LENGTH_LIST[length]).get(hashcode);
 		if(httpItem == null){
 			httpItem = new HttpItem(bytes, offset, length);
