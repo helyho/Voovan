@@ -97,10 +97,10 @@ public class THash {
 	 * @param length 长度* @param source 待加密字符串
 	 * @return 加密结果
      */
-	public static int hash_time31(byte[] source, int offset, int length) {
+	public static int hashTime31(byte[] source, int offset, int length) {
 		int hash = 0;
 		for (int i = offset; i < length; i++) {
-			hash = ((hash << 5) - i) + source[i];
+			hash = ((hash << 5) - hash) + source[i];
 		}
 		return hash;
 	}

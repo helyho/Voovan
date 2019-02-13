@@ -221,7 +221,7 @@ public class ScriptEntity implements Serializable{
 
 	public static int genHashCode(String packagePath,float version){
 		String v = packagePath+version;
-		return THash.hash_time31(v.getBytes(), 0, v.length());
+		return THash.hashTime31(v.getBytes(), 0, v.length());
 	}
 
 }
