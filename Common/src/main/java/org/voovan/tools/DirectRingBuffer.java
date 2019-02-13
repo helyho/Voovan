@@ -31,7 +31,7 @@ public class DirectRingBuffer {
 
     /**
      * 使用指定容量构造一个环形缓冲区
-     * @param capacity
+     * @param capacity 指定环形缓冲区的初始容量
      */
     public DirectRingBuffer(int capacity){
         this.capacity = capacity;
@@ -148,6 +148,7 @@ public class DirectRingBuffer {
      *      不影响读写位置
      * @param bytes 用于读取数据的 byte 数组
      * @param offset 偏移量
+     * @param length 读取数据的长度
      * @return 读取数据大小
      */
     public int get(byte[] bytes, int offset, int length) {
@@ -192,6 +193,7 @@ public class DirectRingBuffer {
      * @param bytes byte[] 对象
      * @param offset 针对 byte[] 的偏移量
      * @param length 写入数据的长度
+     * @return 写入数据的长度
      */
     public int write(byte[] bytes, int offset, int length){
         if(length > remaining()){
@@ -208,6 +210,7 @@ public class DirectRingBuffer {
     /**
      * 写入一个 byteBuffer
      * @param byteBuffer ByteBuffer 对象
+     * @return 写入数据的长度
      */
     public int write(ByteBuffer byteBuffer) {
         if(byteBuffer.remaining() == 0){
@@ -309,6 +312,7 @@ public class DirectRingBuffer {
     /**
      * 重新分配缓冲区的容量
      * @param newCapacity 新的缓冲区容量
+     * @return true: 扩容成功, false: 无须扩容
      */
     public synchronized boolean resize(int newCapacity){
         if(capacity >= newCapacity){
