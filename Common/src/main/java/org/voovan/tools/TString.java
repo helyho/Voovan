@@ -965,12 +965,13 @@ public class TString {
 	/**
 	 * byte 转字符串
 	 * @param bytes  字节数据
+	 * @param offset 字节数据偏移量
 	 * @param length 长度
 	 * @return 转换后的字符串
 	 */
-	public static String toAsciiString(byte[] bytes, int length) {
+	public static String toAsciiString(byte[] bytes, int offset, int length) {
 		StringBuilder stringBuilder = new StringBuilder(length);
-		for(int i=0;i<length;i++){
+		for(int i=offset;i<length;i++){
 			stringBuilder.append((char)(bytes[i] & 0xFF));
 		}
 

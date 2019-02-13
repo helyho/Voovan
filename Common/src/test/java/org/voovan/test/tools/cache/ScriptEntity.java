@@ -188,7 +188,6 @@ public class ScriptEntity implements Serializable{
 	
 	/**
 	 * 判断两个对象实体是否相等
-	 * @param entity
 	 * @return
 	 */
 	@Override
@@ -213,7 +212,8 @@ public class ScriptEntity implements Serializable{
 	} 
 	
 	public static int genHashCode(String packagePath,float version){
-		return THash.hash_time33(packagePath+version);
+		String v = packagePath+version;
+		return THash.hash_time31(v.getBytes(), 0, v.length());
 	}
 	
 }
