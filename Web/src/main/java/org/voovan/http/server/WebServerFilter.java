@@ -4,7 +4,6 @@ import org.voovan.Global;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.HttpRequestType;
 import org.voovan.http.message.HttpParser;
-import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
@@ -14,7 +13,6 @@ import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.aio.AioSocket;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
@@ -32,8 +30,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * Licence: Apache v2 License
  */
 public class WebServerFilter implements IoFilter {
-	private static ThreadLocal<ByteBufferChannel> THREAD_BUFFER_CHANNEL = ThreadLocal.withInitial(()->new ByteBufferChannel(TByteBuffer.EMPTY_BYTE_BUFFER));
-
 	private static ConcurrentSkipListMap<String, byte[]> RESPONSE_CACHE = new ConcurrentSkipListMap<String, byte[]>();
 
 	static {
@@ -106,10 +102,6 @@ public class WebServerFilter implements IoFilter {
 		if(byteBuffer.limit()==0){
 			session.enabledMessageSpliter(false);
 			byteBufferChannel = session.getReadByteBufferChannel();
-		} else {
-			//兼容 http 的 pipeline 模式,  GET 请求直接返回指定的长度
-			byteBufferChannel = THREAD_BUFFER_CHANNEL.get();
-			byteBufferChannel.init(byteBuffer);
 		}
 
 		if (HttpRequestType.HTTP.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))) {
