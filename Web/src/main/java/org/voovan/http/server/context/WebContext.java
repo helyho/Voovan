@@ -43,7 +43,7 @@ public class WebContext {
 	 */
 	public static boolean PAUSE = false;
 
-	private static final String VERSION = "Voovan";
+	private static final String FRAMEWORK_NAME = "Voovan";
 
 	private static final String SESSION_NAME = "VOOVAN_SESSIONID";
 
@@ -414,7 +414,7 @@ public class WebContext {
 	 * @return  版本号
 	 */
 	public final static String getVERSION() {
-		return VERSION;
+		return "v" + Global.getVersion();
 	}
 
 	/**
