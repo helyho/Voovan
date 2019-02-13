@@ -244,7 +244,7 @@ public class WebContext {
 			webServerConfig.getModuleonfigs().clear();
 		}
 		webServerConfig.addModuleByList(getContextParameter("Modules",new ArrayList<Map<String,Object>>()));
-		Logger.simple("=============================================================================================");
+		Logger.simple("==================================================================================================================================================");
 	}
 
 	/**
@@ -290,7 +290,7 @@ public class WebContext {
 	 */
 	public static void welcome(){
 		WebServerConfig config = WebContext.webServerConfig;
-		System.out.println("============================== [Config file parameter list] =================================");
+		System.out.println("========================================================= [Config file parameter list] ===========================================================");
 		System.out.println(TString.rightPad("  ReadTimeout:",35,' ')+config.getReadTimeout());
 		System.out.println(TString.rightPad("  SendTimeout:",35,' ')+config.getSendTimeout());
 		System.out.println(TString.rightPad("  ContextPath:",35,' ')+config.getContextPath());
@@ -323,13 +323,13 @@ public class WebContext {
 
 		System.out.println(TString.rightPad("  AuthToken:",35,' ')+ AUTH_TOKEN);
 
-		System.out.println("=============================================================================================");
+		System.out.println("==================================================================================================================================================");
 		System.out.println("  This WebServer based on VoovanFramework.");
 		System.out.println("  Version: "+WebContext.getVERSION());
 		System.out.println("  WebSite: http://www.voovan.org");
 		System.out.println("  Author: helyho");
 		System.out.println("  E-mail: helyho@gmail.com");
-		System.out.println("=============================================================================================");
+		System.out.println("==================================================================================================================================================");
 	}
 
 
