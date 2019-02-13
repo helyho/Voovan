@@ -48,7 +48,7 @@ public class HttpParser {
     public static ThreadLocal<Map<String, Object>> THREAD_PACKET_MAP = ThreadLocal.withInitial(()->new HashMap<String, Object>());
     public static ThreadLocal<Request> THREAD_REQUEST = ThreadLocal.withInitial(()->new Request());
     public static ThreadLocal<Response> THREAD_RESPONSE = ThreadLocal.withInitial(()->new Response());
-    private static ThreadLocal<StringBuilder> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new StringBuilder(512));
+    private static ThreadLocal<byte[]> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new byte[1024]);
 
 	/**
      * 私有构造函数
@@ -221,8 +221,7 @@ public class HttpParser {
      * @throws ParserException 解析异常
      */
     public static void parserProtocol(Map<String, Object> packetMap, int type, ByteBuffer byteBuffer) throws ParserException {
-        StringBuilder stringBuilder = THREAD_STRING_BUILDER.get();
-        stringBuilder.setLength(0);
+        byte[] bytes = THREAD_STRING_BUILDER.get();
         int position = 0;
 
         //遍历 Protocol
@@ -240,11 +239,11 @@ public class HttpParser {
 
 			if (currentByte == Global.BYTE_SPACE) {
 				if (segment == 0) {
-					segment_1 = stringBuilder.toString();
+					segment_1 = HttpItem.getHttpItem(bytes, 0, position).getString();
 				} else if (segment == 1) {
-					segment_2 = stringBuilder.toString();
+					segment_2 = HttpItem.getHttpItem(bytes, 0, position).getString();
 				}
-				stringBuilder.setLength(0);
+				position = 0;
 				segment++;
 				continue;
 			} else if (currentByte == Global.BYTE_QUESTION) {
@@ -253,8 +252,8 @@ public class HttpParser {
 					continue;
 				}
 			} else if (prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && segment == 2) {
-		        segment_3 = stringBuilder.toString();
-				stringBuilder.setLength(0);
+		        segment_3 = HttpItem.getHttpItem(bytes, 0, position).getString();
+				position = 0;
 				break;
 			}
 
@@ -264,7 +263,8 @@ public class HttpParser {
 				continue;
 			}
 
-			stringBuilder.append((char) (currentByte & 0xFF));
+	        bytes[position] = currentByte;
+	        position++;
 		}
 
 		if (type == 0) {
@@ -280,7 +280,7 @@ public class HttpParser {
 
 			//3
 			if(segment_3.charAt(0)=='H' && segment_3.charAt(1)=='T' && segment_3.charAt(2)=='T' && segment_3.charAt(3)=='P') {
-				packetMap.put(FL_PROTOCOL, HttpStatic.HTTP);
+				packetMap.put(FL_PROTOCOL, HttpStatic.HTTP.getString());
 			} else {
 				throw new ParserException("Not a http packet");
 			}
@@ -303,7 +303,7 @@ public class HttpParser {
 		if (type == 1) {
 			//1
 			if(segment_1.charAt(0)=='H' && segment_1.charAt(1)=='T' && segment_1.charAt(2)=='T' && segment_1.charAt(3)=='P') {
-				packetMap.put(FL_PROTOCOL, HttpStatic.HTTP);
+				packetMap.put(FL_PROTOCOL, HttpStatic.HTTP.getString());
 			} else {
 				throw new ParserException("Not a http packet");
 			}
@@ -338,8 +338,8 @@ public class HttpParser {
      * @throws ParserException 解析异常
      */
     public static boolean parseHeader(Map<String, Object> packetMap, ByteBuffer byteBuffer) throws ParserException {
-        StringBuilder stringBuilder = THREAD_STRING_BUILDER.get();
-        stringBuilder.setLength(0);
+	    byte[] bytes = THREAD_STRING_BUILDER.get();
+	    int position = 0;
 
         //遍历 Protocol
         boolean onHeaderName = true;
@@ -353,12 +353,12 @@ public class HttpParser {
 			currentByte = byteBuffer.get();
 
 			if (onHeaderName && prevByte == Global.BYTE_COLON && currentByte == Global.BYTE_SPACE) {
-				headerName = stringBuilder.toString();
+				headerName = HttpItem.getHttpItem(bytes, 0, position).getString();
 				onHeaderName = false;
-				stringBuilder.setLength(0);
+				position = 0;
 				continue;
 			} else if (!onHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
-				headerValue = stringBuilder.toString();
+				headerValue = HttpItem.getHttpItem(bytes, 0, position).getString();
 				break;
 			}
 
@@ -375,7 +375,8 @@ public class HttpParser {
 				continue;
 			}
 
-			stringBuilder.append((char)(currentByte & 0xFF));
+			bytes[position] = currentByte;
+			position++;
 
 		}
 

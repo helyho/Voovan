@@ -7,6 +7,7 @@ import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.task.TaskManager;
 import org.voovan.tools.threadpool.ThreadPool;
 
+import java.nio.charset.Charset;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -85,8 +86,10 @@ public class Global {
     public static final byte BYTE_EOF           = 0;            // '\0'
 
     public static final String EMPTY_STRING = "";
-    public static final String CS_UTF_8 = "UTF-8";
-    public static final String CS_GBK = "GBK";
+
+    public static final Charset CS_ASCII = Charset.forName("US-ASCII");
+    public static final Charset CS_UTF_8 = Charset.forName("UTF-8");
+    public static final Charset CS_GBK = Charset.forName("GBK");
 
     public static String NAME = "Voovan";
 

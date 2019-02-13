@@ -91,14 +91,16 @@ public class THash {
     }
 
 	/**
-	 * Time33算法
-	 * @param source 待加密字符串
+	 * Time31算法
+	 * @param source  字节数据
+	 * @param offset 字节数据偏移量
+	 * @param length 长度* @param source 待加密字符串
 	 * @return 加密结果
      */
-	public static int hash_time33(String source) {
+	public static int hash_time31(byte[] source, int offset, int length) {
 		int hash = 0;
-		for (int i = 0; i < source.length(); i++) {
-			hash = hash * 33 + Integer.valueOf(source.charAt(i));
+		for (int i = offset; i < length; i++) {
+			hash = ((hash << 5) - i) + source[i];
 		}
 		return hash;
 	}
