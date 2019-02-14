@@ -454,8 +454,6 @@ public class HttpParser {
 									byteBufferChannel.get((int) position - 2) == 13) {
 								innerByteBuffer.position((int) position);
 								return packetMapCacheItem.getValue();
-							} else {
-								System.out.println("---------");
 							}
 						}
 					}
