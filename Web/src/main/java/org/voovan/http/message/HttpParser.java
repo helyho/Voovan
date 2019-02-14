@@ -449,11 +449,13 @@ public class HttpParser {
 						if (mark == value) {
 
 							long position = (cachedMark << 32) >> 32;
-							if (byteBufferChannel.size() > position &&
+							if (byteBufferChannel.size() >= position &&
 									byteBufferChannel.get((int) position - 1) == 10 &&
 									byteBufferChannel.get((int) position - 2) == 13) {
 								innerByteBuffer.position((int) position);
 								return packetMapCacheItem.getValue();
+							} else {
+								System.out.println("---------");
 							}
 						}
 					}
@@ -496,12 +498,12 @@ public class HttpParser {
 
 			//如果 消息缓冲通道没有数据或已关闭
 			if( byteBufferChannel.size() <= 0 || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING) ) {
-				if(WebContext.isCache()) {
-					HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
-					cachedPacketMap.putAll(packetMap);
-					cachedPacketMap.put(USE_CACHE, 1);
-					PACKET_MAP_CACHE.put(mark, cachedPacketMap);
-				}
+                if (WebContext.isCache()) {
+                    HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
+                    cachedPacketMap.putAll(packetMap);
+                    cachedPacketMap.put(USE_CACHE, 1);
+                    PACKET_MAP_CACHE.put(mark, cachedPacketMap);
+                }
 				break;
 			}
 
