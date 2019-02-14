@@ -33,7 +33,7 @@ public class Response {
 	private boolean				isCompress;
 	protected boolean 			basicSend = false;
 	private boolean             autoSend = true;
-	private long                mark = 0;
+	private Long                mark;
 
 	/**
 	 * 构造函数
@@ -66,11 +66,11 @@ public class Response {
 		this.basicSend = false;
 	}
 
-	public long getMark() {
+	public Long getMark() {
 		return mark;
 	}
 
-	public void setMark(long mark) {
+	public void setMark(Long mark) {
 		this.mark = mark;
 	}
 
@@ -301,6 +301,7 @@ public class Response {
 		isCompress = false;
 		basicSend = false;
 		autoSend = true;
+		this.mark = null;
 	}
 
 	@Override

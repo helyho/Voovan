@@ -319,10 +319,6 @@ public class HttpParser {
 				default:
 					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
 			}
-
-			if(WebContext.isCache()){
-				packetMap.put(FL_MARK, hashCode);
-			}
 		}
 
 		if (type == 1) {
@@ -352,7 +348,9 @@ public class HttpParser {
 
 			//3
 			packetMap.put(FL_STATUS_CODE, segment_3);
+		}
 
+		if(WebContext.isCache()) {
 			packetMap.put(FL_MARK, hashCode);
 		}
 	}
@@ -437,11 +435,10 @@ public class HttpParser {
 		//按行遍历HTTP报文
 		while(byteBufferChannel.size() > 0){
 			ByteBuffer innerByteBuffer = byteBufferChannel.getByteBuffer();
+			long mark = 0;
 
 			try {
 				parserProtocol(packetMap, type, innerByteBuffer);
-
-				long mark = 0;
 
 				if(WebContext.isCache()) {
 					mark = ((Integer) packetMap.get(FL_MARK)).longValue();
@@ -452,7 +449,9 @@ public class HttpParser {
 						if (mark == value) {
 
 							long position = (cachedMark << 32) >> 32;
-							if (byteBufferChannel.get((int) position - 1) == 10 && byteBufferChannel.get((int) position - 2) == 13) {
+							if (byteBufferChannel.size() > position &&
+									byteBufferChannel.get((int) position - 1) == 10 &&
+									byteBufferChannel.get((int) position - 2) == 13) {
 								innerByteBuffer.position((int) position);
 								return packetMapCacheItem.getValue();
 							}
@@ -501,7 +500,7 @@ public class HttpParser {
 					HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
 					cachedPacketMap.putAll(packetMap);
 					cachedPacketMap.put(USE_CACHE, 1);
-					PACKET_MAP_CACHE.put((Long) packetMap.get(FL_MARK), cachedPacketMap);
+					PACKET_MAP_CACHE.put(mark, cachedPacketMap);
 				}
 				break;
 			}
@@ -551,14 +550,13 @@ public class HttpParser {
 							break;
 						}
 
-						byte[] mark = HttpStatic.BODY_MARK.getBytes();
+						byte[] boundaryMark = HttpStatic.BODY_MARK.getBytes();
 						//等待数据
-						if (!byteBufferChannel.waitData(mark, timeOut)) {
+						if (!byteBufferChannel.waitData(boundaryMark, timeOut)) {
 							throw new ParserException("Http Parser read data error");
 						}
 
-						int partHeadEndIndex = byteBufferChannel.indexOf(mark);
-
+						int partHeadEndIndex = byteBufferChannel.indexOf(boundaryMark);
 
 						//Part 头读取
 						ByteBuffer partHeadBuffer = TByteBuffer.allocateDirect(partHeadEndIndex + 4);

@@ -26,7 +26,7 @@ public class WebServerDemo {
 
 	public static void main(String[] args) {
 		WebServer webServer = WebServer.newInstance();
-
+		webServer.getWebServerConfig().setCache(true);
 		//性能测试请求
 		webServer.get("/test", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
