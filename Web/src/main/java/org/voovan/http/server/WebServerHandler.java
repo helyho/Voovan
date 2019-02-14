@@ -245,8 +245,6 @@ public class WebServerHandler implements IoHandler {
 			httpResponse.header().put(HttpStatic.CONNECTION_STRING, HttpStatic.KEEP_ALIVE_STRING);
 		}
 
-		httpResponse.header().put(HttpStatic.SERVER_STRING, WebContext.getVERSION());
-
 		//============================是否启用 gzip 压缩============================
 		if(webConfig.isGzip() && httpRequest.header().contain(HttpStatic.ACCEPT_ENCODING_STRING) &&
 				httpRequest.header().get(HttpStatic.ACCEPT_ENCODING_STRING).contains(HttpStatic.GZIP_STRING) &&

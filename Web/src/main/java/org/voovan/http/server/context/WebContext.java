@@ -7,6 +7,7 @@ import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.WebServer;
 import org.voovan.tools.*;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSONDecode;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.log.SingleLogger;
@@ -18,6 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,9 +45,25 @@ public class WebContext {
 	 */
 	public static boolean PAUSE = false;
 
-	private static final String FRAMEWORK_NAME = "Voovan";
+	public static final String FRAMEWORK_NAME = "Voovan";
+
+	public static final String FULL_VERSION = FRAMEWORK_NAME + " v" + Global.getVersion();
+
+	public static final String VERSION = "v" + Global.getVersion();
 
 	private static final String SESSION_NAME = "VOOVAN_SESSIONID";
+
+	//通用 Header
+	public static byte[] RESPONSE_COMMON_HEADER = ("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FRAMEWORK_NAME + "\r\n\r\n").getBytes();
+
+	static{
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			@Override
+			public void run() {
+				RESPONSE_COMMON_HEADER = ("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FRAMEWORK_NAME + "\r\n\r\n").getBytes();
+			}
+		}, 1);
+	}
 
 	/**
 	 * Web Config
@@ -325,7 +343,7 @@ public class WebContext {
 
 		System.out.println("==================================================================================================================================================");
 		System.out.println("  This WebServer based on VoovanFramework.");
-		System.out.println("  Version: "+WebContext.getVERSION());
+		System.out.println("  Version: " + VERSION);
 		System.out.println("  WebSite: http://www.voovan.org");
 		System.out.println("  Author: helyho");
 		System.out.println("  E-mail: helyho@gmail.com");
@@ -422,14 +440,6 @@ public class WebContext {
 	 */
 	public static Map<String, Object> getErrorDefine() {
 		return ERROR_DEFINE;
-	}
-
-	/**
-	 * 获取版本号
-	 * @return  版本号
-	 */
-	public final static String getVERSION() {
-		return "v" + Global.getVersion();
 	}
 
 	/**

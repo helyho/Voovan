@@ -35,7 +35,6 @@ public class Response {
 	private boolean             autoSend = true;
 	private String              cacheMark = null;
 
-
 	/**
 	 * 构造函数
 	 *
@@ -148,6 +147,7 @@ public class Response {
 	 * 根据内容构造一写必要的 Header 属性
 	 */
 	private void initHeader() {
+
 		// 根据压缩属性确定 Header 的一些属性内容
 		if (body.size()!=0 && isCompress) {
 			header.put(HttpStatic.TRANSFER_ENCODING_STRING, HttpStatic.CHUNKED_STRING);
@@ -178,8 +178,6 @@ public class Response {
 		return cookieString.toString();
 	}
 
-
-
 	/**
 	 * 根据对象的内容,构造 Http 响应报头
 	 *
@@ -194,14 +192,9 @@ public class Response {
 
 		stringBuilder.append(protocol.toString());
 
-
 		stringBuilder.append(header.toString());
 
-
 		stringBuilder.append(genCookie());
-
-
-		stringBuilder.append(HttpStatic.LINE_MARK_STRING);
 
 		return TString.toAsciiBytes(stringBuilder.toString());
 	}
@@ -230,6 +223,7 @@ public class Response {
 
 			try {
 				byteBuffer.put(readHead());
+				byteBuffer.put(WebContext.RESPONSE_COMMON_HEADER);
 			} catch (Throwable e) {
 				if (!(e instanceof MemoryReleasedException)) {
 					Logger.error("Response send error: ", (Exception) e);
