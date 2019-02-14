@@ -3,9 +3,11 @@ package org.voovan.http.message;
 import org.voovan.Global;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
+import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.exception.ParserException;
 import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.tools.*;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
@@ -13,6 +15,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * Http 报文解析类
@@ -31,12 +34,14 @@ public class HttpParser {
 	private static final String FL_STATUS		= "5";
 	private static final String FL_STATUS_CODE  = "6";
 	private static final String FL_QUERY_STRING = "7";
+	private static final String FL_MARK         = "8";
+	private static final String USE_CACHE       = "9";
+
+	private static final String BODY_PARTS = "10";
+	private static final String BODY_VALUE = "11";
+	private static final String BODY_FILE  = "12";
 
 	public static final String MULTIPART_FORM_DATA = "multipart/form-data";
-
-	private static final String BODY_PARTS = "8";
-	private static final String BODY_VALUE = "9";
-	private static final String BODY_FILE  = "10";
 
 	public static final String UPLOAD_PATH = TFile.assemblyPath(TFile.getTemporaryPath(),"voovan", "webserver", "upload");
 
@@ -47,6 +52,17 @@ public class HttpParser {
 	public static ThreadLocal<Request> THREAD_REQUEST = ThreadLocal.withInitial(()->new Request());
 	public static ThreadLocal<Response> THREAD_RESPONSE = ThreadLocal.withInitial(()->new Response());
 	private static ThreadLocal<byte[]> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new byte[1024]);
+
+	private static ConcurrentSkipListMap<Long, Map<String, Object>> PACKET_MAP_CACHE = new ConcurrentSkipListMap<Long, Map<String, Object>>();
+
+	static {
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			@Override
+			public void run() {
+				PACKET_MAP_CACHE.clear();
+			}
+		}, 1000);
+	}
 
 	/**
 	 * 私有构造函数
@@ -221,6 +237,7 @@ public class HttpParser {
 	public static void parserProtocol(Map<String, Object> packetMap, int type, ByteBuffer byteBuffer) throws ParserException {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
+		int hashCode = 0;
 
 		//遍历 Protocol
 		int segment = 0;
@@ -237,9 +254,13 @@ public class HttpParser {
 
 			if (currentByte == Global.BYTE_SPACE) {
 				if (segment == 0) {
-					segment_1 = HttpItem.getHttpItem(bytes, 0, position).getString();
+					HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
+					hashCode = hashCode + httpItem.hashCode() << 1;
+					segment_1 = httpItem.getString();
 				} else if (segment == 1) {
-					segment_2 = HttpItem.getHttpItem(bytes, 0, position).getString();
+					HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
+					hashCode = hashCode + httpItem.hashCode() << 2;
+					segment_2 =httpItem.getString();
 				}
 				position = 0;
 				segment++;
@@ -250,7 +271,9 @@ public class HttpParser {
 					continue;
 				}
 			} else if (prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && segment == 2) {
-				segment_3 = HttpItem.getHttpItem(bytes, 0, position).getString();
+				HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
+				hashCode = hashCode + httpItem.hashCode() << 3;
+				segment_3 =httpItem.getString();
 				position = 0;
 				break;
 			}
@@ -296,6 +319,10 @@ public class HttpParser {
 				default:
 					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
 			}
+
+			if(WebContext.isCache()){
+				packetMap.put(FL_MARK, hashCode);
+			}
 		}
 
 		if (type == 1) {
@@ -325,6 +352,8 @@ public class HttpParser {
 
 			//3
 			packetMap.put(FL_STATUS_CODE, segment_3);
+
+			packetMap.put(FL_MARK, hashCode);
 		}
 	}
 
@@ -400,7 +429,7 @@ public class HttpParser {
 	 * @throws IOException IO 异常
 	 */
 	public static Map<String, Object> parser(Map<String, Object> packetMap, int type, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
-		long totalLength = 0;
+		int totalLength = 0;
 		boolean isBodyConent = false;
 
 		requestMaxSize = requestMaxSize < 0 ? Integer.MAX_VALUE : requestMaxSize;
@@ -411,6 +440,25 @@ public class HttpParser {
 
 			try {
 				parserProtocol(packetMap, type, innerByteBuffer);
+
+				long mark = 0;
+
+				if(WebContext.isCache()) {
+					mark = ((Integer) packetMap.get(FL_MARK)).longValue();
+					for (Entry<Long, Map<String, Object>> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
+						long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
+						long value = cachedMark >> 32;
+
+						if (mark == value) {
+
+							long position = (cachedMark << 32) >> 32;
+							if (byteBufferChannel.get((int) position - 1) == 10 && byteBufferChannel.get((int) position - 2) == 13) {
+								innerByteBuffer.position((int) position);
+								return packetMapCacheItem.getValue();
+							}
+						}
+					}
+				}
 
 				if (!packetMap.containsKey(FL_PROTOCOL)) {
 					return null;
@@ -437,20 +485,28 @@ public class HttpParser {
 					parseCookie(packetMap, cookieName, cookieValue);
 				}
 
+				if(WebContext.isCache()) {
+					totalLength = innerByteBuffer.position();
+					mark = mark << 32 | totalLength;
+					packetMap.put(FL_MARK, mark);
+				}
+
 			} finally {
-				totalLength = innerByteBuffer.position();
 				byteBufferChannel.compact();
 			}
 
 			//如果 消息缓冲通道没有数据或已关闭
-			if(byteBufferChannel.size() <= 0 && !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
+			if( byteBufferChannel.size() <= 0 || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING) ) {
+				if(WebContext.isCache()) {
+					HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
+					cachedPacketMap.putAll(packetMap);
+					cachedPacketMap.put(USE_CACHE, 1);
+					PACKET_MAP_CACHE.put((Long) packetMap.get(FL_MARK), cachedPacketMap);
+				}
 				break;
 			}
 
 			isBodyConent = true;
-			if(packetMap.get(FL_METHOD).equals("GET")){
-				return packetMap;
-			}
 
 			//解析 HTTP 请求 body
 			if(isBodyConent){
@@ -767,6 +823,9 @@ public class HttpParser {
 				case FL_PATH:
 					request.protocol().setPath(parsedPacketEntry.getValue().toString());
 					break;
+				case FL_MARK:
+					request.setMark((Long)parsedPacketEntry.getValue());
+					break;
 				case HttpStatic.COOKIE_STRING:
 					List<Map<String, String>> cookieMap = (List<Map<String, String>>)packetMap.get(HttpStatic.COOKIE_STRING);
 					//遍历 Cookie,并构建 Cookie 对象
@@ -815,7 +874,9 @@ public class HttpParser {
 			}
 		}
 
-		packetMap.clear();
+		if(!packetMap.containsKey(USE_CACHE)) {
+			packetMap.clear();
+		}
 
 		return request;
 	}

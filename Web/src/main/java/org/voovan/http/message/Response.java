@@ -33,7 +33,7 @@ public class Response {
 	private boolean				isCompress;
 	protected boolean 			basicSend = false;
 	private boolean             autoSend = true;
-	private String              cacheMark = null;
+	private long                mark = 0;
 
 	/**
 	 * 构造函数
@@ -51,6 +51,7 @@ public class Response {
 		this.cookies = response.cookies;
 		this.isCompress = response.isCompress;
 		this.basicSend = false;
+		this.mark = response.mark;
 	}
 
 	/**
@@ -63,6 +64,14 @@ public class Response {
 		body = new Body();
 		isCompress = false;
 		this.basicSend = false;
+	}
+
+	public long getMark() {
+		return mark;
+	}
+
+	public void setMark(long mark) {
+		this.mark = mark;
 	}
 
 	/**
@@ -97,14 +106,6 @@ public class Response {
 	 */
 	public void setAutoSend(boolean autoSend) {
 		this.autoSend = autoSend;
-	}
-
-	public String getCacheMark() {
-		return cacheMark;
-	}
-
-	public void setCacheMark(String cacheMark) {
-		this.cacheMark = cacheMark;
 	}
 
 	/**
@@ -300,7 +301,6 @@ public class Response {
 		isCompress = false;
 		basicSend = false;
 		autoSend = true;
-		cacheMark = null;
 	}
 
 	@Override
