@@ -260,11 +260,12 @@ public class WebServerHandler implements IoHandler {
 			}
 		}
 
-		// 处理响应请求
-		httpDispatcher.process(httpRequest, httpResponse);
 
 		if(WebContext.isCache() && WebServerFilter.RESPONSE_CACHE.containsKey(httpRequest.getMark()) && httpRequest.protocol().getMethod().equals("GET") && !httpResponse.body().isFile()){
 			httpResponse.setMark(httpRequest.getMark());
+		} else {
+			// 处理响应请求
+			httpDispatcher.process(httpRequest, httpResponse);
 		}
 
 		return httpResponse;
