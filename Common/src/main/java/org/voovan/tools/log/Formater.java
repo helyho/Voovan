@@ -70,14 +70,15 @@ public class Formater {
         Global.getHashWheelTimer().addTask(new HashWheelTask() {
             @Override
             public void run() {
+                if(Logger.isEnable()) {
+                    //如果日志发生变化则产生新的文件
+                    if (!dateStamp.equals(DATE)) {
+                        loggerThread.setOutputStreams(getOutputStreams());
+                    }
 
-                //如果日志发生变化则产生新的文件
-                if(!dateStamp.equals(DATE)){
-                    loggerThread.setOutputStreams(getOutputStreams());
+                    //压缩历史日志文件
+                    packLogFile();
                 }
-
-                //压缩历史日志文件
-                packLogFile();
             }
         }, 1);
     }

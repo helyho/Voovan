@@ -5,6 +5,7 @@ import sun.misc.Unsafe;
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 环形缓冲区
@@ -17,7 +18,8 @@ import java.nio.ByteBuffer;
 public class DirectRingBuffer {
     private static Unsafe unsafe = TUnsafe.getUnsafe();
     private TByteBuffer.Deallocator deallocator;
-    private long address;
+    private ByteBuffer byteBuffer = ByteBuffer.allocateDirect(0).asReadOnlyBuffer();
+    private volatile AtomicLong address = new AtomicLong(0);;
     private int readPositon = 0;
     private int writePositon = 0;
     private int capacity;
@@ -31,15 +33,22 @@ public class DirectRingBuffer {
 
     /**
      * 使用指定容量构造一个环形缓冲区
-     * @param capacity 指定环形缓冲区的初始容量
+     * @param capacity
      */
     public DirectRingBuffer(int capacity){
         this.capacity = capacity;
-        this.address = unsafe.allocateMemory(capacity);
-
+        this.address.set(unsafe.allocateMemory(capacity));
         //构造自动销毁器
-        deallocator = new TByteBuffer.Deallocator(new Long(address));
+        deallocator = new TByteBuffer.Deallocator(new Long(address.get()));
         Cleaner.create(this, deallocator);
+
+        try {
+            TByteBuffer.setAddress(byteBuffer, address.get());
+            TByteBuffer.capacityField.set(byteBuffer, capacity);
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -47,7 +56,7 @@ public class DirectRingBuffer {
      * @return 环形缓冲区的基地址
      */
     public long getAddress() {
-        return address;
+        return address.get();
     }
 
     /**
@@ -118,7 +127,7 @@ public class DirectRingBuffer {
     public byte get(int offset){
         if(offset < remaining()) {
             int realOffset = (readPositon + offset) % capacity;
-            return unsafe.getByte(address + realOffset);
+            return unsafe.getByte(address.get() + realOffset);
         } else {
             throw new IndexOutOfBoundsException();
         }
@@ -148,7 +157,6 @@ public class DirectRingBuffer {
      *      不影响读写位置
      * @param bytes 用于读取数据的 byte 数组
      * @param offset 偏移量
-     * @param length 读取数据的长度
      * @return 读取数据大小
      */
     public int get(byte[] bytes, int offset, int length) {
@@ -184,7 +192,10 @@ public class DirectRingBuffer {
             throw new BufferOverflowException();
         }
 
-        unsafe.putByte(address + writePositon, b);
+        if(isEmpty() && readPositon!=0){
+            clear();
+        }
+        unsafe.putByte(address.get() + writePositon, b);
         writePositon = (writePositon + 1) % capacity;
     }
 
@@ -193,7 +204,6 @@ public class DirectRingBuffer {
      * @param bytes byte[] 对象
      * @param offset 针对 byte[] 的偏移量
      * @param length 写入数据的长度
-     * @return 写入数据的长度
      */
     public int write(byte[] bytes, int offset, int length){
         if(length > remaining()){
@@ -210,7 +220,6 @@ public class DirectRingBuffer {
     /**
      * 写入一个 byteBuffer
      * @param byteBuffer ByteBuffer 对象
-     * @return 写入数据的长度
      */
     public int write(ByteBuffer byteBuffer) {
         if(byteBuffer.remaining() == 0){
@@ -267,8 +276,12 @@ public class DirectRingBuffer {
         if (isEmpty()) {
             throw new BufferUnderflowException();
         }
-        byte result = unsafe.getByte(address+readPositon);
+        byte result = unsafe.getByte(address.get() + readPositon);
         readPositon = (readPositon + 1) % capacity;
+
+        if(isEmpty() && readPositon!=0){
+            clear();
+        }
         return result;
     }
 
@@ -312,19 +325,26 @@ public class DirectRingBuffer {
     /**
      * 重新分配缓冲区的容量
      * @param newCapacity 新的缓冲区容量
-     * @return true: 扩容成功, false: 无须扩容
      */
     public synchronized boolean resize(int newCapacity){
         if(capacity >= newCapacity){
             return false;
         } else {
-            address = unsafe.reallocateMemory(address, capacity);
+            address.set(unsafe.reallocateMemory(address.get(), newCapacity));
             if(writePositon < readPositon){
                 int capacityDiff = newCapacity - capacity;
-                writePositon = writePositon > capacityDiff ? writePositon - capacityDiff : capacity + writePositon;
-                unsafe.copyMemory(address, address + capacity, writePositon-1);
+                writePositon = writePositon-1 > capacityDiff ? writePositon - capacityDiff : capacity + writePositon;
+                unsafe.copyMemory(address.get(), address.get() + capacity, writePositon-1);
             }
             this.capacity = newCapacity;
+            try {
+                deallocator.setAddress(address.get());
+                TByteBuffer.setAddress(byteBuffer, address.get());
+                TByteBuffer.capacityField.set(byteBuffer, capacity);
+            } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+            }
+
             return true;
         }
     }
@@ -334,16 +354,22 @@ public class DirectRingBuffer {
      * @return ByteBuffer 对象
      * @throws ReflectiveOperationException 反射异常
      */
-    public ByteBuffer asByteBuffer() throws ReflectiveOperationException {
+    public ByteBuffer getReadOnlyByteBuffer() {
         if(writePositon < readPositon) {
-            unsafe.copyMemory(address + readPositon, address, remaining());
+            int remaining = remaining();
+            unsafe.copyMemory(address.get() + readPositon, address.get(), remaining());
+            readPositon = 0;
+            writePositon = remaining;
         }
-        ByteBuffer byteBuffer = TByteBuffer.allocateDirect(0).asReadOnlyBuffer();
-        TByteBuffer.capacityField.set(byteBuffer, capacity);
-        TByteBuffer.limitField.set(byteBuffer, writePositon);
+
+        byteBuffer.limit(writePositon);
         byteBuffer.position(readPositon);
-        TByteBuffer.setAddress(byteBuffer, address);
         return byteBuffer;
+    }
+
+    public void compact(){
+        readPositon = byteBuffer.position();
+        writePositon = byteBuffer.limit();
     }
 
     /**
@@ -401,9 +427,10 @@ public class DirectRingBuffer {
     /**
      * 释放内存中的数据
      */
-    public void release(){
-        unsafe.freeMemory(address);
-        address = 0;
+    public synchronized void release(){
+        deallocator.setAddress(0);
+        unsafe.freeMemory(address.get());
+        address.set(0);
     }
 
     @Override
