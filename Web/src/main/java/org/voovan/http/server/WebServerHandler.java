@@ -191,6 +191,7 @@ public class WebServerHandler implements IoHandler {
 				httpResponse.init(defaultCharacterSet, session);
 			}
 
+
 			setAttribute(session, HttpSessionParam.HTTP_REQUEST, httpRequest);
 			setAttribute(session, HttpSessionParam.HTTP_RESPONSE, httpResponse);
 
@@ -260,10 +261,10 @@ public class WebServerHandler implements IoHandler {
 			}
 		}
 
+		httpResponse.setMark(httpRequest.getMark());
 
-		if(WebContext.isCache() && WebServerFilter.RESPONSE_CACHE.containsKey(httpRequest.getMark()) && httpRequest.protocol().getMethod().equals("GET") && !httpResponse.body().isFile()){
-			httpResponse.setMark(httpRequest.getMark());
-		} else {
+		if( !(WebContext.isCache() && WebServerFilter.RESPONSE_CACHE.containsKey(httpRequest.getMark()) &&
+				httpRequest.protocol().getMethod().equals("GET") && !httpResponse.body().isFile()) ){
 			// 处理响应请求
 			httpDispatcher.process(httpRequest, httpResponse);
 		}
