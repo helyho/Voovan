@@ -887,7 +887,7 @@ public class WebServer {
 
 				//输出版本号
 				if(args[i].equals("-v")){
-					Logger.simple("Version:"+WebContext.getVERSION());
+					Logger.simple("Version:"+WebContext.VERSION);
 					return;
 				}
 

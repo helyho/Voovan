@@ -23,16 +23,7 @@ import java.util.Date;
 public class HttpResponse extends Response {
 	private String	characterSet;
 	private IoSession socketSession;
-	private static String GMT_TIME = TDateTime.formatToGMT(new Date());
 
-	static{
-		Global.getHashWheelTimer().addTask(new HashWheelTask() {
-			@Override
-			public void run() {
-				GMT_TIME = TDateTime.formatToGMT(new Date());
-			}
-		}, 1);
-	}
 
 	/**
 	 * 构造 HTTP 响应对象
@@ -44,7 +35,6 @@ public class HttpResponse extends Response {
 		super(response);
 		this.characterSet=characterSet;
 		//设置当前响应的时间
-		this.header().put(HttpStatic.DATE_STRING, GMT_TIME);
 		this.socketSession = socketSession;
 	}
 
@@ -56,14 +46,12 @@ public class HttpResponse extends Response {
 	protected HttpResponse(String characterSet, IoSession socketSession) {
 		this.characterSet=characterSet;
 		//设置当前响应的时间
-		this.header().put(HttpStatic.DATE_STRING, GMT_TIME);
 		this.socketSession = socketSession;
 	}
 
 	public void init(String characterSet, IoSession socketSession){
 		this.characterSet=characterSet;
 		//设置当前响应的时间
-		this.header().put(HttpStatic.DATE_STRING, GMT_TIME);
 		this.socketSession = socketSession;
 		this.setCompress(false);
 	}
