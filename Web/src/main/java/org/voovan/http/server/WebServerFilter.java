@@ -63,10 +63,12 @@ public class WebServerFilter implements IoFilter {
 
 					if(cacheBytes==null) {
 						httpResponse.send();
-						ByteBufferChannel sendByteBufferChannel = session.getSendByteBufferChannel();
-						cacheBytes = new byte[session.getSendByteBufferChannel().size()];
-						sendByteBufferChannel.get(cacheBytes);
-						RESPONSE_CACHE.put(mark, cacheBytes);
+						if(mark!=0) {
+							ByteBufferChannel sendByteBufferChannel = session.getSendByteBufferChannel();
+							cacheBytes = new byte[session.getSendByteBufferChannel().size()];
+							sendByteBufferChannel.get(cacheBytes);
+							RESPONSE_CACHE.put(mark, cacheBytes);
+						}
 					} else {
 						session.sendByBuffer(ByteBuffer.wrap(cacheBytes));
 						httpResponse.clear();
