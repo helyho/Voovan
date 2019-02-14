@@ -38,8 +38,10 @@ public class Request {
     private Body 			body;
     private List<Part>		parts;
     private String 			boundary;
-    private static final String CONTENT_TYPE = "Content-Type";
     protected boolean 		basicSend = false;
+    private long            mark = 0;
+
+    private static final String CONTENT_TYPE = "Content-Type";
 
     /**
      * HTTP 请求的枚举对象
@@ -67,6 +69,7 @@ public class Request {
         this.cookies = request.cookies;
         this.parts = request.parts;
         this.basicSend = false;
+        this.mark = request.mark;
     }
 
     /**
@@ -88,6 +91,14 @@ public class Request {
      */
     public RequestProtocol protocol() {
         return protocol;
+    }
+
+    public long getMark() {
+        return mark;
+    }
+
+    public void setMark(long mark) {
+        this.mark = mark;
     }
 
     /**

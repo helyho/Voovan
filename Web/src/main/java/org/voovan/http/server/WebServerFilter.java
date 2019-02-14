@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * Licence: Apache v2 License
  */
 public class WebServerFilter implements IoFilter {
-	private static ConcurrentSkipListMap<String, byte[]> RESPONSE_CACHE = new ConcurrentSkipListMap<String, byte[]>();
+	public static ConcurrentSkipListMap<Long, byte[]> RESPONSE_CACHE = new ConcurrentSkipListMap<Long, byte[]>();
 
 	static {
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
@@ -55,20 +55,18 @@ public class WebServerFilter implements IoFilter {
 			try{
 				if(httpResponse.isAutoSend()) {
 					byte[] cacheBytes = null;
-					String cacheMark = httpResponse.getCacheMark();
+					long mark = httpResponse.getMark();
 
-					if(WebContext.isCache() && cacheMark!=null) {
-						cacheBytes = RESPONSE_CACHE.get(cacheMark);
+					if(WebContext.isCache()) {
+						cacheBytes = RESPONSE_CACHE.get(mark);
 					}
 
 					if(cacheBytes==null) {
 						httpResponse.send();
-						if(cacheMark!=null) {
-							ByteBufferChannel sendByteBufferChannel = session.getSendByteBufferChannel();
-							cacheBytes = new byte[session.getSendByteBufferChannel().size()];
-							sendByteBufferChannel.get(cacheBytes);
-							RESPONSE_CACHE.put(cacheMark, cacheBytes);
-						}
+						ByteBufferChannel sendByteBufferChannel = session.getSendByteBufferChannel();
+						cacheBytes = new byte[session.getSendByteBufferChannel().size()];
+						sendByteBufferChannel.get(cacheBytes);
+						RESPONSE_CACHE.put(mark, cacheBytes);
 					} else {
 						session.sendByBuffer(ByteBuffer.wrap(cacheBytes));
 						httpResponse.clear();
