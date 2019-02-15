@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
+@sun.misc.Contended
 public interface MessageSplitter {
 
 	/**
