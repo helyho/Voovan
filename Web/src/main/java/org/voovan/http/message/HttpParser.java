@@ -507,6 +507,8 @@ public class HttpParser {
 
 			isBodyConent = true;
 
+			packetMap.put(FL_MARK, null);
+
 			//解析 HTTP 请求 body
 			if(isBodyConent){
 				String contentType =packetMap.get(HttpStatic.CONTENT_TYPE_STRING)==null ? Global.EMPTY_STRING : packetMap.get(HttpStatic.CONTENT_TYPE_STRING).toString();
