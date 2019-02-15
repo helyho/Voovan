@@ -11,6 +11,7 @@ import org.voovan.network.exception.IoFilterException;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
+@sun.misc.Contended
 public interface IoFilter {
 	/**
 	 * 过滤器解密函数,接收事件(onRecive)前调用
