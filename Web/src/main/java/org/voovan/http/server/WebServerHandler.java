@@ -261,13 +261,12 @@ public class WebServerHandler implements IoHandler {
 			}
 		}
 
-		httpResponse.setMark(httpRequest.getMark());
 
-		if( !WebContext.isCache() || httpRequest.getMark()==null || !WebServerFilter.RESPONSE_CACHE.containsKey(httpRequest.getMark()) ){
-			// 处理响应请求
-			httpDispatcher.process(httpRequest, httpResponse);
-		}
-
+        // 处理响应请求
+        httpDispatcher.process(httpRequest, httpResponse);
+		long mark = httpRequest.getMark();
+		httpResponse.setMark(mark << 32 >> 32 | httpResponse.body().size());
+		httpResponse.setMark(mark);
 		return httpResponse;
 	}
 
