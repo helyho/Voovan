@@ -264,11 +264,17 @@ public class WebServerHandler implements IoHandler {
 
         // 处理响应请求
         httpDispatcher.process(httpRequest, httpResponse);
-		Long mark = httpRequest.getMark();
-		if(mark!=null) {
-			httpResponse.setMark(mark << 32 >> 32 | httpResponse.body().size());
-			httpResponse.setMark(mark);
+
+		if (WebContext.isCache()) {
+			Long mark = httpRequest.getMark();
+			if (mark != null) {
+				Integer bodyMark = httpResponse.body().getMark();
+				if (bodyMark != null) {
+					httpResponse.setMark(mark << 32 >> 32 | bodyMark);
+				}
+			}
 		}
+
 		return httpResponse;
 	}
 

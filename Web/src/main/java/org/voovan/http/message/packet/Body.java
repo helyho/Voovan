@@ -5,6 +5,7 @@ import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 import org.voovan.tools.TZip;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.security.THash;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,6 +26,7 @@ public class Body {
 	private BodyType type;
 	private File bodyFile;
 	private long position;
+	private Integer mark;
 
 	/**
 	 * Body 类型枚举
@@ -229,6 +231,14 @@ public class Body {
 		return read(byteBuffer);
 	}
 
+	public Integer getMark() {
+		return mark;
+	}
+
+	public void setMark(Integer mark) {
+		this.mark = mark;
+	}
+
 	/**
 	 * 写入 body
 	 * @param body 字节数组
@@ -238,6 +248,8 @@ public class Body {
 	public void write(byte[] body,int offset,int length){
 		try {
 			if(type == BodyType.BYTES) {
+				int hash = THash.hashTime31(body, offset, length);
+				mark = mark==null ? hash : mark + hash;
 				ByteBuffer bodyTmp = ByteBuffer.wrap(body);
 				bodyTmp.position(offset);
 				bodyTmp.limit(length);
