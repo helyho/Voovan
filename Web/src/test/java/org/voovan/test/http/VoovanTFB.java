@@ -29,7 +29,7 @@ public class VoovanTFB {
 		webServer.get("/plaintext", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
 				resp.header().remove(HttpStatic.CONNECTION_STRING);
-				resp.write("Hello, World!");
+				resp.write("Hello, World!" + System.currentTimeMillis());
 			}
 		});
 		//性能测试请求
