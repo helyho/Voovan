@@ -8,6 +8,7 @@ import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.router.MimeFileRouter;
 import org.voovan.tools.*;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.security.THash;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -40,7 +41,7 @@ import java.util.regex.Matcher;
 public class HttpDispatcher {
 
 	private static Map<String, String> REGEXED_ROUTER_CACHE = new ConcurrentHashMap<String, String>();
-	private static Map<String, List<Object>> ROUTER_INFO_CACHE = new ConcurrentHashMap<String, List<Object>>();
+	private static Map<Integer, List<Object>> ROUTER_INFO_CACHE = new ConcurrentHashMap<Integer, List<Object>>();
 
 	/**
 	 * [MainKey] = HTTP method ,[Value] = { [Value Key] = Route path, [Value value] = RouteBuiz对象 }
@@ -228,7 +229,7 @@ public class HttpDispatcher {
 	public List<Object> findRouter(HttpRequest request){
 		String requestPath   = request.protocol().getPath();
 		String requestMethod 	= request.protocol().getMethod();
-		String routerMark    = requestPath+requestMethod;
+		int routerMark    = requestPath.hashCode() << 16 +  requestMethod.hashCode();
 
 		List<Object> routerInfo = ROUTER_INFO_CACHE.get(routerMark);
 
