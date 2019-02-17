@@ -255,11 +255,11 @@ public class HttpParser {
 			if (currentByte == Global.BYTE_SPACE) {
 				if (segment == 0) {
 					HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
-					hashCode = hashCode + httpItem.hashCode() << 1;
+					hashCode = hashCode + httpItem.getHashCode() << 1;
 					segment_1 = httpItem.getString();
 				} else if (segment == 1) {
 					HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
-					hashCode = hashCode + httpItem.hashCode() << 2;
+					hashCode = hashCode + httpItem.getHashCode() << 2;
 					segment_2 =httpItem.getString();
 				}
 				position = 0;
@@ -272,7 +272,7 @@ public class HttpParser {
 				}
 			} else if (prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && segment == 2) {
 				HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
-				hashCode = hashCode + httpItem.hashCode() << 3;
+				hashCode = hashCode + httpItem.getHashCode() << 3;
 				segment_3 =httpItem.getString();
 				position = 0;
 				break;

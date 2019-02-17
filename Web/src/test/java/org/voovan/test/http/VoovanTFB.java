@@ -19,13 +19,14 @@ public class VoovanTFB {
 		webServerConfig.setKeepAliveTimeout(1000);
 		webServerConfig.setHost("0.0.0.0");
 		webServerConfig.setPort(28080);
+		webServerConfig.setHotSwapInterval(0);
 		webServerConfig.setCache(true);
 		webServerConfig.getModuleonfigs().clear();
 		webServerConfig.getRouterConfigs().clear();
 		WebServer webServer = WebServer.newInstance(webServerConfig);
 		Logger.setEnable(false);
 
-		//性能测试请求
+		//性能测试请求;
 		webServer.get("/plaintext", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
 				resp.header().remove(HttpStatic.CONNECTION_STRING);
@@ -40,6 +41,6 @@ public class VoovanTFB {
 			}
 		});
 
-		webServer.serve();
+		webServer.syncServe();
 	}
 }
