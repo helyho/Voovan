@@ -201,7 +201,7 @@ public class WebServerConfig {
     }
 
     public void setHotSwapInterval(int hotSwapInterval) {
-        hotSwapInterval = hotSwapInterval;
+        this.hotSwapInterval = hotSwapInterval;
     }
 
     public String getLifeCycleClass() {

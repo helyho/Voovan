@@ -60,6 +60,10 @@ public class HttpItem {
 		return string;
 	}
 
+	public int getHashCode(){
+		return this.hashcode;
+	}
+
 	public static HttpItem getHttpItem(byte[] bytes, int offset, int length){
 		int hashcode = THash.hashTime31(bytes, offset, length);
 		HttpItem httpItem = ((Map<Integer, HttpItem>)HTTP_ITEM_LENGTH_LIST[length]).get(hashcode);
