@@ -2,6 +2,7 @@ package org.voovan.tools.security;
 
 import org.voovan.tools.log.Logger;
 
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -101,6 +102,21 @@ public class THash {
 		int hash = 0;
 		for (int i = offset; i < length; i++) {
 			hash = ((hash << 5) - hash) + source[i];
+		}
+		return hash;
+	}
+
+	/**
+	 * Time31算法
+	 * @param byteBuffer  字节数据
+	 * @param offset 字节数据偏移量
+	 * @param length 长度* @param source 待加密字符串
+	 * @return 加密结果
+	 */
+	public static int hashTime31(ByteBuffer byteBuffer, int offset, int length) {
+		int hash = 0;
+		for (int i = offset; i < length; i++) {
+			hash = ((hash << 5) - hash) + byteBuffer.get(i);
 		}
 		return hash;
 	}
