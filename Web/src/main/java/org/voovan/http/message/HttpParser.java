@@ -9,6 +9,7 @@ import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.tools.*;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.security.THash;
 
 import java.io.File;
 import java.io.IOException;
@@ -436,22 +437,28 @@ public class HttpParser {
 		while(byteBufferChannel.size() > 0){
 			ByteBuffer innerByteBuffer = byteBufferChannel.getByteBuffer();
 			long mark = 0;
-
+			int headerMark = 0;
 			try {
 				parserProtocol(packetMap, type, innerByteBuffer);
+				int protocolPosition = innerByteBuffer.position() - 1;
 
 				if(WebContext.isCache()) {
 					mark = ((Integer) packetMap.get(FL_MARK)).longValue();
+
 					for (Entry<Long, Map<String, Object>> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
 						long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
-						long value = cachedMark >> 32;
+						long position = (cachedMark << 32) >> 32;
 
-						if (mark == value) {
+						headerMark = THash.hashTime31(innerByteBuffer, protocolPosition, (int)(position - protocolPosition));
 
-							long position = (cachedMark << 32) >> 32;
+						if (mark + headerMark == cachedMark >> 32) {
+
+
 							if (byteBufferChannel.size() >= position &&
 									byteBufferChannel.get((int) position - 1) == 10 &&
 									byteBufferChannel.get((int) position - 2) == 13) {
+
+
 								innerByteBuffer.position((int) position);
 								return packetMapCacheItem.getValue();
 							}
@@ -486,7 +493,8 @@ public class HttpParser {
 
 				if(WebContext.isCache()) {
 					totalLength = innerByteBuffer.position();
-					mark = mark << 32 | totalLength;
+					headerMark = THash.hashTime31(innerByteBuffer, protocolPosition, (int)(totalLength - protocolPosition));
+					mark = (mark + headerMark) << 32 | totalLength;
 					packetMap.put(FL_MARK, mark);
 				}
 
