@@ -46,7 +46,7 @@ public class WebServerConfig {
     private String pauseURL = null;
     private String scanAopPackage = null;
     private int maxRequestSize = 1024;
-    private boolean cache    = false;
+    private boolean cache    = true;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
