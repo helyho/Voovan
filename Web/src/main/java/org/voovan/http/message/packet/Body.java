@@ -307,6 +307,8 @@ public class Body {
 			bodyFile = null;
 		}
 
+		mark = null;
+
         changeToBytes(new byte[0]);
 	}
 

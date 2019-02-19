@@ -7,12 +7,20 @@ import org.voovan.http.server.HttpRouter;
 import org.voovan.http.server.WebServer;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
+import org.voovan.tools.TObject;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
+
+import java.util.Map;
 
 
 public class VoovanTFB {
+	private static final byte[] HELLO_WORLD = "Hello, World!".getBytes();
+	private static final Map MAP = TObject.asMap("message", "Hello, World!");
+
 
 	public static void main(String[] args) {
+
 		WebServerConfig webServerConfig = WebContext.getWebServerConfig();
 		webServerConfig.setGzip(false);
 		webServerConfig.setAccessLog(false);
@@ -30,16 +38,17 @@ public class VoovanTFB {
 		webServer.get("/plaintext", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
 				resp.header().remove(HttpStatic.CONNECTION_STRING);
-				resp.write("Hello, World!");
+				resp.write(HELLO_WORLD);
 			}
 		});
 		//性能测试请求
 		webServer.get("/json", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				resp.header().remove(HttpStatic.CONNECTION_STRING);
-				resp.write("Hello, World!");
+				resp.header().put("Content-Type", "application/json");
+				resp.write(MAP.toString());
 			}
 		});
+
 
 		webServer.syncServe();
 	}
