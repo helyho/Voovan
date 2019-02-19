@@ -47,7 +47,7 @@ public class HttpParser {
 	public static final String UPLOAD_PATH = TFile.assemblyPath(TFile.getTemporaryPath(),"voovan", "webserver", "upload");
 
 	public static final String propertyLineRegex = ": ";
-	public static final String equalMapRegex = "([^ ;,]+=[^;, ]+)";
+	public static final String equalMapRegex = "([^ ;,]+=[^;,]+)";
 
 	public static ThreadLocal<Map<String, Object>> THREAD_PACKET_MAP = ThreadLocal.withInitial(()->new HashMap<String, Object>());
 	public static ThreadLocal<Request> THREAD_REQUEST = ThreadLocal.withInitial(()->new Request());
@@ -449,6 +449,10 @@ public class HttpParser {
 						long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
 						long position = (cachedMark << 32) >> 32;
 
+						if(position > innerByteBuffer.limit()){
+							continue;
+						}
+
 						headerMark = THash.hashTime31(innerByteBuffer, protocolPosition, (int)(position - protocolPosition));
 
 						if (mark + headerMark == cachedMark >> 32) {
@@ -611,10 +615,10 @@ public class HttpParser {
 						else {
 
 							String fileExtName = TFile.getFileExtension(fileName);
-							fileExtName = fileExtName==null || fileExtName.equals(Global.EMPTY_STRING) ? ".tmp" : fileExtName;
+							fileExtName = fileExtName==null || fileExtName.equals(Global.EMPTY_STRING) ? "tmp" : fileExtName;
 
 							//拼文件名
-							String localFileName = UPLOAD_PATH + TString.assembly(Global.NAME, System.currentTimeMillis(), ".", fileExtName);
+							String localFileName =TString.assembly(UPLOAD_PATH, Global.NAME, System.currentTimeMillis(), ".", fileExtName);
 
 							//文件是否接收完成
 							boolean isFileRecvDone = false;
