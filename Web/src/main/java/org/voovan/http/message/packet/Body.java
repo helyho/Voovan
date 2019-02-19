@@ -131,7 +131,10 @@ public class Body {
 
 		if(content.length!=0) {
 			byteBufferChannel.writeEnd(ByteBuffer.wrap(content));
+		} else {
+			byteBufferChannel.clear();
 		}
+
 		type = BodyType.BYTES;
 	}
 
