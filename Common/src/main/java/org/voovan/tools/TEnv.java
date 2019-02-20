@@ -567,7 +567,7 @@ public class TEnv {
 	 * @return 执行时间
 	 */
 	public static List<Object> measureTime(Supplier supplier){
-		long startTime = System.currentTimeMillis();
-		return TObject.asList(supplier.get(), System.currentTimeMillis() - startTime);
+		long startTime = System.nanoTime();
+		return TObject.asList(supplier.get(), System.nanoTime() - startTime);
 	}
 }

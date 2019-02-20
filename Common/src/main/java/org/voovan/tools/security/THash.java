@@ -121,4 +121,48 @@ public class THash {
 		return hash;
 	}
 
+	/**
+	 * Time31算法
+	 * @param str 字符串
+	 * @param offset 字节数据偏移量
+	 * @param length 长度* @param source 待加密字符串
+	 * @return 加密结果
+	 */
+	public static int hashTime31(String str, int offset, int length, int seed) {
+		int hash = seed;
+		for (int i = offset; i < length; i++) {
+			hash = ((hash << 5) - hash) + str.charAt(i);
+		}
+		return hash;
+	}
+
+	/**
+	 * Time31算法
+	 * @param str 字符串
+	 * @param offset 字节数据偏移量
+	 * @param length 长度* @param source 待加密字符串
+	 * @return 加密结果
+	 */
+	public static int hashTime31(String str, int offset, int length) {
+
+		return hashTime31(str, offset, length, 0);
+	}
+
+
+		/**
+		 * Time31算法
+		 * @param strs 字符串数组
+		 * @return 加密结果
+		 */
+	public static int hashTime31(String ... strs) {
+		int hash = 0;
+		for(int i=0;i<strs.length;i++){
+			String val = strs[i];
+			if(val !=null){
+				hash = hash + hashTime31(val, 0, val.length(), hash);
+			}
+		}
+
+		return hash;
+	}
 }
