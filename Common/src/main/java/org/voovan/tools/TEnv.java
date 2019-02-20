@@ -268,7 +268,7 @@ public class TEnv {
 			String fileName = file.getCanonicalPath();
 			if("class".equals(TFile.getFileExtension(fileName))) {
 				//如果是内部类则跳过
-				if(TString.regexMatch(fileName,"\\$\\d\\.class")>0){
+				if(TString.regexMatch(fileName,"G\\$\\d\\.class")>0){
 					continue;
 				}
 				fileName = fileName.replace(rootfile.getCanonicalPath() + File.separator, "");
@@ -569,5 +569,17 @@ public class TEnv {
 	public static List<Object> measureTime(Supplier supplier){
 		long startTime = System.nanoTime();
 		return TObject.asList(supplier.get(), System.nanoTime() - startTime);
+	}
+
+	/**
+	 * 性能测试方法
+	 *      不需要响应
+	 * @param runnable 执行器
+	 * @return 执行时间
+	 */
+	public static long measureTime(Runnable runnable){
+		long startTime = System.nanoTime();
+		runnable.run();
+		return System.nanoTime() - startTime;
 	}
 }

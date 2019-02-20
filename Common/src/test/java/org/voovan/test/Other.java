@@ -44,7 +44,6 @@ public class Other {
                 }
 //                code = m.toString().hashCode();
             }
-            return code;
         }));
 
         ConcurrentSkipListMap kv1 = new ConcurrentSkipListMap();
@@ -58,7 +57,6 @@ public class Other {
                     kv1.get(code);
                 }
             }
-            return code;
         }));
 
         ConcurrentSkipListMap kv2 = new ConcurrentSkipListMap();
@@ -72,7 +70,6 @@ public class Other {
                     kv2.get(code);
                 }
             }
-            return code;
         }));
     }
 }
