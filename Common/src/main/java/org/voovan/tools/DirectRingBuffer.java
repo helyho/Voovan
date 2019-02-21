@@ -1,5 +1,6 @@
 package org.voovan.tools;
 
+import org.voovan.tools.log.Logger;
 import sun.misc.Unsafe;
 
 import java.nio.BufferOverflowException;
@@ -48,7 +49,23 @@ public class DirectRingBuffer {
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
+    }
 
+    /**
+     * 使用指定容量构造一个环形缓冲区
+     * @param byteBuffer ByteBuffer 对象
+     */
+    public DirectRingBuffer(ByteBuffer byteBuffer){
+        if(byteBuffer.hasArray()){
+            throw new UnsupportedOperationException();
+        }
+
+        this.capacity = byteBuffer.capacity();
+        try {
+            this.address.set(TByteBuffer.getAddress(byteBuffer));
+        } catch (ReflectiveOperationException e) {
+            Logger.error("Get bytebuffer address error.");
+        }
     }
 
     /**
@@ -323,34 +340,6 @@ public class DirectRingBuffer {
         }
 
         return length;
-    }
-
-    /**
-     * 重新分配缓冲区的容量
-     * @param newCapacity 新的缓冲区容量
-     * @return true: 扩容成功, false: 扩容失败或无须扩容
-     */
-    public synchronized boolean resize(int newCapacity){
-        if(capacity >= newCapacity){
-            return false;
-        } else {
-            address.set(unsafe.reallocateMemory(address.get(), newCapacity));
-            if(writePositon < readPositon){
-                int capacityDiff = newCapacity - capacity;
-                writePositon = writePositon-1 > capacityDiff ? writePositon - capacityDiff : capacity + writePositon;
-                unsafe.copyMemory(address.get(), address.get() + capacity, writePositon-1);
-            }
-            this.capacity = newCapacity;
-            try {
-                deallocator.setAddress(address.get());
-                TByteBuffer.setAddress(byteBuffer, address.get());
-                TByteBuffer.capacityField.set(byteBuffer, capacity);
-            } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
-            }
-
-            return true;
-        }
     }
 
     /**
