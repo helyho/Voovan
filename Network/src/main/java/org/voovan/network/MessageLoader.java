@@ -171,6 +171,8 @@ public class MessageLoader {
 				return -1;
 			}
 
+			HeartBeat.interceptHeartBeat(session, dataByteBufferChannel);
+
 			int readsize = byteBufferChannel.size() - oldByteChannelSize;
 
 			try {
@@ -207,8 +209,6 @@ public class MessageLoader {
 					stopType = StopType.STREAM_END;
 				}else {
 					readZeroCount++;
-					HeartBeat.interceptHeartBeat(session, dataByteBufferChannel);
-					TEnv.sleep(1);
 				}
 			}else{
 				readZeroCount = 0;
