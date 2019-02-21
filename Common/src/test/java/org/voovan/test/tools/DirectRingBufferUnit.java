@@ -32,7 +32,6 @@ public class DirectRingBufferUnit extends TestCase {
 		directRingBuffer.write((byte)80);
 		directRingBuffer.write((byte)80);
 		directRingBuffer.write((byte)80);
-		directRingBuffer.resize(30);
 
 		i=0;
 		while(directRingBuffer.avaliable() > 0) {
