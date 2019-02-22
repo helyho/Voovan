@@ -126,7 +126,7 @@ public class MessageLoader {
 	 * @return 读取的缓冲区数据
 	 * @throws IOException IO 异常
 	 */
-	public int read() throws IOException {
+	public int read() {
 		int readZeroCount = 0;
 		int splitLength = 0;
 
@@ -194,6 +194,7 @@ public class MessageLoader {
 
 						if (splitLength >= 0) {
 							stopType = StopType.MSG_SPLITTER;
+							break;
 						}
 					}
 				} finally {
