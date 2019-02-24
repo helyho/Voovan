@@ -31,7 +31,7 @@ public abstract class SocketContext {
 	 */
 	public static AsynchronousChannelGroup buildAsynchronousChannelGroup(){
 		try {
-			return AsynchronousChannelGroup.withThreadPool(Global.getThreadPool());
+			return AsynchronousChannelGroup.withCachedThreadPool(Global.getThreadPool(), 8);
 		} catch (IOException e) {
 			Logger.error("Buile AsynchronousChannelGroup failed", e);
 			return null;
