@@ -32,7 +32,7 @@ public class ThreadPool {
 	 */
 	public static int getMinPoolSize() {
 		MIN_POOL_SIZE = (minPoolTimes == 0 ? 1 : minPoolTimes) * cpuCoreCount;
-		MIN_POOL_SIZE = MIN_POOL_SIZE < 8 ? 8 : MIN_POOL_SIZE;
+		MIN_POOL_SIZE = MIN_POOL_SIZE < 10 ? 10 : MIN_POOL_SIZE;
 		System.out.println("[THREAD_POOL] Min size: " + minPoolTimes + "/" + MIN_POOL_SIZE);
 		return MIN_POOL_SIZE;
 	}
@@ -46,7 +46,7 @@ public class ThreadPool {
 			maxPoolTimes = minPoolTimes;
 		}
 		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 1 : maxPoolTimes) * cpuCoreCount;
-		MAX_POOL_SIZE = MAX_POOL_SIZE < 8 ? 8 : MAX_POOL_SIZE;
+		MAX_POOL_SIZE = MAX_POOL_SIZE < 10 ? 10 : MAX_POOL_SIZE;
 		System.out.println("[THREAD_POOL] Max size: " + maxPoolTimes + "/" + MAX_POOL_SIZE);
 		return MAX_POOL_SIZE;
 	}
