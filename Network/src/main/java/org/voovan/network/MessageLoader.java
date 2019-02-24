@@ -124,7 +124,6 @@ public class MessageLoader {
 	 * 	1.消息截断器生效
 	 * 	2.消息读取时间超时,例如设置5m,则连续5秒内没有读取到有用的消息则返回报文.
 	 * @return 读取的缓冲区数据
-	 * @throws IOException IO 异常
 	 */
 	public int read() {
 		int readZeroCount = 0;
