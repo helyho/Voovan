@@ -32,7 +32,7 @@ public abstract class SocketContext {
 	 */
 	public static AsynchronousChannelGroup buildAsynchronousChannelGroup(){
 		try {
-			Logger.simple("[SYSTEM] Socket thread size: " + ThreadPool.getMinPoolSize()/2);
+			System.out.println("[SYSTEM] Socket thread size: " + ThreadPool.getMinPoolSize()/2);
 			return AsynchronousChannelGroup.withCachedThreadPool(Global.getThreadPool(), ThreadPool.getMinPoolSize()/2);
 		} catch (IOException e) {
 			Logger.error("Buile AsynchronousChannelGroup failed", e);

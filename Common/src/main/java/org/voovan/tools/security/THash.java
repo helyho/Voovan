@@ -125,7 +125,8 @@ public class THash {
 	 * Time31算法
 	 * @param str 字符串
 	 * @param offset 字节数据偏移量
-	 * @param length 长度* @param source 待加密字符串
+	 * @param length 长度
+	 * @param seed 上次 hash 的种子
 	 * @return 加密结果
 	 */
 	public static int hashTime31(String str, int offset, int length, int seed) {
