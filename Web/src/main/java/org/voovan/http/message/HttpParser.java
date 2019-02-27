@@ -28,14 +28,14 @@ import java.util.concurrent.ConcurrentSkipListMap;
  */
 public class HttpParser {
 
-	private static final String FL_METHOD 		= "1";
-	private static final String FL_PATH 		= "2";
-	private static final String FL_PROTOCOL		= "3";
-	private static final String FL_VERSION		= "4";
-	private static final String FL_STATUS		= "5";
-	private static final String FL_STATUS_CODE  = "6";
-	private static final String FL_QUERY_STRING = "7";
-	private static final String FL_MARK         = "8";
+	private static final String PL_METHOD = "1";
+	private static final String PL_PATH = "2";
+	private static final String PL_PROTOCOL = "3";
+	private static final String PL_VERSION = "4";
+	private static final String PL_STATUS = "5";
+	private static final String PL_STATUS_CODE = "6";
+	private static final String PL_QUERY_STRING = "7";
+	private static final String PL_HASH = "8";
 	private static final String USE_CACHE       = "9";
 
 	private static final String BODY_PARTS = "10";
@@ -291,68 +291,68 @@ public class HttpParser {
 
 		if (type == 0) {
 			//1
-			packetMap.put(FL_METHOD, segment_1);
+			packetMap.put(PL_METHOD, segment_1);
 
 			//2
 			questPositiion = questPositiion - segment_1.length() - 1;
-			packetMap.put(FL_PATH, questPositiion > 0 ? segment_2.substring(0, questPositiion - 1) : segment_2);
+			packetMap.put(PL_PATH, questPositiion > 0 ? segment_2.substring(0, questPositiion - 1) : segment_2);
 			if (questPositiion > 0) {
-				packetMap.put(FL_QUERY_STRING, segment_2.substring(questPositiion - 1));
+				packetMap.put(PL_QUERY_STRING, segment_2.substring(questPositiion - 1));
 			}
 
 			//3
 			if(segment_3.charAt(0)=='H' && segment_3.charAt(1)=='T' && segment_3.charAt(2)=='T' && segment_3.charAt(3)=='P') {
-				packetMap.put(FL_PROTOCOL, HttpStatic.HTTP.getString());
+				packetMap.put(PL_PROTOCOL, HttpStatic.HTTP.getString());
 			} else {
 				throw new ParserException("Not a http packet");
 			}
 
 			switch (segment_3.charAt(7)) {
 				case '1':
-					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
+					packetMap.put(PL_VERSION, HttpStatic.HTTP_11_STRING);
 					break;
 				case '0':
-					packetMap.put(FL_VERSION, HttpStatic.HTTP_10_STRING);
+					packetMap.put(PL_VERSION, HttpStatic.HTTP_10_STRING);
 					break;
 				case '9':
-					packetMap.put(FL_VERSION, HttpStatic.HTTP_09_STRING);
+					packetMap.put(PL_VERSION, HttpStatic.HTTP_09_STRING);
 					break;
 				default:
-					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
+					packetMap.put(PL_VERSION, HttpStatic.HTTP_11_STRING);
 			}
 		}
 
 		if (type == 1) {
 			//1
 			if(segment_1.charAt(0)=='H' && segment_1.charAt(1)=='T' && segment_1.charAt(2)=='T' && segment_1.charAt(3)=='P') {
-				packetMap.put(FL_PROTOCOL, HttpStatic.HTTP.getString());
+				packetMap.put(PL_PROTOCOL, HttpStatic.HTTP.getString());
 			} else {
 				throw new ParserException("Not a http packet");
 			}
 
 			switch (segment_1.charAt(7)) {
 				case '1':
-					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
+					packetMap.put(PL_VERSION, HttpStatic.HTTP_11_STRING);
 					break;
 				case '0':
-					packetMap.put(FL_VERSION, HttpStatic.HTTP_10_STRING);
+					packetMap.put(PL_VERSION, HttpStatic.HTTP_10_STRING);
 					break;
 				case '9':
-					packetMap.put(FL_VERSION, HttpStatic.HTTP_09_STRING);
+					packetMap.put(PL_VERSION, HttpStatic.HTTP_09_STRING);
 					break;
 				default:
-					packetMap.put(FL_VERSION, HttpStatic.HTTP_11_STRING);
+					packetMap.put(PL_VERSION, HttpStatic.HTTP_11_STRING);
 			}
 
 			//2
-			packetMap.put(FL_STATUS, segment_2);
+			packetMap.put(PL_STATUS, segment_2);
 
 			//3
-			packetMap.put(FL_STATUS_CODE, segment_3);
+			packetMap.put(PL_STATUS_CODE, segment_3);
 		}
 
 		if(WebContext.isCache()) {
-			packetMap.put(FL_MARK, hashCode);
+			packetMap.put(PL_HASH, hashCode);
 		}
 	}
 
@@ -443,7 +443,7 @@ public class HttpParser {
 				int protocolPosition = innerByteBuffer.position() - 1;
 
 				if(WebContext.isCache()) {
-					mark = ((Integer) packetMap.get(FL_MARK)).longValue();
+					mark = ((Integer) packetMap.get(PL_HASH)).longValue();
 
 					for (Entry<Long, Map<String, Object>> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
 						long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
@@ -470,7 +470,7 @@ public class HttpParser {
 					}
 				}
 
-				if (!packetMap.containsKey(FL_PROTOCOL)) {
+				if (!packetMap.containsKey(PL_PROTOCOL)) {
 					return null;
 				}
 
@@ -499,7 +499,7 @@ public class HttpParser {
 					totalLength = innerByteBuffer.position();
 					headerMark = THash.hashTime31(innerByteBuffer, protocolPosition, (int)(totalLength - protocolPosition));
 					mark = (mark + headerMark) << 32 | totalLength;
-					packetMap.put(FL_MARK, mark);
+					packetMap.put(PL_HASH, mark);
 				}
 
 			} finally {
@@ -519,7 +519,7 @@ public class HttpParser {
 
 			isBodyConent = true;
 
-			packetMap.put(FL_MARK, null);
+			packetMap.put(PL_HASH, null);
 
 			//解析 HTTP 请求 body
 			if(isBodyConent){
@@ -820,22 +820,22 @@ public class HttpParser {
 		for(Entry<String, Object> parsedPacketEntry: parsedItems) {
 			String key = parsedPacketEntry.getKey();
 			switch (key) {
-				case FL_METHOD:
+				case PL_METHOD:
 					request.protocol().setMethod(parsedPacketEntry.getValue().toString());
 					break;
-				case FL_PROTOCOL:
+				case PL_PROTOCOL:
 					request.protocol().setProtocol(parsedPacketEntry.getValue().toString());
 					break;
-				case FL_QUERY_STRING:
+				case PL_QUERY_STRING:
 					request.protocol().setQueryString(parsedPacketEntry.getValue().toString());
 					break;
-				case FL_VERSION:
+				case PL_VERSION:
 					request.protocol().setVersion(parsedPacketEntry.getValue().toString());
 					break;
-				case FL_PATH:
+				case PL_PATH:
 					request.protocol().setPath(parsedPacketEntry.getValue().toString());
 					break;
-				case FL_MARK:
+				case PL_HASH:
 					request.setMark((Long)parsedPacketEntry.getValue());
 					break;
 				case HttpStatic.COOKIE_STRING:
@@ -922,16 +922,16 @@ public class HttpParser {
 		for(Entry<String, Object> parsedPacketEntry: parsedItems){
 			String key = parsedPacketEntry.getKey();
 			switch (key) {
-				case FL_PROTOCOL:
+				case PL_PROTOCOL:
 					response.protocol().setProtocol(parsedPacketEntry.getValue().toString());
 					break;
-				case FL_VERSION:
+				case PL_VERSION:
 					response.protocol().setVersion(parsedPacketEntry.getValue().toString());
 					break;
-				case FL_STATUS:
+				case PL_STATUS:
 					response.protocol().setStatus(Integer.parseInt(parsedPacketEntry.getValue().toString()));
 					break;
-				case FL_STATUS_CODE:
+				case PL_STATUS_CODE:
 					response.protocol().setStatusCode(parsedPacketEntry.getValue().toString());
 					break;
 				case HttpStatic.COOKIE_STRING:

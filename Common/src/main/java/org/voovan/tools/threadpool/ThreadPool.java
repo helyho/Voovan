@@ -33,7 +33,6 @@ public class ThreadPool {
 	public static int getMinPoolSize() {
 		MIN_POOL_SIZE = (minPoolTimes == 0 ? 1 : minPoolTimes) * cpuCoreCount;
 		MIN_POOL_SIZE = MIN_POOL_SIZE < 12 ? 12 : MIN_POOL_SIZE;
-		System.out.println("[THREAD_POOL] Min size: " + minPoolTimes + "/" + MIN_POOL_SIZE);
 		return MIN_POOL_SIZE;
 	}
 
@@ -47,7 +46,6 @@ public class ThreadPool {
 		}
 		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 1 : maxPoolTimes) * cpuCoreCount;
 		MAX_POOL_SIZE = MAX_POOL_SIZE < 12 ? 12 : MAX_POOL_SIZE;
-		System.out.println("[THREAD_POOL] Max size: " + maxPoolTimes + "/" + MAX_POOL_SIZE);
 		return MAX_POOL_SIZE;
 	}
 
@@ -71,6 +69,9 @@ public class ThreadPool {
 	}
 
 	private static ThreadPoolExecutor createThreadPool(String poolName){
+		System.out.println("[THREAD_POOL] Min size: " + minPoolTimes + "/" + MIN_POOL_SIZE);
+		System.out.println("[THREAD_POOL] Max size: " + maxPoolTimes + "/" + MAX_POOL_SIZE);
+
 		ThreadPoolExecutor threadPoolInstance = createThreadPool(poolName, MIN_POOL_SIZE, MAX_POOL_SIZE, 1000*60);
 
 		//启动线程池自动调整任务
