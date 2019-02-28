@@ -253,7 +253,7 @@ public class HttpParser {
 
 			currentByte = byteBuffer.get();
 
-			if (currentByte == Global.BYTE_SPACE) {
+			if (currentByte == Global.BYTE_SPACE && segment < 2) {
 				if (segment == 0) {
 					HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
 					hashCode = hashCode + httpItem.getHashCode() << 1;
@@ -905,6 +905,7 @@ public class HttpParser {
 		Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
 		try {
 			packetMap = parser(packetMap, 1, byteBufferChannel, timeOut, -1);
+			packetMap.remove(PL_HASH);
 		} catch (ParserException e) {
 			Logger.warn("HttpParser.parser: " + e.getMessage());
 			return null;

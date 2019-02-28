@@ -420,7 +420,9 @@ public abstract class IoSession<T extends SocketContext> {
 			SynchronousHandler finalSynchronousHandler = synchronousHandler;
 			TEnv.wait(socketContext.getReadTimeout(), ()->!finalSynchronousHandler.hasNextResponse() && isConnected());
 
-			readObject = ((SynchronousHandler)socketContext.handler()).getResponse();
+			if(isConnected()) {
+				readObject = ((SynchronousHandler) socketContext.handler()).getResponse();
+			}
 
 			if(readObject == null && !isConnected()){
 				throw new ReadMessageException("Method syncRead error! Socket is disconnected");
