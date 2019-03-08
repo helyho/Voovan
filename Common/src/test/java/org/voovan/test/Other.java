@@ -29,47 +29,6 @@ import java.util.regex.Matcher;
 public class Other {
 
     public static void main(String[] args) throws IOException {
-        ConcurrentSkipListMap kv = new ConcurrentSkipListMap();
-        String mmm = "wrk -H 'Host: tfb-server' -H 'Accept: text/plain,text/html;q=0.9,application/xhtml+xml;q=0.9,application/xml;q=0.8,*/*;q=0.7' -H 'Connection: keep-alive' --latency -d 15 -c 1024 --timeout 8 -t 20 http://tfb-server:8080/plaintext -s pipeline.lua -- 16";
-        String mmm1 = "wrk -H 'Host: tfb-server' -H 'Accept: text/plain,text/html;q=0.9,application/xhtml+xml;q=0.9,application/xml;q=0.8,*/*;q=0.7' -H 'Connection: keep-alive' --latency -d 15 -c 1024 --timeout 8 -t 20 http://tfb-server:8080/plaintext -s pipeline.lua -- 16";
-
-        System.out.println(TEnv.measureTime(()->{
-            int code = 0;
-            for(int i = 0;i <1000000;i++){
-                StringBuilder m = new StringBuilder(mmm+i).append(mmm1);
-                String mv = m.toString();
-                kv.put(mv, 000);
-                for(int p=0;p<10;p++) {
-                    kv.get(mv);
-                }
-//                code = m.toString().hashCode();
-            }
-        }));
-
-        ConcurrentSkipListMap kv1 = new ConcurrentSkipListMap();
-
-        System.out.println(TEnv.measureTime(()->{
-            int code = 0;
-            for(int i = 0;i <1000000;i++){
-                code = THash.hashTime31(mmm+i, mmm1);
-                kv1.put(code, 000);
-                for(int p=0;p<10;p++) {
-                    kv1.get(code);
-                }
-            }
-        }));
-
-        ConcurrentSkipListMap kv2 = new ConcurrentSkipListMap();
-
-        System.out.println(TEnv.measureTime(()->{
-            String code = "";
-            for(int i = 0;i <1000000;i++){
-                code = THash.encryptMD5(mmm+i + mmm1);
-                kv2.put(code, 000);
-                for(int p=0;p<10;p++) {
-                    kv2.get(code);
-                }
-            }
-        }));
+        System.out.println(System.currentTimeMillis());
     }
 }

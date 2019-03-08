@@ -5,7 +5,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 高速ID生成器
- * 采用 snowflake 算法快速生成 ID
+ * 参考 snowflake 算法快速生成 ID
+ * 在 2109-05-15 15:35:11:103 可 保证无重复
  *
  * @author: helyho
  * Voovan Framework.
@@ -15,9 +16,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class UniqueId {
     private static final int SEQ_DEFAULT = 0;
     private static final int RADIX = 62;
-    private static final int SEQUENCE_LEFT = 12;
-    private static final int SIGNID_LEFT = 10;
+    private static final int SEQUENCE_LEFT = 11; //一毫秒生成 4096 个 id
+    private static final int SIGNID_LEFT = 11;   //可有 4096 个数据中心
     private static final int MAX_SIGNID = 1 << SIGNID_LEFT;
+    private static final int MAX_SEQUENCE = 1 << SEQUENCE_LEFT;
 
     private volatile AtomicInteger orderedIdSequence = new AtomicInteger(SEQ_DEFAULT);
     private Long lastTime = 0L;
@@ -49,7 +51,7 @@ public class UniqueId {
      * 获取下一个 id
      * @return 返回 id
      */
-    public long nextInt(){
+    public long nextNumber(){
         return generateId();
     }
 
@@ -74,7 +76,7 @@ public class UniqueId {
             throw new RuntimeException("Clock moved backwards.");
         }
 
-        if(orderedIdSequence.get() >= 4096){
+        if(orderedIdSequence.get() >= MAX_SEQUENCE){
             TEnv.sleep(1);
             orderedIdSequence.set(SEQ_DEFAULT);
         }
