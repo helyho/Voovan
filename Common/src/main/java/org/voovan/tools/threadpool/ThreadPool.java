@@ -54,8 +54,7 @@ public class ThreadPool {
 	 * @return 线程池最大活动线程数
 	 */
 	public static int getStatusInterval() {
-		int statusInterval = TProperties.getInt("framework", "ThreadPoolStatusInterval");
-		STATUS_INTERVAL = statusInterval < 1000 ? 1000 : statusInterval;
+		STATUS_INTERVAL = TProperties.getInt("framework", "ThreadPoolStatusInterval");
 		return STATUS_INTERVAL;
 	}
 
@@ -75,7 +74,7 @@ public class ThreadPool {
 		ThreadPoolExecutor threadPoolInstance = createThreadPool(poolName, MIN_POOL_SIZE, MAX_POOL_SIZE, 1000*60);
 
 		//启动线程池自动调整任务
-		if(ThreadPool.getStatusInterval()>0) {
+		if(STATUS_INTERVAL>0) {
 			Timer timer = new Timer("VOOVAN@THREAD_POOL_TIMER");
 			ThreadPoolTask threadPoolTask = new ThreadPoolTask(threadPoolInstance);
 			timer.schedule(threadPoolTask, 1, 1000);
