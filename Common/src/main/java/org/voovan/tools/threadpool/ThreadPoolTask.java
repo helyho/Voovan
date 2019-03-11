@@ -36,7 +36,7 @@ public class ThreadPoolTask extends TimerTask {
 			}
 
 
-			if(count*1000 % ThreadPool.getStatusInterval() != 0) {
+			if(count*1000 % ThreadPool.getStatusInterval() == 0) {
 
 				String threadPoolInfo = "[PoolInfo]: A:" + threadPoolInstance.getActiveCount() + "/ S:" + threadPoolInstance.getCorePoolSize() + "/ L:"
 						+ threadPoolInstance.getLargestPoolSize() + "/ M:" + threadPoolInstance.getMaximumPoolSize() + " \t[TaskCount]: "
