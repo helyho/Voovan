@@ -266,14 +266,16 @@ public class ByteBufferChannel {
             return;
         }
 
-        lock.lock();
-        try {
-            if (byteBuffer != null) {
-                byteBuffer.limit(0);
-                size = 0;
+        if(size!=0) {
+            lock.lock();
+            try {
+                if (byteBuffer != null) {
+                    byteBuffer.limit(0);
+                    size = 0;
+                }
+            } finally {
+                lock.unlock();
             }
-        } finally{
-            lock.unlock();
         }
     }
 
