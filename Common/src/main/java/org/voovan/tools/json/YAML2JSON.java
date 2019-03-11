@@ -303,10 +303,10 @@ public class YAML2JSON {
 		int pairIndex = line.indexOf(":");
 		//键值对处理
 		if (pairIndex > 0) {
-			String key = line.substring(0, pairIndex);
+			String key = line.substring(0, pairIndex).trim();
 			String value = "";
 			if (pairIndex <= line.length() - 2) {
-				value = line.substring(pairIndex + 2); //实际上定位的是 ": "
+				value = line.substring(pairIndex + 2).trim(); //实际上定位的是 ": "
 			}
 
 			if (!value.isEmpty() &&
