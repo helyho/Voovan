@@ -11,6 +11,9 @@ import sun.jvm.hotspot.memory.TenuredGeneration;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -59,56 +62,34 @@ public class RingBufferUnit extends TestCase {
 			public void run() {
 
 				ArrayList<Thread> mmm = new ArrayList<Thread>();
+//				=======================
+//
+				for(int i=0;i<20;i++){
+					if(i%2==0){
+						Thread pushThread = new Thread(()->{
+							while(md.get()<=20000000) {
+								m.push(md.incrementAndGet());
+								m2.getAndIncrement();
+							}
+						});
+						mmm.add(pushThread);
+						pushThread.start();
+					} else {
 
-				String ms ="";
+						Thread popThread = new Thread(()->{
+							while(m1.get()<20000000) {
+								Object o = m.pop();
+								if (o != null) {
+//									System.out.println(o);
+									m1.getAndIncrement();
+								}
+							}
+						});
 
-				Thread mt1 = new Thread(()->{
-					while(md.get()<=12000000) {
-						int data = md.incrementAndGet();
-						m.push(data);
-						m2.getAndIncrement();
+						mmm.add(popThread);
+						popThread.start();
 					}
-				});
-
-				Thread mt2 = new Thread(()->{
-					while(m1.get()<12000000) {
-						Object o = m.pop();
-						if (o != null) {
-							m1.getAndIncrement();
-						}
-					}
-				});
-
-				mmm.add(mt1);
-				mmm.add(mt2);
-
-				mt1.start();
-				mt2.start();
-
-		//				for(int i=0;i<150;i++){
-//					Thread mt = new Thread(()->{
-//						while(true) {
-//							if (Math.random() > 0.5 && m.remaining() > 0) {
-//								Object o = m.pop();
-//								if(o !=null) {
-////							System.out.println("pop: " + o);
-//									m1.getAndIncrement();
-//								}
-//							} else {
-//								if(md.get()<10000000) {
-//									int data = md.incrementAndGet();
-//									m.push(data);
-//									m2.getAndIncrement();
-////							System.out.println("push: " + data);
-//								} else {
-//									break;
-//								}
-//							}
-//						}
-//					});
-//					mmm.add(mt);
-//					mt.start();
-//				}
+				}
 
 				for(Thread thread : mmm){
 					try {
@@ -119,10 +100,59 @@ public class RingBufferUnit extends TestCase {
 				}
 
 			}
-		}));
+		})/1000000000f);
 
 		System.out.println(m1.get() + " " + m2.get() + " " + m.remaining());
+		m1.set(0);
+		m2.set(0);
+		md.set(0);
 
+		ArrayBlockingQueue a = new ArrayBlockingQueue(1024*1024);
+		System.out.println(TEnv.measureTime(new Runnable() {
+			@Override
+			public void run() {
+
+				ArrayList<Thread> mmm = new ArrayList<Thread>();
+//				=======================
+//
+				for(int i=0;i<20;i++){
+					if(i%2==0){
+						Thread pushThread = new Thread(()->{
+							while(md.get()<=20000000) {
+								a.offer(md.incrementAndGet());
+								m2.getAndIncrement();
+							}
+						});
+						mmm.add(pushThread);
+						pushThread.start();
+					} else {
+
+						Thread popThread = new Thread(()->{
+							while(m1.get()<20000000) {
+								Object o = a.poll();
+								if (o != null) {
+//									System.out.println(o);
+									m1.getAndIncrement();
+								}
+							}
+						});
+
+						mmm.add(popThread);
+						popThread.start();
+					}
+				}
+
+				for(Thread thread : mmm){
+					try {
+						thread.join();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+
+			}
+		})/1000000000f);
+		System.out.println(m1.get() + " " + m2.get() + " " + a.size());
 	}
 }
 
