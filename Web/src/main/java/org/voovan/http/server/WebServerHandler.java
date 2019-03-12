@@ -439,7 +439,7 @@ public class WebServerHandler implements IoHandler {
 	}
 
 	@Override
-	public void onFlush(IoSession session, List<Object> flushedObjects) {
+	public void onFlush(IoSession session) {
 		HttpRequest request = getAttribute(session,HttpSessionParam.HTTP_REQUEST);
 
 		//处理连接保持

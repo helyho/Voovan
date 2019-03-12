@@ -41,8 +41,6 @@ public abstract class IoSession<T extends SocketContext> {
 	private HashWheelTask checkIdleTask;
 	private HeartBeat heartBeat;
 	private State state;
-	private ArrayList<Object> flushedObjects = new ArrayList<>(24);
-
 
 	/**
 	 * 会话状态管理
@@ -362,14 +360,6 @@ public abstract class IoSession<T extends SocketContext> {
 		return socketContext;
 	};
 
-	protected ArrayList<Object> getFlushedObjects() {
-		return flushedObjects;
-	}
-
-	protected void setFlushedObjects(ArrayList<Object> flushedObjects) {
-		this.flushedObjects = flushedObjects;
-	}
-
 	/**
 	 * 读取消息到缓冲区
 	 * @param buffer    接收数据的缓冲区
@@ -533,7 +523,7 @@ public abstract class IoSession<T extends SocketContext> {
 						getState().setSend(true);
 						send0(sendByteBufferChannel.getByteBuffer());
 						//触发发送事件
-						EventTrigger.fireFlush(this, getFlushedObjects());
+						EventTrigger.fireFlush(this);
 					} finally {
 						sendByteBufferChannel.compact();
 						getState().sendUnLock();

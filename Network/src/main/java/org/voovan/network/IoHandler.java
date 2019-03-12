@@ -44,9 +44,8 @@ public interface IoHandler {
 	/**
 	 * Socket 缓冲区发送事件
 	 * @param session  session Session 对象
-	 * @param flushedObjects obj 发送的对象集合
 	 */
-	public void onFlush(IoSession session, List<Object> flushedObjects);
+	public void onFlush(IoSession session);
 
 	/**
 	 * 异常事件

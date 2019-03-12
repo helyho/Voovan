@@ -49,7 +49,7 @@ public class SynchronousHandler implements IoHandler {
     }
 
     @Override
-    public void onFlush(IoSession session, List<Object> obj) {
+    public void onFlush(IoSession session) {
 
     }
 

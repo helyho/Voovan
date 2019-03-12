@@ -125,10 +125,6 @@ public class EventProcess {
     public static void onRead(Event event, int recursionDepth) throws IOException {
         IoSession session = event.getSession();
         int currentRecursionDepth = recursionDepth;
-        //首次出发清理对象
-        if(currentRecursionDepth == 0){
-            session.getFlushedObjects().clear();
-        }
 
         if (session != null) {
 
@@ -148,7 +144,6 @@ public class EventProcess {
 
                 if(splitLength>=0) {
                     Object result = doRecive(session, splitLength);
-                    session.getFlushedObjects().add(result);
 
                     //如果有消息未处理完, 触发下一个 onRead
                     //通过读递归深度控制
@@ -352,16 +347,13 @@ public class EventProcess {
      *
      * @param event
      *            事件对象
-     * @param flushedObjects
-     *            flushed 发送的对象
      * @throws IOException IO 异常
      */
-    public static void onFlush(Event event, List<Object> flushedObjects) throws IOException {
+    public static void onFlush(Event event) throws IOException {
         IoSession session = event.getSession();
         SocketContext socketContext = session.socketContext();
         if (socketContext != null) {
-            socketContext.handler().onFlush(session, flushedObjects);
-//			session.getFlushedObjects().clear();
+            socketContext.handler().onFlush(session);
         }
     }
 
@@ -421,7 +413,7 @@ public class EventProcess {
             } else if (eventName == EventName.ON_SENT) {
                 EventProcess.onSent(event, event.getOther());
             } else if (eventName == EventName.ON_FLUSH) {
-                EventProcess.onFlush(event, (List<Object>) event.getOther());
+                EventProcess.onFlush(event);
             } else if (eventName == EventName.ON_IDLE) {
                 EventProcess.onIdle(event);
             } else if (eventName == EventName.ON_EXCEPTION) {
