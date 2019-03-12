@@ -164,10 +164,9 @@ public class EventProcess {
                     session.getState().setReceive(false);
                     session.getState().receiveUnLock();
 
-
                     if(session.getSendByteBufferChannel().size() > 0) {
                         //异步处理 flush
-                            session.flush();
+                        session.flush();
                     }
 
                     if(session.getReadByteBufferChannel().size() > 0){
