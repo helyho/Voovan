@@ -1,9 +1,7 @@
 package org.voovan.tools;
 
 import java.nio.BufferOverflowException;
-import java.nio.BufferUnderflowException;
-import java.util.ArrayList;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 类文字命名
@@ -16,12 +14,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class RingBuffer<T> {
 	public static final int DEFAULT_SIZE = 48;
 
-	ReentrantLock readLock = new ReentrantLock();
-	ReentrantLock writeLock = new ReentrantLock();
-
 	public Object[] elements;
-	private volatile int readPositon = 0;
-	private volatile int writePositon = 0;
+	private AtomicInteger readPositon = new AtomicInteger(0);
+	private AtomicInteger writePositon = new AtomicInteger(0);
 	private volatile int capacity;
 
 	/**
@@ -37,8 +32,8 @@ public class RingBuffer<T> {
 	 * @param capacity 分配的容量
 	 */
 	public RingBuffer(int capacity) {
-		elements = new Object[capacity - 1];
-		this.capacity = capacity - 1;
+		elements = new Object[capacity];
+		this.capacity = capacity;
 
 	}
 
@@ -48,7 +43,7 @@ public class RingBuffer<T> {
 	 * @return 读指针位置
 	 */
 	public int getReadPositon() {
-		return readPositon;
+		return readPositon.get();
 	}
 
 	/**
@@ -57,7 +52,7 @@ public class RingBuffer<T> {
 	 * @return 写指针位置
 	 */
 	public int getWritePositon() {
-		return writePositon;
+		return writePositon.get();
 	}
 
 	/**
@@ -79,7 +74,9 @@ public class RingBuffer<T> {
 			throw new BufferOverflowException();
 		}
 
-		readPositon = (readPositon + offset) % capacity;
+		readPositon.getAndUpdate((val) ->{
+			return val + offset % capacity;
+		});
 	}
 
 	/**
@@ -97,15 +94,15 @@ public class RingBuffer<T> {
 	 * @return true: 缓冲区已满, false: 缓冲区未满
 	 */
 	public Boolean isFull() {
-		return (writePositon + 1) % capacity == readPositon;
+		return (writePositon.get() + 1) % capacity == readPositon.get();
 	}
 
 	/**
 	 * 清理缓冲区
 	 */
 	public void clear() {
-		this.readPositon = 0;
-		this.writePositon = 0;
+		this.readPositon.set(0);
+		this.writePositon.set(0);
 	}
 
 	/**
@@ -116,7 +113,7 @@ public class RingBuffer<T> {
 	 */
 	public T get(int offset) {
 		if (offset < remaining()) {
-			int realOffset = (readPositon + offset) % capacity;
+			int realOffset = (readPositon.get() + offset) % capacity;
 			return (T)elements[realOffset];
 		} else {
 			throw new IndexOutOfBoundsException();
@@ -160,23 +157,22 @@ public class RingBuffer<T> {
 	 * @param t 对象
 	 */
 	public boolean push(T t) {
-		writeLock.lock();
-		try {
-			if (isFull()) {
+		if (isFull()) {
 //			throw new BufferOverflowException();
-				return false;
-			}
-
-			if (isEmpty() && readPositon != 0) {
-				clear();
-			}
-			elements[writePositon] = t;
-			writePositon = (writePositon + 1) % capacity;
-
-			return true;
-		} finally {
-			writeLock.unlock();
+			return false;
 		}
+
+		if (isEmpty() && readPositon.get() != 0) {
+			clear();
+		}
+
+		int position = writePositon.getAndUpdate(val->{
+			return (val+1) % capacity;
+		});
+
+		elements[position] = t;
+
+		return true;
 	}
 
 	/**
@@ -208,12 +204,12 @@ public class RingBuffer<T> {
 	 * @return 缓冲区可用数据量
 	 */
 	public int remaining() {
-		if (writePositon == readPositon) {
+		if (writePositon.get() == readPositon.get()) {
 			return 0;
-		} else if (writePositon < readPositon) {
-			return capacity - readPositon + writePositon;
+		} else if (writePositon.get() < readPositon.get()) {
+			return capacity - readPositon.get() + writePositon.get();
 		} else {
-			return writePositon - readPositon;
+			return writePositon.get() - readPositon.get();
 		}
 	}
 
@@ -232,22 +228,21 @@ public class RingBuffer<T> {
 	 * @return byte 数据
 	 */
 	public T pop() {
-		readLock.lock();
-		try {
-			if (isEmpty()) {
+		if (isEmpty()) {
 //			throw new BufferUnderflowException();
-				return null;
-			}
-			T t = (T)elements[readPositon];
-			readPositon = (readPositon + 1) % capacity;
-
-			if (isEmpty() && readPositon != 0) {
-				clear();
-			}
-			return t;
-		} finally {
-			readLock.unlock();
+			return null;
 		}
+
+		int position = readPositon.getAndUpdate(val->{
+			return (val + 1) % capacity;
+		});
+
+		T t = (T)elements[position];
+
+		if (isEmpty() && readPositon.get() != 0) {
+			clear();
+		}
+		return t;
 	}
 
 
