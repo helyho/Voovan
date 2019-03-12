@@ -52,8 +52,8 @@ public class EventTrigger {
 	}
 
 
-	public static void fireFlushThread(IoSession session, List<Object> flushedObjects){
-		fireEventThread(session, Event.EventName.ON_FLUSH, flushedObjects);
+	public static void fireFlushThread(IoSession session){
+		fireEventThread(session, Event.EventName.ON_FLUSH, null);
 	}
 
 	public static void fireDisconnectThread(IoSession session){
@@ -101,8 +101,8 @@ public class EventTrigger {
 		fireEvent(session, Event.EventName.ON_SENT, obj);
 	}
 
-	public static void fireFlush(IoSession session, List<Object> flushedObjects){
-		fireEvent(session, Event.EventName.ON_FLUSH, flushedObjects);
+	public static void fireFlush(IoSession session){
+		fireEvent(session, Event.EventName.ON_FLUSH, null);
 	}
 
 	public static void fireDisconnect(IoSession session){

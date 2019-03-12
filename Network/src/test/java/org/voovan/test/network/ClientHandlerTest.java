@@ -83,7 +83,7 @@ public class ClientHandlerTest implements IoHandler {
 	}
 
 	@Override
-	public void onFlush(IoSession session, List<Object> flushedObjects) {
+	public void onFlush(IoSession session) {
 
 	}
 
