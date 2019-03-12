@@ -59,7 +59,7 @@ public class WebServerHandler implements IoHandler {
 	 * @param <T>           范型
 	 * @return  参数
 	 */
-	public static <T> T getAttribute(IoSession session, HttpSessionParam sessionParam){
+	public static <T> T getAttribute(IoSession session, int sessionParam){
 		return (T)session.getAttribute(sessionParam);
 	}
 
@@ -70,7 +70,7 @@ public class WebServerHandler implements IoHandler {
 	 * @param value  参数
 	 * @param <T>           范型
 	 */
-	public static <T> void  setAttribute(IoSession session, HttpSessionParam sessionParam, T value){
+	public static <T> void  setAttribute(IoSession session, int sessionParam, T value){
 		session.setAttribute(sessionParam, value);
 	}
 
@@ -454,9 +454,7 @@ public class WebServerHandler implements IoHandler {
 			refreshTimeout(session);
 
 		} else {
-			if (keepAliveSessionList.contains(session)) {
-				keepAliveSessionList.remove(session);
-			}
+			keepAliveSessionList.remove(session);
 			session.flush();
 			session.close();
 		}
