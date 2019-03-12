@@ -8,6 +8,10 @@ package org.voovan.http;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public enum  HttpSessionParam {
-    TYPE, HTTP_REQUEST, HTTP_RESPONSE, KEEP_ALIVE, KEEP_ALIVE_TIMEOUT
+public class HttpSessionParam {
+    public static int TYPE = 0;
+	public static int HTTP_REQUEST = 1;
+	public static int HTTP_RESPONSE  = 2;
+	public static int KEEP_ALIVE = 3;
+	public static int KEEP_ALIVE_TIMEOUT = 4;
 }
