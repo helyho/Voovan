@@ -21,7 +21,7 @@ public class ThreadPool {
 
 	protected static int MIN_POOL_SIZE = cpuCoreCount;
 	protected static int MAX_POOL_SIZE = cpuCoreCount;
-	protected static int STATUS_INTERVAL = 3000;
+	protected static int STATUS_INTERVAL = 5000;
 
 	protected static int minPoolTimes = TProperties.getInt("framework", "ThreadPoolMinSize");
 	protected static int maxPoolTimes = TProperties.getInt("framework", "ThreadPoolMaxSize");
@@ -32,7 +32,7 @@ public class ThreadPool {
 	 */
 	public static int getMinPoolSize() {
 		MIN_POOL_SIZE = (minPoolTimes == 0 ? 1 : minPoolTimes) * cpuCoreCount;
-		MIN_POOL_SIZE = MIN_POOL_SIZE < 12 ? 12 : MIN_POOL_SIZE;
+		MIN_POOL_SIZE = MIN_POOL_SIZE < 8 ? 8 : MIN_POOL_SIZE;
 		return MIN_POOL_SIZE;
 	}
 
@@ -45,7 +45,7 @@ public class ThreadPool {
 			maxPoolTimes = minPoolTimes;
 		}
 		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 1 : maxPoolTimes) * cpuCoreCount;
-		MAX_POOL_SIZE = MAX_POOL_SIZE < 12 ? 12 : MAX_POOL_SIZE;
+		MAX_POOL_SIZE = MAX_POOL_SIZE < 8 ? 8 : MAX_POOL_SIZE;
 		return MAX_POOL_SIZE;
 	}
 

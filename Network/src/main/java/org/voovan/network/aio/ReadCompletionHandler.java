@@ -67,7 +67,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 								appByteBufferChannel.writeEnd(readTempBuffer);
 								break;
 							} catch (LargerThanMaxSizeException e) {
-								EventTrigger.fireReceiveThread(session);
+								EventTrigger.fireReceive(session);
 							}
 						} while (session.isConnected());
 					}
@@ -90,7 +90,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 					if(appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
 						// 触发 onReceive 事件
-						EventTrigger.fireReceiveThread(session);
+						EventTrigger.fireReceive(session);
 					}
 				}
 			}
