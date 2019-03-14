@@ -31,7 +31,11 @@ public class NioSelector {
 			while(true){
 				NioSelector nioSelector = SELECTORS.poll();
 				if(nioSelector!=null && nioSelector.socketContext.isConnected()) {
-					nioSelector.eventChose();
+					try {
+						nioSelector.eventChose();
+					} catch (Throwable e) {
+						e.printStackTrace();
+					}
 					SELECTORS.offer(nioSelector);
 				}
 			}
@@ -80,7 +84,7 @@ public class NioSelector {
 		// 事件循环
 		try {
 			if (socketContext != null && socketContext.isConnected()) {
-				if (selector.selectNow() > 0) {
+				if (selector.select(1)>0) {
 					Set<SelectionKey> selectionKeys = selector.selectedKeys();
 					Iterator<SelectionKey> selectionKeyIterator = selectionKeys.iterator();
 
@@ -91,7 +95,6 @@ public class NioSelector {
 							SocketChannel socketChannel = getSocketChannel(selectionKey);
 							if (socketChannel.isOpen() && selectionKey.isValid()) {
 								// 事件分发,包含时间 onRead onAccept
-
 								Global.getThreadPool().execute(()->{
 									try {
 										switch (selectionKey.readyOps()) {
@@ -165,7 +168,7 @@ public class NioSelector {
 												Logger.fremawork("Nothing to do ,SelectionKey is:" + selectionKey.readyOps());
 											}
 										}
-										selectionKeyIterator.remove();
+
 									} catch (Exception e) {
 										if(e instanceof IOException){
 											session.close();
@@ -179,6 +182,7 @@ public class NioSelector {
 										}
 									}
 								});
+								selectionKeyIterator.remove();
 							}
 						}
 					}

@@ -36,7 +36,11 @@ public class UdpSelector {
             while(true){
                 UdpSelector udpSelector = SELECTORS.poll();
                 if(udpSelector!=null && udpSelector.socketContext.isOpen()) {
-                    udpSelector.eventChose();
+                    try {
+                        udpSelector.eventChose();
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                    }
                     SELECTORS.offer(udpSelector);
                 }
             }
@@ -84,7 +88,7 @@ public class UdpSelector {
         // 事件循环
         try {
             if (socketContext != null && socketContext.isOpen()) {
-                if (selector.selectNow() > 0) {
+                if (selector.select(1) > 0) {
                     Set<SelectionKey> selectionKeys = selector.selectedKeys();
                     Iterator<SelectionKey> selectionKeyIterator = selectionKeys.iterator();
                     while (selectionKeyIterator.hasNext()) {
@@ -147,7 +151,6 @@ public class UdpSelector {
                                                 Logger.fremawork("Nothing to do ,SelectionKey is:" + selectionKey.readyOps());
                                             }
                                         }
-                                        selectionKeyIterator.remove();
                                     } catch (Exception e) {
                                         if(e instanceof IOException){
                                             session.close();
@@ -161,6 +164,8 @@ public class UdpSelector {
                                         }
                                     }
                                 });
+
+                                selectionKeyIterator.remove();
                             }
                         }
                     }
