@@ -90,7 +90,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 
 					if(appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
 						// 触发 onReceive 事件
-						EventTrigger.fireReceive(session);
+						EventTrigger.fireReceiveThread(session);
 					}
 				}
 			}
