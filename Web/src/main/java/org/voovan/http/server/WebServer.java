@@ -412,7 +412,7 @@ public class WebServer {
 
 		//保存 PID
 		Long pid = TEnv.getCurrentPID();
-		System.out.println("Process ID: "+ pid.toString());
+		System.out.println("Pid: \t"+ pid.toString());
 		File pidFile = new File("logs/.pid");
 		try {
 			TFile.writeFile(pidFile, false, pid.toString().getBytes());
@@ -423,7 +423,8 @@ public class WebServer {
 		String serviceUrl = "http" + (config.isHttps()?"s":"") + "://"
 				+ (config.getHost().equals("0.0.0.0") ? "127.0.0.1" : config.getHost())
 				+ ":"+config.getPort();
-		System.out.println("WebServer working on: \t" + serviceUrl);
+		System.out.println("Listen: " + serviceUrl);
+		System.out.println("Time: \t" + TDateTime.now());
 
 	}
 
