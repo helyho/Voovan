@@ -15,8 +15,8 @@ import java.util.Map;
 
 
 public class VoovanTFB {
-	private static final byte[] HELLO_WORLD = "Hello, World!".getBytes();
-	private static final Map MAP = TObject.asMap("message", "Hello, World!");
+	public static final byte[] HELLO_WORLD = "Hello, World!".getBytes();
+	public static final Map MAP = TObject.asMap("message", "Hello, World!");
 
 
 	public static void main(String[] args) {

@@ -173,7 +173,6 @@ public class WebServerHandler implements IoHandler {
 				return null;
 			}
 
-
 			// 构造 Http 请求/响应 对象
 			HttpRequest httpRequest = THREAD_HTTP_REQUEST.get();
 			if(httpRequest==null) {
@@ -191,18 +190,14 @@ public class WebServerHandler implements IoHandler {
 				httpResponse.init(defaultCharacterSet, session);
 			}
 
-
 			setAttribute(session, HttpSessionParam.HTTP_REQUEST, httpRequest);
 			setAttribute(session, HttpSessionParam.HTTP_RESPONSE, httpResponse);
-
-			// 填充远程连接的IP 地址和端口
-			httpRequest.setRemoteAddres(session.remoteAddress());
-			httpRequest.setRemotePort(session.remotePort());
 
 			// WebSocket协议升级处理
 			if (WebSocketTools.isWebSocketUpgrade(request)) {
 				return disposeUpgrade(session, httpRequest, httpResponse);
 			}
+
 			// Http 1.1处理
 			else {
 				return disposeHttp(session, httpRequest, httpResponse);
@@ -260,7 +255,6 @@ public class WebServerHandler implements IoHandler {
 				}
 			}
 		}
-
 
         // 处理响应请求
         httpDispatcher.process(httpRequest, httpResponse);
