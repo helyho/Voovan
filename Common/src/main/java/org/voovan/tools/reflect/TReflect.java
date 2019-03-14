@@ -1084,38 +1084,12 @@ public class TReflect {
      * @return 是否实现某个接口
      */
     public static boolean isImpByInterface(Class<?> type,Class<?> interfaceClass){
-        if(type==interfaceClass){
+        if(type==interfaceClass && interfaceClass.isInterface()){
             return true;
         }
 
-        String marker = new StringBuilder(type.toString()).append(Global.CHAR_AT).append(interfaceClass.toString()).toString();
-
-        Boolean result = CLASS_HIERARCHY.get(marker);
-
-
-        if(result==null) {
-
-            Class<?>[] interfaces = type.getInterfaces();
-            for (Class<?> interfaceItem : interfaces) {
-                if (interfaceItem == interfaceClass) {
-                    if(marker!=null) {
-                        CLASS_HIERARCHY.put(marker, true);
-                    }
-                    return true;
-                } else {
-                    return isImpByInterface(interfaceItem, interfaceClass);
-                }
-            }
-
-            if(marker!=null) {
-                CLASS_HIERARCHY.put(marker, false);
-            }
-            return false;
-        }
-
-        return result == null ? false : result;
+        return interfaceClass.isAssignableFrom(type);
     }
-
 
 
     /**
@@ -1126,28 +1100,11 @@ public class TReflect {
      * @return 是否继承于某个类
      */
     public static boolean isExtendsByClass(Class<?> type,Class<?> extendsClass){
-        if(extendsClass == type){
+        if(type==extendsClass && !extendsClass.isInterface()){
             return true;
         }
 
-        String marker = new StringBuilder(type.toString()).append(Global.CHAR_SHAPE).append(extendsClass.toString()).toString();
-        Boolean result = CLASS_HIERARCHY.get(marker);
-
-        if(result == null) {
-            Class<?> superClass = type;
-            do {
-                if (superClass == extendsClass) {
-                    CLASS_HIERARCHY.put(marker, true);
-                    return true;
-                }
-                superClass = superClass.getSuperclass();
-            } while (superClass != null && Object.class != superClass);
-
-            CLASS_HIERARCHY.put(marker, false);
-            return false;
-        }
-
-        return result;
+        return extendsClass.isAssignableFrom(type);
     }
 
     /**

@@ -25,8 +25,6 @@ import java.util.*;
 public class HttpRequest extends Request {
 
 	private HttpSession session;
-	private String remoteAddres;
-	private int remotePort;
 	private String characterSet;
 	private Map<String, String> parameters;
 	private Map<String, Object> attributes;
@@ -163,18 +161,10 @@ public class HttpRequest extends Request {
 		} else if (xForwardedFor != null) {
 			return xForwardedFor.split(",")[0].trim();
 		}else{
-			return remoteAddres;
+			return socketSession.remoteAddress();
 		}
 	}
 
-	/**
-	 * 设置对端连接的 IP
-	 *
-	 * @param remoteAddres 对端连接的 IP
-	 */
-	protected void setRemoteAddres(String remoteAddres) {
-		this.remoteAddres = remoteAddres;
-	}
 
 	/**
 	 * 获取对端连接的端口
@@ -182,16 +172,7 @@ public class HttpRequest extends Request {
 	 * @return 对端连接的端口
 	 */
 	public int getRemotePort() {
-		return remotePort;
-	}
-
-	/**
-	 * 设置对端连接的端口
-	 *
-	 * @param port 对端连接的端口
-	 */
-	protected void setRemotePort(int port) {
-		this.remotePort = port;
+		return socketSession.remotePort();
 	}
 
 	/**
