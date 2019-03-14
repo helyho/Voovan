@@ -91,27 +91,27 @@ public class TUnsafe {
         return unsafe.getByte(obj, getFieldOffset(field));
     }
 
-    public static int putIntger(Object obj, Field field){
+    public static int getIntger(Object obj, Field field){
         return unsafe.getInt(obj, getFieldOffset(field));
     }
 
-    public static short putShort(Object obj, Field field){
+    public static short getShort(Object obj, Field field){
         return unsafe.getShort(obj, getFieldOffset(field));
     }
 
-    public static boolean putBoolean(Object obj, Field field){
+    public static boolean getBoolean(Object obj, Field field){
         return unsafe.getBoolean(obj, getFieldOffset(field));
     }
 
-    public static long putLong(Object obj, Field field){
+    public static long getLong(Object obj, Field field){
         return unsafe.getLong(obj, getFieldOffset(field));
     }
 
-    public static float putFloat(Object obj, Field field){
+    public static float getFloat(Object obj, Field field){
         return unsafe.getFloat(obj, getFieldOffset(field));
     }
 
-    public static double putDobule(Object obj, Field field){
+    public static double getDobule(Object obj, Field field){
         return unsafe.getDouble(obj, getFieldOffset(field));
     }
 }
