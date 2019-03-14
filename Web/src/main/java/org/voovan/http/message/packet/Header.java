@@ -22,7 +22,7 @@ public class Header {
 	 * 构造函数
 	 */
 	public Header(){
-		headers = new HashMap<String,String>();
+		headers = new HashMap<String,String>(32);
 	} 
 	
 	/**
