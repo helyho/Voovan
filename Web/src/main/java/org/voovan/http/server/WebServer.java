@@ -10,7 +10,6 @@ import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
 import org.voovan.network.aio.AioServerSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
-import org.voovan.network.nio.NioServerSocket;
 import org.voovan.tools.*;
 import org.voovan.tools.aop.Aop;
 import org.voovan.tools.hotswap.Hotswaper;
@@ -33,7 +32,7 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class WebServer {
-	private NioServerSocket aioServerSocket;
+	private AioServerSocket aioServerSocket;
 	private HttpDispatcher	httpDispatcher;
 	private WebSocketDispatcher webSocketDispatcher;
 	private SessionManager sessionManager;
@@ -105,7 +104,7 @@ public class WebServer {
 	private void initSocketServer(WebServerConfig config) throws IOException{
 
 		//[Socket] 准备 socket 监听
-		aioServerSocket = new NioServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
+		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
 		aioServerSocket.setReadRecursionDepth(16);
 
 		//[Socket]确认是否启用 HTTPS 支持
