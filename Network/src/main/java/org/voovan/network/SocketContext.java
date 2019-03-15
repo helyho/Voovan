@@ -7,6 +7,7 @@ import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.threadpool.DefaultThreadFactory;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import javax.net.ssl.SSLException;
@@ -33,7 +34,7 @@ public abstract class SocketContext {
 	public static AsynchronousChannelGroup buildAsynchronousChannelGroup(){
 		try {
 			System.out.println("[SYSTEM] Socket thread size: " + ThreadPool.getMinPoolSize()/2);
-			return AsynchronousChannelGroup.withCachedThreadPool(Global.getThreadPool(), ThreadPool.getMinPoolSize()/2);
+			return AsynchronousChannelGroup.withFixedThreadPool(ThreadPool.getMinPoolSize()/2, new DefaultThreadFactory("IO"));
 		} catch (IOException e) {
 			Logger.error("Buile AsynchronousChannelGroup failed", e);
 			return null;

@@ -1,12 +1,10 @@
 package org.voovan.network.aio;
 
-import org.voovan.Global;
 import org.voovan.network.EventTrigger;
 import org.voovan.network.HeartBeat;
 import org.voovan.network.MessageLoader;
 import org.voovan.network.SSLParser;
 import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.exception.LargerThanMaxSizeException;
 
 import java.io.IOException;
@@ -87,6 +85,7 @@ public class ReadCompletionHandler implements CompletionHandler<Integer,  ByteBu
 					if(aioSocket.isConnected()) {
 						aioSocket.catchRead();
 					}
+
 
 					if(appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
 						// 触发 onReceive 事件
