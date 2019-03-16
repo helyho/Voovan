@@ -25,15 +25,15 @@ public class AcceptCompletionHandler implements CompletionHandler<AsynchronousSo
 	@Override
 	public void completed(AsynchronousSocketChannel socketChannel, AioServerSocket serverSocket) {
 		try {
-			//接续接收 accept 请求
-			serverSocket.catchAccept();
-			
+
 			AioSocket socket = new AioSocket(serverSocket,socketChannel);
 			
 			//触发 Accept 事件
-			EventTrigger.fireAccept(socket.getSession());
-			
-			
+			EventTrigger.fireAcceptThread(socket.getSession());
+
+			//接续接收 accept 请求
+			serverSocket.catchAccept();
+
 		} catch (IOException e) {
 			EventTrigger.fireExceptionThread(null, e);
 		}
