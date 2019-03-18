@@ -292,6 +292,7 @@ public class NioSocket extends SocketContext{
 
 				NioSelector.unregister(nioSelector);
 				nioSelector.release();
+				selector.wakeup();
 				selector.close();
 				session.getReadByteBufferChannel().release();
 				session.getSendByteBufferChannel().release();

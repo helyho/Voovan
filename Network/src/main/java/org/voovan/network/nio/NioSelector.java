@@ -91,6 +91,7 @@ public class NioSelector {
 					while (selectionKeyIterator.hasNext()) {
 						SelectionKey selectionKey = selectionKeyIterator.next();
 						if (selectionKey.isValid()) {
+							selectionKeyIterator.remove();
 							// 获取 socket 通道
 							SocketChannel socketChannel = getSocketChannel(selectionKey);
 							if (socketChannel.isOpen() && selectionKey.isValid()) {
@@ -182,7 +183,6 @@ public class NioSelector {
 										}
 									}
 								});
-								selectionKeyIterator.remove();
 							}
 						}
 					}

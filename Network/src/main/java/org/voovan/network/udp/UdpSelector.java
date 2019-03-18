@@ -97,6 +97,8 @@ public class UdpSelector {
                             // 获取 socket 通道
                             DatagramChannel datagramChannel = getDatagramChannel(selectionKey);
                             if (datagramChannel.isOpen() && selectionKey.isValid()) {
+                                selectionKeyIterator.remove();
+
                                 // 事件分发,包含时间 onRead onAccept
                                 Global.getThreadPool().submit(()->{
                                     try {
@@ -165,7 +167,6 @@ public class UdpSelector {
                                     }
                                 });
 
-                                selectionKeyIterator.remove();
                             }
                         }
                     }
