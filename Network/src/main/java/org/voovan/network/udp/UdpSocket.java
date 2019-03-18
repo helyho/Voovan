@@ -259,6 +259,7 @@ public class UdpSocket extends SocketContext {
 
                 UdpSelector.unregister(udpSelector);
                 udpSelector.release();
+                selector.wakeup();
                 selector.close();
                 session.getReadByteBufferChannel().release();
                 session.getSendByteBufferChannel().release();
