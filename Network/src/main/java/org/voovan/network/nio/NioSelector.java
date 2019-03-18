@@ -96,93 +96,91 @@ public class NioSelector {
 							SocketChannel socketChannel = getSocketChannel(selectionKey);
 							if (socketChannel.isOpen() && selectionKey.isValid()) {
 								// 事件分发,包含时间 onRead onAccept
-								Global.getThreadPool().execute(()->{
-									try {
-										switch (selectionKey.readyOps()) {
-											// Server接受连接
-											case SelectionKey.OP_ACCEPT: {
-												NioServerSocket serverSocket = (NioServerSocket) socketContext;
-												NioSocket socket = new NioSocket(serverSocket, socketChannel);
-												EventTrigger.fireAccept(socket.getSession());
-												break;
-											}
-											// 有数据读取
-											case SelectionKey.OP_READ: {
-												int length = socketChannel.read(readTempBuffer);
+								try {
+									switch (selectionKey.readyOps()) {
+										// Server接受连接
+										case SelectionKey.OP_ACCEPT: {
+											NioServerSocket serverSocket = (NioServerSocket) socketContext;
+											NioSocket socket = new NioSocket(serverSocket, socketChannel);
+											EventTrigger.fireAcceptThread(socket.getSession());
+											break;
+										}
+										// 有数据读取
+										case SelectionKey.OP_READ: {
+											int length = socketChannel.read(readTempBuffer);
 
-												// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
-												if (MessageLoader.isStreamEnd(readTempBuffer, length) || !session.isConnected()) {
-													session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
-													session.close();
-												} else {
-													if(netByteBufferChannel== null && session.getSSLParser()!=null){
-														netByteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
-													}
-
-													readTempBuffer.flip();
-
-													if (length > 0) {
-
-														//如果缓冲队列已慢, 则等待可用, 超时时间为读超时
-														try {
-															TEnv.wait(session.socketContext().getReadTimeout(), () -> appByteBufferChannel.size() + readTempBuffer.limit() >= appByteBufferChannel.getMaxSize());
-														} catch (TimeoutException e) {
-															Logger.error("Session.byteByteBuffer is not enough:", e);
-														}
-
-														//接收SSL数据, SSL握手完成后解包
-														if (session.getSSLParser() != null && SSLParser.isHandShakeDone(session)) {
-															//一次接受并完成 SSL 解码后, 常常有剩余无法解码数据, 所以用 netByteBufferChannel 这个通道进行保存
-															netByteBufferChannel.writeEnd(readTempBuffer);
-															session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, appByteBufferChannel);
-														}
-
-														//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
-														if (session.getSSLParser() == null || !SSLParser.isHandShakeDone(session)) {
-															appByteBufferChannel.writeEnd(readTempBuffer);
-														}
-
-														//检查心跳
-														if (session.getHeartBeat() != null && SSLParser.isHandShakeDone(session)) {
-															//锁住appByteBufferChannel防止异步问题
-															appByteBufferChannel.getByteBuffer();
-															try {
-																HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
-															} finally {
-																appByteBufferChannel.compact();
-															}
-														}
-
-														if (appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
-															// 触发 onReceive 事件
-															EventTrigger.fireReceive(session);
-														}
-
-														// 接收完成后重置buffer对象
-														readTempBuffer.clear();
-													}
+											// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
+											if (MessageLoader.isStreamEnd(readTempBuffer, length) || !session.isConnected()) {
+												session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
+												session.close();
+											} else {
+												if(netByteBufferChannel== null && session.getSSLParser()!=null){
+													netByteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
 												}
 
-												break;
-											}
-											default: {
-												Logger.fremawork("Nothing to do ,SelectionKey is:" + selectionKey.readyOps());
-											}
-										}
+												readTempBuffer.flip();
 
-									} catch (Exception e) {
-										if(e instanceof IOException){
-											session.close();
+												if (length > 0) {
+
+													//如果缓冲队列已慢, 则等待可用, 超时时间为读超时
+													try {
+														TEnv.wait(session.socketContext().getReadTimeout(), () -> appByteBufferChannel.size() + readTempBuffer.limit() >= appByteBufferChannel.getMaxSize());
+													} catch (TimeoutException e) {
+														Logger.error("Session.byteByteBuffer is not enough:", e);
+													}
+
+													//接收SSL数据, SSL握手完成后解包
+													if (session.getSSLParser() != null && SSLParser.isHandShakeDone(session)) {
+														//一次接受并完成 SSL 解码后, 常常有剩余无法解码数据, 所以用 netByteBufferChannel 这个通道进行保存
+														netByteBufferChannel.writeEnd(readTempBuffer);
+														session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, appByteBufferChannel);
+													}
+
+													//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
+													if (session.getSSLParser() == null || !SSLParser.isHandShakeDone(session)) {
+														appByteBufferChannel.writeEnd(readTempBuffer);
+													}
+
+													//检查心跳
+													if (session.getHeartBeat() != null && SSLParser.isHandShakeDone(session)) {
+														//锁住appByteBufferChannel防止异步问题
+														appByteBufferChannel.getByteBuffer();
+														try {
+															HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
+														} finally {
+															appByteBufferChannel.compact();
+														}
+													}
+
+													if (appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
+														// 触发 onReceive 事件
+														EventTrigger.fireAcceptThread(session);
+													}
+
+													// 接收完成后重置buffer对象
+													readTempBuffer.clear();
+												}
+											}
+
+											break;
 										}
-										//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误
-										else if(e.getStackTrace()[0].getClassName().contains("sun.nio.ch")){
-											return;
-										} else if(e instanceof Exception){
-											//触发 onException 事件
-											EventTrigger.fireExceptionThread(session, e);
+										default: {
+											Logger.fremawork("Nothing to do ,SelectionKey is:" + selectionKey.readyOps());
 										}
 									}
-								});
+
+								} catch (Exception e) {
+									if(e instanceof IOException){
+										session.close();
+									}
+									//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误
+									else if(e.getStackTrace()[0].getClassName().contains("sun.nio.ch")){
+										return;
+									} else if(e instanceof Exception){
+										//触发 onException 事件
+										EventTrigger.fireExceptionThread(session, e);
+									}
+								}
 							}
 						}
 					}
