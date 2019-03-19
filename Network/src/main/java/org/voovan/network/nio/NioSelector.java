@@ -5,14 +5,13 @@ import org.voovan.network.*;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -26,7 +25,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class NioSelector {
 
-	public static ArrayBlockingQueue<NioSelector> SELECTORS = new ArrayBlockingQueue<NioSelector>(200000);
+	public static LinkedBlockingQueue<NioSelector> SELECTORS = new LinkedBlockingQueue<NioSelector>(200000);
 
 	public static int IO_THREAD_COUNT = 4;
 	static {

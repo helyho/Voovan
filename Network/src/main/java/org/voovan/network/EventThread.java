@@ -1,8 +1,6 @@
 package org.voovan.network;
 
-import org.voovan.network.nio.NioSelector;
-
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * 事件处理线程
@@ -15,7 +13,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  */
 public class EventThread implements Runnable{
 
-	public ArrayBlockingQueue<Event> eventQueue = new ArrayBlockingQueue<Event>(200000);
+	public LinkedBlockingQueue<Event> eventQueue = new LinkedBlockingQueue<Event>(200000);
 
 	/**
 	 * 事件处理 Thread
