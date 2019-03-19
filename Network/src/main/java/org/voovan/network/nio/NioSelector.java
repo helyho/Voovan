@@ -12,10 +12,7 @@ import org.voovan.tools.reflect.TReflect;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.util.Iterator;
-import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -69,7 +66,7 @@ public class NioSelector {
 	private ByteBuffer readTempBuffer;
 
 	private NioSession session;
-	private SelectorKeySet selectionKeys = new SelectorKeySet(1024);
+	private SelectionKeySet selectionKeys = new SelectionKeySet(1024);
 
 	/**
 	 * 事件监听器构造
@@ -110,7 +107,7 @@ public class NioSelector {
 				}
 
 				if (readyChannelCount>0) {
-					SelectorKeySet selectionKeys = (SelectorKeySet) selector.selectedKeys();
+					SelectionKeySet selectionKeys = (SelectionKeySet) selector.selectedKeys();
 
 					for (int i=0;i<selectionKeys.size(); i++) {
 						SelectionKey selectionKey = selectionKeys.getSelectionKeys()[i];
