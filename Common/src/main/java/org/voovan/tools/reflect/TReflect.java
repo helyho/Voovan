@@ -218,6 +218,22 @@ public class TReflect {
         return (T) field.get(obj);
     }
 
+
+    /**
+     * 更新对象中指定的Field的值
+     * 		注意:对 private 等字段有效
+     *
+     * @param obj  对象
+     * @param field field 对象
+     * @param fieldValue field 值
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public static void setFieldValue(Object obj, Field field,
+                                     Object fieldValue) throws ReflectiveOperationException {
+        field.setAccessible(true);
+        field.set(obj, fieldValue);
+    }
+
     /**
      * 更新对象中指定的Field的值
      * 		注意:对 private 等字段有效
@@ -230,8 +246,7 @@ public class TReflect {
     public static void setFieldValue(Object obj, String fieldName,
                                      Object fieldValue) throws ReflectiveOperationException {
         Field field = findField(obj.getClass(), fieldName);
-        field.setAccessible(true);
-        field.set(obj, fieldValue);
+        setFieldValue(obj, field, fieldValue);
     }
 
     /**
