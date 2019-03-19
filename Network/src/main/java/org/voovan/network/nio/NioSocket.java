@@ -198,10 +198,6 @@ public class NioSocket extends SocketContext{
 
 			registerSelector();
 
-			if (socketChannel != null && socketChannel.isOpen()) {
-				nioSelector = new NioSelector(selector, nioSocket);
-			}
-
 			EventTrigger.fireConnect(session);
 		}catch(IOException e){
 			e.printStackTrace();

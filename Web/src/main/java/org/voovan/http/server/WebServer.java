@@ -8,6 +8,7 @@ import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.router.OptionsRouter;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
+import org.voovan.network.SocketContext;
 import org.voovan.network.aio.AioServerSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.network.nio.NioServerSocket;
@@ -33,7 +34,7 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class WebServer {
-	private NioServerSocket aioServerSocket;
+	private SocketContext serverSocket;
 	private HttpDispatcher	httpDispatcher;
 	private WebSocketDispatcher webSocketDispatcher;
 	private SessionManager sessionManager;
@@ -105,20 +106,20 @@ public class WebServer {
 	private void initSocketServer(WebServerConfig config) throws IOException{
 
 		//[Socket] 准备 socket 监听
-		aioServerSocket = new NioServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
-		aioServerSocket.setReadRecursionDepth(16);
+		serverSocket = new NioServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
+		serverSocket.setReadRecursionDepth(16);
 
 		//[Socket]确认是否启用 HTTPS 支持
 		if(config.isHttps()) {
 			SSLManager sslManager = new SSLManager("TLS", false);
 			sslManager.loadCertificate(System.getProperty("user.dir") + config.getHttps().getCertificateFile(),
 					config.getHttps().getCertificatePassword(), config.getHttps().getKeyPassword());
-			aioServerSocket.setSSLManager(sslManager);
+			serverSocket.setSSLManager(sslManager);
 		}
 
-		aioServerSocket.handler(new WebServerHandler(config, httpDispatcher, webSocketDispatcher));
-		aioServerSocket.filterChain().add(new WebServerFilter());
-		aioServerSocket.messageSplitter(new HttpMessageSplitter());
+		serverSocket.handler(new WebServerHandler(config, httpDispatcher, webSocketDispatcher));
+		serverSocket.filterChain().add(new WebServerFilter());
+		serverSocket.messageSplitter(new HttpMessageSplitter());
 	}
 
 	/**
@@ -462,7 +463,7 @@ public class WebServer {
 		this.webSocketDispatcher = new WebSocketDispatcher(config, sessionManager);
 
 		//更新 WebServer 的 http 和 websocket 的分发
-		aioServerSocket.handler(new WebServerHandler(config, httpDispatcher,webSocketDispatcher));
+		serverSocket.handler(new WebServerHandler(config, httpDispatcher,webSocketDispatcher));
 
 		//输出欢迎信息
 		WebContext.welcome();
@@ -693,7 +694,7 @@ public class WebServer {
 
 		try {
 			commonServe();
-			aioServerSocket.start();
+			serverSocket.start();
 		} catch (IOException e) {
 			Logger.error("Start HTTP server error",e);
 			TEnv.sleep(1000);
@@ -710,7 +711,7 @@ public class WebServer {
 	public WebServer syncServe() {
 		try {
 			commonServe();
-			aioServerSocket.syncStart();
+			serverSocket.syncStart();
 		} catch (IOException e) {
 			Logger.error("Start HTTP server error",e);
 		}
@@ -738,7 +739,7 @@ public class WebServer {
 	 * @return true: 处于服务状态, false: 不处于服务状态
 	 */
 	public boolean isServing(){
-		return aioServerSocket.isConnected();
+		return serverSocket.isConnected();
 	}
 
 	/**
@@ -947,7 +948,7 @@ public class WebServer {
 			unInitModule();
 			this.runWebDestory(this);
 
-			aioServerSocket.close();
+			serverSocket.close();
 			System.out.println("[" + TDateTime.now() + "] Socket closed");
 
 			Global.getThreadPool().shutdown();
