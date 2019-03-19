@@ -7,7 +7,6 @@ import org.voovan.network.nio.SelectionKeySet;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -18,7 +17,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -32,7 +31,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class UdpSelector {
 
-    public static ArrayBlockingQueue<UdpSelector> SELECTORS = new ArrayBlockingQueue<UdpSelector>(200000);
+    public static LinkedBlockingQueue<UdpSelector> SELECTORS = new LinkedBlockingQueue<UdpSelector>(200000);
 
 	public static int IO_THREAD_COUNT = 4;
 	static {
