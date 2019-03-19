@@ -1,6 +1,5 @@
 package org.voovan.network.udp;
 
-import org.voovan.Global;
 import org.voovan.network.*;
 import org.voovan.network.nio.NioUtil;
 import org.voovan.network.nio.SelectionKeySet;
@@ -17,7 +16,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -30,40 +28,6 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public class UdpSelector {
-
-    public static LinkedBlockingQueue<UdpSelector> SELECTORS = new LinkedBlockingQueue<UdpSelector>();
-
-	public static int IO_THREAD_COUNT = 4;
-	static {
-		for(int i=0;i<IO_THREAD_COUNT;i++) {
-			Global.getThreadPool().execute(() -> {
-				while (true) {
-					try {
-						UdpSelector udpSelector = SELECTORS.take();
-						if (udpSelector != null && udpSelector.socketContext.isOpen()) {
-							try {
-								udpSelector.eventChose();
-							} catch (Throwable e) {
-								e.printStackTrace();
-							}
-							SELECTORS.offer(udpSelector);
-						}
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-
-				}
-			});
-		}
-	}
-
-    public static void register(UdpSelector selector){
-        SELECTORS.add(selector);
-    }
-
-    public static void unregister(UdpSelector selector){
-        SELECTORS.remove(selector);
-    }
 
     private Selector selector;
     private SocketContext socketContext;
@@ -102,9 +66,8 @@ public class UdpSelector {
      * 所有的事件均在这里触发
      */
     public void eventChose() {
-        if (socketContext instanceof UdpSocket) {
-            // 连接完成onConnect事件触发
-        }
+	    // 事件循环
+	    EventThread eventThread = socketContext.getEventThread();
 
         // 事件循环
         try {
@@ -112,7 +75,11 @@ public class UdpSelector {
 	            int readyChannelCount = selector.selectNow();
 
 	            if (readyChannelCount==0) {
-		            readyChannelCount = selector.select(1);
+		            if(eventThread.getEventQueue().isEmpty()) {
+			            readyChannelCount = selector.select(1);
+		            } else {
+			            return;
+		            }
 	            }
 
 	            if (readyChannelCount>0) {
@@ -153,6 +120,14 @@ public class UdpSelector {
         } catch (IOException e) {
             // 触发 onException 事件
             EventTrigger.fireExceptionThread(session, e);
+        } finally {
+	        if(socketContext.isConnected()) {
+		        eventThread.addEvent(() -> {
+			        if(socketContext.isConnected()) {
+				        eventChose();
+			        }
+		        });
+	        }
         }
     }
 
@@ -171,8 +146,6 @@ public class UdpSelector {
 		    clientUdpSocket = new UdpSocket(socketContext, datagramChannel, (InetSocketAddress)address);
 		    session = clientUdpSocket.getSession();
 		    appByteBufferChannel = session.getReadByteBufferChannel();
-		    //触发连接时间, 关闭事件在触发 onSent 之后触发
-		    EventTrigger.fireConnectThread(session);
 	    }
 
 	    //判断连接是否关闭

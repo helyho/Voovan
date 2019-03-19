@@ -131,7 +131,12 @@ public class UdpSocket extends SocketContext {
             selector = provider.openSelector();
             datagramChannel.register(selector, SelectionKey.OP_READ);
             udpSelector = new UdpSelector(selector, this);
-            UdpSelector.register(udpSelector);
+
+            getEventThread().addEvent(()->{
+                if(datagramChannel.isConnected()) {
+                    udpSelector.eventChose();
+                }
+            });
         }catch(IOException e){
             Logger.error("init SocketChannel failed by openSelector",e);
         }
@@ -244,7 +249,7 @@ public class UdpSocket extends SocketContext {
     @Override
     public boolean isConnected() {
         if(datagramChannel!=null){
-            return datagramChannel.isConnected();
+            return datagramChannel.isOpen();
         }else{
             return false;
         }
@@ -257,7 +262,6 @@ public class UdpSocket extends SocketContext {
             try{
                 datagramChannel.close();
 
-                UdpSelector.unregister(udpSelector);
                 udpSelector.release();
                 selector.wakeup();
                 selector.close();
