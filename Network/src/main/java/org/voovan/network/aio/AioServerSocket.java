@@ -2,10 +2,13 @@ package org.voovan.network.aio;
 
 import org.voovan.network.SocketContext;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.threadpool.DefaultThreadFactory;
+import org.voovan.tools.threadpool.ThreadPool;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketOption;
+import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 
 /**
@@ -18,6 +21,21 @@ import java.nio.channels.AsynchronousServerSocketChannel;
  * Licence: Apache v2 License
  */
 public class AioServerSocket extends SocketContext {
+	protected static AsynchronousChannelGroup ASYNCHRONOUS_CHANNEL_GROUP = buildAsynchronousChannelGroup();
+
+	/**
+	 * 构造一个异步通道线程组
+	 * @return AsynchronousChannelGroup 异步通道线程组
+	 */
+	public static AsynchronousChannelGroup buildAsynchronousChannelGroup(){
+		try {
+			System.out.println("[SYSTEM] Socket thread size: " + ThreadPool.getMinPoolSize()/2);
+			return AsynchronousChannelGroup.withFixedThreadPool(ThreadPool.getMinPoolSize()/2, new DefaultThreadFactory("IO"));
+		} catch (IOException e) {
+			Logger.error("Buile AsynchronousChannelGroup failed", e);
+			return null;
+		}
+	}
 
 	private AsynchronousServerSocketChannel serverSocketChannel;
 	private AcceptCompletionHandler acceptCompletionHandler;
