@@ -106,6 +106,9 @@ public class HeartBeat {
      * @return true:心跳成功,false: 心跳失败
      */
     public static boolean beat(IoSession session){
+        if(!session.isConnected()){
+            return false;
+        }
 
         HeartBeat heartBeat = session.getHeartBeat();
 

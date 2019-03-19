@@ -31,7 +31,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class UdpSelector {
 
-    public static LinkedBlockingQueue<UdpSelector> SELECTORS = new LinkedBlockingQueue<UdpSelector>(200000);
+    public static LinkedBlockingQueue<UdpSelector> SELECTORS = new LinkedBlockingQueue<UdpSelector>();
 
 	public static int IO_THREAD_COUNT = 4;
 	static {

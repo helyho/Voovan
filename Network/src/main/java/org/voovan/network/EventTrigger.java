@@ -2,7 +2,6 @@ package org.voovan.network;
 
 import org.voovan.Global;
 
-import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -35,12 +34,12 @@ public class EventTrigger {
 		// 当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
 		// 所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
 		// !hasEventDisposeing(EventName.ON_CONNECT) &&
-		if (session.getState().receiveTryLock() && session.isOpen() && SSLParser.isHandShakeDone(session)) {
+//		if (session.getState().receiveTryLock() && session.isOpen() && SSLParser.isHandShakeDone(session)) {
 			//设置接受状态
-			session.getState().setReceive(true);
+//			session.getState().setReceive(true);
 
 			fireEventThread(session, Event.EventName.ON_RECEIVE, null);
-		}
+//		}
 	}
 
 	public static void fireSentThread(IoSession session, Object obj){
@@ -84,11 +83,11 @@ public class EventTrigger {
 	public static void fireReceive(IoSession session){
 		//当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
 		//所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
-		if (session.getState().receiveTryLock() && session.isOpen() && SSLParser.isHandShakeDone(session)) {
+//		if (session.getState().receiveTryLock() && session.isOpen() && SSLParser.isHandShakeDone(session)) {
 			//设置接受状态
-			session.getState().setReceive(true);
+//			session.getState().setReceive(true);
 			fireEvent(session, Event.EventName.ON_RECEIVE, null);
-		}
+//		}
 	}
 
 	public static void fireSent(IoSession session, Object obj){
@@ -124,7 +123,12 @@ public class EventTrigger {
 	 */
 	public static void fireEventThread(IoSession session, Event.EventName name, Object other){
 		if(!eventThreadPool.isShutdown()){
-			session.getEventThread().addEvent(new Event(session,name,other));
+			session.getEventThread().addEvent(()->{
+				if(session.isConnected()) {
+					Event event = new Event(session, name, other);
+					EventProcess.process(event);
+				}
+			});
 		}
 	}
 

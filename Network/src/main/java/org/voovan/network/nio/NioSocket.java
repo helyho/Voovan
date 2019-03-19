@@ -140,7 +140,11 @@ public class NioSocket extends SocketContext{
 
 			if(socketChannel!=null && socketChannel.isOpen()){
 				nioSelector = new NioSelector(selector,this);
-				NioSelector.register(nioSelector);
+				getEventThread().addEvent(()->{
+					if(socketChannel.isConnected()) {
+						nioSelector.eventChose();
+					}
+				});
 			}
 		}catch(IOException e){
 			Logger.error("init SocketChannel failed by openSelector",e);
@@ -286,7 +290,6 @@ public class NioSocket extends SocketContext{
 
 				EventTrigger.fireDisconnect(session);
 
-				NioSelector.unregister(nioSelector);
 				nioSelector.release();
 				selector.wakeup();
 				selector.close();

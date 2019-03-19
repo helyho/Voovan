@@ -13,7 +13,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class EventThread implements Runnable{
 
-	public LinkedBlockingQueue<Event> eventQueue = new LinkedBlockingQueue<Event>(200000);
+	private LinkedBlockingQueue<Runnable> eventQueue = new LinkedBlockingQueue<Runnable>();
 
 	/**
 	 * 事件处理 Thread
@@ -22,17 +22,21 @@ public class EventThread implements Runnable{
 	public EventThread(){
 	}
 
-	public void addEvent(Event event){
-		eventQueue.add(event);
+	public void addEvent(Runnable runnable){
+		eventQueue.add(runnable);
+	}
+
+	public LinkedBlockingQueue<Runnable> getEventQueue() {
+		return eventQueue;
 	}
 
 	@Override
 	public void run() {
 		while (true) {
 			try {
-				Event event = eventQueue.take();
-				if(event!=null) {
-					EventProcess.process(event);
+				Runnable runnable = eventQueue.take();
+				if(runnable!=null) {
+					runnable.run();
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();

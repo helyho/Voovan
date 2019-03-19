@@ -1,6 +1,7 @@
 package org.voovan.network;
 
 import org.voovan.Global;
+import org.voovan.tools.TPerformance;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -13,6 +14,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Licence: Apache v2 License
  */
 public class EventThreadPool {
+
+	public static EventThreadPool EVENT_THREAD_POOL = new EventThreadPool(TPerformance.getProcessorCount());
+
 	private AtomicInteger indexAtom = new AtomicInteger();
 	private EventThread[] eventThreads;
 	private volatile int size;

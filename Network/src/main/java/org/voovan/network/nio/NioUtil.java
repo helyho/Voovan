@@ -14,6 +14,7 @@ import java.security.PrivilegedAction;
  * Licence: Apache v2 License
  */
 public class NioUtil {
+
 	public static Field selectedKeysField;
 	public static Field publicSelectedKeysField;
 
