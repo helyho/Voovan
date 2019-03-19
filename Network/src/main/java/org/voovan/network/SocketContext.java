@@ -1,19 +1,15 @@
 package org.voovan.network;
 
-import org.voovan.Global;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.threadpool.DefaultThreadFactory;
-import org.voovan.tools.threadpool.ThreadPool;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.SocketOption;
-import java.nio.channels.AsynchronousChannelGroup;
 
 /**
  * socket 上下文
@@ -38,6 +34,7 @@ public abstract class SocketContext {
 	protected ConnectModel connectModel;
 	protected int readBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
 	protected int sendBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
+	private final EventThread eventThread = EventThreadPool.EVENT_THREAD_POOL.choseEventThread();
 
 	protected int idleInterval = 0;
 
@@ -114,6 +111,10 @@ public abstract class SocketContext {
 		this.sendBufferSize = parentSocketContext.sendBufferSize;
 		this.idleInterval = parentSocketContext.idleInterval;
 		this.readRecursionDepth = parentSocketContext.readRecursionDepth;
+	}
+
+	public EventThread getEventThread() {
+		return eventThread;
 	}
 
 	/**

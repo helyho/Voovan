@@ -1,6 +1,5 @@
 package org.voovan.network.nio;
 
-import org.voovan.Global;
 import org.voovan.network.*;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
@@ -11,7 +10,6 @@ import org.voovan.tools.reflect.TReflect;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -24,40 +22,6 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public class NioSelector {
-
-	public static LinkedBlockingQueue<NioSelector> SELECTORS = new LinkedBlockingQueue<NioSelector>(200000);
-
-	public static int IO_THREAD_COUNT = 4;
-	static {
-		for(int i=0;i<IO_THREAD_COUNT;i++) {
-			Global.getThreadPool().execute(() -> {
-				while (true) {
-					try {
-						NioSelector nioSelector = SELECTORS.take();
-						if (nioSelector != null && nioSelector.socketContext.isConnected()) {
-							try {
-								nioSelector.eventChose();
-							} catch (Throwable e) {
-								e.printStackTrace();
-							}
-							SELECTORS.offer(nioSelector);
-						}
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-
-				}
-			});
-		}
-	}
-
-	public static void register(NioSelector selector){
-		SELECTORS.add(selector);
-	}
-
-	public static void unregister(NioSelector selector){
-		SELECTORS.remove(selector);
-	}
 
 	private Selector selector;
 	private SocketContext socketContext;
@@ -96,14 +60,20 @@ public class NioSelector {
 	/**
 	 * 所有的事件均在这里触发
 	 */
-	private void eventChose() {
+	public void eventChose() {
 		// 事件循环
+		EventThread eventThread = socketContext.getEventThread();
+
 		try {
 			if (socketContext != null && socketContext.isConnected()) {
 				int readyChannelCount = selector.selectNow();
 
 				if (readyChannelCount==0) {
-					readyChannelCount = selector.select(1);
+					if(eventThread.getEventQueue().isEmpty()) {
+						readyChannelCount = selector.select(1);
+					} else {
+						return;
+					}
 				}
 
 				if (readyChannelCount>0) {
@@ -119,20 +89,17 @@ public class NioSelector {
 								// 事件分发,包含时间 onRead onAccept
 								try {
 									// Server接受连接
-									if(selectionKey.isAcceptable()){
+									if((selectionKey.readyOps() & SelectionKey.OP_ACCEPT) != 0){
 										accept(socketChannel);
 									} else {
 										// 有数据读取
-										if (selectionKey.isReadable()) {
+										if ((selectionKey.readyOps() & SelectionKey.OP_READ) != 0) {
 											read(socketChannel);
 										}
 									}
 								} catch (Exception e) {
-									if(e instanceof IOException){
-										session.close();
-									}
 									//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误
-									else if(e.getStackTrace()[0].getClassName().contains("sun.nio.ch")){
+									if(e.getStackTrace()[0].getClassName().contains("sun.nio.ch")){
 										return;
 									} else if(e instanceof Exception){
 										//触发 onException 事件
@@ -140,6 +107,8 @@ public class NioSelector {
 									}
 								}
 							}
+						} else {
+							selectionKey.cancel();
 						}
 					}
 
@@ -160,6 +129,14 @@ public class NioSelector {
 			if(e instanceof Exception){
 				//触发 onException 事件
 				EventTrigger.fireExceptionThread(session, e);
+			}
+		} finally {
+			if(socketContext.isConnected()) {
+				eventThread.addEvent(() -> {
+					if(socketContext.isConnected()) {
+						eventChose();
+					}
+				});
 			}
 		}
 	}

@@ -86,7 +86,7 @@ public class MessageLoader {
 	 * @param length  长度
 	 * @return 是否意外断开
 	 */
-	public static boolean isStreamEnd(ByteBuffer buffer, Integer length) {
+	public static boolean isStreamEnd(ByteBuffer buffer, int length) {
 //		length==-1时流结束
 		if(length==-1){
 			return true;
@@ -101,7 +101,7 @@ public class MessageLoader {
 	 * @param length  长度
 	 * @return 是否意外断开
 	 */
-	public static boolean isStreamEnd(byte[] buffer, Integer length) {
+	public static boolean isStreamEnd(byte[] buffer, int length) {
 
 		if(length==-1){
 			return true;
@@ -169,8 +169,6 @@ public class MessageLoader {
 				stopType = StopType.SOCKET_CLOSED;
 				return -1;
 			}
-
-			HeartBeat.interceptHeartBeat(session, dataByteBufferChannel);
 
 			int readsize = byteBufferChannel.size() - oldByteChannelSize;
 

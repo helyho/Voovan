@@ -7,17 +7,13 @@ import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TPerformance;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 
 /**
@@ -30,8 +26,6 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public abstract class IoSession<T extends SocketContext> {
-	private static EventThreadPool EVENT_THREAD_POOL = new EventThreadPool(TPerformance.getProcessorCount()/2);
-
 	private Map<Object, Object> attributes;
 	private SSLParser sslParser;
 
@@ -43,7 +37,6 @@ public abstract class IoSession<T extends SocketContext> {
 	private HashWheelTask checkIdleTask;
 	private HeartBeat heartBeat;
 	private State state;
-	private EventThread eventThread = EVENT_THREAD_POOL.choseEventThread();
 
 	/**
 	 * 会话状态管理
@@ -146,11 +139,7 @@ public abstract class IoSession<T extends SocketContext> {
 
 
 	public EventThread getEventThread() {
-		return eventThread;
-	}
-
-	public void setEventThread(EventThread eventThread) {
-		this.eventThread = eventThread;
+		return socketContext().getEventThread();
 	}
 
 	/**
@@ -217,7 +206,7 @@ public abstract class IoSession<T extends SocketContext> {
 						//触发空闲事件
 						long timeDiff = System.currentTimeMillis() - lastIdleTime;
 						if (timeDiff >= socketContext.getIdleInterval() * 1000) {
-							EventTrigger.fireIdleThread(session);
+							EventTrigger.fireIdle(session);
 							lastIdleTime = System.currentTimeMillis();
 						}
 
@@ -236,11 +225,12 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	public void cancelIdle(){
 		if(checkIdleTask!=null) {
+			checkIdleTask.cancel();
+			checkIdleTask = null;
+
 			if(heartBeat!=null){
 				heartBeat = null;
 			}
-			checkIdleTask.cancel();
-			checkIdleTask = null;
 		}
 	}
 
@@ -533,9 +523,9 @@ public abstract class IoSession<T extends SocketContext> {
 				if(getState().sendTryLock()) {
 					try {
 						getState().setSend(true);
-						send0(sendByteBufferChannel.getByteBuffer());
-						//触发发送事件
-						EventTrigger.fireFlush(this);
+				send0(sendByteBufferChannel.getByteBuffer());
+				//触发发送事件
+				EventTrigger.fireFlush(this);
 					} finally {
 						sendByteBufferChannel.compact();
 						getState().sendUnLock();
@@ -549,7 +539,6 @@ public abstract class IoSession<T extends SocketContext> {
 					}
 				}
 			}
-
 		}
 	}
 

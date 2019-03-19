@@ -166,6 +166,7 @@ public class EventProcess {
 
                     if(session.getReadByteBufferChannel().size() > 0){
                         //如果还有数据继续触发 onReceive 事件
+                        HeartBeat.interceptHeartBeat(session, session.getReadByteBufferChannel());
                         EventTrigger.fireReceiveThread(session);
                     }
 

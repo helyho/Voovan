@@ -1,6 +1,5 @@
 package org.voovan.network.nio;
 
-import org.voovan.Global;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.log.Logger;
 
@@ -93,7 +92,11 @@ public class NioServerSocket extends SocketContext {
 
 			if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
 				nioSelector = new NioSelector(selector,this);
-				NioSelector.register(nioSelector);
+				getEventThread().addEvent(()->{
+					if(serverSocketChannel.isOpen()) {
+						nioSelector.eventChose();
+					}
+				});
 			}
 		}catch(IOException e){
 			Logger.error("init SocketChannel failed by openSelector",e);
@@ -185,7 +188,6 @@ public class NioServerSocket extends SocketContext {
 		if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
 			try{
 				serverSocketChannel.close();
-				NioSelector.unregister(nioSelector);
 				synchronized (waitObj) {
 					waitObj.notify();
 				}
