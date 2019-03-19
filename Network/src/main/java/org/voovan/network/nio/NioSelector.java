@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeoutException;
 
@@ -27,22 +28,27 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public class NioSelector {
-	public static ConcurrentLinkedDeque<NioSelector> SELECTORS = new ConcurrentLinkedDeque<NioSelector>();
+	public static ArrayBlockingQueue<NioSelector> SELECTORS = new ArrayBlockingQueue<NioSelector>(200000);
 
 	public static int IO_THREAD_COUNT = TPerformance.getProcessorCount()/2;
 	static {
 		for(int i=0;i<IO_THREAD_COUNT;i++) {
 			Global.getThreadPool().execute(() -> {
 				while (true) {
-					NioSelector nioSelector = SELECTORS.poll();
-					if (nioSelector != null && nioSelector.socketContext.isConnected()) {
-						try {
-							nioSelector.eventChose();
-						} catch (Throwable e) {
-							e.printStackTrace();
+					try {
+						NioSelector nioSelector = SELECTORS.take();
+						if (nioSelector != null && nioSelector.socketContext.isConnected()) {
+							try {
+								nioSelector.eventChose();
+							} catch (Throwable e) {
+								e.printStackTrace();
+							}
+							SELECTORS.offer(nioSelector);
 						}
-						SELECTORS.offer(nioSelector);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
+
 				}
 			});
 		}
@@ -63,6 +69,7 @@ public class NioSelector {
 	private ByteBuffer readTempBuffer;
 
 	private NioSession session;
+	private SelectorKeySet selectionKeys = new SelectorKeySet(1024);
 
 	/**
 	 * 事件监听器构造
@@ -80,6 +87,13 @@ public class NioSelector {
 			this.session = ((NioSocket)socketContext).getSession();
 			this.appByteBufferChannel = session.getReadByteBufferChannel();
 		}
+
+		try {
+			TReflect.setFieldValue(selector, NioUtil.selectedKeysField, selectionKeys);
+			TReflect.setFieldValue(selector, NioUtil.publicSelectedKeysField, selectionKeys);
+		} catch (ReflectiveOperationException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -96,13 +110,12 @@ public class NioSelector {
 				}
 
 				if (readyChannelCount>0) {
-					Set<SelectionKey> selectionKeys = selector.selectedKeys();
-					Iterator<SelectionKey> selectionKeyIterator = selectionKeys.iterator();
-					while (selectionKeyIterator.hasNext()) {
-						SelectionKey selectionKey = selectionKeyIterator.next();
-						selectionKeyIterator.remove();
-						if (selectionKey.isValid()) {
+					SelectorKeySet selectionKeys = (SelectorKeySet) selector.selectedKeys();
 
+					for (int i=0;i<selectionKeys.size(); i++) {
+						SelectionKey selectionKey = selectionKeys.getSelectionKeys()[i];
+
+						if (selectionKey.isValid()) {
 							// 获取 socket 通道
 							SocketChannel socketChannel = getSocketChannel(selectionKey);
 							if (socketChannel.isOpen() && selectionKey.isValid()) {
@@ -132,6 +145,8 @@ public class NioSelector {
 							}
 						}
 					}
+
+					selectionKeys.reset();
 				}
 			}
 		} catch (IOException e) {

@@ -3,11 +3,14 @@ package org.voovan.network.udp;
 import org.voovan.Global;
 import org.voovan.network.*;
 import org.voovan.network.nio.NioSelector;
+import org.voovan.network.nio.NioUtil;
+import org.voovan.network.nio.SelectorKeySet;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -18,6 +21,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeoutException;
 
@@ -32,7 +36,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class UdpSelector {
 
-    public static ConcurrentLinkedDeque<UdpSelector> SELECTORS = new ConcurrentLinkedDeque<UdpSelector>();
+    public static ArrayBlockingQueue<UdpSelector> SELECTORS = new ArrayBlockingQueue<UdpSelector>(200000);
 
 
 	public static int IO_THREAD_COUNT = TPerformance.getProcessorCount()/2;
@@ -40,15 +44,20 @@ public class UdpSelector {
 		for(int i=0;i<IO_THREAD_COUNT;i++) {
 			Global.getThreadPool().execute(() -> {
 				while (true) {
-					UdpSelector udpSelector = SELECTORS.poll();
-					if (udpSelector != null && udpSelector.socketContext.isConnected()) {
-						try {
-							udpSelector.eventChose();
-						} catch (Throwable e) {
-							e.printStackTrace();
+					try {
+						UdpSelector udpSelector = SELECTORS.take();
+						if (udpSelector != null && udpSelector.socketContext.isOpen()) {
+							try {
+								udpSelector.eventChose();
+							} catch (Throwable e) {
+								e.printStackTrace();
+							}
+							SELECTORS.offer(udpSelector);
 						}
-						SELECTORS.offer(udpSelector);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
+
 				}
 			});
 		}
@@ -65,8 +74,10 @@ public class UdpSelector {
     private Selector selector;
     private SocketContext socketContext;
     private ByteBufferChannel appByteBufferChannel;
-    private UdpSession session;
-    private ByteBuffer readTempBuffer;
+	private ByteBuffer readTempBuffer;
+
+	private UdpSession session;
+	private SelectorKeySet selectionKeys = new SelectorKeySet(1024);
 
     /**
      * 事件监听器构造
@@ -76,12 +87,21 @@ public class UdpSelector {
     public UdpSelector(Selector selector, SocketContext socketContext) {
         this.selector = selector;
         this.socketContext = socketContext;
+
+	    readTempBuffer = TByteBuffer.allocateDirect(socketContext.getReadBufferSize());
+
         if (socketContext instanceof UdpSocket){
             session = ((UdpSocket)socketContext).getSession();
             appByteBufferChannel = session.getReadByteBufferChannel();
         }
 
-        readTempBuffer = TByteBuffer.allocateDirect(socketContext.getReadBufferSize());
+
+	    try {
+		    TReflect.setFieldValue(selector, NioUtil.selectedKeysField, selectionKeys);
+		    TReflect.setFieldValue(selector, NioUtil.publicSelectedKeysField, selectionKeys);
+	    } catch (ReflectiveOperationException e) {
+		    e.printStackTrace();
+	    }
     }
 
     /**
@@ -95,12 +115,17 @@ public class UdpSelector {
         // 事件循环
         try {
             if (socketContext != null && socketContext.isOpen()) {
-                if (selector.selectNow() > 0) {
-                    Set<SelectionKey> selectionKeys = selector.selectedKeys();
-                    Iterator<SelectionKey> selectionKeyIterator = selectionKeys.iterator();
-                    while (selectionKeyIterator.hasNext()) {
-                        SelectionKey selectionKey = selectionKeyIterator.next();
-	                    selectionKeyIterator.remove();
+	            int readyChannelCount = selector.selectNow();
+
+	            if (readyChannelCount==0) {
+		            readyChannelCount = selector.select(1);
+	            }
+
+	            if (readyChannelCount>0) {
+	                SelectorKeySet selectionKeys = (SelectorKeySet) selector.selectedKeys();
+
+	                for (int i=0;i<selectionKeys.size(); i++) {
+		                SelectionKey selectionKey = selectionKeys.getSelectionKeys()[i];
 
                         if (selectionKey.isValid()) {
                             // 获取 socket 通道
