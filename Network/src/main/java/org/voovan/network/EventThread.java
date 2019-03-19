@@ -1,5 +1,9 @@
 package org.voovan.network;
 
+import org.voovan.network.nio.NioSelector;
+
+import java.util.concurrent.ArrayBlockingQueue;
+
 /**
  * 事件处理线程
  *
@@ -9,12 +13,9 @@ package org.voovan.network;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class EventThread  implements Runnable{
-	public static ThreadLocal<Event> THREAD_EVENT = ThreadLocal.withInitial(()->new Event());
+public class EventThread implements Runnable{
 
-	private IoSession session;
-	private Event.EventName name;
-	private Object other;
+	public ArrayBlockingQueue<Event> eventQueue = new ArrayBlockingQueue<Event>(200000);
 
 	/**
 	 * 事件处理 Thread
@@ -23,29 +24,22 @@ public class EventThread  implements Runnable{
 	public EventThread(){
 	}
 
-	/**
-	 * 事件处理 Thread
-	 *
-	 * @param session IoSession对象
-	 * @param name  事件名称
-	 * @param other 附属对象
-	 */
-	public EventThread(IoSession session, Event.EventName name, Object other){
-		init(session, name, other);
-	}
-
-	public void init(IoSession session, Event.EventName name, Object other){
-		this.session = session;
-		this.name = name;
-		this.other = other;
+	public void addEvent(Event event){
+		eventQueue.add(event);
 	}
 
 	@Override
 	public void run() {
-		Event event = THREAD_EVENT.get();
-		event.init(session, name, other);
-
-		EventProcess.process(event);
+		while (true) {
+			try {
+				Event event = eventQueue.take();
+				if(event!=null) {
+					EventProcess.process(event);
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 }
