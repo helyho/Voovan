@@ -2,9 +2,11 @@ package org.voovan.network.udp;
 
 import org.voovan.Global;
 import org.voovan.network.*;
+import org.voovan.network.nio.NioSelector;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -31,21 +33,26 @@ import java.util.concurrent.TimeoutException;
 public class UdpSelector {
 
     public static ConcurrentLinkedDeque<UdpSelector> SELECTORS = new ConcurrentLinkedDeque<UdpSelector>();
-    static {
-        Global.getThreadPool().execute(()->{
-            while(true){
-                UdpSelector udpSelector = SELECTORS.poll();
-                if(udpSelector!=null && udpSelector.socketContext.isOpen()) {
-                    try {
-                        udpSelector.eventChose();
-                    } catch (Throwable e) {
-                        e.printStackTrace();
-                    }
-                    SELECTORS.offer(udpSelector);
-                }
-            }
-        });
-    }
+
+
+	public static int IO_THREAD_COUNT = TPerformance.getProcessorCount()/2;
+	static {
+		for(int i=0;i<IO_THREAD_COUNT;i++) {
+			Global.getThreadPool().execute(() -> {
+				while (true) {
+					UdpSelector udpSelector = SELECTORS.poll();
+					if (udpSelector != null && udpSelector.socketContext.isConnected()) {
+						try {
+							udpSelector.eventChose();
+						} catch (Throwable e) {
+							e.printStackTrace();
+						}
+						SELECTORS.offer(udpSelector);
+					}
+				}
+			});
+		}
+	}
 
     public static void register(UdpSelector selector){
         SELECTORS.add(selector);
@@ -88,16 +95,17 @@ public class UdpSelector {
         // 事件循环
         try {
             if (socketContext != null && socketContext.isOpen()) {
-                if (selector.select(1) > 0) {
+                if (selector.selectNow() > 0) {
                     Set<SelectionKey> selectionKeys = selector.selectedKeys();
                     Iterator<SelectionKey> selectionKeyIterator = selectionKeys.iterator();
                     while (selectionKeyIterator.hasNext()) {
                         SelectionKey selectionKey = selectionKeyIterator.next();
+	                    selectionKeyIterator.remove();
+
                         if (selectionKey.isValid()) {
                             // 获取 socket 通道
                             DatagramChannel datagramChannel = getDatagramChannel(selectionKey);
                             if (datagramChannel.isOpen() && selectionKey.isValid()) {
-                                selectionKeyIterator.remove();
 
 								// 事件分发,包含时间 onRead onAccept
 								try {

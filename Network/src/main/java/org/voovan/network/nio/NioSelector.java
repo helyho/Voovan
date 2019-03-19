@@ -5,6 +5,7 @@ import org.voovan.network.*;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -27,20 +28,24 @@ import java.util.concurrent.TimeoutException;
  */
 public class NioSelector {
 	public static ConcurrentLinkedDeque<NioSelector> SELECTORS = new ConcurrentLinkedDeque<NioSelector>();
+
+	public static int IO_THREAD_COUNT = TPerformance.getProcessorCount()/2;
 	static {
-		Global.getThreadPool().execute(()->{
-			while(true){
-				NioSelector nioSelector = SELECTORS.poll();
-				if(nioSelector!=null && nioSelector.socketContext.isConnected()) {
-					try {
-						nioSelector.eventChose();
-					} catch (Throwable e) {
-						e.printStackTrace();
+		for(int i=0;i<IO_THREAD_COUNT;i++) {
+			Global.getThreadPool().execute(() -> {
+				while (true) {
+					NioSelector nioSelector = SELECTORS.poll();
+					if (nioSelector != null && nioSelector.socketContext.isConnected()) {
+						try {
+							nioSelector.eventChose();
+						} catch (Throwable e) {
+							e.printStackTrace();
+						}
+						SELECTORS.offer(nioSelector);
 					}
-					SELECTORS.offer(nioSelector);
 				}
-			}
-		});
+			});
+		}
 	}
 
 	public static void register(NioSelector selector){
@@ -84,12 +89,18 @@ public class NioSelector {
 		// 事件循环
 		try {
 			if (socketContext != null && socketContext.isConnected()) {
-				if (selector.select(1)>0) {
+				int readyChannelCount = selector.selectNow();
+
+				if (readyChannelCount==0) {
+					readyChannelCount = selector.select(1);
+				}
+
+				if (readyChannelCount>0) {
 					Set<SelectionKey> selectionKeys = selector.selectedKeys();
 					Iterator<SelectionKey> selectionKeyIterator = selectionKeys.iterator();
-
 					while (selectionKeyIterator.hasNext()) {
 						SelectionKey selectionKey = selectionKeyIterator.next();
+						selectionKeyIterator.remove();
 						if (selectionKey.isValid()) {
 
 							// 获取 socket 通道
@@ -196,7 +207,7 @@ public class NioSelector {
 
 				if (appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
 					// 触发 onReceive 事件
-					EventTrigger.fireAcceptThread(session);
+					EventTrigger.fireReceiveThread(session);
 				}
 
 				// 接收完成后重置buffer对象
