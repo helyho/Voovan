@@ -13,12 +13,12 @@ import java.util.Iterator;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class SelectorKeySet extends AbstractSet<SelectionKey> {
+public class SelectionKeySet extends AbstractSet<SelectionKey> {
 
 	SelectionKey[] selectionKeys;
 	volatile int size;
 
-	public SelectorKeySet(int cap) {
+	public SelectionKeySet(int cap) {
 		selectionKeys = new SelectionKey[cap];
 	}
 

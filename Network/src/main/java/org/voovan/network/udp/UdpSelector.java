@@ -2,9 +2,8 @@ package org.voovan.network.udp;
 
 import org.voovan.Global;
 import org.voovan.network.*;
-import org.voovan.network.nio.NioSelector;
 import org.voovan.network.nio.NioUtil;
-import org.voovan.network.nio.SelectorKeySet;
+import org.voovan.network.nio.SelectionKeySet;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
@@ -19,10 +18,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.Iterator;
-import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -77,7 +73,7 @@ public class UdpSelector {
 	private ByteBuffer readTempBuffer;
 
 	private UdpSession session;
-	private SelectorKeySet selectionKeys = new SelectorKeySet(1024);
+	private SelectionKeySet selectionKeys = new SelectionKeySet(1024);
 
     /**
      * 事件监听器构造
@@ -122,7 +118,7 @@ public class UdpSelector {
 	            }
 
 	            if (readyChannelCount>0) {
-	                SelectorKeySet selectionKeys = (SelectorKeySet) selector.selectedKeys();
+	                SelectionKeySet selectionKeys = (SelectionKeySet) selector.selectedKeys();
 
 	                for (int i=0;i<selectionKeys.size(); i++) {
 		                SelectionKey selectionKey = selectionKeys.getSelectionKeys()[i];
