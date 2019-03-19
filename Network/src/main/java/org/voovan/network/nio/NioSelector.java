@@ -25,6 +25,7 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public class NioSelector {
+
 	public static ArrayBlockingQueue<NioSelector> SELECTORS = new ArrayBlockingQueue<NioSelector>(200000);
 
 	public static int IO_THREAD_COUNT = 4;

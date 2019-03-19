@@ -34,8 +34,7 @@ public class UdpSelector {
 
     public static ArrayBlockingQueue<UdpSelector> SELECTORS = new ArrayBlockingQueue<UdpSelector>(200000);
 
-
-	public static int IO_THREAD_COUNT = TPerformance.getProcessorCount()/2;
+	public static int IO_THREAD_COUNT = 4;
 	static {
 		for(int i=0;i<IO_THREAD_COUNT;i++) {
 			Global.getThreadPool().execute(() -> {
