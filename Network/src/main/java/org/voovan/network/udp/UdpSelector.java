@@ -101,56 +101,10 @@ public class UdpSelector {
 
 								// 事件分发,包含时间 onRead onAccept
 								try {
-									switch (selectionKey.readyOps()) {
-
-										// 有数据读取
-										case SelectionKey.OP_READ: {
-
-											int readSize = - 1;
-											UdpSocket clientUdpSocket = null;
-
-											//接受的连接isConnected 是 false
-											//发起的连接isConnected 是 true
-											if(datagramChannel.isConnected()) {
-												readSize = datagramChannel.read(readTempBuffer);
-											}else{
-												SocketAddress address = datagramChannel.receive(readTempBuffer);
-												readSize = readTempBuffer.position();
-												clientUdpSocket = new UdpSocket(socketContext, datagramChannel, (InetSocketAddress)address);
-												session = clientUdpSocket.getSession();
-												appByteBufferChannel = session.getReadByteBufferChannel();
-												//触发连接时间, 关闭事件在触发 onSent 之后触发
-												EventTrigger.fireConnectThread(session);
-											}
-
-											//判断连接是否关闭
-											if (MessageLoader.isStreamEnd(readTempBuffer, readSize) && session.isConnected()) {
-												session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
-												session.close();
-												break;
-											} else if (readSize > 0) {
-												readTempBuffer.flip();
-
-												//如果缓冲队列已慢, 则等待可用, 超时时间为读超时
-												try {
-													TEnv.wait(session.socketContext().getReadTimeout(), () -> appByteBufferChannel.size() + readTempBuffer.limit() >= appByteBufferChannel.getMaxSize());
-												} catch (TimeoutException e) {
-													Logger.error("Session.byteByteBuffer is not enough:", e);
-												}
-
-												appByteBufferChannel.writeEnd(readTempBuffer);
-
-												if(appByteBufferChannel.size() > 0) {
-													// 触发 onReceive 事件
-													EventTrigger.fireReceiveThread(session);
-												}
-
-												readTempBuffer.clear();
-											}
-											break;
-										} default: {
-											Logger.fremawork("Nothing to do ,SelectionKey is:" + selectionKey.readyOps());
-										}
+									if (selectionKey.isReadable()) {
+										read(datagramChannel);
+									} else {
+										Logger.fremawork("Nothing to do ,SelectionKey is:" + selectionKey.readyOps());
 									}
 								} catch (Exception e) {
 									if(e instanceof IOException){
@@ -173,6 +127,51 @@ public class UdpSelector {
             // 触发 onException 事件
             EventTrigger.fireExceptionThread(session, e);
         }
+    }
+
+    public void read( DatagramChannel datagramChannel) throws IOException {
+
+	    int readSize = - 1;
+	    UdpSocket clientUdpSocket = null;
+
+	    //接受的连接isConnected 是 false
+	    //发起的连接isConnected 是 true
+	    if(datagramChannel.isConnected()) {
+		    readSize = datagramChannel.read(readTempBuffer);
+	    }else{
+		    SocketAddress address = datagramChannel.receive(readTempBuffer);
+		    readSize = readTempBuffer.position();
+		    clientUdpSocket = new UdpSocket(socketContext, datagramChannel, (InetSocketAddress)address);
+		    session = clientUdpSocket.getSession();
+		    appByteBufferChannel = session.getReadByteBufferChannel();
+		    //触发连接时间, 关闭事件在触发 onSent 之后触发
+		    EventTrigger.fireConnectThread(session);
+	    }
+
+	    //判断连接是否关闭
+	    if (MessageLoader.isStreamEnd(readTempBuffer, readSize) && session.isConnected()) {
+		    session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
+		    session.close();
+		    return;
+	    } else if (readSize > 0) {
+		    readTempBuffer.flip();
+
+		    //如果缓冲队列已慢, 则等待可用, 超时时间为读超时
+		    try {
+			    TEnv.wait(session.socketContext().getReadTimeout(), () -> appByteBufferChannel.size() + readTempBuffer.limit() >= appByteBufferChannel.getMaxSize());
+		    } catch (TimeoutException e) {
+			    Logger.error("Session.byteByteBuffer is not enough:", e);
+		    }
+
+		    appByteBufferChannel.writeEnd(readTempBuffer);
+
+		    if(appByteBufferChannel.size() > 0) {
+			    // 触发 onReceive 事件
+			    EventTrigger.fireReceiveThread(session);
+		    }
+
+		    readTempBuffer.clear();
+	    }
     }
 
     /**
