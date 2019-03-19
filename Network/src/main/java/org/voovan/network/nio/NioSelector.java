@@ -27,7 +27,7 @@ import java.util.concurrent.TimeoutException;
 public class NioSelector {
 	public static ArrayBlockingQueue<NioSelector> SELECTORS = new ArrayBlockingQueue<NioSelector>(200000);
 
-	public static int IO_THREAD_COUNT = TPerformance.getProcessorCount()/2;
+	public static int IO_THREAD_COUNT = 4;
 	static {
 		for(int i=0;i<IO_THREAD_COUNT;i++) {
 			Global.getThreadPool().execute(() -> {

@@ -7,6 +7,7 @@ import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TPerformance;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public abstract class IoSession<T extends SocketContext> {
+	private static EventThreadPool EVENT_THREAD_POOL = new EventThreadPool(TPerformance.getProcessorCount()/2);
 
 	private Map<Object, Object> attributes;
 	private SSLParser sslParser;
@@ -41,6 +43,7 @@ public abstract class IoSession<T extends SocketContext> {
 	private HashWheelTask checkIdleTask;
 	private HeartBeat heartBeat;
 	private State state;
+	private EventThread eventThread = EVENT_THREAD_POOL.choseEventThread();
 
 	/**
 	 * 会话状态管理
@@ -139,6 +142,15 @@ public abstract class IoSession<T extends SocketContext> {
 		sendByteBufferChannel = new ByteBufferChannel(socketContext.getSendBufferSize());
 		messageLoader = new MessageLoader(this);
 		checkIdle();
+	}
+
+
+	public EventThread getEventThread() {
+		return eventThread;
+	}
+
+	public void setEventThread(EventThread eventThread) {
+		this.eventThread = eventThread;
 	}
 
 	/**
