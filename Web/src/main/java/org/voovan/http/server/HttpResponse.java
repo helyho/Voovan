@@ -1,15 +1,11 @@
 package org.voovan.http.server;
 
-import org.voovan.Global;
 import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Response;
 import org.voovan.network.IoSession;
-import org.voovan.tools.TDateTime;
-import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Date;
 
 /**
  * WebServer 响应对象

@@ -1,13 +1,12 @@
 package org.voovan.test.tools.cache;
 
+import junit.framework.TestCase;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.cache.CachedHashMap;
-import org.voovan.tools.cache.RedisMap;
 import org.voovan.tools.TObject;
+import org.voovan.tools.cache.RedisMap;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
-import junit.framework.TestCase;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

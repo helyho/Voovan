@@ -2,9 +2,7 @@ package org.voovan.network;
 
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.log.Logger;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingDeque;
 

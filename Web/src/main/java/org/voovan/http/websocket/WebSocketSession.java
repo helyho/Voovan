@@ -3,7 +3,6 @@ package org.voovan.http.websocket;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpSession;
-import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;

@@ -1,7 +1,7 @@
 package org.voovan.test.tools.cache;
 
-import org.voovan.tools.cache.RedisZSet;
 import junit.framework.TestCase;
+import org.voovan.tools.cache.RedisZSet;
 
 import java.util.HashMap;
 import java.util.Map;

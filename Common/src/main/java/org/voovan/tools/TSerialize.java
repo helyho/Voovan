@@ -6,9 +6,7 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.*;
-import java.text.ParseException;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 /**
  * JDK 序列化和反序列化封装

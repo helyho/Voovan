@@ -1,11 +1,5 @@
 package org.voovan.http.message.packet;
 
-import org.voovan.tools.TString;
-import org.voovan.tools.log.Logger;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 /**
  * HTTP 响应的协议对象
  * @author helyho

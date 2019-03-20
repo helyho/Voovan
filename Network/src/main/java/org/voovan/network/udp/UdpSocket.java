@@ -2,7 +2,6 @@ package org.voovan.network.udp;
 
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
-import org.voovan.network.IoSelector;
 import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.RestartException;
