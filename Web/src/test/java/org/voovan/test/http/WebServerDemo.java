@@ -113,8 +113,12 @@ public class WebServerDemo {
 		//性能测试请求
 		webServer.post("/upload", new HttpRouter(){
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				req.saveUploadedFile("file", "./" + req.getParameter("file"));
-				resp.write("Success");
+				try {
+					req.saveUploadedFile("file", "./" + req.getParameter("file"));
+					resp.write("Success");
+				} catch (Exception e){
+					e.printStackTrace();
+				}
 			}
 		});
 
@@ -221,13 +225,13 @@ public class WebServerDemo {
 
 				//调用发送函数发送
 				try {
-					webSocketSession.send("Send by persistent Object's send method in onOpen");
-					webSocketSession.send("Send by send method in onOpen");
+					webSocketSession.send("Send by persistent Object's writeToChannel method in onOpen");
+					webSocketSession.send("Send by writeToChannel method in onOpen");
 				} catch (SendMessageException | WebSocketFilterException e) {
 					e.printStackTrace();
 				}
 
-				return "Server send: onOpen";
+				return "Server writeToChannel: onOpen";
 			}
 
 			@Override
@@ -238,7 +242,7 @@ public class WebServerDemo {
 
 				//调用发送函数发送
 				try {
-					webSocketSession.send("Send by send method in onRecive");
+					webSocketSession.send("Send by writeToChannel method in onRecive");
 				} catch (SendMessageException | WebSocketFilterException e) {
 					e.printStackTrace();
 				}

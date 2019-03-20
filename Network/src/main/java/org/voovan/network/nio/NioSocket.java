@@ -25,7 +25,7 @@ import java.nio.channels.spi.SelectorProvider;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class NioSocket extends SocketContext{
+public class NioSocket extends SocketContext<SocketChannel> {
 	private SelectorProvider provider;
 	private Selector selector;
 	private SocketChannel socketChannel;
@@ -117,15 +117,16 @@ public class NioSocket extends SocketContext{
 	 * @param <T> 范型
 	 * @throws IOException IO异常
 	 */
+	@Override
 	public <T> void setOption(SocketOption<T> name, T value) throws IOException {
 		socketChannel.setOption(name, value);
 	}
-
 
 	/**
 	 * 获取 SocketChannel 对象
 	 * @return SocketChannel 对象
 	 */
+	@Override
 	public SocketChannel socketChannel(){
 		return this.socketChannel;
 	}
@@ -157,6 +158,10 @@ public class NioSocket extends SocketContext{
 	 */
 	public NioSession getSession(){
 		return session;
+	}
+
+	protected NioSelector getSelector() {
+		return nioSelector;
 	}
 
 	/**
@@ -195,8 +200,6 @@ public class NioSocket extends SocketContext{
 	}
 
 	protected void acceptStart() throws IOException {
-		final NioSocket nioSocket = this;
-
 		try {
 			initSSL(session);
 

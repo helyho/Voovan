@@ -20,7 +20,7 @@ import java.net.SocketOption;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public abstract class SocketContext {
+public abstract class SocketContext<M> {
 
 	protected String host;
 	protected int port;
@@ -139,7 +139,13 @@ public abstract class SocketContext {
 	 * @param <T> 范型
 	 * @throws IOException IO异常
 	 */
-	public abstract  <T> void setOption(SocketOption<T> name, T value) throws IOException;
+	public abstract <T> void setOption(SocketOption<T> name, T value) throws IOException;
+
+	/**
+	 * 获取 SocketChannel 对象
+	 * @return SocketChannel 对象
+	 */
+	public abstract M socketChannel();
 
 	public int getReadBufferSize() {
 		return readBufferSize;

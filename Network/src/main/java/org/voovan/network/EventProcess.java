@@ -309,7 +309,7 @@ public class EventProcess {
                     if(sendLength >= 0) {
                         sendBuffer.rewind();
                     } else {
-                        throw new IOException("EventProcess.sendMessage faild, send length: " + sendLength);
+                        throw new IOException("EventProcess.sendMessage faild, writeToChannel length: " + sendLength);
                     }
                 }
             }

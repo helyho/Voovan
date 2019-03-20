@@ -317,11 +317,10 @@ public abstract class IoSession<T extends SocketContext> {
 
 	/**
 	 * 读取消息到缓冲区
-	 * @param buffer    接收数据的缓冲区
 	 * @return 接收数据大小
 	 * @throws IOException IO 异常
 	 */
-	protected abstract int read0(ByteBuffer buffer) throws IOException;
+	protected abstract int read0() throws IOException;
 
 	/**
 	 * 直接从缓冲区读取数据
@@ -333,7 +332,9 @@ public abstract class IoSession<T extends SocketContext> {
 
 		int readSize = -1;
 
-		readSize = this.read0(byteBuffer);
+		if (byteBuffer != null && !this.getReadByteBufferChannel().isReleased()) {
+			readSize = this.getReadByteBufferChannel().readHead(byteBuffer);
+		}
 
 		if(!this.isConnected() && readSize <= 0){
 			readSize = -1;
@@ -384,7 +385,7 @@ public abstract class IoSession<T extends SocketContext> {
 				return readObject;
 			}
 		} catch (TimeoutException e) {
-			throw new ReadMessageException("syncRead read timeout or socket is disconnect");
+			throw new ReadMessageException("syncRead readFromChannel timeout or socket is disconnect");
 		}
 		return readObject;
 	}
@@ -461,7 +462,7 @@ public abstract class IoSession<T extends SocketContext> {
 				return sendByBuffer(buffer);
 			}
 		} catch (IOException e) {
-			Logger.error("IoSession.send data failed" ,e);
+			Logger.error("IoSession.writeToChannel data failed" ,e);
 		}
 
 		return -1;

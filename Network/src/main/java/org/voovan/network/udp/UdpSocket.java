@@ -6,6 +6,8 @@ import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.RestartException;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.network.nio.NioSelector;
+import org.voovan.network.nio.NioSocket;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -25,7 +27,7 @@ import java.nio.channels.spi.SelectorProvider;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class UdpSocket extends SocketContext {
+public class UdpSocket extends SocketContext<DatagramChannel> {
 
     private SelectorProvider provider;
     private Selector selector;
@@ -123,6 +125,11 @@ public class UdpSocket extends SocketContext {
         datagramChannel.setOption(name, value);
     }
 
+    @Override
+    public DatagramChannel socketChannel() {
+        return datagramChannel;
+    }
+
     /**
      * 初始化函数
      */
@@ -151,8 +158,8 @@ public class UdpSocket extends SocketContext {
         return session;
     }
 
-    public DatagramChannel datagramChannel(){
-        return this.datagramChannel;
+    protected UdpSelector getSelector() {
+        return udpSelector;
     }
 
     @Override
@@ -182,7 +189,7 @@ public class UdpSocket extends SocketContext {
 
     @Override
     protected void acceptStart() throws IOException {
-        throw new RuntimeException("Unsupport method");
+		registerSelector();
     }
 
     /**

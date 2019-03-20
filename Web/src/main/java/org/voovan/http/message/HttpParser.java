@@ -507,7 +507,7 @@ public class HttpParser {
 			}
 
 			//如果 消息缓冲通道没有数据或已关闭
-			if( byteBufferChannel.size() <= 0 || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING) ) {
+			if( "GET".equals(packetMap.get(PL_METHOD)) && ( byteBufferChannel.size() <= 0 || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING) )) {
                 if (WebContext.isCache()) {
                     HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
                     cachedPacketMap.putAll(packetMap);
@@ -538,7 +538,7 @@ public class HttpParser {
 					while(true) {
 						//等待数据
 						if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut)) {
-							throw new ParserException("Http Parser read data error");
+							throw new ParserException("Http Parser readFromChannel data error");
 						}
 
 						int index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
@@ -567,7 +567,7 @@ public class HttpParser {
 						byte[] boundaryMark = HttpStatic.BODY_MARK.getBytes();
 						//等待数据
 						if (!byteBufferChannel.waitData(boundaryMark, timeOut)) {
-							throw new ParserException("Http Parser read data error");
+							throw new ParserException("Http Parser readFromChannel data error");
 						}
 
 						int partHeadEndIndex = byteBufferChannel.indexOf(boundaryMark);
@@ -601,7 +601,7 @@ public class HttpParser {
 						if (fileName == null) {
 							//等待数据
 							if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut)) {
-								throw new ParserException("Http Parser read data error");
+								throw new ParserException("Http Parser readFromChannel data error");
 							}
 
 							index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
@@ -670,7 +670,7 @@ public class HttpParser {
 
 							if(index == -1){
 								new File(localFileName).delete();
-								throw new ParserException("Http Parser read data error");
+								throw new ParserException("Http Parser readFromChannel data error");
 							}else{
 								partMap.remove(BODY_VALUE);
 								partMap.put(BODY_FILE, localFileName.getBytes());
@@ -694,7 +694,7 @@ public class HttpParser {
 
 						// 等待数据
 						if(!byteBufferChannel.waitData("\r\n".getBytes(), timeOut)){
-							throw new ParserException("Http Parser read data error");
+							throw new ParserException("Http Parser readFromChannel data error");
 						}
 
 						chunkedLengthLine = byteBufferChannel.readLine().trim();
@@ -718,7 +718,7 @@ public class HttpParser {
 
 						// 等待数据
 						if(!byteBufferChannel.waitData(chunkedLength, timeOut)){
-							throw new ParserException("Http Parser read data error");
+							throw new ParserException("Http Parser readFromChannel data error");
 						}
 
 						int readSize = 0;
@@ -731,7 +731,7 @@ public class HttpParser {
 							totalLength = totalLength + readSize;
 							//请求过大的处理
 							if(readSize != chunkedLength){
-								throw new ParserException("Http Parser read chunked data error");
+								throw new ParserException("Http Parser readFromChannel chunked data error");
 							}
 
 							//如果多次读取则拼接
@@ -769,7 +769,7 @@ public class HttpParser {
 
 					// 等待数据
 					if(!byteBufferChannel.waitData(contentLength, timeOut)){
-						throw new ParserException("Http Parser read data error");
+						throw new ParserException("Http Parser readFromChannel data error");
 					}
 
 					ByteBuffer byteBuffer = ByteBuffer.allocate(contentLength);

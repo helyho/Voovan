@@ -406,7 +406,7 @@ public class WebServerHandler implements IoHandler {
 					session.syncSend(webSocketFrame);
 				} catch (SendMessageException e) {
 					session.close();
-					Logger.error("WebSocket Open event send frame error", e);
+					Logger.error("WebSocket Open event writeToChannel frame error", e);
 				}
 			}
 
@@ -420,7 +420,7 @@ public class WebServerHandler implements IoHandler {
 						session.send(ping.toByteBuffer());
 					} catch (Exception e) {
 						session.close();
-						Logger.error("WebSocket send Ping frame error", e);
+						Logger.error("WebSocket writeToChannel Ping frame error", e);
 					}finally {
 						this.cancel();
 					}

@@ -428,7 +428,7 @@ public class HttpClient implements Closeable{
 	public synchronized Response send(String location) throws SendMessageException, ReadMessageException {
 
 		if(isWebSocket){
-			throw new SendMessageException("The WebSocket is connect, you can't send http request.");
+			throw new SendMessageException("The WebSocket is connect, you can't writeToChannel http request.");
 		}
 
 		//设置默认的报文 Body 类型
@@ -448,7 +448,7 @@ public class HttpClient implements Closeable{
 			httpRequest.send(socket.getSession());
 			httpRequest.flush();
 		}catch(IOException e){
-			throw new SendMessageException("HttpClient send error",e);
+			throw new SendMessageException("HttpClient writeToChannel error",e);
 		}
 
 		try {

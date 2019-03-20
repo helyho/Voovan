@@ -20,7 +20,7 @@ import java.nio.channels.spi.SelectorProvider;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class NioServerSocket extends SocketContext {
+public class NioServerSocket extends SocketContext<ServerSocketChannel> {
 
 	private SelectorProvider provider;
 	private Selector selector;
