@@ -224,7 +224,9 @@ public class WebServerHandler implements IoHandler {
 	public HttpResponse disposeHttp(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 
 		//如果是长连接则填充响应报文
-		if (httpRequest.header().contain(HttpStatic.CONNECTION_STRING)) {
+		if(httpRequest.protocol().getVersion().endsWith(HttpStatic.HTTP_11_STRING)) {
+			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
+		} else if (httpRequest.header().contain(HttpStatic.CONNECTION_STRING)) {
 			if(httpRequest.header().get(HttpStatic.CONNECTION_STRING).toLowerCase().contains(HttpStatic.KEEP_ALIVE_STRING)) {
 				setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
 				httpResponse.header().put(HttpStatic.CONNECTION_STRING, httpRequest.header().get(HttpStatic.CONNECTION_STRING));
@@ -234,11 +236,6 @@ public class WebServerHandler implements IoHandler {
 				setAttribute(session, HttpSessionParam.KEEP_ALIVE, false);
 				httpResponse.header().remove(HttpStatic.CONNECTION_STRING);
 			}
-		}
-		//对于1.1协议的特殊处理
-		else if(httpRequest.protocol().getVersion().endsWith("1.1")){
-			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
-			httpResponse.header().put(HttpStatic.CONNECTION_STRING, HttpStatic.KEEP_ALIVE_STRING);
 		}
 
 		//============================是否启用 gzip 压缩============================
