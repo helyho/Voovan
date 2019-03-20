@@ -441,8 +441,9 @@ public class WebServerHandler implements IoHandler {
 				(boolean)getAttribute(session, HttpSessionParam.KEEP_ALIVE) &&
 				webConfig.getKeepAliveTimeout() > 0) {
 
-			if (!keepAliveSessionList.contains(session)) {
+			if (Boolean.valueOf(false).equals(getAttribute(session, HttpSessionParam.KEEP_ALIVE_LIST_CONTAIN))) {
 				keepAliveSessionList.add(session);
+				setAttribute(session, HttpSessionParam.KEEP_ALIVE_LIST_CONTAIN, true);
 			}
 			//更新会话超时时间
 			refreshTimeout(session);
