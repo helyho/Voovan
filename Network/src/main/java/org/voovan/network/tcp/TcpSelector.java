@@ -1,4 +1,4 @@
-package org.voovan.network.nio;
+package org.voovan.network.tcp;
 
 import org.voovan.network.*;
 import org.voovan.tools.ByteBufferChannel;
@@ -21,31 +21,22 @@ import java.util.concurrent.TimeoutException;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class NioSelector {
-
-	private Selector selector;
-	private SocketContext socketContext;
-	private ByteBufferChannel netByteBufferChannel;
-	private ByteBufferChannel appByteBufferChannel;
-	private ByteBuffer readTempBuffer;
-
-	private NioSession session;
-	private SelectionKeySet selectionKeys = new SelectionKeySet(1024);
+public class TcpSelector extends IoSelector<SocketChannel, TcpSession> {
 
 	/**
 	 * 事件监听器构造
 	 * @param selector   对象Selector
 	 * @param socketContext socketContext 对象
 	 */
-	public NioSelector(Selector selector, SocketContext socketContext) {
+	public TcpSelector(Selector selector, SocketContext socketContext) {
 		this.selector = selector;
 		this.socketContext = socketContext;
 
 		//读取用的缓冲区
 		readTempBuffer = TByteBuffer.allocateDirect(socketContext.getReadBufferSize());
 
-		if (socketContext instanceof NioSocket){
-			this.session = ((NioSocket)socketContext).getSession();
+		if (socketContext instanceof TcpSocket){
+			this.session = ((TcpSocket)socketContext).getSession();
 			this.appByteBufferChannel = session.getReadByteBufferChannel();
 		}
 
@@ -84,7 +75,7 @@ public class NioSelector {
 
 						if (selectionKey.isValid()) {
 							// 获取 socket 通道
-							SocketChannel socketChannel = getSocketChannel(selectionKey);
+							SocketChannel socketChannel = getChannel(selectionKey);
 							if (socketChannel.isOpen() && selectionKey.isValid()) {
 								// 事件分发,包含时间 onRead onAccept
 								try {
@@ -100,7 +91,7 @@ public class NioSelector {
 									}
 								} catch (Exception e) {
 									//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误
-									if(e.getStackTrace()[0].getClassName().contains("sun.nio.ch")){
+									if(e.getStackTrace()[0].getClassName().contains("sun.tcp.ch")){
 										return;
 									} else if(e instanceof Exception){
 										//触发 onException 事件
@@ -123,7 +114,7 @@ public class NioSelector {
 			}
 
 			//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误
-			if(e.getStackTrace()[0].getClassName().contains("sun.nio.ch")){
+			if(e.getStackTrace()[0].getClassName().contains("sun.tcp.ch")){
 				return;
 			}
 
@@ -143,8 +134,8 @@ public class NioSelector {
 	}
 
 	public void accept(SocketChannel socketChannel){
-		NioServerSocket serverSocket = (NioServerSocket) socketContext;
-		NioSocket socket = new NioSocket(serverSocket, socketChannel);
+		TcpServerSocket serverSocket = (TcpServerSocket) socketContext;
+		TcpSocket socket = new TcpSocket(serverSocket, socketChannel);
 		EventTrigger.fireAccept(socket.getSession());
 	}
 
@@ -240,7 +231,7 @@ public class NioSelector {
 	 * @return SocketChannel 对象
 	 * @throws IOException  IO 异常
 	 */
-	public SocketChannel getSocketChannel(SelectionKey selectionKey)
+	public SocketChannel getChannel(SelectionKey selectionKey)
 			throws IOException {
 		SocketChannel socketChannel = null;
 		// 取得通道

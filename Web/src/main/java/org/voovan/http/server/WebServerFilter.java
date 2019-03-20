@@ -117,7 +117,7 @@ public class WebServerFilter implements IoFilter {
 			Request request = null;
 			try {
 				if (object instanceof ByteBuffer) {
-					request = HttpParser.parseRequest(byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
+					request = HttpParser.parseRequest(session, byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
 
 					if(request!=null){
 						return request;

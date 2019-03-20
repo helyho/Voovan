@@ -1,4 +1,4 @@
-package org.voovan.network.nio;
+package org.voovan.network;
 
 import java.lang.reflect.Field;
 import java.nio.channels.SelectionKey;
@@ -6,7 +6,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 /**
- * 类文字命名
+ * Nio通信工具类
  *
  * @author: helyho
  * Voovan Framework.

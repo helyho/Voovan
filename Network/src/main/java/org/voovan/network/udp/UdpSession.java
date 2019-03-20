@@ -113,17 +113,6 @@ public class UdpSession extends IoSession<UdpSocket> {
 	}
 
 	@Override
-	protected int read0() throws IOException {
-
-		return socketContext().getSelector().readFromChannel();
-	}
-
-	@Override
-	protected synchronized int send0(ByteBuffer buffer) throws IOException {
-		return socketContext().getSelector().writeToChannel(buffer);
-	}
-
-	@Override
 	protected MessageSplitter getMessagePartition() {
 		return this.socketContext().messageSplitter();
 	}

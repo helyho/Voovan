@@ -10,7 +10,7 @@ import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
 import org.voovan.network.SocketContext;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
-import org.voovan.network.nio.NioServerSocket;
+import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.tools.*;
 import org.voovan.tools.aop.Aop;
 import org.voovan.tools.hotswap.Hotswaper;
@@ -105,7 +105,7 @@ public class WebServer {
 	private void initSocketServer(WebServerConfig config) throws IOException{
 
 		//[Socket] 准备 socket 监听
-		serverSocket = new NioServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
+		serverSocket = new TcpServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
 		serverSocket.setReadRecursionDepth(16);
 
 		//[Socket]确认是否启用 HTTPS 支持
@@ -757,7 +757,7 @@ public class WebServer {
 
 			Logger.fremawork("Your are working on: JDK-" +TEnv.JDK_VERSION+". " +
 					"You should add java command arguments: " +
-					"-Djdk.attach.allowAttachSelf=true --add-exports java.base/java.nio=ALL-UNNAMED --add-exports java.base/jdk.internal.ref=ALL-UNNAMED");
+					"-Djdk.attach.allowAttachSelf=true --add-exports java.base/java.tcp=ALL-UNNAMED --add-exports java.base/jdk.internal.ref=ALL-UNNAMED");
 
 			System.exit(0);
 		}

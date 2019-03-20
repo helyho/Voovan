@@ -1,4 +1,4 @@
-package org.voovan.network.nio;
+package org.voovan.network.tcp;
 
 import org.voovan.network.SocketContext;
 import org.voovan.tools.log.Logger;
@@ -20,12 +20,11 @@ import java.nio.channels.spi.SelectorProvider;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class NioServerSocket extends SocketContext<ServerSocketChannel> {
+public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSession> {
 
 	private SelectorProvider provider;
 	private Selector selector;
 	private ServerSocketChannel serverSocketChannel;
-	private NioSelector nioSelector;
 
 	//用来阻塞当前Socket
 	private Object waitObj = new Object();
@@ -39,7 +38,7 @@ public class NioServerSocket extends SocketContext<ServerSocketChannel> {
 	 * @param readTimeout   超时时间, 单位: 毫秒
 	 * @throws IOException	异常
 	 */
-	public NioServerSocket(String host,int port,int readTimeout) throws IOException{
+	public TcpServerSocket(String host, int port, int readTimeout) throws IOException{
 		super(host, port, readTimeout);
 		init();
 	}
@@ -53,7 +52,7 @@ public class NioServerSocket extends SocketContext<ServerSocketChannel> {
 	 * @param readTimeout   超时时间, 单位: 毫秒
 	 * @throws IOException	异常
 	 */
-	public NioServerSocket(String host,int port,int readTimeout, int idleInterval) throws IOException{
+	public TcpServerSocket(String host, int port, int readTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, idleInterval);
 		init();
 	}
@@ -67,7 +66,7 @@ public class NioServerSocket extends SocketContext<ServerSocketChannel> {
 	 * @param sendTimeout 发超时时间, 单位: 毫秒
 	 * @throws IOException	异常
 	 */
-	public NioServerSocket(String host,int port,int readTimeout, int sendTimeout, int idleInterval) throws IOException{
+	public TcpServerSocket(String host, int port, int readTimeout, int sendTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, sendTimeout, idleInterval);
 		init();
 	}
@@ -91,10 +90,10 @@ public class NioServerSocket extends SocketContext<ServerSocketChannel> {
 			serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
 			if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
-				nioSelector = new NioSelector(selector,this);
+				ioSelector = new TcpSelector(selector,this);
 				getEventRunner().addEvent(()->{
 					if(serverSocketChannel.isOpen()) {
-						nioSelector.eventChose();
+						ioSelector.eventChose();
 					}
 				});
 			}

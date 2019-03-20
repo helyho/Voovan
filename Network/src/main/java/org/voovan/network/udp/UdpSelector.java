@@ -1,9 +1,8 @@
 package org.voovan.network.udp;
 
 import org.voovan.network.*;
-import org.voovan.network.nio.NioUtil;
-import org.voovan.network.nio.SelectionKeySet;
-import org.voovan.tools.ByteBufferChannel;
+import org.voovan.network.NioUtil;
+import org.voovan.network.tcp.SelectionKeySet;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
@@ -27,15 +26,7 @@ import java.util.concurrent.TimeoutException;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class UdpSelector {
-
-    private Selector selector;
-    private SocketContext socketContext;
-    private ByteBufferChannel appByteBufferChannel;
-	private ByteBuffer readTempBuffer;
-
-	private UdpSession session;
-	private SelectionKeySet selectionKeys = new SelectionKeySet(1024);
+public class UdpSelector extends IoSelector<DatagramChannel, UdpSession>{
 
     /**
      * 事件监听器构造
@@ -90,7 +81,7 @@ public class UdpSelector {
 
                         if (selectionKey.isValid()) {
                             // 获取 socket 通道
-                            DatagramChannel datagramChannel = getDatagramChannel(selectionKey);
+                            DatagramChannel datagramChannel = getChannel(selectionKey);
                             if (datagramChannel.isOpen() && selectionKey.isValid()) {
 
 								// 事件分发,包含时间 onRead onAccept
@@ -108,7 +99,7 @@ public class UdpSelector {
 										session.close();
 									}
 									//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误
-									else if(e.getStackTrace()[0].getClassName().contains("sun.nio.ch")){
+									else if(e.getStackTrace()[0].getClassName().contains("sun.tcp.ch")){
 										return;
 									} else if(e instanceof Exception){
 										//触发 onException 事件
@@ -219,7 +210,7 @@ public class UdpSelector {
      * @return SocketChannel 对象
      * @throws IOException  IO 异常
      */
-    public DatagramChannel getDatagramChannel(SelectionKey selectionKey)
+    public DatagramChannel getChannel(SelectionKey selectionKey)
             throws IOException {
         DatagramChannel datagramChannel = null;
         // 取得通道

@@ -1,4 +1,4 @@
-package org.voovan.network.nio;
+package org.voovan.network.tcp;
 
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
@@ -25,12 +25,11 @@ import java.nio.channels.spi.SelectorProvider;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class NioSocket extends SocketContext<SocketChannel> {
+public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	private SelectorProvider provider;
 	private Selector selector;
 	private SocketChannel socketChannel;
-	private NioSession session;
-	private NioSelector nioSelector;
+	private TcpSession session;
 
 	//用来阻塞当前Socket
 	private Object waitObj = new Object();
@@ -44,7 +43,7 @@ public class NioSocket extends SocketContext<SocketChannel> {
 	 * @param readTimeout   超时时间, 单位: 毫秒
 	 * @throws IOException	IO异常
 	 */
-	public NioSocket(String host,int port,int readTimeout) throws IOException{
+	public TcpSocket(String host, int port, int readTimeout) throws IOException{
 		super(host, port, readTimeout);
 	}
 
@@ -57,7 +56,7 @@ public class NioSocket extends SocketContext<SocketChannel> {
 	 * @param readTimeout   超时时间, 单位: 毫秒
 	 * @throws IOException	IO异常
 	 */
-	public NioSocket(String host,int port,int readTimeout, int idleInterval) throws IOException{
+	public TcpSocket(String host, int port, int readTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, idleInterval);
 	}
 
@@ -70,7 +69,7 @@ public class NioSocket extends SocketContext<SocketChannel> {
 	 * @param sendTimeout 发超时时间, 单位: 毫秒
 	 * @throws IOException	IO异常
 	 */
-	public NioSocket(String host,int port,int readTimeout, int sendTimeout, int idleInterval) throws IOException{
+	public TcpSocket(String host, int port, int readTimeout, int sendTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, sendTimeout, idleInterval);
 	}
 
@@ -79,7 +78,7 @@ public class NioSocket extends SocketContext<SocketChannel> {
 		socketChannel = provider.openSocketChannel();
 		socketChannel.socket().setSoTimeout(this.readTimeout);
 
-		session = new NioSession(this);
+		session = new TcpSession(this);
 		connectModel = ConnectModel.CLIENT;
 	}
 
@@ -88,7 +87,7 @@ public class NioSocket extends SocketContext<SocketChannel> {
 	 * @param parentSocketContext 父 SocketChannel 对象
 	 * @param socketChannel SocketChannel 对象
 	 */
-	protected NioSocket(SocketContext parentSocketContext,SocketChannel socketChannel){
+	protected TcpSocket(SocketContext parentSocketContext, SocketChannel socketChannel){
 		try {
 			provider = SelectorProvider.provider();
 			this.host = socketChannel.socket().getLocalAddress().getHostAddress();
@@ -97,7 +96,7 @@ public class NioSocket extends SocketContext<SocketChannel> {
 			socketChannel.configureBlocking(false);
 			this.copyFrom(parentSocketContext);
 			this.socketChannel().socket().setSoTimeout(this.readTimeout);
-			session = new NioSession(this);
+			session = new TcpSession(this);
 			connectModel = ConnectModel.SERVER;
 		} catch (IOException e) {
 			Logger.error("Create socket channel failed",e);
@@ -140,10 +139,10 @@ public class NioSocket extends SocketContext<SocketChannel> {
 			socketChannel.register(selector, SelectionKey.OP_READ);
 
 			if(socketChannel!=null && socketChannel.isOpen()){
-				nioSelector = new NioSelector(selector,this);
+				ioSelector = new TcpSelector(selector,this);
 				getEventRunner().addEvent(()->{
 					if(socketChannel.isConnected()) {
-						nioSelector.eventChose();
+						ioSelector.eventChose();
 					}
 				});
 			}
@@ -156,12 +155,8 @@ public class NioSocket extends SocketContext<SocketChannel> {
 	 * 获取 Session 对象
 	 * @return Session 对象
 	 */
-	public NioSession getSession(){
+	public TcpSession getSession(){
 		return session;
-	}
-
-	protected NioSelector getSelector() {
-		return nioSelector;
 	}
 
 	/**
@@ -217,7 +212,7 @@ public class NioSocket extends SocketContext<SocketChannel> {
 	 * @throws IOException IO 异常
 	 * @throws RestartException 重新启动的异常
 	 */
-	public NioSocket restart() throws IOException, RestartException {
+	public TcpSocket restart() throws IOException, RestartException {
 		if(this.connectModel == ConnectModel.CLIENT) {
 			init();
 			this.start();
@@ -234,7 +229,7 @@ public class NioSocket extends SocketContext<SocketChannel> {
 	 * @throws IOException IO 异常
 	 * @throws RestartException 重新启动的异常
 	 */
-	public NioSocket syncRestart() throws IOException, RestartException {
+	public TcpSocket syncRestart() throws IOException, RestartException {
 		if(this.connectModel == ConnectModel.CLIENT) {
 			init();
 			this.syncRestart();
@@ -293,7 +288,7 @@ public class NioSocket extends SocketContext<SocketChannel> {
 
 				EventTrigger.fireDisconnect(session);
 
-				nioSelector.release();
+				ioSelector.release();
 				selector.wakeup();
 				selector.close();
 				session.getReadByteBufferChannel().release();

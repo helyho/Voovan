@@ -320,7 +320,9 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return 接收数据大小
 	 * @throws IOException IO 异常
 	 */
-	protected abstract int read0() throws IOException;
+	protected int read0() throws IOException {
+		return socketContext().getSelector().readFromChannel();
+	}
 
 	/**
 	 * 直接从缓冲区读取数据
@@ -392,13 +394,15 @@ public abstract class IoSession<T extends SocketContext> {
 
 
 	/**
-	 * 发送消息
+	 * 发送消息到 JVM 的 SocketChannel
 	 * 		注意直接调用不会出发 onSent 事件
 	 * @param buffer  发送缓冲区
 	 * @return 读取的字节数
 	 * @throws IOException IO 异常
 	 */
-	protected abstract int send0(ByteBuffer buffer) throws IOException;
+	protected int send0(ByteBuffer buffer) throws IOException {
+		return socketContext().getSelector().writeToChannel(buffer);
+	}
 
 	/**
 	 * 发送消息到发送缓冲区

@@ -1,4 +1,4 @@
-package org.voovan.network.nio;
+package org.voovan.network.tcp;
 
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
@@ -6,7 +6,6 @@ import org.voovan.network.exception.RestartException;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 /**
@@ -18,7 +17,7 @@ import java.nio.channels.SocketChannel;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class NioSession extends IoSession<NioSocket> {
+public class TcpSession extends IoSession<TcpSocket> {
 	private SocketChannel		socketChannel;
 
 	/**
@@ -26,10 +25,10 @@ public class NioSession extends IoSession<NioSocket> {
 	 *
 	 *            socket 上下文对象
 	 */
-	NioSession(NioSocket nioSocket) {
-		super(nioSocket);
-		if (nioSocket != null) {
-			socketChannel = nioSocket.socketChannel();
+	TcpSession(TcpSocket tcpSocket) {
+		super(tcpSocket);
+		if (tcpSocket != null) {
+			socketChannel = tcpSocket.socketChannel();
 		}else{
 			Logger.error("Socket is null, please check it.");
 		}
@@ -101,17 +100,6 @@ public class NioSession extends IoSession<NioSocket> {
 			return null;
 		}
 	}
-
-	@Override
-	protected int read0() throws IOException {
-		return socketContext().getSelector().readFromChannel();
-	}
-
-	@Override
-	protected synchronized int send0(ByteBuffer buffer) throws IOException {
-		return socketContext().getSelector().writeToChannel(buffer);
-	}
-
 
 	@Override
 	protected MessageSplitter getMessagePartition() {
