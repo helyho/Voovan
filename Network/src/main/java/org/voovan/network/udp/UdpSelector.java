@@ -67,7 +67,7 @@ public class UdpSelector {
      */
     public void eventChose() {
 	    // 事件循环
-	    EventThread eventThread = socketContext.getEventThread();
+	    EventRunner eventRunner = socketContext.getEventRunner();
 
         // 事件循环
         try {
@@ -75,7 +75,7 @@ public class UdpSelector {
 	            int readyChannelCount = selector.selectNow();
 
 	            if (readyChannelCount==0) {
-		            if(eventThread.getEventQueue().isEmpty()) {
+		            if(eventRunner.getEventQueue().isEmpty()) {
 			            readyChannelCount = selector.select(1);
 		            } else {
 			            return;
@@ -109,7 +109,7 @@ public class UdpSelector {
 										return;
 									} else if(e instanceof Exception){
 										//触发 onException 事件
-										EventTrigger.fireExceptionThread(session, e);
+										EventTrigger.fireException(session, e);
 									}
 								}
                             }
@@ -119,10 +119,10 @@ public class UdpSelector {
             }
         } catch (IOException e) {
             // 触发 onException 事件
-            EventTrigger.fireExceptionThread(session, e);
+            EventTrigger.fireException(session, e);
         } finally {
 	        if(socketContext.isConnected()) {
-		        eventThread.addEvent(() -> {
+		        eventRunner.addEvent(() -> {
 			        if(socketContext.isConnected()) {
 				        eventChose();
 			        }
@@ -167,7 +167,7 @@ public class UdpSelector {
 
 		    if(appByteBufferChannel.size() > 0) {
 			    // 触发 onReceive 事件
-			    EventTrigger.fireReceiveThread(session);
+			    EventTrigger.fireReceive(session);
 		    }
 
 		    readTempBuffer.clear();

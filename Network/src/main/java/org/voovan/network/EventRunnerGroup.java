@@ -1,10 +1,8 @@
 package org.voovan.network;
 
-import org.voovan.Global;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.threadpool.ThreadPool;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,31 +14,31 @@ import java.util.concurrent.atomic.AtomicInteger;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class EventThreadPool {
+public class EventRunnerGroup {
 
 	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", TPerformance.getProcessorCount(), TPerformance.getProcessorCount(), 60*1000);
-	public static EventThreadPool EVENT_THREAD_POOL = new EventThreadPool(TPerformance.getProcessorCount());
+	public static EventRunnerGroup EVENT_THREAD_POOL = new EventRunnerGroup(TPerformance.getProcessorCount());
 
 	private AtomicInteger indexAtom = new AtomicInteger();
-	private EventThread[] eventThreads;
+	private EventRunner[] eventRunners;
 	private volatile int size;
 
-	public EventThreadPool(int size){
+	public EventRunnerGroup(int size){
 		this.size = size;
-		eventThreads = new EventThread[size];
+		eventRunners = new EventRunner[size];
 		for(int i=0;i<size;i++){
-			EventThread eventThread = new EventThread();
-			eventThreads[i] = eventThread;
-			IO_THREAD_POOL.execute(eventThread);
+			EventRunner eventRunner = new EventRunner();
+			eventRunners[i] = eventRunner;
+			IO_THREAD_POOL.execute(eventRunner);
 		}
 	}
 
-	public EventThread choseEventThread(){
+	public EventRunner choseEventRunner(){
 		int index = indexAtom.getAndUpdate((val) ->{
 			int newVal = val + 1;
 			return (size == newVal) ? 0 : newVal;
 		});
 
-		return eventThreads[index];
+		return eventRunners[index];
 	}
 }

@@ -11,7 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class EventThread implements Runnable{
+public class EventRunner implements Runnable{
 
 	private LinkedBlockingQueue<Runnable> eventQueue = new LinkedBlockingQueue<Runnable>();
 
@@ -19,7 +19,7 @@ public class EventThread implements Runnable{
 	 * 事件处理 Thread
 	 *
 	 */
-	public EventThread(){
+	public EventRunner(){
 	}
 
 	public void addEvent(Runnable runnable){

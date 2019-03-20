@@ -34,7 +34,7 @@ public abstract class SocketContext {
 	protected ConnectModel connectModel;
 	protected int readBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
 	protected int sendBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
-	private final EventThread eventThread = EventThreadPool.EVENT_THREAD_POOL.choseEventThread();
+	private final EventRunner eventRunner = EventRunnerGroup.EVENT_THREAD_POOL.choseEventRunner();
 
 	protected int idleInterval = 0;
 
@@ -113,8 +113,8 @@ public abstract class SocketContext {
 		this.readRecursionDepth = parentSocketContext.readRecursionDepth;
 	}
 
-	public EventThread getEventThread() {
-		return eventThread;
+	public EventRunner getEventRunner() {
+		return eventRunner;
 	}
 
 	/**

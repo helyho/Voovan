@@ -138,8 +138,8 @@ public abstract class IoSession<T extends SocketContext> {
 	}
 
 
-	public EventThread getEventThread() {
-		return socketContext().getEventThread();
+	public EventRunner getEventRunner() {
+		return socketContext().getEventRunner();
 	}
 
 	/**
