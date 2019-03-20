@@ -96,6 +96,7 @@ public class UdpSelector {
 								// 事件分发,包含时间 onRead onAccept
 								try {
 									if (selectionKey.isReadable()) {
+										session.setSelectionKey(selectionKey);
 										read(datagramChannel);
 									} else {
 										Logger.fremawork("Nothing to do ,SelectionKey is:" + selectionKey.readyOps());
