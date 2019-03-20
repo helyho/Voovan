@@ -9,6 +9,7 @@ import org.voovan.tools.log.Logger;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.TimeoutException;
 
 /**
  * NIO 会话连接对象
@@ -122,7 +123,8 @@ public class NioSession extends IoSession<NioSocket> {
 				int sendSize = socketChannel.write(buffer);
 				if(sendSize == 0 ){
 					TEnv.sleep(1);
-					if(System.currentTimeMillis() - start >= socketContext().getSendTimeout()){
+					if(System.currentTimeMillis() - start >= socketContext().getSendTimeout()) {
+						Logger.error("NioSession send0 timeout", new TimeoutException());
 						close();
 						return -1;
 					}
