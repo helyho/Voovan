@@ -517,27 +517,20 @@ public abstract class IoSession<T extends SocketContext> {
 	/**
 	 * 推送缓冲区的数据到 socketChannel
 	 */
-	public synchronized void flush() {
+	public void flush() {
 		if(sendByteBufferChannel.size()>0) {
 			try {
-				if(getState().sendTryLock()) {
-					try {
-						getState().setSend(true);
 				send0(sendByteBufferChannel.getByteBuffer());
 				//触发发送事件
 				EventTrigger.fireFlush(this);
-					} finally {
-						sendByteBufferChannel.compact();
-						getState().sendUnLock();
-						getState().setSend(false);
-					}
-				}
 			} catch (IOException e) {
 				if(isConnected()) {
 					if (socketContext.isConnected()) {
 						Logger.error("IoSession.flush buffer failed", e);
 					}
 				}
+			} finally {
+				sendByteBufferChannel.compact();
 			}
 		}
 	}

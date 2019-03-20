@@ -31,15 +31,7 @@ public class EventTrigger {
 	}
 
 	public static void fireReceiveThread(IoSession session){
-		// 当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
-		// 所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
-		// !hasEventDisposeing(EventName.ON_CONNECT) &&
-//		if (session.getState().receiveTryLock() && session.isOpen() && SSLParser.isHandShakeDone(session)) {
-			//设置接受状态
-//			session.getState().setReceive(true);
-
-			fireEventThread(session, Event.EventName.ON_RECEIVE, null);
-//		}
+		fireEventThread(session, Event.EventName.ON_RECEIVE, null);
 	}
 
 	public static void fireSentThread(IoSession session, Object obj){
@@ -81,13 +73,7 @@ public class EventTrigger {
 	}
 
 	public static void fireReceive(IoSession session){
-		//当消息长度大于缓冲区时,receive 会在缓冲区满了后就出发,这时消息还没有发送完,会被触发多次
-		//所以当有 receive 事件正在执行则抛弃后面的所有 receive 事件
-//		if (session.getState().receiveTryLock() && session.isOpen() && SSLParser.isHandShakeDone(session)) {
-			//设置接受状态
-//			session.getState().setReceive(true);
-			fireEvent(session, Event.EventName.ON_RECEIVE, null);
-//		}
+		fireEvent(session, Event.EventName.ON_RECEIVE, null);
 	}
 
 	public static void fireSent(IoSession session, Object obj){
