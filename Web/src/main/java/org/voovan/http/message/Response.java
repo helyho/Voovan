@@ -157,7 +157,7 @@ public class Response {
 			header.put(HttpStatic.CONTENT_LENGTH_STRING, Integer.toString((int)body.size()));
 		}
 
-		if (TString.isNullOrEmpty(header.get(HttpStatic.CONTENT_TYPE_STRING))) {
+		if (header.contain(HttpStatic.CONTENT_TYPE_STRING)) {
 			header.put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.TEXT_HTML_STRING  + WebContext.getWebServerConfig().getResponseCharacterSet());
 		} else {
 			header.put(HttpStatic.CONTENT_TYPE_STRING, header.get(HttpStatic.CONTENT_TYPE_STRING) + WebContext.getWebServerConfig().getResponseCharacterSet());
