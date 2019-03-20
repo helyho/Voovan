@@ -1,6 +1,5 @@
 package org.voovan.test.http;
 
-import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpRouter;

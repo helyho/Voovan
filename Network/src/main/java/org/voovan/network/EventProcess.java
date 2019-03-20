@@ -1,6 +1,5 @@
 package org.voovan.network;
 
-import org.voovan.Global;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
@@ -11,7 +10,6 @@ import org.voovan.tools.TByteBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.List;
 
 /**
  * 事件的实际逻辑处理

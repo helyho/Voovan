@@ -4,11 +4,9 @@ import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 

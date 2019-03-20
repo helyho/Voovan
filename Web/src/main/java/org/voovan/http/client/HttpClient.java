@@ -1,5 +1,6 @@
 package org.voovan.http.client;
 
+import org.voovan.http.HttpRequestType;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
@@ -7,7 +8,6 @@ import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.HttpRequest;
-import org.voovan.http.HttpRequestType;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;

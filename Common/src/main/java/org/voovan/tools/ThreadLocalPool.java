@@ -1,6 +1,5 @@
 package org.voovan.tools;
 
-import java.lang.ref.WeakReference;
 import java.util.LinkedList;
 import java.util.function.Supplier;
 

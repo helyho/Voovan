@@ -2,7 +2,6 @@ package org.voovan.test.tools.aop;
 
 import org.voovan.tools.aop.InterceptInfo;
 import org.voovan.tools.aop.annotation.*;
-import org.voovan.tools.aop.annotation.Abnormal;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 
