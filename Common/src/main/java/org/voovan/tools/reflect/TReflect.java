@@ -195,7 +195,6 @@ public class TReflect {
      * 获取 Field 的范型类型
      * @param field  field 对象
      * @return 返回范型类型数组
-     * @throws ClassNotFoundException 类找不到异常
      */
     public static Class[] getFieldGenericType(Field field) {
         Type fieldType = field.getGenericType();
@@ -280,7 +279,6 @@ public class TReflect {
      * @param name		   方法名
      * @param paramTypes   参数类型
      * @return			   方法对象
-     * @throws ReflectiveOperationException 反射异常
      */
     public static Method findMethod(Class<?> clazz, String name,
                                     Class<?>... paramTypes) {
@@ -317,7 +315,6 @@ public class TReflect {
      * @param name		   方法名
      * @param paramCount   参数数量
      * @return			   方法对象
-     * @throws ReflectiveOperationException 反射异常
      */
     public static Method[] findMethod(Class<?> clazz, String name,
                                       int paramCount) {
@@ -415,7 +412,6 @@ public class TReflect {
      * @param method  method 对象
      * @param parameterIndex 参数索引(大于0)参数索引位置[第一个参数为0,以此类推], (-1) 返回值
      * @return 返回范型类型数组
-     * @throws ClassNotFoundException 类找不到异常
      */
     public static Class[] getMethodParameterGenericType(Method method,int parameterIndex) {
         Class[] result = null;

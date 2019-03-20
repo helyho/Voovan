@@ -474,6 +474,7 @@ public class ByteBufferChannel {
      * 等待期望的数据长度
      * @param length  期望的数据长度
      * @param timeout 超时时间,单位: 毫秒
+     * @param supplier 每次等待数据所做的操作
      * @return true: 具备期望长度的数据, false: 等待数据超时
      */
     public boolean waitData(int length,int timeout, Supplier supplier){
@@ -494,6 +495,7 @@ public class ByteBufferChannel {
      * 从头部开始判断是否收到期望的数据
      * @param mark  期望出现的数据
      * @param timeout 超时时间,单位: 毫秒
+     * @param supplier 每次等待数据所做的操作
      * @return true: 具备期望长度的数据, false: 等待数据超时
      */
     public boolean waitData(byte[] mark, int timeout, Supplier supplier){

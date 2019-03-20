@@ -43,7 +43,6 @@ public class WebServer {
 	 * 构造函数
 	 *
 	 * @param config  WEB 配对对象
-	 * @throws IOException
 	 *             异常
 	 */
 	public WebServer(WebServerConfig config) {
