@@ -155,6 +155,7 @@ public class RingBuffer<T> {
 	 * 增加一个对象
 	 *
 	 * @param t 对象
+	 * @return true: 成功, false: 失败
 	 */
 	public boolean push(T t) {
 		if (isFull()) {

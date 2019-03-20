@@ -425,6 +425,7 @@ public class HttpParser {
 	 * 			3.cookie   解析成 List[Map[String,String]] 形式
 	 * 			3.part     解析成 List[Map[Stirng,Object]](因为是递归,参考 HTTP 解析形式) 形式
 	 * 			5.body     解析成 key=BODY_VALUE 的Map 元素
+	 * @param session socket 会话对象
 	 * @param packetMap 用于填充的解析 map
 	 * @param type 解析的报文类型
 	 * @param byteBufferChannel 输入流
@@ -809,6 +810,7 @@ public class HttpParser {
 
 	/**
 	 * 解析报文成 HttpRequest 对象
+	 * @param session socket 会话对象
 	 * @param byteBufferChannel  输入字节流
 	 * @param timeOut 读取超时时间参数
 	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
@@ -915,6 +917,7 @@ public class HttpParser {
 
 	/**
 	 * 解析报文成 HttpResponse 对象
+	 * @param session socket 会话对象
 	 * @param byteBufferChannel  输入字节流
 	 * @param timeOut 读取超时时间参数
 	 * @return   返回响应报文
