@@ -9,7 +9,6 @@ import org.voovan.http.server.router.OptionsRouter;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
 import org.voovan.network.SocketContext;
-import org.voovan.network.aio.AioServerSocket;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.network.nio.NioServerSocket;
 import org.voovan.tools.*;
@@ -47,7 +46,7 @@ public class WebServer {
 	 * @throws IOException
 	 *             异常
 	 */
-	public WebServer(WebServerConfig config) throws IOException {
+	public WebServer(WebServerConfig config) {
 		this.config = config;
 
 		initAop();
@@ -309,14 +308,10 @@ public class WebServer {
 	 */
 	public static WebServer newInstance(WebServerConfig config) {
 
-		try {
-			if(config!=null) {
-				return new WebServer(config);
-			}else{
-				Logger.error("Create WebServer failed: WebServerConfig object is null.");
-			}
-		} catch (IOException e) {
-			Logger.error("Create WebServer failed",e);
+		if(config!=null) {
+			return new WebServer(config);
+		}else{
+			Logger.error("Create WebServer failed: WebServerConfig object is null.");
 		}
 
 		return null;
@@ -330,14 +325,10 @@ public class WebServer {
 	 */
 	public static WebServer newInstance(String json) {
 
-		try {
-			if(json!=null) {
-				return new WebServer(WebContext.buildConfigFromJSON(json));
-			}else{
-				Logger.error("Create WebServer failed: WebServerConfig object is null.");
-			}
-		} catch (IOException e) {
-			Logger.error("Create WebServer failed",e);
+		if(json!=null) {
+			return new WebServer(WebContext.buildConfigFromJSON(json));
+		}else{
+			Logger.error("Create WebServer failed: WebServerConfig object is null.");
 		}
 
 		return null;

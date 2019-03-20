@@ -11,7 +11,6 @@ import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
-import org.voovan.network.aio.AioSocket;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
@@ -141,7 +140,6 @@ public class WebServerFilter implements IoFilter {
 
 				try {
 					response.send(session);
-					((AioSocket)session.socketContext()).socketChannel().shutdownInput();
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}

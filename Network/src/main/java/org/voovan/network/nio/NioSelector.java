@@ -103,7 +103,7 @@ public class NioSelector {
 										return;
 									} else if(e instanceof Exception){
 										//触发 onException 事件
-										EventTrigger.fireExceptionThread(session, e);
+										EventTrigger.fireException(session, e);
 									}
 								}
 							}
@@ -128,7 +128,7 @@ public class NioSelector {
 
 			if(e instanceof Exception){
 				//触发 onException 事件
-				EventTrigger.fireExceptionThread(session, e);
+				EventTrigger.fireException(session, e);
 			}
 		} finally {
 			if(socketContext.isConnected()) {
@@ -144,7 +144,7 @@ public class NioSelector {
 	public void accept(SocketChannel socketChannel){
 		NioServerSocket serverSocket = (NioServerSocket) socketContext;
 		NioSocket socket = new NioSocket(serverSocket, socketChannel);
-		EventTrigger.fireAcceptThread(socket.getSession());
+		EventTrigger.fireAccept(socket.getSession());
 	}
 
 
@@ -196,7 +196,7 @@ public class NioSelector {
 
 				if (appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
 					// 触发 onReceive 事件
-					EventTrigger.fireReceiveThread(session);
+					EventTrigger.fireReceive(session);
 				}
 
 				// 接收完成后重置buffer对象

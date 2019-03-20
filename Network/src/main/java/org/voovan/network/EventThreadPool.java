@@ -2,7 +2,10 @@ package org.voovan.network;
 
 import org.voovan.Global;
 import org.voovan.tools.TPerformance;
+import org.voovan.tools.threadpool.ThreadPool;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -15,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class EventThreadPool {
 
+	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", TPerformance.getProcessorCount(), TPerformance.getProcessorCount(), 60*1000);
 	public static EventThreadPool EVENT_THREAD_POOL = new EventThreadPool(TPerformance.getProcessorCount());
 
 	private AtomicInteger indexAtom = new AtomicInteger();
@@ -27,7 +31,7 @@ public class EventThreadPool {
 		for(int i=0;i<size;i++){
 			EventThread eventThread = new EventThread();
 			eventThreads[i] = eventThread;
-			Global.getThreadPool().execute(eventThread);
+			IO_THREAD_POOL.execute(eventThread);
 		}
 	}
 
