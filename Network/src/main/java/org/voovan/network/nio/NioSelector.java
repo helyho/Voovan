@@ -91,11 +91,12 @@ public class NioSelector {
 									// Server接受连接
 									if((selectionKey.readyOps() & SelectionKey.OP_ACCEPT) != 0){
 										accept(socketChannel);
-									} else {
-										// 有数据读取
-										if ((selectionKey.readyOps() & SelectionKey.OP_READ) != 0) {
-											read(socketChannel);
-										}
+									}
+
+									// 有数据读取
+									if ((selectionKey.readyOps() & SelectionKey.OP_READ) != 0) {
+										session.setSelectionKey(selectionKey);
+										read(socketChannel);
 									}
 								} catch (Exception e) {
 									//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误

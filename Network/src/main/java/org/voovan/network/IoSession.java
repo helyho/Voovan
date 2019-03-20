@@ -12,6 +12,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -37,6 +38,7 @@ public abstract class IoSession<T extends SocketContext> {
 	private HashWheelTask checkIdleTask;
 	private HeartBeat heartBeat;
 	private State state;
+	private SelectionKey selectionKey;
 
 	/**
 	 * 会话状态管理
@@ -138,8 +140,16 @@ public abstract class IoSession<T extends SocketContext> {
 	}
 
 
-	public EventRunner getEventRunner() {
+	protected EventRunner getEventRunner() {
 		return socketContext().getEventRunner();
+	}
+
+	public SelectionKey getSelectionKey() {
+		return selectionKey;
+	}
+
+	public void setSelectionKey(SelectionKey selectionKey) {
+		this.selectionKey = selectionKey;
 	}
 
 	/**
