@@ -30,7 +30,6 @@ public class ByteBufferChannel {
     private Unsafe unsafe = TUnsafe.getUnsafe();
     private ByteBuffer byteBuffer;
     private volatile int size;
-    //    private ReentrantLock lock;
     private AtomicBoolean borrowed = new AtomicBoolean(false);
 
     private int maxSize = BYTEBUFFERCHANNEL_MAX_SIZE==0 ? 1024*1024*2 : BYTEBUFFERCHANNEL_MAX_SIZE;
@@ -74,7 +73,6 @@ public class ByteBufferChannel {
      * @param capacity 分配的容量
      */
     private void init(int capacity){
-//        lock = new ReentrantLock(true);
         this.byteBuffer = newByteBuffer(capacity);
         byteBuffer.limit(0);
         resetAddress();
@@ -87,7 +85,6 @@ public class ByteBufferChannel {
      * @param byteBuffer 初始化用的 ByteBuffer
      */
     public void init(ByteBuffer byteBuffer){
-//        lock = new ReentrantLock(true);
         this.byteBuffer = byteBuffer;
         resetAddress();
         this.size = byteBuffer.remaining();
@@ -161,33 +158,23 @@ public class ByteBufferChannel {
         if(!Global.NO_HEAP_MANUAL_RELEASE || byteBuffer.getClass() != TByteBuffer.DIRECT_BYTE_BUFFER_CLASS) {
             return;
         }
-
-//        lock.lock();
-        try {
-            if (address.get() != 0) {
-                TByteBuffer.release(byteBuffer);
-                address.set(0);
-                byteBuffer = null;
-                size = -1;
-            }
-        } finally {
-//            while(lock.isLocked() && lock.isHeldByCurrentThread()) {
-//                lock.unlock();
-//            }
-        }
+;
+		if (address.get() != 0) {
+			TByteBuffer.release(byteBuffer);
+			address.set(0);
+			byteBuffer = null;
+			size = -1;
+		}
     }
 
     /**
      * 重新设置当前内存地址
      */
     private void resetAddress(){
-//        lock.lock();
         try {
             this.address.set(TByteBuffer.getAddress(byteBuffer));
         }catch (ReflectiveOperationException e){
             Logger.error("ByteBufferChannel resetAddress() Error: ", e);
-        } finally {
-//            lock.unlock();
         }
     }
 
@@ -200,12 +187,7 @@ public class ByteBufferChannel {
             return -1;
         }
 
-//        lock.lock();
-        try {
-            return byteBuffer.capacity() - size;
-        }finally {
-//            lock.unlock();
-        }
+		return byteBuffer.capacity() - size;
     }
 
     /**
@@ -217,12 +199,7 @@ public class ByteBufferChannel {
             return -1;
         }
 
-//        lock.lock();
-        try {
-            return byteBuffer.capacity();
-        }finally {
-//            lock.unlock();
-        }
+		return byteBuffer.capacity();
     }
 
     /**
@@ -245,17 +222,11 @@ public class ByteBufferChannel {
             return new byte[]{};
         }
 
-//        lock.lock();
+		checkRelease();
 
-        try {
-            checkRelease();
-
-            byte[] temp = new byte[size];
-            get(temp, 0, size);
-            return temp;
-        } finally {
-//            lock.unlock();
-        }
+		byte[] temp = new byte[size];
+		get(temp, 0, size);
+		return temp;
     }
 
     /**
@@ -267,15 +238,10 @@ public class ByteBufferChannel {
         }
 
         if(size!=0) {
-//            lock.lock();
-            try {
-                if (byteBuffer != null) {
-                    byteBuffer.limit(0);
-                    size = 0;
-                }
-            } finally {
-//                lock.unlock();
-            }
+			if (byteBuffer != null) {
+				byteBuffer.limit(0);
+				size = 0;
+			}
         }
     }
 
@@ -286,62 +252,57 @@ public class ByteBufferChannel {
      * @return true: 成功, false: 失败
      */
     public boolean shrink(int shrinkPosition, int shrinkSize){
-//        lock.lock();
-        try{
-            checkRelease();
+		checkRelease();
 
-            if(isReleased()){
-                return false;
-            }
+		if(isReleased()){
+			return false;
+		}
 
-            if(size()==0){
-                return true;
-            }
+		if(size()==0){
+			return true;
+		}
 
-            if(shrinkSize==0){
-                return true;
-            }
+		if(shrinkSize==0){
+			return true;
+		}
 
-            if(shrinkPosition < 0){
-                return false;
-            }
+		if(shrinkPosition < 0){
+			return false;
+		}
 
-            if(shrinkSize < 0 && shrinkPosition + shrinkSize < 0){
-                shrinkSize = shrinkPosition * -1;
-            }
+		if(shrinkSize < 0 && shrinkPosition + shrinkSize < 0){
+			shrinkSize = shrinkPosition * -1;
+		}
 
-            if(shrinkSize > 0 && shrinkPosition + shrinkSize > size()){
-                shrinkSize = size() - shrinkPosition;
-            }
+		if(shrinkSize > 0 && shrinkPosition + shrinkSize > size()){
+			shrinkSize = size() - shrinkPosition;
+		}
 
-            if(Math.abs(shrinkSize) > size){
-                return true;
-            }
+		if(Math.abs(shrinkSize) > size){
+			return true;
+		}
 
-            int position = byteBuffer.position();
-            byteBuffer.position(shrinkPosition);
-            if(shrinkSize > 0){
-                byteBuffer.position(shrinkPosition + shrinkSize);
-            }
-            if (TByteBuffer.moveData(byteBuffer, Math.abs(shrinkSize)*-1)) {
-                if(position > shrinkPosition){
-                    position = position + shrinkPosition;
-                }
+		int position = byteBuffer.position();
+		byteBuffer.position(shrinkPosition);
+		if(shrinkSize > 0){
+			byteBuffer.position(shrinkPosition + shrinkSize);
+		}
+		if (TByteBuffer.moveData(byteBuffer, Math.abs(shrinkSize)*-1)) {
+			if(position > shrinkPosition){
+				position = position + shrinkPosition;
+			}
 
-                if(position < byteBuffer.limit()) {
-                    byteBuffer.position(position);
-                }
+			if(position < byteBuffer.limit()) {
+				byteBuffer.position(position);
+			}
 
-                size = size - Math.abs(shrinkSize);
-                return true;
-            }else{
-                //收缩失败了,重置原 position 的位置
-                byteBuffer.position(position);
-                return false;
-            }
-        } finally {
-//            lock.unlock();
-        }
+			size = size - Math.abs(shrinkSize);
+			return true;
+		}else{
+			//收缩失败了,重置原 position 的位置
+			byteBuffer.position(position);
+			return false;
+		}
     }
 
     /**
@@ -351,19 +312,12 @@ public class ByteBufferChannel {
      * @return true: 成功, false: 失败
      */
     public boolean shrink(int shrinkSize){
-
-//        lock.lock();
-
-        try{
-            if(shrinkSize==0){
-                return true;
-            }else if(shrinkSize > 0)
-                return shrink(0, shrinkSize);
-            else
-                return shrink(size, shrinkSize);
-        } finally {
-//            lock.unlock();
-        }
+		if(shrinkSize==0){
+			return true;
+		}else if(shrinkSize > 0)
+			return shrink(0, shrinkSize);
+		else
+			return shrink(size, shrinkSize);
     }
 
 
@@ -374,25 +328,19 @@ public class ByteBufferChannel {
      * @return byte 数据
      */
     public byte get(int position) throws IndexOutOfBoundsException {
-//        lock.lock();
+		checkRelease();
 
-        try{
-            checkRelease();
+		if(size()==0){
+			throw new IndexOutOfBoundsException();
+		}
 
-            if(size()==0){
-                throw new IndexOutOfBoundsException();
-            }
-
-            if(position >= 0 && position <= size) {
-                byte result = unsafe.getByte(address.get() + position);
-                return result;
-            } else {
-                checkRelease();
-                throw new IndexOutOfBoundsException();
-            }
-        } finally {
-//            lock.unlock();
-        }
+		if(position >= 0 && position <= size) {
+			byte result = unsafe.getByte(address.get() + position);
+			return result;
+		} else {
+			checkRelease();
+			throw new IndexOutOfBoundsException();
+		}
     }
 
     /**
@@ -404,40 +352,34 @@ public class ByteBufferChannel {
      * @return 获取数据的长度
      */
     public int get(byte[] dst, int position, int length) throws IndexOutOfBoundsException {
-//        lock.lock();
+		checkRelease();
 
-        try {
-            checkRelease();
+		if(size()==0){
+			return 0;
+		}
 
-            if(size()==0){
-                return 0;
-            }
+		int availableCount = size() - position;
 
-            int availableCount = size() - position;
+		if(position >= 0 && availableCount >= 0) {
 
-            if(position >= 0 && availableCount >= 0) {
+			if(availableCount == 0){
+				return 0;
+			}
 
-                if(availableCount == 0){
-                    return 0;
-                }
+			int arrSize = availableCount;
 
-                int arrSize = availableCount;
+			if(length < availableCount){
+				arrSize = length;
+			}
 
-                if(length < availableCount){
-                    arrSize = length;
-                }
+			unsafe.copyMemory(null, address.get() + position, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
 
-                unsafe.copyMemory(null, address.get() + position, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
+			return arrSize;
 
-                return arrSize;
-
-            } else {
-                checkRelease();
-                throw new IndexOutOfBoundsException();
-            }
-        } finally {
-//            lock.unlock();
-        }
+		} else {
+			checkRelease();
+			throw new IndexOutOfBoundsException();
+		}
     }
 
     /**
@@ -481,7 +423,6 @@ public class ByteBufferChannel {
      */
     public ByteBuffer slice(int size){
 
-//        lock.lock();
         int oldLimit = byteBuffer.limit();
         try {
             checkRelease();
@@ -490,7 +431,6 @@ public class ByteBufferChannel {
             return byteBuffer.slice();
         } finally {
             byteBuffer.limit(oldLimit);
-//            lock.unlock();
         }
     }
 
@@ -504,43 +444,30 @@ public class ByteBufferChannel {
      */
     public boolean compact(){
         if(isReleased()){
-//            if(lock.isHeldByCurrentThread() && borrowed.compareAndSet(true, false)) {
-//                lock.unlock();
-//            }
             return false;
         }
 
         if(size()==0 && !byteBuffer.hasRemaining()){
-//            if(lock.isHeldByCurrentThread() && borrowed.compareAndSet(true, false)){
-//                lock.unlock();
-//            }
             return true;
         }
 
-        try{
+		if(byteBuffer.position() == 0){
+			this.size = byteBuffer.limit();
+			return true;
+		}
 
-            if(byteBuffer.position() == 0){
-                this.size = byteBuffer.limit();
-                return true;
-            }
+		int position = byteBuffer.position();
+		int limit = byteBuffer.limit();
+		boolean result = false;
+		if(TByteBuffer.moveData(byteBuffer, position*-1)) {
+			byteBuffer.position(0);
+			size = limit - position;
+			byteBuffer.limit(size);
 
-            int position = byteBuffer.position();
-            int limit = byteBuffer.limit();
-            boolean result = false;
-            if(TByteBuffer.moveData(byteBuffer, position*-1)) {
-                byteBuffer.position(0);
-                size = limit - position;
-                byteBuffer.limit(size);
+			result = true;
+		}
+		return result;
 
-                result = true;
-            }
-            return result;
-
-        } finally {
-//            if(borrowed.compareAndSet(true, false)) {
-//                lock.unlock();
-//            }
-        }
     }
 
     /**
@@ -588,25 +515,19 @@ public class ByteBufferChannel {
      * @throws LargerThanMaxSizeException 通道容量不足的一场
      */
     public boolean reallocate(int newSize) throws LargerThanMaxSizeException {
-//        lock.lock();
+		checkRelease();
 
-        try{
-            checkRelease();
+		//检查分配内存是否超过限额
+		if(maxSize < newSize){
+			throw new LargerThanMaxSizeException("Max size: " + maxSize + ", expect size: " + newSize);
+		}
 
-            //检查分配内存是否超过限额
-            if(maxSize < newSize){
-                throw new LargerThanMaxSizeException("Max size: " + maxSize + ", expect size: " + newSize);
-            }
-
-            if (TByteBuffer.reallocate(byteBuffer, newSize)) {
-                resetAddress();
-                return true;
-            }else{
-                return false;
-            }
-        } finally {
-//            lock.unlock();
-        }
+		if (TByteBuffer.reallocate(byteBuffer, newSize)) {
+			resetAddress();
+			return true;
+		}else{
+			return false;
+		}
     }
 
     /**
@@ -616,54 +537,49 @@ public class ByteBufferChannel {
      * @return 写入的数据大小
      */
     public int write(int writePosition, ByteBuffer src) {
-//        lock.lock();
 
-        try {
-            checkRelease();
+		checkRelease();
 
-            if(src.remaining() == 0){
-                return 0;
-            }
+		if(src.remaining() == 0){
+			return 0;
+		}
 
-            if (src == null) {
-                return -1;
-            }
+		if (src == null) {
+			return -1;
+		}
 
-            int writeSize = src.limit() - src.position();
+		int writeSize = src.limit() - src.position();
 
-            if (writeSize > 0) {
-                //是否扩容
-                if (available() < writeSize) {
-                    int newSize = byteBuffer.capacity() + writeSize;
-                    reallocate(newSize);
-                }
+		if (writeSize > 0) {
+			//是否扩容
+			if (available() < writeSize) {
+				int newSize = byteBuffer.capacity() + writeSize;
+				reallocate(newSize);
+			}
 
-                int position = byteBuffer.position();
-                byteBuffer.position(writePosition);
+			int position = byteBuffer.position();
+			byteBuffer.position(writePosition);
 
-                if(TByteBuffer.moveData(byteBuffer, writeSize)){
+			if(TByteBuffer.moveData(byteBuffer, writeSize)){
 
-                    size = size + writeSize;
-                    byteBuffer.limit(size);
-                    byteBuffer.position(writePosition);
-                    byteBuffer.put(src);
+				size = size + writeSize;
+				byteBuffer.limit(size);
+				byteBuffer.position(writePosition);
+				byteBuffer.put(src);
 
-                    if (position > writePosition) {
-                        position = position + writeSize;
-                    }
+				if (position > writePosition) {
+					position = position + writeSize;
+				}
 
-                    byteBuffer.position(position);
-                } else {
-                    checkRelease();
-                    throw new RuntimeException("move data failed");
-                }
-            }
+				byteBuffer.position(position);
+			} else {
+				checkRelease();
+				throw new RuntimeException("move data failed");
+			}
+		}
 
-            return writeSize;
+		return writeSize;
 
-        } finally {
-//            lock.unlock();
-        }
     }
 
     /**
@@ -672,16 +588,9 @@ public class ByteBufferChannel {
      * @return 写入的数据大小
      */
     public int writeEnd(ByteBuffer src) {
-        //这里加锁的作用是防止 size 发生变化
-//        lock.lock();
+		checkRelease();
 
-        try {
-            checkRelease();
-
-            return write(size(), src);
-        } finally {
-//            lock.unlock();
-        }
+		return write(size(), src);
     }
 
     /**
@@ -708,16 +617,9 @@ public class ByteBufferChannel {
      * @return 读出的数据大小
      */
     public int readEnd(ByteBuffer dst) {
-        //这里加锁的作用是防止 size 发生变化
-//        lock.lock();
+		checkRelease();
 
-        try {
-            checkRelease();
-
-            return read( size()-dst.limit(), dst );
-        } finally {
-//            lock.unlock();
-        }
+		return read( size()-dst.limit(), dst );
     }
 
     /**
@@ -727,57 +629,49 @@ public class ByteBufferChannel {
      * @return 读出的数据大小
      */
     public int read(int readPosition, ByteBuffer dst) {
-//        lock.lock();
+		checkRelease();
 
-        try {
-            checkRelease();
+		if(dst.remaining() == 0){
+			return 0;
+		}
 
-            if(dst.remaining() == 0){
-                return 0;
-            }
+		if(dst==null){
+			return -1;
+		}
 
-            if(dst==null){
-                return -1;
-            }
+		int readSize = 0;
 
-            int readSize = 0;
+		//确定读取大小
+		if (dst.remaining() > size - readPosition) {
+			readSize = size - readPosition;
+		} else {
+			readSize = dst.remaining();
+		}
 
-            //确定读取大小
-            if (dst.remaining() > size - readPosition) {
-                readSize = size - readPosition;
-            } else {
-                readSize = dst.remaining();
-            }
+		if (readSize != 0) {
+			int position = byteBuffer.position();
+			byteBuffer.position(readPosition);
 
-            if (readSize != 0) {
-                int position = byteBuffer.position();
-                byteBuffer.position(readPosition);
+			for (int i = 0; i < readSize; i++) {
+				dst.put(byteBuffer.get());
+			}
 
-                for (int i = 0; i < readSize; i++) {
-                    dst.put(byteBuffer.get());
-                }
+			if (TByteBuffer.moveData(byteBuffer, (readSize*-1))) {
+				size = size - readSize;
+				byteBuffer.limit(size);
 
-                if (TByteBuffer.moveData(byteBuffer, (readSize*-1))) {
-                    size = size - readSize;
-                    byteBuffer.limit(size);
+				if(position > readPosition){
+					position = position + (readSize*-1);
+				}
 
-                    if(position > readPosition){
-                        position = position + (readSize*-1);
-                    }
+				byteBuffer.position(position);
+			} else {
+				dst.reset();
+			}
+		}
 
-                    byteBuffer.position(position);
-                } else {
-                    dst.reset();
-                }
-            }
-
-            dst.flip();
-            return readSize;
-
-        } finally {
-//            lock.unlock();
-        }
-
+		dst.flip();
+		return readSize;
     }
 
     /**
@@ -787,19 +681,13 @@ public class ByteBufferChannel {
      * @return 第一个字节的索引位置
      */
     public int indexOf(byte[] mark){
-//        lock.lock();
+		checkRelease();
 
-        try {
-            checkRelease();
+		if(size() == 0){
+			return -1;
+		}
 
-            if(size() == 0){
-                return -1;
-            }
-
-            return TByteBuffer.indexOf(byteBuffer, mark);
-        } finally {
-//            lock.unlock();
-        }
+		return TByteBuffer.indexOf(byteBuffer, mark);
     }
 
     /**

@@ -46,11 +46,7 @@ public abstract class IoSession<T extends SocketContext> {
 	public class State {
 		private boolean init = true;
 		private boolean connect = false;
-		private boolean receive = false;
-		private boolean send = false;
 		private boolean close = false;
-		private Semaphore receiveLock = new Semaphore(1, true);
-		private Semaphore sendLock = new Semaphore(1, true);
 
 		public boolean isInit() {
 			return init;
@@ -68,60 +64,12 @@ public abstract class IoSession<T extends SocketContext> {
 			this.connect = connect;
 		}
 
-		public boolean isReceive() {
-			return receive;
-		}
-
-		public void setReceive(boolean receive) {
-			this.receive = receive;
-		}
-
-		public boolean isSend() {
-			return send;
-		}
-
-		public void setSend(boolean send) {
-			this.send = send;
-		}
-
 		public boolean isClose() {
 			return close;
 		}
 
 		public void setClose(boolean close) {
 			this.close = close;
-		}
-
-		protected Semaphore getReceiveLock() {
-			return receiveLock;
-		}
-
-		protected void receiveLock() throws InterruptedException {
-			receiveLock.acquire();
-		}
-
-		protected boolean receiveTryLock(){
-			return receiveLock.tryAcquire();
-		}
-
-		protected void receiveUnLock(){
-			receiveLock.release();
-		}
-
-		protected Semaphore getSendLock() {
-			return sendLock;
-		}
-
-		protected void sendLock() throws InterruptedException {
-			sendLock.acquire();
-		}
-
-		protected boolean sendTryLock(){
-			return sendLock.tryAcquire();
-		}
-
-		protected void sendUnLock(){
-			sendLock.release();
 		}
 	}
 
@@ -184,8 +132,7 @@ public abstract class IoSession<T extends SocketContext> {
 
 						//初始化状态
 						if(session.state.isInit() ||
-								session.state.isConnect() ||
-								session.state.isSend()) {
+								session.state.isConnect()) {
 							return;
 						}
 
@@ -196,11 +143,7 @@ public abstract class IoSession<T extends SocketContext> {
 						}
 
 						//获取连接状态
-						if(session.socketContext() instanceof UdpSocket) {
-							isConnect = session.isOpen();
-						}else {
-							isConnect = session.isConnected();
-						}
+						isConnect = session.isConnected();
 
 						if(!isConnect){
 							session.cancelIdle();
@@ -578,22 +521,6 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @return	true: 打开,false: 关闭
 	 */
 	public abstract boolean isOpen();
-
-	/**
-	 * 等待所有处理都被处理完成
-	 * 		ByteBufferChannel.size() = 0时,或者超时后退出
-	 * @param waitTime 超时事件
-	 * @return true: 数据处理完退出, false:超时退出
-	 */
-	public boolean wait(int waitTime){
-		messageLoader.close();
-		try {
-			TEnv.wait(waitTime, ()->state.isReceive());
-			return true;
-		} catch (TimeoutException e) {
-			return false;
-		}
-	}
 
 	/**
 	 * 关闭会话

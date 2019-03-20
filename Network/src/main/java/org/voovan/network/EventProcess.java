@@ -59,8 +59,7 @@ public class EventProcess {
         if (session != null && session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
             try {
                 if (session.getSSLParser().doHandShake() &&
-                        session.getReadByteBufferChannel().size() > 0 &&
-                        !session.getState().isReceive()) {
+                        session.getReadByteBufferChannel().size() > 0) {
 
                     //将握手后的剩余数据进行处理, 并触发 onRecive 事件
                     ByteBufferChannel byteBufferChannel = new ByteBufferChannel();
@@ -155,9 +154,6 @@ public class EventProcess {
             } finally {
                 //释放 onRecive 锁
                 if(currentRecursionDepth == 0) {
-
-                    session.getState().setReceive(false);
-                    session.getState().receiveUnLock();
 
                     if(session.getSendByteBufferChannel().size() > 0) {
                         //异步处理 flush
