@@ -18,7 +18,7 @@ import org.voovan.network.SSLManager;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
-import org.voovan.network.nio.NioSocket;
+import org.voovan.network.tcp.TcpSocket;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
@@ -47,7 +47,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class HttpClient implements Closeable{
 
-	private NioSocket socket;
+	private TcpSocket socket;
 	private HttpRequest httpRequest;
 	private Map<String, Object> parameters;
 	private String charset="UTF-8";
@@ -141,7 +141,7 @@ public class HttpClient implements Closeable{
 
 			parameters = new HashMap<String, Object>();
 
-			socket = new NioSocket(hostString, port==-1?80:port, timeOut*1000);
+			socket = new TcpSocket(hostString, port==-1?80:port, timeOut*1000);
 			socket.filterChain().add(new HttpClientFilter(this));
 			socket.messageSplitter(new HttpMessageSplitter());
 
@@ -174,7 +174,7 @@ public class HttpClient implements Closeable{
 	 * 获取 Socket 连接
 	 * @return Socket对象
 	 */
-	protected NioSocket getSocket(){
+	protected TcpSocket getSocket(){
 		return socket;
 	}
 

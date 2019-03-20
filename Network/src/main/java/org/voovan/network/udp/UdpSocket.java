@@ -2,12 +2,11 @@ package org.voovan.network.udp;
 
 import org.voovan.network.ConnectModel;
 import org.voovan.network.EventTrigger;
+import org.voovan.network.IoSelector;
 import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.RestartException;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.network.nio.NioSelector;
-import org.voovan.network.nio.NioSocket;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -27,13 +26,12 @@ import java.nio.channels.spi.SelectorProvider;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class UdpSocket extends SocketContext<DatagramChannel> {
+public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
 
     private SelectorProvider provider;
     private Selector selector;
     private DatagramChannel datagramChannel;
     private UdpSession session;
-    private UdpSelector udpSelector;
 
     //用来阻塞当前Socket
     private Object waitObj = new Object();
@@ -137,11 +135,11 @@ public class UdpSocket extends SocketContext<DatagramChannel> {
         try{
             selector = provider.openSelector();
             datagramChannel.register(selector, SelectionKey.OP_READ);
-            udpSelector = new UdpSelector(selector, this);
+            ioSelector = new UdpSelector(selector, this);
 
             getEventRunner().addEvent(()->{
                 if(datagramChannel.isConnected()) {
-                    udpSelector.eventChose();
+                    ioSelector.eventChose();
                 }
             });
         }catch(IOException e){
@@ -156,10 +154,6 @@ public class UdpSocket extends SocketContext<DatagramChannel> {
      */
     public UdpSession getSession(){
         return session;
-    }
-
-    protected UdpSelector getSelector() {
-        return udpSelector;
     }
 
     @Override
@@ -269,7 +263,7 @@ public class UdpSocket extends SocketContext<DatagramChannel> {
             try{
                 datagramChannel.close();
 
-                udpSelector.release();
+                ioSelector.release();
                 selector.wakeup();
                 selector.close();
                 session.getReadByteBufferChannel().release();

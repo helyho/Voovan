@@ -64,7 +64,7 @@ public class HttpClientFilter implements IoFilter {
 				if(HttpRequestType.WEBSOCKET.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))){
 					return WebSocketFrame.parse((ByteBuffer)object);
 				}else {
-					Response response = HttpParser.parseResponse(byteBufferChannel, session.socketContext().getReadTimeout());
+					Response response = HttpParser.parseResponse(session, byteBufferChannel, session.socketContext().getReadTimeout());
 					if(response.protocol().getStatus() == 101 &&
 							response.header().get("Sec-WebSocket-Accept").equals("F2D56gI8wPj3dJw+vgY0KFJEtIM=")){
 

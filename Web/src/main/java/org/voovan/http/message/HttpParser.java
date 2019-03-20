@@ -6,17 +6,22 @@ import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.exception.ParserException;
 import org.voovan.http.server.exception.RequestTooLarge;
+import org.voovan.network.IoSession;
+import org.voovan.network.tcp.TcpSession;
 import org.voovan.tools.*;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.security.THash;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.function.Supplier;
 
 /**
  * Http 报文解析类
@@ -27,6 +32,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * Licence: Apache v2 License
  */
 public class HttpParser {
+	public static final Method SESSIONM_READ0 = TReflect.findMethod(TcpSession.class, "read0");
 
 	private static final String PL_METHOD = "1";
 	private static final String PL_PATH = "2";
@@ -427,7 +433,7 @@ public class HttpParser {
 	 * @return 解析后的 Map
 	 * @throws IOException IO 异常
 	 */
-	public static Map<String, Object> parser(Map<String, Object> packetMap, int type, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
+	public static Map<String, Object> parser(IoSession session, Map<String, Object> packetMap, int type, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
 		int totalLength = 0;
 		boolean isBodyConent = false;
 
@@ -507,7 +513,7 @@ public class HttpParser {
 			}
 
 			//如果 消息缓冲通道没有数据或已关闭
-			if( "GET".equals(packetMap.get(PL_METHOD)) && ( byteBufferChannel.size() <= 0 || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING) )) {
+			if( "GET".equals(packetMap.get(PL_METHOD)) && ( byteBufferChannel.size() == 0 || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING) )) {
                 if (WebContext.isCache()) {
                     HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
                     cachedPacketMap.putAll(packetMap);
@@ -520,6 +526,19 @@ public class HttpParser {
 			isBodyConent = true;
 
 			packetMap.put(PL_HASH, null);
+
+			Supplier contiuneRead = ()->{
+				try {
+					if(session!=null) {
+						return TReflect.invokeMethod(session, SESSIONM_READ0);
+					} else {
+						return -1;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					return -1;
+				}
+			};
 
 			//解析 HTTP 请求 body
 			if(isBodyConent){
@@ -537,7 +556,7 @@ public class HttpParser {
 					ByteBuffer boundaryEnd = ByteBuffer.allocate(2);
 					while(true) {
 						//等待数据
-						if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut)) {
+						if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut, contiuneRead)) {
 							throw new ParserException("Http Parser readFromChannel data error");
 						}
 
@@ -566,7 +585,7 @@ public class HttpParser {
 
 						byte[] boundaryMark = HttpStatic.BODY_MARK.getBytes();
 						//等待数据
-						if (!byteBufferChannel.waitData(boundaryMark, timeOut)) {
+						if (!byteBufferChannel.waitData(boundaryMark, timeOut, contiuneRead)) {
 							throw new ParserException("Http Parser readFromChannel data error");
 						}
 
@@ -600,7 +619,7 @@ public class HttpParser {
 						//普通参数处理
 						if (fileName == null) {
 							//等待数据
-							if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut)) {
+							if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut, contiuneRead)) {
 								throw new ParserException("Http Parser readFromChannel data error");
 							}
 
@@ -630,7 +649,7 @@ public class HttpParser {
 								try {
 									dataLength = byteBufferChannel.size();
 									//等待数据, 1毫秒超时
-									if (byteBufferChannel.waitData(boundary.getBytes(), 1)) {
+									if (byteBufferChannel.waitData(boundary.getBytes(), 1, contiuneRead)) {
 										isFileRecvDone = true;
 									}
 								} finally {
@@ -693,7 +712,7 @@ public class HttpParser {
 					while(chunkedLengthLine!=null){
 
 						// 等待数据
-						if(!byteBufferChannel.waitData("\r\n".getBytes(), timeOut)){
+						if(!byteBufferChannel.waitData("\r\n".getBytes(), timeOut, contiuneRead)){
 							throw new ParserException("Http Parser readFromChannel data error");
 						}
 
@@ -717,7 +736,7 @@ public class HttpParser {
 						}
 
 						// 等待数据
-						if(!byteBufferChannel.waitData(chunkedLength, timeOut)){
+						if(!byteBufferChannel.waitData(chunkedLength, timeOut, contiuneRead)){
 							throw new ParserException("Http Parser readFromChannel data error");
 						}
 
@@ -768,7 +787,7 @@ public class HttpParser {
 
 
 					// 等待数据
-					if(!byteBufferChannel.waitData(contentLength, timeOut)){
+					if(!byteBufferChannel.waitData(contentLength, timeOut, contiuneRead)){
 						throw new ParserException("Http Parser readFromChannel data error");
 					}
 
@@ -797,13 +816,14 @@ public class HttpParser {
 	 * @throws IOException IO 异常
 	 */
 	@SuppressWarnings("unchecked")
-	public static Request parseRequest(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException {
+	public static Request parseRequest(IoSession session, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException {
 		Request request = null;
 
 		Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
 		try {
-			packetMap = parser(packetMap, 0, byteBufferChannel, timeOut, requestMaxSize);
+			packetMap = parser(session, packetMap, 0, byteBufferChannel, timeOut, requestMaxSize);
 		} catch (ParserException e) {
+			byteBufferChannel.clear();
 			Logger.warn("HttpParser.parser: " + e.getMessage());
 			return null;
 		}
@@ -901,12 +921,13 @@ public class HttpParser {
 	 * @throws IOException IO 异常
 	 */
 	@SuppressWarnings("unchecked")
-	public static Response parseResponse(ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
+	public static Response parseResponse(IoSession session, ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
 		Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
 		try {
-			packetMap = parser(packetMap, 1, byteBufferChannel, timeOut, -1);
+			packetMap = parser(session, packetMap, 1, byteBufferChannel, timeOut, -1);
 			packetMap.remove(PL_HASH);
 		} catch (ParserException e) {
+			byteBufferChannel.clear();
 			Logger.warn("HttpParser.parser: " + e.getMessage());
 			return null;
 		}

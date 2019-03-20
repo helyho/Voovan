@@ -20,7 +20,7 @@ import java.net.SocketOption;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public abstract class SocketContext<M> {
+public abstract class SocketContext<C, S> {
 
 	protected String host;
 	protected int port;
@@ -40,6 +40,7 @@ public abstract class SocketContext<M> {
 
 	protected int readRecursionDepth = 1;
 
+	protected IoSelector ioSelector;
 
 	/**
 	 * 构造函数
@@ -145,7 +146,7 @@ public abstract class SocketContext<M> {
 	 * 获取 SocketChannel 对象
 	 * @return SocketChannel 对象
 	 */
-	public abstract M socketChannel();
+	public abstract C socketChannel();
 
 	public int getReadBufferSize() {
 		return readBufferSize;
@@ -184,6 +185,10 @@ public abstract class SocketContext<M> {
 	 */
 	protected SocketContext() {
 		filterChain = new Chain<IoFilter>();
+	}
+
+	public IoSelector<C, S> getSelector() {
+		return ioSelector;
 	}
 
 	/**

@@ -114,47 +114,43 @@ public class HeartBeat {
 
         HeartBeat heartBeat = session.getHeartBeat();
 
-        try {
-            //收个心跳返回成功
-            if (heartBeat.isFirstBeat) {
-                heartBeat.isFirstBeat = false;
-                if (session.socketContext().getConnectModel() == ConnectModel.CLIENT) {
-                    //等待这个时间的目的是为了等待客户端那边的心跳检测启动
-                    TEnv.sleep(session.getIdleInterval());
-                    session.send0(ByteBuffer.wrap(heartBeat.ping));
-                }
-                return true;
-            }
+		//收个心跳返回成功
+		if (heartBeat.isFirstBeat) {
+			heartBeat.isFirstBeat = false;
+			if (session.socketContext().getConnectModel() == ConnectModel.CLIENT) {
+				//等待这个时间的目的是为了等待客户端那边的心跳检测启动
+				TEnv.sleep(session.getIdleInterval());
+				session.send(ByteBuffer.wrap(heartBeat.ping));
+			}
+			return true;
+		}
 
-            //弥补双方发送的时间差,等待心跳到来,如果超过空闲事件周期则认为是失败
-            int waitCount = 0;
-            while (heartBeat.getQueue().size() == 0) {
-                TEnv.sleep(1);
-                waitCount++;
-                if (waitCount >= session.getIdleInterval() * 1000) {
-                    break;
-                }
-            }
+		//弥补双方发送的时间差,等待心跳到来,如果超过空闲事件周期则认为是失败
+		int waitCount = 0;
+		while (heartBeat.getQueue().size() == 0) {
+			TEnv.sleep(1);
+			waitCount++;
+			if (waitCount >= session.getIdleInterval() * 1000) {
+				break;
+			}
+		}
 
-            if (heartBeat.getQueue().size() > 0) {
-                int beatType = heartBeat.getQueue().pollFirst();
+		if (heartBeat.getQueue().size() > 0) {
+			int beatType = heartBeat.getQueue().pollFirst();
 
-                if (beatType == 1) {
-                    session.send0(ByteBuffer.wrap(heartBeat.pong));
-                    heartBeat.fieldCount = 0;
-                    return true;
-                } else if (beatType == 2) {
-                    session.send0(ByteBuffer.wrap(heartBeat.ping));
-                    heartBeat.fieldCount = 0;
-                    return true;
-                } else {
-                    heartBeat.fieldCount++;
-                    return false;
-                }
-            }
-        } catch (IOException e){
-            Logger.error("Heart beat failed: ", e);
-        }
+			if (beatType == 1) {
+				session.send(ByteBuffer.wrap(heartBeat.pong));
+				heartBeat.fieldCount = 0;
+				return true;
+			} else if (beatType == 2) {
+				session.send(ByteBuffer.wrap(heartBeat.ping));
+				heartBeat.fieldCount = 0;
+				return true;
+			} else {
+				heartBeat.fieldCount++;
+				return false;
+			}
+		}
 
         heartBeat.fieldCount++;
         return false;

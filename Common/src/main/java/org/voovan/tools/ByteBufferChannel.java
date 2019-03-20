@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 /**
  * ByteBuffer双向通道
@@ -476,10 +477,11 @@ public class ByteBufferChannel {
      * @param timeout 超时时间,单位: 毫秒
      * @return true: 具备期望长度的数据, false: 等待数据超时
      */
-    public boolean waitData(int length,int timeout){
+    public boolean waitData(int length,int timeout, Supplier supplier){
         try {
             TEnv.wait(timeout, ()->{
                 checkRelease();
+	            supplier.get();
                 return size() < length;
             });
             return true;
@@ -495,11 +497,12 @@ public class ByteBufferChannel {
      * @param timeout 超时时间,单位: 毫秒
      * @return true: 具备期望长度的数据, false: 等待数据超时
      */
-    public boolean waitData(byte[] mark, int timeout){
+    public boolean waitData(byte[] mark, int timeout, Supplier supplier){
 
         try {
             TEnv.wait(timeout, ()->{
                 checkRelease();
+	            supplier.get();
                 return indexOf(mark) == -1;
             });
             return true;

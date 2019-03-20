@@ -197,7 +197,7 @@ public class TReflect {
      * @return 返回范型类型数组
      * @throws ClassNotFoundException 类找不到异常
      */
-    public static Class[] getFieldGenericType(Field field) throws ClassNotFoundException {
+    public static Class[] getFieldGenericType(Field field) {
         Type fieldType = field.getGenericType();
         return getGenericClass((ParameterizedType)fieldType);
     }
@@ -283,7 +283,7 @@ public class TReflect {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Method findMethod(Class<?> clazz, String name,
-                                    Class<?>... paramTypes) throws ReflectiveOperationException {
+                                    Class<?>... paramTypes) {
         StringBuilder markBuilder = new StringBuilder(clazz.getCanonicalName()).append(Global.CHAR_SHAPE).append(name);
         for(Class<?> paramType : paramTypes){
             markBuilder.append("$").append(paramType.getCanonicalName());
@@ -320,7 +320,7 @@ public class TReflect {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Method[] findMethod(Class<?> clazz, String name,
-                                      int paramCount) throws ReflectiveOperationException {
+                                      int paramCount) {
         String marker = new StringBuilder(clazz.getCanonicalName()).append(Global.CHAR_SHAPE).append(name).append(Global.CHAR_AT).append(paramCount).toString();
 
         Method[] methods = METHOD_ARRAYS.get(marker);
@@ -417,7 +417,7 @@ public class TReflect {
      * @return 返回范型类型数组
      * @throws ClassNotFoundException 类找不到异常
      */
-    public static Class[] getMethodParameterGenericType(Method method,int parameterIndex) throws ClassNotFoundException {
+    public static Class[] getMethodParameterGenericType(Method method,int parameterIndex) {
         Class[] result = null;
         Type parameterType;
 
@@ -442,6 +442,7 @@ public class TReflect {
      */
     public static <T> T invokeMethod(Object obj, Method method, Object... parameters)
             throws ReflectiveOperationException {
+        method.setAccessible(true);
         return (T)method.invoke(obj, parameters);
     }
 

@@ -22,13 +22,11 @@ import java.nio.channels.spi.SelectorProvider;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class UdpServerSocket extends SocketContext<DatagramChannel> {
+public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> {
 
     private SelectorProvider provider;
     private Selector selector;
     private DatagramChannel datagramChannel;
-
-    private UdpSelector udpSelector;
 
     //用来阻塞当前Socket
     private Object waitObj = new Object();
@@ -112,10 +110,10 @@ public class UdpServerSocket extends SocketContext<DatagramChannel> {
             datagramChannel.register(selector, SelectionKey.OP_READ);
 
             if(datagramChannel!=null && datagramChannel.isOpen()) {
-                udpSelector = new UdpSelector(selector, this);
+                ioSelector = new UdpSelector(selector, this);
                 getEventRunner().addEvent(()->{
                     if(datagramChannel.isOpen()) {
-                        udpSelector.eventChose();
+                        ioSelector.eventChose();
                     }
                 });
             }
