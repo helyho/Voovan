@@ -62,14 +62,14 @@ public class NioSelector {
 	 */
 	public void eventChose() {
 		// 事件循环
-		EventThread eventThread = socketContext.getEventThread();
+		EventRunner eventRunner = socketContext.getEventRunner();
 
 		try {
 			if (socketContext != null && socketContext.isConnected()) {
 				int readyChannelCount = selector.selectNow();
 
 				if (readyChannelCount==0) {
-					if(eventThread.getEventQueue().isEmpty()) {
+					if(eventRunner.getEventQueue().isEmpty()) {
 						readyChannelCount = selector.select(1);
 					} else {
 						return;
@@ -132,7 +132,7 @@ public class NioSelector {
 			}
 		} finally {
 			if(socketContext.isConnected()) {
-				eventThread.addEvent(() -> {
+				eventRunner.addEvent(() -> {
 					if(socketContext.isConnected()) {
 						eventChose();
 					}

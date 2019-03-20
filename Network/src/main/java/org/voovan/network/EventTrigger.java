@@ -1,9 +1,5 @@
 package org.voovan.network;
 
-import org.voovan.Global;
-
-import java.util.concurrent.ThreadPoolExecutor;
-
 /**
  * 事件触发器
  *
@@ -16,7 +12,6 @@ import java.util.concurrent.ThreadPoolExecutor;
  * Licence: Apache v2 License
  */
 public class EventTrigger {
-	private static ThreadPoolExecutor eventThreadPool = Global.getThreadPool();
 
 	public static void fireAcceptThread(IoSession session){
 		fireEventThread(session, Event.EventName.ON_ACCEPTED,null);
@@ -108,8 +103,8 @@ public class EventTrigger {
 	 * @param other 附属对象
 	 */
 	public static void fireEventThread(IoSession session, Event.EventName name, Object other){
-		if(!eventThreadPool.isShutdown()){
-			session.getEventThread().addEvent(()->{
+		if(!EventRunnerGroup.IO_THREAD_POOL.isShutdown()){
+			session.getEventRunner().addEvent(()->{
 				if(session.isConnected()) {
 					Event event = new Event(session, name, other);
 					EventProcess.process(event);

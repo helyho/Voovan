@@ -132,7 +132,7 @@ public class UdpSocket extends SocketContext {
             datagramChannel.register(selector, SelectionKey.OP_READ);
             udpSelector = new UdpSelector(selector, this);
 
-            getEventThread().addEvent(()->{
+            getEventRunner().addEvent(()->{
                 if(datagramChannel.isConnected()) {
                     udpSelector.eventChose();
                 }

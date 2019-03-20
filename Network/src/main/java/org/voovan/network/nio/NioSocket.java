@@ -140,7 +140,7 @@ public class NioSocket extends SocketContext{
 
 			if(socketChannel!=null && socketChannel.isOpen()){
 				nioSelector = new NioSelector(selector,this);
-				getEventThread().addEvent(()->{
+				getEventRunner().addEvent(()->{
 					if(socketChannel.isConnected()) {
 						nioSelector.eventChose();
 					}

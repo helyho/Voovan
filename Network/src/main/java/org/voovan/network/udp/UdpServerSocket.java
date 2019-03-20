@@ -108,7 +108,7 @@ public class UdpServerSocket extends SocketContext {
 
             if(datagramChannel!=null && datagramChannel.isOpen()) {
                 udpSelector = new UdpSelector(selector, this);
-                getEventThread().addEvent(()->{
+                getEventRunner().addEvent(()->{
                     if(datagramChannel.isOpen()) {
                         udpSelector.eventChose();
                     }
