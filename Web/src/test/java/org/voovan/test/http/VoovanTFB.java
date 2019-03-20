@@ -37,7 +37,7 @@ public class VoovanTFB {
 		//性能测试请求;
 		webServer.get("/plaintext", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				resp.header().remove(HttpStatic.CONNECTION_STRING);
+				System.out.println(req.getSession().getSocketSession().remotePort());
 				resp.write(HELLO_WORLD);
 			}
 		});
