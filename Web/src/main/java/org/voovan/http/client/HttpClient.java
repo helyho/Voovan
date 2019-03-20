@@ -55,6 +55,7 @@ public class HttpClient implements Closeable{
 	private boolean isSSL = false;
 	private boolean isWebSocket = false;
 	private WebSocketRouter webSocketRouter;
+	private String hostString;
 
 	/**
 	 * 构建函数
@@ -120,7 +121,7 @@ public class HttpClient implements Closeable{
 
 			isSSL = trySSL(urlString);
 
-			String hostString = urlString;
+			hostString = urlString;
 			int port = 80;
 
 			if(hostString.toLowerCase().startsWith("ws")){
@@ -157,17 +158,21 @@ public class HttpClient implements Closeable{
 			socket.syncStart();
 
 			httpRequest = new HttpRequest(new Request(), this.charset, socket.getSession());
-			//初始化请求参数,默认值
-			httpRequest.header().put("Host", hostString);
-			httpRequest.header().put("Pragma", "no-cache");
-			httpRequest.header().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-			httpRequest.header().put("User-Agent", "Voovan Http Client");
-			httpRequest.header().put("Accept-Encoding","gzip");
-			httpRequest.header().put("Connection","keep-alive");
+
 
 		} catch (IOException e) {
 			Logger.error("HttpClient init error",e);
 		}
+	}
+
+	public void initHeader(){
+		//初始化请求参数,默认值
+		httpRequest.header().put("Host", hostString);
+		httpRequest.header().put("Pragma", "no-cache");
+		httpRequest.header().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+		httpRequest.header().put("User-Agent", "Voovan Http Client");
+		httpRequest.header().put("Accept-Encoding","gzip");
+		httpRequest.header().put("Connection","keep-alive");
 	}
 
 	/**
@@ -513,8 +518,8 @@ public class HttpClient implements Closeable{
 		parameters.clear();
 		request.body().clear();
 		request.parts().clear();
-		request.header().remove("Content-Type");
-		request.header().remove("Content-Length");
+		request.header().clear();
+		initHeader();
 	}
 
 	/**
