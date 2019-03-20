@@ -227,7 +227,7 @@ public class Response {
 				byteBuffer.put(WebContext.RESPONSE_COMMON_HEADER);
 			} catch (Throwable e) {
 				if (!(e instanceof MemoryReleasedException)) {
-					Logger.error("Response send error: ", (Exception) e);
+					Logger.error("Response writeToChannel error: ", (Exception) e);
 				}
 			}
 
@@ -275,7 +275,7 @@ public class Response {
 				session.send(byteBuffer);
 			} catch (Throwable e) {
 				if (!(e instanceof MemoryReleasedException)) {
-					Logger.error("Response send error: ", (Exception) e);
+					Logger.error("Response writeToChannel error: ", (Exception) e);
 				}
 				return;
 			}

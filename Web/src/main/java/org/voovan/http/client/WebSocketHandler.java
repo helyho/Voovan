@@ -104,7 +104,7 @@ public class WebSocketHandler implements IoHandler{
                         poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, true, null));
                     } catch (SendMessageException e) {
                         poneSession.close();
-                        Logger.error("WebSocket Pong event send Ping frame error", e);
+                        Logger.error("WebSocket Pong event writeToChannel Ping frame error", e);
                     }finally {
                         this.cancel();
                     }

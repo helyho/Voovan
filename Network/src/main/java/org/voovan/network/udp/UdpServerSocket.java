@@ -22,7 +22,7 @@ import java.nio.channels.spi.SelectorProvider;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class UdpServerSocket extends SocketContext {
+public class UdpServerSocket extends SocketContext<DatagramChannel> {
 
     private SelectorProvider provider;
     private Selector selector;
@@ -98,6 +98,11 @@ public class UdpServerSocket extends SocketContext {
         datagramChannel.setOption(name, value);
     }
 
+    @Override
+    public DatagramChannel socketChannel() {
+        return datagramChannel;
+    }
+
     /**
      * 初始化函数
      */
@@ -119,10 +124,6 @@ public class UdpServerSocket extends SocketContext {
         }catch(IOException e){
             Logger.error("init SocketChannel failed by openSelector",e);
         }
-    }
-
-    public DatagramChannel datagramChannel(){
-        return this.datagramChannel;
     }
 
     @Override

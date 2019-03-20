@@ -3,13 +3,11 @@ package org.voovan.network.nio;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.network.exception.RestartException;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.TimeoutException;
 
 /**
  * NIO 会话连接对象
@@ -105,36 +103,13 @@ public class NioSession extends IoSession<NioSocket> {
 	}
 
 	@Override
-	protected int read0(ByteBuffer buffer) throws IOException {
-		int readSize = 0;
-		if (buffer != null) {
-			readSize = this.getReadByteBufferChannel().readHead(buffer);
-		}
-		return readSize;
+	protected int read0() throws IOException {
+		return socketContext().getSelector().readFromChannel();
 	}
 
 	@Override
 	protected synchronized int send0(ByteBuffer buffer) throws IOException {
-		int totalSendByte = 0;
-		long start = System.currentTimeMillis();
-		if (isConnected() && buffer != null) {
-			//循环发送直到全部内容发送完毕
-			while(isConnected() && buffer.remaining()!=0){
-				int sendSize = socketChannel.write(buffer);
-				if(sendSize == 0 ){
-					TEnv.sleep(1);
-					if(System.currentTimeMillis() - start >= socketContext().getSendTimeout()) {
-						Logger.error("NioSession send0 timeout", new TimeoutException());
-						close();
-						return -1;
-					}
-				} else {
-					start = System.currentTimeMillis();
-					totalSendByte += sendSize;
-				}
-			}
-		}
-		return totalSendByte;
+		return socketContext().getSelector().writeToChannel(buffer);
 	}
 
 

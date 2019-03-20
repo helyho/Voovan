@@ -894,8 +894,8 @@ public class WebServer {
 					Logger.simple(TString.rightPad("  -h ",35,' ')+"Webserver bind host ip address");
 					Logger.simple(TString.rightPad("  -p ",35,' ')+"Webserver bind port number");
 					Logger.simple(TString.rightPad("  --env ",35,' ') + "Webserver environment name");
-					Logger.simple(TString.rightPad("  -rto ",35,' ')+"Socket read timeout");
-					Logger.simple(TString.rightPad("  -sto ",35,' ')+"Socket send timeout");
+					Logger.simple(TString.rightPad("  -rto ",35,' ')+"Socket readFromChannel timeout");
+					Logger.simple(TString.rightPad("  -sto ",35,' ')+"Socket writeToChannel timeout");
 					Logger.simple(TString.rightPad("  -r ",35,' ')+"Context root path, contain webserver static file");
 					Logger.simple(TString.rightPad("  -i ",35,' ')+"index file for client access to webserver");
 					Logger.simple(TString.rightPad("  -mri ",35,' ')+"Match route ignore case");

@@ -294,7 +294,7 @@ public class Request {
                 byteBuffer = readHead();
             } catch (Throwable e){
                 if(!(e instanceof MemoryReleasedException)){
-                    Logger.error("Response send error: ", (Exception) e);
+                    Logger.error("Response writeToChannel error: ", (Exception) e);
                 }
             }
 
@@ -349,7 +349,7 @@ public class Request {
             basicSend = true;
         } catch (Throwable e){
             if(!(e instanceof MemoryReleasedException)){
-                Logger.error("Response send error: ", (Exception) e);
+                Logger.error("Response writeToChannel error: ", (Exception) e);
             }
             return;
         } finally {

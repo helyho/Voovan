@@ -96,8 +96,10 @@ public class UdpSelector {
 								// 事件分发,包含时间 onRead onAccept
 								try {
 									if (selectionKey.isReadable()) {
-										session.setSelectionKey(selectionKey);
-										read(datagramChannel);
+										if(session!=null) {
+											session.setSelectionKey(selectionKey);
+										}
+										readFromChannel();
 									} else {
 										Logger.fremawork("Nothing to do ,SelectionKey is:" + selectionKey.readyOps());
 									}
@@ -132,7 +134,8 @@ public class UdpSelector {
         }
     }
 
-    public void read( DatagramChannel datagramChannel) throws IOException {
+    public int readFromChannel() throws IOException {
+	    DatagramChannel datagramChannel = (DatagramChannel) socketContext.socketChannel();
 
 	    int readSize = - 1;
 	    UdpSocket clientUdpSocket = null;
@@ -147,13 +150,14 @@ public class UdpSelector {
 		    clientUdpSocket = new UdpSocket(socketContext, datagramChannel, (InetSocketAddress)address);
 		    session = clientUdpSocket.getSession();
 		    appByteBufferChannel = session.getReadByteBufferChannel();
+		    clientUdpSocket.acceptStart();
 	    }
 
 	    //判断连接是否关闭
 	    if (MessageLoader.isStreamEnd(readTempBuffer, readSize) && session.isConnected()) {
 		    session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 		    session.close();
-		    return;
+		    return -1;
 	    } else if (readSize > 0) {
 		    readTempBuffer.flip();
 
@@ -173,7 +177,40 @@ public class UdpSelector {
 
 		    readTempBuffer.clear();
 	    }
+
+	    return readSize;
     }
+
+
+	public int writeToChannel(ByteBuffer buffer) throws IOException {
+		int totalSendByte = 0;
+		long start = System.currentTimeMillis();
+		if (socketContext.isOpen() && buffer != null) {
+			DatagramChannel datagramChannel = (DatagramChannel)socketContext.socketChannel();
+
+			//循环发送直到全部内容发送完毕
+			while(buffer.remaining()!=0){
+				int sendSize = 0;
+				if(datagramChannel.getRemoteAddress()!=null) {
+					sendSize = datagramChannel.write(buffer);
+				} else {
+					sendSize = datagramChannel.send(buffer, session.getInetSocketAddress());
+				}
+				if(sendSize == 0 ){
+					TEnv.sleep(1);
+					if(System.currentTimeMillis() - start >= socketContext.getSendTimeout()){
+						Logger.error("AioSession writeToChannel timeout, Socket will be close");
+						socketContext.close();
+						return -1;
+					}
+				} else {
+					start = System.currentTimeMillis();
+					totalSendByte += sendSize;
+				}
+			}
+		}
+		return totalSendByte;
+	}
 
     /**
      * 获取 socket 通道

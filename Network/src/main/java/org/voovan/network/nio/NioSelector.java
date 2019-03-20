@@ -96,7 +96,7 @@ public class NioSelector {
 									// 有数据读取
 									if ((selectionKey.readyOps() & SelectionKey.OP_READ) != 0) {
 										session.setSelectionKey(selectionKey);
-										read(socketChannel);
+										readFromChannel();
 									}
 								} catch (Exception e) {
 									//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误
@@ -149,13 +149,15 @@ public class NioSelector {
 	}
 
 
-	public void read(SocketChannel socketChannel) throws IOException {
+	public int readFromChannel() throws IOException {
+		SocketChannel socketChannel = (SocketChannel) socketContext.socketChannel();
 		int length = socketChannel.read(readTempBuffer);
 
 		// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
 		if (MessageLoader.isStreamEnd(readTempBuffer, length) || !session.isConnected()) {
 			session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 			session.close();
+			return -1;
 		} else {
 			if (netByteBufferChannel == null && session.getSSLParser() != null) {
 				netByteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
@@ -204,6 +206,31 @@ public class NioSelector {
 				readTempBuffer.clear();
 			}
 		}
+
+		return length;
+	}
+
+	public int writeToChannel(ByteBuffer buffer) throws IOException {
+		int totalSendByte = 0;
+		long start = System.currentTimeMillis();
+		if (socketContext.isConnected() && buffer != null) {
+			//循环发送直到全部内容发送完毕
+			while(socketContext.isConnected() && buffer.remaining()!=0){
+				int sendSize = session.socketChannel().write(buffer);
+				if(sendSize == 0 ){
+					TEnv.sleep(1);
+					if(System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
+						Logger.error("NioSession send0 timeout", new TimeoutException());
+						socketContext.close();
+						return -1;
+					}
+				} else {
+					start = System.currentTimeMillis();
+					totalSendByte += sendSize;
+				}
+			}
+		}
+		return totalSendByte;
 	}
 
 	/**
