@@ -127,22 +127,6 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	}
 
 	/**
-	 * 初始化函数
-	 */
-	private void registerSelector(int ops)  {
-		EventRunner eventRunner = EventRunnerGroup.EVENT_RUNNER_GROUP.choseEventRunner();
-		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
-		socketSelector.register(this, ops);
-		if(ops!=0) {
-			eventRunner.addEvent(() -> {
-				if (socketChannel.isConnected()) {
-					socketSelector.eventChose();
-				}
-			});
-		}
-	}
-
-	/**
 	 * 获取 Session 对象
 	 * @return Session 对象
 	 */
@@ -177,7 +161,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 
 		socketChannel.connect(new InetSocketAddress(this.host, this.port));
 		socketChannel.configureBlocking(false);
-		registerSelector(SelectionKey.OP_READ);
+		bindToSocketSelector(SelectionKey.OP_READ);
 
 		waitConnected(session);
 		EventTrigger.fireConnect(session);
@@ -188,7 +172,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 		try {
 			initSSL(session);
 
-			registerSelector(SelectionKey.OP_READ);
+			bindToSocketSelector(SelectionKey.OP_READ);
 
 			EventTrigger.fireConnect(session);
 		}catch(IOException e){
@@ -278,13 +262,8 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 
 				EventTrigger.fireDisconnect(session);
 
-				session.getSelectionKey().attach(null);
-				session.getSelectionKey().cancel();
-				session.getReadByteBufferChannel().release();
-				session.getSendByteBufferChannel().release();
-				if(session.getSSLParser()!=null){
-					session.getSSLParser().release();
-				}
+				session.release();
+
 				synchronized (waitObj) {
 					waitObj.notify();
 				}

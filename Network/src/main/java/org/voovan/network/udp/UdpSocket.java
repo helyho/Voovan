@@ -122,23 +122,6 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
     }
 
     /**
-     * 初始化函数
-     */
-    private void registerSelector(int ops)  {
-        EventRunner eventRunner = EventRunnerGroup.EVENT_RUNNER_GROUP.choseEventRunner();
-        SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
-        socketSelector.register(this, ops);
-        if(ops!=0) {
-            eventRunner.addEvent(() -> {
-                if (datagramChannel.isOpen()) {
-                    socketSelector.eventChose();
-                }
-            });
-        }
-    }
-
-
-    /**
      * 获取 Session 对象
      * @return Session 对象
      */
@@ -168,14 +151,14 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
         datagramChannel.connect(new InetSocketAddress(this.host, this.port));
         datagramChannel.configureBlocking(false);
 
-        registerSelector(SelectionKey.OP_READ);
+        bindToSocketSelector(SelectionKey.OP_READ);
 
         EventTrigger.fireConnect(session);
     }
 
     @Override
     public void acceptStart() throws IOException {
-		registerSelector(0);
+		bindToSocketSelector(0);
     }
 
     /**
@@ -255,10 +238,8 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
             try{
                 datagramChannel.close();
 
-                session.getSelectionKey().attach(null);
-                session.getSelectionKey().cancel();
-                session.getReadByteBufferChannel().release();
-                session.getSendByteBufferChannel().release();
+                session.release();
+
                 synchronized (waitObj) {
                     waitObj.notify();
                 }

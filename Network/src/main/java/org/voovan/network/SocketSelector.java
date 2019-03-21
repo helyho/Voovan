@@ -11,6 +11,7 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -27,7 +28,7 @@ import java.util.concurrent.TimeoutException;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class SocketSelector {
+public class SocketSelector implements Closeable {
 	private  EventRunner eventRunner;
 
 	protected Selector selector;
@@ -63,6 +64,7 @@ public class SocketSelector {
 				socketContext.getSession().setSelectionKey(selectionKey);
 				socketContext.getSession().setSocketSelector(this);
 			}
+
 			return true;
 		} catch (ClosedChannelException e) {
 			Logger.error("Register " + socketContext + " to selector error");
@@ -70,7 +72,8 @@ public class SocketSelector {
 		}
 	}
 
-	public void unRegister(SocketContext socketContext){
+	public void unRegister(SocketContext socketContext) {
+		socketContext.getSession().getSelectionKey().attach(null);
 		socketContext.getSession().getSelectionKey().cancel();
 	}
 
@@ -110,7 +113,6 @@ public class SocketSelector {
 									if(channel instanceof SocketChannel){
 										tcpReadFromChannel((TcpSocket) selectionKey.attachment(), (SocketChannel)channel);
 									} else if(channel instanceof DatagramChannel) {
-										System.out.println(selectionKey.hashCode());
 										udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) selectionKey.attachment(), (DatagramChannel) channel);
 									}
 								}
