@@ -107,20 +107,6 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
         return null;
     }
 
-    /**
-     * 初始化函数
-     */
-    private void registerSelector()  {
-        EventRunner eventRunner = EventRunnerGroup.EVENT_RUNNER_GROUP.choseEventRunner();
-        SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
-        socketSelector.register(this, SelectionKey.OP_READ);
-        eventRunner.addEvent(()->{
-            if(datagramChannel.isOpen()) {
-                socketSelector.eventChose();
-            }
-        });
-    }
-
     @Override
     public void start() throws IOException {
         syncStart();
@@ -140,7 +126,7 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
     public void syncStart() throws IOException {
         datagramChannel.bind(new InetSocketAddress(this.host, this.port));
 
-        registerSelector();
+        bindToSocketSelector(SelectionKey.OP_READ);
     }
 
     @Override
