@@ -236,9 +236,9 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
 
         if(datagramChannel!=null){
             try{
-                datagramChannel.close();
-
                 session.release();
+
+                datagramChannel.close();
 
                 synchronized (waitObj) {
                     waitObj.notify();

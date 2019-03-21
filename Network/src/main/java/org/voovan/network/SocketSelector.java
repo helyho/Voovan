@@ -50,6 +50,8 @@ public class SocketSelector implements Closeable {
 		} catch (ReflectiveOperationException e) {
 			e.printStackTrace();
 		}
+
+		eventChose();
 	}
 
 	public EventRunner getEventRunner() {
@@ -83,12 +85,10 @@ public class SocketSelector implements Closeable {
 			if (selector != null && selector.isOpen()) {
 				int readyChannelCount = selector.selectNow();
 
-				if (readyChannelCount==0) {
-					if(eventRunner.getEventQueue().isEmpty()) {
-						readyChannelCount = selector.select(1);
-					} else {
-						return;
-					}
+				if (readyChannelCount==0 && eventRunner.getEventQueue().isEmpty()) {
+					long startNano = System.nanoTime();
+					readyChannelCount = selector.select(50);
+					System.out.println("s-" + (System.nanoTime() - startNano));
 				}
 
 				if (readyChannelCount>0) {
