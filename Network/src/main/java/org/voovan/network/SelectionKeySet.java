@@ -1,4 +1,4 @@
-package org.voovan.network.tcp;
+package org.voovan.network;
 
 import java.nio.channels.SelectionKey;
 import java.util.AbstractSet;
@@ -54,7 +54,7 @@ public class SelectionKeySet extends AbstractSet<SelectionKey> {
 		return false;
 	}
 
-	void reset() {
+	public void reset() {
 		size = 0;
 	}
 

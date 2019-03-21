@@ -10,7 +10,7 @@ import java.io.IOException;
 public class NioServerSocketTest  {
 
 	public static void main(String[] args) throws IOException {
-		TcpServerSocket serverSocket = new TcpServerSocket("127.0.0.1",2031,50*1000, 1);
+		TcpServerSocket serverSocket = new TcpServerSocket("127.0.0.1",2031,5000 * 60, 1);
 		serverSocket.handler(new ServerHandlerTest());
 		serverSocket.filterChain().add(new StringFilter());
 		serverSocket.messageSplitter(new LineMessageSplitter());

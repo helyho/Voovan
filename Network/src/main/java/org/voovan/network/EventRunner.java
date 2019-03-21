@@ -14,12 +14,21 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class EventRunner implements Runnable{
 
 	private LinkedBlockingQueue<Runnable> eventQueue = new LinkedBlockingQueue<Runnable>();
+	private Object attachment;
 
 	/**
 	 * 事件处理 Thread
 	 *
 	 */
 	public EventRunner(){
+	}
+
+	public Object attachment() {
+		return attachment;
+	}
+
+	public void attachment(Object attachment) {
+		this.attachment = attachment;
 	}
 
 	public void addEvent(Runnable runnable){

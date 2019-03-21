@@ -1,8 +1,6 @@
 package org.voovan.network.tcp;
 
-import org.voovan.network.ConnectModel;
-import org.voovan.network.EventTrigger;
-import org.voovan.network.SocketContext;
+import org.voovan.network.*;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.RestartException;
 import org.voovan.network.exception.SendMessageException;
@@ -12,7 +10,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketOption;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 
@@ -27,7 +24,6 @@ import java.nio.channels.spi.SelectorProvider;
  */
 public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	private SelectorProvider provider;
-	private Selector selector;
 	private SocketChannel socketChannel;
 	private TcpSession session;
 
@@ -87,7 +83,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 * @param parentSocketContext 父 SocketChannel 对象
 	 * @param socketChannel SocketChannel 对象
 	 */
-	protected TcpSocket(SocketContext parentSocketContext, SocketChannel socketChannel){
+	public TcpSocket(SocketContext parentSocketContext, SocketChannel socketChannel){
 		try {
 			provider = SelectorProvider.provider();
 			this.host = socketChannel.socket().getLocalAddress().getHostAddress();
@@ -133,21 +129,16 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	/**
 	 * 初始化函数
 	 */
-	private void registerSelector()  {
-		try{
-			selector = provider.openSelector();
-			socketChannel.register(selector, SelectionKey.OP_READ);
-
-			if(socketChannel!=null && socketChannel.isOpen()){
-				ioSelector = new TcpSelector(selector,this);
-				getEventRunner().addEvent(()->{
-					if(socketChannel.isConnected()) {
-						ioSelector.eventChose();
-					}
-				});
-			}
-		}catch(IOException e){
-			Logger.error("init SocketChannel failed by openSelector",e);
+	private void registerSelector(int ops)  {
+		EventRunner eventRunner = EventRunnerGroup.EVENT_RUNNER_GROUP.choseEventRunner();
+		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
+		socketSelector.register(this, ops);
+		if(ops!=0) {
+			eventRunner.addEvent(() -> {
+				if (socketChannel.isConnected()) {
+					socketSelector.eventChose();
+				}
+			});
 		}
 	}
 
@@ -186,19 +177,18 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 
 		socketChannel.connect(new InetSocketAddress(this.host, this.port));
 		socketChannel.configureBlocking(false);
-
-		registerSelector();
-
-		EventTrigger.fireConnect(session);
+		registerSelector(SelectionKey.OP_READ);
 
 		waitConnected(session);
+		EventTrigger.fireConnect(session);
+
 	}
 
 	protected void acceptStart() throws IOException {
 		try {
 			initSSL(session);
 
-			registerSelector();
+			registerSelector(SelectionKey.OP_READ);
 
 			EventTrigger.fireConnect(session);
 		}catch(IOException e){
@@ -251,7 +241,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	@Override
 	public boolean isConnected() {
 		try {
-			if (socketChannel.getRemoteAddress() != null) {
+			if (socketChannel.isConnected() && socketChannel.getRemoteAddress() != null) {
 				return true;
 			} else {
 				return false;
@@ -288,9 +278,8 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 
 				EventTrigger.fireDisconnect(session);
 
-				ioSelector.release();
-				selector.wakeup();
-				selector.close();
+				session.getSelectionKey().attach(null);
+				session.getSelectionKey().cancel();
 				session.getReadByteBufferChannel().release();
 				session.getSendByteBufferChannel().release();
 				if(session.getSSLParser()!=null){

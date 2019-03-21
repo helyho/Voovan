@@ -10,6 +10,7 @@ import org.voovan.tools.log.Logger;
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.SocketOption;
+import java.nio.channels.SelectableChannel;
 
 /**
  * socket 上下文
@@ -20,7 +21,7 @@ import java.net.SocketOption;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public abstract class SocketContext<C, S> {
+public abstract class SocketContext<C extends SelectableChannel, S extends IoSession> {
 
 	protected String host;
 	protected int port;
@@ -34,13 +35,10 @@ public abstract class SocketContext<C, S> {
 	protected ConnectModel connectModel;
 	protected int readBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
 	protected int sendBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
-	private final EventRunner eventRunner = EventRunnerGroup.EVENT_THREAD_POOL.choseEventRunner();
 
 	protected int idleInterval = 0;
 
 	protected int readRecursionDepth = 1;
-
-	protected IoSelector ioSelector;
 
 	/**
 	 * 构造函数
@@ -114,10 +112,6 @@ public abstract class SocketContext<C, S> {
 		this.readRecursionDepth = parentSocketContext.readRecursionDepth;
 	}
 
-	public EventRunner getEventRunner() {
-		return eventRunner;
-	}
-
 	/**
 	 * 获取空闲事件时间
 	 * @return  空闲事件时间, 单位:秒
@@ -185,10 +179,6 @@ public abstract class SocketContext<C, S> {
 	 */
 	protected SocketContext() {
 		filterChain = new Chain<IoFilter>();
-	}
-
-	public IoSelector<C, S> getSelector() {
-		return ioSelector;
 	}
 
 	/**
@@ -284,6 +274,8 @@ public abstract class SocketContext<C, S> {
 	public void messageSplitter(MessageSplitter messageSplitter) {
 		this.messageSplitter = messageSplitter;
 	}
+
+	public abstract S getSession();
 
 	/**
 	 * 启动上下文连接

@@ -81,7 +81,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 		}
 	}
 
-	protected InetSocketAddress getInetSocketAddress() {
+	public InetSocketAddress getInetSocketAddress() {
 		return inetSocketAddress;
 	}
 
