@@ -1,16 +1,12 @@
 package org.voovan.network.tcp;
 
-import org.voovan.network.EventRunner;
-import org.voovan.network.EventRunnerGroup;
 import org.voovan.network.SocketContext;
-import org.voovan.network.SocketSelector;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketOption;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 
@@ -30,7 +26,6 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 
 	//用来阻塞当前Socket
 	private Object waitObj = new Object();
-
 
 	/**
 	 * 构造函数
@@ -83,23 +78,6 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 		serverSocketChannel.socket().setSoTimeout(this.readTimeout);
 		serverSocketChannel.configureBlocking(false);
 	}
-
-	/**
-	 * 初始化函数
-	 */
-	private void registerSelector()  {
-		if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
-			EventRunner eventRunner = EventRunnerGroup.EVENT_RUNNER_GROUP.choseEventRunner();
-			SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
-			socketSelector.register(this, SelectionKey.OP_ACCEPT);
-			eventRunner.addEvent(()->{
-				if(serverSocketChannel.isOpen()) {
-					socketSelector.eventChose();
-				}
-			});
-		}
-	}
-
 
 	@Override
 	public void setIdleInterval(int idleInterval) {
@@ -158,7 +136,7 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 	public void syncStart() throws IOException {
 		serverSocketChannel.bind(new InetSocketAddress(host, port), 1000);
 
-		registerSelector();
+		bindToSocketSelector(SelectionKey.OP_ACCEPT);
 	}
 
 	@Override

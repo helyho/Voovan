@@ -330,4 +330,23 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 * @return 是否关闭
 	 */
 	public abstract boolean close();
+
+	/**
+	 * 绑定到 SocketSelector
+	 * @param ops 选择的操作类型
+	 */
+	public void bindToSocketSelector(int ops) {
+		EventRunner eventRunner = EventRunnerGroup.EVENT_RUNNER_GROUP.choseEventRunner();
+		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
+		socketSelector.register(this, ops);
+
+		if(ops!=0) {
+			final SocketContext socketContext = this;
+			eventRunner.addEvent(() -> {
+				if (socketContext.isConnected()) {
+					socketSelector.eventChose();
+				}
+			});
+		}
+	}
 }

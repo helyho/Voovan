@@ -12,7 +12,6 @@ import org.voovan.tools.log.Logger;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.SocketChannel;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
@@ -543,7 +542,14 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	public abstract boolean close();
 
-
+	public void release() {
+		socketSelector.unRegister(socketContext);
+		readByteBufferChannel.release();
+		sendByteBufferChannel.release();
+		if(sslParser!=null){
+			sslParser.release();
+		}
+	}
 
 	@Override
 	public abstract String toString();
