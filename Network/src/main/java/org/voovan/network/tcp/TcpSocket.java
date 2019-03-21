@@ -258,11 +258,12 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 
 		if(socketChannel!=null){
 			try{
+
+				session.release();
+
 				socketChannel.close();
 
 				EventTrigger.fireDisconnect(session);
-
-				session.release();
 
 				synchronized (waitObj) {
 					waitObj.notify();

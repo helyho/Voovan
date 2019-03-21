@@ -339,14 +339,5 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		EventRunner eventRunner = EventRunnerGroup.EVENT_RUNNER_GROUP.choseEventRunner();
 		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
 		socketSelector.register(this, ops);
-
-		if(ops!=0) {
-			final SocketContext socketContext = this;
-			eventRunner.addEvent(() -> {
-				if (socketContext.isConnected()) {
-					socketSelector.eventChose();
-				}
-			});
-		}
 	}
 }
