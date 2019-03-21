@@ -123,6 +123,7 @@ public class SocketSelector implements Closeable {
 
 					selectionKeys.reset();
 				} else {
+					//给 OS 切换 EPOLL 中的 fd 的时间, 由于 java 最小只能用 1ms, 实测对性能完全无影响
 					TEnv.sleep(1);
 				}
 			}
