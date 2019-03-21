@@ -77,19 +77,18 @@ public class SocketSelector implements Closeable {
 	public void unRegister(SocketContext socketContext) {
 		socketContext.getSession().getSelectionKey().attach(null);
 		socketContext.getSession().getSelectionKey().cancel();
+		try {
+			selector.selectNow();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void eventChose() {
 		// 事件循环
 		try {
 			if (selector != null && selector.isOpen()) {
-				int readyChannelCount = selector.selectNow();
-
-				if (readyChannelCount==0 && eventRunner.getEventQueue().isEmpty()) {
-					long startNano = System.nanoTime();
-					readyChannelCount = selector.select(50);
-					System.out.println("s-" + (System.nanoTime() - startNano));
-				}
+				int readyChannelCount = selector.select(100);
 
 				if (readyChannelCount>0) {
 					SelectionKeySet selectionKeys = (SelectionKeySet) selector.selectedKeys();
@@ -123,6 +122,8 @@ public class SocketSelector implements Closeable {
 					}
 
 					selectionKeys.reset();
+				} else {
+					TEnv.sleep(1);
 				}
 			}
 		} catch (IOException e){
