@@ -1,8 +1,6 @@
 package org.voovan.network.udp;
 
-import org.voovan.network.ConnectModel;
-import org.voovan.network.EventTrigger;
-import org.voovan.network.SocketContext;
+import org.voovan.network.*;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.RestartException;
 import org.voovan.network.exception.SendMessageException;
@@ -13,7 +11,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketOption;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
 
 /**
@@ -28,7 +25,6 @@ import java.nio.channels.spi.SelectorProvider;
 public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
 
     private SelectorProvider provider;
-    private Selector selector;
     private DatagramChannel datagramChannel;
     private UdpSession session;
 
@@ -46,7 +42,6 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
      */
     public UdpSocket(String host, int port, int readTimeout) throws IOException{
         super(host, port, readTimeout);
-        init();
     }
 
     /**
@@ -60,7 +55,6 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
      */
     public UdpSocket(String host, int port, int readTimeout, int idleInterval) throws IOException{
         super(host, port, readTimeout, idleInterval);
-        init();
     }
 
     /**
@@ -74,7 +68,6 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
      */
     public UdpSocket(String host, int port, int readTimeout, int sendTimeout, int idleInterval) throws IOException{
         super(host, port, readTimeout, sendTimeout, idleInterval);
-        init();
     }
 
     private void init() throws IOException {
@@ -93,12 +86,13 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
      * @param datagramChannel UDP通信对象
      * @param socketAddress SocketAddress 对象
      */
-    protected UdpSocket(SocketContext parentSocketContext, DatagramChannel datagramChannel, InetSocketAddress socketAddress){
+    public UdpSocket(SocketContext parentSocketContext, DatagramChannel datagramChannel, InetSocketAddress socketAddress){
         try {
             provider = SelectorProvider.provider();
             this.datagramChannel = datagramChannel;
             this.copyFrom(parentSocketContext);
             session = new UdpSession(this, socketAddress);
+            datagramChannel.configureBlocking(false);
             connectModel = ConnectModel.SERVER;
         } catch (Exception e) {
             Logger.error("Create socket channel failed",e);
@@ -130,19 +124,16 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
     /**
      * 初始化函数
      */
-    private void registerSelector()  {
-        try{
-            selector = provider.openSelector();
-            datagramChannel.register(selector, SelectionKey.OP_READ);
-            ioSelector = new UdpSelector(selector, this);
-
-            getEventRunner().addEvent(()->{
-                if(datagramChannel.isConnected()) {
-                    ioSelector.eventChose();
+    private void registerSelector(int ops)  {
+        EventRunner eventRunner = EventRunnerGroup.EVENT_RUNNER_GROUP.choseEventRunner();
+        SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
+        socketSelector.register(this, ops);
+        if(ops!=0) {
+            eventRunner.addEvent(() -> {
+                if (datagramChannel.isOpen()) {
+                    socketSelector.eventChose();
                 }
             });
-        }catch(IOException e){
-            Logger.error("init SocketChannel failed by openSelector",e);
         }
     }
 
@@ -172,17 +163,19 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
      * 启动同步的上下文连接,同步读写时使用
      */
     public void syncStart() throws IOException {
+	    init();
+
         datagramChannel.connect(new InetSocketAddress(this.host, this.port));
         datagramChannel.configureBlocking(false);
 
-        registerSelector();
+        registerSelector(SelectionKey.OP_READ);
 
         EventTrigger.fireConnect(session);
     }
 
     @Override
-    protected void acceptStart() throws IOException {
-		registerSelector();
+    public void acceptStart() throws IOException {
+		registerSelector(0);
     }
 
     /**
@@ -262,9 +255,8 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
             try{
                 datagramChannel.close();
 
-                ioSelector.release();
-                selector.wakeup();
-                selector.close();
+                session.getSelectionKey().attach(null);
+                session.getSelectionKey().cancel();
                 session.getReadByteBufferChannel().release();
                 session.getSendByteBufferChannel().release();
                 synchronized (waitObj) {

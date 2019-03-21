@@ -1,7 +1,9 @@
 package org.voovan.network.udp;
 
+import org.voovan.network.EventRunner;
+import org.voovan.network.EventRunnerGroup;
 import org.voovan.network.SocketContext;
-import org.voovan.network.handler.SynchronousHandler;
+import org.voovan.network.SocketSelector;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -25,7 +27,6 @@ import java.nio.channels.spi.SelectorProvider;
 public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> {
 
     private SelectorProvider provider;
-    private Selector selector;
     private DatagramChannel datagramChannel;
 
     //用来阻塞当前Socket
@@ -76,7 +77,7 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
         provider = SelectorProvider.provider();
         datagramChannel = provider.openDatagramChannel();
         datagramChannel.socket().setSoTimeout(this.readTimeout);
-        this.handler = new SynchronousHandler();
+        datagramChannel.configureBlocking(false);
     }
 
 
@@ -101,27 +102,23 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
         return datagramChannel;
     }
 
+    @Override
+    public UdpSession getSession() {
+        return null;
+    }
+
     /**
      * 初始化函数
      */
     private void registerSelector()  {
-        try{
-            selector = provider.openSelector();
-            datagramChannel.register(selector, SelectionKey.OP_READ);
-
-            if(datagramChannel!=null && datagramChannel.isOpen()) {
-                ioSelector = new UdpSelector(selector, this);
-                getEventRunner().addEvent(()->{
-                    if(datagramChannel.isOpen()) {
-                        ioSelector.eventChose();
-                    }
-                });
+        EventRunner eventRunner = EventRunnerGroup.EVENT_RUNNER_GROUP.choseEventRunner();
+        SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
+        socketSelector.register(this, SelectionKey.OP_READ);
+        eventRunner.addEvent(()->{
+            if(datagramChannel.isOpen()) {
+                socketSelector.eventChose();
             }
-
-
-        }catch(IOException e){
-            Logger.error("init SocketChannel failed by openSelector",e);
-        }
+        });
     }
 
     @Override
@@ -142,7 +139,6 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
      */
     public void syncStart() throws IOException {
         datagramChannel.bind(new InetSocketAddress(this.host, this.port));
-        datagramChannel.configureBlocking(false);
 
         registerSelector();
     }

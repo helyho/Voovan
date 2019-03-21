@@ -1,6 +1,9 @@
 package org.voovan.network.tcp;
 
+import org.voovan.network.EventRunner;
+import org.voovan.network.EventRunnerGroup;
 import org.voovan.network.SocketContext;
+import org.voovan.network.SocketSelector;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -23,7 +26,6 @@ import java.nio.channels.spi.SelectorProvider;
 public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSession> {
 
 	private SelectorProvider provider;
-	private Selector selector;
 	private ServerSocketChannel serverSocketChannel;
 
 	//用来阻塞当前Socket
@@ -79,26 +81,22 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 		provider = SelectorProvider.provider();
 		serverSocketChannel = provider.openServerSocketChannel();
 		serverSocketChannel.socket().setSoTimeout(this.readTimeout);
+		serverSocketChannel.configureBlocking(false);
 	}
 
 	/**
 	 * 初始化函数
 	 */
 	private void registerSelector()  {
-		try{
-			selector = provider.openSelector();
-			serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-
-			if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
-				ioSelector = new TcpSelector(selector,this);
-				getEventRunner().addEvent(()->{
-					if(serverSocketChannel.isOpen()) {
-						ioSelector.eventChose();
-					}
-				});
-			}
-		}catch(IOException e){
-			Logger.error("init SocketChannel failed by openSelector",e);
+		if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
+			EventRunner eventRunner = EventRunnerGroup.EVENT_RUNNER_GROUP.choseEventRunner();
+			SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
+			socketSelector.register(this, SelectionKey.OP_ACCEPT);
+			eventRunner.addEvent(()->{
+				if(serverSocketChannel.isOpen()) {
+					socketSelector.eventChose();
+				}
+			});
 		}
 	}
 
@@ -125,6 +123,11 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 	 */
 	public ServerSocketChannel socketChannel(){
 		return this.serverSocketChannel;
+	}
+
+	@Override
+	public TcpSession getSession() {
+		return null;
 	}
 
 	/**
@@ -154,7 +157,6 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 	@Override
 	public void syncStart() throws IOException {
 		serverSocketChannel.bind(new InetSocketAddress(host, port), 1000);
-		serverSocketChannel.configureBlocking(false);
 
 		registerSelector();
 	}

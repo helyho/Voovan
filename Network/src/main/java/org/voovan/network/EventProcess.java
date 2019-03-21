@@ -10,6 +10,7 @@ import org.voovan.tools.TByteBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 /**
  * 事件的实际逻辑处理
