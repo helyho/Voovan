@@ -528,17 +528,11 @@ public class HttpParser {
 
 			packetMap.put(PL_HASH, null);
 
-			Supplier contiuneRead = ()->{
-				try {
-					if(session!=null) {
-						return TReflect.invokeMethod(session, SESSIONM_READ0);
-					} else {
-						return -1;
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					return -1;
-				}
+			//读取数据
+			Runnable contiuneRead = ()->{
+                if(session!=null) {
+                    session.getSocketSelector().eventChoose();
+                }
 			};
 
 			//解析 HTTP 请求 body
