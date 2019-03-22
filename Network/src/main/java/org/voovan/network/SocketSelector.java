@@ -370,9 +370,12 @@ public class SocketSelector implements Closeable {
 
 	}
 
+	static String BROKEN_PIPE = "Broken pipe";
+	static String CONNECTION_RESET = "Connection reset by peer";
+
 	public int dealException(SocketContext socketContext, Exception e) {
-		if((e instanceof AsynchronousCloseException) ||
-				(e instanceof ClosedChannelException)){
+		if(BROKEN_PIPE.equals(e.getMessage()) || CONNECTION_RESET.equals(e.getMessage())){
+			socketContext.close();
 			return -1;
 		}
 
@@ -383,7 +386,11 @@ public class SocketSelector implements Closeable {
 
 		if(e instanceof Exception){
 			//触发 onException 事件
-			EventTrigger.fireException((IoSession) socketContext.getSession(), e);
+			try {
+				EventTrigger.fireException((IoSession) socketContext.getSession(), e);
+			} catch (Exception ex) {
+				e.printStackTrace();
+			}
 		}
 
 		return -1;
