@@ -176,7 +176,7 @@ public class SocketSelector implements Closeable {
 								}
 							}
 						} else {
-							selectionKey.cancel();
+							unRegister((SocketContext) selectionKey.attachment());
 						}
 					}
 
