@@ -342,6 +342,7 @@ public class SocketSelector implements Closeable {
 				//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
 				if (session.getSSLParser() == null || !SSLParser.isHandShakeDone(session)) {
 					appByteBufferChannel.writeEnd(readTempBuffer);
+					session.getSSLParser().doHandShake();
 				}
 
 				//检查心跳

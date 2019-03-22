@@ -163,8 +163,14 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 		socketChannel.configureBlocking(false);
 		bindToSocketSelector(SelectionKey.OP_READ);
 
-		waitConnected(session);
-		EventTrigger.fireConnect(session);
+		if(session.getSSLParser()!=null){
+			session.getSocketSelector().getEventRunner().addEvent(()->{
+				session.getSSLParser().doHandShake();
+			});
+		} else {
+			//SSL 的 onConnect 时间在 SSLParser 中触发
+			EventTrigger.fireConnect(session);
+		}
 
 	}
 
@@ -174,42 +180,12 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 
 			bindToSocketSelector(SelectionKey.OP_READ);
 
-			EventTrigger.fireConnect(session);
+			if(session.getSSLParser()==null) {
+				//SSL 的 onConnect 时间在 SSLParser 中触发
+				EventTrigger.fireConnect(session);
+			}
 		}catch(IOException e){
 			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * 重连当前连接
-	 * @return NioSocket对象
-	 * @throws IOException IO 异常
-	 * @throws RestartException 重新启动的异常
-	 */
-	public TcpSocket restart() throws IOException, RestartException {
-		if(this.connectModel == ConnectModel.CLIENT) {
-			init();
-			this.start();
-			return this;
-		}else{
-			throw new RestartException("Can't invoke reStart method in server mode");
-		}
-	}
-
-	/**
-	 * 重连当前连接
-	 *      同步模式
-	 * @return NioSocket对象
-	 * @throws IOException IO 异常
-	 * @throws RestartException 重新启动的异常
-	 */
-	public TcpSocket syncRestart() throws IOException, RestartException {
-		if(this.connectModel == ConnectModel.CLIENT) {
-			init();
-			this.syncRestart();
-			return this;
-		}else{
-			throw new RestartException("Can't invoke reStart method in server mode");
 		}
 	}
 

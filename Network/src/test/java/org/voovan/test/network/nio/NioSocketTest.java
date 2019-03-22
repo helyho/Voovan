@@ -14,12 +14,5 @@ public class NioSocketTest {
 		socket.filterChain().add(new StringFilter());
 		socket.messageSplitter(new LineMessageSplitter());
 		socket.start();
-
-		Logger.simple("==================================Terminate==================================");
-
-		//重连操作
-		socket.restart();
-		Logger.simple("==================================Terminate==================================");
-		socket.getSession().restart();
 	}
 }
