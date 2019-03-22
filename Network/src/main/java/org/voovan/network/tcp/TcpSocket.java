@@ -163,7 +163,8 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 		socketChannel.configureBlocking(false);
 		bindToSocketSelector(SelectionKey.OP_READ);
 
-		if(session.getSSLParser()!=null){
+		if(session.getSSLParser()!=null) {
+			//客户端模式主动发起 SSL 握手的第一个请求
 			session.getSocketSelector().getEventRunner().addEvent(()->{
 				session.getSSLParser().doHandShake();
 			});

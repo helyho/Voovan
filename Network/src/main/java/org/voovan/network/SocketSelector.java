@@ -6,6 +6,7 @@ import org.voovan.network.udp.UdpSession;
 import org.voovan.network.tcp.TcpSocket;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.SimpleArraySet;
 import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
@@ -33,7 +34,6 @@ public class SocketSelector implements Closeable {
 	private  EventRunner eventRunner;
 
 	protected Selector selector;
-	protected ByteBufferChannel netByteBufferChannel;
 	protected ByteBuffer readTempBuffer;
 
 	protected SimpleArraySet<SelectionKey> selectionKeys = new SimpleArraySet<SelectionKey>(1024);
@@ -168,9 +168,6 @@ public class SocketSelector implements Closeable {
 	public void close() {
 		try {
 			TByteBuffer.release(readTempBuffer);
-			if(netByteBufferChannel!=null){
-				netByteBufferChannel.release();
-			}
 			selector.close();
 		} catch (IOException e) {
 			Logger.error("close selector error");
@@ -317,9 +314,6 @@ public class SocketSelector implements Closeable {
 			session.close();
 			return -1;
 		} else {
-			if (netByteBufferChannel == null && session.getSSLParser() != null) {
-				netByteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
-			}
 
 			readTempBuffer.flip();
 
@@ -332,33 +326,34 @@ public class SocketSelector implements Closeable {
 					Logger.error("Session.byteByteBuffer is not enough:", e);
 				}
 
-				//接收SSL数据, SSL握手完成后解包
-				if (session.getSSLParser() != null && SSLParser.isHandShakeDone(session)) {
-					//一次接受并完成 SSL 解码后, 常常有剩余无法解码数据, 所以用 netByteBufferChannel 这个通道进行保存
-					netByteBufferChannel.writeEnd(readTempBuffer);
-					session.getSSLParser().unWarpByteBufferChannel(session, netByteBufferChannel, appByteBufferChannel);
-				}
-
 				//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
-				if (session.getSSLParser() == null || !SSLParser.isHandShakeDone(session)) {
-					appByteBufferChannel.writeEnd(readTempBuffer);
+				if (!SSLParser.isHandShakeDone(session)) {
+					session.getSSLParser().getSSlByteBufferChannel().writeEnd(readTempBuffer);
 					session.getSSLParser().doHandShake();
-				}
-
-				//检查心跳
-				if (session.getHeartBeat() != null && SSLParser.isHandShakeDone(session)) {
-					//锁住appByteBufferChannel防止异步问题
-					appByteBufferChannel.getByteBuffer();
-					try {
-						HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
-					} finally {
-						appByteBufferChannel.compact();
+				} else {
+					//接收SSL数据, SSL握手完成后解包
+					if (session.getSSLParser() != null) {
+						//一次接受并完成 SSL 解码后, 常常有剩余无法解码数据, 所以用 netByteBufferChannel 这个通道进行保存
+						session.getSSLParser().unWarpByteBufferChannel(appByteBufferChannel, readTempBuffer);
+					} else {
+						appByteBufferChannel.writeEnd(readTempBuffer);
 					}
-				}
 
-				if (appByteBufferChannel.size() > 0 && SSLParser.isHandShakeDone(session)) {
-					// 触发 onReceive 事件
-					EventTrigger.fireReceive(session);
+					//检查心跳
+					if (session.getHeartBeat() != null) {
+						//锁住appByteBufferChannel防止异步问题
+						appByteBufferChannel.getByteBuffer();
+						try {
+							HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
+						} finally {
+							appByteBufferChannel.compact();
+						}
+					}
+
+					if (appByteBufferChannel.size() > 0) {
+						// 触发 onReceive 事件
+						EventTrigger.fireReceive(session);
+					}
 				}
 
 				// 接收完成后重置buffer对象
