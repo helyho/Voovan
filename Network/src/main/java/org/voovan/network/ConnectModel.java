@@ -9,5 +9,5 @@ package org.voovan.network;
  * Licence: Apache v2 License
  */
 public enum ConnectModel {
-	CLIENT,SERVER
+	CLIENT,SERVER,LISTENER
 }

@@ -19,7 +19,18 @@ import java.util.function.Function;
 public class EventRunnerGroup {
 
 	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", TPerformance.getProcessorCount(), TPerformance.getProcessorCount(), 60*1000);
-	public static EventRunnerGroup EVENT_RUNNER_GROUP= new EventRunnerGroup(TPerformance.getProcessorCount(), (obj)->{
+	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", TPerformance.getProcessorCount(), TPerformance.getProcessorCount(), 60*1000);
+
+	public static EventRunnerGroup IO_EVENT_RUNNER_GROUP= new EventRunnerGroup(IO_THREAD_POOL, TPerformance.getProcessorCount(), (obj)->{
+		try {
+			return new SocketSelector(obj);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	});
+	public static EventRunnerGroup ACCEPT_EVENT_RUNNER_GROUP= new EventRunnerGroup(ACCEPT_THREAD_POOL, 1, (obj)->{
 		try {
 			return new SocketSelector(obj);
 		} catch (IOException e) {
@@ -38,7 +49,7 @@ public class EventRunnerGroup {
 	 * @param size 容纳事件执行器的数量
 	 * @param attachmentSupplier 事件执行器的附属对象构造器
 	 */
-	public EventRunnerGroup(int size, Function<EventRunner, Object> attachmentSupplier){
+	public EventRunnerGroup(ThreadPoolExecutor threadPoolExecutor, int size, Function<EventRunner, Object> attachmentSupplier){
 		this.size = size;
 		eventRunners = new EventRunner[size];
 		for(int i=0;i<size;i++){
@@ -49,11 +60,15 @@ public class EventRunnerGroup {
 			}
 			eventRunners[i] = eventRunner;
 
-			IO_THREAD_POOL.execute(()->{
+			threadPoolExecutor.execute(()->{
 				eventRunner.setThread(Thread.currentThread());
 				eventRunner.process();
 			});
 		}
+	}
+
+	public EventRunner[] getEventRunners() {
+		return eventRunners;
 	}
 
 	/**
