@@ -29,7 +29,7 @@ public class SSLParser {
 	private ByteBuffer netData;
 	private IoSession session;
 	boolean handShakeDone = false;
-
+	private ByteBufferChannel sslByteBufferChannel;
 	/**
 	 * 构造函数
 	 *
@@ -41,6 +41,11 @@ public class SSLParser {
 		this.session = session;
 		this.appData = buildAppDataBuffer();
 		this.netData = buildNetDataBuffer();
+		sslByteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
+	}
+
+	public ByteBufferChannel getSSlByteBufferChannel() {
+		return sslByteBufferChannel;
 	}
 
 	/**
@@ -179,16 +184,15 @@ public class SSLParser {
 		SSLEngineResult engineResult = null;
 
 		clearBuffer();
-		ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
 
-		if (byteBufferChannel.isReleased()) {
+		if (sslByteBufferChannel.isReleased()) {
 			throw new IOException("Socket is disconnect");
 		}
 
-		if (byteBufferChannel.size() > 0) {
+		if (sslByteBufferChannel.size() > 0) {
 
 			try {
-				ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+				ByteBuffer byteBuffer = sslByteBufferChannel.getByteBuffer();
 
 				engineResult = unwarpData(byteBuffer, appData);
 
@@ -210,7 +214,7 @@ public class SSLParser {
 				}
 
 			} finally {
-				byteBufferChannel.compact();
+				sslByteBufferChannel.compact();
 			}
 
 
@@ -242,7 +246,7 @@ public class SSLParser {
 			engine.beginHandshake();
 			int handShakeCount = 0;
 			HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
-			while (!handShakeDone && handShakeCount < 20) {
+			while (!handShakeDone && handShakeCount < 10) {
 				handShakeCount++;
 				if (handshakeStatus == null) {
 					throw new SSLException("doHandShake: Socket is disconnect");
@@ -258,6 +262,9 @@ public class SSLParser {
 					case NEED_UNWRAP:
 						if(isEnoughToUnwarp()){
 							handshakeStatus = doHandShakeUnwarp();
+						} else {
+							//如果不可解包, 则直接返回, 等待下一次数据接收
+							return false;
 						}
 						break;
 					case FINISHED:
@@ -265,6 +272,7 @@ public class SSLParser {
 						break;
 					case NOT_HANDSHAKING:
 						handShakeDone = true;
+						//触发 onConnect 时间
 						EventTrigger.fireConnect(session);
 						break;
 					default:
@@ -282,17 +290,21 @@ public class SSLParser {
 	/**
 	 * 读取SSL消息到缓冲区
 	 *
-	 * @param session              Socket 会话对象
-	 * @param netByteBufferChannel Socket SSL 加密后的数据
 	 * @param appByteBufferChannel Socket SSL 解密后的数据
 	 * @return 接收数据大小
 	 * @throws IOException IO异常
 	 */
-	public synchronized int unWarpByteBufferChannel(IoSession session, ByteBufferChannel netByteBufferChannel,
-													ByteBufferChannel appByteBufferChannel) throws IOException {
+	public synchronized int unWarpByteBufferChannel(ByteBufferChannel appByteBufferChannel, ByteBuffer readByteBuffer) throws IOException {
+
+		sslByteBufferChannel.writeEnd(readByteBuffer);
+
+		if(!isEnoughToUnwarp()) {
+			return 0;
+		}
+
 		int readSize = 0;
 
-		if (session.isConnected() && netByteBufferChannel.size() > 0) {
+		if (session.isConnected() && sslByteBufferChannel.size() > 0) {
 			SSLEngineResult engineResult = null;
 
 			try {
@@ -301,10 +313,10 @@ public class SSLParser {
 
 					ByteBuffer byteBuffer = null;
 					try {
-						byteBuffer = netByteBufferChannel.getByteBuffer();
+						byteBuffer = sslByteBufferChannel.getByteBuffer();
 						engineResult = unwarpData(byteBuffer, appData);
 					} finally {
-						netByteBufferChannel.compact();
+						sslByteBufferChannel.compact();
 					}
 
 					if (engineResult == null) {
@@ -340,6 +352,7 @@ public class SSLParser {
 	public void release() {
 		TByteBuffer.release(netData);
 		TByteBuffer.release(appData);
+		sslByteBufferChannel.release();
 	}
 
 
@@ -384,8 +397,7 @@ public class SSLParser {
 	 </pre>
 	 */
 	private boolean isEnoughToUnwarp() throws SSLException {
-		ByteBufferChannel readByteBufferChannel = session.getReadByteBufferChannel();
-		ByteBuffer src = readByteBufferChannel.getByteBuffer();
+		ByteBuffer src = sslByteBufferChannel.getByteBuffer();
 		try {
 			if (src.remaining() < 5) {
 				return false;
@@ -410,7 +422,7 @@ public class SSLParser {
 			}
 			return true;
 		} finally {
-			readByteBufferChannel.compact();
+			sslByteBufferChannel.compact();
 		}
 	}
 
