@@ -2,7 +2,6 @@ package org.voovan.network.tcp;
 
 import org.voovan.network.*;
 import org.voovan.network.exception.ReadMessageException;
-import org.voovan.network.exception.RestartException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.log.Logger;
 

@@ -88,23 +88,43 @@ public abstract class IoSession<T extends SocketContext> {
 		checkIdle();
 	}
 
+	/**
+	 * 获取 Socket 选择器
+	 * @return Socket 选择器
+	 */
 	public SocketSelector getSocketSelector() {
 		return socketSelector;
 	}
 
-	public void setSocketSelector(SocketSelector socketSelector) {
+	/**
+	 * 设置 Socket 选择器
+	 * @param socketSelector Socket 选择器
+	 */
+	protected void setSocketSelector(SocketSelector socketSelector) {
 		this.socketSelector = socketSelector;
 	}
 
+	/**
+	 * 获取 Event 执行器
+	 * @return Event 执行器
+	 */
 	protected EventRunner getEventRunner() {
 		return socketSelector.getEventRunner();
 	}
 
-	public SelectionKey getSelectionKey() {
+	/**
+	 * 获取 SelectionKey
+	 * @return SelectionKey 对象
+	 */
+	SelectionKey getSelectionKey() {
 		return selectionKey;
 	}
 
-	public void setSelectionKey(SelectionKey selectionKey) {
+	/**
+	 * 设置 SelectionKey
+	 * @param selectionKey SelectionKey 对象
+	 */
+	void setSelectionKey(SelectionKey selectionKey) {
 		this.selectionKey = selectionKey;
 	}
 
@@ -116,10 +136,18 @@ public abstract class IoSession<T extends SocketContext> {
 		return heartBeat;
 	}
 
-	protected void setHeartBeat(HeartBeat heartBeat) {
+	/**
+	 * 设置心跳对象
+	 * @return 心跳对象
+	 */
+	void setHeartBeat(HeartBeat heartBeat) {
 		this.heartBeat = heartBeat;
 	}
 
+	/**
+	 * 获取状态
+	 * @return 当前状态
+	 */
 	public State getState() {
 		return state;
 	}

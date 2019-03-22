@@ -38,6 +38,11 @@ public class SocketSelector implements Closeable {
 
 	protected SimpleArraySet<SelectionKey> selectionKeys = new SimpleArraySet<SelectionKey>(1024);
 
+	/**
+	 * 构造方法
+	 * @param eventRunner 事件执行器
+	 * @throws IOException IO 异常
+	 */
 	public SocketSelector(EventRunner eventRunner) throws IOException {
 		this.selector = SelectorProvider.provider().openSelector();
 		this.eventRunner = eventRunner;
@@ -58,7 +63,12 @@ public class SocketSelector implements Closeable {
 		return eventRunner;
 	}
 
-
+	/**
+	 * 注册一个 SocketContext 到选择器
+	 * @param socketContext SocketContext 对象
+	 * @param ops 需要关注的操作
+	 * @return true:成功, false:失败
+	 */
 	public boolean register(SocketContext socketContext, int ops){
 		try {
 			SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
@@ -74,6 +84,10 @@ public class SocketSelector implements Closeable {
 		}
 	}
 
+	/**
+	 * 在选择器中取消一个 SocketContext 的注册
+	 * @param socketContext SocketContext 对象
+	 */
 	public void unRegister(SocketContext socketContext) {
 		addChooseEvent(()->{
 			socketContext.getSession().getSelectionKey().attach(null);
@@ -82,14 +96,25 @@ public class SocketSelector implements Closeable {
 		});
 	}
 
-	public boolean inEventRunner(){
-		return eventRunner.getThreadId() == Thread.currentThread().getId();
+	/**
+	 * 是否在选择器绑定的执行器的线程中执行
+	 * @return
+	 */
+	private boolean inEventRunner(){
+		return eventRunner.getThread() == Thread.currentThread();
 	}
 
+	/**
+	 * 向执行器中增加一个选择事件
+	 */
 	public void addChooseEvent(){
 		addChooseEvent(null);
 	}
 
+	/**
+	 * 向执行器中增加一个选择事件
+	 * @param supplier 在事件选择前执行的方法
+	 */
 	public void addChooseEvent(Callable<Boolean> supplier){
 		if(selector.isOpen()) {
 			eventRunner.addEvent(() -> {
@@ -110,6 +135,9 @@ public class SocketSelector implements Closeable {
 		}
 	}
 
+	/**
+	 * 事件选择业务累
+	 */
 	public void eventChoose() {
 		if(!inEventRunner()){
 			addChooseEvent();
@@ -165,6 +193,9 @@ public class SocketSelector implements Closeable {
 		}
 	}
 
+	/**
+	 * 选择器关闭方法
+	 */
 	public void close() {
 		try {
 			TByteBuffer.release(readTempBuffer);
@@ -174,6 +205,12 @@ public class SocketSelector implements Closeable {
 		}
 	}
 
+	/**
+	 * 通用封装的从通道读数据的方法
+	 * @param socketContext SocketContext 对象
+	 * @param selectableChannel 读取的 SelectableChannel 对象
+	 * @return 读取数据的字节数, -1:读取失败
+	 */
 	public int readFromChannel(SocketContext socketContext, SelectableChannel selectableChannel){
 		if(selectableChannel instanceof SocketChannel){
 			return tcpReadFromChannel((TcpSocket) socketContext, (SocketChannel)selectableChannel);
@@ -184,6 +221,12 @@ public class SocketSelector implements Closeable {
 		}
 	}
 
+	/**
+	 * 通用封装的向通道写数据的方法
+	 * @param socketContext SocketContext 对象
+	 * @param buffer 待写入的数据缓冲对象
+	 * @return 写入数据的字节数, -1:写入失败
+	 */
 	public int writeToChannel(SocketContext socketContext, ByteBuffer buffer){
 		if(socketContext instanceof TcpSocket){
 			return tcpWriteToChannel((TcpSocket) socketContext, buffer);
@@ -194,7 +237,11 @@ public class SocketSelector implements Closeable {
 		}
 	}
 
-
+	/**
+	 * Tcp 服务接受一个新的连接
+	 * @param socketContext SocketContext 对象
+	 * @param socketChannel Socketchannel 对象
+	 */
 	public void tcpAccept(TcpServerSocket socketContext, SocketChannel socketChannel) {
 		try {
 			TcpSocket socket = new TcpSocket(socketContext, socketChannel);
@@ -204,16 +251,28 @@ public class SocketSelector implements Closeable {
 		}
 	}
 
+	/**
+	 * TCP 从通道读数据的方法
+	 * @param socketContext TcpSocket 对象
+	 * @param socketChannel 读取的 Socketchannel 对象
+	 * @return 读取数据的字节数, -1:读取失败
+	 */
 	public int tcpReadFromChannel(TcpSocket socketContext, SocketChannel socketChannel) {
 		try {
 			int readSize = socketChannel.read(readTempBuffer);
-			readSize = prepare(socketContext.getSession(), readSize);
+			readSize = loadAndPrepare(socketContext.getSession(), readSize);
 			return readSize;
 		} catch (Exception e) {
 			return dealException(socketContext, e);
 		}
 	}
 
+	/**
+	 * TCP 向通道写数据的方法
+	 * @param socketContext TcpSocket 对象
+	 * @param buffer 待写入的数据缓冲对象
+	 * @return 写入数据的字节数, -1:写入失败
+	 */
 	public int tcpWriteToChannel(TcpSocket socketContext, ByteBuffer buffer) {
 		try {
 			int totalSendByte = 0;
@@ -241,13 +300,26 @@ public class SocketSelector implements Closeable {
 		}
 	}
 
+	/**
+	 * UDP 服务接受一个新的连接
+	 * @param socketContext UdpServerSocket 对象
+	 * @param datagramChannel DatagramChannel 对象
+	 * @param address 接受通道的地址信息
+	 * @return 接受收到的 UdpSocket 对象
+	 * @throws IOException IO异常
+	 */
 	public UdpSocket udpAccept(UdpServerSocket socketContext, DatagramChannel datagramChannel, SocketAddress address) throws IOException {
 		UdpSocket udpSocket = new UdpSocket(socketContext, datagramChannel, (InetSocketAddress) address);
 		udpSocket.acceptStart();
 		return udpSocket;
 	}
 
-
+	/**
+	 * UDP 从通道读数据的方法
+	 * @param socketContext SocketContext 对象
+	 * @param datagramChannel 读取的 DatagramChannel 对象
+	 * @return 读取数据的字节数, -1:读取失败
+	 */
 	public int udpReadFromChannel(SocketContext<DatagramChannel, UdpSession> socketContext, DatagramChannel datagramChannel) {
 		try {
 			int readSize = -1;
@@ -261,7 +333,7 @@ public class SocketSelector implements Closeable {
 				UdpSession session = socketContext.getSession();
 				readSize = readTempBuffer.position();
 			}
-			readSize = prepare(socketContext.getSession(), readSize);
+			readSize = loadAndPrepare(socketContext.getSession(), readSize);
 
 			return readSize;
 		} catch (Exception e) {
@@ -269,7 +341,12 @@ public class SocketSelector implements Closeable {
 		}
 	}
 
-
+	/**
+	 * UDP 向通道写数据的方法
+	 * @param socketContext UdpSocket 对象
+	 * @param buffer 待写入的数据缓冲对象
+	 * @return 写入数据的字节数, -1:写入失败
+	 */
 	public int udpWriteToChannel(UdpSocket socketContext, ByteBuffer buffer) {
 		try {
 			DatagramChannel datagramChannel = socketContext.socketChannel();
@@ -305,7 +382,14 @@ public class SocketSelector implements Closeable {
 		}
 	}
 
-	public int prepare(IoSession session, int readSize) throws IOException {
+	/**
+	 * 数据读取
+	 * @param session IoSession会话对象
+	 * @param readSize 需要读取数据大小
+	 * @return 实际读取的数据大小
+	 * @throws IOException IO 异常
+	 */
+	public int loadAndPrepare(IoSession session, int readSize) throws IOException {
 		ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
 
 		// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
@@ -369,6 +453,12 @@ public class SocketSelector implements Closeable {
 	static String BROKEN_PIPE = "Broken pipe";
 	static String CONNECTION_RESET = "Connection reset by peer";
 
+	/**
+	 * 异常处理方法
+	 * @param socketContext SocketContext 对象
+	 * @param e Exception 异常对象
+	 * @return 永远返回 -1
+	 */
 	public int dealException(SocketContext socketContext, Exception e) {
 		if(BROKEN_PIPE.equals(e.getMessage()) || CONNECTION_RESET.equals(e.getMessage())){
 			socketContext.close();

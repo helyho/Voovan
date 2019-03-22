@@ -50,10 +50,20 @@ public class NioUtil {
 		});
 	}
 
+	/**
+	 * 为 SelectionKey 增加一个操作
+	 * @param key SelectionKey 对象
+	 * @param ops 操作
+	 */
 	public static void addOps(SelectionKey key, int ops){
 		key.interestOps(key.interestOps() | ops);
 	}
 
+	/**
+	 * 为 SelectionKey 移除一个操作
+	 * @param key SelectionKey 对象
+	 * @param ops 操作
+	 */
 	public static void removeOps(SelectionKey key, int ops){
 		int oldOps = key.interestOps();
 		oldOps &= ~ops;

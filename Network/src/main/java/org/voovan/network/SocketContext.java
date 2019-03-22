@@ -142,18 +142,34 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 */
 	public abstract C socketChannel();
 
+	/**
+	 * 会话读缓冲区大小
+	 * @return 读缓冲区大小
+	 */
 	public int getReadBufferSize() {
 		return readBufferSize;
 	}
 
+	/**
+	 * 设置会话读缓冲区大小
+	 * @param readBufferSize 读缓冲区大小
+	 */
 	public void setReadBufferSize(int readBufferSize) {
 		this.readBufferSize = readBufferSize;
 	}
 
+	/**
+	 * 会话写缓冲区大小
+	 * @return 读缓冲区大小
+	 */
 	public int getSendBufferSize() {
 		return sendBufferSize;
 	}
 
+	/**
+	 * 设置会话写缓冲区大小
+	 * @param sendBufferSize 读缓冲区大小
+	 */
 	public void setSendBufferSize(int sendBufferSize) {
 		this.sendBufferSize = sendBufferSize;
 	}
@@ -297,20 +313,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 * @throws IOException IO异常
 	 */
 	protected abstract void acceptStart() throws IOException;
-
-	/**
-	 * 等待连接完成
-	 * @param session socket 会话对象
-	 */
-	protected void waitConnected(IoSession session){
-		try {
-			TEnv.wait(readTimeout, ()-> !isConnected());
-			TEnv.wait(readTimeout, ()-> session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone() && isConnected());
-		}catch(Exception e){
-			Logger.error(e);
-			session.close();
-		}
-	}
 
 	/**
 	 * 上下文连接是否打开

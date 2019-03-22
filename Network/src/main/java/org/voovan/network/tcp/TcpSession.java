@@ -129,6 +129,7 @@ public class TcpSession extends IoSession<TcpSocket> {
 	/**
 	 * 关闭会话
 	 */
+	@Override
 	public boolean close() {
 		this.cancelIdle();
 		return this.socketContext().close();
