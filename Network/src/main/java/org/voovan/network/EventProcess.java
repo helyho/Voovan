@@ -144,7 +144,13 @@ public class EventProcess {
         }
     }
 
-    public static ByteBuffer loadSplitData(IoSession session, int splitLength) {
+	/**
+	 * 读取分割方法
+	 * @param session 会话对象
+	 * @param splitLength 分割长度
+	 * @return 分割后的数据
+	 */
+	public static ByteBuffer loadSplitData(IoSession session, int splitLength) {
 
         if(splitLength == 0){
             return TByteBuffer.EMPTY_BYTE_BUFFER;

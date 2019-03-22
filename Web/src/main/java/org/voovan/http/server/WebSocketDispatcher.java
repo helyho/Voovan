@@ -210,8 +210,7 @@ public class WebSocketDispatcher {
 		//如果 session 不存在,创建新的 session
 		if (!webSocketSessions.containsKey(socketSession)) {
 			// 构建 session
-			WebSocketSession webSocketSession =
-					new WebSocketSession(httpSession.getSocketSession(), webSocketRouter, WebSocketType.SERVER);
+			WebSocketSession webSocketSession = new WebSocketSession(httpSession.getSocketSession(), webSocketRouter, WebSocketType.SERVER);
 
 			webSocketSessions.put(socketSession, webSocketSession);
 			return webSocketSession;

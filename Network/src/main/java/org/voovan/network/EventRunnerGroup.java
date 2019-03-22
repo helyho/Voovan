@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
- * 类文字命名
+ * 事件执行管理器
  *
  * @author: helyho
  * Voovan Framework.
@@ -33,21 +33,35 @@ public class EventRunnerGroup {
 	private EventRunner[] eventRunners;
 	private volatile int size;
 
+	/**
+	 * 构造方法
+	 * @param size 容纳事件执行器的数量
+	 * @param attachmentSupplier 事件执行器的附属对象构造器
+	 */
 	public EventRunnerGroup(int size, Function<EventRunner, Object> attachmentSupplier){
 		this.size = size;
 		eventRunners = new EventRunner[size];
 		for(int i=0;i<size;i++){
 			EventRunner eventRunner = new EventRunner();
-			eventRunner.attachment(attachmentSupplier.apply(eventRunner));
+
+			if(attachmentSupplier!=null) {
+				eventRunner.attachment(attachmentSupplier.apply(eventRunner));
+			}
 			eventRunners[i] = eventRunner;
+
 			IO_THREAD_POOL.execute(()->{
-				eventRunner.setThreadId(Thread.currentThread().getId());
+				eventRunner.setThread(Thread.currentThread());
 				eventRunner.process();
 			});
 		}
 	}
 
+	/**
+	 * 选择一个时间执行器
+	 * @return 事件执行器对象
+	 */
 	public EventRunner choseEventRunner(){
+		//TODO: 这里最好能够使用负载均衡算法
 		int index = indexAtom.getAndUpdate((val) ->{
 			int newVal = val + 1;
 			return (size == newVal) ? 0 : newVal;

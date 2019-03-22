@@ -241,6 +241,10 @@ public class SSLParser {
 		return null;
 	}
 
+	/**
+	 * 进行 SSL 握手
+	 * @return true: 握手完成, false: 握手未完成
+	 */
 	public synchronized boolean doHandShake() {
 		try {
 			engine.beginHandshake();
@@ -291,6 +295,7 @@ public class SSLParser {
 	 * 读取SSL消息到缓冲区
 	 *
 	 * @param appByteBufferChannel Socket SSL 解密后的数据
+	 * @param readByteBuffer 已经读取到的数据的缓冲区
 	 * @return 接收数据大小
 	 * @throws IOException IO异常
 	 */
@@ -349,6 +354,9 @@ public class SSLParser {
 		return readSize;
 	}
 
+	/**
+	 * 释放方法
+	 */
 	public void release() {
 		TByteBuffer.release(netData);
 		TByteBuffer.release(appData);
@@ -356,6 +364,11 @@ public class SSLParser {
 	}
 
 
+	/**
+	 * 判断给定的会话握手是否完成
+	 * @param session IoSession 对象
+	 * @return true:握手完成或不需要握手, false:握手未完成
+	 */
 	public static boolean isHandShakeDone(IoSession session){
 		if(session==null || session.getSSLParser()==null){
 			return true;

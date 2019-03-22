@@ -533,6 +533,7 @@ public class HttpClient implements Closeable{
 		IoSession session = socket.getSession();
 		session.removeAttribute(HttpSessionParam.TYPE);
 
+		httpRequest.header().put("Host", hostString);
 		httpRequest.header().put("Connection","Upgrade");
 		httpRequest.header().put("Upgrade", "websocket");
 		httpRequest.header().put("Pragma","no-cache");

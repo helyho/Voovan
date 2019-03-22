@@ -22,17 +22,44 @@ public class Other {
 
     public static void main(String[] args) throws Exception {
 
-        System.out.println(TEnv.measureTime(()->{
-            for(int i=0;i<50000000;i++) {
-               Object.class.isAssignableFrom(List.class);
-                ArrayList.class.isAssignableFrom(List.class);
-            }
-        })/1000000);
+        String mm = null;
 
         System.out.println(TEnv.measureTime(()->{
             for(int i=0;i<50000000;i++) {
-                TReflect.isExtendsByClass(ArrayList.class, Object.class);
-                TReflect.isImpByInterface(ArrayList.class, List.class);
+                if(mm == null){
+                    continue;
+                }
+            }
+        })/1000000);
+
+        String qq = "aaa";
+
+        System.out.println(TEnv.measureTime(()->{
+            for(int i=0;i<50000000;i++) {
+                if(qq != null){
+                    continue;
+                }
+            }
+        })/1000000);
+
+
+        boolean oo = true;
+
+        System.out.println(TEnv.measureTime(()->{
+            for(int i=0;i<50000000;i++) {
+                if(oo){
+                    continue;
+                }
+            }
+        })/1000000);
+
+        boolean gg = true;
+
+        System.out.println(TEnv.measureTime(()->{
+            for(int i=0;i<50000000;i++) {
+                if(!gg){
+                    continue;
+                }
             }
         })/1000000);
     }
