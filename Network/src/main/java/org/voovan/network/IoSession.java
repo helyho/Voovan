@@ -28,6 +28,7 @@ import java.util.concurrent.TimeoutException;
  */
 public abstract class IoSession<T extends SocketContext> {
 	private Map<Object, Object> attributes;
+	private boolean sslMode = false;
 	private SSLParser sslParser;
 
 	private MessageLoader messageLoader;
@@ -271,9 +272,14 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @param sslParser SSL解析对象
 	 */
 	protected void setSSLParser(SSLParser sslParser) {
-		if(this.sslParser==null){
+		if(this.sslParser == null && sslParser!=null){
 			this.sslParser = sslParser;
+			sslMode = true;
 		}
+	}
+
+	public boolean isSSLMode() {
+		return sslMode;
 	}
 
 	/**
@@ -427,7 +433,6 @@ public abstract class IoSession<T extends SocketContext> {
 		}
 		return readObject;
 	}
-
 
 	/**
 	 * 发送消息到 JVM 的 SocketChannel

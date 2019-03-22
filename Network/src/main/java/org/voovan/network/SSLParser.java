@@ -250,7 +250,7 @@ public class SSLParser {
 			engine.beginHandshake();
 			int handShakeCount = 0;
 			HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
-			while (!handShakeDone && handShakeCount < 10) {
+			while (!handShakeDone && handShakeCount < 20) {
 				handShakeCount++;
 				if (handshakeStatus == null) {
 					throw new SSLException("doHandShake: Socket is disconnect");
@@ -276,6 +276,16 @@ public class SSLParser {
 						break;
 					case NOT_HANDSHAKING:
 						handShakeDone = true;
+
+//                        //对于连续数据的处理
+//						if(sslByteBufferChannel.size() > 0){
+//							try {
+//								unWarpByteBufferChannel(sslByteBufferChannel.getByteBuffer());
+//							} finally {
+//								sslByteBufferChannel.compact();
+//							}
+//						}
+
 						//触发 onConnect 时间
 						EventTrigger.fireConnect(session);
 						break;
@@ -283,7 +293,6 @@ public class SSLParser {
 						break;
 				}
 			}
-
 		} catch (Exception e) {
 			Logger.error("SSLParser.doHandShake error:", e);
 		}
@@ -294,13 +303,12 @@ public class SSLParser {
 	/**
 	 * 读取SSL消息到缓冲区
 	 *
-	 * @param appByteBufferChannel Socket SSL 解密后的数据
 	 * @param readByteBuffer 已经读取到的数据的缓冲区
 	 * @return 接收数据大小
 	 * @throws IOException IO异常
 	 */
-	public synchronized int unWarpByteBufferChannel(ByteBufferChannel appByteBufferChannel, ByteBuffer readByteBuffer) throws IOException {
-
+	public synchronized int unWarpByteBufferChannel(ByteBuffer readByteBuffer) throws IOException {
+		ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
 		sslByteBufferChannel.writeEnd(readByteBuffer);
 
 		if(!isEnoughToUnwarp()) {
@@ -370,7 +378,7 @@ public class SSLParser {
 	 * @return true:握手完成或不需要握手, false:握手未完成
 	 */
 	public static boolean isHandShakeDone(IoSession session){
-		if(session==null || session.getSSLParser()==null){
+		if(session==null || !session.isSSLMode()){
 			return true;
 		}else{
 			return session.getSSLParser().isHandShakeDone();
@@ -438,5 +446,28 @@ public class SSLParser {
 			sslByteBufferChannel.compact();
 		}
 	}
+
+
+	/**
+	 * 等待连接完成
+	 */
+	public void waitHandShakeDone(){
+		try {
+			TEnv.wait(session.socketContext().getReadTimeout(), ()-> {
+				if(session.isSSLMode() && session.getSSLParser().isHandShakeDone()) {
+					return false;
+				} else if(!session.isConnected()) {
+					Logger.error("Socket is disconnected");
+					return false;
+				} else {
+					return true;
+				}
+			});
+		}catch(Exception e){
+			Logger.error(e);
+			session.close();
+		}
+	}
+
 
 }

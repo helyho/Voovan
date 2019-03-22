@@ -158,6 +158,7 @@ public class HttpClient implements Closeable{
 			socket.syncStart();
 
 			httpRequest = new HttpRequest(new Request(), this.charset, socket.getSession());
+			initHeader();
 
 
 		} catch (IOException e) {

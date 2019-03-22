@@ -416,9 +416,8 @@ public class SocketSelector implements Closeable {
 					session.getSSLParser().doHandShake();
 				} else {
 					//接收SSL数据, SSL握手完成后解包
-					if (session.getSSLParser() != null) {
-						//一次接受并完成 SSL 解码后, 常常有剩余无法解码数据, 所以用 netByteBufferChannel 这个通道进行保存
-						session.getSSLParser().unWarpByteBufferChannel(appByteBufferChannel, readTempBuffer);
+					if (session.isSSLMode()) {
+						session.getSSLParser().unWarpByteBufferChannel(readTempBuffer);
 					} else {
 						appByteBufferChannel.writeEnd(readTempBuffer);
 					}
