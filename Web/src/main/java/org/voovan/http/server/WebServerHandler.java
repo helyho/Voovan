@@ -447,7 +447,6 @@ public class WebServerHandler implements IoHandler {
 
 		} else {
 			keepAliveSessionList.remove(session);
-			session.flush();
 			session.close();
 		}
 

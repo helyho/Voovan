@@ -40,7 +40,10 @@ public class EventRunnerGroup {
 			EventRunner eventRunner = new EventRunner();
 			eventRunner.attachment(attachmentSupplier.apply(eventRunner));
 			eventRunners[i] = eventRunner;
-			IO_THREAD_POOL.execute(eventRunner);
+			IO_THREAD_POOL.execute(()->{
+				eventRunner.setThreadId(Thread.currentThread().getId());
+				eventRunner.process();
+			});
 		}
 	}
 

@@ -55,7 +55,7 @@
 //    /**
 //     * 所有的事件均在这里触发
 //     */
-//    public void eventChose() {
+//    public void eventChoose() {
 //	    // 事件循环
 //	    EventRunner eventRunner = socketContext.getEventRunner();
 //
@@ -117,7 +117,7 @@
 //	        if(socketContext.isConnected()) {
 //		        eventRunner.addEvent(() -> {
 //			        if(socketContext.isConnected()) {
-//				        eventChose();
+//				        eventChoose();
 //			        }
 //		        });
 //	        }

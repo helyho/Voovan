@@ -13,23 +13,27 @@ import java.util.Iterator;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class SelectionKeySet extends AbstractSet<SelectionKey> {
+public class SimpleArraySet<E> extends AbstractSet<E> {
 
-	SelectionKey[] selectionKeys;
+	Object[] elements;
 	volatile int size;
 
-	public SelectionKeySet(int cap) {
-		selectionKeys = new SelectionKey[cap];
+	public SimpleArraySet(int cap) {
+		elements = new Object[cap];
 	}
 
-	public SelectionKey[] getSelectionKeys() {
-		return selectionKeys;
+	public E[] getElements() {
+		return (E[]) elements;
+	}
+
+	public E get(int index){
+		return (E)elements[index];
 	}
 
 	@Override
-	public boolean add(SelectionKey selectionKey) {
-		selectionKeys[size++] = selectionKey;
-		if (selectionKeys.length == size) {
+	public boolean add(E selectionKey) {
+		elements[size++] = selectionKey;
+		if (elements.length == size) {
 			reallocate();
 		}
 		return true;
@@ -41,11 +45,11 @@ public class SelectionKeySet extends AbstractSet<SelectionKey> {
 	}
 
 	private void reallocate() {
-		selectionKeys = Arrays.copyOf(selectionKeys, selectionKeys.length << 1);
+		elements = Arrays.copyOf(elements, elements.length << 1);
 	}
 
 	@Override
-	public Iterator<SelectionKey> iterator() {
+	public Iterator<E> iterator() {
 		throw new UnsupportedOperationException();
 	}
 
@@ -67,4 +71,5 @@ public class SelectionKeySet extends AbstractSet<SelectionKey> {
 	public String toString() {
 		return "SelectionKeySet.size: " + size();
 	}
+
 }

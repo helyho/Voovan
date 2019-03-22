@@ -18,10 +18,11 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 
 /**
- * 选择器抽象类
+ * 选择器
  *
  * @author: helyho
  * Voovan Framework.
@@ -35,8 +36,7 @@ public class SocketSelector implements Closeable {
 	protected ByteBufferChannel netByteBufferChannel;
 	protected ByteBuffer readTempBuffer;
 
-	protected SelectionKeySet selectionKeys = new SelectionKeySet(1024);
-
+	protected SimpleArraySet<SelectionKey> selectionKeys = new SimpleArraySet<SelectionKey>(1024);
 
 	public SocketSelector(EventRunner eventRunner) throws IOException {
 		this.selector = SelectorProvider.provider().openSelector();
@@ -51,7 +51,7 @@ public class SocketSelector implements Closeable {
 			e.printStackTrace();
 		}
 
-		eventChose();
+		eventChoose();
 	}
 
 	public EventRunner getEventRunner() {
@@ -75,26 +75,56 @@ public class SocketSelector implements Closeable {
 	}
 
 	public void unRegister(SocketContext socketContext) {
-		socketContext.getSession().getSelectionKey().attach(null);
-		socketContext.getSession().getSelectionKey().cancel();
-		try {
-			selector.selectNow();
-		} catch (IOException e) {
-			e.printStackTrace();
+		addChooseEvent(()->{
+			socketContext.getSession().getSelectionKey().attach(null);
+			socketContext.getSession().getSelectionKey().cancel();
+			return true;
+		});
+	}
+
+	public boolean inEventRunner(){
+		return eventRunner.getThreadId() == Thread.currentThread().getId();
+	}
+
+	public void addChooseEvent(){
+		addChooseEvent(null);
+	}
+
+	public void addChooseEvent(Callable<Boolean> supplier){
+		if(selector.isOpen()) {
+			eventRunner.addEvent(() -> {
+				boolean result = true;
+				if(supplier!=null) {
+					try {
+						result = supplier.call();
+					} catch (Exception e) {
+						Logger.error("addChoseEvent error:",e);
+						result = false;
+					}
+				}
+
+				if(result) {
+					eventChoose();
+				}
+			});
 		}
 	}
 
-	public void eventChose() {
+	public void eventChoose() {
+		if(!inEventRunner()){
+			addChooseEvent();
+		}
+
 		// 事件循环
 		try {
 			if (selector != null && selector.isOpen()) {
 				int readyChannelCount = selector.select(100);
 
 				if (readyChannelCount>0) {
-					SelectionKeySet selectionKeys = (SelectionKeySet) selector.selectedKeys();
+					SimpleArraySet selectionKeys = (SimpleArraySet) selector.selectedKeys();
 
 					for (int i=0;i<selectionKeys.size(); i++) {
-						SelectionKey selectionKey = selectionKeys.getSelectionKeys()[i];
+						SelectionKey selectionKey = (SelectionKey)selectionKeys.get(i);
 
 						if (selectionKey.isValid()) {
 							// 获取 socket 通道
@@ -109,10 +139,11 @@ public class SocketSelector implements Closeable {
 
 								// 有数据读取
 								if ((selectionKey.readyOps() & SelectionKey.OP_READ) != 0) {
+									int readSize = 0;
 									if(channel instanceof SocketChannel){
-										tcpReadFromChannel((TcpSocket) selectionKey.attachment(), (SocketChannel)channel);
+										readSize = tcpReadFromChannel((TcpSocket) selectionKey.attachment(), (SocketChannel)channel);
 									} else if(channel instanceof DatagramChannel) {
-										udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) selectionKey.attachment(), (DatagramChannel) channel);
+										readSize = udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) selectionKey.attachment(), (DatagramChannel) channel);
 									}
 								}
 							}
@@ -130,11 +161,7 @@ public class SocketSelector implements Closeable {
 		} catch (IOException e){
 			Logger.error("NioSelector error: ", e);
 		} finally {
-			if(selector.isOpen()) {
-				eventRunner.addEvent(() -> {
-					eventChose();
-				});
-			}
+			addChooseEvent();
 		}
 	}
 
