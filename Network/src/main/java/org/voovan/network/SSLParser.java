@@ -123,30 +123,23 @@ public class SSLParser {
 	 * @throws Exception
 	 */
 	private synchronized HandshakeStatus doHandShakeWarp() throws IOException {
-		long start = System.currentTimeMillis();
-		while (true) {
 
-			if(!session.isConnected()){
+		if(!session.isConnected()){
+			return null;
+		}
+
+		try {
+			clearBuffer();
+			appData.flip();
+			if (warpData(appData) == null) {
 				return null;
 			}
-
-			if (System.currentTimeMillis() - start >= session.socketContext().getReadTimeout()) {
-				throw new SSLHandshakeException("Hand shake on: " + session.remoteAddress() + ":" + session.remotePort() + " timeout");
-			}
-
-			try {
-				clearBuffer();
-				appData.flip();
-				if (warpData(appData) == null) {
-					return null;
-				}
-				//如果有 HandShake Task 则执行
-				HandshakeStatus handshakeStatus = runDelegatedTasks();
-				return handshakeStatus;
-			} catch (SSLException e) {
-				TEnv.sleep(1);
-				continue;
-			}
+			//如果有 HandShake Task 则执行
+			HandshakeStatus handshakeStatus = runDelegatedTasks();
+			return handshakeStatus;
+		} catch (SSLException e) {
+			Logger.error("HandShakeWarp error:", e);
+			return null;
 		}
 	}
 
@@ -184,60 +177,43 @@ public class SSLParser {
 	private synchronized HandshakeStatus doHandShakeUnwarp() throws IOException {
 		HandshakeStatus handshakeStatus = null;
 		SSLEngineResult engineResult = null;
-		long start = System.currentTimeMillis();
-		while (true) {
 
-			if(!session.isConnected()){
-				break;
-			}
+		clearBuffer();
+		ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
 
-			if (System.currentTimeMillis() - start >= session.socketContext().getReadTimeout()) {
-				break;
-			}
+		if (byteBufferChannel.isReleased()) {
+			throw new IOException("Socket is disconnect");
+		}
 
-			clearBuffer();
-			ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
+		if (byteBufferChannel.size() > 0) {
 
-			if (byteBufferChannel.isReleased()) {
-				throw new IOException("Socket is disconnect");
-			}
+			try {
+				ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
-			if (byteBufferChannel.size() > 0) {
+				engineResult = unwarpData(byteBuffer, appData);
 
-				try {
-					ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
-					engineResult = unwarpData(byteBuffer, appData);
-
-					if (engineResult == null) {
-						return null;
-					}
-				} finally {
-					byteBufferChannel.compact();
+				if (engineResult == null) {
+					return null;
 				}
 
 				switch (engineResult.getStatus()) {
 					case OK: {
 						return engine.getHandshakeStatus();
 					}
-					case CLOSED: {
+
+					default: {
 						Logger.error(new SSLHandshakeException("Handshake failed: " + engineResult.getStatus()));
 						session.close();
 						break;
 					}
-					case BUFFER_OVERFLOW: {
-						break;
-					}
-					case BUFFER_UNDERFLOW: {
-						break;
-					}
+
 				}
 
-				if (!session.isConnected()) {
-					break;
-				}
+			} finally {
+				byteBufferChannel.compact();
 			}
 
-			TEnv.sleep(1);
+
 		}
 
 		return handshakeStatus == null ? engine.getHandshakeStatus() : handshakeStatus;
@@ -261,37 +237,43 @@ public class SSLParser {
 		return null;
 	}
 
-	public synchronized boolean doHandShake() throws IOException {
+	public synchronized boolean doHandShake() {
+		try {
+			engine.beginHandshake();
+			int handShakeCount = 0;
+			HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
+			while (!handShakeDone && handShakeCount < 20) {
+				handShakeCount++;
+				if (handshakeStatus == null) {
+					throw new SSLException("doHandShake: Socket is disconnect");
+				}
 
-		engine.beginHandshake();
-		int handShakeCount = 0;
-		HandshakeStatus handshakeStatus = engine.getHandshakeStatus();
-		while (!handShakeDone && handShakeCount < 20) {
-			handShakeCount++;
-			if (handshakeStatus == null) {
-				throw new SSLException("doHandShake: Socket is disconnect");
+				switch (handshakeStatus) {
+					case NEED_TASK:
+						handshakeStatus = runDelegatedTasks();
+						break;
+					case NEED_WRAP:
+						handshakeStatus = doHandShakeWarp();
+						break;
+					case NEED_UNWRAP:
+						if(isEnoughToUnwarp()){
+							handshakeStatus = doHandShakeUnwarp();
+						}
+						break;
+					case FINISHED:
+						handshakeStatus = engine.getHandshakeStatus();
+						break;
+					case NOT_HANDSHAKING:
+						handShakeDone = true;
+						EventTrigger.fireConnect(session);
+						break;
+					default:
+						break;
+				}
 			}
 
-			switch (handshakeStatus) {
-				case NEED_TASK:
-					handshakeStatus = runDelegatedTasks();
-					break;
-				case NEED_WRAP:
-					handshakeStatus = doHandShakeWarp();
-					break;
-				case NEED_UNWRAP:
-					handshakeStatus = doHandShakeUnwarp();
-					break;
-				case FINISHED:
-					handshakeStatus = engine.getHandshakeStatus();
-					break;
-				case NOT_HANDSHAKING:
-					handShakeDone = true;
-					break;
-				default:
-					break;
-			}
-//          TEnv.sleep(1);
+		} catch (Exception e) {
+			Logger.error("SSLParser.doHandShake error:", e);
 		}
 
 		return handShakeDone;
@@ -348,7 +330,7 @@ public class SSLParser {
 				}
 			}catch (MemoryReleasedException e){
 				if(!session.isConnected()) {
-					throw new SSLException("unWarpByteBufferChannel ");
+					throw new SSLException("unWarpByteBufferChannel ", e);
 				}
 			}
 		}
@@ -366,6 +348,69 @@ public class SSLParser {
 			return true;
 		}else{
 			return session.getSSLParser().isHandShakeDone();
+		}
+	}
+
+	/**
+	 <pre>
+	 record type (1 byte)
+	 /
+	 /    version (1 byte major, 1 byte minor)
+	 /    /
+	 /    /         length (2 bytes)
+	 /    /         /
+	 +----+----+----+----+----+
+	 |    |    |    |    |    |
+	 |    |    |    |    |    | TLS Record header
+	 +----+----+----+----+----+
+
+
+	 Record Type Values       dec      hex
+	 -------------------------------------
+	 CHANGE_CIPHER_SPEC        20     0x14
+	 ALERT                     21     0x15
+	 HANDSHAKE                 22     0x16
+	 APPLICATION_DATA          23     0x17
+
+
+	 Version Values            dec     hex
+	 -------------------------------------
+	 SSL 3.0                   3,0  0x0300
+	 TLS 1.0                   3,1  0x0301
+	 TLS 1.1                   3,2  0x0302
+	 TLS 1.2                   3,3  0x0303
+
+	 ref:http://blog.fourthbit.com/2014/12/23/traffic-analysis-of-an-ssl-slash-tls-session/
+	 </pre>
+	 */
+	private boolean isEnoughToUnwarp() throws SSLException {
+		ByteBufferChannel readByteBufferChannel = session.getReadByteBufferChannel();
+		ByteBuffer src = readByteBufferChannel.getByteBuffer();
+		try {
+			if (src.remaining() < 5) {
+				return false;
+			}
+			int pos = src.position();
+			// TLS - Check ContentType
+			int type = src.get(pos) & 0xff;
+			if (type < 20 || type > 23) {
+				throw new SSLException("Not SSL package");
+			}
+			// TLS - Check ProtocolVersion
+			int majorVersion = src.get(pos + 1) & 0xff;
+			int minorVersion = src.get(pos + 2) & 0xff;
+			int packetLength = src.getShort(pos + 3) & 0xffff;
+			if (majorVersion != 3 || minorVersion < 1) {
+				// NOT TLS (i.e. SSLv2,3 or bad data)
+				throw new SSLException("Not TLS protocol");
+			}
+			int len = packetLength + 5;
+			if (src.remaining() < len) {
+				return false;
+			}
+			return true;
+		} finally {
+			readByteBufferChannel.compact();
 		}
 	}
 

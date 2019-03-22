@@ -166,8 +166,10 @@ public class SSLManager {
 	public synchronized SSLParser createClientSSLParser(IoSession session) throws SSLException {
 		SSLEngine engine = createSSLEngine(protocol, session.socketContext().getHost(), session.socketContext().getPort());
 		engine.setUseClientMode(true);
+
 		SSLParser sslParser = new SSLParser(engine, session);
 		session.setSSLParser(sslParser);
+
 		return sslParser;
 	}
 

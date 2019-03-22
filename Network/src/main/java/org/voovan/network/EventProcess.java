@@ -54,32 +54,6 @@ public class EventProcess {
 
         IoSession session = event.getSession();
 
-        // SSL 握手
-        if (session != null && session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
-            try {
-                if (session.getSSLParser().doHandShake() &&
-                        session.getReadByteBufferChannel().size() > 0) {
-
-                    //将握手后的剩余数据进行处理, 并触发 onRecive 事件
-                    ByteBufferChannel byteBufferChannel = new ByteBufferChannel();
-                    session.getSSLParser().unWarpByteBufferChannel(session, session.getReadByteBufferChannel(), byteBufferChannel);
-                    session.getReadByteBufferChannel().clear();
-
-                    try {
-                        session.getReadByteBufferChannel().writeHead(byteBufferChannel.getByteBuffer());
-                    }finally {
-                        byteBufferChannel.compact();
-                        byteBufferChannel.release();
-                    }
-
-                    EventTrigger.fireReceive(session);
-                }
-            } catch (Exception e) {
-                session.close();
-                throw e;
-            }
-        }
-
         SocketContext socketContext = event.getSession().socketContext();
         if (socketContext != null && session != null) {
             Object original = socketContext.handler().onConnect(session);
