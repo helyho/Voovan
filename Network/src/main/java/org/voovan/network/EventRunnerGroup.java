@@ -18,10 +18,13 @@ import java.util.function.Function;
  */
 public class EventRunnerGroup {
 
-	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", TPerformance.getProcessorCount(), TPerformance.getProcessorCount(), 60*1000);
-	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", TPerformance.getProcessorCount(), TPerformance.getProcessorCount(), 60*1000);
+	public static int IO_THREAD_SIZE = TPerformance.getProcessorCount();
+	public static int ACCEPT_THREAD_SIZE = 1;
 
-	public static EventRunnerGroup IO_EVENT_RUNNER_GROUP= new EventRunnerGroup(IO_THREAD_POOL, TPerformance.getProcessorCount(), (obj)->{
+	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", IO_THREAD_SIZE, IO_THREAD_SIZE, 60*1000);
+	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", ACCEPT_THREAD_SIZE, ACCEPT_THREAD_SIZE, 60*1000);
+
+	public static EventRunnerGroup IO_EVENT_RUNNER_GROUP= new EventRunnerGroup(IO_THREAD_POOL, IO_THREAD_SIZE, (obj)->{
 		try {
 			return new SocketSelector(obj);
 		} catch (IOException e) {
@@ -30,7 +33,7 @@ public class EventRunnerGroup {
 
 		return null;
 	});
-	public static EventRunnerGroup ACCEPT_EVENT_RUNNER_GROUP= new EventRunnerGroup(ACCEPT_THREAD_POOL, 1, (obj)->{
+	public static EventRunnerGroup ACCEPT_EVENT_RUNNER_GROUP= new EventRunnerGroup(ACCEPT_THREAD_POOL, ACCEPT_THREAD_SIZE, (obj)->{
 		try {
 			return new SocketSelector(obj);
 		} catch (IOException e) {
