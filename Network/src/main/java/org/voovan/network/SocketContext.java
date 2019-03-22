@@ -338,7 +338,12 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 * @param ops 选择的操作类型
 	 */
 	public void bindToSocketSelector(int ops) {
-		EventRunner eventRunner = EventRunnerGroup.EVENT_RUNNER_GROUP.choseEventRunner();
+		EventRunner eventRunner = null;
+		if(connectModel == ConnectModel.LISTENER) {
+			eventRunner = EventRunnerGroup.ACCEPT_EVENT_RUNNER_GROUP.choseEventRunner();
+		} else {
+			eventRunner = EventRunnerGroup.IO_EVENT_RUNNER_GROUP.choseEventRunner();
+		}
 		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
 		socketSelector.register(this, ops);
 	}

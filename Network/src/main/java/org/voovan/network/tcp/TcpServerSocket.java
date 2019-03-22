@@ -1,5 +1,6 @@
 package org.voovan.network.tcp;
 
+import org.voovan.network.ConnectModel;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.log.Logger;
 
@@ -77,6 +78,7 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 		serverSocketChannel = provider.openServerSocketChannel();
 		serverSocketChannel.socket().setSoTimeout(this.readTimeout);
 		serverSocketChannel.configureBlocking(false);
+		connectModel = ConnectModel.LISTENER;
 	}
 
 	@Override

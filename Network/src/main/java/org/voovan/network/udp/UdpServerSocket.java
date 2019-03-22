@@ -1,9 +1,6 @@
 package org.voovan.network.udp;
 
-import org.voovan.network.EventRunner;
-import org.voovan.network.EventRunnerGroup;
-import org.voovan.network.SocketContext;
-import org.voovan.network.SocketSelector;
+import org.voovan.network.*;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -12,7 +9,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketOption;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
 
 /**
@@ -78,6 +74,7 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
         datagramChannel = provider.openDatagramChannel();
         datagramChannel.socket().setSoTimeout(this.readTimeout);
         datagramChannel.configureBlocking(false);
+        connectModel = ConnectModel.LISTENER;
     }
 
 
