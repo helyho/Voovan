@@ -146,7 +146,7 @@ public class SocketSelector implements Closeable {
 		// 事件循环
 		try {
 			if (selector != null && selector.isOpen()) {
-				int readyChannelCount = selector.select(100);
+				int readyChannelCount = selector.selectNow();
 
 				if (readyChannelCount>0) {
 					SimpleArraySet selectionKeys = (SimpleArraySet) selector.selectedKeys();

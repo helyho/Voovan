@@ -18,8 +18,8 @@ import java.util.function.Function;
  */
 public class EventRunnerGroup {
 
-	public static int IO_THREAD_SIZE = TPerformance.getProcessorCount();
 	public static int ACCEPT_THREAD_SIZE = 1;
+	public static int IO_THREAD_SIZE = TPerformance.getProcessorCount();
 
 	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", IO_THREAD_SIZE, IO_THREAD_SIZE, 60*1000);
 	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", ACCEPT_THREAD_SIZE, ACCEPT_THREAD_SIZE, 60*1000);
