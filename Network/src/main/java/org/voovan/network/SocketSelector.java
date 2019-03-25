@@ -59,7 +59,7 @@ public class SocketSelector implements Closeable {
 		}
 
 		//首次触发事件循环
-		eventChoose();
+		addChooseEvent();
 	}
 
 	public EventRunner getEventRunner() {
@@ -145,10 +145,6 @@ public class SocketSelector implements Closeable {
 	 * 事件选择业务累
 	 */
 	public void eventChoose() {
-		if(!inEventRunner()){
-			addChooseEvent();
-		}
-
 		// 事件循环
 		try {
 			if (selector != null && selector.isOpen()) {
@@ -198,7 +194,9 @@ public class SocketSelector implements Closeable {
 		} catch (IOException e){
 			Logger.error("NioSelector error: ", e);
 		} finally {
-			addChooseEvent();
+			if(inEventRunner()){
+				addChooseEvent();
+			}
 		}
 	}
 
