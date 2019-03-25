@@ -28,9 +28,9 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public class SocketSelector implements Closeable {
-	public static final int NIO_LOOP_WAIT_TIME = Integer.valueOf(TObject.nullDefault(System.getProperty("NioLoopWaitTime"),"200"));
+	public static final int IO_LOOP_WAIT_TIME = Integer.valueOf(TObject.nullDefault(System.getProperty("IoLoopWaitTime"),"200"));
 	static {
-		System.out.println("[SOCKET] NIO_LOOP_WAIT_TIME: " + NIO_LOOP_WAIT_TIME + "ms");
+		System.out.println("[SOCKET] IO_LOOP_WAIT_TIME: " + IO_LOOP_WAIT_TIME + "ms");
 	}
 
 	private  EventRunner eventRunner;
@@ -190,7 +190,7 @@ public class SocketSelector implements Closeable {
 					//给 OS 切换 EPOLL 中的 fd 的时间, 由于 java 最小只能用 1ms, 实测对性能完全无影响
 					TEnv.sleep(emptyReadyChannelCount);
 					emptyReadyChannelCount++;
-					if(emptyReadyChannelCount > 50) {
+					if(emptyReadyChannelCount > IO_LOOP_WAIT_TIME) {
 						emptyReadyChannelCount = 1;
 					}
 				}
