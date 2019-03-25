@@ -135,6 +135,8 @@ public class SocketSelector implements Closeable {
 		}
 	}
 
+	int emptyReadyChannelCount = 1;
+
 	/**
 	 * 事件选择业务累
 	 */
@@ -146,9 +148,9 @@ public class SocketSelector implements Closeable {
 		// 事件循环
 		try {
 			if (selector != null && selector.isOpen()) {
-				int readyChannelCount = selector.selectNow();
+				if (selector.selectNow()>0) {
+					emptyReadyChannelCount = 1;
 
-				if (readyChannelCount>0) {
 					SimpleArraySet selectionKeys = (SimpleArraySet) selector.selectedKeys();
 
 					for (int i=0;i<selectionKeys.size(); i++) {
@@ -167,11 +169,10 @@ public class SocketSelector implements Closeable {
 
 								// 有数据读取
 								if ((selectionKey.readyOps() & SelectionKey.OP_READ) != 0) {
-									int readSize = 0;
 									if(channel instanceof SocketChannel){
-										readSize = tcpReadFromChannel((TcpSocket) selectionKey.attachment(), (SocketChannel)channel);
+										tcpReadFromChannel((TcpSocket) selectionKey.attachment(), (SocketChannel)channel);
 									} else if(channel instanceof DatagramChannel) {
-										readSize = udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) selectionKey.attachment(), (DatagramChannel) channel);
+										udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) selectionKey.attachment(), (DatagramChannel) channel);
 									}
 								}
 							}
@@ -183,7 +184,11 @@ public class SocketSelector implements Closeable {
 					selectionKeys.reset();
 				} else {
 					//给 OS 切换 EPOLL 中的 fd 的时间, 由于 java 最小只能用 1ms, 实测对性能完全无影响
-					TEnv.sleep(1);
+					TEnv.sleep(emptyReadyChannelCount);
+					emptyReadyChannelCount++;
+					if(emptyReadyChannelCount > 500) {
+						emptyReadyChannelCount = 1;
+					}
 				}
 			}
 		} catch (IOException e){
