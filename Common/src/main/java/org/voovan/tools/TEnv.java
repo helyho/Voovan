@@ -110,11 +110,12 @@ public class TEnv {
 	 *
 	 * @param sleepTime 休眠时间
 	 */
-	public static void sleep(int sleepTime) {
+	public static boolean sleep(int sleepTime) {
 		try {
 			Thread.sleep(sleepTime);
+			return true;
 		} catch (InterruptedException e) {
-			Logger.error("TEnv.sleep interrupted",e);
+			return false;
 		}
 	}
 
@@ -123,11 +124,12 @@ public class TEnv {
 	 * @param timeUnit 休眠时间单位
 	 * @param sleepTime 休眠时间
 	 */
-	public static void sleep(TimeUnit timeUnit, int sleepTime) {
+	public static boolean sleep(TimeUnit timeUnit, int sleepTime) {
 		try {
 			timeUnit.sleep(sleepTime);
+			return true;
 		} catch (InterruptedException e) {
-			Logger.error("TEnv.sleep interrupted",e);
+			return false;
 		}
 	}
 
