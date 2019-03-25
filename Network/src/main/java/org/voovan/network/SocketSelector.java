@@ -56,6 +56,7 @@ public class SocketSelector implements Closeable {
 			e.printStackTrace();
 		}
 
+		//首次触发事件循环
 		eventChoose();
 	}
 
@@ -72,7 +73,7 @@ public class SocketSelector implements Closeable {
 	public boolean register(SocketContext socketContext, int ops){
 		try {
 			SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
-			if(socketContext.getSession()!=null) {
+			if (socketContext.getSession() != null) {
 				socketContext.getSession().setSelectionKey(selectionKey);
 				socketContext.getSession().setSocketSelector(this);
 			}
@@ -89,6 +90,7 @@ public class SocketSelector implements Closeable {
 	 * @param socketContext SocketContext 对象
 	 */
 	public void unRegister(SocketContext socketContext) {
+		//需要在 cancel 后立刻处理 selectNow
 		addChooseEvent(()->{
 			socketContext.getSession().getSelectionKey().attach(null);
 			socketContext.getSession().getSelectionKey().cancel();

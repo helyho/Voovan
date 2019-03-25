@@ -514,7 +514,7 @@ public class HttpParser {
 			}
 
 			//如果 消息缓冲通道没有数据或已关闭
-			if( "GET".equals(packetMap.get(PL_METHOD)) && ( byteBufferChannel.size() == 0 || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING) )) {
+			if(!packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
                 if (WebContext.isCache()) {
                     HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
                     cachedPacketMap.putAll(packetMap);
