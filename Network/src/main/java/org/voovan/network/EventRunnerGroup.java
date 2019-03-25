@@ -20,7 +20,7 @@ import java.util.function.Function;
  */
 public class EventRunnerGroup {
 	public static int ACCEPT_THREAD_SIZE = 1;
-	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", 1, ACCEPT_THREAD_SIZE, 60*1000);
+	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", 1, ACCEPT_THREAD_SIZE, 60*1000, true, 10);
 	public static EventRunnerGroup ACCEPT_EVENT_RUNNER_GROUP= new EventRunnerGroup(ACCEPT_THREAD_POOL, ACCEPT_THREAD_SIZE, (obj)->{
 		try {
 			return new SocketSelector(obj);
@@ -32,7 +32,7 @@ public class EventRunnerGroup {
 	});
 
 	public static int IO_THREAD_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("IoThreadSize"),TPerformance.getProcessorCount()+""));
-	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", IO_THREAD_SIZE, IO_THREAD_SIZE, 60*1000);
+	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", IO_THREAD_SIZE, IO_THREAD_SIZE, 60*1000, true, 9);
 	public static EventRunnerGroup IO_EVENT_RUNNER_GROUP= new EventRunnerGroup(IO_THREAD_POOL, IO_THREAD_SIZE, (obj)->{
 		try {
 			return new SocketSelector(obj);
