@@ -88,6 +88,8 @@ public class ThreadPool {
 	 * @param mimPoolSize 最小线程数
 	 * @param maxPoolSize 最大线程数
 	 * @param threadTimeout 线程闲置超时时间
+	 * @param daemon 是否是守护线程
+	 * @param priority 线程优先级
 	 * @return 线程池对象
 	 */
 	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int threadTimeout, boolean daemon, int priority){

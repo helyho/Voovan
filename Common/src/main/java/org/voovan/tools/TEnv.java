@@ -109,6 +109,7 @@ public class TEnv {
 	 * 休眠函数
 	 *
 	 * @param sleepTime 休眠时间
+	 * @return true: 超时结束, false: sleep 被打断
 	 */
 	public static boolean sleep(int sleepTime) {
 		try {
@@ -123,6 +124,7 @@ public class TEnv {
 	 * 休眠函数
 	 * @param timeUnit 休眠时间单位
 	 * @param sleepTime 休眠时间
+	 * @return true: 超时结束, false: sleep 被打断
 	 */
 	public static boolean sleep(TimeUnit timeUnit, int sleepTime) {
 		try {
