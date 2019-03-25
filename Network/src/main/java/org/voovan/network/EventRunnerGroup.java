@@ -1,6 +1,8 @@
 package org.voovan.network;
 
+import org.voovan.tools.TObject;
 import org.voovan.tools.TPerformance;
+import org.voovan.tools.TString;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import java.io.IOException;
@@ -17,22 +19,8 @@ import java.util.function.Function;
  * Licence: Apache v2 License
  */
 public class EventRunnerGroup {
-
 	public static int ACCEPT_THREAD_SIZE = 1;
-	public static int IO_THREAD_SIZE = TPerformance.getProcessorCount();
-
-	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", IO_THREAD_SIZE, IO_THREAD_SIZE, 60*1000);
-	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", ACCEPT_THREAD_SIZE, ACCEPT_THREAD_SIZE, 60*1000);
-
-	public static EventRunnerGroup IO_EVENT_RUNNER_GROUP= new EventRunnerGroup(IO_THREAD_POOL, IO_THREAD_SIZE, (obj)->{
-		try {
-			return new SocketSelector(obj);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return null;
-	});
+	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", 1, ACCEPT_THREAD_SIZE, 60*1000);
 	public static EventRunnerGroup ACCEPT_EVENT_RUNNER_GROUP= new EventRunnerGroup(ACCEPT_THREAD_POOL, ACCEPT_THREAD_SIZE, (obj)->{
 		try {
 			return new SocketSelector(obj);
@@ -42,6 +30,23 @@ public class EventRunnerGroup {
 
 		return null;
 	});
+
+	public static int IO_THREAD_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("IoThreadSize"),TPerformance.getProcessorCount()+""));
+	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", IO_THREAD_SIZE, IO_THREAD_SIZE, 60*1000);
+	public static EventRunnerGroup IO_EVENT_RUNNER_GROUP= new EventRunnerGroup(IO_THREAD_POOL, IO_THREAD_SIZE, (obj)->{
+		try {
+			return new SocketSelector(obj);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	});
+
+	static {
+		System.out.println("[SOCKET] IO_THREAD_SIZE: " + IO_THREAD_SIZE);
+	}
+
 
 	private AtomicInteger indexAtom = new AtomicInteger();
 	private EventRunner[] eventRunners;

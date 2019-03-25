@@ -5,10 +5,7 @@ import org.voovan.network.udp.UdpServerSocket;
 import org.voovan.network.udp.UdpSession;
 import org.voovan.network.tcp.TcpSocket;
 import org.voovan.network.udp.UdpSocket;
-import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.SimpleArraySet;
-import org.voovan.tools.TByteBuffer;
-import org.voovan.tools.TEnv;
+import org.voovan.tools.*;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -31,6 +28,11 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public class SocketSelector implements Closeable {
+	public static final int NIO_LOOP_WAIT_TIME = Integer.valueOf(TObject.nullDefault(System.getProperty("NioLoopWaitTime"),"200"));
+	static {
+		System.out.println("[SOCKET] NIO_LOOP_WAIT_TIME: " + NIO_LOOP_WAIT_TIME + "ms");
+	}
+
 	private  EventRunner eventRunner;
 
 	protected Selector selector;
@@ -188,7 +190,7 @@ public class SocketSelector implements Closeable {
 					//给 OS 切换 EPOLL 中的 fd 的时间, 由于 java 最小只能用 1ms, 实测对性能完全无影响
 					TEnv.sleep(emptyReadyChannelCount);
 					emptyReadyChannelCount++;
-					if(emptyReadyChannelCount > 300) {
+					if(emptyReadyChannelCount > 50) {
 						emptyReadyChannelCount = 1;
 					}
 				}
