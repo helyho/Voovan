@@ -54,6 +54,7 @@ public class EventRunnerGroup {
 
 	/**
 	 * 构造方法
+	 * @param threadPoolExecutor 用于分发任务执行的线程池
 	 * @param size 容纳事件执行器的数量
 	 * @param attachmentSupplier 事件执行器的附属对象构造器
 	 */
