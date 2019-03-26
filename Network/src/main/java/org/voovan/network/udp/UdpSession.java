@@ -141,7 +141,6 @@ public class UdpSession extends IoSession<UdpSocket> {
 	 */
 	@Override
 	public boolean close() {
-		this.cancelIdle();
 		return this.socketContext().close();
 	}
 

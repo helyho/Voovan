@@ -16,6 +16,7 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,6 +37,7 @@ public class SocketSelector implements Closeable {
 
 	protected SimpleArraySet<SelectionKey> selectionKeys = new SimpleArraySet<SelectionKey>(1024);
 	protected AtomicBoolean selecting = new AtomicBoolean(false);
+	private boolean useSelectNow = false;
 
 	/**
 	 * 构造方法
@@ -67,27 +69,27 @@ public class SocketSelector implements Closeable {
 	 * @return true:成功, false:失败
 	 */
 	public boolean register(SocketContext socketContext, int ops){
-			addChooseEvent(8, ()-> {
-				try {
-					SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
-					if (socketContext.getSession() != null) {
-						socketContext.getSession().setSelectionKey(selectionKey);
-						socketContext.getSession().setSocketSelector(this);
-					}
-
-					return true;
-				} catch (ClosedChannelException e) {
-					Logger.error("Register " + socketContext + " to selector error");
-					return false;
+		addChooseEvent(8, ()-> {
+			try {
+				SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
+				if (socketContext.getSession() != null) {
+					socketContext.getSession().setSelectionKey(selectionKey);
+					socketContext.getSession().setSocketSelector(this);
 				}
-			});
 
-			//防止注册监听到 seletor
-			if(selecting.get()){
-				selector.wakeup();
+				return true;
+			} catch (ClosedChannelException e) {
+				Logger.error("Register " + socketContext + " to selector error");
+				return false;
 			}
+		});
 
-			return true;
+		//防止注册监听到 seletor
+		if(selecting.get()){
+			selector.wakeup();
+		}
+
+		return true;
 
 	}
 
@@ -152,54 +154,15 @@ public class SocketSelector implements Closeable {
 		// 事件循环
 		try {
 			if (selector != null && selector.isOpen()) {
-				if (!selectionKeys.isEmpty() || selector.selectNow()>0) {
+				//执行选择操作
+				processSelect();
 
-					for (int i=0;i<selectionKeys.size(); i++) {
-						SelectionKey selectionKey = (SelectionKey)selectionKeys.getAndRemove(i);
-
-						if (selectionKey.isValid()) {
-							// 获取 socket 通道
-							SelectableChannel channel = selectionKey.channel();
-							if (channel.isOpen() && selectionKey.isValid()) {
-								// 事件分发,包含时间 onRead onAccept
-								// Server接受连接
-								if((selectionKey.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
-									SocketChannel socketChannel = ((ServerSocketChannel) channel).accept();
-									tcpAccept((TcpServerSocket) selectionKey.attachment(), socketChannel);
-								}
-
-								// 有数据读取
-								if ((selectionKey.readyOps() & SelectionKey.OP_READ) != 0) {
-									if(channel instanceof SocketChannel){
-										tcpReadFromChannel((TcpSocket) selectionKey.attachment(), (SocketChannel)channel);
-									} else if(channel instanceof DatagramChannel) {
-										udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) selectionKey.attachment(), (DatagramChannel) channel);
-									}
-								}
-							}
-						} else {
-							unRegister((SocketContext) selectionKey.attachment());
-						}
-					}
-
-					selectionKeys.reset();
+				//如果有待处理的操作则下次调用 selectNow, 如果没有待处理的操作则调用带有阻赛的 select
+				if (!selectionKeys.isEmpty()) {
+					processSelectionKeys();
+					useSelectNow = true;
 				} else {
-					long startNanoTime = System.nanoTime();
-					selecting.compareAndSet(false, true);
-					int readyChannelCount = selector.select(1);
-					selecting.compareAndSet(true, false);
-					long diffTime = System.nanoTime() - startNanoTime;
-
-					//Bug 探测
-					if(readyChannelCount ==0 && diffTime < 1000000*0.5){
-						JvmEpollBugFlag++;
-					} else {
-						JvmEpollBugFlag = 0;
-					}
-
-					if(JvmEpollBugFlag >=1024){
-						System.out.println(diffTime+ " detect bug on " + Thread.currentThread().getName());
-					}
+					useSelectNow = false;
 				}
 			}
 		} catch (IOException e){
@@ -209,6 +172,75 @@ public class SocketSelector implements Closeable {
 				addChooseEvent();
 			}
 		}
+	}
+
+	/**
+	 * 执行通道操作选择
+	 * @throws IOException IO 异常
+	 */
+	private void processSelect() throws IOException {
+		if(useSelectNow){
+			selector.selectNow();
+		} else {
+			long dealTime = TEnv.measureTime(()->{
+				try {
+					selecting.compareAndSet(false, true);
+					selector.select(1000);
+					selecting.compareAndSet(true, false);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+
+			int readyChannelCount = selectionKeys.size();
+
+			//Bug 探测
+			if(readyChannelCount ==0 && dealTime < 1000000*0.5){
+				JvmEpollBugFlag++;
+			} else {
+				JvmEpollBugFlag = 0;
+			}
+
+			if(JvmEpollBugFlag >=1024){
+				System.out.println(dealTime+ " detect bug on " + Thread.currentThread().getName());
+			}
+		}
+	}
+
+	/**
+	 * 处理选择到的 Key
+	 * @throws IOException IO 异常
+	 */
+	private void processSelectionKeys() throws IOException {
+		for (int i=0;i<selectionKeys.size(); i++) {
+			SelectionKey selectionKey = (SelectionKey)selectionKeys.getAndRemove(i);
+
+			if (selectionKey.isValid()) {
+				// 获取 socket 通道
+				SelectableChannel channel = selectionKey.channel();
+				if (channel.isOpen() && selectionKey.isValid()) {
+					// 事件分发,包含时间 onRead onAccept
+					// Server接受连接
+					if((selectionKey.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
+						SocketChannel socketChannel = ((ServerSocketChannel) channel).accept();
+						tcpAccept((TcpServerSocket) selectionKey.attachment(), socketChannel);
+					}
+
+					// 有数据读取
+					if ((selectionKey.readyOps() & SelectionKey.OP_READ) != 0) {
+						if(channel instanceof SocketChannel){
+							tcpReadFromChannel((TcpSocket) selectionKey.attachment(), (SocketChannel)channel);
+						} else if(channel instanceof DatagramChannel) {
+							udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) selectionKey.attachment(), (DatagramChannel) channel);
+						}
+					}
+				}
+			} else {
+				unRegister((SocketContext) selectionKey.attachment());
+			}
+		}
+
+		selectionKeys.reset();
 	}
 
 	/**
