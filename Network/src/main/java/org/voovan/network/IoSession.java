@@ -163,39 +163,38 @@ public abstract class IoSession<T extends SocketContext> {
 				final IoSession session = this;
 
 				checkIdleTask = new HashWheelTask() {
-					@Override
 					public void run() {
-						boolean isConnect = false;
-
-						//初始化状态
-						if(session.state.isInit() ||
-								session.state.isConnect()) {
-							return;
-						}
-
-						//检测会话状态
-						if(session.state.isClose()){
-							session.cancelIdle();
-							return;
-						}
-
-						//获取连接状态
-						isConnect = session.isConnected();
-
-						if(!isConnect){
-							session.cancelIdle();
-							this.cancel();
-							return;
-						}
-
-						//检查空间时间
-						if(socketContext.getIdleInterval() < 1){
-							return;
-						}
-
 						//触发空闲事件
 						long timeDiff = System.currentTimeMillis() - lastIdleTime;
 						if (timeDiff >= socketContext.getIdleInterval() * 1000) {
+							boolean isConnect = false;
+
+							//初始化状态
+							if(session.state.isInit() ||
+									session.state.isConnect()) {
+								return;
+							}
+
+							//检测会话状态
+							if(session.state.isClose()){
+								session.cancelIdle();
+								return;
+							}
+
+							//获取连接状态
+							isConnect = session.isConnected();
+
+							if(!isConnect){
+								session.cancelIdle();
+								this.cancel();
+								return;
+							}
+
+							//检查空间时间
+							if(socketContext.getIdleInterval() < 1){
+								return;
+							}
+
 							EventTrigger.fireIdle(session);
 							lastIdleTime = System.currentTimeMillis();
 						}
