@@ -40,6 +40,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	protected int readRecursionDepth = 1;
 
+	private boolean isRegister = false;
+
 	/**
 	 * 构造函数
 	 * 		默认不会出发空闲事件, 默认发超时时间: 1s
@@ -190,6 +192,14 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.readRecursionDepth = readRecursionDepth;
 	}
 
+	public boolean isRegister() {
+		return isRegister;
+	}
+
+	protected void setRegister(boolean register) {
+		isRegister = register;
+	}
+
 	/**
 	 * 无参数构造函数
 	 */
@@ -332,6 +342,21 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 * @return 是否关闭
 	 */
 	public abstract boolean close();
+
+	/**
+	 * 等待连接完成, 包含事件注册和 SSL 握手, 用于在同步调用的方法中同步
+	 */
+	public void waitConnect() {
+		try {
+			TEnv.wait(readTimeout, ()->!isRegister);
+			if(getSession().isSSLMode()) {
+				getSession().getSSLParser().waitHandShakeDone();
+			}
+		}catch(Exception e){
+			Logger.error(e);
+			close();
+		}
+	}
 
 	/**
 	 * 绑定到 SocketSelector
