@@ -481,7 +481,7 @@ public class ByteBufferChannel {
             TEnv.wait(timeout, ()->{
                 checkRelease();
 
-                if(size() > length){
+                if(size() >= length){
                 	return false;
                 } else {
 	                supplier.run();
@@ -511,7 +511,7 @@ public class ByteBufferChannel {
 	               return false;
                 } else {
 	                supplier.run();
-	                return indexOf(mark) != -1;
+	                return indexOf(mark) == -1;
                 }
             });
             return true;

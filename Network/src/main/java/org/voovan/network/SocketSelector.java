@@ -185,7 +185,7 @@ public class SocketSelector implements Closeable {
 			long dealTime = TEnv.measureTime(()->{
 				try {
 					selecting.compareAndSet(false, true);
-					selector.select(1000);
+					selector.select(1);
 					selecting.compareAndSet(true, false);
 				} catch (IOException e) {
 					e.printStackTrace();
