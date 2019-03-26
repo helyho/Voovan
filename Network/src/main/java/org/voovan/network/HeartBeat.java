@@ -24,13 +24,11 @@ public class HeartBeat {
 
     /**
      * 构造方法
-     * @param session   会话
-     * @param connectModel  模式,指定发送第一个 PING 的模式,服务端先发,或者客户端先发
      * @param ping  ping 消息
      * @param pong  pong 消息
      * @return 心跳消息对象
      */
-    private HeartBeat(IoSession session, ConnectModel connectModel, String ping, String pong){
+    private HeartBeat(String ping, String pong){
         this.ping = ping.getBytes();
         this.pong = pong.getBytes();
         queue = new LinkedBlockingDeque<Integer>();
@@ -156,15 +154,14 @@ public class HeartBeat {
     /**
      * 将心跳绑定到 Session
      * @param session   会话
-     * @param connectModel  模式,指定发送第一个 PING 的模式,服务端先发,或者客户端先发
      * @param ping  ping 消息
      * @param pong  pong 消息
      * @return 心跳消息对象
      */
-    public static HeartBeat attachSession(IoSession session, ConnectModel connectModel, String ping, String pong){
+    public static HeartBeat attachSession(IoSession session, String ping, String pong){
         HeartBeat heartBeat = null;
         if(session.getHeartBeat()==null) {
-            heartBeat = new HeartBeat(session, connectModel, ping, pong);
+            heartBeat = new HeartBeat(ping, pong);
             session.setHeartBeat(heartBeat);
         } else{
             heartBeat = session.getHeartBeat();
@@ -180,10 +177,10 @@ public class HeartBeat {
      * @param connectModel  模式,指定发送第一个 PING 的模式,服务端先发,或者客户端先发
      * @return 心跳消息对象
      */
-    public static HeartBeat attachSession(IoSession session, ConnectModel connectModel){
+    public static HeartBeat attachSession(IoSession session, int connectModel){
         HeartBeat heartBeat = null;
         if(session.getHeartBeat()==null) {
-            heartBeat = new HeartBeat(session, connectModel, "PING", "PONG");
+            heartBeat = new HeartBeat("PING", "PONG");
             session.setHeartBeat(heartBeat);
         }else{
             heartBeat = session.getHeartBeat();

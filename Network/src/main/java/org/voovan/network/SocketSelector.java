@@ -71,11 +71,13 @@ public class SocketSelector implements Closeable {
 		addChooseEvent(8, ()-> {
 			try {
 				SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
-				if (socketContext.getSession() != null) {
-					socketContext.getSession().setSelectionKey(selectionKey);
-					socketContext.getSession().setSocketSelector(this);
+				if (ops != SelectionKey.OP_ACCEPT) {
+					IoSession session = socketContext.getSession();
+					session.setSelectionKey(selectionKey);
+					session.setSocketSelector(this);
 				}
 
+				socketContext.setRegister(true);
 				return true;
 			} catch (ClosedChannelException e) {
 				Logger.error("Register " + socketContext + " to selector error");

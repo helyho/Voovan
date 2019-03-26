@@ -26,7 +26,7 @@ public class ClientHandlerTest implements IoHandler {
 			HeartBeat heartBeat = session.getHeartBeat();
 			if (heartBeat == null) {
 				//心跳绑定到 Session
-				heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
+				heartBeat = HeartBeat.attachSession(session, "PINGq", "PONGq");
 			}
 		}
 

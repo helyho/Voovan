@@ -40,6 +40,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	protected int readRecursionDepth = 1;
 
+	private boolean isRegister = false;
+
 	/**
 	 * 构造函数
 	 * 		默认不会出发空闲事件, 默认发超时时间: 1s
@@ -190,6 +192,14 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.readRecursionDepth = readRecursionDepth;
 	}
 
+	public boolean isRegister() {
+		return isRegister;
+	}
+
+	protected void setRegister(boolean register) {
+		isRegister = register;
+	}
+
 	/**
 	 * 无参数构造函数
 	 */
@@ -334,6 +344,18 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public abstract boolean close();
 
 	/**
+	 * 等待绑定完成
+	 */
+	public void waitBind() {
+		try {
+			TEnv.wait(readTimeout, ()->!isRegister);
+		}catch(Exception e){
+			Logger.error(e);
+			close();
+		}
+	}
+
+	/**
 	 * 绑定到 SocketSelector
 	 * @param ops 选择的操作类型
 	 */
@@ -346,5 +368,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		}
 		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
 		socketSelector.register(this, ops);
+		waitBind();
 	}
 }
