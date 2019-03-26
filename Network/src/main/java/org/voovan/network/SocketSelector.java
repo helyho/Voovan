@@ -81,9 +81,7 @@ public class SocketSelector implements Closeable {
 						EventTrigger.fireConnect(session);
 					} else {
 						//客户端模式主动发起 SSL 握手的第一个请求
-						session.getSocketSelector().getEventRunner().addEvent(0, () -> {
-							session.getSSLParser().doHandShake();
-						});
+                        session.getSSLParser().doHandShake();
 					}
 				}
 
