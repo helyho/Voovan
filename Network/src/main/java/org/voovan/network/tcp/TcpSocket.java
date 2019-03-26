@@ -127,7 +127,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 
 	/**
 	 * 获取 Session 对象
-	 * @return Session 对象
+	 * @return Session 对O象
 	 */
 	public TcpSession getSession(){
 		return session;
@@ -164,7 +164,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 
 		if(session.isSSLMode()) {
 			//客户端模式主动发起 SSL 握手的第一个请求
-			session.getSocketSelector().getEventRunner().addEvent(()->{
+			session.getSocketSelector().getEventRunner().addEvent(10, ()->{
 				session.getSSLParser().doHandShake();
 			});
 

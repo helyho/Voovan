@@ -1,6 +1,6 @@
 package org.voovan.network;
 
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 
 /**
  * 事件执行器
@@ -13,7 +13,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class EventRunner {
 
-	private LinkedBlockingQueue<Runnable> eventQueue = new LinkedBlockingQueue<Runnable>();
+	private PriorityBlockingQueue<EventTask> eventQueue = new PriorityBlockingQueue<EventTask>();
 	private Object attachment;
 	private Thread thread = null;
 
@@ -61,14 +61,18 @@ public class EventRunner {
 	 * @param runnable 新事件任务对象
 	 */
 	public void addEvent(Runnable runnable){
-		eventQueue.add(runnable);
+		eventQueue.add(EventTask.newInstance(runnable));
+	}
+
+	public void addEvent(int priority, Runnable runnable){
+		eventQueue.add(EventTask.newInstance(priority, runnable));
 	}
 
 	/**
 	 * 获取事件任务对象集合
 	 * @return 事件任务对象集合
 	 */
-	public LinkedBlockingQueue<Runnable> getEventQueue() {
+	public PriorityBlockingQueue<EventTask> getEventQueue() {
 		return eventQueue;
 	}
 
@@ -78,12 +82,60 @@ public class EventRunner {
 	public void process() {
 		while (true) {
 			try {
-				Runnable runnable = eventQueue.take();
+				EventTask eventTask = eventQueue.take();
+				Runnable runnable = eventTask.getRunnable();
 				if(runnable!=null) {
 					runnable.run();
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+			}
+		}
+	}
+
+	public static class EventTask implements Comparable{
+		private int priority;
+		private Runnable runnable;
+
+		public EventTask(int priority, Runnable runnable) {
+			this.priority = priority;
+			this.runnable = runnable;
+		}
+
+		public int getPriority() {
+			return priority;
+		}
+
+		public void setPriority(int priority) {
+			this.priority = priority;
+		}
+
+		public Runnable getRunnable() {
+			return runnable;
+		}
+
+		public void setRunnable(Runnable runnable) {
+			this.runnable = runnable;
+		}
+
+		public static EventTask newInstance(int priority, Runnable runnable){
+			return new EventTask(priority, runnable);
+		}
+
+		public static EventTask newInstance(Runnable runnable){
+			return new EventTask(0, runnable);
+		}
+
+
+		@Override
+		public int compareTo(Object o) {
+			EventTask current=(EventTask)o;
+			if(current.priority > this.priority){
+				return 1;
+			} else if(current.priority==priority){
+				return 0;
+			} else {
+				return -1;
 			}
 		}
 	}

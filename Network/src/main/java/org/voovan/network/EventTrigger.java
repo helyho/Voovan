@@ -103,7 +103,7 @@ public class EventTrigger {
 	 * @param other 附属对象
 	 */
 	public static void fireEventThread(IoSession session, Event.EventName name, Object other){
-        session.getEventRunner().addEvent(()->{
+        session.getEventRunner().addEvent(5, ()->{
 				if(session.isConnected()) {
 					Event event = new Event(session, name, other);
 					EventProcess.process(event);
