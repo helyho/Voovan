@@ -684,7 +684,7 @@ public class HttpParser {
 
 							if(index == -1){
 								new File(localFileName).delete();
-								throw new ParserException("Http Parser readFromChannel data error");
+								throw new ParserException("Http Parser not enough data with " + boundary);
 							}else{
 								partMap.remove(BODY_VALUE);
 								partMap.put(BODY_FILE, localFileName.getBytes());

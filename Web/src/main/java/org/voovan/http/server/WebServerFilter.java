@@ -144,8 +144,6 @@ public class WebServerFilter implements IoFilter {
 					e1.printStackTrace();
 				}
 
-				session.close();
-
 				Logger.error("ParseRequest failed",e);
 				return null;
 			}
