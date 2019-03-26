@@ -18,6 +18,7 @@ import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 选择器
@@ -34,6 +35,7 @@ public class SocketSelector implements Closeable {
 	protected ByteBuffer readTempBuffer;
 
 	protected SimpleArraySet<SelectionKey> selectionKeys = new SimpleArraySet<SelectionKey>(1024);
+	protected AtomicBoolean selecting = new AtomicBoolean(false);
 
 	/**
 	 * 构造方法
@@ -65,21 +67,28 @@ public class SocketSelector implements Closeable {
 	 * @return true:成功, false:失败
 	 */
 	public boolean register(SocketContext socketContext, int ops){
-		try {
-			SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
-			if (socketContext.getSession() != null) {
-				socketContext.getSession().setSelectionKey(selectionKey);
-				socketContext.getSession().setSocketSelector(this);
+			addChooseEvent(8, ()-> {
+				try {
+					SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
+					if (socketContext.getSession() != null) {
+						socketContext.getSession().setSelectionKey(selectionKey);
+						socketContext.getSession().setSocketSelector(this);
+					}
+
+					return true;
+				} catch (ClosedChannelException e) {
+					Logger.error("Register " + socketContext + " to selector error");
+					return false;
+				}
+			});
+
+			//防止注册监听到 seletor
+			if(selecting.get()){
+				selector.wakeup();
 			}
 
-			//首次触发事件循环
-			addChooseEvent();
-
 			return true;
-		} catch (ClosedChannelException e) {
-			Logger.error("Register " + socketContext + " to selector error");
-			return false;
-		}
+
 	}
 
 	/**
@@ -88,7 +97,7 @@ public class SocketSelector implements Closeable {
 	 */
 	public void unRegister(SocketContext socketContext) {
 		//需要在 cancel 后立刻处理 selectNow
-		addChooseEvent(()->{
+		addChooseEvent(6, ()->{
 			socketContext.getSession().getSelectionKey().attach(null);
 			socketContext.getSession().getSelectionKey().cancel();
 			return true;
@@ -107,16 +116,16 @@ public class SocketSelector implements Closeable {
 	 * 向执行器中增加一个选择事件
 	 */
 	public void addChooseEvent(){
-		addChooseEvent(null);
+		addChooseEvent(0, null);
 	}
 
 	/**
 	 * 向执行器中增加一个选择事件
 	 * @param supplier 在事件选择前执行的方法
 	 */
-	public void addChooseEvent(Callable<Boolean> supplier){
+	public void addChooseEvent(int priority, Callable<Boolean> supplier){
 		if(selector.isOpen()) {
-			eventRunner.addEvent(() -> {
+			eventRunner.addEvent(priority, () -> {
 				boolean result = true;
 				if(supplier!=null) {
 					try {
@@ -133,6 +142,8 @@ public class SocketSelector implements Closeable {
 			});
 		}
 	}
+
+	int JvmEpollBugFlag = 0;
 
 	/**
 	 * 事件选择业务累
@@ -173,7 +184,22 @@ public class SocketSelector implements Closeable {
 
 					selectionKeys.reset();
 				} else {
-					selector.select(1);
+					long startNanoTime = System.nanoTime();
+					selecting.compareAndSet(false, true);
+					int readyChannelCount = selector.select(1);
+					selecting.compareAndSet(true, false);
+					long diffTime = System.nanoTime() - startNanoTime;
+
+					//Bug 探测
+					if(readyChannelCount ==0 && diffTime < 1000000*0.5){
+						JvmEpollBugFlag++;
+					} else {
+						JvmEpollBugFlag = 0;
+					}
+
+					if(JvmEpollBugFlag >=1024){
+						System.out.println(diffTime+ " detect bug on " + Thread.currentThread().getName());
+					}
 				}
 			}
 		} catch (IOException e){
