@@ -123,6 +123,7 @@ public class SocketSelector implements Closeable {
 
 	/**
 	 * 向执行器中增加一个选择事件
+	 * @param priority 指定的事件优先级
 	 * @param supplier 在事件选择前执行的方法
 	 */
 	public void addChooseEvent(int priority, Callable<Boolean> supplier){
