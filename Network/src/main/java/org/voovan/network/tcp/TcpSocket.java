@@ -164,7 +164,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 		bindToSocketSelector(SelectionKey.OP_READ);
 
 		//如果是同步调用方法, 则等待连接完成
-		if(handler instanceof SynchronousHandler){
+		if(isSynchronous){
 			waitConnect();
 		}
 	}

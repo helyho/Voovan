@@ -41,6 +41,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	protected int readRecursionDepth = 1;
 
 	private boolean isRegister = false;
+	protected boolean isSynchronous = true;
 
 	/**
 	 * 构造函数
@@ -275,6 +276,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 */
 	public void handler(IoHandler handler){
 		this.handler = handler;
+		isSynchronous = false;
 	}
 
 	/**
