@@ -16,7 +16,6 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -486,7 +485,7 @@ public class SocketSelector implements Closeable {
 
 					if (appByteBufferChannel.size() > 0) {
 						// 触发 onReceive 事件
-						EventTrigger.fireReceiveThread(session);
+						EventTrigger.fireReceiveAsEvent(session);
 					}
 				}
 
