@@ -3,6 +3,7 @@ package org.voovan.network;
 import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -103,7 +104,7 @@ public class HeartBeat {
      * @param session 会话对象
      * @return true:心跳成功,false: 心跳失败
      */
-    public static boolean beat(IoSession session) {
+    public static boolean beat(IoSession session) throws IOException {
         if(!session.isConnected()){
             return false;
         }
@@ -116,7 +117,7 @@ public class HeartBeat {
 			if (session.socketContext().getConnectModel() == ConnectModel.CLIENT) {
 				//等待这个时间的目的是为了等待客户端那边的心跳检测启动
 				TEnv.sleep(session.getIdleInterval());
-				session.send(ByteBuffer.wrap(heartBeat.ping));
+				session.send0(ByteBuffer.wrap(heartBeat.ping));
 			}
 			return true;
 		}
@@ -135,11 +136,11 @@ public class HeartBeat {
 			int beatType = heartBeat.getQueue().pollFirst();
 
 			if (beatType == 1) {
-				session.send(ByteBuffer.wrap(heartBeat.pong));
+				session.send0(ByteBuffer.wrap(heartBeat.pong));
 				heartBeat.fieldCount = 0;
 				return true;
 			} else if (beatType == 2) {
-				session.send(ByteBuffer.wrap(heartBeat.ping));
+				session.send0(ByteBuffer.wrap(heartBeat.ping));
 				heartBeat.fieldCount = 0;
 				return true;
 			} else {
