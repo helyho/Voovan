@@ -117,7 +117,8 @@ public class HeartBeat {
 			if (session.socketContext().getConnectModel() == ConnectModel.CLIENT) {
 				//等待这个时间的目的是为了等待客户端那边的心跳检测启动
 				TEnv.sleep(session.getIdleInterval());
-				session.send0(ByteBuffer.wrap(heartBeat.ping));
+				session.send(ByteBuffer.wrap(heartBeat.ping));
+                session.flush();
 			}
 			return true;
 		}
@@ -136,11 +137,13 @@ public class HeartBeat {
 			int beatType = heartBeat.getQueue().pollFirst();
 
 			if (beatType == 1) {
-				session.send0(ByteBuffer.wrap(heartBeat.pong));
+				session.send(ByteBuffer.wrap(heartBeat.pong));
+                session.flush();
 				heartBeat.fieldCount = 0;
 				return true;
 			} else if (beatType == 2) {
-				session.send0(ByteBuffer.wrap(heartBeat.ping));
+				session.send(ByteBuffer.wrap(heartBeat.ping));
+                session.flush();
 				heartBeat.fieldCount = 0;
 				return true;
 			} else {
