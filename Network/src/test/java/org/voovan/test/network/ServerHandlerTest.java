@@ -17,7 +17,7 @@ public class ServerHandlerTest implements IoHandler {
 		if(!(session.socketContext() instanceof UdpSocket)) {
 			HeartBeat heartBeat = session.getHeartBeat();
 			if (heartBeat == null) {
-				heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
+				heartBeat = HeartBeat.attachSession(session, "PINGq", "PONGq");
 			}
 		}
 		Logger.simple("========================onConnect========================");
