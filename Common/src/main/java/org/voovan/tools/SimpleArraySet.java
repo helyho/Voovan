@@ -30,6 +30,16 @@ public class SimpleArraySet<E> extends AbstractSet<E> {
 		return (E)elements[index];
 	}
 
+	public void set(int index, E e){
+		elements[index] = e;
+	}
+
+	public E getAndRemove(int index){
+		E e = (E)elements[index];
+		elements[index] = null;
+		return e;
+	}
+
 	@Override
 	public boolean add(E selectionKey) {
 		elements[size++] = selectionKey;

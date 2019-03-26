@@ -5,6 +5,9 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * 类文字命名
@@ -23,45 +26,49 @@ public class Other {
     public static void main(String[] args) throws Exception {
 
         String mm = null;
+        ArrayBlockingQueue arrayBlockingQueue = new ArrayBlockingQueue(50000000);
+        System.out.println(TEnv.measureTime(()->{
+            for(int i=0;i<1000;i++) {
+                arrayBlockingQueue.add(i);
+            }
+        }));
+
 
         System.out.println(TEnv.measureTime(()->{
-            for(int i=0;i<50000000;i++) {
-                if(mm == null){
-                    continue;
-                }
+            for(int i=0;i<1000;i++) {
+                arrayBlockingQueue.poll();
             }
-        })/1000000);
+        }));
 
-        String qq = "aaa";
+
+        PriorityQueue priorityQueue = new PriorityQueue();
+        System.out.println(TEnv.measureTime(()->{
+            for(int i=0;i<1000;i++) {
+                priorityQueue.add(i);
+            }
+        }));
+
 
         System.out.println(TEnv.measureTime(()->{
-            for(int i=0;i<50000000;i++) {
-                if(qq != null){
-                    continue;
-                }
+            for(int i=0;i<1000;i++) {
+                priorityQueue.poll();
             }
-        })/1000000);
+        }));
 
 
-        boolean oo = true;
+        LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue();
+        System.out.println(TEnv.measureTime(()->{
+            for(int i=0;i<1000;i++) {
+                linkedBlockingQueue.add(i);
+            }
+        }));
+
 
         System.out.println(TEnv.measureTime(()->{
-            for(int i=0;i<50000000;i++) {
-                if(oo){
-                    continue;
-                }
+            for(int i=0;i<1000;i++) {
+                linkedBlockingQueue.poll();
             }
-        })/1000000);
-
-        boolean gg = true;
-
-        System.out.println(TEnv.measureTime(()->{
-            for(int i=0;i<50000000;i++) {
-                if(!gg){
-                    continue;
-                }
-            }
-        })/1000000);
+        }));
     }
 
 

@@ -57,9 +57,6 @@ public class SocketSelector implements Closeable {
 		} catch (ReflectiveOperationException e) {
 			e.printStackTrace();
 		}
-
-		//首次触发事件循环
-		addChooseEvent();
 	}
 
 	public EventRunner getEventRunner() {
@@ -79,6 +76,9 @@ public class SocketSelector implements Closeable {
 				socketContext.getSession().setSelectionKey(selectionKey);
 				socketContext.getSession().setSocketSelector(this);
 			}
+
+			//首次触发事件循环
+			addChooseEvent();
 
 			return true;
 		} catch (ClosedChannelException e) {
@@ -139,8 +139,6 @@ public class SocketSelector implements Closeable {
 		}
 	}
 
-	int emptyReadyChannelCount = 1;
-
 	/**
 	 * 事件选择业务累
 	 */
@@ -148,13 +146,10 @@ public class SocketSelector implements Closeable {
 		// 事件循环
 		try {
 			if (selector != null && selector.isOpen()) {
-				if (selector.selectNow()>0) {
-					emptyReadyChannelCount = 1;
-
-					SimpleArraySet selectionKeys = (SimpleArraySet) selector.selectedKeys();
+				if (!selectionKeys.isEmpty() || selector.selectNow()>0) {
 
 					for (int i=0;i<selectionKeys.size(); i++) {
-						SelectionKey selectionKey = (SelectionKey)selectionKeys.get(i);
+						SelectionKey selectionKey = (SelectionKey)selectionKeys.getAndRemove(i);
 
 						if (selectionKey.isValid()) {
 							// 获取 socket 通道
@@ -183,18 +178,13 @@ public class SocketSelector implements Closeable {
 
 					selectionKeys.reset();
 				} else {
-					//给 OS 切换 EPOLL 中的 fd 的时间, 由于 java 最小只能用 1ms, 实测对性能完全无影响
-					TEnv.sleep(emptyReadyChannelCount);
-					emptyReadyChannelCount++;
-					if(emptyReadyChannelCount > IO_LOOP_WAIT_TIME) {
-						emptyReadyChannelCount = 1;
-					}
+					selector.select(IO_LOOP_WAIT_TIME);
 				}
 			}
 		} catch (IOException e){
 			Logger.error("NioSelector error: ", e);
 		} finally {
-			if(inEventRunner()){
+			if(inEventRunner() && !selector.keys().isEmpty()){
 				addChooseEvent();
 			}
 		}
@@ -442,7 +432,7 @@ public class SocketSelector implements Closeable {
 
 					if (appByteBufferChannel.size() > 0) {
 						// 触发 onReceive 事件
-						EventTrigger.fireReceive(session);
+						EventTrigger.fireReceiveThread(session);
 					}
 				}
 
