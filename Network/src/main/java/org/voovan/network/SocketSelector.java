@@ -28,11 +28,6 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public class SocketSelector implements Closeable {
-	public static final int IO_LOOP_WAIT_TIME = Integer.valueOf(TObject.nullDefault(System.getProperty("IoLoopWaitTime"),"100"));
-	static {
-		System.out.println("[SOCKET] IO_LOOP_WAIT_TIME: " + IO_LOOP_WAIT_TIME + "ms");
-	}
-
 	private  EventRunner eventRunner;
 
 	protected Selector selector;
@@ -178,7 +173,7 @@ public class SocketSelector implements Closeable {
 
 					selectionKeys.reset();
 				} else {
-					selector.select(IO_LOOP_WAIT_TIME);
+					selector.select(1);
 				}
 			}
 		} catch (IOException e){
