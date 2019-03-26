@@ -480,8 +480,13 @@ public class ByteBufferChannel {
         try {
             TEnv.wait(timeout, ()->{
                 checkRelease();
-                supplier.run();
-                return size() < length;
+
+                if(size() > length){
+                	return false;
+                } else {
+	                supplier.run();
+	                return size() < length;
+                }
             });
             return true;
         } catch (TimeoutException e) {
@@ -502,8 +507,12 @@ public class ByteBufferChannel {
         try {
             TEnv.wait(timeout, ()->{
                 checkRelease();
-                supplier.run();
-                return indexOf(mark) == -1;
+                if(indexOf(mark) != -1) {
+	               return false;
+                } else {
+	                supplier.run();
+	                return indexOf(mark) != -1;
+                }
             });
             return true;
         } catch (TimeoutException e) {
