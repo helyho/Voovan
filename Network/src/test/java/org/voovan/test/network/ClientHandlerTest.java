@@ -70,11 +70,7 @@ public class ClientHandlerTest implements IoHandler {
 			HeartBeat heartBeat = session.getHeartBeat();
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-			try {
-				System.out.println("HB==>" + heartBeat.beat(session));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+            System.out.println("HB==>" + heartBeat.beat(session));
 			if (heartBeat.getFailedCount() > 5) {
 				session.close();
 			}
