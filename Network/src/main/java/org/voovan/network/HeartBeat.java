@@ -104,7 +104,7 @@ public class HeartBeat {
      * @param session 会话对象
      * @return true:心跳成功,false: 心跳失败
      */
-    public static boolean beat(IoSession session) throws IOException {
+    public static boolean beat(IoSession session) {
         if(!session.isConnected()){
             return false;
         }
