@@ -157,6 +157,10 @@ public class HttpClient implements Closeable{
 
 			socket.syncStart();
 
+			if(isSSL) {
+				socket.getSession().getSSLParser().waitHandShakeDone();
+			}
+
 			httpRequest = new HttpRequest(new Request(), this.charset, socket.getSession());
 			initHeader();
 

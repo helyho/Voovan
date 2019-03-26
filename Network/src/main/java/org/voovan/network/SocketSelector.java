@@ -88,7 +88,7 @@ public class SocketSelector implements Closeable {
 							session.getSSLParser().doHandShake();
 						}
 					}
-
+					socketContext.setRegister(true);
 					return true;
 				} catch (ClosedChannelException e) {
 					Logger.error("Register " + socketContext + " to selector error");
