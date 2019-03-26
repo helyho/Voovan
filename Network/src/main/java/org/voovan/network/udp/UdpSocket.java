@@ -152,8 +152,6 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
         datagramChannel.configureBlocking(false);
 
         bindToSocketSelector(SelectionKey.OP_READ);
-
-        EventTrigger.fireConnect(session);
     }
 
     @Override
