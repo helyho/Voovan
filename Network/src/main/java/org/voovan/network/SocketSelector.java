@@ -68,33 +68,38 @@ public class SocketSelector implements Closeable {
 	 * @return true:成功, false:失败
 	 */
 	public boolean register(SocketContext socketContext, int ops){
-		addChooseEvent(8, ()-> {
-			try {
-				SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
+		if(ops==0) {
+			IoSession session = socketContext.getSession();
+			session.setSocketSelector(this);
+		} else {
+			addChooseEvent(8, () -> {
+				try {
+					SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
 
-				if (ops != SelectionKey.OP_ACCEPT) {
-					IoSession session = socketContext.getSession();
-					session.setSelectionKey(selectionKey);
-					session.setSocketSelector(this);
+					if (socketContext.connectModel != ConnectModel.LISTENER) {
+						IoSession session = socketContext.getSession();
+						session.setSelectionKey(selectionKey);
+						session.setSocketSelector(this);
 
-					if(!session.isSSLMode()){
-						EventTrigger.fireConnect(session);
-					} else {
-						//客户端模式主动发起 SSL 握手的第一个请求
-                        session.getSSLParser().doHandShake();
+						if (!session.isSSLMode()) {
+							EventTrigger.fireConnect(session);
+						} else {
+							//客户端模式主动发起 SSL 握手的第一个请求
+							session.getSSLParser().doHandShake();
+						}
 					}
+
+					return true;
+				} catch (ClosedChannelException e) {
+					Logger.error("Register " + socketContext + " to selector error");
+					return false;
 				}
+			});
 
-				return true;
-			} catch (ClosedChannelException e) {
-				Logger.error("Register " + socketContext + " to selector error");
-				return false;
+			//防止注册监听到 seletor
+			if (selecting.get()) {
+				selector.wakeup();
 			}
-		});
-
-		//防止注册监听到 seletor
-		if(selecting.get()){
-			selector.wakeup();
 		}
 
 		return true;
