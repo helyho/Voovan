@@ -13,53 +13,11 @@ package org.voovan.network;
  */
 public class EventTrigger {
 
-	public static void fireAcceptThread(IoSession session){
-		fireEventThread(session, Event.EventName.ON_ACCEPTED,null);
-	}
-
-	public static void fireConnectThread(IoSession session){
-		//设置连接状态
-		session.getState().setConnect(true);
-		session.getState().setInit(false);
-
-		fireEventThread(session, Event.EventName.ON_CONNECT,null);
-	}
-
-	public static void fireReceiveThread(IoSession session){
-		fireEventThread(session, Event.EventName.ON_RECEIVE, null);
-	}
-
-	public static void fireSentThread(IoSession session, Object obj){
-		fireEventThread(session, Event.EventName.ON_SENT, obj);
-	}
-
-
-	public static void fireFlushThread(IoSession session){
-		fireEventThread(session, Event.EventName.ON_FLUSH, null);
-	}
-
-	public static void fireDisconnectThread(IoSession session){
-		//设置断开状态,Close是最终状态
-		session.getState().setClose(true);
-
-		fireEventThread(session, Event.EventName.ON_DISCONNECT, null);
-	}
-
-	public static void fireIdleThread(IoSession session){
-		if(session.getIdleInterval() >0 ) {
-			fireEventThread(session, Event.EventName.ON_IDLE, null);
-		}
-	}
-
-	public static void fireExceptionThread(IoSession session,Exception exception){
-		fireEventThread(session, Event.EventName.ON_EXCEPTION,exception);
-	}
-
-	public static void fireAccept(IoSession session){
+	public static void fireAcceptAsEvent(IoSession session){
 		fireEvent(session, Event.EventName.ON_ACCEPTED,null);
 	}
 
-	public static void fireConnect(IoSession session){
+	public static void fireConnectAsEvent(IoSession session){
 		//设置连接状态
 		session.getState().setConnect(true);
 		session.getState().setInit(false);
@@ -67,32 +25,74 @@ public class EventTrigger {
 		fireEvent(session, Event.EventName.ON_CONNECT,null);
 	}
 
-	public static void fireReceive(IoSession session){
+	public static void fireReceiveAsEvent(IoSession session){
 		fireEvent(session, Event.EventName.ON_RECEIVE, null);
 	}
 
-	public static void fireSent(IoSession session, Object obj){
+	public static void fireSentAsEvent(IoSession session, Object obj){
 		fireEvent(session, Event.EventName.ON_SENT, obj);
 	}
 
-	public static void fireFlush(IoSession session){
+
+	public static void fireFlushAsEvent(IoSession session){
 		fireEvent(session, Event.EventName.ON_FLUSH, null);
 	}
 
-	public static void fireDisconnect(IoSession session){
+	public static void fireDisconnectAsEvent(IoSession session){
+		//设置断开状态,Close是最终状态
 		session.getState().setClose(true);
 
-		fireEvent(session, Event.EventName.ON_DISCONNECT,null);
+		fireEvent(session, Event.EventName.ON_DISCONNECT, null);
 	}
 
-	public static void fireIdle(IoSession session){
+	public static void fireIdleAsEvent(IoSession session){
 		if(session.getIdleInterval() >0 ) {
 			fireEvent(session, Event.EventName.ON_IDLE, null);
 		}
 	}
 
-	public static void fireException(IoSession session,Exception exception){
+	public static void fireExceptionAsEvent(IoSession session,Exception exception){
 		fireEvent(session, Event.EventName.ON_EXCEPTION,exception);
+	}
+
+	public static void fireAccept(IoSession session){
+		fire(session, Event.EventName.ON_ACCEPTED,null);
+	}
+
+	public static void fireConnect(IoSession session){
+		//设置连接状态
+		session.getState().setConnect(true);
+		session.getState().setInit(false);
+
+		fire(session, Event.EventName.ON_CONNECT,null);
+	}
+
+	public static void fireReceive(IoSession session){
+		fire(session, Event.EventName.ON_RECEIVE, null);
+	}
+
+	public static void fireSent(IoSession session, Object obj){
+		fire(session, Event.EventName.ON_SENT, obj);
+	}
+
+	public static void fireFlush(IoSession session){
+		fire(session, Event.EventName.ON_FLUSH, null);
+	}
+
+	public static void fireDisconnect(IoSession session){
+		session.getState().setClose(true);
+
+		fire(session, Event.EventName.ON_DISCONNECT,null);
+	}
+
+	public static void fireIdle(IoSession session){
+		if(session.getIdleInterval() >0 ) {
+			fire(session, Event.EventName.ON_IDLE, null);
+		}
+	}
+
+	public static void fireException(IoSession session,Exception exception){
+		fire(session, Event.EventName.ON_EXCEPTION,exception);
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class EventTrigger {
 	 * @param name     事件名称
 	 * @param other 附属对象
 	 */
-	public static void fireEventThread(IoSession session, Event.EventName name, Object other){
+	public static void fireEvent(IoSession session, Event.EventName name, Object other){
         session.getEventRunner().addEvent(5, ()->{
 				if(session.isConnected()) {
 					Event event = new Event(session, name, other);
@@ -118,7 +118,7 @@ public class EventTrigger {
 	 * @param name     事件名称
 	 * @param other 附属对象
 	 */
-	public static void fireEvent(IoSession session, Event.EventName name, Object other){
+	public static void fire(IoSession session, Event.EventName name, Object other){
 		Event event = new Event(session,name,other);
 		EventProcess.process(event);
 	}

@@ -4,13 +4,11 @@ import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.udp.UdpSocket;
-import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.Chain;
 import org.voovan.tools.TByteBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 /**
  * 事件的实际逻辑处理
@@ -136,7 +134,7 @@ public class EventProcess {
                     if(session.getReadByteBufferChannel().size() > 0){
                         //如果还有数据继续触发 onReceive 事件
                         HeartBeat.interceptHeartBeat(session, session.getReadByteBufferChannel());
-                        EventTrigger.fireReceiveThread(session);
+                        EventTrigger.fireReceiveAsEvent(session);
                     }
 
                 }
