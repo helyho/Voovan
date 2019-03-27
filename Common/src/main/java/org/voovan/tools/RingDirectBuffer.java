@@ -219,7 +219,7 @@ public class RingDirectBuffer {
      */
     public int write(byte[] bytes, int offset, int length){
         if(length > avaliable()){
-            length = avaliable();
+            throw new BufferOverflowException();
         }
 
         for(int i=0;i<length;i++){
@@ -239,15 +239,15 @@ public class RingDirectBuffer {
             return 0;
         }
 
-        int writeSize = byteBuffer.remaining();
-
         if(byteBuffer.remaining() > avaliable()){
-            writeSize = avaliable();
+            throw new BufferOverflowException();
         }
 
         if (byteBuffer == null) {
             return -1;
         }
+
+        int writeSize = byteBuffer.remaining();
 
         int size = 0;
         while(writeSize > 0){
