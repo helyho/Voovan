@@ -3,9 +3,13 @@ package org.voovan.tools;
 import org.voovan.tools.log.Logger;
 import sun.misc.Unsafe;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 环形缓冲区
@@ -256,7 +260,7 @@ public class RingDirectBuffer {
     }
 
     /**
-     * 缓冲区可用数据量
+     * 缓冲区可读数据量
      * @return 缓冲区可用数据量
      */
     public int remaining(){
@@ -415,7 +419,170 @@ public class RingDirectBuffer {
             }
         }
 
-        return index;
+        return index == -1 ? index : (index + readPositon) % capacity;
+    }
+
+    public boolean startWith(byte[] mark){
+        if(remaining() < mark.length){
+            return false;
+        }
+
+        boolean result = true;
+
+        for(int i=0;i<mark.length; i++){
+            if(mark[i] != get(i)){
+                result = false;
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 等待期望的数据长度
+     * @param length  期望的数据长度
+     * @param timeout 超时时间,单位: 毫秒
+     * @param supplier 每次等待数据所做的操作
+     * @return true: 具备期望长度的数据, false: 等待数据超时
+     */
+    public boolean waitData(int length,int timeout, Runnable supplier){
+        try {
+            TEnv.wait(timeout, ()->{
+
+                if(remaining() >= length){
+                    return false;
+                } else {
+                    supplier.run();
+                    return remaining() < length;
+                }
+            });
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
+    }
+
+
+    /**
+     * 从头部开始判断是否收到期望的数据
+     * @param mark  期望出现的数据
+     * @param timeout 超时时间,单位: 毫秒
+     * @param supplier 每次等待数据所做的操作
+     * @return true: 具备期望长度的数据, false: 等待数据超时
+     */
+    public boolean waitData(byte[] mark, int timeout, Runnable supplier){
+
+        try {
+            TEnv.wait(timeout, ()->{
+                if(indexOf(mark) != -1) {
+                    return false;
+                } else {
+                    supplier.run();
+                    return indexOf(mark) == -1;
+                }
+            });
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
+    }
+
+    /**
+     * 读取一行
+     * @return 字符串
+     */
+    public String readLine() {
+
+        if(remaining() == 0){
+            return null;
+        }
+
+        String lineStr = null;
+
+        int index = indexOf("\n".getBytes());
+
+        int size = -1;
+
+        if (index >= 0) {
+			if(readPositon > index) {
+				size = capacity - readPositon + index;
+			} else {
+				size = index - readPositon;
+			}
+
+			size++;
+
+
+        }
+
+        if(remaining()>0 && index==-1){
+            size = remaining();
+        }
+
+        byte[] temp = new byte[size];
+
+        for(int i=0;i<size; i++){
+            temp[i] = read();
+        }
+
+        lineStr = new String(temp);
+        return lineStr.isEmpty() && index==-1 ? null : lineStr;
+    }
+
+    /**
+     * 保存到文件
+     * @param filePath 文件路径
+     * @param length 需要保存的长度
+     * @throws IOException Io 异常
+     */
+    public void saveToFile(String filePath, long length) throws IOException{
+
+        if(remaining() == 0){
+            return;
+        }
+
+        int bufferSize = 1024 * 1024;
+
+        if (length < bufferSize) {
+            bufferSize = Long.valueOf(length).intValue();
+        }
+
+        byte[] buffer = new byte[bufferSize];
+
+        TFile.mkdir(TFile.getFileDirectory(filePath));
+        RandomAccessFile randomAccessFile = null;
+        File file = new File(filePath);
+
+
+        try {
+            randomAccessFile = new RandomAccessFile(file, "rwd");
+
+            //追加形式
+            randomAccessFile.seek(randomAccessFile.length());
+
+            int loadSize = bufferSize;
+            ByteBuffer tempByteBuffer = ByteBuffer.wrap(buffer);
+
+            while (length > 0) {
+                loadSize = length > bufferSize ? bufferSize : Long.valueOf(length).intValue();
+
+                tempByteBuffer.limit(loadSize);
+
+                this.read(tempByteBuffer);
+
+                randomAccessFile.write(buffer, 0, loadSize);
+
+                length = length - loadSize;
+
+                tempByteBuffer.clear();
+            }
+        } catch (IOException e) {
+            throw e;
+        } finally {
+            randomAccessFile.close();
+        }
+
     }
 
     /**
