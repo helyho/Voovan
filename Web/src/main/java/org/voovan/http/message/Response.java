@@ -257,6 +257,7 @@ public class Response {
 					}
 
 					body.read(byteBuffer);
+					//如果启用 RingBuffer 下面那行要注释掉
 					byteBuffer.position(byteBuffer.limit());
 					byteBuffer.limit(byteBuffer.capacity() - 10);
 
