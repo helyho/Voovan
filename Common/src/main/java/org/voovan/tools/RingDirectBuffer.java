@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class DirectRingBuffer {
+public class RingDirectBuffer {
     private static Unsafe unsafe = TUnsafe.getUnsafe();
     private ByteBuffer byteBuffer;
     private volatile AtomicLong address = new AtomicLong(0);;
@@ -27,7 +27,7 @@ public class DirectRingBuffer {
     /**
      * 使用默认容量构造一个环形缓冲区
      */
-    public DirectRingBuffer(){
+    public RingDirectBuffer(){
         this(TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE);
     }
 
@@ -35,7 +35,7 @@ public class DirectRingBuffer {
      * 使用指定容量构造一个环形缓冲区
      * @param capacity 分配的容量
      */
-    public DirectRingBuffer(int capacity){
+    public RingDirectBuffer(int capacity){
     	this(TByteBuffer.allocateDirect(capacity));
     }
 
@@ -43,7 +43,7 @@ public class DirectRingBuffer {
      * 使用指定容量构造一个环形缓冲区
      * @param byteBuffer ByteBuffer 对象
      */
-    public DirectRingBuffer(ByteBuffer byteBuffer){
+    public RingDirectBuffer(ByteBuffer byteBuffer){
         if(byteBuffer.hasArray()){
             throw new UnsupportedOperationException();
         }
@@ -93,12 +93,13 @@ public class DirectRingBuffer {
      * 读指针跳过特定的偏移量
      * @param offset 偏移量
      */
-    public void skip(int offset){
-        if(remaining() < offset){
-            throw new BufferOverflowException();
+    public boolean skip(int offset){
+        if(remaining() < offset || offset < 0){
+           return false;
         }
 
         readPositon = ( readPositon + offset ) % capacity;
+        return true;
     }
 
     /**
@@ -214,8 +215,8 @@ public class DirectRingBuffer {
      * @return 写入数据长度
      */
     public int write(byte[] bytes, int offset, int length){
-        if(length > remaining()){
-            length = remaining();
+        if(length > avaliable()){
+            length = avaliable();
         }
 
         for(int i=0;i<length;i++){
@@ -344,8 +345,6 @@ public class DirectRingBuffer {
 		    byteBuffer.limit(writePositon);
 		    byte[] tmp = TByteBuffer.toArray(byteBuffer);
 		    byteBuffer.limit(byteBuffer.capacity());
-
-
 
 		    unsafe.copyMemory(address.get() + readPositon, address.get(), tailSize);
 
