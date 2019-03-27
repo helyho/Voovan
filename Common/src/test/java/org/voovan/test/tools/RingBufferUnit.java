@@ -44,11 +44,13 @@ public class RingBufferUnit extends TestCase {
 		TEnv.sleep(100000);
 	}
 
-	public static AtomicInteger m1 = new AtomicInteger(0);
-	public static AtomicInteger m2 = new AtomicInteger(0);
-	public static AtomicInteger md = new AtomicInteger(0);
+	public static AtomicInteger pop = new AtomicInteger(0);
+	public static AtomicInteger push = new AtomicInteger(0);
 
 	public void testConcurrent(){
+
+		int totalcount = 1000000;
+
 		RingBuffer m = new RingBuffer(1024*1024);
 		System.out.println(TEnv.measureTime(new Runnable() {
 			@Override
@@ -57,25 +59,28 @@ public class RingBufferUnit extends TestCase {
 				ArrayList<Thread> mmm = new ArrayList<Thread>();
 //				=======================
 //
-				for(int i=0;i<20;i++){
+				for(int i=0;i<2;i++){
 					if(i%2==0){
 						Thread pushThread = new Thread(()->{
-							while(md.get()<=20000000) {
-								m.push(md.incrementAndGet());
-								m2.getAndIncrement();
+							while(push.incrementAndGet()<totalcount) {
+								if(!m.push(push.get())){
+									push.getAndDecrement();
+								}
 							}
 						});
 						mmm.add(pushThread);
 						pushThread.start();
 					} else {
-
 						Thread popThread = new Thread(()->{
-							while(m1.get()<20000000) {
+							while(pop.incrementAndGet()<totalcount) {
 								Object o = m.pop();
-								if (o != null) {
-//									System.out.println(o);
-									m1.getAndIncrement();
+								if (o == null) {
+									pop.getAndDecrement();
 								}
+
+//								else {
+//									System.out.println(o);
+//								}
 							}
 						});
 
@@ -95,10 +100,9 @@ public class RingBufferUnit extends TestCase {
 			}
 		})/1000000000f);
 
-		System.out.println(m1.get() + " " + m2.get() + " " + m.remaining());
-		m1.set(0);
-		m2.set(0);
-		md.set(0);
+		System.out.println(pop.get() + " " + push.get() + " " + m.remaining());
+		pop.set(0);
+		push.set(0);
 
 		ArrayBlockingQueue a = new ArrayBlockingQueue(1024*1024);
 		System.out.println(TEnv.measureTime(new Runnable() {
@@ -108,12 +112,13 @@ public class RingBufferUnit extends TestCase {
 				ArrayList<Thread> mmm = new ArrayList<Thread>();
 //				=======================
 //
-				for(int i=0;i<20;i++){
+				for(int i=0;i<2;i++){
 					if(i%2==0){
 						Thread pushThread = new Thread(()->{
-							while(md.get()<=20000000) {
-								a.offer(md.incrementAndGet());
-								m2.getAndIncrement();
+							while(push.incrementAndGet()<totalcount) {
+								if(!a.offer(push.get())){
+									push.getAndDecrement();
+								}
 							}
 						});
 						mmm.add(pushThread);
@@ -121,11 +126,10 @@ public class RingBufferUnit extends TestCase {
 					} else {
 
 						Thread popThread = new Thread(()->{
-							while(m1.get()<20000000) {
+							while(pop.incrementAndGet()<totalcount) {
 								Object o = a.poll();
-								if (o != null) {
-//									System.out.println(o);
-									m1.getAndIncrement();
+								if (o == null) {
+									pop.getAndDecrement();
 								}
 							}
 						});
@@ -145,7 +149,7 @@ public class RingBufferUnit extends TestCase {
 
 			}
 		})/1000000000f);
-		System.out.println(m1.get() + " " + m2.get() + " " + a.size());
+		System.out.println(pop.get() + " " + push.get() + " " + a.size());
 	}
 }
 

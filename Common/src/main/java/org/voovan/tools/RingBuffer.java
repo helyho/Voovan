@@ -1,7 +1,6 @@
 package org.voovan.tools;
 
 import java.nio.BufferOverflowException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 类文字命名
@@ -12,11 +11,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Licence: Apache v2 License
  */
 public class RingBuffer<T> {
-	public static final int DEFAULT_SIZE = 48;
+	public static final int DEFAULT_SIZE = 128;
 
 	public Object[] elements;
-	private AtomicInteger readPositon = new AtomicInteger(0);
-	private AtomicInteger writePositon = new AtomicInteger(0);
+	private volatile int readPositon = 0;
+	private volatile int writePositon = 0;
 	private volatile int capacity;
 
 	/**
@@ -32,8 +31,8 @@ public class RingBuffer<T> {
 	 * @param capacity 分配的容量
 	 */
 	public RingBuffer(int capacity) {
-		elements = new Object[capacity];
-		this.capacity = capacity;
+		elements = new Object[capacity - 1];
+		this.capacity = capacity - 1;
 
 	}
 
@@ -43,7 +42,7 @@ public class RingBuffer<T> {
 	 * @return 读指针位置
 	 */
 	public int getReadPositon() {
-		return readPositon.get();
+		return readPositon;
 	}
 
 	/**
@@ -52,7 +51,7 @@ public class RingBuffer<T> {
 	 * @return 写指针位置
 	 */
 	public int getWritePositon() {
-		return writePositon.get();
+		return writePositon;
 	}
 
 	/**
@@ -74,9 +73,7 @@ public class RingBuffer<T> {
 			throw new BufferOverflowException();
 		}
 
-		readPositon.getAndUpdate((val) ->{
-			return val + offset % capacity;
-		});
+		readPositon = (readPositon + offset) % capacity;
 	}
 
 	/**
@@ -94,15 +91,15 @@ public class RingBuffer<T> {
 	 * @return true: 缓冲区已满, false: 缓冲区未满
 	 */
 	public Boolean isFull() {
-		return (writePositon.get() + 1) % capacity == readPositon.get();
+		return (writePositon + 1) % capacity == readPositon;
 	}
 
 	/**
 	 * 清理缓冲区
 	 */
 	public void clear() {
-		this.readPositon.set(0);
-		this.writePositon.set(0);
+		this.readPositon = 0;
+		this.writePositon = 0;
 	}
 
 	/**
@@ -113,7 +110,7 @@ public class RingBuffer<T> {
 	 */
 	public T get(int offset) {
 		if (offset < remaining()) {
-			int realOffset = (readPositon.get() + offset) % capacity;
+			int realOffset = (readPositon + offset) % capacity;
 			return (T)elements[realOffset];
 		} else {
 			throw new IndexOutOfBoundsException();
@@ -152,10 +149,27 @@ public class RingBuffer<T> {
 	}
 
 	/**
+	 * 读取一个 byte
+	 *
+	 * @return byte 数据
+	 */
+	public T pop() {
+		if (isEmpty()) {
+//			throw new BufferUnderflowException();
+			return null;
+		}
+
+		T t = (T)elements[readPositon];
+		readPositon = (readPositon + 1) % capacity;
+
+		return t;
+	}
+
+
+	/**
 	 * 增加一个对象
 	 *
 	 * @param t 对象
-	 * @return true: 成功, false: 失败
 	 */
 	public boolean push(T t) {
 		if (isFull()) {
@@ -163,15 +177,8 @@ public class RingBuffer<T> {
 			return false;
 		}
 
-		if (isEmpty() && readPositon.get() != 0) {
-			clear();
-		}
-
-		int position = writePositon.getAndUpdate(val->{
-			return (val+1) % capacity;
-		});
-
-		elements[position] = t;
+		elements[writePositon] = t;
+		writePositon = (writePositon + 1) % capacity;
 
 		return true;
 	}
@@ -205,12 +212,12 @@ public class RingBuffer<T> {
 	 * @return 缓冲区可用数据量
 	 */
 	public int remaining() {
-		if (writePositon.get() == readPositon.get()) {
+		if (writePositon == readPositon) {
 			return 0;
-		} else if (writePositon.get() < readPositon.get()) {
-			return capacity - readPositon.get() + writePositon.get();
+		} else if (writePositon < readPositon) {
+			return capacity - readPositon + writePositon;
 		} else {
-			return writePositon.get() - readPositon.get();
+			return writePositon - readPositon;
 		}
 	}
 
@@ -222,30 +229,6 @@ public class RingBuffer<T> {
 	public int avaliable() {
 		return capacity - remaining() - 1;
 	}
-
-	/**
-	 * 读取一个 byte
-	 *
-	 * @return byte 数据
-	 */
-	public T pop() {
-		if (isEmpty()) {
-//			throw new BufferUnderflowException();
-			return null;
-		}
-
-		int position = readPositon.getAndUpdate(val->{
-			return (val + 1) % capacity;
-		});
-
-		T t = (T)elements[position];
-
-		if (isEmpty() && readPositon.get() != 0) {
-			clear();
-		}
-		return t;
-	}
-
 
 	/**
 	 * 读取缓冲区的数据

@@ -11,15 +11,15 @@ import java.util.function.Supplier;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class ThreadObjectPool<T> {
+public class ObjectThreadPool<T> {
     private final ThreadLocal<LinkedList<T>> THREAD_LOCAL_POOL =  ThreadLocal.withInitial(()->new LinkedList<T>());
 
     private int threadLocalMaxSize = 4;
 
-    public ThreadObjectPool() {
+    public ObjectThreadPool() {
     }
 
-    public ThreadObjectPool(int threadLocalMaxSize) {
+    public ObjectThreadPool(int threadLocalMaxSize) {
         this.threadLocalMaxSize = threadLocalMaxSize;
     }
 
