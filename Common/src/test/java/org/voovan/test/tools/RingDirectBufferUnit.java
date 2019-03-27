@@ -53,10 +53,56 @@ public class RingDirectBufferUnit extends TestCase {
 		byte[] xx = new byte[m.length()];
 
 		ringDirectBuffer.write(m.getBytes(), 0, m.length());
+		ringDirectBuffer.write(m.getBytes(), 0, m.length());
+		ringDirectBuffer.write(m.getBytes(), 0, m.length());
 		for( int i=0;i<100;i++) {
 			ringDirectBuffer.write(m.getBytes(),0,m.length());
 			ringDirectBuffer.read(xx, 0, m.length());
 			System.out.println(new String(xx) + " " + ringDirectBuffer);
 		}
+	}
+
+	public void testReadLine(){
+		RingDirectBuffer ringDirectBuffer = new RingDirectBuffer(1024);
+
+		String m = "12345\r\n";
+
+		byte[] xx = new byte[m.length()];
+
+		ringDirectBuffer.write(m.getBytes(), 0, m.length());
+		for( int i=0;i<10;i++) {
+			int length = i==9?m.length()-2:m.length();
+			ringDirectBuffer.write(m.getBytes(), 0, length);
+		}
+
+		System.out.println(new String(ringDirectBuffer.toArray()) + "====");
+
+		int t = 0;
+		while(true){
+			String line = ringDirectBuffer.readLine();
+			if(line==null){
+				break;
+			}
+			t++;
+			System.out.println(t + " " + line + " " + ringDirectBuffer);
+		}
+	}
+
+	public void testSaveToFile() throws IOException {
+		RingDirectBuffer ringDirectBuffer = new RingDirectBuffer(1024);
+
+		String m = "12345\r\n";
+
+		byte[] xx = new byte[m.length()];
+
+		ringDirectBuffer.write(m.getBytes(), 0, m.length());
+		for( int i=0;i<10;i++) {
+			int length = i==9?m.length()-2:m.length();
+			ringDirectBuffer.write(m.getBytes(), 0, length);
+		}
+
+		System.out.println(new String(ringDirectBuffer.toArray()) + "====");
+
+		ringDirectBuffer.saveToFile("/Users/helyho/Downloads/test.txt", ringDirectBuffer.remaining());
 	}
 }
