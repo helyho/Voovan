@@ -11,15 +11,15 @@ import java.util.function.Supplier;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class ThreadLocalPool<T> {
-    private final ThreadLocal<LinkedList<T>> THREAD_LOCAL_POOL = new ThreadLocal<LinkedList<T>>();
+public class ThreadObjectPool<T> {
+    private final ThreadLocal<LinkedList<T>> THREAD_LOCAL_POOL =  ThreadLocal.withInitial(()->new LinkedList<T>());
 
     private int threadLocalMaxSize = 4;
 
-    public ThreadLocalPool() {
+    public ThreadObjectPool() {
     }
 
-    public ThreadLocalPool(int threadLocalMaxSize) {
+    public ThreadObjectPool(int threadLocalMaxSize) {
         this.threadLocalMaxSize = threadLocalMaxSize;
     }
 
@@ -32,19 +32,13 @@ public class ThreadLocalPool<T> {
     }
 
     public LinkedList<T> getThreadLoaclPool(){
-        LinkedList<T> threadLocalPool = THREAD_LOCAL_POOL.get();
-        if(threadLocalPool == null){
-            threadLocalPool = new LinkedList<T>();
-            THREAD_LOCAL_POOL.set(threadLocalPool);
-        }
-        return threadLocalPool;
+        return THREAD_LOCAL_POOL.get();
     }
 
     public T get(Supplier<T> supplier){
         LinkedList<T> threadLocalPool = getThreadLoaclPool();
-        T localWeakRef = threadLocalPool.poll();
 
-        T t = null;
+        T t = threadLocalPool.poll();
 
         //创建一个新的 t
         if(t==null) {
