@@ -48,12 +48,10 @@ public class RingDirectBufferUnit extends TestCase {
 	public void testReadWrite(){
 		RingDirectBuffer ringDirectBuffer = new RingDirectBuffer(23);
 
-		String m = "12345";
+		String m = "1234567890";
 
 		byte[] xx = new byte[m.length()];
 
-		ringDirectBuffer.write(m.getBytes(), 0, m.length());
-		ringDirectBuffer.write(m.getBytes(), 0, m.length());
 		ringDirectBuffer.write(m.getBytes(), 0, m.length());
 		for( int i=0;i<100;i++) {
 			ringDirectBuffer.write(m.getBytes(),0,m.length());
@@ -75,7 +73,7 @@ public class RingDirectBufferUnit extends TestCase {
 			ringDirectBuffer.write(m.getBytes(), 0, length);
 		}
 
-		System.out.println(new String(ringDirectBuffer.toArray()) + "====");
+		System.out.println(new String(ringDirectBuffer.toArray()) + "====\r\n");
 
 		int t = 0;
 		while(true){
@@ -84,7 +82,7 @@ public class RingDirectBufferUnit extends TestCase {
 				break;
 			}
 			t++;
-			System.out.println(t + " " + line + " " + ringDirectBuffer);
+			System.out.println(t + " " + line + ringDirectBuffer);
 		}
 	}
 

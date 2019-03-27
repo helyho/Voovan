@@ -191,7 +191,7 @@ public class RingBuffer<T> {
 	 */
 	public int push(T[] ts, int offset, int length) {
 		if (length > avaliable()) {
-			length = avaliable();
+			return 0;
 		}
 
 		for (int i = 0; i < length; i++) {
