@@ -20,7 +20,7 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
-    public static ThreadObjectPool<ByteBuffer> BYTE_BUFFER_THREAD_POOL = new ThreadObjectPool<ByteBuffer>(50);
+    public static ObjectThreadPool<ByteBuffer> BYTE_BUFFER_THREAD_POOL = new ObjectThreadPool<ByteBuffer>(32);
 
     public static int DEFAULT_BYTE_BUFFER_SIZE=1024*8;
 
