@@ -1,11 +1,9 @@
 package org.voovan.tools.json;
 
-import org.voovan.tools.ByteBufferChannel;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 /**
  * JSON字符串分析成 Map
@@ -17,24 +15,18 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class YAML2JSON {
-
-	public static String convert(String jsonStr) throws IOException {
-		ByteBufferChannel byteBufferChannel = new ByteBufferChannel(jsonStr.length());
-		byteBufferChannel.writeHead(ByteBuffer.wrap(jsonStr.getBytes()));
-		String result = convert(byteBufferChannel);
-		byteBufferChannel.release();
-		return result;
-	}
+	public static ThreadLocal<Integer> YAML_READ_INDEX = ThreadLocal.withInitial(()->0);
 
 	/**
 	 * 转换 YAML 到 JSON
 	 * 如果是{}包裹的对象解析成 HashMap,如果是[]包裹的对象解析成 ArrayList
 	 *
-	 * @param byteBufferChannel 待解析的 JSON 字符串
+	 * @param jsonStr 待解析的 JSON 字符串
 	 * @return 解析后的对象
 	 * @throws IOException IO异常
 	 */
-	public static String convert(ByteBufferChannel byteBufferChannel) throws IOException {
+	public static String convert(String jsonStr) throws IOException {
+		YAML_READ_INDEX.set(0);
 
 		StringBuilder result = new StringBuilder();
 
@@ -42,7 +34,7 @@ public class YAML2JSON {
 
 		while (true) {
 
-			int lineType = getNextLineType(byteBufferChannel);
+			int lineType = getNextLineType(jsonStr);
 
 			if (lineType == -1) {
 				break;
@@ -52,7 +44,7 @@ public class YAML2JSON {
 				firstLineType = lineType;
 			}
 
-			result.append(parse(lineType, byteBufferChannel));
+			result.append(parse(lineType, jsonStr));
 		}
 
 
@@ -72,13 +64,13 @@ public class YAML2JSON {
 	/**
 	 * 获取下一行数据的类型
 	 *
-	 * @param byteBufferChannel 字节缓冲区
+	 * @param jsonStr json字符串
 	 * @return 0: array, 1: map, 2: 多行文本, -1: end of buffer
 	 */
-	public static int getNextLineType(ByteBufferChannel byteBufferChannel) {
-		String line = byteBufferChannel.readLine();
+	public static int getNextLineType(String jsonStr) {
+		String line = readLine(jsonStr);
 		if (line != null) {
-			writeBack(byteBufferChannel, line);
+			writeBack(line);
 			line = line.trim();
 			if (line.endsWith(">") || line.endsWith("|") || line.endsWith("|+") || line.endsWith("|-")) {
 				return 2;
@@ -97,20 +89,20 @@ public class YAML2JSON {
 	/**
 	 * 通用解析函数
 	 * @param nextLintType 缓冲区中下一行数据的类型
-	 * @param byteBufferChannel 字节缓冲区
+	 * @param jsonStr 字节缓冲区
 	 * @return 解析出的 JSON 字符串
 	 */
-	public static String parse(int nextLintType, ByteBufferChannel byteBufferChannel) {
+	public static String parse(int nextLintType, String jsonStr) {
 		String result = null;
 		switch (nextLintType) {
 			case 0:
-				result = parseArray(byteBufferChannel);
+				result = parseArray(jsonStr);
 				break;
 			case 1:
-				result = parseMap(byteBufferChannel);
+				result = parseMap(jsonStr);
 				break;
 			case 2:
-				result = parseMulitLineString(byteBufferChannel);
+				result = parseMulitLineString(jsonStr);
 				break;
 			default:
 				break;
@@ -119,12 +111,20 @@ public class YAML2JSON {
 		return result;
 	}
 
+	public static String readLine(String jsonStr){
+		String line = TString.readLine(jsonStr, YAML_READ_INDEX.get());
+		if(line!=null) {
+			YAML_READ_INDEX.set(YAML_READ_INDEX.get() + line.length());
+		}
+		return line;
+	}
+
 	/**
 	 * 解析数组信息
-	 * @param byteBufferChannel 字节缓冲区
+	 * @param jsonStr 字节缓冲区
 	 * @return 解析出de JSON 字符串
 	 */
-	public static String parseArray(ByteBufferChannel byteBufferChannel) {
+	public static String parseArray(String jsonStr) {
 
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("[");
@@ -132,7 +132,7 @@ public class YAML2JSON {
 		int prevLineRetract = -1;
 
 		while (true) {
-			String line = byteBufferChannel.readLine();
+			String line = readLine(jsonStr);
 
 			if (line == null) {
 				if (stringBuilder.length()>0 && stringBuilder.charAt(stringBuilder.length() - 1) == ',') {
@@ -154,7 +154,7 @@ public class YAML2JSON {
 
 			//缩进改变
 			if (prevLineRetract < lineRetract) {
-				writeBack(byteBufferChannel, line);
+				writeBack(line);
 
 				if (stringBuilder.length()>0 && stringBuilder.charAt(stringBuilder.length() - 1) == ',') {
 					stringBuilder.deleteCharAt(stringBuilder.length() - 1);
@@ -168,21 +168,21 @@ public class YAML2JSON {
 					stringBuilder.deleteCharAt(stringBuilder.length() - 1);
 				}
 
-				writeBack(byteBufferChannel, line);
+				writeBack(line);
 				break;
 			}
 
-			int nextLineType = getNextLineType(byteBufferChannel);
+			int nextLineType = getNextLineType(jsonStr);
 
 			//键值 Map
 			if(nextLineType == 1){
-				stringBuilder.append("{"+parseMap(byteBufferChannel)+"}");
+				stringBuilder.append("{"+parseMap(jsonStr)+"}");
 			}
 			//多行字符串
 			else if (lineValue.endsWith(">") || lineValue.endsWith("|") ||
 					lineValue.endsWith("|+") || lineValue.endsWith("|-")){
-				writeBack(byteBufferChannel, line);
-				stringBuilder.append(parseMulitLineString(byteBufferChannel)).append(",");
+				writeBack(line);
+				stringBuilder.append(parseMulitLineString(jsonStr)).append(",");
 			}
 			//数组元素
 			else if (lineValue.startsWith("-")) {
@@ -201,17 +201,17 @@ public class YAML2JSON {
 
 	/**
 	 * 解析键值信息
-	 * @param byteBufferChannel 字节缓冲区
+	 * @param jsonStr 字节缓冲区
 	 * @return 解析出JSON 字符串
 	 */
-	public static String parseMap(ByteBufferChannel byteBufferChannel) {
+	public static String parseMap(String jsonStr) {
 
 		StringBuilder stringBuilder = new StringBuilder();
 
 		int prevLineRetract = -1;
 
 		while (true) {
-			String line = byteBufferChannel.readLine();
+			String line = readLine(jsonStr);
 
 			if (line == null) {
 				if (stringBuilder.length()>0 && stringBuilder.charAt(stringBuilder.length() - 1) == ',') {
@@ -231,13 +231,13 @@ public class YAML2JSON {
 				prevLineRetract = lineRetract;
 			}
 
-			int nextLineType = getNextLineType(byteBufferChannel);
+			int nextLineType = getNextLineType(jsonStr);
 
 			//缩进改变
 			if (prevLineRetract < lineRetract) {
-				writeBack(byteBufferChannel, line);
+				writeBack(line);
 
-				lineValue = parse(nextLineType, byteBufferChannel);
+				lineValue = parse(nextLineType, jsonStr);
 				stringBuilder.append(lineValue);
 
 				if (stringBuilder.length()>0 && stringBuilder.charAt(stringBuilder.length() - 1) == ',') {
@@ -255,7 +255,7 @@ public class YAML2JSON {
 				}
 				break;
 			} else if (prevLineRetract > lineRetract) {
-				writeBack(byteBufferChannel, line);
+				writeBack(line);
 				if (stringBuilder.length()>0 && stringBuilder.charAt(stringBuilder.length() - 1) == ',') {
 					stringBuilder.deleteCharAt(stringBuilder.length() - 1);
 				}
@@ -265,13 +265,13 @@ public class YAML2JSON {
 			//数组
 			if(nextLineType == 0){
 				stringBuilder.append(formatLine(lineValue));
-				stringBuilder.append(parse(nextLineType, byteBufferChannel)).append(",");
+				stringBuilder.append(parse(nextLineType, jsonStr)).append(",");
 			}
 			//多行字符串
 			else if (lineValue.trim().endsWith(">") || lineValue.trim().endsWith("|") ||
 					lineValue.trim().endsWith("|+") || lineValue.trim().endsWith("|-")){
-				writeBack(byteBufferChannel, line);
-				stringBuilder.append(parseMulitLineString(byteBufferChannel)).append(",");
+				writeBack(line);
+				stringBuilder.append(parseMulitLineString(jsonStr)).append(",");
 			} else if(lineValue.trim().endsWith(":")){
 				stringBuilder.append(formatLine(lineValue)).append("{");
 			} else if(lineValue.contains(": ") && !lineValue.trim().endsWith(":")){
@@ -285,11 +285,10 @@ public class YAML2JSON {
 	/**
 	 * 回写数据
 	 *
-	 * @param byteBufferChannel 字节缓冲区
 	 * @param line              需要回写的数据
 	 */
-	public static void writeBack(ByteBufferChannel byteBufferChannel, String line) {
-		byteBufferChannel.writeHead(ByteBuffer.wrap(line.getBytes()));
+	public static void writeBack(String line) {
+		YAML_READ_INDEX.set(YAML_READ_INDEX.get() - line.length());
 	}
 
 	/**
@@ -330,19 +329,19 @@ public class YAML2JSON {
 	/**
 	 * 处理多行字符串
 	 *
-	 * @param byteBufferChannel 换红区
+	 * @param jsonStr 换红区
 	 * @return 按规则合并后的字符串
 	 */
-	public static String parseMulitLineString(ByteBufferChannel byteBufferChannel) {
+	public static String parseMulitLineString(String jsonStr) {
 		int initLineRetract = 0;
 		int lineRetract = 0;
-		String markLine = byteBufferChannel.readLine();
+		String markLine = readLine(jsonStr);
 		String line = null;
 		String result = "";
 		markLine = markLine.trim();
 		while (true) {
 			//处理多行字符
-			line = byteBufferChannel.readLine();
+			line = readLine(jsonStr);
 
 			if (line == null) {
 				break;
@@ -358,7 +357,7 @@ public class YAML2JSON {
 				result = result + lineValue;
 				initLineRetract = lineRetract;
 			} else {
-				byteBufferChannel.writeHead(ByteBuffer.wrap((lineValue + "\n").getBytes()));
+				writeBack(line);
 				break;
 			}
 		}

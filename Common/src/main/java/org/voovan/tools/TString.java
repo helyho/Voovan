@@ -977,4 +977,20 @@ public class TString {
 
 		return stringBuilder.toString();
 	}
+
+	/**
+	 * 从指定位置读取一行字符串
+	 * @param str 读取的字符串
+	 * @param beginIndex 起始位置
+	 * @return 读取的一行字符串, null 读取到文件结尾
+	 */
+	public static String readLine(String str, int beginIndex) {
+		if(beginIndex==str.length()){
+			return null;
+		}
+
+		int lineIndex = str.indexOf("\n", beginIndex);
+		lineIndex = lineIndex == -1 ? str.length():lineIndex + 1;
+		return str.substring(beginIndex, lineIndex);
+	}
 }
