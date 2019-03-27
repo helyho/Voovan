@@ -81,7 +81,7 @@ public class RingBuffer<T> {
 	 *
 	 * @return true: 缓冲区无可用数据, false: 缓冲区有可用数据
 	 */
-	public Boolean isEmpty() {
+	private Boolean isEmpty() {
 		return readPositon == writePositon;
 	}
 
@@ -90,7 +90,7 @@ public class RingBuffer<T> {
 	 *
 	 * @return true: 缓冲区已满, false: 缓冲区未满
 	 */
-	public Boolean isFull() {
+	private Boolean isFull() {
 		return (writePositon + 1) % capacity == readPositon;
 	}
 
@@ -155,7 +155,6 @@ public class RingBuffer<T> {
 	 */
 	public T pop() {
 		if (isEmpty()) {
-//			throw new BufferUnderflowException();
 			return null;
 		}
 
@@ -173,7 +172,6 @@ public class RingBuffer<T> {
 	 */
 	public boolean push(T t) {
 		if (isFull()) {
-//			throw new BufferOverflowException();
 			return false;
 		}
 
