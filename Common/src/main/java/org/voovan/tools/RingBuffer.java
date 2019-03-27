@@ -190,8 +190,8 @@ public class RingBuffer<T> {
 	 * @return 写入数据长度
 	 */
 	public int push(T[] ts, int offset, int length) {
-		if (length > remaining()) {
-			length = remaining();
+		if (length > avaliable()) {
+			length = avaliable();
 		}
 
 		for (int i = 0; i < length; i++) {
