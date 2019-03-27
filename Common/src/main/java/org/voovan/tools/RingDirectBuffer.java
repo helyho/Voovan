@@ -1,5 +1,6 @@
 package org.voovan.tools;
 
+import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 import sun.misc.Unsafe;
 
@@ -97,6 +98,8 @@ public class RingDirectBuffer {
      * @param offset 偏移量
      */
     public boolean skip(int offset){
+        checkRelease();
+
         if(remaining() < offset || offset < 0){
            return false;
         }
@@ -124,7 +127,9 @@ public class RingDirectBuffer {
     /**
      * 清理缓冲区
      */
-    public void clear(){
+    public void clear() {
+        checkRelease();
+
         this.readPositon = 0;
         this.writePositon = 0;
     }
@@ -134,7 +139,9 @@ public class RingDirectBuffer {
      * @param offset 偏移量
      * @return byte 数据
      */
-    public byte get(int offset){
+    public byte get(int offset) {
+        checkRelease();
+
         if(offset < remaining()) {
             int realOffset = (readPositon + offset) % capacity;
             return unsafe.getByte(address + realOffset);
@@ -150,6 +157,8 @@ public class RingDirectBuffer {
      * @return 读取数据大小
      */
     public int get(ByteBuffer byteBuffer) {
+        checkRelease();
+
         int size = byteBuffer.remaining();
         if(size > remaining()){
             size = remaining();
@@ -171,6 +180,8 @@ public class RingDirectBuffer {
      * @return 读取数据大小
      */
     public int get(byte[] bytes, int offset, int length) {
+        checkRelease();
+
         if(length > remaining()){
             length = remaining();
         }
@@ -199,6 +210,8 @@ public class RingDirectBuffer {
      * @param b byte 数据
      */
     public void write(byte b) {
+        checkRelease();
+
         if (isFull()) {
             throw new BufferOverflowException();
         }
@@ -218,6 +231,8 @@ public class RingDirectBuffer {
      * @return 写入数据长度
      */
     public int write(byte[] bytes, int offset, int length){
+        checkRelease();
+
         if(length > avaliable()){
             throw new BufferOverflowException();
         }
@@ -235,6 +250,8 @@ public class RingDirectBuffer {
      * @return 写入数据长度
      */
     public int write(ByteBuffer byteBuffer) {
+        checkRelease();
+
         if(byteBuffer.remaining() == 0){
             return 0;
         }
@@ -263,7 +280,9 @@ public class RingDirectBuffer {
      * 缓冲区可读数据量
      * @return 缓冲区可用数据量
      */
-    public int remaining(){
+    public int remaining() {
+        checkRelease();
+
         if(writePositon == readPositon){
             return 0;
         } else if(writePositon < readPositon){
@@ -277,7 +296,9 @@ public class RingDirectBuffer {
      * 缓冲区可写空间
      * @return 缓冲区可写空间
      */
-    public int avaliable(){
+    public int avaliable() {
+        checkRelease();
+
         return capacity - remaining() - 1;
     }
 
@@ -286,6 +307,8 @@ public class RingDirectBuffer {
      * @return byte 数据
      */
     public byte read() {
+        checkRelease();
+
         if (isEmpty()) {
             throw new BufferUnderflowException();
         }
@@ -304,6 +327,8 @@ public class RingDirectBuffer {
      * @return 读取数据大小
      */
     public int read(ByteBuffer byteBuffer) {
+        checkRelease();
+
         int size = byteBuffer.remaining();
         if(size > remaining()){
             size = remaining();
@@ -324,6 +349,8 @@ public class RingDirectBuffer {
      * @return 读取数据大小
      */
     public int read(byte[] bytes, int offset, int length) {
+        checkRelease();
+
         if(length > remaining()){
             length = remaining();
         }
@@ -340,6 +367,8 @@ public class RingDirectBuffer {
      * @return ByteBuffer 对象
      */
     public ByteBuffer getByteBuffer() {
+        checkRelease();
+
 	    if(writePositon < readPositon) {
 		    int remaining = remaining();
 		    int tailSize = capacity - readPositon;
@@ -366,6 +395,7 @@ public class RingDirectBuffer {
     }
 
     public void compact(){
+        checkRelease();
         readPositon = byteBuffer.position();
         writePositon = byteBuffer.limit();
     }
@@ -377,6 +407,7 @@ public class RingDirectBuffer {
      * @return 第一个字节的索引位置
      */
     public int indexOf(byte[] mark){
+        checkRelease();
 
         if(remaining() == 0){
             return -1;
@@ -423,6 +454,8 @@ public class RingDirectBuffer {
     }
 
     public boolean startWith(byte[] mark){
+        checkRelease();
+
         if(remaining() < mark.length){
             return false;
         }
@@ -447,6 +480,8 @@ public class RingDirectBuffer {
      * @return true: 具备期望长度的数据, false: 等待数据超时
      */
     public boolean waitData(int length,int timeout, Runnable supplier){
+        checkRelease();
+
         try {
             TEnv.wait(timeout, ()->{
 
@@ -472,6 +507,7 @@ public class RingDirectBuffer {
      * @return true: 具备期望长度的数据, false: 等待数据超时
      */
     public boolean waitData(byte[] mark, int timeout, Runnable supplier){
+        checkRelease();
 
         try {
             TEnv.wait(timeout, ()->{
@@ -493,6 +529,7 @@ public class RingDirectBuffer {
      * @return 字符串
      */
     public String readLine() {
+        checkRelease();
 
         if(remaining() == 0){
             return null;
@@ -537,6 +574,7 @@ public class RingDirectBuffer {
      * @throws IOException Io 异常
      */
     public void saveToFile(String filePath, long length) throws IOException{
+        checkRelease();
 
         if(remaining() == 0){
             return;
@@ -586,10 +624,29 @@ public class RingDirectBuffer {
     }
 
     /**
+     * 测试是否被释放
+     */
+    private void checkRelease(){
+        if(isReleased()){
+            throw new MemoryReleasedException("ByteBufferChannel is released.");
+        }
+    }
+
+    public boolean isReleased(){
+        if(address == 0 || byteBuffer == null){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    /**
      * 释放内存中的数据
      */
     public synchronized void release(){
-    	TByteBuffer.release(byteBuffer);
+        address = 0;
+        byteBuffer = null;
+        TByteBuffer.release(byteBuffer);
     }
 
     @Override
