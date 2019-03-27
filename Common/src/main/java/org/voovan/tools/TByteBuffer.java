@@ -20,7 +20,7 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
-    public static ThreadLocalPool<ByteBuffer> THREAD_LOCAL_POOL = new ThreadLocalPool<ByteBuffer>();
+    public static ThreadObjectPool<ByteBuffer> BYTE_BUFFER_THREAD_POOL = new ThreadObjectPool<ByteBuffer>(50);
 
     public static int DEFAULT_BYTE_BUFFER_SIZE=1024*8;
 
@@ -95,7 +95,7 @@ public class TByteBuffer {
     public static ByteBuffer allocateDirect(int capacity) {
         //是否手工释放
         if(Global.NO_HEAP_MANUAL_RELEASE) {
-            ByteBuffer byteBuffer = THREAD_LOCAL_POOL.get(()->allocateManualReleaseBuffer(capacity));
+            ByteBuffer byteBuffer = BYTE_BUFFER_THREAD_POOL.get(()->allocateManualReleaseBuffer(capacity));
 
             if(capacity <= byteBuffer.capacity()) {
                 byteBuffer.limit(capacity);
@@ -256,7 +256,7 @@ public class TByteBuffer {
                             reallocate(byteBuffer, DEFAULT_BYTE_BUFFER_SIZE);
                         }
 
-                        THREAD_LOCAL_POOL.release(byteBuffer, ()->{
+                        BYTE_BUFFER_THREAD_POOL.release(byteBuffer, ()->{
                             try {
                                 TUnsafe.getUnsafe().freeMemory(address);
                                 setAddress(byteBuffer, 0);
