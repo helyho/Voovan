@@ -45,18 +45,18 @@ public class RingDirectBufferUnit extends TestCase {
 		TEnv.sleep(100000);
 	}
 
-	public void testMmm(){
-		RingDirectBuffer ringDirectBuffer = new RingDirectBuffer(10);
+	public void testReadWrite(){
+		RingDirectBuffer ringDirectBuffer = new RingDirectBuffer(23);
 
-		String m = "1234";
+		String m = "12345";
 
-		byte[] xx = new byte[4];
+		byte[] xx = new byte[m.length()];
 
-		ringDirectBuffer.write(m.getBytes(), 0, 4);
+		ringDirectBuffer.write(m.getBytes(), 0, m.length());
 		for( int i=0;i<100;i++) {
-			ringDirectBuffer.write(m.getBytes(),0,4);
-			ringDirectBuffer.read(xx, 0, 4);
-			System.out.println(new String(xx));
+			ringDirectBuffer.write(m.getBytes(),0,m.length());
+			ringDirectBuffer.read(xx, 0, m.length());
+			System.out.println(new String(xx) + " " + ringDirectBuffer);
 		}
 	}
 }

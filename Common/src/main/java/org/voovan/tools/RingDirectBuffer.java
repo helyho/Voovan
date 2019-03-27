@@ -6,7 +6,6 @@ import sun.misc.Unsafe;
 import java.nio.BufferOverflowException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 环形缓冲区
@@ -19,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class RingDirectBuffer {
     private static Unsafe unsafe = TUnsafe.getUnsafe();
     private ByteBuffer byteBuffer;
-    private volatile AtomicLong address = new AtomicLong(0);;
+    private long address = 0;
     private int readPositon = 0;
     private int writePositon = 0;
     private int capacity;
@@ -51,7 +50,7 @@ public class RingDirectBuffer {
         this.capacity = byteBuffer.capacity();
         this.byteBuffer = byteBuffer;
         try {
-            this.address.set(TByteBuffer.getAddress(byteBuffer));
+            this.address = TByteBuffer.getAddress(byteBuffer);
         } catch (ReflectiveOperationException e) {
             Logger.error("Get bytebuffer address error.");
         }
@@ -62,7 +61,7 @@ public class RingDirectBuffer {
      * @return 环形缓冲区的基地址
      */
     public long getAddress() {
-        return address.get();
+        return address;
     }
 
     /**
@@ -134,7 +133,7 @@ public class RingDirectBuffer {
     public byte get(int offset){
         if(offset < remaining()) {
             int realOffset = (readPositon + offset) % capacity;
-            return unsafe.getByte(address.get() + realOffset);
+            return unsafe.getByte(address + realOffset);
         } else {
             throw new IndexOutOfBoundsException();
         }
@@ -203,7 +202,7 @@ public class RingDirectBuffer {
         if(isEmpty() && readPositon!=0){
             clear();
         }
-        unsafe.putByte(address.get() + writePositon, b);
+        unsafe.putByte(address + writePositon, b);
         writePositon = (writePositon + 1) % capacity;
     }
 
@@ -286,7 +285,7 @@ public class RingDirectBuffer {
         if (isEmpty()) {
             throw new BufferUnderflowException();
         }
-        byte result = unsafe.getByte(address.get() + readPositon);
+        byte result = unsafe.getByte(address + readPositon);
         readPositon = (readPositon + 1) % capacity;
 
         if(isEmpty() && readPositon!=0){
@@ -346,10 +345,10 @@ public class RingDirectBuffer {
 		    byte[] tmp = TByteBuffer.toArray(byteBuffer);
 		    byteBuffer.limit(byteBuffer.capacity());
 
-		    unsafe.copyMemory(address.get() + readPositon, address.get(), tailSize);
+		    unsafe.copyMemory(address + readPositon, address, tailSize);
 
 		    for(int i = 0; i<tmp.length; i++){
-			    unsafe.putByte(address.get() + tailSize + i, tmp[i]);
+			    unsafe.putByte(address + tailSize + i, tmp[i]);
 		    }
 
 		    readPositon = 0;
