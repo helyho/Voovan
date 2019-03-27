@@ -702,6 +702,25 @@ public class ByteBufferChannel {
 		return TByteBuffer.indexOf(byteBuffer, mark);
     }
 
+	public boolean startWith(byte[] mark){
+		checkRelease();
+
+		if(size() < mark.length){
+			return false;
+		}
+
+		boolean result = true;
+
+		for(int i=0;i<mark.length; i++){
+			if(mark[i] != get(i)){
+				result = false;
+				break;
+			}
+		}
+
+		return result;
+	}
+
     /**
      * 读取一行
      * @return 字符串

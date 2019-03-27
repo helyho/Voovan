@@ -82,16 +82,14 @@ public class HeartBeat {
         if (heartBeat != null && byteBufferChannel.size() > 0) {
             //心跳处理
             if (heartBeat != null) {
-                int pingPosition = byteBufferChannel.indexOf(heartBeat.getPing());
-                if (pingPosition >= 0) {
-                    byteBufferChannel.shrink(pingPosition, heartBeat.getPing().length);
+                if (byteBufferChannel.startWith(heartBeat.getPing())) {
+                    byteBufferChannel.shrink(0, heartBeat.getPing().length);
                     heartBeat.getQueue().addLast(1);
                     return;
                 }
 
-                int pongPosition = byteBufferChannel.indexOf(heartBeat.getPong());
-                if (pongPosition >= 0) {
-                    byteBufferChannel.shrink(pongPosition, heartBeat.getPong().length);
+                if (byteBufferChannel.startWith(heartBeat.getPong())) {
+                    byteBufferChannel.shrink(0, heartBeat.getPong().length);
                     heartBeat.getQueue().addLast(2);
                     return;
                 }
