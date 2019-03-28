@@ -311,12 +311,13 @@ public class TByteBuffer {
             if(isReleased(bytebuffer)) {
                 return new byte[0];
             }
-            int oldPosition = bytebuffer.position();
-            bytebuffer.position(0);
+
+            bytebuffer.mark();
+            int position = bytebuffer.position();
             int size = bytebuffer.limit();
-            byte[] buffers = new byte[size];
+            byte[] buffers = new byte[size-position];
             bytebuffer.get(buffers);
-            bytebuffer.position(oldPosition);
+            bytebuffer.reset();
             return buffers;
         }else{
             return Arrays.copyOfRange(bytebuffer.array(), 0, bytebuffer.limit());
