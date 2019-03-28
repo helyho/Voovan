@@ -57,14 +57,14 @@ public class EventRunner {
 	}
 
 	/**
-	 * 添加新的事件任务
-	 * @param runnable 新事件任务对象
+	 * 添加事件
+	 * @param priority 事件优先级 1,2,3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6: Socket 注册/注销事件
+	 * @param runnable 事件执行器
 	 */
-	public void addEvent(Runnable runnable){
-		eventQueue.add(EventTask.newInstance(runnable));
-	}
-
-	public void addEvent(int priority, Runnable runnable){
+	public void addEvent(int priority, Runnable runnable) {
+		if(priority > 10 || priority < 1) {
+			throw new UnsupportedOperationException("priority must between 1-10");
+		}
 		eventQueue.add(EventTask.newInstance(priority, runnable));
 	}
 
