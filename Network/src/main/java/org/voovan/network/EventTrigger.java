@@ -19,14 +19,17 @@ public class EventTrigger {
 
 	public static void fireConnectAsEvent(IoSession session){
 		//设置连接状态
-		session.getState().setConnect(true);
 		session.getState().setInit(false);
+		session.getState().setConnect(true);
 
 		fireEvent(session, Event.EventName.ON_CONNECT,null);
 	}
 
-	public static void fireReceiveAsEvent(IoSession session){
-		fireEvent(session, Event.EventName.ON_RECEIVE, null);
+	public static void fireReceiveAsEvent(IoSession session) {
+		if(!session.getState().isReceive()) {
+			session.getState().setReceive(true);
+			fireEvent(session, Event.EventName.ON_RECEIVE, null);
+		}
 	}
 
 	public static void fireSentAsEvent(IoSession session, Object obj){
@@ -41,7 +44,6 @@ public class EventTrigger {
 	public static void fireDisconnectAsEvent(IoSession session){
 		//设置断开状态,Close是最终状态
 		session.getState().setClose(true);
-
 		fireEvent(session, Event.EventName.ON_DISCONNECT, null);
 	}
 
@@ -61,8 +63,8 @@ public class EventTrigger {
 
 	public static void fireConnect(IoSession session){
 		//设置连接状态
-		session.getState().setConnect(true);
 		session.getState().setInit(false);
+		session.getState().setConnect(true);
 
 		fire(session, Event.EventName.ON_CONNECT,null);
 	}

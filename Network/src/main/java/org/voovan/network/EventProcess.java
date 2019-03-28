@@ -80,6 +80,8 @@ public class EventProcess {
         if (socketContext != null) {
             socketContext.handler().onDisconnect(session);
         }
+
+        session.getState().setClose(false);
     }
 
     /**
@@ -204,10 +206,13 @@ public class EventProcess {
         }
         // --------------------------------------------------
 
+        session.getState().setReceive(false);
+
         // 返回的结果不为空的时候才发送
         if (result != null) {
 
             //触发发送事件
+            session.getState().setSend(true);
             sendMessage(session, result);
             return result;
         } else {
@@ -293,6 +298,7 @@ public class EventProcess {
 
             //触发发送事件
             EventTrigger.fireSent(session, sendObj);
+            session.getState().setSend(false);
 
         } catch (IOException e) {
             EventTrigger.fireException(session, e);
