@@ -356,9 +356,8 @@ public class SocketSelector implements Closeable {
 				while (socketContext.isConnected() && buffer.remaining() != 0) {
 					int sendSize = socketContext.socketChannel().write(buffer);
 					if (sendSize == 0) {
-						TEnv.sleep(1);
 						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
-							Logger.error("NioSelector tcpWriteToChannel timeout", new TimeoutException());
+							Logger.error("SocketSelector tcpWriteToChannel timeout", new TimeoutException());
 							socketContext.close();
 							return -1;
 						}
@@ -440,7 +439,7 @@ public class SocketSelector implements Closeable {
 					if (sendSize == 0) {
 						TEnv.sleep(1);
 						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
-							Logger.error("NioSelector udpWriteToChannel timeout, Socket will be close");
+							Logger.error("SocketSelector udpWriteToChannel timeout, Socket will be close");
 							socketContext.close();
 							return -1;
 						}
@@ -481,7 +480,7 @@ public class SocketSelector implements Closeable {
 				try {
 					TEnv.wait(session.socketContext().getReadTimeout(), () -> appByteBufferChannel.size() + readTempBuffer.limit() >= appByteBufferChannel.getMaxSize());
 				} catch (TimeoutException e) {
-					Logger.error("Session.byteByteBuffer is not enough:", e);
+					Logger.error("Session.readByteByteBuffer is not enough avaliable space:", e);
 				}
 
 				//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
