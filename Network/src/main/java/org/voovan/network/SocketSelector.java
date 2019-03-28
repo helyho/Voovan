@@ -55,6 +55,13 @@ public class SocketSelector implements Closeable {
 		} catch (ReflectiveOperationException e) {
 			e.printStackTrace();
 		}
+
+//		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+//			@Override
+//			public void run() {
+//				System.out.println(eventRunner.getThread().getName()+ " " + selector.keys().size() + " "+registerCount);
+//			}
+//		}, 1);
 	}
 
 	public EventRunner getEventRunner() {
@@ -72,10 +79,9 @@ public class SocketSelector implements Closeable {
 			IoSession session = socketContext.getSession();
 			session.setSocketSelector(this);
 		} else {
-			addChooseEvent(8, () -> {
+			addChooseEvent(6, () -> {
 				try {
 					SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
-
 					if (socketContext.connectModel != ConnectModel.LISTENER) {
 						IoSession session = socketContext.getSession();
 						session.setSelectionKey(selectionKey);
@@ -116,6 +122,7 @@ public class SocketSelector implements Closeable {
 			socketContext.getSession().getSelectionKey().interestOps(0);
 			socketContext.getSession().getSelectionKey().cancel();
 			socketContext.socketChannel().close();
+
 			socketContext.getSession().getSelectionKey().attach(null);
 			socketContext.getSession().getReadByteBufferChannel().release();
 			socketContext.getSession().getSendByteBufferChannel().release();
@@ -140,7 +147,7 @@ public class SocketSelector implements Closeable {
 	 * 向执行器中增加一个选择事件
 	 */
 	public void addChooseEvent(){
-		addChooseEvent(0, null);
+		addChooseEvent(4, null);
 	}
 
 	/**
@@ -335,7 +342,6 @@ public class SocketSelector implements Closeable {
 	public int tcpReadFromChannel(TcpSocket socketContext, SocketChannel socketChannel) {
 		try {
 			int readSize = socketChannel.read(readTempBuffer);
-			System.out.println(readSize + " " + socketChannel.isConnected());
 			readSize = loadAndPrepare(socketContext.getSession(), readSize);
 			return readSize;
 		} catch (Exception e) {
