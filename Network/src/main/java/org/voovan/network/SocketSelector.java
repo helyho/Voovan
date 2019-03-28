@@ -113,8 +113,16 @@ public class SocketSelector implements Closeable {
 	public void unRegister(SocketContext socketContext) {
 		//需要在 cancel 后立刻处理 selectNow
 		addChooseEvent(6, ()->{
-			socketContext.getSession().getSelectionKey().attach(null);
 			socketContext.getSession().getSelectionKey().cancel();
+			socketContext.socketChannel().close();
+			socketContext.getSession().getSelectionKey().attach(null);
+			socketContext.getSession().getReadByteBufferChannel().release();
+			socketContext.getSession().getSendByteBufferChannel().release();
+			if(socketContext.getSession().isSSLMode()){
+				socketContext.getSession().getSSLParser().release();
+			}
+
+			EventTrigger.fireDisconnect(socketContext.getSession());
 			return true;
 		});
 	}
@@ -169,14 +177,16 @@ public class SocketSelector implements Closeable {
 		try {
 			if (selector != null && selector.isOpen()) {
 				//执行选择操作
-				processSelect();
+				if(selector.keys().size() > 0) {
+					processSelect();
 
-				//如果有待处理的操作则下次调用 selectNow, 如果没有待处理的操作则调用带有阻赛的 select
-				if (!selectionKeys.isEmpty()) {
-					processSelectionKeys();
-					useSelectNow = true;
-				} else {
-					useSelectNow = false;
+					//如果有待处理的操作则下次调用 selectNow, 如果没有待处理的操作则调用带有阻赛的 select
+					if (!selectionKeys.isEmpty()) {
+						processSelectionKeys();
+						useSelectNow = true;
+					} else {
+						useSelectNow = false;
+					}
 				}
 			}
 		} catch (IOException e){

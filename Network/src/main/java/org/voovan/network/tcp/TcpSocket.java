@@ -223,22 +223,13 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	public boolean close(){
 
 		if(socketChannel!=null){
-			try{
 
-				session.release();
+			session.release();
 
-				socketChannel.close();
-
-				EventTrigger.fireDisconnect(session);
-
-				synchronized (waitObj) {
-					waitObj.notify();
-				}
-				return true;
-			} catch(IOException e){
-				Logger.error("Close SocketChannel failed",e);
-				return false;
+			synchronized (waitObj) {
+				waitObj.notify();
 			}
+			return true;
 		}else{
 			synchronized (waitObj) {
 				waitObj.notify();
