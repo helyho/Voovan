@@ -186,27 +186,33 @@ public class EventProcess {
      * @throws IoFilterException 过滤器异常
      */
     public static Object doRecive(IoSession session, int splitLength) throws IOException {
-        ByteBuffer byteBuffer = loadSplitData(session, splitLength);
-
-        //如果读出的数据为 null 则直接返回
-        if (byteBuffer == null) {
-            return null;
-        }
-
         Object result = null;
+        session.getState().setReceive(true);
 
-        // -----------------Filter 解密处理-----------------
-        result = filterDecoder(session, byteBuffer);
-        // -------------------------------------------------
+        try {
+            ByteBuffer byteBuffer = loadSplitData(session, splitLength);
 
-        // -----------------Handler 业务处理-----------------
-        if (result != null) {
-            IoHandler handler = session.socketContext().handler();
-            result = handler.onReceive(session, result);
+			//如果读出的数据为 null 则直接返回
+			if (byteBuffer == null) {
+				session.getState().setReceive(false);
+				return null;
+			}
+
+
+
+            // -----------------Filter 解密处理-----------------
+            result = filterDecoder(session, byteBuffer);
+            // -------------------------------------------------
+
+            // -----------------Handler 业务处理-----------------
+            if (result != null) {
+                IoHandler handler = session.socketContext().handler();
+                result = handler.onReceive(session, result);
+            }
+            // --------------------------------------------------
+        } finally {
+            session.getState().setReceive(false);
         }
-        // --------------------------------------------------
-
-        session.getState().setReceive(false);
 
         // 返回的结果不为空的时候才发送
         if (result != null) {

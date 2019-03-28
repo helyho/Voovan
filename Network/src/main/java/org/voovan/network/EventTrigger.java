@@ -26,10 +26,7 @@ public class EventTrigger {
 	}
 
 	public static void fireReceiveAsEvent(IoSession session) {
-		if(!session.getState().isReceive()) {
-			session.getState().setReceive(true);
-			fireEvent(session, Event.EventName.ON_RECEIVE, null);
-		}
+		fireEvent(session, Event.EventName.ON_RECEIVE, null);
 	}
 
 	public static void fireSentAsEvent(IoSession session, Object obj){
