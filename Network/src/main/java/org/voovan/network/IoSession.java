@@ -46,9 +46,11 @@ public abstract class IoSession<T extends SocketContext> {
 	 * 会话状态管理
 	 */
 	public class State {
-		private boolean init = true;
-		private boolean connect = false;
-		private boolean close = false;
+		private volatile boolean init = true;
+		private volatile boolean connect = false;
+		private volatile boolean receive = false;
+		private volatile boolean send = false;
+		private volatile boolean close = false;
 
 		public boolean isInit() {
 			return init;
@@ -64,6 +66,22 @@ public abstract class IoSession<T extends SocketContext> {
 
 		public void setConnect(boolean connect) {
 			this.connect = connect;
+		}
+
+		public boolean isReceive() {
+			return receive;
+		}
+
+		public void setReceive(boolean receive) {
+			this.receive = receive;
+		}
+
+		public boolean isSend() {
+			return send;
+		}
+
+		public void setSend(boolean send) {
+			this.send = send;
 		}
 
 		public boolean isClose() {
