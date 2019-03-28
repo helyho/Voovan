@@ -576,11 +576,6 @@ public abstract class IoSession<T extends SocketContext> {
 
 	public void release() {
 		socketSelector.unRegister(socketContext);
-		readByteBufferChannel.release();
-		sendByteBufferChannel.release();
-		if(sslParser!=null){
-			sslParser.release();
-		}
 	}
 
 	@Override

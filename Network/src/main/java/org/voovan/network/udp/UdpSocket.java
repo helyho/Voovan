@@ -200,19 +200,13 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
     public boolean close() {
 
         if(datagramChannel!=null){
-            try{
-                session.release();
 
-                datagramChannel.close();
+			session.release();
 
-                synchronized (waitObj) {
-                    waitObj.notify();
-                }
-                return true;
-            } catch(IOException e){
-                Logger.error("Close SocketChannel failed",e);
-                return false;
-            }
+			synchronized (waitObj) {
+				waitObj.notify();
+			}
+			return true;
         }else{
             synchronized (waitObj) {
                 waitObj.notify();
