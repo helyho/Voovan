@@ -45,7 +45,7 @@ public class ClientHandlerTest implements IoHandler {
 		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
 		System.out.println("Client onRecive: "+obj.toString());
 		System.out.println("Attribute onRecive: "+session.getAttribute("key"));
-		TEnv.sleep(3000);
+		TEnv.sleep(2000);
 		reciveCount ++;
 
 		if(reciveCount >= 5) {

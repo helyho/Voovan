@@ -119,7 +119,9 @@ public class SocketSelector implements Closeable {
 	public void unRegister(SocketContext socketContext) {
 		//需要在 cancel 后立刻处理 selectNow
 		addChooseEvent(6, ()->{
-			socketContext.getSession().getSelectionKey().interestOps(0);
+			if(socketContext.getSession().getSelectionKey().isValid()) {
+				socketContext.getSession().getSelectionKey().interestOps(0);
+			}
 			socketContext.getSession().getSelectionKey().cancel();
 			socketContext.socketChannel().close();
 
@@ -514,7 +516,7 @@ public class SocketSelector implements Closeable {
 						}
 					}
 
-					if (appByteBufferChannel.size() > 0) {
+					if (!session.getState().isReceive() && appByteBufferChannel.size() > 0) {
 						// 触发 onReceive 事件
 						EventTrigger.fireReceiveAsEvent(session);
 					}
