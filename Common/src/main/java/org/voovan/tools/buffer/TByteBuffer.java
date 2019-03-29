@@ -25,7 +25,7 @@ import java.util.Arrays;
 public class TByteBuffer {
     public static ObjectThreadPool<ByteBuffer> BYTE_BUFFER_THREAD_POOL = new ObjectThreadPool<ByteBuffer>(32);
 
-    public static int DEFAULT_BYTE_BUFFER_SIZE=1024*8;
+    public static int DEFAULT_BYTE_BUFFER_SIZE=1024*4;
 
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
 
