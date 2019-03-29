@@ -68,7 +68,7 @@ public class HttpParser {
 			public void run() {
 				PACKET_MAP_CACHE.clear();
 			}
-		}, 1);
+		}, 60);
 	}
 
 	/**
