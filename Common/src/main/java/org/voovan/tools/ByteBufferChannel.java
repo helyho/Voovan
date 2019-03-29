@@ -664,7 +664,13 @@ public class ByteBufferChannel {
 			int position = byteBuffer.position();
 			byteBuffer.position(readPosition);
 
+			int dstRemain = dst.remaining();
+			int oldLimit = byteBuffer.limit();
+			if(dstRemain<byteBuffer.remaining()) {
+				byteBuffer.limit(dstRemain);
+			}
 			dst.put(byteBuffer);
+			byteBuffer.limit(oldLimit);
 
 			if (TByteBuffer.moveData(byteBuffer, (readSize*-1))) {
 				size = size - readSize;
