@@ -34,7 +34,6 @@ public class TByteBuffer {
     }
 
     public static Field addressField = ByteBufferField("address");
-    public static Field limitField = ByteBufferField("limit");
     public static Field capacityField = ByteBufferField("capacity");
     public static Field attField = ByteBufferField("att");
 
@@ -198,7 +197,7 @@ public class TByteBuffer {
                 System.arraycopy(hb, byteBuffer.position(), hb, newPosition, byteBuffer.remaining());
             }
 
-            limitField.set(byteBuffer, newLimit);
+            byteBuffer.limit(newLimit);
             byteBuffer.position(newPosition);
             return true;
         }catch (ReflectiveOperationException e){

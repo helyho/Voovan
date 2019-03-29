@@ -8,6 +8,7 @@ import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.router.MimeFileRouter;
 import org.voovan.tools.*;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.security.THash;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -228,7 +229,7 @@ public class HttpDispatcher {
 	public List<Object> findRouter(HttpRequest request){
 		String requestPath   = request.protocol().getPath();
 		String requestMethod 	= request.protocol().getMethod();
-		int routerMark    = requestPath.hashCode() << 16 +  requestMethod.hashCode();
+		int routerMark    = THash.hashTime31(requestPath) << 16 +  THash.hashTime31(requestMethod);
 
 		List<Object> routerInfo = ROUTER_INFO_CACHE.get(routerMark);
 
