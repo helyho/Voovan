@@ -1,7 +1,7 @@
 package org.voovan.test.tools;
 
 import junit.framework.TestCase;
-import org.voovan.tools.RingBuffer;
+import org.voovan.tools.collection.RingBuffer;
 import org.voovan.tools.TEnv;
 
 import java.io.IOException;

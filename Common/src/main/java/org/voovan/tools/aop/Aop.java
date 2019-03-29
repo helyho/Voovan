@@ -5,7 +5,7 @@ import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import javassist.*;
 import javassist.bytecode.AnnotationsAttribute;
-import org.voovan.tools.CollectionSearch;
+import org.voovan.tools.collection.CollectionSearch;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;

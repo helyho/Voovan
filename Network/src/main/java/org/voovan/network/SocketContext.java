@@ -2,8 +2,8 @@ package org.voovan.network;
 
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
-import org.voovan.tools.Chain;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.collection.Chain;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 

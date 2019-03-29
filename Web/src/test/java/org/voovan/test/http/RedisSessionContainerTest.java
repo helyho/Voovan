@@ -1,6 +1,6 @@
 package org.voovan.test.http;
 
-import org.voovan.tools.cache.RedisMap;
+import org.voovan.tools.collection.RedisMap;
 
 /**
  * 基于 Redis 的 Seaaion 共享的样例

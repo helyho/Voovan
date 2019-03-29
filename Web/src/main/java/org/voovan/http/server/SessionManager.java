@@ -2,8 +2,8 @@ package org.voovan.http.server;
 
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.server.context.WebServerConfig;
-import org.voovan.tools.cache.CacheMap;
-import org.voovan.tools.cache.CachedHashMap;
+import org.voovan.tools.collection.CacheMap;
+import org.voovan.tools.collection.CachedHashMap;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;

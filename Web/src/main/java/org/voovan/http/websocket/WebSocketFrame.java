@@ -1,6 +1,6 @@
 package org.voovan.http.websocket;
 
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.math.BigInteger;

@@ -1,6 +1,8 @@
 package org.voovan.tools.compiler.function;
 
 import org.voovan.tools.*;
+import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.collection.MultiMap;
 import org.voovan.tools.compiler.DynamicCompiler;
 import org.voovan.tools.compiler.DynamicCompilerManager;
 import org.voovan.tools.log.Logger;

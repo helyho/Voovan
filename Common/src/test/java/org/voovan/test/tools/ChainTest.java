@@ -1,7 +1,7 @@
 package org.voovan.test.tools;
 
 import org.voovan.Global;
-import org.voovan.tools.Chain;
+import org.voovan.tools.collection.Chain;
 import org.voovan.tools.TEnv;
 
 /**

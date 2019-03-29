@@ -3,7 +3,7 @@ package org.voovan.test.tools.cache;
 import junit.framework.TestCase;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.cache.ObjectPool;
+import org.voovan.tools.collection.ObjectPool;
 import org.voovan.tools.log.Logger;
 
 import java.util.ArrayList;

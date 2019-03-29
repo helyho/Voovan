@@ -1,7 +1,7 @@
 package org.voovan.test.tools;
 
 import junit.framework.TestCase;
-import org.voovan.tools.CollectionSearch;
+import org.voovan.tools.collection.CollectionSearch;
 import org.voovan.tools.TObject;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.reflect.TReflect;
