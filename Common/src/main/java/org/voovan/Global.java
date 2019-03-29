@@ -4,7 +4,6 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.UniqueId;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
-import org.voovan.tools.task.TaskManager;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import java.nio.charset.Charset;
@@ -161,30 +160,6 @@ public class Global {
      */
     public static HashWheelTimer getHashWheelTimer(){
         return HashTimeWheelEnum.HASHWHEEL.getValue();
-    }
-
-
-    private enum TaskManagerEnum {
-        TASK_MANAGER;
-
-        private TaskManager taskManager;
-        TaskManagerEnum(){
-            taskManager = new TaskManager();
-            taskManager.scanTask();
-        }
-        public TaskManager getValue(){
-            return taskManager;
-        }
-    }
-
-    /**
-     * 获取一个全局的秒定时器
-     *      60个槽位, 每个槽位步长1ms
-     * @return HashWheelTimer对象
-     */
-    public static TaskManager getTaskManager(){
-
-        return TaskManagerEnum.TASK_MANAGER.getValue();
     }
 
     /**
