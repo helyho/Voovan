@@ -101,6 +101,7 @@ public class RingDirectBuffer {
 	/**
 	 * 读指针跳过特定的偏移量
 	 * @param offset 偏移量
+	 * @return true: 成功, false: 失败
 	 */
 	public boolean skip(int offset){
 		checkRelease();
