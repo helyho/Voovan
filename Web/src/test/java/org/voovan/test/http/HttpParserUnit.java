@@ -4,7 +4,7 @@ import junit.framework.TestCase;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Request;
-import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 
 import java.io.IOException;

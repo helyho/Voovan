@@ -2,7 +2,7 @@ package org.voovan.test.tools;
 
 import junit.framework.TestCase;
 import org.voovan.Global;
-import org.voovan.tools.MultiMap;
+import org.voovan.tools.collection.MultiMap;
 import org.voovan.tools.TEnv;
 
 

@@ -1,6 +1,6 @@
 package org.voovan.tools.hashwheeltimer;
 
-import org.voovan.tools.MultiMap;
+import org.voovan.tools.collection.MultiMap;
 
 import java.util.ArrayList;
 import java.util.List;

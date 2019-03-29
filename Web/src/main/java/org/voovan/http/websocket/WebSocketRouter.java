@@ -1,7 +1,7 @@
 package org.voovan.http.websocket;
 
 import org.voovan.http.websocket.exception.WebSocketFilterException;
-import org.voovan.tools.Chain;
+import org.voovan.tools.collection.Chain;
 
 import java.nio.ByteBuffer;
 

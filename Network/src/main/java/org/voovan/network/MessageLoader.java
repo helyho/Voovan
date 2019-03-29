@@ -2,8 +2,8 @@ package org.voovan.network;
 
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.network.udp.UdpSocket;
-import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 

@@ -1,7 +1,7 @@
 package org.voovan.test.tools.cache;
 
 import junit.framework.TestCase;
-import org.voovan.tools.cache.RedisMapWithZSet;
+import org.voovan.tools.collection.RedisMapWithZSet;
 import org.voovan.tools.json.JSON;
 
 import java.util.HashMap;

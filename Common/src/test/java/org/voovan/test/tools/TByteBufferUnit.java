@@ -1,7 +1,7 @@
 package org.voovan.test.tools;
 
 import junit.framework.TestCase;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;

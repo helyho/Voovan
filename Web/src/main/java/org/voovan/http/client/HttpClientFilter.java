@@ -10,8 +10,8 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
-import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;

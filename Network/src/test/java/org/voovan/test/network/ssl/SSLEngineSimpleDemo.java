@@ -75,7 +75,7 @@ package org.voovan.test.network.ssl;
  *	unwrap()	...		Finished
  */
 
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.*;

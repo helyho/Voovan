@@ -6,7 +6,7 @@ import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.ResponseProtocol;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;

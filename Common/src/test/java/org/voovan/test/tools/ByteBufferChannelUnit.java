@@ -2,8 +2,8 @@ package org.voovan.test.tools;
 
 import junit.framework.TestCase;
 import org.voovan.Global;
-import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 

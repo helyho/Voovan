@@ -169,7 +169,7 @@ public class HttpClient implements Closeable{
 	public void initHeader(){
 		//初始化请求参数,默认值
 		httpRequest.header().put("Host", hostString);
-		httpRequest.header().put("Pragma", "no-cache");
+		httpRequest.header().put("Pragma", "no-collection");
 		httpRequest.header().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
 		httpRequest.header().put("User-Agent", "Voovan Http Client");
 		httpRequest.header().put("Accept-Encoding","gzip");
@@ -537,7 +537,7 @@ public class HttpClient implements Closeable{
 		httpRequest.header().put("Host", hostString);
 		httpRequest.header().put("Connection","Upgrade");
 		httpRequest.header().put("Upgrade", "websocket");
-		httpRequest.header().put("Pragma","no-cache");
+		httpRequest.header().put("Pragma","no-collection");
 		httpRequest.header().put("Origin", this.urlString);
 		httpRequest.header().put("Sec-WebSocket-Version","13");
 		httpRequest.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");

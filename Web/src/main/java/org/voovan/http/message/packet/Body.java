@@ -1,6 +1,6 @@
 package org.voovan.http.message.packet;
 
-import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 import org.voovan.tools.TZip;

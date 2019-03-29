@@ -2,7 +2,7 @@ package org.voovan.test.tools.cache;
 
 import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.cache.MemcachedMap;
+import org.voovan.tools.collection.MemcachedMap;
 import org.voovan.tools.log.Logger;
 
 /**

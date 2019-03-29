@@ -2,7 +2,7 @@ package org.voovan.network.filter;
 
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.buffer.TByteBuffer;
 
 import java.nio.ByteBuffer;
 

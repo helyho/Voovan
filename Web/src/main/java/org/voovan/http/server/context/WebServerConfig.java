@@ -1,7 +1,7 @@
 package org.voovan.http.server.context;
 
 import org.voovan.Global;
-import org.voovan.tools.Chain;
+import org.voovan.tools.collection.Chain;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -32,7 +32,7 @@ public class WebServerConfig {
     private boolean MatchRouteIgnoreCase = false;
     private String characterSet     = "UTF-8";
     private String responseCharacterSet     = "";
-    private String sessionContainer = "org.voovan.tools.cache.CachedHashMap";
+    private String sessionContainer = "org.voovan.tools.collection.CachedHashMap";
     private int sessionTimeout      = 30;
     private int keepAliveTimeout    = 60;
     private boolean accessLog       = false;
