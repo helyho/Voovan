@@ -23,9 +23,14 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
-    public static ObjectThreadPool<ByteBuffer> BYTE_BUFFER_THREAD_POOL = new ObjectThreadPool<ByteBuffer>(32);
+    public static ObjectThreadPool<ByteBuffer> BYTE_BUFFER_THREAD_POOL = new ObjectThreadPool<ByteBuffer>(System.getProperty("ThreadBufferPoolSize")!=null ? Integer.valueOf(System.getProperty("ThreadBufferPoolSize")) : 32);
 
-    public static int DEFAULT_BYTE_BUFFER_SIZE=1024*4;
+    public static int DEFAULT_BYTE_BUFFER_SIZE = System.getProperty("DefaultBufferSize")!=null ? Integer.valueOf(System.getProperty("BufferSize")) : 1024*4;
+
+    static {
+        System.out.println("[SYTSEM] ThreadBufferPoolSize: " + BYTE_BUFFER_THREAD_POOL.getThreadLocalMaxSize());
+        System.out.println("[SYTSEM] BufferSize: " + DEFAULT_BYTE_BUFFER_SIZE);
+    }
 
     public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
 
