@@ -31,5 +31,11 @@
             <version>2.0.16.Final</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.jsoniter</groupId>
+            <artifactId>jsoniter</artifactId>
+            <version>0.9.23</version>
+            <scope>test</scope>:
+        </dependency>
     </dependencies>
 </project>
