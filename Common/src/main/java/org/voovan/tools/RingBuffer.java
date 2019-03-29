@@ -69,7 +69,7 @@ public class RingBuffer<T> {
 	 * @param offset 偏移量
 	 */
 	public void skip(int offset) {
-		if (remaining() < offset) {
+		if (remaining() < offset || offset < 0) {
 			throw new BufferOverflowException();
 		}
 
@@ -169,6 +169,7 @@ public class RingBuffer<T> {
 	 * 增加一个对象
 	 *
 	 * @param t 对象
+	 * @return true: 成功, false: 失败
 	 */
 	public boolean push(T t) {
 		if (isFull()) {
