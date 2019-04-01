@@ -63,8 +63,8 @@ public class HttpRequest extends Request {
 	public void init(Request request, String characterSet, IoSession socketSession){
 		super.init(request);
 		this.characterSet=characterSet;
-		parameters = new LinkedHashMap<String, String>();
-		attributes = new HashMap<String, Object>();
+		parameters.clear();
+		attributes.clear();
 		parseQueryString();
 		this.socketSession = socketSession;
 	}
