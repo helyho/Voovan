@@ -33,8 +33,8 @@ import java.util.Vector;
  * Licence: Apache v2 License
  */
 public class WebServerHandler implements IoHandler {
-	ThreadLocal<HttpRequest> THREAD_HTTP_REQUEST = new ThreadLocal<HttpRequest>();
-	ThreadLocal<HttpResponse> THREAD_HTTP_RESPONSE = new ThreadLocal<HttpResponse>();
+	private static ThreadLocal<HttpRequest> THREAD_HTTP_REQUEST = new ThreadLocal<HttpRequest>();
+	private static ThreadLocal<HttpResponse> THREAD_HTTP_RESPONSE = new ThreadLocal<HttpResponse>();
 
 
 	private HttpDispatcher		httpDispatcher;

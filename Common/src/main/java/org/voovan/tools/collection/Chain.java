@@ -13,8 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Licence: Apache v2 License
  */
 public class Chain<E>  extends ArrayList<E> {
-	public ThreadLocal<AtomicInteger> iteratorLocal = new ThreadLocal<AtomicInteger>();
-	public ThreadLocal<AtomicInteger> invertedIteratorLocal = new ThreadLocal<AtomicInteger>();
+	public static ThreadLocal<AtomicInteger> iteratorLocal = new ThreadLocal<AtomicInteger>();
+	public static ThreadLocal<AtomicInteger> invertedIteratorLocal = new ThreadLocal<AtomicInteger>();
 	private boolean isStop;
 	private E currentObj;
 
