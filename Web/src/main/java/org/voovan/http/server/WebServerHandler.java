@@ -14,6 +14,7 @@ import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
@@ -33,8 +34,8 @@ import java.util.Vector;
  * Licence: Apache v2 License
  */
 public class WebServerHandler implements IoHandler {
-	private static ThreadLocal<HttpRequest> THREAD_HTTP_REQUEST = new ThreadLocal<HttpRequest>();
-	private static ThreadLocal<HttpResponse> THREAD_HTTP_RESPONSE = new ThreadLocal<HttpResponse>();
+	private static FastThreadLocal<HttpRequest> THREAD_HTTP_REQUEST = new FastThreadLocal<HttpRequest>();
+	private static FastThreadLocal<HttpResponse> THREAD_HTTP_RESPONSE = new FastThreadLocal<HttpResponse>();
 
 
 	private HttpDispatcher		httpDispatcher;

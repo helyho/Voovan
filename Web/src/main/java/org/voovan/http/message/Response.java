@@ -6,6 +6,7 @@ import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.ResponseProtocol;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
+import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.MemoryReleasedException;
@@ -26,8 +27,8 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class Response {
-	private static ThreadLocal<StringBuilder> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new StringBuilder(512));
-	public static ThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
+	private static FastThreadLocal<StringBuilder> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new StringBuilder(512));
+	public static FastThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = FastThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
 
 	private ResponseProtocol 	protocol;
 	private Header				header;

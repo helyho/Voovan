@@ -212,7 +212,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		Logger.simple("bytbyteBufferChannel writeEnd: ddddd");
 		ByteBuffer bytebuffer = byteBufferChannel1.getByteBuffer();
 		Logger.simple("bytbyteBufferChannel content: "+TByteBuffer.toString(bytebuffer));
-		Logger.simple("bytebuffer get: '"+(char)bytebuffer.get()+"'");
+		Logger.simple("bytebuffer getThread: '"+(char)bytebuffer.get()+"'");
 
 		Logger.simple("bytebuffer put: 'c'");
 		bytebuffer.put(new byte[]{99});

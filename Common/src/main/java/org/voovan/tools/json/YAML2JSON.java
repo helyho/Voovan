@@ -1,5 +1,6 @@
 package org.voovan.tools.json;
 
+import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 
@@ -15,7 +16,7 @@ import java.io.IOException;
  * Licence: Apache v2 License
  */
 public class YAML2JSON {
-	public static ThreadLocal<Integer> YAML_READ_INDEX = ThreadLocal.withInitial(()->0);
+	public static FastThreadLocal<Integer> YAML_READ_INDEX = FastThreadLocal.withInitial(()->0);
 
 	/**
 	 * 转换 YAML 到 JSON

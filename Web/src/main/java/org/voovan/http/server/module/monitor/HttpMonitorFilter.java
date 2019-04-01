@@ -4,13 +4,14 @@ import org.voovan.http.server.HttpFilter;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.context.HttpFilterConfig;
+import org.voovan.tools.FastThreadLocal;
 
 
 /**
  * 监控用过滤器
  */
 public class HttpMonitorFilter implements HttpFilter {
-	private final static ThreadLocal<Long> REQUEST_START_TIME = new ThreadLocal<Long>();
+	private final static FastThreadLocal<Long> REQUEST_START_TIME = new FastThreadLocal<Long>();
 
 	@Override
 	public Object onRequest(HttpFilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult ) {
