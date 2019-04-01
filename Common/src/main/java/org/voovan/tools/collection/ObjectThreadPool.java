@@ -1,5 +1,7 @@
 package org.voovan.tools.collection;
 
+import org.voovan.tools.FastThreadLocal;
+
 import java.util.LinkedList;
 import java.util.function.Supplier;
 
@@ -12,7 +14,7 @@ import java.util.function.Supplier;
  * Licence: Apache v2 License
  */
 public class ObjectThreadPool<T> {
-    private final ThreadLocal<LinkedList<T>> THREAD_LOCAL_POOL =  ThreadLocal.withInitial(()->new LinkedList<T>());
+    private final FastThreadLocal<LinkedList<T>> THREAD_LOCAL_POOL =  FastThreadLocal.withInitial(()->new LinkedList<T>());
 
     private int threadLocalMaxSize = 4;
 

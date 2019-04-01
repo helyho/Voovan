@@ -128,7 +128,7 @@ public class WebSocketDispatcher {
 		List<Object> routerInfo = findRouter(request);
 
 		if (routerInfo != null) {
-//			String routePath = (String)routerInfo.get(0);
+//			String routePath = (String)routerInfo.getThread(0);
 			WebSocketRouter webSocketRouter = (WebSocketRouter)routerInfo.get(1);
 
 			WebSocketSession webSocketSession = disposeSession(request, webSocketRouter);

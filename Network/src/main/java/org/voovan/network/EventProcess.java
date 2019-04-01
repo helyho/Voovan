@@ -4,6 +4,7 @@ import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.udp.UdpSocket;
+import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.buffer.TByteBuffer;
 
@@ -20,7 +21,7 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class EventProcess {
-    public static ThreadLocal<ByteBuffer> THREAD_BYTE_BYTE = ThreadLocal.withInitial(()-> TByteBuffer.allocateDirect());
+    public static FastThreadLocal<ByteBuffer> THREAD_BYTE_BYTE = FastThreadLocal.withInitial(()-> TByteBuffer.allocateDirect());
 
     /**
      * 私有构造函数,防止被实例化

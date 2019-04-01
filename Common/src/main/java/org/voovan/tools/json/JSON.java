@@ -1,5 +1,6 @@
 package org.voovan.tools.json;
 
+import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
@@ -24,7 +25,7 @@ public class JSON {
 	/**
 	 * 是否进行 EscapeChar 的转换, 默认 true, 当你确定你不存在字符串多行换行的时候可设置为 false
 	 */
-	private static ThreadLocal<Boolean> convertEscapeChar = ThreadLocal.withInitial(new Supplier<Boolean>() {
+	private static FastThreadLocal<Boolean> convertEscapeChar = FastThreadLocal.withInitial(new Supplier<Boolean>() {
 		@Override
 		public Boolean get() {
 			boolean isEscapeChare = true;

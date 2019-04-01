@@ -204,7 +204,7 @@ public class RedisLock {
     public boolean unLock() {
 
         try (Jedis jedis = getJedis()) {
-            String script = "if redis.call('get', KEYS[1]) == ARGV[1] then " +
+            String script = "if redis.call('getThread', KEYS[1]) == ARGV[1] then " +
                                 "return redis.call('del', KEYS[1]) " +
                             "else " +
                                 "return 0 " +
@@ -227,7 +227,7 @@ public class RedisLock {
     public boolean unLock(String lockValue) {
 
         try (Jedis jedis = getJedis()) {
-            String script = "if redis.call('get', KEYS[1]) == ARGV[1] then " +
+            String script = "if redis.call('getThread', KEYS[1]) == ARGV[1] then " +
                                 "return redis.call('del', KEYS[1]) " +
                             "else " +
                                 "return 0 " +

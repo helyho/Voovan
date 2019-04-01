@@ -54,10 +54,10 @@ public class HttpParser {
 	public static final String propertyLineRegex = ": ";
 	public static final String equalMapRegex = "([^ ;,]+=[^;,]+)";
 
-	public static ThreadLocal<Map<String, Object>> THREAD_PACKET_MAP = ThreadLocal.withInitial(()->new HashMap<String, Object>());
-	public static ThreadLocal<Request> THREAD_REQUEST = ThreadLocal.withInitial(()->new Request());
-	public static ThreadLocal<Response> THREAD_RESPONSE = ThreadLocal.withInitial(()->new Response());
-	private static ThreadLocal<byte[]> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new byte[1024]);
+	public static FastThreadLocal<Map<String, Object>> THREAD_PACKET_MAP = FastThreadLocal.withInitial(()->new HashMap<String, Object>());
+	public static FastThreadLocal<Request> THREAD_REQUEST = FastThreadLocal.withInitial(()->new Request());
+	public static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
+	private static FastThreadLocal<byte[]> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new byte[1024]);
 
 	private static ConcurrentSkipListMap<Long, Map<String, Object>> PACKET_MAP_CACHE = new ConcurrentSkipListMap<Long, Map<String, Object>>();
 

@@ -103,10 +103,8 @@ public class EventTrigger {
 	 */
 	public static void fireEvent(IoSession session, Event.EventName name, Object other){
         session.getEventRunner().addEvent(5, ()->{
-				if(session.isConnected()) {
-					Event event = new Event(session, name, other);
-					EventProcess.process(event);
-				}
+				Event event = new Event(session, name, other);
+				EventProcess.process(event);
 			});
 	}
 
