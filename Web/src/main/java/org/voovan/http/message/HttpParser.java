@@ -33,8 +33,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * Licence: Apache v2 License
  */
 public class HttpParser {
-	public static final Method SESSIONM_READ0 = TReflect.findMethod(TcpSession.class, "read0");
-
 	private static final String PL_METHOD = "1";
 	private static final String PL_PATH = "2";
 	private static final String PL_PROTOCOL = "3";
