@@ -321,8 +321,8 @@ public class TByteBuffer {
 
             bytebuffer.mark();
             int position = bytebuffer.position();
-            int size = bytebuffer.limit();
-            byte[] buffers = new byte[size-position];
+            int limit = bytebuffer.limit();
+            byte[] buffers = new byte[limit-position];
             bytebuffer.get(buffers);
             bytebuffer.reset();
             return buffers;

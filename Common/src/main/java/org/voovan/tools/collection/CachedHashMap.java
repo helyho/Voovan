@@ -118,7 +118,7 @@ public class CachedHashMap<K,V> extends ConcurrentHashMap<K,V> implements CacheM
 
     /**
      * 设置最失效对象检查周期
-     * @param interval 检查周期, 单位:毫秒, 小于零不做超时处理
+     * @param interval 检查周期, 单位:秒, 小于零不做超时处理
      * @return CachedHashMap 对象
      */
     public CachedHashMap<K, V> interval(int interval) {
