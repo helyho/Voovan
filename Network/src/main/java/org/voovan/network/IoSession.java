@@ -135,7 +135,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 * 获取 SelectionKey
 	 * @return SelectionKey 对象
 	 */
-	SelectionKey getSelectionKey() {
+	protected SelectionKey getSelectionKey() {
 		return selectionKey;
 	}
 
