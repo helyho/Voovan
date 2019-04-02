@@ -1,6 +1,5 @@
 package org.voovan.tools.collection;
 
-import org.voovan.tools.FastThread;
 import org.voovan.tools.FastThreadLocal;
 
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ public class Chain<E>  extends ArrayList<E> {
 	public static FastThreadLocal<AtomicInteger> iteratorLocal = FastThreadLocal.withInitial(()->new AtomicInteger(0));
 	public static FastThreadLocal<AtomicInteger> invertedIteratorLocal = FastThreadLocal.withInitial(()->new AtomicInteger(0));
 	private boolean isStop;
-	private E currentObj;
 
 	/**
 	 * 构造函数
@@ -46,14 +44,6 @@ public class Chain<E>  extends ArrayList<E> {
 	 */
 	public void stop(){
 		this.isStop = true;
-	}
-
-	/**
-	 * 迭代器当前元素
-	 * @return 当前元素
-	 */
-	public E current(){
-		return currentObj;
 	}
 
 	/**
