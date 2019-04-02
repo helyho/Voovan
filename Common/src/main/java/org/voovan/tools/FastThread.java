@@ -12,7 +12,7 @@ public class FastThread extends Thread {
 
 	public static int FAST_THREAD_LOCAL_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("FastThreadLocalSize"),"512"));
 	static {
-		System.out.println("[SOCKET] FAST_THREAD_LOCAL_SIZE: " + FAST_THREAD_LOCAL_SIZE);
+		System.out.println("[SYSTEM] FAST_THREAD_LOCAL_SIZE: " + FAST_THREAD_LOCAL_SIZE);
 	}
 
 	//用于保存当前线程的 FastThreadLocal

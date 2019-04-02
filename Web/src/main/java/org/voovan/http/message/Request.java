@@ -39,7 +39,7 @@ public class Request {
     private List<Part>		parts;
     private String 			boundary;
     protected boolean 		basicSend = false;
-    private Long            mark;
+    private long            mark = 0;
 
     private static final String CONTENT_TYPE = "Content-Type";
 
@@ -93,11 +93,11 @@ public class Request {
         return protocol;
     }
 
-    public Long getMark() {
+    public long getMark() {
         return mark;
     }
 
-    public void setMark(Long mark) {
+    public void setMark(long mark) {
         this.mark = mark;
     }
 
@@ -378,7 +378,7 @@ public class Request {
         this.protocol().clear();
         this.body().clear();
         this.parts().clear();
-        this.mark = null;
+        this.mark = 0;
     }
 
     @Override
