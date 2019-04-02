@@ -26,7 +26,7 @@ public class Body {
 	private BodyType type;
 	private File bodyFile;
 	private long position;
-	private Integer mark;
+	private int mark = 0;
 
 	/**
 	 * Body 类型枚举
@@ -238,10 +238,6 @@ public class Body {
 		return mark;
 	}
 
-	public void setMark(Integer mark) {
-		this.mark = mark;
-	}
-
 	/**
 	 * 写入 body
 	 * @param body 字节数组
@@ -252,7 +248,7 @@ public class Body {
 		try {
 			if(type == BodyType.BYTES) {
 				int hash = THash.hashTime31(body, offset, length);
-				mark = mark==null ? hash : mark + hash;
+				mark = mark==0 ? hash : mark + hash;
 				ByteBuffer bodyTmp = ByteBuffer.wrap(body);
 				bodyTmp.position(offset);
 				bodyTmp.limit(length);
@@ -310,7 +306,7 @@ public class Body {
 			bodyFile = null;
 		}
 
-		mark = null;
+		mark = 0;
 
         changeToBytes(new byte[0]);
 	}
