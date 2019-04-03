@@ -61,12 +61,12 @@ public class SocketSelector implements Closeable {
 			e.printStackTrace();
 		}
 
-		Global.getHashWheelTimer().addTask(new HashWheelTask() {
-			@Override
-			public void run() {
-				System.out.println(eventRunner.getThread().getName()+ " " + selector.keys().size());
-			}
-		}, 1);
+//		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+//			@Override
+//			public void run() {
+//				System.out.println(eventRunner.getThread().getName()+ " " + selector.keys().size());
+//			}
+//		}, 1);
 	}
 
 	public EventRunner getEventRunner() {
