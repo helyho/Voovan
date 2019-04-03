@@ -1,5 +1,6 @@
 package org.voovan.network;
 
+import org.voovan.Global;
 import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.network.udp.UdpServerSocket;
 import org.voovan.network.udp.UdpSession;
@@ -9,6 +10,7 @@ import org.voovan.tools.*;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.collection.SimpleArraySet;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -59,12 +61,12 @@ public class SocketSelector implements Closeable {
 			e.printStackTrace();
 		}
 
-//		Global.getHashWheelTimer().addTask(new HashWheelTask() {
-//			@Override
-//			public void run() {
-//				System.out.println(eventRunner.getThread().getName()+ " " + selector.keys().size() + " "+registerCount);
-//			}
-//		}, 1);
+		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			@Override
+			public void run() {
+				System.out.println(eventRunner.getThread().getName()+ " " + selector.keys().size());
+			}
+		}, 1);
 	}
 
 	public EventRunner getEventRunner() {
@@ -117,18 +119,21 @@ public class SocketSelector implements Closeable {
 
 	/**
 	 * 在选择器中取消一个 SocketContext 的注册
-	 * @param socketContext SocketContext 对象
+	 * @param selectionKey SocketContext 对象
 	 */
-	public void unRegister(SocketContext socketContext) {
+	public void unRegister(SelectionKey selectionKey) {
 		//需要在 cancel 后立刻处理 selectNow
 		addChooseEvent(6, ()->{
-			if(socketContext.getSession().getSelectionKey().isValid()) {
-				socketContext.getSession().getSelectionKey().interestOps(0);
-			}
-			socketContext.getSession().getSelectionKey().cancel();
+			SocketContext socketContext = (SocketContext)selectionKey.attachment();
 			socketContext.socketChannel().close();
 
-			socketContext.getSession().getSelectionKey().attach(null);
+			if(selectionKey.isValid()) {
+				selectionKey.interestOps(0);
+			}
+
+			selectionKey.cancel();
+
+			selectionKey.attach(null);
 			socketContext.getSession().getReadByteBufferChannel().release();
 			socketContext.getSession().getSendByteBufferChannel().release();
 			if(socketContext.getSession().isSSLMode()){
@@ -198,6 +203,9 @@ public class SocketSelector implements Closeable {
 						processSelectionKeys();
 						useSelectNow = true;
 					} else {
+						if(!useSelectNow){
+							checkReadTimeout();
+						}
 						useSelectNow = false;
 					}
 				}
@@ -207,6 +215,18 @@ public class SocketSelector implements Closeable {
 		} finally {
 			if(inEventRunner() && !selector.keys().isEmpty()){
 				addChooseEvent();
+			}
+		}
+	}
+
+	/**
+	 * 检查 ReadTimeout
+	 */
+	public void checkReadTimeout(){
+		for(SelectionKey selectionKey : selector.keys()) {
+			SocketContext socketContext = (SocketContext) selectionKey.attachment();
+			if(socketContext.connectModel!=ConnectModel.LISTENER && socketContext.isReadTimeOut()) {
+				unRegister(selectionKey);
 			}
 		}
 	}
@@ -255,25 +275,28 @@ public class SocketSelector implements Closeable {
 			if (selectionKey.isValid()) {
 				// 获取 socket 通道
 				SelectableChannel channel = selectionKey.channel();
+				SocketContext socketContext = (SocketContext) selectionKey.attachment();
 				if (channel.isOpen() && selectionKey.isValid()) {
 					// 事件分发,包含时间 onRead onAccept
 					// Server接受连接
 					if((selectionKey.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
 						SocketChannel socketChannel = ((ServerSocketChannel) channel).accept();
-						tcpAccept((TcpServerSocket) selectionKey.attachment(), socketChannel);
+						tcpAccept((TcpServerSocket) socketContext, socketChannel);
 					}
 
 					// 有数据读取
 					if ((selectionKey.readyOps() & SelectionKey.OP_READ) != 0) {
 						if(channel instanceof SocketChannel){
-							tcpReadFromChannel((TcpSocket) selectionKey.attachment(), (SocketChannel)channel);
+							tcpReadFromChannel((TcpSocket) socketContext, (SocketChannel)channel);
+							socketContext.updateLastReadTime();
 						} else if(channel instanceof DatagramChannel) {
-							udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) selectionKey.attachment(), (DatagramChannel) channel);
+							udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) socketContext, (DatagramChannel) channel);
+							socketContext.updateLastReadTime();
 						}
 					}
 				}
 			} else {
-				unRegister((SocketContext) selectionKey.attachment());
+				unRegister(selectionKey);
 			}
 		}
 

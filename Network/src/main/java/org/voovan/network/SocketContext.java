@@ -37,6 +37,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	protected int sendBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
 
 	protected int idleInterval = 0;
+	protected long lastReadTime = System.currentTimeMillis();
 
 	protected int readRecursionDepth = 1;
 
@@ -144,6 +145,18 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 * @return SocketChannel 对象
 	 */
 	public abstract C socketChannel();
+
+	public long getLastReadTime() {
+		return lastReadTime;
+	}
+
+	public void updateLastReadTime() {
+		this.lastReadTime = System.currentTimeMillis();
+	}
+
+	public boolean isReadTimeOut(){
+		return (System.currentTimeMillis() - lastReadTime) >= readTimeout;
+	}
 
 	/**
 	 * 会话读缓冲区大小
