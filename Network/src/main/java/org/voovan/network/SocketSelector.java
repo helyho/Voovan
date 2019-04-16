@@ -64,7 +64,6 @@ public class SocketSelector implements Closeable {
 //		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 //			@Override
 //			public void run() {
-//				System.out.println(accept);
 //				System.out.println(eventRunner.getThread().getName()+ " " + selector.keys().size());
 //			}
 //		}, 1);
@@ -287,10 +286,9 @@ public class SocketSelector implements Closeable {
 	 * @throws IOException IO 异常
 	 */
 
-	public static int accept = 0;
 	private void processSelectionKeys() throws IOException {
 		for (int i=0;i<selectionKeys.size(); i++) {
-			SelectionKey selectionKey = (SelectionKey)selectionKeys.getAndRemove(i);
+			SelectionKey selectionKey = selectionKeys.getAndRemove(i);
 
 			if (selectionKey.isValid()) {
 				// 获取 socket 通道
@@ -302,7 +300,6 @@ public class SocketSelector implements Closeable {
 					if((selectionKey.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
 						SocketChannel socketChannel = ((ServerSocketChannel) channel).accept();
 						tcpAccept((TcpServerSocket) socketContext, socketChannel);
-						accept++;
 					}
 
 					// 有数据读取
