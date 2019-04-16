@@ -35,7 +35,7 @@
             <groupId>com.jsoniter</groupId>
             <artifactId>jsoniter</artifactId>
             <version>0.9.23</version>
-            <scope>test</scope>:
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
