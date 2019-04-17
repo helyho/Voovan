@@ -455,7 +455,7 @@ public class HttpParser {
 						long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
 						long position = (cachedMark << 32) >> 32;
 
-						if(position > innerByteBuffer.limit()){
+						if(position != innerByteBuffer.limit()){
 							continue;
 						}
 
