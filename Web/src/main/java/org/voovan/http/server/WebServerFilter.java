@@ -53,31 +53,27 @@ public class WebServerFilter implements IoFilter {
 
 			try{
 				if(httpResponse.isAutoSend()) {
-					byte[] cacheBytes = null;
-					Long mark = httpResponse.getMark();
+                    if (WebContext.isCache()) {
+						Long mark = httpResponse.getMark();
+						byte[] cacheBytes = RESPONSE_CACHE.get(mark);
 
-					if(mark==null){
-						httpResponse.send();
-					} else {
-						if (WebContext.isCache()) {
-							cacheBytes = RESPONSE_CACHE.get(mark);
-						}
+                        if (cacheBytes == null) {
+                            ByteBufferChannel sendByteBufferChannel = session.getSendByteBufferChannel();
+                            int size = sendByteBufferChannel.size();
+                            httpResponse.send();
 
-						if (cacheBytes == null) {
-							ByteBufferChannel sendByteBufferChannel = session.getSendByteBufferChannel();
-							int size = sendByteBufferChannel.size();
-							httpResponse.send();
-
-							if (size == 0) {
-								cacheBytes = new byte[session.getSendByteBufferChannel().size()];
-								sendByteBufferChannel.get(cacheBytes);
-								RESPONSE_CACHE.putIfAbsent(mark, cacheBytes);
-							}
-						} else {
-							session.sendByBuffer(ByteBuffer.wrap(cacheBytes));
-							httpResponse.clear();
-						}
-					}
+                            if (size == 0) {
+                                cacheBytes = new byte[session.getSendByteBufferChannel().size()];
+                                sendByteBufferChannel.get(cacheBytes);
+                                RESPONSE_CACHE.putIfAbsent(mark, cacheBytes);
+                            }
+                        } else {
+                            session.sendByBuffer(ByteBuffer.wrap(cacheBytes));
+                            httpResponse.clear();
+                        }
+                    } else {
+                        httpResponse.send();
+                    }
 				}
 			}catch(Exception e){
 				Logger.error(e);
