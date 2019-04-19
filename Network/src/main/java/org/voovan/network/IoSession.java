@@ -488,7 +488,7 @@ public abstract class IoSession<T extends SocketContext> {
 	public void syncSend(Object obj) throws SendMessageException{
 		//等待 ssl 握手完成
 		try {
-			TEnv.wait(socketContext.getReadTimeout(), ()->sslParser!=null && !sslParser.handShakeDone);
+			TEnv.wait(socketContext.getSendTimeout(), ()->sslParser!=null && !sslParser.handShakeDone);
 
 			if (obj != null) {
 				try {

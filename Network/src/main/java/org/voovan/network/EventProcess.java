@@ -10,6 +10,7 @@ import org.voovan.tools.buffer.TByteBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 事件的实际逻辑处理
@@ -95,7 +96,7 @@ public class EventProcess {
      * @throws IOException  IO 异常
      * @throws IoFilterException IoFilter 异常
      */
-    public static void onRead(Event event, int recursionDepth) throws IOException {
+    public static void onRead(Event event, int recursionDepth) throws IOException, TimeoutException {
         IoSession session = event.getSession();
         int currentRecursionDepth = recursionDepth;
 
@@ -124,6 +125,8 @@ public class EventProcess {
                     if (recursionDepth < session.socketContext().getReadRecursionDepth() && session.getReadByteBufferChannel().size() > 0) {
                         onRead(event, recursionDepth);
                     }
+                } else {
+                    throw new TimeoutException("Socket is read timeout");
                 }
             } finally {
                 //释放 onRecive 锁

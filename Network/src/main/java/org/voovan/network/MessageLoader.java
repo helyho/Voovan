@@ -2,6 +2,7 @@ package org.voovan.network;
 
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.network.udp.UdpSocket;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.exception.MemoryReleasedException;
@@ -205,6 +206,7 @@ public class MessageLoader {
 					stopType = StopType.STREAM_END;
 				}else {
 					readZeroCount++;
+					TEnv.sleep(1);
 				}
 			}else{
 				readZeroCount = 0;
@@ -217,7 +219,7 @@ public class MessageLoader {
 		// 返回是 null 则在EventProcess中直接返回,不做任何处理
 		if (stopType == StopType.STREAM_END ||
 				stopType == StopType.SOCKET_CLOSED) {
-			result = null;
+			return -1;
 		}
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
@@ -231,6 +233,6 @@ public class MessageLoader {
 			return -1;
 		}
 
-		return -1;
+
 	}
 }
