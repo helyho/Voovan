@@ -61,25 +61,26 @@ public class SocketSelector implements Closeable {
 			e.printStackTrace();
 		}
 
+		//调试日志信息
 		if(Global.IS_DEBUG_MODE) {
 			Global.getHashWheelTimer().addTask(new HashWheelTask() {
 				@Override
 				public void run() {
 					System.out.print(eventRunner.getThread().getName() + " " + selector.keys().size() + " = " + eventRunner.getEventQueue().size());
 
-					int x4 = 0;
-					int x5 = 0;
-					int x6 = 0;
-					for (EventRunner.EventTask eventTask1 : eventRunner.getEventQueue()) {
-						if (eventTask1.getPriority() == 4)
-							x4++;
-						if (eventTask1.getPriority() == 5)
-							x5++;
-						if (eventTask1.getPriority() == 6)
-							x6++;
+					int ioTaskCount = 0;
+					int eventTaskCount = 0;
+					int registerTaskCount = 0;
+					for (EventRunner.EventTask eventTask : eventRunner.getEventQueue()) {
+						if (eventTask.getPriority() == 4)
+							ioTaskCount++;
+						if (eventTask.getPriority() == 5)
+							eventTaskCount++;
+						if (eventTask.getPriority() == 6)
+							registerTaskCount++;
 					}
 
-					System.out.println(" (IO=" + x4 + ", Event=" + x5 + " ,un/register=" + x6 + ")");
+					System.out.println(" (IO=" + ioTaskCount + ", Event=" + eventTaskCount + " ,(un)register=" + registerTaskCount + ")");
 				}
 			}, 1);
 		}
