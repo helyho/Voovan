@@ -302,11 +302,10 @@ public class SocketSelector implements Closeable {
 					if ((selectionKey.readyOps() & SelectionKey.OP_READ) != 0) {
 						if(channel instanceof SocketChannel){
 							tcpReadFromChannel((TcpSocket) socketContext, (SocketChannel)channel);
-							socketContext.updateLastReadTime();
 						} else if(channel instanceof DatagramChannel) {
 							udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) socketContext, (DatagramChannel) channel);
-							socketContext.updateLastReadTime();
 						}
+                        socketContext.updateLastReadTime();
 					}
 				}
 			} else {
