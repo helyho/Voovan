@@ -202,11 +202,10 @@ public class MessageLoader {
 
 			//超时判断,防止读0时导致的高 CPU 负载
 			if( readsize==0 && stopType == StopType.RUNNING ){
-				if(readZeroCount >= session.socketContext().getReadTimeout()){
+				if(session.socketContext().isReadTimeOut()){
 					stopType = StopType.STREAM_END;
 				}else {
 					readZeroCount++;
-					TEnv.sleep(1);
 				}
 			}else{
 				readZeroCount = 0;
