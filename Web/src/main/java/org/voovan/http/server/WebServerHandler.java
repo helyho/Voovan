@@ -23,6 +23,7 @@ import org.voovan.tools.log.Logger;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.TimeoutException;
 
 /**
  * WebServer Socket 事件处理类
@@ -458,6 +459,10 @@ public class WebServerHandler implements IoHandler {
 	public void onException(IoSession session, Exception e) {
 		if(!(e instanceof MemoryReleasedException)) {
 			Logger.error("Http Server Error", e);
+		}
+
+		if(e instanceof TimeoutException){
+			session.close();
 		}
 	}
 
