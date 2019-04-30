@@ -2,11 +2,14 @@ package org.voovan.test.tools.cache;
 
 import junit.framework.TestCase;
 import org.voovan.Global;
+import org.voovan.tools.TByte;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.collection.RedisMap;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
+import redis.clients.jedis.Jedis;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -192,5 +195,26 @@ public class RedisMapUnit extends TestCase{
             TEnv.sleep(1000);
         }
 
+    }
+
+    public void testPerformance() throws ReflectiveOperationException {
+        RedisMap redisMap = new RedisMap("127.0.0.1", 6379, 2000, 100);
+
+        Jedis jedis = TReflect.invokeMethod(redisMap, "getJedis");
+        System.out.println(TEnv.measureTime(()->{
+            for(int i=0;i<10000;i++){
+                jedis.set(TByte.getBytes(i), TByte.getBytes(i));
+            }
+        })/1000000);
+        jedis.close();
+
+        System.out.println(TEnv.measureTime(()->{
+            for(int i=0;i<10000;i++){
+                redisMap.put(i, i);
+            }
+        })/1000000);
+
+        redisMap.get(1);
+        System.out.println("done.");
     }
 }

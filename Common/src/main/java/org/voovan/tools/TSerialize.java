@@ -6,7 +6,10 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * JDK 序列化和反序列化封装
@@ -110,7 +113,15 @@ public class TSerialize {
             Class clazz = object.getClass();
             Class[] genericClazzs = TReflect.getGenericClass(object);
 
-            return JSON.toJSON(TObject.asMap("T",clazz.getCanonicalName(),  "G", genericClazzs, "V", object)).getBytes();
+            List<String> genericClazzStrs = null;
+            if(genericClazzs!=null) {
+                genericClazzStrs = new ArrayList<String>();
+                for (Class genericClazz : genericClazzs) {
+                    genericClazzStrs.add(genericClazz.getCanonicalName());
+                }
+            }
+
+            return JSON.toJSON(TObject.asMap("T",clazz.getCanonicalName(),  "G", genericClazzStrs, "V", object)).getBytes();
         } catch (Exception e){
             Logger.error("TSerialize.serializeJDK error: ", e);
             return null;
@@ -139,8 +150,11 @@ public class TSerialize {
 
             genericClazzs = genericClazzs.length == 0 ? null : genericClazzs;
 
-
-            return TReflect.getObjectFromMap(mainClazz, jsonPath.mapObject("/V", genericClazzs), true);
+            if(TReflect.isImpByInterface(mainClazz, Map.class) || TReflect.isImpByInterface(mainClazz, Collection.class)) {
+                return TReflect.getObjectFromMap(mainClazz, jsonPath.mapObject("/V", genericClazzs), true);
+            } else {
+                return jsonPath.value("/V", mainClazz);
+            }
         } catch (Exception e){
             Logger.error("TSerialize.serializeJDK error: ", e);
             return null;
