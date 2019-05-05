@@ -62,7 +62,7 @@ public class SocketSelector implements Closeable {
 		}
 
 		//调试日志信息
-		if(Global.IS_DEBUG_MODE) {
+//		if(Global.IS_DEBUG_MODE) {
 			Global.getHashWheelTimer().addTask(new HashWheelTask() {
 				@Override
 				public void run() {
@@ -80,10 +80,10 @@ public class SocketSelector implements Closeable {
 							registerTaskCount++;
 					}
 
-					System.out.println(" (IO=" + ioTaskCount + ", Event=" + eventTaskCount + " ,(un)register=" + registerTaskCount + ")");
+					System.out.println(" (IO=" + ioTaskCount + ", Event=" + eventTaskCount + " ,register=" + registerTaskCount + ")");
 				}
 			}, 1);
-		}
+//		}
 	}
 
 	public EventRunner getEventRunner() {
@@ -139,37 +139,38 @@ public class SocketSelector implements Closeable {
 	 * @param selectionKey SocketContext 对象
 	 */
 	public void unRegister(SelectionKey selectionKey) {
+
+		//===================================== 处理 selectionKey =====================================
+		try {
+			selectionKey.channel().close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		if (selectionKey.isValid()) {
+			selectionKey.interestOps(0);
+		}
+		selectionKey.cancel();
+
+		//正在 select 则唤醒, 需要在 cancel 后立刻处理 selectNow
+		if (selecting.get()) {
+			selector.wakeup();
+		}
+
+		//===================================== 处理 SocketContext =====================================
 		SocketContext socketContext = (SocketContext) selectionKey.attachment();
 
-		if(socketContext.isRegister() && selectionKey.channel().isRegistered()) {
-			//需要在 cancel 后立刻处理 selectNow
-			addChooseEvent(6, () -> {
-				selectionKey.channel().close();
+		if(socketContext!=null && socketContext.isRegister() && selectionKey.channel().isRegistered()) {
+			socketContext.setRegister(false);
+			selectionKey.attach(null);
 
-				if (selectionKey.isValid()) {
-					selectionKey.interestOps(0);
-				}
-				selectionKey.cancel();
+            socketContext.getSession().getReadByteBufferChannel().release();
+            socketContext.getSession().getSendByteBufferChannel().release();
+            if (socketContext.getSession().isSSLMode()) {
+                socketContext.getSession().getSSLParser().release();
+            }
 
-				if (socketContext != null) {
-					socketContext.setRegister(false);
-					selectionKey.attach(null);
-					socketContext.getSession().getReadByteBufferChannel().release();
-					socketContext.getSession().getSendByteBufferChannel().release();
-					if (socketContext.getSession().isSSLMode()) {
-						socketContext.getSession().getSSLParser().release();
-					}
-
-					EventTrigger.fireDisconnect(socketContext.getSession());
-				}
-
-				//正在 select 则唤醒
-				if (selecting.get()) {
-					selector.wakeup();
-				}
-
-				return true;
-			});
+            EventTrigger.fireDisconnect(socketContext.getSession());
 		}
 	}
 
@@ -308,9 +309,10 @@ public class SocketSelector implements Closeable {
                         socketContext.updateLastReadTime();
 					}
 				}
-			} else {
-				unRegister(selectionKey);
 			}
+//			else {
+//				unRegister(selectionKey);
+//			}
 		}
 
 		selectionKeys.reset();

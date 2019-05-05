@@ -125,6 +125,7 @@ public class EventProcess {
                         onRead(event, recursionDepth);
                     }
                 } else {
+                    session.close();
                     throw new TimeoutException("Socket is read timeout");
                 }
             } finally {
