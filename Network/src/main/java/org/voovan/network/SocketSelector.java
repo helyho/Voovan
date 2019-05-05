@@ -62,7 +62,7 @@ public class SocketSelector implements Closeable {
 		}
 
 		//调试日志信息
-//		if(Global.IS_DEBUG_MODE) {
+		if(Global.IS_DEBUG_MODE) {
 			Global.getHashWheelTimer().addTask(new HashWheelTask() {
 				@Override
 				public void run() {
@@ -83,7 +83,7 @@ public class SocketSelector implements Closeable {
 					System.out.println(" (IO=" + ioTaskCount + ", Event=" + eventTaskCount + " ,register=" + registerTaskCount + ")");
 				}
 			}, 1);
-//		}
+		}
 	}
 
 	public EventRunner getEventRunner() {

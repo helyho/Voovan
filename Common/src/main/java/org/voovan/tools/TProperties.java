@@ -261,8 +261,8 @@ public class TProperties {
 	 * @return 属性值
 	 */
 	public static boolean getBoolean(String fileName, String name) {
-		Properties properites = getProperties(fileName);
-		return Boolean.valueOf(properites.getProperty(name));
+		String value = getString(fileName, name);
+		return Boolean.valueOf(TString.isNullOrEmpty(value)?"false":value.trim());
 	}
 
 	/**
