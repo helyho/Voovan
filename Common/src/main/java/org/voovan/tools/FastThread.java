@@ -1,7 +1,7 @@
 package org.voovan.tools;
 
 /**
- * 类文字命名
+ * 快速线程(基于能够快速访问线程局部变量)
  *
  * @author: helyho
  * Voovan Framework.
