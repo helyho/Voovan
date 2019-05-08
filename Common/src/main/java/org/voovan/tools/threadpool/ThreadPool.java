@@ -110,7 +110,7 @@ public class ThreadPool {
 	 */
 	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int threadTimeout){
 
-		return createThreadPool(poolName, minPoolTimes, maxPoolSize, threadTimeout, false, 5);
+		return createThreadPool(poolName, mimPoolSize, maxPoolSize, threadTimeout, false, 5);
 	}
 
 	public static ThreadPoolExecutor getNewThreadPool(String name){
