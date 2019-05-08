@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 /**
- * 类文字命名
+ * 线程局部变量
  *
  * @author: helyho
  * Voovan Framework.
@@ -21,25 +21,47 @@ public class FastThreadLocal<T> {
 
 	private Supplier supplier;
 
+	/**
+	 * 构造函数
+	 * 		为当前对象生成一个 id
+	 */
 	public FastThreadLocal(){
 		//分配一个索引在所有线程中都是用这个索引位置
 		this.index = indexGenerator.getAndIncrement();
 	}
 
+	/**
+	 * 基于提供起的过早函数
+	 * @param supplier 线程局部变量生成器
+	 * @param <T> 范型类型
+	 * @return FastThreadLocal对象
+	 */
 	public static <T> FastThreadLocal<T> withInitial(Supplier<T> supplier){
 		FastThreadLocal<T> fastThreadLocal = new FastThreadLocal<T>();
 		fastThreadLocal.setSupplier(supplier);
 		return fastThreadLocal;
 	}
 
+	/**
+	 * 获取 线程局部变量生成器
+	 * @return  线程局部变量生成器
+	 */
 	public Supplier<T> getSupplier() {
 		return supplier;
 	}
 
+	/**
+	 * 设置 线程局部变量生成器
+	 * @param supplier 线程局部变量生成器
+	 */
 	public void setSupplier(Supplier<T> supplier) {
 		this.supplier = supplier;
 	}
 
+	/**
+	 * 获取 线程局部变量
+	 * @return 线程局部变量
+	 */
 	public T get() {
 		tryCreate();
 		if(FastThread.getThread() != null) {
@@ -64,6 +86,9 @@ public class FastThreadLocal<T> {
 		}
 	}
 
+	/**
+	 * 根据线程的类型尝试创建不同的线程局部变量
+	 */
 	public void tryCreate(){
 		if(FastThread.getThread() != null) {
 			FastThreadLocal[] data = FastThread.getThread().data;
@@ -80,6 +105,10 @@ public class FastThreadLocal<T> {
 		}
 	}
 
+	/**
+	 * 设置线程局部变量
+	 * @param t 线程局部变量
+	 */
 	public void set(T t){
 		tryCreate();
 
