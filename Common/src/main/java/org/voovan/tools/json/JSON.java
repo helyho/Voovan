@@ -65,7 +65,7 @@ public class JSON {
 	 * @return			转换后的 JSON 字符串
 	 */
 	public static String toJSON(Object object){
-		return toJSON(object, true, false);
+		return toJSON(object, convertEscapeChar.get(), false);
 	}
 
 	/**
@@ -75,9 +75,8 @@ public class JSON {
 	 * @return			转换后的 JSON 字符串
 	 */
 	public static String toJSON(Object object, boolean allField){
-		return toJSON(object, true, allField);
+		return toJSON(object, convertEscapeChar.get(), allField);
 	}
-
 
 	/**
 	 * 将 Java 对象 转换成 JSON字符串
