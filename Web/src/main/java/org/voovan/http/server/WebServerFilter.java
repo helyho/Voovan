@@ -12,6 +12,7 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
@@ -53,9 +54,9 @@ public class WebServerFilter implements IoFilter {
 
 			try{
 				if(httpResponse.isAutoSend()) {
-                    if (WebContext.isCache()) {
-						Long mark = httpResponse.getMark();
-						byte[] cacheBytes = RESPONSE_CACHE.get(mark);
+					Long mark = httpResponse.getMark();
+                    if (WebContext.isCache() && mark!=null) {
+						byte[] cacheBytes = RESPONSE_CACHE.get(httpResponse.getMark());
 
                         if (cacheBytes == null) {
                             ByteBufferChannel sendByteBufferChannel = session.getSendByteBufferChannel();
@@ -79,7 +80,7 @@ public class WebServerFilter implements IoFilter {
 				Logger.error(e);
 			}
 
-			return null;
+			return TByteBuffer.EMPTY_BYTE_BUFFER;
 		} else if(object instanceof WebSocketFrame){
 			WebSocketFrame webSocketFrame = (WebSocketFrame)object;
 			return webSocketFrame.toByteBuffer();
