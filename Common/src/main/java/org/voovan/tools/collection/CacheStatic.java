@@ -1,9 +1,5 @@
 package org.voovan.tools.collection;
 
-import net.rubyeye.xmemcached.MemcachedClientBuilder;
-import net.rubyeye.xmemcached.XMemcachedClientBuilder;
-import net.rubyeye.xmemcached.command.BinaryCommandFactory;
-import net.rubyeye.xmemcached.utils.AddrUtil;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.TSerialize;
@@ -24,85 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CacheStatic {
 
     private static final String DEFAULT = "system_default";
-    private static ConcurrentHashMap<String,MemcachedClientBuilder> MEMCACHED_CLIENT_BUILDER_CACHE = new ConcurrentHashMap<String,MemcachedClientBuilder>();
     private static ConcurrentHashMap<String,JedisPool> REDIS_POOL_CACHE = new ConcurrentHashMap<String, JedisPool>();
-
-    /**
-     * 获取一个 MemcachedClientBuilder 也就是 Memcached的连接池
-     * @return MemcachedClientBuilder 对象
-     */
-    public static MemcachedClientBuilder getDefalutMemcachedPool(){
-        MemcachedClientBuilder memcachedClientBuilder = MEMCACHED_CLIENT_BUILDER_CACHE.get(DEFAULT);
-        if(memcachedClientBuilder == null) {
-            try {
-                String host = TProperties.getString("memcached", "Host");
-                int port = TProperties.getInt("memcached", "Port");
-                int timeout = TProperties.getInt("memcached", "Timeout");
-                int poolSize = TProperties.getInt("memcached", "PoolSize");
-
-                memcachedClientBuilder = createMemcachedPool(DEFAULT, host, port, timeout, poolSize);
-            }catch (Exception e){
-                Logger.error("Read ./classes/Memcached.properties error");
-            }
-        }
-
-        return memcachedClientBuilder;
-    }
-
-    /**
-     * 根据名称获取一个 Memcached 连接池
-     * @param name Memcached 连接池名称
-     * @return Memcached 连接池
-     */
-    public static MemcachedClientBuilder getMemcachedPool(String name){
-        return MEMCACHED_CLIENT_BUILDER_CACHE.get(name);
-    }
-
-    /**
-     * 获取一个 MemcachedClientBuilder 连接池
-     * @return MemcachedClientBuilder 对象
-     */
-    @Deprecated
-    public static MemcachedClientBuilder getMemcachedPool(){
-        return getDefalutMemcachedPool();
-    }
-
-    /**
-     * 获取一个 MemcachedClientBuilder 也就是 Memcached的连接池
-     * @param name 连接池名称
-     * @param host 连接地址
-     * @param port 连接端口
-     * @param timeout 超时时间
-     * @param poolSize 池的大小
-     * @return MemcachedClientBuilder 对象
-     */
-    public synchronized static MemcachedClientBuilder createMemcachedPool(String name, String host, int port, int timeout, int poolSize) {
-        MemcachedClientBuilder memcachedClientBuilder = MEMCACHED_CLIENT_BUILDER_CACHE.get(name);
-
-        if(memcachedClientBuilder != null){
-            return memcachedClientBuilder;
-        }
-
-        if(host==null){
-            return null;
-        }
-
-        if (poolSize == 0) {
-            poolSize = defaultPoolSize();
-        }
-
-        memcachedClientBuilder = new XMemcachedClientBuilder(
-                AddrUtil.getAddresses(host + ":" + port));
-        memcachedClientBuilder.setFailureMode(true);
-        memcachedClientBuilder.setCommandFactory(new BinaryCommandFactory());
-        memcachedClientBuilder.setConnectionPoolSize(poolSize);
-        memcachedClientBuilder.setConnectTimeout(timeout);
-
-        MEMCACHED_CLIENT_BUILDER_CACHE.put(name, memcachedClientBuilder);
-
-        return memcachedClientBuilder;
-    }
-
 
     /**
      * 获取一个 RedisPool 连接池
