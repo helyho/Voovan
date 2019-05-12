@@ -14,6 +14,8 @@ import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
+import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
@@ -35,6 +37,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class WebSocketDispatcher {
+	public static HashWheelTimer HANDSHAKE_WHEEL_TIMER = new HashWheelTimer(60, 1000);
+	static {
+		HANDSHAKE_WHEEL_TIMER.rotate();
+	}
+
 	private WebServerConfig webConfig;
 	private SessionManager sessionManager;
 
@@ -171,18 +178,21 @@ public class WebSocketDispatcher {
 				} else if (event == WebSocketEvent.PONG) {
 					final IoSession poneSession = session;
 					if(poneSession.isConnected()) {
-						Global.getThreadPool().execute(new Runnable() {
+						HANDSHAKE_WHEEL_TIMER.addTask(new HashWheelTask() {
 							@Override
 							public void run() {
-								TEnv.sleep(poneSession.socketContext().getReadTimeout() / 3);
 								try {
-									poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+									if(poneSession.socketContext().isConnected()) {
+										poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+									}
 								} catch (SendMessageException e) {
 									poneSession.close();
 									Logger.error("Send WebSocket ping error", e);
 								}
+
+								this.cancel();
 							}
-						});
+						}, poneSession.socketContext().getReadTimeout() / 1000/ 3);
 					}
 				}
 			} catch (WebSocketFilterException e) {
