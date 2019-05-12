@@ -65,6 +65,9 @@ public class TReflect {
             LinkedHashSet<Field> fieldArray = new LinkedHashSet<Field>();
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 Field[] tmpFields = clazz.getDeclaredFields();
+                for (Field field : tmpFields){
+                    field.setAccessible(true);
+                }
                 fieldArray.addAll(Arrays.asList(tmpFields));
             }
 
@@ -104,6 +107,7 @@ public class TReflect {
             }
 
             if(mark!=null && field!=null) {
+                field.setAccessible(true);
                 FIELDS.put(mark, field);
             }
 
@@ -225,9 +229,6 @@ public class TReflect {
     static public <T> T getFieldValue(Object obj, String fieldName)
             throws ReflectiveOperationException {
         Field field = findField(obj.getClass(), fieldName);
-        if(!field.isAccessible()) {
-            field.setAccessible(true);
-        }
         return (T) field.get(obj);
     }
 
@@ -243,9 +244,6 @@ public class TReflect {
      */
     public static void setFieldValue(Object obj, Field field,
                                      Object fieldValue) throws ReflectiveOperationException {
-        if(!field.isAccessible()) {
-            field.setAccessible(true);
-        }
         field.set(obj, fieldValue);
     }
 
@@ -273,7 +271,7 @@ public class TReflect {
      */
     public static Map<Field, Object> getFieldValues(Object obj)
             throws ReflectiveOperationException {
-        LinkedHashMap<Field, Object> result = new LinkedHashMap<Field, Object>();
+        HashMap<Field, Object> result = new HashMap<Field, Object>();
         Field[] fields = getFields(obj.getClass());
         for (Field field : fields) {
 
@@ -282,9 +280,6 @@ public class TReflect {
                 continue;
             }
 
-            if(!field.isAccessible()) {
-                field.setAccessible(true);
-            }
             Object value = field.get(obj);
             result.put(field, value);
         }
