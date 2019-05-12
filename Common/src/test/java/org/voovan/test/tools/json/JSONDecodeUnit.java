@@ -1,8 +1,11 @@
 package org.voovan.test.tools.json;
 
 import junit.framework.TestCase;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.json.JSONDecode;
 
+import java.io.IOException;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +57,19 @@ public class JSONDecodeUnit extends TestCase {
 		assertEquals((String)tb2.get("string"),"bi\\\"ngo");
 		assertTrue(((List)tb2.get("list")).size() == 1);
 		assertTrue(((Map)tb2.get("map")).size() == 1);
-		
+		System.out.println(TEnv.measureTime(()->{
+			for(int i=0;i<10000;i++){
+				try {
+					TestObject object = JSONDecode.fromJSON(jsonString, TestObject.class);
+				} catch (ParseException e) {
+					e.printStackTrace();
+				} catch (ReflectiveOperationException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		})/1000000000f);
 		TestObject object = JSONDecode.fromJSON(jsonString, TestObject.class);
 		assertTrue(object.getBint()==32);
 		assertEquals(object.getString(),"helyho");
