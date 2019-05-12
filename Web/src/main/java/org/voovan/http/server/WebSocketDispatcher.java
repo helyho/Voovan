@@ -188,9 +188,9 @@ public class WebSocketDispatcher {
 								} catch (SendMessageException e) {
 									poneSession.close();
 									Logger.error("Send WebSocket ping error", e);
+								} finally {
+									this.cancel();
 								}
-
-								this.cancel();
 							}
 						}, poneSession.socketContext().getReadTimeout() / 1000/ 3);
 					}
