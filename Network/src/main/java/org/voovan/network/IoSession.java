@@ -536,8 +536,9 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	public void flush() {
 		if(sendByteBufferChannel.size()>0) {
+			ByteBuffer byteBuffer = sendByteBufferChannel.getByteBuffer();
 			try {
-				send0(sendByteBufferChannel.getByteBuffer());
+				send0(byteBuffer);
 				//触发发送事件
 				EventTrigger.fireFlush(this);
 			} catch (IOException e) {

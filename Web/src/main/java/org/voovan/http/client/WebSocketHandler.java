@@ -122,8 +122,10 @@ public class WebSocketHandler implements IoHandler{
 
             try {
                 //解包
+                ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+
                 try {
-                    result = webSocketRouter.filterDecoder(webSocketSession, byteBufferChannel.getByteBuffer());
+                    result = webSocketRouter.filterDecoder(webSocketSession, byteBuffer);
 
                     //触发 onRecive
                     result = webSocketRouter.onRecived(webSocketSession, result);

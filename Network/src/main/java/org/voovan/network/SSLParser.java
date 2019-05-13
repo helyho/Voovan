@@ -190,9 +190,9 @@ public class SSLParser {
 		}
 
 		if (sslByteBufferChannel.size() > 0) {
+			ByteBuffer byteBuffer = sslByteBufferChannel.getByteBuffer();
 
 			try {
-				ByteBuffer byteBuffer = sslByteBufferChannel.getByteBuffer();
 
 				engineResult = unwarpData(byteBuffer, appData);
 
@@ -324,9 +324,9 @@ public class SSLParser {
 				while (true) {
 					appData.clear();
 
-					ByteBuffer byteBuffer = null;
+					ByteBuffer byteBuffer = sslByteBufferChannel.getByteBuffer();;
+
 					try {
-						byteBuffer = sslByteBufferChannel.getByteBuffer();
 						engineResult = unwarpData(byteBuffer, appData);
 					} finally {
 						sslByteBufferChannel.compact();

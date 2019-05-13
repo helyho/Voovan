@@ -317,7 +317,7 @@ public class WebServerHandler implements IoHandler {
 	 * @param webSocketFrame WebSocket 帧对象
 	 * @return WebSocket 帧对象
 	 */
-	public synchronized WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
+	public WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
 
 		ByteBufferChannel byteBufferChannel = null;
 		if(!session.containAttribute("WebSocketByteBufferChannel")){
@@ -353,9 +353,9 @@ public class WebServerHandler implements IoHandler {
 
 			//判断解包是否有错
 			if(webSocketFrame.getErrorCode()==0){
-
+				ByteBuffer byteBuffer =byteBufferChannel.getByteBuffer();
 				try {
-					respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBufferChannel.getByteBuffer());
+					respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBuffer);
 				} finally {
 					byteBufferChannel.compact();
 					byteBufferChannel.clear();
