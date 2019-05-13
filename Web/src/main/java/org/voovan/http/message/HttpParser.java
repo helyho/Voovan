@@ -637,18 +637,11 @@ public class HttpParser {
 							boolean isFileRecvDone = false;
 
 							while (true){
-								byteBufferChannel.getByteBuffer();
-								int dataLength = 0;
-
-								try {
-									dataLength = byteBufferChannel.size();
-									//等待数据, 1毫秒超时
-									if (byteBufferChannel.waitData(boundary.getBytes(), 1, contiuneRead)) {
-										isFileRecvDone = true;
-									}
-								} finally {
-									byteBufferChannel.compact();
-								}
+                                int dataLength = byteBufferChannel.size();
+                                //等待数据, 1毫秒超时
+                                if (byteBufferChannel.waitData(boundary.getBytes(), 1, contiuneRead)) {
+                                    isFileRecvDone = true;
+                                }
 
 								if(!isFileRecvDone) {
 									if(dataLength!=0) {

@@ -746,23 +746,30 @@ public class ByteBufferChannel {
         if (index >= 0) {
             ByteBuffer byteBuffer = getByteBuffer();
 
-            if(byteBuffer==null){
-                return null;
-            }
+            try {
+                if (byteBuffer == null) {
+                    return null;
+                }
 
-            int limit = byteBuffer.limit();
-            byteBuffer.limit(index+1);
-            lineStr = TByteBuffer.toString(byteBuffer);
-            byteBuffer.limit(limit);
-            byteBuffer.position(index+1);
-            compact();
+                int limit = byteBuffer.limit();
+                byteBuffer.limit(index + 1);
+                lineStr = TByteBuffer.toString(byteBuffer);
+                byteBuffer.limit(limit);
+                byteBuffer.position(index + 1);
+            } finally {
+                compact();
+            }
         }
 
         if(size()>0 && index==-1){
             ByteBuffer byteBuffer = getByteBuffer();
-            lineStr = TByteBuffer.toString(byteBuffer);
-            byteBuffer.position(byteBuffer.limit());
-            compact();
+
+            try {
+                lineStr = TByteBuffer.toString(byteBuffer);
+                byteBuffer.position(byteBuffer.limit());
+            } finally {
+                compact();
+            }
         }
 
         return lineStr.isEmpty() && index==-1 ? null : lineStr;
