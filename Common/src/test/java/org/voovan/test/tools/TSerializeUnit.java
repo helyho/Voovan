@@ -3,8 +3,8 @@ package org.voovan.test.tools;
 import junit.framework.TestCase;
 import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.TObject;
-import org.voovan.tools.TSerialize;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.serialize.TSerialize;
 
 import java.text.ParseException;
 import java.util.HashMap;
@@ -37,8 +37,8 @@ public class TSerializeUnit extends TestCase {
         Map<String, TestObject> vvv = new HashMap<>();
         vvv.putIfAbsent("mm", m);
 
-        byte[] bytes = TSerialize.serializeJSON(vvv);
-        Object object = TSerialize.unserializeJSON(bytes);
+        byte[] bytes = TSerialize.serialize(vvv);
+        Object object = TSerialize.unserialize(bytes);
         System.out.println(object);
 
         Object o = TReflect.getObjectFromMap(TestObject.class, TObject.asMap(), false);
