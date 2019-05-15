@@ -1036,7 +1036,7 @@ public class TReflect {
         }
         //对 Atom 类型的处理
         else if (obj instanceof AtomicLong || obj instanceof AtomicInteger || obj instanceof AtomicBoolean) {
-            mapResult.put(null, TReflect.invokeMethod(obj, "getThread"));
+            mapResult.put(null, TReflect.invokeMethod(obj, "get"));
         }
         //对 BigDecimal 类型的处理
         else if (obj instanceof BigDecimal) {
