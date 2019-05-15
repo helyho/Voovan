@@ -276,7 +276,7 @@ public class TReflect {
         for (Field field : fields) {
 
             //静态属性不序列化
-            if((field.getModifiers() & 0x0000000) != 0){
+            if((field.getModifiers() & 0x00000008) != 0){
                 continue;
             }
 
