@@ -29,7 +29,6 @@ import java.util.function.Predicate;
  * Licence: Apache v2 License
  */
 public class Aop {
-    private static boolean IS_AOP_ON = false;
     private static Instrumentation instrumentation;
 
     /**
@@ -61,7 +60,6 @@ public class Aop {
             AopUtils.scanAopClass(scanPackage);
         }
 
-        IS_AOP_ON = true;
         instrumentation = TEnv.agentAttach(agentJarPath);
         if(instrumentation!=null) {
             instrumentation.addTransformer(new ClassFileTransformer() {
@@ -93,13 +91,14 @@ public class Aop {
         try {
 
             try {
-                //这里加载两次是为了防止热加载失效
-                ctClass = AopUtils.CLASSPOOL.get(className);
-                ctClass.detach();
+                ctClass = AopUtils.getCtClass(className);
             } catch (NotFoundException e){
                 return classfileBuffer;
             }
 
+            /**
+             * Aop 注入
+             */
             //扫描目标方法并进行注入
             for(CtMethod originMethod : ctClass.getDeclaredMethods()){
 
