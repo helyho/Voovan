@@ -17,5 +17,5 @@ public interface Serialize {
      * @param clazz 反序列化后的目标对象类型
      * @return 反序列化后的目标对象
      */
-    public Object unserialize(byte[] bytes, Class clazz);
+    public <T> T unserialize(byte[] bytes, Class<T> clazz);
 }
