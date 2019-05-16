@@ -1183,7 +1183,7 @@ public class TReflect {
      * @param type 类型 Class
      * @return 所有父类
      */
-    public static Class[] getAllExtendAndInterfaceClass(Class<?> type){
+    public static Class[] getAllSuperClass(Class<?> type){
         if(type == null){
             return null;
         }
