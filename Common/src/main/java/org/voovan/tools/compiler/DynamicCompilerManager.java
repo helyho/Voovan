@@ -107,7 +107,7 @@ public class DynamicCompilerManager {
      * @return 函数返回值
      * @throws ReflectiveOperationException 反射异常
      */
-    public static Object callFunction(String name, Object ... args) throws ReflectiveOperationException {
+    public static Object callFunction(String name, Object ... args) throws Exception {
         return functions.get(name).call(args);
     }
 
@@ -121,7 +121,7 @@ public class DynamicCompilerManager {
      * @throws ReflectiveOperationException  反射异常
      * @return DynamicClass对象
      */
-    public static DynamicClass addClazz(File file, String charSet) throws UnsupportedEncodingException, ReflectiveOperationException {
+    public static DynamicClass addClazz(File file, String charSet) throws UnsupportedEncodingException, Exception {
         DynamicClass dynamicClass = new DynamicClass(file, charSet);
         dynamicClass.compileCode();
         classes.put(dynamicClass.getName(), dynamicClass);

@@ -6,7 +6,6 @@ import org.voovan.tools.collection.MultiMap;
 import org.voovan.tools.compiler.DynamicCompiler;
 import org.voovan.tools.compiler.DynamicCompilerManager;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -57,6 +56,8 @@ public class DynamicFunction {
 
     private String importFunctionCode;
     private ArrayList<String> importFunctions;
+
+    public FunctionInterface objectForCall;
 
 
 
@@ -397,14 +398,15 @@ public class DynamicFunction {
                 checkFileChanged();
             }
 
-            if (this.clazz == Object.class || needCompile) {
+            if (this.clazz == Object.class || this.needCompile) {
                 genCode();
 
                 DynamicCompiler compiler = new DynamicCompiler();
                 if (compiler.compileCode(this.javaCode)) {
                     this.clazz = compiler.getClazz();
                     this.className = this.clazz.getCanonicalName();
-                    needCompile = false;
+                    this.needCompile = false;
+                    this.objectForCall = (FunctionInterface) clazz.newInstance();
                 } else {
                     Logger.simple(code);
                     throw new ReflectiveOperationException("Compile code error.");
@@ -431,13 +433,12 @@ public class DynamicFunction {
      * @param args 调用参数
      * @param <T>  范型
      * @return 返回的类型
-     * @throws ReflectiveOperationException 反射异常
+     * @throws Exception 反射异常
      */
-    public <T> T call(Object... args) throws ReflectiveOperationException {
+    public <T> T call(Object... args) throws Exception {
         synchronized (this.clazz) {
             compileCode();
-            Object result = TReflect.invokeMethod(this.clazz, "execute", new Object[]{args});
-            return (T)result;
+            return (T)objectForCall.execute(args);
         }
     }
 

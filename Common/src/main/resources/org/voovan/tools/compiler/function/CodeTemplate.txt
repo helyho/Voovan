@@ -1,9 +1,15 @@
 package {{PACKAGE}};
 import org.voovan.tools.TObject;
 {{IMPORT}}
-public class {{CLASSNAME}} {
+public class {{CLASSNAME}} implements org.voovan.tools.compiler.function.FunctionInterface {
+
+    public {{CLASSNAME}}(){
+    }
+
     {{IMPORTFUNCTION}}
-    public synchronized static Object execute(Object ... args) throws Exception{
+
+    @SuppressWarnings("unchecked")
+    public Object execute(Object ... args) throws Exception{
         {{PREPAREARG}}
         {{CODE}}
     }

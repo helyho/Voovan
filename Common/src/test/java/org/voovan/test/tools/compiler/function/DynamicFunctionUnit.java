@@ -83,7 +83,7 @@ public class DynamicFunctionUnit extends TestCase{
 
             long startTime = System.currentTimeMillis();
             //运行脚本
-            List list = dynamicFunction.call("hely ", "ho");
+            List list = dynamicFunction.call("hely"+i, "ho");
 
             System.out.println("==>RunTime: "+(System.currentTimeMillis()-startTime )+"\r\n==>Result: " + list);
             TEnv.sleep( 1000 );
