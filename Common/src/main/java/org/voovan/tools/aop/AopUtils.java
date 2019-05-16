@@ -3,6 +3,7 @@ package org.voovan.tools.aop;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.NotFoundException;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
@@ -31,6 +32,19 @@ import java.util.regex.Matcher;
 public class AopUtils {
     public static ClassPool CLASSPOOL = ClassPool.getDefault();
     public static List<CutPointInfo> CUT_POINTINFO_LIST = new ArrayList<CutPointInfo>();
+
+    /**
+     * 获取 CtClass 对象
+     * @param className CtClass 对象完全现定名
+     * @return CtClass 对象
+     * @throws NotFoundException
+     */
+    public static CtClass getCtClass(String className) throws NotFoundException {
+        CtClass ctClass = null;
+        ctClass = AopUtils.CLASSPOOL.get(className);
+        ctClass.detach();
+        return ctClass;
+    }
 
     /**
      * 从当前进程的Javaassist中寻找 Class
