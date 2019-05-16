@@ -179,9 +179,8 @@ public class TString {
 	private static Pattern getCachedPattern(String regex, Integer flags) {
 		Pattern pattern = null;
 		flags = flags == null ? 0 : flags;
-		if (regexPattern.containsKey(regex.hashCode())) {
-			pattern = regexPattern.get(regex.hashCode());
-		} else {
+		pattern = regexPattern.get(regex.hashCode());
+		if (pattern==null) {
 			pattern = Pattern.compile(regex, flags);
 			regexPattern.put(regex.hashCode(), pattern);
 		}

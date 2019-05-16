@@ -34,11 +34,12 @@ public class TReflect {
     private static Map<String, Field> FIELDS = new ConcurrentHashMap<String ,Field>();
     private static Map<String, Method> METHODS = new ConcurrentHashMap<String ,Method>();
     private static Map<String, Constructor> CONSTRUCTORS = new ConcurrentHashMap<String ,Constructor>();
-    private static Map<String, Field[]> FIELD_ARRAYS = new ConcurrentHashMap<String ,Field[]>();
+    private static Map<Class, Field[]> FIELD_ARRAYS = new ConcurrentHashMap<Class ,Field[]>();
     private static Map<String, Method[]> METHOD_ARRAYS = new ConcurrentHashMap<String ,Method[]>();
     private static Map<String, Constructor[]> CONSTRUCTOR_ARRAYS = new ConcurrentHashMap<String ,Constructor[]>();
     private static Map<Class, String> CLASS_NAME = new ConcurrentHashMap<Class ,String>();
     private static Map<Class, Boolean> CLASS_BASIC_TYPE = new ConcurrentHashMap<Class ,Boolean>();
+    private static Map<String, Boolean> CLASS_ASSIGN_FROM = new ConcurrentHashMap<String ,Boolean>();
 
 
     public static String getCanonicalName(Class clazz){
@@ -58,8 +59,7 @@ public class TReflect {
      * @return Field数组
      */
     public static Field[] getFields(Class<?> clazz) {
-        String marker = getCanonicalName(clazz);
-        Field[] fields = FIELD_ARRAYS.get(marker);
+        Field[] fields = FIELD_ARRAYS.get(clazz);
 
         if(fields==null){
             LinkedHashSet<Field> fieldArray = new LinkedHashSet<Field>();
@@ -73,8 +73,8 @@ public class TReflect {
 
             fields = fieldArray.toArray(new Field[]{});
 
-            if(marker!=null && fields!=null) {
-                FIELD_ARRAYS.put(marker, fields);
+            if(clazz!=null && fields!=null) {
+                FIELD_ARRAYS.put(clazz, fields);
                 fieldArray.clear();
             }
         }
@@ -704,7 +704,11 @@ public class TReflect {
     public static <T> T newInstance(String className, Object ...parameters) throws ReflectiveOperationException {
         @SuppressWarnings("unchecked")
         Class<T> clazz = (Class<T>) Class.forName(className);
-        return newInstance(clazz,parameters);
+        if(parameters.length == 0) {
+            return clazz.newInstance();
+        } else {
+            return newInstance(clazz, parameters);
+        }
     }
 
     /**
@@ -1299,10 +1303,11 @@ public class TReflect {
         if(isBasicType==null) {
             if (clazz == null ||
                     clazz.isPrimitive() ||
-                    clazz.getName().startsWith("java.lang")
-            ) {
+                    clazz.getName().startsWith("java.lang")) {
+                CLASS_BASIC_TYPE.put(clazz, true);
                 isBasicType = true;
             } else {
+                CLASS_BASIC_TYPE.put(clazz, false);
                 isBasicType =  false;
             }
         }
