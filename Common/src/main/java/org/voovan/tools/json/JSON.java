@@ -30,12 +30,12 @@ public class JSON {
 		public Boolean get() {
 			boolean isEscapeChare = true;
 
-			if("true".equalsIgnoreCase(JSON_CONVERT_ESCAPE_CHAR)) {
+			if("true".equalsIgnoreCase(JSON_CONVERT_ESCAPE_CHAR.trim())) {
 				isEscapeChare = true;
-			} if("false".equalsIgnoreCase(JSON_CONVERT_ESCAPE_CHAR)) {
+			} if("false".equalsIgnoreCase(JSON_CONVERT_ESCAPE_CHAR.trim())) {
 				isEscapeChare = false;
 			} else {
-				isEscapeChare = true;
+				isEscapeChare = false;
 			}
 
 			return isEscapeChare;
