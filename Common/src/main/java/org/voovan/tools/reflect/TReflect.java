@@ -39,7 +39,6 @@ public class TReflect {
     private static Map<String, Constructor[]> CONSTRUCTOR_ARRAYS = new ConcurrentHashMap<String ,Constructor[]>();
     private static Map<Class, String> CLASS_NAME = new ConcurrentHashMap<Class ,String>();
     private static Map<Class, Boolean> CLASS_BASIC_TYPE = new ConcurrentHashMap<Class ,Boolean>();
-    private static Map<String, Boolean> CLASS_ASSIGN_FROM = new ConcurrentHashMap<String ,Boolean>();
 
 
     public static String getCanonicalName(Class clazz){
