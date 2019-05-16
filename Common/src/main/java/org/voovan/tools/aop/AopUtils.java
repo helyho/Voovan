@@ -39,7 +39,8 @@ public class AopUtils {
      * @return CtClass 对象
      * @throws NotFoundException
      */
-    public static CtClass getCtClass(String className) throws NotFoundException {
+    public static CtClass getCtClass(String className) throws
+            NotFoundException {
         CtClass ctClass = null;
         ctClass = AopUtils.CLASSPOOL.get(className);
         ctClass.detach();
