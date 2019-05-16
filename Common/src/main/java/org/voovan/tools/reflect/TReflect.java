@@ -1075,7 +1075,7 @@ public class TReflect {
                 //过滤不可序列化的字段
                 if (!allField) {
                     if(	field.getAnnotation(NotSerialization.class)!=null ||
-                            (field.getAnnotation(NotJSON.class)!=null && TEnv.classInCurrentStack(".tools.json.", null))) {
+                            field.getAnnotation(NotJSON.class)!=null) {
                         continue;
                     }
                 }
