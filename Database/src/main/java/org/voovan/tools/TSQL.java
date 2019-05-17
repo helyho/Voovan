@@ -6,15 +6,17 @@ import org.voovan.db.JdbcOperate;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.security.THash;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.*;
+import java.util.Date;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
@@ -388,75 +390,83 @@ public class TSQL {
 		return sqlText;
 	}
 
+
+
+	public static ConcurrentHashMap<Integer, List<String[]>> PARSED_CONDICTIONS = new ConcurrentHashMap<Integer,  List<String[]>>();
 	/**
 	 * 获取解析后的 SQL 的条件
 	 * @param sqlText SQL 字符串
 	 * @return 解析的 SQL 查询条件
 	 */
 	public static List<String[]> parseSQLCondiction(String sqlText) {
-		ArrayList<String[]> condictionList = new ArrayList<String[]>();
-		String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\sand\\s)|(\\sor\\s)|(\\sgroup by\\s)|(\\sorder\\s)|(\\slimit\\s)|$)";
-		String[] sqlCondictions = TString.searchByRegex(sqlText,sqlRegx, Pattern.CASE_INSENSITIVE);
-		for(int i=0;i<sqlCondictions.length;i++){
-			String condiction = sqlCondictions[i];
+		int hashcode = THash.hashTime31(sqlText);
+		List<String[]> condictionList = PARSED_CONDICTIONS.get(hashcode);
+		if(condictionList == null) {
+			condictionList = new ArrayList<String[]>();
+			String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\sand\\s)|(\\sor\\s)|(\\sgroup by\\s)|(\\sorder\\s)|(\\slimit\\s)|$)";
+			String[] sqlCondictions = TString.searchByRegex(sqlText, sqlRegx, Pattern.CASE_INSENSITIVE);
+			for (int i = 0; i < sqlCondictions.length; i++) {
+				String condiction = sqlCondictions[i];
 
-			//如果包含 ) 并且不在字符串中, 则移除后面的内容, 防止解析出 1=1) m2, gggg m3  导致替换问题
-			if(TString.regexMatch(condiction, "\\(") < TString.regexMatch(condiction, "\\)") && TString.regexMatch(condiction, "[\\\"`'].*?\\).*?[\\\"`']") == 0) {
-				int indexClosePair = condiction.lastIndexOf(")");
-				if (indexClosePair != -1) {
-					condiction = condiction.substring(0, indexClosePair + 1);
-				}
-			}
-
-			//between 则拼接下一段
-			if(TString.regexMatch(condiction,"\\sbetween\\s")>0){
-				i = i+1;
-				condiction = condiction + sqlCondictions[i];
-			}
-
-			String originCondiction = condiction;
-			condiction = condiction.trim();
-			String concateMethod = condiction.substring(0,condiction.indexOf(" ")+1).trim();
-			condiction = condiction.substring(condiction.indexOf(" ")+1,condiction.length()).trim();
-			String[] splitedCondicction = TString.searchByRegex(condiction, "(\\sbetween\\s+)|(\\sis\\s+)|(\\slike\\s+)|(\\s(not\\s)?in\\s+)|(\\!=)|(>=)|(<=)|[=<>]");
-			if(splitedCondicction.length == 1) {
-				String operatorChar = splitedCondicction[0].trim();
-				String[] condictionArr = condiction.split("(\\sbetween\\s+)|(\\sis\\s+)|(\\slike\\s+)|(\\s(not\\s)?in\\s+)|(\\!=)|(>=)|(<=)|[=<>]");
-				condictionArr[0] = condictionArr[0].trim();
-
-				//查询的主字段 ( 的处理
-				if(TString.regexMatch(condiction, "\\(") > TString.regexMatch(condiction, "\\)") && condictionArr[0].startsWith("(")){
-					condictionArr[0] = TString.removePrefix(condictionArr[0]);
-				}
-
-				condictionArr[1] = condictionArr[1].trim();
-
-				if(condictionArr.length>1){
-					if(operatorChar.contains("in") && condictionArr[1].trim().startsWith("(") && condictionArr[1].trim().endsWith(")")){
-						condictionArr[1] = condictionArr[1].substring(1,condictionArr[1].length()-1);
+				//如果包含 ) 并且不在字符串中, 则移除后面的内容, 防止解析出 1=1) m2, gggg m3  导致替换问题
+				if (condiction.indexOf("(") < condiction.indexOf(")") && TString.searchByRegex(condiction, "[\\\"`'].*?\\).*?[\\\"`']").length == 0) {
+					int indexClosePair = condiction.lastIndexOf(")");
+					if (indexClosePair != -1) {
+						condiction = condiction.substring(0, indexClosePair + 1);
 					}
+				}
 
-					if(condictionArr[0].startsWith("(") && TString.regexMatch(condictionArr[1], "\\(") > TString.regexMatch(condictionArr[1], "\\)")){
+				//between 则拼接下一段
+				if (TString.regexMatch(condiction, "\\sbetween\\s") > 0) {
+					i = i + 1;
+					condiction = condiction + sqlCondictions[i];
+				}
+
+				String originCondiction = condiction;
+				condiction = condiction.trim();
+				String concateMethod = condiction.substring(0, condiction.indexOf(" ") + 1).trim();
+				condiction = condiction.substring(condiction.indexOf(" ") + 1, condiction.length()).trim();
+				String[] splitedCondicction = TString.searchByRegex(condiction, "(\\sbetween\\s+)|(\\sis\\s+)|(\\slike\\s+)|(\\s(not\\s)?in\\s+)|(\\!=)|(>=)|(<=)|[=<>]");
+				if (splitedCondicction.length == 1) {
+					String operatorChar = splitedCondicction[0].trim();
+					String[] condictionArr = condiction.split("(\\sbetween\\s+)|(\\sis\\s+)|(\\slike\\s+)|(\\s(not\\s)?in\\s+)|(\\!=)|(>=)|(<=)|[=<>]");
+					condictionArr[0] = condictionArr[0].trim();
+
+					//查询的主字段 ( 的处理
+					if (TString.regexMatch(condiction, "\\(") > TString.regexMatch(condiction, "\\)") && condictionArr[0].startsWith("(")) {
 						condictionArr[0] = TString.removePrefix(condictionArr[0]);
 					}
 
-					if(condictionArr[1].endsWith(")") && TString.regexMatch(condictionArr[1], "\\(") < TString.regexMatch(condictionArr[1], "\\)")){
-						condictionArr[1] = TString.removeSuffix(condictionArr[1]);
+					condictionArr[1] = condictionArr[1].trim();
+
+					if (condictionArr.length > 1) {
+						if (operatorChar.contains("in") && condictionArr[1].trim().startsWith("(") && condictionArr[1].trim().endsWith(")")) {
+							condictionArr[1] = condictionArr[1].substring(1, condictionArr[1].length() - 1);
+						}
+
+						if (condictionArr[0].startsWith("(") && TString.regexMatch(condictionArr[1], "\\(") > TString.regexMatch(condictionArr[1], "\\)")) {
+							condictionArr[0] = TString.removePrefix(condictionArr[0]);
+						}
+
+						if (condictionArr[1].endsWith(")") && TString.regexMatch(condictionArr[1], "\\(") < TString.regexMatch(condictionArr[1], "\\)")) {
+							condictionArr[1] = TString.removeSuffix(condictionArr[1]);
+						}
+
+						condictionList.add(new String[]{originCondiction.trim(), concateMethod, condictionArr[0].trim(), operatorChar, condictionArr[1].trim(), null});
+					} else {
+						Logger.error("Parse SQL condiction error");
 					}
-
-					condictionList.add(new String[]{originCondiction.trim(), concateMethod, condictionArr[0].trim(), operatorChar, condictionArr[1].trim(), null});
-				}else{
-					Logger.error("Parse SQL condiction error");
+				} else {
+					condictionList.add(new String[]{originCondiction, null, null, null, null, null});
 				}
-			} else {
-				condictionList.add(new String[]{originCondiction, null, null, null, null, null});
 			}
-		}
 
-		for(int i=condictionList.size()-2; i>=0; i--){
-			condictionList.get(i)[5] = condictionList.get(i+1)[1];
-		}
+			for (int i = condictionList.size() - 2; i >= 0; i--) {
+				condictionList.get(i)[5] = condictionList.get(i + 1)[1];
+			}
 
+			PARSED_CONDICTIONS.put(hashcode, condictionList);
+		}
 		return condictionList;
 	}
 
