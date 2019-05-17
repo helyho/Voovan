@@ -969,7 +969,7 @@ public class TReflect {
                                         value.getClass().getName());
                             }
                         }
-                        setFieldValue(obj, fieldName, value);
+                        setFieldValue(obj, field, value);
                     }catch(Exception e){
                         throw new ReflectiveOperationException("Fill object " + getCanonicalName(obj.getClass()) +
                                 Global.CHAR_SHAPE+fieldName+" failed", e);

@@ -112,7 +112,7 @@ public class Aop {
 
                                 String cutPointClassName = cutPointInfo.getClazzName().replaceAll("\\.", "\\\\.");
                                 cutPointClassName = cutPointClassName.replaceAll("\\*", ".*?");
-                                if(TString.searchByRegex(className, cutPointClassName).length > 0){
+                                if(TString.regexMatch(className, cutPointClassName) > 0){
                                     return true;
                                 } else {
                                     return false;
@@ -132,7 +132,7 @@ public class Aop {
 
                                 innerMethodName = "^"+innerMethodName+"$";
 
-                                if(TString.searchByRegex(originMethod.getName(), innerMethodName).length > 0){
+                                if(TString.regexMatch(originMethod.getName(), innerMethodName) > 0){
                                     return true;
                                 } else {
                                     return false;

@@ -249,6 +249,7 @@ public class TString {
 		ArrayList<String> result = new ArrayList<String>();
 
 		Matcher matcher = doRegex(source, regex, flags);
+
 		if (matcher != null) {
 			do {
 				result.add(matcher.group());
@@ -277,7 +278,15 @@ public class TString {
 	 * @return 正则搜索后得到的匹配数量
 	 */
 	public static int regexMatch(String source, String regex, Integer flags) {
-		return searchByRegex(source, regex, flags).length;
+		Matcher matcher = doRegex(source, regex, flags);
+
+		int count = 0;
+		if (matcher != null) {
+			do {
+				count++;
+			} while (matcher.find());
+		}
+		return count;
 	}
 
 	/**

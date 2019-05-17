@@ -242,7 +242,7 @@ public class JSON {
 	 */
 	protected static String fixJSON(String jsonStr){
 
-		while(TString.searchByRegex(jsonStr,",[\\s\\r\\n]*,").length>0) {
+		while(TString.regexMatch(jsonStr,",[\\s\\r\\n]*,") > 0) {
 			jsonStr = TString.fastReplaceAll(jsonStr, ",[\\s\\r\\n]*,", ",");
 		}
 
@@ -260,7 +260,7 @@ public class JSON {
 	 * @return true: 是, false: 否
 	 */
 	public static boolean isJSONMap(String jsonStr){
-		return TString.searchByRegex(jsonStr, "^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0;
+		return TString.regexMatch(jsonStr, "^\\s*\\{[\\s\\S]*\\}\\s*$") > 0;
 	}
 
 	/**
@@ -269,7 +269,7 @@ public class JSON {
 	 * @return true: 是, false: 否
 	 */
 	public static boolean isJSONList(String jsonStr){
-		return TString.searchByRegex(jsonStr, "^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0;
+		return TString.regexMatch(jsonStr, "^\\s*\\[[\\s\\S]*\\]\\s*$") > 0;
 	}
 
 	/**
