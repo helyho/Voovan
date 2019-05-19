@@ -11,7 +11,7 @@ import java.util.function.Function;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public interface CacheMap<K, V> extends Map<K,V>{
+public interface ICacheMap<K, V> extends Map<K,V>{
 
     public V put(K key, V value, long expire);
 
@@ -30,7 +30,7 @@ public interface CacheMap<K, V> extends Map<K,V>{
      * @param buildFunction Function 对象
      * @return CachedHashMap 对象
      */
-    public CacheMap<K, V> supplier(Function<K, V> buildFunction);
+    public ICacheMap<K, V> supplier(Function<K, V> buildFunction);
 
     /**
      * 获取默认超时时间
@@ -43,7 +43,7 @@ public interface CacheMap<K, V> extends Map<K,V>{
      * @param expire 超时时间
      * @return CachedHashMap 对象
      */
-    public CacheMap expire(long expire);
+    public ICacheMap expire(long expire);
 
     /**
      * 为 Key 获取 key 的超时时间
