@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class RedisMap<K, V> implements CacheMap<K, V>, Closeable {
+public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
     public static final String LOCK_SUCCESS = "OK";
     public static final Long   UNLOCK_SUCCESS = 1L;
     public static final String SET_NOT_EXIST = "NX";

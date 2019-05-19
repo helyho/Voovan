@@ -6,7 +6,7 @@ import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.tools.collection.MultiMap;
 import org.voovan.tools.bucket.Bucket;
-import org.voovan.tools.collection.CachedHashMap;
+import org.voovan.tools.collection.CachedMap;
 import org.voovan.tools.bucket.LeakBucket;
 import org.voovan.tools.bucket.TokenBucket;
 import org.voovan.tools.log.Logger;
@@ -15,22 +15,22 @@ import org.voovan.tools.reflect.TReflect;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 
 public class RateLimiterFilter implements HttpFilter {
 
     private static MultiMap<String, Limiter> LIMITER_DEFINE_MAP = new MultiMap<String, Limiter>();
 
-    private static Function<Limiter, Object> bucketRelease = (limiter) -> {
+    private static BiFunction<String, Limiter, Long> bucketRelease = (key, limiter) -> {
         limiter.getBucket().release();
-        return null;
+        return -1l;
     };
 
-    private static CachedHashMap<String, Limiter> URL_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1).destory(bucketRelease).create();
-    private static CachedHashMap<String, Limiter> IP_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1).destory(bucketRelease).create();
-    private static CachedHashMap<String, Limiter> HEADER_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1).destory(bucketRelease).create();
-    private static CachedHashMap<String, Limiter> SESSION_LIMITER_MAP = new CachedHashMap<String,Limiter>(10000).autoRemove(true).interval(1).destory(bucketRelease).create();
+    private static CachedMap<String, Limiter> URL_LIMITER_MAP = new CachedMap<String,Limiter>(10000).autoRemove(true).interval(1).destory(bucketRelease).create();
+    private static CachedMap<String, Limiter> IP_LIMITER_MAP = new CachedMap<String,Limiter>(10000).autoRemove(true).interval(1).destory(bucketRelease).create();
+    private static CachedMap<String, Limiter> HEADER_LIMITER_MAP = new CachedMap<String,Limiter>(10000).autoRemove(true).interval(1).destory(bucketRelease).create();
+    private static CachedMap<String, Limiter> SESSION_LIMITER_MAP = new CachedMap<String,Limiter>(10000).autoRemove(true).interval(1).destory(bucketRelease).create();
 
     private AtomicBoolean isInit = new AtomicBoolean(false);
 
