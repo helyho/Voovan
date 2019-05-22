@@ -13,6 +13,7 @@ public interface Serialize {
 
     /**
      * 反序列化方法
+     * @param <T> 范型类型
      * @param bytes 反序列化后的字节
      * @param clazz 反序列化后的目标对象类型
      * @return 反序列化后的目标对象

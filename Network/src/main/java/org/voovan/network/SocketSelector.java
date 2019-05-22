@@ -9,7 +9,7 @@ import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.*;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
-import org.voovan.tools.collection.SimpleArraySet;
+import org.voovan.tools.collection.ArraySet;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -39,7 +39,7 @@ public class SocketSelector implements Closeable {
 	protected Selector selector;
 	protected ByteBuffer readTempBuffer;
 
-	protected SimpleArraySet<SelectionKey> selectionKeys = new SimpleArraySet<SelectionKey>(1024);
+	protected ArraySet<SelectionKey> selectionKeys = new ArraySet<SelectionKey>(1024);
 	protected AtomicBoolean selecting = new AtomicBoolean(false);
 	private boolean useSelectNow = false;
 

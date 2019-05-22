@@ -1,4 +1,4 @@
-package org.voovan.test.tools;
+package org.voovan.test.tools.serialize;
 
 import junit.framework.TestCase;
 import org.voovan.test.tools.json.TestObject;

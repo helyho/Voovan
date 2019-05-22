@@ -1,8 +1,8 @@
 package org.voovan.tools.buffer;
 
 import org.voovan.Global;
+import org.voovan.tools.TByte;
 import org.voovan.tools.collection.ObjectThreadPool;
-import org.voovan.tools.TStream;
 import org.voovan.tools.TUnsafe;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -389,7 +389,7 @@ public class TByteBuffer {
                 if(i == (byteBuffer.limit() - mark.length + j )){
                     break;
                 }
-                int pos = TStream.contains(mark, byteBuffer.get(i+mark.length-j));
+                int pos = TByte.byteIndexOf(mark, byteBuffer.get(i+mark.length-j));
                 if( pos== -1){
                     i = i + mark.length + 1 - j;
                     j = 0 ;

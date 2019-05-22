@@ -434,7 +434,7 @@ public class RingDirectBuffer {
 				if(i == (remaining() - mark.length + j )){
 					break;
 				}
-				int pos = TStream.contains(mark, get(i+mark.length-j));
+				int pos = TByte.byteIndexOf(mark, get(i+mark.length-j));
 				if( pos== -1){
 					i = i + mark.length + 1 - j;
 					j = 0 ;

@@ -146,11 +146,13 @@ public class JSONEncode {
     public static String fromObject(Object object, boolean allField) throws ReflectiveOperationException {
         String value = null;
 
+        if (object == null) {
+            return "null";
+        }
+
         Class clazz = object.getClass();
 
-        if (object == null) {
-            value = "null";
-        } else if (object instanceof Class) {
+        if (object instanceof Class) {
             return ((Class)object).getCanonicalName();
         } else if (object instanceof BigDecimal) {
             if(BigDecimal.ZERO.compareTo((BigDecimal)object)==0){

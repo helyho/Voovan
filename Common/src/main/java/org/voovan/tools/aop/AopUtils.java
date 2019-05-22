@@ -25,7 +25,6 @@ import java.util.regex.Matcher;
  * 切面工具类
  *
  * @author: helyho
- * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
@@ -37,7 +36,7 @@ public class AopUtils {
      * 获取 CtClass 对象
      * @param className CtClass 对象完全现定名
      * @return CtClass 对象
-     * @throws NotFoundException
+     * @throws NotFoundException 无法找到对一个的 CtClass
      */
     public static CtClass getCtClass(String className) throws
             NotFoundException {
