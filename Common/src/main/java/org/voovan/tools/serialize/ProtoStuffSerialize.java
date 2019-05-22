@@ -5,7 +5,6 @@ import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;
 import org.voovan.tools.TByte;
-import org.voovan.tools.TStream;
 import org.voovan.tools.reflect.TReflect;
 
 import java.nio.charset.Charset;
@@ -13,7 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 类文字命名
+ * ProtoStuff 的序列化实现
  *
  * @author: helyho
  * ignite-test Framework.

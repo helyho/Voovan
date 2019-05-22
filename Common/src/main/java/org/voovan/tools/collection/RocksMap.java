@@ -1,5 +1,4 @@
 package org.voovan.tools.collection;
-import com.sun.istack.internal.NotNull;
 import org.rocksdb.*;
 import org.voovan.tools.TByte;
 import org.voovan.tools.TFile;
@@ -87,7 +86,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param dbOptions DBOptions 配置对象
      * @param readOptions ReadOptions 配置对象
      * @param writeOptions WriteOptions 配置对象
-     * @throws RocksDBException
+     * @throws RocksDBException RocksDB 异常
      */
     public RocksMap(String dbname, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions) throws RocksDBException {
         this.dbname = dbname == null ? "default" : dbname;
@@ -354,7 +353,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     @Override
-    public void putAll(@NotNull Map m) {
+    public void putAll(Map m) {
         try {
             WriteBatch writeBatch = new WriteBatch();
             Iterator<Entry> iterator = m.entrySet().iterator();
@@ -384,7 +383,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    @NotNull
     @Override
     public Set keySet() {
         TreeSet<K> keySet = new TreeSet<K>();
@@ -403,13 +401,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return keySet;
     }
 
-    @NotNull
     @Override
     public Collection values() {
         throw new UnsupportedOperationException();
     }
 
-    @NotNull
     @Override
     public Set<Entry<K, V>> entrySet() {
         TreeMap<K,V> entryMap =  new TreeMap<K,V>();
