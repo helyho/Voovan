@@ -37,18 +37,40 @@ public class TReflect {
     private static Map<Class, Field[]> FIELD_ARRAYS = new ConcurrentHashMap<Class ,Field[]>();
     private static Map<String, Method[]> METHOD_ARRAYS = new ConcurrentHashMap<String ,Method[]>();
     private static Map<String, Constructor[]> CONSTRUCTOR_ARRAYS = new ConcurrentHashMap<String ,Constructor[]>();
-    private static Map<Class, String> CLASS_NAME = new ConcurrentHashMap<Class ,String>();
+    private static Map<Class, String> NAME_CLASS = new ConcurrentHashMap<Class ,String>();
+    private static Map<String, Class> CLASS_NAME = new ConcurrentHashMap<String, Class>();
     private static Map<Class, Boolean> CLASS_BASIC_TYPE = new ConcurrentHashMap<Class ,Boolean>();
 
 
-    public static String getCanonicalName(Class clazz){
-        String canonicalName = CLASS_NAME.get(clazz);
+    /**
+     * 根据 Class 对象获取类的完全现定名
+     * @param clazz Class 对象
+     * @return 类的完全现定名
+     */
+    public static String getClassName(Class clazz){
+        String canonicalName = NAME_CLASS.get(clazz);
         if(canonicalName == null){
             canonicalName = clazz.getCanonicalName();
-            CLASS_NAME.put(clazz, canonicalName);
+            NAME_CLASS.put(clazz, canonicalName);
         }
 
         return canonicalName;
+    }
+
+    /**
+     * 根据类的完全现定名, 获取 Class
+     * @param className 类的完全现定名
+     * @return Class 对象
+     * @throws ClassNotFoundException 类没有找到的异常
+     */
+    public static Class getClassByName(String className) throws ClassNotFoundException {
+        Class clazz = CLASS_NAME.get(className);
+        if(clazz == null){
+            clazz = Class.forName(className);
+            CLASS_NAME.put(className, clazz);
+        }
+
+        return clazz;
     }
 
     /**
@@ -90,7 +112,7 @@ public class TReflect {
      */
     public static Field findField(Class<?> clazz, String fieldName) {
 
-        String mark = new StringBuilder(getCanonicalName(clazz)).append(Global.CHAR_SHAPE).append(fieldName).toString();
+        String mark = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(fieldName).toString();
 
         Field field = FIELDS.get(mark);
 
@@ -126,7 +148,7 @@ public class TReflect {
     public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName)
             throws ReflectiveOperationException{
 
-        String marker = new StringBuilder(getCanonicalName(clazz)).append(Global.CHAR_SHAPE).append(fieldName).toString();
+        String marker = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(fieldName).toString();
 
         Field field = FIELDS.get(marker);
         if (field==null){
@@ -294,9 +316,9 @@ public class TReflect {
      */
     public static Method findMethod(Class<?> clazz, String name,
                                     Class<?>... paramTypes) {
-        StringBuilder markBuilder = new StringBuilder(getCanonicalName(clazz)).append(Global.CHAR_SHAPE).append(name);
+        StringBuilder markBuilder = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(name);
         for(Class<?> paramType : paramTypes){
-            markBuilder.append("$").append(getCanonicalName(paramType));
+            markBuilder.append("$").append(getClassName(paramType));
         }
 
         String marker = markBuilder.toString();
@@ -330,7 +352,7 @@ public class TReflect {
      */
     public static Method[] findMethod(Class<?> clazz, String name,
                                       int paramCount) {
-        String marker = new StringBuilder(getCanonicalName(clazz)).append(Global.CHAR_SHAPE).append(name).append(Global.CHAR_AT).append(paramCount).toString();
+        String marker = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(name).append(Global.CHAR_AT).append(paramCount).toString();
 
         Method[] methods = METHOD_ARRAYS.get(marker);
 
@@ -363,7 +385,7 @@ public class TReflect {
 
         Method[] methods = null;
 
-        String marker = getCanonicalName(clazz);
+        String marker = getClassName(clazz);
 
         methods = METHOD_ARRAYS.get(marker);
 
@@ -397,7 +419,7 @@ public class TReflect {
 
         Method[] methods = null;
 
-        String marker = new StringBuilder(getCanonicalName(clazz)).append(Global.CHAR_SHAPE).append(name).toString();
+        String marker = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(name).toString();
         methods = METHOD_ARRAYS.get(marker);
         if(methods==null){
 
@@ -591,9 +613,9 @@ public class TReflect {
 
         Class<?>[] parameterTypes = getArrayClasses(args);
 
-        StringBuilder markBuilder = new StringBuilder(getCanonicalName(targetClazz));
+        StringBuilder markBuilder = new StringBuilder(getClassName(targetClazz));
         for(Class<?> paramType : parameterTypes){
-            markBuilder.append("$").append(getCanonicalName(paramType));
+            markBuilder.append("$").append(getClassName(paramType));
         }
 
         String mark = markBuilder.toString();
@@ -625,7 +647,7 @@ public class TReflect {
             if(constructor==null) {
 
                 //缓存构造函数
-                mark = getCanonicalName(targetClazz);
+                mark = getClassName(targetClazz);
                 Constructor[] constructors =  CONSTRUCTOR_ARRAYS.get(mark);
                 if(constructors==null){
 
@@ -971,7 +993,7 @@ public class TReflect {
                         }
                         setFieldValue(obj, field, value);
                     }catch(Exception e){
-                        throw new ReflectiveOperationException("Fill object " + getCanonicalName(obj.getClass()) +
+                        throw new ReflectiveOperationException("Fill object " + getClassName(obj.getClass()) +
                                 Global.CHAR_SHAPE+fieldName+" failed", e);
                     }
                 }
@@ -1208,7 +1230,7 @@ public class TReflect {
         if(TReflect.isBasicType(clazz)){
             jsonStrBuilder.append(clazz.getName());
         } else if(clazz.isArray()){
-            String clazzName = getCanonicalName(clazz);
+            String clazzName = getClassName(clazz);
             clazzName = clazzName.substring(clazzName.lastIndexOf(Global.STR_POINT)+1,clazzName.length()-2)+"[]";
             jsonStrBuilder.append(clazzName);
         } else {
@@ -1329,7 +1351,7 @@ public class TReflect {
 
         //排除的包中的 class 不加载
         for(String systemPackage : systemPackages){
-            if(getCanonicalName(clazz).startsWith(systemPackage)){
+            if(getClassName(clazz).startsWith(systemPackage)){
                 return true;
             }
         }

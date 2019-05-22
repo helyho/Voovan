@@ -1,6 +1,5 @@
 package org.voovan.tools.collection;
 
-import java.nio.channels.SelectionKey;
 import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -13,12 +12,12 @@ import java.util.Iterator;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class SimpleArraySet<E> extends AbstractSet<E> {
+public class ArraySet<E> extends AbstractSet<E> {
 
 	Object[] elements;
 	volatile int size;
 
-	public SimpleArraySet(int cap) {
+	public ArraySet(int cap) {
 		elements = new Object[cap];
 	}
 
@@ -32,29 +31,46 @@ public class SimpleArraySet<E> extends AbstractSet<E> {
 
 	public void set(int index, E e){
 		elements[index] = e;
+		if(index >= size){
+			size++;
+		}
 	}
 
 	public E getAndRemove(int index){
 		E e = (E)elements[index];
 		elements[index] = null;
+		size--;
 		return e;
 	}
 
 	@Override
-	public boolean add(E selectionKey) {
-		elements[size++] = selectionKey;
+	public boolean add(E objet) {
+		elements[size++] = objet;
 		if (elements.length == size) {
 			reallocate();
 		}
 		return true;
 	}
 
-	@Override
-	public boolean contains(Object o) {
-		return false;
+	public int indexOf(Object o) {
+		if (o == null) {
+			for (int i = 0; i < size; i++)
+				if (elements[i]==null)
+					return i;
+		} else {
+			for (int i = 0; i < size; i++)
+				if (o.equals(elements[i]))
+					return i;
+		}
+		return -1;
 	}
 
-	private void reallocate() {
+	@Override
+	public boolean contains(Object o) {
+		return indexOf(o) != -1;
+	}
+
+	private synchronized void reallocate() {
 		elements = Arrays.copyOf(elements, elements.length << 1);
 	}
 
@@ -63,9 +79,31 @@ public class SimpleArraySet<E> extends AbstractSet<E> {
 		throw new UnsupportedOperationException();
 	}
 
+	private void rangeCheck(int index) {
+		if (index >= size)
+			throw new IndexOutOfBoundsException();
+	}
+
 	@Override
 	public boolean remove(Object o) {
-		return false;
+		int index = indexOf(o);
+		if(index==-1){
+			return false;
+		} else {
+			remove(index);
+			return true;
+		}
+	}
+
+	public E remove(int index) {
+		Object value = elements[index];
+		int numMoved = size - index - 1;
+		if (numMoved > 0)
+			System.arraycopy(elements, index+1, elements, index,
+					numMoved);
+		elements[--size] = null;
+
+		return (E) value;
 	}
 
 	public void reset() {
@@ -79,7 +117,7 @@ public class SimpleArraySet<E> extends AbstractSet<E> {
 
 	@Override
 	public String toString() {
-		return "SelectionKeySet.size: " + size();
+		return "size: " + size();
 	}
 
 }

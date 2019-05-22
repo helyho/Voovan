@@ -1,5 +1,6 @@
 package org.voovan.tools.collection;
 
+import org.voovan.tools.serialize.TSerialize;
 import redis.clients.jedis.BinaryClient;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -162,7 +163,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
     @Override
     public boolean offerFirst(V s) {
         try (Jedis jedis = getJedis()) {
-            jedis.lpush(name.getBytes(), CacheStatic.serialize(s));
+            jedis.lpush(name.getBytes(), TSerialize.serialize(s));
             return true;
         }
     }
@@ -170,7 +171,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
     @Override
     public boolean offerLast(V s) {
         try (Jedis jedis = getJedis()) {
-            jedis.rpush(name.getBytes(), CacheStatic.serialize(s));
+            jedis.rpush(name.getBytes(), TSerialize.serialize(s));
             return true;
         }
     }
@@ -188,14 +189,14 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
     @Override
     public V removeFirst() {
         try (Jedis jedis = getJedis()) {
-            return (V)CacheStatic.unserialize(jedis.lpop(name.getBytes()));
+            return (V)TSerialize.unserialize(jedis.lpop(name.getBytes()));
         }
     }
 
     @Override
     public V removeLast() {
         try (Jedis jedis = getJedis()) {
-            return (V)CacheStatic.unserialize(jedis.rpop(name.getBytes()));
+            return (V)TSerialize.unserialize(jedis.rpop(name.getBytes()));
         }
     }
 
@@ -204,7 +205,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
             ArrayList<V> result = new ArrayList<V>();
             List<byte[]> queryResult = jedis.blpop(timeout, name.getBytes());
             for(byte[] bytes : queryResult){
-                result.add((V)CacheStatic.unserialize(bytes));
+                result.add((V)TSerialize.unserialize(bytes));
             }
             return result;
         }
@@ -215,7 +216,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
             ArrayList<V> result = new ArrayList<V>();
             List<byte[]> queryResult = jedis.brpop(timeout, name.getBytes());
             for(byte[] bytes : queryResult){
-                result.add((V)CacheStatic.unserialize(bytes));
+                result.add((V)TSerialize.unserialize(bytes));
             }
             return result;
         }
@@ -234,14 +235,14 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
     @Override
     public V getFirst() {
         try (Jedis jedis = getJedis()) {
-            return (V)CacheStatic.unserialize(jedis.lindex(name.getBytes(), 0));
+            return (V)TSerialize.unserialize(jedis.lindex(name.getBytes(), 0));
         }
     }
 
     @Override
     public V getLast() {
         try (Jedis jedis = getJedis()) {
-            return (V)CacheStatic.unserialize(jedis.lindex(name.getBytes(), -1));
+            return (V)TSerialize.unserialize(jedis.lindex(name.getBytes(), -1));
         }
     }
 
@@ -337,7 +338,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
         try (Jedis jedis = getJedis()) {
             byte[] pivot = jedis.lindex(name.getBytes(), index);
             for(V item : c){
-                jedis.linsert(name.getBytes(), BinaryClient.LIST_POSITION.AFTER, pivot, CacheStatic.serialize(item));
+                jedis.linsert(name.getBytes(), BinaryClient.LIST_POSITION.AFTER, pivot, TSerialize.serialize(item));
             }
         }
 
@@ -368,14 +369,14 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
     @Override
     public V get(int index) {
         try (Jedis jedis = getJedis()) {
-            return (V)CacheStatic.unserialize(jedis.lindex(name.getBytes(), index));
+            return (V)TSerialize.unserialize(jedis.lindex(name.getBytes(), index));
         }
     }
 
     @Override
     public V set(int index, V element) {
         try (Jedis jedis = getJedis()) {
-            jedis.lset(name.getBytes(), index, CacheStatic.serialize(element));
+            jedis.lset(name.getBytes(), index, TSerialize.serialize(element));
             return element;
         }
     }
@@ -384,7 +385,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
     public void add(int index, V element) {
         try (Jedis jedis = getJedis()) {
             byte[] pivot = jedis.lindex(name.getBytes(), index);
-            jedis.linsert(name.getBytes(), BinaryClient.LIST_POSITION.AFTER, pivot, CacheStatic.serialize(element));
+            jedis.linsert(name.getBytes(), BinaryClient.LIST_POSITION.AFTER, pivot, TSerialize.serialize(element));
         }
     }
 
@@ -392,7 +393,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
     public V remove(int index) {
         try (Jedis jedis = getJedis()) {
             V value = get(index);
-            jedis.lrem(name.getBytes(), 1, CacheStatic.serialize(value));
+            jedis.lrem(name.getBytes(), 1, TSerialize.serialize(value));
             return value;
         }
     }
@@ -445,7 +446,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
             ArrayList<V> result = new ArrayList<V>();
             List<byte[]> queryResult = jedis.lrange(name.getBytes(), Long.valueOf(start), Long.valueOf(end));
             for(byte[] bytes : queryResult){
-                result.add((V)CacheStatic.unserialize(bytes));
+                result.add((V)TSerialize.unserialize(bytes));
             }
 
             return result;

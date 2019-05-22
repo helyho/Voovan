@@ -1,5 +1,6 @@
 package org.voovan.tools.collection;
 
+import org.voovan.tools.serialize.TSerialize;
 import redis.clients.jedis.*;
 
 import java.io.Closeable;
@@ -215,7 +216,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
 
     @Override
     public boolean containsKey(Object key) {
-        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] keyByteArray = TSerialize.serialize(key);
 
         try(Jedis jedis = getJedis()) {
             if(name==null){
@@ -240,7 +241,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
      */
     @Override
     public V get(Object key, Function<K, V> appointedSupplier, Long createExpire, boolean refresh){
-        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] keyByteArray = TSerialize.serialize(key);
         byte[] valueByteArray;
 
         try(Jedis jedis = getJedis()) {
@@ -277,7 +278,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
             }
         }
 
-        return (V)CacheStatic.unserialize(valueByteArray);
+        return (V)TSerialize.unserialize(valueByteArray);
     }
 
     @Override
@@ -286,8 +287,8 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
             return put(key, value, expire);
         }
 
-        byte[] keyByteArray = CacheStatic.serialize(key);
-        byte[] valueByteArray = CacheStatic.serialize(value);
+        byte[] keyByteArray = TSerialize.serialize(key);
+        byte[] valueByteArray = TSerialize.serialize(value);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -315,8 +316,8 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
      * @return true: 成功, false:失败
      */
     public V put(K key, V value, long expire){
-        byte[] keyByteArray = CacheStatic.serialize(key);
-        byte[] valueByteArray = CacheStatic.serialize(value);
+        byte[] keyByteArray = TSerialize.serialize(key);
+        byte[] valueByteArray = TSerialize.serialize(value);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -343,8 +344,8 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
             return putIfAbsent(key, value, expire);
         }
 
-        byte[] keyByteArray = CacheStatic.serialize(key);
-        byte[] valueByteArray = CacheStatic.serialize(value);
+        byte[] keyByteArray = TSerialize.serialize(key);
+        byte[] valueByteArray = TSerialize.serialize(value);
 
         try (Jedis jedis = getJedis()) {
             long result = 0;
@@ -358,7 +359,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
                     if(valueBytes == null){
                         return get(key);
                     } else {
-                        value = (V) CacheStatic.unserialize(valueBytes);
+                        value = (V) TSerialize.unserialize(valueBytes);
                     }
                 }
             }else {
@@ -371,7 +372,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
                     if(valueBytes == null){
                         return get(key);
                     } else {
-                        value = (V) CacheStatic.unserialize(valueBytes);
+                        value = (V) TSerialize.unserialize(valueBytes);
                     }
                 }
             }
@@ -381,8 +382,8 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
     }
 
     public V putIfAbsent(K key, V value, long expire) {
-        byte[] keyByteArray = CacheStatic.serialize(key);
-        byte[] valueByteArray = CacheStatic.serialize(value);
+        byte[] keyByteArray = TSerialize.serialize(key);
+        byte[] valueByteArray = TSerialize.serialize(value);
 
         try (Jedis jedis = getJedis()) {
             if (name == null) {
@@ -408,7 +409,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
      * @param expire 超时时间
      */
     public boolean setTTL(K key, long expire) {
-        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] keyByteArray = TSerialize.serialize(key);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -425,7 +426,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
      * @return 超时时间
      */
     public long getTTL(K key) {
-        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] keyByteArray = TSerialize.serialize(key);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -442,7 +443,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
      * @return true: 成功, false:失败
      */
     public boolean persist(K key) {
-        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] keyByteArray = TSerialize.serialize(key);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -455,7 +456,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
 
     @Override
     public V remove(Object key) {
-        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] keyByteArray = TSerialize.serialize(key);
         byte[] valueByteArray;
 
         try(Jedis jedis = getJedis()) {
@@ -472,7 +473,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
                 }
             }
 
-            return (V) CacheStatic.unserialize(valueByteArray);
+            return (V) TSerialize.unserialize(valueByteArray);
         }
     }
 
@@ -482,8 +483,8 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
             for (Object obj : map.entrySet()) {
                 Map.Entry entry = (Map.Entry) obj;
 
-                byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
-                byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
+                byte[] keyByteArray = TSerialize.serialize(entry.getKey());
+                byte[] valueByteArray = TSerialize.serialize(entry.getValue());
 
                 if(name==null){
                     jedis.set(keyByteArray, valueByteArray);
@@ -499,8 +500,8 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
             for (Object obj : map.entrySet()) {
                 Map.Entry entry = (Map.Entry) obj;
 
-                byte[] keyByteArray = CacheStatic.serialize(entry.getKey());
-                byte[] valueByteArray = CacheStatic.serialize(entry.getValue());
+                byte[] keyByteArray = TSerialize.serialize(entry.getKey());
+                byte[] valueByteArray = TSerialize.serialize(entry.getValue());
 
                 if(name==null) {
                     jedis.setex(keyByteArray, (int) expire, valueByteArray);
@@ -529,14 +530,14 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
                 return (Set<K>) jedis.keys("*".getBytes()).parallelStream().map(new Function<byte[], Object>() {
                     @Override
                     public Object apply(byte[] bytes) {
-                        return  (K)CacheStatic.unserialize(bytes);
+                        return  (K)TSerialize.unserialize(bytes);
                     }
                 }).collect(Collectors.toSet());
             }else {
                 return (Set<K>)jedis.hkeys(name.getBytes()).parallelStream().map(new Function<byte[], Object>() {
                     @Override
                     public Object apply(byte[] bytes) {
-                        return  (K)CacheStatic.unserialize(bytes);
+                        return  (K)TSerialize.unserialize(bytes);
                     }
                 }).collect(Collectors.toSet());
             }
@@ -554,14 +555,14 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
                 return (Set<K>)jedis.hkeys(pattern.getBytes()).stream().map(new Function<byte[], K>() {
                     @Override
                     public K apply(byte[] bytes) {
-                        return  (K)CacheStatic.unserialize(bytes);
+                        return  (K)TSerialize.unserialize(bytes);
                     }
                 }).collect(Collectors.toSet());
             }else {
                 return (Set<K>) jedis.keys(pattern.getBytes()).parallelStream().map(new Function<byte[], Object>() {
                     @Override
                     public Object apply(byte[] bytes) {
-                        return  (K)CacheStatic.unserialize(bytes);
+                        return  (K)TSerialize.unserialize(bytes);
                     }
                 }).collect(Collectors.toSet());
             }
@@ -577,7 +578,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
                 return jedis.hvals(name.getBytes()).stream().map(new Function<byte[], V>() {
                     @Override
                     public V apply(byte[] bytes) {
-                        return  (V)CacheStatic.unserialize(bytes);
+                        return  (V)TSerialize.unserialize(bytes);
                     }
                 }).collect(Collectors.toList());
             }
@@ -596,7 +597,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
      * @return 自增后的结果
      */
     public long incr(K key, long value) {
-        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] keyByteArray = TSerialize.serialize(key);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -617,7 +618,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
      * @return 自增后的结果
      */
     public double incrFloat(K key, double value) {
-        byte[] keyByteArray = CacheStatic.serialize(key);
+        byte[] keyByteArray = TSerialize.serialize(key);
 
         try (Jedis jedis = getJedis()) {
             if(name==null){
@@ -638,7 +639,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
 
     public ScanedObject scan(String cursor, V matchValue, Integer count){
         try (Jedis jedis = getJedis()) {
-            byte[] matchValueByteArray = CacheStatic.serialize(matchValue);
+            byte[] matchValueByteArray = TSerialize.serialize(matchValue);
             ScanParams scanParams = new ScanParams();
             if(matchValue!=null) {
                 scanParams.match(matchValueByteArray);
@@ -652,7 +653,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
                 ScanResult<byte[]> scanResult = jedis.scan(cursor.getBytes(), scanParams);
                 ScanedObject scanedObject = new ScanedObject(scanResult.getStringCursor());
                 for(byte[] keyBytes : scanResult.getResult()){
-                    scanedObject.getResultList().add((V)CacheStatic.unserialize(keyBytes));
+                    scanedObject.getResultList().add((V)TSerialize.unserialize(keyBytes));
                 }
                 return scanedObject;
             }else {
@@ -661,7 +662,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
 
                 for(Map.Entry<byte[], byte[]> entryItem : scanResult.getResult()){
 
-                    Map.Entry<K, V> entry = new AbstractMap.SimpleEntry<K, V>((K)CacheStatic.unserialize(entryItem.getKey()), (V)CacheStatic.unserialize(entryItem.getValue()));
+                    Map.Entry<K, V> entry = new AbstractMap.SimpleEntry<K, V>((K)TSerialize.unserialize(entryItem.getKey()), (V)TSerialize.unserialize(entryItem.getValue()));
                     scanedObject.getResultList().add(entry);
                 }
                 return scanedObject;

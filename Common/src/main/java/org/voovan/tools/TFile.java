@@ -513,7 +513,7 @@ public class TFile {
 	public static boolean mkdir(String dirPath){
 		File dir = new File(TFile.getFileDirectory(dirPath));
 		if(!dir.exists()) {
-			return dir.mkdir();
+			return dir.mkdirs();
 		} else{
 			return true;
 		}

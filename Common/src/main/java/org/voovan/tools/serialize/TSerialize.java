@@ -16,10 +16,12 @@ public class TSerialize {
     public static Serialize SERIALIZE;
     static {
         String serializeType = TProperties.getString("framework", "SerializeType");
-        if("JSON".equalsIgnoreCase(serializeType)){
+        if("JSON".equalsIgnoreCase(serializeType.trim())){
             serializeType = "org.voovan.tools.serialize.DefaultJSONSerialize";
-        } else if("JDK".equalsIgnoreCase(serializeType)){
+        } else if("JDK".equalsIgnoreCase(serializeType.trim())){
             serializeType = "org.voovan.tools.serialize.DefaultJDKSerialize";
+        } else if("ProtoStuff".equalsIgnoreCase(serializeType.trim())){
+            serializeType = "org.voovan.tools.serialize.ProtoStuffSerialize";
         } else if(serializeType == null){
             serializeType = "org.voovan.tools.serialize.DefaultJDKSerialize";
         }
@@ -32,7 +34,7 @@ public class TSerialize {
             e.printStackTrace();
         }
 
-        Logger.simple("[SYSTEM] Cache serialize type: " + serializeType);
+        Logger.simple("[SYSTEM] serialize type: " + serializeType);
     }
 
     /**
@@ -41,7 +43,7 @@ public class TSerialize {
      * @return 序列化的字节
      */
     public static byte[] serialize(Object object) {
-        return SERIALIZE.serialize(object);
+        return object == null ? null : SERIALIZE.serialize(object);
     }
 
     /**
@@ -51,7 +53,7 @@ public class TSerialize {
      * @return 反序列化的对象
      */
     public static Object unserialize(byte[] bytes, Class clazz) {
-        return SERIALIZE.unserialize(bytes, clazz);
+        return bytes == null ? null : SERIALIZE.unserialize(bytes, clazz);
     }
 
     /**

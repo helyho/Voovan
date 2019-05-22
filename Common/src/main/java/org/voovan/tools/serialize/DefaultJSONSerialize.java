@@ -7,6 +7,7 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 默认框架内 JSON 序列化的实现
@@ -48,8 +49,12 @@ public class DefaultJSONSerialize implements Serialize {
 
             genericClazzs = genericClazzs.length == 0 ? null : genericClazzs;
 
-
-            return TReflect.getObjectFromMap(mainClazz, jsonPath.mapObject("/V", genericClazzs), true);
+            if (clazz == null || TReflect.isSystemType(clazz)) {
+                return (T)jsonPath.value("/V", genericClazzs);
+            } else {
+                Object obj = TReflect.getObjectFromMap(mainClazz, jsonPath.mapObject("/V", genericClazzs), true);
+                return (T)obj;
+            }
         } catch (Exception e){
             Logger.error("TSerialize.serializeJDK error: ", e);
             return null;

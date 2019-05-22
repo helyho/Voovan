@@ -1,4 +1,4 @@
-package org.voovan.test.tools;
+package org.voovan.test.tools.collection;
 
 import junit.framework.TestCase;
 import org.voovan.Global;

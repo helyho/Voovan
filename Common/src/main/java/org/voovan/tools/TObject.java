@@ -116,4 +116,72 @@ public class TObject {
 		}
 		return arrayMap;
 	}
+
+	/**
+	 * 数组拼接
+	 * @param firstBytes		   首个字节数组
+	 * @param firstBytesLength     首个数组长度
+	 * @param lastBytes			   拼接在后的数组
+	 * @param lastBytesLength      拼接在后的数组长度
+	 * @return 字节数组
+	 */
+	public static Object[] arrayConcat(Object[] firstBytes,int firstBytesLength, Object[] lastBytes,int lastBytesLength) {
+		if (lastBytes.length == 0)
+			return firstBytes;
+		Object[] target = new Object[firstBytesLength + lastBytesLength];
+		System.arraycopy(firstBytes, 0, target, 0, firstBytesLength);
+		System.arraycopy(lastBytes, 0, target, firstBytes.length,lastBytesLength);
+		return target;
+	}
+
+	public static int arrayIndexOf(Object[] source, Object[] mark){
+			if(source.length == 0){
+				return -1;
+			}
+
+			if(source.length < mark.length){
+				return -1;
+			}
+
+			int index = -1;
+
+			int i = 0;
+			int j = 0;
+
+			while(i <= (source.length - mark.length + j )  ){
+				if(!source[i].equals(mark[j]) ){
+					if(i == (source.length - mark.length + j )){
+						break;
+					}
+
+					int pos = -1;
+					for(int p = mark.length-1 ; p >= 0; p--){
+						if(mark[p] == source[i+mark.length-j]){
+							pos = p ;
+						}
+					}
+
+					if( pos== -1){
+						i = i + mark.length + 1 - j;
+						j = 0 ;
+					}else{
+						i = i + mark.length - pos - j;
+						j = 0;
+					}
+				}else{
+					if(j == (mark.length - 1)){
+						i = i - j + 1 ;
+						j = 0;
+						index  = i-j - 1;
+						break;
+					}else{
+						i++;
+						j++;
+					}
+				}
+			}
+
+			return index;
+	}
+
 }

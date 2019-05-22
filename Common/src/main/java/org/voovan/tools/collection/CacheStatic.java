@@ -114,31 +114,4 @@ public class CacheStatic {
     public static int defaultPoolSize(){
         return TPerformance.getProcessorCount() * 10;
     }
-
-    /**
-     * 序列化
-     * @param obj 待序列化的对象
-     * @return 字节码
-     */
-    public static byte[] serialize(Object obj){
-        if(obj == null){
-            return null;
-        }
-
-        return TSerialize.serialize(obj);
-    }
-
-    /**
-     * 反序列化
-     * @param byteArray 字节码
-     * @return 反序列化的对象
-     */
-    public static Object unserialize(byte[] byteArray){
-        if(byteArray==null){
-            return null;
-        }
-
-        return TSerialize.unserialize(byteArray);
-    }
-
 }
