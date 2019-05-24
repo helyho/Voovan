@@ -32,7 +32,7 @@ public class WebServerConfig {
     private boolean MatchRouteIgnoreCase = false;
     private String characterSet     = "UTF-8";
     private String responseCharacterSet     = "";
-    private String sessionContainer = "org.voovan.tools.collection.CachedHashMap";
+    private String sessionContainer = "org.voovan.tools.collection.CachedMap";
     private int sessionTimeout      = 30;
     private int keepAliveTimeout    = 60;
     private boolean accessLog       = false;
