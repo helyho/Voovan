@@ -336,6 +336,7 @@ public class TReflect {
             }
 
             if(marker!=null && method!=null) {
+                method.setAccessible(true);
                 METHODS.put(marker, method);
             }
         }
@@ -361,6 +362,7 @@ public class TReflect {
             Method[] allMethods = getMethods(clazz, name);
             for (Method method : allMethods) {
                 if (method.getParameterTypes().length == paramCount) {
+                    method.setAccessible(true);
                     methodList.add(method);
                 }
             }
@@ -393,6 +395,9 @@ public class TReflect {
             LinkedHashSet<Method> methodList = new LinkedHashSet<Method>();
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 Method[] tmpMethods = clazz.getDeclaredMethods();
+                for(Method method : tmpMethods){
+                    method.setAccessible(true);
+                }
                 methodList.addAll(Arrays.asList(tmpMethods));
             }
 
@@ -472,9 +477,6 @@ public class TReflect {
      */
     public static <T> T invokeMethod(Object obj, Method method, Object... parameters)
             throws ReflectiveOperationException {
-        if(!method.isAccessible()) {
-            method.setAccessible(true);
-        }
         return (T)method.invoke(obj, parameters);
     }
 
@@ -499,9 +501,6 @@ public class TReflect {
         Class objClass = (obj instanceof Class) ? (Class)obj : obj.getClass();
         try {
             method = findMethod(objClass, name, parameterTypes);
-            if(!method.isAccessible()) {
-                method.setAccessible(true);
-            }
             return (T)method.invoke(obj, args);
         }catch(Exception e){
             Exception lastExecption = e;
@@ -557,9 +556,6 @@ public class TReflect {
                                 }
                             }
                             method = similarMethod;
-                            if(!method.isAccessible()) {
-                                method.setAccessible(true);
-                            }
                             return (T)method.invoke(obj, convertedParams);
                         } catch (Exception ex) {
                             lastExecption = ex;
