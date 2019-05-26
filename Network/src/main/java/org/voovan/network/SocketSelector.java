@@ -412,6 +412,9 @@ public class SocketSelector implements Closeable {
 							socketContext.close();
 							return -1;
 						}
+					} if (sendSize < 0){
+						socketContext.close();
+						return -1;
 					} else {
 						start = System.currentTimeMillis();
 						totalSendByte += sendSize;
