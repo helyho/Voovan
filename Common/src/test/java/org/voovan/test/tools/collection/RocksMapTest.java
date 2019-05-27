@@ -17,10 +17,20 @@ import java.util.Map;
 public class RocksMapTest {
 
     public static void main(String[] args) throws RocksDBException {
-        RocksMap rocksMap = new RocksMap(null);
+        //测试列族区分,这个列族不写入任何数据
+        String cfName = "testdb1000";
+        RocksMap rocksMap1 = new RocksMap(cfName);
+        System.out.println(rocksMap1.get("name"));
+        if(rocksMap1.get("name") == null){
+            rocksMap1.put("name", cfName);
+        }
+
+        RocksMap rocksMap = new RocksMap("testdb");
+        System.out.println(rocksMap.get("name"));
+
         rocksMap.clear();
-        System.out.println(rocksMap.isEmpty());
-        System.out.println(rocksMap.size());
+        System.out.println("isEmpty: " + rocksMap.isEmpty());
+        System.out.println("size: " + rocksMap.size());
 
         //rollback
         rocksMap.beginTransaction();
@@ -76,18 +86,21 @@ public class RocksMapTest {
         Map subMap = rocksMap.subMap("hhhh2", "hhhh5");
         System.out.println("subMap: " + subMap);
 
+
+        //headmap
+        Map headMap = rocksMap.headMap("hhhh4");
+        System.out.println("headMap: " + headMap);
+
         //tailmap
         Map tailMap = rocksMap.tailMap("hhhh5");
         System.out.println("tailMap: " + tailMap);
-
-        //headmap
-        Map headMap = rocksMap.headMap("hhhh3");
-        System.out.println("headMap: " + headMap);
 
         //first
         System.out.println("firstKey: " + rocksMap.firstKey());
 
         //first
         System.out.println("lastKey:" + rocksMap.lastKey());
+
+        rocksMap.put("name", "testdb");
     }
 }

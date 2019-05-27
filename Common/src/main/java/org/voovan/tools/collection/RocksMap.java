@@ -21,6 +21,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     //--------------------- 公共静态变量 --------------------
+    static {
+        RocksDB.loadLibrary();
+    }
+
+
     private static byte[] DATA_BYTES = "data".getBytes();
     //缓存 db 和他对应的 TransactionDB
     private static Map<String, TransactionDB> ROCKSDB_MAP = new ConcurrentHashMap<String, TransactionDB>();
@@ -28,15 +33,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     //缓存 TransactionDB 和列族句柄的关系
     private static Map<TransactionDB, List<ColumnFamilyHandle>> CF_HANDLE_MAP = new ConcurrentHashMap<TransactionDB, List<ColumnFamilyHandle>>();
 
-    //数据列族定义
+    //默认列族定义
     private static ColumnFamilyDescriptor DEFAULE_CF_DESCRIPTOR = new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY);
-    private static ColumnFamilyDescriptor DATA_CF_DESCRIPTOR = new ColumnFamilyDescriptor(DATA_BYTES);
-
-    //默认列族
-    private static List<ColumnFamilyDescriptor> DEFAULT_CF_DESCRIPTOR_LIST = Arrays.asList(
-            DEFAULE_CF_DESCRIPTOR,
-            DATA_CF_DESCRIPTOR
-                    );
 
     //数据文件的默认保存路径
     private static String DEFAULT_DB_PATH = ".rocksdb/";
@@ -49,9 +47,16 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         DEFAULT_DB_PATH = defaultDbPath;
     }
 
-    static {
-        RocksDB.loadLibrary();
+    private static ColumnFamilyHandle getColumnFamilyHandler(RocksDB rocksDB, String cfName) throws RocksDBException {
+        for(ColumnFamilyHandle columnFamilyHandle : CF_HANDLE_MAP.get(rocksDB)){
+            if(Arrays.equals(columnFamilyHandle.getName(), cfName.getBytes())){
+                return columnFamilyHandle;
+            }
+        }
+
+        return null;
     }
+
 
     //--------------------- 成员变量 --------------------
     public DBOptions dbOptions;
@@ -59,45 +64,61 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public WriteOptions writeOptions;
 
     private TransactionDB rocksDB;
+    private ColumnFamilyDescriptor dataColumnFamilyDescriptor;
     private ColumnFamilyHandle dataColumnFamilyHandle;
     private volatile Transaction transaction;
 
     private String dbname;
+    private String cfName;
     /**
      * 构造方法
      * @throws RocksDBException RocksDB 异常
      */
     public RocksMap() throws RocksDBException {
-        this(null, null, null, null);
+        this(null, null, null, null, null);
     }
 
     /**
      * 构造方法
-     * @param dbname 数据库的名称, 基于数据保存目录的相对路径
+     * @param cfName 列族名称
      * @throws RocksDBException RocksDB 异常
      */
-    public RocksMap(String dbname) throws RocksDBException {
-        this(dbname, null, null, null);
+    public RocksMap(String cfName) throws RocksDBException {
+        this(null, cfName, null, null, null);
     }
 
     /**
      * 构造方法
      * @param dbname 数据库的名称, 基于数据保存目录的相对路径
+     * @param cfName 列族名称
+     * @throws RocksDBException RocksDB 异常
+     */
+    public RocksMap(String dbname, String cfName) throws RocksDBException {
+        this(dbname, cfName, null, null, null);
+    }
+
+    /**
+     * 构造方法
+     * @param dbname 数据库的名称, 基于数据保存目录的相对路径
+     * @param cfName 列族名称
      * @param dbOptions DBOptions 配置对象
      * @param readOptions ReadOptions 配置对象
      * @param writeOptions WriteOptions 配置对象
      * @throws RocksDBException RocksDB 异常
      */
-    public RocksMap(String dbname, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions) throws RocksDBException {
-        this.dbname = dbname == null ? "default" : dbname;
+    public RocksMap(String dbname, String cfName, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions) throws RocksDBException {
+        this.dbname = dbname == null ? "voovan_default" : dbname;
+        this.cfName = cfName == null ? "voovan_default" : cfName;
         this.readOptions = readOptions == null ? new ReadOptions() : readOptions;
         this.writeOptions = writeOptions == null ? new WriteOptions() : writeOptions;
 
+        Options options = new Options();
+        options.setCreateIfMissing(true);
+        options.setCreateMissingColumnFamilies(true);
+
         if(dbOptions == null) {
             //Rocksdb 数据库配置
-            dbOptions = new DBOptions();
-            dbOptions.setCreateIfMissing(true);
-            dbOptions.setCreateMissingColumnFamilies(true);
+            dbOptions = new DBOptions(options);
         } else {
             this.dbOptions = dbOptions;
         }
@@ -105,6 +126,28 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         rocksDB = ROCKSDB_MAP.get(this.dbname);
 
         if(rocksDB == null) {
+            //默认列族列表
+            List<ColumnFamilyDescriptor> DEFAULT_CF_DESCRIPTOR_LIST = new ArrayList<ColumnFamilyDescriptor>();
+
+            //加载已经存在的所有列族
+            {
+                List<byte[]> columnFamilyNameBytes = RocksDB.listColumnFamilies(new Options(), DEFAULT_DB_PATH + this.dbname + "/");
+                if (columnFamilyNameBytes.size() > 0) {
+                    for (byte[] columnFamilyNameByte : columnFamilyNameBytes) {
+                        ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyNameByte);
+                        if (Arrays.equals(this.cfName.getBytes(), columnFamilyNameByte)) {
+                            dataColumnFamilyDescriptor = columnFamilyDescriptor;
+                        }
+
+                        DEFAULT_CF_DESCRIPTOR_LIST.add(columnFamilyDescriptor);
+                    }
+                }
+
+                //如果为空创建默认列族
+                if (DEFAULT_CF_DESCRIPTOR_LIST.size() == 0) {
+                    DEFAULT_CF_DESCRIPTOR_LIST.add(DEFAULE_CF_DESCRIPTOR);
+                }
+            }
             //用来接收ColumnFamilyHandle
             List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList<ColumnFamilyHandle>();
 
@@ -112,12 +155,23 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             //打开 Rocksdb
             rocksDB = TransactionDB.open(dbOptions, new TransactionDBOptions(), DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+            ROCKSDB_MAP.put(this.dbname, rocksDB);
 
             CF_HANDLE_MAP.put(rocksDB, columnFamilyHandleList);
         }
 
         //设置列族
-        dataColumnFamilyHandle = CF_HANDLE_MAP.get(rocksDB).get(1);
+        dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.cfName);
+
+        //如果没有则创建一个列族
+        if (dataColumnFamilyHandle == null) {
+            dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(this.cfName.getBytes());
+            dataColumnFamilyHandle = rocksDB.createColumnFamily(dataColumnFamilyDescriptor);
+            CF_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
+        } else {
+            dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(dataColumnFamilyHandle.getName());
+        }
+
     }
 
     /**
@@ -374,12 +428,26 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     @Override
     public void clear() {
         try {
-            rocksDB.dropColumnFamily(dataColumnFamilyHandle);
-            CF_HANDLE_MAP.get(rocksDB).add(1, rocksDB.createColumnFamily(DATA_CF_DESCRIPTOR));
+            drop();
+            dataColumnFamilyHandle = rocksDB.createColumnFamily(dataColumnFamilyDescriptor);
+            CF_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
+
             //设置列族
-            dataColumnFamilyHandle = CF_HANDLE_MAP.get(rocksDB).get(1);
+            dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.cfName);
         } catch (RocksDBException e) {
             Logger.error("clear failed", e);
+        }
+    }
+
+    /**
+     * 删除这个列族
+     */
+    public void drop(){
+        try {
+            rocksDB.dropColumnFamily(dataColumnFamilyHandle);
+            CF_HANDLE_MAP.get(rocksDB).remove(dataColumnFamilyHandle);
+        } catch (RocksDBException e) {
+            Logger.error("drop failed", e);
         }
     }
 
@@ -421,7 +489,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     @Override
     public void close() throws IOException {
-        ROCKSDB_MAP.remove(rocksDB);
         if(transaction!=null){
             try {
                 transaction.rollback();
@@ -429,7 +496,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 throw new IOException(e);
             }
         }
-        rocksDB.close();
-        rocksDB.close();
+        dataColumnFamilyHandle.close();
     }
 }
