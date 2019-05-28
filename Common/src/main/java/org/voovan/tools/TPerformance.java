@@ -68,11 +68,12 @@ public class TPerformance {
 				InetAddress ip = null;
 				while (netInterfaces.hasMoreElements()) {
 					NetworkInterface ni = (NetworkInterface) netInterfaces.nextElement();
-					ip = (InetAddress) ni.getInetAddresses().nextElement();
-					LOCAL_IP_ADDRESSES.add(ip.getHostAddress());
+					if(ni.getInetAddresses().hasMoreElements()) {
+						ip = (InetAddress) ni.getInetAddresses().nextElement();
+						LOCAL_IP_ADDRESSES.add(ip.getHostAddress());
+					}
 				}
 			} catch (SocketException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
