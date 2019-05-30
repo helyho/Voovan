@@ -154,7 +154,9 @@ public class WebSocketDispatcher {
 					//解包
 					result = webSocketRouter.filterDecoder(webSocketSession, result);
 					//触发 onRecive 事件
-					result = webSocketRouter.onRecived(webSocketSession, result);
+					if(result!=null) {
+						result = webSocketRouter.onRecived(webSocketSession, result);
+					}
 					//封包
 					responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
 				}
