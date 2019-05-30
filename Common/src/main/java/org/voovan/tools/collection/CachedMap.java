@@ -200,7 +200,7 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      * @param timeMark 检查的 TimeMark 对象
      */
     private void checkAndDoExpire(TimeMark<K> timeMark){
-        if (timeMark.isExpire()) {
+        if (timeMark!=null && timeMark.isExpire()) {
             if (autoRemove) {
                 if(destory!= null) {
                     // 1.返回 null 则刷新为默认超时时间

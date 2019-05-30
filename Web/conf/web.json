@@ -34,7 +34,7 @@
 //  },
 
   // 过滤器配置节点 请求 先执行filter1, 后执行filter2,响应则相反
-  /*
+
   "Filters": [
     {
       "Name"      : "filter1",
@@ -48,13 +48,13 @@
       "Action"    : "pass"      },
     {
       "Name"      : "filter3",
-      "ClassName" : "org.voovan.test.http.HttpFilterTest1",
+      "ClassName" : "org.voovan.test.http.HttpFilterTest",
       "Encoding"  : "UTF-8",
       "Action"    : "pass"      },
    {
       "Name" : "TokenBucketFilter", //限制新增委托的过滤器
       "enable":true,
-      "ClassName" : "com.dd.http.server.filter.RateLimiterFilter",
+      "ClassName" : "org.voovan.http.server.filter.RateLimiterFilter",
 
       "limiter":[
         {
@@ -100,7 +100,7 @@
       "ClassName": "org.voovan.test.http.router.HttpTestRouter"  //Http 路由处理器
     }
   ],
-*/
+
   "Modules": [
 //    {
 //      "Name": "注解路由模块",                                       //模块名称
