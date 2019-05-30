@@ -182,7 +182,7 @@ public class HttpDispatcher {
 		}
 
 		//如果 response 在过滤器中修改过,则不执行路由处理
-		if(response.body().size()==0) {
+		if(filterResult!=null) {
 			//调用处理路由函数
 			disposeRoute(request, response);
 		}
