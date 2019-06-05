@@ -25,7 +25,8 @@ public class RocksMapTest {
             rocksMap1.put("name", cfName);
         }
 
-        RocksMap rocksMap = new RocksMap("testdb");
+        RocksMap rocksMap = new RocksMap("one", "testdb");
+//        RocksMap rocksMap = new RocksMap("one", "testdb", true);
         System.out.println(rocksMap.get("name"));
 
         rocksMap.clear();

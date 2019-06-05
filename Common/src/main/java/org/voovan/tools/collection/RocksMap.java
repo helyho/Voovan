@@ -28,10 +28,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     private static byte[] DATA_BYTES = "data".getBytes();
     //缓存 db 和他对应的 TransactionDB
-    private static Map<String, TransactionDB> ROCKSDB_MAP = new ConcurrentHashMap<String, TransactionDB>();
+    private static Map<String, RocksDB> ROCKSDB_MAP = new ConcurrentHashMap<String, RocksDB>();
 
     //缓存 TransactionDB 和列族句柄的关系
-    private static Map<TransactionDB, List<ColumnFamilyHandle>> CF_HANDLE_MAP = new ConcurrentHashMap<TransactionDB, List<ColumnFamilyHandle>>();
+    private static Map<RocksDB, List<ColumnFamilyHandle>> CF_HANDLE_MAP = new ConcurrentHashMap<RocksDB, List<ColumnFamilyHandle>>();
 
     //默认列族定义
     private static ColumnFamilyDescriptor DEFAULE_CF_DESCRIPTOR = new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY);
@@ -63,19 +63,21 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public ReadOptions readOptions;
     public WriteOptions writeOptions;
 
-    private TransactionDB rocksDB;
+    private RocksDB rocksDB;
     private ColumnFamilyDescriptor dataColumnFamilyDescriptor;
     private ColumnFamilyHandle dataColumnFamilyHandle;
     private volatile Transaction transaction;
 
     private String dbname;
     private String cfName;
+    private Boolean readOnly;
+
     /**
      * 构造方法
      * @throws RocksDBException RocksDB 异常
      */
     public RocksMap() throws RocksDBException {
-        this(null, null, null, null, null);
+        this(null, null, null, null, null, null);
     }
 
     /**
@@ -84,7 +86,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @throws RocksDBException RocksDB 异常
      */
     public RocksMap(String cfName) throws RocksDBException {
-        this(null, cfName, null, null, null);
+        this(null, cfName, null, null, null, null);
     }
 
     /**
@@ -94,8 +96,39 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @throws RocksDBException RocksDB 异常
      */
     public RocksMap(String dbname, String cfName) throws RocksDBException {
-        this(dbname, cfName, null, null, null);
+        this(dbname, cfName, null, null, null, null);
     }
+
+    /**
+     * 构造方法
+     * @param readOnly 是否以只读模式打开
+     * @throws RocksDBException RocksDB 异常
+     */
+    public RocksMap(boolean readOnly) throws RocksDBException {
+        this(null, null, null, null, null, readOnly);
+    }
+
+    /**
+     * 构造方法
+     * @param cfName 列族名称
+     * @param readOnly 是否以只读模式打开
+     * @throws RocksDBException RocksDB 异常
+     */
+    public RocksMap(String cfName, boolean readOnly) throws RocksDBException {
+        this(null, cfName, null, null, null, readOnly);
+    }
+
+    /**
+     * 构造方法
+     * @param dbname 数据库的名称, 基于数据保存目录的相对路径
+     * @param cfName 列族名称
+     * @param readOnly 是否以只读模式打开
+     * @throws RocksDBException RocksDB 异常
+     */
+    public RocksMap(String dbname, String cfName,boolean readOnly) throws RocksDBException {
+        this(dbname, cfName, null, null, null, readOnly);
+    }
+
 
     /**
      * 构造方法
@@ -104,13 +137,15 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param dbOptions DBOptions 配置对象
      * @param readOptions ReadOptions 配置对象
      * @param writeOptions WriteOptions 配置对象
+     * @param readOnly 是否以只读模式打开
      * @throws RocksDBException RocksDB 异常
      */
-    public RocksMap(String dbname, String cfName, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions) throws RocksDBException {
+    public RocksMap(String dbname, String cfName, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Boolean readOnly) throws RocksDBException {
         this.dbname = dbname == null ? "voovan_default" : dbname;
         this.cfName = cfName == null ? "voovan_default" : cfName;
         this.readOptions = readOptions == null ? new ReadOptions() : readOptions;
         this.writeOptions = writeOptions == null ? new WriteOptions() : writeOptions;
+        this.readOnly = readOnly == null ? false : readOnly;
 
         Options options = new Options();
         options.setCreateIfMissing(true);
@@ -125,7 +160,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         rocksDB = ROCKSDB_MAP.get(this.dbname);
 
-        if(rocksDB == null) {
+        if(rocksDB == null || readOnly) {
             //默认列族列表
             List<ColumnFamilyDescriptor> DEFAULT_CF_DESCRIPTOR_LIST = new ArrayList<ColumnFamilyDescriptor>();
 
@@ -151,11 +186,15 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             //用来接收ColumnFamilyHandle
             List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList<ColumnFamilyHandle>();
 
-            TFile.mkdir(DEFAULT_DB_PATH + dbname + "/");
+            TFile.mkdir(DEFAULT_DB_PATH + this.dbname + "/");
 
             //打开 Rocksdb
-            rocksDB = TransactionDB.open(dbOptions, new TransactionDBOptions(), DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
-            ROCKSDB_MAP.put(this.dbname, rocksDB);
+            if(this.readOnly) {
+                rocksDB = TransactionDB.openReadOnly(dbOptions, DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+            } else {
+                rocksDB = TransactionDB.open(dbOptions, new TransactionDBOptions(), DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                ROCKSDB_MAP.put(this.dbname, rocksDB);
+            }
 
             CF_HANDLE_MAP.put(rocksDB, columnFamilyHandleList);
         }
@@ -178,10 +217,15 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 开启事务
      */
     public void beginTransaction() {
+        if(readOnly){
+            Logger.error(new RocksDBException("Not supported operation in read only mode"));
+            return;
+        }
+
         if(transaction==null) {
-            this.transaction = rocksDB.beginTransaction(writeOptions);
+            this.transaction = ((TransactionDB) rocksDB).beginTransaction(writeOptions);
         } else {
-            throw new UnsupportedOperationException("RocksDB is in transaction model, please finish this transaction first");
+            throw new UnsupportedOperationException("RocksDB is readonly or already in transaction model");
         }
     }
 
@@ -427,6 +471,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     @Override
     public void clear() {
+        if(readOnly){
+            Logger.error("Clear failed, ", new RocksDBException("Not supported operation in read only mode"));
+            return;
+        }
+
         try {
             drop();
             dataColumnFamilyHandle = rocksDB.createColumnFamily(dataColumnFamilyDescriptor);
