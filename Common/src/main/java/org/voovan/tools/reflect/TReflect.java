@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class TReflect {
 
-    //这里不用 ConcurrentHashMap 的原因是 key 和 value 都不能是 null
     private static Map<String, Field> FIELDS = new ConcurrentHashMap<String ,Field>();
     private static Map<String, Method> METHODS = new ConcurrentHashMap<String ,Method>();
     private static Map<String, Constructor> CONSTRUCTORS = new ConcurrentHashMap<String ,Constructor>();
