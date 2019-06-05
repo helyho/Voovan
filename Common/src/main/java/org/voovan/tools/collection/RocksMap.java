@@ -248,7 +248,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         //是否启用快照事务模式
         transactionOptions.setSetSnapshot(withSnapShot);
 
-
         if(transaction==null) {
             this.transaction = ((TransactionDB) rocksDB).beginTransaction(writeOptions, transactionOptions);
         } else {
