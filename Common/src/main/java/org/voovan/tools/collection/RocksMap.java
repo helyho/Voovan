@@ -217,16 +217,47 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 开启事务
      */
     public void beginTransaction() {
+       beginTransaction(-1, false, false);
+    }
+
+    /**
+     * 开启事务
+     * 事务都是读事务，无论操作的记录间是否有交集，都不会锁定。
+     * 事务包含读、写事务：
+     * 所有的读事务不会锁定，读到的数据取决于snapshot设置。
+     * 写事务之间如果不存在记录交集，不会锁定。
+     * 写事务之间如果存在记录交集，此时如果未设置snapshot，则交集部分的记录是可以串行提交的。如果设置了snapshot，则第一个写事务(写锁队列的head)会成功，其他写事务会失败(之前的事务修改了该记录的情况下)。
+     * @param expire 超时时间
+     * @param deadlockDetect 死锁检测是否打开
+     * @param withSnapShot 是否启用快照事务
+     */
+    public void beginTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
         if(readOnly){
             Logger.error(new RocksDBException("Not supported operation in read only mode"));
             return;
         }
 
+        TransactionOptions transactionOptions = new TransactionOptions();
+
+        //事务超时时间
+        transactionOptions.setExpiration(expire);
+
+        //是否执行死锁检测
+        transactionOptions.setDeadlockDetect(deadlockDetect);
+
+        //是否启用快照事务模式
+        transactionOptions.setSetSnapshot(withSnapShot);
+
+
         if(transaction==null) {
-            this.transaction = ((TransactionDB) rocksDB).beginTransaction(writeOptions);
+            this.transaction = ((TransactionDB) rocksDB).beginTransaction(writeOptions, transactionOptions);
         } else {
             throw new UnsupportedOperationException("RocksDB is readonly or already in transaction model");
         }
+    }
+
+    public Snapshot getSnapShot(){
+        return rocksDB.getSnapshot();
     }
 
     /**
