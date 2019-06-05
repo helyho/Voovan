@@ -530,6 +530,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
+    /**
+     * 数据拷贝到内存中, 所以对这个 Set 的修改不会在 Rocksdb 中生效
+     * @return 保存了 Key 的 set
+     */
     @Override
     public Set keySet() {
         TreeSet<K> keySet = new TreeSet<K>();
@@ -553,6 +557,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * 数据拷贝到内存中, 所以对这个 Set 的修改不会在 Rocksdb 中生效
+     * @return 保存了 Entry 的 set
+     */
     @Override
     public Set<Entry<K, V>> entrySet() {
         TreeMap<K,V> entryMap =  new TreeMap<K,V>();
