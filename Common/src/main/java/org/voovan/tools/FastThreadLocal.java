@@ -10,6 +10,8 @@ import java.util.function.Supplier;
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
+ *
+ * 每个 FastThreadLocal 在各个线程中都会持有一个 index 索引位置,实际访问的时候访问的是这个 FastThreadLocal 对象在各个线程中保存的那个实例
  */
 public class FastThreadLocal<T> {
 	private ThreadLocal<FastThreadLocal> jdkThreadLocal = new ThreadLocal<FastThreadLocal>();
@@ -26,8 +28,19 @@ public class FastThreadLocal<T> {
 	 * 		为当前对象生成一个 id
 	 */
 	public FastThreadLocal(){
+		this(false);
+	}
+
+	/**
+	 * 构造函数
+	 * 		为当前对象生成一个 id
+	 */
+	private FastThreadLocal(boolean isInternal){
 		//分配一个索引在所有线程中都是用这个索引位置
-		this.index = indexGenerator.getAndIncrement();
+		if(!isInternal) {
+			this.index = indexGenerator.getAndIncrement();
+			System.out.println(this.index);
+		}
 	}
 
 	/**
@@ -94,13 +107,13 @@ public class FastThreadLocal<T> {
 			FastThreadLocal[] data = FastThread.getThread().data;
 			FastThreadLocal fastThreadLocal = data[index];
 			if (fastThreadLocal == null) {
-				fastThreadLocal = new FastThreadLocal();
+				fastThreadLocal = new FastThreadLocal(true);
 				data[index] = fastThreadLocal;
 			}
 		} else {
 			FastThreadLocal fastThreadLocal = jdkThreadLocal.get();
 			if(fastThreadLocal == null){
-				jdkThreadLocal.set(new FastThreadLocal());
+				jdkThreadLocal.set(new FastThreadLocal(true));
 			}
 		}
 	}

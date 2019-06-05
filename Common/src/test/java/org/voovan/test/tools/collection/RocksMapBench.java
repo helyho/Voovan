@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class RocksMapBench {
     public static void main(String[] args) throws RocksDBException {
-        int threadSize = 1;
+        int threadSize = 8;
         int loopSize = 50000;
 
         CountDownLatch countDownLatch = new CountDownLatch(threadSize);
