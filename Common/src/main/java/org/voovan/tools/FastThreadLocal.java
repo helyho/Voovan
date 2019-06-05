@@ -39,7 +39,6 @@ public class FastThreadLocal<T> {
 		//分配一个索引在所有线程中都是用这个索引位置
 		if(!isInternal) {
 			this.index = indexGenerator.getAndIncrement();
-			System.out.println(this.index);
 		}
 	}
 
