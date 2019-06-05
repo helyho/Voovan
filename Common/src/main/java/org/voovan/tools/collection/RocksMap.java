@@ -1,5 +1,6 @@
 package org.voovan.tools.collection;
 import org.rocksdb.*;
+import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.TByte;
 import org.voovan.tools.TFile;
 import org.voovan.tools.log.Logger;
@@ -66,7 +67,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private RocksDB rocksDB;
     private ColumnFamilyDescriptor dataColumnFamilyDescriptor;
     private ColumnFamilyHandle dataColumnFamilyHandle;
-    private volatile Transaction transaction;
+    private FastThreadLocal<Transaction> threadLocalTransaction = new FastThreadLocal<Transaction>();
 
     private String dbname;
     private String cfName;
@@ -248,8 +249,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         //是否启用快照事务模式
         transactionOptions.setSetSnapshot(withSnapShot);
 
+        Transaction transaction = threadLocalTransaction.get();
         if(transaction==null) {
-            this.transaction = ((TransactionDB) rocksDB).beginTransaction(writeOptions, transactionOptions);
+            transaction = ((TransactionDB) rocksDB).beginTransaction(writeOptions, transactionOptions);
+            threadLocalTransaction.set(transaction);
         } else {
             throw new UnsupportedOperationException("RocksDB is readonly or already in transaction model");
         }
@@ -264,9 +267,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @throws RocksDBException RocksDB 异常
      */
     public void commit() throws RocksDBException {
+        Transaction transaction = threadLocalTransaction.get();
         if(transaction!=null) {
-            this.transaction.commit();
-            this.transaction = null;
+            transaction.commit();
+            threadLocalTransaction.set(null);
         } else {
             throw new UnsupportedOperationException("RocksDB is not in transaction model");
         }
@@ -277,9 +281,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @throws RocksDBException RocksDB 异常
      */
     public void rollback() throws RocksDBException {
+        Transaction transaction = threadLocalTransaction.get();
         if(transaction!=null) {
-            this.transaction.rollback();
-            this.transaction = null;
+            transaction.rollback();
+            threadLocalTransaction.set(null);
         } else {
             throw new UnsupportedOperationException("RocksDB is not in transaction model");
         }
@@ -291,6 +296,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     private RocksIterator getIterator(){
+        Transaction transaction = threadLocalTransaction.get();
         if(transaction!=null) {
             return transaction.getIterator(readOptions, dataColumnFamilyHandle);
         } else {
@@ -398,6 +404,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public boolean containsKey(Object key) {
         byte[] values = null;
         try {
+            Transaction transaction = threadLocalTransaction.get();
             if(transaction!=null) {
                 values = transaction.get(dataColumnFamilyHandle, readOptions, TSerialize.serialize(key));
             } else {
@@ -424,6 +431,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         try {
             byte[] values = null;
+            Transaction transaction = threadLocalTransaction.get();
             if(transaction!=null) {
                 values = transaction.get(dataColumnFamilyHandle, readOptions, TSerialize.serialize(key));
             } else {
@@ -443,6 +451,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
 
         try {
+            Transaction transaction = threadLocalTransaction.get();
             if (transaction != null) {
                 transaction.put(dataColumnFamilyHandle, TSerialize.serialize(key), TSerialize.serialize(value));
             } else {
@@ -466,6 +475,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             V value = get(key);
 
             if(value != null) {
+                Transaction transaction = threadLocalTransaction.get();
                 if(transaction!=null) {
                     transaction.singleDelete(dataColumnFamilyHandle, TSerialize.serialize(key));
                 } else {
@@ -538,6 +548,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public Set keySet() {
         TreeSet<K> keySet = new TreeSet<K>();
         RocksIterator iterator = null;
+
+        Transaction transaction = threadLocalTransaction.get();
         if(transaction!=null) {
             iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
         } else {
@@ -576,6 +588,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     @Override
     public void close() throws IOException {
+        Transaction transaction = threadLocalTransaction.get();
         if(transaction!=null){
             try {
                 transaction.rollback();

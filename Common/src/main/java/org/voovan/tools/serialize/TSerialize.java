@@ -15,7 +15,7 @@ import org.voovan.tools.reflect.TReflect;
 public class TSerialize {
     public static Serialize SERIALIZE;
     static {
-        String serializeType = TProperties.getString("framework", "SerializeType");
+        String serializeType = TProperties.getString("framework", "SerializeType").trim();
         if("JSON".equalsIgnoreCase(serializeType.trim())){
             serializeType = "org.voovan.tools.serialize.DefaultJSONSerialize";
         } else if("JDK".equalsIgnoreCase(serializeType.trim())){
