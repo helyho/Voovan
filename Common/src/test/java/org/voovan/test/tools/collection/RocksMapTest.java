@@ -22,7 +22,11 @@ public class RocksMapTest {
         RocksMap rocksMap1 = new RocksMap(cfName);
         System.out.println(rocksMap1.get("name"));
         if(rocksMap1.get("name") == null){
-            rocksMap1.put("name", cfName);
+            System.out.println("putIfAbsent: "+ rocksMap1.putIfAbsent("name", cfName));
+            System.out.println("putIfAbsent: "+ rocksMap1.putIfAbsent("name", cfName));
+
+            System.out.println("replace: "+ rocksMap1.replace("name1", cfName));
+            System.out.println("replace: "+ rocksMap1.replace("name", cfName));
         }
 
         RocksMap rocksMap = new RocksMap("one", "testdb");

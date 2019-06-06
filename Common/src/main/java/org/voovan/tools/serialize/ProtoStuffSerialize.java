@@ -5,6 +5,7 @@ import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;
 import org.voovan.tools.TByte;
+import org.voovan.tools.collection.ObjectThreadPool;
 import org.voovan.tools.reflect.TReflect;
 
 import java.nio.charset.Charset;
@@ -20,6 +21,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class ProtoStuffSerialize implements Serialize {
+
+    ObjectThreadPool<LinkedBuffer> objectThreadPool = new ObjectThreadPool<LinkedBuffer>(128);
+
     Map<Class, Schema> SCHEMAS = new ConcurrentHashMap<Class, Schema>();
 
     public Schema getSchema(Class clazz) {
@@ -34,11 +38,11 @@ public class ProtoStuffSerialize implements Serialize {
     @Override
     public byte[] serialize(Object obj) {
         Schema schema = getSchema(obj.getClass());
-        LinkedBuffer buffer = LinkedBuffer.allocate(512);
+        LinkedBuffer buffer =objectThreadPool .get(()->LinkedBuffer.allocate(512));
         byte[] buf = null;
         try {
-            buf = (byte[]) ProtostuffIOUtil.toByteArray(obj, schema, buffer);
-            byte[] type = (obj.getClass().getCanonicalName()+"\0").getBytes();
+            buf = ProtostuffIOUtil.toByteArray(obj, schema, buffer);
+            byte[] type = (TSerialize.getSimpleNameByClass(obj.getClass())+"\0").getBytes();
             buf = TByte.byteArrayConcat(type,type.length, buf, buf.length);
         } finally {
             buffer.clear();
@@ -62,7 +66,7 @@ public class ProtoStuffSerialize implements Serialize {
         try {
             String className = new String(type, 0, index, Charset.defaultCharset());
 
-            Class innerClazz = TReflect.getClassByName(className);
+            Class innerClazz = TSerialize.getClassBySimpleName(className);
             Schema schema = getSchema(innerClazz);
             Object obj = null;
 
