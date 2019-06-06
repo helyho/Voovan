@@ -266,6 +266,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         //是否启用快照事务模式
         transactionOptions.setSetSnapshot(withSnapShot);
+
+        //设置快照超时时间
         transactionOptions.setLockTimeout(transactionLockTimeout);
 
         Transaction transaction = threadLocalTransaction.get();
@@ -277,11 +279,41 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
+    private Transaction getTransaction(){
+        Transaction transaction = threadLocalTransaction.get();
+        if(transaction==null){
+            throw new RocksMapException("RocksMap is not in transaction model");
+        }
+
+        return transaction;
+    }
+
+    public void savePoint() {
+        Transaction transaction = getTransaction();
+
+        try {
+            transaction.setSavePoint();
+        } catch (RocksDBException e) {
+            throw new RocksMapException("commit failed", e);
+        }
+    }
+
+    public void rollbackSavePoint(){
+        Transaction transaction = getTransaction();
+
+        try {
+            transaction.rollbackToSavePoint();
+        } catch (RocksDBException e) {
+            throw new RocksMapException("commit failed", e);
+        }
+    }
+
     /**
      * 事务提交
      */
     public void commit() {
-        Transaction transaction = threadLocalTransaction.get();
+        Transaction transaction = getTransaction();
+
         commit(transaction);
         threadLocalTransaction.set(null);
     }
@@ -305,7 +337,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 事务回滚
      */
     public void rollback() {
-        Transaction transaction = threadLocalTransaction.get();
+        Transaction transaction = getTransaction();
+
         rollback(transaction);
         threadLocalTransaction.set(null);
     }
@@ -489,10 +522,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return key 对应的 value
      */
     public V getForUpdate(Object key, boolean exclusive){
-        Transaction transaction = threadLocalTransaction.get();
-        if(transaction==null){
-            throw new RocksMapException("RocksMap is not in transaction model");
-        }
+        Transaction transaction = getTransaction();
 
         try {
             byte[] values = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, TSerialize.serialize(key), exclusive);
@@ -569,6 +599,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 return (V) TSerialize.unserialize(oldValueBytes);
             }
         } catch (RocksDBException e) {
+            rollback(transaction);
             throw new RocksMapException("RocksMap putIfAbsent error", e);
         } finally {
             commit(transaction);
@@ -593,6 +624,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
 
         } catch (RocksDBException e) {
+            rollback(transaction);
             throw new RocksMapException("RocksMap replace error: ", e);
         } finally {
             commit(transaction);
@@ -616,11 +648,47 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 } else {
                     rocksDB.singleDelete(dataColumnFamilyHandle, TSerialize.serialize(key));
                 }
-//                sizeChange(-1);
             }
             return value;
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap remove " + key + " failed", e);
+        }
+    }
+
+    public void removeAll(K[] keys) {
+        if(keys == null){
+            throw new NullPointerException();
+        }
+
+        byte[][] keyParts = new byte[keys.length][];
+        for(int i=0;i<keys.length;i++) {
+            keyParts[i] = TSerialize.serialize(keys[i]);
+        }
+
+        Transaction transaction = createTransaction(-1, false, false);
+        try {
+            if(keyParts.length != 0) {
+                transaction.delete(dataColumnFamilyHandle, keyParts);
+            }
+        } catch (RocksDBException e) {
+            rollback(transaction);
+            throw new RocksMapException("RocksMap removeAll failed", e);
+        } finally {
+            commit(transaction);
+        }
+    }
+
+    /**
+     * Removes the database entries in the range ["beginKey", "endKey"), i.e.,
+     * including "beginKey" and excluding "endKey". a non-OK status on error. It
+     * is not an error if no keys exist in the range ["beginKey", "endKey").
+     *
+     */
+    public void removeRange(K fromKey, K toKey) {
+        try {
+            rocksDB.deleteRange(dataColumnFamilyHandle, writeOptions, TSerialize.serialize(fromKey), TSerialize.serialize(toKey));
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap removeAll failed", e);
         }
     }
 
