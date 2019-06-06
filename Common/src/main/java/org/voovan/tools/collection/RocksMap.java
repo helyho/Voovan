@@ -3,6 +3,7 @@ import org.rocksdb.*;
 import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.TByte;
 import org.voovan.tools.TFile;
+import org.voovan.tools.exception.RocksMapException;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.serialize.TSerialize;
 
@@ -72,6 +73,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private String dbname;
     private String cfName;
     private Boolean readOnly;
+    private int transactionLockTimeout = 5000;
 
     /**
      * 构造方法
@@ -141,7 +143,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param readOnly 是否以只读模式打开
      * @throws RocksDBException RocksDB 异常
      */
-    public RocksMap(String dbname, String cfName, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Boolean readOnly) throws RocksDBException {
+    public RocksMap(String dbname, String cfName, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Boolean readOnly) {
         this.dbname = dbname == null ? "voovan_default" : dbname;
         this.cfName = cfName == null ? "voovan_default" : cfName;
         this.readOptions = readOptions == null ? new ReadOptions() : readOptions;
@@ -161,57 +163,69 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         rocksDB = ROCKSDB_MAP.get(this.dbname);
 
-        if(rocksDB == null || readOnly) {
-            //默认列族列表
-            List<ColumnFamilyDescriptor> DEFAULT_CF_DESCRIPTOR_LIST = new ArrayList<ColumnFamilyDescriptor>();
+        try {
+            if (rocksDB == null || readOnly) {
+                //默认列族列表
+                List<ColumnFamilyDescriptor> DEFAULT_CF_DESCRIPTOR_LIST = new ArrayList<ColumnFamilyDescriptor>();
 
-            //加载已经存在的所有列族
-            {
-                List<byte[]> columnFamilyNameBytes = RocksDB.listColumnFamilies(new Options(), DEFAULT_DB_PATH + this.dbname + "/");
-                if (columnFamilyNameBytes.size() > 0) {
-                    for (byte[] columnFamilyNameByte : columnFamilyNameBytes) {
-                        ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyNameByte);
-                        if (Arrays.equals(this.cfName.getBytes(), columnFamilyNameByte)) {
-                            dataColumnFamilyDescriptor = columnFamilyDescriptor;
+                //加载已经存在的所有列族
+                {
+                    List<byte[]> columnFamilyNameBytes = RocksDB.listColumnFamilies(new Options(), DEFAULT_DB_PATH + this.dbname + "/");
+                    if (columnFamilyNameBytes.size() > 0) {
+                        for (byte[] columnFamilyNameByte : columnFamilyNameBytes) {
+                            ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyNameByte);
+                            if (Arrays.equals(this.cfName.getBytes(), columnFamilyNameByte)) {
+                                dataColumnFamilyDescriptor = columnFamilyDescriptor;
+                            }
+
+                            DEFAULT_CF_DESCRIPTOR_LIST.add(columnFamilyDescriptor);
                         }
+                    }
 
-                        DEFAULT_CF_DESCRIPTOR_LIST.add(columnFamilyDescriptor);
+                    //如果为空创建默认列族
+                    if (DEFAULT_CF_DESCRIPTOR_LIST.size() == 0) {
+                        DEFAULT_CF_DESCRIPTOR_LIST.add(DEFAULE_CF_DESCRIPTOR);
                     }
                 }
+                //用来接收ColumnFamilyHandle
+                List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList<ColumnFamilyHandle>();
 
-                //如果为空创建默认列族
-                if (DEFAULT_CF_DESCRIPTOR_LIST.size() == 0) {
-                    DEFAULT_CF_DESCRIPTOR_LIST.add(DEFAULE_CF_DESCRIPTOR);
+                TFile.mkdir(DEFAULT_DB_PATH + this.dbname + "/");
+
+                //打开 Rocksdb
+                if (this.readOnly) {
+                    rocksDB = TransactionDB.openReadOnly(dbOptions, DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                } else {
+                    rocksDB = TransactionDB.open(dbOptions, new TransactionDBOptions(), DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                    ROCKSDB_MAP.put(this.dbname, rocksDB);
                 }
+
+                CF_HANDLE_MAP.put(rocksDB, columnFamilyHandleList);
             }
-            //用来接收ColumnFamilyHandle
-            List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList<ColumnFamilyHandle>();
 
-            TFile.mkdir(DEFAULT_DB_PATH + this.dbname + "/");
+            //设置列族
+            dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.cfName);
 
-            //打开 Rocksdb
-            if(this.readOnly) {
-                rocksDB = TransactionDB.openReadOnly(dbOptions, DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+            //如果没有则创建一个列族
+            if (dataColumnFamilyHandle == null) {
+                dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(this.cfName.getBytes());
+                dataColumnFamilyHandle = rocksDB.createColumnFamily(dataColumnFamilyDescriptor);
+                CF_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
             } else {
-                rocksDB = TransactionDB.open(dbOptions, new TransactionDBOptions(), DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
-                ROCKSDB_MAP.put(this.dbname, rocksDB);
+                dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(dataColumnFamilyHandle.getName());
             }
-
-            CF_HANDLE_MAP.put(rocksDB, columnFamilyHandleList);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap initilize failed", e);
         }
 
-        //设置列族
-        dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.cfName);
+    }
 
-        //如果没有则创建一个列族
-        if (dataColumnFamilyHandle == null) {
-            dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(this.cfName.getBytes());
-            dataColumnFamilyHandle = rocksDB.createColumnFamily(dataColumnFamilyDescriptor);
-            CF_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
-        } else {
-            dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(dataColumnFamilyHandle.getName());
-        }
+    public int getTransactionLockTimeout() {
+        return transactionLockTimeout;
+    }
 
+    public void setTransactionLockTimeout(int transactionLockTimeout) {
+        this.transactionLockTimeout = transactionLockTimeout;
     }
 
     /**
@@ -233,9 +247,13 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param withSnapShot 是否启用快照事务
      */
     public void beginTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
+        Transaction transaction = createTransaction(expire, deadlockDetect, withSnapShot);
+        threadLocalTransaction.set(transaction);
+    }
+
+    private Transaction createTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
         if(readOnly){
-            Logger.error(new RocksDBException("Not supported operation in read only mode"));
-            return;
+            throw new RocksMapException("RocksMap Not supported operation in read only mode");
         }
 
         TransactionOptions transactionOptions = new TransactionOptions();
@@ -248,45 +266,62 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         //是否启用快照事务模式
         transactionOptions.setSetSnapshot(withSnapShot);
+        transactionOptions.setLockTimeout(transactionLockTimeout);
 
         Transaction transaction = threadLocalTransaction.get();
         if(transaction==null) {
             transaction = ((TransactionDB) rocksDB).beginTransaction(writeOptions, transactionOptions);
-            threadLocalTransaction.set(transaction);
+            return transaction;
         } else {
-            throw new UnsupportedOperationException("RocksDB is readonly or already in transaction model");
+            throw new RocksMapException("RocksMap is readonly or already in transaction model");
         }
-    }
-
-    public Snapshot getSnapShot(){
-        return rocksDB.getSnapshot();
     }
 
     /**
      * 事务提交
-     * @throws RocksDBException RocksDB 异常
      */
-    public void commit() throws RocksDBException {
+    public void commit() {
         Transaction transaction = threadLocalTransaction.get();
-        if(transaction!=null) {
-            transaction.commit();
-            threadLocalTransaction.set(null);
-        } else {
-            throw new UnsupportedOperationException("RocksDB is not in transaction model");
+        commit(transaction);
+        threadLocalTransaction.set(null);
+    }
+
+    /**
+     * 事务提交
+     */
+    private void commit(Transaction transaction) {
+        try {
+            if (transaction != null) {
+                transaction.commit();
+            } else {
+                throw new RocksMapException("RocksMap is not in transaction model");
+            }
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap commit failed", e);
         }
     }
 
     /**
      * 事务回滚
-     * @throws RocksDBException RocksDB 异常
      */
-    public void rollback() throws RocksDBException {
+    public void rollback() {
         Transaction transaction = threadLocalTransaction.get();
-        if(transaction!=null) {
-            transaction.rollback();
-            threadLocalTransaction.set(null);
-        } else {
-            throw new UnsupportedOperationException("RocksDB is not in transaction model");
+        rollback(transaction);
+        threadLocalTransaction.set(null);
+    }
+
+    /**
+     * 事务回滚
+     */
+    private void rollback(Transaction transaction) {
+        try {
+            if (transaction != null) {
+                transaction.rollback();
+            } else {
+                throw new RocksMapException("RocksMap is not in transaction model");
+            }
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap rollback failed", e);
         }
     }
 
@@ -384,7 +419,23 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 //            e.printStackTrace();
 //        }
 
-        return keySet().size();
+        int count = 0;
+        RocksIterator iterator = null;
+
+        Transaction transaction = threadLocalTransaction.get();
+        if(transaction!=null) {
+            iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
+        } else {
+            iterator = rocksDB.newIterator(dataColumnFamilyHandle, readOptions);
+        }
+
+        iterator.seekToFirst();
+
+        while(iterator.isValid()){
+            iterator.next();
+            count++;
+        }
+        return count;
     }
 
     @Override
@@ -411,8 +462,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 values = rocksDB.get(dataColumnFamilyHandle, TSerialize.serialize(key));
             }
         } catch (RocksDBException e) {
-            Logger.error("containsKey " + key + " failed", e);
-            return false;
+            throw new RocksMapException("RocksMap containsKey " + key + " failed", e);
         }
 
         return values!=null;
@@ -423,24 +473,71 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * 获取并锁定, 默认独占模式
+     * @param key 将被锁定的 key
+     * @return key 对应的 value
+     */
+    public V getForUpdate(Object key){
+        return getForUpdate(key, true);
+    }
+
+    /**
+     * 获取并锁定
+     * @param key 将被锁定的 key
+     * @param exclusive 是否独占模式
+     * @return key 对应的 value
+     */
+    public V getForUpdate(Object key, boolean exclusive){
+        Transaction transaction = threadLocalTransaction.get();
+        if(transaction==null){
+            throw new RocksMapException("RocksMap is not in transaction model");
+        }
+
+        try {
+            byte[] values = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, TSerialize.serialize(key), exclusive);
+            return values==null ? null : (V) TSerialize.unserialize(values);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap getForUpdate " + key + " failed", e);
+        }
+    }
+
+    private byte[] get(byte[] keyBytes) {
+        try {
+            byte[] values = null;
+            Transaction transaction = threadLocalTransaction.get();
+            if (transaction != null) {
+                values = transaction.get(dataColumnFamilyHandle, readOptions, keyBytes);
+            } else {
+                values = rocksDB.get(dataColumnFamilyHandle, readOptions, keyBytes);
+            }
+
+            return values;
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap get failed", e);
+        }
+    }
+
     @Override
     public V get(Object key) {
         if(key == null){
             throw new NullPointerException();
         }
 
+        byte[] values = get(TSerialize.serialize(key));
+        return values==null ? null : (V) TSerialize.unserialize(values);
+    }
+
+    private void put(byte[] keyBytes, byte[] valueBytes) {
         try {
-            byte[] values = null;
             Transaction transaction = threadLocalTransaction.get();
-            if(transaction!=null) {
-                values = transaction.get(dataColumnFamilyHandle, readOptions, TSerialize.serialize(key));
+            if (transaction != null) {
+                transaction.put(dataColumnFamilyHandle, keyBytes, valueBytes);
             } else {
-                values = rocksDB.get(dataColumnFamilyHandle, readOptions, TSerialize.serialize(key));
+                rocksDB.put(dataColumnFamilyHandle, keyBytes, valueBytes);
             }
-            return values==null ? null : (V) TSerialize.unserialize(values);
         } catch (RocksDBException e) {
-            Logger.error("Get " + key + " failed", e);
-            return null;
+            throw new RocksMapException("RocksMap commit failed", e);
         }
     }
 
@@ -450,17 +547,55 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             throw new NullPointerException();
         }
 
+        put(TSerialize.serialize(key), TSerialize.serialize(value));
+        return value;
+    }
+
+    @Override
+    public V putIfAbsent(K key, V value) {
+        byte[] keyBytes = TSerialize.serialize(key);
+        byte[] valueBytes = TSerialize.serialize(value);
+
+        Transaction transaction = createTransaction(-1, false, false);
+
         try {
-            Transaction transaction = threadLocalTransaction.get();
-            if (transaction != null) {
-                transaction.put(dataColumnFamilyHandle, TSerialize.serialize(key), TSerialize.serialize(value));
+            byte[] oldValueBytes = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
+
+            if(oldValueBytes == null){
+                transaction.setSnapshotOnNextOperation();
+                transaction.put(dataColumnFamilyHandle, keyBytes, valueBytes);
+                return null;
             } else {
-                rocksDB.put(dataColumnFamilyHandle, TSerialize.serialize(key), TSerialize.serialize(value));
+                return (V) TSerialize.unserialize(oldValueBytes);
             }
-            return value;
         } catch (RocksDBException e) {
-            Logger.error("Put " + key + " failed", e);
-            return null;
+            throw new RocksMapException("RocksMap putIfAbsent error", e);
+        } finally {
+            commit(transaction);
+        }
+    }
+
+    @Override
+    public boolean replace(K key, V oldValue, V newValue) {
+        byte[] keyBytes = TSerialize.serialize(key);
+        byte[] newValueBytes = TSerialize.serialize(newValue);
+        byte[] oldValueBytes = TSerialize.serialize(oldValue);
+
+        Transaction transaction = createTransaction(-1, false, false);
+
+        try {
+            byte[] oldDbValueBytes = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
+            if(oldDbValueBytes!=null && TByte.byteArrayCompare(oldDbValueBytes, oldValueBytes)==0){
+                transaction.put(dataColumnFamilyHandle, keyBytes, newValueBytes);
+                return true;
+            } else {
+                return false;
+            }
+
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap replace error: ", e);
+        } finally {
+            commit(transaction);
         }
     }
 
@@ -485,8 +620,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
             return value;
         } catch (RocksDBException e) {
-            Logger.error("remove " + key + " failed", e);
-            return null;
+            throw new RocksMapException("RocksMap remove " + key + " failed", e);
         }
     }
 
@@ -505,7 +639,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             rocksDB.write(writeOptions, writeBatch);
         } catch (RocksDBException e) {
-            Logger.error("putAll failed", e);
+            throw new RocksMapException("RocksMap putAll failed", e);
         }
     }
 
@@ -524,7 +658,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             //设置列族
             dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.cfName);
         } catch (RocksDBException e) {
-            Logger.error("clear failed", e);
+            throw new RocksMapException("RocksMap clear failed", e);
         }
     }
 
@@ -536,7 +670,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             rocksDB.dropColumnFamily(dataColumnFamilyHandle);
             CF_HANDLE_MAP.get(rocksDB).remove(dataColumnFamilyHandle);
         } catch (RocksDBException e) {
-            Logger.error("drop failed", e);
+            throw new RocksMapException("RocksMap drop failed", e);
         }
     }
 
@@ -557,7 +691,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
         iterator.seekToFirst();
         while(iterator.isValid()){
-            keySet.add((K) TSerialize.unserialize(iterator.key()));
+            K k = (K) TSerialize.unserialize(iterator.key());
+            keySet.add(k);
             iterator.next();
         }
 
@@ -593,7 +728,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             try {
                 transaction.rollback();
             } catch (RocksDBException e) {
-                throw new IOException(e);
+                throw new RocksMapException("RocksMap rollback on close failed", e);
             }
         }
         dataColumnFamilyHandle.close();

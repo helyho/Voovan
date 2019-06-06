@@ -23,15 +23,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RocksMapBench {
     public static void main(String[] args) throws RocksDBException {
         int threadSize = 8;
-        int loopSize = 50000;
+        int loopSize = 5000;
+        int readConnt = 10;
+        int updateConnt = 2;
 
         CountDownLatch countDownLatch = new CountDownLatch(threadSize);
         UniqueId uniqueId = new UniqueId();
 
         RocksMap rocksMap = new RocksMap("bench", "benchCF");
         //Rocksdb 数据库配置
+        String lastKey = "lastkey";
+        rocksMap.put(lastKey, 1);
 
         AtomicInteger x2 = new AtomicInteger(0);
+
+        String keys[] = new String[threadSize * loopSize + 10];
 
         System.out.println(
                 TEnv.measureTime(() -> {
@@ -42,25 +48,52 @@ public class RocksMapBench {
                             Integer basekey = finalI * 100000000;
                             for (int m = 0; m < loopSize; m++) {
                                 basekey =  basekey + 1;
-//                                            String key = (m/1000) + "_" + uniqueId.nextString() + "_" + finalI1;
-                                String str = uniqueId.nextString();
+                                String key = finalI + "_" + basekey;
+                                TestObject value = new TestObject();
+
+                                keys[x2.getAndIncrement()] = key;
+
                                 //插入数据
-//                                rocksMap.put( (finalI + "_" + basekey), new TestObject());
-                                try {
-                                    rocksMap.beginTransaction();
-                                    rocksMap.put( (finalI + "_" + basekey), new TestObject());
-                                    rocksMap.commit();
-                                } catch (RocksDBException e) {
-                                    e.printStackTrace();
+//                                rocksMap.put(key, value);
+
+                                //随机读
+                                {
+                                    for (int k = 0; k < readConnt; k++) {
+                                        int index = (int) (Math.random() * x2.get());
+                                        rocksMap.get(keys[index]);
+                                    }
                                 }
 
+//                                随机更新
+                                {
+                                    for (int k = 0; k < updateConnt; k++) {
+                                        int index = (int) (Math.random() * x2.get());
+                                        rocksMap.put(keys[index], value);
+                                    }
+                                }
+
+                                //事务
+//                                {
+//                                    rocksMap.beginTransaction();
+//                                    //锁
+//                                    if(finalI%4 == 0){
+//                                        int x = (Integer) rocksMap.getForUpdate(lastKey);
+//                                        rocksMap.put(lastKey, x + 1);
+//                                    }
+//                                    rocksMap.put(key, value);
+//                                    rocksMap.commit();
+//                                }
+
+                                //批量写入
+                                {
 //                                for(int t=0;t<10;t++) {
-//                                    data.put((finalI + "_" + basekey), new TestObject());
+//                                    data.put(key+"_t", new TestObject());
 //                                    basekey = basekey + 1;
 //                                    x2.getAndIncrement();
 //                                }
 //                                rocksMap.putAll(data);
-                                data.clear();
+//                                data.clear();
+                                }
                             }
 
                             System.out.println("finished " + Thread.currentThread().getName());
@@ -74,6 +107,7 @@ public class RocksMapBench {
 
                 }) / 1000000000f);
 
+        System.out.println(rocksMap.get(lastKey));
         System.out.println(rocksMap.size());
     }
 }

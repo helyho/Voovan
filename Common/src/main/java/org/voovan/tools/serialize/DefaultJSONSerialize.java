@@ -24,7 +24,7 @@ public class DefaultJSONSerialize implements Serialize {
             Class clazz = obj.getClass();
             Class[] genericClazzs = TReflect.getGenericClass(obj);
 
-            return JSON.toJSON(TObject.asMap("T",clazz.getCanonicalName(),  "G", genericClazzs, "V", obj)).getBytes();
+            return JSON.toJSON(TObject.asMap("T",TSerialize.getSimpleNameByClass(clazz),  "G", genericClazzs, "V", obj)).getBytes();
         } catch (Exception e){
             Logger.error("TSerialize.serializeJDK error: ", e);
             return null;
@@ -39,12 +39,12 @@ public class DefaultJSONSerialize implements Serialize {
 
             JSONPath jsonPath = new JSONPath(new String(bytes));
 
-            mainClazz = Class.forName(jsonPath.value("/T", String.class));
+            mainClazz = TSerialize.getClassBySimpleName(jsonPath.value("/T", String.class));
             List<String> genericClazzStrs = jsonPath.listObject("/G", String.class);
             Class[] genericClazzs = new Class[genericClazzStrs.size()];
 
             for (int i = 0; i < genericClazzStrs.size(); i++) {
-                genericClazzs[i] = Class.forName(genericClazzStrs.get(i));
+                genericClazzs[i] = TSerialize.getClassBySimpleName(genericClazzStrs.get(i));
             }
 
             genericClazzs = genericClazzs.length == 0 ? null : genericClazzs;
