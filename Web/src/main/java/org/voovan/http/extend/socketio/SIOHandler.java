@@ -16,7 +16,6 @@ public abstract class SIOHandler {
     private EIOHandler eioHandler;
     private SIODispatcher sioDispatcher;
     private String nsp;
-    private SIOSession sioSession;
 
     protected void setEioHandler(EIOHandler eioHandler) {
         this.eioHandler = eioHandler;
@@ -31,10 +30,11 @@ public abstract class SIOHandler {
     }
 
     public SIOSession getSIOSession(){
-        if(sioSession == null){
+        SIOSession sioSession = (SIOSession) eioHandler.getEIOSession().getAttribute("SIOSESSIOM");
+        if(sioSession == null) {
             sioSession = new SIOSession(eioHandler.getEIOSession(), sioDispatcher, nsp);
+            eioHandler.getEIOSession().setAttribute("SIOSESSIOM", sioSession);
         }
-
         return sioSession;
     }
 
