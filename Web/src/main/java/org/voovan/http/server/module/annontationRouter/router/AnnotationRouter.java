@@ -92,6 +92,8 @@ public class AnnotationRouter implements HttpRouter {
                             } else {
                                 methodRouterPath = TString.assembly("/", method.getName());
                             }
+                        } else {
+                            methodRouterPath = TString.assembly("/", methodRouterPath);
                         }
 
                         //拼装路径
@@ -146,10 +148,16 @@ public class AnnotationRouter implements HttpRouter {
                                 //注册路由,带路径参数的路由
                                 httpModule.otherMethod(routeMethod, routePath, annotationRouter);
 
+
                                 //注册路由,不带路径参数的路由
                                 httpModule.otherMethod(routeMethod, routePath, annotationRouter);
+
+                                //只是用于在日志中提示路由
+                                String showRoutePath = httpModule.getModuleConfig().getPath() + routePath;
+                                showRoutePath = showRoutePath = showRoutePath.startsWith("//") ? showRoutePath.replaceFirst("//", "/") : showRoutePath;
+
                                 Logger.simple( "[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
-                                        "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') + httpModule.getModuleConfig().getPath() + routePath);
+                                        "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') + showRoutePath);
                                 routeMethodNum++;
                             }
                         }

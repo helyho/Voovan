@@ -202,8 +202,6 @@ public class EventProcess {
 				return null;
 			}
 
-
-
             // -----------------Filter 解密处理-----------------
             result = filterDecoder(session, byteBuffer);
             // -------------------------------------------------
@@ -268,11 +266,10 @@ public class EventProcess {
                 break;
             }
         }
-
-        if(result instanceof ByteBuffer) {
-            return (ByteBuffer)result;
-        } else if(result==null){
+        if(result==null){
             return null;
+        } else if(result instanceof ByteBuffer) {
+            return (ByteBuffer)result;
         } else{
             throw new IoFilterException("Send object must be ByteBuffer, " +
                     "please check you filter be sure the latest filter return Object's type is ByteBuffer.");

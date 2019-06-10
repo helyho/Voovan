@@ -438,7 +438,7 @@ public class HttpDispatcher {
 
 			return filterResult;
 		}  else {
-			return null;
+			return true;
 		}
 	}
 
@@ -466,7 +466,7 @@ public class HttpDispatcher {
 
 			return filterResult;
 		} else {
-			return null;
+			return true;
 		}
 	}
 
