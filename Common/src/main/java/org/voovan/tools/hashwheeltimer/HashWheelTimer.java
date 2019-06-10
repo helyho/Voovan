@@ -26,7 +26,7 @@ public class HashWheelTimer {
      */
     public HashWheelTimer(int size){
         wheel = new HashWheel(size);
-        timer = new Timer("VOOVAN@HASH_WHEEL");
+        timer = new Timer("VOOVAN@HASH_WHEEL", true);
     }
 
     /**
@@ -36,7 +36,7 @@ public class HashWheelTimer {
      */
     public HashWheelTimer(int size, int tickStep){
         wheel = new HashWheel(size);
-        timer = new Timer("VOOVAN@HASH_WHEEL");
+        timer = new Timer("VOOVAN@HASH_WHEEL", true);
         this.tickStep = tickStep;
     }
 

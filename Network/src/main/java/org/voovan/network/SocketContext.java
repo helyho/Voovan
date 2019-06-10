@@ -2,15 +2,19 @@ package org.voovan.network;
 
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
+import org.voovan.tools.TObject;
+import org.voovan.tools.TPerformance;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.threadpool.ThreadPool;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.SocketOption;
 import java.nio.channels.SelectableChannel;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * socket 上下文
@@ -22,7 +26,36 @@ import java.nio.channels.SelectableChannel;
  * Licence: Apache v2 License
  */
 public abstract class SocketContext<C extends SelectableChannel, S extends IoSession> {
+    //================================线程管理===============================
+	public static int ACCEPT_THREAD_SIZE = 1;
+	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", 1, ACCEPT_THREAD_SIZE, 60*1000, true, 10);
+	public static EventRunnerGroup ACCEPT_EVENT_RUNNER_GROUP= new EventRunnerGroup(ACCEPT_THREAD_POOL, ACCEPT_THREAD_SIZE, (obj)->{
+		try {
+			return new SocketSelector(obj);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
+		return null;
+	});
+
+	public static int IO_THREAD_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("IoThreadSize"), TPerformance.getProcessorCount()+""));
+	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", IO_THREAD_SIZE, IO_THREAD_SIZE, 60*1000, true, 9);
+	public static EventRunnerGroup IO_EVENT_RUNNER_GROUP= new EventRunnerGroup(IO_THREAD_POOL, IO_THREAD_SIZE, (obj)->{
+		try {
+			return new SocketSelector(obj);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	});
+
+	static {
+		System.out.println("[SOCKET] IO_THREAD_SIZE: " + IO_THREAD_SIZE);
+	}
+
+	//===============================SocketChannel=============================
 	protected String host;
 	protected int port;
 	protected int readTimeout;
@@ -380,9 +413,9 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public void bindToSocketSelector(int ops) {
 		EventRunner eventRunner = null;
 		if(connectModel == ConnectModel.LISTENER) {
-			eventRunner = EventRunnerGroup.ACCEPT_EVENT_RUNNER_GROUP.choseEventRunner();
+			eventRunner = ACCEPT_EVENT_RUNNER_GROUP.choseEventRunner();
 		} else {
-			eventRunner = EventRunnerGroup.IO_EVENT_RUNNER_GROUP.choseEventRunner();
+			eventRunner = IO_EVENT_RUNNER_GROUP.choseEventRunner();
 		}
 		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
 		socketSelector.register(this, ops);

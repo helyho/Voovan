@@ -15,8 +15,10 @@ import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -37,16 +39,29 @@ public class TEnv {
 	public static Thread MAIN_THREAD = getMainThread();
 	public static volatile boolean IS_SHUTDOWN = false;
 
+	public static Vector<BooleanSupplier> SHUT_DOWN_HOOKS = new Vector<BooleanSupplier>();
+
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
 				TEnv.IS_SHUTDOWN = true;
+				for(BooleanSupplier supplier : SHUT_DOWN_HOOKS.toArray(new BooleanSupplier[0])){
+					try {
+						if(supplier!=null) {
+							supplier.getAsBoolean();
+						}
+					} catch (Throwable e) {
+						System.out.println("Run shutdown hooks failed." + e.getMessage() + "\r\n" + TEnv.getStackElementsMessage(e.getStackTrace()));
+					}
+				}
 			}
 		});
 	}
 
-
+	public static void addShutDownHook(BooleanSupplier supplier){
+		SHUT_DOWN_HOOKS.add(supplier);
+	}
 
 	public static Instrumentation instrumentation;
 

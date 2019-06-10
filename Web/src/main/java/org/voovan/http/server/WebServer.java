@@ -924,7 +924,7 @@ public class WebServer {
 
 		WebServer webServer = WebServer.newInstance(config);
 
-		webServer.syncServe();
+		webServer.serve();
 	}
 
 	/**
@@ -941,6 +941,8 @@ public class WebServer {
 			serverSocket.close();
 			System.out.println("[" + TDateTime.now() + "] Socket closed");
 
+			SocketContext.ACCEPT_THREAD_POOL.shutdown();
+			SocketContext.IO_THREAD_POOL.shutdown();
 			Global.getThreadPool().shutdown();
 			System.out.println("[" + TDateTime.now() + "] Thread pool is shutdown.");
 

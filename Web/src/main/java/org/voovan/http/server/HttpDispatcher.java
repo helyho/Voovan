@@ -175,20 +175,22 @@ public class HttpDispatcher {
 
 		request.setSessionManager(sessionManager);
 
+		boolean isFrameWorkRequest = isFrameWorkRequest(request);
+
 		//管理请求不经过过滤器
-		if(!isFrameWorkRequest(request)) {
+		if(!isFrameWorkRequest) {
 			//正向过滤器处理,请求有可能被 Redirect 所以过滤器执行放在开始
 			filterResult = disposeFilter(filterConfigs, request, response);
 		}
 
-		//如果 response 在过滤器中修改过,则不执行路由处理
-		if(filterResult!=null) {
+		//如果 filterResult 的响应为 null 则不执行路由处理
+		if(filterResult!=null || isFrameWorkRequest) {
 			//调用处理路由函数
 			disposeRoute(request, response);
 		}
 
 		//管理请求不经过过滤器
-		if(!isFrameWorkRequest(request)) {
+		if(!isFrameWorkRequest) {
 			//反向过滤器处理
 			filterResult = disposeInvertedFilter(filterConfigs, request, response);
 		}
