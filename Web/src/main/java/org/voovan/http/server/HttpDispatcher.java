@@ -18,6 +18,7 @@ import java.net.URLDecoder;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -137,7 +138,7 @@ public class HttpDispatcher {
 		}
 
 		//把连续的////替换成/
-		return TString.fastReplaceAll(routePath, "\\/{2,9}", "/");
+		return TString.fastReplaceAll(routePath, "/{2,9}", "/");
 	}
 
 	/**
@@ -390,7 +391,7 @@ public class HttpDispatcher {
 
 			try {
 				//抽取路径中的变量名
-				String[] names = TString.searchByRegex(routePath, ":[^:?/]*");
+				String[] names = TString.searchByRegex(routePath, ":[^:?/]*", Pattern.CASE_INSENSITIVE);
 				if (names.length > 0) {
 					for (int i = 0; i < names.length; i++) {
 						names[i] = TString.removePrefix(names[i]);
