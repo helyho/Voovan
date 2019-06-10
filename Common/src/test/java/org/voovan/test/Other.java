@@ -1,6 +1,7 @@
 package org.voovan.test;
 
 import org.voovan.tools.TEnv;
+import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.reflect.TReflect;
 
 import java.util.ArrayList;
@@ -25,51 +26,11 @@ public class Other {
 
     public static void main(String[] args) throws Exception {
 
-        String mm = null;
-        ArrayBlockingQueue arrayBlockingQueue = new ArrayBlockingQueue(50000000);
-        System.out.println(TEnv.measureTime(()->{
-            for(int i=0;i<1000;i++) {
-                arrayBlockingQueue.add(i);
-            }
-        }));
-
-
-        System.out.println(TEnv.measureTime(()->{
-            for(int i=0;i<1000;i++) {
-                arrayBlockingQueue.poll();
-            }
-        }));
-
-
-        PriorityQueue priorityQueue = new PriorityQueue();
-        System.out.println(TEnv.measureTime(()->{
-            for(int i=0;i<1000;i++) {
-                priorityQueue.add(i);
-            }
-        }));
-
-
-        System.out.println(TEnv.measureTime(()->{
-            for(int i=0;i<1000;i++) {
-                priorityQueue.poll();
-            }
-        }));
-
-
-        LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue();
-        System.out.println(TEnv.measureTime(()->{
-            for(int i=0;i<1000;i++) {
-                linkedBlockingQueue.add(i);
-            }
-        }));
-
-
-        System.out.println(TEnv.measureTime(()->{
-            for(int i=0;i<1000;i++) {
-                linkedBlockingQueue.poll();
-            }
-        }));
-    }
+        RocksMap rocksMap = new RocksMap("one", "testdb");
+        System.out.println("get aaaa: "+ rocksMap.get("aaaa"));
+        System.out.println("get cccc: "+ rocksMap.get("cccc"));
+        System.out.println("get eeee: "+ rocksMap.get("eeee"));
+        System.out.println("get hhhh: "+ rocksMap.get("hhhh"));}
 
 
 

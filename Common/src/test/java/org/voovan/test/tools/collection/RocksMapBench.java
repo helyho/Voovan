@@ -4,7 +4,6 @@ import org.rocksdb.RocksDBException;
 import org.voovan.Global;
 import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TObject;
 import org.voovan.tools.UniqueId;
 import org.voovan.tools.collection.RocksMap;
 
@@ -57,7 +56,7 @@ public class RocksMapBench {
                                 keys[x2.getAndIncrement()] = key;
 
                                 //插入数据
-//                                rocksMap.put(key, value);
+                                rocksMap.put(key, value);
 
                                 //随机读
                                 {
@@ -69,12 +68,12 @@ public class RocksMapBench {
 
 //                                随机更新
                                 {
-                                    for (int k = 0; k < updateConnt; k++) {
-                                        int index = (int) (Math.random() * x2.get()-1);
-                                        rocksMap.put(keys[index], value);
+//                                    for (int k = 0; k < updateConnt; k++) {
+//                                        int index = (int) (Math.random() * x2.get()-1);
+//                                        rocksMap.put(keys[index], value);
 //                                        rocksMap.putAll(TObject.asMap(keys[index], value));
                                     }
-                                }
+//                                }
 
                                 //事务
 //                                {
@@ -100,6 +99,7 @@ public class RocksMapBench {
                                 }
                             }
 
+                            rocksMap.flush();
                             System.out.println("finished " + Thread.currentThread().getName());
                             countDownLatch.countDown();
                         });

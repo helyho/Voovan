@@ -29,7 +29,7 @@ public class RocksMapTest {
             System.out.println("replace: "+ rocksMap1.replace("name1", cfName));
         }
 
-        RocksMap rocksMap = new RocksMap("one", "testdb");
+        RocksMap rocksMap = new RocksMap("testdb");
 //        RocksMap rocksMap = new RocksMap("one", "testdb", true);
         System.out.println(rocksMap.get("name"));
 
@@ -38,16 +38,37 @@ public class RocksMapTest {
         System.out.println("size: " + rocksMap.size());
 
         //rollback
+        System.out.println("===============commit==================");
         rocksMap.beginTransaction();
         rocksMap.put("transaction", "rocksMap.value");
+        rocksMap.choseColumnFamily(cfName);
+        rocksMap.put("transaction", cfName);
+
+        rocksMap.choseColumnFamily("testdb");
+        System.out.println("rocksMap  get: "+ rocksMap.get("transaction"));
+        rocksMap.choseColumnFamily(cfName);
+        System.out.println("rocksMap1 get: "+ rocksMap1.get("transaction"));
         rocksMap.rollback();
-        System.out.println("rollback get: "+ rocksMap.get("transaction"));
+        rocksMap.choseColumnFamily("testdb");
+        System.out.println("rocksMap rollback get: "+ rocksMap.get("transaction"));
+        rocksMap.choseColumnFamily(cfName);
+        System.out.println("rocksMap1 rollback get: "+ rocksMap1.get("transaction"));
+        rocksMap.choseColumnFamily("testdb");
 
         //commit
+        System.out.println("===============commit==================");
         rocksMap.beginTransaction();
         rocksMap.put("transaction", "rocksMap.value");
+        rocksMap.choseColumnFamily(cfName);
+        rocksMap.put("transaction", cfName);
         rocksMap.commit();
-        System.out.println("commit get: "+ rocksMap.get("transaction"));
+
+        rocksMap.choseColumnFamily("testdb");
+        System.out.println("rocksMap  get: "+ rocksMap.get("transaction"));
+        rocksMap.choseColumnFamily(cfName);
+        System.out.println("rocksMap1 get: "+ rocksMap1.get("transaction"));
+        rocksMap.choseColumnFamily("testdb");
+        System.out.println("=======================================");
 
         //put
         rocksMap.put("aaaa", "bbbb");
