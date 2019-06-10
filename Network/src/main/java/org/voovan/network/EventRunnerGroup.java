@@ -19,37 +19,9 @@ import java.util.function.Function;
  * Licence: Apache v2 License
  */
 public class EventRunnerGroup {
-	public static int ACCEPT_THREAD_SIZE = 1;
-	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", 1, ACCEPT_THREAD_SIZE, 60*1000, true, 10);
-	public static EventRunnerGroup ACCEPT_EVENT_RUNNER_GROUP= new EventRunnerGroup(ACCEPT_THREAD_POOL, ACCEPT_THREAD_SIZE, (obj)->{
-		try {
-			return new SocketSelector(obj);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return null;
-	});
-
-	public static int IO_THREAD_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("IoThreadSize"),TPerformance.getProcessorCount()+""));
-	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", IO_THREAD_SIZE, IO_THREAD_SIZE, 60*1000, true, 9);
-	public static EventRunnerGroup IO_EVENT_RUNNER_GROUP= new EventRunnerGroup(IO_THREAD_POOL, IO_THREAD_SIZE, (obj)->{
-		try {
-			return new SocketSelector(obj);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return null;
-	});
-
-	static {
-		System.out.println("[SOCKET] IO_THREAD_SIZE: " + IO_THREAD_SIZE);
-	}
-
-
 	private AtomicInteger indexAtom = new AtomicInteger();
 	private EventRunner[] eventRunners;
+	private ThreadPoolExecutor threadPool;
 	private volatile int size;
 
 	/**
@@ -58,22 +30,28 @@ public class EventRunnerGroup {
 	 * @param size 容纳事件执行器的数量
 	 * @param attachmentSupplier 事件执行器的附属对象构造器
 	 */
-	public EventRunnerGroup(ThreadPoolExecutor threadPoolExecutor, int size, Function<EventRunner, Object> attachmentSupplier){
+	public EventRunnerGroup(ThreadPoolExecutor threadPoolExecutor, int size, Function<EventRunner, Object> attachmentSupplier) {
 		this.size = size;
+        this.threadPool = threadPoolExecutor;
+
 		eventRunners = new EventRunner[size];
 		for(int i=0;i<size;i++){
-			EventRunner eventRunner = new EventRunner();
+			EventRunner eventRunner = new EventRunner(this);
 
 			if(attachmentSupplier!=null) {
 				eventRunner.attachment(attachmentSupplier.apply(eventRunner));
 			}
 			eventRunners[i] = eventRunner;
 
-			threadPoolExecutor.execute(()->{
+			threadPool.execute(()->{
 				eventRunner.setThread(Thread.currentThread());
 				eventRunner.process();
 			});
 		}
+	}
+
+	public ThreadPoolExecutor getThreadPool() {
+		return threadPool;
 	}
 
 	public EventRunner[] getEventRunners() {

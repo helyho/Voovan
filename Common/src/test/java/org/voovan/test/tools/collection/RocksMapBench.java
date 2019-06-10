@@ -25,7 +25,7 @@ public class RocksMapBench {
         int threadSize = 8;
         int loopSize = 5000;
         int readConnt = 10;
-        int updateConnt = 2;
+        int updateConnt = 4;
 
         CountDownLatch countDownLatch = new CountDownLatch(threadSize);
         UniqueId uniqueId = new UniqueId();
@@ -34,6 +34,7 @@ public class RocksMapBench {
         //Rocksdb 数据库配置
         String lastKey = "lastkey";
         rocksMap.put(lastKey, 1);
+        System.out.println("start...");
 
         AtomicInteger x2 = new AtomicInteger(0);
 
@@ -54,7 +55,7 @@ public class RocksMapBench {
                                 keys[x2.getAndIncrement()] = key;
 
                                 //插入数据
-//                                rocksMap.put(key, value);
+                                rocksMap.put(key, value);
 
                                 //随机读
                                 {

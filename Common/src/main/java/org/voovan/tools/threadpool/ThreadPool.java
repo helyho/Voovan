@@ -1,9 +1,11 @@
 package org.voovan.tools.threadpool;
 
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TProperties;
 
 import java.util.Timer;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -25,6 +27,8 @@ public class ThreadPool {
 
 	protected static int minPoolTimes = TProperties.getInt("framework", "ThreadPoolMinSize");
 	protected static int maxPoolTimes = TProperties.getInt("framework", "ThreadPoolMaxSize");
+
+	protected static ConcurrentHashMap<String, ThreadPoolExecutor> THREAD_POOL_HANDLER = new ConcurrentHashMap<String, ThreadPoolExecutor>();
 
 	/**
 	 * 获取线程池最小活动线程数
@@ -75,11 +79,25 @@ public class ThreadPool {
 
 		//启动线程池自动调整任务
 		if(STATUS_INTERVAL>0) {
-			Timer timer = new Timer("VOOVAN@THREAD_POOL_TIMER");
+			Timer timer = new Timer("VOOVAN@THREAD_POOL_TIMER", true);
 			ThreadPoolTask threadPoolTask = new ThreadPoolTask(threadPoolInstance);
 			timer.schedule(threadPoolTask, 1, 1000);
 		}
 		return threadPoolInstance;
+	}
+
+
+	/**
+	 * 创建线程池
+	 * @param poolName 池的名称
+	 * @param mimPoolSize 最小线程数
+	 * @param maxPoolSize 最大线程数
+	 * @param threadTimeout 线程闲置超时时间
+	 * @return 线程池对象
+	 */
+	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int threadTimeout){
+
+		return createThreadPool(poolName, mimPoolSize, maxPoolSize, threadTimeout, true , 5);
 	}
 
 	/**
@@ -93,25 +111,24 @@ public class ThreadPool {
 	 * @return 线程池对象
 	 */
 	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int threadTimeout, boolean daemon, int priority){
-		ThreadPoolExecutor threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, threadTimeout, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(cpuCoreCount*2000), new DefaultThreadFactory(poolName, daemon, priority));
-		//设置allowCoreThreadTimeOut,允许回收超时的线程
-		threadPoolInstance.allowCoreThreadTimeOut(true);
+		ThreadPoolExecutor threadPoolInstance = THREAD_POOL_HANDLER.get(poolName);
+
+		if(threadPoolInstance==null) {
+			threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, threadTimeout, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(cpuCoreCount * 2000), new DefaultThreadFactory(poolName, daemon, priority));
+			//设置allowCoreThreadTimeOut,允许回收超时的线程
+			threadPoolInstance.allowCoreThreadTimeOut(true);
+
+			THREAD_POOL_HANDLER.put(poolName, threadPoolInstance);
+			ThreadPoolExecutor finalThreadPoolInstance = threadPoolInstance;
+			TEnv.addShutDownHook(()->{
+				finalThreadPoolInstance.shutdown();
+				return true;
+			});
+		}
 
 		return threadPoolInstance;
 	}
 
-	/**
-	 * 创建线程池
-	 * @param poolName 池的名称
-	 * @param mimPoolSize 最小线程数
-	 * @param maxPoolSize 最大线程数
-	 * @param threadTimeout 线程闲置超时时间
-	 * @return 线程池对象
-	 */
-	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int threadTimeout){
-
-		return createThreadPool(poolName, mimPoolSize, maxPoolSize, threadTimeout, false, 5);
-	}
 
 	public static ThreadPoolExecutor getNewThreadPool(String name){
 		return createThreadPool(name);

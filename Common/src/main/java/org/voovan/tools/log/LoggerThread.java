@@ -124,8 +124,6 @@ public class LoggerThread implements Runnable {
 	public void run() {
 		String formatedMessage = null;
 
-		Thread mainThread = TEnv.getMainThread();
-
 		boolean needFlush = false;
 
 		try {
@@ -167,11 +165,6 @@ public class LoggerThread implements Runnable {
 							needFlush = true;
 						}
 					}
-				}
-
-
-				if(mainThread == null){
-					break;
 				}
 			}
 

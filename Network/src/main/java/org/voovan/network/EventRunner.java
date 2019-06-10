@@ -1,6 +1,7 @@
 package org.voovan.network;
 
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 事件执行器
@@ -16,12 +17,14 @@ public class EventRunner {
 	private PriorityBlockingQueue<EventTask> eventQueue = new PriorityBlockingQueue<EventTask>();
 	private Object attachment;
 	private Thread thread = null;
+	private EventRunnerGroup eventRunnerGroup;
 
 	/**
 	 * 事件处理 Thread
 	 *
 	 */
-	public EventRunner(){
+	public EventRunner(EventRunnerGroup eventRunnerGroup){
+		this.eventRunnerGroup = eventRunnerGroup;
 	}
 
 	/**
@@ -82,13 +85,19 @@ public class EventRunner {
 	public void process() {
 		while (true) {
 			try {
-				EventTask eventTask = eventQueue.take();
-				Runnable runnable = eventTask.getRunnable();
-				if(runnable!=null) {
-					runnable.run();
+				EventTask eventTask = eventQueue.poll(100, TimeUnit.MILLISECONDS);
+				if(eventTask!=null) {
+					Runnable runnable = eventTask.getRunnable();
+					if (runnable != null) {
+						runnable.run();
+					}
+				} else {
+					if(eventRunnerGroup.getThreadPool().isShutdown()){
+						break;
+					}
 				}
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				continue;
 			}
 		}
 	}
