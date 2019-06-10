@@ -20,7 +20,6 @@ public abstract class EIOHandler {
          this.webSocketSession = webSocketSession;
     }
 
-
     public EIOSession getEIOSession() {
         EIOSession eioSession = (EIOSession) webSocketSession.getAttribute("EIO_SESSION");
         if(eioSession == null) {
