@@ -74,14 +74,16 @@ public class AnnotationRouter implements HttpRouter {
 
                 //使用类名指定默认路径
                 if (classRouterPath.isEmpty()) {
-                    classRouterPath = TString.assembly("/", routerClass.getSimpleName());
+                    classRouterPath = routerClass.getSimpleName();
                 }
+
+                classRouterPath = fixAnnotationRoutePath(classRouterPath);
 
                 //扫描包含 Router 注解的方法
                 for (Method method : methods) {
                     if (method.isAnnotationPresent(Router.class)) {
                         Router annonMethodRouter = method.getAnnotation(Router.class);
-                        String methodRouterPath = annonMethodRouter.path().isEmpty() ? annonMethodRouter.value() : annonMethodRouter.path();;
+                        String methodRouterPath = annonMethodRouter.path().isEmpty() ? annonMethodRouter.value() : annonMethodRouter.path();
                         String methodRouterMethod = annonMethodRouter.method();
 
                         //使用方法名指定默认路径
@@ -90,11 +92,11 @@ public class AnnotationRouter implements HttpRouter {
                             if(method.getName().equals("index")){
                                 methodRouterPath = "/";
                             } else {
-                                methodRouterPath = TString.assembly("/", method.getName());
+                                methodRouterPath = method.getName();
                             }
-                        } else {
-                            methodRouterPath = TString.assembly("/", methodRouterPath);
                         }
+                        methodRouterPath = fixAnnotationRoutePath(methodRouterPath);
+                        methodRouterPath = TString.assembly("/", methodRouterPath);
 
                         //拼装路径
                         String routePath = classRouterPath + methodRouterPath;
@@ -140,8 +142,10 @@ public class AnnotationRouter implements HttpRouter {
                                 routePath = routePath + paramPath;
                             }
 
+                            routePath = fixAnnotationRoutePath(httpModule.getModuleConfig().getPath() + routePath);
+
                             //判断路由是否注册过
-                            if(!routerMaps.containsKey(httpModule.getModuleConfig().getPath() + routePath)) {
+                            if(!routerMaps.containsKey(routePath)) {
                                 //构造注解路由器
                                 AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method, annonClassRouter);
 
@@ -152,12 +156,9 @@ public class AnnotationRouter implements HttpRouter {
                                 //注册路由,不带路径参数的路由
                                 httpModule.otherMethod(routeMethod, routePath, annotationRouter);
 
-                                //只是用于在日志中提示路由
-                                String showRoutePath = httpModule.getModuleConfig().getPath() + routePath;
-                                showRoutePath = showRoutePath = showRoutePath.startsWith("//") ? showRoutePath.replaceFirst("//", "/") : showRoutePath;
 
                                 Logger.simple( "[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
-                                        "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') + showRoutePath);
+                                        "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') + routePath);
                                 routeMethodNum++;
                             }
                         }
@@ -173,6 +174,17 @@ public class AnnotationRouter implements HttpRouter {
         } catch (Exception e){
             Logger.error("Scan router class error.", e);
         }
+    }
+
+    /**
+     * 修复路由路径
+     * @param routePath 路由路径
+     * @return 修复后的路由路径
+     */
+    private static String fixAnnotationRoutePath(String routePath){
+        routePath = routePath.startsWith("/") ? TString.removePrefix(routePath) : routePath;
+        routePath = routePath.endsWith("/") ? TString.removeSuffix(routePath) : routePath;
+        return routePath;
     }
 
     /**
