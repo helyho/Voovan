@@ -22,7 +22,7 @@ public abstract class EIOHandler {
 
 
     public EIOSession getEIOSession() {
-        EIOSession eioSession = (EIOSession) webSocketSession.getAttribute("EIOSession");
+        EIOSession eioSession = (EIOSession) webSocketSession.getAttribute("EIO_SESSION");
         if(eioSession == null) {
             eioSession = new EIOSession(this.webSocketSession, this);
             webSocketSession.setAttribute("EIOSession", eioSession);
