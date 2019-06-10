@@ -141,7 +141,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param readOptions ReadOptions 配置对象
      * @param writeOptions WriteOptions 配置对象
      * @param readOnly 是否以只读模式打开
-     * @throws RocksDBException RocksDB 异常
      */
     public RocksMap(String dbname, String cfName, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Boolean readOnly) {
         this.dbname = dbname == null ? "voovan_default" : dbname;
@@ -682,6 +681,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * Removes the database entries in the range ["beginKey", "endKey"), i.e.,
      * including "beginKey" and excluding "endKey". a non-OK status on error. It
      * is not an error if no keys exist in the range ["beginKey", "endKey").
+     * @param fromKey 其实 key
+     * @param toKey 结束 key
      *
      */
     public void removeRange(K fromKey, K toKey) {

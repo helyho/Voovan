@@ -21,6 +21,7 @@ public class EventRunner {
 
 	/**
 	 * 事件处理 Thread
+	 * @param eventRunnerGroup EventRunnerGroup对象
 	 *
 	 */
 	public EventRunner(EventRunnerGroup eventRunnerGroup){
