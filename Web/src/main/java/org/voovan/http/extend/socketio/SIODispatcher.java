@@ -69,7 +69,6 @@ public class SIODispatcher extends EIODispatcher {
                         if (sioHandler != null) {
                             sioHandler.execute(null);
                         }
-
                         return SIOParser.encode(sioPacket);
                     }
 
