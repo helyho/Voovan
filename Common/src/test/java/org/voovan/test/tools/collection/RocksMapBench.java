@@ -4,6 +4,7 @@ import org.rocksdb.RocksDBException;
 import org.voovan.Global;
 import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
 import org.voovan.tools.UniqueId;
 import org.voovan.tools.collection.RocksMap;
 
@@ -50,17 +51,18 @@ public class RocksMapBench {
                             for (int m = 0; m < loopSize; m++) {
                                 basekey =  basekey + 1;
                                 String key = finalI + "_" + basekey;
-                                TestObject value = new TestObject();
+                                TestObject value = newone(key);
+//                                String value = "gogogo!";
 
                                 keys[x2.getAndIncrement()] = key;
 
                                 //插入数据
-                                rocksMap.put(key, value);
+//                                rocksMap.put(key, value);
 
                                 //随机读
                                 {
                                     for (int k = 0; k < readConnt; k++) {
-                                        int index = (int) (Math.random() * x2.get());
+                                        int index = (int) (Math.random() * x2.get()-1);
                                         rocksMap.get(keys[index]);
                                     }
                                 }
@@ -68,8 +70,9 @@ public class RocksMapBench {
 //                                随机更新
                                 {
                                     for (int k = 0; k < updateConnt; k++) {
-                                        int index = (int) (Math.random() * x2.get());
+                                        int index = (int) (Math.random() * x2.get()-1);
                                         rocksMap.put(keys[index], value);
+//                                        rocksMap.putAll(TObject.asMap(keys[index], value));
                                     }
                                 }
 
@@ -110,5 +113,24 @@ public class RocksMapBench {
 
         System.out.println(rocksMap.get(lastKey));
         System.out.println(rocksMap.size());
+    }
+
+
+    public static TestObject newone(String name){
+        TestObject testObject = new TestObject();
+        int random = (int) (Math.random() * 800000);
+        testObject.setString(name);
+        testObject.setBint(random);
+        testObject.getList().add("listitem1" +random);
+        testObject.getList().add("listitem2 " +random);
+        testObject.getList().add("listitem3" +random);
+//        testObject.getMap().put("mapitem1" +random, "mapitem1" +random);
+//        testObject.getMap().put("mapitem2" +random, "mapitem2" +random);
+        testObject.getTb2().setString("bingo");
+        testObject.getTb2().setBint(56);
+        testObject.getTb2().getList().add("tb2 list item");
+//        testObject.getTb2().getMap().put("tb2 map item", "tb2 map item");
+
+        return testObject;
     }
 }
