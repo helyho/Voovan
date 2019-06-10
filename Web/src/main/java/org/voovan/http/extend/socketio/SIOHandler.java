@@ -30,7 +30,7 @@ public abstract class SIOHandler {
     }
 
     public SIOSession getSIOSession(){
-        SIOSession sioSession = (SIOSession) eioHandler.getEIOSession().getAttribute("SIOSESSIOM");
+        SIOSession sioSession = (SIOSession) eioHandler.getEIOSession().getAttribute("SIO_SESSIOM");
         if(sioSession == null) {
             sioSession = new SIOSession(eioHandler.getEIOSession(), sioDispatcher, nsp);
             eioHandler.getEIOSession().setAttribute("SIOSESSIOM", sioSession);
