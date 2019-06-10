@@ -58,7 +58,7 @@ public class SIOParser {
         if(dotPosition>0 && dataPosition>0 && dotPosition < dataPosition ){
             String seqValue = msg.substring(dotPosition + 1, dotPosition + 2);
             if(TString.isNumber(seqValue, 10)) {
-                packet.setSeq(Integer.valueOf(msg.substring(dotPosition + 1, dotPosition + 2)));
+                packet.setSeq(Integer.valueOf(msg.substring(dotPosition + 1, dataPosition)));
             }
         }
 
