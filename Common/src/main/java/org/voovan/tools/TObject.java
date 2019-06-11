@@ -134,7 +134,18 @@ public class TObject {
 		return target;
 	}
 
-	public static int arrayIndexOf(Object[] source, Object[] mark){
+
+	public static int indexOfArray(Object[] source, Object mark){
+		for(int i=0;i<source.length;i++){
+			Object item = source[i];
+			if(item.equals(mark)){
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	public static int indexOfArray(Object[] source, Object[] mark){
 			if(source.length == 0){
 				return -1;
 			}

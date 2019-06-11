@@ -26,8 +26,8 @@ public class AnnotationRouterTest {
     //当前方法的请求路由为:/annon/params,采用方法名作为路由的路径
     //将请求中名为 aa 的 参数在调用时注入成方法的 aa 参数
     //将请求中名为 bb 的 参数在调用时注入成方法的 bb 参数
-    @Router
-    @Router(method = "POST")
+    @Router(method = {"GET", "POST"})
+    @Router(path = "/params/r1", method = {"GET", "POST"})
     public String params(@Param("aa") String aa, @Param("bb") int bb){
         String oldPath = lastPath;
         lastPath = "/annon/parms, time:" + System.currentTimeMillis();
