@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * RocksDB 的 Map 封装
@@ -240,6 +241,28 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     public void setTransactionLockTimeout(int transactionLockTimeout) {
         this.transactionLockTimeout = transactionLockTimeout;
+    }
+
+    /**
+     * 同步锁, 开启式事务模式
+     * @param transaction 事务业务对象
+     * @return true: 事务成功, false: 事务失败
+     */
+    public boolean withTransaction(Function<RocksMap, Boolean> transaction){
+        beginTransaction();
+
+        try {
+            if (transaction.apply(this)) {
+                commit();
+                return true;
+            } else {
+                rollback();
+                return false;
+            }
+        } catch (Exception e){
+            rollback();
+            throw new RocksMapException("withTransaction failed", e);
+        }
     }
 
     /**

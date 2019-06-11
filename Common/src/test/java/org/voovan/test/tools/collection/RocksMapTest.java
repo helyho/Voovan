@@ -70,6 +70,26 @@ public class RocksMapTest {
         rocksMap.choseColumnFamily("testdb");
         System.out.println("=======================================");
 
+        rocksMap.withTransaction(map ->{
+            RocksMap rocksMapT = (RocksMap)map;
+            rocksMapT.put("ddddk", "ffdasf");
+            System.out.println("withTransaction commit: " + rocksMapT.get("ddddk"));
+            return true;
+        });
+
+        System.out.println("withTransaction commit: " + rocksMap.get("ddddk"));
+        rocksMap.remove("ddddk");
+
+        rocksMap.withTransaction(map ->{
+            RocksMap rocksMapT = (RocksMap)map;
+            rocksMapT.put("ddddk", "ffdasf");
+            System.out.println("withTransaction rollback: " + rocksMapT.get("ddddk"));
+            return false;
+        });
+
+        System.out.println("withTransaction rollback: " + rocksMap.get("ddddk"));
+
+
         //put
         rocksMap.put("aaaa", "bbbb");
         rocksMap.put("cccc", "dddd");
