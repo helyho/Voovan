@@ -205,7 +205,33 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap initilize failed", e);
         }
+    }
 
+    private RocksMap(RocksMap<K,V> rocksMap, String cfName){
+        this.dbOptions = rocksMap.dbOptions;
+        this.readOptions = rocksMap.readOptions;
+        this.writeOptions = rocksMap.writeOptions;
+
+        this.rocksDB = rocksMap.rocksDB;
+        this.dataColumnFamilyDescriptor = rocksMap.dataColumnFamilyDescriptor;
+        this.dataColumnFamilyHandle = rocksMap.dataColumnFamilyHandle;
+        this.threadLocalTransaction = rocksMap.threadLocalTransaction;
+
+        this.dbname =  rocksMap.dbname;
+        this.cfName = cfName;
+        this.readOnly = rocksMap.readOnly;
+        this.transactionLockTimeout = rocksMap.transactionLockTimeout;
+
+        this.choseColumnFamily(cfName);
+    }
+
+    /**
+     * 创建一个列族不同,但事务共享的 RocksMap
+     * @param cfName 列族名称
+     * @return 事务共享的 RocksMap
+     */
+    public RocksMap<K,V> share(String cfName){
+        return new RocksMap<K, V>(this, cfName);
     }
 
     /**
@@ -292,23 +318,22 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         if(readOnly){
             throw new RocksMapException("RocksMap Not supported operation in read only mode");
         }
-
-        TransactionOptions transactionOptions = new TransactionOptions();
-
-        //事务超时时间
-        transactionOptions.setExpiration(expire);
-
-        //是否执行死锁检测
-        transactionOptions.setDeadlockDetect(deadlockDetect);
-
-        //是否启用快照事务模式
-        transactionOptions.setSetSnapshot(withSnapShot);
-
-        //设置快照超时时间
-        transactionOptions.setLockTimeout(transactionLockTimeout);
-
         Transaction transaction = threadLocalTransaction.get();
         if(transaction==null) {
+            TransactionOptions transactionOptions = new TransactionOptions();
+
+            //事务超时时间
+            transactionOptions.setExpiration(expire);
+
+            //是否执行死锁检测
+            transactionOptions.setDeadlockDetect(deadlockDetect);
+
+            //是否启用快照事务模式
+            transactionOptions.setSetSnapshot(withSnapShot);
+
+            //设置快照超时时间
+            transactionOptions.setLockTimeout(transactionLockTimeout);
+
             transaction = ((TransactionDB) rocksDB).beginTransaction(writeOptions, transactionOptions);
             return transaction;
         } else {
