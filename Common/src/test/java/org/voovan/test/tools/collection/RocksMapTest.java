@@ -2,6 +2,7 @@ package org.voovan.test.tools.collection;
 
 import org.rocksdb.RocksDBException;
 import org.voovan.tools.collection.RocksMap;
+import org.voovan.tools.json.JSON;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -183,5 +184,7 @@ public class RocksMapTest {
         System.out.println("lastKey:" + rocksMap.lastKey());
 
         rocksMap.put("name", "testdb");
+        System.out.println("KeySet: "+ rocksMap.keySet());
+
     }
 }
