@@ -40,6 +40,7 @@ public class AnnotationRouter implements HttpRouter {
      * @param clazz   Class对象
      * @param method  方法对象
      * @param classRouter 类上的 Route 注解
+     * @param methodRoute 方法上的 Route 注解
      */
     public AnnotationRouter(Class clazz, Method method, Router classRouter, Router methodRoute) {
         this.clazz = clazz;
