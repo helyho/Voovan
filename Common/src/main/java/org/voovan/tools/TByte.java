@@ -187,21 +187,24 @@ public class TByte {
         return index;
     }
 
-    public static int byteArrayCompare(byte[] byte1, byte[] byte2){
-        for(int i = 0; i < byte1.length; i++) {
-            if (i + 1 > byte2.length){
-                break;
-            }
+    /**
+     * 比较两个byte[],是否 byte1 以 byte2 作为开始部分
+     * @param byte1 被比较的 byte[]
+     * @param byte2 比较的数据 byte[]
+     * @return true/false
+     */
+    public static boolean byteArrayStartWith(byte[] byte1, byte[] byte2){
+        for(int i = 0; i < byte2.length; i++) {
 
             if (byte1[i] < byte2[i]){
-                return -1;
+                return false;
             }
 
             if (byte1[i] > byte2[i]){
-                return 1;
+                return false;
             }
         }
 
-        return 0;
+        return true;
     }
 }

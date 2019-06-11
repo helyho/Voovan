@@ -451,7 +451,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         while(iterator.isValid()) {
             byte[] key = iterator.key();
-            if(toKey==null || TByte.byteArrayCompare(toKeyBytes, key) >= 0) {
+            if(toKey==null || !Arrays.equals(toKeyBytes, key)) {
                 subMap.put((K) TSerialize.unserialize(iterator.key()), (V)TSerialize.unserialize(iterator.value()));
             } else {
                 break;
@@ -678,7 +678,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         try {
             byte[] oldDbValueBytes = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
-            if(oldDbValueBytes!=null && TByte.byteArrayCompare(oldDbValueBytes, oldValueBytes)==0){
+            if(oldDbValueBytes!=null && Arrays.equals(oldDbValueBytes, oldValueBytes)){
                 transaction.put(dataColumnFamilyHandle, keyBytes, newValueBytes);
                 return true;
             } else {
