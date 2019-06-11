@@ -87,6 +87,7 @@ public class TSerialize {
         CLASS_AND_SIMPLE_NAME.put(Character.class, "C");
         CLASS_AND_SIMPLE_NAME.put(boolean.class, "T");
         CLASS_AND_SIMPLE_NAME.put(Boolean.class, "T");
+        CLASS_AND_SIMPLE_NAME.put(String.class, "X");
 
         SIMPLE_NAME_AND_CLASS.put("I", int.class);
         SIMPLE_NAME_AND_CLASS.put("I", Integer.class);
@@ -104,6 +105,7 @@ public class TSerialize {
         SIMPLE_NAME_AND_CLASS.put("C", Character.class);
         SIMPLE_NAME_AND_CLASS.put("T", boolean.class);
         SIMPLE_NAME_AND_CLASS.put("T", Boolean.class);
+        SIMPLE_NAME_AND_CLASS.put("X", String.class);
     }
 
     protected static String getSimpleNameByClass(Class clazz){
