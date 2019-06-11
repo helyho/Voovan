@@ -3,7 +3,7 @@ package org.voovan.http.server.module.annontationRouter.annotation;
 import java.lang.annotation.*;
 
 /**
- * 请求参数检查
+ * 重复路由注解
  *
  * @author: helyho
  * Voovan Framework.
@@ -12,9 +12,9 @@ import java.lang.annotation.*;
  */
 
 
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
 @Documented
-public @interface Checks {
-    Check[] value();
+public @interface Routers {
+    Router[] value();
 }
