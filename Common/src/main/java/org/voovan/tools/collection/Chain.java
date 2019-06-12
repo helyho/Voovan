@@ -1,7 +1,5 @@
 package org.voovan.tools.collection;
 
-import org.voovan.tools.FastThreadLocal;
-
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -15,8 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Licence: Apache v2 License
  */
 public class Chain<E>  extends ArrayList<E> {
-	public FastThreadLocal<AtomicInteger> iteratorLocal = FastThreadLocal.withInitial(()->new AtomicInteger(0));
-	public FastThreadLocal<AtomicInteger> invertedIteratorLocal = FastThreadLocal.withInitial(()->new AtomicInteger(0));
+	public ThreadLocal<AtomicInteger> iteratorLocal = ThreadLocal.withInitial(()->new AtomicInteger(0));
+	public ThreadLocal<AtomicInteger> invertedIteratorLocal = ThreadLocal.withInitial(()->new AtomicInteger(0));
 	private boolean isStop;
 
 	/**
