@@ -1,7 +1,5 @@
 package org.voovan.tools.collection;
 import org.rocksdb.*;
-import org.voovan.tools.FastThreadLocal;
-import org.voovan.tools.TByte;
 import org.voovan.tools.TFile;
 import org.voovan.tools.exception.RocksMapException;
 import org.voovan.tools.log.Logger;
@@ -73,7 +71,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private RocksDB rocksDB;
     private ColumnFamilyDescriptor dataColumnFamilyDescriptor;
     private ColumnFamilyHandle dataColumnFamilyHandle;
-    private FastThreadLocal<Transaction> threadLocalTransaction = new FastThreadLocal<Transaction>();
+    private ThreadLocal<Transaction> threadLocalTransaction = new ThreadLocal<Transaction>();
 
     private String dbname;
     private String cfName;
@@ -844,7 +842,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     @Override
     public Collection values() {
-        TreeSet<K> keySet = new TreeSet<K>();
+        ArrayList<V> values = new ArrayList<V>();
         RocksIterator iterator = null;
 
         Transaction transaction = threadLocalTransaction.get();
@@ -855,12 +853,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
         iterator.seekToFirst();
         while(iterator.isValid()){
-            K k = (K) TSerialize.unserialize(iterator.value());
-            keySet.add(k);
+            V value = (V) TSerialize.unserialize(iterator.value());
+            values.add(value);
             iterator.next();
         }
 
-        return keySet;
+        return values;
     }
 
     /**

@@ -70,42 +70,55 @@ public class TSerialize {
     static ConcurrentHashMap<Class, String> CLASS_AND_SIMPLE_NAME = new ConcurrentHashMap<Class, String>();
     static ConcurrentHashMap<String, Class> SIMPLE_NAME_AND_CLASS = new ConcurrentHashMap<String, Class>();
 
-    static {
-        CLASS_AND_SIMPLE_NAME.put(int.class, "I");
-        CLASS_AND_SIMPLE_NAME.put(Integer.class, "I");
-        CLASS_AND_SIMPLE_NAME.put(byte.class, "B");
-        CLASS_AND_SIMPLE_NAME.put(Byte.class, "B");
-        CLASS_AND_SIMPLE_NAME.put(short.class, "S");
-        CLASS_AND_SIMPLE_NAME.put(Short.class, "S");
-        CLASS_AND_SIMPLE_NAME.put(long.class, "L");
-        CLASS_AND_SIMPLE_NAME.put(Long.class, "L");
-        CLASS_AND_SIMPLE_NAME.put(float.class, "F");
-        CLASS_AND_SIMPLE_NAME.put(Float.class, "F");
-        CLASS_AND_SIMPLE_NAME.put(double.class, "D");
-        CLASS_AND_SIMPLE_NAME.put(Double.class, "D");
-        CLASS_AND_SIMPLE_NAME.put(char.class, "C");
-        CLASS_AND_SIMPLE_NAME.put(Character.class, "C");
-        CLASS_AND_SIMPLE_NAME.put(boolean.class, "T");
-        CLASS_AND_SIMPLE_NAME.put(Boolean.class, "T");
-        CLASS_AND_SIMPLE_NAME.put(String.class, "X");
+    /**
+     * 注册一个 Class 名称简写
+     * @param simpleName Class 名称简写
+     * @param clazz 类对象
+     */
+    public static void registerClassWithSimpleName(String simpleName, Class clazz){
+        if(SIMPLE_NAME_AND_CLASS.contains(simpleName)) {
+            throw new RuntimeException("simple name is exists");
+        }
+        CLASS_AND_SIMPLE_NAME.put(clazz, simpleName);
+        SIMPLE_NAME_AND_CLASS.put(simpleName, clazz);
+    }
 
-        SIMPLE_NAME_AND_CLASS.put("I", int.class);
-        SIMPLE_NAME_AND_CLASS.put("I", Integer.class);
-        SIMPLE_NAME_AND_CLASS.put("B", byte.class);
-        SIMPLE_NAME_AND_CLASS.put("B", Byte.class);
-        SIMPLE_NAME_AND_CLASS.put("S", short.class);
-        SIMPLE_NAME_AND_CLASS.put("S", Short.class);
-        SIMPLE_NAME_AND_CLASS.put("L", long.class);
-        SIMPLE_NAME_AND_CLASS.put("L", Long.class);
-        SIMPLE_NAME_AND_CLASS.put("F", float.class);
-        SIMPLE_NAME_AND_CLASS.put("F", Float.class);
-        SIMPLE_NAME_AND_CLASS.put("D", double.class);
-        SIMPLE_NAME_AND_CLASS.put("D", Double.class);
-        SIMPLE_NAME_AND_CLASS.put("C", char.class);
-        SIMPLE_NAME_AND_CLASS.put("C", Character.class);
-        SIMPLE_NAME_AND_CLASS.put("T", boolean.class);
-        SIMPLE_NAME_AND_CLASS.put("T", Boolean.class);
-        SIMPLE_NAME_AND_CLASS.put("X", String.class);
+    static {
+        CLASS_AND_SIMPLE_NAME.put(int.class, "0");
+        CLASS_AND_SIMPLE_NAME.put(Integer.class, "0");
+        CLASS_AND_SIMPLE_NAME.put(byte.class, "1");
+        CLASS_AND_SIMPLE_NAME.put(Byte.class, "1");
+        CLASS_AND_SIMPLE_NAME.put(short.class, "2");
+        CLASS_AND_SIMPLE_NAME.put(Short.class, "2");
+        CLASS_AND_SIMPLE_NAME.put(long.class, "3");
+        CLASS_AND_SIMPLE_NAME.put(Long.class, "3");
+        CLASS_AND_SIMPLE_NAME.put(float.class, "4");
+        CLASS_AND_SIMPLE_NAME.put(Float.class, "4");
+        CLASS_AND_SIMPLE_NAME.put(double.class, "5");
+        CLASS_AND_SIMPLE_NAME.put(Double.class, "5");
+        CLASS_AND_SIMPLE_NAME.put(char.class, "6");
+        CLASS_AND_SIMPLE_NAME.put(Character.class, "6");
+        CLASS_AND_SIMPLE_NAME.put(boolean.class, "7");
+        CLASS_AND_SIMPLE_NAME.put(Boolean.class, "7");
+        CLASS_AND_SIMPLE_NAME.put(String.class, "8");
+
+        SIMPLE_NAME_AND_CLASS.put("0", int.class);
+        SIMPLE_NAME_AND_CLASS.put("0", Integer.class);
+        SIMPLE_NAME_AND_CLASS.put("1", byte.class);
+        SIMPLE_NAME_AND_CLASS.put("1", Byte.class);
+        SIMPLE_NAME_AND_CLASS.put("2", short.class);
+        SIMPLE_NAME_AND_CLASS.put("2", Short.class);
+        SIMPLE_NAME_AND_CLASS.put("3", long.class);
+        SIMPLE_NAME_AND_CLASS.put("3", Long.class);
+        SIMPLE_NAME_AND_CLASS.put("4", float.class);
+        SIMPLE_NAME_AND_CLASS.put("4", Float.class);
+        SIMPLE_NAME_AND_CLASS.put("5", double.class);
+        SIMPLE_NAME_AND_CLASS.put("5", Double.class);
+        SIMPLE_NAME_AND_CLASS.put("6", char.class);
+        SIMPLE_NAME_AND_CLASS.put("6", Character.class);
+        SIMPLE_NAME_AND_CLASS.put("7", boolean.class);
+        SIMPLE_NAME_AND_CLASS.put("7", Boolean.class);
+        SIMPLE_NAME_AND_CLASS.put("8", String.class);
     }
 
     protected static String getSimpleNameByClass(Class clazz){
