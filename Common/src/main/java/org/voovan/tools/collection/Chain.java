@@ -15,8 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Licence: Apache v2 License
  */
 public class Chain<E>  extends ArrayList<E> {
-	public static FastThreadLocal<AtomicInteger> iteratorLocal = FastThreadLocal.withInitial(()->new AtomicInteger(0));
-	public static FastThreadLocal<AtomicInteger> invertedIteratorLocal = FastThreadLocal.withInitial(()->new AtomicInteger(0));
+	public FastThreadLocal<AtomicInteger> iteratorLocal = FastThreadLocal.withInitial(()->new AtomicInteger(0));
+	public FastThreadLocal<AtomicInteger> invertedIteratorLocal = FastThreadLocal.withInitial(()->new AtomicInteger(0));
 	private boolean isStop;
 
 	/**
@@ -55,7 +55,8 @@ public class Chain<E>  extends ArrayList<E> {
 			return null;
 		} else {
 			if(this.hasNext()){
-				return this.get(iteratorLocal.get().getAndIncrement());
+				 E e = this.get(iteratorLocal.get().getAndIncrement());
+				return e;
 			} else {
 				return null;
 			}

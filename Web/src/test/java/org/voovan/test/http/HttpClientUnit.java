@@ -2,6 +2,7 @@ package org.voovan.test.http;
 
 
 import junit.framework.TestCase;
+import org.junit.Test;
 import org.voovan.http.client.HttpClient;
 import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Part;
@@ -28,6 +29,7 @@ public class HttpClientUnit extends TestCase {
 		super(name);
 	}
 
+	@Test
 	public void testGetHeader() throws IOException {
 		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080");
 		httpClient.putParameters("name", "测试");

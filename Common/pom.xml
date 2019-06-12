@@ -27,28 +27,37 @@
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
             <version>2.9.0</version>
-            <type>jar</type>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
             <version>3.22.0-GA</version>
-            <type>jar</type>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.rocksdb</groupId>
             <artifactId>rocksdbjni</artifactId>
             <version>6.0.1</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.protostuff</groupId>
             <artifactId>protostuff-core</artifactId>
             <version>1.6.0</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.protostuff</groupId>
             <artifactId>protostuff-runtime</artifactId>
             <version>1.6.0</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-collectionschema</artifactId>
+            <version>1.6.0</version>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>
