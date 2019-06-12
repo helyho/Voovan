@@ -9,6 +9,7 @@ import org.voovan.tools.collection.ObjectThreadPool;
 import org.voovan.tools.reflect.TReflect;
 
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,17 +38,20 @@ public class ProtoStuffSerialize implements Serialize {
 
     @Override
     public byte[] serialize(Object obj) {
-        Schema schema = getSchema(obj.getClass());
-        LinkedBuffer buffer =objectThreadPool .get(()->LinkedBuffer.allocate(512));
-        byte[] buf = null;
-        try {
-            buf = ProtostuffIOUtil.toByteArray(obj, schema, buffer);
-            byte[] type = (TSerialize.getSimpleNameByClass(obj.getClass())+"\0").getBytes();
-            buf = TByte.byteArrayConcat(type,type.length, buf, buf.length);
-        } finally {
-            buffer.clear();
-        }
 
+        byte[] buf = null;
+        buf = TByte.toBytes(obj);
+        if(buf==null) {
+            Schema schema = getSchema(obj.getClass());
+            LinkedBuffer buffer =objectThreadPool .get(()->LinkedBuffer.allocate(512));
+            try {
+                buf = ProtostuffIOUtil.toByteArray(obj, schema, buffer);
+            } finally {
+                buffer.clear();
+            }
+        }
+        byte[] type = (TSerialize.getSimpleNameByClass(obj.getClass())+"\0").getBytes();
+        buf = TByte.byteArrayConcat(type, type.length, buf, buf.length);
         return buf;
     }
 
@@ -64,15 +68,19 @@ public class ProtoStuffSerialize implements Serialize {
             }
         }
         try {
+
             String className = new String(type, 0, index, Charset.defaultCharset());
 
             Class innerClazz = TSerialize.getClassBySimpleName(className);
-            Schema schema = getSchema(innerClazz);
-            Object obj = null;
 
-            obj = TReflect.newInstance(innerClazz);
+            byte[] valueBytes = Arrays.copyOfRange(bytes, index+1, bytes.length);
 
-            ProtostuffIOUtil.mergeFrom(bytes, index+1, bytes.length-index-1, obj, schema);
+            Object obj = TByte.toObject(bytes, innerClazz);
+            if(obj==null) {
+                Schema schema = getSchema(innerClazz);
+                obj = TReflect.newInstance(innerClazz);
+                ProtostuffIOUtil.mergeFrom(valueBytes, 0, valueBytes.length, obj, schema);
+            }
             return (T) obj;
         } catch (Exception e) {
             e.printStackTrace();
