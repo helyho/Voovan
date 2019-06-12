@@ -10,8 +10,8 @@ import java.io.IOException;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class ParserException extends IOException {
-    public ParserException(String msg){
+public class HttpParserException extends IOException {
+    public HttpParserException(String msg){
         super(msg);
     }
 }
