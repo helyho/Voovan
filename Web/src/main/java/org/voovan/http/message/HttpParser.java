@@ -58,6 +58,9 @@ public class HttpParser {
 
 	private static ConcurrentSkipListMap<Long, Map<String, Object>> PACKET_MAP_CACHE = new ConcurrentSkipListMap<Long, Map<String, Object>>();
 
+    public static final int PARSER_TYPE_REQUEST = 0;
+	public static final int PARSER_TYPE_RESPONSE = 1;
+
 	static {
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 			@Override
@@ -241,6 +244,7 @@ public class HttpParser {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
 		int hashCode = 0;
+		boolean isCache = type==PARSER_TYPE_REQUEST ? WebContext.isCache() : false;
 
 		//遍历 Protocol
 		int segment = 0;
@@ -353,7 +357,7 @@ public class HttpParser {
 			packetMap.put(PL_STATUS_CODE, segment_3);
 		}
 
-		if(WebContext.isCache()) {
+		if(isCache) {
 			packetMap.put(PL_HASH, hashCode);
 		}
 	}
@@ -423,7 +427,7 @@ public class HttpParser {
 	 * 			5.body     解析成 key=BODY_VALUE 的Map 元素
 	 * @param session socket 会话对象
 	 * @param packetMap 用于填充的解析 map
-	 * @param type 解析的报文类型
+	 * @param type 解析的报文类型, 0: Request, 1: Response
 	 * @param byteBufferChannel 输入流
 	 * @param timeOut 读取超时时间参数
 	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
@@ -432,41 +436,45 @@ public class HttpParser {
 	 */
 	public static Map<String, Object> parser(IoSession session, Map<String, Object> packetMap, int type, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
 		int totalLength = 0;
-		boolean isBodyConent = false;
+        long mark = 0;
+        int headerMark = 0;
+        int protocolPosition = 0;
+
+        boolean isBodyConent = false;
+		boolean isCache = type==PARSER_TYPE_REQUEST ? WebContext.isCache() : false;
 
 		requestMaxSize = requestMaxSize < 0 ? Integer.MAX_VALUE : requestMaxSize;
 
 		//按行遍历HTTP报文
 		while(byteBufferChannel.size() > 0){
 			ByteBuffer innerByteBuffer = byteBufferChannel.getByteBuffer();
-			long mark = 0;
-			int headerMark = 0;
+
 			try {
 				parserProtocol(packetMap, type, innerByteBuffer);
-				int protocolPosition = innerByteBuffer.position() - 1;
+				protocolPosition = innerByteBuffer.position() - 1;
 
-				if(WebContext.isCache()) {
+				if(isCache) {
 					mark = ((Integer) packetMap.get(PL_HASH)).longValue();
 
 					for (Entry<Long, Map<String, Object>> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
 						long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
-						long position = (cachedMark << 32) >> 32;
+						long totalLengthInMark = (cachedMark << 32) >> 32;
 
-						if(position > innerByteBuffer.limit()){
+						if(totalLengthInMark > innerByteBuffer.limit()){
 							continue;
 						}
 
-						headerMark = THash.hashTime31(innerByteBuffer, protocolPosition, (int)(position - protocolPosition));
+						headerMark = THash.hashTime31(innerByteBuffer, protocolPosition, (int)(totalLengthInMark - protocolPosition));
 
 						if (mark + headerMark == cachedMark >> 32) {
 
 
-							if (byteBufferChannel.size() >= position &&
-									byteBufferChannel.get((int) position - 1) == 10 &&
-									byteBufferChannel.get((int) position - 2) == 13) {
+							if (byteBufferChannel.size() >= totalLengthInMark &&
+									byteBufferChannel.get((int) totalLengthInMark - 1) == 10 &&
+									byteBufferChannel.get((int) totalLengthInMark - 2) == 13) {
 
 
-								innerByteBuffer.position((int) position);
+								innerByteBuffer.position((int) totalLengthInMark);
 								return packetMapCacheItem.getValue();
 							}
 						}
@@ -498,26 +506,22 @@ public class HttpParser {
 					parseCookie(packetMap, cookieName, cookieValue);
 				}
 
-				if(WebContext.isCache()) {
+				if(isCache && "GET".equals(packetMap.get(PL_METHOD)) || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
 					totalLength = innerByteBuffer.position();
 					headerMark = THash.hashTime31(innerByteBuffer, protocolPosition, (int)(totalLength - protocolPosition));
 					mark = (mark + headerMark) << 32 | totalLength;
 					packetMap.put(PL_HASH, mark);
+
+					HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
+					cachedPacketMap.putAll(packetMap);
+					cachedPacketMap.put(USE_CACHE, 1);
+
+					PACKET_MAP_CACHE.put(mark, cachedPacketMap);
+					break;
 				}
 
 			} finally {
 				byteBufferChannel.compact();
-			}
-
-			//如果 消息缓冲通道没有数据或已关闭
-			if("GET".equals(packetMap.get(PL_METHOD)) || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
-                if (WebContext.isCache()) {
-                    HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
-                    cachedPacketMap.putAll(packetMap);
-                    cachedPacketMap.put(USE_CACHE, 1);
-                    PACKET_MAP_CACHE.put(mark, cachedPacketMap);
-                }
-				break;
 			}
 
 			isBodyConent = true;
@@ -806,7 +810,7 @@ public class HttpParser {
 
 		Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
 		try {
-			packetMap = parser(session, packetMap, 0, byteBufferChannel, timeOut, requestMaxSize);
+			packetMap = parser(session, packetMap, PARSER_TYPE_REQUEST, byteBufferChannel, timeOut, requestMaxSize);
 		} catch (HttpParserException e) {
 			byteBufferChannel.clear();
 			Logger.warn("HttpParser.parser: " + e.getMessage());
@@ -910,7 +914,7 @@ public class HttpParser {
 	public static Response parseResponse(IoSession session, ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
 		Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
 		try {
-			packetMap = parser(session, packetMap, 1, byteBufferChannel, timeOut, -1);
+			packetMap = parser(session, packetMap, PARSER_TYPE_RESPONSE, byteBufferChannel, timeOut, -1);
 			packetMap.remove(PL_HASH);
 		} catch (HttpParserException e) {
 			byteBufferChannel.clear();
