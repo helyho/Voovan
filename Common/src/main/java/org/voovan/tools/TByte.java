@@ -99,7 +99,6 @@ public class TByte {
 
     public static double getDouble(byte[] bytes) {
         long l = getLong(bytes);
-        System.out.println(l);
         return Double.longBitsToDouble(l);
     }
 
