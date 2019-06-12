@@ -35,6 +35,11 @@ public class TByte {
         return bytes;
     }
 
+
+    public static byte[] getBytes(boolean data) {
+        return getBytes(data?1:0);
+    }
+
     public static byte[] getBytes(long data) {
         byte[] bytes = new byte[8];
         bytes[0] = (byte) (data & 0xff);
@@ -67,7 +72,6 @@ public class TByte {
         return getBytes(data, "UTF-8");
     }
 
-
     public static short getShort(byte[] bytes) {
         return (short) ((0xff & bytes[0]) | (0xff00 & (bytes[1] << 8)));
     }
@@ -78,6 +82,10 @@ public class TByte {
 
     public static int getInt(byte[] bytes) {
         return (0xff & bytes[0]) | (0xff00 & (bytes[1] << 8)) | (0xff0000 & (bytes[2] << 16)) | (0xff000000 & (bytes[3] << 24));
+    }
+
+    public static boolean getBoolean(byte[] bytes){
+        return getInt(bytes)==1?true:false;
     }
 
     public static long getLong(byte[] bytes) {
@@ -101,6 +109,59 @@ public class TByte {
 
     public static String getString(byte[] bytes) {
         return getString(bytes, "UTF-8");
+    }
+
+    public static byte[] toBytes(Object obj){
+        Class clazz = obj.getClass();
+        if (clazz == int.class || clazz == Integer.class) {
+            return TByte.getBytes((Integer) obj);
+        } else if (clazz == float.class || clazz == Float.class) {
+            return TByte.getBytes((Float) obj);
+        } else if (clazz == double.class || clazz == Double.class) {
+            return TByte.getBytes((Double) obj);
+        } else if (clazz == boolean.class || clazz == Boolean.class) {
+            return TByte.getBytes((Boolean) obj);
+        } else if (clazz == long.class || clazz == Long.class) {
+            return TByte.getBytes((Long) obj);
+        } else if (clazz == short.class || clazz == Short.class) {
+            return TByte.getBytes((Short) obj);
+        } else if (clazz == byte.class || clazz == Byte.class) {
+            return TByte.getBytes((Byte) obj);
+        } else if (clazz == char.class || clazz == Character.class) {
+            return TByte.getBytes((Character) obj);
+        } else if (clazz == String.class) {
+            return TByte.getBytes((String) obj);
+        } else if (clazz == byte[].class) {
+            return (byte[])obj;
+        } else {
+            return null;
+        }
+    }
+
+    public static Object toObject(byte[] bytes, Class clazz){
+        if (clazz == int.class || clazz == Integer.class) {
+            return TByte.getInt(bytes);
+        } else if (clazz == float.class || clazz == Float.class) {
+            return TByte.getFloat(bytes);
+        } else if (clazz == double.class || clazz == Double.class) {
+            return TByte.getDouble(bytes);
+        } else if (clazz == boolean.class || clazz == Boolean.class) {
+            return TByte.getBoolean(bytes);
+        } else if (clazz == long.class || clazz == Long.class) {
+            return TByte.getLong(bytes);
+        } else if (clazz == short.class || clazz == Short.class) {
+            return TByte.getShort(bytes);
+        } else if (clazz == byte.class || clazz == Byte.class) {
+            return TByte.getShort(bytes);
+        } else if (clazz == char.class || clazz == Character.class) {
+            return TByte.getChar(bytes);
+        } else if (clazz == String.class) {
+            return TByte.getString(bytes);
+        } else if (clazz == byte[].class) {
+            return bytes;
+        } else {
+            return null;
+        }
     }
 
 

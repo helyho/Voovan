@@ -1,10 +1,12 @@
 package org.voovan.tools.serialize;
 
+import org.voovan.tools.TByte;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * JDK 序列化和反序列化封装
@@ -69,6 +71,8 @@ public class TSerialize {
 
     static ConcurrentHashMap<Class, String> CLASS_AND_SIMPLE_NAME = new ConcurrentHashMap<Class, String>();
     static ConcurrentHashMap<String, Class> SIMPLE_NAME_AND_CLASS = new ConcurrentHashMap<String, Class>();
+    static ConcurrentHashMap<Class, Function<?,?>> CLASS_SERIALIZE_METHOD = new ConcurrentHashMap<Class, Function<?,?>>();
+    static ConcurrentHashMap<Class, Function<?,?>> CLASS_UNSERIALIZE_METHOD = new ConcurrentHashMap<Class, Function<?,?>>();
 
     /**
      * 注册一个 Class 名称简写
@@ -101,6 +105,7 @@ public class TSerialize {
         CLASS_AND_SIMPLE_NAME.put(boolean.class, "7");
         CLASS_AND_SIMPLE_NAME.put(Boolean.class, "7");
         CLASS_AND_SIMPLE_NAME.put(String.class, "8");
+        CLASS_AND_SIMPLE_NAME.put(byte[].class, "9");
 
         SIMPLE_NAME_AND_CLASS.put("0", int.class);
         SIMPLE_NAME_AND_CLASS.put("0", Integer.class);
@@ -119,6 +124,7 @@ public class TSerialize {
         SIMPLE_NAME_AND_CLASS.put("7", boolean.class);
         SIMPLE_NAME_AND_CLASS.put("7", Boolean.class);
         SIMPLE_NAME_AND_CLASS.put("8", String.class);
+        SIMPLE_NAME_AND_CLASS.put("9", byte[].class);
     }
 
     protected static String getSimpleNameByClass(Class clazz){
