@@ -49,7 +49,7 @@ public class DefaultJSONSerialize implements Serialize {
 
             genericClazzs = genericClazzs.length == 0 ? null : genericClazzs;
 
-            if (clazz == null || TReflect.isSystemType(clazz)) {
+            if (mainClazz == null || TReflect.isSystemType(mainClazz)) {
                 return (T)jsonPath.value("/V", genericClazzs);
             } else {
                 Object obj = TReflect.getObjectFromMap(mainClazz, jsonPath.mapObject("/V", genericClazzs), true);
