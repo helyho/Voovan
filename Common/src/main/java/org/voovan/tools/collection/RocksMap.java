@@ -200,7 +200,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 CF_HANDLE_MAP.put(rocksDB, columnFamilyHandleList);
             }
 
-            choseColumnFamily(cfName);
+            choseColumnFamily(this.cfName);
 
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap initilize failed", e);
@@ -271,22 +271,22 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 同步锁, 开启式事务模式
-     * @param transaction 事务业务对象
+     * @param transFunction 事务业务对象
      * @return true: 事务成功, false: 事务失败
      */
-    public boolean withTransaction(Function<RocksMap, Boolean> transaction){
-        beginTransaction();
+    public boolean withTransaction(Function<RocksMap, Boolean> transFunction){
+        Transaction innerTransaction = createTransaction(-1, false, false);
 
         try {
-            if (transaction.apply(this)) {
-                commit();
+            if (transFunction.apply(this)) {
+                commit(innerTransaction);
                 return true;
             } else {
-                rollback();
+                rollback(innerTransaction);
                 return false;
             }
-        } catch (Exception e){
-            rollback();
+        } catch (Exception e) {
+            rollback(innerTransaction);
             throw new RocksMapException("withTransaction failed", e);
         }
     }
@@ -711,7 +711,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     rocksDB.singleDelete(dataColumnFamilyHandle, TSerialize.serialize(key));
                 }
             }
-            return value;
+            return (V)value;
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap remove " + key + " failed", e);
         }
@@ -844,7 +844,23 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     @Override
     public Collection values() {
-        throw new UnsupportedOperationException();
+        TreeSet<K> keySet = new TreeSet<K>();
+        RocksIterator iterator = null;
+
+        Transaction transaction = threadLocalTransaction.get();
+        if(transaction!=null) {
+            iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
+        } else {
+            iterator = rocksDB.newIterator(dataColumnFamilyHandle, readOptions);
+        }
+        iterator.seekToFirst();
+        while(iterator.isValid()){
+            K k = (K) TSerialize.unserialize(iterator.value());
+            keySet.add(k);
+            iterator.next();
+        }
+
+        return keySet;
     }
 
     /**
