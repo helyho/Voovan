@@ -1,5 +1,6 @@
 package org.voovan.tools.collection;
 import org.rocksdb.*;
+import org.voovan.tools.TByte;
 import org.voovan.tools.TFile;
 import org.voovan.tools.exception.RocksMapException;
 import org.voovan.tools.log.Logger;
@@ -878,8 +879,32 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return entryMap.entrySet();
     }
 
+    /**
+     * 按前缀查找关联的 key
+     * @param key key 的前缀
+     * @return 找到的 Map 数据
+     */
+    public Map<K,V> startWith(K key) {
+        byte[] keyBytes = TSerialize.serialize(key);
+        TreeMap<K,V> entryMap =  new TreeMap<K,V>();
+
+        RocksIterator iterator = getIterator();
+        iterator.seek(keyBytes);
+        while(iterator.isValid()){
+            byte[] iteratorkeyBytes = iterator.key();
+            if(TByte.byteArrayStartWith(iteratorkeyBytes, keyBytes)) {
+                entryMap.put((K) TSerialize.unserialize(iteratorkeyBytes), (V) TSerialize.unserialize(iterator.value()));
+                iterator.next();
+            } else {
+                break;
+            }
+        }
+
+        return entryMap;
+    }
+
     @Override
-    public void close() throws IOException {
+    public void close() {
         Transaction transaction = threadLocalTransaction.get();
         if(transaction!=null){
             try {

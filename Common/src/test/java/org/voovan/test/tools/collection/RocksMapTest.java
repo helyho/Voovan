@@ -184,7 +184,9 @@ public class RocksMapTest {
         System.out.println("lastKey:" + rocksMap.lastKey());
 
         rocksMap.put("name", "testdb");
+        System.out.println("name:" + rocksMap.get("name"));
         System.out.println("KeySet: "+ rocksMap.keySet());
+        System.out.println("search: " + JSON.toJSON(rocksMap.startWith("na")));
 
     }
 }

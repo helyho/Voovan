@@ -75,7 +75,7 @@ public class ProtoStuffSerialize implements Serialize {
 
             byte[] valueBytes = Arrays.copyOfRange(bytes, index+1, bytes.length);
 
-            Object obj = TByte.toObject(bytes, innerClazz);
+            Object obj = TByte.toObject(valueBytes, innerClazz);
             if(obj==null) {
                 Schema schema = getSchema(innerClazz);
                 obj = TReflect.newInstance(innerClazz);
