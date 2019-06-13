@@ -4,6 +4,7 @@ import org.rocksdb.RocksDBException;
 import org.voovan.Global;
 import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
 import org.voovan.tools.UniqueId;
 import org.voovan.tools.collection.RocksMap;
 
@@ -23,8 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RocksMapBench {
     public static void main(String[] args) throws RocksDBException {
         int threadSize = 1;
-        int loopSize = 40000;
-        int readConnt = 10;
+        int loopSize = 20000;
+        int readConnt = 2;
         int updateConnt = 4;
 
         CountDownLatch countDownLatch = new CountDownLatch(threadSize);
@@ -32,8 +33,10 @@ public class RocksMapBench {
 
         RocksMap rocksMap = new RocksMap("bench", "benchCF");
         //Rocksdb 数据库配置
-        String lastKey = "lastkey";
-        rocksMap.put(lastKey, 1);
+        String lockkey1 = "lockkey1";
+        rocksMap.put(lockkey1, 1);
+        String lockkey2 = "lockkey2";
+        rocksMap.put(lockkey2, 1);
         System.out.println("start...");
 
         AtomicInteger x2 = new AtomicInteger(0);
@@ -65,27 +68,27 @@ public class RocksMapBench {
                                         rocksMap.get(keys[index]);
                                     }
                                 }
-
-//                                随机更新
-                                {
+//
+//                                //随机更新
+//                                {
 //                                    for (int k = 0; k < updateConnt; k++) {
 //                                        int index = (int) (Math.random() * x2.get()-1);
 //                                        rocksMap.put(keys[index], value);
-//                                        rocksMap.putAll(TObject.asMap(keys[index], value));
-                                    }
+//                                    }
 //                                }
 
                                 //事务
-//                                {
-//                                    rocksMap.beginTransaction();
-//                                    //锁
-//                                    if(finalI%4 == 0){
-//                                        int x = (Integer) rocksMap.getForUpdate(lastKey);
-//                                        rocksMap.put(lastKey, x + 1);
-//                                    }
+                                {
+                                    rocksMap.beginTransaction();
+                                    //锁竞争
+                                    int x = (Integer) rocksMap.lock(lockkey1);
+                                    rocksMap.put(lockkey1, x + 1);
+                                    int y = (Integer) rocksMap.lock(lockkey2);
+                                    rocksMap.put(lockkey2, y + 1);
+
 //                                    rocksMap.put(key, value);
-//                                    rocksMap.commit();
-//                                }
+                                    rocksMap.commit();
+                                }
 
                                 //批量写入
                                 {
@@ -111,7 +114,8 @@ public class RocksMapBench {
 
                 }) / 1000000000f);
 
-        System.out.println(rocksMap.get(lastKey));
+        System.out.println(rocksMap.get(lockkey1));
+        System.out.println(rocksMap.get(lockkey2));
         System.out.println(rocksMap.size());
     }
 

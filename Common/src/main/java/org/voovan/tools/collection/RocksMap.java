@@ -585,7 +585,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param key 将被锁定的 key
      * @return key 对应的 value
      */
-    public V getForUpdate(Object key){
+    public V lock(Object key){
+        getTransaction();
         return getForUpdate(key, true);
     }
 
@@ -768,10 +769,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
+    public static ThreadLocal<WriteBatch> THREAD_LOCAL_WRITE_BATCH = ThreadLocal.withInitial(()->new WriteBatch());
     @Override
     public void putAll(Map m) {
         try {
-            WriteBatch writeBatch = new WriteBatch();
+            WriteBatch writeBatch = THREAD_LOCAL_WRITE_BATCH.get();
             Iterator<Entry> iterator = m.entrySet().iterator();
             while (iterator.hasNext()) {
                 Entry entry = iterator.next();
@@ -782,6 +784,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
 
             rocksDB.write(writeOptions, writeBatch);
+            writeBatch.clear();
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap putAll failed", e);
         }
