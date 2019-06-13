@@ -5,6 +5,7 @@ import org.voovan.Global;
 import org.voovan.tools.*;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.annotation.NotJSON;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.lang.annotation.Annotation;
@@ -29,6 +30,30 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class TReflect {
+    private class EmptyClass {
+        private Object emptyField;
+
+        private EmptyClass() {
+        }
+
+        private void emptyMethod(){
+        }
+
+    }
+
+    private static Constructor EMPTY_CONSTRUCTOR;
+    private static Field EMPTY_FIELD;
+    private static Method EMPTY_METHOD;
+
+    static {
+        try {
+            EMPTY_CONSTRUCTOR = EmptyClass.class.getDeclaredConstructor(TReflect.class);
+            EMPTY_FIELD = EmptyClass.class.getDeclaredField("emptyField");
+            EMPTY_METHOD = EmptyClass.class.getDeclaredMethod("emptyMethod");
+        } catch (Exception e) {
+            Logger.error("Create empty reflect object failed", e);
+        }
+    }
 
     private static Map<String, Field> FIELDS = new ConcurrentHashMap<String ,Field>();
     private static Map<String, Method> METHODS = new ConcurrentHashMap<String ,Method>();
@@ -93,7 +118,7 @@ public class TReflect {
 
             fields = fieldArray.toArray(new Field[]{});
 
-            if(clazz!=null && fields!=null) {
+            if(clazz!=null) {
                 FIELD_ARRAYS.put(clazz, fields);
                 fieldArray.clear();
             }
@@ -120,20 +145,21 @@ public class TReflect {
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 try {
                     field = clazz.getDeclaredField(fieldName);
+                    field.setAccessible(true);
                     break;
                 }catch(ReflectiveOperationException e){
                     field = null;
                 }
             }
 
-            if(mark!=null && field!=null) {
-                field.setAccessible(true);
+            if(mark!=null) {
+                field = field == null ? EMPTY_FIELD : field;
                 FIELDS.put(mark, field);
             }
 
         }
 
-        return field;
+        return field == EMPTY_FIELD ? null : field;
     }
 
     /**
@@ -153,16 +179,19 @@ public class TReflect {
         if (field==null){
             for (Field fieldItem : getFields(clazz)) {
                 if (fieldItem.getName().equalsIgnoreCase(fieldName) || fieldItem.getName().equalsIgnoreCase(TString.underlineToCamel(fieldName))) {
-                    if(marker!=null && fieldItem!=null) {
-                        FIELDS.put(marker, fieldItem);
+                    if(marker!=null) {
+                        fieldItem.setAccessible(true);
                         field = fieldItem;
                         break;
                     }
 
                 }
             }
+
+            field = field == null ? (Field) EMPTY_FIELD : field;
+            FIELDS.put(marker, field);
         }
-        return field;
+        return field == EMPTY_FIELD ? null : field;
     }
 
     /**
@@ -328,19 +357,20 @@ public class TReflect {
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 try {
                     method = clazz.getDeclaredMethod(name, paramTypes);
+                    method.setAccessible(true);
                     break;
                 }catch(ReflectiveOperationException e){
                     method = null;
                 }
             }
 
-            if(marker!=null && method!=null) {
-                method.setAccessible(true);
+            if(marker!=null) {
+                method = method == null ? EMPTY_METHOD : method;
                 METHODS.put(marker, method);
             }
         }
 
-        return method;
+        return method == EMPTY_METHOD ? null : method;
     }
 
     /**
@@ -368,7 +398,7 @@ public class TReflect {
 
             methods = methodList.toArray(new Method[]{});
 
-            if(marker!=null && methods!=null) {
+            if(marker!=null) {
                 METHOD_ARRAYS.put(marker, methods);
                 methodList.clear();
             }
@@ -402,7 +432,7 @@ public class TReflect {
 
             methods = methodList.toArray(new Method[]{});
 
-            if(marker!=null && methods!=null) {
+            if(marker!=null) {
                 METHOD_ARRAYS.put(marker, methods);
                 methodList.clear();
             }
@@ -436,7 +466,7 @@ public class TReflect {
 
             methods = methodList.toArray(new Method[0]);
 
-            if(marker!=null && methods!=null) {
+            if(marker!=null) {
                 METHOD_ARRAYS.put(marker, methods);
                 methodList.clear();
             }
@@ -621,21 +651,20 @@ public class TReflect {
 
             if (constructor==null){
                 if (args.length == 0) {
-                    try {
-                        constructor = targetClazz.getConstructor();
-                    }catch (Exception e) {
-                        return (T) TUnsafe.getUnsafe().allocateInstance(targetClazz);
-                    }
+                    constructor = targetClazz.getDeclaredConstructor();
+                    constructor.setAccessible(true);
                 } else {
-                    constructor = targetClazz.getConstructor(parameterTypes);
+                    constructor = targetClazz.getDeclaredConstructor(parameterTypes);
+                    constructor.setAccessible(true);
                 }
 
-                if(mark!=null && constructor!=null) {
+                if(mark!=null) {
+                    constructor = constructor == null ? EMPTY_CONSTRUCTOR : constructor;
                     CONSTRUCTORS.put(mark, constructor);
                 }
             }
 
-            return constructor.newInstance(args);
+            return constructor == EMPTY_CONSTRUCTOR ? (T) TUnsafe.getUnsafe().allocateInstance(targetClazz) : constructor.newInstance(args);
 
         }catch(Exception e){
             Exception lastExecption = e;
@@ -646,9 +675,9 @@ public class TReflect {
                 Constructor[] constructors =  CONSTRUCTOR_ARRAYS.get(mark);
                 if(constructors==null){
 
-                    constructors = targetClazz.getConstructors();
+                    constructors = targetClazz.getDeclaredConstructors();
 
-                    if(mark!=null && constructor!=null) {
+                    if(mark!=null) {
                         CONSTRUCTOR_ARRAYS.put(mark, constructors);
                     }
                 }

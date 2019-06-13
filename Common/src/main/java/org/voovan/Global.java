@@ -62,8 +62,6 @@ public class Global {
     public static final char CHAR_AT        = '@';
     public static final char CHAR_EOF       = '\0';
 
-
-
     public static final byte BYTE_EQUAL         = 61;           // '='
     public static final byte BYTE_SLASH         = 92;           // "\\"
     public static final byte BYTE_BACKSLASH     = 47;           // '/'
@@ -90,7 +88,7 @@ public class Global {
     public static final Charset CS_UTF_8 = Charset.forName("UTF-8");
     public static final Charset CS_GBK = Charset.forName("GBK");
 
-    public static String NAME = "Voovan";
+    public static final String NAME = "Voovan";
 
     public static volatile Boolean NO_HEAP_MANUAL_RELEASE;
     public static volatile String REMOTE_CLASS_SOURCE;
@@ -98,7 +96,6 @@ public class Global {
     static {
         System.out.println("[SYSTEM] DebugMode: " + IS_DEBUG_MODE);
     }
-
 
     public static UniqueId UNIQUE_ID = new UniqueId((int) (Math.random()*1024));
 

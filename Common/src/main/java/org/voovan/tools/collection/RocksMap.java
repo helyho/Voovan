@@ -7,7 +7,7 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.serialize.TSerialize;
 
 import java.io.Closeable;
-import java.io.IOException;
+import java.io.File;
 import java.util.*;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,14 +39,23 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private static ColumnFamilyDescriptor DEFAULE_CF_DESCRIPTOR = new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY);
 
     //数据文件的默认保存路径
-    private static String DEFAULT_DB_PATH = ".rocksdb/";
+    private static String DEFAULT_DB_PATH = ".rocksdb"+ File.separator;
+    private static String DEFAULT_WAL_PATH = DEFAULT_DB_PATH + ".wal"+ File.separator;
 
     public static String getDefaultDbPath() {
         return DEFAULT_DB_PATH;
     }
 
     public static void setDefaultDbPath(String defaultDbPath) {
-        DEFAULT_DB_PATH = defaultDbPath;
+        DEFAULT_DB_PATH = defaultDbPath.endsWith(File.separator) ? defaultDbPath : defaultDbPath + File.separator;
+    }
+
+    public static String getDefaultWalPath() {
+        return DEFAULT_WAL_PATH;
+    }
+
+    public static void setDefaultWalPath(String defaultWalPath) {
+        DEFAULT_WAL_PATH = defaultWalPath.endsWith(File.separator) ? defaultWalPath : defaultWalPath + File.separator;;
     }
 
     private static ColumnFamilyHandle getColumnFamilyHandler(RocksDB rocksDB, String cfName) {
@@ -152,10 +161,16 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         if(dbOptions == null) {
             //Rocksdb 数据库配置
-            dbOptions = new DBOptions(options);
+            this.dbOptions = new DBOptions(options);
         } else {
             this.dbOptions = dbOptions;
         }
+
+        this.dbOptions.setWalDir(DEFAULT_WAL_PATH +this.dbname);
+
+
+        TFile.mkdir(DEFAULT_DB_PATH + this.dbname + "/");
+        TFile.mkdir(this.dbOptions.walDir());
 
         rocksDB = ROCKSDB_MAP.get(this.dbname);
 
@@ -186,13 +201,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 //用来接收ColumnFamilyHandle
                 List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList<ColumnFamilyHandle>();
 
-                TFile.mkdir(DEFAULT_DB_PATH + this.dbname + "/");
-
                 //打开 Rocksdb
                 if (this.readOnly) {
-                    rocksDB = TransactionDB.openReadOnly(dbOptions, DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                    rocksDB = TransactionDB.openReadOnly(this.dbOptions, DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
                 } else {
-                    rocksDB = TransactionDB.open(dbOptions, new TransactionDBOptions(), DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                    rocksDB = TransactionDB.open(this.dbOptions, new TransactionDBOptions(), DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
                     ROCKSDB_MAP.put(this.dbname, rocksDB);
                 }
 
