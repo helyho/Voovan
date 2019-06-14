@@ -1,6 +1,6 @@
 package org.voovan.http.extend.engineio;
 
-import org.voovan.http.extend.ParserException;
+import org.voovan.http.extend.SocketIOParserException;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.filter.StringFilter;
@@ -84,7 +84,7 @@ public class EIODispatcher extends WebSocketRouter{
 
                 return null;
             }
-        } catch (ParserException e) {
+        } catch (SocketIOParserException e) {
             e.printStackTrace();
         }
         return null;
