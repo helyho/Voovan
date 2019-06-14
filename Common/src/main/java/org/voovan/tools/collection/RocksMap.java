@@ -11,6 +11,7 @@ import java.io.File;
 import java.util.*;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -929,6 +930,105 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 throw new RocksMapException("RocksMap rollback on close failed", e);
             }
         }
+
         dataColumnFamilyHandle.close();
+    }
+
+    public RocksMapIterator iterator(K fromKey, K toKey){
+        return new RocksMapIterator(this, fromKey, toKey);
+    }
+
+    public RocksMapIterator iterator(){
+        return new RocksMapIterator(this, null, null);
+    }
+
+    public class RocksMapEntry<K, V> implements Map.Entry<K, V> {
+        private K k;
+        private V v;
+
+        public RocksMapEntry(K k, V v) {
+            this.k = k;
+            this.v = v;
+        }
+
+        @Override
+        public K getKey() {
+            return k;
+        }
+
+        @Override
+        public V getValue() {
+            return v;
+        }
+
+        @Override
+        public V setValue(V value) {
+            return v;
+        }
+    }
+
+    public class RocksMapIterator<Entry> implements Iterator<Entry>{
+
+        private RocksMap rocksMap;
+        private RocksIterator iterator;
+        private byte[] fromKeyBytes;
+        private byte[] toKeyBytes;
+
+        public RocksMapIterator(RocksMap rocksMap, K fromKey, K toKey) {
+            this.rocksMap = rocksMap;
+            this.iterator = rocksMap.getIterator();
+            this.fromKeyBytes = TSerialize.serialize(fromKey);
+            this.toKeyBytes = TSerialize.serialize(toKey);
+
+            if(fromKeyBytes==null) {
+                iterator.seekToFirst();
+            } else {
+                iterator.seek(fromKeyBytes);
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            if(toKeyBytes == null) {
+                return iterator.isValid();
+            } else {
+                return !(TByte.byteArrayStartWith(iterator.key(), toKeyBytes));
+            }
+        }
+
+        public K key(){
+            return (K)TSerialize.unserialize(iterator.key());
+        }
+
+        public V value(){
+            return (V)TSerialize.unserialize(iterator.value());
+        }
+
+        @Override
+        public Entry next() {
+            iterator.next();
+
+            if(hasNext()) {
+                K key = (K) TSerialize.unserialize(iterator.key());
+                V value = (V) TSerialize.unserialize(iterator.value());
+                return (Entry) new RocksMapEntry(key, value);
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public void remove() {
+            try {
+                rocksMap.rocksDB.singleDelete(rocksMap.dataColumnFamilyHandle, iterator.key());
+            } catch (RocksDBException e) {
+                throw new RocksMapException("RocksMapIterator remove failed", e);
+            }
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super Entry> action) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

@@ -1,6 +1,7 @@
 package org.voovan.test.tools.collection;
 
 import org.rocksdb.RocksDBException;
+import org.rocksdb.RocksIterator;
 import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.json.JSON;
 
@@ -132,6 +133,7 @@ public class RocksMapTest {
         rocksMap.put("eeee", "ffff");
         rocksMap.put("hhhh", "iiii");
 
+
         //get
         System.out.println("get aaaa: "+ rocksMap.get("aaaa"));
         System.out.println("size: "+ rocksMap.size());
@@ -146,6 +148,45 @@ public class RocksMapTest {
         System.out.println("isEmpty: " + rocksMap.isEmpty());
         System.out.println("KeySet: "+ rocksMap.keySet());
         System.out.println(rocksMap.entrySet());
+
+        System.out.println("=================iterator================");
+        RocksMap.RocksMapIterator iterator = rocksMap.iterator();
+        while(iterator.hasNext()){
+            System.out.println(iterator.key() + " " + iterator.value());
+            iterator.next();
+        }
+        System.out.println("=================iterator first================");
+        iterator = rocksMap.iterator();
+        while(iterator.hasNext()){
+            System.out.println(iterator.key() + " " + iterator.value());
+            iterator.next();
+        }
+        System.out.println("=================iterator last================");
+        iterator = rocksMap.iterator();
+        while(iterator.hasNext()){
+            System.out.println(iterator.key() + " " + iterator.value());
+            iterator.next();
+        }
+
+        System.out.println("=================iterator remove================");
+        iterator = rocksMap.iterator();
+        while(iterator.hasNext()){
+            iterator.remove();
+            break;
+        }
+        iterator = rocksMap.iterator();
+        while(iterator.hasNext()){
+            System.out.println(iterator.key() + " " + iterator.value());
+            iterator.next();
+        }
+        System.out.println("=================iterator range================");
+        iterator = rocksMap.iterator("eeee", "transaction11");
+        while(iterator.hasNext()) {
+            System.out.println(iterator.key() + " " + iterator.value());
+            iterator.next();
+        }
+        System.out.println("=================================================");
+
         //clear
         rocksMap.clear();
         System.out.println("size: "+ rocksMap.size());
