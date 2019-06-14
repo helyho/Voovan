@@ -155,6 +155,13 @@ public class RocksMapTest {
             System.out.println(iterator.key() + " " + iterator.value());
             iterator.next();
         }
+
+        System.out.println("=================iterator siz3->3 ================");
+        iterator = rocksMap.iterator(3);
+        while(iterator.hasNext()){
+            System.out.println(iterator.key() + " " + iterator.value());
+            iterator.next();
+        }
         System.out.println("=================iterator first================");
         iterator = rocksMap.iterator();
         while(iterator.hasNext()){
@@ -180,7 +187,7 @@ public class RocksMapTest {
             iterator.next();
         }
         System.out.println("=================iterator range================");
-        iterator = rocksMap.iterator("eeee", "transaction11");
+        iterator = rocksMap.iterator("eeee", "transaction11");//"eeee", "transaction11"
         while(iterator.hasNext()) {
             System.out.println(iterator.key() + " " + iterator.value());
             iterator.next();

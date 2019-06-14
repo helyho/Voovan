@@ -238,6 +238,7 @@ public class HttpParser {
 	 * @param packetMap 解析后数据的容器
 	 * @param type 解析的报文类型
 	 * @param byteBuffer ByteBuffer对象
+	 * @param contiuneRead 当数据不足时的读取器
 	 */
 	public static void parserProtocol(Map<String, Object> packetMap, int type, ByteBuffer byteBuffer, Runnable contiuneRead) {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
@@ -370,6 +371,7 @@ public class HttpParser {
 	 * 解析 HTTP 请求头
 	 * @param packetMap 解析后数据的容器
 	 * @param byteBuffer ByteBuffer对象
+	 * @param contiuneRead 当数据不足时的读取器
 	 * @return true: Header解析未完成, false: Header解析完成
 	 */
 	public static boolean parseHeader(Map<String, Object> packetMap, ByteBuffer byteBuffer, Runnable contiuneRead) {
