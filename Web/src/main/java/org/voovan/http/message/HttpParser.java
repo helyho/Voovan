@@ -493,6 +493,7 @@ public class HttpParser {
 				}
 
 				while (!parseHeader(packetMap, innerByteBuffer)) {
+					contiuneRead.run();
 				}
 
 				String cookieName = null;
