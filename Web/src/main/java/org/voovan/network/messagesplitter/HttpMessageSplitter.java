@@ -3,9 +3,12 @@ package org.voovan.network.messagesplitter;
 import org.voovan.Global;
 import org.voovan.http.HttpRequestType;
 import org.voovan.http.HttpSessionParam;
+import org.voovan.http.message.HttpStatic;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
+import org.voovan.tools.TByte;
 import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.buffer.TByteBuffer;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -49,10 +52,7 @@ public class HttpMessageSplitter implements MessageSplitter {
      */
     public boolean isHttpHeaderDone(ByteBuffer byteBuffer){
         int bufferSize = byteBuffer.remaining();
-        return bufferSize>4 && byteBuffer.get(bufferSize-1) == Global.BYTE_LF ||
-                byteBuffer.get(bufferSize-2) == Global.BYTE_CR ||
-                byteBuffer.get(bufferSize-3) == Global.BYTE_LF ||
-                byteBuffer.get(bufferSize-4) == Global.BYTE_CR;
+        return bufferSize>4 && TByteBuffer.indexOf(byteBuffer, HttpStatic.BODY_MARK_STRING.getBytes()) >= 0;
     }
 
     /**

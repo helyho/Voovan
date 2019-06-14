@@ -34,8 +34,9 @@ public class AnnotationRouterTest {
         return "params: aa=" + aa + ", bb=" + bb+ ", lastPath="+oldPath;
     }
 
-    public static String checkMethod(Object obj){
-        return null;
+    @Router(value = "bodyParmas", method = "POST")
+    public String bodyParmas(@BodyParam("data") String data, @BodyParam("number") int number){
+        return data + " " + number;
     }
 
     //将当前方法注解为一个请求路由

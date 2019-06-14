@@ -243,9 +243,11 @@ public class AnnotationRouter implements HttpRouter {
 
         String bodyString = "";
         Map bodyMap = null;
-        if(request.body().size() > 0 && JSON.isJSONMap(bodyString)) {
+        if(request.body().size() > 0) {
             bodyString = request.body().getBodyString();
-            bodyMap =  (Map) JSON.parse(bodyString);
+            if(JSON.isJSONMap(bodyString)) {
+                bodyMap = (Map) JSON.parse(bodyString);
+            }
         }
 
         //准备参数
@@ -310,7 +312,9 @@ public class AnnotationRouter implements HttpRouter {
 
                 //请求的 Body
                 if (annotation instanceof Body) {
-                    params[i] = TString.toObject(bodyString, parameterTypes[i], true);
+                    params[i] = bodyMap==null ?
+                                        TString.toObject(bodyString, parameterTypes[i], true) :
+                                        TReflect.getObjectFromMap(parameterTypes[i], bodyMap, true);
                     continue;
                 }
 
