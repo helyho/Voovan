@@ -122,7 +122,7 @@ public class WebServerFilter implements IoFilter {
 				} else {
 					return null;
 				}
-			} catch (IOException e) {
+			} catch (Exception e) {
 				Response response = new Response();
 				response.protocol().setStatus(500);
 
