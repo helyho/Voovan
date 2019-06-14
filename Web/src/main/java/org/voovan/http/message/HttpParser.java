@@ -412,7 +412,9 @@ public class HttpParser {
 
 		}
 
-		packetMap.put(headerName, headerValue);
+		if(headerName!=null && headerValue!=null) {
+			packetMap.put(headerName, headerValue);
+		}
 		return false;
 //        packetMap.put(fixHeaderName(headerName), headerValue);
 	}
