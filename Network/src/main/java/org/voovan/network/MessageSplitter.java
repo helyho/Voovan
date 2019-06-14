@@ -20,7 +20,7 @@ public interface MessageSplitter {
 	 * 				  这个时候 IoFilter 接收到的是一个容量为 0 的 bytebuffer
 	 * @param session  session 对象
 	 * @param byteBuffer 缓冲数据
-	 * @return   返回: 大于0或者等于0可区分,小于不0可区分
+	 * @return   返回: 大于0或者等于0可区分,小于不0可区分,则继续接收数据
 	 * 				   返回的int数据值,则被用于从缓冲区取值给onRecive函数作为参数的的数据的长度.
 	 *
 	 */
