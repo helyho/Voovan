@@ -36,20 +36,11 @@ public class HttpMessageSplitter implements MessageSplitter {
 			if (!session.containAttribute(HttpSessionParam.TYPE)) {
 				session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.HTTP);
 			}
-	        return isHttpHeaderDone(byteBuffer) ? 0 : -1;
+
+            return 0;
         }
 
         return result;
-    }
-
-    /**
-     * 判断 httpHeader 是否完成
-     * @param byteBuffer 用于判断的缓冲
-     * @return true: 完成, false: 未完成
-     */
-    public boolean isHttpHeaderDone(ByteBuffer byteBuffer){
-        int bufferSize = byteBuffer.remaining();
-        return bufferSize>4 && TByteBuffer.indexOf(byteBuffer, HttpStatic.BODY_MARK_STRING.getBytes()) >= 0;
     }
 
     /**
