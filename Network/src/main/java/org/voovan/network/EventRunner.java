@@ -97,7 +97,8 @@ public class EventRunner {
 						break;
 					}
 				}
-			} catch (InterruptedException e) {
+			} catch (Throwable e) {
+				e.printStackTrace();
 				continue;
 			}
 		}
