@@ -934,19 +934,49 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         dataColumnFamilyHandle.close();
     }
 
-    public RocksMapIterator iterator(K fromKey, K toKey){
-        return new RocksMapIterator(this, fromKey, toKey);
+    /**
+     * 构造一个有范围的迭代器
+     * @param fromKey 起始 key
+     * @param toKey 结束 key
+     * @param size 迭代的记录数
+     * @return 迭代器对象
+     */
+    public RocksMapIterator iterator(K fromKey, K toKey, int size){
+        return new RocksMapIterator(this, fromKey, toKey, size);
     }
 
+    /**
+     * 构造一个有范围的迭代器
+     * @param fromKey 起始 key
+     * @param toKey 结束 key
+     * @return 迭代器对象
+     */
+    public RocksMapIterator iterator(K fromKey, K toKey){
+        return new RocksMapIterator(this, fromKey, toKey, 0);
+    }
+
+    /**
+     * 构造一个有范围的迭代器
+     * @param size 迭代的记录数
+     * @return 迭代器对象
+     */
+    public RocksMapIterator iterator(int size){
+        return new RocksMapIterator(this, null, null, size);
+    }
+
+    /**
+     * 构造一个迭代器
+     * @return 迭代器对象
+     */
     public RocksMapIterator iterator(){
-        return new RocksMapIterator(this, null, null);
+        return new RocksMapIterator(this, null, null, 0);
     }
 
     public class RocksMapEntry<K, V> implements Map.Entry<K, V> {
         private K k;
         private V v;
 
-        public RocksMapEntry(K k, V v) {
+        protected RocksMapEntry(K k, V v) {
             this.k = k;
             this.v = v;
         }
@@ -973,12 +1003,15 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         private RocksIterator iterator;
         private byte[] fromKeyBytes;
         private byte[] toKeyBytes;
+        private int size;
+        private int count=0;
 
-        public RocksMapIterator(RocksMap rocksMap, K fromKey, K toKey) {
+        protected RocksMapIterator(RocksMap rocksMap, K fromKey, K toKey, int size) {
             this.rocksMap = rocksMap;
             this.iterator = rocksMap.getIterator();
             this.fromKeyBytes = TSerialize.serialize(fromKey);
             this.toKeyBytes = TSerialize.serialize(toKey);
+            this.size = size;
 
             if(fromKeyBytes==null) {
                 iterator.seekToFirst();
@@ -989,17 +1022,31 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         @Override
         public boolean hasNext() {
-            if(toKeyBytes == null) {
-                return iterator.isValid();
-            } else {
-                return !(TByte.byteArrayStartWith(iterator.key(), toKeyBytes));
+            try {
+                if (toKeyBytes == null) {
+                    return iterator.isValid();
+                } else {
+                    return !(TByte.byteArrayStartWith(iterator.key(), toKeyBytes));
+                }
+            } finally {
+                if(size!=0 && count>size-1){
+                    return false;
+                }
             }
         }
 
+        /**
+         * 获取 Key 的值
+         * @return Key 的值
+         */
         public K key(){
             return (K)TSerialize.unserialize(iterator.key());
         }
 
+        /**
+         * 获取 value 的值
+         * @return value 的值
+         */
         public V value(){
             return (V)TSerialize.unserialize(iterator.value());
         }
@@ -1011,6 +1058,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if(hasNext()) {
                 K key = (K) TSerialize.unserialize(iterator.key());
                 V value = (V) TSerialize.unserialize(iterator.value());
+                count++;
                 return (Entry) new RocksMapEntry(key, value);
             } else {
                 return null;
