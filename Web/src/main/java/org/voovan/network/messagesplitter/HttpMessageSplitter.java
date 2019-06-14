@@ -1,9 +1,11 @@
 package org.voovan.network.messagesplitter;
 
+import org.voovan.Global;
 import org.voovan.http.HttpRequestType;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
+import org.voovan.tools.buffer.ByteBufferChannel;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -34,10 +36,23 @@ public class HttpMessageSplitter implements MessageSplitter {
 			if (!session.containAttribute(HttpSessionParam.TYPE)) {
 				session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.HTTP);
 			}
-	        return 0;
+	        return isHttpHeaderDone(byteBuffer) ? 0 : -1;
         }
 
         return result;
+    }
+
+    /**
+     * 判断 httpHeader 是否完成
+     * @param byteBuffer 用于判断的缓冲
+     * @return true: 完成, false: 未完成
+     */
+    public boolean isHttpHeaderDone(ByteBuffer byteBuffer){
+        int bufferSize = byteBuffer.remaining();
+        return bufferSize>4 && byteBuffer.get(bufferSize-1) == Global.BYTE_LF ||
+                byteBuffer.get(bufferSize-2) == Global.BYTE_CR ||
+                byteBuffer.get(bufferSize-3) == Global.BYTE_LF ||
+                byteBuffer.get(bufferSize-4) == Global.BYTE_CR;
     }
 
     /**

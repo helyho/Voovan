@@ -445,6 +445,13 @@ public class HttpParser {
 
 		requestMaxSize = requestMaxSize < 0 ? Integer.MAX_VALUE : requestMaxSize;
 
+		//继续从 Socket 中读取数据
+		Runnable contiuneRead = ()->{
+			if(session!=null) {
+				session.getSocketSelector().eventChoose();
+			}
+		};
+
 		//按行遍历HTTP报文
 		while(byteBufferChannel.size() > 0){
 			ByteBuffer innerByteBuffer = byteBufferChannel.getByteBuffer();
@@ -486,7 +493,6 @@ public class HttpParser {
 				}
 
 				while (!parseHeader(packetMap, innerByteBuffer)) {
-
 				}
 
 				String cookieName = null;
@@ -527,13 +533,6 @@ public class HttpParser {
 			isBodyConent = true;
 
 			packetMap.put(PL_HASH, null);
-
-			//读取数据
-			Runnable contiuneRead = ()->{
-                if(session!=null) {
-                    session.getSocketSelector().eventChoose();
-                }
-			};
 
 			//解析 HTTP 请求 body
 			if(isBodyConent){
