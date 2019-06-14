@@ -495,7 +495,9 @@ public class HttpParser {
 				}
 
 				while (!parseHeader(packetMap, innerByteBuffer)) {
-					contiuneRead.run();
+					if(innerByteBuffer.remaining()==0){
+						contiuneRead.run();
+					}
 				}
 
 				String cookieName = null;
@@ -596,8 +598,12 @@ public class HttpParser {
 						ByteBufferChannel partByteBufferChannel = new ByteBufferChannel(partHeadEndIndex + 4); //包含换行符
 						partByteBufferChannel.writeEnd(partHeadBuffer);
 						Map<String, Object> partMap = new HashMap<String, Object>();
-						while(parseHeader(partMap, partByteBufferChannel.getByteBuffer())){
 
+						ByteBuffer partByteBuffer =  partByteBufferChannel.getByteBuffer();
+						while(parseHeader(partMap, partByteBuffer)){
+							if(partByteBuffer.remaining()==0){
+								contiuneRead.run();
+							}
 						}
 						partByteBufferChannel.compact();
 
