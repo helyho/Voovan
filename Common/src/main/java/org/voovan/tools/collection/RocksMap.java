@@ -78,6 +78,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public DBOptions dbOptions;
     public ReadOptions readOptions;
     public WriteOptions writeOptions;
+    public ColumnFamilyOptions columnFamilyOptions;
 
     private RocksDB rocksDB;
     private ColumnFamilyDescriptor dataColumnFamilyDescriptor;
@@ -85,7 +86,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private ThreadLocal<Transaction> threadLocalTransaction = new ThreadLocal<Transaction>();
 
     private String dbname;
-    private String cfName;
+    private String columnFamilyName;
     private Boolean readOnly;
     private int transactionLockTimeout = 5000;
 
@@ -93,24 +94,24 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 构造方法
      */
     public RocksMap() {
-        this(null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null);
     }
 
     /**
      * 构造方法
-     * @param cfName 列族名称
+     * @param columnFamilyName 列族名称
      */
-    public RocksMap(String cfName) {
-        this(null, cfName, null, null, null, null);
+    public RocksMap(String columnFamilyName) {
+        this(null, columnFamilyName, null, null, null, null, null);
     }
 
     /**
      * 构造方法
      * @param dbname 数据库的名称, 基于数据保存目录的相对路径
-     * @param cfName 列族名称
+     * @param columnFamilyName 列族名称
      */
-    public RocksMap(String dbname, String cfName) {
-        this(dbname, cfName, null, null, null, null);
+    public RocksMap(String dbname, String columnFamilyName) {
+        this(dbname, columnFamilyName, null, null, null, null, null);
     }
 
     /**
@@ -118,42 +119,44 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param readOnly 是否以只读模式打开
      */
     public RocksMap(boolean readOnly) {
-        this(null, null, null, null, null, readOnly);
+        this(null, null, null, null, null, null, readOnly);
     }
 
     /**
      * 构造方法
-     * @param cfName 列族名称
+     * @param columnFamilyName 列族名称
      * @param readOnly 是否以只读模式打开
      */
-    public RocksMap(String cfName, boolean readOnly) {
-        this(null, cfName, null, null, null, readOnly);
+    public RocksMap(String columnFamilyName, boolean readOnly) {
+        this(null, columnFamilyName, null, null, null, null, readOnly);
     }
 
     /**
      * 构造方法
      * @param dbname 数据库的名称, 基于数据保存目录的相对路径
-     * @param cfName 列族名称
+     * @param columnFamilyName 列族名称
      * @param readOnly 是否以只读模式打开
      */
-    public RocksMap(String dbname, String cfName,boolean readOnly) {
-        this(dbname, cfName, null, null, null, readOnly);
+    public RocksMap(String dbname, String columnFamilyName, boolean readOnly) {
+        this(dbname, columnFamilyName, null, null, null, null, readOnly);
     }
 
     /**
      * 构造方法
      * @param dbname 数据库的名称, 基于数据保存目录的相对路径
-     * @param cfName 列族名称
+     * @param columnFamilyName 列族名称
      * @param dbOptions DBOptions 配置对象
      * @param readOptions ReadOptions 配置对象
      * @param writeOptions WriteOptions 配置对象
+     * @param columnFamilyOptions 列族配置对象
      * @param readOnly 是否以只读模式打开
      */
-    public RocksMap(String dbname, String cfName, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Boolean readOnly) {
+    public RocksMap(String dbname, String columnFamilyName, ColumnFamilyOptions columnFamilyOptions, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Boolean readOnly) {
         this.dbname = dbname == null ? "voovan_default" : dbname;
-        this.cfName = cfName == null ? "voovan_default" : cfName;
+        this.columnFamilyName = this.columnFamilyName == null ? "voovan_default" : columnFamilyName;
         this.readOptions = readOptions == null ? new ReadOptions() : readOptions;
         this.writeOptions = writeOptions == null ? new WriteOptions() : writeOptions;
+        this.columnFamilyOptions = columnFamilyOptions == null ? new ColumnFamilyOptions() : columnFamilyOptions;
         this.readOnly = readOnly == null ? false : readOnly;
 
         Options options = new Options();
@@ -166,6 +169,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         } else {
             this.dbOptions = dbOptions;
         }
+
+        this.dbOptions.useDirectIoForFlushAndCompaction();
 
         this.dbOptions.setWalDir(DEFAULT_WAL_PATH +this.dbname);
 
@@ -185,8 +190,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     List<byte[]> columnFamilyNameBytes = RocksDB.listColumnFamilies(new Options(), DEFAULT_DB_PATH + this.dbname + "/");
                     if (columnFamilyNameBytes.size() > 0) {
                         for (byte[] columnFamilyNameByte : columnFamilyNameBytes) {
-                            ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyNameByte);
-                            if (Arrays.equals(this.cfName.getBytes(), columnFamilyNameByte)) {
+                            ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyNameByte, this.columnFamilyOptions);
+                            if (Arrays.equals(this.columnFamilyName.getBytes(), columnFamilyNameByte)) {
                                 dataColumnFamilyDescriptor = columnFamilyDescriptor;
                             }
 
@@ -213,14 +218,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 CF_HANDLE_MAP.put(rocksDB, columnFamilyHandleList);
             }
 
-            choseColumnFamily(this.cfName);
+            choseColumnFamily(this.columnFamilyName);
 
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap initilize failed", e);
         }
     }
 
-    private RocksMap(RocksMap<K,V> rocksMap, String cfName){
+    private RocksMap(RocksMap<K,V> rocksMap, String columnFamilyName){
         this.dbOptions = rocksMap.dbOptions;
         this.readOptions = rocksMap.readOptions;
         this.writeOptions = rocksMap.writeOptions;
@@ -231,11 +236,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.threadLocalTransaction = rocksMap.threadLocalTransaction;
 
         this.dbname =  rocksMap.dbname;
-        this.cfName = cfName;
+        this.columnFamilyName = columnFamilyName;
         this.readOnly = rocksMap.readOnly;
         this.transactionLockTimeout = rocksMap.transactionLockTimeout;
 
-        this.choseColumnFamily(cfName);
+        this.choseColumnFamily(columnFamilyName);
     }
 
     /**
@@ -259,14 +264,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             //如果没有则创建一个列族
             if (dataColumnFamilyHandle == null) {
-                dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(cfName.getBytes());
+                dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(cfName.getBytes(), columnFamilyOptions);
                 dataColumnFamilyHandle = rocksDB.createColumnFamily(dataColumnFamilyDescriptor);
                 CF_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
             } else {
-                dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(dataColumnFamilyHandle.getName());
+                dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(dataColumnFamilyHandle.getName(), columnFamilyOptions);
             }
 
-            this.cfName = cfName;
+            this.columnFamilyName = cfName;
 
             return this;
         } catch(RocksDBException e){
@@ -818,7 +823,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             CF_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
 
             //设置列族
-            dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.cfName);
+            dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.columnFamilyName);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap clear failed", e);
         }
