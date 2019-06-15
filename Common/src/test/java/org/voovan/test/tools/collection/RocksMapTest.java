@@ -128,10 +128,22 @@ public class RocksMapTest {
 
 
         //put
-        rocksMap.put("aaaa", "bbbb");
-        rocksMap.put("cccc", "dddd");
-        rocksMap.put("eeee", "ffff");
-        rocksMap.put("hhhh", "iiii");
+        rocksMap.put("aaaa", "aaaa");
+        rocksMap.put("bbbb", "bbbb");
+        rocksMap.put("cccc", "cccc");
+        rocksMap.put("dddd", "dddd");
+        rocksMap.put("eeee", "eeee");
+        rocksMap.put("ffff", "ffff");
+        rocksMap.put("hhhh", "hhhh");
+        rocksMap.put("iiii", "iiii");
+        rocksMap.put("1111", "1111");
+        rocksMap.put("2222", "2222");
+        rocksMap.put("3333", "3333");
+        rocksMap.put("4444", "4444");
+
+        System.out.println("===============removeRange==================");
+        rocksMap.removeRange("aaaa", "transact");
+        System.out.println("removeRange: " + rocksMap.entrySet());
 
 
         //get
@@ -162,19 +174,6 @@ public class RocksMapTest {
             System.out.println(iterator.key() + " " + iterator.value());
             iterator.next();
         }
-        System.out.println("=================iterator first================");
-        iterator = rocksMap.iterator();
-        while(iterator.hasNext()){
-            System.out.println(iterator.key() + " " + iterator.value());
-            iterator.next();
-        }
-        System.out.println("=================iterator last================");
-        iterator = rocksMap.iterator();
-        while(iterator.hasNext()){
-            System.out.println(iterator.key() + " " + iterator.value());
-            iterator.next();
-        }
-
         System.out.println("=================iterator remove================");
         iterator = rocksMap.iterator();
         while(iterator.hasNext()){
