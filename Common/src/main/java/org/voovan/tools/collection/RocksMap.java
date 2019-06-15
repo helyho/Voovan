@@ -720,9 +720,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if(value != null) {
                 Transaction transaction = threadLocalTransaction.get();
                 if(transaction!=null) {
-                    transaction.singleDelete(dataColumnFamilyHandle, TSerialize.serialize(key));
+                    transaction.delete(dataColumnFamilyHandle, TSerialize.serialize(key));
                 } else {
-                    rocksDB.singleDelete(dataColumnFamilyHandle, TSerialize.serialize(key));
+                    rocksDB.delete(dataColumnFamilyHandle, TSerialize.serialize(key));
                 }
             }
             return (V)value;
@@ -736,22 +736,26 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             throw new NullPointerException();
         }
 
-        byte[][] keyParts = new byte[keys.length][];
-        for(int i=0;i<keys.length;i++) {
-            keyParts[i] = TSerialize.serialize(keys[i]);
-        }
-
-        Transaction transaction = createTransaction(-1, false, false);
-        try {
-            if(keyParts.length != 0) {
-                transaction.delete(dataColumnFamilyHandle, keyParts);
+        WriteBatch writeBatch = THREAD_LOCAL_WRITE_BATCH.get();
+        for(K key : keys) {
+            if(key == null){
+                continue;
             }
-        } catch (RocksDBException e) {
-            rollback(transaction);
-            throw new RocksMapException("RocksMap removeAll failed", e);
-        } finally {
-            commit(transaction);
+
+            try {
+                writeBatch.delete(dataColumnFamilyHandle, TSerialize.serialize(key));
+            } catch (RocksDBException e) {
+                throw new RocksMapException("RocksMap removeAll " + key + " failed", e);
+            }
         }
+        try {
+            rocksDB.write(writeOptions, writeBatch);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap removeAll write failed", e);
+        }
+        writeBatch.clear();
+
+
     }
 
     /**
@@ -780,7 +784,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 Entry entry = iterator.next();
                 Object key = entry.getKey();
                 Object value = entry.getValue();
-
                 writeBatch.put(dataColumnFamilyHandle, TSerialize.serialize(key), TSerialize.serialize(value));
             }
 
@@ -1051,6 +1054,19 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             return (V)TSerialize.unserialize(iterator.value());
         }
 
+        /**
+         * 只是执行 next 不反序列化数据
+         */
+        public void directNext() {
+            iterator.next();
+
+            if(hasNext()) {
+                K key = (K) TSerialize.unserialize(iterator.key());
+                V value = (V) TSerialize.unserialize(iterator.value());
+                count++;
+            }
+        }
+
         @Override
         public Entry next() {
             iterator.next();
@@ -1068,7 +1084,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         @Override
         public void remove() {
             try {
-                rocksMap.rocksDB.singleDelete(rocksMap.dataColumnFamilyHandle, iterator.key());
+                rocksMap.rocksDB.delete(rocksMap.dataColumnFamilyHandle, iterator.key());
             } catch (RocksDBException e) {
                 throw new RocksMapException("RocksMapIterator remove failed", e);
             }
