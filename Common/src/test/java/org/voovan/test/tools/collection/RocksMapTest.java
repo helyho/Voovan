@@ -109,25 +109,6 @@ public class RocksMapTest extends TestCase {
         System.out.println("isEmpty: " + rocksMap.isEmpty());
         System.out.println("size: " + rocksMap.size());
 
-        //rollback
-        System.out.println("===============rollback==================");
-//        rocksMap.choseColumnFamily("testdb");
-        rocksMap.beginTransaction();
-        rocksMap.put("transaction00", "rocksMap.value");
-        rocksMap.choseColumnFamily(cfName);
-        rocksMap.put("transaction00", cfName);
-
-        rocksMap.choseColumnFamily("testdb");
-        System.out.println("rocksMap  get: "+ rocksMap.get("transaction00"));
-        rocksMap.choseColumnFamily(cfName);
-        System.out.println("rocksMap1 get: "+ rocksMap.get("transaction00"));
-        rocksMap.rollback();
-
-        rocksMap.choseColumnFamily("testdb");
-        System.out.println("rocksMap rollback get: "+ rocksMap.get("transaction00"));
-        rocksMap.choseColumnFamily(cfName);
-        System.out.println("rocksMap1 rollback get: "+ rocksMap1.get("transaction00"));
-
         //commit
         System.out.println("===============commit==================");
         rocksMap.beginTransaction();
@@ -149,11 +130,37 @@ public class RocksMapTest extends TestCase {
         System.out.println("rocksMap1 commit get: "+ rocksMap.get("transaction11"));
         rocksMap.choseColumnFamily("testdb");
 
+
+        //rollback
+        System.out.println("===============rollback==================");
+//        rocksMap.choseColumnFamily("testdb");
+        rocksMap.beginTransaction();
+        rocksMap.put("transaction00", "rocksMap.value");
+        rocksMap.choseColumnFamily(cfName);
+        rocksMap.put("transaction00", cfName);
+
+        rocksMap.choseColumnFamily("testdb");
+        System.out.println("rocksMap  get: "+ rocksMap.get("transaction00"));
+        rocksMap.choseColumnFamily(cfName);
+        System.out.println("rocksMap1 get: "+ rocksMap.get("transaction00"));
+        rocksMap.rollback();
+
+        rocksMap.choseColumnFamily("testdb");
+        System.out.println("rocksMap rollback get: "+ rocksMap.get("transaction00"));
+        rocksMap.choseColumnFamily(cfName);
+        System.out.println("rocksMap1 rollback get: "+ rocksMap1.get("transaction00"));
+
+
+
         System.out.println("===============withTransaction commit==================");
+        //测试事务隔离
+        rocksMap.beginTransaction();
         rocksMap.withTransaction(map ->{
             RocksMap rocksMapT = (RocksMap)map;
             rocksMapT.put("ddddk", "ffdasf");
-            System.out.println("withTransaction commit: " + rocksMapT.get("ddddk"));
+            //测试事务隔离
+            rocksMap.rollback();
+            System.out.println("withTransaction: " + rocksMapT.get("ddddk"));
             return true;
         });
 
@@ -161,43 +168,25 @@ public class RocksMapTest extends TestCase {
         rocksMap.remove("ddddk");
 
         //rollback
-        System.out.println("===============withTransaction rollback && nest transaction==================");
+        System.out.println("===============withTransaction rollback ==================");
+        //测试事务隔离
         rocksMap.beginTransaction();
         rocksMap.withTransaction(map ->{
             RocksMap rocksMapT = (RocksMap) map;
-            return rocksMap.withTransaction(map1 -> {
-                RocksMap rocksMapTT = (RocksMap) map1;
-                rocksMapTT.put("ddddk", "ffdasf");
-                System.out.println("withTransaction rollback: " + rocksMapTT.get("ddddk"));
-                return false;
-            });
+            rocksMapT.put("ddddk", "ffdasf");
+            //测试事务隔离
+            rocksMap.commit();
+            System.out.println("withTransaction: " + rocksMapT.get("ddddk"));
+            return false;
         });
-        rocksMap.commit();
         System.out.println("withTransaction rollback: " + rocksMap.get("ddddk"));
 
-
-        //rollback
-        System.out.println("===============share rollback==================");
-        rocksMap.beginTransaction();
-        rocksMap.put("transaction22", "rocksMap.value");
-        RocksMap rocksMap2 = rocksMap.share(cfName);
-        rocksMap2.put("transaction22", cfName);
-
-        rocksMap.choseColumnFamily("testdb");
-        System.out.println("rocksMap share get: "+ rocksMap.get("transaction22"));
-        System.out.println("rocksMap2 share get: "+ rocksMap2.get("transaction22"));
-        rocksMap.rollback();
-
-        rocksMap.choseColumnFamily("testdb");
-        System.out.println("rocksMap share rollback get: "+ rocksMap.get("transaction22"));
-        System.out.println("rocksMap2 share rollback get: "+ rocksMap2.get("transaction22"));
-        rocksMap.choseColumnFamily("testdb");
-
         //commit
-        System.out.println("===============share commit==================");
+        System.out.println("===============share commit ==================");
+        rocksMap.choseColumnFamily("testdb");
         rocksMap.beginTransaction();
         rocksMap.put("transaction33", "rocksMap.value");
-        rocksMap2 = rocksMap.share(cfName);
+        RocksMap rocksMap2 = rocksMap.share(cfName);
         rocksMap2.put("transaction33", cfName);
         rocksMap.commit();
 
@@ -205,7 +194,35 @@ public class RocksMapTest extends TestCase {
         System.out.println("rocksMap share get: "+ rocksMap.get("transaction33"));
         System.out.println("rocksMap2 share get: "+ rocksMap2.get("transaction33"));
         rocksMap.choseColumnFamily("testdb");
+
+        //rollback
+        System.out.println("===============share rollback==================");
+        rocksMap.beginTransaction();
+        rocksMap.put("transaction22", "rocksMap.value");
+        rocksMap2 = rocksMap.share(cfName);
+        rocksMap2.put("transaction22", cfName);
+
+        rocksMap.choseColumnFamily("testdb");
+        System.out.println("rocksMap get: "+ rocksMap.get("transaction22"));
+        System.out.println("rocksMap2 get: "+ rocksMap2.get("transaction22"));
+        rocksMap.rollback();
+
+        rocksMap.choseColumnFamily("testdb");
+        System.out.println("rocksMap share rollback get: "+ rocksMap.get("transaction22"));
+        System.out.println("rocksMap2 share rollback get: "+ rocksMap2.get("transaction22"));
         System.out.println("=======================================");
+
+        System.out.println("===============nest==================");
+        rocksMap.beginTransaction();
+        rocksMap.put("transaction44", "rocksMap.value");
+        {
+            rocksMap.beginTransaction();
+            rocksMap.put("transaction55", "rocksMap.value");
+            rocksMap.rollback();
+        }
+        rocksMap.commit();
+        System.out.println("rocksMap nest commit get: "+ rocksMap.get("transaction44"));
+        System.out.println("rocksMap2 nest rollback get: "+ rocksMap2.get("transaction55"));
 
 
         //put

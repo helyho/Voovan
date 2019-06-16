@@ -226,7 +226,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    private RocksMap(RocksMap<K,V> rocksMap, String columnFamilyName){
+    private RocksMap(RocksMap<K,V> rocksMap, String columnFamilyName, boolean useSameTransaction){
         this.dbOptions = rocksMap.dbOptions;
         this.readOptions = rocksMap.readOptions;
         this.writeOptions = rocksMap.writeOptions;
@@ -235,7 +235,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.rocksDB = rocksMap.rocksDB;
         this.dataColumnFamilyDescriptor = rocksMap.dataColumnFamilyDescriptor;
         this.dataColumnFamilyHandle = rocksMap.dataColumnFamilyHandle;
-        this.threadLocalTransaction = rocksMap.threadLocalTransaction;
+        //是否使用父对象的实物对象
+        if(useSameTransaction) {
+            this.threadLocalTransaction = rocksMap.threadLocalTransaction;
+        } else {
+            this.threadLocalTransaction = ThreadLocal.withInitial(()->this.createTransaction(-1, false, false));
+        }
 
         this.dbname =  rocksMap.dbname;
         this.columnFamilyName = columnFamilyName;
@@ -256,7 +261,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 事务共享的 RocksMap
      */
     public RocksMap<K,V> share(String cfName){
-        return new RocksMap<K, V>(this, cfName);
+        return new RocksMap<K, V>(this, cfName, true);
     }
 
     /**
@@ -301,19 +306,22 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public boolean withTransaction(Function<RocksMap, Boolean> transFunction) {
 
+        RocksMap<K,V> transactionRocksMap = new RocksMap<K, V>(this, columnFamilyName, false);
+
+
         //需要和 rocksMap 共享一个 事务
         try {
-            beginTransaction();
+            transactionRocksMap.beginTransaction();
 
-            if (transFunction.apply(this)) {
-                commit();
+            if (transFunction.apply(transactionRocksMap)) {
+                transactionRocksMap.commit();
                 return true;
             } else {
-                rollback();
+                transactionRocksMap.rollback();
                 return false;
             }
         } catch (Exception e) {
-            rollback();
+            transactionRocksMap.rollback();
             throw new RocksMapException("withTransaction failed", e);
         }
     }
