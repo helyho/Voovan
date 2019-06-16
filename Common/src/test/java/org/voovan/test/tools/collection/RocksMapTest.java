@@ -161,7 +161,8 @@ public class RocksMapTest extends TestCase {
         rocksMap.remove("ddddk");
 
         //rollback
-        System.out.println("===============withTransaction rollback==================");
+        System.out.println("===============withTransaction rollback && nest transaction==================");
+        rocksMap.beginTransaction();
         rocksMap.withTransaction(map ->{
             RocksMap rocksMapT = (RocksMap) map;
             return rocksMap.withTransaction(map1 -> {
@@ -171,6 +172,7 @@ public class RocksMapTest extends TestCase {
                 return false;
             });
         });
+        rocksMap.commit();
         System.out.println("withTransaction rollback: " + rocksMap.get("ddddk"));
 
 
