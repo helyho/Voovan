@@ -682,6 +682,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         byte[] keyBytes = TSerialize.serialize(key);
         byte[] valueBytes = TSerialize.serialize(value);
 
+        //这里使用独立的事务是未了防止默认事务提交导致失效
         Transaction innerTransaction = createTransaction(-1, false, false);
 
         try {
@@ -708,6 +709,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         byte[] newValueBytes = TSerialize.serialize(newValue);
         byte[] oldValueBytes = TSerialize.serialize(oldValue);
 
+        //这里使用独立的事务是未了防止默认事务提交导致失效
         Transaction innerTransaction = createTransaction(-1, false, false);
 
         try {
