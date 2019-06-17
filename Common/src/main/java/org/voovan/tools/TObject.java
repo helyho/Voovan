@@ -56,9 +56,7 @@ public class TObject {
 	 */
 	@SuppressWarnings("rawtypes")
 	public static List asList(Object ...objs){
-		List result = new ArrayList();
-		result.addAll(Arrays.asList(objs));
-		return result;
+		return Arrays.asList(objs);
 	}
 
 	/**

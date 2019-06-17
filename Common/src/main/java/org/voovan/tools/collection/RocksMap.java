@@ -2,12 +2,16 @@ package org.voovan.tools.collection;
 import org.rocksdb.*;
 import org.voovan.tools.TByte;
 import org.voovan.tools.TFile;
+import org.voovan.tools.Varint;
+import org.voovan.tools.exception.ParseException;
 import org.voovan.tools.exception.RocksMapException;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.serialize.TSerialize;
 
 import java.io.Closeable;
 import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.*;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
@@ -251,8 +255,28 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.choseColumnFamily(columnFamilyName);
     }
 
-    public TransactionLogIterator getUpdatesSince(long sequenceNumber ) throws RocksDBException {
-        return rocksDB.getUpdatesSince(sequenceNumber);
+    public List<LogRecord> getUpdatesSince(long sequenceNumber, boolean  withSerial) throws RocksDBException {
+        TransactionLogIterator transactionLogIterator = rocksDB.getUpdatesSince(sequenceNumber);
+
+        ArrayList<LogRecord> logRecords = new ArrayList<LogRecord>();
+
+        while(transactionLogIterator.isValid()){
+            TransactionLogIterator.BatchResult batchResult = transactionLogIterator.getBatch();
+//            byte[] data = batchResult.writeBatch().data();
+//            System.out.print(batchResult.sequenceNumber() + " l = " + data.length + "\t -> [");
+//            for(int i=0;i<data.length; i++){
+//                System.out.print(" " + data[i] + ", ");
+//            }
+//            System.out.println("]");
+
+            List<LogRecord> logRecordBySeq = LogRecord.parse(ByteBuffer.wrap(batchResult.writeBatch().data()), withSerial);
+
+            logRecords.addAll(logRecordBySeq);
+
+            transactionLogIterator.next();
+        }
+
+        return logRecords;
     }
 
     /**
@@ -1125,4 +1149,191 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             throw new UnsupportedOperationException();
         }
     }
+
+    public static class LogRecord {
+        // WriteBatch::rep_ :=
+        //    sequence: fixed64
+        //    count: fixed32
+        //    data: record[count]
+        // record :=
+        //    kTypeValue varstring varstring
+        //    kTypeDeletion varstring
+        //    kTypeSingleDeletion varstring
+        //    kTypeRangeDeletion varstring varstring
+        //    kTypeMerge varstring varstring
+        //    kTypeColumnFamilyValue varint32 varstring varstring
+        //    kTypeColumnFamilyDeletion varint32 varstring
+        //    kTypeColumnFamilySingleDeletion varint32 varstring
+        //    kTypeColumnFamilyRangeDeletion varint32 varstring varstring
+        //    kTypeColumnFamilyMerge varint32 varstring varstring
+        //    kTypeBeginPrepareXID varstring
+        //    kTypeEndPrepareXID
+        //    kTypeCommitXID varstring
+        //    kTypeRollbackXID varstring
+        //    kTypeBeginPersistedPrepareXID varstring
+        //    kTypeBeginUnprepareXID varstring
+        //    kTypeNoop
+        // varstring :=
+        //    len: varint32
+        //    data: uint8[len]
+
+        public static int TYPE_DELETION = 0x0;
+        public static int TYPE_VALUE = 0x1;
+        public static int TYPE_MERGE = 0x2;
+        public static int TYPE_LOGDATA = 0x3;               // WAL only.
+        public static int TYPE_COLUMNFAMILY_DELETION = 0x4;  // WAL only.    <-----
+        public static int TYPE_COLUMNFAMILY_VALUE = 0x5;     // WAL only.   <-----
+        public static int TYPE_COLUMNFAMILY_MERGE = 0x6;     // WAL only.
+        public static int TYPE_SINGLE_DELETION = 0x7;
+        public static int TYPE_COLUMNFAMILY_SINGLE_DELETION = 0x8;  // WAL only.
+        public static int TYPE_BEGIN_PREPARE_XID = 0x9;             // WAL only.
+        public static int TYPE_END_PREPARE_XID = 0xA;               // WAL only.
+        public static int TYPE_COMMIT_XID = 0xB;                   // WAL only.
+        public static int TYPE_ROLLBACK_XID = 0xC;                 // WAL only.
+        public static int TYPE_NOOP = 0xD;                        // WAL only.
+        public static int TYPE_COLUMNFAMILY_RANGE_DELETION = 0xE;   // WAL only.
+        public static int TYPE_RANGE_DELETION = 0xF;               // meta block
+        public static int TYPE_COLUMNFAMILY_BLOB_INDEX = 0x10;      // Blob DB only
+        public static int TYPE_BLOB_INDEX = 0x11;                  // Blob DB only
+        public static int TYPE_BEGIN_PERSISTED_PREPARE_XID = 0x12;  // WAL only
+        public static int TYPE_BEGIN_UNPREPARE_XID = 0x13;  // WAL only.
+
+        //定义每种操作的数据项数据
+        public static int[] TYPE_ELEMENT_COUNT = new int[]{
+                1,  //0    kTypeDeletion varstring
+                2,  //1    kTypeValue varstring varstring
+                2,  //2    kTypeMerge varstring varstring
+                0,  //3    ?
+                1,  //4    kTypeColumnFamilyDeletion varint32 varstring
+                2,  //5    kTypeColumnFamilyValue varint32 varstring varstring
+                2,  //6    kTypeColumnFamilyMerge varint32 varstring varstring
+                1,  //7    kTypeSingleDeletion varstring
+                1,  //8    kTypeColumnFamilySingleDeletion varint32 varstring
+                1,  //9    kTypeBeginPrepareXID varstring
+                0,  //A    kTypeEndPrepareXID
+                1,  //B    kTypeCommitXID varstring
+                1,  //C    kTypeRollbackXID varstring
+                0,  //D    kTypeNoop
+                2,  //E    kTypeColumnFamilyRangeDeletion varint32 varstring varstring
+                0,  //F    kTypeRangeDeletion varstring varstring
+                0,  //10   kTypeColumnFamilyBlobIndex
+                2,  //11   kTypeBlobIndex varstring varstring
+                1,  //12   kTypeBeginPersistedPrepareXID varstring
+                1   //13   kTypeBeginUnprepareXID varstring
+        };
+
+        private long sequence;
+        private int type;
+        private int columnFamilyId = 0;
+
+        private ArrayList<Object> chunks;
+
+        private LogRecord(long sequence, int type, int columnFamilyId) {
+            this.sequence = sequence;
+            this.type = type;
+            this.columnFamilyId = columnFamilyId;
+            chunks = new ArrayList<Object>();
+        }
+
+        public long getSequence() {
+            return sequence;
+        }
+
+        private void setSequence(long sequence) {
+            this.sequence = sequence;
+        }
+
+        public int getType() {
+            return type;
+        }
+
+        private void setType(int type) {
+            this.type = type;
+        }
+
+        public int getColumnFamilyId() {
+            return columnFamilyId;
+        }
+
+        private void setColumnFamilyId(int columnFamilyId) {
+            this.columnFamilyId = columnFamilyId;
+        }
+
+        public ArrayList<Object> getChunks() {
+            return chunks;
+        }
+
+
+        public static List<LogRecord> parse(ByteBuffer byteBuffer, boolean withSerial) {
+            ByteOrder originByteOrder = byteBuffer.order();
+            byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+            if(byteBuffer.remaining() < 13) {
+                throw new ParseException("not a correct recorder");
+            }
+            //序号
+            Long sequence = byteBuffer.getLong();
+
+            //本次Wal操作包含键值数
+            int recordCount = byteBuffer.getInt();
+
+
+
+            List<LogRecord> logRecords = new ArrayList<LogRecord>();
+
+            for(int count=0;byteBuffer.hasRemaining();count++) {
+
+                LogRecord logRecord = parseOperation(byteBuffer, sequence, withSerial);
+                if(logRecord!=null) {
+                    logRecords.add(logRecord);
+                }
+            }
+
+            byteBuffer.order(originByteOrder);
+            return logRecords;
+
+        }
+
+        public static LogRecord parseOperation(ByteBuffer byteBuffer, long sequence, boolean withSerial){
+            //操作类型
+            int type = byteBuffer.get();
+
+            if (type == TYPE_NOOP) {
+                if(byteBuffer.hasRemaining()) {
+                    type = byteBuffer.get();
+                } else {
+                    return null;
+                }
+            }
+
+            int columnFamilyId=0;
+            if (type == TYPE_COLUMNFAMILY_DELETION ||
+                    type == TYPE_COLUMNFAMILY_VALUE ||
+                    type == TYPE_COLUMNFAMILY_MERGE ||
+                    type == TYPE_COLUMNFAMILY_SINGLE_DELETION) {
+                columnFamilyId = byteBuffer.get();
+            }
+
+            LogRecord logRecord = new LogRecord(sequence, type, columnFamilyId);
+
+            if(type < TYPE_ELEMENT_COUNT.length) {
+                for (int i = 0; i < TYPE_ELEMENT_COUNT[type] && byteBuffer.hasRemaining(); i++) {
+                    int chunkSize = Varint.varintToInt(byteBuffer);
+                    byte[] chunkBytes = new byte[chunkSize];
+                    byteBuffer.get(chunkBytes);
+
+                    Object chunk = chunkBytes;
+                    if (withSerial) {
+                        chunk = TSerialize.unserialize(chunkBytes);
+                    } else {
+                        chunk = chunkBytes;
+                    }
+
+                    logRecord.getChunks().add(chunk);
+                }
+            }
+
+            return logRecord;
+        }
+    }
+
 }
