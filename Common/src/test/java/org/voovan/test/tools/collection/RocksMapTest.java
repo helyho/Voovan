@@ -4,9 +4,9 @@ import junit.framework.TestCase;
 import org.rocksdb.*;
 import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.json.JSON;
-import org.voovan.tools.serialize.TSerialize;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,22 +18,21 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class RocksMapTest extends TestCase {
-
     public void testWal() throws RocksDBException {
         DBOptions dbOptions = new DBOptions();
         ReadOptions readOptions = new ReadOptions();
         WriteOptions writeOptions = new WriteOptions();
         ColumnFamilyOptions columnFamilyOptions = new ColumnFamilyOptions();
 
-        dbOptions.setDbWriteBufferSize(1024*1024*512);
+//        dbOptions.setDbWriteBufferSize(1024*1024*512);
 
         dbOptions.setCreateIfMissing(true);
         dbOptions.setCreateMissingColumnFamilies(true);
         dbOptions.setUseDirectReads(true);
-        dbOptions.setUseDirectIoForFlushAndCompaction(true);
+//        dbOptions.setUseDirectIoForFlushAndCompaction(true);
 
         //设置 MemTable 大小
-        columnFamilyOptions.setWriteBufferSize(1024*1024*512);
+//        columnFamilyOptions.setWriteBufferSize(1024*1024*512);
 
        RocksMap rocksMap =  new RocksMap("waltest", "cfname", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
 
@@ -43,9 +42,6 @@ public class RocksMapTest extends TestCase {
 
         rocksMap.remove(1);
         rocksMap.put(9, 65536);
-
-        System.out.println(rocksMap.get("9"));
-
         rocksMap.remove(9);
         HashMap m = new HashMap();
         m.put(11, 111);
@@ -63,28 +59,15 @@ public class RocksMapTest extends TestCase {
             ((RocksMap)map).put(16, 32);
             return false;
         });
+//
+        rocksMap.choseColumnFamily("default").put(90, 65536);
+        System.out.println(rocksMap.choseColumnFamily("cfname").get(90));
 
-        TransactionLogIterator transactionLogIterator = rocksMap.getUpdatesSince(0);
-        while(transactionLogIterator.isValid()){
-           TransactionLogIterator.BatchResult batchResult = transactionLogIterator.getBatch();
-           byte[] b = batchResult.writeBatch().data();
-           System.out.print(batchResult.sequenceNumber() + " l = " + b.length + "\t -> [");
+        List<RocksMap.LogRecord> logRecords = rocksMap.getUpdatesSince(0, true);
+        for(RocksMap.LogRecord logRecord : logRecords) {
 
-           for(int i=0;i<b.length; i++){
-               System.out.print(" " + b[i] + ", ");
-               if(i==7) System.out.print("seq/");
-               if(i==11) System.out.print("operator_count/");
-               if(i==12) System.out.print("/");
-               if(i==13) System.out.print("type/");
-               if(i==14) System.out.print("cfid/");
-               if(i==15) System.out.print("keysize/");
-
-           }
-           System.out.println("]");
-
-
-           transactionLogIterator.next();
-        }
+            System.out.println(logRecord.getSequence() + " " + logRecord.getType() + " " + logRecord.getColumnFamilyId() + " = " + logRecord.getChunks());
+         }
 
         System.out.println(rocksMap.entrySet());
     }
