@@ -53,7 +53,7 @@ public class DefaultJDKSerialize implements Serialize {
     }
 
     @Override
-    public <T> T unserialize(byte[] bytes, Class<T> clazz) {
+    public <T> T unserialize(byte[] bytes) {
         ByteArrayInputStream byteArrayInputStream = null;
 
         Object result = null;

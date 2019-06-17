@@ -32,7 +32,7 @@ public class DefaultJSONSerialize implements Serialize {
     }
 
     @Override
-    public <T> T unserialize(byte[] bytes, Class<T> clazz) {
+    public <T> T unserialize(byte[] bytes) {
         try {
 
             Class mainClazz = null;

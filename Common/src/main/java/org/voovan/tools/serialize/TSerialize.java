@@ -53,20 +53,10 @@ public class TSerialize {
     /**
      * 反序列化对象
      * @param bytes 序列化后的字节
-     * @param clazz 反序列化的目标对象类型
-     * @return 反序列化的对象
-     */
-    public static Object unserialize(byte[] bytes, Class clazz) {
-        return bytes == null ? null : SERIALIZE.unserialize(bytes, clazz);
-    }
-
-    /**
-     * 反序列化对象
-     * @param bytes 序列化后的字节
      * @return 反序列化的对象
      */
     public static Object unserialize(byte[] bytes){
-        return unserialize(bytes, null);
+        return bytes == null ? null : SERIALIZE.unserialize(bytes);
     }
 
     static ConcurrentHashMap<Class, String> CLASS_AND_SIMPLE_NAME = new ConcurrentHashMap<Class, String>();
