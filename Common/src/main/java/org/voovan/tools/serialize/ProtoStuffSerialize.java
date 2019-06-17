@@ -56,7 +56,7 @@ public class ProtoStuffSerialize implements Serialize {
     }
 
     @Override
-    public <T> T unserialize(byte[] bytes, Class<T> clazz) {
+    public <T> T unserialize(byte[] bytes) {
         byte[] type = new byte[512];
 
         int index = 0;
