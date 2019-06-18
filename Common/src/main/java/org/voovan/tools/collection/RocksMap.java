@@ -179,7 +179,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         this.dbOptions.setWalDir(DEFAULT_WAL_PATH +this.dbname);
 
-
         TFile.mkdir(DEFAULT_DB_PATH + this.dbname + "/");
         TFile.mkdir(this.dbOptions.walDir());
 
