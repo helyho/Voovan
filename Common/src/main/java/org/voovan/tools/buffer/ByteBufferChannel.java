@@ -28,14 +28,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class ByteBufferChannel {
-    private static int BYTEBUFFERCHANNEL_MAX_SIZE = TProperties.getInt("framework", "ByteBufferChannelMaxSize");
+    private static int BYTEBUFFERCHANNEL_MAX_SIZE = TProperties.getInt("framework", "ByteBufferChannelMaxSize", 1024*1024*2);
     private volatile AtomicLong address = new AtomicLong(0);
     private Unsafe unsafe = TUnsafe.getUnsafe();
     private ByteBuffer byteBuffer;
     private volatile int size;
     private AtomicBoolean borrowed = new AtomicBoolean(false);
 
-    private int maxSize = BYTEBUFFERCHANNEL_MAX_SIZE==0 ? 1024*1024*2 : BYTEBUFFERCHANNEL_MAX_SIZE;
+    private int maxSize = BYTEBUFFERCHANNEL_MAX_SIZE;
 
     /**
      * 构造函数

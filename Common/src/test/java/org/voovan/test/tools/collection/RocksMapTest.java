@@ -63,11 +63,18 @@ public class RocksMapTest extends TestCase {
         rocksMap.choseColumnFamily("default").put(90, 65536);
         System.out.println(rocksMap.choseColumnFamily("cfname").get(90));
 
-        List<RocksMap.LogRecord> logRecords = rocksMap.getUpdatesSince(0, true);
+        List<RocksMap.LogRecord> logRecords = rocksMap.getLogsSince(0, true);
         for(RocksMap.LogRecord logRecord : logRecords) {
 
             System.out.println(logRecord.getSequence() + " " + logRecord.getType() + " " + logRecord.getColumnFamilyId() + " = " + logRecord.getChunks());
          }
+
+        System.out.println("===============filter==================");
+        logRecords = rocksMap.getLogsSince(0, (cfid, type)-> cfid.equals(5), true);
+        for(RocksMap.LogRecord logRecord : logRecords) {
+
+            System.out.println(logRecord.getSequence() + " " + logRecord.getType() + " " + logRecord.getColumnFamilyId() + " = " + logRecord.getChunks());
+        }
 
         System.out.println(rocksMap.entrySet());
     }
