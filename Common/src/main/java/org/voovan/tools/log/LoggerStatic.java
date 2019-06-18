@@ -51,7 +51,6 @@ public class LoggerStatic {
 	 * @return  日志配置信息
 	 */
 	protected static String getLogConfig(String property, String defalut) {
-		String value = TProperties.getString("logger", property);
-		return TObject.nullDefault(value,defalut);
+		return TProperties.getString("logger", property, defalut);
 	}
 }

@@ -15,6 +15,7 @@ import java.nio.ByteOrder;
 import java.util.*;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -254,13 +255,32 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.choseColumnFamily(columnFamilyName);
     }
 
-    public List<LogRecord> getUpdatesSince(long sequenceNumber, boolean  withSerial) throws RocksDBException {
-        TransactionLogIterator transactionLogIterator = rocksDB.getUpdatesSince(sequenceNumber);
+    /**
+     * 获取某个序号以后的更新操作记录
+     * @param sequenceNumber 序号
+     * @param withSerial 是否进行反序列化
+     * @return 日志记录集合
+     */
+    public List<LogRecord> getLogsSince(long sequenceNumber, boolean  withSerial) {
+        return getLogsSince(sequenceNumber, null, withSerial);
+    }
 
-        ArrayList<LogRecord> logRecords = new ArrayList<LogRecord>();
+    /**
+     * 获取某个序号以后的更新操作记录
+     * @param sequenceNumber 序号
+     * @param filter 过滤器,用来过滤可用的操作类型和列族
+     * @param withSerial 是否进行反序列化
+     * @return 日志记录集合
+     */
+    public List<LogRecord> getLogsSince(long sequenceNumber,  BiFunction<Integer, Integer, Boolean> filter, boolean  withSerial) {
+        try {
+            TransactionLogIterator transactionLogIterator = rocksDB.getUpdatesSince(sequenceNumber);
 
-        while(transactionLogIterator.isValid()){
-            TransactionLogIterator.BatchResult batchResult = transactionLogIterator.getBatch();
+
+            ArrayList<LogRecord> logRecords = new ArrayList<LogRecord>();
+
+            while (transactionLogIterator.isValid()) {
+                TransactionLogIterator.BatchResult batchResult = transactionLogIterator.getBatch();
 //            byte[] data = batchResult.writeBatch().data();
 //            System.out.print(batchResult.sequenceNumber() + " l = " + data.length + "\t -> [");
 //            for(int i=0;i<data.length; i++){
@@ -268,14 +288,17 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 //            }
 //            System.out.println("]");
 
-            List<LogRecord> logRecordBySeq = LogRecord.parse(ByteBuffer.wrap(batchResult.writeBatch().data()), withSerial);
+                List<LogRecord> logRecordBySeq = LogRecord.parse(ByteBuffer.wrap(batchResult.writeBatch().data()), filter, withSerial);
 
-            logRecords.addAll(logRecordBySeq);
+                logRecords.addAll(logRecordBySeq);
 
-            transactionLogIterator.next();
+                transactionLogIterator.next();
+            }
+
+            return logRecords;
+        } catch (RocksDBException e) {
+            throw new RocksMapException("getUpdatesSince failed", e);
         }
-
-        return logRecords;
     }
 
     /**
@@ -1262,8 +1285,24 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             return chunks;
         }
 
-
+        /**
+         * 解析某个序号以后的更新操作记录
+         * @param byteBuffer 字节缓冲器
+         * @param withSerial 是否进行反序列化
+         * @return 日志记录集合
+         */
         public static List<LogRecord> parse(ByteBuffer byteBuffer, boolean withSerial) {
+            return parse(byteBuffer, null, withSerial);
+        }
+
+        /**
+         * 解析某个序号以后的更新操作记录
+         * @param byteBuffer 字节缓冲器
+         * @param filter 过滤器,用来过滤可用的操作类型和列族
+         * @param withSerial 是否进行反序列化
+         * @return 日志记录集合
+         */
+        public static List<LogRecord> parse(ByteBuffer byteBuffer, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial) {
             ByteOrder originByteOrder = byteBuffer.order();
             byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
             if(byteBuffer.remaining() < 13) {
@@ -1281,7 +1320,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             for(int count=0;byteBuffer.hasRemaining();count++) {
 
-                LogRecord logRecord = parseOperation(byteBuffer, sequence, withSerial);
+                LogRecord logRecord = parseOperation(byteBuffer, sequence, filter, withSerial);
                 if(logRecord!=null) {
                     logRecords.add(logRecord);
                 }
@@ -1292,7 +1331,26 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         }
 
+        /**
+         * 解析某个序号的操作记录
+         * @param byteBuffer 字节缓冲器
+         * @param sequence 序号
+         * @param withSerial 是否进行反序列化
+         * @return 日志记录集合
+         */
         public static LogRecord parseOperation(ByteBuffer byteBuffer, long sequence, boolean withSerial){
+            return parseOperation(byteBuffer, sequence, withSerial);
+        }
+
+        /**
+         * 解析某个序号的操作记录
+         * @param byteBuffer 字节缓冲器
+         * @param sequence 序号
+         * @param filter 过滤器,用来过滤可用的操作类型和列族
+         * @param withSerial 是否进行反序列化
+         * @return 日志记录集合
+         */
+        public static LogRecord parseOperation(ByteBuffer byteBuffer, long sequence, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial){
             //操作类型
             int type = byteBuffer.get();
 
@@ -1312,22 +1370,35 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 columnFamilyId = byteBuffer.get();
             }
 
-            LogRecord logRecord = new LogRecord(sequence, type, columnFamilyId);
 
-            if(type < TYPE_ELEMENT_COUNT.length) {
+            LogRecord logRecord = null;
+            if (type < TYPE_ELEMENT_COUNT.length) {
+
+                //应用过滤器
+                boolean isEnable = filter==null || filter.apply(columnFamilyId, type);
+
+                if(isEnable) {
+                    logRecord = new LogRecord(sequence, type, columnFamilyId);
+                }
+
                 for (int i = 0; i < TYPE_ELEMENT_COUNT[type] && byteBuffer.hasRemaining(); i++) {
                     int chunkSize = Varint.varintToInt(byteBuffer);
-                    byte[] chunkBytes = new byte[chunkSize];
-                    byteBuffer.get(chunkBytes);
 
-                    Object chunk = chunkBytes;
-                    if (withSerial) {
-                        chunk = TSerialize.unserialize(chunkBytes);
+                    if(isEnable) {
+                        byte[] chunkBytes = new byte[chunkSize];
+                        byteBuffer.get(chunkBytes);
+
+                        Object chunk = chunkBytes;
+                        if (withSerial) {
+                            chunk = TSerialize.unserialize(chunkBytes);
+                        } else {
+                            chunk = chunkBytes;
+                        }
+
+                        logRecord.getChunks().add(chunk);
                     } else {
-                        chunk = chunkBytes;
+                        byteBuffer.position(byteBuffer.position() + chunkSize);
                     }
-
-                    logRecord.getChunks().add(chunk);
                 }
             }
 

@@ -133,11 +133,38 @@ public class TProperties {
 	 *
 	 * @param file 文件对象
 	 * @param name 属性名
+	 * @param defaultValue 默认值
+	 * @return 属性值
+	 */
+	public static String getString(File file, String name, String defaultValue) {
+		Properties properites = getProperties(file);
+		String value = properites.getProperty(name);
+		return TString.isNullOrEmpty(value) ? defaultValue: value;
+	}
+
+	/**
+	 * 从Properties文件读取字符串
+	 *
+	 * @param file 文件对象
+	 * @param name 属性名
 	 * @return 属性值
 	 */
 	public static String getString(File file, String name) {
-		Properties properites = getProperties(file);
-		return properites.getProperty(name);
+		return getString(file, name, null);
+	}
+
+	/**
+	 * 从Properties文件读取整形
+	 *
+	 * @param file 文件对象
+	 * @param name 属性名
+	 * @param defaultValue 默认值
+	 * @return 属性值
+	 */
+	public static int getInt(File file, String name, Integer defaultValue) {
+		defaultValue = defaultValue == null ? 0 : defaultValue;
+		String value = getString(file, name);
+		return TString.isNullOrEmpty(value) ? defaultValue : Integer.valueOf(value.trim());
 	}
 
 	/**
@@ -148,8 +175,21 @@ public class TProperties {
 	 * @return 属性值
 	 */
 	public static int getInt(File file, String name) {
+		return getInt(file, name, null);
+	}
+
+	/**
+	 * 从Properties文件读取浮点数
+	 *
+	 * @param file 文件对象
+	 * @param name 属性名
+	 * @param defaultValue 默认值
+	 * @return 属性值
+	 */
+	public static float getFloat(File file, String name, Float defaultValue) {
+		defaultValue = defaultValue == null ? 0f : defaultValue;
 		String value = getString(file, name);
-		return Integer.valueOf(TString.isNullOrEmpty(value)?"0":value.trim());
+		return TString.isNullOrEmpty(value) ? defaultValue : Float.valueOf(value.trim());
 	}
 
 	/**
@@ -160,8 +200,21 @@ public class TProperties {
 	 * @return 属性值
 	 */
 	public static float getFloat(File file, String name) {
+		return getFloat(file, name, null);
+	}
+
+	/**
+	 * 从Properties读取双精度浮点数
+	 *
+	 * @param file 文件对象
+	 * @param name 属性名
+	 * @param defaultValue 默认值
+	 * @return 属性值
+	 */
+	public static double getDouble(File file, String name, Double defaultValue) {
+		defaultValue = defaultValue == null ? 0d : defaultValue;
 		String value = getString(file, name);
-		return Float.valueOf(TString.isNullOrEmpty(value)?"0":value.trim());
+		return TString.isNullOrEmpty(value) ? defaultValue : Double.valueOf(value.trim());
 	}
 
 	/**
@@ -172,8 +225,7 @@ public class TProperties {
 	 * @return 属性值
 	 */
 	public static double getDouble(File file, String name) {
-		String value = getString(file, name);
-		return Double.valueOf(TString.isNullOrEmpty(value)?"0":value.trim());
+	    return getDouble(file, name, null);
 	}
 
 	/**
@@ -181,11 +233,24 @@ public class TProperties {
 	 *
 	 * @param file 文件对象
 	 * @param name 属性名
+	 * @param defaultValue 默认值
 	 * @return 属性值
 	 */
-	public static boolean getBoolean(File file, String name) {
-		Properties properites = getProperties(file);
-		return Boolean.valueOf(properites.getProperty(name));
+	public static boolean getBoolean(File file, String name, Boolean defaultValue) {
+		defaultValue = defaultValue == null ? false : defaultValue;
+		String value = getString(file, name);
+		return TString.isNullOrEmpty(value) ? defaultValue : Boolean.valueOf(value.trim());
+	}
+
+	/**
+	 * 从Properties读取双精度浮点数
+	 *
+	 * @param file 文件对象
+	 * @param name 属性名
+	 * @return 属性值
+	 */
+	public static boolean defaultValue(File file, String name) {
+		return getBoolean(file, name, null);
 	}
 
 	/**
@@ -210,11 +275,38 @@ public class TProperties {
 	 *
 	 * @param fileName 文件对象
 	 * @param name 属性名
+	 * @param defaultValue 默认值
+	 * @return 属性值
+	 */
+	public static String getString(String fileName, String name, String defaultValue) {
+		Properties properites = getProperties(fileName);
+		String value = properites.getProperty(name);
+		return TString.isNullOrEmpty(value) ? defaultValue : value;
+	}
+
+	/**
+	 * 从Properties文件读取字符串
+	 *
+	 * @param fileName 文件对象
+	 * @param name 属性名
 	 * @return 属性值
 	 */
 	public static String getString(String fileName, String name) {
-		Properties properites = getProperties(fileName);
-		return properites.getProperty(name);
+		return getString(fileName, name, null);
+	}
+
+	/**
+	 * 从Properties文件读取整形
+	 *
+	 * @param fileName 文件对象
+	 * @param name 属性名
+	 * @param defaultValue 默认值
+	 * @return 属性值
+	 */
+	public static int getInt(String fileName, String name, Integer defaultValue) {
+		defaultValue = defaultValue == null ? 0 : defaultValue;
+		String value = getString(fileName, name);
+		return TString.isNullOrEmpty(value) ? defaultValue : Integer.valueOf(value.trim());
 	}
 
 	/**
@@ -225,8 +317,21 @@ public class TProperties {
 	 * @return 属性值
 	 */
 	public static int getInt(String fileName, String name) {
+	    return getInt(fileName, name, null);
+	}
+
+	/**
+	 * 从Properties文件读取浮点数
+	 *
+	 * @param fileName 文件对象
+	 * @param name 属性名
+	 * @param defaultValue 默认值
+	 * @return 属性值
+	 */
+	public static float getFloat(String fileName, String name, Float defaultValue) {
+		defaultValue = defaultValue == null ? 0f : defaultValue;
 		String value = getString(fileName, name);
-		return Integer.valueOf(TString.isNullOrEmpty(value)?"0":value.trim());
+		return TString.isNullOrEmpty(value) ? defaultValue : Float.valueOf(value.trim());
 	}
 
 	/**
@@ -237,8 +342,21 @@ public class TProperties {
 	 * @return 属性值
 	 */
 	public static float getFloat(String fileName, String name) {
+		return getFloat(fileName, name, null);
+	}
+
+	/**
+	 * 从Properties读取双精度浮点数
+	 *
+	 * @param fileName 文件对象
+	 * @param name 属性名
+	 * @param defaultValue 默认值
+	 * @return 属性值
+	 */
+	public static double getDouble(String fileName, String name, Double defaultValue) {
+		defaultValue = defaultValue == null ? 0d : defaultValue;
 		String value = getString(fileName, name);
-		return Float.valueOf(TString.isNullOrEmpty(value)?"0":value.trim());
+		return TString.isNullOrEmpty(value) ? defaultValue : Double.valueOf(value.trim());
 	}
 
 	/**
@@ -249,8 +367,22 @@ public class TProperties {
 	 * @return 属性值
 	 */
 	public static double getDouble(String fileName, String name) {
+	    return getDouble(fileName, name, null);
+	}
+
+
+	/**
+	 * 从Properties文件读取 Boolean
+	 *
+	 * @param fileName 文件对象
+	 * @param name 属性名
+	 * @param defaultValue 默认值
+	 * @return 属性值
+	 */
+	public static boolean getBoolean(String fileName, String name, Boolean defaultValue) {
+		defaultValue = defaultValue == null ? false : defaultValue;
 		String value = getString(fileName, name);
-		return Double.valueOf(TString.isNullOrEmpty(value)?"0":value.trim());
+		return TString.isNullOrEmpty(value) ? defaultValue : Boolean.valueOf(value.trim());
 	}
 
 	/**
@@ -261,8 +393,7 @@ public class TProperties {
 	 * @return 属性值
 	 */
 	public static boolean getBoolean(String fileName, String name) {
-		String value = getString(fileName, name);
-		return Boolean.valueOf(TString.isNullOrEmpty(value)?"false":value.trim());
+		return getBoolean(fileName, name, null);
 	}
 
 	/**

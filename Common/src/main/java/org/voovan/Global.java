@@ -92,7 +92,7 @@ public class Global {
 
     public static volatile Boolean NO_HEAP_MANUAL_RELEASE;
     public static volatile String REMOTE_CLASS_SOURCE;
-    public static final Boolean IS_DEBUG_MODE = TObject.nullDefault(TProperties.getBoolean("framework", "DebugMode"), false);
+    public static final Boolean IS_DEBUG_MODE = TProperties.getBoolean("framework", "DebugMode", false);
     static {
         System.out.println("[SYSTEM] DebugMode: " + IS_DEBUG_MODE);
     }
