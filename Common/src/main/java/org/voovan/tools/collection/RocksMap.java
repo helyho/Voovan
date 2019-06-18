@@ -237,8 +237,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.columnFamilyOptions = rocksMap.columnFamilyOptions;
 
         this.rocksDB = rocksMap.rocksDB;
-        this.dataColumnFamilyDescriptor = rocksMap.dataColumnFamilyDescriptor;
-        this.dataColumnFamilyHandle = rocksMap.dataColumnFamilyHandle;
         //是否使用父对象的实物对象
         if(useSameTransaction) {
             this.threadLocalTransaction = rocksMap.threadLocalTransaction;
@@ -253,6 +251,13 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.savePointCount = rocksMap.savePointCount;
 
         this.choseColumnFamily(columnFamilyName);
+    }
+
+    /**
+     * 获取最后的序号
+     */
+    public Long getLastSequence() {
+        return rocksDB.getLatestSequenceNumber();
     }
 
     /**
@@ -308,6 +313,19 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public RocksMap<K,V> share(String cfName){
         return new RocksMap<K, V>(this, cfName, true);
+    }
+
+    public RocksDB getRocksDB(){
+        return rocksDB;
+    }
+
+    public int getColumnFamilyId(String cfName){
+        ColumnFamilyHandle columnFamilyHandle = getColumnFamilyHandler(rocksDB, cfName);
+        if(columnFamilyHandle!=null){
+            return columnFamilyHandle.getID();
+        } else {
+            throw new RocksMapException("ColumnFamily [" + cfName +"] not found.");
+        }
     }
 
     /**
