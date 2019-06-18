@@ -169,7 +169,7 @@ public class Logger {
 		}
 	}
 
-	public static void warn(Object msg, Exception e) {
+	public static void warn(Object msg, Throwable e) {
 		if(!Logger.isEnable()){
 			return;
 		}
@@ -185,7 +185,7 @@ public class Logger {
 		}
 	}
 
-	public static void warnf(String msg, Exception e, Object ... args){
+	public static void warnf(String msg, Throwable e, Object ... args){
 		if(!Logger.isEnable()){
 			return;
 		}
@@ -234,7 +234,7 @@ public class Logger {
 		}
 	}
 
-	public static void error(Object msg, Exception e) {
+	public static void error(Object msg, Throwable e) {
 		if(!Logger.isEnable()){
 			return;
 		}
@@ -250,7 +250,7 @@ public class Logger {
 		}
 	}
 
-	public static void errorf(String msg, Exception e, Object ... args){
+	public static void errorf(String msg, Throwable e, Object ... args){
 		if(!Logger.isEnable()){
 			return;
 		}
@@ -298,7 +298,7 @@ public class Logger {
 		}
 	}
 
-	public static void fatal(Object msg, Exception e) {
+	public static void fatal(Object msg, Throwable e) {
 		if(!Logger.isEnable()){
 			return;
 		}
@@ -314,7 +314,7 @@ public class Logger {
 		}
 	}
 
-	public static void fatalf(String msg, Exception e, Object ... args){
+	public static void fatalf(String msg, Throwable e, Object ... args){
 		if(!Logger.isEnable()){
 			return;
 		}
