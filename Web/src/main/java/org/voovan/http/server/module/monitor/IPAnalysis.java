@@ -1,7 +1,7 @@
 package org.voovan.http.server.module.monitor;
 
 import org.voovan.tools.TDateTime;
-import org.voovan.tools.json.annotation.NotJSON;
+import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.util.Calendar;
 import java.util.Map;
@@ -20,7 +20,7 @@ public class IPAnalysis {
     private String address;
     private AtomicLong totalCount;
     private int lastMinuteCount;
-    @NotJSON
+    @NotSerialization
     private int minute;
     private Map<String, Integer> data;
 

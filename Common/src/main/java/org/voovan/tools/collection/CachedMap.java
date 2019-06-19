@@ -3,8 +3,8 @@ package org.voovan.tools.collection;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
-import org.voovan.tools.json.annotation.NotJSON;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.util.Collection;
 import java.util.Map;
@@ -500,7 +500,7 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      * 缓存时间标签类
      */
     private class TimeMark<K> {
-        @NotJSON
+        @NotSerialization
         private CachedMap<K,V> mainMap;
         private K key;
         //超时时间

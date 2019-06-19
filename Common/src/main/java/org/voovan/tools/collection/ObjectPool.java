@@ -5,7 +5,7 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSON;
-import org.voovan.tools.json.annotation.NotJSON;
+import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
@@ -368,9 +368,9 @@ public class ObjectPool {
     public class PooledObject{
         private long lastVisiediTime;
         private Object id;
-        @NotJSON
+        @NotSerialization
         private Object object;
-        @NotJSON
+        @NotSerialization
         private ObjectPool objectCachedPool;
 
         public PooledObject(ObjectPool objectCachedPool, Object id, Object object) {
