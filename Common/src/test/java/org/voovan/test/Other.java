@@ -4,10 +4,9 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.reflect.TReflect;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -19,19 +18,44 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Licence: Apache v2 License
  */
 public class Other {
-
-
     private static int apple = 10;
     private int orange = 10;
 
     public static void main(String[] args) throws Exception {
 
-        RocksMap rocksMap = new RocksMap("one", "testdb");
-        System.out.println("get aaaa: "+ rocksMap.get("aaaa"));
-        System.out.println("get cccc: "+ rocksMap.get("cccc"));
-        System.out.println("get eeee: "+ rocksMap.get("eeee"));
-        System.out.println("get hhhh: "+ rocksMap.get("hhhh"));}
+        HashMap<Integer, Integer> hashMap = new HashMap<>();
+        ConcurrentHashMap<Integer, Integer> treeMap = new ConcurrentHashMap<>();
 
+        System.out.println(TEnv.measureTime(()->{
+            for(int i=0;i<1000000;i++)
+            hashMap.put(i, i);
+        }));
+
+        System.out.println(TEnv.measureTime(()->{
+            for(int i=0;i<1000000;i++)
+                treeMap.put(i, i);
+        }));
+
+        System.out.println(TEnv.measureTime(()->{
+            Iterator<Map.Entry<Integer, Integer>> iterator = hashMap.entrySet().iterator();
+            while(iterator.hasNext()){
+                Map.Entry entry = iterator.next();
+                entry.getValue();
+                entry.getKey();
+                hashMap.size();
+            }
+        }));
+
+        System.out.println(TEnv.measureTime(()->{
+            Iterator<Map.Entry<Integer, Integer>> iterator = treeMap.entrySet().iterator();
+            while(iterator.hasNext()){
+                Map.Entry entry = iterator.next();
+                entry.getValue();
+                entry.getKey();
+                treeMap.size();
+            }
+        }));
+    }
 
 
 }

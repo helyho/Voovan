@@ -4,7 +4,6 @@ package org.voovan.tools.reflect;
 import org.voovan.Global;
 import org.voovan.tools.*;
 import org.voovan.tools.json.JSON;
-import org.voovan.tools.json.annotation.NotJSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
@@ -1047,7 +1046,10 @@ public class TReflect {
      * @return 转后的 Map
      * @throws ReflectiveOperationException 反射异常
      */
-    public static Map<String, Object> getMapfromObject(Object obj, boolean allField) throws ReflectiveOperationException{
+    public static Map<String, Object> getMapfromObject(Object obj, boolean allField) throws ReflectiveOperationException {
+        if(obj.getClass().isAnnotationPresent(NotSerialization.class)){
+            return null;
+        }
 
         LinkedHashMap<String, Object> mapResult = new LinkedHashMap<String, Object>();
 
@@ -1113,15 +1115,14 @@ public class TReflect {
             mapResult.put(null, map);
         }
         //复杂对象类型
-        else{
+        else {
             Map<Field, Object> fieldValues =  TReflect.getFieldValues(obj);
             for(Entry<Field,Object> entry : fieldValues.entrySet()){
                 Field field = entry.getKey();
 
                 //过滤不可序列化的字段
                 if (!allField) {
-                    if(	field.getAnnotation(NotSerialization.class)!=null ||
-                            field.getAnnotation(NotJSON.class)!=null) {
+                    if(field.isAnnotationPresent(NotSerialization.class)) {
                         continue;
                     }
                 }
