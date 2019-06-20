@@ -15,7 +15,7 @@ import org.voovan.tools.TString;
  */
 public class Logger {
 	private static Formater	formater	= Formater.newInstance();
-	private static boolean enable = true;
+	private static boolean enable 		= true;
 
 	/**
 	 * 日志输出状态
@@ -55,296 +55,148 @@ public class Logger {
 		}
 	}
 
-	public static void info(Object msg) {
+	public static void custom(String logLevel, Object msg, Throwable e) {
 		if(!Logger.isEnable()){
 			return;
 		}
 
 		try {
-			msg = buildMessage(msg);
-			Message message = Message.newInstance("INFO", msg.toString());
+			msg = buildMessage(msg, e);
+			Message message = Message.newInstance(logLevel, msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
 			simple("Logger system error:"+oe.getMessage()+"\r\n");
 			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
 			simple("Output message is: " + msg);
 		}
+	}
+
+	public static void custom(String logLevel, Object msg) {
+		custom(logLevel, msg, null);
+	}
+
+	public static void custom(String logLevel, Exception e) {
+		custom(logLevel, null, e);
+	}
+
+	public static void customf(String logLevel, String msg, Throwable e, Object ... args){
+		if(!Logger.isEnable()){
+			return;
+		}
+
+		custom(logLevel, TString.tokenReplace(msg, args), e);
+	}
+
+	public static void customf(String logLevel, String msg, Object ... args) {
+		customf(logLevel, msg, args, null);
+	}
+
+	//============================================== INFO ==============================================
+	public static void info(Object msg) {
+		custom("INFO", msg);
 	}
 
 	public static void infof(String msg, Object ... args){
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		info(TString.tokenReplace(msg, args));
+		customf("INFO", msg, args);
 	}
 
+	//============================================== FRAMEWORK ==============================================
 	public static void fremawork(Object msg) {
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		try {
-			msg = buildMessage(msg);
-			Message message = Message.newInstance("FRAMEWORK", msg.toString());
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + msg);
-		}
+		custom("FRAMEWORK", msg);
 	}
 
 	public static void fremaworkf(String msg, Object ... args){
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		info(TString.tokenReplace(msg, args));
+		customf("FRAMEWORK", msg, args);
 	}
 
-	public static void debug(Object msg) {
-		if(!Logger.isEnable()){
-			return;
-		}
+	//============================================== SQL ==============================================
+	public static void sql(Object msg) {
+		custom("SQL", msg);
+	}
 
-		try {
-			msg = buildMessage(msg);
-			Message message = Message.newInstance("DEBUG", msg.toString());
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + msg);
-		}
+	public static void sqlf(String msg, Object ... args){
+		customf("SQL", msg, args);
+	}
+
+	//============================================== DEBUG ==============================================
+	public static void debug(Object msg) {
+		custom("DEBUG", msg);
 	}
 
 	public static void debugf(String msg, Object ... args){
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		debug(TString.tokenReplace(msg, args));
+		customf("DEBUG", msg, args);
 	}
 
-
+	//============================================== WARN ==============================================
 	public static void warn(Object msg) {
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		try {
-			msg = buildMessage(msg);
-			Message message = Message.newInstance("WARN", msg.toString());
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + msg);
-		}
+		custom("WARN", msg);
 	}
 
 	public static void warnf(String msg, Object ... args){
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		warn(TString.tokenReplace(msg, args));
+		customf("WARN", msg, args);
 	}
 
-
 	public static void warn(Exception e) {
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		try {
-			String msg = buildMessage(null, e);
-			Message message = Message.newInstance("WARN", msg);
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + e.getMessage());
-		}
+		custom("WARN", null, e);
 	}
 
 	public static void warn(Object msg, Throwable e) {
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		try {
-			String msgStr = buildMessage(msg, e);
-			Message message = Message.newInstance("WARN", msgStr);
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + msg);
-		}
+		custom("WARN", msg, e);
 	}
 
 	public static void warnf(String msg, Throwable e, Object ... args){
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		warn(TString.tokenReplace(msg, args), e);
+		customf("WARN", msg, e, args);
 	}
 
-
+	//============================================== ERROR ==============================================
 	public static void error(Object msg) {
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		try {
-			msg = buildMessage(msg, null);
-			Message message = Message.newInstance("ERROR", msg.toString());
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + msg);
-		}
+		custom("ERROR", msg);
 	}
 
 	public static void errorf(String msg, Object ... args){
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		error(TString.tokenReplace(msg, args));
+		customf("ERROR", msg, args);
 	}
 
 	public static void error(Exception e) {
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		try {
-			String msg = buildMessage(null, e);
-			Message message = Message.newInstance("ERROR", msg);
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + e.getMessage());
-		}
+		custom("ERROR", e);
 	}
 
 	public static void error(Object msg, Throwable e) {
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		try {
-			String msgStr = buildMessage(msg, e);
-			Message message = Message.newInstance("ERROR", msgStr);
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + msg);
-		}
+		custom("ERROR", msg, e);
 	}
 
 	public static void errorf(String msg, Throwable e, Object ... args){
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		error(TString.tokenReplace(msg, args), e);
+		customf("ERROR", msg, e, args);
 	}
 
+	//============================================== FATAL ==============================================
 	public static void fatal(Object msg) {
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		try {
-			msg = buildMessage(msg);
-			Message message = Message.newInstance("FATAL", msg.toString());
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + msg);
-		}
+		custom("FATAL", msg);
 	}
 
 	public static void fatalf(String msg, Object ... args){
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		fatal(TString.tokenReplace(msg, args));
+		customf("FATAL", msg, args);
 	}
 
-	public static void fatal(Exception e) {
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		try {
-			String msg = buildMessage(e.getMessage(), e);
-			Message message = Message.newInstance("FATAL", msg);
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + e.getMessage());
-		}
+	public static void fatal(Throwable e) {
+		custom("FATAL", e);
 	}
 
 	public static void fatal(Object msg, Throwable e) {
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		try {
-			String msgStr = buildMessage(msg, e);
-			Message message = Message.newInstance("FATAL", msgStr);
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
-			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			simple("Output message is: " + msg);
-		}
+		custom("FATAL", msg, e);
 	}
 
 	public static void fatalf(String msg, Throwable e, Object ... args){
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		fatal(TString.tokenReplace(msg, args), e);
+		customf("FATAL", msg, e, args);
 	}
 
-
+	//============================================== FATAL ==============================================
 	public static void simple(Object msg) {
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		try {
-			msg = buildMessage(msg);
-			Message message = Message.newInstance("SIMPLE", msg.toString());
-			formater.writeFormatedLog(message);
-		} catch (Exception oe) {
-			System.out.println("Logger system error:"+oe.getMessage()+"\r\n");
-			System.out.println(TEnv.getStackElementsMessage(oe.getStackTrace()));
-			System.out.println("Output message is: " + msg);
-		}
+		custom("SIMPLE", msg);
 	}
 
 	public static void simplef(String msg, Object ... args){
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		error(TString.tokenReplace(msg, args));
+		customf("SIMPLE", msg, args);
 	}
 
 
