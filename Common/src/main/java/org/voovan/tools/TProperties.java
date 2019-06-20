@@ -24,24 +24,25 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TProperties {
 
-	private static ConcurrentHashMap<File, Properties> propertiesCache = new ConcurrentHashMap<File, Properties>();
-	private static ConcurrentHashMap<String, File> propertiesFile = new ConcurrentHashMap<String, File>();
-	private static String TIME_STAMP_NAME = "$$LMT";
+	private static ConcurrentHashMap<File, Properties> propertiesFile = new ConcurrentHashMap<File, Properties>();
+	private static ConcurrentHashMap<String, Properties> propertiesName = new ConcurrentHashMap<String, Properties>();
+	private static ConcurrentHashMap<File, Long> propertiesWatcher = new ConcurrentHashMap<File, Long>();
 
 	static {
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 			@Override
 			public void run() {
-				Iterator<Map.Entry<File, Properties>> iterator = propertiesCache.entrySet().iterator();
+				Iterator<Map.Entry<File, Long>> iterator = propertiesWatcher.entrySet().iterator();
 				while (iterator.hasNext()) {
-					Map.Entry<File, Properties> entry = iterator.next();
-					if(entry.getKey().exists() && entry.getValue().containsKey(TIME_STAMP_NAME)) {
-						String lastTimeStamp = String.valueOf(entry.getKey().lastModified());
-						String cachedTimeStamp = entry.getValue().getProperty(TIME_STAMP_NAME);
-						if (!lastTimeStamp.equals(cachedTimeStamp)) {
-							iterator.remove();
-						}
-					}
+					Map.Entry<File, Long> entry = iterator.next();
+					File file = entry.getKey();
+					long lastWatchTime = entry.getValue();
+					long lastFileTime = file.lastModified();
+                    if (lastWatchTime != lastFileTime) {
+						propertiesFile.remove(file);
+						propertiesName.remove(file.getName());
+                        iterator.remove();
+                    }
 				}
 			}
 
@@ -57,7 +58,9 @@ public class TProperties {
 	 */
 	public static Properties getProperties(File file) {
 		try {
-			if (!propertiesCache.containsKey(file)) {
+			Properties properties = propertiesFile.get(file);
+
+			if (properties==null) {
 				Properties properites = new Properties();
 				String content = null;
 				if(!file.getPath().contains("!"+File.separator)) {
@@ -68,12 +71,12 @@ public class TProperties {
 					content = new String(TFile.loadResource(resourcePath));
 				}
 				properites.load(new StringReader(content));
-				properites.setProperty(TIME_STAMP_NAME, String.valueOf(file.lastModified()));
-				propertiesCache.put(file, properites);
+				propertiesWatcher.put(file, file.lastModified());
+				propertiesFile.put(file, properites);
 				System.out.println("[PROPERTIES] Load Properties file: " + file.getPath());
 			}
 
-			return propertiesCache.get(file);
+			return propertiesFile.get(file);
 
 		} catch (IOException e) {
 			System.out.println("Get properites file failed. File:" + file.getAbsolutePath() + "-->" + e.getMessage());
@@ -92,40 +95,47 @@ public class TProperties {
 	 */
 	public static Properties getProperties(String fileName) {
 		File file = null;
+		Properties properties;
 
-		if(!propertiesFile.containsKey(fileName)) {
+        String configFileNameWithEnv = null;
+        String configFileName = "";
+        if (!fileName.contains(".properties")) {
+            String envName = TEnv.getEnvName();
 
-			String configFileNameWithEnv = null;
-			String configFileName = "";
-			if (!fileName.contains(".properties")) {
+            envName = envName == null ? "" : "-" + envName;
 
-				String envName = TEnv.getEnvName();
-				envName = envName == null ? "" : "-" + envName;
-				configFileNameWithEnv = fileName + envName + ".properties";
-				configFileName = fileName + ".properties";
-			}
+            configFileNameWithEnv = fileName + envName + ".properties";
+            configFileName = fileName + ".properties";
+        }
 
-			File configFile = TFile.getResourceFile(configFileName);
-			File configFileWithEnv = TFile.getResourceFile(configFileNameWithEnv);
+        properties = propertiesName.get(configFileNameWithEnv);
+        if (properties == null) {
+            properties = propertiesName.get(configFileName);
+        }
 
-			if (configFileWithEnv != null) {
-				file = configFileWithEnv;
-			} else if (configFile != null) {
-				file = configFile;
-			}
+        if(properties==null) {
+            File configFile = TFile.getResourceFile(configFileName);
+            File configFileWithEnv = TFile.getResourceFile(configFileNameWithEnv);
 
-			propertiesFile.put(fileName, file);
+            if (configFileWithEnv != null) {
+                file = configFileWithEnv;
+                fileName = configFileNameWithEnv;
+            } else if (configFile != null) {
+                file = configFile;
+				fileName = configFileName;
+            }
 
-		} else {
-			file = propertiesFile.get(fileName);
-		}
-
-		if(file!=null) {
-			return getProperties(file);
-		} else {
-			System.out.println("Get properites file failed. File:" + file.getName());
-			return null;
-		}
+            if(file!=null) {
+                properties = getProperties(file);
+                propertiesName.put(fileName, properties);
+                return properties;
+            } else {
+                System.out.println("Get properites file failed. File:" + file.getName());
+                return null;
+            }
+        } else {
+            return properties;
+        }
 	}
 
 	/**
@@ -397,23 +407,9 @@ public class TProperties {
 	}
 
 	/**
-	 * 清空 指定文件的 Properites 缓存
-	 * @param fileName 文件名, 可以是完整文件名,也可以是不带扩展名的文件名
-	 */
-	public static void clear(String fileName){
-		Iterator<File> iterator = propertiesCache.keySet().iterator();
-		while(iterator.hasNext()){
-			File file = iterator.next();
-			if (file.getName().startsWith(fileName)){
-				iterator.remove();
-			}
-		}
-	}
-
-	/**
 	 * 清空 Properites 缓存
 	 */
 	public void clear(){
-		propertiesCache.clear();
+		propertiesName.clear();
 	}
 }
