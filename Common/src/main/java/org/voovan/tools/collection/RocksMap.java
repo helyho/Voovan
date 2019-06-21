@@ -263,35 +263,55 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     /**
      * 获取某个序号以后的更新操作记录
      * @param sequenceNumber 序号
-     * @param withSerial 是否进行反序列化
      * @return 日志记录集合
      */
-    public List<LogRecord> getLogsSince(long sequenceNumber, boolean  withSerial) {
-        return getLogsSince(sequenceNumber, null, withSerial);
+    public List<LogRecord> getLogsSince(Long sequenceNumber, boolean withSerial) {
+        return getLogsBetween(sequenceNumber, null, null, withSerial);
     }
 
     /**
      * 获取某个序号以后的更新操作记录
-     * @param sequenceNumber 序号
+     * @param startSequence 起始序号
      * @param filter 过滤器,用来过滤可用的操作类型和列族
      * @param withSerial 是否进行反序列化
      * @return 日志记录集合
      */
-    public List<LogRecord> getLogsSince(long sequenceNumber,  BiFunction<Integer, Integer, Boolean> filter, boolean  withSerial) {
+    public List<LogRecord> getLogsSince(Long startSequence, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial) {
+        return getLogsBetween(startSequence, null, filter, withSerial);
+    }
+
+    /**
+     * 获取某个序号以后的更新操作记录
+     * @param startSequence 起始序号
+     * @param endSequence 结束序号
+     * @param withSerial 是否进行反序列化
+     * @return 日志记录集合
+     */
+    public List<LogRecord> getLogsSince(Long startSequence, Long endSequence, boolean withSerial) {
+        return getLogsBetween(startSequence, endSequence, null, withSerial);
+    }
+
+    /**
+     * 获取某个序号以后的更新操作记录
+     * @param startSequence 起始序号
+     * @param endSequence 结束序号
+     * @param filter 过滤器,用来过滤可用的操作类型和列族
+     * @param withSerial 是否进行反序列化
+     * @return 日志记录集合
+     */
+    public List<LogRecord> getLogsBetween(Long startSequence, Long endSequence,  BiFunction<Integer, Integer, Boolean> filter, boolean  withSerial) {
         try {
-            TransactionLogIterator transactionLogIterator = rocksDB.getUpdatesSince(sequenceNumber);
+            TransactionLogIterator transactionLogIterator = rocksDB.getUpdatesSince(startSequence);
 
 
             ArrayList<LogRecord> logRecords = new ArrayList<LogRecord>();
 
             while (transactionLogIterator.isValid()) {
                 TransactionLogIterator.BatchResult batchResult = transactionLogIterator.getBatch();
-//            byte[] data = batchResult.writeBatch().data();
-//            System.out.print(batchResult.sequenceNumber() + " l = " + data.length + "\t -> [");
-//            for(int i=0;i<data.length; i++){
-//                System.out.print(" " + data[i] + ", ");
-//            }
-//            System.out.println("]");
+
+                if(endSequence!=null && batchResult.sequenceNumber() == endSequence) {
+                    break;
+                }
 
                 List<LogRecord> logRecordBySeq = LogRecord.parse(ByteBuffer.wrap(batchResult.writeBatch().data()), filter, withSerial);
 
@@ -299,6 +319,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
                 transactionLogIterator.next();
             }
+
+            transactionLogIterator.close();
 
             return logRecords;
         } catch (RocksDBException e) {
