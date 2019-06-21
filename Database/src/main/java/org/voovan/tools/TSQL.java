@@ -95,9 +95,7 @@ public class TSQL {
 		//获取参数列表
 		List<String> sqlParamNames = TSQL.getSqlParamNames(sqlStr);
 
-		if(Logger.isLogLevel("DEBUG")) {
-			Logger.fremawork("[SQL_Executed]: " + assembleSQLWithMap(sqlStr, params));
-		}
+        Logger.sql("[SQL_Executed]: " + assembleSQLWithMap(sqlStr, params));
 
 		//获取preparedStatement可用的 SQL
 		String preparedSql = TSQL.preparedSql(sqlStr);
