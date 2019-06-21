@@ -309,7 +309,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             while (transactionLogIterator.isValid()) {
                 TransactionLogIterator.BatchResult batchResult = transactionLogIterator.getBatch();
 
-                if(endSequence!=null && batchResult.sequenceNumber() == endSequence) {
+                if(endSequence!=null && batchResult.sequenceNumber() > endSequence) {
                     break;
                 }
 
