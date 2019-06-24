@@ -65,6 +65,10 @@ public class AnnotationRouter implements HttpRouter {
      */
     public static void scanRouterClassAndRegister(AnnotationModule httpModule) {
         int routeMethodNum = 0;
+
+        String modulePath = httpModule.getModuleConfig().getPath();
+        modulePath = fixAnnotationRoutePath(modulePath);
+
         WebServer webServer = httpModule.getWebServer();
         try {
             //查找包含 Router 注解的类
@@ -113,8 +117,7 @@ public class AnnotationRouter implements HttpRouter {
                                         }
 
                                         //拼装方法路径
-                                        methodRouterPath = fixAnnotationRoutePath(methodRouterPath);
-                                        methodRouterPath = TString.assembly("/", methodRouterPath);
+                                        methodRouterPath = "/" + fixAnnotationRoutePath(methodRouterPath);
 
                                         //拼装 (类+方法) 路径
                                         String routePath = classRouterPath + methodRouterPath;
@@ -168,7 +171,7 @@ public class AnnotationRouter implements HttpRouter {
                                                     httpModule.otherMethod(routeMethod, routePath, annotationRouter);
                                                     Logger.simple("[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
                                                             "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') +
-                                                            httpModule.getModuleConfig().getPath() + routePath);
+                                                            modulePath + routePath);
                                                     routeMethodNum++;
                                                 }
                                             }
@@ -184,7 +187,7 @@ public class AnnotationRouter implements HttpRouter {
 
                                                     Logger.simple("[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
                                                             "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') +
-                                                            httpModule.getModuleConfig().getPath() + routeParamPath);
+                                                            modulePath + routeParamPath);
                                                     routeMethodNum++;
                                                 }
                                             }
