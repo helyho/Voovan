@@ -255,6 +255,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 获取最后的序号
+     * @return 返回最后的日志序号
      */
     public Long getLastSequence() {
         return rocksDB.getLatestSequenceNumber();
@@ -263,6 +264,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     /**
      * 获取某个序号以后的更新操作记录
      * @param sequenceNumber 序号
+     * @param withSerial 是否进行序列化行为
      * @return 日志记录集合
      */
     public List<LogRecord> getLogsSince(Long sequenceNumber, boolean withSerial) {
