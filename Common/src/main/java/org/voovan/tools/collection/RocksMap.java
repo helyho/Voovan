@@ -823,17 +823,24 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    @Override
-    public V remove(Object key) {
+    /**
+     * 删除某个 key
+     * @param key key 对象
+     * @param isRetVal 是否返回被移除的 value
+     * @return 返回值, 在 isRetVal=false 时, 总是为 null
+     */
+    public V remove(Object key, boolean isRetVal) {
         if(key == null){
             throw new NullPointerException();
         }
 
         try {
+            V value = null;
+            if(isRetVal) {
+                value = get(key);
+            }
 
-            V value = get(key);
-
-            if(value != null) {
+            if(!isRetVal || value != null) {
                 Transaction transaction = threadLocalTransaction.get();
                 if(transaction!=null) {
                     transaction.delete(dataColumnFamilyHandle, TSerialize.serialize(key));
@@ -845,6 +852,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap remove " + key + " failed", e);
         }
+    }
+
+    @Override
+    public V remove(Object key) {
+        return remove(key, true);
     }
 
     public void removeAll(K[] keys) {
