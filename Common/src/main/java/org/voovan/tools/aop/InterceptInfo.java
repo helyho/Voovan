@@ -35,6 +35,38 @@ public class InterceptInfo {
         this.exception = exception;
     }
 
+    public Class getClazz() {
+        return clazz;
+    }
+
+    public void setClazz(Class clazz) {
+        this.clazz = clazz;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public Object getOriginObject() {
+        return originObject;
+    }
+
+    public void setOriginObject(Object originObject) {
+        this.originObject = originObject;
+    }
+
+    public Class[] getArgTypes() {
+        return argTypes;
+    }
+
+    public void setArgTypes(Class[] argTypes) {
+        this.argTypes = argTypes;
+    }
+
     public Object[] getArgs() {
         return args;
     }
@@ -43,12 +75,28 @@ public class InterceptInfo {
         this.args = args;
     }
 
+    public Class getReturnType() {
+        return returnType;
+    }
+
+    public void setReturnType(Class returnType) {
+        this.returnType = returnType;
+    }
+
     public Object getResult() {
         return result;
     }
 
     public void setResult(Object result) {
         this.result = result;
+    }
+
+    public Exception getException() {
+        return exception;
+    }
+
+    public void setException(Exception exception) {
+        this.exception = exception;
     }
 
     public Object process() throws Throwable{

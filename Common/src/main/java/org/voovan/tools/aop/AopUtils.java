@@ -17,6 +17,7 @@ import org.voovan.tools.log.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.regex.Matcher;
@@ -29,6 +30,7 @@ import java.util.regex.Matcher;
  * Licence: Apache v2 License
  */
 public class AopUtils {
+
     public static ClassPool CLASSPOOL = ClassPool.getDefault();
     public static List<CutPointInfo> CUT_POINTINFO_LIST = new ArrayList<CutPointInfo>();
 
@@ -44,6 +46,23 @@ public class AopUtils {
         ctClass = AopUtils.CLASSPOOL.get(className);
         ctClass.detach();
         return ctClass;
+    }
+
+    public static List<CtClass> getAllSuperClass(CtClass type) throws NotFoundException {
+        if(type == null){
+            return null;
+        }
+
+        ArrayList<CtClass> classes = new ArrayList<CtClass>();
+
+        CtClass superClass = type;
+        for( superClass = superClass.getSuperclass();
+             superClass!=null && !superClass.getName().equals("java.lang.Object");
+             superClass = superClass.getSuperclass()) {
+            classes.addAll(Arrays.asList(superClass.getInterfaces()));
+            classes.add(superClass);
+        }
+        return classes;
     }
 
     /**

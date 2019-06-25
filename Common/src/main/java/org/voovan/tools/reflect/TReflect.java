@@ -1229,12 +1229,12 @@ public class TReflect {
      * @param type 类型 Class
      * @return 所有父类
      */
-    public static Class[] getAllSuperClass(Class<?> type){
+    public static List<Class> getAllSuperClass(Class<?> type){
         if(type == null){
             return null;
         }
 
-        LinkedHashSet<Class> classes = new LinkedHashSet<Class>();
+        ArrayList<Class> classes = new ArrayList<Class>();
 
         Class<?> superClass = type;
         do{
@@ -1242,7 +1242,7 @@ public class TReflect {
             classes.addAll(Arrays.asList(superClass.getInterfaces()));
             classes.add(superClass);
         }while(superClass!=null && Object.class != superClass);
-        return classes.toArray(new Class[]{});
+        return classes;
     }
 
     /**
