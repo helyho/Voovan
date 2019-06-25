@@ -596,7 +596,9 @@ public abstract class IoSession<T extends SocketContext> {
 	public abstract boolean close();
 
 	public void release() {
-		socketSelector.unRegister(selectionKey);
+		if(socketSelector!=null) {
+			socketSelector.unRegister(selectionKey);
+		}
 	}
 
 	@Override
