@@ -750,6 +750,34 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return values==null ? null : (V) TSerialize.unserialize(values);
     }
 
+    public List<V> getAll(List<K> keys) {
+        try {
+            ArrayList<byte[]> keysBytes = new ArrayList<byte[]>();
+            ArrayList<ColumnFamilyHandle> columnFamilyHandles = new ArrayList<ColumnFamilyHandle>();
+            for (int i = 0; i < keys.size(); i++) {
+                keysBytes.add(TSerialize.serialize(keys.get(i)));
+                columnFamilyHandles.add(dataColumnFamilyHandle);
+            }
+
+            Transaction transaction = threadLocalTransaction.get();
+            List<byte[]> valuesBytes;
+            if (transaction != null) {
+                valuesBytes = Arrays.asList(transaction.multiGet(readOptions, columnFamilyHandles, keysBytes.toArray(new byte[0][0])));
+            } else {
+                valuesBytes = rocksDB.multiGetAsList(readOptions, columnFamilyHandles, keysBytes);
+            }
+
+            ArrayList<V> values = new ArrayList<V>();
+            for (byte[] valueByte : valuesBytes) {
+                values.add((V) TSerialize.unserialize(valueByte));
+            }
+            return values;
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap getAll failed", e);
+        }
+
+    }
+
     private void put(byte[] keyBytes, byte[] valueBytes) {
         try {
             Transaction transaction = threadLocalTransaction.get();
@@ -759,7 +787,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 rocksDB.put(dataColumnFamilyHandle, keyBytes, valueBytes);
             }
         } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap commit failed", e);
+            throw new RocksMapException("RocksMap put failed", e);
         }
     }
 
@@ -861,7 +889,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return remove(key, true);
     }
 
-    public void removeAll(K[] keys) {
+    public void removeAll(List<K> keys) {
         if(keys == null){
             throw new NullPointerException();
         }
@@ -884,8 +912,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             throw new RocksMapException("RocksMap removeAll write failed", e);
         }
         writeBatch.clear();
-
-
     }
 
     /**
