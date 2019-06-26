@@ -231,6 +231,7 @@ public class RocksMapTest extends TestCase {
         rocksMap.put("4444", "4444");
 
         System.out.println("===============removeRange==================");
+        System.out.println("removeRange: " + rocksMap.entrySet());
         rocksMap.removeRange("aaaa", "transact");
         System.out.println("removeRange: " + rocksMap.entrySet());
 
@@ -253,32 +254,30 @@ public class RocksMapTest extends TestCase {
         System.out.println("=================iterator================");
         RocksMap.RocksMapIterator iterator = rocksMap.iterator();
         while(iterator.hasNext()){
-            System.out.println(iterator.key() + " " + iterator.value());
             iterator.next();
+            System.out.println(iterator.key() + " " + iterator.value());
         }
 
-        System.out.println("=================iterator siz3->3 ================");
+        System.out.println("=================iterator size 3================");
         iterator = rocksMap.iterator(3);
         while(iterator.hasNext()){
-            System.out.println(iterator.key() + " " + iterator.value());
             iterator.next();
+            System.out.println(iterator.key() + " " + iterator.value());
         }
         System.out.println("=================iterator remove================");
         iterator = rocksMap.iterator();
-        while(iterator.hasNext()){
-            iterator.remove();
-            break;
-        }
+        iterator.remove();
+
         iterator = rocksMap.iterator();
         while(iterator.hasNext()){
-            System.out.println(iterator.key() + " " + iterator.value());
             iterator.next();
+            System.out.println(iterator.key() + " " + iterator.value());
         }
-        System.out.println("=================iterator range================");
-        iterator = rocksMap.iterator("eeee", "transaction11");//"eeee", "transaction11"
+        System.out.println("=================iterator range 3333->transaction44================");
+        iterator = rocksMap.iterator("333", "transaction44");//"eeee", "transaction11"
         while(iterator.hasNext()) {
-            System.out.println(iterator.key() + " " + iterator.value());
             iterator.next();
+            System.out.println(iterator.key() + " " + iterator.value());
         }
         System.out.println("=================================================");
 
@@ -296,22 +295,23 @@ public class RocksMapTest extends TestCase {
         data.put("hhhh5", "iiii");
         data.put("hhhh6", "iiii");
         data.put("hhhh7", "iiii");
+        data.put("xxxx7", "iiii");
         rocksMap.putAll(data);
         System.out.println("size: "+ rocksMap.size());
         System.out.println("KeySet: "+ rocksMap.keySet());
 
         //submap
         Map subMap = rocksMap.subMap("hhhh2", "hhhh5");
-        System.out.println("subMap: " + subMap);
+        System.out.println("subMap 2->5: " + subMap);
 
 
         //headmap
         Map headMap = rocksMap.headMap("hhhh4");
-        System.out.println("headMap: " + headMap);
+        System.out.println("headMap b->4: " + headMap);
 
         //tailmap
         Map tailMap = rocksMap.tailMap("hhhh5");
-        System.out.println("tailMap: " + tailMap);
+        System.out.println("tailMap 5->E: " + tailMap);
 
         //first
         System.out.println("firstKey: " + rocksMap.firstKey());
@@ -327,7 +327,8 @@ public class RocksMapTest extends TestCase {
         System.out.println("name:" + rocksMap.get("name"));
         rocksMap.removeAll(TObject.asList("111", "222"));
         System.out.println("KeySet: "+ rocksMap.keySet());
-        System.out.println("search: " + JSON.toJSON(rocksMap.startWith("na")));
+        System.out.println("search: " + JSON.toJSON(rocksMap.startWith("hh")));
+        System.out.println("search: " + JSON.toJSON(rocksMap.startWith("hh",7, 30)));
 
 
     }
