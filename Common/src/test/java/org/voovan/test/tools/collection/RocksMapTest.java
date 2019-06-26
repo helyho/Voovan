@@ -2,6 +2,7 @@ package org.voovan.test.tools.collection;
 
 import junit.framework.TestCase;
 import org.rocksdb.*;
+import org.voovan.tools.TObject;
 import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.json.JSON;
 
@@ -319,9 +320,15 @@ public class RocksMapTest extends TestCase {
         System.out.println("lastKey:" + rocksMap.lastKey());
 
         rocksMap.put("name", "testdb");
+        rocksMap.put("111", "testdb");
+        rocksMap.put("333", "testdb");
+        rocksMap.put("222", "testdb");
+        System.out.println("getAll" + rocksMap.getAll(TObject.asList("111", "222", "333")));
         System.out.println("name:" + rocksMap.get("name"));
+        rocksMap.removeAll(TObject.asList("111", "222"));
         System.out.println("KeySet: "+ rocksMap.keySet());
         System.out.println("search: " + JSON.toJSON(rocksMap.startWith("na")));
+
 
     }
 }
