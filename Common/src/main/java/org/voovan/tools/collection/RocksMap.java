@@ -704,7 +704,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return key 对应的 value
      */
     public V lock(Object key){
-        getTransaction();
         return getForUpdate(key, true);
     }
 
@@ -730,7 +729,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             byte[] values = null;
             Transaction transaction = threadLocalTransaction.get();
             if (transaction != null) {
-                values = transaction.get(dataColumnFamilyHandle, readOptions, keyBytes);
+                values = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
+//                values = transaction.get(dataColumnFamilyHandle, readOptions, keyBytes);
             } else {
                 values = rocksDB.get(dataColumnFamilyHandle, readOptions, keyBytes);
             }

@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class RocksMapBench {
     public static void main(String[] args) throws RocksDBException {
-        int threadSize = 1;
+        int threadSize = 4;
         int loopSize = 20000;
         int readConnt = 2;
         int updateConnt = 4;
@@ -81,9 +81,11 @@ public class RocksMapBench {
                                 {
                                     rocksMap.beginTransaction();
                                     //锁竞争
-                                    int x = (Integer) rocksMap.lock(lockkey1);
+//                                    int x = (Integer) rocksMap.lock(lockkey1);
+                                    int x = (int) rocksMap.get(lockkey1);
                                     rocksMap.put(lockkey1, x + 1);
-                                    int y = (Integer) rocksMap.lock(lockkey2);
+//                                    int y = (Integer) rocksMap.lock(lockkey2);
+                                    int y = (int) rocksMap.get(lockkey2);
                                     rocksMap.put(lockkey2, y + 1);
 
 //                                    rocksMap.put(key, value);
