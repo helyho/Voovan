@@ -255,6 +255,9 @@ public class TByte {
      */
     public static boolean byteArrayStartWith(byte[] byte1, byte[] byte2){
         for(int i = 0; i < byte2.length; i++) {
+            if(i > byte1.length - 1) {
+                return false;
+            }
 
             if (byte1[i] < byte2[i]){
                 return false;
@@ -266,5 +269,30 @@ public class TByte {
         }
 
         return true;
+    }
+
+
+    /**
+     * 安自己比较两个byte[]的大小
+     * @param byte1 被比较的 byte[]
+     * @param byte2 比较的数据 byte[]
+     * @return 1: 大于, 0: 等于, -1: 小于
+     */
+    public static int byteArrayCompare(byte[] byte1, byte[] byte2){
+        for(int i = 0; i < byte1.length; i++) {
+            if(i > byte2.length - 1) {
+                return 1;
+            }
+
+            if (byte1[i] < byte2[i]){
+                return -1;
+            }
+
+            if (byte1[i] > byte2[i]){
+                return 1;
+            }
+        }
+
+        return 0;
     }
 }
