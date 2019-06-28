@@ -1046,15 +1046,15 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     @Override
     public Set<Entry<K, V>> entrySet() {
-        TreeMap<K,V> entryMap =  new TreeMap<K,V>();
+        TreeSet<Entry<K,V>> entrySet =  new TreeSet<Entry<K,V>>();
         RocksIterator iterator = getIterator();
         iterator.seekToFirst();
         while(iterator.isValid()){
-            entryMap.put((K) TSerialize.unserialize(iterator.key()), (V)TSerialize.unserialize(iterator.value()));
+            entrySet.add(new RocksMapEntry<K, V>(iterator.key(), iterator.value()));
             iterator.next();
         }
 
-        return entryMap.entrySet();
+        return entrySet;
     }
 
     /**
@@ -1147,7 +1147,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return new RocksMapIterator(this, null, null, 0, 0);
     }
 
-    public class RocksMapEntry<K, V> implements Map.Entry<K, V> {
+    public class RocksMapEntry<K, V> implements Map.Entry<K, V>, Comparable<RocksMapEntry> {
         private byte[] keyBytes;
         private K k;
         private byte[] valueBytes;
@@ -1156,8 +1156,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         protected RocksMapEntry(byte[] keyBytes, byte[] valueBytes) {
             this.keyBytes = keyBytes;
             this.valueBytes = valueBytes;
-
-
         }
 
         @Override
@@ -1187,6 +1185,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         @Override
         public V setValue(V value) {
             return v;
+        }
+
+        @Override
+        public int compareTo(RocksMapEntry o) {
+            return TByte.byteArrayCompare(this.keyBytes, o.keyBytes);
         }
     }
 

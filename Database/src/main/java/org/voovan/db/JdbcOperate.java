@@ -970,7 +970,7 @@ public class JdbcOperate implements Closeable {
 	 * @throws SQLException SQL 异常
 	 * @throws ReflectiveOperationException 反射异常
 	 */
-	public int[] batch(String[] sqlTexts) throws SQLException, ReflectiveOperationException {
+	public int[] batch(String[] sqlTexts) throws SQLException {
 
 		return this.baseBatch(sqlTexts);
 	}
