@@ -500,9 +500,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public void commit() {
         Transaction transaction = getTransaction();
-
-        commit(transaction);
-        threadLocalTransaction.set(null);
+        if(savePointCount == 0) {
+            commit(transaction);
+            threadLocalTransaction.set(null);
+        }
     }
 
     /**
@@ -896,24 +897,43 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             throw new NullPointerException();
         }
 
-        WriteBatch writeBatch = THREAD_LOCAL_WRITE_BATCH.get();
-        for(K key : keys) {
-            if(key == null){
-                continue;
+        try {
+            Transaction transaction = threadLocalTransaction.get();
+
+            WriteBatch writeBatch = null;
+            if (transaction == null) {
+                writeBatch = THREAD_LOCAL_WRITE_BATCH.get();
+                writeBatch.clear();
+
+                for(K key : keys) {
+                    if(key == null){
+                        continue;
+                    }
+
+                    try {
+                        writeBatch.delete(dataColumnFamilyHandle, TSerialize.serialize(key));
+                    } catch (RocksDBException e) {
+                        throw new RocksMapException("RocksMap removeAll " + key + " failed", e);
+                    }
+                }
+                rocksDB.write(writeOptions, writeBatch);
+            } else {
+                for(K key : keys) {
+                    if(key == null){
+                        continue;
+                    }
+
+                    try {
+                        transaction.delete(dataColumnFamilyHandle, TSerialize.serialize(key));
+                    } catch (RocksDBException e) {
+                        throw new RocksMapException("RocksMap removeAll " + key + " failed", e);
+                    }
+                }
             }
 
-            try {
-                writeBatch.delete(dataColumnFamilyHandle, TSerialize.serialize(key));
-            } catch (RocksDBException e) {
-                throw new RocksMapException("RocksMap removeAll " + key + " failed", e);
-            }
-        }
-        try {
-            rocksDB.write(writeOptions, writeBatch);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap removeAll write failed", e);
         }
-        writeBatch.clear();
     }
 
     /**
@@ -925,8 +945,21 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      *
      */
     public void removeRange(K fromKey, K toKey) {
+        Transaction transaction = threadLocalTransaction.get();
+        byte[] fromKeyBytes = TSerialize.serialize(fromKey);
+        byte[] toKeyBytes = TSerialize.serialize(toKey);
         try {
-            rocksDB.deleteRange(dataColumnFamilyHandle, writeOptions, TSerialize.serialize(fromKey), TSerialize.serialize(toKey));
+            if(transaction!=null) {
+                rocksDB.deleteRange(dataColumnFamilyHandle, writeOptions, fromKeyBytes, toKeyBytes);
+            } else {
+                RocksIterator iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
+                iterator.seek(fromKeyBytes);
+                while(iterator.isValid()) {
+                    if(!Arrays.equals(iterator.key(), toKeyBytes)) {
+                        transaction.delete(dataColumnFamilyHandle,iterator.key());
+                    }
+                }
+            }
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap removeAll failed", e);
         }
@@ -936,17 +969,30 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     @Override
     public void putAll(Map m) {
         try {
-            WriteBatch writeBatch = THREAD_LOCAL_WRITE_BATCH.get();
-            Iterator<Entry> iterator = m.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Entry entry = iterator.next();
-                Object key = entry.getKey();
-                Object value = entry.getValue();
-                writeBatch.put(dataColumnFamilyHandle, TSerialize.serialize(key), TSerialize.serialize(value));
+            Transaction transaction = threadLocalTransaction.get();
+
+            WriteBatch writeBatch = null;
+            if (transaction == null) {
+                writeBatch = THREAD_LOCAL_WRITE_BATCH.get();
+                writeBatch.clear();
+                Iterator<Entry> iterator = m.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Entry entry = iterator.next();
+                    Object key = entry.getKey();
+                    Object value = entry.getValue();
+                    writeBatch.put(dataColumnFamilyHandle, TSerialize.serialize(key), TSerialize.serialize(value));
+                }
+                rocksDB.write(writeOptions, writeBatch);
+            } else {
+                Iterator<Entry> iterator = m.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Entry entry = iterator.next();
+                    Object key = entry.getKey();
+                    Object value = entry.getValue();
+                    transaction.put(dataColumnFamilyHandle, TSerialize.serialize(key), TSerialize.serialize(value));
+                }
             }
 
-            rocksDB.write(writeOptions, writeBatch);
-            writeBatch.clear();
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap putAll failed", e);
         }

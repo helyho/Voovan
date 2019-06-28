@@ -57,8 +57,7 @@ public class Other {
         }));
 
 
-        System.out.println("U"+ 10L + 11L + 12L);
+        System.out.println("1-"+ "12344321".hashCode());
+        System.out.println("2-"+ "43211234".hashCode());
     }
-
-
 }
