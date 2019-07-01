@@ -89,12 +89,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private ColumnFamilyDescriptor dataColumnFamilyDescriptor;
     private ColumnFamilyHandle dataColumnFamilyHandle;
     private ThreadLocal<Transaction> threadLocalTransaction = new ThreadLocal<Transaction>();
+    private ThreadLocal<Integer> threadLocalSavePointCount = ThreadLocal.withInitial(()->new Integer(0));
 
     private String dbname;
     private String columnFamilyName;
     private Boolean readOnly;
     private int transactionLockTimeout = 5000;
-    private int savePointCount = 0;
 
     /**
      * 构造方法
@@ -240,15 +240,17 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         //是否使用父对象的实物对象
         if(useSameTransaction) {
             this.threadLocalTransaction = rocksMap.threadLocalTransaction;
+            this.threadLocalSavePointCount = rocksMap.threadLocalSavePointCount;
         } else {
             this.threadLocalTransaction = ThreadLocal.withInitial(()->this.createTransaction(-1, false, false));
+            this.threadLocalSavePointCount = ThreadLocal.withInitial(()->new Integer(0));
         }
 
         this.dbname =  rocksMap.dbname;
         this.columnFamilyName = columnFamilyName;
         this.readOnly = rocksMap.readOnly;
         this.transactionLockTimeout = rocksMap.transactionLockTimeout;
-        this.savePointCount = rocksMap.savePointCount;
+
 
         this.choseColumnFamily(columnFamilyName);
     }
@@ -478,7 +480,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         try {
             transaction.setSavePoint();
-            savePointCount++;
+            threadLocalSavePointCount.set(threadLocalSavePointCount.get()+1);
         } catch (RocksDBException e) {
             throw new RocksMapException("commit failed", e);
         }
@@ -489,7 +491,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         try {
             transaction.rollbackToSavePoint();
-            savePointCount--;
+            threadLocalSavePointCount.set(threadLocalSavePointCount.get()-1);
         } catch (RocksDBException e) {
             throw new RocksMapException("commit failed", e);
         }
@@ -500,9 +502,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public void commit() {
         Transaction transaction = getTransaction();
-        if(savePointCount == 0) {
+        if(threadLocalSavePointCount.get() == 0) {
             commit(transaction);
             threadLocalTransaction.set(null);
+        } else {
+            threadLocalSavePointCount.set(threadLocalSavePointCount.get()-1);
         }
     }
 
@@ -527,7 +531,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public void rollback() {
         Transaction transaction = getTransaction();
 
-        if(savePointCount!=0) {
+        if(threadLocalSavePointCount.get()!=0) {
             rollbackSavePoint();
         } else {
             rollback(transaction);
