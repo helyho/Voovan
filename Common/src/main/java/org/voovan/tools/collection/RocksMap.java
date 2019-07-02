@@ -74,7 +74,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             return null;
         } catch (RocksDBException e){
-            throw new RocksMapException("getColumnFamilyHandler failed", e);
+            throw new RocksMapException("getColumnFamilyHandler failed, " + e.getMessage(), e);
         }
     }
 
@@ -90,6 +90,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private ColumnFamilyHandle dataColumnFamilyHandle;
     private ThreadLocal<Transaction> threadLocalTransaction = new ThreadLocal<Transaction>();
     private ThreadLocal<Integer> threadLocalSavePointCount = ThreadLocal.withInitial(()->new Integer(0));
+    private ThreadLocal<StringBuilder> threadLocalBuilder = ThreadLocal.withInitial(()->new StringBuilder());
 
     private String dbname;
     private String columnFamilyName;
@@ -226,7 +227,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             choseColumnFamily(this.columnFamilyName);
 
         } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap initilize failed", e);
+            throw new RocksMapException("RocksMap initilize failed, " + e.getMessage(), e);
         }
     }
 
@@ -242,7 +243,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             this.threadLocalTransaction = rocksMap.threadLocalTransaction;
             this.threadLocalSavePointCount = rocksMap.threadLocalSavePointCount;
         } else {
-            this.threadLocalTransaction = ThreadLocal.withInitial(()->this.createTransaction(-1, false, false));
+            this.threadLocalTransaction = ThreadLocal.withInitial(()->null);
             this.threadLocalSavePointCount = ThreadLocal.withInitial(()->new Integer(0));
         }
 
@@ -328,7 +329,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             return logRecords;
         } catch (RocksDBException e) {
-            throw new RocksMapException("getUpdatesSince failed", e);
+            throw new RocksMapException("getUpdatesSince failed, " + e.getMessage(), e);
         }
     }
 
@@ -377,7 +378,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             return this;
         } catch(RocksDBException e){
-            throw new RocksMapException("RocksMap initilize failed", e);
+            throw new RocksMapException("RocksMap initilize failed, " + e.getMessage(), e);
         }
     }
 
@@ -412,7 +413,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
         } catch (Exception e) {
             transactionRocksMap.rollback();
-            throw new RocksMapException("withTransaction failed", e);
+            throw new RocksMapException("withTransaction failed, " + e.getMessage(), e);
         }
     }
 
@@ -482,7 +483,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             transaction.setSavePoint();
             threadLocalSavePointCount.set(threadLocalSavePointCount.get()+1);
         } catch (RocksDBException e) {
-            throw new RocksMapException("commit failed", e);
+            throw new RocksMapException("commit failed, " + e.getMessage(), e);
         }
     }
 
@@ -493,7 +494,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             transaction.rollbackToSavePoint();
             threadLocalSavePointCount.set(threadLocalSavePointCount.get()-1);
         } catch (RocksDBException e) {
-            throw new RocksMapException("commit failed", e);
+            throw new RocksMapException("commit failed, " + e.getMessage(), e);
         }
     }
 
@@ -521,7 +522,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 throw new RocksMapException("RocksMap is not in transaction model");
             }
         } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap commit failed", e);
+            throw new RocksMapException("RocksMap commit failed, " + e.getMessage(), e);
         }
     }
 
@@ -550,7 +551,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 throw new RocksMapException("RocksMap is not in transaction model");
             }
         } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap rollback failed", e);
+            throw new RocksMapException("RocksMap rollback failed, " + e.getMessage(), e);
         }
     }
 
@@ -692,7 +693,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 values = rocksDB.get(dataColumnFamilyHandle, TSerialize.serialize(key));
             }
         } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap containsKey " + key + " failed", e);
+            throw new RocksMapException("RocksMap containsKey " + key + " failed, " + e.getMessage(), e);
         }
 
         return values!=null;
@@ -725,7 +726,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             byte[] values = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, TSerialize.serialize(key), exclusive);
             return values==null ? null : (V) TSerialize.unserialize(values);
         } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap getForUpdate " + key + " failed", e);
+            throw new RocksMapException("RocksMap getForUpdate " + key + " failed, " + e.getMessage(), e);
         }
     }
 
@@ -742,7 +743,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             return values;
         } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap get failed", e);
+            throw new RocksMapException("RocksMap get failed, " + e.getMessage(), e);
         }
     }
 
@@ -780,7 +781,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
             return values;
         } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap getAll failed", e);
+            throw new RocksMapException("RocksMap getAll failed, " + e.getMessage(), e);
         }
 
     }
@@ -794,7 +795,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 rocksDB.put(dataColumnFamilyHandle, keyBytes, valueBytes);
             }
         } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap put failed", e);
+            throw new RocksMapException("RocksMap put failed, " + e.getMessage(), e);
         }
     }
 
@@ -820,7 +821,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             byte[] oldValueBytes = innerTransaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
 
             if(oldValueBytes == null){
-                innerTransaction.setSnapshotOnNextOperation();
                 innerTransaction.put(dataColumnFamilyHandle, keyBytes, valueBytes);
                 return null;
             } else {
@@ -828,10 +828,21 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
         } catch (RocksDBException e) {
             rollback(innerTransaction);
-            throw new RocksMapException("RocksMap putIfAbsent error", e);
+            throw new RocksMapException("RocksMap putIfAbsent error, " + e.getMessage(), e);
         } finally {
             commit(innerTransaction);
         }
+    }
+
+    /**
+     * 判断 key 是否不存在
+     * @param key key对象
+     * @return 当返回 false 的时候 key 一定不存在, 当返回 true 的时候, key 有可能不存在, 参考 boomfilter
+     */
+    public boolean keyMayExists(K key) {
+        boolean result = rocksDB.keyMayExist(dataColumnFamilyHandle, TSerialize.serialize(key), threadLocalBuilder.get());
+        threadLocalBuilder.get().setLength(0);
+        return result;
     }
 
     @Override
@@ -854,7 +865,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         } catch (RocksDBException e) {
             rollback(innerTransaction);
-            throw new RocksMapException("RocksMap replace error: ", e);
+            throw new RocksMapException("RocksMap replace failed , " + e.getMessage(), e);
         } finally {
             commit(innerTransaction);
         }
@@ -953,10 +964,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         byte[] fromKeyBytes = TSerialize.serialize(fromKey);
         byte[] toKeyBytes = TSerialize.serialize(toKey);
         try {
-            if(transaction!=null) {
+            if(transaction==null) {
                 rocksDB.deleteRange(dataColumnFamilyHandle, writeOptions, fromKeyBytes, toKeyBytes);
             } else {
-                RocksIterator iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
+                RocksIterator iterator = getIterator();
                 iterator.seek(fromKeyBytes);
                 while(iterator.isValid()) {
                     if(!Arrays.equals(iterator.key(), toKeyBytes)) {
@@ -1240,6 +1251,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         @Override
         public int compareTo(RocksMapEntry o) {
             return TByte.byteArrayCompare(this.keyBytes, o.keyBytes);
+        }
+
+        @Override
+        public String toString(){
+            return getKey() + "=" + getValue();
         }
     }
 
