@@ -363,12 +363,16 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return rocksDB;
     }
 
-    public int getColumnFamilyId(String cfName){
-        ColumnFamilyHandle columnFamilyHandle = getColumnFamilyHandler(rocksDB, cfName);
+    public int getColumnFamilyId(){
+        return getColumnFamilyId(this.columnFamilyName);
+    }
+
+    public int getColumnFamilyId(String columnFamilyName){
+        ColumnFamilyHandle columnFamilyHandle = getColumnFamilyHandler(rocksDB, columnFamilyName);
         if(columnFamilyHandle!=null){
             return columnFamilyHandle.getID();
         } else {
-            throw new RocksMapException("ColumnFamily [" + cfName +"] not found.");
+            throw new RocksMapException("ColumnFamily [" + columnFamilyName +"] not found.");
         }
     }
 
@@ -1707,8 +1711,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 rocksWalProcessor.process(endSequence, rocksWalRecords);
             }
 
-            rocksMap.put(mark, endSequence);
-            lastSequence = endSequence;
+            rocksMap.put(mark, endSequence + 1);
+            lastSequence = endSequence + 1;
 
             Logger.debug("Process sequence: " + lastSequence);
         }
