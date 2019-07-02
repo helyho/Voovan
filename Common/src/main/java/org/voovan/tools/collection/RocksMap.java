@@ -33,6 +33,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         RocksDB.loadLibrary();
     }
 
+    public final static String DEFAULT_COLUMN_FAMILY_NAME = "voovan_default";
 
     private static byte[] DATA_BYTES = "data".getBytes();
     //缓存 db 和他对应的 TransactionDB
@@ -159,7 +160,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param readOnly 是否以只读模式打开
      */
     public RocksMap(String dbname, String columnFamilyName, ColumnFamilyOptions columnFamilyOptions, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Boolean readOnly) {
-        this.dbname = dbname == null ? "voovan_default" : dbname;
+        this.dbname = dbname == null ? DEFAULT_COLUMN_FAMILY_NAME : dbname;
         this.columnFamilyName = columnFamilyName == null ? "voovan_default" : columnFamilyName;
         this.readOptions = readOptions == null ? new ReadOptions() : readOptions;
         this.writeOptions = writeOptions == null ? new WriteOptions() : writeOptions;
@@ -256,6 +257,22 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.choseColumnFamily(columnFamilyName);
     }
 
+    public String getDbname() {
+        return dbname;
+    }
+
+    public String getColumnFamilyName() {
+        return columnFamilyName;
+    }
+
+    public Boolean getReadOnly() {
+        return readOnly;
+    }
+
+    public int savePointCount() {
+        return threadLocalSavePointCount.get();
+    }
+
     /**
      * 获取最后的序号
      * @return 返回最后的日志序号
@@ -270,8 +287,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param withSerial 是否进行序列化行为
      * @return 日志记录集合
      */
-    public List<LogRecord> getLogsSince(Long sequenceNumber, boolean withSerial) {
-        return getLogsBetween(sequenceNumber, null, null, withSerial);
+    public List<RocksWalRecord> getWalSince(Long sequenceNumber, boolean withSerial) {
+        return getWalBetween(sequenceNumber, null, null, withSerial);
     }
 
     /**
@@ -281,8 +298,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param withSerial 是否进行反序列化
      * @return 日志记录集合
      */
-    public List<LogRecord> getLogsSince(Long startSequence, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial) {
-        return getLogsBetween(startSequence, null, filter, withSerial);
+    public List<RocksWalRecord> getWalSince(Long startSequence, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial) {
+        return getWalBetween(startSequence, null, filter, withSerial);
     }
 
     /**
@@ -292,8 +309,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param withSerial 是否进行反序列化
      * @return 日志记录集合
      */
-    public List<LogRecord> getLogsSince(Long startSequence, Long endSequence, boolean withSerial) {
-        return getLogsBetween(startSequence, endSequence, null, withSerial);
+    public List<RocksWalRecord> getWalSince(Long startSequence, Long endSequence, boolean withSerial) {
+        return getWalBetween(startSequence, endSequence, null, withSerial);
     }
 
     /**
@@ -304,12 +321,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param withSerial 是否进行反序列化
      * @return 日志记录集合
      */
-    public List<LogRecord> getLogsBetween(Long startSequence, Long endSequence,  BiFunction<Integer, Integer, Boolean> filter, boolean  withSerial) {
+    public List<RocksWalRecord> getWalBetween(Long startSequence, Long endSequence, BiFunction<Integer, Integer, Boolean> filter, boolean  withSerial) {
         try {
             TransactionLogIterator transactionLogIterator = rocksDB.getUpdatesSince(startSequence);
 
 
-            ArrayList<LogRecord> logRecords = new ArrayList<LogRecord>();
+            ArrayList<RocksWalRecord> rocksWalRecords = new ArrayList<RocksWalRecord>();
 
             while (transactionLogIterator.isValid()) {
                 TransactionLogIterator.BatchResult batchResult = transactionLogIterator.getBatch();
@@ -318,16 +335,16 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     break;
                 }
 
-                List<LogRecord> logRecordBySeq = LogRecord.parse(ByteBuffer.wrap(batchResult.writeBatch().data()), filter, withSerial);
+                List<RocksWalRecord> rocksWalRecordBySeq = RocksWalRecord.parse(ByteBuffer.wrap(batchResult.writeBatch().data()), filter, withSerial);
 
-                logRecords.addAll(logRecordBySeq);
+                rocksWalRecords.addAll(rocksWalRecordBySeq);
 
                 transactionLogIterator.next();
             }
 
             transactionLogIterator.close();
 
-            return logRecords;
+            return rocksWalRecords;
         } catch (RocksDBException e) {
             throw new RocksMapException("getUpdatesSince failed, " + e.getMessage(), e);
         }
@@ -467,7 +484,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return((TransactionDB) rocksDB).beginTransaction(writeOptions, transactionOptions);
     }
 
-    private Transaction getTransaction(){
+    public Transaction getTransaction(){
         Transaction transaction = threadLocalTransaction.get();
         if(transaction==null){
             throw new RocksMapException("RocksMap is not in transaction model");
@@ -1388,7 +1405,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    public static class LogRecord {
+    public static class RocksWalRecord {
         // WriteBatch::rep_ :=
         //    sequence: fixed64
         //    count: fixed32
@@ -1466,7 +1483,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         private ArrayList<Object> chunks;
 
-        private LogRecord(long sequence, int type, int columnFamilyId) {
+        private RocksWalRecord(long sequence, int type, int columnFamilyId) {
             this.sequence = sequence;
             this.type = type;
             this.columnFamilyId = columnFamilyId;
@@ -1507,7 +1524,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
          * @param withSerial 是否进行反序列化
          * @return 日志记录集合
          */
-        public static List<LogRecord> parse(ByteBuffer byteBuffer, boolean withSerial) {
+        public static List<RocksWalRecord> parse(ByteBuffer byteBuffer, boolean withSerial) {
             return parse(byteBuffer, null, withSerial);
         }
 
@@ -1518,7 +1535,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
          * @param withSerial 是否进行反序列化
          * @return 日志记录集合
          */
-        public static List<LogRecord> parse(ByteBuffer byteBuffer, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial) {
+        public static List<RocksWalRecord> parse(ByteBuffer byteBuffer, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial) {
             ByteOrder originByteOrder = byteBuffer.order();
             byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
             if(byteBuffer.remaining() < 13) {
@@ -1532,18 +1549,18 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
 
 
-            List<LogRecord> logRecords = new ArrayList<LogRecord>();
+            List<RocksWalRecord> rocksWalRecords = new ArrayList<RocksWalRecord>();
 
             for(int count=0;byteBuffer.hasRemaining();count++) {
 
-                LogRecord logRecord = parseOperation(byteBuffer, sequence, filter, withSerial);
-                if(logRecord!=null) {
-                    logRecords.add(logRecord);
+                RocksWalRecord rocksWalRecord = parseOperation(byteBuffer, sequence, filter, withSerial);
+                if(rocksWalRecord !=null) {
+                    rocksWalRecords.add(rocksWalRecord);
                 }
             }
 
             byteBuffer.order(originByteOrder);
-            return logRecords;
+            return rocksWalRecords;
 
         }
 
@@ -1554,7 +1571,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
          * @param withSerial 是否进行反序列化
          * @return 日志记录集合
          */
-        public static LogRecord parseOperation(ByteBuffer byteBuffer, long sequence, boolean withSerial){
+        public static RocksWalRecord parseOperation(ByteBuffer byteBuffer, long sequence, boolean withSerial){
             return parseOperation(byteBuffer, sequence, withSerial);
         }
 
@@ -1566,7 +1583,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
          * @param withSerial 是否进行反序列化
          * @return 日志记录集合
          */
-        public static LogRecord parseOperation(ByteBuffer byteBuffer, long sequence, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial){
+        public static RocksWalRecord parseOperation(ByteBuffer byteBuffer, long sequence, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial){
             //操作类型
             int type = byteBuffer.get();
 
@@ -1587,14 +1604,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
 
 
-            LogRecord logRecord = null;
+            RocksWalRecord rocksWalRecord = null;
             if (type < TYPE_ELEMENT_COUNT.length) {
 
                 //应用过滤器
                 boolean isEnable = filter==null || filter.apply(columnFamilyId, type);
 
                 if(isEnable) {
-                    logRecord = new LogRecord(sequence, type, columnFamilyId);
+                    rocksWalRecord = new RocksWalRecord(sequence, type, columnFamilyId);
                 }
 
                 for (int i = 0; i < TYPE_ELEMENT_COUNT[type] && byteBuffer.hasRemaining(); i++) {
@@ -1611,15 +1628,98 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                             chunk = chunkBytes;
                         }
 
-                        logRecord.getChunks().add(chunk);
+                        rocksWalRecord.getChunks().add(chunk);
                     } else {
                         byteBuffer.position(byteBuffer.position() + chunkSize);
                     }
                 }
             }
 
-            return logRecord;
+            return rocksWalRecord;
         }
     }
+
+    /**
+     * 按批次读取Wal, wal 读取器
+     */
+    public static class RocksWalReader {
+        private Object mark;
+        private RocksMap rocksMap;
+        private Long lastSequence;
+        private int batchSeqsize;
+        private List<Integer> columnFamilys;
+        private List<Integer> walTypes;
+
+        public RocksWalReader(Object mark, RocksMap rocksMap, int batchSeqsize) {
+            this.mark = mark;
+            this.rocksMap = rocksMap;
+            this.batchSeqsize = batchSeqsize;
+            this.rocksMap = rocksMap;
+
+            this.lastSequence = (Long) this.rocksMap.get(mark);
+            this.lastSequence = this.lastSequence==null ? rocksMap.getLastSequence() : this.lastSequence;
+
+            Logger.debug("Start sequence: " + this.lastSequence);
+        }
+
+        public long getLastSequence() {
+            return lastSequence;
+        }
+
+        public List<Integer> getColumnFamily() {
+            return columnFamilys;
+        }
+
+        public void setColumnFamily(List<Integer> columnFamilys) {
+            this.columnFamilys = columnFamilys;
+
+        }
+
+        public int getBatchSeqsize() {
+            return batchSeqsize;
+        }
+
+        public List<Integer> getWalTypes() {
+            return walTypes;
+        }
+
+        public void setWalTypes(List<Integer> walTypes) {
+            this.walTypes = walTypes;
+        }
+
+        public void processing(RocksWalProcessor rocksWalProcessor){
+            //wal 日志同步至数据库
+            Long endSequence = rocksMap.getLastSequence();
+
+            //数量控制
+            if(lastSequence + batchSeqsize < endSequence){
+                endSequence = lastSequence + batchSeqsize;
+            }
+
+            List<RocksWalRecord> rocksWalRecords = rocksMap.getWalBetween(lastSequence, endSequence, (columnFamilyId, type)-> {
+                return (walTypes == null ? true : walTypes.contains(type)) &&
+                        (columnFamilys==null ? true : columnFamilys.contains(columnFamilyId));
+
+            }, true);
+
+            if(rocksWalRecords.size() > 0) {
+                //调用处理器
+                rocksWalProcessor.process(endSequence, rocksWalRecords);
+            }
+
+            rocksMap.put(mark, endSequence);
+            lastSequence = endSequence;
+
+            Logger.debug("Process sequence: " + lastSequence);
+        }
+
+        /**
+         * 日志处理器
+         */
+        public static interface RocksWalProcessor {
+            public void process(Long endSequence, List<RocksWalRecord> rocksWalRecords);
+        }
+    }
+
 
 }
