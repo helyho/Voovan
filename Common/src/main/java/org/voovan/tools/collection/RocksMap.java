@@ -40,7 +40,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private static Map<String, RocksDB> ROCKSDB_MAP = new ConcurrentHashMap<String, RocksDB>();
 
     //缓存 TransactionDB 和列族句柄的关系
-    private static Map<RocksDB, List<ColumnFamilyHandle>> CF_HANDLE_MAP = new ConcurrentHashMap<RocksDB, List<ColumnFamilyHandle>>();
+    private static Map<RocksDB, List<ColumnFamilyHandle>> COLUMN_FAMILY_HANDLE_MAP = new ConcurrentHashMap<RocksDB, List<ColumnFamilyHandle>>();
 
     //默认列族定义
     private static ColumnFamilyDescriptor DEFAULE_CF_DESCRIPTOR = new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY);
@@ -49,26 +49,48 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private static String DEFAULT_DB_PATH = ".rocksdb"+ File.separator;
     private static String DEFAULT_WAL_PATH = DEFAULT_DB_PATH + ".wal"+ File.separator;
 
+    /**
+     * 获取默认数据存储路径
+     * @return 默认数存储据路径
+     */
     public static String getDefaultDbPath() {
         return DEFAULT_DB_PATH;
     }
 
+    /**
+     * 设置默认数存储据路径
+     * @param defaultDbPath 默认数存储据路径
+     */
     public static void setDefaultDbPath(String defaultDbPath) {
         DEFAULT_DB_PATH = defaultDbPath.endsWith(File.separator) ? defaultDbPath : defaultDbPath + File.separator;
     }
 
+    /**
+     * 默认WAL数存储据路径
+     * @return WAL数存储据路径
+     */
     public static String getDefaultWalPath() {
         return DEFAULT_WAL_PATH;
     }
 
+    /**
+     * 设置WAL数存储据路径
+     * @param defaultWalPath WAL数存储据路径
+     */
     public static void setDefaultWalPath(String defaultWalPath) {
         DEFAULT_WAL_PATH = defaultWalPath.endsWith(File.separator) ? defaultWalPath : defaultWalPath + File.separator;;
     }
 
-    private static ColumnFamilyHandle getColumnFamilyHandler(RocksDB rocksDB, String cfName) {
+    /**
+     * 根据名称获取列族
+     * @param rocksDB RocksDB 对象
+     * @param columnFamilyName 列族名称
+     * @return 列族句柄
+     */
+    private static ColumnFamilyHandle getColumnFamilyHandler(RocksDB rocksDB, String columnFamilyName) {
         try {
-            for (ColumnFamilyHandle columnFamilyHandle : CF_HANDLE_MAP.get(rocksDB)) {
-                if (Arrays.equals(columnFamilyHandle.getName(), cfName.getBytes())) {
+            for (ColumnFamilyHandle columnFamilyHandle : COLUMN_FAMILY_HANDLE_MAP.get(rocksDB)) {
+                if (Arrays.equals(columnFamilyHandle.getName(), columnFamilyName.getBytes())) {
                     return columnFamilyHandle;
                 }
             }
@@ -79,19 +101,32 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
+    /**
+     * 关闭 RocksDB 极其句柄
+     * @param rocksDB RocksDB 对象
+     */
+    private static void closeRocksDB(RocksDB rocksDB) {
+        for (ColumnFamilyHandle columnFamilyHandle : COLUMN_FAMILY_HANDLE_MAP.get(rocksDB)) {
+            columnFamilyHandle.close();
+        }
+
+        rocksDB.close();
+        COLUMN_FAMILY_HANDLE_MAP.remove(rocksDB);
+    }
+
 
     //--------------------- 成员变量 --------------------
-    public DBOptions dbOptions;
-    public ReadOptions readOptions;
-    public WriteOptions writeOptions;
-    public ColumnFamilyOptions columnFamilyOptions;
+    public DBOptions            dbOptions;
+    public ReadOptions          readOptions;
+    public WriteOptions         writeOptions;
+    public ColumnFamilyOptions  columnFamilyOptions;
 
-    private RocksDB rocksDB;
-    private ColumnFamilyDescriptor dataColumnFamilyDescriptor;
-    private ColumnFamilyHandle dataColumnFamilyHandle;
-    private ThreadLocal<Transaction> threadLocalTransaction = new ThreadLocal<Transaction>();
-    private ThreadLocal<Integer> threadLocalSavePointCount = ThreadLocal.withInitial(()->new Integer(0));
-    private ThreadLocal<StringBuilder> threadLocalBuilder = ThreadLocal.withInitial(()->new StringBuilder());
+    private RocksDB                     rocksDB;
+    private ColumnFamilyDescriptor      dataColumnFamilyDescriptor;
+    private ColumnFamilyHandle          dataColumnFamilyHandle;
+    private ThreadLocal<Transaction>    threadLocalTransaction      = new ThreadLocal<Transaction>();
+    private ThreadLocal<Integer>        threadLocalSavePointCount   = ThreadLocal.withInitial(()->new Integer(0));
+    private ThreadLocal<StringBuilder>  threadLocalBuilder           = ThreadLocal.withInitial(()->new StringBuilder());
 
     private String dbname;
     private String columnFamilyName;
@@ -222,7 +257,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     ROCKSDB_MAP.put(this.dbname, rocksDB);
                 }
 
-                CF_HANDLE_MAP.put(rocksDB, columnFamilyHandleList);
+                COLUMN_FAMILY_HANDLE_MAP.put(rocksDB, columnFamilyHandleList);
             }
 
             choseColumnFamily(this.columnFamilyName);
@@ -390,7 +425,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if (dataColumnFamilyHandle == null) {
                 dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(cfName.getBytes(), columnFamilyOptions);
                 dataColumnFamilyHandle = rocksDB.createColumnFamily(dataColumnFamilyDescriptor);
-                CF_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
+                COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
             } else {
                 dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(dataColumnFamilyHandle.getName(), columnFamilyOptions);
             }
@@ -593,30 +628,29 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     @Override
     public SortedMap<K,V> subMap(K fromKey, K toKey) {
         TreeMap<K,V> subMap =  new TreeMap<K,V>();
-        RocksIterator iterator = getIterator();
+        try (RocksIterator iterator = getIterator()){
+            byte[] fromKeyBytes = TSerialize.serialize(fromKey);
+            byte[] toKeyBytes = TSerialize.serialize(toKey);
 
-
-        byte[] fromKeyBytes = TSerialize.serialize(fromKey);
-        byte[] toKeyBytes = TSerialize.serialize(toKey);
-
-        if(fromKeyBytes == null){
-            iterator.seekToFirst();
-        } else {
-            iterator.seek(fromKeyBytes);
-        }
-
-        while(iterator.isValid()) {
-            byte[] key = iterator.key();
-            if(toKey==null || !Arrays.equals(toKeyBytes, key)) {
-                subMap.put((K) TSerialize.unserialize(iterator.key()), (V)TSerialize.unserialize(iterator.value()));
+            if (fromKeyBytes == null) {
+                iterator.seekToFirst();
             } else {
-                subMap.put((K) TSerialize.unserialize(iterator.key()), (V)TSerialize.unserialize(iterator.value()));
-                break;
-        }
-            iterator.next();
-        }
+                iterator.seek(fromKeyBytes);
+            }
 
-        return subMap;
+            while (iterator.isValid()) {
+                byte[] key = iterator.key();
+                if (toKey == null || !Arrays.equals(toKeyBytes, key)) {
+                    subMap.put((K) TSerialize.unserialize(iterator.key()), (V) TSerialize.unserialize(iterator.value()));
+                } else {
+                    subMap.put((K) TSerialize.unserialize(iterator.key()), (V) TSerialize.unserialize(iterator.value()));
+                    break;
+                }
+                iterator.next();
+            }
+
+            return subMap;
+        }
     }
 
     @Override
@@ -637,26 +671,28 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     @Override
     public K firstKey() {
-        RocksIterator iterator = getIterator();
+        try (RocksIterator iterator = getIterator()) {
 
-        iterator.seekToFirst();
-        if(iterator.isValid()){
-            return (K) TSerialize.unserialize(iterator.key());
+            iterator.seekToFirst();
+            if (iterator.isValid()) {
+                return (K) TSerialize.unserialize(iterator.key());
+            }
+
+            return null;
         }
-
-        return null;
     }
 
     @Override
     public K lastKey() {
-        RocksIterator iterator = getIterator();
+        try (RocksIterator iterator = getIterator()) {
 
-        iterator.seekToLast();
-        if(iterator.isValid()){
-            return (K) TSerialize.unserialize(iterator.key());
+            iterator.seekToLast();
+            if (iterator.isValid()) {
+                return (K) TSerialize.unserialize(iterator.key());
+            }
+
+            return null;
         }
-
-        return null;
     }
 
 
@@ -674,32 +710,33 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         int count = 0;
         RocksIterator iterator = null;
 
-        Transaction transaction = threadLocalTransaction.get();
-        if(transaction!=null) {
-            iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
-        } else {
-            iterator = rocksDB.newIterator(dataColumnFamilyHandle, readOptions);
-        }
+        try {
+            Transaction transaction = threadLocalTransaction.get();
+            if (transaction != null) {
+                iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
+            } else {
+                iterator = rocksDB.newIterator(dataColumnFamilyHandle, readOptions);
+            }
 
-        iterator.seekToFirst();
+            iterator.seekToFirst();
 
-        while(iterator.isValid()){
-            iterator.next();
-            count++;
+            while (iterator.isValid()) {
+                iterator.next();
+                count++;
+            }
+            return count;
+        } finally {
+            if(iterator!=null){
+                iterator.close();
+            }
         }
-        return count;
     }
 
     @Override
     public boolean isEmpty() {
-        RocksIterator iterator = getIterator();
-        try {
+        try (RocksIterator iterator = getIterator()){
             iterator.seekToFirst();
             return !iterator.isValid();
-        } finally {
-            if(iterator!=null) {
-                iterator.close();
-            }
         }
     }
 
@@ -988,11 +1025,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if(transaction==null) {
                 rocksDB.deleteRange(dataColumnFamilyHandle, writeOptions, fromKeyBytes, toKeyBytes);
             } else {
-                RocksIterator iterator = getIterator();
-                iterator.seek(fromKeyBytes);
-                while(iterator.isValid()) {
-                    if(!Arrays.equals(iterator.key(), toKeyBytes)) {
-                        transaction.delete(dataColumnFamilyHandle,iterator.key());
+                try (RocksIterator iterator = getIterator()) {
+                    iterator.seek(fromKeyBytes);
+                    while (iterator.isValid()) {
+                        if (!Arrays.equals(iterator.key(), toKeyBytes)) {
+                            transaction.delete(dataColumnFamilyHandle, iterator.key());
+                        }
                     }
                 }
             }
@@ -1055,7 +1093,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         try {
             drop();
             dataColumnFamilyHandle = rocksDB.createColumnFamily(dataColumnFamilyDescriptor);
-            CF_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
+            COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
 
             //设置列族
             dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.columnFamilyName);
@@ -1070,7 +1108,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public void drop(){
         try {
             rocksDB.dropColumnFamily(dataColumnFamilyHandle);
-            CF_HANDLE_MAP.get(rocksDB).remove(dataColumnFamilyHandle);
+            COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).remove(dataColumnFamilyHandle);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap drop failed", e);
         }
@@ -1084,21 +1122,26 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public Set keySet() {
         TreeSet<K> keySet = new TreeSet<K>();
         RocksIterator iterator = null;
+        try {
+            Transaction transaction = threadLocalTransaction.get();
+            if (transaction != null) {
+                iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
+            } else {
+                iterator = rocksDB.newIterator(dataColumnFamilyHandle, readOptions);
+            }
+            iterator.seekToFirst();
+            while (iterator.isValid()) {
+                K k = (K) TSerialize.unserialize(iterator.key());
+                keySet.add(k);
+                iterator.next();
+            }
 
-        Transaction transaction = threadLocalTransaction.get();
-        if(transaction!=null) {
-            iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
-        } else {
-            iterator = rocksDB.newIterator(dataColumnFamilyHandle, readOptions);
+            return keySet;
+        } finally {
+            if(iterator!=null){
+                iterator.close();
+            }
         }
-        iterator.seekToFirst();
-        while(iterator.isValid()){
-            K k = (K) TSerialize.unserialize(iterator.key());
-            keySet.add(k);
-            iterator.next();
-        }
-
-        return keySet;
     }
 
     @Override
@@ -1106,20 +1149,26 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         ArrayList<V> values = new ArrayList<V>();
         RocksIterator iterator = null;
 
-        Transaction transaction = threadLocalTransaction.get();
-        if(transaction!=null) {
-            iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
-        } else {
-            iterator = rocksDB.newIterator(dataColumnFamilyHandle, readOptions);
-        }
-        iterator.seekToFirst();
-        while(iterator.isValid()){
-            V value = (V) TSerialize.unserialize(iterator.value());
-            values.add(value);
-            iterator.next();
-        }
+        try {
+            Transaction transaction = threadLocalTransaction.get();
+            if (transaction != null) {
+                iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
+            } else {
+                iterator = rocksDB.newIterator(dataColumnFamilyHandle, readOptions);
+            }
+            iterator.seekToFirst();
+            while (iterator.isValid()) {
+                V value = (V) TSerialize.unserialize(iterator.value());
+                values.add(value);
+                iterator.next();
+            }
 
-        return values;
+            return values;
+        } finally {
+            if(iterator!=null){
+                iterator.close();
+            }
+        }
     }
 
     /**
@@ -1129,14 +1178,15 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     @Override
     public Set<Entry<K, V>> entrySet() {
         TreeSet<Entry<K,V>> entrySet =  new TreeSet<Entry<K,V>>();
-        RocksIterator iterator = getIterator();
-        iterator.seekToFirst();
-        while(iterator.isValid()){
-            entrySet.add(new RocksMapEntry<K, V>(iterator.key(), iterator.value()));
-            iterator.next();
-        }
+        try (RocksIterator iterator = getIterator()) {
+            iterator.seekToFirst();
+            while (iterator.isValid()) {
+                entrySet.add(new RocksMapEntry<K, V>(iterator.key(), iterator.value()));
+                iterator.next();
+            }
 
-        return entrySet;
+            return entrySet;
+        }
     }
 
     /**
@@ -1157,29 +1207,38 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         byte[] keyBytes = TSerialize.serialize(key);
         TreeMap<K,V> entryMap =  new TreeMap<K,V>();
 
-        RocksMapIterator iterator = new RocksMapIterator(this, key, null, skipSize, size);
-        while(iterator.hasNext()){
-            iterator.next();
-            if(TByte.byteArrayStartWith(iterator.keyBytes(), keyBytes)) {
-                entryMap.put((K) iterator.key(), (V) iterator.value());
+        try (RocksMapIterator iterator = new RocksMapIterator(this, key, null, skipSize, size)) {
+            while (iterator.hasNext()) {
+                iterator.next();
+                if (TByte.byteArrayStartWith(iterator.keyBytes(), keyBytes)) {
+                    entryMap.put((K) iterator.key(), (V) iterator.value());
+                }
             }
-        }
 
-        return entryMap;
+            return entryMap;
+        }
     }
 
     @Override
     public void close() {
+        //关闭事务
         Transaction transaction = threadLocalTransaction.get();
         if(transaction!=null){
             try {
                 transaction.rollback();
             } catch (RocksDBException e) {
                 throw new RocksMapException("RocksMap rollback on close failed", e);
+            } finally {
+                transaction.close();
             }
         }
 
-        dataColumnFamilyHandle.close();
+        dbOptions.close();
+        readOptions.close();
+        writeOptions.close();
+        columnFamilyOptions.close();
+
+        RocksMap.closeRocksDB(rocksDB);
     }
 
     /**
@@ -1280,7 +1339,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    public class RocksMapIterator<Entry> implements Iterator<Entry>{
+    public class RocksMapIterator<Entry> implements Iterator<Entry>, Closeable{
 
         private RocksMap rocksMap;
         private RocksIterator iterator;
@@ -1406,6 +1465,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         @Override
         public void forEachRemaining(Consumer<? super Entry> action) {
             throw new UnsupportedOperationException();
+        }
+
+        public void close(){
+            iterator.close();
         }
     }
 
