@@ -357,19 +357,33 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 日志记录集合
      */
     public List<RocksWalRecord> getWalBetween(Long startSequence, Long endSequence, BiFunction<Integer, Integer, Boolean> filter, boolean  withSerial) {
-        try {
-            TransactionLogIterator transactionLogIterator = rocksDB.getUpdatesSince(startSequence);
-
+        try (TransactionLogIterator transactionLogIterator = rocksDB.getUpdatesSince(startSequence)) {
 
             ArrayList<RocksWalRecord> rocksWalRecords = new ArrayList<RocksWalRecord>();
 
+            if(startSequence > getLastSequence()) {
+                return rocksWalRecords;
+            }
+
+            if(startSequence > endSequence) {
+                throw new RocksMapException("startSequence is large than endSequence");
+            }
+
+            long seq = 0l;
             while (transactionLogIterator.isValid()) {
                 TransactionLogIterator.BatchResult batchResult = transactionLogIterator.getBatch();
 
-                if(endSequence!=null && batchResult.sequenceNumber() > endSequence) {
-                    break;
+                if (batchResult.sequenceNumber() < startSequence) {
+                    transactionLogIterator.next();
+                    continue;
                 }
 
+                //不包含 endSequence 指定的日志
+                if(endSequence!=null && batchResult.sequenceNumber() >= endSequence) {
+                    System.out.println(endSequence + " " + batchResult.sequenceNumber());
+                    break;
+                }
+                seq = batchResult.sequenceNumber();
                 List<RocksWalRecord> rocksWalRecordBySeq = RocksWalRecord.parse(ByteBuffer.wrap(batchResult.writeBatch().data()), filter, withSerial);
 
                 rocksWalRecords.addAll(rocksWalRecordBySeq);
@@ -377,8 +391,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 transactionLogIterator.next();
             }
 
-            transactionLogIterator.close();
-
+            if(rocksWalRecords.size() > 0)
+                Logger.debug("wal between: " + startSequence + "->" + endSequence + "/" + seq + ", "  + rocksWalRecords.get(0).getSequence() + "->" + rocksWalRecords.get(rocksWalRecords.size()-1).getSequence());
             return rocksWalRecords;
         } catch (RocksDBException e) {
             throw new RocksMapException("getUpdatesSince failed, " + e.getMessage(), e);
@@ -1774,8 +1788,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 rocksWalProcessor.process(endSequence, rocksWalRecords);
             }
 
-            rocksMap.put(mark, endSequence + 1);
-            lastSequence = endSequence + 1;
+            rocksMap.put(mark, endSequence);
+            lastSequence = endSequence;
 
             Logger.debug("Process sequence: " + lastSequence);
         }
