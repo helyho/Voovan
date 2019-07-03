@@ -380,7 +380,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
                 //不包含 endSequence 指定的日志
                 if(endSequence!=null && batchResult.sequenceNumber() >= endSequence) {
-                    System.out.println(endSequence + " " + batchResult.sequenceNumber());
                     break;
                 }
                 seq = batchResult.sequenceNumber();
@@ -392,7 +391,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
 
             if(rocksWalRecords.size() > 0)
-                Logger.debug("wal between: " + startSequence + "->" + endSequence + "/" + seq + ", "  + rocksWalRecords.get(0).getSequence() + "->" + rocksWalRecords.get(rocksWalRecords.size()-1).getSequence());
+                Logger.debug("wal between: " + startSequence + "->" + endSequence +  ", "  + rocksWalRecords.get(0).getSequence() + "->" + rocksWalRecords.get(rocksWalRecords.size()-1).getSequence());
             return rocksWalRecords;
         } catch (RocksDBException e) {
             throw new RocksMapException("getUpdatesSince failed, " + e.getMessage(), e);
@@ -1790,8 +1789,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             rocksMap.put(mark, endSequence);
             lastSequence = endSequence;
-
-            Logger.debug("Process sequence: " + lastSequence);
         }
 
         /**
