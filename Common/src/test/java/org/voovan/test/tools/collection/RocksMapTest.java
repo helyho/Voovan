@@ -292,6 +292,14 @@ public class RocksMapTest extends TestCase {
         }
         System.out.println("=================================================");
 
+        System.out.println("=================iterator range 3333->end================");
+        iterator = rocksMap.iterator("333", null);//"eeee", "transaction11"
+        while(iterator.hasNext()) {
+            iterator.next();
+            System.out.println(iterator.key() + " " + iterator.value());
+        }
+        System.out.println("=================================================");
+
         //clear
         rocksMap.clear();
         System.out.println("size: "+ rocksMap.size());
@@ -340,6 +348,7 @@ public class RocksMapTest extends TestCase {
         System.out.println("KeySet: "+ rocksMap.keySet());
         System.out.println("search: " + JSON.toJSON(rocksMap.startWith("hh")));
         System.out.println("search: " + JSON.toJSON(rocksMap.startWith("hh",7, 30)));
+
 
 
     }
