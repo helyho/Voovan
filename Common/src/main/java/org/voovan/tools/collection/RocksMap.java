@@ -308,6 +308,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return threadLocalSavePointCount.get();
     }
 
+    public void compact(){
+        try {
+            rocksDB.compactRange(dataColumnFamilyHandle);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("compact failed", e);
+        }
+    }
+
     /**
      * 获取最后的序号
      * @return 返回最后的日志序号

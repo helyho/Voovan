@@ -50,14 +50,22 @@ public class ProtoStuffSerialize implements Serialize {
                 buffer.clear();
             }
         }
-        byte[] type = (TSerialize.getSimpleNameByClass(obj.getClass())+"\0").getBytes();
-        buf = TByte.byteArrayConcat(type, type.length, buf, buf.length);
+
+        if(buf.length != 0) {
+            byte[] type = (TSerialize.getSimpleNameByClass(obj.getClass()) + "\0").getBytes();
+            buf = TByte.byteArrayConcat(type, type.length, buf, buf.length);
+        }
+
         return buf;
     }
 
     @Override
     public <T> T unserialize(byte[] bytes) {
-        byte[] type = new byte[512];
+        if(bytes.length == 0) {
+            return (T)bytes;
+        }
+
+        byte[] type = new byte[32];
 
         int index = 0;
         for(index=0;index<type.length; index++) {
