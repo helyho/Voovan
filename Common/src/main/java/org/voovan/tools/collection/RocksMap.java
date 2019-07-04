@@ -785,27 +785,36 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 获取并锁定, 默认独占模式
-     * @param key 将被锁定的 key
+     * @param key 将被加锁的 key
      * @return key 对应的 value
      */
     public V lock(Object key){
-        return getForUpdate(key, true);
+        return lock(key, true);
     }
 
     /**
-     * 获取并锁定
-     * @param key 将被锁定的 key
+     * 释放锁
+     * @param key 将被释放锁的 key
+     */
+    public void unlock(Object key) {
+        Transaction transaction = getTransaction();
+        transaction.undoGetForUpdate(TSerialize.serialize(key));
+    }
+
+    /**
+     * 获取并加锁
+     * @param key 将被加锁的 key
      * @param exclusive 是否独占模式
      * @return key 对应的 value
      */
-    public V getForUpdate(Object key, boolean exclusive){
+    public V lock(Object key, boolean exclusive){
         Transaction transaction = getTransaction();
 
         try {
             byte[] values = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, TSerialize.serialize(key), exclusive);
             return values==null ? null : (V) TSerialize.unserialize(values);
         } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap getForUpdate " + key + " failed, " + e.getMessage(), e);
+            throw new RocksMapException("RocksMap lock " + key + " failed, " + e.getMessage(), e);
         }
     }
 
@@ -815,7 +824,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             Transaction transaction = threadLocalTransaction.get();
             if (transaction != null) {
                 values = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
-//                values = transaction.get(dataColumnFamilyHandle, readOptions, keyBytes);
             } else {
                 values = rocksDB.get(dataColumnFamilyHandle, readOptions, keyBytes);
             }
