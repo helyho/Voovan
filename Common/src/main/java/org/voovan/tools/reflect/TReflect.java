@@ -1361,6 +1361,16 @@ public class TReflect {
         return isBasicType;
     }
 
+    /**
+     * 判断对象是否是指定类型的数组
+     * @param object 对象
+     * @param type 对象类型
+     * @return true: 是指定类型的数据, false: 不是指定类型的数组
+     */
+    public static boolean isTypeOfArray(Object object, Type type){
+        return object.getClass().isArray() && object.getClass().getComponentType().equals(type);
+    }
+
     private static List<String> systemPackages = TObject.asList("java.","jdk.","sun.","javax.","com.sun","com.oracle","javassist");
 
     /**

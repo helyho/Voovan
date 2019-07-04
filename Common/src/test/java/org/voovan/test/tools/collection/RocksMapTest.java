@@ -80,6 +80,17 @@ public class RocksMapTest extends TestCase {
         System.out.println(rocksMap.entrySet());
     }
 
+    public void testRemoveEmpty() throws RocksDBException {
+        String cfName = "testdb_re";
+        ColumnFamilyOptions columnFamilyOptions = new ColumnFamilyOptions();
+        columnFamilyOptions.setCompactionFilter(new RemoveEmptyValueCompactionFilter());
+        RocksMap rocksMap1 = new RocksMap(null, cfName, columnFamilyOptions, null, null, null, false);
+        rocksMap1.put("1111", "22222");
+        rocksMap1.put("1111", new byte[0]);
+        rocksMap1.compact();
+        System.out.println(rocksMap1.get("1111"));
+    }
+
     public void testAll() throws RocksDBException {
         //测试列族区分,这个列族不写入任何数据
         String cfName = "testdb1000";
