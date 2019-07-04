@@ -1745,7 +1745,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             this.rocksMap = rocksMap;
 
             this.lastSequence = (Long) this.rocksMap.get(mark);
-            this.lastSequence = this.lastSequence==null ? rocksMap.getLastSequence() : this.lastSequence;
+            this.lastSequence = this.lastSequence==null ? 0 : this.lastSequence;
 
             Logger.debug("Start sequence: " + this.lastSequence);
         }
