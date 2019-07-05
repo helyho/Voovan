@@ -2,6 +2,7 @@ package org.voovan.test.tools;
 
 import junit.framework.TestCase;
 import org.voovan.Global;
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 import org.voovan.tools.UniqueId;
@@ -48,7 +49,16 @@ public class UniqueIdUnit extends TestCase {
             }
         }
 
+
         TEnv.sleep(10000);
         System.out.println("--end--");
+    }
+
+    public void testUniqueIdByTime(){
+        final UniqueId uniqueId = new UniqueId(200);
+        for(int i=0;i<10;i++){
+            System.out.println(uniqueId.nextNumber(TDateTime.parse("2017-10-21 12:13:14").getTime()));
+        }
+
     }
 }
