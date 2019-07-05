@@ -556,14 +556,15 @@ public class TEnv {
 	public static void wait(int waitTime, Supplier<Boolean> supplier) throws TimeoutException {
 		long start = System.currentTimeMillis();
 		while(true){
-			if(supplier.get()){
+			if(supplier.get()) {
+				//先检查超时后等待
+				if(System.currentTimeMillis()-start>=waitTime){
+					throw new TimeoutException("TEnv.wait timeout");
+				}
+
 				TEnv.sleep(1);
 			} else {
 				return;
-			}
-
-			if(System.currentTimeMillis()-start>=waitTime){
-				throw new TimeoutException("TEnv.wait time out");
 			}
 		}
 	}

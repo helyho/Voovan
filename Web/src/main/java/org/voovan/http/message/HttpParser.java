@@ -239,8 +239,9 @@ public class HttpParser {
 	 * @param type 解析的报文类型
 	 * @param byteBuffer ByteBuffer对象
 	 * @param contiuneRead 当数据不足时的读取器
+     * @param timeout 读取超时时间参数
 	 */
-	public static void parserProtocol(Map<String, Object> packetMap, int type, ByteBuffer byteBuffer, Runnable contiuneRead) {
+	public static void parserProtocol(Map<String, Object> packetMap, int type, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
 		int hashCode = 0;
@@ -255,11 +256,15 @@ public class HttpParser {
 		byte prevByte = '\0';
 		byte currentByte = '\0';
 
+		long start = System.currentTimeMillis();
 		while (true) {
 
 		    //如果数据不够则尝试读取
 			while(!byteBuffer.hasRemaining()) {
 				contiuneRead.run();
+				if(System.currentTimeMillis() - start > timeout) {
+					throw new HttpParserException("HttpParser read failed");
+				}
 			}
 
 			currentByte = byteBuffer.get();
@@ -372,9 +377,10 @@ public class HttpParser {
 	 * @param packetMap 解析后数据的容器
 	 * @param byteBuffer ByteBuffer对象
 	 * @param contiuneRead 当数据不足时的读取器
+     * @param timeout 读取超时时间参数
 	 * @return true: Header解析未完成, false: Header解析完成
 	 */
-	public static boolean parseHeader(Map<String, Object> packetMap, ByteBuffer byteBuffer, Runnable contiuneRead) {
+	public static boolean parseHeader(Map<String, Object> packetMap, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
 
@@ -385,11 +391,15 @@ public class HttpParser {
 		String headerName = null;
 		String headerValue = null;
 
+		long start = System.currentTimeMillis();
 		while (true) {
 
 			//如果数据不够则尝试读取
 			while(!byteBuffer.hasRemaining()) {
 				contiuneRead.run();
+				if(System.currentTimeMillis() - start > timeout) {
+					throw new HttpParserException("HttpParser read failed");
+				}
 			}
 
 			currentByte = byteBuffer.get();
@@ -441,13 +451,13 @@ public class HttpParser {
 	 * @param packetMap 用于填充的解析 map
 	 * @param type 解析的报文类型, 0: Request, 1: Response
 	 * @param byteBufferChannel 输入流
-	 * @param timeOut 读取超时时间参数
+	 * @param timeout 读取超时时间参数
 	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
 	 * @return 解析后的 Map
 	 * @throws IOException IO 异常
 	 */
 	public static Map<String, Object> parser(IoSession session, Map<String, Object> packetMap, int type,
-											 ByteBufferChannel byteBufferChannel, int timeOut,
+											 ByteBufferChannel byteBufferChannel, int timeout,
 											 long requestMaxSize) throws IOException {
 		int totalLength = 0;
         long mark = 0;
@@ -475,7 +485,7 @@ public class HttpParser {
 			try {
 				//处理协议行
 				{
-					parserProtocol(packetMap, type, innerByteBuffer, contiuneRead);
+					parserProtocol(packetMap, type, innerByteBuffer, contiuneRead, timeout);
 					protocolPosition = innerByteBuffer.position() - 1;
 
 					//检查缓存是否存在,并获取
@@ -515,7 +525,7 @@ public class HttpParser {
 
 				//处理协议头
 				{
-					while (!parseHeader(packetMap, innerByteBuffer, contiuneRead)) {
+					while (!parseHeader(packetMap, innerByteBuffer, contiuneRead, timeout)) {
 						if (!innerByteBuffer.hasRemaining() && session.isConnected()) {
 							return null;
 						}
@@ -581,14 +591,14 @@ public class HttpParser {
 					ByteBuffer boundaryEnd = ByteBuffer.allocate(2);
 					while(true) {
 						//等待数据
-						if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut, contiuneRead)) {
+						if (!byteBufferChannel.waitData(boundary.getBytes(), timeout, contiuneRead)) {
 							throw new HttpParserException("Http Parser readFromChannel data error");
 						}
 
-						int index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
+						int boundaryIndex = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
 
 						//跳过 boundary
-						byteBufferChannel.shrink((index + boundary.length()));
+						byteBufferChannel.shrink((boundaryIndex + boundary.length()));
 
 						//取 boundary 结尾字符
 						boundaryEnd.clear();
@@ -610,7 +620,7 @@ public class HttpParser {
 
 						byte[] boundaryMark = HttpStatic.BODY_MARK.getBytes();
 						//等待数据
-						if (!byteBufferChannel.waitData(boundaryMark, timeOut, contiuneRead)) {
+						if (!byteBufferChannel.waitData(boundaryMark, timeout, contiuneRead)) {
 							throw new HttpParserException("Http Parser readFromChannel data error");
 						}
 
@@ -626,7 +636,7 @@ public class HttpParser {
 						Map<String, Object> partMap = new HashMap<String, Object>();
 
 						ByteBuffer partByteBuffer =  partByteBufferChannel.getByteBuffer();
-						while(parseHeader(partMap, partByteBuffer, contiuneRead)){
+						while(parseHeader(partMap, partByteBuffer, contiuneRead, timeout)){
 							if(!partByteBuffer.hasRemaining() && session.isConnected()){
 								return null;
 							}
@@ -644,18 +654,18 @@ public class HttpParser {
 
 						//解析 Part 报文体
 						//重置 index
-						index = -1;
+						boundaryIndex = -1;
 						//普通参数处理
 						if (fileName == null) {
 							//等待数据
-							if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut, contiuneRead)) {
+							if (!byteBufferChannel.waitData(boundary.getBytes(), timeout, contiuneRead)) {
 								throw new HttpParserException("Http Parser readFromChannel data error");
 							}
 
-							index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
+							boundaryIndex = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
 
 
-							ByteBuffer bodyByteBuffer = ByteBuffer.allocate(index - 2);
+							ByteBuffer bodyByteBuffer = ByteBuffer.allocate(boundaryIndex - 2);
 							byteBufferChannel.readHead(bodyByteBuffer);
 							partMap.put(BODY_VALUE, bodyByteBuffer.array());
 						}
@@ -674,7 +684,7 @@ public class HttpParser {
 							while (true){
                                 int dataLength = byteBufferChannel.size();
                                 //等待数据, 1毫秒超时
-                                if (byteBufferChannel.waitData(boundary.getBytes(), 1, contiuneRead)) {
+                                if (byteBufferChannel.waitData(boundary.getBytes(), 0, contiuneRead)) {
                                     isFileRecvDone = true;
                                 }
 
@@ -686,9 +696,9 @@ public class HttpParser {
 									}
 									continue;
 								} else {
-									index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
-									int length = index == -1 ? byteBufferChannel.size() : (index - 2);
-									if (index > 0) {
+									boundaryIndex = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
+									int length = boundaryIndex == -1 ? byteBufferChannel.size() : (boundaryIndex - 2);
+									if (boundaryIndex > 0) {
 										byteBufferChannel.saveToFile(localFileName, length);
 										totalLength = totalLength + dataLength;
 									}
@@ -709,7 +719,7 @@ public class HttpParser {
 
 							}
 
-							if(index == -1){
+							if(boundaryIndex == -1){
 								new File(localFileName).delete();
 								throw new HttpParserException("Http Parser not enough data with " + boundary);
 							}else{
@@ -734,7 +744,7 @@ public class HttpParser {
 					while(chunkedLengthLine!=null){
 
 						// 等待数据
-						if(!byteBufferChannel.waitData("\r\n".getBytes(), timeOut, contiuneRead)){
+						if(!byteBufferChannel.waitData("\r\n".getBytes(), timeout, contiuneRead)){
 							throw new HttpParserException("Http Parser readFromChannel data error");
 						}
 
@@ -758,7 +768,7 @@ public class HttpParser {
 						}
 
 						// 等待数据
-						if(!byteBufferChannel.waitData(chunkedLength, timeOut, contiuneRead)){
+						if(!byteBufferChannel.waitData(chunkedLength, timeout, contiuneRead)){
 							throw new HttpParserException("Http Parser readFromChannel data error");
 						}
 
@@ -809,7 +819,7 @@ public class HttpParser {
 
 
 					// 等待数据
-					if(!byteBufferChannel.waitData(contentLength, timeOut, contiuneRead)){
+					if(!byteBufferChannel.waitData(contentLength, timeout, contiuneRead)){
 						throw new HttpParserException("Http Parser readFromChannel data error");
 					}
 
