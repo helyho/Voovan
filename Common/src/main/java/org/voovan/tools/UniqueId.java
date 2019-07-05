@@ -67,7 +67,7 @@ public class UniqueId {
      * 生成带顺序的 ID 序列
      * @return ID字符串
      */
-    public synchronized long generateId(){
+    private synchronized long generateId(){
         long currentTime = System.currentTimeMillis();
 
         if(lastTime < currentTime){
@@ -85,5 +85,32 @@ public class UniqueId {
 
         lastTime = System.currentTimeMillis();
         return resultId;
+    }
+
+    /**
+     * 获取下一个 id
+     * @return 返回 id
+     */
+    public long nextNumber(Long timeMills){
+        return generateId(timeMills);
+    }
+
+    /**
+     * 获取下一个 id
+     * @return 返回 id
+     */
+    public String nextString(Long timeMills){
+        return TString.radixConvert(generateId(timeMills), RADIX);
+    }
+
+
+    /**
+     * 获取某个时间点产生的第一个 id
+     *          用于检索某个特定时间的结果
+     * @param timeMills 时间点的毫秒
+     * @return 当前时间点的 id
+     */
+    private long generateId(Long timeMills){
+        return (timeMills << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (workId << SEQUENCE_LEFT) | 1;
     }
 }
