@@ -202,7 +202,7 @@ public class SocketSelector implements Closeable {
 					try {
 						result = supplier.call();
 					} catch (Exception e) {
-						Logger.error("addChoseEvent error:",e);
+						Logger.error("addChoseEvent error:", e);
 						result = false;
 					}
 				}
@@ -223,7 +223,7 @@ public class SocketSelector implements Closeable {
 		// 事件循环
 		try {
 			if (selector != null && selector.isOpen()) {
-				//执行选择操作
+				//执行选择操作, 如果还有可选择的 socket 注册的 key
 				if(selector.keys().size() > 0) {
 					processSelect();
 
@@ -239,6 +239,7 @@ public class SocketSelector implements Closeable {
 		} catch (IOException e){
 			Logger.error("NioSelector error: ", e);
 		} finally {
+			//如果还有可选择的 socket 注册的 key 则继续触发 eventChoose
 			if(inEventRunner() && !selector.keys().isEmpty()){
 				addChooseEvent();
 			}

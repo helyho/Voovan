@@ -452,7 +452,9 @@ public class WebServerHandler implements IoHandler {
 			session.close();
 		}
 
-		request.release();
+		if(request!=null) {
+			request.release();
+		}
 	}
 
 	@Override

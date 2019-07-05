@@ -14,4 +14,8 @@ public class HttpParserException extends RuntimeException {
     public HttpParserException(String msg){
         super(msg);
     }
+
+    public HttpParserException(String msg, Exception e){
+        super(msg, e);
+    }
 }
