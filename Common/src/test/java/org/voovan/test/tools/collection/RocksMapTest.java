@@ -285,7 +285,7 @@ public class RocksMapTest extends TestCase {
             System.out.println(iterator.key() + " " + iterator.value());
         }
         System.out.println("=================iterator range 3333->transaction44================");
-        iterator = rocksMap.iterator("333", "transaction44");//"eeee", "transaction11"
+        iterator = rocksMap.iterator("333", "transaction44");
         while(iterator.hasNext()) {
             iterator.next();
             System.out.println(iterator.key() + " " + iterator.value());
@@ -293,7 +293,15 @@ public class RocksMapTest extends TestCase {
         System.out.println("=================================================");
 
         System.out.println("=================iterator range 3333->end================");
-        iterator = rocksMap.iterator("333", null);//"eeee", "transaction11"
+        iterator = rocksMap.iterator("3333", null);//"eeee", "transaction11"
+        while(iterator.hasNext()) {
+            iterator.next();
+            System.out.println(iterator.key() + " " + iterator.value());
+        }
+        System.out.println("=================================================");
+
+        System.out.println("=================iterator range start->3333================");
+        iterator = rocksMap.iterator(null, "transaction33");
         while(iterator.hasNext()) {
             iterator.next();
             System.out.println(iterator.key() + " " + iterator.value());
