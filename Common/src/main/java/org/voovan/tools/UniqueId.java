@@ -91,7 +91,7 @@ public class UniqueId {
      * 获取下一个 id
      * @return 返回 id
      */
-    public long nextNumber(Long timeMills){
+    public long getNumber(Long timeMills){
         return generateId(timeMills);
     }
 
@@ -99,7 +99,7 @@ public class UniqueId {
      * 获取下一个 id
      * @return 返回 id
      */
-    public String nextString(Long timeMills){
+    public String getString(Long timeMills){
         return TString.radixConvert(generateId(timeMills), RADIX);
     }
 
