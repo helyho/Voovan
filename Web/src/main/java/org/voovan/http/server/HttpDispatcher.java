@@ -281,7 +281,7 @@ public class HttpDispatcher {
 				HttpRouter router = (HttpRouter)routerInfo.get(1);
 
 				//获取路径变量
-				Map<String, String> pathVariables = fetchPathVariables(requestPath, routePath);
+				Map<String, String> pathVariables = fetchPathVariables(requestPath, routePath, webConfig.isMatchRouteIgnoreCase());
 				if(pathVariables!=null) {
 					request.getParameters().putAll(pathVariables);
 				}
@@ -357,12 +357,7 @@ public class HttpDispatcher {
 		//转换成可以配置的正则,主要是处理:后的参数表达式
 		//把/home/:name转换成^[/]?/home/[/]?+来匹配
 		String routeRegexPath = routePath2RegexPath(routePath);
-		//匹配路由不区分大小写
-		if(matchRouteIgnoreCase){
-			requestPath = requestPath.toLowerCase();
-			routeRegexPath = routeRegexPath.toLowerCase();
-		}
-		if(TString.regexMatch(requestPath, routeRegexPath) > 0 ){
+		if(TString.regexMatch(requestPath, routeRegexPath, matchRouteIgnoreCase ? Pattern.UNICODE_CASE | Pattern.CASE_INSENSITIVE : 0) > 0 ){
 			return true;
 		}else {
 			return false;
@@ -375,7 +370,7 @@ public class HttpDispatcher {
 	 * @param routePath     正则匹配路径
 	 * @return     路径抽取参数 Map
 	 */
-	public static Map<String, String> fetchPathVariables(String requestPath,String routePath) {
+	public static Map<String, String> fetchPathVariables(String requestPath,String routePath, boolean matchRouteIgnoreCase) {
 		//修正请求和匹配路由检查是否存在路径请求参数
 		String compareRoutePath = routePath.endsWith("*") ? TString.removeSuffix(routePath) : routePath;
 		compareRoutePath = compareRoutePath.endsWith("/") ? TString.removeSuffix(compareRoutePath) : compareRoutePath;
@@ -391,7 +386,7 @@ public class HttpDispatcher {
 
 			try {
 				//抽取路径中的变量名
-				String[] names = TString.searchByRegex(routePath, ":[^:?/]*", Pattern.CASE_INSENSITIVE);
+				String[] names = TString.searchByRegex(routePath, ":[^:?/]*", matchRouteIgnoreCase ? Pattern.UNICODE_CASE | Pattern.CASE_INSENSITIVE : 0);
 				if (names.length > 0) {
 					for (int i = 0; i < names.length; i++) {
 						names[i] = TString.removePrefix(names[i]);
@@ -401,7 +396,7 @@ public class HttpDispatcher {
 					}
 
 					//运行正则
-					Matcher matcher = TString.doRegex(requestPath, routePathMathchRegex);
+					Matcher matcher = TString.doRegex(requestPath, routePathMathchRegex, matchRouteIgnoreCase ? Pattern.UNICODE_CASE | Pattern.CASE_INSENSITIVE : 0);
 
 					for (String name : names) {
 						resultMap.put(name, URLDecoder.decode(matcher.group(name), "UTF-8"));
