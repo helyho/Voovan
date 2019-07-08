@@ -478,11 +478,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     /**
-     * 同步锁, 开启式事务模式
+     * 开启式事务模式
+     *      每次构建独立的事物来处理, 各个事务之间是隔离的
      * @param transFunction 事务执行器, 返回 Null 则事务回滚, 其他则事务提交
      * @return 非 null: 事务成功, null: 事务失败
      */
-    public <T> T withTransaction(Function<RocksMap, T> transFunction) {
+    public <T> T withNewTransaction(Function<RocksMap, T> transFunction) {
         //不需要和父 rocksMap 共享一个事务
         RocksMap<K,V> transactionRocksMap = duplicate(columnFamilyName, false);
 
@@ -504,10 +505,33 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     /**
+     * 开启式事务模式
+     *      使用内置公共事务通过 savepoint 来失败回滚, 但统一提交, 性能会好很多, 但是由于很多层嵌套的 savepont 在高并发时使用这种方式时回导致提交会慢很多
+     * @param transFunction 事务执行器, 返回 Null 则事务回滚, 其他则事务提交
+     * @return 非 null: 事务成功, null: 事务失败
+     */
+    public <T> T withTransaction(Function<RocksMap, T> transFunction) {
+        beginTransaction(-1, true, false);
+
+        try {
+            T object = transFunction.apply(this);
+            if (object == null) {
+                rollback();
+            } else {
+                commit();
+            }
+            return object;
+        } catch (Exception e) {
+            rollback();
+            throw e;
+        }
+    }
+
+    /**
      * 开启事务
      */
     public void beginTransaction() {
-       beginTransaction(-1, false, false);
+       beginTransaction(-1, true, false);
     }
 
     /**
