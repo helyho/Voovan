@@ -420,7 +420,7 @@ public class ObjectPool {
          */
         public boolean isAlive(){
             if(objectCachedPool.aliveTime<=0){
-                return false;
+                return true;
             }
 
             long currentAliveTime = System.currentTimeMillis() - lastVisiediTime;
