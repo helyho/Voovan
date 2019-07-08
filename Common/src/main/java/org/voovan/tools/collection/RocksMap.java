@@ -511,7 +511,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 非 null: 事务成功, null: 事务失败
      */
     public <T> T withTransaction(Function<RocksMap, T> transFunction) {
-        beginTransaction(-1, true, false);
+        beginTransaction();
 
         try {
             T object = transFunction.apply(this);
@@ -529,6 +529,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 开启事务
+     *      默认: 锁提交等待时间-1, 死锁检测:true, 是否启用快照事务: false
      */
     public void beginTransaction() {
        beginTransaction(-1, true, false);
