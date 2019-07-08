@@ -267,7 +267,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    private RocksMap(RocksMap<K,V> rocksMap, String columnFamilyName, boolean useSameTransaction){
+    private RocksMap(RocksMap<K,V> rocksMap, String columnFamilyName, boolean shareTransaction){
         this.dbOptions = rocksMap.dbOptions;
         this.readOptions = rocksMap.readOptions;
         this.writeOptions = rocksMap.writeOptions;
@@ -275,7 +275,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         this.rocksDB = rocksMap.rocksDB;
         //是否使用父对象的实物对象
-        if(useSameTransaction) {
+        if(shareTransaction) {
             this.threadLocalTransaction = rocksMap.threadLocalTransaction;
             this.threadLocalSavePointCount = rocksMap.threadLocalSavePointCount;
         } else {
@@ -292,6 +292,25 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.choseColumnFamily(columnFamilyName);
     }
 
+    /**
+     * 复制出一个列族不同,但事务共享的 RocksMap
+     * @param cfName 列族名称
+     * @return 事务共享的 RocksMap
+     */
+    public RocksMap<K,V> duplicate(String cfName){
+        return new RocksMap<K, V>(this, cfName, true);
+    }
+
+    /**
+     * 复制出一个列族不同的 RocksMAp
+     * @param cfName 列族名称
+     * @param shareTransaction true: 共享事务, false: 不共享事务
+     * @return 事务共享的 RocksMap
+     */
+    public RocksMap<K,V> duplicate(String cfName, boolean shareTransaction){
+        return new RocksMap<K, V>(this, cfName, shareTransaction);
+    }
+
     public String getDbname() {
         return dbname;
     }
@@ -306,6 +325,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     public int savePointCount() {
         return threadLocalSavePointCount.get();
+    }
+
+    public RocksDB getRocksDB(){
+        return rocksDB;
+    }
+
+    public int getColumnFamilyId(){
+        return getColumnFamilyId(this.columnFamilyName);
     }
 
     public void compact(){
@@ -406,23 +433,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    /**
-     * 创建一个列族不同,但事务共享的 RocksMap
-     * @param cfName 列族名称
-     * @return 事务共享的 RocksMap
-     */
-    public RocksMap<K,V> share(String cfName){
-        return new RocksMap<K, V>(this, cfName, true);
-    }
-
-    public RocksDB getRocksDB(){
-        return rocksDB;
-    }
-
-    public int getColumnFamilyId(){
-        return getColumnFamilyId(this.columnFamilyName);
-    }
-
     public int getColumnFamilyId(String columnFamilyName){
         ColumnFamilyHandle columnFamilyHandle = getColumnFamilyHandler(rocksDB, columnFamilyName);
         if(columnFamilyHandle!=null){
@@ -469,25 +479,24 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 同步锁, 开启式事务模式
-     * @param transFunction 事务业务对象
-     * @return true: 事务成功, false: 事务失败
+     * @param transFunction 事务执行器, 返回 Null 则事务回滚, 其他则事务提交
+     * @return 非 null: 事务成功, null: 事务失败
      */
-    public boolean withTransaction(Function<RocksMap, Boolean> transFunction) {
+    public <T> T withTransaction(Function<RocksMap, T> transFunction) {
+        //不需要和父 rocksMap 共享一个事务
+        RocksMap<K,V> transactionRocksMap = duplicate(columnFamilyName, false);
 
-        RocksMap<K,V> transactionRocksMap = new RocksMap<K, V>(this, columnFamilyName, false);
-
-
-        //需要和 rocksMap 共享一个 事务
+        T result = null;
         try {
             transactionRocksMap.beginTransaction();
-
-            if (transFunction.apply(transactionRocksMap)) {
+            result = transFunction.apply(transactionRocksMap);
+            if (result!=null) {
                 transactionRocksMap.commit();
-                return true;
             } else {
                 transactionRocksMap.rollback();
-                return false;
             }
+
+            return result;
         } catch (Exception e) {
             transactionRocksMap.rollback();
             throw new RocksMapException("withTransaction failed, " + e.getMessage(), e);
@@ -508,9 +517,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 所有的读事务不会锁定，读到的数据取决于snapshot设置。
      * 写事务之间如果不存在记录交集，不会锁定。
      * 写事务之间如果存在记录交集，此时如果未设置snapshot，则交集部分的记录是可以串行提交的。如果设置了snapshot，则第一个写事务(写锁队列的head)会成功，其他写事务会失败(之前的事务修改了该记录的情况下)。
-     * @param expire 超时时间
+     * @param expire         提交时锁超时时间
      * @param deadlockDetect 死锁检测是否打开
-     * @param withSnapShot 是否启用快照事务
+     * @param withSnapShot   是否启用快照事务
      */
     public void beginTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
         Transaction transaction = threadLocalTransaction.get();

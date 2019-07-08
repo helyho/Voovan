@@ -188,7 +188,7 @@ public class RocksMapTest extends TestCase {
         rocksMap.choseColumnFamily("testdb");
         rocksMap.beginTransaction();
         rocksMap.put("transaction33", "rocksMap.value");
-        RocksMap rocksMap2 = rocksMap.share(cfName);
+        RocksMap rocksMap2 = rocksMap.duplicate(cfName);
         rocksMap2.put("transaction33", cfName);
         rocksMap.commit();
 
@@ -201,7 +201,7 @@ public class RocksMapTest extends TestCase {
         System.out.println("===============share rollback==================");
         rocksMap.beginTransaction();
         rocksMap.put("transaction22", "rocksMap.value");
-        rocksMap2 = rocksMap.share(cfName);
+        rocksMap2 = rocksMap.duplicate(cfName);
         rocksMap2.put("transaction22", cfName);
 
         rocksMap.choseColumnFamily("testdb");
