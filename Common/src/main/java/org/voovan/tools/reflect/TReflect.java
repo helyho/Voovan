@@ -64,99 +64,19 @@ public class TReflect {
     private static Map<Class, String>           NAME_CLASS           = new ConcurrentHashMap<Class ,String>();
     private static Map<String, Class>           CLASS_NAME           = new ConcurrentHashMap<String, Class>();
     private static Map<Class, Boolean>          CLASS_BASIC_TYPE     = new ConcurrentHashMap<Class ,Boolean>();
-    public static Map<String, DynamicFunction>  FIELD_READER         = new ConcurrentHashMap<String, DynamicFunction>();
-    public static Map<String, DynamicFunction>  FIELD_WRITER         = new ConcurrentHashMap<String, DynamicFunction>();
     public static Map<String, DynamicFunction>  METHOD_INVOKE        = new ConcurrentHashMap<String, DynamicFunction>();
 
     /**
-     * 生成对象的读取的动态编译方法
-     * @param obj 目标对象
-     */
-    public static void genFieldReader(Object obj) {
-        // 生成的代码样例
-        // if(fieldName.equals("string")) {return obj.getString();}
-        // else if(fieldName.equals("bint")) {return obj.getBint();}
-        // else if(fieldName.equals("map")) {return obj.getMap();}
-        // else if(fieldName.equals("list")) {return obj.getList();}
-        // else if(fieldName.equals("tb2")) {return obj.getTb2();}
-        // else { return null; }
-
-        String className = getClassName(obj.getClass());
-        Field[] fields = getFields(obj.getClass());
-
-        //arg1 obj, arg2 fieldName
-        String code = "";
-        for(Field field : fields) {
-            code = code + (code.isEmpty() ? "if" : "else if");
-            code = code + "(fieldName.equals(\"" + field.getName() + "\")) {";
-
-            String getMethodName = "get"+TString.upperCaseHead(field.getName())+"();";
-            code = code + "return obj."+getMethodName + "} \r\n";
-        }
-        code = code + "else { return null; }";
-
-        DynamicFunction dynamicFunction = new DynamicFunction(obj.getClass().getSimpleName()+"Reader", code);
-        dynamicFunction.addImport(obj.getClass());
-        dynamicFunction.addPrepareArg(0, obj.getClass(), "obj");     //目标对象
-        dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //取值字段
-
-        FIELD_READER.put(className, dynamicFunction);
-        System.out.println(code);
-    }
-
-    /**
-     * 生成对象的写入的动态编译方法
-     * @param obj 目标对象
-     */
-    public static void genFieldWriter(Object obj) {
-        // 生成的代码样例
-        // if(fieldName.equals("string")) {obj.setString((java.lang.String)value);}
-        // else if(fieldName.equals("bint")) {obj.setBint((int)value);}
-        // else if(fieldName.equals("map")) {obj.setMap((java.util.HashMap)value);}
-        // else if(fieldName.equals("list")) {obj.setList((java.util.Vector)value);}
-        // else if(fieldName.equals("tb2")) {obj.setTb2((org.voovan.test.tools.json.TestObject2)value);}
-
-        String className = obj.getClass().getCanonicalName();
-        Field[] fields = getFields(obj.getClass());
-
-        //arg1 obj, arg2 fieldName, arg3 value
-        String code = "";
-        for(Field field : fields) {
-            code = code + (code.isEmpty() ? "if" : "else if");
-            code = code + "(fieldName.equals(\"" + field.getName() + "\")) {";
-
-            String setMethodName = "set"+TString.upperCaseHead(field.getName())+"(("+field.getType().getName()+")value);";
-            code = code + "obj."+setMethodName + "} \r\n";
-        }
-
-        DynamicFunction dynamicFunction = new DynamicFunction(obj.getClass().getSimpleName()+"Reader", code);
-        dynamicFunction.addImport(obj.getClass());
-        dynamicFunction.addPrepareArg(0, obj.getClass(), "obj");     //目标对象
-        dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //写入字段
-        dynamicFunction.addPrepareArg(2, Object.class, "value");     //写入数据
-
-        FIELD_WRITER.put(className, dynamicFunction);
-        System.out.println(code);
-    }
-
-    /**
-     * 生成对象的写入的动态编译方法
-     * @param obj 目标对象
+     * 生成方法的静态调用代码
+     * @param obj 根绝这个对象的元信息生成静态调用代码
      */
     public static void genMethodInvoker(Object obj) {
         // 生成的代码样例
-        //if(methodName.equals("getMap")) {java.util.HashMap result = obj.getMap();
-        //    return result;}else if(methodName.equals("setTb2")) {obj.setTb2((org.voovan.test.tools.json.TestObject2) params[0]);
-        //    return null; }else if(methodName.equals("getBint")) {int result = obj.getBint();
-        //    return result;}else if(methodName.equals("getTb2")) {org.voovan.test.tools.json.TestObject2 result = obj.getTb2();
-        //    return result;}else if(methodName.equals("setList")) {obj.setList((java.util.Vector) params[0]);
-        //    return null; }else if(methodName.equals("setMap")) {obj.setMap((java.util.HashMap) params[0]);
-        //    return null; }else if(methodName.equals("setBint")) {obj.setBint((int) params[0]);
-        //    return null; }else if(methodName.equals("getList")) {java.util.Vector result = obj.getList();
-        //    return result;}else if(methodName.equals("setString")) {obj.setString((java.lang.String) params[0]);
-        //    return null; }else if(methodName.equals("getString")) {java.lang.String result = obj.getString();
-        //    return result;}else if(methodName.equals("getData")) {java.lang.String result = obj.getData((java.lang.String) params[0],(int) params[1]);
-        //    return result;}else { return null; }
+        // if(methodName.equals("getMap")) {java.util.HashMap result = obj.getMap(); return result;}
+        // else if(methodName.equals("getString")) {java.lang.String result = obj.getString(); return result;}
+        // else if(methodName.equals("setBint")) {obj.setBint((int) params[0]); return null;}
+        // else if(methodName.equals("getData")) {java.lang.String result = obj.getData((java.lang.String) params[0],(int) params[1]); return result;}
+        // else { return null; }
 
         String className = obj.getClass().getCanonicalName();
         Method[] methods = getMethods(obj.getClass());
@@ -168,18 +88,20 @@ public class TReflect {
             code = code + (code.isEmpty() ? "if" : "else if");
             code = code + "(methodName.equals(\"" + method.getName() + "\")) {";
 
+            //准备接收方法返回值的分段代码, 用于后面拼接
             Class returnClass = method.getReturnType();
             String resultCode = ""; //接收响应数据
             String returnCode = ""; //通过 return 返回数据
             if(returnClass != void.class) {
                 resultCode = returnClass.getCanonicalName() + " result = ";
-                returnCode = "return result;";
+                returnCode = " return result;";
             } else {
-                returnCode = "return null; ";
+                returnCode = " return null;";
             }
 
             code = code + resultCode + "obj." + method.getName()+"(";
 
+            //拼装方法参数代码, 类似: (java.lang.String) params[i],
             if(paramTypes.length > 0) {
                 for (int i = 0; i < paramTypes.length; i++) {
                     code = code + "(" + paramTypes[i].getCanonicalName() + ") params[" + i + "],";
@@ -187,8 +109,10 @@ public class TReflect {
                 code = TString.removeSuffix(code);
             }
 
-            code = code + "); \r\n";
-            code = code + returnCode + "}";
+            code = code + ");";
+
+            //拼装 return 代码
+            code = code + returnCode + "} \r\n";
         }
 
         code = code + "else { return null; }";
@@ -196,16 +120,34 @@ public class TReflect {
         DynamicFunction dynamicFunction = new DynamicFunction(obj.getClass().getSimpleName()+"Reader", code);
         dynamicFunction.addImport(obj.getClass());
         dynamicFunction.addPrepareArg(0, obj.getClass(), "obj");        //目标对象
-        dynamicFunction.addPrepareArg(1, String.class, "methodName");   //写入字段
+        dynamicFunction.addPrepareArg(1, String.class,   "methodName"); //写入字段
         dynamicFunction.addPrepareArg(2, Object[].class, "params");     //写入数据
+
         try {
+            //编译代码
             dynamicFunction.compileCode();
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            Logger.error("TReflect.genMethodInvoker error", e);
         }
 
         METHOD_INVOKE.put(className, dynamicFunction);
-        System.out.println(code);
+        if(Global.IS_DEBUG_MODE) {
+            Logger.debug(code);
+        }
+    }
+
+    public static <T> T getFieldValueNatvie(Object obj, String fieldName) throws Exception {
+        String getMethodName = "get"+TString.upperCaseHead(fieldName);
+        return (T)TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, getMethodName, null);
+    }
+
+    public static void setFieldValueNatvie(Object obj, String fieldName, Object value) throws Exception {
+        String setMethodName = "set"+TString.upperCaseHead(fieldName);
+        TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, setMethodName, new Object[]{value});
+    }
+
+    public static <T> T invokeMethodNative(Object obj, String methodName, Object[] value) throws Exception {
+        return (T)TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, methodName, value);
     }
 
     /**
