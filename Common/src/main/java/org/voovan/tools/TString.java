@@ -35,7 +35,7 @@ public class TString {
 	 * @param source 字符串
 	 * @return 首字母大写后的字符串
 	 */
-	public static String uppercaseHead(String source) {
+	public static String upperCaseHead(String source) {
 		if (source == null) {
 			return null;
 		}
