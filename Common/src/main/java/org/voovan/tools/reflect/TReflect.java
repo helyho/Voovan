@@ -54,15 +54,15 @@ public class TReflect {
         }
     }
 
-    private static Map<String, Field> FIELDS = new ConcurrentHashMap<String ,Field>();
-    private static Map<String, Method> METHODS = new ConcurrentHashMap<String ,Method>();
-    private static Map<String, Constructor> CONSTRUCTORS = new ConcurrentHashMap<String ,Constructor>();
-    private static Map<Class, Field[]> FIELD_ARRAYS = new ConcurrentHashMap<Class ,Field[]>();
-    private static Map<String, Method[]> METHOD_ARRAYS = new ConcurrentHashMap<String ,Method[]>();
-    private static Map<String, Constructor[]> CONSTRUCTOR_ARRAYS = new ConcurrentHashMap<String ,Constructor[]>();
-    private static Map<Class, String> NAME_CLASS = new ConcurrentHashMap<Class ,String>();
-    private static Map<String, Class> CLASS_NAME = new ConcurrentHashMap<String, Class>();
-    private static Map<Class, Boolean> CLASS_BASIC_TYPE = new ConcurrentHashMap<Class ,Boolean>();
+    private static Map<String, Field>           FIELDS               = new ConcurrentHashMap<String ,Field>();
+    private static Map<String, Method>          METHODS              = new ConcurrentHashMap<String ,Method>();
+    private static Map<String, Constructor>     CONSTRUCTORS         = new ConcurrentHashMap<String ,Constructor>();
+    private static Map<Class, Field[]>          FIELD_ARRAYS         = new ConcurrentHashMap<Class ,Field[]>();
+    private static Map<String, Method[]>        METHOD_ARRAYS        = new ConcurrentHashMap<String ,Method[]>();
+    private static Map<String, Constructor[]>   CONSTRUCTOR_ARRAYS   = new ConcurrentHashMap<String ,Constructor[]>();
+    private static Map<Class, String>           NAME_CLASS           = new ConcurrentHashMap<Class ,String>();
+    private static Map<String, Class>           CLASS_NAME           = new ConcurrentHashMap<String, Class>();
+    private static Map<Class, Boolean>          CLASS_BASIC_TYPE     = new ConcurrentHashMap<Class ,Boolean>();
 
 
     /**
@@ -105,10 +105,11 @@ public class TReflect {
     public static Field[] getFields(Class<?> clazz) {
         Field[] fields = FIELD_ARRAYS.get(clazz);
 
+        Class loopClazz = clazz;
         if(fields==null){
             LinkedHashSet<Field> fieldArray = new LinkedHashSet<Field>();
-            for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
-                Field[] tmpFields = clazz.getDeclaredFields();
+            for (; loopClazz!=null && loopClazz != Object.class; loopClazz = loopClazz.getSuperclass()) {
+                Field[] tmpFields = loopClazz.getDeclaredFields();
                 for (Field field : tmpFields){
                     field.setAccessible(true);
                 }
@@ -139,11 +140,13 @@ public class TReflect {
 
         Field field = FIELDS.get(mark);
 
+        Class loopClazz = clazz;
+
         if(field==null){
 
-            for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+            for (; loopClazz!=null && loopClazz != Object.class; loopClazz = loopClazz.getSuperclass()) {
                 try {
-                    field = clazz.getDeclaredField(fieldName);
+                    field = loopClazz.getDeclaredField(fieldName);
                     field.setAccessible(true);
                     break;
                 }catch(ReflectiveOperationException e){
@@ -351,6 +354,7 @@ public class TReflect {
         String marker = markBuilder.toString();
 
         Method method = METHODS.get(marker);
+
         if (method==null){
 
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
@@ -1064,12 +1068,9 @@ public class TReflect {
         //对 Collection 类型的处理
         else if(obj instanceof Collection){
             Collection collection = new ArrayList();
-            synchronized (obj) {
-                Object[] objectArray = ((Collection) obj).toArray(new Object[0]);
-                for (Object collectionItem : objectArray) {
-                    Map<String, Object> item = getMapfromObject(collectionItem, allField);
-                    collection.add((item.size() == 1 && item.containsKey(null)) ? item.get(null) : item);
-                }
+            for (Object collectionItem : collection) {
+                Map<String, Object> item = getMapfromObject(collectionItem, allField);
+                collection.add((item.size() == 1 && item.containsKey(null)) ? item.get(null) : item);
             }
             mapResult.put(null, collection);
         }
@@ -1100,17 +1101,15 @@ public class TReflect {
         else if(obj instanceof Map){
             Map mapObject = (Map)obj;
 
-            Map map = new LinkedHashMap();
-            synchronized (obj) {
-                Iterator iterator = mapObject.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    Entry<?, ?> entry = (Entry<?, ?>) iterator.next();
-                    Map<String, Object> keyItem = getMapfromObject(entry.getKey(), allField);
-                    Map<String, Object> valueItem = getMapfromObject(entry.getValue(), allField);
-                    Object key = (keyItem.size() == 1 && keyItem.containsKey(null)) ? keyItem.get(null) : keyItem;
-                    Object value = (valueItem.size() == 1 && valueItem.containsKey(null)) ? valueItem.get(null) : valueItem;
-                    map.put(key, value);
-                }
+            Map map = new HashMap();
+            Iterator iterator = mapObject.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Entry<?, ?> entry = (Entry<?, ?>) iterator.next();
+                Map<String, Object> keyItem = getMapfromObject(entry.getKey(), allField);
+                Map<String, Object> valueItem = getMapfromObject(entry.getValue(), allField);
+                Object key = (keyItem.size() == 1 && keyItem.containsKey(null)) ? keyItem.get(null) : keyItem;
+                Object value = (valueItem.size() == 1 && valueItem.containsKey(null)) ? valueItem.get(null) : valueItem;
+                map.put(key, value);
             }
             mapResult.put(null, map);
         }
