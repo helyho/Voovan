@@ -31,16 +31,22 @@ public class TReflectTest {
         obj.getList().add("1111");
         obj.getMap().put("key", "value");
 
-        TReflect.genFieldReader(obj);
-        TReflect.genFieldWriter(obj);
+        TReflect.genFieldReader(TestObject.class);
+        TReflect.genFieldWriter(TestObject.class);
+
+        TReflect.genFieldReader(TestObject2.class);
+        TReflect.genFieldWriter(TestObject2.class);
 
         //get
         String val = TReflect.getFieldValueNatvie(obj, "string");
         System.out.println("native get: "+val);
 
         //set
-        TReflect.setFieldValueNatvie(obj, "string", "nativeFieldSet");
-        System.out.println("native set");
+        Boolean value = TReflect.setFieldValueNatvie(obj, "string", "nativeFieldSet");
+        System.out.println("native set:" + value);
+
+        value = TReflect.setFieldValueNatvie(obj, "string111", "nativeFieldSet");
+        System.out.println("native set:" + value);
 
         //get
         val = TReflect.getFieldValueNatvie(obj, "string");
@@ -150,8 +156,5 @@ public class TReflectTest {
                 }
             }
         })/1000000f);
-
-
-
     }
 }

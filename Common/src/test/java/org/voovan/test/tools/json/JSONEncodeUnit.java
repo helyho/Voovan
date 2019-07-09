@@ -3,8 +3,8 @@ package org.voovan.test.tools.json;
 import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.json.JSON;
-import org.voovan.tools.json.JSONDecode;
 import org.voovan.tools.json.JSONEncode;
+import org.voovan.tools.reflect.TReflect;
 
 public class JSONEncodeUnit extends TestCase {
 
@@ -13,6 +13,11 @@ public class JSONEncodeUnit extends TestCase {
 	}
 
 	public void testRun() throws Exception{
+//		TReflect.genFieldReader(TestObject.class);
+//		TReflect.genFieldWriter(TestObject.class);
+//		TReflect.genFieldReader(TestObject2.class);
+//		TReflect.genFieldWriter(TestObject2.class);
+
 		String targetStr = "{\"bint\":32,\"string\":\"helyho\",\"tb2\":{\"bint\":56,\"string\":\"bingo\\u000d\\u000asrc\\main\\kkk\",\"list\":[\"tb2 list item\"],\"map\":{\"tb2 map item\":\"tb2 map item\"}},\"list\":[\"listitem1\",\"listitem2\",\"listitem3\"],\"map\":{\"mapitem2\":\"mapitem2\",\"mapitem1\":\"mapitem1\"}}";
 
 		TestObject testObject = new TestObject();
@@ -34,14 +39,14 @@ public class JSONEncodeUnit extends TestCase {
 		testObject.getTb2().getMap().put("tb2 map item", "tb2 map item");
 
 		System.out.println(TEnv.measureTime(()->{
-			for(int i=0;i<50000;i++){
+			for(int i=0;i<500000;i++){
 				try {
 					JSONEncode.fromObject(testObject);
 				} catch (ReflectiveOperationException e) {
 					e.printStackTrace();
 				}
 			}
-		})/1000000000f);
+		})/10000000f);
 
 		String jsonStr = JSONEncode.fromObject(testObject);
 		jsonStr = JSON.removeNullNode(jsonStr);
