@@ -276,12 +276,8 @@ public class Recorder {
             mainSql = mainSql + "*";
         } else {
             for (String resultField : query.getResultFields()) {
-                try {
-                    if(TReflect.findFieldIgnoreCase(obj.getClass(), resultField)!=null) {
-                        mainSql = mainSql + TSQL.wrapSqlField(jdbcOperate, TString.camelToUnderline(resultField)) + ",";
-                    }
-                } catch (ReflectiveOperationException e) {
-                    throw new RecorderException("Recorder query result field is failed", e);
+                if(TReflect.findFieldIgnoreCase(obj.getClass(), resultField)!=null) {
+                    mainSql = mainSql + TSQL.wrapSqlField(jdbcOperate, TString.camelToUnderline(resultField)) + ",";
                 }
             }
         }
@@ -301,12 +297,8 @@ public class Recorder {
         if(query!=null) {
             for (Map.Entry<String[], Boolean> entry : query.getOrderFields().entrySet()) {
                 for (String orderField : entry.getKey()) {
-                    try {
-                        if (TReflect.findFieldIgnoreCase(obj.getClass(), orderField) != null) {
-                            orderSql = orderSql + orderField + ",";
-                        }
-                    } catch (ReflectiveOperationException e) {
-                        throw new RecorderException("Recorder query result field is failed", e);
+                    if (TReflect.findFieldIgnoreCase(obj.getClass(), orderField) != null) {
+                        orderSql = orderSql + orderField + ",";
                     }
                 }
 
@@ -576,31 +568,23 @@ public class Recorder {
         } else {
 
             for (Map.Entry<String, Query.Operate> entry : query.getQueryAndFields().entrySet()) {
-                try {
-                    if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
-                        String sqlField = entry.getKey();
-                        if (camelToUnderline) {
-                            sqlField = TString.camelToUnderline(sqlField);
-                        }
-                        whereSql = TString.assembly(whereSql, " and ", sqlField, Query.getActualOperate(entry.getValue()), "::", entry.getKey());
+                if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
+                    String sqlField = entry.getKey();
+                    if (camelToUnderline) {
+                        sqlField = TString.camelToUnderline(sqlField);
                     }
-                } catch (ReflectiveOperationException e) {
-                    throw new RecorderException("Recorder query result field is failed", e);
+                    whereSql = TString.assembly(whereSql, " and ", sqlField, Query.getActualOperate(entry.getValue()), "::", entry.getKey());
                 }
             }
 
             for (Map.Entry<String, Query.Operate> entry : query.getQueryOrFields().entrySet()) {
-                try {
-                    if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
-                        String sqlField = entry.getKey();
-                        if (camelToUnderline) {
-                            sqlField = TString.camelToUnderline(sqlField);
-                        }
-
-                        whereSql = TString.assembly(whereSql, " or ", sqlField, Query.getActualOperate(entry.getValue()), "::", entry.getKey());
+                if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
+                    String sqlField = entry.getKey();
+                    if (camelToUnderline) {
+                        sqlField = TString.camelToUnderline(sqlField);
                     }
-                } catch (ReflectiveOperationException e) {
-                    throw new RecorderException("Recorder query result field is failed", e);
+
+                    whereSql = TString.assembly(whereSql, " or ", sqlField, Query.getActualOperate(entry.getValue()), "::", entry.getKey());
                 }
             }
 
