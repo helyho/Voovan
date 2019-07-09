@@ -1179,14 +1179,20 @@ public class TReflect {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Map<String, Object> getMapfromObject(Object obj, boolean allField) throws ReflectiveOperationException {
+        LinkedHashMap<String, Object> mapResult = new LinkedHashMap<String, Object>();
+
+        if(obj==null || TReflect.isBasicType(obj.getClass())){
+            mapResult.put(null, obj);
+
+            return mapResult;
+        }
+
         if(obj.getClass().isAnnotationPresent(NotSerialization.class)){
             return null;
         }
 
-        LinkedHashMap<String, Object> mapResult = new LinkedHashMap<String, Object>();
-
         //如果是 java 标准类型
-        if(obj==null || TReflect.isBasicType(obj.getClass())){
+        if(TReflect.isBasicType(obj.getClass())){
             mapResult.put(null, obj);
         }
         //java 日期对象
@@ -1196,7 +1202,7 @@ public class TReflect {
         //对 Collection 类型的处理
         else if(obj instanceof Collection){
             Collection collection = new ArrayList();
-            for (Object collectionItem : collection) {
+            for (Object collectionItem : (Collection)obj) {
                 Map<String, Object> item = getMapfromObject(collectionItem, allField);
                 collection.add((item.size() == 1 && item.containsKey(null)) ? item.get(null) : item);
             }

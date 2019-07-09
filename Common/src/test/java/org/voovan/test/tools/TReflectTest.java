@@ -53,7 +53,7 @@ public class TReflectTest {
 
 
         System.out.println("direct: " + TEnv.measureTime(()->{
-            for(int i=0;i<1000000;i++){
+            for(int i=0;i<500000;i++){
                 try {
                     obj.getValueS();
                 } catch (Exception e) {
@@ -63,7 +63,7 @@ public class TReflectTest {
         })/1000000f);
 
         System.out.println("reflect: " + TEnv.measureTime(()->{
-            for(int i=0;i<1000000;i++){
+            for(int i=0;i<500000;i++){
                 try {
                     TReflect.getFieldValue(obj, "valueS");
                 } catch (Exception e) {
@@ -73,7 +73,7 @@ public class TReflectTest {
         })/1000000f);
 
         System.out.println("native: " + TEnv.measureTime(()->{
-            for(int i=0;i<1000000;i++){
+            for(int i=0;i<500000;i++){
                 try {
                     TReflect.getFieldValueNatvie(obj, "valueS");
                 } catch (Exception e) {
@@ -85,7 +85,7 @@ public class TReflectTest {
         System.out.println("==========================set==========================");
 
         System.out.println("direct: " + TEnv.measureTime(()->{
-            for(int i=0;i<1000000;i++){
+            for(int i=0;i<500000;i++){
                 try {
                     obj.setValueS("123123");
                 } catch (Exception e) {
@@ -95,7 +95,7 @@ public class TReflectTest {
         })/1000000f);
 
         System.out.println("reflect: " + TEnv.measureTime(()->{
-            for(int i=0;i<1000000;i++){
+            for(int i=0;i<500000;i++){
                 try {
                     TReflect.setFieldValue(obj, "valueS", "123123");
                 } catch (Exception e) {
@@ -105,7 +105,7 @@ public class TReflectTest {
         })/1000000f);
 
         System.out.println("native: " + TEnv.measureTime(()->{
-            for(int i=0;i<1000000;i++){
+            for(int i=0;i<500000;i++){
                 try {
                     TReflect.setFieldValueNatvie(obj, "valueS", "123123");
                 } catch (Exception e) {
@@ -116,7 +116,7 @@ public class TReflectTest {
 
         System.out.println("==========================invoke==========================");
         System.out.println("direct: " + TEnv.measureTime(()->{
-            for(int i=0;i<1000000;i++){
+            for(int i=0;i<500000;i++){
                 try {
                     obj.getData("aaaa", 111);
                 } catch (Exception e) {
@@ -126,7 +126,7 @@ public class TReflectTest {
         })/1000000f);
 
         System.out.println("reflect: " + TEnv.measureTime(()->{
-            for(int i=0;i<1000000;i++){
+            for(int i=0;i<500000;i++){
                 try {
                     TReflect.invokeMethod(obj, method, objs);
                 } catch (Exception e) {
@@ -139,7 +139,7 @@ public class TReflectTest {
         System.out.println("==========================getMapfromObject==========================");
         TReflect.FIELD_READER.clear();
         System.out.println("reflect: " + TEnv.measureTime(()->{
-            for(int i=0;i<100000;i++){
+            for(int i=0;i<50000;i++){
                 try {
                     TReflect.getMapfromObject(obj);
                 } catch (Exception e) {
@@ -151,7 +151,7 @@ public class TReflectTest {
         TReflect.genFieldReader(SimpleObject.class);
         TReflect.genFieldWriter(SimpleObject.class);
         System.out.println("native: " + TEnv.measureTime(()->{
-            for(int i=0;i<100000;i++){
+            for(int i=0;i<50000;i++){
                 try {
                     TReflect.getMapfromObject(obj);
                 } catch (Exception e) {
@@ -160,13 +160,11 @@ public class TReflectTest {
             }
         })/1000000f);
 
-
-
         System.out.println("==========================getObjectFromMap==========================");
         Map map = TReflect.getMapfromObject(obj);
         TReflect.FIELD_READER.clear();
         System.out.println("reflect: " + TEnv.measureTime(()->{
-            for(int i=0;i<100000;i++){
+            for(int i=0;i<50000;i++){
                 try {
                     TReflect.getObjectFromMap(TestObject.class, map, false);
                 } catch (Exception e) {
@@ -178,7 +176,7 @@ public class TReflectTest {
         TReflect.genFieldReader(SimpleObject.class);
         TReflect.genFieldWriter(SimpleObject.class);
         System.out.println("native: " + TEnv.measureTime(()->{
-            for(int i=0;i<100000;i++){
+            for(int i=0;i<50000;i++){
                 try {
                     TReflect.getObjectFromMap(TestObject.class, map, false);
                 } catch (Exception e) {
@@ -191,7 +189,7 @@ public class TReflectTest {
         System.out.println("==========================JSON.toJSON==========================");
         TReflect.FIELD_READER.clear();
         System.out.println("reflect: " + TEnv.measureTime(()->{
-            for(int i=0;i<100000;i++){
+            for(int i=0;i<50000;i++){
                 try {
                    JSON.toJSON(obj);
                 } catch (Exception e) {
@@ -203,7 +201,7 @@ public class TReflectTest {
         TReflect.genFieldReader(SimpleObject.class);
         TReflect.genFieldWriter(SimpleObject.class);
         System.out.println("native: " + TEnv.measureTime(()->{
-            for(int i=0;i<100000;i++){
+            for(int i=0;i<50000;i++){
                 try {
                     JSON.toJSON(obj);
                 } catch (Exception e) {
@@ -216,7 +214,7 @@ public class TReflectTest {
         String json = JSON.toJSON(obj);
         TReflect.FIELD_READER.clear();
         System.out.println("reflect: " + TEnv.measureTime(()->{
-            for(int i=0;i<100000;i++){
+            for(int i=0;i<50000;i++){
                 try {
                     JSON.toObject(json, SimpleObject.class);
                 } catch (Exception e) {
@@ -228,7 +226,7 @@ public class TReflectTest {
         TReflect.genFieldReader(SimpleObject.class);
         TReflect.genFieldWriter(SimpleObject.class);
         System.out.println("native: " + TEnv.measureTime(()->{
-            for(int i=0;i<100000;i++){
+            for(int i=0;i<50000;i++){
                 try {
                     JSON.toObject(json, SimpleObject.class);
                 } catch (Exception e) {
