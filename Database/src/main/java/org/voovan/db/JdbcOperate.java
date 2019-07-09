@@ -172,7 +172,11 @@ public class JdbcOperate implements Closeable {
 			connection.commit();
 
 			if (isClose) {
-				closeConnection(connection);
+				try {
+					close();
+				} catch (IOException e) {
+					throw new SQLException(e);
+				}
 			}
 		}
 		isTransactionFinished = true;
@@ -207,7 +211,11 @@ public class JdbcOperate implements Closeable {
 				connection.rollback();
 
 				if (isClose) {
-					closeConnection(connection);
+					try {
+						close();
+					} catch (IOException e) {
+						throw new SQLException(e);
+					}
 				}
 			}
 			isTransactionFinished = true;
@@ -1124,7 +1132,7 @@ public class JdbcOperate implements Closeable {
 	public void close() throws IOException {
 		try {
 			if (resultSet != null && !resultSet.isClosed()) {
-				closeConnection(this.resultSet);
+				closeConnection(resultSet);
 			} else if (statement != null && !statement.isClosed()) {
 				closeConnection(statement);
 			} else {
@@ -1132,7 +1140,10 @@ public class JdbcOperate implements Closeable {
 			}
 		} catch (Exception e){
 			throw new IOException(e);
+		} finally {
+			this.resultSet = null;
+			this.statement = null;
+			this.connection = null;
 		}
-
 	}
 }
