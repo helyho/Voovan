@@ -37,7 +37,6 @@ public class TReflect {
 
         private void emptyMethod(){
         }
-
     }
 
     private static Constructor EMPTY_CONSTRUCTOR;
