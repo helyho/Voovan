@@ -3,6 +3,7 @@ package org.voovan.http.server;
 import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
+import org.voovan.http.server.exception.HttpDispatchException;
 import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.router.MimeFileRouter;
@@ -290,10 +291,7 @@ public class HttpDispatcher {
 				router.process(request, response);
 
 			} catch (Exception e) {
-				if(e instanceof Throwable){
-					e = new Exception((Throwable)e);
-				}
-				exceptionMessage(request, response, e);
+				exceptionMessage(request, response, new HttpDispatchException(e));
 			}
 
 		} else {
