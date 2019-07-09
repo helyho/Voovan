@@ -883,7 +883,7 @@ public class TReflect {
      * @throws ReflectiveOperationException 反射异常
      */
     public static <T> T newInstance(String className, Object ...parameters) throws ReflectiveOperationException {
-        Class<T> clazz = CLASS_NAME.get(className);
+        Class<T> clazz = getClassByName(className);
         return newInstance(clazz, parameters);
     }
 
