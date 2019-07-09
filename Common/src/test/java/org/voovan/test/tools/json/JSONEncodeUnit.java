@@ -13,11 +13,6 @@ public class JSONEncodeUnit extends TestCase {
 	}
 
 	public void testRun() throws Exception{
-		TReflect.genFieldReader(TestObject.class);
-		TReflect.genFieldWriter(TestObject.class);
-		TReflect.genFieldReader(TestObject2.class);
-		TReflect.genFieldWriter(TestObject2.class);
-
 		String targetStr = "{\"bint\":32,\"string\":\"helyho\",\"tb2\":{\"bint\":56,\"string\":\"bingo\\u000d\\u000asrc\\main\\kkk\",\"list\":[\"tb2 list item\"],\"map\":{\"tb2 map item\":\"tb2 map item\"}},\"list\":[\"listitem1\",\"listitem2\",\"listitem3\"],\"map\":{\"mapitem2\":\"mapitem2\",\"mapitem1\":\"mapitem1\"}}";
 
 		TestObject testObject = new TestObject();

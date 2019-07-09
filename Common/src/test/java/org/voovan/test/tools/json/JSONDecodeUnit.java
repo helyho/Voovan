@@ -18,11 +18,6 @@ public class JSONDecodeUnit extends TestCase {
 
 	@SuppressWarnings("rawtypes")
 	public void testRun() throws Exception{
-//		TReflect.genFieldReader(TestObject.class);
-//		TReflect.genFieldWriter(TestObject.class);
-//		TReflect.genFieldReader(TestObject2.class);
-//		TReflect.genFieldWriter(TestObject2.class);
-
 		String jsonString = "/*asdfasdf*/"+
 							" {"+
 								"\"bint\":32,"+

@@ -11,6 +11,8 @@ package org.voovan.test.tools;
 public class SimpleObject {
     private String valueS;
     private Integer valueI;
+    private Float valueF;
+    private Double valueD;
 
     public String getValueS() {
         return valueS;
@@ -26,6 +28,22 @@ public class SimpleObject {
 
     public void setValueI(Integer valueI) {
         this.valueI = valueI;
+    }
+
+    public Float getValueF() {
+        return valueF;
+    }
+
+    public void setValueF(Float valueF) {
+        this.valueF = valueF;
+    }
+
+    public Double getValueD() {
+        return valueD;
+    }
+
+    public void setValueD(Double valueD) {
+        this.valueD = valueD;
     }
 
     public String getData(String aa, Integer bb){

@@ -136,7 +136,7 @@ public class TReflectTest {
         })/1000000f);
 
 
-        System.out.println("==========================getMap==========================");
+        System.out.println("==========================getMapfromObject==========================");
         TReflect.FIELD_READER.clear();
         System.out.println("reflect: " + TEnv.measureTime(()->{
             for(int i=0;i<100000;i++){
@@ -162,7 +162,7 @@ public class TReflectTest {
 
 
 
-        System.out.println("==========================setObject==========================");
+        System.out.println("==========================getObjectFromMap==========================");
         Map map = TReflect.getMapfromObject(obj);
         TReflect.FIELD_READER.clear();
         System.out.println("reflect: " + TEnv.measureTime(()->{
@@ -181,6 +181,56 @@ public class TReflectTest {
             for(int i=0;i<100000;i++){
                 try {
                     TReflect.getObjectFromMap(TestObject.class, map, false);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+
+        System.out.println("==========================JSON.toJSON==========================");
+        TReflect.FIELD_READER.clear();
+        System.out.println("reflect: " + TEnv.measureTime(()->{
+            for(int i=0;i<100000;i++){
+                try {
+                   JSON.toJSON(obj);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+        TReflect.genFieldReader(SimpleObject.class);
+        TReflect.genFieldWriter(SimpleObject.class);
+        System.out.println("native: " + TEnv.measureTime(()->{
+            for(int i=0;i<100000;i++){
+                try {
+                    JSON.toJSON(obj);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+        System.out.println("==========================JSON.toObject==========================");
+        String json = JSON.toJSON(obj);
+        TReflect.FIELD_READER.clear();
+        System.out.println("reflect: " + TEnv.measureTime(()->{
+            for(int i=0;i<100000;i++){
+                try {
+                    JSON.toObject(json, SimpleObject.class);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+        TReflect.genFieldReader(SimpleObject.class);
+        TReflect.genFieldWriter(SimpleObject.class);
+        System.out.println("native: " + TEnv.measureTime(()->{
+            for(int i=0;i<100000;i++){
+                try {
+                    JSON.toObject(json, SimpleObject.class);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
