@@ -33,7 +33,6 @@ public class TReflectTest {
 
         TReflect.genFieldReader(obj);
         TReflect.genFieldWriter(obj);
-        TReflect.genMethodInvoker(obj);
 
         //get
         String val = TReflect.getFieldValueNatvie(obj, "string");
@@ -64,16 +63,7 @@ public class TReflectTest {
 
         Method method = TReflect.findMethod(TestObject.class, "getData", new Class[]{String.class, Integer.class});
 
-        System.out.println("==========================warmup==========================");
-        System.out.println("reflect: " + TEnv.measureTime(()->{
-            for(int i=0;i<1000000;i++){
-                try {
-                    TReflect.invokeMethod(obj, method, new Object[]{"aaaa", 111});
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        })/1000000f);
+        Object[] objs = new Object[]{"aaaa", 111};
 
         System.out.println("==========================get==========================");
 
@@ -154,22 +144,14 @@ public class TReflectTest {
         System.out.println("reflect: " + TEnv.measureTime(()->{
             for(int i=0;i<1000000;i++){
                 try {
-                    TReflect.invokeMethod(obj, method, new Object[]{"aaaa", 111});
+                    TReflect.invokeMethod(obj, method, objs);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         })/1000000f);
 
-        System.out.println("native: " + TEnv.measureTime(()->{
-            for(int i=0;i<1000000;i++){
-                try {
-                    TReflect.invokeMethodNative(obj, method, new Object[]{"aaaa", 111});
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        })/1000000f);
+
 
     }
 }
