@@ -150,6 +150,18 @@ public class TReflect {
     }
 
     /**
+     * 通过静态调用的方式获取 Field 的值
+     * @param obj  对象
+     * @param field field 对象
+     * @param <T> field 的类型
+     * @return  Field 的值
+     * @throws Exception 调用异常
+     */
+    public static <T> T getFieldValueNatvie(Object obj, Field field) throws Exception {
+        return getFieldValueNatvie(obj, field.getName());
+    }
+
+    /**
      * 通过静态调用的方式设置 Field 的值
      * @param obj 对象
      * @param fieldName field 名称
@@ -159,6 +171,17 @@ public class TReflect {
     public static void setFieldValueNatvie(Object obj, String fieldName, Object value) throws Exception {
         String setMethodName = "set"+TString.upperCaseHead(fieldName);
         TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, setMethodName, new Object[]{value});
+    }
+
+    /**
+     * 通过静态调用的方式设置 Field 的值
+     * @param obj 对象
+     * @param field field 对象
+     * @param value Field 的值
+     * @throws Exception 调用异常
+     */
+    public static void setFieldValueNatvie(Object obj, Field field, Object value) throws Exception {
+       setFieldValueNatvie(obj, field.getName(), value);
     }
 
     /**
@@ -172,6 +195,19 @@ public class TReflect {
      */
     public static <T> T invokeMethodNative(Object obj, String methodName, Object[] params) throws Exception {
         return (T)TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, methodName, params);
+    }
+
+    /**
+     * 通过静态调用一个方法
+     * @param obj 对象
+     * @param method method对象
+     * @param params 方法参数
+     * @param <T> 方法返回值的范型
+     * @return 方法返回值
+     * @throws Exception 调用异常
+     */
+    public static <T> T invokeMethodNative(Object obj, Method method , Object[] params) throws Exception {
+        return invokeMethodNative(obj, method.getName(), params);
     }
 
     /**
