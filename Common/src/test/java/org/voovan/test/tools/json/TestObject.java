@@ -44,6 +44,6 @@ public class TestObject implements Serializable {
 	}
 
 	public String getData(String aa, int bb){
-		return  "MethodInvoke: " + aa + bb;
+		return  System.currentTimeMillis() + " " + aa + " " + bb;
 	}
 }
