@@ -18,10 +18,10 @@ public class JSONDecodeUnit extends TestCase {
 
 	@SuppressWarnings("rawtypes")
 	public void testRun() throws Exception{
-		TReflect.genFieldReader(TestObject.class);
-		TReflect.genFieldWriter(TestObject.class);
-		TReflect.genFieldReader(TestObject2.class);
-		TReflect.genFieldWriter(TestObject2.class);
+//		TReflect.genFieldReader(TestObject.class);
+//		TReflect.genFieldWriter(TestObject.class);
+//		TReflect.genFieldReader(TestObject2.class);
+//		TReflect.genFieldWriter(TestObject2.class);
 
 		String jsonString = "/*asdfasdf*/"+
 							" {"+
@@ -65,7 +65,7 @@ public class JSONDecodeUnit extends TestCase {
 //		assertTrue(((List)tb2.get("list")).size() == 1);
 //		assertTrue(((Map)tb2.get("map")).size() == 1);
 		System.out.println(TEnv.measureTime(()->{
-			for(int i=0;i<50000;i++){
+			for(int i=0;i<10000;i++){
 				try {
 					TestObject object = JSONDecode.fromJSON(jsonString, TestObject.class);
 				} catch (ParseException e) {

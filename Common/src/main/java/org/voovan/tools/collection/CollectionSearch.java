@@ -201,7 +201,7 @@ public class CollectionSearch<T> {
                                 }
 
                                 if (collectionValue.getClass().getSimpleName().startsWith("Atomic")) {
-                                    collectionValue = TReflect.invokeMethod(collectionValue, "getThread");
+                                    collectionValue = TReflect.invokeMethod(collectionValue, "get");
                                 }
 
                                 if (collectionValue == null && stepValue == null) {
