@@ -3,6 +3,7 @@ package org.voovan.test.tools.json;
 import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.json.JSONDecode;
+import org.voovan.tools.reflect.TReflect;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -17,6 +18,11 @@ public class JSONDecodeUnit extends TestCase {
 
 	@SuppressWarnings("rawtypes")
 	public void testRun() throws Exception{
+		TReflect.genFieldReader(TestObject.class);
+		TReflect.genFieldWriter(TestObject.class);
+		TReflect.genFieldReader(TestObject2.class);
+		TReflect.genFieldWriter(TestObject2.class);
+
 		String jsonString = "/*asdfasdf*/"+
 							" {"+
 								"\"bint\":32,"+
@@ -46,6 +52,7 @@ public class JSONDecodeUnit extends TestCase {
 //								"\"nullValue\":null"+
 							"} ";
 
+
 		Map<String, Object> obj = (Map<String, Object>)JSONDecode.parse(jsonString);
 //		assertTrue((Integer)obj.size()==7);
 //		assertTrue((Integer)obj.get("bint")==32);
@@ -58,7 +65,7 @@ public class JSONDecodeUnit extends TestCase {
 //		assertTrue(((List)tb2.get("list")).size() == 1);
 //		assertTrue(((Map)tb2.get("map")).size() == 1);
 		System.out.println(TEnv.measureTime(()->{
-			for(int i=0;i<1000;i++){
+			for(int i=0;i<50000;i++){
 				try {
 					TestObject object = JSONDecode.fromJSON(jsonString, TestObject.class);
 				} catch (ParseException e) {
@@ -69,7 +76,7 @@ public class JSONDecodeUnit extends TestCase {
 					e.printStackTrace();
 				}
 			}
-		})/1000000000f);
+		})/1000000f);
 		TestObject object = JSONDecode.fromJSON(jsonString, TestObject.class);
 		assertTrue(object.getBint()==32);
 		assertEquals(object.getString(),"helyho");
