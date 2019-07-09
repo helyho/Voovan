@@ -790,13 +790,11 @@ public class TReflect {
 
         if(constructors==null){
             LinkedHashSet<Constructor> constructorList = new LinkedHashSet<Constructor>();
-            for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
-                Constructor[] allConstructors = clazz.getDeclaredConstructors();
-                for(Constructor constructor : allConstructors){
-                    constructor.setAccessible(true);
-                }
-                constructorList.addAll(Arrays.asList(allConstructors));
+            Constructor[] allConstructors = clazz.getDeclaredConstructors();
+            for(Constructor constructor : allConstructors){
+                constructor.setAccessible(true);
             }
+            constructorList.addAll(Arrays.asList(allConstructors));
 
             constructors = constructorList.toArray(new Constructor[]{});
 
@@ -804,7 +802,6 @@ public class TReflect {
                 CONSTRUCTOR_ARRAYS.put(marker, constructors);
                 CONSTRUCTOR_ARRAYS.clear();
             }
-
         }
 
         return constructors;
