@@ -397,7 +397,7 @@ public class TSQL {
 	 * @return 解析的 SQL 查询条件
 	 */
 	public static List<String[]> parseSQLCondiction(String sqlText) {
-		int hashcode = THash.hashTime31(sqlText);
+		int hashcode = THash.HashFNV1(sqlText);
 		List<String[]> condictionList = PARSED_CONDICTIONS.get(hashcode);
 		if(condictionList == null) {
 			condictionList = new ArrayList<String[]>();

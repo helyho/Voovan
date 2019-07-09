@@ -234,7 +234,7 @@ public class HttpDispatcher {
 	public List<Object> findRouter(HttpRequest request){
 		String requestPath   = request.protocol().getPath();
 		String requestMethod 	= request.protocol().getMethod();
-		int routerMark    = THash.hashTime31(requestPath) << 16 +  THash.hashTime31(requestMethod);
+		int routerMark    = THash.HashFNV1(requestPath) << 16 +  THash.HashFNV1(requestMethod);
 
 		List<Object> routerInfo = ROUTER_INFO_CACHE.get(routerMark);
 

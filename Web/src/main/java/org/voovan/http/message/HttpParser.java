@@ -494,13 +494,13 @@ public class HttpParser {
 
 						for (Entry<Long, Map<String, Object>> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
 							long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
-							long totalLengthInMark = (cachedMark << 32) >> 32;
+							long totalLengthInMark = (cachedMark << 32) >> 32; //高位清空, 获得整个头的长度
 
 							if (totalLengthInMark > innerByteBuffer.limit()) {
 								continue;
 							}
 
-							headerMark = THash.hashTime31(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
+							headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
 
 							if (mark + headerMark == cachedMark >> 32) {
 
@@ -555,8 +555,8 @@ public class HttpParser {
 				//处理更新或设置缓存
 				if(isCache && "GET".equals(packetMap.get(PL_METHOD)) || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
 					totalLength = innerByteBuffer.position();
-					headerMark = THash.hashTime31(innerByteBuffer, protocolPosition, (int)(totalLength - protocolPosition));
-					mark = (mark + headerMark) << 32 | totalLength;
+					headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int)(totalLength - protocolPosition));
+					mark = (mark + headerMark) << 32 | totalLength; //高位存 hash, 低位存整个头的长度
 					packetMap.put(PL_HASH, mark);
 
 					HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();

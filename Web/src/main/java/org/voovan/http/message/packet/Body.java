@@ -247,7 +247,7 @@ public class Body {
 	public void write(byte[] body,int offset,int length){
 		try {
 			if(type == BodyType.BYTES) {
-				int hash = THash.hashTime31(body, offset, length);
+				int hash = THash.HashFNV1(body, offset, length);
 				mark = mark==0 ? hash : mark + hash;
 				ByteBuffer bodyTmp = ByteBuffer.wrap(body);
 				bodyTmp.position(offset);
