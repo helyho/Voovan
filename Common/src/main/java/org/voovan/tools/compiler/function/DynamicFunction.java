@@ -102,7 +102,7 @@ public class DynamicFunction {
         this.bodyCode = "";
         this.code = null;
         this.javaCode = "";
-        this.clazz = Object.class;
+        this.clazz = null;
         this.codeFile = null;
 
         needCompile = true;
@@ -296,7 +296,7 @@ public class DynamicFunction {
 
     private void genImportFunction(){
         for(String dynamicFunctionName : importFunctions){
-            importFunctionCode = importFunctionCode + "public static Object "+dynamicFunctionName+"(Object ... args) throws Exception { \r\n "+
+            importFunctionCode = importFunctionCode + "private static Object "+dynamicFunctionName+"(Object ... args) throws Exception { \r\n "+
                     "        return DynamicCompilerManager.callFunction(\""+dynamicFunctionName+"\", args); \r\n" +
                     "    } \r\n" ;
         }
@@ -392,25 +392,22 @@ public class DynamicFunction {
      * @throws ReflectiveOperationException 反射异常
      */
     public void compileCode() throws ReflectiveOperationException {
-        synchronized (this.clazz) {
+        if (this.clazz != null && codeFile != null) {
+            checkFileChanged();
+        }
 
-            if (this.clazz != Object.class && codeFile != null) {
-                checkFileChanged();
-            }
+        if (this.clazz == null || this.needCompile) {
+            genCode();
 
-            if (this.clazz == Object.class || this.needCompile) {
-                genCode();
-
-                DynamicCompiler compiler = new DynamicCompiler();
-                if (compiler.compileCode(this.javaCode)) {
-                    this.clazz = compiler.getClazz();
-                    this.className = this.clazz.getCanonicalName();
-                    this.needCompile = false;
-                    this.objectForCall = (FunctionInterface) clazz.newInstance();
-                } else {
-                    Logger.simple(code);
-                    throw new ReflectiveOperationException("Compile code error.");
-                }
+            DynamicCompiler compiler = new DynamicCompiler();
+            if (compiler.compileCode(this.javaCode)) {
+                this.clazz = compiler.getClazz();
+                this.className = this.clazz.getCanonicalName();
+                this.needCompile = false;
+                this.objectForCall = (FunctionInterface) clazz.newInstance();
+            } else {
+                Logger.simple(code);
+                throw new ReflectiveOperationException("Compile code error.");
             }
         }
     }
@@ -436,10 +433,8 @@ public class DynamicFunction {
      * @throws Exception 反射异常
      */
     public <T> T call(Object... args) throws Exception {
-        synchronized (this.clazz) {
-            compileCode();
-            return (T)objectForCall.execute(args);
-        }
+        compileCode();
+        return (T)objectForCall.execute(args);
     }
 
 }
