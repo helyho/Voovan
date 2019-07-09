@@ -1,6 +1,7 @@
 package org.voovan.http.server.context;
 
 import org.voovan.Global;
+import org.voovan.tools.aop.AopConfig;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
@@ -44,7 +45,7 @@ public class WebServerConfig {
     private int hotSwapInterval = 0;
     private String lifeCycleClass = null;
     private String pauseURL = null;
-    private String scanAopPackage = null;
+    private AopConfig aopConfig = null;
     private int maxRequestSize = 1024;
     private boolean cache    = true;
 
@@ -240,8 +241,8 @@ public class WebServerConfig {
         return moduleConfigs;
     }
 
-    public String getScanAopPackage() {
-        return scanAopPackage;
+    public AopConfig getAopConfig() {
+        return aopConfig;
     }
 
     public int getMaxRequestSize() {
