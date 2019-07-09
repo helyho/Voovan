@@ -263,7 +263,7 @@ public class WebServerHandler implements IoHandler {
 			if (requestMark != null) {
 				int bodyMark = httpResponse.body().getMark();
 				if (bodyMark != 0) {
-					httpResponse.setMark(requestMark << 32 >> 32 | bodyMark);
+					httpResponse.setMark(requestMark >> 32 << 32 | bodyMark); //清空低位, 保存 body 的 hash, 原低位存的时候头的长度
 				}
 			}
 		}
