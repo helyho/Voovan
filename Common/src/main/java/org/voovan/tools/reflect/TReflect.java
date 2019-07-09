@@ -193,7 +193,7 @@ public class TReflect {
      * 生成方法的原生调用代码
      * @param obj 根绝这个对象的元信息生成静态调用代码
      */
-    public static void genMethodInvoker(Object obj) {
+    public static void genMethodInvoker(Object obj) throws ReflectiveOperationException {
         // 生成的代码样例
         // if(methodName.equals("getMap#-872919456")) {java.util.HashMap result = obj.getMap(); return result;}
         // else if(methodName.equals("setBint#780572147")) {obj.setBint((int) params[0]); return null;}
@@ -211,7 +211,7 @@ public class TReflect {
             Class[] paramTypes = method.getParameterTypes();
 
             code.append(code.length() == 0 ? "if" : "else if");
-            code.append("(methodName.equals(\"" + method.getName() + Global.CHAR_SHAPE + THash.HashFNV1(method.toString()) + "\")) {");
+            code.append("(methodName.equals(\"" + method.getName() + method.getParameterCount() + "\")) {");
 
             //准备接收方法返回值的分段代码, 用于后面拼接
             Class returnClass = method.getReturnType();
@@ -250,12 +250,8 @@ public class TReflect {
         dynamicFunction.addPrepareArg(1, String.class,   "methodName"); //写入字段
         dynamicFunction.addPrepareArg(2, Object[].class, "params");     //写入数据
 
-        try {
-            //编译代码
-            dynamicFunction.compileCode();
-        } catch (ReflectiveOperationException e) {
-            Logger.error("TReflect.genMethodInvoker error", e);
-        }
+        //编译代码
+        dynamicFunction.compileCode();
 
         METHOD_INVOKE.put(className, dynamicFunction);
         if(Global.IS_DEBUG_MODE) {
@@ -272,23 +268,8 @@ public class TReflect {
      * @return 方法返回值
      * @throws Exception 调用异常
      */
-    public static <T> T invokeMethodNative(Object obj, Method method , Object[] params) throws Exception {
-        return (T)TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, method.getName() + Global.CHAR_SHAPE + THash.HashFNV1(method.toString()), params);
-    }
-
-    /**
-     * 通过原生调用一个方法
-     * @param obj 对象
-     * @param methodName 方法名
-     * @param params 方法参数
-     * @param <T> 方法返回值的范型
-     * @return 方法返回值
-     * @throws Exception 调用异常
-     */
-    public static <T> T invokeMethodNative(Object obj, String methodName, Object[] params) throws Exception {
-        //查找匹配的方法
-        Method method = findMethod(obj.getClass(), methodName, getArrayClasses(params));
-        return invokeMethodNative(obj, method, params);
+    public static <T> T invokeMethodNative(Object obj, Method method, Object[] params) throws Exception {
+        return (T)TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, method.getName() + method.getParameterCount(), params);
     }
 
     /**
@@ -568,8 +549,7 @@ public class TReflect {
      * @param paramTypes   参数类型
      * @return			   方法对象
      */
-    public static Method findMethod(Class<?> clazz, String name,
-                                    Class<?>... paramTypes) {
+    public static Method findMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
         StringBuilder markBuilder = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(name);
         for(Class<?> paramType : paramTypes){
             markBuilder.append("$").append(getClassName(paramType));
@@ -607,8 +587,7 @@ public class TReflect {
      * @param paramCount   参数数量
      * @return			   方法对象
      */
-    public static Method[] findMethod(Class<?> clazz, String name,
-                                      int paramCount) {
+    public static Method[] findMethod(Class<?> clazz, String name, int paramCount) {
         String marker = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(name).append(Global.CHAR_AT).append(paramCount).toString();
 
         Method[] methods = METHOD_ARRAYS.get(marker);
@@ -676,7 +655,7 @@ public class TReflect {
      * @param name		方法名
      * @return Method 对象数组
      */
-    public static Method[] getMethods(Class<?> clazz,String name) {
+    public static Method[] getMethods(Class<?> clazz, String name) {
 
         Method[] methods = null;
 
@@ -708,7 +687,7 @@ public class TReflect {
      * @param parameterIndex 参数索引(大于0)参数索引位置[第一个参数为0,以此类推], (-1) 返回值
      * @return 返回范型类型数组
      */
-    public static Class[] getMethodParameterGenericType(Method method,int parameterIndex) {
+    public static Class[] getMethodParameterGenericType(Method method, int parameterIndex) {
         Class[] result = null;
         Type parameterType;
 
@@ -742,8 +721,8 @@ public class TReflect {
      * 对对象执行一个通过 方法名和参数列表选择的方法
      * @param obj				执行方法的对象,如果调用静态方法直接传 Class 类型的对象
      * @param name				执行方法名
-     * @param args		方法参数
-     * @param <T> 范型
+     * @param args		        方法参数
+     * @param <T>               范型
      * @return					方法返回结果
      * @throws ReflectiveOperationException		反射异常
      */
@@ -752,81 +731,163 @@ public class TReflect {
         if(args==null){
             args = new Object[0];
         }
-        Class<?>[] parameterTypes = getArrayClasses(args);
-        Method method = null;
+        Method[] methods = null;
         Class objClass = (obj instanceof Class) ? (Class)obj : obj.getClass();
-        try {
-            method = findMethod(objClass, name, parameterTypes);
-            return (T)method.invoke(obj, args);
-        }catch(Exception e){
-            Exception lastExecption = e;
+        methods = findMethod(objClass, name, args.length);
 
-            if(e instanceof NoSuchMethodException || method == null) {
-                //找到这个名称的所有方法
-                Method[] methods = findMethod(objClass, name, parameterTypes.length);
-                for (Method similarMethod : methods) {
-                    Type[] methodParamTypes = similarMethod.getGenericParameterTypes();
-                    //匹配参数数量相等的方法
-                    if (methodParamTypes.length == args.length) {
-                        try{
-                            return (T)similarMethod.invoke(obj, args);
-                        } catch (Exception ex){
-                            //不处理
-                        }
+        ReflectiveOperationException reflectiveOperationException = null;
 
-                        try {
-                            Object[] convertedParams = new Object[args.length];
-                            for (int i = 0; i < methodParamTypes.length; i++) {
-                                Type parameterType = methodParamTypes[i];
+        //如果失败循环尝试各种相同类型的方法
+        for(Method method : methods) {
+            try {
+                return (T) method.invoke(obj, args);
+            } catch (Exception e) {
+                if (!(e instanceof ReflectiveOperationException)) {
+                    reflectiveOperationException = new ReflectiveOperationException(e.getMessage(), e);
+                } else {
+                    reflectiveOperationException = (ReflectiveOperationException) e;
+                }
+            }
+        }
 
-                                //如果范型类型没有指定则使用 Object 作为默认类型
-                                if(parameterType instanceof TypeVariable){
-                                    parameterType = Object.class;
-                                }
+        throw reflectiveOperationException;
+    }
 
-                                //参数类型转换
-                                String value = "";
+    /**
+     * 查找类中的构造方法
+     * @param clazz        类对象
+     * @param paramTypes   参数类型
+     * @return			   方法对象
+     */
+    public static Constructor findConstructor(Class<?> clazz, Class<?>... paramTypes) {
+        StringBuilder markBuilder = new StringBuilder(getClassName(clazz));
+        for(Class<?> paramType : paramTypes){
+            markBuilder.append("$").append(getClassName(paramType));
+        }
 
-                                //这里对参数类型是 Object或者是范型 的提供支持
-                                if (parameterType != Object.class && args[i] != null) {
-                                    Class argClass = args[i].getClass();
+        String marker = markBuilder.toString();
 
-                                    //复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
-                                    if (args[i] instanceof Collection ||
-                                            args[i] instanceof Map ||
-                                            argClass.isArray() ||
-                                            !TReflect.isBasicType(argClass)) {
-                                        //增加对于基本类型 Array 的支持
-                                        if(argClass.isArray() && TReflect.isBasicType(argClass.getComponentType())) {
-                                            convertedParams[i]  = args[i];
-                                            continue;
-                                        } else {
-                                            value = JSON.toJSON(args[i]);
-                                        }
-                                    } else {
-                                        value = args[i].toString();
-                                    }
-                                    convertedParams[i] = TString.toObject(value, parameterType);
-                                } else {
-                                    convertedParams[i] = args[i];
-                                }
-                            }
-                            method = similarMethod;
-                            return (T)method.invoke(obj, convertedParams);
-                        } catch (Exception ex) {
-                            lastExecption = ex;
-                            continue;
-                        }
-                    }
+        Constructor constructor = CONSTRUCTORS.get(marker);
+
+        if (constructor==null){
+
+            for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+                try {
+                    constructor = clazz.getDeclaredConstructor(paramTypes);
+                    constructor.setAccessible(true);
+                    break;
+                }catch(ReflectiveOperationException e){
+                    constructor = null;
                 }
             }
 
-            if ( !(lastExecption instanceof ReflectiveOperationException) ) {
-                lastExecption = new ReflectiveOperationException(lastExecption.getMessage(), lastExecption);
+            if(marker!=null) {
+                constructor = constructor == null ? EMPTY_CONSTRUCTOR : constructor;
+                CONSTRUCTORS.put(marker, constructor);
+            }
+        }
+
+        return constructor == EMPTY_CONSTRUCTOR ? null : constructor;
+    }
+
+    /**
+     * 查找类中的构造方法(使用参数数量)
+     * @param clazz        类对象
+     * @param paramCount   参数数量
+     * @return			   方法对象
+     */
+    public static Constructor[] findConstructor(Class<?> clazz, int paramCount) {
+        String marker = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(paramCount).toString();
+
+        Constructor[] constructors = CONSTRUCTOR_ARRAYS.get(marker);
+
+        if (constructors==null){
+            LinkedHashSet<Constructor> constructorList = new LinkedHashSet<Constructor>();
+            Constructor[] allConstructor = getConstructors(clazz);
+            for (Constructor constructor : allConstructor) {
+                if (constructor.getParameterTypes().length == paramCount) {
+                    constructor.setAccessible(true);
+                    constructorList.add(constructor);
+                }
             }
 
-            throw (ReflectiveOperationException)lastExecption;
+            constructors = constructorList.toArray(new Constructor[]{});
+
+            if(marker!=null) {
+                CONSTRUCTOR_ARRAYS.put(marker, constructors);
+                constructorList.clear();
+            }
         }
+
+        return constructors;
+    }
+
+    /**
+     * 获取类的构造方法集合
+     * @param clazz		类对象
+     * @return Method 对象数组
+     */
+    public static Constructor[] getConstructors(Class<?> clazz) {
+
+        Constructor[] constructors = null;
+
+        String marker = getClassName(clazz);
+
+        constructors = CONSTRUCTOR_ARRAYS.get(marker);
+
+        if(constructors==null){
+            LinkedHashSet<Constructor> constructorList = new LinkedHashSet<Constructor>();
+            for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+                Constructor[] tmpConstructors = clazz.getDeclaredConstructors();
+                for(Constructor constructor : tmpConstructors){
+                    constructor.setAccessible(true);
+                }
+                constructorList.addAll(Arrays.asList(tmpConstructors));
+            }
+
+            constructors = constructorList.toArray(new Constructor[]{});
+
+            if(marker!=null) {
+                CONSTRUCTOR_ARRAYS.put(marker, constructors);
+                CONSTRUCTOR_ARRAYS.clear();
+            }
+
+        }
+
+        return constructors;
+    }
+
+    /**
+     * 获取类的特定构造方法的集合
+     * 		类中可能存在同名方法
+     * @param clazz		类对象
+     * @param name		方法名
+     * @return Method 对象数组
+     */
+    public static Constructor[] getConstructors(Class<?> clazz, String name) {
+
+        Constructor[] constructoars = null;
+
+        String marker = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(name).toString();
+        constructoars = CONSTRUCTOR_ARRAYS.get(marker);
+        if(constructoars==null){
+
+            LinkedHashSet<Constructor> constructorList = new LinkedHashSet<Constructor>();
+            Constructor[] allConstructors = getConstructors(clazz);
+            for (Constructor constructor : allConstructors) {
+                if (constructor.getName().equals(name))
+                    constructorList.add(constructor);
+            }
+
+            constructoars = constructorList.toArray(new Constructor[0]);
+
+            if(marker!=null) {
+                CONSTRUCTOR_ARRAYS.put(marker, constructoars);
+                constructorList.clear();
+            }
+        }
+
+        return constructoars;
     }
 
     /**
@@ -862,107 +923,33 @@ public class TReflect {
             targetClazz = LinkedHashMap.class;
         }
 
-
-        Class<?>[] parameterTypes = getArrayClasses(args);
-
-        StringBuilder markBuilder = new StringBuilder(getClassName(targetClazz));
-        for(Class<?> paramType : parameterTypes){
-            markBuilder.append("$").append(getClassName(paramType));
+        if(args==null){
+            args = new Object[0];
         }
+        Constructor[] constructors = null;
+        constructors = findConstructor(clazz, args.length);
 
-        String mark = markBuilder.toString();
+        ReflectiveOperationException reflectiveOperationException = null;
 
-        Constructor<T> constructor = CONSTRUCTORS.get(mark);
-
-        try {
-
-            if (constructor==null){
-                if (args.length == 0) {
-                    constructor = targetClazz.getDeclaredConstructor();
-                    constructor.setAccessible(true);
+        //如果失败循环尝试各种构造函数构造
+        for(Constructor constructor : constructors) {
+            try {
+                return (T) constructor.newInstance(args);
+            } catch (Exception e) {
+                if (!(e instanceof ReflectiveOperationException)) {
+                    reflectiveOperationException = new ReflectiveOperationException(e.getMessage(), e);
                 } else {
-                    constructor = targetClazz.getDeclaredConstructor(parameterTypes);
-                    constructor.setAccessible(true);
+                    reflectiveOperationException = (ReflectiveOperationException) e;
                 }
-
-                if(mark!=null) {
-                    constructor = constructor == null ? EMPTY_CONSTRUCTOR : constructor;
-                    CONSTRUCTORS.put(mark, constructor);
-                }
-            }
-
-            return constructor == EMPTY_CONSTRUCTOR ? (T) TUnsafe.getUnsafe().allocateInstance(targetClazz) : constructor.newInstance(args);
-
-        }catch(Exception e){
-            Exception lastExecption = e;
-            if(constructor==null) {
-
-                //缓存构造函数
-                mark = getClassName(targetClazz);
-                Constructor[] constructors =  CONSTRUCTOR_ARRAYS.get(mark);
-                if(constructors==null){
-
-                    constructors = targetClazz.getDeclaredConstructors();
-
-                    if(mark!=null) {
-                        CONSTRUCTOR_ARRAYS.put(mark, constructors);
-                    }
-                }
-
-                for (Constructor similarConstructor : constructors) {
-                    Class[] methodParamTypes = similarConstructor.getParameterTypes();
-                    //匹配参数数量相等的方法
-                    if (methodParamTypes.length == args.length) {
-
-                        try{
-                            return (T) similarConstructor.newInstance(args);
-                        } catch (Exception ex){
-                            //不处理
-                        }
-
-                        try {
-                            Object[] convertedParams = new Object[args.length];
-                            for (int i = 0; i < methodParamTypes.length; i++) {
-                                Class parameterType = methodParamTypes[i];
-                                //参数类型转换
-                                String value = "";
-
-                                Class parameterClass = args[i].getClass();
-
-                                //复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
-                                if (args[i] instanceof Collection ||
-                                        args[i] instanceof Map ||
-                                        parameterClass.isArray() ||
-                                        !TReflect.isBasicType(parameterClass)) {
-                                    value = JSON.toJSON(args[i]);
-                                } else {
-                                    value = args[i].toString();
-                                }
-
-                                convertedParams[i] = TString.toObject(value, parameterType);
-                            }
-                            constructor = similarConstructor;
-
-                            return constructor.newInstance(convertedParams);
-                        } catch (Exception ex) {
-                            continue;
-                        }
-                    }
-                }
-            }
-
-            if ( !(lastExecption instanceof ReflectiveOperationException) ) {
-                lastExecption = new ReflectiveOperationException(lastExecption.getMessage(), lastExecption);
-            }
-
-            //尝试使用 Unsafe 分配
-            try{
-                return (T)allocateInstance(targetClazz);
-            }catch(Exception ex) {
-                throw e;
             }
         }
 
+        //全都失败用 unsafe 构造对象
+        try {
+            return (T) TUnsafe.getUnsafe().allocateInstance(targetClazz);
+        } catch (Exception e) {
+            throw reflectiveOperationException;
+        }
     }
 
     /**
@@ -974,13 +961,8 @@ public class TReflect {
      * @throws ReflectiveOperationException 反射异常
      */
     public static <T> T newInstance(String className, Object ...parameters) throws ReflectiveOperationException {
-        @SuppressWarnings("unchecked")
-        Class<T> clazz = (Class<T>) Class.forName(className);
-        if(parameters.length == 0) {
-            return clazz.newInstance();
-        } else {
-            return newInstance(clazz, parameters);
-        }
+        Class<T> clazz = CLASS_NAME.get(className);
+        return newInstance(clazz, parameters);
     }
 
     /**
