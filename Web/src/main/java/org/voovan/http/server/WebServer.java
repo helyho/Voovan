@@ -81,9 +81,9 @@ public class WebServer {
 	 */
 	private void initAop() {
 		//热加载
-		if(config.getScanAopPackage()!=null) {
+		if(config.getAopConfig()!=null) {
 			try {
-				Aop.init(config.getScanAopPackage());
+				Aop.init(config.getAopConfig());
 			} catch (Exception e) {
 				Logger.error("Init aop failed: " + e.getMessage());
 			}

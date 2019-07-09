@@ -33,40 +33,30 @@ public class Aop {
 
     /**
      * 构造函数
-     * @param scanPackage 扫描的包路径
-     * @throws Exception IO 异常
-     */
-    public static void init(String scanPackage) throws java.lang.Exception {
-        init(null, scanPackage);
-    }
-
-    /**
-     * 构造函数
-     * @param scanPackages 扫描的包路径, 可都好分割多个包
-     * @param agentJarPath AgentJar 文件
+     * @param aopConfig Aop配置对象
      * @throws IOException IO 异常
      * @throws AttachNotSupportedException 附加指定进程失败
      * @throws AgentLoadException Agent 加载异常
      * @throws AgentInitializationException Agent 初始化异常
      * @throws ClassNotFoundException 类找不到异常
      */
-    public static void init(String agentJarPath, String scanPackages) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException, ClassNotFoundException {
-        if(scanPackages==null){
+    public static void init(AopConfig aopConfig) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException, ClassNotFoundException {
+        if(aopConfig==null){
             return;
         }
 
         //扫描带有 Aop 的切点方法
-        for(String scanPackage : scanPackages.split(",")) {
+        for(String scanPackage : aopConfig.getScanPackages().split(",")) {
             AopUtils.scanAopClass(scanPackage);
         }
 
-        instrumentation = TEnv.agentAttach(agentJarPath);
+        instrumentation = TEnv.agentAttach(aopConfig.getAgentJarPath());
         if(instrumentation!=null) {
             instrumentation.addTransformer(new ClassFileTransformer() {
                 @Override
                 public byte[] transform(ClassLoader loader, String classPath, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
                     String className = classPath.replaceAll(File.separator, ".");
-                    if(!TReflect.isSystemType(className)) {
+                    if(!TReflect.isSystemType(className) && aopConfig.isInject(className)) {
                         return Inject(className, classfileBuffer);
                     } else {
                         return classfileBuffer;
