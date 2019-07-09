@@ -7,6 +7,7 @@ import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.NotSerialization;
+import org.voovan.tools.security.THash;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -67,26 +68,28 @@ public class TReflect {
     public static Map<String, DynamicFunction>  METHOD_INVOKE        = new ConcurrentHashMap<String, DynamicFunction>();
 
     /**
-     * 生成方法的静态调用代码
+     * 生成方法的原生调用代码
      * @param obj 根绝这个对象的元信息生成静态调用代码
      */
     public static void genMethodInvoker(Object obj) {
         // 生成的代码样例
-        // if(methodName.equals("getMap")) {java.util.HashMap result = obj.getMap(); return result;}
-        // else if(methodName.equals("getString")) {java.lang.String result = obj.getString(); return result;}
-        // else if(methodName.equals("setBint")) {obj.setBint((int) params[0]); return null;}
-        // else if(methodName.equals("getData")) {java.lang.String result = obj.getData((java.lang.String) params[0],(int) params[1]); return result;}
+        // if(methodName.equals("getMap#-872919456")) {java.util.HashMap result = obj.getMap(); return result;}
+        // else if(methodName.equals("setBint#780572147")) {obj.setBint((int) params[0]); return null;}
+        // else if(methodName.equals("setString#-1074699118")) {obj.setString((java.lang.String) params[0]); return null;}
+        // else if(methodName.equals("getData#1245785925")) {java.lang.String result = obj.getData((java.lang.String) params[0],(java.lang.Integer) params[1]); return result;}
         // else { return null; }
 
         String className = obj.getClass().getCanonicalName();
         Method[] methods = getMethods(obj.getClass());
 
         //arg1 obj, arg2 methodName, arg3 args
-        String code = "";
+        StringBuilder code = new StringBuilder();
+
         for(Method method : methods) {
             Class[] paramTypes = method.getParameterTypes();
-            code = code + (code.isEmpty() ? "if" : "else if");
-            code = code + "(methodName.equals(\"" + method.getName() + "\")) {";
+
+            code.append(code.length() == 0 ? "if" : "else if");
+            code.append("(methodName.equals(\"" + method.getName() + Global.CHAR_SHAPE + THash.HashFNV1(method.toString()) + "\")) {");
 
             //准备接收方法返回值的分段代码, 用于后面拼接
             Class returnClass = method.getReturnType();
@@ -99,25 +102,27 @@ public class TReflect {
                 returnCode = " return null;";
             }
 
-            code = code + resultCode + "obj." + method.getName()+"(";
+            code.append(resultCode + "obj." + method.getName()+"(");
 
             //拼装方法参数代码, 类似: (java.lang.String) params[i],
             if(paramTypes.length > 0) {
                 for (int i = 0; i < paramTypes.length; i++) {
-                    code = code + "(" + paramTypes[i].getCanonicalName() + ") params[" + i + "],";
+                    code.append("(" + paramTypes[i].getCanonicalName() + ") params[" + i + "],");
                 }
-                code = TString.removeSuffix(code);
+                code.setLength(code.length() - 1);
             }
 
-            code = code + ");";
+            code.append(");");
 
             //拼装 return 代码
-            code = code + returnCode + "} \r\n";
+            code.append(returnCode + "} \r\n");
         }
 
-        code = code + "else { return null; }";
+        code.append("else { return null; }");
 
-        DynamicFunction dynamicFunction = new DynamicFunction(obj.getClass().getSimpleName()+"Reader", code);
+        DynamicFunction dynamicFunction = new DynamicFunction(obj.getClass().getSimpleName()+"Reader", code.toString());
+        dynamicFunction.addImport(ConcurrentHashMap.class);
+        dynamicFunction.addImport(Arrays.class);
         dynamicFunction.addImport(obj.getClass());
         dynamicFunction.addPrepareArg(0, obj.getClass(), "obj");        //目标对象
         dynamicFunction.addPrepareArg(1, String.class,   "methodName"); //写入字段
@@ -137,7 +142,35 @@ public class TReflect {
     }
 
     /**
-     * 通过静态调用的方式获取 Field 的值
+     * 通过原生调用一个方法
+     * @param obj 对象
+     * @param method method对象
+     * @param params 方法参数
+     * @param <T> 方法返回值的范型
+     * @return 方法返回值
+     * @throws Exception 调用异常
+     */
+    public static <T> T invokeMethodNative(Object obj, Method method , Object[] params) throws Exception {
+        return (T)TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, method.getName() + Global.CHAR_SHAPE + THash.HashFNV1(method.toString()), params);
+    }
+
+    /**
+     * 通过原生调用一个方法
+     * @param obj 对象
+     * @param methodName 方法名
+     * @param params 方法参数
+     * @param <T> 方法返回值的范型
+     * @return 方法返回值
+     * @throws Exception 调用异常
+     */
+    public static <T> T invokeMethodNative(Object obj, String methodName, Object[] params) throws Exception {
+        //查找匹配的方法
+        Method method = findMethod(obj.getClass(), methodName, getArrayClasses(params));
+        return invokeMethodNative(obj, method, params);
+    }
+
+    /**
+     * 通过原生调用的方式获取 Field 的值
      * @param obj  对象
      * @param fieldName field 名称
      * @param <T> field 的类型
@@ -146,11 +179,11 @@ public class TReflect {
      */
     public static <T> T getFieldValueNatvie(Object obj, String fieldName) throws Exception {
         String getMethodName = "get"+TString.upperCaseHead(fieldName);
-        return (T)TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, getMethodName, null);
+        return (T)invokeMethodNative(obj, getMethodName, new Object[]{});
     }
 
     /**
-     * 通过静态调用的方式获取 Field 的值
+     * 通过原生调用的方式获取 Field 的值
      * @param obj  对象
      * @param field field 对象
      * @param <T> field 的类型
@@ -162,7 +195,7 @@ public class TReflect {
     }
 
     /**
-     * 通过静态调用的方式设置 Field 的值
+     * 通过原生调用的方式设置 Field 的值
      * @param obj 对象
      * @param fieldName field 名称
      * @param value Field 的值
@@ -170,11 +203,11 @@ public class TReflect {
      */
     public static void setFieldValueNatvie(Object obj, String fieldName, Object value) throws Exception {
         String setMethodName = "set"+TString.upperCaseHead(fieldName);
-        TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, setMethodName, new Object[]{value});
+        invokeMethodNative(obj, setMethodName, new Object[]{value});
     }
 
     /**
-     * 通过静态调用的方式设置 Field 的值
+     * 通过原生调用的方式设置 Field 的值
      * @param obj 对象
      * @param field field 对象
      * @param value Field 的值
@@ -182,32 +215,6 @@ public class TReflect {
      */
     public static void setFieldValueNatvie(Object obj, Field field, Object value) throws Exception {
        setFieldValueNatvie(obj, field.getName(), value);
-    }
-
-    /**
-     * 通过静态调用一个方法
-     * @param obj 对象
-     * @param methodName 方法名
-     * @param params 方法参数
-     * @param <T> 方法返回值的范型
-     * @return 方法返回值
-     * @throws Exception 调用异常
-     */
-    public static <T> T invokeMethodNative(Object obj, String methodName, Object[] params) throws Exception {
-        return (T)TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, methodName, params);
-    }
-
-    /**
-     * 通过静态调用一个方法
-     * @param obj 对象
-     * @param method method对象
-     * @param params 方法参数
-     * @param <T> 方法返回值的范型
-     * @return 方法返回值
-     * @throws Exception 调用异常
-     */
-    public static <T> T invokeMethodNative(Object obj, Method method , Object[] params) throws Exception {
-        return invokeMethodNative(obj, method.getName(), params);
     }
 
     /**

@@ -43,7 +43,7 @@ public class TestObject implements Serializable {
 		this.tb2 = tb2;
 	}
 
-	public String getData(String aa, int bb){
+	public String getData(String aa, Integer bb){
 		return  System.currentTimeMillis() + " " + aa + " " + bb;
 	}
 }
