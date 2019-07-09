@@ -42,4 +42,8 @@ public class TestObject implements Serializable {
 	public void setTb2(TestObject2 tb2) {
 		this.tb2 = tb2;
 	}
+
+	public String getData(String aa, int bb){
+		return  "MethodInvoke: " + aa + bb;
+	}
 }

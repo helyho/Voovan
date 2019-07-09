@@ -318,8 +318,8 @@ public class DynamicFunction {
             int argIndex = prepareArg.getKey();
             Class argClazz = (Class)args.getValue(argIndex, 0);
             String argName = (String)args.getValue(argIndex, 1);
-            this.argCode = this.argCode + "        " + argClazz.getCanonicalName() + " " + argName +
-                    " = ("+argClazz.getName()+")args[" + argIndex + "];" + TFile.getLineSeparator();
+            this.argCode = this.argCode + "        " + argClazz.getCanonicalName() + " " + argName +           //生成代码类型 java.lang.String aaa
+                    " = ("+argClazz.getCanonicalName()+")args[" + argIndex + "];" + TFile.getLineSeparator();  // 生成代码类似 = (java.lang.String)args[i];
         }
         this.argCode = this.argCode.trim();
     }
@@ -375,12 +375,12 @@ public class DynamicFunction {
         parseCode();
 
         this.javaCode = TString.tokenReplace(CODE_TEMPLATE, TObject.asMap(
-                "PACKAGE", packageName,                 //包名
-                "IMPORT", importCode,                   //解析获得
-                "IMPORTFUNCTION", importFunctionCode,   //生成导入函数的映射函数
-                "CLASSNAME", className,                 //类名
-                "PREPAREARG", argCode,                  //参数
-                "CODE", bodyCode                        //解析获得
+                "PACKAGE",          packageName,          //包名
+                "IMPORT",           importCode,           //解析获得
+                "IMPORTFUNCTION",   importFunctionCode,   //生成导入函数的映射函数
+                "CLASSNAME",        className,            //类名
+                "PREPARE_ARG",      argCode,              //参数
+                "CODE",             bodyCode              //解析获得
         ));
 
         return this.javaCode;

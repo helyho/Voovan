@@ -10,7 +10,7 @@ public class {{CLASSNAME}} implements org.voovan.tools.compiler.function.Functio
 
     @SuppressWarnings("unchecked")
     public Object execute(Object ... args) throws Exception{
-        {{PREPAREARG}}
+        {{PREPARE_ARG}}
         {{CODE}}
     }
 }
