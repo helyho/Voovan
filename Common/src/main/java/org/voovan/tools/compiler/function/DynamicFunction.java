@@ -319,7 +319,7 @@ public class DynamicFunction {
             Class argClazz = (Class)args.getValue(argIndex, 0);
             String argName = (String)args.getValue(argIndex, 1);
             this.argCode = this.argCode + "        " + argClazz.getCanonicalName() + " " + argName +
-                    " = ("+argClazz.getSimpleName()+")args[" + argIndex + "];" + TFile.getLineSeparator();
+                    " = ("+argClazz.getName()+")args[" + argIndex + "];" + TFile.getLineSeparator();
         }
         this.argCode = this.argCode.trim();
     }
