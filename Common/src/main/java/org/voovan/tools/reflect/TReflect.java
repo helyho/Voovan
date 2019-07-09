@@ -847,7 +847,7 @@ public class TReflect {
             args = new Object[0];
         }
         Constructor[] constructors = null;
-        constructors = findConstructor(clazz, args.length);
+        constructors = findConstructor(targetClazz, args.length);
 
         Exception lastException = null;
 
