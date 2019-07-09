@@ -63,9 +63,8 @@ public class TReflect {
     private static Map<Class, String>           NAME_CLASS           = new ConcurrentHashMap<Class ,String>();
     private static Map<String, Class>           CLASS_NAME           = new ConcurrentHashMap<String, Class>();
     private static Map<Class, Boolean>          CLASS_BASIC_TYPE     = new ConcurrentHashMap<Class ,Boolean>();
-    private static Map<String, DynamicFunction> FIELD_READER         = new ConcurrentHashMap<String, DynamicFunction>();
-    private static Map<String, DynamicFunction> FIELD_WRITER         = new ConcurrentHashMap<String, DynamicFunction>();
-    private static Map<String, DynamicFunction> METHOD_INVOKE        = new ConcurrentHashMap<String, DynamicFunction>();
+    public static Map<String, DynamicFunction> FIELD_READER         = new ConcurrentHashMap<String, DynamicFunction>();
+    public static Map<String, DynamicFunction> FIELD_WRITER         = new ConcurrentHashMap<String, DynamicFunction>();
 
     /**
      * 生成对象的读取的动态编译方法
@@ -147,16 +146,24 @@ public class TReflect {
      * @param fieldName field 名称
      * @param <T> field 的类型
      * @return  Field 的值
-     * @throws Exception 调用异常
+     * @throws ReflectiveOperationException 调用异常
      */
-    public static <T> T getFieldValueNatvie(Object obj, String fieldName) throws Exception {
+    public static <T> T getFieldValueNatvie(Object obj, String fieldName) throws ReflectiveOperationException {
         DynamicFunction dynamicFunction = FIELD_READER.get(getClassName(obj.getClass()));
 
         if(dynamicFunction == null) {
             return null;
         }
 
-        return dynamicFunction.call(obj, fieldName);
+        try {
+            return dynamicFunction.call(obj, fieldName);
+        } catch (Exception e) {
+            if (!(e instanceof ReflectiveOperationException)) {
+                throw new ReflectiveOperationException(e.getMessage(), e);
+            } else {
+                throw  (ReflectiveOperationException) e;
+            }
+        }
     }
 
     /**
@@ -167,7 +174,7 @@ public class TReflect {
      * @return  Field 的值
      * @throws Exception 调用异常
      */
-    public static <T> T getFieldValueNatvie(Object obj, Field field) throws Exception {
+    public static <T> T getFieldValueNatvie(Object obj, Field field) throws ReflectiveOperationException {
         return getFieldValueNatvie(obj, field.getName());
     }
 
@@ -179,14 +186,22 @@ public class TReflect {
      * @throws Exception 调用异常
      * @return
      */
-    public static Boolean setFieldValueNatvie(Object obj, String fieldName, Object value) throws Exception {
+    public static Boolean setFieldValueNatvie(Object obj, String fieldName, Object value) throws ReflectiveOperationException {
         DynamicFunction dynamicFunction = FIELD_WRITER.get(getClassName(obj.getClass()));
 
         if(dynamicFunction == null) {
             return false;
         }
 
-        return dynamicFunction.call(obj, fieldName, value);
+        try {
+            return dynamicFunction.call(obj, fieldName, value);
+        } catch (Exception e) {
+            if (!(e instanceof ReflectiveOperationException)) {
+                throw new ReflectiveOperationException(e.getMessage(), e);
+            } else {
+                throw  (ReflectiveOperationException) e;
+            }
+        }
     }
 
     /**
@@ -196,7 +211,7 @@ public class TReflect {
      * @param value Field 的值
      * @throws Exception 调用异常
      */
-    public static Boolean setFieldValueNatvie(Object obj, Field field, Object value) throws Exception {
+    public static Boolean setFieldValueNatvie(Object obj, Field field, Object value) throws ReflectiveOperationException {
         return setFieldValueNatvie(obj, field.getName(), value);
     }
 
@@ -412,8 +427,13 @@ public class TReflect {
     @SuppressWarnings("unchecked")
     static public <T> T getFieldValue(Object obj, String fieldName)
             throws ReflectiveOperationException {
+        T t = getFieldValueNatvie(obj, fieldName);
+        if(t==null) {
             Field field = findField(obj.getClass(), fieldName);
-        return (T) field.get(obj);
+            t = (T) field.get(obj);
+        }
+
+        return t;
     }
 
 
@@ -428,6 +448,7 @@ public class TReflect {
      */
     public static void setFieldValue(Object obj, Field field, Object fieldValue)
             throws ReflectiveOperationException {
+
         field.set(obj, fieldValue);
     }
 
@@ -442,8 +463,11 @@ public class TReflect {
      */
     public static void setFieldValue(Object obj, String fieldName, Object fieldValue)
             throws ReflectiveOperationException {
-        Field field = findField(obj.getClass(), fieldName);
-        setFieldValue(obj, field, fieldValue);
+        boolean isSucc = setFieldValueNatvie(obj, fieldName, fieldValue);
+        if(!isSucc) {
+            Field field = findField(obj.getClass(), fieldName);
+            setFieldValue(obj, field, fieldValue);
+        }
     }
 
     /**
@@ -1220,9 +1244,8 @@ public class TReflect {
         }
         //复杂对象类型
         else {
-            Map<Field, Object> fieldValues =  TReflect.getFieldValues(obj);
-            for(Entry<Field,Object> entry : fieldValues.entrySet()){
-                Field field = entry.getKey();
+            Field[] fields =  TReflect.getFields(obj.getClass());
+            for(Field field : fields){
 
                 //过滤不可序列化的字段
                 if (!allField) {
@@ -1231,8 +1254,13 @@ public class TReflect {
                     }
                 }
 
-                String key = entry.getKey().getName();
-                Object value = entry.getValue();
+                String key = field.getName();
+                Object value = null;
+                try {
+                    value = getFieldValue(obj, key);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 if(value == null){
                     //由于属性是按子类->父类顺序处理的, 所以如果子类和父类有重复属性, 则只在子类为空时用父类的属性覆盖
@@ -1240,7 +1268,7 @@ public class TReflect {
                         mapResult.put(key, value);
                     }
                 }else if(!key.contains("$")){
-                    Class valueClass = entry.getValue().getClass();
+                    Class valueClass = value.getClass();
                     if(TReflect.isBasicType(valueClass)){
                         //由于属性是按子类->父类顺序处理的, 所以如果子类和父类有重复属性, 则只在子类为空时用父类的属性覆盖
                         if(mapResult.get(key) == null) {

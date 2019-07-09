@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 类文字命名
@@ -88,6 +89,7 @@ public class TReflectTest {
             for(int i=0;i<1000000;i++){
                 try {
                     TReflect.getFieldValue(obj, "string");
+                    TReflect.getFieldValue(obj, "bint");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -98,6 +100,7 @@ public class TReflectTest {
             for(int i=0;i<1000000;i++){
                 try {
                     TReflect.getFieldValueNatvie(obj, "string");
+                    TReflect.getFieldValueNatvie(obj, "bint");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -120,6 +123,7 @@ public class TReflectTest {
             for(int i=0;i<1000000;i++){
                 try {
                     TReflect.setFieldValue(obj, "string", "123123");
+                    TReflect.setFieldValue(obj, "bint", 123123);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -130,6 +134,7 @@ public class TReflectTest {
             for(int i=0;i<1000000;i++){
                 try {
                     TReflect.setFieldValueNatvie(obj, "string", "123123");
+                    TReflect.setFieldValueNatvie(obj, "bint", 123123);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -151,6 +156,57 @@ public class TReflectTest {
             for(int i=0;i<1000000;i++){
                 try {
                     TReflect.invokeMethod(obj, method, objs);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+        System.out.println("==========================getMap==========================");
+
+        System.out.println("native: " + TEnv.measureTime(()->{
+            for(int i=0;i<100000;i++){
+                try {
+                    TReflect.getMapfromObject(obj);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+        TReflect.FIELD_READER.clear();
+        System.out.println("reflect: " + TEnv.measureTime(()->{
+            for(int i=0;i<100000;i++){
+                try {
+                    TReflect.getMapfromObject(obj);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+        System.out.println("==========================setObject==========================");
+        Map map = TReflect.getMapfromObject(obj);
+        TReflect.FIELD_READER.clear();
+        System.out.println("reflect: " + TEnv.measureTime(()->{
+            for(int i=0;i<100000;i++){
+                try {
+                    TReflect.getObjectFromMap(TestObject.class, map, false);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+        TReflect.genFieldReader(TestObject.class);
+        TReflect.genFieldWriter(TestObject.class);
+
+        TReflect.genFieldReader(TestObject2.class);
+        TReflect.genFieldWriter(TestObject2.class);
+        System.out.println("native: " + TEnv.measureTime(()->{
+            for(int i=0;i<100000;i++){
+                try {
+                    TReflect.getObjectFromMap(TestObject.class, map, false);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
