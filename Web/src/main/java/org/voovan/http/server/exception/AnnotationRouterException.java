@@ -10,6 +10,7 @@ package org.voovan.http.server.exception;
  */
 public class AnnotationRouterException  extends Exception {
     public AnnotationRouterException(String description, Exception e){
-        super(description + "\r\n"+ e.getClass().getName()+ ": " + e.getMessage(), e);
+        super(description + "\r\n"+ e.getClass().getName()+ ": " + e.getMessage());
+        this.setStackTrace(e.getStackTrace());
     }
 }

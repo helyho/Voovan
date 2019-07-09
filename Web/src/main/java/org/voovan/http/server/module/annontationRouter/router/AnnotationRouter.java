@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 通过注解实现的路由
@@ -280,45 +281,67 @@ public class AnnotationRouter implements HttpRouter {
                 //请求的参数
                 if (annotation instanceof Param) {
                     String paramName = ((Param) annotation).value();
-                    params[i] = TString.toObject(request.getParameter(paramName), parameterTypes[i], true);
-                    continue;
+                    try {
+                        params[i] = TString.toObject(request.getParameter(paramName), parameterTypes[i], true);
+                        continue;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation @Param [" + paramName + " = " + params[i] + "] error, data: " + request.getParameters(), e);
+                    }
                 }
 
                 //请求的参数
                 if (annotation instanceof BodyParam) {
                     String paramName = ((BodyParam) annotation).value();
-                    if(bodyMap != null && bodyMap instanceof Map) {
-                        params[i] = TString.toObject(bodyMap.get(paramName).toString(), parameterTypes[i], true);
+                    try {
+                        if(bodyMap != null && bodyMap instanceof Map) {
+                            params[i] = TString.toObject(bodyMap.get(paramName).toString(), parameterTypes[i], true);
+                        }
+                        continue;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation @BodyParam [" + paramName + " = " + params[i] + "] error, data: " + bodyMap.toString(), e);
                     }
-                    continue;
+
                 }
 
                 //请求的头
                 if (annotation instanceof Head) {
                     String headName = ((Head) annotation).value();
-                    params[i] = TString.toObject(request.header().get(headName), parameterTypes[i], true);
-                    continue;
+                    try {
+                        params[i] = TString.toObject(request.header().get(headName), parameterTypes[i], true);
+                        continue;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation @Param [" + headName + " = " + params[i] + "] error, data: " + request.header().toString(), e);
+                    }
                 }
 
                 //请求的 Cookie
                 if (annotation instanceof Cookie) {
                     String cookieValue = null;
                     String cookieName = ((Cookie) annotation).value();
-                    org.voovan.http.message.packet.Cookie cookie = request.getCookie(cookieName);
-                    if(cookie != null){
-                        cookieValue = cookie.getValue();
-                    }
+                    try {
+                        org.voovan.http.message.packet.Cookie cookie = request.getCookie(cookieName);
+                        if (cookie != null) {
+                            cookieValue = cookie.getValue();
+                        }
 
-                    params[i] = TString.toObject(cookieValue, parameterTypes[i], true);
-                    continue;
+                        params[i] = TString.toObject(cookieValue, parameterTypes[i], true);
+                        continue;
+                    } catch (Exception e) {
+                        String cookieStr = request.cookies().parallelStream().map(cookie-> cookie.getName() + "=" + cookie.getName()).collect(Collectors.toList()).toString();
+                        throw new AnnotationRouterException("Router annotation @Param [" + cookieName + " = " + params[i] + "] error, data: " + cookieStr , e);
+                    }
                 }
 
                 //请求的 Body
                 if (annotation instanceof Body) {
-                    params[i] = bodyMap==null ?
-                                        TString.toObject(bodyString, parameterTypes[i], true) :
-                                        TReflect.getObjectFromMap(parameterTypes[i], bodyMap, true);
-                    continue;
+                    try {
+                        params[i] = bodyMap == null ?
+                                TString.toObject(bodyString, parameterTypes[i], true) :
+                                TReflect.getObjectFromMap(parameterTypes[i], bodyMap, true);
+                        continue;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation @Body error \r\n data: " + bodyString, e);
+                    }
                 }
 
                 //请求的头
@@ -326,18 +349,26 @@ public class AnnotationRouter implements HttpRouter {
                     String sessionName = ((Session) annotation).value();
                     HttpSession httpSession = request.getSession();
 
-                    if(httpSession.getAttribute(sessionName).getClass() == parameterTypes[i]){
-                        params[i] = httpSession.getAttribute(sessionName);
+                    try {
+                        if (httpSession.getAttribute(sessionName).getClass() == parameterTypes[i]) {
+                            params[i] = httpSession.getAttribute(sessionName);
+                        }
+                        continue;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation @Session [" + sessionName + " = " + params[i] + "] error, data: "  + httpSession.attributes().toString() , e);
                     }
-                    continue;
                 }
             }
 
             //没有注解的参数,按顺序处理
             if(params[i]==null) {
-                String value = request.getParameter("param" + String.valueOf(i + 1));
-                params[i] = TString.toObject(value, parameterTypes[i], true);
-                continue;
+                try {
+                    String value = request.getParameter("param" + String.valueOf(i + 1));
+                    params[i] = TString.toObject(value, parameterTypes[i], true);
+                    continue;
+                } catch (Exception e) {
+                    throw new AnnotationRouterException("Router sequential injection param " + request.getParameters().toString() + " error", e);
+                }
             }
 
         }
@@ -366,7 +397,11 @@ public class AnnotationRouter implements HttpRouter {
                 }
             }
         }catch(Exception e){
-            throw new AnnotationRouterException("Process annotation router error. URL: " + request.protocol().getPath(), e);
+            if(e instanceof AnnotationRouterException) {
+                throw e;
+            } else {
+                throw new AnnotationRouterException("Process annotation router error. URL: " + request.protocol().getPath(), e);
+            }
         }
     }
 }

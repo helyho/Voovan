@@ -118,6 +118,14 @@ public class WebSocketSession {
     }
 
     /**
+     *  返回当前 Session 的属性Map
+     *  @return Session 的属性Map
+     */
+    public Map<String,Object> attributes() {
+        return attributes;
+    }
+
+    /**
      *  删除当前 Session 属性
      * @param name	属性名
      */

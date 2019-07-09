@@ -133,7 +133,7 @@ public class HttpSession {
 	 *  返回当前 Session 的属性Map
 	 *  @return Session 的属性Map
 	 */
-	public Map<String,Object> attribute() {
+	public Map<String,Object> attributes() {
 		return attributes;
 	}
 
@@ -206,7 +206,7 @@ public class HttpSession {
 	 * @param response  响应对象
 	 */
 	public void attach(HttpRequest request, HttpResponse response){
-		if(!this.attribute().isEmpty()) {
+		if(!this.attributes().isEmpty()) {
 			Cookie sessionCookie = request.getCookie(WebContext.getSessionName());
 			if (sessionCookie == null) {
 				//创建 Cookie

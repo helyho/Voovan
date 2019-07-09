@@ -303,7 +303,7 @@ public abstract class IoSession<T extends SocketContext> {
 	 * 获取全部会话参数
 	 * @return 会话参数Map
 	 */
-	public Map<Object,Object> getAttributes(){
+	public Map<Object,Object> attributes(){
 		return this.attributes;
 	}
 
