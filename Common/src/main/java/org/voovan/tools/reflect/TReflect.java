@@ -149,7 +149,7 @@ public class TReflect {
                     field = loopClazz.getDeclaredField(fieldName);
                     field.setAccessible(true);
                     break;
-                }catch(ReflectiveOperationException e){
+                } catch(ReflectiveOperationException e){
                     field = null;
                 }
             }
@@ -172,8 +172,7 @@ public class TReflect {
      * @return Field 对象
      * @throws ReflectiveOperationException 反射异常
      */
-    public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName)
-            throws ReflectiveOperationException{
+    public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName) {
 
         String marker = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(fieldName).toString();
 
