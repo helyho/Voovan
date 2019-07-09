@@ -46,8 +46,6 @@ public class JSONDecodeUnit extends TestCase {
 //								"\"nullValue\":null"+
 							"} ";
 
-		TEnv.sleep(10000);
-
 		Map<String, Object> obj = (Map<String, Object>)JSONDecode.parse(jsonString);
 //		assertTrue((Integer)obj.size()==7);
 //		assertTrue((Integer)obj.get("bint")==32);
@@ -60,7 +58,7 @@ public class JSONDecodeUnit extends TestCase {
 //		assertTrue(((List)tb2.get("list")).size() == 1);
 //		assertTrue(((Map)tb2.get("map")).size() == 1);
 		System.out.println(TEnv.measureTime(()->{
-			for(int i=0;i<100000;i++){
+			for(int i=0;i<1000;i++){
 				try {
 					TestObject object = JSONDecode.fromJSON(jsonString, TestObject.class);
 				} catch (ParseException e) {
