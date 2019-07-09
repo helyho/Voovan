@@ -1,8 +1,9 @@
-package org.voovan.tools.reflect;
+    package org.voovan.tools.reflect;
 
 
 import org.voovan.Global;
 import org.voovan.tools.*;
+import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.NotSerialization;
@@ -63,7 +64,149 @@ public class TReflect {
     private static Map<Class, String>           NAME_CLASS           = new ConcurrentHashMap<Class ,String>();
     private static Map<String, Class>           CLASS_NAME           = new ConcurrentHashMap<String, Class>();
     private static Map<Class, Boolean>          CLASS_BASIC_TYPE     = new ConcurrentHashMap<Class ,Boolean>();
+    public static Map<String, DynamicFunction>  FIELD_READER         = new ConcurrentHashMap<String, DynamicFunction>();
+    public static Map<String, DynamicFunction>  FIELD_WRITER         = new ConcurrentHashMap<String, DynamicFunction>();
+    public static Map<String, DynamicFunction>  METHOD_INVOKE        = new ConcurrentHashMap<String, DynamicFunction>();
 
+    /**
+     * 生成对象的读取的动态编译方法
+     * @param obj 目标对象
+     */
+    public static void genFieldReader(Object obj) {
+        // 生成的代码样例
+        // if(fieldName.equals("string")) {return obj.getString();}
+        // else if(fieldName.equals("bint")) {return obj.getBint();}
+        // else if(fieldName.equals("map")) {return obj.getMap();}
+        // else if(fieldName.equals("list")) {return obj.getList();}
+        // else if(fieldName.equals("tb2")) {return obj.getTb2();}
+        // else { return null; }
+
+        String className = getClassName(obj.getClass());
+        Field[] fields = getFields(obj.getClass());
+
+        //arg1 obj, arg2 fieldName
+        String code = "";
+        for(Field field : fields) {
+            code = code + (code.isEmpty() ? "if" : "else if");
+            code = code + "(fieldName.equals(\"" + field.getName() + "\")) {";
+
+            String getMethodName = "get"+TString.upperCaseHead(field.getName())+"();";
+            code = code + "return obj."+getMethodName + "} \r\n";
+        }
+        code = code + "else { return null; }";
+
+        DynamicFunction dynamicFunction = new DynamicFunction(obj.getClass().getSimpleName()+"Reader", code);
+        dynamicFunction.addImport(obj.getClass());
+        dynamicFunction.addPrepareArg(0, obj.getClass(), "obj");     //目标对象
+        dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //取值字段
+
+        FIELD_READER.put(className, dynamicFunction);
+        System.out.println(code);
+    }
+
+    /**
+     * 生成对象的写入的动态编译方法
+     * @param obj 目标对象
+     */
+    public static void genFieldWriter(Object obj) {
+        // 生成的代码样例
+        // if(fieldName.equals("string")) {obj.setString((java.lang.String)value);}
+        // else if(fieldName.equals("bint")) {obj.setBint((int)value);}
+        // else if(fieldName.equals("map")) {obj.setMap((java.util.HashMap)value);}
+        // else if(fieldName.equals("list")) {obj.setList((java.util.Vector)value);}
+        // else if(fieldName.equals("tb2")) {obj.setTb2((org.voovan.test.tools.json.TestObject2)value);}
+
+        String className = obj.getClass().getCanonicalName();
+        Field[] fields = getFields(obj.getClass());
+
+        //arg1 obj, arg2 fieldName, arg3 value
+        String code = "";
+        for(Field field : fields) {
+            code = code + (code.isEmpty() ? "if" : "else if");
+            code = code + "(fieldName.equals(\"" + field.getName() + "\")) {";
+
+            String setMethodName = "set"+TString.upperCaseHead(field.getName())+"(("+field.getType().getName()+")value);";
+            code = code + "obj."+setMethodName + "} \r\n";
+        }
+
+        DynamicFunction dynamicFunction = new DynamicFunction(obj.getClass().getSimpleName()+"Reader", code);
+        dynamicFunction.addImport(obj.getClass());
+        dynamicFunction.addPrepareArg(0, obj.getClass(), "obj");     //目标对象
+        dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //写入字段
+        dynamicFunction.addPrepareArg(2, Object.class, "value");     //写入数据
+
+        FIELD_WRITER.put(className, dynamicFunction);
+        System.out.println(code);
+    }
+
+    /**
+     * 生成对象的写入的动态编译方法
+     * @param obj 目标对象
+     */
+    public static void genMethodInvoker(Object obj) {
+        // 生成的代码样例
+        //if(methodName.equals("getMap")) {java.util.HashMap result = obj.getMap();
+        //    return result;}else if(methodName.equals("setTb2")) {obj.setTb2((org.voovan.test.tools.json.TestObject2) params[0]);
+        //    return null; }else if(methodName.equals("getBint")) {int result = obj.getBint();
+        //    return result;}else if(methodName.equals("getTb2")) {org.voovan.test.tools.json.TestObject2 result = obj.getTb2();
+        //    return result;}else if(methodName.equals("setList")) {obj.setList((java.util.Vector) params[0]);
+        //    return null; }else if(methodName.equals("setMap")) {obj.setMap((java.util.HashMap) params[0]);
+        //    return null; }else if(methodName.equals("setBint")) {obj.setBint((int) params[0]);
+        //    return null; }else if(methodName.equals("getList")) {java.util.Vector result = obj.getList();
+        //    return result;}else if(methodName.equals("setString")) {obj.setString((java.lang.String) params[0]);
+        //    return null; }else if(methodName.equals("getString")) {java.lang.String result = obj.getString();
+        //    return result;}else if(methodName.equals("getData")) {java.lang.String result = obj.getData((java.lang.String) params[0],(int) params[1]);
+        //    return result;}else { return null; }
+
+        String className = obj.getClass().getCanonicalName();
+        Method[] methods = getMethods(obj.getClass());
+
+        //arg1 obj, arg2 methodName, arg3 args
+        String code = "";
+        for(Method method : methods) {
+            Class[] paramTypes = method.getParameterTypes();
+            code = code + (code.isEmpty() ? "if" : "else if");
+            code = code + "(methodName.equals(\"" + method.getName() + "\")) {";
+
+            Class returnClass = method.getReturnType();
+            String resultCode = ""; //接收响应数据
+            String returnCode = ""; //通过 return 返回数据
+            if(returnClass != void.class) {
+                resultCode = returnClass.getCanonicalName() + " result = ";
+                returnCode = "return result;";
+            } else {
+                returnCode = "return null; ";
+            }
+
+            code = code + resultCode + "obj." + method.getName()+"(";
+
+            if(paramTypes.length > 0) {
+                for (int i = 0; i < paramTypes.length; i++) {
+                    code = code + "(" + paramTypes[i].getCanonicalName() + ") params[" + i + "],";
+                }
+                code = TString.removeSuffix(code);
+            }
+
+            code = code + "); \r\n";
+            code = code + returnCode + "}";
+        }
+
+        code = code + "else { return null; }";
+
+        DynamicFunction dynamicFunction = new DynamicFunction(obj.getClass().getSimpleName()+"Reader", code);
+        dynamicFunction.addImport(obj.getClass());
+        dynamicFunction.addPrepareArg(0, obj.getClass(), "obj");        //目标对象
+        dynamicFunction.addPrepareArg(1, String.class, "methodName");   //写入字段
+        dynamicFunction.addPrepareArg(2, Object[].class, "params");     //写入数据
+        try {
+            dynamicFunction.compileCode();
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
+
+        METHOD_INVOKE.put(className, dynamicFunction);
+        System.out.println(code);
+    }
 
     /**
      * 根据 Class 对象获取类的完全现定名
@@ -255,7 +398,6 @@ public class TReflect {
 
         return genericClazzs;
     }
-
 
     /**
      * 获取 Field 的范型类型
