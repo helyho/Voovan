@@ -65,7 +65,129 @@ public class TReflect {
     private static Map<Class, String>           NAME_CLASS           = new ConcurrentHashMap<Class ,String>();
     private static Map<String, Class>           CLASS_NAME           = new ConcurrentHashMap<String, Class>();
     private static Map<Class, Boolean>          CLASS_BASIC_TYPE     = new ConcurrentHashMap<Class ,Boolean>();
+    public static Map<String, DynamicFunction>  FIELD_READER         = new ConcurrentHashMap<String, DynamicFunction>();
+    public static Map<String, DynamicFunction>  FIELD_WRITER         = new ConcurrentHashMap<String, DynamicFunction>();
     public static Map<String, DynamicFunction>  METHOD_INVOKE        = new ConcurrentHashMap<String, DynamicFunction>();
+
+    /**
+     * 生成对象的读取的动态编译方法
+     * @param obj 目标对象
+     */
+    public static void genFieldReader(Object obj) throws ReflectiveOperationException {
+        // 生成的代码样例
+        // if(fieldName.equals("string")) {return obj.getString();}
+        // else if(fieldName.equals("bint")) {return obj.getBint();}
+        // else if(fieldName.equals("map")) {return obj.getMap();}
+        // else if(fieldName.equals("list")) {return obj.getList();}
+        // else if(fieldName.equals("tb2")) {return obj.getTb2();}
+        // else { return null; }
+
+        String className = getClassName(obj.getClass());
+        Field[] fields = getFields(obj.getClass());
+
+        //arg1 obj, arg2 fieldName
+        String code = "";
+        for(Field field : fields) {
+            code = code + (code.isEmpty() ? "if" : "else if");
+            code = code + "(fieldName.equals(\"" + field.getName() + "\")) {";
+
+            String getMethodName = "get"+TString.upperCaseHead(field.getName())+"();";
+            code = code + "return obj."+getMethodName + "} \r\n";
+        }
+        code = code + "else { return null; }";
+
+        DynamicFunction dynamicFunction = new DynamicFunction(obj.getClass().getSimpleName()+"Reader", code);
+        dynamicFunction.addImport(obj.getClass());
+        dynamicFunction.addPrepareArg(0, obj.getClass(), "obj");     //目标对象
+        dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //取值字段
+        dynamicFunction.compileCode();
+
+        FIELD_READER.put(className, dynamicFunction);
+        System.out.println(code);
+    }
+
+    /**
+     * 生成对象的写入的动态编译方法
+     * @param obj 目标对象
+     */
+    public static void genFieldWriter(Object obj) throws ReflectiveOperationException {
+        // 生成的代码样例
+        // if(fieldName.equals("string")) {obj.setString((java.lang.String)value);}
+        // else if(fieldName.equals("bint")) {obj.setBint((int)value);}
+        // else if(fieldName.equals("map")) {obj.setMap((java.util.HashMap)value);}
+        // else if(fieldName.equals("list")) {obj.setList((java.util.Vector)value);}
+        // else if(fieldName.equals("tb2")) {obj.setTb2((org.voovan.test.tools.json.TestObject2)value);}
+
+        String className = obj.getClass().getCanonicalName();
+        Field[] fields = getFields(obj.getClass());
+
+        //arg1 obj, arg2 fieldName, arg3 value
+        String code = "";
+        for(Field field : fields) {
+            code = code + (code.isEmpty() ? "if" : "else if");
+            code = code + "(fieldName.equals(\"" + field.getName() + "\")) {";
+
+            String setMethodName = "set"+TString.upperCaseHead(field.getName())+"(("+field.getType().getName()+")value);";
+            code = code + "obj."+setMethodName + "} \r\n";
+        }
+
+        DynamicFunction dynamicFunction = new DynamicFunction(obj.getClass().getSimpleName()+"Reader", code);
+        dynamicFunction.addImport(obj.getClass());
+        dynamicFunction.addPrepareArg(0, obj.getClass(), "obj");     //目标对象
+        dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //写入字段
+        dynamicFunction.addPrepareArg(2, Object.class, "value");     //写入数据
+        dynamicFunction.compileCode();
+
+        FIELD_WRITER.put(className, dynamicFunction);
+    }
+
+
+    /**
+     * 通过原生调用的方式获取 Field 的值
+     * @param obj  对象
+     * @param fieldName field 名称
+     * @param <T> field 的类型
+     * @return  Field 的值
+     * @throws Exception 调用异常
+     */
+    public static <T> T getFieldValueNatvie(Object obj, String fieldName) throws Exception {
+        return FIELD_READER.get(getClassName(obj.getClass())).call(obj, fieldName);
+    }
+
+    /**
+     * 通过原生调用的方式获取 Field 的值
+     * @param obj  对象
+     * @param field field 对象
+     * @param <T> field 的类型
+     * @return  Field 的值
+     * @throws Exception 调用异常
+     */
+    public static <T> T getFieldValueNatvie(Object obj, Field field) throws Exception {
+        return getFieldValueNatvie(obj, field.getName());
+    }
+
+    /**
+     * 通过原生调用的方式设置 Field 的值
+     * @param obj 对象
+     * @param fieldName field 名称
+     * @param value Field 的值
+     * @throws Exception 调用异常
+     */
+    public static void setFieldValueNatvie(Object obj, String fieldName, Object value) throws Exception {
+        FIELD_WRITER.get(getClassName(obj.getClass())).call(obj, fieldName, value);
+    }
+
+    /**
+     * 通过原生调用的方式设置 Field 的值
+     * @param obj 对象
+     * @param field field 对象
+     * @param value Field 的值
+     * @throws Exception 调用异常
+     */
+    public static void setFieldValueNatvie(Object obj, Field field, Object value) throws Exception {
+        setFieldValueNatvie(obj, field.getName(), value);
+    }
+
 
     /**
      * 生成方法的原生调用代码
@@ -167,54 +289,6 @@ public class TReflect {
         //查找匹配的方法
         Method method = findMethod(obj.getClass(), methodName, getArrayClasses(params));
         return invokeMethodNative(obj, method, params);
-    }
-
-    /**
-     * 通过原生调用的方式获取 Field 的值
-     * @param obj  对象
-     * @param fieldName field 名称
-     * @param <T> field 的类型
-     * @return  Field 的值
-     * @throws Exception 调用异常
-     */
-    public static <T> T getFieldValueNatvie(Object obj, String fieldName) throws Exception {
-        String getMethodName = "get"+TString.upperCaseHead(fieldName);
-        return (T)invokeMethodNative(obj, getMethodName, new Object[]{});
-    }
-
-    /**
-     * 通过原生调用的方式获取 Field 的值
-     * @param obj  对象
-     * @param field field 对象
-     * @param <T> field 的类型
-     * @return  Field 的值
-     * @throws Exception 调用异常
-     */
-    public static <T> T getFieldValueNatvie(Object obj, Field field) throws Exception {
-        return getFieldValueNatvie(obj, field.getName());
-    }
-
-    /**
-     * 通过原生调用的方式设置 Field 的值
-     * @param obj 对象
-     * @param fieldName field 名称
-     * @param value Field 的值
-     * @throws Exception 调用异常
-     */
-    public static void setFieldValueNatvie(Object obj, String fieldName, Object value) throws Exception {
-        String setMethodName = "set"+TString.upperCaseHead(fieldName);
-        invokeMethodNative(obj, setMethodName, new Object[]{value});
-    }
-
-    /**
-     * 通过原生调用的方式设置 Field 的值
-     * @param obj 对象
-     * @param field field 对象
-     * @param value Field 的值
-     * @throws Exception 调用异常
-     */
-    public static void setFieldValueNatvie(Object obj, Field field, Object value) throws Exception {
-       setFieldValueNatvie(obj, field.getName(), value);
     }
 
     /**

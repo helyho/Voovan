@@ -3,10 +3,14 @@ package org.voovan.test.tools;
 import com.jsoniter.JsonIterator;
 import org.voovan.test.tools.json.TestObject;
 import org.voovan.test.tools.json.TestObject2;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.json.JSONDecode;
 import org.voovan.tools.reflect.TReflect;
 
+import java.io.IOException;
+import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -26,9 +30,10 @@ public class TReflectTest {
         obj.getList().add("1111");
         obj.getMap().put("key", "value");
 
+        TReflect.genFieldReader(obj);
+        TReflect.genFieldWriter(obj);
         TReflect.genMethodInvoker(obj);
 
-        DynamicFunction dynamicFunctionMethod= TReflect.METHOD_INVOKE.get(TestObject.class.getCanonicalName());
 
 
         //get
@@ -60,5 +65,68 @@ public class TReflectTest {
         System.out.println("native get: "+obj.getTb2().getString());
 
         System.out.println(JSON.toJSON(obj));
+
+        System.out.println("==========================get==========================");
+        System.out.println("native: " + TEnv.measureTime(()->{
+            for(int i=0;i<1000000;i++){
+                try {
+                    TReflect.getFieldValueNatvie(obj, "string");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000000f);
+
+        System.out.println("reflect: " + TEnv.measureTime(()->{
+            for(int i=0;i<1000000;i++){
+                try {
+                    TReflect.getFieldValue(obj, "string");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000000f);
+
+        System.out.println("==========================set==========================");
+        System.out.println("native: " + TEnv.measureTime(()->{
+            for(int i=0;i<1000000;i++){
+                try {
+                    TReflect.setFieldValueNatvie(obj, "string", "123123");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000000f);
+
+        System.out.println("reflect: " + TEnv.measureTime(()->{
+            for(int i=0;i<1000000;i++){
+                try {
+                    TReflect.setFieldValue(obj, "string", "123123");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000000f);
+
+        System.out.println("==========================invoke==========================");
+        System.out.println("native: " + TEnv.measureTime(()->{
+            for(int i=0;i<1000000;i++){
+                try {
+                    TReflect.invokeMethodNative(obj, "getData", new Object[]{"aaaa", 111});
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000000f);
+
+        System.out.println("reflect: " + TEnv.measureTime(()->{
+            for(int i=0;i<1000000;i++){
+                try {
+                    TReflect.invokeMethod(obj, "getData", new Object[]{"aaaa", 111});
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000000f);
     }
 }
