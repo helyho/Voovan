@@ -1,10 +1,9 @@
 package org.voovan.test.tools.json;
 
 import junit.framework.TestCase;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.json.JSONDecode;
 import org.voovan.tools.json.JSONEncode;
-import org.voovan.tools.reflect.TReflect;
 
 public class JSONEncodeUnit extends TestCase {
 
@@ -23,9 +22,6 @@ public class JSONEncodeUnit extends TestCase {
 		testObject.getList().add("listitem3");
 		testObject.getList().add(null);
 		testObject.getList().add(null);
-		testObject.getList().add(null);
-		testObject.getList().add(null);
-		testObject.getList().add(null);
 		testObject.getMap().put("mapitem1", "mapitem1");
 		testObject.getMap().put("mapitem2", "mapitem2");
 		testObject.getTb2().setString("bingo\r\nsrc\\main\\kkk");
@@ -33,19 +29,16 @@ public class JSONEncodeUnit extends TestCase {
 		testObject.getTb2().getList().add("tb2 list item");
 		testObject.getTb2().getMap().put("tb2 map item", "tb2 map item");
 
-		System.out.println(TEnv.measureTime(()->{
-			for(int i=0;i<500000;i++){
-				try {
-					JSONEncode.fromObject(testObject);
-				} catch (ReflectiveOperationException e) {
-					e.printStackTrace();
-				}
-			}
-		})/10000000f);
+
 
 		String jsonStr = JSONEncode.fromObject(testObject);
+
 		jsonStr = JSON.removeNullNode(jsonStr);
-//		testObject = JSONDecode.fromJSON(jsonStr,TestObject.class);
-//		assertEquals(jsonStr,targetStr);
+		testObject.getList().remove(null);
+		testObject.getList().remove(null);
+
+		TestObject testObject2 = JSONDecode.fromJSON(jsonStr,TestObject.class);
+
+		assertEquals(testObject,testObject2);
 	}
 }

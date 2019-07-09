@@ -1,12 +1,8 @@
 package org.voovan.test.tools.json;
 
 import junit.framework.TestCase;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.json.JSONDecode;
-import org.voovan.tools.reflect.TReflect;
 
-import java.io.IOException;
-import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -40,38 +36,22 @@ public class JSONDecodeUnit extends TestCase {
 								"\"map\":{"+
 									"\"mapitem2\":\"mapitem2\","+
 									"\"mapitem1\":\"mapitem1\""+
-								"}, " +
-//								"\"func\": function(){" +
-//												"var x=\"l\"" +
-//										   "}, " +
-//								"\"nullValue\":null"+
+								"} " +
 							"} ";
 
 
 		Map<String, Object> obj = (Map<String, Object>)JSONDecode.parse(jsonString);
-//		assertTrue((Integer)obj.size()==7);
-//		assertTrue((Integer)obj.get("bint")==32);
-//		assertEquals((String)obj.get("string"),"helyho");
-//		assertTrue(((List)obj.get("list")).size() == 3);
-//		assertTrue(((Map)obj.get("map")).size() == 2);
-//		Map<String, Object> tb2 = (Map<String, Object>)obj.get("tb2");
-//		assertTrue((Integer)tb2.get("bint")==56);
-//		assertEquals((String)tb2.get("string"),"bi\\\"ngo");
-//		assertTrue(((List)tb2.get("list")).size() == 1);
-//		assertTrue(((Map)tb2.get("map")).size() == 1);
-		System.out.println(TEnv.measureTime(()->{
-			for(int i=0;i<10000;i++){
-				try {
-					TestObject object = JSONDecode.fromJSON(jsonString, TestObject.class);
-				} catch (ParseException e) {
-					e.printStackTrace();
-				} catch (ReflectiveOperationException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		})/1000000f);
+		assertTrue((Integer)obj.size()==5);
+		assertTrue((Integer)obj.get("bint")==32);
+		assertEquals((String)obj.get("string"),"helyho");
+		assertTrue(((List)obj.get("list")).size() == 3);
+		assertTrue(((Map)obj.get("map")).size() == 2);
+		Map<String, Object> tb2 = (Map<String, Object>)obj.get("tb2");
+		assertTrue((Integer)tb2.get("bint")==56);
+		assertEquals((String)tb2.get("string"),"bi\\\"ngo");
+		assertTrue(((List)tb2.get("list")).size() == 1);
+		assertTrue(((Map)tb2.get("map")).size() == 1);
+
 		TestObject object = JSONDecode.fromJSON(jsonString, TestObject.class);
 		assertTrue(object.getBint()==32);
 		assertEquals(object.getString(),"helyho");
