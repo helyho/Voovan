@@ -1,5 +1,6 @@
 package org.voovan.tools.security;
 
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
@@ -106,11 +107,14 @@ public class THash {
 		return hash;
 	}
 
+
+
+
 	/**
 	 * Time31算法
 	 * @param byteBuffer  字节数据
 	 * @param offset 字节数据偏移量
-	 * @param length 长度* @param source 待加密字符串
+	 * @param length 长度
 	 * @return 加密结果
 	 */
 	public static int hashTime31(ByteBuffer byteBuffer, int offset, int length) {
@@ -120,6 +124,8 @@ public class THash {
 		}
 		return hash;
 	}
+
+
 
 	/**
 	 * Time31算法
@@ -149,12 +155,11 @@ public class THash {
 		return hashTime31(str, offset, length, 0);
 	}
 
-
-		/**
-		 * Time31算法
-		 * @param strs 字符串数组
-		 * @return 加密结果
-		 */
+    /**
+     * Time31算法
+     * @param strs 字符串数组
+     * @return 加密结果
+     */
 	public static int hashTime31(String ... strs) {
 		int hash = 0;
 		for(int i=0;i<strs.length;i++){
@@ -165,5 +170,152 @@ public class THash {
 		}
 
 		return hash;
+	}
+
+	/**
+	 * 改进的32位FNV算法1
+	 * @param data 数组
+	 * @return int值
+	 */
+	public static int FNVHash1(byte[] data, int offset, int length)
+	{
+		final int p = 16777619;
+		int hash = (int)2166136261L;
+		for (int i = offset; i < length; i++) {
+			byte b = data[i];
+			hash = (hash ^ b) * p;
+		}
+
+		hash += hash << 13;
+		hash ^= hash >> 7;
+		hash += hash << 3;
+		hash ^= hash >> 17;
+		hash += hash << 5;
+		return hash;
+
+	}
+
+	/**
+	 * 改进的32位FNV算法1
+	 * @param byteBuffer  字节数据
+	 * @param offset 字节数据偏移量
+	 * @param length 长度
+	 * @return int值
+	 */
+	public static int FNVHash1(ByteBuffer byteBuffer, int offset, int length)
+	{
+		final int p = 16777619;
+		int hash = (int)2166136261L;
+		for (int i = offset; i < length; i++) {
+			byte b = byteBuffer.get(i);
+			hash = (hash ^ b) * p;
+		}
+
+		hash += hash << 13;
+		hash ^= hash >> 7;
+		hash += hash << 3;
+		hash ^= hash >> 17;
+		hash += hash << 5;
+		return hash;
+	}
+
+	/**
+	 * 改进的32位FNV算法1
+	 * @param str 字符串
+	 * @param offset 字节数据偏移量
+	 * @param length 长度
+	 * @param seed 上次 hash 的种子
+	 * @return int值
+	 */
+	public static int FNVHash1(String str, int offset, int length, int seed)
+	{
+		final int p = 16777619;
+		int hash = seed;
+		for (int i = offset; i < length; i++) {
+			byte b = (byte)str.charAt(i);
+			hash = (hash ^ b) * p;
+		}
+
+		hash += hash << 13;
+		hash ^= hash >> 7;
+		hash += hash << 3;
+		hash ^= hash >> 17;
+		hash += hash << 5;
+		return hash;
+	}
+
+	/**
+	 * 改进的32位FNV算法1
+	 * @param str 字符串
+	 * @param offset 字节数据偏移量
+	 * @param length 长度
+	 * @return int值
+	 */
+	public static int FNVHash1(String str, int offset, int length)
+	{
+		return FNVHash1(str, offset, length, (int)2166136261L);
+	}
+
+	public static void main(String[] args) {
+		String m = "https://www.baidu.com/s?wd=sheepdog+fnv&rsv_spt=1&rsv_iqid=0xc6053fa2000c2d21&issp=1&f=8&rsv_bp=1&rsv_idx=2&ie=utf-8&rqlang=&tn=baiduhome_pg&ch=&rsv_enter=1&inputT=1376";
+		System.out.println(FNVHash1(m.getBytes(), 0, m.length()));
+		System.out.println(hashTime31(m.getBytes(), 0, m.length()));
+
+        for(int i=0;i<10000;i++) {
+            FNVHash1(m.getBytes(), 0, m.length());
+            hashTime31(m.getBytes(), 0, m.length());
+        }
+
+		System.out.println("==========================================");
+		System.out.println(TEnv.measureTime(()->{
+			for(int i=0;i<10000000;i++) {
+				hashTime31(m.getBytes(), 0, m.length());
+			}
+		})/100000000f);
+
+		System.out.println(TEnv.measureTime(()->{
+			for(int i=0;i<10000000;i++) {
+				FNVHash1(m.getBytes(), 0, m.length());
+			}
+		})/100000000f);
+
+		System.out.println("==========================================");
+		System.out.println(TEnv.measureTime(()->{
+			for(int i=0;i<10000000;i++) {
+				FNVHash1(m.getBytes(), 0, m.length());
+			}
+		})/100000000f);
+
+		System.out.println(TEnv.measureTime(()->{
+			for(int i=0;i<10000000;i++) {
+				hashTime31(m.getBytes(), 0, m.length());
+			}
+		})/100000000f);
+
+		System.out.println("==========================================");
+		System.out.println(TEnv.measureTime(()->{
+			for(int i=0;i<10000000;i++) {
+				hashTime31(m.getBytes(), 0, m.length());
+			}
+		})/100000000f);
+
+		System.out.println(TEnv.measureTime(()->{
+			for(int i=0;i<10000000;i++) {
+				FNVHash1(m.getBytes(), 0, m.length());
+			}
+		})/100000000f);
+		System.out.println("==========================================");
+		System.out.println(TEnv.measureTime(()->{
+			for(int i=0;i<10000000;i++) {
+				FNVHash1(m.getBytes(), 0, m.length());
+			}
+		})/100000000f);
+
+		System.out.println(TEnv.measureTime(()->{
+			for(int i=0;i<10000000;i++) {
+				hashTime31(m.getBytes(), 0, m.length());
+			}
+		})/100000000f);
+
 	}
 }

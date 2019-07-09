@@ -41,9 +41,9 @@ public class ResultInfo {
         }finally{
             // 非事务模式执行
             if (jdbcOperate.getTranscationType() == TranscationType.NONE) {
-                JdbcOperate.closeConnection(resultSet);
+                jdbcOperate.closeConnection(resultSet);
             }else{
-                JdbcOperate.closeResult(resultSet);
+                jdbcOperate.closeResult(resultSet);
             }
         }
         return new ArrayList<T>();
@@ -58,9 +58,9 @@ public class ResultInfo {
         }finally{
             // 非事务模式执行
             if (jdbcOperate.getTranscationType() == TranscationType.NONE) {
-                JdbcOperate.closeConnection(resultSet);
+                jdbcOperate.closeConnection(resultSet);
             }else{
-                JdbcOperate.closeResult(resultSet);
+                jdbcOperate.closeResult(resultSet);
             }
         }
         return new ArrayList<Map<String, Object>>();
@@ -79,9 +79,9 @@ public class ResultInfo {
         }finally{
             // 非事务模式执行
             if (jdbcOperate.getTranscationType() == TranscationType.NONE) {
-                JdbcOperate.closeConnection(resultSet);
+                jdbcOperate.closeConnection(resultSet);
             }else{
-                JdbcOperate.closeResult(resultSet);
+                jdbcOperate.closeResult(resultSet);
             }
         }
         return null;
@@ -99,9 +99,9 @@ public class ResultInfo {
         }finally{
             // 非事务模式执行
             if (jdbcOperate.getTranscationType() == TranscationType.NONE) {
-                JdbcOperate.closeConnection(resultSet);
+                jdbcOperate.closeConnection(resultSet);
             }else{
-                JdbcOperate.closeResult(resultSet);
+                jdbcOperate.closeResult(resultSet);
             }
         }
         return null;
