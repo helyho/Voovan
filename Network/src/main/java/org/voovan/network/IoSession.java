@@ -440,7 +440,7 @@ public abstract class IoSession<T extends SocketContext> {
 			} else {
 				return readObject;
 			}
-		} catch (TimeoutException e) {
+		} catch (InterruptedException e) {
 			throw new ReadMessageException("syncRead readFromChannel timeout or socket is disconnect");
 		}
 		return readObject;
