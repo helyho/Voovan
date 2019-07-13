@@ -3,6 +3,7 @@ package org.voovan.test.network.nio;
 import org.voovan.network.filter.StringFilter;
 import org.voovan.network.messagesplitter.LineMessageSplitter;
 import org.voovan.network.tcp.TcpSocket;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 public class SyncNioSocketTest {
@@ -12,9 +13,18 @@ public class SyncNioSocketTest {
 		socket.filterChain().add(new StringFilter());
 		socket.messageSplitter(new LineMessageSplitter());
 	    socket.syncStart();
+
 		socket.synchronouSend("syncSocket\r\n");
 		try {
-			System.out.println(socket.synchronouRead());
+			System.out.println("Server: " + socket.synchronouRead());
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+
+		socket.synchronouSend("syncSocket read after recieve\r\n");
+		try {
+			TEnv.sleep(1000);
+			System.out.println("Server: " + socket.synchronouRead());
 		}catch (Exception e){
 			e.printStackTrace();
 		}
