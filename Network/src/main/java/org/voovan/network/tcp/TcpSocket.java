@@ -3,7 +3,6 @@ package org.voovan.network.tcp;
 import org.voovan.network.*;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;

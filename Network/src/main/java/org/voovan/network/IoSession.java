@@ -414,7 +414,6 @@ public abstract class IoSession<T extends SocketContext> {
 
 		Object readObject = null;
 		SynchronousHandler synchronousHandler = null;
-		int waitedTime = 0;
 
 		if(socketContext.handler() instanceof SynchronousHandler) {
 			synchronousHandler = (SynchronousHandler) socketContext.handler();
@@ -423,12 +422,8 @@ public abstract class IoSession<T extends SocketContext> {
 		}
 
 		try {
-			//如果响应对象不存在则继续循环等待直到结果出现
-			SynchronousHandler finalSynchronousHandler = synchronousHandler;
-			TEnv.wait(socketContext.getReadTimeout(), ()->!finalSynchronousHandler.hasNextResponse() && isConnected());
-
 			if(isConnected()) {
-				readObject = ((SynchronousHandler) socketContext.handler()).getResponse();
+				readObject = synchronousHandler.getResponse(socketContext.getReadTimeout());
 			}
 
 			if(readObject == null && !isConnected()){
