@@ -1,4 +1,6 @@
-package org.voovan.network;
+package org.voovan.tools.event;
+
+import org.voovan.tools.exception.EventRunnerException;
 
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -62,12 +64,12 @@ public class EventRunner {
 
 	/**
 	 * 添加事件
-	 * @param priority 事件优先级 1,2,3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6: Socket 注册/注销事件
+	 * @param priority 事件优先级必须在1-10之间
 	 * @param runnable 事件执行器
 	 */
 	public void addEvent(int priority, Runnable runnable) {
 		if(priority > 10 || priority < 1) {
-			throw new UnsupportedOperationException("priority must between 1-10");
+			throw new EventRunnerException("priority must between 1-10");
 		}
 		eventQueue.add(EventTask.newInstance(priority, runnable));
 	}
@@ -81,27 +83,35 @@ public class EventRunner {
 	}
 
 	/**
-	 * 执行
+	 * 执行, 在 EventRunnerGroup 执行
 	 */
 	public void process() {
-		while (true) {
-			try {
-				EventTask eventTask = eventQueue.poll(100, TimeUnit.MILLISECONDS);
-				if(eventTask!=null) {
-					Runnable runnable = eventTask.getRunnable();
-					if (runnable != null) {
-						runnable.run();
-					}
-				} else {
-					if(eventRunnerGroup.getThreadPool().isShutdown()){
-						break;
-					}
-				}
-			} catch (Throwable e) {
-				e.printStackTrace();
-				continue;
-			}
+		if(this.thread!=null) {
+			throw new EventRunnerException("EventRunner already running");
 		}
+
+		//启动线程任务执行
+		eventRunnerGroup.getThreadPool().execute(()->{
+			this.setThread(Thread.currentThread());
+			while (true) {
+				try {
+				EventTask eventTask = eventQueue.poll(1000, TimeUnit.MILLISECONDS);
+					if(eventTask!=null) {
+						Runnable runnable = eventTask.getRunnable();
+						if (runnable != null) {
+							runnable.run();
+						}
+					} else {
+						if(eventRunnerGroup.getThreadPool().isShutdown()){
+							break;
+						}
+					}
+				} catch (Throwable e) {
+					e.printStackTrace();
+					continue;
+				}
+			}
+		});
 	}
 
 	public static class EventTask implements Comparable{

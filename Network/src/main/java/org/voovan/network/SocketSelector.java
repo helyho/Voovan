@@ -10,6 +10,7 @@ import org.voovan.tools.*;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.collection.ArraySet;
+import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -191,7 +192,7 @@ public class SocketSelector implements Closeable {
 
 	/**
 	 * 向执行器中增加一个选择事件
-	 * @param priority 指定的事件优先级
+	 * @param priority 指定的事件优先级, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6: Socket 注册/注销事件, 7-10 预留事件等级
 	 * @param supplier 在事件选择前执行的方法
 	 */
 	public void addChooseEvent(int priority, Callable<Boolean> supplier){
@@ -257,7 +258,7 @@ public class SocketSelector implements Closeable {
 			long dealTime = TEnv.measureTime(()->{
 				try {
 					selecting.compareAndSet(false, true);
-					selector.select(1000);
+					selector.select(5000);
 					selecting.compareAndSet(true, false);
 				} catch (IOException e) {
 					e.printStackTrace();

@@ -1,11 +1,5 @@
-package org.voovan.network;
+package org.voovan.tools.event;
 
-import org.voovan.tools.TObject;
-import org.voovan.tools.TPerformance;
-import org.voovan.tools.TString;
-import org.voovan.tools.threadpool.ThreadPool;
-
-import java.io.IOException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -39,14 +33,13 @@ public class EventRunnerGroup {
 			EventRunner eventRunner = new EventRunner(this);
 
 			if(attachmentSupplier!=null) {
+				//构造事件执行器的服务对象
 				eventRunner.attachment(attachmentSupplier.apply(eventRunner));
 			}
 			eventRunners[i] = eventRunner;
 
-			threadPool.execute(()->{
-				eventRunner.setThread(Thread.currentThread());
-				eventRunner.process();
-			});
+			//为事件执行器分配线程并启动
+			eventRunner.process();
 		}
 	}
 
