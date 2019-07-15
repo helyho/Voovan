@@ -479,33 +479,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 开启式事务模式
-     *      每次构建独立的事物来处理, 各个事务之间是隔离的
-     * @param transFunction 事务执行器, 返回 Null 则事务回滚, 其他则事务提交
-     * @return 非 null: 事务成功, null: 事务失败
-     */
-    public <T> T withNewTransaction(Function<RocksMap, T> transFunction) {
-        //不需要和父 rocksMap 共享一个事务
-        RocksMap<K,V> transactionRocksMap = duplicate(columnFamilyName, false);
-
-        T result = null;
-        try {
-            transactionRocksMap.beginTransaction();
-            result = transFunction.apply(transactionRocksMap);
-            if (result!=null) {
-                transactionRocksMap.commit();
-            } else {
-                transactionRocksMap.rollback();
-            }
-
-            return result;
-        } catch (Exception e) {
-            transactionRocksMap.rollback();
-            throw new RocksMapException("withTransaction failed, " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * 开启式事务模式
+     *      同一个线程共线给一个事务
      *      使用内置公共事务通过 savepoint 来失败回滚, 但统一提交, 性能会好很多, 但是由于很多层嵌套的 savepont 在高并发时使用这种方式时回导致提交会慢很多
      * @param transFunction 事务执行器, 返回 Null 则事务回滚, 其他则事务提交
      * @return 非 null: 事务成功, null: 事务失败
@@ -529,6 +503,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 开启事务
+     *      同一个线程共线给一个事务
      *      默认: 锁提交等待时间-1, 死锁检测:true, 是否启用快照事务: false
      */
     public void beginTransaction() {
@@ -537,11 +512,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 开启事务
-     * 事务都是读事务，无论操作的记录间是否有交集，都不会锁定。
-     * 事务包含读、写事务：
-     * 所有的读事务不会锁定，读到的数据取决于snapshot设置。
-     * 写事务之间如果不存在记录交集，不会锁定。
-     * 写事务之间如果存在记录交集，此时如果未设置snapshot，则交集部分的记录是可以串行提交的。如果设置了snapshot，则第一个写事务(写锁队列的head)会成功，其他写事务会失败(之前的事务修改了该记录的情况下)。
+     *      同一个线程共线给一个事务
+     *      事务都是读事务，无论操作的记录间是否有交集，都不会锁定。
+     *      事务包含读、写事务：
+     *      所有的读事务不会锁定，读到的数据取决于snapshot设置。
+     *      写事务之间如果不存在记录交集，不会锁定。
+     *      写事务之间如果存在记录交集，此时如果未设置snapshot，则交集部分的记录是可以串行提交的。如果设置了snapshot，则第一个写事务(写锁队列的head)会成功，其他写事务会失败(之前的事务修改了该记录的情况下)。
      * @param expire         提交时锁超时时间
      * @param deadlockDetect 死锁检测是否打开
      * @param withSnapShot   是否启用快照事务
