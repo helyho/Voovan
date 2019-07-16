@@ -62,8 +62,9 @@ public class TReflect {
     private static Map<Class, String>           NAME_CLASS           = new ConcurrentHashMap<Class ,String>();
     private static Map<String, Class>           CLASS_NAME           = new ConcurrentHashMap<String, Class>();
     private static Map<Class, Boolean>          CLASS_BASIC_TYPE     = new ConcurrentHashMap<Class ,Boolean>();
-    public static Map<String, DynamicFunction> FIELD_READER         = new ConcurrentHashMap<String, DynamicFunction>();
-    public static Map<String, DynamicFunction> FIELD_WRITER         = new ConcurrentHashMap<String, DynamicFunction>();
+    public static Map<String, DynamicFunction>  FIELD_READER         = new ConcurrentHashMap<String, DynamicFunction>();
+    public static Map<String, DynamicFunction>  FIELD_WRITER         = new ConcurrentHashMap<String, DynamicFunction>();
+    public static Map<String, DynamicFunction>  METHOD_INVOKE        = new ConcurrentHashMap<String, DynamicFunction>();
 
     /**
      * 生成对象的读取的动态编译方法
@@ -212,6 +213,108 @@ public class TReflect {
      */
     public static Boolean setFieldValueNatvie(Object obj, Field field, Object value) throws ReflectiveOperationException {
         return setFieldValueNatvie(obj, field.getName(), value);
+    }
+
+    /**
+     * 生成方法的原生调用代码
+     * @param clazz 根绝这个对象的元信息生成静态调用代码
+     */
+    public static void genMethodInvoker(Class clazz) {
+        // 生成的代码样例
+        // if(methodName.equals("getMap#-872919456")) {java.util.HashMap result = obj.getMap(); return result;}
+        // else if(methodName.equals("setBint#780572147")) {obj.setBint((int) params[0]); return null;}
+        // else if(methodName.equals("setString#-1074699118")) {obj.setString((java.lang.String) params[0]); return null;}
+        // else if(methodName.equals("getData#1245785925")) {java.lang.String result = obj.getData((java.lang.String) params[0],(java.lang.Integer) params[1]); return result;}
+        // else { return null; }
+
+        String className = clazz.getCanonicalName();
+        Method[] methods = getMethods(clazz);
+
+        //arg1 obj, arg2 methodName, arg3 args
+        StringBuilder code = new StringBuilder();
+
+        for(Method method : methods) {
+            Class[] paramTypes = method.getParameterTypes();
+
+            code.append(code.length() == 0 ? "if" : "else if");
+            code.append("(methodName.equals(\"" + method.getName() + Global.CHAR_SHAPE + method.getParameterCount() + "\")) {");
+
+            //准备接收方法返回值的分段代码, 用于后面拼接
+            Class returnClass = method.getReturnType();
+            String resultCode = ""; //接收响应数据
+            String returnCode = ""; //通过 return 返回数据
+            if(returnClass != void.class) {
+                resultCode = returnClass.getCanonicalName() + " result = ";
+                returnCode = " return result;";
+            } else {
+                returnCode = " return null;";
+            }
+
+            code.append(resultCode + "obj." + method.getName()+"(");
+
+            //拼装方法参数代码, 类似: (java.lang.String) params[i],
+            if(paramTypes.length > 0) {
+                for (int i = 0; i < paramTypes.length; i++) {
+                    code.append("(" + paramTypes[i].getCanonicalName() + ") params[" + i + "],");
+                }
+                code.setLength(code.length() - 1);
+            }
+
+            code.append(");");
+
+            //拼装 return 代码
+            code.append(returnCode + "} \r\n");
+        }
+
+        code.append("else { return null; }");
+
+        DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"Reader", code.toString());
+        dynamicFunction.addImport(ConcurrentHashMap.class);
+        dynamicFunction.addImport(Arrays.class);
+        dynamicFunction.addImport(clazz);
+        dynamicFunction.addPrepareArg(0, clazz, "obj");        //目标对象
+        dynamicFunction.addPrepareArg(1, String.class,   "methodName"); //写入字段
+        dynamicFunction.addPrepareArg(2, Object[].class, "params");     //写入数据
+
+        try {
+            //编译代码
+            dynamicFunction.compileCode();
+        } catch (ReflectiveOperationException e) {
+            Logger.error("TReflect.genMethodInvoker error", e);
+        }
+
+        METHOD_INVOKE.put(className, dynamicFunction);
+        if(Global.IS_DEBUG_MODE) {
+            Logger.debug(code);
+        }
+    }
+
+    /**
+     * 通过原生调用一个方法
+     * @param obj 对象
+     * @param method method对象
+     * @param params 方法参数
+     * @param <T> 方法返回值的范型
+     * @return 方法返回值
+     * @throws Exception 调用异常
+     */
+    public static <T> T invokeMethodNative(Object obj, Method method , Object[] params) throws Exception {
+        return (T)TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, method.getName() + Global.CHAR_SHAPE + method.getParameterCount(), params);
+    }
+
+    /**
+     * 通过原生调用一个方法
+     * @param obj 对象
+     * @param methodName 方法名
+     * @param params 方法参数
+     * @param <T> 方法返回值的范型
+     * @return 方法返回值
+     * @throws Exception 调用异常
+     */
+    public static <T> T invokeMethodNative(Object obj, String methodName, Object[] params) throws Exception {
+        //查找匹配的方法
+        Method method = findMethod(obj.getClass(), methodName, getArrayClasses(params));
+        return invokeMethodNative(obj, method, params);
     }
 
     /**
