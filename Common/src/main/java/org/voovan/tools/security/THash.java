@@ -251,10 +251,19 @@ public class THash {
 	 * @param length 长度
 	 * @return int值
 	 */
-	public static int HashFNV1(String str, int offset, int length)
-	{
+	public static int HashFNV1(String str, int offset, int length) {
 		return HashFNV1(str, offset, length, (int)2166136261L);
 	}
+
+
+//	/**
+//	 * 改进的32位FNV算法1
+//	 * @param str 字符串
+//	 * @return int值
+//	 */
+//	public static int HashFNV1(String str) {
+//		return HashFNV1(str, 0, str.length(), (int)2166136261L);
+//	}
 
 	/**
 	 * Time31算法
@@ -262,7 +271,7 @@ public class THash {
 	 * @return 加密结果
 	 */
 	public static int HashFNV1(String ... strs) {
-		int hash = 0;
+		int hash = (int)2166136261L;
 		for(int i=0;i<strs.length;i++){
 			String val = strs[i];
 			if(val !=null){

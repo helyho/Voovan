@@ -1,7 +1,6 @@
 package org.voovan.test.tools;
 
 import org.voovan.test.tools.json.TestObject;
-import org.voovan.test.tools.json.TestObject2;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.reflect.TReflect;
@@ -26,7 +25,6 @@ public class TReflectTest {
 
         TReflect.genFieldReader(SimpleObject.class);
         TReflect.genFieldWriter(SimpleObject.class);
-        TReflect.genMethodInvoker(SimpleObject.class);
 
         //get
         String val = TReflect.getFieldValueNatvie(obj, "valueS");
@@ -50,8 +48,29 @@ public class TReflectTest {
 
         Object[] objs = new Object[]{"aaaa", 111};
 
-        System.out.println("==========================get==========================");
+        System.out.println("==========================newInstance==========================");
+        System.out.println("direct: " + TEnv.measureTime(()->{
+            for(int i=0;i<500000;i++){
+                try {
+                    SimpleObject simpleObject = new SimpleObject();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
 
+        System.out.println("reflect: " + TEnv.measureTime(()->{
+            for(int i=0;i<500000;i++){
+                try {
+                    TReflect.newInstance(SimpleObject.class, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+
+        System.out.println("==========================get==========================");
 
         System.out.println("direct: " + TEnv.measureTime(()->{
             for(int i=0;i<500000;i++){
@@ -114,38 +133,6 @@ public class TReflectTest {
                 }
             }
         })/1000000f);
-
-        System.out.println("==========================invoke==========================");
-        System.out.println("direct: " + TEnv.measureTime(()->{
-            for(int i=0;i<500000;i++){
-                try {
-                    obj.getData("aaaa", 111);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        })/1000000f);
-
-        System.out.println("reflect: " + TEnv.measureTime(()->{
-            for(int i=0;i<500000;i++){
-                try {
-                    TReflect.invokeMethod(obj, method, objs);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        })/1000000f);
-
-        System.out.println("native: " + TEnv.measureTime(()->{
-            for(int i=0;i<500000;i++){
-                try {
-                    TReflect.invokeMethodNative(obj, method, objs);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        })/1000000f);
-
 
         System.out.println("==========================getMapfromObject==========================");
         TReflect.FIELD_READER.clear();
@@ -240,6 +227,27 @@ public class TReflectTest {
             for(int i=0;i<50000;i++){
                 try {
                     JSON.toObject(json, SimpleObject.class);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+        System.out.println("==========================invoke==========================");
+        System.out.println("direct: " + TEnv.measureTime(()->{
+            for(int i=0;i<500000;i++){
+                try {
+                    obj.getData("aaaa", 111);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+        System.out.println("reflect: " + TEnv.measureTime(()->{
+            for(int i=0;i<500000;i++){
+                try {
+                    TReflect.invokeMethod(obj, method, objs);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
