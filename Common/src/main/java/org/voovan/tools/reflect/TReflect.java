@@ -783,6 +783,8 @@ public class TReflect {
         try {
             return (T) method.invoke(obj, args);
         } catch (Exception e) {
+            Logger.warn("Method: " + method.getName() + "("+args.length+") reflect invoke, can be use strict parameter type to improve performance");
+
             exception = e;
             Method[] methods = null;
             methods = findMethod(objClass, name, args.length);
@@ -795,7 +797,9 @@ public class TReflect {
                     METHODS.put(getMethodParamTypeMark(objClass, name, paramTypes), methodItem);
                     return result;
                 } catch (Exception ex) {
-
+                    if(Global.IS_DEBUG_MODE) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -958,7 +962,11 @@ public class TReflect {
         try {
             result = (T)newInstanceNative(targetClazz, args);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.warn("Constructor: " + getClassName(targetClazz) + "("+args.length+") native invoke, can be use strict parameter type to improve performance");
+
+            if(Global.IS_DEBUG_MODE) {
+                e.printStackTrace();
+            }
         }
 
         if(result != null) {
@@ -971,6 +979,7 @@ public class TReflect {
         try {
             return (T) constructor.newInstance(args);
         } catch (Exception e) {
+            Logger.warn("Constructor: " + getClassName(targetClazz) + "("+args.length+") reflect invoke, can be use strict parameter type to improve performance");
             exception = e;
             //如果失败循环尝试各种构造函数构造
             Constructor[] constructors = null;
