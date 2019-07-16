@@ -14,6 +14,17 @@ public class SimpleObject {
     private Float valueF;
     private Double valueD;
 
+    public SimpleObject() {
+    }
+
+    public SimpleObject(Integer stringx) {
+        this.valueI = stringx;
+    }
+
+    public SimpleObject(String valueS) {
+        this.valueS = valueS;
+    }
+
     public String getValueS() {
         return valueS;
     }
@@ -21,6 +32,8 @@ public class SimpleObject {
     public void setValueS(String valueS) {
         this.valueS = valueS;
     }
+
+
 
     public Integer getValueI() {
         return valueI;

@@ -1,5 +1,6 @@
 package org.voovan.tools.compiler.function;
 
+import org.voovan.Global;
 import org.voovan.tools.*;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.collection.MultiMap;
@@ -95,7 +96,7 @@ public class DynamicFunction {
      * 初始化
      */
     private void init() {
-        this.packageName = "org.voovan.tools.compiler.temporary\r\n";
+        this.packageName = "org.voovan.tools.compiler.temporary;\r\n";
         this.name = null;
         this.argCode = null;
         this.importCode = "";
@@ -306,7 +307,7 @@ public class DynamicFunction {
      * 生成编译时混淆的类名
      */
     private void genClassName() {
-        this.className = this.name + "_VDC_" + TString.generateShortUUID();
+        this.className = this.name + "_VDF_" + Global.UNIQUE_ID.nextString();
     }
 
     /**
