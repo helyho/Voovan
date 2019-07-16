@@ -22,9 +22,7 @@ public class TReflectTest {
         obj.setValueS("xxxxxxx");
         obj.setValueI(123123);
 
-        TReflect.genFieldReader(SimpleObject.class);
-        TReflect.genFieldWriter(SimpleObject.class);
-        TReflect.genConstructorInvoker(SimpleObject.class);
+        TReflect.register(SimpleObject.class);
 
         //get
         String val = TReflect.getFieldValueNatvie(obj, "valueS");
@@ -275,14 +273,10 @@ public class TReflectTest {
     }
 
     public static void clear(){
-        TReflect.FIELD_READER.clear();
-        TReflect.FIELD_WRITER.clear();
-        TReflect.CONSTRUCTOR_INVOKE.clear();
+        TReflect.clearRegister();;
     }
 
     public static void gen() throws ReflectiveOperationException {
-        TReflect.genFieldReader(SimpleObject.class);
-        TReflect.genFieldWriter(SimpleObject.class);
-        TReflect.genConstructorInvoker(SimpleObject.class);
+        TReflect.register(SimpleObject.class);
     }
 }
