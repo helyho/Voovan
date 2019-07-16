@@ -26,6 +26,7 @@ public class TReflectTest {
 
         TReflect.genFieldReader(SimpleObject.class);
         TReflect.genFieldWriter(SimpleObject.class);
+        TReflect.genMethodInvoker(SimpleObject.class);
 
         //get
         String val = TReflect.getFieldValueNatvie(obj, "valueS");
@@ -129,6 +130,16 @@ public class TReflectTest {
             for(int i=0;i<500000;i++){
                 try {
                     TReflect.invokeMethod(obj, method, objs);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+        System.out.println("native: " + TEnv.measureTime(()->{
+            for(int i=0;i<500000;i++){
+                try {
+                    TReflect.invokeMethodNative(obj, method, objs);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
