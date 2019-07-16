@@ -407,7 +407,7 @@ public class TReflect {
                 }
             }
 
-            field = field == null ? (Field) EMPTY_FIELD : field;
+            field = field == null ? EMPTY_FIELD : field;
             FIELDS.put(marker, field);
         }
         return field == EMPTY_FIELD ? null : field;
@@ -591,7 +591,7 @@ public class TReflect {
                     method = clazz.getDeclaredMethod(name, paramTypes);
                     method.setAccessible(true);
                     break;
-                }catch(ReflectiveOperationException e){
+                } catch(ReflectiveOperationException e){
                     method = null;
                 }
             }
@@ -826,20 +826,19 @@ public class TReflect {
 
         if (constructor==null){
 
-            for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
-                try {
-                    constructor = clazz.getDeclaredConstructor(paramTypes);
+            try {
+                constructor = clazz.getDeclaredConstructor(paramTypes);
+                if(constructor!=null) {
                     constructor.setAccessible(true);
-                    break;
-                }catch(ReflectiveOperationException e){
-                    constructor = null;
                 }
+            } catch (NoSuchMethodException e) {
+                constructor = null;
             }
+        }
 
-            if(marker!=null) {
-                constructor = constructor == null ? EMPTY_CONSTRUCTOR : constructor;
-                CONSTRUCTORS.put(marker, constructor);
-            }
+        if(marker!=null) {
+            constructor = constructor == null ? EMPTY_CONSTRUCTOR : constructor;
+            CONSTRUCTORS.put(marker, constructor);
         }
 
         return constructor == EMPTY_CONSTRUCTOR ? null : constructor;
