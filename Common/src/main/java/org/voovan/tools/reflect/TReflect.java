@@ -206,13 +206,13 @@ public class TReflect {
     public static void genConstructorInvoker(Class clazz) {
         String className = clazz.getCanonicalName();
         Constructor[] constructors = getConstructors(clazz);
-        String paramtypeCode = "int paramMark = params.length;\r\n\r\n";
+        String paramtypeCode = "int paramTypeLength = params==null ? 0 : params.length;\r\n\r\n";
 
         StringBuilder code = new StringBuilder();
         for(Constructor constructor : constructors) {
             Class[] paramTypes = constructor.getParameterTypes();
             code.append(code.length() == 0 ? "if" : "else if");
-            code.append("(paramMark == " + paramTypes.length );
+            code.append("(paramTypeLength == " + paramTypes.length );
 
             //参数类型匹配
             for(int i=0;i<paramTypes.length;i++) {

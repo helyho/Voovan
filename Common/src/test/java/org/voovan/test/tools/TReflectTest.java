@@ -47,8 +47,6 @@ public class TReflectTest {
         System.out.println("native get: "+ val);
 
 
-
-
         System.out.println(JSON.toJSON(obj));
 
         Method method = TReflect.findMethod(SimpleObject.class, "getData", new Class[]{String.class, Integer.class});
@@ -82,7 +80,7 @@ public class TReflectTest {
         System.out.println("native: " + TEnv.measureTime(()->{
             for(int i=0;i<500000;i++){
                 try {
-                    TReflect.newInstanceNative(SimpleObject.class, new Object[] {"str"});
+                    TReflect.newInstanceNative(SimpleObject.class, null);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
