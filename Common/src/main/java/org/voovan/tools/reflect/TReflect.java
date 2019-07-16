@@ -72,27 +72,18 @@ public class TReflect {
      * @param clazz 目标对象类
      */
     public static void genFieldReader(Class clazz) throws ReflectiveOperationException {
-        // 生成的代码样例
-        // if(fieldName.equals("string")) {return obj.getString();}
-        // else if(fieldName.equals("bint")) {return obj.getBint();}
-        // else if(fieldName.equals("map")) {return obj.getMap();}
-        // else if(fieldName.equals("list")) {return obj.getList();}
-        // else if(fieldName.equals("tb2")) {return obj.getTb2();}
-        // else { return null; }
-
         String className = getClassName(clazz);
         Field[] fields = getFields(clazz);
 
         //arg1 obj, arg2 fieldName
-        String code = "";
+        String code = "switch(fieldName) {";
         for(Field field : fields) {
-            code = code + (code.isEmpty() ? "if" : "else if");
-            code = code + "(fieldName.equals(\"" + field.getName() + "\")) {";
+            code = code + "case \"" + field.getName() + "\" : ";
 
             String getMethodName = "get"+TString.upperCaseHead(field.getName())+"();";
-            code = code + "return obj."+getMethodName + "} \r\n";
+            code = code + "return obj."+getMethodName + " \r\n";
         }
-        code = code + "else { return null; }";
+        code = code + "default : return null;\r\n }";
 
         DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"Reader", code);
         dynamicFunction.addImport(clazz);
@@ -108,27 +99,19 @@ public class TReflect {
      * @param clazz 目标对象类
      */
     public static void genFieldWriter(Class clazz) throws ReflectiveOperationException {
-        // 生成的代码样例
-        // if(fieldName.equals("string")) {obj.setString((java.lang.String)value);}
-        // else if(fieldName.equals("bint")) {obj.setBint((int)value);}
-        // else if(fieldName.equals("map")) {obj.setMap((java.util.HashMap)value);}
-        // else if(fieldName.equals("list")) {obj.setList((java.util.Vector)value);}
-        // else if(fieldName.equals("tb2")) {obj.setTb2((org.voovan.test.tools.json.TestObject2)value);}
-
         String className = getClassName(clazz);
         Field[] fields = getFields(clazz);
 
         //arg1 obj, arg2 fieldName, arg3 value
-        String code = "";
+        String code = "switch(fieldName) {";
         for(Field field : fields) {
-            code = code + (code.isEmpty() ? "if" : "else if");
-            code = code + "(fieldName.equals(\"" + field.getName() + "\")) {";
+            code = code + "case \"" + field.getName() + "\" : ";
 
             String setMethodName = "set"+TString.upperCaseHead(field.getName())+"(("+field.getType().getName()+")value); return true;";
-            code = code + "obj."+setMethodName + "} \r\n";
+            code = code + "obj."+setMethodName + " \r\n";
         }
 
-        code = code + "else { return false; }";
+        code = code + "default : return null;\r\n }";
 
         DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"WRITER", code);
         dynamicFunction.addImport(clazz);
@@ -221,23 +204,23 @@ public class TReflect {
      * @param clazz 根绝这个对象的元信息生成静态调用代码
      */
     public static void genConstructorInvoker(Class clazz) {
-        // 生成的代码样例
-        //  Class<?>[] paramTypes = TReflect.getArrayClasses(params);
-        //  int paramMark = TReflect.getConstructorParamTypeMark(obj.getClass(), paramTypes);
-        //
-        //  if(paramMark == -89475056) {return new org.voovan.test.tools.SimpleObject();}
-        //  else { return null; }
-
         String className = clazz.getCanonicalName();
         Constructor[] constructors = getConstructors(clazz);
-        String paramtypeCode = "Class<?>[] paramTypes = TReflect.getArrayClasses(params);\r\n" +
-                "int paramMark = TReflect.getConstructorParamTypeMark(clazz, paramTypes);\r\n\r\n";
+        String paramtypeCode = "int paramMark = params.length;\r\n\r\n";
 
         StringBuilder code = new StringBuilder();
         for(Constructor constructor : constructors) {
             Class[] paramTypes = constructor.getParameterTypes();
             code.append(code.length() == 0 ? "if" : "else if");
-            code.append("(paramMark == " + getConstructorParamTypeMark(clazz, constructor.getParameterTypes()) + ") {");
+            code.append("(paramMark == " + paramTypes.length );
+
+            //参数类型匹配
+            for(int i=0;i<paramTypes.length;i++) {
+                Class paramClazz = paramTypes[i];
+                code.append(" && params["+i+"] instanceof " + TReflect.getClassName(paramClazz));
+            }
+
+            code.append(" ) {");
 
             code.append("return new " + TReflect.getClassName(clazz)+"(");
 
@@ -276,16 +259,31 @@ public class TReflect {
     }
 
 
-    /**
-     * 通过原生调用一个方法
-     * @param clazz 对象
-     * @param params 方法参数
-     * @param <T> 方法返回值的范型
-     * @return 方法返回值
-     * @throws Exception 调用异常
-     */
+        /**
+         * 通过原生调用一个方法
+         * @param clazz 对象
+         * @param params 方法参数
+         * @param <T> 方法返回值的范型
+         * @return 方法返回值
+         * @throws Exception 调用异常
+         */
     public static <T> T newInstanceNative(Class clazz, Object[] params) throws Exception {
-        return (T)TReflect.CONSTRUCTOR_INVOKE.get(clazz).call(clazz, params);
+
+        DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(clazz);
+
+        if(dynamicFunction == null) {
+            return null;
+        }
+
+        try {
+            return dynamicFunction.call(clazz, params);
+        } catch (Exception e) {
+            if (!(e instanceof ReflectiveOperationException)) {
+                throw new ReflectiveOperationException(e.getMessage(), e);
+            } else {
+                throw  (ReflectiveOperationException) e;
+            }
+        }
     }
 
     /**
@@ -504,6 +502,7 @@ public class TReflect {
     @SuppressWarnings("unchecked")
     static public <T> T getFieldValue(Object obj, String fieldName)
             throws ReflectiveOperationException {
+        //尝试 native 方法
         T t = getFieldValueNatvie(obj, fieldName);
         if(t==null) {
             Field field = findField(obj.getClass(), fieldName);
@@ -540,6 +539,7 @@ public class TReflect {
      */
     public static void setFieldValue(Object obj, String fieldName, Object fieldValue)
             throws ReflectiveOperationException {
+        //尝试 native 方法
         boolean isSucc = setFieldValueNatvie(obj, fieldName, fieldValue);
         if(!isSucc) {
             Field field = findField(obj.getClass(), fieldName);
@@ -951,7 +951,20 @@ public class TReflect {
             args = new Object[0];
         }
 
+        T result = null;
         Exception exception = null;
+
+        //尝试 native 方法
+        try {
+            result = (T)newInstanceNative(targetClazz, args);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if(result != null) {
+            return result;
+        }
+
         Class<?>[] paramTeypes = getArrayClasses(args);
         Constructor constructor = findConstructor(targetClazz, paramTeypes);
 
@@ -964,7 +977,7 @@ public class TReflect {
             constructors = findConstructor(targetClazz, args.length);
             for(Constructor constructorItem : constructors) {
                 try {
-                    T result = (T) constructorItem.newInstance(args);
+                     result = (T) constructorItem.newInstance(args);
                     //匹配到合适的则加入缓存
                     CONSTRUCTORS.put(getConstructorParamTypeMark(clazz, paramTeypes), constructorItem);
 

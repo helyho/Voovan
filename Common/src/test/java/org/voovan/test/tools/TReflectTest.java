@@ -1,6 +1,5 @@
 package org.voovan.test.tools;
 
-import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.reflect.TReflect;
@@ -35,12 +34,19 @@ public class TReflectTest {
         Boolean value = TReflect.setFieldValueNatvie(obj, "valueS", "nativeFieldSet");
         System.out.println("native set:" + value);
 
-        value = TReflect.setFieldValueNatvie(obj, "string111", "nativeFieldSet");
+        //get
+        val = TReflect.getFieldValueNatvie(obj, "valueS");
+        System.out.println("native get: "+ val);
+
+        //set
+        value = TReflect.setFieldValueNatvie(obj, "valueS", null);
         System.out.println("native set:" + value);
 
         //get
         val = TReflect.getFieldValueNatvie(obj, "valueS");
         System.out.println("native get: "+ val);
+
+
 
 
         System.out.println(JSON.toJSON(obj));
@@ -50,16 +56,6 @@ public class TReflectTest {
         Object[] objs = new Object[]{"aaaa", 111};
 
         System.out.println("==========================newInstance==========================");
-
-        System.out.println("native: " + TEnv.measureTime(()->{
-            for(int i=0;i<500000;i++){
-                try {
-                    TReflect.newInstanceNative(SimpleObject.class, null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        })/1000000f);
 
         System.out.println("direct: " + TEnv.measureTime(()->{
             for(int i=0;i<500000;i++){
@@ -71,10 +67,22 @@ public class TReflectTest {
             }
         })/1000000f);
 
+        TReflect.CONSTRUCTOR_INVOKE.clear();
         System.out.println("reflect: " + TEnv.measureTime(()->{
             for(int i=0;i<500000;i++){
                 try {
                     TReflect.newInstance(SimpleObject.class, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
+        TReflect.genConstructorInvoker(SimpleObject.class);
+        System.out.println("native: " + TEnv.measureTime(()->{
+            for(int i=0;i<500000;i++){
+                try {
+                    TReflect.newInstanceNative(SimpleObject.class, new Object[] {"str"});
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -176,7 +184,7 @@ public class TReflectTest {
         System.out.println("reflect: " + TEnv.measureTime(()->{
             for(int i=0;i<50000;i++){
                 try {
-                    TReflect.getObjectFromMap(TestObject.class, map, false);
+                    TReflect.getObjectFromMap(SimpleObject.class, map, false);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -188,7 +196,7 @@ public class TReflectTest {
         System.out.println("native: " + TEnv.measureTime(()->{
             for(int i=0;i<50000;i++){
                 try {
-                    TReflect.getObjectFromMap(TestObject.class, map, false);
+                    TReflect.getObjectFromMap(SimpleObject.class, map, false);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
