@@ -25,6 +25,7 @@ public class TReflectTest {
 
         TReflect.genFieldReader(SimpleObject.class);
         TReflect.genFieldWriter(SimpleObject.class);
+        TReflect.genConstructorInvoker(SimpleObject.class);
 
         //get
         String val = TReflect.getFieldValueNatvie(obj, "valueS");
@@ -49,6 +50,17 @@ public class TReflectTest {
         Object[] objs = new Object[]{"aaaa", 111};
 
         System.out.println("==========================newInstance==========================");
+
+        System.out.println("native: " + TEnv.measureTime(()->{
+            for(int i=0;i<500000;i++){
+                try {
+                    TReflect.newInstanceNative(SimpleObject.class, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
+
         System.out.println("direct: " + TEnv.measureTime(()->{
             for(int i=0;i<500000;i++){
                 try {
