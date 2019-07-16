@@ -1,4 +1,4 @@
-    package org.voovan.tools.reflect;
+package org.voovan.tools.reflect;
 
 
 import org.voovan.Global;
@@ -6,6 +6,7 @@ import org.voovan.tools.*;
 import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.NotSerialization;
+import org.voovan.tools.security.THash;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -39,9 +40,9 @@ public class TReflect {
         }
     }
 
-    private static Constructor EMPTY_CONSTRUCTOR;
-    private static Field EMPTY_FIELD;
-    private static Method EMPTY_METHOD;
+    public static Constructor EMPTY_CONSTRUCTOR;
+    public static Field EMPTY_FIELD;
+    public static Method EMPTY_METHOD;
 
     static {
         try {
@@ -53,18 +54,18 @@ public class TReflect {
         }
     }
 
-    private static Map<String, Field>           FIELDS               = new ConcurrentHashMap<String ,Field>();
-    private static Map<String, Method>          METHODS              = new ConcurrentHashMap<String ,Method>();
-    private static Map<String, Constructor>     CONSTRUCTORS         = new ConcurrentHashMap<String ,Constructor>();
-    private static Map<Class, Field[]>          FIELD_ARRAYS         = new ConcurrentHashMap<Class ,Field[]>();
-    private static Map<String, Method[]>        METHOD_ARRAYS        = new ConcurrentHashMap<String ,Method[]>();
-    private static Map<String, Constructor[]>   CONSTRUCTOR_ARRAYS   = new ConcurrentHashMap<String ,Constructor[]>();
-    private static Map<Class, String>           NAME_CLASS           = new ConcurrentHashMap<Class ,String>();
-    private static Map<String, Class>           CLASS_NAME           = new ConcurrentHashMap<String, Class>();
-    private static Map<Class, Boolean>          CLASS_BASIC_TYPE     = new ConcurrentHashMap<Class ,Boolean>();
-    public static Map<String, DynamicFunction>  FIELD_READER         = new ConcurrentHashMap<String, DynamicFunction>();
-    public static Map<String, DynamicFunction>  FIELD_WRITER         = new ConcurrentHashMap<String, DynamicFunction>();
-    public static Map<String, DynamicFunction>  METHOD_INVOKE        = new ConcurrentHashMap<String, DynamicFunction>();
+    private static Map<Integer, Field>           FIELDS               = new ConcurrentHashMap<Integer ,Field>();
+    private static Map<Integer, Method>          METHODS              = new ConcurrentHashMap<Integer ,Method>();
+    private static Map<Integer, Constructor>     CONSTRUCTORS         = new ConcurrentHashMap<Integer ,Constructor>();
+    private static Map<Class, Field[]>           FIELD_ARRAYS         = new ConcurrentHashMap<Class ,Field[]>();
+    private static Map<Integer, Method[]>        METHOD_ARRAYS        = new ConcurrentHashMap<Integer ,Method[]>();
+    private static Map<Integer, Constructor[]>   CONSTRUCTOR_ARRAYS   = new ConcurrentHashMap<Integer ,Constructor[]>();
+    private static Map<Class, String>            NAME_CLASS           = new ConcurrentHashMap<Class ,String>();
+    private static Map<String, Class>            CLASS_NAME           = new ConcurrentHashMap<String, Class>();
+    private static Map<Class, Boolean>           CLASS_BASIC_TYPE     = new ConcurrentHashMap<Class ,Boolean>();
+    public  static Map<String, DynamicFunction>  FIELD_READER         = new ConcurrentHashMap<String, DynamicFunction>();
+    public  static Map<String, DynamicFunction>  FIELD_WRITER         = new ConcurrentHashMap<String, DynamicFunction>();
+    public  static Map<String, DynamicFunction>  METHOD_INVOKE        = new ConcurrentHashMap<String, DynamicFunction>();
 
     /**
      * 生成对象的读取的动态编译方法
@@ -216,108 +217,6 @@ public class TReflect {
     }
 
     /**
-     * 生成方法的原生调用代码
-     * @param clazz 根绝这个对象的元信息生成静态调用代码
-     */
-    public static void genMethodInvoker(Class clazz) {
-        // 生成的代码样例
-        // if(methodName.equals("getMap#-872919456")) {java.util.HashMap result = obj.getMap(); return result;}
-        // else if(methodName.equals("setBint#780572147")) {obj.setBint((int) params[0]); return null;}
-        // else if(methodName.equals("setString#-1074699118")) {obj.setString((java.lang.String) params[0]); return null;}
-        // else if(methodName.equals("getData#1245785925")) {java.lang.String result = obj.getData((java.lang.String) params[0],(java.lang.Integer) params[1]); return result;}
-        // else { return null; }
-
-        String className = clazz.getCanonicalName();
-        Method[] methods = getMethods(clazz);
-
-        //arg1 obj, arg2 methodName, arg3 args
-        StringBuilder code = new StringBuilder();
-
-        for(Method method : methods) {
-            Class[] paramTypes = method.getParameterTypes();
-
-            code.append(code.length() == 0 ? "if" : "else if");
-            code.append("(methodName.equals(\"" + method.getName() + Global.CHAR_SHAPE + method.getParameterCount() + "\")) {");
-
-            //准备接收方法返回值的分段代码, 用于后面拼接
-            Class returnClass = method.getReturnType();
-            String resultCode = ""; //接收响应数据
-            String returnCode = ""; //通过 return 返回数据
-            if(returnClass != void.class) {
-                resultCode = returnClass.getCanonicalName() + " result = ";
-                returnCode = " return result;";
-            } else {
-                returnCode = " return null;";
-            }
-
-            code.append(resultCode + "obj." + method.getName()+"(");
-
-            //拼装方法参数代码, 类似: (java.lang.String) params[i],
-            if(paramTypes.length > 0) {
-                for (int i = 0; i < paramTypes.length; i++) {
-                    code.append("(" + paramTypes[i].getCanonicalName() + ") params[" + i + "],");
-                }
-                code.setLength(code.length() - 1);
-            }
-
-            code.append(");");
-
-            //拼装 return 代码
-            code.append(returnCode + "} \r\n");
-        }
-
-        code.append("else { return null; }");
-
-        DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"Reader", code.toString());
-        dynamicFunction.addImport(ConcurrentHashMap.class);
-        dynamicFunction.addImport(Arrays.class);
-        dynamicFunction.addImport(clazz);
-        dynamicFunction.addPrepareArg(0, clazz, "obj");        //目标对象
-        dynamicFunction.addPrepareArg(1, String.class,   "methodName"); //写入字段
-        dynamicFunction.addPrepareArg(2, Object[].class, "params");     //写入数据
-
-        try {
-            //编译代码
-            dynamicFunction.compileCode();
-        } catch (ReflectiveOperationException e) {
-            Logger.error("TReflect.genMethodInvoker error", e);
-        }
-
-        METHOD_INVOKE.put(className, dynamicFunction);
-        if(Global.IS_DEBUG_MODE) {
-            Logger.debug(code);
-        }
-    }
-
-    /**
-     * 通过原生调用一个方法
-     * @param obj 对象
-     * @param method method对象
-     * @param params 方法参数
-     * @param <T> 方法返回值的范型
-     * @return 方法返回值
-     * @throws Exception 调用异常
-     */
-    public static <T> T invokeMethodNative(Object obj, Method method , Object[] params) throws Exception {
-        return (T)TReflect.METHOD_INVOKE.get(getClassName(obj.getClass())).call(obj, method.getName() + Global.CHAR_SHAPE + method.getParameterCount(), params);
-    }
-
-    /**
-     * 通过原生调用一个方法
-     * @param obj 对象
-     * @param methodName 方法名
-     * @param params 方法参数
-     * @param <T> 方法返回值的范型
-     * @return 方法返回值
-     * @throws Exception 调用异常
-     */
-    public static <T> T invokeMethodNative(Object obj, String methodName, Object[] params) throws Exception {
-        //查找匹配的方法
-        Method method = findMethod(obj.getClass(), methodName, getArrayClasses(params));
-        return invokeMethodNative(obj, method, params);
-    }
-
-    /**
      * 根据 Class 对象获取类的完全现定名
      * @param clazz Class 对象
      * @return 类的完全现定名
@@ -379,6 +278,10 @@ public class TReflect {
         return fields;
     }
 
+    public static Integer getFieldMark(Class<?> clazz, String fieldName) {
+        return THash.HashFNV1(clazz.getName()) ^ THash.HashFNV1(fieldName);
+    }
+
     /**
      * 查找类特定的Field
      *
@@ -388,7 +291,7 @@ public class TReflect {
      */
     public static Field findField(Class<?> clazz, String fieldName) {
 
-        String mark = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(fieldName).toString();
+        Integer mark = getFieldMark(clazz, fieldName);
 
         Field field = FIELDS.get(mark);
 
@@ -426,7 +329,7 @@ public class TReflect {
      */
     public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName) {
 
-        String marker = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(fieldName).toString();
+        Integer marker = getFieldMark(clazz, fieldName);
 
         Field field = FIELDS.get(marker);
         if (field==null){
@@ -596,6 +499,14 @@ public class TReflect {
         return result;
     }
 
+    public static int getMethodParamTypeMark(Class<?> clazz, String name, Class<?>... paramTypes) {
+        int hashCode = THash.HashFNV1(clazz.getName()) ^ THash.HashFNV1(name);
+        for(Class<?> paramType : paramTypes){
+            hashCode = hashCode ^ THash.HashFNV1(paramType.getName());
+        }
+        return hashCode;
+    }
+
     /**
      * 查找类中的方法
      * @param clazz        类对象
@@ -604,12 +515,7 @@ public class TReflect {
      * @return			   方法对象
      */
     public static Method findMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
-        StringBuilder markBuilder = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(name);
-        for(Class<?> paramType : paramTypes){
-            markBuilder.append("$").append(getClassName(paramType));
-        }
-
-        String marker = markBuilder.toString();
+        Integer marker = getMethodParamTypeMark(clazz, name, paramTypes);
 
         Method method = METHODS.get(marker);
 
@@ -634,6 +540,11 @@ public class TReflect {
         return method == EMPTY_METHOD ? null : method;
     }
 
+    public static int getMethodParamCountMark(Class<?> clazz, String name, int paramCount) {
+        int hashCode = THash.HashFNV1(clazz.getName()) ^ THash.HashFNV1(name) ^ paramCount;
+        return hashCode;
+    }
+
     /**
      * 查找类中的方法(使用参数数量)
      * @param clazz        类对象
@@ -642,7 +553,7 @@ public class TReflect {
      * @return			   方法对象
      */
     public static Method[] findMethod(Class<?> clazz, String name, int paramCount) {
-        String marker = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(name).append(Global.CHAR_AT).append(paramCount).toString();
+        Integer marker = getMethodParamCountMark(clazz, name, paramCount);
 
         Method[] methods = METHOD_ARRAYS.get(marker);
 
@@ -676,7 +587,7 @@ public class TReflect {
 
         Method[] methods = null;
 
-        String marker = getClassName(clazz);
+        Integer marker = clazz.hashCode();
 
         methods = METHOD_ARRAYS.get(marker);
 
@@ -702,6 +613,11 @@ public class TReflect {
         return methods;
     }
 
+    public static int getMethodMark(Class<?> clazz, String name) {
+        int hashCode = THash.HashFNV1(clazz.getName()) ^ THash.HashFNV1(name);
+        return hashCode;
+    }
+
     /**
      * 获取类的特定方法的集合
      * 		类中可能存在同名方法
@@ -713,7 +629,7 @@ public class TReflect {
 
         Method[] methods = null;
 
-        String marker = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(name).toString();
+        Integer marker = getMethodMark(clazz, name);
         methods = METHOD_ARRAYS.get(marker);
         if(methods==null){
 
@@ -785,18 +701,30 @@ public class TReflect {
         if(args==null){
             args = new Object[0];
         }
-        Method[] methods = null;
-        Class objClass = (obj instanceof Class) ? (Class)obj : obj.getClass();
-        methods = findMethod(objClass, name, args.length);
 
         Exception exception = null;
+        Class<?>[] paramTypes = getArrayClasses(args);
 
-        //如果失败循环尝试各种相同类型的方法
-        for(Method method : methods) {
-            try {
-                return (T) method.invoke(obj, args);
-            } catch (Exception e) {
+        Class objClass = (obj instanceof Class) ? (Class)obj : obj.getClass();
+        Method method = findMethod(obj.getClass(), name, paramTypes);
 
+        try {
+            return (T) method.invoke(obj, args);
+        } catch (Exception e) {
+            exception = e;
+            Method[] methods = null;
+            methods = findMethod(objClass, name, args.length);
+
+            //如果失败循环尝试各种相同类型的方法
+            for(Method methodItem : methods) {
+                try {
+                    T result = (T) methodItem.invoke(obj, args);
+                    //匹配到合适则加入缓存
+                    METHODS.put(getMethodParamTypeMark(objClass, name, paramTypes), methodItem);
+                    return result;
+                } catch (Exception ex) {
+
+                }
             }
         }
 
@@ -809,6 +737,14 @@ public class TReflect {
         throw (ReflectiveOperationException)exception;
     }
 
+    public static int getConstructorParamTypeMark(Class<?> clazz, Class<?>... paramTypes) {
+        int hashCode = THash.HashFNV1(clazz.getName());
+        for(Class<?> paramType : paramTypes){
+            hashCode = hashCode ^ THash.HashFNV1(paramType.getName());
+        }
+        return hashCode;
+    }
+
     /**
      * 查找类中的构造方法
      * @param clazz        类对象
@@ -816,12 +752,7 @@ public class TReflect {
      * @return			   方法对象
      */
     public static Constructor findConstructor(Class<?> clazz, Class<?>... paramTypes) {
-        StringBuilder markBuilder = new StringBuilder(getClassName(clazz));
-        for(Class<?> paramType : paramTypes){
-            markBuilder.append("$").append(getClassName(paramType));
-        }
-
-        String marker = markBuilder.toString();
+        Integer marker = getConstructorParamTypeMark(clazz, paramTypes);
 
         Constructor constructor = CONSTRUCTORS.get(marker);
 
@@ -846,6 +777,11 @@ public class TReflect {
         return constructor == EMPTY_CONSTRUCTOR ? null : constructor;
     }
 
+    public static int getConstructorParamCountMark(Class<?> clazz, int paramCount) {
+        int hashCode = THash.HashFNV1(clazz.getName()) ^ paramCount;
+        return hashCode;
+    }
+
     /**
      * 查找类中的构造方法(使用参数数量)
      * @param clazz        类对象
@@ -853,7 +789,7 @@ public class TReflect {
      * @return			   方法对象
      */
     public static Constructor[] findConstructor(Class<?> clazz, int paramCount) {
-        String marker = new StringBuilder(getClassName(clazz)).append(Global.CHAR_SHAPE).append(paramCount).toString();
+        Integer marker = getConstructorParamCountMark(clazz, paramCount);
 
         Constructor[] constructors = CONSTRUCTOR_ARRAYS.get(marker);
 
@@ -887,7 +823,7 @@ public class TReflect {
 
         Constructor[] constructors = null;
 
-        String marker = getClassName(clazz);
+        Integer marker = clazz.hashCode();
 
         constructors = CONSTRUCTOR_ARRAYS.get(marker);
 
@@ -922,10 +858,6 @@ public class TReflect {
     public static <T> T newInstance(Class<T> clazz, Object ...args)
             throws ReflectiveOperationException {
 
-        if(args==null){
-            args = new Object[0];
-        }
-
         Class targetClazz = clazz;
 
         //不可构造的类型使用最常用的类型
@@ -946,17 +878,27 @@ public class TReflect {
         if(args==null){
             args = new Object[0];
         }
-        Constructor[] constructors = null;
-        constructors = findConstructor(targetClazz, args.length);
 
-        Exception lastException = null;
+        Exception exception = null;
+        Class<?>[] paramTeypes = getArrayClasses(args);
+        Constructor constructor = findConstructor(targetClazz, paramTeypes);
 
-        //如果失败循环尝试各种构造函数构造
-        for(Constructor constructor : constructors) {
-            try {
-                return (T) constructor.newInstance(args);
-            } catch (Exception e) {
-                lastException = e;
+        try {
+            return (T) constructor.newInstance(args);
+        } catch (Exception e) {
+            exception = e;
+            //如果失败循环尝试各种构造函数构造
+            Constructor[] constructors = null;
+            constructors = findConstructor(targetClazz, args.length);
+            for(Constructor constructorItem : constructors) {
+                try {
+                    T result = (T) constructorItem.newInstance(args);
+                    //匹配到合适的则加入缓存
+                    CONSTRUCTORS.put(getConstructorParamTypeMark(clazz, paramTeypes), constructorItem);
+
+                    return result;
+                } catch (Exception ex) {
+                }
             }
         }
 
@@ -965,12 +907,12 @@ public class TReflect {
             return (T) TUnsafe.getUnsafe().allocateInstance(targetClazz);
         } catch (Exception e) {
             if (!(e instanceof ReflectiveOperationException)) {
-                lastException = new ReflectiveOperationException(e.getMessage(), e);
+                exception = new ReflectiveOperationException(e.getMessage(), e);
             } else {
-                lastException = (ReflectiveOperationException) e;
+                exception = (ReflectiveOperationException) e;
             }
 
-            throw (ReflectiveOperationException)lastException;
+            throw (ReflectiveOperationException)exception;
         }
     }
 
