@@ -326,7 +326,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 */
 	public void handler(IoHandler handler){
 		this.handler = handler;
-		isSynchronous = false;
+		isSynchronous = handler instanceof SynchronousHandler;
 	}
 
 	/**
