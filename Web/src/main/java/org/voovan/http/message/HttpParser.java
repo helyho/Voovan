@@ -636,12 +636,15 @@ public class HttpParser {
 						Map<String, Object> partMap = new HashMap<String, Object>();
 
 						ByteBuffer partByteBuffer =  partByteBufferChannel.getByteBuffer();
-						while(parseHeader(partMap, partByteBuffer, contiuneRead, timeout)){
-							if(!partByteBuffer.hasRemaining() && session.isConnected()){
-								return null;
+						try {
+							while (parseHeader(partMap, partByteBuffer, contiuneRead, timeout)) {
+								if (!partByteBuffer.hasRemaining() && session.isConnected()) {
+									return null;
+								}
 							}
+						} finally {
+							partByteBufferChannel.compact();
 						}
-						partByteBufferChannel.compact();
 
 						TByteBuffer.release(partHeadBuffer);
 						partByteBufferChannel.release();
