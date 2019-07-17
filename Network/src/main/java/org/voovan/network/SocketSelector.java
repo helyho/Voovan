@@ -1,6 +1,7 @@
 package org.voovan.network;
 
 import org.voovan.Global;
+import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.network.udp.UdpServerSocket;
 import org.voovan.network.udp.UdpSession;
@@ -39,25 +40,28 @@ public class SocketSelector implements Closeable {
 
 	protected Selector selector;
 	protected ByteBuffer readTempBuffer;
+	protected boolean isCheckTimeout;
 
-	protected ArraySet<SelectionKey> selectionKeys = new ArraySet<SelectionKey>(1024);
+	protected ArraySet<SelectionKey> selectedKeys = new ArraySet<SelectionKey>(1024*10);
 	protected AtomicBoolean selecting = new AtomicBoolean(false);
 	private boolean useSelectNow = false;
 
 	/**
 	 * 构造方法
 	 * @param eventRunner 事件执行器
+	 * @param isCheckTimeout 是否检查超时
 	 * @throws IOException IO 异常
 	 */
-	public SocketSelector(EventRunner eventRunner) throws IOException {
+	public SocketSelector(EventRunner eventRunner, boolean isCheckTimeout) throws IOException {
 		this.selector = SelectorProvider.provider().openSelector();
 		this.eventRunner = eventRunner;
+		this.isCheckTimeout = isCheckTimeout;
 
 		readTempBuffer = TByteBuffer.allocateDirect();
 
 		try {
-			TReflect.setFieldValue(selector, NioUtil.selectedKeysField, selectionKeys);
-			TReflect.setFieldValue(selector, NioUtil.publicSelectedKeysField, selectionKeys);
+			TReflect.setFieldValue(selector, NioUtil.selectedKeysField, selectedKeys);
+			TReflect.setFieldValue(selector, NioUtil.publicSelectedKeysField, selectedKeys);
 		} catch (ReflectiveOperationException e) {
 			e.printStackTrace();
 		}
@@ -229,7 +233,7 @@ public class SocketSelector implements Closeable {
 					processSelect();
 
 					//如果有待处理的操作则下次调用 selectNow, 如果没有待处理的操作则调用带有阻赛的 select
-					if (!selectionKeys.isEmpty()) {
+					if (!selectedKeys.isEmpty()) {
 						processSelectionKeys();
 						useSelectNow = true;
 					} else {
@@ -257,15 +261,17 @@ public class SocketSelector implements Closeable {
 		} else {
 			long dealTime = TEnv.measureTime(()->{
 				try {
+					//检查超时
+					checkReadTimeout();
 					selecting.compareAndSet(false, true);
-					selector.select(5000);
+					selector.select(100);
 					selecting.compareAndSet(true, false);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			});
 
-			int readyChannelCount = selectionKeys.size();
+			int readyChannelCount = selectedKeys.size();
 
 			//Bug 探测
 			if(readyChannelCount ==0 && dealTime < 1000000*0.5){
@@ -281,28 +287,43 @@ public class SocketSelector implements Closeable {
 	}
 
 	/**
+	 * 读超时检查
+	 */
+	public void checkReadTimeout(){
+		if(isCheckTimeout) {
+			for (SelectionKey selectionKey : selector.keys()) {
+				SocketContext socketContext = (SocketContext) selectionKey.attachment();
+				if (socketContext.connectModel != ConnectModel.LISTENER && socketContext.isReadTimeOut()) {
+					socketContext.close();
+					EventTrigger.fireException(socketContext.getSession(), new ReadMessageException("Read timeout"));
+				}
+			}
+		}
+	}
+
+	/**
 	 * 处理选择到的 Key
 	 * @throws IOException IO 异常
 	 */
 
 	private void processSelectionKeys() throws IOException {
-		for (int i=0;i<selectionKeys.size(); i++) {
-			SelectionKey selectionKey = selectionKeys.getAndRemove(i);
+		for (int i = 0; i< selectedKeys.size(); i++) {
+			SelectionKey selectedKey = selectedKeys.getAndRemove(i);
 
-			if (selectionKey.isValid()) {
+			if (selectedKey.isValid()) {
 				// 获取 socket 通道
-				SelectableChannel channel = selectionKey.channel();
-				SocketContext socketContext = (SocketContext) selectionKey.attachment();
-				if (channel.isOpen() && selectionKey.isValid()) {
+				SelectableChannel channel = selectedKey.channel();
+				SocketContext socketContext = (SocketContext) selectedKey.attachment();
+				if (channel.isOpen() && selectedKey.isValid()) {
 					// 事件分发,包含时间 onRead onAccept
 					// Server接受连接
-					if((selectionKey.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
+					if((selectedKey.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
 						SocketChannel socketChannel = ((ServerSocketChannel) channel).accept();
 						tcpAccept((TcpServerSocket) socketContext, socketChannel);
 					}
 
 					// 有数据读取
-					if ((selectionKey.readyOps() & SelectionKey.OP_READ) != 0) {
+					if ((selectedKey.readyOps() & SelectionKey.OP_READ) != 0) {
 						if(channel instanceof SocketChannel){
 							tcpReadFromChannel((TcpSocket) socketContext, (SocketChannel)channel);
 						} else if(channel instanceof DatagramChannel) {
@@ -317,7 +338,7 @@ public class SocketSelector implements Closeable {
 //			}
 		}
 
-		selectionKeys.reset();
+		selectedKeys.reset();
 	}
 
 	/**

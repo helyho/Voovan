@@ -33,7 +33,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", 1, ACCEPT_THREAD_SIZE, 60*1000, true, 10);
 	public static EventRunnerGroup ACCEPT_EVENT_RUNNER_GROUP= new EventRunnerGroup(ACCEPT_THREAD_POOL, ACCEPT_THREAD_SIZE, (obj)->{
 		try {
-			return new SocketSelector(obj);
+			//Accept 线程不检查超时
+			return new SocketSelector(obj, false);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -45,7 +46,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", IO_THREAD_SIZE, IO_THREAD_SIZE, 60*1000, true, 9);
 	public static EventRunnerGroup IO_EVENT_RUNNER_GROUP= new EventRunnerGroup(IO_THREAD_POOL, IO_THREAD_SIZE, (obj)->{
 		try {
-			return new SocketSelector(obj);
+			//IO 线程检查超时
+			return new SocketSelector(obj, true);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
