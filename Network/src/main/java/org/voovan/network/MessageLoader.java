@@ -153,8 +153,7 @@ public class MessageLoader {
 		boolean isConnect = true;
 
 		while ( isConnect && enable &&
-				(stopType== StopType.RUNNING ) &&
-				dataByteBufferChannel.size() > 0
+				(stopType== StopType.RUNNING )
 		) {
 
 			if(session.socketContext() instanceof UdpSocket) {
@@ -181,7 +180,7 @@ public class MessageLoader {
 					}
 
 					//使用消息划分器进行消息划分
-					if (readsize == 0 && dataByteBuffer.limit() > 0) {
+					if (readsize != 0 && dataByteBuffer.limit() > 0) {
 						if (messageSplitter instanceof TransferSplitter) {
 							splitLength = dataByteBuffer.limit();
 						} else {
@@ -200,18 +199,21 @@ public class MessageLoader {
 				stopType = StopType.SOCKET_CLOSED;
 			}
 
+			oldByteChannelSize = byteBufferChannel.size();
+
 			//超时判断,防止读0时导致的高 CPU 负载
 			if( readsize==0 && stopType == StopType.RUNNING ){
 				if(session.socketContext().isReadTimeOut()){
 					stopType = StopType.STREAM_END;
 				}else {
+					session.getSocketSelector().eventChoose();
 					readZeroCount++;
 				}
 			}else{
 				readZeroCount = 0;
 			}
 
-			oldByteChannelSize = byteBufferChannel.size();
+
 		}
 
 		//如果是流结束,对方关闭,本地关闭这三种情况则返回 null

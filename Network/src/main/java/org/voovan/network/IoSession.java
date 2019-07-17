@@ -190,6 +190,8 @@ public abstract class IoSession<T extends SocketContext> {
 
 							//初始化状态
 							if(session.state.isInit() ||
+									session.state.isReceive() ||
+									session.state.isSend() ||
 									session.state.isConnect()) {
 								return;
 							}
@@ -209,6 +211,7 @@ public abstract class IoSession<T extends SocketContext> {
 								return;
 							}
 
+
 							//检查空间时间
 							if(socketContext.getIdleInterval() < 1){
 								return;
@@ -223,7 +226,7 @@ public abstract class IoSession<T extends SocketContext> {
 
 				checkIdleTask.run();
 
-				Global.getHashWheelTimer().addTask(checkIdleTask, session.socketContext.getIdleInterval());
+				Global.getHashWheelTimer().addTask(checkIdleTask, 1);
 			}
 		}
 	}
