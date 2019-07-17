@@ -196,7 +196,7 @@ public class SocketSelector implements Closeable {
 
 	/**
 	 * 向执行器中增加一个选择事件
-	 * @param priority 指定的事件优先级, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6: Socket 注册/注销事件, 7-10 预留事件等级
+	 * @param priority 指定的事件优先级, 越小优先级越高, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6: Socket 注册/注销事件, 7-10 预留事件等级
 	 * @param supplier 在事件选择前执行的方法
 	 */
 	public void addChooseEvent(int priority, Callable<Boolean> supplier){
@@ -293,7 +293,7 @@ public class SocketSelector implements Closeable {
 		if(isCheckTimeout) {
 			for (SelectionKey selectionKey : selector.keys()) {
 				SocketContext socketContext = (SocketContext) selectionKey.attachment();
-				if (socketContext.connectModel != ConnectModel.LISTENER && socketContext.isReadTimeOut()) {
+				if (socketContext!=null && socketContext.connectModel != ConnectModel.LISTENER && socketContext.isReadTimeOut()) {
 					socketContext.close();
 					EventTrigger.fireException(socketContext.getSession(), new ReadMessageException("Read timeout"));
 				}
