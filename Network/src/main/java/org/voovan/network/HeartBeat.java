@@ -19,7 +19,7 @@ public class HeartBeat {
     private byte[] pong;
     private boolean isFirstBeat = true;
     private LinkedBlockingDeque<Integer> queue;
-    private int fieldCount = 0;
+    private int failedCount = 0;
 
 
     /**
@@ -64,7 +64,7 @@ public class HeartBeat {
      * @return 失败次数
      */
     public int getFailedCount() {
-        return fieldCount;
+        return failedCount;
     }
 
     /**
@@ -136,20 +136,20 @@ public class HeartBeat {
 			if (beatType == 1) {
 				session.send(ByteBuffer.wrap(heartBeat.pong));
                 session.flush();
-				heartBeat.fieldCount = 0;
+				heartBeat.failedCount = 0;
 				return true;
 			} else if (beatType == 2) {
 				session.send(ByteBuffer.wrap(heartBeat.ping));
                 session.flush();
-				heartBeat.fieldCount = 0;
+				heartBeat.failedCount = 0;
 				return true;
 			} else {
-				heartBeat.fieldCount++;
+				heartBeat.failedCount++;
 				return false;
 			}
 		}
 
-        heartBeat.fieldCount++;
+        heartBeat.failedCount++;
         return false;
     }
     /**

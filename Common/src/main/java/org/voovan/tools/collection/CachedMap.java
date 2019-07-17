@@ -427,7 +427,6 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
                     .search()
                     .toArray(new TimeMark[0]);
             for (TimeMark timeMark : removedTimeMark) {
-                System.out.println("remove");
                 cacheMark.remove(timeMark.getKey());
                 this.remove(timeMark.getKey());
             }
