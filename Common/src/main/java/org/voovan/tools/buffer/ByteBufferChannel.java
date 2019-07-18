@@ -933,10 +933,6 @@ public class ByteBufferChannel {
 
         int index = indexOf(splitByte);
 
-        if (size() == 0) {
-            return TByteBuffer.EMPTY_BYTE_BUFFER;
-        }
-
         if (index == 0) {
             try {
                 this.getByteBuffer().position(splitByte.length);
