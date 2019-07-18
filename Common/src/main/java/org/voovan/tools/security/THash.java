@@ -155,6 +155,17 @@ public class THash {
 		return hashTime31(str, offset, length, 0);
 	}
 
+
+	/**
+	 * Time31算法
+	 * @param str 字符串
+	 * @return 加密结果
+	 */
+	public static int hashTime31(String str) {
+
+		return hashTime31(str, 0, str.length(), 0);
+	}
+
     /**
      * Time31算法
      * @param strs 字符串数组
@@ -256,14 +267,14 @@ public class THash {
 	}
 
 
-//	/**
-//	 * 改进的32位FNV算法1
-//	 * @param str 字符串
-//	 * @return int值
-//	 */
-//	public static int HashFNV1(String str) {
-//		return HashFNV1(str, 0, str.length(), (int)2166136261L);
-//	}
+	/**
+	 * 改进的32位FNV算法1
+	 * @param str 字符串
+	 * @return int值
+	 */
+	public static int HashFNV1(String str) {
+		return HashFNV1(str, 0, str.length(), (int)2166136261L);
+	}
 
 	/**
 	 * Time31算法
