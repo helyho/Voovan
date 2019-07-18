@@ -4,9 +4,10 @@ import org.voovan.tools.TProperties;
 import org.voovan.tools.exception.SerializeException;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.security.THash;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 /**
  * JDK 序列化和反序列化封装
@@ -59,72 +60,69 @@ public class TSerialize {
         return bytes == null ? null : SERIALIZE.unserialize(bytes);
     }
 
-    static ConcurrentHashMap<Class, String> CLASS_AND_SIMPLE_NAME = new ConcurrentHashMap<Class, String>();
-    static ConcurrentHashMap<String, Class> SIMPLE_NAME_AND_CLASS = new ConcurrentHashMap<String, Class>();
+    static ConcurrentHashMap<Class, Integer> CLASS_AND_HASH = new ConcurrentHashMap<Class, Integer>();
+    static ConcurrentHashMap<Integer, Class> HASH_AND_CLASS = new ConcurrentHashMap<Integer, Class>();
 
     /**
      * 注册一个 Class 名称简写
-     * @param simpleName Class 名称简写
      * @param clazz 类对象
      */
-    public static void registerClassWithSimpleName(String simpleName, Class clazz){
-        if(SIMPLE_NAME_AND_CLASS.contains(simpleName)) {
+    public static void register(Class clazz){
+        int hashcode = THash.HashFNV1(clazz.getName());
+        if(HASH_AND_CLASS.contains(hashcode)) {
             throw new RuntimeException("simple name is exists");
         }
 
-        if(CLASS_AND_SIMPLE_NAME.containsKey(clazz) || SIMPLE_NAME_AND_CLASS.containsKey(simpleName)) {
+        if(CLASS_AND_HASH.containsKey(clazz) || HASH_AND_CLASS.containsKey(hashcode)) {
             throw new SerializeException("TSerialize.registerClassWithSimpleName failed, because class or simplename is registerd");
         } else {
-            CLASS_AND_SIMPLE_NAME.put(clazz, simpleName);
-            SIMPLE_NAME_AND_CLASS.put(simpleName, clazz);
+            CLASS_AND_HASH.put(clazz, hashcode);
+            HASH_AND_CLASS.put(hashcode, clazz);
         }
     }
 
     static {
-        CLASS_AND_SIMPLE_NAME.put(int.class,        "0");
-        CLASS_AND_SIMPLE_NAME.put(Integer.class,    "0");
-        CLASS_AND_SIMPLE_NAME.put(byte.class,       "1");
-        CLASS_AND_SIMPLE_NAME.put(Byte.class,       "1");
-        CLASS_AND_SIMPLE_NAME.put(short.class,      "2");
-        CLASS_AND_SIMPLE_NAME.put(Short.class,      "2");
-        CLASS_AND_SIMPLE_NAME.put(long.class,       "3");
-        CLASS_AND_SIMPLE_NAME.put(Long.class,       "3");
-        CLASS_AND_SIMPLE_NAME.put(float.class,      "4");
-        CLASS_AND_SIMPLE_NAME.put(Float.class,      "4");
-        CLASS_AND_SIMPLE_NAME.put(double.class,     "5");
-        CLASS_AND_SIMPLE_NAME.put(Double.class,     "5");
-        CLASS_AND_SIMPLE_NAME.put(char.class,       "6");
-        CLASS_AND_SIMPLE_NAME.put(Character.class,  "6");
-        CLASS_AND_SIMPLE_NAME.put(boolean.class,    "7");
-        CLASS_AND_SIMPLE_NAME.put(Boolean.class,    "7");
-        CLASS_AND_SIMPLE_NAME.put(String.class,     "8");
-        CLASS_AND_SIMPLE_NAME.put(byte[].class,     "9");
+        CLASS_AND_HASH.put(int.class,       THash.HashFNV1(Integer.class.getName()));
+        CLASS_AND_HASH.put(Integer.class,   THash.HashFNV1(Integer.class.getName()));
+        CLASS_AND_HASH.put(byte.class,      THash.HashFNV1(Byte.class.getName()));
+        CLASS_AND_HASH.put(Byte.class,      THash.HashFNV1(Byte.class.getName()));
+        CLASS_AND_HASH.put(short.class,     THash.HashFNV1(Short.class.getName()));
+        CLASS_AND_HASH.put(Short.class,     THash.HashFNV1(Short.class.getName()));
+        CLASS_AND_HASH.put(long.class,      THash.HashFNV1(Long.class.getName()));
+        CLASS_AND_HASH.put(Long.class,      THash.HashFNV1(Long.class.getName()));
+        CLASS_AND_HASH.put(float.class,     THash.HashFNV1(Float.class.getName()));
+        CLASS_AND_HASH.put(Float.class,     THash.HashFNV1(Float.class.getName()));
+        CLASS_AND_HASH.put(double.class,    THash.HashFNV1(Double.class.getName()));
+        CLASS_AND_HASH.put(Double.class,    THash.HashFNV1(Double.class.getName()));
+        CLASS_AND_HASH.put(char.class,      THash.HashFNV1(Character.class.getName()));
+        CLASS_AND_HASH.put(Character.class, THash.HashFNV1(Character.class.getName()));
+        CLASS_AND_HASH.put(boolean.class,   THash.HashFNV1(Boolean.class.getName()));
+        CLASS_AND_HASH.put(Boolean.class,   THash.HashFNV1(Boolean.class.getName()));
+        CLASS_AND_HASH.put(String.class,    THash.HashFNV1(String.class.getName()));
+        CLASS_AND_HASH.put(byte[].class,    THash.HashFNV1(byte[].class.getName()));
 
-        SIMPLE_NAME_AND_CLASS.put("0", Integer.class);
-        SIMPLE_NAME_AND_CLASS.put("1", Byte.class);
-        SIMPLE_NAME_AND_CLASS.put("2", Short.class);
-        SIMPLE_NAME_AND_CLASS.put("3", Long.class);
-        SIMPLE_NAME_AND_CLASS.put("4", Float.class);
-        SIMPLE_NAME_AND_CLASS.put("5", Double.class);
-        SIMPLE_NAME_AND_CLASS.put("6", Character.class);
-        SIMPLE_NAME_AND_CLASS.put("7", Boolean.class);
-        SIMPLE_NAME_AND_CLASS.put("8", String.class);
-        SIMPLE_NAME_AND_CLASS.put("9", byte[].class);
+        for(Map.Entry<Class, Integer> entry : CLASS_AND_HASH.entrySet()) {
+
+            if(!entry.getKey().isPrimitive()) {
+                HASH_AND_CLASS.put(entry.getValue(), entry.getKey());
+            }
+        }
+
     }
 
-    protected static String getSimpleNameByClass(Class clazz){
-       String className = CLASS_AND_SIMPLE_NAME.get(clazz);
-       if(className == null) {
-           className = TReflect.getClassName(clazz);
+    protected static Integer getHashByClass(Class clazz){
+       Integer hashcode = CLASS_AND_HASH.get(clazz);
+       if(hashcode == null) {
+          register(clazz);
        }
 
-       return className;
+       return hashcode;
     }
 
-    protected static Class getClassBySimpleName(String className) throws ClassNotFoundException {
-        Class clazz = SIMPLE_NAME_AND_CLASS.get(className);
+    protected static Class getClassByHash(Integer hashcode) throws ClassNotFoundException {
+        Class clazz = HASH_AND_CLASS.get(hashcode);
         if(clazz == null) {
-            clazz = TReflect.getClassByName(className);
+            return null;
         }
 
         return clazz;

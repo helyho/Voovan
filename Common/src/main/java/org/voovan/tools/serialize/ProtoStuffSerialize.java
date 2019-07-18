@@ -8,7 +8,6 @@ import org.voovan.tools.TByte;
 import org.voovan.tools.collection.ObjectThreadPool;
 import org.voovan.tools.reflect.TReflect;
 
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,7 +51,8 @@ public class ProtoStuffSerialize implements Serialize {
         }
 
         if(buf.length != 0) {
-            byte[] type = (TSerialize.getSimpleNameByClass(obj.getClass()) + "\0").getBytes();
+            byte[] type = TByte.getBytes(TSerialize.getHashByClass(obj.getClass()));
+            type = TByte.byteArrayConcat(type, type.length, new byte[]{0}, 1);
             buf = TByte.byteArrayConcat(type, type.length, buf, buf.length);
         }
 
@@ -77,9 +77,9 @@ public class ProtoStuffSerialize implements Serialize {
         }
         try {
 
-            String className = new String(type, 0, index, Charset.defaultCharset());
+            int hashcode = TByte.getInt(type);
 
-            Class innerClazz = TSerialize.getClassBySimpleName(className);
+            Class innerClazz = TSerialize.getClassByHash(hashcode);
 
             byte[] valueBytes = Arrays.copyOfRange(bytes, index+1, bytes.length);
 
