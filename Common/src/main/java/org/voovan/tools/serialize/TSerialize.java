@@ -61,8 +61,6 @@ public class TSerialize {
 
     static ConcurrentHashMap<Class, String> CLASS_AND_SIMPLE_NAME = new ConcurrentHashMap<Class, String>();
     static ConcurrentHashMap<String, Class> SIMPLE_NAME_AND_CLASS = new ConcurrentHashMap<String, Class>();
-    static ConcurrentHashMap<Class, Function<?,?>> CLASS_SERIALIZE_METHOD = new ConcurrentHashMap<Class, Function<?,?>>();
-    static ConcurrentHashMap<Class, Function<?,?>> CLASS_UNSERIALIZE_METHOD = new ConcurrentHashMap<Class, Function<?,?>>();
 
     /**
      * 注册一个 Class 名称简写
