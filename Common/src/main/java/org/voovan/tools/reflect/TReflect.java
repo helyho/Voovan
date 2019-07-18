@@ -169,7 +169,7 @@ public class TReflect {
             //拼装方法参数代码, 类似: (java.lang.String) params[i],
             if(paramTypes.length > 0) {
                 for (int i = 0; i < paramTypes.length; i++) {
-                    code.append("(" + paramTypes[i].getCanonicalName() + ") params[" + i + "],");
+                    code.append("(" + TReflect.getClassName(paramTypes[i]) + ") params[" + i + "],");
                 }
                 code.setLength(code.length() - 1);
             }
@@ -1467,6 +1467,10 @@ public class TReflect {
 
         if(clazz.isAnonymousClass()) {
             return false;
+        }
+
+        if(filters==null){
+            return true;
         }
 
         for(Class filterClazz : filters){
