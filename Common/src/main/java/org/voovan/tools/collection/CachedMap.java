@@ -291,19 +291,22 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      */
     @Override
     public V get(Object key, Function<K, V> appointedSupplier, Long createExpire, boolean refresh){
-        TimeMark timeMark = cacheMark.get(key);
+        if(appointedSupplier!=null || createExpire!=null || refresh) {
+            TimeMark timeMark = cacheMark.get(key);
 
-        if(timeMark!=null &&
-                !timeMark.isExpire() &&
-                !timeMark.isOnCreate()) {
-            timeMark.refresh(refresh);
-        } else if(appointedSupplier != null || supplier !=null){
-            appointedSupplier = appointedSupplier==null ? supplier : appointedSupplier;
-            createExpire = createExpire==null ? expire : createExpire;
-            timeMark = createCache((K)key, appointedSupplier, createExpire);
+            if (timeMark != null &&
+                    !timeMark.isExpire() &&
+                    !timeMark.isOnCreate()) {
+                timeMark.refresh(refresh);
+            } else if (appointedSupplier != null || supplier != null) {
+                appointedSupplier = appointedSupplier == null ? supplier : appointedSupplier;
+                createExpire = createExpire == null ? expire : createExpire;
+                timeMark = createCache((K) key, appointedSupplier, createExpire);
+            }
+
+            checkAndDoExpire(timeMark);
         }
 
-        checkAndDoExpire(timeMark);
 
         return cacheData.get(key);
     }
