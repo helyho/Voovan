@@ -513,15 +513,17 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	public int send(ByteBuffer buffer){
 		try {
+			//如果大于缓冲区,则现发送一次
+			if(buffer.limit() + sendByteBufferChannel.size() > sendByteBufferChannel.getMaxSize()){
+				flush();
+			}
+
 			if(sslParser!=null && sslParser.isHandShakeDone()) {
-				//warpData 内置调用 session.send0 将数据送至发送缓冲区
+				//warpData 内置调用 session.sendByBuffer 将数据送至发送缓冲区
 				sslParser.warpData(buffer);
 				return buffer.limit();
 			} else {
-				//如果大于缓冲区,则现发送一次
-				if(buffer.limit() + sendByteBufferChannel.size() > sendByteBufferChannel.getMaxSize()){
-					flush();
-				}
+
 				return sendByBuffer(buffer);
 			}
 		} catch (IOException e) {
