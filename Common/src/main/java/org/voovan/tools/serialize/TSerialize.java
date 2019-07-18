@@ -1,7 +1,7 @@
 package org.voovan.tools.serialize;
 
-import org.voovan.tools.TByte;
 import org.voovan.tools.TProperties;
+import org.voovan.tools.exception.SerializeException;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -73,45 +73,42 @@ public class TSerialize {
         if(SIMPLE_NAME_AND_CLASS.contains(simpleName)) {
             throw new RuntimeException("simple name is exists");
         }
-        CLASS_AND_SIMPLE_NAME.put(clazz, simpleName);
-        SIMPLE_NAME_AND_CLASS.put(simpleName, clazz);
+
+        if(!CLASS_AND_SIMPLE_NAME.contains(clazz) && !SIMPLE_NAME_AND_CLASS.contains(simpleName)) {
+            CLASS_AND_SIMPLE_NAME.put(clazz, simpleName);
+            SIMPLE_NAME_AND_CLASS.put(simpleName, clazz);
+        } else {
+            throw new SerializeException("TSerialize.registerClassWithSimpleName failed, because class or simplename is registerd");
+        }
     }
 
     static {
-        CLASS_AND_SIMPLE_NAME.put(int.class, "0");
-        CLASS_AND_SIMPLE_NAME.put(Integer.class, "0");
-        CLASS_AND_SIMPLE_NAME.put(byte.class, "1");
-        CLASS_AND_SIMPLE_NAME.put(Byte.class, "1");
-        CLASS_AND_SIMPLE_NAME.put(short.class, "2");
-        CLASS_AND_SIMPLE_NAME.put(Short.class, "2");
-        CLASS_AND_SIMPLE_NAME.put(long.class, "3");
-        CLASS_AND_SIMPLE_NAME.put(Long.class, "3");
-        CLASS_AND_SIMPLE_NAME.put(float.class, "4");
-        CLASS_AND_SIMPLE_NAME.put(Float.class, "4");
-        CLASS_AND_SIMPLE_NAME.put(double.class, "5");
-        CLASS_AND_SIMPLE_NAME.put(Double.class, "5");
-        CLASS_AND_SIMPLE_NAME.put(char.class, "6");
-        CLASS_AND_SIMPLE_NAME.put(Character.class, "6");
-        CLASS_AND_SIMPLE_NAME.put(boolean.class, "7");
-        CLASS_AND_SIMPLE_NAME.put(Boolean.class, "7");
-        CLASS_AND_SIMPLE_NAME.put(String.class, "8");
-        CLASS_AND_SIMPLE_NAME.put(byte[].class, "9");
+        CLASS_AND_SIMPLE_NAME.put(int.class,        "0");
+        CLASS_AND_SIMPLE_NAME.put(Integer.class,    "0");
+        CLASS_AND_SIMPLE_NAME.put(byte.class,       "1");
+        CLASS_AND_SIMPLE_NAME.put(Byte.class,       "1");
+        CLASS_AND_SIMPLE_NAME.put(short.class,      "2");
+        CLASS_AND_SIMPLE_NAME.put(Short.class,      "2");
+        CLASS_AND_SIMPLE_NAME.put(long.class,       "3");
+        CLASS_AND_SIMPLE_NAME.put(Long.class,       "3");
+        CLASS_AND_SIMPLE_NAME.put(float.class,      "4");
+        CLASS_AND_SIMPLE_NAME.put(Float.class,      "4");
+        CLASS_AND_SIMPLE_NAME.put(double.class,     "5");
+        CLASS_AND_SIMPLE_NAME.put(Double.class,     "5");
+        CLASS_AND_SIMPLE_NAME.put(char.class,       "6");
+        CLASS_AND_SIMPLE_NAME.put(Character.class,  "6");
+        CLASS_AND_SIMPLE_NAME.put(boolean.class,    "7");
+        CLASS_AND_SIMPLE_NAME.put(Boolean.class,    "7");
+        CLASS_AND_SIMPLE_NAME.put(String.class,     "8");
+        CLASS_AND_SIMPLE_NAME.put(byte[].class,     "9");
 
-        SIMPLE_NAME_AND_CLASS.put("0", int.class);
         SIMPLE_NAME_AND_CLASS.put("0", Integer.class);
-        SIMPLE_NAME_AND_CLASS.put("1", byte.class);
         SIMPLE_NAME_AND_CLASS.put("1", Byte.class);
-        SIMPLE_NAME_AND_CLASS.put("2", short.class);
         SIMPLE_NAME_AND_CLASS.put("2", Short.class);
-        SIMPLE_NAME_AND_CLASS.put("3", long.class);
         SIMPLE_NAME_AND_CLASS.put("3", Long.class);
-        SIMPLE_NAME_AND_CLASS.put("4", float.class);
         SIMPLE_NAME_AND_CLASS.put("4", Float.class);
-        SIMPLE_NAME_AND_CLASS.put("5", double.class);
         SIMPLE_NAME_AND_CLASS.put("5", Double.class);
-        SIMPLE_NAME_AND_CLASS.put("6", char.class);
         SIMPLE_NAME_AND_CLASS.put("6", Character.class);
-        SIMPLE_NAME_AND_CLASS.put("7", boolean.class);
         SIMPLE_NAME_AND_CLASS.put("7", Boolean.class);
         SIMPLE_NAME_AND_CLASS.put("8", String.class);
         SIMPLE_NAME_AND_CLASS.put("9", byte[].class);
