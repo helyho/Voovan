@@ -295,7 +295,7 @@ public class SocketSelector implements Closeable {
 				SocketContext socketContext = (SocketContext) selectionKey.attachment();
 				if (socketContext!=null && socketContext.connectModel != ConnectModel.LISTENER && socketContext.isReadTimeOut()) {
 					socketContext.close();
-					EventTrigger.fireException(socketContext.getSession(), new ReadMessageException("Read timeout"));
+					EventTrigger.fireException(socketContext.getSession(), new TimeoutException("Socket Read timeout"));
 				}
 			}
 		}
