@@ -72,11 +72,11 @@ public class TSerialize {
             throw new RuntimeException("simple name is exists");
         }
 
-        if(!CLASS_AND_SIMPLE_NAME.contains(clazz) && !SIMPLE_NAME_AND_CLASS.contains(simpleName)) {
+        if(CLASS_AND_SIMPLE_NAME.containsKey(clazz) || SIMPLE_NAME_AND_CLASS.containsKey(simpleName)) {
+            throw new SerializeException("TSerialize.registerClassWithSimpleName failed, because class or simplename is registerd");
+        } else {
             CLASS_AND_SIMPLE_NAME.put(clazz, simpleName);
             SIMPLE_NAME_AND_CLASS.put(simpleName, clazz);
-        } else {
-            throw new SerializeException("TSerialize.registerClassWithSimpleName failed, because class or simplename is registerd");
         }
     }
 
