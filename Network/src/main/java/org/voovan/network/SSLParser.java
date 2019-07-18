@@ -105,7 +105,7 @@ public class SSLParser {
 
 						netData.flip();
 						if (session.isConnected() && engineResult.bytesProduced() > 0 && netData.limit() > 0) {
-							session.send0(netData);
+							session.sendByBuffer(netData);
 						}
 						netData.clear();
 					} else {
@@ -262,6 +262,7 @@ public class SSLParser {
 						break;
 					case NEED_WRAP:
 						handshakeStatus = doHandShakeWarp();
+						session.flush();
 						break;
 					case NEED_UNWRAP:
 						if(isEnoughToUnwarp()){
