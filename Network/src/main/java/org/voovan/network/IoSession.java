@@ -104,6 +104,7 @@ public abstract class IoSession<T extends SocketContext> {
 		this.state = new State();
 		readByteBufferChannel = new ByteBufferChannel(socketContext.getReadBufferSize());
 		sendByteBufferChannel = new ByteBufferChannel(socketContext.getSendBufferSize());
+		sendByteBufferChannel.setThreadSafe(true);
 		messageLoader = new MessageLoader(this);
 		checkIdle();
 	}
