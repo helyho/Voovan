@@ -69,15 +69,24 @@ public class TSerialize {
      */
     public static void register(Class clazz){
         int hashcode = THash.HashFNV1(clazz.getName());
-        if(HASH_AND_CLASS.contains(hashcode)) {
+        register(hashcode, clazz);
+    }
+
+    /**
+     * 注册一个 Class 名称简写
+     * @param code  简写代码
+     * @param clazz 类对象
+     */
+    public static void register(Integer code, Class clazz){
+        if(HASH_AND_CLASS.contains(code)) {
             throw new RuntimeException("simple name is exists");
         }
 
-        if(CLASS_AND_HASH.containsKey(clazz) || HASH_AND_CLASS.containsKey(hashcode)) {
+        if(CLASS_AND_HASH.containsKey(clazz) || HASH_AND_CLASS.containsKey(code)) {
             throw new SerializeException("TSerialize.registerClassWithSimpleName failed, because class or simplename is registerd");
         } else {
-            CLASS_AND_HASH.put(clazz, hashcode);
-            HASH_AND_CLASS.put(hashcode, clazz);
+            CLASS_AND_HASH.put(clazz, code);
+            HASH_AND_CLASS.put(code, clazz);
         }
     }
 
