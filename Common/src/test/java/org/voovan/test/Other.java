@@ -1,5 +1,6 @@
 package org.voovan.test;
 
+import org.voovan.tools.TByte;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.serialize.TSerialize;
 
@@ -16,6 +17,6 @@ public class Other {
     private int orange = 10;
 
     public static void main(String[] args) throws Exception {
-        System.out.println("\\\\.");
+        System.out.println(new String(TByte.getBytes(12312312)));
     }
 }
