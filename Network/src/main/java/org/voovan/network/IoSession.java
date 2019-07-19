@@ -443,7 +443,7 @@ public abstract class IoSession<T extends SocketContext> {
 			} else {
 				return readObject;
 			}
-		} catch (InterruptedException e) {
+		} catch (TimeoutException e) {
 			throw new ReadMessageException("syncRead readFromChannel timeout or socket is disconnect");
 		}
 		return readObject;
@@ -454,9 +454,8 @@ public abstract class IoSession<T extends SocketContext> {
 	 * 		注意直接调用不会出发 onSent 事件
 	 * @param buffer  发送缓冲区
 	 * @return 读取的字节数
-	 * @throws IOException IO 异常
 	 */
-	protected int send0(ByteBuffer buffer) throws IOException {
+	protected int send0(ByteBuffer buffer) {
 		return socketSelector.writeToChannel(socketContext, buffer);
 	}
 
@@ -543,12 +542,6 @@ public abstract class IoSession<T extends SocketContext> {
 				send0(byteBuffer);
 				//触发发送事件
 				EventTrigger.fireFlush(this);
-			} catch (IOException e) {
-				if(isConnected()) {
-					if (socketContext.isConnected()) {
-						Logger.error("IoSession.flush buffer failed", e);
-					}
-				}
 			} finally {
 				sendByteBufferChannel.compact();
 			}

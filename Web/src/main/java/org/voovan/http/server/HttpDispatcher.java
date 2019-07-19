@@ -366,6 +366,7 @@ public class HttpDispatcher {
 	 * 获取路径变量,形如/:test/:name 的路径匹配的请求路径/test/var1后得到{name:var1}
 	 * @param requestPath   请求路径
 	 * @param routePath     正则匹配路径
+	 * @param matchRouteIgnoreCase 是否匹配路由大小写
 	 * @return     路径抽取参数 Map
 	 */
 	public static Map<String, String> fetchPathVariables(String requestPath,String routePath, boolean matchRouteIgnoreCase) {

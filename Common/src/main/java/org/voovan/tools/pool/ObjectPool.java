@@ -1,14 +1,17 @@
-    package org.voovan.tools.collection;
+    package org.voovan.tools.pool;
 
 import org.voovan.Global;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -28,16 +31,18 @@ public class ObjectPool<T> {
     //<ID, 缓存的对象>
     private volatile ConcurrentHashMap<Long, PooledObject<T>> objects = new ConcurrentHashMap<Long, PooledObject<T>>();
     //未解出的对象 ID
-    private volatile LinkedBlockingDeque<Long> unborrowedIdList = new LinkedBlockingDeque<Long>();
+    private volatile ConcurrentLinkedQueue<Long> unborrowedIdList = new ConcurrentLinkedQueue<Long>();
 
     private long aliveTime = 0;
     private boolean autoRefreshOnGet = true;
     private Function<T, Boolean> destory;
     private Supplier<T> supplier = null;
+    private Function<T, Boolean> validator = null;
     private int minSize = 0;
     private int maxSize = Integer.MAX_VALUE;
     private int interval = 1;
 
+    Object lock = new Object();
     /**
      * 构造一个对象池
      * @param aliveTime 对象存活时间,小于等于0时为一直存活,单位:秒
@@ -119,6 +124,26 @@ public class ObjectPool<T> {
     }
 
     /**
+     * 验证器
+     *  在获取对象时验证
+     * @return Function 对象
+     */
+    public Function<T, Boolean> getValidator() {
+        return validator;
+    }
+
+    /**
+     * 设置验证器
+     *  在获取对象时验证
+     * @param validator Function 对象
+     * @return ObjectPool 对象
+     */
+    public ObjectPool setValidator(Function<T, Boolean> validator) {
+        this.validator = validator;
+        return this;
+    }
+
+    /**
      * 获取对象销毁函数
      *      在对象被销毁前工作
      * @return 对象销毁函数
@@ -169,102 +194,139 @@ public class ObjectPool<T> {
      * @param id 对象的id
      * @return 池中的对象
      */
-    public T get(long id){
-        PooledObject<T> pooledObject = objects.get(id);
-        if(pooledObject!=null) {
-            return pooledObject.getObject();
-        }else{
-            return null;
-        }
-    }
-
-  /**
-     * 增加池中的对象
-     * @param obj 增加到池中的对象
-     * @return 对象的 id 值
-     */
-    public Long add(T obj){
-        Long id = addAndBorrow(obj);
-        if(id!=null) {
-            unborrowedIdList.offer(id);
-            return id;
+    private T get(Long id) {
+        if(id != null) {
+            PooledObject<T> pooledObject = objects.get(id);
+            if (pooledObject != null) {
+                pooledObject.setBorrow(true);
+                return pooledObject.getObject();
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
     }
 
     /**
-     * 增加池中的对象并立刻借出
+     * 增加池中的对象
      * @param obj 增加到池中的对象
      * @return 对象的 id 值
      */
-    public Long addAndBorrow(T obj){
-        Objects.requireNonNull(obj, "add a null object failed");
-
-        if(objects.size() >= maxSize){
-            return null;
-        }
-
-        long id = genObjectId();
-        objects.put(id, new PooledObject<T>(this, id, obj));
-        return id;
+    public Long add(T obj){
+        return add(obj, false);
     }
 
+  /**
+     * 增加池中的对象
+     * @param obj 增加到池中的对象
+     * @parma 是否默认为借出状态
+     * @return 对象的 id 值
+     */
+    private Long add(T obj, boolean isBorrow){
+        Objects.requireNonNull(obj, "add a null object failed");
+
+        if(obj instanceof PoolObject) {
+            if (objects.size() >= maxSize) {
+                return null;
+            }
+
+            long id = genObjectId();
+            ((PoolObject)obj).setPoolObjectId(id);
+
+            PooledObject pooledObject = new PooledObject<T>(this, id, obj);
+
+            objects.put(id, pooledObject);
+
+            //默认借出状态不加入未借出队列
+            if(!isBorrow) {
+                unborrowedIdList.offer(id);
+            }
+
+            synchronized (lock) {
+                lock.notify();
+            }
+
+            return id;
+        } else {
+            throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
+                    " implemets PoolObject.class or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
+        }
+    }
 
     /**
      * 借出这个对象
      *         如果有提供 supplier 函数, 在没有可借出对象时会构造一个新的对象, 否则返回 null
      * @return 借出的对象的 ID
      */
-    public Long borrow(){
+    public T borrow(){
         Long id = unborrowedIdList.poll();
 
-        if (id == null && supplier != null) {
-            synchronized (objects) {
-                if(objects.size() <= maxSize) {
-                    id = addAndBorrow(supplier.get());
+        //检查是否有重复借出
+        if (id != null && objects.get(id).isBorrow()) {
+            throw new RuntimeException("Object already borrowed");
+        }
+
+        T result = get(id);
+
+        if (result == null && supplier != null) {
+            if(objects.size() <= maxSize) {
+                synchronized (unborrowedIdList) {
+                    result = get(add(supplier.get(), true));
                 }
             }
         }
 
-        return id;
+        return result;
     }
 
     /**
      * 借出对象
      * @param waitTime 超时时间
-     * @return 借出地对象, 超时返回 null
+     * @return 借出的对象, 超时返回 null
+     * @throws TimeoutException 超时异常
      */
-    public Long borrow(long waitTime) throws TimeoutException {
+    public T borrow(long waitTime) throws TimeoutException {
         Long id = null;
+        T result = borrow();
 
-        id = borrow();
-
-        if (id == null) {
+        if (result == null) {
             try {
-                id = unborrowedIdList.poll(waitTime, TimeUnit.MILLISECONDS);
+
+                synchronized (lock) {
+                    lock.wait(waitTime);
+                    id = unborrowedIdList.poll();
+                }
+
+                //检查是否有重复借出
+                if (id != null && objects.get(id).isBorrow()) {
+                    throw new RuntimeException("Object already borrowed");
+                }
+
+                return get(id);
             } catch (InterruptedException e) {
                 throw new TimeoutException("borrow failed.");
             }
+        } else {
+            return result;
         }
-
-        //检查是否有重复借出
-        if (id != null && !objects.get(id).setBorrow(true)) {
-            throw new RuntimeException("Object already borrowed");
-        }
-
-        return id;
     }
 
     /**
      * 归还借出的对象
-     * @param id 借出对象ID
+     * @param obj 借出的对象
      */
-    public void restitution(Long id) {
+    public void restitution(T obj) {
         //检查是否有重复归还
+        Long id = ((PoolObject)obj).getPoolObjectId();
+
         PooledObject pooledObject = objects.get(id);
-        if (!pooledObject.isRemoved() && objects.get(id).setBorrow(false)) {
+
+        if(!pooledObject.isRemoved() && objects.get(id).setBorrow(false)) {
             unborrowedIdList.offer(id);
+            synchronized (lock) {
+                lock.notify();
+            }
         }
     }
 
@@ -274,7 +336,7 @@ public class ObjectPool<T> {
      * @return true: 存在, false: 不存在
      */
     public boolean contains(long id){
-        return objects.containsKey(id);
+        return unborrowedIdList.contains(id);
     }
 
     /**
@@ -285,7 +347,9 @@ public class ObjectPool<T> {
         unborrowedIdList.remove(id);
 
         PooledObject pooledObject = objects.remove(id);
-        pooledObject.remove();
+        if(pooledObject!=null) {
+            pooledObject.remove();
+        }
     }
 
     /**
@@ -379,6 +443,7 @@ public class ObjectPool<T> {
         private ObjectPool objectCachedPool;
         private AtomicBoolean isBorrow = new AtomicBoolean(false);
         private AtomicBoolean isRemoved = new AtomicBoolean(false);
+        private AtomicInteger count = new AtomicInteger();
 
         public PooledObject(ObjectPool objectCachedPool, long id, T object) {
             this.objectCachedPool = objectCachedPool;
@@ -388,6 +453,11 @@ public class ObjectPool<T> {
         }
 
         protected boolean setBorrow(Boolean isBorrow) {
+            if(isBorrow) {
+                count.incrementAndGet();
+            } else {
+                count.decrementAndGet();
+            }
             return this.isBorrow.compareAndSet(!isBorrow, isBorrow);
         }
 
@@ -422,7 +492,7 @@ public class ObjectPool<T> {
         }
 
         /**
-         * 设置设置对象
+         * 设置对象
          * @param object 池中的对象
          */
         public void setObject(T object) {

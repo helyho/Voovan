@@ -65,10 +65,16 @@ public class SynchronousHandler implements IoHandler {
 
     /**
      * 获取下一个响应对象
+     * @param  timeout 超时时间
      * @return 响应对象
+     * @throws TimeoutException 超时异常
      */
-    public Object getResponse(int timeout) throws InterruptedException {
-        return socketResponses.poll(timeout, TimeUnit.MILLISECONDS);
+    public Object getResponse(int timeout) throws TimeoutException {
+        try {
+            return socketResponses.poll(timeout, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw new TimeoutException("SynchronousHandler.getResponse timeout");
+        }
     }
 
     /**
