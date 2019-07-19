@@ -31,18 +31,16 @@ public class ObjectPool<T> {
     //<ID, 缓存的对象>
     private volatile ConcurrentHashMap<Long, PooledObject<T>> objects = new ConcurrentHashMap<Long, PooledObject<T>>();
     //未解出的对象 ID
-    private volatile ConcurrentLinkedQueue<Long> unborrowedIdList = new ConcurrentLinkedQueue<Long>();
+    private volatile LinkedBlockingDeque<Long> unborrowedIdList = new LinkedBlockingDeque<Long>();
 
     private long aliveTime = 0;
     private boolean autoRefreshOnGet = true;
     private Function<T, Boolean> destory;
     private Supplier<T> supplier = null;
-    private Function<T, Boolean> validator = null;
     private int minSize = 0;
     private int maxSize = Integer.MAX_VALUE;
     private int interval = 1;
 
-    Object lock = new Object();
     /**
      * 构造一个对象池
      * @param aliveTime 对象存活时间,小于等于0时为一直存活,单位:秒
@@ -124,26 +122,6 @@ public class ObjectPool<T> {
     }
 
     /**
-     * 验证器
-     *  在获取对象时验证
-     * @return Function 对象
-     */
-    public Function<T, Boolean> getValidator() {
-        return validator;
-    }
-
-    /**
-     * 设置验证器
-     *  在获取对象时验证
-     * @param validator Function 对象
-     * @return ObjectPool 对象
-     */
-    public ObjectPool setValidator(Function<T, Boolean> validator) {
-        this.validator = validator;
-        return this;
-    }
-
-    /**
      * 获取对象销毁函数
      *      在对象被销毁前工作
      * @return 对象销毁函数
@@ -190,25 +168,6 @@ public class ObjectPool<T> {
     }
 
     /**
-     * 获取池中的对象
-     * @param id 对象的id
-     * @return 池中的对象
-     */
-    private T get(Long id) {
-        if(id != null) {
-            PooledObject<T> pooledObject = objects.get(id);
-            if (pooledObject != null) {
-                pooledObject.setBorrow(true);
-                return pooledObject.getObject();
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * 增加池中的对象
      * @param obj 增加到池中的对象
      * @return 对象的 id 值
@@ -243,14 +202,29 @@ public class ObjectPool<T> {
                 unborrowedIdList.offer(id);
             }
 
-            synchronized (lock) {
-                lock.notify();
-            }
-
             return id;
         } else {
             throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
                     " implemets PoolObject.class or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
+        }
+    }
+
+    /**
+     * 获取池中的对象
+     * @param id 对象的id
+     * @return 池中的对象
+     */
+    private T get(Long id) {
+        if(id != null) {
+            PooledObject<T> pooledObject = objects.get(id);
+            if (pooledObject != null) {
+                pooledObject.setBorrow(true);
+                return pooledObject.getObject();
+            } else {
+                return null;
+            }
+        } else {
+            return null;
         }
     }
 
@@ -288,15 +262,13 @@ public class ObjectPool<T> {
      */
     public T borrow(long waitTime) throws TimeoutException {
         Long id = null;
+
+        //放这里取一边的作用是, borrow()方法里有尝试使用 supplier 创建
         T result = borrow();
 
         if (result == null) {
             try {
-
-                synchronized (lock) {
-                    lock.wait(waitTime);
-                    id = unborrowedIdList.poll();
-                }
+                id = unborrowedIdList.poll(waitTime, TimeUnit.MILLISECONDS);
 
                 //检查是否有重复借出
                 if (id != null && objects.get(id).isBorrow()) {
@@ -317,16 +289,17 @@ public class ObjectPool<T> {
      * @param obj 借出的对象
      */
     public void restitution(T obj) {
-        //检查是否有重复归还
-        Long id = ((PoolObject)obj).getPoolObjectId();
+        if(obj instanceof PoolObject) {
+            Long id = ((PoolObject) obj).getPoolObjectId();
 
-        PooledObject pooledObject = objects.get(id);
+            PooledObject pooledObject = objects.get(id);
 
-        if(!pooledObject.isRemoved() && objects.get(id).setBorrow(false)) {
-            unborrowedIdList.offer(id);
-            synchronized (lock) {
-                lock.notify();
+            if (!pooledObject.isRemoved() && objects.get(id).setBorrow(false)) {
+                unborrowedIdList.offer(id);
             }
+        } else {
+            throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
+                    " implemets PoolObject.class or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
         }
     }
 
