@@ -98,7 +98,7 @@ public class Global {
         System.out.println("[SYSTEM] DebugMode: " + IS_DEBUG_MODE);
     }
 
-    public static UniqueId UNIQUE_ID = new UniqueId((int) (Math.random()*1024));
+    public static UniqueId UNIQUE_ID = new UniqueId(0);
 
     static {
         if(NO_HEAP_MANUAL_RELEASE == null) {
