@@ -126,7 +126,7 @@ public class ObjectCachedPoolUnit extends TestCase {
 
         AtomicInteger count = new AtomicInteger(0);
 
-        for(int i=0;i<100;i++){
+        for(int i=0;i<10;i++){
             Thread t = new Thread(()->{
                 while (count.incrementAndGet() < 100000) {
                     if ((int) (Math.random() * 10 % 2) == 0) {
