@@ -7,7 +7,11 @@ import org.voovan.tools.collection.ObjectPool;
 import org.voovan.tools.log.Logger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 类文字命名
@@ -22,24 +26,16 @@ public class ObjectCachedPoolUnit extends TestCase {
 
 
     public void testAddAndLiveTime(){
-        Object pooledId = null;
 
-        ObjectPool objectPool = new ObjectPool(2);
+        ObjectPool objectPool = new ObjectPool(2).create();
         for(int i=0;i<30;i++) {
             Object item = "element " + i;
-            if(pooledId==null) {
-                pooledId = objectPool.add(item);
-            }else{
-                objectPool.add(item);
-            }
+            objectPool.add(item);
         }
-        Logger.simple(pooledId);
 
-        for(int m=0;m<30;m++) {
-            objectPool.get(pooledId);
-            TEnv.sleep(100);
-        }
-        assertEquals(1,objectPool.size());
+        TEnv.sleep(3000);
+
+        assertEquals(0,objectPool.size());
         assertEquals(null, objectPool.add(null));
     }
 
@@ -58,14 +54,16 @@ public class ObjectCachedPoolUnit extends TestCase {
 
         TEnv.sleep(1000);
 
-        ArrayList<Object> arrayList = new ArrayList<Object>();
+        ArrayList<Long> arrayList = new ArrayList<Long>();
         for(int i=0;i<50;i++){
             Global.getThreadPool().execute(()->{
-                Object objectId = objectPool.borrow();
+                Long objectId = objectPool.borrow();
                 arrayList.add(objectId);
                 Logger.simple("borrow1->" + objectId);
             });
         }
+
+        TEnv.sleep(3000);
 
         System.out.println("===================");
         objectPool.restitution(arrayList.get(0));
@@ -81,7 +79,7 @@ public class ObjectCachedPoolUnit extends TestCase {
 
         for(int i=0;i<50;i++){
             Global.getThreadPool().execute(()->{
-                Object objectId = objectPool.borrow();
+                Long objectId = objectPool.borrow();
                 arrayList.add(objectId);
                 Logger.simple("borrow2->" +objectId);
             });
@@ -95,46 +93,54 @@ public class ObjectCachedPoolUnit extends TestCase {
     public void testBorrowConcurrent() {
 
         Object pooledId = null;
-        ObjectPool objectPool = new ObjectPool().minSize(3).maxSize(1000).aliveTime(5).supplier(()->{
+        ObjectPool objectPool = new ObjectPool().minSize(3).maxSize(50).aliveTime(5).supplier(()->{
             return item++;
         }).create();
 
 
 
-        LinkedBlockingDeque<Object> arrayList = new LinkedBlockingDeque<Object>();
+        LinkedBlockingDeque<Long> queue = new LinkedBlockingDeque<Long>();
 
-        int count = 0;
+        AtomicInteger count = new AtomicInteger(0);
 
-        while(true){
-            Global.getThreadPool().execute(()->{
+        for(int i=0;i<100;i++){
+            Thread t = new Thread(()->{
+                while (count.incrementAndGet() < 10000) {
+                    if ((int) (Math.random() * 10 % 2) == 0) {
+                        Long objectId = null;
+                        try {
+                            objectId = objectPool.borrow(1000);
+                        } catch (TimeoutException e) {
+                            e.printStackTrace();
+                        }
 
-                if((int)(Math.random()*10 % 2) == 0) {
-                    Object objectId = objectPool.borrow(1000);
-                    if(objectId!=null) {
-                        arrayList.offer(objectId);
-                        Logger.simple("borrow->" + objectId);
+                        if (objectId != null) {
+                            queue.offer(objectId);
+                            Logger.simple("borrow->" + objectId);
+                        } else {
+                            Logger.simple("borrow failed ================");
+                        }
                     } else {
-                        Logger.simple("borrow failed ================");
-                    }
-                } else {
-                    Object objectId = arrayList.poll();
-                    if(objectId!=null) {
-                        objectPool.restitution(objectId);
-                        Logger.simple("restitution->" + objectId);
+                        Long objectId = queue.poll();
+                        if (objectId != null) {
+                            Logger.simple("restitution->" + objectId);
+                            objectPool.restitution(objectId);
+                        }
                     }
                 }
             });
-            count++;
-            if(count >= 100000){
-                break;
-            }
+
+            t.start();
         }
 
-        count = count*10;
 
-        while(count>=0) {
-            count--;
+
+        while(count.incrementAndGet() < 10000) {
             TEnv.sleep(1);
+        }
+
+        while(queue.size() >0){
+            objectPool.restitution(queue.poll());
         }
     }
 }
