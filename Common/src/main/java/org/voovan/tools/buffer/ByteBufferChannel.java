@@ -44,7 +44,7 @@ public class ByteBufferChannel {
 
     /**
      * 构造函数
-     * @param capacity 分配的容量
+     * @param capacity 初始分配的容量, 会自动扩容 maxSize 的大小, 如果容量不够抛出异常
      */
     public ByteBufferChannel(int capacity) {
         init(capacity);
@@ -52,7 +52,7 @@ public class ByteBufferChannel {
 
     /**
      * 构造函数
-     * @param capacity 分配的容量
+     * @param capacity 初始分配的容量, 会自动扩容 maxSize 的大小, 如果容量不够抛出异常
      * @param maxSize 通道地最大容量
      */
     public ByteBufferChannel(int capacity, Integer maxSize) {
@@ -62,7 +62,7 @@ public class ByteBufferChannel {
 
     /**
      * 构造函数
-     * @param byteBuffer 分配的容量
+     * @param byteBuffer 初始分配的容量, 会自动扩容 maxSize 的大小, 如果容量不够抛出异常
      */
     public ByteBufferChannel(ByteBuffer byteBuffer) {
         init(byteBuffer);
@@ -78,7 +78,7 @@ public class ByteBufferChannel {
 
     /**
      * 初始化函数
-     * @param capacity 分配的容量
+     * @param capacity 初始分配的容量, 会自动扩容到 maxSize 的大小, 如果容量不够抛出异常
      */
     private void init(int capacity){
         lock = new ReentrantLock(true);
