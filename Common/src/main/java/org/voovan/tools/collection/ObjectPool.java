@@ -345,11 +345,6 @@ public class ObjectPool<T> {
 
                         PooledObject<T> pooledObject = iterator.next();
 
-                        //被借出的对象不进行清理
-                        if(!unborrowedIdList.contains(pooledObject.getId())){
-                            continue;
-                        }
-
                         if (!pooledObject.isAlive()) {
                             if(destory!=null){
                                 //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
