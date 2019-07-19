@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -238,7 +237,9 @@ public class ObjectPool<T> {
      */
     public Long borrow(long waitTime) throws TimeoutException {
         Long id = null;
+
         id = borrow();
+
         if (id == null) {
             try {
                 id = unborrowedIdList.poll(waitTime, TimeUnit.MILLISECONDS);
@@ -248,13 +249,12 @@ public class ObjectPool<T> {
         }
 
         //检查是否有重复借出
-        if (id != null && !objects.get(id).setIsBorrow(true)) {
+        if (id != null && !objects.get(id).setBorrow(true)) {
             throw new RuntimeException("Object already borrowed");
         }
 
         return id;
     }
-
 
     /**
      * 归还借出的对象
@@ -262,7 +262,8 @@ public class ObjectPool<T> {
      */
     public void restitution(Long id) {
         //检查是否有重复归还
-        if (objects.get(id).setIsBorrow(false)) {
+        PooledObject pooledObject = objects.get(id);
+        if (!pooledObject.isRemoved() && objects.get(id).setBorrow(false)) {
             unborrowedIdList.offer(id);
         }
     }
@@ -280,9 +281,11 @@ public class ObjectPool<T> {
      * 移除池中的对象
      * @param id 对象的 hash 值
      */
-    public synchronized void remove(long id){
-        objects.remove(id);
+    public void remove(long id){
         unborrowedIdList.remove(id);
+
+        PooledObject pooledObject = objects.remove(id);
+        pooledObject.remove();
     }
 
     /**
@@ -314,8 +317,12 @@ public class ObjectPool<T> {
      * 清理池中所有的对象
      */
     public synchronized void clear(){
-        objects.clear();
+        for(PooledObject pooledObject : objects.values()) {
+            pooledObject.remove();
+        }
+
         unborrowedIdList.clear();
+        objects.clear();
     }
 
     /**
@@ -376,6 +383,7 @@ public class ObjectPool<T> {
         @NotSerialization
         private ObjectPool objectCachedPool;
         private AtomicBoolean isBorrow = new AtomicBoolean(false);
+        private AtomicBoolean isRemoved = new AtomicBoolean(false);
 
         public PooledObject(ObjectPool objectCachedPool, long id, T object) {
             this.objectCachedPool = objectCachedPool;
@@ -384,12 +392,20 @@ public class ObjectPool<T> {
             this.object = object;
         }
 
-        protected boolean setIsBorrow(Boolean isBorrow) {
+        protected boolean setBorrow(Boolean isBorrow) {
             return this.isBorrow.compareAndSet(!isBorrow, isBorrow);
         }
 
         protected boolean isBorrow() {
             return isBorrow.get();
+        }
+
+        public boolean remove() {
+            return this.isRemoved.compareAndSet(false, true);
+        }
+
+        public boolean isRemoved() {
+            return isRemoved.get();
         }
 
         /**
