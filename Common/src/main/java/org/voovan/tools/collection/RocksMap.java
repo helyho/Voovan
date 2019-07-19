@@ -469,10 +469,18 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
+    /**
+     * 获取事务锁超时时间
+     * @return 事务锁超时时间
+     */
     public int getTransactionLockTimeout() {
         return transactionLockTimeout;
     }
 
+    /**
+     * 设置事务锁超时时间
+     * @param transactionLockTimeout 事务锁超时时间
+     */
     public void setTransactionLockTimeout(int transactionLockTimeout) {
         this.transactionLockTimeout = transactionLockTimeout;
     }
@@ -482,6 +490,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      *      同一个线程共线给一个事务
      *      使用内置公共事务通过 savepoint 来失败回滚, 但统一提交, 性能会好很多, 但是由于很多层嵌套的 savepont 在高并发时使用这种方式时回导致提交会慢很多
      * @param transFunction 事务执行器, 返回 Null 则事务回滚, 其他则事务提交
+     * @param <T>  范型
      * @return 非 null: 事务成功, null: 事务失败
      */
     public <T> T withTransaction(Function<RocksMap, T> transFunction) {
@@ -1240,6 +1249,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     /**
      * 按前缀查找关联的 key
      * @param key key 的前缀
+     * @param skipSize 跳过记录数
+     * @param size 返回记录数
      * @return 找到的 Map 数据
      */
     public Map<K,V> startWith(K key, int skipSize, int size) {
@@ -1285,6 +1296,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param fromKey 起始 key
      * @param toKey 结束 key
      * @param size 迭代的记录数
+     * @param skipSize 跳过记录数
+     * @param size 返回记录数
      * @return 迭代器对象
      */
     public RocksMapIterator iterator(K fromKey, K toKey, int skipSize, int size){
@@ -1303,7 +1316,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 构造一个有范围的迭代器
-     * @param size 迭代的记录数
+     * @param skipSize 跳过记录数
+     * @param size 返回记录数
      * @return 迭代器对象
      */
     public RocksMapIterator iterator(int skipSize, int size){
@@ -1469,6 +1483,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         /**
          * 只是执行 next 不反序列化数据
+         * @return true: 成功, false: 失败
          */
         public boolean directNext() {
             if(count != 0) {

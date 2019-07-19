@@ -231,8 +231,8 @@ public class TReflect {
      * @param obj 对象
      * @param fieldName field 名称
      * @param value Field 的值
-     * @throws Exception 调用异常
-     * @return
+     * @throws ReflectiveOperationException 反射异常
+     * @return true:成功, false:失败
      */
     public static Boolean setFieldValueNatvie(Object obj, String fieldName, Object value) throws ReflectiveOperationException {
         DynamicFunction dynamicFunction = FIELD_WRITER.get(obj.getClass());
@@ -388,7 +388,6 @@ public class TReflect {
      * @param clazz   类对象
      * @param fieldName Field 名称
      * @return Field 对象
-     * @throws ReflectiveOperationException 反射异常
      */
     public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName) {
 

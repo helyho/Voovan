@@ -186,6 +186,8 @@ public class THash {
 	/**
 	 * 改进的32位FNV算法1
 	 * @param data 数组
+	 * @param offset 数据偏移量
+	 * @param length 长度
 	 * @return int值
 	 */
 	public static int HashFNV1(byte[] data, int offset, int length)

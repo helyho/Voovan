@@ -1,14 +1,21 @@
 package org.voovan.test.tools.cache;
 
+import com.sun.tools.attach.AgentInitializationException;
+import com.sun.tools.attach.AgentLoadException;
+import com.sun.tools.attach.AttachNotSupportedException;
 import junit.framework.TestCase;
+import org.junit.Before;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.collection.ObjectPool;
+import org.voovan.tools.aop.Aop;
+import org.voovan.tools.aop.AopConfig;
+import org.voovan.tools.pool.ObjectPool;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.pool.Pool;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,12 +31,28 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ObjectCachedPoolUnit extends TestCase {
 
+    @Before
+    public void setUp() {
+        try {
+            Aop.init(new AopConfig("org.voovan"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (AttachNotSupportedException e) {
+            e.printStackTrace();
+        } catch (AgentLoadException e) {
+            e.printStackTrace();
+        } catch (AgentInitializationException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void testAddAndLiveTime(){
-
+        TestPoolObject t = new TestPoolObject("element ");
         ObjectPool objectPool = new ObjectPool(2).create();
         for(int i=0;i<30;i++) {
-            Object item = "element " + i;
+            Object item = new TestPoolObject("element " + i);
             objectPool.add(item);
         }
 
@@ -41,10 +64,10 @@ public class ObjectCachedPoolUnit extends TestCase {
 
     public void testBorrow() {
         Object pooledId = null;
-        ObjectPool objectPool = new ObjectPool();
+        ObjectPool<TestPoolObject> objectPool = new ObjectPool();
 
         for(int i=0;i<1000;i++) {
-            Object item = "element " + i;
+            TestPoolObject item = new TestPoolObject("element " + i);
             if(pooledId==null) {
                 pooledId = objectPool.add(item);
             }else{
@@ -54,12 +77,12 @@ public class ObjectCachedPoolUnit extends TestCase {
 
         TEnv.sleep(1000);
 
-        ArrayList<Long> arrayList = new ArrayList<Long>();
+        ArrayList<TestPoolObject> arrayList = new ArrayList<TestPoolObject>();
         for(int i=0;i<50;i++){
             Global.getThreadPool().execute(()->{
-                Long objectId = objectPool.borrow();
+                TestPoolObject objectId = objectPool.borrow();
                 arrayList.add(objectId);
-                Logger.simple("borrow1->" + objectId);
+                System.out.println("borrow1->" + objectId);
             });
         }
 
@@ -77,11 +100,11 @@ public class ObjectCachedPoolUnit extends TestCase {
 
         System.out.println("===================");
 
-        for(int i=0;i<50;i++){
+        for(int i=0;i<100;i++){
             Global.getThreadPool().execute(()->{
-                Long objectId = objectPool.borrow();
+                TestPoolObject objectId = objectPool.borrow();
                 arrayList.add(objectId);
-                Logger.simple("borrow2->" +objectId);
+                System.out.println("borrow2->" +objectId);
             });
 
         }
@@ -93,38 +116,38 @@ public class ObjectCachedPoolUnit extends TestCase {
     public void testBorrowConcurrent() {
 
         Object pooledId = null;
-        ObjectPool objectPool = new ObjectPool().minSize(3).maxSize(50).aliveTime(5).supplier(()->{
-            return item++;
+        ObjectPool<TestPoolObject> objectPool = new ObjectPool().minSize(3).maxSize(50).aliveTime(500000).supplier(()->{
+            return  new TestPoolObject("element " + item++);
         }).create();
 
 
 
-        LinkedBlockingDeque<Long> queue = new LinkedBlockingDeque<Long>();
+        ConcurrentLinkedQueue<TestPoolObject> queue = new ConcurrentLinkedQueue<TestPoolObject>();
 
         AtomicInteger count = new AtomicInteger(0);
 
-        for(int i=0;i<100;i++){
+        for(int i=0;i<50;i++){
             Thread t = new Thread(()->{
                 while (count.incrementAndGet() < 10000) {
                     if ((int) (Math.random() * 10 % 2) == 0) {
-                        Long objectId = null;
+                        TestPoolObject object = null;
                         try {
-                            objectId = objectPool.borrow(1000);
+                            object = objectPool.borrow(1000);
                         } catch (TimeoutException e) {
                             e.printStackTrace();
                         }
 
-                        if (objectId != null) {
-                            queue.offer(objectId);
-                            Logger.simple("borrow->" + objectId);
+                        if (object != null) {
+                            queue.offer(object);
+                            System.out.println("borrow->" + object);
                         } else {
-                            Logger.simple("borrow failed ================");
+                            System.out.println("borrow failed ================");
                         }
                     } else {
-                        Long objectId = queue.poll();
-                        if (objectId != null) {
-                            Logger.simple("restitution->" + objectId);
-                            objectPool.restitution(objectId);
+                        TestPoolObject object = queue.poll();
+                        if (object != null) {
+                            System.out.println("restitution->" + object);
+                            objectPool.restitution(object);
                         }
                     }
                 }
@@ -141,6 +164,30 @@ public class ObjectCachedPoolUnit extends TestCase {
 
         while(queue.size() >0){
             objectPool.restitution(queue.poll());
+        }
+    }
+
+    @Pool
+    public class TestPoolObject {
+        private String k;
+
+        public TestPoolObject(String k) {
+            this.k = k;
+        }
+
+        public String getK() {
+            return k;
+        }
+
+        public void setK(String k) {
+            this.k = k;
+        }
+
+        @Override
+        public String toString() {
+            return "testPoolObject{" +
+                    "k='" + k + '\'' +
+                    '}';
         }
     }
 }

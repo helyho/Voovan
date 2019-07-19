@@ -88,7 +88,8 @@ public class UniqueId {
     }
 
     /**
-     * 获取下一个 id
+     * 获取指定时间的 id
+     * @param timeMills 指定的时间, 毫秒
      * @return 返回 id
      */
     public long getNumber(Long timeMills){
@@ -96,7 +97,8 @@ public class UniqueId {
     }
 
     /**
-     * 获取下一个 id
+     * 获取指定时间的 id
+     * @param timeMills 指定的时间, 毫秒
      * @return 返回 id
      */
     public String getString(Long timeMills){
