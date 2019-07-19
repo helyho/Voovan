@@ -976,7 +976,6 @@ public class JdbcOperate implements Closeable {
 	 *            sql字符串
 	 * @return 每条 SQL 更新记录数
 	 * @throws SQLException SQL 异常
-	 * @throws ReflectiveOperationException 反射异常
 	 */
 	public int[] batch(String[] sqlTexts) throws SQLException {
 

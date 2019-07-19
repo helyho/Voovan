@@ -19,9 +19,13 @@ public class AopConfig {
     }
 
     public AopConfig(String scanPackages, String injectPackage) {
-        this.agentJarPath = agentJarPath;
         this.scanPackages = scanPackages;
         this.injectPackages = injectPackage;
+    }
+
+    public AopConfig(String scanAndInjectPackages) {
+        this.scanPackages = scanAndInjectPackages;
+        this.injectPackages = scanAndInjectPackages;
     }
 
     public String getAgentJarPath() {
@@ -46,7 +50,6 @@ public class AopConfig {
 
     public void setInjectPackages(String injectPackages) {
         this.injectPackages = injectPackages;
-
     }
 
     public boolean isInject(String className) {

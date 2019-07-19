@@ -48,7 +48,7 @@ public class AopUtils {
         return ctClass;
     }
 
-    public static List<CtClass> getAllSuperClass(CtClass type) throws NotFoundException {
+    public static List<CtClass> getAllSuperCtClass(CtClass type) throws NotFoundException {
         if(type == null){
             return null;
         }

@@ -5,10 +5,12 @@ import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import javassist.*;
 import javassist.bytecode.AnnotationsAttribute;
+import org.voovan.Global;
 import org.voovan.tools.collection.CollectionSearch;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.pool.Pool;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
@@ -57,7 +59,7 @@ public class Aop {
                 public byte[] transform(ClassLoader loader, String classPath, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
                     String className = classPath.replaceAll(File.separator, ".");
                     if(!TReflect.isSystemType(className) && aopConfig.isInject(className)) {
-                        return Inject(className, classfileBuffer);
+                        return weave(className, classfileBuffer);
                     } else {
                         return classfileBuffer;
                     }
@@ -70,22 +72,43 @@ public class Aop {
     }
 
     /**
-     * 切面代码注入
-     * @param className 注入的类全限定名
-     * @param classfileBuffer 注入的类的字节码
-     * @return 注入代码后的类的字节码
+     * 代码织入
+     * @param className 织入的类全限定名
+     * @param classfileBuffer 织入的类的字节码
+     * @return 织入代码后的类的字节码
      */
-    public static byte[] Inject(String className, byte[] classfileBuffer){
+    public static byte[] weave(String className, byte[] classfileBuffer) {
 
         CtClass ctClass = null;
+
         try {
+            ctClass = AopUtils.getCtClass(className);
+        } catch (NotFoundException e){
+            return classfileBuffer;
+        }
 
-            try {
-                ctClass = AopUtils.getCtClass(className);
-            } catch (NotFoundException e){
-                return classfileBuffer;
-            }
+        try {
+            CtClass wavedClass = aop(ctClass);
 
+            classfileBuffer = wavedClass == null ? classfileBuffer : wavedClass.toBytecode();
+
+            wavedClass = wrapPoolObject(ctClass);
+
+            classfileBuffer = wavedClass == null ? classfileBuffer : wavedClass.toBytecode();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return classfileBuffer;
+    }
+
+    /**
+     * Aop 类对象变更
+     * @param ctClass CtClass 对象
+     * @return 织入后的 CtClass 对象
+     */
+    public static CtClass aop(CtClass ctClass) {
+        try {
             /**
              * Aop 注入
              */
@@ -93,7 +116,7 @@ public class Aop {
             for(CtMethod originMethod : ctClass.getDeclaredMethods()){
 
                 //遍历可用于当前方法注入的切面点
-                List<CtClass> classes = AopUtils.getAllSuperClass(ctClass);
+                List<CtClass> classes = AopUtils.getAllSuperCtClass(ctClass);
                 classes.add(0, ctClass);
                 List<CutPointInfo> avaliableCutPointInfo = (List<CutPointInfo>) CollectionSearch.newInstance(AopUtils.CUT_POINTINFO_LIST)
                         .setParallelStream(false)
@@ -192,7 +215,6 @@ public class Aop {
                             continue;
                         }
 
-
                         String targetInfo = ctClass.getName() + "@" + originMethod.getName();
                         //Before 方法
                         if (cutPointInfo.getType() == -1) {
@@ -244,13 +266,54 @@ public class Aop {
                 }
             }
 
-            ctClass.debugDump = "./dump";
-            classfileBuffer = ctClass.toBytecode();
+            if(Global.IS_DEBUG_MODE) {
+                ctClass.debugDump = "./dump";
+            }
+
+            return ctClass;
+
 
         } catch (java.lang.Exception e) {
             e.printStackTrace();
         }
 
-        return classfileBuffer;
+        return null;
+    }
+
+    /**
+     * 对象池类对象织入
+     * @param ctClass CtClass 对象
+     * @return 织入后的 CtClass 对象
+     */
+    public static CtClass wrapPoolObject(CtClass ctClass) {
+        try {
+            if(ctClass.getAnnotation(Pool.class)!=null) {
+                ctClass.defrost();
+
+                CtClass poolBaseCtClass = AopUtils.getCtClass("org.voovan.tools.pool.PoolObject");
+                ctClass.addInterface(poolBaseCtClass);
+
+                CtField ctField = CtField.make("private long poolObjectId;", ctClass);
+                ctClass.addField(ctField);
+
+                for(CtMethod method : poolBaseCtClass.getDeclaredMethods()) {
+                    if(method.getName().equals("getPoolObjectId")) {
+                        CtMethod newMethod = CtNewMethod.copy(method, ctClass, null);
+                        newMethod.setBody("{return poolObjectId;}");
+                        ctClass.addMethod(newMethod);
+                    }
+
+                    if(method.getName().equals("setPoolObjectId")) {
+                        CtMethod newMethod = CtNewMethod.copy(method, ctClass, null);
+                        newMethod.setBody("{poolObjectId = $1;}");
+                        ctClass.addMethod(newMethod);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ctClass;
     }
 }
