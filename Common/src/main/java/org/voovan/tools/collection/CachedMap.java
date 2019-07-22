@@ -149,7 +149,7 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      * @param expire 超时时间
      * @return CachedHashMap 对象
      */
-    public CachedMap expire(long expire) {
+    public CachedMap<K, V> expire(long expire) {
         this.expire = expire;
         return this;
     }
