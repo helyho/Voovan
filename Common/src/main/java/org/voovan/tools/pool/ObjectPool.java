@@ -147,7 +147,7 @@ public class ObjectPool<T> {
      *      在对象被销毁前工作
      * @return 对象销毁函数
      */
-    public Function destory() {
+    public Function<T, Boolean> destory() {
         return destory;
     }
 
@@ -157,7 +157,7 @@ public class ObjectPool<T> {
      * @param destory 对象销毁函数
      * @return ObjectPool 对象
      */
-    public ObjectPool<T> destory(Function destory) {
+    public ObjectPool<T> destory(Function<T, Boolean> destory) {
         this.destory = destory;
         return this;
     }
