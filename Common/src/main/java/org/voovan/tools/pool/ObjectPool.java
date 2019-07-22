@@ -279,8 +279,8 @@ public class ObjectPool<T> {
             }
 
             //检查是否可用, 不可用则移除并重新获取
-            if (validator != null && !validator.apply(result)) {
-                remove(id);
+            if (validator != null && result!=null  && !validator.apply(result)) {
+                remove(result);
                 continue;
             }
 
@@ -318,8 +318,8 @@ public class ObjectPool<T> {
             }
 
             //检查是否可用, 不可用则移除并重新获取
-            if (validator != null && !validator.apply(result)) {
-                remove(id);
+            if (validator != null && result!=null && !validator.apply(result)) {
+                remove(result);
                 continue;
             }
 
@@ -332,18 +332,23 @@ public class ObjectPool<T> {
      * @param obj 借出的对象
      */
     public void restitution(T obj) {
-        if(obj instanceof PoolObject) {
-            Long id = ((PoolObject) obj).getPoolObjectId();
 
-            PooledObject pooledObject = objects.get(id);
+            if (obj instanceof PoolObject) {
+                if(validator.apply(obj)) {
+                    Long id = ((PoolObject) obj).getPoolObjectId();
 
-            if (!pooledObject.isRemoved() && objects.get(id).setBorrow(false)) {
-                unborrowedIdList.offer(id);
+                    PooledObject pooledObject = objects.get(id);
+
+                    if (!pooledObject.isRemoved() && objects.get(id).setBorrow(false)) {
+                        unborrowedIdList.offer(id);
+                    }
+                } else {
+                    remove(obj);
+                }
+            } else {
+                throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
+                        " implemets PoolObject.class or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) + "  and Aop support");
             }
-        } else {
-            throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
-                    " implemets PoolObject.class or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
-        }
     }
 
     /**
