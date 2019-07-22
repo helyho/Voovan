@@ -124,7 +124,7 @@ public class SocketSelector implements Closeable {
 					socketContext.setRegister(true);
 					return true;
 				} catch (ClosedChannelException e) {
-					Logger.error("Register " + socketContext + " to selector error");
+					Logger.error("Register " + socketContext + " to selector error", e);
 					return false;
 				}
 			});
