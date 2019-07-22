@@ -33,7 +33,7 @@ public class ByteBufferChannel {
     private static int BYTEBUFFERCHANNEL_MAX_SIZE = TProperties.getInt("framework", "ByteBufferChannelMaxSize", 1024*1024*2);
     private volatile AtomicLong address = new AtomicLong(0);
     private Unsafe unsafe = TUnsafe.getUnsafe();
-    private ByteBuffer byteBuffer;
+    private volatile ByteBuffer byteBuffer;
     private volatile int size;
     private ReentrantLock lock;
     private AtomicBoolean borrowed = new AtomicBoolean(false);
