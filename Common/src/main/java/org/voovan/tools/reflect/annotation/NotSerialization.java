@@ -3,7 +3,7 @@ package org.voovan.tools.reflect.annotation;
 import java.lang.annotation.*;
 
 /**
- * JSON 字段不生成至 JSON 字符串
+ * getMapFromObject 讲不处理被注解的字段
  *
  * @author helyho
  * <p>

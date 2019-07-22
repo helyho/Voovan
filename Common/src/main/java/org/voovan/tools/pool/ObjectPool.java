@@ -1,7 +1,6 @@
     package org.voovan.tools.pool;
 
 import org.voovan.Global;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
@@ -30,7 +29,7 @@ import java.util.function.Supplier;
 public class ObjectPool<T> {
 
     //<ID, 缓存的对象>
-    private volatile ConcurrentHashMap<Long, PooledObject<T>> objects = new ConcurrentHashMap<Long, PooledObject<T>>();
+    private volatile ConcurrentHashMap<Long, InnerObject<T>> objects = new ConcurrentHashMap<Long, InnerObject<T>>();
     //未解出的对象 ID
     private volatile LinkedBlockingDeque<Long> unborrowedIdList = new LinkedBlockingDeque<Long>();
 
@@ -207,17 +206,17 @@ public class ObjectPool<T> {
     private Long add(T obj, boolean isBorrow){
         Objects.requireNonNull(obj, "add a null object failed");
 
-        if(obj instanceof PoolObject) {
+        if(obj instanceof IPool) {
             if (objects.size() >= maxSize) {
                 return null;
             }
 
             long id = genObjectId();
-            ((PoolObject)obj).setPoolObjectId(id);
+            ((IPool)obj).setPoolObjectId(id);
 
-            PooledObject pooledObject = new PooledObject<T>(this, id, obj);
+            InnerObject innerObject = new InnerObject<T>(this, id, obj);
 
-            objects.put(id, pooledObject);
+            objects.put(id, innerObject);
 
             //默认借出状态不加入未借出队列
             if(!isBorrow) {
@@ -227,7 +226,7 @@ public class ObjectPool<T> {
             return id;
         } else {
             throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
-                    " implemets PoolObject.class or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
+                    " implemets IPool.class or extends Pool or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
         }
     }
 
@@ -238,10 +237,10 @@ public class ObjectPool<T> {
      */
     private T get(Long id) {
         if(id != null) {
-            PooledObject<T> pooledObject = objects.get(id);
-            if (pooledObject != null) {
-                pooledObject.setBorrow(true);
-                return pooledObject.getObject();
+            InnerObject<T> innerObject = objects.get(id);
+            if (innerObject != null) {
+                innerObject.setBorrow(true);
+                return innerObject.getObject();
             } else {
                 return null;
             }
@@ -333,13 +332,13 @@ public class ObjectPool<T> {
      */
     public void restitution(T obj) {
 
-            if (obj instanceof PoolObject) {
+            if (obj instanceof IPool) {
                 if(validator.apply(obj)) {
-                    Long id = ((PoolObject) obj).getPoolObjectId();
+                    Long id = ((IPool) obj).getPoolObjectId();
 
-                    PooledObject pooledObject = objects.get(id);
+                    InnerObject innerObject = objects.get(id);
 
-                    if (!pooledObject.isRemoved() && objects.get(id).setBorrow(false)) {
+                    if (!innerObject.isRemoved() && objects.get(id).setBorrow(false)) {
                         unborrowedIdList.offer(id);
                     }
                 } else {
@@ -347,7 +346,7 @@ public class ObjectPool<T> {
                 }
             } else {
                 throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
-                        " implemets PoolObject.class or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) + "  and Aop support");
+                        " implemets IPool.class or extends Pool or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) + "  and Aop support");
             }
     }
 
@@ -365,13 +364,13 @@ public class ObjectPool<T> {
      * @param 清理的对象
      */
     private void remove(T obj){
-        if(obj instanceof PoolObject) {
-            Long id = ((PoolObject) obj).getPoolObjectId();
+        if(obj instanceof IPool) {
+            Long id = ((IPool) obj).getPoolObjectId();
             remove(id);
 
         } else {
             throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
-                    " implemets PoolObject.class or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
+                    " implemets IPool.class or extends Pool or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
         }
     }
 
@@ -382,9 +381,9 @@ public class ObjectPool<T> {
     private void remove(long id){
         unborrowedIdList.remove(id);
 
-        PooledObject pooledObject = objects.remove(id);
-        if(pooledObject!=null) {
-            pooledObject.remove();
+        InnerObject innerObject = objects.remove(id);
+        if(innerObject !=null) {
+            innerObject.remove();
         }
     }
 
@@ -417,8 +416,8 @@ public class ObjectPool<T> {
      * 清理池中所有的对象
      */
     public synchronized void clear(){
-        for(PooledObject pooledObject : objects.values()) {
-            pooledObject.remove();
+        for(InnerObject innerObject : objects.values()) {
+            innerObject.remove();
         }
 
         unborrowedIdList.clear();
@@ -456,25 +455,25 @@ public class ObjectPool<T> {
                 @Override
                 public void run() {
                     try {
-                        Iterator<PooledObject<T>> iterator = objects.values().iterator();
+                        Iterator<InnerObject<T>> iterator = objects.values().iterator();
                         while (iterator.hasNext()) {
 
                             if (objects.size() <= minSize) {
                                 return;
                             }
 
-                            PooledObject<T> pooledObject = iterator.next();
+                            InnerObject<T> innerObject = iterator.next();
 
-                            if (!pooledObject.isAlive()) {
+                            if (!innerObject.isAlive()) {
                                 if (destory != null) {
                                     //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
-                                    if (destory.apply(pooledObject.getObject())) {
-                                        remove(pooledObject.getId());
+                                    if (destory.apply(innerObject.getObject())) {
+                                        remove(innerObject.getId());
                                     } else {
-                                        pooledObject.refresh();
+                                        innerObject.refresh();
                                     }
                                 } else {
-                                    remove(pooledObject.getId());
+                                    remove(innerObject.getId());
                                 }
                             }
                         }
@@ -491,7 +490,7 @@ public class ObjectPool<T> {
     /**
      * 池中缓存的对象模型
      */
-    public class PooledObject<T>{
+    public class InnerObject<T>{
         private long lastVisiediTime;
         private long id;
         @NotSerialization
@@ -502,7 +501,7 @@ public class ObjectPool<T> {
         private AtomicBoolean isRemoved = new AtomicBoolean(false);
         private AtomicInteger count = new AtomicInteger();
 
-        public PooledObject(ObjectPool objectCachedPool, long id, T object) {
+        public InnerObject(ObjectPool objectCachedPool, long id, T object) {
             this.objectCachedPool = objectCachedPool;
             this.lastVisiediTime = System.currentTimeMillis();
             this.id = id;
