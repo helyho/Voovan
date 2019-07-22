@@ -71,7 +71,7 @@ public class ObjectPool<T> {
         return aliveTime;
     }
 
-    public ObjectPool autoRefreshOnGet(boolean autoRefreshOnGet) {
+    public ObjectPool<T> autoRefreshOnGet(boolean autoRefreshOnGet) {
         this.autoRefreshOnGet = autoRefreshOnGet;
         return this;
     }
@@ -80,7 +80,7 @@ public class ObjectPool<T> {
         return minSize;
     }
 
-    public ObjectPool minSize(int minSize) {
+    public ObjectPool<T> minSize(int minSize) {
         this.minSize = minSize;
         return this;
     }
@@ -89,7 +89,7 @@ public class ObjectPool<T> {
         return maxSize;
     }
 
-    public ObjectPool maxSize(int maxSize) {
+    public ObjectPool<T> maxSize(int maxSize) {
         this.maxSize = maxSize;
         return this;
     }
@@ -98,7 +98,7 @@ public class ObjectPool<T> {
         return interval;
     }
 
-    public ObjectPool interval(int interval) {
+    public ObjectPool<T> interval(int interval) {
         this.interval = interval;
         return this;
     }
@@ -108,7 +108,7 @@ public class ObjectPool<T> {
      *      在对象被构造工作
      * @return 对象构造函数
      */
-    public Supplier getSupplier() {
+    public Supplier<T> getSupplier() {
         return supplier;
     }
 
@@ -118,7 +118,7 @@ public class ObjectPool<T> {
      * @param supplier 对象构造函数
      * @return ObjectPool 对象
      */
-    public ObjectPool supplier(Supplier supplier) {
+    public ObjectPool<T> supplier(Supplier<T> supplier) {
         this.supplier = supplier;
         return this;
     }
@@ -128,7 +128,7 @@ public class ObjectPool<T> {
      *  在获取对象时验证
      * @return Function 对象
      */
-    public Function<T, Boolean> getValidator() {
+    public Function<T, Boolean> validator() {
         return validator;
     }
 
@@ -138,7 +138,7 @@ public class ObjectPool<T> {
      * @param validator Function 对象
      * @return ObjectPool 对象
      */
-    public ObjectPool setValidator(Function<T, Boolean> validator) {
+    public ObjectPool<T> validator(Function<T, Boolean> validator) {
         this.validator = validator;
         return this;
     }
@@ -158,7 +158,7 @@ public class ObjectPool<T> {
      * @param destory 对象销毁函数
      * @return ObjectPool 对象
      */
-    public ObjectPool destory(Function destory) {
+    public ObjectPool<T> destory(Function destory) {
         this.destory = destory;
         return this;
     }
@@ -168,7 +168,7 @@ public class ObjectPool<T> {
      * @param aliveTime 对象存活时间,单位:秒
      * @return ObjectPool 对象
      */
-    public ObjectPool aliveTime(long aliveTime) {
+    public ObjectPool<T> aliveTime(long aliveTime) {
         this.aliveTime = aliveTime;
         return this;
     }
@@ -440,7 +440,7 @@ public class ObjectPool<T> {
      * 创建ObjectPool
      * @return ObjectPool 对象
      */
-    public ObjectPool create() {
+    public ObjectPool<T> create() {
         //按照 minSize 初始化最小容量的对象
         initObjects();
 
