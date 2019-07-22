@@ -7,16 +7,14 @@ import junit.framework.TestCase;
 import org.junit.Before;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.aop.Aop;
-import org.voovan.tools.aop.AopConfig;
+import org.voovan.tools.weave.Weave;
+import org.voovan.tools.weave.WeaveConfig;
 import org.voovan.tools.pool.ObjectPool;
-import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.Pool;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -34,7 +32,7 @@ public class ObjectCachedPoolUnit extends TestCase {
     @Before
     public void setUp() {
         try {
-            Aop.init(new AopConfig("org.voovan"));
+            Weave.init(new WeaveConfig("org.voovan"));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (AttachNotSupportedException e) {

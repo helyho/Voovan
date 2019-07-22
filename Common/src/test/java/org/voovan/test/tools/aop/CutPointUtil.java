@@ -1,9 +1,9 @@
 package org.voovan.test.tools.aop;
 
-import org.voovan.tools.aop.InterceptInfo;
-import org.voovan.tools.aop.annotation.*;
+import org.voovan.tools.weave.aop.InterceptInfo;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.weave.aop.annotation.Before;
 
 /**
  * 类文字命名
@@ -13,7 +13,7 @@ import org.voovan.tools.log.Logger;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-@Aop
+@org.voovan.tools.weave.aop.annotation.Aop
 public class CutPointUtil {
 
 
@@ -50,38 +50,38 @@ public class CutPointUtil {
         Logger.simple("before========>");
     }
 
-    @After("* org.voovan.test.*.*.CutPointUtil@testAfter(java.lang.String)")
+    @org.voovan.tools.weave.aop.annotation.After("* org.voovan.test.*.*.CutPointUtil@testAfter(java.lang.String)")
     public static String cutPointAfter(InterceptInfo interceptInfo){
         Logger.simple("after========>" + JSON.toJSON(interceptInfo));
         return "-----////";
     }
 
-    @Around("* org.voovan.test.*.*.CutPointUtil@testAround(int)")
+    @org.voovan.tools.weave.aop.annotation.Around("* org.voovan.test.*.*.CutPointUtil@testAround(int)")
     public static String cutPointAround(InterceptInfo interceptInfo) throws Throwable {
         Logger.simple("Around========>" + JSON.toJSON(interceptInfo));
         Object result = interceptInfo.process();
         return "-----////" + result;
     }
 
-    @Abnormal("* org.voovan.test.*.*.CutPointUtil@testException(int)")
+    @org.voovan.tools.weave.aop.annotation.Abnormal("* org.voovan.test.*.*.CutPointUtil@testException(int)")
     public static String cutPointCatch(InterceptInfo interceptInfo){
         Logger.simple("Abnormal========>" + JSON.toJSON(interceptInfo));
         return "-----////";
     }
 
-    @After("void org.voovan.test.*.*.CutPointUtil@mmm()")
+    @org.voovan.tools.weave.aop.annotation.After("void org.voovan.test.*.*.CutPointUtil@mmm()")
     public static String testmmmm(InterceptInfo interceptInfo){
         Logger.simple("after========>" + JSON.toJSON(interceptInfo));
         return "-----////";
     }
 
-    @After("* org.voovan.test.service.web.IndexMethod@index(..)")
+    @org.voovan.tools.weave.aop.annotation.After("* org.voovan.test.service.web.IndexMethod@index(..)")
     public static String indexMethodAfter(InterceptInfo interceptInfo){
         Logger.simple("after========>" + JSON.toJSON(interceptInfo));
         return "-----////";
     }
 
-    @Around("* org.voovan.test.service.web.IndexMethod@index(..)")
+    @org.voovan.tools.weave.aop.annotation.Around("* org.voovan.test.service.web.IndexMethod@index(..)")
     public static String indexMethodAround(InterceptInfo interceptInfo){
 //        Logger.simple("Around========>" + JSON.toJSON(interceptInfo));
         Object object = null;

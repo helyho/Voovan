@@ -1,8 +1,8 @@
 package org.voovan.test.tools.aop;
 
 import junit.framework.TestCase;
-import org.voovan.tools.aop.Aop;
-import org.voovan.tools.aop.AopConfig;
+import org.voovan.tools.weave.Weave;
+import org.voovan.tools.weave.WeaveConfig;
 import org.voovan.tools.log.Logger;
 
 /**
@@ -15,7 +15,7 @@ import org.voovan.tools.log.Logger;
  */
 public class AopUnit extends TestCase{
     public void setUp() throws Exception {
-        Aop.init(new AopConfig("org.voovan.test", "org.voovan"));
+        Weave.init(new WeaveConfig("org.voovan.test", "org.voovan"));
     }
 
     public void testMethod() throws Exception {
