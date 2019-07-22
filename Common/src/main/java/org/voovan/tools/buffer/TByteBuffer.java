@@ -175,10 +175,6 @@ public class TByteBuffer {
                 return true;
             }
 
-            if(byteBuffer.remaining() == 0){
-                return true;
-            }
-
             int newLimit = byteBuffer.limit()+offset;
             int newPosition = byteBuffer.position() + offset;
 
