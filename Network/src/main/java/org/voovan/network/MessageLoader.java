@@ -180,7 +180,7 @@ public class MessageLoader {
 					}
 
 					//使用消息划分器进行消息划分
-					if (readsize != 0 && dataByteBuffer.limit() > 0) {
+					if (readsize == 0 && dataByteBuffer.limit() > 0) {
 						if (messageSplitter instanceof TransferSplitter) {
 							splitLength = dataByteBuffer.limit();
 						} else {
