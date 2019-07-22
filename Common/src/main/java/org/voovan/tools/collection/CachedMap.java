@@ -206,19 +206,15 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
                     // 1.返回 null 则刷新为默认超时时间
                     // 2.小于0 的数据, 则移除对象
                     // 3.大于0的数据则重新设置返回值为新的超时时间
-                    Long value = destory.apply(timeMark.getKey(), get(timeMark.key));
-                    if (value < 0) {
+                    Long value = destory.apply(timeMark.getKey(), cacheData.get(timeMark.key));
+                    if(value == null){
+                        timeMark.refresh(true);
+                    } else if (value < 0) {
                         remove(timeMark.getKey());
-                        cacheMark.remove(timeMark.getKey());
                     } else {
-                        if(value == null){
-                            timeMark.refresh(true);
-                        } else {
-                            timeMark.setExpireTime(value);
-                        }
+                        timeMark.setExpireTime(value);
                     }
                 } else {
-                    cacheMark.remove(timeMark.getKey());
                     remove(timeMark.getKey());
                 }
 
@@ -421,7 +417,8 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
         int diffSize = this.size() - maxSize;
         if (diffSize > 0) {
             //最少访问次数中, 时间最老的进行清楚
-            TimeMark[] removedTimeMark = (TimeMark[]) CollectionSearch.newInstance(cacheMark.values()).addCondition("expireTime", CollectionSearch.Operate.NOT_EQUAL, 0L)
+            TimeMark<K>[] removedTimeMark = (TimeMark<K>[]) CollectionSearch.newInstance(cacheMark.values())
+                    .addCondition("expireTime", CollectionSearch.Operate.NOT_EQUAL, 0L)
                     .addCondition("lastTime", CollectionSearch.Operate.LESS, System.currentTimeMillis()-1000)
                     .sort("visitCount")
                     .limit(10 * diffSize)
@@ -429,9 +426,20 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
                     .limit(diffSize)
                     .search()
                     .toArray(new TimeMark[0]);
-            for (TimeMark timeMark : removedTimeMark) {
-                cacheMark.remove(timeMark.getKey());
-                this.remove(timeMark.getKey());
+            for (TimeMark<K> timeMark : removedTimeMark) {
+                if(destory!=null){
+                    Long value = destory.apply(timeMark.getKey(), cacheData.get(timeMark.getKey()));
+
+                    if(value == null){
+                        timeMark.refresh(true);
+                    } else if (value < 0) {
+                        remove(timeMark.getKey());
+                    } else {
+                        timeMark.setExpireTime(value);
+                    }
+                } else {
+                    this.remove(timeMark.getKey());
+                }
             }
         }
     }
