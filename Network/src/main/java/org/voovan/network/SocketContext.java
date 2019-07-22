@@ -400,7 +400,10 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 */
 	public void waitConnect() {
 		try {
+			//等待注册完成
 			TEnv.wait(readTimeout, ()->!isRegister);
+
+			//等待 SSL 握手完成
 			if(getSession().isSSLMode()) {
 				getSession().getSSLParser().waitHandShakeDone();
 			}
