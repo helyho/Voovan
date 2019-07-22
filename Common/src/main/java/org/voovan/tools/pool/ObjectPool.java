@@ -4,6 +4,7 @@ import org.voovan.Global;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
@@ -37,6 +38,7 @@ public class ObjectPool<T> {
     private boolean autoRefreshOnGet = true;
     private Function<T, Boolean> destory;
     private Supplier<T> supplier = null;
+    private Function<T, Boolean> validator = null;
     private int minSize = 0;
     private int maxSize = Integer.MAX_VALUE;
     private int interval = 1;
@@ -118,6 +120,26 @@ public class ObjectPool<T> {
      */
     public ObjectPool supplier(Supplier supplier) {
         this.supplier = supplier;
+        return this;
+    }
+
+    /**
+     * 验证器
+     *  在获取对象时验证
+     * @return Function 对象
+     */
+    public Function<T, Boolean> getValidator() {
+        return validator;
+    }
+
+    /**
+     * 设置验证器
+     *  在获取对象时验证
+     * @param validator Function 对象
+     * @return ObjectPool 对象
+     */
+    public ObjectPool setValidator(Function<T, Boolean> validator) {
+        this.validator = validator;
         return this;
     }
 
@@ -231,27 +253,40 @@ public class ObjectPool<T> {
     /**
      * 借出这个对象
      *         如果有提供 supplier 函数, 在没有可借出对象时会构造一个新的对象, 否则返回 null
-     * @return 借出的对象的 ID
+     * @return 借出的对象
      */
-    public T borrow(){
-        Long id = unborrowedIdList.poll();
+    public T borrow() {
+        while (true) {
+            Long id = unborrowedIdList.poll();
 
-        //检查是否有重复借出
-        if (id != null && objects.get(id).isBorrow()) {
-            throw new RuntimeException("Object already borrowed");
-        }
+            //检查是否有重复借出
+            if (id != null && objects.get(id).isBorrow()) {
+                throw new RuntimeException("Object already borrowed");
+            }
 
-        T result = get(id);
+            T result = get(id);
 
-        if (result == null && supplier != null) {
-            if(objects.size() <= maxSize) {
-                synchronized (unborrowedIdList) {
-                    result = get(add(supplier.get(), true));
+            if (result == null && supplier != null) {
+                synchronized (objects) {
+                    if (objects.size() < maxSize) {
+                        synchronized (unborrowedIdList) {
+                            result = get(add(supplier.get(), true));
+                        }
+                    } else {
+                        return null;
+                    }
                 }
             }
+
+            //检查是否可用, 不可用则移除并重新获取
+            if (validator != null && !validator.apply(result)) {
+                remove(id);
+                continue;
+            }
+
+            return result;
         }
 
-        return result;
     }
 
     /**
@@ -261,25 +296,33 @@ public class ObjectPool<T> {
      * @throws TimeoutException 超时异常
      */
     public T borrow(long waitTime) throws TimeoutException {
-        Long id = null;
+        while (true) {
+            Long id = null;
 
-        //放这里取一边的作用是, borrow()方法里有尝试使用 supplier 创建
-        T result = borrow();
+            //放这里取一边的作用是, borrow()方法里有尝试使用 supplier 创建
+            T result = borrow();
 
-        if (result == null) {
-            try {
-                id = unborrowedIdList.poll(waitTime, TimeUnit.MILLISECONDS);
+            if (result == null) {
+                try {
+                    id = unborrowedIdList.poll(waitTime, TimeUnit.MILLISECONDS);
 
-                //检查是否有重复借出
-                if (id != null && objects.get(id).isBorrow()) {
-                    throw new RuntimeException("Object already borrowed");
+                    //检查是否有重复借出
+                    if (id != null && objects.get(id).isBorrow()) {
+                        throw new RuntimeException("Object already borrowed");
+                    }
+
+                    result = get(id);
+                } catch (InterruptedException e) {
+                    throw new TimeoutException("borrow failed.");
                 }
-
-                return get(id);
-            } catch (InterruptedException e) {
-                throw new TimeoutException("borrow failed.");
             }
-        } else {
+
+            //检查是否可用, 不可用则移除并重新获取
+            if (validator != null && !validator.apply(result)) {
+                remove(id);
+                continue;
+            }
+
             return result;
         }
     }
@@ -314,9 +357,24 @@ public class ObjectPool<T> {
 
     /**
      * 移除池中的对象
+     * @param 清理的对象
+     */
+    private void remove(T obj){
+        if(obj instanceof PoolObject) {
+            Long id = ((PoolObject) obj).getPoolObjectId();
+            remove(id);
+
+        } else {
+            throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
+                    " implemets PoolObject.class or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
+        }
+    }
+
+    /**
+     * 移除池中的对象
      * @param id 对象的 hash 值
      */
-    public void remove(long id){
+    private void remove(long id){
         unborrowedIdList.remove(id);
 
         PooledObject pooledObject = objects.remove(id);
@@ -362,44 +420,65 @@ public class ObjectPool<T> {
         objects.clear();
     }
 
+
+    /**
+     * 按照 minSize 初始化最小容量的对象
+     */
+    public void initObjects() {
+        //初始化最小对象池
+        if(supplier!=null && minSize > 0){
+            for(int i=0;i<minSize;i++) {
+                this.add(supplier.get());
+            }
+
+            Logger.fremawork("Object pool init " + minSize + " objects");
+        }
+
+    }
+
     /**
      * 创建ObjectPool
      * @return ObjectPool 对象
      */
-    public ObjectPool create(){
-        final ObjectPool finalobjectPool = this;
+    public ObjectPool create() {
+        //按照 minSize 初始化最小容量的对象
+        initObjects();
 
-        Global.getHashWheelTimer().addTask(new HashWheelTask() {
-            @Override
-            public void run() {
-                try {
-                    Iterator<PooledObject<T>> iterator = objects.values().iterator();
-                    while (iterator.hasNext()) {
+        if(interval > 0) {
+            final ObjectPool finalobjectPool = this;
 
-                        if(objects.size() <= minSize){
-                            return;
-                        }
+            Global.getHashWheelTimer().addTask(new HashWheelTask() {
+                @Override
+                public void run() {
+                    try {
+                        Iterator<PooledObject<T>> iterator = objects.values().iterator();
+                        while (iterator.hasNext()) {
 
-                        PooledObject<T> pooledObject = iterator.next();
+                            if (objects.size() <= minSize) {
+                                return;
+                            }
 
-                        if (!pooledObject.isAlive()) {
-                            if(destory!=null){
-                                //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
-                                if(destory.apply(pooledObject.getObject())){
-                                    remove(pooledObject.getId());
+                            PooledObject<T> pooledObject = iterator.next();
+
+                            if (!pooledObject.isAlive()) {
+                                if (destory != null) {
+                                    //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
+                                    if (destory.apply(pooledObject.getObject())) {
+                                        remove(pooledObject.getId());
+                                    } else {
+                                        pooledObject.refresh();
+                                    }
                                 } else {
-                                    pooledObject.refresh();
+                                    remove(pooledObject.getId());
                                 }
-                            } else {
-                                remove(pooledObject.getId());
                             }
                         }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                }catch(Exception e){
-                    e.printStackTrace();
                 }
-            }
-        }, this.interval, true);
+            }, this.interval, true);
+        }
 
         return this;
     }

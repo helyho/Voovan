@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 import org.junit.Before;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.exception.WeaveException;
 import org.voovan.tools.weave.Weave;
 import org.voovan.tools.weave.WeaveConfig;
 import org.voovan.tools.pool.ObjectPool;
@@ -33,15 +34,7 @@ public class ObjectCachedPoolUnit extends TestCase {
     public void setUp() {
         try {
             Weave.init(new WeaveConfig("org.voovan"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (AttachNotSupportedException e) {
-            e.printStackTrace();
-        } catch (AgentLoadException e) {
-            e.printStackTrace();
-        } catch (AgentInitializationException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (WeaveException e) {
             e.printStackTrace();
         }
     }
