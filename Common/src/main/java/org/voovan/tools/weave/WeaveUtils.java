@@ -2,14 +2,12 @@ package org.voovan.tools.weave;
 
 import javassist.ClassPool;
 import javassist.CtClass;
-import javassist.Modifier;
 import javassist.NotFoundException;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
-import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.exception.WeaveException;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
 import java.io.IOException;
@@ -172,7 +170,7 @@ public class WeaveUtils {
         try {
             return CLASSPOOL.get(className);
         }catch (java.lang.Exception ex) {
-            throw new ClassNotFoundException("load and define class " + className + " failed");
+            throw new WeaveException("WeaveUtils.resourceToCtClass load and define class " + className + " failed");
         }
     }
 
