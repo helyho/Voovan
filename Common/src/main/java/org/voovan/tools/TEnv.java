@@ -557,12 +557,17 @@ public class TEnv {
 		long start = System.currentTimeMillis();
 		while(true){
 			if(supplier.get()) {
+
 				//先检查超时后等待
-				if(System.currentTimeMillis()-start>=waitTime){
+				Long diffTime = System.currentTimeMillis()-start;
+				if(diffTime>=waitTime){
 					throw new TimeoutException("TEnv.wait timeout");
 				}
 
-				TEnv.sleep(1);
+				//自旋 5ms, 后休眠每次1ms
+				if(diffTime>5) {
+					TEnv.sleep(1);
+				}
 			} else {
 				return;
 			}
