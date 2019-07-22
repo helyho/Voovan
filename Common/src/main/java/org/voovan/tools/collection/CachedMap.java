@@ -203,10 +203,17 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
         if (timeMark!=null && timeMark.isExpire()) {
             if (autoRemove) {
                 if(destory!= null) {
+
+                    V data = cacheData.get(timeMark.getKey());
+                    if(data == null) {
+                        this.remove(timeMark.getKey());
+                        return;
+                    }
+
                     // 1.返回 null 则刷新为默认超时时间
                     // 2.小于0 的数据, 则移除对象
                     // 3.大于0的数据则重新设置返回值为新的超时时间
-                    Long value = destory.apply(timeMark.getKey(), cacheData.get(timeMark.key));
+                    Long value = destory.apply(timeMark.getKey(), data);
                     if(value == null){
                         timeMark.refresh(true);
                     } else if (value < 0) {
@@ -427,8 +434,15 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
                     .search()
                     .toArray(new TimeMark[0]);
             for (TimeMark<K> timeMark : removedTimeMark) {
-                if(destory!=null){
-                    Long value = destory.apply(timeMark.getKey(), cacheData.get(timeMark.getKey()));
+                if(destory!=null) {
+
+                    V data = cacheData.get(timeMark.getKey());
+                    if(data == null) {
+                        this.remove(timeMark.getKey());
+                        continue;
+                    }
+
+                    Long value = destory.apply(timeMark.getKey(), data);
 
                     if(value == null){
                         timeMark.refresh(true);
