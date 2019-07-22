@@ -25,9 +25,9 @@
   "Cache"                  : false,
   "maxRequestSize"         : 22528 ,                           //请求大小的限制(单位:kb), 大于这个值的连接将会被放弃, -1 不限制上传文件的大小. 默认值: 1024k
 
-  "AopConfig"              : {
-    "ScanPackages" : "org.vtrade.common.aop",
-    "InjectPackages" : "org.vtrade"
+  "WeaveConfig"              : {
+    "Scan"  : "org.voovan",
+    "Inject" : "org.voovan"
   },
 
 //  HTTPS证书配置

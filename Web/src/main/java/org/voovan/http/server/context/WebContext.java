@@ -329,9 +329,9 @@ public class WebContext {
 			System.out.println(TString.rightPad("  HotSwapInterval:", 35, ' ') + config.getHotSwapInterval());
 		}
 
-		if(config.getAopConfig()!=null) {
-			System.out.println(TString.rightPad("  AopScanPackages:", 35, ' ') + config.getAopConfig().getScanPackages());
-			System.out.println(TString.rightPad("  AopInjectPackages:", 35, ' ') + config.getAopConfig().getInjectPackages());
+		if(config.getWeaveConfig()!=null) {
+			System.out.println(TString.rightPad("  AopScanPackages:", 35, ' ') + config.getWeaveConfig().getScan());
+			System.out.println(TString.rightPad("  AopInjectPackages:", 35, ' ') + config.getWeaveConfig().getInject());
 		}
 
 		if(config.isHttps()) {

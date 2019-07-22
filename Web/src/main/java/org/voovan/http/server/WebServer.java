@@ -12,7 +12,7 @@ import org.voovan.network.SocketContext;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.tools.*;
-import org.voovan.tools.aop.Aop;
+import org.voovan.tools.weave.Weave;
 import org.voovan.tools.hotswap.Hotswaper;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
@@ -81,9 +81,9 @@ public class WebServer {
 	 */
 	private void initAop() {
 		//热加载
-		if(config.getAopConfig()!=null) {
+		if(config.getWeaveConfig()!=null) {
 			try {
-				Aop.init(config.getAopConfig());
+				Weave.init(config.getWeaveConfig());
 			} catch (Exception e) {
 				Logger.error("Init aop failed: " + e.getMessage());
 			}
