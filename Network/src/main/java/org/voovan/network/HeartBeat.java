@@ -72,9 +72,9 @@ public class HeartBeat {
      * @param session 会话对象
      * @param byteBufferChannel 保存消息 ByteBufferChannel 对象
      */
-    public static void interceptHeartBeat(IoSession session, ByteBufferChannel byteBufferChannel){
+    public static boolean interceptHeartBeat(IoSession session, ByteBufferChannel byteBufferChannel){
         if(session==null || byteBufferChannel==null){
-            return;
+            return false;
         }
 
         HeartBeat heartBeat = session.getHeartBeat();
@@ -84,16 +84,18 @@ public class HeartBeat {
                 if (byteBufferChannel.startWith(heartBeat.getPing())) {
                     byteBufferChannel.shrink(0, heartBeat.getPing().length);
                     heartBeat.getQueue().addLast(1);
-                    return;
+                    return true;
                 }
 
                 if (byteBufferChannel.startWith(heartBeat.getPong())) {
                     byteBufferChannel.shrink(0, heartBeat.getPong().length);
                     heartBeat.getQueue().addLast(2);
-                    return;
+                    return true;
                 }
             }
         }
+
+        return false;
     }
 
     /**

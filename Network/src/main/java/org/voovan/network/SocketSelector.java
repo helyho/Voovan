@@ -572,9 +572,8 @@ public class SocketSelector implements Closeable {
 						appByteBufferChannel.writeEnd(readTempBuffer);
 					}
 
-					//检查心跳
-					if (session.getHeartBeat() != null) {
-                        HeartBeat.interceptHeartBeat(session, appByteBufferChannel);
+					while(HeartBeat.interceptHeartBeat(session, session.getReadByteBufferChannel())){
+
 					}
 
 					if (session.isConnected() && !session.getState().isReceive() && appByteBufferChannel.size() > 0) {
