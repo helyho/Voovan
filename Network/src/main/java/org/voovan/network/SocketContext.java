@@ -29,8 +29,8 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public abstract class SocketContext<C extends SelectableChannel, S extends IoSession> {
     //================================线程管理===============================
-	public static int ACCEPT_THREAD_SIZE = 1;
-	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", 1, ACCEPT_THREAD_SIZE, 60*1000, true, 10);
+	public static int ACCEPT_THREAD_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("AcceptThreadSize"),"1"));
+	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", ACCEPT_THREAD_SIZE, ACCEPT_THREAD_SIZE, 60*1000, true, 10);
 	public static EventRunnerGroup ACCEPT_EVENT_RUNNER_GROUP= new EventRunnerGroup(ACCEPT_THREAD_POOL, ACCEPT_THREAD_SIZE, (obj)->{
 		try {
 			//Accept 线程不检查超时
