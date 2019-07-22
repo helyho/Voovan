@@ -450,7 +450,7 @@ public class SSLParser {
 
 
 	/**
-	 * 等待连接完成
+	 * 等待握手完成
 	 */
 	public void waitHandShakeDone(){
 		try {

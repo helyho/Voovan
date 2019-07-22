@@ -163,11 +163,8 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 		socketChannel.configureBlocking(false);
 		bindToSocketSelector(SelectionKey.OP_READ);
 
-		//如果是同步调用方法, 则等待连接完成
-		if(isSynchronous){
-			waitConnect();
-		}
-	}
+        waitConnect();
+    }
 
 	protected void acceptStart() throws IOException {
 		try {
@@ -221,20 +218,21 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 
 	@Override
 	public boolean close(){
-		if(socketChannel!=null){
-
-			session.release();
-
+        try {
+            if(socketChannel!=null && socketChannel.isOpen()){
+                socketChannel.close();
+                session.release();
+                return true;
+            }
+        } catch (IOException e) {
+        	Logger.error("TcpSocket.close failed", e);
+		} finally {
 			synchronized (waitObj) {
 				waitObj.notify();
 			}
-			return true;
-		}else{
-			synchronized (waitObj) {
-				waitObj.notify();
-			}
-			return true;
 		}
+
+		return false;
 	}
 
 }

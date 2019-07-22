@@ -166,22 +166,19 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 
 	@Override
 	public boolean close() {
-		if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
-			try{
+		try {
+			if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
 				serverSocketChannel.close();
-				synchronized (waitObj) {
-					waitObj.notify();
-				}
 				return true;
-			} catch(IOException e){
-				Logger.error("SocketChannel close failed",e);
-				return false;
 			}
-		}else{
+		} catch(IOException e){
+			Logger.error("TcpServerSocket.close failed", e);
+		} finally {
 			synchronized (waitObj) {
 				waitObj.notify();
 			}
-			return true;
 		}
+
+		return false;
 	}
 }
