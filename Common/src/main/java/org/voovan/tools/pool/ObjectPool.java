@@ -499,7 +499,6 @@ public class ObjectPool<T> {
         private ObjectPool objectCachedPool;
         private AtomicBoolean isBorrow = new AtomicBoolean(false);
         private AtomicBoolean isRemoved = new AtomicBoolean(false);
-        private AtomicInteger count = new AtomicInteger();
 
         public InnerObject(ObjectPool objectCachedPool, long id, T object) {
             this.objectCachedPool = objectCachedPool;
@@ -509,11 +508,6 @@ public class ObjectPool<T> {
         }
 
         protected boolean setBorrow(Boolean isBorrow) {
-            if(isBorrow) {
-                count.incrementAndGet();
-            } else {
-                count.decrementAndGet();
-            }
             return this.isBorrow.compareAndSet(!isBorrow, isBorrow);
         }
 
