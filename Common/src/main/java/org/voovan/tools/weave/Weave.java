@@ -4,10 +4,8 @@ import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import javassist.*;
-import javassist.bytecode.AnnotationsAttribute;
-import org.voovan.Global;
+import org.voovan.tools.exception.WeaveException;
 import org.voovan.tools.weave.aop.AopWeave;
-import org.voovan.tools.weave.aop.CutPointInfo;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.Pool;
@@ -40,32 +38,36 @@ public class Weave {
      * @throws AgentInitializationException Agent 初始化异常
      * @throws ClassNotFoundException 类找不到异常
      */
-    public static void init(WeaveConfig weaveConfig) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException, ClassNotFoundException {
+    public static void init(WeaveConfig weaveConfig) {
         if(weaveConfig ==null){
             return;
         }
 
-        //扫描带有 Aop 的切点方法
-        for(String scanPackage : weaveConfig.getScan().split(",")) {
-            AopWeave.scanAopClass(scanPackage);
-        }
+        try {
+            //扫描带有 Aop 的切点方法
+            for (String scanPackage : weaveConfig.getScan().split(",")) {
+                AopWeave.scanAopClass(scanPackage);
+            }
 
-        instrumentation = TEnv.agentAttach(weaveConfig.getAgent());
-        if(instrumentation!=null) {
-            instrumentation.addTransformer(new ClassFileTransformer() {
-                @Override
-                public byte[] transform(ClassLoader loader, String classPath, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-                    String className = classPath.replaceAll(File.separator, ".");
-                    if(!TReflect.isSystemType(className) && weaveConfig.isInject(className)) {
-                        return weave(className, classfileBuffer);
-                    } else {
-                        return classfileBuffer;
+            instrumentation = TEnv.agentAttach(weaveConfig.getAgent());
+            if (instrumentation != null) {
+                instrumentation.addTransformer(new ClassFileTransformer() {
+                    @Override
+                    public byte[] transform(ClassLoader loader, String classPath, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+                        String className = classPath.replaceAll(File.separator, ".");
+                        if (!TReflect.isSystemType(className) && weaveConfig.isInject(className)) {
+                            return weave(className, classfileBuffer);
+                        } else {
+                            return classfileBuffer;
+                        }
                     }
-                }
-            });
-            Logger.info("[AOP] Enable aop success ");
-        } else {
-            Logger.error("[AOP] Enable aop failed ");
+                });
+                Logger.info("[AOP] Enable aop success ");
+            } else {
+                Logger.error("[AOP] Enable aop failed ");
+            }
+        } catch (Exception e) {
+            throw new WeaveException("Weave init failed", e);
         }
     }
 
@@ -131,7 +133,7 @@ public class Weave {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new WeaveException("Weave wrapPoolObject failed", e);
         }
 
         return ctClass;
