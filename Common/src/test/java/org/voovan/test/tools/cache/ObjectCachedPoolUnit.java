@@ -1,8 +1,5 @@
 package org.voovan.test.tools.cache;
 
-import com.sun.tools.attach.AgentInitializationException;
-import com.sun.tools.attach.AgentLoadException;
-import com.sun.tools.attach.AttachNotSupportedException;
 import junit.framework.TestCase;
 import org.junit.Before;
 import org.voovan.Global;
@@ -11,9 +8,8 @@ import org.voovan.tools.exception.WeaveException;
 import org.voovan.tools.weave.Weave;
 import org.voovan.tools.weave.WeaveConfig;
 import org.voovan.tools.pool.ObjectPool;
-import org.voovan.tools.pool.Pool;
+import org.voovan.tools.pool.annotation.Pool;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeoutException;

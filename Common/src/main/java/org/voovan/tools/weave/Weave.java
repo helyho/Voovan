@@ -8,7 +8,7 @@ import org.voovan.tools.exception.WeaveException;
 import org.voovan.tools.weave.aop.AopWeave;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.pool.Pool;
+import org.voovan.tools.pool.annotation.Pool;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
@@ -112,7 +112,7 @@ public class Weave {
             if(ctClass.getAnnotation(Pool.class)!=null) {
                 ctClass.defrost();
 
-                CtClass poolBaseCtClass = WeaveUtils.getCtClass("org.voovan.tools.pool.PoolObject");
+                CtClass poolBaseCtClass = WeaveUtils.getCtClass("org.voovan.tools.pool.IPool");
                 ctClass.addInterface(poolBaseCtClass);
 
                 CtField ctField = CtField.make("private long poolObjectId;", ctClass);
