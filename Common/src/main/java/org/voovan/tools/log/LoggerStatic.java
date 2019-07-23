@@ -17,7 +17,7 @@ public class LoggerStatic {
 	private static long		startTimeMillis	= System.currentTimeMillis();
 
 	public final static String LOG_LEVEL = "ALL";
-	public final static String LOG_FILE = null;
+	public final static String LOG_FILE = "{{WorkDir}}/logs/sysout.{{D}}.log";
 	public final static String LOG_TYPE = "STDOUT";
 	public final static String DEFAULT_LOG_TEMPLATE = "--------------------------------------------------------------------------------------------------------------------------------------------------" +
 			"{{n}}[{{P}}] [{{D}}] [Thread:{{T}}] [Time:{{R}}] ({{F}}:{{L}}) {{n}}" +
@@ -51,7 +51,6 @@ public class LoggerStatic {
 	 * @return  日志配置信息
 	 */
 	protected static String getLogConfig(String property, String defalut) {
-		String value = TProperties.getString("logger", property);
-		return TObject.nullDefault(value,defalut);
+		return TProperties.getString("logger", property, defalut);
 	}
 }

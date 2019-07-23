@@ -1,7 +1,8 @@
 package org.voovan.tools.compiler;
 
-import org.voovan.tools.compiler.sandbox.SandboxControler;
+import org.voovan.Global;
 import org.voovan.tools.compiler.sandbox.SandboxSecurity;
+import org.voovan.tools.compiler.sandbox.SandboxControler;
 
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -20,17 +21,21 @@ public class DynamicClassLoader extends URLClassLoader {
 
     public DynamicClassLoader(ClassLoader parent) {
         super(new URL[]{}, parent);
-        SandboxControler sandboxControler = new SandboxControler();
-        sandboxControler.loadConfig();
-        sandboxSecurity = new SandboxSecurity(sandboxControler);
-        System.setSecurityManager(sandboxSecurity);
+        if(Global.ENABLE_SANDBOX) {
+            SandboxControler sandboxControler = new SandboxControler();
+            sandboxControler.loadConfig();
+            sandboxSecurity = new SandboxSecurity(sandboxControler);
+            System.setSecurityManager(sandboxSecurity);
+        }
     }
 
     protected Class<?> loadClass(String name,
                                  boolean resolve)
             throws ClassNotFoundException{
         try {
-            sandboxSecurity.checkLoadClass(name);
+            if(Global.ENABLE_SANDBOX) {
+                sandboxSecurity.checkLoadClass(name);
+            }
             return super.loadClass(name, resolve);
         }catch (ClassNotFoundException e){
             e.printStackTrace();

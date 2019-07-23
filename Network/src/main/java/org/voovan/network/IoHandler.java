@@ -1,8 +1,6 @@
 package org.voovan.network;
 
 
-import java.util.List;
-
 /**
  * Socket 连接业务接口
  * @author helyho

@@ -15,17 +15,17 @@ import org.voovan.network.exception.SendMessageException;
 public abstract class EIOHandler {
 
     private WebSocketSession webSocketSession;
-    private EIOSession eioSession;
 
     public void setWebSocketSession(WebSocketSession webSocketSession) {
          this.webSocketSession = webSocketSession;
     }
 
-    public EIOSession getEIOSession(){
-        if(eioSession == null){
+    public EIOSession getEIOSession() {
+        EIOSession eioSession = (EIOSession) webSocketSession.getAttribute("EIO_SESSION");
+        if(eioSession == null) {
             eioSession = new EIOSession(this.webSocketSession, this);
+            webSocketSession.setAttribute("EIOSession", eioSession);
         }
-
         return eioSession;
     }
 

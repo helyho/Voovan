@@ -1,11 +1,8 @@
 package org.voovan.tools;
 
-import org.voovan.tools.reflect.TReflect;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -78,8 +75,12 @@ public class TUnsafe {
         unsafe.putFloat(obj, getFieldOffset(field), value);
     }
 
-    public static void putDobule(Object obj, Field field, double value){
+    public static void putDouble(Object obj, Field field, double value){
         unsafe.putDouble(obj, getFieldOffset(field), value);
+    }
+
+    public static void putChar(Object obj, Field field, char value){
+        unsafe.putChar(obj, getFieldOffset(field), value);
     }
 
 
@@ -111,7 +112,11 @@ public class TUnsafe {
         return unsafe.getFloat(obj, getFieldOffset(field));
     }
 
-    public static double getDobule(Object obj, Field field){
+    public static double getDouble(Object obj, Field field){
         return unsafe.getDouble(obj, getFieldOffset(field));
+    }
+
+    public static char getChar(Object obj, Field field){
+        return unsafe.getChar(obj, getFieldOffset(field));
     }
 }

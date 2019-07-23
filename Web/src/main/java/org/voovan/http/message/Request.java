@@ -3,7 +3,7 @@ package org.voovan.http.message;
 import org.voovan.http.message.packet.*;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
@@ -39,7 +39,7 @@ public class Request {
     private List<Part>		parts;
     private String 			boundary;
     protected boolean 		basicSend = false;
-    private Long            mark;
+    private Long            mark = 0l;
 
     private static final String CONTENT_TYPE = "Content-Type";
 
@@ -294,7 +294,7 @@ public class Request {
                 byteBuffer = readHead();
             } catch (Throwable e){
                 if(!(e instanceof MemoryReleasedException)){
-                    Logger.error("Response send error: ", (Exception) e);
+                    Logger.error("Response writeToChannel error: ", (Exception) e);
                 }
             }
 
@@ -349,7 +349,7 @@ public class Request {
             basicSend = true;
         } catch (Throwable e){
             if(!(e instanceof MemoryReleasedException)){
-                Logger.error("Response send error: ", (Exception) e);
+                Logger.error("Response writeToChannel error: ", (Exception) e);
             }
             return;
         } finally {
@@ -378,7 +378,7 @@ public class Request {
         this.protocol().clear();
         this.body().clear();
         this.parts().clear();
-        this.mark = null;
+        this.mark = 0l;
     }
 
     @Override

@@ -2,7 +2,7 @@ package org.voovan.http.websocket.filter;
 
 import org.voovan.http.websocket.WebSocketFilter;
 import org.voovan.http.websocket.WebSocketSession;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.buffer.TByteBuffer;
 
 import java.nio.ByteBuffer;
 

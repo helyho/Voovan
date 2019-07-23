@@ -36,15 +36,12 @@ public class JSONDecodeUnit extends TestCase {
 								"\"map\":{"+
 									"\"mapitem2\":\"mapitem2\","+
 									"\"mapitem1\":\"mapitem1\""+
-								"}, " +
-								"\"func\": function(){" +
-												"var x=\"l\"" +
-										   "}, " +
-								"\"nullValue\":null"+
+								"} " +
 							"} ";
 
+
 		Map<String, Object> obj = (Map<String, Object>)JSONDecode.parse(jsonString);
-		assertTrue((Integer)obj.size()==7);
+		assertTrue((Integer)obj.size()==5);
 		assertTrue((Integer)obj.get("bint")==32);
 		assertEquals((String)obj.get("string"),"helyho");
 		assertTrue(((List)obj.get("list")).size() == 3);
@@ -54,7 +51,7 @@ public class JSONDecodeUnit extends TestCase {
 		assertEquals((String)tb2.get("string"),"bi\\\"ngo");
 		assertTrue(((List)tb2.get("list")).size() == 1);
 		assertTrue(((Map)tb2.get("map")).size() == 1);
-		
+
 		TestObject object = JSONDecode.fromJSON(jsonString, TestObject.class);
 		assertTrue(object.getBint()==32);
 		assertEquals(object.getString(),"helyho");

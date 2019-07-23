@@ -2,6 +2,7 @@ package org.voovan.test.tools.compiler.function;
 
 import junit.framework.TestCase;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.compiler.DynamicCompilerManager;
 import org.voovan.tools.compiler.function.DynamicFunction;
 
 import java.io.File;
@@ -22,17 +23,12 @@ public class DynamicFunctionUnit extends TestCase{
     private String subFunCode;
 
     public void setUp(){
-        code =  "import java.util.ArrayList;\n\n" +
-                "ArrayList list = new ArrayList();\n" +
-                "System.out.println(temp1+ temp2); \n" +
-                "SubFunCode();\n" +
-                "return list;\n";
-        System.out.println("=============Source code=============");
-        System.out.println(code);
-
-        subFunCode = "System.out.println(\"this is subcode\");";
+        subFunCode = "System.out.println(\"this is subcode \" + temp1 + \"->\" + temp2);";
         try {
+
             DynamicFunction function = new DynamicFunction("SubFunCode",subFunCode);
+            function.addPrepareArg(0, String.class, " temp1");
+            function.addPrepareArg(1, String.class, " temp2");
             function.compileCode();
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
@@ -78,14 +74,16 @@ public class DynamicFunctionUnit extends TestCase{
 
         System.out.println("============= result =============");
 
+        DynamicCompilerManager.callFunction("TestFunction", "aaaa", "bbbb");
+
         for(int i=0;i<4;i++) {
             System.out.println("\r\n=============Run "+i+"=============");
-            System.out.println("==>name:" +dynamicFunction.getName());
-            System.out.println("==>classname:" +dynamicFunction.getClassName());
+            System.out.println("==>name:" + dynamicFunction.getName());
+            System.out.println("==>classname:" + dynamicFunction.getClassName());
 
             long startTime = System.currentTimeMillis();
             //运行脚本
-            List list = dynamicFunction.call("hely ", "ho");
+            List list = dynamicFunction.call("hely"+i, "ho");
 
             System.out.println("==>RunTime: "+(System.currentTimeMillis()-startTime )+"\r\n==>Result: " + list);
             TEnv.sleep( 1000 );

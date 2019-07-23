@@ -1,7 +1,5 @@
 package org.voovan.tools.exception;
 
-import java.io.IOException;
-
 /**
  * 内存已被释放的异常
  *

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 通过注解实现的路由
@@ -33,17 +34,20 @@ public class AnnotationRouter implements HttpRouter {
     private Class clazz;
     private Method method;
     private Router classRouter;
+    private Router methodRoute;
 
     /**
      * 构造函数
      * @param clazz   Class对象
      * @param method  方法对象
      * @param classRouter 类上的 Route 注解
+     * @param methodRoute 方法上的 Route 注解
      */
-    public AnnotationRouter(Class clazz, Method method, Router classRouter) {
+    public AnnotationRouter(Class clazz, Method method, Router classRouter, Router methodRoute) {
         this.clazz = clazz;
         this.method = method;
         this.classRouter = classRouter;
+        this.methodRoute = methodRoute;
 
         //如果是单例,则进行预实例化
         if(classRouter.singleton() && !singletonObjs.containsKey(clazz)){
@@ -62,95 +66,135 @@ public class AnnotationRouter implements HttpRouter {
      */
     public static void scanRouterClassAndRegister(AnnotationModule httpModule) {
         int routeMethodNum = 0;
+
+        String modulePath = httpModule.getModuleConfig().getPath();
+        modulePath = fixAnnotationRoutePath(modulePath);
+
         WebServer webServer = httpModule.getWebServer();
         try {
             //查找包含 Router 注解的类
             List<Class> routerClasses = TEnv.searchClassInEnv(httpModule.getScanRouterPackage(), new Class[]{Router.class});
             for (Class routerClass : routerClasses) {
                 Method[] methods = routerClass.getMethods();
-                Router annonClassRouter = (Router) routerClass.getAnnotation(Router.class);
-                String classRouterPath = annonClassRouter.path().isEmpty() ? annonClassRouter.value() : annonClassRouter.path();
-                String classRouterMethod = annonClassRouter.method();
+                Router[] annonClassRouters = (Router[]) routerClass.getAnnotationsByType(Router.class);
 
-                //使用类名指定默认路径
-                if (classRouterPath.isEmpty()) {
-                    classRouterPath = TString.assembly("/", routerClass.getSimpleName());
-                }
+                //多个 Router 注解的迭代
+                for(Router annonClassRouter : annonClassRouters) {
+                    String classRouterPath = annonClassRouter.path().isEmpty() ? annonClassRouter.value() : annonClassRouter.path();
+                    String[] classRouterMethods = annonClassRouter.method();
 
-                //扫描包含 Router 注解的方法
-                for (Method method : methods) {
-                    if (method.isAnnotationPresent(Router.class)) {
-                        Router annonMethodRouter = method.getAnnotation(Router.class);
-                        String methodRouterPath = annonMethodRouter.path().isEmpty() ? annonMethodRouter.value() : annonMethodRouter.path();;
-                        String methodRouterMethod = annonMethodRouter.method();
+                    //多个请求方法的迭代
+                    for(String classRouterMethod : classRouterMethods) {
 
-                        //使用方法名指定默认路径
-                        if (methodRouterPath.isEmpty()) {
-                            //如果方法名为: index 则为默认路由
-                            if(method.getName().equals("index")){
-                                methodRouterPath = "/";
-                            } else {
-                                methodRouterPath = TString.assembly("/", method.getName());
-                            }
+                        //使用类名指定默认路径
+                        if (classRouterPath.isEmpty()) {
+                            //使用类名指定默认路径
+                            classRouterPath = routerClass.getSimpleName();
                         }
 
-                        //拼装路径
-                        String routePath = classRouterPath + methodRouterPath;
+                        classRouterPath = fixAnnotationRoutePath(classRouterPath);
 
-                        //如果方法上的注解指定了 Method 则使用方法上的注解指定的,否则使用类上的注解指定的
-                        String routeMethod = methodRouterMethod != null ? methodRouterMethod : classRouterMethod;
+                        //扫描包含 Router 注解的方法
+                        for (Method method : methods) {
+                            Router[] annonMethodRouters = (Router[]) method.getAnnotationsByType(Router.class);
+                            if (annonMethodRouters != null) {
 
-                        //为方法的参数准备带参数的路径
-                        String paramPath = "";
-                        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-                        Class[] parameterTypes = method.getParameterTypes();
-                        for (int i=0; i < parameterAnnotations.length; i++) {
-                            Annotation[] annotations = parameterAnnotations[i];
+                                //多个 Router 注解的迭代
+                                for (Router annonMethodRouter : annonMethodRouters) {
+                                    String methodRouterPath = annonMethodRouter.path().isEmpty() ? annonMethodRouter.value() : annonMethodRouter.path();
+                                    String[] methodRouterMethods = annonMethodRouter.method();
 
-                            if(annotations.length==0 &&
-                                    parameterTypes[i] != HttpRequest.class &&
-                                    parameterTypes[i] != HttpResponse.class &&
-                                    parameterTypes[i] != HttpSession.class ){
-                                paramPath = paramPath + "/:param"+(i+1);
-                                continue;
-                            }
+                                    //多个请求方法的迭代
+                                    for (String methodRouterMethod : methodRouterMethods) {
 
-                            for (Annotation annotation : annotations) {
-                                if (annotation instanceof Param) {
-                                    paramPath = TString.assembly(paramPath, "/:", ((Param) annotation).value());
+                                        //使用方法名指定默认路径
+                                        if (methodRouterPath.isEmpty()) {
+                                            //如果方法名为: index 则为默认路由
+                                            if (method.getName().equals("index")) {
+                                                methodRouterPath = "/";
+                                            } else {
+                                                methodRouterPath = method.getName();
+                                            }
+                                        }
+
+                                        //拼装方法路径
+                                        methodRouterPath = "/" + fixAnnotationRoutePath(methodRouterPath);
+
+                                        //拼装 (类+方法) 路径
+                                        String routePath = classRouterPath + methodRouterPath;
+
+                                        //如果方法上的注解指定了 Method 则使用方法上的注解指定的,否则使用类上的注解指定的
+                                        String routeMethod = methodRouterMethod != null ? methodRouterMethod : classRouterMethod;
+
+                                        //为方法的参数准备带参数的路径
+                                        String paramPath = "";
+                                        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+                                        Class[] parameterTypes = method.getParameterTypes();
+                                        for (int i = 0; i < parameterAnnotations.length; i++) {
+                                            Annotation[] annotations = parameterAnnotations[i];
+
+                                            if (annotations.length == 0 &&
+                                                    parameterTypes[i] != HttpRequest.class &&
+                                                    parameterTypes[i] != HttpResponse.class &&
+                                                    parameterTypes[i] != HttpSession.class) {
+                                                paramPath = paramPath + "/:param" + (i + 1);
+                                                continue;
+                                            }
+
+                                            for (Annotation annotation : annotations) {
+                                                if (annotation instanceof Param) {
+                                                    paramPath = TString.assembly(paramPath, "/:", ((Param) annotation).value());
+                                                }
+                                            }
+                                        }
+
+                                        /**
+                                         * 注册路由部分代码在下面
+                                         */
+                                        if (webServer.getHttpRouters().get(routeMethod) != null) {
+
+                                            //生成完整的路由,用来检查路由是否存在
+                                            routePath = HttpDispatcher.fixRoutePath(routePath);
+
+                                            //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
+                                            Map routerMaps = new HashMap();
+                                            routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
+
+                                            //构造注解路由器
+                                            AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method, annonClassRouter, annonMethodRouter);
+
+                                            //1.注册路由, 处理不在参数的路由
+                                            {
+                                                routePath = "/" + fixAnnotationRoutePath(routePath);
+                                                //判断路由是否注册过
+                                                if (!routerMaps.containsKey(routePath)) {
+                                                    //注册路由,不带路径参数的路由
+                                                    httpModule.otherMethod(routeMethod, routePath, annotationRouter);
+                                                    Logger.simple("[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
+                                                            "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') +
+                                                            modulePath + routePath);
+                                                    routeMethodNum++;
+                                                }
+                                            }
+
+                                            //2.注册路由,带路径参数的路由
+                                            if (!paramPath.isEmpty()) {
+                                                String routeParamPath = null;
+                                                routeParamPath = routePath + paramPath;
+                                                routeParamPath = "/" + fixAnnotationRoutePath(routeParamPath);
+
+                                                if (!routerMaps.containsKey(routeParamPath)) {
+                                                    httpModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
+
+                                                    Logger.simple("[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
+                                                            "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') +
+                                                            modulePath + routeParamPath);
+                                                    routeMethodNum++;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                            }
-                        }
-
-                        /**
-                         * 注册路由部分代码在下面
-                         */
-                        if (webServer.getHttpRouters().get(routeMethod) != null) {
-
-                            //生成完整的路由,用来检查路由是否存在
-                            routePath = HttpDispatcher.fixRoutePath(routePath);
-
-                            //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
-                            Map routerMaps = new HashMap();
-                            routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
-
-                            if (!paramPath.isEmpty()) {
-                                routePath = routePath + paramPath;
-                            }
-
-                            //判断路由是否注册过
-                            if(!routerMaps.containsKey(httpModule.getModuleConfig().getPath() + routePath)) {
-                                //构造注解路由器
-                                AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method, annonClassRouter);
-
-                                //注册路由,带路径参数的路由
-                                httpModule.otherMethod(routeMethod, routePath, annotationRouter);
-
-                                //注册路由,不带路径参数的路由
-                                httpModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                Logger.simple( "[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
-                                        "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') + httpModule.getModuleConfig().getPath() + routePath);
-                                routeMethodNum++;
                             }
                         }
                     }
@@ -165,6 +209,17 @@ public class AnnotationRouter implements HttpRouter {
         } catch (Exception e){
             Logger.error("Scan router class error.", e);
         }
+    }
+
+    /**
+     * 修复路由路径
+     * @param routePath 路由路径
+     * @return 修复后的路由路径
+     */
+    private static String fixAnnotationRoutePath(String routePath){
+        routePath = routePath.startsWith("/") ? TString.removePrefix(routePath) : routePath;
+        routePath = routePath.endsWith("/") ? TString.removeSuffix(routePath) : routePath;
+        return routePath;
     }
 
     /**
@@ -192,9 +247,11 @@ public class AnnotationRouter implements HttpRouter {
 
         String bodyString = "";
         Map bodyMap = null;
-        if(request.body().size() > 0 && JSON.isJSONMap(bodyString)) {
+        if(request.body().size() > 0) {
             bodyString = request.body().getBodyString();
-            bodyMap =  (Map) JSON.parse(bodyString);
+            if(JSON.isJSONMap(bodyString)) {
+                bodyMap = (Map) JSON.parse(bodyString);
+            }
         }
 
         //准备参数
@@ -224,43 +281,67 @@ public class AnnotationRouter implements HttpRouter {
                 //请求的参数
                 if (annotation instanceof Param) {
                     String paramName = ((Param) annotation).value();
-                    params[i] = TString.toObject(request.getParameter(paramName), parameterTypes[i], true);
-                    continue;
+                    try {
+                        params[i] = TString.toObject(request.getParameter(paramName), parameterTypes[i], true);
+                        continue;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation @Param [" + paramName + " = " + params[i] + "] error, data: " + request.getParameters(), e);
+                    }
                 }
 
                 //请求的参数
                 if (annotation instanceof BodyParam) {
                     String paramName = ((BodyParam) annotation).value();
-                    if(bodyMap != null && bodyMap instanceof Map) {
-                        params[i] = TString.toObject(bodyMap.get(paramName).toString(), parameterTypes[i], true);
+                    try {
+                        if(bodyMap != null && bodyMap instanceof Map) {
+                            params[i] = TString.toObject(bodyMap.get(paramName).toString(), parameterTypes[i], true);
+                        }
+                        continue;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation @BodyParam [" + paramName + " = " + params[i] + "] error, data: " + bodyMap.toString(), e);
                     }
-                    continue;
+
                 }
 
                 //请求的头
                 if (annotation instanceof Head) {
                     String headName = ((Head) annotation).value();
-                    params[i] = TString.toObject(request.header().get(headName), parameterTypes[i], true);
-                    continue;
+                    try {
+                        params[i] = TString.toObject(request.header().get(headName), parameterTypes[i], true);
+                        continue;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation @Param [" + headName + " = " + params[i] + "] error, data: " + request.header().toString(), e);
+                    }
                 }
 
                 //请求的 Cookie
                 if (annotation instanceof Cookie) {
                     String cookieValue = null;
                     String cookieName = ((Cookie) annotation).value();
-                    org.voovan.http.message.packet.Cookie cookie = request.getCookie(cookieName);
-                    if(cookie != null){
-                        cookieValue = cookie.getValue();
-                    }
+                    try {
+                        org.voovan.http.message.packet.Cookie cookie = request.getCookie(cookieName);
+                        if (cookie != null) {
+                            cookieValue = cookie.getValue();
+                        }
 
-                    params[i] = TString.toObject(cookieValue, parameterTypes[i], true);
-                    continue;
+                        params[i] = TString.toObject(cookieValue, parameterTypes[i], true);
+                        continue;
+                    } catch (Exception e) {
+                        String cookieStr = request.cookies().parallelStream().map(cookie-> cookie.getName() + "=" + cookie.getName()).collect(Collectors.toList()).toString();
+                        throw new AnnotationRouterException("Router annotation @Param [" + cookieName + " = " + params[i] + "] error, data: " + cookieStr , e);
+                    }
                 }
 
                 //请求的 Body
                 if (annotation instanceof Body) {
-                    params[i] = TString.toObject(bodyString, parameterTypes[i], true);
-                    continue;
+                    try {
+                        params[i] = bodyMap == null ?
+                                TString.toObject(bodyString, parameterTypes[i], true) :
+                                TReflect.getObjectFromMap(parameterTypes[i], bodyMap, true);
+                        continue;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation @Body error \r\n data: " + bodyString, e);
+                    }
                 }
 
                 //请求的头
@@ -268,18 +349,26 @@ public class AnnotationRouter implements HttpRouter {
                     String sessionName = ((Session) annotation).value();
                     HttpSession httpSession = request.getSession();
 
-                    if(httpSession.getAttribute(sessionName).getClass() == parameterTypes[i]){
-                        params[i] = httpSession.getAttribute(sessionName);
+                    try {
+                        if (httpSession.getAttribute(sessionName).getClass() == parameterTypes[i]) {
+                            params[i] = httpSession.getAttribute(sessionName);
+                        }
+                        continue;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation @Session [" + sessionName + " = " + params[i] + "] error, data: "  + httpSession.attributes().toString() , e);
                     }
-                    continue;
                 }
             }
 
             //没有注解的参数,按顺序处理
             if(params[i]==null) {
-                String value = request.getParameter("param" + String.valueOf(i + 1));
-                params[i] = TString.toObject(value, parameterTypes[i], true);
-                continue;
+                try {
+                    String value = request.getParameter("param" + String.valueOf(i + 1));
+                    params[i] = TString.toObject(value, parameterTypes[i], true);
+                    continue;
+                } catch (Exception e) {
+                    throw new AnnotationRouterException("Router sequential injection param " + request.getParameters().toString() + " error", e);
+                }
             }
 
         }
@@ -292,85 +381,27 @@ public class AnnotationRouter implements HttpRouter {
     public void process(HttpRequest request, HttpResponse response) throws Exception {
 
         try {
-            String checkResult = check(method, request);
-            if(checkResult != null){
-                response.write((String) checkResult);
-            } else {
-                Router router = method.getAnnotation(Router.class);
 
-                //根据 Page 注解的标记设置响应的Content-Type
-                response.header().put("Content-Type", HttpContentType.getHttpContentType(router.ContentType()));
+            //根据 Page 注解的标记设置响应的Content-Type
+            response.header().put("Content-Type", HttpContentType.getHttpContentType(methodRoute.ContentType()));
 
-                Object responseObj = invokeRouterMethod(request, response, clazz, method);
-                if (responseObj != null) {
-                    if (responseObj instanceof String) {
-                        response.write((String) responseObj);
-                    } else if (responseObj instanceof byte[]) {
-                        response.write((byte[]) responseObj);
-                    } else {
-                        response.header().put("Content-Type", HttpContentType.getHttpContentType(HttpContentType.JSON));
-                        response.write(JSON.toJSON(responseObj));
-                    }
+            Object responseObj = invokeRouterMethod(request, response, clazz, method);
+            if (responseObj != null) {
+                if (responseObj instanceof String) {
+                    response.write((String) responseObj);
+                } else if (responseObj instanceof byte[]) {
+                    response.write((byte[]) responseObj);
+                } else {
+                    response.header().put("Content-Type", HttpContentType.getHttpContentType(HttpContentType.JSON));
+                    response.write(JSON.toJSON(responseObj));
                 }
             }
         }catch(Exception e){
-            throw new AnnotationRouterException("Process annotation router error. URL: " + request.protocol().getPath(), e);
-        }
-    }
-
-    /**
-     * 效验请求参数 和 session 参数是否合法
-     * @param method 请求的业务方法
-     * @param httpRequest 请求对象
-     * @return 响应字符串, null 为效验失败
-     * @throws Exception 异常信息
-     */
-    public String check(Method method, HttpRequest httpRequest) throws Exception{
-        Check[] methodCheckAnnotations =  method.getAnnotationsByType(Check.class);
-        for(Check check : methodCheckAnnotations) {
-
-            //检查名称是否为空
-            if(check.name().equals("null")){
-                return null;
-            }
-
-            //获取参数值
-            Object value = null;
-            if(check.Source() == Source.REQ_PARAM) {
-                value = httpRequest.getParameters().get(check.name());
-            } else if(check.Source() == Source.SESSION_PARAM) {
-                value = httpRequest.getSession().getAttribute(check.name());
-            }
-
-            //检查数据是否符合要求
-            if(!check.valueMethod().equals("null")){
-                String[] methodConfig = check.valueMethod().split("@");
-                if(methodConfig.length == 2){
-                    Class methodClass =  Class.forName(methodConfig[0]);
-                    value = TReflect.invokeMethod(methodClass, methodConfig[1], value);
-                }
-            }
-
-            //如果数据为 null 转换为 "null"
-            if(value == null){
-                value = "null";
-            }
-
-            //检查值是否匹配
-            if(check.value().equals(value)){
-                if(check.responseMethod().equals("null")){
-                    return check.response();
-                } else {
-                    String[] methodConfig = check.responseMethod().split("#");
-                    if(methodConfig.length == 2){
-                        Class methodClass =  Class.forName(methodConfig[0]);
-                        return JSON.toJSON(TReflect.invokeMethod(methodClass, methodConfig[1], value));
-                    }
-                }
+            if(e instanceof AnnotationRouterException) {
+                throw e;
+            } else {
+                throw new AnnotationRouterException("Process annotation router error. URL: " + request.protocol().getPath(), e);
             }
         }
-
-        return null;
     }
-
 }

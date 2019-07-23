@@ -1,9 +1,13 @@
 package org.voovan.http.message;
 
-import org.voovan.http.message.packet.*;
+import org.voovan.http.message.packet.Body;
+import org.voovan.http.message.packet.Cookie;
+import org.voovan.http.message.packet.Header;
+import org.voovan.http.message.packet.ResponseProtocol;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.FastThreadLocal;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
@@ -23,8 +27,8 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class Response {
-	private static ThreadLocal<StringBuilder> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new StringBuilder(512));
-	public static ThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = ThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
+	private static FastThreadLocal<StringBuilder> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new StringBuilder(512));
+	public static FastThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = FastThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
 
 	private ResponseProtocol 	protocol;
 	private Header				header;
@@ -157,7 +161,7 @@ public class Response {
 			header.put(HttpStatic.CONTENT_LENGTH_STRING, Integer.toString((int)body.size()));
 		}
 
-		if (TString.isNullOrEmpty(header.get(HttpStatic.CONTENT_TYPE_STRING))) {
+		if (!header.contain(HttpStatic.CONTENT_TYPE_STRING)) {
 			header.put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.TEXT_HTML_STRING  + WebContext.getWebServerConfig().getResponseCharacterSet());
 		} else {
 			header.put(HttpStatic.CONTENT_TYPE_STRING, header.get(HttpStatic.CONTENT_TYPE_STRING) + WebContext.getWebServerConfig().getResponseCharacterSet());
@@ -227,7 +231,7 @@ public class Response {
 				byteBuffer.put(WebContext.RESPONSE_COMMON_HEADER);
 			} catch (Throwable e) {
 				if (!(e instanceof MemoryReleasedException)) {
-					Logger.error("Response send error: ", (Exception) e);
+					Logger.error("Response writeToChannel error: ", (Exception) e);
 				}
 			}
 
@@ -254,6 +258,7 @@ public class Response {
 					}
 
 					body.read(byteBuffer);
+					//如果启用 RingBuffer 下面那行要注释掉
 					byteBuffer.position(byteBuffer.limit());
 					byteBuffer.limit(byteBuffer.capacity() - 10);
 
@@ -275,7 +280,7 @@ public class Response {
 				session.send(byteBuffer);
 			} catch (Throwable e) {
 				if (!(e instanceof MemoryReleasedException)) {
-					Logger.error("Response send error: ", (Exception) e);
+					Logger.error("Response writeToChannel error: ", (Exception) e);
 				}
 				return;
 			}

@@ -3,7 +3,7 @@ package org.voovan.http.server;
 import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.websocket.WebSocketRouter;
-import org.voovan.tools.Chain;
+import org.voovan.tools.collection.Chain;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 

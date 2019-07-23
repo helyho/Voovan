@@ -1,5 +1,6 @@
 package org.voovan.tools.compiler.clazz;
 
+import org.voovan.Global;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
@@ -165,7 +166,7 @@ public class DynamicClass {
      * 生成编译时混淆的类名
      */
     private void genClassName() {
-        this.className = codeClassName + "_VDC_" + TString.generateShortUUID();
+        this.className = codeClassName + "_VDC_" + Global.UNIQUE_ID.nextString();
     }
 
     /**

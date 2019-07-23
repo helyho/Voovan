@@ -75,7 +75,7 @@ package org.voovan.test.network.ssl;
  *	unwrap()	...		Finished
  */
 
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.*;
@@ -106,11 +106,11 @@ public class SSLEngineSimpleDemo {
 
 	private SSLEngine clientEngine; // client Engine
 	private ByteBuffer clientOut; // write side of clientEngine
-	private ByteBuffer clientIn; // read side of clientEngine
+	private ByteBuffer clientIn; // readFromChannel side of clientEngine
 
 	private SSLEngine serverEngine; // server Engine
 	private ByteBuffer serverOut; // write side of serverEngine
-	private ByteBuffer serverIn; // read side of serverEngine
+	private ByteBuffer serverIn; // readFromChannel side of serverEngine
 
 	/*
 	 * For data transport, this example uses local ByteBuffers. This isn't

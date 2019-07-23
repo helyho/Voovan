@@ -1,7 +1,8 @@
 package org.voovan.http.server.context;
 
 import org.voovan.Global;
-import org.voovan.tools.Chain;
+import org.voovan.tools.weave.WeaveConfig;
+import org.voovan.tools.collection.Chain;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -32,7 +33,7 @@ public class WebServerConfig {
     private boolean MatchRouteIgnoreCase = false;
     private String characterSet     = "UTF-8";
     private String responseCharacterSet     = "";
-    private String sessionContainer = "org.voovan.tools.cache.CachedHashMap";
+    private String sessionContainer = "org.voovan.tools.collection.CachedMap";
     private int sessionTimeout      = 30;
     private int keepAliveTimeout    = 60;
     private boolean accessLog       = false;
@@ -44,7 +45,7 @@ public class WebServerConfig {
     private int hotSwapInterval = 0;
     private String lifeCycleClass = null;
     private String pauseURL = null;
-    private String scanAopPackage = null;
+    private WeaveConfig weaveConfig = null;
     private int maxRequestSize = 1024;
     private boolean cache    = true;
 
@@ -240,8 +241,8 @@ public class WebServerConfig {
         return moduleConfigs;
     }
 
-    public String getScanAopPackage() {
-        return scanAopPackage;
+    public WeaveConfig getWeaveConfig() {
+        return weaveConfig;
     }
 
     public int getMaxRequestSize() {

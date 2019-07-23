@@ -1,6 +1,7 @@
 package org.voovan.http.message.packet;
 
 import org.voovan.http.message.HttpStatic;
+import org.voovan.tools.FastThreadLocal;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +17,7 @@ import java.util.Map.Entry;
  */
 public class Header {
 	private Map<String, String> headers;
-	private static ThreadLocal<StringBuilder> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new StringBuilder(512));
+	private static FastThreadLocal<StringBuilder> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new StringBuilder(512));
 
 	/**
 	 * 构造函数

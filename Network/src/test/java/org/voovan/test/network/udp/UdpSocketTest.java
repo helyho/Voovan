@@ -23,11 +23,5 @@ public class UdpSocketTest {
         udpSocket.filterChain().add(new StringFilter());
         udpSocket.handler(new ClientHandlerTest());
         udpSocket.start();
-        Logger.simple("==================================Terminate==================================");
-
-        //重连操作
-        udpSocket.restart();
-        Logger.simple("==================================Terminate==================================");
-        udpSocket.getSession().restart();
     }
 }

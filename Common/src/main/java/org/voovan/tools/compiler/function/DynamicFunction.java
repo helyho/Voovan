@@ -1,10 +1,12 @@
 package org.voovan.tools.compiler.function;
 
+import org.voovan.Global;
 import org.voovan.tools.*;
+import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.collection.MultiMap;
 import org.voovan.tools.compiler.DynamicCompiler;
 import org.voovan.tools.compiler.DynamicCompilerManager;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -56,6 +58,8 @@ public class DynamicFunction {
     private String importFunctionCode;
     private ArrayList<String> importFunctions;
 
+    public FunctionInterface objectForCall;
+
 
 
     /**
@@ -92,14 +96,14 @@ public class DynamicFunction {
      * 初始化
      */
     private void init() {
-        this.packageName = "org.voovan.tools.compiler.temporary";
+        this.packageName = "org.voovan.tools.compiler.temporary;\r\n";
         this.name = null;
         this.argCode = null;
         this.importCode = "";
         this.bodyCode = "";
         this.code = null;
         this.javaCode = "";
-        this.clazz = Object.class;
+        this.clazz = null;
         this.codeFile = null;
 
         needCompile = true;
@@ -257,7 +261,7 @@ public class DynamicFunction {
         this.importCode = "";
 
         for(Class importClass : importClasses) {
-            this.importCode = this.importCode + "import " + importClass.getCanonicalName() + ";";
+            this.importCode = this.importCode + "import " + importClass.getCanonicalName() + ";\r\n";
         }
 
         this.importCode = this.importCode + TFile.getLineSeparator();
@@ -293,7 +297,7 @@ public class DynamicFunction {
 
     private void genImportFunction(){
         for(String dynamicFunctionName : importFunctions){
-            importFunctionCode = importFunctionCode + "public static Object "+dynamicFunctionName+"(Object ... args) throws Exception { \r\n "+
+            importFunctionCode = importFunctionCode + "private static Object "+dynamicFunctionName+"(Object ... args) throws Exception { \r\n "+
                     "        return DynamicCompilerManager.callFunction(\""+dynamicFunctionName+"\", args); \r\n" +
                     "    } \r\n" ;
         }
@@ -303,7 +307,7 @@ public class DynamicFunction {
      * 生成编译时混淆的类名
      */
     private void genClassName() {
-        this.className = this.name + "_VDC_" + TString.generateShortUUID();
+        this.className = this.name + "_VDF_" + Global.UNIQUE_ID.nextString();
     }
 
     /**
@@ -315,10 +319,10 @@ public class DynamicFunction {
             int argIndex = prepareArg.getKey();
             Class argClazz = (Class)args.getValue(argIndex, 0);
             String argName = (String)args.getValue(argIndex, 1);
-            this.argCode = this.argCode + "        " + argClazz.getCanonicalName() + " " + argName +
-                    " = ("+argClazz.getSimpleName()+")args[" + argIndex + "];" + TFile.getLineSeparator();
+            this.argCode = this.argCode + "        " + argClazz.getCanonicalName() + " " + argName +           //生成代码类型 java.lang.String aaa
+                    " = ("+argClazz.getCanonicalName()+") args[" + argIndex + "];" + TFile.getLineSeparator();  // 生成代码类似 = (java.lang.String)args[i];
         }
-        this.argCode = this.argCode.trim();
+        this.argCode = this.argCode.trim() + "\r\n";
     }
 
     /**
@@ -334,7 +338,7 @@ public class DynamicFunction {
         }
 
         if (!this.code.contains("return ")) {
-            this.code = this.code + "\r\n        return null;";
+            this.code = this.code + "\r\n       return null;";
         }
 
         this.bodyCode = "";
@@ -354,7 +358,7 @@ public class DynamicFunction {
             }
         }
 
-        this.bodyCode = TString.indent(this.bodyCode, 8);
+        this.bodyCode = TString.indent(this.bodyCode, 8).trim();
         byteBufferChannel.release();
     }
 
@@ -372,12 +376,12 @@ public class DynamicFunction {
         parseCode();
 
         this.javaCode = TString.tokenReplace(CODE_TEMPLATE, TObject.asMap(
-                "PACKAGE", packageName,                 //包名
-                "IMPORT", importCode,                   //解析获得
-                "IMPORTFUNCTION", importFunctionCode,   //生成导入函数的映射函数
-                "CLASSNAME", className,                 //类名
-                "PREPAREARG", argCode,                  //参数
-                "CODE", bodyCode                        //解析获得
+                "PACKAGE",          packageName,          //包名
+                "IMPORT",           importCode,           //解析获得
+                "IMPORTFUNCTION",   importFunctionCode,   //生成导入函数的映射函数
+                "CLASSNAME",        className,            //类名
+                "PREPARE_ARG",      argCode,              //参数
+                "CODE",             bodyCode              //解析获得
         ));
 
         return this.javaCode;
@@ -389,24 +393,22 @@ public class DynamicFunction {
      * @throws ReflectiveOperationException 反射异常
      */
     public void compileCode() throws ReflectiveOperationException {
-        synchronized (this.clazz) {
+        if (this.clazz != null && codeFile != null) {
+            checkFileChanged();
+        }
 
-            if (this.clazz != Object.class && codeFile != null) {
-                checkFileChanged();
-            }
+        if (this.clazz == null || this.needCompile) {
+            genCode();
 
-            if (this.clazz == Object.class || needCompile) {
-                genCode();
-
-                DynamicCompiler compiler = new DynamicCompiler();
-                if (compiler.compileCode(this.javaCode)) {
-                    this.clazz = compiler.getClazz();
-                    this.className = this.clazz.getCanonicalName();
-                    needCompile = false;
-                } else {
-                    Logger.simple(code);
-                    throw new ReflectiveOperationException("Compile code error.");
-                }
+            DynamicCompiler compiler = new DynamicCompiler();
+            if (compiler.compileCode(this.javaCode)) {
+                this.clazz = compiler.getClazz();
+                this.className = this.clazz.getCanonicalName();
+                this.needCompile = false;
+                this.objectForCall = (FunctionInterface) clazz.newInstance();
+            } else {
+                Logger.simple(code);
+                throw new ReflectiveOperationException("Compile code error.");
             }
         }
     }
@@ -429,14 +431,11 @@ public class DynamicFunction {
      * @param args 调用参数
      * @param <T>  范型
      * @return 返回的类型
-     * @throws ReflectiveOperationException 反射异常
+     * @throws Exception 反射异常
      */
-    public <T> T call(Object... args) throws ReflectiveOperationException {
-        synchronized (this.clazz) {
-            compileCode();
-            Object result = TReflect.invokeMethod(this.clazz, "execute", new Object[]{args});
-            return (T)result;
-        }
+    public <T> T call(Object... args) throws Exception {
+        compileCode();
+        return (T)objectForCall.execute(args);
     }
 
 }

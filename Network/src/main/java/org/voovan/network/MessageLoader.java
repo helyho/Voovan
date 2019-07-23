@@ -2,13 +2,12 @@ package org.voovan.network;
 
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.network.udp.UdpSocket;
-import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.TByteBuffer;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 
@@ -86,7 +85,7 @@ public class MessageLoader {
 	 * @param length  长度
 	 * @return 是否意外断开
 	 */
-	public static boolean isStreamEnd(ByteBuffer buffer, Integer length) {
+	public static boolean isStreamEnd(ByteBuffer buffer, int length) {
 //		length==-1时流结束
 		if(length==-1){
 			return true;
@@ -101,7 +100,7 @@ public class MessageLoader {
 	 * @param length  长度
 	 * @return 是否意外断开
 	 */
-	public static boolean isStreamEnd(byte[] buffer, Integer length) {
+	public static boolean isStreamEnd(byte[] buffer, int length) {
 
 		if(length==-1){
 			return true;
@@ -126,10 +125,8 @@ public class MessageLoader {
 	 * @return 读取的缓冲区数据
 	 */
 	public int read() {
-		int readZeroCount = 0;
 		int splitLength = 0;
 
-		ByteBuffer result = TByteBuffer.EMPTY_BYTE_BUFFER;
 		int oldByteChannelSize = 0;
 
 		ByteBufferChannel dataByteBufferChannel = null;
@@ -153,10 +150,7 @@ public class MessageLoader {
 
 		boolean isConnect = true;
 
-		while ( isConnect && enable &&
-				(stopType== StopType.RUNNING ) &&
-				dataByteBufferChannel.size() > 0
-		) {
+		while (isConnect && enable && stopType == StopType.RUNNING && !dataByteBufferChannel.isEmpty()) {
 
 			if(session.socketContext() instanceof UdpSocket) {
 				isConnect = session.isOpen();
@@ -170,8 +164,6 @@ public class MessageLoader {
 				return -1;
 			}
 
-			HeartBeat.interceptHeartBeat(session, dataByteBufferChannel);
-
 			int readsize = byteBufferChannel.size() - oldByteChannelSize;
 
 			try {
@@ -184,44 +176,40 @@ public class MessageLoader {
 					}
 
 					//使用消息划分器进行消息划分
-					if (readsize == 0 && dataByteBuffer.limit() > 0) {
+					if (readsize==0 && dataByteBuffer.hasRemaining()) {
 						if (messageSplitter instanceof TransferSplitter) {
 							splitLength = dataByteBuffer.limit();
 						} else {
+							//拦截心跳
+							while(HeartBeat.interceptHeartBeat(session)){
+
+							}
 							splitLength = messageSplitter.canSplite(session, dataByteBuffer);
 						}
 
 						if (splitLength >= 0) {
 							stopType = StopType.MSG_SPLITTER;
 							break;
+						} else {
+							//消息不可分割,且有消息报文存在, 则尝试继续从 Socket 通道读取数据
+							session.getSocketSelector().eventChoose();
 						}
 					}
 				} finally {
 					dataByteBufferChannel.compact();
 				}
+
+				oldByteChannelSize = byteBufferChannel.size();
 			}catch(MemoryReleasedException e){
 				stopType = StopType.SOCKET_CLOSED;
 			}
-
-			//超时判断,防止读0时导致的高 CPU 负载
-			if( readsize==0 && stopType == StopType.RUNNING ){
-				if(readZeroCount >= session.socketContext().getReadTimeout()){
-					stopType = StopType.STREAM_END;
-				}else {
-					readZeroCount++;
-				}
-			}else{
-				readZeroCount = 0;
-			}
-
-			oldByteChannelSize = byteBufferChannel.size();
 		}
 
 		//如果是流结束,对方关闭,本地关闭这三种情况则返回 null
 		// 返回是 null 则在EventProcess中直接返回,不做任何处理
 		if (stopType == StopType.STREAM_END ||
 				stopType == StopType.SOCKET_CLOSED) {
-			result = null;
+			return -1;
 		}
 
 		//如果是消息截断器截断的消息则调用消息截断器处理的逻辑
@@ -235,6 +223,6 @@ public class MessageLoader {
 			return -1;
 		}
 
-		return -1;
+
 	}
 }

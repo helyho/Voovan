@@ -3,7 +3,6 @@ package org.voovan.http.websocket;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpSession;
-import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
@@ -116,6 +115,14 @@ public class WebSocketSession {
      */
     public void setAttribute(String name,Object value) {
         attributes.put(name, value);
+    }
+
+    /**
+     *  返回当前 Session 的属性Map
+     *  @return Session 的属性Map
+     */
+    public Map<String,Object> attributes() {
+        return attributes;
     }
 
     /**

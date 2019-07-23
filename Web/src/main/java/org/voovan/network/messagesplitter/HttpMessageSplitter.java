@@ -1,12 +1,11 @@
 package org.voovan.network.messagesplitter;
 
-import org.voovan.Global;
-import org.voovan.http.HttpSessionParam;
 import org.voovan.http.HttpRequestType;
+import org.voovan.http.HttpSessionParam;
 import org.voovan.http.message.HttpStatic;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.buffer.TByteBuffer;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -37,7 +36,8 @@ public class HttpMessageSplitter implements MessageSplitter {
 			if (!session.containAttribute(HttpSessionParam.TYPE)) {
 				session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.HTTP);
 			}
-	        return 0;
+
+            return 0;
         }
 
         return result;

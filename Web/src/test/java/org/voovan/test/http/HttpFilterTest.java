@@ -36,7 +36,8 @@ public class HttpFilterTest implements HttpFilter {
 			msg+=entry.getKey()+" = "+entry.getValue()+", ";
 		}
 		msg = msg + "RequestPath=" + request.protocol().getPath();
-		if(prevFilterResult == null){
+
+		if(!(prevFilterResult instanceof Integer) || prevFilterResult == null){
 			prevFilterResult = 1;
 		}else{
 			prevFilterResult = (int)prevFilterResult+1;

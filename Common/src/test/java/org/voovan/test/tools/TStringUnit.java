@@ -100,7 +100,7 @@ public class TStringUnit extends TestCase {
 
 	public void testUppercaseHead(){
 		String uppercaseHeadStr = "abcdefg";
-		String uppercaseHeadedStr = TString.uppercaseHead(uppercaseHeadStr);
+		String uppercaseHeadedStr = TString.upperCaseHead(uppercaseHeadStr);
 		assertEquals(uppercaseHeadedStr,"Abcdefg");
 	}
 

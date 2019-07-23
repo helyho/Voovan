@@ -48,7 +48,7 @@ public class Event {
 	 */
 	public void init (IoSession session,EventName name,Object other){
 		if(session == null){
-			throw new NullPointerException("Can't create Event with session parameter is nullp");
+			throw new NullPointerException("Can't create Event with session parameter is null");
 		}
 		this.session = session;
 		this.name = name;

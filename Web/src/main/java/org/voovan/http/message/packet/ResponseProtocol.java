@@ -1,10 +1,6 @@
 package org.voovan.http.message.packet;
 
-import org.voovan.tools.TString;
-import org.voovan.tools.log.Logger;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import org.voovan.tools.FastThreadLocal;
 
 /**
  * HTTP 响应的协议对象
@@ -15,7 +11,7 @@ import java.net.URLEncoder;
  * Licence: Apache v2 License
  */
 public class ResponseProtocol extends Protocol {
-	private static ThreadLocal<StringBuilder> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new StringBuilder(512));
+	private static FastThreadLocal<StringBuilder> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new StringBuilder(512));
 
 	/**
 	 * 状态代码

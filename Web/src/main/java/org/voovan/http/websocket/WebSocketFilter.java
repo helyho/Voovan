@@ -12,7 +12,8 @@ package org.voovan.http.websocket;
 public interface WebSocketFilter {
 	/**
 	 * 过滤器解密函数,接收事件(onRecive)前调用
-	 * 			onRecive事件前调用
+	 * 			如果任何一个过滤器返回的是null,  则它后面的过滤器不会被执行, 且不会执行 onRevcive
+	 * 	     	如果最后一个过滤器如果返回 null, 则不会进行路由处理
 	 * @param session  session 对象
 	 * @param object   解码对象,上一个过滤器的返回值
 	 * @return 解码后对象
@@ -20,8 +21,8 @@ public interface WebSocketFilter {
 	public Object decode(WebSocketSession session, Object object);
 
 	/**
-	 * 过滤器加密函数,发送事件(onSend)前调用
-	 * 			send事件前调用
+	 * 过滤器加密函数,发送事件(onSend)后调用
+	 * 			send事件后调用
 	 * @param session 	session 对象
 	 * @param object    编码对象,上一个过滤器的返回值
 	 * @return 编码后对象

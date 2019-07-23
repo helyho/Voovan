@@ -1,5 +1,6 @@
 package org.voovan.http.client;
 
+import org.voovan.http.HttpRequestType;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
@@ -7,7 +8,6 @@ import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.HttpRequest;
-import org.voovan.http.HttpRequestType;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
@@ -15,10 +15,10 @@ import org.voovan.http.websocket.WebSocketType;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.SSLManager;
-import org.voovan.network.aio.AioSocket;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
+import org.voovan.network.tcp.TcpSocket;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
@@ -47,7 +47,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class HttpClient implements Closeable{
 
-	private AioSocket socket;
+	private TcpSocket socket;
 	private HttpRequest httpRequest;
 	private Map<String, Object> parameters;
 	private String charset="UTF-8";
@@ -55,6 +55,7 @@ public class HttpClient implements Closeable{
 	private boolean isSSL = false;
 	private boolean isWebSocket = false;
 	private WebSocketRouter webSocketRouter;
+	private String hostString;
 
 	/**
 	 * 构建函数
@@ -120,7 +121,7 @@ public class HttpClient implements Closeable{
 
 			isSSL = trySSL(urlString);
 
-			String hostString = urlString;
+			hostString = urlString;
 			int port = 80;
 
 			if(hostString.toLowerCase().startsWith("ws")){
@@ -141,7 +142,7 @@ public class HttpClient implements Closeable{
 
 			parameters = new HashMap<String, Object>();
 
-			socket = new AioSocket(hostString, port==-1?80:port, timeOut*1000);
+			socket = new TcpSocket(hostString, port==-1?80:port, timeOut*1000);
 			socket.filterChain().add(new HttpClientFilter(this));
 			socket.messageSplitter(new HttpMessageSplitter());
 
@@ -157,24 +158,29 @@ public class HttpClient implements Closeable{
 			socket.syncStart();
 
 			httpRequest = new HttpRequest(new Request(), this.charset, socket.getSession());
-			//初始化请求参数,默认值
-			httpRequest.header().put("Host", hostString);
-			httpRequest.header().put("Pragma", "no-cache");
-			httpRequest.header().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-			httpRequest.header().put("User-Agent", "Voovan Http Client");
-			httpRequest.header().put("Accept-Encoding","gzip");
-			httpRequest.header().put("Connection","keep-alive");
+			initHeader();
+
 
 		} catch (IOException e) {
 			Logger.error("HttpClient init error",e);
 		}
 	}
 
+	public void initHeader(){
+		//初始化请求参数,默认值
+		httpRequest.header().put("Host", hostString);
+		httpRequest.header().put("Pragma", "no-collection");
+		httpRequest.header().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+		httpRequest.header().put("User-Agent", "Voovan Http Client");
+		httpRequest.header().put("Accept-Encoding","gzip");
+		httpRequest.header().put("Connection","keep-alive");
+	}
+
 	/**
 	 * 获取 Socket 连接
 	 * @return Socket对象
 	 */
-	protected AioSocket getSocket(){
+	protected TcpSocket getSocket(){
 		return socket;
 	}
 
@@ -428,7 +434,7 @@ public class HttpClient implements Closeable{
 	public synchronized Response send(String location) throws SendMessageException, ReadMessageException {
 
 		if(isWebSocket){
-			throw new SendMessageException("The WebSocket is connect, you can't send http request.");
+			throw new SendMessageException("The WebSocket is connect, you can't writeToChannel http request.");
 		}
 
 		//设置默认的报文 Body 类型
@@ -448,7 +454,7 @@ public class HttpClient implements Closeable{
 			httpRequest.send(socket.getSession());
 			httpRequest.flush();
 		}catch(IOException e){
-			throw new SendMessageException("HttpClient send error",e);
+			throw new SendMessageException("HttpClient writeToChannel error",e);
 		}
 
 		try {
@@ -513,8 +519,8 @@ public class HttpClient implements Closeable{
 		parameters.clear();
 		request.body().clear();
 		request.parts().clear();
-		request.header().remove("Content-Type");
-		request.header().remove("Content-Length");
+		request.header().clear();
+		initHeader();
 	}
 
 	/**
@@ -528,9 +534,10 @@ public class HttpClient implements Closeable{
 		IoSession session = socket.getSession();
 		session.removeAttribute(HttpSessionParam.TYPE);
 
+		httpRequest.header().put("Host", hostString);
 		httpRequest.header().put("Connection","Upgrade");
 		httpRequest.header().put("Upgrade", "websocket");
-		httpRequest.header().put("Pragma","no-cache");
+		httpRequest.header().put("Pragma","no-collection");
 		httpRequest.header().put("Origin", this.urlString);
 		httpRequest.header().put("Sec-WebSocket-Version","13");
 		httpRequest.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
@@ -551,12 +558,7 @@ public class HttpClient implements Closeable{
 		doWebSocketUpgrade(location);
 
 		//为异步调用进行阻赛,等待 socket 关闭
-
-		try {
-			TEnv.wait(socket.getReadTimeout(), ()->socket.isOpen());
-		} catch (TimeoutException e) {
-			e.printStackTrace();
-		}
+        TEnv.wait(socket.getReadTimeout(), ()->socket.isOpen());
 	}
 
 	/**

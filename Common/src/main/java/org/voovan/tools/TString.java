@@ -35,7 +35,7 @@ public class TString {
 	 * @param source 字符串
 	 * @return 首字母大写后的字符串
 	 */
-	public static String uppercaseHead(String source) {
+	public static String upperCaseHead(String source) {
 		if (source == null) {
 			return null;
 		}
@@ -179,9 +179,8 @@ public class TString {
 	private static Pattern getCachedPattern(String regex, Integer flags) {
 		Pattern pattern = null;
 		flags = flags == null ? 0 : flags;
-		if (regexPattern.containsKey(regex.hashCode())) {
-			pattern = regexPattern.get(regex.hashCode());
-		} else {
+		pattern = regexPattern.get(regex.hashCode());
+		if (pattern==null) {
 			pattern = Pattern.compile(regex, flags);
 			regexPattern.put(regex.hashCode(), pattern);
 		}
@@ -250,6 +249,7 @@ public class TString {
 		ArrayList<String> result = new ArrayList<String>();
 
 		Matcher matcher = doRegex(source, regex, flags);
+
 		if (matcher != null) {
 			do {
 				result.add(matcher.group());
@@ -278,7 +278,15 @@ public class TString {
 	 * @return 正则搜索后得到的匹配数量
 	 */
 	public static int regexMatch(String source, String regex, Integer flags) {
-		return searchByRegex(source, regex, flags).length;
+		Matcher matcher = doRegex(source, regex, flags);
+
+		int count = 0;
+		if (matcher != null) {
+			do {
+				count++;
+			} while (matcher.find());
+		}
+		return count;
 	}
 
 	/**
@@ -642,7 +650,10 @@ public class TString {
 		} else if (clazz == byte.class || clazz == Byte.class) {
 			value = value == null ? "0" : value;
 			return (T) Byte.valueOf(value);
-		} else if (clazz == byte.class || TReflect.isExtendsByClass(clazz,  Date.class)) {
+		} else if (clazz == char.class || clazz == Character.class) {
+			Object tmpValue = value != null ? value.charAt(0) : null;
+			return (T) tmpValue;
+		} else if (clazz == Date.class || TReflect.isExtendsByClass(clazz,  Date.class)) {
 			try {
 				SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
 				return (T) (value != null ? TReflect.newInstance(clazz, dateFormat.parse(value).getTime()): null);
@@ -650,10 +661,6 @@ public class TString {
 				Logger.error("TString.toObject error: ", e);
 				return null;
 			}
-
-		} else if (clazz == char.class || clazz == Character.class) {
-			Object tmpValue = value != null ? value.charAt(0) : null;
-			return (T) tmpValue;
 		} else if ((TReflect.isImpByInterface(clazz, Collection.class) || clazz.isArray()) &&
 				JSON.isJSONList(value)) {
 			return JSON.toObject(value, type, ignoreCase);
@@ -976,5 +983,21 @@ public class TString {
 		}
 
 		return stringBuilder.toString();
+	}
+
+	/**
+	 * 从指定位置读取一行字符串
+	 * @param str 读取的字符串
+	 * @param beginIndex 起始位置
+	 * @return 读取的一行字符串, null 读取到文件结尾
+	 */
+	public static String readLine(String str, int beginIndex) {
+		if(beginIndex==str.length()){
+			return null;
+		}
+
+		int lineIndex = str.indexOf("\n", beginIndex);
+		lineIndex = lineIndex == -1 ? str.length():lineIndex + 1;
+		return str.substring(beginIndex, lineIndex);
 	}
 }

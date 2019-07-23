@@ -1,5 +1,6 @@
 package org.voovan.tools.json;
 
+import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
@@ -19,22 +20,22 @@ import java.util.function.Supplier;
  * Licence: Apache v2 License
  */
 public class JSON {
-	public final static String JSON_CONVERT_ESCAPE_CHAR = TProperties.getString("framework", "JSONConvertEscapeChar");
+	public final static String JSON_CONVERT_ESCAPE_CHAR = TProperties.getString("framework", "JSONConvertEscapeChar", "true");
 
 	/**
 	 * 是否进行 EscapeChar 的转换, 默认 true, 当你确定你不存在字符串多行换行的时候可设置为 false
 	 */
-	private static ThreadLocal<Boolean> convertEscapeChar = ThreadLocal.withInitial(new Supplier<Boolean>() {
+	private static FastThreadLocal<Boolean> convertEscapeChar = FastThreadLocal.withInitial(new Supplier<Boolean>() {
 		@Override
 		public Boolean get() {
 			boolean isEscapeChare = true;
 
-			if("true".equalsIgnoreCase(JSON_CONVERT_ESCAPE_CHAR)) {
+			if("true".equalsIgnoreCase(JSON_CONVERT_ESCAPE_CHAR.trim())) {
 				isEscapeChare = true;
-			} if("false".equalsIgnoreCase(JSON_CONVERT_ESCAPE_CHAR)) {
+			} if("false".equalsIgnoreCase(JSON_CONVERT_ESCAPE_CHAR.trim())) {
 				isEscapeChare = false;
 			} else {
-				isEscapeChare = true;
+				isEscapeChare = false;
 			}
 
 			return isEscapeChare;
@@ -64,7 +65,7 @@ public class JSON {
 	 * @return			转换后的 JSON 字符串
 	 */
 	public static String toJSON(Object object){
-		return toJSON(object, true, false);
+		return toJSON(object, convertEscapeChar.get(), false);
 	}
 
 	/**
@@ -74,9 +75,8 @@ public class JSON {
 	 * @return			转换后的 JSON 字符串
 	 */
 	public static String toJSON(Object object, boolean allField){
-		return toJSON(object, true, allField);
+		return toJSON(object, convertEscapeChar.get(), allField);
 	}
-
 
 	/**
 	 * 将 Java 对象 转换成 JSON字符串
@@ -242,7 +242,7 @@ public class JSON {
 	 */
 	protected static String fixJSON(String jsonStr){
 
-		while(TString.searchByRegex(jsonStr,",[\\s\\r\\n]*,").length>0) {
+		while(TString.regexMatch(jsonStr,",[\\s\\r\\n]*,") > 0) {
 			jsonStr = TString.fastReplaceAll(jsonStr, ",[\\s\\r\\n]*,", ",");
 		}
 
@@ -260,7 +260,7 @@ public class JSON {
 	 * @return true: 是, false: 否
 	 */
 	public static boolean isJSONMap(String jsonStr){
-		return TString.searchByRegex(jsonStr, "^\\s*\\{[\\s\\S]*\\}\\s*$").length > 0;
+		return TString.regexMatch(jsonStr, "^\\s*\\{[\\s\\S]*\\}\\s*$") > 0;
 	}
 
 	/**
@@ -269,7 +269,7 @@ public class JSON {
 	 * @return true: 是, false: 否
 	 */
 	public static boolean isJSONList(String jsonStr){
-		return TString.searchByRegex(jsonStr, "^\\s*\\[[\\s\\S]*\\]\\s*$").length > 0;
+		return TString.regexMatch(jsonStr, "^\\s*\\[[\\s\\S]*\\]\\s*$") > 0;
 	}
 
 	/**
