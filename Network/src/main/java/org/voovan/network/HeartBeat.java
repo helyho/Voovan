@@ -70,14 +70,15 @@ public class HeartBeat {
     /**
      * 截断心跳消息
      * @param session 会话对象
-     * @param byteBufferChannel 保存消息 ByteBufferChannel 对象
      */
-    public static boolean interceptHeartBeat(IoSession session, ByteBufferChannel byteBufferChannel){
-        if(session==null || byteBufferChannel==null){
+    public static boolean interceptHeartBeat(IoSession session){
+        if(session==null || session.getHeartBeat()==null){
             return false;
         }
 
         HeartBeat heartBeat = session.getHeartBeat();
+        ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
+
         if (heartBeat != null && byteBufferChannel.size() > 0) {
             //心跳处理
             if (heartBeat != null) {
