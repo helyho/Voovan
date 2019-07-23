@@ -17,7 +17,7 @@ public class LoggerStatic {
 	private static long		startTimeMillis	= System.currentTimeMillis();
 
 	public final static String LOG_LEVEL = "ALL";
-	public final static String LOG_FILE = null;
+	public final static String LOG_FILE = "{{WorkDir}}/logs/sysout.{{D}}.log";
 	public final static String LOG_TYPE = "STDOUT";
 	public final static String DEFAULT_LOG_TEMPLATE = "--------------------------------------------------------------------------------------------------------------------------------------------------" +
 			"{{n}}[{{P}}] [{{D}}] [Thread:{{T}}] [Time:{{R}}] ({{F}}:{{L}}) {{n}}" +

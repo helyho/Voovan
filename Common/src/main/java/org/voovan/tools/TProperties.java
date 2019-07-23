@@ -130,7 +130,6 @@ public class TProperties {
                 propertiesName.put(fileName, properties);
                 return properties;
             } else {
-                System.out.println("Get properites file failed. File:" + file.getName());
                 return null;
             }
         } else {
@@ -290,7 +289,7 @@ public class TProperties {
 	 */
 	public static String getString(String fileName, String name, String defaultValue) {
 		Properties properites = getProperties(fileName);
-		String value = properites.getProperty(name);
+		String value = properites==null ? null : properites.getProperty(name);
 		return TString.isNullOrEmpty(value) ? defaultValue : value;
 	}
 
