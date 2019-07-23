@@ -8,12 +8,11 @@ import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 /**
  * 处理 WebSocket 相关的 IoHandler 事件
@@ -104,7 +103,7 @@ public class WebSocketHandler implements IoHandler{
                         poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, true, null));
                     } catch (SendMessageException e) {
                         poneSession.close();
-                        Logger.error("WebSocket Pong event send Ping frame error", e);
+                        Logger.error("WebSocket Pong event writeToChannel Ping frame error", e);
                     }finally {
                         this.cancel();
                     }
@@ -123,8 +122,10 @@ public class WebSocketHandler implements IoHandler{
 
             try {
                 //解包
+                ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+
                 try {
-                    result = webSocketRouter.filterDecoder(webSocketSession, byteBufferChannel.getByteBuffer());
+                    result = webSocketRouter.filterDecoder(webSocketSession, byteBuffer);
 
                     //触发 onRecive
                     result = webSocketRouter.onRecived(webSocketSession, result);

@@ -45,6 +45,16 @@ public class TDateTime {
 	/**
 	 * 格式化日期成字符串
 	 * @param date Date 对象
+	 * @return 日期字符串
+	 */
+	public static String format(Date date){
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(STANDER_DATETIME_TEMPLATE);
+		return simpleDateFormat.format(date);
+	}
+
+	/**
+	 * 格式化日期成字符串
+	 * @param date Date 对象
 	 * @param format 日期格式模板
 	 * @return 日期字符串
 	 */
@@ -91,13 +101,22 @@ public class TDateTime {
 	/**
 	 * 从字符串解析时间
 	 * @param source 日期字符串
+	 * @return Date 对象
+	 */
+	public static Date parse(String source) {
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(STANDER_DATETIME_TEMPLATE);
+		return simpleDateFormatParse(simpleDateFormat, source);
+	}
+
+	/**
+	 * 从字符串解析时间
+	 * @param source 日期字符串
 	 * @param format 日期格式模板
 	 * @return Date 对象
-	 * @throws ParseException 解析异常
 	 */
-	public static Date parse(String source,String format) throws ParseException{
+	public static Date parse(String source,String format) {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
-		return simpleDateFormat.parse(source);
+		return simpleDateFormatParse(simpleDateFormat, source);
 	}
 
 	/**
@@ -106,11 +125,10 @@ public class TDateTime {
 	 * @param format 日期格式模板
 	 * @param local  所在区域
 	 * @return Date 对象
-	 * @throws ParseException 解析异常
 	 */
-	public static Date parse(String source,String format,Locale local) throws ParseException{
+	public static Date parse(String source,String format,Locale local) {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
-		return simpleDateFormat.parse(source);
+		return simpleDateFormatParse(simpleDateFormat, source);
 	}
 
 	/**
@@ -120,21 +138,28 @@ public class TDateTime {
 	 * @param timeZone		所在时区
 	 * @param local			所在区域
 	 * @return 日期字符串
-	 * @throws ParseException 解析异常
 	 */
-	public static Date parse(String source,String format,String timeZone,Locale local) throws ParseException{
+	public static Date parse(String source,String format,String timeZone,Locale local) {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format, local);
 		simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
-		return simpleDateFormat.parse(source);
+		return simpleDateFormatParse(simpleDateFormat, source);
+	}
+
+	private static Date simpleDateFormatParse(SimpleDateFormat simpleDateFormat, String source){
+		try{
+			return simpleDateFormat.parse(source);
+		} catch (ParseException e){
+			throw new org.voovan.tools.exception.ParseException(e);
+		}
+
 	}
 
 	/**
 	 * 按格林威治时间(GMT)时间格式获取时间对象
 	 * @param source 日期字符串
 	 * @return Date 对象
-	 * @throws ParseException 解析异常
 	 */
-	public static Date parseToGMT(String source) throws ParseException{
+	public static Date parseToGMT(String source) {
 		return parse(source, INTERNTTION_DATETIME_TEMPLATE, "GMT", Locale.ENGLISH);
 	}
 

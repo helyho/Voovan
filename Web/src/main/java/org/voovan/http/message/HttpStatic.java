@@ -1,10 +1,5 @@
 package org.voovan.http.message;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * 类文字命名
  *

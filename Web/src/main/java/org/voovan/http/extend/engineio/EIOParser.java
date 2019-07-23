@@ -1,6 +1,6 @@
 package org.voovan.http.extend.engineio;
 
-import org.voovan.http.extend.ParserException;
+import org.voovan.http.extend.SocketIOParserException;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
@@ -27,18 +27,18 @@ public class EIOParser {
      * 解析 engine.io 报文
      * @param msg 报文内容
      * @return EIOPacket 对象
-     * @throws ParserException 解析异常
+     * @throws SocketIOParserException 解析异常
      */
-    public static EIOPacket decode(String msg) throws ParserException {
+    public static EIOPacket decode(String msg) throws SocketIOParserException {
         EIOPacket engineIOPacket = new EIOPacket();
         char c = msg.charAt(0);
         int engineType = c - 48;
         if(!TString.isNumber(String.valueOf(c),10)){
-            throw new ParserException("The engine.io packet first char must be number");
+            throw new SocketIOParserException("The engine.io packet first char must be number");
         }
 
         if(engineType<0 || engineType>6) {
-            throw new ParserException("The engine.io packet first char must be exists in [0...6]");
+            throw new SocketIOParserException("The engine.io packet first char must be exists in [0...6]");
         }
 
         engineIOPacket.setEngineType(c-48);
@@ -56,7 +56,7 @@ public class EIOParser {
         return packet.getEngineType() + packet.getData();
     }
 
-    public static void main(String[] args) throws ParserException {
+    public static void main(String[] args) throws SocketIOParserException {
         String mm = "42/socketio,0[\"show\", \"kkkk\"]";
         Logger.simple(EIOParser.isEngineIOMessage(mm));
         EIOPacket packet = EIOParser.decode(mm);

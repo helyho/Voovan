@@ -4,18 +4,17 @@ import org.voovan.Global;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
-import org.voovan.network.udp.UdpSocket;
-import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.nio.channels.SelectionKey;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeoutException;
 
 
@@ -29,8 +28,8 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public abstract class IoSession<T extends SocketContext> {
-
 	private Map<Object, Object> attributes;
+	private boolean sslMode = false;
 	private SSLParser sslParser;
 
 	private MessageLoader messageLoader;
@@ -41,18 +40,18 @@ public abstract class IoSession<T extends SocketContext> {
 	private HashWheelTask checkIdleTask;
 	private HeartBeat heartBeat;
 	private State state;
+	private SelectionKey selectionKey;
+	private SocketSelector socketSelector;
 
 	/**
 	 * 会话状态管理
 	 */
 	public class State {
-		private boolean init = true;
-		private boolean connect = false;
-		private boolean receive = false;
-		private boolean send = false;
-		private boolean close = false;
-		private Semaphore receiveLock = new Semaphore(1, true);
-		private Semaphore sendLock = new Semaphore(1, true);
+		private volatile boolean init = true;
+		private volatile boolean connect = false;
+		private volatile boolean receive = false;
+		private volatile boolean send = false;
+		private volatile boolean close = false;
 
 		public boolean isInit() {
 			return init;
@@ -93,38 +92,6 @@ public abstract class IoSession<T extends SocketContext> {
 		public void setClose(boolean close) {
 			this.close = close;
 		}
-
-		protected Semaphore getReceiveLock() {
-			return receiveLock;
-		}
-
-		protected void receiveLock() throws InterruptedException {
-			receiveLock.acquire();
-		}
-
-		protected boolean receiveTryLock(){
-			return receiveLock.tryAcquire();
-		}
-
-		protected void receiveUnLock(){
-			receiveLock.release();
-		}
-
-		protected Semaphore getSendLock() {
-			return sendLock;
-		}
-
-		protected void sendLock() throws InterruptedException {
-			sendLock.acquire();
-		}
-
-		protected boolean sendTryLock(){
-			return sendLock.tryAcquire();
-		}
-
-		protected void sendUnLock(){
-			sendLock.release();
-		}
 	}
 
 	/**
@@ -137,8 +104,49 @@ public abstract class IoSession<T extends SocketContext> {
 		this.state = new State();
 		readByteBufferChannel = new ByteBufferChannel(socketContext.getReadBufferSize());
 		sendByteBufferChannel = new ByteBufferChannel(socketContext.getSendBufferSize());
+		sendByteBufferChannel.setThreadSafe(true);
 		messageLoader = new MessageLoader(this);
 		checkIdle();
+	}
+
+	/**
+	 * 获取 Socket 选择器
+	 * @return Socket 选择器
+	 */
+	public SocketSelector getSocketSelector() {
+		return socketSelector;
+	}
+
+	/**
+	 * 设置 Socket 选择器
+	 * @param socketSelector Socket 选择器
+	 */
+	protected void setSocketSelector(SocketSelector socketSelector) {
+		this.socketSelector = socketSelector;
+	}
+
+	/**
+	 * 获取 Event 执行器
+	 * @return Event 执行器
+	 */
+	protected EventRunner getEventRunner() {
+		return socketSelector.getEventRunner();
+	}
+
+	/**
+	 * 获取 SelectionKey
+	 * @return SelectionKey 对象
+	 */
+	protected SelectionKey getSelectionKey() {
+		return selectionKey;
+	}
+
+	/**
+	 * 设置 SelectionKey
+	 * @param selectionKey SelectionKey 对象
+	 */
+	void setSelectionKey(SelectionKey selectionKey) {
+		this.selectionKey = selectionKey;
 	}
 
 	/**
@@ -149,10 +157,18 @@ public abstract class IoSession<T extends SocketContext> {
 		return heartBeat;
 	}
 
-	protected void setHeartBeat(HeartBeat heartBeat) {
+	/**
+	 * 设置心跳对象
+	 * @return 心跳对象
+	 */
+	void setHeartBeat(HeartBeat heartBeat) {
 		this.heartBeat = heartBeat;
 	}
 
+	/**
+	 * 获取状态
+	 * @return 当前状态
+	 */
 	public State getState() {
 		return state;
 	}
@@ -167,45 +183,40 @@ public abstract class IoSession<T extends SocketContext> {
 				final IoSession session = this;
 
 				checkIdleTask = new HashWheelTask() {
-					@Override
 					public void run() {
-						boolean isConnect = false;
-
-						//初始化状态
-						if(session.state.isInit() ||
-								session.state.isConnect() ||
-								session.state.isSend()) {
-							return;
-						}
-
-						//检测会话状态
-						if(session.state.isClose()){
-							session.cancelIdle();
-							return;
-						}
-
-						//获取连接状态
-						if(session.socketContext() instanceof UdpSocket) {
-							isConnect = session.isOpen();
-						}else {
-							isConnect = session.isConnected();
-						}
-
-						if(!isConnect){
-							session.cancelIdle();
-							this.cancel();
-							return;
-						}
-
-						//检查空间时间
-						if(socketContext.getIdleInterval() < 1){
-							return;
-						}
-
 						//触发空闲事件
 						long timeDiff = System.currentTimeMillis() - lastIdleTime;
 						if (timeDiff >= socketContext.getIdleInterval() * 1000) {
-							EventTrigger.fireIdleThread(session);
+							boolean isConnect = false;
+
+							//初始化状态
+							if(session.state.isInit() ||
+									session.state.isConnect()) {
+								return;
+							}
+
+							//检测会话状态
+							if(session.state.isClose()){
+								session.cancelIdle();
+								return;
+							}
+
+							//获取连接状态
+							isConnect = session.isConnected();
+
+							if(!isConnect){
+								session.cancelIdle();
+								this.cancel();
+								return;
+							}
+
+
+							//检查空间时间
+							if(socketContext.getIdleInterval() < 1){
+								return;
+							}
+
+							EventTrigger.fireIdle(session);
 							lastIdleTime = System.currentTimeMillis();
 						}
 
@@ -224,11 +235,12 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	public void cancelIdle(){
 		if(checkIdleTask!=null) {
+			checkIdleTask.cancel();
+			checkIdleTask = null;
+
 			if(heartBeat!=null){
 				heartBeat = null;
 			}
-			checkIdleTask.cancel();
-			checkIdleTask = null;
 		}
 	}
 
@@ -280,16 +292,21 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @param sslParser SSL解析对象
 	 */
 	protected void setSSLParser(SSLParser sslParser) {
-		if(this.sslParser==null){
+		if(this.sslParser == null && sslParser!=null){
 			this.sslParser = sslParser;
+			sslMode = true;
 		}
+	}
+
+	public boolean isSSLMode() {
+		return sslMode;
 	}
 
 	/**
 	 * 获取全部会话参数
 	 * @return 会话参数Map
 	 */
-	public Map<Object,Object> getAttributes(){
+	public Map<Object,Object> attributes(){
 		return this.attributes;
 	}
 
@@ -362,11 +379,12 @@ public abstract class IoSession<T extends SocketContext> {
 
 	/**
 	 * 读取消息到缓冲区
-	 * @param buffer    接收数据的缓冲区
 	 * @return 接收数据大小
 	 * @throws IOException IO 异常
 	 */
-	protected abstract int read0(ByteBuffer buffer) throws IOException;
+	protected int read0() throws IOException {
+		return socketSelector.readFromChannel(socketContext, socketContext.socketChannel());
+	}
 
 	/**
 	 * 直接从缓冲区读取数据
@@ -378,7 +396,9 @@ public abstract class IoSession<T extends SocketContext> {
 
 		int readSize = -1;
 
-		readSize = this.read0(byteBuffer);
+		if (byteBuffer != null && !this.getReadByteBufferChannel().isReleased()) {
+			readSize = this.getReadByteBufferChannel().readHead(byteBuffer);
+		}
 
 		if(!this.isConnected() && readSize <= 0){
 			readSize = -1;
@@ -397,7 +417,6 @@ public abstract class IoSession<T extends SocketContext> {
 
 		Object readObject = null;
 		SynchronousHandler synchronousHandler = null;
-		int waitedTime = 0;
 
 		if(socketContext.handler() instanceof SynchronousHandler) {
 			synchronousHandler = (SynchronousHandler) socketContext.handler();
@@ -406,12 +425,8 @@ public abstract class IoSession<T extends SocketContext> {
 		}
 
 		try {
-			//如果响应对象不存在则继续循环等待直到结果出现
-			SynchronousHandler finalSynchronousHandler = synchronousHandler;
-			TEnv.wait(socketContext.getReadTimeout(), ()->!finalSynchronousHandler.hasNextResponse() && isConnected());
-
 			if(isConnected()) {
-				readObject = ((SynchronousHandler) socketContext.handler()).getResponse();
+				readObject = synchronousHandler.getResponse(socketContext.getReadTimeout());
 			}
 
 			if(readObject == null && !isConnected()){
@@ -429,20 +444,20 @@ public abstract class IoSession<T extends SocketContext> {
 				return readObject;
 			}
 		} catch (TimeoutException e) {
-			throw new ReadMessageException("syncRead read timeout or socket is disconnect");
+			throw new ReadMessageException("syncRead readFromChannel timeout or socket is disconnect");
 		}
 		return readObject;
 	}
 
-
 	/**
-	 * 发送消息
+	 * 发送消息到 JVM 的 SocketChannel
 	 * 		注意直接调用不会出发 onSent 事件
 	 * @param buffer  发送缓冲区
 	 * @return 读取的字节数
-	 * @throws IOException IO 异常
 	 */
-	protected abstract int send0(ByteBuffer buffer) throws IOException;
+	protected int send0(ByteBuffer buffer) {
+		return socketSelector.writeToChannel(socketContext, buffer);
+	}
 
 	/**
 	 * 发送消息到发送缓冲区
@@ -470,7 +485,10 @@ public abstract class IoSession<T extends SocketContext> {
 	public void syncSend(Object obj) throws SendMessageException{
 		//等待 ssl 握手完成
 		try {
-			TEnv.wait(socketContext.getReadTimeout(), ()->sslParser!=null && !sslParser.handShakeDone);
+			if(sslParser!=null) {
+				TEnv.waitThrow(socketContext.getReadTimeout(), ()->!sslParser.handShakeDone);
+			}
+
 			if (obj != null) {
 				try {
 					EventProcess.sendMessage(this, obj);
@@ -494,19 +512,21 @@ public abstract class IoSession<T extends SocketContext> {
 	 */
 	public int send(ByteBuffer buffer){
 		try {
+			//如果大于缓冲区,则现发送一次
+			if(buffer.limit() + sendByteBufferChannel.size() > sendByteBufferChannel.getMaxSize()){
+				flush();
+			}
+
 			if(sslParser!=null && sslParser.isHandShakeDone()) {
-				//warpData 内置调用 session.send0 将数据送至发送缓冲区
+				//warpData 内置调用 session.sendByBuffer 将数据送至发送缓冲区
 				sslParser.warpData(buffer);
 				return buffer.limit();
 			} else {
-				//如果大于缓冲区,则现发送一次
-				if(buffer.limit() + sendByteBufferChannel.size() > sendByteBufferChannel.getMaxSize()){
-					flush();
-				}
+
 				return sendByBuffer(buffer);
 			}
 		} catch (IOException e) {
-			Logger.error("IoSession.send data failed" ,e);
+			Logger.error("IoSession.writeToChannel data failed" ,e);
 		}
 
 		return -1;
@@ -515,29 +535,16 @@ public abstract class IoSession<T extends SocketContext> {
 	/**
 	 * 推送缓冲区的数据到 socketChannel
 	 */
-	public synchronized void flush() {
+	public void flush() {
 		if(sendByteBufferChannel.size()>0) {
+			ByteBuffer byteBuffer = sendByteBufferChannel.getByteBuffer();
 			try {
-				if(getState().sendTryLock()) {
-					try {
-						getState().setSend(true);
-						send0(sendByteBufferChannel.getByteBuffer());
-						//触发发送事件
-						EventTrigger.fireFlush(this);
-					} finally {
-						sendByteBufferChannel.compact();
-						getState().sendUnLock();
-						getState().setSend(false);
-					}
-				}
-			} catch (IOException e) {
-				if(isConnected()) {
-					if (socketContext.isConnected()) {
-						Logger.error("IoSession.flush buffer failed", e);
-					}
-				}
+				send0(byteBuffer);
+				//触发发送事件
+				EventTrigger.fireFlush(this);
+			} finally {
+				sendByteBufferChannel.compact();
 			}
-
 		}
 	}
 
@@ -576,28 +583,16 @@ public abstract class IoSession<T extends SocketContext> {
 	public abstract boolean isOpen();
 
 	/**
-	 * 等待所有处理都被处理完成
-	 * 		ByteBufferChannel.size() = 0时,或者超时后退出
-	 * @param waitTime 超时事件
-	 * @return true: 数据处理完退出, false:超时退出
-	 */
-	public boolean wait(int waitTime){
-		messageLoader.close();
-		try {
-			TEnv.wait(waitTime, ()->state.isReceive());
-			return true;
-		} catch (TimeoutException e) {
-			return false;
-		}
-	}
-
-	/**
 	 * 关闭会话
 	 * @return 是否关闭
 	 */
 	public abstract boolean close();
 
-
+	public void release() {
+		if(socketSelector!=null) {
+			socketSelector.unRegister(selectionKey);
+		}
+	}
 
 	@Override
 	public abstract String toString();

@@ -39,9 +39,9 @@ public class TSQLUnit {
 //		}
 
         System.out.println(
-                TEnv.measureTime(()->{
+                TEnv.measure(()->{
                     System.out.println(s);
-                    return TSQL.removeEmptyCondiction(s, TObject.asMap("1", null, "4", null, "7", null, "10", null, "11", null, "userName", 111));
+                    return TSQL.removeEmptyCondiction(s, TObject.asMap("1", null, "4", null, "7", null, "10", null, "11", "222", "userName", 111));
                 })
         );
 

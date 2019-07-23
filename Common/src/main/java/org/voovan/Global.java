@@ -4,7 +4,6 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.UniqueId;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
-import org.voovan.tools.task.TaskManager;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import java.nio.charset.Charset;
@@ -63,8 +62,6 @@ public class Global {
     public static final char CHAR_AT        = '@';
     public static final char CHAR_EOF       = '\0';
 
-
-
     public static final byte BYTE_EQUAL         = 61;           // '='
     public static final byte BYTE_SLASH         = 92;           // "\\"
     public static final byte BYTE_BACKSLASH     = 47;           // '/'
@@ -91,18 +88,22 @@ public class Global {
     public static final Charset CS_UTF_8 = Charset.forName("UTF-8");
     public static final Charset CS_GBK = Charset.forName("GBK");
 
-    public static String NAME = "Voovan";
+    public static final String NAME = "Voovan";
 
     public static volatile Boolean NO_HEAP_MANUAL_RELEASE;
     public static volatile String REMOTE_CLASS_SOURCE;
+    public static final Boolean IS_DEBUG_MODE = TProperties.getBoolean("framework", "DebugMode", false);
+    public static final Boolean ENABLE_SANDBOX = TProperties.getBoolean("framework", "EnableSandBox", false);
+    static {
+        System.out.println("[SYSTEM] DebugMode: " + IS_DEBUG_MODE);
+    }
 
-
-    public static UniqueId UNIQUE_ID = new UniqueId((int) (Math.random()*1024));
+    public static UniqueId UNIQUE_ID = new UniqueId(0);
 
     static {
         if(NO_HEAP_MANUAL_RELEASE == null) {
             boolean value = false;
-            value = TProperties.getBoolean("framework", "NoHeapManualRelease");
+            value = TProperties.getBoolean("framework", "NoHeapManualRelease", true);
             REMOTE_CLASS_SOURCE = TProperties.getString("framework", "RemoteClassSource");
             NO_HEAP_MANUAL_RELEASE = TObject.nullDefault(value, true);
             System.out.println("[SYSTEM] NoHeap Manual Release: " + NO_HEAP_MANUAL_RELEASE);
@@ -163,35 +164,11 @@ public class Global {
         return HashTimeWheelEnum.HASHWHEEL.getValue();
     }
 
-
-    private enum TaskManagerEnum {
-        TASK_MANAGER;
-
-        private TaskManager taskManager;
-        TaskManagerEnum(){
-            taskManager = new TaskManager();
-            taskManager.scanTask();
-        }
-        public TaskManager getValue(){
-            return taskManager;
-        }
-    }
-
-    /**
-     * 获取一个全局的秒定时器
-     *      60个槽位, 每个槽位步长1ms
-     * @return HashWheelTimer对象
-     */
-    public static TaskManager getTaskManager(){
-
-        return TaskManagerEnum.TASK_MANAGER.getValue();
-    }
-
     /**
      * 获取当前 Voovan 版本号
      * @return Voovan 版本号
      */
     public static String getVersion(){
-        return "3.3.14";
+        return "4.2.0";
     }
 }

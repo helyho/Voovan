@@ -13,10 +13,12 @@ import org.voovan.network.exception.SendMessageException;
  * Licence: Apache v2 License
  */
 public abstract class SIOHandler {
+    // TODO: io.sockets.emit(‘String’,data);//给所有客户端广播消息
+    // TODO: io.sockets.socket(socketid).emit(‘String’, data);//给指定的客户端发送消息
+
     private EIOHandler eioHandler;
     private SIODispatcher sioDispatcher;
     private String nsp;
-    private SIOSession sioSession;
 
     protected void setEioHandler(EIOHandler eioHandler) {
         this.eioHandler = eioHandler;
@@ -31,10 +33,11 @@ public abstract class SIOHandler {
     }
 
     public SIOSession getSIOSession(){
-        if(sioSession == null){
+        SIOSession sioSession = (SIOSession) eioHandler.getEIOSession().getAttribute("SIO_SESSIOM");
+        if(sioSession == null) {
             sioSession = new SIOSession(eioHandler.getEIOSession(), sioDispatcher, nsp);
+            eioHandler.getEIOSession().setAttribute("SIOSESSIOM", sioSession);
         }
-
         return sioSession;
     }
 

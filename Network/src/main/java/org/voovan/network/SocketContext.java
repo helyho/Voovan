@@ -1,19 +1,22 @@
 package org.voovan.network;
 
-import org.voovan.Global;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
-import org.voovan.tools.Chain;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.TObject;
+import org.voovan.tools.TPerformance;
+import org.voovan.tools.collection.Chain;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.event.EventRunner;
+import org.voovan.tools.event.EventRunnerGroup;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.threadpool.DefaultThreadFactory;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.SocketOption;
-import java.nio.channels.AsynchronousChannelGroup;
+import java.nio.channels.SelectableChannel;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * socket 上下文
@@ -24,23 +27,39 @@ import java.nio.channels.AsynchronousChannelGroup;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public abstract class SocketContext {
-	protected static AsynchronousChannelGroup ASYNCHRONOUS_CHANNEL_GROUP = buildAsynchronousChannelGroup();
-
-	/**
-	 * 构造一个异步通道线程组
-	 * @return AsynchronousChannelGroup 异步通道线程组
-	 */
-	public static AsynchronousChannelGroup buildAsynchronousChannelGroup(){
+public abstract class SocketContext<C extends SelectableChannel, S extends IoSession> {
+    //================================线程管理===============================
+	public static int ACCEPT_THREAD_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("AcceptThreadSize"),"1"));
+	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", ACCEPT_THREAD_SIZE, ACCEPT_THREAD_SIZE, 60*1000, true, 10);
+	public static EventRunnerGroup ACCEPT_EVENT_RUNNER_GROUP= new EventRunnerGroup(ACCEPT_THREAD_POOL, ACCEPT_THREAD_SIZE, (obj)->{
 		try {
-			System.out.println("[SYSTEM] Socket thread size: " + ThreadPool.getMinPoolSize()/2);
-			return AsynchronousChannelGroup.withFixedThreadPool(ThreadPool.getMinPoolSize()/2, new DefaultThreadFactory("IO"));
+			//Accept 线程不检查超时
+			return new SocketSelector(obj, false);
 		} catch (IOException e) {
-			Logger.error("Buile AsynchronousChannelGroup failed", e);
-			return null;
+			e.printStackTrace();
 		}
+
+		return null;
+	});
+
+	public static int IO_THREAD_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("IoThreadSize"), TPerformance.getProcessorCount()+""));
+	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", IO_THREAD_SIZE, IO_THREAD_SIZE, 60*1000, true, 9);
+	public static EventRunnerGroup IO_EVENT_RUNNER_GROUP= new EventRunnerGroup(IO_THREAD_POOL, IO_THREAD_SIZE, (obj)->{
+		try {
+			//IO 线程检查超时
+			return new SocketSelector(obj, true);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	});
+
+	static {
+		System.out.println("[SOCKET] IO_THREAD_SIZE: " + IO_THREAD_SIZE);
 	}
 
+	//===============================SocketChannel=============================
 	protected String host;
 	protected int port;
 	protected int readTimeout;
@@ -55,9 +74,12 @@ public abstract class SocketContext {
 	protected int sendBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
 
 	protected int idleInterval = 0;
+	protected long lastReadTime = System.currentTimeMillis();
 
 	protected int readRecursionDepth = 1;
 
+	private boolean isRegister = false;
+	protected boolean isSynchronous = true;
 
 	/**
 	 * 构造函数
@@ -153,20 +175,54 @@ public abstract class SocketContext {
 	 * @param <T> 范型
 	 * @throws IOException IO异常
 	 */
-	public abstract  <T> void setOption(SocketOption<T> name, T value) throws IOException;
+	public abstract <T> void setOption(SocketOption<T> name, T value) throws IOException;
 
+	/**
+	 * 获取 SocketChannel 对象
+	 * @return SocketChannel 对象
+	 */
+	public abstract C socketChannel();
+
+	public long getLastReadTime() {
+		return lastReadTime;
+	}
+
+	public void updateLastReadTime() {
+		this.lastReadTime = System.currentTimeMillis();
+	}
+
+	public boolean isReadTimeOut(){
+		return (System.currentTimeMillis() - lastReadTime) >= readTimeout;
+	}
+
+	/**
+	 * 会话读缓冲区大小
+	 * @return 读缓冲区大小
+	 */
 	public int getReadBufferSize() {
 		return readBufferSize;
 	}
 
+	/**
+	 * 设置会话读缓冲区大小
+	 * @param readBufferSize 读缓冲区大小
+	 */
 	public void setReadBufferSize(int readBufferSize) {
 		this.readBufferSize = readBufferSize;
 	}
 
+	/**
+	 * 会话写缓冲区大小
+	 * @return 读缓冲区大小
+	 */
 	public int getSendBufferSize() {
 		return sendBufferSize;
 	}
 
+	/**
+	 * 设置会话写缓冲区大小
+	 * @param sendBufferSize 读缓冲区大小
+	 */
 	public void setSendBufferSize(int sendBufferSize) {
 		this.sendBufferSize = sendBufferSize;
 	}
@@ -185,6 +241,14 @@ public abstract class SocketContext {
 	 */
 	public void setReadRecursionDepth(int readRecursionDepth) {
 		this.readRecursionDepth = readRecursionDepth;
+	}
+
+	public boolean isRegister() {
+		return isRegister;
+	}
+
+	protected void setRegister(boolean register) {
+		isRegister = register;
 	}
 
 	/**
@@ -262,6 +326,7 @@ public abstract class SocketContext {
 	 */
 	public void handler(IoHandler handler){
 		this.handler = handler;
+		isSynchronous = handler instanceof SynchronousHandler;
 	}
 
 	/**
@@ -288,6 +353,8 @@ public abstract class SocketContext {
 		this.messageSplitter = messageSplitter;
 	}
 
+	public abstract S getSession();
+
 	/**
 	 * 启动上下文连接
 	 *		阻塞方法
@@ -310,20 +377,6 @@ public abstract class SocketContext {
 	protected abstract void acceptStart() throws IOException;
 
 	/**
-	 * 等待连接完成
-	 * @param session socket 会话对象
-	 */
-	protected void waitConnected(IoSession session){
-		try {
-			TEnv.wait(readTimeout, ()-> !isConnected());
-			TEnv.wait(readTimeout, ()-> session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone() && isConnected());
-		}catch(Exception e){
-			Logger.error(e);
-			session.close();
-		}
-	}
-
-	/**
 	 * 上下文连接是否打开
 	 * @return true:连接打开,false:连接关闭
 	 */
@@ -341,4 +394,37 @@ public abstract class SocketContext {
 	 * @return 是否关闭
 	 */
 	public abstract boolean close();
+
+	/**
+	 * 等待连接完成, 包含事件注册和 SSL 握手, 用于在同步调用的方法中同步
+	 */
+	public void waitConnect() {
+		try {
+			//等待注册完成
+			TEnv.wait(readTimeout, ()->!isRegister);
+
+			//等待 SSL 握手完成
+			if(getSession().isSSLMode()) {
+				getSession().getSSLParser().waitHandShakeDone();
+			}
+		}catch(Exception e){
+			Logger.error(e);
+			close();
+		}
+	}
+
+	/**
+	 * 绑定到 SocketSelector
+	 * @param ops 选择的操作类型
+	 */
+	public void bindToSocketSelector(int ops) {
+		EventRunner eventRunner = null;
+		if(connectModel == ConnectModel.LISTENER) {
+			eventRunner = ACCEPT_EVENT_RUNNER_GROUP.choseEventRunner();
+		} else {
+			eventRunner = IO_EVENT_RUNNER_GROUP.choseEventRunner();
+		}
+		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
+		socketSelector.register(this, ops);
+	}
 }

@@ -8,6 +8,7 @@ import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
+import java.io.IOException;
 import java.util.List;
 
 public class ClientHandlerTest implements IoHandler {
@@ -26,7 +27,7 @@ public class ClientHandlerTest implements IoHandler {
 			HeartBeat heartBeat = session.getHeartBeat();
 			if (heartBeat == null) {
 				//心跳绑定到 Session
-				heartBeat = HeartBeat.attachSession(session, ConnectModel.SERVER, "PINGq", "PONGq");
+				heartBeat = HeartBeat.attachSession(session, "PINGq", "PONGq");
 			}
 		}
 
@@ -44,7 +45,7 @@ public class ClientHandlerTest implements IoHandler {
 		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
 		System.out.println("Client onRecive: "+obj.toString());
 		System.out.println("Attribute onRecive: "+session.getAttribute("key"));
-		TEnv.sleep(3000);
+		TEnv.sleep(2000);
 		reciveCount ++;
 
 		if(reciveCount >= 5) {
@@ -69,7 +70,7 @@ public class ClientHandlerTest implements IoHandler {
 			HeartBeat heartBeat = session.getHeartBeat();
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-			System.out.println("HB==>" + heartBeat.beat(session));
+            System.out.println("HB==>" + heartBeat.beat(session));
 			if (heartBeat.getFailedCount() > 5) {
 				session.close();
 			}

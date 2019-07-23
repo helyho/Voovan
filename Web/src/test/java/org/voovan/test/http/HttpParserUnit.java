@@ -4,7 +4,7 @@ import junit.framework.TestCase;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Request;
-import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 
 import java.io.IOException;
@@ -71,7 +71,7 @@ public class HttpParserUnit extends TestCase {
 	public void testGet() throws IOException{
 		ByteBufferChannel b = new ByteBufferChannel();
 		b.writeEnd(ByteBuffer.wrap(httpRequestGet.getBytes()));
-		Request request = HttpParser.parseRequest(b, 30000, -1);
+		Request request = HttpParser.parseRequest(null, b, 30000, -1);
 		assertEquals(request.header().size(),6);
 		assertEquals(request.protocol().getPath(),"/test/t");
 		assertEquals(request.protocol().getMethod(),"GET");
@@ -81,7 +81,7 @@ public class HttpParserUnit extends TestCase {
 	public void testPostSimple() throws IOException{
 		ByteBufferChannel b = new ByteBufferChannel();
 		b.writeEnd(ByteBuffer.wrap(httpRequestPostSimple.getBytes()));
-		Request request = HttpParser.parseRequest(b, 30000, -1);
+		Request request = HttpParser.parseRequest(null, b, 30000, -1);
 		assertEquals(request.header().size(),5);
 		assertEquals(request.protocol().getPath(),"/test/t");
 		assertEquals(request.protocol().getMethod(),"POST");
@@ -91,7 +91,7 @@ public class HttpParserUnit extends TestCase {
 	public void testPostComplex() throws IOException{
 		ByteBufferChannel b = new ByteBufferChannel();
 		b.writeEnd(ByteBuffer.wrap(httpRequestPostComplex.getBytes()));
-		Request request = HttpParser.parseRequest(b, 30000, -1);
+		Request request = HttpParser.parseRequest(null, b, 30000, -1);
 		request.toString();
 		request.parts().get(3).body().write("\r\n helyho");
 		request.parts().get(3).saveAsFile("/Users/helyho/Downloads/helyho.txt");
@@ -103,12 +103,12 @@ public class HttpParserUnit extends TestCase {
 
 	public static void main(String[] args) {
 
-		System.out.println(TEnv.measureTime(()->{
+		System.out.println(TEnv.measure(()->{
 			for(int i=0;i<1000000; i++) {
 				ByteBufferChannel b = new ByteBufferChannel();
 				b.writeEnd(ByteBuffer.wrap(httpRequestGet.getBytes()));
 				try {
-					Request request = HttpParser.parseRequest(b, 30000, -1);
+					Request request = HttpParser.parseRequest(null, b, 30000, -1);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -117,7 +117,7 @@ public class HttpParserUnit extends TestCase {
 			return null;
 		}));
 
-		System.out.println(TEnv.measureTime(()->{
+		System.out.println(TEnv.measure(()->{
 			for(int i=0;i<1000000; i++) {
 				ByteBufferChannel b = new ByteBufferChannel();
 				b.writeEnd(ByteBuffer.wrap(httpRequestGet.getBytes()));

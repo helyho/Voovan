@@ -1,6 +1,6 @@
 package org.voovan.http.extend.socketio;
 
-import org.voovan.http.extend.ParserException;
+import org.voovan.http.extend.SocketIOParserException;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
@@ -30,9 +30,9 @@ public class SIOParser {
      * 解析字符串成 Packet 对象
      * @param msg 字符串
      * @return SIOPacket 对象
-     * @throws ParserException 解析异常
+     * @throws SocketIOParserException 解析异常
      */
-    public static SIOPacket decode(String msg) throws ParserException {
+    public static SIOPacket decode(String msg) throws SocketIOParserException {
         SIOPacket packet = new SIOPacket();
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -40,11 +40,11 @@ public class SIOParser {
 
         int socketType = c-48;
         if(!TString.isNumber(String.valueOf(c),10)){
-            throw new ParserException("The socket.io packet first char must be number");
+            throw new SocketIOParserException("The socket.io packet first char must be number");
         }
 
         if(socketType<0 || socketType>6) {
-            throw new ParserException("The socket.io packet first char must be exists in [0...6]");
+            throw new SocketIOParserException("The socket.io packet first char must be exists in [0...6]");
         }
 
         packet.setSocketType(socketType);
@@ -58,7 +58,7 @@ public class SIOParser {
         if(dotPosition>0 && dataPosition>0 && dotPosition < dataPosition ){
             String seqValue = msg.substring(dotPosition + 1, dotPosition + 2);
             if(TString.isNumber(seqValue, 10)) {
-                packet.setSeq(Integer.valueOf(msg.substring(dotPosition + 1, dotPosition + 2)));
+                packet.setSeq(Integer.valueOf(msg.substring(dotPosition + 1, dataPosition)));
             }
         }
 
@@ -97,7 +97,7 @@ public class SIOParser {
     }
 
 
-    public static void main(String[] args) throws ParserException {
+    public static void main(String[] args) throws SocketIOParserException {
         String mm = "2/socketio,0[\"show\", \"kkkk\"]";
         Logger.simple(SIOParser.isSocketIOMessage(mm));
         SIOPacket packet = SIOParser.decode(mm);

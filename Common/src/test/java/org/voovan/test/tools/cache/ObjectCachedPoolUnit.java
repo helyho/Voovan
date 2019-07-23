@@ -1,13 +1,18 @@
 package org.voovan.test.tools.cache;
 
 import junit.framework.TestCase;
+import org.junit.Before;
 import org.voovan.Global;
-import org.voovan.tools.cache.ObjectPool;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.log.Logger;
+import org.voovan.tools.exception.WeaveException;
+import org.voovan.tools.weave.Weave;
+import org.voovan.tools.weave.WeaveConfig;
+import org.voovan.tools.pool.ObjectPool;
+import org.voovan.tools.pool.annotation.Pool;
 
 import java.util.ArrayList;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -21,35 +26,35 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ObjectCachedPoolUnit extends TestCase {
 
+    @Before
+    public void setUp() {
+        try {
+            Weave.init(new WeaveConfig("org.voovan"));
+        } catch (WeaveException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void testAddAndLiveTime(){
-        Object pooledId = null;
-
-        ObjectPool objectPool = new ObjectPool(2);
+        TestPoolObject t = new TestPoolObject("element ");
+        ObjectPool objectPool = new ObjectPool(2).create();
         for(int i=0;i<30;i++) {
-            Object item = "element " + i;
-            if(pooledId==null) {
-                pooledId = objectPool.add(item);
-            }else{
-                objectPool.add(item);
-            }
+            Object item = new TestPoolObject("element " + i);
+            objectPool.add(item);
         }
-        Logger.simple(pooledId);
 
-        for(int m=0;m<30;m++) {
-            objectPool.get(pooledId);
-            TEnv.sleep(100);
-        }
-        assertEquals(1,objectPool.size());
+        TEnv.sleep(3000);
+
+        assertEquals(0,objectPool.size());
         assertEquals(null, objectPool.add(null));
     }
 
     public void testBorrow() {
         Object pooledId = null;
-        ObjectPool objectPool = new ObjectPool();
+        ObjectPool<TestPoolObject> objectPool = new ObjectPool();
 
         for(int i=0;i<1000;i++) {
-            Object item = "element " + i;
+            TestPoolObject item = new TestPoolObject("element " + i);
             if(pooledId==null) {
                 pooledId = objectPool.add(item);
             }else{
@@ -59,14 +64,16 @@ public class ObjectCachedPoolUnit extends TestCase {
 
         TEnv.sleep(1000);
 
-        ArrayList<Object> arrayList = new ArrayList<Object>();
+        ArrayList<TestPoolObject> arrayList = new ArrayList<TestPoolObject>();
         for(int i=0;i<50;i++){
             Global.getThreadPool().execute(()->{
-                Object objectId = objectPool.borrow();
+                TestPoolObject objectId = objectPool.borrow();
                 arrayList.add(objectId);
-                Logger.simple("borrow1->" + objectId);
+                System.out.println("borrow1->" + objectId);
             });
         }
+
+        TEnv.sleep(3000);
 
         System.out.println("===================");
         objectPool.restitution(arrayList.get(0));
@@ -80,11 +87,11 @@ public class ObjectCachedPoolUnit extends TestCase {
 
         System.out.println("===================");
 
-        for(int i=0;i<50;i++){
+        for(int i=0;i<100;i++){
             Global.getThreadPool().execute(()->{
-                Object objectId = objectPool.borrow();
+                TestPoolObject objectId = objectPool.borrow();
                 arrayList.add(objectId);
-                Logger.simple("borrow2->" +objectId);
+                System.out.println("borrow2->" +objectId);
             });
 
         }
@@ -96,46 +103,78 @@ public class ObjectCachedPoolUnit extends TestCase {
     public void testBorrowConcurrent() {
 
         Object pooledId = null;
-        ObjectPool objectPool = new ObjectPool().minSize(3).maxSize(1000).aliveTime(5).supplier(()->{
-            return item++;
+        ObjectPool<TestPoolObject> objectPool = new ObjectPool().minSize(3).maxSize(5000).aliveTime(500000).supplier(()->{
+            return  new TestPoolObject("element " + item++);
         }).create();
 
 
 
-        LinkedBlockingDeque<Object> arrayList = new LinkedBlockingDeque<Object>();
+        ConcurrentLinkedQueue<TestPoolObject> queue = new ConcurrentLinkedQueue<TestPoolObject>();
 
-        int count = 0;
+        AtomicInteger count = new AtomicInteger(0);
 
-        while(true){
-            Global.getThreadPool().execute(()->{
+        for(int i=0;i<10;i++){
+            Thread t = new Thread(()->{
+                while (count.incrementAndGet() < 100000) {
+                    if ((int) (Math.random() * 10 % 2) == 0) {
+                        TestPoolObject object = null;
+                        try {
+                            object = objectPool.borrow(1000);
+                        } catch (TimeoutException e) {
+                            e.printStackTrace();
+                        }
 
-                if((int)(Math.random()*10 % 2) == 0) {
-                    Object objectId = objectPool.borrow(1000);
-                    if(objectId!=null) {
-                        arrayList.offer(objectId);
-                        Logger.simple("borrow->" + objectId);
+                        if (object != null) {
+                            queue.offer(object);
+                            System.out.println("borrow->" + object);
+                        } else {
+                            System.out.println("borrow failed ================");
+                        }
                     } else {
-                        Logger.simple("borrow failed ================");
-                    }
-                } else {
-                    Object objectId = arrayList.poll();
-                    if(objectId!=null) {
-                        objectPool.restitution(objectId);
-                        Logger.simple("restitution->" + objectId);
+                        TestPoolObject object = queue.poll();
+                        if (object != null) {
+                            System.out.println("restitution->" + object);
+                            objectPool.restitution(object);
+                        }
                     }
                 }
             });
-            count++;
-            if(count >= 100000){
-                break;
-            }
+
+            t.start();
         }
 
-        count = count*10;
 
-        while(count>=0) {
-            count--;
+
+        while(count.incrementAndGet() < 100000) {
             TEnv.sleep(1);
+        }
+
+        while(queue.size() >0){
+            objectPool.restitution(queue.poll());
+        }
+    }
+
+    @Pool
+    public class TestPoolObject {
+        private String k;
+
+        public TestPoolObject(String k) {
+            this.k = k;
+        }
+
+        public String getK() {
+            return k;
+        }
+
+        public void setK(String k) {
+            this.k = k;
+        }
+
+        @Override
+        public String toString() {
+            return "testPoolObject{" +
+                    "k='" + k + '\'' +
+                    '}';
         }
     }
 }

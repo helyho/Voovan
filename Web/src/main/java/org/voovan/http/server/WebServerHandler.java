@@ -1,8 +1,8 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
-import org.voovan.http.HttpSessionParam;
 import org.voovan.http.HttpRequestType;
+import org.voovan.http.HttpSessionParam;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Request;
@@ -14,7 +14,8 @@ import org.voovan.http.websocket.WebSocketTools;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.FastThreadLocal;
+import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
@@ -22,6 +23,7 @@ import org.voovan.tools.log.Logger;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.TimeoutException;
 
 /**
  * WebServer Socket 事件处理类
@@ -33,8 +35,8 @@ import java.util.Vector;
  * Licence: Apache v2 License
  */
 public class WebServerHandler implements IoHandler {
-	ThreadLocal<HttpRequest> THREAD_HTTP_REQUEST = new ThreadLocal<HttpRequest>();
-	ThreadLocal<HttpResponse> THREAD_HTTP_RESPONSE = new ThreadLocal<HttpResponse>();
+	private static FastThreadLocal<HttpRequest> THREAD_HTTP_REQUEST = new FastThreadLocal<HttpRequest>();
+	private static FastThreadLocal<HttpResponse> THREAD_HTTP_RESPONSE = new FastThreadLocal<HttpResponse>();
 
 
 	private HttpDispatcher		httpDispatcher;
@@ -224,7 +226,9 @@ public class WebServerHandler implements IoHandler {
 	public HttpResponse disposeHttp(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 
 		//如果是长连接则填充响应报文
-		if (httpRequest.header().contain(HttpStatic.CONNECTION_STRING)) {
+		if(httpRequest.protocol().getVersion().endsWith(HttpStatic.HTTP_11_STRING)) {
+			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
+		} else if (httpRequest.header().contain(HttpStatic.CONNECTION_STRING)) {
 			if(httpRequest.header().get(HttpStatic.CONNECTION_STRING).toLowerCase().contains(HttpStatic.KEEP_ALIVE_STRING)) {
 				setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
 				httpResponse.header().put(HttpStatic.CONNECTION_STRING, httpRequest.header().get(HttpStatic.CONNECTION_STRING));
@@ -234,11 +238,6 @@ public class WebServerHandler implements IoHandler {
 				setAttribute(session, HttpSessionParam.KEEP_ALIVE, false);
 				httpResponse.header().remove(HttpStatic.CONNECTION_STRING);
 			}
-		}
-		//对于1.1协议的特殊处理
-		else if(httpRequest.protocol().getVersion().endsWith("1.1")){
-			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
-			httpResponse.header().put(HttpStatic.CONNECTION_STRING, HttpStatic.KEEP_ALIVE_STRING);
 		}
 
 		//============================是否启用 gzip 压缩============================
@@ -260,11 +259,11 @@ public class WebServerHandler implements IoHandler {
         httpDispatcher.process(httpRequest, httpResponse);
 
 		if (WebContext.isCache()) {
-			Long mark = httpRequest.getMark();
-			if (mark != null) {
-				Integer bodyMark = httpResponse.body().getMark();
-				if (bodyMark != null) {
-					httpResponse.setMark(mark << 32 >> 32 | bodyMark);
+			Long requestMark = httpRequest.getMark();
+			if (requestMark != null) {
+				int bodyMark = httpResponse.body().getMark();
+				if (bodyMark != 0) {
+					httpResponse.setMark(requestMark >> 32 << 32 | bodyMark); //清空低位, 保存 body 的 hash, 原低位存的时候头的长度
 				}
 			}
 		}
@@ -318,7 +317,7 @@ public class WebServerHandler implements IoHandler {
 	 * @param webSocketFrame WebSocket 帧对象
 	 * @return WebSocket 帧对象
 	 */
-	public synchronized WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
+	public WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
 
 		ByteBufferChannel byteBufferChannel = null;
 		if(!session.containAttribute("WebSocketByteBufferChannel")){
@@ -354,9 +353,9 @@ public class WebServerHandler implements IoHandler {
 
 			//判断解包是否有错
 			if(webSocketFrame.getErrorCode()==0){
-
+				ByteBuffer byteBuffer =byteBufferChannel.getByteBuffer();
 				try {
-					respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBufferChannel.getByteBuffer());
+					respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBuffer);
 				} finally {
 					byteBufferChannel.compact();
 					byteBufferChannel.clear();
@@ -409,12 +408,12 @@ public class WebServerHandler implements IoHandler {
 					session.syncSend(webSocketFrame);
 				} catch (SendMessageException e) {
 					session.close();
-					Logger.error("WebSocket Open event send frame error", e);
+					Logger.error("WebSocket Open event writeToChannel frame error", e);
 				}
 			}
 
 			//发送第一次心跳消息
-			Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			WebSocketDispatcher.HANDSHAKE_WHEEL_TIMER.addTask(new HashWheelTask() {
 				@Override
 				public void run() {
 					//发送 ping 消息
@@ -423,7 +422,7 @@ public class WebServerHandler implements IoHandler {
 						session.send(ping.toByteBuffer());
 					} catch (Exception e) {
 						session.close();
-						Logger.error("WebSocket send Ping frame error", e);
+						Logger.error("WebSocket writeToChannel Ping frame error", e);
 					}finally {
 						this.cancel();
 					}
@@ -441,24 +440,28 @@ public class WebServerHandler implements IoHandler {
 				(boolean)getAttribute(session, HttpSessionParam.KEEP_ALIVE) &&
 				webConfig.getKeepAliveTimeout() > 0) {
 
-			if (!keepAliveSessionList.contains(session)) {
+			if (Boolean.valueOf(false).equals(getAttribute(session, HttpSessionParam.KEEP_ALIVE_LIST_CONTAIN))) {
 				keepAliveSessionList.add(session);
+				setAttribute(session, HttpSessionParam.KEEP_ALIVE_LIST_CONTAIN, true);
 			}
 			//更新会话超时时间
 			refreshTimeout(session);
 
 		} else {
 			keepAliveSessionList.remove(session);
-			session.flush();
 			session.close();
 		}
 
-		request.release();
+		if(request!=null) {
+			request.release();
+		}
 	}
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		if(!(e instanceof MemoryReleasedException)) {
+		if(e instanceof TimeoutException){
+			session.close();
+		} else if(!(e instanceof MemoryReleasedException)) {
 			Logger.error("Http Server Error", e);
 		}
 	}

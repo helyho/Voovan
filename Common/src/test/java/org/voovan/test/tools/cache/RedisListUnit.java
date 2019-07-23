@@ -1,9 +1,9 @@
 package org.voovan.test.tools.cache;
 
-import org.voovan.tools.cache.RedisList;
+import junit.framework.TestCase;
+import org.voovan.tools.collection.RedisList;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
-import junit.framework.TestCase;
 
 import java.util.List;
 import java.util.ListIterator;

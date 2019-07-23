@@ -3,12 +3,10 @@ package org.voovan.network.udp;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.network.exception.RestartException;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 
 /**
@@ -22,18 +20,18 @@ import java.nio.channels.DatagramChannel;
  */
 public class UdpSession extends IoSession<UdpSocket> {
 	private DatagramChannel	datagramChannel;
-	private InetSocketAddress remoteAddress;
+	private InetSocketAddress inetSocketAddress;
 
 	/**
 	 * 构造函数
 	 *
 	 *            socket 上下文对象
 	 */
-	UdpSession(UdpSocket udpSocket, InetSocketAddress remoteAddress) {
+	UdpSession(UdpSocket udpSocket, InetSocketAddress inetSocketAddress) {
 		super(udpSocket);
 		if (udpSocket != null) {
-			this.datagramChannel = udpSocket.datagramChannel();
-			this.remoteAddress = remoteAddress;
+			this.datagramChannel = udpSocket.socketChannel();
+			this.inetSocketAddress = inetSocketAddress;
 
 			//UDP 是无状态协议,所以无心跳,也无空闲事件,所以这里设置为0
 			this.setIdleInterval(0);
@@ -77,10 +75,14 @@ public class UdpSession extends IoSession<UdpSocket> {
 	 */
 	public String remoteAddress() {
 		if (datagramChannel.isOpen()) {
-			return remoteAddress.getAddress().getHostAddress();
+			return inetSocketAddress.getAddress().getHostAddress();
 		} else {
 			return null;
 		}
+	}
+
+	public InetSocketAddress getInetSocketAddress() {
+		return inetSocketAddress;
 	}
 
 	/**
@@ -90,7 +92,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 	 */
 	public int remotePort() {
 		if (datagramChannel.isOpen()) {
-			return remoteAddress.getPort();
+			return inetSocketAddress.getPort();
 		} else {
 			return -1;
 		}
@@ -107,44 +109,6 @@ public class UdpSession extends IoSession<UdpSocket> {
 		} else {
 			return null;
 		}
-	}
-
-	@Override
-	protected int read0(ByteBuffer buffer) throws IOException {
-		int readSize = 0;
-		if (buffer != null) {
-			readSize = this.getReadByteBufferChannel().readHead(buffer);
-		}
-		return readSize;
-	}
-
-	@Override
-	protected synchronized int send0(ByteBuffer buffer) throws IOException {
-		int totalSendByte = 0;
-		long start = System.currentTimeMillis();
-		if (isOpen() && buffer != null) {
-			//循环发送直到全部内容发送完毕
-			while(buffer.remaining()!=0){
-				int sendSize = 0;
-				if(datagramChannel.getRemoteAddress()!=null) {
-					sendSize = datagramChannel.write(buffer);
-				} else {
-					sendSize = datagramChannel.send(buffer, this.remoteAddress);
-				}
-				if(sendSize == 0 ){
-					TEnv.sleep(1);
-					if(System.currentTimeMillis() - start >= socketContext().getSendTimeout()){
-						Logger.error("AioSession send timeout, Socket will be close");
-						close();
-						return -1;
-					}
-				} else {
-					start = System.currentTimeMillis();
-					totalSendByte += sendSize;
-				}
-			}
-		}
-		return totalSendByte;
 	}
 
 	@Override
@@ -175,18 +139,9 @@ public class UdpSession extends IoSession<UdpSocket> {
 	/**
 	 * 关闭会话
 	 */
+	@Override
 	public boolean close() {
-		this.cancelIdle();
 		return this.socketContext().close();
-	}
-
-	/**
-	 * 重连当前连接
-	 * @throws IOException IO 异常
-	 * @throws RestartException 重新启动的异常
-	 */
-	public void restart() throws IOException, RestartException {
-		socketContext().restart();
 	}
 
 	@Override

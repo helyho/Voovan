@@ -109,7 +109,8 @@ public class YAMLJSONDecodeUnit extends TestCase {
 						"  \n" +
 						"  \n" +
 						"  \n" +
-						"  \n";;
+						"  \n";
+
 		Logger.simple(jsonString);
 		Logger.simple(JSON.formatJson(YAML2JSON.convert(jsonString)));
 	}

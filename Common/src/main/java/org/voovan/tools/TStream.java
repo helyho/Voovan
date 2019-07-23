@@ -77,7 +77,7 @@ public class TStream {
 				break;
 			}
 			else{
-				resultBytes = TStream.byteArrayConcat(resultBytes, resultBytes.length, tempbyte, tempbyte.length);
+				resultBytes = TByte.byteArrayConcat(resultBytes, resultBytes.length, tempbyte, tempbyte.length);
 			}
 			
 			if(resultBytes.length>=splitByte.length){
@@ -113,32 +113,5 @@ public class TStream {
 		}
 		bufferedInputStream.close();
 		return byteOutputStream.size()==0?null:byteOutputStream.toByteArray();
-	}
-	
-	/**
-	 * 字节数组拼接
-	 * @param firstBytes		   首个字节数组		
-	 * @param firstBytesLength     首个字节数组长度
-	 * @param lastBytes			   拼接在后的字节数组
-	 * @param lastBytesLength      拼接在后的字节数组长度
-	 * @return 字节数组
-	 */
-	public static byte[] byteArrayConcat(byte[] firstBytes,int firstBytesLength, byte[] lastBytes,int lastBytesLength) {
-		if (lastBytes.length == 0)
-			return firstBytes;
-		byte[] target = new byte[firstBytesLength + lastBytesLength];
-		System.arraycopy(firstBytes, 0, target, 0, firstBytesLength);
-		System.arraycopy(lastBytes, 0, target, firstBytes.length,lastBytesLength);
-		return target;
-	}
-
-
-	public static int contains(byte[] mark, byte target){
-		for(int i = mark.length-1 ; i >= 0; i--){
-			if(mark[i] == target){
-				return i ;
-			}
-		}
-		return -1;
 	}
 }

@@ -1,8 +1,8 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
-import org.voovan.http.HttpSessionParam;
 import org.voovan.http.HttpRequestType;
+import org.voovan.http.HttpSessionParam;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
@@ -11,8 +11,8 @@ import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
-import org.voovan.network.aio.AioSocket;
-import org.voovan.tools.ByteBufferChannel;
+import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
@@ -54,40 +54,33 @@ public class WebServerFilter implements IoFilter {
 
 			try{
 				if(httpResponse.isAutoSend()) {
-					byte[] cacheBytes = null;
 					Long mark = httpResponse.getMark();
+                    if (WebContext.isCache() && mark!=null) {
+						byte[] cacheBytes = RESPONSE_CACHE.get(httpResponse.getMark());
 
-					if(mark==null){
-						httpResponse.send();
-					} else {
+                        if (cacheBytes == null) {
+                            ByteBufferChannel sendByteBufferChannel = session.getSendByteBufferChannel();
+                            int size = sendByteBufferChannel.size();
+                            httpResponse.send();
 
-						if (WebContext.isCache()) {
-							cacheBytes = RESPONSE_CACHE.get(mark);
-						}
-
-						if (cacheBytes == null) {
-							ByteBufferChannel sendByteBufferChannel = session.getSendByteBufferChannel();
-							synchronized (sendByteBufferChannel) {
-								int size = sendByteBufferChannel.size();
-								httpResponse.send();
-
-								if (size == 0) {
-									cacheBytes = new byte[session.getSendByteBufferChannel().size()];
-									sendByteBufferChannel.get(cacheBytes);
-									RESPONSE_CACHE.putIfAbsent(mark, cacheBytes);
-								}
-							}
-						} else {
-							session.sendByBuffer(ByteBuffer.wrap(cacheBytes));
-							httpResponse.clear();
-						}
-					}
+                            if (size == 0) {
+                                cacheBytes = new byte[session.getSendByteBufferChannel().size()];
+                                sendByteBufferChannel.get(cacheBytes);
+                                RESPONSE_CACHE.putIfAbsent(mark, cacheBytes);
+                            }
+                        } else {
+                            session.sendByBuffer(ByteBuffer.wrap(cacheBytes));
+                            httpResponse.clear();
+                        }
+                    } else {
+                        httpResponse.send();
+                    }
 				}
 			}catch(Exception e){
 				Logger.error(e);
 			}
 
-			return null;
+			return TByteBuffer.EMPTY_BYTE_BUFFER;
 		} else if(object instanceof WebSocketFrame){
 			WebSocketFrame webSocketFrame = (WebSocketFrame)object;
 			return webSocketFrame.toByteBuffer();
@@ -118,7 +111,7 @@ public class WebServerFilter implements IoFilter {
 			Request request = null;
 			try {
 				if (object instanceof ByteBuffer) {
-					request = HttpParser.parseRequest(byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
+					request = HttpParser.parseRequest(session, byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
 
 					if(request!=null){
 						return request;
@@ -129,7 +122,7 @@ public class WebServerFilter implements IoFilter {
 				} else {
 					return null;
 				}
-			} catch (IOException e) {
+			} catch (Exception e) {
 				Response response = new Response();
 				response.protocol().setStatus(500);
 
@@ -141,12 +134,9 @@ public class WebServerFilter implements IoFilter {
 
 				try {
 					response.send(session);
-					((AioSocket)session.socketContext()).socketChannel().shutdownInput();
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
-
-				session.close();
 
 				Logger.error("ParseRequest failed",e);
 				return null;

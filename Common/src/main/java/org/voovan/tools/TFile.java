@@ -2,7 +2,10 @@ package org.voovan.tools;
 
 import org.voovan.tools.log.Logger;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -510,7 +513,7 @@ public class TFile {
 	public static boolean mkdir(String dirPath){
 		File dir = new File(TFile.getFileDirectory(dirPath));
 		if(!dir.exists()) {
-			return dir.mkdir();
+			return dir.mkdirs();
 		} else{
 			return true;
 		}

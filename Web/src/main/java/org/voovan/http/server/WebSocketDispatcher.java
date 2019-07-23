@@ -1,8 +1,8 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
-import org.voovan.http.HttpSessionParam;
 import org.voovan.http.HttpRequestType;
+import org.voovan.http.HttpSessionParam;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.websocket.WebSocketFrame;
@@ -14,6 +14,8 @@ import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
+import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
@@ -35,6 +37,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class WebSocketDispatcher {
+	public static HashWheelTimer HANDSHAKE_WHEEL_TIMER = new HashWheelTimer(60, 1000);
+	static {
+		HANDSHAKE_WHEEL_TIMER.rotate();
+	}
+
 	private WebServerConfig webConfig;
 	private SessionManager sessionManager;
 
@@ -128,7 +135,7 @@ public class WebSocketDispatcher {
 		List<Object> routerInfo = findRouter(request);
 
 		if (routerInfo != null) {
-//			String routePath = (String)routerInfo.get(0);
+//			String routePath = (String)routerInfo.getThread(0);
 			WebSocketRouter webSocketRouter = (WebSocketRouter)routerInfo.get(1);
 
 			WebSocketSession webSocketSession = disposeSession(request, webSocketRouter);
@@ -147,7 +154,9 @@ public class WebSocketDispatcher {
 					//解包
 					result = webSocketRouter.filterDecoder(webSocketSession, result);
 					//触发 onRecive 事件
-					result = webSocketRouter.onRecived(webSocketSession, result);
+					if(result!=null) {
+						result = webSocketRouter.onRecived(webSocketSession, result);
+					}
 					//封包
 					responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
 				}
@@ -171,18 +180,21 @@ public class WebSocketDispatcher {
 				} else if (event == WebSocketEvent.PONG) {
 					final IoSession poneSession = session;
 					if(poneSession.isConnected()) {
-						Global.getThreadPool().execute(new Runnable() {
+						HANDSHAKE_WHEEL_TIMER.addTask(new HashWheelTask() {
 							@Override
 							public void run() {
-								TEnv.sleep(poneSession.socketContext().getReadTimeout() / 3);
 								try {
-									poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+									if(poneSession.socketContext().isConnected()) {
+										poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+									}
 								} catch (SendMessageException e) {
 									poneSession.close();
 									Logger.error("Send WebSocket ping error", e);
+								} finally {
+									this.cancel();
 								}
 							}
-						});
+						}, poneSession.socketContext().getReadTimeout() / 1000/ 3);
 					}
 				}
 			} catch (WebSocketFilterException e) {
@@ -210,8 +222,7 @@ public class WebSocketDispatcher {
 		//如果 session 不存在,创建新的 session
 		if (!webSocketSessions.containsKey(socketSession)) {
 			// 构建 session
-			WebSocketSession webSocketSession =
-					new WebSocketSession(httpSession.getSocketSession(), webSocketRouter, WebSocketType.SERVER);
+			WebSocketSession webSocketSession = new WebSocketSession(httpSession.getSocketSession(), webSocketRouter, WebSocketType.SERVER);
 
 			webSocketSessions.put(socketSession, webSocketSession);
 			return webSocketSession;

@@ -3,9 +3,10 @@ package org.voovan.tools.reflect;
 
 import org.voovan.Global;
 import org.voovan.tools.*;
-import org.voovan.tools.json.JSON;
-import org.voovan.tools.json.annotation.NotJSON;
+import org.voovan.tools.compiler.function.DynamicFunction;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.NotSerialization;
+import org.voovan.tools.security.THash;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -29,15 +30,285 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class TReflect {
+    private class EmptyClass {
+        private Object emptyField;
 
-    //这里不用 ConcurrentHashMap 的原因是 key 和 value 都不能是 null
-    private static Map<String, Field> FIELDS = new ConcurrentHashMap<String ,Field>();
-    private static Map<String, Method> METHODS = new ConcurrentHashMap<String ,Method>();
-    private static Map<String, Constructor> CONSTRUCTORS = new ConcurrentHashMap<String ,Constructor>();
-    private static Map<String, Field[]> FIELD_ARRAYS = new ConcurrentHashMap<String ,Field[]>();
-    private static Map<String, Method[]> METHOD_ARRAYS = new ConcurrentHashMap<String ,Method[]>();
-    private static Map<String, Constructor[]> CONSTRUCTOR_ARRAYS = new ConcurrentHashMap<String ,Constructor[]>();
-    private static Map<String, Boolean> CLASS_HIERARCHY = new ConcurrentHashMap<String ,Boolean>();
+        private EmptyClass() {
+        }
+
+        private void emptyMethod(){
+        }
+    }
+
+    public static Constructor EMPTY_CONSTRUCTOR;
+    public static Field EMPTY_FIELD;
+    public static Method EMPTY_METHOD;
+
+    static {
+        try {
+            EMPTY_CONSTRUCTOR = EmptyClass.class.getDeclaredConstructor(TReflect.class);
+            EMPTY_FIELD = EmptyClass.class.getDeclaredField("emptyField");
+            EMPTY_METHOD = EmptyClass.class.getDeclaredMethod("emptyMethod");
+        } catch (Exception e) {
+            Logger.error("Create empty reflect object failed", e);
+        }
+    }
+
+    private static Map<Integer, Field>           FIELDS               = new ConcurrentHashMap<Integer ,Field>();
+    private static Map<Integer, Method>          METHODS              = new ConcurrentHashMap<Integer ,Method>();
+    private static Map<Integer, Constructor>     CONSTRUCTORS         = new ConcurrentHashMap<Integer ,Constructor>();
+    private static Map<Class, Field[]>           FIELD_ARRAYS         = new ConcurrentHashMap<Class ,Field[]>();
+    private static Map<Integer, Method[]>        METHOD_ARRAYS        = new ConcurrentHashMap<Integer ,Method[]>();
+    private static Map<Integer, Constructor[]>   CONSTRUCTOR_ARRAYS   = new ConcurrentHashMap<Integer ,Constructor[]>();
+    private static Map<Class, String>            NAME_CLASS           = new ConcurrentHashMap<Class ,String>();
+    private static Map<String, Class>            CLASS_NAME           = new ConcurrentHashMap<String, Class>();
+    private static Map<Class, Boolean>           CLASS_BASIC_TYPE     = new ConcurrentHashMap<Class ,Boolean>();
+    private  static Map<Class, DynamicFunction>  FIELD_READER         = new ConcurrentHashMap<Class, DynamicFunction>();
+    private  static Map<Class, DynamicFunction>  FIELD_WRITER         = new ConcurrentHashMap<Class, DynamicFunction>();
+    private  static Map<Class, DynamicFunction>  CONSTRUCTOR_INVOKE   = new ConcurrentHashMap<Class, DynamicFunction>();
+
+
+    /**
+     * 注册一个类, 尝试采用 native 方式进行反射调用
+     * @param clazz 类对象
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public static void register(Class clazz) throws ReflectiveOperationException {
+        TReflect.genFieldReader(clazz);
+        TReflect.genFieldWriter(clazz);
+        TReflect.genConstructorInvoker(clazz);
+    }
+
+    /**
+     * 清理所有的已经注册的 native 调用类
+     */
+    public static void clearRegister() {
+        TReflect.FIELD_READER.clear();
+        TReflect.FIELD_WRITER.clear();
+        TReflect.CONSTRUCTOR_INVOKE.clear();
+    }
+
+    /**
+     * 生成对象的读取的动态编译方法
+     * @param clazz 目标对象类
+     */
+    private static void genFieldReader(Class clazz) throws ReflectiveOperationException {
+        Field[] fields = getFields(clazz);
+
+        //arg1 obj, arg2 fieldName
+        String code = "switch(fieldName) {";
+        for(Field field : fields) {
+            code = code + "case \"" + field.getName() + "\" : ";
+
+            String getMethodName = "get"+TString.upperCaseHead(field.getName())+"();";
+            code = code + "return obj."+getMethodName + " \r\n";
+        }
+        code = code + "default : return null;\r\n }";
+
+        DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"_READER", code);
+        dynamicFunction.addImport(clazz);
+        dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
+        dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //取值字段
+        dynamicFunction.compileCode();
+
+        FIELD_READER.put(clazz, dynamicFunction);
+    }
+
+    /**
+     * 生成对象的写入的动态编译方法
+     * @param clazz 目标对象类
+     */
+    private static void genFieldWriter(Class clazz) throws ReflectiveOperationException {
+        Field[] fields = getFields(clazz);
+
+        //arg1 obj, arg2 fieldName, arg3 value
+        String code = "switch(fieldName) {";
+        for(Field field : fields) {
+            code = code + "case \"" + field.getName() + "\" : ";
+
+            String setMethodName = "set"+TString.upperCaseHead(field.getName())+"(("+field.getType().getName()+")value); return true;";
+            code = code + "obj."+setMethodName + " \r\n";
+        }
+
+        code = code + "default : return null;\r\n }";
+
+        DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"_WRITER", code);
+        dynamicFunction.addImport(clazz);
+        dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
+        dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //写入字段
+        dynamicFunction.addPrepareArg(2, Object.class, "value");     //写入数据
+        dynamicFunction.compileCode();
+
+        FIELD_WRITER.put(clazz, dynamicFunction);
+    }
+
+    /**
+     * 生成构造方法的原生调用代码
+     * @param clazz 根绝这个对象的元信息生成静态调用代码
+     */
+    private static void genConstructorInvoker(Class clazz) {
+        Constructor[] constructors = getConstructors(clazz);
+        String paramtypeCode = "int paramTypeLength = params==null ? 0 : params.length;\r\n\r\n";
+
+        StringBuilder code = new StringBuilder();
+        for(Constructor constructor : constructors) {
+            Class[] paramTypes = constructor.getParameterTypes();
+            code.append(code.length() == 0 ? "if" : "else if");
+            code.append("(paramTypeLength == " + paramTypes.length );
+
+            //参数类型匹配
+            for(int i=0;i<paramTypes.length;i++) {
+                Class paramClazz = paramTypes[i];
+                code.append(" && params["+i+"] instanceof " + TReflect.getClassName(paramClazz));
+            }
+
+            code.append(" ) {");
+
+            code.append("return new " + TReflect.getClassName(clazz)+"(");
+
+            //拼装方法参数代码, 类似: (java.lang.String) params[i],
+            if(paramTypes.length > 0) {
+                for (int i = 0; i < paramTypes.length; i++) {
+                    code.append("(" + TReflect.getClassName(paramTypes[i]) + ") params[" + i + "],");
+                }
+                code.setLength(code.length() - 1);
+            }
+
+            code.append(");}\r\n");
+        }
+
+        code.insert(0, paramtypeCode);
+
+        code.append("else { return null; }");
+
+        DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"_CONSTRUCTOR", code.toString());
+        dynamicFunction.addImport(TReflect.class);
+        dynamicFunction.addImport(clazz);
+        dynamicFunction.addPrepareArg(0, Class.class, "clazz");     //写入数据
+        dynamicFunction.addPrepareArg(1, Object[].class, "params");     //写入数据
+
+        try {
+            //编译代码
+            dynamicFunction.compileCode();
+        } catch (ReflectiveOperationException e) {
+            Logger.error("TReflect.genMethodInvoker error", e);
+        }
+
+        CONSTRUCTOR_INVOKE.put(clazz, dynamicFunction);
+        if(Global.IS_DEBUG_MODE) {
+            Logger.debug(code);
+        }
+    }
+
+    /**
+     * 通过原生调用的方式获取 Field 的值
+     * @param obj  对象
+     * @param fieldName field 名称
+     * @param <T> field 的类型
+     * @return  Field 的值
+     * @throws ReflectiveOperationException 调用异常
+     */
+    public static <T> T getFieldValueNatvie(Object obj, String fieldName) throws ReflectiveOperationException {
+        DynamicFunction dynamicFunction = FIELD_READER.get(obj.getClass());
+
+        if(dynamicFunction == null) {
+            return null;
+        }
+
+        try {
+            return dynamicFunction.call(obj, fieldName);
+        } catch (Exception e) {
+            if (!(e instanceof ReflectiveOperationException)) {
+                throw new ReflectiveOperationException(e.getMessage(), e);
+            } else {
+                throw  (ReflectiveOperationException) e;
+            }
+        }
+    }
+
+    /**
+     * 通过原生调用的方式设置 Field 的值
+     * @param obj 对象
+     * @param fieldName field 名称
+     * @param value Field 的值
+     * @throws ReflectiveOperationException 反射异常
+     * @return true:成功, false:失败
+     */
+    public static Boolean setFieldValueNatvie(Object obj, String fieldName, Object value) throws ReflectiveOperationException {
+        DynamicFunction dynamicFunction = FIELD_WRITER.get(obj.getClass());
+
+        if(dynamicFunction == null) {
+            return false;
+        }
+
+        try {
+            return dynamicFunction.call(obj, fieldName, value);
+        } catch (Exception e) {
+            if (!(e instanceof ReflectiveOperationException)) {
+                throw new ReflectiveOperationException(e.getMessage(), e);
+            } else {
+                throw  (ReflectiveOperationException) e;
+            }
+        }
+    }
+
+    /**
+     * 通过原生调用一个方法
+     * @param clazz 对象
+     * @param params 方法参数
+     * @param <T> 方法返回值的范型
+     * @return 方法返回值
+     * @throws Exception 调用异常
+     */
+    public static <T> T newInstanceNative(Class clazz, Object[] params) throws Exception {
+
+        DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(clazz);
+
+        if(dynamicFunction == null) {
+            return null;
+        }
+
+        try {
+            return dynamicFunction.call(clazz, params);
+        } catch (Exception e) {
+            if (!(e instanceof ReflectiveOperationException)) {
+                throw new ReflectiveOperationException(e.getMessage(), e);
+            } else {
+                throw  (ReflectiveOperationException) e;
+            }
+        }
+    }
+
+    /**
+     * 根据 Class 对象获取类的完全现定名
+     * @param clazz Class 对象
+     * @return 类的完全现定名
+     */
+    public static String getClassName(Class clazz){
+        String canonicalName = NAME_CLASS.get(clazz);
+        if(canonicalName == null){
+            canonicalName = clazz.getCanonicalName();
+            NAME_CLASS.put(clazz, canonicalName);
+        }
+
+        return canonicalName;
+    }
+
+    /**
+     * 根据类的完全现定名, 获取 Class
+     * @param className 类的完全现定名
+     * @return Class 对象
+     * @throws ClassNotFoundException 类没有找到的异常
+     */
+    public static Class getClassByName(String className) throws ClassNotFoundException {
+        Class clazz = CLASS_NAME.get(className);
+        if(clazz == null){
+            clazz = Class.forName(className);
+            CLASS_NAME.put(className, clazz);
+        }
+
+        return clazz;
+    }
 
     /**
      * 获得类所有的Field
@@ -46,25 +317,32 @@ public class TReflect {
      * @return Field数组
      */
     public static Field[] getFields(Class<?> clazz) {
-        String marker = clazz.getCanonicalName();
-        Field[] fields = FIELD_ARRAYS.get(marker);
+        Field[] fields = FIELD_ARRAYS.get(clazz);
 
+        Class loopClazz = clazz;
         if(fields==null){
             LinkedHashSet<Field> fieldArray = new LinkedHashSet<Field>();
-            for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
-                Field[] tmpFields = clazz.getDeclaredFields();
+            for (; loopClazz!=null && loopClazz != Object.class; loopClazz = loopClazz.getSuperclass()) {
+                Field[] tmpFields = loopClazz.getDeclaredFields();
+                for (Field field : tmpFields){
+                    field.setAccessible(true);
+                }
                 fieldArray.addAll(Arrays.asList(tmpFields));
             }
 
             fields = fieldArray.toArray(new Field[]{});
 
-            if(marker!=null && fields!=null) {
-                FIELD_ARRAYS.put(marker, fields);
+            if(clazz!=null) {
+                FIELD_ARRAYS.put(clazz, fields);
                 fieldArray.clear();
             }
         }
 
         return fields;
+    }
+
+    private static Integer getFieldMark(Class<?> clazz, String fieldName) {
+        return THash.HashFNV1(clazz.getName()) ^ THash.HashFNV1(fieldName);
     }
 
     /**
@@ -76,28 +354,32 @@ public class TReflect {
      */
     public static Field findField(Class<?> clazz, String fieldName) {
 
-        String mark = new StringBuilder(clazz.getCanonicalName()).append(Global.CHAR_SHAPE).append(fieldName).toString();
+        Integer mark = getFieldMark(clazz, fieldName);
 
         Field field = FIELDS.get(mark);
 
+        Class loopClazz = clazz;
+
         if(field==null){
 
-            for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+            for (; loopClazz!=null && loopClazz != Object.class; loopClazz = loopClazz.getSuperclass()) {
                 try {
-                    field = clazz.getDeclaredField(fieldName);
+                    field = loopClazz.getDeclaredField(fieldName);
+                    field.setAccessible(true);
                     break;
-                }catch(ReflectiveOperationException e){
+                } catch(ReflectiveOperationException e){
                     field = null;
                 }
             }
 
-            if(mark!=null && field!=null) {
+            if(mark!=null) {
+                field = field == null ? EMPTY_FIELD : field;
                 FIELDS.put(mark, field);
             }
 
         }
 
-        return field;
+        return field == EMPTY_FIELD ? null : field;
     }
 
     /**
@@ -106,27 +388,28 @@ public class TReflect {
      * @param clazz   类对象
      * @param fieldName Field 名称
      * @return Field 对象
-     * @throws ReflectiveOperationException 反射异常
      */
-    public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName)
-            throws ReflectiveOperationException{
+    public static Field findFieldIgnoreCase(Class<?> clazz, String fieldName) {
 
-        String marker = new StringBuilder(clazz.getCanonicalName()).append(Global.CHAR_SHAPE).append(fieldName).toString();
+        Integer marker = getFieldMark(clazz, fieldName);
 
         Field field = FIELDS.get(marker);
         if (field==null){
             for (Field fieldItem : getFields(clazz)) {
                 if (fieldItem.getName().equalsIgnoreCase(fieldName) || fieldItem.getName().equalsIgnoreCase(TString.underlineToCamel(fieldName))) {
-                    if(marker!=null && fieldItem!=null) {
-                        FIELDS.put(marker, fieldItem);
+                    if(marker!=null) {
+                        fieldItem.setAccessible(true);
                         field = fieldItem;
                         break;
                     }
 
                 }
             }
+
+            field = field == null ? EMPTY_FIELD : field;
+            FIELDS.put(marker, field);
         }
-        return field;
+        return field == EMPTY_FIELD ? null : field;
     }
 
     /**
@@ -190,14 +473,12 @@ public class TReflect {
         return genericClazzs;
     }
 
-
     /**
      * 获取 Field 的范型类型
      * @param field  field 对象
      * @return 返回范型类型数组
-     * @throws ClassNotFoundException 类找不到异常
      */
-    public static Class[] getFieldGenericType(Field field) throws ClassNotFoundException {
+    public static Class[] getFieldGenericType(Field field) {
         Type fieldType = field.getGenericType();
         return getGenericClass((ParameterizedType)fieldType);
     }
@@ -213,9 +494,30 @@ public class TReflect {
     @SuppressWarnings("unchecked")
     static public <T> T getFieldValue(Object obj, String fieldName)
             throws ReflectiveOperationException {
-        Field field = findField(obj.getClass(), fieldName);
-        field.setAccessible(true);
-        return (T) field.get(obj);
+        //尝试 native 方法
+        T t = getFieldValueNatvie(obj, fieldName);
+        if(t==null) {
+            Field field = findField(obj.getClass(), fieldName);
+            t = (T) field.get(obj);
+        }
+
+        return t;
+    }
+
+
+    /**
+     * 更新对象中指定的Field的值
+     * 		注意:对 private 等字段有效
+     *
+     * @param obj  对象
+     * @param field field 对象
+     * @param fieldValue field 值
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public static void setFieldValue(Object obj, Field field, Object fieldValue)
+            throws ReflectiveOperationException {
+
+        field.set(obj, fieldValue);
     }
 
     /**
@@ -227,11 +529,14 @@ public class TReflect {
      * @param fieldValue field 值
      * @throws ReflectiveOperationException 反射异常
      */
-    public static void setFieldValue(Object obj, String fieldName,
-                                     Object fieldValue) throws ReflectiveOperationException {
-        Field field = findField(obj.getClass(), fieldName);
-        field.setAccessible(true);
-        field.set(obj, fieldValue);
+    public static void setFieldValue(Object obj, String fieldName, Object fieldValue)
+            throws ReflectiveOperationException {
+        //尝试 native 方法
+        boolean isSucc = setFieldValueNatvie(obj, fieldName, fieldValue);
+        if(!isSucc) {
+            Field field = findField(obj.getClass(), fieldName);
+            setFieldValue(obj, field, fieldValue);
+        }
     }
 
     /**
@@ -243,20 +548,27 @@ public class TReflect {
      */
     public static Map<Field, Object> getFieldValues(Object obj)
             throws ReflectiveOperationException {
-        LinkedHashMap<Field, Object> result = new LinkedHashMap<Field, Object>();
+        HashMap<Field, Object> result = new HashMap<Field, Object>();
         Field[] fields = getFields(obj.getClass());
         for (Field field : fields) {
 
             //静态属性不序列化
-            if(Modifier.isStatic(field.getModifiers())){
+            if((field.getModifiers() & 0x00000008) != 0){
                 continue;
             }
 
-            field.setAccessible(true);
             Object value = field.get(obj);
             result.put(field, value);
         }
         return result;
+    }
+
+    private static int getMethodParamTypeMark(Class<?> clazz, String name, Class<?>... paramTypes) {
+        int hashCode = THash.HashFNV1(clazz.getName()) ^ THash.HashFNV1(name);
+        for(Class<?> paramType : paramTypes){
+            hashCode = hashCode ^ THash.HashFNV1(paramType.getName());
+        }
+        return hashCode;
     }
 
     /**
@@ -265,35 +577,36 @@ public class TReflect {
      * @param name		   方法名
      * @param paramTypes   参数类型
      * @return			   方法对象
-     * @throws ReflectiveOperationException 反射异常
      */
-    public static Method findMethod(Class<?> clazz, String name,
-                                    Class<?>... paramTypes) throws ReflectiveOperationException {
-        StringBuilder markBuilder = new StringBuilder(clazz.getCanonicalName()).append(Global.CHAR_SHAPE).append(name);
-        for(Class<?> paramType : paramTypes){
-            markBuilder.append("$").append(paramType.getCanonicalName());
-        }
-
-        String marker = markBuilder.toString();
+    public static Method findMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
+        Integer marker = getMethodParamTypeMark(clazz, name, paramTypes);
 
         Method method = METHODS.get(marker);
+
         if (method==null){
 
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 try {
                     method = clazz.getDeclaredMethod(name, paramTypes);
+                    method.setAccessible(true);
                     break;
-                }catch(ReflectiveOperationException e){
+                } catch(ReflectiveOperationException e){
                     method = null;
                 }
             }
 
-            if(marker!=null && method!=null) {
+            if(marker!=null) {
+                method = method == null ? EMPTY_METHOD : method;
                 METHODS.put(marker, method);
             }
         }
 
-        return method;
+        return method == EMPTY_METHOD ? null : method;
+    }
+
+    private static int getMethodParamCountMark(Class<?> clazz, String name, int paramCount) {
+        int hashCode = THash.HashFNV1(clazz.getName()) ^ THash.HashFNV1(name) ^ paramCount;
+        return hashCode;
     }
 
     /**
@@ -302,11 +615,9 @@ public class TReflect {
      * @param name		   方法名
      * @param paramCount   参数数量
      * @return			   方法对象
-     * @throws ReflectiveOperationException 反射异常
      */
-    public static Method[] findMethod(Class<?> clazz, String name,
-                                      int paramCount) throws ReflectiveOperationException {
-        String marker = new StringBuilder(clazz.getCanonicalName()).append(Global.CHAR_SHAPE).append(name).append(Global.CHAR_AT).append(paramCount).toString();
+    public static Method[] findMethod(Class<?> clazz, String name, int paramCount) {
+        Integer marker = getMethodParamCountMark(clazz, name, paramCount);
 
         Method[] methods = METHOD_ARRAYS.get(marker);
 
@@ -315,13 +626,14 @@ public class TReflect {
             Method[] allMethods = getMethods(clazz, name);
             for (Method method : allMethods) {
                 if (method.getParameterTypes().length == paramCount) {
+                    method.setAccessible(true);
                     methodList.add(method);
                 }
             }
 
             methods = methodList.toArray(new Method[]{});
 
-            if(marker!=null && methods!=null) {
+            if(marker!=null) {
                 METHOD_ARRAYS.put(marker, methods);
                 methodList.clear();
             }
@@ -339,7 +651,7 @@ public class TReflect {
 
         Method[] methods = null;
 
-        String marker = clazz.getCanonicalName();
+        Integer marker = clazz.hashCode();
 
         methods = METHOD_ARRAYS.get(marker);
 
@@ -347,12 +659,15 @@ public class TReflect {
             LinkedHashSet<Method> methodList = new LinkedHashSet<Method>();
             for (; clazz!=null && clazz != Object.class; clazz = clazz.getSuperclass()) {
                 Method[] tmpMethods = clazz.getDeclaredMethods();
+                for(Method method : tmpMethods){
+                    method.setAccessible(true);
+                }
                 methodList.addAll(Arrays.asList(tmpMethods));
             }
 
             methods = methodList.toArray(new Method[]{});
 
-            if(marker!=null && methods!=null) {
+            if(marker!=null) {
                 METHOD_ARRAYS.put(marker, methods);
                 methodList.clear();
             }
@@ -362,6 +677,11 @@ public class TReflect {
         return methods;
     }
 
+    private static int getMethodMark(Class<?> clazz, String name) {
+        int hashCode = THash.HashFNV1(clazz.getName()) ^ THash.HashFNV1(name);
+        return hashCode;
+    }
+
     /**
      * 获取类的特定方法的集合
      * 		类中可能存在同名方法
@@ -369,11 +689,11 @@ public class TReflect {
      * @param name		方法名
      * @return Method 对象数组
      */
-    public static Method[] getMethods(Class<?> clazz,String name) {
+    public static Method[] getMethods(Class<?> clazz, String name) {
 
         Method[] methods = null;
 
-        String marker = new StringBuilder(clazz.getCanonicalName()).append(Global.CHAR_SHAPE).append(name).toString();
+        Integer marker = getMethodMark(clazz, name);
         methods = METHOD_ARRAYS.get(marker);
         if(methods==null){
 
@@ -386,7 +706,7 @@ public class TReflect {
 
             methods = methodList.toArray(new Method[0]);
 
-            if(marker!=null && methods!=null) {
+            if(marker!=null) {
                 METHOD_ARRAYS.put(marker, methods);
                 methodList.clear();
             }
@@ -400,9 +720,8 @@ public class TReflect {
      * @param method  method 对象
      * @param parameterIndex 参数索引(大于0)参数索引位置[第一个参数为0,以此类推], (-1) 返回值
      * @return 返回范型类型数组
-     * @throws ClassNotFoundException 类找不到异常
      */
-    public static Class[] getMethodParameterGenericType(Method method,int parameterIndex) throws ClassNotFoundException {
+    public static Class[] getMethodParameterGenericType(Method method, int parameterIndex) {
         Class[] result = null;
         Type parameterType;
 
@@ -435,94 +754,162 @@ public class TReflect {
      * 推荐使用的方法,这个方法会自动寻找参数匹配度最好的方法并执行
      * 对对象执行一个通过 方法名和参数列表选择的方法
      * @param obj				执行方法的对象,如果调用静态方法直接传 Class 类型的对象
-     * @param name				执行方法名
-     * @param args		方法参数
-     * @param <T> 范型
+     * @param methodName		执行方法名
+     * @param args		        方法参数
+     * @param <T>               范型
      * @return					方法返回结果
      * @throws ReflectiveOperationException		反射异常
      */
-    public static <T> T invokeMethod(Object obj, String name, Object... args)
+    public static <T> T invokeMethod(Object obj, String methodName, Object... args)
             throws ReflectiveOperationException {
         if(args==null){
             args = new Object[0];
         }
-        Class<?>[] parameterTypes = getArrayClasses(args);
-        Method method = null;
+
+        Exception exception = null;
+        Class<?>[] paramTypes = getArrayClasses(args);
+
         Class objClass = (obj instanceof Class) ? (Class)obj : obj.getClass();
-        try {
-            method = findMethod(objClass, name, parameterTypes);
-            method.setAccessible(true);
-            return (T)method.invoke(obj, args);
-        }catch(Exception e){
-            Exception lastExecption = e;
+        Method method = findMethod(obj.getClass(), methodName, paramTypes);
 
-            if(e instanceof NoSuchMethodException || method == null) {
-                //找到这个名称的所有方法
-                Method[] methods = findMethod(objClass, name, parameterTypes.length);
-                for (Method similarMethod : methods) {
-                    Type[] methodParamTypes = similarMethod.getGenericParameterTypes();
-                    //匹配参数数量相等的方法
-                    if (methodParamTypes.length == args.length) {
-                        try{
-                            return (T)similarMethod.invoke(obj, args);
-                        } catch (Exception ex){
-                            //不处理
-                        }
+        if(method!=null) {
+            return (T) method.invoke(obj, args);
+        } else {
+            Method[] methods = null;
+            methods = findMethod(objClass, methodName, args.length);
 
-                        try {
-                            Object[] convertedParams = new Object[args.length];
-                            for (int i = 0; i < methodParamTypes.length; i++) {
-                                Type parameterType = methodParamTypes[i];
+            //如果失败循环尝试各种相同类型的方法
+            for(Method methodItem : methods) {
+                try {
+                    T result = (T) methodItem.invoke(obj, args);
+                    //匹配到合适则加入缓存
+                    METHODS.put(getMethodParamTypeMark(objClass, methodName, paramTypes), methodItem);
+                    return result;
+                } catch (Exception e) {
+                    Logger.warn("Method: " + getClassName(objClass) + "#" +methodName + "("+args.length+") reflect invoke, can be use strict parameter type to improve performance");
 
-                                //如果范型类型没有指定则使用 Object 作为默认类型
-                                if(parameterType instanceof TypeVariable){
-                                    parameterType = Object.class;
-                                }
-
-                                //参数类型转换
-                                String value = "";
-
-                                //这里对参数类型是 Object或者是范型 的提供支持
-                                if (parameterType != Object.class && args[i] != null) {
-                                    Class argClass = args[i].getClass();
-
-                                    //复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
-                                    if (args[i] instanceof Collection ||
-                                            args[i] instanceof Map ||
-                                            argClass.isArray() ||
-                                            !TReflect.isBasicType(argClass)) {
-                                        //增加对于基本类型 Array 的支持
-                                        if(argClass.isArray() && TReflect.isBasicType(argClass.getComponentType())) {
-                                            convertedParams[i]  = args[i];
-                                            continue;
-                                        } else {
-                                            value = JSON.toJSON(args[i]);
-                                        }
-                                    } else {
-                                        value = args[i].toString();
-                                    }
-                                    convertedParams[i] = TString.toObject(value, parameterType);
-                                } else {
-                                    convertedParams[i] = args[i];
-                                }
-                            }
-                            method = similarMethod;
-                            method.setAccessible(true);
-                            return (T)method.invoke(obj, convertedParams);
-                        } catch (Exception ex) {
-                            lastExecption = ex;
-                            continue;
-                        }
+                    if(Global.IS_DEBUG_MODE) {
+                        e.printStackTrace();
                     }
                 }
             }
+        }
 
-            if ( !(lastExecption instanceof ReflectiveOperationException) ) {
-                lastExecption = new ReflectiveOperationException(lastExecption.getMessage(), lastExecption);
+        if (!(exception instanceof ReflectiveOperationException)) {
+            exception = new ReflectiveOperationException(exception.getMessage(), exception);
+        } else {
+            exception = (ReflectiveOperationException) exception;
+        }
+
+        throw (ReflectiveOperationException)exception;
+    }
+
+    public static int getConstructorParamTypeMark(Class<?> clazz, Class<?>... paramTypes) {
+        int hashCode = THash.HashFNV1(clazz.getName());
+        for(Class<?> paramType : paramTypes){
+            hashCode = hashCode ^ THash.HashFNV1(paramType.getName());
+        }
+        return hashCode;
+    }
+
+    /**
+     * 查找类中的构造方法
+     * @param clazz        类对象
+     * @param paramTypes   参数类型
+     * @return			   方法对象
+     */
+    public static Constructor findConstructor(Class<?> clazz, Class<?>... paramTypes) {
+        Integer marker = getConstructorParamTypeMark(clazz, paramTypes);
+
+        Constructor constructor = CONSTRUCTORS.get(marker);
+
+        if (constructor==null){
+
+            try {
+                constructor = clazz.getDeclaredConstructor(paramTypes);
+                if(constructor!=null) {
+                    constructor.setAccessible(true);
+                }
+            } catch (NoSuchMethodException e) {
+                constructor = null;
+            }
+        }
+
+        if(marker!=null) {
+            constructor = constructor == null ? EMPTY_CONSTRUCTOR : constructor;
+            CONSTRUCTORS.put(marker, constructor);
+        }
+
+        return constructor == EMPTY_CONSTRUCTOR ? null : constructor;
+    }
+
+    private static int getConstructorParamCountMark(Class<?> clazz, int paramCount) {
+        int hashCode = THash.HashFNV1(clazz.getName()) ^ paramCount;
+        return hashCode;
+    }
+
+    /**
+     * 查找类中的构造方法(使用参数数量)
+     * @param clazz        类对象
+     * @param paramCount   参数数量
+     * @return			   方法对象
+     */
+    public static Constructor[] findConstructor(Class<?> clazz, int paramCount) {
+        Integer marker = getConstructorParamCountMark(clazz, paramCount);
+
+        Constructor[] constructors = CONSTRUCTOR_ARRAYS.get(marker);
+
+        if (constructors==null){
+            LinkedHashSet<Constructor> constructorList = new LinkedHashSet<Constructor>();
+            Constructor[] allConstructor = getConstructors(clazz);
+            for (Constructor constructor : allConstructor) {
+                if (constructor.getParameterTypes().length == paramCount) {
+                    constructor.setAccessible(true);
+                    constructorList.add(constructor);
+                }
             }
 
-            throw (ReflectiveOperationException)lastExecption;
+            constructors = constructorList.toArray(new Constructor[]{});
+
+            if(marker!=null) {
+                CONSTRUCTOR_ARRAYS.put(marker, constructors);
+                constructorList.clear();
+            }
         }
+
+        return constructors;
+    }
+
+    /**
+     * 获取类的构造方法集合
+     * @param clazz		类对象
+     * @return Method 对象数组
+     */
+    public static Constructor[] getConstructors(Class<?> clazz) {
+
+        Constructor[] constructors = null;
+
+        Integer marker = clazz.hashCode();
+
+        constructors = CONSTRUCTOR_ARRAYS.get(marker);
+
+        if(constructors==null){
+            LinkedHashSet<Constructor> constructorList = new LinkedHashSet<Constructor>();
+            Constructor[] allConstructors = clazz.getDeclaredConstructors();
+            for(Constructor constructor : allConstructors){
+                constructor.setAccessible(true);
+            }
+            constructorList.addAll(Arrays.asList(allConstructors));
+
+            constructors = constructorList.toArray(new Constructor[]{});
+
+            if(marker!=null) {
+                CONSTRUCTOR_ARRAYS.put(marker, constructors);
+                CONSTRUCTOR_ARRAYS.clear();
+            }
+        }
+
+        return constructors;
     }
 
     /**
@@ -536,10 +923,6 @@ public class TReflect {
      */
     public static <T> T newInstance(Class<T> clazz, Object ...args)
             throws ReflectiveOperationException {
-
-        if(args==null){
-            args = new Object[0];
-        }
 
         Class targetClazz = clazz;
 
@@ -558,108 +941,65 @@ public class TReflect {
             targetClazz = LinkedHashMap.class;
         }
 
-
-        Class<?>[] parameterTypes = getArrayClasses(args);
-
-        StringBuilder markBuilder = new StringBuilder(targetClazz.getCanonicalName());
-        for(Class<?> paramType : parameterTypes){
-            markBuilder.append("$").append(paramType.getCanonicalName());
+        if(args==null){
+            args = new Object[0];
         }
 
-        String mark = markBuilder.toString();
+        T result = null;
+        Exception exception = null;
 
-        Constructor<T> constructor = CONSTRUCTORS.get(mark);
-
+        //尝试 native 方法
         try {
+            result = (T)newInstanceNative(targetClazz, args);
+        } catch (Exception e) {
+            Logger.warn("Constructor: " + getClassName(targetClazz) + "("+args.length+") native invoke, can be use strict parameter type to improve performance");
 
-            if (constructor==null){
-                if (args.length == 0) {
-                    try {
-                        constructor = targetClazz.getConstructor();
-                    }catch (Exception e) {
-                        return (T) TUnsafe.getUnsafe().allocateInstance(targetClazz);
-                    }
-                } else {
-                    constructor = targetClazz.getConstructor(parameterTypes);
-                }
-
-                if(mark!=null && constructor!=null) {
-                    CONSTRUCTORS.put(mark, constructor);
-                }
-            }
-
-            return constructor.newInstance(args);
-
-        }catch(Exception e){
-            Exception lastExecption = e;
-            if(constructor==null) {
-
-                //缓存构造函数
-                mark = targetClazz.getCanonicalName();
-                Constructor[] constructors =  CONSTRUCTOR_ARRAYS.get(mark);
-                if(constructors==null){
-
-                    constructors = targetClazz.getConstructors();
-
-                    if(mark!=null && constructor!=null) {
-                        CONSTRUCTOR_ARRAYS.put(mark, constructors);
-                    }
-                }
-
-                for (Constructor similarConstructor : constructors) {
-                    Class[] methodParamTypes = similarConstructor.getParameterTypes();
-                    //匹配参数数量相等的方法
-                    if (methodParamTypes.length == args.length) {
-
-                        try{
-                            return (T) similarConstructor.newInstance(args);
-                        } catch (Exception ex){
-                            //不处理
-                        }
-
-                        try {
-                            Object[] convertedParams = new Object[args.length];
-                            for (int i = 0; i < methodParamTypes.length; i++) {
-                                Class parameterType = methodParamTypes[i];
-                                //参数类型转换
-                                String value = "";
-
-                                Class parameterClass = args[i].getClass();
-
-                                //复杂的对象通过 JSON转换成字符串,再转换成特定类型的对象
-                                if (args[i] instanceof Collection ||
-                                        args[i] instanceof Map ||
-                                        parameterClass.isArray() ||
-                                        !TReflect.isBasicType(parameterClass)) {
-                                    value = JSON.toJSON(args[i]);
-                                } else {
-                                    value = args[i].toString();
-                                }
-
-                                convertedParams[i] = TString.toObject(value, parameterType);
-                            }
-                            constructor = similarConstructor;
-
-                            return constructor.newInstance(convertedParams);
-                        } catch (Exception ex) {
-                            continue;
-                        }
-                    }
-                }
-            }
-
-            if ( !(lastExecption instanceof ReflectiveOperationException) ) {
-                lastExecption = new ReflectiveOperationException(lastExecption.getMessage(), lastExecption);
-            }
-
-            //尝试使用 Unsafe 分配
-            try{
-                return (T)allocateInstance(targetClazz);
-            }catch(Exception ex) {
-                throw e;
+            if(Global.IS_DEBUG_MODE) {
+                e.printStackTrace();
             }
         }
 
+        if(result != null) {
+            return result;
+        }
+
+        Class<?>[] paramTeypes = getArrayClasses(args);
+        Constructor constructor = findConstructor(targetClazz, paramTeypes);
+
+        if(constructor!=null) {
+            return (T) constructor.newInstance(args);
+        } else {
+            //如果失败循环尝试各种构造函数构造
+            Constructor[] constructors = null;
+            constructors = findConstructor(targetClazz, args.length);
+            for(Constructor constructorItem : constructors) {
+                try {
+                     result = (T) constructorItem.newInstance(args);
+                    //匹配到合适的则加入缓存
+                    CONSTRUCTORS.put(getConstructorParamTypeMark(clazz, paramTeypes), constructorItem);
+
+                    return result;
+                } catch (Exception e) {
+                    Logger.warn("Constructor: " + getClassName(targetClazz) + "("+args.length+") reflect invoke, can be use strict parameter type to improve performance");
+                    if(Global.IS_DEBUG_MODE) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        //全都失败用 unsafe 构造对象
+        try {
+            return (T) TUnsafe.getUnsafe().allocateInstance(targetClazz);
+        } catch (Exception e) {
+            if (!(e instanceof ReflectiveOperationException)) {
+                exception = new ReflectiveOperationException(e.getMessage(), e);
+            } else {
+                exception = (ReflectiveOperationException) e;
+            }
+
+            throw (ReflectiveOperationException)exception;
+        }
     }
 
     /**
@@ -671,9 +1011,8 @@ public class TReflect {
      * @throws ReflectiveOperationException 反射异常
      */
     public static <T> T newInstance(String className, Object ...parameters) throws ReflectiveOperationException {
-        @SuppressWarnings("unchecked")
-        Class<T> clazz = (Class<T>) Class.forName(className);
-        return newInstance(clazz,parameters);
+        Class<T> clazz = getClassByName(className);
+        return newInstance(clazz, parameters);
     }
 
     /**
@@ -935,9 +1274,9 @@ public class TReflect {
                                         value.getClass().getName());
                             }
                         }
-                        setFieldValue(obj, fieldName, value);
+                        setFieldValue(obj, field, value);
                     }catch(Exception e){
-                        throw new ReflectiveOperationException("Fill object " + obj.getClass().getCanonicalName() +
+                        throw new ReflectiveOperationException("Fill object " + getClassName(obj.getClass()) +
                                 Global.CHAR_SHAPE+fieldName+" failed", e);
                     }
                 }
@@ -967,12 +1306,21 @@ public class TReflect {
      * @return 转后的 Map
      * @throws ReflectiveOperationException 反射异常
      */
-    public static Map<String, Object> getMapfromObject(Object obj, boolean allField) throws ReflectiveOperationException{
-
+    public static Map<String, Object> getMapfromObject(Object obj, boolean allField) throws ReflectiveOperationException {
         LinkedHashMap<String, Object> mapResult = new LinkedHashMap<String, Object>();
 
-        //如果是 java 标准类型
         if(obj==null || TReflect.isBasicType(obj.getClass())){
+            mapResult.put(null, obj);
+
+            return mapResult;
+        }
+
+        if(obj.getClass().isAnnotationPresent(NotSerialization.class)){
+            return null;
+        }
+
+        //如果是 java 标准类型
+        if(TReflect.isBasicType(obj.getClass())){
             mapResult.put(null, obj);
         }
         //java 日期对象
@@ -982,12 +1330,9 @@ public class TReflect {
         //对 Collection 类型的处理
         else if(obj instanceof Collection){
             Collection collection = new ArrayList();
-            synchronized (obj) {
-                Object[] objectArray = ((Collection) obj).toArray(new Object[0]);
-                for (Object collectionItem : objectArray) {
-                    Map<String, Object> item = getMapfromObject(collectionItem, allField);
-                    collection.add((item.size() == 1 && item.containsKey(null)) ? item.get(null) : item);
-                }
+            for (Object collectionItem : (Collection)obj) {
+                Map<String, Object> item = getMapfromObject(collectionItem, allField);
+                collection.add((item.size() == 1 && item.containsKey(null)) ? item.get(null) : item);
             }
             mapResult.put(null, collection);
         }
@@ -1018,36 +1363,37 @@ public class TReflect {
         else if(obj instanceof Map){
             Map mapObject = (Map)obj;
 
-            Map map = new LinkedHashMap();
-            synchronized (obj) {
-                Iterator iterator = mapObject.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    Entry<?, ?> entry = (Entry<?, ?>) iterator.next();
-                    Map<String, Object> keyItem = getMapfromObject(entry.getKey(), allField);
-                    Map<String, Object> valueItem = getMapfromObject(entry.getValue(), allField);
-                    Object key = (keyItem.size() == 1 && keyItem.containsKey(null)) ? keyItem.get(null) : keyItem;
-                    Object value = (valueItem.size() == 1 && valueItem.containsKey(null)) ? valueItem.get(null) : valueItem;
-                    map.put(key, value);
-                }
+            Map map = new HashMap();
+            Iterator iterator = mapObject.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Entry<?, ?> entry = (Entry<?, ?>) iterator.next();
+                Map<String, Object> keyItem = getMapfromObject(entry.getKey(), allField);
+                Map<String, Object> valueItem = getMapfromObject(entry.getValue(), allField);
+                Object key = (keyItem.size() == 1 && keyItem.containsKey(null)) ? keyItem.get(null) : keyItem;
+                Object value = (valueItem.size() == 1 && valueItem.containsKey(null)) ? valueItem.get(null) : valueItem;
+                map.put(key, value);
             }
             mapResult.put(null, map);
         }
         //复杂对象类型
-        else{
-            Map<Field, Object> fieldValues =  TReflect.getFieldValues(obj);
-            for(Entry<Field,Object> entry : fieldValues.entrySet()){
-                Field field = entry.getKey();
+        else {
+            Field[] fields =  TReflect.getFields(obj.getClass());
+            for(Field field : fields){
 
                 //过滤不可序列化的字段
                 if (!allField) {
-                    if(	field.getAnnotation(NotSerialization.class)!=null ||
-                            (field.getAnnotation(NotJSON.class)!=null && TEnv.classInCurrentStack(".tools.json.", null))) {
+                    if(field.isAnnotationPresent(NotSerialization.class)) {
                         continue;
                     }
                 }
 
-                String key = entry.getKey().getName();
-                Object value = entry.getValue();
+                String key = field.getName();
+                Object value = null;
+                try {
+                    value = getFieldValue(obj, key);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 if(value == null){
                     //由于属性是按子类->父类顺序处理的, 所以如果子类和父类有重复属性, 则只在子类为空时用父类的属性覆盖
@@ -1055,7 +1401,7 @@ public class TReflect {
                         mapResult.put(key, value);
                     }
                 }else if(!key.contains("$")){
-                    Class valueClass = entry.getValue().getClass();
+                    Class valueClass = value.getClass();
                     if(TReflect.isBasicType(valueClass)){
                         //由于属性是按子类->父类顺序处理的, 所以如果子类和父类有重复属性, 则只在子类为空时用父类的属性覆盖
                         if(mapResult.get(key) == null) {
@@ -1122,6 +1468,10 @@ public class TReflect {
             return false;
         }
 
+        if(filters==null){
+            return true;
+        }
+
         for(Class filterClazz : filters){
             if(clazz == filterClazz){
                 break;
@@ -1148,12 +1498,12 @@ public class TReflect {
      * @param type 类型 Class
      * @return 所有父类
      */
-    public static Class[] getAllExtendAndInterfaceClass(Class<?> type){
+    public static List<Class> getAllSuperClass(Class<?> type){
         if(type == null){
             return null;
         }
 
-        LinkedHashSet<Class> classes = new LinkedHashSet<Class>();
+        ArrayList<Class> classes = new ArrayList<Class>();
 
         Class<?> superClass = type;
         do{
@@ -1161,7 +1511,7 @@ public class TReflect {
             classes.addAll(Arrays.asList(superClass.getInterfaces()));
             classes.add(superClass);
         }while(superClass!=null && Object.class != superClass);
-        return classes.toArray(new Class[]{});
+        return classes;
     }
 
     /**
@@ -1174,7 +1524,7 @@ public class TReflect {
         if(TReflect.isBasicType(clazz)){
             jsonStrBuilder.append(clazz.getName());
         } else if(clazz.isArray()){
-            String clazzName = clazz.getCanonicalName();
+            String clazzName = getClassName(clazz);
             clazzName = clazzName.substring(clazzName.lastIndexOf(Global.STR_POINT)+1,clazzName.length()-2)+"[]";
             jsonStrBuilder.append(clazzName);
         } else {
@@ -1263,15 +1613,31 @@ public class TReflect {
      * @param clazz Class 对象
      * @return true: 是基本类型, false:非基本类型
      */
-    public static boolean isBasicType(Class clazz){
-        if(clazz == null ||
-                clazz.isPrimitive() ||
-                clazz.getName().startsWith("java.lang")
-        ){
-            return true;
-        }else{
-            return false;
+    public static boolean isBasicType(Class clazz) {
+        Boolean isBasicType = CLASS_BASIC_TYPE.get(clazz);
+        if(isBasicType==null) {
+            if (clazz == null ||
+                    clazz.isPrimitive() ||
+                    clazz.getName().startsWith("java.lang")) {
+                CLASS_BASIC_TYPE.put(clazz, true);
+                isBasicType = true;
+            } else {
+                CLASS_BASIC_TYPE.put(clazz, false);
+                isBasicType =  false;
+            }
         }
+
+        return isBasicType;
+    }
+
+    /**
+     * 判断对象是否是指定类型的数组
+     * @param object 对象
+     * @param type 对象类型
+     * @return true: 是指定类型的数据, false: 不是指定类型的数组
+     */
+    public static boolean isTypeOfArray(Object object, Type type){
+        return object.getClass().isArray() && object.getClass().getComponentType().equals(type);
     }
 
     private static List<String> systemPackages = TObject.asList("java.","jdk.","sun.","javax.","com.sun","com.oracle","javassist");
@@ -1289,7 +1655,7 @@ public class TReflect {
 
         //排除的包中的 class 不加载
         for(String systemPackage : systemPackages){
-            if(clazz.getCanonicalName().startsWith(systemPackage)){
+            if(getClassName(clazz).startsWith(systemPackage)){
                 return true;
             }
         }

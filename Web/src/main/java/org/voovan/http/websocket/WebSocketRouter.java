@@ -1,7 +1,7 @@
 package org.voovan.http.websocket;
 
 import org.voovan.http.websocket.exception.WebSocketFilterException;
-import org.voovan.tools.Chain;
+import org.voovan.tools.collection.Chain;
 
 import java.nio.ByteBuffer;
 
@@ -45,10 +45,10 @@ public abstract class WebSocketRouter implements Cloneable{
 	 * @throws WebSocketFilterException WebSocket过滤器异常
 	 */
 	public Object filterDecoder(WebSocketSession session, Object result) throws WebSocketFilterException {
-		Chain<WebSocketFilter> tmpWebFilterChain = webSocketFilterChain.rewind();
-		tmpWebFilterChain.rewind();
-		while (tmpWebFilterChain.hasNext()) {
-			WebSocketFilter fitler = tmpWebFilterChain.next();
+		Chain<WebSocketFilter> webFilterChain = webSocketFilterChain.rewind();
+		webFilterChain.rewind();
+		while (webFilterChain.hasNext()) {
+			WebSocketFilter fitler = webFilterChain.next();
 			result = fitler.decode(session, result);
 			if(result==null){
 				break;
@@ -65,17 +65,19 @@ public abstract class WebSocketRouter implements Cloneable{
 	 * @throws WebSocketFilterException WebSocket过滤器异常
 	 */
 	public Object filterEncoder(WebSocketSession session,Object result) throws WebSocketFilterException {
-		Chain<WebSocketFilter> tmpWebFilterChain = webSocketFilterChain.rewind();
-		tmpWebFilterChain.rewind();
-		while (tmpWebFilterChain.hasPrevious()) {
-			WebSocketFilter fitler = tmpWebFilterChain.previous();
+		Chain<WebSocketFilter> webFilterChain = webSocketFilterChain.rewind();
+		webFilterChain.rewind();
+		while (webFilterChain.hasPrevious()) {
+			WebSocketFilter fitler = webFilterChain.previous();
 			result = fitler.encode(session, result);
 			if(result==null){
 				break;
 			}
 		}
 
-		if(result instanceof ByteBuffer || result == null) {
+		if(result == null){
+			return null;
+		} else if(result instanceof ByteBuffer) {
 			return (ByteBuffer)result;
 		}else{
 			throw new WebSocketFilterException("Send object must be ByteBuffer, " +

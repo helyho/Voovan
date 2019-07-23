@@ -14,4 +14,5 @@ public class HttpSessionParam {
 	public static int HTTP_RESPONSE  = 2;
 	public static int KEEP_ALIVE = 3;
 	public static int KEEP_ALIVE_TIMEOUT = 4;
+	public static int KEEP_ALIVE_LIST_CONTAIN = 5;
 }

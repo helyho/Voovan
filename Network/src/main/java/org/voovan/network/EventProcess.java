@@ -1,17 +1,16 @@
 package org.voovan.network;
 
-import org.voovan.Global;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.udp.UdpSocket;
-import org.voovan.tools.ByteBufferChannel;
-import org.voovan.tools.Chain;
-import org.voovan.tools.TByteBuffer;
+import org.voovan.tools.FastThreadLocal;
+import org.voovan.tools.collection.Chain;
+import org.voovan.tools.buffer.TByteBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 事件的实际逻辑处理
@@ -23,7 +22,7 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class EventProcess {
-    public static ThreadLocal<ByteBuffer> THREAD_BYTE_BYTE = ThreadLocal.withInitial(()-> TByteBuffer.allocateDirect());
+    public static FastThreadLocal<ByteBuffer> THREAD_BYTE_BYTE = FastThreadLocal.withInitial(()-> TByteBuffer.allocateDirect());
 
     /**
      * 私有构造函数,防止被实例化
@@ -55,33 +54,6 @@ public class EventProcess {
 
         IoSession session = event.getSession();
 
-        // SSL 握手
-        if (session != null && session.getSSLParser() != null && !session.getSSLParser().isHandShakeDone()) {
-            try {
-                if (session.getSSLParser().doHandShake() &&
-                        session.getReadByteBufferChannel().size() > 0 &&
-                        !session.getState().isReceive()) {
-
-                    //将握手后的剩余数据进行处理, 并触发 onRecive 事件
-                    ByteBufferChannel byteBufferChannel = new ByteBufferChannel();
-                    session.getSSLParser().unWarpByteBufferChannel(session, session.getReadByteBufferChannel(), byteBufferChannel);
-                    session.getReadByteBufferChannel().clear();
-
-                    try {
-                        session.getReadByteBufferChannel().writeHead(byteBufferChannel.getByteBuffer());
-                    }finally {
-                        byteBufferChannel.compact();
-                        byteBufferChannel.release();
-                    }
-
-                    EventTrigger.fireReceive(session);
-                }
-            } catch (Exception e) {
-                session.close();
-                throw e;
-            }
-        }
-
         SocketContext socketContext = event.getSession().socketContext();
         if (socketContext != null && session != null) {
             Object original = socketContext.handler().onConnect(session);
@@ -110,6 +82,8 @@ public class EventProcess {
         if (socketContext != null) {
             socketContext.handler().onDisconnect(session);
         }
+
+        session.getState().setClose(false);
     }
 
     /**
@@ -118,11 +92,10 @@ public class EventProcess {
      * @param event
      *            事件对象
      * @param recursionDepth 递归深度控制
-     * @throws SendMessageException  消息发送异常
      * @throws IOException  IO 异常
-     * @throws IoFilterException IoFilter 异常
+     * @throws TimeoutException IoFilter 异常
      */
-    public static void onRead(Event event, int recursionDepth) throws IOException {
+    public static void onRead(Event event, int recursionDepth) throws IOException, TimeoutException {
         IoSession session = event.getSession();
         int currentRecursionDepth = recursionDepth;
 
@@ -151,22 +124,20 @@ public class EventProcess {
                     if (recursionDepth < session.socketContext().getReadRecursionDepth() && session.getReadByteBufferChannel().size() > 0) {
                         onRead(event, recursionDepth);
                     }
+                } else {
+                    return;
                 }
             } finally {
                 //释放 onRecive 锁
                 if(currentRecursionDepth == 0) {
-
-                    session.getState().setReceive(false);
-                    session.getState().receiveUnLock();
 
                     if(session.getSendByteBufferChannel().size() > 0) {
                         //异步处理 flush
                         session.flush();
                     }
 
-                    if(session.getReadByteBufferChannel().size() > 0){
-                        //如果还有数据继续触发 onReceive 事件
-                        EventTrigger.fireReceiveThread(session);
+                    if(session.getReadByteBufferChannel().size() > 0) {
+                        EventTrigger.fireReceiveAsEvent(session);
                     }
 
                 }
@@ -174,7 +145,13 @@ public class EventProcess {
         }
     }
 
-    public static ByteBuffer loadSplitData(IoSession session, int splitLength) {
+	/**
+	 * 读取分割方法
+	 * @param session 会话对象
+	 * @param splitLength 分割长度
+	 * @return 分割后的数据
+	 */
+	public static ByteBuffer loadSplitData(IoSession session, int splitLength) {
 
         if(splitLength == 0){
             return TByteBuffer.EMPTY_BYTE_BUFFER;
@@ -210,30 +187,37 @@ public class EventProcess {
      * @throws IoFilterException 过滤器异常
      */
     public static Object doRecive(IoSession session, int splitLength) throws IOException {
-        ByteBuffer byteBuffer = loadSplitData(session, splitLength);
-
-        //如果读出的数据为 null 则直接返回
-        if (byteBuffer == null) {
-            return null;
-        }
-
         Object result = null;
+        session.getState().setReceive(true);
 
-        // -----------------Filter 解密处理-----------------
-        result = filterDecoder(session, byteBuffer);
-        // -------------------------------------------------
+        try {
+            ByteBuffer byteBuffer = loadSplitData(session, splitLength);
 
-        // -----------------Handler 业务处理-----------------
-        if (result != null) {
-            IoHandler handler = session.socketContext().handler();
-            result = handler.onReceive(session, result);
+			//如果读出的数据为 null 则直接返回
+			if (byteBuffer == null) {
+				session.getState().setReceive(false);
+				return null;
+			}
+
+            // -----------------Filter 解密处理-----------------
+            result = filterDecoder(session, byteBuffer);
+            // -------------------------------------------------
+
+            // -----------------Handler 业务处理-----------------
+            if (result != null) {
+                IoHandler handler = session.socketContext().handler();
+                result = handler.onReceive(session, result);
+            }
+            // --------------------------------------------------
+        } finally {
+            session.getState().setReceive(false);
         }
-        // --------------------------------------------------
 
         // 返回的结果不为空的时候才发送
         if (result != null) {
 
             //触发发送事件
+            session.getState().setSend(true);
             sendMessage(session, result);
             return result;
         } else {
@@ -279,11 +263,10 @@ public class EventProcess {
                 break;
             }
         }
-
-        if(result instanceof ByteBuffer) {
-            return (ByteBuffer)result;
-        } else if(result==null){
+        if(result==null){
             return null;
+        } else if(result instanceof ByteBuffer) {
+            return (ByteBuffer)result;
         } else{
             throw new IoFilterException("Send object must be ByteBuffer, " +
                     "please check you filter be sure the latest filter return Object's type is ByteBuffer.");
@@ -312,13 +295,14 @@ public class EventProcess {
                     if(sendLength >= 0) {
                         sendBuffer.rewind();
                     } else {
-                        throw new IOException("EventProcess.sendMessage faild, send length: " + sendLength);
+                        throw new IOException("EventProcess.sendMessage faild, writeToChannel length: " + sendLength);
                     }
                 }
             }
 
             //触发发送事件
             EventTrigger.fireSent(session, sendObj);
+            session.getState().setSend(false);
 
         } catch (IOException e) {
             EventTrigger.fireException(session, e);

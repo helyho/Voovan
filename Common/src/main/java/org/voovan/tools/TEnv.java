@@ -15,8 +15,10 @@ import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -37,16 +39,29 @@ public class TEnv {
 	public static Thread MAIN_THREAD = getMainThread();
 	public static volatile boolean IS_SHUTDOWN = false;
 
+	public static Vector<BooleanSupplier> SHUT_DOWN_HOOKS = new Vector<BooleanSupplier>();
+
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
 				TEnv.IS_SHUTDOWN = true;
+				for(BooleanSupplier supplier : SHUT_DOWN_HOOKS.toArray(new BooleanSupplier[0])){
+					try {
+						if(supplier!=null) {
+							supplier.getAsBoolean();
+						}
+					} catch (Throwable e) {
+						System.out.println("Run shutdown hooks failed." + e.getMessage() + "\r\n" + TEnv.getStackElementsMessage(e.getStackTrace()));
+					}
+				}
 			}
 		});
 	}
 
-
+	public static void addShutDownHook(BooleanSupplier supplier){
+		SHUT_DOWN_HOOKS.add(supplier);
+	}
 
 	public static Instrumentation instrumentation;
 
@@ -109,12 +124,14 @@ public class TEnv {
 	 * 休眠函数
 	 *
 	 * @param sleepTime 休眠时间
+	 * @return true: 超时结束, false: sleep 被打断
 	 */
-	public static void sleep(int sleepTime) {
+	public static boolean sleep(int sleepTime) {
 		try {
 			Thread.sleep(sleepTime);
+			return true;
 		} catch (InterruptedException e) {
-			Logger.error("TEnv.sleep interrupted",e);
+			return false;
 		}
 	}
 
@@ -122,12 +139,14 @@ public class TEnv {
 	 * 休眠函数
 	 * @param timeUnit 休眠时间单位
 	 * @param sleepTime 休眠时间
+	 * @return true: 超时结束, false: sleep 被打断
 	 */
-	public static void sleep(TimeUnit timeUnit, int sleepTime) {
+	public static boolean sleep(TimeUnit timeUnit, int sleepTime) {
 		try {
 			timeUnit.sleep(sleepTime);
+			return true;
 		} catch (InterruptedException e) {
-			Logger.error("TEnv.sleep interrupted",e);
+			return false;
 		}
 	}
 
@@ -534,17 +553,44 @@ public class TEnv {
 	 * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
 	 * @throws TimeoutException 超时异常
 	 */
-	public static void wait(int waitTime, Supplier<Boolean> supplier) throws TimeoutException {
+	public static void waitThrow(int waitTime, Supplier<Boolean> supplier) throws TimeoutException {
+		if(!wait(waitTime, true, supplier)){
+			throw new TimeoutException("TEnv.wait timeout");
+		}
+	}
+
+	/**
+	 * 等待函数
+	 * @param waitTime 等待时间
+	 * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
+	 */
+	public static boolean wait(int waitTime, Supplier<Boolean> supplier) {
+		return wait(waitTime, true, supplier);
+	}
+
+	/**
+	 * 等待函数
+	 * @param waitTime 等待时间
+	 * @param isCLH 是否启用自旋
+	 * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
+	 */
+	public static boolean wait(int waitTime, boolean isCLH, Supplier<Boolean> supplier) {
 		long start = System.currentTimeMillis();
 		while(true){
-			if(supplier.get()){
-				TEnv.sleep(1);
-			} else {
-				return;
-			}
+			if(supplier.get()) {
 
-			if(System.currentTimeMillis()-start>=waitTime){
-				throw new TimeoutException("TEnv.wait time out");
+				//先检查超时后等待
+				Long diffTime = System.currentTimeMillis()-start;
+				if(diffTime>=waitTime){
+					return false;
+				}
+
+				//自旋 5ms, 后休眠每次1ms
+				if(!isCLH || diffTime>5) {
+					TEnv.sleep(1);
+				}
+			} else {
+				return true;
 			}
 		}
 	}
@@ -553,12 +599,8 @@ public class TEnv {
 	 * 等待函数
 	 * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
 	 */
-	public static void wait(Supplier<Boolean> supplier) {
-		try {
-			wait(Integer.MAX_VALUE, supplier);
-		} catch (TimeoutException e) {
-			e.printStackTrace();
-		}
+	public static boolean wait(Supplier<Boolean> supplier) {
+		return wait(Integer.MAX_VALUE, true, supplier);
 	}
 
 	/**
@@ -566,7 +608,7 @@ public class TEnv {
 	 * @param supplier 执行器
 	 * @return 执行时间
 	 */
-	public static List<Object> measureTime(Supplier supplier){
+	public static List<Object> measure(Supplier supplier){
 		long startTime = System.nanoTime();
 		return TObject.asList(supplier.get(), System.nanoTime() - startTime);
 	}
@@ -577,9 +619,30 @@ public class TEnv {
 	 * @param runnable 执行器
 	 * @return 执行时间
 	 */
-	public static long measureTime(Runnable runnable){
+	public static long measure(Runnable runnable){
 		long startTime = System.nanoTime();
 		runnable.run();
 		return System.nanoTime() - startTime;
+	}
+
+	/**
+	 * 性能测试方法
+	 * @param msg 输出的消息
+	 * @param supplier 执行器
+	 * @param timeUnit 输出的时间单位
+	 */
+	public static void measure(String msg, Supplier supplier, TimeUnit timeUnit) {
+		List result = measure(supplier);
+		System.out.println(msg + " " + ((Long)result.get(1))/(timeUnit.toNanos(1)*1f) + ", result:" + result.get(0));
+	}
+
+	/**
+	 * 性能测试方法
+	 * @param msg 输出的消息
+	 * @param runnable 执行器
+	 * @param timeUnit 输出的时间单位
+	 */
+	public static void measure(String msg, Runnable runnable, TimeUnit timeUnit) {
+		System.out.println(msg + " " + measure(runnable)/(timeUnit.toNanos(1)*1f));
 	}
 }

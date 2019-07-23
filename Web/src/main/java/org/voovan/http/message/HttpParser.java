@@ -4,9 +4,12 @@ import org.voovan.Global;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.context.WebContext;
-import org.voovan.http.server.exception.ParserException;
+import org.voovan.http.server.exception.HttpParserException;
 import org.voovan.http.server.exception.RequestTooLarge;
+import org.voovan.network.IoSession;
 import org.voovan.tools.*;
+import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
@@ -27,7 +30,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * Licence: Apache v2 License
  */
 public class HttpParser {
-
 	private static final String PL_METHOD = "1";
 	private static final String PL_PATH = "2";
 	private static final String PL_PROTOCOL = "3";
@@ -49,12 +51,15 @@ public class HttpParser {
 	public static final String propertyLineRegex = ": ";
 	public static final String equalMapRegex = "([^ ;,]+=[^;,]+)";
 
-	public static ThreadLocal<Map<String, Object>> THREAD_PACKET_MAP = ThreadLocal.withInitial(()->new HashMap<String, Object>());
-	public static ThreadLocal<Request> THREAD_REQUEST = ThreadLocal.withInitial(()->new Request());
-	public static ThreadLocal<Response> THREAD_RESPONSE = ThreadLocal.withInitial(()->new Response());
-	private static ThreadLocal<byte[]> THREAD_STRING_BUILDER = ThreadLocal.withInitial(()->new byte[1024]);
+	public static FastThreadLocal<Map<String, Object>> THREAD_PACKET_MAP = FastThreadLocal.withInitial(()->new HashMap<String, Object>());
+	public static FastThreadLocal<Request> THREAD_REQUEST = FastThreadLocal.withInitial(()->new Request());
+	public static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
+	private static FastThreadLocal<byte[]> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new byte[1024]);
 
 	private static ConcurrentSkipListMap<Long, Map<String, Object>> PACKET_MAP_CACHE = new ConcurrentSkipListMap<Long, Map<String, Object>>();
+
+    public static final int PARSER_TYPE_REQUEST = 0;
+	public static final int PARSER_TYPE_RESPONSE = 1;
 
 	static {
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
@@ -62,7 +67,7 @@ public class HttpParser {
 			public void run() {
 				PACKET_MAP_CACHE.clear();
 			}
-		}, 1);
+		}, 60);
 	}
 
 	/**
@@ -233,12 +238,14 @@ public class HttpParser {
 	 * @param packetMap 解析后数据的容器
 	 * @param type 解析的报文类型
 	 * @param byteBuffer ByteBuffer对象
-	 * @throws ParserException 解析异常
+	 * @param contiuneRead 当数据不足时的读取器
+     * @param timeout 读取超时时间参数
 	 */
-	public static void parserProtocol(Map<String, Object> packetMap, int type, ByteBuffer byteBuffer) throws ParserException {
+	public static void parserProtocol(Map<String, Object> packetMap, int type, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
 		int hashCode = 0;
+		boolean isCache = type==PARSER_TYPE_REQUEST ? WebContext.isCache() : false;
 
 		//遍历 Protocol
 		int segment = 0;
@@ -249,7 +256,16 @@ public class HttpParser {
 		byte prevByte = '\0';
 		byte currentByte = '\0';
 
-		while (byteBuffer.remaining() > 0) {
+		long start = System.currentTimeMillis();
+		while (true) {
+
+		    //如果数据不够则尝试读取
+			while(!byteBuffer.hasRemaining()) {
+				contiuneRead.run();
+				if(System.currentTimeMillis() - start > timeout) {
+					throw new HttpParserException("HttpParser read failed");
+				}
+			}
 
 			currentByte = byteBuffer.get();
 
@@ -304,7 +320,7 @@ public class HttpParser {
 			if(segment_3.charAt(0)=='H' && segment_3.charAt(1)=='T' && segment_3.charAt(2)=='T' && segment_3.charAt(3)=='P') {
 				packetMap.put(PL_PROTOCOL, HttpStatic.HTTP.getString());
 			} else {
-				throw new ParserException("Not a http packet");
+				throw new HttpParserException("Not a http packet");
 			}
 
 			switch (segment_3.charAt(7)) {
@@ -327,7 +343,7 @@ public class HttpParser {
 			if(segment_1.charAt(0)=='H' && segment_1.charAt(1)=='T' && segment_1.charAt(2)=='T' && segment_1.charAt(3)=='P') {
 				packetMap.put(PL_PROTOCOL, HttpStatic.HTTP.getString());
 			} else {
-				throw new ParserException("Not a http packet");
+				throw new HttpParserException("Not a http packet");
 			}
 
 			switch (segment_1.charAt(7)) {
@@ -351,7 +367,7 @@ public class HttpParser {
 			packetMap.put(PL_STATUS_CODE, segment_3);
 		}
 
-		if(WebContext.isCache()) {
+		if(isCache) {
 			packetMap.put(PL_HASH, hashCode);
 		}
 	}
@@ -360,10 +376,11 @@ public class HttpParser {
 	 * 解析 HTTP 请求头
 	 * @param packetMap 解析后数据的容器
 	 * @param byteBuffer ByteBuffer对象
+	 * @param contiuneRead 当数据不足时的读取器
+     * @param timeout 读取超时时间参数
 	 * @return true: Header解析未完成, false: Header解析完成
-	 * @throws ParserException 解析异常
 	 */
-	public static boolean parseHeader(Map<String, Object> packetMap, ByteBuffer byteBuffer) throws ParserException {
+	public static boolean parseHeader(Map<String, Object> packetMap, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
 
@@ -374,7 +391,16 @@ public class HttpParser {
 		String headerName = null;
 		String headerValue = null;
 
-		while (byteBuffer.remaining() > 0) {
+		long start = System.currentTimeMillis();
+		while (true) {
+
+			//如果数据不够则尝试读取
+			while(!byteBuffer.hasRemaining()) {
+				contiuneRead.run();
+				if(System.currentTimeMillis() - start > timeout) {
+					throw new HttpParserException("HttpParser read failed");
+				}
+			}
 
 			currentByte = byteBuffer.get();
 
@@ -406,7 +432,9 @@ public class HttpParser {
 
 		}
 
-		packetMap.put(headerName, headerValue);
+		if(headerName!=null && headerValue!=null) {
+			packetMap.put(headerName, headerValue);
+		}
 		return false;
 //        packetMap.put(fixHeaderName(headerName), headerValue);
 	}
@@ -419,102 +447,128 @@ public class HttpParser {
 	 * 			3.cookie   解析成 List[Map[String,String]] 形式
 	 * 			3.part     解析成 List[Map[Stirng,Object]](因为是递归,参考 HTTP 解析形式) 形式
 	 * 			5.body     解析成 key=BODY_VALUE 的Map 元素
+	 * @param session socket 会话对象
 	 * @param packetMap 用于填充的解析 map
-	 * @param type 解析的报文类型
+	 * @param type 解析的报文类型, 0: Request, 1: Response
 	 * @param byteBufferChannel 输入流
-	 * @param timeOut 读取超时时间参数
+	 * @param timeout 读取超时时间参数
 	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
 	 * @return 解析后的 Map
 	 * @throws IOException IO 异常
 	 */
-	public static Map<String, Object> parser(Map<String, Object> packetMap, int type, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException{
+	public static Map<String, Object> parser(IoSession session, Map<String, Object> packetMap, int type,
+											 ByteBufferChannel byteBufferChannel, int timeout,
+											 long requestMaxSize) throws IOException {
 		int totalLength = 0;
-		boolean isBodyConent = false;
+        long mark = 0;
+        int headerMark = 0;
+        int protocolPosition = 0;
+
+        boolean isBodyConent = false;
+		boolean isCache = type==PARSER_TYPE_REQUEST ? WebContext.isCache() : false;
 
 		requestMaxSize = requestMaxSize < 0 ? Integer.MAX_VALUE : requestMaxSize;
+
+		//继续从 Socket 中读取数据
+		Runnable contiuneRead = ()->{
+			if(session==null || !session.isConnected()) {
+					throw new HttpParserException("Socket is disconnect");
+			}
+
+			session.getSocketSelector().eventChoose();
+		};
 
 		//按行遍历HTTP报文
 		while(byteBufferChannel.size() > 0){
 			ByteBuffer innerByteBuffer = byteBufferChannel.getByteBuffer();
-			long mark = 0;
-			int headerMark = 0;
+
 			try {
-				parserProtocol(packetMap, type, innerByteBuffer);
-				int protocolPosition = innerByteBuffer.position() - 1;
+				//处理协议行
+				{
+					parserProtocol(packetMap, type, innerByteBuffer, contiuneRead, timeout);
+					protocolPosition = innerByteBuffer.position() - 1;
 
-				if(WebContext.isCache()) {
-					mark = ((Integer) packetMap.get(PL_HASH)).longValue();
+					//检查缓存是否存在,并获取
+					if (isCache) {
+						mark = ((Integer) packetMap.get(PL_HASH)).longValue();
 
-					for (Entry<Long, Map<String, Object>> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
-						long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
-						long position = (cachedMark << 32) >> 32;
+						for (Entry<Long, Map<String, Object>> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
+							long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
+							long totalLengthInMark = (cachedMark << 32) >> 32; //高位清空, 获得整个头的长度
 
-						if(position > innerByteBuffer.limit()){
-							continue;
-						}
-
-						headerMark = THash.hashTime31(innerByteBuffer, protocolPosition, (int)(position - protocolPosition));
-
-						if (mark + headerMark == cachedMark >> 32) {
-
-
-							if (byteBufferChannel.size() >= position &&
-									byteBufferChannel.get((int) position - 1) == 10 &&
-									byteBufferChannel.get((int) position - 2) == 13) {
-
-
-								innerByteBuffer.position((int) position);
-								return packetMapCacheItem.getValue();
+							if (totalLengthInMark > innerByteBuffer.limit()) {
+								continue;
 							}
+
+							headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
+
+							if (mark + headerMark == cachedMark >> 32) {
+
+
+								if (byteBufferChannel.size() >= totalLengthInMark &&
+										byteBufferChannel.get((int) totalLengthInMark - 1) == 10 &&
+										byteBufferChannel.get((int) totalLengthInMark - 2) == 13) {
+
+
+									innerByteBuffer.position((int) totalLengthInMark);
+									return packetMapCacheItem.getValue();
+								}
+							}
+						}
+					}
+
+					if (!packetMap.containsKey(PL_PROTOCOL)) {
+						return null;
+					}
+				}
+
+
+				//处理协议头
+				{
+					while (!parseHeader(packetMap, innerByteBuffer, contiuneRead, timeout)) {
+						if (!innerByteBuffer.hasRemaining() && session.isConnected()) {
+							return null;
 						}
 					}
 				}
 
-				if (!packetMap.containsKey(PL_PROTOCOL)) {
-					return null;
+				//处理 Cookie
+				{
+					String cookieName = null;
+					String cookieValue = null;
+
+					if (packetMap.containsKey(HttpStatic.SET_COOKIE_STRING)) {
+						cookieName = HttpStatic.SET_COOKIE_STRING;
+						cookieValue = packetMap.get(HttpStatic.SET_COOKIE_STRING).toString();
+						packetMap.remove(HttpStatic.SET_COOKIE_STRING);
+					} else if (packetMap.containsKey(HttpStatic.COOKIE_STRING)) {
+						cookieName = HttpStatic.COOKIE_STRING;
+						cookieValue = packetMap.get(HttpStatic.COOKIE_STRING).toString();
+						packetMap.remove(HttpStatic.COOKIE_STRING);
+					}
+
+					if (cookieName != null) {
+						parseCookie(packetMap, cookieName, cookieValue);
+					}
 				}
 
-				while (!parseHeader(packetMap, innerByteBuffer)) {
-
-				}
-
-				String cookieName = null;
-				String cookieValue = null;
-
-				if (packetMap.containsKey(HttpStatic.SET_COOKIE_STRING)) {
-					cookieName = HttpStatic.SET_COOKIE_STRING;
-					cookieValue = packetMap.get(HttpStatic.SET_COOKIE_STRING).toString();
-					packetMap.remove(HttpStatic.SET_COOKIE_STRING);
-				} else if (packetMap.containsKey(HttpStatic.COOKIE_STRING)) {
-					cookieName = HttpStatic.COOKIE_STRING;
-					cookieValue = packetMap.get(HttpStatic.COOKIE_STRING).toString();
-					packetMap.remove(HttpStatic.COOKIE_STRING);
-				}
-
-				if (cookieName != null) {
-					parseCookie(packetMap, cookieName, cookieValue);
-				}
-
-				if(WebContext.isCache()) {
+				//处理更新或设置缓存
+				if(isCache && "GET".equals(packetMap.get(PL_METHOD)) || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
 					totalLength = innerByteBuffer.position();
-					headerMark = THash.hashTime31(innerByteBuffer, protocolPosition, (int)(totalLength - protocolPosition));
-					mark = (mark + headerMark) << 32 | totalLength;
+					headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int)(totalLength - protocolPosition));
+					mark = (mark + headerMark) << 32 | totalLength; //高位存 hash, 低位存整个头的长度
 					packetMap.put(PL_HASH, mark);
+
+					HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
+					cachedPacketMap.putAll(packetMap);
+					cachedPacketMap.put(USE_CACHE, 1);
+
+					PACKET_MAP_CACHE.put(mark, cachedPacketMap);
+					break;
 				}
 
 			} finally {
 				byteBufferChannel.compact();
-			}
-
-			//如果 消息缓冲通道没有数据或已关闭
-			if( byteBufferChannel.size() <= 0 || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING) ) {
-                if (WebContext.isCache()) {
-                    HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
-                    cachedPacketMap.putAll(packetMap);
-                    cachedPacketMap.put(USE_CACHE, 1);
-                    PACKET_MAP_CACHE.put(mark, cachedPacketMap);
-                }
-				break;
 			}
 
 			isBodyConent = true;
@@ -537,14 +591,14 @@ public class HttpParser {
 					ByteBuffer boundaryEnd = ByteBuffer.allocate(2);
 					while(true) {
 						//等待数据
-						if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut)) {
-							throw new ParserException("Http Parser read data error");
+						if (!byteBufferChannel.waitData(boundary.getBytes(), timeout, contiuneRead)) {
+							throw new HttpParserException("Http Parser readFromChannel data error");
 						}
 
-						int index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
+						int boundaryIndex = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
 
 						//跳过 boundary
-						byteBufferChannel.shrink((index + boundary.length()));
+						byteBufferChannel.shrink((boundaryIndex + boundary.length()));
 
 						//取 boundary 结尾字符
 						boundaryEnd.clear();
@@ -566,8 +620,8 @@ public class HttpParser {
 
 						byte[] boundaryMark = HttpStatic.BODY_MARK.getBytes();
 						//等待数据
-						if (!byteBufferChannel.waitData(boundaryMark, timeOut)) {
-							throw new ParserException("Http Parser read data error");
+						if (!byteBufferChannel.waitData(boundaryMark, timeout, contiuneRead)) {
+							throw new HttpParserException("Http Parser readFromChannel data error");
 						}
 
 						int partHeadEndIndex = byteBufferChannel.indexOf(boundaryMark);
@@ -580,10 +634,17 @@ public class HttpParser {
 						ByteBufferChannel partByteBufferChannel = new ByteBufferChannel(partHeadEndIndex + 4); //包含换行符
 						partByteBufferChannel.writeEnd(partHeadBuffer);
 						Map<String, Object> partMap = new HashMap<String, Object>();
-						while(parseHeader(partMap, partByteBufferChannel.getByteBuffer())){
 
+						ByteBuffer partByteBuffer =  partByteBufferChannel.getByteBuffer();
+						try {
+							while (parseHeader(partMap, partByteBuffer, contiuneRead, timeout)) {
+								if (!partByteBuffer.hasRemaining() && session.isConnected()) {
+									return null;
+								}
+							}
+						} finally {
+							partByteBufferChannel.compact();
 						}
-						partByteBufferChannel.compact();
 
 						TByteBuffer.release(partHeadBuffer);
 						partByteBufferChannel.release();
@@ -596,18 +657,18 @@ public class HttpParser {
 
 						//解析 Part 报文体
 						//重置 index
-						index = -1;
+						boundaryIndex = -1;
 						//普通参数处理
 						if (fileName == null) {
 							//等待数据
-							if (!byteBufferChannel.waitData(boundary.getBytes(), timeOut)) {
-								throw new ParserException("Http Parser read data error");
+							if (!byteBufferChannel.waitData(boundary.getBytes(), timeout, contiuneRead)) {
+								throw new HttpParserException("Http Parser readFromChannel data error");
 							}
 
-							index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
+							boundaryIndex = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
 
 
-							ByteBuffer bodyByteBuffer = ByteBuffer.allocate(index - 2);
+							ByteBuffer bodyByteBuffer = ByteBuffer.allocate(boundaryIndex - 2);
 							byteBufferChannel.readHead(bodyByteBuffer);
 							partMap.put(BODY_VALUE, bodyByteBuffer.array());
 						}
@@ -624,18 +685,11 @@ public class HttpParser {
 							boolean isFileRecvDone = false;
 
 							while (true){
-								byteBufferChannel.getByteBuffer();
-								int dataLength = 0;
-
-								try {
-									dataLength = byteBufferChannel.size();
-									//等待数据, 1毫秒超时
-									if (byteBufferChannel.waitData(boundary.getBytes(), 1)) {
-										isFileRecvDone = true;
-									}
-								} finally {
-									byteBufferChannel.compact();
-								}
+                                int dataLength = byteBufferChannel.size();
+                                //等待数据, 1毫秒超时
+                                if (byteBufferChannel.waitData(boundary.getBytes(), 0, contiuneRead)) {
+                                    isFileRecvDone = true;
+                                }
 
 								if(!isFileRecvDone) {
 									if(dataLength!=0) {
@@ -645,9 +699,9 @@ public class HttpParser {
 									}
 									continue;
 								} else {
-									index = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
-									int length = index == -1 ? byteBufferChannel.size() : (index - 2);
-									if (index > 0) {
+									boundaryIndex = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
+									int length = boundaryIndex == -1 ? byteBufferChannel.size() : (boundaryIndex - 2);
+									if (boundaryIndex > 0) {
 										byteBufferChannel.saveToFile(localFileName, length);
 										totalLength = totalLength + dataLength;
 									}
@@ -668,9 +722,9 @@ public class HttpParser {
 
 							}
 
-							if(index == -1){
+							if(boundaryIndex == -1){
 								new File(localFileName).delete();
-								throw new ParserException("Http Parser read data error");
+								throw new HttpParserException("Http Parser not enough data with " + boundary);
 							}else{
 								partMap.remove(BODY_VALUE);
 								partMap.put(BODY_FILE, localFileName.getBytes());
@@ -693,8 +747,8 @@ public class HttpParser {
 					while(chunkedLengthLine!=null){
 
 						// 等待数据
-						if(!byteBufferChannel.waitData("\r\n".getBytes(), timeOut)){
-							throw new ParserException("Http Parser read data error");
+						if(!byteBufferChannel.waitData("\r\n".getBytes(), timeout, contiuneRead)){
+							throw new HttpParserException("Http Parser readFromChannel data error");
 						}
 
 						chunkedLengthLine = byteBufferChannel.readLine().trim();
@@ -717,8 +771,8 @@ public class HttpParser {
 						}
 
 						// 等待数据
-						if(!byteBufferChannel.waitData(chunkedLength, timeOut)){
-							throw new ParserException("Http Parser read data error");
+						if(!byteBufferChannel.waitData(chunkedLength, timeout, contiuneRead)){
+							throw new HttpParserException("Http Parser readFromChannel data error");
 						}
 
 						int readSize = 0;
@@ -731,7 +785,7 @@ public class HttpParser {
 							totalLength = totalLength + readSize;
 							//请求过大的处理
 							if(readSize != chunkedLength){
-								throw new ParserException("Http Parser read chunked data error");
+								throw new HttpParserException("Http Parser readFromChannel chunked data error");
 							}
 
 							//如果多次读取则拼接
@@ -763,13 +817,13 @@ public class HttpParser {
 
 					//请求过大的处理
 					if(totalLength > requestMaxSize * 1024){
-						throw new ParserException("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+						throw new HttpParserException("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
 					}
 
 
 					// 等待数据
-					if(!byteBufferChannel.waitData(contentLength, timeOut)){
-						throw new ParserException("Http Parser read data error");
+					if(!byteBufferChannel.waitData(contentLength, timeout, contiuneRead)){
+						throw new HttpParserException("Http Parser readFromChannel data error");
 					}
 
 					ByteBuffer byteBuffer = ByteBuffer.allocate(contentLength);
@@ -790,6 +844,7 @@ public class HttpParser {
 
 	/**
 	 * 解析报文成 HttpRequest 对象
+	 * @param session socket 会话对象
 	 * @param byteBufferChannel  输入字节流
 	 * @param timeOut 读取超时时间参数
 	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
@@ -797,16 +852,11 @@ public class HttpParser {
 	 * @throws IOException IO 异常
 	 */
 	@SuppressWarnings("unchecked")
-	public static Request parseRequest(ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException {
+	public static Request parseRequest(IoSession session, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException {
 		Request request = null;
 
 		Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
-		try {
-			packetMap = parser(packetMap, 0, byteBufferChannel, timeOut, requestMaxSize);
-		} catch (ParserException e) {
-			Logger.warn("HttpParser.parser: " + e.getMessage());
-			return null;
-		}
+        packetMap = parser(session, packetMap, PARSER_TYPE_REQUEST, byteBufferChannel, timeOut, requestMaxSize);
 
 		//如果解析的Map为空,则直接返回空
 		if(packetMap==null || packetMap.isEmpty() || byteBufferChannel.isReleased()){
@@ -895,21 +945,17 @@ public class HttpParser {
 
 	/**
 	 * 解析报文成 HttpResponse 对象
+	 * @param session socket 会话对象
 	 * @param byteBufferChannel  输入字节流
 	 * @param timeOut 读取超时时间参数
 	 * @return   返回响应报文
 	 * @throws IOException IO 异常
 	 */
 	@SuppressWarnings("unchecked")
-	public static Response parseResponse(ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
+	public static Response parseResponse(IoSession session, ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
 		Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
-		try {
-			packetMap = parser(packetMap, 1, byteBufferChannel, timeOut, -1);
-			packetMap.remove(PL_HASH);
-		} catch (ParserException e) {
-			Logger.warn("HttpParser.parser: " + e.getMessage());
-			return null;
-		}
+        packetMap = parser(session, packetMap, PARSER_TYPE_RESPONSE, byteBufferChannel, timeOut, -1);
+        packetMap.remove(PL_HASH);
 
 		//如果解析的Map为空,则直接返回空
 		if(packetMap==null || packetMap.isEmpty() || byteBufferChannel.isReleased()){

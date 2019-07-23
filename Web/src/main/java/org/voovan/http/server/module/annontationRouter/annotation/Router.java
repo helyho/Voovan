@@ -5,13 +5,14 @@ import org.voovan.http.server.HttpContentType;
 import java.lang.annotation.*;
 
 /**
- * 请求注解类
+ * 路由注解类
  *
  * @author: helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
+@Repeatable(value = Routers.class)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
@@ -32,7 +33,7 @@ public @interface Router {
      * 请求的方法
      * @return 请求的方法
      */
-    String method() default "GET";
+    String[] method() default "GET";
 
     HttpContentType ContentType() default HttpContentType.TEXT;
 

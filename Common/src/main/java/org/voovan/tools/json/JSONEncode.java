@@ -8,6 +8,7 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -66,17 +67,6 @@ public class JSONEncode {
     }
 
     /**
-     * 分析Collection对象为JSON字符串
-     *
-     * @param listObject List对象
-     * @return JSON字符串
-     * @throws ReflectiveOperationException
-     */
-    private static String CollectionObject(Collection<Object> listObject, boolean allField) throws ReflectiveOperationException {
-        return arrayObject(listObject.toArray(), allField);
-    }
-
-    /**
      * 分析Array对象为JSON字符串
      *
      * @param arrayObject Array对象
@@ -89,6 +79,34 @@ public class JSONEncode {
         StringBuilder ContentStringBuilder = new StringBuilder();
 
         for (Object object : arrayObject) {
+            String Value = fromObject(object, allField);
+            ContentStringBuilder.append(Value);
+            ContentStringBuilder.append(",");
+        }
+
+        ContentString = ContentStringBuilder.toString();
+
+        if (!ContentString.trim().isEmpty()) {
+            ContentString = ContentString.substring(0, ContentString.length() - 1);
+        }
+
+        arrayString = arrayString + ContentString + "]";
+        return arrayString;
+    }
+
+    /**
+     * 分析Collection对象为JSON字符串
+     *
+     * @param collectionObject Collection 对象
+     * @throws ReflectiveOperationException
+     * @return JSON字符串
+     */
+    private static String CollectionObject(Collection collectionObject, boolean allField) throws ReflectiveOperationException {
+        String arrayString = "[";
+        String ContentString = "";
+        StringBuilder ContentStringBuilder = new StringBuilder();
+
+        for (Object object : collectionObject) {
             String Value = fromObject(object, allField);
             ContentStringBuilder.append(Value);
             ContentStringBuilder.append(",");
@@ -129,8 +147,12 @@ public class JSONEncode {
         String value = null;
 
         if (object == null) {
-            value = "null";
-        } else if (object instanceof Class) {
+            return "null";
+        }
+
+        Class clazz = object.getClass();
+
+        if (object instanceof Class) {
             return ((Class)object).getCanonicalName();
         } else if (object instanceof BigDecimal) {
             if(BigDecimal.ZERO.compareTo((BigDecimal)object)==0){
@@ -146,10 +168,10 @@ public class JSONEncode {
         } else if (object instanceof Collection) {
             Collection<Object> collectionObject = (Collection<Object>)object;
             value = CollectionObject(collectionObject, allField);
-        } else if (object.getClass().isArray()) {
+        } else if (clazz.isArray()) {
             Object[] arrayObject = (Object[])object;
             //如果是 java 基本类型, 则转换成对象数组
-            if(object.getClass().getComponentType().isPrimitive()) {
+            if(clazz.getComponentType().isPrimitive()) {
                 int length = Array.getLength(object);
                 arrayObject = new Object[length];
                 for(int i=0;i<length;i++){

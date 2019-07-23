@@ -1,8 +1,6 @@
 package org.voovan.network.udp;
 
-import org.voovan.network.ConnectModel;
-import org.voovan.network.EventTrigger;
-import org.voovan.network.SocketContext;
+import org.voovan.network.*;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.RestartException;
 import org.voovan.network.exception.SendMessageException;
@@ -13,7 +11,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketOption;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
 
 /**
@@ -25,13 +22,11 @@ import java.nio.channels.spi.SelectorProvider;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class UdpSocket extends SocketContext {
+public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
 
     private SelectorProvider provider;
-    private Selector selector;
     private DatagramChannel datagramChannel;
     private UdpSession session;
-    private UdpSelector udpSelector;
 
     //用来阻塞当前Socket
     private Object waitObj = new Object();
@@ -47,7 +42,6 @@ public class UdpSocket extends SocketContext {
      */
     public UdpSocket(String host, int port, int readTimeout) throws IOException{
         super(host, port, readTimeout);
-        init();
     }
 
     /**
@@ -61,7 +55,6 @@ public class UdpSocket extends SocketContext {
      */
     public UdpSocket(String host, int port, int readTimeout, int idleInterval) throws IOException{
         super(host, port, readTimeout, idleInterval);
-        init();
     }
 
     /**
@@ -75,7 +68,6 @@ public class UdpSocket extends SocketContext {
      */
     public UdpSocket(String host, int port, int readTimeout, int sendTimeout, int idleInterval) throws IOException{
         super(host, port, readTimeout, sendTimeout, idleInterval);
-        init();
     }
 
     private void init() throws IOException {
@@ -94,12 +86,13 @@ public class UdpSocket extends SocketContext {
      * @param datagramChannel UDP通信对象
      * @param socketAddress SocketAddress 对象
      */
-    protected UdpSocket(SocketContext parentSocketContext, DatagramChannel datagramChannel, InetSocketAddress socketAddress){
+    public UdpSocket(SocketContext parentSocketContext, DatagramChannel datagramChannel, InetSocketAddress socketAddress){
         try {
             provider = SelectorProvider.provider();
             this.datagramChannel = datagramChannel;
             this.copyFrom(parentSocketContext);
             session = new UdpSession(this, socketAddress);
+            datagramChannel.configureBlocking(false);
             connectModel = ConnectModel.SERVER;
         } catch (Exception e) {
             Logger.error("Create socket channel failed",e);
@@ -123,20 +116,10 @@ public class UdpSocket extends SocketContext {
         datagramChannel.setOption(name, value);
     }
 
-    /**
-     * 初始化函数
-     */
-    private void registerSelector()  {
-        try{
-            selector = provider.openSelector();
-            datagramChannel.register(selector, SelectionKey.OP_READ);
-            udpSelector = new UdpSelector(selector, this);
-            UdpSelector.register(udpSelector);
-        }catch(IOException e){
-            Logger.error("init SocketChannel failed by openSelector",e);
-        }
+    @Override
+    public DatagramChannel socketChannel() {
+        return datagramChannel;
     }
-
 
     /**
      * 获取 Session 对象
@@ -144,10 +127,6 @@ public class UdpSocket extends SocketContext {
      */
     public UdpSession getSession(){
         return session;
-    }
-
-    public DatagramChannel datagramChannel(){
-        return this.datagramChannel;
     }
 
     @Override
@@ -167,50 +146,17 @@ public class UdpSocket extends SocketContext {
      * 启动同步的上下文连接,同步读写时使用
      */
     public void syncStart() throws IOException {
+	    init();
+
         datagramChannel.connect(new InetSocketAddress(this.host, this.port));
         datagramChannel.configureBlocking(false);
 
-        registerSelector();
-
-        EventTrigger.fireConnect(session);
+        bindToSocketSelector(SelectionKey.OP_READ);
     }
 
     @Override
-    protected void acceptStart() throws IOException {
-        throw new RuntimeException("Unsupport method");
-    }
-
-    /**
-     * 重连当前连接
-     * @return UdpSocket对象
-     * @throws IOException IO 异常
-     * @throws RestartException 重新启动的异常
-     */
-    public UdpSocket restart() throws IOException, RestartException {
-        if(this.connectModel == ConnectModel.CLIENT) {
-            init();
-            this.start();
-            return this;
-        }else{
-            throw new RestartException("Can't invoke reStart method in server mode");
-        }
-    }
-
-    /**
-     * 重连当前连接
-     *      同步模式
-     * @return UdpSocket对象
-     * @throws IOException IO 异常
-     * @throws RestartException 重新启动的异常
-     */
-    public UdpSocket syncRestart() throws IOException, RestartException {
-        if(this.connectModel == ConnectModel.CLIENT) {
-            init();
-            this.syncStart();
-            return this;
-        }else{
-            throw new RestartException("Can't invoke reStart method in server mode");
-        }
+    public void acceptStart() throws IOException {
+		bindToSocketSelector(0);
     }
 
     /**
@@ -244,7 +190,7 @@ public class UdpSocket extends SocketContext {
     @Override
     public boolean isConnected() {
         if(datagramChannel!=null){
-            return datagramChannel.isConnected();
+            return datagramChannel.isOpen();
         }else{
             return false;
         }
@@ -254,23 +200,13 @@ public class UdpSocket extends SocketContext {
     public boolean close() {
 
         if(datagramChannel!=null){
-            try{
-                datagramChannel.close();
 
-                UdpSelector.unregister(udpSelector);
-                udpSelector.release();
-                selector.wakeup();
-                selector.close();
-                session.getReadByteBufferChannel().release();
-                session.getSendByteBufferChannel().release();
-                synchronized (waitObj) {
-                    waitObj.notify();
-                }
-                return true;
-            } catch(IOException e){
-                Logger.error("Close SocketChannel failed",e);
-                return false;
-            }
+			session.release();
+
+			synchronized (waitObj) {
+				waitObj.notify();
+			}
+			return true;
         }else{
             synchronized (waitObj) {
                 waitObj.notify();

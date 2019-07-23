@@ -1,7 +1,6 @@
 package org.voovan.network.udp;
 
-import org.voovan.network.SocketContext;
-import org.voovan.network.handler.SynchronousHandler;
+import org.voovan.network.*;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -10,7 +9,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketOption;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
 
 /**
@@ -22,13 +20,10 @@ import java.nio.channels.spi.SelectorProvider;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class UdpServerSocket extends SocketContext {
+public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> {
 
     private SelectorProvider provider;
-    private Selector selector;
     private DatagramChannel datagramChannel;
-
-    private UdpSelector udpSelector;
 
     //用来阻塞当前Socket
     private Object waitObj = new Object();
@@ -78,7 +73,8 @@ public class UdpServerSocket extends SocketContext {
         provider = SelectorProvider.provider();
         datagramChannel = provider.openDatagramChannel();
         datagramChannel.socket().setSoTimeout(this.readTimeout);
-        this.handler = new SynchronousHandler();
+        datagramChannel.configureBlocking(false);
+        connectModel = ConnectModel.LISTENER;
     }
 
 
@@ -98,25 +94,14 @@ public class UdpServerSocket extends SocketContext {
         datagramChannel.setOption(name, value);
     }
 
-    /**
-     * 初始化函数
-     */
-    private void registerSelector()  {
-        try{
-            selector = provider.openSelector();
-            datagramChannel.register(selector, SelectionKey.OP_READ);
-
-            if(datagramChannel!=null && datagramChannel.isOpen()) {
-                udpSelector = new UdpSelector(selector, this);
-                UdpSelector.register(udpSelector);
-            }
-        }catch(IOException e){
-            Logger.error("init SocketChannel failed by openSelector",e);
-        }
+    @Override
+    public DatagramChannel socketChannel() {
+        return datagramChannel;
     }
 
-    public DatagramChannel datagramChannel(){
-        return this.datagramChannel;
+    @Override
+    public UdpSession getSession() {
+        return null;
     }
 
     @Override
@@ -137,9 +122,8 @@ public class UdpServerSocket extends SocketContext {
      */
     public void syncStart() throws IOException {
         datagramChannel.bind(new InetSocketAddress(this.host, this.port));
-        datagramChannel.configureBlocking(false);
 
-        registerSelector();
+        bindToSocketSelector(SelectionKey.OP_READ);
     }
 
     @Override
@@ -159,7 +143,7 @@ public class UdpServerSocket extends SocketContext {
     @Override
     public boolean isConnected() {
         if(datagramChannel!=null){
-            return datagramChannel.isConnected();
+            return datagramChannel.isOpen();
         }else{
             return false;
         }
@@ -170,7 +154,6 @@ public class UdpServerSocket extends SocketContext {
         if(datagramChannel!=null){
             try{
                 datagramChannel.close();
-                UdpSelector.unregister(udpSelector);
                 synchronized (waitObj) {
                     waitObj.notify();
                 }

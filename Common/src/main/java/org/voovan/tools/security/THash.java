@@ -1,5 +1,6 @@
 package org.voovan.tools.security;
 
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
@@ -106,11 +107,14 @@ public class THash {
 		return hash;
 	}
 
+
+
+
 	/**
 	 * Time31算法
 	 * @param byteBuffer  字节数据
 	 * @param offset 字节数据偏移量
-	 * @param length 长度* @param source 待加密字符串
+	 * @param length 长度
 	 * @return 加密结果
 	 */
 	public static int hashTime31(ByteBuffer byteBuffer, int offset, int length) {
@@ -120,6 +124,8 @@ public class THash {
 		}
 		return hash;
 	}
+
+
 
 	/**
 	 * Time31算法
@@ -150,17 +156,139 @@ public class THash {
 	}
 
 
-		/**
-		 * Time31算法
-		 * @param strs 字符串数组
-		 * @return 加密结果
-		 */
+	/**
+	 * Time31算法
+	 * @param str 字符串
+	 * @return 加密结果
+	 */
+	public static int hashTime31(String str) {
+
+		return hashTime31(str, 0, str.length(), 0);
+	}
+
+    /**
+     * Time31算法
+     * @param strs 字符串数组
+     * @return 加密结果
+     */
 	public static int hashTime31(String ... strs) {
 		int hash = 0;
 		for(int i=0;i<strs.length;i++){
 			String val = strs[i];
 			if(val !=null){
 				hash = hash + hashTime31(val, 0, val.length(), hash);
+			}
+		}
+
+		return hash;
+	}
+
+	/**
+	 * 改进的32位FNV算法1
+	 * @param data 数组
+	 * @param offset 数据偏移量
+	 * @param length 长度
+	 * @return int值
+	 */
+	public static int HashFNV1(byte[] data, int offset, int length)
+	{
+		final int p = 16777619;
+		int hash = (int)2166136261L;
+		for (int i = offset; i < length; i++) {
+			byte b = data[i];
+			hash = (hash ^ b) * p;
+		}
+
+		hash += hash << 13;
+		hash ^= hash >> 7;
+		hash += hash << 3;
+		hash ^= hash >> 17;
+		hash += hash << 5;
+		return hash;
+
+	}
+
+	/**
+	 * 改进的32位FNV算法1
+	 * @param byteBuffer  字节数据
+	 * @param offset 字节数据偏移量
+	 * @param length 长度
+	 * @return int值
+	 */
+	public static int HashFNV1(ByteBuffer byteBuffer, int offset, int length)
+	{
+		final int p = 16777619;
+		int hash = (int)2166136261L;
+		for (int i = offset; i < length; i++) {
+			byte b = byteBuffer.get(i);
+			hash = (hash ^ b) * p;
+		}
+
+		hash += hash << 13;
+		hash ^= hash >> 7;
+		hash += hash << 3;
+		hash ^= hash >> 17;
+		hash += hash << 5;
+		return hash;
+	}
+
+	/**
+	 * 改进的32位FNV算法1
+	 * @param str 字符串
+	 * @param offset 字节数据偏移量
+	 * @param length 长度
+	 * @param seed 上次 hash 的种子
+	 * @return int值
+	 */
+	public static int HashFNV1(String str, int offset, int length, int seed)
+	{
+		final int p = 16777619;
+		int hash = seed;
+		for (int i = offset; i < length; i++) {
+			byte b = (byte)str.charAt(i);
+			hash = (hash ^ b) * p;
+		}
+
+		hash += hash << 13;
+		hash ^= hash >> 7;
+		hash += hash << 3;
+		hash ^= hash >> 17;
+		hash += hash << 5;
+		return hash;
+	}
+
+	/**
+	 * 改进的32位FNV算法1
+	 * @param str 字符串
+	 * @param offset 字节数据偏移量
+	 * @param length 长度
+	 * @return int值
+	 */
+	public static int HashFNV1(String str, int offset, int length) {
+		return HashFNV1(str, offset, length, (int)2166136261L);
+	}
+
+
+	/**
+	 * 改进的32位FNV算法1
+	 * @param str 字符串
+	 * @return int值
+	 */
+	public static int HashFNV1(String str) {
+		return HashFNV1(str, 0, str.length(), (int)2166136261L);
+	}
+
+	/**
+	 * Time31算法
+	 * @param strs 字符串数组
+	 * @return 加密结果
+	 */
+	public static int HashFNV1(String ... strs) {
+		int hash = (int)2166136261L;
+		for(int i=0;i<strs.length;i++){
+			String val = strs[i];
+			if(val !=null){
+				hash = hash + HashFNV1(val, 0, val.length(), hash);
 			}
 		}
 

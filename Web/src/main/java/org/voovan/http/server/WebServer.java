@@ -8,11 +8,11 @@ import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.router.OptionsRouter;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
-import org.voovan.network.aio.AioServerSocket;
+import org.voovan.network.SocketContext;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
-import org.voovan.network.nio.NioServerSocket;
+import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.tools.*;
-import org.voovan.tools.aop.Aop;
+import org.voovan.tools.weave.Weave;
 import org.voovan.tools.hotswap.Hotswaper;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
@@ -33,7 +33,7 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class WebServer {
-	private AioServerSocket aioServerSocket;
+	private SocketContext serverSocket;
 	private HttpDispatcher	httpDispatcher;
 	private WebSocketDispatcher webSocketDispatcher;
 	private SessionManager sessionManager;
@@ -43,10 +43,9 @@ public class WebServer {
 	 * 构造函数
 	 *
 	 * @param config  WEB 配对对象
-	 * @throws IOException
 	 *             异常
 	 */
-	public WebServer(WebServerConfig config) throws IOException {
+	public WebServer(WebServerConfig config) {
 		this.config = config;
 
 		initAop();
@@ -82,9 +81,9 @@ public class WebServer {
 	 */
 	private void initAop() {
 		//热加载
-		if(config.getScanAopPackage()!=null) {
+		if(config.getWeaveConfig()!=null) {
 			try {
-				Aop.init(config.getScanAopPackage());
+				Weave.init(config.getWeaveConfig());
 			} catch (Exception e) {
 				Logger.error("Init aop failed: " + e.getMessage());
 			}
@@ -105,20 +104,20 @@ public class WebServer {
 	private void initSocketServer(WebServerConfig config) throws IOException{
 
 		//[Socket] 准备 socket 监听
-		aioServerSocket = new AioServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
-		aioServerSocket.setReadRecursionDepth(16);
+		serverSocket = new TcpServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
+		serverSocket.setReadRecursionDepth(16);
 
 		//[Socket]确认是否启用 HTTPS 支持
 		if(config.isHttps()) {
 			SSLManager sslManager = new SSLManager("TLS", false);
 			sslManager.loadCertificate(System.getProperty("user.dir") + config.getHttps().getCertificateFile(),
 					config.getHttps().getCertificatePassword(), config.getHttps().getKeyPassword());
-			aioServerSocket.setSSLManager(sslManager);
+			serverSocket.setSSLManager(sslManager);
 		}
 
-		aioServerSocket.handler(new WebServerHandler(config, httpDispatcher, webSocketDispatcher));
-		aioServerSocket.filterChain().add(new WebServerFilter());
-		aioServerSocket.messageSplitter(new HttpMessageSplitter());
+		serverSocket.handler(new WebServerHandler(config, httpDispatcher, webSocketDispatcher));
+		serverSocket.filterChain().add(new WebServerFilter());
+		serverSocket.messageSplitter(new HttpMessageSplitter());
 	}
 
 	/**
@@ -308,14 +307,10 @@ public class WebServer {
 	 */
 	public static WebServer newInstance(WebServerConfig config) {
 
-		try {
-			if(config!=null) {
-				return new WebServer(config);
-			}else{
-				Logger.error("Create WebServer failed: WebServerConfig object is null.");
-			}
-		} catch (IOException e) {
-			Logger.error("Create WebServer failed",e);
+		if(config!=null) {
+			return new WebServer(config);
+		}else{
+			Logger.error("Create WebServer failed: WebServerConfig object is null.");
 		}
 
 		return null;
@@ -329,14 +324,10 @@ public class WebServer {
 	 */
 	public static WebServer newInstance(String json) {
 
-		try {
-			if(json!=null) {
-				return new WebServer(WebContext.buildConfigFromJSON(json));
-			}else{
-				Logger.error("Create WebServer failed: WebServerConfig object is null.");
-			}
-		} catch (IOException e) {
-			Logger.error("Create WebServer failed",e);
+		if(json!=null) {
+			return new WebServer(WebContext.buildConfigFromJSON(json));
+		}else{
+			Logger.error("Create WebServer failed: WebServerConfig object is null.");
 		}
 
 		return null;
@@ -462,7 +453,7 @@ public class WebServer {
 		this.webSocketDispatcher = new WebSocketDispatcher(config, sessionManager);
 
 		//更新 WebServer 的 http 和 websocket 的分发
-		aioServerSocket.handler(new WebServerHandler(config, httpDispatcher,webSocketDispatcher));
+		serverSocket.handler(new WebServerHandler(config, httpDispatcher,webSocketDispatcher));
 
 		//输出欢迎信息
 		WebContext.welcome();
@@ -693,7 +684,7 @@ public class WebServer {
 
 		try {
 			commonServe();
-			aioServerSocket.start();
+			serverSocket.start();
 		} catch (IOException e) {
 			Logger.error("Start HTTP server error",e);
 			TEnv.sleep(1000);
@@ -710,7 +701,7 @@ public class WebServer {
 	public WebServer syncServe() {
 		try {
 			commonServe();
-			aioServerSocket.syncStart();
+			serverSocket.syncStart();
 		} catch (IOException e) {
 			Logger.error("Start HTTP server error",e);
 		}
@@ -738,7 +729,7 @@ public class WebServer {
 	 * @return true: 处于服务状态, false: 不处于服务状态
 	 */
 	public boolean isServing(){
-		return aioServerSocket.isConnected();
+		return serverSocket.isConnected();
 	}
 
 	/**
@@ -765,7 +756,7 @@ public class WebServer {
 
 			Logger.fremawork("Your are working on: JDK-" +TEnv.JDK_VERSION+". " +
 					"You should add java command arguments: " +
-					"-Djdk.attach.allowAttachSelf=true --add-exports java.base/java.nio=ALL-UNNAMED --add-exports java.base/jdk.internal.ref=ALL-UNNAMED");
+					"-Djdk.attach.allowAttachSelf=true --add-exports java.base/java.tcp=ALL-UNNAMED --add-exports java.base/jdk.internal.ref=ALL-UNNAMED");
 
 			System.exit(0);
 		}
@@ -902,8 +893,8 @@ public class WebServer {
 					Logger.simple(TString.rightPad("  -h ",35,' ')+"Webserver bind host ip address");
 					Logger.simple(TString.rightPad("  -p ",35,' ')+"Webserver bind port number");
 					Logger.simple(TString.rightPad("  --env ",35,' ') + "Webserver environment name");
-					Logger.simple(TString.rightPad("  -rto ",35,' ')+"Socket read timeout");
-					Logger.simple(TString.rightPad("  -sto ",35,' ')+"Socket send timeout");
+					Logger.simple(TString.rightPad("  -rto ",35,' ')+"Socket readFromChannel timeout");
+					Logger.simple(TString.rightPad("  -sto ",35,' ')+"Socket writeToChannel timeout");
 					Logger.simple(TString.rightPad("  -r ",35,' ')+"Context root path, contain webserver static file");
 					Logger.simple(TString.rightPad("  -i ",35,' ')+"index file for client access to webserver");
 					Logger.simple(TString.rightPad("  -mri ",35,' ')+"Match route ignore case");
@@ -933,7 +924,7 @@ public class WebServer {
 
 		WebServer webServer = WebServer.newInstance(config);
 
-		webServer.syncServe();
+		webServer.serve();
 	}
 
 	/**
@@ -947,9 +938,11 @@ public class WebServer {
 			unInitModule();
 			this.runWebDestory(this);
 
-			aioServerSocket.close();
+			serverSocket.close();
 			System.out.println("[" + TDateTime.now() + "] Socket closed");
 
+			SocketContext.ACCEPT_THREAD_POOL.shutdown();
+			SocketContext.IO_THREAD_POOL.shutdown();
 			Global.getThreadPool().shutdown();
 			System.out.println("[" + TDateTime.now() + "] Thread pool is shutdown.");
 
