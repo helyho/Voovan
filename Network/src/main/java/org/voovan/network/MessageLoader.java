@@ -180,6 +180,10 @@ public class MessageLoader {
 						if (messageSplitter instanceof TransferSplitter) {
 							splitLength = dataByteBuffer.limit();
 						} else {
+							//拦截心跳
+							while(HeartBeat.interceptHeartBeat(session)){
+
+							}
 							splitLength = messageSplitter.canSplite(session, dataByteBuffer);
 						}
 
