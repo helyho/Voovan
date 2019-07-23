@@ -103,7 +103,7 @@ public class Global {
     static {
         if(NO_HEAP_MANUAL_RELEASE == null) {
             boolean value = false;
-            value = TProperties.getBoolean("framework", "NoHeapManualRelease");
+            value = TProperties.getBoolean("framework", "NoHeapManualRelease", true);
             REMOTE_CLASS_SOURCE = TProperties.getString("framework", "RemoteClassSource");
             NO_HEAP_MANUAL_RELEASE = TObject.nullDefault(value, true);
             System.out.println("[SYSTEM] NoHeap Manual Release: " + NO_HEAP_MANUAL_RELEASE);
