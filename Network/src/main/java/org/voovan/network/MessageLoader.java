@@ -186,6 +186,8 @@ public class MessageLoader {
 						if (splitLength >= 0) {
 							stopType = StopType.MSG_SPLITTER;
 							break;
+						} else {
+							session.getSocketSelector().eventChoose();
 						}
 					}
 				} finally {
