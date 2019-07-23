@@ -201,14 +201,14 @@ public class RedisMapUnit extends TestCase{
         RedisMap redisMap = new RedisMap("127.0.0.1", 6379, 2000, 100);
 
         Jedis jedis = TReflect.invokeMethod(redisMap, "getJedis");
-        System.out.println(TEnv.measureTime(()->{
+        System.out.println(TEnv.measure(()->{
             for(int i=0;i<10000;i++){
                 jedis.set(TByte.getBytes(i), TByte.getBytes(i));
             }
         })/1000000);
         jedis.close();
 
-        System.out.println(TEnv.measureTime(()->{
+        System.out.println(TEnv.measure(()->{
             for(int i=0;i<10000;i++){
                 redisMap.put(i, i);
             }

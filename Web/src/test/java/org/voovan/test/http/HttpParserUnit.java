@@ -103,7 +103,7 @@ public class HttpParserUnit extends TestCase {
 
 	public static void main(String[] args) {
 
-		System.out.println(TEnv.measureTime(()->{
+		System.out.println(TEnv.measure(()->{
 			for(int i=0;i<1000000; i++) {
 				ByteBufferChannel b = new ByteBufferChannel();
 				b.writeEnd(ByteBuffer.wrap(httpRequestGet.getBytes()));
@@ -117,7 +117,7 @@ public class HttpParserUnit extends TestCase {
 			return null;
 		}));
 
-		System.out.println(TEnv.measureTime(()->{
+		System.out.println(TEnv.measure(()->{
 			for(int i=0;i<1000000; i++) {
 				ByteBufferChannel b = new ByteBufferChannel();
 				b.writeEnd(ByteBuffer.wrap(httpRequestGet.getBytes()));

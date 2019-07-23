@@ -558,12 +558,7 @@ public class HttpClient implements Closeable{
 		doWebSocketUpgrade(location);
 
 		//为异步调用进行阻赛,等待 socket 关闭
-
-		try {
-			TEnv.wait(socket.getReadTimeout(), ()->socket.isOpen());
-		} catch (TimeoutException e) {
-			e.printStackTrace();
-		}
+        TEnv.wait(socket.getReadTimeout(), ()->socket.isOpen());
 	}
 
 	/**

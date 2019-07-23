@@ -6,6 +6,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 类文字命名
@@ -53,7 +54,7 @@ public class TReflectTest {
 
         System.out.println("==========================newInstance==========================");
 
-        System.out.println("direct: " + TEnv.measureTime(()->{
+        System.out.println("direct: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
                     SimpleObject simpleObject = new SimpleObject();
@@ -64,7 +65,7 @@ public class TReflectTest {
         })/1000000f);
 
         clear();
-        System.out.println("reflect: " + TEnv.measureTime(()->{
+        TEnv.measure("reflect:", ()->{
             for(int i=0;i<500000;i++){
                 try {
                     TReflect.newInstance(SimpleObject.class, null);
@@ -72,10 +73,10 @@ public class TReflectTest {
                     e.printStackTrace();
                 }
             }
-        })/1000000f);
+        }, TimeUnit.MILLISECONDS);
 
         gen();
-        System.out.println("native: " + TEnv.measureTime(()->{
+        System.out.println("native: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
                     TReflect.newInstanceNative(SimpleObject.class, null);
@@ -88,7 +89,7 @@ public class TReflectTest {
 
         System.out.println("==========================get==========================");
 
-        System.out.println("direct: " + TEnv.measureTime(()->{
+        System.out.println("direct: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
                     obj.getValueS();
@@ -99,7 +100,7 @@ public class TReflectTest {
         })/1000000f);
 
         clear();
-        System.out.println("reflect: " + TEnv.measureTime(()->{
+        System.out.println("reflect: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
                     TReflect.getFieldValue(obj, "valueS");
@@ -110,7 +111,7 @@ public class TReflectTest {
         })/1000000f);
 
         gen();
-        System.out.println("native: " + TEnv.measureTime(()->{
+        System.out.println("native: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
                     TReflect.getFieldValueNatvie(obj, "valueS");
@@ -122,7 +123,7 @@ public class TReflectTest {
 
         System.out.println("==========================set==========================");
 
-        System.out.println("direct: " + TEnv.measureTime(()->{
+        System.out.println("direct: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
                     obj.setValueS("123123");
@@ -133,7 +134,7 @@ public class TReflectTest {
         })/1000000f);
 
         clear();
-        System.out.println("reflect: " + TEnv.measureTime(()->{
+        System.out.println("reflect: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
                     TReflect.setFieldValue(obj, "valueS", "123123");
@@ -144,7 +145,7 @@ public class TReflectTest {
         })/1000000f);
 
         gen();
-        System.out.println("native: " + TEnv.measureTime(()->{
+        System.out.println("native: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
                     TReflect.setFieldValueNatvie(obj, "valueS", "123123");
@@ -156,7 +157,7 @@ public class TReflectTest {
 
         System.out.println("==========================getMapfromObject==========================");
         clear();
-        System.out.println("reflect: " + TEnv.measureTime(()->{
+        System.out.println("reflect: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
                     TReflect.getMapfromObject(obj);
@@ -167,7 +168,7 @@ public class TReflectTest {
         })/1000000f);
 
         gen();
-        System.out.println("native: " + TEnv.measureTime(()->{
+        System.out.println("native: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
                     TReflect.getMapfromObject(obj);
@@ -180,7 +181,7 @@ public class TReflectTest {
         System.out.println("==========================getObjectFromMap==========================");
         Map map = TReflect.getMapfromObject(obj);
         clear();
-        System.out.println("reflect: " + TEnv.measureTime(()->{
+        System.out.println("reflect: " + TEnv.measure(()->{
             for(int i=0;i<50000;i++){
                 try {
                     TReflect.getObjectFromMap(SimpleObject.class, map, false);
@@ -191,7 +192,7 @@ public class TReflectTest {
         })/1000000f);
 
         gen();
-        System.out.println("native: " + TEnv.measureTime(()->{
+        System.out.println("native: " + TEnv.measure(()->{
             for(int i=0;i<50000;i++){
                 try {
                     TReflect.getObjectFromMap(SimpleObject.class, map, false);
@@ -204,7 +205,7 @@ public class TReflectTest {
 
         System.out.println("==========================JSON.toJSON==========================");
         clear();
-        System.out.println("reflect: " + TEnv.measureTime(()->{
+        System.out.println("reflect: " + TEnv.measure(()->{
             for(int i=0;i<50000;i++){
                 try {
                    JSON.toJSON(obj);
@@ -215,7 +216,7 @@ public class TReflectTest {
         })/1000000f);
 
         gen();
-        System.out.println("native: " + TEnv.measureTime(()->{
+        System.out.println("native: " + TEnv.measure(()->{
             for(int i=0;i<50000;i++){
                 try {
                     JSON.toJSON(obj);
@@ -228,7 +229,7 @@ public class TReflectTest {
         System.out.println("==========================JSON.toObject==========================");
         String json = JSON.toJSON(obj);
         clear();
-        System.out.println("reflect: " + TEnv.measureTime(()->{
+        System.out.println("reflect: " + TEnv.measure(()->{
             for(int i=0;i<50000;i++){
                 try {
                     JSON.toObject(json, SimpleObject.class);
@@ -239,7 +240,7 @@ public class TReflectTest {
         })/1000000f);
 
         gen();
-        System.out.println("native: " + TEnv.measureTime(()->{
+        System.out.println("native: " + TEnv.measure(()->{
             for(int i=0;i<50000;i++){
                 try {
                     JSON.toObject(json, SimpleObject.class);
@@ -250,7 +251,7 @@ public class TReflectTest {
         })/1000000f);
 
         System.out.println("==========================invoke==========================");
-        System.out.println("direct: " + TEnv.measureTime(()->{
+        System.out.println("direct: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
                     obj.getData("aaaa", 111);
@@ -261,7 +262,7 @@ public class TReflectTest {
         })/1000000f);
 
         clear();
-        System.out.println("reflect: " + TEnv.measureTime(()->{
+        System.out.println("reflect: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
                     TReflect.invokeMethod(obj, method, objs);

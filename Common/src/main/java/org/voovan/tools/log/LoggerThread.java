@@ -49,13 +49,7 @@ public class LoggerThread implements Runnable {
 	 */
 	public boolean pause(){
 		pause = 1;
-		try {
-			TEnv.wait(3000, ()-> pause != 2);
-			return true;
-		} catch (TimeoutException e) {
-			e.printStackTrace();
-			return false;
-		}
+		return TEnv.wait(3000, ()-> pause != 2);
 	}
 
 	/**
