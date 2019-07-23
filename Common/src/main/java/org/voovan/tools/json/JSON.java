@@ -20,7 +20,7 @@ import java.util.function.Supplier;
  * Licence: Apache v2 License
  */
 public class JSON {
-	public final static String JSON_CONVERT_ESCAPE_CHAR = TProperties.getString("framework", "JSONConvertEscapeChar");
+	public final static String JSON_CONVERT_ESCAPE_CHAR = TProperties.getString("framework", "JSONConvertEscapeChar", "true");
 
 	/**
 	 * 是否进行 EscapeChar 的转换, 默认 true, 当你确定你不存在字符串多行换行的时候可设置为 false
