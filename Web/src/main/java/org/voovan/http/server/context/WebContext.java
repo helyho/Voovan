@@ -330,8 +330,8 @@ public class WebContext {
 		}
 
 		if(config.getWeaveConfig()!=null) {
-			System.out.println(TString.rightPad("  AopScanPackages:", 35, ' ') + config.getWeaveConfig().getScan());
-			System.out.println(TString.rightPad("  AopInjectPackages:", 35, ' ') + config.getWeaveConfig().getInject());
+			System.out.println(TString.rightPad("  WeaveScan:", 35, ' ') + config.getWeaveConfig().getScan());
+			System.out.println(TString.rightPad("  WeaveInject:", 35, ' ') + config.getWeaveConfig().getInject());
 		}
 
 		if(config.isHttps()) {
