@@ -125,10 +125,8 @@ public class MessageLoader {
 	 * @return 读取的缓冲区数据
 	 */
 	public int read() {
-		int readZeroCount = 0;
 		int splitLength = 0;
 
-		ByteBuffer result = TByteBuffer.EMPTY_BYTE_BUFFER;
 		int oldByteChannelSize = 0;
 
 		ByteBufferChannel dataByteBufferChannel = null;
@@ -152,9 +150,7 @@ public class MessageLoader {
 
 		boolean isConnect = true;
 
-		while ( isConnect && enable &&
-				(stopType== StopType.RUNNING )
-		) {
+		while (isConnect && enable && stopType == StopType.RUNNING && !dataByteBufferChannel.isEmpty()) {
 
 			if(session.socketContext() instanceof UdpSocket) {
 				isConnect = session.isOpen();
@@ -168,8 +164,6 @@ public class MessageLoader {
 				return -1;
 			}
 
-			int readsize = byteBufferChannel.size() - oldByteChannelSize;
-
 			try {
 				dataByteBuffer = dataByteBufferChannel.getByteBuffer();
 				try {
@@ -180,7 +174,7 @@ public class MessageLoader {
 					}
 
 					//使用消息划分器进行消息划分
-					if (readsize == 0 && dataByteBuffer.limit() > 0) {
+					if (dataByteBuffer.hasRemaining()) {
 						if (messageSplitter instanceof TransferSplitter) {
 							splitLength = dataByteBuffer.limit();
 						} else {
@@ -198,22 +192,6 @@ public class MessageLoader {
 			}catch(MemoryReleasedException e){
 				stopType = StopType.SOCKET_CLOSED;
 			}
-
-			oldByteChannelSize = byteBufferChannel.size();
-
-			//超时判断,防止读0时导致的高 CPU 负载
-			if( readsize==0 && stopType == StopType.RUNNING ){
-				if(session.socketContext().isReadTimeOut()){
-					stopType = StopType.STREAM_END;
-				}else {
-					session.getSocketSelector().eventChoose();
-					readZeroCount++;
-				}
-			}else{
-				readZeroCount = 0;
-			}
-
-
 		}
 
 		//如果是流结束,对方关闭,本地关闭这三种情况则返回 null
