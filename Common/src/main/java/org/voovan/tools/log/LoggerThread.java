@@ -123,42 +123,46 @@ public class LoggerThread implements Runnable {
 		try {
 			while (Logger.isEnable()) {
 
-				if(this.pause == 1){
-					flush();
-					this.pause = 2;
-				}
-
-				if(this.pause != 0){
-					Thread.sleep(1);
-					continue;
-				}
-
-				formatedMessage = logQueue.poll();
-
-				//优化日志输出事件
-				if(formatedMessage == null) {
-
-					if(needFlush) {
+				try {
+					if (this.pause == 1) {
 						flush();
-						needFlush = false;
+						this.pause = 2;
 					}
 
-					Thread.sleep(1);
-					continue;
-				}
+					if (this.pause != 0) {
+						Thread.sleep(1);
+						continue;
+					}
 
-				if (formatedMessage != null && outputStreams!=null) {
-					for (OutputStream outputStream : outputStreams) {
-						if (outputStream != null) {
-							if(LoggerStatic.HAS_COLOR && !(outputStream instanceof PrintStream)){
-								//文件写入剔除出着色部分
-								formatedMessage = TString.fastReplaceAll(formatedMessage, "\033\\[\\d{2}m", "");
+					formatedMessage = logQueue.poll();
+
+					//优化日志输出事件
+					if (formatedMessage == null) {
+
+						if (needFlush) {
+							flush();
+							needFlush = false;
+						}
+
+						Thread.sleep(1);
+						continue;
+					}
+
+					if (formatedMessage != null && outputStreams != null) {
+						for (OutputStream outputStream : outputStreams) {
+							if (outputStream != null) {
+								if (LoggerStatic.HAS_COLOR && !(outputStream instanceof PrintStream)) {
+									//文件写入剔除出着色部分
+									formatedMessage = TString.fastReplaceAll(formatedMessage, "\033\\[\\d{2}m", "");
+								}
+								outputStream.write(formatedMessage.getBytes());
+
+								needFlush = true;
 							}
-							outputStream.write(formatedMessage.getBytes());
-
-							needFlush = true;
 						}
 					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 
@@ -166,8 +170,6 @@ public class LoggerThread implements Runnable {
 
 			finished.set(true);
 
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
 		} finally {
 			try {
 				for (OutputStream outputStream : outputStreams) {
