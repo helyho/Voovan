@@ -187,6 +187,7 @@ public class MessageLoader {
 							stopType = StopType.MSG_SPLITTER;
 							break;
 						} else {
+							//消息不可分割,且有消息报文存在, 则尝试继续从 Socket 通道读取数据
 							session.getSocketSelector().eventChoose();
 						}
 					}
