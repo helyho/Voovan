@@ -125,8 +125,7 @@ public class EventProcess {
                         onRead(event, recursionDepth);
                     }
                 } else {
-                    session.close();
-                    throw new TimeoutException("Socket is read timeout");
+                    return;
                 }
             } finally {
                 //释放 onRecive 锁
@@ -138,9 +137,6 @@ public class EventProcess {
                     }
 
                     if(session.getReadByteBufferChannel().size() > 0) {
-                        while(HeartBeat.interceptHeartBeat(session, session.getReadByteBufferChannel())){
-
-                        }
                         EventTrigger.fireReceiveAsEvent(session);
                     }
 

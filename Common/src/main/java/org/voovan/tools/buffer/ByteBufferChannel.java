@@ -164,6 +164,14 @@ public class ByteBufferChannel {
     }
 
     /**
+     * 缓冲通道是否空
+     * @return true: 通道空, false: 通道有数据
+     */
+    public boolean isEmpty(){
+        return size == 0;
+    }
+
+    /**
      * 是否已经释放
      * @return true 已释放, false: 未释放
      */

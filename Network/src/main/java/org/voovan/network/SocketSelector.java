@@ -572,10 +572,6 @@ public class SocketSelector implements Closeable {
 						appByteBufferChannel.writeEnd(readTempBuffer);
 					}
 
-					while(HeartBeat.interceptHeartBeat(session, session.getReadByteBufferChannel())){
-
-					}
-
 					if (session.isConnected() && !session.getState().isReceive() && appByteBufferChannel.size() > 0) {
 						// 触发 onReceive 事件
 						EventTrigger.fireReceiveAsEvent(session);
