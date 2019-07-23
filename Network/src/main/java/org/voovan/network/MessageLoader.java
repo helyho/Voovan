@@ -164,6 +164,8 @@ public class MessageLoader {
 				return -1;
 			}
 
+			int readsize = byteBufferChannel.size() - oldByteChannelSize;
+
 			try {
 				dataByteBuffer = dataByteBufferChannel.getByteBuffer();
 				try {
@@ -174,7 +176,7 @@ public class MessageLoader {
 					}
 
 					//使用消息划分器进行消息划分
-					if (dataByteBuffer.hasRemaining()) {
+					if (readsize==0 && dataByteBuffer.hasRemaining()) {
 						if (messageSplitter instanceof TransferSplitter) {
 							splitLength = dataByteBuffer.limit();
 						} else {
@@ -189,6 +191,8 @@ public class MessageLoader {
 				} finally {
 					dataByteBufferChannel.compact();
 				}
+
+				oldByteChannelSize = byteBufferChannel.size();
 			}catch(MemoryReleasedException e){
 				stopType = StopType.SOCKET_CLOSED;
 			}
