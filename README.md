@@ -6,7 +6,7 @@
 ![JDK 1.7](https://img.shields.io/badge/JDK-1.7-green.svg "JDK 1.8")
 [![jar size 497K](https://img.shields.io/badge/size-497K-green.svg "size 497K")](https://git.oschina.net/helyho/Voovan/raw/master/voovan-framework.jar)
 
-Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTTP客户端抓取、动态编译支持、数据库访问封装以及DateTime、String、Log、反射、对象工具、流操作、文件操作、异步双向通道等功能。旨在提供可靠、方便、可单元测试的代码。它是一个无任何依赖的独立工具包，希望能够方便广大开发者快速的实现应用。
+Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTTP客户端抓取、动态编译支持、数据库访问封装以及DateTime、String、Log、反射、对象工具、流操作、文件操作、异步双向通道等功能。旨在提供可靠、方便、可单元测试的代码。它是极少依赖的独立工具包，希望能够方便广大开发者快速的实现应用。
 
 **极简并且优雅的编码是 Voovan 的宗旨和目标**
 
