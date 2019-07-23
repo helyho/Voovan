@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TSerialize {
     public static Serialize SERIALIZE;
     static {
-        String serializeType = TProperties.getString("framework", "SerializeType").trim();
+        String serializeType = TProperties.getString("framework", "SerializeType", "JDK").trim();
         if("JSON".equalsIgnoreCase(serializeType.trim())){
             serializeType = "org.voovan.tools.serialize.DefaultJSONSerialize";
         } else if("JDK".equalsIgnoreCase(serializeType.trim())){
