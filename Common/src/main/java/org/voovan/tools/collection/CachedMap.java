@@ -255,11 +255,9 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
             }
         }
 
-        try {
-            TimeMark finalTimeMark = timeMark;
-            TEnv.wait(10*1000, ()-> finalTimeMark.isOnCreate());
-        } catch (TimeoutException e) {
-            Logger.error("wait supplier timeout: " + key, e);
+        TimeMark finalTimeMark = timeMark;
+        if(!TEnv.wait(10*1000, ()-> finalTimeMark.isOnCreate())) {
+            Logger.error("CacheMap.createCache wait supplier timeout: " + key);
         }
 
         return timeMark;

@@ -486,7 +486,7 @@ public abstract class IoSession<T extends SocketContext> {
 		//等待 ssl 握手完成
 		try {
 			if(sslParser!=null) {
-				TEnv.wait(socketContext.getReadTimeout(), ()->!sslParser.handShakeDone);
+				TEnv.waitThrow(socketContext.getReadTimeout(), ()->!sslParser.handShakeDone);
 			}
 
 			if (obj != null) {

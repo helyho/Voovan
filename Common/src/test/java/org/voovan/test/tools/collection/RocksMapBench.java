@@ -4,7 +4,6 @@ import org.rocksdb.RocksDBException;
 import org.voovan.Global;
 import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TObject;
 import org.voovan.tools.UniqueId;
 import org.voovan.tools.collection.RocksMap;
 
@@ -44,7 +43,7 @@ public class RocksMapBench {
         String keys[] = new String[threadSize * loopSize + 10];
 
         System.out.println(
-                TEnv.measureTime(() -> {
+                TEnv.measure(() -> {
                     for (int i = 1; i < threadSize+1; i++) {
                         final int finalI = i;
                         Global.getThreadPool().execute(() -> {

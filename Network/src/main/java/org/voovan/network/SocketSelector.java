@@ -1,7 +1,6 @@
 package org.voovan.network;
 
 import org.voovan.Global;
-import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.network.udp.UdpServerSocket;
 import org.voovan.network.udp.UdpSession;
@@ -259,7 +258,7 @@ public class SocketSelector implements Closeable {
 		if(useSelectNow){
 			selector.selectNow();
 		} else {
-			long dealTime = TEnv.measureTime(()->{
+			long dealTime = TEnv.measure(()->{
 				try {
 					//检查超时
 					checkReadTimeout();
@@ -555,7 +554,7 @@ public class SocketSelector implements Closeable {
 
 				//如果缓冲队列已慢, 则等待可用, 超时时间为读超时
 				try {
-					TEnv.wait(session.socketContext().getReadTimeout(), () -> appByteBufferChannel.size() + readTempBuffer.limit() >= appByteBufferChannel.getMaxSize());
+					TEnv.waitThrow(session.socketContext().getReadTimeout(), () -> appByteBufferChannel.size() + readTempBuffer.limit() >= appByteBufferChannel.getMaxSize());
 				} catch (TimeoutException e) {
 					Logger.error("Session.readByteByteBuffer is not enough avaliable space:", e);
 				}

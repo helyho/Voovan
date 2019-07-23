@@ -487,20 +487,15 @@ public class RingDirectBuffer {
 	public boolean waitData(int length,int timeout, Runnable supplier){
 		checkRelease();
 
-		try {
-			TEnv.wait(timeout, ()->{
+        return TEnv.wait(timeout, ()->{
 
-				if(remaining() >= length){
-					return false;
-				} else {
-					supplier.run();
-					return remaining() < length;
-				}
-			});
-			return true;
-		} catch (TimeoutException e) {
-			return false;
-		}
+            if(remaining() >= length){
+                return false;
+            } else {
+                supplier.run();
+                return remaining() < length;
+            }
+        });
 	}
 
 
@@ -514,19 +509,14 @@ public class RingDirectBuffer {
 	public boolean waitData(byte[] mark, int timeout, Runnable supplier){
 		checkRelease();
 
-		try {
-			TEnv.wait(timeout, ()->{
-				if(indexOf(mark) != -1) {
-					return false;
-				} else {
-					supplier.run();
-					return indexOf(mark) == -1;
-				}
-			});
-			return true;
-		} catch (TimeoutException e) {
-			return false;
-		}
+        return TEnv.wait(timeout, ()->{
+            if(indexOf(mark) != -1) {
+                return false;
+            } else {
+                supplier.run();
+                return indexOf(mark) == -1;
+            }
+        });
 	}
 
 	/**
