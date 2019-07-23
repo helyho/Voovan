@@ -58,7 +58,7 @@ public class ThreadPool {
 	 * @return 线程池最大活动线程数
 	 */
 	public static int getStatusInterval() {
-		STATUS_INTERVAL = TProperties.getInt("framework", "ThreadPoolStatusInterval");
+		STATUS_INTERVAL = TProperties.getInt("framework", "ThreadPoolStatusInterval", 0);
 		return STATUS_INTERVAL;
 	}
 

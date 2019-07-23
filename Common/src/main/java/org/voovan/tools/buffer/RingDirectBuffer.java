@@ -23,7 +23,7 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public class RingDirectBuffer {
-	private static int BYTEBUFFERCHANNEL_MAX_SIZE = TProperties.getInt("framework", "ByteBufferChannelMaxSize");
+    private static int BYTEBUFFERCHANNEL_MAX_SIZE = TProperties.getInt("framework", "ByteBufferChannelMaxSize", 1024*1024*2);
 	private int maxSize = BYTEBUFFERCHANNEL_MAX_SIZE==0 ? 1024*1024*2 : BYTEBUFFERCHANNEL_MAX_SIZE;
 
 	private static Unsafe unsafe = TUnsafe.getUnsafe();

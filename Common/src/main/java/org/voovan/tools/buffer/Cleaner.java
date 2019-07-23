@@ -26,8 +26,7 @@ public class Cleaner extends PhantomReference<Object> {
 
     static {
 
-        Integer noHeapReleaseInterval = TProperties.getInt("framework", "NoHeapReleaseInterval");
-        Integer finalNoHeapReleaseInterval = noHeapReleaseInterval ==0 ? 3 : noHeapReleaseInterval;
+        Integer noHeapReleaseInterval = TProperties.getInt("framework", "NoHeapReleaseInterval", 5);
         timer = new Timer("VOOVAN@Cleaner", true);
 
         timer.schedule(new TimerTask() {
@@ -44,7 +43,7 @@ public class Cleaner extends PhantomReference<Object> {
                     }
                 }
             }
-        }, 1000, finalNoHeapReleaseInterval);
+        }, 1000, noHeapReleaseInterval);
     }
 
     private static synchronized Cleaner add(Cleaner cleaner) {
