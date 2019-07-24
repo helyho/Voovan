@@ -67,9 +67,10 @@ public class TSerialize {
      * 注册一个 Class 名称简写
      * @param clazz 类对象
      */
-    public static void register(Class clazz){
+    public static int register(Class clazz){
         int hashcode = THash.HashFNV1(clazz.getName());
         register(hashcode, clazz);
+        return hashcode;
     }
 
     /**
@@ -122,7 +123,7 @@ public class TSerialize {
     protected static Integer getHashByClass(Class clazz){
        Integer hashcode = CLASS_AND_HASH.get(clazz);
        if(hashcode == null) {
-          register(clazz);
+         hashcode = register(clazz);
        }
 
        return hashcode;
