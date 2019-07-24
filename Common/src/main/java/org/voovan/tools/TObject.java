@@ -26,19 +26,6 @@ public class TObject {
 	}
 
 	/**
-	 * 转换成指定类型
-	 * 	JDK 1.8 使用效果最好,否则有可能会转换失败
-	 * @param <T> 范型
-	 * @param obj   被转换对象
-	 * @param t		指定的类型
-	 * @return		转换后的对象
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T> T cast(Object obj,Class<T> t){
-		return (T)obj;
-	}
-
-	/**
 	 * 空值默认值
 	 * @param <T> 范型
 	 * @param source	检测对象
