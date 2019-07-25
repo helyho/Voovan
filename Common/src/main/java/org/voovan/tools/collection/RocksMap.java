@@ -400,7 +400,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 return rocksWalRecords;
             }
 
-            if(startSequence > endSequence) {
+            if(endSequence!=null && startSequence > endSequence) {
                 throw new RocksMapException("startSequence is large than endSequence");
             }
 
