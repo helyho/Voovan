@@ -120,10 +120,11 @@ public class TSerialize {
 
     }
 
-    protected static Integer getHashByClass(Class clazz){
+    protected static synchronized Integer getHashByClass(Class clazz){
        Integer hashcode = CLASS_AND_HASH.get(clazz);
-       if(hashcode == null) {
-         hashcode = register(clazz);
+
+       if (hashcode == null) {
+           hashcode = register(clazz);
        }
 
        return hashcode;

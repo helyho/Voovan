@@ -50,11 +50,9 @@ public class ProtoStuffSerialize implements Serialize {
             }
         }
 
-        if(buf.length != 0) {
-            byte[] type = TByte.getBytes(TSerialize.getHashByClass(obj.getClass()));
-            type = TByte.byteArrayConcat(type, type.length, new byte[]{0}, 1);
-            buf = TByte.byteArrayConcat(type, type.length, buf, buf.length);
-        }
+        byte[] type = TByte.getBytes(TSerialize.getHashByClass(obj.getClass()));
+        type = TByte.byteArrayConcat(type, type.length, new byte[]{0}, 1);
+        buf = TByte.byteArrayConcat(type, type.length, buf, buf.length);
 
         return buf;
     }
