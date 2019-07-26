@@ -51,7 +51,6 @@ public class ProtoStuffSerialize implements Serialize {
         }
 
         byte[] type = TByte.getBytes(TSerialize.getHashByClass(obj.getClass()));
-        type = TByte.byteArrayConcat(type, type.length, new byte[]{0}, 1);
         buf = TByte.byteArrayConcat(type, type.length, buf, buf.length);
 
         return buf;
@@ -62,24 +61,13 @@ public class ProtoStuffSerialize implements Serialize {
         if(bytes.length == 0) {
             return (T)bytes;
         }
-
-        byte[] type = new byte[32];
-
-        int index = 0;
-        for(index=0;index<type.length; index++) {
-            if(bytes[index]!='\0') {
-                type[index] = bytes[index];
-            } else {
-                break;
-            }
-        }
         try {
 
-            int hashcode = TByte.getInt(type);
+            int hashcode = TByte.getInt(bytes);
 
             Class innerClazz = TSerialize.getClassByHash(hashcode);
 
-            byte[] valueBytes = Arrays.copyOfRange(bytes, index+1, bytes.length);
+            byte[] valueBytes = Arrays.copyOfRange(bytes, 4, bytes.length);
 
             Object obj = TByte.toObject(valueBytes, innerClazz);
             if(obj==null) {
