@@ -268,10 +268,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     private RocksMap(RocksMap<K,V> rocksMap, String columnFamilyName, boolean shareTransaction){
-        this.dbOptions = rocksMap.dbOptions;
-        this.readOptions = rocksMap.readOptions;
-        this.writeOptions = rocksMap.writeOptions;
-        this.columnFamilyOptions = rocksMap.columnFamilyOptions;
+        this.dbOptions           = new DBOptions(rocksMap.dbOptions);
+        this.readOptions         = new ReadOptions(rocksMap.readOptions);
+        this.writeOptions        = new WriteOptions(rocksMap.writeOptions);
+        this.columnFamilyOptions = new ColumnFamilyOptions(rocksMap.columnFamilyOptions);
 
         this.rocksDB = rocksMap.rocksDB;
         //是否使用父对象的实物对象
@@ -287,7 +287,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.columnFamilyName = columnFamilyName;
         this.readOnly = rocksMap.readOnly;
         this.transactionLockTimeout = rocksMap.transactionLockTimeout;
-
 
         this.choseColumnFamily(columnFamilyName);
     }
@@ -493,7 +492,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param <T>  范型
      * @return 非 null: 事务成功, null: 事务失败
      */
-    public <T> T withTransaction(Function<RocksMap, T> transFunction) {
+    public <T> T withTransaction(Function<RocksMap<K, V>, T> transFunction) {
         beginTransaction();
 
         try {
