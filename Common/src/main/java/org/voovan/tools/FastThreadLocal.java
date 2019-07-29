@@ -43,7 +43,7 @@ public class FastThreadLocal<T> {
 	}
 
 	/**
-	 * 基于提供起的过早函数
+	 * 基于提供器的构造函数
 	 * @param supplier 线程局部变量生成器
 	 * @param <T> 范型类型
 	 * @return FastThreadLocal对象

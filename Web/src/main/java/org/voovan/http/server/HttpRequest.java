@@ -65,6 +65,7 @@ public class HttpRequest extends Request {
 		this.characterSet=characterSet;
 		parameters.clear();
 		attributes.clear();
+        session = null;
 		parseQueryString();
 		this.socketSession = socketSession;
 	}
