@@ -1300,7 +1300,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param size 返回记录数
      * @return 迭代器对象
      */
-    public RocksMapIterator iterator(K fromKey, K toKey, int skipSize, int size){
+    public RocksMapIterator<K,V> iterator(K fromKey, K toKey, int skipSize, int size){
         return new RocksMapIterator(this, fromKey, toKey, skipSize, size);
     }
 
@@ -1310,7 +1310,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param toKey 结束 key
      * @return 迭代器对象
      */
-    public RocksMapIterator iterator(K fromKey, K toKey){
+    public RocksMapIterator<K,V> iterator(K fromKey, K toKey){
         return new RocksMapIterator(this, fromKey, toKey, 0, 0);
     }
 
@@ -1320,7 +1320,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param size 返回记录数
      * @return 迭代器对象
      */
-    public RocksMapIterator iterator(int skipSize, int size){
+    public RocksMapIterator<K,V> iterator(int skipSize, int size){
         return new RocksMapIterator(this, null, null, skipSize, size);
     }
 
@@ -1329,7 +1329,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param size 迭代的记录数
      * @return 迭代器对象
      */
-    public RocksMapIterator iterator(int size){
+    public RocksMapIterator<K,V> iterator(int size){
         return new RocksMapIterator(this, null, null, 0, size);
     }
 
@@ -1337,7 +1337,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 构造一个迭代器
      * @return 迭代器对象
      */
-    public RocksMapIterator iterator(){
+    public RocksMapIterator<K,V>  iterator(){
         return new RocksMapIterator(this, null, null, 0, 0);
     }
 
@@ -1392,9 +1392,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    public class RocksMapIterator<Entry> implements Iterator<Entry>, Closeable{
+    public class RocksMapIterator<K,V> implements Iterator<RocksMapEntry<K,V>>, Closeable{
 
-        private RocksMap rocksMap;
+        private RocksMap<K,V> rocksMap;
         private RocksIterator iterator;
         private byte[] fromKeyBytes;
         private byte[] toKeyBytes;
@@ -1499,9 +1499,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
 
         @Override
-        public Entry next() {
+        public RocksMapEntry<K,V> next() {
             if(directNext()) {
-                return (Entry) new RocksMapEntry(iterator.key(), iterator.value());
+                return new RocksMapEntry(iterator.key(), iterator.value());
             } else {
                 return null;
             }
@@ -1517,7 +1517,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
 
         @Override
-        public void forEachRemaining(Consumer<? super Entry> action) {
+        public void forEachRemaining(Consumer<? super RocksMapEntry<K, V>> action) {
             throw new UnsupportedOperationException();
         }
 
