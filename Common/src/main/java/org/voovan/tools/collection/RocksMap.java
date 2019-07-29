@@ -1454,6 +1454,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             return getKey() + "=" + getValue();
         }
 
+        public RocksMap<K, V> getRocksMap() {
+            return rocksMap;
+        }
+
         public void remove(){
             try {
                 rocksMap.remove(keyBytes, false);
