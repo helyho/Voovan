@@ -131,6 +131,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private String dbname;
     private String columnFamilyName;
     private Boolean readOnly;
+    private Boolean isDuplicate = false;
     private int transactionLockTimeout = 5000;
 
     /**
@@ -287,6 +288,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.columnFamilyName = columnFamilyName;
         this.readOnly = rocksMap.readOnly;
         this.transactionLockTimeout = rocksMap.transactionLockTimeout;
+        this.isDuplicate = true;
 
         this.choseColumnFamily(columnFamilyName);
     }
@@ -1287,7 +1289,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         writeOptions.close();
         columnFamilyOptions.close();
 
-        RocksMap.closeRocksDB(rocksDB);
+        if(!isDuplicate) {
+            RocksMap.closeRocksDB(rocksDB);
+        }
     }
 
     /**
