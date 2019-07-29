@@ -980,6 +980,33 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 删除某个 key
+     * @param keyBytes key 对象
+     * @param isRetVal 是否返回被移除的 value
+     * @return 返回值, 在 isRetVal=false 时, 总是为 null
+     */
+    private byte[] remove(byte[] keyBytes, boolean isRetVal) throws RocksDBException {
+        if(keyBytes == null){
+            throw new NullPointerException();
+        }
+
+        byte[] valueBytes = null;
+        if(isRetVal) {
+            valueBytes = get(keyBytes);
+        }
+
+        if(!isRetVal || valueBytes != null) {
+            Transaction transaction = threadLocalTransaction.get();
+            if(transaction!=null) {
+                transaction.delete(dataColumnFamilyHandle, keyBytes);
+            } else {
+                rocksDB.delete(dataColumnFamilyHandle, keyBytes);
+            }
+        }
+        return valueBytes;
+    }
+
+    /**
+     * 删除某个 key
      * @param key key 对象
      * @param isRetVal 是否返回被移除的 value
      * @return 返回值, 在 isRetVal=false 时, 总是为 null
@@ -990,20 +1017,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
 
         try {
-            V value = null;
-            if(isRetVal) {
-                value = get(key);
-            }
-
-            if(!isRetVal || value != null) {
-                Transaction transaction = threadLocalTransaction.get();
-                if(transaction!=null) {
-                    transaction.delete(dataColumnFamilyHandle, TSerialize.serialize(key));
-                } else {
-                    rocksDB.delete(dataColumnFamilyHandle, TSerialize.serialize(key));
-                }
-            }
-            return (V)value;
+            byte[] valuesByte = remove(TSerialize.serialize(key), isRetVal);
+            return (V) TSerialize.unserialize(valuesByte);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap remove " + key + " failed", e);
         }
@@ -1230,7 +1245,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         try (RocksIterator iterator = getIterator()) {
             iterator.seekToFirst();
             while (iterator.isValid()) {
-                entrySet.add(new RocksMapEntry<K, V>(iterator.key(), iterator.value()));
+                entrySet.add(new RocksMapEntry<K, V>(this, iterator.key(), iterator.value()));
                 iterator.next();
             }
 
@@ -1344,13 +1359,57 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return new RocksMapIterator(this, null, null, 0, 0);
     }
 
+    /**
+     * 数据清理执行器
+     * @param checker 数据清理逻辑, true: 继续扫描, false: 停止扫描
+     * @param disableWal 是否屏蔽 wal
+     */
+    public void scan(Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker, boolean disableWal) {
+        scan(null, null, checker, disableWal);
+    }
+
+    /**
+     * 数据清理执行器
+     * @param fromKey 起始 key
+     * @param toKey   结束 key
+     * @param checker 数据清理逻辑, true: 继续扫描, false: 停止扫描
+     * @param disableWal 是否屏蔽 wal
+     */
+    public void scan(K fromKey, K toKey, Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker, boolean disableWal) {
+        RocksMap<K,V> innerRocksMap = this.duplicate(this.getColumnFamilyName(), false);
+
+        if(disableWal) {
+            innerRocksMap.writeOptions.disableWAL();
+        }
+
+        RocksMap<K,V>.RocksMapIterator<K,V> iterator = innerRocksMap.iterator(fromKey, toKey);
+
+        while (iterator.hasNext()) {
+            RocksMap<K,V>.RocksMapEntry<K,V> rocksMapEntry = iterator.next();
+
+            if(rocksMapEntry==null) {
+                continue;
+            }
+
+            if(checker.apply(rocksMapEntry)) {
+                continue;
+            } else {
+                break;
+            }
+        }
+
+        innerRocksMap.close();
+    }
+
     public class RocksMapEntry<K, V> implements Map.Entry<K, V>, Comparable<RocksMapEntry> {
+        private RocksMap<K,V> rocksMap;
         private byte[] keyBytes;
         private K k;
         private byte[] valueBytes;
         private V v;
 
-        protected RocksMapEntry(byte[] keyBytes, byte[] valueBytes) {
+        protected RocksMapEntry(RocksMap<K, V> rocksMap, byte[] keyBytes, byte[] valueBytes) {
+            this.rocksMap = rocksMap;
             this.keyBytes = keyBytes;
             this.valueBytes = valueBytes;
         }
@@ -1381,7 +1440,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         @Override
         public V setValue(V value) {
-            return v;
+            rocksMap.put(keyBytes, TSerialize.serialize(value));
+            return value;
         }
 
         @Override
@@ -1392,6 +1452,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         @Override
         public String toString(){
             return getKey() + "=" + getValue();
+        }
+
+        public void remove(){
+            try {
+                rocksMap.remove(keyBytes, false);
+            } catch (RocksDBException e) {
+                throw new RocksMapException("RocksMapEntry remove failed", e);
+            }
         }
     }
 
@@ -1504,7 +1572,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         @Override
         public RocksMapEntry<K,V> next() {
             if(directNext()) {
-                return new RocksMapEntry(iterator.key(), iterator.value());
+                return new RocksMapEntry(rocksMap, iterator.key(), iterator.value());
             } else {
                 return null;
             }
@@ -1842,6 +1910,4 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             public void process(Long endSequence, List<RocksWalRecord> rocksWalRecords);
         }
     }
-
-
 }
