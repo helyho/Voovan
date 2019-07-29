@@ -138,6 +138,13 @@ public class HttpSession {
 	}
 
 	/**
+	 * 清空 session 的缓存配置
+	 */
+	public void clear() {
+		attributes.clear();
+	}
+
+	/**
 	 * 获取 Session 管理器
 	 * @return Session 管理器
 	 */
