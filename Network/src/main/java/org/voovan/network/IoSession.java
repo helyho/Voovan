@@ -6,7 +6,7 @@ import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.collection.Attribute;
+import org.voovan.tools.collection.Attributes;
 import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeoutException;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public abstract class IoSession<T extends SocketContext> extends Attribute {
+public abstract class IoSession<T extends SocketContext> extends Attributes {
 	private boolean sslMode = false;
 	private SSLParser sslParser;
 

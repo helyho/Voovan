@@ -6,7 +6,7 @@ import org.voovan.http.server.HttpSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.tools.collection.Attribute;
+import org.voovan.tools.collection.Attributes;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
@@ -19,7 +19,7 @@ import java.nio.ByteBuffer;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class WebSocketSession extends Attribute {
+public class WebSocketSession extends Attributes {
     private IoSession socketSession;
     private WebSocketRouter webSocketRouter;
     private String remoteAddres;
