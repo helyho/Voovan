@@ -3,7 +3,7 @@ package org.voovan.http.server;
 import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.websocket.WebSocketRouter;
-import org.voovan.tools.collection.Attribute;
+import org.voovan.tools.collection.Attributes;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -17,7 +17,7 @@ import org.voovan.tools.reflect.TReflect;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public abstract class HttpModule extends Attribute {
+public abstract class HttpModule extends Attributes {
     private WebServer webServer;
     private HttpModuleConfig moduleConfig;
 

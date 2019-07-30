@@ -4,70 +4,69 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 类文字命名
+ * 属性存储器
  *
  * @author: helyho
  * voovan Framework.
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License
  */
-public class Attribute {
+public class Attributes {
 
-    private Map<Object, Object> attributes;
+    private Map<Object, Object> attr;
 
-    public Attribute() {
-        attributes = new ConcurrentHashMap<Object, Object>();
+    public Attributes() {
+        attr = new ConcurrentHashMap<Object, Object>();
     }
 
-
     /**
-     * 获取全部会话参数
-     * @return 会话参数Map
+     * 获取全部属性参数
+     * @return 属性参数Map
      */
     public Map<Object,Object> attributes(){
-        return this.attributes;
+        return this.attr;
     }
 
     /**
-     * 获取会话参数
+     * 获取属性参数
      * @param key 参数名
      * @return    参数对象
      */
     public Object getAttribute(Object key) {
-        return attributes.get(key);
+        return attr.get(key);
     }
 
     /**
-     * 设置会话参数
+     * 设置属性参数
      * @param key     参数名
      * @param value   参数对象
      */
     public void setAttribute(Object key, Object value) {
-        this.attributes.put(key, value);
+        this.attr.put(key, value);
     }
 
     /**
-     * 移除会话参数
+     * 移除属性参数
      * @param key     参数名
      */
     public void removeAttribute(Object key) {
-        this.attributes.remove(key);
+        this.attr.remove(key);
     }
 
     /**
-     * 检查会话参数是否存在
+     * 检查属性参数是否存在
      * @param key     参数名
      * @return 是否包含
      */
     public boolean containAttribute(Object key) {
-        return this.attributes.containsKey(key);
+        return this.attr.containsKey(key);
     }
 
     /**
      * 清空 session 的缓存配置
      */
     public void clearAttribute() {
-        attributes.clear();
+        attr.clear();
     }
 
 }

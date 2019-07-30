@@ -3,7 +3,7 @@ package org.voovan.http.extend.engineio;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.tools.collection.Attribute;
+import org.voovan.tools.collection.Attributes;
 
 /**
  * 类文字命名
@@ -13,7 +13,7 @@ import org.voovan.tools.collection.Attribute;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class EIOSession extends Attribute {
+public class EIOSession extends Attributes {
 
     private WebSocketSession webSocketSession;
     private EIOHandler eioHandler;

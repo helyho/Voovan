@@ -5,11 +5,8 @@ import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TString;
-import org.voovan.tools.collection.Attribute;
+import org.voovan.tools.collection.Attributes;
 import org.voovan.tools.reflect.annotation.NotSerialization;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * WebServer session 类
@@ -20,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class HttpSession extends Attribute {
+public class HttpSession extends Attributes {
 	private String id ;
 	private int maxInactiveInterval;
 
