@@ -60,6 +60,10 @@ public class TProperties {
 		try {
 			Properties properties = propertiesFile.get(file);
 
+			if(!file.exists()) {
+				return null;
+			}
+
 			if (properties==null) {
 				Properties properites = new Properties();
 				String content = null;
