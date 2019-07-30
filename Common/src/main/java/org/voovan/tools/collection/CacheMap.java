@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
@@ -25,7 +24,7 @@ import java.util.function.Function;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class CachedMap<K,V> implements ICacheMap<K, V> {
+public class CacheMap<K,V> implements ICacheMap<K, V> {
 
     protected final static HashWheelTimer wheelTimer = new HashWheelTimer(60, 1000);
     private Function<K, V> supplier = null;
@@ -47,26 +46,26 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      * 构造函数
      * @param map 缓存数据的 Map 对象
      */
-    public CachedMap(Map<K, V> map){
-        this.maxSize = map.size();
-        cacheData = map;
+    public CacheMap(Map<K, V> map, int maxSize){
+        this.maxSize = maxSize;
+        this.cacheData = map;
     }
 
     /**
      * 构造函数
      * @param maxSize 缓存集合的最大容量, 多余的数据会被移除
      */
-    public CachedMap(Integer maxSize){
+    public CacheMap(Integer maxSize){
         this.maxSize = maxSize == null ? Integer.MAX_VALUE : maxSize;
-        cacheData = new ConcurrentHashMap<K, V>(maxSize);
+        this.cacheData = new ConcurrentHashMap<K, V>(maxSize);
     }
 
     /**
      * 构造函数
      */
-    public CachedMap(){
+    public CacheMap(){
         this.maxSize = Integer.MAX_VALUE;
-        cacheData = new ConcurrentHashMap<K, V>();
+        this.cacheData = new ConcurrentHashMap<K, V>();
     }
 
     /**
@@ -82,7 +81,7 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      * @param buildFunction Function 对象
      * @return CachedHashMap 对象
      */
-    public CachedMap<K, V> supplier(Function<K, V> buildFunction){
+    public CacheMap<K, V> supplier(Function<K, V> buildFunction){
         this.supplier = buildFunction;
         this.autoRemove = false;
         return this;
@@ -101,7 +100,7 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      * @param destory 对象销毁函数, 1.返回 null 则刷新为默认超时时间 2.小于0 的数据, 则移除对象 3.大于0的数据则重新设置返回值为新的超时时间
      * @return CachedHashMap 对象
      */
-    public CachedMap<K, V> destory(BiFunction<K, V, Long> destory) {
+    public CacheMap<K, V> destory(BiFunction<K, V, Long> destory) {
         this.destory = destory;
         return this;
     }
@@ -111,7 +110,7 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      * @param maxSize 最大容量
      * @return CachedHashMap 对象
      */
-    public CachedMap<K, V> maxSize(int maxSize) {
+    public CacheMap<K, V> maxSize(int maxSize) {
         this.maxSize = maxSize;
         return this;
     }
@@ -121,7 +120,7 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      * @param interval 检查周期, 单位:秒, 小于零不做超时处理
      * @return CachedHashMap 对象
      */
-    public CachedMap<K, V> interval(int interval) {
+    public CacheMap<K, V> interval(int interval) {
         this.interval = interval;
         return this;
     }
@@ -131,7 +130,7 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      * @param autoRemove true: 自动移除, false: 并不自动移除
      * @return CachedHashMap 对象
      */
-    public CachedMap<K, V> autoRemove(boolean autoRemove) {
+    public CacheMap<K, V> autoRemove(boolean autoRemove) {
         this.autoRemove = autoRemove;
         return this;
     }
@@ -149,7 +148,7 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      * @param expire 超时时间
      * @return CachedHashMap 对象
      */
-    public CachedMap<K, V> expire(long expire) {
+    public CacheMap<K, V> expire(long expire) {
         this.expire = expire;
         return this;
     }
@@ -166,18 +165,18 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      * 创建CachedHashMap
      * @return CachedHashMap 对象
      */
-    public CachedMap<K, V> create(){
-        final CachedMap cachedMap = this;
+    public CacheMap<K, V> create(){
+        final CacheMap cacheMap = this;
 
         //启动超时清理任务
         if(interval >= 1) {
             wheelTimer.addTask(new HashWheelTask() {
                 @Override
                 public void run() {
-                    if (!cachedMap.getCacheMark().isEmpty()) {
+                    if (!cacheMap.getCacheMark().isEmpty()) {
                         //清理过期的
-                        for (TimeMark timeMark : (TimeMark[]) cachedMap.getCacheMark().values().toArray(new TimeMark[0])) {
-                            cachedMap.checkAndDoExpire(timeMark);
+                        for (TimeMark timeMark : (TimeMark[]) cacheMap.getCacheMark().values().toArray(new TimeMark[0])) {
+                            cacheMap.checkAndDoExpire(timeMark);
                         }
                         fixSize();
                     }
@@ -523,7 +522,7 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
      */
     private class TimeMark<K> {
         @NotSerialization
-        private CachedMap<K,V> mainMap;
+        private CacheMap<K,V> mainMap;
         private K key;
         //超时时间
         private AtomicLong expireTime = new AtomicLong(0);
@@ -535,7 +534,7 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
         //是否正在生成数据
         private volatile AtomicBoolean createFlag = new AtomicBoolean(false);
 
-        public TimeMark(CachedMap<K,V> mainMap, K key, long expireTime){
+        public TimeMark(CacheMap<K,V> mainMap, K key, long expireTime){
             this.key = key;
             this.mainMap = mainMap;
             this.expireTime.set(expireTime);
@@ -566,7 +565,7 @@ public class CachedMap<K,V> implements ICacheMap<K, V> {
             }
         }
 
-        public CachedMap<K, V> getMainMap() {
+        public CacheMap<K, V> getMainMap() {
             return mainMap;
         }
 
