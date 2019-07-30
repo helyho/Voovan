@@ -5,6 +5,7 @@ import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.network.IoSession;
 import org.voovan.tools.TString;
+import org.voovan.tools.collection.Attribute;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.util.Map;
@@ -19,8 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class HttpSession {
-	private Map<String,Object> attributes;
+public class HttpSession extends Attribute {
 	private String id ;
 	private int maxInactiveInterval;
 
@@ -44,7 +44,6 @@ public class HttpSession {
 	public HttpSession(WebServerConfig config, SessionManager sessionManager, IoSession socketSession){
 		// ID的创建转义到 save 方法中.在保存时才创建 ID
 		this.id = TString.generateId(this);
-		attributes = new ConcurrentHashMap<String, Object>();
 		int sessionTimeout = config.getSessionTimeout();
 		if(sessionTimeout<=0){
 			sessionTimeout = 30;
@@ -90,58 +89,6 @@ public class HttpSession {
 	public HttpSession refresh(){
 		sessionManager.getSessionContainer().setTTL(this.id, maxInactiveInterval);
 		return this;
-	}
-
-	/**
-	 * 获取当前 Session 属性
-	 * @param name 属性名
-	 * @return 属性值
-	 */
-	public Object getAttribute(String name) {
-		return attributes.get(name);
-	}
-
-	/**
-	 * 判断当前 Session 属性是否存在
-	 * @param name 属性名
-	 * @return true: 存在, false: 不存在
-	 */
-	public boolean containAttribute(String name) {
-		return attributes.containsKey(name);
-	}
-
-	/**
-	 * 设置当前 Session 属性
-	 * @param name	属性名
-	 * @param value	属性值
-	 */
-	public void setAttribute(String name,Object value) {
-		attributes.put(name, value);
-		needSave = true;
-	}
-
-	/**
-	 *  删除当前 Session 属性
-	 * @param name	属性名
-	 */
-	public void removeAttribute(String name) {
-		attributes.remove(name);
-		needSave = true;
-	}
-
-	/**
-	 *  返回当前 Session 的属性Map
-	 *  @return Session 的属性Map
-	 */
-	public Map<String,Object> attributes() {
-		return attributes;
-	}
-
-	/**
-	 * 清空 session 的缓存配置
-	 */
-	public void clear() {
-		attributes.clear();
 	}
 
 	/**
