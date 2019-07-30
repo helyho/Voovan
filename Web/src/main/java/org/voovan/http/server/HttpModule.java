@@ -3,12 +3,10 @@ package org.voovan.http.server;
 import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.websocket.WebSocketRouter;
+import org.voovan.tools.collection.Attribute;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * WebServer的模块
@@ -19,10 +17,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public abstract class HttpModule {
+public abstract class HttpModule extends Attribute {
     private WebServer webServer;
     private HttpModuleConfig moduleConfig;
-    private Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
 
     /**
      * 获取WebServer
@@ -58,49 +55,6 @@ public abstract class HttpModule {
      */
     public Object getParamters(String name){
         return moduleConfig.getParameters().get(name);
-    }
-
-    /**
-     * 获取当前属性
-     * @param name 属性名
-     * @return 属性值
-     */
-    public Object getAttribute(String name) {
-        return attributes.get(name);
-    }
-
-    /**
-     * 判断当前属性是否存在
-     * @param name 属性名
-     * @return true: 存在, false: 不存在
-     */
-    public boolean containAttribute(String name) {
-        return attributes.containsKey(name);
-    }
-
-    /**
-     * 设置当前属性
-     * @param name	属性名
-     * @param value	属性值
-     */
-    public void setAttribute(String name,Object value) {
-        attributes.put(name, value);
-    }
-
-    /**
-     *  删除当前属性
-     * @param name	属性名
-     */
-    public void removeAttribute(String name) {
-        attributes.remove(name);
-    }
-
-    /**
-     *  返回当前的属性Map
-     *  @return 属性Map
-     */
-    public Map<String,Object> attribute() {
-        return attributes;
     }
 
     /**

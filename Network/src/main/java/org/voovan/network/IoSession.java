@@ -6,6 +6,7 @@ import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.collection.Attribute;
 import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
@@ -13,10 +14,7 @@ import org.voovan.tools.log.Logger;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
-
 
 /**
  * 会话抽象类
@@ -27,8 +25,7 @@ import java.util.concurrent.TimeoutException;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public abstract class IoSession<T extends SocketContext> {
-	private Map<Object, Object> attributes;
+public abstract class IoSession<T extends SocketContext> extends Attribute {
 	private boolean sslMode = false;
 	private SSLParser sslParser;
 
@@ -99,7 +96,6 @@ public abstract class IoSession<T extends SocketContext> {
 	 * @param socketContext socketContext对象
 	 */
 	public IoSession(T socketContext){
-		attributes = new ConcurrentHashMap<Object, Object>();
 		this.socketContext = socketContext;
 		this.state = new State();
 		readByteBufferChannel = new ByteBufferChannel(socketContext.getReadBufferSize());
@@ -303,49 +299,6 @@ public abstract class IoSession<T extends SocketContext> {
 	}
 
 	/**
-	 * 获取全部会话参数
-	 * @return 会话参数Map
-	 */
-	public Map<Object,Object> attributes(){
-		return this.attributes;
-	}
-
-	/**
-	 * 获取会话参数
-	 * @param key 参数名
-	 * @return    参数对象
-	 */
-	public Object getAttribute(Object key) {
-		return attributes.get(key);
-	}
-
-	/**
-	 * 设置会话参数
-	 * @param key     参数名
-	 * @param value   参数对象
-	 */
-	public void setAttribute(Object key, Object value) {
-		this.attributes.put(key, value);
-	}
-
-	/**
-	 * 移除会话参数
-	 * @param key     参数名
-	 */
-	public void removeAttribute(Object key) {
-		this.attributes.remove(key);
-	}
-
-	/**
-	 * 检查会话参数是否存在
-	 * @param key     参数名
-	 * @return 是否包含
-	 */
-	public boolean containAttribute(Object key) {
-		return this.attributes.containsKey(key);
-	}
-
-	/**
 	 * 获取本地 IP 地址
 	 * @return	本地 IP 地址
 	 */
@@ -436,7 +389,6 @@ public abstract class IoSession<T extends SocketContext> {
 			if(readObject instanceof Throwable){
 				Exception exception = (Exception) readObject;
 				if (exception != null) {
-					removeAttribute("SocketException");
 					throw new ReadMessageException("Method syncRead error! Error by " +
 							exception.getClass().getSimpleName() + ". " + exception.getMessage(), exception);
 				}

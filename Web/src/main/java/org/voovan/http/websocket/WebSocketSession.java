@@ -6,11 +6,10 @@ import org.voovan.http.server.HttpSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.tools.collection.Attribute;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * WebSocket 会话对象
@@ -20,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class WebSocketSession {
+public class WebSocketSession extends Attribute {
     private IoSession socketSession;
     private WebSocketRouter webSocketRouter;
     private String remoteAddres;
@@ -28,7 +27,6 @@ public class WebSocketSession {
     private WebSocketType webSocketType;
     private boolean masked;
 
-    private Map<String,Object> attributes;
 
     /**
      * 构造函数
@@ -41,7 +39,6 @@ public class WebSocketSession {
         this.remoteAddres = socketSession.remoteAddress();
         this.remotePort = socketSession.remotePort();
         this.webSocketRouter = webSocketRouter;
-        attributes = new ConcurrentHashMap<String, Object>();
         this.webSocketType = webSocketType;
         if(this.webSocketType == webSocketType.SERVER){
             masked = false;
@@ -88,49 +85,6 @@ public class WebSocketSession {
      */
     public int getRemotePort() {
         return remotePort;
-    }
-
-    /**
-     * 获取当前 Session 属性
-     * @param name 属性名
-     * @return 属性值
-     */
-    public Object getAttribute(String name) {
-        return attributes.get(name);
-    }
-
-    /**
-     * 判断当前 Session 属性是否存在
-     * @param name 属性名
-     * @return true: 存在, false: 不存在
-     */
-    public boolean containAttribute(String name) {
-        return attributes.containsKey(name);
-    }
-
-    /**
-     * 设置当前 Session 属性
-     * @param name	属性名
-     * @param value	属性值
-     */
-    public void setAttribute(String name,Object value) {
-        attributes.put(name, value);
-    }
-
-    /**
-     *  返回当前 Session 的属性Map
-     *  @return Session 的属性Map
-     */
-    public Map<String,Object> attributes() {
-        return attributes;
-    }
-
-    /**
-     *  删除当前 Session 属性
-     * @param name	属性名
-     */
-    public void removeAttribute(String name) {
-        attributes.remove(name);
     }
 
     /**
