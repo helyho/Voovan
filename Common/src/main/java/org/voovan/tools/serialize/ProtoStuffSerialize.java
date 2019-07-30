@@ -42,7 +42,7 @@ public class ProtoStuffSerialize implements Serialize {
         buf = TByte.toBytes(obj);
         if(buf==null) {
             Schema schema = getSchema(obj.getClass());
-            LinkedBuffer buffer =objectThreadPool .get(()->LinkedBuffer.allocate(512));
+            LinkedBuffer buffer =objectThreadPool.get(()->LinkedBuffer.allocate(512));
             try {
                 buf = ProtostuffIOUtil.toByteArray(obj, schema, buffer);
             } finally {

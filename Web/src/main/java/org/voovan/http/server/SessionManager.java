@@ -3,7 +3,7 @@ package org.voovan.http.server;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.tools.collection.ICacheMap;
-import org.voovan.tools.collection.CachedMap;
+import org.voovan.tools.collection.CacheMap;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -33,12 +33,12 @@ public class SessionManager{
 		this.webConfig = webConfig;
 		httpSessions = getSessionContainer();
 
-		if(httpSessions instanceof CachedMap){
-			((CachedMap)httpSessions).create();
+		if(httpSessions instanceof CacheMap){
+			((CacheMap)httpSessions).create();
 		}
 
 		if(httpSessions == null){
-			httpSessions = new CachedMap<String, Object>();
+			httpSessions = new CacheMap<String, Object>();
 			Logger.warn("Create session container from config file failed,now use CachedHashMap as defaul session container.");
 		}
 	}
@@ -69,7 +69,7 @@ public class SessionManager{
 	 * @param session HTTP-Session对象
 	 */
 	public void saveSession(HttpSession session) {
-		if(httpSessions instanceof CachedMap){
+		if(httpSessions instanceof CacheMap){
 			httpSessions.put(session.getId(), session, session.getMaxInactiveInterval());
 		} else {
 			httpSessions.put(session.getId(), JSON.toJSON(session), session.getMaxInactiveInterval());

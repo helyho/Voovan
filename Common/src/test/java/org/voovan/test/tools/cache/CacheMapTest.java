@@ -3,7 +3,7 @@ package org.voovan.test.tools.cache;
 import junit.framework.TestCase;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.collection.CachedMap;
+import org.voovan.tools.collection.CacheMap;
 
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,19 +16,19 @@ import java.util.concurrent.atomic.AtomicInteger;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class CachedMapTest extends TestCase{
+public class CacheMapTest extends TestCase{
 
     public void testput() {
-        CachedMap cachedMap = new CachedMap();
-        cachedMap.put("aaa", "aaa");
+        CacheMap cacheMap = new CacheMap();
+        cacheMap.put("aaa", "aaa");
 
         TEnv.sleep(2000);
 
-        System.out.println(cachedMap.get("aaa"));
+        System.out.println(cacheMap.get("aaa"));
     }
 
     public void testBasic() {
-        CachedMap cachedMap = new CachedMap()
+        CacheMap cacheMap = new CacheMap()
                 .maxSize(100)
                 .interval(1)
                 .expire(1)
@@ -37,7 +37,7 @@ public class CachedMapTest extends TestCase{
                 .create();
 
         for(int i=0;i<100;i++) {
-            cachedMap.put("key_" + i, "value_" + i);
+            cacheMap.put("key_" + i, "value_" + i);
         }
 
         TEnv.sleep(2000);
@@ -48,16 +48,16 @@ public class CachedMapTest extends TestCase{
                 public void run() {
                     ThreadLocalRandom random = ThreadLocalRandom.current();
                     int index = random.nextInt(0, 100);
-                    cachedMap.get("key_"+index);
+                    cacheMap.get("key_"+index);
                 }
             });
         }
         TEnv.sleep(500);
         TEnv.sleep(1500);
-        cachedMap.expire(0);
-        cachedMap.put("key_aaa", "value_aaa");
-        cachedMap.put("key_bbb", "value_bbb");
-        cachedMap.put("key_ccc", "value_ccc");
+        cacheMap.expire(0);
+        cacheMap.put("key_aaa", "value_aaa");
+        cacheMap.put("key_bbb", "value_bbb");
+        cacheMap.put("key_ccc", "value_ccc");
 
         int count = 0;
         while(count<140*1000) {
@@ -67,7 +67,7 @@ public class CachedMapTest extends TestCase{
     }
 
     public void testLockTest(){
-        CachedMap cachedMap = new CachedMap().create().expire(1);
+        CacheMap cacheMap = new CacheMap().create().expire(1);
         for(int i=0;i<10;i++) {
             final int fi = i;
             Global.getThreadPool().execute(new Runnable() {
@@ -75,7 +75,7 @@ public class CachedMapTest extends TestCase{
                 public void run() {
                     for(int x=0; x<500; x++) {
                         TEnv.sleep(10);
-                        System.out.println(fi + " " + x + " " + cachedMap.putIfAbsent("test", "value" + fi+"_" +x));
+                        System.out.println(fi + " " + x + " " + cacheMap.putIfAbsent("test", "value" + fi+"_" +x));
                     }
                 }
             });
@@ -85,13 +85,13 @@ public class CachedMapTest extends TestCase{
     }
 
     public void testSuppler(){
-        CachedMap cachedMap = new CachedMap().autoRemove(true).create();
+        CacheMap cacheMap = new CacheMap().autoRemove(true).create();
 
         final AtomicInteger x = new AtomicInteger(0);
 
         for(int i=0;i<100;i++) {
             int finali = i;
-            Object m = cachedMap.get("test" + finali, (key) -> {
+            Object m = cacheMap.get("test" + finali, (key) -> {
                 String result = System.currentTimeMillis() + " " + key;
                 TEnv.sleep(1);
                 System.out.println("gen "+result);
@@ -99,12 +99,12 @@ public class CachedMapTest extends TestCase{
             }, 1l);
         }
 
-        System.out.println("before: " + cachedMap.size());
+        System.out.println("before: " + cacheMap.size());
         TEnv.sleep(2000);
-        System.out.println("after: " + cachedMap.size());
+        System.out.println("after: " + cacheMap.size());
 
         for(int i=0;i<10;i++) {
-            Object m = cachedMap.get("test", (key) -> {
+            Object m = cacheMap.get("test", (key) -> {
                 String result = System.currentTimeMillis() + " " + key;
                 TEnv.sleep(1000);
                 System.out.println("gen "+result);
@@ -116,7 +116,7 @@ public class CachedMapTest extends TestCase{
 
 
         for (int i=0;i<60*1000;i++){
-            cachedMap.getAndRefresh("test");
+            cacheMap.getAndRefresh("test");
             TEnv.sleep(1);
         }
 
