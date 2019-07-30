@@ -83,7 +83,7 @@ public class TSerialize {
             throw new RuntimeException("simple name is exists");
         }
 
-        if(CLASS_AND_HASH.containsKey(clazz) || HASH_AND_CLASS.containsKey(code)) {
+        if(HASH_AND_CLASS.containsKey(code) && !CLASS_AND_HASH.containsKey(clazz)) {
             throw new SerializeException("TSerialize.registerClassWithSimpleName failed, because class or simplename is registerd");
         } else {
             CLASS_AND_HASH.put(clazz, code);
