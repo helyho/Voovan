@@ -756,7 +756,8 @@ public class WebServer {
 
 			Logger.fremawork("Your are working on: JDK-" +TEnv.JDK_VERSION+". " +
 					"You should add java command arguments: " +
-					"-Djdk.attach.allowAttachSelf=true --add-exports java.base/java.tcp=ALL-UNNAMED --add-exports java.base/jdk.internal.ref=ALL-UNNAMED");
+					"-Djdk.attach.allowAttachSelf=true " +
+					"--add-exports java.base/jdk.internal.ref=ALL-UNNAMED");
 
 			System.exit(0);
 		}
