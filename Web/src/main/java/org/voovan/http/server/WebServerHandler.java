@@ -15,6 +15,7 @@ import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.FastThreadLocal;
+import org.voovan.tools.TObject;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
@@ -436,11 +437,10 @@ public class WebServerHandler implements IoHandler {
 		HttpRequest request = getAttribute(session,HttpSessionParam.HTTP_REQUEST);
 
 		//处理连接保持
-		if (getAttribute(session, HttpSessionParam.KEEP_ALIVE) !=null &&
-				(boolean)getAttribute(session, HttpSessionParam.KEEP_ALIVE) &&
+		if (TObject.nullDefault(getAttribute(session, HttpSessionParam.KEEP_ALIVE), false) &&
 				webConfig.getKeepAliveTimeout() > 0) {
 
-			if (Boolean.valueOf(false).equals(getAttribute(session, HttpSessionParam.KEEP_ALIVE_LIST_CONTAIN))) {
+			if (TObject.nullDefault(getAttribute(session, HttpSessionParam.KEEP_ALIVE_LIST_CONTAIN), false)) {
 				keepAliveSessionList.add(session);
 				setAttribute(session, HttpSessionParam.KEEP_ALIVE_LIST_CONTAIN, true);
 			}
