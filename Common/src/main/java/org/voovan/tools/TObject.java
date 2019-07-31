@@ -43,7 +43,11 @@ public class TObject {
 	 */
 	@SuppressWarnings("rawtypes")
 	public static List asList(Object ...objs){
-		return Arrays.asList(objs);
+		List result = new ArrayList();
+		for(Object o : objs) {
+			result.add(o);
+		}
+		return result;
 	}
 
 	/**
