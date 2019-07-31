@@ -1,5 +1,7 @@
 package org.voovan.tools.collection;
 
+import org.voovan.tools.reflect.annotation.NotSerialization;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,8 +17,19 @@ public class Attributes {
 
     private Map<Object, Object> attr;
 
+    @NotSerialization
+    private boolean modifyed = false;
+
     public Attributes() {
         attr = new ConcurrentHashMap<Object, Object>();
+    }
+
+    public boolean isModifyed() {
+        return modifyed;
+    }
+
+    public void setModifyed(boolean modifyed) {
+        this.modifyed = modifyed;
     }
 
     /**
@@ -43,6 +56,7 @@ public class Attributes {
      */
     public void setAttribute(Object key, Object value) {
         this.attr.put(key, value);
+        modifyed = true;
     }
 
     /**
@@ -51,6 +65,7 @@ public class Attributes {
      */
     public void removeAttribute(Object key) {
         this.attr.remove(key);
+        modifyed = true;
     }
 
     /**
@@ -67,6 +82,7 @@ public class Attributes {
      */
     public void clearAttribute() {
         attr.clear();
+        modifyed = true;
     }
 
 }
