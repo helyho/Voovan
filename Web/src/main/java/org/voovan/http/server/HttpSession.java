@@ -27,10 +27,6 @@ public class HttpSession extends Attributes {
 	@NotSerialization
 	private IoSession socketSession;
 
-	@NotSerialization
-	private boolean needSave;
-
-
 	/**
 	 * 构造函数
 	 *
@@ -48,8 +44,6 @@ public class HttpSession extends Attributes {
 		this.maxInactiveInterval = sessionTimeout*60;
 		this.sessionManager = sessionManager;
 		this.socketSession = socketSession;
-
-		needSave = false;
 	}
 
 	/**
@@ -114,7 +108,7 @@ public class HttpSession extends Attributes {
 	}
 
 	/**
-	 * 获取最大活动时间
+	 * 获取最大不活动时间
 	 *
 	 * @return 最大活动时间, 单位: 毫秒
 	 */
@@ -123,22 +117,22 @@ public class HttpSession extends Attributes {
 	}
 
 	/**
-	 * 设置最大活动时间
+	 * 设置最大不活动时间
 	 *
-	 * @param maxInactiveInterval 最大活动时间, 单位: 毫秒
+	 * @param maxInactiveInterval 最大不活动时间, 单位: 毫秒
 	 */
 	public void setMaxInactiveInterval(int maxInactiveInterval) {
 		this.maxInactiveInterval = maxInactiveInterval;
-		needSave = true;
+		setModifyed(true);
 	}
 
 	/**
 	 * 保存 Session
 	 */
 	public void save(){
-		if(sessionManager!=null && needSave) {
+		if(isModifyed() && sessionManager!=null) {
 			sessionManager.saveSession(this);
-			needSave = false;
+			setModifyed(false);
 		}
 	}
 
@@ -146,9 +140,7 @@ public class HttpSession extends Attributes {
 	 * 释放 Session
 	 */
 	public void release(){
-		if(sessionManager!=null && needSave) {
-			sessionManager.removeSession(this);
-		}
+        sessionManager.removeSession(this);
 	}
 
 	/**
