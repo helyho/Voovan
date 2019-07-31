@@ -61,6 +61,7 @@ public class TProperties {
 			Properties properties = propertiesFile.get(file);
 
 			if(!file.exists()) {
+				System.out.println("Get properites file failed. File:" + file.getAbsolutePath() + " not exists");
 				return null;
 			}
 
