@@ -472,10 +472,13 @@ public class HttpParser {
 		//继续从 Socket 中读取数据
 		Runnable contiuneRead = ()->{
 			if(session==null || !session.isConnected()) {
-					throw new HttpParserException("Socket is disconnect");
+				throw new HttpParserException("Socket is disconnect");
 			}
 
 			session.getSocketSelector().eventChoose();
+			if(session.getReadByteBufferChannel().isReleased()) {
+				throw new HttpParserException("socket read buffer is released, may be Socket is disconnected");
+			}
 		};
 
 		//按行遍历HTTP报文
