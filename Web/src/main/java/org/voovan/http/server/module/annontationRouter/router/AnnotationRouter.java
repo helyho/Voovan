@@ -68,7 +68,7 @@ public class AnnotationRouter implements HttpRouter {
         int routeMethodNum = 0;
 
         String modulePath = httpModule.getModuleConfig().getPath();
-        modulePath = fixAnnotationRoutePath(modulePath);
+        modulePath = HttpDispatcher.fixRoutePath(modulePath);
 
         WebServer webServer = httpModule.getWebServer();
         try {
@@ -92,7 +92,7 @@ public class AnnotationRouter implements HttpRouter {
                             classRouterPath = routerClass.getSimpleName();
                         }
 
-                        classRouterPath = fixAnnotationRoutePath(classRouterPath);
+                        classRouterPath = HttpDispatcher.fixRoutePath(classRouterPath);
 
                         //扫描包含 Router 注解的方法
                         for (Method method : methods) {
@@ -118,7 +118,7 @@ public class AnnotationRouter implements HttpRouter {
                                         }
 
                                         //拼装方法路径
-                                        methodRouterPath = "/" + fixAnnotationRoutePath(methodRouterPath);
+                                        methodRouterPath = HttpDispatcher.fixRoutePath(methodRouterPath);
 
                                         //拼装 (类+方法) 路径
                                         String routePath = classRouterPath + methodRouterPath;
@@ -165,14 +165,15 @@ public class AnnotationRouter implements HttpRouter {
 
                                             //1.注册路由, 处理不在参数的路由
                                             {
-                                                routePath = "/" + fixAnnotationRoutePath(routePath);
+                                                routePath = HttpDispatcher.fixRoutePath(routePath);
+                                                String moduleRoutePath = modulePath + routePath;
                                                 //判断路由是否注册过
-                                                if (!routerMaps.containsKey(routePath)) {
+                                                if (!routerMaps.containsKey(moduleRoutePath)) {
                                                     //注册路由,不带路径参数的路由
                                                     httpModule.otherMethod(routeMethod, routePath, annotationRouter);
                                                     Logger.simple("[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
                                                             "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') +
-                                                            modulePath + routePath);
+                                                            moduleRoutePath);
                                                     routeMethodNum++;
                                                 }
                                             }
@@ -181,14 +182,15 @@ public class AnnotationRouter implements HttpRouter {
                                             if (!paramPath.isEmpty()) {
                                                 String routeParamPath = null;
                                                 routeParamPath = routePath + paramPath;
-                                                routeParamPath = "/" + fixAnnotationRoutePath(routeParamPath);
+                                                routeParamPath = HttpDispatcher.fixRoutePath(routeParamPath);
+                                                String moduleRoutePath = modulePath + routeParamPath;
 
-                                                if (!routerMaps.containsKey(routeParamPath)) {
+                                                if (!routerMaps.containsKey(moduleRoutePath)) {
                                                     httpModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
 
                                                     Logger.simple("[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
                                                             "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') +
-                                                            modulePath + routeParamPath);
+                                                            moduleRoutePath);
                                                     routeMethodNum++;
                                                 }
                                             }
@@ -211,16 +213,16 @@ public class AnnotationRouter implements HttpRouter {
         }
     }
 
-    /**
-     * 修复路由路径
-     * @param routePath 路由路径
-     * @return 修复后的路由路径
-     */
-    private static String fixAnnotationRoutePath(String routePath){
-        routePath = routePath.startsWith("/") ? TString.removePrefix(routePath) : routePath;
-        routePath = routePath.endsWith("/") ? TString.removeSuffix(routePath) : routePath;
-        return routePath;
-    }
+//    /**
+//     * 修复路由路径
+//     * @param routePath 路由路径
+//     * @return 修复后的路由路径
+//     */
+//    private static String fixAnnotationRoutePath(String routePath){
+//        routePath = routePath.startsWith("/") ? TString.removePrefix(routePath) : routePath;
+//        routePath = routePath.endsWith("/") ? TString.removeSuffix(routePath) : routePath;
+//        return routePath;
+//    }
 
     /**
      * 将一个 Http 请求映射到一个类的方法调用
