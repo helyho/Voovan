@@ -361,7 +361,7 @@ public class ObjectPool<T> {
 
     /**
      * 移除池中的对象
-     * @param 清理的对象
+     * @param obj 清理的对象
      */
     private void remove(T obj){
         if(obj instanceof IPool) {
@@ -464,7 +464,7 @@ public class ObjectPool<T> {
 
                             InnerObject<T> innerObject = iterator.next();
 
-                            if (!innerObject.isAlive()) {
+                            if (!innerObject.isAlive() || !(validator!=null && validator.apply(innerObject.object))) {
                                 if (destory != null) {
                                     //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
                                     if (destory.apply(innerObject.getObject())) {
