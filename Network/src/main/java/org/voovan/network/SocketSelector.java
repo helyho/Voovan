@@ -292,9 +292,15 @@ public class SocketSelector implements Closeable {
 		if(isCheckTimeout) {
 			for (SelectionKey selectionKey : selector.keys()) {
 				SocketContext socketContext = (SocketContext) selectionKey.attachment();
-				if (socketContext!=null && socketContext.connectModel != ConnectModel.LISTENER && socketContext.isReadTimeOut()) {
+				if (socketContext!=null && socketContext.connectModel != ConnectModel.LISTENER &&
+						socketContext.isReadTimeOut() &&
+						socketContext.getSession().getReadByteBufferChannel().isEmpty() &&
+						socketContext.getSession().getSendByteBufferChannel().isEmpty()
+				) {
 					socketContext.close();
 					EventTrigger.fireException(socketContext.getSession(), new TimeoutException("Socket Read timeout"));
+				} else {
+					socketContext.updateLastReadTime();
 				}
 			}
 		}
@@ -323,12 +329,13 @@ public class SocketSelector implements Closeable {
 
 					// 有数据读取
 					if ((selectedKey.readyOps() & SelectionKey.OP_READ) != 0) {
+						socketContext.updateLastReadTime();
+
 						if(channel instanceof SocketChannel){
 							tcpReadFromChannel((TcpSocket) socketContext, (SocketChannel)channel);
 						} else if(channel instanceof DatagramChannel) {
 							udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) socketContext, (DatagramChannel) channel);
 						}
-                        socketContext.updateLastReadTime();
 					}
 				}
 			}
