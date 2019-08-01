@@ -206,6 +206,12 @@ public class JSON {
 				continue;
 			}
 
+			if(current==':'){
+				jsongStrBuild.append(current);
+				jsongStrBuild.append(' ');
+				continue;
+			}
+
 			jsongStrBuild.append(current);
 
 		}
