@@ -43,5 +43,5 @@ public @interface Router {
      * 在方法上无效
      * @return true: 单例模式, false: 非单例模式
      */
-    boolean singleton() default false;
+    boolean singleton() default true;
 }
