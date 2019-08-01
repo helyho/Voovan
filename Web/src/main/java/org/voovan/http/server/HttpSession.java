@@ -22,10 +22,10 @@ public class HttpSession extends Attributes {
 	private int maxInactiveInterval;
 
 	@NotSerialization
-	private SessionManager sessionManager;
+	private transient SessionManager sessionManager;
 
 	@NotSerialization
-	private IoSession socketSession;
+	private transient IoSession socketSession;
 
 	/**
 	 * 构造函数
