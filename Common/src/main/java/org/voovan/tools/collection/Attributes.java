@@ -18,7 +18,7 @@ public class Attributes {
     private Map<Object, Object> attr;
 
     @NotSerialization
-    private boolean modifyed = false;
+    private transient boolean modifyed = false;
 
     public Attributes() {
         attr = new ConcurrentHashMap<Object, Object>();
