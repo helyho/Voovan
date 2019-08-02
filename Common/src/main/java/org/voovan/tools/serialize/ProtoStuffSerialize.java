@@ -37,6 +37,10 @@ public class ProtoStuffSerialize implements Serialize {
 
     @Override
     public byte[] serialize(Object obj) {
+        //字节数组直接返回
+        if(obj instanceof byte[]) {
+            return (byte[])obj;
+        }
 
         byte[] buf = null;
         buf = TByte.toBytes(obj);
@@ -58,24 +62,30 @@ public class ProtoStuffSerialize implements Serialize {
 
     @Override
     public <T> T unserialize(byte[] bytes) {
-        if(bytes.length == 0) {
-            return (T)bytes;
-        }
         try {
-
-            int hashcode = TByte.getInt(bytes);
-
-            Class innerClazz = TSerialize.getClassByHash(hashcode);
-
-            byte[] valueBytes = Arrays.copyOfRange(bytes, 4, bytes.length);
-
-            Object obj = TByte.toObject(valueBytes, innerClazz);
-            if(obj==null) {
-                Schema schema = getSchema(innerClazz);
-                obj = TReflect.newInstance(innerClazz);
-                ProtostuffIOUtil.mergeFrom(valueBytes, 0, valueBytes.length, obj, schema);
+            Integer hashcode = null;
+            if(bytes.length >= 4) {
+                hashcode = TByte.getInt(bytes);
             }
-            return (T) obj;
+
+            Class innerClazz = hashcode==null ? null : TSerialize.getClassByHash(hashcode);
+
+            //如果没有明确的类指示,则直接返回字节数组
+            if(innerClazz != null) {
+                byte[] valueBytes = Arrays.copyOfRange(bytes, 4, bytes.length);
+
+                Object obj = TByte.toObject(valueBytes, innerClazz);
+
+                if (obj == null) {
+                    Schema schema = getSchema(innerClazz);
+                    obj = TReflect.newInstance(innerClazz);
+                    ProtostuffIOUtil.mergeFrom(valueBytes, 0, valueBytes.length, obj, schema);
+                }
+
+                return (T) obj;
+            } else {
+                return (T) bytes;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

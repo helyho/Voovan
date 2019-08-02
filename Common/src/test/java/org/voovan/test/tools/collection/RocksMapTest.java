@@ -85,10 +85,11 @@ public class RocksMapTest extends TestCase {
         ColumnFamilyOptions columnFamilyOptions = new ColumnFamilyOptions();
         columnFamilyOptions.setCompactionFilter(new RemoveEmptyValueCompactionFilter());
         RocksMap rocksMap1 = new RocksMap(null, cfName, columnFamilyOptions, null, null, null, false);
-        rocksMap1.put("1111", "22222");
-        rocksMap1.put("1111", new byte[0]);
+        rocksMap1.put("1111", new byte[]{(byte)1, (byte)2});
+        rocksMap1.put("2222", new byte[]{});
+        System.out.println(rocksMap1.get("2222"));
         rocksMap1.compact();
-        System.out.println(rocksMap1.get("1111"));
+        System.out.println(rocksMap1.get("2222"));
     }
 
     public void testAll() throws RocksDBException {
