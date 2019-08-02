@@ -60,11 +60,6 @@ public class TProperties {
 		try {
 			Properties properties = propertiesFile.get(file);
 
-			if(!file.exists()) {
-				System.out.println("Get properites file failed. File:" + file.getAbsolutePath() + " not exists");
-				return null;
-			}
-
 			if (properties==null) {
 				Properties properites = new Properties();
 				String content = null;
@@ -84,7 +79,7 @@ public class TProperties {
 			return propertiesFile.get(file);
 
 		} catch (IOException e) {
-			System.out.println("Get properites file failed. File:" + file.getAbsolutePath() + "-->" + e.getMessage());
+			System.out.println("Load properites file failed. File:" + file.getAbsolutePath() + "-->" + e.getMessage());
 			return null;
 		}
 	}
@@ -135,6 +130,7 @@ public class TProperties {
                 propertiesName.put(fileName, properties);
                 return properties;
             } else {
+				System.out.println("[PROPERTIES] Load properites file failed. File:" + configFile.getAbsolutePath() + " not exists");
                 return null;
             }
         } else {
