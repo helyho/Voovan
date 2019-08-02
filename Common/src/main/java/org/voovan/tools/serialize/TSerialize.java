@@ -109,6 +109,7 @@ public class TSerialize {
         CLASS_AND_HASH.put(boolean.class,   THash.HashFNV1(Boolean.class.getName()));
         CLASS_AND_HASH.put(Boolean.class,   THash.HashFNV1(Boolean.class.getName()));
         CLASS_AND_HASH.put(String.class,    THash.HashFNV1(String.class.getName()));
+        CLASS_AND_HASH.put(byte[].class,    THash.HashFNV1(byte[].class.getName()));
 
         for(Map.Entry<Class, Integer> entry : CLASS_AND_HASH.entrySet()) {
 
