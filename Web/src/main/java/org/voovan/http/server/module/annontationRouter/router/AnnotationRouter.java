@@ -166,7 +166,7 @@ public class AnnotationRouter implements HttpRouter {
                                             //1.注册路由, 处理不在参数的路由
                                             {
                                                 routePath = HttpDispatcher.fixRoutePath(routePath);
-                                                String moduleRoutePath = modulePath + routePath;
+                                                String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routePath);
                                                 //判断路由是否注册过
                                                 if (!routerMaps.containsKey(moduleRoutePath)) {
                                                     //注册路由,不带路径参数的路由
@@ -183,7 +183,7 @@ public class AnnotationRouter implements HttpRouter {
                                                 String routeParamPath = null;
                                                 routeParamPath = routePath + paramPath;
                                                 routeParamPath = HttpDispatcher.fixRoutePath(routeParamPath);
-                                                String moduleRoutePath = modulePath + routeParamPath;
+                                                String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routeParamPath);
 
                                                 if (!routerMaps.containsKey(moduleRoutePath)) {
                                                     httpModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
