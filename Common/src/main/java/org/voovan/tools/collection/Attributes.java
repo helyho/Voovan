@@ -53,19 +53,22 @@ public class Attributes {
      * 设置属性参数
      * @param key     参数名
      * @param value   参数对象
+     * @return 对象自身
      */
-    public void setAttribute(Object key, Object value) {
+    public <T> T setAttribute(Object key, Object value) {
         this.attr.put(key, value);
         modifyed = true;
+        return (T)this;
     }
 
     /**
      * 移除属性参数
      * @param key     参数名
      */
-    public void removeAttribute(Object key) {
+    public  <T> T  removeAttribute(Object key) {
         this.attr.remove(key);
         modifyed = true;
+        return (T)this;
     }
 
     /**
@@ -80,9 +83,10 @@ public class Attributes {
     /**
      * 清空 session 的缓存配置
      */
-    public void clearAttribute() {
+    public  <T> T clearAttribute() {
         attr.clear();
         modifyed = true;
+        return (T)this;
     }
 
 }
