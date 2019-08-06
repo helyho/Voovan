@@ -487,7 +487,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     /**
-     * 开启式事务模式
+     * 开启式事务模式 (立即失败, 死锁检测,无快照)
      *      同一个线程共线给一个事务
      *      使用内置公共事务通过 savepoint 来失败回滚, 但统一提交, 性能会好很多, 但是由于很多层嵌套的 savepont 在高并发时使用这种方式时回导致提交会慢很多
      * @param transFunction 事务执行器, 返回 Null 则事务回滚, 其他则事务提交
@@ -495,7 +495,22 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 非 null: 事务成功, null: 事务失败
      */
     public <T> T withTransaction(Function<RocksMap<K, V>, T> transFunction) {
-        beginTransaction();
+        return withTransaction(-1, true, false, transFunction);
+    }
+
+        /**
+         * 开启式事务模式
+         *      同一个线程共线给一个事务
+         *      使用内置公共事务通过 savepoint 来失败回滚, 但统一提交, 性能会好很多, 但是由于很多层嵌套的 savepont 在高并发时使用这种方式时回导致提交会慢很多
+         * @param expire         提交时锁超时时间
+         * @param deadlockDetect 死锁检测是否打开
+         * @param withSnapShot   是否启用快照事务
+         * @param transFunction 事务执行器, 返回 Null 则事务回滚, 其他则事务提交
+         * @param <T>  范型
+         * @return 非 null: 事务成功, null: 事务失败
+         */
+    public <T> T withTransaction(long expire, boolean deadlockDetect, boolean withSnapShot, Function<RocksMap<K, V>, T> transFunction) {
+        beginTransaction(expire, deadlockDetect, withSnapShot);
 
         try {
             T object = transFunction.apply(this);
