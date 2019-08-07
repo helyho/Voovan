@@ -333,7 +333,7 @@ public class ObjectPool<T> {
     public void restitution(T obj) {
 
             if (obj instanceof IPool) {
-                if(validator.apply(obj)) {
+                if(validator!=null && validator.apply(obj)) {
                     Long id = ((IPool) obj).getPoolObjectId();
 
                     InnerObject innerObject = objects.get(id);

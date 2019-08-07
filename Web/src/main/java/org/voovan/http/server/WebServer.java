@@ -501,7 +501,7 @@ public class WebServer {
 				Logger.warn("The WebServer lifeCycle class " + lifeCycleClass + " is not a class implement by " + WebServerLifeCycle.class.getName());
 			}
 		} catch (Exception e) {
-			Logger.error("Initialize WebServer lifeCycle class error: " + e);
+			Logger.error("Initialize WebServer lifeCycle class error: ", e);
 		}
 	}
 

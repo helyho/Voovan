@@ -440,7 +440,7 @@ public class HttpClient implements Closeable{
 		//设置默认的报文 Body 类型
 		if(httpRequest.protocol().getMethod().equals("POST") && httpRequest.parts().size()>0){
 			setBodyType(Request.RequestType.BODY_MULTIPART);
-		}else if(httpRequest.protocol().getMethod().equals("POST")) {
+		}else if(httpRequest.protocol().getMethod().equals("POST") && parameters.size() > 0) {
 			setBodyType(Request.RequestType.BODY_URLENCODED);
 		}else{
 			setBodyType(Request.RequestType.NORMAL);

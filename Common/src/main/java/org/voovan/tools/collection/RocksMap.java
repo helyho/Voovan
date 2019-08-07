@@ -116,23 +116,23 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
 
     //--------------------- 成员变量 --------------------
-    public DBOptions            dbOptions;
-    public ReadOptions          readOptions;
-    public WriteOptions         writeOptions;
-    public ColumnFamilyOptions  columnFamilyOptions;
+    public transient DBOptions            dbOptions;
+    public transient ReadOptions          readOptions;
+    public transient WriteOptions         writeOptions;
+    public transient ColumnFamilyOptions  columnFamilyOptions;
 
-    private RocksDB                     rocksDB;
-    private ColumnFamilyDescriptor      dataColumnFamilyDescriptor;
-    private ColumnFamilyHandle          dataColumnFamilyHandle;
-    private ThreadLocal<Transaction>    threadLocalTransaction      = new ThreadLocal<Transaction>();
-    private ThreadLocal<Integer>        threadLocalSavePointCount   = ThreadLocal.withInitial(()->new Integer(0));
-    private ThreadLocal<StringBuilder>  threadLocalBuilder           = ThreadLocal.withInitial(()->new StringBuilder());
+    private transient RocksDB                     rocksDB;
+    private transient ColumnFamilyDescriptor      dataColumnFamilyDescriptor;
+    private transient ColumnFamilyHandle          dataColumnFamilyHandle;
+    private transient ThreadLocal<Transaction>    threadLocalTransaction      = new ThreadLocal<Transaction>();
+    private transient ThreadLocal<Integer>        threadLocalSavePointCount   = ThreadLocal.withInitial(()->new Integer(0));
+    private transient ThreadLocal<StringBuilder>  threadLocalBuilder           = ThreadLocal.withInitial(()->new StringBuilder());
 
-    private String dbname;
-    private String columnFamilyName;
-    private Boolean readOnly;
-    private Boolean isDuplicate = false;
-    private int transactionLockTimeout = 5000;
+    private transient String dbname;
+    private transient String columnFamilyName;
+    private transient Boolean readOnly;
+    private transient Boolean isDuplicate = false;
+    private transient int transactionLockTimeout = 5000;
 
     /**
      * 构造方法
