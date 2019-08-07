@@ -383,7 +383,7 @@ public class WebServer {
 		WebContext.logo();
 
 		//运行初始化 Class
-		runWebInit(this);
+		WebServerInit(this);
 
 		//加载过滤器,路由,模块
 		WebContext.initWebServerPluginConfig(true);
@@ -477,7 +477,7 @@ public class WebServer {
 	 * 加载并运行初始化类
 	 * @param webServer WebServer对象
 	 */
-	private void runWebInit(WebServer webServer){
+	private void WebServerInit(WebServer webServer){
 		String lifeCycleClass = WebContext.getWebServerConfig().getLifeCycleClass();
 
 		if(lifeCycleClass==null) {
@@ -509,7 +509,7 @@ public class WebServer {
 	 * 加载并运行初始化类
 	 * @param webServer WebServer对象
 	 */
-	private void runWebDestory(WebServer webServer){
+	private void WebServerDestory(WebServer webServer){
 		String lifeCycleClass = WebContext.getWebServerConfig().getLifeCycleClass();
 
 		if(lifeCycleClass==null) {
@@ -937,7 +937,7 @@ public class WebServer {
 			System.out.println("[" + TDateTime.now() + "] Try to stop WebServer....");
 
 			unInitModule();
-			this.runWebDestory(this);
+			this.WebServerDestory(this);
 
 			serverSocket.close();
 			System.out.println("[" + TDateTime.now() + "] Socket closed");
