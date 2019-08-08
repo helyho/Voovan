@@ -55,10 +55,16 @@ public class UniqueIdUnit extends TestCase {
     }
 
     public void testUniqueIdByTime(){
-        final UniqueId uniqueId = new UniqueId(200);
+        final UniqueId uniqueId = new UniqueId(200, 5);
         for(int i=0;i<10;i++){
             System.out.println(uniqueId.getNumber(TDateTime.parse("2017-10-21 12:13:14").getTime()));
         }
+    }
 
+    public void testUniqueIdStep(){
+        final UniqueId uniqueId = new UniqueId(200, 5);
+        for(int i=0;i<500;i++){
+            System.out.println(uniqueId.nextNumber());
+        }
     }
 }
