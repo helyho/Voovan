@@ -331,23 +331,26 @@ public class ObjectPool<T> {
      * @param obj 借出的对象
      */
     public void restitution(T obj) {
+        if(obj==null) {
+            return;
+        }
 
-            if (obj instanceof IPool) {
-                if(validator!=null && validator.apply(obj)) {
-                    Long id = ((IPool) obj).getPoolObjectId();
+        if (obj instanceof IPool) {
+            if(validator==null || validator.apply(obj)) {
+                Long id = ((IPool) obj).getPoolObjectId();
 
-                    InnerObject innerObject = objects.get(id);
+                InnerObject innerObject = objects.get(id);
 
-                    if (!innerObject.isRemoved() && objects.get(id).setBorrow(false)) {
-                        unborrowedIdList.offer(id);
-                    }
-                } else {
-                    remove(obj);
+                if (!innerObject.isRemoved() && objects.get(id).setBorrow(false)) {
+                    unborrowedIdList.offer(id);
                 }
             } else {
-                throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
-                        " implemets IPool.class or extends Pool or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) + "  and Aop support");
+                remove(obj);
             }
+        } else {
+            throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
+                    " implemets IPool.class or extends Pool or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) + "  and Aop support");
+        }
     }
 
     /**
