@@ -16,14 +16,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class UniqueId {
     private static final int SEQ_DEFAULT = 0;
     private static final int RADIX = 62;
-    private static final int SEQUENCE_LEFT = 11; //一毫秒生成 4096 个 id
-    private static final int SIGNID_LEFT = 11;   //可有 4096 个数据中心
+    private static final int SEQUENCE_LEFT = 11; //一毫秒生成 2048 个 id
+    private static final int SIGNID_LEFT = 11;   //可有 2048 个数据中心
     private static final int MAX_SIGNID = 1 << SIGNID_LEFT;
     private static final int MAX_SEQUENCE = 1 << SEQUENCE_LEFT;
 
     private volatile AtomicInteger orderedIdSequence = new AtomicInteger(SEQ_DEFAULT);
     private Long lastTime = 0L;
     private int workId = 0;
+    private int step = 1;
 
     /**
      * 构造函数
@@ -45,6 +46,16 @@ public class UniqueId {
             throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", MAX_SIGNID));
         }
         workId = signId;
+    }
+
+    /**
+     *  构造函数
+     * @param signId 标识 ID
+     * @param step 每次自增的步长
+     */
+    public UniqueId(int signId, int step) {
+        this(signId);
+        this.step = step;
     }
 
     /**
@@ -81,7 +92,7 @@ public class UniqueId {
             orderedIdSequence.set(SEQ_DEFAULT);
         }
 
-        long resultId = (currentTime << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (workId << SEQUENCE_LEFT) | orderedIdSequence.getAndAdd(1);
+        long resultId = (currentTime << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (workId << SEQUENCE_LEFT) | orderedIdSequence.getAndAdd(step);
 
         lastTime = System.currentTimeMillis();
         return resultId;
