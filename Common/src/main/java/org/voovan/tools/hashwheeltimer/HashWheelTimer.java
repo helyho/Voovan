@@ -34,6 +34,15 @@ public class HashWheelTimer {
 
     /**
      * 构造函数
+     * @param size 时间轮的槽数
+     * @param tickStep 每槽的步长, 单位: 毫秒
+     */
+    public HashWheelTimer(int size, int tickStep) {
+        this(null, size, tickStep);
+    }
+
+    /**
+     * 构造函数
      *          默认每槽的步长是1s
      * @param name 时间轮定时器名称
      * @param size 时间轮的槽数
@@ -51,7 +60,7 @@ public class HashWheelTimer {
     public HashWheelTimer(String name, int size, int tickStep){
         this.name = TObject.nullDefault(name, count.getAndIncrement()+"");
         wheel = new HashWheel(size);
-        timer = new Timer("WHEELTIMER-"+name, true);
+        timer = new Timer("WHEELTIMER-" + this.name, true);
         this.tickStep = tickStep!=-1 ? tickStep : this.tickStep;
     }
 
