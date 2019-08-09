@@ -97,12 +97,12 @@ public class ThreadPool {
 	 * @param poolName 池的名称
 	 * @param mimPoolSize 最小线程数
 	 * @param maxPoolSize 最大线程数
-	 * @param threadTimeout 线程闲置超时时间
+	 * @param keepAliveTime 线程闲置最大存活时间,单位: 毫秒
 	 * @return 线程池对象
 	 */
-	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int threadTimeout){
+	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int keepAliveTime){
 
-		return createThreadPool(poolName, mimPoolSize, maxPoolSize, threadTimeout, true , 5);
+		return createThreadPool(poolName, mimPoolSize, maxPoolSize, keepAliveTime, true , 5);
 	}
 
 	/**
@@ -110,16 +110,16 @@ public class ThreadPool {
 	 * @param poolName 池的名称
 	 * @param mimPoolSize 最小线程数
 	 * @param maxPoolSize 最大线程数
-	 * @param threadTimeout 线程闲置超时时间
+	 * @param keepAliveTime 线程闲置最大存活时间, 单位: 毫秒
 	 * @param daemon 是否是守护线程
 	 * @param priority 线程优先级
 	 * @return 线程池对象
 	 */
-	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int threadTimeout, boolean daemon, int priority){
+	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int keepAliveTime, boolean daemon, int priority){
 		ThreadPoolExecutor threadPoolInstance = THREAD_POOL_HANDLER.get(poolName);
 
 		if(threadPoolInstance==null) {
-			threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, threadTimeout, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(cpuCoreCount * 2000), new DefaultThreadFactory(poolName, daemon, priority));
+			threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, keepAliveTime, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(cpuCoreCount * 2000), new DefaultThreadFactory(poolName, daemon, priority));
 			//设置allowCoreThreadTimeOut,允许回收超时的线程
 			threadPoolInstance.allowCoreThreadTimeOut(true);
 
