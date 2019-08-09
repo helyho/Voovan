@@ -1,6 +1,5 @@
 package org.voovan.http.server;
 
-import org.voovan.Global;
 import org.voovan.http.HttpRequestType;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.server.context.WebServerConfig;
@@ -12,7 +11,6 @@ import org.voovan.http.websocket.WebSocketType;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
@@ -37,9 +35,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class WebSocketDispatcher {
-	public static HashWheelTimer HANDSHAKE_WHEEL_TIMER = new HashWheelTimer(60, 1000);
-	static {
-		HANDSHAKE_WHEEL_TIMER.rotate();
+	public static HashWheelTimer HEARTBEAT_WHEEL_TIMER = null;
+
+	public static HashWheelTimer getHeartBeatWheelTimer() {
+		if(HEARTBEAT_WHEEL_TIMER == null) {
+			synchronized (IoSession.class) {
+				if(HEARTBEAT_WHEEL_TIMER == null) {
+					HEARTBEAT_WHEEL_TIMER = new HashWheelTimer("SocketIdle", 60, 1000);
+					HEARTBEAT_WHEEL_TIMER.rotate();
+				}
+			}
+		}
+
+		return HEARTBEAT_WHEEL_TIMER;
 	}
 
 	private WebServerConfig webConfig;
@@ -180,7 +188,7 @@ public class WebSocketDispatcher {
 				} else if (event == WebSocketEvent.PONG) {
 					final IoSession poneSession = session;
 					if(poneSession.isConnected()) {
-						HANDSHAKE_WHEEL_TIMER.addTask(new HashWheelTask() {
+						WebSocketDispatcher.getHeartBeatWheelTimer().addTask(new HashWheelTask() {
 							@Override
 							public void run() {
 								try {

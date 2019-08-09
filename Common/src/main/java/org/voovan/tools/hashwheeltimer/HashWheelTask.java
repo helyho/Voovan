@@ -18,6 +18,7 @@ public abstract class HashWheelTask {
     private int slot;
     private long doCount;
     private boolean isCancel;
+    private boolean running = false;
 
     /**
      * 构造函数
@@ -144,6 +145,10 @@ public abstract class HashWheelTask {
      * @return true: 执行了这个任务, false: 未执行这个任务
      */
     public boolean doTask(){
+        if(running) {
+            return true;
+        }
+
         doCount++;
 
         if(doCount == Long.MAX_VALUE){
@@ -154,6 +159,7 @@ public abstract class HashWheelTask {
             skipTick--;
             return false;
         }else {
+            running = true;
             if(asynchronous){
                 final HashWheelTask task = this;
                 if(!Global.getThreadPool().isShutdown()) {
@@ -161,6 +167,7 @@ public abstract class HashWheelTask {
                         @Override
                         public void run() {
                             task.run();
+                            running = false;
                         }
                     });
                 } else {
@@ -168,6 +175,7 @@ public abstract class HashWheelTask {
                 }
             }else{
                 run();
+                running = false;
             }
 
             return true;

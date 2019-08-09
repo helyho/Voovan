@@ -146,7 +146,7 @@ public class Global {
 
         private HashWheelTimer hashWheelTimer;
         HashTimeWheelEnum (){
-            hashWheelTimer = new HashWheelTimer(60, 1000);
+            hashWheelTimer = new HashWheelTimer("Default", 60, 1000);
             hashWheelTimer.rotate();
         }
 

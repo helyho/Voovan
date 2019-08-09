@@ -1,10 +1,12 @@
 package org.voovan.tools.hashwheeltimer;
 
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 时间轮定时器
@@ -15,9 +17,11 @@ import java.util.TimerTask;
  * Licence: Apache v2 License
  */
 public class HashWheelTimer {
+    private static AtomicInteger count = new AtomicInteger(0);
     private HashWheel wheel;
     private int tickStep = 1000;
     private Timer timer;
+    private String name;
 
     /**
      * 构造函数
@@ -25,19 +29,30 @@ public class HashWheelTimer {
      * @param size 时间轮的槽数
      */
     public HashWheelTimer(int size){
-        wheel = new HashWheel(size);
-        timer = new Timer("VOOVAN@HASH_WHEEL", true);
+        this(null, size, -1);
     }
 
     /**
      * 构造函数
+     *          默认每槽的步长是1s
+     * @param name 时间轮定时器名称
+     * @param size 时间轮的槽数
+     */
+    public HashWheelTimer(String name, int size){
+        this(name, size, -1);
+    }
+
+    /**
+     * 构造函数
+     * @param name 时间轮定时器名称
      * @param size 时间轮的槽数
      * @param tickStep 每槽的步长, 单位: 毫秒
      */
-    public HashWheelTimer(int size, int tickStep){
+    public HashWheelTimer(String name, int size, int tickStep){
+        this.name = TObject.nullDefault(name, count.getAndIncrement()+"");
         wheel = new HashWheel(size);
-        timer = new Timer("VOOVAN@HASH_WHEEL", true);
-        this.tickStep = tickStep;
+        timer = new Timer("WHEELTIMER-"+name, true);
+        this.tickStep = tickStep!=-1 ? tickStep : this.tickStep;
     }
 
     /**

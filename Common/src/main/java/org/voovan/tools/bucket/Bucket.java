@@ -6,7 +6,7 @@ import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import java.util.concurrent.TimeoutException;
 
 /**
- * 类文字命名
+ * 令牌桶,漏桶基类
  *
  * @author: helyho
  * DBase Framework.
@@ -14,7 +14,7 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public abstract class Bucket {
-    public static HashWheelTimer BUCKET_HASH_WHEEL_TIMER = new HashWheelTimer(1000, 1);
+    public static HashWheelTimer BUCKET_HASH_WHEEL_TIMER = new HashWheelTimer("Bucket", 1000, 1);
     protected HashWheelTask hashWheelTask= null;
     static {
         BUCKET_HASH_WHEEL_TIMER.rotate();
