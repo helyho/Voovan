@@ -26,7 +26,7 @@ import java.util.function.Function;
  */
 public class CacheMap<K,V> implements ICacheMap<K, V> {
 
-    protected final static HashWheelTimer wheelTimer = new HashWheelTimer(60, 1000);
+    protected final static HashWheelTimer CACHE_MAP_WHEEL_TIMER = new HashWheelTimer("CacheMap", 60, 1000);
     private Function<K, V> supplier = null;
     private int interval = 1;
     private boolean autoRemove = true;
@@ -35,7 +35,7 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
     private long expire = 0;
 
     static {
-        wheelTimer.rotate();
+        CACHE_MAP_WHEEL_TIMER.rotate();
     }
 
     private Map<K, V> cacheData = null;
@@ -170,7 +170,7 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
 
         //启动超时清理任务
         if(interval >= 1) {
-            wheelTimer.addTask(new HashWheelTask() {
+            CACHE_MAP_WHEEL_TIMER.addTask(new HashWheelTask() {
                 @Override
                 public void run() {
                     if (!cacheMap.getCacheMark().isEmpty()) {

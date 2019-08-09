@@ -1,6 +1,5 @@
 package org.voovan.network;
 
-import org.voovan.Global;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
@@ -9,6 +8,7 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.collection.Attributes;
 import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
+import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -26,6 +26,21 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public abstract class IoSession<T extends SocketContext> extends Attributes {
+	public static HashWheelTimer SOCKET_IDLE_WHEEL_TIME = null;
+
+	public static HashWheelTimer getIdleWheelTimer() {
+		if(SOCKET_IDLE_WHEEL_TIME == null) {
+			synchronized (IoSession.class) {
+				if(SOCKET_IDLE_WHEEL_TIME == null) {
+					SOCKET_IDLE_WHEEL_TIME = new HashWheelTimer("SocketIdle", 60, 1000);
+					SOCKET_IDLE_WHEEL_TIME.rotate();
+				}
+			}
+		}
+
+		return SOCKET_IDLE_WHEEL_TIME;
+	}
+
 	private boolean sslMode = false;
 	private SSLParser sslParser;
 
@@ -221,7 +236,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 
 				checkIdleTask.run();
 
-				Global.getHashWheelTimer().addTask(checkIdleTask, 1);
+				getIdleWheelTimer().addTask(checkIdleTask, 1, true);
 			}
 		}
 	}

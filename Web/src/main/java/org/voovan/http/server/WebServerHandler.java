@@ -414,7 +414,7 @@ public class WebServerHandler implements IoHandler {
 			}
 
 			//发送第一次心跳消息
-			WebSocketDispatcher.HANDSHAKE_WHEEL_TIMER.addTask(new HashWheelTask() {
+			WebSocketDispatcher.getHeartBeatWheelTimer().addTask(new HashWheelTask() {
 				@Override
 				public void run() {
 					//发送 ping 消息
