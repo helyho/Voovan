@@ -124,7 +124,7 @@ public class HeartBeat {
         }
 
         //弥补双方发送的时间差,等待心跳到来,如果超过空闲事件周期则认为是失败
-        TEnv.wait(session.getIdleInterval() * 1000, false, ()->heartBeat.getQueue().size() == 0);
+//        TEnv.wait(session.getIdleInterval() * 1000, false, ()->heartBeat.getQueue().size() == 0);
 
         if (heartBeat.getQueue().size() > 0) {
             int beatType = heartBeat.getQueue().pollFirst();
