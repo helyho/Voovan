@@ -127,4 +127,12 @@ public class UniqueId {
     private long generateId(Long timeMills){
         return (timeMills << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (workId << SEQUENCE_LEFT) | 1;
     }
+
+    public Long getMillis(Long uniqueId){
+       return uniqueId >> 22;
+    }
+
+    public Long getMillis(String uniqueId) {
+        return TString.radixUnConvert(uniqueId, RADIX) >> 22;
+    }
 }
