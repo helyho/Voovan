@@ -71,9 +71,14 @@ public class ThreadPool {
 	private ThreadPool(){
 	}
 
-	private static ThreadPoolExecutor createThreadPool(String poolName){
-		System.out.println("[THREAD_POOL] Min size: " + minPoolTimes + "/" + MIN_POOL_SIZE);
-		System.out.println("[THREAD_POOL] Max size: " + maxPoolTimes + "/" + MAX_POOL_SIZE);
+    /**
+     * 使用默认配置构造线程池, 配置来自于 fraemwork.properties
+     * @param poolName 线程池名称
+     * @return 线程池对象
+     */
+	public static ThreadPoolExecutor createThreadPool(String poolName){
+		System.out.println("[THREAD_POOL] " + poolName + " Min size: " + minPoolTimes + "/" + MIN_POOL_SIZE);
+		System.out.println("[THREAD_POOL] " + poolName + " Max size: " + maxPoolTimes + "/" + MAX_POOL_SIZE);
 
 		ThreadPoolExecutor threadPoolInstance = createThreadPool(poolName, MIN_POOL_SIZE, MAX_POOL_SIZE, 1000*60);
 
@@ -129,8 +134,13 @@ public class ThreadPool {
 		return threadPoolInstance;
 	}
 
+	/**
+	 * 平滑的关闭线程池
+	 * @param threadPoolExecutor 线程池对象
+	 */
+	public static void gracefulShutdown(ThreadPoolExecutor threadPoolExecutor) {
+		threadPoolExecutor.shutdown();
 
-	public static ThreadPoolExecutor getNewThreadPool(String name){
-		return createThreadPool(name);
+		TEnv.wait(()-> !threadPoolExecutor.isShutdown());
 	}
 }

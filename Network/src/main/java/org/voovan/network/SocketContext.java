@@ -427,4 +427,13 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
 		socketSelector.register(this, ops);
 	}
+
+    /**
+     * 平滑的关闭 Socket 线程池
+     */
+	public static void gracefulShutdown() {
+		ThreadPool.gracefulShutdown(SocketContext.ACCEPT_THREAD_POOL);
+		ThreadPool.gracefulShutdown(SocketContext.IO_THREAD_POOL);
+		Logger.info("All IO thread is shutdown");
+	}
 }

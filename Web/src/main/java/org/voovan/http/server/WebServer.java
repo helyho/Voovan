@@ -12,6 +12,7 @@ import org.voovan.network.SocketContext;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.tools.*;
+import org.voovan.tools.threadpool.ThreadPool;
 import org.voovan.tools.weave.Weave;
 import org.voovan.tools.hotswap.Hotswaper;
 import org.voovan.tools.json.JSON;
@@ -942,9 +943,9 @@ public class WebServer {
 			serverSocket.close();
 			System.out.println("[" + TDateTime.now() + "] Socket closed");
 
-			SocketContext.ACCEPT_THREAD_POOL.shutdown();
-			SocketContext.IO_THREAD_POOL.shutdown();
-			Global.getThreadPool().shutdown();
+			SocketContext.gracefulShutdown();
+			ThreadPool.gracefulShutdown(Global.getThreadPool());
+
 			System.out.println("[" + TDateTime.now() + "] Thread pool is shutdown.");
 
 			System.out.println("[" + TDateTime.now() + "] Now webServer is fully stoped.");
