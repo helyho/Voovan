@@ -1,6 +1,7 @@
 package org.voovan.tools;
 
 import java.security.SecureRandom;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -129,10 +130,10 @@ public class UniqueId {
     }
 
     public Long getMillis(Long uniqueId){
-       return uniqueId >> 22;
+        return uniqueId==null ? null : uniqueId >> 22;
     }
 
     public Long getMillis(String uniqueId) {
-        return TString.radixUnConvert(uniqueId, RADIX) >> 22;
+        return uniqueId==null ? null : TString.radixUnConvert(uniqueId, RADIX) >> 22;
     }
 }
