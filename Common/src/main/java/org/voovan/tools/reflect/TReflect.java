@@ -1379,6 +1379,9 @@ public class TReflect {
         else {
             Field[] fields =  TReflect.getFields(obj.getClass());
             for(Field field : fields){
+                if(Modifier.isStatic(field.getModifiers())){
+                    continue;
+                }
 
                 //过滤不可序列化的字段
                 if (!allField) {
