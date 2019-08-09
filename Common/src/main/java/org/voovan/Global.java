@@ -124,7 +124,7 @@ public class Global {
         private ThreadPoolExecutor threadPoolExecutor;
 
         ThreadPoolEnum(){
-            threadPoolExecutor = ThreadPool.getNewThreadPool("Default");
+            threadPoolExecutor = ThreadPool.createThreadPool("Default");
         }
 
         public ThreadPoolExecutor getValue(){
