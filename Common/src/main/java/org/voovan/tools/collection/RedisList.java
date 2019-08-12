@@ -5,6 +5,7 @@ import redis.clients.jedis.BinaryClient;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.util.Pool;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -19,7 +20,7 @@ import java.util.*;
  * Licence: Apache v2 License
  */
 public class RedisList<V> implements List<V>, Deque<V>, Closeable {
-    private JedisPool redisPool;
+    private Pool<Jedis> redisPool;
     private String name = null;
     private int dbIndex = 0;
 
@@ -83,7 +84,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
      * @param jedisPool redis 连接池
      * @param name 在 redis 中的 HashMap的名称
      */
-    public RedisList(JedisPool jedisPool, String name){
+    public RedisList(Pool<Jedis> jedisPool, String name){
         this.redisPool = jedisPool;
         this.name = name;
     }
@@ -92,7 +93,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
      * 构造函数
      * @param jedisPool redis 连接池
      */
-    public RedisList(JedisPool jedisPool){
+    public RedisList(Pool<Jedis> jedisPool){
         this.redisPool = jedisPool;
     }
 

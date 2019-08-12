@@ -5,6 +5,7 @@ import org.voovan.tools.TString;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.util.Pool;
 
 import java.util.Collections;
 
@@ -17,7 +18,7 @@ import java.util.Collections;
  * Licence: Apache v2 License
  */
 public class RedisLock {
-    private JedisPool redisPool;
+    private Pool<Jedis> redisPool;
     private String lockName = null;
     private int dbIndex = 0;
     private String lockValue = TString.generateShortUUID();;
@@ -82,7 +83,7 @@ public class RedisLock {
      * @param jedisPool redis 连接池
      * @param name 在 redis 中的 HashMap的名称
      */
-    public RedisLock(JedisPool jedisPool, String name){
+    public RedisLock(Pool<Jedis> jedisPool, String name){
         this.redisPool = jedisPool;
         this.lockName = lockName;
     }
@@ -91,7 +92,7 @@ public class RedisLock {
      * 构造函数
      * @param jedisPool redis 连接池
      */
-    public RedisLock(JedisPool jedisPool){
+    public RedisLock(Pool<Jedis> jedisPool){
         this.redisPool = jedisPool;
     }
 
