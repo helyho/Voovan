@@ -1,6 +1,7 @@
     package org.voovan.tools.pool;
 
 import org.voovan.Global;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
@@ -256,6 +257,7 @@ public class ObjectPool<T> {
      */
     public T borrow() {
         while (true) {
+            boolean useSupplier = false;
             Long id = unborrowedIdList.poll();
 
             //检查是否有重复借出
@@ -270,6 +272,7 @@ public class ObjectPool<T> {
                     if (objects.size() < maxSize) {
                         synchronized (unborrowedIdList) {
                             result = get(add(supplier.get(), true));
+                            useSupplier = true;
                         }
                     } else {
                         return null;
@@ -280,7 +283,11 @@ public class ObjectPool<T> {
             //检查是否可用, 不可用则移除并重新获取
             if (validator != null && result!=null  && !validator.apply(result)) {
                 remove(result);
-                continue;
+                if(useSupplier) {
+                   return null;
+                } else {
+                    continue;
+                }
             }
 
             return result;
