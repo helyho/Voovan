@@ -35,9 +35,8 @@ public class JSONPath {
      * 获取JSONPath 对应的节点数据,忽略段大小写
      * @param pathQry JSONPath 路径
      * @return  节点的数据
-     * @throws ReflectiveOperationException 反射操作异常
      */
-    public Object value(String pathQry) throws ReflectiveOperationException {
+    public Object value(String pathQry) {
         Object currentPathObject = parsedObj;
         String[] pathElems = pathQry.split("/");
         ArrayList result = new ArrayList();
@@ -81,10 +80,9 @@ public class JSONPath {
      * @param pathQry JSONPath 路径
      * @param defaultValue 节点不存在时的默认值
      * @return  节点的数据
-     * @throws ReflectiveOperationException 反射操作异常
      */
-    public Object value(String pathQry,Object defaultValue) throws ReflectiveOperationException {
-        return TObject.nullDefault(value(pathQry),defaultValue);
+    public <T> T value(String pathQry,T defaultValue) {
+        return (T)TObject.nullDefault(value(pathQry),defaultValue);
     }
 
     /**
@@ -94,7 +92,6 @@ public class JSONPath {
      * @param <T>      范型指代对象
      * @return  转换后的对象
      * @throws ParseException  解析异常
-     * @throws ReflectiveOperationException 反射异常
      */
     public <T> T value(String pathQry, Class<T> clazz) throws ParseException, ReflectiveOperationException {
         Object value = value(pathQry);
@@ -155,7 +152,7 @@ public class JSONPath {
      * @throws ParseException  解析异常
      * @throws ReflectiveOperationException 反射异常
      */
-    public <T> Object mapObject(String pathQry, Class[] genericType, T defaultValue) throws ParseException, ReflectiveOperationException {
+    public <T> T mapObject(String pathQry, Class[] genericType, T defaultValue) throws ParseException, ReflectiveOperationException {
         return TObject.nullDefault(mapObject(pathQry, genericType), defaultValue);
     }
 
