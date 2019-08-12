@@ -2,6 +2,7 @@ package org.voovan.tools.collection;
 
 import org.voovan.tools.serialize.TSerialize;
 import redis.clients.jedis.*;
+import redis.clients.util.Pool;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -19,7 +20,7 @@ import java.util.Set;
  * Licence: Apache v2 License
  */
 public class RedisZSet<V> implements Closeable {
-    private JedisPool redisPool;
+    private Pool<Jedis> redisPool;
     private String name = null;
     private int dbIndex = 0;
 
@@ -83,7 +84,7 @@ public class RedisZSet<V> implements Closeable {
      * @param jedisPool redis 连接池
      * @param name 在 redis 中的 HashMap的名称
      */
-    public RedisZSet(JedisPool jedisPool, String name){
+    public RedisZSet(Pool<Jedis> jedisPool, String name){
         this.redisPool = jedisPool;
         this.name = name;
     }
@@ -92,7 +93,7 @@ public class RedisZSet<V> implements Closeable {
      * 构造函数
      * @param jedisPool redis 连接池
      */
-    public RedisZSet(JedisPool jedisPool){
+    public RedisZSet(Pool<Jedis> jedisPool){
         this.redisPool = jedisPool;
     }
 

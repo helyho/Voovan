@@ -2,6 +2,7 @@ package org.voovan.tools.collection;
 
 import org.voovan.tools.serialize.TSerialize;
 import redis.clients.jedis.*;
+import redis.clients.util.Pool;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -34,7 +35,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
     private long expire = 0;
 
 
-    private JedisPool redisPool;
+    private Pool<Jedis> redisPool;
     private String name = null;
     private int dbIndex = 0;
     private Function<K, V> supplier = null;
@@ -118,7 +119,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
      * @param jedisPool redis 连接池
      * @param name 在 redis 中的 HashMap的名称
      */
-    public RedisMap(JedisPool jedisPool, String name){
+    public RedisMap(Pool<Jedis> jedisPool, String name){
         this.redisPool = jedisPool;
         this.name = name;
     }
@@ -127,7 +128,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
      * 构造函数
      * @param jedisPool redis 连接池
      */
-    public RedisMap(JedisPool jedisPool){
+    public RedisMap(Pool<Jedis> jedisPool){
         this.redisPool = jedisPool;
     }
 
