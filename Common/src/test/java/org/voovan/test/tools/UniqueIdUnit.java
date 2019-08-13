@@ -61,6 +61,22 @@ public class UniqueIdUnit extends TestCase {
         }
     }
 
+    public void testUniqueIdBySignId(){
+        final UniqueId uniqueId = new UniqueId(200, 5);
+        Long id = uniqueId.nextNumber();
+        System.out.println(UniqueId.getSignId(id));
+        String strId = uniqueId.nextString();
+        System.out.println(UniqueId.getSignId(strId));
+    }
+
+    public void testUniqueIdBySequence(){
+        final UniqueId uniqueId = new UniqueId(200, 5);
+        Long id = uniqueId.nextNumber();
+        System.out.println(UniqueId.getSequence(id));
+        String strId = uniqueId.nextString();
+        System.out.println(UniqueId.getSequence(strId));
+    }
+
     public void testUniqueIdStep(){
         final UniqueId uniqueId = new UniqueId(200, 5);
         for(int i=0;i<500;i++){
