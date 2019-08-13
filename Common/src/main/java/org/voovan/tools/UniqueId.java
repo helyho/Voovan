@@ -129,11 +129,27 @@ public class UniqueId {
         return (timeMills << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (workId << SEQUENCE_LEFT) | 1;
     }
 
-    public Long getMillis(Long uniqueId){
+    public static Long getMillis(Long uniqueId){
         return uniqueId==null ? null : uniqueId >> 22;
     }
 
-    public Long getMillis(String uniqueId) {
+    public static Long getMillis(String uniqueId) {
         return uniqueId==null ? null : TString.radixUnConvert(uniqueId, RADIX) >> 22;
+    }
+
+    public static Long getSignId(Long uniqueId) {
+        return uniqueId==null ? null : uniqueId << 42 >> 53;
+    }
+
+    public static Long getSignId(String uniqueId) {
+        return uniqueId==null ? null : TString.radixUnConvert(uniqueId, RADIX)  << 42 >> 53;
+    }
+
+    public static Long getSequence(Long uniqueId) {
+        return uniqueId==null ? null : uniqueId << 53 >> 53;
+    }
+
+    public static Long getSequence(String uniqueId) {
+        return uniqueId==null ? null : TString.radixUnConvert(uniqueId, RADIX)  << 53 >> 53;
     }
 }
