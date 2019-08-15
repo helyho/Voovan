@@ -36,10 +36,10 @@ public class RocksMapTest extends TestCase {
 //        columnFamilyOptions.setWriteBufferSize(1024*1024*512);
 
        RocksMap rocksMap =  new RocksMap("waltest", "cfname", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
-
-       for(int i=0;i<3;i++){
+       for(int i=0;i<300000;i++){
            rocksMap.put(i, i);
        }
+        rocksMap.compact();
 
         rocksMap.remove(1);
         rocksMap.put(9, 65536);

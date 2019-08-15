@@ -218,7 +218,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         this.dbOptions.setWalDir(DEFAULT_WAL_PATH +this.dbname);
 
-        TFile.mkdir(DEFAULT_DB_PATH + this.dbname + "/");
+        TFile.mkdir(DEFAULT_DB_PATH + this.dbname);
         TFile.mkdir(this.dbOptions.walDir());
 
         rocksDB = ROCKSDB_MAP.get(this.dbname);
@@ -230,7 +230,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
                 //加载已经存在的所有列族
                 {
-                    List<byte[]> columnFamilyNameBytes = RocksDB.listColumnFamilies(new Options(), DEFAULT_DB_PATH + this.dbname + "/");
+                    List<byte[]> columnFamilyNameBytes = RocksDB.listColumnFamilies(new Options(), DEFAULT_DB_PATH + this.dbname);
                     if (columnFamilyNameBytes.size() > 0) {
                         for (byte[] columnFamilyNameByte : columnFamilyNameBytes) {
                             ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyNameByte, this.columnFamilyOptions);
@@ -252,9 +252,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
                 //打开 Rocksdb
                 if (this.readOnly) {
-                    rocksDB = TransactionDB.openReadOnly(this.dbOptions, DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                    rocksDB = TransactionDB.openReadOnly(this.dbOptions, DEFAULT_DB_PATH + this.dbname, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
                 } else {
-                    rocksDB = TransactionDB.open(this.dbOptions, new TransactionDBOptions(), DEFAULT_DB_PATH + this.dbname + "/", DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                    rocksDB = TransactionDB.open(this.dbOptions, new TransactionDBOptions(), DEFAULT_DB_PATH + this.dbname, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
                     ROCKSDB_MAP.put(this.dbname, rocksDB);
                 }
 

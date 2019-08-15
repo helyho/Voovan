@@ -3,6 +3,7 @@ package org.voovan.tools;
 import org.voovan.Global;
 import org.voovan.tools.reflect.TReflect;
 
+import java.io.File;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
@@ -34,7 +35,7 @@ public class DynamicAgent {
             instrumentation.addTransformer(new ClassFileTransformer() {
                 @Override
                 public byte[] transform(ClassLoader loader, String classPath, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-                    String className = classPath.replaceAll("/",".");
+                    String className = classPath.replaceAll(File.separator, ".");
                     if(Global.REMOTE_CLASS_SOURCE != null &&  !TReflect.isSystemType(className)) {
                         return getClassBytes(className);
                     } else {
@@ -51,7 +52,7 @@ public class DynamicAgent {
      * @return 返回类的字节码
      */
     public static byte[] getClassBytes(String classPath){
-        String path = classPath.replace(".", "/") + ".class";
+        String path = classPath.replace(".", File.separator) + ".class";
         return TFile.loadResource(path);
     }
 
