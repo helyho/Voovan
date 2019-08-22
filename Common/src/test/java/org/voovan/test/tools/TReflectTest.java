@@ -271,6 +271,17 @@ public class TReflectTest {
                 }
             }
         })/1000000f);
+
+        gen();
+        System.out.println("native: " + TEnv.measure(()->{
+            for(int i=0;i<500000;i++){
+                try {
+                    TReflect.invokeMethodNative(obj, method.getName(), objs);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        })/1000000f);
     }
 
     public static void clear(){
