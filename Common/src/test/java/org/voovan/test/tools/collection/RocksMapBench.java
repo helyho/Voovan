@@ -1,6 +1,6 @@
 package org.voovan.test.tools.collection;
 
-import org.rocksdb.RocksDBException;
+import org.rocksdb.*;
 import org.voovan.Global;
 import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.TEnv;
@@ -30,7 +30,37 @@ public class RocksMapBench {
         CountDownLatch countDownLatch = new CountDownLatch(threadSize);
         UniqueId uniqueId = new UniqueId();
 
-        RocksMap rocksMap = new RocksMap("bench", "benchCF");
+        Options options = null;
+        DBOptions dbOptions = null;
+        ReadOptions readOptions = null;
+        WriteOptions writeOptions = null;
+        ColumnFamilyOptions columnFamilyOptions = null;
+        BlockBasedTableConfig blockBasedTableConfig = new BlockBasedTableConfig();
+
+//        blockBasedTableConfig.setBlockCache(new LRUCache(67108864L));
+//        blockBasedTableConfig.setBlockSize(2097152L);
+//        blockBasedTableConfig.setFilterPolicy(new BloomFilter(20));
+//        blockBasedTableConfig.setEnableIndexCompression(false);
+//        blockBasedTableConfig.setVerifyCompression(false);
+//        blockBasedTableConfig.setWholeKeyFiltering(true);
+//        options = new Options();
+//        options.optimizeFiltersForHits();
+//        options.setTableFormatConfig(blockBasedTableConfig);
+//        options.setCreateIfMissing(true);
+//        options.setCreateMissingColumnFamilies(true);
+//        options.setUseDirectReads(true);
+//        options.setUseDirectIoForFlushAndCompaction(true);
+//        options.setCompressionType(CompressionType.NO_COMPRESSION);
+//        options.setCompactionStyle(CompactionStyle.NONE);
+//        options.setIncreaseParallelism(Math.max(Runtime.getRuntime().availableProcessors(), 2));
+//        dbOptions = new DBOptions(options);
+//        readOptions = new ReadOptions();
+//        readOptions.setVerifyChecksums(false);
+//        writeOptions = new WriteOptions();
+//        writeOptions.setDisableWAL(true);
+//        columnFamilyOptions = new ColumnFamilyOptions();
+
+        RocksMap rocksMap = new RocksMap("berch", "benchCF", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
         //Rocksdb 数据库配置
         String lockkey1 = "lockkey1";
         rocksMap.put(lockkey1, 1);
@@ -80,12 +110,12 @@ public class RocksMapBench {
                                 {
                                     rocksMap.beginTransaction();
                                     //锁竞争
-//                                    int x = (Integer) rocksMap.lock(lockkey1);
-                                    int x = (int) rocksMap.get(lockkey1);
+                                    int x = (Integer) rocksMap.lock(lockkey1);
+//                                    int x = (int) rocksMap.get(lockkey1);
                                     rocksMap.put(lockkey1, x + 1);
 //                                    int y = (Integer) rocksMap.lock(lockkey2);
-                                    int y = (int) rocksMap.get(lockkey2);
-                                    rocksMap.put(lockkey2, y + 1);
+//                                    int y = (int) rocksMap.get(lockkey2);
+//                                    rocksMap.put(lockkey2, y + 1);
 
 //                                    rocksMap.put(key, value);
                                     rocksMap.commit();
