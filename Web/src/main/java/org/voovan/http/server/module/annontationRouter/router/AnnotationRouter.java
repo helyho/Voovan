@@ -398,7 +398,11 @@ public class AnnotationRouter implements HttpRouter {
                     response.write(JSON.toJSON(responseObj));
                 }
             }
-        }catch(Exception e){
+        }catch(Exception e) {
+            if(e.getCause() != null) {
+                e = (Exception) e.getCause();
+            }
+            e.printStackTrace();
             if(e instanceof AnnotationRouterException) {
                 throw e;
             } else {
