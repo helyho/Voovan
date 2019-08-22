@@ -63,9 +63,10 @@ public class TReflect {
     private static Map<Class, String>            NAME_CLASS           = new ConcurrentHashMap<Class ,String>();
     private static Map<String, Class>            CLASS_NAME           = new ConcurrentHashMap<String, Class>();
     private static Map<Class, Boolean>           CLASS_BASIC_TYPE     = new ConcurrentHashMap<Class ,Boolean>();
-    private  static Map<Class, DynamicFunction>  FIELD_READER         = new ConcurrentHashMap<Class, DynamicFunction>();
-    private  static Map<Class, DynamicFunction>  FIELD_WRITER         = new ConcurrentHashMap<Class, DynamicFunction>();
-    private  static Map<Class, DynamicFunction>  CONSTRUCTOR_INVOKE   = new ConcurrentHashMap<Class, DynamicFunction>();
+    private static Map<Class, DynamicFunction>   FIELD_READER         = new ConcurrentHashMap<Class, DynamicFunction>();
+    private static Map<Class, DynamicFunction>   FIELD_WRITER         = new ConcurrentHashMap<Class, DynamicFunction>();
+    private static Map<Class, DynamicFunction>   CONSTRUCTOR_INVOKE   = new ConcurrentHashMap<Class, DynamicFunction>();
+    private static Map<String, DynamicFunction>  METHOD_INVOKE        = new ConcurrentHashMap<String, DynamicFunction>();
 
 
     /**
@@ -77,6 +78,7 @@ public class TReflect {
         TReflect.genFieldReader(clazz);
         TReflect.genFieldWriter(clazz);
         TReflect.genConstructorInvoker(clazz);
+        TReflect.genMethodInvoker(clazz);
     }
 
     /**
@@ -86,6 +88,7 @@ public class TReflect {
         TReflect.FIELD_READER.clear();
         TReflect.FIELD_WRITER.clear();
         TReflect.CONSTRUCTOR_INVOKE.clear();
+        TReflect.METHOD_INVOKE.clear();
     }
 
     /**
@@ -177,9 +180,9 @@ public class TReflect {
             code.append(");}\r\n");
         }
 
-        code.insert(0, paramtypeCode);
-
         code.append("else { return null; }");
+
+        code.insert(0, paramtypeCode);
 
         DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"_CONSTRUCTOR", code.toString());
         dynamicFunction.addImport(TReflect.class);
@@ -199,6 +202,85 @@ public class TReflect {
             Logger.debug(code);
         }
     }
+
+
+    /**
+     * 生成方法的原生调用代码
+     * @param clazz 根绝这个对象的元信息生成静态调用代码
+     */
+    public static void genMethodInvoker(Class clazz) {
+        String className = clazz.getCanonicalName();
+        Method[] methods = getMethods(clazz);
+
+        StringBuilder code = new StringBuilder();
+        String paramtypeCode = "int paramTypeLength = params==null ? 0 : params.length;\r\n\r\n";
+
+        for(Method method : methods) {
+            Class[] paramTypes = method.getParameterTypes();
+            code.append(code.length() == 0 ? "if" : "else if");
+            code.append("(methodName.equals(\"" + method.getName() + "\") && ");
+            code.append("paramTypeLength == " + paramTypes.length);
+
+            //参数类型匹配
+            for(int i=0;i<paramTypes.length;i++) {
+                Class paramClazz = paramTypes[i];
+                code.append(" && params["+i+"] instanceof " + TReflect.getClassName(paramClazz));
+            }
+
+            code.append(" ) {");
+
+            //准备接收方法返回值的分段代码, 用于后面拼接
+            Class returnClass = method.getReturnType();
+            String resultCode = ""; //接收响应数据
+            String returnCode = ""; //通过 return 返回数据
+            if(returnClass != void.class) {
+                resultCode = returnClass.getCanonicalName() + " result = ";
+                returnCode = " return result;";
+            } else {
+                returnCode = " return null;";
+            }
+
+            code.append(resultCode + "obj." + method.getName()+"(");
+
+            //拼装方法参数代码, 类似: (java.lang.String) params[i],
+            if(paramTypes.length > 0) {
+                for (int i = 0; i < paramTypes.length; i++) {
+                    code.append("(" + paramTypes[i].getCanonicalName() + ") params[" + i + "],");
+                }
+                code.setLength(code.length() - 1);
+            }
+
+            code.append(");");
+
+            //拼装 return 代码
+            code.append(returnCode + "} \r\n");
+        }
+
+        code.append("else { return null; }");
+
+        code.insert(0, paramtypeCode);
+
+        DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"Reader", code.toString());
+        dynamicFunction.addImport(ConcurrentHashMap.class);
+        dynamicFunction.addImport(Arrays.class);
+        dynamicFunction.addImport(clazz);
+        dynamicFunction.addPrepareArg(0, clazz, "obj");        //目标对象
+        dynamicFunction.addPrepareArg(1, String.class,   "methodName"); //写入字段
+        dynamicFunction.addPrepareArg(2, Object[].class, "params");     //写入数据
+
+        try {
+            //编译代码
+            dynamicFunction.compileCode();
+        } catch (ReflectiveOperationException e) {
+            Logger.error("TReflect.genMethodInvoker error", e);
+        }
+
+        METHOD_INVOKE.put(className, dynamicFunction);
+        if(Global.IS_DEBUG_MODE) {
+            Logger.debug(code);
+        }
+    }
+
 
     /**
      * 通过原生调用的方式获取 Field 的值
@@ -260,7 +342,7 @@ public class TReflect {
      * @return 方法返回值
      * @throws Exception 调用异常
      */
-    public static <T> T newInstanceNative(Class clazz, Object[] params) throws Exception {
+    public static <T> T newInstanceNative(Class clazz, Object ... params) throws ReflectiveOperationException {
 
         DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(clazz);
 
@@ -270,6 +352,33 @@ public class TReflect {
 
         try {
             return dynamicFunction.call(clazz, params);
+        } catch (Exception e) {
+            if (!(e instanceof ReflectiveOperationException)) {
+                throw new ReflectiveOperationException(e.getMessage(), e);
+            } else {
+                throw  (ReflectiveOperationException) e;
+            }
+        }
+    }
+
+    /**
+     * 通过原生调用一个方法
+     * @param <T> 方法返回值的范型
+     * @param obj 对象
+     * @param methodName 方法名
+     * @param params 方法参数
+     * @return 方法返回值
+     * @throws Exception 调用异常
+     */
+    public static <T> T invokeMethodNative(Object obj, String methodName, Object ... params) throws ReflectiveOperationException {
+        DynamicFunction dynamicFunction = METHOD_INVOKE.get(getClassName(obj.getClass()));
+
+        if(dynamicFunction == null) {
+            return null;
+        }
+
+        try {
+            return dynamicFunction.call(obj, methodName, params);
         } catch (Exception e) {
             if (!(e instanceof ReflectiveOperationException)) {
                 throw new ReflectiveOperationException(e.getMessage(), e);
@@ -762,6 +871,12 @@ public class TReflect {
      */
     public static <T> T invokeMethod(Object obj, String methodName, Object... args)
             throws ReflectiveOperationException {
+        //尝试 native 方法
+        T t = invokeMethodNative(obj, methodName, args);
+        if(t!=null){
+            return t;
+        }
+
         if(args==null){
             args = new Object[0];
         }
@@ -1703,6 +1818,59 @@ public class TReflect {
             case "boolean": return "java.lang.Boolean";
             default : return null;
         }
+    }
+
+    /**
+     * 获得拆箱类型
+     * @param primitiveType 原始类型
+     * @return 装箱类型
+     */
+    public static String getUnPackageType(String primitiveType){
+        switch (primitiveType){
+            case "java.lang.Integer": return "int";
+            case "java.lang.Byte": return "byte";
+            case "java.lang.Short": return "short";
+            case "java.lang.Long": return "long";
+            case "java.lang.Float": return "float";
+            case "java.lang.Double": return "double";
+            case "java.lang.Characterar": return "char";
+            case "java.lang.Boolean": return "boolean";
+            default : return null;
+        }
+    }
+
+    /**
+     * 获得装箱类型
+     * @param primitiveType 原始类型
+     * @return 装箱类型
+     */
+    public static Class getPackageClass(Class clazz){
+        if(clazz == int.class){return Integer.class;}
+        if(clazz == byte.class){return Byte.class;}
+        if(clazz == short.class){return Short.class;}
+        if(clazz == long.class){return Long.class;}
+        if(clazz == float.class){return Float.class;}
+        if(clazz == double.class){return Double.class;}
+        if(clazz == char.class){return Character.class;}
+        if(clazz == boolean.class){return Boolean.class;}
+        else{ return clazz; }
+    }
+
+    /**
+     * 获得拆箱类型
+     * @param primitiveType 原始类型
+     * @return 装箱类型
+     */
+    public static Class getUnPackageClass(Class clazz){
+        if(clazz == Integer.class){return int.class;}
+        if(clazz == Byte.class){return byte.class;}
+        if(clazz == Short.class){return short.class;}
+        if(clazz == Long.class){return long.class;}
+        if(clazz == Float.class){return float.class;}
+        if(clazz == Double.class){return double.class;}
+        if(clazz == Character.class){return char.class;}
+        if(clazz == Boolean.class){return boolean.class;}
+        else{ return clazz; }
     }
 }
 
