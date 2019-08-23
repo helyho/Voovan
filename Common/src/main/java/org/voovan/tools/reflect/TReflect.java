@@ -74,11 +74,20 @@ public class TReflect {
      * @param clazz 类对象
      * @throws ReflectiveOperationException 反射异常
      */
-    public static void register(Class clazz) throws ReflectiveOperationException {
-        TReflect.genFieldReader(clazz);
-        TReflect.genFieldWriter(clazz);
-        TReflect.genConstructorInvoker(clazz);
-        TReflect.genMethodInvoker(clazz);
+    public static boolean register(Class clazz) {
+        try {
+            if(getClassName(clazz).startsWith("java")){
+                return false;
+            }
+            TReflect.genFieldReader(clazz);
+            TReflect.genFieldWriter(clazz);
+            TReflect.genConstructorInvoker(clazz);
+            TReflect.genMethodInvoker(clazz);
+            return true;
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
@@ -101,9 +110,21 @@ public class TReflect {
         //arg1 obj, arg2 fieldName
         String code = "switch(fieldName) {";
         for(Field field : fields) {
+            int modifier = field.getModifiers();
+            if(Modifier.isStatic(modifier) ||
+                    field.getName().startsWith("$")) {
+                continue;
+            }
+
+            String methodName = "get"+TString.upperCaseHead(field.getName());
+
+            if(TReflect.findMethod(clazz, methodName,  field.getType()) == null){
+                continue;
+            }
+
             code = code + "case \"" + field.getName() + "\" : ";
 
-            String getMethodName = "get"+TString.upperCaseHead(field.getName())+"();";
+            String getMethodName = methodName + "();";
             code = code + "return obj."+getMethodName + " \r\n";
         }
         code = code + "default : return null;\r\n }";
@@ -127,9 +148,21 @@ public class TReflect {
         //arg1 obj, arg2 fieldName, arg3 value
         String code = "switch(fieldName) {";
         for(Field field : fields) {
+            int modifier = field.getModifiers();
+            if(Modifier.isStatic(modifier) ||
+                    field.getName().startsWith("$")) {
+                continue;
+            }
+
+            String methodName = "set"+TString.upperCaseHead(field.getName());
+
+            if(TReflect.findMethod(clazz, methodName,  field.getType()) == null){
+                continue;
+            }
+
             code = code + "case \"" + field.getName() + "\" : ";
 
-            String setMethodName = "set"+TString.upperCaseHead(field.getName())+"(("+field.getType().getName()+")value); return true;";
+            String setMethodName =methodName + "(("+field.getType().getName()+")value); return true;";
             code = code + "obj."+setMethodName + " \r\n";
         }
 
@@ -155,6 +188,13 @@ public class TReflect {
 
         StringBuilder code = new StringBuilder();
         for(Constructor constructor : constructors) {
+            int modifier = constructor.getModifiers();
+            if(Modifier.isStatic(modifier) ||
+                    Modifier.isPrivate(modifier) ||
+                    constructor.getName().startsWith("$")) {
+                continue;
+            }
+
             Class[] paramTypes = constructor.getParameterTypes();
             code.append(code.length() == 0 ? "if" : "else if");
             code.append("(paramTypeLength == " + paramTypes.length );
@@ -162,7 +202,7 @@ public class TReflect {
             //参数类型匹配
             for(int i=0;i<paramTypes.length;i++) {
                 Class paramClazz = paramTypes[i];
-                code.append(" && params["+i+"] instanceof " + TReflect.getClassName(paramClazz));
+                code.append(" && params["+i+"] instanceof " + TReflect.getPackageType(TReflect.getClassName(paramClazz)));
             }
 
             code.append(" ) {");
@@ -216,6 +256,13 @@ public class TReflect {
         String paramtypeCode = "int paramTypeLength = params==null ? 0 : params.length;\r\n\r\n";
 
         for(Method method : methods) {
+            int modifier = method.getModifiers();
+            if(Modifier.isStatic(modifier) ||
+                    Modifier.isPrivate(modifier) ||
+                    method.getName().startsWith("$")) {
+                continue;
+            }
+
             Class[] paramTypes = method.getParameterTypes();
             code.append(code.length() == 0 ? "if" : "else if");
             code.append("(methodName.equals(\"" + method.getName() + "\") && ");
@@ -224,7 +271,7 @@ public class TReflect {
             //参数类型匹配
             for(int i=0;i<paramTypes.length;i++) {
                 Class paramClazz = paramTypes[i];
-                code.append(" && params["+i+"] instanceof " + TReflect.getClassName(paramClazz));
+                code.append(" && params["+i+"] instanceof " + TReflect.getPackageType(TReflect.getClassName(paramClazz)));
             }
 
             code.append(" ) {");
@@ -1816,7 +1863,7 @@ public class TReflect {
             case "double": return "java.lang.Double";
             case "char": return "java.lang.Character";
             case "boolean": return "java.lang.Boolean";
-            default : return null;
+            default : return primitiveType;
         }
     }
 
@@ -1835,7 +1882,7 @@ public class TReflect {
             case "java.lang.Double": return "double";
             case "java.lang.Characterar": return "char";
             case "java.lang.Boolean": return "boolean";
-            default : return null;
+            default : return primitiveType;
         }
     }
 
