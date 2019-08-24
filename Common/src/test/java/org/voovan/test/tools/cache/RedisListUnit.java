@@ -23,7 +23,7 @@ public class RedisListUnit extends TestCase{
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        redisList = new RedisList("10.0.0.101", 6379, 2000, 100, "List", null);
+        redisList = new RedisList("127.0.0.1", 6379, 2000, 100, "List", null);
     }
 
     public void testAdd(){
@@ -83,6 +83,7 @@ public class RedisListUnit extends TestCase{
         redisList.add("message 2");
         redisList.add("message 3");
 
+        Object[] aa = redisList.toArray(new String[0]);
         List<String> value = redisList.range(1,2);
         Logger.simple(JSON.toJSON(value));
         redisList.trim(1,2);

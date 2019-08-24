@@ -153,12 +153,27 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
 
     @Override
     public Object[] toArray() {
-        throw new UnsupportedOperationException();
+        int size = size();
+        Object[] values = new Object[size];
+        for(int i=0;i<size;i++){
+            values[i] = get(i);
+        }
+
+        return values;
     }
 
     @Override
     public <T> T[] toArray(T[] a) {
-        throw new UnsupportedOperationException();
+        int size = size();
+
+        if(a.length < size) {
+            a = Arrays.copyOf(a, size);
+        }
+
+        for(int i=0;i<size;i++){
+            a[i] = (T) get(i);
+        }
+        return a;
     }
 
     @Override
@@ -411,8 +426,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
 
     @Override
     public ListIterator<V> listIterator() {
-        return new RedisListIterator(this, false);
-    }
+        return new RedisListIterator(this, false); }
 
     @Override
     public ListIterator<V> listIterator(int index) {
@@ -421,7 +435,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
 
     @Override
     public List<V> subList(int fromIndex, int toIndex) {
-        throw new UnsupportedOperationException();
+        return range(fromIndex, toIndex);
     }
 
     /**
