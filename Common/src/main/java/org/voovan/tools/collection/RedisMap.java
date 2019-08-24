@@ -6,10 +6,8 @@ import redis.clients.util.Pool;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.AbstractMap;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -588,7 +586,13 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
 
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
-        throw new UnsupportedOperationException();
+        Set<K> keySet = keySet();
+        Set<Map.Entry<K, V>> entryTreeSet = new HashSet<Entry<K, V>>();
+        Iterator<K> iterator = keySet.iterator();
+        while(iterator.hasNext()) {
+            entryTreeSet.add(new RedisMapEntry(this, iterator.next()));
+        }
+        return entryTreeSet;
     }
 
     /**
@@ -671,6 +675,47 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
 
 
 
+        }
+    }
+
+    private static AtomicInteger ENTRY_INDEX = new AtomicInteger(0);
+    public class RedisMapEntry<K,V> implements Map.Entry<K,V>, Comparable<RedisMapEntry> {
+
+        private RedisMap redisMap;
+        private K k;
+        private int index;
+
+        public RedisMapEntry(RedisMap redisMap, K k) {
+            this.redisMap = redisMap;
+            this.k = k;
+            System.out.println(k);
+            index = ENTRY_INDEX.getAndIncrement();
+        }
+
+        @Override
+        public K getKey() {
+            return k;
+        }
+
+        @Override
+        public V getValue() {
+            return (V)redisMap.get(k);
+        }
+
+        @Override
+        public V setValue(V value) {
+            return (V)redisMap.put(k, value);
+        }
+
+        @Override
+        public int compareTo(RedisMapEntry o) {
+            if(o.index == index) {
+                return 0;
+            } else if(o.index > index) {
+                return 1;
+            } else {
+                return -1;
+            }
         }
     }
 }
