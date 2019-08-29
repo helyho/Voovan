@@ -11,7 +11,7 @@ import java.util.List;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-class ScanedObject<V> {
+public class ScanedObject<V> {
     private String cursor;
     private List<V> resultList;
 

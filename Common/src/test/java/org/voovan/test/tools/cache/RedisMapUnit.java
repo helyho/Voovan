@@ -6,6 +6,7 @@ import org.voovan.tools.TByte;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.collection.RedisMap;
+import org.voovan.tools.collection.ScanedObject;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -216,5 +217,17 @@ public class RedisMapUnit extends TestCase{
 
         redisMap.get(1);
         System.out.println("done.");
+    }
+
+    public void testScan() {
+        RedisMap redisMap = new RedisMap("127.0.0.1", 6379, 2000, 100, "aaa");
+
+        for(int i=0;i<20000;i++) {
+            redisMap.put(i + "test", "" + i);
+        }
+
+        ScanedObject scanObject = redisMap.scan("0", "9*", 1000);
+        String cursor = scanObject.getCursor();
+        System.out.println(scanObject.getResultList());
     }
 }
