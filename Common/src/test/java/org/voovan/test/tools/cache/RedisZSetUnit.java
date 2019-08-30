@@ -119,6 +119,16 @@ public class RedisZSetUnit extends TestCase {
         System.out.println(value);
     }
 
+    public void testByScoreAndReplace(){
+//        redisSortedSet.add(111, "bbb");
+//        redisSortedSet.add(111, "aaa");
+        Object value = redisSortedSet.getRevByScore(111);
+        System.out.println(value);
+        redisSortedSet.replace(111, value, "aaa" + System.currentTimeMillis());
+        value = redisSortedSet.getRevByScore(111);
+        System.out.println(value);
+    }
+
     public void testScan(){
         Object value = redisSortedSet.scan("99", "*", 1);
         System.out.println(value);
