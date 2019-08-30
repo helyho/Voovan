@@ -505,13 +505,13 @@ public class RedisZSet<V> implements Closeable {
     }
 
     /**
-     * 替换某个特定 Scores 的值
-     * @param scores Scores 值
+     * 替换某个特定 Value 的值
      * @param oldValue 被替换的数据
      * @param newValue 替换的新数据
      */
-    public void replace(double scores, V oldValue, V newValue) {
+    public synchronized void replace(V oldValue, V newValue) {
         try (Jedis jedis = getJedis()) {
+            Double scores = jedis.zscore(name.getBytes(), TSerialize.serialize(oldValue));
             Transaction transaction = jedis.multi();
             transaction.zrem(name.getBytes(), TSerialize.serialize(oldValue));
             transaction.zadd(name.getBytes(), scores, TSerialize.serialize(newValue));

@@ -124,7 +124,7 @@ public class RedisZSetUnit extends TestCase {
 //        redisSortedSet.add(111, "aaa");
         Object value = redisSortedSet.getRevByScore(111);
         System.out.println(value);
-        redisSortedSet.replace(111, value, "aaa" + System.currentTimeMillis());
+        redisSortedSet.replace(value, "aaa" + System.currentTimeMillis());
         value = redisSortedSet.getRevByScore(111);
         System.out.println(value);
     }
