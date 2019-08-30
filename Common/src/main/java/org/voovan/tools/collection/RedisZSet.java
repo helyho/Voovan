@@ -326,10 +326,8 @@ public class RedisZSet<V> implements Closeable {
     public Set<V> getRangeByScore(double start, double end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
-            byte[] startByteArray = TSerialize.serialize(start);
-            byte[] endByteArray = TSerialize.serialize(end);
 
-            Set<byte[]> bytesSet = jedis.zrangeByScore(name.getBytes(), startByteArray, endByteArray);
+            Set<byte[]> bytesSet = jedis.zrangeByScore(name.getBytes(), start, end);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -348,10 +346,8 @@ public class RedisZSet<V> implements Closeable {
     public Set<V> getRangeByScore(double start, double end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
-            byte[] startByteArray = TSerialize.serialize(start);
-            byte[] endByteArray = TSerialize.serialize(end);
 
-            Set<byte[]> bytesSet = jedis.zrangeByScore(name.getBytes(), startByteArray, endByteArray, offset, size);
+            Set<byte[]> bytesSet = jedis.zrangeByScore(name.getBytes(), start, end, offset, size);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -368,10 +364,8 @@ public class RedisZSet<V> implements Closeable {
     public Set<V> getRevRangeByScore(double start, double end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
-            byte[] startByteArray = TSerialize.serialize(start);
-            byte[] endByteArray = TSerialize.serialize(end);
 
-            Set<byte[]> bytesSet = jedis.zrevrangeByScore(name.getBytes(), startByteArray, endByteArray);
+            Set<byte[]> bytesSet = jedis.zrevrangeByScore(name.getBytes(), start, end);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -390,10 +384,8 @@ public class RedisZSet<V> implements Closeable {
     public Set<V> getRevRangeByScore(double start, double end, int offset, int size){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
-            byte[] startByteArray = TSerialize.serialize(start);
-            byte[] endByteArray = TSerialize.serialize(end);
 
-            Set<byte[]> bytesSet = jedis.zrevrangeByScore(name.getBytes(), startByteArray, endByteArray, offset, size);
+            Set<byte[]> bytesSet = jedis.zrevrangeByScore(name.getBytes(), start, end, offset, size);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -479,6 +471,51 @@ public class RedisZSet<V> implements Closeable {
     public long removeRangeByScore(double min, double max){
         try (Jedis jedis = getJedis()) {
             return jedis.zremrangeByScore(name.getBytes(), min, max);
+        }
+    }
+
+    /**
+     * 获取某个特定 Scores 的值,
+     *      获取倒序第一个值, 获取 Scores 最小的数据
+     * @param scores Scores 值
+     * @return 对应的 value
+     */
+    public V getByScore(double scores){
+       Set<V> values = getRangeByScore(scores, scores, 0, 1);
+       if(values.size() == 1) {
+           return (V)values.toArray()[0];
+       }
+
+       return null;
+    }
+
+    /**
+     * 获取某个特定 Scores 的值,
+     *      获取倒序第一个值, 获取 Scores 最大的数据
+     * @param scores Scores 值
+     * @return 对应的 value
+     */
+    public V getRevByScore(double scores){
+        Set<V> values = getRevRangeByScore(scores, scores, 0, 1);
+        if(values.size() == 1) {
+            return (V)values.toArray()[0];
+        }
+
+        return null;
+    }
+
+    /**
+     * 替换某个特定 Scores 的值
+     * @param scores Scores 值
+     * @param oldValue 被替换的数据
+     * @param newValue 替换的新数据
+     */
+    public void replace(double scores, V oldValue, V newValue) {
+        try (Jedis jedis = getJedis()) {
+            Transaction transaction = jedis.multi();
+            transaction.zrem(name.getBytes(), TSerialize.serialize(oldValue));
+            transaction.zadd(name.getBytes(), scores, TSerialize.serialize(newValue));
+            transaction.exec();
         }
     }
 
