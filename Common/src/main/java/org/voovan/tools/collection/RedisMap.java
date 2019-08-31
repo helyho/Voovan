@@ -479,17 +479,31 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
     @Override
     public void putAll(Map<? extends K, ? extends V> map) {
         try (Jedis jedis = getJedis()){
-            for (Object obj : map.entrySet()) {
-                Map.Entry entry = (Map.Entry) obj;
+            if(name==null){
+                byte[][] bytesArray = new byte[map.size()*2][];
+                int i=0;
+                for (Object obj : map.entrySet()) {
+                    Map.Entry entry = (Map.Entry) obj;
 
-                byte[] keyByteArray = TSerialize.serialize(entry.getKey());
-                byte[] valueByteArray = TSerialize.serialize(entry.getValue());
+                    byte[] keyByteArray = TSerialize.serialize(entry.getKey());
+                    byte[] valueByteArray = TSerialize.serialize(entry.getValue());
 
-                if(name==null){
-                    jedis.set(keyByteArray, valueByteArray);
-                }else {
-                    jedis.hset(name.getBytes(), keyByteArray, valueByteArray);
+                    bytesArray[i] = keyByteArray; i++;
+                    bytesArray[i] = valueByteArray; i++;
                 }
+                jedis.mset(bytesArray);
+            } else {
+                Map<byte[], byte[]> setMap = new LinkedHashMap<byte[], byte[]>();
+                for (Object obj : map.entrySet()) {
+                    Map.Entry entry = (Map.Entry) obj;
+
+                    byte[] keyByteArray = TSerialize.serialize(entry.getKey());
+                    byte[] valueByteArray = TSerialize.serialize(entry.getValue());
+
+                    setMap.put(keyByteArray, valueByteArray);
+                }
+
+                jedis.hmset(name.getBytes(), setMap);
             }
         }
     }
