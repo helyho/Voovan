@@ -343,8 +343,14 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
 
     @Override
     public boolean addAll(Collection<? extends V> c) {
-        for(V item : c){
-            add(item);
+        byte[][] byteArrays = new byte[c.size()][];
+        Object[] objs = c.toArray();
+        for(int i=0;i<c.size(); i++) {
+            byteArrays[i] = TSerialize.serialize((V)objs[i]);
+        }
+
+        try (Jedis jedis = getJedis()) {
+            jedis.rpush(name.getBytes(), byteArrays);
         }
         return true;
     }
