@@ -608,7 +608,7 @@ public class TEnv {
 	 * @param supplier 执行器
 	 * @return 执行时间
 	 */
-	public static List<Object> measure(Supplier supplier){
+	public static List measure(Supplier supplier){
 		long startTime = System.nanoTime();
 		return TObject.asList(supplier.get(), System.nanoTime() - startTime);
 	}
@@ -631,9 +631,10 @@ public class TEnv {
 	 * @param supplier 执行器
 	 * @param timeUnit 输出的时间单位
 	 */
-	public static void measure(String msg, Supplier supplier, TimeUnit timeUnit) {
+	public static List measure(String msg, Supplier supplier, TimeUnit timeUnit) {
 		List result = measure(supplier);
 		System.out.println(msg + " " + ((Long)result.get(1))/(timeUnit.toNanos(1)*1f) + ", result:" + result.get(0));
+		return result;
 	}
 
 	/**
