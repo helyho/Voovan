@@ -31,8 +31,13 @@ public class DefaultJSONSerialize implements Serialize {
                     genericClazzsHash[i] = TSerialize.getHashByClass(genericClazzs[i]);
                 }
             }
+            Map result = TObject.asMap("T", TSerialize.getHashByClass(clazz), "V", obj);
 
-            return JSON.toJSON(TObject.asMap("T", TSerialize.getHashByClass(clazz),  "G", genericClazzsHash, "V", obj)).getBytes();
+            if(genericClazzsHash!=null) {
+                result.put("G", genericClazzsHash);
+            }
+
+            return JSON.toJSON(result).getBytes();
         } catch (Exception e){
             Logger.error("TSerialize.serializeJDK error: ", e);
             return null;

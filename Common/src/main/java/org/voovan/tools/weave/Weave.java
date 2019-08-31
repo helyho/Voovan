@@ -54,7 +54,7 @@ public class Weave {
                 instrumentation.addTransformer(new ClassFileTransformer() {
                     @Override
                     public byte[] transform(ClassLoader loader, String classPath, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-                        String className = classPath.replaceAll(File.separator, ".");
+                        String className = classPath.replaceAll("/", ".");
                         if (!TReflect.isSystemType(className) && weaveConfig.isInject(className)) {
                             return weave(className, classfileBuffer);
                         } else {

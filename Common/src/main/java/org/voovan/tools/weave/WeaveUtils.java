@@ -93,11 +93,8 @@ public class WeaveUtils {
             pattern = pattern.replace(".", File.separator);
         }
 
-        //兼容 windows
-        String innerPattern = File.separator.equals("\\") ? Matcher.quoteReplacement(pattern) : pattern;
-
         ArrayList<CtClass> result = new ArrayList<CtClass>();
-        List<File> files = TFile.scanFile(rootfile, innerPattern);
+        List<File> files = TFile.scanFile(rootfile, pattern);
         for(File file : files){
             String fileName = file.getCanonicalPath();
             if("class".equals(TFile.getFileExtension(fileName))) {
