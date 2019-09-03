@@ -56,6 +56,7 @@ public class HttpClient implements Closeable{
 	private boolean isWebSocket = false;
 	private WebSocketRouter webSocketRouter;
 	private String hostString;
+	private boolean paramInUrl = false;
 
 	/**
 	 * 构建函数
@@ -164,6 +165,22 @@ public class HttpClient implements Closeable{
 		} catch (IOException e) {
 			Logger.error("HttpClient init error",e);
 		}
+	}
+
+	/**
+	 * 获取参数是否封装在 URL 中
+	 * @return true:是, false: 否
+	 */
+	public boolean isParamInUrl() {
+		return paramInUrl;
+	}
+
+	/**
+	 * 设置是否将参数封装在 URL 中
+	 * @param paramInUrl true:是, false: 否
+	 */
+	public void setParamInUrl(boolean paramInUrl) {
+		this.paramInUrl = paramInUrl;
 	}
 
 	public void initHeader(){
@@ -384,7 +401,7 @@ public class HttpClient implements Closeable{
 	private void buildRequest(String urlString){
 		httpRequest.protocol().setPath(urlString.isEmpty()?"/":urlString);
 		//1.没有报文 Body,参数包含于请求URL
-		if (httpRequest.getBodyType() == Request.RequestType.NORMAL) {
+		if (httpRequest.getBodyType() == Request.RequestType.NORMAL || paramInUrl) {
 			String queryString = getQueryString();
 			if(!TString.isNullOrEmpty(queryString)) {
 				String requestPath = httpRequest.protocol().getPath();
