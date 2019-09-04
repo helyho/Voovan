@@ -65,13 +65,14 @@ public class TDateTime {
 
 	/**
 	 * 格式化日期成字符串
-	 * @param date Date 对象
-	 * @param format 日期格式模板
-	 * @param local 所在区域
+	 * @param date 		Date 对象
+	 * @param format 	日期格式模板
+	 * @param timeZone	所在时区
 	 * @return 日期字符串
 	 */
-	public static String format(Date date,String format,Locale local){
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format,local);
+	public static String format(Date date,String format,String timeZone){
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
+		simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
 		return simpleDateFormat.format(date);
 	}
 
@@ -121,13 +122,14 @@ public class TDateTime {
 
 	/**
 	 * 从字符串解析时间
-	 * @param source 日期字符串
-	 * @param format 日期格式模板
-	 * @param local  所在区域
+	 * @param source 	日期字符串
+	 * @param format 	日期格式模板
+	 * @param timeZone	所在时区
 	 * @return Date 对象
 	 */
-	public static Date parse(String source,String format,Locale local) {
+	public static Date parse(String source,String format,String timeZone) {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
+		simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZone));
 		return simpleDateFormatParse(simpleDateFormat, source);
 	}
 
