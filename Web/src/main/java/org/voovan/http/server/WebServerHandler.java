@@ -453,7 +453,7 @@ public class WebServerHandler implements IoHandler {
 		}
 
 		if(request!=null) {
-			request.release();
+			request.clear();
 		}
 	}
 
