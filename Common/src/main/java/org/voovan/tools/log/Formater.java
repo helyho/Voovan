@@ -302,10 +302,10 @@ public class Formater {
 
                         //开启独立线程进行文件压缩
                         Global.getThreadPool().execute(()->{
-                            String logFileExtendNam = TFile.getFileExtension(logFilePath);
-                            String innerLogFilePath = logFilePath.replace("." + logFileExtendNam, "");
+                            String logFileExtendName = TFile.getFileExtension(logFilePath);
+                            String innerLogFilePath = logFilePath.replace("." + logFileExtendName, "");
                             try {
-                                File packFile = new File(innerLogFilePath + TDateTime.now("HHmmss") + "." + logFileExtendNam + ".gz");
+                                File packFile = new File(innerLogFilePath + "." + TDateTime.now("HHmmss") + "." + logFileExtendName + ".gz");
                                 TZip.encodeGZip(tmpLogFile, packFile);
                                 TFile.deleteFile(tmpLogFile);
                             } catch (Exception e) {
