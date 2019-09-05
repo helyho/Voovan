@@ -208,6 +208,11 @@ public class TDateTime {
 		return calendar.get(type);
 	}
 
+	/**
+	 * 用来获取纳
+	 * 		不可用来做精确计时,只能用来做时间标记
+	 * @return 当前的纳秒时间
+	 */
 	public static Long currentTimeNanos(){
 		Long currentMillis = System.currentTimeMillis();
 		Long millisDiff = currentMillis - BOOT_TIME_MILLS;
