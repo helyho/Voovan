@@ -1,11 +1,14 @@
 package org.voovan.tools;
 
+import org.voovan.Global;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 时间工具类
@@ -19,6 +22,8 @@ import java.util.TimeZone;
 
 
 public class TDateTime {
+	public static Long BOOT_TIME_MILLS = System.currentTimeMillis();
+	public static Long BOOT_TIME_NANOS = System.nanoTime();
 	public final static String STANDER_DATE_TEMPLATE = "yyyy-MM-dd";
 	public final static String STANDER_TIME_TEMPLATE = "HH:mm:ss";
 	public final static String STANDER_DATETIME_TEMPLATE = "yyyy-MM-dd HH:mm:ss";
@@ -201,5 +206,14 @@ public class TDateTime {
 			calendar.setTime(date);
 		}
 		return calendar.get(type);
+	}
+
+	public static Long currentTimeNanos(){
+		Long currentMillis = System.currentTimeMillis();
+		Long millisDiff = currentMillis - BOOT_TIME_MILLS;
+		Long nanosDiff = millisDiff*1000000;
+		long nanos = System.nanoTime() - BOOT_TIME_NANOS - nanosDiff;
+		Long currentNanos = currentMillis*1000000 + nanos;
+		return currentNanos;
 	}
 }
