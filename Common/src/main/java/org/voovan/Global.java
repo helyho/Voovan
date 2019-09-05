@@ -19,7 +19,6 @@ import java.util.concurrent.ThreadPoolExecutor;
  * Licence: Apache v2 License
  */
 public class Global {
-
     public static final String STR_EQUAL     = "=";
     public static final String STR_QUOTE     = "\"";
     public static final String STR_SPACE     = " ";

@@ -261,9 +261,11 @@ public class TByteBuffer {
 
                         BYTE_BUFFER_THREAD_POOL.release(byteBuffer, ()->{
                             try {
-                                TUnsafe.getUnsafe().freeMemory(address);
-                                setAddress(byteBuffer, 0);
-                                return true;
+                                synchronized (byteBuffer) {
+                                    TUnsafe.getUnsafe().freeMemory(address);
+                                    setAddress(byteBuffer, 0);
+                                    return true;
+                                }
                             } catch (ReflectiveOperationException e) {
                                 e.printStackTrace();
                             }
