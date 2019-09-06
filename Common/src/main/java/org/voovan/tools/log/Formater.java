@@ -56,6 +56,14 @@ public class Formater {
         }, 1);
     }
 
+    protected String getDateStamp() {
+        return dateStamp;
+    }
+
+    protected void setDateStamp(String dateStamp) {
+        this.dateStamp = dateStamp;
+    }
+
     /**
      * 构造函数
      * @param template 模板
@@ -65,19 +73,21 @@ public class Formater {
 
         logLevel = new Vector<String>();
         logLevel.addAll(TObject.asList(LoggerStatic.getLogConfig("LogLevel", LoggerStatic.LOG_LEVEL).split(",")));
-        dateStamp = DATE;
+        this.dateStamp = DATE;
 
+        final Formater finalFormater = this;
         Global.getHashWheelTimer().addTask(new HashWheelTask() {
             @Override
             public void run() {
                 if(Logger.isEnable()) {
-                    //如果日志发生变化则产生新的文件
-                    if (!dateStamp.equals(DATE)) {
-                        loggerThread.setOutputStreams(getOutputStreams());
-                    }
-
                     //压缩历史日志文件
                     packLogFile();
+
+                    //如果日志发生变化则产生新的文件
+                    if (!finalFormater.getDateStamp().equals(DATE)) {
+                        loggerThread.setOutputStreams(getOutputStreams());
+                        finalFormater.setDateStamp(DATE);
+                    }
                 }
             }
         }, 1);
@@ -289,6 +299,7 @@ public class Formater {
                 if (loggerThread.pause()) {
                     try {
                         TFile.moveFile(logFile, tmpLogFile);
+
                         //开启独立线程进行文件压缩
                         Global.getThreadPool().execute(()->{
                             String logFileExtendNam = TFile.getFileExtension(logFilePath);
@@ -302,20 +313,8 @@ public class Formater {
                                 e.printStackTrace();
                             }
                         });
-
                     } catch (IOException e) {
                         e.printStackTrace();
-                    }
-
-                    //查找并关闭旧的文件输出流
-                    for (OutputStream outputStream : loggerThread.getOutputStreams()) {
-                        if (outputStream instanceof FileOutputStream) {
-                            try {
-                                ((FileOutputStream)outputStream).close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
                     }
 
                     //重置文件输出流

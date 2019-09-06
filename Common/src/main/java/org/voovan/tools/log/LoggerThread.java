@@ -3,6 +3,7 @@ package org.voovan.tools.log;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -21,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class LoggerThread implements Runnable {
 	private ConcurrentLinkedDeque<String> logQueue;
+	private ConcurrentLinkedDeque<String> fileChangelogQueue;
 	private OutputStream[] outputStreams;
 	private volatile AtomicBoolean finished = new AtomicBoolean(false);
 	private volatile int pause = 0; // 0: 正常 , 1: 暂停中, 2: 暂停
@@ -31,6 +33,7 @@ public class LoggerThread implements Runnable {
 	 */
 	public LoggerThread(OutputStream[] outputStreams) {
 		this.logQueue = new ConcurrentLinkedDeque<String>();
+		this.fileChangelogQueue = new ConcurrentLinkedDeque<String>();
 		this.outputStreams = outputStreams;
 
 	}
@@ -72,6 +75,18 @@ public class LoggerThread implements Runnable {
 	 * @param outputStreams 输出流数组
 	 */
 	public void setOutputStreams(OutputStream[] outputStreams) {
+		if(outputStreams != null) {
+			for (OutputStream outputStream : getOutputStreams()) {
+				if (outputStream instanceof FileOutputStream) {
+					try {
+						((FileOutputStream) outputStream).close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+
 		this.outputStreams = outputStreams;
 	}
 
@@ -144,7 +159,7 @@ public class LoggerThread implements Runnable {
 							needFlush = false;
 						}
 
-						Thread.sleep(1);
+						Thread.sleep(10);
 						continue;
 					}
 
@@ -155,6 +170,26 @@ public class LoggerThread implements Runnable {
 									//文件写入剔除出着色部分
 									formatedMessage = TString.fastReplaceAll(formatedMessage, "\033\\[\\d{2}m", "");
 								}
+
+								//对于文件输出检测
+								if(outputStream instanceof FileOutputStream) {
+									//文件如果关闭则将消息加入缓冲,跳过
+									if(!((FileOutputStream)outputStream).getChannel().isOpen()){
+										fileChangelogQueue.add(formatedMessage);
+										continue;
+									} else {
+										//如果文件输出可用,则尝试输出上一步缓冲中的消息
+										while(true) {
+											String message = fileChangelogQueue.poll();
+											if(message!=null) {
+												outputStream.write(message.getBytes());
+											} else {
+												break;
+											}
+										}
+									}
+								}
+
 								outputStream.write(formatedMessage.getBytes());
 
 								needFlush = true;
