@@ -1,7 +1,10 @@
 package org.voovan.tools.collection;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * 定长队列
@@ -98,6 +101,17 @@ public class FixedQueue<E> {
             queue.poll();
             i++;
         }
+    }
+
+    public List<E> subList(int from, int to) {
+        from = from < 0 ? 0 : from;
+        to = to > size() ? size() - 1 : to;
+
+        return queue.subList(from, to);
+    }
+
+    public List<E> asList() {
+        return queue;
     }
 
     public FixedQueue<E> clone() {

@@ -291,6 +291,7 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
      */
     @Override
     public V get(Object key, Function<K, V> appointedSupplier, Long createExpire, boolean refresh){
+        appointedSupplier = appointedSupplier == null ? supplier : appointedSupplier;
         if(appointedSupplier!=null || createExpire!=null || refresh) {
             TimeMark timeMark = cacheMark.get(key);
 
@@ -299,7 +300,6 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
                     !timeMark.isOnCreate()) {
                 timeMark.refresh(refresh);
             } else if (appointedSupplier != null || supplier != null) {
-                appointedSupplier = appointedSupplier == null ? supplier : appointedSupplier;
                 createExpire = createExpire == null ? expire : createExpire;
                 timeMark = createCache((K) key, appointedSupplier, createExpire);
             }
