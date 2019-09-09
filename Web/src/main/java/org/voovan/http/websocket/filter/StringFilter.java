@@ -21,7 +21,9 @@ public class StringFilter implements WebSocketFilter {
 	@Override
 	public Object encode(WebSocketSession session, Object object) {
 		String result;
-		if(object instanceof String){
+		if(object == null) {
+		    result = null;
+        } else if(object instanceof String){
 			result = (String)object;
 		} else {
 			result = JSON.toJSON(object);
