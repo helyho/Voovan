@@ -3,6 +3,7 @@ package org.voovan.http.websocket.filter;
 import org.voovan.http.websocket.WebSocketFilter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.tools.buffer.TByteBuffer;
+import org.voovan.tools.json.JSON;
 
 import java.nio.ByteBuffer;
 
@@ -19,11 +20,13 @@ public class StringFilter implements WebSocketFilter {
 
 	@Override
 	public Object encode(WebSocketSession session, Object object) {
+		String result;
 		if(object instanceof String){
-			String sourceString = (String)object;
-			return ByteBuffer.wrap(sourceString.getBytes());
+			result = (String)object;
+		} else {
+			result = JSON.toJSON(object);
 		}
-		return object;
+		return result==null ? null : ByteBuffer.wrap(result.getBytes());
 	}
 
 	@Override

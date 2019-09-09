@@ -4,6 +4,7 @@ import org.voovan.http.server.*;
 import org.voovan.http.server.exception.AnnotationRouterException;
 import org.voovan.http.server.module.annontationRouter.AnnotationModule;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
+import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
@@ -172,7 +173,7 @@ public class AnnotationRouter implements HttpRouter {
                                                     //注册路由,不带路径参数的路由
                                                     httpModule.otherMethod(routeMethod, routePath, annotationRouter);
                                                     Logger.simple("[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
-                                                            "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') +
+                                                            "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
                                                             moduleRoutePath);
                                                     routeMethodNum++;
                                                 }
@@ -189,7 +190,7 @@ public class AnnotationRouter implements HttpRouter {
                                                     httpModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
 
                                                     Logger.simple("[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
-                                                            "] Router add annotation route: " + TString.rightPad(routeMethod, 8, ' ') +
+                                                            "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
                                                             moduleRoutePath);
                                                     routeMethodNum++;
                                                 }
@@ -199,6 +200,32 @@ public class AnnotationRouter implements HttpRouter {
                                 }
                             }
                         }
+                    }
+                }
+            }
+
+            //查找包含 WebSocket 注解的类
+            List<Class> webSocketClasses = TEnv.searchClassInEnv(httpModule.getScanRouterPackage(), new Class[]{WebSocket.class});
+            for (Class webSocketClass : webSocketClasses) {
+                if (TReflect.isExtendsByClass(webSocketClass, WebSocketRouter.class)) {
+                    WebSocket[] annonClassRouters = (WebSocket[]) webSocketClass.getAnnotationsByType(WebSocket.class);
+                    WebSocket annonClassRouter = annonClassRouters[0];
+                    String classRouterPath = annonClassRouter.path().isEmpty() ? annonClassRouter.value() : annonClassRouter.path();
+
+                    //使用类名指定默认路径
+                    if (classRouterPath.isEmpty()) {
+                        //使用类名指定默认路径
+                        classRouterPath = webSocketClass.getSimpleName();
+                    }
+
+                    classRouterPath = HttpDispatcher.fixRoutePath(classRouterPath);
+                    String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + classRouterPath);
+
+                    if(!webServer.getWebSocketRouters().containsKey(moduleRoutePath)) {
+                        httpModule.socket(classRouterPath, (WebSocketRouter) TReflect.newInstance(webSocketClass));
+                        Logger.simple("[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
+                                "] add WebSocket: " + TString.leftPad(moduleRoutePath, 11, ' '));
+                        routeMethodNum++;
                     }
                 }
             }
