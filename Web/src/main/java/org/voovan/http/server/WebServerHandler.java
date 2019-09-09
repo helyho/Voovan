@@ -228,15 +228,15 @@ public class WebServerHandler implements IoHandler {
 
 		//如果是长连接则填充响应报文
 		if(httpRequest.protocol().getVersion().endsWith(HttpStatic.HTTP_11_STRING)) {
-			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
+			setAttribute(session, HttpSessionParam.IS_KEEP_ALIVE, true);
 		} else if (httpRequest.header().contain(HttpStatic.CONNECTION_STRING)) {
 			if(httpRequest.header().get(HttpStatic.CONNECTION_STRING).toLowerCase().contains(HttpStatic.KEEP_ALIVE_STRING)) {
-				setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
+				setAttribute(session, HttpSessionParam.IS_KEEP_ALIVE, true);
 				httpResponse.header().put(HttpStatic.CONNECTION_STRING, httpRequest.header().get(HttpStatic.CONNECTION_STRING));
 			}
 
 			if(httpRequest.header().get(HttpStatic.CONNECTION_STRING).toLowerCase().contains(HttpStatic.CLOSE_STRING)) {
-				setAttribute(session, HttpSessionParam.KEEP_ALIVE, false);
+				setAttribute(session, HttpSessionParam.IS_KEEP_ALIVE, false);
 				httpResponse.header().remove(HttpStatic.CONNECTION_STRING);
 			}
 		}
@@ -273,7 +273,7 @@ public class WebServerHandler implements IoHandler {
 	}
 
 	/**
-	 * Http协议升级处理
+	 * Http协议升级处
 	 *
 	 * @param session    HTTP-Session 对象
 	 * @param httpRequest  HTTP 请求对象
@@ -292,13 +292,14 @@ public class WebServerHandler implements IoHandler {
 			httpResponse.protocol().setStatusCode(upgradeStatusCode);
 			httpResponse.header().put(HttpStatic.CONNECTION_STRING, HttpStatic.UPGRADE_STRING);
 
+			//WebSocket 升级响应
 			if(httpRequest.header()!=null && HttpStatic.WEB_SOCKET_STRING.equals(httpRequest.header().get(HttpStatic.UPGRADE_STRING))){
-
 				httpResponse.header().put(HttpStatic.UPGRADE_STRING, HttpStatic.WEB_SOCKET_STRING);
 				String webSocketKey = WebSocketTools.generateSecKey(httpRequest.header().get(HttpStatic.SEC_WEB_SOCKET_KEY_STRING));
 				httpResponse.header().put(HttpStatic.SEC_WEB_SOCKET_ACCEPT_STRING, webSocketKey);
 			}
 
+			//http2 升级响应
 			else if(httpRequest.header()!=null && "h2c".equals(httpRequest.header().get(HttpStatic.UPGRADE_STRING))){
 				httpResponse.header().put(HttpStatic.UPGRADE_STRING, "h2c");
 				//这里写 HTTP2的实现,暂时留空
@@ -398,7 +399,7 @@ public class WebServerHandler implements IoHandler {
 		//针对 WebSocket 的处理协议升级
 		if(HttpRequestType.UPGRADE.equals(getAttribute(session, HttpSessionParam.TYPE))){
 			setAttribute(session, HttpSessionParam.TYPE, HttpRequestType.WEBSOCKET);
-			setAttribute(session, HttpSessionParam.KEEP_ALIVE, true);
+			setAttribute(session, HttpSessionParam.IS_KEEP_ALIVE, true);
 
 			//触发 onOpen 事件
 			WebSocketFrame webSocketFrame = webSocketDispatcher.fireOpenEvent(session, request);
@@ -437,12 +438,12 @@ public class WebServerHandler implements IoHandler {
 		HttpRequest request = getAttribute(session,HttpSessionParam.HTTP_REQUEST);
 
 		//处理连接保持
-		if (TObject.nullDefault(getAttribute(session, HttpSessionParam.KEEP_ALIVE), false) &&
+		if (TObject.nullDefault(getAttribute(session, HttpSessionParam.IS_KEEP_ALIVE), false) &&
 				webConfig.getKeepAliveTimeout() > 0) {
 
-			if (TObject.nullDefault(getAttribute(session, HttpSessionParam.KEEP_ALIVE_LIST_CONTAIN), false)) {
+			if (TObject.nullDefault(getAttribute(session, HttpSessionParam.IS_KEEP_ALIVE_LIST_CONTAIN), false)) {
 				keepAliveSessionList.add(session);
-				setAttribute(session, HttpSessionParam.KEEP_ALIVE_LIST_CONTAIN, true);
+				setAttribute(session, HttpSessionParam.IS_KEEP_ALIVE_LIST_CONTAIN, true);
 			}
 			//更新会话超时时间
 			refreshTimeout(session);
@@ -452,7 +453,7 @@ public class WebServerHandler implements IoHandler {
 			session.close();
 		}
 
-		if(request!=null) {
+		if(request!=null && getAttribute(session,HttpSessionParam.TYPE) == HttpRequestType.HTTP) {
 			request.clear();
 		}
 	}
