@@ -278,6 +278,7 @@ public class Response {
 				byteBuffer.put(readEnd());
 				byteBuffer.flip();
 				session.send(byteBuffer);
+
 			} catch (Throwable e) {
 				if (!(e instanceof MemoryReleasedException)) {
 					Logger.error("Response writeToChannel error: ", (Exception) e);
@@ -287,6 +288,9 @@ public class Response {
 
 			basicSend = true;
 		} finally {
+			if(!autoSend) {
+				session.flush();
+			}
 			clear();
 		}
 	}
