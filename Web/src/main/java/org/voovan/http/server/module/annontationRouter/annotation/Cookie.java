@@ -15,4 +15,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface Cookie {
     String value() default "";
+    boolean isRequire() default true;
 }

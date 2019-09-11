@@ -314,7 +314,9 @@ public class AnnotationRouter implements HttpRouter {
                         params[i] = TString.toObject(request.getParameter(paramName), parameterTypes[i], true);
                         continue;
                     } catch (Exception e) {
-                        throw new AnnotationRouterException("Router annotation @Param [" + paramName + " = " + params[i] + "] error, data: " + request.getParameters(), e);
+                        if(((Param) annotation).isRequire()) {
+                            throw new AnnotationRouterException("Router annotation @Param [" + paramName + " = " + params[i] + "] error, data: " + request.getParameters(), e);
+                        }
                     }
                 }
 
@@ -327,7 +329,9 @@ public class AnnotationRouter implements HttpRouter {
                         }
                         continue;
                     } catch (Exception e) {
-                        throw new AnnotationRouterException("Router annotation @BodyParam [" + paramName + " = " + params[i] + "] error, data: " + bodyMap.toString(), e);
+                        if(((BodyParam) annotation).isRequire()) {
+                            throw new AnnotationRouterException("Router annotation @BodyParam [" + paramName + " = " + params[i] + "] error, data: " + bodyMap.toString(), e);
+                        }
                     }
 
                 }
@@ -339,7 +343,9 @@ public class AnnotationRouter implements HttpRouter {
                         params[i] = TString.toObject(request.header().get(headName), parameterTypes[i], true);
                         continue;
                     } catch (Exception e) {
-                        throw new AnnotationRouterException("Router annotation @Param [" + headName + " = " + params[i] + "] error, data: " + request.header().toString(), e);
+                        if(((Head) annotation).isRequire()) {
+                            throw new AnnotationRouterException("Router annotation @Head [" + headName + " = " + params[i] + "] error, data: " + request.header().toString(), e);
+                        }
                     }
                 }
 
@@ -356,8 +362,10 @@ public class AnnotationRouter implements HttpRouter {
                         params[i] = TString.toObject(cookieValue, parameterTypes[i], true);
                         continue;
                     } catch (Exception e) {
-                        String cookieStr = request.cookies().parallelStream().map(cookie-> cookie.getName() + "=" + cookie.getName()).collect(Collectors.toList()).toString();
-                        throw new AnnotationRouterException("Router annotation @Param [" + cookieName + " = " + params[i] + "] error, data: " + cookieStr , e);
+                        if(((Cookie) annotation).isRequire()) {
+                            String cookieStr = request.cookies().parallelStream().map(cookie -> cookie.getName() + "=" + cookie.getName()).collect(Collectors.toList()).toString();
+                            throw new AnnotationRouterException("Router annotation @Cookie [" + cookieName + " = " + params[i] + "] error, data: " + cookieStr, e);
+                        }
                     }
                 }
 
@@ -369,7 +377,9 @@ public class AnnotationRouter implements HttpRouter {
                                 TReflect.getObjectFromMap(parameterTypes[i], bodyMap, true);
                         continue;
                     } catch (Exception e) {
-                        throw new AnnotationRouterException("Router annotation @Body error \r\n data: " + bodyString, e);
+                        if(((Body) annotation).isRequire()) {
+                            throw new AnnotationRouterException("Router annotation @Body error \r\n data: " + bodyString, e);
+                        }
                     }
                 }
 
@@ -384,7 +394,9 @@ public class AnnotationRouter implements HttpRouter {
                         }
                         continue;
                     } catch (Exception e) {
-                        throw new AnnotationRouterException("Router annotation @Session [" + sessionName + " = " + params[i] + "] error, data: "  + httpSession.attributes().toString() , e);
+                        if(((Session) annotation).isRequire()) {
+                            throw new AnnotationRouterException("Router annotation @Session [" + sessionName + " = " + params[i] + "] error, data: " + httpSession.attributes().toString(), e);
+                        }
                     }
                 }
             }

@@ -15,4 +15,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface BodyParam {
     String value() default "";
+    boolean isRequire() default true;
 }

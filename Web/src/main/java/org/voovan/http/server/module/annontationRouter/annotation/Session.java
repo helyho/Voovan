@@ -15,4 +15,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface Session {
     String value() default "";
+    boolean isRequire() default true;
 }

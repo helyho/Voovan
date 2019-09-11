@@ -9,6 +9,10 @@ package org.voovan.http.server.exception;
  * Licence: Apache v2 License
  */
 public class AnnotationRouterException  extends Exception {
+    public AnnotationRouterException(String message) {
+        super(message);
+    }
+
     public AnnotationRouterException(String description, Exception e){
         super(description + "\r\n"+ e.getClass().getName()+ ": " + e.getMessage());
         this.setStackTrace(e.getStackTrace());
