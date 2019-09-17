@@ -459,7 +459,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 dataColumnFamilyHandle = rocksDB.createColumnFamily(dataColumnFamilyDescriptor);
                 COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
             } else {
-                dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(dataColumnFamilyHandle.getName(), columnFamilyOptions);
+
+                dataColumnFamilyDescriptor = dataColumnFamilyHandle.getDescriptor();
             }
 
             this.columnFamilyName = cfName;
