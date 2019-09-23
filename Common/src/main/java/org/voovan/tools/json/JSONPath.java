@@ -1,5 +1,6 @@
 package org.voovan.tools.json;
 
+import com.sun.xml.internal.rngom.util.Uri;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TStream;
 import org.voovan.tools.TString;
@@ -8,6 +9,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -27,26 +29,17 @@ public class JSONPath {
 
     private Object parsedObj;
 
-    public JSONPath(URL url) {
-        Object object = null;
-        try {
-            object = url.getContent();
-
-            String jsonStr = new String(TStream.readAll((InputStream)object));
-            Object result = JSON.parse(jsonStr);
-            if (result instanceof List) {
-                parsedObj = (List)result;
-            } else if (result instanceof Map) {
-                parsedObj = (Map)result;
+    public JSONPath(String jsonStr) {
+        if(jsonStr.startsWith("http")) {
+            try {
+                URL url = new URL(jsonStr);
+                Object object = url.getContent();
+                jsonStr = new String(TStream.readAll((InputStream)object));
+            } catch (Exception e) {
+                Logger.error("Load JSONPath error: " + jsonStr);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
-
-    }
-
-    public JSONPath(String jsonStr) {
         Object result = JSON.parse(jsonStr);
         if (result instanceof List) {
             parsedObj = (List)result;

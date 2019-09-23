@@ -119,7 +119,7 @@ public class TProperties {
 	public static Properties getProperties(String fileName) {
 		Properties properties;
 
-		if(fileName.startsWith("http://")) {
+		if(fileName.startsWith("http")) {
 			properties = propertiesName.get(fileName);
 			if(properties == null) {
 				try {
