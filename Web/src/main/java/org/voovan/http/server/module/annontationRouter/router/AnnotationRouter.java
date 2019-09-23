@@ -164,7 +164,7 @@ public class AnnotationRouter implements HttpRouter {
                                             //构造注解路由器
                                             AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method, annonClassRouter, annonMethodRouter);
 
-                                            //1.注册路由, 处理不在参数的路由
+                                            //1.注册路由, 处理不带参数的路由
                                             {
                                                 routePath = HttpDispatcher.fixRoutePath(routePath);
                                                 String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routePath);

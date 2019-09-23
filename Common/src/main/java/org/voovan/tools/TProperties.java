@@ -3,10 +3,9 @@ package org.voovan.tools;
 import org.voovan.Global;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -49,6 +48,30 @@ public class TProperties {
 		}, 5, true);
 	}
 
+
+	/**
+	 * 从 http 服务拉取并解析 Properties 文件
+	 *
+	 * @param url 文件对象
+	 * @return Properties 对象
+	 */
+	public static Properties getProperties(URL url) {
+		try {
+			Properties properites = new Properties();
+
+			Object object = url.getContent();
+
+			String content = new String(TStream.readAll((InputStream)object));
+			properites.load(new StringReader(content));
+			System.out.println("[PROPERTIES] Load Properties: " + url.toString());
+
+			return properites;
+
+		} catch (IOException e) {
+			System.out.println("Load properites file failed. File:" + url.toString() + "-->" + e.getMessage());
+			return null;
+		}
+	}
 
 	/**
 	 * 解析 Properties 文件
@@ -94,48 +117,64 @@ public class TProperties {
 	 * @return Properties 对象
 	 */
 	public static Properties getProperties(String fileName) {
-		File file = null;
 		Properties properties;
 
-        String configFileNameWithEnv = null;
-        String configFileName = "";
-        if (!fileName.contains(".properties")) {
-            String envName = TEnv.getEnvName();
+		if(fileName.startsWith("http://")) {
+			properties = propertiesName.get(fileName);
+			if(properties == null) {
+				try {
+					properties = getProperties(new URL(fileName));
+					propertiesName.put(fileName, properties);
+				} catch (MalformedURLException e) {
+					System.out.println("Load properites failed. url:" + fileName + "-->" + e.getMessage());
+					return null;
+				}
+			}
 
-            envName = envName == null ? "" : "-" + envName;
+			return properties;
+		} else {
+			File file = null;
 
-            configFileNameWithEnv = fileName + envName + ".properties";
-            configFileName = fileName + ".properties";
-        }
+			String configFileNameWithEnv = null;
+			String configFileName = "";
+			if (!fileName.contains(".properties")) {
+				String envName = TEnv.getEnvName();
 
-        properties = propertiesName.get(configFileNameWithEnv);
-        if (properties == null) {
-            properties = propertiesName.get(configFileName);
-        }
+				envName = envName == null ? "" : "-" + envName;
 
-        if(properties==null) {
-            File configFile = TFile.getResourceFile(configFileName);
-            File configFileWithEnv = TFile.getResourceFile(configFileNameWithEnv);
+				configFileNameWithEnv = fileName + envName + ".properties";
+				configFileName = fileName + ".properties";
+			}
 
-            if (configFileWithEnv != null) {
-                file = configFileWithEnv;
-                fileName = configFileNameWithEnv;
-            } else if (configFile != null) {
-                file = configFile;
-				fileName = configFileName;
-            }
+			properties = propertiesName.get(configFileNameWithEnv);
+			if (properties == null) {
+				properties = propertiesName.get(configFileName);
+			}
 
-            if(file!=null) {
-                properties = getProperties(file);
-                propertiesName.put(fileName, properties);
-                return properties;
-            } else {
-				System.out.println("[PROPERTIES] Load properites file failed. File:" + configFile.getAbsolutePath() + " not exists");
-                return null;
-            }
-        } else {
-            return properties;
-        }
+			if (properties == null) {
+				File configFile = TFile.getResourceFile(configFileName);
+				File configFileWithEnv = TFile.getResourceFile(configFileNameWithEnv);
+
+				if (configFileWithEnv != null) {
+					file = configFileWithEnv;
+					fileName = configFileNameWithEnv;
+				} else if (configFile != null) {
+					file = configFile;
+					fileName = configFileName;
+				}
+
+				if (file != null) {
+					properties = getProperties(file);
+					propertiesName.put(fileName, properties);
+					return properties;
+				} else {
+					System.out.println("[PROPERTIES] Load properites file failed. File:" + configFile.getAbsolutePath() + " not exists");
+					return null;
+				}
+			} else {
+				return properties;
+			}
+		}
 	}
 
 	/**
