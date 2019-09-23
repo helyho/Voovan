@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.Date;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 /**
@@ -391,6 +392,7 @@ public class TSQL {
 
 
 	public static ConcurrentHashMap<Integer, List<String[]>> PARSED_CONDICTIONS = new ConcurrentHashMap<Integer,  List<String[]>>();
+	public static AtomicInteger size = new AtomicInteger();
 	/**
 	 * 获取解析后的 SQL 的条件
 	 * @param sqlText SQL 字符串
@@ -399,7 +401,14 @@ public class TSQL {
 	public static List<String[]> parseSQLCondiction(String sqlText) {
 		int hashcode = THash.HashFNV1(sqlText);
 		List<String[]> condictionList = PARSED_CONDICTIONS.get(hashcode);
+
 		if(condictionList == null) {
+			if(size.get() > 10000) {
+				Logger.warn("SQL may be has same problem on TSQL.parseSQLCondiction: " + sqlText);
+				PARSED_CONDICTIONS.clear();
+				size.set(0);
+			}
+
 			condictionList = new ArrayList<String[]>();
 			String sqlRegx = "((\\swhere\\s)|(\\sand\\s)|(\\sor\\s))[\\S\\s]+?(?=(\\swhere\\s)|(\\sand\\s)|(\\sor\\s)|(\\sgroup by\\s)|(\\sorder\\s)|(\\slimit\\s)|$)";
 			String[] sqlCondictions = TString.searchByRegex(sqlText, sqlRegx, Pattern.CASE_INSENSITIVE);
@@ -463,6 +472,7 @@ public class TSQL {
 				condictionList.get(i)[5] = condictionList.get(i + 1)[1];
 			}
 
+			size.getAndIncrement();
 			PARSED_CONDICTIONS.put(hashcode, condictionList);
 		}
 		return condictionList;
