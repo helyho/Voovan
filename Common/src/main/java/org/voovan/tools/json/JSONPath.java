@@ -1,10 +1,14 @@
 package org.voovan.tools.json;
 
 import org.voovan.tools.TObject;
+import org.voovan.tools.TStream;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +26,25 @@ import java.util.Map;
 public class JSONPath {
 
     private Object parsedObj;
+
+    public JSONPath(URL url) {
+        Object object = null;
+        try {
+            object = url.getContent();
+
+            String jsonStr = new String(TStream.readAll((InputStream)object));
+            Object result = JSON.parse(jsonStr);
+            if (result instanceof List) {
+                parsedObj = (List)result;
+            } else if (result instanceof Map) {
+                parsedObj = (Map)result;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }
 
     public JSONPath(String jsonStr) {
         Object result = JSON.parse(jsonStr);
