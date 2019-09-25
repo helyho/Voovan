@@ -54,6 +54,24 @@ public class HttpClientUnit extends TestCase {
 		getClient.close();
 	}
 
+	public void testAsync() throws Exception{
+		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 60);
+		getClient.setMethod("GET")
+				.putParameters("name", "测试Get")
+				.putParameters("age", "32").asyncSend(resp->{
+			System.out.println(resp.body().getBodyString());
+		});
+		TEnv.sleep(3000);
+		getClient.setMethod("GET")
+				.putParameters("name", "测试Get")
+				.putParameters("age", "42").asyncSend(resp->{
+			System.out.println(resp.body().getBodyString());
+		});
+		TEnv.sleep(3000);
+		getClient.close();
+
+	}
+
 	public void testPost() throws Exception {
 		HttpClient postClient = new HttpClient("http://127.0.0.1:28080","GB2312",60);
 		Response response = postClient.setMethod("POST") 
