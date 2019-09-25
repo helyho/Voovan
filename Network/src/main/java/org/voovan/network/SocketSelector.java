@@ -300,7 +300,9 @@ public class SocketSelector implements Closeable {
 					socketContext.close();
 					EventTrigger.fireException(socketContext.getSession(), new TimeoutException("Socket Read timeout"));
 				} else {
-					socketContext.updateLastReadTime();
+					if(socketContext!=null) {
+						socketContext.updateLastReadTime();
+					}
 				}
 			}
 		}

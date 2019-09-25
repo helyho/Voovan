@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 /**
  * HTTP 请求调用
@@ -56,6 +57,7 @@ public class HttpClient implements Closeable{
 	private boolean isWebSocket = false;
 	private WebSocketRouter webSocketRouter;
 	private String hostString;
+	private AsyncHandler asyncHandler;
 	private boolean paramInUrl = false;
 
 	/**
@@ -161,6 +163,8 @@ public class HttpClient implements Closeable{
 			httpRequest = new HttpRequest(new Request(), this.charset, socket.getSession());
 			initHeader();
 
+			asyncHandler = new AsyncHandler(this);
+
 
 		} catch (IOException e) {
 			Logger.error("HttpClient init error",e);
@@ -168,7 +172,7 @@ public class HttpClient implements Closeable{
 	}
 
 	/**
-	 * 获取参数是否封装在 URL 中
+	 * 获取参数是否封装在 URL 中, 仅在 POST 等请求中有效
 	 * @return true:是, false: 否
 	 */
 	public boolean isParamInUrl() {
@@ -176,7 +180,7 @@ public class HttpClient implements Closeable{
 	}
 
 	/**
-	 * 设置是否将参数封装在 URL 中
+	 * 设置是否将参数封装在 URL 中, 仅在 POST 等请求中有效
 	 * @param paramInUrl true:是, false: 否
 	 */
 	public void setParamInUrl(boolean paramInUrl) {
@@ -201,6 +205,9 @@ public class HttpClient implements Closeable{
 		return socket;
 	}
 
+	public HttpRequest getHttpRequest() {
+		return httpRequest;
+	}
 
 	/**
 	 * 读取流
@@ -439,8 +446,16 @@ public class HttpClient implements Closeable{
 			String queryString = getQueryString();
 			httpRequest.body().write(queryString, charset);
 		}
-	}
 
+		//设置默认的报文 Body 类型
+		if (httpRequest.protocol().getMethod().equals("POST") && httpRequest.parts().size() > 0) {
+			setBodyType(Request.RequestType.BODY_MULTIPART);
+		} else if (httpRequest.protocol().getMethod().equals("POST") && parameters.size() > 0) {
+			setBodyType(Request.RequestType.BODY_URLENCODED);
+		} else {
+			setBodyType(Request.RequestType.NORMAL);
+		}
+	}
 	/**
 	 * 连接并发送请求
 	 * @param location 请求 URL
@@ -448,50 +463,77 @@ public class HttpClient implements Closeable{
 	 * @throws SendMessageException  发送异常
 	 * @throws ReadMessageException  读取异常
 	 */
-	public synchronized Response send(String location) throws SendMessageException, ReadMessageException {
+	public Response send(String location) throws SendMessageException, ReadMessageException {
+	    return commonSend(location, null);
+	}
 
-		if(isWebSocket){
-			throw new SendMessageException("The WebSocket is connect, you can't writeToChannel http request.");
+	/**
+	 * 连接并发送请求,异步获得响应
+	 * @param location 请求 URL
+	 * @param async 异步响应消费对象
+	 * @return Response 对象
+	 * @throws SendMessageException  发送异常
+	 * @throws ReadMessageException  读取异常
+	 */
+	public void asyncSend(String location,  Consumer<Response> async) throws SendMessageException, ReadMessageException {
+		commonSend(location, async);
+	}
+
+	/**
+	 * 连接并发送请求
+	 * @param location 请求 URL
+	 * @param async 异步响应消费对象
+	 * @return Response 对象
+	 * @throws SendMessageException  发送异常
+	 * @throws ReadMessageException  读取异常
+	 */
+	private synchronized Response commonSend(String location, Consumer<Response> async) throws SendMessageException, ReadMessageException {
+
+		if (isWebSocket) {
+			throw new SendMessageException("The WebSocket is connect, you can't send an http request.");
 		}
 
-		//设置默认的报文 Body 类型
-		if(httpRequest.protocol().getMethod().equals("POST") && httpRequest.parts().size()>0){
-			setBodyType(Request.RequestType.BODY_MULTIPART);
-		}else if(httpRequest.protocol().getMethod().equals("POST") && parameters.size() > 0) {
-			setBodyType(Request.RequestType.BODY_URLENCODED);
-		}else{
-			setBodyType(Request.RequestType.NORMAL);
+		if(asyncHandler.isRunning()) {
+			throw new SendMessageException("The asyn is running, you can't send other http request. please wait a moment");
 		}
 
 		//构造 Request 对象
-		buildRequest(TString.isNullOrEmpty(location)?"/":location);
+		buildRequest(TString.isNullOrEmpty(location) ? "/" : location);
 
 		//发送报文
 		try {
+			//异步模式更新 handler
+			if(async != null) {
+				socket.handler(asyncHandler);
+				asyncHandler.setAsync(async);
+			}
 			httpRequest.send(socket.getSession());
 			httpRequest.flush();
-		}catch(IOException e){
-			throw new SendMessageException("HttpClient writeToChannel error",e);
+		} catch (IOException e) {
+			throw new SendMessageException("HttpClient writeToChannel error", e);
 		}
 
-		try {
-			Object readObject = socket.synchronouRead();
-			Response response = null;
+		//同步模式
+		if (async == null) {
+			try {
+				Object readObject = socket.synchronouRead();
+				Response response = null;
 
-			//如果是异常则抛出异常
-			if (readObject instanceof Exception) {
-				throw new ReadMessageException((Exception) readObject);
-			} else {
-				response = (Response) readObject;
-			}
+				//如果是异常则抛出异常
+				if (readObject instanceof Exception) {
+					throw new ReadMessageException((Exception) readObject);
+				} else {
+					response = (Response) readObject;
+				}
 
-			//结束操作
-			finished(httpRequest, response);
+				//结束操作
+				finished(response);
 
-			return response;
-		}catch(ReadMessageException e){
-			if(!isWebSocket){
-				throw e;
+				return response;
+			} catch (ReadMessageException e) {
+				if (!isWebSocket) {
+					throw e;
+				}
 			}
 		}
 
@@ -504,8 +546,19 @@ public class HttpClient implements Closeable{
 	 * @throws SendMessageException  发送异常
 	 * @throws ReadMessageException  读取异常
 	 */
-	public synchronized Response send() throws SendMessageException, ReadMessageException {
+	public Response send() throws SendMessageException, ReadMessageException {
 		return send("/");
+	}
+
+	/**
+	 * 连接并发送请求,异步获得响应
+	 * @param async 异步响应消费对象
+	 * @return Response 对象
+	 * @throws SendMessageException  发送异常
+	 * @throws ReadMessageException  读取异常
+	 */
+	public void asyncSend(Consumer<Response> async) throws SendMessageException, ReadMessageException {
+		asyncSend("/", async);
 	}
 
 	/**
@@ -522,21 +575,21 @@ public class HttpClient implements Closeable{
 	 * 请求完成
 	 * @param response 请求对象
 	 */
-	private void finished(Request request, Response response){
+	protected void finished(Response response){
 		//传递 cookie 到 Request 对象
 		if(response!=null
 				&& response.cookies()!=null
 				&& !response.cookies().isEmpty()){
-			request.cookies().addAll(response.cookies());
+			httpRequest.cookies().addAll(response.cookies());
 		}
 
-        request.body().changeToBytes(new byte[0]);
+		httpRequest.body().changeToBytes(new byte[0]);
 
 		//清理请求对象,以便下次请求使用
 		parameters.clear();
-		request.body().clear();
-		request.parts().clear();
-		request.header().clear();
+		httpRequest.body().clear();
+		httpRequest.parts().clear();
+		httpRequest.header().clear();
 		initHeader();
 	}
 
