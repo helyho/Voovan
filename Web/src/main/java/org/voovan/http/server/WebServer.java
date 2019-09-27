@@ -940,7 +940,9 @@ public class WebServer {
 			unInitModule();
 			this.WebServerDestory(this);
 
-			serverSocket.close();
+			if(serverSocket!=null) {
+				serverSocket.close();
+			}
 			System.out.println("[" + TDateTime.now() + "] Socket closed");
 
 			SocketContext.gracefulShutdown();
