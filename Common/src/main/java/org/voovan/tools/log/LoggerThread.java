@@ -136,7 +136,7 @@ public class LoggerThread implements Runnable {
 		boolean needFlush = false;
 
 		try {
-			while (Logger.isEnable()) {
+			while (Logger.isEnable() || logQueue.isEmpty()) {
 
 				try {
 					if (this.pause == 1) {
@@ -202,6 +202,8 @@ public class LoggerThread implements Runnable {
 			}
 
 			System.out.println("[FRAMEWORK] Main logger thread is terminaled");
+
+			flush();
 
 			finished.set(true);
 
