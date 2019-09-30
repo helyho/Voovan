@@ -1,5 +1,6 @@
 package org.voovan.http.server;
 
+import javassist.tools.web.Webserver;
 import org.voovan.Global;
 import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.server.context.HttpRouterConfig;
@@ -751,7 +752,15 @@ public class WebServer {
 	 * 启动 WebServer 服务
 	 * @param args 启动参数
 	 */
-	public static void main(String[] args) {
+    public static void main(String[] args) {
+		serve(args);
+    }
+
+	/**
+	 * 启动服务
+	 * @param args 启动参数
+	 */
+	public static WebServer serve(String[] args) {
 
 		if(TEnv.JDK_VERSION > 8 && !"true".equals(System.getProperty("jdk.attach.allowAttachSelf"))){
 
@@ -883,7 +892,7 @@ public class WebServer {
 				//输出版本号
 				if(args[i].equals("-v")){
 					Logger.simple("Version:"+WebContext.VERSION);
-					return;
+					return null;
 				}
 
 				if(args[i].equals("--help") || args[i].equals("-?")){
@@ -918,7 +927,7 @@ public class WebServer {
 					Logger.simple("E-mail: helyho@gmail.com");
 					Logger.simple("");
 
-					return;
+					return null;
 				}
 			}
 		}
@@ -927,6 +936,8 @@ public class WebServer {
 		WebServer webServer = WebServer.newInstance(config);
 
 		webServer.serve();
+
+		return webServer;
 	}
 
 	/**
