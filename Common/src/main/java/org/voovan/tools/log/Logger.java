@@ -88,7 +88,7 @@ public class Logger {
 	}
 
 	public static void customf(String logLevel, String msg, Object ... args) {
-		customf(logLevel, msg, args, null);
+		customf(logLevel, msg, null, args);
 	}
 
 	//============================================== INFO ==============================================
