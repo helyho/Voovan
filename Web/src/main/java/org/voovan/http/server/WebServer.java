@@ -753,14 +753,15 @@ public class WebServer {
 	 * @param args 启动参数
 	 */
     public static void main(String[] args) {
-		serve(args);
+		WebServer webServer = newInstance(args);
+		webServer.serve();
     }
 
 	/**
 	 * 启动服务
 	 * @param args 启动参数
 	 */
-	public static WebServer serve(String[] args) {
+	public static WebServer newInstance(String[] args) {
 
 		if(TEnv.JDK_VERSION > 8 && !"true".equals(System.getProperty("jdk.attach.allowAttachSelf"))){
 
@@ -934,9 +935,6 @@ public class WebServer {
 
 
 		WebServer webServer = WebServer.newInstance(config);
-
-		webServer.serve();
-
 		return webServer;
 	}
 
