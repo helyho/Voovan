@@ -123,8 +123,15 @@ public class WebSocketSession extends Attributes {
      * @throws WebSocketFilterException WebSocket过滤器异常
      */
     public void sendBinary(Object obj) throws SendMessageException, WebSocketFilterException {
+        ByteBuffer byteBuffer = null;
+        if(obj instanceof byte[]){
+            byteBuffer = ByteBuffer.wrap((byte[])obj);
+        } else if(obj instanceof ByteBuffer) {
+            byteBuffer = (ByteBuffer)obj;
+        } else {
+            byteBuffer = (ByteBuffer)webSocketRouter.filterEncoder(this, obj);
+        }
 
-        ByteBuffer byteBuffer = (ByteBuffer)webSocketRouter.filterEncoder(this, obj);
         WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.BINARY, masked, byteBuffer);
         this.socketSession.syncSend(webSocketFrame);
     }
