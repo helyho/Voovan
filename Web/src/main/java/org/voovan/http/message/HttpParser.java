@@ -383,6 +383,7 @@ public class HttpParser {
 	public static boolean parseHeader(Map<String, Object> packetMap, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
+		boolean isCache = WebContext.isCache();
 
 		//遍历 Protocol
 		boolean onHeaderName = true;
@@ -405,12 +406,21 @@ public class HttpParser {
 			currentByte = byteBuffer.get();
 
 			if (onHeaderName && prevByte == Global.BYTE_COLON && currentByte == Global.BYTE_SPACE) {
-				headerName = HttpItem.getHttpItem(bytes, 0, position).getString();
+				if(isCache) {
+					headerName = HttpItem.getHttpItem(bytes, 0, position).getString();
+				} else {
+					headerName = new String(bytes);
+				}
+
 				onHeaderName = false;
 				position = 0;
 				continue;
 			} else if (!onHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
-				headerValue = HttpItem.getHttpItem(bytes, 0, position).getString();
+				if(isCache) {
+					headerValue = HttpItem.getHttpItem(bytes, 0, position).getString();
+				} else {
+					headerValue = new String(bytes);
+				}
 				break;
 			}
 
