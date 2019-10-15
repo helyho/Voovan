@@ -409,7 +409,7 @@ public class HttpParser {
 				if(isCache) {
 					headerName = HttpItem.getHttpItem(bytes, 0, position).getString();
 				} else {
-					headerName = new String(bytes);
+					headerName = new String(bytes, 0, position);
 				}
 
 				onHeaderName = false;
@@ -419,7 +419,7 @@ public class HttpParser {
 				if(isCache) {
 					headerValue = HttpItem.getHttpItem(bytes, 0, position).getString();
 				} else {
-					headerValue = new String(bytes);
+					headerValue = new String(bytes, 0, position);
 				}
 				break;
 			}
