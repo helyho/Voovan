@@ -100,23 +100,20 @@ public class TByteBuffer {
      * @return ByteBuffer 对象
      */
     public static ByteBuffer allocateDirect(int capacity) {
-        //是否手工释放
-        if(Global.NO_HEAP_MANUAL_RELEASE) {
-            ByteBuffer byteBuffer = BYTE_BUFFER_THREAD_POOL.get(()->allocateManualReleaseBuffer(capacity));
 
-            if(capacity <= byteBuffer.capacity()) {
-                byteBuffer.limit(capacity);
-            } else {
-                reallocate(byteBuffer, capacity);
-            }
+        ByteBuffer byteBuffer = BYTE_BUFFER_THREAD_POOL.get(()->allocateManualReleaseBuffer(capacity));
 
-            byteBuffer.position(0);
+        if(capacity <= byteBuffer.capacity()) {
             byteBuffer.limit(capacity);
-
-            return byteBuffer;
         } else {
-            return ByteBuffer.allocateDirect(capacity);
+            reallocate(byteBuffer, capacity);
         }
+
+        byteBuffer.position(0);
+        byteBuffer.limit(capacity);
+
+        return byteBuffer;
+
     }
 
     /**
@@ -242,11 +239,6 @@ public class TByteBuffer {
             return;
         }
 
-        //是否手工释放
-        if(!Global.NO_HEAP_MANUAL_RELEASE || byteBuffer.getClass() != DIRECT_BYTE_BUFFER_CLASS) {
-            return;
-        }
-
         try {
             if (byteBuffer != null && !isReleased(byteBuffer)) {
                 Object att = getAtt(byteBuffer);
@@ -292,11 +284,6 @@ public class TByteBuffer {
 
         if(byteBuffer==null){
             return true;
-        }
-
-        //是否手工释放
-        if(!Global.NO_HEAP_MANUAL_RELEASE || byteBuffer.getClass() != DIRECT_BYTE_BUFFER_CLASS) {
-            return false;
         }
 
         try {
