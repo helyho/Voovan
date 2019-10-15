@@ -89,7 +89,6 @@ public class Global {
 
     public static final String NAME = "Voovan";
 
-    public static volatile Boolean NO_HEAP_MANUAL_RELEASE;
     public static volatile String REMOTE_CLASS_SOURCE;
     public static final Boolean IS_DEBUG_MODE = TProperties.getBoolean("framework", "DebugMode", false);
     public static final Boolean ENABLE_SANDBOX = TProperties.getBoolean("framework", "EnableSandBox", false);
@@ -98,24 +97,6 @@ public class Global {
     }
 
     public static UniqueId UNIQUE_ID = new UniqueId(0);
-
-    static {
-        if(NO_HEAP_MANUAL_RELEASE == null) {
-            boolean value = false;
-            value = TProperties.getBoolean("framework", "NoHeapManualRelease", true);
-            REMOTE_CLASS_SOURCE = TProperties.getString("framework", "RemoteClassSource");
-            NO_HEAP_MANUAL_RELEASE = TObject.nullDefault(value, true);
-            System.out.println("[SYSTEM] NoHeap Manual Release: " + NO_HEAP_MANUAL_RELEASE);
-        }
-    }
-
-    /**
-     * 非对内存是否采用手工释放
-     * @return true: 收工释放, false: JVM自动释放
-     */
-    private static boolean getNoHeapManualRelease() {
-        return NO_HEAP_MANUAL_RELEASE;
-    }
 
     private enum ThreadPoolEnum {
         THREAD_POOL;

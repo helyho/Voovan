@@ -107,6 +107,17 @@ public class Cipher {
      * @return Key 对象
      */
     public SecretKey loadSymmetryKey(byte[] keyBytes) {
+        // 判断Key是否正确
+        if (keyBytes == null) {
+            System.out.print("Key is null");
+            return null;
+        }
+        // 判断Key是否为16位
+        if (keyBytes.length != 16) {
+            System.out.print("Key length isn't 16");
+            return null;
+        }
+
         this.secretKey = new SecretKeySpec(keyBytes, algorithm);
         return secretKey;
     }

@@ -200,11 +200,6 @@ public class ByteBufferChannel {
             return;
         }
 
-        //是否手工释放
-        if(!Global.NO_HEAP_MANUAL_RELEASE || byteBuffer.getClass() != TByteBuffer.DIRECT_BYTE_BUFFER_CLASS) {
-            return;
-        }
-
         lock();
         try {
             if (address.get() != 0) {
