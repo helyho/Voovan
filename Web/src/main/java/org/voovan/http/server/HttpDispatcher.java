@@ -205,6 +205,17 @@ public class HttpDispatcher {
 
 		//输出访问日志
 		WebContext.writeAccessLog(webConfig, request, response);
+
+		//缓存处理
+		if (WebContext.isCache()) {
+			Long requestMark = request.getMark();
+			if (requestMark != null) {
+				int bodyMark = response.body().getMark();
+				if (bodyMark != 0) {
+					response.setMark(requestMark >> 32 << 32 | bodyMark); //清空低位, 保存 response.body 的 hash, 原低位存的时候头的长度
+				}
+			}
+		}
 	}
 
 	/**

@@ -241,7 +241,10 @@ public class WebServerHandler implements IoHandler {
 			}
 		}
 
-		//============================是否启用 gzip 压缩============================
+        // 处理响应请求
+        httpDispatcher.process(httpRequest, httpResponse);
+
+		//Gzip 启用检测
 		if(webConfig.isGzip() && httpRequest.header().contain(HttpStatic.ACCEPT_ENCODING_STRING) &&
 				httpRequest.header().get(HttpStatic.ACCEPT_ENCODING_STRING).contains(HttpStatic.GZIP_STRING) &&
 				httpResponse.header().get(HttpStatic.CONTENT_TYPE_STRING) != null) {
@@ -252,19 +255,6 @@ public class WebServerHandler implements IoHandler {
 					if(httpResponse.header().get(HttpStatic.CONTENT_TYPE_STRING).contains(gzipMimeType)){
 						httpResponse.setCompress(true);
 					}
-				}
-			}
-		}
-
-        // 处理响应请求
-        httpDispatcher.process(httpRequest, httpResponse);
-
-		if (WebContext.isCache()) {
-			Long requestMark = httpRequest.getMark();
-			if (requestMark != null) {
-				int bodyMark = httpResponse.body().getMark();
-				if (bodyMark != 0) {
-					httpResponse.setMark(requestMark >> 32 << 32 | bodyMark); //清空低位, 保存 body 的 hash, 原低位存的时候头的长度
 				}
 			}
 		}
