@@ -48,9 +48,12 @@ public class JSONEncode {
         Object[] keys = mapObject.keySet().toArray();
 
         for (Object mapkey : keys) {
-            Object key = fromObject(mapkey, allField);
+            String key = fromObject(mapkey, allField);
             String Value = fromObject(mapObject.get(mapkey), allField);
+            String wrapQuote = key.startsWith("\"") && key.endsWith("\"") ? "" : "\"";
+            contentStringBuilder.append(wrapQuote);
             contentStringBuilder.append(key);
+            contentStringBuilder.append(wrapQuote);
             contentStringBuilder.append(":");
             contentStringBuilder.append(Value);
             contentStringBuilder.append(",");
