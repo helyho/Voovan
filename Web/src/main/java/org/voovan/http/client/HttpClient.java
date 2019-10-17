@@ -23,6 +23,7 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.pool.PooledObject;
 
 import java.io.Closeable;
 import java.io.File;
@@ -46,7 +47,7 @@ import java.util.function.Consumer;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class HttpClient implements Closeable{
+public class HttpClient extends PooledObject implements Closeable{
 
 	private TcpSocket socket;
 	private HttpRequest httpRequest;

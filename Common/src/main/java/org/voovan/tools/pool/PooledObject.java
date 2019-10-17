@@ -8,7 +8,7 @@ package org.voovan.tools.pool;
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License
  */
-public class Pool implements IPool {
+public class PooledObject implements IPooledObject {
     private long poolObjectId;
 
     public long getPoolObjectId() {

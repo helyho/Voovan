@@ -10,6 +10,7 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.event.EventRunnerGroup;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.pool.PooledObject;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import javax.net.ssl.SSLException;
@@ -27,7 +28,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public abstract class SocketContext<C extends SelectableChannel, S extends IoSession> {
+public abstract class SocketContext<C extends SelectableChannel, S extends IoSession> extends PooledObject {
     //================================线程管理===============================
 	public static int ACCEPT_THREAD_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("AcceptThreadSize"),"1"));
 	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", ACCEPT_THREAD_SIZE, ACCEPT_THREAD_SIZE, 60*1000, true, 10);

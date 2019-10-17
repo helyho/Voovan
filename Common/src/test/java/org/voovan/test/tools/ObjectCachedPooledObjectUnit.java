@@ -1,4 +1,4 @@
-package org.voovan.test.tools.cache;
+package org.voovan.test.tools;
 
 import junit.framework.TestCase;
 import org.junit.Before;
@@ -8,7 +8,7 @@ import org.voovan.tools.exception.WeaveException;
 import org.voovan.tools.weave.Weave;
 import org.voovan.tools.weave.WeaveConfig;
 import org.voovan.tools.pool.ObjectPool;
-import org.voovan.tools.pool.annotation.Pool;
+import org.voovan.tools.pool.annotation.PooledObject;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *         WebSite: https://github.com/helyho/Voovan
  *         Licence: Apache v2 License
  */
-public class ObjectCachedPoolUnit extends TestCase {
+public class ObjectCachedPooledObjectUnit extends TestCase {
 
     @Before
     public void setUp() {
@@ -154,7 +154,7 @@ public class ObjectCachedPoolUnit extends TestCase {
         }
     }
 
-    @Pool
+    @PooledObject
     public class TestPoolObject {
         private String k;
 
