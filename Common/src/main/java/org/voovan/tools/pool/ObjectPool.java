@@ -1,7 +1,6 @@
     package org.voovan.tools.pool;
 
 import org.voovan.Global;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
@@ -12,7 +11,6 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -207,13 +205,13 @@ public class ObjectPool<T> {
     private Long add(T obj, boolean isBorrow){
         Objects.requireNonNull(obj, "add a null object failed");
 
-        if(obj instanceof IPool) {
+        if(obj instanceof IPooledObject) {
             if (objects.size() >= maxSize) {
                 return null;
             }
 
             long id = genObjectId();
-            ((IPool)obj).setPoolObjectId(id);
+            ((IPooledObject)obj).setPoolObjectId(id);
 
             InnerObject innerObject = new InnerObject<T>(this, id, obj);
 
@@ -226,8 +224,8 @@ public class ObjectPool<T> {
 
             return id;
         } else {
-            throw new RuntimeException("the Object is not implement IPool interface, please make " + TReflect.getClassName(obj.getClass()) +
-                    " implemets IPool.class or extends Pool or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
+            throw new RuntimeException("the Object is not implement IPooledObject interface, please make " + TReflect.getClassName(obj.getClass()) +
+                    " implemets IPooledObject.class or extends PooledObject or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
         }
     }
 
@@ -342,9 +340,9 @@ public class ObjectPool<T> {
             return;
         }
 
-        if (obj instanceof IPool) {
+        if (obj instanceof IPooledObject) {
             if(validator==null || validator.apply(obj)) {
-                Long id = ((IPool) obj).getPoolObjectId();
+                Long id = ((IPooledObject) obj).getPoolObjectId();
 
                 InnerObject innerObject = objects.get(id);
 
@@ -355,8 +353,8 @@ public class ObjectPool<T> {
                 remove(obj);
             }
         } else {
-            throw new RuntimeException("the Object is not implement IPool interface, please make " + TReflect.getClassName(obj.getClass()) +
-                    " implemets IPool.class or extends Pool or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) + "  and Aop support");
+            throw new RuntimeException("the Object is not implement IPooledObject interface, please make " + TReflect.getClassName(obj.getClass()) +
+                    " implemets IPooledObject.class or extends PooledObject or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
         }
     }
 
@@ -374,13 +372,13 @@ public class ObjectPool<T> {
      * @param obj 清理的对象
      */
     private void remove(T obj){
-        if(obj instanceof IPool) {
-            Long id = ((IPool) obj).getPoolObjectId();
+        if(obj instanceof IPooledObject) {
+            Long id = ((IPooledObject) obj).getPoolObjectId();
             remove(id);
 
         } else {
-            throw new RuntimeException("the Object is not implement IPool interface, please make " + TReflect.getClassName(obj.getClass()) +
-                    " implemets IPool.class or extends Pool or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
+            throw new RuntimeException("the Object is not implement IPooledObject interface, please make " + TReflect.getClassName(obj.getClass()) +
+                    " implemets IPooledObject.class or extends PooledObject or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
         }
     }
 
