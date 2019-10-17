@@ -269,6 +269,11 @@ public class HttpParser {
 
 			currentByte = byteBuffer.get();
 
+			//兼容部分 Web 中间件,在尾部增加换行的问题
+			if(segment==0 && (currentByte == Global.BYTE_CR || currentByte == Global.BYTE_LF)){
+				continue;
+			}
+
 			if (currentByte == Global.BYTE_SPACE && segment < 2) {
 				if (segment == 0) {
 					HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
