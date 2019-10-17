@@ -79,10 +79,30 @@ public class JSON {
 	}
 
 	/**
-	 * 将 Java 对象 转换成 JSON字符串
+	 * 将 Java 对象 转换成 JSON字符串, 并格式化
 	 * @param object   	待转换的对象
-	 * @param convertEscapeChar 是否转换转义字符
+	 * @return			转换后的 JSON 字符串
+	 */
+	public static String toJSONWithFormat(Object object){
+		return formatJson(toJSON(object, convertEscapeChar.get(), false));
+	}
+
+	/**
+	 * 将 Java 对象 转换成 JSON字符串, 并格式化
+	 * @param object   	待转换的对象
 	 * @param allField  是否序列化所有的属性
+	 * @return			转换后的 JSON 字符串
+	 */
+	public static String toJSONWithFormat(Object object, boolean allField){
+		return formatJson(toJSON(object, convertEscapeChar.get(), allField));
+
+	}
+
+	/**
+	 * 将 Java 对象 转换成 JSON字符串
+	 * @param object   			待转换的对象
+	 * @param convertEscapeChar 是否转换转义字符
+	 * @param allField  		是否序列化所有的属性
 	 * @return			转换后的 JSON 字符串
 	 */
 	public static String toJSON(Object object, boolean convertEscapeChar, boolean allField){
@@ -109,6 +129,7 @@ public class JSON {
 		} catch (ReflectiveOperationException e) {
 			Logger.error("Reflective Operation failed",e);
 		}
+
 		return jsonString;
 	}
 

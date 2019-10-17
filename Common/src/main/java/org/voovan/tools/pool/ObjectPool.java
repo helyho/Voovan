@@ -226,7 +226,7 @@ public class ObjectPool<T> {
 
             return id;
         } else {
-            throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
+            throw new RuntimeException("the Object is not implement IPool interface, please make " + TReflect.getClassName(obj.getClass()) +
                     " implemets IPool.class or extends Pool or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
         }
     }
@@ -355,7 +355,7 @@ public class ObjectPool<T> {
                 remove(obj);
             }
         } else {
-            throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
+            throw new RuntimeException("the Object is not implement IPool interface, please make " + TReflect.getClassName(obj.getClass()) +
                     " implemets IPool.class or extends Pool or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) + "  and Aop support");
         }
     }
@@ -379,7 +379,7 @@ public class ObjectPool<T> {
             remove(id);
 
         } else {
-            throw new RuntimeException("the Object is not implement PoolBase interface, please make " + TReflect.getClassName(obj.getClass()) +
+            throw new RuntimeException("the Object is not implement IPool interface, please make " + TReflect.getClassName(obj.getClass()) +
                     " implemets IPool.class or extends Pool or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
         }
     }
