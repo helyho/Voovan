@@ -1378,10 +1378,30 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     /**
      * 数据清理执行器
      * @param checker 数据清理逻辑, true: 继续扫描, false: 停止扫描
+     */
+    public void scan(Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker) {
+        scan(null, null, checker, false);
+    }
+
+
+    /**
+     * 数据清理执行器
+     * @param checker 数据清理逻辑, true: 继续扫描, false: 停止扫描
      * @param disableWal 是否屏蔽 wal
      */
     public void scan(Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker, boolean disableWal) {
         scan(null, null, checker, disableWal);
+    }
+
+    /**
+     * 数据清理执行器
+     * @param fromKey 起始 key
+     * @param toKey   结束 key
+     * @param checker 数据清理逻辑, true: 继续扫描, false: 停止扫描
+     * @param disableWal 是否屏蔽 wal
+     */
+    public void scan(K fromKey, K toKey, Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker) {
+        scan(fromKey, toKey, checker, false);
     }
 
     /**
