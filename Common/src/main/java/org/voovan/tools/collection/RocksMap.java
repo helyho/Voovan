@@ -805,7 +805,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if(transaction!=null) {
                 values = transaction.get(dataColumnFamilyHandle, readOptions, TSerialize.serialize(key));
             } else {
-                values = rocksDB.get(dataColumnFamilyHandle, TSerialize.serialize(key));
+                values = rocksDB.get(dataColumnFamilyHandle, readOptions, TSerialize.serialize(key));
             }
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap containsKey " + key + " failed, " + e.getMessage(), e);
@@ -915,7 +915,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if (transaction != null) {
                 transaction.put(dataColumnFamilyHandle, keyBytes, valueBytes);
             } else {
-                rocksDB.put(dataColumnFamilyHandle, keyBytes, valueBytes);
+                rocksDB.put(dataColumnFamilyHandle, writeOptions, keyBytes, valueBytes);
             }
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap put failed, " + e.getMessage(), e);
@@ -1015,7 +1015,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if(transaction!=null) {
                 transaction.delete(dataColumnFamilyHandle, keyBytes);
             } else {
-                rocksDB.delete(dataColumnFamilyHandle, keyBytes);
+                rocksDB.delete(dataColumnFamilyHandle, writeOptions, keyBytes);
             }
         }
         return valueBytes;
@@ -1394,9 +1394,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public void scan(K fromKey, K toKey, Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker, boolean disableWal) {
         RocksMap<K,V> innerRocksMap = this.duplicate(this.getColumnFamilyName(), false);
 
-        if(disableWal) {
-            innerRocksMap.writeOptions.disableWAL();
-        }
+        innerRocksMap.writeOptions.setDisableWAL(disableWal);
 
         RocksMap<K,V>.RocksMapIterator<K,V> iterator = innerRocksMap.iterator(fromKey, toKey);
 
@@ -1601,7 +1599,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         @Override
         public void remove() {
             try {
-                rocksMap.rocksDB.delete(rocksMap.dataColumnFamilyHandle, iterator.key());
+                rocksMap.rocksDB.delete(rocksMap.dataColumnFamilyHandle, rocksMap.writeOptions, iterator.key());
             } catch (RocksDBException e) {
                 throw new RocksMapException("RocksMapIterator remove failed", e);
             }
