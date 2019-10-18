@@ -1813,7 +1813,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if (type == TYPE_COLUMNFAMILY_DELETION ||
                     type == TYPE_COLUMNFAMILY_VALUE ||
                     type == TYPE_COLUMNFAMILY_MERGE ||
-                    type == TYPE_COLUMNFAMILY_SINGLE_DELETION) {
+                    type == TYPE_COLUMNFAMILY_SINGLE_DELETION ||
+                    type == TYPE_COLUMNFAMILY_RANGE_DELETION) {
                 columnFamilyId = byteBuffer.get();
             }
 
