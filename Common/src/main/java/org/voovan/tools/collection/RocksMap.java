@@ -1523,6 +1523,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 return true;
             }
 
+            if(!iterator.isValid()) {
+                return false;
+            }
+
             try {
                 iterator.next();
                 if (toKeyBytes == null) {
