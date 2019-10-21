@@ -1405,20 +1405,22 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         innerRocksMap.writeOptions.setDisableWAL(disableWal);
 
-        RocksMap<K,V>.RocksMapIterator<K,V> iterator = innerRocksMap.iterator(fromKey, toKey);
+        try(RocksMap<K,V>.RocksMapIterator<K,V> iterator = innerRocksMap.iterator(fromKey, toKey)) {
 
-        while (iterator.hasNext()) {
-            RocksMap<K,V>.RocksMapEntry<K,V> rocksMapEntry = iterator.next();
+            while (iterator.hasNext()) {
+                RocksMap<K, V>.RocksMapEntry<K, V> rocksMapEntry = iterator.next();
 
-            if(rocksMapEntry==null) {
-                continue;
+                if (rocksMapEntry == null) {
+                    continue;
+                }
+
+                if (checker.apply(rocksMapEntry)) {
+                    continue;
+                } else {
+                    break;
+                }
             }
 
-            if(checker.apply(rocksMapEntry)) {
-                continue;
-            } else {
-                break;
-            }
         }
 
         innerRocksMap.close();

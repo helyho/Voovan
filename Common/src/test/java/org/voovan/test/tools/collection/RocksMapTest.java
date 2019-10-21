@@ -357,6 +357,9 @@ public class RocksMapTest extends TestCase {
         System.out.println("KeySet: "+ rocksMap.keySet());
         System.out.println("search: " + JSON.toJSON(rocksMap.startWith("hh")));
         System.out.println("search: " + JSON.toJSON(rocksMap.startWith("hh",7, 30)));
+        System.out.println("KeySet: "+ rocksMap.keySet());
+        rocksMap.removeRange("hhhh5", "hhhh3");
+        System.out.println("KeySet: "+ rocksMap.keySet());
 
 
 
