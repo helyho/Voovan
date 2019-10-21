@@ -2,6 +2,7 @@ package org.voovan.tools.collection;
 import org.rocksdb.*;
 import org.voovan.tools.TByte;
 import org.voovan.tools.TFile;
+import org.voovan.tools.TObject;
 import org.voovan.tools.Varint;
 import org.voovan.tools.exception.ParseException;
 import org.voovan.tools.exception.RocksMapException;
@@ -40,7 +41,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private static Map<String, RocksDB> ROCKSDB_MAP = new ConcurrentHashMap<String, RocksDB>();
 
     //缓存 TransactionDB 和列族句柄的关系
-    private static Map<RocksDB, List<ColumnFamilyHandle>> COLUMN_FAMILY_HANDLE_MAP = new ConcurrentHashMap<RocksDB, List<ColumnFamilyHandle>>();
+    private static Map<RocksDB, Map<String, ColumnFamilyHandle>> COLUMN_FAMILY_HANDLE_MAP = new ConcurrentHashMap<RocksDB, Map<String, ColumnFamilyHandle>>();
 
     //默认列族定义
     private static ColumnFamilyDescriptor DEFAULE_CF_DESCRIPTOR = new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY);
@@ -88,17 +89,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 列族句柄
      */
     private static ColumnFamilyHandle getColumnFamilyHandler(RocksDB rocksDB, String columnFamilyName) {
-        try {
-            for (ColumnFamilyHandle columnFamilyHandle : COLUMN_FAMILY_HANDLE_MAP.get(rocksDB)) {
-                if (Arrays.equals(columnFamilyHandle.getName(), columnFamilyName.getBytes())) {
-                    return columnFamilyHandle;
-                }
-            }
-
-            return null;
-        } catch (RocksDBException e){
-            throw new RocksMapException("getColumnFamilyHandler failed, " + e.getMessage(), e);
-        }
+        return COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).get(columnFamilyName);
     }
 
     /**
@@ -106,7 +97,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param rocksDB RocksDB 对象
      */
     private static void closeRocksDB(RocksDB rocksDB) {
-        for (ColumnFamilyHandle columnFamilyHandle : COLUMN_FAMILY_HANDLE_MAP.get(rocksDB)) {
+        for (ColumnFamilyHandle columnFamilyHandle : COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).values()) {
             columnFamilyHandle.close();
         }
 
@@ -122,7 +113,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public transient ColumnFamilyOptions  columnFamilyOptions;
 
     private transient RocksDB                     rocksDB;
-    private transient ColumnFamilyDescriptor      dataColumnFamilyDescriptor;
     private transient ColumnFamilyHandle          dataColumnFamilyHandle;
     private transient ThreadLocal<Transaction>    threadLocalTransaction      = new ThreadLocal<Transaction>();
     private transient ThreadLocal<Integer>        threadLocalSavePointCount   = ThreadLocal.withInitial(()->new Integer(0));
@@ -234,10 +224,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     if (columnFamilyNameBytes.size() > 0) {
                         for (byte[] columnFamilyNameByte : columnFamilyNameBytes) {
                             ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyNameByte, this.columnFamilyOptions);
-                            if (Arrays.equals(this.columnFamilyName.getBytes(), columnFamilyNameByte)) {
-                                dataColumnFamilyDescriptor = columnFamilyDescriptor;
-                            }
-
                             DEFAULT_CF_DESCRIPTOR_LIST.add(columnFamilyDescriptor);
                         }
                     }
@@ -258,7 +244,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     ROCKSDB_MAP.put(this.dbname, rocksDB);
                 }
 
-                COLUMN_FAMILY_HANDLE_MAP.put(rocksDB, columnFamilyHandleList);
+                Map<String, ColumnFamilyHandle> columnFamilyHandleMap = new ConcurrentHashMap<String, ColumnFamilyHandle>();
+                for(ColumnFamilyHandle columnFamilyHandle : columnFamilyHandleList) {
+                    columnFamilyHandleMap.put(new String(columnFamilyHandle.getName()), columnFamilyHandle);
+                }
+
+                COLUMN_FAMILY_HANDLE_MAP.put(rocksDB, columnFamilyHandleMap);
             }
 
             choseColumnFamily(this.columnFamilyName);
@@ -455,12 +446,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             //如果没有则创建一个列族
             if (dataColumnFamilyHandle == null) {
-                dataColumnFamilyDescriptor = new ColumnFamilyDescriptor(cfName.getBytes(), columnFamilyOptions);
-                dataColumnFamilyHandle = rocksDB.createColumnFamily(dataColumnFamilyDescriptor);
-                COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
-            } else {
-
-                dataColumnFamilyDescriptor = dataColumnFamilyHandle.getDescriptor();
+                ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(cfName.getBytes(), columnFamilyOptions);
+                dataColumnFamilyHandle = rocksDB.createColumnFamily(columnFamilyDescriptor);
+                COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).putIfAbsent(new String(dataColumnFamilyHandle.getName()), dataColumnFamilyHandle);
             }
 
             this.columnFamilyName = cfName;
@@ -1172,8 +1160,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         try {
             drop();
-            dataColumnFamilyHandle = rocksDB.createColumnFamily(dataColumnFamilyDescriptor);
-            COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).add(dataColumnFamilyHandle);
+            ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyName.getBytes(), columnFamilyOptions);
+            dataColumnFamilyHandle = rocksDB.createColumnFamily(columnFamilyDescriptor);
+            COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).put(new String(dataColumnFamilyHandle.getName()), dataColumnFamilyHandle);
 
             //设置列族
             dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.columnFamilyName);
@@ -1188,7 +1177,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public void drop(){
         try {
             rocksDB.dropColumnFamily(dataColumnFamilyHandle);
-            COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).remove(dataColumnFamilyHandle);
+            COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).remove(new String(dataColumnFamilyHandle.getName()));
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap drop failed", e);
         }
