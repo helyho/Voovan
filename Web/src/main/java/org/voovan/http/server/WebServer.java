@@ -107,6 +107,12 @@ public class WebServer {
 
 		//[Socket] 准备 socket 监听
 		serverSocket = new TcpServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
+
+		//构造 Web 独立的事件组执行器
+		serverSocket.setAcceptEventRunnerGroup(SocketContext.createEventRunnerGroup("Web", SocketContext.ACCEPT_THREAD_SIZE, true));
+		serverSocket.setIoEventRunnerGroup(SocketContext.createEventRunnerGroup("Web", SocketContext.IO_THREAD_SIZE, false));
+
+		//设置递归读取的深度
 		serverSocket.setReadRecursionDepth(16);
 
 		//[Socket]确认是否启用 HTTPS 支持
@@ -955,6 +961,10 @@ public class WebServer {
 			System.out.println("[" + TDateTime.now() + "] Socket closed");
 
 			SocketContext.gracefulShutdown();
+
+			ThreadPool.gracefulShutdown(serverSocket.getAcceptEventRunnerGroup().getThreadPool());
+			ThreadPool.gracefulShutdown(serverSocket.getIoEventRunnerGroup().getThreadPool());
+
 			ThreadPool.gracefulShutdown(Global.getThreadPool());
 
 			System.out.println("[" + TDateTime.now() + "] Thread pool is shutdown.");

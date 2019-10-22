@@ -31,33 +31,65 @@ import java.util.concurrent.ThreadPoolExecutor;
 public abstract class SocketContext<C extends SelectableChannel, S extends IoSession> extends PooledObject {
     //================================线程管理===============================
 	public static int ACCEPT_THREAD_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("AcceptThreadSize"),"1"));
-	public static ThreadPoolExecutor ACCEPT_THREAD_POOL = ThreadPool.createThreadPool("ACCEPT", ACCEPT_THREAD_SIZE, ACCEPT_THREAD_SIZE, 60*1000, true, 10);
-	public static EventRunnerGroup ACCEPT_EVENT_RUNNER_GROUP= new EventRunnerGroup(ACCEPT_THREAD_POOL, ACCEPT_THREAD_SIZE, (obj)->{
-		try {
-			//Accept 线程不检查超时
-			return new SocketSelector(obj, false);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return null;
-	});
-
 	public static int IO_THREAD_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("IoThreadSize"), TPerformance.getProcessorCount()+""));
+
 	static {
 		IO_THREAD_SIZE = IO_THREAD_SIZE < 8 ? 8 : IO_THREAD_SIZE;
 	}
-	public static ThreadPoolExecutor IO_THREAD_POOL = ThreadPool.createThreadPool("IO", IO_THREAD_SIZE, IO_THREAD_SIZE, 60*1000, true, 9);
-	public static EventRunnerGroup IO_EVENT_RUNNER_GROUP= new EventRunnerGroup(IO_THREAD_POOL, IO_THREAD_SIZE, (obj)->{
-		try {
-			//IO 线程检查超时
-			return new SocketSelector(obj, true);
-		} catch (IOException e) {
-			e.printStackTrace();
+
+	public static EventRunnerGroup COMMON_ACCEPT_EVENT_RUNNER_GROUP;
+	public static EventRunnerGroup COMMON_IO_EVENT_RUNNER_GROUP;
+
+	/**
+	 * 构造事件管理器
+	 * @param name 事件执行器名称
+	 * @param size 容纳事件执行器的数量
+	 * @param isAccept 是否处理 Accept 事件
+	 * @return 事件执行器
+	 */
+	public static EventRunnerGroup createEventRunnerGroup(String name, int size, boolean isAccept) {
+		name = name + "-" + (isAccept ? "Accept" : "IO");
+		int threadPriority = isAccept ? 10 : 9;
+
+		return EventRunnerGroup.newInstance(name, size, threadPriority, (obj)->{
+			try {
+				//IO 线程检查超时
+				return new SocketSelector(obj, !isAccept);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			return null;
+		});
+	}
+
+	/**
+	 * 获取公共的 Accept 事件执行器
+	 * @return Accept 事件执行器
+	 */
+	public static synchronized EventRunnerGroup getCommonAcceptEventRunnerGroup(){
+		if(COMMON_ACCEPT_EVENT_RUNNER_GROUP == null) {
+			Logger.simple("[SYSTEM] Create common accept EventRunnerGroup");
+			COMMON_ACCEPT_EVENT_RUNNER_GROUP = createEventRunnerGroup("Common", ACCEPT_THREAD_SIZE, true);
 		}
 
-		return null;
-	});
+		return COMMON_ACCEPT_EVENT_RUNNER_GROUP;
+	}
+
+	/**
+	 * 获取公共的 IO 事件执行器
+	 * @return IO 事件执行器
+	 */
+	public static synchronized EventRunnerGroup getCommonIoEventRunnerGroup(){
+		if(COMMON_IO_EVENT_RUNNER_GROUP == null) {
+			Logger.simple("[SYSTEM] Create common IO EventRunnerGroup");
+			COMMON_IO_EVENT_RUNNER_GROUP = createEventRunnerGroup("Common", IO_THREAD_SIZE, false);
+		}
+
+		return COMMON_IO_EVENT_RUNNER_GROUP;
+	}
+
+
 
 	static {
 		System.out.println("[SOCKET] IO_THREAD_SIZE: " + IO_THREAD_SIZE);
@@ -84,6 +116,9 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	private boolean isRegister = false;
 	protected boolean isSynchronous = true;
+
+	private EventRunnerGroup acceptEventRunnerGroup;
+	private EventRunnerGroup ioEventRunnerGroup;
 
 	/**
 	 * 构造函数
@@ -132,6 +167,22 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.handler = new SynchronousHandler();
 	}
 
+	public EventRunnerGroup getAcceptEventRunnerGroup() {
+		return acceptEventRunnerGroup;
+	}
+
+	public void setAcceptEventRunnerGroup(EventRunnerGroup acceptEventRunnerGroup) {
+		this.acceptEventRunnerGroup = acceptEventRunnerGroup;
+	}
+
+	public EventRunnerGroup getIoEventRunnerGroup() {
+		return ioEventRunnerGroup;
+	}
+
+	public void setIoEventRunnerGroup(EventRunnerGroup ioEventRunnerGroup) {
+		this.ioEventRunnerGroup = ioEventRunnerGroup;
+	}
+
 	protected void initSSL(IoSession session) throws SSLException {
 		if (sslManager != null && connectModel == ConnectModel.SERVER) {
 			sslManager.createServerSSLParser(session);
@@ -155,6 +206,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.sendBufferSize = parentSocketContext.sendBufferSize;
 		this.idleInterval = parentSocketContext.idleInterval;
 		this.readRecursionDepth = parentSocketContext.readRecursionDepth;
+		this.acceptEventRunnerGroup = parentSocketContext.acceptEventRunnerGroup;
+		this.ioEventRunnerGroup = parentSocketContext.ioEventRunnerGroup;
 	}
 
 	/**
@@ -424,9 +477,15 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public void bindToSocketSelector(int ops) {
 		EventRunner eventRunner = null;
 		if(connectModel == ConnectModel.LISTENER) {
-			eventRunner = ACCEPT_EVENT_RUNNER_GROUP.choseEventRunner();
+			if(acceptEventRunnerGroup == null) {
+				acceptEventRunnerGroup = getCommonAcceptEventRunnerGroup();
+			}
+			eventRunner = acceptEventRunnerGroup.choseEventRunner();
 		} else {
-			eventRunner = IO_EVENT_RUNNER_GROUP.choseEventRunner();
+			if(ioEventRunnerGroup == null) {
+				ioEventRunnerGroup = getCommonIoEventRunnerGroup();
+			}
+			eventRunner = ioEventRunnerGroup.choseEventRunner();
 		}
 		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
 		socketSelector.register(this, ops);
@@ -436,8 +495,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
      * 平滑的关闭 Socket 线程池
      */
 	public static void gracefulShutdown() {
-		ThreadPool.gracefulShutdown(SocketContext.ACCEPT_THREAD_POOL);
-		ThreadPool.gracefulShutdown(SocketContext.IO_THREAD_POOL);
+		ThreadPool.gracefulShutdown(COMMON_ACCEPT_EVENT_RUNNER_GROUP.getThreadPool());
+		ThreadPool.gracefulShutdown(COMMON_IO_EVENT_RUNNER_GROUP.getThreadPool());
 		Logger.info("All IO thread is shutdown");
 	}
 }

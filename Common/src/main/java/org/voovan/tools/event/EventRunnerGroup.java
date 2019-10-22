@@ -1,5 +1,7 @@
 package org.voovan.tools.event;
 
+import org.voovan.tools.threadpool.ThreadPool;
+
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -65,5 +67,18 @@ public class EventRunnerGroup {
 
 		EventRunner eventRunner = eventRunners[index];
 		return eventRunner;
+	}
+
+	/**
+	 * 静态构造方法
+	 * @param groupName 事件执行器名称
+	 * @param size 容纳事件执行器的数量
+	 * @param threadPriority 线程优先级
+	 * @param attachmentSupplier 事件执行器的附属对象构造器
+	 * @return 事件执行管理器
+	 */
+	public static EventRunnerGroup newInstance(String groupName, int size, int threadPriority, Function<EventRunner, Object> attachmentSupplier){
+		ThreadPoolExecutor threadPoolExecutor = ThreadPool.createThreadPool(groupName, size, size, 60*1000, true, threadPriority);
+		return new EventRunnerGroup(threadPoolExecutor, size, attachmentSupplier);
 	}
 }

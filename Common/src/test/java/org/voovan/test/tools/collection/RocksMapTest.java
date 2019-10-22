@@ -96,6 +96,7 @@ public class RocksMapTest extends TestCase {
         //测试列族区分,这个列族不写入任何数据
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
+        RocksMap rocksMapx = new RocksMap(cfName);
         if(rocksMap1.get("name") == null){
             System.out.println("putIfAbsent: "+ rocksMap1.putIfAbsent("name", cfName));
             System.out.println("putIfAbsent: "+ rocksMap1.putIfAbsent("name", cfName));
