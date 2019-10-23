@@ -41,7 +41,7 @@ public class Dao<T> {
         this.dataSource = dataSource;
     }
 
-    public boolean add() {
+    public boolean insert() {
         Recorder recorder = new Recorder(new JdbcOperate(dataSource));
         return recorder.insert((T)this) == 1;
     }
