@@ -3,11 +3,15 @@ package org.voovan.db.recorder;
 import org.voovan.db.JdbcOperate;
 import org.voovan.db.recorder.annotation.NotInsert;
 import org.voovan.db.recorder.annotation.NotUpdate;
+import org.voovan.db.recorder.exception.RecorderException;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import javax.sql.DataSource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -19,19 +23,17 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class Dao<T> {
-    public Class<T> clazz;
+    public static String[] emptyStringArray = new String[0];
+
     @NotUpdate
     @NotInsert
     @NotSerialization
-    public transient javax.sql.DataSource dataSource;
+    public transient DataSource dataSource;
 
-    public Class<T> getClazz() {
-        return clazz;
-    }
-
-    public void setClazz(Class<T> clazz) {
-        this.clazz = clazz;
-    }
+    @NotUpdate
+    @NotInsert
+    @NotSerialization
+    public transient Map<String, Object> originMap;
 
     public DataSource getDataSource() {
         return dataSource;
@@ -44,6 +46,39 @@ public class Dao<T> {
     public boolean insert() {
         Recorder recorder = new Recorder(new JdbcOperate(dataSource));
         return recorder.insert((T)this) == 1;
+    }
+
+    public void beginUpdate() {
+        try {
+            originMap = TReflect.getMapfromObject(this);
+        } catch (ReflectiveOperationException e) {
+            throw new RecorderException("beginUpdate failed", e);
+        }
+    }
+
+    public void endUpdate() {
+        try {
+            Map<String, Object> currentMap = TReflect.getMapfromObject(this);
+
+            List<String> modifyField = new ArrayList<String>();
+            for(Map.Entry<String, Object> entry : currentMap.entrySet()) {
+                Object originFieldValue = originMap.get(entry.getKey());
+                Object currentFieldValue = entry.getValue();
+
+                if(originFieldValue==null && currentFieldValue==null) {
+                    continue;
+                } else if(originFieldValue!=null && !originFieldValue.equals(currentFieldValue)) {
+                    modifyField.add(entry.getKey());
+                } else if(currentFieldValue!=null && !currentFieldValue.equals(originFieldValue)) {
+                    modifyField.add(entry.getKey());
+                }
+            }
+
+            update(modifyField.toArray(emptyStringArray));
+            originMap = null;
+        } catch (ReflectiveOperationException e) {
+            throw new RecorderException("endUpdate failed", e);
+        }
     }
 
     public boolean update(String ... dataFields) {
