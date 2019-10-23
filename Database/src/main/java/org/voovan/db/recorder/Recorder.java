@@ -14,6 +14,7 @@ import org.voovan.tools.json.JSON;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -60,9 +61,9 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> List<T> query(String tableName, T obj, Query query) throws RecorderException {
+    public <T> List<T> query(String tableName, T obj, Query query) {
         try {
             return (List<T>) jdbcOperate.queryObjectList(buildQuerySqlTemplate(tableName, obj, query), obj.getClass(), obj);
         }catch (Exception e){
@@ -80,9 +81,9 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> List<T> query(T obj, Query query) throws RecorderException {
+    public <T> List<T> query(T obj, Query query) {
         return query(null, obj, query);
     }
 
@@ -92,9 +93,9 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> List<T> query(String tableName, T obj) throws RecorderException {
+    public <T> List<T> query(String tableName, T obj) {
         return query(tableName, obj, null);
     }
 
@@ -103,9 +104,9 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> List<T> query(T obj) throws RecorderException {
+    public <T> List<T> query(T obj) {
         return query(null, obj, null);
     }
 
@@ -116,9 +117,9 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> int update(String tableName, T obj, Query query) throws RecorderException {
+    public <T> int update(String tableName, T obj, Query query) {
         try {
             return jdbcOperate.update(buildUpdateSqlTemplate(tableName, obj, query), obj);
         }catch (Exception e){
@@ -136,9 +137,9 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> int update(T obj, Query query) throws RecorderException {
+    public <T> int update(T obj, Query query) {
         return update(null, obj, query);
     }
 
@@ -148,9 +149,9 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> int update(String tableName, T obj) throws RecorderException {
+    public <T> int update(String tableName, T obj) {
         return update(tableName, obj, null);
     }
 
@@ -159,9 +160,9 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> int update(T obj) throws RecorderException {
+    public <T> int update(T obj) {
         return update(null, obj, null);
     }
 
@@ -172,9 +173,9 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> int delete(String tableName, T obj, Query query) throws RecorderException {
+    public <T> int delete(String tableName, T obj, Query query) {
         try {
             return jdbcOperate.update(buildDeleteSqlTemplate(tableName, obj, query), obj);
         }catch (Exception e){
@@ -192,9 +193,9 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> int delete(T obj, Query query) throws RecorderException {
+    public <T> int delete(T obj, Query query) {
         return delete(null, obj, query);
     }
 
@@ -204,9 +205,9 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> int delete(String tableName, T obj) throws RecorderException {
+    public <T> int delete(String tableName, T obj) {
         return delete(tableName, obj, null);
     }
 
@@ -215,9 +216,9 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @return 更新数据条数
      * @param <T> 范型类型
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> int delete(T obj) throws RecorderException {
+    public <T> int delete(T obj) {
         return delete(null, obj, null);
     }
 
@@ -228,9 +229,9 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> int insert(String tableName, T obj) throws RecorderException {
+    public <T> int insert(String tableName, T obj) {
         try{
             return jdbcOperate.update(buildInsertSqlTemplate(tableName, obj), obj);
         }catch (Exception e){
@@ -247,9 +248,9 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> int insert(T obj) throws RecorderException {
+    public <T> int insert(T obj) {
         return insert(null, obj);
     }
 
@@ -260,9 +261,9 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 拼装的 SQL
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> String buildQuerySqlTemplate(String tableName, T obj, Query query) throws RecorderException {
+    public <T> String buildQuerySqlTemplate(String tableName, T obj, Query query) {
         Table table = obj.getClass().getAnnotation(Table.class);
 
         if(tableName == null){
@@ -350,9 +351,9 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 拼装的 SQL
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> String buildUpdateSqlTemplate(String tableName, T obj, Query query) throws RecorderException {
+    public <T> String buildUpdateSqlTemplate(String tableName, T obj, Query query) {
         Table table = obj.getClass().getAnnotation(Table.class);
 
         if(tableName == null){
@@ -367,6 +368,9 @@ public class Recorder {
         Field[] fields = TReflect.getFields(obj.getClass());
 
         for(Field field : fields){
+            if(Modifier.isStatic(field.getModifiers())){
+                continue;
+            }
 
             String sqlFieldName = getSqlFieldName(jdbcOperate, field);
             String fieldName = field.getName();
@@ -427,9 +431,9 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 拼装的 SQL
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> String buildInsertSqlTemplate(String tableName, T obj) throws RecorderException {
+    public <T> String buildInsertSqlTemplate(String tableName, T obj) {
         Table table = obj.getClass().getAnnotation(Table.class);
 
         if(tableName == null){
@@ -444,7 +448,10 @@ public class Recorder {
         //字段拼接 sql
         Field[] fields = TReflect.getFields(obj.getClass());
 
-        for(Field field : fields){
+        for(Field field : fields) {
+            if(Modifier.isStatic(field.getModifiers())){
+                continue;
+            }
 
             String sqlFieldName = getSqlFieldName(jdbcOperate, field);
             String fieldName = field.getName();
@@ -479,9 +486,9 @@ public class Recorder {
      * @param query 查询对象
      * @param <T> 范型类型
      * @return 拼装的 SQL
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      */
-    public <T> String buildDeleteSqlTemplate(String tableName, T obj, Query query) throws RecorderException {
+    public <T> String buildDeleteSqlTemplate(String tableName, T obj, Query query) {
         Table table = obj.getClass().getAnnotation(Table.class);
 
         if(tableName == null){
@@ -519,12 +526,12 @@ public class Recorder {
      * @param query 查询对象
      * @return  处理后的 sql 字符串
      */
-    public String genPostagePageSql(String sql, Query query){
+    public String genPostgrePageSql(String sql, Query query){
         if(query.getPageSize()<0 || query.getPageNumber()<0) {
             return sql;
         }
 
-        return TSQL.genPostagePageSql(sql, query.getPageNumber(), query.getPageSize());
+        return TSQL.genPostgrePageSql(sql, query.getPageNumber(), query.getPageSize());
     }
 
     /**
@@ -546,16 +553,19 @@ public class Recorder {
      * @param obj  数据对象
      * @param query 查询对象
      * @return where 后面的 sql
-     * @throws RecorderException Recorder 操作异常
+     * @Recorder 操作异常
      *
      */
-    public String genWhereSql(Object obj, Query query) throws RecorderException {
+    public String genWhereSql(Object obj, Query query) {
         String whereSql = "where 1=1";
 
         if (query == null) {
             Field[] fields = TReflect.getFields(obj.getClass());
             //字段拼接 sql
             for (Field field : fields) {
+                if(Modifier.isStatic(field.getModifiers())){
+                    continue;
+                }
 
                 String sqlFieldName = getSqlFieldName(jdbcOperate, field);
                 String fieldName = field.getName();
@@ -645,10 +655,12 @@ public class Recorder {
         }
 
         if(tableAnnotation!=null) {
-            if (tableAnnotation.lowerCase() == 1) {
+            if (tableAnnotation.lowerCase()) {
                 tableName = tableName.toLowerCase();
-            } else if (tableAnnotation.upperCase() == 1) {
+            } else if (tableAnnotation.upperCase()) {
                 tableName = tableName.toUpperCase();
+            } else if (tableAnnotation.upperCaseHead()) {
+                tableName = TString.upperCaseHead(tableName);
             }
         }
 
@@ -696,10 +708,12 @@ public class Recorder {
         }
 
         if(fieldAnnotation!=null){
-            if (fieldAnnotation.lowerCase() == 1) {
+            if (fieldAnnotation.lowerCase()) {
                 fieldName = fieldName.toLowerCase();
-            } else if (fieldAnnotation.upperCase() == 1) {
+            } else if (fieldAnnotation.upperCase()) {
                 fieldName = fieldName.toUpperCase();
+            } else if (fieldAnnotation.upperCaseHead()) {
+                fieldName = TString.upperCaseHead(fieldName);
             }
         }
 
@@ -719,6 +733,10 @@ public class Recorder {
         Field[] fields = TReflect.getFields(data.getClass());
 
         for(Field field : fields){
+            if(Modifier.isStatic(field.getModifiers())){
+                continue;
+            }
+
             //主键不更新
             if(field.getAnnotation(PrimaryKey.class)==null && !updateFieldList.contains(field.getName())) {
                 TReflect.setFieldValue(data, field.getName(), null);

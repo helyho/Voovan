@@ -707,13 +707,13 @@ public class TSQL {
 	}
 
 	/**
-	 * 生成 Postage 分页的 sql
+	 * 生成 Postgre 分页的 sql
 	 * @param sql Sql语句
 	 * @param pageNumber 页码
 	 * @param pageSize 页面记录数
 	 * @return sql字符串
 	 */
-	public static String genPostagePageSql(String sql, int pageNumber, int pageSize){
+	public static String genPostgrePageSql(String sql, int pageNumber, int pageSize){
 		int pageStart 	= (pageNumber-1) * pageSize;
 
 		if(pageSize<0 || pageNumber<0) {
