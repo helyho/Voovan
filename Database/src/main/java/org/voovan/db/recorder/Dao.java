@@ -46,7 +46,7 @@ public class Dao<T> {
         return recorder.insert((T)this) == 1;
     }
 
-    public boolean update(String[] dataFields) {
+    public boolean update(String ... dataFields) {
         Recorder recorder = new Recorder(new JdbcOperate(dataSource));
         Query query = Query.newInstance().data(dataFields);
         return recorder.update((T)this, query) == 1;
@@ -62,7 +62,7 @@ public class Dao<T> {
         return recorder.query((T)this, query);
     }
 
-    public List<T> query(String[] andFields) {
+    public List<T> query(String ... andFields) {
         return query(null, andFields);
     }
 
@@ -85,7 +85,7 @@ public class Dao<T> {
         }
     }
 
-    public T queryOne(String[] andFields) {
+    public T queryOne(String ... andFields) {
         return queryOne(null, andFields);
     }
 
@@ -94,7 +94,7 @@ public class Dao<T> {
     }
 
 
-    public boolean delete(String[] andFields) {
+    public boolean delete(String ... andFields) {
         Recorder recorder = new Recorder(new JdbcOperate(dataSource));
         Query query = Query.newInstance().and(andFields);
 

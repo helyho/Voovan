@@ -559,7 +559,7 @@ public class Recorder {
     public String genWhereSql(Object obj, Query query) {
         String whereSql = "where 1=1";
 
-        if (query == null) {
+        if (query == null || !query.hasCondiction()) {
             Field[] fields = TReflect.getFields(obj.getClass());
             //字段拼接 sql
             for (Field field : fields) {

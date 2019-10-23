@@ -32,6 +32,10 @@ public class Query {
         customCondictions = new ArrayList<String>();
     }
 
+    public boolean hasCondiction() {
+        return !andFields.isEmpty() || !orFields.isEmpty() || !customCondictions.isEmpty();
+    }
+
     public Query data(String ... fieldNameArr) {
         if(fieldNameArr != null) {
             for (String fieldName : fieldNameArr) {
