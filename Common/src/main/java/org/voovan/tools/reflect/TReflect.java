@@ -1552,6 +1552,10 @@ public class TReflect {
                     }
                 }
 
+                if (Modifier.isTransient(field.getModifiers())) {
+                    continue;
+                }
+
                 String key = field.getName();
                 Object value = null;
                 try {
