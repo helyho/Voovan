@@ -23,7 +23,7 @@ import java.util.Properties;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-@Table(lowerCase = 1)
+@Table(lowerCase = true)
 public class RecordTest extends TestCase{
 
     private static DruidDataSource dataSource = null;

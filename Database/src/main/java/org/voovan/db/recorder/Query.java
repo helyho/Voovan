@@ -32,8 +32,12 @@ public class Query {
         customCondictions = new ArrayList<String>();
     }
 
-    public Query data(String fieldName) {
-        dataFields.add(fieldName);
+    public Query data(String ... fieldNameArr) {
+        if(fieldNameArr != null) {
+            for (String fieldName : fieldNameArr) {
+                dataFields.add(fieldName);
+            }
+        }
         return this;
     }
 
@@ -47,18 +51,30 @@ public class Query {
         return this;
     }
 
-    public Query and(String fieldName) {
-        andFields.put(fieldName, Operate.EQUAL);
+    public Query and(String ... fieldNameArr) {
+        if(fieldNameArr != null) {
+            for (String fieldName : fieldNameArr) {
+                andFields.put(fieldName, Operate.EQUAL);
+            }
+        }
         return this;
     }
 
-    public Query or(String fieldName) {
-        orFields.put(fieldName, Operate.EQUAL);
+    public Query or(String ... fieldNameArr) {
+        if(fieldNameArr != null) {
+            for (String fieldName : fieldNameArr) {
+                orFields.put(fieldName, Operate.EQUAL);
+            }
+        }
         return this;
     }
 
-    public Query custom(String customCondiction){
-        customCondictions.add(customCondiction);
+    public Query custom(String ... customCondictionArr){
+        if(customCondictionArr != null) {
+            for (String customCondiction : customCondictionArr) {
+                customCondictions.add(customCondiction);
+            }
+        }
         return this;
     }
 
@@ -95,15 +111,15 @@ public class Query {
         this.pageSize = pageSize;
     }
 
-    protected List<String> getDataFields() {
+    public List<String> getDataFields() {
         return dataFields;
     }
 
-    protected Map<String, Operate> getAndFields() {
+    public Map<String, Operate> getAndFields() {
         return andFields;
     }
 
-    protected Map<String, Operate> getOrFields() {
+    public Map<String, Operate> getOrFields() {
         return orFields;
     }
 

@@ -17,6 +17,7 @@ public @interface Table {
     String database() default "";
     String name() default "";
     String value() default "";
-    int lowerCase() default 0;
-    int upperCase() default 0;
+    boolean lowerCase() default false;
+    boolean upperCase() default false;
+    boolean upperCaseHead() default false;
 }

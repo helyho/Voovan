@@ -8,7 +8,7 @@ package org.voovan.db.recorder.exception;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class RecorderException extends Exception {
+public class RecorderException extends RuntimeException {
     public RecorderException(String message){
         super(message);
     }
