@@ -16,58 +16,58 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class Query {
-    private List<String> resultFields;
-    private Map<String, Operate> queryAndFields;
-    private Map<String, Operate> queryOrFields;
+    private List<String> dataFields;
+    private Map<String, Operate> andFields;
+    private Map<String, Operate> orFields;
     private Map<String[], Boolean> orderFields;
     private List<String> customCondictions;
     private int pageNumber = -1;
     private int pageSize = -1;
 
     public Query() {
-        resultFields = new ArrayList<String>();
-        queryAndFields = new IdentityHashMap<String, Operate>();
-        queryOrFields = new IdentityHashMap<String, Operate>();
+        dataFields = new ArrayList<String>();
+        andFields = new IdentityHashMap<String, Operate>();
+        orFields = new IdentityHashMap<String, Operate>();
         orderFields = new IdentityHashMap<String[], Boolean>();
         customCondictions = new ArrayList<String>();
     }
 
-    public Query addResult(String fieldName) {
-        resultFields.add(fieldName);
+    public Query data(String fieldName) {
+        dataFields.add(fieldName);
         return this;
     }
 
-    public Query addAnd(String fieldName, Operate operator) {
-        queryAndFields.put(fieldName, operator);
+    public Query and(String fieldName, Operate operator) {
+        andFields.put(fieldName, operator);
         return this;
     }
 
-    public Query AddOr(String fieldName, Operate operator) {
-        queryOrFields.put(fieldName, operator);
+    public Query or(String fieldName, Operate operator) {
+        orFields.put(fieldName, operator);
         return this;
     }
 
-    public Query addAnd(String fieldName) {
-        queryAndFields.put(fieldName, Operate.EQUAL);
+    public Query and(String fieldName) {
+        andFields.put(fieldName, Operate.EQUAL);
         return this;
     }
 
-    public Query AddOr(String fieldName) {
-        queryOrFields.put(fieldName, Operate.EQUAL);
+    public Query or(String fieldName) {
+        orFields.put(fieldName, Operate.EQUAL);
         return this;
     }
 
-    public Query addCustomCondiction(String customCondiction){
+    public Query custom(String customCondiction){
         customCondictions.add(customCondiction);
         return this;
     }
 
-    public Query addOrder(String ... fieldNames) {
+    public Query order(String ... fieldNames) {
         orderFields.put(fieldNames, false);
         return this;
     }
 
-    public Query addOrder(Boolean isDesc, String ... fieldNames) {
+    public Query order(Boolean isDesc, String ... fieldNames) {
         orderFields.put(fieldNames, isDesc);
         return this;
     }
@@ -95,18 +95,17 @@ public class Query {
         this.pageSize = pageSize;
     }
 
-    protected List<String> getResultFields() {
-        return resultFields;
+    protected List<String> getDataFields() {
+        return dataFields;
     }
 
-    protected Map<String, Operate> getQueryAndFields() {
-        return queryAndFields;
+    protected Map<String, Operate> getAndFields() {
+        return andFields;
     }
 
-    protected Map<String, Operate> getQueryOrFields() {
-        return queryOrFields;
+    protected Map<String, Operate> getOrFields() {
+        return orFields;
     }
-
 
     public List<String> getCustomCondictions() {
         return customCondictions;
@@ -117,7 +116,7 @@ public class Query {
     }
 
     public enum Operate{
-        EQUAL, NOT_EQUAL, GREATER, LESS, GREATER_EQUAL, LESS_EQUAL, LIKE, IN
+        EQUAL, NOT_EQUAL, GREATER, LESS, GREATER_EQUAL, LESS_EQUAL, LIKE, IN, NOT_LIKE, NOT_IN
     }
 
     public static String getActualOperate(Operate operate) throws RecorderException {
@@ -130,6 +129,8 @@ public class Query {
             case LESS_EQUAL : return "<=";
             case LIKE : return "like";
             case IN : return "in";
+            case NOT_LIKE : return "not like";
+            case NOT_IN : return "not in";
             default : throw new RecorderException("operate is unknow");
         }
     }
