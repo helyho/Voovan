@@ -272,10 +272,10 @@ public class Recorder {
         //SQL模板准备
         //准备查询列
         String mainSql = "select ";
-        if(query==null || query.getResultFields().size()==0){
+        if(query==null || query.getDataFields().size()==0){
             mainSql = mainSql + "*";
         } else {
-            for (String resultField : query.getResultFields()) {
+            for (String resultField : query.getDataFields()) {
                 if(TReflect.findFieldIgnoreCase(obj.getClass(), resultField)!=null) {
                     mainSql = mainSql + TSQL.wrapSqlField(jdbcOperate, TString.camelToUnderline(resultField)) + ",";
                 }
@@ -375,7 +375,7 @@ public class Recorder {
                 Object fieldValue = TReflect.getFieldValue(obj, fieldName);
 
                 //如果指定了列则不做一下判断
-                if(query==null || query.getResultFields().size() == 0) {
+                if(query==null || query.getDataFields().size() == 0) {
                     //检查字段是否为空
                     if (fieldValue == null) {
                         continue;
@@ -393,7 +393,7 @@ public class Recorder {
                     }
                 } else {
                     //如果有指定更新的列,则使用指定更新的列
-                    if (query != null && query.getResultFields().size() > 0 && !query.getResultFields().contains(fieldName)) {
+                    if (query != null && query.getDataFields().size() > 0 && !query.getDataFields().contains(fieldName)) {
                         continue;
                     }
                 }
@@ -567,7 +567,7 @@ public class Recorder {
             }
         } else {
 
-            for (Map.Entry<String, Query.Operate> entry : query.getQueryAndFields().entrySet()) {
+            for (Map.Entry<String, Query.Operate> entry : query.getAndFields().entrySet()) {
                 if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
                     String sqlField = entry.getKey();
                     if (camelToUnderline) {
@@ -577,7 +577,7 @@ public class Recorder {
                 }
             }
 
-            for (Map.Entry<String, Query.Operate> entry : query.getQueryOrFields().entrySet()) {
+            for (Map.Entry<String, Query.Operate> entry : query.getOrFields().entrySet()) {
                 if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
                     String sqlField = entry.getKey();
                     if (camelToUnderline) {
