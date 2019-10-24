@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class JdbcOperate implements Closeable {
-	private static Map<Long, JdbcOperate> JDBCOPERATE_THREAD_LIST = new ConcurrentHashMap<Long, JdbcOperate>();
+	private static Map<Long, JdbcOperate> JDBC_OPERATE_THREAD_LIST = new ConcurrentHashMap<Long, JdbcOperate>();
 
 	private DataSource	dataSource;
 	private Connection	connection;
@@ -118,13 +118,13 @@ public class JdbcOperate implements Closeable {
 			//事务嵌套模式
 			if (transcationType == TranscationType.NEST) {
 				//判断是否有上层事务
-				if (JDBCOPERATE_THREAD_LIST.containsKey(threadId)) {
-					connection = JDBCOPERATE_THREAD_LIST.get(threadId).connection;
+				if (JDBC_OPERATE_THREAD_LIST.containsKey(threadId)) {
+					connection = JDBC_OPERATE_THREAD_LIST.get(threadId).connection;
 					savepoint = connection.setSavepoint();
 				} else {
 					connection = dataSource.getConnection();
 					connection.setAutoCommit(false);
-					JDBCOPERATE_THREAD_LIST.put(threadId, this);
+					JDBC_OPERATE_THREAD_LIST.put(threadId, this);
 				}
 			}
 			//孤立事务模式
@@ -1088,7 +1088,7 @@ public class JdbcOperate implements Closeable {
 	private static void closeConnection(Connection connection) {
 		try {
 			if (connection != null) {
-				JDBCOPERATE_THREAD_LIST.remove(Thread.currentThread().getId());
+				JDBC_OPERATE_THREAD_LIST.remove(Thread.currentThread().getId());
 				connection.close();
 			}
 		} catch (SQLException e) {

@@ -22,35 +22,56 @@ import java.util.Map;
  * WebSite: https://github.com/helyho/walletbridge
  * Licence: Apache v2 License
  */
-public class Dao<T> {
+public class Dao<T extends Dao> {
     public static String[] emptyStringArray = new String[0];
 
     @NotUpdate
     @NotInsert
     @NotSerialization
-    public transient DataSource dataSource;
+    public transient JdbcOperate jdbcOperate;
+
+    @NotUpdate
+    @NotInsert
+    @NotSerialization
+    public transient Recorder recorder;
 
     @NotUpdate
     @NotInsert
     @NotSerialization
     public transient Map<String, Object> snapshot;
 
-    public DataSource getDataSource() {
-        return dataSource;
+    public JdbcOperate getJdbcOperate() {
+        return jdbcOperate;
     }
 
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
+    public void setJdbcOperate(JdbcOperate jdbcOperate) {
+        if(jdbcOperate == null) {
+            throw new RecorderException("JdbcOperate must not null");
+        }
+        this.recorder = new Recorder(jdbcOperate);
+        this.jdbcOperate = jdbcOperate;
+    }
+
+    public Recorder getRecorder() {
+        return recorder;
+    }
+
+    public void setRecorder(Recorder recorder) {
+        if(recorder == null) {
+            throw new RecorderException("Recorder must not null");
+        }
+        this.jdbcOperate = recorder.getJdbcOperate();
+        this.recorder = recorder;
     }
 
     public boolean insert() {
-        Recorder recorder = new Recorder(new JdbcOperate(dataSource));
         return recorder.insert((T)this) == 1;
     }
 
-    public void snapshot() {
+    public T snapshot() {
         try {
             snapshot = TReflect.getMapfromObject(this);
+            return (T)this;
         } catch (ReflectiveOperationException e) {
             throw new RecorderException("beginUpdate failed", e);
         }
@@ -81,10 +102,13 @@ public class Dao<T> {
         }
     }
 
-    public boolean update(String ... dataFields) {
-        Recorder recorder = new Recorder(new JdbcOperate(dataSource));
+    public boolean update(String[] dataFields, int effectRow) {
         Query query = Query.newInstance().data(dataFields);
-        return recorder.update((T)this, query) == 1;
+        return recorder.update((T)this, query) == effectRow;
+    }
+
+    public boolean update(String ... dataFields) {
+        return update(dataFields, 1);
     }
 
     public boolean update() {
@@ -96,7 +120,6 @@ public class Dao<T> {
     }
 
     public List<T> query(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
-        Recorder recorder = new Recorder(new JdbcOperate(dataSource));
         Query query = Query.newInstance().data(dataFields).and(andFields);
         pageNum = pageNum == null ? -1 : pageNum;
         pageSize = pageSize == null ? -1 : pageSize;
@@ -126,7 +149,6 @@ public class Dao<T> {
     }
 
     public T queryOne(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
-        Recorder recorder = new Recorder(new JdbcOperate(dataSource));
         Query query = Query.newInstance().data(dataFields).and(andFields);
         pageNum = pageNum == null ? -1 : pageNum;
         pageSize = pageSize == null ? -1 : pageSize;
@@ -164,26 +186,27 @@ public class Dao<T> {
         }
     }
 
-
-    public int count(String... andFields) {
-        Recorder recorder = new Recorder(new JdbcOperate(dataSource));
+    public <R> R customQuery(String dataSql, String[] andFields, Class<R> clazz) {
         Query query = Query.newInstance().and(andFields);
-        return recorder.count((T)this, query);
+        return recorder.customQuery(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
     }
 
-    public int count() {
+    public <R> R customQuery(String dataSql, Class<R> clazz) {
         if(snapshot !=null) {
-            return count(getModifyField());
+            return customQuery(dataSql, getModifyField(), clazz);
         } else {
-            return count(null);
+            return customQuery(dataSql, null, clazz);
         }
     }
 
-    public boolean delete(String ... andFields) {
-        Recorder recorder = new Recorder(new JdbcOperate(dataSource));
+    public boolean delete(String[] andFields, int effectRow) {
         Query query = Query.newInstance().and(andFields);
 
-        return recorder.delete((T)this, query) == 1;
+        return recorder.delete((T)this, query) == effectRow;
+    }
+
+    public boolean delete(String ... andFields) {
+        return delete(andFields, 1);
     }
 
     public boolean delete() {
