@@ -39,6 +39,8 @@ public class JdbcOperate implements Closeable {
 	private Statement statement;
 	private ResultSet resultSet;
 
+	private DataBaseType dataBaseType;
+
 	private List<JdbcOperate> bindedJdbcOperate = new ArrayList<JdbcOperate>();
 	private boolean isTransactionFinished = false;
 
@@ -48,6 +50,7 @@ public class JdbcOperate implements Closeable {
 	 */
 	public JdbcOperate(DataSource dataSource) {
 		this.dataSource = dataSource;
+		this.dataBaseType = TSQL.getDataBaseType(dataSource);
 		this.transcationType = TranscationType.NONE;
 	}
 
@@ -56,8 +59,9 @@ public class JdbcOperate implements Closeable {
 	 * @param dataSource	数据源
 	 * @param isTrancation   是否启用事物支持, 默认使用的`NEST`(嵌套事务)的事物方式
 	 */
-	public JdbcOperate(DataSource dataSource,boolean isTrancation){
+	public JdbcOperate(DataSource dataSource, boolean isTrancation){
 		this.dataSource = dataSource;
+		this.dataBaseType = TSQL.getDataBaseType(dataSource);
 		this.transcationType = (isTrancation? TranscationType.NEST : TranscationType.NONE);
 	}
 
@@ -66,9 +70,14 @@ public class JdbcOperate implements Closeable {
 	 * @param dataSource	数据源
 	 * @param transcationType    是否启用事务支持, 设置事务模式
 	 */
-	public JdbcOperate(DataSource dataSource,TranscationType transcationType){
+	public JdbcOperate(DataSource dataSource, TranscationType transcationType){
 		this.dataSource = dataSource;
+		this.dataBaseType = TSQL.getDataBaseType(dataSource);
 		this.transcationType = transcationType;
+	}
+
+	public DataBaseType getDataBaseType() {
+		return dataBaseType;
 	}
 
 	/**

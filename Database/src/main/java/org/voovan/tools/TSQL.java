@@ -8,6 +8,7 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.security.THash;
 
+import javax.sql.DataSource;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.*;
@@ -641,24 +642,46 @@ public class TSQL {
 	 * @param connection 连接对象
 	 * @return 数据库类型
 	 */
-	public static DataBaseType getDataBaseType(Connection connection) {
+	private static Map<DataSource, DataBaseType> DATABASE_TYPE_MAP = new ConcurrentHashMap<DataSource, DataBaseType>();
+	public static DataBaseType getDataBaseType(DataSource dataSource) {
+		Connection connection = null;
+		DataBaseType dataBaseType = DataBaseType.UNKNOW;
+
 		try {
+			dataBaseType = DATABASE_TYPE_MAP.get(dataSource);
+			if (dataBaseType == null) {
+				connection = dataSource.getConnection();
+				String driverName = connection.getMetaData().getDriverName();
 
-			//通过driverName是否包含关键字判断
-			if (connection.getMetaData().getDriverName().toUpperCase().indexOf("MYSQL") != -1) {
-				return DataBaseType.MySql;
-			} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("MARIADB") != -1) {
-				return DataBaseType.Mariadb;
-			} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("POSTAGE") != -1) {
-				return DataBaseType.Postage;
-			} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("ORACLE") != -1) {
-				return DataBaseType.Oracle;
+				//通过driverName是否包含关键字判断
+				if (connection.getMetaData().getDriverName().toUpperCase().indexOf("MYSQL") != -1) {
+					dataBaseType = DataBaseType.MySql;
+				} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("MARIADB") != -1) {
+					dataBaseType = DataBaseType.Mariadb;
+				} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("POSTAGE") != -1) {
+					dataBaseType = DataBaseType.Postage;
+				} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("ORACLE") != -1) {
+					dataBaseType = DataBaseType.Oracle;
+				}
+
+				dataBaseType = DataBaseType.UNKNOW;
+
+				DATABASE_TYPE_MAP.put(dataSource, dataBaseType);
 			}
-
-			return DataBaseType.UNKNOW;
 		} catch (SQLException e) {
-			return DataBaseType.UNKNOW;
+			dataBaseType = DataBaseType.UNKNOW;
+		} finally {
+			if(connection!=null) {
+				try {
+					connection.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
 		}
+
+		return dataBaseType;
+
 	}
 
 
@@ -668,24 +691,17 @@ public class TSQL {
 	 * @param sqlField sql 关键字
 	 * @return sql字符串
 	 */
-	public static String wrapSqlField(JdbcOperate jdbcOperate, String sqlField){
-		try {
-			Connection connection = jdbcOperate.getConnection();
-			DataBaseType dataBaseType = TSQL.getDataBaseType(connection);
-			if (dataBaseType.equals(DataBaseType.Mariadb) || dataBaseType.equals(DataBaseType.MySql)) {
-				return "`"+sqlField+"`";
-			} else if (dataBaseType.equals(DataBaseType.Oracle)) {
-				return "\""+sqlField+"\"";
-			} else if (dataBaseType.equals(DataBaseType.Postage)) {
-				return "`"+sqlField+"`";
-			} else {
-				return sqlField;
-			}
-		} catch (SQLException e) {
-			Logger.error("wrap sql field error", e);
+	public static String wrapSqlField(JdbcOperate jdbcOperate, String sqlField) {
+		DataBaseType dataBaseType = jdbcOperate.getDataBaseType();
+		if (dataBaseType.equals(DataBaseType.Mariadb) || dataBaseType.equals(DataBaseType.MySql)) {
+			return "`"+sqlField+"`";
+		} else if (dataBaseType.equals(DataBaseType.Oracle)) {
+			return "\""+sqlField+"\"";
+		} else if (dataBaseType.equals(DataBaseType.Postage)) {
+			return "`"+sqlField+"`";
+		} else {
 			return sqlField;
 		}
-
 	}
 
 	/**

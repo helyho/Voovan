@@ -352,20 +352,15 @@ public class Recorder {
 
         //自动识别数据库类型选择不同的方言进行分页
         if(query != null) {
-            try {
-                Connection connection = jdbcOperate.getConnection();
-                DataBaseType dataBaseType = TSQL.getDataBaseType(connection);
-                if (dataBaseType.equals(DataBaseType.Mariadb) || dataBaseType.equals(DataBaseType.MySql)) {
-                    return genMysqlPageSql(resultSql, query);
-                } else if (dataBaseType.equals(DataBaseType.Oracle)) {
-                    return genOraclePageSql(resultSql, query);
-                } else if (dataBaseType.equals(DataBaseType.Postage)) {
-                    return genOraclePageSql(resultSql, query);
-                } else {
-                    return resultSql;
-                }
-            } catch (SQLException e) {
-                throw new RecorderException("Recorder builde page failed", e);
+            DataBaseType dataBaseType = jdbcOperate.getDataBaseType();
+            if (dataBaseType.equals(DataBaseType.Mariadb) || dataBaseType.equals(DataBaseType.MySql)) {
+                return genMysqlPageSql(resultSql, query);
+            } else if (dataBaseType.equals(DataBaseType.Oracle)) {
+                return genOraclePageSql(resultSql, query);
+            } else if (dataBaseType.equals(DataBaseType.Postage)) {
+                return genOraclePageSql(resultSql, query);
+            } else {
+                return resultSql;
             }
         }
 
