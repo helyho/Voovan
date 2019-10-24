@@ -96,6 +96,7 @@ public class JSONPath {
      * 获取JSONPath 对应的节点数据,默认忽略段大小写
      * @param pathQry JSONPath 路径
      * @param defaultValue 节点不存在时的默认值
+     * @param <T>     范型
      * @return  节点的数据
      */
     public <T> T value(String pathQry,T defaultValue) {

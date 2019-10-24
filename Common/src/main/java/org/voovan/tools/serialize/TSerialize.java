@@ -66,6 +66,7 @@ public class TSerialize {
     /**
      * 注册一个 Class 名称简写
      * @param clazz 类对象
+     * @return 注册的 hashcode
      */
     public static int register(Class clazz){
         int hashcode = THash.HashFNV1(clazz.getName());
