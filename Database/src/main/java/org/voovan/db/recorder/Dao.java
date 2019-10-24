@@ -15,7 +15,7 @@ import java.util.Map;
 
 
 /**
- * 类文字命名
+ * Dao 对象基础类
  *
  * @author: helyho
  * walletbridge Framework.
@@ -33,7 +33,7 @@ public class Dao<T> {
     @NotUpdate
     @NotInsert
     @NotSerialization
-    public transient Map<String, Object> originMap;
+    public transient Map<String, Object> snapshot;
 
     public DataSource getDataSource() {
         return dataSource;
@@ -48,34 +48,34 @@ public class Dao<T> {
         return recorder.insert((T)this) == 1;
     }
 
-    public void beginUpdate() {
+    public void snapshot() {
         try {
-            originMap = TReflect.getMapfromObject(this);
+            snapshot = TReflect.getMapfromObject(this);
         } catch (ReflectiveOperationException e) {
             throw new RecorderException("beginUpdate failed", e);
         }
     }
 
-    public void endUpdate() {
+    private String[] getModifyField() {
         try {
-            Map<String, Object> currentMap = TReflect.getMapfromObject(this);
+            Map<String, Object> current = TReflect.getMapfromObject(this);
 
             List<String> modifyField = new ArrayList<String>();
-            for(Map.Entry<String, Object> entry : currentMap.entrySet()) {
-                Object originFieldValue = originMap.get(entry.getKey());
+            for (Map.Entry<String, Object> entry : current.entrySet()) {
+                Object originFieldValue = snapshot.get(entry.getKey());
                 Object currentFieldValue = entry.getValue();
 
-                if(originFieldValue==null && currentFieldValue==null) {
+                if (originFieldValue == null && currentFieldValue == null) {
                     continue;
-                } else if(originFieldValue!=null && !originFieldValue.equals(currentFieldValue)) {
+                } else if (originFieldValue != null && !originFieldValue.equals(currentFieldValue)) {
                     modifyField.add(entry.getKey());
-                } else if(currentFieldValue!=null && !currentFieldValue.equals(originFieldValue)) {
+                } else if (currentFieldValue != null && !currentFieldValue.equals(originFieldValue)) {
                     modifyField.add(entry.getKey());
                 }
             }
 
-            update(modifyField.toArray(emptyStringArray));
-            originMap = null;
+            snapshot = null;
+            return modifyField.toArray(emptyStringArray);
         } catch (ReflectiveOperationException e) {
             throw new RecorderException("endUpdate failed", e);
         }
@@ -88,7 +88,11 @@ public class Dao<T> {
     }
 
     public boolean update() {
-        return update(null);
+        if(snapshot !=null) {
+            return update(getModifyField());
+        } else {
+            return update(null);
+        }
     }
 
     public List<T> query(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
@@ -114,7 +118,11 @@ public class Dao<T> {
     }
 
     public List<T> query() {
-        return query(null, null, null, null);
+        if(snapshot !=null) {
+            return query(null, getModifyField(), null, null);
+        } else {
+            return query(null, null, null, null);
+        }
     }
 
     public T queryOne(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
@@ -149,18 +157,26 @@ public class Dao<T> {
     }
 
     public T queryOne() {
-        return queryOne(null, null, null, null);
+        if(snapshot !=null) {
+            return queryOne(null, getModifyField(), null, null);
+        } else {
+            return queryOne(null, null, null, null);
+        }
     }
 
 
-    public int count(String[] andFields) {
+    public int count(String... andFields) {
         Recorder recorder = new Recorder(new JdbcOperate(dataSource));
         Query query = Query.newInstance().and(andFields);
         return recorder.count((T)this, query);
     }
 
     public int count() {
-        return count(null);
+        if(snapshot !=null) {
+            return count(getModifyField());
+        } else {
+            return count(null);
+        }
     }
 
     public boolean delete(String ... andFields) {
@@ -171,6 +187,10 @@ public class Dao<T> {
     }
 
     public boolean delete() {
-        return delete(null);
+        if(snapshot !=null) {
+            return delete(getModifyField());
+        } else {
+            return delete(null);
+        }
     }
 }
