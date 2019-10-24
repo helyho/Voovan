@@ -15,6 +15,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -53,6 +54,13 @@ public class Recorder {
         this.camelToUnderline = camelToUnderline;
     }
 
+    public JdbcOperate getJdbcOperate() {
+        return jdbcOperate;
+    }
+
+    public void setJdbcOperate(JdbcOperate jdbcOperate) {
+        this.jdbcOperate = jdbcOperate;
+    }
 
     /**
      * 查询操作
@@ -61,7 +69,6 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 查询结果
-     * @Recorder 操作异常
      */
     public <T> List<T> query(String tableName, T obj, Query query) {
         try {
@@ -81,7 +88,6 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 查询结果
-     * @Recorder 操作异常
      */
     public <T> List<T> query(T obj, Query query) {
         return query(null, obj, query);
@@ -93,7 +99,6 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 查询结果
-     * @Recorder 操作异常
      */
     public <T> List<T> query(String tableName, T obj) {
         return query(tableName, obj, null);
@@ -104,66 +109,39 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 查询结果
-     * @Recorder 操作异常
      */
     public <T> List<T> query(T obj) {
         return query(null, obj, null);
     }
 
     /**
-     * 查询操作
+     * 自定义查询操作
      * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 累计数据条数
-     * @Recorder 操作异常
      */
-    public <T> int count(String tableName, T obj, Query query) {
+    public <T, R> R customQuery(String tableName, String dataSql, String whereSql, T obj, Class<R> clazz) {
         try {
-            return jdbcOperate.queryObject(buildCountSqlTemplate(tableName, obj, query), Integer.class, obj);
+            whereSql = whereSql == null ? "" : whereSql;
+
+            Table table = obj.getClass().getAnnotation(Table.class);
+
+            if(tableName == null){
+                tableName = getTableNameWithDataBase(obj);
+            }
+
+            String sqlStr = TString.assembly("select " , dataSql , " from ", tableName, " ", whereSql);
+
+            return jdbcOperate.queryObject(sqlStr, clazz,  obj);
         }catch (Exception e){
             if(e instanceof RecorderException){
                 throw (RecorderException)e;
             } else {
-                throw new RecorderException("Recorder query error: " + JSON.toJSON(obj), e);
+                throw new RecorderException("Recorder statistics error: " + JSON.toJSON(obj), e);
             }
         }
-    }
-
-    /**
-     * 查询操作
-     * @param obj 数据 ORM 对象
-     * @param query 查询条件
-     * @param <T> 范型类型
-     * @return 累计数据条数
-     * @Recorder 操作异常
-     */
-    public <T> int count(T obj, Query query) {
-        return count(null, obj, query);
-    }
-
-    /**
-     * 查询操作
-     * @param tableName 指定的表名
-     * @param obj 数据 ORM 对象
-     * @param <T> 范型类型
-     * @return 累计数据条数
-     * @Recorder 操作异常
-     */
-    public <T> int count(String tableName, T obj) {
-        return count(tableName, obj, null);
-    }
-
-    /**
-     * 查询操作
-     * @param obj 数据 ORM 对象
-     * @param <T> 范型类型
-     * @return 累计数据条数
-     * @Recorder 操作异常
-     */
-    public <T> int count(T obj) {
-        return count(null, obj, null);
     }
 
     /**
@@ -173,7 +151,6 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @Recorder 操作异常
      */
     public <T> int update(String tableName, T obj, Query query) {
         try {
@@ -193,7 +170,6 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @Recorder 操作异常
      */
     public <T> int update(T obj, Query query) {
         return update(null, obj, query);
@@ -205,7 +181,6 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @Recorder 操作异常
      */
     public <T> int update(String tableName, T obj) {
         return update(tableName, obj, null);
@@ -216,7 +191,6 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @Recorder 操作异常
      */
     public <T> int update(T obj) {
         return update(null, obj, null);
@@ -229,7 +203,6 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @Recorder 操作异常
      */
     public <T> int delete(String tableName, T obj, Query query) {
         try {
@@ -249,7 +222,6 @@ public class Recorder {
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @Recorder 操作异常
      */
     public <T> int delete(T obj, Query query) {
         return delete(null, obj, query);
@@ -261,7 +233,6 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @Recorder 操作异常
      */
     public <T> int delete(String tableName, T obj) {
         return delete(tableName, obj, null);
@@ -272,7 +243,6 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @return 更新数据条数
      * @param <T> 范型类型
-     * @Recorder 操作异常
      */
     public <T> int delete(T obj) {
         return delete(null, obj, null);
@@ -285,7 +255,6 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @Recorder 操作异常
      */
     public <T> int insert(String tableName, T obj) {
         try{
@@ -304,31 +273,13 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
-     * @Recorder 操作异常
      */
     public <T> int insert(T obj) {
         return insert(null, obj);
     }
 
-    /**
-     * 构造查询的 SQL
-     * @param tableName 指定的表名
-     * @param obj 数据 ORM 对象
-     * @param query 查询条件
-     * @param <T> 范型类型
-     * @return 拼装的 SQL
-     * @Recorder 操作异常
-     */
-    public <T> String buildQuerySqlTemplate(String tableName, T obj, Query query) {
-        Table table = obj.getClass().getAnnotation(Table.class);
-
-        if(tableName == null){
-            tableName = getTableNameWithDataBase(obj);
-        }
-
-        //SQL模板准备
-        //准备查询列
-        String mainSql = "select ";
+    public <T> String buildQueryField(T obj, Query query) {
+        String mainSql = "";
         if(query==null || query.getDataFields().size()==0){
             mainSql = mainSql + "*";
         } else {
@@ -342,6 +293,28 @@ public class Recorder {
         if(mainSql.endsWith(",")) {
             mainSql = TString.removeSuffix(mainSql);
         }
+
+        return mainSql;
+    }
+
+    /**
+     * 构造查询的 SQL
+     * @param tableName 指定的表名
+     * @param obj 数据 ORM 对象
+     * @param query 查询条件
+     * @param <T> 范型类型
+     * @return 拼装的 SQL
+     */
+    public <T> String buildQuerySqlTemplate(String tableName, T obj, Query query) {
+        Table table = obj.getClass().getAnnotation(Table.class);
+
+        if(tableName == null){
+            tableName = getTableNameWithDataBase(obj);
+        }
+
+        //SQL模板准备
+        //准备查询列
+        String mainSql = "select " + buildQueryField(obj, query);
 
         mainSql = TString.assembly(mainSql, " from ", tableName);
 
@@ -400,45 +373,12 @@ public class Recorder {
     }
 
     /**
-     * 构造计数查询的 SQL
-     * @param tableName 指定的表名
-     * @param obj 数据 ORM 对象
-     * @param query 查询条件
-     * @param <T> 范型类型
-     * @return 拼装的 SQL
-     * @Recorder 操作异常
-     */
-    public <T> String buildCountSqlTemplate(String tableName, T obj, Query query) {
-        Table table = obj.getClass().getAnnotation(Table.class);
-
-        if(tableName == null){
-            tableName = getTableNameWithDataBase(obj);
-        }
-
-        //SQL模板准备
-        //准备查询列
-        String mainSql = "select count(*) cnt";
-
-        mainSql = TString.assembly(mainSql, " from ", tableName);
-
-        //处理查询条件
-        String whereSql = genWhereSql(obj, query);
-
-
-        String resultSql = TString.assembly(mainSql, " ", whereSql);
-
-        return resultSql;
-    }
-
-
-    /**
      * 构造更新的 SQL
      * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
      * @param query 查询条件
      * @param <T> 范型类型
      * @return 拼装的 SQL
-     * @Recorder 操作异常
      */
     public <T> String buildUpdateSqlTemplate(String tableName, T obj, Query query) {
         Table table = obj.getClass().getAnnotation(Table.class);
@@ -518,7 +458,6 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 拼装的 SQL
-     * @Recorder 操作异常
      */
     public <T> String buildInsertSqlTemplate(String tableName, T obj) {
         Table table = obj.getClass().getAnnotation(Table.class);
@@ -573,7 +512,6 @@ public class Recorder {
      * @param query 查询对象
      * @param <T> 范型类型
      * @return 拼装的 SQL
-     * @Recorder 操作异常
      */
     public <T> String buildDeleteSqlTemplate(String tableName, T obj, Query query) {
         Table table = obj.getClass().getAnnotation(Table.class);
@@ -640,8 +578,6 @@ public class Recorder {
      * @param obj  数据对象
      * @param query 查询对象
      * @return where 后面的 sql
-     * @Recorder 操作异常
-     *
      */
     public String genWhereSql(Object obj, Query query) {
         String whereSql = "where 1=1";
