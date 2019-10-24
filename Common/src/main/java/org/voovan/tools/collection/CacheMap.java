@@ -45,6 +45,7 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
     /**
      * 构造函数
      * @param map 缓存数据的 Map 对象
+     * @param maxSize 最大元素数量
      */
     public CacheMap(Map<K, V> map, int maxSize){
         this.maxSize = maxSize;

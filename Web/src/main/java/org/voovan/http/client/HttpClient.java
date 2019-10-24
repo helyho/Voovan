@@ -472,7 +472,6 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * 连接并发送请求,异步获得响应
 	 * @param location 请求 URL
 	 * @param async 异步响应消费对象
-	 * @return Response 对象
 	 * @throws SendMessageException  发送异常
 	 * @throws ReadMessageException  读取异常
 	 */
@@ -554,7 +553,6 @@ public class HttpClient extends PooledObject implements Closeable{
 	/**
 	 * 连接并发送请求,异步获得响应
 	 * @param async 异步响应消费对象
-	 * @return Response 对象
 	 * @throws SendMessageException  发送异常
 	 * @throws ReadMessageException  读取异常
 	 */

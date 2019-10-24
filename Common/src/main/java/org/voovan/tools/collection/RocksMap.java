@@ -1387,7 +1387,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param fromKey 起始 key
      * @param toKey   结束 key
      * @param checker 数据清理逻辑, true: 继续扫描, false: 停止扫描
-     * @param disableWal 是否屏蔽 wal
      */
     public void scan(K fromKey, K toKey, Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker) {
         scan(fromKey, toKey, checker, false);

@@ -123,9 +123,12 @@ public class Recorder {
     /**
      * 自定义查询操作
      * @param tableName 指定的表名
+     * @param dataSql select 和 from 之间的 sql 片段
+     * @param whereSql where 后的 sql 片段
      * @param obj 数据 ORM 对象
-     * @param query 查询条件
+     * @param clazz 返回类型
      * @param <T> 范型类型
+     * @param <R> 返回值的范型类型
      * @return 累计数据条数
      */
     public <T, R> R customQuery(String tableName, String dataSql, String whereSql, T obj, Class<R> clazz) {

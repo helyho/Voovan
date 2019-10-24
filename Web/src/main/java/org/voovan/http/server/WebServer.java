@@ -766,6 +766,7 @@ public class WebServer {
 	/**
 	 * 启动服务
 	 * @param args 启动参数
+	 * @return WebServer对象
 	 */
 	public static WebServer newInstance(String[] args) {
 

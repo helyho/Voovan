@@ -72,7 +72,7 @@ public class TReflect {
     /**
      * 注册一个类, 尝试采用 native 方式进行反射调用
      * @param clazz 类对象
-     * @throws ReflectiveOperationException 反射异常
+     * @return true: 成功, false: 失败
      */
     public static boolean register(Class clazz) {
         try {
@@ -387,7 +387,7 @@ public class TReflect {
      * @param params 方法参数
      * @param <T> 方法返回值的范型
      * @return 方法返回值
-     * @throws Exception 调用异常
+     * @throws ReflectiveOperationException 调用异常
      */
     public static <T> T newInstanceNative(Class clazz, Object ... params) throws ReflectiveOperationException {
 
@@ -415,7 +415,7 @@ public class TReflect {
      * @param methodName 方法名
      * @param params 方法参数
      * @return 方法返回值
-     * @throws Exception 调用异常
+     * @throws ReflectiveOperationException 调用异常
      */
     public static <T> T invokeMethodNative(Object obj, String methodName, Object ... params) throws ReflectiveOperationException {
         DynamicFunction dynamicFunction = METHOD_INVOKE.get(getClassName(obj.getClass()));
@@ -1892,7 +1892,7 @@ public class TReflect {
 
     /**
      * 获得装箱类型
-     * @param primitiveType 原始类型
+     * @param clazz 原始类型
      * @return 装箱类型
      */
     public static Class getPackageClass(Class clazz){
@@ -1909,8 +1909,8 @@ public class TReflect {
 
     /**
      * 获得拆箱类型
-     * @param primitiveType 原始类型
-     * @return 装箱类型
+     * @param clazz 装箱类型
+     * @return 拆箱类型
      */
     public static Class getUnPackageClass(Class clazz){
         if(clazz == Integer.class){return int.class;}

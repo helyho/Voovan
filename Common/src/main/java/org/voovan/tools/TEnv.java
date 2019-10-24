@@ -563,6 +563,7 @@ public class TEnv {
 	 * 等待函数
 	 * @param waitTime 等待时间
 	 * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
+	 * @return true: 等待达到预期, false: 等待超时
 	 */
 	public static boolean wait(int waitTime, Supplier<Boolean> supplier) {
 		return wait(waitTime, true, supplier);
@@ -573,6 +574,7 @@ public class TEnv {
 	 * @param waitTime 等待时间
 	 * @param isCLH 是否启用自旋
 	 * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
+	 * @return true: 等待达到预期, false: 等待超时
 	 */
 	public static boolean wait(int waitTime, boolean isCLH, Supplier<Boolean> supplier) {
 		long start = System.currentTimeMillis();
@@ -598,6 +600,7 @@ public class TEnv {
 	/**
 	 * 等待函数
 	 * @param supplier 满足条件时一直等待, 如果该方法返回 true 一直等待, false 达到预期退出等待
+	 * @return true: 等待达到预期, false: 等待超时
 	 */
 	public static boolean wait(Supplier<Boolean> supplier) {
 		return wait(Integer.MAX_VALUE, true, supplier);
@@ -630,10 +633,23 @@ public class TEnv {
 	 * @param msg 输出的消息
 	 * @param supplier 执行器
 	 * @param timeUnit 输出的时间单位
+	 * @return 测量结果
 	 */
 	public static List measure(String msg, Supplier supplier, TimeUnit timeUnit) {
 		List result = measure(supplier);
 		System.out.println(msg + " " + ((Long)result.get(1))/(timeUnit.toNanos(1)*1f) + ", result:" + result.get(0));
+		return result;
+	}
+
+	/**
+	 * 性能测试方法
+	 * @param msg 输出的消息
+	 * @param supplier 执行器
+	 * @return 测量结果
+	 */
+	public static List measure(String msg, Supplier supplier) {
+		List result = measure(supplier);
+		System.out.println(msg + " " + ((Long)result.get(1))/(TimeUnit.MILLISECONDS.toNanos(1)*1f) + ", result:" + result.get(0));
 		return result;
 	}
 

@@ -31,11 +31,6 @@ public class Weave {
     /**
      * 构造函数
      * @param weaveConfig Aop配置对象
-     * @throws IOException IO 异常
-     * @throws AttachNotSupportedException 附加指定进程失败
-     * @throws AgentLoadException Agent 加载异常
-     * @throws AgentInitializationException Agent 初始化异常
-     * @throws ClassNotFoundException 类找不到异常
      */
     public static void init(WeaveConfig weaveConfig) {
         if(weaveConfig ==null){
