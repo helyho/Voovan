@@ -91,23 +91,39 @@ public class Dao<T> {
         return update(null);
     }
 
-    public List<T> query(String[] dataFields, String[] andFields) {
+    public List<T> query(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
         Recorder recorder = new Recorder(new JdbcOperate(dataSource));
         Query query = Query.newInstance().data(dataFields).and(andFields);
+        pageNum = pageNum == null ? -1 : pageNum;
+        pageSize = pageSize == null ? -1 : pageSize;
+        query.page(pageNum, pageSize);
+
         return recorder.query((T)this, query);
     }
 
+    public List<T> query(String[] andFields, Integer pageNum, Integer pageSize) {
+        return query(null, andFields, pageNum, pageSize);
+    }
+
+    public List<T> query(String[] dataFields, String[] andFields) {
+        return query(dataFields, andFields, null, null);
+    }
+
     public List<T> query(String ... andFields) {
-        return query(null, andFields);
+        return query(null, andFields, null, null);
     }
 
     public List<T> query() {
-        return query(null, null);
+        return query(null, null, null, null);
     }
 
-    public T queryOne(String[] dataFields, String[] andFields) {
+    public T queryOne(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
         Recorder recorder = new Recorder(new JdbcOperate(dataSource));
         Query query = Query.newInstance().data(dataFields).and(andFields);
+        pageNum = pageNum == null ? -1 : pageNum;
+        pageSize = pageSize == null ? -1 : pageSize;
+        query.page(pageNum, pageSize);
+
         List<T> results = recorder.query((T)this, query);
 
         if(results.size()==0) {
@@ -120,14 +136,32 @@ public class Dao<T> {
         }
     }
 
+    public T queryOne(String[] andFields, Integer pageNum, Integer pageSize) {
+        return queryOne(null, andFields, pageNum, pageSize);
+    }
+
+    public List<T> queryOne(String[] dataFields, String[] andFields) {
+        return query(dataFields, andFields, null, null);
+    }
+
     public T queryOne(String ... andFields) {
-        return queryOne(null, andFields);
+        return queryOne(null, andFields, null, null);
     }
 
     public T queryOne() {
-        return queryOne(null, null);
+        return queryOne(null, null, null, null);
     }
 
+
+    public int count(String[] andFields) {
+        Recorder recorder = new Recorder(new JdbcOperate(dataSource));
+        Query query = Query.newInstance().and(andFields);
+        return recorder.count((T)this, query);
+    }
+
+    public int count() {
+        return count(null);
+    }
 
     public boolean delete(String ... andFields) {
         Recorder recorder = new Recorder(new JdbcOperate(dataSource));

@@ -60,7 +60,7 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param query 查询条件
      * @param <T> 范型类型
-     * @return 更新数据条数
+     * @return 查询结果
      * @Recorder 操作异常
      */
     public <T> List<T> query(String tableName, T obj, Query query) {
@@ -80,7 +80,7 @@ public class Recorder {
      * @param obj 数据 ORM 对象
      * @param query 查询条件
      * @param <T> 范型类型
-     * @return 更新数据条数
+     * @return 查询结果
      * @Recorder 操作异常
      */
     public <T> List<T> query(T obj, Query query) {
@@ -92,7 +92,7 @@ public class Recorder {
      * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
-     * @return 更新数据条数
+     * @return 查询结果
      * @Recorder 操作异常
      */
     public <T> List<T> query(String tableName, T obj) {
@@ -103,11 +103,67 @@ public class Recorder {
      * 查询操作
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
-     * @return 更新数据条数
+     * @return 查询结果
      * @Recorder 操作异常
      */
     public <T> List<T> query(T obj) {
         return query(null, obj, null);
+    }
+
+    /**
+     * 查询操作
+     * @param tableName 指定的表名
+     * @param obj 数据 ORM 对象
+     * @param query 查询条件
+     * @param <T> 范型类型
+     * @return 累计数据条数
+     * @Recorder 操作异常
+     */
+    public <T> int count(String tableName, T obj, Query query) {
+        try {
+            return jdbcOperate.queryObject(buildCountSqlTemplate(tableName, obj, query), Integer.class, obj);
+        }catch (Exception e){
+            if(e instanceof RecorderException){
+                throw (RecorderException)e;
+            } else {
+                throw new RecorderException("Recorder query error: " + JSON.toJSON(obj), e);
+            }
+        }
+    }
+
+    /**
+     * 查询操作
+     * @param obj 数据 ORM 对象
+     * @param query 查询条件
+     * @param <T> 范型类型
+     * @return 累计数据条数
+     * @Recorder 操作异常
+     */
+    public <T> int count(T obj, Query query) {
+        return count(null, obj, query);
+    }
+
+    /**
+     * 查询操作
+     * @param tableName 指定的表名
+     * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
+     * @return 累计数据条数
+     * @Recorder 操作异常
+     */
+    public <T> int count(String tableName, T obj) {
+        return count(tableName, obj, null);
+    }
+
+    /**
+     * 查询操作
+     * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
+     * @return 累计数据条数
+     * @Recorder 操作异常
+     */
+    public <T> int count(T obj) {
+        return count(null, obj, null);
     }
 
     /**
@@ -339,6 +395,37 @@ public class Recorder {
                 throw new RecorderException("Recorder builde page failed", e);
             }
         }
+
+        return resultSql;
+    }
+
+    /**
+     * 构造计数查询的 SQL
+     * @param tableName 指定的表名
+     * @param obj 数据 ORM 对象
+     * @param query 查询条件
+     * @param <T> 范型类型
+     * @return 拼装的 SQL
+     * @Recorder 操作异常
+     */
+    public <T> String buildCountSqlTemplate(String tableName, T obj, Query query) {
+        Table table = obj.getClass().getAnnotation(Table.class);
+
+        if(tableName == null){
+            tableName = getTableNameWithDataBase(obj);
+        }
+
+        //SQL模板准备
+        //准备查询列
+        String mainSql = "select count(*) cnt";
+
+        mainSql = TString.assembly(mainSql, " from ", tableName);
+
+        //处理查询条件
+        String whereSql = genWhereSql(obj, query);
+
+
+        String resultSql = TString.assembly(mainSql, " ", whereSql);
 
         return resultSql;
     }
