@@ -4,6 +4,7 @@ import org.voovan.db.JdbcOperate;
 import org.voovan.db.recorder.annotation.NotInsert;
 import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.exception.RecorderException;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
@@ -23,22 +24,22 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class Dao<T extends Dao> {
-    public static String[] emptyStringArray = new String[0];
+    private static String[] emptyStringArray = new String[0];
 
     @NotUpdate
     @NotInsert
     @NotSerialization
-    public transient JdbcOperate jdbcOperate;
+    private transient JdbcOperate jdbcOperate;
 
     @NotUpdate
     @NotInsert
     @NotSerialization
-    public transient Recorder recorder;
+    private transient Recorder recorder;
 
     @NotUpdate
     @NotInsert
     @NotSerialization
-    public transient Map<String, Object> snapshot;
+    private transient Map<String, Object> snapshot;
 
     public JdbcOperate getJdbcOperate() {
         return jdbcOperate;

@@ -20,6 +20,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 数据库记录操作类
@@ -30,6 +31,11 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class Recorder {
+    public Map<String, String> SQL_TEMPLATE_CACHE = new ConcurrentHashMap<String, String>();
+
+    public static String getCacheKey(String type, String mark, Class clazz, Query query) {
+        return type + (mark==null? "" : "_" + mark.hashCode()) + "_" + clazz.hashCode() + (query==null ? "" : "_" + query.hashCode());
+    }
 
     private JdbcOperate jdbcOperate;
     private boolean camelToUnderline = true;
@@ -128,12 +134,11 @@ public class Recorder {
 
             Table table = obj.getClass().getAnnotation(Table.class);
 
-            if(tableName == null){
+            if (tableName == null) {
                 tableName = getTableNameWithDataBase(obj);
             }
 
-            String sqlStr = TString.assembly("select " , dataSql , " from ", tableName, " ", whereSql);
-
+            String sqlStr = TString.assembly("select ", dataSql, " from ", tableName, " ", whereSql);
             return jdbcOperate.queryObject(sqlStr, clazz,  obj);
         }catch (Exception e){
             if(e instanceof RecorderException){
@@ -306,62 +311,67 @@ public class Recorder {
      * @return 拼装的 SQL
      */
     public <T> String buildQuerySqlTemplate(String tableName, T obj, Query query) {
-        Table table = obj.getClass().getAnnotation(Table.class);
+        String cacheKey = getCacheKey("QUERY", tableName, obj.getClass(), query);
+        String resultSql = SQL_TEMPLATE_CACHE.get(cacheKey);
 
-        if(tableName == null){
-            tableName = getTableNameWithDataBase(obj);
-        }
+        if(resultSql == null) {
+            Table table = obj.getClass().getAnnotation(Table.class);
 
-        //SQL模板准备
-        //准备查询列
-        String mainSql = "select " + buildQueryField(obj, query);
+            if (tableName == null) {
+                tableName = getTableNameWithDataBase(obj);
+            }
 
-        mainSql = TString.assembly(mainSql, " from ", tableName);
+            //SQL模板准备
+            //准备查询列
+            String mainSql = "select " + buildQueryField(obj, query);
 
-        //处理查询条件
-        String whereSql = genWhereSql(obj, query);
+            mainSql = TString.assembly(mainSql, " from ", tableName);
 
-        //处理排序
-        String orderSql = "order by ";
+            //处理查询条件
+            String whereSql = genWhereSql(obj, query);
 
-        if(query!=null) {
-            for (Map.Entry<String[], Boolean> entry : query.getOrderFields().entrySet()) {
-                for (String orderField : entry.getKey()) {
-                    if (TReflect.findFieldIgnoreCase(obj.getClass(), orderField) != null) {
-                        orderSql = orderSql + orderField + ",";
+            //处理排序
+            String orderSql = "order by ";
+
+            if (query != null) {
+                for (Map.Entry<String[], Boolean> entry : query.getOrderFields().entrySet()) {
+                    for (String orderField : entry.getKey()) {
+                        if (TReflect.findFieldIgnoreCase(obj.getClass(), orderField) != null) {
+                            orderSql = orderSql + orderField + ",";
+                        }
                     }
+
+                    if (orderSql.endsWith(",")) {
+                        orderSql = TString.removeSuffix(orderSql);
+                    }
+
+                    orderSql = orderSql + (entry.getValue() ? " desc" : " asc") + ",";
                 }
+            }
 
-                if (orderSql.endsWith(",")) {
-                    orderSql = TString.removeSuffix(orderSql);
+            if (orderSql.equals("order by ")) {
+                orderSql = "";
+            }
+
+            if (orderSql.endsWith(",")) {
+                orderSql = TString.removeSuffix(orderSql);
+            }
+
+            resultSql = TString.assembly(mainSql, " ", whereSql, " ", orderSql);
+
+            //自动识别数据库类型选择不同的方言进行分页
+            if (query != null) {
+                DataBaseType dataBaseType = jdbcOperate.getDataBaseType();
+                if (dataBaseType.equals(DataBaseType.Mariadb) || dataBaseType.equals(DataBaseType.MySql)) {
+                    resultSql = genMysqlPageSql(resultSql, query);
+                } else if (dataBaseType.equals(DataBaseType.Oracle)) {
+                    resultSql = genOraclePageSql(resultSql, query);
+                } else if (dataBaseType.equals(DataBaseType.Postage)) {
+                    resultSql = genOraclePageSql(resultSql, query);
                 }
-
-                orderSql = orderSql + (entry.getValue() ? " desc" : " asc") + ",";
             }
-        }
 
-        if(orderSql.equals("order by ")){
-            orderSql = "";
-        }
-
-        if(orderSql.endsWith(",")) {
-            orderSql = TString.removeSuffix(orderSql);
-        }
-
-        String resultSql = TString.assembly(mainSql, " ", whereSql, " ", orderSql);
-
-        //自动识别数据库类型选择不同的方言进行分页
-        if(query != null) {
-            DataBaseType dataBaseType = jdbcOperate.getDataBaseType();
-            if (dataBaseType.equals(DataBaseType.Mariadb) || dataBaseType.equals(DataBaseType.MySql)) {
-                return genMysqlPageSql(resultSql, query);
-            } else if (dataBaseType.equals(DataBaseType.Oracle)) {
-                return genOraclePageSql(resultSql, query);
-            } else if (dataBaseType.equals(DataBaseType.Postage)) {
-                return genOraclePageSql(resultSql, query);
-            } else {
-                return resultSql;
-            }
+            SQL_TEMPLATE_CACHE.put(cacheKey, resultSql);
         }
 
         return resultSql;
@@ -376,73 +386,80 @@ public class Recorder {
      * @return 拼装的 SQL
      */
     public <T> String buildUpdateSqlTemplate(String tableName, T obj, Query query) {
-        Table table = obj.getClass().getAnnotation(Table.class);
+        String cacheKey = getCacheKey("UPDATE", tableName, obj.getClass(), query);
+        String resultSql = SQL_TEMPLATE_CACHE.get(cacheKey);
 
-        if(tableName == null){
-            tableName = getTableNameWithDataBase(obj);
-        }
+        if(resultSql == null) {
+            Table table = obj.getClass().getAnnotation(Table.class);
 
-        //SQL模板准备
-        String mainSql = TString.assembly("update " , tableName , " set");
-        String setSql = "";
-
-        //Set拼接 sql
-        Field[] fields = TReflect.getFields(obj.getClass());
-
-        for(Field field : fields){
-            if(Modifier.isStatic(field.getModifiers())){
-                continue;
+            if(tableName == null){
+                tableName = getTableNameWithDataBase(obj);
             }
 
-            String sqlFieldName = getSqlFieldName(jdbcOperate, field);
-            String fieldName = field.getName();
+            //SQL模板准备
+            String mainSql = TString.assembly("update " , tableName , " set");
+            String setSql = "";
 
-            try {
-                Object fieldValue = TReflect.getFieldValue(obj, fieldName);
+            //Set拼接 sql
+            Field[] fields = TReflect.getFields(obj.getClass());
 
-                //如果指定了列则不做一下判断
-                if(query==null || query.getDataFields().size() == 0) {
-                    //检查字段是否为空
-                    if (fieldValue == null) {
-                        continue;
-                    }
-
-                    //主键不更新, 如果指定了列, 则不做主键的判断
-                    if (field.getAnnotation(PrimaryKey.class) != null) {
-                        continue;
-                    }
-
-                    //NotUpdate 注解不更新
-                    NotUpdate notUpdate = field.getAnnotation(NotUpdate.class);
-                    if (notUpdate != null && (notUpdate.value().equals("ANY_VALUE") || notUpdate.value().equals(fieldValue.toString()))) {
-                        continue;
-                    }
-                } else {
-                    //如果有指定更新的列,则使用指定更新的列
-                    if (query != null && query.getDataFields().size() > 0 && !query.getDataFields().contains(fieldName)) {
-                        continue;
-                    }
+            for(Field field : fields){
+                if(Modifier.isStatic(field.getModifiers())){
+                    continue;
                 }
 
-            } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
+                String sqlFieldName = getSqlFieldName(jdbcOperate, field);
+                String fieldName = field.getName();
+
+                try {
+                    Object fieldValue = TReflect.getFieldValue(obj, fieldName);
+
+                    //如果指定了列则不做以下判断
+                    if(query==null || query.getDataFields().size() == 0) {
+                        //检查字段是否为空
+                        if (fieldValue == null) {
+                            continue;
+                        }
+
+                        //主键不更新, 如果指定了列, 则不做主键的判断
+                        if (field.getAnnotation(PrimaryKey.class) != null) {
+                            continue;
+                        }
+
+                        //NotUpdate 注解不更新
+                        NotUpdate notUpdate = field.getAnnotation(NotUpdate.class);
+                        if (notUpdate != null && (notUpdate.value().equals("ANY_VALUE") || notUpdate.value().equals(fieldValue.toString()))) {
+                            continue;
+                        }
+                    } else {
+                        //如果有指定更新的列,则使用指定更新的列
+                        if (query != null && query.getDataFields().size() > 0 && !query.getDataFields().contains(fieldName)) {
+                            continue;
+                        }
+                    }
+
+                } catch (ReflectiveOperationException e) {
+                    e.printStackTrace();
+                }
+
+                setSql = TString.assembly(setSql, sqlFieldName, "=::", fieldName, ",");
             }
 
-            setSql = TString.assembly(setSql, sqlFieldName, "=::", fieldName, ",");
+            if(setSql.endsWith(",")){
+                setSql = TString.removeSuffix(setSql);
+            }
+
+            //Where 拼接 sql
+            String whereSql = genWhereSql(obj, query);
+
+            if (whereSql.trim().equals("where 1=1")) {
+                throw new RecorderException("Where sql must be have some condiction");
+            }
+
+            resultSql = TString.assembly(mainSql, " ", setSql, " ", whereSql);
+            SQL_TEMPLATE_CACHE.put(cacheKey, resultSql);
         }
 
-        if(setSql.endsWith(",")){
-            setSql = TString.removeSuffix(setSql);
-        }
-
-        //Where 拼接 sql
-        String whereSql = genWhereSql(obj, query);
-
-        if (whereSql.trim().equals("where 1=1")) {
-            throw new RecorderException("Where sql must be have some condiction");
-        }
-
-        String resultSql = TString.assembly(mainSql, " ", setSql, " ", whereSql);
 
         return resultSql;
     }
@@ -455,47 +472,54 @@ public class Recorder {
      * @return 拼装的 SQL
      */
     public <T> String buildInsertSqlTemplate(String tableName, T obj) {
-        Table table = obj.getClass().getAnnotation(Table.class);
+        String cacheKey = getCacheKey("INSERT", tableName, obj.getClass(), null);
+        String resultSql = SQL_TEMPLATE_CACHE.get(cacheKey);
 
-        if(tableName == null){
-            tableName = getTableNameWithDataBase(obj);
-        }
+        if(resultSql == null) {
 
-        //SQL模板准备
-        String mainSql = TString.assembly("insert into ", tableName);
-        String fieldSql = "";
-        String fieldValueSql = "";
+            Table table = obj.getClass().getAnnotation(Table.class);
 
-        //字段拼接 sql
-        Field[] fields = TReflect.getFields(obj.getClass());
-
-        for(Field field : fields) {
-            if(Modifier.isStatic(field.getModifiers())){
-                continue;
+            if (tableName == null) {
+                tableName = getTableNameWithDataBase(obj);
             }
 
-            String sqlFieldName = getSqlFieldName(jdbcOperate, field);
-            String fieldName = field.getName();
+            //SQL模板准备
+            String mainSql = TString.assembly("insert into ", tableName);
+            String fieldSql = "";
+            String fieldValueSql = "";
 
-            //如果主键为空则不插入主键字段
-            if (field.getAnnotation(NotInsert.class) == null) {
-                try {
-                    Object fieldValue = TReflect.getFieldValue(obj, fieldName);
-                    if(fieldValue == null){
-                        continue;
-                    }
-                } catch (ReflectiveOperationException e) {
-                    e.printStackTrace();
+            //字段拼接 sql
+            Field[] fields = TReflect.getFields(obj.getClass());
+
+            for (Field field : fields) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
                 }
-            } else {
-                continue;
+
+                String sqlFieldName = getSqlFieldName(jdbcOperate, field);
+                String fieldName = field.getName();
+
+                //如果主键为空则不插入主键字段
+                if (field.getAnnotation(NotInsert.class) == null) {
+                    try {
+                        Object fieldValue = TReflect.getFieldValue(obj, fieldName);
+                        if (fieldValue == null) {
+                            continue;
+                        }
+                    } catch (ReflectiveOperationException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    continue;
+                }
+
+                fieldSql = fieldSql + sqlFieldName + ",";
+                fieldValueSql = TString.assembly(fieldValueSql, "::", fieldName, ",");
             }
 
-            fieldSql = fieldSql + sqlFieldName + ",";
-            fieldValueSql = TString.assembly(fieldValueSql, "::", fieldName, ",");
+            resultSql = TString.assembly(mainSql, " (", TString.removeSuffix(fieldSql), ") ", "values (", TString.removeSuffix(fieldValueSql), ") ");
+            SQL_TEMPLATE_CACHE.put(cacheKey, resultSql);
         }
-
-        String resultSql = TString.assembly(mainSql, " (", TString.removeSuffix(fieldSql), ") ", "values (", TString.removeSuffix(fieldValueSql), ") ");
 
         return resultSql;
     }
@@ -509,21 +533,99 @@ public class Recorder {
      * @return 拼装的 SQL
      */
     public <T> String buildDeleteSqlTemplate(String tableName, T obj, Query query) {
-        Table table = obj.getClass().getAnnotation(Table.class);
+        String cacheKey = getCacheKey("DELETE", tableName, obj.getClass(), query);
+        String resultSql = SQL_TEMPLATE_CACHE.get(cacheKey);
 
-        if(tableName == null){
-            tableName = getTableNameWithDataBase(obj);
+        if(resultSql == null) {
+
+            Table table = obj.getClass().getAnnotation(Table.class);
+
+            if (tableName == null) {
+                tableName = getTableNameWithDataBase(obj);
+            }
+
+            //SQL模板准备
+            String mainSql = TString.assembly("delete from ", tableName);
+
+            //Where 拼接 sql
+            String whereSql = genWhereSql(obj, query);
+
+            resultSql = TString.assembly(mainSql, " ", whereSql);
+            SQL_TEMPLATE_CACHE.put(cacheKey, resultSql);
         }
 
-        //SQL模板准备
-        String mainSql = TString.assembly("delete from ", tableName);
-
-        //Where 拼接 sql
-        String whereSql = genWhereSql(obj, query);
-
-        String resultSql = TString.assembly(mainSql, " ", whereSql);
-
         return resultSql;
+    }
+
+
+    /**
+     * 生成 where 后面的 sql
+     * @param obj  数据对象
+     * @param query 查询对象
+     * @return where 后面的 sql
+     */
+    public String genWhereSql(Object obj, Query query) {
+        String cacheKey = getCacheKey("WHERE", null, obj.getClass(), query);
+        String whereSql = SQL_TEMPLATE_CACHE.get(cacheKey);
+
+        if(whereSql == null) {
+
+            whereSql = "where 1=1";
+
+            if (query == null || !query.hasCondiction()) {
+                Field[] fields = TReflect.getFields(obj.getClass());
+                //字段拼接 sql
+                for (Field field : fields) {
+                    if (Modifier.isStatic(field.getModifiers())) {
+                        continue;
+                    }
+
+                    //如果没有指定查询条件,则使用主键作为条件
+                    if (field.getAnnotation(PrimaryKey.class) != null) {
+                        String sqlFieldName = getSqlFieldName(jdbcOperate, field);
+                        String fieldName = field.getName();
+
+                        whereSql = TString.assembly(whereSql, " and ", sqlFieldName, " =::", fieldName);
+                        break;
+                    }
+                }
+            } else {
+
+                for (Map.Entry<String, Query.Operate> entry : query.getAndFields().entrySet()) {
+                    if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
+                        String sqlField = entry.getKey();
+                        if (camelToUnderline) {
+                            sqlField = TString.camelToUnderline(sqlField);
+                        }
+                        whereSql = TString.assembly(whereSql, " and ", sqlField, Query.getActualOperate(entry.getValue()), "::", entry.getKey());
+                    }
+                }
+
+                for (Map.Entry<String, Query.Operate> entry : query.getOrFields().entrySet()) {
+                    if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
+                        String sqlField = entry.getKey();
+                        if (camelToUnderline) {
+                            sqlField = TString.camelToUnderline(sqlField);
+                        }
+
+                        whereSql = TString.assembly(whereSql, " or ", sqlField, Query.getActualOperate(entry.getValue()), "::", entry.getKey());
+                    }
+                }
+
+                if (whereSql.endsWith("or ") || whereSql.endsWith("and ")) {
+                    int index = whereSql.trim().lastIndexOf(" ");
+                    whereSql = whereSql.substring(0, index);
+                }
+
+                for (String customCondiction : query.getCustomCondictions()) {
+                    whereSql = TString.assembly(whereSql, " ", customCondiction);
+                }
+            }
+
+            SQL_TEMPLATE_CACHE.put(cacheKey, whereSql);
+        }
+
+        return whereSql;
     }
 
     /**
@@ -568,66 +670,6 @@ public class Recorder {
         return TSQL.genOraclePageSql(sql, query.getPageNumber(), query.getPageSize());
     }
 
-    /**
-     * 生成 where 后面的 sql
-     * @param obj  数据对象
-     * @param query 查询对象
-     * @return where 后面的 sql
-     */
-    public String genWhereSql(Object obj, Query query) {
-        String whereSql = "where 1=1";
-
-        if (query == null || !query.hasCondiction()) {
-            Field[] fields = TReflect.getFields(obj.getClass());
-            //字段拼接 sql
-            for (Field field : fields) {
-                if(Modifier.isStatic(field.getModifiers())){
-                    continue;
-                }
-
-                String sqlFieldName = getSqlFieldName(jdbcOperate, field);
-                String fieldName = field.getName();
-                //如果没有指定查询条件,则使用主键作为条件
-                if (field.getAnnotation(PrimaryKey.class) != null) {
-                    whereSql = TString.assembly(whereSql, " and ", sqlFieldName, " =::", fieldName);
-                    break;
-                }
-            }
-        } else {
-
-            for (Map.Entry<String, Query.Operate> entry : query.getAndFields().entrySet()) {
-                if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
-                    String sqlField = entry.getKey();
-                    if (camelToUnderline) {
-                        sqlField = TString.camelToUnderline(sqlField);
-                    }
-                    whereSql = TString.assembly(whereSql, " and ", sqlField, Query.getActualOperate(entry.getValue()), "::", entry.getKey());
-                }
-            }
-
-            for (Map.Entry<String, Query.Operate> entry : query.getOrFields().entrySet()) {
-                if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
-                    String sqlField = entry.getKey();
-                    if (camelToUnderline) {
-                        sqlField = TString.camelToUnderline(sqlField);
-                    }
-
-                    whereSql = TString.assembly(whereSql, " or ", sqlField, Query.getActualOperate(entry.getValue()), "::", entry.getKey());
-                }
-            }
-
-            if (whereSql.endsWith("or ") || whereSql.endsWith("and ")) {
-                int index = whereSql.trim().lastIndexOf(" ");
-                whereSql = whereSql.substring(0, index);
-            }
-
-            for(String customCondiction : query.getCustomCondictions()){
-                whereSql = TString.assembly(whereSql, " ", customCondiction);
-            }
-        }
-
-        return whereSql;
-    }
 
     /**
      * 获取数据库名
