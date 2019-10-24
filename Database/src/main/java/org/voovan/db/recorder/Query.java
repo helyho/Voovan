@@ -2,10 +2,7 @@ package org.voovan.db.recorder;
 
 import org.voovan.db.recorder.exception.RecorderException;
 
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 查询条件构造
@@ -157,5 +154,10 @@ public class Query {
 
     public static Query newInstance(){
         return new Query();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(dataFields, andFields, orFields, orderFields, customCondictions, pageNumber, pageSize);
     }
 }
