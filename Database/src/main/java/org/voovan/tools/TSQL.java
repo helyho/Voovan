@@ -647,8 +647,7 @@ public class TSQL {
 			//通过driverName是否包含关键字判断
 			if (connection.getMetaData().getDriverName().toUpperCase().indexOf("MYSQL") != -1) {
 				return DataBaseType.MySql;
-			}
-			if (connection.getMetaData().getDriverName().toUpperCase().indexOf("MARIADB") != -1) {
+			} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("MARIADB") != -1) {
 				return DataBaseType.Mariadb;
 			} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("POSTAGE") != -1) {
 				return DataBaseType.Postage;
