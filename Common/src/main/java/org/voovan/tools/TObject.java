@@ -1,5 +1,8 @@
 package org.voovan.tools;
 
+import org.voovan.tools.reflect.TReflect;
+
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -107,19 +110,36 @@ public class TObject {
 	}
 
 	/**
-	 * 数组拼接
-	 * @param firstBytes		   首个字节数组
-	 * @param firstBytesLength     首个数组长度
-	 * @param lastBytes			   拼接在后的数组
-	 * @param lastBytesLength      拼接在后的数组长度
-	 * @return 字节数组
+	 * 将 Collection 转换成 Map
+	 * 			key 位置坐标
+	 *          value 数组值
+	 * @param objs    	待转换的数组
+	 * @param <T> 范型
+	 * @return 转换后的 Map  [序号, 值]
 	 */
-	public static Object[] arrayConcat(Object[] firstBytes,int firstBytesLength, Object[] lastBytes,int lastBytesLength) {
-		if (lastBytes.length == 0)
-			return firstBytes;
-		Object[] target = new Object[firstBytesLength + lastBytesLength];
-		System.arraycopy(firstBytes, 0, target, 0, firstBytesLength);
-		System.arraycopy(lastBytes, 0, target, firstBytes.length,lastBytesLength);
+	public static <T> Map<String, T> collectionToMap(Collection<T> objs){
+		Map<String ,T> arrayMap = new LinkedHashMap<String ,T>();
+		int i = 0;
+		for(T t : objs){
+			arrayMap.put(Integer.toString(++i), t);
+		}
+		return arrayMap;
+	}
+
+	/**
+	 * 数组拼接
+	 * @param firstArray		   首个数组
+	 * @param firstArrayLength     首个数组长度
+	 * @param lastArray			   拼接在后的数组
+	 * @param lastArrayLength      拼接在后的数组长度
+	 * @return 拼接后的数组
+	 */
+	public static Object[] arrayConcat(Object[] firstArray,int firstArrayLength, Object[] lastArray,int lastArrayLength) {
+		if (lastArray.length == 0)
+			return firstArray;
+		Object[] target = new Object[firstArrayLength + lastArrayLength];
+		System.arraycopy(firstArray, 0, target, 0, firstArrayLength);
+		System.arraycopy(lastArrayLength, 0, target, firstArrayLength, lastArrayLength);
 		return target;
 	}
 
@@ -182,6 +202,11 @@ public class TObject {
 			}
 
 			return index;
+	}
+
+	public static <T> T clone(T obj) throws ReflectiveOperationException, ParseException {
+		Map dataMap = TReflect.getMapfromObject(obj);
+		return (T)TReflect.getObjectFromMap(obj.getClass(),dataMap, false);
 	}
 
 }
