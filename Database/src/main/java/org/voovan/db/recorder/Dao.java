@@ -45,24 +45,28 @@ public class Dao<T extends Dao> {
         return jdbcOperate;
     }
 
-    public void setJdbcOperate(JdbcOperate jdbcOperate) {
+    public T setJdbcOperate(JdbcOperate jdbcOperate) {
         if(jdbcOperate == null) {
             throw new RecorderException("JdbcOperate must not null");
         }
         this.recorder = new Recorder(jdbcOperate);
         this.jdbcOperate = jdbcOperate;
+
+        return (T) this;
     }
 
     public Recorder getRecorder() {
         return recorder;
     }
 
-    public void setRecorder(Recorder recorder) {
+    public T setRecorder(Recorder recorder) {
         if(recorder == null) {
             throw new RecorderException("Recorder must not null");
         }
         this.jdbcOperate = recorder.getJdbcOperate();
         this.recorder = recorder;
+
+        return (T) this;
     }
 
     public boolean insert() {
@@ -103,9 +107,13 @@ public class Dao<T extends Dao> {
         }
     }
 
-    public boolean update(String[] dataFields, int effectRow) {
-        Query query = Query.newInstance().data(dataFields);
+    public boolean update(String[] dataFields, String[] andFields, int effectRow) {
+        Query query = Query.newInstance().data(dataFields).and(andFields);
         return recorder.update((T)this, query) == effectRow;
+    }
+
+    public boolean update(String[] dataFields, int effectRow) {
+        return update(dataFields, null, effectRow);
     }
 
     public boolean update(String ... dataFields) {
