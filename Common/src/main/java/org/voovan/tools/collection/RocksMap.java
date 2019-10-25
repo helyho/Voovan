@@ -577,7 +577,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return transaction;
     }
 
-    private void savePoint() {
+    public void savePoint() {
         Transaction transaction = getTransaction();
 
         try {
@@ -588,7 +588,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    private void rollbackSavePoint(){
+    public void rollbackSavePoint(){
         Transaction transaction = getTransaction();
 
         try {
@@ -619,6 +619,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         try {
             if (transaction != null) {
                 transaction.commit();
+                transaction.close();
             } else {
                 throw new RocksMapException("RocksMap is not in transaction model");
             }
@@ -648,6 +649,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         try {
             if (transaction != null) {
                 transaction.rollback();
+                transaction.close();
             } else {
                 throw new RocksMapException("RocksMap is not in transaction model");
             }
@@ -1163,7 +1165,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyName.getBytes(), columnFamilyOptions);
             dataColumnFamilyHandle = rocksDB.createColumnFamily(columnFamilyDescriptor);
             COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).put(new String(dataColumnFamilyHandle.getName()), dataColumnFamilyHandle);
-
             //设置列族
             dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.columnFamilyName);
         } catch (RocksDBException e) {
@@ -1176,6 +1177,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public void drop(){
         try {
+            dataColumnFamilyHandle.close();
             rocksDB.dropColumnFamily(dataColumnFamilyHandle);
             COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).remove(new String(dataColumnFamilyHandle.getName()));
         } catch (RocksDBException e) {
