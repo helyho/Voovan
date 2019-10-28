@@ -36,6 +36,8 @@ import java.security.spec.X509EncodedKeySpec;
  *      大部分情况下，明文并非刚好64位的倍数。对于最后一个分组，如果长度小于64位，则需要用数据填充至64位。
  *      PKCS5Padding是常用的填充方式，如果没有指定，默认的方式就是它。
  *
+ * https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#MessageDigest
+ *
  * @author: helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
