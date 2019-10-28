@@ -9,7 +9,8 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * hash 算法类
- * 
+ *
+ * https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#MessageDigest
  * @author helyho
  *
  * Voovan Framework.

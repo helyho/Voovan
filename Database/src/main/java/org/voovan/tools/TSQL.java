@@ -662,9 +662,9 @@ public class TSQL {
 					dataBaseType = DataBaseType.Postage;
 				} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("ORACLE") != -1) {
 					dataBaseType = DataBaseType.Oracle;
+				} else {
+					dataBaseType = DataBaseType.UNKNOW;
 				}
-
-				dataBaseType = DataBaseType.UNKNOW;
 
 				DATABASE_TYPE_MAP.put(dataSource, dataBaseType);
 			}
