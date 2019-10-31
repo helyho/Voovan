@@ -963,8 +963,12 @@ public class WebServer {
 
 			SocketContext.gracefulShutdown();
 
-			ThreadPool.gracefulShutdown(serverSocket.getAcceptEventRunnerGroup().getThreadPool());
-			ThreadPool.gracefulShutdown(serverSocket.getIoEventRunnerGroup().getThreadPool());
+			if(serverSocket.getAcceptEventRunnerGroup()!=null) {
+				ThreadPool.gracefulShutdown(serverSocket.getAcceptEventRunnerGroup().getThreadPool());
+			}
+			if(serverSocket.getIoEventRunnerGroup()!=null) {
+				ThreadPool.gracefulShutdown(serverSocket.getIoEventRunnerGroup().getThreadPool());
+			}
 
 			ThreadPool.gracefulShutdown(Global.getThreadPool());
 
