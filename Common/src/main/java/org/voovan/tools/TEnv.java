@@ -208,7 +208,7 @@ public class TEnv {
 		StringBuilder stackInfo = new StringBuilder();
 		for (StackTraceElement stackTraceElement : stackTraceElements) {
 			stackInfo.append(stackTraceElement.toString());
-			stackInfo.append("\r\n");
+			stackInfo.append(TFile.getLineSeparator());
 		}
 
 		return stackInfo.toString().trim();
