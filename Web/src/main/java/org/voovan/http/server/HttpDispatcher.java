@@ -550,8 +550,8 @@ public class HttpDispatcher {
 		}
 
 		if(contentType.contains("json")) {
-			errorMessage = errorMessage.replaceAll(TFile.getLineSeparator(), " ");
-			stackInfo = stackInfo.replaceAll("\\n", " ");
+			errorMessage = errorMessage.replaceAll("\\r+\\n+", " ");
+			stackInfo = stackInfo.replaceAll("\\r+\\n+", " ");
 		}
 
 		if(!error.containsKey("Description")) {
