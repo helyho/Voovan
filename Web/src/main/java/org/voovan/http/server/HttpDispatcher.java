@@ -492,8 +492,7 @@ public class HttpDispatcher {
 		String requestMethod = request.protocol().getMethod();
 		String requestPath = request.protocol().getPath();
 		String className = e.getClass().getName();
-		String errorMessage = e.toString().replace(TFile.getLineSeparator(), "<br/>");
-
+		String errorMessage = e.toString();
 		String stackInfo = "";
 
 		if(!errorDefine.containsKey(className)) {
@@ -511,27 +510,27 @@ public class HttpDispatcher {
 				}
 
 			} while (true);
+
+			stackInfo = stackInfo.trim();
 		}
-
-
-		//转换成能在 HTML 中展示的超文本字符串
-		stackInfo = TString.indent(stackInfo.trim(),1).replace("\n", "<br>");
-		response.header().put("Content-Type", "text/html");
 
 		//初始 error 定义,如果下面匹配到了定义的错误则定义的会被覆盖
 		Map<String, Object> error = new HashMap<String, Object>();
+		//初始化默认异常
+		{
+			error.put("ContentType", "text/html");
+			//输出异常
+			if (!(e instanceof ResourceNotFound || e instanceof RouterNotFound)) {
+				response.protocol().setStatus(500);
+				error.put("StatusCode", 500);
+				Logger.error(e);
+			} else {
+				response.protocol().setStatus(404);
+				error.put("StatusCode", 404);
+			}
+			error.put("Page", "Error.html");
 
-		//输出异常
-		if( !(e instanceof ResourceNotFound || e instanceof RouterNotFound) ){
-			response.protocol().setStatus(500);
-			error.put("StatusCode", 500);
-			Logger.error(e);
-		}else{
-			response.protocol().setStatus(404);
-			error.put("StatusCode", 404);
 		}
-		error.put("Page", "Error.html");
-		error.put("Description", stackInfo);
 
 		//匹配 error 定义,如果有可用消息则会覆盖上面定义的初始内容
 		if (errorDefine.containsKey(className)) {
@@ -540,6 +539,23 @@ public class HttpDispatcher {
 		} else if (errorDefine.get("Other") != null) {
 			error.putAll((Map<String,Object>)errorDefine.get("Other"));
 			response.protocol().setStatus((int)error.get("StatusCode"));
+		}
+
+		//转换成能在 HTML 中展示的超文本字符串
+		String contentType = error.get("ContentType").toString();
+		response.header().put("Content-Type", contentType);
+		if(contentType.contains("html")) {
+			errorMessage = errorMessage.replaceAll(TFile.getLineSeparator(), "<br/>");
+			stackInfo = TString.indent(stackInfo.trim(), 1).replaceAll("\\n", "<br/>");
+		}
+
+		if(contentType.contains("json")) {
+			errorMessage = errorMessage.replaceAll(TFile.getLineSeparator(), " ");
+			stackInfo = stackInfo.replaceAll("\\n", " ");
+		}
+
+		if(!error.containsKey("Description")) {
+			error.put("Description", stackInfo);
 		}
 
 		//消息拼装
