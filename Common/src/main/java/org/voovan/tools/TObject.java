@@ -40,6 +40,23 @@ public class TObject {
 	}
 
 	/**
+	 * 移除 Map 中 value 为空的 key
+	 * @param map Map 对象
+	 * @return 移除 Map 中 value 为空的 key 后的 map
+	 */
+	public static Map removeNullValueFromMap(Map map) {
+		Iterator<Map.Entry> iterator = map.entrySet().iterator();
+		while(iterator.hasNext()){
+			Map.Entry entry = iterator.next();
+			if(entry.getValue() == null) {
+				iterator.remove();
+			}
+		}
+
+		return map;
+	}
+
+	/**
 	 * 初始化一个 List
 	 * @param objs List 列表的每一个元素
 	 * @return	初始化完成的List对象
