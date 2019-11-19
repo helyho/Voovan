@@ -317,6 +317,10 @@ public class TSQL {
 	 * @return 转换后的字符串
 	 */
 	public static String removeEmptyCondiction(String sqlText, Map<String, Object> params){
+		//insert 不处理查询参数的条件移除
+		if(sqlText.startsWith("insert") || sqlText.startsWith("INSERT")) {
+			return sqlText;
+		}
 
 		//如果params为空,则新建一个
 		if(params==null){
@@ -405,9 +409,13 @@ public class TSQL {
 
 		if(condictionList == null) {
 			if(size.get() > 10000) {
-				Logger.warn("SQL may be has same problem on TSQL.parseSQLCondiction: " + sqlText);
-				PARSED_CONDICTIONS.clear();
-				size.set(0);
+				synchronized (PARSED_CONDICTIONS) {
+					synchronized(size) {
+						Logger.warn("SQL may be has same problem on TSQL.parseSQLCondiction: " + sqlText);
+						PARSED_CONDICTIONS.clear();
+						size.set(0);
+					}
+				}
 			}
 
 			condictionList = new ArrayList<String[]>();
