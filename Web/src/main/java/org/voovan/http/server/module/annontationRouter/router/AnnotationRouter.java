@@ -165,7 +165,7 @@ public class AnnotationRouter implements HttpRouter {
                                             AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method, annonClassRouter, annonMethodRouter);
 
                                             //1.注册路由, 处理不带参数的路由
-                                            {
+                                            if (paramPath.isEmpty()) {
                                                 routePath = HttpDispatcher.fixRoutePath(routePath);
                                                 String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routePath);
                                                 //判断路由是否注册过
@@ -180,7 +180,7 @@ public class AnnotationRouter implements HttpRouter {
                                             }
 
                                             //2.注册路由,带路径参数的路由
-                                            if (!paramPath.isEmpty()) {
+                                            else {
                                                 String routeParamPath = null;
                                                 routeParamPath = routePath + paramPath;
                                                 routeParamPath = HttpDispatcher.fixRoutePath(routeParamPath);
