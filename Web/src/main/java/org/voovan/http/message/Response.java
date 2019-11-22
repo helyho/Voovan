@@ -270,7 +270,7 @@ public class Response {
 						byteBuffer.put(HttpStatic.LINE_MARK.getBytes());
 					}
 
-					if(byteBuffer.remaining() < 10) {
+					if(byteBuffer.remaining() <= 10) {
 						byteBuffer.flip();
 						session.send(byteBuffer);
 						byteBuffer.clear();
