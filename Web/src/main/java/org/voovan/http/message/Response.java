@@ -247,7 +247,7 @@ public class Response {
 
 				while ( totalBodySize > 0) {
 					//预留写入 chunked 结束符的位置
-					byteBuffer.limit(byteBuffer.capacity() - 10);
+					byteBuffer.limit(byteBuffer.capacity() - 10); //预留协议字节, 换行符确认4个,长度描述符1-6个
 					readSize = byteBuffer.remaining() > totalBodySize ? totalBodySize : byteBuffer.remaining();
 					totalBodySize = totalBodySize - readSize;
 
@@ -257,17 +257,20 @@ public class Response {
 						byteBuffer.put(chunkedLengthLine.getBytes());
 					}
 
+					//重置 Bytebuffer 可用字节数为 readSize
+					byteBuffer.limit(byteBuffer.position() + readSize);
 					body.read(byteBuffer);
-					//如果启用 RingBuffer 下面那行要注释掉
+
+					//重置写入位置
 					byteBuffer.position(byteBuffer.limit());
-					byteBuffer.limit(byteBuffer.capacity() - 10);
+					byteBuffer.limit(byteBuffer.capacity());
 
 					//判断是否需要发送 chunked 结束符号
 					if (isCompress() && readSize != 0 &&  byteBuffer.remaining() > 0) {
 						byteBuffer.put(HttpStatic.LINE_MARK.getBytes());
 					}
 
-					if(byteBuffer.position() == byteBuffer.limit()) {
+					if(byteBuffer.remaining() < 10) {
 						byteBuffer.flip();
 						session.send(byteBuffer);
 						byteBuffer.clear();
