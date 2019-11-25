@@ -3,6 +3,7 @@ package org.voovan.http.client;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.pool.ObjectPool;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -19,8 +20,9 @@ import java.util.function.Supplier;
  */
 public class HttpClientPool {
     ObjectPool<HttpClient> pool;
-    private int minSize = TPerformance.getProcessorCount();
-    private int maxSize = TPerformance.getProcessorCount();
+    private static int MIN_SIZE = TPerformance.getProcessorCount();
+    private static int MAX_SIZE = TPerformance.getProcessorCount();
+
     public HttpClientPool(String host, Integer timeout, Integer minSize, Integer maxSize) {
         pool = new ObjectPool<HttpClient>()
             .minSize(minSize).maxSize(maxSize)
@@ -31,6 +33,10 @@ public class HttpClientPool {
                 httpClient.close();
                 return true;
             }).create();
+    }
+
+    public HttpClientPool(String host, Integer timeout) {
+        this(host, timeout, MIN_SIZE, MAX_SIZE);
     }
 
     public ObjectPool<HttpClient> getPool() {
