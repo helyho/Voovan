@@ -22,9 +22,9 @@ public class LeakBucket extends Bucket {
 
     /**
      * 令牌桶构造函数
-     * @param tokenSize 令牌桶的初始数量
-     * @param interval 令牌桶的新增周期, 每次触发将重置令牌桶的数量, 单位: 毫秒
-     * @param releaseTime 令牌桶失效并自动移除的时间
+     * @param tokenSize 漏桶的初始数量
+     * @param interval 漏桶的新增周期, 每次触发将重置漏桶的数量, 单位: 毫秒
+     * @param releaseTime 漏桶失效并自动移除的时间
      */
     public LeakBucket(int tokenSize, int interval, int releaseTime){
         init(tokenSize, interval, releaseTime);
@@ -32,8 +32,8 @@ public class LeakBucket extends Bucket {
 
     /**
      * 令牌桶构造函数
-     * @param tokenSize 令牌桶的初始数量
-     * @param interval 令牌桶的新增周期, 每次触发将重置令牌桶的数量, 单位: 毫秒
+     * @param tokenSize 漏桶的初始数量
+     * @param interval 漏桶的新增周期, 每次触发将重置漏桶的数量, 单位: 毫秒
      */
     public LeakBucket(int tokenSize, int interval){
         init(tokenSize, interval, Integer.MAX_VALUE);
@@ -56,7 +56,7 @@ public class LeakBucket extends Bucket {
             }
         };
 
-        //重置令牌桶的任务
+        //重置漏桶的任务
         Bucket.BUCKET_HASH_WHEEL_TIMER.addTask(this.hashWheelTask, interval);
     }
 
