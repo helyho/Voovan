@@ -267,6 +267,11 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
     private void generator(K key, Function<K, V> supplier, TimeMark timeMark, Long createExpire){
         try {
             V value = supplier.apply(key);
+            if(value == null) {
+                cacheMark.remove(key);
+                return;
+            }
+
             timeMark.refresh(true);
 
             if(expire==Long.MAX_VALUE) {

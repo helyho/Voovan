@@ -22,7 +22,7 @@ public class TokenBucket extends Bucket{
 
     /**
      * 令牌桶构造函数
-     * @param tokenSize 令牌桶默认大小
+     * @param tokenSize 令牌桶默认大小, 每个时间周期新增的量
      * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 毫秒
      * @param releaseTime 令牌桶失效并自动移除的时间
      */
@@ -55,11 +55,8 @@ public class TokenBucket extends Bucket{
                     this.cancel();
                 } else {
                     atomicInteger.getAndUpdate((val) -> {
-                        if (val >= tokenSize) {
-                            return tokenSize;
-                        } else {
-                            return val + tokenSize;
-                        }
+                        int newSize = val + tokenSize;
+                        return newSize >= tokenSize ? tokenSize : newSize;
                     });
                 }
             }
