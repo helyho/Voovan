@@ -345,8 +345,11 @@ public class ObjectPool<T> {
                 Long id = ((IPooledObject) obj).getPoolObjectId();
 
                 InnerObject innerObject = objects.get(id);
-
-                if (!innerObject.isRemoved() && objects.get(id).setBorrow(false)) {
+                if(innerObject == null) {
+                    if(destory!=null) {
+                        destory.apply(obj);
+                    }
+                } else if (!innerObject.isRemoved() && objects.get(id).setBorrow(false)) {
                     unborrowedIdList.offer(id);
                 }
             } else {
