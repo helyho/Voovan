@@ -85,6 +85,10 @@ public class SynchronousHandler implements IoHandler {
         return socketResponses.size();
     }
 
+    public void clearResponse(){
+        socketResponses.clear();
+    }
+
     /**
      * 是否存在下一个响应对象
      * @return true: 存在, false: 不存在

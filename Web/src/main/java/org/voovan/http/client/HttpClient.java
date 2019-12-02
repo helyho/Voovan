@@ -17,6 +17,7 @@ import org.voovan.network.IoSession;
 import org.voovan.network.SSLManager;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.network.tcp.TcpSocket;
 import org.voovan.tools.TEnv;
@@ -513,11 +514,12 @@ public class HttpClient extends PooledObject implements Closeable{
 			throw new SendMessageException("HttpClient writeToChannel error", e);
 		}
 
+		Response response = null;
+
 		//同步模式
 		if (async == null) {
 			try {
 				Object readObject = socket.synchronouRead();
-				Response response = null;
 
 				//如果是异常则抛出异常
 				if (readObject instanceof Exception) {
@@ -526,14 +528,16 @@ public class HttpClient extends PooledObject implements Closeable{
 					response = (Response) readObject;
 				}
 
-				//结束操作
-				finished(response);
-
 				return response;
 			} catch (ReadMessageException e) {
 				if (!isWebSocket) {
 					throw e;
 				}
+			} finally {
+				socket.getSession().getReadByteBufferChannel().clear();
+
+				//结束操作
+				finished(response);
 			}
 		}
 
