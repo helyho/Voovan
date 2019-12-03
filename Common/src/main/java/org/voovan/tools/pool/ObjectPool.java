@@ -238,6 +238,10 @@ public class ObjectPool<T> {
         if(id != null) {
             InnerObject<T> innerObject = objects.get(id);
             if (innerObject != null) {
+                if(innerObject.isBorrow()) {
+                    throw new RuntimeException("Object already borrowed");
+                }
+
                 innerObject.setBorrow(true);
                 return innerObject.getObject();
             } else {
