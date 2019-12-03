@@ -162,7 +162,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 			socket.syncStart();
 
-			httpRequest = new HttpRequest(new Request(), this.charset, socket.getSession());
+			httpRequest = new HttpRequest(this.charset, socket.getSession());
 			initHeader();
 
 			asyncHandler = new AsyncHandler(this);
@@ -590,9 +590,12 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		//清理请求对象,以便下次请求使用
 		parameters.clear();
+		httpRequest.protocol().clear();
 		httpRequest.body().clear();
 		httpRequest.parts().clear();
 		httpRequest.header().clear();
+
+		//重新初始化 Header
 		initHeader();
 	}
 
