@@ -26,15 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ObjectCachedPooledObjectUnit extends TestCase {
 
-    @Before
-    public void setUp() {
-        try {
-            Weave.init(new WeaveConfig("org.voovan"));
-        } catch (WeaveException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void testAddAndLiveTime(){
         TestPoolObject t = new TestPoolObject("element ");
         ObjectPool objectPool = new ObjectPool(2).create();
@@ -113,10 +104,10 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
 
         AtomicInteger count = new AtomicInteger(0);
 
-        for(int i=0;i<10;i++){
+        for(int i=0;i<100;i++){
             Thread t = new Thread(()->{
                 while (count.incrementAndGet() < 100000) {
-                    if ((int) (Math.random() * 10 % 2) == 0) {
+//                    if ((int) (Math.random() * 10 % 2) == 0) {
                         TestPoolObject object = null;
                         try {
                             object = objectPool.borrow(1000);
@@ -125,18 +116,18 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
                         }
 
                         if (object != null) {
-                            queue.offer(object);
+//                            queue.offer(object);
                             System.out.println("borrow->" + object);
                         } else {
                             System.out.println("borrow failed ================");
                         }
-                    } else {
-                        TestPoolObject object = queue.poll();
+//                    } else {
+//                        TestPoolObject object = queue.poll();
                         if (object != null) {
                             System.out.println("restitution->" + object);
                             objectPool.restitution(object);
                         }
-                    }
+//                    }
                 }
             });
 
@@ -155,7 +146,7 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
     }
 
     @PooledObject
-    public class TestPoolObject {
+    public class TestPoolObject extends org.voovan.tools.pool.PooledObject {
         private String k;
 
         public TestPoolObject(String k) {
