@@ -398,6 +398,9 @@ public class ObjectPool<T> {
 
         InnerObject innerObject = objects.remove(id);
         if(innerObject !=null) {
+            if(destory!=null) {
+                destory.apply((T)innerObject.getObject());
+            }
             innerObject.remove();
         }
     }
@@ -432,6 +435,9 @@ public class ObjectPool<T> {
      */
     public synchronized void clear(){
         for(InnerObject innerObject : objects.values()) {
+            if(destory!=null) {
+                destory.apply((T)innerObject.getObject());
+            }
             innerObject.remove();
         }
 
