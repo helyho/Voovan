@@ -1,5 +1,6 @@
 package org.voovan.http.client;
 
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.pool.ObjectPool;
 
@@ -28,7 +29,11 @@ public class HttpClientPool {
             .minSize(minSize).maxSize(maxSize)
             .validator(httpClient -> httpClient.isConnect())
             .supplier(()->{
-                return new HttpClient(host, timeout);
+                HttpClient httpClient = new HttpClient(host, timeout);
+                if(!httpClient.isConnect()) {
+                    TEnv.sleep(timeout*1000);
+                }
+                return httpClient;
             }).destory(httpClient -> {
                 httpClient.close();
                 return true;
