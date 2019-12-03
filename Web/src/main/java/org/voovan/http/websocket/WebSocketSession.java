@@ -74,7 +74,7 @@ public class WebSocketSession extends Attributes {
      *
      * @return 对端连接的 IP
      */
-    public String getRemoteAddres() {
+    public String getRemoteAddress() {
         return this.remoteAddres;
     }
 
