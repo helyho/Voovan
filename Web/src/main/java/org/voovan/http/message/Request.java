@@ -58,7 +58,7 @@ public class Request {
      *
      * @param request 请求对象
      */
-    protected Request(Request request) {
+    public Request(Request request) {
         init(request);
     }
 

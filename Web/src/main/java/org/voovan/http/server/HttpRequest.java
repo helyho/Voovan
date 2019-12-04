@@ -78,7 +78,7 @@ public class HttpRequest extends Request {
 	 * 获取 socket 会话对象
 	 * @return socket 会话对象
 	 */
-	protected IoSession getSocketSession() {
+	public IoSession getSocketSession() {
 		return socketSession;
 	}
 
