@@ -519,6 +519,7 @@ public class HttpClient extends PooledObject implements Closeable{
 		//同步模式
 		if (async == null) {
 			try {
+				socket.getSession().getReadByteBufferChannel().clear();
 				Object readObject = socket.synchronouRead();
 
 				//如果是异常则抛出异常
