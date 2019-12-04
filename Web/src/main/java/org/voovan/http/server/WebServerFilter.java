@@ -69,7 +69,7 @@ public class WebServerFilter implements IoFilter {
                                 RESPONSE_CACHE.putIfAbsent(mark, cacheBytes);
                             }
                         } else {
-                            session.sendByBuffer(ByteBuffer.wrap(cacheBytes));
+                            session.send(ByteBuffer.wrap(cacheBytes));
                             httpResponse.clear();
                         }
                     } else {

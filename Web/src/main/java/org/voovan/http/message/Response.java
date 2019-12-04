@@ -44,7 +44,7 @@ public class Response {
 	 *
 	 * @param response 响应对象
 	 */
-	protected Response(Response response) {
+	public Response(Response response) {
 		init(response);
 	}
 

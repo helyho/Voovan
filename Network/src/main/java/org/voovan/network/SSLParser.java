@@ -105,7 +105,7 @@ public class SSLParser {
 
 						netData.flip();
 						if (session.isConnected() && engineResult.bytesProduced() > 0 && netData.limit() > 0) {
-							session.sendByBuffer(netData);
+							session.sendToBuffer(netData);
 						}
 						netData.clear();
 					} else {

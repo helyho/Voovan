@@ -431,7 +431,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 * @param buffer 发送到缓冲区的 ByteBuffer 对象
 	 * @return 添加至缓冲区的字节数
 	 */
-	public int sendByBuffer(ByteBuffer buffer) {
+	protected int sendToBuffer(ByteBuffer buffer) {
 		try {
 			return sendByteBufferChannel.writeEnd(buffer);
 		} catch (Exception e) {
@@ -490,7 +490,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 				return buffer.limit();
 			} else {
 
-				return sendByBuffer(buffer);
+				return sendToBuffer(buffer);
 			}
 		} catch (IOException e) {
 			Logger.error("IoSession.writeToChannel data failed" ,e);

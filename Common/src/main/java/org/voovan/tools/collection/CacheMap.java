@@ -232,47 +232,17 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
         }
     }
 
-    private TimeMark createCache(K key, Function<K, V> supplier, Long createExpire){
+    private void createCache(K key, Function<K, V> supplier, Long createExpire){
         if(supplier==null){
-            return null;
+            return;
         }
 
-        TimeMark timeMark = null;
-
-        synchronized (cacheMark) {
-            timeMark = cacheMark.get(key);
-
-            if (timeMark == null) {
-                timeMark = new TimeMark(this, key, createExpire);
-                cacheMark.put(key, timeMark);
-            }
-        }
-
-        synchronized (timeMark.createFlag) {
-            //加锁必须在外部, 否则会导致上面的 timeMark.createFlag 同步锁都解锁了,内部的线程还没有加到锁的问题
-            if (timeMark.tryLockOnCreate()) {
-                generator(key, supplier, timeMark, createExpire);
-            }
-        }
-
-        TimeMark finalTimeMark = timeMark;
-        if(!TEnv.wait(10*1000, ()-> finalTimeMark.isOnCreate())) {
-            Logger.error("CacheMap.createCache wait supplier timeout: " + key);
-        }
-
-        return timeMark;
-    }
-
-
-    private void generator(K key, Function<K, V> supplier, TimeMark timeMark, Long createExpire){
         try {
             V value = supplier.apply(key);
             if(value == null) {
                 cacheMark.remove(key);
                 return;
             }
-
-            timeMark.refresh(true);
 
             if(expire==Long.MAX_VALUE) {
                 this.put(key, value);
@@ -281,9 +251,8 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
             }
         } catch (Exception e){
             Logger.error("Create with supplier failed: ", e);
-        } finally {
-            timeMark.releaseCreateLock();
         }
+
     }
 
     /**
@@ -297,22 +266,27 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
      */
     @Override
     public V get(Object key, Function<K, V> appointedSupplier, Long createExpire, boolean refresh){
-        appointedSupplier = appointedSupplier == null ? supplier : appointedSupplier;
-        if(appointedSupplier!=null || createExpire!=null || refresh) {
-            TimeMark timeMark = cacheMark.get(key);
 
-            if (timeMark != null &&
-                    !timeMark.isExpire() &&
-                    !timeMark.isOnCreate()) {
-                timeMark.refresh(refresh);
-            } else if (appointedSupplier != null || supplier != null) {
-                createExpire = createExpire == null ? expire : createExpire;
-                timeMark = createCache((K) key, appointedSupplier, createExpire);
+        TimeMark timeMark = cacheMark.get(key);
+        if (timeMark == null) {
+            appointedSupplier = appointedSupplier == null ? supplier : appointedSupplier;
+            createExpire = createExpire == null ? expire : createExpire;
+
+            synchronized (cacheMark) {
+                timeMark = cacheMark.get(key);
+                if(timeMark==null) {
+                    createCache((K) key, appointedSupplier, createExpire);
+                    timeMark = new TimeMark(this, key, createExpire);
+                    cacheMark.put((K) key, timeMark);
+                }
             }
-
-            checkAndDoExpire(timeMark);
+        } else {
+            if (!timeMark.isExpire()) {
+                timeMark.refresh(refresh);
+            } else {
+                checkAndDoExpire(timeMark);
+            }
         }
-
 
         return cacheData.get(key);
     }
