@@ -510,7 +510,7 @@ public class HttpClient extends PooledObject implements Closeable{
 			}
 			httpRequest.send(socket.getSession());
 			httpRequest.flush();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new SendMessageException("HttpClient writeToChannel error", e);
 		}
 
