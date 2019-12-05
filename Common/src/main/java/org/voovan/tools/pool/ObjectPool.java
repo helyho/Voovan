@@ -477,15 +477,17 @@ public class ObjectPool<T> {
                 public void run() {
                     try {
                         Iterator<InnerObject<T>> iterator = objects.values().iterator();
+                        int totalSize = objects.size();
                         while (iterator.hasNext()) {
-
-                            if (objects.size() <= minSize) {
-                                return;
+                            if (totalSize <= minSize) {
+                                break;
                             }
 
                             InnerObject<T> innerObject = iterator.next();
 
-                            if (!innerObject.isAlive() || !(validator!=null && validator.apply(innerObject.object))) {
+                            if (!innerObject.isBorrow() &&
+                                    !innerObject.isAlive() ||
+                                    !(validator!=null && validator.apply(innerObject.object))) {
                                 if (destory != null) {
                                     //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
                                     if (destory.apply(innerObject.getObject())) {
@@ -498,6 +500,20 @@ public class ObjectPool<T> {
                                 }
                             }
                         }
+
+                        int sizeDiff = minSize - totalSize;
+
+                        if(sizeDiff > 0 && supplier!=null) {
+                            for (int i = 0; i < sizeDiff; i++) {
+                                try {
+                                    add(supplier.get());
+                                } catch (Exception e) {
+                                    Logger.error("Create object failed", e);
+                                    break;
+                                }
+                            }
+                        }
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

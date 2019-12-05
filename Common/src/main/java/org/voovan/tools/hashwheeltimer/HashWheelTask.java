@@ -1,6 +1,9 @@
 package org.voovan.tools.hashwheeltimer;
 
 import org.voovan.Global;
+import org.voovan.tools.log.Logger;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * 时间轮任务对象
@@ -166,7 +169,11 @@ public abstract class HashWheelTask {
                     Global.getThreadPool().execute(new Runnable() {
                         @Override
                         public void run() {
-                            task.run();
+                            try {
+                                task.run();
+                            } catch (Throwable throwable) {
+                                Logger.error("HashWheelTimerTask error:", throwable);
+                            }
                             running = false;
                         }
                     });
