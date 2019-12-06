@@ -423,11 +423,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 * @return 读取的字节数
 	 */
 	protected int send0(ByteBuffer buffer) {
-		if(socketSelector != null) {
-			return socketSelector.writeToChannel(socketContext, buffer);
-		} else {
-			return -1;
-		}
+		return socketSelector.writeToChannel(socketContext, buffer);
 	}
 
 	/**
@@ -510,14 +506,10 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		if(sendByteBufferChannel.size()>0) {
 			ByteBuffer byteBuffer = sendByteBufferChannel.getByteBuffer();
 			try {
-				int size = send0(byteBuffer);
-				if(size >= 0) {
-					//触发发送事件
-					EventTrigger.fireFlush(this);
-				} else {
-					this.close();
-				}
-			}  finally {
+				send0(byteBuffer);
+				//触发发送事件
+				EventTrigger.fireFlush(this);
+			} finally {
 				sendByteBufferChannel.compact();
 			}
 		}
