@@ -520,6 +520,8 @@ public class HttpClient extends PooledObject implements Closeable{
 		if (async == null) {
 			try {
 				socket.getSession().getReadByteBufferChannel().clear();
+				((SynchronousHandler)socket.handler()).clearResponse();
+
 				Object readObject = socket.synchronouRead();
 
 				//如果是异常则抛出异常
@@ -535,8 +537,6 @@ public class HttpClient extends PooledObject implements Closeable{
 					throw e;
 				}
 			} finally {
-				socket.getSession().getReadByteBufferChannel().clear();
-
 				//结束操作
 				finished(response);
 			}
