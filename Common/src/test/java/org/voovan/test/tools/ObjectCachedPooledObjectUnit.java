@@ -94,7 +94,7 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
     public void testBorrowConcurrent() {
 
         Object pooledId = null;
-        ObjectPool<TestPoolObject> objectPool = new ObjectPool().minSize(3).maxSize(5000).aliveTime(500000).supplier(()->{
+        ObjectPool<TestPoolObject> objectPool = new ObjectPool().minSize(3).maxSize(3).aliveTime(500000).supplier(()->{
             return  new TestPoolObject("element " + item++);
         }).create();
 
@@ -106,7 +106,7 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
 
         for(int i=0;i<100;i++){
             Thread t = new Thread(()->{
-                while (count.incrementAndGet() < 100000) {
+                while (count.incrementAndGet() < 1000) {
 //                    if ((int) (Math.random() * 10 % 2) == 0) {
                         TestPoolObject object = null;
                         try {
@@ -136,7 +136,7 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
 
 
 
-        while(count.incrementAndGet() < 100000) {
+        while(count.incrementAndGet() < 1000) {
             TEnv.sleep(1);
         }
 
