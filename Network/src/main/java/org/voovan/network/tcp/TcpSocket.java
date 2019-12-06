@@ -221,12 +221,16 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 		try {
 			if(socketChannel!=null && socketChannel.isOpen()){
 				socketChannel.close();
-				session.release();
-				return true;
-			}
+            }
+
+			return true;
 		} catch (IOException e) {
 			Logger.error("TcpSocket.close failed", e);
 		} finally {
+			if(session!=null) {
+				session.release();
+			}
+
 			synchronized (waitObj) {
 				waitObj.notify();
 			}
