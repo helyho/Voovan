@@ -62,7 +62,7 @@ public class JdbcOperate implements Closeable {
 	public JdbcOperate(DataSource dataSource, boolean isTrancation){
 		this.dataSource = dataSource;
 		this.dataBaseType = TSQL.getDataBaseType(dataSource);
-		this.transcationType = (isTrancation? TranscationType.NEST : TranscationType.NONE);
+		this.transcationType = (isTrancation? TranscationType.ALONE : TranscationType.NONE);
 	}
 
 	/**
@@ -334,12 +334,13 @@ public class JdbcOperate implements Closeable {
 
 			statement = (Statement) conn.createStatement();
 
-			for(String sqlText : sqlTexts)
-				if(Logger.isLogLevel("DEBUG")) {
-					statement.addBatch(sqlText);
-					Logger.fremawork("[SQL_Executed]: " + sqlText);
-				}
+			for(String sqlText : sqlTexts) {
+				statement.addBatch(sqlText);
 
+				if (Logger.isLogLevel("DEBUG")) {
+					Logger.sql("[SQL_Executed]: " + sqlText);
+				}
+			}
 
 			int[] result = statement.executeBatch();
 
@@ -394,7 +395,7 @@ public class JdbcOperate implements Closeable {
 			}
 
 			if(Logger.isLogLevel("DEBUG")) {
-				Logger.fremawork("[SQL_Executed]: " + sqlText);
+				Logger.sql("[SQL_Executed]: " + sqlText);
 			}
 
 			statement = preparedStatement;
