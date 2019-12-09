@@ -124,7 +124,7 @@ public class TSQL {
 	 * @throws SQLException SQL 异常
 	 */
 	public static CallableStatement createCallableStatement(Connection conn,String sqlStr,Map<String, Object> params, CallType[] callTypes) throws SQLException{
-		Logger.fremawork("[SQL_Executed]: " + sqlStr);
+		Logger.sql("[SQL_Executed]: " + sqlStr);
 		//获取参数列表
 		List<String> sqlParamNames = TSQL.getSqlParamNames(sqlStr);
 		//获取preparedStatement可用的 SQL
