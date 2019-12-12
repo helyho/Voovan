@@ -36,11 +36,16 @@ public class CrossOriginFilter implements HttpFilter{
             if("*".equals(allowOrigin)){
                 allowOrigin = request.header().get("Origin");
             }
-
             response.header().put("Access-Control-Allow-Origin", allowOrigin);
 
-            response.header().put("Access-Control-Allow-Methods", (String) filterConfig.getParameter("allowMethods"));
-            response.header().put("Access-Control-Allow-Headers", (String) filterConfig.getParameter("allowHeaders"));
+            if(filterConfig.getParameters().containsKey("allowMethods")) {
+                response.header().put("Access-Control-Allow-Methods", (String) filterConfig.getParameter("allowMethods"));
+            }
+
+            if(filterConfig.getParameters().containsKey("allowHeaders")) {
+                response.header().put("Access-Control-Allow-Headers", (String) filterConfig.getParameter("allowHeaders"));
+            }
+
             response.header().put("Access-Control-Allow-Credentials", "true");
         }
 
