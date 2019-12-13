@@ -217,6 +217,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 
 							if(!isConnect){
 								session.cancelIdle();
+								session.close();
 								this.cancel();
 								return;
 							}
@@ -370,6 +371,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 
 		if(!this.isConnected() && readSize <= 0){
 			readSize = -1;
+			close();
 		}
 
 		return readSize;
@@ -395,9 +397,11 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		try {
 			if(isConnected()) {
 				readObject = synchronousHandler.getResponse(socketContext.getReadTimeout());
+			} else {
+				close();
 			}
 
-			if(readObject == null && !isConnected()){
+			if(readObject == null && !isConnected()) {
 				throw new ReadMessageException("Method syncRead error! Socket is disconnected");
 			}
 
@@ -441,6 +445,8 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		} catch (Exception e) {
 			if (socketContext.isConnected()) {
 				Logger.error("IoSession.sendByBuffer buffer failed", e);
+			} else {
+				close();
 			}
 		}
 
