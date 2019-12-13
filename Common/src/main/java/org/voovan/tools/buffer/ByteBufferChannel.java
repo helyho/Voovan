@@ -307,6 +307,7 @@ public class ByteBufferChannel {
         lock();
         try {
             if (byteBuffer != null) {
+                byteBuffer.position(0);
                 byteBuffer.limit(0);
                 size = 0;
             }

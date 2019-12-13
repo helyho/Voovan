@@ -390,7 +390,6 @@ public class EventProcess {
             } else if (eventName == EventName.ON_CONNECT) {
                 EventProcess.onConnect(event);
             } else if (eventName == EventName.ON_DISCONNECT) {
-                //设置空闲状态
                 EventProcess.onDisconnect(event);
             } else if (eventName == EventName.ON_RECEIVE) {
                 EventProcess.onRead(event, 0);

@@ -168,13 +168,13 @@ public class SocketSelector implements Closeable {
 			socketContext.setRegister(false);
 			selectionKey.attach(null);
 
-            socketContext.getSession().getReadByteBufferChannel().release();
-            socketContext.getSession().getSendByteBufferChannel().release();
-            if (socketContext.getSession().isSSLMode()) {
-                socketContext.getSession().getSSLParser().release();
-            }
+			socketContext.getSession().getReadByteBufferChannel().release();
+			socketContext.getSession().getSendByteBufferChannel().release();
+			if (socketContext.getSession().isSSLMode()) {
+				socketContext.getSession().getSSLParser().release();
+			}
 
-            EventTrigger.fireDisconnect(socketContext.getSession());
+			EventTrigger.fireDisconnect(socketContext.getSession());
 		}
 	}
 
@@ -332,12 +332,7 @@ public class SocketSelector implements Closeable {
 					// 有数据读取
 					if ((selectedKey.readyOps() & SelectionKey.OP_READ) != 0) {
 						socketContext.updateLastReadTime();
-
-						if(channel instanceof SocketChannel){
-							tcpReadFromChannel((TcpSocket) socketContext, (SocketChannel)channel);
-						} else if(channel instanceof DatagramChannel) {
-							udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) socketContext, (DatagramChannel) channel);
-						}
+						readFromChannel(socketContext, channel);
 					}
 				}
 			}
@@ -368,12 +363,17 @@ public class SocketSelector implements Closeable {
 	 * @return 读取数据的字节数, -1:读取失败
 	 */
 	public int readFromChannel(SocketContext socketContext, SelectableChannel selectableChannel){
-		if(selectableChannel instanceof SocketChannel){
-			return tcpReadFromChannel((TcpSocket) socketContext, (SocketChannel)selectableChannel);
-		} else if(selectableChannel instanceof DatagramChannel){
-			return udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>)socketContext, (DatagramChannel) selectableChannel);
-		} else {
-			return -1;
+		try {
+			if (selectableChannel instanceof SocketChannel) {
+				return tcpReadFromChannel((TcpSocket) socketContext, (SocketChannel) selectableChannel);
+			} else if (selectableChannel instanceof DatagramChannel) {
+				return udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) socketContext, (DatagramChannel) selectableChannel);
+			} else {
+				return -1;
+			}
+		} catch(Exception e){
+			readTempBuffer.clear();
+			return dealException(socketContext, e);
 		}
 	}
 
@@ -384,12 +384,17 @@ public class SocketSelector implements Closeable {
 	 * @return 写入数据的字节数, -1:写入失败
 	 */
 	public int writeToChannel(SocketContext socketContext, ByteBuffer buffer){
-		if(socketContext instanceof TcpSocket){
-			return tcpWriteToChannel((TcpSocket) socketContext, buffer);
-		} else if(socketContext instanceof UdpSocket){
-			return udpWriteToChannel((UdpSocket) socketContext, buffer);
-		} else {
-			return -1;
+		try {
+			if (socketContext instanceof TcpSocket) {
+				return tcpWriteToChannel((TcpSocket) socketContext, buffer);
+			} else if (socketContext instanceof UdpSocket) {
+				return udpWriteToChannel((UdpSocket) socketContext, buffer);
+			} else {
+				return -1;
+			}
+		} catch(Exception e) {
+			readTempBuffer.clear();
+			return dealException(socketContext, e);
 		}
 	}
 
@@ -399,12 +404,8 @@ public class SocketSelector implements Closeable {
 	 * @param socketChannel Socketchannel 对象
 	 */
 	public void tcpAccept(TcpServerSocket socketContext, SocketChannel socketChannel) {
-		try {
-			TcpSocket socket = new TcpSocket(socketContext, socketChannel);
-			EventTrigger.fireAccept(socket.getSession());
-		} catch(Exception e){
-			dealException(socketContext, e);
-		}
+		TcpSocket socket = new TcpSocket(socketContext, socketChannel);
+		EventTrigger.fireAccept(socket.getSession());
 	}
 
 	/**
@@ -413,14 +414,10 @@ public class SocketSelector implements Closeable {
 	 * @param socketChannel 读取的 Socketchannel 对象
 	 * @return 读取数据的字节数, -1:读取失败
 	 */
-	public int tcpReadFromChannel(TcpSocket socketContext, SocketChannel socketChannel) {
-		try {
-			int readSize = socketChannel.read(readTempBuffer);
-			readSize = loadAndPrepare(socketContext.getSession(), readSize);
-			return readSize;
-		} catch (Exception e) {
-			return dealException(socketContext, e);
-		}
+	public int tcpReadFromChannel(TcpSocket socketContext, SocketChannel socketChannel) throws Exception {
+		int readSize = socketChannel.read(readTempBuffer);
+		readSize = loadAndPrepare(socketContext.getSession(), readSize);
+		return readSize;
 	}
 
 	/**
@@ -429,33 +426,29 @@ public class SocketSelector implements Closeable {
 	 * @param buffer 待写入的数据缓冲对象
 	 * @return 写入数据的字节数, -1:写入失败
 	 */
-	public int tcpWriteToChannel(TcpSocket socketContext, ByteBuffer buffer) {
-		try {
-			int totalSendByte = 0;
-			long start = System.currentTimeMillis();
-			if (socketContext.isConnected() && buffer != null) {
-				//循环发送直到全部内容发送完毕
-				while (socketContext.isConnected() && buffer.remaining() != 0) {
-					int sendSize = socketContext.socketChannel().write(buffer);
-					if (sendSize == 0) {
-						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
-							Logger.error("SocketSelector tcpWriteToChannel timeout", new TimeoutException());
-							socketContext.close();
-							return -1;
-						}
-					} if (sendSize < 0){
+	public int tcpWriteToChannel(TcpSocket socketContext, ByteBuffer buffer) throws Exception {
+		int totalSendByte = 0;
+		long start = System.currentTimeMillis();
+		if (socketContext.isConnected() && buffer != null) {
+			//循环发送直到全部内容发送完毕
+			while (socketContext.isConnected() && buffer.remaining() != 0) {
+				int sendSize = socketContext.socketChannel().write(buffer);
+				if (sendSize == 0) {
+					if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
+						Logger.error("SocketSelector tcpWriteToChannel timeout", new TimeoutException());
 						socketContext.close();
 						return -1;
-					} else {
-						start = System.currentTimeMillis();
-						totalSendByte += sendSize;
 					}
+				} if (sendSize < 0){
+					socketContext.close();
+					return -1;
+				} else {
+					start = System.currentTimeMillis();
+					totalSendByte += sendSize;
 				}
 			}
-			return totalSendByte;
-		} catch (Exception e) {
-			return dealException(socketContext, e);
 		}
+		return totalSendByte;
 	}
 
 	/**
@@ -478,25 +471,21 @@ public class SocketSelector implements Closeable {
 	 * @param datagramChannel 读取的 DatagramChannel 对象
 	 * @return 读取数据的字节数, -1:读取失败
 	 */
-	public int udpReadFromChannel(SocketContext<DatagramChannel, UdpSession> socketContext, DatagramChannel datagramChannel) {
-		try {
-			int readSize = -1;
+	public int udpReadFromChannel(SocketContext<DatagramChannel, UdpSession> socketContext, DatagramChannel datagramChannel) throws Exception {
+		int readSize = -1;
 
-			//接受的连接isConnected 是 false
-			//发起的连接isConnected 是 true
-			if (datagramChannel.isConnected()) {
-				readSize = datagramChannel.read(readTempBuffer);
-			} else {
-				socketContext = (UdpSocket) udpAccept((UdpServerSocket) socketContext, datagramChannel, datagramChannel.receive(readTempBuffer));
-				UdpSession session = socketContext.getSession();
-				readSize = readTempBuffer.position();
-			}
-			readSize = loadAndPrepare(socketContext.getSession(), readSize);
-
-			return readSize;
-		} catch (Exception e) {
-			return dealException(socketContext, e);
+		//接受的连接isConnected 是 false
+		//发起的连接isConnected 是 true
+		if (datagramChannel.isConnected()) {
+			readSize = datagramChannel.read(readTempBuffer);
+		} else {
+			socketContext = (UdpSocket) udpAccept((UdpServerSocket) socketContext, datagramChannel, datagramChannel.receive(readTempBuffer));
+			UdpSession session = socketContext.getSession();
+			readSize = readTempBuffer.position();
 		}
+		readSize = loadAndPrepare(socketContext.getSession(), readSize);
+
+		return readSize;
 	}
 
 	/**
@@ -505,39 +494,35 @@ public class SocketSelector implements Closeable {
 	 * @param buffer 待写入的数据缓冲对象
 	 * @return 写入数据的字节数, -1:写入失败
 	 */
-	public int udpWriteToChannel(UdpSocket socketContext, ByteBuffer buffer) {
-		try {
-			DatagramChannel datagramChannel = socketContext.socketChannel();
-			UdpSession session = socketContext.getSession();
+	public int udpWriteToChannel(UdpSocket socketContext, ByteBuffer buffer) throws Exception {
+		DatagramChannel datagramChannel = socketContext.socketChannel();
+		UdpSession session = socketContext.getSession();
 
-			int totalSendByte = 0;
-			long start = System.currentTimeMillis();
-			if (socketContext.isOpen() && buffer != null) {
-				//循环发送直到全部内容发送完毕
-				while (buffer.remaining() != 0) {
-					int sendSize = 0;
-					if (datagramChannel.isConnected()) {
-						sendSize = datagramChannel.write(buffer);
-					} else {
-						sendSize = datagramChannel.send(buffer, session.getInetSocketAddress());
+		int totalSendByte = 0;
+		long start = System.currentTimeMillis();
+		if (socketContext.isOpen() && buffer != null) {
+			//循环发送直到全部内容发送完毕
+			while (buffer.remaining() != 0) {
+				int sendSize = 0;
+				if (datagramChannel.isConnected()) {
+					sendSize = datagramChannel.write(buffer);
+				} else {
+					sendSize = datagramChannel.send(buffer, session.getInetSocketAddress());
+				}
+				if (sendSize == 0) {
+					TEnv.sleep(1);
+					if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
+						Logger.error("SocketSelector udpWriteToChannel timeout, Socket will be close");
+						socketContext.close();
+						return -1;
 					}
-					if (sendSize == 0) {
-						TEnv.sleep(1);
-						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
-							Logger.error("SocketSelector udpWriteToChannel timeout, Socket will be close");
-							socketContext.close();
-							return -1;
-						}
-					} else {
-						start = System.currentTimeMillis();
-						totalSendByte += sendSize;
-					}
+				} else {
+					start = System.currentTimeMillis();
+					totalSendByte += sendSize;
 				}
 			}
-			return totalSendByte;
-		} catch (Exception e) {
-			return dealException(socketContext, e);
 		}
+		return totalSendByte;
 	}
 
 	/**
@@ -587,7 +572,7 @@ public class SocketSelector implements Closeable {
 				}
 
 				// 接收完成后重置buffer对象
-				readTempBuffer.clear();
+//				readTempBuffer.clear();
 			}
 
 			return readSize;
