@@ -7,6 +7,7 @@ import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
+import org.voovan.http.server.exception.HttpParserException;
 import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
@@ -123,6 +124,12 @@ public class WebServerFilter implements IoFilter {
 					return null;
 				}
 			} catch (Exception e) {
+				byteBufferChannel.clear();
+
+				if(e instanceof HttpParserException) {
+					session.close();
+				}
+
 				Response response = new Response();
 				response.protocol().setStatus(500);
 

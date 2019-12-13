@@ -24,8 +24,8 @@ public class UrlLimitIpFilter implements HttpFilter {
         List<String> urlList= (List<String>) filterConfig.getParameter("UrlList");
         Boolean invalidClose = (Boolean) TObject.nullDefault(filterConfig.getParameter("invalidClose"), true);
 
-
-        String remoteAddress = request.getRemoteAddres();
+        //TODO: 未授权的 ip 访问加入黑名单,一段时间不允许访问
+        String remoteAddress = request.getSocketSession().remoteAddress();
         String path = request.protocol().getPath();
 
         //检查地址
