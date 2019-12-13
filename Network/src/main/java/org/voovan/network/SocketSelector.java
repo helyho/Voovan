@@ -372,8 +372,9 @@ public class SocketSelector implements Closeable {
 				return -1;
 			}
 		} catch(Exception e){
-			readTempBuffer.clear();
 			return dealException(socketContext, e);
+		} finally {
+			readTempBuffer.clear();
 		}
 	}
 
@@ -393,8 +394,9 @@ public class SocketSelector implements Closeable {
 				return -1;
 			}
 		} catch(Exception e) {
-			readTempBuffer.clear();
 			return dealException(socketContext, e);
+		} finally {
+			socketContext.getSession().getSendByteBufferChannel().clear();
 		}
 	}
 
@@ -572,7 +574,7 @@ public class SocketSelector implements Closeable {
 				}
 
 				// 接收完成后重置buffer对象
-//				readTempBuffer.clear();
+				// readTempBuffer.clear();
 			}
 
 			return readSize;
