@@ -73,7 +73,7 @@ public class VoovanTFB {
 			}
 		});
 
-		Logger.setEnable(true);
+		Logger.setEnable(false);
 
 		webServer.serve();
 	}

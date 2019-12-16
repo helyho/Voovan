@@ -1,5 +1,6 @@
 package org.voovan.tools.json;
 
+import org.voovan.Global;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TString;
 import org.voovan.tools.reflect.TReflect;
@@ -36,27 +37,24 @@ public class JSONEncode {
     /**
      * 分析Map对象为JSON字符串
      *
-     * @param mapObject map对象
+     * @param mapObject map对象b
      * @return JSON字符串
      * @throws ReflectiveOperationException
      */
     private static String mapObject(Map<?, ?> mapObject, boolean allField) throws ReflectiveOperationException {
-        String mapString = "{";
-        StringBuilder contentStringBuilder = new StringBuilder();
+        StringBuilder contentStringBuilder = new StringBuilder(Global.STR_LC_BRACES);
         String ContentString = null;
 
-        Object[] keys = mapObject.keySet().toArray();
-
-        for (Object mapkey : keys) {
+        for (Object mapkey : mapObject.keySet()) {
             String key = fromObject(mapkey, allField);
             String Value = fromObject(mapObject.get(mapkey), allField);
-            String wrapQuote = key.startsWith("\"") && key.endsWith("\"") ? "" : "\"";
+            String wrapQuote = key.startsWith(Global.STR_QUOTE) && key.endsWith(Global.STR_QUOTE) ? Global.EMPTY_STRING : Global.STR_QUOTE;
             contentStringBuilder.append(wrapQuote);
             contentStringBuilder.append(key);
             contentStringBuilder.append(wrapQuote);
-            contentStringBuilder.append(":");
+            contentStringBuilder.append(Global.STR_COLON);
             contentStringBuilder.append(Value);
-            contentStringBuilder.append(",");
+            contentStringBuilder.append(Global.STR_COMMA);
         }
 
         ContentString = contentStringBuilder.toString();
@@ -64,9 +62,9 @@ public class JSONEncode {
             ContentString = ContentString.substring(0, ContentString.length() - 1);
         }
 
-        mapString = mapString + ContentString + "}";
+        contentStringBuilder.append(Global.STR_RC_BRACES);
 
-        return mapString;
+        return contentStringBuilder.toString();
     }
 
     /**
