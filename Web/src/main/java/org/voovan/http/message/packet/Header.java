@@ -1,9 +1,9 @@
 package org.voovan.http.message.packet;
 
 import org.voovan.http.message.HttpStatic;
+import org.voovan.tools.collection.CustomKeyHashMap;
 import org.voovan.tools.FastThreadLocal;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -23,7 +23,7 @@ public class Header {
 	 * 构造函数
 	 */
 	public Header(){
-		headers = new HashMap<String,String>(32);
+		headers = new CustomKeyHashMap<String,String>(32, key->key.toLowerCase());
 	} 
 	
 	/**

@@ -1,5 +1,6 @@
 package org.voovan.http.server;
 
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
@@ -543,7 +544,7 @@ public class HttpDispatcher {
 
 		//转换成能在 HTML 中展示的超文本字符串
 		String contentType = error.get("ContentType").toString();
-		response.header().put("Content-Type", contentType);
+		response.header().put(HttpStatic.CONTENT_TYPE_STRING, contentType);
 		if(contentType.contains("html")) {
 			errorMessage = errorMessage.replaceAll(TFile.getLineSeparator(), "<br/>");
 			stackInfo = TString.indent(stackInfo.trim(), 1).replaceAll("\\n", "<br/>");

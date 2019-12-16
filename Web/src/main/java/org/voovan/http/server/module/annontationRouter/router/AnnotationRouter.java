@@ -1,5 +1,6 @@
 package org.voovan.http.server.module.annontationRouter.router;
 
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.*;
 import org.voovan.http.server.exception.AnnotationRouterException;
 import org.voovan.http.server.module.annontationRouter.AnnotationModule;
@@ -423,8 +424,8 @@ public class AnnotationRouter implements HttpRouter {
 
         try {
 
-            //根据 Page 注解的标记设置响应的Content-Type
-            response.header().put("Content-Type", HttpContentType.getHttpContentType(methodRoute.ContentType()));
+            //根据 Router 注解的标记设置响应的Content-Type
+            response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpContentType.getHttpContentType(methodRoute.ContentType()));
 
             Object responseObj = invokeRouterMethod(request, response, clazz, method);
             if (responseObj != null) {
@@ -433,7 +434,7 @@ public class AnnotationRouter implements HttpRouter {
                 } else if (responseObj instanceof byte[]) {
                     response.write((byte[]) responseObj);
                 } else {
-                    response.header().put("Content-Type", HttpContentType.getHttpContentType(HttpContentType.JSON));
+                    response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpContentType.getHttpContentType(HttpContentType.JSON));
                     response.write(JSON.toJSON(responseObj));
                 }
             }

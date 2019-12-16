@@ -1,9 +1,11 @@
 package org.voovan.http.server.router;
 
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpRouter;
 import org.voovan.http.server.MimeTools;
+import org.voovan.http.server.context.HttpsConfig;
 import org.voovan.http.server.exception.ResourceNotFound;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
@@ -60,7 +62,7 @@ public class MimeFileRouter implements HttpRouter {
 		if (responseFile.exists()) {
 			// 获取扩展名
 			String fileExtension = urlPath.substring(urlPath.lastIndexOf(".") + 1, urlPath.length());
-			response.header().put("Content-Type", MimeTools.getMimeByFileExtension(fileExtension));
+			response.header().put(HttpStatic.CONTENT_TYPE_STRING, MimeTools.getMimeByFileExtension(fileExtension));
 
 			if(isNotModify(responseFile,request,response)){
 				return ;
@@ -98,16 +100,16 @@ public class MimeFileRouter implements HttpRouter {
 		String eTag = TString.assembly("\"", THash.encryptMD5(Integer.toString(responseFile.hashCode()+fileModifyDate.hashCode())).toUpperCase(), "\"");
 
 		//请求中的 ETag
-		String requestETag = request.header().get("If-None-Match");
+		String requestETag = request.header().get(HttpStatic.IF_NONE_MATCH_STRING);
 
 		//设置响应头 ETag
-		response.header().put("ETag", eTag);
+		response.header().put(HttpStatic.ETAG_STRING, eTag);
 		//设置最后修改时间
-		response.header().put("Last-Modified",TDateTime.formatToGMT(fileModifyDate));
+		response.header().put(HttpStatic.LAST_MODIFIED_STRING,TDateTime.formatToGMT(fileModifyDate));
 		//设置缓存控制
-		response.header().put("Cache-Control", "max-age=86400");
+		response.header().put(HttpStatic.CACHE_CONTROL_STRING, "max-age=86400");
 		//设置浏览器缓存超时控制
-		response.header().put("Expires",TDateTime.formatToGMT(new Date(System.currentTimeMillis()+86400*1000)));
+		response.header().put(HttpStatic.EXPIRES_STRING,TDateTime.formatToGMT(new Date(System.currentTimeMillis()+86400*1000)));
 
 		//文件 hashcode 无变化,则返回304
 		if(eTag.equals(requestETag)){
@@ -159,7 +161,7 @@ public class MimeFileRouter implements HttpRouter {
 				endPos   = Long.parseLong(ranges[1]);
 			}
 			fileByte = TFile.loadFileFromSysPath(responseFile.getPath(), beginPos, endPos);
-			response.header().put("Content-Range", TString.assembly("bytes ", rangeStr, File.separator, fileSize));
+			response.header().put(HttpStatic.CONTENT_RANGE_STRING, TString.assembly("bytes ", rangeStr, File.separator, fileSize));
 			response.body().write(fileByte);
 
 		} else {

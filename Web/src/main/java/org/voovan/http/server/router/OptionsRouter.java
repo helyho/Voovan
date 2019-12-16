@@ -1,5 +1,6 @@
 package org.voovan.http.server.router;
 
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpRouter;
@@ -31,9 +32,9 @@ public class OptionsRouter implements HttpRouter {
             domains = request.header().get("Origin");
         }
 
-        response.header().put("Access-Control-Allow-Methods", method);
-        response.header().put("Access-Control-Allow-Origin", domains);
-        response.header().put("Access-Control-Allow-Headers",headers);
-        response.header().put("Access-Control-Allow-Credentials", "true");
+        response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_METHODS_STRING, method);
+        response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_ORIGIN_STRING, domains);
+        response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_HEADERS_STRING, headers);
+        response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_CREDENTIALS_STRING, "true");
     }
 }

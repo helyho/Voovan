@@ -78,50 +78,50 @@ public class HttpParser {
 
 	}
 
-	/**
-	 * 解析 HTTP Header属性行
-	 * @param propertyLine
-	 *              Http 报文头属性行字符串
-	 * @return
-	 */
-	private static Map<String,String> parsePropertyLine(String propertyLine){
-		Map<String,String> property = new HashMap<String, String>();
-
-		int index = propertyLine.indexOf(propertyLineRegex);
-		if(index > 0){
-			String propertyName = propertyLine.substring(0, index);
-			String properyValue = propertyLine.substring(index+2, propertyLine.length());
-
-			property.put(fixHeaderName(propertyName), properyValue.trim());
-		}
-
-		return property;
-	}
-
-	/**
-	 * 校正全小写形式的 Http 头
-	 * @param headerName http 头的行数据
-	 * @return 校正后的http 头的行数据
-	 */
-	public static String fixHeaderName(String headerName) {
-		if(headerName==null){
-			return null;
-		}
-		String[] headerNameSplits = headerName.split("-");
-		StringBuilder stringBuilder = new StringBuilder();
-		for(String headerNameSplit : headerNameSplits) {
-			if(Character.isLowerCase(headerNameSplit.codePointAt(0))){
-				stringBuilder.append((char)(headerNameSplit.codePointAt(0) - 32));
-				stringBuilder.append(TString.removePrefix(headerNameSplit));
-			} else {
-				stringBuilder.append(headerNameSplit);
-			}
-
-			stringBuilder.append("-");
-		}
-
-		return TString.removeSuffix(stringBuilder.toString());
-	}
+//	/**
+//	 * 解析 HTTP Header属性行
+//	 * @param propertyLine
+//	 *              Http 报文头属性行字符串
+//	 * @return
+//	 */
+//	private static Map<String,String> parsePropertyLine(String propertyLine){
+//		Map<String,String> property = new HashMap<String, String>();
+//
+//		int index = propertyLine.indexOf(propertyLineRegex);
+//		if(index > 0){
+//			String propertyName = propertyLine.substring(0, index);
+//			String properyValue = propertyLine.substring(index+2, propertyLine.length());
+//
+//			property.put(fixHeaderName(propertyName), properyValue.trim());
+//		}
+//
+//		return property;
+//	}
+//
+//	/**
+//	 * 校正全小写形式的 Http 头
+//	 * @param headerName http 头的行数据
+//	 * @return 校正后的http 头的行数据
+//	 */
+//	public static String fixHeaderName(String headerName) {
+//		if(headerName==null){
+//			return null;
+//		}
+//		String[] headerNameSplits = headerName.split("-");
+//		StringBuilder stringBuilder = new StringBuilder();
+//		for(String headerNameSplit : headerNameSplits) {
+//			if(Character.isLowerCase(headerNameSplit.codePointAt(0))){
+//				stringBuilder.append((char)(headerNameSplit.codePointAt(0) - 32));
+//				stringBuilder.append(TString.removePrefix(headerNameSplit));
+//			} else {
+//				stringBuilder.append(headerNameSplit);
+//			}
+//
+//			stringBuilder.append("-");
+//		}
+//
+//		return TString.removeSuffix(stringBuilder.toString());
+//	}
 
 	/**
 	 * 解析字符串中的所有等号表达式成 Map
