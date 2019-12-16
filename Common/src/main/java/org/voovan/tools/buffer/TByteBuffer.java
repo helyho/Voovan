@@ -240,10 +240,10 @@ public class TByteBuffer {
         }
 
         try {
-            if (byteBuffer != null && !isReleased(byteBuffer)) {
+            if (byteBuffer != null) {
+                long address = getAddress(byteBuffer);
                 Object att = getAtt(byteBuffer);
-                if (att!=null && att.getClass() == Deallocator.class) {
-                    long address = getAddress(byteBuffer);
+                if (address!=0 && att!=null && att.getClass() == Deallocator.class) {
                     if(address!=0) {
                         byteBuffer.clear();
 
