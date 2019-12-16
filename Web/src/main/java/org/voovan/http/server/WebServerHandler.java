@@ -455,8 +455,7 @@ public class WebServerHandler implements IoHandler {
 
 	@Override
 	public void onException(IoSession session, Exception e) {
-		if(e instanceof TimeoutException){
-		} else if(!(e instanceof MemoryReleasedException)) {
+		if(!(e instanceof MemoryReleasedException)) {
 			Logger.error("Http Server Error", e);
 		}
 
