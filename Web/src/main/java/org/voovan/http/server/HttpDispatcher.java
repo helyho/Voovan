@@ -44,8 +44,8 @@ import java.util.regex.Pattern;
  */
 public class HttpDispatcher {
 
-	private static Map<String, String> REGEXED_ROUTER_CACHE = new ConcurrentHashMap<String, String>();
-	private static Map<Integer, List<Object>> ROUTER_INFO_CACHE = new ConcurrentHashMap<Integer, List<Object>>();
+	private static FastThreadLocal<Map<String, String>> REGEXED_ROUTER_CACHE     = FastThreadLocal.withInitial(()->new HashMap<String, String>());
+	private static FastThreadLocal<Map<Integer, List<Object>>> ROUTER_INFO_CACHE = FastThreadLocal.withInitial(()->new HashMap<Integer, List<Object>>());
 
 	/**
 	 * [MainKey] = HTTP method ,[Value] = { [Value Key] = Route path, [Value value] = RouteBuiz对象 }
@@ -65,8 +65,8 @@ public class HttpDispatcher {
 	public HttpDispatcher(WebServerConfig webConfig, SessionManager sessionManager) {
 
 		//清理缓存的路由正则
-		REGEXED_ROUTER_CACHE.clear();
-		ROUTER_INFO_CACHE.clear();
+		REGEXED_ROUTER_CACHE.get().clear();
+		ROUTER_INFO_CACHE.get().clear();
 
 		methodRouters = new LinkedHashMap<String, Map<String, HttpRouter>>();
 		this.webConfig = webConfig;
@@ -249,7 +249,7 @@ public class HttpDispatcher {
 		String requestMethod 	= request.protocol().getMethod();
 		int routerMark    = THash.HashFNV1(requestPath) << 16 +  THash.HashFNV1(requestMethod);
 
-		List<Object> routerInfo = ROUTER_INFO_CACHE.get(routerMark);
+		List<Object> routerInfo = ROUTER_INFO_CACHE.get().get(routerMark);
 
 		if(routerInfo==null) {
 
@@ -260,7 +260,7 @@ public class HttpDispatcher {
 				if (matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())) {
 					//[ 匹配到的已注册路由, HttpRouter对象 ]
 					routerInfo = TObject.asList(routePath, routeEntry.getValue());
-					ROUTER_INFO_CACHE.put(routerMark, routerInfo);
+					ROUTER_INFO_CACHE.get().put(routerMark, routerInfo);
 					return routerInfo;
 				}
 			}
@@ -270,7 +270,7 @@ public class HttpDispatcher {
 		if(routerInfo == null){
 			if(isStaticFile(request)){
 				routerInfo = TObject.asList(request.protocol().getPath(), mimeFileRouter);
-				ROUTER_INFO_CACHE.put(routerMark, routerInfo);
+				ROUTER_INFO_CACHE.get().put(routerMark, routerInfo);
 				return routerInfo;
 			}
 		}
@@ -345,15 +345,15 @@ public class HttpDispatcher {
 	 * @return  转换后的正则匹配路径
 	 */
 	public static String routePath2RegexPath(String routePath){
-		if(!REGEXED_ROUTER_CACHE.containsKey(routePath)) {
+		if(!REGEXED_ROUTER_CACHE.get().containsKey(routePath)) {
 			String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/");
 			routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/]*", "[^:?/]*");
 			routeRegexPath = TString.assembly("^\\/?", routeRegexPath, "\\/?$");
-			REGEXED_ROUTER_CACHE.put(routePath, routeRegexPath);
+			REGEXED_ROUTER_CACHE.get().put(routePath, routeRegexPath);
 			return routeRegexPath;
 		} else {
-			return REGEXED_ROUTER_CACHE.get(routePath);
+			return REGEXED_ROUTER_CACHE.get().get(routePath);
 		}
 	}
 
@@ -364,7 +364,7 @@ public class HttpDispatcher {
 	 * @param matchRouteIgnoreCase 路劲匹配是否忽略大消息
 	 * @return  是否匹配成功
 	 */
-	public static boolean matchPath(String requestPath, String routePath,boolean matchRouteIgnoreCase){
+	public static boolean matchPath(String requestPath, String routePath, boolean matchRouteIgnoreCase){
 		//转换成可以配置的正则,主要是处理:后的参数表达式
 		//把/home/:name转换成^[/]?/home/[/]?+来匹配
 		String routeRegexPath = routePath2RegexPath(routePath);
@@ -384,9 +384,9 @@ public class HttpDispatcher {
 	 */
 	public static Map<String, String> fetchPathVariables(String requestPath,String routePath, boolean matchRouteIgnoreCase) {
 		//修正请求和匹配路由检查是否存在路径请求参数
-		String compareRoutePath = routePath.endsWith("*") ? TString.removeSuffix(routePath) : routePath;
-		compareRoutePath = compareRoutePath.endsWith("/") ? TString.removeSuffix(compareRoutePath) : compareRoutePath;
-		String compareRequestPath = requestPath.endsWith("/") ? TString.removeSuffix(requestPath) : requestPath;
+		String compareRoutePath = routePath.charAt(routePath.length()-1) == '*' 	? TString.removeSuffix(routePath) : routePath;
+		compareRoutePath = compareRoutePath.charAt(compareRoutePath.length()-1)=='/'? TString.removeSuffix(compareRoutePath) : compareRoutePath;
+		String compareRequestPath = requestPath.charAt(requestPath.length()-1)== '/'? TString.removeSuffix(requestPath) : requestPath;
 
 		//判断是否存在路径请求参数
 		if(compareRequestPath.equals(compareRoutePath)){
