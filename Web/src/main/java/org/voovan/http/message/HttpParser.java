@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
@@ -56,7 +57,7 @@ public class HttpParser {
 	public static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
 	private static FastThreadLocal<byte[]> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new byte[1024]);
 
-	private static ConcurrentSkipListMap<Long, Map<String, Object>> PACKET_MAP_CACHE = new ConcurrentSkipListMap<Long, Map<String, Object>>();
+	private static ConcurrentHashMap<Long, Map<String, Object>> PACKET_MAP_CACHE = new ConcurrentHashMap<Long, Map<String, Object>>();
 
     public static final int PARSER_TYPE_REQUEST = 0;
 	public static final int PARSER_TYPE_RESPONSE = 1;
