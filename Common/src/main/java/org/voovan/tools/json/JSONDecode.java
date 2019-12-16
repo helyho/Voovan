@@ -267,7 +267,10 @@ public class JSONDecode {
 								value = TString.unConvertEscapeChar(value.toString());
 							}
 						}
-
+						//判断科学技术转换成 BigDecimal
+						else if (stringValue.indexOf(".")>0 && stringValue.indexOf("E")>0) {
+							value = new BigDecimal(stringValue);
+						}
 						//判断不包含.即为整形
 						else if (TString.isInteger(stringValue)) {
 							Long longValue = Long.parseLong((String) value);
