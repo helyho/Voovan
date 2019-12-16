@@ -19,6 +19,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
@@ -31,7 +32,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * Licence: Apache v2 License
  */
 public class WebServerFilter implements IoFilter {
-	public static ConcurrentSkipListMap<Long, byte[]> RESPONSE_CACHE = new ConcurrentSkipListMap<Long, byte[]>();
+	public static ConcurrentHashMap<Long, byte[]> RESPONSE_CACHE = new ConcurrentHashMap<Long, byte[]>();
 
 	static {
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
