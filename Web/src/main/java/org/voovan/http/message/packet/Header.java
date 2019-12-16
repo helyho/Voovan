@@ -1,7 +1,6 @@
 package org.voovan.http.message.packet;
 
 import org.voovan.http.message.HttpStatic;
-import org.voovan.tools.CaseInsensitiveString;
 import org.voovan.tools.FastThreadLocal;
 
 import java.util.HashMap;
@@ -17,21 +16,21 @@ import java.util.Map.Entry;
  * Licence: Apache v2 License
  */
 public class Header {
-	private Map<CaseInsensitiveString, String> headers;
+	private Map<String, String> headers;
 	private static FastThreadLocal<StringBuilder> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new StringBuilder(512));
 
 	/**
 	 * 构造函数
 	 */
 	public Header(){
-		headers = new HashMap<CaseInsensitiveString,String>(32);
+		headers = new HashMap<String,String>(32);
 	}
 
 	/**
 	 * 获取 Header  的 Map 对象
 	 * @return HTTP-Header 转换候的 Map
 	 */
-	public Map<CaseInsensitiveString, String> getHeaders() {
+	public Map<String,String> getHeaders() {
 		return headers;
 	}
 
@@ -41,7 +40,7 @@ public class Header {
 	 * @return 移除的header 的 name
 	 */
 	public String remove(String header){
-		return headers.remove(new CaseInsensitiveString(header));
+		return headers.remove(header);
 	}
 
 	/**
@@ -50,7 +49,7 @@ public class Header {
 	 * @return 是否存在
 	 */
 	public boolean contain(String header){
-		return headers.containsKey(new CaseInsensitiveString(header));
+		return headers.containsKey(header);
 	}
 
 	/**
@@ -59,7 +58,7 @@ public class Header {
 	 * @return header 的值
 	 */
 	public String get(String header){
-		return headers.get(new CaseInsensitiveString(header));
+		return headers.get(header);
 	}
 
 	/**
@@ -69,7 +68,7 @@ public class Header {
 	 * @return header 的 name
 	 */
 	public String put(String header,String value){
-		return headers.put(new CaseInsensitiveString(header),value);
+		return headers.put(header,value);
 	}
 
 	/**
@@ -77,9 +76,7 @@ public class Header {
 	 * @param valueMap Header 的 Map 形式
 	 */
 	public void putAll(Map<String, String> valueMap){
-		for(Map.Entry<String, String> entry : valueMap.entrySet()) {
-			this.put(entry.getKey(), entry.getValue());
-		}
+		headers.putAll(valueMap);
 	}
 
 	/**
@@ -101,8 +98,8 @@ public class Header {
 	public String toString(){
 		StringBuilder headerContent = THREAD_STRING_BUILDER.get();
 		headerContent.setLength(0);
-		for(Entry<CaseInsensitiveString,String> headerItemEntry : this.headers.entrySet()){
-			String key = headerItemEntry.getKey().toString();
+		for(Entry<String,String> headerItemEntry : this.headers.entrySet()){
+			String key = headerItemEntry.getKey();
 			String value = headerItemEntry.getValue();
 			if(!key.isEmpty()){
 				headerContent.append(key);
