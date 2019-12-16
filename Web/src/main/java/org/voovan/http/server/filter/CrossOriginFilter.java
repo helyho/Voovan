@@ -1,5 +1,6 @@
 package org.voovan.http.server.filter;
 
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.HttpFilter;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
@@ -36,17 +37,17 @@ public class CrossOriginFilter implements HttpFilter{
             if("*".equals(allowOrigin)){
                 allowOrigin = request.header().get("Origin");
             }
-            response.header().put("Access-Control-Allow-Origin", allowOrigin);
+            response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_ORIGIN_STRING, allowOrigin);
 
             if(filterConfig.getParameters().containsKey("allowMethods")) {
-                response.header().put("Access-Control-Allow-Methods", (String) filterConfig.getParameter("allowMethods"));
+                response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_METHODS_STRING, (String) filterConfig.getParameter("allowMethods"));
             }
 
             if(filterConfig.getParameters().containsKey("allowHeaders")) {
-                response.header().put("Access-Control-Allow-Headers", (String) filterConfig.getParameter("allowHeaders"));
+                response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_HEADERS_STRING, (String) filterConfig.getParameter("allowHeaders"));
             }
 
-            response.header().put("Access-Control-Allow-Credentials", "true");
+            response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_CREDENTIALS_STRING, "true");
         }
 
         //JSONP 形式的跨域配置

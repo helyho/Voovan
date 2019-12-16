@@ -1,5 +1,6 @@
 package org.voovan.http.server.module.monitor;
 
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpRouter;
@@ -125,7 +126,7 @@ public class MonitorRouter implements HttpRouter {
                 request.getSession().close();
             }
 
-            response.header().put("Content-Type", "application/json");
+            response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.APPLICATION_JSON_STRING);
             response.write(responseStr);
         } else {
             request.getSession().close();

@@ -501,6 +501,9 @@ public class HttpClient extends PooledObject implements Closeable{
 		//构造 Request 对象
 		buildRequest(TString.isNullOrEmpty(location) ? "/" : location);
 
+		socket.getSession().getReadByteBufferChannel().clear();
+		((SynchronousHandler)socket.handler()).clearResponse();
+
 		//发送报文
 		try {
 			//异步模式更新 handler
@@ -519,9 +522,6 @@ public class HttpClient extends PooledObject implements Closeable{
 		//同步模式
 		if (async == null) {
 			try {
-				socket.getSession().getReadByteBufferChannel().clear();
-				((SynchronousHandler)socket.handler()).clearResponse();
-
 				Object readObject = socket.synchronouRead();
 
 				//如果是异常则抛出异常

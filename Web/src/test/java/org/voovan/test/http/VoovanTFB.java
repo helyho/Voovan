@@ -54,21 +54,21 @@ public class VoovanTFB {
 		//性能测试请求;
 		webServer.get("/plaintext", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				resp.header().put(HttpStatic.CONTENT_TYPE_STRING, "text/plain");
+				resp.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.TEXT_PLAIN_STRING);
 				resp.write(HELLO_WORLD);
 			}
 		});
 		//性能测试请求
 		webServer.get("/vjson", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				resp.header().put("Content-Type", "application/json");
+				resp.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.APPLICATION_JSON_STRING);
 				resp.write(JSON.toJSON(TObject.asMap("message", "Hello, World!"), false, false));
 			}
 		});
 		//性能测试请求
 		webServer.get("/json", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				resp.header().put("Content-Type", "application/json");
+				resp.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.APPLICATION_JSON_STRING);
 				resp.write(serializeMsg(new Message("Hello, World!")));
 			}
 		});

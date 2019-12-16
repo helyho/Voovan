@@ -1,5 +1,7 @@
 package org.voovan.http.server;
 
+import org.voovan.http.message.HttpStatic;
+
 /**
  * Some description
  *
@@ -8,7 +10,7 @@ package org.voovan.http.server;
  * Create: 2017/9/21 19:41
  */
 public enum HttpContentType {
-    TEXT, JSON, XML, IMAGE_JPG, IMAGE_GIF, IMAGE_PNG;
+    TEXT, JSON, XML, IMAGE_JPG, IMAGE_GIF, IMAGE_PNG, IMAGE_SVG;
 
     /**
      * 根据标识获得标准Content-Type类型
@@ -18,13 +20,13 @@ public enum HttpContentType {
 
     public static String getHttpContentType(HttpContentType httpContentType){
         if(httpContentType == HttpContentType.TEXT){
-            return "text/plain";
+            return HttpStatic.TEXT_PLAIN_STRING;
         }
         else if(httpContentType == HttpContentType.XML){
             return "text/xml";
         }
         else if(httpContentType == HttpContentType.JSON){
-            return "application/json";
+            return HttpStatic.APPLICATION_JSON_STRING;
         }
         else if(httpContentType == HttpContentType.IMAGE_GIF){
             return "image/gif";
@@ -34,8 +36,10 @@ public enum HttpContentType {
         }
         else if(httpContentType == HttpContentType.IMAGE_PNG){
             return "image/png";
+        } else if(httpContentType == HttpContentType.IMAGE_SVG){
+            return "image/svg+xml";
         } else {
-            return "text/html";
+            return HttpStatic.TEXT_HTML_STRING;
         }
     }
 }

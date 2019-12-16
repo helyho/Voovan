@@ -60,6 +60,7 @@ public class Global {
     public static final char CHAR_SHAPE     = '#';
     public static final char CHAR_AT        = '@';
     public static final char CHAR_EOF       = '\0';
+    public static final char CHAR_SUB       = '-';
 
     public static final byte BYTE_EQUAL         = 61;           // '='
     public static final byte BYTE_SLASH         = 92;           // "\\"
@@ -77,9 +78,10 @@ public class Global {
     public static final byte BYTE_LS_BRACES     = 91;           // '[''
     public static final byte BYTE_RS_BRACES     = 93;           // ']''
     public static final byte BYTE_STAR          = 42;           // '*'
-    public static final byte BYTE_SHAPE        = 35;           // '#'
-    public static final byte BYTE_AT           = 64;           // '@'
+    public static final byte BYTE_SHAPE         = 35;           // '#'
+    public static final byte BYTE_AT            = 64;           // '@'
     public static final byte BYTE_EOF           = 0;            // '\0'
+    public static final byte BYTE_SUB           = 45;            // '-'
 
     public static final String EMPTY_STRING = "";
 
