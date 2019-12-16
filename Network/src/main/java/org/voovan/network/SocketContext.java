@@ -312,7 +312,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 * 无参数构造函数
 	 */
 	protected SocketContext() {
-		filterChain = new Chain<IoFilter>();
 	}
 
 	/**
