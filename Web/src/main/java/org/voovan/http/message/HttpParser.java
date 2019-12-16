@@ -571,7 +571,7 @@ public class HttpParser {
 				}
 
 				//处理更新或设置缓存
-				if(isCache && "GET".equals(packetMap.get(PL_METHOD)) || !packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
+				if(isCache && "GET".equals(packetMap.get(PL_METHOD))) {
 					totalLength = innerByteBuffer.position();
 					headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int)(totalLength - protocolPosition));
 					mark = (mark + headerMark) << 32 | totalLength; //高位存 hash, 低位存整个头的长度
