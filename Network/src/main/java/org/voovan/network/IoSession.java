@@ -63,6 +63,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		private volatile boolean connect = false;
 		private volatile boolean receive = false;
 		private volatile boolean send = false;
+		private volatile boolean flush = false;
 		private volatile boolean close = false;
 
 		public boolean isInit() {
@@ -95,6 +96,14 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 
 		public void setSend(boolean send) {
 			this.send = send;
+		}
+
+		public boolean isFlush() {
+			return flush;
+		}
+
+		public void setFlush(boolean flush) {
+			this.flush = flush;
 		}
 
 		public boolean isClose() {
@@ -462,6 +471,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	public void syncSend(Object obj) throws SendMessageException{
 		//等待 ssl 握手完成
 		try {
+			state.setFlush(true);
 			if(sslParser!=null) {
 				TEnv.waitThrow(socketContext.getReadTimeout(), ()->!sslParser.handShakeDone);
 			}
@@ -478,6 +488,8 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		} catch (TimeoutException e) {
 			throw new SendMessageException("Method syncSend error! Error by "+
 					e.getClass().getSimpleName() + ".",e);
+		} finally {
+			state.setFlush(false);
 		}
 	}
 
