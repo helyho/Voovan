@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -377,7 +378,7 @@ public class JdbcOperate implements Closeable {
 	 * @return 每条 SQL 更新记录数
 	 * @throws SQLException SQL 异常
 	 */
-	private int[] baseBatch(String sqlText, List<Map<String, Object>> mapArgs) throws SQLException {
+	private int[] baseBatch(String sqlText, Collection<Map<String, Object>> mapArgs) throws SQLException {
 		Connection conn = getConnection();
 		PreparedStatement preparedStatement = null;
 		SQLException exception = null;
@@ -959,7 +960,7 @@ public class JdbcOperate implements Closeable {
 	 * @throws SQLException SQL 异常
 	 * @throws ReflectiveOperationException 反射异常
 	 */
-	public int[] batchObject(String sqlText, List<?> objects) throws SQLException, ReflectiveOperationException {
+	public int[] batchObject(String sqlText, Collection<?> objects) throws SQLException, ReflectiveOperationException {
 		List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
 		for (Object object : objects) {
 			mapList.add(TReflect.getMapfromObject(object, true));
@@ -975,7 +976,7 @@ public class JdbcOperate implements Closeable {
 	 * @return 每条 SQL 更新记录数
 	 * @throws SQLException SQL 异常
 	 */
-	public int[] batchMap(String sqlText, List<Map<String, Object>> maps) throws SQLException {
+	public int[] batchMap(String sqlText, Collection<Map<String, Object>> maps) throws SQLException {
 		return this.baseBatch(sqlText, maps);
 	}
 
