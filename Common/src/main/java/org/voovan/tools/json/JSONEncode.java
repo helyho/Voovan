@@ -43,7 +43,6 @@ public class JSONEncode {
      */
     private static String mapObject(Map<?, ?> mapObject, boolean allField) throws ReflectiveOperationException {
         StringBuilder contentStringBuilder = new StringBuilder(Global.STR_LC_BRACES);
-        String ContentString = null;
 
         for (Object mapkey : mapObject.keySet()) {
             String key = fromObject(mapkey, allField);
@@ -57,9 +56,8 @@ public class JSONEncode {
             contentStringBuilder.append(Global.STR_COMMA);
         }
 
-        ContentString = contentStringBuilder.toString();
-        if (!ContentString.trim().isEmpty()){
-            ContentString = ContentString.substring(0, ContentString.length() - 1);
+        if (contentStringBuilder.length()>1){
+            contentStringBuilder.setLength(contentStringBuilder.length() - 1);
         }
 
         contentStringBuilder.append(Global.STR_RC_BRACES);
@@ -75,24 +73,20 @@ public class JSONEncode {
      * @return JSON字符串
      */
     private static String arrayObject(Object[] arrayObject, boolean allField) throws ReflectiveOperationException {
-        String arrayString = "[";
-        String ContentString = "";
-        StringBuilder ContentStringBuilder = new StringBuilder();
+        StringBuilder contentStringBuilder = new StringBuilder(Global.STR_LS_BRACES);
 
         for (Object object : arrayObject) {
             String Value = fromObject(object, allField);
-            ContentStringBuilder.append(Value);
-            ContentStringBuilder.append(",");
+            contentStringBuilder.append(Value);
+            contentStringBuilder.append(Global.STR_COMMA);
         }
 
-        ContentString = ContentStringBuilder.toString();
-
-        if (!ContentString.trim().isEmpty()) {
-            ContentString = ContentString.substring(0, ContentString.length() - 1);
+        if (contentStringBuilder.length()>1){
+            contentStringBuilder.setLength(contentStringBuilder.length() - 1);
         }
 
-        arrayString = arrayString + ContentString + "]";
-        return arrayString;
+        contentStringBuilder.append(Global.STR_RS_BRACES);
+        return contentStringBuilder.toString();
     }
 
     /**
@@ -103,24 +97,20 @@ public class JSONEncode {
      * @return JSON字符串
      */
     private static String CollectionObject(Collection collectionObject, boolean allField) throws ReflectiveOperationException {
-        String arrayString = "[";
-        String ContentString = "";
-        StringBuilder ContentStringBuilder = new StringBuilder();
+        StringBuilder contentStringBuilder = new StringBuilder(Global.STR_LS_BRACES);
 
         for (Object object : collectionObject) {
             String Value = fromObject(object, allField);
-            ContentStringBuilder.append(Value);
-            ContentStringBuilder.append(",");
+            contentStringBuilder.append(Value);
+            contentStringBuilder.append(Global.STR_COMMA);
         }
 
-        ContentString = ContentStringBuilder.toString();
-
-        if (!ContentString.trim().isEmpty()) {
-            ContentString = ContentString.substring(0, ContentString.length() - 1);
+        if (contentStringBuilder.length()>1){
+            contentStringBuilder.setLength(contentStringBuilder.length() - 1);
         }
 
-        arrayString = arrayString + ContentString + "]";
-        return arrayString;
+        contentStringBuilder.append(Global.STR_RS_BRACES);
+        return contentStringBuilder.toString();
     }
 
     /**
