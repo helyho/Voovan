@@ -440,7 +440,10 @@ public class AnnotationRouter implements HttpRouter {
             }
         }catch(Exception e) {
             if(e.getCause() != null) {
-                e = (Exception) e.getCause();
+                Throwable cause = e.getCause();
+                if(cause instanceof Exception) {
+                    e = (Exception) cause;
+                }
             }
             e.printStackTrace();
             if(e instanceof AnnotationRouterException) {
