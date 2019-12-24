@@ -650,7 +650,7 @@ public class HttpParser {
 						ByteBuffer partHeadBuffer = TByteBuffer.allocateDirect(partHeadEndIndex + 4);
 						byteBufferChannel.readHead(partHeadBuffer);
 
-						//构造新的 Bytebufer 递归解析
+						//构造新的 Bytebuffer 递归解析
 						ByteBufferChannel partByteBufferChannel = new ByteBufferChannel(partHeadEndIndex + 4); //包含换行符
 						partByteBufferChannel.writeEnd(partHeadBuffer);
 						Map<String, Object> partMap = new HashMap<String, Object>();
@@ -668,7 +668,6 @@ public class HttpParser {
 
 						TByteBuffer.release(partHeadBuffer);
 						partByteBufferChannel.release();
-						TByteBuffer.release(partHeadBuffer);
 
 						String fileName = getPerprotyEqualValue(partMap, HttpStatic.CONTENT_DISPOSITION_STRING, "filename");
 						if(fileName!=null && fileName.isEmpty()){
