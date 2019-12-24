@@ -478,7 +478,7 @@ public class HttpParser {
 		int headerMark = 0;
 		int protocolPosition = 0;
 
-		boolean isBodyConent = false;
+		boolean hasBody = false;
 		boolean isCache = type==PARSER_TYPE_REQUEST ? WebContext.isCache() : false;
 
 		requestMaxSize = requestMaxSize < 0 ? Integer.MAX_VALUE : requestMaxSize;
@@ -591,10 +591,12 @@ public class HttpParser {
 				byteBufferChannel.compact();
 			}
 
-			isBodyConent = true && byteBufferChannel.size() > 0;
+			if(packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
+				hasBody = true;
+			}
 
 			//解析 HTTP 请求 body
-			if(isBodyConent){
+			if(hasBody){
 				String contentType =packetMap.get(HttpStatic.CONTENT_TYPE_STRING)==null ? Global.EMPTY_STRING : packetMap.get(HttpStatic.CONTENT_TYPE_STRING).toString();
 				String transferEncoding = packetMap.get(HttpStatic.TRANSFER_ENCODING_STRING)==null ? "" : packetMap.get(HttpStatic.TRANSFER_ENCODING_STRING).toString();
 
