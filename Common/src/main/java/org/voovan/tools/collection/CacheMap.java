@@ -198,8 +198,9 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
     /**
      * 检查或处理过期的数据
      * @param timeMark 检查的 TimeMark 对象
+     * @return true: 已过期, false: 未过期, 有可能已经通过 supplier 重置
      */
-    private void checkAndDoExpire(TimeMark<K> timeMark){
+    private boolean checkAndDoExpire(TimeMark<K> timeMark){
         if (timeMark!=null && timeMark.isExpire()) {
             if (autoRemove) {
                 if(destory!= null) {
@@ -207,7 +208,6 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
                     V data = cacheData.get(timeMark.getKey());
                     if(data == null) {
                         this.remove(timeMark.getKey());
-                        return;
                     }
 
                     // 1.返回 null 则刷新为默认超时时间
@@ -228,8 +228,13 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
             } else if (getSupplier() != null) {
                 createCache(timeMark.getKey(), supplier, timeMark.getExpireTime());
                 timeMark.refresh(true);
+                return false;
             }
+
+            return true;
         }
+
+        return false;
     }
 
     private void createCache(K key, Function<K, V> supplier, Long createExpire){
@@ -268,10 +273,11 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
     public V get(Object key, Function<K, V> appointedSupplier, Long createExpire, boolean refresh){
 
         TimeMark timeMark = cacheMark.get(key);
-        if (timeMark == null) {
-            appointedSupplier = appointedSupplier == null ? supplier : appointedSupplier;
-            createExpire = createExpire == null ? expire : createExpire;
 
+        appointedSupplier = appointedSupplier == null ? supplier : appointedSupplier;
+        createExpire = createExpire == null ? expire : createExpire;
+
+        if (timeMark == null) {
             synchronized (cacheMark) {
                 timeMark = cacheMark.get(key);
                 if(timeMark==null) {
@@ -284,7 +290,12 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
             if (!timeMark.isExpire()) {
                 timeMark.refresh(refresh);
             } else {
-                checkAndDoExpire(timeMark);
+                if(checkAndDoExpire(timeMark)){
+                    if(appointedSupplier!=null) {
+                        timeMark.refresh(true);
+                        createCache((K) key, appointedSupplier, createExpire);
+                    }
+                }
             }
         }
 
