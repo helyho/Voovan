@@ -214,7 +214,7 @@ public class HttpDispatcher {
 			if (requestMark != null) {
 				int bodyMark = response.body().getMark();
 				if (bodyMark != 0) {
-					response.setMark(requestMark >> 32 << 32 | bodyMark); //清空低位, 保存 response.body 的 hash, 原低位存的时候头的长度
+					response.setMark(requestMark | bodyMark); //异或 requestMark 的 mark 作为 response 的 mark, 原低32位存的是头的长度
 				}
 			}
 		}
