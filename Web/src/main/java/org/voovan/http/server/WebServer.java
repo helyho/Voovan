@@ -553,7 +553,7 @@ public class WebServer {
 	 * @return true: 具备管理权限, false: 不具备管理权限
 	 */
 	public static boolean hasAdminRight(HttpRequest request){
-		if(!TPerformance.getLocalIpAddrs().contains(request.getRemoteAddres())){
+		if(!TPerformance.getLocalIpAddrs().contains(request.getSession().getSocketSession().remoteAddress())){
 			request.getSession().close();
 		}
 
@@ -571,7 +571,7 @@ public class WebServer {
 	public void InitManagerRouter(){
 		final WebServer innerWebServer = this;
 
-		otherMethod("ADMIN", "/status", new HttpRouter() {
+		otherMethod("ADMIN", "/admin/status", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 				String status = "RUNNING";
@@ -586,7 +586,7 @@ public class WebServer {
 			}
 		});
 
-		otherMethod("ADMIN", "/shutdown", new HttpRouter() {
+		otherMethod("ADMIN", "/voovan/admin/shutdown", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 
@@ -600,7 +600,7 @@ public class WebServer {
 			}
 		});
 
-		otherMethod("ADMIN", "/pause", new HttpRouter() {
+		otherMethod("ADMIN", "/voovan//admin/pause", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 
@@ -614,7 +614,7 @@ public class WebServer {
 			}
 		});
 
-		otherMethod("ADMIN", "/unpause", new HttpRouter() {
+		otherMethod("ADMIN", "/voovan//admin/unpause", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 
@@ -628,7 +628,7 @@ public class WebServer {
 			}
 		});
 
-		otherMethod("ADMIN", "/pid", new HttpRouter() {
+		otherMethod("ADMIN", "/voovan//admin/pid", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 
@@ -640,7 +640,7 @@ public class WebServer {
 			}
 		});
 
-		otherMethod("ADMIN", "/reload", new HttpRouter() {
+		otherMethod("ADMIN", "/voovan//admin/reload", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 
@@ -653,7 +653,7 @@ public class WebServer {
 			}
 		});
 
-		otherMethod("ADMIN", "/authtoken", new HttpRouter() {
+		otherMethod("ADMIN", "/voovan//admin/authtoken", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 				if(hasAdminRight(request)) {
@@ -670,7 +670,7 @@ public class WebServer {
 			}
 		});
 
-		this.options("/*", new OptionsRouter("ADMIN", "*", "auth-token"));
+		this.options("/voovan/admin/*", new OptionsRouter("ADMIN", "*", "auth-token"));
 	}
 
 	/**
