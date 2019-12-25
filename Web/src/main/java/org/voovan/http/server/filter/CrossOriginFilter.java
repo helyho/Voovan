@@ -24,42 +24,50 @@ public class CrossOriginFilter implements HttpFilter{
 
     @Override
     public Object onRequest(HttpFilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult) {
-        return true;
+        if(request.protocol().getMethod().equalsIgnoreCase("OPTIONS")) {
+            response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_ORIGIN_STRING, request.header().get("Origin"));
+            response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_HEADERS_STRING, request.header().get("Access-Control-Request-Headers"));
+            response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_METHODS_STRING, request.header().get("Access-Control-Request-Method"));
+            response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_CREDENTIALS_STRING, "true");
+            return null;
+        } else {
+            //跨域请求头配置
+            if(filterConfig.getParameters().containsKey("allowOrigin")) {
+                String allowOrigin = filterConfig.getParameter("allowOrigin").toString();
+
+                if("*".equals(allowOrigin)){
+                    allowOrigin = request.header().get("Origin");
+                }
+                response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_ORIGIN_STRING, allowOrigin);
+
+                if(filterConfig.getParameters().containsKey("allowMethods")) {
+                    response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_METHODS_STRING, (String) filterConfig.getParameter("allowMethods"));
+                }
+
+                if(filterConfig.getParameters().containsKey("allowHeaders")) {
+                    response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_HEADERS_STRING, (String) filterConfig.getParameter("allowHeaders"));
+                }
+
+                response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_CREDENTIALS_STRING, "true");
+            }
+
+            //JSONP 形式的跨域配置
+            if(filterConfig.getParameters().containsKey("functionParamName")) {
+                String functionParamName = (String) filterConfig.getParameter("functionParamName");
+                String functionName = request.getParameter(functionParamName);
+                if (functionName != null) {
+                    String jsonpResponse = TString.assembly(functionName, "(", response.body().getBodyString(), ")");
+                    response.body().clear();
+                    response.body().write(jsonpResponse.getBytes());
+                }
+            }
+            return true;
+        }
     }
 
     @Override
     public Object onResponse(HttpFilterConfig filterConfig, HttpRequest request, HttpResponse response, Object prevFilterResult) {
 
-        //跨域请求头配置
-        if(filterConfig.getParameters().containsKey("allowOrigin")) {
-            String allowOrigin = filterConfig.getParameter("allowOrigin").toString();
-
-            if("*".equals(allowOrigin)){
-                allowOrigin = request.header().get("Origin");
-            }
-            response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_ORIGIN_STRING, allowOrigin);
-
-            if(filterConfig.getParameters().containsKey("allowMethods")) {
-                response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_METHODS_STRING, (String) filterConfig.getParameter("allowMethods"));
-            }
-
-            if(filterConfig.getParameters().containsKey("allowHeaders")) {
-                response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_HEADERS_STRING, (String) filterConfig.getParameter("allowHeaders"));
-            }
-
-            response.header().put(HttpStatic.ACCESS_CONTROL_ALLOW_CREDENTIALS_STRING, "true");
-        }
-
-        //JSONP 形式的跨域配置
-        if(filterConfig.getParameters().containsKey("functionParamName")) {
-            String functionParamName = (String) filterConfig.getParameter("functionParamName");
-            String functionName = request.getParameter(functionParamName);
-            if (functionName != null) {
-                String jsonpResponse = TString.assembly(functionName, "(", response.body().getBodyString(), ")");
-                response.body().clear();
-                response.body().write(jsonpResponse.getBytes());
-            }
-        }
         return true;
     }
 }

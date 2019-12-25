@@ -369,6 +369,17 @@ public class Request {
         body.release();
     }
 
+    public void copyFrom(Request request) {
+        this.protocol().setMethod(request.protocol().getMethod());
+        this.protocol().setPath(request.protocol().getPath());
+        this.protocol().setQueryString(request.protocol().getQueryString());
+        this.header().putAll(request.header().getHeaders());
+        this.body().write( request.body().getBodyBytes());
+        this.cookies().addAll(request.cookies());
+        this.parts.addAll(request.parts());
+        this.setMark(request.getMark());
+    }
+
     /**
      * 清理
      */

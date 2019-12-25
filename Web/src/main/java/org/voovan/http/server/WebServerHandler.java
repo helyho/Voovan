@@ -426,6 +426,10 @@ public class WebServerHandler implements IoHandler {
 				}
 			}, session.socketContext().getReadTimeout()/3/1000);
 		}
+
+		if(request!=null && getAttribute(session,HttpSessionParam.TYPE) == HttpRequestType.HTTP) {
+			request.clear();
+		}
 	}
 
 	@Override
@@ -446,10 +450,6 @@ public class WebServerHandler implements IoHandler {
 		} else {
 			keepAliveSessionList.remove(session);
 			session.close();
-		}
-
-		if(request!=null && getAttribute(session,HttpSessionParam.TYPE) == HttpRequestType.HTTP) {
-			request.clear();
 		}
 	}
 

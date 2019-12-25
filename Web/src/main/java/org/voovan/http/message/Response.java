@@ -302,6 +302,19 @@ public class Response {
 		body.release();
 	}
 
+	public void copyFrom(Response response) {
+		this.protocol().setStatus(response.protocol().getStatus());
+		this.protocol().setStatusCode(response.protocol().getStatusCode());
+		this.header().putAll(response.header().getHeaders());
+		this.body().write( response.body().getBodyBytes());
+		this.cookies().addAll(response.cookies());
+		this.setMark(response.getMark());
+
+		this.header.remove(HttpStatic.TRANSFER_ENCODING_STRING);
+		this.header.remove(HttpStatic.CONTENT_ENCODING_STRING);
+		this.header.remove(HttpStatic.CONTENT_LENGTH_STRING);
+	}
+
 	/**
 	 * 清理
 	 */
