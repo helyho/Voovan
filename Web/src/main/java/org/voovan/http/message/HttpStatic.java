@@ -103,6 +103,7 @@ public class HttpStatic {
 	public static final String ACCESS_CONTROL_ALLOW_ORIGIN_STRING = "Access-Control-Allow-Origin";
 	public static final String ACCESS_CONTROL_ALLOW_METHODS_STRING = "Access-Control-Allow-Methods";
 	public static final String ACCESS_CONTROL_ALLOW_HEADERS_STRING = "Access-Control-Allow-Headers";
+	public static final String ACCESS_CONTROL_EXPOSE_HEADERS_STRING = "Access-Control-Expose-Headers";
 	public static final String ACCESS_CONTROL_ALLOW_CREDENTIALS_STRING = "Access-Control-Allow-Credentials";
 
 	// Header names
@@ -194,6 +195,7 @@ public class HttpStatic {
 	public static final HttpItem ACCESS_CONTROL_ALLOW_ORIGIN = new HttpItem(ACCESS_CONTROL_ALLOW_ORIGIN_STRING);
 	public static final HttpItem ACCESS_CONTROL_ALLOW_METHODS = new HttpItem(ACCESS_CONTROL_ALLOW_METHODS_STRING);
 	public static final HttpItem ACCESS_CONTROL_ALLOW_HEADERS = new HttpItem(ACCESS_CONTROL_ALLOW_HEADERS_STRING);
+	public static final HttpItem ACCESS_CONTROL_EXPOSE_HEADERS = new HttpItem(ACCESS_CONTROL_EXPOSE_HEADERS_STRING);
 	public static final HttpItem ACCESS_CONTROL_ALLOW_CREDENTIALS = new HttpItem(ACCESS_CONTROL_ALLOW_CREDENTIALS_STRING);
 
 	// Content codings
