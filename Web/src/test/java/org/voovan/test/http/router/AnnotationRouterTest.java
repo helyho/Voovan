@@ -35,7 +35,7 @@ public class AnnotationRouterTest {
     }
 
     @Router(value = "bodyParmas", method = "POST")
-    public String bodyParmas(@BodyParam("data") String data, @BodyParam("number") int number){
+    public String bodyParmas(@BodyParam(value="data", isRequire=false) String data, @BodyParam("number") int number){
         return data + " " + number;
     }
 
