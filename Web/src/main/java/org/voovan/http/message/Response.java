@@ -308,6 +308,7 @@ public class Response {
 		this.header().putAll(response.header().getHeaders());
 		this.body().write( response.body().getBodyBytes());
 		this.cookies().addAll(response.cookies());
+		this.setCompress(response.isCompress);
 		this.setMark(response.getMark());
 
 		this.header.remove(HttpStatic.TRANSFER_ENCODING_STRING);
