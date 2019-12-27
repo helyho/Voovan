@@ -68,12 +68,9 @@ public class HttpClientFilter implements IoFilter {
 				}else {
 					Response response = HttpParser.parseResponse(session, byteBufferChannel, session.socketContext().getReadTimeout());
 					HttpParser.resetThreadLocal();
-					if(response.protocol().getStatus() == 101 &&
-							response.header().get("Sec-WebSocket-Accept").equals("F2D56gI8wPj3dJw+vgY0KFJEtIM=")){
-
+					if(response.protocol().getStatus() == 101){
 						//初始化 WebSocket
 						httpClient.initWebSocket();
-
 					}
 					return response;
 				}
