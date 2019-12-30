@@ -634,9 +634,6 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		//处理升级后的消息
 		doWebSocketUpgrade(location);
-
-		//为异步调用进行阻赛,等待 socket 关闭
-        TEnv.wait(socket.getReadTimeout(), ()->socket.isOpen());
 	}
 
 	/**
