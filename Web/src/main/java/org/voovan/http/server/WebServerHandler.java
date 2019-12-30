@@ -6,7 +6,6 @@ import org.voovan.http.HttpSessionParam;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Request;
-import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
@@ -37,8 +36,8 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public class WebServerHandler implements IoHandler {
-	private static FastThreadLocal<HttpRequest> THREAD_HTTP_REQUEST = FastThreadLocal.withInitial(()->new HttpRequest());
-	private static FastThreadLocal<HttpResponse> THREAD_HTTP_RESPONSE = FastThreadLocal.withInitial(()->new HttpResponse());
+	private static FastThreadLocal<HttpRequest> THREAD_HTTP_REQUEST = new FastThreadLocal<HttpRequest>();
+	private static FastThreadLocal<HttpResponse> THREAD_HTTP_RESPONSE = new FastThreadLocal<HttpResponse>();
 
 
 	private HttpDispatcher		httpDispatcher;
@@ -177,12 +176,23 @@ public class WebServerHandler implements IoHandler {
 				return null;
 			}
 
-			// 构造 Http 请求 对象
+			// 构造 Http 请求/响应 对象
 			HttpRequest httpRequest = THREAD_HTTP_REQUEST.get();
-			httpRequest.init(request, defaultCharacterSet, session);
-			// 构造 Http 响应 对象
+			if(httpRequest==null) {
+				httpRequest = new HttpRequest(request, defaultCharacterSet, session);
+				THREAD_HTTP_REQUEST.set(httpRequest);
+			} else {
+				httpRequest.init(request, defaultCharacterSet, session);
+			}
+
 			HttpResponse httpResponse = THREAD_HTTP_RESPONSE.get();
-			httpResponse.init(defaultCharacterSet, session);
+			//如果缓存的 Response 是异步响应模式则不复用创建一个新的
+			if(httpResponse==null) {
+				httpResponse = new HttpResponse(defaultCharacterSet, session);
+				THREAD_HTTP_RESPONSE.set(httpResponse);
+			} else {
+				httpResponse.init(defaultCharacterSet, session);
+			}
 
 			setAttribute(session, HttpSessionParam.HTTP_REQUEST, httpRequest);
 			setAttribute(session, HttpSessionParam.HTTP_RESPONSE, httpResponse);
@@ -251,7 +261,7 @@ public class WebServerHandler implements IoHandler {
 		}
 
 		//如果是异步响应, HttpResponse 有可能会被覆盖, 所以这里清除当前线程持有的所有 ThreadLocal 数据
-		if(!httpResponse.isSync()) {
+		if(!httpResponse.isAutoSend()) {
 			resetThreadLocal();
 		}
 

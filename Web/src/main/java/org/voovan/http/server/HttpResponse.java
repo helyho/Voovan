@@ -23,12 +23,6 @@ public class HttpResponse extends Response {
 
 	/**
 	 * 构造 HTTP 响应对象
-	 */
-	protected HttpResponse() {
-	}
-
-	/**
-	 * 构造 HTTP 响应对象
 	 * @param response     响应对象
 	 * @param socketSession   Socket会话对象
 	 * @param characterSet 字符集
