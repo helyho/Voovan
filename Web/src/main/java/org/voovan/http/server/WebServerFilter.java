@@ -55,7 +55,7 @@ public class WebServerFilter implements IoFilter {
 			HttpResponse httpResponse = (HttpResponse)object;
 
 			try{
-				if(httpResponse.isAutoSend()) {
+				if(httpResponse.isSync()) {
 					Long mark = httpResponse.getMark();
                     if (WebContext.isCache() && mark!=null) {
 						byte[] cacheBytes = RESPONSE_CACHE.get(mark);

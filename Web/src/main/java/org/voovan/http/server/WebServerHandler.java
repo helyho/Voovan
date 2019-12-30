@@ -261,7 +261,7 @@ public class WebServerHandler implements IoHandler {
 		}
 
 		//如果是异步响应, HttpResponse 有可能会被覆盖, 所以这里清除当前线程持有的所有 ThreadLocal 数据
-		if(!httpResponse.isAutoSend()) {
+		if(!httpResponse.isSync()) {
 			resetThreadLocal();
 		}
 
