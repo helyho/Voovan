@@ -302,7 +302,7 @@ public class Response {
 		body.release();
 	}
 
-	public void copyFrom(Response response) {
+	public Response copyFrom(Response response) {
 		this.protocol().setStatus(response.protocol().getStatus());
 		this.protocol().setStatusCode(response.protocol().getStatusCode());
 		this.header().putAll(response.header().getHeaders());
@@ -314,6 +314,7 @@ public class Response {
 		this.header.remove(HttpStatic.TRANSFER_ENCODING_STRING);
 		this.header.remove(HttpStatic.CONTENT_ENCODING_STRING);
 		this.header.remove(HttpStatic.CONTENT_LENGTH_STRING);
+		return this;
 	}
 
 	/**
