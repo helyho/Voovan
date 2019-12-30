@@ -593,6 +593,9 @@ public class HttpParser {
 
 			if(packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
 				hasBody = true;
+			} else {
+				//无 body 报文完成解析
+				break;
 			}
 
 			//解析 HTTP 请求 body
