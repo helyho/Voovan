@@ -20,6 +20,12 @@ public class HttpResponse extends Response {
 	private String	characterSet;
 	private IoSession socketSession;
 
+	/**
+	 * 构造 HTTP 响应对象
+	 */
+	protected HttpResponse() {
+	}
+
 
 	/**
 	 * 构造 HTTP 响应对象

@@ -36,8 +36,8 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public class WebServerHandler implements IoHandler {
-	private static FastThreadLocal<HttpRequest> THREAD_HTTP_REQUEST = new FastThreadLocal<HttpRequest>();
-	private static FastThreadLocal<HttpResponse> THREAD_HTTP_RESPONSE = new FastThreadLocal<HttpResponse>();
+	private static FastThreadLocal<HttpRequest> THREAD_HTTP_REQUEST = FastThreadLocal.withInitial(()->new HttpRequest());
+	private static FastThreadLocal<HttpResponse> THREAD_HTTP_RESPONSE = FastThreadLocal.withInitial(()->new HttpResponse());
 
 
 	private HttpDispatcher		httpDispatcher;
@@ -176,23 +176,12 @@ public class WebServerHandler implements IoHandler {
 				return null;
 			}
 
-			// 构造 Http 请求/响应 对象
+			// 构造 Http 请求 对象
 			HttpRequest httpRequest = THREAD_HTTP_REQUEST.get();
-			if(httpRequest==null) {
-				httpRequest = new HttpRequest(request, defaultCharacterSet, session);
-				THREAD_HTTP_REQUEST.set(httpRequest);
-			} else {
-				httpRequest.init(request, defaultCharacterSet, session);
-			}
-
+			httpRequest.init(request, defaultCharacterSet, session);
+			// 构造 Http 响应 对象
 			HttpResponse httpResponse = THREAD_HTTP_RESPONSE.get();
-			//如果缓存的 Response 是异步响应模式则不复用创建一个新的
-			if(httpResponse==null) {
-				httpResponse = new HttpResponse(defaultCharacterSet, session);
-				THREAD_HTTP_RESPONSE.set(httpResponse);
-			} else {
-				httpResponse.init(defaultCharacterSet, session);
-			}
+			httpResponse.init(defaultCharacterSet, session);
 
 			setAttribute(session, HttpSessionParam.HTTP_REQUEST, httpRequest);
 			setAttribute(session, HttpSessionParam.HTTP_RESPONSE, httpResponse);
