@@ -20,6 +20,7 @@ import org.voovan.tools.reflect.TReflect;
 public abstract class HttpModule extends Attributes {
     private WebServer webServer;
     private HttpModuleConfig moduleConfig;
+    private HttpModuleLifeCycle httpModuleLifeCycle;
 
     /**
      * 获取WebServer
@@ -182,12 +183,11 @@ public abstract class HttpModule extends Attributes {
         }
 
         try {
-            HttpModuleLifeCycle moduleInit = null;
 
             Class clazz = Class.forName(lifeCycleClass);
             if(TReflect.isImpByInterface(clazz, HttpModuleLifeCycle.class)){
-                moduleInit = (HttpModuleLifeCycle)TReflect.newInstance(clazz);
-                moduleInit.init(this);
+                httpModuleLifeCycle = (HttpModuleLifeCycle)TReflect.newInstance(clazz);
+                httpModuleLifeCycle.init(this);
             }else{
                 Logger.warn("["+moduleConfig.getName()+"] The HttpModule lifeCycle class " + lifeCycleClass + " is not a class implement by " + HttpModuleLifeCycle.class.getName());
             }
@@ -200,30 +200,12 @@ public abstract class HttpModule extends Attributes {
      * 加载并运模块行初始化类
      */
     protected void runModuleDestory(){
-        String moduleInitClass = this.moduleConfig.getLifeCycleClass();
-
-        if(moduleInitClass==null) {
-            Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] None HttpMoudule lifeCycle class to load.");
-            return;
-        }
-
-        if(moduleInitClass.isEmpty()){
-            Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] None HttpMoudule lifeCycle class to load.");
-            return;
-        }
-
-        try {
-            HttpModuleLifeCycle moduleInit = null;
-
-            Class clazz = Class.forName(moduleInitClass);
-            if(TReflect.isImpByInterface(clazz, HttpModuleLifeCycle.class)){
-                moduleInit = (HttpModuleLifeCycle)TReflect.newInstance(clazz);
-                moduleInit.destory(this);
-            }else{
-                Logger.warn("["+moduleConfig.getName()+"] The HttpModule lifeCycle class " + moduleInitClass + " is not a class implement by " + HttpModuleLifeCycle.class.getName());
+        if(httpModuleLifeCycle!=null) {
+            try {
+                httpModuleLifeCycle.destory(this);
+            } catch (Exception e) {
+                Logger.error("[" + moduleConfig.getName() + "] Initialize HttpModule lifeCycle class error: " + e);
             }
-        } catch (Exception e) {
-            Logger.error("["+moduleConfig.getName()+"] Initialize HttpModule lifeCycle class error: " + e);
         }
     }
 

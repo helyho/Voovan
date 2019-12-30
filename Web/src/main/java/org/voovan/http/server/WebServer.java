@@ -40,6 +40,7 @@ public class WebServer {
 	private WebSocketDispatcher webSocketDispatcher;
 	private SessionManager sessionManager;
 	private WebServerConfig config;
+	private WebServerLifeCycle webServerLifeCycle;
 
 	/**
 	 * 构造函数
@@ -499,12 +500,11 @@ public class WebServer {
 		}
 
 		try {
-			WebServerLifeCycle webServerLifeCycle = null;
-
 			Class clazz = Class.forName(lifeCycleClass);
 			if(TReflect.isImpByInterface(clazz, WebServerLifeCycle.class)){
 				webServerLifeCycle = (WebServerLifeCycle)TReflect.newInstance(clazz);
 				webServerLifeCycle.init(webServer);
+
 			}else{
 				Logger.warn("The WebServer lifeCycle class " + lifeCycleClass + " is not a class implement by " + WebServerLifeCycle.class.getName());
 			}
@@ -518,30 +518,12 @@ public class WebServer {
 	 * @param webServer WebServer对象
 	 */
 	private void WebServerDestory(WebServer webServer){
-		String lifeCycleClass = WebContext.getWebServerConfig().getLifeCycleClass();
-
-		if(lifeCycleClass==null) {
-			Logger.info("None WebServer lifeCycle class to load.");
-			return;
-		}
-
-		if(lifeCycleClass.isEmpty()){
-			Logger.info("None WebServer lifeCycle class to load.");
-			return;
-		}
-
-		try {
-			WebServerLifeCycle webServerLifeCycle = null;
-
-			Class clazz = Class.forName(lifeCycleClass);
-			if(TReflect.isImpByInterface(clazz, WebServerLifeCycle.class)){
-				webServerLifeCycle = (WebServerLifeCycle)TReflect.newInstance(clazz);
+		if(webServerLifeCycle!=null) {
+			try {
 				webServerLifeCycle.destory(webServer);
-			}else{
-				Logger.warn("The WebServer lifeCycle class " + lifeCycleClass + " is not a class implement by " + WebServerLifeCycle.class.getName());
+			} catch (Exception e) {
+				Logger.error("Initialize WebServer destory lifeCycle error: ", e);
 			}
-		} catch (Exception e) {
-			Logger.error("Initialize WebServer destory lifeCycle error: ", e);
 		}
 	}
 
