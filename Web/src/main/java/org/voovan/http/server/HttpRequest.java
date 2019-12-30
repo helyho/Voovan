@@ -33,14 +33,6 @@ public class HttpRequest extends Request {
 
 	/**
 	 * 构造函数
-	 */
-	public HttpRequest() {
-		parameters = new LinkedHashMap<String, String>();
-		attributes = new HashMap<String, Object>();
-	}
-
-	/**
-	 * 构造函数
 	 * @param request  解析出的 Request 对象
 	 * @param characterSet  字符集
 	 * @param socketSession socket 会话对象

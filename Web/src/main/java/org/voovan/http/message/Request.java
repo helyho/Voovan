@@ -356,6 +356,7 @@ public class Request {
             if(byteBuffer!=null) {
                 TByteBuffer.release(byteBuffer);
             }
+            clear();
         }
     }
 
