@@ -99,7 +99,6 @@ public class WebSocketHandler implements IoHandler{
                 @Override
                 public void run() {
                     try {
-                        Logger.simple("PONG");
                         poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, true, null));
                     } catch (SendMessageException e) {
                         poneSession.close();
