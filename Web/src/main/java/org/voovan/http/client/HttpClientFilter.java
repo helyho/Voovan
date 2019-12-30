@@ -59,10 +59,6 @@ public class HttpClientFilter implements IoFilter {
 			if(object instanceof ByteBuffer){
 				ByteBuffer byteBuffer = (ByteBuffer)object;
 
-				if(byteBuffer.limit()==0){
-					session.enabledMessageSpliter(false);
-				}
-
 				if(HttpRequestType.WEBSOCKET.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))){
 					return WebSocketFrame.parse((ByteBuffer)object);
 				}else {
@@ -83,8 +79,6 @@ public class HttpClientFilter implements IoFilter {
 			}
 
 			throw new IoFilterException("HttpClientFilter decode Error. "+e.getMessage(),e);
-		}finally {
-			session.enabledMessageSpliter(true);
 		}
 		return null;
 	}

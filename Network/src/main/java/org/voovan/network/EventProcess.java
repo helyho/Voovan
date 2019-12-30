@@ -103,11 +103,6 @@ public class EventProcess {
 
             MessageLoader messageLoader = session.getMessageLoader();
 
-            //如果没有使用分割器,则跳过
-            if (!messageLoader.isEnable()) {
-                return;
-            }
-
             try {
                 // 循环读取完整的消息包.
                 // 由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.

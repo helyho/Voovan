@@ -25,7 +25,6 @@ public class MessageLoader {
 	private IoSession session;
 	private StopType stopType;
 	private ByteBufferChannel byteBufferChannel;
-	private boolean enable;
 
 	/**
 	 * 构造函数
@@ -33,27 +32,10 @@ public class MessageLoader {
 	 */
 	public MessageLoader(IoSession session) {
 		this.session = session;
-		enable = true;
 		//准备缓冲流
 		byteBufferChannel = session.getReadByteBufferChannel();
 	}
 
-	/**
-	 * 获取是否使用分割器读取
-	 *
-	 * @return true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
-	 */
-	public boolean isEnable() {
-		return enable;
-	}
-
-	/**
-	 * 设置是否是否使用分割器读取
-	 * @param enable true 使用分割器读取,false 不使用分割器读取,且不会出发 onRecive 事件
-	 */
-	public void enable(boolean enable) {
-		this.enable = enable;
-	}
 
 	public enum StopType {
 		RUNNING,
@@ -150,7 +132,7 @@ public class MessageLoader {
 
 		boolean isConnect = true;
 
-		while (isConnect && enable && stopType == StopType.RUNNING && !dataByteBufferChannel.isEmpty()) {
+		while (isConnect && stopType == StopType.RUNNING && !dataByteBufferChannel.isEmpty()) {
 
 			if(session.socketContext() instanceof UdpSocket) {
 				isConnect = session.isOpen();
