@@ -187,7 +187,7 @@ public class WebServerHandler implements IoHandler {
 
 			HttpResponse httpResponse = THREAD_HTTP_RESPONSE.get();
 			//如果缓存的 Response 是异步响应模式则不复用创建一个新的
-			if(httpResponse==null || !httpResponse.isAutoSend()) {
+			if(httpResponse==null) {
 				httpResponse = new HttpResponse(defaultCharacterSet, session);
 				THREAD_HTTP_RESPONSE.set(httpResponse);
 			} else {
@@ -258,6 +258,11 @@ public class WebServerHandler implements IoHandler {
 					}
 				}
 			}
+		}
+
+		//如果是异步响应, HttpResponse 有可能会被覆盖, 所以这里清除当前线程持有的所有 ThreadLocal 数据
+		if(!httpResponse.isAutoSend()) {
+			resetThreadLocal();
 		}
 
 		return httpResponse;
