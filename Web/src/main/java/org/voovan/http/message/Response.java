@@ -36,7 +36,7 @@ public class Response {
 	private Body 				body;
 	private boolean				isCompress;
 	protected boolean 			basicSend = false;
-	private boolean             autoSend = true;
+	private boolean             sync = true;
 	private Long                mark;
 
 	/**
@@ -97,19 +97,19 @@ public class Response {
 	}
 
 	/**
-	 * 是否在路由响应式自动发送
+	 * 是否在路由同步响应
 	 * @return true: 自动发送, false: 手动发送
 	 */
-	public boolean isAutoSend() {
-		return autoSend;
+	public boolean isSync() {
+		return sync;
 	}
 
 	/**
-	 * 是否在路由响应式自动发送
+	 * 是否在路由同步响应
 	 * @param autoSend true: 自动发送, false: 手动发送
 	 */
-	public void setAutoSend(boolean autoSend) {
-		this.autoSend = autoSend;
+	public void setSync(boolean sync) {
+		this.sync = sync;
 	}
 
 	/**
@@ -291,7 +291,7 @@ public class Response {
 
 			basicSend = true;
 		} finally {
-			if(!autoSend) {
+			if(!sync) {
 				session.flush();
 			}
 			clear();
@@ -327,7 +327,7 @@ public class Response {
 		this.body().clear();
 		isCompress = false;
 		basicSend = false;
-		autoSend = true;
+		sync = true;
 		this.mark = null;
 	}
 
