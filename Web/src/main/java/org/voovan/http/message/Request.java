@@ -369,7 +369,7 @@ public class Request {
         body.release();
     }
 
-    public void copyFrom(Request request) {
+    public Request copyFrom(Request request) {
         this.protocol().setMethod(request.protocol().getMethod());
         this.protocol().setPath(request.protocol().getPath());
         this.protocol().setQueryString(request.protocol().getQueryString());
@@ -378,6 +378,7 @@ public class Request {
         this.cookies().addAll(request.cookies());
         this.parts.addAll(request.parts());
         this.setMark(request.getMark());
+        return this;
     }
 
     /**
