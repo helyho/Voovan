@@ -1,10 +1,14 @@
 package org.voovan.test.http.router;
 
+import org.voovan.Global;
 import org.voovan.http.server.HttpContentType;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
+import org.voovan.tools.TEnv;
+
+import java.io.IOException;
 
 //将当前类注解为一个请求路由处理类, 采用默认的请求方法 GET
 //为当前类指定一个请求路径为:/annon，如果不指定则默认的路径为/AnnotationRouterTest
@@ -37,6 +41,21 @@ public class AnnotationRouterTest {
     @Router(value = "bodyParmas", method = "POST")
     public String bodyParmas(@BodyParam(value="data", isRequire=false) String data, @BodyParam("number") int number){
         return data + " " + number;
+    }
+
+
+    @Router(method = "POST")
+    public void asyncBodyParmas(@BodyParam(value="data", isRequire=false) String data, @BodyParam("number") int number, HttpResponse response){
+        response.setSync(false);
+        Global.getThreadPool().execute(()->{
+            TEnv.sleep(50);
+            response.write(System.currentTimeMillis() + " " + data + " " + number);
+            try {
+                response.send();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     //将当前方法注解为一个请求路由

@@ -48,8 +48,6 @@ public class WebServerFilter implements IoFilter {
 	 */
 	@Override
 	public Object encode(IoSession session, Object object) {
-		session.enabledMessageSpliter(true);
-
 		// 对 Websocket 进行处理
 		if (object instanceof HttpResponse) {
 			HttpResponse httpResponse = (HttpResponse)object;
@@ -99,30 +97,16 @@ public class WebServerFilter implements IoFilter {
 			return null;
 		}
 
-		ByteBuffer byteBuffer = (ByteBuffer)object;
-
-		ByteBufferChannel byteBufferChannel = null;
-
-		if(byteBuffer.limit()==0){
-			session.enabledMessageSpliter(false);
-			byteBufferChannel = session.getReadByteBufferChannel();
-		}
-
 		if (HttpRequestType.HTTP.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))) {
 
-			Request request = null;
+			ByteBufferChannel byteBufferChannel = byteBufferChannel = session.getReadByteBufferChannel();
+
 			try {
-				if (object instanceof ByteBuffer) {
-					request = HttpParser.parseRequest(session, byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
-
-					if(request!=null){
-						return request;
-					}else{
-						session.close();
-					}
-
-				} else {
-					return null;
+				Request request = HttpParser.parseRequest(session, byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
+				if(request!=null){
+					return request;
+				}else{
+					session.close();
 				}
 			} catch (Exception e) {
 				byteBufferChannel.clear();
@@ -152,6 +136,9 @@ public class WebServerFilter implements IoFilter {
 		}
 		//如果包含Type为 WebSocket 说明是 WebSocket 通信,转换成 WebSocketFrame 对象
 		else if(HttpRequestType.WEBSOCKET.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))){
+
+			ByteBuffer byteBuffer = (ByteBuffer)object;
+
 			if (object instanceof ByteBuffer && byteBuffer.limit()!=0) {
 				WebSocketFrame webSocketFrame = WebSocketFrame.parse(byteBuffer);
 
