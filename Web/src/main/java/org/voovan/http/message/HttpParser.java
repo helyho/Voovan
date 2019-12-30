@@ -37,11 +37,11 @@ public class HttpParser {
 	private static final String PL_STATUS_CODE = "6";
 	private static final String PL_QUERY_STRING = "7";
 	private static final String HTTP_HEADER_MARK = "8";
-	private static final String USE_CACHE       = "9";
+	private static final String CACHE_FLAG = "9";
 
-	private static final String BODY_PARTS = "10";
-	private static final String BODY_VALUE = "11";
-	private static final String BODY_FILE  = "12";
+	private static final String BODY_PARTS = "21";
+	private static final String BODY_VALUE = "22";
+	private static final String BODY_FILE  = "22";
 
 	public static final String MULTIPART_FORM_DATA = "multipart/form-data";
 
@@ -529,8 +529,8 @@ public class HttpParser {
 
 
 									innerByteBuffer.position((int) totalLengthInMark);
-									packetMap.putAll(packetMapCacheItem.getValue());
 									findCache = true;
+									packetMap = packetMapCacheItem.getValue();
 									break;
 								}
 							}
@@ -581,7 +581,7 @@ public class HttpParser {
 
 						HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
 						cachedPacketMap.putAll(packetMap);
-						cachedPacketMap.put(USE_CACHE, 1);
+						cachedPacketMap.put(CACHE_FLAG, 1);
 
 						PACKET_MAP_CACHE.put(mark, cachedPacketMap);
 					}
@@ -591,7 +591,7 @@ public class HttpParser {
 				byteBufferChannel.compact();
 			}
 
-			if(packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
+			if("GET".equals(packetMap.get(PL_METHOD)) || packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
 				hasBody = true;
 			} else {
 				//无 body 报文完成解析
@@ -889,11 +889,19 @@ public class HttpParser {
 
 		request = THREAD_REQUEST.get();
 		request.clear();
+
+		boolean cacheFlag = false;
+		boolean bodyFlag = false;
+		boolean bodyPartFlag = false;
+
 		//填充报文到请求对象
 		Set<Entry<String, Object>> parsedItems= packetMap.entrySet();
 		for(Entry<String, Object> parsedPacketEntry: parsedItems) {
 			String key = parsedPacketEntry.getKey();
 			switch (key) {
+				case CACHE_FLAG:
+					cacheFlag = true;
+					break;
 				case PL_METHOD:
 					request.protocol().setMethod(parsedPacketEntry.getValue().toString());
 					break;
@@ -922,10 +930,13 @@ public class HttpParser {
 					cookieMap.clear();
 					break;
 				case BODY_VALUE:
+					bodyFlag = true;
 					byte[] value = (byte[])(parsedPacketEntry.getValue());
 					request.body().write(value);
 					break;
 				case BODY_PARTS:
+					bodyFlag = true;
+					bodyPartFlag = true;
 					List<Map<String, Object>> parsedParts = (List<Map<String, Object>>)(parsedPacketEntry.getValue());
 					//遍历 part List,并构建 Part 对象
 					for(Map<String, Object> parsedPartMap : parsedParts){
@@ -960,13 +971,16 @@ public class HttpParser {
 			}
 		}
 
-		packetMap.clear();
+		if(!cacheFlag) {
+			packetMap.clear();
+		}
 
-		if(isCache) {
+		if(isCache && bodyFlag) {
 			//MULTIPART_FORM_DATA 不使用缓存
-			if(!request.parts().isEmpty()) {
+			if(bodyPartFlag) {
 				request.setMark(null);
-			} else if (request.getMark() != null && request.body().size() > 0) {
+				packetMap.clear();
+			} else if (request.getMark() != null && bodyFlag) {
 				Integer bodyMark = request.body().getMark();
 				request.setMark(request.getMark() | bodyMark);
 			}
