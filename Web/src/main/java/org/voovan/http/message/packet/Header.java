@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 public class Header {
 	private Map<String, String> headers;
 	private static FastThreadLocal<StringBuilder> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new StringBuilder(512));
+	private boolean isCache = false;
 
 	/**
 	 * 构造函数
@@ -32,6 +33,18 @@ public class Header {
 	 */
 	public Map<String,String> getHeaders() {
 		return headers;
+	}
+
+	public void setHeaders(Map<String, String> headers) {
+		this.headers = headers;
+	}
+
+	public boolean isCache() {
+		return isCache;
+	}
+
+	public void setCache(boolean cache) {
+		isCache = cache;
 	}
 
 	/**
@@ -91,7 +104,9 @@ public class Header {
 	 * 清空头
 	 */
 	public void clear(){
-		headers.clear();
+		if(!isCache) {
+			headers.clear();
+		}
 	}
 
 	@Override

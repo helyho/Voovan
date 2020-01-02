@@ -1,5 +1,6 @@
 package org.voovan.http.message;
 
+import io.undertow.util.HeaderMap;
 import org.voovan.Global;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
@@ -38,10 +39,12 @@ public class HttpParser {
 	private static final String PL_QUERY_STRING = "7";
 	private static final String HEADER_MARK = "8";
 	private static final String CACHE_FLAG = "9";
+	private static final String HEADER = "10";
+
 
 	private static final String BODY_PARTS = "21";
 	private static final String BODY_VALUE = "22";
-	private static final String BODY_FILE  = "22";
+	private static final String BODY_FILE  = "23";
 
 	public static final String MULTIPART_FORM_DATA = "multipart/form-data";
 
@@ -209,19 +212,19 @@ public class HttpParser {
 	/**
 	 * 处理 body 段
 	 * 		判断是否使用 GZIP 压缩,如果使用则解压缩后返回,如果没有压缩则直接返回
-	 * @param packetMap
+	 * @param headerMap
 	 * @param contentBytes
 	 * @return
 	 * @throws IOException
 	 */
-	private static byte[] dealBodyContent(Map<String, Object> packetMap,byte[] contentBytes) throws IOException{
+	private static byte[] dealBodyContent(Map<String, Object> headerMap, byte[] contentBytes) throws IOException{
 		byte[] bytesValue;
 		if(contentBytes.length == 0 ){
 			return contentBytes;
 		}
 
 		//是否支持 GZip
-		boolean isGZip = packetMap.get(HttpStatic.CONTENT_ENCODING_STRING)==null ? false : packetMap.get(HttpStatic.CONTENT_ENCODING_STRING).toString().contains(HttpStatic.GZIP_STRING);
+		boolean isGZip = headerMap.get(HttpStatic.CONTENT_ENCODING_STRING)==null ? false : headerMap.get(HttpStatic.CONTENT_ENCODING_STRING).toString().contains(HttpStatic.GZIP_STRING);
 
 		//如果是 GZip 则解压缩
 		if(isGZip && contentBytes.length>0){
@@ -277,11 +280,11 @@ public class HttpParser {
 				if (segment == 0) {
 					HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
 					hashCode = hashCode + httpItem.getHashCode() << 1;
-					segment_1 = httpItem.getString();
+					segment_1 = httpItem.getValue();
 				} else if (segment == 1) {
 					HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
 					hashCode = hashCode + httpItem.getHashCode() << 2;
-					segment_2 =httpItem.getString();
+					segment_2 =httpItem.getValue();
 				}
 				position = 0;
 				segment++;
@@ -294,7 +297,7 @@ public class HttpParser {
 			} else if (prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && segment == 2) {
 				HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
 				hashCode = hashCode + httpItem.getHashCode() << 3;
-				segment_3 =httpItem.getString();
+				segment_3 =httpItem.getValue();
 				position = 0;
 				break;
 			}
@@ -322,7 +325,7 @@ public class HttpParser {
 
 			//3
 			if(segment_3.charAt(0)=='H' && segment_3.charAt(1)=='T' && segment_3.charAt(2)=='T' && segment_3.charAt(3)=='P') {
-				packetMap.put(PL_PROTOCOL, HttpStatic.HTTP.getString());
+				packetMap.put(PL_PROTOCOL, HttpStatic.HTTP.getValue());
 			} else {
 				throw new HttpParserException("Not a http packet");
 			}
@@ -345,7 +348,7 @@ public class HttpParser {
 		if (type == 1) {
 			//1
 			if(segment_1.charAt(0)=='H' && segment_1.charAt(1)=='T' && segment_1.charAt(2)=='T' && segment_1.charAt(3)=='P') {
-				packetMap.put(PL_PROTOCOL, HttpStatic.HTTP.getString());
+				packetMap.put(PL_PROTOCOL, HttpStatic.HTTP.getValue());
 			} else {
 				throw new HttpParserException("Not a http packet");
 			}
@@ -382,7 +385,7 @@ public class HttpParser {
 	 * @param timeout 读取超时时间参数
 	 * @return true: Header解析未完成, false: Header解析完成
 	 */
-	public static boolean parseHeader(Map<String, Object> packetMap, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
+	public static boolean parseHeader(Map<String, Object> headerMap, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
 		boolean isCache = WebContext.isCache();
@@ -409,7 +412,7 @@ public class HttpParser {
 
 			if (onHeaderName && prevByte == Global.BYTE_COLON && currentByte == Global.BYTE_SPACE) {
 				if(isCache) {
-					headerName = HttpItem.getHttpItem(bytes, 0, position).getString();
+					headerName = HttpItem.getHttpItem(bytes, 0, position).getValue();
 				} else {
 					headerName = new String(bytes, 0, position);
 				}
@@ -419,7 +422,7 @@ public class HttpParser {
 				continue;
 			} else if (!onHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
 				if(isCache) {
-					headerValue = HttpItem.getHttpItem(bytes, 0, position).getString();
+					headerValue = HttpItem.getHttpItem(bytes, 0, position).getValue();
 				} else {
 					headerValue = new String(bytes, 0, position);
 				}
@@ -445,7 +448,7 @@ public class HttpParser {
 		}
 
 		if(headerName!=null && headerValue!=null) {
-			packetMap.put(headerName, headerValue);
+			headerMap.put(headerName, headerValue);
 		}
 		return false;
 //        packetMap.put(fixHeaderName(headerName), headerValue);
@@ -478,6 +481,7 @@ public class HttpParser {
 
 		boolean hasBody = false;
 		boolean isCache = WebContext.isCache();
+		Map<String, Object> headerMap = null;
 
 		requestMaxSize = requestMaxSize < 0 ? Integer.MAX_VALUE : requestMaxSize;
 
@@ -524,6 +528,7 @@ public class HttpParser {
 									innerByteBuffer.position((int) totalLengthInMark);
 									findCache = true;
 									packetMap = packetMapCacheItem.getValue();
+									headerMap = (Map<String, Object>) packetMap.get(HEADER);
 									break;
 								}
 							}
@@ -534,11 +539,14 @@ public class HttpParser {
 				if(!findCache) {
 					//处理协议头
 					{
-						while (!parseHeader(packetMap, innerByteBuffer, contiuneRead, timeout)) {
+						headerMap = new HashMap<String, Object>();
+						while (!parseHeader(headerMap, innerByteBuffer, contiuneRead, timeout)) {
 							if (!innerByteBuffer.hasRemaining() && session.isConnected()) {
 								return null;
 							}
 						}
+
+						packetMap.put(HEADER, headerMap);
 					}
 
 					//处理 Cookie
@@ -579,7 +587,7 @@ public class HttpParser {
 				byteBufferChannel.compact();
 			}
 
-			if("GET".equals(packetMap.get(PL_METHOD)) || packetMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
+			if("GET".equals(packetMap.get(PL_METHOD)) || headerMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
 				hasBody = true;
 			} else {
 				//无 body 报文完成解析
@@ -588,8 +596,8 @@ public class HttpParser {
 
 			//解析 HTTP 请求 body
 			if(hasBody){
-				String contentType =packetMap.get(HttpStatic.CONTENT_TYPE_STRING)==null ? Global.EMPTY_STRING : packetMap.get(HttpStatic.CONTENT_TYPE_STRING).toString();
-				String transferEncoding = packetMap.get(HttpStatic.TRANSFER_ENCODING_STRING)==null ? "" : packetMap.get(HttpStatic.TRANSFER_ENCODING_STRING).toString();
+				String contentType =headerMap.get(HttpStatic.CONTENT_TYPE_STRING)==null ? Global.EMPTY_STRING : headerMap.get(HttpStatic.CONTENT_TYPE_STRING).toString();
+				String transferEncoding = headerMap.get(HttpStatic.TRANSFER_ENCODING_STRING)==null ? "" : headerMap.get(HttpStatic.TRANSFER_ENCODING_STRING).toString();
 
 				//1. 解析 HTTP 的 POST 请求 body part
 				if(contentType.contains(MULTIPART_FORM_DATA)){
@@ -597,7 +605,7 @@ public class HttpParser {
 					List<Map<String, Object>> bodyPartList = new ArrayList<Map<String, Object>>();
 
 					//取boundary 用于 part 内容分段
-					String boundary = TString.assembly("--", getPerprotyEqualValue(packetMap, HttpStatic.CONTENT_TYPE_STRING, HttpStatic.BOUNDARY_STRING));
+					String boundary = TString.assembly("--", getPerprotyEqualValue(headerMap, HttpStatic.CONTENT_TYPE_STRING, HttpStatic.BOUNDARY_STRING));
 
 					ByteBuffer boundaryEnd = ByteBuffer.allocate(2);
 					while(true) {
@@ -812,15 +820,15 @@ public class HttpParser {
 						byteBufferChannel.shrink(2);
 					}
 
-					byte[] value = dealBodyContent(packetMap, chunkedByteBufferChannel.array());
+					byte[] value = dealBodyContent(headerMap, chunkedByteBufferChannel.array());
 					chunkedByteBufferChannel.release();
 					packetMap.put(BODY_VALUE, value);
 					byteBufferChannel.shrink(2);
 				}
 
 				//3. HTTP(请求和响应) 报文的内容段中Content-Length 提供长度,按长度读取 body 内容段
-				else if(packetMap.containsKey(HttpStatic.CONTENT_LENGTH_STRING)){
-					int contentLength = Integer.parseInt(packetMap.get(HttpStatic.CONTENT_LENGTH_STRING).toString());
+				else if(headerMap.containsKey(HttpStatic.CONTENT_LENGTH_STRING)){
+					int contentLength = Integer.parseInt(headerMap.get(HttpStatic.CONTENT_LENGTH_STRING).toString());
 
 					//累计请求大小
 					totalLength = totalLength + contentLength;
@@ -841,7 +849,7 @@ public class HttpParser {
 					byteBufferChannel.readHead(byteBuffer);
 					byte[] contentBytes = byteBuffer.array();
 
-					byte[] value = dealBodyContent(packetMap, contentBytes);
+					byte[] value = dealBodyContent(headerMap, contentBytes);
 					packetMap.put(BODY_VALUE, value);
 				}
 
@@ -953,8 +961,9 @@ public class HttpParser {
 						parsedPartMap.clear();
 					}
 					break;
-				default:
-					request.header().put(parsedPacketEntry.getKey(), parsedPacketEntry.getValue().toString());
+				case HEADER:
+					request.header().setHeaders((Map<String, String>) parsedPacketEntry.getValue());
+					request.header().setCache(true);
 					break;
 			}
 		}
@@ -989,7 +998,6 @@ public class HttpParser {
 	public static Response parseResponse(IoSession session, ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
 		Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
 		packetMap = parser(session, packetMap, PARSER_TYPE_RESPONSE, byteBufferChannel, timeOut, -1);
-		packetMap.remove(HEADER_MARK);
 
 		//如果解析的Map为空,则直接返回空
 		if(packetMap==null || packetMap.isEmpty() || byteBufferChannel.isReleased()){
@@ -1026,8 +1034,9 @@ public class HttpParser {
 				case BODY_VALUE:
 					response.body().write((byte[])parsedPacketEntry.getValue());
 					break;
-				default:
-					response.header().put(parsedPacketEntry.getKey(), parsedPacketEntry.getValue().toString());
+				case HEADER:
+					response.header().setHeaders((Map<String, String>) parsedPacketEntry.getValue());
+					response.header().setCache(true);
 					break;
 			}
 		}
