@@ -258,7 +258,8 @@ public class SocketSelector implements Closeable {
 		if(useSelectNow){
 			selector.selectNow();
 		} else {
-			long dealTime = TEnv.measure(()->{
+			long startTime = System.nanoTime();
+			{
 				try {
 					//检查超时
 					checkReadTimeout();
@@ -268,7 +269,8 @@ public class SocketSelector implements Closeable {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			});
+			}
+			long dealTime = System.nanoTime() - startTime;
 
 			int readyChannelCount = selectedKeys.size();
 
