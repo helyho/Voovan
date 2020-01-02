@@ -931,14 +931,14 @@ public class HttpParser {
 					cookieMap.clear();
 					break;
 				case BODY_VALUE:
-					if(value!=null) {
-						bodyFlag = true;
-						request.body().write((byte[]) value);
-					}
+					bodyFlag = true;
+					request.setHasBody(true);
+					request.body().write((byte[]) value);
 					break;
 				case BODY_PARTS:
 					bodyFlag = true;
 					bodyPartFlag = true;
+					request.setHasBody(true);
 					List<Object[]> parsedPartArray = (List<Object[]>) value;
 					//遍历 part List,并构建 Part 对象
 					for (Object[] parsedPart : parsedPartArray) {
@@ -1019,6 +1019,7 @@ public class HttpParser {
 
 		Response response = THREAD_RESPONSE.get();
 		response.clear();
+		boolean bodyFlag = false;
 		//填充报文到响应对象
 		for(int key=0;key<packetMap.length;key++) {
 			Object value = packetMap[key];
@@ -1049,9 +1050,9 @@ public class HttpParser {
 					}
 					break;
 				case BODY_VALUE:
-					if(value!=null) {
-						response.body().write((byte[]) value);
-					}
+					bodyFlag = true;
+					response.body().write((byte[]) value);
+					response.setHasBody(true);
 					break;
 				case HEADER:
 					response.header().setHeaders((Map<String, String>) value);

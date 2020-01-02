@@ -35,6 +35,7 @@ public class Response {
 	private List<Cookie>		cookies;
 	private Body 				body;
 	private boolean				isCompress;
+	private boolean         	hasBody;
 	protected boolean 			basicSend = false;
 	private boolean             sync = true;
 	private Long                mark;
@@ -146,6 +147,14 @@ public class Response {
 	 */
 	public Body body() {
 		return body;
+	}
+
+	public boolean isHasBody() {
+		return hasBody;
+	}
+
+	public void setHasBody(boolean hasBody) {
+		this.hasBody = hasBody;
 	}
 
 	/**
