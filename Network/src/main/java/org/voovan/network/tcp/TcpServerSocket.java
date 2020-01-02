@@ -26,7 +26,7 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 	private ServerSocketChannel serverSocketChannel;
 
 	//用来阻塞当前Socket
-	private Object waitObj = new Object();
+	private Object waitObj = null;
 
 	/**
 	 * 构造函数
@@ -120,6 +120,7 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 
 		syncStart();
 
+		waitObj = new Object();
 		synchronized (waitObj){
 			try {
 				waitObj.wait();
@@ -174,8 +175,10 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 		} catch(IOException e){
 			Logger.error("TcpServerSocket.close failed", e);
 		} finally {
-			synchronized (waitObj) {
-				waitObj.notify();
+			if(waitObj!=null) {
+				synchronized (waitObj) {
+					waitObj.notify();
+				}
 			}
 		}
 
