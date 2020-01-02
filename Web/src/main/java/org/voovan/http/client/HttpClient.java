@@ -593,9 +593,9 @@ public class HttpClient extends PooledObject implements Closeable{
 		//清理请求对象,以便下次请求使用
 		parameters.clear();
 		httpRequest.protocol().clear();
+		httpRequest.header().clear();
 		httpRequest.body().clear();
 		httpRequest.parts().clear();
-		httpRequest.header().clear();
 
 		//重新初始化 Header
 		initHeader();

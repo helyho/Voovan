@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HttpItem {
 	public final static int HTTP_ITEM_MAX_LENGTH = 1024;
 
-	public static final Map<String, HttpItem> HTTP_ITEM_MAP = new ConcurrentHashMap<String, HttpItem>();
 	public static final Map[]  HTTP_ITEM_LENGTH_LIST = new Map[HTTP_ITEM_MAX_LENGTH];
 	static {
 		for(int i=0;i< HTTP_ITEM_LENGTH_LIST.length; i++){
@@ -28,27 +27,25 @@ public class HttpItem {
 	public static final HttpItem EMPTY = new HttpItem("");
 
 	private final byte[] bytes;
-	private final String string;
+	private final String value;
 	private int hashcode = 0;
 
-	public HttpItem(String string) {
-		this.string = string;
-		this.bytes = string.getBytes();
+	public HttpItem(String value) {
+		this.value = value;
+		this.bytes = value.getBytes();
 		this.hashcode = THash.HashFNV1(bytes, 0, bytes.length);
 
-		HTTP_ITEM_MAP.putIfAbsent(string, this);
 		HTTP_ITEM_LENGTH_LIST[bytes.length].put(hashcode, this);
 	}
 
-	public HttpItem(byte[] bytesArg, int offset, int length) {
+	public HttpItem(byte[] valueBytes, int offset, int length) {
 		byte[] bytes = new byte[length];
-		System.arraycopy(bytesArg, offset, bytes, 0, length);
+		System.arraycopy(valueBytes, offset, bytes, 0, length);
 		this.bytes = bytes;
-		this.string = new String(bytes, Global.CS_ASCII);
+		this.value = new String(bytes, Global.CS_ASCII);
 
 		this.hashcode = THash.HashFNV1(bytes, 0, length);
 
-		HTTP_ITEM_MAP.putIfAbsent(string, this);
 		HTTP_ITEM_LENGTH_LIST[bytes.length].put(hashcode, this);
 	}
 
@@ -56,8 +53,8 @@ public class HttpItem {
 		return bytes;
 	}
 
-	public String getString() {
-		return string;
+	public String getValue() {
+		return value;
 	}
 
 	public int getHashCode(){
@@ -72,5 +69,10 @@ public class HttpItem {
 		}
 
 		return httpItem;
+	}
+
+	@Override
+	public String toString() {
+		return value;
 	}
 }
