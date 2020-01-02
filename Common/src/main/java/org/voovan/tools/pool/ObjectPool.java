@@ -272,10 +272,8 @@ public class ObjectPool<T> {
             if (result == null && supplier != null) {
                 synchronized (objects) {
                     if (objects.size() < maxSize) {
-                        synchronized (unborrowedIdList) {
-                            result = get(add(supplier.get(), true));
-                            useSupplier = true;
-                        }
+                        result = get(add(supplier.get(), true));
+                        useSupplier = true;
                     } else {
                         return null;
                     }
