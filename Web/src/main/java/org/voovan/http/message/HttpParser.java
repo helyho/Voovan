@@ -477,7 +477,7 @@ public class HttpParser {
 		int protocolPosition = 0;
 
 		boolean hasBody = false;
-		boolean isCache = type==PARSER_TYPE_REQUEST ? WebContext.isCache() : false;
+		boolean isCache = WebContext.isCache();
 
 		requestMaxSize = requestMaxSize < 0 ? Integer.MAX_VALUE : requestMaxSize;
 
@@ -545,15 +545,14 @@ public class HttpParser {
 					{
 						String cookieName = null;
 						String cookieValue = null;
-
-						if (packetMap.containsKey(HttpStatic.SET_COOKIE_STRING)) {
-							cookieName = HttpStatic.SET_COOKIE_STRING;
-							cookieValue = packetMap.get(HttpStatic.SET_COOKIE_STRING).toString();
-							packetMap.remove(HttpStatic.SET_COOKIE_STRING);
-						} else if (packetMap.containsKey(HttpStatic.COOKIE_STRING)) {
+						if (type == PARSER_TYPE_REQUEST && packetMap.containsKey(HttpStatic.COOKIE_STRING)) {
 							cookieName = HttpStatic.COOKIE_STRING;
 							cookieValue = packetMap.get(HttpStatic.COOKIE_STRING).toString();
 							packetMap.remove(HttpStatic.COOKIE_STRING);
+						} else if (type == PARSER_TYPE_RESPONSE && packetMap.containsKey(HttpStatic.SET_COOKIE_STRING)) {
+							cookieName = HttpStatic.SET_COOKIE_STRING;
+							cookieValue = packetMap.get(HttpStatic.SET_COOKIE_STRING).toString();
+							packetMap.remove(HttpStatic.SET_COOKIE_STRING);
 						}
 
 						if (cookieName != null) {
