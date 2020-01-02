@@ -38,6 +38,7 @@ public class Request {
     private Body 			body;
     private List<Part>		parts;
     private String 			boundary;
+    private boolean         hasBody;
     protected boolean 		basicSend = false;
     private Long            mark = 0l;
 
@@ -137,6 +138,14 @@ public class Request {
         return parts;
     }
 
+    public boolean isHasBody() {
+        return hasBody;
+    }
+
+    public void setHasBody(boolean hasBody) {
+        this.hasBody = hasBody;
+    }
+
     /**
      * 获取请求类型
      *
@@ -164,35 +173,37 @@ public class Request {
         //请求路径内包含的参数
         queryString = protocol.getQueryString();
 
-        // POST_URLENCODED 请求类型的处理
-        if (getBodyType() == RequestType.BODY_URLENCODED ) {
-            queryString = queryString+"&"+body.getBodyString();
-        }
-        // POST_MULTIPART 请求类型的处理
-        else if (getBodyType() == RequestType.BODY_MULTIPART) {
-            StringBuilder result = new StringBuilder();
-            for (Part part : parts) {
-                if (part.getType() == Part.PartType.TEXT) {
-                    String name = part.header().get("name");
-                    String value = null;
-                    if(!part.body().isFile()) {
-                        value = part.body().getBodyString(charset);
-                    } else {
-                        value = part.header().get("filename");
-                    }
-
-                    result.append(name);
-                    result.append("=");
-                    result.append(value);
-                    result.append("&");
-
-                }
+        if(hasBody) {
+            // POST_URLENCODED 请求类型的处理
+            if (getBodyType() == RequestType.BODY_URLENCODED) {
+                queryString = queryString + "&" + body.getBodyString();
             }
-            queryString = TString.removeSuffix( queryString+"&"+result.toString() );
-        }
+            // POST_MULTIPART 请求类型的处理
+            else if (getBodyType() == RequestType.BODY_MULTIPART) {
+                StringBuilder result = new StringBuilder();
+                for (Part part : parts) {
+                    if (part.getType() == Part.PartType.TEXT) {
+                        String name = part.header().get("name");
+                        String value = null;
+                        if (!part.body().isFile()) {
+                            value = part.body().getBodyString(charset);
+                        } else {
+                            value = part.header().get("filename");
+                        }
 
-        if(queryString.startsWith("&")){
-            queryString = TString.removePrefix(queryString);
+                        result.append(name);
+                        result.append("=");
+                        result.append(value);
+                        result.append("&");
+
+                    }
+                }
+                queryString = TString.removeSuffix(queryString + "&" + result.toString());
+            }
+
+            if (queryString.startsWith("&")) {
+                queryString = TString.removePrefix(queryString);
+            }
         }
 
         try {
