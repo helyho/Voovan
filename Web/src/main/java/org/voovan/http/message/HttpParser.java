@@ -30,21 +30,22 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class HttpParser {
-	private static final String PL_METHOD = "1";
-	private static final String PL_PATH = "2";
-	private static final String PL_PROTOCOL = "3";
-	private static final String PL_VERSION = "4";
-	private static final String PL_STATUS = "5";
-	private static final String PL_STATUS_CODE = "6";
-	private static final String PL_QUERY_STRING = "7";
-	private static final String HEADER_MARK = "8";
-	private static final String CACHE_FLAG = "9";
-	private static final String HEADER = "10";
+	private static final int HEADER = 0;
+	private static final int BODY_VALUE = 1;
+	private static final int BODY_FILE  = 2;
+	private static final int BODY_PARTS = 3;
 
+	private static final int PL_METHOD = 4;
+	private static final int PL_PATH = 5;
+	private static final int PL_PROTOCOL = 6;
+	private static final int PL_VERSION = 7;
+	private static final int PL_STATUS = 8;
+	private static final int PL_STATUS_CODE = 9;
+	private static final int PL_QUERY_STRING = 10;
+	private static final int HEADER_MARK = 11;
+	private static final int CACHE_FLAG = 12;
+	private static final int COOKIE = 13;
 
-	private static final String BODY_PARTS = "21";
-	private static final String BODY_VALUE = "22";
-	private static final String BODY_FILE  = "23";
 
 	public static final String MULTIPART_FORM_DATA = "multipart/form-data";
 
@@ -53,12 +54,12 @@ public class HttpParser {
 	public static final String propertyLineRegex = ": ";
 	public static final String equalMapRegex = "([^ ;,]+=[^;,]+)";
 
-	public static FastThreadLocal<Map<String, Object>> THREAD_PACKET_MAP = FastThreadLocal.withInitial(()->new HashMap<String, Object>());
+	public static FastThreadLocal<Object[]> THREAD_PACKET_MAP = FastThreadLocal.withInitial(()->new Object[20]);
 	public static FastThreadLocal<Request> THREAD_REQUEST = FastThreadLocal.withInitial(()->new Request());
 	public static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
 	private static FastThreadLocal<byte[]> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new byte[1024]);
 
-	private static ConcurrentHashMap<Long, Map<String, Object>> PACKET_MAP_CACHE = new ConcurrentHashMap<Long, Map<String, Object>>();
+	private static ConcurrentHashMap<Long, Object[]> PACKET_MAP_CACHE = new ConcurrentHashMap<Long, Object[]>();
 
 	public static final int PARSER_TYPE_REQUEST = 0;
 	public static final int PARSER_TYPE_RESPONSE = 1;
@@ -178,11 +179,8 @@ public class HttpParser {
 	 * @param cookieValue        Http 头中 Cookie 报文行
 	 */
 	@SuppressWarnings("unchecked")
-	private static void parseCookie(Map<String, Object> packetMap,String cookieName, String cookieValue){
-		if(!packetMap.containsKey(HttpStatic.COOKIE_STRING)){
-			packetMap.put(HttpStatic.COOKIE_STRING, new ArrayList<Map<String, String>>());
-		}
-		List<Map<String, String>> cookies = (List<Map<String, String>>) packetMap.get(HttpStatic.COOKIE_STRING);
+	private static List<Map<String, String>> parseCookie(String cookieName, String cookieValue){
+		List<Map<String, String>> cookies = new ArrayList<Map<String, String>>();
 
 		//解析 Cookie 行
 		Map<String, String>cookieMap = getEqualMap(cookieValue);
@@ -207,6 +205,7 @@ public class HttpParser {
 			}
 		}
 
+		return cookies;
 	}
 
 	/**
@@ -243,7 +242,7 @@ public class HttpParser {
 	 * @param contiuneRead 当数据不足时的读取器
 	 * @param timeout 读取超时时间参数
 	 */
-	public static int parserProtocol(Map<String, Object> packetMap, int type, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
+	public static int parserProtocol(Object[] packetMap, int type, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
 		int hashCode = 0;
@@ -314,64 +313,64 @@ public class HttpParser {
 
 		if (type == 0) {
 			//1
-			packetMap.put(PL_METHOD, segment_1);
+			packetMap[PL_METHOD] = segment_1;
 
 			//2
 			questPositiion = questPositiion - segment_1.length() - 1;
-			packetMap.put(PL_PATH, questPositiion > 0 ? segment_2.substring(0, questPositiion - 1) : segment_2);
+			packetMap[PL_PATH] = questPositiion > 0 ? segment_2.substring(0, questPositiion - 1) : segment_2;
 			if (questPositiion > 0) {
-				packetMap.put(PL_QUERY_STRING, segment_2.substring(questPositiion - 1));
+				packetMap[PL_QUERY_STRING] = segment_2.substring(questPositiion - 1);
 			}
 
 			//3
 			if(segment_3.charAt(0)=='H' && segment_3.charAt(1)=='T' && segment_3.charAt(2)=='T' && segment_3.charAt(3)=='P') {
-				packetMap.put(PL_PROTOCOL, HttpStatic.HTTP.getValue());
+				packetMap[PL_PROTOCOL] = HttpStatic.HTTP.getValue();
 			} else {
 				throw new HttpParserException("Not a http packet");
 			}
 
 			switch (segment_3.charAt(7)) {
 				case '1':
-					packetMap.put(PL_VERSION, HttpStatic.HTTP_11_STRING);
+					packetMap[PL_VERSION] = HttpStatic.HTTP_11_STRING;
 					break;
 				case '0':
-					packetMap.put(PL_VERSION, HttpStatic.HTTP_10_STRING);
+					packetMap[PL_VERSION] = HttpStatic.HTTP_10_STRING;
 					break;
 				case '9':
-					packetMap.put(PL_VERSION, HttpStatic.HTTP_09_STRING);
+					packetMap[PL_VERSION] = HttpStatic.HTTP_09_STRING;
 					break;
 				default:
-					packetMap.put(PL_VERSION, HttpStatic.HTTP_11_STRING);
+					packetMap[PL_VERSION] = HttpStatic.HTTP_11_STRING;
 			}
 		}
 
 		if (type == 1) {
 			//1
 			if(segment_1.charAt(0)=='H' && segment_1.charAt(1)=='T' && segment_1.charAt(2)=='T' && segment_1.charAt(3)=='P') {
-				packetMap.put(PL_PROTOCOL, HttpStatic.HTTP.getValue());
+				packetMap[PL_PROTOCOL] = HttpStatic.HTTP.getValue();
 			} else {
 				throw new HttpParserException("Not a http packet");
 			}
 
 			switch (segment_1.charAt(7)) {
 				case '1':
-					packetMap.put(PL_VERSION, HttpStatic.HTTP_11_STRING);
+					packetMap[PL_VERSION] = HttpStatic.HTTP_11_STRING;
 					break;
 				case '0':
-					packetMap.put(PL_VERSION, HttpStatic.HTTP_10_STRING);
+					packetMap[PL_VERSION] = HttpStatic.HTTP_10_STRING;
 					break;
 				case '9':
-					packetMap.put(PL_VERSION, HttpStatic.HTTP_09_STRING);
+					packetMap[PL_VERSION] = HttpStatic.HTTP_09_STRING;
 					break;
 				default:
-					packetMap.put(PL_VERSION, HttpStatic.HTTP_11_STRING);
+					packetMap[PL_VERSION] = HttpStatic.HTTP_11_STRING;
 			}
 
 			//2
-			packetMap.put(PL_STATUS, segment_2);
+			packetMap[PL_STATUS] = segment_2;
 
 			//3
-			packetMap.put(PL_STATUS_CODE, segment_3);
+			packetMap[PL_STATUS_CODE] = segment_3;
 		}
 
 		return hashCode;
@@ -471,7 +470,7 @@ public class HttpParser {
 	 * @return 解析后的 Map
 	 * @throws IOException IO 异常
 	 */
-	public static Map<String, Object> parser(IoSession session, Map<String, Object> packetMap, int type,
+	public static Object[]parser(IoSession session, Object[] packetMap, int type,
 											 ByteBufferChannel byteBufferChannel, int timeout,
 											 long requestMaxSize) throws IOException {
 		int totalLength = 0;
@@ -510,7 +509,7 @@ public class HttpParser {
 
 					//检查缓存是否存在,并获取
 					if (isCache) {
-						for (Entry<Long, Map<String, Object>> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
+						for (Entry<Long, Object[]> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
 							long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
 							long totalLengthInMark = (cachedMark << 32) >> 32; //高位清空, 获得整个头的长度
 
@@ -528,7 +527,7 @@ public class HttpParser {
 									innerByteBuffer.position((int) totalLengthInMark);
 									findCache = true;
 									packetMap = packetMapCacheItem.getValue();
-									headerMap = (Map<String, Object>) packetMap.get(HEADER);
+									headerMap = (Map<String, Object>) packetMap[HEADER];
 									break;
 								}
 							}
@@ -546,25 +545,25 @@ public class HttpParser {
 							}
 						}
 
-						packetMap.put(HEADER, headerMap);
+						packetMap[HEADER] = headerMap;
 					}
 
 					//处理 Cookie
 					{
 						String cookieName = null;
 						String cookieValue = null;
-						if (type == PARSER_TYPE_REQUEST && packetMap.containsKey(HttpStatic.COOKIE_STRING)) {
+						if (type == PARSER_TYPE_REQUEST && headerMap.containsKey(HttpStatic.COOKIE_STRING)) {
 							cookieName = HttpStatic.COOKIE_STRING;
-							cookieValue = packetMap.get(HttpStatic.COOKIE_STRING).toString();
-							packetMap.remove(HttpStatic.COOKIE_STRING);
-						} else if (type == PARSER_TYPE_RESPONSE && packetMap.containsKey(HttpStatic.SET_COOKIE_STRING)) {
+							cookieValue = headerMap.get(HttpStatic.COOKIE_STRING).toString();
+							headerMap.remove(HttpStatic.COOKIE_STRING);
+						} else if (type == PARSER_TYPE_RESPONSE && headerMap.containsKey(HttpStatic.SET_COOKIE_STRING)) {
 							cookieName = HttpStatic.SET_COOKIE_STRING;
-							cookieValue = packetMap.get(HttpStatic.SET_COOKIE_STRING).toString();
-							packetMap.remove(HttpStatic.SET_COOKIE_STRING);
+							cookieValue = headerMap.get(HttpStatic.SET_COOKIE_STRING).toString();
+							headerMap.remove(HttpStatic.SET_COOKIE_STRING);
 						}
 
 						if (cookieName != null) {
-							parseCookie(packetMap, cookieName, cookieValue);
+							packetMap[COOKIE] = parseCookie(cookieName, cookieValue);
 						}
 					}
 
@@ -573,11 +572,10 @@ public class HttpParser {
 						totalLength = innerByteBuffer.position();
 						headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLength - protocolPosition));
 						long mark = (protocolMark + headerMark) << 32 | totalLength; //高位存 hash, 低位存整个头的长度
-						packetMap.put(HEADER_MARK, mark);
+						packetMap[HEADER_MARK] = mark;
 
-						HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
-						cachedPacketMap.putAll(packetMap);
-						cachedPacketMap.put(CACHE_FLAG, 1);
+						Object[] cachedPacketMap = Arrays.copyOf(packetMap, packetMap.length);
+						cachedPacketMap[CACHE_FLAG] =  1;
 
 						PACKET_MAP_CACHE.put(mark, cachedPacketMap);
 					}
@@ -587,7 +585,7 @@ public class HttpParser {
 				byteBufferChannel.compact();
 			}
 
-			if("GET".equals(packetMap.get(PL_METHOD)) || headerMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
+			if("GET".equals(packetMap[PL_METHOD]) || headerMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
 				hasBody = true;
 			} else {
 				//无 body 报文完成解析
@@ -602,7 +600,7 @@ public class HttpParser {
 				//1. 解析 HTTP 的 POST 请求 body part
 				if(contentType.contains(MULTIPART_FORM_DATA)){
 					//用来保存 Part 的 list
-					List<Map<String, Object>> bodyPartList = new ArrayList<Map<String, Object>>();
+					List<Object[]> bodyPartList = new ArrayList<Object[]>();
 
 					//取boundary 用于 part 内容分段
 					String boundary = TString.assembly("--", getPerprotyEqualValue(headerMap, HttpStatic.CONTENT_TYPE_STRING, HttpStatic.BOUNDARY_STRING));
@@ -652,11 +650,12 @@ public class HttpParser {
 						//构造新的 Bytebuffer 递归解析
 						ByteBufferChannel partByteBufferChannel = new ByteBufferChannel(partHeadEndIndex + 4); //包含换行符
 						partByteBufferChannel.writeEnd(partHeadBuffer);
-						Map<String, Object> partMap = new HashMap<String, Object>();
+						Object[] partArray = new Object[4];
+						Map<String, Object> partHeaderMap = new HashMap<String, Object>();
 
 						ByteBuffer partByteBuffer =  partByteBufferChannel.getByteBuffer();
 						try {
-							while (parseHeader(partMap, partByteBuffer, contiuneRead, timeout)) {
+							while (parseHeader(partHeaderMap, partByteBuffer, contiuneRead, timeout)) {
 								if (!partByteBuffer.hasRemaining() && session.isConnected()) {
 									return null;
 								}
@@ -665,10 +664,12 @@ public class HttpParser {
 							partByteBufferChannel.compact();
 						}
 
+						partArray[HEADER] = partHeaderMap;
+
 						TByteBuffer.release(partHeadBuffer);
 						partByteBufferChannel.release();
 
-						String fileName = getPerprotyEqualValue(partMap, HttpStatic.CONTENT_DISPOSITION_STRING, "filename");
+						String fileName = getPerprotyEqualValue(partHeaderMap, HttpStatic.CONTENT_DISPOSITION_STRING, "filename");
 						if(fileName!=null && fileName.isEmpty()){
 							break;
 						}
@@ -688,7 +689,7 @@ public class HttpParser {
 
 							ByteBuffer bodyByteBuffer = ByteBuffer.allocate(boundaryIndex - 2);
 							byteBufferChannel.readHead(bodyByteBuffer);
-							partMap.put(BODY_VALUE, bodyByteBuffer.array());
+							partArray[BODY_VALUE] = bodyByteBuffer.array();
 						}
 						//文件处理
 						else {
@@ -744,16 +745,16 @@ public class HttpParser {
 								new File(localFileName).delete();
 								throw new HttpParserException("Http Parser not enough data with " + boundary);
 							}else{
-								partMap.remove(BODY_VALUE);
-								partMap.put(BODY_FILE, localFileName.getBytes());
+								partArray[BODY_VALUE] = null;
+								partArray[BODY_FILE] = localFileName.getBytes();
 							}
 						}
 
 						//加入bodyPartList中
-						bodyPartList.add(partMap);
+						bodyPartList.add(partArray);
 					}
 					//将存有多个 part 的 list 放入packetMap
-					packetMap.put(BODY_PARTS, bodyPartList);
+					packetMap[BODY_PARTS] = bodyPartList;
 				}
 
 				//2. 解析 HTTP 响应 body 内容段的 chunked
@@ -822,7 +823,7 @@ public class HttpParser {
 
 					byte[] value = dealBodyContent(headerMap, chunkedByteBufferChannel.array());
 					chunkedByteBufferChannel.release();
-					packetMap.put(BODY_VALUE, value);
+					packetMap[BODY_VALUE] = value;
 					byteBufferChannel.shrink(2);
 				}
 
@@ -850,7 +851,7 @@ public class HttpParser {
 					byte[] contentBytes = byteBuffer.array();
 
 					byte[] value = dealBodyContent(headerMap, contentBytes);
-					packetMap.put(BODY_VALUE, value);
+					packetMap[BODY_VALUE] = value;
 				}
 
 				break;
@@ -875,11 +876,11 @@ public class HttpParser {
 
 		Request request = null;
 
-		Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
+		Object[] packetMap = THREAD_PACKET_MAP.get();
 		packetMap = parser(session, packetMap, PARSER_TYPE_REQUEST, byteBufferChannel, timeOut, requestMaxSize);
 
 		//如果解析的Map为空,则直接返回空
-		if(packetMap==null || packetMap.isEmpty() || byteBufferChannel.isReleased()){
+		if(byteBufferChannel.isReleased()){
 			return null;
 		}
 
@@ -891,92 +892,104 @@ public class HttpParser {
 		boolean bodyPartFlag = false;
 
 		//填充报文到请求对象
-		Set<Entry<String, Object>> parsedItems= packetMap.entrySet();
-		for(Entry<String, Object> parsedPacketEntry: parsedItems) {
-			String key = parsedPacketEntry.getKey();
+		for(int key=0;key<packetMap.length;key++) {
+			Object value = packetMap[key];
+
+			if(value == null) {
+				continue;
+			}
+
 			switch (key) {
 				case CACHE_FLAG:
 					cacheFlag = true;
 					break;
 				case PL_METHOD:
-					request.protocol().setMethod(parsedPacketEntry.getValue().toString());
+					request.protocol().setMethod(value.toString());
 					break;
 				case PL_PROTOCOL:
-					request.protocol().setProtocol(parsedPacketEntry.getValue().toString());
+					request.protocol().setProtocol(value.toString());
 					break;
 				case PL_QUERY_STRING:
-					request.protocol().setQueryString(parsedPacketEntry.getValue().toString());
+					request.protocol().setQueryString(value.toString());
 					break;
 				case PL_VERSION:
-					request.protocol().setVersion(parsedPacketEntry.getValue().toString());
+					request.protocol().setVersion(value.toString());
 					break;
 				case PL_PATH:
-					request.protocol().setPath(parsedPacketEntry.getValue().toString());
+					request.protocol().setPath(value.toString());
 					break;
 				case HEADER_MARK:
-					request.setMark((Long)parsedPacketEntry.getValue());
+					request.setMark((Long)value);
 					break;
-				case HttpStatic.COOKIE_STRING:
-					List<Map<String, String>> cookieMap = (List<Map<String, String>>)packetMap.get(HttpStatic.COOKIE_STRING);
+				case COOKIE:
+					List<Map<String, String>> cookieMap = (List<Map<String, String>>)value;
 					//遍历 Cookie,并构建 Cookie 对象
-					for(Map<String,String> cookieMapItem : cookieMap){
+					for (Map<String, String> cookieMapItem : cookieMap) {
 						Cookie cookie = Cookie.buildCookie(cookieMapItem);
 						request.cookies().add(cookie);
 					}
 					cookieMap.clear();
 					break;
 				case BODY_VALUE:
-					bodyFlag = true;
-					byte[] value = (byte[])(parsedPacketEntry.getValue());
-					request.body().write(value);
+					if(value!=null) {
+						bodyFlag = true;
+						request.body().write((byte[]) value);
+					}
 					break;
 				case BODY_PARTS:
 					bodyFlag = true;
 					bodyPartFlag = true;
-					List<Map<String, Object>> parsedParts = (List<Map<String, Object>>)(parsedPacketEntry.getValue());
+					List<Object[]> parsedPartArray = (List<Object[]>) value;
 					//遍历 part List,并构建 Part 对象
-					for(Map<String, Object> parsedPartMap : parsedParts){
+					for (Object[] parsedPart : parsedPartArray) {
 						Part part = new Part();
 						//将 part Map中的值,并填充到新构建的 Part 对象中
-						for(Entry<String, Object> parsedPartMapItem : parsedPartMap.entrySet()){
+						for (int partKey = 0; partKey < parsedPart.length; partKey++) {
+							Object partValue = parsedPart[partKey];
+							if(partValue == null) {
+								continue;
+							}
+
 							//填充 Value 中的值到 body 中
-							if(parsedPartMapItem.getKey().equals(BODY_VALUE)){
-								part.body().changeToBytes((byte[])parsedPartMapItem.getValue());
-							} if(parsedPartMapItem.getKey().equals(BODY_FILE)){
-								String filePath = new String((byte[])parsedPartMapItem.getValue());
+							if (partKey == BODY_VALUE) {
+								part.body().changeToBytes((byte[]) partValue);
+							} else if (partKey == BODY_FILE) {
+								String filePath = new String((byte[]) partValue);
 								part.body().changeToFile(new File(filePath));
-							} else {
-								//填充 header
-								String partedHeaderKey = parsedPartMapItem.getKey();
-								String partedHeaderValue = parsedPartMapItem.getValue().toString();
-								part.header().put(partedHeaderKey, partedHeaderValue);
-								if(HttpStatic.CONTENT_DISPOSITION_STRING.equals(partedHeaderKey)){
-									//对Content-Disposition中的"name=xxx"进行处理,方便直接使用
-									Map<String, String> contentDispositionValue = HttpParser.getEqualMap(partedHeaderValue);
-									part.header().putAll(contentDispositionValue);
+							} else if (partKey == HEADER) {
+								for (Entry<String, Object> parsedPartHeaderItem : ((Map<String, Object>) partValue).entrySet()) {
+									//填充 header
+									String partedHeaderKey = parsedPartHeaderItem.getKey();
+									String partedHeaderValue = parsedPartHeaderItem.getValue().toString();
+									part.header().put(partedHeaderKey, partedHeaderValue);
+									if (HttpStatic.CONTENT_DISPOSITION_STRING.equals(partedHeaderKey)) {
+										//对Content-Disposition中的"name=xxx"进行处理,方便直接使用
+										Map<String, String> contentDispositionValue = HttpParser.getEqualMap(partedHeaderValue);
+										part.header().putAll(contentDispositionValue);
+									}
 								}
 							}
 						}
 						request.parts().add(part);
-						parsedPartMap.clear();
 					}
+					parsedPartArray.clear();
 					break;
 				case HEADER:
-					request.header().setHeaders((Map<String, String>) parsedPacketEntry.getValue());
+					request.header().setHeaders((Map<String, String>) value);
 					request.header().setCache(true);
 					break;
 			}
 		}
 
 		if(!cacheFlag) {
-			packetMap.clear();
+			Arrays.fill(packetMap, null);;
 		}
 
 		if(isCache && bodyFlag) {
 			//MULTIPART_FORM_DATA 不使用缓存
 			if(bodyPartFlag) {
 				request.setMark(null);
-				packetMap.clear();
+				Arrays.fill(packetMap, null);
 			} else if (request.getMark() != null && bodyFlag) {
 				Integer bodyMark = request.body().getMark();
 				request.setMark(request.getMark() | bodyMark);
@@ -996,51 +1009,57 @@ public class HttpParser {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Response parseResponse(IoSession session, ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
-		Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
+		Object[] packetMap = THREAD_PACKET_MAP.get();
 		packetMap = parser(session, packetMap, PARSER_TYPE_RESPONSE, byteBufferChannel, timeOut, -1);
 
 		//如果解析的Map为空,则直接返回空
-		if(packetMap==null || packetMap.isEmpty() || byteBufferChannel.isReleased()){
+		if(byteBufferChannel.isReleased()){
 			return null;
 		}
 
 		Response response = THREAD_RESPONSE.get();
 		response.clear();
 		//填充报文到响应对象
-		Set<Entry<String, Object>> parsedItems= packetMap.entrySet();
-		for(Entry<String, Object> parsedPacketEntry: parsedItems){
-			String key = parsedPacketEntry.getKey();
+		for(int key=0;key<packetMap.length;key++) {
+			Object value = packetMap[key];
+
+			if(value == null) {
+				continue;
+			}
+
 			switch (key) {
 				case PL_PROTOCOL:
-					response.protocol().setProtocol(parsedPacketEntry.getValue().toString());
+					response.protocol().setProtocol(value.toString());
 					break;
 				case PL_VERSION:
-					response.protocol().setVersion(parsedPacketEntry.getValue().toString());
+					response.protocol().setVersion(value.toString());
 					break;
 				case PL_STATUS:
-					response.protocol().setStatus(Integer.parseInt(parsedPacketEntry.getValue().toString()));
+					response.protocol().setStatus(Integer.parseInt(value.toString()));
 					break;
 				case PL_STATUS_CODE:
-					response.protocol().setStatusCode(parsedPacketEntry.getValue().toString());
+					response.protocol().setStatusCode(value.toString());
 					break;
-				case HttpStatic.COOKIE_STRING:
-					List<Map<String, String>> cookieMap = (List<Map<String, String>>)parsedPacketEntry.getValue();
+				case COOKIE:
+					List<Map<String, String>> cookieMap = (List<Map<String, String>>) value;
 					//遍历 Cookie,并构建 Cookie 对象
-					for(Map<String,String> cookieMapItem : cookieMap){
+					for (Map<String, String> cookieMapItem : cookieMap) {
 						Cookie cookie = Cookie.buildCookie(cookieMapItem);
 						response.cookies().add(cookie);
 					}
 					break;
 				case BODY_VALUE:
-					response.body().write((byte[])parsedPacketEntry.getValue());
+					if(value!=null) {
+						response.body().write((byte[]) value);
+					}
 					break;
 				case HEADER:
-					response.header().setHeaders((Map<String, String>) parsedPacketEntry.getValue());
+					response.header().setHeaders((Map<String, String>) value);
 					response.header().setCache(true);
 					break;
 			}
 		}
-		packetMap.clear();
+		Arrays.fill(packetMap, null);
 		return response;
 	}
 
