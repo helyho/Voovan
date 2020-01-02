@@ -518,20 +518,18 @@ public class HttpParser {
 								continue;
 							}
 
-							headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
+							if (byteBufferChannel.size() >= totalLengthInMark &&
+									byteBufferChannel.get((int) totalLengthInMark - 1) == 10 &&
+									byteBufferChannel.get((int) totalLengthInMark - 2) == 13) {
 
-							if (mark + headerMark == cachedMark >> 32) {
+								headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
 
-
-								if (byteBufferChannel.size() >= totalLengthInMark &&
-										byteBufferChannel.get((int) totalLengthInMark - 1) == 10 &&
-										byteBufferChannel.get((int) totalLengthInMark - 2) == 13) {
-
-
+								if (mark + headerMark == cachedMark >> 32) {
 									innerByteBuffer.position((int) totalLengthInMark);
 									findCache = true;
 									packetMap = packetMapCacheItem.getValue();
 									break;
+
 								}
 							}
 						}
