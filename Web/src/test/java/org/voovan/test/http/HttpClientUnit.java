@@ -169,7 +169,7 @@ public class HttpClientUnit extends TestCase {
 		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 5);
 		for(int i=0;i<20;i++) {
 			Logger.simple(i);
-			Response response = getClient.setMethod("GET").send("/annon/index");
+			Response response = getClient.setMethod("GET").send("/ar/annon");
 			Logger.simple(response.body().getBodyString("GB2312"));
 			assertTrue(response.protocol().getStatus() != 500);
 			TEnv.sleep(100);
@@ -181,7 +181,7 @@ public class HttpClientUnit extends TestCase {
 		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 5);
 		for(int i=0;i<20;i++) {
 			Logger.simple(i);
-			Response response = getClient.setMethod("POST").setData("this is post body").send("/annon/body");
+			Response response = getClient.setMethod("POST").setData("this is post body").send("/ar/annon/body");
 			Logger.simple(response.body().getBodyString("GB2312"));
 			assertTrue(response.protocol().getStatus() != 500);
 			TEnv.sleep(100);
