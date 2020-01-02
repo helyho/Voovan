@@ -36,7 +36,7 @@ public class HttpParser {
 	private static final String PL_STATUS = "5";
 	private static final String PL_STATUS_CODE = "6";
 	private static final String PL_QUERY_STRING = "7";
-	private static final String HTTP_HEADER_MARK = "8";
+	private static final String HEADER_MARK = "8";
 	private static final String CACHE_FLAG = "9";
 
 	private static final String BODY_PARTS = "21";
@@ -240,7 +240,7 @@ public class HttpParser {
 	 * @param contiuneRead 当数据不足时的读取器
 	 * @param timeout 读取超时时间参数
 	 */
-	public static void parserProtocol(Map<String, Object> packetMap, int type, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
+	public static int parserProtocol(Map<String, Object> packetMap, int type, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
 		int hashCode = 0;
@@ -371,9 +371,7 @@ public class HttpParser {
 			packetMap.put(PL_STATUS_CODE, segment_3);
 		}
 
-		if(isCache) {
-			packetMap.put(HTTP_HEADER_MARK, hashCode);
-		}
+		return hashCode;
 	}
 
 	/**
@@ -474,7 +472,7 @@ public class HttpParser {
 											 ByteBufferChannel byteBufferChannel, int timeout,
 											 long requestMaxSize) throws IOException {
 		int totalLength = 0;
-		long mark = 0;
+		long protocolMark = 0;
 		int headerMark = 0;
 		int protocolPosition = 0;
 
@@ -503,13 +501,11 @@ public class HttpParser {
 			try {
 				//处理协议行
 				{
-					parserProtocol(packetMap, type, innerByteBuffer, contiuneRead, timeout);
+					protocolMark = parserProtocol(packetMap, type, innerByteBuffer, contiuneRead, timeout);
 					protocolPosition = innerByteBuffer.position() - 1;
 
 					//检查缓存是否存在,并获取
 					if (isCache) {
-						mark = ((Integer) packetMap.get(HTTP_HEADER_MARK)).longValue();
-
 						for (Entry<Long, Map<String, Object>> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
 							long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
 							long totalLengthInMark = (cachedMark << 32) >> 32; //高位清空, 获得整个头的长度
@@ -524,19 +520,14 @@ public class HttpParser {
 
 								headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
 
-								if (mark + headerMark == cachedMark >> 32) {
+								if (protocolMark + headerMark == cachedMark >> 32) {
 									innerByteBuffer.position((int) totalLengthInMark);
 									findCache = true;
 									packetMap = packetMapCacheItem.getValue();
 									break;
-
 								}
 							}
 						}
-					}
-
-					if (!packetMap.containsKey(PL_PROTOCOL)) {
-						return null;
 					}
 				}
 
@@ -574,8 +565,8 @@ public class HttpParser {
 					if (isCache) {
 						totalLength = innerByteBuffer.position();
 						headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLength - protocolPosition));
-						mark = (mark + headerMark) << 32 | totalLength; //高位存 hash, 低位存整个头的长度
-						packetMap.put(HTTP_HEADER_MARK, mark);
+						long mark = (protocolMark + headerMark) << 32 | totalLength; //高位存 hash, 低位存整个头的长度
+						packetMap.put(HEADER_MARK, mark);
 
 						HashMap<String, Object> cachedPacketMap = new HashMap<String, Object>();
 						cachedPacketMap.putAll(packetMap);
@@ -915,7 +906,7 @@ public class HttpParser {
 				case PL_PATH:
 					request.protocol().setPath(parsedPacketEntry.getValue().toString());
 					break;
-				case HTTP_HEADER_MARK:
+				case HEADER_MARK:
 					request.setMark((Long)parsedPacketEntry.getValue());
 					break;
 				case HttpStatic.COOKIE_STRING:
@@ -999,7 +990,7 @@ public class HttpParser {
 	public static Response parseResponse(IoSession session, ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
 		Map<String, Object> packetMap = THREAD_PACKET_MAP.get();
 		packetMap = parser(session, packetMap, PARSER_TYPE_RESPONSE, byteBufferChannel, timeOut, -1);
-		packetMap.remove(HTTP_HEADER_MARK);
+		packetMap.remove(HEADER_MARK);
 
 		//如果解析的Map为空,则直接返回空
 		if(packetMap==null || packetMap.isEmpty() || byteBufferChannel.isReleased()){

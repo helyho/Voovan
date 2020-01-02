@@ -28,7 +28,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	private TcpSession session;
 
 	//用来阻塞当前Socket
-	private Object waitObj = new Object();
+	private Object waitObj = null;
 
 
 	/**
@@ -141,7 +141,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 */
 	public void start() throws IOException  {
 		syncStart();
-
+		waitObj = new Object();
 		synchronized (waitObj){
 			try {
 				waitObj.wait();
@@ -231,8 +231,10 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 				session.release();
 			}
 
-			synchronized (waitObj) {
-				waitObj.notify();
+			if(waitObj!=null) {
+				synchronized (waitObj) {
+					waitObj.notify();
+				}
 			}
 		}
 
