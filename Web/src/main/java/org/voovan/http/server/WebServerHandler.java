@@ -419,10 +419,6 @@ public class WebServerHandler implements IoHandler {
 				}
 			}, session.socketContext().getReadTimeout()/3/1000);
 		}
-
-		if(request!=null && getAttribute(session,HttpSessionParam.TYPE) == HttpRequestType.HTTP) {
-			request.clear();
-		}
 	}
 
 	@Override
