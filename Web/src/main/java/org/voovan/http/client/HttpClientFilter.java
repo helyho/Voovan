@@ -67,7 +67,7 @@ public class HttpClientFilter implements IoFilter {
 						//初始化 WebSocket
 						httpClient.initWebSocket();
 					}
-					return new Response().copyFrom(response);
+					return response;
 				}
 			}
 		}catch(Exception e) {
