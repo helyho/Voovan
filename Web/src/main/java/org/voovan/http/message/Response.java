@@ -321,8 +321,12 @@ public class Response {
 		this.setMark(response.getMark());
 
 		if(HttpStatic.GZIP_STRING.equals(response.header().get(HttpStatic.CONTENT_ENCODING_STRING))) {
-			response.setCompress(true);
+			this.setCompress(true);
+			this.header.remove(HttpStatic.CONTENT_LENGTH_STRING);
 		}
+
+		this.header.remove(HttpStatic.TRANSFER_ENCODING_STRING);
+		this.header.remove(HttpStatic.CONTENT_ENCODING_STRING);
 
 		return this;
 	}
