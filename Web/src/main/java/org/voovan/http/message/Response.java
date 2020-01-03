@@ -317,12 +317,12 @@ public class Response {
 		this.header().putAll(response.header().getHeaders());
 		this.body().write( response.body().getBodyBytes());
 		this.cookies().addAll(response.cookies());
-		this.setCompress(response.isCompress);
 		this.setMark(response.getMark());
 
-		this.header.remove(HttpStatic.TRANSFER_ENCODING_STRING);
-		this.header.remove(HttpStatic.CONTENT_ENCODING_STRING);
-		this.header.remove(HttpStatic.CONTENT_LENGTH_STRING);
+		if(HttpStatic.GZIP_STRING.equals(response.header().get(HttpStatic.CONTENT_ENCODING_STRING))) {
+			response.setCompress(true);
+		}
+
 		return this;
 	}
 
