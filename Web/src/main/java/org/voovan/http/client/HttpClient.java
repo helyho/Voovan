@@ -509,8 +509,8 @@ public class HttpClient extends PooledObject implements Closeable{
 		try {
 			//异步模式更新 handler
 			if(async != null) {
-				socket.handler(asyncHandler);
 				asyncHandler.setAsync(async);
+				socket.handler(asyncHandler);
 			}
 			httpRequest.send(socket.getSession());
 			httpRequest.flush();

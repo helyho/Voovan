@@ -387,16 +387,16 @@ public class TFile {
 		String innerPattern = File.separator.equals("\\") ? Matcher.quoteReplacement(pattern) : pattern;
 
 		ArrayList<JarEntry> result = new ArrayList<JarEntry>();
-		JarFile jarFile = new JarFile(file);
-		Enumeration<JarEntry > jarEntrys = jarFile.entries();
-		while(jarEntrys.hasMoreElements()){
-			JarEntry jarEntry = jarEntrys.nextElement();
-			String fileName = jarEntry.getName();
-			if(innerPattern==null || TString.regexMatch(fileName,innerPattern) > 0) {
-				result.add(jarEntry);
+		try(JarFile jarFile = new JarFile(file)) {
+			Enumeration<JarEntry> jarEntrys = jarFile.entries();
+			while (jarEntrys.hasMoreElements()) {
+				JarEntry jarEntry = jarEntrys.nextElement();
+				String fileName = jarEntry.getName();
+				if (innerPattern == null || TString.regexMatch(fileName, innerPattern) > 0) {
+					result.add(jarEntry);
+				}
 			}
 		}
-		jarFile.close();
 		return result;
 	}
 
