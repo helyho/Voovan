@@ -71,6 +71,7 @@ public class Request {
         this.parts = request.parts;
         this.basicSend = false;
         this.mark = request.mark;
+        this.hasBody = request.hasBody;
     }
 
     /**

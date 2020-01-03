@@ -4,6 +4,7 @@ import junit.framework.TestCase;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Request;
+import org.voovan.http.message.Response;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 
@@ -99,6 +100,12 @@ public class HttpParserUnit extends TestCase {
 		assertEquals(request.protocol().getPath(),"/test/t");
 		assertEquals(request.protocol().getMethod(),"POST");
 		assertEquals(request.getQueryString("UTF-8"),"name=helyho&age=32=&address=wlmq");
+	}
+
+	public void testResposne() throws IOException{
+		ByteBufferChannel b = new ByteBufferChannel();
+		Response response = HttpParser.parseResponse(null, b, 30000);
+		System.out.println(response);
 	}
 
 	public static void main(String[] args) {
