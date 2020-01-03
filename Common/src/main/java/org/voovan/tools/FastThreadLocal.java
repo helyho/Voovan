@@ -14,8 +14,8 @@ import java.util.function.Supplier;
  * 每个 FastThreadLocal 在各个线程中都会持有一个 index 索引位置,实际访问的时候访问的是这个 FastThreadLocal 对象在各个线程中保存的那个实例
  */
 public class FastThreadLocal<T> {
-	private ThreadLocal<FastThreadLocal> jdkThreadLocal = new ThreadLocal<FastThreadLocal>();
-	private static AtomicInteger indexGenerator = new AtomicInteger(0);
+    private ThreadLocal<FastThreadLocal> jdkThreadLocal = new ThreadLocal<FastThreadLocal>();
+    private static AtomicInteger indexGenerator = new AtomicInteger(0);
 
 	volatile int index = -1;
 
@@ -23,112 +23,109 @@ public class FastThreadLocal<T> {
 
 	private Supplier supplier;
 
-	/**
-	 * 构造函数
-	 * 		为当前对象生成一个 id
-	 */
-	public FastThreadLocal(){
-		this(false);
-	}
+    /**
+     * 构造函数
+     * 		为当前对象生成一个 id
+     */
+    public FastThreadLocal(){
+        this(indexGenerator.getAndIncrement());
+    }
 
-	/**
-	 * 构造函数
-	 * 		为当前对象生成一个 id
-	 */
-	private FastThreadLocal(boolean isInternal){
-		//分配一个索引在所有线程中都是用这个索引位置
-		if(!isInternal) {
-			this.index = indexGenerator.getAndIncrement();
-		}
-	}
+    /**
+     * 构造函数
+     * 		为当前对象生成一个 id
+     */
+    private FastThreadLocal(int index){
+        this.index =  index;
+    }
 
-	/**
-	 * 基于提供器的构造函数
-	 * @param supplier 线程局部变量生成器
-	 * @param <T> 范型类型
-	 * @return FastThreadLocal对象
-	 */
-	public static <T> FastThreadLocal<T> withInitial(Supplier<T> supplier){
-		FastThreadLocal<T> fastThreadLocal = new FastThreadLocal<T>();
-		fastThreadLocal.setSupplier(supplier);
-		return fastThreadLocal;
-	}
+    /**
+     * 基于提供器的构造函数
+     * @param supplier 线程局部变量生成器
+     * @param <T> 范型类型
+     * @return FastThreadLocal对象
+     */
+    public static <T> FastThreadLocal<T> withInitial(Supplier<T> supplier){
+        FastThreadLocal<T> fastThreadLocal = new FastThreadLocal<T>();
+        fastThreadLocal.setSupplier(supplier);
+        return fastThreadLocal;
+    }
 
-	/**
-	 * 获取 线程局部变量生成器
-	 * @return  线程局部变量生成器
-	 */
-	public Supplier<T> getSupplier() {
-		return supplier;
-	}
+    /**
+     * 获取 线程局部变量生成器
+     * @return  线程局部变量生成器
+     */
+    public Supplier<T> getSupplier() {
+        return supplier;
+    }
 
-	/**
-	 * 设置 线程局部变量生成器
-	 * @param supplier 线程局部变量生成器
-	 */
-	public void setSupplier(Supplier<T> supplier) {
-		this.supplier = supplier;
-	}
+    /**
+     * 设置 线程局部变量生成器
+     * @param supplier 线程局部变量生成器
+     */
+    public void setSupplier(Supplier<T> supplier) {
+        this.supplier = supplier;
+    }
 
-	/**
-	 * 获取 线程局部变量
-	 * @return 线程局部变量
-	 */
-	public T get() {
-		tryCreate();
-		if(FastThread.getThread() != null) {
-			FastThreadLocal fastThreadLocal = FastThread.getThread().data[index];
+    /**
+     * 获取 线程局部变量
+     * @return 线程局部变量
+     */
+    public T get() {
+        if(tryCreate()) {
+            FastThreadLocal fastThreadLocal = FastThread.getThread().data[index];
 
-			T t = (T) fastThreadLocal.value;
-			if (t == null && supplier != null) {
-				t = (T) supplier.get();
-				fastThreadLocal.value = t;
-			}
+            T t = (T) fastThreadLocal.value;
+            if (t == null && supplier != null) {
+                t = (T) supplier.get();
+                fastThreadLocal.value = t;
+            }
 
-			return t;
-		} else {
-			FastThreadLocal fastThreadLocal = jdkThreadLocal.get();
-			T t = (T) fastThreadLocal.value;
-			if (t == null && supplier != null) {
-				t = (T) supplier.get();
-				fastThreadLocal.value = t;
-			}
+            return t;
+        } else {
+            FastThreadLocal fastThreadLocal = jdkThreadLocal.get();
+            T t = (T) fastThreadLocal.value;
+            if (t == null && supplier != null) {
+                t = (T) supplier.get();
+                fastThreadLocal.value = t;
+            }
 
-			return t;
-		}
-	}
+            return t;
+        }
+    }
 
-	/**
-	 * 根据线程的类型尝试创建不同的线程局部变量
-	 */
-	public void tryCreate(){
-		if(FastThread.getThread() != null) {
-			FastThreadLocal[] data = FastThread.getThread().data;
-			FastThreadLocal fastThreadLocal = data[index];
-			if (fastThreadLocal == null) {
-				fastThreadLocal = new FastThreadLocal(true);
-				data[index] = fastThreadLocal;
-			}
-		} else {
-			FastThreadLocal fastThreadLocal = jdkThreadLocal.get();
-			if(fastThreadLocal == null){
-				jdkThreadLocal.set(new FastThreadLocal(true));
-			}
-		}
-	}
+    /**
+     * 根据线程的类型尝试创建不同的线程局部变量
+     */
+    public boolean tryCreate(){
+        if(FastThread.getThread() != null) {
+            FastThreadLocal[] data = FastThread.getThread().data;
+            FastThreadLocal fastThreadLocal = data[index];
+            if (fastThreadLocal == null) {
+                fastThreadLocal = new FastThreadLocal(this.index);
+                data[index] = fastThreadLocal;
+            }
+            return true;
+        } else {
+            FastThreadLocal fastThreadLocal = jdkThreadLocal.get();
+            if(fastThreadLocal == null){
+                jdkThreadLocal.set(new FastThreadLocal(this.index));
+            }
+            return false;
+        }
+    }
 
-	/**
-	 * 设置线程局部变量
-	 * @param t 线程局部变量
-	 */
-	public void set(T t){
-		tryCreate();
-
-		if(FastThread.getThread() != null) {
-			FastThread.getThread().data[index].value = t;
-		} else {
-			jdkThreadLocal.get().value = t;
-		}
-	}
+    /**
+     * 设置线程局部变量
+     * @param t 线程局部变量
+     */
+    public void set(T t){
+        if(tryCreate()) {
+            FastThread.getThread().data[index].value = t;
+        } else {
+            jdkThreadLocal.get().value = t;
+        }
+    }
 
 }
+
