@@ -3,6 +3,7 @@ package org.voovan.network.handler;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -18,14 +19,14 @@ import java.util.concurrent.TimeoutException;
  */
 public class SynchronousHandler implements IoHandler {
     //Socket 响应队列
-    private LinkedBlockingDeque<Object> socketResponses  = new LinkedBlockingDeque<Object>();
+    private ArrayBlockingQueue<Object> socketResponses  = new ArrayBlockingQueue<Object>(20);
 
     /**
      * 增加响应对象
      * @param obj 响应对象
      */
     public void addResponse(Object obj){
-        socketResponses.add(obj);
+        socketResponses.offer(obj);
     }
 
     @Override
@@ -55,7 +56,7 @@ public class SynchronousHandler implements IoHandler {
 
     @Override
     public void onException(IoSession session, Exception e) {
-        socketResponses.addLast(e);
+        socketResponses.offer(e);
     }
 
     @Override
