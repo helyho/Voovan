@@ -57,6 +57,7 @@ public class Response {
 		this.isCompress = response.isCompress;
 		this.basicSend = false;
 		this.mark = response.mark;
+		this.hasBody = response.hasBody;
 	}
 
 	/**

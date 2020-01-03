@@ -49,7 +49,7 @@ public class HttpClientUnit extends TestCase {
 		Response response  = getClient.setMethod("GET")
 			.putParameters("name", "测试Get")
 			.putParameters("age", "32").send("/fonts/fontawesome-webfont.woff2");
-		Logger.simple(response.body().getBodyString("GB2312"));
+		System.out.println(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 		getClient.close();
 	}
@@ -77,7 +77,7 @@ public class HttpClientUnit extends TestCase {
 		Response response = postClient.setMethod("POST") 
 			.putParameters("name", "测试Post")
 			.putParameters("age", "32").send();
-		Logger.simple(response.body().getBodyString("GB2312"));
+		System.out.println(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus() != 500);
 		postClient.close();
 	}
@@ -88,7 +88,7 @@ public class HttpClientUnit extends TestCase {
 			.addPart(new Part("name","测试MultiPart","GB2312"))
 			.addPart(new Part("age","23","GB2312")).send();
 		
-		Logger.simple(response.body().getBodyString("GB2312"));
+		System.out.println(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 		mpClient.close();
 	}
@@ -99,7 +99,7 @@ public class HttpClientUnit extends TestCase {
 		ulClient.addPart(new Part("name","测试Upload","GB2312"));
 		ulClient.uploadFile("file",new File("./pom.xml"));
 		Response response = ulClient.send("/upload");
-		Logger.simple(response.body().getBodyString("GB2312"));
+		System.out.println(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 		ulClient.close();
 	}
@@ -113,13 +113,13 @@ public class HttpClientUnit extends TestCase {
 	
 	public void testSeriesRequest() throws Exception {
 		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080","GBK2312",10000);
-		Logger.simple(httpClient.send("/").body().getBodyString());
-		Logger.simple("1=========================================");
-		Logger.simple(httpClient.send("/").body().getBodyString());
-		Logger.simple("2=========================================");
-		Logger.simple(httpClient.send("/").body().getBodyString());
-		Logger.simple("3=========================================");
-		Logger.simple(httpClient.send("/").body().getBodyString());
+		System.out.println(httpClient.send("/").body().getBodyString());
+		System.out.println("1=========================================");
+		System.out.println(httpClient.send("/").body().getBodyString());
+		System.out.println("2=========================================");
+		System.out.println(httpClient.send("/").body().getBodyString());
+		System.out.println("3=========================================");
+		System.out.println(httpClient.send("/").body().getBodyString());
 		TEnv.sleep(10);
 		httpClient.close();
 	}
@@ -130,14 +130,14 @@ public class HttpClientUnit extends TestCase {
 
 			@Override
 			public Object onOpen(WebSocketSession webSocketSession) {
-				Logger.simple("WebSocket open");
+				System.out.println("WebSocket open");
 				return "OPEN_MSG";
 			}
 
 			int count = 0;
 			@Override
 			public Object onRecived(WebSocketSession webSocketSession, Object message) {
-				Logger.simple("Recive: "+message);
+				System.out.println("Recive: "+message);
 
 				if(count==0){
 					count++;
@@ -153,12 +153,12 @@ public class HttpClientUnit extends TestCase {
 
 			@Override
 			public void onSent(WebSocketSession webSocketSession, Object message){
-				Logger.simple("Send: " + message);
+				System.out.println("Send: " + message);
 			}
 
 			@Override
 			public void onClose(WebSocketSession webSocketSession) {
-				Logger.simple("WebSocket close");
+				System.out.println("WebSocket close");
 			}
 		}.addFilterChain(new StringFilter()));
 
@@ -168,9 +168,9 @@ public class HttpClientUnit extends TestCase {
 	public void testMulGet() throws Exception{
 		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 5);
 		for(int i=0;i<20;i++) {
-			Logger.simple(i);
+			System.out.println(i);
 			Response response = getClient.setMethod("GET").send("/ar/annon");
-			Logger.simple(response.body().getBodyString("GB2312"));
+			System.out.println(response.body().getBodyString("GB2312"));
 			assertTrue(response.protocol().getStatus() != 500);
 			TEnv.sleep(100);
 		}
@@ -180,9 +180,9 @@ public class HttpClientUnit extends TestCase {
 	public void testMulPost() throws Exception{
 		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 5);
 		for(int i=0;i<20;i++) {
-			Logger.simple(i);
+			System.out.println(i);
 			Response response = getClient.setMethod("POST").setData("this is post body").send("/ar/annon/body");
-			Logger.simple(response.body().getBodyString("GB2312"));
+			System.out.println(response.body().getBodyString("GB2312"));
 			assertTrue(response.protocol().getStatus() != 500);
 			TEnv.sleep(100);
 		}
