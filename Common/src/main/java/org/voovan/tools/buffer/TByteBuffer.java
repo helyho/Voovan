@@ -25,7 +25,7 @@ import java.util.Arrays;
 public class TByteBuffer {
     public static ObjectThreadPool<ByteBuffer> BYTE_BUFFER_THREAD_POOL = new ObjectThreadPool<ByteBuffer>(System.getProperty("ThreadBufferPoolSize")!=null ? Integer.valueOf(System.getProperty("ThreadBufferPoolSize")) : 32);
 
-    public static int DEFAULT_BYTE_BUFFER_SIZE = System.getProperty("DefaultBufferSize")!=null ? Integer.valueOf(System.getProperty("BufferSize")) : 1024*4;
+    public static int DEFAULT_BYTE_BUFFER_SIZE = System.getProperty("ByteBufferSize")!=null ? Integer.valueOf(System.getProperty("ByteBufferSize")) : 1024*4;
 
     static {
         System.out.println("[SYTSEM] ThreadBufferPoolSize: " + BYTE_BUFFER_THREAD_POOL.getThreadLocalMaxSize());
