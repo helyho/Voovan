@@ -63,12 +63,11 @@ public class HttpClientFilter implements IoFilter {
 					return WebSocketFrame.parse((ByteBuffer)object);
 				}else {
 					Response response = HttpParser.parseResponse(session, byteBufferChannel, session.socketContext().getReadTimeout());
-					HttpParser.resetThreadLocal();
 					if(response.protocol().getStatus() == 101){
 						//初始化 WebSocket
 						httpClient.initWebSocket();
 					}
-					return response;
+					return new Response().copyFrom(response);
 				}
 			}
 		}catch(Exception e) {
