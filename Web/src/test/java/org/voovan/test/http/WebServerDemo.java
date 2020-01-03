@@ -1,5 +1,6 @@
 package org.voovan.test.http;
 
+import org.voovan.Global;
 import org.voovan.http.extend.engineio.Config;
 import org.voovan.http.extend.engineio.EIODispatcher;
 import org.voovan.http.extend.engineio.EIOHandler;
@@ -16,9 +17,12 @@ import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.http.websocket.filter.StringFilter;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TDateTime;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
+
+import java.io.IOException;
 
 
 public class WebServerDemo {
@@ -86,6 +90,22 @@ public class WebServerDemo {
 				} catch (Exception e){
 					e.printStackTrace();
 				}
+			}
+		});
+
+		//性能测试请求
+		webServer.get("/sync", new HttpRouter(){
+			public void process(HttpRequest req, HttpResponse resp) throws Exception {
+				resp.setSync(false);
+				Global.getThreadPool().execute(()->{
+					TEnv.sleep(100);
+					resp.write("sync response");
+					try {
+						resp.send();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
 			}
 		});
 
