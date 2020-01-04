@@ -619,7 +619,12 @@ public class HttpClient extends PooledObject implements Closeable{
 		httpRequest.header().put("Origin", this.urlString);
 		httpRequest.header().put("Sec-WebSocket-Version","13");
 		httpRequest.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
-		send(location);
+		Response response =send(location);
+
+		if(response.protocol().getStatus() == 101){
+			//初始化 WebSocket
+			initWebSocket();
+		}
 	}
 
 	/**
