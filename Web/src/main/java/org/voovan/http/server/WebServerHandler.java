@@ -24,7 +24,6 @@ import org.voovan.tools.log.Logger;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.TimeoutException;
 
 /**
  * WebServer Socket 事件处理类
@@ -249,14 +248,7 @@ public class WebServerHandler implements IoHandler {
 			}
 		}
 
-		//如果是异步响应, HttpResponse 有可能会被覆盖, 所以这里清除当前线程持有的所有 ThreadLocal 数据
-		//异步响应返回 null, socket 不会在同步模式发送响应
-		if(!httpResponse.isSync()) {
-			resetThreadLocal();
-			return null;
-		} else {
-			return httpResponse;
-		}
+		return httpResponse;
 	}
 
 	/**

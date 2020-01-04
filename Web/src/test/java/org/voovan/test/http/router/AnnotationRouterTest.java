@@ -46,12 +46,12 @@ public class AnnotationRouterTest {
 
     @Router(method = "POST")
     public void asyncBodyParmas(@BodyParam(value="data", isRequire=false) String data, @BodyParam("number") int number, HttpResponse response){
-        response.setSync(false);
+        HttpResponse asyncResponse = response.getAsyncResponse();
         Global.getThreadPool().execute(()->{
             TEnv.sleep(50);
-            response.write(System.currentTimeMillis() + " " + data + " " + number);
+            asyncResponse.write(System.currentTimeMillis() + " " + data + " " + number);
             try {
-                response.send();
+                asyncResponse.send();
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -20,7 +20,6 @@ import org.voovan.tools.log.Logger;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * WebServer 过滤器对象
@@ -53,7 +52,7 @@ public class WebServerFilter implements IoFilter {
 			HttpResponse httpResponse = (HttpResponse)object;
 
 			try{
-				if(httpResponse.isSync()) {
+				if(!httpResponse.isAsync()) {
 					Long mark = httpResponse.getMark();
                     if (WebContext.isCache() && mark!=null) {
 						byte[] cacheBytes = RESPONSE_CACHE.get(mark);
@@ -70,14 +69,18 @@ public class WebServerFilter implements IoFilter {
                             }
                         } else {
                             session.send(ByteBuffer.wrap(cacheBytes));
-                            httpResponse.clear();
                         }
                     } else {
                         httpResponse.send();
                     }
+				} else {
+					//异步响应返回 null, socket 不会在同步模式发送响应
+					return null;
 				}
-			}catch(Exception e){
+			} catch(Exception e){
 				Logger.error(e);
+			} finally {
+				httpResponse.clear();
 			}
 
 			return TByteBuffer.EMPTY_BYTE_BUFFER;

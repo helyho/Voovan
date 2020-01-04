@@ -94,14 +94,14 @@ public class WebServerDemo {
 		});
 
 		//性能测试请求
-		webServer.get("/sync", new HttpRouter(){
+		webServer.get("/async", new HttpRouter(){
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				resp.setSync(false);
+				HttpResponse asyncResponse = resp.getAsyncResponse();
 				Global.getThreadPool().execute(()->{
 					TEnv.sleep(100);
-					resp.write("sync response");
+					asyncResponse.write("async response");
 					try {
-						resp.send();
+						asyncResponse.send();
 					} catch (IOException e) {
 						e.printStackTrace();
 					}

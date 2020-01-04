@@ -390,6 +390,7 @@ public class Request {
         this.cookies().addAll(request.cookies());
         this.parts.addAll(request.parts());
         this.setMark(request.getMark());
+        this.setHasBody(request.hasBody);
         return this;
     }
 

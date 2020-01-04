@@ -55,7 +55,6 @@ public class HttpResponse extends Response {
 		this.characterSet=characterSet;
 		//设置当前响应的时间
 		this.socketSession = socketSession;
-		this.setCompress(false);
 	}
 
 	/**
@@ -90,6 +89,14 @@ public class HttpResponse extends Response {
 	 */
 	public void setCharacterSet(String characterSet) {
 		this.characterSet = characterSet;
+	}
+
+	public HttpResponse getAsyncResponse() {
+		this.setAsync(true);
+		HttpResponse httpResponse = new HttpResponse(characterSet, socketSession);
+		httpResponse.copyFrom(this);
+
+		return httpResponse;
 	}
 
 	/**
