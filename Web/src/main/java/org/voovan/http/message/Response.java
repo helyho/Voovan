@@ -37,7 +37,7 @@ public class Response {
 	private boolean				isCompress;
 	private boolean         	hasBody;
 	protected boolean 			basicSend = false;
-	private boolean             sync = true;
+	private boolean 			async = false;
 	private Long                mark;
 
 	/**
@@ -99,19 +99,19 @@ public class Response {
 	}
 
 	/**
-	 * 是否在路由同步响应
-	 * @return true: 自动发送, false: 手动发送
+	 * 是否在路由异步响应
+	 * @return true: 异步响应 false: 同步响应
 	 */
-	public boolean isSync() {
-		return sync;
+	public boolean isAsync() {
+		return async;
 	}
 
 	/**
-	 * 是否在路由同步响应
-	 * @param autoSend true: 自动发送, false: 手动发送
+	 * 是否在路由异步响应
+	 * @param async true: 异步响应, false: 同步响应
 	 */
-	public void setSync(boolean sync) {
-		this.sync = sync;
+	public void setAsync(boolean async) {
+		this.async = async;
 	}
 
 	/**
@@ -301,7 +301,7 @@ public class Response {
 
 			basicSend = true;
 		} finally {
-			if(!sync) {
+			if(async) {
 				session.flush();
 			}
 			clear();
@@ -312,21 +312,47 @@ public class Response {
 		body.release();
 	}
 
+	/**
+	 * 从其他 Response 复制数据到当前对象
+	 * 	用于非发送目的
+	 * @param response 原对象
+	 * @param useForSend 是否用户发送
+	 * @return 赋值的对象
+	 */
 	public Response copyFrom(Response response) {
+	    return copyFrom(response, false);
+	}
+
+	/**
+	 * 从其他 Response 复制数据到当前对象
+	 * @param response 原对象
+	 * @param useForSend 是否用户发送
+	 * @return 赋值的对象
+	 */
+	public Response copyFrom(Response response, boolean useForSend) {
+
 		this.protocol().setStatus(response.protocol().getStatus());
 		this.protocol().setStatusCode(response.protocol().getStatusCode());
 		this.header().putAll(response.header().getHeaders());
 		this.body().write( response.body().getBodyBytes());
 		this.cookies().addAll(response.cookies());
+		this.setCompress(response.isCompress);
 		this.setMark(response.getMark());
+		this.setHasBody(response.hasBody);
 
-		if(HttpStatic.GZIP_STRING.equals(response.header().get(HttpStatic.CONTENT_ENCODING_STRING))) {
-			this.setCompress(true);
-			this.header.remove(HttpStatic.CONTENT_LENGTH_STRING);
+		if(useForSend) {
+			//判断是否启用压缩
+			if (HttpStatic.GZIP_STRING.equals(response.header().get(HttpStatic.CONTENT_ENCODING_STRING))) {
+				this.setCompress(true);
+				this.header.remove(HttpStatic.CONTENT_LENGTH_STRING);
+			}
+
+			this.header.remove(HttpStatic.TRANSFER_ENCODING_STRING);
+			this.header.remove(HttpStatic.CONTENT_ENCODING_STRING);
+		} else {
+			this.async 		= response.async;
+			this.basicSend 	= response.basicSend;
 		}
-
-		this.header.remove(HttpStatic.TRANSFER_ENCODING_STRING);
-		this.header.remove(HttpStatic.CONTENT_ENCODING_STRING);
 
 		return this;
 	}
@@ -339,9 +365,9 @@ public class Response {
 		this.cookies().clear();
 		this.protocol().clear();
 		this.body().clear();
-		isCompress = false;
-		basicSend = false;
-		sync = true;
+		this.isCompress = false;
+		this.basicSend = false;
+		this.async = false;
 		this.mark = null;
 	}
 
