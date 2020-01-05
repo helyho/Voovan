@@ -84,12 +84,20 @@ public class HttpMessageSplitter implements MessageSplitter {
             }
             if (payloadlength == 126) {
                 expectPackagesize += 2;
+                if(maxpacketsize < expectPackagesize) {
+                    return -2;
+                }
+
                 byte[] sizebytes = new byte[3];
                 sizebytes[1] = buffer.get();
                 sizebytes[2] = buffer.get();
                 payloadlength = new BigInteger(sizebytes).intValue();
             } else {
                 expectPackagesize += 8;
+                if(maxpacketsize < expectPackagesize) {
+                    return -2;
+                }
+
                 byte[] bytes = new byte[8];
                 for (int i = 0; i < 8; i++) {
                     bytes[i] = buffer.get();
