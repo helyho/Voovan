@@ -63,7 +63,7 @@ public class HttpClientFilter implements IoFilter {
 					return WebSocketFrame.parse((ByteBuffer)object);
 				}else {
 					Response response = HttpParser.parseResponse(session, byteBufferChannel, session.socketContext().getReadTimeout());
-					return response;
+					return new Response().copyFrom(response);
 				}
 			}
 		}catch(Exception e) {
