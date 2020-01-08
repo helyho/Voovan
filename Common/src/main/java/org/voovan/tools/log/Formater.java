@@ -38,7 +38,7 @@ import java.util.Vector;
  */
 public class Formater {
     private String template;
-    private volatile LoggerThread loggerThread;
+    private LoggerThread loggerThread;
     private List<String> logLevel;
     private String dateStamp;
     private int maxLineLength = -1;

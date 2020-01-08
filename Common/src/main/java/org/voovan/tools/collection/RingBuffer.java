@@ -14,9 +14,9 @@ public class RingBuffer<T> {
 	public static final int DEFAULT_SIZE = 128;
 
 	public Object[] elements;
-	private volatile int readPositon = 0;
-	private volatile int writePositon = 0;
-	private volatile int capacity;
+	private int readPositon = 0;
+	private int writePositon = 0;
+	private int capacity;
 
 	/**
 	 * 使用默认容量构造一个环形缓冲区

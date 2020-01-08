@@ -18,7 +18,7 @@ public class EventRunnerGroup {
 	private AtomicInteger indexAtom = new AtomicInteger();
 	private EventRunner[] eventRunners;
 	private ThreadPoolExecutor threadPool;
-	private volatile int size;
+	private int size;
 
 	/**
 	 * 构造方法

@@ -17,7 +17,7 @@ public class FastThreadLocal<T> {
     private ThreadLocal<FastThreadLocal> jdkThreadLocal = new ThreadLocal<FastThreadLocal>();
     private static AtomicInteger indexGenerator = new AtomicInteger(0);
 
-	volatile int index = -1;
+	private int index = -1;
 
 	private Object value;
 

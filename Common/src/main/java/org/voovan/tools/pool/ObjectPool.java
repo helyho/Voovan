@@ -28,9 +28,9 @@ import java.util.function.Supplier;
 public class ObjectPool<T> {
 
     //<ID, 缓存的对象>
-    private volatile ConcurrentHashMap<Long, InnerObject<T>> objects = new ConcurrentHashMap<Long, InnerObject<T>>();
+    private ConcurrentHashMap<Long, InnerObject<T>> objects = new ConcurrentHashMap<Long, InnerObject<T>>();
     //未解出的对象 ID
-    private volatile LinkedBlockingDeque<Long> unborrowedIdList = new LinkedBlockingDeque<Long>();
+    private LinkedBlockingDeque<Long> unborrowedIdList = new LinkedBlockingDeque<Long>();
 
     private long aliveTime = 0;
     private boolean autoRefreshOnGet = true;

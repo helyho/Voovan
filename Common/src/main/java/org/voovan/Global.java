@@ -91,7 +91,6 @@ public class Global {
 
     public static final String NAME = "Voovan";
 
-    public static volatile String REMOTE_CLASS_SOURCE;
     public static final Boolean IS_DEBUG_MODE = TProperties.getBoolean("framework", "DebugMode", false);
     public static final Boolean ENABLE_SANDBOX = TProperties.getBoolean("framework", "EnableSandBox", false);
     static {
