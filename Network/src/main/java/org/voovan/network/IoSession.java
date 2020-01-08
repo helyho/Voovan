@@ -59,12 +59,12 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 * 会话状态管理
 	 */
 	public class State {
-		private volatile boolean init = true;
-		private volatile boolean connect = false;
-		private volatile boolean receive = false;
-		private volatile boolean send = false;
-		private volatile boolean flush = false;
-		private volatile boolean close = false;
+		private boolean init = true;
+		private boolean connect = false;
+		private boolean receive = false;
+		private boolean send = false;
+		private boolean flush = false;
+		private boolean close = false;
 
 		public boolean isInit() {
 			return init;
