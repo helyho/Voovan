@@ -3,7 +3,7 @@ package org.voovan.tools.collection;
 import java.nio.BufferOverflowException;
 
 /**
- * 类文字命名
+ * 无锁环形队列
  *
  * @author: helyho
  * Voovan Framework.
