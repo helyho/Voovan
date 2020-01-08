@@ -416,21 +416,22 @@ public class WebServerHandler implements IoHandler {
 	@Override
 	public void onFlush(IoSession session) {
 		HttpRequest request = getAttribute(session,HttpSessionParam.HTTP_REQUEST);
+		if(request != null) {
+			//处理连接保持
+			if (TObject.nullDefault(getAttribute(session, HttpSessionParam.IS_KEEP_ALIVE), false) &&
+					webConfig.getKeepAliveTimeout() > 0) {
 
-		//处理连接保持
-		if (TObject.nullDefault(getAttribute(session, HttpSessionParam.IS_KEEP_ALIVE), false) &&
-				webConfig.getKeepAliveTimeout() > 0) {
+				if (TObject.nullDefault(getAttribute(session, HttpSessionParam.IS_KEEP_ALIVE_LIST_CONTAIN), false)) {
+					keepAliveSessionList.add(session);
+					setAttribute(session, HttpSessionParam.IS_KEEP_ALIVE_LIST_CONTAIN, true);
+				}
+				//更新会话超时时间
+				refreshTimeout(session);
 
-			if (TObject.nullDefault(getAttribute(session, HttpSessionParam.IS_KEEP_ALIVE_LIST_CONTAIN), false)) {
-				keepAliveSessionList.add(session);
-				setAttribute(session, HttpSessionParam.IS_KEEP_ALIVE_LIST_CONTAIN, true);
+			} else {
+				keepAliveSessionList.remove(session);
+				session.close();
 			}
-			//更新会话超时时间
-			refreshTimeout(session);
-
-		} else {
-			keepAliveSessionList.remove(session);
-			session.close();
 		}
 	}
 

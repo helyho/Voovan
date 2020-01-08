@@ -119,7 +119,7 @@ public class WebServer {
 		//[Socket]确认是否启用 HTTPS 支持
 		if(config.isHttps()) {
 			SSLManager sslManager = new SSLManager("TLS", false);
-			sslManager.loadCertificate(System.getProperty("user.dir") + config.getHttps().getCertificateFile(),
+			sslManager.loadKey(System.getProperty("user.dir") + config.getHttps().getCertificateFile(),
 					config.getHttps().getCertificatePassword(), config.getHttps().getKeyPassword());
 			serverSocket.setSSLManager(sslManager);
 		}
