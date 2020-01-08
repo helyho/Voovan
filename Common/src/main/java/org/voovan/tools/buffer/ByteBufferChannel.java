@@ -31,10 +31,10 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ByteBufferChannel {
     private static int BYTEBUFFERCHANNEL_MAX_SIZE = TProperties.getInt("framework", "ByteBufferChannelMaxSize", 1024*1024*2);
-    private volatile AtomicLong address = new AtomicLong(0);
+    private volatile long address = 0;
     private Unsafe unsafe = TUnsafe.getUnsafe();
-    private volatile ByteBuffer byteBuffer;
-    private volatile int size;
+    private ByteBuffer byteBuffer;
+    private int size;
     private ReentrantLock lock;
     private AtomicBoolean borrowed = new AtomicBoolean(false);
 
@@ -109,7 +109,7 @@ public class ByteBufferChannel {
         try {
 
             ByteBuffer instance = TByteBuffer.allocateDirect(capacity);
-            address.set(TByteBuffer.getAddress(instance));
+            address = TByteBuffer.getAddress(instance);
 
             return instance;
 
@@ -176,7 +176,7 @@ public class ByteBufferChannel {
      * @return true 已释放, false: 未释放
      */
     public boolean isReleased(){
-        if(address.get() == 0 || byteBuffer == null){
+        if(address == 0 || byteBuffer == null){
             return true;
         }else{
             return false;
@@ -202,9 +202,9 @@ public class ByteBufferChannel {
 
         lock();
         try {
-            if (address.get() != 0) {
+            if (address != 0) {
                 TByteBuffer.release(byteBuffer);
-                address.set(0);
+                address = 0;
                 byteBuffer = null;
                 size = -1;
             }
@@ -221,7 +221,7 @@ public class ByteBufferChannel {
     private void resetAddress(){
         lock();
         try {
-            this.address.set(TByteBuffer.getAddress(byteBuffer));
+            this.address = TByteBuffer.getAddress(byteBuffer);
         }catch (ReflectiveOperationException e){
             Logger.error("ByteBufferChannel resetAddress() Error: ", e);
         } finally {
@@ -421,7 +421,7 @@ public class ByteBufferChannel {
             }
 
             if(position >= 0 && position <= size) {
-                byte result = unsafe.getByte(address.get() + position);
+                byte result = unsafe.getByte(address + position);
                 return result;
             } else {
                 checkRelease();
@@ -464,7 +464,7 @@ public class ByteBufferChannel {
                     arrSize = length;
                 }
 
-                unsafe.copyMemory(null, address.get() + position, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
+                unsafe.copyMemory(null, address + position, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
 
                 return arrSize;
 
@@ -1009,7 +1009,7 @@ public class ByteBufferChannel {
 
     @Override
     public String toString(){
-        return "{size="+size+", capacity="+capacity()+", released="+(address.get()==0)+", maxSize=" + maxSize + "}";
+        return "{size="+size+", capacity="+capacity()+", released="+(address==0)+", maxSize=" + maxSize + "}";
     }
 
     /**

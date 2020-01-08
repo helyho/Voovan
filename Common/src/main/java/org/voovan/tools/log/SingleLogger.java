@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SingleLogger {
 	private String fileName;
 	private LoggerThread loggerThread;
-	private volatile static Map<String,SingleLogger> singleLoggerPool = new ConcurrentHashMap<String,SingleLogger>();
+	private static Map<String,SingleLogger> singleLoggerPool = new ConcurrentHashMap<String,SingleLogger>();
 	/**
 	 * 构造函数
 	 * @param fileName  文件名

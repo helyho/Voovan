@@ -22,7 +22,7 @@ public class UniqueId {
     private static final int MAX_SIGNID = 1 << SIGNID_LEFT;
     private static final int MAX_SEQUENCE = 1 << SEQUENCE_LEFT;
 
-    private volatile AtomicInteger orderedIdSequence = new AtomicInteger(SEQ_DEFAULT);
+    private AtomicInteger orderedIdSequence = new AtomicInteger(SEQ_DEFAULT);
     private Long lastTime = 0L;
     private int workId = 0;
     private int step = 1;

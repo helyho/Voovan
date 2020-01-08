@@ -520,10 +520,10 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
         //最后访问时间
         private AtomicLong lastTime = new AtomicLong(0);
         //访问次数
-        private volatile AtomicLong visitCount = new AtomicLong(0);
+        private AtomicLong visitCount = new AtomicLong(0);
 
         //是否正在生成数据
-        private volatile AtomicBoolean createFlag = new AtomicBoolean(false);
+        private AtomicBoolean createFlag = new AtomicBoolean(false);
 
         public TimeMark(CacheMap<K,V> mainMap, K key, long expireTime){
             this.key = key;

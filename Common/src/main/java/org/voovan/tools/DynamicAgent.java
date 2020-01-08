@@ -36,7 +36,7 @@ public class DynamicAgent {
                 @Override
                 public byte[] transform(ClassLoader loader, String classPath, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
                     String className = classPath.replaceAll(File.separator, ".");
-                    if(Global.REMOTE_CLASS_SOURCE != null &&  !TReflect.isSystemType(className)) {
+                    if(!TReflect.isSystemType(className)) {
                         return getClassBytes(className);
                     } else {
                         return classfileBuffer;

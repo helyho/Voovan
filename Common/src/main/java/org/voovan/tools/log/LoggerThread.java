@@ -24,8 +24,8 @@ public class LoggerThread implements Runnable {
 	private ConcurrentLinkedDeque<String> logQueue;
 	private ConcurrentLinkedDeque<String> fileChangelogQueue;
 	private OutputStream[] outputStreams;
-	private volatile AtomicBoolean finished = new AtomicBoolean(false);
-	private volatile int pause = 0; // 0: 正常 , 1: 暂停中, 2: 暂停
+	private AtomicBoolean finished = new AtomicBoolean(false);
+	private int pause = 0; // 0: 正常 , 1: 暂停中, 2: 暂停
 
 	/**
 	 * 构造函数
