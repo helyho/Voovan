@@ -200,13 +200,7 @@ public class THash {
 			hash = (hash ^ b) * p;
 		}
 
-		hash += hash << 13;
-		hash ^= hash >> 7;
-		hash += hash << 3;
-		hash ^= hash >> 17;
-		hash += hash << 5;
 		return hash;
-
 	}
 
 	/**
@@ -225,11 +219,6 @@ public class THash {
 			hash = (hash ^ b) * p;
 		}
 
-		hash += hash << 13;
-		hash ^= hash >> 7;
-		hash += hash << 3;
-		hash ^= hash >> 17;
-		hash += hash << 5;
 		return hash;
 	}
 
@@ -250,11 +239,6 @@ public class THash {
 			hash = (hash ^ b) * p;
 		}
 
-		hash += hash << 13;
-		hash ^= hash >> 7;
-		hash += hash << 3;
-		hash ^= hash >> 17;
-		hash += hash << 5;
 		return hash;
 	}
 
@@ -294,5 +278,10 @@ public class THash {
 		}
 
 		return hash;
+	}
+
+	public static void main(String[] args) {
+		System.out.println(HashFNV1("5e6bb33578fa1ffaba99672f3398e250ce09dbb0f12e00b5c35362160da60f4f"));
+		System.out.println(HashFNV1("6ac60a946da896890a5140ac8162aa564f9a5b11362c5df6da725f80eff3a09a"));
 	}
 }
