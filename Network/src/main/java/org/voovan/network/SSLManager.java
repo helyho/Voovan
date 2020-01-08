@@ -63,20 +63,46 @@ public class SSLManager {
 	 * @param keyPassword	   密钥
 	 * @throws SSLException SSL 异常
 	 */
-	public void loadCertificate(String manageCertFile, String certPassword,String keyPassword) throws SSLException{
+	public void loadKey(String manageCertFile, String certPassword,String keyPassword) throws SSLException{
 
 		FileInputStream certFIS = null;
 		try{
-			keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-			trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-
 			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
 			certFIS = new FileInputStream(manageCertFile);
 			keystore.load(certFIS, certPassword.toCharArray());
 
-			keyManagerFactory.init(keystore , keyPassword.toCharArray());
-			trustManagerFactory.init(keystore );
+			keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+			keyManagerFactory.init(keystore, keyPassword.toCharArray());
 		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException e) {
+			throw new SSLException("Init SSLContext Error: "+e.getMessage(),e);
+		}finally {
+			if(certFIS!=null) {
+				try {
+					certFIS.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	/**
+	 * 读取管理证书, 文件形式
+	 * @param manageCertFile   证书地址
+	 * @param certPassword	   证书密码
+	 * @param keyPassword	   密钥
+	 * @throws SSLException SSL 异常
+	 */
+	public void loadTrustKey(String manageCertFile, String certPassword) throws SSLException{
+
+		FileInputStream certFIS = null;
+		try{
+			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+			certFIS = new FileInputStream(manageCertFile);
+			keystore.load(certFIS, certPassword.toCharArray());
+
+			trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+			trustManagerFactory.init(keystore);
+		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException e) {
 			throw new SSLException("Init SSLContext Error: "+e.getMessage(),e);
 		}finally {
 			if(certFIS!=null) {
@@ -97,29 +123,39 @@ public class SSLManager {
 	 * @param keyPassword	   密钥
 	 * @throws SSLException SSL 异常
 	 */
-	public void loadCertificate(byte[] manageCert, String certPassword,String keyPassword) throws SSLException{
+	public void loadKey(byte[] manageCert, String certPassword,String keyPassword) throws SSLException{
 
-		FileInputStream certFIS = null;
 		try{
-			keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-			trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-
 			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-
 			keystore.load(new ByteArrayInputStream(manageCert), certPassword.toCharArray());
 
-			keyManagerFactory.init(keystore , keyPassword.toCharArray());
-			trustManagerFactory.init(keystore );
+				keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+				keyManagerFactory.init(keystore, keyPassword.toCharArray());
+
+
+
 		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException e) {
 			throw new SSLException("Init SSLContext Error: "+e.getMessage(),e);
-		}finally {
-			if(certFIS!=null) {
-				try {
-					certFIS.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
+		}
+	}
+
+	/**
+	 * 读取管理证书, 字节形式
+	 * @param manageCert   证书字节码
+	 * @param certPassword	   证书密码
+	 * @param keyPassword	   密钥
+	 * @throws SSLException SSL 异常
+	 */
+	public void loadTrustKey(byte[] manageCert, String certPassword) throws SSLException{
+
+		try{
+			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+			keystore.load(new ByteArrayInputStream(manageCert), certPassword.toCharArray());
+
+			trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+			trustManagerFactory.init(keystore);
+		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException  e) {
+			throw new SSLException("Init SSLContext Error: "+e.getMessage(),e);
 		}
 	}
 
@@ -137,7 +173,11 @@ public class SSLManager {
 			context = SSLContext.getInstance(protocol, "SunJSSE");
 			if(keyManagerFactory!=null && trustManagerFactory!=null){
 				context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
-			}else{
+			} else if(keyManagerFactory!=null){
+				context.init(keyManagerFactory.getKeyManagers(), new TrustManager[]{new DefaultTrustManager()}, new SecureRandom());
+			} else if(trustManagerFactory!=null){
+				context.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
+			} else {
 				context.init(null, new TrustManager[]{new DefaultTrustManager()}, new SecureRandom());
 			}
 			//NoSuchAlgorithmException | KeyManagementException |

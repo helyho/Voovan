@@ -10,8 +10,10 @@ public class NioSSLServer  {
 
 	public static void main(String[] args) throws Exception {
 		SSLManager sslManager = new SSLManager("SSL");
-		String certFile = System.getProperty("user.dir")+"/Network/src/test/java/org/voovan/test/network/ssl/ssl_ks";
-		sslManager.loadCertificate(certFile, "passStr","123123");
+		String serverKeyFile = System.getProperty("user.dir")+"/Network/src/test/java/org/voovan/test/network/ssl/sslkeys/server.keystore";
+		String clientTrustFile = System.getProperty("user.dir")+"/Network/src/test/java/org/voovan/test/network/ssl/sslkeys/trust_client.keystore";
+		sslManager.loadKey(serverKeyFile, "123456","654321");
+		sslManager.loadTrustKey(clientTrustFile, "123456");
 		
 		TcpServerSocket serverSocket = new TcpServerSocket("127.0.0.1",2031,1000000,1);
 		serverSocket.setSSLManager(sslManager);
