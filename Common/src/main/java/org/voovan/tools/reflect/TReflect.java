@@ -1485,10 +1485,6 @@ public class TReflect {
         if(TReflect.isBasicType(obj.getClass())){
             mapResult.put(null, obj);
         }
-        //java 日期对象
-        else if(isExtendsByClass(obj.getClass(),Date.class)){
-            mapResult.put(null,TDateTime.format((Date) obj, TDateTime.STANDER_DATETIME_TEMPLATE));
-        }
         //对 Collection 类型的处理
         else if(obj instanceof Collection){
             Collection collection = new ArrayList();
@@ -1512,14 +1508,15 @@ public class TReflect {
         }
         //对 Atom 类型的处理
         else if (obj instanceof AtomicLong || obj instanceof AtomicInteger || obj instanceof AtomicBoolean) {
-            mapResult.put(null, TReflect.invokeMethod(obj, "get"));
+            mapResult.put(null, obj);
         }
         //对 BigDecimal 类型的处理
         else if (obj instanceof BigDecimal) {
-            if(BigDecimal.ZERO.compareTo((BigDecimal)obj)==0){
-                obj = BigDecimal.ZERO;
-            }
-            mapResult.put(null, ((BigDecimal) obj).toPlainString());
+            mapResult.put(null, ((BigDecimal) obj));
+        }
+        //java 日期对象
+        else if(isExtendsByClass(obj.getClass(),Date.class)){
+            mapResult.put(null, (Date) obj);
         }
         //对 Map 类型的处理
         else if(obj instanceof Map){

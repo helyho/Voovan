@@ -11,6 +11,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * JSON打包类
@@ -146,11 +149,7 @@ public class JSONEncode {
         if (object instanceof Class) {
             return "\"" + ((Class)object).getCanonicalName() + "\"";
         } else if (object instanceof BigDecimal) {
-            if(BigDecimal.ZERO.compareTo((BigDecimal)object)==0){
-                object = BigDecimal.ZERO;
-            }
-
-            value = ((BigDecimal) object).toPlainString();
+            value = "\""+((BigDecimal) object).stripTrailingZeros().toPlainString()+"\"";
         } else if (object instanceof Date) {
             value = "\"" + TDateTime.format(((Date)object), TDateTime.STANDER_DATETIME_TEMPLATE)+ "\"";;
         } else if (object instanceof Map) {
@@ -176,6 +175,9 @@ public class JSONEncode {
                 object instanceof Double || object instanceof Boolean ||
                 object instanceof Long || object instanceof Short) {
             value = object.toString();
+        } else if (object instanceof AtomicLong || object instanceof AtomicInteger ||
+                object instanceof AtomicBoolean) {
+            value = TReflect.invokeMethod(object, "get");
         } else if (TReflect.isBasicType(object.getClass())) {
             //这里这么做的目的是方便 js 中通过 eval 方法产生 js 对象
             String strValue = object.toString();
@@ -189,6 +191,4 @@ public class JSONEncode {
 
         return value;
     }
-
-
 }
