@@ -35,10 +35,10 @@ public class RocksMapTest extends TestCase {
         //设置 MemTable 大小
 //        columnFamilyOptions.setWriteBufferSize(1024*1024*512);
 
-       RocksMap rocksMap =  new RocksMap("waltest", "cfname", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
-       for(int i=0;i<300000;i++){
-           rocksMap.put(i, i);
-       }
+        RocksMap rocksMap =  new RocksMap("waltest", "cfname", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+        for(int i=0;i<300000;i++){
+            rocksMap.put(i, i);
+        }
         rocksMap.compact();
 
         rocksMap.remove(1);
@@ -68,7 +68,7 @@ public class RocksMapTest extends TestCase {
         for(RocksMap.RocksWalRecord rocksWalRecord : rocksWalRecords) {
 
             System.out.println(rocksWalRecord.getSequence() + " " + rocksWalRecord.getType() + " " + rocksWalRecord.getColumnFamilyId() + " = " + rocksWalRecord.getChunks());
-         }
+        }
 
         System.out.println("===============filter==================");
         rocksWalRecords = rocksMap.getWalSince(0l, (cfid, type)-> cfid.equals(5), true);
@@ -107,6 +107,7 @@ public class RocksMapTest extends TestCase {
 
         RocksMap rocksMap = new RocksMap("testdb");
         System.out.println(rocksMap.get("name"));
+        rocksMap.put("11", "11");
 
         rocksMap.clear();
 
@@ -361,8 +362,30 @@ public class RocksMapTest extends TestCase {
         System.out.println("KeySet: "+ rocksMap.keySet());
         rocksMap.removeRange("hhhh5", "hhhh3");
         System.out.println("KeySet: "+ rocksMap.keySet());
+    }
+
+    public void testBackup() throws RocksDBException {
+        //测试列族区分,这个列族不写入任何数据
+        String cfName = "testdb1000";
+        RocksMap rocksMap1 = new RocksMap(cfName);
+        rocksMap1.put(System.currentTimeMillis(), System.currentTimeMillis());
+        BackupableDBOptions backupableDBOptions = RocksMap.createBackupableOption();
+        backupableDBOptions.setDestroyOldData(true);
+        System.out.println(rocksMap1.createBackup(null));
+    }
 
 
+    public void testBackupInfo() throws RocksDBException {
+        //测试列族区分,这个列族不写入任何数据
+        String cfName = "testdb1000";
+        RocksMap rocksMap1 = new RocksMap(cfName);
+        List mm = rocksMap1.getBackupInfo(null);
+        System.out.println(mm);
+    }
 
+    public void testRestoreLastBackup() throws RocksDBException {
+        //测试列族区分,这个列族不写入任何数据
+        String cfName = "testdb1000";
+        RocksMap.restoreFromLatestBackup();
     }
 }
