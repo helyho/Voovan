@@ -371,7 +371,7 @@ public class RocksMapTest extends TestCase {
         rocksMap1.put(System.currentTimeMillis(), System.currentTimeMillis());
         BackupableDBOptions backupableDBOptions = RocksMap.createBackupableOption();
         backupableDBOptions.setDestroyOldData(true);
-        System.out.println(rocksMap1.createBackup(null));
+        System.out.println(rocksMap1.createBackup());
     }
 
 
@@ -379,7 +379,7 @@ public class RocksMapTest extends TestCase {
         //测试列族区分,这个列族不写入任何数据
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
-        List mm = rocksMap1.getBackupInfo(null);
+        List mm = rocksMap1.getBackupInfo();
         System.out.println(mm);
     }
 

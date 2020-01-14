@@ -359,12 +359,17 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     /**
      * 创建一个备份
      * @param backupableDBOptions 备份选项
+     * @param beforeCompact 是否在备份前执行 compact
      * @return 备份路径
      * @throws RocksDBException 异常
      */
-    public String createBackup(BackupableDBOptions backupableDBOptions) throws RocksDBException {
+    public String createBackup(BackupableDBOptions backupableDBOptions, boolean beforeCompact) throws RocksDBException {
         if(backupableDBOptions==null) {
             backupableDBOptions = createBackupableOption(this.dbname);
+        }
+
+        if(beforeCompact) {
+            this.compact();
         }
 
         BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), backupableDBOptions);
@@ -373,7 +378,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     public String createBackup() throws RocksDBException {
-        return createBackup(null);
+        return createBackup(null, false);
     }
 
     /**
