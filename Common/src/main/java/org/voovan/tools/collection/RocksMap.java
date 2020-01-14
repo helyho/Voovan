@@ -2,7 +2,6 @@ package org.voovan.tools.collection;
 import org.rocksdb.*;
 import org.voovan.tools.TByte;
 import org.voovan.tools.TFile;
-import org.voovan.tools.TObject;
 import org.voovan.tools.Varint;
 import org.voovan.tools.exception.ParseException;
 import org.voovan.tools.exception.RocksMapException;
@@ -119,6 +118,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private transient ThreadLocal<StringBuilder>  threadLocalBuilder           = ThreadLocal.withInitial(()->new StringBuilder());
 
     private transient String dbname;
+    private transient String dataPath;
+    private transient String walPath;
     private transient String columnFamilyName;
     private transient Boolean readOnly;
     private transient Boolean isDuplicate = false;
@@ -204,11 +205,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             this.dbOptions = dbOptions;
         }
 
+        this.dataPath = DEFAULT_DB_PATH + this.dbname;
+        this.walPath = DEFAULT_WAL_PATH +this.dbname;
+
         this.dbOptions.useDirectIoForFlushAndCompaction();
 
-        this.dbOptions.setWalDir(DEFAULT_WAL_PATH +this.dbname);
+        this.dbOptions.setWalDir(walPath);
 
-        TFile.mkdir(DEFAULT_DB_PATH + this.dbname);
+        TFile.mkdir(dataPath);
         TFile.mkdir(this.dbOptions.walDir());
 
         rocksDB = ROCKSDB_MAP.get(this.dbname);
@@ -303,8 +307,17 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return new RocksMap<K, V>(this, cfName, shareTransaction);
     }
 
+
     public String getDbname() {
         return dbname;
+    }
+
+    public String getDataPath() {
+        return dataPath;
+    }
+
+    public String getWalPath() {
+        return walPath;
     }
 
     public String getColumnFamilyName() {
@@ -322,6 +335,119 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public RocksDB getRocksDB(){
         return rocksDB;
     }
+
+    /**
+     * 创建一个备份选项
+     * @param dbName db 名称
+     * @param backupPath 备份路径, null 使用默认路径
+     * @return BackupableDBOptions 对象
+     */
+    public static BackupableDBOptions createBackupableOption(String dbName, String backupPath) {
+        String defaultBackPath = backupPath==null ? DEFAULT_DB_PATH+".backups"+File.separator+dbName+File.separator : backupPath;
+        TFile.mkdir(defaultBackPath);
+        return new BackupableDBOptions(defaultBackPath);
+    }
+
+    public static BackupableDBOptions createBackupableOption(String dbName) {
+        return createBackupableOption(dbName, null);
+    }
+
+    public static BackupableDBOptions createBackupableOption() {
+        return createBackupableOption(DEFAULT_COLUMN_FAMILY_NAME, null);
+    }
+
+    /**
+     * 创建一个备份
+     * @param backupableDBOptions 备份选项
+     * @return 备份路径
+     * @throws RocksDBException 异常
+     */
+    public String createBackup(BackupableDBOptions backupableDBOptions) throws RocksDBException {
+        if(backupableDBOptions==null) {
+            backupableDBOptions = createBackupableOption(this.dbname);
+        }
+
+        BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), backupableDBOptions);
+        backupEngine.createNewBackup(this.rocksDB);
+        return backupableDBOptions.backupDir();
+    }
+
+    public String createBackup() throws RocksDBException {
+        return createBackup(null);
+    }
+
+    /**
+     * 获取备份信息
+     * @param backupableDBOptions 备份选线
+     * @return 备份信息清单
+     * @throws RocksDBException 异常
+     */
+    public List<BackupInfo> getBackupInfo(BackupableDBOptions backupableDBOptions) throws RocksDBException {
+        if(backupableDBOptions==null) {
+            backupableDBOptions = createBackupableOption(this.dbname);
+        }
+
+        BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
+        return backupEngine.getBackupInfo();
+    }
+
+    public List<BackupInfo> getBackupInfo() throws RocksDBException {
+        return getBackupInfo(null);
+    }
+
+    /**
+     * 从最后一次备份恢复数据
+     * @param dbName 数据库名, 用以确定恢复路径
+     * @param backupableDBOptions 备份选项
+     * @param keepLogfile 是否覆盖原有 wal 日志
+     * @throws RocksDBException 异常
+     */
+    public static void restoreFromLatestBackup(String dbName, BackupableDBOptions backupableDBOptions, Boolean keepLogfile) throws RocksDBException {
+
+        if(backupableDBOptions==null) {
+            backupableDBOptions = createBackupableOption(dbName);
+        }
+
+        String dataPath = DEFAULT_DB_PATH + dbName;
+        String walPath = DEFAULT_WAL_PATH + dbName;
+
+        RestoreOptions restoreOptions = new RestoreOptions(keepLogfile);
+
+        BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
+        backupEngine.restoreDbFromLatestBackup(dataPath, walPath, restoreOptions);
+    }
+
+    public static void restoreFromLatestBackup() throws RocksDBException {
+        restoreFromLatestBackup(DEFAULT_COLUMN_FAMILY_NAME, null, true);
+    }
+
+    /**
+     * 从指定备份恢复数据
+     * @param backupId 备份 id 标识
+     * @param dbName 数据库名, 用以确定恢复路径
+     * @param backupableDBOptions 备份选项
+     * @param keepLogfile 是否覆盖原有 wal 日志
+     * @throws RocksDBException 异常
+     */
+    public static void restore(int backupId, String dbName, BackupableDBOptions backupableDBOptions, Boolean keepLogfile) throws RocksDBException {
+
+        if(backupableDBOptions==null) {
+            backupableDBOptions = createBackupableOption(dbName);
+        }
+
+        String dataPath = DEFAULT_DB_PATH + dbName;
+        String walPath = DEFAULT_WAL_PATH + dbName;
+
+        RestoreOptions restoreOptions = new RestoreOptions(keepLogfile);
+
+        BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
+        backupEngine.restoreDbFromBackup(backupId, dataPath, walPath, restoreOptions);
+    }
+
+    public static void restore(int backupId) throws RocksDBException {
+        restoreFromLatestBackup(DEFAULT_COLUMN_FAMILY_NAME, null, true);
+    }
+
 
     public int getColumnFamilyId(){
         return getColumnFamilyId(this.columnFamilyName);
@@ -487,17 +613,17 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return withTransaction(-1, true, false, transFunction);
     }
 
-        /**
-         * 开启式事务模式
-         *      同一个线程共线给一个事务
-         *      使用内置公共事务通过 savepoint 来失败回滚, 但统一提交, 性能会好很多, 但是由于很多层嵌套的 savepont 在高并发时使用这种方式时回导致提交会慢很多
-         * @param expire         提交时锁超时时间
-         * @param deadlockDetect 死锁检测是否打开
-         * @param withSnapShot   是否启用快照事务
-         * @param transFunction 事务执行器, 返回 Null 则事务回滚, 其他则事务提交
-         * @param <T>  范型
-         * @return 非 null: 事务成功, null: 事务失败
-         */
+    /**
+     * 开启式事务模式
+     *      同一个线程共线给一个事务
+     *      使用内置公共事务通过 savepoint 来失败回滚, 但统一提交, 性能会好很多, 但是由于很多层嵌套的 savepont 在高并发时使用这种方式时回导致提交会慢很多
+     * @param expire         提交时锁超时时间
+     * @param deadlockDetect 死锁检测是否打开
+     * @param withSnapShot   是否启用快照事务
+     * @param transFunction 事务执行器, 返回 Null 则事务回滚, 其他则事务提交
+     * @param <T>  范型
+     * @return 非 null: 事务成功, null: 事务失败
+     */
     public <T> T withTransaction(long expire, boolean deadlockDetect, boolean withSnapShot, Function<RocksMap<K, V>, T> transFunction) {
         beginTransaction(expire, deadlockDetect, withSnapShot);
 
@@ -521,7 +647,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      *      默认: 锁提交等待时间-1, 死锁检测:true, 是否启用快照事务: false
      */
     public void beginTransaction() {
-       beginTransaction(-1, true, false);
+        beginTransaction(-1, true, false);
     }
 
     /**
@@ -1177,8 +1303,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public void drop(){
         try {
-            dataColumnFamilyHandle.close();
             rocksDB.dropColumnFamily(dataColumnFamilyHandle);
+            dataColumnFamilyHandle.close();
             COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).remove(new String(dataColumnFamilyHandle.getName()));
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap drop failed", e);
