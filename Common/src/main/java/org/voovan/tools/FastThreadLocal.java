@@ -98,7 +98,7 @@ public class FastThreadLocal<T> {
      * 根据线程的类型尝试创建不同的线程局部变量
      */
     public boolean tryCreate(){
-        if(FastThread.getThread() != null) {
+        if(FastThread.getThread() != null && index < FastThread.FAST_THREAD_LOCAL_SIZE) {
             FastThreadLocal[] data = FastThread.getThread().data;
             FastThreadLocal fastThreadLocal = data[index];
             if (fastThreadLocal == null) {
