@@ -149,7 +149,7 @@ public class JSONEncode {
         if (object instanceof Class) {
             return "\"" + ((Class)object).getCanonicalName() + "\"";
         } else if (object instanceof BigDecimal) {
-            value = "\""+((BigDecimal) object).stripTrailingZeros().toPlainString()+"\"";
+            value = ((BigDecimal) object).stripTrailingZeros().toPlainString();
         } else if (object instanceof Date) {
             value = "\"" + TDateTime.format(((Date)object), TDateTime.STANDER_DATETIME_TEMPLATE)+ "\"";;
         } else if (object instanceof Map) {
