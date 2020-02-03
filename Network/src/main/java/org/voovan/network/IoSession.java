@@ -283,18 +283,18 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	}
 
 	/**
-	 * 获取接收的输出流
+	 * 获取读取缓冲区
 	 *
-	 * @return 接收的输出流
+	 * @return 读取缓冲区
 	 */
 	public ByteBufferChannel getReadByteBufferChannel() {
 		return readByteBufferChannel;
 	}
 
 	/**
-	 * 获取发送收的输出流
+	 * 获取发送缓冲区
 	 *
-	 * @return 发送的输出流
+	 * @return 发送缓冲区
 	 */
 	public ByteBufferChannel getSendByteBufferChannel() {
 		return sendByteBufferChannel;
@@ -556,7 +556,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 * 获取消息分割处理类
 	 * @return 消息分割处理类
 	 */
-	protected abstract MessageSplitter getMessagePartition();
+	protected abstract MessageSplitter getMessageSplitter();
 
 	/**
 	 * 会话是否连接
