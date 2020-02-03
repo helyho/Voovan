@@ -112,7 +112,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 	}
 
 	@Override
-	protected MessageSplitter getMessagePartition() {
+	protected MessageSplitter getMessageSplitter() {
 		return this.socketContext().messageSplitter();
 	}
 

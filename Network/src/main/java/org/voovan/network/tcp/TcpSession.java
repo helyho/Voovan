@@ -102,7 +102,7 @@ public class TcpSession extends IoSession<TcpSocket> {
 	}
 
 	@Override
-	protected MessageSplitter getMessagePartition() {
+	protected MessageSplitter getMessageSplitter() {
 		return this.socketContext().messageSplitter();
 	}
 
