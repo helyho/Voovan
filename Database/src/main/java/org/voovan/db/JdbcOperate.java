@@ -77,6 +77,10 @@ public class JdbcOperate implements Closeable {
 		this.transcationType = transcationType;
 	}
 
+	/**
+	 * 获取数据库类型g
+	 * @return DataBaseType数据库类型
+	 */
 	public DataBaseType getDataBaseType() {
 		return dataBaseType;
 	}
@@ -86,7 +90,7 @@ public class JdbcOperate implements Closeable {
 	 * 		只能绑定 TranscationType 为 NEST 的事务
 	 * @param subJdbcOperate 连接操作对象
 	 * @param bothway true: 双向绑定, false: 单向绑定,只建立当前连接和目标连接的绑定关系
-	 *                双向绑定意味这任意一个节点的 commit 或者 rollback 操作都会直接联动所有的事物同时操作, 如果是单向绑定,只会联动下级事物同时操作
+	 *                双向绑定意味这任意一个节点的 commit 或者 rollback 操作都会直接联动所有的事物同时操作(提交/回滚), 如果是单向绑定,只会联动下级事物同时操作(提交/回滚)
 	 * @return true: 增加连接事务绑定成功, false: 增加连接事务绑定失败
 	 */
 	public synchronized boolean addBind(JdbcOperate subJdbcOperate, boolean bothway){
@@ -105,7 +109,7 @@ public class JdbcOperate implements Closeable {
 	/**
 	 * 移除连接事务绑定
 	 * @param subJdbcOperate 连接操作对象
-	 * @param bothway true: 双向绑定, 解出当前连接和目标连接两个连接相互的绑定关系, : 单向绑定, 只接触当前连接和目标连接的绑定关系
+	 * @param bothway true: 双向绑定, 解除当前连接和目标连接两个连接相互的绑定关系, : 单向绑定, 只解除当前连接和目标连接的绑定关系
 	 * @return true: 移除连接事务绑定成功, false: 移除连接事务绑定失败
 	 */
 	public synchronized boolean removeBind(JdbcOperate subJdbcOperate, boolean bothway){
