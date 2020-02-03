@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
  * Project: DBase
  * Create: 2017/11/1 14:38
  */
-public class ByteMessageSpliter implements MessageSplitter {
+public class ByteMessageSplitter implements MessageSplitter {
 	@Override
 	public int canSplite(IoSession session, ByteBuffer byteBuffer) {
 		int originPosition = byteBuffer.position();
