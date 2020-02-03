@@ -26,7 +26,7 @@ public abstract class WebSocketRouter implements Cloneable{
 		return this;
 	}
 
-	public WebSocketRouter clearFilterChain(WebSocketFilter webSocketFilter) {
+	public WebSocketRouter clearFilterChain() {
 		webSocketFilterChain.clear();
 		return this;
 	}
