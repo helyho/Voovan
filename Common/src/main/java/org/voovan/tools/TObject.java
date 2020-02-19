@@ -40,23 +40,6 @@ public class TObject {
 	}
 
 	/**
-	 * 移除 Map 中 value 为空的 key
-	 * @param map Map 对象
-	 * @return 移除 Map 中 value 为空的 key 后的 map
-	 */
-	public static Map removeNullValueFromMap(Map map) {
-		Iterator<Map.Entry> iterator = map.entrySet().iterator();
-		while(iterator.hasNext()){
-			Map.Entry entry = iterator.next();
-			if(entry.getValue() == null) {
-				iterator.remove();
-			}
-		}
-
-		return map;
-	}
-
-	/**
 	 * 初始化一个 List
 	 * @param objs List 列表的每一个元素
 	 * @return	初始化完成的List对象
@@ -164,7 +147,7 @@ public class TObject {
 	 * 将 Collection 转换成 Map
 	 * 			key 位置坐标
 	 *          value 数组值
-	 * @param objs    	待转换的数组
+	 * @param objs    	待转换的 Collection 对象
 	 * @param <T> 范型
 	 * @return 转换后的 Map  [序号, 值]
 	 */
@@ -195,6 +178,12 @@ public class TObject {
 	}
 
 
+	/**
+	 * 在数组中查找元素
+	 * @param source 数组
+	 * @param mark 被查找的元素
+	 * @return 索引位置
+	 */
 	public static int indexOfArray(Object[] source, Object mark){
 		for(int i=0;i<source.length;i++){
 			Object item = source[i];
@@ -205,6 +194,12 @@ public class TObject {
 		return -1;
 	}
 
+	/**
+	 * 在数组中查找连续的多个元素
+	 * @param source 数组
+	 * @param mark 被查找的连续的多个元素
+	 * @return 索引位置
+	 */
 	public static int indexOfArray(Object[] source, Object[] mark){
 			if(source.length == 0){
 				return -1;
@@ -255,6 +250,14 @@ public class TObject {
 			return index;
 	}
 
+	/**
+	 * 深克隆
+	 * @param obj 被克隆的对象
+	 * @param <T> 范型
+	 * @return 克隆后的新对象
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws ParseException 解析异常
+	 */
 	public static <T> T clone(T obj) throws ReflectiveOperationException, ParseException {
 		Map dataMap = TReflect.getMapfromObject(obj);
 		return (T)TReflect.getObjectFromMap(obj.getClass(),dataMap, false);
