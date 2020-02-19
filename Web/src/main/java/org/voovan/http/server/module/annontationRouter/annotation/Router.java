@@ -35,7 +35,7 @@ public @interface Router {
      */
     String[] method() default "GET";
 
-    HttpContentType ContentType() default HttpContentType.TEXT;
+    HttpContentType contentType() default HttpContentType.TEXT;
 
     /**
      * 定义路由类是否采用单例模式
