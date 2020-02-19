@@ -425,7 +425,7 @@ public class AnnotationRouter implements HttpRouter {
         try {
 
             //根据 Router 注解的标记设置响应的Content-Type
-            response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpContentType.getHttpContentType(methodRoute.ContentType()));
+            response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpContentType.getHttpContentType(methodRoute.contentType()));
 
             Object responseObj = invokeRouterMethod(request, response, clazz, method);
             if (responseObj != null) {
