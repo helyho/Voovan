@@ -1851,11 +1851,11 @@ public class TReflect {
 
     /**
      * 获得装箱类型
-     * @param primitiveType 原始类型
+     * @param type 原始类型
      * @return 装箱类型
      */
-    public static String getPackageType(String primitiveType){
-        switch (primitiveType){
+    public static String getPackageType(String type){
+        switch (type){
             case "int": return "java.lang.Integer";
             case "byte": return "java.lang.Byte";
             case "short": return "java.lang.Short";
@@ -1864,17 +1864,17 @@ public class TReflect {
             case "double": return "java.lang.Double";
             case "char": return "java.lang.Character";
             case "boolean": return "java.lang.Boolean";
-            default : return primitiveType;
+            default : return type;
         }
     }
 
     /**
      * 获得拆箱类型
-     * @param primitiveType 原始类型
+     * @param type 原始类型
      * @return 装箱类型
      */
-    public static String getUnPackageType(String primitiveType){
-        switch (primitiveType){
+    public static String getUnPackageType(String type){
+        switch (type){
             case "java.lang.Integer": return "int";
             case "java.lang.Byte": return "byte";
             case "java.lang.Short": return "short";
@@ -1883,7 +1883,7 @@ public class TReflect {
             case "java.lang.Double": return "double";
             case "java.lang.Characterar": return "char";
             case "java.lang.Boolean": return "boolean";
-            default : return primitiveType;
+            default : return type;
         }
     }
 
