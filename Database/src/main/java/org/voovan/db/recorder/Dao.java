@@ -13,6 +13,8 @@ import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 
 /**
@@ -124,8 +126,14 @@ public class Dao<T extends Dao> {
         if(snapshot !=null) {
             return update(getModifyField());
         } else {
-            return update(null);
+            return update(new String[0]);
         }
+    }
+
+    public boolean update(Consumer modifyFunction) {
+        this.snapshot();
+        modifyFunction.accept(this);
+        return update();
     }
 
     public List<T> query(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
