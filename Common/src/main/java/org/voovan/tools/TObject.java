@@ -85,6 +85,40 @@ public class TObject {
 	}
 
 	/**
+	 * 移除 map 中的 null 或者 空字符串
+	 * @param source 被处理的 map
+	 * @param withEmptyString 是否移除空字符串
+	 * @return 移除 map 中的 null 或者 空字符串后的 map
+	 */
+	public static Map removeMapNullValue(Map source, boolean withEmptyString) {
+		if (source == null) {
+			return null;
+		}
+
+		for (Iterator<?> it = source.values().iterator(); it.hasNext(); ) {
+			Object obj = it.next();
+			if (obj == null) {
+				it.remove();
+			}
+			if (obj instanceof String && withEmptyString) {
+				if (TString.isNullOrEmpty((String) obj)) {
+					it.remove();
+				}
+			}
+		}
+		return source;
+	}
+
+	/**
+	 * 移除 map 中的 null 和 空字符串
+	 * @param source 被处理的 map
+	 * @return 移除 map 中的 null 和 空字符串后的 map
+	 */
+	public static Map removeMapNullValue(Map source) {
+		return removeMapNullValue(source, true);
+	}
+
+	/**
 	 * 将 Map 的值转换成 List
 	 * @param map 需转换的 Map 对象
 	 * @return 转后的 Value 的 list
