@@ -74,6 +74,8 @@ public class TSQL {
 				preparedStatement.setObject(i + 1, null);
 			} else if(TReflect.isBasicType(data.getClass())) {
 				preparedStatement.setObject(i + 1, data);
+			} else if(data instanceof BigDecimal){
+				preparedStatement.setObject(i + 1, data.toString());
 			} else {
 				//复杂对象类型,无法直接保存进数据库,进行 JSON 转换后保存
 				preparedStatement.setObject(i + 1, JSON.toJSON(data));
