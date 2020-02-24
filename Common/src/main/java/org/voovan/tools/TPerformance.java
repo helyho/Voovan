@@ -2,14 +2,14 @@ package org.voovan.tools;
 
 import org.voovan.Global;
 
+import javax.crypto.Mac;
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.math.BigDecimal;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
+import java.net.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -26,6 +26,12 @@ public class TPerformance {
 	private static OperatingSystemMXBean osmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
 
 	private static List<String> LOCAL_IP_ADDRESSES = new ArrayList<String>();
+	private static ConcurrentHashMap<String, byte[]> LOCAL_IP_MAC = new ConcurrentHashMap<>();
+	private static List<NetworkInterface> NETWROK_INTERFACE = new ArrayList<NetworkInterface>();
+
+	static {
+		getLocalIpAddrs();
+	}
 
 	/**
 	 * 内存信息类型枚举
@@ -60,25 +66,58 @@ public class TPerformance {
 		return osmxb.getAvailableProcessors();
 	}
 
-
-	public static List<String> getLocalIpAddrs() {
-		if (LOCAL_IP_ADDRESSES.size() == 0) {
+	public static List<NetworkInterface> getNetworkInterfaces() {
+		if (NETWROK_INTERFACE.size() == 0) {
 			try {
 				Enumeration netInterfaces = NetworkInterface.getNetworkInterfaces();
 				InetAddress ip = null;
 				while (netInterfaces.hasMoreElements()) {
 					NetworkInterface ni = (NetworkInterface) netInterfaces.nextElement();
-					if(ni.getInetAddresses().hasMoreElements()) {
-						ip = (InetAddress) ni.getInetAddresses().nextElement();
-						LOCAL_IP_ADDRESSES.add(ip.getHostAddress());
-					}
+					NETWROK_INTERFACE.add(ni);
 				}
 			} catch (SocketException e) {
 				e.printStackTrace();
 			}
 		}
 
+		return NETWROK_INTERFACE;
+	}
+
+	public static String convertByteMac(byte[] macBytes){
+		if(macBytes == null) return null;
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < macBytes.length; i++) {
+			sb.append(String.format("%02X%s", macBytes[i], (i < macBytes.length - 1) ? "-" : ""));
+		}
+
+		return sb.toString();
+	}
+
+	public static List<String> getLocalIpAddrs() {
+		if (LOCAL_IP_ADDRESSES.size() == 0) {
+			for(NetworkInterface networkInterface : getNetworkInterfaces()) {
+				InetAddress ip = null;
+				Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+				while (inetAddresses.hasMoreElements()) {
+					ip = (InetAddress) inetAddresses.nextElement();
+					LOCAL_IP_ADDRESSES.add(ip.getHostAddress());
+					try {
+						byte[] macBytes = networkInterface.getHardwareAddress();
+						if(macBytes!=null) {
+							LOCAL_IP_MAC.put(ip.getHostAddress(), macBytes);
+						}
+					} catch (SocketException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+
 		return LOCAL_IP_ADDRESSES;
+	}
+
+	public static byte[] getMacByAddress(String address){
+		return LOCAL_IP_MAC.get(address);
 	}
 
 	/**
