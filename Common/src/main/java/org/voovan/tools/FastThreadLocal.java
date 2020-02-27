@@ -96,6 +96,7 @@ public class FastThreadLocal<T> {
 
     /**
      * 根据线程的类型尝试创建不同的线程局部变量
+     * @return true: FastThreadLocal, false: JdkThreadLocal
      */
     public boolean tryCreate(){
         if(FastThread.getThread() != null && index < FastThread.FAST_THREAD_LOCAL_SIZE) {

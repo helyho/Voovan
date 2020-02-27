@@ -241,6 +241,7 @@ public class HttpParser {
 	 * @param byteBuffer ByteBuffer对象
 	 * @param contiuneRead 当数据不足时的读取器
 	 * @param timeout 读取超时时间参数
+	 * @return 协议行的 hash
 	 */
 	public static int parserProtocol(Object[] packetMap, int type, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
@@ -378,7 +379,7 @@ public class HttpParser {
 
 	/**
 	 * 解析 HTTP 请求头
-	 * @param packetMap 解析后数据的容器
+	 * @param headerMap 解析后数据的容器
 	 * @param byteBuffer ByteBuffer对象
 	 * @param contiuneRead 当数据不足时的读取器
 	 * @param timeout 读取超时时间参数
