@@ -417,8 +417,9 @@ public class SocketSelector implements Closeable {
 	 * @param socketContext TcpSocket 对象
 	 * @param socketChannel 读取的 Socketchannel 对象
 	 * @return 读取数据的字节数, -1:读取失败
+	 * @throws IOException IO 异常
 	 */
-	public int tcpReadFromChannel(TcpSocket socketContext, SocketChannel socketChannel) throws Exception {
+	public int tcpReadFromChannel(TcpSocket socketContext, SocketChannel socketChannel) throws IOException {
 		int readSize = socketChannel.read(readTempBuffer);
 		readSize = loadAndPrepare(socketContext.getSession(), readSize);
 		return readSize;
@@ -429,8 +430,9 @@ public class SocketSelector implements Closeable {
 	 * @param socketContext TcpSocket 对象
 	 * @param buffer 待写入的数据缓冲对象
 	 * @return 写入数据的字节数, -1:写入失败
+	 * @throws IOException IO 异常
 	 */
-	public int tcpWriteToChannel(TcpSocket socketContext, ByteBuffer buffer) throws Exception {
+	public int tcpWriteToChannel(TcpSocket socketContext, ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
 		long start = System.currentTimeMillis();
 		if (socketContext.isConnected() && buffer != null) {
@@ -474,8 +476,9 @@ public class SocketSelector implements Closeable {
 	 * @param socketContext SocketContext 对象
 	 * @param datagramChannel 读取的 DatagramChannel 对象
 	 * @return 读取数据的字节数, -1:读取失败
+	 * @throws IOException IO 异
 	 */
-	public int udpReadFromChannel(SocketContext<DatagramChannel, UdpSession> socketContext, DatagramChannel datagramChannel) throws Exception {
+	public int udpReadFromChannel(SocketContext<DatagramChannel, UdpSession> socketContext, DatagramChannel datagramChannel) throws IOException {
 		int readSize = -1;
 
 		//接受的连接isConnected 是 false
@@ -497,8 +500,9 @@ public class SocketSelector implements Closeable {
 	 * @param socketContext UdpSocket 对象
 	 * @param buffer 待写入的数据缓冲对象
 	 * @return 写入数据的字节数, -1:写入失败
+	 * @throws IOException IO 异
 	 */
-	public int udpWriteToChannel(UdpSocket socketContext, ByteBuffer buffer) throws Exception {
+	public int udpWriteToChannel(UdpSocket socketContext, ByteBuffer buffer) throws IOException {
 		DatagramChannel datagramChannel = socketContext.socketChannel();
 		UdpSession session = socketContext.getSession();
 

@@ -484,13 +484,13 @@ public class TEnv {
 	private static File findAgentJar(){
 		List<File> agentJars = new ArrayList<File>();
 		for(String classPath : System.getProperty("java.class.path").split(File.pathSeparator)) {
-			if(TString.regexMatch(classPath, "((dd[\\.\\-](\\d\\.?)*.*?)|(voovan-((framework)|(common))[\\.\\-].*?)).?jar$")!=0){
+			if(TString.regexMatch(classPath, "((voovan-((framework)|(common))[\\.\\-].*?)).?jar$")!=0){
 				agentJars.add(new File(classPath));
 			}
 		}
 
 		if(agentJars.size() == 0) {
-			agentJars = TFile.scanFile(new File(TFile.getContextPath()), "((dd[\\.\\-](\\d\\.?)*.*?)|(voovan-((framework)|(common))[\\.\\-].*?)).?jar$");
+			agentJars = TFile.scanFile(new File(TFile.getContextPath()), "((voovan-((framework)|(common))[\\.\\-].*?)).?jar$");
 		}
 
 		File agentJar = null;

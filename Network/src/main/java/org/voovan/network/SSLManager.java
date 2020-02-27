@@ -89,7 +89,6 @@ public class SSLManager {
 	 * 读取管理证书, 文件形式
 	 * @param manageCertFile   证书地址
 	 * @param certPassword	   证书密码
-	 * @param keyPassword	   密钥
 	 * @throws SSLException SSL 异常
 	 */
 	public void loadTrustKey(String manageCertFile, String certPassword) throws SSLException{
@@ -129,11 +128,8 @@ public class SSLManager {
 			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
 			keystore.load(new ByteArrayInputStream(manageCert), certPassword.toCharArray());
 
-				keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-				keyManagerFactory.init(keystore, keyPassword.toCharArray());
-
-
-
+			keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+			keyManagerFactory.init(keystore, keyPassword.toCharArray());
 		} catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException e) {
 			throw new SSLException("Init SSLContext Error: "+e.getMessage(),e);
 		}
@@ -143,7 +139,6 @@ public class SSLManager {
 	 * 读取管理证书, 字节形式
 	 * @param manageCert   证书字节码
 	 * @param certPassword	   证书密码
-	 * @param keyPassword	   密钥
 	 * @throws SSLException SSL 异常
 	 */
 	public void loadTrustKey(byte[] manageCert, String certPassword) throws SSLException{

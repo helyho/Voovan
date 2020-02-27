@@ -316,7 +316,6 @@ public class Response {
 	 * 从其他 Response 复制数据到当前对象
 	 * 	用于非发送目的
 	 * @param response 原对象
-	 * @param useForSend 是否用户发送
 	 * @return 赋值的对象
 	 */
 	public Response copyFrom(Response response) {
