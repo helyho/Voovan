@@ -1,6 +1,5 @@
 package org.voovan.http.message;
 
-import io.undertow.util.HeaderMap;
 import org.voovan.Global;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
