@@ -18,6 +18,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -326,7 +327,14 @@ public class AnnotationRouter implements HttpRouter {
                     String paramName = ((BodyParam) annotation).value();
                     try {
                         if(bodyMap != null && bodyMap instanceof Map) {
-                            params[i] = TString.toObject(bodyMap.get(paramName).toString(), parameterTypes[i], true);
+                            Object bodyParam = bodyMap.get(paramName);
+                            if(TReflect.isBasicType(bodyParam.getClass())) {
+                                params[i] = TString.toObject(bodyParam.toString(), parameterTypes[i], true);
+                            } else if(bodyParam instanceof Map){
+                                params[i] = TReflect.getObjectFromMap(parameterTypes[i], (Map)bodyParam, true);
+                            } else {
+                                params[i] = bodyParam;
+                            }
                         }
                         continue;
                     } catch (Exception e) {
