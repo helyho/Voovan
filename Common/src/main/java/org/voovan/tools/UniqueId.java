@@ -1,7 +1,6 @@
 package org.voovan.tools;
 
 import java.security.SecureRandom;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -24,7 +23,7 @@ public class UniqueId {
 
     private AtomicInteger orderedIdSequence = new AtomicInteger(SEQ_DEFAULT);
     private Long lastTime = 0L;
-    private int workId = 0;
+    private int signId = 0;
     private int step = 1;
 
     /**
@@ -46,7 +45,7 @@ public class UniqueId {
         if(signId >= MAX_SIGNID || signId < 0){
             throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", MAX_SIGNID));
         }
-        workId = signId;
+        this.signId = signId;
     }
 
     /**
@@ -94,10 +93,18 @@ public class UniqueId {
             orderedIdSequence.set(SEQ_DEFAULT);
         }
 
-        long resultId = (currentTime << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (workId << SEQUENCE_LEFT) | orderedIdSequence.getAndAdd(step);
+        long resultId = generateId(currentTime, signId,  orderedIdSequence.getAndAdd(step));
 
         lastTime = System.currentTimeMillis();
         return resultId;
+    }
+
+    /**
+     * 生成带顺序的 ID 序列
+     * @return ID字符串
+     */
+    public static long generateId(long timeMills, int signId, int sequence){
+        return (timeMills << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (signId << SEQUENCE_LEFT) | sequence;
     }
 
     /**
@@ -126,7 +133,7 @@ public class UniqueId {
      * @return 当前时间点的 id
      */
     private long generateId(Long timeMills){
-        return (timeMills << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (workId << SEQUENCE_LEFT) | 1;
+        return (timeMills << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (signId << SEQUENCE_LEFT) | 1;
     }
 
     public static Long getMillis(Long uniqueId){
@@ -137,19 +144,34 @@ public class UniqueId {
         return uniqueId==null ? null : TString.radixUnConvert(uniqueId, RADIX) >> 22;
     }
 
-    public static Long getSignId(Long uniqueId) {
-        return uniqueId==null ? null : uniqueId << 42 >> 53;
+    public static Integer getSignId(Long uniqueId) {
+        return uniqueId==null ? null : (int)(uniqueId << 42 >> 53);
     }
 
-    public static Long getSignId(String uniqueId) {
-        return uniqueId==null ? null : TString.radixUnConvert(uniqueId, RADIX)  << 42 >> 53;
+    public static Integer getSignId(String uniqueId) {
+        return uniqueId==null ? null : (int)(TString.radixUnConvert(uniqueId, RADIX)  << 42 >> 53);
     }
 
-    public static Long getSequence(Long uniqueId) {
-        return uniqueId==null ? null : uniqueId << 53 >> 53;
+    public static Integer getSequence(Long uniqueId) {
+        return uniqueId==null ? null :(int)( uniqueId << 53 >> 53);
     }
 
-    public static Long getSequence(String uniqueId) {
-        return uniqueId==null ? null : TString.radixUnConvert(uniqueId, RADIX)  << 53 >> 53;
+    public static Integer getSequence(String uniqueId) {
+        return uniqueId==null ? null : (int)(TString.radixUnConvert(uniqueId, RADIX)  << 53 >> 53);
+    }
+
+    public static long adjust(long id, Integer adjustMills, Integer sequence) {
+        long time = UniqueId.getMillis(id) + (adjustMills == null ? 0L : adjustMills);
+        int signId = UniqueId.getSignId(id);
+        sequence = sequence==null ? UniqueId.getSequence(id) : sequence;
+        return UniqueId.generateId(time, signId, sequence);
+    }
+
+    public static long adjust(String uniqueId, Integer adjustMills, Integer sequence) {
+        long id = TString.radixUnConvert(uniqueId, RADIX);
+        long time = UniqueId.getMillis(id) + (adjustMills == null ? 0L : adjustMills);
+        int signId = UniqueId.getSignId(id);
+        sequence = sequence==null ? UniqueId.getSequence(id) : sequence;
+        return UniqueId.generateId(time, signId, sequence);
     }
 }
