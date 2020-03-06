@@ -1691,7 +1691,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 if (toKeyBytes == null) {
                     return iterator.isValid();
                 } else {
-                    return iterator.isValid() && !(Arrays.equals(iterator.key(), toKeyBytes));
+                    return iterator.isValid() && TByte.byteArrayCompare(iterator.key(), toKeyBytes) == -1;
                 }
             } finally {
                 iterator.prev();
