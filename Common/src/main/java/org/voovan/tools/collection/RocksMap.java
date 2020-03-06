@@ -1218,8 +1218,21 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param toKey 结束 key
      *
      */
-    public void removeRange(K fromKey, K toKey) {
-        Transaction transaction = threadLocalTransaction.get();
+    public void removeRange(K fromKey, K toKey){
+        removeRange(fromKey, toKey, true);
+    }
+
+    /**
+     * Removes the database entries in the range ["beginKey", "endKey"), i.e.,
+     * including "beginKey" and excluding "endKey". a non-OK status on error. It
+     * is not an error if no keys exist in the range ["beginKey", "endKey").
+     * @param fromKey 其实 key
+     * @param toKey 结束 key
+     * @param useTransaction 是否嵌套至已有事务
+     *
+     */
+    public void removeRange(K fromKey, K toKey, boolean useTransaction) {
+        Transaction transaction = useTransaction ? threadLocalTransaction.get() : null;
         byte[] fromKeyBytes = TSerialize.serialize(fromKey);
         byte[] toKeyBytes = TSerialize.serialize(toKey);
         try {
@@ -1231,6 +1244,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     while (iterator.isValid()) {
                         if (!Arrays.equals(iterator.key(), toKeyBytes)) {
                             transaction.delete(dataColumnFamilyHandle, iterator.key());
+                            iterator.next();
+                        } else {
+                            break;
                         }
                     }
                 }
