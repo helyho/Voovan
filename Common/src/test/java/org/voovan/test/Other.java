@@ -29,11 +29,16 @@ public class Other {
     private int orange = 10;
 
     public static void main(String[] args) throws Exception {
-        String url = "http://192.168.123.150:8848/nacos/v1/cs/configs?dataId=test.config.propertiest&group=DEFAULT_GROUP";
-        System.out.println(TProperties.getString(url, "common.rdbPath"));
-        System.out.println(TProperties.getString(url, "common.siteId"));
-        System.out.println(TProperties.getString("framework", "EnableSandBox"));
-        System.out.println(TProperties.getString("framework", "ThreadPoolMaxSize"));
+        byte c = (byte) -128;
+        System.out.println((int)(c& 0xff));
+        System.out.println((byte)(c+1)& 0xff);
+        System.out.println((byte)(c+2)& 0xff);
+        System.out.println((byte)(c+3)& 0xff);
+        System.out.println((byte)(c+4)& 0xff);
+
+//        128 = -128;  128 + (128 - 128)
+//        129 = -127;  128 + (128 - 127);
+//        130 = -126;  128 + (128 - 126)
 
     }
 }
