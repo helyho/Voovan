@@ -2,7 +2,9 @@ package org.voovan.test.tools.collection;
 
 import junit.framework.TestCase;
 import org.rocksdb.*;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
+import org.voovan.tools.UniqueId;
 import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.json.JSON;
 
@@ -19,6 +21,58 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class RocksMapTest extends TestCase {
+    public void testComparatorBench() {
+        DBOptions dbOptions = new DBOptions();
+        ReadOptions readOptions = new ReadOptions();
+        WriteOptions writeOptions = new WriteOptions();
+        ColumnFamilyOptions columnFamilyOptions = new ColumnFamilyOptions();
+
+        Comparator comparator = new RocksComparatorTest(new ComparatorOptions());
+        columnFamilyOptions.setComparator(comparator);
+
+        dbOptions.setCreateIfMissing(true);
+        dbOptions.setCreateMissingColumnFamilies(true);
+        dbOptions.setUseDirectReads(true);
+
+        UniqueId uniqueId = new UniqueId();
+
+        RocksMap rocksMap2 = new RocksMap("cppComparator", "Default");
+
+        TEnv.measure("cppComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap2.put(uniqueId.nextNumber(), i);
+            }
+        });
+
+
+        RocksMap rocksMap1 = new RocksMap("javaComparator", "Default", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+
+        TEnv.measure("javaComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap1.put(uniqueId.nextNumber(), i);
+            }
+        });
+
+        RocksMap rocksMap4 = new RocksMap("cppComparator", "Default");
+
+        TEnv.measure("cppComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap4.put(uniqueId.nextNumber(), i);
+            }
+        });
+
+
+        RocksMap rocksMap3 = new RocksMap("javaComparator", "Default", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+
+        TEnv.measure("javaComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap3.put(uniqueId.nextNumber(), i);
+            }
+        });
+
+        System.out.println(1);
+    }
+
     public void testWal() throws RocksDBException {
         DBOptions dbOptions = new DBOptions();
         ReadOptions readOptions = new ReadOptions();

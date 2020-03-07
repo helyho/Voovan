@@ -42,9 +42,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     //缓存 TransactionDB 和列族句柄的关系
     private static Map<RocksDB, Map<String, ColumnFamilyHandle>> COLUMN_FAMILY_HANDLE_MAP = new ConcurrentHashMap<RocksDB, Map<String, ColumnFamilyHandle>>();
 
-    //默认列族定义
-    private static ColumnFamilyDescriptor DEFAULE_CF_DESCRIPTOR = new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY);
-
     //数据文件的默认保存路径
     private static String DEFAULT_DB_PATH = ".rocksdb"+ File.separator;
     private static String DEFAULT_WAL_PATH = DEFAULT_DB_PATH + ".wal"+ File.separator;
@@ -234,12 +231,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
                     //如果为空创建默认列族
                     if (DEFAULT_CF_DESCRIPTOR_LIST.size() == 0) {
-                        DEFAULT_CF_DESCRIPTOR_LIST.add(DEFAULE_CF_DESCRIPTOR);
+                        DEFAULT_CF_DESCRIPTOR_LIST.add( new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, this.columnFamilyOptions));
                     }
                 }
                 //用来接收ColumnFamilyHandle
                 List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList<ColumnFamilyHandle>();
-
                 //打开 Rocksdb
                 if (this.readOnly) {
                     rocksDB = TransactionDB.openReadOnly(this.dbOptions, DEFAULT_DB_PATH + this.dbname, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
