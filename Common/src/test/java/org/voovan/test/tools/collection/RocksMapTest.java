@@ -49,88 +49,24 @@ public class RocksMapTest extends TestCase {
         RocksMap rocksMap2 = new RocksMap("javaComparator", "Default", cppColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
 
 
-        TEnv.measure("cppComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap2.put(uniqueId.nextNumber(), i);
-            }
-        });
+//        TEnv.measure("cppComparator", ()->{
+//            for (int i = 0; i < 3000; i++) {
+//                rocksMap2.put(((Long)uniqueId.nextNumber()).toString(), i);
+//            }
+//        });
+            //                6642070616671666176
+        rocksMap2.scan(null, "6642070616667471", entry->{
+            System.out.println(((RocksMap.RocksMapEntry)entry).getKey());
+            return true;
+        }, true);
 
-
-
-        RocksMap rocksMap1 = new RocksMap("javaComparator", "Default", javaColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
-
-        TEnv.measure("javaComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap1.put(uniqueId.nextNumber(), i);
-            }
-        });
-
-
-        RocksMap rocksMap4 = new RocksMap("javaComparator", "Default", cppColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
-
-        TEnv.measure("cppComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap4.put(uniqueId.nextNumber(), i);
-            }
-        });
-
-        TEnv.measure("cppComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap4.put(uniqueId.nextNumber(), i);
-            }
-        });
-
-        TEnv.measure("cppComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap4.put(uniqueId.nextNumber(), i);
-            }
-        });
-
-        TEnv.measure("cppComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap4.put(uniqueId.nextNumber(), i);
-            }
-        });
-
-        TEnv.measure("cppComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap4.put(uniqueId.nextNumber(), i);
-            }
-        });
-
-        RocksMap rocksMap3 = new RocksMap("javaComparator", "Default", javaColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
-
-        TEnv.measure("javaComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap3.put(uniqueId.nextNumber(), i);
-            }
-        });
-
-        TEnv.measure("javaComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap3.put(uniqueId.nextNumber(), i);
-            }
-        });
-
-
-        TEnv.measure("javaComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap3.put(uniqueId.nextNumber(), i);
-            }
-        });
-
-        TEnv.measure("javaComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap3.put(uniqueId.nextNumber(), i);
-            }
-        });
-
-        TEnv.measure("javaComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap3.put(uniqueId.nextNumber(), i);
-            }
-        });
-
+//        RocksMap rocksMap1 = new RocksMap("javaComparator", "Default", javaColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+//
+//        TEnv.measure("javaComparator", ()->{
+//            for (int i = 0; i < 3000; i++) {
+//                rocksMap1.put(uniqueId.nextNumber(), i);
+//            }
+//        });
 
         System.out.println(1);
     }
