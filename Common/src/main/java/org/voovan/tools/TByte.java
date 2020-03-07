@@ -284,11 +284,11 @@ public class TByte {
                 return 1;
             }
 
-            if (byte1[i] < byte2[i]){
+            if ((byte1[i] & 0xff) < (byte2[i] & 0xff)){
                 return -1;
             }
 
-            if (byte1[i] > byte2[i]){
+            if ((byte1[i] & 0xff) > (byte2[i] & 0xff)){
                 return 1;
             }
         }
