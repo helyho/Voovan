@@ -657,6 +657,15 @@ public class TEnv {
 	 * 性能测试方法
 	 * @param msg 输出的消息
 	 * @param runnable 执行器
+	 */
+	public static void measure(String msg, Runnable runnable) {
+		System.out.println(msg + " " + measure(runnable)/(TimeUnit.MILLISECONDS.toNanos(1)*1f));
+	}
+
+	/**
+	 * 性能测试方法
+	 * @param msg 输出的消息
+	 * @param runnable 执行器
 	 * @param timeUnit 输出的时间单位
 	 */
 	public static void measure(String msg, Runnable runnable, TimeUnit timeUnit) {
