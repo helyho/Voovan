@@ -2,6 +2,7 @@ package org.voovan.test.tools.collection;
 
 import junit.framework.TestCase;
 import org.rocksdb.*;
+import org.rocksdb.util.BytewiseComparator;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.UniqueId;
@@ -26,21 +27,27 @@ public class RocksMapTest extends TestCase {
     public void testComparatorBench() {
         TSerialize.SERIALIZE = new ProtoStuffSerialize();
 
+        Options options = new Options();
+        options.useCappedPrefixExtractor(8);
         DBOptions dbOptions = new DBOptions();
         ReadOptions readOptions = new ReadOptions();
         WriteOptions writeOptions = new WriteOptions();
-        ColumnFamilyOptions columnFamilyOptions = new ColumnFamilyOptions();
 
+        ColumnFamilyOptions cppColumnFamilyOptions = new ColumnFamilyOptions();
+        cppColumnFamilyOptions.setComparator(new BytewiseComparator(new ComparatorOptions()));
+
+        ColumnFamilyOptions javaColumnFamilyOptions = new ColumnFamilyOptions();
         Comparator comparator = new RocksComparatorTest(new ComparatorOptions());
-        columnFamilyOptions.setComparator(comparator);
+        javaColumnFamilyOptions.setComparator(comparator);
 
         dbOptions.setCreateIfMissing(true);
         dbOptions.setCreateMissingColumnFamilies(true);
         dbOptions.setUseDirectReads(true);
 
-        UniqueId uniqueId = new UniqueId();
+        UniqueId uniqueId = new UniqueId(200, 10);
 
-        RocksMap rocksMap2 = new RocksMap("cppComparator", "Default");
+        RocksMap rocksMap2 = new RocksMap("javaComparator", "Default", cppColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+
 
         TEnv.measure("cppComparator", ()->{
             for (int i = 0; i < 3000; i++) {
@@ -50,7 +57,7 @@ public class RocksMapTest extends TestCase {
 
 
 
-        RocksMap rocksMap1 = new RocksMap("javaComparator", "Default", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+        RocksMap rocksMap1 = new RocksMap("javaComparator", "Default", javaColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
 
         TEnv.measure("javaComparator", ()->{
             for (int i = 0; i < 3000; i++) {
@@ -59,7 +66,7 @@ public class RocksMapTest extends TestCase {
         });
 
 
-        RocksMap rocksMap4 = new RocksMap("cppComparator", "Default");
+        RocksMap rocksMap4 = new RocksMap("javaComparator", "Default", cppColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
 
         TEnv.measure("cppComparator", ()->{
             for (int i = 0; i < 3000; i++) {
@@ -91,7 +98,7 @@ public class RocksMapTest extends TestCase {
             }
         });
 
-        RocksMap rocksMap3 = new RocksMap("javaComparator", "Default", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+        RocksMap rocksMap3 = new RocksMap("javaComparator", "Default", javaColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
 
         TEnv.measure("javaComparator", ()->{
             for (int i = 0; i < 3000; i++) {
