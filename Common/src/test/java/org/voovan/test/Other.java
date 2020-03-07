@@ -14,6 +14,7 @@ import sun.net.util.URLUtil;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.Properties;
 
 /**
@@ -29,16 +30,16 @@ public class Other {
     private int orange = 10;
 
     public static void main(String[] args) throws Exception {
-        byte c = (byte) -128;
-        System.out.println((int)(c& 0xff));
-        System.out.println((byte)(c+1)& 0xff);
-        System.out.println((byte)(c+2)& 0xff);
-        System.out.println((byte)(c+3)& 0xff);
-        System.out.println((byte)(c+4)& 0xff);
+        byte[] bs1 = new byte[] {0, 40, 0, -97, };
+        byte[] bs2 = new byte[] {0, 0, -128, -48};
+        System.out.println(TByte.getInt(bs1));
+        System.out.println(TByte.getInt(bs2));
+        System.out.println(compare(bs1, bs2));
 
-//        128 = -128;  128 + (128 - 128)
-//        129 = -127;  128 + (128 - 127);
-//        130 = -126;  128 + (128 - 126)
 
+    }
+
+    private static int compare(final byte[] a, final byte[] b) {
+        return ByteBuffer.wrap(a).compareTo(ByteBuffer.wrap(b));
     }
 }
