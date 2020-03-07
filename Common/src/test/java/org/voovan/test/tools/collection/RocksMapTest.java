@@ -7,6 +7,8 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.UniqueId;
 import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.serialize.ProtoStuffSerialize;
+import org.voovan.tools.serialize.TSerialize;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +24,8 @@ import java.util.Map;
  */
 public class RocksMapTest extends TestCase {
     public void testComparatorBench() {
+        TSerialize.SERIALIZE = new ProtoStuffSerialize();
+
         DBOptions dbOptions = new DBOptions();
         ReadOptions readOptions = new ReadOptions();
         WriteOptions writeOptions = new WriteOptions();
@@ -45,6 +49,7 @@ public class RocksMapTest extends TestCase {
         });
 
 
+
         RocksMap rocksMap1 = new RocksMap("javaComparator", "Default", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
 
         TEnv.measure("javaComparator", ()->{
@@ -52,6 +57,7 @@ public class RocksMapTest extends TestCase {
                 rocksMap1.put(uniqueId.nextNumber(), i);
             }
         });
+
 
         RocksMap rocksMap4 = new RocksMap("cppComparator", "Default");
 
@@ -61,6 +67,29 @@ public class RocksMapTest extends TestCase {
             }
         });
 
+        TEnv.measure("cppComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap4.put(uniqueId.nextNumber(), i);
+            }
+        });
+
+        TEnv.measure("cppComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap4.put(uniqueId.nextNumber(), i);
+            }
+        });
+
+        TEnv.measure("cppComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap4.put(uniqueId.nextNumber(), i);
+            }
+        });
+
+        TEnv.measure("cppComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap4.put(uniqueId.nextNumber(), i);
+            }
+        });
 
         RocksMap rocksMap3 = new RocksMap("javaComparator", "Default", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
 
@@ -69,6 +98,32 @@ public class RocksMapTest extends TestCase {
                 rocksMap3.put(uniqueId.nextNumber(), i);
             }
         });
+
+        TEnv.measure("javaComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap3.put(uniqueId.nextNumber(), i);
+            }
+        });
+
+
+        TEnv.measure("javaComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap3.put(uniqueId.nextNumber(), i);
+            }
+        });
+
+        TEnv.measure("javaComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap3.put(uniqueId.nextNumber(), i);
+            }
+        });
+
+        TEnv.measure("javaComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap3.put(uniqueId.nextNumber(), i);
+            }
+        });
+
 
         System.out.println(1);
     }
