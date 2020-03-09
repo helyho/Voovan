@@ -704,7 +704,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         //设置快照超时时间
         transactionOptions.setLockTimeout(transactionLockTimeout);
 
-        return((TransactionDB) rocksDB).beginTransaction(writeOptions, transactionOptions);
+
+        Transaction transaction = ((TransactionDB) rocksDB).beginTransaction(writeOptions, transactionOptions);
+
+        transactionOptions.close();
+
+        return transaction;
     }
 
     public Transaction getTransaction(){
@@ -1707,7 +1712,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 if (toKeyBytes == null) {
                     return iterator.isValid();
                 } else {
-                    return iterator.isValid() && TByte.byteArrayStartWith(iterator.key(), toKeyBytes);
+                    return iterator.isValid() && !TByte.byteArrayStartWith(iterator.key(), toKeyBytes);
                 }
             } finally {
                 iterator.prev();
