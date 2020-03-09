@@ -746,12 +746,15 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         try {
             if (transaction != null) {
                 transaction.commit();
-                transaction.close();
             } else {
                 throw new RocksMapException("RocksMap is not in transaction model");
             }
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap commit failed, " + e.getMessage(), e);
+        } finally {
+            if (transaction != null) {
+                transaction.close();
+            }
         }
     }
 
@@ -776,12 +779,15 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         try {
             if (transaction != null) {
                 transaction.rollback();
-                transaction.close();
             } else {
                 throw new RocksMapException("RocksMap is not in transaction model");
             }
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap rollback failed, " + e.getMessage(), e);
+        } finally {
+            if (transaction != null) {
+                transaction.close();
+            }
         }
     }
 
