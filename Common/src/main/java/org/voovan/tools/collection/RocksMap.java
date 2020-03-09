@@ -743,18 +743,16 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 事务提交
      */
     private void commit(Transaction transaction) {
-        try {
-            if (transaction != null) {
+        if (transaction != null) {
+            try {
                 transaction.commit();
-            } else {
-                throw new RocksMapException("RocksMap is not in transaction model");
-            }
-        } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap commit failed, " + e.getMessage(), e);
-        } finally {
-            if (transaction != null) {
+            } catch (RocksDBException e) {
+                throw new RocksMapException("RocksMap commit failed, " + e.getMessage(), e);
+            } finally {
                 transaction.close();
             }
+        } else {
+            throw new RocksMapException("RocksMap is not in transaction model");
         }
     }
 
@@ -776,19 +774,18 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 事务回滚
      */
     private void rollback(Transaction transaction) {
-        try {
-            if (transaction != null) {
+        if (transaction != null) {
+            try {
                 transaction.rollback();
-            } else {
-                throw new RocksMapException("RocksMap is not in transaction model");
-            }
-        } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap rollback failed, " + e.getMessage(), e);
-        } finally {
-            if (transaction != null) {
+            } catch(RocksDBException e){
+                throw new RocksMapException("RocksMap rollback failed, " + e.getMessage(), e);
+            } finally{
                 transaction.close();
             }
+        } else {
+            throw new RocksMapException("RocksMap is not in transaction model");
         }
+
     }
 
     @Override
