@@ -1,6 +1,7 @@
 package org.voovan.tools.collection;
 import org.rocksdb.*;
 import org.voovan.tools.TByte;
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
 import org.voovan.tools.Varint;
 import org.voovan.tools.exception.ParseException;
@@ -462,6 +463,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
+    public String getProperty(String name) {
+        try {
+           return rocksDB.getProperty("rocksdb." + name);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("getProperty failed", e);
+        }
+    }
+
     /**
      * 获取最后的序号
      * @return 返回最后的日志序号
@@ -537,11 +546,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     break;
                 }
                 seq = batchResult.sequenceNumber();
-                List<RocksWalRecord> rocksWalRecordBySeq = RocksWalRecord.parse(ByteBuffer.wrap(batchResult.writeBatch().data()), filter, withSerial);
-
-                rocksWalRecords.addAll(rocksWalRecordBySeq);
+                try (WriteBatch writeBatch = batchResult.writeBatch()) {
+                    List<RocksWalRecord> rocksWalRecordBySeq = RocksWalRecord.parse(ByteBuffer.wrap(writeBatch.data()), filter, withSerial);
+                    rocksWalRecords.addAll(rocksWalRecordBySeq);
+                    writeBatch.clear();
+                }
 
                 transactionLogIterator.next();
+
             }
 
             if(rocksWalRecords.size() > 0)
@@ -1456,6 +1468,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         readOptions.close();
         writeOptions.close();
         columnFamilyOptions.close();
+
+        dbOptions = null;
+        readOptions = null;
+        writeOptions = null;
+        columnFamilyOptions = null;
 
         if(!isDuplicate) {
             RocksMap.closeRocksDB(rocksDB);
