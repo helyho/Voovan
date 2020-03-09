@@ -24,9 +24,14 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class RocksMapTest extends TestCase {
-    public void testComparatorBench() {
-        TSerialize.SERIALIZE = new ProtoStuffSerialize();
 
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        TSerialize.SERIALIZE = new ProtoStuffSerialize();
+    }
+
+    public void testComparatorBench() {
         Options options = new Options();
         options.useCappedPrefixExtractor(8);
         DBOptions dbOptions = new DBOptions();
@@ -230,7 +235,7 @@ public class RocksMapTest extends TestCase {
         rocksMap.beginTransaction();
         rocksMap.withTransaction(map ->{
             RocksMap rocksMapT = (RocksMap) map;
-            rocksMapT.put("ddddk", "ffdasf");
+            rocksMapT.put("ddddk", "1111");
             //测试事务隔离
             rocksMap.commit();
             System.out.println("withTransaction: " + rocksMapT.get("ddddk"));
@@ -339,8 +344,8 @@ public class RocksMapTest extends TestCase {
             iterator.next();
             System.out.println(iterator.key() + " " + iterator.value());
         }
-        System.out.println("=================iterator range 3333->transaction44================");
-        iterator = rocksMap.iterator("3", "tr");
+        System.out.println("=================iterator range 3333->transaction33================");
+        iterator = rocksMap.iterator("3", "transaction33");
         while(iterator.hasNext()) {
             iterator.next();
             System.out.println(iterator.key() + " " + iterator.value());
@@ -410,7 +415,7 @@ public class RocksMapTest extends TestCase {
         rocksMap.removeAll(TObject.asList("111", "222"));
         System.out.println("KeySet: "+ rocksMap.keySet());
         System.out.println("search: " + JSON.toJSON(rocksMap.startWith("hh")));
-        System.out.println("search: " + JSON.toJSON(rocksMap.startWith("hh",7, 30)));
+        System.out.println("search: " + JSON.toJSON(rocksMap.startWith("hh",3, 30)));
         System.out.println("KeySet: "+ rocksMap.keySet());
         rocksMap.removeRange("hhhh5", "hhhh3");
         System.out.println("KeySet: "+ rocksMap.keySet());
