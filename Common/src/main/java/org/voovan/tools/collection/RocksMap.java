@@ -991,7 +991,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    private byte[] get(byte[] keyBytes) {
+    private byte[] get(byte[] keyBytes, boolean useBloomFilter) {
+        if(useBloomFilter && !this.keyMayExists(keyBytes)){
+            return null;
+        }
+
         try {
             byte[] values = null;
             Transaction transaction = threadLocalTransaction.get();
@@ -1013,7 +1017,16 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             throw new NullPointerException();
         }
 
-        byte[] values = get(TSerialize.serialize(key));
+        byte[] values = get(TSerialize.serialize(key), false);
+        return values==null ? null : (V) TSerialize.unserialize(values);
+    }
+
+    public V get(Object key, boolean useBloomFilter) {
+        if(key == null){
+            throw new NullPointerException();
+        }
+
+        byte[] values = get(TSerialize.serialize(key), useBloomFilter);
         return values==null ? null : (V) TSerialize.unserialize(values);
     }
 
@@ -1100,7 +1113,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 当返回 false 的时候 key 一定不存在, 当返回 true 的时候, key 有可能不存在, 参考 boomfilter
      */
     public boolean keyMayExists(K key) {
-        boolean result = rocksDB.keyMayExist(dataColumnFamilyHandle, TSerialize.serialize(key), threadLocalBuilder.get());
+        return keyMayExists(TSerialize.serialize(key));
+    }
+
+    private boolean keyMayExists(byte[] keyBytes) {
+        boolean result = rocksDB.keyMayExist(dataColumnFamilyHandle, keyBytes, threadLocalBuilder.get());
         threadLocalBuilder.get().setLength(0);
         return result;
     }
@@ -1144,7 +1161,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         byte[] valueBytes = null;
         if(isRetVal) {
-            valueBytes = get(keyBytes);
+            valueBytes = get(keyBytes, false);
         }
 
         if(!isRetVal || valueBytes != null) {
