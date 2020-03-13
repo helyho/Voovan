@@ -704,7 +704,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         //设置快照超时时间
         transactionOptions.setLockTimeout(transactionLockTimeout);
 
-        return((TransactionDB) rocksDB).beginTransaction(writeOptions, transactionOptions);
+
+        Transaction transaction = ((TransactionDB) rocksDB).beginTransaction(writeOptions, transactionOptions);
+
+        transactionOptions.close();
+
+        return transaction;
     }
 
     public Transaction getTransaction(){
@@ -1095,7 +1100,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 当返回 false 的时候 key 一定不存在, 当返回 true 的时候, key 有可能不存在, 参考 boomfilter
      */
     public boolean keyMayExists(K key) {
-        boolean result = rocksDB.keyMayExist(dataColumnFamilyHandle, TSerialize.serialize(key), threadLocalBuilder.get());
+        return keyMayExists(TSerialize.serialize(key));
+    }
+
+    private boolean keyMayExists(byte[] keyBytes) {
+        boolean result = rocksDB.keyMayExist(dataColumnFamilyHandle, keyBytes, threadLocalBuilder.get());
         threadLocalBuilder.get().setLength(0);
         return result;
     }
