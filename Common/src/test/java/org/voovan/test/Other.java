@@ -6,7 +6,9 @@ import org.rocksdb.DBOptions;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.WriteOptions;
 import org.voovan.tools.*;
+import org.voovan.tools.collection.CacheMap;
 import org.voovan.tools.collection.RocksMap;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.serialize.TSerialize;
@@ -15,7 +17,12 @@ import sun.net.util.URLUtil;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * 类文字命名
@@ -30,11 +37,19 @@ public class Other {
     private int orange = 10;
 
     public static void main(String[] args) throws Exception {
-        byte[] bs1 = new byte[] {0, 40, 0, -97, };
-        byte[] bs2 = new byte[] {0, 0, -128, -48};
-        System.out.println(TByte.getInt(bs1));
-        System.out.println(TByte.getInt(bs2));
-        System.out.println(compare(bs1, bs2));
+        CacheMap m = new CacheMap();
+        System.out.println(TEnv.getCurrentPID());
+
+        System.out.println(JSON.toJSON(TPerformance.getJVMMemoryInfo()));
+
+        TEnv.sleep(1);
+        for(int i=0;i<100000;i++) {
+            m.put((long)i, (long)i);
+        }
+
+        System.out.println(JSON.toJSON(TPerformance.getJVMMemoryInfo()));
+
+        TEnv.sleep(1);
 
 
     }

@@ -78,13 +78,25 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
     }
 
     /**
-     * 设置数据创建 Function 对象
+     * 设置数据创建 Function 对象, 默认数据失效时不移除数据
      * @param buildFunction Function 对象
      * @return CachedHashMap 对象
      */
     public CacheMap<K, V> supplier(Function<K, V> buildFunction){
         this.supplier = buildFunction;
         this.autoRemove = false;
+        return this;
+    }
+
+    /**
+     * 设置数据创建 Function 对象
+     * @param buildFunction Function 对象
+     * @param autoRemove 设置失效是否自动移除
+     * @return CachedHashMap 对象
+     */
+    public CacheMap<K, V> supplier(Function<K, V> buildFunction, boolean autoRemove){
+        this.supplier = buildFunction;
+        this.autoRemove = autoRemove;
         return this;
     }
 
@@ -98,7 +110,10 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
 
     /**
      * 设置对象销毁函数
-     * @param destory 对象销毁函数, 1.返回 null 则刷新为默认超时时间 2.小于0 的数据, 则移除对象 3.大于0的数据则重新设置返回值为新的超时时间
+     * @param destory 对象销毁函数,
+     *                1.返回 null 则刷新为默认超时时间
+     *                2.小于0 的数据, 则移除对象
+     *                3.大于0的数据则重新设置返回值为新的超时时间
      * @return CachedHashMap 对象
      */
     public CacheMap<K, V> destory(BiFunction<K, V, Long> destory) {
