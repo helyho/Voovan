@@ -411,8 +411,9 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
         //如果超出容量限制
         int diffSize = this.size() - maxSize;
         if (diffSize > 0) {
-            //最少访问次数中, 时间最老的进行清楚
+            //最少访问次数中, 时间最老的进行清除
             TimeMark<K>[] removedTimeMark = (TimeMark<K>[]) CollectionSearch.newInstance(cacheMark.values())
+                    .setParallelStream(true)
                     .addCondition("expireTime", CollectionSearch.Operate.NOT_EQUAL, 0L)
                     .addCondition("lastTime", CollectionSearch.Operate.LESS, System.currentTimeMillis()-1000)
                     .sort("visitCount")
