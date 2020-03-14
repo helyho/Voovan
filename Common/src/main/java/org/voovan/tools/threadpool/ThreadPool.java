@@ -25,8 +25,8 @@ public class ThreadPool {
 	protected static int MAX_POOL_SIZE = cpuCoreCount;
 	protected static int STATUS_INTERVAL = 5000;
 
-	protected static int minPoolTimes = TProperties.getInt("framework", "ThreadPoolMinSize");
-	protected static int maxPoolTimes = TProperties.getInt("framework", "ThreadPoolMaxSize");
+	protected static int minPoolSize = TProperties.getInt("framework", "ThreadPoolMinSize");
+	protected static int maxPoolSize = TProperties.getInt("framework", "ThreadPoolMaxSize");
 
 	protected static ConcurrentHashMap<String, ThreadPoolExecutor> THREAD_POOL_HANDLER = new ConcurrentHashMap<String, ThreadPoolExecutor>();
 
@@ -35,8 +35,7 @@ public class ThreadPool {
 	 * @return 线程池最小活动线程数
 	 */
 	public static int getMinPoolSize() {
-		MIN_POOL_SIZE = (minPoolTimes == 0 ? 1 : minPoolTimes) * cpuCoreCount;
-		MIN_POOL_SIZE = MIN_POOL_SIZE < 8 ? 8 : MIN_POOL_SIZE;
+		MIN_POOL_SIZE = minPoolSize == -1 ? cpuCoreCount : minPoolSize;
 		return MIN_POOL_SIZE;
 	}
 
@@ -45,11 +44,10 @@ public class ThreadPool {
 	 * @return 线程池最大活动线程数
 	 */
 	public static int getMaxPoolSize() {
-		if(minPoolTimes > maxPoolTimes){
-			maxPoolTimes = minPoolTimes;
+		if(maxPoolSize > maxPoolSize){
+			maxPoolSize = maxPoolSize;
 		}
-		MAX_POOL_SIZE = (maxPoolTimes == 0 ? 1 : maxPoolTimes) * cpuCoreCount;
-		MAX_POOL_SIZE = MAX_POOL_SIZE < 8 ? 8 : MAX_POOL_SIZE;
+		MAX_POOL_SIZE = maxPoolSize == -1 ? cpuCoreCount : maxPoolSize;
 		return MAX_POOL_SIZE;
 	}
 
@@ -77,8 +75,8 @@ public class ThreadPool {
      * @return 线程池对象
      */
 	public static ThreadPoolExecutor createThreadPool(String poolName){
-		System.out.println("[THREAD_POOL] " + poolName + " Min size: " + minPoolTimes + "/" + MIN_POOL_SIZE);
-		System.out.println("[THREAD_POOL] " + poolName + " Max size: " + maxPoolTimes + "/" + MAX_POOL_SIZE);
+		System.out.println("[THREAD_POOL] " + poolName + " Min size: " + MIN_POOL_SIZE);
+		System.out.println("[THREAD_POOL] " + poolName + " Max size: " + MAX_POOL_SIZE);
 
 		ThreadPoolExecutor threadPoolInstance = createThreadPool(poolName, MIN_POOL_SIZE, MAX_POOL_SIZE, 1000*60);
 
@@ -105,21 +103,36 @@ public class ThreadPool {
 		return createThreadPool(poolName, mimPoolSize, maxPoolSize, keepAliveTime, true , 5);
 	}
 
-	/**
-	 * 创建线程池
-	 * @param poolName 池的名称
-	 * @param mimPoolSize 最小线程数
-	 * @param maxPoolSize 最大线程数
-	 * @param keepAliveTime 线程闲置最大存活时间, 单位: 毫秒
-	 * @param daemon 是否是守护线程
-	 * @param priority 线程优先级
-	 * @return 线程池对象
-	 */
-	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int keepAliveTime, boolean daemon, int priority){
+		/**
+		 * 创建线程池
+		 * @param poolName 池的名称
+		 * @param mimPoolSize 最小线程数
+		 * @param maxPoolSize 最大线程数
+		 * @param keepAliveTime 线程闲置最大存活时间, 单位: 毫秒
+		 * @param daemon 是否是守护线程
+		 * @param priority 线程优先级
+		 * @return 线程池对象
+		 */
+		public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int keepAliveTime, boolean daemon, int priority) {
+			return createThreadPool(poolName, mimPoolSize, maxPoolSize, keepAliveTime, daemon, priority, cpuCoreCount * 100);
+		}
+
+		/**
+         * 创建线程池
+         * @param poolName 池的名称
+         * @param mimPoolSize 最小线程数
+         * @param maxPoolSize 最大线程数
+         * @param keepAliveTime 线程闲置最大存活时间, 单位: 毫秒
+         * @param daemon 是否是守护线程
+         * @param priority 线程优先级
+		 * @param queueSize 线程池任务队列大小
+         * @return 线程池对象
+         */
+	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int keepAliveTime, boolean daemon, int priority, int queueSize){
 		ThreadPoolExecutor threadPoolInstance = THREAD_POOL_HANDLER.get(poolName);
 
 		if(threadPoolInstance==null) {
-			threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, keepAliveTime, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(cpuCoreCount * 2000), new DefaultThreadFactory(poolName, daemon, priority));
+			threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, keepAliveTime, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(queueSize), new DefaultThreadFactory(poolName, daemon, priority));
 			//设置allowCoreThreadTimeOut,允许回收超时的线程
 			threadPoolInstance.allowCoreThreadTimeOut(true);
 
