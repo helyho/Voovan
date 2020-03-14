@@ -1709,7 +1709,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
 
             if(!iterator.isValid()) {
-                ret = false;
+                return false;
             }
 
             try {
