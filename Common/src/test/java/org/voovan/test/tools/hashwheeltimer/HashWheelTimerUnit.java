@@ -26,51 +26,32 @@ public class HashWheelTimerUnit extends TestCase {
         hashWheelTimer = new HashWheelTimer(5, 1);
 
         //1个步长
-        hashWheelTimer.addTask(new HashWheelTask() {
-            @Override
-            public void run() {
-                Logger.simple("\t 1: Sync: "+Thread.currentThread().getName()+" "+ TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
-            }
+        hashWheelTimer.addTask( ()->{
+            Logger.simple("\t 1: Sync: "+Thread.currentThread().getName()+" "+ TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
         }, 1);
-
         //两个步长
-        hashWheelTimer.addTask(new HashWheelTask() {
-            @Override
-            public void run() {
-                Logger.simple("\t 2: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
-            }
+        hashWheelTimer.addTask(() -> {
+            Logger.simple("\t 2: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
         }, 2);
 
         //5个步长
-        hashWheelTimer.addTask(new HashWheelTask() {
-            @Override
-            public void run() {
-                Logger.simple("\t 5: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
-            }
+        hashWheelTimer.addTask(()-> {
+            Logger.simple("\t 5: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
         }, 5);
 
         //5个步长
-        hashWheelTimer.addTask(new HashWheelTask() {
-            @Override
-            public void run() {
+        hashWheelTimer.addTask(()-> {
                 Logger.simple("\t10: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
-            }
         }, 10);
 
         //6个步长
-        hashWheelTimer.addTask(new HashWheelTask() {
-            @Override
-            public void run() {
-                Logger.simple("\t 6: Async: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
-            }
+        hashWheelTimer.addTask(()->{
+            Logger.simple("\t 6: Async: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
         }, 6, true);
 
         //12个步长
-        hashWheelTimer.addTask(new HashWheelTask() {
-            @Override
-            public void run() {
-                Logger.simple("\t12: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
-            }
+        hashWheelTimer.addTask(()-> {
+            Logger.simple("\t12: Sync: "+Thread.currentThread().getName()+" "+TDateTime.format(new Date(), TDateTime.STANDER_DATETIME_TEMPLATE));
         }, 12);
     }
 

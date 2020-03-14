@@ -39,17 +39,17 @@ public class TEnv {
 	public static Thread MAIN_THREAD = getMainThread();
 	public static volatile boolean IS_SHUTDOWN = false;
 
-	public static Vector<BooleanSupplier> SHUT_DOWN_HOOKS = new Vector<BooleanSupplier>();
+	public static Vector<Runnable> SHUT_DOWN_HOOKS = new Vector<Runnable>();
 
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
 				TEnv.IS_SHUTDOWN = true;
-				for(BooleanSupplier supplier : SHUT_DOWN_HOOKS.toArray(new BooleanSupplier[0])){
+				for(Runnable hook : SHUT_DOWN_HOOKS.toArray(new Runnable[0])){
 					try {
-						if(supplier!=null) {
-							supplier.getAsBoolean();
+						if(hook!=null) {
+							hook.run();
 						}
 					} catch (Throwable e) {
 						System.out.println("Run shutdown hooks failed." + e.getMessage() + "\r\n" + TEnv.getStackElementsMessage(e.getStackTrace()));
@@ -59,8 +59,8 @@ public class TEnv {
 		});
 	}
 
-	public static void addShutDownHook(BooleanSupplier supplier){
-		SHUT_DOWN_HOOKS.add(supplier);
+	public static void addShutDownHook(Runnable hook){
+		SHUT_DOWN_HOOKS.add(hook);
 	}
 
 	public static Instrumentation instrumentation;

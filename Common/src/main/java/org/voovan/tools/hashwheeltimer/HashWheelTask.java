@@ -188,4 +188,12 @@ public abstract class HashWheelTask {
             return true;
         }
     }
+
+    public static HashWheelTask newInstance(Runnable runnable) {
+        return new HashWheelTask(){
+            public void run() {
+                runnable.run();
+            }
+        };
+    }
 }
