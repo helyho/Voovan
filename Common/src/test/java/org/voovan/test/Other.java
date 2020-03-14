@@ -11,6 +11,7 @@ import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.security.THash;
 import org.voovan.tools.serialize.TSerialize;
 import sun.net.util.URLUtil;
 
@@ -37,24 +38,6 @@ public class Other {
     private int orange = 10;
 
     public static void main(String[] args) throws Exception {
-        CacheMap m = new CacheMap();
-        System.out.println(TEnv.getCurrentPID());
 
-        System.out.println(JSON.toJSON(TPerformance.getJVMMemoryInfo()));
-
-        TEnv.sleep(1);
-        for(int i=0;i<100000;i++) {
-            m.put((long)i, (long)i);
-        }
-
-        System.out.println(JSON.toJSON(TPerformance.getJVMMemoryInfo()));
-
-        TEnv.sleep(1);
-
-
-    }
-
-    private static int compare(final byte[] a, final byte[] b) {
-        return ByteBuffer.wrap(a).compareTo(ByteBuffer.wrap(b));
     }
 }

@@ -463,9 +463,30 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
+    private String getProperty(ColumnFamilyHandle columnFamilyHandle, String name) {
+        try {
+           return rocksDB.getProperty(columnFamilyHandle, "rocksdb." + name);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("getProperty failed", e);
+        }
+    }
+
+    public String getProperty(String columnFamilyName, String name) {
+        try {
+            ColumnFamilyHandle columnFamilyHandle = getColumnFamilyHandler(rocksDB, columnFamilyName);
+            if(columnFamilyHandle != null) {
+                return rocksDB.getProperty(columnFamilyHandle, "rocksdb." + name);
+            } else {
+                return "ColumnFamily: " + columnFamilyName + " not exists";
+            }
+        } catch (RocksDBException e) {
+            throw new RocksMapException("getProperty failed", e);
+        }
+    }
+
     public String getProperty(String name) {
         try {
-           return rocksDB.getProperty("rocksdb." + name);
+            return rocksDB.getProperty(this.dataColumnFamilyHandle, "rocksdb." + name);
         } catch (RocksDBException e) {
             throw new RocksMapException("getProperty failed", e);
         }
