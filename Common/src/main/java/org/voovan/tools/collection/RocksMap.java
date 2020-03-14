@@ -1703,27 +1703,33 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         @Override
         public boolean hasNext() {
+            boolean ret = false;
             if(count == 0 && iterator.isValid()) {
-                return true;
+                ret = true;
             }
 
             if(!iterator.isValid()) {
-                return false;
+                ret = false;
             }
 
             try {
                 iterator.next();
                 if (toKeyBytes == null) {
-                    return iterator.isValid();
+                    ret = iterator.isValid();
                 } else {
-                    return iterator.isValid() && TByte.byteArrayStartWith(iterator.key(), toKeyBytes);
+                    ret = iterator.isValid() && TByte.byteArrayCompare(iterator.key(), toKeyBytes) < 0;
                 }
             } finally {
-                iterator.prev();
+                if( ret ) {
+                    iterator.prev();
+                }
+
                 if(size!=0 && count > size - 1){
-                    return false;
+                    ret = false;
                 }
             }
+
+            return ret;
         }
 
         /**
