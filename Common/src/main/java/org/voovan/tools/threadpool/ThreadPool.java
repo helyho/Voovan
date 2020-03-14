@@ -138,9 +138,10 @@ public class ThreadPool {
 
 			THREAD_POOL_HANDLER.put(poolName, threadPoolInstance);
 			ThreadPoolExecutor finalThreadPoolInstance = threadPoolInstance;
+
+			//绑定进程结束,自动停止线程池
 			TEnv.addShutDownHook(()->{
 				finalThreadPoolInstance.shutdown();
-				return true;
 			});
 		}
 
