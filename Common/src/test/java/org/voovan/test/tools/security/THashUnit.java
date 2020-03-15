@@ -29,7 +29,21 @@ public class THashUnit extends TestCase {
 
             TEnv.measure("test-32="+x, () -> {
                 for (int i = 0; i < 500000; i++) {
-                    THash.murmurHash32(TByte.getBytes(uniqueId.nextNumber()), 0, 8, 0);
+                    THash.murmurHash2_32(TByte.getBytes(uniqueId.nextNumber()), 0, 8, 0);
+                }
+            });
+
+            TEnv.measure("test-32="+x, () -> {
+                for (int i = 0; i < 500000; i++) {
+                    THash.murmurHash2_64(TByte.getBytes(uniqueId.nextNumber()), 0, 8, 0);
+                }
+            });
+
+            TEnv.sleep(100);
+
+            TEnv.measure("test-32="+x, () -> {
+                for (int i = 0; i < 500000; i++) {
+                    THash.murmurHash3_32(TByte.getBytes(uniqueId.nextNumber()), 0, 8, 0);
                 }
             });
 
@@ -38,7 +52,7 @@ public class THashUnit extends TestCase {
 
             TEnv.measure("test-64="+x, () -> {
                 for (int i = 0; i < 500000; i++) {
-                    THash.murmurHash128(TByte.getBytes(uniqueId.nextNumber()), 0, 8, 0);
+                    THash.murmurHash3_128(TByte.getBytes(uniqueId.nextNumber()), 0, 8, 0);
                 }
             });
 
