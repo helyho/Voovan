@@ -1726,7 +1726,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         public boolean hasNext() {
             boolean ret = false;
             if(count == 0 && iterator.isValid()) {
-                ret = true;
+                return true;
             }
 
             if(!iterator.isValid()) {
