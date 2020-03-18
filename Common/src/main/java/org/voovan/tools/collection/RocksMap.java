@@ -1,5 +1,6 @@
 package org.voovan.tools.collection;
 import org.rocksdb.*;
+import org.voovan.Global;
 import org.voovan.tools.TByte;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
@@ -1332,13 +1333,48 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 刷新数据到文件
+     * @param sync 同步刷新
+     * @param allowStall 是否允许写入暂停
      */
-    public void flush(){
+    public void flush(boolean sync, boolean allowStall){
         try {
-            rocksDB.compactRange(dataColumnFamilyHandle);
+            FlushOptions flushOptions = new FlushOptions();
+            flushOptions.setWaitForFlush(sync);
+            flushOptions.setAllowWriteStall(allowStall);
+            rocksDB.flush(flushOptions, this.dataColumnFamilyHandle);
+            if(!sync) {
+                Global.getHashWheelTimer().addTask(()->{
+                    flushOptions.waitForFlush();
+                }, 1, true);
+            }
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap flush failed", e);
         }
+    }
+
+    /**
+     * 刷新数据到文件
+     * @param sync 同步刷新
+     */
+    public void flush(boolean sync){
+        flush(sync, true);
+    }
+
+
+    /**
+     * 刷新WAL数据到文件
+     * @param sync 同步刷新
+     */
+    public void flushWal(boolean sync){
+        try {
+            rocksDB.flushWal(sync);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap flushWal failed", e);
+        }
+    }
+
+    public void flushWal() {
+        flushWal(true);
     }
 
     @Override

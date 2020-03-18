@@ -133,7 +133,7 @@ public class RocksMapBench {
                                 }
                             }
 
-                            rocksMap.flush();
+                            rocksMap.compact();
                             System.out.println("finished " + Thread.currentThread().getName());
                             countDownLatch.countDown();
                         });
