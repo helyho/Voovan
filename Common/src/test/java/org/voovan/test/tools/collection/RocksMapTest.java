@@ -427,9 +427,10 @@ public class RocksMapTest extends TestCase {
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
         rocksMap1.put(System.currentTimeMillis(), System.currentTimeMillis());
-        BackupableDBOptions backupableDBOptions = RocksMap.createBackupableOption();
+        BackupableDBOptions backupableDBOptions = RocksMap.createBackupableOption(rocksMap1);
         backupableDBOptions.setDestroyOldData(true);
-        System.out.println(rocksMap1.createBackup());
+        backupableDBOptions.setBackupLogFiles(false);
+        System.out.println(rocksMap1.createBackup(backupableDBOptions));
     }
 
 

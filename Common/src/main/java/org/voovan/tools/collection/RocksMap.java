@@ -34,7 +34,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         RocksDB.loadLibrary();
     }
 
-    public final static String DEFAULT_COLUMN_FAMILY_NAME = "voovan_default";
+    public final static String DEFAULT_COLUMN_FAMILY_NAME = "Default";
 
     private static byte[] DATA_BYTES = "data".getBytes();
     //缓存 db 和他对应的 TransactionDB
@@ -349,8 +349,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return createBackupableOption(dbName, null);
     }
 
-    public static BackupableDBOptions createBackupableOption() {
-        return createBackupableOption(DEFAULT_COLUMN_FAMILY_NAME, null);
+    public static BackupableDBOptions createBackupableOption(RocksMap rocksMap) {
+        return createBackupableOption(rocksMap.getDbname(), null);
     }
 
     /**
@@ -360,18 +360,18 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 备份路径
      * @throws RocksDBException 异常
      */
-    public String createBackup(BackupableDBOptions backupableDBOptions, boolean beforeCompact) throws RocksDBException {
+    public String createBackup(BackupableDBOptions backupableDBOptions, boolean beforeFlush) throws RocksDBException {
         if(backupableDBOptions==null) {
             backupableDBOptions = createBackupableOption(this.dbname);
         }
 
-        if(beforeCompact) {
-            this.compact();
-        }
-
         BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), backupableDBOptions);
-        backupEngine.createNewBackup(this.rocksDB);
+        backupEngine.createNewBackup(this.rocksDB, beforeFlush);
         return backupableDBOptions.backupDir();
+    }
+
+    public String createBackup(BackupableDBOptions backupableDBOptions) throws RocksDBException {
+        return createBackup(backupableDBOptions, false);
     }
 
     public String createBackup() throws RocksDBException {
