@@ -356,7 +356,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     /**
      * 创建一个备份
      * @param backupableDBOptions 备份选项
-     * @param beforeCompact 是否在备份前执行 compact
+     * @param beforeFlush 是否在备份前执行 flush
      * @return 备份路径
      * @throws RocksDBException 异常
      */
