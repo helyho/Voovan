@@ -101,7 +101,10 @@ public class UniqueId {
 
     /**
      * 生成带顺序的 ID 序列
-     * @return ID字符串
+     * @param timeMills 时间戳
+     * @param signId 种子id
+     * @param sequence 序号
+     * @return id
      */
     public static long generateId(long timeMills, int signId, int sequence){
         return (timeMills << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (signId << SEQUENCE_LEFT) | sequence;
