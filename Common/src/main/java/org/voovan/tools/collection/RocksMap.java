@@ -464,6 +464,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
+    public void compactRange(K start, K end){
+        try {
+            rocksDB.compactRange(dataColumnFamilyHandle, TSerialize.serialize(start), TSerialize.serialize(end));
+        } catch (RocksDBException e) {
+            throw new RocksMapException("compact failed", e);
+        }
+    }
+
     private String getProperty(ColumnFamilyHandle columnFamilyHandle, String name) {
         try {
            return rocksDB.getProperty(columnFamilyHandle, "rocksdb." + name);
