@@ -1360,6 +1360,13 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         flush(sync, true);
     }
 
+    /**
+     * 刷新数据到文件
+     */
+    public void flush(){
+        flush(true, true);
+    }
+
 
     /**
      * 刷新WAL数据到文件
