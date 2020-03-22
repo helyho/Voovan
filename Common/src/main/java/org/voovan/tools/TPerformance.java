@@ -2,10 +2,10 @@ package org.voovan.tools;
 
 import org.voovan.Global;
 
-import javax.crypto.Mac;
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.ThreadMXBean;
 import java.math.BigDecimal;
 import java.net.*;
 import java.util.*;
@@ -129,6 +129,27 @@ public class TPerformance {
 		BigDecimal bg = new BigDecimal(perCoreLoadAvg);
 		perCoreLoadAvg = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 		return perCoreLoadAvg;
+	}
+
+	private static long prevGetTime = System.nanoTime();
+	private static long prevCpuUsedTime = 0;
+
+	/**
+	 * 获取当前进程 cpu 使用量
+	 * @return cpu 使用量, 如使用2核, 返回200%
+	 */
+	public static double getProcessCpuUsage() {
+		ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
+		long totalCpuUsedTime = 0;
+		for (long id : threadBean.getAllThreadIds()) {
+			totalCpuUsedTime += threadBean.getThreadCpuTime(id);
+		}
+		long curtime = System.nanoTime();
+		long usedTime = totalCpuUsedTime - prevCpuUsedTime; //cpu 用时差
+		long totalPassedTime = curtime - prevGetTime; //时间差
+		prevGetTime = curtime;
+		prevCpuUsedTime = totalCpuUsedTime;
+		return (((double) usedTime) / totalPassedTime) * 100;
 	}
 
 	/**
