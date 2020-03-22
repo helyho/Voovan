@@ -221,4 +221,23 @@ public class TDateTime {
 		Long currentNanos = currentMillis*1000000 + nanos;
 		return currentNanos;
 	}
+
+	/**
+	 * 格式一个差值时间为标注日志
+	 * 	如:3600秒, 格式化为: 1h
+	 *
+	 * @param secs 时间秒
+	 * @return 格式化后的时间
+	 */
+	public static String formatElapsedSecs(long secs) {
+		long eTime = secs;
+		final long days = TimeUnit.SECONDS.toDays(eTime);
+		eTime -= TimeUnit.DAYS.toSeconds(days);
+		final long hr = TimeUnit.SECONDS.toHours(eTime);
+		eTime -= TimeUnit.HOURS.toSeconds(hr);
+		final long min = TimeUnit.SECONDS.toMinutes(eTime);
+		eTime -= TimeUnit.MINUTES.toSeconds(min);
+		final long sec = eTime;
+		return String.format("%d days, %02d:%02d:%02d", days, hr, min, sec);
+	}
 }

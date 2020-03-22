@@ -1000,4 +1000,75 @@ public class TString {
 		lineIndex = lineIndex == -1 ? str.length():lineIndex + 1;
 		return str.substring(beginIndex, lineIndex);
 	}
+
+	private static String formatUnits(long value, long prefix, String unit) {
+		if (value % prefix == 0) {
+			return String.format("%d %s", value / prefix, unit);
+		}
+		return String.format("%.1f %s", (double) value / prefix, unit);
+	}
+
+	private static final long KIBI = 1L << 10;
+	private static final long MEBI = 1L << 20;
+	private static final long GIBI = 1L << 30;
+	private static final long TEBI = 1L << 40;
+	private static final long PEBI = 1L << 50;
+	private static final long EXBI = 1L << 60;
+
+	/**
+	 * 格式化计算机字节单位的存储容量为文本
+	 * @param byteCount 字节数
+	 * @return 格式化后的字符串
+	 */
+	public static String formatBytes(long byteCount) {
+		if (byteCount == 1L) { // bytes
+			return String.format("%d byte", byteCount);
+		} else if (byteCount < KIBI) { // bytes
+			return String.format("%d bytes", byteCount);
+		} else if (byteCount < MEBI) { // KiB
+			return formatUnits(byteCount, KIBI, "KB");
+		} else if (byteCount < GIBI) { // MiB
+			return formatUnits(byteCount, MEBI, "MB");
+		} else if (byteCount < TEBI) { // GiB
+			return formatUnits(byteCount, GIBI, "GB");
+		} else if (byteCount < PEBI) { // TiB
+			return formatUnits(byteCount, TEBI, "TB");
+		} else if (byteCount < EXBI) { // PiB
+			return formatUnits(byteCount, PEBI, "PB");
+		} else { // EiB
+			return formatUnits(byteCount, EXBI, "EB");
+		}
+	}
+
+	private static final long KILO = 1000L;
+	private static final long MEGA = 1000000L;
+	private static final long GIGA = 1000000000L;
+	private static final long TERA = 1000000000000L;
+	private static final long PETA = 1000000000000000L;
+	private static final long EXA = 1000000000000000000L;
+
+	/**
+	 * 按数学技术格式化数字为文本
+	 * @param value 数量
+	 * @param unit 单位
+	 * @return 格式化后的字符串
+	 */
+	public static String formatNumber(long value, String unit) {
+		if (value < KILO) {
+			return String.format("%d %s", value, unit);
+		} else if (value < MEGA) { // K
+			return formatUnits(value, KILO, "K" + unit);
+		} else if (value < GIGA) { // M
+			return formatUnits(value, MEGA, "M" + unit);
+		} else if (value < TERA) { // G
+			return formatUnits(value, GIGA, "G" + unit);
+		} else if (value < PETA) { // T
+			return formatUnits(value, TERA, "T" + unit);
+		} else if (value < EXA) { // P
+			return formatUnits(value, PETA, "P" + unit);
+		} else { // E
+			return formatUnits(value, EXA, "E" + unit);
+		}
+	}
+
 }
