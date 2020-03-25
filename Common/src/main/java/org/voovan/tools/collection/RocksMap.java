@@ -1524,6 +1524,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 iterator.directNext();
                 if (TByte.byteArrayStartWith(iterator.keyBytes(), keyBytes)) {
                     entryMap.put((K) iterator.key(), (V) iterator.value());
+                } else {
+                    break;
                 }
             }
 
