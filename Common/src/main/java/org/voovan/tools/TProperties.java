@@ -90,7 +90,7 @@ public class TProperties {
 					content = new String(TFile.loadFile(file));
 				}else{
 					String filePath = file.getPath();
-					String resourcePath = filePath.substring(filePath.indexOf("!"+File.separator)+2, filePath.length());
+					String resourcePath = filePath.substring(filePath.lastIndexOf("!"+File.separator)+2, filePath.length());
 					content = new String(TFile.loadResource(resourcePath));
 				}
 				properites.load(new StringReader(content));
