@@ -31,6 +31,8 @@ public class AnnotationRouterTest {
     //将请求中名为 aa 的 参数在调用时注入成方法的 aa 参数
     //将请求中名为 bb 的 参数在调用时注入成方法的 bb 参数
     @Router(method = "GET")
+    //支持同一方法多个路由
+    //同时支持 GET 和 POST 方法
     @Router(path = "/params/r1", method = {"GET", "POST"})
     public String params(@Param("aa") String aa, @Param("bb") int bb){
         String oldPath = lastPath;
@@ -38,6 +40,9 @@ public class AnnotationRouterTest {
         return "params: aa=" + aa + ", bb=" + bb+ ", lastPath="+oldPath;
     }
 
+    //如果 Request 的 body 是 json 形式则直接解释出 json 中的key 作为参数注入路由方法
+    //下面例子会将{"data": "testdata", "number": 1}中的 testdata 注入到方法参数 data
+    //下面例子会将{"data": "testdata", "number": 1}中的 1 注入到方法参数 number
     @Router(value = "bodyParmas", method = "POST")
     public String bodyParmas(@BodyParam(value="data", isRequire=false) String data, @BodyParam("number") int number){
         return data + " " + number;
