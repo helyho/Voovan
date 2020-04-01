@@ -2,9 +2,7 @@ package org.voovan.network;
 
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.network.udp.UdpSocket;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.buffer.ByteBufferChannel;
-import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 
@@ -174,7 +172,7 @@ public class MessageLoader {
 							break;
 						} else {
 							//消息不可分割,且有消息报文存在, 则尝试继续从 Socket 通道读取数据
-							session.getSocketSelector().eventChoose();
+							session.getSocketSelector().select();
 						}
 					}
 				} finally {

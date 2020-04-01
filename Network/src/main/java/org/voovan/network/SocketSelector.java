@@ -65,6 +65,8 @@ public class SocketSelector implements Closeable {
 			e.printStackTrace();
 		}
 
+		addIoEvent();
+
 		//调试日志信息
 		if(Global.IS_DEBUG_MODE) {
 			Global.getHashWheelTimer().addTask(new HashWheelTask() {
@@ -105,7 +107,7 @@ public class SocketSelector implements Closeable {
 			IoSession session = socketContext.getSession();
 			session.setSocketSelector(this);
 		} else {
-			addChooseEvent(6, () -> {
+			addEvent(6, () -> {
 				try {
 					SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
 					if (socketContext.connectModel != ConnectModel.LISTENER) {
@@ -121,10 +123,8 @@ public class SocketSelector implements Closeable {
 						}
 					}
 					socketContext.setRegister(true);
-					return true;
 				} catch (ClosedChannelException e) {
 					Logger.error("Register " + socketContext + " to selector error", e);
-					return false;
 				}
 			});
 
@@ -135,7 +135,6 @@ public class SocketSelector implements Closeable {
 		}
 
 		return true;
-
 	}
 
 	/**
@@ -189,30 +188,29 @@ public class SocketSelector implements Closeable {
 	/**
 	 * 向执行器中增加一个选择事件
 	 */
-	public void addChooseEvent(){
-		addChooseEvent(4, null);
+	public void addIoEvent(){
+		eventRunner.addEvent(4, () -> {
+				select();
+				addIoEvent();
+		});
 	}
 
 	/**
 	 * 向执行器中增加一个选择事件
 	 * @param priority 指定的事件优先级, 越小优先级越高, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6: Socket 注册/注销事件, 7-10 预留事件等级
-	 * @param supplier 在事件选择前执行的方法
+	 * @param runnable 在事件选择前执行的方法
 	 */
-	public void addChooseEvent(int priority, Callable<Boolean> supplier){
+	public void addEvent(int priority, Runnable runnable){
+		if(runnable==null) {
+			throw new NullPointerException("add Event's second paramater must be not null");
+		}
+
 		if(selector.isOpen()) {
 			eventRunner.addEvent(priority, () -> {
-				boolean result = true;
-				if(supplier!=null) {
-					try {
-						result = supplier.call();
-					} catch (Exception e) {
-						Logger.error("addChoseEvent error:", e);
-						result = false;
-					}
-				}
-
-				if(result) {
-					eventChoose();
+				try {
+					runnable.run();
+				} catch (Exception e) {
+					Logger.error("addChoseEvent error:", e);
 				}
 			});
 		}
@@ -221,32 +219,25 @@ public class SocketSelector implements Closeable {
 	int JvmEpollBugFlag = 0;
 
 	/**
-	 * 事件选择业务累
+	 * 事件选择业务
 	 */
-	public void eventChoose() {
+	public void select() {
 		// 事件循环
 		try {
 			if (selector != null && selector.isOpen()) {
 				//执行选择操作, 如果还有可选择的 socket 注册的 key
-				if(selector.keys().size() > 0) {
-					processSelect();
+				processSelect();
 
-					//如果有待处理的操作则下次调用 selectNow, 如果没有待处理的操作则调用带有阻赛的 select
-					if (!selectedKeys.isEmpty()) {
-						processSelectionKeys();
-						useSelectNow = true;
-					} else {
-						useSelectNow = false;
-					}
+				//如果有待处理的操作则下次调用 selectNow, 如果没有待处理的操作则调用带有阻赛的 select
+				if (!selectedKeys.isEmpty()) {
+					processSelectionKeys();
+					useSelectNow = true;
+				} else {
+					useSelectNow = false;
 				}
 			}
 		} catch (IOException e){
 			Logger.error("NioSelector error: ", e);
-		} finally {
-			//如果还有可选择的 socket 注册的 key 则继续触发 eventChoose
-			if(inEventRunner() && !selector.keys().isEmpty()){
-				addChooseEvent();
-			}
 		}
 	}
 
@@ -264,7 +255,7 @@ public class SocketSelector implements Closeable {
 					//检查超时
 					checkReadTimeout();
 					selecting.compareAndSet(false, true);
-					selector.select(100);
+					selector.select(SocketContext.SELECT_INTERVAL);
 					selecting.compareAndSet(true, false);
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -275,13 +266,14 @@ public class SocketSelector implements Closeable {
 			int readyChannelCount = selectedKeys.size();
 
 			//Bug 探测
-			if(readyChannelCount ==0 && dealTime < 1000000*0.5){
+			if(readyChannelCount ==0 && dealTime < 1000000*SocketContext.SELECT_INTERVAL){
 				JvmEpollBugFlag++;
 			} else {
 				JvmEpollBugFlag = 0;
 			}
 
 			if(JvmEpollBugFlag >=1024){
+				TEnv.sleep(SocketContext.SELECT_INTERVAL);
 				System.out.println(dealTime+ " detect bug on " + Thread.currentThread().getName());
 			}
 		}

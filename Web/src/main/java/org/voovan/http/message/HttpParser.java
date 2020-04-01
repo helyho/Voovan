@@ -490,7 +490,7 @@ public class HttpParser {
 				throw new HttpParserException("Socket is disconnect");
 			}
 
-			session.getSocketSelector().eventChoose();
+			session.getSocketSelector().select();
 			if(session.getReadByteBufferChannel().isReleased()) {
 				throw new HttpParserException("socket read buffer is released, may be Socket is disconnected");
 			}

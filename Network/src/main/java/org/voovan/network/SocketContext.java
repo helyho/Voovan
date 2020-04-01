@@ -32,6 +32,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
     //================================线程管理===============================
 	public static int ACCEPT_THREAD_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("AcceptThreadSize"),"1"));
 	public static int IO_THREAD_SIZE = Integer.valueOf(TObject.nullDefault(System.getProperty("IoThreadSize"), TPerformance.getProcessorCount()+""));
+	public static int SELECT_INTERVAL = Integer.valueOf(TObject.nullDefault(System.getProperty("SelectInterval"), "100"));
 
 	static {
 		IO_THREAD_SIZE = IO_THREAD_SIZE < 8 ? 8 : IO_THREAD_SIZE;
