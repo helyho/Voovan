@@ -20,7 +20,6 @@ import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.network.tcp.TcpSocket;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
@@ -37,7 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 /**
@@ -220,7 +218,7 @@ public class HttpClient extends PooledObject implements Closeable{
 		IoSession session = socket.getSession();
 
 		ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getReadBufferSize());
-		session.getSocketSelector().eventChoose();
+		session.getSocketSelector().select();
 
 		int readSize = session.read(tmpBuffer);
 
