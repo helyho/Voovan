@@ -54,14 +54,14 @@ public class RocksMapTest extends TestCase {
 
         RocksMap rocksMap2 = new RocksMap("javaComparator", "Default", cppColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
 
+        if(rocksMap2.size() < 3000)
+        TEnv.measure("cppComparator", ()->{
+            for (int i = 0; i < 3000; i++) {
+                rocksMap2.put(((Long)uniqueId.nextNumber()).toString(), i);
+            }
+        });
 
-//        TEnv.measure("cppComparator", ()->{
-//            for (int i = 0; i < 3000; i++) {
-//                rocksMap2.put(((Long)uniqueId.nextNumber()).toString(), i);
-//            }
-//        });
-        //                6642070616671666176
-        rocksMap2.scan(null, "6642070616667471", entry->{
+        rocksMap2.scan(null, "6652262218912382986", entry->{
             System.out.println(((RocksMap.RocksMapEntry)entry).getKey());
             return true;
         }, true);
@@ -164,6 +164,7 @@ public class RocksMapTest extends TestCase {
         }
 
         RocksMap rocksMap = new RocksMap("testdb");
+        rocksMap.clear();
         System.out.println(rocksMap.get("name"));
         rocksMap.put("11", "11");
 
@@ -215,34 +216,35 @@ public class RocksMapTest extends TestCase {
 
 
 
-        System.out.println("===============withTransaction commit==================");
+        System.out.println("===============withTransaction inner rollback outer commit ==================");
         //测试事务隔离
+        rocksMap.remove("commit");
         rocksMap.beginTransaction();
         rocksMap.withTransaction(map ->{
             RocksMap rocksMapT = (RocksMap)map;
-            rocksMapT.put("ddddk", "ffdasf");
+            rocksMapT.put("commit", "ffdasf");
             //测试事务隔离
-            rocksMap.rollback();
-            System.out.println("withTransaction: " + rocksMapT.get("ddddk"));
+            rocksMapT.rollback();
+            System.out.println("withTransaction: " + rocksMapT.get("commit"));
             return true;
         });
 
-        System.out.println("withTransaction commit: " + rocksMap.get("ddddk"));
-        rocksMap.remove("ddddk");
+        System.out.println("withTransaction commit: " + rocksMap.get("commit"));
 
         //rollback
-        System.out.println("===============withTransaction rollback ==================");
+        System.out.println("===============withTransaction inner commit outer rollback  ==================");
         //测试事务隔离
+        rocksMap.remove("rollback");
         rocksMap.beginTransaction();
         rocksMap.withTransaction(map ->{
             RocksMap rocksMapT = (RocksMap) map;
-            rocksMapT.put("ddddk", "ffdasf");
+            rocksMapT.put("rollback", "ffdasf");
             //测试事务隔离
             rocksMap.commit();
-            System.out.println("withTransaction: " + rocksMapT.get("ddddk"));
+            System.out.println("withTransaction: " + rocksMapT.get("rollback"));
             return false;
         });
-        System.out.println("withTransaction rollback: " + rocksMap.get("ddddk"));
+        System.out.println("withTransaction rollback: " + rocksMap.get("rollback"));
 
         //commit
         System.out.println("===============share commit ==================");
