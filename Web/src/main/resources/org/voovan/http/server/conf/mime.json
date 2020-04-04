@@ -832,6 +832,7 @@
   "txd": "application/vnd.genomatix.tuxedo",
   "txf": "application/vnd.mobius.txf",
   "txt": "text/plain",
+  "md": "text/markdown",
   "u32": "application/x-authorware-bin",
   "udeb": "application/x-debian-package",
   "ufd": "application/vnd.ufdl",
