@@ -935,12 +935,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         RocksIterator iterator = null;
 
         try {
-            Transaction transaction = threadLocalTransaction.get();
-            if (transaction != null) {
-                iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
-            } else {
-                iterator = rocksDB.newIterator(dataColumnFamilyHandle, readOptions);
-            }
+            iterator = getIterator();
 
             iterator.seekToFirst();
 
@@ -1431,14 +1426,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     @Override
     public Set keySet() {
         TreeSet<K> keySet = new TreeSet<K>();
-        RocksIterator iterator = null;
-        try {
-            Transaction transaction = threadLocalTransaction.get();
-            if (transaction != null) {
-                iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
-            } else {
-                iterator = rocksDB.newIterator(dataColumnFamilyHandle, readOptions);
-            }
+        try (RocksIterator iterator = getIterator()){
             iterator.seekToFirst();
             while (iterator.isValid()) {
                 K k = (K) TSerialize.unserialize(iterator.key());
@@ -1447,25 +1435,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
 
             return keySet;
-        } finally {
-            if(iterator!=null){
-                iterator.close();
-            }
         }
     }
 
     @Override
     public Collection values() {
         ArrayList<V> values = new ArrayList<V>();
-        RocksIterator iterator = null;
 
-        try {
-            Transaction transaction = threadLocalTransaction.get();
-            if (transaction != null) {
-                iterator = transaction.getIterator(readOptions, dataColumnFamilyHandle);
-            } else {
-                iterator = rocksDB.newIterator(dataColumnFamilyHandle, readOptions);
-            }
+        try (RocksIterator iterator = getIterator()){
             iterator.seekToFirst();
             while (iterator.isValid()) {
                 V value = (V) TSerialize.unserialize(iterator.value());
@@ -1474,10 +1451,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
 
             return values;
-        } finally {
-            if(iterator!=null){
-                iterator.close();
-            }
         }
     }
 
@@ -1520,8 +1493,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         TreeMap<K,V> entryMap =  new TreeMap<K,V>();
 
         try (RocksMapIterator iterator = new RocksMapIterator(this, key, null, skipSize, size)) {
-            while (iterator.hasNext()) {
-                iterator.directNext();
+            while (iterator.directNext(true)) {
                 if (TByte.byteArrayStartWith(iterator.keyBytes(), keyBytes)) {
                     entryMap.put((K) iterator.key(), (V) iterator.value());
                 } else {
@@ -1653,14 +1625,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         innerRocksMap.writeOptions.setDisableWAL(disableWal);
 
         try(RocksMap<K,V>.RocksMapIterator<K,V> iterator = innerRocksMap.iterator(fromKey, toKey)) {
-
-            while (iterator.hasNext()) {
-                RocksMap<K, V>.RocksMapEntry<K, V> rocksMapEntry = iterator.next();
-
-                if (rocksMapEntry == null) {
-                    continue;
-                }
-
+            RocksMap<K, V>.RocksMapEntry<K, V> rocksMapEntry = null;
+            while ((rocksMapEntry = iterator.nextAndValid(true))!=null) {
                 if (checker.apply(rocksMapEntry)) {
                     continue;
                 } else {
@@ -1766,7 +1732,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             if(skipSize >0) {
                 for(int i=0;i<=this.skipSize;i++) {
-                    if(!directNext()) {
+                    if(!directNext(false)) {
                         break;
                     }
                 }
@@ -1775,10 +1741,18 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             count = 0;
         }
 
+        /**
+         * 获取迭代器当前位置的 Entry
+         * @return RocksMapEntry对象
+         */
+        public RocksMapEntry<K, V> getEntry() {
+            return new RocksMapEntry(rocksMap, iterator.key(), iterator.value());
+        }
+
         @Override
         public boolean hasNext() {
             boolean ret = false;
-            if(count == 0 && iterator.isValid()) {
+            if(count == 0 && isValid()) {
                 return true;
             }
 
@@ -1788,21 +1762,29 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             try {
                 iterator.next();
-                if (toKeyBytes == null) {
-                    ret = iterator.isValid();
-                } else {
-                    ret = iterator.isValid() && TByte.byteArrayCompare(iterator.key(), toKeyBytes) < 0;
-                }
+                ret = isValid();
             } finally {
-                if( ret ) {
-                    iterator.prev();
-                }
+                iterator.prev();
 
                 if(size!=0 && count > size - 1){
                     ret = false;
                 }
             }
 
+            return ret;
+        }
+
+        /**
+         * 迭代器当前位数数据是否有效
+         * @return true: 有效, false: 无效
+         */
+        public boolean isValid(){
+            boolean ret;
+            if (toKeyBytes == null) {
+                ret = iterator.isValid();
+            } else {
+                ret = iterator.isValid() && TByte.byteArrayCompare(iterator.key(), toKeyBytes) < 0;
+            }
             return ret;
         }
 
@@ -1842,12 +1824,20 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
          * 只是执行 next 不反序列化数据
          * @return true: 成功, false: 失败
          */
-        public boolean directNext() {
+        public boolean directNext(boolean valid) {
             if(count != 0) {
                 iterator.next();
             }
 
-            if(iterator.isValid()) {
+            boolean flag = false;
+
+            if(valid) {
+                flag = isValid();
+            } else {
+                flag = iterator.isValid();
+            }
+
+            if(flag) {
                 count++;
                 return true;
             } else {
@@ -1855,13 +1845,17 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
         }
 
-        @Override
-        public RocksMapEntry<K,V> next() {
-            if(directNext()) {
-                return new RocksMapEntry(rocksMap, iterator.key(), iterator.value());
+        public RocksMapEntry<K,V> nextAndValid(boolean valid) {
+            if(directNext(true)) {
+                return getEntry();
             } else {
                 return null;
             }
+        }
+
+        @Override
+        public RocksMapEntry<K,V> next() {
+           return nextAndValid(false);
         }
 
         @Override
