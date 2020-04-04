@@ -14,17 +14,17 @@ public class SyncNioSocketTest {
 		socket.messageSplitter(new LineMessageSplitter());
 	    socket.syncStart();
 
-		socket.synchronouSend("syncSocket\r\n");
+		socket.syncSend("syncSocket\r\n");
 		try {
-			System.out.println("Server: " + socket.synchronouRead());
+			System.out.println("Server: " + socket.syncRead());
 		}catch (Exception e){
 			e.printStackTrace();
 		}
 
-		socket.synchronouSend("syncSocket read after recieve\r\n");
+		socket.syncSend("syncSocket read after recieve\r\n");
 		try {
 			TEnv.sleep(1000);
-			System.out.println("Server: " + socket.synchronouRead());
+			System.out.println("Server: " + socket.syncRead());
 		}catch (Exception e){
 			e.printStackTrace();
 		}

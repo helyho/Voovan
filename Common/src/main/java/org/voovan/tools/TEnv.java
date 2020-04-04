@@ -59,6 +59,10 @@ public class TEnv {
 		});
 	}
 
+	/**
+	 * 增加进程结束的 hook 操作
+	 * @param hook 进程结束时的操作对象
+	 */
 	public static void addShutDownHook(Runnable hook){
 		SHUT_DOWN_HOOKS.add(hook);
 	}
@@ -161,7 +165,7 @@ public class TEnv {
 	}
 
 	/**
-	 * 判断指定的 Class 是否在当前的线程栈中
+	 * 判断指定的 Class 的方法是否在当前的线程栈中
 	 * @param clazzName 类对象
 	 * @param method 方法名
 	 * @return true: 在当前的线程栈中, false: 不在当前的线程栈中
@@ -410,7 +414,7 @@ public class TEnv {
 	}
 
 	/**
-	 * 获取类JVM 的 Class Path
+	 * 获取类 Class Path
 	 *   因部分 ide 会自动增加全部的 jvm 的 classpath, 所以这里会自动剔除 classpath 中 jvm 的 classPath
 	 * @return 获得用户的类加载路径
 	 */
@@ -609,7 +613,7 @@ public class TEnv {
 	/**
 	 * 性能测试方法
 	 * @param supplier 执行器
-	 * @return 执行时间
+	 * @return [0]: supplier 的执行结果, [1]: 执行时间
 	 */
 	public static List measure(Supplier supplier){
 		long startTime = System.nanoTime();
@@ -633,7 +637,7 @@ public class TEnv {
 	 * @param msg 输出的消息
 	 * @param supplier 执行器
 	 * @param timeUnit 输出的时间单位
-	 * @return 测量结果
+	 * @return [0]: supplier 的执行结果, [1]: 执行时间
 	 */
 	public static List measure(String msg, Supplier supplier, TimeUnit timeUnit) {
 		List result = measure(supplier);
@@ -645,7 +649,7 @@ public class TEnv {
 	 * 性能测试方法
 	 * @param msg 输出的消息
 	 * @param supplier 执行器
-	 * @return 测量结果
+	 * @return [0]: supplier 的执行结果, [1]: 执行时间
 	 */
 	public static List measure(String msg, Supplier supplier) {
 		List result = measure(supplier);

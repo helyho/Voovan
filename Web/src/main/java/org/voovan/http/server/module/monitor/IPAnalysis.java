@@ -29,7 +29,7 @@ public class IPAnalysis {
         this.address = address;
         this.totalCount = new AtomicLong(0);
         this.lastMinuteCount = 0;
-        this.minute = TDateTime.getDateAtom(null, Calendar.MINUTE);
+        this.minute = TDateTime.getDateElement(null, Calendar.MINUTE);
         this.data = new ConcurrentHashMap<String, Integer>();
     }
 
@@ -59,7 +59,7 @@ public class IPAnalysis {
             data.put(requestPath, 1);
         }
 
-        int currentMinute = TDateTime.getDateAtom(null, Calendar.MINUTE);
+        int currentMinute = TDateTime.getDateElement(null, Calendar.MINUTE);
         if(currentMinute == minute){
             lastMinuteCount ++;
         }else{

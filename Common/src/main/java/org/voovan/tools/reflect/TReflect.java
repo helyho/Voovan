@@ -246,9 +246,10 @@ public class TReflect {
 
     /**
      * 生成方法的原生调用代码
-     * @param clazz 根绝这个对象的元信息生成静态调用代码
+     * @param clazz 根据这个对象的元信息生成静态调用代码
+     * @return DynamicFunction 对象
      */
-    public static void genMethodInvoker(Class clazz) {
+    public static DynamicFunction genMethodInvoker(Class clazz) {
         String className = clazz.getCanonicalName();
         Method[] methods = getMethods(clazz);
 
@@ -326,6 +327,8 @@ public class TReflect {
         if(Global.IS_DEBUG_MODE) {
             Logger.debug(code);
         }
+
+        return dynamicFunction;
     }
 
 
@@ -382,11 +385,11 @@ public class TReflect {
     }
 
     /**
-     * 通过原生调用一个方法
+     * 通过原生构造一个对象
      * @param clazz 对象
-     * @param params 方法参数
-     * @param <T> 方法返回值的范型
-     * @return 方法返回值
+     * @param params 构造方法参数
+     * @param <T> 构造的对象的范型
+     * @return 构造对象
      * @throws ReflectiveOperationException 调用异常
      */
     public static <T> T newInstanceNative(Class clazz, Object ... params) throws ReflectiveOperationException {
@@ -451,8 +454,8 @@ public class TReflect {
     }
 
     /**
-     * 根据类的完全现定名, 获取 Class
-     * @param className 类的完全现定名
+     * 根据类的完全限定名, 获取 Class
+     * @param className 类的完全限定名
      * @return Class 对象
      * @throws ClassNotFoundException 类没有找到的异常
      */

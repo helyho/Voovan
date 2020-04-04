@@ -164,7 +164,7 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
      * @return 读取出的对象
      * @throws ReadMessageException 读取消息异常
      */
-    public Object synchronouRead() throws ReadMessageException {
+    public Object syncRead() throws ReadMessageException {
         return session.syncRead();
     }
 
@@ -173,7 +173,7 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
      * @param obj  要发送的对象
      * @throws SendMessageException  消息发送异常
      */
-    public void synchronouSend(Object obj) throws SendMessageException {
+    public void syncSend(Object obj) throws SendMessageException {
         session.syncSend(obj);
     }
 
