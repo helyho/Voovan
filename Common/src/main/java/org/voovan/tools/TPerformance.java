@@ -277,7 +277,7 @@ public class TPerformance {
 
 		String[] consoleLines = console.split(System.lineSeparator());
 
-		if(headCount<0){
+		if(headCount==null || headCount<0){
 			headCount = consoleLines.length;
 		}else{
 			headCount=headCount+3;
@@ -299,6 +299,17 @@ public class TPerformance {
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * 获取指定进程的对象信息
+	 * @param pid		进程 Id
+	 * @param regex     对象匹配字符串
+	 * @return 虚拟机中的对象信息
+	 * @throws IOException IO 异常
+	 */
+	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex) throws IOException {
+		return TPerformance.getJVMObjectInfo(TEnv.getCurrentPID(), regex, null);
 	}
 
 	/**
