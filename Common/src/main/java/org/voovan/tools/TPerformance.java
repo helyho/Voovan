@@ -66,6 +66,10 @@ public class TPerformance {
 		return osmxb.getAvailableProcessors();
 	}
 
+	/**
+	 * 获取主机所有的网络接口
+	 * @return 网络接口 List
+	 */
 	public static List<NetworkInterface> getNetworkInterfaces() {
 		if (NETWROK_INTERFACE.size() == 0) {
 			try {
@@ -83,6 +87,11 @@ public class TPerformance {
 		return NETWROK_INTERFACE;
 	}
 
+	/**
+	 * 将 byte[]形式的 mac 地址, 转换为字符串形式的 mac 地址
+	 * @param macBytes mac 地址字节数组
+	 * @return mac 地址字符串形式
+	 */
 	public static String convertByteMac(byte[] macBytes){
 		if(macBytes == null) return null;
 		StringBuilder sb = new StringBuilder();
@@ -93,6 +102,10 @@ public class TPerformance {
 		return sb.toString();
 	}
 
+	/**
+	 * 获取所有的本机 ip 地址
+	 * @return 所有的本机 ip 地址 List
+	 */
 	public static List<String> getLocalIpAddrs() {
 		if (LOCAL_IP_ADDRESSES.size() == 0) {
 			for(NetworkInterface networkInterface : getNetworkInterfaces()) {
@@ -116,6 +129,11 @@ public class TPerformance {
 		return LOCAL_IP_ADDRESSES;
 	}
 
+	/**
+	 * 获取某个ip 地址的 mac 地址
+	 * @param address ip 地址
+	 * @return mac 地址
+	 */
 	public static byte[] getMacByAddress(String address){
 		return LOCAL_IP_MAC.get(address);
 	}
@@ -353,6 +371,7 @@ public class TPerformance {
 	public static Map<String,Object>  getProcessorInfo(){
 		Map<String,Object> processInfo = new Hashtable<String,Object>();
 		processInfo.put("ProcessorCount",TPerformance.getProcessorCount());
+		processInfo.put("ProcessorCpuUsage",TPerformance.getProcessCpuUsage());
 		processInfo.put("SystemLoadAverage",TPerformance.getSystemLoadAverage());
 		return processInfo;
 	}
@@ -369,77 +388,6 @@ public class TPerformance {
 		return jvmInfo;
 	}
 
-	/**
-	 * 获取当前系统内存使用信息
-	 * 		仅限 Linux
-	 * @return 数组单位 MB, 1: 内存总大小, 2: 空闲内存大小, 3: 可用内存大小, 4: 交换区大小, 5: 交换区空闲大小
-	 * @throws IOException  IO 异常
-	 * @throws InterruptedException 中断异常
-	 */
-	public static Map<String, Integer> getSysMemInfo() throws IOException, InterruptedException
-	{
-		if(TEnv.OS_NAME.toLowerCase().contains("linux")) {
-			try(FileInputStream fileInputStream = new FileInputStream("/proc/meminfo")) {
-				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
-				Map<String, Integer> result = new HashMap<String, Integer>();
-				String lineStr = null;
-				StringTokenizer token = null;
-				while ((lineStr = bufferedReader.readLine()) != null) {
-					token = new StringTokenizer(lineStr);
-					if (!token.hasMoreTokens())
-						continue;
-
-					String tokenStr = token.nextToken();
-					if (!token.hasMoreTokens())
-						continue;
-
-					if (tokenStr.equalsIgnoreCase("MemTotal:")) {
-						result.put("MemTotal", Integer.parseInt(token.nextToken()) / 1024);
-					} else if (tokenStr.equalsIgnoreCase("MemFree:")) {
-						result.put("MemFree", Integer.parseInt(token.nextToken()) / 1024);
-					} else if (tokenStr.equalsIgnoreCase("MemAvailable:")) {
-						result.put("MemAvailable", Integer.parseInt(token.nextToken()) / 1024);
-					} else if (tokenStr.equalsIgnoreCase("SwapTotal:")) {
-						result.put("SwapTotal", Integer.parseInt(token.nextToken()) / 1024);
-					} else if (tokenStr.equalsIgnoreCase("SwapFree:")) {
-						result.put("SwapFree", Integer.parseInt(token.nextToken()) / 1024);
-					}
-				}
-
-				return result;
-			}
-		} else {
-			return null;
-		}
-	}
-
-
-	/**
-	 * 获取当前系统CPU 使用率
-	 * 		仅限 Linux
-	 * @return cpu信息
-	 * @throws IOException  IO 异常
-	 * @throws InterruptedException 打断异常
-	 */
-	public static Map<String, Integer> getSysCpuInfo() throws IOException, InterruptedException {
-		if(TEnv.OS_NAME.toLowerCase().contains("linux")) {
-			Map<String, Integer> result = new HashMap<String, Integer>();
-			try(FileInputStream fileInputStream = new FileInputStream("/proc/stat")) {
-				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
-
-				StringTokenizer token = new StringTokenizer(bufferedReader.readLine());
-				token.nextToken();
-				result.put("User", Integer.parseInt(token.nextToken()));
-				result.put("Nice", Integer.parseInt(token.nextToken()));
-				result.put("Sys", Integer.parseInt(token.nextToken()));
-				result.put("Idle", Integer.parseInt(token.nextToken()));
-
-				return result;
-			}
-		}else{
-			return null;
-		}
-	}
 
 	/**
 	 * JVM 中对象信息

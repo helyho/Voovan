@@ -200,7 +200,7 @@ public class TDateTime {
 	 * @param type 时间元素类型
 	 * @return 时间元素的值
 	 */
-	public static int getDateAtom(Date date,int type){
+	public static int getDateElement(Date date,int type){
 		Calendar calendar = Calendar.getInstance();
 		if(date!=null) {
 			calendar.setTime(date);
@@ -223,7 +223,7 @@ public class TDateTime {
 	}
 
 	/**
-	 * 格式一个差值时间为标注日志
+	 * 格式一个差值时间为人类可读
 	 * 	如:3600秒, 格式化为: 1h
 	 *
 	 * @param secs 时间秒

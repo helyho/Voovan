@@ -792,10 +792,10 @@ public class TString {
 		}
 
 		if(obj==null){
-			obj = random.nextInt();
+			obj = random.nextInt(obj.hashCode());
 		}
 
-		long currentTime = System.currentTimeMillis();
+		long currentTime = TDateTime.currentTimeNanos();
 		long mark = currentTime ^ random.nextLong();
 
 		long randomMark = currentTime ^random.nextLong();
@@ -943,8 +943,8 @@ public class TString {
 
 	/**
 	 * 字符串快捷拼装方法
-	 * @param items 需要瓶装的字符串
-	 * @return 瓶装后的字符串
+	 * @param items 需要拼装的字符串
+	 * @return 拼装后的字符串
 	 */
 	public static String assembly(Object ... items){
 		StringBuilder stringBuilder = new StringBuilder();
@@ -956,8 +956,8 @@ public class TString {
 	}
 
 	/**
-	 * 将字符串转化成 Ascii 的不同
-	 * @param str 字符串
+	 * 将字符串转化成 Ascii 的 byte[]
+	 * @param str 需要转换的字符串
 	 * @return 转换后的字节队列
 	 */
 	public static byte[] toAsciiBytes(String str) {
@@ -989,7 +989,7 @@ public class TString {
 	 * 从指定位置读取一行字符串
 	 * @param str 读取的字符串
 	 * @param beginIndex 起始位置
-	 * @return 读取的一行字符串, null 读取到文件结尾
+	 * @return 读取的一行字符串, null 读取到结尾
 	 */
 	public static String readLine(String str, int beginIndex) {
 		if(beginIndex==str.length()){
@@ -1050,7 +1050,7 @@ public class TString {
 	/**
 	 * 按数学技术格式化数字为文本
 	 * @param value 数量
-	 * @param unit 单位
+	 * @param unit 单位(K,M,G,T,P,E)
 	 * @return 格式化后的字符串
 	 */
 	public static String formatNumber(long value, String unit) {
