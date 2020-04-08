@@ -50,6 +50,7 @@ public class WebServer {
 	 */
 	public WebServer(WebServerConfig config) {
 		this.config = config;
+		WebContext.buildConfigFromJSON(JSON.toJSON(config));
 
 		initAop();
 		initHotSwap();

@@ -249,32 +249,14 @@ public class SocketSelector implements Closeable {
 		if(useSelectNow){
 			selector.selectNow();
 		} else {
-			long startTime = System.nanoTime();
-			{
-				try {
-					//检查超时
-					checkReadTimeout();
-					selecting.compareAndSet(false, true);
-					selector.select(SocketContext.SELECT_INTERVAL);
-					selecting.compareAndSet(true, false);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			long dealTime = System.nanoTime() - startTime;
-
-			int readyChannelCount = selectedKeys.size();
-
-			//Bug 探测
-			if(readyChannelCount ==0 && dealTime < 1000000*SocketContext.SELECT_INTERVAL){
-				JvmEpollBugFlag++;
-			} else {
-				JvmEpollBugFlag = 0;
-			}
-
-			if(JvmEpollBugFlag >=1024){
-				TEnv.sleep(SocketContext.SELECT_INTERVAL);
-				System.out.println(dealTime+ " detect bug on " + Thread.currentThread().getName());
+			try {
+				//检查超时
+				checkReadTimeout();
+				selecting.compareAndSet(false, true);
+				selector.select(SocketContext.SELECT_INTERVAL);
+				selecting.compareAndSet(true, false);
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
