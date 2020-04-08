@@ -1,5 +1,6 @@
 package org.voovan.http.client;
 
+import org.voovan.Global;
 import org.voovan.http.HttpRequestType;
 import org.voovan.http.HttpSessionParam;
 import org.voovan.http.message.Request;
@@ -48,6 +49,8 @@ import java.util.function.Consumer;
  */
 public class HttpClient extends PooledObject implements Closeable{
 
+	public static String DEFAULT_USER_AGENT = "Voovan Http Client " + Global.getVersion();
+
 	private TcpSocket socket;
 	private HttpRequest httpRequest;
 	private Map<String, Object> parameters;
@@ -66,7 +69,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 */
 	public  HttpClient(String urlString) {
 		this.urlString = urlString;
-		init(urlString,5);
+		init(urlString, 5);
 
 	}
 
@@ -75,9 +78,9 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @param urlString 请求的 URL 地址
 	 * @param timeOut 超时时间
 	 */
-	public  HttpClient(String urlString,int timeOut) {
+	public  HttpClient(String urlString,int timeout) {
 		this.urlString = urlString;
-		init(urlString,timeOut);
+		init(urlString, timeout);
 	}
 
 	/**
@@ -86,10 +89,10 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @param charset  字符集
 	 * @param timeOut  超时时间
 	 */
-	public  HttpClient(String urlString,String charset,int timeOut) {
+	public  HttpClient(String urlString,String charset,int timeout) {
 		this.urlString = urlString;
 		this.charset = charset;
-		init(urlString,timeOut);
+		init(urlString, timeout);
 
 	}
 
@@ -101,7 +104,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	public  HttpClient(String urlString,String charset) {
 		this.urlString = urlString;
 		this.charset = charset;
-		init(urlString,5);
+		init(urlString, 5);
 
 	}
 
@@ -119,7 +122,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @param urlString     主机地址
 	 * @param timeOut  超时时间
 	 */
-	private void init(String urlString,int timeOut){
+	private void init(String urlString,int timeout){
 		try {
 
 			isSSL = trySSL(urlString);
@@ -145,7 +148,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 			parameters = new HashMap<String, Object>();
 
-			socket = new TcpSocket(hostString, port==-1?80:port, timeOut*1000);
+			socket = new TcpSocket(hostString, port==-1?80:port, timeout*1000);
 			socket.filterChain().add(new HttpClientFilter(this));
 			socket.messageSplitter(new HttpMessageSplitter());
 
@@ -182,19 +185,26 @@ public class HttpClient extends PooledObject implements Closeable{
 	/**
 	 * 设置是否将参数封装在 URL 中, 仅在 POST 等请求中有效
 	 * @param paramInUrl true:是, false: 否
+	 * @return  HttpClient 对象
 	 */
-	public void setParamInUrl(boolean paramInUrl) {
+	public HttpClient setParamInUrl(boolean paramInUrl) {
 		this.paramInUrl = paramInUrl;
+		return this;
 	}
 
-	public void initHeader(){
+	/**
+	 * 重新初始化 http 头
+	 * @return  HttpClient 对象
+	 */
+	public HttpClient initHeader(){
 		//初始化请求参数,默认值
 		httpRequest.header().put("Host", hostString);
 		httpRequest.header().put("Pragma", "no-collection");
 		httpRequest.header().put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-		httpRequest.header().put("User-Agent", "Voovan Http Client");
+		httpRequest.header().put("User-Agent", DEFAULT_USER_AGENT);
 		httpRequest.header().put("Accept-Encoding","gzip");
 		httpRequest.header().put("Connection","keep-alive");
+		return this;
 	}
 
 	/**
@@ -207,6 +217,15 @@ public class HttpClient extends PooledObject implements Closeable{
 
 	public HttpRequest getHttpRequest() {
 		return httpRequest;
+	}
+
+	/**
+	 * 直接发送流
+	 * @buffer 字节缓冲对象ByteBuffer
+	 * @throws IOException IO异常对象
+	 */
+	public void sendStream(ByteBuffer buffer) {
+		socket.getSession().send(buffer);
 	}
 
 	/**
@@ -706,6 +725,65 @@ public class HttpClient extends PooledObject implements Closeable{
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	 * 静态构造方法
+	 *   默认字符集 UTF-8, 默认超时时间 5s
+	 * @param urlString 请求的 URL 地址
+	 * @return HttpClient 对象, 返回 null 则构造的 HttpClient 建立连接失败
+	 */
+	public static HttpClient newInstance(String urlString) {
+		HttpClient httpClient = new HttpClient(urlString);
+		if(!httpClient.isConnect()) {
+			return null;
+		}
+		return httpClient;
+	}
+
+	/**
+	 * 静态构造方法
+	 *   默认超时时间 5s
+	 * @param urlString 请求的 URL 地址
+	 * @param timeOut  超时时间
+	 * @return HttpClient 对象, 返回 null 则构造的 HttpClient 建立连接失败
+	 */
+	public static HttpClient newInstance(String urlString, int timeout) {
+		HttpClient httpClient = new HttpClient(urlString, timeout);
+		if(!httpClient.isConnect()) {
+			return null;
+		}
+		return httpClient;
+	}
+
+	/**
+	 * 静态构造方法
+	 *   默认超时时间 5s
+	 * @param urlString 请求的 URL 地址
+	 * @param charset  字符集
+	 * @return HttpClient 对象, 返回 null 则构造的 HttpClient 建立连接失败
+	 */
+	public static HttpClient newInstance(String urlString, String charset) {
+		HttpClient httpClient = new HttpClient(urlString, charset);
+		if(!httpClient.isConnect()) {
+			return null;
+		}
+		return httpClient;
+	}
+
+	/**
+	 * 静态构造方法
+	 * @param urlString 请求的 URL 地址
+	 * @param charset  字符集
+	 * @param timeOut  超时时间
+	 * @return HttpClient 对象, 返回 null 则构造的 HttpClient 建立连接失败
+	 */
+	public static HttpClient newInstance(String urlString, String charset, int timeout) {
+		HttpClient httpClient = new HttpClient(urlString, charset, timeout);
+		if(!httpClient.isConnect()) {
+			return null;
+		}
+		return httpClient;
 	}
 
 }
