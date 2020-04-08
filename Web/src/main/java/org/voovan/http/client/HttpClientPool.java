@@ -29,8 +29,8 @@ public class HttpClientPool {
             .minSize(minSize).maxSize(maxSize)
             .validator(httpClient -> httpClient.isConnect())
             .supplier(()->{
-                HttpClient httpClient = new HttpClient(host, timeout);
-                if(!httpClient.isConnect()) {
+                HttpClient httpClient = HttpClient.newInstance(host, timeout);
+                if(httpClient == null) {
                     TEnv.sleep(timeout*1000);
                 }
                 return httpClient;
