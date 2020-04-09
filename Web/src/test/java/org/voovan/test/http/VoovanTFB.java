@@ -39,7 +39,7 @@ public class VoovanTFB {
 
 	public static void main(String[] args) {
 
-		WebServerConfig webServerConfig = WebContext.getWebServerConfig();
+		WebServerConfig webServerConfig = WebContext.buildWebServerConfig();
 		webServerConfig.setGzip(false);
 		webServerConfig.setAccessLog(false);
 		webServerConfig.setKeepAliveTimeout(1000);
