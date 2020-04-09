@@ -1,6 +1,7 @@
 package org.voovan.tools.collection;
 
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -13,7 +14,7 @@ import java.util.Set;
  * Licence: Apache v2 License
  */
 
-public class IntKeyMap<T> extends AbstractMap<Integer, T> {
+public class IntKeyMap<T> {
 
     private static final int FREE_KEY = 0;
 
@@ -24,6 +25,8 @@ public class IntKeyMap<T> extends AbstractMap<Integer, T> {
     private T[] values;
 
     private final float fillFactor;
+
+    private int capacity;
 
     private int threshold;
 
@@ -44,10 +47,15 @@ public class IntKeyMap<T> extends AbstractMap<Integer, T> {
         mask = capacity - 1;
         this.fillFactor = fillFactor;
 
+        this.capacity = capacity;
         keys = new int[capacity];
         values = null;
         values = (T[]) new Object[capacity];
         threshold = (int) (capacity * fillFactor);
+    }
+
+    public int getCapacity() {
+        return capacity;
     }
 
     public T get(final int key) {
@@ -66,7 +74,7 @@ public class IntKeyMap<T> extends AbstractMap<Integer, T> {
 
         int index = getPutIndex(key);
         if (index < 0) {
-            rehash(keys.length * 2);
+            rehash((int) (keys.length * 3));
             index = getPutIndex(key);
         }
         final T prev = values[index];
@@ -81,6 +89,14 @@ public class IntKeyMap<T> extends AbstractMap<Integer, T> {
             values[index] = value;
         }
         return prev;
+    }
+
+    public T putIfAbsent(int key, T value) {
+        T t = get(key);
+        if (t == null) {
+            t = put(key, value);
+        }
+        return t;
     }
 
     public T remove(final int key) {
@@ -98,14 +114,22 @@ public class IntKeyMap<T> extends AbstractMap<Integer, T> {
         return res;
     }
 
+    public void clear() {
+        Arrays.fill(keys, 0);
+        Arrays.fill(values, null);
+        size = 0;
+    }
+
     public int size() {
         return size;
     }
 
-    @Override
-    public Set<Entry<Integer, T>> entrySet() {
-        Set<Entry<Integer, T>> set = new LinkedHashSet<>();
-        return null;
+    public int getKey(int index) {
+        return keys[index];
+    }
+
+    public T getValue(int index) {
+        return values[index];
     }
 
     private void rehash(final int newCapacity) {
@@ -116,6 +140,7 @@ public class IntKeyMap<T> extends AbstractMap<Integer, T> {
         final int[] oldKeys = keys;
         final T[] oldValues = values;
 
+        this.capacity = capacity;
         keys = new int[newCapacity];
         values = (T[]) new Object[newCapacity];
 

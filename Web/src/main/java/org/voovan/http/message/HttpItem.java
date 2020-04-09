@@ -18,12 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HttpItem {
 	public final static int HTTP_ITEM_MAX_LENGTH = 1024;
 
-	public static final IntKeyMap[]  HTTP_ITEM_LENGTH_LIST = new IntKeyMap[HTTP_ITEM_MAX_LENGTH];
-	static {
-		for(int i=0;i< HTTP_ITEM_LENGTH_LIST.length; i++){
-			HTTP_ITEM_LENGTH_LIST[i] = new IntKeyMap<HttpItem>(4096);
-		}
-	}
+	public static final IntKeyMap  HTTP_ITEM_MAP = new IntKeyMap(HTTP_ITEM_MAX_LENGTH);
 
 	public static final HttpItem EMPTY = new HttpItem("");
 
@@ -36,7 +31,7 @@ public class HttpItem {
 		this.bytes = value.getBytes();
 		this.hashcode = THash.HashFNV1(bytes, 0, bytes.length);
 
-		HTTP_ITEM_LENGTH_LIST[bytes.length].put(hashcode, this);
+		HTTP_ITEM_MAP.put(hashcode, this);
 	}
 
 	public HttpItem(byte[] valueBytes, int offset, int length) {
@@ -47,7 +42,7 @@ public class HttpItem {
 
 		this.hashcode = THash.HashFNV1(bytes, 0, length);
 
-		HTTP_ITEM_LENGTH_LIST[bytes.length].put(hashcode, this);
+		HTTP_ITEM_MAP.put(hashcode, this);
 	}
 
 	public byte[] getBytes() {
@@ -64,7 +59,7 @@ public class HttpItem {
 
 	public static HttpItem getHttpItem(byte[] bytes, int offset, int length){
 		int hashcode = THash.HashFNV1(bytes, offset, length);
-		HttpItem httpItem = (HttpItem) HTTP_ITEM_LENGTH_LIST[length].get(hashcode);
+		HttpItem httpItem = (HttpItem) HTTP_ITEM_MAP.get(hashcode);
 		if(httpItem == null){
 			httpItem = new HttpItem(bytes, offset, length);
 		}
