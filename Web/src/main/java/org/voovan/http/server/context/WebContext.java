@@ -266,6 +266,15 @@ public class WebContext {
 	}
 
 	/**
+	 * 构造一个新的 WebServer 配置对象
+	 * @return WebServer配置对象
+	 */
+	public static WebServerConfig buildWebServerConfig() {
+		WEB_CONFIG.clear();
+		return webServerConfig = new WebServerConfig();
+	}
+
+	/**
 	 * 获取WebServer配置对象
 	 * @return WebServer配置对象
 	 */
