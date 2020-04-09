@@ -31,7 +31,7 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 <dependency>
     <groupId>org.voovan</groupId>
     <artifactId>voovan-framework</artifactId>
-    <version>4.1.8</version>
+    <version>4.2.1</version>
 </dependency>
 ```
 
@@ -76,6 +76,7 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
  - Vestful 一款提供 Restful 服务的框架
  - Dockerfly 一款 Docker web 管理工具
  - JDocker 一款 java 开发 Docker API 封装的框架
+ - 某区块链交易所后段所有服务都基于 Voovan 运行, 以稳定运行一年半(截至2020年4月)
 
 ---------------------
 ** Voovan 相关新闻 **
