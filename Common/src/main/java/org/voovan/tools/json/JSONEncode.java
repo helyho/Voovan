@@ -2,15 +2,16 @@ package org.voovan.tools.json;
 
 import org.voovan.Global;
 import org.voovan.tools.TDateTime;
+import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.collection.IntKeyMap;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.security.THash;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -25,6 +26,19 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class JSONEncode {
+    public static boolean JSON_CACHE_ENABLE = Boolean.valueOf(TObject.nullDefault(System.getProperty("JsonCacheEnable"), "false"));
+    public static final IntKeyMap<String> JSON_ENCODE_CACHE = new IntKeyMap<String>(1024);
+
+    static {
+        if(JSON_CACHE_ENABLE) {
+            Global.getHashWheelTimer().addTask(new HashWheelTask() {
+                @Override
+                public void run() {
+                    JSON_ENCODE_CACHE.clear();
+                }
+            }, 1);
+        }
+    }
 
     /**
      * 分析自定义对象为JSON字符串
@@ -139,6 +153,14 @@ public class JSONEncode {
     @SuppressWarnings("unchecked")
     public static String fromObject(Object object, boolean allField) throws ReflectiveOperationException {
         String value = null;
+        int jsonHash = Objects.hash(object, allField);
+        if(JSON_CACHE_ENABLE) {
+            value = JSON_ENCODE_CACHE.get(jsonHash);
+
+            if (value != null) {
+                return value;
+            }
+        }
 
         if (object == null) {
             return "null";
@@ -187,6 +209,10 @@ public class JSONEncode {
             value = "\"" + strValue + "\"";
         }  else {
             value = complexObject(object, allField);
+        }
+
+        if(JSON_CACHE_ENABLE) {
+            JSON_ENCODE_CACHE.put(jsonHash, value);
         }
 
         return value;

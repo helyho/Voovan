@@ -3,6 +3,8 @@ package org.voovan.tools.json;
 import org.voovan.Global;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.collection.IntKeyMap;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -23,11 +25,41 @@ import java.util.*;
  * Licence: Apache v2 License
  */
 public class JSONDecode {
+	public static boolean JSON_CACHE_ENABLE = Boolean.valueOf(TObject.nullDefault(System.getProperty("JsonCacheEnable"), "false"));
+	public static final IntKeyMap<Object> JSON_DECODE_CACHE = new IntKeyMap<Object>(1024);
+
+	static {
+		if(JSON_CACHE_ENABLE) {
+			Global.getHashWheelTimer().addTask(new HashWheelTask() {
+				@Override
+				public void run() {
+					JSON_DECODE_CACHE.clear();
+				}
+			}, 1);
+		}
+	}
+
 	private static int E_OBJECT = 1;
 	private static int E_ARRAY = -1;
 
 	public static Object parse(String jsonStr) {
-		return parse(new StringReader(jsonStr.trim() + "\0"));
+		Object value;
+		int jsonHash = jsonStr.hashCode();
+		if(JSON_CACHE_ENABLE) {
+			value = JSON_DECODE_CACHE.get(jsonHash);
+
+			if (value != null) {
+				return value;
+			}
+		}
+
+		value = parse(new StringReader(jsonStr.trim() + "\0"));
+
+		if(JSON_CACHE_ENABLE) {
+			JSON_DECODE_CACHE.put(jsonHash, value);
+		}
+
+		return value;
 	}
 
 	/**
@@ -37,6 +69,7 @@ public class JSONDecode {
 	 * @return 解析后的对象
 	 */
 	private static Object parse(StringReader reader) {
+
 		try {
 
 			if (reader == null) {
