@@ -1,6 +1,5 @@
 ![](http://git.oschina.net/uploads/images/2016/0510/122514_7d971a34_116083.jpeg)
 
-
 [![](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 [![](https://maven-badges.herokuapp.com/maven-central/org.voovan/voovan-framework/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.voovan/voovan-framework)
 ![JDK 1.7](https://img.shields.io/badge/JDK-1.7-green.svg "JDK 1.8")
@@ -12,9 +11,13 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 
 ---------------------
 
-**文档入口:**【[Voovan 开发手册](http://voovan.mydoc.io/)】
+**TFB 性能测试:** 
+  
+  [2019-10-24](https://www.techempower.com/benchmarks/#section=test&runid=59583d86-f7b6-4e86-b86a-a7e8eebf89fb&hw=ph&test=json)
 
-**入门教程:**【[Voovan 一步步入门](http://voovanturorial.mydoc.io/)】
+**文档入口:** [Voovan 开发手册](http://www.voovan.org/doc/#/Document/v4/)
+
+**入门教程:** [Voovan 一步步入门](http://www.voovan.org/doc/#/Turorial/v4/)
 
 **交流QQ群** 454201740
 
