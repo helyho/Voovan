@@ -143,7 +143,7 @@ public class HttpParser {
 			if(equalStrings.length==2){
 				String key = equalStrings[0];
 				String value = equalStrings[1];
-				if(value.startsWith(Global.STR_QUOTE) && value.endsWith(Global.STR_QUOTE)){
+				if(value.charAt(0) == Global.CHAR_QUOTE && value.charAt(value.length() - 1)== Global.CHAR_QUOTE){
 					value = value.substring(1,value.length()-1);
 				}
 				equalMap.put(key, value);
@@ -470,7 +470,7 @@ public class HttpParser {
 	 * @return 解析后的 Map
 	 * @throws IOException IO 异常
 	 */
-	public static Object[]parser(IoSession session, Object[] packetMap, int type,
+	public static Object[] parser(IoSession session, Object[] packetMap, int type,
 											 ByteBufferChannel byteBufferChannel, int timeout,
 											 long requestMaxSize) throws IOException {
 		int totalLength = 0;
