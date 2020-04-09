@@ -3,6 +3,7 @@ package org.voovan.tools;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -37,7 +38,11 @@ public class TUnsafe {
     public static Long getFieldOffset(Field field){
         Long offset = OFFSET_MAP.get(field);
         if(offset==null){
-            offset = unsafe.objectFieldOffset(field);
+            if (Modifier.isStatic(field.getModifiers())) {
+                offset = unsafe.staticFieldOffset(field);
+            } else {
+                offset = unsafe.objectFieldOffset(field);
+            }
             OFFSET_MAP.put(field, offset);
         }
         return offset;
