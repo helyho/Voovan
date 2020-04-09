@@ -1822,6 +1822,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         /**
          * 只是执行 next 不反序列化数据
+         * @param valid 是否验证当前迭代可用
          * @return true: 成功, false: 失败
          */
         public boolean directNext(boolean valid) {

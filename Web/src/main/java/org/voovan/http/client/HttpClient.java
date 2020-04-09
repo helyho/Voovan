@@ -76,7 +76,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	/**
 	 * 构建函数
 	 * @param urlString 请求的 URL 地址
-	 * @param timeOut 超时时间
+	 * @param timeout 超时时间
 	 */
 	public  HttpClient(String urlString,int timeout) {
 		this.urlString = urlString;
@@ -87,7 +87,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * 构建函数
 	 * @param urlString 请求的 URL 地址
 	 * @param charset  字符集
-	 * @param timeOut  超时时间
+	 * @param timeout  超时时间
 	 */
 	public  HttpClient(String urlString,String charset,int timeout) {
 		this.urlString = urlString;
@@ -120,7 +120,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	/**
 	 * 初始化函数
 	 * @param urlString     主机地址
-	 * @param timeOut  超时时间
+	 * @param timeout  超时时间
 	 */
 	private void init(String urlString,int timeout){
 		try {
@@ -221,8 +221,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 	/**
 	 * 直接发送流
-	 * @buffer 字节缓冲对象ByteBuffer
-	 * @throws IOException IO异常对象
+	 * @param buffer 字节缓冲对象ByteBuffer
 	 */
 	public void sendStream(ByteBuffer buffer) {
 		socket.getSession().send(buffer);
@@ -745,7 +744,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * 静态构造方法
 	 *   默认超时时间 5s
 	 * @param urlString 请求的 URL 地址
-	 * @param timeOut  超时时间
+	 * @param timeout  超时时间
 	 * @return HttpClient 对象, 返回 null 则构造的 HttpClient 建立连接失败
 	 */
 	public static HttpClient newInstance(String urlString, int timeout) {
@@ -775,7 +774,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * 静态构造方法
 	 * @param urlString 请求的 URL 地址
 	 * @param charset  字符集
-	 * @param timeOut  超时时间
+	 * @param timeout  超时时间
 	 * @return HttpClient 对象, 返回 null 则构造的 HttpClient 建立连接失败
 	 */
 	public static HttpClient newInstance(String urlString, String charset, int timeout) {
