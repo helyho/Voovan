@@ -1,6 +1,7 @@
 package org.voovan.http.message;
 
 import org.voovan.Global;
+import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.security.THash;
 
 import java.util.Map;
@@ -17,10 +18,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HttpItem {
 	public final static int HTTP_ITEM_MAX_LENGTH = 1024;
 
-	public static final Map[]  HTTP_ITEM_LENGTH_LIST = new Map[HTTP_ITEM_MAX_LENGTH];
+	public static final IntKeyMap[]  HTTP_ITEM_LENGTH_LIST = new IntKeyMap[HTTP_ITEM_MAX_LENGTH];
 	static {
 		for(int i=0;i< HTTP_ITEM_LENGTH_LIST.length; i++){
-			HTTP_ITEM_LENGTH_LIST[i] = new ConcurrentHashMap<Integer, HttpItem>();
+			HTTP_ITEM_LENGTH_LIST[i] = new IntKeyMap<HttpItem>(4096);
 		}
 	}
 
@@ -63,7 +64,7 @@ public class HttpItem {
 
 	public static HttpItem getHttpItem(byte[] bytes, int offset, int length){
 		int hashcode = THash.HashFNV1(bytes, offset, length);
-		HttpItem httpItem = ((Map<Integer, HttpItem>)HTTP_ITEM_LENGTH_LIST[length]).get(hashcode);
+		HttpItem httpItem = (HttpItem) HTTP_ITEM_LENGTH_LIST[length].get(hashcode);
 		if(httpItem == null){
 			httpItem = new HttpItem(bytes, offset, length);
 		}
