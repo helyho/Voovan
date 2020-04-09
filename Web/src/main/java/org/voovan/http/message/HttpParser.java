@@ -511,7 +511,7 @@ public class HttpParser {
 					if (isCache) {
 						for (Entry<Long, Object[]> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
 							long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
-							long totalLengthInMark = (cachedMark << 32) >> 32; //高位清空, 获得整个头的长度
+							long totalLengthInMark = (cachedMark << 32) >>> 32; //高位清空, 获得整个头的长度
 
 							if (totalLengthInMark > innerByteBuffer.limit()) {
 								continue;
@@ -523,7 +523,7 @@ public class HttpParser {
 
 								headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
 
-								if (protocolMark + headerMark == cachedMark >> 32) {
+								if (protocolMark + headerMark == cachedMark >>> 32) {
 									innerByteBuffer.position((int) totalLengthInMark);
 									findCache = true;
 									packetMap = packetMapCacheItem.getValue();
