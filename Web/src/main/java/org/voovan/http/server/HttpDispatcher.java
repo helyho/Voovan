@@ -10,6 +10,7 @@ import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.server.router.MimeFileRouter;
 import org.voovan.tools.*;
 import org.voovan.tools.collection.Chain;
+import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
 
@@ -45,7 +46,7 @@ import java.util.regex.Pattern;
 public class HttpDispatcher {
 
 	private static FastThreadLocal<Map<String, String>> REGEXED_ROUTER_CACHE     = FastThreadLocal.withInitial(()->new HashMap<String, String>());
-	private static FastThreadLocal<Map<Integer, List<Object>>> ROUTER_INFO_CACHE = FastThreadLocal.withInitial(()->new HashMap<Integer, List<Object>>());
+	private static FastThreadLocal<IntKeyMap<List<Object>>> ROUTER_INFO_CACHE = FastThreadLocal.withInitial(()->new IntKeyMap<List<Object>>(16));
 
 	/**
 	 * [MainKey] = HTTP method ,[Value] = { [Value Key] = Route path, [Value value] = RouteBuiz对象 }
