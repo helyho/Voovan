@@ -225,8 +225,8 @@ public class IntKeyMap<T> {
         return (int) s;
     }
 
-    private static int phiMix(final int x) {
-        final int h = x * INT_PHI;
+    private static int phiMix(int value) {
+        int h = value * INT_PHI;
         return h ^ (h >> 16);
     }
 
