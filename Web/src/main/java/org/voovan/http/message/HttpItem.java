@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HttpItem {
 	public final static int HTTP_ITEM_MAX_LENGTH = 1024;
 
-	public static final IntKeyMap  HTTP_ITEM_MAP = new IntKeyMap(16);
+	public static final IntKeyMap  HTTP_ITEM_MAP = new IntKeyMap(HTTP_ITEM_MAX_LENGTH);
 
 	public static final HttpItem EMPTY = new HttpItem("");
 
