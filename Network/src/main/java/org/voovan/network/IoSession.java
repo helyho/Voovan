@@ -44,6 +44,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	private boolean sslMode = false;
 	private SSLParser sslParser;
 
+
 	private MessageLoader messageLoader;
 	protected ByteBufferChannel readByteBufferChannel;
 	protected ByteBufferChannel sendByteBufferChannel;
@@ -54,6 +55,8 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	private State state;
 	private SelectionKey selectionKey;
 	private SocketSelector socketSelector;
+
+	private Object attachment;
 
 	/**
 	 * 会话状态管理
@@ -127,6 +130,14 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		sendByteBufferChannel.setThreadSafe(SocketContext.ASYNC_SEND);
 		messageLoader = new MessageLoader(this);
 		checkIdle();
+	}
+
+	public Object getAttachment() {
+		return attachment;
+	}
+
+	public void setAttachment(Object attachment) {
+		this.attachment = attachment;
 	}
 
 	/**
