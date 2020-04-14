@@ -205,8 +205,6 @@ public class IntKeyMap<T> {
         return (currentIndex + 1) & mask;
     }
 
-    private static final int INT_PHI = 0x9E3779B9;
-
     private static long nextPowerOfTwo(long x) {
         if (x == 0) return 1;
         x--;
@@ -224,6 +222,8 @@ public class IntKeyMap<T> {
             throw new IllegalArgumentException("Too large (" + expected + " expected elements with load factor " + f + ")");
         return (int) s;
     }
+
+    private static final int INT_PHI = 0x9E3779B9;
 
     private static int phiMix(int value) {
         int h = value * INT_PHI;
