@@ -66,7 +66,13 @@ public class Header {
 	 * @return 是否存在
 	 */
 	public boolean contain(String header){
-		return headers.containsKey(header);
+		switch (header) {
+			case HttpStatic.CONTENT_TYPE_STRING : return contentType!=null;
+			case HttpStatic.CONTENT_ENCODING_STRING : return contentEncoding!=null;
+			case HttpStatic.CONTENT_LENGTH_STRING : return contentLength!=null;
+			case HttpStatic.TRANSFER_ENCODING_STRING : return transferEncoding!=null;
+			default : return headers.containsKey(header);
+		}
 	}
 
 	/**
@@ -106,7 +112,9 @@ public class Header {
 	 * @param valueMap Header 的 Map 形式
 	 */
 	public void putAll(Map<String, String> valueMap){
-		headers.putAll(valueMap);
+		for(Entry<String, String> entry : valueMap.entrySet()) {
+			headers.put(entry.getKey(), entry.getValue());
+		}
 	}
 
 	/**
@@ -122,6 +130,10 @@ public class Header {
 	 */
 	public void clear(){
 		if(!isCache) {
+			contentType = null;
+			contentLength = null;
+			contentEncoding = null;
+			transferEncoding = null;
 			headers.clear();
 		}
 	}
