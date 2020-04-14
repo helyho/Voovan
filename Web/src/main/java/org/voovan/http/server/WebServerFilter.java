@@ -2,7 +2,6 @@ package org.voovan.http.server;
 
 import org.voovan.Global;
 import org.voovan.http.HttpRequestType;
-import org.voovan.http.HttpSessionParam;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
@@ -96,11 +95,14 @@ public class WebServerFilter implements IoFilter {
 	 */
 	@Override
 	public Object decode(IoSession session, Object object) {
+
 		if(!session.isConnected()){
 			return null;
 		}
 
-		if (HttpRequestType.HTTP.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))) {
+		HttpSessionState httpSessionState = WebServerHandler.getAttachment(session);
+
+		if (httpSessionState.isHttp()) {
 
 			ByteBufferChannel byteBufferChannel = byteBufferChannel = session.getReadByteBufferChannel();
 
@@ -138,7 +140,7 @@ public class WebServerFilter implements IoFilter {
 			}
 		}
 		//如果包含Type为 WebSocket 说明是 WebSocket 通信,转换成 WebSocketFrame 对象
-		else if(HttpRequestType.WEBSOCKET.equals(WebServerHandler.getAttribute(session, HttpSessionParam.TYPE))){
+		else if(httpSessionState.isWebSocket()){
 
 			ByteBuffer byteBuffer = (ByteBuffer)object;
 

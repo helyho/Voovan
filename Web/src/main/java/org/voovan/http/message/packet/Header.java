@@ -16,6 +16,10 @@ import java.util.Map.Entry;
  * Licence: Apache v2 License
  */
 public class Header {
+	private String contentType;
+	private String contentLength;
+	private String contentEncoding;
+	private String transferEncoding;
 	private Map<String, String> headers;
 	private static FastThreadLocal<StringBuilder> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new StringBuilder(512));
 	private boolean isCache = false;
@@ -71,7 +75,13 @@ public class Header {
 	 * @return header 的值
 	 */
 	public String get(String header){
-		return headers.get(header);
+		switch (header) {
+			case HttpStatic.CONTENT_TYPE_STRING : return contentType;
+			case HttpStatic.CONTENT_ENCODING_STRING : return contentEncoding;
+			case HttpStatic.CONTENT_LENGTH_STRING : return contentLength;
+			case HttpStatic.TRANSFER_ENCODING_STRING : return transferEncoding;
+			default : return headers.get(header);
+		}
 	}
 
 	/**
@@ -81,7 +91,14 @@ public class Header {
 	 * @return header 的 name
 	 */
 	public String put(String header,String value){
-		return headers.put(header,value);
+		switch (header) {
+			case HttpStatic.CONTENT_TYPE_STRING : this.contentType = value; break;
+			case HttpStatic.CONTENT_ENCODING_STRING : this.contentEncoding = value; break;
+			case HttpStatic.CONTENT_LENGTH_STRING : this.contentLength = value; break;
+			case HttpStatic.TRANSFER_ENCODING_STRING : this.transferEncoding = value; break;
+			default : headers.put(header,value);
+		}
+		return value;
 	}
 
 	/**
@@ -113,6 +130,35 @@ public class Header {
 	public String toString(){
 		StringBuilder headerContent = THREAD_STRING_BUILDER.get();
 		headerContent.setLength(0);
+
+		if(contentType!=null) {
+			headerContent.append(HttpStatic.CONTENT_TYPE_STRING);
+			headerContent.append(HttpStatic.HEADER_SPLITER_STRING);
+			headerContent.append(contentType);
+			headerContent.append(HttpStatic.LINE_MARK_STRING);
+		}
+
+		if(contentEncoding!=null) {
+			headerContent.append(HttpStatic.CONTENT_ENCODING_STRING);
+			headerContent.append(HttpStatic.HEADER_SPLITER_STRING);
+			headerContent.append(contentEncoding);
+			headerContent.append(HttpStatic.LINE_MARK_STRING);
+		}
+
+		if(contentLength!=null) {
+			headerContent.append(HttpStatic.CONTENT_LENGTH_STRING);
+			headerContent.append(HttpStatic.HEADER_SPLITER_STRING);
+			headerContent.append(contentLength);
+			headerContent.append(HttpStatic.LINE_MARK_STRING);
+		}
+
+		if(transferEncoding!=null) {
+			headerContent.append(HttpStatic.TRANSFER_ENCODING_STRING);
+			headerContent.append(HttpStatic.HEADER_SPLITER_STRING);
+			headerContent.append(transferEncoding);
+			headerContent.append(HttpStatic.LINE_MARK_STRING);
+		}
+
 		for(Entry<String,String> headerItemEntry : this.headers.entrySet()){
 			String key = headerItemEntry.getKey();
 			String value = headerItemEntry.getValue();

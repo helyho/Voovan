@@ -1,8 +1,9 @@
 package org.voovan.http.websocket;
 
-import org.voovan.http.HttpSessionParam;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpSession;
+import org.voovan.http.server.HttpSessionState;
+import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
@@ -52,7 +53,8 @@ public class WebSocketSession extends Attributes {
      * @return WebSocket的地址
      */
     public String getLocation(){
-        HttpRequest request = (HttpRequest)socketSession.getAttribute(HttpSessionParam.HTTP_REQUEST);
+        HttpSessionState httpSessionState = WebServerHandler.getAttachment(socketSession);
+        HttpRequest request = httpSessionState.getHttpRequest();
         return request.protocol().getPath();
     }
 
@@ -61,7 +63,8 @@ public class WebSocketSession extends Attributes {
      * @return HttpSession对象
      */
     public HttpSession getHttpSession(){
-        HttpRequest request = (HttpRequest)socketSession.getAttribute(HttpSessionParam.HTTP_REQUEST);
+        HttpSessionState httpSessionState = WebServerHandler.getAttachment(socketSession);
+        HttpRequest request = httpSessionState.getHttpRequest();
         if(request.sessionExists()) {
             return request.getSession();
         } else {

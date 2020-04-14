@@ -2,13 +2,14 @@ package org.voovan.http.client;
 
 import org.voovan.Global;
 import org.voovan.http.HttpRequestType;
-import org.voovan.http.HttpSessionParam;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
 import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.HttpRequest;
+import org.voovan.http.server.HttpSessionState;
+import org.voovan.http.server.WebServerHandler;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
@@ -626,7 +627,8 @@ public class HttpClient extends PooledObject implements Closeable{
 	 */
 	private void doWebSocketUpgrade(String location) throws SendMessageException, ReadMessageException {
 		IoSession session = socket.getSession();
-		session.removeAttribute(HttpSessionParam.TYPE);
+		HttpSessionState httpSessionState = WebServerHandler.getAttachment(session);
+		httpSessionState.setType(null);
 
 		httpRequest.header().put("Host", hostString);
 		httpRequest.header().put("Connection","Upgrade");
@@ -673,7 +675,8 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		//先注册Socket业务处理句柄,再打开消息分割器中 WebSocket 开关
 		socket.handler(webSocketHandler);
-		session.setAttribute(HttpSessionParam.TYPE, HttpRequestType.WEBSOCKET);
+		HttpSessionState httpSessionState = WebServerHandler.getAttachment(session);
+		httpSessionState.setType(HttpRequestType.WEBSOCKET);
 
 		Object result = null;
 
