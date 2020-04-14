@@ -328,6 +328,9 @@ public class THash {
 
 		return h;
 	}
+	public static int murmurHash2_32(final byte[] data, int offset, int length) {
+		return murmurHash2_32(data, offset, length, 64);
+	}
 
 	public static long murmurHash2_64(final byte[] data, int offset, int length, int seed) {
 		final long m = 0xc6a4a7935bd1e995L;
@@ -370,24 +373,64 @@ public class THash {
 		return h;
 	}
 
+	public static long murmurHash2_64(final byte[] data, int offset, int length) {
+		return murmurHash2_64(data,offset,length,64);
+	}
+
 	public static int murmurHash3Int(int input, int seed) {
 		return THash.MurmurHash3.hash32(input, seed);
+	}
+
+	public static int murmurHash3Int(int input) {
+		return THash.MurmurHash3.hash32(input, 64);
 	}
 
 	public static long murmurHash3Long(long input, int seed) {
 		return THash.MurmurHash3.hash64(input, seed);
 	}
 
+	public static long murmurHash3Long(long input) {
+		return THash.MurmurHash3.hash64(input, 64);
+	}
+
 	public static int murmurHash3_32(byte[] data, int offset, int len, int seed) {
 		return THash.MurmurHash3.x86_32(data, offset, len, seed);
+	}
+
+	public static int murmurHash3_32(byte[] data, int offset, int len) {
+		return THash.MurmurHash3.x86_32(data, offset, len, 64);
+	}
+
+	public static int murmurHash3_32(ByteBuffer byteBuffer, int offset, int len, int seed) {
+		return THash.MurmurHash3.x86_32(byteBuffer, offset, len, seed);
+	}
+
+	public static int murmurHash3_32(ByteBuffer byteBuffer, int offset, int len) {
+		return THash.MurmurHash3.x86_32(byteBuffer, offset, len, 64);
 	}
 
 	public static int murmurHash3_32(CharSequence data, int offset, int len, int seed) {
 		return THash.MurmurHash3.x86_32(data, offset, len, seed);
 	}
 
+	public static int murmurHash3_32(CharSequence data, int offset, int len) {
+		return THash.MurmurHash3.x86_32(data, offset, len, 64);
+	}
+
+	public static int murmurHash3_32(CharSequence data, int seed) {
+		return THash.MurmurHash3.x86_32(data, 0, data.length(), seed);
+	}
+
+	public static int murmurHash3_32(CharSequence data) {
+		return THash.MurmurHash3.x86_32(data, 0, data.length(), 64);
+	}
+
 	public static long[] murmurHash3_128(byte[] data, int offset, int len, int seed) {
 		return THash.MurmurHash3.x64_128(data, offset, len, seed);
+	}
+
+	public static long[] murmurHash3_128(byte[] data, int offset, int len) {
+		return THash.MurmurHash3.x64_128(data, offset, len, 64);
 	}
 
 	private static class MurmurHash3 {
@@ -490,6 +533,54 @@ public class THash {
 					k1 |= (data[roundedEnd + 1] & 0xff) << 8;
 				case 1:
 					k1 |= (data[roundedEnd] & 0xff);
+					k1 *= c1;
+					k1 = (k1 << 15) | (k1 >>> 17);
+					k1 *= c2;
+					h1 ^= k1;
+			}
+
+			h1 ^= len;
+
+			h1 ^= h1 >>> 16;
+			h1 *= 0x85ebca6b;
+			h1 ^= h1 >>> 13;
+			h1 *= 0xc2b2ae35;
+			h1 ^= h1 >>> 16;
+
+			return h1;
+		}
+
+		public static int x86_32(ByteBuffer byteBuffer, int offset, int len, int seed) {
+
+			final int c1 = 0xcc9e2d51;
+			final int c2 = 0x1b873593;
+
+			int h1 = seed;
+			int roundedEnd = offset + (len & 0xfffffffc);
+
+			for (int i=offset; i<roundedEnd; i+=4) {
+				// little endian load order
+				int k1 = (byteBuffer.get(i) & 0xff) | ((byteBuffer.get(i+1) & 0xff) << 8) |
+						((byteBuffer.get(i+2) & 0xff) << 16) | (byteBuffer.get(i+3) << 24);
+				k1 *= c1;
+				k1 = (k1 << 15) | (k1 >>> 17);
+				k1 *= c2;
+
+				h1 ^= k1;
+				h1 = (h1 << 13) | (h1 >>> 19);
+				h1 = h1*5+0xe6546b64;
+			}
+
+			// tail
+			int k1 = 0;
+
+			switch(len & 0x03) {
+				case 3:
+					k1 = (byteBuffer.get(roundedEnd + 2) & 0xff) << 16;
+				case 2:
+					k1 |= (byteBuffer.get(roundedEnd + 1) & 0xff) << 8;
+				case 1:
+					k1 |= (byteBuffer.get(roundedEnd) & 0xff);
 					k1 *= c1;
 					k1 = (k1 << 15) | (k1 >>> 17);
 					k1 *= c2;
@@ -648,6 +739,5 @@ public class THash {
 
 			return new long[]{h1, h2};
 		}
-
 	}
 }
