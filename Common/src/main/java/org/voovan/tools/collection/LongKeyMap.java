@@ -90,7 +90,7 @@ public class LongKeyMap<T> {
         return prev;
     }
 
-    public T putIfAbsent(int key, T value) {
+    public T putIfAbsent(long key, T value) {
         T t = get(key);
         if (t == null) {
             t = put(key, value);
@@ -98,7 +98,7 @@ public class LongKeyMap<T> {
         return t;
     }
 
-    public T remove(final int key) {
+    public T remove(final long key) {
         if (key == FREE_KEY) {
             return FREE_VALUE;
         }
@@ -204,7 +204,6 @@ public class LongKeyMap<T> {
         return (currentIndex + 1) & mask;
     }
 
-    private static final int INT_PHI = 0x9E3779B9;
 
     private static long nextPowerOfTwo(long x) {
         if (x == 0) return 1;
@@ -224,9 +223,10 @@ public class LongKeyMap<T> {
         return (int) s;
     }
 
+    private static final int INT_PHI = 0x9E3779B9;
+
     private static int phiMix(long value) {
-        int h = Long.hashCode(value);
-        h = h * INT_PHI;
+        int h = Long.hashCode(value) * INT_PHI;
         return h ^ (h >> 16);
     }
 
