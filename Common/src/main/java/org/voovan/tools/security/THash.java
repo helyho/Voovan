@@ -370,6 +370,14 @@ public class THash {
 		return h;
 	}
 
+	public static int murmurHash3Int(int input, int seed) {
+		return THash.MurmurHash3.hash32(input, seed);
+	}
+
+	public static long murmurHash3Long(long input, int seed) {
+		return THash.MurmurHash3.hash64(input, seed);
+	}
+
 	public static int murmurHash3_32(byte[] data, int offset, int len, int seed) {
 		return THash.MurmurHash3.x86_32(data, offset, len, seed);
 	}
@@ -400,6 +408,44 @@ public class THash {
 			k *= 0xc4ceb9fe1a85ec53L;
 			k ^= k >>> 33;
 			return k;
+		}
+
+		static int mixK1_32(int k1) {
+			k1 *= 0xcc9e2d51;
+			k1 = Integer.rotateLeft(k1, 15);
+			k1 *= 0x1b873593;
+			return k1;
+		}
+		static int mixH1_32(int h1, int k1) {
+			h1 ^= k1;
+			h1 = Integer.rotateLeft(h1, 13);
+			h1 = h1 * 5 + 0xe6546b64;
+			return h1;
+		}
+
+		static long mixK1_64(long k1) {
+			k1 *= 0xff51afd7ed558ccdL;
+			k1 = Long.rotateLeft(k1, 31);
+			k1 *= 0xc4ceb9fe1a85ec53L;
+			return k1;
+		}
+		static long mixH1_64(long h1, long k1) {
+			h1 ^= k1;
+			h1 = Long.rotateLeft(h1, 27);
+			h1 = h1 * 5 + 0x52dce729;
+			return h1;
+		}
+
+		public static int hash32(int input, int seed) {
+			int k1 = mixK1_32(input);
+			int h1 = mixH1_32(seed, k1);
+			return fmix32(h1);
+		}
+
+		public static long hash64(long input, int seed) {
+			long k1 = mixK1_64(input);
+			long h1 = mixH1_64(seed, k1);
+			return fmix64(h1);
 		}
 
 		public static final long getLongLittleEndian(byte[] buf, int offset) {
