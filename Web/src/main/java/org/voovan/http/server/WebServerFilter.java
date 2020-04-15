@@ -11,8 +11,10 @@ import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
+import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
+import org.voovan.tools.collection.LongKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
@@ -30,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class WebServerFilter implements IoFilter {
-	public static ConcurrentHashMap<Long, byte[]> RESPONSE_CACHE = new ConcurrentHashMap<Long, byte[]>();
+	public static LongKeyMap<ByteBuffer> RESPONSE_CACHE = new LongKeyMap<ByteBuffer>(4096);
 
 	static {
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
@@ -54,7 +56,8 @@ public class WebServerFilter implements IoFilter {
 				if(!httpResponse.isAsync()) {
 					Long mark = httpResponse.getMark();
                     if (WebContext.isCache() && mark!=null) {
-						byte[] cacheBytes = RESPONSE_CACHE.get(mark);
+						ByteBuffer cacheBytes = RESPONSE_CACHE.get(mark);
+
 
                         if (cacheBytes == null) {
                             ByteBufferChannel sendByteBufferChannel = session.getSendByteBufferChannel();
@@ -62,13 +65,13 @@ public class WebServerFilter implements IoFilter {
                             httpResponse.send();
 
                             if (size == 0) {
-                                cacheBytes = new byte[session.getSendByteBufferChannel().size()];
-                                sendByteBufferChannel.get(cacheBytes);
-                                RESPONSE_CACHE.putIfAbsent(mark, cacheBytes);
+                                cacheBytes = TByteBuffer.allocateDirect(sendByteBufferChannel.size());
+								sendByteBufferChannel.get(cacheBytes);
+                                RESPONSE_CACHE.put(mark, cacheBytes);
                             }
                         } else {
-                            session.send(ByteBuffer.wrap(cacheBytes));
-                        }
+                            session.send(cacheBytes.duplicate());
+						}
                     } else {
                         httpResponse.send();
                     }
