@@ -190,14 +190,25 @@ public class HttpParser {
 	 * @param cookieValue        Http 头中 Cookie 报文行
 	 */
 	@SuppressWarnings("unchecked")
-	private static List<Map<String, String>> parseCookie(String cookieName, String cookieValue){
+	private static List<Map<String, String>> parseCookie(int cookieType, String cookieValue){
 		List<Map<String, String>> cookies = new ArrayList<Map<String, String>>();
 
 		//解析 Cookie 行
 		Map<String, String>cookieMap = getEqualMap(cookieValue);
 
+		// Cookie
+		//请求 request 的 cookie 形式 多个cookie 一行
+		if(cookieType == 0){
+			for(Entry<String,String> cookieMapEntry: cookieMap.entrySet()){
+				HashMap<String, String> cookieOneMap = new HashMap<String, String>();
+				cookieOneMap.put(cookieMapEntry.getKey(), cookieMapEntry.getValue());
+				cookies.add(cookieOneMap);
+			}
+		}
+
+		//Set-Cookie
 		//响应 response 的 cookie 形式 一个cookie 一行
-		if(HttpStatic.SET_COOKIE_STRING.equalsIgnoreCase(cookieName)){
+		else if(cookieType == 1){
 			//处理非键值的 cookie 属性
 			if(cookieValue.toLowerCase().contains(HttpStatic.HTTPONLY_STRING)){
 				cookieMap.put(HttpStatic.HTTPONLY_STRING, Global.EMPTY_STRING);
@@ -207,14 +218,7 @@ public class HttpParser {
 			}
 			cookies.add(cookieMap);
 		}
-		//请求 request 的 cookie 形式 多个cookie 一行
-		else if(HttpStatic.COOKIE_STRING.equalsIgnoreCase(cookieName)){
-			for(Entry<String,String> cookieMapEntry: cookieMap.entrySet()){
-				HashMap<String, String> cookieOneMap = new HashMap<String, String>();
-				cookieOneMap.put(cookieMapEntry.getKey(), cookieMapEntry.getValue());
-				cookies.add(cookieOneMap);
-			}
-		}
+
 
 		return cookies;
 	}
@@ -577,16 +581,13 @@ public class HttpParser {
 
 					//处理 Cookie
 					{
-						String cookieName = null;
 						String cookieValue = null;
 						if (type == PARSER_TYPE_REQUEST && packetMap[HAS_COOKIE]!=null) {
 							cookieValue = (String) packetMap[HAS_COOKIE];
+							packetMap[COOKIE] = parseCookie(0, cookieValue);
 						} else if (type == PARSER_TYPE_RESPONSE && packetMap[HAS_SET_COOKIE] != null) {
 							cookieValue = (String) packetMap[HAS_SET_COOKIE];
-						}
-
-						if (cookieName != null) {
-							packetMap[COOKIE] = parseCookie(cookieName, cookieValue);
+							packetMap[COOKIE] = parseCookie(1, cookieValue);
 						}
 					}
 

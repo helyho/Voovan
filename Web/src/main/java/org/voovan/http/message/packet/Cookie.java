@@ -112,7 +112,7 @@ public class Cookie {
 		return (this.name!=null||this.value!=null? (this.name+"="+this.value) : "")+
 				(this.domain!=null ? ("; domain="+this.domain) : "")+
 				(this.maxAge!=-999999 ? ("; max-age="+this.maxAge) : "")+
-				(this.path!=null ? ("; path="+this.path) : " ")+
+				(this.path!=null ? ("; path="+this.path) : "")+
 				(this.httpOnly?"; httponly; ":"")+(this.secure?"; secure":"");
 	}
 
