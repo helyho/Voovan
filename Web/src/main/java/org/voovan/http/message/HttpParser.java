@@ -262,7 +262,6 @@ public class HttpParser {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
 		int hashCode = 0;
-		boolean isCache = type==PARSER_TYPE_REQUEST ? WebContext.isCache() : false;
 
 		//遍历 Protocol
 		int segment = 0;
@@ -403,7 +402,6 @@ public class HttpParser {
 	public static boolean parseHeader(Object[] packetMap, Map<String, Object> headerMap, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
-		boolean isCache = WebContext.isCache();
 
 		//遍历 Protocol
 		boolean onHeaderName = true;
@@ -426,21 +424,13 @@ public class HttpParser {
 			currentByte = byteBuffer.get();
 
 			if (onHeaderName && prevByte == Global.BYTE_COLON && currentByte == Global.BYTE_SPACE) {
-				if(isCache) {
-					headerName = HttpItem.getHttpItem(bytes, 0, position).getValue();
-				} else {
-					headerName = new String(bytes, 0, position);
-				}
+				headerName = HttpItem.getHttpItem(bytes, 0, position).getValue();
 
 				onHeaderName = false;
 				position = 0;
 				continue;
 			} else if (!onHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
-				if(isCache) {
-					headerValue = HttpItem.getHttpItem(bytes, 0, position).getValue();
-				} else {
-					headerValue = new String(bytes, 0, position);
-				}
+				headerValue = HttpItem.getHttpItem(bytes, 0, position).getValue();
 				break;
 			}
 
