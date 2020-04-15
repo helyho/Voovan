@@ -57,6 +57,10 @@ public class LongKeyMap<T> {
         return capacity;
     }
 
+    public boolean containsKey(long key) {
+        return getReadIndex(key) > 0;
+    }
+
     public T get(final long key) {
         if (key == FREE_KEY)
             return FREE_VALUE;

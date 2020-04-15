@@ -46,6 +46,9 @@ public class HttpParser {
 	private static final int CACHE_FLAG = 12;
 	private static final int COOKIE = 13;
 
+	private static final int HAS_COOKIE = 14;
+	private static final int HAS_SET_COOKIE = 15;
+
 
 	public static final String MULTIPART_FORM_DATA = "multipart/form-data";
 
@@ -287,11 +290,11 @@ public class HttpParser {
 			if (currentByte == Global.BYTE_SPACE && segment < 2) {
 				if (segment == 0) {
 					HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
-					hashCode = hashCode + httpItem.getHashCode() << 1;
+					hashCode = hashCode + httpItem.hashCode() << 1;
 					segment_1 = httpItem.getValue();
 				} else if (segment == 1) {
 					HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
-					hashCode = hashCode + httpItem.getHashCode() << 2;
+					hashCode = hashCode + httpItem.hashCode() << 2;
 					segment_2 =httpItem.getValue();
 				}
 				position = 0;
@@ -304,7 +307,7 @@ public class HttpParser {
 				}
 			} else if (prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && segment == 2) {
 				HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
-				hashCode = hashCode + httpItem.getHashCode() << 3;
+				hashCode = hashCode + httpItem.hashCode() << 3;
 				segment_3 =httpItem.getValue();
 				position = 0;
 				break;
@@ -393,7 +396,7 @@ public class HttpParser {
 	 * @param timeout 读取超时时间参数
 	 * @return true: Header解析未完成, false: Header解析完成
 	 */
-	public static boolean parseHeader(Map<String, Object> headerMap, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
+	public static boolean parseHeader(Object[] packetMap, Map<String, Object> headerMap, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
 		byte[] bytes = THREAD_STRING_BUILDER.get();
 		int position = 0;
 		boolean isCache = WebContext.isCache();
@@ -456,7 +459,13 @@ public class HttpParser {
 		}
 
 		if(headerName!=null && headerValue!=null) {
-			headerMap.put(headerName, headerValue);
+			if(packetMap!=null && headerName.equals(HttpStatic.COOKIE_STRING)) {
+				packetMap[HAS_COOKIE] = headerValue;
+			} else if(packetMap!=null && headerName.equals(HttpStatic.SET_COOKIE_STRING)) {
+				packetMap[HAS_SET_COOKIE] = headerValue;
+			} else {
+				headerMap.put(headerName, headerValue);
+			}
 		}
 		return false;
 //        packetMap.put(fixHeaderName(headerName), headerValue);
@@ -554,7 +563,7 @@ public class HttpParser {
 					//处理协议头
 					{
 						headerMap = new HashMap<String, Object>();
-						while (!parseHeader(headerMap, innerByteBuffer, contiuneRead, timeout)) {
+						while (!parseHeader(packetMap, headerMap, innerByteBuffer, contiuneRead, timeout)) {
 							if (!innerByteBuffer.hasRemaining() && session.isConnected()) {
 								return null;
 							}
@@ -567,14 +576,10 @@ public class HttpParser {
 					{
 						String cookieName = null;
 						String cookieValue = null;
-						if (type == PARSER_TYPE_REQUEST && headerMap.containsKey(HttpStatic.COOKIE_STRING)) {
-							cookieName = HttpStatic.COOKIE_STRING;
-							cookieValue = headerMap.get(HttpStatic.COOKIE_STRING).toString();
-							headerMap.remove(HttpStatic.COOKIE_STRING);
-						} else if (type == PARSER_TYPE_RESPONSE && headerMap.containsKey(HttpStatic.SET_COOKIE_STRING)) {
-							cookieName = HttpStatic.SET_COOKIE_STRING;
-							cookieValue = headerMap.get(HttpStatic.SET_COOKIE_STRING).toString();
-							headerMap.remove(HttpStatic.SET_COOKIE_STRING);
+						if (type == PARSER_TYPE_REQUEST && packetMap[HAS_COOKIE]!=null) {
+							cookieValue = (String) packetMap[HAS_COOKIE];
+						} else if (type == PARSER_TYPE_RESPONSE && packetMap[HAS_SET_COOKIE] != null) {
+							cookieValue = (String) packetMap[HAS_SET_COOKIE];
 						}
 
 						if (cookieName != null) {
@@ -671,7 +676,7 @@ public class HttpParser {
 
 						ByteBuffer partByteBuffer =  partByteBufferChannel.getByteBuffer();
 						try {
-							while (parseHeader(partHeaderMap, partByteBuffer, contiuneRead, timeout)) {
+							while (parseHeader(null, partHeaderMap, partByteBuffer, contiuneRead, timeout)) {
 								if (!partByteBuffer.hasRemaining() && session.isConnected()) {
 									return null;
 								}

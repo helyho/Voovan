@@ -5,7 +5,9 @@ import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.security.THash;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Http协议中的元素
@@ -53,7 +55,8 @@ public class HttpItem {
 		return value;
 	}
 
-	public int getHashCode(){
+	@Override
+	public int hashCode(){
 		return this.hashcode;
 	}
 
@@ -65,6 +68,14 @@ public class HttpItem {
 		}
 
 		return httpItem;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof HttpItem)) return false;
+		HttpItem httpItem = (HttpItem) o;
+		return hashcode == httpItem.hashcode;
 	}
 
 	@Override
