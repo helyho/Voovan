@@ -58,6 +58,10 @@ public class IntKeyMap<T> {
         return capacity;
     }
 
+    public boolean containsKey(int key) {
+        return getReadIndex(key) > 0;
+    }
+
     public T get(final int key) {
         if (key == FREE_KEY)
             return FREE_VALUE;

@@ -66,13 +66,19 @@ public class Header {
 	 * @return 是否存在
 	 */
 	public boolean contain(String header){
+		Boolean ret = null;
 		switch (header) {
-			case HttpStatic.CONTENT_TYPE_STRING : return contentType!=null;
-			case HttpStatic.CONTENT_ENCODING_STRING : return contentEncoding!=null;
-			case HttpStatic.CONTENT_LENGTH_STRING : return contentLength!=null;
-			case HttpStatic.TRANSFER_ENCODING_STRING : return transferEncoding!=null;
-			default : return headers.containsKey(header);
+			case HttpStatic.CONTENT_TYPE_STRING 	 :  ret = contentType == null 		? null : contentType!=null;
+			case HttpStatic.CONTENT_ENCODING_STRING  :  ret = contentEncoding == null 	? null : contentEncoding!=null;
+			case HttpStatic.CONTENT_LENGTH_STRING 	 :  ret = contentLength == null 	? null : contentLength!=null;
+			case HttpStatic.TRANSFER_ENCODING_STRING :  ret = transferEncoding == null 	? null : transferEncoding!=null;
 		}
+
+		if(ret == null) {
+			ret = headers.containsKey(header);
+		}
+
+		return ret;
 	}
 
 	/**
@@ -81,13 +87,19 @@ public class Header {
 	 * @return header 的值
 	 */
 	public String get(String header){
+		String ret = null;
 		switch (header) {
-			case HttpStatic.CONTENT_TYPE_STRING : return contentType;
-			case HttpStatic.CONTENT_ENCODING_STRING : return contentEncoding;
-			case HttpStatic.CONTENT_LENGTH_STRING : return contentLength;
-			case HttpStatic.TRANSFER_ENCODING_STRING : return transferEncoding;
-			default : return headers.get(header);
+			case HttpStatic.CONTENT_TYPE_STRING 	 : 	ret =  contentType;
+			case HttpStatic.CONTENT_ENCODING_STRING  : 	ret = contentEncoding;
+			case HttpStatic.CONTENT_LENGTH_STRING 	 : 	ret = contentLength;
+			case HttpStatic.TRANSFER_ENCODING_STRING : 	ret = transferEncoding;
 		}
+
+		if(ret == null) {
+			ret = headers.get(header);
+		}
+
+		return ret;
 	}
 
 	/**
@@ -98,10 +110,10 @@ public class Header {
 	 */
 	public String put(String header,String value){
 		switch (header) {
-			case HttpStatic.CONTENT_TYPE_STRING : this.contentType = value; break;
-			case HttpStatic.CONTENT_ENCODING_STRING : this.contentEncoding = value; break;
-			case HttpStatic.CONTENT_LENGTH_STRING : this.contentLength = value; break;
-			case HttpStatic.TRANSFER_ENCODING_STRING : this.transferEncoding = value; break;
+			case HttpStatic.CONTENT_TYPE_STRING 	 :  this.contentType 		= value; break;
+			case HttpStatic.CONTENT_ENCODING_STRING  : 	this.contentEncoding 	= value; break;
+			case HttpStatic.CONTENT_LENGTH_STRING 	 : 	this.contentLength 		= value; break;
+			case HttpStatic.TRANSFER_ENCODING_STRING : 	this.transferEncoding 	= value; break;
 			default : headers.put(header,value);
 		}
 		return value;
