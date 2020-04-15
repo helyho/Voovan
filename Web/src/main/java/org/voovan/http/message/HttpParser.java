@@ -62,7 +62,7 @@ public class HttpParser {
 	public static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
 	private static FastThreadLocal<byte[]> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new byte[1024]);
 
-	private static LongKeyMap<Object[]> PACKET_MAP_CACHE = new LongKeyMap<Object[]>(4);
+	private static LongKeyMap<Object[]> PACKET_MAP_CACHE = new LongKeyMap<Object[]>(1024);
 	private static long[] MARK_CACHE_LIST = new long[1024];
 
 
@@ -546,9 +546,12 @@ public class HttpParser {
 
 									if (protocolMark + headerMark == cachedMark >>> 32) {
 										innerByteBuffer.position((int) totalLengthInMark);
-										findCache = true;
+
 										packetMap = PACKET_MAP_CACHE.get(cachedMark);
-										headerMap = (Map<String, Object>) packetMap[HEADER];
+										if(packetMap!=null) {
+											headerMap = (Map<String, Object>) packetMap[HEADER];
+											findCache = true;
+										}
 										break;
 									}
 								}
