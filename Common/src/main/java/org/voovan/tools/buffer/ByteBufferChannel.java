@@ -458,15 +458,15 @@ public class ByteBufferChannel {
                     return 0;
                 }
 
-                int arrSize = availableCount;
+                int dataSize = availableCount;
 
                 if(length < availableCount){
-                    arrSize = length;
+                    dataSize = length;
                 }
 
                 unsafe.copyMemory(null, address + position, dst, Unsafe.ARRAY_BYTE_BASE_OFFSET, length);
 
-                return arrSize;
+                return dataSize;
 
             } else {
                 checkRelease();
@@ -485,6 +485,52 @@ public class ByteBufferChannel {
      */
     public int get(byte[] dst){
         return get(dst, 0, dst.length);
+    }
+
+    /**
+     * 读取数据到 srcByteBuffer
+     * @param srcByteBuffer 接收数据的 ByteBuffer 对象
+     * @return 获取数据的长度
+     */
+    public int get(ByteBuffer srcByteBuffer){
+        lock();
+
+        try {
+            checkRelease();
+             int length = srcByteBuffer.remaining();
+
+            if(size()==0){
+                return 0;
+            }
+
+            int availableCount = size();
+
+            if(availableCount >= 0) {
+
+                if(availableCount == 0){
+                    return 0;
+                }
+
+                int dataSize = availableCount;
+
+                if(length < availableCount){
+                    dataSize = length;
+                }
+
+                for(int i=0;i<dataSize;i++) {
+                    srcByteBuffer.put(i, get(i));
+                }
+
+                return dataSize;
+
+            } else {
+                checkRelease();
+                throw new IndexOutOfBoundsException();
+            }
+        } finally {
+            unlock();
+        }
+
     }
 
     /**
