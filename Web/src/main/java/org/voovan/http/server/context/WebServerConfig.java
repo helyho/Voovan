@@ -48,7 +48,7 @@ public class WebServerConfig {
     private String pauseURL = null;
     private WeaveConfig weaveConfig = null;
     private int maxRequestSize = 1024;
-    private boolean cache    = true;
+    private boolean cache    = false;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
