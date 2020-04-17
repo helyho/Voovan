@@ -60,7 +60,7 @@ public class HttpParser {
 	public static FastThreadLocal<Object[]> THREAD_PACKET_MAP = FastThreadLocal.withInitial(()->new Object[20]);
 	public static FastThreadLocal<Request> THREAD_REQUEST = FastThreadLocal.withInitial(()->new Request());
 	public static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
-	private static FastThreadLocal<byte[]> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new byte[1024]);
+	private static FastThreadLocal<byte[]> THREAD_BYTE_ARRAY = FastThreadLocal.withInitial(()->new byte[1024]);
 
 	private static LongKeyMap<Object[]> PACKET_MAP_CACHE = new LongKeyMap<Object[]>(1024);
 	private static long[] MARK_CACHE_LIST = new long[1024];
@@ -259,7 +259,7 @@ public class HttpParser {
 	 * @return 协议行的 hash
 	 */
 	public static int parserProtocol(Object[] packetMap, int type, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
-		byte[] bytes = THREAD_STRING_BUILDER.get();
+		byte[] bytes = THREAD_BYTE_ARRAY.get();
 		int position = 0;
 		int hashCode = 0;
 
@@ -290,7 +290,7 @@ public class HttpParser {
 				continue;
 			}
 
-			if (currentByte == Global.BYTE_SPACE && segment < 2) {
+			if (currentByte == Global.BYTE_SPACE && segment < 2) { // " "
 				if (segment == 0) {
 					HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
 					hashCode = hashCode + httpItem.hashCode() << 1;
@@ -303,7 +303,7 @@ public class HttpParser {
 				position = 0;
 				segment++;
 				continue;
-			} else if (currentByte == Global.BYTE_QUESTION) {
+			} else if (currentByte == Global.BYTE_QUESTION) { // "?"
 				if (segment == 1) {
 					questPositiion = byteBuffer.position();
 					continue;
@@ -400,8 +400,9 @@ public class HttpParser {
 	 * @return true: Header解析未完成, false: Header解析完成
 	 */
 	public static boolean parseHeader(Object[] packetMap, Map<String, Object> headerMap, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
-		byte[] bytes = THREAD_STRING_BUILDER.get();
+		byte[] bytes = THREAD_BYTE_ARRAY.get();
 		int position = 0;
+		boolean isCache = WebContext.isCache();
 
 		//遍历 Protocol
 		boolean onHeaderName = true;
@@ -424,13 +425,21 @@ public class HttpParser {
 			currentByte = byteBuffer.get();
 
 			if (onHeaderName && prevByte == Global.BYTE_COLON && currentByte == Global.BYTE_SPACE) {
-				headerName = HttpItem.getHttpItem(bytes, 0, position).getValue();
+				if(isCache) {
+					headerName = HttpItem.getHttpItem(bytes, 0, position).getValue();
+				} else {
+					headerName = new String(bytes, 0, position);
+				}
 
 				onHeaderName = false;
 				position = 0;
 				continue;
 			} else if (!onHeaderName && prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF) {
-				headerValue = HttpItem.getHttpItem(bytes, 0, position).getValue();
+				if(isCache) {
+					headerValue = HttpItem.getHttpItem(bytes, 0, position).getValue();
+				} else {
+					headerValue = new String(bytes, 0, position);
+				}
 				break;
 			}
 
