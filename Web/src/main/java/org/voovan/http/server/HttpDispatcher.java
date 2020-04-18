@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
 public class HttpDispatcher {
 
 	private static FastThreadLocal<Map<String, String>> REGEXED_ROUTER_CACHE     = FastThreadLocal.withInitial(()->new HashMap<String, String>());
-	private static FastThreadLocal<IntKeyMap<List<Object>>> ROUTER_INFO_CACHE = FastThreadLocal.withInitial(()->new IntKeyMap<List<Object>>(16));
+	private static FastThreadLocal<IntKeyMap<Object[]>> ROUTER_INFO_CACHE = FastThreadLocal.withInitial(()->new IntKeyMap<Object[]>(16));
 
 	/**
 	 * [MainKey] = HTTP method ,[Value] = { [Value Key] = Route path, [Value value] = RouteBuiz对象 }
@@ -176,26 +176,30 @@ public class HttpDispatcher {
 	public void process(HttpRequest request, HttpResponse response){
 		Chain<HttpFilterConfig> filterConfigs = webConfig.getFilterConfigs();
 
-		Object filterResult = null;
+		Object filterResult = new Object();
+		boolean isFrameWorkRequest = false;
 
 		request.setSessionManager(sessionManager);
 
-		boolean isFrameWorkRequest = isFrameWorkRequest(request);
+
+		if(filterConfigs.size() > 0) {
+			isFrameWorkRequest = isFrameWorkRequest(request);
+		}
 
 		//管理请求不经过过滤器
-		if(!isFrameWorkRequest) {
+		if(filterConfigs.size() > 0 && !isFrameWorkRequest) {
 			//正向过滤器处理,请求有可能被 Redirect 所以过滤器执行放在开始
 			filterResult = disposeFilter(filterConfigs, request, response);
 		}
 
 		//如果 filterResult 的响应为 null 则不执行路由处理
-		if(filterResult!=null || isFrameWorkRequest) {
+		if(filterResult!=null) {
 			//调用处理路由函数
 			disposeRoute(request, response);
 		}
 
 		//管理请求不经过过滤器
-		if(!isFrameWorkRequest) {
+		if(filterConfigs.size() > 0 && !isFrameWorkRequest) {
 			//反向过滤器处理
 			filterResult = disposeInvertedFilter(filterConfigs, request, response);
 		}
@@ -245,12 +249,12 @@ public class HttpDispatcher {
 	 * @param request 请求对象
 	 * @return 路由信息对象 { 路由标签, [ 匹配到的已注册路由, HttpRouter对象 ] }
 	 */
-	public List<Object> findRouter(HttpRequest request){
+	public Object[] findRouter(HttpRequest request){
 		String requestPath   = request.protocol().getPath();
 		String requestMethod 	= request.protocol().getMethod();
 		int routerMark    = THash.HashFNV1(requestPath) << 16 +  THash.HashFNV1(requestMethod);
 
-		List<Object> routerInfo = ROUTER_INFO_CACHE.get().get(routerMark);
+		Object[] routerInfo = ROUTER_INFO_CACHE.get().get(routerMark);
 
 		if(routerInfo==null) {
 
@@ -260,7 +264,7 @@ public class HttpDispatcher {
 				//寻找匹配的路由对象
 				if (matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())) {
 					//[ 匹配到的已注册路由, HttpRouter对象 ]
-					routerInfo = TObject.asList(routePath, routeEntry.getValue());
+					routerInfo = new Object[] {routePath, routeEntry.getValue()};
 					ROUTER_INFO_CACHE.get().put(routerMark, routerInfo);
 					return routerInfo;
 				}
@@ -270,7 +274,7 @@ public class HttpDispatcher {
 		//判断是否是静态文件
 		if(routerInfo == null){
 			if(isStaticFile(request)){
-				routerInfo = TObject.asList(request.protocol().getPath(), mimeFileRouter);
+				routerInfo = new Object[] {request.protocol().getPath(), mimeFileRouter};
 				ROUTER_INFO_CACHE.get().put(routerMark, routerInfo);
 				return routerInfo;
 			}
@@ -287,18 +291,20 @@ public class HttpDispatcher {
 	public void disposeRoute(HttpRequest request, HttpResponse response){
 		String requestPath = request.protocol().getPath();
 
-		//[ 匹配到的已注册路由, HttpRouter对象 ]
-		List<Object> routerInfo = findRouter(request);
+		//[ 匹配到的已注册路由, HttpRouter对象
+		Object[] routerInfo = findRouter(request);
 
 		if (routerInfo!=null) {
 			try {
-				String routePath = (String)routerInfo.get(0);
-				HttpRouter router = (HttpRouter)routerInfo.get(1);
+				String routePath = (String)routerInfo[0];
+				HttpRouter router = (HttpRouter)routerInfo[1];
 
-				//获取路径变量
-				Map<String, String> pathVariables = fetchPathVariables(requestPath, routePath, webConfig.isMatchRouteIgnoreCase());
-				if(pathVariables!=null) {
-					request.getParameters().putAll(pathVariables);
+				if(webConfig.isEnablePathVariables()) {
+					//获取路径变量
+					Map<String, String> pathVariables = fetchPathVariables(requestPath, routePath, webConfig.isMatchRouteIgnoreCase());
+					if (pathVariables != null) {
+						request.getParameters().putAll(pathVariables);
+					}
 				}
 
 				//处理路由请求
