@@ -5,7 +5,7 @@ import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;
 import org.voovan.tools.TByte;
-import org.voovan.tools.collection.ObjectThreadPool;
+import org.voovan.tools.collection.ThreadObjectPool;
 import org.voovan.tools.reflect.TReflect;
 
 import java.util.Arrays;
@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ProtoStuffSerialize implements Serialize {
 
-    ObjectThreadPool<LinkedBuffer> objectThreadPool = new ObjectThreadPool<LinkedBuffer>(128);
+    ThreadObjectPool<LinkedBuffer> threadBufferPool = new ThreadObjectPool<LinkedBuffer>(128);
 
     Map<Class, Schema> SCHEMAS = new ConcurrentHashMap<Class, Schema>();
 
@@ -46,7 +46,7 @@ public class ProtoStuffSerialize implements Serialize {
         buf = TByte.toBytes(obj);
         if(buf==null) {
             Schema schema = getSchema(obj.getClass());
-            LinkedBuffer buffer =objectThreadPool.get(()->LinkedBuffer.allocate(512));
+            LinkedBuffer buffer = threadBufferPool.get(()->LinkedBuffer.allocate(512));
             try {
                 buf = ProtostuffIOUtil.toByteArray(obj, schema, buffer);
             } finally {
