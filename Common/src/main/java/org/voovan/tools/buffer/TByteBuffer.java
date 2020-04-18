@@ -1,8 +1,7 @@
 package org.voovan.tools.buffer;
 
-import org.voovan.Global;
 import org.voovan.tools.TByte;
-import org.voovan.tools.collection.ObjectThreadPool;
+import org.voovan.tools.collection.ThreadObjectPool;
 import org.voovan.tools.TUnsafe;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -23,12 +22,12 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
-    public static ObjectThreadPool<ByteBuffer> BYTE_BUFFER_THREAD_POOL = new ObjectThreadPool<ByteBuffer>(System.getProperty("ThreadBufferPoolSize")!=null ? Integer.valueOf(System.getProperty("ThreadBufferPoolSize")) : 32);
+    public static ThreadObjectPool<ByteBuffer> THREAD_BYTE_BUFFER_POOL = new ThreadObjectPool<ByteBuffer>(System.getProperty("ThreadBufferPoolSize")!=null ? Integer.valueOf(System.getProperty("ThreadBufferPoolSize")) : 32);
 
     public static int DEFAULT_BYTE_BUFFER_SIZE = System.getProperty("ByteBufferSize")!=null ? Integer.valueOf(System.getProperty("ByteBufferSize")) : 1024*4;
 
     static {
-        System.out.println("[SYTSEM] ThreadBufferPoolSize: " + BYTE_BUFFER_THREAD_POOL.getThreadLocalMaxSize());
+        System.out.println("[SYTSEM] ThreadBufferPoolSize: " + THREAD_BYTE_BUFFER_POOL.getThreadLocalMaxSize());
         System.out.println("[SYTSEM] BufferSize: " + DEFAULT_BYTE_BUFFER_SIZE);
     }
 
@@ -101,7 +100,7 @@ public class TByteBuffer {
      */
     public static ByteBuffer allocateDirect(int capacity) {
 
-        ByteBuffer byteBuffer = BYTE_BUFFER_THREAD_POOL.get(()->allocateManualReleaseBuffer(capacity));
+        ByteBuffer byteBuffer = THREAD_BYTE_BUFFER_POOL.get(()->allocateManualReleaseBuffer(capacity));
 
         if(capacity <= byteBuffer.capacity()) {
             byteBuffer.limit(capacity);
@@ -251,7 +250,7 @@ public class TByteBuffer {
                             reallocate(byteBuffer, DEFAULT_BYTE_BUFFER_SIZE);
                         }
 
-                        BYTE_BUFFER_THREAD_POOL.release(byteBuffer, ()->{
+                        THREAD_BYTE_BUFFER_POOL.release(byteBuffer, ()->{
                             try {
                                 synchronized (byteBuffer) {
                                     TUnsafe.getUnsafe().freeMemory(address);
