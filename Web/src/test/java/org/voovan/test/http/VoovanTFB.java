@@ -56,6 +56,7 @@ public class VoovanTFB {
 		webServerConfig.setCache(true);
 		webServerConfig.getModuleonfigs().clear();
 		webServerConfig.getRouterConfigs().clear();
+		webServerConfig.setEnablePathVariables(false);
 		WebServer webServer = WebServer.newInstance(webServerConfig);
 
 		//性能测试请求;

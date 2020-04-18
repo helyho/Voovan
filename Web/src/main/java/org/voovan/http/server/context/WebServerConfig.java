@@ -49,6 +49,7 @@ public class WebServerConfig {
     private WeaveConfig weaveConfig = null;
     private int maxRequestSize = 1024;
     private boolean cache    = false;
+    private boolean enablePathVariables = true;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
@@ -228,6 +229,14 @@ public class WebServerConfig {
 
     public void setCache(boolean cache) {
         this.cache = cache;
+    }
+
+    public boolean isEnablePathVariables() {
+        return enablePathVariables;
+    }
+
+    public void setEnablePathVariables(boolean enablePathVariables) {
+        this.enablePathVariables = enablePathVariables;
     }
 
     public Chain<HttpFilterConfig> getFilterConfigs() {
