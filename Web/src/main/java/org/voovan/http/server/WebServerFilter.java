@@ -70,7 +70,7 @@ public class WebServerFilter implements IoFilter {
                                 RESPONSE_CACHE.put(mark, cacheBytes);
                             }
                         } else {
-                            session.send(cacheBytes.duplicate());
+                            session.send(cacheBytes.slice());
 						}
                     } else {
                         httpResponse.send();
