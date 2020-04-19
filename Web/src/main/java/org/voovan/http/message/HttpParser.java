@@ -296,10 +296,8 @@ public class HttpParser {
 			if (currentByte == Global.BYTE_SPACE && segment < 2) { // " "
 				if (segment == 0) {
 					segment_1= HttpItem.getHttpItem(bytes, 0, position);
-					hashCode = hashCode + segment_1.hashCode() << 1;
 				} else if (segment == 1) {
 					segment_2 = HttpItem.getHttpItem(bytes, 0, questPositiion > 0 ? questPositiion : position);
-					hashCode = hashCode + segment_2.hashCode() << 2;
 
 					if(questPositiion > 0) {
 						queryString = new String(bytes, questPositiion + 1, position - questPositiion - 1);
@@ -317,7 +315,6 @@ public class HttpParser {
 				}
 			} else if (prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && segment == 2) {
 				segment_3 = HttpItem.getHttpItem(bytes, 0, position);
-				hashCode = hashCode + segment_3.hashCode() << 3;
 				position = 0;
 				break;
 			}
@@ -393,7 +390,7 @@ public class HttpParser {
 			packetMap[PL_STATUS_CODE] = segment_3;
 		}
 
-		return hashCode;
+		return (segment_1.hashCode() << 8) + (segment_2.hashCode() << 16) + (segment_3.hashCode() << 32);
 	}
 
 	/**
@@ -476,7 +473,6 @@ public class HttpParser {
 			}
 		}
 		return false;
-//        packetMap.put(fixHeaderName(headerName), headerValue);
 	}
 
 	/**
