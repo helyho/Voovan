@@ -50,6 +50,7 @@ public class WebServerConfig {
     private int maxRequestSize = 1024;
     private boolean cache    = false;
     private boolean enablePathVariables = true;
+    private boolean enableWebSocket = true;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
@@ -237,6 +238,14 @@ public class WebServerConfig {
 
     public void setEnablePathVariables(boolean enablePathVariables) {
         this.enablePathVariables = enablePathVariables;
+    }
+
+    public boolean isEnableWebSocket() {
+        return enableWebSocket;
+    }
+
+    public void setEnableWebSocket(boolean enableWebSocket) {
+        this.enableWebSocket = enableWebSocket;
     }
 
     public Chain<HttpFilterConfig> getFilterConfigs() {
