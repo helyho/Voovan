@@ -68,10 +68,10 @@ public class Header {
 	public boolean contain(String header){
 		Boolean ret = null;
 		switch (header) {
-			case HttpStatic.CONTENT_TYPE_STRING 	 :  ret = contentType == null 		? null : contentType!=null;
-			case HttpStatic.CONTENT_ENCODING_STRING  :  ret = contentEncoding == null 	? null : contentEncoding!=null;
-			case HttpStatic.CONTENT_LENGTH_STRING 	 :  ret = contentLength == null 	? null : contentLength!=null;
-			case HttpStatic.TRANSFER_ENCODING_STRING :  ret = transferEncoding == null 	? null : transferEncoding!=null;
+			case HttpStatic.CONTENT_TYPE_STRING 	 :  ret = contentType == null 		? null : contentType!=null;  break;
+			case HttpStatic.CONTENT_ENCODING_STRING  :  ret = contentEncoding == null 	? null : contentEncoding!=null;  break;
+			case HttpStatic.CONTENT_LENGTH_STRING 	 :  ret = contentLength == null 	? null : contentLength!=null;  break;
+			case HttpStatic.TRANSFER_ENCODING_STRING :  ret = transferEncoding == null 	? null : transferEncoding!=null;  break;
 		}
 
 		if(ret == null) {
@@ -89,10 +89,10 @@ public class Header {
 	public String get(String header){
 		String ret = null;
 		switch (header) {
-			case HttpStatic.CONTENT_TYPE_STRING 	 : 	ret =  contentType;
-			case HttpStatic.CONTENT_ENCODING_STRING  : 	ret = contentEncoding;
-			case HttpStatic.CONTENT_LENGTH_STRING 	 : 	ret = contentLength;
-			case HttpStatic.TRANSFER_ENCODING_STRING : 	ret = transferEncoding;
+			case HttpStatic.CONTENT_TYPE_STRING 	 : 	ret =  contentType; break;
+			case HttpStatic.CONTENT_ENCODING_STRING  : 	ret = contentEncoding; break;
+			case HttpStatic.CONTENT_LENGTH_STRING 	 : 	ret = contentLength; break;
+			case HttpStatic.TRANSFER_ENCODING_STRING : 	ret = transferEncoding; break;
 		}
 
 		if(ret == null) {

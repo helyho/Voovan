@@ -435,7 +435,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 				return readObject;
 			}
 		} catch (Exception e) {
-			throw new ReadMessageException("syncRead readFromChannel timeout or socket is disconnect");
+			throw new ReadMessageException("syncRead readFromChannel timeout or socket is disconnect", e);
 		}
 		return readObject;
 	}
