@@ -167,12 +167,18 @@ public class TByteBuffer {
     public static boolean moveData(ByteBuffer byteBuffer, int offset) {
         try {
 
+            //无数据的不进行移动
+            if(byteBuffer.remaining() == 0) {
+                return true;
+            }
+
+            //无便宜的不进行移动
             if(offset==0){
                 return true;
             }
 
-            int newLimit = byteBuffer.limit()+offset;
             int newPosition = byteBuffer.position() + offset;
+            int newLimit = byteBuffer.limit() + offset;
 
             if(newPosition < 0){
                 return false;
