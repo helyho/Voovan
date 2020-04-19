@@ -235,6 +235,41 @@ public class TByteBuffer {
     }
 
     /**
+     * 在 srcBuffer 后追加 appendBuffer;
+     * @param srcBuffer 被追加数据的 srcBuffer
+     * @param srcPosition 被追加数据的位置
+     * @param appendBuffer 追加的内容
+     * @param appendPosition 追加的数据起始位置
+     * @param length 追加数据的长度
+     * @return 返回被追加数据的 srcBuffer
+     */
+    public static ByteBuffer append(ByteBuffer srcBuffer, int srcPosition, ByteBuffer appendBuffer, int appendPosition, int length) {
+        try {
+            int appendSize = appendBuffer.limit() < length ? appendBuffer.limit() : length;
+
+            long srcAddress = getAddress(srcBuffer) + srcPosition;
+            long appendAddress = getAddress(appendBuffer) + appendPosition;
+
+            int availableSize = srcBuffer.capacity() - srcBuffer.limit();
+            if (availableSize < appendSize) {
+                int newSize = srcBuffer.capacity() + appendSize;
+                reallocate(srcBuffer, newSize);
+            }
+
+            TUnsafe.getUnsafe().copyMemory(appendAddress, srcAddress, appendSize);
+
+            srcBuffer.limit(srcPosition + appendSize);
+            srcBuffer.position(srcBuffer.limit());
+
+            return srcBuffer;
+        } catch (ReflectiveOperationException e){
+            Logger.error("TByteBuffer.moveData() Error.", e);
+        }
+
+        return null;
+    }
+
+    /**
      * 释放byteBuffer
      *      释放对外的 bytebuffer
      * @param byteBuffer bytebuffer 对象
