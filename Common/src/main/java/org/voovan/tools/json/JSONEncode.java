@@ -2,6 +2,7 @@ package org.voovan.tools.json;
 
 import org.voovan.Global;
 import org.voovan.tools.TDateTime;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.collection.IntKeyMap;
@@ -26,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class JSONEncode {
-    public static boolean JSON_CACHE_ENABLE = Boolean.valueOf(TObject.nullDefault(System.getProperty("JsonCacheEnable"), "false"));
+    public static boolean JSON_CACHE_ENABLE = TEnv.getSystemProperty("JsonCacheEnable", false);
     public static final IntKeyMap<String> JSON_ENCODE_CACHE = new IntKeyMap<String>(1024);
 
     static {

@@ -40,7 +40,7 @@ public class SocketSelector implements Closeable {
 	protected Selector selector;
 	protected boolean isCheckTimeout;
 
-	protected ArraySet<SelectionKey> selectedKeys = new ArraySet<SelectionKey>(1024*10);
+	protected ArraySet<SelectionKey> selectedKeys = new ArraySet<SelectionKey>(65536);
 	protected AtomicBoolean selecting = new AtomicBoolean(false);
 	private boolean useSelectNow = false;
 
@@ -53,7 +53,7 @@ public class SocketSelector implements Closeable {
 	public SocketSelector(EventRunner eventRunner, boolean isCheckTimeout) throws IOException {
 		this.selector = SelectorProvider.provider().openSelector();
 		this.eventRunner = eventRunner;
-		this.isCheckTimeout = SocketContext.CHECK_READ_TIMEOUT == null ? isCheckTimeout : SocketContext.CHECK_READ_TIMEOUT;
+		this.isCheckTimeout = SocketContext.CHECK_READ_TIMEOUT == null ? isCheckTimeout : false;
 
 		try {
 			TReflect.setFieldValue(selector, NioUtil.selectedKeysField, selectedKeys);
