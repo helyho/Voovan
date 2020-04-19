@@ -30,11 +30,11 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public abstract class SocketContext<C extends SelectableChannel, S extends IoSession> extends PooledObject {
     //================================线程管理===============================
-	public static int 		ACCEPT_THREAD_SIZE 	= Integer.valueOf(TObject.nullDefault(System.getProperty("AcceptThreadSize"),"1"));
-	public static int 		IO_THREAD_SIZE 		= Integer.valueOf(TObject.nullDefault(System.getProperty("IoThreadSize"), TPerformance.getProcessorCount()+1+""));
-	public static int 		SELECT_INTERVAL 	= Integer.valueOf(TObject.nullDefault(System.getProperty("SelectInterval"), "100"));
-	public static Boolean 	CHECK_READ_TIMEOUT  = Boolean.valueOf(System.getProperty("CheckReadTimeout"));
-	public static boolean 	ASYNC_SEND 			= Boolean.valueOf(TObject.nullDefault(System.getProperty("AsyncSend"), "true"));
+	public static int 		ACCEPT_THREAD_SIZE 	= TEnv.getSystemProperty("AcceptThreadSize", 1);
+	public static int 		IO_THREAD_SIZE 		= TEnv.getSystemProperty("IoThreadSize", TPerformance.getProcessorCount()+1);
+	public static int 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 100);
+	public static Boolean 	CHECK_READ_TIMEOUT  = TEnv.getSystemProperty("CheckReadTimeout", null);
+	public static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
 
 	static {
 		IO_THREAD_SIZE = IO_THREAD_SIZE < 8 ? 8 : IO_THREAD_SIZE;

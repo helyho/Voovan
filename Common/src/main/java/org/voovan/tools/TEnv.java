@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -34,7 +35,7 @@ import java.util.regex.Matcher;
  * Licence: Apache v2 License
  */
 public class TEnv {
-	public static Float JDK_VERSION = Float.valueOf(System.getProperty("java.vm.specification.version"));
+	public static Float JDK_VERSION = TEnv.getSystemProperty("java.vm.specification.version", 0f);
 	public static String OS_NAME = System.getProperty("os.name").toUpperCase();
 	public static Thread MAIN_THREAD = getMainThread();
 	public static volatile boolean IS_SHUTDOWN = false;
@@ -674,5 +675,10 @@ public class TEnv {
 	 */
 	public static void measure(String msg, Runnable runnable, TimeUnit timeUnit) {
 		System.out.println(msg + " " + measure(runnable)/(timeUnit.toNanos(1)*1f));
+	}
+
+	public static <T> T getSystemProperty(String propertyName, T defVal) {
+		String value = System.getProperty(propertyName);
+		return value == null ? defVal : (defVal==null ? null : TString.toObject(value, defVal.getClass()));
 	}
 }

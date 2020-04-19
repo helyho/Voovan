@@ -608,6 +608,9 @@ public class TString {
 	 * @return 基本类型对象
 	 */
 	public static <T> T toObject(String value, Type type, boolean ignoreCase) {
+		if(value==null || type==null) {
+			return null;
+		}
 
 		Class<?> clazz = null;
 		if (type instanceof ParameterizedType) {

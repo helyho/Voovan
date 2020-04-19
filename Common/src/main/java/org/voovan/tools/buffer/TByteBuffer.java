@@ -1,6 +1,7 @@
 package org.voovan.tools.buffer;
 
 import org.voovan.tools.TByte;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.collection.ThreadObjectPool;
 import org.voovan.tools.TUnsafe;
 import org.voovan.tools.log.Logger;
@@ -22,9 +23,10 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
-    public static ThreadObjectPool<ByteBuffer> THREAD_BYTE_BUFFER_POOL = new ThreadObjectPool<ByteBuffer>(System.getProperty("ThreadBufferPoolSize")!=null ? Integer.valueOf(System.getProperty("ThreadBufferPoolSize")) : 32);
+    public static int DEFAULT_BYTE_BUFFER_SIZE = TEnv.getSystemProperty("ByteBufferSize", 4096);
+    public static int THREAD_BUFFER_POOL_SIZE  = TEnv.getSystemProperty("ThreadBufferPoolSize", 32);
 
-    public static int DEFAULT_BYTE_BUFFER_SIZE = System.getProperty("ByteBufferSize")!=null ? Integer.valueOf(System.getProperty("ByteBufferSize")) : 1024*4;
+    public static ThreadObjectPool<ByteBuffer> THREAD_BYTE_BUFFER_POOL = new ThreadObjectPool<ByteBuffer>(THREAD_BUFFER_POOL_SIZE);
 
     static {
         System.out.println("[SYTSEM] ThreadBufferPoolSize: " + THREAD_BYTE_BUFFER_POOL.getThreadLocalMaxSize());
