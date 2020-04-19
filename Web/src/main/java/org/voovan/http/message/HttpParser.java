@@ -390,7 +390,7 @@ public class HttpParser {
 			packetMap[PL_STATUS_CODE] = segment_3;
 		}
 
-		return (segment_1.hashCode() << 8) + (segment_2.hashCode() << 16) + (segment_3.hashCode() << 32);
+		return segment_1.hashCode() + segment_2.hashCode() + segment_3.hashCode();
 	}
 
 	/**
@@ -473,6 +473,7 @@ public class HttpParser {
 			}
 		}
 		return false;
+//        packetMap.put(fixHeaderName(headerName), headerValue);
 	}
 
 	/**
@@ -493,8 +494,8 @@ public class HttpParser {
 	 * @throws IOException IO 异常
 	 */
 	public static Object[] parser(IoSession session, Object[] packetMap, int type,
-											 ByteBufferChannel byteBufferChannel, int timeout,
-											 long requestMaxSize) throws IOException {
+								  ByteBufferChannel byteBufferChannel, int timeout,
+								  long requestMaxSize) throws IOException {
 		int totalLength = 0;
 		long protocolMark = 0;
 		int headerMark = 0;
