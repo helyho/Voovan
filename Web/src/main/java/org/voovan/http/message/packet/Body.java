@@ -307,8 +307,6 @@ public class Body {
 		}
 
 		mark = 0;
-
-        changeToBytes(new byte[0]);
 	}
 
 	public void saveAsFile(File destFile) throws IOException {
