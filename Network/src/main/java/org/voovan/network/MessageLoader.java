@@ -65,7 +65,7 @@ public class MessageLoader {
 	 * @param length  长度
 	 * @return 是否意外断开
 	 */
-	public static boolean isStreamEnd(ByteBuffer buffer, int length) {
+	public static boolean isStreamEnd(int length) {
 //		length==-1时流结束
 		if(length==-1){
 			return true;
@@ -151,7 +151,7 @@ public class MessageLoader {
 				try {
 
 					//判断连接是否关闭
-					if (isStreamEnd(dataByteBuffer, dataByteBufferChannel.size())) {
+					if (isStreamEnd(dataByteBufferChannel.size())) {
 						stopType = StopType.STREAM_END;
 					}
 
