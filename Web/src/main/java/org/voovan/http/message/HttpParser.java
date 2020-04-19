@@ -363,7 +363,7 @@ public class HttpParser {
 
 		if (type == 1) {
 			//1
-			if(segment_1.getBytes()[0]=='H' && segment_1.getBytes()[0]=='T' && segment_1.getBytes()[0]=='T' && segment_1.getBytes()[0]=='P') {
+			if(segment_1.getBytes()[0]=='H' && segment_1.getBytes()[1]=='T' && segment_1.getBytes()[2]=='T' && segment_1.getBytes()[3]=='P') {
 				packetMap[PL_PROTOCOL] = HttpStatic.HTTP.getValue();
 			} else {
 				throw new HttpParserException("Not a http packet");

@@ -7,6 +7,7 @@ import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
 
 import java.io.IOException;
 
@@ -20,10 +21,10 @@ public class AnnotationRouterTest {
     //将当前方法注解为一个请求路由
     //当前方法的请求路由为:/annon/index,采用方法名作为路由的路径
     @Router(contentType = HttpContentType.IMAGE_GIF)
-    public String index(){
+    public Object index(){
         String oldPath = lastPath;
         lastPath = "/annon/index, time:" + System.currentTimeMillis();
-        return "index, lastPath="+oldPath;
+        return TObject.asMap("index", 1, "seq", 133832);//"index, lastPath="+oldPath;
     }
 
     //将当前方法注解为一个请求路由
