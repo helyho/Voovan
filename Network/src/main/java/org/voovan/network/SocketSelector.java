@@ -53,7 +53,7 @@ public class SocketSelector implements Closeable {
 	public SocketSelector(EventRunner eventRunner, boolean isCheckTimeout) throws IOException {
 		this.selector = SelectorProvider.provider().openSelector();
 		this.eventRunner = eventRunner;
-		this.isCheckTimeout = isCheckTimeout;
+		this.isCheckTimeout = SocketContext.CHECK_READ_TIMEOUT == null ? isCheckTimeout : SocketContext.CHECK_READ_TIMEOUT;
 
 		try {
 			TReflect.setFieldValue(selector, NioUtil.selectedKeysField, selectedKeys);

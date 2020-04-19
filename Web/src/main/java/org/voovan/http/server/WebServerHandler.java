@@ -176,7 +176,7 @@ public class WebServerHandler implements IoHandler {
 			httpSessionState.setHttpResponse(httpResponse);
 
 			// WebSocket协议升级处理
-			if (WebSocketTools.isWebSocketUpgrade(request)) {
+			if (webConfig.isEnableWebSocket() && WebSocketTools.isWebSocketUpgrade(request)) {
 				return disposeUpgrade(session, httpRequest, httpResponse);
 			}
 
