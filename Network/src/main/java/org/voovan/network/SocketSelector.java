@@ -38,10 +38,9 @@ public class SocketSelector implements Closeable {
 	private  EventRunner eventRunner;
 
 	protected Selector selector;
-	protected ByteBuffer readTempBuffer;
 	protected boolean isCheckTimeout;
 
-	protected ArraySet<SelectionKey> selectedKeys = new ArraySet<SelectionKey>(1024*10);
+	protected ArraySet<SelectionKey> selectedKeys = new ArraySet<SelectionKey>(65536);
 	protected AtomicBoolean selecting = new AtomicBoolean(false);
 	private boolean useSelectNow = false;
 
@@ -55,9 +54,6 @@ public class SocketSelector implements Closeable {
 		this.selector = SelectorProvider.provider().openSelector();
 		this.eventRunner = eventRunner;
 		this.isCheckTimeout = SocketContext.CHECK_READ_TIMEOUT == null ? isCheckTimeout : false;
-
-
-		readTempBuffer = TByteBuffer.allocateDirect();
 
 		try {
 			TReflect.setFieldValue(selector, NioUtil.selectedKeysField, selectedKeys);
@@ -326,7 +322,6 @@ public class SocketSelector implements Closeable {
 	 */
 	public void close() {
 		try {
-			TByteBuffer.release(readTempBuffer);
 			selector.close();
 		} catch (IOException e) {
 			Logger.error("close selector error");
@@ -350,8 +345,6 @@ public class SocketSelector implements Closeable {
 			}
 		} catch(Exception e){
 			return dealException(socketContext, e);
-		} finally {
-			readTempBuffer.clear();
 		}
 	}
 
@@ -395,7 +388,28 @@ public class SocketSelector implements Closeable {
 	 * @throws IOException IO 异常
 	 */
 	public int tcpReadFromChannel(TcpSocket socketContext, SocketChannel socketChannel) throws IOException {
-		int readSize = socketChannel.read(readTempBuffer);
+		IoSession session = socketContext.getSession();
+
+		ByteBufferChannel byteBufferChannel = session.isSSLMode()
+								? session.getSSLParser().getSSlByteBufferChannel()
+								: session.getReadByteBufferChannel();
+
+		//自动扩容
+		if(byteBufferChannel.available() == 0) {
+			byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
+		}
+
+		ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+
+		//如果有历史数据则从历史数据尾部开始写入
+		byteBuffer.position(byteBuffer.limit());
+		byteBuffer.limit(byteBuffer.capacity());
+
+		int readSize = socketChannel.read(byteBuffer);
+
+		byteBuffer.flip();
+		byteBufferChannel.compact();
+
 		readSize = loadAndPrepare(socketContext.getSession(), readSize);
 		return readSize;
 	}
@@ -459,11 +473,34 @@ public class SocketSelector implements Closeable {
 		//接受的连接isConnected 是 false
 		//发起的连接isConnected 是 true
 		if (datagramChannel.isConnected()) {
-			readSize = datagramChannel.read(readTempBuffer);
+			IoSession session = socketContext.getSession();
+
+			ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
+			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+
+			//自动扩容
+			if(byteBufferChannel.available() == 0) {
+				byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
+			}
+
+			//如果有历史数据则从历史数据尾部开始写入
+			byteBuffer.position(byteBuffer.limit());
+			byteBuffer.limit(byteBuffer.capacity());
+
+			readSize = datagramChannel.read(session.getReadByteBufferChannel().getByteBuffer());
+
+			byteBuffer.flip();
+			byteBufferChannel.compact();
 		} else {
-			socketContext = (UdpSocket) udpAccept((UdpServerSocket) socketContext, datagramChannel, datagramChannel.receive(readTempBuffer));
 			UdpSession session = socketContext.getSession();
-			readSize = readTempBuffer.position();
+			ByteBuffer byteBuffer = session.getReadByteBufferChannel().getByteBuffer();
+			byteBuffer.limit(byteBuffer.capacity());
+
+			socketContext = (UdpSocket) udpAccept((UdpServerSocket) socketContext, datagramChannel, datagramChannel.receive(byteBuffer));
+			readSize = session.getReadByteBufferChannel().getByteBuffer().position();
+
+			byteBuffer.flip();
+			session.getReadByteBufferChannel().compact();
 		}
 		readSize = loadAndPrepare(socketContext.getSession(), readSize);
 
@@ -519,43 +556,28 @@ public class SocketSelector implements Closeable {
 		ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
 
 		// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
-		if (MessageLoader.isStreamEnd(readTempBuffer, readSize) || !session.isConnected()) {
+		if (MessageLoader.isStreamEnd(readSize) || !session.isConnected()) {
 			session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 			session.close();
 			return -1;
 		} else {
 
-			readTempBuffer.flip();
 
 			if (readSize > 0) {
-
-				//如果缓冲队列已慢, 则等待可用, 超时时间为读超时
-				try {
-					TEnv.waitThrow(session.socketContext().getReadTimeout(), () -> appByteBufferChannel.size() + readTempBuffer.limit() >= appByteBufferChannel.getMaxSize());
-				} catch (TimeoutException e) {
-					Logger.error("Session.readByteByteBuffer is not enough avaliable space:", e);
-				}
-
-				//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
-				if (!SSLParser.isHandShakeDone(session)) {
-					session.getSSLParser().getSSlByteBufferChannel().writeEnd(readTempBuffer);
-					session.getSSLParser().doHandShake();
-				} else {
-					//接收SSL数据, SSL握手完成后解包
-					if (session.isSSLMode()) {
-						session.getSSLParser().unWarpByteBufferChannel(readTempBuffer);
+				if(session.isSSLMode()) {
+					//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
+					if (!SSLParser.isHandShakeDone(session)) {
+						session.getSSLParser().doHandShake();
+						return readSize;
 					} else {
-						appByteBufferChannel.writeEnd(readTempBuffer);
-					}
-
-					if (session.isConnected() && !session.getState().isReceive() && appByteBufferChannel.size() > 0) {
-						// 触发 onReceive 事件
-						EventTrigger.fireReceiveAsEvent(session);
+						session.getSSLParser().unWarpByteBufferChannel();
 					}
 				}
 
-				// 接收完成后重置buffer对象
-				// readTempBuffer.clear();
+				if (session.isConnected() && !session.getState().isReceive() && appByteBufferChannel.size() > 0) {
+					// 触发 onReceive 事件
+					EventTrigger.fireReceiveAsEvent(session);
+				}
 			}
 
 			return readSize;

@@ -308,9 +308,8 @@ public class SSLParser {
 	 * @return 接收数据大小
 	 * @throws IOException IO异常
 	 */
-	public synchronized int unWarpByteBufferChannel(ByteBuffer readByteBuffer) throws IOException {
+	public synchronized int unWarpByteBufferChannel() throws IOException {
 		ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
-		sslByteBufferChannel.writeEnd(readByteBuffer);
 
 		if(!isEnoughToUnwarp()) {
 			return 0;
