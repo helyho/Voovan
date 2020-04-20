@@ -252,7 +252,7 @@ public class HttpDispatcher {
 	public Object[] findRouter(HttpRequest request){
 		String requestPath   = request.protocol().getPath();
 		String requestMethod 	= request.protocol().getMethod();
-		int routerMark    = THash.HashFNV1(requestPath) << 16 +  THash.HashFNV1(requestMethod);
+		int routerMark    = requestPath.hashCode() << 16 +  requestMethod.hashCode();
 
 		Object[] routerInfo = ROUTER_INFO_CACHE.get().get(routerMark);
 
