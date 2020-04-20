@@ -1,0 +1,31 @@
+{
+  "ServerName"             : "VoovanWebServer",
+  "Host"                   : "0.0.0.0",
+  "Port"                   : 28080,
+  "ReadTimeout"            : 10,
+  "SendTimeout"            : 30,
+  "IndexFiles"             : "index.htm,index.html,default.htm,default.htm",
+  "ContextPath"            : "WEBAPP",
+  "MatchRouteIgnoreCase"   : false,
+  "CharacterSet"           : "UTF-8",
+
+  "SessionContainer"       : "org.voovan.tools.collection.CacheMap",
+  "SessionTimeout"         : 1,
+
+  "KeepAliveTimeout"       : 60,
+  "Gzip"                   : true,
+  "AccessLog"              : false,
+  "maxRequestSize"         : 65536,
+
+  //  "Https": {
+  //      "CertificateFile"        : "/src/test/java/org/voovan/test/http/ssl_ks",
+  //      "CertificatePassword"    : "passStr",
+  //      "KeyPassword"            : "123123",
+  //  },
+
+  "Filters": [],
+
+  "Routers": [],
+
+  "Modules": []
+}
