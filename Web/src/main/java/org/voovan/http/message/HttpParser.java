@@ -296,9 +296,9 @@ public class HttpParser {
 			if (currentByte == Global.BYTE_SPACE && segment < 2) { // " "
 				if (segment == 0) {
 					//常用 http method 快速判断
-					if(bytes.length == 3 && bytes[0] == 'G' && bytes[1] == 'E' && bytes[2] == 'T') {
+					if(position == 3 && bytes[0] == 'G' && bytes[1] == 'E' && bytes[2] == 'T') {
 						segment_1 = HttpStatic.GET;
-					} else if(bytes.length == 4 && bytes[0] == 'P' && bytes[1] == 'O' && bytes[2] == 'S' && bytes[3] == 'T') {
+					} else if(position == 4 && bytes[0] == 'P' && bytes[1] == 'O' && bytes[2] == 'S' && bytes[3] == 'T') {
 						segment_1 = HttpStatic.POST;
 					} else {
 						segment_1 = HttpItem.getHttpItem(bytes, 0, position);
