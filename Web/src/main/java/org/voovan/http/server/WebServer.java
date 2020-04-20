@@ -752,16 +752,6 @@ public class WebServer {
 	 */
 	public static WebServer newInstance(String[] args) {
 
-		if(TEnv.JDK_VERSION > 8 && !"true".equals(System.getProperty("jdk.attach.allowAttachSelf"))){
-
-			Logger.fremawork("Your are working on: JDK-" +TEnv.JDK_VERSION+". " +
-					"You should add java command arguments: " +
-					"-Djdk.attach.allowAttachSelf=true " +
-					"--add-exports java.base/jdk.internal.ref=ALL-UNNAMED");
-
-			System.exit(0);
-		}
-
 		//先初始化环境参数, 否则会导致 framework.properties 无法加载到对应环境的配置
 		for(int i=0;i<args.length;i++){
 			if(args[i].equals("--env") || args[i].equals("-e")){
@@ -922,6 +912,17 @@ public class WebServer {
 			}
 		}
 
+		//只有启用热部署和代码织入功能才需要提示
+		if(config.getHotSwapInterval() >0 || config.getWeaveConfig()!=null) {
+			if(TEnv.JDK_VERSION > 8 && !"true".equals(System.getProperty("jdk.attach.allowAttachSelf"))){
+
+				System.out.println("Your are working on: JDK-" +TEnv.JDK_VERSION+". " +
+						"You should add java command arguments: " +
+						"-Djdk.attach.allowAttachSelf=true");
+
+				System.exit(0);
+			}
+		}
 
 		WebServer webServer = WebServer.newInstance(config);
 		return webServer;

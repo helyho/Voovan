@@ -87,7 +87,6 @@ public class Global {
 
     public static final Charset CS_ASCII = Charset.forName("US-ASCII");
     public static final Charset CS_UTF_8 = Charset.forName("UTF-8");
-    public static final Charset CS_GBK = Charset.forName("GBK");
 
     public static final String NAME = "Voovan";
 
