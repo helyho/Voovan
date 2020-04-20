@@ -26,31 +26,31 @@ import java.util.Vector;
  */
 public class WebServerConfig {
     private String serverName;
-    private String host             = "0.0.0.0";
-    private int port                = 28080;
-    private int readTimeout             = 30;
-    private int sendTimeout             = 30;
-    private String contextPath      = "WEBAPP";
-    private boolean MatchRouteIgnoreCase = false;
-    private String characterSet     = "UTF-8";
+    private String host                     = "0.0.0.0";
+    private int port                        = 28080;
+    private int readTimeout                 = 30;
+    private int sendTimeout                 = 30;
+    private String contextPath              = "WEBAPP";
+    private boolean MatchRouteIgnoreCase    = false;
+    private String characterSet             = "UTF-8";
     private String responseCharacterSet     = "";
-    private String sessionContainer = TReflect.getClassName(CacheMap.class);
-    private int sessionTimeout      = 30;
-    private int keepAliveTimeout    = 60;
-    private boolean accessLog       = false;
-    private boolean gzip            = true;
-    private int gzipMinSize = 2048;
-    private List<String> gzipMimeType = TObject.asList("text/html","text/xml","text/javascript","application/javascript","text/css","text/plain","text/json","application/json");
+    private String sessionContainer         = TReflect.getClassName(CacheMap.class);
+    private int sessionTimeout              = 30;
+    private int keepAliveTimeout            = 60;
+    private boolean accessLog               = false;
+    private boolean gzip                    = true;
+    private int gzipMinSize                 = 2048;
+    private List<String> gzipMimeType       = TObject.asList("text/html","text/xml","text/javascript","application/javascript","text/css","text/plain","text/json","application/json");
     private HttpsConfig https;
-    private String indexFiles = "index.htm,index.html,default.htm,default.htm";
-    private int hotSwapInterval = 0;
-    private String lifeCycleClass = null;
-    private String pauseURL = null;
-    private WeaveConfig weaveConfig = null;
-    private int maxRequestSize = 1024;
-    private boolean cache    = false;
-    private boolean enablePathVariables = true;
-    private boolean enableWebSocket = true;
+    private String indexFiles               = "index.htm,index.html,default.htm,default.htm";
+    private int hotSwapInterval             = 0;
+    private String lifeCycleClass           = null;
+    private String pauseURL                 = null;
+    private WeaveConfig weaveConfig         = null;
+    private int maxRequestSize              = 65536;         //64k
+    private boolean cache                   = false;
+    private boolean enablePathVariables     = true;
+    private boolean enableWebSocket         = true;
 
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
@@ -97,7 +97,9 @@ public class WebServerConfig {
 
     public void setCharacterSet(String characterSet) {
         this.characterSet = characterSet;
-        this.responseCharacterSet = ";charset="+ characterSet;
+        if(!characterSet.equalsIgnoreCase("UTF-8")) {
+            this.responseCharacterSet = ";charset=" + characterSet;
+        }
     }
 
     public String getResponseCharacterSet() {
