@@ -31,19 +31,19 @@ public class HttpClientUnit extends TestCase {
 
 	@Test
 	public void testGetHeader() throws IOException {
-		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080");
+		HttpClient httpClient = new HttpClient("http://webserver.voovan.org");
 		httpClient.putParameters("name", "测试");
 		assertEquals(httpClient.getHeader().get("Host"),"127.0.0.1");
 		httpClient.close();
 	}
 
 	public void testParameters() throws IOException {
-		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080");
+		HttpClient httpClient = new HttpClient("http://webserver.voovan.org");
 		httpClient.putParameters("name", "测试");
 		assertEquals(httpClient.getParameters().get("name"), "测试");
 		httpClient.close();
 	}
-	
+
 	public void testGet() throws Exception{
 		HttpClient getClient = new HttpClient("http://www.voovan.org","GB2312", 60);
 		Response response  = getClient.setMethod("GET")
@@ -55,7 +55,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testAsync() throws Exception{
-		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 60);
+		HttpClient getClient = new HttpClient("http://webserver.voovan.org","GB2312", 60);
 		getClient.setMethod("GET")
 				.putParameters("name", "测试Get")
 				.putParameters("age", "32").asyncSend(resp->{
@@ -82,20 +82,20 @@ public class HttpClientUnit extends TestCase {
 		assertTrue(response.protocol().getStatus() != 500);
 		postClient.close();
 	}
-	
+
 	public void testMultiPart() throws Exception {
-		HttpClient mpClient = new HttpClient("http://127.0.0.1:28080", 60);
+		HttpClient mpClient = new HttpClient("http://webserver.voovan.org", 60);
 		Response response = mpClient.setMethod("POST")
 			.addPart(new Part("name","测试MultiPart","GB2312"))
 			.addPart(new Part("age","23","GB2312")).send();
-		
+
 		System.out.println(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 		mpClient.close();
 	}
 
 	public void testFileUpload() throws Exception {
-		HttpClient ulClient = new HttpClient("http://127.0.0.1:28080", 60);
+		HttpClient ulClient = new HttpClient("http://webserver.voovan.org", 60);
 		ulClient.setMethod("POST");
 		ulClient.addPart(new Part("name","测试Upload","GB2312"));
 		ulClient.uploadFile("file",new File("./pom.xml"));
@@ -111,9 +111,9 @@ public class HttpClientUnit extends TestCase {
 		System.out.println(httpClient.send("/").body().getBodyString());
 		httpClient.close();
 	}
-	
+
 	public void testSeriesRequest() throws Exception {
-		HttpClient httpClient = new HttpClient("http://127.0.0.1:28080","GBK2312",10000);
+		HttpClient httpClient = new HttpClient("http://webserver.voovan.org","GBK2312",10000);
 		System.out.println(httpClient.send("/").body().getBodyString());
 		System.out.println("1=========================================");
 		System.out.println(httpClient.send("/").body().getBodyString());
@@ -126,7 +126,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testWebSocket() throws Exception {
-		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/websocket","GBK2312",60);
+		HttpClient httpClient = new HttpClient("ws://webserver.voovan.org/websocket","GBK2312",60);
 		httpClient.webSocket("/websocket", new WebSocketRouter() {
 
 			@Override
@@ -163,11 +163,12 @@ public class HttpClientUnit extends TestCase {
 			}
 		}.addFilterChain(new StringFilter()));
 
+		TEnv.sleep(3000);
 	}
 
 
 	public void testMulGet() throws Exception{
-		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 5);
+		HttpClient getClient = new HttpClient("http://webserver.voovan.org","GB2312", 5);
 		for(int i=0;i<20;i++) {
 			System.out.println(i);
 			Response response = getClient.setMethod("GET").send("/ar/annon");
@@ -179,7 +180,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testMulPost() throws Exception{
-		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 5);
+		HttpClient getClient = new HttpClient("http://webserver.voovan.org","GB2312", 5);
 		for(int i=0;i<20;i++) {
 			System.out.println(i);
 			Response response = getClient.setMethod("POST").setData("this is post body").send("/ar/annon/body");
