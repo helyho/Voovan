@@ -627,8 +627,6 @@ public class HttpClient extends PooledObject implements Closeable{
 	 */
 	private void doWebSocketUpgrade(String location) throws SendMessageException, ReadMessageException {
 		IoSession session = socket.getSession();
-		HttpSessionState httpSessionState = WebServerHandler.getAttachment(session);
-		httpSessionState.setType(null);
 
 		httpRequest.header().put("Host", hostString);
 		httpRequest.header().put("Connection","Upgrade");
@@ -638,11 +636,6 @@ public class HttpClient extends PooledObject implements Closeable{
 		httpRequest.header().put("Sec-WebSocket-Version","13");
 		httpRequest.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
 		Response response =send(location);
-
-		if(response.protocol().getStatus() == 101){
-			//初始化 WebSocket
-			initWebSocket();
-		}
 	}
 
 	/**

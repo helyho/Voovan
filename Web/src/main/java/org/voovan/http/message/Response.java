@@ -7,6 +7,7 @@ import org.voovan.http.message.packet.ResponseProtocol;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
 import org.voovan.tools.FastThreadLocal;
+import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.MemoryReleasedException;
@@ -232,9 +233,18 @@ public class Response {
 	public void send(IoSession session) throws IOException {
 
 		try {
+			ByteBufferChannel byteBufferChannel = session.getSendByteBufferChannel();
+
 			//发送报文头
-			ByteBuffer byteBuffer = THREAD_BYTE_BUFFER.get();
-			byteBuffer.clear();
+			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer(); //THREAD_BYTE_BUFFER.get();
+			//自动扩容
+			if(byteBufferChannel.available() == 0) {
+				byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
+			}
+
+			//如果有历史数据则从历史数据尾部开始写入
+			byteBuffer.position(byteBuffer.limit());
+			byteBuffer.limit(byteBuffer.capacity());
 
 			try {
 				byteBuffer.put(readHead());
@@ -282,16 +292,15 @@ public class Response {
 
 					if(byteBuffer.remaining() <= 10) {
 						byteBuffer.flip();
-						session.send(byteBuffer);
-						byteBuffer.clear();
+						byteBufferChannel.compact();
+						session.flush();
 					}
 				}
 
 				//发送报文结束符
 				byteBuffer.put(readEnd());
 				byteBuffer.flip();
-				session.send(byteBuffer);
-
+				byteBufferChannel.compact();
 			} catch (Throwable e) {
 				if (!(e instanceof MemoryReleasedException)) {
 					Logger.error("Response writeToChannel error: ", (Exception) e);
