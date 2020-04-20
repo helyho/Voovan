@@ -295,7 +295,14 @@ public class HttpParser {
 
 			if (currentByte == Global.BYTE_SPACE && segment < 2) { // " "
 				if (segment == 0) {
-					segment_1= HttpItem.getHttpItem(bytes, 0, position);
+					//常用 http method 快速判断
+					if(bytes.length == 3 && bytes[0] == 'G' && bytes[1] == 'E' && bytes[2] == 'T') {
+						segment_1 = HttpStatic.GET;
+					} else if(bytes.length == 4 && bytes[0] == 'P' && bytes[1] == 'O' && bytes[2] == 'S' && bytes[3] == 'T') {
+						segment_1 = HttpStatic.POST;
+					} else {
+						segment_1 = HttpItem.getHttpItem(bytes, 0, position);
+					}
 				} else if (segment == 1) {
 					segment_2 = HttpItem.getHttpItem(bytes, 0, questPositiion > 0 ? questPositiion : position);
 
@@ -390,7 +397,7 @@ public class HttpParser {
 			packetMap[PL_STATUS_CODE] = segment_3;
 		}
 
-		return segment_1.hashCode() + segment_2.hashCode() + segment_3.hashCode();
+		return segment_1.hashCode() + segment_2.hashCode() + packetMap[PL_VERSION].hashCode();
 	}
 
 	/**

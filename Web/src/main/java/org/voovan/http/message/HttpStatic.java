@@ -11,6 +11,10 @@ package org.voovan.http.message;
 public class HttpStatic {
 	public static final String HEADER_SPLITER_STRING = ": ";
 
+	// methods
+	public static final String GET_STRING = "GET";
+	public static final String POST_STRING = "POST";
+
 	// headers
 	public static final String ACCEPT_STRING = "Accept";
 	public static final String ACCEPT_CHARSET_STRING = "Accept-Charset";
@@ -102,6 +106,9 @@ public class HttpStatic {
 	public static final String ACCESS_CONTROL_ALLOW_HEADERS_STRING = "Access-Control-Allow-Headers";
 	public static final String ACCESS_CONTROL_EXPOSE_HEADERS_STRING = "Access-Control-Expose-Headers";
 	public static final String ACCESS_CONTROL_ALLOW_CREDENTIALS_STRING = "Access-Control-Allow-Credentials";
+
+	public static final HttpItem GET = new HttpItem(GET_STRING);
+	public static final HttpItem POST = new HttpItem(POST_STRING);
 
 	// Header names
     public static final HttpItem ACCEPT = new HttpItem(ACCEPT_STRING);
