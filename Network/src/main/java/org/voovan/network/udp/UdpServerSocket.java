@@ -112,7 +112,7 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
             try {
                 waitObj.wait();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Logger.error(e);
             }
         }
     }

@@ -36,7 +36,7 @@ public class TSerialize {
             TReflect.isImpByInterface(serializeClazz, Serialize.class);
             SERIALIZE = (Serialize) TReflect.newInstance(serializeClazz);
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            Logger.error(e);
         }
 
         Logger.simple("[SYSTEM] serialize type: " + serializeType);

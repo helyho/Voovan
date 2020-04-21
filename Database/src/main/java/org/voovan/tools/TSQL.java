@@ -183,7 +183,7 @@ public class TSQL {
 					result.add(value);
 
 				} catch (ReflectiveOperationException e) {
-					e.printStackTrace();
+					Logger.error(e);
 				}
 			}
 		}
@@ -685,7 +685,7 @@ public class TSQL {
 				try {
 					connection.close();
 				} catch (SQLException e) {
-					e.printStackTrace();
+					Logger.error(e);
 				}
 			}
 		}

@@ -12,6 +12,7 @@ import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.collection.LongKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
 
 import java.io.File;
@@ -569,7 +570,7 @@ public class HttpParser {
 									}
 								}
 							} catch (Exception e) {
-								e.printStackTrace();
+								Logger.error(e);
 							}
 						}
 					}
@@ -819,7 +820,7 @@ public class HttpParser {
 						try {
 							chunkedLength = Integer.parseInt(chunkedLengthLine, 16);
 						}catch(Exception e){
-							e.printStackTrace();
+							Logger.error(e);
 							break;
 						}
 

@@ -513,7 +513,7 @@ public class ObjectPool<T> {
                         }
 
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        Logger.error(e);
                     }
                 }
             }, this.interval, true);

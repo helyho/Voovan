@@ -1,5 +1,6 @@
 package org.voovan.tools;
 
+import org.voovan.tools.log.Logger;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -27,7 +28,7 @@ public class TUnsafe {
             field.setAccessible(true);
             unsafe = (Unsafe) field.get(null);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
         }
     }
 

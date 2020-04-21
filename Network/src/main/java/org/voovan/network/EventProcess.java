@@ -7,6 +7,7 @@ import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.buffer.TByteBuffer;
+import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -163,7 +164,7 @@ public class EventProcess {
         try {
             byteBuffer.limit(splitLength);
         } catch (Exception e){
-            e.printStackTrace();
+            Logger.error(e);
         }
 
         if ((session.socketContext() instanceof UdpSocket && session.isOpen()) || session.isConnected()) {

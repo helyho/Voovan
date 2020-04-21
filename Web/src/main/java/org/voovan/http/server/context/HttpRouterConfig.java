@@ -128,8 +128,7 @@ public class HttpRouterConfig {
             }
             return httpRouter;
         } catch (ReflectiveOperationException e) {
-            Logger.error("[ERROR] New HttpRouter ["+className+"] error.");
-            e.printStackTrace();
+            Logger.error("[ERROR] New HttpRouter ["+className+"] error.", e);
             return null;
         }
     }
@@ -147,8 +146,7 @@ public class HttpRouterConfig {
             }
             return webSocketRouter;
         } catch (ReflectiveOperationException e) {
-            Logger.error("[ERROR] New HttpRouter ["+className+"] error.");
-            e.printStackTrace();
+            Logger.error("[ERROR] New HttpRouter ["+className+"] error.", e);
             return null;
         }
     }

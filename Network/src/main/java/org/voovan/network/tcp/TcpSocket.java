@@ -146,7 +146,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 			try {
 				waitObj.wait();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				Logger.error(e);
 			}
 		}
 	}
@@ -172,7 +172,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 
 			bindToSocketSelector(SelectionKey.OP_READ);
 		}catch(IOException e){
-			e.printStackTrace();
+			Logger.error(e);
 		}
 	}
 

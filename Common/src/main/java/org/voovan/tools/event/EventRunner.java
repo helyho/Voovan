@@ -1,6 +1,7 @@
 package org.voovan.tools.event;
 
 import org.voovan.tools.exception.EventRunnerException;
+import org.voovan.tools.log.Logger;
 
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -107,7 +108,7 @@ public class EventRunner {
 						}
 					}
 				} catch (Throwable e) {
-					e.printStackTrace();
+					Logger.error(e);
 					continue;
 				}
 			}

@@ -135,7 +135,7 @@ public class WebServerFilter implements IoFilter {
 				try {
 					response.send(session);
 				} catch (IOException e1) {
-					e1.printStackTrace();
+					Logger.error(e1);
 				}
 
 				Logger.error("ParseRequest failed",e);

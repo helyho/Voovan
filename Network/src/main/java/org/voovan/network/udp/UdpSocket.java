@@ -136,7 +136,7 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
             try {
                 waitObj.wait();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Logger.error(e);
             }
         }
     }

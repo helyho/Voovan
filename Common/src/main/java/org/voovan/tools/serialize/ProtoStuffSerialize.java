@@ -6,6 +6,7 @@ import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;
 import org.voovan.tools.TByte;
 import org.voovan.tools.collection.ThreadObjectPool;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.util.Arrays;
@@ -87,7 +88,7 @@ public class ProtoStuffSerialize implements Serialize {
                 return (T) bytes;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
         }
 
         return null;

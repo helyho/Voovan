@@ -11,6 +11,7 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.TSQL;
 import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Field;
@@ -442,7 +443,7 @@ public class Recorder {
                     }
 
                 } catch (ReflectiveOperationException e) {
-                    e.printStackTrace();
+                    Logger.error(e);
                 }
 
                 setSql = TString.assembly(setSql, sqlFieldName, "=::", fieldName, ",");
@@ -510,7 +511,7 @@ public class Recorder {
                             continue;
                         }
                     } catch (ReflectiveOperationException e) {
-                        e.printStackTrace();
+                        Logger.error(e);
                     }
                 } else {
                     continue;

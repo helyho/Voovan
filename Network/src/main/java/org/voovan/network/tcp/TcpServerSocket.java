@@ -125,7 +125,7 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 			try {
 				waitObj.wait();
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				Logger.error(e);
 			}
 		}
 	}

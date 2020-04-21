@@ -453,7 +453,9 @@ public class AnnotationRouter implements HttpRouter {
                     e = (Exception) cause;
                 }
             }
-            e.printStackTrace();
+
+            Logger.error(e);
+
             if(e instanceof AnnotationRouterException) {
                 throw e;
             } else {
