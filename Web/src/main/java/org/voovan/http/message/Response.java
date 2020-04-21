@@ -237,6 +237,12 @@ public class Response {
 
 			//发送报文头
 			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer(); //THREAD_BYTE_BUFFER.get();
+
+			//Socket 已断开
+			if(byteBuffer==null) {
+				return;
+			}
+
 			//自动扩容
 			if(byteBufferChannel.available() == 0) {
 				byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
