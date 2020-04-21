@@ -1,7 +1,7 @@
 package org.voovan.tools.exception;
 
 /**
- * 类文字命名
+ * EventRunner 异常
  *
  * @author: helyho
  * voovan Framework.

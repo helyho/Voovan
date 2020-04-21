@@ -1,7 +1,7 @@
 package org.voovan.http.message;
 
 /**
- * 类文字命名
+ * Http 静态类
  *
  * @author: helyho
  * Voovan Framework.

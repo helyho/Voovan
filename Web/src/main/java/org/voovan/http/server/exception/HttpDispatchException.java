@@ -1,7 +1,7 @@
 package org.voovan.http.server.exception;
 
 /**
- * 类文字命名
+ * HttpDispatch 异常
  *
  * @author: helyho
  * Voovan Framework.

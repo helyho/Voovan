@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 类文字命名
+ * Socket IO 消息分发类
  *
  * @author: helyho
  * Voovan Framework.

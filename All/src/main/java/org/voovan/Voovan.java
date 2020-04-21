@@ -1,8 +1,7 @@
 package org.voovan;
 
 /**
- * 类文字命名
- *
+ * Voovan
  * @author: helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan

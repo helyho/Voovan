@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 类文字命名
+ * Engine IO 配置类
  *
  * @author: helyho
  * Voovan Framework.

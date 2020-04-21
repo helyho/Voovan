@@ -1,7 +1,7 @@
 package org.voovan.db;
 
 /**
- * 类文字命名
+ * 数据库类型枚举
  *
  * @author: helyho
  * DBase Framework.

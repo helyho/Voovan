@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 类文字命名
+ * JSON 使用路径解析的工具类
  *
  * @author helyho
  *         <p>

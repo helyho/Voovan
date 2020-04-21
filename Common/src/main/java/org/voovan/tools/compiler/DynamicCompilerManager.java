@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 类文字命名
+ * 动态编译管理类
  *
  * @author: helyho
  * Voovan Framework.

@@ -1,7 +1,7 @@
 package org.voovan.http.extend;
 
 /**
- * 类文字命名
+ * SocketIO 异常
  *
  * @author: helyho
  * Voovan Framework.

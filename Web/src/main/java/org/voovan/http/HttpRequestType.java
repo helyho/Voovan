@@ -1,7 +1,7 @@
 package org.voovan.http;
 
 /**
- * 类文字命名
+ * Http 请求类型
  *
  * @author: helyho
  * DBase Framework.

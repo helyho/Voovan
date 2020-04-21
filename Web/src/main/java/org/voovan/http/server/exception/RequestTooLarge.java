@@ -3,7 +3,7 @@ package org.voovan.http.server.exception;
 import java.io.IOException;
 
 /**
- * 类文字命名
+ * Http request 请求超长异常
  *
  * @author: helyho
  * Voovan Framework.

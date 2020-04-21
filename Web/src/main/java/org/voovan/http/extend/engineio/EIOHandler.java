@@ -5,7 +5,7 @@ import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.exception.SendMessageException;
 
 /**
- * 类文字命名
+ * Engine IO 业务句柄
  *
  * @author: helyho
  * Voovan Framework.

@@ -46,12 +46,12 @@ public class TByteBufferUnit extends TestCase {
             TByteBuffer.reallocate(b, 20);
         }
         b.position(2);
-        TByteBuffer.moveData(b,-2);
+        TByteBuffer.move(b,-2);
         Logger.simple(b+"\r\n"+TByteBuffer.toString(b));
         assertEquals(20, b.capacity());
         assertEquals("lyho", TByteBuffer.toString(b).trim());
 
-        TByteBuffer.moveData(b,2);
+        TByteBuffer.move(b,2);
         Logger.simple(b+"\r\n"+TByteBuffer.toString(b));
         assertEquals(20, b.capacity());
         assertEquals("lylyho", TByteBuffer.toString(b).trim());

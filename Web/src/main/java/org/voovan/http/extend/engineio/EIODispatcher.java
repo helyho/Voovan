@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 类文字命名
+ * Engine IO 消息分发
  *
  * @author: helyho
  * Voovan Framework.
