@@ -3,7 +3,7 @@ package org.voovan.http.server;
 import org.voovan.http.HttpRequestType;
 
 /**
- * 类文字命名
+ * HttpSession状态类
  *
  * @author: helyho
  * voovan-framework Framework.

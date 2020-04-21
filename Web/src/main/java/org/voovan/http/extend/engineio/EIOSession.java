@@ -6,7 +6,7 @@ import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.collection.Attributes;
 
 /**
- * 类文字命名
+ * Engine IO 会话类
  *
  * @author: helyho
  * Voovan Framework.

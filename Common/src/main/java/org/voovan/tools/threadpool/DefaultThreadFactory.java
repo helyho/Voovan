@@ -6,7 +6,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 类文字命名
+ * 默认线程工程类
  *
  * @author: helyho
  * Voovan Framework.

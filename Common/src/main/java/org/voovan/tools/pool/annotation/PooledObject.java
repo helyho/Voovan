@@ -3,7 +3,7 @@ package org.voovan.tools.pool.annotation;
 import java.lang.annotation.*;
 
 /**
- * 类文字命名
+ * 池化对象的注解路由
  *
  * @author: helyho
  * voovan Framework.

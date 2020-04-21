@@ -1,7 +1,7 @@
 package org.voovan.tools.compiler.function;
 
 /**
- * 类文字命名
+ * 函数接口类
  *
  * @author: helyho
  * voovan Framework.

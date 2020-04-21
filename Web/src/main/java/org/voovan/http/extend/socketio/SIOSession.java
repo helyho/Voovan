@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 类文字命名
+ *  Socket IO 会话
  *
  * @author: helyho
  * Voovan Framework.

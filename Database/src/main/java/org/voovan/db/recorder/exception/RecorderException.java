@@ -1,7 +1,7 @@
 package org.voovan.db.recorder.exception;
 
 /**
- * 类文字命名
+ * Recorder 异常
  *
  * @author: helyho
  * DBase Framework.

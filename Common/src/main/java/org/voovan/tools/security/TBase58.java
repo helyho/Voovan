@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
- * 类文字命名
+ * Base58 工具类
  *
  * @author: helyho
  * DBase Framework.

@@ -1,7 +1,7 @@
 package org.voovan.tools.exception;
 
 /**
- * 类文字命名
+ * 解析通用异常
  *
  * @author: helyho
  * voovan Framework.

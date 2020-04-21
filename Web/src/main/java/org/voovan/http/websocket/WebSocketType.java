@@ -1,7 +1,7 @@
 package org.voovan.http.websocket;
 
 /**
- * 类文字命名
+ * WebSocket 类型枚举
  *
  * @author: helyho
  * DBase Framework.

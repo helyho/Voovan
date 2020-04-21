@@ -8,7 +8,7 @@ import org.voovan.network.handler.SynchronousHandler;
 import java.util.function.Consumer;
 
 /**
- * 类文字命名
+ * HttpClient 异步 IoHandler 实现
  *
  * @author: helyho
  * voovan Framework.

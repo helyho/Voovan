@@ -3,7 +3,7 @@ package org.voovan.http.server.module.annontationRouter.annotation;
 import java.lang.annotation.*;
 
 /**
- * 类文字命名
+ * 注解路由 Param
  *
  * @author: helyho
  * Voovan Framework.

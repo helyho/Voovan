@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
- * 类文字命名
+ * 心跳类
  *
  * @author: helyho
  * Voovan Framework.

@@ -3,7 +3,7 @@ package org.voovan.db.recorder.annotation;
 import java.lang.annotation.*;
 
 /**
- * 类文字命名
+ * Recorder 对象的 Field 注解
  *
  * @author: helyho
  * DBase Framework.

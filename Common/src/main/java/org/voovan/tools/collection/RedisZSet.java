@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 类文字命名
+ * Redis 的 ZSet 封装
  *
  * @author: helyho
  * DBase Framework.
