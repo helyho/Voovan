@@ -1,11 +1,10 @@
 package org.voovan.http.client;
 
-import org.voovan.http.HttpRequestType;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.WebServerHandler;
-import org.voovan.http.server.exception.HttpParserException;
+import org.voovan.http.message.exception.HttpParserException;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;

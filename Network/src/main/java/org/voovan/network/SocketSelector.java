@@ -470,38 +470,35 @@ public class SocketSelector implements Closeable {
 	public int udpReadFromChannel(SocketContext<DatagramChannel, UdpSession> socketContext, DatagramChannel datagramChannel) throws IOException {
 		int readSize = -1;
 
-		//接受的连接isConnected 是 false
-		//发起的连接isConnected 是 true
-		if (datagramChannel.isConnected()) {
-			IoSession session = socketContext.getSession();
-
-			ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
-			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
-
-			//自动扩容
-			if(byteBufferChannel.available() == 0) {
-				byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
-			}
-
-			//如果有历史数据则从历史数据尾部开始写入
-			byteBuffer.position(byteBuffer.limit());
-			byteBuffer.limit(byteBuffer.capacity());
-
-			readSize = datagramChannel.read(session.getReadByteBufferChannel().getByteBuffer());
-
-			byteBuffer.flip();
-			byteBufferChannel.compact();
-		} else {
-			UdpSession session = socketContext.getSession();
-			ByteBuffer byteBuffer = session.getReadByteBufferChannel().getByteBuffer();
-			byteBuffer.limit(byteBuffer.capacity());
-
-			socketContext = (UdpSocket) udpAccept((UdpServerSocket) socketContext, datagramChannel, datagramChannel.receive(byteBuffer));
-			readSize = session.getReadByteBufferChannel().getByteBuffer().position();
-
-			byteBuffer.flip();
-			session.getReadByteBufferChannel().compact();
+		if (!datagramChannel.isConnected()) {
+			socketContext = (UdpSocket) udpAccept((UdpServerSocket) socketContext, datagramChannel, null);
 		}
+
+		UdpSession session = socketContext.getSession();
+
+		ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
+		ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+
+		//自动扩容
+		if(byteBufferChannel.available() == 0) {
+			byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
+		}
+
+		//如果有历史数据则从历史数据尾部开始写入
+		byteBuffer.position(byteBuffer.limit());
+		byteBuffer.limit(byteBuffer.capacity());
+
+		if (!datagramChannel.isConnected()) {
+			SocketAddress socketAddress = datagramChannel.receive(byteBuffer);
+			session.setInetSocketAddress((InetSocketAddress) socketAddress);
+			readSize = byteBuffer.position();
+		} else {
+			readSize = datagramChannel.read(byteBuffer);
+		}
+
+		byteBuffer.flip();
+		byteBufferChannel.compact();
+
 		readSize = loadAndPrepare(socketContext.getSession(), readSize);
 
 		return readSize;

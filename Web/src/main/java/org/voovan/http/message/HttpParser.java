@@ -4,7 +4,7 @@ import org.voovan.Global;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.context.WebContext;
-import org.voovan.http.server.exception.HttpParserException;
+import org.voovan.http.message.exception.HttpParserException;
 import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.network.IoSession;
 import org.voovan.tools.*;
@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Http 报文解析类
@@ -912,15 +911,7 @@ public class HttpParser {
 		Request request = null;
 
 		Object[] packetMap = THREAD_PACKET_MAP.get();
-		try {
-			packetMap = parser(session, packetMap, PARSER_TYPE_REQUEST, byteBufferChannel, timeOut, requestMaxSize);
-		} catch (HttpParserException e) {
-			if (e.isSocketDisconnect() || e.isBufferReleased()) {
-				return null;
-			}
-
-			throw e;
-		}
+		packetMap = parser(session, packetMap, PARSER_TYPE_REQUEST, byteBufferChannel, timeOut, requestMaxSize);
 
 		//如果解析的Map为空,则直接返回空
 		if(byteBufferChannel.isReleased()){
@@ -1053,15 +1044,7 @@ public class HttpParser {
 	@SuppressWarnings("unchecked")
 	public static Response parseResponse(IoSession session, ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
 		Object[] packetMap = THREAD_PACKET_MAP.get();
-		try {
-			packetMap = parser(session, packetMap, PARSER_TYPE_RESPONSE, byteBufferChannel, timeOut, -1);
-		} catch (HttpParserException e) {
-			if (e.isSocketDisconnect() || e.isBufferReleased()) {
-				return null;
-			}
-
-			throw e;
-		}
+		packetMap = parser(session, packetMap, PARSER_TYPE_RESPONSE, byteBufferChannel, timeOut, -1);
 
 		//如果解析的Map为空,则直接返回空
 		if(byteBufferChannel.isReleased()){

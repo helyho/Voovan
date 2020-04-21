@@ -84,6 +84,11 @@ public class UdpSession extends IoSession<UdpSocket> {
 		return inetSocketAddress;
 	}
 
+	public void setInetSocketAddress(InetSocketAddress inetSocketAddress) {
+		this.inetSocketAddress = inetSocketAddress;
+	}
+
+
 	/**
 	 * 获取对端端口
 	 *
