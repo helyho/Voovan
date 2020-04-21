@@ -69,7 +69,7 @@ public class HttpDispatcher {
 		REGEXED_ROUTER_CACHE.get().clear();
 		ROUTER_INFO_CACHE.get().clear();
 
-		methodRouters = new LinkedHashMap<String, Map<String, HttpRouter>>();
+		methodRouters = new ConcurrentHashMap<String, Map<String, HttpRouter>>();
 		this.webConfig = webConfig;
 		this.sessionManager = sessionManager;
 

@@ -166,7 +166,7 @@ public class TByteBuffer {
      * @param offset 相对当前 ByteBuffer.position 的偏移量
      * @return true:成功, false:失败
      */
-    public static boolean moveData(ByteBuffer byteBuffer, int offset) {
+    public static boolean move(ByteBuffer byteBuffer, int offset) {
         try {
             if(byteBuffer.remaining() == 0) {
                 byteBuffer.position(0);

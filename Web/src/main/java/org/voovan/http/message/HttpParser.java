@@ -517,12 +517,12 @@ public class HttpParser {
 		//继续从 Socket 中读取数据
 		Runnable contiuneRead = ()->{
 			if(session==null || !session.isConnected()) {
-				throw new HttpParserException("Socket is disconnect");
+				throw new HttpParserException("Socket is disconnect", HttpParserException.SOCKET_DISCONNECT);
 			}
 
 			session.getSocketSelector().select();
 			if(session.getReadByteBufferChannel().isReleased()) {
-				throw new HttpParserException("socket read buffer is released, may be Socket is disconnected");
+				throw new HttpParserException("Socket read buffer is released, may be Socket is disconnected", HttpParserException.BUFFER_RELEASED);
 			}
 		};
 
@@ -604,7 +604,7 @@ public class HttpParser {
 					if (isCache) {
 						totalLength = innerByteBuffer.position();
 						headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLength - protocolPosition));
-						long mark = (protocolMark + headerMark) << 32 | totalLength; //高位存 hash, 低位存整个头的长度
+						long mark = ((protocolMark + headerMark) << 32) + totalLength; //高位存 hash, 低位存整个头的长度
 						packetMap[HEADER_MARK] = mark;
 
 						Object[] cachedPacketMap = Arrays.copyOf(packetMap, packetMap.length);
@@ -914,9 +914,11 @@ public class HttpParser {
 		try {
 			packetMap = parser(session, packetMap, PARSER_TYPE_REQUEST, byteBufferChannel, timeOut, requestMaxSize);
 		} catch (HttpParserException e) {
-			if (e.getMessage().startsWith("socket")) {
+			if (e.isSocketDisconnect() || e.isBufferReleased()) {
 				return null;
 			}
+
+			throw e;
 		}
 
 		//如果解析的Map为空,则直接返回空
@@ -1053,9 +1055,11 @@ public class HttpParser {
 		try {
 			packetMap = parser(session, packetMap, PARSER_TYPE_RESPONSE, byteBufferChannel, timeOut, -1);
 		} catch (HttpParserException e) {
-			if (e.getMessage().startsWith("socket")) {
+			if (e.isSocketDisconnect() || e.isBufferReleased()) {
 				return null;
 			}
+
+			throw e;
 		}
 
 		//如果解析的Map为空,则直接返回空
