@@ -2,7 +2,6 @@ package org.voovan.network.tcp;
 
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
-import org.voovan.network.exception.RestartException;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;

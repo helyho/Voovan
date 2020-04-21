@@ -1,6 +1,5 @@
 package org.voovan.tools.buffer;
 
-import org.voovan.Global;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TProperties;
@@ -14,9 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -360,7 +357,7 @@ public class ByteBufferChannel {
             if(shrinkSize > 0){
                 byteBuffer.position(shrinkPosition + shrinkSize);
             }
-            if (TByteBuffer.moveData(byteBuffer, Math.abs(shrinkSize)*-1)) {
+            if (TByteBuffer.move(byteBuffer, Math.abs(shrinkSize)*-1)) {
                 if(position > shrinkPosition){
                     position = position + shrinkPosition;
                 }
@@ -610,7 +607,7 @@ public class ByteBufferChannel {
             int position = byteBuffer.position();
             int limit = byteBuffer.limit();
             boolean result = false;
-            if(TByteBuffer.moveData(byteBuffer, position*-1)) {
+            if(TByteBuffer.move(byteBuffer, position*-1)) {
                 byteBuffer.position(0);
                 size = limit - position;
                 byteBuffer.limit(size);
@@ -728,7 +725,7 @@ public class ByteBufferChannel {
                 int position = byteBuffer.position();
                 byteBuffer.position(writePosition);
 
-                if(TByteBuffer.moveData(byteBuffer, writeSize)){
+                if(TByteBuffer.move(byteBuffer, writeSize)){
 
                     size = size + writeSize;
                     byteBuffer.limit(size);
@@ -848,7 +845,7 @@ public class ByteBufferChannel {
                 dst.put(byteBuffer);
                 byteBuffer.limit(oldLimit);
 
-                if (TByteBuffer.moveData(byteBuffer, (readSize*-1))) {
+                if (TByteBuffer.move(byteBuffer, (readSize*-1))) {
                     size = size - readSize;
                     byteBuffer.limit(size);
 
