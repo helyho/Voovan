@@ -1,5 +1,7 @@
 package org.voovan.http.server.exception;
 
+import org.voovan.tools.exception.EmptyStackRuntimeException;
+
 import java.io.IOException;
 
 /**
@@ -10,7 +12,7 @@ import java.io.IOException;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class HttpParserException extends RuntimeException {
+public class HttpParserException extends EmptyStackRuntimeException {
     public static int NORMAL = 0;
     public static int SOCKET_DISCONNECT = 1;
     public static int BUFFER_RELEASED = 2;
@@ -54,4 +56,9 @@ public class HttpParserException extends RuntimeException {
     public boolean isBufferReleased() {
         return type == BUFFER_RELEASED;
     }
+
+    public synchronized Throwable fillInStackTrace() {
+        return this;
+    }
+
 }

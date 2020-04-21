@@ -18,4 +18,5 @@ public class ReadMessageException extends IOException {
 	public ReadMessageException(Exception e){
 		this.setStackTrace(e.getStackTrace());
 	}
+
 }
