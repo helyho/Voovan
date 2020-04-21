@@ -686,7 +686,7 @@ public class HttpClient extends PooledObject implements Closeable{
 			} catch (WebSocketFilterException e) {
 				Logger.error(e);
 			} catch (SendMessageException e) {
-				e.printStackTrace();
+				Logger.error(e);
 			}
 		}
 	}

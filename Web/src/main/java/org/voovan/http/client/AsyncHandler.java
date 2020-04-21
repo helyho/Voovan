@@ -4,6 +4,7 @@ import org.voovan.http.message.Response;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.handler.SynchronousHandler;
+import org.voovan.tools.log.Logger;
 
 import java.util.function.Consumer;
 
@@ -74,7 +75,7 @@ public class AsyncHandler implements IoHandler {
 
     @Override
     public void onException(IoSession session, Exception e) {
-        e.printStackTrace();
+        Logger.error(e);
     }
 
     @Override

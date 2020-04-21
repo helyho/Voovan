@@ -71,7 +71,7 @@ public class ByteFilter implements IoFilter {
 					session.close();
 				}
 			} catch(Exception e){
-				e.printStackTrace();
+				Logger.error(e);
 				session.close();
 			} finally {
 				if(!success){

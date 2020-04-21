@@ -59,7 +59,7 @@ public class SocketSelector implements Closeable {
 			TReflect.setFieldValue(selector, NioUtil.selectedKeysField, selectedKeys);
 			TReflect.setFieldValue(selector, NioUtil.publicSelectedKeysField, selectedKeys);
 		} catch (ReflectiveOperationException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		}
 
 		addIoEvent();
@@ -144,7 +144,7 @@ public class SocketSelector implements Closeable {
 		try {
 			selectionKey.channel().close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		}
 
 		if (selectionKey.isValid()) {
@@ -253,7 +253,7 @@ public class SocketSelector implements Closeable {
 				selector.select(SocketContext.SELECT_INTERVAL);
 				selecting.compareAndSet(true, false);
 			} catch (IOException e) {
-				e.printStackTrace();
+				Logger.error(e);
 			}
 		}
 	}
@@ -611,7 +611,7 @@ public class SocketSelector implements Closeable {
 			try {
 				EventTrigger.fireException((IoSession) socketContext.getSession(), e);
 			} catch (Exception ex) {
-				e.printStackTrace();
+				Logger.error(e);
 			}
 		}
 

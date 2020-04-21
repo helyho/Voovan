@@ -4,6 +4,7 @@ import org.voovan.http.extend.engineio.Config;
 import org.voovan.http.extend.engineio.EIODispatcher;
 import org.voovan.http.extend.engineio.EIOHandler;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.log.Logger;
 
 import java.util.HashMap;
 import java.util.List;
@@ -127,7 +128,7 @@ public class SIODispatcher extends EIODispatcher {
                     }
                 }
             } catch(Exception e){
-                e.printStackTrace();
+                Logger.error(e);
             }
 
             return null;

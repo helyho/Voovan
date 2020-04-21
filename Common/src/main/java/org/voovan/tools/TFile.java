@@ -551,14 +551,14 @@ public class TFile {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+		    Logger.error(e);
 			return false;
 		} finally {
 			try {
 				srcFileAccess.close();
 				destFileAccess.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				Logger.error(e);
 			}
 		}
 

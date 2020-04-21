@@ -52,7 +52,7 @@ public class TByteBuffer {
             constructor.setAccessible(true);
             return constructor;
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            Logger.error(e);
         }
 
         return null;
@@ -300,7 +300,7 @@ public class TByteBuffer {
                                     return true;
                                 }
                             } catch (ReflectiveOperationException e) {
-                                e.printStackTrace();
+                                Logger.error(e);
                             }
 
                             return false;
@@ -311,7 +311,7 @@ public class TByteBuffer {
                 }
             }
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            Logger.error(e);
         }
     }
 

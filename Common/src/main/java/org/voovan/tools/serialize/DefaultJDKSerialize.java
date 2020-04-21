@@ -36,7 +36,7 @@ public class DefaultJDKSerialize implements Serialize {
                 try {
                     objectOutputStream.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.error(e);
                 }
             }
 
@@ -44,7 +44,7 @@ public class DefaultJDKSerialize implements Serialize {
                 try {
                     byteArrayOutputStream.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.error(e);
                 }
             }
         }
@@ -69,7 +69,7 @@ public class DefaultJDKSerialize implements Serialize {
                 try {
                     byteArrayInputStream.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.error(e);
                 }
             }
 

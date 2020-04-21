@@ -59,7 +59,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 				//IO 线程检查超时
 				return new SocketSelector(obj, !isAccept);
 			} catch (IOException e) {
-				e.printStackTrace();
+				Logger.error(e);
 			}
 
 			return null;

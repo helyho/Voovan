@@ -121,7 +121,7 @@ public class WebContext {
 				Object configObject = loadJsonFromJSON(fileContent);
 				return (Map<String, Object>)configObject;
 			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
+				Logger.error(e);
 			}
 		}
 		return new HashMap<String,Object>();
@@ -437,7 +437,7 @@ public class WebContext {
 			Map<String, Object> systemMimeDef = (Map<String, Object>)JSONDecode.parse(new String(mimeDefBytes,"UTF-8"));
 			mimeDefMap.putAll(systemMimeDef);
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			Logger.error(e);
 		}
 
 		mimeDefMap.putAll(MIME_TYPES);

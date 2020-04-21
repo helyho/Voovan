@@ -1,6 +1,7 @@
 package org.voovan.tools;
 
 import org.voovan.Global;
+import org.voovan.tools.log.Logger;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -80,7 +81,7 @@ public class TPerformance {
 					NETWROK_INTERFACE.add(ni);
 				}
 			} catch (SocketException e) {
-				e.printStackTrace();
+				Logger.error(e);
 			}
 		}
 
@@ -120,7 +121,7 @@ public class TPerformance {
 							LOCAL_IP_MAC.put(ip.getHostAddress(), macBytes);
 						}
 					} catch (SocketException e) {
-						e.printStackTrace();
+						Logger.error(e);
 					}
 				}
 			}

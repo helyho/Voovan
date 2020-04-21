@@ -4,6 +4,7 @@ import org.voovan.http.extend.SocketIOParserException;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.filter.StringFilter;
+import org.voovan.tools.log.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -85,7 +86,7 @@ public class EIODispatcher extends WebSocketRouter{
                 return null;
             }
         } catch (SocketIOParserException e) {
-            e.printStackTrace();
+            Logger.error(e);
         }
         return null;
     }
