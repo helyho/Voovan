@@ -109,10 +109,7 @@ public class MessageLoader {
 
 		int oldByteChannelSize = 0;
 
-		ByteBufferChannel dataByteBufferChannel = null;
 		ByteBuffer dataByteBuffer = null;
-
-		dataByteBufferChannel = session.getReadByteBufferChannel();
 
 		stopType = StopType.RUNNING;
 
@@ -130,7 +127,7 @@ public class MessageLoader {
 
 		boolean isConnect = true;
 
-		while (isConnect && stopType == StopType.RUNNING && !dataByteBufferChannel.isEmpty()) {
+		while (isConnect && stopType == StopType.RUNNING && !byteBufferChannel.isEmpty()) {
 
 			if(session.socketContext() instanceof UdpSocket) {
 				isConnect = session.isOpen();
@@ -147,11 +144,11 @@ public class MessageLoader {
 			int readsize = byteBufferChannel.size() - oldByteChannelSize;
 
 			try {
-				dataByteBuffer = dataByteBufferChannel.getByteBuffer();
+				dataByteBuffer = byteBufferChannel.getByteBuffer();
 				try {
 
 					//判断连接是否关闭
-					if (isStreamEnd(dataByteBufferChannel.size())) {
+					if (isStreamEnd(byteBufferChannel.size())) {
 						stopType = StopType.STREAM_END;
 					}
 
@@ -176,7 +173,7 @@ public class MessageLoader {
 						}
 					}
 				} finally {
-					dataByteBufferChannel.compact();
+					byteBufferChannel.compact();
 				}
 
 				oldByteChannelSize = byteBufferChannel.size();

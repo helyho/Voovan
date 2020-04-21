@@ -1,4 +1,4 @@
-package org.voovan.http.server.exception;
+package org.voovan.http.message.exception;
 
 import org.voovan.tools.exception.EmptyStackRuntimeException;
 

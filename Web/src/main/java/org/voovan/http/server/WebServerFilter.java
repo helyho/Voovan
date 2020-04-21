@@ -1,17 +1,15 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
-import org.voovan.http.HttpRequestType;
 import org.voovan.http.message.HttpParser;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.server.context.WebContext;
-import org.voovan.http.server.exception.HttpParserException;
+import org.voovan.http.message.exception.HttpParserException;
 import org.voovan.http.server.exception.RequestTooLarge;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
-import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.collection.LongKeyMap;
@@ -20,7 +18,6 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * WebServer 过滤器对象
@@ -120,16 +117,20 @@ public class WebServerFilter implements IoFilter {
 				byteBufferChannel.clear();
 
 				if(e instanceof HttpParserException) {
-					session.close();
+					HttpParserException httpParserException = (HttpParserException) e;
+					if (httpParserException.isSocketDisconnect() || httpParserException.isBufferReleased()) {
+						session.close();
+						return null;
+					}
 				}
 
 				Response response = new Response();
-				response.protocol().setStatus(500);
 
 				//如果请求过大的异常处理
 				if(e instanceof RequestTooLarge){
 					response.protocol().setStatus(413);
-					response.body().write("false");
+				} else {
+					response.protocol().setStatus(500);
 				}
 
 				try {
