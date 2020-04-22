@@ -297,4 +297,34 @@ public class TByte {
 
         return 0;
     }
+
+    /**
+     * 安自己比较两个byte[]的大小
+     * @param byte1 被比较的 byte[]
+     * @param offset1 被比较的 byte[] 的偏移量
+     * @param length1 被比较的 byte[] 的长度
+     * @param byte2 比较的数据 byte[]
+     * @param offset2 比较的数据 byte[] 的偏移量
+     * @param length2 比较的数据 byte[] 的长度
+     * @return 1: 大于, 0: 等于, -1: 小于
+     */
+    public static int byteArrayCompare(byte[] byte1, int offset1, int length1, byte[] byte2, int offset2, int length2){
+        int compareLength = length1 < length2 ? length1 : length2;
+
+        for(int i = 0; i < compareLength; i++) {
+            if(i > length2 - 1) {
+                return 1;
+            }
+
+            if (byte1[offset1 + i] < byte2[offset2 + i]){
+                return -1;
+            }
+
+            if (byte1[offset1 + i] > byte2[offset2 + i]){
+                return 1;
+            }
+        }
+
+        return 0;
+    }
 }

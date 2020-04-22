@@ -47,6 +47,17 @@ public class HttpItem {
 		HTTP_ITEM_MAP.put(hashcode, this);
 	}
 
+	public HttpItem(byte[] valueBytes, int offset, int length, int hash) {
+		byte[] bytes = new byte[length];
+		System.arraycopy(valueBytes, offset, bytes, 0, length);
+		this.bytes = bytes;
+		this.value = new String(bytes, Global.CS_ASCII);
+
+		this.hashcode = hash;
+
+		HTTP_ITEM_MAP.put(hashcode, this);
+	}
+
 	public byte[] getBytes() {
 		return bytes;
 	}
@@ -61,13 +72,23 @@ public class HttpItem {
 	}
 
 	public static HttpItem getHttpItem(byte[] bytes, int offset, int length){
-		int hashcode = THash.HashFNV1(bytes, offset, length);
-		HttpItem httpItem = (HttpItem) HTTP_ITEM_MAP.get(hashcode);
+		int hash = THash.HashFNV1(bytes, offset, length);
+		HttpItem httpItem = (HttpItem) HTTP_ITEM_MAP.get(hash);
 		if(httpItem == null){
 			httpItem = new HttpItem(bytes, offset, length);
 		}
 
-		return httpItem;
+
+		//hash 冲突简单解决方案 比较长度, 起始/中位/结束位置的数据是否相等
+		int midOffset = length / 2;
+		if(length == httpItem.getBytes().length
+				&& bytes[offset] == httpItem.bytes[0]
+				&& bytes[offset + midOffset] == httpItem.bytes[midOffset]
+				&& bytes[offset + length - 1] == httpItem.bytes[length-1]) {
+			return httpItem;
+		} else {
+			return new HttpItem(bytes, offset, length, hash);
+		}
 	}
 
 	@Override

@@ -264,12 +264,11 @@ public class HttpStatic {
 	public static final HttpItem LINE_MARK = new HttpItem(LINE_MARK_STRING);
 
 	public static final String TEXT_HTML_STRING = "text/html";
-    public static final HttpItem TEXT_HTML = new HttpItem(TEXT_HTML_STRING);
-
 	public static final String TEXT_PLAIN_STRING = "text/plain";
-    public static final HttpItem TEXT_PLAIN = new HttpItem(TEXT_PLAIN_STRING);
-
 	public static final String APPLICATION_JSON_STRING = "application/json";
+
+	public static final HttpItem TEXT_HTML = new HttpItem(TEXT_HTML_STRING);
+	public static final HttpItem TEXT_PLAIN = new HttpItem(TEXT_PLAIN_STRING);
 	public static final HttpItem APPLICATION_JSON = new HttpItem(APPLICATION_JSON_STRING);
 
 	public static final String WEB_SOCKET_STRING = "websocket";
