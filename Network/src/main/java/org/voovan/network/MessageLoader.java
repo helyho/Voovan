@@ -61,7 +61,6 @@ public class MessageLoader {
 
 	/**
 	 * 判断字节所属流是否结束
-	 * @param buffer  缓冲区
 	 * @param length  长度
 	 * @return 是否意外断开
 	 */
