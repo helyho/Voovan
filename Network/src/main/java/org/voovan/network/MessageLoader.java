@@ -129,7 +129,7 @@ public class MessageLoader {
 
 		while (isConnect && stopType == StopType.RUNNING && !byteBufferChannel.isEmpty()) {
 
-			if(session.socketContext() instanceof UdpSocket) {
+			if(session.socketContext().getConnectType() == ConnectType.UDP) {
 				isConnect = session.isOpen();
 			}else {
 				isConnect = session.isConnected();

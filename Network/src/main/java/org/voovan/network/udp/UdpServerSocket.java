@@ -70,11 +70,12 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
     }
 
     private void init() throws IOException {
-        provider = SelectorProvider.provider();
-        datagramChannel = provider.openDatagramChannel();
-        datagramChannel.socket().setSoTimeout(this.readTimeout);
-        datagramChannel.configureBlocking(false);
-        connectModel = ConnectModel.LISTENER;
+        this.provider = SelectorProvider.provider();
+        this.datagramChannel = provider.openDatagramChannel();
+        this.datagramChannel.socket().setSoTimeout(this.readTimeout);
+        this.datagramChannel.configureBlocking(false);
+        this.connectModel = ConnectModel.LISTENER;
+        this.connectType = ConnectType.UDP;
     }
 
 

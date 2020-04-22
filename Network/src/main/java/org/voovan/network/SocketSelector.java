@@ -356,9 +356,9 @@ public class SocketSelector implements Closeable {
 	 */
 	public int writeToChannel(SocketContext socketContext, ByteBuffer buffer){
 		try {
-			if (socketContext instanceof TcpSocket) {
+			if (socketContext.getConnectType() == ConnectType.TCP) {
 				return tcpWriteToChannel((TcpSocket) socketContext, buffer);
-			} else if (socketContext instanceof UdpSocket) {
+			} else if (socketContext.getConnectType() == ConnectType.UDP) {
 				return udpWriteToChannel((UdpSocket) socketContext, buffer);
 			} else {
 				return -1;

@@ -3,6 +3,7 @@ package org.voovan.network.udp;
 import org.voovan.network.*;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.network.tcp.TcpSession;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -77,6 +78,7 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
         InetSocketAddress address = new InetSocketAddress(this.host, this.port);
         session = new UdpSession(this, address);
         connectModel = ConnectModel.CLIENT;
+        this.connectType = ConnectType.UDP;
     }
 
     /**
@@ -87,12 +89,13 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
      */
     public UdpSocket(SocketContext parentSocketContext, DatagramChannel datagramChannel, InetSocketAddress socketAddress){
         try {
-            provider = SelectorProvider.provider();
+            this.provider = SelectorProvider.provider();
             this.datagramChannel = datagramChannel;
             this.copyFrom(parentSocketContext);
-            session = new UdpSession(this, socketAddress);
-            datagramChannel.configureBlocking(false);
-            connectModel = ConnectModel.SERVER;
+            this.session = new UdpSession(this, socketAddress);
+            this.datagramChannel.configureBlocking(false);
+            this.connectModel = ConnectModel.SERVER;
+            this.connectType = ConnectType.UDP;
         } catch (Exception e) {
             Logger.error("Create socket channel failed",e);
         }

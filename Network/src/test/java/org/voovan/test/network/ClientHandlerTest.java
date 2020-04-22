@@ -1,9 +1,6 @@
 package org.voovan.test.network;
 
-import org.voovan.network.ConnectModel;
-import org.voovan.network.HeartBeat;
-import org.voovan.network.IoHandler;
-import org.voovan.network.IoSession;
+import org.voovan.network.*;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
@@ -23,7 +20,7 @@ public class ClientHandlerTest implements IoHandler {
 		session.setAttribute("key", "attribute value");
 		String msg = new String("test message\r\n");
 
-		if(!(session.socketContext() instanceof UdpSocket)) {
+		if(!(session.socketContext().getConnectType() == ConnectType.UDP)) {
 			HeartBeat heartBeat = session.getHeartBeat();
 			if (heartBeat == null) {
 				//心跳绑定到 Session
@@ -66,7 +63,7 @@ public class ClientHandlerTest implements IoHandler {
 		//心跳依赖于 idle 时间,这个参数在构造 socket 的时候设置具体查看 AioSocket
 
 		//服务端和客户端使用了两种不同的心跳绑定方式,这是其中一种
-		if(!(session.socketContext() instanceof UdpSocket)) {
+		if(!(session.socketContext().getConnectType() == ConnectType.UDP)) {
 			HeartBeat heartBeat = session.getHeartBeat();
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败

@@ -1,10 +1,7 @@
 package org.voovan.test.network;
 
 
-import org.voovan.network.ConnectModel;
-import org.voovan.network.HeartBeat;
-import org.voovan.network.IoHandler;
-import org.voovan.network.IoSession;
+import org.voovan.network.*;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.log.Logger;
 
@@ -15,7 +12,7 @@ public class ServerHandlerTest implements IoHandler {
 
 	@Override
 	public Object onConnect(IoSession session) {
-		if(!(session.socketContext() instanceof UdpSocket)) {
+		if(!(session.socketContext().getConnectType() == ConnectType.UDP)) {
 			HeartBeat heartBeat = session.getHeartBeat();
 			if (heartBeat == null) {
 				heartBeat = HeartBeat.attachSession(session, "PINGq", "PONGq");
@@ -50,7 +47,7 @@ public class ServerHandlerTest implements IoHandler {
 
 		//服务端和客户端使用了两种不同的心跳绑定方式,这是其中一种
 		//心跳绑定到 Session, 绑定过一次以后每次返回的都是第一次绑定的对象
-		if(!(session.socketContext() instanceof UdpSocket)) {
+		if(!(session.socketContext().getConnectType() == ConnectType.UDP)) {
 			HeartBeat heartBeat = session.getHeartBeat();
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
