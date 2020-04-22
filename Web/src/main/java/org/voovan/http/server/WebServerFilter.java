@@ -117,7 +117,11 @@ public class WebServerFilter implements IoFilter {
 				byteBufferChannel.clear();
 
 				if(e instanceof HttpParserException) {
-					session.close();
+					HttpParserException httpParserException = (HttpParserException) e;
+					if (httpParserException.isSocketDisconnect() || httpParserException.isBufferReleased()) {
+						session.close();
+						return null;
+					}
 					return null;
 				}
 
@@ -136,7 +140,7 @@ public class WebServerFilter implements IoFilter {
 					Logger.error(e1);
 				}
 
-				Logger.error("ParseRequest failed",e);
+				Logger.error("ParseRequest failed", e);
 				return null;
 			}
 		}
