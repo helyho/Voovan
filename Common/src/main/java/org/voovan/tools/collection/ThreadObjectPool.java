@@ -1,7 +1,8 @@
 package org.voovan.tools.collection;
 
-import java.util.ArrayDeque;
-import java.util.LinkedList;
+import org.voovan.tools.FastThreadLocal;
+
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -13,33 +14,47 @@ import java.util.function.Supplier;
  * Licence: Apache v2 License
  */
 public class ThreadObjectPool<T> {
-    private final ThreadLocal<RingBuffer<T>> THREAD_LOCAL_POOL =  ThreadLocal.withInitial(()->new RingBuffer<T>(2048));
+    private FastThreadLocal<RingBuffer<T>> threadLocalPool;
 
-    private int threadLocalMaxSize = 4;
+    private int threadPoolSize = 64;
 
     public ThreadObjectPool() {
     }
 
-    public ThreadObjectPool(int threadLocalMaxSize) {
-        this.threadLocalMaxSize = threadLocalMaxSize;
+    public ThreadObjectPool(int threadPoolSize) {
+        this.threadPoolSize = threadPoolSize;
+        threadLocalPool =  FastThreadLocal.withInitial(()->new RingBuffer<T>(this.threadPoolSize));
     }
 
-    public int getThreadLocalMaxSize() {
-        return threadLocalMaxSize;
+
+    public ThreadObjectPool(int threadPoolSize, Supplier<T> supplier) {
+        this.threadPoolSize = threadPoolSize;
+        threadLocalPool =  FastThreadLocal.withInitial(()->{
+            RingBuffer<T> ringBuffer = new RingBuffer<T>(this.threadPoolSize);
+            for(int i = 0; i< threadPoolSize; i++) {
+                ringBuffer.push(supplier.get());
+            }
+            return ringBuffer;
+        });
     }
 
-    public void setThreadLocalMaxSize(int threadLocalMaxSize) {
-        this.threadLocalMaxSize = threadLocalMaxSize;
+
+    public int getThreadPoolSize() {
+        return threadPoolSize;
     }
 
-    public RingBuffer<T> getThreadLoaclPool(){
-        return THREAD_LOCAL_POOL.get();
+    public void setThreadPoolSize(int threadPoolSize) {
+        this.threadPoolSize = threadPoolSize;
+    }
+
+    public RingBuffer<T> getPool(){
+        return threadLocalPool.get();
     }
 
     public T get(Supplier<T> supplier){
-        RingBuffer<T> threadLocalPool = getThreadLoaclPool();
+        RingBuffer<T> pool = getPool();
 
-        T t = threadLocalPool.pop();
+        T t = pool.pop();
 
         //创建一个新的 t
         if(t==null) {
@@ -49,14 +64,14 @@ public class ThreadObjectPool<T> {
         return t;
     }
 
-    public void release(T t, Supplier destory){
-        RingBuffer<T> threadLocalPool = getThreadLoaclPool();
+    public void release(T t, Consumer<T> destory){
+        RingBuffer<T> pool = getPool();
 
         //如果小于线程中池的大小则放入线程中的池
-        if(threadLocalPool.avaliable() < threadLocalMaxSize) {
-            threadLocalPool.push(t);
+        if(pool.avaliable() < threadPoolSize) {
+            pool.push(t);
         } else {
-            destory.get();
+            destory.accept(t);
         }
     }
 }

@@ -26,10 +26,10 @@ public class TByteBuffer {
     public static int DEFAULT_BYTE_BUFFER_SIZE = TEnv.getSystemProperty("ByteBufferSize", 1024*4);
     public static int THREAD_BUFFER_POOL_SIZE  = TEnv.getSystemProperty("ThreadBufferPoolSize", 32);
 
-    public static ThreadObjectPool<ByteBuffer> THREAD_BYTE_BUFFER_POOL = new ThreadObjectPool<ByteBuffer>(THREAD_BUFFER_POOL_SIZE);
+    public static ThreadObjectPool<ByteBuffer> THREAD_BYTE_BUFFER_POOL = new ThreadObjectPool<ByteBuffer>(THREAD_BUFFER_POOL_SIZE, ()->allocateManualReleaseBuffer(DEFAULT_BYTE_BUFFER_SIZE));
 
     static {
-        System.out.println("[SYTSEM] ThreadBufferPoolSize: " + THREAD_BYTE_BUFFER_POOL.getThreadLocalMaxSize());
+        System.out.println("[SYTSEM] ThreadBufferPoolSize: " + THREAD_BYTE_BUFFER_POOL.getThreadPoolSize());
         System.out.println("[SYTSEM] BufferSize: " + DEFAULT_BYTE_BUFFER_SIZE);
     }
 
@@ -292,21 +292,18 @@ public class TByteBuffer {
                             reallocate(byteBuffer, DEFAULT_BYTE_BUFFER_SIZE);
                         }
 
-                        THREAD_BYTE_BUFFER_POOL.release(byteBuffer, ()->{
+                        THREAD_BYTE_BUFFER_POOL.release(byteBuffer, (buffer)->{
+
+                            //这里不使用传入的参数, 需要复用上面代码获得的地址
                             try {
                                 synchronized (byteBuffer) {
                                     TUnsafe.getUnsafe().freeMemory(address);
                                     setAddress(byteBuffer, 0);
-                                    return true;
                                 }
                             } catch (ReflectiveOperationException e) {
                                 Logger.error(e);
                             }
-
-                            return false;
                         });
-
-
                     }
                 }
             }

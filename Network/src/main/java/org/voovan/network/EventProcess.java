@@ -23,7 +23,6 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public class EventProcess {
-    public static FastThreadLocal<ByteBuffer> THREAD_BYTE_BYTE = FastThreadLocal.withInitial(()-> TByteBuffer.allocateDirect());
 
     /**
      * 私有构造函数,防止被实例化
@@ -153,7 +152,7 @@ public class EventProcess {
             return TByteBuffer.EMPTY_BYTE_BUFFER;
         }
 
-        ByteBuffer byteBuffer = THREAD_BYTE_BYTE.get();
+        ByteBuffer byteBuffer = TByteBuffer.allocateDirect();
         byteBuffer.clear();
 
         //扩容线程本地变量
