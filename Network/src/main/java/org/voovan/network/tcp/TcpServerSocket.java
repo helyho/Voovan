@@ -1,6 +1,7 @@
 package org.voovan.network.tcp;
 
 import org.voovan.network.ConnectModel;
+import org.voovan.network.ConnectType;
 import org.voovan.network.SocketContext;
 import org.voovan.tools.log.Logger;
 
@@ -74,11 +75,12 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 	 * @throws IOException
 	 */
 	private void init() throws IOException{
-		provider = SelectorProvider.provider();
-		serverSocketChannel = provider.openServerSocketChannel();
-		serverSocketChannel.socket().setSoTimeout(this.readTimeout);
-		serverSocketChannel.configureBlocking(false);
-		connectModel = ConnectModel.LISTENER;
+		this.provider = SelectorProvider.provider();
+		this.serverSocketChannel = provider.openServerSocketChannel();
+		this.serverSocketChannel.socket().setSoTimeout(this.readTimeout);
+		this.serverSocketChannel.configureBlocking(false);
+		this.connectModel = ConnectModel.LISTENER;
+		this.connectType = ConnectType.TCP;
 	}
 
 	@Override

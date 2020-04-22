@@ -2,7 +2,6 @@ package org.voovan.network;
 
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
-import org.voovan.tools.TObject;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.buffer.TByteBuffer;
@@ -17,7 +16,6 @@ import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.SocketOption;
 import java.nio.channels.SelectableChannel;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * socket 上下文
@@ -109,6 +107,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	protected MessageSplitter messageSplitter;
 	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
+	protected ConnectType connectType;
 	protected int readBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
 	protected int sendBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
 
@@ -365,10 +364,18 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	/**
 	 * 获取连接模式
-	 * @return 连接模式
+	 * @return 连接模式 ConnectModel.CLIENT,ConnectModel.LISTENER, ConnectModel.SERVER
 	 */
 	public ConnectModel getConnectModel() {
 		return connectModel;
+	}
+
+	/**
+	 * 获取连接类型
+	 * @return 连接类型 ConnectType.TCP / ConnectType.UDP
+	 */
+	public ConnectType getConnectType() {
+		return connectType;
 	}
 
 	/**

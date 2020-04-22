@@ -167,7 +167,8 @@ public class EventProcess {
             Logger.error(e);
         }
 
-        if ((session.socketContext() instanceof UdpSocket && session.isOpen()) || session.isConnected()) {
+       if ((session.socketContext().getConnectType() == ConnectType.UDP && session.isOpen())
+                || session.isConnected()) {
             session.getReadByteBufferChannel().readHead(byteBuffer);
             return byteBuffer;
         } else {

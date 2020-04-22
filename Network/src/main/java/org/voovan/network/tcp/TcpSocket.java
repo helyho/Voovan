@@ -70,12 +70,13 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	}
 
 	private void init() throws IOException {
-		provider = SelectorProvider.provider();
-		socketChannel = provider.openSocketChannel();
-		socketChannel.socket().setSoTimeout(this.readTimeout);
+		this.provider = SelectorProvider.provider();
+		this.socketChannel = provider.openSocketChannel();
+		this.socketChannel.socket().setSoTimeout(this.readTimeout);
 
-		session = new TcpSession(this);
-		connectModel = ConnectModel.CLIENT;
+		this.session = new TcpSession(this);
+		this.connectModel = ConnectModel.CLIENT;
+		this.connectType = ConnectType.TCP;
 	}
 
 	/**
@@ -85,15 +86,17 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 */
 	public TcpSocket(SocketContext parentSocketContext, SocketChannel socketChannel){
 		try {
-			provider = SelectorProvider.provider();
+			this.provider = SelectorProvider.provider();
 			this.host = socketChannel.socket().getLocalAddress().getHostAddress();
 			this.port = socketChannel.socket().getLocalPort();
 			this.socketChannel = socketChannel;
-			socketChannel.configureBlocking(false);
+			this.socketChannel.configureBlocking(false);
 			this.copyFrom(parentSocketContext);
 			this.socketChannel().socket().setSoTimeout(this.readTimeout);
+			this.connectModel = ConnectModel.SERVER;
+			this.connectType = ConnectType.TCP;
+
 			session = new TcpSession(this);
-			connectModel = ConnectModel.SERVER;
 		} catch (IOException e) {
 			Logger.error("Create socket channel failed",e);
 		}
