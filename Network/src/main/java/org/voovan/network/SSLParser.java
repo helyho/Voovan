@@ -304,7 +304,6 @@ public class SSLParser {
 	/**
 	 * 读取SSL消息到缓冲区
 	 *
-	 * @param readByteBuffer 已经读取到的数据的缓冲区
 	 * @return 接收数据大小
 	 * @throws IOException IO异常
 	 */
