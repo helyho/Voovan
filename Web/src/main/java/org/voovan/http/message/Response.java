@@ -29,7 +29,6 @@ import java.util.List;
  */
 public class Response {
 	private static FastThreadLocal<StringBuilder> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new StringBuilder(512));
-	public static FastThreadLocal<ByteBuffer> THREAD_BYTE_BUFFER = FastThreadLocal.withInitial(()->TByteBuffer.allocateDirect());
 
 	private ResponseProtocol 	protocol;
 	private Header				header;
