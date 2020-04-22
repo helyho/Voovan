@@ -118,7 +118,7 @@ public class TReflect {
 
             String methodName = "get"+TString.upperCaseHead(field.getName());
 
-            if(TReflect.findMethod(clazz, methodName,  field.getType()) == null){
+            if(TReflect.findMethod(clazz, methodName,  new Class[0]) == null){
                 continue;
             }
 
@@ -156,7 +156,7 @@ public class TReflect {
 
             String methodName = "set"+TString.upperCaseHead(field.getName());
 
-            if(TReflect.findMethod(clazz, methodName,  field.getType()) == null){
+            if(TReflect.findMethod(clazz, methodName, field.getType()) == null){
                 continue;
             }
 

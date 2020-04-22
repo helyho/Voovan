@@ -27,7 +27,7 @@ public class VoovanTFB {
 
 	public static class Message {
 
-		private final String message;
+		private String message;
 
 		public Message(String message) {
 			this.message = message;
@@ -78,25 +78,22 @@ public class VoovanTFB {
 		webServer.get("/json", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
 				resp.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.APPLICATION_JSON_STRING);
-				resp.write(serializeMsg(new Message("Hello, World!")));
+				JsonStream stream = JsonStreamPool.borrowJsonStream();
+				try {
+					stream.reset(null);
+					stream.writeVal(Message.class, new Message("Hello, World!"));
+					resp.write(stream.buffer().data(), 0, stream.buffer().tail());
+					return ;
+				} catch (IOException e) {
+					throw new JsonException(e);
+				} finally {
+					JsonStreamPool.returnJsonStream(stream);
+				}
 			}
 		});
 
 		Logger.setEnable(true);
 
 		webServer.serve();
-	}
-
-	private static byte[] serializeMsg(Message obj) {
-		JsonStream stream = JsonStreamPool.borrowJsonStream();
-		try {
-			stream.reset(null);
-			stream.writeVal(Message.class, obj);
-			return Arrays.copyOfRange(stream.buffer().data(), 0, stream.buffer().tail());
-		} catch (IOException e) {
-			throw new JsonException(e);
-		} finally {
-			JsonStreamPool.returnJsonStream(stream);
-		}
 	}
 }
