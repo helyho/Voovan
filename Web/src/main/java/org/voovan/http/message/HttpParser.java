@@ -10,7 +10,6 @@ import org.voovan.network.IoSession;
 import org.voovan.tools.*;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
-import org.voovan.tools.collection.LongKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
@@ -20,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Http 报文解析类
@@ -62,26 +62,18 @@ public class HttpParser {
 	public static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
 	private static FastThreadLocal<byte[]> THREAD_BYTE_ARRAY = FastThreadLocal.withInitial(()->new byte[1024]);
 
-	private static LongKeyMap<Object[]> PACKET_MAP_CACHE = new LongKeyMap<Object[]>(1024);
-	private static long[] MARK_CACHE_LIST = new long[1024];
-
+	private static ConcurrentHashMap<Long, Object[]> PACKET_MAP_CACHE = new ConcurrentHashMap<Long, Object[]>();
 
 	public static final int PARSER_TYPE_REQUEST = 0;
 	public static final int PARSER_TYPE_RESPONSE = 1;
 
 	static {
-		Arrays.fill(MARK_CACHE_LIST, Long.MAX_VALUE);
-
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 			@Override
 			public void run() {
-				for(int i=0;i<PACKET_MAP_CACHE.size();i++) {
-					MARK_CACHE_LIST[i] = Long.MAX_VALUE;
-				}
-
 				PACKET_MAP_CACHE.clear();
 			}
-		}, 45);
+		}, 60);
 	}
 
 	/**
@@ -258,19 +250,17 @@ public class HttpParser {
 	 * @param timeout 读取超时时间参数
 	 * @return 协议行的 hash
 	 */
-	public static int parseProtocol(Object[] packetMap, int type, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
+	public static int parserProtocol(Object[] packetMap, int type, ByteBuffer byteBuffer, Runnable contiuneRead, int timeout) {
 		byte[] bytes = THREAD_BYTE_ARRAY.get();
 		int position = 0;
 		int hashCode = 0;
+		boolean isCache = type==PARSER_TYPE_REQUEST ? WebContext.isCache() : false;
 
 		//遍历 Protocol
 		int segment = 0;
-		HttpItem segment_1 = null;
-		HttpItem segment_2 = null;
-		HttpItem segment_3 = null;
-
-		String queryString = null;
-
+		String segment_1 = "";
+		String segment_2 = "";
+		String segment_3 = "";
 		int questPositiion = -1;
 		byte prevByte = '\0';
 		byte currentByte = '\0';
@@ -293,35 +283,36 @@ public class HttpParser {
 				continue;
 			}
 
-			if (currentByte == Global.BYTE_SPACE && segment < 2) { // " "
+			if (currentByte == Global.BYTE_SPACE && segment < 2) {
 				if (segment == 0) {
+					HttpItem httpItem = null;
 					//常用 http method 快速判断
 					if(position == 3 && bytes[0] == 'G' && bytes[1] == 'E' && bytes[2] == 'T') {
-						segment_1 = HttpStatic.GET;
+						httpItem = HttpStatic.GET;
 					} else if(position == 4 && bytes[0] == 'P' && bytes[1] == 'O' && bytes[2] == 'S' && bytes[3] == 'T') {
-						segment_1 = HttpStatic.POST;
+						httpItem = HttpStatic.POST;
 					} else {
-						segment_1 = HttpItem.getHttpItem(bytes, 0, position);
+						httpItem = HttpItem.getHttpItem(bytes, 0, position);
 					}
+					hashCode = hashCode + httpItem.hashCode();
+					segment_1 = httpItem.getValue();
 				} else if (segment == 1) {
-					segment_2 = HttpItem.getHttpItem(bytes, 0, questPositiion > 0 ? questPositiion : position);
-
-					if(questPositiion > 0) {
-						queryString = new String(bytes, questPositiion + 1, position - questPositiion - 1);
-					}
+					HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
+					hashCode = hashCode + httpItem.hashCode();
+					segment_2 =httpItem.getValue();
 				}
 				position = 0;
 				segment++;
 				continue;
-			} else if (currentByte == Global.BYTE_QUESTION) { // "?"
+			} else if (currentByte == Global.BYTE_QUESTION) {
 				if (segment == 1) {
-					questPositiion = position;
-					bytes[position] = currentByte;
-					position++;
+					questPositiion = byteBuffer.position();
 					continue;
 				}
 			} else if (prevByte == Global.BYTE_CR && currentByte == Global.BYTE_LF && segment == 2) {
-				segment_3 = HttpItem.getHttpItem(bytes, 0, position);
+				HttpItem httpItem = HttpItem.getHttpItem(bytes, 0, position);
+				hashCode = hashCode + httpItem.hashCode();
+				segment_3 =httpItem.getValue();
 				position = 0;
 				break;
 			}
@@ -338,12 +329,13 @@ public class HttpParser {
 
 		if (type == 0) {
 			//1
-			packetMap[PL_METHOD] = segment_1.getValue();
+			packetMap[PL_METHOD] = segment_1;
 
 			//2
-			packetMap[PL_PATH] = segment_2.getValue();
-			if(questPositiion > 0 && queryString!=null) {
-				packetMap[PL_QUERY_STRING] = queryString;
+			questPositiion = questPositiion - segment_1.length() - 1;
+			packetMap[PL_PATH] = questPositiion > 0 ? segment_2.substring(0, questPositiion - 1) : segment_2;
+			if (questPositiion > 0) {
+				packetMap[PL_QUERY_STRING] = segment_2.substring(questPositiion - 1);
 			}
 
 			//3
@@ -397,7 +389,7 @@ public class HttpParser {
 			packetMap[PL_STATUS_CODE] = segment_3;
 		}
 
-		return segment_1.hashCode() + segment_2.hashCode() + packetMap[PL_VERSION].hashCode();
+		return hashCode;
 	}
 
 	/**
@@ -504,7 +496,7 @@ public class HttpParser {
 								  ByteBufferChannel byteBufferChannel, int timeout,
 								  long requestMaxSize) throws IOException {
 		int totalLength = 0;
-		long protocolMark = 0;
+		int protocolMark = 0;
 		int headerMark = 0;
 		int protocolPosition = 0;
 
@@ -534,42 +526,32 @@ public class HttpParser {
 			try {
 				//处理协议行
 				{
-					protocolMark = parseProtocol(packetMap, type, innerByteBuffer, contiuneRead, timeout);
+					protocolMark = parserProtocol(packetMap, type, innerByteBuffer, contiuneRead, timeout);
 					protocolPosition = innerByteBuffer.position() - 1;
 
 					//检查缓存是否存在,并获取
 					if (isCache) {
-						for (long cachedMark : MARK_CACHE_LIST) {
-							if(cachedMark == Long.MAX_VALUE) {
-								break;
-							}
+						for (Entry<Long, Object[]> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
+							long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
 							long totalLengthInMark = (cachedMark << 32) >>> 32; //高位清空, 获得整个头的长度
 
 							if (totalLengthInMark > innerByteBuffer.limit()) {
 								continue;
 							}
 
-							try {
-								if (byteBufferChannel.size() >= totalLengthInMark &&
-										byteBufferChannel.get((int) totalLengthInMark - 1) == 10 &&
-										byteBufferChannel.get((int) totalLengthInMark - 2) == 13) {
+							if (byteBufferChannel.size() >= totalLengthInMark &&
+									byteBufferChannel.get((int) totalLengthInMark - 1) == 10 &&
+									byteBufferChannel.get((int) totalLengthInMark - 2) == 13) {
 
-									headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
+								headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
 
-									if (protocolMark + headerMark == cachedMark >>> 32) {
-										innerByteBuffer.position((int) totalLengthInMark);
-
-										Object[] cachedPacketMap = PACKET_MAP_CACHE.get(cachedMark);
-										if(cachedPacketMap!=null) {
-											packetMap = cachedPacketMap;
-											headerMap = (Map<String, Object>) cachedPacketMap[HEADER];
-											findCache = true;
-										}
-										break;
-									}
+								if (protocolMark + headerMark == cachedMark >>> 32) {
+									innerByteBuffer.position((int) totalLengthInMark);
+									findCache = true;
+									packetMap = packetMapCacheItem.getValue();
+									headerMap = (Map<String, Object>) packetMap[HEADER];
+									break;
 								}
-							} catch (Exception e) {
-								Logger.error(e);
 							}
 						}
 					}
@@ -610,7 +592,6 @@ public class HttpParser {
 						Object[] cachedPacketMap = Arrays.copyOf(packetMap, packetMap.length);
 						cachedPacketMap[CACHE_FLAG] =  1;
 
-						MARK_CACHE_LIST[PACKET_MAP_CACHE.size()] = mark;
 						PACKET_MAP_CACHE.put(mark, cachedPacketMap);
 					}
 				}
