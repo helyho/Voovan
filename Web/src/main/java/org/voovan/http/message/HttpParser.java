@@ -395,6 +395,7 @@ public class HttpParser {
 
 	/**
 	 * 解析 HTTP 请求头
+	 * @param packetMap 解析中间容器
 	 * @param headerMap 解析后数据的容器
 	 * @param byteBuffer ByteBuffer对象
 	 * @param contiuneRead 当数据不足时的读取器
