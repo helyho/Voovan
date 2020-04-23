@@ -331,17 +331,17 @@ public class HttpParser {
 
 		if (type == 0) {
 			//1
-			packetMap[PL_METHOD] = segment_1.getValue();
+			packetMap[PL_METHOD] = segment_1;
 
 			//2
-			packetMap[PL_PATH] = segment_2.getValue();
+			packetMap[PL_PATH] = segment_2;
 			if(questPositiion > 0 && queryString!=null) {
 				packetMap[PL_QUERY_STRING] = queryString;
 			}
 
 			//3
 			if(segment_3.getBytes()[0] =='H' && segment_3.getBytes()[1]=='T' && segment_3.getBytes()[2]=='T' && segment_3.getBytes()[3]=='P') {
-				packetMap[PL_PROTOCOL] = HttpStatic.HTTP.getValue();
+				packetMap[PL_PROTOCOL] = HttpStatic.HTTP;
 			} else {
 				throw new HttpParserException("Not a http packet");
 			}
