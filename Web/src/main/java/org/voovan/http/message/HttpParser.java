@@ -55,8 +55,8 @@ public class HttpParser {
 
 	public static final String UPLOAD_PATH = TFile.assemblyPath(TFile.getTemporaryPath(),"voovan", "webserver", "upload");
 
-	public static final String propertyLineRegex = ": ";
-	public static final String equalMapRegex = "([^ ;,]+=[^;,]+)";
+	public static final String PROPERTY_LINE_SPILITER = ": ";
+	public static final String EQUAL_MAP_REGEX = "([^ ;,]+=[^;,]+)";
 
 	public static FastThreadLocal<Object[]> THREAD_PACKET_MAP = FastThreadLocal.withInitial(()->new Object[20]);
 	public static FastThreadLocal<Request> THREAD_REQUEST = FastThreadLocal.withInitial(()->new Request());
@@ -138,7 +138,7 @@ public class HttpParser {
 	 */
 	public static Map<String, String> getEqualMap(String str){
 		Map<String, String> equalMap = new HashMap<String, String>();
-		String[] searchedStrings = TString.searchByRegex(str, equalMapRegex);
+		String[] searchedStrings = TString.searchByRegex(str, EQUAL_MAP_REGEX);
 		for(String groupString : searchedStrings){
 			//这里不用 split 的原因是有可能等号后的值字符串中出现等号
 			String[] equalStrings = new String[2];
