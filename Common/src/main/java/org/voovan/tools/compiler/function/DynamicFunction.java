@@ -15,6 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.voovan.tools.TString.TOKEN_PREFIX;
+import static org.voovan.tools.TString.TOKEN_SUFFIX;
+
 /**
  * 动态函数管理类
  *      为了安全问题,默认不外部包导入功能,如果需要可以使用 setEnableImportInCode 方法设置
@@ -25,7 +28,11 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class DynamicFunction {
-    private final static String CODE_TEMPLATE = new String(TFile.loadResource("org/voovan/tools/compiler/function/CodeTemplate.txt"));
+    private static String CODE_TEMPLATE = new String(TFile.loadResource("org/voovan/tools/compiler/function/CodeTemplate.vct"));
+
+    static {
+        CODE_TEMPLATE = CODE_TEMPLATE.replace("<",TOKEN_PREFIX).replace(">",TOKEN_SUFFIX);
+    }
 
     //导入类预置
     private List<Class> importClasses;
