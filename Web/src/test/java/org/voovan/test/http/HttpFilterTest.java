@@ -24,7 +24,7 @@ public class HttpFilterTest implements HttpFilter {
 		}else{
 			prevFilterResult = (int)prevFilterResult+1;
 		}
-		Logger.simple("ON_REQUEST: "+msg+",filter sequence:"+prevFilterResult);
+		Logger.simplef("ON_REQUEST: {1},filter sequence: {2}", msg, prevFilterResult);
 
 		return prevFilterResult;
 	}
@@ -42,7 +42,7 @@ public class HttpFilterTest implements HttpFilter {
 		}else{
 			prevFilterResult = (int)prevFilterResult+1;
 		}
-		Logger.simple("ON_RESPONSE: "+msg+" ,filter sequence:"+prevFilterResult);
+		Logger.simplef("ON_RESPONSE: {1} ,filter sequence: {2}", msg, prevFilterResult);
 
 		return prevFilterResult;
 	}

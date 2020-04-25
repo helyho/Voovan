@@ -380,8 +380,11 @@ public class TString {
 		return source;
 	}
 
-	public static String TOKEN_PREFIX_REGEX = "\\{\\{";
-	public static String TOKEN_SUFFIX_REGEX = "\\}\\}";
+	public static String TOKEN_PREFIX_REGEX = "\\{";
+	public static String TOKEN_SUFFIX_REGEX = "\\}";
+
+	public static String TOKEN_PREFIX = TOKEN_PREFIX_REGEX.replaceAll("\\\\", "");
+	public static String TOKEN_SUFFIX = TOKEN_SUFFIX_REGEX.replaceAll("\\\\", "");
 
 
 	/**
@@ -395,8 +398,8 @@ public class TString {
 	 * @return 替换后的字符串
 	 */
 	public static String oneTokenReplace(String source, String tokenName, String tokenValue) {
-		String TOKEN_PREFIX = org.voovan.tools.TString.fastReplaceAll(TOKEN_PREFIX_REGEX, "\\\\", "");
-		String TOKEN_SUFFIX = org.voovan.tools.TString.fastReplaceAll(TOKEN_SUFFIX_REGEX, "\\\\", "");
+		String TOKEN_PREFIX = TString.fastReplaceAll(TOKEN_PREFIX_REGEX, "\\\\", "");
+		String TOKEN_SUFFIX = TString.fastReplaceAll(TOKEN_SUFFIX_REGEX, "\\\\", "");
 		String TOKEN_EMPTY = TOKEN_PREFIX + TOKEN_SUFFIX;
 
 		if (source == null) {
@@ -406,9 +409,9 @@ public class TString {
 		if (source.contains(TOKEN_PREFIX + tokenName + TOKEN_SUFFIX)) {
 			return fastReplaceAll(source, TOKEN_PREFIX_REGEX + tokenName + TOKEN_SUFFIX_REGEX,
 					tokenValue == null ? "null" : Matcher.quoteReplacement(tokenValue));
-		} else if ((tokenName == null || org.voovan.tools.TString.isInteger(tokenName)) &&
+		} else if ((tokenName == null || TString.isInteger(tokenName)) &&
 				source.contains(TOKEN_EMPTY)) {
-			return org.voovan.tools.TString.replaceFirst(source, TOKEN_EMPTY, tokenValue);
+			return TString.replaceFirst(source, TOKEN_EMPTY, tokenValue);
 		} else {
 			return source;
 		}
