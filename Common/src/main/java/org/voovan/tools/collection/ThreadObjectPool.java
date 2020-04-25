@@ -43,10 +43,6 @@ public class ThreadObjectPool<T> {
         return threadPoolSize;
     }
 
-    public void setThreadPoolSize(int threadPoolSize) {
-        this.threadPoolSize = threadPoolSize;
-    }
-
     public RingBuffer<T> getPool(){
         return threadLocalPool.get();
     }
@@ -68,9 +64,7 @@ public class ThreadObjectPool<T> {
         RingBuffer<T> pool = getPool();
 
         //如果小于线程中池的大小则放入线程中的池
-        if(pool.avaliable() < threadPoolSize) {
-            pool.push(t);
-        } else {
+        if(!pool.push(t)) {
             destory.accept(t);
         }
     }
