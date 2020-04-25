@@ -129,7 +129,7 @@ public class TObject {
 
 	/**
 	 * 将数组转换成 Map
-	 * 			key 位置坐标
+	 * 			key 位置坐标, 从 1 开始计数
 	 *          value 数组值
 	 * @param objs    	待转换的数组
 	 * @param <T> 范型
