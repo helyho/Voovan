@@ -1,0 +1,16 @@
+package <PACKAGE>
+import org.voovan.tools.TObject;
+<IMPORT>
+public class <CLASSNAME> implements org.voovan.tools.compiler.function.FunctionInterface {
+
+    public <CLASSNAME>(){
+    }
+
+    <IMPORTFUNCTION>
+
+    @SuppressWarnings("unchecked")
+    public Object execute(Object ... args) throws Exception{
+        <PREPARE_ARG>
+        <CODE>
+    }
+}
