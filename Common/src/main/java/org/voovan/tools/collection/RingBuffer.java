@@ -16,6 +16,7 @@ public class RingBuffer<T> {
 	public Object[] elements;
 	private int readPositon = 0;
 	private int writePositon = 0;
+	private int size = 0;
 	private int capacity;
 
 	/**
@@ -31,9 +32,8 @@ public class RingBuffer<T> {
 	 * @param capacity 分配的容量
 	 */
 	public RingBuffer(int capacity) {
-		elements = new Object[capacity - 1];
-		this.capacity = capacity - 1;
-
+		this.capacity = nextPowerOfTwo(capacity);
+		elements = new Object[this.capacity];
 	}
 
 	/**
@@ -73,6 +73,9 @@ public class RingBuffer<T> {
 			throw new BufferOverflowException();
 		}
 
+		readPositon = (readPositon + offset);
+
+		if(readPositon >= capacity)
 		readPositon = (readPositon + offset) % capacity;
 	}
 
@@ -82,7 +85,7 @@ public class RingBuffer<T> {
 	 * @return true: 缓冲区无可用数据, false: 缓冲区有可用数据
 	 */
 	private Boolean isEmpty() {
-		return readPositon == writePositon;
+		return size == 0;
 	}
 
 	/**
@@ -91,7 +94,7 @@ public class RingBuffer<T> {
 	 * @return true: 缓冲区已满, false: 缓冲区未满
 	 */
 	private Boolean isFull() {
-		return (writePositon + 1) % capacity == readPositon;
+		return size == capacity;
 	}
 
 	/**
@@ -159,8 +162,10 @@ public class RingBuffer<T> {
 		}
 
 		T t = (T)elements[readPositon];
-		readPositon = (readPositon + 1) % capacity;
 
+		readPositon = (readPositon + 1);
+		readPositon = readPositon == capacity ? 0 : readPositon;
+		size--;
 		return t;
 	}
 
@@ -176,9 +181,15 @@ public class RingBuffer<T> {
 			return false;
 		}
 
-		elements[writePositon] = t;
-		writePositon = (writePositon + 1) % capacity;
+		try {
+			elements[writePositon] = t;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
+		writePositon = (writePositon + 1);
+		writePositon = writePositon == capacity ? 0 : writePositon;
+		size++;
 		return true;
 	}
 
@@ -211,13 +222,7 @@ public class RingBuffer<T> {
 	 * @return 缓冲区可用数据量
 	 */
 	public int remaining() {
-		if (writePositon == readPositon) {
-			return 0;
-		} else if (writePositon < readPositon) {
-			return capacity - readPositon + writePositon;
-		} else {
-			return writePositon - readPositon;
-		}
+		return size;
 	}
 
 	/**
@@ -226,7 +231,7 @@ public class RingBuffer<T> {
 	 * @return 缓冲区可写空间
 	 */
 	public int avaliable() {
-		return capacity - remaining() - 1;
+		return capacity - size;
 	}
 
 	/**
@@ -247,6 +252,17 @@ public class RingBuffer<T> {
 		}
 
 		return length;
+	}
+
+	private static int nextPowerOfTwo(int x) {
+		if (x == 0) return 1;
+		x--;
+		x |= x >> 1;
+		x |= x >> 2;
+		x |= x >> 4;
+		x |= x >> 8;
+		x |= x >> 16;
+		return (x | x >> 32) + 1;
 	}
 
 	@Override
