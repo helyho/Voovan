@@ -23,28 +23,28 @@ import java.util.Arrays;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
-    public static int DEFAULT_BYTE_BUFFER_SIZE = TEnv.getSystemProperty("ByteBufferSize", 1024*4);
-    public static int THREAD_BUFFER_POOL_SIZE  = TEnv.getSystemProperty("ThreadBufferPoolSize", 32);
+    public final static int DEFAULT_BYTE_BUFFER_SIZE = TEnv.getSystemProperty("ByteBufferSize", 1024*4);
+    public final static int THREAD_BUFFER_POOL_SIZE  = TEnv.getSystemProperty("ThreadBufferPoolSize", 32);
 
-    public static ThreadObjectPool<ByteBuffer> THREAD_BYTE_BUFFER_POOL = new ThreadObjectPool<ByteBuffer>(THREAD_BUFFER_POOL_SIZE, ()->allocateManualReleaseBuffer(DEFAULT_BYTE_BUFFER_SIZE));
+    public final static ThreadObjectPool<ByteBuffer> THREAD_BYTE_BUFFER_POOL = new ThreadObjectPool<ByteBuffer>(THREAD_BUFFER_POOL_SIZE, ()->allocateManualReleaseBuffer(DEFAULT_BYTE_BUFFER_SIZE));
 
     static {
         System.out.println("[SYTSEM] ThreadBufferPoolSize: " + THREAD_BYTE_BUFFER_POOL.getThreadPoolSize());
         System.out.println("[SYTSEM] BufferSize: " + DEFAULT_BYTE_BUFFER_SIZE);
     }
 
-    public static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
+    public final static ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
 
-    public static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
+    public final static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
 
-    public static Constructor DIRECT_BYTE_BUFFER_CONSTURCTOR = getConsturctor();
+    public final static Constructor DIRECT_BYTE_BUFFER_CONSTURCTOR = getConsturctor();
     static {
         DIRECT_BYTE_BUFFER_CONSTURCTOR.setAccessible(true);
     }
 
-    public static Field addressField = ByteBufferField("address");
-    public static Field capacityField = ByteBufferField("capacity");
-    public static Field attField = ByteBufferField("att");
+    public final static Field addressField = ByteBufferField("address");
+    public final static Field capacityField = ByteBufferField("capacity");
+    public final static Field attField = ByteBufferField("att");
 
     private static Constructor getConsturctor(){
         try {

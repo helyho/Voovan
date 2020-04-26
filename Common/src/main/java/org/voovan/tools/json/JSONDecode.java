@@ -26,8 +26,8 @@ import java.util.*;
  * Licence: Apache v2 License
  */
 public class JSONDecode {
-	public static boolean JSON_CACHE_ENABLE = TEnv.getSystemProperty("JsonCacheEnable", false);
-	public static final IntKeyMap<Object> JSON_DECODE_CACHE = new IntKeyMap<Object>(1024);
+	public final static boolean JSON_CACHE_ENABLE = TEnv.getSystemProperty("JsonCacheEnable", false);
+	public final static IntKeyMap<Object> JSON_DECODE_CACHE = new IntKeyMap<Object>(1024);
 
 	static {
 		if(JSON_CACHE_ENABLE) {

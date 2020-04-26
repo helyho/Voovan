@@ -50,7 +50,7 @@ import java.util.function.Consumer;
  */
 public class HttpClient extends PooledObject implements Closeable{
 
-	public static String DEFAULT_USER_AGENT = "Voovan Http Client " + Global.getVersion();
+	public final static String DEFAULT_USER_AGENT = "Voovan Http Client " + Global.getVersion();
 
 	private TcpSocket socket;
 	private HttpRequest httpRequest;

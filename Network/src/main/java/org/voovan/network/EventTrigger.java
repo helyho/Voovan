@@ -13,11 +13,11 @@ package org.voovan.network;
  */
 public class EventTrigger {
 
-	public static void fireAcceptAsEvent(IoSession session){
+	public static void fireAcceptAsync(IoSession session){
 		fireEvent(session, Event.EventName.ON_ACCEPTED,null);
 	}
 
-	public static void fireConnectAsEvent(IoSession session){
+	public static void fireConnectAsync(IoSession session){
 		//设置连接状态
 		session.getState().setInit(false);
 		session.getState().setConnect(true);
@@ -25,32 +25,32 @@ public class EventTrigger {
 		fireEvent(session, Event.EventName.ON_CONNECT,null);
 	}
 
-	public static void fireReceiveAsEvent(IoSession session) {
+	public static void fireReceiveAsync(IoSession session) {
 		fireEvent(session, Event.EventName.ON_RECEIVE, null);
 	}
 
-	public static void fireSentAsEvent(IoSession session, Object obj){
+	public static void fireSentAsync(IoSession session, Object obj){
 		fireEvent(session, Event.EventName.ON_SENT, obj);
 	}
 
 
-	public static void fireFlushAsEvent(IoSession session){
+	public static void fireFlushAsync(IoSession session){
 		fireEvent(session, Event.EventName.ON_FLUSH, null);
 	}
 
-	public static void fireDisconnectAsEvent(IoSession session){
+	public static void fireDisconnectAsync(IoSession session){
 		//设置断开状态,Close是最终状态
 		session.getState().setClose(true);
 		fireEvent(session, Event.EventName.ON_DISCONNECT, null);
 	}
 
-	public static void fireIdleAsEvent(IoSession session){
+	public static void fireIdleAsync(IoSession session){
 		if(session.getIdleInterval() >0 ) {
 			fireEvent(session, Event.EventName.ON_IDLE, null);
 		}
 	}
 
-	public static void fireExceptionAsEvent(IoSession session,Exception exception){
+	public static void fireExceptionAsync(IoSession session,Exception exception){
 		fireEvent(session, Event.EventName.ON_EXCEPTION,exception);
 	}
 
@@ -116,8 +116,7 @@ public class EventTrigger {
 	 * @param other 附属对象
 	 */
 	public static void fire(IoSession session, Event.EventName name, Object other){
-		Event event = new Event(session,name,other);
+		Event event = new Event(session, name, other);
 		EventProcess.process(event);
 	}
-
 }

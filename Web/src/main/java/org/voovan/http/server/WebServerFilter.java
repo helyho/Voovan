@@ -29,7 +29,7 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class WebServerFilter implements IoFilter {
-	public static LongKeyMap<ByteBuffer> RESPONSE_CACHE = new LongKeyMap<ByteBuffer>(4096);
+	public final static LongKeyMap<ByteBuffer> RESPONSE_CACHE = new LongKeyMap<ByteBuffer>(4096);
 
 	static {
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {

@@ -13,9 +13,9 @@ import java.io.IOException;
  * Licence: Apache v2 License
  */
 public class HttpParserException extends EmptyStackRuntimeException {
-    public static int NORMAL = 0;
-    public static int SOCKET_DISCONNECT = 1;
-    public static int BUFFER_RELEASED = 2;
+    public final static int NORMAL = 0;
+    public final static int SOCKET_DISCONNECT = 1;
+    public final static int BUFFER_RELEASED = 2;
 
     private int type; //0: normal, 1: socket error
 

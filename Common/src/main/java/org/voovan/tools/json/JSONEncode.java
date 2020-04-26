@@ -27,8 +27,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class JSONEncode {
-    public static boolean JSON_CACHE_ENABLE = TEnv.getSystemProperty("JsonCacheEnable", false);
-    public static final IntKeyMap<String> JSON_ENCODE_CACHE = new IntKeyMap<String>(1024);
+    public final static boolean JSON_CACHE_ENABLE = TEnv.getSystemProperty("JsonCacheEnable", false);
+    public final static IntKeyMap<String> JSON_ENCODE_CACHE = new IntKeyMap<String>(1024);
 
     static {
         if(JSON_CACHE_ENABLE) {
