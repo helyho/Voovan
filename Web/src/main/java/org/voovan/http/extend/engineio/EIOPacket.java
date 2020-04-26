@@ -22,7 +22,7 @@ public class EIOPacket {
     private String data = null;
     private int engineType = -1;
 
-    public static String[] ENGINE_TYPES = new String[] {
+    public final static String[] ENGINE_TYPES = new String[] {
             "OPEN",
             "CLOSE",
             "PING",

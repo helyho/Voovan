@@ -20,9 +20,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class HttpItem {
 	public final static int HTTP_ITEM_MAX_LENGTH = 1024;
 
-	public static final IntKeyMap  HTTP_ITEM_MAP = new IntKeyMap(HTTP_ITEM_MAX_LENGTH);
+	public final static IntKeyMap  HTTP_ITEM_MAP = new IntKeyMap(HTTP_ITEM_MAX_LENGTH);
 
-	public static final HttpItem EMPTY = new HttpItem("");
+	public final static HttpItem EMPTY = new HttpItem("");
 
 	private final byte[] bytes;
 	private final String value;

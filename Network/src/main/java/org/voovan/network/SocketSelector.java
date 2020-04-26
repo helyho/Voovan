@@ -578,7 +578,11 @@ public class SocketSelector implements Closeable {
 
 				if (session.isConnected() && !session.getState().isReceive() && appByteBufferChannel.size() > 0) {
 					// 触发 onReceive 事件
-					EventTrigger.fireReceiveAsEvent(session);
+					if(SocketContext.ASYNC_RECIVE) {
+						EventTrigger.fireReceiveAsync(session);
+					} else {
+						EventTrigger.fireReceive(session);
+					}
 				}
 			}
 

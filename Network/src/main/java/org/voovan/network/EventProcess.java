@@ -132,7 +132,7 @@ public class EventProcess {
                     }
 
                     if(session.getReadByteBufferChannel().size() > 0) {
-                        EventTrigger.fireReceiveAsEvent(session);
+                        EventTrigger.fireReceiveAsync(session);
                     }
 
                 }

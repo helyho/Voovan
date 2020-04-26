@@ -7,6 +7,7 @@ import org.voovan.http.message.packet.ResponseProtocol;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
 import org.voovan.tools.FastThreadLocal;
+import org.voovan.tools.TByte;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TString;
@@ -214,13 +215,12 @@ public class Response {
 		return TString.toAsciiBytes(stringBuilder.toString());
 	}
 
-	public static byte[] EMPTY_BYTES = new byte[0];
 
 	private byte[] readEnd(){
 		if (isCompress) {
 			return TString.toAsciiBytes("0" + HttpStatic.BODY_MARK_STRING);
 		}else{
-			return EMPTY_BYTES;
+			return TByte.EMPTY_BYTES;
 		}
 	}
 

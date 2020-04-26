@@ -19,9 +19,9 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class ByteFilter implements IoFilter {
-	public static Class BYTE_ARRAY_CLASS = (new byte[0]).getClass();
-	public static byte SPLITER = (byte) 255;
-	public static int HEAD_LEGNTH = 6;
+	public final static Class BYTE_ARRAY_CLASS = (new byte[0]).getClass();
+	public final static byte SPLITER = (byte) 255;
+	public final static int HEAD_LEGNTH = 6;
 
 	@Override
 	public Object encode(IoSession session, Object object) {

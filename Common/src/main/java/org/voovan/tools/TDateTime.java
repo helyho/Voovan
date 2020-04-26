@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit;
 
 
 public class TDateTime {
-	public static Long BOOT_TIME_MILLS = System.currentTimeMillis();
-	public static Long BOOT_TIME_NANOS = System.nanoTime();
+	public final static Long BOOT_TIME_MILLS = System.currentTimeMillis();
+	public final static Long BOOT_TIME_NANOS = System.nanoTime();
 	public final static String STANDER_DATE_TEMPLATE = "yyyy-MM-dd";
 	public final static String STANDER_TIME_TEMPLATE = "HH:mm:ss";
 	public final static String STANDER_DATETIME_TEMPLATE = "yyyy-MM-dd HH:mm:ss";

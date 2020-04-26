@@ -31,39 +31,39 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class HttpParser {
-	private static final int HEADER = 0;
-	private static final int BODY_VALUE = 1;
-	private static final int BODY_FILE  = 2;
-	private static final int BODY_PARTS = 3;
+	private final static int HEADER = 0;
+	private final static int BODY_VALUE = 1;
+	private final static int BODY_FILE  = 2;
+	private final static int BODY_PARTS = 3;
 
-	private static final int PL_METHOD = 4;
-	private static final int PL_PATH = 5;
-	private static final int PL_PROTOCOL = 6;
-	private static final int PL_VERSION = 7;
-	private static final int PL_STATUS = 8;
-	private static final int PL_STATUS_CODE = 9;
-	private static final int PL_QUERY_STRING = 10;
-	private static final int HEADER_MARK = 11;
-	private static final int CACHE_FLAG = 12;
-	private static final int COOKIE = 13;
+	private final static int PL_METHOD = 4;
+	private final static int PL_PATH = 5;
+	private final static int PL_PROTOCOL = 6;
+	private final static int PL_VERSION = 7;
+	private final static int PL_STATUS = 8;
+	private final static int PL_STATUS_CODE = 9;
+	private final static int PL_QUERY_STRING = 10;
+	private final static int HEADER_MARK = 11;
+	private final static int CACHE_FLAG = 12;
+	private final static int COOKIE = 13;
 
-	private static final int HAS_COOKIE = 14;
-	private static final int HAS_SET_COOKIE = 15;
+	private final static int HAS_COOKIE = 14;
+	private final static int HAS_SET_COOKIE = 15;
 
 
-	public static final String MULTIPART_FORM_DATA = "multipart/form-data";
+	private final static String MULTIPART_FORM_DATA = "multipart/form-data";
 
-	public static final String UPLOAD_PATH = TFile.assemblyPath(TFile.getTemporaryPath(),"voovan", "webserver", "upload");
+	private final static String UPLOAD_PATH = TFile.assemblyPath(TFile.getTemporaryPath(),"voovan", "webserver", "upload");
 
-	public static final String PROPERTY_LINE_SPILITER = ": ";
-	public static final String EQUAL_MAP_REGEX = "([^ ;,]+=[^;,]+)";
+	private final static String PROPERTY_LINE_SPILITER = ": ";
+	private final static String EQUAL_MAP_REGEX = "([^ ;,]+=[^;,]+)";
 
-	public static FastThreadLocal<Object[]> THREAD_PACKET_MAP = FastThreadLocal.withInitial(()->new Object[20]);
-	public static FastThreadLocal<Request> THREAD_REQUEST = FastThreadLocal.withInitial(()->new Request());
-	public static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
-	private static FastThreadLocal<byte[]> THREAD_BYTE_ARRAY = FastThreadLocal.withInitial(()->new byte[1024]);
+	private final static FastThreadLocal<Object[]> THREAD_PACKET_MAP = FastThreadLocal.withInitial(()->new Object[20]);
+	private final static FastThreadLocal<Request> THREAD_REQUEST = FastThreadLocal.withInitial(()->new Request());
+	private final static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
+	private final static FastThreadLocal<byte[]> THREAD_BYTE_ARRAY = FastThreadLocal.withInitial(()->new byte[1024]);
 
-	private static ConcurrentHashMap<Long, Object[]> PACKET_MAP_CACHE = new ConcurrentHashMap<Long, Object[]>();
+	private final static ConcurrentHashMap<Long, Object[]> PACKET_MAP_CACHE = new ConcurrentHashMap<Long, Object[]>();
 
 	public static final int PARSER_TYPE_REQUEST = 0;
 	public static final int PARSER_TYPE_RESPONSE = 1;

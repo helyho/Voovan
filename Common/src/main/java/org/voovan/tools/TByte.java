@@ -11,6 +11,7 @@ import java.nio.charset.Charset;
  * Licence: Apache v2 License
  */
 public class TByte {
+    public final static byte[] EMPTY_BYTES = new byte[0];
 
     public static byte[] getBytes(short data) {
         byte[] bytes = new byte[2];

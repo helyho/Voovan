@@ -30,9 +30,10 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
     //================================线程管理===============================
 	public static int 		ACCEPT_THREAD_SIZE 	= TEnv.getSystemProperty("AcceptThreadSize", 1);
 	public static int 		IO_THREAD_SIZE 		= TEnv.getSystemProperty("IoThreadSize", TPerformance.getProcessorCount()+1);
-	public static int 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 100);
-	public static Boolean 	CHECK_READ_TIMEOUT  = TEnv.getSystemProperty("CheckReadTimeout", null);
-	public static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
+	public final static int 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 100);
+	public final static Boolean 	CHECK_READ_TIMEOUT  = TEnv.getSystemProperty("CheckReadTimeout", null);
+	public final static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
+	public final static boolean 	ASYNC_RECIVE 	    = TEnv.getSystemProperty("AsyncRecive", true);
 
 	static {
 		IO_THREAD_SIZE = IO_THREAD_SIZE < 8 ? 8 : IO_THREAD_SIZE;

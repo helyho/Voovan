@@ -26,7 +26,7 @@ public class SIOPacket {
     private String data = null;
     private int socketType = -1;
 
-    public static String[] SOCKET_TYPES = new String[] {
+    public final static String[] SOCKET_TYPES = new String[] {
             "CONNECT",
             "DISCONNECT",
             "EVENT",
