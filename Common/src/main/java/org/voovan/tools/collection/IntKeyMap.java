@@ -209,7 +209,7 @@ public class IntKeyMap<T> {
         return (currentIndex + 1) & mask;
     }
 
-    private static long nextPowerOfTwo(long x) {
+    private static int nextPowerOfTwo(int x) {
         if (x == 0) return 1;
         x--;
         x |= x >> 1;
@@ -221,7 +221,7 @@ public class IntKeyMap<T> {
     }
 
     private static int getPowerOfTwoSize(final int expected, final float f) {
-        final long s = Math.max(2, nextPowerOfTwo((long) Math.ceil(expected / f)));
+        final int s = Math.max(2, nextPowerOfTwo((int)Math.ceil(expected / f)));
         if (s > (1 << 30))
             throw new IllegalArgumentException("Too large (" + expected + " expected elements with load factor " + f + ")");
         return (int) s;
