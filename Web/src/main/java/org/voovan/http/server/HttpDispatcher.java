@@ -336,7 +336,7 @@ public class HttpDispatcher {
 				try {
 					String newRequestPath = requestPath + (requestPath.endsWith("/") ? "" : "/") + indexFile;
 					request.protocol().setPath(newRequestPath);
-					mimeFileRouter.process(request,response);
+					disposeRoute(request,response);
 				} catch (Exception e) {
 					exceptionMessage(request, response, e);
 				}

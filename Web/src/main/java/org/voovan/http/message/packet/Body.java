@@ -120,6 +120,14 @@ public class Body {
 	 * 转换成字节形式
 	 * @param content 字节内容
 	 */
+	public void changeToBytes() {
+		changeToBytes(null);
+	}
+
+	/**
+	 * 转换成字节形式
+	 * @param content 字节内容
+	 */
 	public void changeToBytes(byte[] content) {
 		if(byteBufferChannel == null || byteBufferChannel.isReleased()){
 			byteBufferChannel = new ByteBufferChannel();
@@ -129,7 +137,7 @@ public class Body {
 			bodyFile = null;
 		}
 
-		if(content.length!=0) {
+		if(content!=null && content.length!=0) {
 			byteBufferChannel.writeEnd(ByteBuffer.wrap(content));
 		} else {
 			byteBufferChannel.clear();
@@ -303,7 +311,7 @@ public class Body {
 			if(bodyFile!=null && bodyFile.getPath().startsWith(TFile.getTemporaryPath())) {
 				bodyFile.delete();
 			}
-			bodyFile = null;
+			changeToBytes();
 		}
 
 		mark = 0;
