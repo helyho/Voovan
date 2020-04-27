@@ -72,9 +72,10 @@ public class TFile {
 			Logger.error("File not found: "+file.getCanonicalPath(),e);
 			return -1;
 		}finally {
-			randomAccessFile.close();
+			if(randomAccessFile!=null) {
+				randomAccessFile.close();
+			}
 		}
-
 	}
 
 	/**
@@ -188,6 +189,8 @@ public class TFile {
 	 */
 	public static byte[] loadFile(File file, long beginPos, long endPos) {
 
+		RandomAccessFile randomAccessFile = null;
+
 		try {
 			if(!file.exists()){
 				return null;
@@ -218,14 +221,23 @@ public class TFile {
 			} else {
 				loadLength = endPos - beginPos + 1;
 			}
-			RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
+
+			randomAccessFile = new RandomAccessFile(file, "r");
 			byte[] fileBytes = new byte[(int) loadLength - 1];
 			randomAccessFile.seek(beginPos);
 			randomAccessFile.read(fileBytes);
-			randomAccessFile.close();
+
 			return fileBytes;
 		} catch (IOException e) {
 			Logger.error("Load file error: "+file.getAbsolutePath(),e);
+		} finally {
+			if(randomAccessFile!=null) {
+				try {
+					randomAccessFile.close();
+				} catch (Exception e) {
+					Logger.error("TFile.loadFile failed", e);
+				}
+			}
 		}
 		return null;
 	}
@@ -238,9 +250,8 @@ public class TFile {
 	 * @throws IOException IO 异常
 	 */
 	public static byte[] loadFileLastLines(File file, int lastLineNum) throws IOException {
-
-		RandomAccessFile randomAccessFile = null;
-		try {
+		RandomAccessFile  randomAccessFile = null;
+		try{
 			randomAccessFile = new RandomAccessFile(file, "r");
 			long fileLength = randomAccessFile.length() - 1 ;
 			randomAccessFile.seek(fileLength);
@@ -270,9 +281,8 @@ public class TFile {
 			}
 		} catch(IOException e){
 			throw e;
-
 		} finally {
-			if(randomAccessFile!=null){
+			if(randomAccessFile!=null) {
 				randomAccessFile.close();
 			}
 		}
@@ -296,9 +306,9 @@ public class TFile {
 			file.delete();
 		}
 
-		RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rwd");
-
-		try {
+		RandomAccessFile randomAccessFile = null;
+		try{
+			randomAccessFile = new RandomAccessFile(file, "rwd");
 			if(append){
 				randomAccessFile.seek(randomAccessFile.length());
 			}
@@ -308,8 +318,10 @@ public class TFile {
 		} catch (IOException e) {
 			Logger.error("TFile.writeFile Error!", e);
 			return false;
-		}finally {
-			randomAccessFile.close();
+		} finally {
+			if(randomAccessFile != null) {
+				randomAccessFile.close();
+			}
 		}
 	}
 
@@ -555,10 +567,15 @@ public class TFile {
 			return false;
 		} finally {
 			try {
-				srcFileAccess.close();
-				destFileAccess.close();
+			    if(srcFileAccess!=null) {
+					srcFileAccess.close();
+				}
+
+				if(destFileAccess!=null) {
+					destFileAccess.close();
+				}
 			} catch (Exception e) {
-				Logger.error(e);
+				Logger.error("TFile.copyFile failed", e);
 			}
 		}
 
