@@ -165,7 +165,7 @@ public class MimeFileRouter implements HttpRouter {
 			response.body().write(fileByte);
 
 		} else {
-			response.body().changeToFile(responseFile.getCanonicalPath());
+			response.body().changeToFile(responseFile);
 		}
 	}
 
