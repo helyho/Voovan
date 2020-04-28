@@ -118,7 +118,6 @@ public class Body {
 
 	/**
 	 * 转换成字节形式
-	 * @param content 字节内容
 	 */
 	public void changeToBytes() {
 		changeToBytes(null);
