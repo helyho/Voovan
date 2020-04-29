@@ -31,7 +31,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public static int 		ACCEPT_THREAD_SIZE 	= TEnv.getSystemProperty("AcceptThreadSize", 1);
 	public static int 		IO_THREAD_SIZE 		= TEnv.getSystemProperty("IoThreadSize", TPerformance.getProcessorCount()+1);
 	public final static int 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 100);
-	public final static Boolean 	CHECK_READ_TIMEOUT  = TEnv.getSystemProperty("CheckReadTimeout", null);
+	public final static Boolean 	CHECK_TIMEOUT  = TEnv.getSystemProperty("CheckTimeout", null);
 	public final static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
 	public final static boolean 	ASYNC_RECIVE 	    = TEnv.getSystemProperty("AsyncRecive", true);
 
@@ -247,11 +247,11 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		return lastReadTime;
 	}
 
-	public void updateLastReadTime() {
+	protected void updateLastTime() {
 		this.lastReadTime = System.currentTimeMillis();
 	}
 
-	public boolean isReadTimeOut(){
+	public boolean isTimeOut(){
 		return (System.currentTimeMillis() - lastReadTime) >= readTimeout;
 	}
 
