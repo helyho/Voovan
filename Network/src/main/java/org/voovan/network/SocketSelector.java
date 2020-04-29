@@ -8,7 +8,6 @@ import org.voovan.network.tcp.TcpSocket;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.*;
 import org.voovan.tools.buffer.ByteBufferChannel;
-import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.collection.ArraySet;
 import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
@@ -22,7 +21,6 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -53,7 +51,7 @@ public class SocketSelector implements Closeable {
 	public SocketSelector(EventRunner eventRunner, boolean isCheckTimeout) throws IOException {
 		this.selector = SelectorProvider.provider().openSelector();
 		this.eventRunner = eventRunner;
-		this.isCheckTimeout = SocketContext.CHECK_READ_TIMEOUT == null ? isCheckTimeout : false;
+		this.isCheckTimeout = SocketContext.CHECK_TIMEOUT == null ? isCheckTimeout : false;
 
 		try {
 			TReflect.setFieldValue(selector, NioUtil.selectedKeysField, selectedKeys);
@@ -275,11 +273,11 @@ public class SocketSelector implements Closeable {
 					//缓冲区是否有数据
 					boolean bufferDataEmpty = socketContext.getSession().getReadByteBufferChannel().isEmpty() && socketContext.getSession().getSendByteBufferChannel().isEmpty();
 
-					if(socketContext.isReadTimeOut() && bufferDataEmpty) {
+					if(socketContext.isTimeOut() && bufferDataEmpty) {
 						socketContext.close();
 						EventTrigger.fireException(socketContext.getSession(), new TimeoutException("Socket Read timeout"));
 					} else if(!bufferDataEmpty) {
-						socketContext.updateLastReadTime();
+						socketContext.updateLastTime();
 					}
 				}
 			}
@@ -309,7 +307,7 @@ public class SocketSelector implements Closeable {
 
 					// 有数据读取
 					if ((selectedKey.readyOps() & SelectionKey.OP_READ) != 0) {
-						socketContext.updateLastReadTime();
+						socketContext.updateLastTime();
 						readFromChannel(socketContext, channel);
 					}
 				}
@@ -361,6 +359,8 @@ public class SocketSelector implements Closeable {
 	 */
 	public int writeToChannel(SocketContext socketContext, ByteBuffer buffer){
 		try {
+			socketContext.updateLastTime();
+
 			if (socketContext.getConnectType() == ConnectType.TCP) {
 				return tcpWriteToChannel((TcpSocket) socketContext, buffer);
 			} else if (socketContext.getConnectType() == ConnectType.UDP) {
