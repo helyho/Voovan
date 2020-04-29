@@ -56,7 +56,7 @@ public class SynchronousHandler implements IoHandler {
 
     @Override
     public void onException(IoSession session, Exception e) {
-        socketResponses.offer(e);
+        addResponse(e);
     }
 
     @Override

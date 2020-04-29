@@ -270,15 +270,16 @@ public class SocketSelector implements Closeable {
 		if(isCheckTimeout) {
 			for (SelectionKey selectionKey : selector.keys()) {
 				SocketContext socketContext = (SocketContext) selectionKey.attachment();
-				if (socketContext!=null && socketContext.connectModel != ConnectModel.LISTENER &&
-						socketContext.isReadTimeOut() &&
-						socketContext.getSession().getReadByteBufferChannel().isEmpty() &&
-						socketContext.getSession().getSendByteBufferChannel().isEmpty()
-				) {
-					socketContext.close();
-					EventTrigger.fireException(socketContext.getSession(), new TimeoutException("Socket Read timeout"));
-				} else {
-					if(socketContext!=null) {
+				if (socketContext!=null && socketContext.connectModel != ConnectModel.LISTENER) {
+
+					//缓冲区是否有数据
+					boolean bufferDataEmpty = socketContext.getSession().getReadByteBufferChannel().isEmpty() && socketContext.getSession().getSendByteBufferChannel().isEmpty();
+
+					if(socketContext.isReadTimeOut() && bufferDataEmpty) {
+						System.out.println("timeout");
+						socketContext.close();
+						EventTrigger.fireException(socketContext.getSession(), new TimeoutException("Socket Read timeout"));
+					} else if(!bufferDataEmpty) {
 						socketContext.updateLastReadTime();
 					}
 				}
