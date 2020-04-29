@@ -276,7 +276,6 @@ public class SocketSelector implements Closeable {
 					boolean bufferDataEmpty = socketContext.getSession().getReadByteBufferChannel().isEmpty() && socketContext.getSession().getSendByteBufferChannel().isEmpty();
 
 					if(socketContext.isReadTimeOut() && bufferDataEmpty) {
-						System.out.println("timeout");
 						socketContext.close();
 						EventTrigger.fireException(socketContext.getSession(), new TimeoutException("Socket Read timeout"));
 					} else if(!bufferDataEmpty) {
