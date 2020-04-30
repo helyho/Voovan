@@ -2,6 +2,7 @@ package org.voovan.http.client;
 
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TPerformance;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.ObjectPool;
 
 import java.util.Map;
@@ -29,10 +30,21 @@ public class HttpClientPool {
             .minSize(minSize).maxSize(maxSize)
             .validator(httpClient -> httpClient.isConnect())
             .supplier(()->{
-                HttpClient httpClient = HttpClient.newInstance(host, timeout);
-                if(httpClient == null) {
-                    TEnv.sleep(timeout*1000);
-                }
+                HttpClient httpClient = null;
+
+                long start = System.currentTimeMillis();
+                do {
+                    httpClient = HttpClient.newInstance(host, timeout);
+                    if (httpClient == null) {
+                        if(System.currentTimeMillis() - start > timeout) {
+                            Logger.error("Create httpclient by supplier failed");
+                        } else {
+                            TEnv.sleep(1);
+                            continue;
+                        }
+                    }
+                } while (httpClient==null);
+
                 return httpClient;
             }).destory(httpClient -> {
                 httpClient.close();
@@ -51,14 +63,7 @@ public class HttpClientPool {
     public HttpClient getHttpClient(long timeout, TimeUnit timeUnit) throws TimeoutException {
         HttpClient httpClient = null;
         timeout = TimeUnit.MILLISECONDS.convert(timeout, timeUnit);
-        long start = System.currentTimeMillis();
-        do {
-            if(System.currentTimeMillis() - start > timeout) {
-                throw new TimeoutException("get httpclient timeout");
-            }
-            httpClient = pool.borrow();
-        } while (httpClient==null);
-
+        httpClient = pool.borrow(timeout);
         httpClient.getSocket().updateLastTime();
         return httpClient;
     }
