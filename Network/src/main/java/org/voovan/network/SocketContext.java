@@ -247,7 +247,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		return lastReadTime;
 	}
 
-	protected void updateLastTime() {
+	public void updateLastTime() {
 		this.lastReadTime = System.currentTimeMillis();
 	}
 
