@@ -59,6 +59,7 @@ public class HttpClientPool {
             httpClient = pool.borrow();
         } while (httpClient==null);
 
+        httpClient.getSocket().updateLastTime();
         return httpClient;
     }
 
