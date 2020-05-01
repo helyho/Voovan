@@ -64,7 +64,14 @@ public class HttpClientPool {
         HttpClient httpClient = null;
         timeout = TimeUnit.MILLISECONDS.convert(timeout, timeUnit);
         httpClient = pool.borrow(timeout);
-        httpClient.getSocket().updateLastTime();
+        if(httpClient!=null) {
+            try {
+                httpClient.getSocket().updateLastTime();
+            } catch (Exception e) {
+                pool.restitution(httpClient);
+                throw e;
+            }
+        }
         return httpClient;
     }
 

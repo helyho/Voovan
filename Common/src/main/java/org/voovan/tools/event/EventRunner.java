@@ -96,7 +96,7 @@ public class EventRunner {
 			this.setThread(Thread.currentThread());
 			while (true) {
 				try {
-				EventTask eventTask = eventQueue.poll(1000, TimeUnit.MILLISECONDS);
+					EventTask eventTask = eventQueue.poll(1000, TimeUnit.MILLISECONDS);
 					if(eventTask!=null) {
 						Runnable runnable = eventTask.getRunnable();
 						if (runnable != null) {
