@@ -41,6 +41,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 */
 	public TcpSocket(String host, int port, int readTimeout) throws IOException{
 		super(host, port, readTimeout);
+		init();
 	}
 
 	/**
@@ -54,6 +55,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 */
 	public TcpSocket(String host, int port, int readTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, idleInterval);
+		init();
 	}
 
 	/**
@@ -67,6 +69,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 */
 	public TcpSocket(String host, int port, int readTimeout, int sendTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, sendTimeout, idleInterval);
+		init();
 	}
 
 	private void init() throws IOException {
@@ -159,7 +162,6 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 * 		非阻塞方法
 	 */
 	public void syncStart() throws IOException {
-		init();
 		initSSL(session);
 
 		socketChannel.connect(new InetSocketAddress(this.host, this.port));
