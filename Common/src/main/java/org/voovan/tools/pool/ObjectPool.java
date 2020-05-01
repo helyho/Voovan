@@ -39,7 +39,7 @@ public class ObjectPool<T> {
     private Function<T, Boolean> validator = null;
     private int minSize = 0;
     private int maxSize = Integer.MAX_VALUE;
-    private int interval = 1;
+    private int interval = 5;
 
     /**
      * 构造一个对象池
@@ -477,9 +477,6 @@ public class ObjectPool<T> {
                         Iterator<InnerObject<T>> iterator = objects.values().iterator();
                         int totalSize = objects.size();
                         while (iterator.hasNext()) {
-                            if (totalSize <= minSize) {
-                                break;
-                            }
 
                             InnerObject<T> innerObject = iterator.next();
 
