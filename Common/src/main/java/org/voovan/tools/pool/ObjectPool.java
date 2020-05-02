@@ -39,7 +39,7 @@ public class ObjectPool<T> {
     private Function<T, Boolean> validator = null;
     private int minSize = 0;
     private int maxSize = Integer.MAX_VALUE;
-    private int interval = 5;
+    private int interval = 1;
 
     /**
      * 构造一个对象池
