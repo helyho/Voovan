@@ -406,6 +406,10 @@ public class SocketSelector implements Closeable {
 
 		ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
+		if(byteBufferChannel.isReleased()) {
+			return -1;
+		}
+
 		//如果有历史数据则从历史数据尾部开始写入
 		byteBuffer.position(byteBuffer.limit());
 		byteBuffer.limit(byteBuffer.capacity());
@@ -489,7 +493,11 @@ public class SocketSelector implements Closeable {
 			byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
 		}
 
-		//如果有历史数据则从历史数据尾部开始写入
+		if(byteBufferChannel.isReleased()) {
+			return -1;
+		}
+
+			//如果有历史数据则从历史数据尾部开始写入
 		byteBuffer.position(byteBuffer.limit());
 		byteBuffer.limit(byteBuffer.capacity());
 
