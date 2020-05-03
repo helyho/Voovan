@@ -113,9 +113,6 @@ public class WebServer {
 		serverSocket.setAcceptEventRunnerGroup(SocketContext.createEventRunnerGroup("Web", SocketContext.ACCEPT_THREAD_SIZE, true));
 		serverSocket.setIoEventRunnerGroup(SocketContext.createEventRunnerGroup("Web", SocketContext.IO_THREAD_SIZE, false));
 
-		//设置递归读取的深度
-		serverSocket.setReadRecursionDepth(16);
-
 		//[Socket]确认是否启用 HTTPS 支持
 		if(config.isHttps()) {
 			SSLManager sslManager = new SSLManager("TLS", false);
