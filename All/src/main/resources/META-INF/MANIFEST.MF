@@ -4,7 +4,7 @@ Implementation-Version: 1.0
 Implementation-Vendor-Id: org.voovan
 Archiver-Version: Plexus Archiver
 Implementation-URL: http://www.voovan.org
-Main-Class: org.voovan.http.server.WebServer
 Agent-Class: org.voovan.tools.DynamicAgent
 Can-Redefine-Classes: true
 Add-Exports: java.base/jdk.internal.ref
+Main-Class: org.voovan.http.server.WebServer
