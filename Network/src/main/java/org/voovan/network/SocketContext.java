@@ -115,8 +115,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	protected int idleInterval = 0;
 	protected long lastReadTime = System.currentTimeMillis();
 
-	protected int readRecursionDepth = 1;
-
 	private boolean isRegister = false;
 	protected boolean isSynchronous = true;
 
@@ -208,7 +206,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.readBufferSize = parentSocketContext.readBufferSize;
 		this.sendBufferSize = parentSocketContext.sendBufferSize;
 		this.idleInterval = parentSocketContext.idleInterval;
-		this.readRecursionDepth = parentSocketContext.readRecursionDepth;
 		this.acceptEventRunnerGroup = parentSocketContext.acceptEventRunnerGroup;
 		this.ioEventRunnerGroup = parentSocketContext.ioEventRunnerGroup;
 	}
@@ -285,22 +282,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 */
 	public void setSendBufferSize(int sendBufferSize) {
 		this.sendBufferSize = sendBufferSize;
-	}
-
-	/**
-	 * 获取读递归深度控制
-	 * @return 读递归深度
-	 */
-	public int getReadRecursionDepth() {
-		return readRecursionDepth;
-	}
-
-	/**
-	 * 设置读递归深度控制
-	 * @param readRecursionDepth 读递归深度
-	 */
-	public void setReadRecursionDepth(int readRecursionDepth) {
-		this.readRecursionDepth = readRecursionDepth;
 	}
 
 	public boolean isRegister() {

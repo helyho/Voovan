@@ -95,46 +95,31 @@ public class EventProcess {
      * @throws IOException  IO 异常
      * @throws TimeoutException IoFilter 异常
      */
-    public static void onRead(Event event, int recursionDepth) throws IOException, TimeoutException {
+    public static void onRead(Event event) throws IOException, TimeoutException {
         IoSession session = event.getSession();
-        int currentRecursionDepth = recursionDepth;
 
         if (session != null) {
-
-            MessageLoader messageLoader = session.getMessageLoader();
-
             try {
                 // 循环读取完整的消息包.
                 // 由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.
                 // 有可能缓冲区没有读完
                 // 按消息包触发 onRecive 事件
-                int splitLength = messageLoader.read();
+                while (session.getReadByteBufferChannel().size()>0) {
+                    MessageLoader messageLoader = session.getMessageLoader();
 
-                if(splitLength>=0) {
-                    Object result = doRecive(session, splitLength);
+                    int splitLength = messageLoader.read();
 
-                    //如果有消息未处理完, 触发下一个 onRead
-                    //通过读递归深度控制
-                    recursionDepth++;
-                    if (recursionDepth < session.socketContext().getReadRecursionDepth() && session.getReadByteBufferChannel().size() > 0) {
-                        onRead(event, recursionDepth);
-                    }
-                } else {
-                    return;
+                    doRecive(session, splitLength);
                 }
             } finally {
                 //释放 onRecive 锁
-                if(currentRecursionDepth == 0) {
+                if (session.getSendByteBufferChannel().size() > 0) {
+                    //异步处理 flush
+                    session.flush();
+                }
 
-                    if(session.getSendByteBufferChannel().size() > 0) {
-                        //异步处理 flush
-                        session.flush();
-                    }
-
-                    if(session.getReadByteBufferChannel().size() > 0) {
-                        EventTrigger.fireReceiveAsync(session);
-                    }
-
+                if (session.getReadByteBufferChannel().size() > 0) {
+                    EventTrigger.fireReceiveAsync(session);
                 }
             }
         }
@@ -388,7 +373,7 @@ public class EventProcess {
             } else if (eventName == EventName.ON_DISCONNECT) {
                 EventProcess.onDisconnect(event);
             } else if (eventName == EventName.ON_RECEIVE) {
-                EventProcess.onRead(event, 0);
+                EventProcess.onRead(event);
             } else if (eventName == EventName.ON_SENT) {
                 EventProcess.onSent(event, event.getOther());
             } else if (eventName == EventName.ON_FLUSH) {
