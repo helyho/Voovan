@@ -70,7 +70,7 @@ public class ByteBufferChannel {
      * 构造函数
      */
     public ByteBufferChannel() {
-        init(1024 * 16);
+        init(TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE);
     }
 
     /**
