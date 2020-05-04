@@ -61,6 +61,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	private boolean isWebSocket = false;
 	private WebSocketRouter webSocketRouter;
 	private String hostString;
+	private SynchronousHandler synchronousHandler;
 	private AsyncHandler asyncHandler;
 	private boolean paramInUrl = false;
 
@@ -168,6 +169,8 @@ public class HttpClient extends PooledObject implements Closeable{
 			initHeader();
 
 			asyncHandler = new AsyncHandler(this);
+
+			synchronousHandler = (SynchronousHandler) socket.handler();
 
 
 		} catch (IOException e) {
@@ -520,7 +523,11 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		socket.getSession().getReadByteBufferChannel().clear();
 		socket.getSession().getSendByteBufferChannel().clear();
-		((SynchronousHandler)socket.handler()).clearResponse();
+		if(socket.handler() == synchronousHandler) {
+			synchronousHandler.clearResponse();
+		} else {
+			socket.getSession().socketContext().handler(synchronousHandler);
+		}
 
 		//发送报文
 		try {
