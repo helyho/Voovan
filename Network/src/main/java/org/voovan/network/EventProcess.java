@@ -95,7 +95,7 @@ public class EventProcess {
      * @throws IOException  IO 异常
      * @throws TimeoutException IoFilter 异常
      */
-    public static void onRead(Event event) throws IOException, TimeoutException {
+    public static void onRead(Event event) throws IOException {
         IoSession session = event.getSession();
 
         if (session != null) {
@@ -108,8 +108,11 @@ public class EventProcess {
                     MessageLoader messageLoader = session.getMessageLoader();
 
                     int splitLength = messageLoader.read();
-
-                    doRecive(session, splitLength);
+                    if(splitLength>=0) {
+                        doRecive(session, splitLength);
+                    } else {
+                        return;
+                    }
                 }
             } finally {
                 //释放 onRecive 锁
