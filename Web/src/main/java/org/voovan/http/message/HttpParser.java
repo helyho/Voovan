@@ -716,6 +716,7 @@ public class HttpParser {
 
 							//拼文件名
 							String localFileName =TString.assembly(UPLOAD_PATH, Global.NAME, System.currentTimeMillis(), ".", fileExtName);
+							File localFile = new File(localFileName);
 
 							//文件是否接收完成
 							boolean isFileRecvDone = false;
@@ -759,11 +760,15 @@ public class HttpParser {
 							}
 
 							if(boundaryIndex == -1){
-								new File(localFileName).delete();
+								localFile.delete();
 								throw new HttpParserException("Http Parser not enough data with " + boundary);
-							}else{
+							} else {
 								partArray[BODY_VALUE] = null;
 								partArray[BODY_FILE] = localFileName.getBytes();
+							}
+
+							if(localFile.exists()) {
+								localFile.deleteOnExit();
 							}
 						}
 
