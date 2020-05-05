@@ -583,7 +583,7 @@ public class RingDirectBuffer {
 
 		byte[] buffer = new byte[bufferSize];
 
-		TFile.mkdir(TFile.getFileDirectory(filePath));
+		TFile.mkdir(filePath);
 		RandomAccessFile randomAccessFile = null;
 		File file = new File(filePath);
 

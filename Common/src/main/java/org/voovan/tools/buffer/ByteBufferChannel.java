@@ -1015,7 +1015,7 @@ public class ByteBufferChannel {
             bufferSize = Long.valueOf(length).intValue();
         }
 
-        new File(TFile.getFileDirectory(filePath)).mkdirs();
+        TFile.mkdir(filePath);
 
         RandomAccessFile randomAccessFile = null;
         File file = new File(filePath);

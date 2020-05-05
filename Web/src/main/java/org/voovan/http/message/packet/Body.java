@@ -361,7 +361,7 @@ public class Body {
 						"body",
 						TString.assembly("VOOVAN_", TString.generateId(this), ".", fileName));
 
-				new File(TFile.getFileDirectory(localFileName)).mkdirs();
+				TFile.mkdir(localFileName);
 				File gzipedFile = new File(localFileName);
 
 				TZip.encodeGZip(bodyFile, gzipedFile);
