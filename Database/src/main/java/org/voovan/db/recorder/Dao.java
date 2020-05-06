@@ -1,6 +1,7 @@
 package org.voovan.db.recorder;
 
 import org.voovan.db.JdbcOperate;
+import org.voovan.db.TranscationType;
 import org.voovan.db.recorder.annotation.NotInsert;
 import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.exception.RecorderException;
@@ -52,6 +53,7 @@ public class Dao<T extends Dao> {
             throw new RecorderException("JdbcOperate must not null");
         }
         this.recorder = new Recorder(jdbcOperate);
+        jdbcOperate.setTranscationType(TranscationType.ALONE);
         this.jdbcOperate = jdbcOperate;
 
         return (T) this;
@@ -69,10 +71,6 @@ public class Dao<T extends Dao> {
         this.recorder = recorder;
 
         return (T) this;
-    }
-
-    public boolean insert() {
-        return recorder.insert((T)this) == 1;
     }
 
     public T snapshot() {
@@ -109,9 +107,36 @@ public class Dao<T extends Dao> {
         }
     }
 
+
+    public boolean insert() {
+        try {
+            if (recorder.insert((T)this) == 1) {
+                recorder.getJdbcOperate().commit();
+                return true;
+            } else {
+                recorder.getJdbcOperate().rollback();
+                return false;
+            }
+        } catch (Exception e) {
+            Logger.error("Dao.update failed", e);
+            return false;
+        }
+    }
+
     public boolean update(String[] dataFields, String[] andFields, int effectRow) {
-        Query query = Query.newInstance().data(dataFields).and(andFields);
-        return recorder.update((T)this, query) == effectRow;
+        try {
+            Query query = Query.newInstance().data(dataFields).and(andFields);
+            if (recorder.update((T) this, query) == effectRow) {
+                recorder.getJdbcOperate().commit();
+                return true;
+            } else {
+                recorder.getJdbcOperate().rollback();
+                return false;
+            }
+        } catch (Exception e) {
+            Logger.error("Dao.update failed", e);
+            return false;
+        }
     }
 
     public boolean update(String[] dataFields, int effectRow) {
@@ -120,6 +145,10 @@ public class Dao<T extends Dao> {
 
     public boolean update(String ... dataFields) {
         return update(dataFields, 1);
+    }
+
+    public boolean update(int effectRow) {
+        return update(null, effectRow);
     }
 
     public boolean update() {
@@ -219,7 +248,18 @@ public class Dao<T extends Dao> {
     public boolean delete(String[] andFields, int effectRow) {
         Query query = Query.newInstance().and(andFields);
 
-        return recorder.delete((T)this, query) == effectRow;
+        try {
+            if (recorder.delete((T)this, query) == effectRow) {
+                recorder.getJdbcOperate().commit();
+                return true;
+            } else {
+                recorder.getJdbcOperate().rollback();
+                return false;
+            }
+        } catch (Exception e) {
+            Logger.error("Dao.update failed", e);
+            return false;
+        }
     }
 
     public boolean delete(String ... andFields) {

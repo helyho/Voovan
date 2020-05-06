@@ -143,6 +143,21 @@ public class Response {
 	}
 
 	/**
+	 * 根据 Cookie 名称取 Cookie
+	 *
+	 * @param name  Cookie 名称
+	 * @return Cookie
+	 */
+	public Cookie getCookie(String name){
+		for(Cookie cookie : this.cookies()){
+			if(cookie !=null && name !=null && name.equals(cookie.getName())){
+				return cookie;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * 获取 Body 对象
 	 *
 	 * @return Body 对象

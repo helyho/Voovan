@@ -164,6 +164,16 @@ public class JdbcOperate implements Closeable {
 	}
 
 	/**
+	 * 设置当前事务类型
+	 * @param transcationType TranscationType 对象事务类型
+	 * @return JdbcOperate 对象
+	 */
+	public JdbcOperate setTranscationType(TranscationType transcationType) {
+		this.transcationType = transcationType;
+		return this;
+	}
+
+	/**
 	 * 提交事务
 	 * @param isClose 是否关闭数据库连接
 	 * @throws SQLException SQL 异常
