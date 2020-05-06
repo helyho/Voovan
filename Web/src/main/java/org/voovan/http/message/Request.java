@@ -264,6 +264,21 @@ public class Request {
     }
 
     /**
+     * 根据 Cookie 名称取 Cookie
+     *
+     * @param name  Cookie 名称
+     * @return Cookie
+     */
+    public Cookie getCookie(String name){
+        for(Cookie cookie : this.cookies()){
+            if(cookie !=null && name !=null && name.equals(cookie.getName())){
+                return cookie;
+            }
+        }
+        return null;
+    }
+
+    /**
      * 根据对象的内容,构造 Http 请求报文
      *
      * @return Http 请求报文
