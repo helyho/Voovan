@@ -410,7 +410,7 @@ public class WebServer {
 
 		//保存 PID
 		Long pid = TEnv.getCurrentPID();
-		System.out.println("Pid: \t"+ pid.toString());
+		System.out.println("  Pid: \t"+ pid.toString());
 		File pidFile = new File("logs/.pid");
 		try {
 			TFile.writeFile(pidFile, false, pid.toString().getBytes());

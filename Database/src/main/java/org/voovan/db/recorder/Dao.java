@@ -11,6 +11,7 @@ import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +76,7 @@ public class Dao<T extends Dao> {
 
     public T snapshot() {
         try {
-            snapshot = TReflect.getMapfromObject(this);
+            snapshot = TReflect.getMapfromObject(this, true);
             return (T)this;
         } catch (ReflectiveOperationException e) {
             throw new RecorderException("beginUpdate failed", e);
@@ -84,7 +85,7 @@ public class Dao<T extends Dao> {
 
     private String[] getModifyField() {
         try {
-            Map<String, Object> current = TReflect.getMapfromObject(this);
+            Map<String, Object> current = TReflect.getMapfromObject(this, true);
 
             List<String> modifyField = new ArrayList<String>();
             for (Map.Entry<String, Object> entry : current.entrySet()) {
@@ -118,6 +119,12 @@ public class Dao<T extends Dao> {
                 return false;
             }
         } catch (Exception e) {
+            try {
+                recorder.getJdbcOperate().rollback();
+            } catch (SQLException throwables) {
+                Logger.error("Dao.update exception rollback failed", e);
+            }
+
             Logger.error("Dao.update failed", e);
             return false;
         }
@@ -134,6 +141,11 @@ public class Dao<T extends Dao> {
                 return false;
             }
         } catch (Exception e) {
+            try {
+                recorder.getJdbcOperate().rollback();
+            } catch (SQLException throwables) {
+                Logger.error("Dao.update exception rollback failed", e);
+            }
             Logger.error("Dao.update failed", e);
             return false;
         }
@@ -257,6 +269,11 @@ public class Dao<T extends Dao> {
                 return false;
             }
         } catch (Exception e) {
+            try {
+                recorder.getJdbcOperate().rollback();
+            } catch (SQLException throwables) {
+                Logger.error("Dao.update exception rollback failed", e);
+            }
             Logger.error("Dao.update failed", e);
             return false;
         }
