@@ -16,6 +16,7 @@ import org.voovan.tools.serialize.TSerialize;
 import sun.net.util.URLUtil;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -38,32 +39,9 @@ public class Other {
     private int orange = 10;
 
     public static void main(String[] args) throws Exception {
-        long x = 7340076564580663875l;
-
-        System.out.println(x << 32 >>> 32);
-        System.out.println(x & 0x00000000FFFFFFFFL);
-        TEnv.measure(">>", ()->{
-            for(int i=0;i<100000000;i++) {
-                long y = x << 32 >>> 32;
-            }
-        });
-
-        TEnv.measure(">>", ()->{
-            for(int i=0;i<100000000;i++) {
-                long y = x & 0x00000000FFFFFFFFL;
-            }
-        });
-
-        TEnv.measure(">>", ()->{
-            for(int i=0;i<100000000;i++) {
-                long y = x << 32 >>> 32;
-            }
-        });
-
-        TEnv.measure(">>", ()->{
-            for(int i=0;i<100000000;i++) {
-                long y = x & 0x00000000FFFFFFFFL;
-            }
-        });
+        String m = TString.radixBigConvert(new BigDecimal("66637823847746887681234"),62);
+        System.out.println(m);
+        System.out.println("66637823847746887681234");
+        System.out.println(TString.radixBigUnConvert(m,62));
     }
 }
