@@ -696,6 +696,7 @@ public class TString {
 		return (T) toObject(value, type, false);
 	}
 
+
 	public static String radixConvert(long num, int radix) {
 
 		if (radix < 2 || radix > 62) {
@@ -729,6 +730,50 @@ public class TString {
 			char c = str.charAt(i);
 			int val = unChars.get(c);
 			result = result * 62 + val;
+		}
+
+		return result;
+
+	}
+
+	public static String radixBigConvert(BigDecimal n_num, int n_radix) {
+		if (n_radix < 2 || n_radix > 62) {
+			return null;
+		}
+
+		BigDecimal num = n_num;
+		BigDecimal radix = BigDecimal.valueOf(n_radix);
+
+		num = num.compareTo(BigDecimal.ZERO) < 0 ? num.multiply(BigDecimal.valueOf(-1)) : num;
+
+		String result = "";
+
+		BigDecimal tmpValue = num;
+
+		while (true) {
+			BigDecimal[] drValue = tmpValue.divideAndRemainder(radix);
+			BigDecimal value = drValue[1];
+			result = chars[value.intValue()] + result;
+			value = drValue[0];
+			if (value.compareTo(radix)>=0) {
+				tmpValue = value;
+			} else {
+				result = chars[value.intValue()] + result;
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	public static BigDecimal radixBigUnConvert(String str, int n_radix) {
+		BigDecimal radix = BigDecimal.valueOf(n_radix);
+
+		BigDecimal result = BigDecimal.valueOf(unChars.get(str.charAt(0)));
+		for(int i=1; i<str.length();i++){
+			char c = str.charAt(i);
+			int val = unChars.get(c);
+			result = result.multiply(radix).add(BigDecimal.valueOf(val));
 		}
 
 		return result;
