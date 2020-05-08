@@ -3,8 +3,11 @@ package org.voovan.http.server.module.annontationRouter;
 import org.voovan.Global;
 import org.voovan.http.server.HttpModule;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
+import org.voovan.http.server.module.annontationRouter.router.AnnotationRouterFilter;
+import org.voovan.tools.TObject;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
 
 /**
  * 注解路由模块
@@ -17,6 +20,7 @@ import org.voovan.tools.log.Logger;
 public class AnnotationModule extends HttpModule {
 
     private HashWheelTask scanRouterTask;
+    private AnnotationRouterFilter annotationRouterFilter;
 
     /**
      * 获取扫描注解路由的包路径
@@ -34,12 +38,28 @@ public class AnnotationModule extends HttpModule {
         return (int)getParamters("ScanRouterInterval");
     }
 
+    /**
+     * 获取注解路由过滤器
+     * @return 注解路由的扫描时间间隔
+     */
+    public AnnotationRouterFilter getAnnotationRouterFilter(){
+        if(annotationRouterFilter == null) {
+            try {
+                annotationRouterFilter = TReflect.newInstance(getParamters("AnnotationRouterFilter").toString());
+            } catch (Exception e) {
+                annotationRouterFilter = AnnotationRouterFilter.EMPYT;
+            }
+        }
+
+        return annotationRouterFilter == AnnotationRouterFilter.EMPYT ? null : annotationRouterFilter;
+    }
+
     @Override
     public void install() {
-        final AnnotationModule httpModule = this;
+        final AnnotationModule annotationModule = this;
         String scanRouterPackate = getScanRouterPackage();
         if (scanRouterPackate != null) {
-            AnnotationRouter.scanRouterClassAndRegister(httpModule);
+            AnnotationRouter.scanRouterClassAndRegister(annotationModule);
         }
 
         if(scanRouterPackate != null && getScanRouterInterval() > 0){
@@ -48,7 +68,7 @@ public class AnnotationModule extends HttpModule {
                 @Override
                 public void run() {
                     //查找并刷新新的@Route 注解类
-                    AnnotationRouter.scanRouterClassAndRegister(httpModule);
+                    AnnotationRouter.scanRouterClassAndRegister(annotationModule);
                 }
             };
 

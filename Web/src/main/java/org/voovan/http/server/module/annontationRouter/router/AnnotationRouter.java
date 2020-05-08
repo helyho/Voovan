@@ -38,6 +38,7 @@ public class AnnotationRouter implements HttpRouter {
     private Method method;
     private Router classRouter;
     private Router methodRoute;
+    private AnnotationModule annotationModule;
 
     /**
      * 构造函数
@@ -46,7 +47,8 @@ public class AnnotationRouter implements HttpRouter {
      * @param classRouter 类上的 Route 注解
      * @param methodRoute 方法上的 Route 注解
      */
-    public AnnotationRouter(Class clazz, Method method, Router classRouter, Router methodRoute) {
+    public AnnotationRouter(AnnotationModule annotationModule, Class clazz, Method method, Router classRouter, Router methodRoute) {
+        this.annotationModule = annotationModule;
         this.clazz = clazz;
         this.method = method;
         this.classRouter = classRouter;
@@ -67,16 +69,16 @@ public class AnnotationRouter implements HttpRouter {
      *
      * @param httpModule   AnnotationModule对象用于注册路由
      */
-    public static void scanRouterClassAndRegister(AnnotationModule httpModule) {
+    public static void scanRouterClassAndRegister(AnnotationModule annotationModule) {
         int routeMethodNum = 0;
 
-        String modulePath = httpModule.getModuleConfig().getPath();
+        String modulePath = annotationModule.getModuleConfig().getPath();
         modulePath = HttpDispatcher.fixRoutePath(modulePath);
 
-        WebServer webServer = httpModule.getWebServer();
+        WebServer webServer = annotationModule.getWebServer();
         try {
             //查找包含 Router 注解的类
-            List<Class> routerClasses = TEnv.searchClassInEnv(httpModule.getScanRouterPackage(), new Class[]{Router.class});
+            List<Class> routerClasses = TEnv.searchClassInEnv(annotationModule.getScanRouterPackage(), new Class[]{Router.class});
             for (Class routerClass : routerClasses) {
                 Method[] methods = routerClass.getMethods();
                 Router[] annonClassRouters = (Router[]) routerClass.getAnnotationsByType(Router.class);
@@ -164,7 +166,7 @@ public class AnnotationRouter implements HttpRouter {
                                             routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
 
                                             //构造注解路由器
-                                            AnnotationRouter annotationRouter = new AnnotationRouter(routerClass, method, annonClassRouter, annonMethodRouter);
+                                            AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method, annonClassRouter, annonMethodRouter);
 
                                             //1.注册路由, 处理不带参数的路由
                                             if (paramPath.isEmpty()) {
@@ -173,8 +175,8 @@ public class AnnotationRouter implements HttpRouter {
                                                 //判断路由是否注册过
                                                 if (!routerMaps.containsKey(moduleRoutePath)) {
                                                     //注册路由,不带路径参数的路由
-                                                    httpModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                                    Logger.simple("[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
+                                                    annotationModule.otherMethod(routeMethod, routePath, annotationRouter);
+                                                    Logger.simple("[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
                                                             "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
                                                             moduleRoutePath);
                                                     routeMethodNum++;
@@ -189,9 +191,9 @@ public class AnnotationRouter implements HttpRouter {
                                                 String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routeParamPath);
 
                                                 if (!routerMaps.containsKey(moduleRoutePath)) {
-                                                    httpModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
+                                                    annotationModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
 
-                                                    Logger.simple("[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
+                                                    Logger.simple("[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
                                                             "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
                                                             moduleRoutePath);
                                                     routeMethodNum++;
@@ -207,7 +209,7 @@ public class AnnotationRouter implements HttpRouter {
             }
 
             //查找包含 WebSocket 注解的类
-            List<Class> webSocketClasses = TEnv.searchClassInEnv(httpModule.getScanRouterPackage(), new Class[]{WebSocket.class});
+            List<Class> webSocketClasses = TEnv.searchClassInEnv(annotationModule.getScanRouterPackage(), new Class[]{WebSocket.class});
             for (Class webSocketClass : webSocketClasses) {
                 if (TReflect.isExtendsByClass(webSocketClass, WebSocketRouter.class)) {
                     WebSocket[] annonClassRouters = (WebSocket[]) webSocketClass.getAnnotationsByType(WebSocket.class);
@@ -224,8 +226,8 @@ public class AnnotationRouter implements HttpRouter {
                     String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + classRouterPath);
 
                     if(!webServer.getWebSocketRouters().containsKey(moduleRoutePath)) {
-                        httpModule.socket(classRouterPath, (WebSocketRouter) TReflect.newInstance(webSocketClass));
-                        Logger.simple("[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
+                        annotationModule.socket(classRouterPath, (WebSocketRouter) TReflect.newInstance(webSocketClass));
+                        Logger.simple("[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
                                 "] add WebSocket: " + TString.leftPad(moduleRoutePath, 11, ' '));
                         routeMethodNum++;
                     }
@@ -233,7 +235,7 @@ public class AnnotationRouter implements HttpRouter {
             }
 
             if(routeMethodNum>0) {
-                Logger.simple(TFile.getLineSeparator() + "[SYSTEM] Module [" + httpModule.getModuleConfig().getName() +
+                Logger.simple(TFile.getLineSeparator() + "[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
                         "] Scan some class annotation by Router: " + routerClasses.size() +
                         ". Register Router method annotation by route: " + routeMethodNum + ".");
             }
@@ -429,36 +431,69 @@ public class AnnotationRouter implements HttpRouter {
 
     @Override
     public void process(HttpRequest request, HttpResponse response) throws Exception {
+        AnnotationRouterFilter annotationRouterFilter = annotationModule.getAnnotationRouterFilter();
+
+        Object responseObj = null;
+        Object fliterResult = null;
 
         try {
             //根据 Router 注解的标记设置响应的Content-Type
             response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpContentType.getHttpContentType(methodRoute.contentType()));
 
-            Object responseObj = invokeRouterMethod(request, response, clazz, method);
-            if (responseObj != null) {
-                if (responseObj instanceof String) {
-                    response.write((String) responseObj);
-                } else if (responseObj instanceof byte[]) {
-                    response.write((byte[]) responseObj);
-                } else {
-                    response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpContentType.getHttpContentType(HttpContentType.JSON));
-                    response.write(JSON.toJSON(responseObj));
-                }
-            }
-        }catch(Exception e) {
-            if(e.getCause() != null) {
-                Throwable cause = e.getCause();
-                if(cause instanceof Exception) {
-                    e = (Exception) cause;
-                }
+            //过滤器前置处理
+            if(annotationRouterFilter!=null) {
+                fliterResult = annotationRouterFilter.beforeInvoke(request, response, method);
             }
 
-            Logger.error(e);
-
-            if(e instanceof AnnotationRouterException) {
-                throw e;
+            //null: 执行请求路由方法
+            //非 null: 作为 http 请求的响应直接返回
+            if(fliterResult == null) {
+                responseObj = invokeRouterMethod(request, response, clazz, method);
             } else {
-                throw new AnnotationRouterException("Process annotation router error. URL: " + request.protocol().getPath(), e);
+                responseObj = fliterResult;
+            }
+
+            //过滤器后置处理
+            if(annotationRouterFilter!=null) {
+                fliterResult = annotationRouterFilter.afterInvoke(request, response, method, responseObj);
+                if(fliterResult!=null) {
+                    responseObj = fliterResult;
+                }
+            }
+        } catch(Exception e) {
+            //过滤器拦截异常
+            if(annotationRouterFilter!=null) {
+                fliterResult = annotationRouterFilter.exception(request, response, method, e);
+            }
+
+            if(fliterResult !=null) {
+                responseObj = fliterResult;
+            } else {
+                if (e.getCause() != null) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof Exception) {
+                        e = (Exception) cause;
+                    }
+                }
+
+                Logger.error(e);
+
+                if (e instanceof AnnotationRouterException) {
+                    throw e;
+                } else {
+                    throw new AnnotationRouterException("Process annotation router error. URL: " + request.protocol().getPath(), e);
+                }
+            }
+        }
+
+        if (responseObj != null) {
+            if (responseObj instanceof String) {
+                response.write((String) responseObj);
+            } else if (responseObj instanceof byte[]) {
+                response.write((byte[]) responseObj);
+            } else {
+                response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpContentType.getHttpContentType(HttpContentType.JSON));
+                response.write(JSON.toJSON(responseObj));
             }
         }
     }
