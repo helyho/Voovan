@@ -262,6 +262,20 @@ public class JSON {
 	}
 
 	/**
+	 * 不考虑层级, 清除 JSON 中指定de field
+	 * @param jsonStr json 字符串
+	 * @param fields 被清除的 field
+	 * @return 清理 field 后的结果
+	 */
+	public static String removeNode(String jsonStr, String ... fields) {
+		for(String field : fields) {
+			jsonStr = TString.fastReplaceAll(jsonStr, "\\\"" + field + "\\\":.*?(?=\\,|\\]|\\})", "");
+		}
+
+		return jsonStr;
+	}
+
+	/**
 	 * 修复 JSON 字符串中因清理节点导致的多个","的分割异常问题
 	 * @param jsonStr json 字符串
 	 * @return 清理后点的结果
