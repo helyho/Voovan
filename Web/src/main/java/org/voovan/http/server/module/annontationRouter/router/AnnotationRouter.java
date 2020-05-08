@@ -60,6 +60,8 @@ public class AnnotationRouter implements HttpRouter {
         this.paramPath = paramPath;
         this.path = urlPath + paramPath;
 
+        annotationModule.METHOD_URL_MAP.put(method, urlPath);
+        annotationModule.URL_METHOD_MAP.put(urlPath, method);
         //如果是单例,则进行预实例化
         if(classRouter.singleton() && !singletonObjs.containsKey(clazz)){
             try {
