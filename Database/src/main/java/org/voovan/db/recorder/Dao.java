@@ -183,7 +183,21 @@ public class Dao<T extends Dao> {
         pageSize = pageSize == null ? -1 : pageSize;
         query.page(pageNum, pageSize);
 
-        return recorder.query((T)this, query);
+        try {
+
+            List<T> ret = recorder.query((T)this, query);
+            recorder.getJdbcOperate().commit();
+            return ret;
+        } catch (Exception e) {
+            try {
+                recorder.getJdbcOperate().rollback();
+            } catch (SQLException throwables) {
+                Logger.error("Dao.queryOne exception rollback failed", e);
+            }
+            Logger.error("Dao.queryOne failed", e);
+            return null;
+        }
+
     }
 
     public List<T> query(String[] andFields, Integer pageNum, Integer pageSize) {
@@ -211,16 +225,32 @@ public class Dao<T extends Dao> {
         pageNum = pageNum == null ? -1 : pageNum;
         pageSize = pageSize == null ? -1 : pageSize;
         query.page(pageNum, pageSize);
+        try {
 
-        List<T> results = recorder.query((T)this, query);
+            List<T> results = recorder.query((T)this, query);
 
-        if(results.size()==0) {
+            T ret = null;
+
+            if(results.size()==0) {
+                ret = null;
+            } else if(results.size() == 1) {
+                ret = results.get(0);
+            } else {
+                Logger.warn("query return more than one result");
+                ret = results.get(0);
+            }
+
+            recorder.getJdbcOperate().commit();
+
+            return ret;
+        } catch (Exception e) {
+            try {
+                recorder.getJdbcOperate().rollback();
+            } catch (SQLException throwables) {
+                Logger.error("Dao.queryOne exception rollback failed", e);
+            }
+            Logger.error("Dao.queryOne failed", e);
             return null;
-        } else if(results.size() == 1) {
-            return results.get(0);
-        } else {
-            Logger.warn("query return more than one result");
-            return results.get(0);
         }
     }
 
@@ -246,7 +276,19 @@ public class Dao<T extends Dao> {
 
     public <R> R customQuery(String dataSql, String[] andFields, Class<R> clazz) {
         Query query = Query.newInstance().and(andFields);
-        return recorder.customQuery(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
+        try {
+            R ret = recorder.customQuery(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
+            recorder.getJdbcOperate().commit();
+            return ret;
+        } catch (Exception e) {
+            try {
+                recorder.getJdbcOperate().rollback();
+            } catch (SQLException throwables) {
+                Logger.error("Dao.customQuery exception rollback failed", e);
+            }
+            Logger.error("Dao.customQuery failed", e);
+            return null;
+        }
     }
 
     public <R> R customQuery(String dataSql, Class<R> clazz) {
