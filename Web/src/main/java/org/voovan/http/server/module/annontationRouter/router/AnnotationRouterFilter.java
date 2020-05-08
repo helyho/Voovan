@@ -18,17 +18,17 @@ public interface AnnotationRouterFilter {
 
     public final static AnnotationRouterFilter EMPYT = new AnnotationRouterFilter() {
         @Override
-        public Object beforeInvoke(HttpRequest request, HttpResponse response, Method method) {
+        public Object beforeInvoke(HttpRequest request, HttpResponse response, AnnotationRouter router) {
             return null;
         }
 
         @Override
-        public Object afterInvoke(HttpRequest request, HttpResponse response, Method method, Object result) {
+        public Object afterInvoke(HttpRequest request, HttpResponse response, AnnotationRouter router, Object result) {
             return null;
         }
 
         @Override
-        public Object exception(HttpRequest request, HttpResponse response, Method method, Exception e) {
+        public Object exception(HttpRequest request, HttpResponse response, AnnotationRouter router, Exception e) {
             return null;
         }
     };
@@ -40,7 +40,7 @@ public interface AnnotationRouterFilter {
      * @param method 请求执行的路由方法
      * @return null: 执行请求路由方法, 非 null: 返回值作为 http 请求的响应直接返回
      */
-    public Object beforeInvoke(HttpRequest request, HttpResponse response, Method method);
+    public Object beforeInvoke(HttpRequest request, HttpResponse response, AnnotationRouter router);
 
     /**
      * 注解路由后置拦截方法
@@ -50,7 +50,7 @@ public interface AnnotationRouterFilter {
      * @param result 执行路由方法返回的结果
      * @return null: 执行请求路由方法的结果作为响应, 非 null: 返回值作为 http 请求的响应直接返回
      */
-    public Object afterInvoke(HttpRequest request, HttpResponse response, Method method, Object result);
+    public Object afterInvoke(HttpRequest request, HttpResponse response, AnnotationRouter router, Object result);
 
     /**
      * 注解路由异常拦截方法
@@ -61,5 +61,5 @@ public interface AnnotationRouterFilter {
      * @param e 异常对象
      * @return  null: 执行默认异常处理, 非 null: 返回值作为 http 请求的响应直接返回
      */
-    public Object exception(HttpRequest request, HttpResponse response, Method method, Exception e);
+    public Object exception(HttpRequest request, HttpResponse response, AnnotationRouter router, Exception e);
 }

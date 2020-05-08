@@ -34,6 +34,9 @@ public class AnnotationRouter implements HttpRouter {
 
     private static Map<Class, Object> singletonObjs = new ConcurrentHashMap<Class, Object>();
 
+    private String urlPath;
+    private String paramPath;
+    private String path;
     private Class clazz;
     private Method method;
     private Router classRouter;
@@ -47,12 +50,15 @@ public class AnnotationRouter implements HttpRouter {
      * @param classRouter 类上的 Route 注解
      * @param methodRoute 方法上的 Route 注解
      */
-    public AnnotationRouter(AnnotationModule annotationModule, Class clazz, Method method, Router classRouter, Router methodRoute) {
+    public AnnotationRouter(AnnotationModule annotationModule, Class clazz, Method method, Router classRouter, Router methodRoute, String urlPath, String paramPath) {
         this.annotationModule = annotationModule;
         this.clazz = clazz;
         this.method = method;
         this.classRouter = classRouter;
         this.methodRoute = methodRoute;
+        this.urlPath = urlPath;
+        this.paramPath = paramPath;
+        this.path = urlPath + paramPath;
 
         //如果是单例,则进行预实例化
         if(classRouter.singleton() && !singletonObjs.containsKey(clazz)){
@@ -62,6 +68,38 @@ public class AnnotationRouter implements HttpRouter {
                 Logger.error("New a singleton object error", e);
             }
         }
+    }
+
+    public String getUrlPath() {
+        return urlPath;
+    }
+
+    public String getParamPath() {
+        return paramPath;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public Class getClazz() {
+        return clazz;
+    }
+
+    public Method getMethod() {
+        return method;
+    }
+
+    public Router getClassRouter() {
+        return classRouter;
+    }
+
+    public Router getMethodRoute() {
+        return methodRoute;
+    }
+
+    public AnnotationModule getAnnotationModule() {
+        return annotationModule;
     }
 
     /**
@@ -166,7 +204,8 @@ public class AnnotationRouter implements HttpRouter {
                                             routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
 
                                             //构造注解路由器
-                                            AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method, annonClassRouter, annonMethodRouter);
+                                            AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method,
+                                                                                annonClassRouter, annonMethodRouter, routePath, paramPath);
 
                                             //1.注册路由, 处理不带参数的路由
                                             if (paramPath.isEmpty()) {
@@ -442,7 +481,7 @@ public class AnnotationRouter implements HttpRouter {
 
             //过滤器前置处理
             if(annotationRouterFilter!=null) {
-                fliterResult = annotationRouterFilter.beforeInvoke(request, response, method);
+                fliterResult = annotationRouterFilter.beforeInvoke(request, response, this);
             }
 
             //null: 执行请求路由方法
@@ -455,7 +494,7 @@ public class AnnotationRouter implements HttpRouter {
 
             //过滤器后置处理
             if(annotationRouterFilter!=null) {
-                fliterResult = annotationRouterFilter.afterInvoke(request, response, method, responseObj);
+                fliterResult = annotationRouterFilter.afterInvoke(request, response, this, responseObj);
                 if(fliterResult!=null) {
                     responseObj = fliterResult;
                 }
@@ -463,7 +502,7 @@ public class AnnotationRouter implements HttpRouter {
         } catch(Exception e) {
             //过滤器拦截异常
             if(annotationRouterFilter!=null) {
-                fliterResult = annotationRouterFilter.exception(request, response, method, e);
+                fliterResult = annotationRouterFilter.exception(request, response, this, e);
             }
 
             if(fliterResult !=null) {
