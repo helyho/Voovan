@@ -9,6 +9,9 @@ import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import java.lang.reflect.Method;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * 注解路由模块
  *
@@ -18,6 +21,8 @@ import org.voovan.tools.reflect.TReflect;
  * Licence: Apache v2 License
  */
 public class AnnotationModule extends HttpModule {
+    public ConcurrentHashMap<Method, String> METHOD_URL_MAP = new ConcurrentHashMap<Method, String>();
+    public ConcurrentHashMap<String, Method> URL_METHOD_MAP = new ConcurrentHashMap<String, Method>();
 
     private HashWheelTask scanRouterTask;
     private AnnotationRouterFilter annotationRouterFilter;
