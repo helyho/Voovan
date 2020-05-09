@@ -33,7 +33,7 @@ public @interface Router {
      * 请求的方法
      * @return 请求的方法
      */
-    String[] method() default "GET";
+    String[] method() default "";
 
 
     /**

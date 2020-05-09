@@ -1,5 +1,7 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.http.message.HttpStatic;
+import org.voovan.http.server.context.HttpsConfig;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
@@ -36,7 +38,7 @@ public class RequestProtocol extends Protocol {
 	 */
 	public RequestProtocol(){
 		super();
-		this.method = "GET";
+		this.method = HttpStatic.GET_STRING;
 		this.path = "/";
 		this.queryString = "";
 	}
@@ -72,7 +74,7 @@ public class RequestProtocol extends Protocol {
 	 */
 	public void clear(){
 		super.clear();
-		this.method = "GET";
+		this.method = HttpStatic.GET_STRING;
 		this.path = "/";
 		this.queryString = "";
 	}

@@ -144,12 +144,12 @@ public class AnnotationRouter implements HttpRouter {
                             Router[] annonMethodRouters = (Router[]) method.getAnnotationsByType(Router.class);
                             if (annonMethodRouters != null) {
 
-                                //多个 Router 注解的迭代
+                                //多个 Router 注解的迭代, 一个方法支持多个路由
                                 for (Router annonMethodRouter : annonMethodRouters) {
                                     String methodRouterPath = annonMethodRouter.path().isEmpty() ? annonMethodRouter.value() : annonMethodRouter.path();
                                     String[] methodRouterMethods = annonMethodRouter.method();
 
-                                    //多个请求方法的迭代
+                                    //多个请求方法的迭代,  一个路由支持多个 Http mehtod
                                     for (String methodRouterMethod : methodRouterMethods) {
 
                                         //使用方法名指定默认路径
@@ -169,26 +169,32 @@ public class AnnotationRouter implements HttpRouter {
                                         String routePath = classRouterPath + methodRouterPath;
 
                                         //如果方法上的注解指定了 Method 则使用方法上的注解指定的,否则使用类上的注解指定的
-                                        String routeMethod = methodRouterMethod != null ? methodRouterMethod : classRouterMethod;
+                                        String routeMethod = methodRouterMethod.isEmpty() ? classRouterMethod : methodRouterMethod;
+                                        routeMethod = routeMethod.isEmpty() ? HttpStatic.GET_STRING : routeMethod;
 
                                         //为方法的参数准备带参数的路径
                                         String paramPath = "";
-                                        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-                                        Class[] parameterTypes = method.getParameterTypes();
-                                        for (int i = 0; i < parameterAnnotations.length; i++) {
-                                            Annotation[] annotations = parameterAnnotations[i];
+                                        Annotation[][] paramAnnotationsArrary = method.getParameterAnnotations();
+                                        Class[] paramTypes = method.getParameterTypes();
+                                        for (int i = 0; i < paramAnnotationsArrary.length; i++) {
+                                            Annotation[] paramAnnotations = paramAnnotationsArrary[i];
 
-                                            if (annotations.length == 0 &&
-                                                    parameterTypes[i] != HttpRequest.class &&
-                                                    parameterTypes[i] != HttpResponse.class &&
-                                                    parameterTypes[i] != HttpSession.class) {
+                                            if (paramAnnotations.length == 0 &&
+                                                    paramTypes[i] != HttpRequest.class &&
+                                                    paramTypes[i] != HttpResponse.class &&
+                                                    paramTypes[i] != HttpSession.class) {
                                                 paramPath = paramPath + "/:param" + (i + 1);
                                                 continue;
                                             }
 
-                                            for (Annotation annotation : annotations) {
-                                                if (annotation instanceof Param) {
-                                                    paramPath = TString.assembly(paramPath, "/:", ((Param) annotation).value());
+                                            for (Annotation paramAnnotation : paramAnnotations) {
+                                                if (paramAnnotation instanceof Param) {
+                                                    paramPath = TString.assembly(paramPath, "/:", ((Param) paramAnnotation).value());
+                                                }
+
+                                                //如果没有指定方法, 参数包含 BodyParam 注解则指定请求方法为 POST
+                                                if(paramAnnotation instanceof BodyParam && routeMethod.equals(HttpStatic.GET_STRING)) {
+                                                    routeMethod = HttpStatic.POST_STRING;
                                                 }
                                             }
                                         }
@@ -196,49 +202,50 @@ public class AnnotationRouter implements HttpRouter {
                                         /**
                                          * 注册路由部分代码在下面
                                          */
-                                        if (webServer.getHttpRouters().get(routeMethod) != null) {
+                                        if (webServer.getHttpRouters().get(routeMethod) == null) {
+                                            webServer.getHttpDispatcher().addRouteMethod(routeMethod);
+                                        }
 
-                                            //生成完整的路由,用来检查路由是否存在
+                                        //生成完整的路由,用来检查路由是否存在
+                                        routePath = HttpDispatcher.fixRoutePath(routePath);
+
+                                        //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
+                                        Map routerMaps = new HashMap();
+                                        routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
+
+                                        //构造注解路由器
+                                        AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method,
+                                                                            annonClassRouter, annonMethodRouter, routePath, paramPath);
+
+                                        //1.注册路由, 处理不带参数的路由
+                                        if (paramPath.isEmpty()) {
                                             routePath = HttpDispatcher.fixRoutePath(routePath);
-
-                                            //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
-                                            Map routerMaps = new HashMap();
-                                            routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
-
-                                            //构造注解路由器
-                                            AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method,
-                                                                                annonClassRouter, annonMethodRouter, routePath, paramPath);
-
-                                            //1.注册路由, 处理不带参数的路由
-                                            if (paramPath.isEmpty()) {
-                                                routePath = HttpDispatcher.fixRoutePath(routePath);
-                                                String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routePath);
-                                                //判断路由是否注册过
-                                                if (!routerMaps.containsKey(moduleRoutePath)) {
-                                                    //注册路由,不带路径参数的路由
-                                                    annotationModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                                    Logger.simple("[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
-                                                            "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
-                                                            moduleRoutePath);
-                                                    routeMethodNum++;
-                                                }
+                                            String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routePath);
+                                            //判断路由是否注册过
+                                            if (!routerMaps.containsKey(moduleRoutePath)) {
+                                                //注册路由,不带路径参数的路由
+                                                annotationModule.otherMethod(routeMethod, routePath, annotationRouter);
+                                                Logger.simple("[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
+                                                        "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
+                                                        moduleRoutePath);
+                                                routeMethodNum++;
                                             }
+                                        }
 
-                                            //2.注册路由,带路径参数的路由
-                                            else {
-                                                String routeParamPath = null;
-                                                routeParamPath = routePath + paramPath;
-                                                routeParamPath = HttpDispatcher.fixRoutePath(routeParamPath);
-                                                String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routeParamPath);
+                                        //2.注册路由,带路径参数的路由
+                                        else {
+                                            String routeParamPath = null;
+                                            routeParamPath = routePath + paramPath;
+                                            routeParamPath = HttpDispatcher.fixRoutePath(routeParamPath);
+                                            String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routeParamPath);
 
-                                                if (!routerMaps.containsKey(moduleRoutePath)) {
-                                                    annotationModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
+                                            if (!routerMaps.containsKey(moduleRoutePath)) {
+                                                annotationModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
 
-                                                    Logger.simple("[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
-                                                            "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
-                                                            moduleRoutePath);
-                                                    routeMethodNum++;
-                                                }
+                                                Logger.simple("[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
+                                                        "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
+                                                        moduleRoutePath);
+                                                routeMethodNum++;
                                             }
                                         }
                                     }

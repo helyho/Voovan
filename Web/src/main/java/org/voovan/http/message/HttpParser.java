@@ -602,7 +602,7 @@ public class HttpParser {
 				byteBufferChannel.compact();
 			}
 
-			if("GET".equals(packetMap[PL_METHOD]) || headerMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
+			if(HttpStatic.GET_STRING.equals(packetMap[PL_METHOD]) || headerMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
 				hasBody = true;
 			} else {
 				//无 body 报文完成解析

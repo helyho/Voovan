@@ -77,14 +77,14 @@ public class HttpDispatcher {
 		indexFiles = webConfig.getIndexFiles();
 
 		// 初始化所有的 HTTP 请求方法
-		this.addRouteMethod("GET");
-		this.addRouteMethod("POST");
-		this.addRouteMethod("HEAD");
-		this.addRouteMethod("PUT");
-		this.addRouteMethod("DELETE");
-		this.addRouteMethod("TRACE");
-		this.addRouteMethod("CONNECT");
-		this.addRouteMethod("OPTIONS");
+		this.addRouteMethod(HttpStatic.GET_STRING);
+		this.addRouteMethod(HttpStatic.POST_STRING);
+		this.addRouteMethod(HttpStatic.HEAD_STRING);
+		this.addRouteMethod(HttpStatic.PUT_STRING);
+		this.addRouteMethod(HttpStatic.DELETE_STRING);
+		this.addRouteMethod(HttpStatic.TRACE_STRING);
+		this.addRouteMethod(HttpStatic.CONNECTION_STRING);
+		this.addRouteMethod(HttpStatic.OPTIONS_STRING);
 
 		// Mime静态文件默认请求处理
 		mimeFileRouter = new MimeFileRouter(webConfig.getContextPath());
@@ -103,7 +103,7 @@ public class HttpDispatcher {
 	 *
 	 * @param method HTTP 请求方法
 	 */
-	protected void addRouteMethod(String method) {
+	public void addRouteMethod(String method) {
 		if (!methodRouters.containsKey(method)) {
 			//TODO: 尝试优化改成多级数组形式
 			Map<String,HttpRouter> routers = new TreeMap<String, HttpRouter>(new Comparator<String>() {
