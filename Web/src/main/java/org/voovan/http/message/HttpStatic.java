@@ -12,8 +12,14 @@ public class HttpStatic {
 	public static final String HEADER_SPLITER_STRING = ": ";
 
 	// methods
-	public static final String GET_STRING = "GET";
-	public static final String POST_STRING = "POST";
+	public static final String GET_STRING 		= "GET";
+	public static final String POST_STRING 		= "POST";
+	public static final String HEAD_STRING 		= "HEAD";
+	public static final String PUT_STRING 		= "PUT";
+	public static final String DELETE_STRING    = "DELETE";
+	public static final String TRACE_STRING 	= "TRACE";
+	public static final String CONNECT_STRING 	= "CONNECT";
+	public static final String OPTIONS_STRING 	= "OPTIONS";
 
 	// headers
 	public static final String ACCEPT_STRING = "Accept";
@@ -107,8 +113,15 @@ public class HttpStatic {
 	public static final String ACCESS_CONTROL_EXPOSE_HEADERS_STRING = "Access-Control-Expose-Headers";
 	public static final String ACCESS_CONTROL_ALLOW_CREDENTIALS_STRING = "Access-Control-Allow-Credentials";
 
-	public static final HttpItem GET = new HttpItem(GET_STRING);
-	public static final HttpItem POST = new HttpItem(POST_STRING);
+	public static final HttpItem GET 		= new HttpItem(GET_STRING);
+	public static final HttpItem POST 		= new HttpItem(POST_STRING);
+	public static final HttpItem HEAD 		= new HttpItem(HEAD_STRING);
+	public static final HttpItem PUT 		= new HttpItem(PUT_STRING);
+	public static final HttpItem DELETE 	= new HttpItem(DELETE_STRING);
+	public static final HttpItem TRACE 		= new HttpItem(TRACE_STRING);
+	public static final HttpItem CONNECT 	= new HttpItem(CONNECT_STRING);
+	public static final HttpItem OPTIONS 	= new HttpItem(OPTIONS_STRING);
+
 
 	// Header names
     public static final HttpItem ACCEPT = new HttpItem(ACCEPT_STRING);

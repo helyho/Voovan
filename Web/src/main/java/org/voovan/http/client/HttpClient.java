@@ -2,6 +2,7 @@ package org.voovan.http.client;
 
 import org.voovan.Global;
 import org.voovan.http.HttpRequestType;
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Request;
 import org.voovan.http.message.Response;
 import org.voovan.http.message.packet.Cookie;
@@ -470,9 +471,9 @@ public class HttpClient extends PooledObject implements Closeable{
 		}
 
 		//设置默认的报文 Body 类型
-		if (httpRequest.protocol().getMethod().equals("POST") && httpRequest.parts().size() > 0) {
+		if (httpRequest.protocol().getMethod().equals(HttpStatic.POST_STRING) && httpRequest.parts().size() > 0) {
 			setBodyType(Request.RequestType.BODY_MULTIPART);
-		} else if (httpRequest.protocol().getMethod().equals("POST") && parameters.size() > 0) {
+		} else if (httpRequest.protocol().getMethod().equals(HttpStatic.POST_STRING) && parameters.size() > 0) {
 			setBodyType(Request.RequestType.BODY_URLENCODED);
 		} else {
 			setBodyType(Request.RequestType.NORMAL);
