@@ -163,25 +163,39 @@ public abstract class HashWheelTask {
             return false;
         }else {
             running = true;
+            final HashWheelTask finaltask = this;
+            final HashWheel finalHashWheel = hashWheel;
+
             if(asynchronous){
-                final HashWheelTask task = this;
                 if(!Global.getThreadPool().isShutdown()) {
                     Global.getThreadPool().execute(new Runnable() {
                         @Override
                         public void run() {
                             try {
-                                task.run();
+                                finaltask.run();
                             } catch (Throwable throwable) {
-                                Logger.error("HashWheelTimerTask error:", throwable);
+                                Logger.error("HashWheelTimerTask asynchronous error:", throwable);
+                            } finally {
+                                if(!finaltask.isCancel()) {
+                                    finalHashWheel.addTask(finaltask);
+                                }
                             }
                             running = false;
                         }
                     });
                 } else {
-                    task.cancel();
+                    finaltask.cancel();
                 }
             }else{
-                run();
+                try {
+                    run();
+                } catch (Throwable throwable) {
+                    Logger.error("HashWheelTimerTask error:", throwable);
+                }
+
+                if(!finaltask.isCancel()) {
+                    finalHashWheel.addTask(this);
+                }
                 running = false;
             }
 
