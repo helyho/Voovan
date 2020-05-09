@@ -443,6 +443,19 @@ public class AnnotationRouter implements HttpRouter {
                 }
 
                 //请求的头
+                if (annotation instanceof Attribute) {
+                    String attrName = ((Attribute) annotation).value();
+                    try {
+                        params[i] = TString.toObject(request.getAttributes().get(attrName).toString(), parameterTypes[i], true);
+                        continue;
+                    } catch (Exception e) {
+                        if(((Attribute) annotation).isRequire()) {
+                            throw new AnnotationRouterException("Router annotation @Attribute [" + attrName + " = " + params[i] + "] error, data: " + request.header().toString(), e);
+                        }
+                    }
+                }
+
+                //请求的头
                 if (annotation instanceof Session) {
                     String sessionName = ((Session) annotation).value();
                     HttpSession httpSession = request.getSession();
