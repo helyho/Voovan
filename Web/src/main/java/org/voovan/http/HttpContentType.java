@@ -1,4 +1,4 @@
-package org.voovan.http.server;
+package org.voovan.http;
 
 import org.voovan.http.message.HttpStatic;
 
@@ -36,9 +36,11 @@ public enum HttpContentType {
         }
         else if(httpContentType == HttpContentType.IMAGE_PNG){
             return "image/png";
-        } else if(httpContentType == HttpContentType.IMAGE_SVG){
+        }
+        else if(httpContentType == HttpContentType.IMAGE_SVG){
             return "image/svg+xml";
-        } else {
+        }
+        else {
             return HttpStatic.TEXT_HTML_STRING;
         }
     }

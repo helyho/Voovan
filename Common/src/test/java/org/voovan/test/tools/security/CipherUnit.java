@@ -1,6 +1,7 @@
 package org.voovan.test.tools.security;
 
 import junit.framework.TestCase;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.Cipher;
 import org.voovan.tools.security.TBase64;
@@ -49,8 +50,8 @@ public class CipherUnit extends TestCase{
         Cipher.KeyPairStore kps = cipher.generatPairKey();
         String ba64Private = TBase64.encode(kps.getPrivateKey());
         String ba64Public = TBase64.encode(kps.getPublicKey());
-        Logger.simple("RSA公钥: " +ba64Private);
-        Logger.simple("RSA私钥: " +ba64Public);
+        Logger.simple("RSA私钥: " +ba64Private);
+        Logger.simple("RSA公钥: " +ba64Public);
 
 
         Logger.simple("===========RSA读取公钥加密===========");
@@ -65,5 +66,7 @@ public class CipherUnit extends TestCase{
         cipher.loadPrivateKey(TBase64.decode(ba64Private));
         msg1 = cipher.decrypt(msg);
         Logger.simple("RSA解密后: "+new String(msg1));
+
+        TEnv.sleep(500);
     }
 }

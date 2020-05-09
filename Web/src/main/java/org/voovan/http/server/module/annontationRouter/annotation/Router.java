@@ -1,6 +1,6 @@
 package org.voovan.http.server.module.annontationRouter.annotation;
 
-import org.voovan.http.server.HttpContentType;
+import org.voovan.http.HttpContentType;
 
 import java.lang.annotation.*;
 
