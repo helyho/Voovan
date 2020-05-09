@@ -1,7 +1,7 @@
 package org.voovan.test.http.router;
 
 import org.voovan.Global;
-import org.voovan.http.server.HttpContentType;
+import org.voovan.http.HttpContentType;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
