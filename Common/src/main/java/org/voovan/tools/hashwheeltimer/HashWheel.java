@@ -95,7 +95,7 @@ public class HashWheel {
      * @param task 任务对象
      * @return true 增加任务成功, false: 增加任务失败, 任务的Interval必须大于0
      */
-    private boolean addTask(HashWheelTask task){
+    public boolean addTask(HashWheelTask task){
         return addTask(task, task.getInterval(), task.isAsynchronous());
     }
 
@@ -134,21 +134,16 @@ public class HashWheel {
                 tmpList.addAll(tasks);
 
                 for (HashWheelTask task : tmpList) {
-                    if(task==null){
-                        tasks.remove(task);
-                        continue;
-                    }
-                    if (task.doTask()) {
-                        removeTask(task);
-                        if(!task.isCancel()) {
-                            addTask(task);
-                        }
+                    tasks.remove(task);
+
+                    if(task!=null) {
+                        task.doTask();
                     }
                 }
             }
 
             currentSlot++;
-        }finally {
+        } finally {
             lock.unlock();
         }
 
