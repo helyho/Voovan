@@ -72,7 +72,7 @@ public class RequestProtocol extends Protocol {
 	/**
 	 * 清理
 	 */
-	public void clear(){
+	public void clear() {
 		super.clear();
 		this.method = HttpStatic.GET_STRING;
 		this.path = "/";
@@ -82,11 +82,6 @@ public class RequestProtocol extends Protocol {
 
 	@Override
 	public String toString(){
-		try {
-			return TString.assembly(this.method, " ", this.path, URLEncoder.encode(queryString,"UTF-8"), " ", this.protocol, "/", this.version, "\r\n");
-		} catch (UnsupportedEncodingException e) {
-			Logger.error("queryString Unsuppoert UTF-8",e);
-		}
-		return null;
+		return TString.assembly(this.method, " ", this.path, "?", queryString, " ", this.protocol, "/", this.version, "\r\n");
 	}
 }

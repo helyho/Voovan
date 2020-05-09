@@ -269,7 +269,7 @@ public class JSON {
 	 */
 	public static String removeNode(String jsonStr, String ... fields) {
 		for(String field : fields) {
-			jsonStr = TString.fastReplaceAll(jsonStr, "\\\"" + field + "\\\":.*?(?=\\,|\\]|\\})", "");
+			jsonStr = TString.fastReplaceAll(jsonStr, "\\\"" + field + "\\\":.*,?(?=|\\]|\\})", "");
 		}
 
 		return jsonStr;
