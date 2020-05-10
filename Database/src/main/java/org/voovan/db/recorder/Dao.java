@@ -2,6 +2,8 @@ package org.voovan.db.recorder;
 
 import org.voovan.db.JdbcOperate;
 import org.voovan.db.TranscationType;
+import org.voovan.db.exception.UpdateFieldException;
+import org.voovan.db.recorder.annotation.Field;
 import org.voovan.db.recorder.annotation.NotInsert;
 import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.exception.RecorderException;
@@ -175,6 +177,56 @@ public class Dao<T extends Dao> {
         this.snapshot();
         modifyFunction.accept(this);
         return update();
+    }
+
+
+    public boolean updateField(String[] fieldNames, Object[] values, int effectRow) throws UpdateFieldException {
+        return updateField(fieldNames, values, null, effectRow);
+    }
+
+    public boolean updateField(String[] fieldNames, Object[] values) throws UpdateFieldException {
+        return updateField(fieldNames, values, 1);
+    }
+
+    public boolean updateField(String[] fieldNames, Object[] values, String[] andFields, int effectRow) throws UpdateFieldException {
+        try {
+            if(fieldNames.length != values.length) {
+                throw new UpdateFieldException("Dao.updateField fieldsLength!=valuesLength");
+            }
+
+            for(int i=0;i<fieldNames.length;i++) {
+                String fieldName = fieldNames[i];
+                Object value = values[i];
+
+                java.lang.reflect.Field field = TReflect.findField(this.getClass(), fieldName);
+
+                if (field != null) {
+                    if (field.getAnnotation(NotUpdate.class) != null) {
+                        throw new UpdateFieldException("Dao.updateField " + fieldName + " not for update by @NotUpdate");
+                    }
+
+                    TReflect.setFieldValue(this, fieldName, value);
+                    update(fieldNames, andFields, effectRow);
+                } else {
+                    throw new UpdateFieldException("Dao.updateField " + fieldName + " not found");
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            throw new UpdateFieldException(e);
+        }
+    }
+
+    public boolean updateField(String fieldName, Object value, int effectRow) throws UpdateFieldException {
+        return updateField(new String[]{fieldName}, new Object[]{value}, null, effectRow);
+    }
+
+    public boolean updateField(String fieldName, Object value) throws UpdateFieldException {
+        return updateField(new String[]{fieldName}, new Object[]{value}, 1);
+    }
+
+    public boolean updateField(String fieldName, Object value, String[] andFields, int effectRow) throws UpdateFieldException {
+            return updateField(new String[]{fieldName}, new Object[]{value}, andFields, effectRow);
     }
 
     public List<T> query(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
