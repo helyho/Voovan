@@ -342,6 +342,10 @@ public class JdbcOperate implements Closeable {
 	 * @throws SQLException SQL 异常
 	 */
 	private int[] baseBatch(String[] sqlTexts) throws SQLException {
+		if(sqlTexts.length == 0) {
+			return new int[0];
+		}
+
 		Connection conn = getConnection();
 		Statement statement = null;
 		SQLException exception = null;
@@ -393,6 +397,10 @@ public class JdbcOperate implements Closeable {
 	 * @throws SQLException SQL 异常
 	 */
 	private int[] baseBatch(String sqlText, Collection<Map<String, Object>> mapArgs) throws SQLException {
+		if(mapArgs.size() == 0) {
+			return new int[0];
+		}
+
 		Connection conn = getConnection();
 		PreparedStatement preparedStatement = null;
 		SQLException exception = null;

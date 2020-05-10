@@ -8,6 +8,7 @@ import org.voovan.db.recorder.annotation.NotInsert;
 import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.exception.RecorderException;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
@@ -180,23 +181,19 @@ public class Dao<T extends Dao> {
     }
 
 
-    public boolean updateField(String[] fieldNames, Object[] values, int effectRow) throws UpdateFieldException {
-        return updateField(fieldNames, values, null, effectRow);
+    public boolean updateField(Map<String, Object> fieldDatas, int effectRow) throws UpdateFieldException {
+        return updateField(fieldDatas, null, effectRow);
     }
 
-    public boolean updateField(String[] fieldNames, Object[] values) throws UpdateFieldException {
-        return updateField(fieldNames, values, 1);
+    public boolean updateField(Map<String, Object> fieldDatas) throws UpdateFieldException {
+        return updateField(fieldDatas, 1);
     }
 
-    public boolean updateField(String[] fieldNames, Object[] values, String[] andFields, int effectRow) throws UpdateFieldException {
+    public boolean updateField(Map<String, Object> fieldDatas, String[] andFields, int effectRow) throws UpdateFieldException {
         try {
-            if(fieldNames.length != values.length) {
-                throw new UpdateFieldException("Dao.updateField fieldsLength!=valuesLength");
-            }
-
-            for(int i=0;i<fieldNames.length;i++) {
-                String fieldName = fieldNames[i];
-                Object value = values[i];
+            for(Map.Entry<String, Object> fieldData : fieldDatas.entrySet()) {
+                String fieldName = fieldData.getKey();
+                Object value = fieldData.getValue();
 
                 java.lang.reflect.Field field = TReflect.findField(this.getClass(), fieldName);
 
@@ -206,27 +203,20 @@ public class Dao<T extends Dao> {
                     }
 
                     TReflect.setFieldValue(this, fieldName, value);
-                    update(fieldNames, andFields, effectRow);
+
                 } else {
                     throw new UpdateFieldException("Dao.updateField " + fieldName + " not found");
                 }
             }
+
+            update(fieldDatas.keySet().toArray(new String[0]), andFields, effectRow);
             return true;
         } catch (Exception e) {
+            if(e instanceof UpdateFieldException) {
+                throw (UpdateFieldException) e;
+            }
             throw new UpdateFieldException(e);
         }
-    }
-
-    public boolean updateField(String fieldName, Object value, int effectRow) throws UpdateFieldException {
-        return updateField(new String[]{fieldName}, new Object[]{value}, null, effectRow);
-    }
-
-    public boolean updateField(String fieldName, Object value) throws UpdateFieldException {
-        return updateField(new String[]{fieldName}, new Object[]{value}, 1);
-    }
-
-    public boolean updateField(String fieldName, Object value, String[] andFields, int effectRow) throws UpdateFieldException {
-            return updateField(new String[]{fieldName}, new Object[]{value}, andFields, effectRow);
     }
 
     public List<T> query(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
