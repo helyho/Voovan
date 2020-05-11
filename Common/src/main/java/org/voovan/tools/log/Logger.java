@@ -4,6 +4,7 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.json.JSON;
 
 /**
  * 日志工具类
@@ -211,7 +212,11 @@ public class Logger {
 		String stackMessage = "";
 
 		if (exception == null) {
-			return msg.toString();
+			if(msg instanceof String) {
+				return msg.toString();
+			} else {
+				return JSON.toJSON(msg);
+			}
 		}
 
 		do{
