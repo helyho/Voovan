@@ -262,7 +262,7 @@ public class JSON {
 	}
 
 	/**
-	 * 不考虑层级, 清除 JSON 中指定de field
+	 * 不考虑层级, 清除 JSON 中指定的 field
 	 * @param jsonStr json 字符串
 	 * @param fields 被清除的 field
 	 * @return 清理 field 后的结果
@@ -273,6 +273,27 @@ public class JSON {
 		}
 
 		return jsonStr;
+	}
+
+	/**
+	 * 收缩 JSON 字符串
+	 * 		移除制表符空格等不可见字符
+	 * @param jsonStr 被收缩的字符串
+	 * @param withLineSeparator 是否移除换行符
+	 * @return 收缩后的 JSON 字符串
+	 */
+	public static String shrink(String jsonStr, boolean withLineSeparator) {
+		if(withLineSeparator) {
+			jsonStr = TString.fastReplaceAll(jsonStr, "\\s*[\r\n]\\s*", "");
+		}
+
+		jsonStr = TString.fastReplaceAll(jsonStr, "\\s*([\\,\\:\\{\\}\\[\\]])\\s*","$1", false);
+
+		return jsonStr;
+	}
+
+	public static void main(String[] args) {
+
 	}
 
 	/**

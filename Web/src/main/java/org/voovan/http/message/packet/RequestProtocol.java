@@ -82,6 +82,7 @@ public class RequestProtocol extends Protocol {
 
 	@Override
 	public String toString(){
-		return TString.assembly(this.method, " ", this.path, "?", queryString, " ", this.protocol, "/", this.version, "\r\n");
+		String queryStr = TString.isNullOrEmpty(queryString) ? "": "?" + queryString;
+		return TString.assembly(this.method, " ", this.path, queryStr, " ", this.protocol, "/", this.version, "\r\n");
 	}
 }
