@@ -291,14 +291,27 @@ public class TString {
 
 	/**
 	 * 快速字符串替换算法
-	 *
+	 * 		默认正在 flag = 0, quoteReplacement = true
 	 * @param source      源字符串
 	 * @param regex       正则字符串
 	 * @param replacement 替换字符串
 	 * @return 替换后的字符串
 	 */
 	public static String fastReplaceAll(String source, String regex, String replacement) {
-		return fastReplaceAll(source, regex, replacement, 0);
+		return fastReplaceAll(source, regex, replacement, 0, true);
+	}
+
+	/**
+	 * 快速字符串替换算法
+	 * 		默认正在 flag = 0
+	 * @param source      源字符串
+	 * @param regex       正则字符串
+	 * @param replacement 替换字符串
+	 * @param quoteReplacement 对 replacement 是否进行转移
+	 * @return 替换后的字符串
+	 */
+	public static String fastReplaceAll(String source, String regex, String replacement, boolean quoteReplacement) {
+		return fastReplaceAll(source, regex, replacement, 0, quoteReplacement);
 	}
 
 	/**
@@ -308,11 +321,15 @@ public class TString {
 	 * @param regex       正则字符串
 	 * @param replacement 替换字符串
 	 * @param flags  	  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
+	 * @param quoteReplacement 对 replacement 是否进行转移
 	 * @return 替换后的字符串
 	 */
-	public static String fastReplaceAll(String source, String regex, String replacement, Integer flags) {
+	public static String fastReplaceAll(String source, String regex, String replacement, Integer flags, boolean quoteReplacement) {
 		Pattern pattern = getCachedPattern(regex, flags);
-		return pattern.matcher(source).replaceAll(Matcher.quoteReplacement(replacement));
+		if(quoteReplacement) {
+			replacement = Matcher.quoteReplacement(replacement);
+		}
+		return pattern.matcher(source).replaceAll(replacement);
 	}
 
 	/**
