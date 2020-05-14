@@ -70,9 +70,10 @@ public class Request {
         this.body = request.body;
         this.cookies = request.cookies;
         this.parts = request.parts;
-        this.basicSend = false;
-        this.mark = request.mark;
         this.hasBody = request.hasBody;
+        this.basicSend = false;
+        this.cookieParsed = false;
+        this.mark = request.mark;
     }
 
     /**

@@ -360,34 +360,32 @@ public class Response {
 
 	/**
 	 * 从其他 Response 复制数据到当前对象
-	 * @param response 原对象
+	 * @param otherResponse 原对象
 	 * @param useForSend 是否用户发送
 	 * @return 赋值的对象
 	 */
-	public Response copyFrom(Response response, boolean useForSend) {
-
-		this.protocol().setStatus(response.protocol().getStatus());
-		this.protocol().setStatusCode(response.protocol().getStatusCode());
-		this.header().putAll(response.header().getHeaders());
-		this.body().write( response.body().getBodyBytes());
-		this.cookies().addAll(response.cookies());
-		this.setCompress(response.isCompress);
-		this.setMark(response.getMark());
-		this.setHasBody(response.hasBody);
+	public Response copyFrom(Response otherResponse, boolean useForSend) {
+		this.protocol().setStatus(otherResponse.protocol().getStatus());
+		this.protocol().setStatusCode(otherResponse.protocol().getStatusCode());
+		this.header().copyFrom(otherResponse.header());
+		this.body().write(otherResponse.body().getBodyBytes());
+		this.cookies().addAll(otherResponse.cookies());
+		this.setCompress(otherResponse.isCompress);
+		this.setMark(otherResponse.getMark());
+		this.setHasBody(otherResponse.hasBody);
 
 		if(useForSend) {
 			//判断是否启用压缩
-			if (HttpStatic.GZIP_STRING.equals(response.header().get(HttpStatic.CONTENT_ENCODING_STRING))) {
+			if (HttpStatic.GZIP_STRING.equals(otherResponse.header().get(HttpStatic.CONTENT_ENCODING_STRING))) {
 				this.setCompress(true);
-				this.header.remove(HttpStatic.CONTENT_LENGTH_STRING);
 			}
-
-			this.header.remove(HttpStatic.TRANSFER_ENCODING_STRING);
-			this.header.remove(HttpStatic.CONTENT_ENCODING_STRING);
 		} else {
-			this.async 		= response.async;
-			this.basicSend 	= response.basicSend;
+			this.async 		= otherResponse.async;
+			this.basicSend 	= otherResponse.basicSend;
 		}
+
+		this.header().remove("Date");
+		this.header().remove("Server");
 
 		return this;
 	}
