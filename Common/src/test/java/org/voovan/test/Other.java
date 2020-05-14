@@ -19,10 +19,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -39,9 +36,10 @@ public class Other {
     private int orange = 10;
 
     public static void main(String[] args) throws Exception {
-        String m = TString.radixBigConvert(new BigDecimal("66637823847746887681234"),62);
-        System.out.println(m);
-        System.out.println("66637823847746887681234");
-        System.out.println(TString.radixBigUnConvert(m,62));
+        TreeMap<String, Object> m = new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER);
+
+        m.put("cookie", 1);
+
+        System.out.println(m.get("Cookie"));
     }
 }

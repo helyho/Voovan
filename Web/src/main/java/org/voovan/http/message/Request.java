@@ -40,6 +40,7 @@ public class Request {
     private String 			boundary;
     private boolean         hasBody;
     protected boolean 		basicSend = false;
+    private boolean         cookieParsed = false;
     private Long            mark = 0l;
 
     private static final String CONTENT_TYPE = "Content-Type";
@@ -117,7 +118,14 @@ public class Request {
      *
      * @return Cookie 对象
      */
-    public List<Cookie> cookies() {
+    public synchronized List<Cookie> cookies() {
+        if(!cookieParsed) {
+            String cookieStr = header.get("Cookie");
+            if(cookieStr!=null) {
+                HttpParser.parseCookie(cookies, 0, cookieStr);
+            }
+            cookieParsed = true;
+        }
         return cookies;
     }
 
@@ -413,11 +421,12 @@ public class Request {
      * 清理
      */
     public void clear(){
-        this.header().clear();
-        this.cookies().clear();
-        this.protocol().clear();
-        this.body().clear();
-        this.parts().clear();
+        this.header.clear();
+        this.cookies.clear();
+        this.protocol.clear();
+        this.body.clear();
+        this.parts.clear();
+        this.cookieParsed = false;
         this.mark = 0l;
     }
 

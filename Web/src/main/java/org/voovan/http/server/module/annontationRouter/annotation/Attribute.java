@@ -15,5 +15,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface Attribute {
     String value() default "";
-    boolean isRequire() default true;
+    boolean isRequire() default false;
 }
