@@ -116,7 +116,9 @@ public class TReflect {
                 continue;
             }
 
-            String methodName = "get"+TString.upperCaseHead(field.getName());
+            String methodPrefix = field.getType() == Boolean.class || field.getType() == boolean.class ? "is" : "get";
+
+            String methodName = methodPrefix + TString.upperCaseHead(field.getName());
 
             if(TReflect.findMethod(clazz, methodName,  new Class[0]) == null){
                 continue;
