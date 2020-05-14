@@ -45,7 +45,6 @@ public class HttpParser {
 	private final static int PL_QUERY_STRING = 10;
 	private final static int HEADER_MARK = 11;
 	private final static int CACHE_FLAG = 12;
-	private final static int COOKIE = 13;
 
 	private final static String MULTIPART_FORM_DATA = "multipart/form-data";
 
@@ -892,6 +891,7 @@ public class HttpParser {
 		request = THREAD_REQUEST.get();
 		request.clear();
 
+		//是否使用的时缓存的数据
 		boolean cacheFlag = false;
 		boolean bodyFlag = false;
 		boolean bodyPartFlag = false;
@@ -972,7 +972,7 @@ public class HttpParser {
 					break;
 				case HEADER:
 					request.header().setHeaders((Map<String, String>) value);
-					request.header().setCache(true);
+					request.header().setCache(cacheFlag);
 					break;
 			}
 		}
@@ -1016,6 +1016,7 @@ public class HttpParser {
 		Response response = THREAD_RESPONSE.get();
 		response.clear();
 		boolean bodyFlag = false;
+
 		//填充报文到响应对象
 		for(int key=0;key<packetMap.length;key++) {
 			Object value = packetMap[key];
@@ -1044,7 +1045,6 @@ public class HttpParser {
 					break;
 				case HEADER:
 					response.header().setHeaders((Map<String, String>) value);
-					response.header().setCache(true);
 					break;
 			}
 		}

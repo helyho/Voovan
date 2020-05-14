@@ -141,7 +141,7 @@ public class Response {
 	 */
 	public synchronized List<Cookie> cookies() {
 		if(!cookieParsed) {
-			String cookieStr = header.remove("Cookie");
+			String cookieStr = header.get("Cookie");
 			if(cookieStr!=null) {
 				HttpParser.parseCookie(cookies, 0, cookieStr);
 			}
