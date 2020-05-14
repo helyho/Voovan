@@ -1,9 +1,8 @@
 package org.voovan.tools.buffer;
 
-import org.voovan.tools.TByte;
-import org.voovan.tools.TEnv;
+import org.voovan.Global;
+import org.voovan.tools.*;
 import org.voovan.tools.collection.ThreadObjectPool;
-import org.voovan.tools.TUnsafe;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -12,6 +11,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * ByteBuffer 工具类
@@ -24,7 +25,49 @@ import java.util.Arrays;
  */
 public class TByteBuffer {
     public final static int DEFAULT_BYTE_BUFFER_SIZE = TEnv.getSystemProperty("ByteBufferSize", 1024*8);
-    public final static int THREAD_BUFFER_POOL_SIZE  = TEnv.getSystemProperty("ThreadBufferPoolSize", 32);
+    public final static int THREAD_BUFFER_POOL_SIZE  = TEnv.getSystemProperty("ThreadBufferPoolSize", 256);
+    public final static LongAdder MALLOC_SIZE       = new LongAdder();
+    public final static LongAdder MALLOC_COUNT      = new LongAdder();
+    public final static LongAdder BYTE_BUFFER_COUNT = new LongAdder();
+
+    public final static int BYTE_BUFFER_ANALYSIS  = TEnv.getSystemProperty("ByteBufferAnalysis", 0);
+
+    public static void malloc(int capacity) {
+        if(BYTE_BUFFER_ANALYSIS >= 0) {
+            MALLOC_SIZE.add(capacity);
+            MALLOC_COUNT.increment();
+            BYTE_BUFFER_COUNT.increment();
+        }
+    }
+
+    public static void realloc(int oldCapacity, int newCapacity) {
+        if(BYTE_BUFFER_ANALYSIS >= 0) {
+            MALLOC_SIZE.add(newCapacity - oldCapacity);
+        }
+    }
+
+
+    public static void free(int capacity) {
+        if(BYTE_BUFFER_ANALYSIS >= 0) {
+            MALLOC_SIZE.add(-1 * capacity);
+            MALLOC_COUNT.decrement();
+            BYTE_BUFFER_COUNT.decrement();
+        }
+    }
+
+    public static Map<String, Long> getByteBufferAnalysis() {
+       return TObject.asMap("MallocSize", TString.formatBytes(MALLOC_SIZE.longValue()),
+               "MallocCount", MALLOC_COUNT.longValue(),
+               "ByteBufferCount", BYTE_BUFFER_COUNT.longValue());
+    }
+
+    static {
+        if(BYTE_BUFFER_ANALYSIS > 0) {
+            Global.getHashWheelTimer().addTask(() -> {
+                Logger.simple(getByteBufferAnalysis());
+            }, BYTE_BUFFER_ANALYSIS);
+        }
+    }
 
     public final static ThreadObjectPool<ByteBuffer> THREAD_BYTE_BUFFER_POOL = new ThreadObjectPool<ByteBuffer>(THREAD_BUFFER_POOL_SIZE, ()->allocateManualReleaseBuffer(DEFAULT_BYTE_BUFFER_SIZE));
 
@@ -79,6 +122,9 @@ public class TByteBuffer {
 
             Cleaner.create(byteBuffer, deallocator);
 
+
+            malloc(capacity);
+
             return byteBuffer;
 
         } catch (Exception e) {
@@ -130,7 +176,9 @@ public class TByteBuffer {
         }
 
         try {
-            if(byteBuffer.capacity() > newSize){
+            int oldCapacity = byteBuffer.capacity();
+
+            if(oldCapacity > newSize){
                 byteBuffer.limit(newSize);
                 return true;
             }
@@ -151,6 +199,7 @@ public class TByteBuffer {
             //重置容量
             capacityField.set(byteBuffer, newSize);
 
+            realloc(oldCapacity, newSize);
             return true;
 
         }catch (ReflectiveOperationException e){
@@ -299,6 +348,7 @@ public class TByteBuffer {
                                 synchronized (byteBuffer) {
                                     TUnsafe.getUnsafe().freeMemory(address);
                                     setAddress(byteBuffer, 0);
+                                    free(byteBuffer.capacity());
                                 }
                             } catch (ReflectiveOperationException e) {
                                 Logger.error(e);
