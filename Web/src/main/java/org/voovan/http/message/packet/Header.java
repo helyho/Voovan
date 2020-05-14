@@ -2,6 +2,7 @@ package org.voovan.http.message.packet;
 
 import org.voovan.http.message.HttpStatic;
 import org.voovan.tools.FastThreadLocal;
+import org.voovan.tools.json.JSON;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,12 +18,13 @@ import java.util.TreeMap;
  * Licence: Apache v2 License
  */
 public class Header {
+	private static FastThreadLocal<StringBuilder> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new StringBuilder(512));
+
 	private String contentType;
 	private String contentLength;
 	private String contentEncoding;
 	private String transferEncoding;
 	private Map<String, String> headers;
-	private static FastThreadLocal<StringBuilder> THREAD_STRING_BUILDER = FastThreadLocal.withInitial(()->new StringBuilder(512));
 	private boolean isCache = false;
 
 	/**
@@ -41,6 +43,10 @@ public class Header {
 	}
 
 	public void setHeaders(Map<String, String> headers) {
+		contentType = null;
+		contentLength = null;
+		contentEncoding = null;
+		transferEncoding = null;
 		this.headers = headers;
 	}
 
@@ -58,7 +64,15 @@ public class Header {
 	 * @return 移除的header 的 name
 	 */
 	public String remove(String header){
-		return headers.remove(header);
+		String ret = null;
+		switch (header) {
+			case HttpStatic.CONTENT_TYPE_STRING 	 :  ret = this.headers.remove(HttpStatic.CONTENT_TYPE_STRING);  	contentType = null; break;
+			case HttpStatic.CONTENT_ENCODING_STRING  :  ret = this.headers.remove(HttpStatic.CONTENT_ENCODING_STRING); 	contentEncoding = null;  break;
+			case HttpStatic.CONTENT_LENGTH_STRING 	 :  ret = this.headers.remove(HttpStatic.CONTENT_LENGTH_STRING); 	contentLength = null;  break;
+			case HttpStatic.TRANSFER_ENCODING_STRING :  ret = this.headers.remove(HttpStatic.TRANSFER_ENCODING_STRING); transferEncoding = null;  break;
+			default: ret = headers.remove(header);
+		}
+		return ret;
 	}
 
 	/**
@@ -69,10 +83,10 @@ public class Header {
 	public boolean contain(String header){
 		boolean ret = false;
 		switch (header) {
-			case HttpStatic.CONTENT_TYPE_STRING 	 :  ret = contentType == null 		? false : contentType!=null;  break;
-			case HttpStatic.CONTENT_ENCODING_STRING  :  ret = contentEncoding == null 	? false : contentEncoding!=null;  break;
-			case HttpStatic.CONTENT_LENGTH_STRING 	 :  ret = contentLength == null 	? false : contentLength!=null;  break;
-			case HttpStatic.TRANSFER_ENCODING_STRING :  ret = transferEncoding == null 	? false : transferEncoding!=null;  break;
+			case HttpStatic.CONTENT_TYPE_STRING 	 :  ret = get(header) != null;  break;
+			case HttpStatic.CONTENT_LENGTH_STRING 	 :  ret = get(header) != null;  break;
+			case HttpStatic.CONTENT_ENCODING_STRING  :  ret = get(header) != null;  break;
+			case HttpStatic.TRANSFER_ENCODING_STRING :  ret = get(header) != null;  break;
 			default: ret = headers.containsKey(header);
 		}
 
@@ -86,11 +100,24 @@ public class Header {
 	 */
 	public String get(String header){
 		String ret = null;
+		boolean tryGetFromMap = false;
 		switch (header) {
-			case HttpStatic.CONTENT_TYPE_STRING 	 : 	ret = contentType; break;
-			case HttpStatic.CONTENT_ENCODING_STRING  : 	ret = contentEncoding; break;
-			case HttpStatic.CONTENT_LENGTH_STRING 	 : 	ret = contentLength; break;
-			case HttpStatic.TRANSFER_ENCODING_STRING : 	ret = transferEncoding; break;
+			case HttpStatic.CONTENT_TYPE_STRING 	 : 	{
+				ret = contentType == null ? contentType = headers.remove(header) : contentType;
+				break;
+			}
+			case HttpStatic.CONTENT_LENGTH_STRING 	 : 	{
+				ret = contentLength == null ? contentLength = headers.remove(header) : contentLength;
+				break;
+			}
+			case HttpStatic.CONTENT_ENCODING_STRING  : 	{
+				ret = contentEncoding == null ? contentEncoding = headers.remove(header) : contentEncoding;
+				break;
+			}
+			case HttpStatic.TRANSFER_ENCODING_STRING : 	{
+				ret = transferEncoding == null ? transferEncoding = headers.remove(header) : transferEncoding;
+				break;
+			}
 			default: ret = headers.get(header);
 		}
 
@@ -106,8 +133,8 @@ public class Header {
 	public String put(String header,String value){
 		switch (header) {
 			case HttpStatic.CONTENT_TYPE_STRING 	 :  this.contentType 		= value; break;
-			case HttpStatic.CONTENT_ENCODING_STRING  : 	this.contentEncoding 	= value; break;
 			case HttpStatic.CONTENT_LENGTH_STRING 	 : 	this.contentLength 		= value; break;
+			case HttpStatic.CONTENT_ENCODING_STRING  : 	this.contentEncoding 	= value; break;
 			case HttpStatic.TRANSFER_ENCODING_STRING : 	this.transferEncoding 	= value; break;
 			default : headers.put(header,value);
 		}
@@ -120,7 +147,7 @@ public class Header {
 	 */
 	public void putAll(Map<String, String> valueMap){
 		for(Entry<String, String> entry : valueMap.entrySet()) {
-			headers.put(entry.getKey(), entry.getValue());
+			put(entry.getKey(), entry.getValue());
 		}
 	}
 
@@ -130,6 +157,15 @@ public class Header {
 	 */
 	public int size(){
 		return headers.size();
+	}
+	
+	public Header copyFrom(Header otherHeader) {
+		this.putAll(otherHeader.getHeaders());
+		this.put(HttpStatic.CONTENT_TYPE_STRING, otherHeader.get(HttpStatic.CONTENT_TYPE_STRING));
+		this.put(HttpStatic.CONTENT_LENGTH_STRING, otherHeader.get(HttpStatic.CONTENT_LENGTH_STRING));
+		this.put(HttpStatic.CONTENT_ENCODING_STRING, otherHeader.get(HttpStatic.CONTENT_ENCODING_STRING));
+		this.put(HttpStatic.TRANSFER_ENCODING_STRING, otherHeader.get(HttpStatic.TRANSFER_ENCODING_STRING));
+		return this;
 	}
 
 	/**
