@@ -48,6 +48,11 @@ public class Header {
 		contentEncoding = null;
 		transferEncoding = null;
 		this.headers = headers;
+
+		get(HttpStatic.CONTENT_TYPE_STRING);
+		get(HttpStatic.CONTENT_LENGTH_STRING);
+		get(HttpStatic.CONTENT_ENCODING_STRING);
+		get(HttpStatic.TRANSFER_ENCODING_STRING);
 	}
 
 	public boolean isCache() {
