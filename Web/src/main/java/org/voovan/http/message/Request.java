@@ -121,7 +121,7 @@ public class Request {
      */
     public synchronized List<Cookie> cookies() {
         if(!cookieParsed) {
-            String cookieStr = header.get("Cookie");
+            String cookieStr = header.remove("Cookie");
             if(cookieStr!=null) {
                 HttpParser.parseCookie(cookies, 0, cookieStr);
             }
