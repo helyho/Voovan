@@ -39,7 +39,13 @@ public class Header {
 	 * @return HTTP-Header 转换候的 Map
 	 */
 	public Map<String,String> getHeaders() {
-		return headers;
+		if(isCache) {
+			TreeMap<String, String> newHeaders = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+			newHeaders.putAll(headers);
+			return newHeaders;
+		} else {
+			return headers;
+		}
 	}
 
 	public void setHeaders(Map<String, String> headers) {
@@ -48,11 +54,6 @@ public class Header {
 		contentEncoding = null;
 		transferEncoding = null;
 		this.headers = headers;
-
-		get(HttpStatic.CONTENT_TYPE_STRING);
-		get(HttpStatic.CONTENT_LENGTH_STRING);
-		get(HttpStatic.CONTENT_ENCODING_STRING);
-		get(HttpStatic.TRANSFER_ENCODING_STRING);
 	}
 
 	public boolean isCache() {
@@ -69,13 +70,30 @@ public class Header {
 	 * @return 移除的header 的 name
 	 */
 	public String remove(String header){
+		if(isCache) {
+			throw new UnsupportedOperationException("This header can't modify");
+		}
+
 		String ret = null;
 		switch (header) {
-			case HttpStatic.CONTENT_TYPE_STRING 	 :  ret = this.headers.remove(HttpStatic.CONTENT_TYPE_STRING);  	contentType = null; break;
-			case HttpStatic.CONTENT_ENCODING_STRING  :  ret = this.headers.remove(HttpStatic.CONTENT_ENCODING_STRING); 	contentEncoding = null;  break;
-			case HttpStatic.CONTENT_LENGTH_STRING 	 :  ret = this.headers.remove(HttpStatic.CONTENT_LENGTH_STRING); 	contentLength = null;  break;
-			case HttpStatic.TRANSFER_ENCODING_STRING :  ret = this.headers.remove(HttpStatic.TRANSFER_ENCODING_STRING); transferEncoding = null;  break;
-			default: ret = headers.remove(header);
+			case HttpStatic.CONTENT_TYPE_STRING:
+				ret = this.headers.remove(HttpStatic.CONTENT_TYPE_STRING);
+				contentType = null;
+				break;
+			case HttpStatic.CONTENT_ENCODING_STRING:
+				ret = this.headers.remove(HttpStatic.CONTENT_ENCODING_STRING);
+				contentEncoding = null;
+				break;
+			case HttpStatic.CONTENT_LENGTH_STRING:
+				ret = this.headers.remove(HttpStatic.CONTENT_LENGTH_STRING);
+				contentLength = null;
+				break;
+			case HttpStatic.TRANSFER_ENCODING_STRING:
+				ret = this.headers.remove(HttpStatic.TRANSFER_ENCODING_STRING);
+				transferEncoding = null;
+				break;
+			default:
+				ret = headers.remove(header);
 		}
 		return ret;
 	}
@@ -108,19 +126,19 @@ public class Header {
 		boolean tryGetFromMap = false;
 		switch (header) {
 			case HttpStatic.CONTENT_TYPE_STRING 	 : 	{
-				ret = contentType == null ? contentType = headers.remove(header) : contentType;
+				ret = contentType == null ? contentType = headers.get(header) : contentType;
 				break;
 			}
 			case HttpStatic.CONTENT_LENGTH_STRING 	 : 	{
-				ret = contentLength == null ? contentLength = headers.remove(header) : contentLength;
+				ret = contentLength == null ? contentLength = headers.get(header) : contentLength;
 				break;
 			}
 			case HttpStatic.CONTENT_ENCODING_STRING  : 	{
-				ret = contentEncoding == null ? contentEncoding = headers.remove(header) : contentEncoding;
+				ret = contentEncoding == null ? contentEncoding = headers.get(header) : contentEncoding;
 				break;
 			}
 			case HttpStatic.TRANSFER_ENCODING_STRING : 	{
-				ret = transferEncoding == null ? transferEncoding = headers.remove(header) : transferEncoding;
+				ret = transferEncoding == null ? transferEncoding = headers.get(header) : transferEncoding;
 				break;
 			}
 			default: ret = headers.get(header);
@@ -136,6 +154,10 @@ public class Header {
 	 * @return header 的 name
 	 */
 	public String put(String header,String value){
+		if(isCache) {
+			throw new UnsupportedOperationException("This header can't modify");
+		}
+
 		switch (header) {
 			case HttpStatic.CONTENT_TYPE_STRING 	 :  this.contentType 		= value; break;
 			case HttpStatic.CONTENT_LENGTH_STRING 	 : 	this.contentLength 		= value; break;
@@ -151,6 +173,10 @@ public class Header {
 	 * @param valueMap Header 的 Map 形式
 	 */
 	public void putAll(Map<String, String> valueMap){
+		if(isCache) {
+			throw new UnsupportedOperationException("This header can't modify");
+		}
+
 		for(Entry<String, String> entry : valueMap.entrySet()) {
 			put(entry.getKey(), entry.getValue());
 		}
