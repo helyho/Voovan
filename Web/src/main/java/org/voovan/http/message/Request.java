@@ -409,7 +409,7 @@ public class Request {
         this.protocol().setMethod(request.protocol().getMethod());
         this.protocol().setPath(request.protocol().getPath());
         this.protocol().setQueryString(request.protocol().getQueryString());
-        this.header().putAll(request.header().getHeaders());
+        this.header().copyFrom(request.header());
         this.body().write( request.body().getBodyBytes());
         this.cookies().addAll(request.cookies());
         this.parts.addAll(request.parts());
