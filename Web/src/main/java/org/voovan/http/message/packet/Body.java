@@ -42,7 +42,7 @@ public class Body {
 	 */
 	public Body(){
 		type = BodyType.BYTES;
-        changeToBytes("".getBytes());
+        changeToBytes();
         bodyFile = null;
 	}
 
@@ -53,7 +53,8 @@ public class Body {
 	 */
 	public Body(byte[] content){
 		type = BodyType.BYTES;
-        changeToBytes(content);
+        changeToBytes();
+        write(content);
         bodyFile = null;
 	}
 
@@ -116,31 +117,24 @@ public class Body {
 		changeToFile(new File(file));
 	}
 
-	/**
-	 * 转换成字节形式
-	 */
-	public void changeToBytes() {
-		changeToBytes(null);
-	}
 
 	/**
 	 * 转换成字节形式
 	 * @param content 字节内容
 	 */
-	public void changeToBytes(byte[] content) {
+	public void changeToBytes() {
 		if(byteBufferChannel == null || byteBufferChannel.isReleased()){
 			byteBufferChannel = new ByteBufferChannel();
 		}
+
 
 		if(bodyFile != null){
 			bodyFile = null;
 		}
 
-		if(content!=null && content.length!=0) {
-			byteBufferChannel.writeEnd(ByteBuffer.wrap(content));
-		} else {
-			byteBufferChannel.clear();
-		}
+
+		byteBufferChannel.clear();
+		mark = 0;
 
 		type = BodyType.BYTES;
 	}

@@ -450,7 +450,8 @@ public class HttpClient extends PooledObject implements Closeable{
 					Part part = new Part();
 					part.header().put("name", parameter.getKey());
 					if(parameter.getValue() instanceof String) {
-						part.body().changeToBytes(URLEncoder.encode(parameter.getValue().toString(), charset).getBytes(charset));
+						part.body().changeToBytes();
+						part.body().write(URLEncoder.encode(parameter.getValue().toString(), charset).getBytes(charset));
 					}else if(parameter.getValue() instanceof File){
 						File file = (File) parameter.getValue();
 						//参数类型如果是文件则默认采用文件的形式
@@ -613,7 +614,7 @@ public class HttpClient extends PooledObject implements Closeable{
 			httpRequest.cookies().addAll(response.cookies());
 		}
 
-		httpRequest.body().changeToBytes(new byte[0]);
+		httpRequest.body().changeToBytes();
 
 		//清理请求对象,以便下次请求使用
 		parameters.clear();
