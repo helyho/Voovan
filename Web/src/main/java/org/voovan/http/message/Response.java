@@ -39,6 +39,7 @@ public class Response {
 	private boolean         	hasBody;
 	protected boolean 			basicSend = false;
 	private boolean 			async = false;
+	private boolean         	cookieParsed = false;
 	private Long                mark;
 
 	/**
@@ -138,10 +139,16 @@ public class Response {
 	 *
 	 * @return Cookie 对象集合
 	 */
-	public List<Cookie> cookies() {
+	public synchronized List<Cookie> cookies() {
+		if(!cookieParsed) {
+			String cookieStr = header.get("Cookie");
+			if(cookieStr!=null) {
+				HttpParser.parseCookie(cookies, 0, cookieStr);
+			}
+			cookieParsed = true;
+		}
 		return cookies;
 	}
-
 	/**
 	 * 根据 Cookie 名称取 Cookie
 	 *
@@ -389,13 +396,14 @@ public class Response {
 	 * 清理
 	 */
 	public void clear(){
-		this.header().clear();
-		this.cookies().clear();
-		this.protocol().clear();
-		this.body().clear();
+		this.header.clear();
+		this.cookies.clear();
+		this.protocol.clear();
+		this.body.clear();
 		this.isCompress = false;
 		this.basicSend = false;
 		this.async = false;
+		this.cookieParsed = false;
 		this.mark = null;
 	}
 

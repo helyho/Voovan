@@ -6,6 +6,7 @@ import org.voovan.tools.FastThreadLocal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 /**
  * HTTP 的 header 对象
@@ -28,7 +29,7 @@ public class Header {
 	 * 构造函数
 	 */
 	public Header(){
-		headers = new HashMap<String,String>(32);
+		headers = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
 	}
 
 	/**
@@ -66,16 +67,13 @@ public class Header {
 	 * @return 是否存在
 	 */
 	public boolean contain(String header){
-		Boolean ret = null;
+		boolean ret = false;
 		switch (header) {
-			case HttpStatic.CONTENT_TYPE_STRING 	 :  ret = contentType == null 		? null : contentType!=null;  break;
-			case HttpStatic.CONTENT_ENCODING_STRING  :  ret = contentEncoding == null 	? null : contentEncoding!=null;  break;
-			case HttpStatic.CONTENT_LENGTH_STRING 	 :  ret = contentLength == null 	? null : contentLength!=null;  break;
-			case HttpStatic.TRANSFER_ENCODING_STRING :  ret = transferEncoding == null 	? null : transferEncoding!=null;  break;
-		}
-
-		if(ret == null) {
-			ret = headers.containsKey(header);
+			case HttpStatic.CONTENT_TYPE_STRING 	 :  ret = contentType == null 		? false : contentType!=null;  break;
+			case HttpStatic.CONTENT_ENCODING_STRING  :  ret = contentEncoding == null 	? false : contentEncoding!=null;  break;
+			case HttpStatic.CONTENT_LENGTH_STRING 	 :  ret = contentLength == null 	? false : contentLength!=null;  break;
+			case HttpStatic.TRANSFER_ENCODING_STRING :  ret = transferEncoding == null 	? false : transferEncoding!=null;  break;
+			default: ret = headers.containsKey(header);
 		}
 
 		return ret;
@@ -89,14 +87,11 @@ public class Header {
 	public String get(String header){
 		String ret = null;
 		switch (header) {
-			case HttpStatic.CONTENT_TYPE_STRING 	 : 	ret =  contentType; break;
+			case HttpStatic.CONTENT_TYPE_STRING 	 : 	ret = contentType; break;
 			case HttpStatic.CONTENT_ENCODING_STRING  : 	ret = contentEncoding; break;
 			case HttpStatic.CONTENT_LENGTH_STRING 	 : 	ret = contentLength; break;
 			case HttpStatic.TRANSFER_ENCODING_STRING : 	ret = transferEncoding; break;
-		}
-
-		if(ret == null) {
-			ret = headers.get(header);
+			default: ret = headers.get(header);
 		}
 
 		return ret;

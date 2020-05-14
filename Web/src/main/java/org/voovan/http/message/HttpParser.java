@@ -47,10 +47,6 @@ public class HttpParser {
 	private final static int CACHE_FLAG = 12;
 	private final static int COOKIE = 13;
 
-	private final static int HAS_COOKIE = 14;
-	private final static int HAS_SET_COOKIE = 15;
-
-
 	private final static String MULTIPART_FORM_DATA = "multipart/form-data";
 
 	private final static String UPLOAD_PATH = TFile.assemblyPath(TFile.getTemporaryPath(),"voovan", "webserver", "upload");
@@ -183,10 +179,13 @@ public class HttpParser {
 	 * @param cookieValue        Http 头中 Cookie 报文行
 	 */
 	@SuppressWarnings("unchecked")
-	private static List<Map<String, String>> parseCookie(int cookieType, String cookieValue){
-		List<Map<String, String>> cookies = new ArrayList<Map<String, String>>();
+	public static void parseCookie(List<Cookie> cookies, int cookieType, String cookieValue){
+		if(cookieValue == null) {
+			return;
+		}
 
-		//解析 Cookie 行
+		List<Map<String, String>> cookieMapList = new ArrayList<Map<String, String>>();
+
 		Map<String, String>cookieMap = getEqualMap(cookieValue);
 
 		// Cookie
@@ -195,7 +194,7 @@ public class HttpParser {
 			for(Entry<String,String> cookieMapEntry: cookieMap.entrySet()){
 				HashMap<String, String> cookieOneMap = new HashMap<String, String>();
 				cookieOneMap.put(cookieMapEntry.getKey(), cookieMapEntry.getValue());
-				cookies.add(cookieOneMap);
+				cookieMapList.add(cookieOneMap);
 			}
 		}
 
@@ -209,11 +208,14 @@ public class HttpParser {
 			if(cookieValue.toLowerCase().contains(HttpStatic.SECURE_STRING)){
 				cookieMap.put(HttpStatic.SECURE_STRING, Global.EMPTY_STRING);
 			}
-			cookies.add(cookieMap);
+			cookieMapList.add(cookieMap);
 		}
 
-
-		return cookies;
+		//遍历 Cookie,并构建 Cookie 对象
+		for (Map<String, String> cookieMapItem : cookieMapList) {
+			Cookie cookie = Cookie.buildCookie(cookieMapItem);
+			cookies.add(cookie);
+		}
 	}
 
 	/**
@@ -465,16 +467,9 @@ public class HttpParser {
 		}
 
 		if(headerName!=null && headerValue!=null) {
-			if(packetMap!=null && headerName.equals(HttpStatic.COOKIE_STRING)) {
-				packetMap[HAS_COOKIE] = headerValue;
-			} else if(packetMap!=null && headerName.equals(HttpStatic.SET_COOKIE_STRING)) {
-				packetMap[HAS_SET_COOKIE] = headerValue;
-			} else {
-				headerMap.put(headerName, headerValue);
-			}
+			headerMap.put(headerName, headerValue);
 		}
 		return false;
-//        packetMap.put(fixHeaderName(headerName), headerValue);
 	}
 
 	/**
@@ -562,7 +557,7 @@ public class HttpParser {
 				if(!findCache) {
 					//处理协议头
 					{
-						headerMap = new HashMap<String, Object>();
+						headerMap = new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER);
 						while (!parseHeader(packetMap, headerMap, innerByteBuffer, contiuneRead, timeout)) {
 							if (!innerByteBuffer.hasRemaining() && session.isConnected()) {
 								return null;
@@ -570,18 +565,6 @@ public class HttpParser {
 						}
 
 						packetMap[HEADER] = headerMap;
-					}
-
-					//处理 Cookie
-					{
-						String cookieValue = null;
-						if (type == PARSER_TYPE_REQUEST && packetMap[HAS_COOKIE]!=null) {
-							cookieValue = (String) packetMap[HAS_COOKIE];
-							packetMap[COOKIE] = parseCookie(0, cookieValue);
-						} else if (type == PARSER_TYPE_RESPONSE && packetMap[HAS_SET_COOKIE] != null) {
-							cookieValue = (String) packetMap[HAS_SET_COOKIE];
-							packetMap[COOKIE] = parseCookie(1, cookieValue);
-						}
 					}
 
 					//处理更新或设置缓存
@@ -943,15 +926,6 @@ public class HttpParser {
 				case HEADER_MARK:
 					request.setMark((Long)value);
 					break;
-				case COOKIE:
-					List<Map<String, String>> cookieMap = (List<Map<String, String>>)value;
-					//遍历 Cookie,并构建 Cookie 对象
-					for (Map<String, String> cookieMapItem : cookieMap) {
-						Cookie cookie = Cookie.buildCookie(cookieMapItem);
-						request.cookies().add(cookie);
-					}
-					cookieMap.clear();
-					break;
 				case BODY_VALUE:
 					bodyFlag = true;
 					request.setHasBody(true);
@@ -1062,14 +1036,6 @@ public class HttpParser {
 					break;
 				case PL_STATUS_CODE:
 					response.protocol().setStatusCode(value.toString());
-					break;
-				case COOKIE:
-					List<Map<String, String>> cookieMap = (List<Map<String, String>>) value;
-					//遍历 Cookie,并构建 Cookie 对象
-					for (Map<String, String> cookieMapItem : cookieMap) {
-						Cookie cookie = Cookie.buildCookie(cookieMapItem);
-						response.cookies().add(cookie);
-					}
 					break;
 				case BODY_VALUE:
 					bodyFlag = true;
