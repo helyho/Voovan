@@ -948,7 +948,8 @@ public class HttpParser {
 
 							//填充 Value 中的值到 body 中
 							if (partKey == BODY_VALUE) {
-								part.body().changeToBytes((byte[]) partValue);
+								part.body().changeToBytes();
+								part.body().write((byte[]) partValue);
 							} else if (partKey == BODY_FILE) {
 								String filePath = new String((byte[]) partValue);
 								part.body().changeToFile(new File(filePath));
