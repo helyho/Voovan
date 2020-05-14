@@ -62,7 +62,7 @@ public class WebServerFilter implements IoFilter {
                             httpResponse.send();
 
                             if (size == 0) {
-                                cacheBytes = TByteBuffer.allocateDirect(sendByteBufferChannel.size());
+                                cacheBytes = ByteBuffer.allocateDirect(sendByteBufferChannel.size());
 								sendByteBufferChannel.get(cacheBytes);
                                 RESPONSE_CACHE.put(mark, cacheBytes);
                             }

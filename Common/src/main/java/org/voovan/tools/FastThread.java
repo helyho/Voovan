@@ -10,7 +10,7 @@ package org.voovan.tools;
  */
 public class FastThread extends Thread {
 
-	public static int FAST_THREAD_LOCAL_SIZE = TEnv.getSystemProperty("FastThreadLocalSize", TPerformance.getProcessorCount()*512);
+	public static int FAST_THREAD_LOCAL_SIZE = TEnv.getSystemProperty("FastThreadLocalSize", TPerformance.getProcessorCount()*4096);
 
 	static {
 		System.out.println("[SYSTEM] FAST_THREAD_LOCAL_SIZE: " + FAST_THREAD_LOCAL_SIZE);
