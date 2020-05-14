@@ -8,6 +8,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Type;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.function.Supplier;
 
 /**
@@ -257,7 +258,7 @@ public class JSON {
 	 * @return 清理null节点的结果
 	 */
 	public static String removeNullNode(String jsonStr){
-		jsonStr	= TString.fastReplaceAll(jsonStr, "\\\"\\w+?\\\":\\s*null\\s*,?", "");
+		jsonStr	= TString.fastReplaceAll(jsonStr, "\\\"\\w+?\\\":\\s*null\\s*,?[\\s]*", "");
     	return fixJSON(jsonStr);
 	}
 
@@ -269,9 +270,27 @@ public class JSON {
 	 */
 	public static String removeNode(String jsonStr, String ... fields) {
 		for(String field : fields) {
-			jsonStr = TString.fastReplaceAll(jsonStr, "\\\"" + field + "\\\":.*,?(?=|\\]|\\})", "");
+			jsonStr = TString.fastReplaceAll(jsonStr, "\\\"" + field + "\\\":.*,?(?=|\\]|\\})[\\s]*", "");
 		}
 
+		return fixJSON(jsonStr);
+	}
+
+	/**
+	 * 替换 json 中的节点
+	 * @param jsonStr json 字符串
+	 * @param field 被替换的属性名
+	 * @param obj 替换的对象
+	 * @return 替换后的结果
+	 */
+	public static String replaceNode(String jsonStr, String field, Object obj) {
+		String nodeJson = JSON.toJSON(obj);
+		if(nodeJson.charAt(0) == '{' && nodeJson.charAt(nodeJson.length() - 1) == '}') {
+			nodeJson = TString.removePrefix(nodeJson);
+			nodeJson = TString.removeSuffix(nodeJson);
+			jsonStr = TString.fastReplaceAll(jsonStr, "\\\"" + field + "\\\":.*(?:[^,\\s])", nodeJson);
+
+		}
 		return jsonStr;
 	}
 
@@ -292,10 +311,6 @@ public class JSON {
 		return jsonStr;
 	}
 
-	public static void main(String[] args) {
-
-	}
-
 	/**
 	 * 修复 JSON 字符串中因清理节点导致的多个","的分割异常问题
 	 * @param jsonStr json 字符串
@@ -303,14 +318,15 @@ public class JSON {
 	 */
 	protected static String fixJSON(String jsonStr){
 
-		while(TString.regexMatch(jsonStr,",[\\s\\r\\n]*,") > 0) {
-			jsonStr = TString.fastReplaceAll(jsonStr, ",[\\s\\r\\n]*,", ",");
+		while(TString.regexMatch(jsonStr,",[\\s]*,") > 0) {
+			jsonStr = TString.fastReplaceAll(jsonStr, ",[\\s]*,", ",");
 		}
 
-		jsonStr	= TString.fastReplaceAll(jsonStr, "(?:[\\{])[\\s\\r\\n]*,","{");
-		jsonStr	= TString.fastReplaceAll(jsonStr, "(?:[\\[])[\\s\\r\\n]*,","[");
-		jsonStr	= TString.fastReplaceAll(jsonStr, ",[\\s\\r\\n]*(?:[\\}])","}");
-		jsonStr	= TString.fastReplaceAll(jsonStr, ",[\\s\\r\\n]*(?:[\\]])","]");
+		jsonStr	= TString.fastReplaceAll(jsonStr, "(?:[\\{])[\\s]*,","{");
+		jsonStr	= TString.fastReplaceAll(jsonStr, "(?:[\\{])[\\s]*,","{");
+		jsonStr	= TString.fastReplaceAll(jsonStr, "(?:[\\[])[\\s]*,","[");
+		jsonStr	= TString.fastReplaceAll(jsonStr, ",[\\s]*(?:[\\}])","}");
+		jsonStr	= TString.fastReplaceAll(jsonStr, ",[\\s]*(?:[\\]])","]");
 
 		return jsonStr;
 	}
