@@ -36,10 +36,20 @@ public class Other {
     private int orange = 10;
 
     public static void main(String[] args) throws Exception {
-        TreeMap<String, Object> m = new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER);
-
-        m.put("cookie", 1);
-
-        System.out.println(m.get("Cookie"));
+       String xx = "{\n" +
+               "  \"userId\": 666,\n" +
+               "  \"userId\": 666,\n" +
+               "  \"userId\": 666,\n" +
+               "  \"userId\": null,\n" +
+               "  \"accountName\": \"Default\",\n" +
+               "  \"type\": 0,\n" +
+               "  \"userId\": \"666\",\n" +
+               "  \"userId\": null\n" +
+               "}";
+        System.out.println(xx);
+        System.out.println("rn: " +JSON.removeNullNode(xx));
+        System.out.println("r: " + JSON.removeNode(xx, "userId"));
+       String mm = JSON.replaceNode(xx, "userId", TObject.asMap("userId", 123123));
+       System.out.println("rr: " + mm);
     }
 }
