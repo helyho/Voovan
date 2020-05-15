@@ -6,6 +6,7 @@ import org.voovan.tools.*;
 import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.NotSerialization;
+import org.voovan.tools.reflect.annotation.Serialize;
 import org.voovan.tools.security.THash;
 
 import java.lang.annotation.Annotation;
@@ -1566,6 +1567,8 @@ public class TReflect {
                     e.printStackTrace();
                 }
 
+                Serialize serialize = field.getAnnotation(Serialize.class);
+                key = serialize == null ? key : serialize.value();
                 if(value == null){
                     //由于属性是按子类->父类顺序处理的, 所以如果子类和父类有重复属性, 则只在子类为空时用父类的属性覆盖
                     if(mapResult.get(key) == null) {

@@ -4,6 +4,7 @@ import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 import org.voovan.tools.TZip;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
 
@@ -292,6 +293,23 @@ public class Body {
 	 */
 	public void write(String content){
 		write(content,"UTF-8");
+	}
+
+	/**
+	 * 写入 body 对象, 自动转换为 json,默认 UTF-8
+	 * @param content body 字符串
+	 */
+	public void writeObject(Object obj){
+		write(JSON.toJSON(obj),"UTF-8");
+	}
+
+	/**
+	 * 写入 body 字符串 自动转换为 json
+	 * @param content body 字符串
+	 * @param charset 字符集
+	 */
+	public void writeObject(Object obj,String charset){
+		write(JSON.toJSON(obj),charset);
 	}
 
 	/**
