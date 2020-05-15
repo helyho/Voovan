@@ -441,10 +441,6 @@ public class TString {
 		return source;
 	}
 
-	public static void main(String[] args) {
-		Logger.simplef("aaaa-{}-bbbb-{}-cccc-{}-", "1","2","3");
-	}
-
 	public static String TOKEN_PREFIX = "{";
 	public static String TOKEN_SUFFIX = "}";
 	public static String TOKEN_EMPTY = TOKEN_PREFIX + TOKEN_SUFFIX;
