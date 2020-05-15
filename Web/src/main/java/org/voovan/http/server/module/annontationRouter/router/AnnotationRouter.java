@@ -193,7 +193,7 @@ public class AnnotationRouter implements HttpRouter {
                                                 }
 
                                                 //如果没有指定方法, 参数包含 BodyParam 注解则指定请求方法为 POST
-                                                if(paramAnnotation instanceof BodyParam && routeMethod.equals(HttpStatic.GET_STRING)) {
+                                                if((paramAnnotation instanceof BodyParam || paramAnnotation instanceof Body) && routeMethod.equals(HttpStatic.GET_STRING)) {
                                                     routeMethod = HttpStatic.POST_STRING;
                                                 }
                                             }
