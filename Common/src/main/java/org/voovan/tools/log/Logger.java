@@ -66,7 +66,7 @@ public class Logger {
 			Message message = Message.newInstance(logLevel, msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
-			simple("Logger system error:"+oe.getMessage()+"\r\n");
+			simple("Logger system error: "+oe.getMessage()+"\r\n");
 			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
 			simple("Output message is: " + msg);
 		}
@@ -222,7 +222,7 @@ public class Logger {
 		do{
 			stackMessage = stackMessage + exception.getClass().getCanonicalName() + ": " +
 					exception.getMessage() + TFile.getLineSeparator() +
-					TString.indent(TEnv.getStackElementsMessage(exception.getStackTrace()),8) +
+					TString.indent(TEnv.getStackElementsMessage(exception.getStackTrace()), 8) +
 					TFile.getLineSeparator();
 			exception = exception.getCause();
 
