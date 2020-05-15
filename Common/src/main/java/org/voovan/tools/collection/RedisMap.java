@@ -702,7 +702,6 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
         public RedisMapEntry(RedisMap redisMap, K k) {
             this.redisMap = redisMap;
             this.k = k;
-            System.out.println(k);
             index = ENTRY_INDEX.getAndIncrement();
         }
 
