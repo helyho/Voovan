@@ -316,7 +316,7 @@ public class JSON {
 	 * @param jsonStr json 字符串
 	 * @return 清理后点的结果
 	 */
-	protected static String fixJSON(String jsonStr){
+	public static String fixJSON(String jsonStr){
 
 		while(TString.regexMatch(jsonStr,",[\\s]*,") > 0) {
 			jsonStr = TString.fastReplaceAll(jsonStr, ",[\\s]*,", ",");
