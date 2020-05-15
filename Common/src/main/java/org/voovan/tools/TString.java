@@ -332,6 +332,50 @@ public class TString {
 		return pattern.matcher(source).replaceAll(replacement);
 	}
 
+
+	/**
+	 * 快速字符串替换算法
+	 * 		默认正在 flag = 0, quoteReplacement = true
+	 * @param source      源字符串
+	 * @param regex       正则字符串
+	 * @param replacement 替换字符串
+	 * @return 替换后的字符串
+	 */
+	public static String fastReplaceFirst(String source, String regex, String replacement) {
+		return fastReplaceFirst(source, regex, replacement, 0, true);
+	}
+
+	/**
+	 * 快速字符串替换算法
+	 * 		默认正在 flag = 0
+	 * @param source      源字符串
+	 * @param regex       正则字符串
+	 * @param replacement 替换字符串
+	 * @param quoteReplacement 对 replacement 是否进行转移
+	 * @return 替换后的字符串
+	 */
+	public static String fastReplaceFirst(String source, String regex, String replacement, boolean quoteReplacement) {
+		return fastReplaceFirst(source, regex, replacement, 0, quoteReplacement);
+	}
+
+	/**
+	 * 快速字符串替换算法
+	 *
+	 * @param source      源字符串
+	 * @param regex       正则字符串
+	 * @param replacement 替换字符串
+	 * @param flags  	  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
+	 * @param quoteReplacement 对 replacement 是否进行转移
+	 * @return 替换后的字符串
+	 */
+	public static String fastReplaceFirst(String source, String regex, String replacement, Integer flags, boolean quoteReplacement) {
+		Pattern pattern = getCachedPattern(regex, flags);
+		if(quoteReplacement) {
+			replacement = Matcher.quoteReplacement(replacement);
+		}
+		return pattern.matcher(source).replaceFirst(replacement);
+	}
+
 	/**
 	 * 判断字符串空指针或者内容为空
 	 *
@@ -349,7 +393,7 @@ public class TString {
 	/**
 	 * 按照标识符 Map 进行替换
 	 *
-	 * @param source 源字符串,标识符使用"{{标识}}"进行包裹,这些标识符将会被替换
+	 * @param source 源字符串,标识符使用"{标识}"进行包裹,这些标识符将会被替换
 	 * @param tokens 标识符 Map, 包含匹配字符串和替换字符串
 	 * @return 替换后的字符串
 	 */
@@ -368,7 +412,7 @@ public class TString {
 	/**
 	 * 按照标识符 Map 进行替换
 	 *
-	 * @param source 源字符串,标识符使用"{{标识}}"进行包裹,这些标识符将会被替换
+	 * @param source 源字符串,标识符使用"{标识}"进行包裹,这些标识符将会被替换
 	 * @param list   数据 List 集合
 	 * @return 替换后的字符串
 	 */
@@ -380,8 +424,8 @@ public class TString {
 
 	/**
 	 * 按位置格式化字符串
-	 * TString.tokenReplace("aaaa{{1}}bbbb{{2}}cccc{{3}}", "1","2","3")
-	 * 或者TString.tokenReplace("aaaa{{}}bbbb{{}}cccc{{}}", "1","2","3")
+	 * TString.tokenReplace("aaaa{1}bbbb{2}cccc{3}", "1","2","3")
+	 * 或者TString.tokenReplace("aaaa{}bbbb{}cccc{}", "1","2","3")
 	 * 输出aaaa1bbbb2cccc3
 	 *
 	 * @param source 字符串
@@ -397,28 +441,29 @@ public class TString {
 		return source;
 	}
 
-	public static String TOKEN_PREFIX_REGEX = "\\{";
-	public static String TOKEN_SUFFIX_REGEX = "\\}";
+	public static void main(String[] args) {
+		Logger.simplef("aaaa-{}-bbbb-{}-cccc-{}-", "1","2","3");
+	}
 
-	public static String TOKEN_PREFIX = TOKEN_PREFIX_REGEX.replaceAll("\\\\", "");
-	public static String TOKEN_SUFFIX = TOKEN_SUFFIX_REGEX.replaceAll("\\\\", "");
+	public static String TOKEN_PREFIX = "{";
+	public static String TOKEN_SUFFIX = "}";
+	public static String TOKEN_EMPTY = TOKEN_PREFIX + TOKEN_SUFFIX;
 
+	public static String TOKEN_PREFIX_REGEX = "\\" + TOKEN_PREFIX;
+	public static String TOKEN_SUFFIX_REGEX = "\\" + TOKEN_SUFFIX;
+	public static String TOKEN_EMPTY_REGEX  = TOKEN_PREFIX_REGEX + TOKEN_SUFFIX_REGEX;
 
 	/**
 	 * 按照标识符进行替换
-	 * tokenName 为 null 则使用 {{}} 进行替换
+	 * tokenName 为 null 则使用 {} 进行替换
 	 * 如果为 tokenName 为数字 可以不在标识中填写数字标识,会自动按照标识的先后顺序进行替换
 	 *
-	 * @param source     源字符串,标识符使用"{{标识}}"进行包裹
+	 * @param source     源字符串,标识符使用"{标识}"进行包裹
 	 * @param tokenName  标识符
 	 * @param tokenValue 标志符值
 	 * @return 替换后的字符串
 	 */
 	public static String oneTokenReplace(String source, String tokenName, String tokenValue) {
-		String TOKEN_PREFIX = TString.fastReplaceAll(TOKEN_PREFIX_REGEX, "\\\\", "");
-		String TOKEN_SUFFIX = TString.fastReplaceAll(TOKEN_SUFFIX_REGEX, "\\\\", "");
-		String TOKEN_EMPTY = TOKEN_PREFIX + TOKEN_SUFFIX;
-
 		if (source == null) {
 			return null;
 		}
@@ -428,7 +473,7 @@ public class TString {
 					tokenValue == null ? "null" : Matcher.quoteReplacement(tokenValue));
 		} else if ((tokenName == null || TString.isInteger(tokenName)) &&
 				source.contains(TOKEN_EMPTY)) {
-			return TString.replaceFirst(source, TOKEN_EMPTY, tokenValue);
+			return TString.fastReplaceFirst(source, TOKEN_EMPTY_REGEX, tokenValue);
 		} else {
 			return source;
 		}
