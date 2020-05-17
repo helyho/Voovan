@@ -110,6 +110,8 @@ public class TReflect {
 
         //arg1 obj, arg2 fieldName
         String code = "switch(fieldName) {";
+
+        boolean hasGenCode = false;
         for(Field field : fields) {
             int modifier = field.getModifiers();
             if(Modifier.isStatic(modifier) ||
@@ -127,18 +129,22 @@ public class TReflect {
 
             code = code + "case \"" + field.getName() + "\" : ";
 
-            String getMethodName = methodName + "();";
-            code = code + "return obj."+getMethodName + " \r\n";
+            String methodCode = methodName + "();";
+            code = code + "return obj."+methodCode + " \r\n";
+            hasGenCode = true;
         }
-        code = code + "default : return null;\r\n }";
 
-        DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"_READER", code);
-        dynamicFunction.addImport(clazz);
-        dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
-        dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //取值字段
-        dynamicFunction.compileCode();
+        if(hasGenCode) {
+            code = code + "default : return null;\r\n }";
 
-        FIELD_READER.put(clazz, dynamicFunction);
+            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_READER", code);
+            dynamicFunction.addImport(clazz);
+            dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
+            dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //取值字段
+            dynamicFunction.compileCode();
+
+            FIELD_READER.put(clazz, dynamicFunction);
+        }
     }
 
     /**
@@ -150,6 +156,7 @@ public class TReflect {
 
         //arg1 obj, arg2 fieldName, arg3 value
         String code = "switch(fieldName) {";
+        boolean hasGenCode = false;
         for(Field field : fields) {
             int modifier = field.getModifiers();
             if(Modifier.isStatic(modifier) ||
@@ -165,20 +172,23 @@ public class TReflect {
 
             code = code + "case \"" + field.getName() + "\" : ";
 
-            String setMethodName =methodName + "(("+field.getType().getName()+")value); return true;";
-            code = code + "obj."+setMethodName + " \r\n";
+            String methodCode =methodName + "(("+field.getType().getName()+")value); return true;";
+            code = code + "obj."+methodCode + " \r\n";
+            hasGenCode = true;
         }
 
-        code = code + "default : return null;\r\n }";
+        if(hasGenCode) {
+            code = code + "default : return null;\r\n }";
 
-        DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"_WRITER", code);
-        dynamicFunction.addImport(clazz);
-        dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
-        dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //写入字段
-        dynamicFunction.addPrepareArg(2, Object.class, "value");     //写入数据
-        dynamicFunction.compileCode();
+            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_WRITER", code);
+            dynamicFunction.addImport(clazz);
+            dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
+            dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //写入字段
+            dynamicFunction.addPrepareArg(2, Object.class, "value");     //写入数据
+            dynamicFunction.compileCode();
 
-        FIELD_WRITER.put(clazz, dynamicFunction);
+            FIELD_WRITER.put(clazz, dynamicFunction);
+        }
     }
 
     /**
@@ -190,6 +200,7 @@ public class TReflect {
         String paramtypeCode = "int paramTypeLength = params==null ? 0 : params.length;\r\n\r\n";
 
         StringBuilder code = new StringBuilder();
+        boolean hasGenCode = false;
         for(Constructor constructor : constructors) {
             int modifier = constructor.getModifiers();
             if(Modifier.isStatic(modifier) ||
@@ -205,7 +216,7 @@ public class TReflect {
             //参数类型匹配
             for(int i=0;i<paramTypes.length;i++) {
                 Class paramClazz = paramTypes[i];
-                code.append(" && params["+i+"] instanceof " + TReflect.getPackageType(TReflect.getClassName(paramClazz)));
+                code.append(" && (params["+i+"] == null || params["+i+"] instanceof " + TReflect.getPackageType(TReflect.getClassName(paramClazz)) + ")");
             }
 
             code.append(" ) {");
@@ -221,28 +232,29 @@ public class TReflect {
             }
 
             code.append(");}\r\n");
+            hasGenCode = true;
         }
 
-        code.append("else { return null; }");
+        if(hasGenCode) {
 
-        code.insert(0, paramtypeCode);
+            code.append("else { return null; }");
 
-        DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"_CONSTRUCTOR", code.toString());
-        dynamicFunction.addImport(TReflect.class);
-        dynamicFunction.addImport(clazz);
-        dynamicFunction.addPrepareArg(0, Class.class, "clazz");     //写入数据
-        dynamicFunction.addPrepareArg(1, Object[].class, "params");     //写入数据
+            code.insert(0, paramtypeCode);
 
-        try {
-            //编译代码
-            dynamicFunction.compileCode();
-        } catch (ReflectiveOperationException e) {
-            Logger.error("TReflect.genMethodInvoker error", e);
-        }
+            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_CONSTRUCTOR", code.toString());
+            dynamicFunction.addImport(TReflect.class);
+            dynamicFunction.addImport(clazz);
+            dynamicFunction.addPrepareArg(0, Class.class, "clazz");     //写入数据
+            dynamicFunction.addPrepareArg(1, Object[].class, "params");     //写入数据
 
-        CONSTRUCTOR_INVOKE.put(clazz, dynamicFunction);
-        if(Global.IS_DEBUG_MODE) {
-            Logger.debug(code);
+            try {
+                //编译代码
+                dynamicFunction.compileCode();
+            } catch (ReflectiveOperationException e) {
+                Logger.error("TReflect.genMethodInvoker error", e);
+            }
+
+            CONSTRUCTOR_INVOKE.put(clazz, dynamicFunction);
         }
     }
 
@@ -259,10 +271,10 @@ public class TReflect {
         StringBuilder code = new StringBuilder();
         String paramtypeCode = "int paramTypeLength = params==null ? 0 : params.length;\r\n\r\n";
 
+        boolean hasGenCode = false;
         for(Method method : methods) {
             int modifier = method.getModifiers();
-            if(Modifier.isStatic(modifier) ||
-                    Modifier.isPrivate(modifier) ||
+            if(      Modifier.isPrivate(modifier) ||
                     method.getName().startsWith("$")) {
                 continue;
             }
@@ -275,7 +287,7 @@ public class TReflect {
             //参数类型匹配
             for(int i=0;i<paramTypes.length;i++) {
                 Class paramClazz = paramTypes[i];
-                code.append(" && params["+i+"] instanceof " + TReflect.getPackageType(TReflect.getClassName(paramClazz)));
+                code.append(" && (params["+i+"] == null || params["+i+"] instanceof " + TReflect.getPackageType(TReflect.getClassName(paramClazz)) + ")");
             }
 
             code.append(" ) {");
@@ -291,7 +303,9 @@ public class TReflect {
                 returnCode = " return null;";
             }
 
-            code.append(resultCode + "obj." + method.getName()+"(");
+            String main = Modifier.isStatic(modifier) ? clazz.getCanonicalName() : "obj";
+
+            code.append(resultCode + main + "." + method.getName()+"(");
 
             //拼装方法参数代码, 类似: (java.lang.String) params[i],
             if(paramTypes.length > 0) {
@@ -305,33 +319,38 @@ public class TReflect {
 
             //拼装 return 代码
             code.append(returnCode + "} \r\n");
+            hasGenCode = true;
         }
 
-        code.append("else { return null; }");
+        if(hasGenCode) {
+            code.append("else { return null; }");
 
-        code.insert(0, paramtypeCode);
+            code.insert(0, paramtypeCode);
 
-        DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName()+"Reader", code.toString());
-        dynamicFunction.addImport(ConcurrentHashMap.class);
-        dynamicFunction.addImport(Arrays.class);
-        dynamicFunction.addImport(clazz);
-        dynamicFunction.addPrepareArg(0, clazz, "obj");        //目标对象
-        dynamicFunction.addPrepareArg(1, String.class,   "methodName"); //写入字段
-        dynamicFunction.addPrepareArg(2, Object[].class, "params");     //写入数据
+            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "Reader", code.toString());
+            dynamicFunction.addImport(ConcurrentHashMap.class);
+            dynamicFunction.addImport(Arrays.class);
+            dynamicFunction.addImport(clazz);
+            dynamicFunction.addPrepareArg(0, clazz, "obj");        //目标对象
+            dynamicFunction.addPrepareArg(1, String.class, "methodName"); //写入字段
+            dynamicFunction.addPrepareArg(2, Object[].class, "params");     //写入数据
 
-        try {
-            //编译代码
-            dynamicFunction.compileCode();
-        } catch (ReflectiveOperationException e) {
-            Logger.error("TReflect.genMethodInvoker error", e);
+            try {
+                //编译代码
+                dynamicFunction.compileCode();
+            } catch (ReflectiveOperationException e) {
+                Logger.error("TReflect.genMethodInvoker error", e);
+            }
+
+            METHOD_INVOKE.put(className, dynamicFunction);
+            if (Global.IS_DEBUG_MODE) {
+                Logger.debug(code);
+            }
+
+            return dynamicFunction;
+        } else {
+            return null;
         }
-
-        METHOD_INVOKE.put(className, dynamicFunction);
-        if(Global.IS_DEBUG_MODE) {
-            Logger.debug(code);
-        }
-
-        return dynamicFunction;
     }
 
 
