@@ -39,6 +39,7 @@ public class AnnotationRouter implements HttpRouter {
     private String path;
     private Class clazz;
     private Method method;
+    private String methodName;
     private Router classRouter;
     private Router methodRoute;
     private AnnotationModule annotationModule;
@@ -54,6 +55,7 @@ public class AnnotationRouter implements HttpRouter {
         this.annotationModule = annotationModule;
         this.clazz = clazz;
         this.method = method;
+        this.methodName = method.getName();
         this.classRouter = classRouter;
         this.methodRoute = methodRoute;
         this.urlPath = urlPath;
@@ -138,6 +140,10 @@ public class AnnotationRouter implements HttpRouter {
                         }
 
                         classRouterPath = HttpDispatcher.fixRoutePath(classRouterPath);
+
+                        if(methods.length > 0) {
+                            TReflect.register(routerClass);
+                        }
 
                         //扫描包含 Router 注解的方法
                         for (Method method : methods) {
@@ -487,7 +493,7 @@ public class AnnotationRouter implements HttpRouter {
         }
 
         //调用方法
-        return TReflect.invokeMethod(annotationObj, method, params);
+        return TReflect.invokeMethod(annotationObj, methodName, params);
     }
 
     @Override
