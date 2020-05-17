@@ -141,9 +141,10 @@ public class AnnotationRouter implements HttpRouter {
 
                         classRouterPath = HttpDispatcher.fixRoutePath(classRouterPath);
 
-                        if(methods.length > 0) {
-                            TReflect.register(routerClass);
-                        }
+                        //注册以采用静态方法低啊用
+//                        if(methods.length > 0) {
+//                            TReflect.register(routerClass);
+//                        }
 
                         //扫描包含 Router 注解的方法
                         for (Method method : methods) {
@@ -493,7 +494,7 @@ public class AnnotationRouter implements HttpRouter {
         }
 
         //调用方法
-        return TReflect.invokeMethod(annotationObj, methodName, params);
+        return TReflect.invokeMethod(annotationObj, method, params);
     }
 
     @Override
