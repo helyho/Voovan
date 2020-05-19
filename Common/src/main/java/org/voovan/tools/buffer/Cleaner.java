@@ -9,7 +9,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * Cleaner 非对内存释放类
+ * Cleaner 非堆内存释放类
  *
  * @author: helyho
  * Voovan Framework.
