@@ -567,7 +567,7 @@ public class WebServer {
 	public void InitManagerRouter(){
 		final WebServer innerWebServer = this;
 
-		otherMethod("ADMIN", "/admin/status", new HttpRouter() {
+		otherMethod("ADMIN", "/voovan/admin/status", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 				String status = "RUNNING";
@@ -596,7 +596,7 @@ public class WebServer {
 			}
 		});
 
-		otherMethod("ADMIN", "/voovan//admin/pause", new HttpRouter() {
+		otherMethod("ADMIN", "/voovan/admin/pause", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 
@@ -610,7 +610,7 @@ public class WebServer {
 			}
 		});
 
-		otherMethod("ADMIN", "/voovan//admin/unpause", new HttpRouter() {
+		otherMethod("ADMIN", "/voovan/admin/unpause", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 
@@ -624,7 +624,7 @@ public class WebServer {
 			}
 		});
 
-		otherMethod("ADMIN", "/voovan//admin/pid", new HttpRouter() {
+		otherMethod("ADMIN", "/voovan/admin/pid", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 
@@ -636,7 +636,7 @@ public class WebServer {
 			}
 		});
 
-		otherMethod("ADMIN", "/voovan//admin/reload", new HttpRouter() {
+		otherMethod("ADMIN", "/voovan/admin/reload", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 
@@ -649,7 +649,7 @@ public class WebServer {
 			}
 		});
 
-		otherMethod("ADMIN", "/voovan//admin/authtoken", new HttpRouter() {
+		otherMethod("ADMIN", "/voovan/admin/authtoken", new HttpRouter() {
 			@Override
 			public void process(HttpRequest request, HttpResponse response) throws Exception {
 				if(hasAdminRight(request)) {
