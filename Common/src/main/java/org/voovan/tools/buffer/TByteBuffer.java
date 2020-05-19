@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public class TByteBuffer {
     public final static int DEFAULT_BYTE_BUFFER_SIZE = TEnv.getSystemProperty("ByteBufferSize", 1024*8);
-    public final static int THREAD_BUFFER_POOL_SIZE  = TEnv.getSystemProperty("ThreadBufferPoolSize", 256);
+    public final static int THREAD_BUFFER_POOL_SIZE  = TEnv.getSystemProperty("ThreadBufferPoolSize", 64);
     public final static LongAdder MALLOC_SIZE       = new LongAdder();
     public final static LongAdder MALLOC_COUNT      = new LongAdder();
     public final static LongAdder BYTE_BUFFER_COUNT = new LongAdder();
@@ -116,7 +116,7 @@ public class TByteBuffer {
         try {
             long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
 
-            Deallocator deallocator = new Deallocator(new Long(address));
+            Deallocator deallocator = new Deallocator(address, capacity);
 
             ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
 
@@ -533,15 +533,32 @@ public class TByteBuffer {
         attField.set(byteBuffer, attr);
     }
 
+    /**
+     * 设置内存地址
+     * @param byteBuffer bytebuffer 对象
+     * @param address 内存地址
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public static void setCapacity(ByteBuffer byteBuffer, int capacity) throws ReflectiveOperationException {
+        capacityField.set(byteBuffer, capacity);
+        Object att = getAtt(byteBuffer);
+        if(att!=null && att.getClass() == Deallocator.class){
+            ((Deallocator) att).setCapacity(capacity);
+        }
+    }
+
+
 
     /**
      * 自动跟踪 GC 销毁的类
      */
     public final static class Deallocator implements Runnable {
         private long address;
+        private int capacity;
 
-        Deallocator(long address) {
+        Deallocator(long address, int capacity) {
             this.address = address;
+            this.capacity = capacity;
         }
 
         public void setAddress(long address){
@@ -552,6 +569,14 @@ public class TByteBuffer {
             return address;
         }
 
+        public int getCapacity() {
+            return capacity;
+        }
+
+        public void setCapacity(int capacity) {
+            this.capacity = capacity;
+        }
+
         public void run() {
 
             if (this.address == 0) {
@@ -559,6 +584,7 @@ public class TByteBuffer {
             }
             TUnsafe.getUnsafe().freeMemory(address);
             address = 0;
+            free(capacity);
         }
     }
 }

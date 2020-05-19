@@ -851,8 +851,9 @@ public class HttpParser {
 
 					ByteBuffer byteBuffer = ByteBuffer.allocate(contentLength);
 
-					byteBufferChannel.readHead(byteBuffer);
-					byte[] contentBytes = byteBuffer.array();
+					byte[] contentBytes = new byte[contentLength];
+					byteBufferChannel.get(contentBytes);
+					byteBufferChannel.shrink(0, contentLength);
 
 					byte[] value = dealBodyContent(headerMap, contentBytes);
 					packetMap[BODY_VALUE] = value;
