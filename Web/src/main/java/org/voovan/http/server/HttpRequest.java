@@ -78,6 +78,10 @@ public class HttpRequest extends Request {
 		this.socketSession = socketSession;
 	}
 
+	protected SessionManager getSessionManager() {
+		return sessionManager;
+	}
+
 	protected void setSessionManager(SessionManager sessionManager) {
 		this.sessionManager = sessionManager;
 	}
@@ -478,5 +482,19 @@ public class HttpRequest extends Request {
 		if(parsedURL.length > 1) {
 			this.protocol().setQueryString(parsedURL[1]);
 		}
+	}
+
+	public HttpRequest copyFrom(HttpRequest request) {
+		super.copyFrom(request);
+		this.setSocketSession(request.getSocketSession());
+		this.setSessionManager(request.getSessionManager());
+		this.parameters.putAll(request.getParameters());
+		this.attributes.putAll(request.getAttributes());
+		this.setCharacterSet(request.getCharacterSet());
+
+		if(request.sessionExists()) {
+			this.setSession(request.getSession());
+		}
+		return this;
 	}
 }

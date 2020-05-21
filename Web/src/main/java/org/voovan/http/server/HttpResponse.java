@@ -168,4 +168,16 @@ public class HttpResponse extends Response {
 		header().put(HttpStatic.LOCATION_STRING, path);
 		this.body().write(" ");
 	}
+
+	public HttpResponse copyFrom(HttpResponse response, boolean useForSend) {
+		super.copyFrom(response, useForSend);
+		this.setCharacterSet(response.getCharacterSet());
+		this.setSocketSession(response.getSocketSession());
+		return this;
+	}
+
+	public HttpResponse copyFrom(HttpResponse response) {
+		this.copyFrom(response, false);
+		return this;
+	}
 }
