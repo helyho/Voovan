@@ -379,13 +379,13 @@ public class Response {
 			if (HttpStatic.GZIP_STRING.equals(otherResponse.header().get(HttpStatic.CONTENT_ENCODING_STRING))) {
 				this.setCompress(true);
 			}
+
+			this.header().remove("Date");
+			this.header().remove("Server");
 		} else {
 			this.async 		= otherResponse.async;
 			this.basicSend 	= otherResponse.basicSend;
 		}
-
-		this.header().remove("Date");
-		this.header().remove("Server");
 
 		return this;
 	}

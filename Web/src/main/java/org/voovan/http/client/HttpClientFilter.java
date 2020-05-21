@@ -9,6 +9,7 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
+import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.log.Logger;
@@ -25,6 +26,7 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class HttpClientFilter implements IoFilter {
+	private static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
 
 	private HttpClient httpClient;
 
@@ -67,7 +69,9 @@ public class HttpClientFilter implements IoFilter {
 						httpClient.initWebSocket();
 					}
 
-					return new Response().copyFrom(response);
+					Response threadResponse = THREAD_RESPONSE.get();
+					threadResponse.clear();
+					return threadResponse.copyFrom(response);
 				}
 			}
 		}catch(Exception e) {
