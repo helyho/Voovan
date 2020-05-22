@@ -93,7 +93,7 @@ public class HttpResponse extends Response {
 
 	public HttpResponse getAsyncResponse() {
 		this.setAsync(true);
-		HttpResponse httpResponse = new HttpResponse(characterSet, socketSession);
+		HttpResponse httpResponse = new HttpResponse();
 		httpResponse.copyFrom(this);
 
 		return httpResponse;
