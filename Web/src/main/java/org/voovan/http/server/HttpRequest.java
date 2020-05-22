@@ -484,10 +484,17 @@ public class HttpRequest extends Request {
 		}
 	}
 
+
 	public HttpRequest copyFrom(HttpRequest request) {
+		return copyFrom(request, false);
+	}
+
+	public HttpRequest copyFrom(HttpRequest request, boolean useForSend) {
 		super.copyFrom(request);
-		this.setSocketSession(request.getSocketSession());
-		this.setSessionManager(request.getSessionManager());
+		if(!useForSend) {
+			this.setSocketSession(request.getSocketSession());
+			this.setSessionManager(request.getSessionManager());
+		}
 		this.parameters.putAll(request.getParameters());
 		this.attributes.putAll(request.getAttributes());
 		this.setCharacterSet(request.getCharacterSet());
