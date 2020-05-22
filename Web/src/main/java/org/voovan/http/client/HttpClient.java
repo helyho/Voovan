@@ -531,15 +531,16 @@ public class HttpClient extends PooledObject implements Closeable{
 			socket.getSession().socketContext().handler(synchronousHandler);
 		}
 
+		//异步模式更新 handler
+		if(async != null) {
+			asyncHandler.setAsync(async);
+			socket.handler(asyncHandler);
+		}
+
 		//发送报文
 		try {
-			//异步模式更新 handler
-			if(async != null) {
-				asyncHandler.setAsync(async);
-				socket.handler(asyncHandler);
-			}
 			httpRequest.send(socket.getSession());
-			httpRequest.flush();
+			socket.getSession().flush();
 		} catch (Exception e) {
 			throw new SendMessageException("HttpClient writeToChannel error", e);
 		}
