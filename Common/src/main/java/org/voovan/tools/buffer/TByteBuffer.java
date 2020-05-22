@@ -56,7 +56,7 @@ public class TByteBuffer {
     }
 
     public static Map<String, Long> getByteBufferAnalysis() {
-       return TObject.asMap("MallocSize", TString.formatBytes(MALLOC_SIZE.longValue()),
+       return TObject.asMap("Time", TDateTime.now(), "MallocSize", TString.formatBytes(MALLOC_SIZE.longValue()),
                "MallocCount", MALLOC_COUNT.longValue(),
                "ByteBufferCount", BYTE_BUFFER_COUNT.longValue());
     }
