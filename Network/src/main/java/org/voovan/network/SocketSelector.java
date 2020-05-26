@@ -404,20 +404,21 @@ public class SocketSelector implements Closeable {
 			byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
 		}
 
-		ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+		int readSize = -1;
 
-		if(byteBufferChannel.isReleased()) {
-			return -1;
+		if(!byteBufferChannel.isReleased()) {
+
+			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+
+			//如果有历史数据则从历史数据尾部开始写入
+			byteBuffer.position(byteBuffer.limit());
+			byteBuffer.limit(byteBuffer.capacity());
+
+			readSize = socketChannel.read(byteBuffer);
+
+			byteBuffer.flip();
+			byteBufferChannel.compact();
 		}
-
-		//如果有历史数据则从历史数据尾部开始写入
-		byteBuffer.position(byteBuffer.limit());
-		byteBuffer.limit(byteBuffer.capacity());
-
-		int readSize = socketChannel.read(byteBuffer);
-
-		byteBuffer.flip();
-		byteBufferChannel.compact();
 
 		readSize = loadAndPrepare(socketContext.getSession(), readSize);
 		return readSize;
@@ -477,7 +478,7 @@ public class SocketSelector implements Closeable {
 	 * @throws IOException IO 异
 	 */
 	public int udpReadFromChannel(SocketContext<DatagramChannel, UdpSession> socketContext, DatagramChannel datagramChannel) throws IOException {
-		int readSize = -1;
+
 
 		if (!datagramChannel.isConnected()) {
 			socketContext = (UdpSocket) udpAccept((UdpServerSocket) socketContext, datagramChannel, null);
@@ -493,24 +494,25 @@ public class SocketSelector implements Closeable {
 			byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
 		}
 
-		if(byteBufferChannel.isReleased()) {
-			return -1;
-		}
+		int readSize = -1;
+
+		if(!byteBufferChannel.isReleased()) {
 
 			//如果有历史数据则从历史数据尾部开始写入
-		byteBuffer.position(byteBuffer.limit());
-		byteBuffer.limit(byteBuffer.capacity());
+			byteBuffer.position(byteBuffer.limit());
+			byteBuffer.limit(byteBuffer.capacity());
 
-		if (!datagramChannel.isConnected()) {
-			SocketAddress socketAddress = datagramChannel.receive(byteBuffer);
-			session.setInetSocketAddress((InetSocketAddress) socketAddress);
-			readSize = byteBuffer.position();
-		} else {
-			readSize = datagramChannel.read(byteBuffer);
+			if (!datagramChannel.isConnected()) {
+				SocketAddress socketAddress = datagramChannel.receive(byteBuffer);
+				session.setInetSocketAddress((InetSocketAddress) socketAddress);
+				readSize = byteBuffer.position();
+			} else {
+				readSize = datagramChannel.read(byteBuffer);
+			}
+
+			byteBuffer.flip();
+			byteBufferChannel.compact();
 		}
-
-		byteBuffer.flip();
-		byteBufferChannel.compact();
 
 		readSize = loadAndPrepare(socketContext.getSession(), readSize);
 
@@ -563,7 +565,6 @@ public class SocketSelector implements Closeable {
 	 * @throws IOException IO 异常
 	 */
 	public int loadAndPrepare(IoSession session, int readSize) throws IOException {
-		ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
 
 		// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
 		if (MessageLoader.isStreamEnd(readSize) || !session.isConnected()) {
@@ -571,7 +572,7 @@ public class SocketSelector implements Closeable {
 			session.close();
 			return -1;
 		} else {
-
+			ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
 
 			if (readSize > 0) {
 				if(session.isSSLMode()) {

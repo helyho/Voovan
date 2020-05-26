@@ -62,16 +62,15 @@ public class HttpClientFilter implements IoFilter {
 				if(WebServerHandler.getAttachment(session).isWebSocket()){
 					return WebSocketFrame.parse((ByteBuffer)object);
 				}else {
-					Response response = HttpParser.parseResponse(session, byteBufferChannel, session.socketContext().getReadTimeout());
+					Response response = HttpParser.parseResponse(THREAD_RESPONSE.get(), session, byteBufferChannel, session.socketContext().getReadTimeout());
+
 
 					if(response.protocol().getStatus() == 101){
 						//初始化 WebSocket
 						httpClient.initWebSocket();
 					}
 
-					Response threadResponse = THREAD_RESPONSE.get();
-					threadResponse.clear();
-					return threadResponse.copyFrom(response);
+					return response;
 				}
 			}
 		}catch(Exception e) {

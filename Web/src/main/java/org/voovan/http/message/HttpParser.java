@@ -877,9 +877,21 @@ public class HttpParser {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Request parseRequest(IoSession session, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException {
-		boolean isCache = WebContext.isCache();
+		return parseRequest(THREAD_REQUEST.get(), session, byteBufferChannel, timeOut, requestMaxSize);
+	}
 
-		Request request = null;
+	/**
+	 * 解析报文成 HttpRequest 对象
+	 * @param session socket 会话对象
+	 * @param byteBufferChannel  输入字节流
+	 * @param timeOut 读取超时时间参数
+	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
+	 * @return   返回请求报文
+	 * @throws IOException IO 异常
+	 */
+	@SuppressWarnings("unchecked")
+	public static Request parseRequest(Request request, IoSession session, ByteBufferChannel byteBufferChannel, int timeOut, long requestMaxSize) throws IOException {
+		boolean isCache = WebContext.isCache();
 
 		Object[] packetMap = THREAD_PACKET_MAP.get();
 		packetMap = parser(session, packetMap, PARSER_TYPE_REQUEST, byteBufferChannel, timeOut, requestMaxSize);
@@ -889,7 +901,6 @@ public class HttpParser {
 			return null;
 		}
 
-		request = THREAD_REQUEST.get();
 		request.clear();
 
 		//是否使用的时缓存的数据
@@ -1007,6 +1018,21 @@ public class HttpParser {
 	 */
 	@SuppressWarnings("unchecked")
 	public static Response parseResponse(IoSession session, ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
+		return parseResponse(THREAD_RESPONSE.get(), session, byteBufferChannel, timeOut);
+
+	}
+
+	/**
+	 * 解析报文成 HttpResponse 对象
+	 * @param response Resposne 响应对象
+	 * @param session socket 会话对象
+	 * @param byteBufferChannel  输入字节流
+	 * @param timeOut 读取超时时间参数
+	 * @return   返回响应报文
+	 * @throws IOException IO 异常
+	 */
+	@SuppressWarnings("unchecked")
+	public static Response parseResponse(Response response, IoSession session, ByteBufferChannel byteBufferChannel, int timeOut) throws IOException {
 		Object[] packetMap = THREAD_PACKET_MAP.get();
 		packetMap = parser(session, packetMap, PARSER_TYPE_RESPONSE, byteBufferChannel, timeOut, -1);
 
@@ -1015,7 +1041,6 @@ public class HttpParser {
 			return null;
 		}
 
-		Response response = THREAD_RESPONSE.get();
 		response.clear();
 		boolean bodyFlag = false;
 
