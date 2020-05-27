@@ -241,9 +241,12 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
                 }
 
             } else if (getSupplier() != null) {
-                createCache(timeMark.getKey(), supplier, timeMark.getExpireTime());
-                timeMark.refresh(true);
-                return false;
+                if(createCache(timeMark.getKey(), supplier, timeMark.getExpireTime())) {
+                    timeMark.refresh(true);
+                    return false;
+                } else {
+                    return true;
+                }
             }
 
             return true;
@@ -252,16 +255,16 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
         return false;
     }
 
-    private void createCache(K key, Function<K, V> supplier, Long createExpire){
+    private boolean createCache(K key, Function<K, V> supplier, Long createExpire){
         if(supplier==null){
-            return;
+            return false;
         }
 
         try {
             V value = supplier.apply(key);
             if(value == null) {
-                cacheMark.remove(key);
-                return;
+                remove(key);
+                return false;
             }
 
             if(expire==Long.MAX_VALUE) {
@@ -269,8 +272,11 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
             } else {
                 this.put(key, value, createExpire);
             }
+
+            return true;
         } catch (Exception e){
             Logger.error("Create with supplier failed: ", e);
+            return false;
         }
 
     }
@@ -296,9 +302,10 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
             synchronized (cacheMark) {
                 timeMark = cacheMark.get(key);
                 if(timeMark==null) {
-                    createCache((K) key, appointedSupplier, createExpire);
-                    timeMark = new TimeMark(this, key, createExpire);
-                    cacheMark.put((K) key, timeMark);
+                    if(createCache((K) key, appointedSupplier, createExpire)) {
+                        timeMark = new TimeMark(this, key, createExpire);
+                        cacheMark.put((K) key, timeMark);
+                    }
                 }
             }
         } else {
