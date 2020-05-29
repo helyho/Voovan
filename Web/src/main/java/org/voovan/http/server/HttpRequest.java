@@ -504,4 +504,14 @@ public class HttpRequest extends Request {
 		}
 		return this;
 	}
+
+	public void clear() {
+		super.clear();
+		session = null;
+		characterSet = null;
+		attributes.clear();
+		parameters.clear();
+		sessionManager = null;
+		socketSession = null;
+	}
 }
