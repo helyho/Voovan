@@ -1,5 +1,5 @@
 #!/bin/sh
-VOOVAN_VERSION=4.2.4
+VOOVAN_VERSION=4.2.5
 
 jlink --no-header-files --no-man-pages --compress=2 --strip-debug --module-path $JAVA_HOME/jmods \
  --add-modules java.base,java.compiler,java.instrument,java.management,java.sql,jdk.attach,jdk.unsupported \

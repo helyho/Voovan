@@ -38,7 +38,7 @@ public @interface Router {
 
     /**
      * Content-Type 配置
-     * @return
+     * @return HttpContentType 枚举
      */
     HttpContentType contentType() default HttpContentType.TEXT;
 

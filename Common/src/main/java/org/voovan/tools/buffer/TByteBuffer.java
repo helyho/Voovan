@@ -536,7 +536,7 @@ public class TByteBuffer {
     /**
      * 设置内存地址
      * @param byteBuffer bytebuffer 对象
-     * @param address 内存地址
+     * @param capacity 容量
      * @throws ReflectiveOperationException 反射异常
      */
     public static void setCapacity(ByteBuffer byteBuffer, int capacity) throws ReflectiveOperationException {
