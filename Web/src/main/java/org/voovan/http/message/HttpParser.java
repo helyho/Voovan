@@ -173,9 +173,9 @@ public class HttpParser {
 
 	/**
 	 * 处理消息的Cookie
-	 * @param packetMap         报文 MAp 对象
-	 * @param cookieName        Http 头中 Cookie 报文行
-	 * @param cookieValue        Http 头中 Cookie 报文行
+	 * @param cookies           Cookie 保存集合
+	 * @param cookieType        Cookie 类型 0: request, 1: response
+	 * @param cookieValue       Cookie 数据
 	 */
 	@SuppressWarnings("unchecked")
 	public static void parseCookie(List<Cookie> cookies, int cookieType, String cookieValue){
@@ -882,6 +882,7 @@ public class HttpParser {
 
 	/**
 	 * 解析报文成 HttpRequest 对象
+	 * @param request 请求对象
 	 * @param session socket 会话对象
 	 * @param byteBufferChannel  输入字节流
 	 * @param timeOut 读取超时时间参数

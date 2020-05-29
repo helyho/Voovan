@@ -46,10 +46,13 @@ public class AnnotationRouter implements HttpRouter {
 
     /**
      * 构造函数
+     * @param annotationModule AnnotationModule 对象
      * @param clazz   Class对象
      * @param method  方法对象
      * @param classRouter 类上的 Route 注解
      * @param methodRoute 方法上的 Route 注解
+     * @param urlPath url 路径
+     * @param paramPath 带参数的 url 路径
      */
     public AnnotationRouter(AnnotationModule annotationModule, Class clazz, Method method, Router classRouter, Router methodRoute, String urlPath, String paramPath) {
         this.annotationModule = annotationModule;
@@ -109,7 +112,7 @@ public class AnnotationRouter implements HttpRouter {
     /**
      * 扫描包含Router注解的类
      *
-     * @param httpModule   AnnotationModule对象用于注册路由
+     * @param annotationModule   AnnotationModule对象用于注册路由
      */
     public static void scanRouterClassAndRegister(AnnotationModule annotationModule) {
         int routeMethodNum = 0;

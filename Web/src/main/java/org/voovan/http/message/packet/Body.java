@@ -121,7 +121,6 @@ public class Body {
 
 	/**
 	 * 转换成字节形式
-	 * @param content 字节内容
 	 */
 	public void changeToBytes() {
 		if(byteBufferChannel == null || byteBufferChannel.isReleased()){
@@ -297,7 +296,7 @@ public class Body {
 
 	/**
 	 * 写入 body 对象, 自动转换为 json,默认 UTF-8
-	 * @param content body 字符串
+	 * @param obj body 对象
 	 */
 	public void writeObject(Object obj){
 		write(JSON.toJSON(obj),"UTF-8");
@@ -305,10 +304,10 @@ public class Body {
 
 	/**
 	 * 写入 body 字符串 自动转换为 json
-	 * @param content body 字符串
+	 * @param obj body 对象
 	 * @param charset 字符集
 	 */
-	public void writeObject(Object obj,String charset){
+	public void writeObject(Object obj, String charset){
 		write(JSON.toJSON(obj),charset);
 	}
 

@@ -91,9 +91,7 @@ public class EventProcess {
      *
      * @param event
      *            事件对象
-     * @param recursionDepth 递归深度控制
      * @throws IOException  IO 异常
-     * @throws TimeoutException IoFilter 异常
      */
     public static void onRead(Event event) throws IOException {
         IoSession session = event.getSession();
