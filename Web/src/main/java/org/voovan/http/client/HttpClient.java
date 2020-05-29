@@ -25,6 +25,7 @@ import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.network.tcp.TcpSocket;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.PooledObject;
 
@@ -305,8 +306,32 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @return  HttpClient 对象
 	 */
 	public HttpClient setData(String data){
+		return setData(null, data, charset);
+	}
+
+	/**
+	 * 设置请求内容
+	 * @param contentType  ContentType 类型
+	 * @param data 请求内容
+	 * @return  HttpClient 对象
+	 */
+	public HttpClient setData(String contentType, String data){
+		return setData(null, data, charset);
+	}
+
+	/**
+	 * 设置请求内容
+     * @param contentType  ContentType 类型
+	 * @param data 请求内容
+	 * @param  charset 字符集
+	 * @return  HttpClient 对象
+	 */
+	public HttpClient setData(String contentType, String data, String charset){
 		if(data!=null) {
-			httpRequest.body().write(data);
+			if(contentType!=null) {
+				httpRequest.header().put("Content-Type", contentType);
+			}
+			httpRequest.body().write(data, charset);
 		}
 		return this;
 	}
@@ -317,12 +342,19 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @param  charset 字符集
 	 * @return  HttpClient 对象
 	 */
-	public HttpClient setData(String data, String charset){
-		if(data!=null) {
-			httpRequest.body().write(data, charset);
-		}
-		return this;
+	public HttpClient setJsonData(Object data, String charset){
+		return setData("application/json", JSON.toJSON(data), charset);
 	}
+
+	/**
+	 * 设置请求内容
+	 * @param data 请求内容
+	 * @return  HttpClient 对象
+	 */
+	public HttpClient setJsonData(Object data){
+		return setData("application/json", JSON.toJSON(data), charset);
+	}
+
 
 	/**
 	 * 获取请求头集合
@@ -619,10 +651,9 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		//清理请求对象,以便下次请求使用
 		parameters.clear();
-		httpRequest.protocol().clear();
-		httpRequest.header().clear();
-		httpRequest.body().clear();
-		httpRequest.parts().clear();
+		List<Cookie> cookies = httpRequest.cookies();
+		httpRequest.clear();
+		httpRequest.cookies().addAll(cookies);
 
 		//重新初始化 Header
 		initHeader();
