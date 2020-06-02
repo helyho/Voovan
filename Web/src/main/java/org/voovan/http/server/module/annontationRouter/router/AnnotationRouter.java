@@ -231,36 +231,39 @@ public class AnnotationRouter implements HttpRouter {
                                             AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method,
                                                     annonClassRouter, annonMethodRouter, routePath, paramPath);
 
+                                            String routeLog = null;
+
                                             //1.注册路由, 处理不带参数的路由
-                                            if (paramPath.isEmpty()) {
-                                                routePath = HttpDispatcher.fixRoutePath(routePath);
-                                                String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routePath);
-                                                //判断路由是否注册过
-                                                if (!routerMaps.containsKey(moduleRoutePath)) {
-                                                    //注册路由,不带路径参数的路由
-                                                    annotationModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                                    Logger.simple("[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
-                                                            "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
-                                                            moduleRoutePath);
-                                                    routeMethodNum++;
-                                                }
+                                            routePath = HttpDispatcher.fixRoutePath(routePath);
+                                            String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routePath);
+                                            //判断路由是否注册过
+                                            if (!routerMaps.containsKey(moduleRoutePath)) {
+                                                //注册路由,不带路径参数的路由
+                                                annotationModule.otherMethod(routeMethod, routePath, annotationRouter);
+                                                routeLog = "[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
+                                                        "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
+                                                        moduleRoutePath;
+                                                routeMethodNum++;
                                             }
 
                                             //2.注册路由,带路径参数的路由
-                                            else {
+                                            if(!paramPath.isEmpty()) {
                                                 String routeParamPath = null;
                                                 routeParamPath = routePath + paramPath;
                                                 routeParamPath = HttpDispatcher.fixRoutePath(routeParamPath);
-                                                String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routeParamPath);
+                                                String moduleRouteParamPath = HttpDispatcher.fixRoutePath(modulePath + routeParamPath);
 
                                                 if (!routerMaps.containsKey(moduleRoutePath)) {
                                                     annotationModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
 
-                                                    Logger.simple("[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
+                                                    routeLog = "[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
                                                             "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
-                                                            moduleRoutePath);
-                                                    routeMethodNum++;
+                                                            moduleRouteParamPath;
                                                 }
+                                            }
+
+                                            if(routeLog!=null) {
+                                                Logger.simple(routeLog);
                                             }
                                         }
                                     }
@@ -269,6 +272,7 @@ public class AnnotationRouter implements HttpRouter {
                         }
                     }
                 }
+
                 //查找包含 WebSocket 注解的类
                 List<Class> webSocketClasses = TEnv.searchClassInEnv(annotationModule.getScanRouterPackage(), new Class[]{WebSocket.class});
                 for (Class webSocketClass : webSocketClasses) {
