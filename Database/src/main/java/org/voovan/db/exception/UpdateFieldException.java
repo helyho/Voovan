@@ -10,7 +10,7 @@ import java.sql.SQLException;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class UpdateFieldException extends SQLException {
+public class UpdateFieldException extends RuntimeException {
 
     private static final long	serialVersionUID	= 1L;
 
@@ -26,6 +26,4 @@ public class UpdateFieldException extends SQLException {
     public UpdateFieldException(Exception e){
         this.setStackTrace(e.getStackTrace());
     }
-
-
 }

@@ -155,6 +155,7 @@ public class Recorder {
 
     /**
      * 更新操作
+     *      如果 Query 中的 data.length == 0 则更新所有非 null 的属性
      * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
      * @param query 查询条件
@@ -175,6 +176,7 @@ public class Recorder {
 
     /**
      * 更新操作
+     *      如果 Query 中的 data.length == 0, 更新对象中所有非 null 的属性, 但不包括主键
      * @param obj 数据 ORM 对象
      * @param query 查询条件
      * @param <T> 范型类型
@@ -186,6 +188,7 @@ public class Recorder {
 
     /**
      * 更新操作
+     *      更新对象中所有非 null 的属性, 但不包括主键
      * @param tableName 指定的表名
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
@@ -197,6 +200,7 @@ public class Recorder {
 
     /**
      * 更新操作
+     *      更新对象中所有非 null 的属性, 但不包括主键
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数

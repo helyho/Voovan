@@ -48,10 +48,19 @@ public class Dao<T extends Dao> {
     @NotSerialization
     private transient Map<String, Object> snapshot;
 
+    /**
+     * 获取 JdbcOperate
+     * @return JdbcOperate 对象
+     */
     public JdbcOperate getJdbcOperate() {
         return jdbcOperate;
     }
 
+    /**
+     * 设置 JdbcOperate
+     * @param jdbcOperate JdbcOperate 对象
+     * @return  当前 Dao 对象
+     */
     public T setJdbcOperate(JdbcOperate jdbcOperate) {
         if(jdbcOperate == null) {
             throw new RecorderException("JdbcOperate must not null");
@@ -63,10 +72,19 @@ public class Dao<T extends Dao> {
         return (T) this;
     }
 
+    /**
+     * 获取 Recorder 对象
+     * @return Recorder 对象
+     */
     public Recorder getRecorder() {
         return recorder;
     }
 
+    /**
+     * 设置 Recorder 对象
+     * @param recorder Recorder 对象
+     * @return  当前 Dao 对象
+     */
     public T setRecorder(Recorder recorder) {
         if(recorder == null) {
             throw new RecorderException("Recorder must not null");
@@ -77,6 +95,10 @@ public class Dao<T extends Dao> {
         return (T) this;
     }
 
+    /**
+     * 创建快照
+     * @return
+     */
     public T snapshot() {
         try {
             snapshot = TReflect.getMapfromObject(this, true);
@@ -86,6 +108,10 @@ public class Dao<T extends Dao> {
         }
     }
 
+    /**
+     * 和快照对比找出发生变更的对象属性
+     * @return 发生变更的对象属性
+     */
     private String[] getModifyField() {
         try {
             Map<String, Object> current = TReflect.getMapfromObject(this, true);
@@ -111,7 +137,10 @@ public class Dao<T extends Dao> {
         }
     }
 
-
+    /**
+     * 插入数据
+     * @return 影响1行返回 true, 否则返回 false
+     */
     public boolean insert() {
         try {
             if (recorder.insert((T)this) == 1) {
@@ -133,6 +162,13 @@ public class Dao<T extends Dao> {
         }
     }
 
+    /**
+     * 使用主键更新指定的对象属性
+     * @param fieldDatas 对象属性名称
+     * @param andFields 更新记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @param effectRow  影响的行数
+     * @return 影响的行数于effectRow相等返回true, 否则返回false
+     */
     public boolean update(String[] dataFields, String[] andFields, int effectRow) {
         try {
             Query query = Query.newInstance().data(dataFields).and(andFields);
@@ -154,26 +190,73 @@ public class Dao<T extends Dao> {
         }
     }
 
+    /**
+     * 使用主键更新指定的对象属性
+     * @param fieldDatas 对象属性名称
+     * @param effectRow  影响的行数
+     * @return 影响的行数于effectRow相等返回true, 否则返回false
+     */
     public boolean update(String[] dataFields, int effectRow) {
         return update(dataFields, null, effectRow);
     }
 
+    /**
+     * 使用主键更新 dataFields 指定的所有属性, 但不包括主键
+     * @param dataFields 指定需要更新的属性
+     * @return 影响1行返回 true, 否则返回 false
+     */
     public boolean update(String ... dataFields) {
         return update(dataFields, 1);
     }
 
+    /**
+     * 使用主键更新对象中所有非 null 的属性, 但不包括主键
+     * @param effectRow 影响的行数
+     * @return 影响的行数于effectRow相等返回true, 否则返回false
+     */
     public boolean update(int effectRow) {
         return update(null, effectRow);
     }
 
+    /**
+     * 如果有快照则使用主键根据对象变更的属性更新记录
+     * @return 影响1行返回 true, 否则返回 false
+     */
     public boolean update() {
         if(snapshot !=null) {
-            return update(getModifyField());
+            String[]  updateFields = getModifyField();
+            boolean ret = update(updateFields);
+
+            try {
+                if(!ret) {
+                    for(String fieldName: updateFields) {
+
+                        java.lang.reflect.Field field = TReflect.findField(this.getClass(), fieldName);
+
+                        if (field != null) {
+
+                            TReflect.setFieldValue(this, fieldName, TReflect.getFieldValue(snapshot,fieldName));
+
+                        } else {
+                            throw new UpdateFieldException("Dao.updateField failed rollback " + fieldName + " failed");
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                throw new UpdateFieldException(e);
+            }
+            return ret;
+
         } else {
             return update(new String[0]);
         }
     }
 
+    /**
+     * 使用主键更新的更新回调方法, 在 modifyFunction 中进行对象的属性更新
+     * @param modifyFunction 对象属性更新 lambda
+     * @return 影响1行返回 true, 否则返回 false
+     */
     public boolean update(Consumer modifyFunction) {
         this.snapshot();
         modifyFunction.accept(this);
@@ -181,15 +264,33 @@ public class Dao<T extends Dao> {
     }
 
 
-    public boolean updateField(Map<String, Object> fieldDatas, int effectRow) throws UpdateFieldException {
+    /**
+     * 使用主键更新指定的对象属性
+     * @param fieldDatas 对象属性 {对象属性, 对象属性值}
+     * @param effectRow  影响的行数
+     * @return 影响的行数于effectRow相等返回true, 否则返回false
+     */
+    public boolean updateField(Map<String, Object> fieldDatas, int effectRow) {
         return updateField(fieldDatas, null, effectRow);
     }
 
-    public boolean updateField(Map<String, Object> fieldDatas) throws UpdateFieldException {
+    /**
+     * 使用主键更新指定的对象属性
+     * @param fieldDatas 对象属性 {对象属性, 对象属性值}
+     * @return 影响1行返回 true, 否则返回 false
+     */
+    public boolean updateField(Map<String, Object> fieldDatas) {
         return updateField(fieldDatas, 1);
     }
 
-    public boolean updateField(Map<String, Object> fieldDatas, String[] andFields, int effectRow) throws UpdateFieldException {
+    /**
+     * 更新指定的对象属性
+     * @param fieldDatas 对象属性 {对象属性, 对象属性值}
+     * @param andFields 更新记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @param effectRow  影响的行数
+     * @return 影响的行数于effectRow相等返回true, 否则返回false
+     */
+    public boolean updateField(Map<String, Object> fieldDatas, String[] andFields, int effectRow) {
         try {
             for(Map.Entry<String, Object> fieldData : fieldDatas.entrySet()) {
                 String fieldName = fieldData.getKey();
@@ -219,6 +320,14 @@ public class Dao<T extends Dao> {
         }
     }
 
+    /**
+     * 使用对象模型查询数据
+     * @param dataFields select 和 from 之间作为数据返回的属性
+     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @param pageNum  分页页号
+     * @param pageSize 分页单页大小
+     * @return 查询的结果集
+     */
     public List<T> query(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
         Query query = Query.newInstance().data(dataFields).and(andFields);
         pageNum = pageNum == null ? -1 : pageNum;
@@ -242,18 +351,40 @@ public class Dao<T extends Dao> {
 
     }
 
+    /**
+     * 使用对象模型查询数据, 返回所有的属性
+     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @param pageNum  分页页号
+     * @param pageSize 分页单页大小
+     * @return 查询的结果集
+     */
     public List<T> query(String[] andFields, Integer pageNum, Integer pageSize) {
         return query(null, andFields, pageNum, pageSize);
     }
 
+    /**
+     * 使用对象模型查询数据
+     * @param dataFields select 和 from 之间作为数据返回的属性
+     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @return 查询的结果集
+     */
     public List<T> query(String[] dataFields, String[] andFields) {
         return query(dataFields, andFields, null, null);
     }
 
+    /**
+     * 使用对象模型查询数据, 返回所有的属性
+     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @return 查询的结果集
+     */
     public List<T> query(String ... andFields) {
         return query(null, andFields, null, null);
     }
 
+    /**
+     * 使用对象模型查询数据,在 modifyFunction 中进行对象的属性进行查询, 返回所有的属性
+     * @return 查询的结果集
+     */
     public List<T> query() {
         if(snapshot !=null) {
             return query(null, getModifyField(), null, null);
@@ -262,6 +393,14 @@ public class Dao<T extends Dao> {
         }
     }
 
+    /**
+     * 使用对象模型查询一条数据
+     * @param dataFields select 和 from 之间作为数据返回的属性
+     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @param pageNum  分页页号
+     * @param pageSize 分页单页大小
+     * @return 查询的结果
+     */
     public T queryOne(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
         Query query = Query.newInstance().data(dataFields).and(andFields);
         pageNum = pageNum == null ? -1 : pageNum;
@@ -296,18 +435,29 @@ public class Dao<T extends Dao> {
         }
     }
 
-    public T queryOne(String[] andFields, Integer pageNum, Integer pageSize) {
-        return queryOne(null, andFields, pageNum, pageSize);
-    }
-
+    /**
+     * 使用对象模型查询一条数据
+     * @param dataFields select 和 from 之间作为数据返回的属性
+     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @return 查询的结果
+     */
     public List<T> queryOne(String[] dataFields, String[] andFields) {
         return query(dataFields, andFields, null, null);
     }
 
+    /**
+     * 使用对象模型查询一条数据
+     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @return 查询的结果
+     */
     public T queryOne(String ... andFields) {
         return queryOne(null, andFields, null, null);
     }
 
+    /**
+     * 使用对象模型查询数据,在 modifyFunction 中进行对象的属性进行查询, 返回所有的属性
+     * @return 查询的结果集
+     */
     public T queryOne() {
         if(snapshot !=null) {
             return queryOne(null, getModifyField(), null, null);
@@ -316,6 +466,14 @@ public class Dao<T extends Dao> {
         }
     }
 
+    /**
+     * 使用自定义查询数据单条数据
+     * @param dataSql select 和 from 之间的 sql 语句
+     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @param clazz 查询返回的对象类型
+     * @param <R> 范型
+     * @return 查询的结果
+     */
     public <R> R customQuery(String dataSql, String[] andFields, Class<R> clazz) {
         Query query = Query.newInstance().and(andFields);
         try {
@@ -333,6 +491,13 @@ public class Dao<T extends Dao> {
         }
     }
 
+    /**
+     * 使用自定义查询数据单条数据
+     * @param dataSql select 和 from 之间的 sql 语句
+     * @param clazz 查询返回的对象类型
+     * @param <R> 范型
+     * @return 查询的结果
+     */
     public <R> R customQuery(String dataSql, Class<R> clazz) {
         if(snapshot !=null) {
             return customQuery(dataSql, getModifyField(), clazz);
@@ -341,6 +506,12 @@ public class Dao<T extends Dao> {
         }
     }
 
+    /**
+     * 删除指定的数据
+     * @param andFields 删除记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @param effectRow  影响的行数
+     * @return 影响的行数于effectRow相等返回true, 否则返回false
+     */
     public boolean delete(String[] andFields, int effectRow) {
         Query query = Query.newInstance().and(andFields);
 
@@ -363,10 +534,20 @@ public class Dao<T extends Dao> {
         }
     }
 
+    /**
+     * 删除指定的数据
+     * @param andFields 删除记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @param effectRow  影响的行数
+     * @return 影响1行返回 true, 否则返回 false
+     */
     public boolean delete(String ... andFields) {
         return delete(andFields, 1);
     }
 
+    /**
+     * 如果有快照则使用主键根据对象变更的属性作为条件删除数据
+     * @return 影响1行返回 true, 否则返回 false
+     */
     public boolean delete() {
         if(snapshot !=null) {
             return delete(getModifyField());
