@@ -65,8 +65,8 @@ public class Dao<T extends Dao> {
         if(jdbcOperate == null) {
             throw new RecorderException("JdbcOperate must not null");
         }
+
         this.recorder = new Recorder(jdbcOperate);
-        jdbcOperate.setTranscationType(TranscationType.ALONE);
         this.jdbcOperate = jdbcOperate;
 
         return (T) this;
@@ -144,19 +144,11 @@ public class Dao<T extends Dao> {
     public boolean insert() {
         try {
             if (recorder.insert((T)this) == 1) {
-                recorder.getJdbcOperate().commit();
                 return true;
             } else {
-                recorder.getJdbcOperate().rollback();
                 return false;
             }
         } catch (Exception e) {
-            try {
-                recorder.getJdbcOperate().rollback();
-            } catch (SQLException throwables) {
-                Logger.error("Dao.update exception rollback failed", e);
-            }
-
             Logger.error("Dao.update failed", e);
             return false;
         }
@@ -173,18 +165,11 @@ public class Dao<T extends Dao> {
         try {
             Query query = Query.newInstance().data(dataFields).and(andFields);
             if (recorder.update((T) this, query) == effectRow) {
-                recorder.getJdbcOperate().commit();
                 return true;
             } else {
-                recorder.getJdbcOperate().rollback();
                 return false;
             }
         } catch (Exception e) {
-            try {
-                recorder.getJdbcOperate().rollback();
-            } catch (SQLException throwables) {
-                Logger.error("Dao.update exception rollback failed", e);
-            }
             Logger.error("Dao.update failed", e);
             return false;
         }
@@ -337,14 +322,8 @@ public class Dao<T extends Dao> {
         try {
 
             List<T> ret = recorder.query((T)this, query);
-            recorder.getJdbcOperate().commit();
             return ret;
         } catch (Exception e) {
-            try {
-                recorder.getJdbcOperate().rollback();
-            } catch (SQLException throwables) {
-                Logger.error("Dao.queryOne exception rollback failed", e);
-            }
             Logger.error("Dao.queryOne failed", e);
             return null;
         }
@@ -421,15 +400,8 @@ public class Dao<T extends Dao> {
                 ret = results.get(0);
             }
 
-            recorder.getJdbcOperate().commit();
-
             return ret;
         } catch (Exception e) {
-            try {
-                recorder.getJdbcOperate().rollback();
-            } catch (SQLException throwables) {
-                Logger.error("Dao.queryOne exception rollback failed", e);
-            }
             Logger.error("Dao.queryOne failed", e);
             return null;
         }
@@ -478,14 +450,8 @@ public class Dao<T extends Dao> {
         Query query = Query.newInstance().and(andFields);
         try {
             R ret = recorder.customQuery(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
-            recorder.getJdbcOperate().commit();
             return ret;
         } catch (Exception e) {
-            try {
-                recorder.getJdbcOperate().rollback();
-            } catch (SQLException throwables) {
-                Logger.error("Dao.customQuery exception rollback failed", e);
-            }
             Logger.error("Dao.customQuery failed", e);
             return null;
         }
@@ -517,18 +483,11 @@ public class Dao<T extends Dao> {
 
         try {
             if (recorder.delete((T)this, query) == effectRow) {
-                recorder.getJdbcOperate().commit();
                 return true;
             } else {
-                recorder.getJdbcOperate().rollback();
                 return false;
             }
         } catch (Exception e) {
-            try {
-                recorder.getJdbcOperate().rollback();
-            } catch (SQLException throwables) {
-                Logger.error("Dao.update exception rollback failed", e);
-            }
             Logger.error("Dao.update failed", e);
             return false;
         }
