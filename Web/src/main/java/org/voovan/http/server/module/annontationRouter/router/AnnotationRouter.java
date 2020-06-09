@@ -566,7 +566,7 @@ public class AnnotationRouter implements HttpRouter {
             }
         }
 
-        if (responseObj != null) {
+        if (responseObj != null && response.body().size() == 0) {
             if (responseObj instanceof String) {
                 response.write((String) responseObj);
             } else if (responseObj instanceof byte[]) {
