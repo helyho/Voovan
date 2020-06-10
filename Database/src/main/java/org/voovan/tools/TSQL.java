@@ -363,13 +363,18 @@ public class TSQL {
 									replaceCondiction = NOT_EQUAL_CONDICTION;
 								}
 								//从原查询条件, 生成替换用的查询条件, 这样可以保留原查询条件种的 ( 或 )
+								originCondictionParams = originCondictionParams.replaceAll("\\(", "\\\\(");
+								originCondictionParams = originCondictionParams.replaceAll("\\)", "\\\\)");
+								originCondictionParams = originCondictionParams.replaceAll("\\[", "\\\\[");
+								originCondictionParams = originCondictionParams.replaceAll("\\]", "\\\\]");
+								originCondictionParams = originCondictionParams.replaceAll("\\+", "\\\\+");
+								originCondictionParams = originCondictionParams.replaceAll("\\*", "\\\\*");
+
 								String targetCondiction = condictionName + "\\s*" + operatorChar + "\\s*" + originCondictionParams;
-								targetCondiction = targetCondiction.replaceAll("\\(", "\\\\(");
-								targetCondiction = targetCondiction.replaceAll("\\)", "\\\\)");
-								targetCondiction = targetCondiction.replaceAll("\\[", "\\\\[");
-								targetCondiction = targetCondiction.replaceAll("\\]", "\\\\]");
-								targetCondiction = targetCondiction.replaceAll("\\+", "\\\\+");
-								replaceCondiction = TString.fastReplaceAll(orginCondiction, targetCondiction , replaceCondiction);
+
+								replaceCondiction = TString.fastReplaceAll(orginCondiction, targetCondiction , replaceCondiction, true);
+
+								break;
 							}
 						}
 					}
@@ -385,7 +390,9 @@ public class TSQL {
 						originCondictionParams = originCondictionParams.replaceAll("\\[", "\\\\[");
 						originCondictionParams = originCondictionParams.replaceAll("\\]", "\\\\]");
 						originCondictionParams = originCondictionParams.replaceAll("\\+", "\\\\+");
-						replaceCondiction = TString.fastReplaceAll(replaceCondiction, originCondictionParams, condictionParams);
+						originCondictionParams = originCondictionParams.replaceAll("\\*", "\\\\*");
+
+						replaceCondiction = TString.fastReplaceAll(replaceCondiction, originCondictionParams, condictionParams, true);
 					}
 
 					sqlText = sqlText.replace(orginCondiction, replaceCondiction);
@@ -427,12 +434,12 @@ public class TSQL {
 				String condiction = sqlCondictions[i];
 
 				//如果包含 ) 并且不在字符串中, 则移除后面的内容, 防止解析出 1=1) m2, gggg m3  导致替换问题
-				if (condiction.indexOf("(") < condiction.indexOf(")") && TString.searchByRegex(condiction, "[\\\"`'].*?\\).*?[\\\"`']").length == 0) {
-					int indexClosePair = condiction.lastIndexOf(")");
-					if (indexClosePair != -1) {
-						condiction = condiction.substring(0, indexClosePair + 1);
-					}
-				}
+//				if (condiction.indexOf("(") < condiction.lastIndexOf(")") && TString.searchByRegex(condiction, "[\\\"`'].*?\\).*?[\\\"`']").length == 0) {
+//					int indexClosePair = condiction.lastIndexOf(")");
+//					if (indexClosePair != -1) {
+//						condiction = condiction.substring(0, indexClosePair + 1);
+//					}
+//				}
 
 				//between 则拼接下一段
 				if (TString.regexMatch(condiction, "\\sbetween\\s") > 0) {

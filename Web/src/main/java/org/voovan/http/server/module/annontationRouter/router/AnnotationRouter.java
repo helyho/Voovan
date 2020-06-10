@@ -415,13 +415,13 @@ public class AnnotationRouter implements HttpRouter {
                 }
 
                 //请求的头
-                if (annotation instanceof Head) {
-                    String headName = ((Head) annotation).value();
+                if (annotation instanceof Header) {
+                    String headName = ((Header) annotation).value();
                     try {
                         params[i] = TString.toObject(request.header().get(headName), parameterTypes[i], true);
                         continue;
                     } catch (Exception e) {
-                        if(((Head) annotation).isRequire()) {
+                        if(((Header) annotation).isRequire()) {
                             throw new AnnotationRouterException("Router annotation @Head [" + headName + " = " + params[i] + "] error, data: " + request.header().toString(), e);
                         }
                     }

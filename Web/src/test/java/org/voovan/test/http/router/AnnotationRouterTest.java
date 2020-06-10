@@ -79,7 +79,7 @@ public class AnnotationRouterTest {
     //当前方法的请求路由为:/annon/head,采用方法名作为路由的路径
     //将head中名为 Connection 的属性在调用时注入成方法的 aa 参数
     @Router
-    public String head(@Head("Connection") String aa){
+    public String head(@Header("Connection") String aa){
         String oldPath = lastPath;
         lastPath = "/annon/head, time:" + System.currentTimeMillis();
         return "head: " + aa+ ", lastPath="+oldPath;
