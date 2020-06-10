@@ -162,6 +162,7 @@ public class HttpClient extends PooledObject implements Closeable{
 					socket.setSSLManager(sslManager);
 				} catch (NoSuchAlgorithmException e) {
 					Logger.error(e);
+					throw new HttpClientException("HttpClient inti SSL failed:",e);
 				}
 			}
 
