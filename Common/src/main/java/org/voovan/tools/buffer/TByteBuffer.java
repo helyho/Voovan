@@ -347,6 +347,8 @@ public class TByteBuffer {
                             try {
                                 synchronized (byteBuffer) {
                                     TUnsafe.getUnsafe().freeMemory(address);
+                                    byteBuffer.position(0);
+                                    byteBuffer.limit(0);
                                     setAddress(byteBuffer, 0);
                                     free(byteBuffer.capacity());
                                 }
