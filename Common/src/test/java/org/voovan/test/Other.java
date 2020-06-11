@@ -36,18 +36,6 @@ public class Other {
     private int orange = 10;
 
     public static void main(String[] args) throws Exception {
-       String xx = "{\n" +
-               "  \"userId\": 666,\n" +
-               "  \"userId\": 666,\n" +
-               "  \"userId\": 666,\n" +
-               "  \"userId\": null,\n" +
-               "  \"accountName\": \"Default\",\n" +
-               "  \"type\": 0,\n" +
-               "  \"userId\": \"666\",\n" +
-               "  \"userId\": null\n" +
-               "}";
-        Logger.error(xx, new RuntimeException());
-
-        TEnv.sleep(100);
+        System.out.println(new String(new byte[]{87,101,98,45,73,79,45,56}));
     }
 }

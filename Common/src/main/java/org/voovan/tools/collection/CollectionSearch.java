@@ -65,15 +65,21 @@ public class CollectionSearch<T> {
         return this;
     }
 
+    public CollectionSearch addCondition(String field, Object value) {
+        addCondition(field, value, false);
+        return this;
+    }
+
     /**
      * 增加一个筛选条件
      *
      * @param field 被筛选字段
      * @param value 筛选的值
+     *  @param valNotNull true: value==null 时不添加此条件, false: 无论如何添加此条件
      * @return CollectionSearch 对象
      */
-    public CollectionSearch addCondition(String field, Object value) {
-        searchStep.put((step++) + "_Condition", TObject.asMap("field", field, "value", value, "operate", Operate.EQUAL));
+    public CollectionSearch addCondition(String field, Object value, boolean valNotNull) {
+        addCondition(field, Operate.EQUAL, value, valNotNull);
         return this;
     }
 
@@ -86,7 +92,23 @@ public class CollectionSearch<T> {
      * @return CollectionSearch 对象
      */
     public CollectionSearch addCondition(String field, Operate operate, Object value) {
-        searchStep.put((step++) + "_Condition", TObject.asMap("field", field, "value", value, "operate", operate));
+        addCondition(field, operate, value, false);
+        return this;
+    }
+
+    /**
+     * 增加一个筛选条件
+     *
+     * @param field 被筛选字段
+     * @param operate 操作符美居
+     * @param value 筛选的值
+     * @param valNotNull true: value==null 时不添加此条件, false: 无论如何添加此条件
+     * @return CollectionSearch 对象
+     */
+    public CollectionSearch addCondition(String field, Operate operate, Object value, boolean valNotNull) {
+        if(!valNotNull || (valNotNull && value!=null)) {
+            searchStep.put((step++) + "_Condition", TObject.asMap("field", field, "value", value, "operate", operate));
+        }
         return this;
     }
 
