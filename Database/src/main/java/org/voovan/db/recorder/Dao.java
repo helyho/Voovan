@@ -97,7 +97,7 @@ public class Dao<T extends Dao> {
 
     /**
      * 创建快照
-     * @return
+     * @return 当前 Dao 对象
      */
     public T snapshot() {
         try {
@@ -156,7 +156,7 @@ public class Dao<T extends Dao> {
 
     /**
      * 使用主键更新指定的对象属性
-     * @param fieldDatas 对象属性名称
+     * @param dataFields 对象属性名称
      * @param andFields 更新记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
      * @param effectRow  影响的行数
      * @return 影响的行数于effectRow相等返回true, 否则返回false
@@ -177,7 +177,7 @@ public class Dao<T extends Dao> {
 
     /**
      * 使用主键更新指定的对象属性
-     * @param fieldDatas 对象属性名称
+     * @param dataFields 对象属性名称
      * @param effectRow  影响的行数
      * @return 影响的行数于effectRow相等返回true, 否则返回false
      */
@@ -496,7 +496,6 @@ public class Dao<T extends Dao> {
     /**
      * 删除指定的数据
      * @param andFields 删除记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
-     * @param effectRow  影响的行数
      * @return 影响1行返回 true, 否则返回 false
      */
     public boolean delete(String ... andFields) {
