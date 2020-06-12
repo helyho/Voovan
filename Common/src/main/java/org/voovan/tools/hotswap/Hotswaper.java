@@ -161,11 +161,11 @@ public class Hotswaper {
      * @throws ClassNotFoundException Class未找到异常
      */
     public static void reloadClass(Map<Class, byte[]> clazzDefines) throws UnmodifiableClassException, ClassNotFoundException {
-        List<ClassDefinition> classDefinitions = new ArrayList<ClassDefinition>();
 
         for(Map.Entry<Class, byte[]> clazzDefine : clazzDefines.entrySet()){
             Class clazz = clazzDefine.getKey();
             byte[] classBytes = clazzDefine.getValue();
+
             ClassDefinition classDefinition = new ClassDefinition(clazz, classBytes);
             try {
                 Logger.info("[HOTSWAP] class:" + clazz + " will reload.");
@@ -173,7 +173,6 @@ public class Hotswaper {
             } catch (Exception e) {
                 Logger.error("[HOTSWAP] class:" + clazz + " reload failed", e);
             }
-            classDefinitions.add(classDefinition);
         }
     }
 
@@ -190,7 +189,6 @@ public class Hotswaper {
         }
 
         reloadClass(classDefines);
-        classDefines.clear();
     }
 
     /**

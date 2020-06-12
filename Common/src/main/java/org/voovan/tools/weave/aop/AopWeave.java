@@ -6,6 +6,7 @@ import org.voovan.Global;
 import org.voovan.tools.TString;
 import org.voovan.tools.collection.CollectionSearch;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.weave.Weave;
 import org.voovan.tools.weave.WeaveUtils;
 import org.voovan.tools.weave.aop.annotation.*;
 
@@ -210,57 +211,60 @@ public class AopWeave {
      * @throws IOException IO 异常
      * @throws ClassNotFoundException 类未找到异常
      */
-    public static void scanAopClass(String scanPackage) throws IOException, ClassNotFoundException {
-        System.out.println("[AOP] Scan from package: " + scanPackage);
-        List<CtClass> CtClasses = WeaveUtils.searchCtClassInJavassist(scanPackage);
+    public static void scanAopClass(String scanPackages) throws IOException, ClassNotFoundException {
 
-        for(CtClass clazz : CtClasses) {
-            Annotation annotation = (Annotation) clazz.getAnnotation(Aop.class);
-            if(annotation==null){
-                continue;
-            }
+        for (String scanPackage : scanPackages.split(",")) {
+            System.out.println("[AOP] Scan from package: " + scanPackage);
+            List<CtClass> CtClasses = WeaveUtils.searchCtClassInJavassist(scanPackage);
 
-            CtMethod[] methods = clazz.getDeclaredMethods();
-            for(CtMethod cutPointMethod : methods){
-                Before onBefore = (Before) cutPointMethod.getAnnotation(Before.class);
-                After onAfter = (After)cutPointMethod.getAnnotation(After.class);
-                Abnormal onAbnormal = (Abnormal)cutPointMethod.getAnnotation(Abnormal.class);
-                Around onAround = (Around)cutPointMethod.getAnnotation(Around.class);
-
-                if(onBefore!=null){
-                    CutPointInfo cutPointInfo = CutPointInfo.parse(onBefore.value());
-                    cutPointInfo.setType(-1);
-                    cutPointInfo.setCutPointMethod(cutPointMethod);
-                    cutPointInfo.setInterceptLambda(onBefore.lambda());
-                    CUT_POINTINFO_LIST.add(cutPointInfo);
-                    System.out.println("[AOP] Add cutpoint: " + JSON.toJSON(cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName()));
+            for (CtClass clazz : CtClasses) {
+                Annotation annotation = (Annotation) clazz.getAnnotation(Aop.class);
+                if (annotation == null) {
+                    continue;
                 }
 
-                if(onAfter!=null){
-                    CutPointInfo cutPointInfo = CutPointInfo.parse(onAfter.value());
-                    cutPointInfo.setType(1);
-                    cutPointInfo.setCutPointMethod(cutPointMethod);
-                    cutPointInfo.setInterceptLambda(onAfter.lambda());
-                    CUT_POINTINFO_LIST.add(cutPointInfo);
-                    System.out.println("[AOP] Add cutpoint: " + JSON.toJSON(cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName()));
-                }
+                CtMethod[] methods = clazz.getDeclaredMethods();
+                for (CtMethod cutPointMethod : methods) {
+                    Before onBefore = (Before) cutPointMethod.getAnnotation(Before.class);
+                    After onAfter = (After) cutPointMethod.getAnnotation(After.class);
+                    Abnormal onAbnormal = (Abnormal) cutPointMethod.getAnnotation(Abnormal.class);
+                    Around onAround = (Around) cutPointMethod.getAnnotation(Around.class);
 
-                if(onAbnormal !=null){
-                    CutPointInfo cutPointInfo = CutPointInfo.parse(onAbnormal.value());
-                    cutPointInfo.setType(2);
-                    cutPointInfo.setCutPointMethod(cutPointMethod);
-                    cutPointInfo.setInterceptLambda(onAbnormal.lambda());
-                    CUT_POINTINFO_LIST.add(cutPointInfo);
-                    System.out.println("[AOP] Add cutpoint: " + JSON.toJSON(cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName()));
-                }
+                    if (onBefore != null) {
+                        CutPointInfo cutPointInfo = CutPointInfo.parse(onBefore.value());
+                        cutPointInfo.setType(-1);
+                        cutPointInfo.setCutPointMethod(cutPointMethod);
+                        cutPointInfo.setInterceptLambda(onBefore.lambda());
+                        CUT_POINTINFO_LIST.add(cutPointInfo);
+                        System.out.println("[AOP] Add cutpoint: " + JSON.toJSON(cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName()));
+                    }
 
-                if(onAround !=null){
-                    CutPointInfo cutPointInfo = CutPointInfo.parse(onAround.value());
-                    cutPointInfo.setType(3);
-                    cutPointInfo.setCutPointMethod(cutPointMethod);
-                    cutPointInfo.setInterceptLambda(onAround.lambda());
-                    CUT_POINTINFO_LIST.add(cutPointInfo);
-                    System.out.println("[AOP] Add cutpoint: " + JSON.toJSON(cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName()));
+                    if (onAfter != null) {
+                        CutPointInfo cutPointInfo = CutPointInfo.parse(onAfter.value());
+                        cutPointInfo.setType(1);
+                        cutPointInfo.setCutPointMethod(cutPointMethod);
+                        cutPointInfo.setInterceptLambda(onAfter.lambda());
+                        CUT_POINTINFO_LIST.add(cutPointInfo);
+                        System.out.println("[AOP] Add cutpoint: " + JSON.toJSON(cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName()));
+                    }
+
+                    if (onAbnormal != null) {
+                        CutPointInfo cutPointInfo = CutPointInfo.parse(onAbnormal.value());
+                        cutPointInfo.setType(2);
+                        cutPointInfo.setCutPointMethod(cutPointMethod);
+                        cutPointInfo.setInterceptLambda(onAbnormal.lambda());
+                        CUT_POINTINFO_LIST.add(cutPointInfo);
+                        System.out.println("[AOP] Add cutpoint: " + JSON.toJSON(cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName()));
+                    }
+
+                    if (onAround != null) {
+                        CutPointInfo cutPointInfo = CutPointInfo.parse(onAround.value());
+                        cutPointInfo.setType(3);
+                        cutPointInfo.setCutPointMethod(cutPointMethod);
+                        cutPointInfo.setInterceptLambda(onAround.lambda());
+                        CUT_POINTINFO_LIST.add(cutPointInfo);
+                        System.out.println("[AOP] Add cutpoint: " + JSON.toJSON(cutPointInfo.getClazzName() + "@" + cutPointInfo.getMethodName()));
+                    }
                 }
             }
         }

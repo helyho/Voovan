@@ -1,8 +1,5 @@
 package org.voovan.tools.weave;
 
-import com.sun.tools.attach.AgentInitializationException;
-import com.sun.tools.attach.AgentLoadException;
-import com.sun.tools.attach.AttachNotSupportedException;
 import javassist.*;
 import org.voovan.tools.exception.WeaveException;
 import org.voovan.tools.weave.aop.AopWeave;
@@ -11,7 +8,6 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.annotation.PooledObject;
 import org.voovan.tools.reflect.TReflect;
 
-import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
@@ -26,8 +22,6 @@ import java.security.ProtectionDomain;
  * Licence: Apache v2 License
  */
 public class Weave {
-    private static Instrumentation instrumentation;
-
     /**
      * 构造函数
      * @param weaveConfig Aop配置对象
@@ -38,12 +32,10 @@ public class Weave {
         }
 
         try {
-            //扫描带有 Aop 的切点方法
-            for (String scanPackage : weaveConfig.getScan().split(",")) {
-                AopWeave.scanAopClass(scanPackage);
-            }
+            // 扫描带有 Aop 的切点方法
+            AopWeave.scanAopClass(weaveConfig.getScan());
 
-            instrumentation = TEnv.agentAttach(weaveConfig.getAgent());
+            Instrumentation instrumentation = TEnv.agentAttach(weaveConfig.getAgent());
             if (instrumentation != null) {
                 instrumentation.addTransformer(new ClassFileTransformer() {
                     @Override
@@ -56,9 +48,9 @@ public class Weave {
                         }
                     }
                 });
-                Logger.info("[AOP] Enable aop success ");
+                Logger.info("[AOP] Weave init success");
             } else {
-                Logger.error("[AOP] Enable aop failed ");
+                Logger.error("[AOP] Weave init failed, instrumentation is null");
             }
         } catch (Exception e) {
             throw new WeaveException("Weave init failed", e);
@@ -82,13 +74,21 @@ public class Weave {
         }
 
         try {
-            CtClass wavedClass = AopWeave.weave(ctClass);
 
-            classfileBuffer = wavedClass == null ? classfileBuffer : wavedClass.toBytecode();
+            //AOP 织入
+            {
+                CtClass wavedClass = AopWeave.weave(ctClass);
 
-            wavedClass = wrapPoolObject(ctClass);
+                classfileBuffer = wavedClass == null ? classfileBuffer : wavedClass.toBytecode();
+            }
 
-            classfileBuffer = wavedClass == null ? classfileBuffer : wavedClass.toBytecode();
+            //ObjectPool 织入
+            {
+                CtClass wavedClass = wrapPoolObject(ctClass);
+
+                classfileBuffer = wavedClass == null ? classfileBuffer : wavedClass.toBytecode();
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -107,18 +107,21 @@ public class Weave {
                 ctClass.defrost();
 
                 CtClass poolBaseCtClass = WeaveUtils.getCtClass("org.voovan.tools.pool.IPooledObject");
+                //增加接口
                 ctClass.addInterface(poolBaseCtClass);
 
                 CtField ctField = CtField.make("private long poolObjectId;", ctClass);
                 ctClass.addField(ctField);
 
                 for(CtMethod method : poolBaseCtClass.getDeclaredMethods()) {
+                    // 方法 getPoolObjectId
                     if(method.getName().equals("getPoolObjectId")) {
                         CtMethod newMethod = CtNewMethod.copy(method, ctClass, null);
                         newMethod.setBody("{return poolObjectId;}");
                         ctClass.addMethod(newMethod);
                     }
 
+                    // 方法 setPoolObjectId
                     if(method.getName().equals("setPoolObjectId")) {
                         CtMethod newMethod = CtNewMethod.copy(method, ctClass, null);
                         newMethod.setBody("{poolObjectId = $1;}");
