@@ -33,6 +33,8 @@ public class JSONEncodeUnit extends TestCase {
 
 		String jsonStr = JSONEncode.fromObject(testObject);
 
+		System.out.println(jsonStr);
+
 		jsonStr = JSON.removeNullNode(jsonStr);
 		testObject.getList().remove(null);
 		testObject.getList().remove(null);

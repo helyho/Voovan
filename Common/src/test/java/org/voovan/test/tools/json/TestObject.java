@@ -1,5 +1,8 @@
 package org.voovan.test.tools.json;
 
+import org.voovan.tools.reflect.annotation.Serialization;
+import org.voovan.tools.reflect.convert.StringConvert;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Objects;
