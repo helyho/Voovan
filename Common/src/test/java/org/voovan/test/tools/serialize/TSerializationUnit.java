@@ -19,7 +19,7 @@ import java.util.Vector;
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */
-public class TSerializeUnit extends TestCase {
+public class TSerializationUnit extends TestCase {
 
     public static void testJSON() throws ParseException, ReflectiveOperationException {
         TestObject m = new TestObject();

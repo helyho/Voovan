@@ -1,9 +1,11 @@
 package org.voovan.tools.reflect.annotation;
 
+import org.voovan.tools.reflect.convert.Convert;
+
 import java.lang.annotation.*;
 
 /**
- * getMapFromObject 讲不处理被注解的字段
+ * getMapFromObject 将不处理被注解的字段
  *
  * @author helyho
  * <p>
@@ -14,6 +16,8 @@ import java.lang.annotation.*;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.TYPE})
-public @interface Serialize {
+public @interface Serialization {
     String value() default "";
+    String name() default "";
+    Class<? extends Convert> convert() default Convert.class;
 }
