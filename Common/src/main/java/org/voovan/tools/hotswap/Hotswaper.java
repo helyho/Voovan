@@ -167,11 +167,14 @@ public class Hotswaper {
             Class clazz = clazzDefine.getKey();
             byte[] classBytes = clazzDefine.getValue();
             ClassDefinition classDefinition = new ClassDefinition(clazz, classBytes);
-            Logger.info("[HOTSWAP] class:" + clazz + " will reload.");
+            try {
+                Logger.info("[HOTSWAP] class:" + clazz + " will reload.");
+                TEnv.instrumentation.redefineClasses(classDefinition);
+            } catch (Exception e) {
+                Logger.error("[HOTSWAP] class:" + clazz + " reload failed", e);
+            }
             classDefinitions.add(classDefinition);
         }
-
-        TEnv.instrumentation.redefineClasses(classDefinitions.toArray(new ClassDefinition[0]));
     }
 
     /**
@@ -187,7 +190,7 @@ public class Hotswaper {
         }
 
         reloadClass(classDefines);
-
+        classDefines.clear();
     }
 
     /**
