@@ -29,13 +29,13 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class WebServerFilter implements IoFilter {
-	public final static LongKeyMap<ByteBuffer> RESPONSE_CACHE = new LongKeyMap<ByteBuffer>(4096);
+	public final static LongKeyMap<ByteBuffer> RESPONSE_MAP = new LongKeyMap<ByteBuffer>(4096);
 
 	static {
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 			@Override
 			public void run() {
-				RESPONSE_CACHE.clear();
+				RESPONSE_MAP.clear();
 			}
 		}, 1);
 	}
@@ -53,7 +53,7 @@ public class WebServerFilter implements IoFilter {
 				if(!httpResponse.isAsync()) {
 					Long mark = httpResponse.getMark();
                     if (WebContext.isCache() && mark!=null) {
-						ByteBuffer cacheBytes = RESPONSE_CACHE.get(mark);
+						ByteBuffer cacheBytes = RESPONSE_MAP.get(mark);
 
 
                         if (cacheBytes == null) {
@@ -64,7 +64,7 @@ public class WebServerFilter implements IoFilter {
                             if (size == 0) {
                                 cacheBytes = ByteBuffer.allocateDirect(sendByteBufferChannel.size());
 								sendByteBufferChannel.get(cacheBytes);
-                                RESPONSE_CACHE.put(mark, cacheBytes);
+                                RESPONSE_MAP.put(mark, cacheBytes);
                             }
                         } else {
                             session.send(cacheBytes.duplicate());

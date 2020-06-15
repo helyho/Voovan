@@ -31,6 +31,7 @@ public class ByteBufferChannel {
     private volatile long address = 0;
     private Unsafe unsafe = TUnsafe.getUnsafe();
     private ByteBuffer byteBuffer;
+    private int capacity;
     private int size;
     private ReentrantLock lock;
     private AtomicBoolean borrowed = new AtomicBoolean(false);
@@ -74,6 +75,16 @@ public class ByteBufferChannel {
     }
 
     /**
+     * 更换内部的 ByteBuffer 为新的 ByteBuffer
+     * @return 旧的 ByteBuffer
+     */
+    public ByteBuffer newBuffer() {
+        ByteBuffer oldByteBuffer = this.byteBuffer;
+        init(capacity);
+        return oldByteBuffer;
+    }
+
+    /**
      * 初始化函数
      * @param capacity 初始分配的容量, 会自动扩容到 maxSize 的大小, 如果容量不够抛出异常
      */
@@ -82,6 +93,7 @@ public class ByteBufferChannel {
         this.byteBuffer = newByteBuffer(capacity);
         byteBuffer.limit(0);
         resetAddress();
+        this.capacity = capacity;
         this.size = 0;
         this.maxSize = maxSize < capacity ? capacity : maxSize;
     }

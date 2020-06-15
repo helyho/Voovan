@@ -10,7 +10,6 @@ import org.voovan.network.IoSession;
 import org.voovan.tools.*;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
-import org.voovan.tools.collection.LongKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
@@ -58,7 +57,7 @@ public class HttpParser {
 	private final static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
 	private final static FastThreadLocal<byte[]> THREAD_BYTE_ARRAY = FastThreadLocal.withInitial(()->new byte[1024]);
 
-	private final static ConcurrentHashMap<Long, Object[]> PACKET_MAP_CACHE = new ConcurrentHashMap<Long, Object[]>();
+	private final static ConcurrentHashMap<Long, Object[]> PARSED_PACKET_MAP = new ConcurrentHashMap<Long, Object[]>();
 
 	public static final int PARSER_TYPE_REQUEST = 0;
 	public static final int PARSER_TYPE_RESPONSE = 1;
@@ -67,7 +66,7 @@ public class HttpParser {
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 			@Override
 			public void run() {
-				PACKET_MAP_CACHE.clear();
+				PARSED_PACKET_MAP.clear();
 			}
 		}, 60);
 	}
@@ -527,7 +526,7 @@ public class HttpParser {
 
 					//检查缓存是否存在,并获取
 					if (isCache) {
-						for (Entry<Long, Object[]> packetMapCacheItem : PACKET_MAP_CACHE.entrySet()) {
+						for (Entry<Long, Object[]> packetMapCacheItem : PARSED_PACKET_MAP.entrySet()) {
 							long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
 							long totalLengthInMark = cachedMark & 0x00000000FFFFFFFFL; //高位清空, 获得整个头的长度
 
@@ -576,7 +575,7 @@ public class HttpParser {
 						Object[] cachedPacketMap = Arrays.copyOf(packetMap, packetMap.length);
 						cachedPacketMap[CACHE_FLAG] =  1;
 
-						PACKET_MAP_CACHE.put(mark, cachedPacketMap);
+						PARSED_PACKET_MAP.put(mark, cachedPacketMap);
 					}
 				}
 

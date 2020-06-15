@@ -1,5 +1,6 @@
 package org.voovan.tools;
 
+import com.sun.istack.internal.NotNull;
 import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
@@ -677,8 +678,13 @@ public class TEnv {
 		System.out.println(msg + " " + measure(runnable)/(timeUnit.toNanos(1)*1f));
 	}
 
-	public static <T> T getSystemProperty(String propertyName, T defVal) {
+	public static <T> T getSystemProperty(String propertyName, @NotNull T defVal) {
 		String value = System.getProperty(propertyName);
-		return value == null ? defVal : (defVal==null ? null : TString.toObject(value, defVal.getClass()));
+		return value == null ? defVal : TString.toObject(value, defVal.getClass());
+	}
+
+	public static <T> T getSystemProperty(String propertyName, Class clazz) {
+		String value = System.getProperty(propertyName);
+		return value == null ? null : TString.toObject(value, clazz);
 	}
 }

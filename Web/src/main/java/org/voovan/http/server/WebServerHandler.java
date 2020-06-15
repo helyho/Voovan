@@ -328,7 +328,7 @@ public class WebServerHandler implements IoHandler {
 
 			//判断解包是否有错
 			if(webSocketFrame.getErrorCode()==0){
-				ByteBuffer byteBuffer =byteBufferChannel.getByteBuffer();
+				ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 				try {
 					respWebSocketFrame = webSocketDispatcher.fireReceivedEvent(session, reqWebSocket, byteBuffer);
 				} finally {

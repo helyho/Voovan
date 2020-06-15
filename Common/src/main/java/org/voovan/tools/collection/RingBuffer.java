@@ -84,7 +84,7 @@ public class RingBuffer<T> {
 	 *
 	 * @return true: 缓冲区无可用数据, false: 缓冲区有可用数据
 	 */
-	private Boolean isEmpty() {
+	public Boolean isEmpty() {
 		return size == 0;
 	}
 
@@ -93,7 +93,7 @@ public class RingBuffer<T> {
 	 *
 	 * @return true: 缓冲区已满, false: 缓冲区未满
 	 */
-	private Boolean isFull() {
+	public Boolean isFull() {
 		return size == capacity;
 	}
 
