@@ -50,7 +50,7 @@ public class AnnotationModule extends HttpModule {
     public AnnotationRouterFilter getAnnotationRouterFilter(){
         if(annotationRouterFilter == null) {
             try {
-                annotationRouterFilter = TReflect.newInstance(getParamters("filter").toString());
+                annotationRouterFilter = TReflect.newInstance(getParamters("Filter").toString());
             } catch (Exception e) {
                 annotationRouterFilter = AnnotationRouterFilter.EMPYT;
             }

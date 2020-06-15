@@ -49,4 +49,38 @@ public @interface Router {
      * @return true: 单例模式, false: 非单例模式
      */
     boolean singleton() default true;
+
+    //-------------- API 文档相关属性 --------------
+    /**
+     * 标签
+     * @return 标签数组
+     */
+    String[] tags() default {};
+
+    /**
+     * 接口功能简述
+     * @return 接口功能简述
+     */
+    String summary() default "";
+
+    /**
+     * 接口功能详细说明
+     * @return 接口功能详细说明
+     */
+    String description() default "";
+
+    /**
+     * 接口是否已经被废弃，默认是false。
+     *
+     * @return true: 废弃, false: 可用
+     */
+    boolean deprecated() default false;
+
+    /**
+     * 是否隐藏接口。
+     *
+     * @return true: 隐藏不可展示, false: 可展示
+     */
+    boolean hide() default false;
+
 }

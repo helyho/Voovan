@@ -25,4 +25,23 @@ public @interface WebSocket {
      * @return 默认路径
      */
     String value() default "";
+
+    //-------------- API 文档相关属性 --------------
+    /**
+     * 标签
+     * @return 标签数组
+     */
+    String[] tags() default {};
+
+    /**
+     * 接口功能简述
+     * @return 接口功能简述
+     */
+    String summary() default "";
+
+    /**
+     * 接口功能详细说明
+     * @return 接口功能详细说明
+     */
+    String description() default "";
 }

@@ -76,7 +76,7 @@ public class Logger {
 		custom(logLevel, msg, null);
 	}
 
-	public static void custom(String logLevel, Exception e) {
+	public static void custom(String logLevel, Throwable e) {
 		custom(logLevel, null, e);
 	}
 
@@ -137,7 +137,7 @@ public class Logger {
 		customf("WARN", msg, args);
 	}
 
-	public static void warn(Exception e) {
+	public static void warn(Throwable e) {
 		custom("WARN", null, e);
 	}
 
@@ -158,7 +158,7 @@ public class Logger {
 		customf("ERROR", msg, args);
 	}
 
-	public static void error(Exception e) {
+	public static void error(Throwable e) {
 		custom("ERROR", e);
 	}
 

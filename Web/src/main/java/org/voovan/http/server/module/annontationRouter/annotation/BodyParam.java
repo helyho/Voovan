@@ -16,4 +16,11 @@ import java.lang.annotation.*;
 public @interface BodyParam {
     String value() default "";
     boolean isRequire() default true;
+
+    //-------------- API 文档相关属性 --------------
+    /**
+     * 参数说明
+     * @return  参数说明
+     */
+    String description() default "";
 }

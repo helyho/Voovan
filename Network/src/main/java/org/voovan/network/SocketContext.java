@@ -28,10 +28,10 @@ import java.nio.channels.SelectableChannel;
  */
 public abstract class SocketContext<C extends SelectableChannel, S extends IoSession> extends PooledObject {
     //================================线程管理===============================
-	public static int 		ACCEPT_THREAD_SIZE 	= TEnv.getSystemProperty("AcceptThreadSize", 1);
-	public static int 		IO_THREAD_SIZE 		= TEnv.getSystemProperty("IoThreadSize", TPerformance.getProcessorCount()+1);
-	public final static int 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 100);
-	public final static Boolean 	CHECK_TIMEOUT  = TEnv.getSystemProperty("CheckTimeout", null);
+	public static int 		ACCEPT_THREAD_SIZE       	= TEnv.getSystemProperty("AcceptThreadSize", 1);
+	public static int 		IO_THREAD_SIZE 			    = TEnv.getSystemProperty("IoThreadSize", TPerformance.getProcessorCount()+1);
+	public final static int 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 1000);
+	public final static Boolean 	CHECK_TIMEOUT  		= TEnv.getSystemProperty("CheckTimeout", Boolean.class);
 	public final static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
 	public final static boolean 	ASYNC_RECIVE 	    = TEnv.getSystemProperty("AsyncRecive", true);
 

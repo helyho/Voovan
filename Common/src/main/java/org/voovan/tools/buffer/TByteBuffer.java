@@ -329,38 +329,36 @@ public class TByteBuffer {
             return;
         }
 
-        try {
-            if (byteBuffer != null) {
-                long address = getAddress(byteBuffer);
-                Object att = getAtt(byteBuffer);
-                if (address!=0 && att!=null && att.getClass() == Deallocator.class) {
-                    if(address!=0) {
-                        byteBuffer.clear();
+        if (byteBuffer != null) {
 
-                        if(byteBuffer.capacity() > DEFAULT_BYTE_BUFFER_SIZE){
-                            reallocate(byteBuffer, DEFAULT_BYTE_BUFFER_SIZE);
-                        }
+            if(THREAD_BYTE_BUFFER_POOL.getPool().avaliable() > 0 &&
+                    byteBuffer.capacity() > DEFAULT_BYTE_BUFFER_SIZE){
+                reallocate(byteBuffer, DEFAULT_BYTE_BUFFER_SIZE);
+            }
 
-                        THREAD_BYTE_BUFFER_POOL.release(byteBuffer, (buffer)->{
+            THREAD_BYTE_BUFFER_POOL.release(byteBuffer, (buffer)->{
+                try {
+                    long address = TByteBuffer.getAddress(byteBuffer);
+                    Object att = getAtt(byteBuffer);
+                    if (address!=0 && att!=null && att.getClass() == Deallocator.class) {
+                        if(address!=0) {
+                            byteBuffer.clear();
 
                             //这里不使用传入的参数, 需要复用上面代码获得的地址
-                            try {
-                                synchronized (byteBuffer) {
-                                    TUnsafe.getUnsafe().freeMemory(address);
-                                    byteBuffer.position(0);
-                                    byteBuffer.limit(0);
-                                    setAddress(byteBuffer, 0);
-                                    free(byteBuffer.capacity());
-                                }
-                            } catch (ReflectiveOperationException e) {
-                                Logger.error(e);
+                            synchronized (byteBuffer) {
+                                TUnsafe.getUnsafe().freeMemory(address);
+                                byteBuffer.position(0);
+                                byteBuffer.limit(0);
+                                setAddress(byteBuffer, 0);
+                                free(byteBuffer.capacity());
                             }
-                        });
+
+                        }
                     }
+                } catch (ReflectiveOperationException e) {
+                    Logger.error(e);
                 }
-            }
-        } catch (ReflectiveOperationException e) {
-            Logger.error(e);
+            });
         }
     }
 
