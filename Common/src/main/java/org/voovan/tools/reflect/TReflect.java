@@ -9,6 +9,7 @@ import org.voovan.tools.reflect.annotation.NotSerialization;
 import org.voovan.tools.reflect.annotation.Serialization;
 import org.voovan.tools.reflect.convert.Convert;
 import org.voovan.tools.security.THash;
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -595,6 +596,52 @@ public class TReflect {
     }
 
     /**
+     * 获取类型的范型类型信息
+     * @param type 类型对象
+     * @return GenericInfo[] 范型类型信息
+     */
+    public static GenericInfo[] getGenericInfo(Type type) {
+        if(type == null) {
+            return null;
+        }
+
+        ParameterizedType parameterizedType = null;
+        if(type instanceof ParameterizedType) {
+            parameterizedType = (ParameterizedType) type;
+        }
+
+        if(parameterizedType==null){
+            return null;
+        }
+        Type[] actualType = parameterizedType.getActualTypeArguments();
+        GenericInfo[] result = new GenericInfo[actualType.length];
+
+        for(int i=0;i<actualType.length;i++){
+            Type oneType = actualType[i];
+
+            if(oneType instanceof Class){
+                result[i] = new GenericInfo((Class)oneType, null);
+            } else if(type instanceof ParameterizedType){
+                result[i] = new GenericInfo(((ParameterizedTypeImpl)oneType).getRawType(), oneType);
+            } else {
+                result[i] = new GenericInfo(null, oneType);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 获取类型的范型类型信息
+     * @param genericInfo GenericInfo 对象
+     * @return GenericInfo[] 范型类型信息
+     */
+    public static GenericInfo[] getGenericInfo(GenericInfo genericInfo) {
+       return getGenericInfo(genericInfo.getType());
+    }
+
+
+    /**
      * 获取类型的范型类型
      * @param type 类型对象
      * @return Class[] 对象
@@ -609,27 +656,25 @@ public class TReflect {
             return null;
         }
 
-        Class[] result = null;
         Type[] actualType = parameterizedType.getActualTypeArguments();
-        result = new Class[actualType.length];
+        Class[] result = new Class[actualType.length];
 
         for(int i=0;i<actualType.length;i++){
-            if(actualType[i] instanceof Class){
-                result[i] = (Class)actualType[i];
-            } else if(actualType[i] instanceof Type){
-                String classStr = actualType[i].toString();
-                classStr = TString.fastReplaceAll(classStr, "<.*>", "");
-                try {
-                    result[i] = Class.forName(classStr);
-                } catch(Exception e){
-                    result[i] = Object.class;
-                }
-            } else{
-                result[i] = Object.class;
+            Type oneType = actualType[i];
+
+            if(oneType instanceof Class){
+                result[i] = (Class)oneType;
+            } else if(type instanceof ParameterizedType){
+                result[i] = ((ParameterizedTypeImpl)oneType).getRawType();
+            } else {
+                result[i] = null;
             }
         }
+
         return result;
     }
+
+
     /**
      * 获取对象的范型类型
      * @param object 对象
