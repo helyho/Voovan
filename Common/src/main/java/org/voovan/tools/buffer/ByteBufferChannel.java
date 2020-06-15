@@ -506,7 +506,7 @@ public class ByteBufferChannel {
 
         try {
             checkRelease();
-             int length = srcByteBuffer.remaining();
+            int length = srcByteBuffer.remaining();
 
             if(size()==0){
                 return 0;
@@ -742,7 +742,27 @@ public class ByteBufferChannel {
                     size = size + writeSize;
                     byteBuffer.limit(size);
                     byteBuffer.position(writePosition);
-                    byteBuffer.put(src);
+
+                    if(!src.isDirect()) {
+                        byte[] srcBytes = src.array();
+                        unsafe.copyMemory(srcBytes, Unsafe.ARRAY_BYTE_BASE_OFFSET + src.position(),
+                                null, address + writePosition,
+                                writeSize);
+                        src.position(src.position() + writeSize);
+                        byteBuffer.position(byteBuffer.position() + writeSize);
+                    } else {
+                        try {
+                            long srcAddress = TByteBuffer.getAddress(src);
+                            unsafe.copyMemory(srcAddress + src.position(),
+                                    address + writePosition,
+                                    writeSize);
+                            src.position(src.position() + writeSize);
+                            byteBuffer.position(byteBuffer.position() + writeSize);
+                        } catch (ReflectiveOperationException e) {
+                            byteBuffer.put(src);
+                            e.printStackTrace();
+                        }
+                    }
 
                     if (position > writePosition) {
                         position = position + writeSize;
@@ -854,7 +874,27 @@ public class ByteBufferChannel {
                 if(dstRemain<byteBuffer.remaining()) {
                     byteBuffer.limit(dstRemain);
                 }
-                dst.put(byteBuffer);
+//                dst.put(byteBuffer);
+
+                if(!dst.isDirect()) {
+                    byte[] dstBytes = dst.array();
+                    unsafe.copyMemory(null, address + readPosition,
+                            dst, Unsafe.ARRAY_BYTE_BASE_OFFSET + dst.position(),
+                            readSize);
+                    dst.position(dst.position()+readSize);
+                    byteBuffer.position(byteBuffer.position() + readSize);
+                } else {
+                    try {
+                        long dstAddress = TByteBuffer.getAddress(dst);
+                        unsafe.copyMemory(address + readPosition, dstAddress + dst.position(), readSize);
+                        dst.position(dst.position()+readSize);
+                        byteBuffer.position(byteBuffer.position() + readSize);
+                    } catch (ReflectiveOperationException e) {
+                        byteBuffer.put(dst);
+                        e.printStackTrace();
+                    }
+                }
+
                 byteBuffer.limit(oldLimit);
 
                 if (TByteBuffer.move(byteBuffer, (readSize*-1))) {

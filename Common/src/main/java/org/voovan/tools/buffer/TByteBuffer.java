@@ -128,7 +128,7 @@ public class TByteBuffer {
             return byteBuffer;
 
         } catch (Exception e) {
-            Logger.error("Create ByteBufferChannel error. ", e);
+            Logger.error("Allocate ByteBuffer error. ", e);
             return null;
         }
     }
@@ -544,47 +544,6 @@ public class TByteBuffer {
         Object att = getAtt(byteBuffer);
         if(att!=null && att.getClass() == Deallocator.class){
             ((Deallocator) att).setCapacity(capacity);
-        }
-    }
-
-
-
-    /**
-     * 自动跟踪 GC 销毁的类
-     */
-    public final static class Deallocator implements Runnable {
-        private long address;
-        private int capacity;
-
-        Deallocator(long address, int capacity) {
-            this.address = address;
-            this.capacity = capacity;
-        }
-
-        public void setAddress(long address){
-            this.address = address;
-        }
-
-        public long getAddress() {
-            return address;
-        }
-
-        public int getCapacity() {
-            return capacity;
-        }
-
-        public void setCapacity(int capacity) {
-            this.capacity = capacity;
-        }
-
-        public void run() {
-
-            if (this.address == 0) {
-                return;
-            }
-            TUnsafe.getUnsafe().freeMemory(address);
-            address = 0;
-            free(capacity);
         }
     }
 }
