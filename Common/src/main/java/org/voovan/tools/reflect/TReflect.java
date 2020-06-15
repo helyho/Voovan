@@ -1640,9 +1640,9 @@ public class TReflect {
 
                     if(serialization != null) {
                         //转换 key 名称
-                       if(TString.isNullOrEmpty(serialization.value())) {
+                       if(!TString.isNullOrEmpty(serialization.value())) {
                            key = serialization.value();
-                       } else if(TString.isNullOrEmpty(serialization.name())) {
+                       } else if(!TString.isNullOrEmpty(serialization.name())) {
                            key = serialization.name();
                        }
 
