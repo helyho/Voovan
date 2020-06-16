@@ -17,6 +17,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class HeartBeat {
     private byte[] ping;
     private byte[] pong;
+    private ByteBuffer pingBuffer;
+    private ByteBuffer pongBuffer;
     private boolean isFirstBeat = true;
     private LinkedBlockingDeque<Integer> queue;
     private int failedCount = 0;
@@ -31,6 +33,8 @@ public class HeartBeat {
     private HeartBeat(String ping, String pong){
         this.ping = ping.getBytes();
         this.pong = pong.getBytes();
+        this.pingBuffer = ByteBuffer.wrap(this.ping);
+        this.pongBuffer = ByteBuffer.wrap(this.pong);
         queue = new LinkedBlockingDeque<Integer>();
     }
 
@@ -118,7 +122,7 @@ public class HeartBeat {
             if (session.socketContext().getConnectModel() == ConnectModel.CLIENT) {
                 //等待这个时间的目的是为了等待客户端那边的心跳检测启动
                 TEnv.sleep(session.getIdleInterval());
-                session.send(ByteBuffer.wrap(heartBeat.ping));
+                session.send(heartBeat.pingBuffer);
                 session.flush();
             }
             return true;
@@ -131,12 +135,12 @@ public class HeartBeat {
             int beatType = heartBeat.getQueue().pollFirst();
 
             if (beatType == 1) {
-                session.send(ByteBuffer.wrap(heartBeat.pong));
+                session.send(heartBeat.pongBuffer);
                 session.flush();
                 heartBeat.failedCount = 0;
                 return true;
             } else if (beatType == 2) {
-                session.send(ByteBuffer.wrap(heartBeat.ping));
+                session.send(heartBeat.pingBuffer);
                 session.flush();
                 heartBeat.failedCount = 0;
                 return true;

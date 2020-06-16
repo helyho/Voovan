@@ -414,6 +414,101 @@ public class ByteBufferChannel {
 
 
     /**
+     * 获取 bytebuffer 的 hashcode
+     * @param size slice 的数据大小
+     * @return bytebuffer 的 hashcode
+     */
+    public ByteBuffer slice(int size){
+
+        lock();
+        int oldLimit = byteBuffer.limit();
+        try {
+            checkRelease();
+
+            byteBuffer.limit(byteBuffer.position()+size);
+            return byteBuffer.slice();
+        } finally {
+            byteBuffer.limit(oldLimit);
+            unlock();
+        }
+    }
+
+
+    /**
+     * 获取缓冲区
+     *     返回 0 到 size 的有效数据
+     *	   为了保证数据一致性, 这里会加锁
+     *	   在调用getByteBuffer()方法后,跨线程的读写操作都会被阻塞.
+     *	   但在调用getByteBuffer()方法后,同一线程内的所有读写操作是可以操作,
+     *	   为保证数据一致性,除非特殊需要,否则在编码时应当被严格禁止.
+     *	   在调用getByteBuffer()方法后,所以必须配合 compact() 方法使用,
+     *	   已保证对 byteBuffer 的所有读写操作都在 ByteBufferChannel上生效.
+     * @return ByteBuffer 对象
+     */
+    public ByteBuffer getByteBuffer() {
+        //这里上锁,在compact()方法解锁
+        lock();
+        try {
+            checkRelease();
+
+            borrowed.compareAndSet(false, true);
+            return byteBuffer;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 收缩通道
+     *      将通过 getByteBuffer() 方法获得 ByteBuffer 对象的操作同步到 ByteBufferChannel
+     * 		如果之前最后一次通过 getByteBuffer() 方法获得过 ByteBuffer,则使用这个 ByteBuffer 来收缩通道
+     *      将 (position 到 limit) 之间的数据 移动到 (0  到 limit - position) 其他情形将不做任何操作
+     *		所以 必须 getByteBuffer() 和 compact() 成对操作
+     * @return 是否compact成功,true:成功, false:失败
+     */
+    public boolean compact(){
+        if(isReleased()){
+            if(lock.isHeldByCurrentThread() && borrowed.compareAndSet(true, false)) {
+                unlock();
+            }
+            return false;
+        }
+
+        if(size()==0 && !byteBuffer.hasRemaining()){
+            if(lock.isHeldByCurrentThread() && borrowed.compareAndSet(true, false)){
+                unlock();
+            }
+            return true;
+        }
+
+        try{
+
+            if(byteBuffer.position() == 0){
+                this.size = byteBuffer.limit();
+                return true;
+            }
+
+            int position = byteBuffer.position();
+            int limit = byteBuffer.limit();
+            boolean result = false;
+            if(TByteBuffer.move(byteBuffer, position*-1)) {
+                byteBuffer.position(0);
+                size = limit - position;
+                byteBuffer.limit(size);
+
+                result = true;
+            }
+            return result;
+
+        } finally {
+            if(borrowed.compareAndSet(true, false)) {
+                unlock();
+            }
+        }
+    }
+
+
+    /**
      * 获取某个位置的 byte 数据
      *     该操作不会导致通道内的数据发生变化
      * @param position 位置
@@ -543,163 +638,125 @@ public class ByteBufferChannel {
     }
 
     /**
-     * 获取缓冲区
-     *     返回 0 到 size 的有效数据
-     *	   为了保证数据一致性, 这里会加锁
-     *	   在调用getByteBuffer()方法后,跨线程的读写操作都会被阻塞.
-     *	   但在调用getByteBuffer()方法后,同一线程内的所有读写操作是可以操作,
-     *	   为保证数据一致性,除非特殊需要,否则在编码时应当被严格禁止.
-     *	   在调用getByteBuffer()方法后,所以必须配合 compact() 方法使用,
-     *	   已保证对 byteBuffer 的所有读写操作都在 ByteBufferChannel上生效.
-     * @return ByteBuffer 对象
+     * 缓冲区某个位置写入数据
+     * @param writePosition 缓冲区中的位置
+     * @param srcBytes 源字节数组
+     * @param offset 字节数组便宜
+     * @param length 写入数据长度
+     * @return 写入的数据大小
      */
-    public ByteBuffer getByteBuffer() {
-        //这里上锁,在compact()方法解锁
-        lock();
-        try {
-            checkRelease();
+    private int write0(int writePosition, byte[] srcBytes, int offset, int length) {
+//        lock();
+//
+//        try {
+//            checkRelease();
+//
+            if(length == 0){
+                return 0;
+            }
 
-            borrowed.compareAndSet(false, true);
-            return byteBuffer;
-        } catch (Exception e) {
-            return null;
-        }
+            if (srcBytes == null) {
+                return -1;
+            }
+
+            int writeSize = length;
+
+            if (writeSize > 0) {
+                //是否扩容
+                if (available() < writeSize) {
+                    int newSize = byteBuffer.capacity() + writeSize;
+                    reallocate(newSize);
+                }
+
+                int position = byteBuffer.position();
+                byteBuffer.position(writePosition);
+
+                if(TByteBuffer.move(byteBuffer, writeSize)){
+
+                    size = size + writeSize;
+                    byteBuffer.limit(size);
+                    byteBuffer.position(writePosition);
+
+
+                    unsafe.copyMemory(srcBytes, Unsafe.ARRAY_BYTE_BASE_OFFSET + offset,
+                            null, address + writePosition,
+                            writeSize);
+                    byteBuffer.position(byteBuffer.position() + writeSize);
+
+
+                    if (position > writePosition) {
+                        position = position + writeSize;
+                    }
+
+                    byteBuffer.position(position);
+                } else {
+                    checkRelease();
+                    throw new RuntimeException("move data failed");
+                }
+            }
+
+            return writeSize;
+
+//        } finally {
+//            unlock();
+//        }
     }
 
     /**
-     * 获取 bytebuffer 的 hashcode
-     * @param size slice 的数据大小
-     * @return bytebuffer 的 hashcode
+     * 缓冲区某个位置写入数据
+     * @param writePosition 缓冲区中的位置
+     * @param srcBytes 源字节数组
+     * @param offset 字节数组便宜
+     * @param length 写入数据长度
+     * @return 写入的数据大小
      */
-    public ByteBuffer slice(int size){
-
+    public int write(int writePosition, byte[] srcBytes, int offset, int length) {
         lock();
-        int oldLimit = byteBuffer.limit();
+
         try {
             checkRelease();
 
-            byteBuffer.limit(byteBuffer.position()+size);
-            return byteBuffer.slice();
+            return write0(writePosition, srcBytes, offset, length);
         } finally {
-            byteBuffer.limit(oldLimit);
             unlock();
         }
     }
 
     /**
-     * 收缩通道
-     *      将通过 getByteBuffer() 方法获得 ByteBuffer 对象的操作同步到 ByteBufferChannel
-     * 		如果之前最后一次通过 getByteBuffer() 方法获得过 ByteBuffer,则使用这个 ByteBuffer 来收缩通道
-     *      将 (position 到 limit) 之间的数据 移动到 (0  到 limit - position) 其他情形将不做任何操作
-     *		所以 必须 getByteBuffer() 和 compact() 成对操作
-     * @return 是否compact成功,true:成功, false:失败
+     * 缓冲区头部写入
+     * @param srcBytes 源字节数组
+     * @param offset 字节数组便宜
+     * @param length 写入数据长度
+     * @return 写入的数据大小
      */
-    public boolean compact(){
-        if(isReleased()){
-            if(lock.isHeldByCurrentThread() && borrowed.compareAndSet(true, false)) {
-                unlock();
-            }
-            return false;
-        }
-
-        if(size()==0 && !byteBuffer.hasRemaining()){
-            if(lock.isHeldByCurrentThread() && borrowed.compareAndSet(true, false)){
-                unlock();
-            }
-            return true;
-        }
-
-        try{
-
-            if(byteBuffer.position() == 0){
-                this.size = byteBuffer.limit();
-                return true;
-            }
-
-            int position = byteBuffer.position();
-            int limit = byteBuffer.limit();
-            boolean result = false;
-            if(TByteBuffer.move(byteBuffer, position*-1)) {
-                byteBuffer.position(0);
-                size = limit - position;
-                byteBuffer.limit(size);
-
-                result = true;
-            }
-            return result;
-
-        } finally {
-            if(borrowed.compareAndSet(true, false)) {
-                unlock();
-            }
-        }
-    }
-
-    /**
-     * 等待期望的数据长度
-     * @param length  期望的数据长度
-     * @param timeout 超时时间,单位: 毫秒
-     * @param supplier 每次等待数据所做的操作
-     * @return true: 具备期望长度的数据, false: 等待数据超时
-     */
-    public boolean waitData(int length,int timeout, Runnable supplier){
-        return TEnv.wait(timeout, ()->{
-            checkRelease();
-
-            if(size() >= length){
-                return false;
-            } else {
-                supplier.run();
-                return size() < length;
-            }
-        });
-    }
-
-
-    /**
-     * 从头部开始判断是否收到期望的数据
-     * @param mark  期望出现的数据
-     * @param timeout 超时时间,单位: 毫秒
-     * @param supplier 每次等待数据所做的操作
-     * @return true: 具备期望长度的数据, false: 等待数据超时
-     */
-    public boolean waitData(byte[] mark, int timeout, Runnable supplier){
-
-        return TEnv.wait(timeout, ()->{
-            checkRelease();
-            if(indexOf(mark) != -1) {
-                return false;
-            } else {
-                supplier.run();
-                return indexOf(mark) == -1;
-            }
-        });
-
-    }
-
-    /**
-     * 重新分配内存空间的大小
-     * @param newSize  重新分配的空间大小
-     * @return true:成功, false:失败
-     * @throws LargerThanMaxSizeException 通道容量不足的一场
-     */
-    public boolean reallocate(int newSize) throws LargerThanMaxSizeException {
+    public int writeEnd(byte[] srcBytes, int offset, int length) {
+        //这里加锁的作用是防止 size 发生变化
         lock();
 
-        try{
+        try {
             checkRelease();
 
-            //检查分配内存是否超过限额
-            if(maxSize < newSize){
-                throw new LargerThanMaxSizeException("Max size: " + maxSize + ", expect size: " + newSize);
-            }
+            return write0(size(), srcBytes, offset, length);
+        } finally {
+            unlock();
+        }
+    }
 
-            if (TByteBuffer.reallocate(byteBuffer, newSize)) {
-                resetAddress();
-                return true;
-            }else{
-                return false;
-            }
+    /**
+     * 缓冲区尾部写入
+     * @param srcBytes 源字节数组
+     * @param offset 字节数组便宜
+     * @param length 写入数据长度
+     * @return 读出的数据大小
+     */
+    public int writeHead(byte[] srcBytes, int offset, int length) {
+        //这里加锁的作用是防止 size 发生变化
+        lock();
+
+        try {
+            checkRelease();
+
+            return write0(0, srcBytes, offset, length);
         } finally {
             unlock();
         }
@@ -711,7 +768,7 @@ public class ByteBufferChannel {
      * @param src 需要写入的缓冲区 ByteBuffer 对象
      * @return 写入的数据大小
      */
-    public int write(int writePosition, ByteBuffer src) {
+    private int write0(int writePosition, ByteBuffer src) {
         lock();
 
         try {
@@ -783,6 +840,26 @@ public class ByteBufferChannel {
     }
 
     /**
+     * 缓冲区某个位置写入数据
+     * @param writePosition 缓冲区中的位置
+     * @param src 需要写入的缓冲区 ByteBuffer 对象
+     * @return 写入的数据大小
+     */
+    public int write(int writePosition, ByteBuffer src) {
+        //这里加锁的作用是防止 size 发生变化
+        lock();
+
+        try {
+            checkRelease();
+
+            return write0(writePosition, src);
+        } finally {
+            unlock();
+
+        }
+    }
+
+    /**
      * 缓冲区头部写入
      * @param src 需要写入的缓冲区 ByteBuffer 对象
      * @return 写入的数据大小
@@ -794,7 +871,7 @@ public class ByteBufferChannel {
         try {
             checkRelease();
 
-            return write(size(), src);
+            return write0(size(), src);
         } finally {
             unlock();
         }
@@ -806,35 +883,18 @@ public class ByteBufferChannel {
      * @return 读出的数据大小
      */
     public int writeHead(ByteBuffer src) {
-        return write(0, src);
-    }
-
-    /**
-     * 从缓冲区头部读取数据
-     * @param dst 需要读入数据的缓冲区ByteBuffer 对象
-     * @return 读出的数据大小
-     */
-    public int readHead(ByteBuffer dst) {
-        return read(0, dst);
-    }
-
-    /**
-     * 从缓冲区尾部读取数据
-     * @param dst 需要读入数据的缓冲区ByteBuffer 对象
-     * @return 读出的数据大小
-     */
-    public int readEnd(ByteBuffer dst) {
         //这里加锁的作用是防止 size 发生变化
         lock();
 
         try {
             checkRelease();
 
-            return read( size()-dst.limit(), dst );
+            return write(0, src);
         } finally {
             unlock();
         }
     }
+
 
     /**
      * 从缓冲区某个位置开始读取数据
@@ -842,7 +902,7 @@ public class ByteBufferChannel {
      * @param dst 需要读入数据的缓冲区ByteBuffer 对象
      * @return 读出的数据大小
      */
-    public int read(int readPosition, ByteBuffer dst) {
+    private int read0(int readPosition, ByteBuffer dst) {
         lock();
 
         try {
@@ -917,7 +977,131 @@ public class ByteBufferChannel {
         } finally {
             unlock();
         }
+    }
 
+    /**
+     * 从缓冲区某个位置开始读取数据
+     * @param readPosition 缓冲区中的位置
+     * @param dst 需要读入数据的缓冲区ByteBuffer 对象
+     * @return 读出的数据大小
+     */
+    public int read(int readPosition, ByteBuffer dst) {
+        //这里加锁的作用是防止 size 发生变化
+        lock();
+
+        try {
+            checkRelease();
+
+            return read0(readPosition, dst);
+        } finally {
+            unlock();
+        }
+    }
+
+    /**
+     * 从缓冲区头部读取数据
+     * @param dst 需要读入数据的缓冲区ByteBuffer 对象
+     * @return 读出的数据大小
+     */
+    public int readHead(ByteBuffer dst) {
+        //这里加锁的作用是防止 size 发生变化
+        lock();
+
+        try {
+            checkRelease();
+
+            return read0(0, dst);
+        } finally {
+            unlock();
+        }
+    }
+
+    /**
+     * 从缓冲区尾部读取数据
+     * @param dst 需要读入数据的缓冲区ByteBuffer 对象
+     * @return 读出的数据大小
+     */
+    public int readEnd(ByteBuffer dst) {
+        //这里加锁的作用是防止 size 发生变化
+        lock();
+
+        try {
+            checkRelease();
+
+            return read0( size()-dst.limit(), dst );
+        } finally {
+            unlock();
+        }
+    }
+
+    /**
+     * 等待期望的数据长度
+     * @param length  期望的数据长度
+     * @param timeout 超时时间,单位: 毫秒
+     * @param supplier 每次等待数据所做的操作
+     * @return true: 具备期望长度的数据, false: 等待数据超时
+     */
+    public boolean waitData(int length,int timeout, Runnable supplier){
+        return TEnv.wait(timeout, ()->{
+            checkRelease();
+
+            if(size() >= length){
+                return false;
+            } else {
+                supplier.run();
+                return size() < length;
+            }
+        });
+    }
+
+
+    /**
+     * 从头部开始判断是否收到期望的数据
+     * @param mark  期望出现的数据
+     * @param timeout 超时时间,单位: 毫秒
+     * @param supplier 每次等待数据所做的操作
+     * @return true: 具备期望长度的数据, false: 等待数据超时
+     */
+    public boolean waitData(byte[] mark, int timeout, Runnable supplier){
+
+        return TEnv.wait(timeout, ()->{
+            checkRelease();
+            if(indexOf(mark) != -1) {
+                return false;
+            } else {
+                supplier.run();
+                return indexOf(mark) == -1;
+            }
+        });
+
+    }
+
+    /**
+     * 重新分配内存空间的大小
+     * @param newSize  重新分配的空间大小
+     * @return true:成功, false:失败
+     * @throws LargerThanMaxSizeException 通道容量不足的一场
+     */
+    public boolean reallocate(int newSize) throws LargerThanMaxSizeException {
+        lock();
+
+        try{
+            checkRelease();
+
+            //检查分配内存是否超过限额
+            if(maxSize < newSize){
+                throw new LargerThanMaxSizeException("Max size: " + maxSize + ", expect size: " + newSize);
+            }
+
+            if (TByteBuffer.reallocate(byteBuffer, newSize)) {
+                resetAddress();
+                return true;
+            }else{
+                return false;
+            }
+        } finally {
+            unlock();
+        }
     }
 
     /**
