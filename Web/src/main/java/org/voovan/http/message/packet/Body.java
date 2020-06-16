@@ -250,11 +250,8 @@ public class Body {
 			if(type == BodyType.BYTES) {
 				int hash = THash.HashFNV1(body, offset, length);
 				mark = mark==0 ? hash : mark + hash;
-				ByteBuffer bodyTmp = ByteBuffer.wrap(body);
-				bodyTmp.position(offset);
-				bodyTmp.limit(length);
 				if(!byteBufferChannel.isReleased()) {
-					byteBufferChannel.writeEnd(bodyTmp);
+					byteBufferChannel.writeEnd(body, offset, length);
 				}
 			}else{
 				TFile.writeFile(bodyFile,true, body, offset, length);
@@ -383,7 +380,7 @@ public class Body {
 			} else {
 				byte[] bodyBytes = TZip.encodeGZip(getBodyBytes());
 				byteBufferChannel.clear();
-				byteBufferChannel.writeEnd(ByteBuffer.wrap(bodyBytes));
+				byteBufferChannel.writeEnd(bodyBytes, 0, bodyBytes.length);
 				return true;
 			}
 		}else {

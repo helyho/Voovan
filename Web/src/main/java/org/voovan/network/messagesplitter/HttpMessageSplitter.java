@@ -52,6 +52,8 @@ public class HttpMessageSplitter implements MessageSplitter {
      * @return WebSocket 帧报文长度,-1不是WebSocket 帧, 大于0 返回的 WebSocket 的长度
      */
     public static int isWebSocketFrame(ByteBuffer buffer) {
+        buffer.mark();
+
         // 接受数据的大小
         int maxpacketsize = buffer.remaining();
         // 期望数据包的实际大小
@@ -117,10 +119,10 @@ public class HttpMessageSplitter implements MessageSplitter {
 
         // 如果实际接受的数据小于数据包的大小则报错
         if (maxpacketsize < expectPackagesize) {
-            buffer.position(0);
+            buffer.reset();
             return -2;
         } else {
-            buffer.position(0);
+            buffer.reset();
             return expectPackagesize;
         }
     }
