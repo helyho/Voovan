@@ -1,6 +1,7 @@
 package org.voovan.http.server.context;
 
 import org.voovan.Global;
+import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.collection.CacheMap;
 import org.voovan.tools.weave.WeaveConfig;
 import org.voovan.tools.collection.Chain;
@@ -55,6 +56,9 @@ public class WebServerConfig {
     private Chain<HttpFilterConfig> filterConfigs = new Chain<HttpFilterConfig>();
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
     private List<HttpModuleConfig> moduleConfigs = new Vector<HttpModuleConfig>();
+
+    //过滤器的线程本地变量
+    private FastThreadLocal<Chain<HttpFilterConfig>> localFilterConfigs =FastThreadLocal.withInitial(()->(Chain<HttpFilterConfig>)filterConfigs.clone());
 
     public String getServerName() {
         if(serverName==null){
@@ -248,6 +252,10 @@ public class WebServerConfig {
 
     public void setEnableWebSocket(boolean enableWebSocket) {
         this.enableWebSocket = enableWebSocket;
+    }
+
+    public Chain<HttpFilterConfig> getLocalFilterConfigs() {
+        return localFilterConfigs.get();
     }
 
     public Chain<HttpFilterConfig> getFilterConfigs() {
