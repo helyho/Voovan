@@ -288,32 +288,36 @@ public class Response {
 			}
 
 			//发送报文主体
-			int readSize = 0;
+			int avaliableSize = 0;
 			try {
 				int totalBodySize = (int) body.size();
 
 				while ( totalBodySize > 0) {
 					//预留写入 chunked 结束符的位置
 					byteBuffer.limit(byteBuffer.capacity() - 10); //预留协议字节, 换行符确认4个,长度描述符1-6个
-					readSize = byteBuffer.remaining() > totalBodySize ? totalBodySize : byteBuffer.remaining();
-					totalBodySize = totalBodySize - readSize;
+					avaliableSize = byteBuffer.remaining() > totalBodySize ? totalBodySize : byteBuffer.remaining();
+					totalBodySize = totalBodySize - avaliableSize;
 
 					//判断是否需要发送 chunked 段长度
-					if (isCompress() && readSize != 0) {
-						String chunkedLengthLine = Integer.toHexString(readSize) + HttpStatic.LINE_MARK_STRING;
+					if (isCompress() && avaliableSize != 0) {
+						String chunkedLengthLine = Integer.toHexString(avaliableSize) + HttpStatic.LINE_MARK_STRING;
 						byteBuffer.put(chunkedLengthLine.getBytes());
 					}
 
 					//重置 Bytebuffer 可用字节数为 readSize
-					byteBuffer.limit(byteBuffer.position() + readSize);
-					body.read(byteBuffer);
+					byteBuffer.limit(byteBuffer.position() + avaliableSize);
+					int bodyReadSize = body.read(byteBuffer);
+
+					if (bodyReadSize == -1) {
+						break;
+					}
 
 					//重置写入位置
 					byteBuffer.position(byteBuffer.limit());
 					byteBuffer.limit(byteBuffer.capacity());
 
 					//判断是否需要发送 chunked 结束符号
-					if (isCompress() && readSize != 0 &&  byteBuffer.remaining() > 0) {
+					if (isCompress() && avaliableSize != 0 &&  byteBuffer.remaining() > 0) {
 						byteBuffer.put(HttpStatic.LINE_MARK.getBytes());
 					}
 

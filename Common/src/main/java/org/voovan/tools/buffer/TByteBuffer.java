@@ -337,16 +337,16 @@ public class TByteBuffer {
                     if (address!=0 && att!=null && att.getClass() == Deallocator.class) {
                         if(address!=0) {
                             byteBuffer.clear();
-
-                            //这里不使用传入的参数, 需要复用上面代码获得的地址
                             synchronized (byteBuffer) {
-                                TUnsafe.getUnsafe().freeMemory(address);
+                                //这里不使用传入的参数, 需要复用上面代码获得的地址
                                 byteBuffer.position(0);
                                 byteBuffer.limit(0);
+                                setCapacity(byteBuffer, 0);
                                 setAddress(byteBuffer, 0);
+
+                                TUnsafe.getUnsafe().freeMemory(address);
                                 free(byteBuffer.capacity());
                             }
-
                         }
                     }
                 } catch (ReflectiveOperationException e) {
