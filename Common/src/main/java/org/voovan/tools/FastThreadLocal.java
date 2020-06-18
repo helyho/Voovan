@@ -29,7 +29,6 @@ public class FastThreadLocal<T> {
      */
     public FastThreadLocal(){
         this(indexGenerator.getAndIncrement());
-        System.out.println(index);
     }
 
     /**

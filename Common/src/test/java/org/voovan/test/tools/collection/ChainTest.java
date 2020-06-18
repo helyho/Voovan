@@ -27,7 +27,7 @@ public class ChainTest {
         for(int i=0;i<500;i++) {
             Global.getThreadPool().execute(()->{
                 a.rewind();
-                String m = /*Thread.currentThread().getName() + " " +*/ a.iteratorLocal.get() + "/" + a.invertedIteratorLocal.get() + " = ";
+                String m = /*Thread.currentThread().getName() + " " +*/ a.iterator + "/" + a.invertedIterator + " = ";
                 while (a.hasPrevious()) {
                     m = m + a.previous() + ", ";
                 }
@@ -40,7 +40,7 @@ public class ChainTest {
         for(int i=0;i<500;i++) {
             Global.getThreadPool().execute(()->{
                 a.rewind();
-                String m = /*Thread.currentThread().getName() + " " +*/ a.iteratorLocal.get() + "/" + a.invertedIteratorLocal.get() + " = ";
+                String m = /*Thread.currentThread().getName() + " " +*/ a.iterator + "/" + a.invertedIterator + " = ";
                 while (a.hasNext()) {
                     m = m + a.next() + ", ";
                 }

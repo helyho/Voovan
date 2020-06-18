@@ -15,8 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Licence: Apache v2 License
  */
 public class Chain<E>  extends ArrayList<E> {
-	public FastThreadLocal<AtomicInteger> iteratorLocal = FastThreadLocal.withInitial(()->new AtomicInteger(0));
-	public FastThreadLocal<AtomicInteger> invertedIteratorLocal = FastThreadLocal.withInitial(()->new AtomicInteger(0));
+	public int iterator = 0;
+	public int  invertedIterator = 0;
 	private boolean isStop;
 
 	/**
@@ -33,8 +33,8 @@ public class Chain<E>  extends ArrayList<E> {
 	 */
 	public Chain<E> rewind(){
 		isStop = false;
-		iteratorLocal.get().set(0);
-		invertedIteratorLocal.get().set(this.size() - 1);
+		iterator = 0;
+		invertedIterator = this.size() - 1;
 
 		return this;
 	}
@@ -55,7 +55,7 @@ public class Chain<E>  extends ArrayList<E> {
 			return null;
 		} else {
 			if(this.hasNext()){
-				 E e = this.get(iteratorLocal.get().getAndIncrement());
+				 E e = this.get(iterator++);
 				return e;
 			} else {
 				return null;
@@ -71,7 +71,7 @@ public class Chain<E>  extends ArrayList<E> {
 		if(isStop){
 			return false;
 		} else {
-			return iteratorLocal.get().get() <= this.size() - 1;
+			return iterator <= this.size() - 1;
 		}
 	}
 
@@ -84,7 +84,7 @@ public class Chain<E>  extends ArrayList<E> {
 			return null;
 		} else {
 			if(this.hasPrevious()){
-				return this.get(invertedIteratorLocal.get().getAndDecrement());
+				return this.get(invertedIterator--);
 			} else {
 				return null;
 			}
@@ -99,8 +99,16 @@ public class Chain<E>  extends ArrayList<E> {
 		if(isStop){
 			return false;
 		} else {
-			return invertedIteratorLocal.get().get() >= 0;
+			return invertedIterator >= 0;
 		}
 	}
 
+	@Override
+	public Object clone() {
+		Chain chain = (Chain) super.clone();
+		chain.rewind();
+		chain.isStop = false;
+
+		return chain;
+	}
 }

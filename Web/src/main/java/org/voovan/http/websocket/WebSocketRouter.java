@@ -1,6 +1,8 @@
 package org.voovan.http.websocket;
 
 import org.voovan.http.websocket.exception.WebSocketFilterException;
+import org.voovan.tools.FastThread;
+import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.collection.Chain;
 
 import java.nio.ByteBuffer;
@@ -16,6 +18,9 @@ import java.nio.ByteBuffer;
 public abstract class WebSocketRouter implements Cloneable{
 
 	protected Chain<WebSocketFilter> webSocketFilterChain;
+
+	//过滤器的线程本地变量
+	private FastThreadLocal<Chain<WebSocketFilter>> localWebSocketFilterChain = FastThreadLocal.withInitial(()->(Chain<WebSocketFilter> )webSocketFilterChain.clone());
 
 	public WebSocketRouter(){
 		webSocketFilterChain = new Chain<WebSocketFilter>();
@@ -45,7 +50,7 @@ public abstract class WebSocketRouter implements Cloneable{
 	 * @throws WebSocketFilterException WebSocket过滤器异常
 	 */
 	public Object filterDecoder(WebSocketSession session, Object result) throws WebSocketFilterException {
-		Chain<WebSocketFilter> webFilterChain = webSocketFilterChain.rewind();
+		Chain<WebSocketFilter> webFilterChain = localWebSocketFilterChain.get();
 		webFilterChain.rewind();
 		while (webFilterChain.hasNext()) {
 			WebSocketFilter fitler = webFilterChain.next();
@@ -65,7 +70,7 @@ public abstract class WebSocketRouter implements Cloneable{
 	 * @throws WebSocketFilterException WebSocket过滤器异常
 	 */
 	public Object filterEncoder(WebSocketSession session,Object result) throws WebSocketFilterException {
-		Chain<WebSocketFilter> webFilterChain = webSocketFilterChain.rewind();
+		Chain<WebSocketFilter> webFilterChain = localWebSocketFilterChain.get();
 		webFilterChain.rewind();
 		while (webFilterChain.hasPrevious()) {
 			WebSocketFilter fitler = webFilterChain.previous();
