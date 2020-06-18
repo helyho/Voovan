@@ -939,8 +939,8 @@ public class ByteBufferChannel {
                 if(!dst.isDirect()) {
                     byte[] dstBytes = dst.array();
                     unsafe.copyMemory(null, address + readPosition,
-                            dst, Unsafe.ARRAY_BYTE_BASE_OFFSET + dst.position(),
-                            readSize);
+                                        dstBytes, Unsafe.ARRAY_BYTE_BASE_OFFSET + dst.position(),
+                                        readSize);
                     dst.position(dst.position()+readSize);
                     byteBuffer.position(byteBuffer.position() + readSize);
                 } else {
