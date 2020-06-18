@@ -29,6 +29,7 @@ public class FastThreadLocal<T> {
      */
     public FastThreadLocal(){
         this(indexGenerator.getAndIncrement());
+        System.out.println(index);
     }
 
     /**
@@ -72,47 +73,40 @@ public class FastThreadLocal<T> {
      * @return 线程局部变量
      */
     public T get() {
-        if(tryCreate()) {
-            FastThreadLocal fastThreadLocal = FastThread.getThread().data[index];
+        FastThreadLocal fastThreadLocal = tryCreate();
 
-            T t = (T) fastThreadLocal.value;
-            if (t == null && supplier != null) {
-                t = (T) supplier.get();
-                fastThreadLocal.value = t;
-            }
-
-            return t;
-        } else {
-            FastThreadLocal fastThreadLocal = jdkThreadLocal.get();
-            T t = (T) fastThreadLocal.value;
-            if (t == null && supplier != null) {
-                t = (T) supplier.get();
-                fastThreadLocal.value = t;
-            }
-
-            return t;
+        T t = (T) fastThreadLocal.value;
+        if (t == null && supplier != null) {
+            t = (T) supplier.get();
+            fastThreadLocal.value = t;
         }
+
+        return t;
+
     }
 
     /**
      * 根据线程的类型尝试创建不同的线程局部变量
      * @return true: FastThreadLocal, false: JdkThreadLocal
      */
-    public boolean tryCreate(){
-        if(FastThread.getThread() != null && index < FastThread.FAST_THREAD_LOCAL_SIZE) {
-            FastThreadLocal[] data = FastThread.getThread().data;
+    private FastThreadLocal tryCreate(){
+        FastThread thread = FastThread.getThread();
+
+        if(thread != null && index < FastThread.FAST_THREAD_LOCAL_SIZE) {
+            FastThreadLocal[] data = thread.data;
             FastThreadLocal fastThreadLocal = data[index];
             if (fastThreadLocal == null) {
                 fastThreadLocal = new FastThreadLocal(this.index);
                 data[index] = fastThreadLocal;
             }
-            return true;
+            return fastThreadLocal;
         } else {
             FastThreadLocal fastThreadLocal = jdkThreadLocal.get();
             if(fastThreadLocal == null){
-                jdkThreadLocal.set(new FastThreadLocal(this.index));
+                fastThreadLocal = new FastThreadLocal(this.index);
+                jdkThreadLocal.set(fastThreadLocal);
             }
-            return false;
+            return fastThreadLocal;
         }
     }
 
@@ -121,11 +115,8 @@ public class FastThreadLocal<T> {
      * @param t 线程局部变量
      */
     public void set(T t){
-        if(tryCreate()) {
-            FastThread.getThread().data[index].value = t;
-        } else {
-            jdkThreadLocal.get().value = t;
-        }
+        FastThreadLocal fastThreadLocal = tryCreate();
+        fastThreadLocal.value = t;
     }
 
 }

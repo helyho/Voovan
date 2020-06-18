@@ -10,6 +10,7 @@ import org.voovan.network.IoSession;
 import org.voovan.tools.*;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
+import org.voovan.tools.collection.LongKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
@@ -45,19 +46,20 @@ public class HttpParser {
 	private final static int HEADER_MARK = 11;
 	private final static int CACHE_FLAG = 12;
 
-	private final static String MULTIPART_FORM_DATA = "multipart/form-data";
+	private final static String MULTIPART_FORM_DATA 	= "multipart/form-data";
 
-	private final static String UPLOAD_PATH = TFile.assemblyPath(TFile.getTemporaryPath(),"voovan", "webserver", "upload");
+	private final static String UPLOAD_PATH 			= TFile.assemblyPath(TFile.getTemporaryPath(),"voovan", "webserver", "upload");
 
-	private final static String PROPERTY_LINE_SPILITER = ": ";
-	private final static String EQUAL_MAP_REGEX = "([^ ;,]+=[^;,]+)";
+	private final static String PROPERTY_LINE_SPILITER 	= ": ";
+	private final static String EQUAL_MAP_REGEX 		= "([^ ;,]+=[^;,]+)";
 
 	private final static FastThreadLocal<Object[]> THREAD_PACKET_MAP = FastThreadLocal.withInitial(()->new Object[20]);
-	private final static FastThreadLocal<Request> THREAD_REQUEST = FastThreadLocal.withInitial(()->new Request());
-	private final static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
-	private final static FastThreadLocal<byte[]> THREAD_BYTE_ARRAY = FastThreadLocal.withInitial(()->new byte[1024]);
+	private final static FastThreadLocal<Request>  THREAD_REQUEST    = FastThreadLocal.withInitial(()->new Request());
+	private final static FastThreadLocal<Response> THREAD_RESPONSE   = FastThreadLocal.withInitial(()->new Response());
+	private final static FastThreadLocal<byte[]>   THREAD_BYTE_ARRAY = FastThreadLocal.withInitial(()->new byte[1024]);
 
-	private final static ConcurrentHashMap<Long, Object[]> PARSED_PACKET_MAP = new ConcurrentHashMap<Long, Object[]>();
+	private final static LongKeyMap<Long> 	  	   PROTOCOL_HASH_MAP = new LongKeyMap<Long>(64);
+	private final static LongKeyMap<Object[]> 	   PARSED_PACKET_MAP = new LongKeyMap<Object[]>(64);
 
 	public static final int PARSER_TYPE_REQUEST = 0;
 	public static final int PARSER_TYPE_RESPONSE = 1;
@@ -67,6 +69,7 @@ public class HttpParser {
 			@Override
 			public void run() {
 				PARSED_PACKET_MAP.clear();
+				PROTOCOL_HASH_MAP.clear();
 			}
 		}, 60);
 	}
@@ -526,26 +529,32 @@ public class HttpParser {
 
 					//检查缓存是否存在,并获取
 					if (isCache) {
-						for (Entry<Long, Object[]> packetMapCacheItem : PARSED_PACKET_MAP.entrySet()) {
-							long cachedMark = ((Long) packetMapCacheItem.getKey()).longValue();
-							long totalLengthInMark = cachedMark & 0x00000000FFFFFFFFL; //高位清空, 获得整个头的长度
+						Long cachedMark = PROTOCOL_HASH_MAP.get(protocolMark);
 
-							if (totalLengthInMark > innerByteBuffer.limit()) {
-								continue;
-							}
+						if (cachedMark!=null) {
+							Object[] cachedPacketMap = PARSED_PACKET_MAP.get(cachedMark);
 
-							if (byteBufferChannel.size() >= totalLengthInMark &&
-									byteBufferChannel.get((int) totalLengthInMark - 1) == 10 &&
-									byteBufferChannel.get((int) totalLengthInMark - 2) == 13) {
+							if(cachedPacketMap!=null) {
+								long totalLengthInMark = cachedMark & 0x00000000FFFFFFFFL; //高位清空, 获得整个头的长度
 
-								headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
+								if (totalLengthInMark > innerByteBuffer.limit()) {
+									continue;
+								}
 
-								if (protocolMark + headerMark == cachedMark >>> 32) {
-									innerByteBuffer.position((int) totalLengthInMark);
-									findCache = true;
-									packetMap = packetMapCacheItem.getValue();
-									headerMap = (Map<String, Object>) packetMap[HEADER];
-									break;
+								if (byteBufferChannel.size() >= totalLengthInMark &&
+										byteBufferChannel.get((int) totalLengthInMark - 1) == 10 &&
+										byteBufferChannel.get((int) totalLengthInMark - 2) == 13 &&
+										byteBufferChannel.get((int) totalLengthInMark - 3) == 10 &&
+										byteBufferChannel.get((int) totalLengthInMark - 4) == 13) {
+
+									headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
+									if (protocolMark + headerMark == cachedMark >> 32) {
+										innerByteBuffer.position((int) totalLengthInMark);
+
+										packetMap = cachedPacketMap;
+										headerMap = (Map<String, Object>) packetMap[HEADER];
+										findCache = true;
+									}
 								}
 							}
 						}
@@ -569,13 +578,14 @@ public class HttpParser {
 					if (isCache) {
 						totalLength = innerByteBuffer.position();
 						headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLength - protocolPosition));
-						long mark = ((protocolMark + headerMark) << 32) + totalLength; //高位存 hash, 低位存整个头的长度
+						long mark = ((protocolMark + headerMark) << 32) + totalLength; //高位存头部 hash, 低位存整个头的长度
 						packetMap[HEADER_MARK] = mark;
 
 						Object[] cachedPacketMap = Arrays.copyOf(packetMap, packetMap.length);
 						cachedPacketMap[CACHE_FLAG] =  1;
 
 						PARSED_PACKET_MAP.put(mark, cachedPacketMap);
+						PROTOCOL_HASH_MAP.put(protocolMark, mark);
 					}
 				}
 
@@ -583,11 +593,11 @@ public class HttpParser {
 				byteBufferChannel.compact();
 			}
 
-			if(HttpStatic.GET_STRING.equals(packetMap[PL_METHOD]) || headerMap.containsKey(HttpStatic.CONTENT_TYPE_STRING)) {
-				hasBody = true;
-			} else {
+			if(HttpStatic.GET.equals(packetMap[PL_METHOD])) {
 				//无 body 报文完成解析
 				break;
+			} else {
+				hasBody = true;
 			}
 
 			//解析 HTTP 请求 body
