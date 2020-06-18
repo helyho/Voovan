@@ -161,7 +161,7 @@ public abstract class HashWheelTask {
         if(skipTick > 0){
             skipTick--;
             return false;
-        }else {
+        } else {
             running = true;
             final HashWheelTask finaltask = this;
             final HashWheel finalHashWheel = hashWheel;
@@ -172,6 +172,7 @@ public abstract class HashWheelTask {
                         @Override
                         public void run() {
                             try {
+                                finalHashWheel.removeTask(finaltask);
                                 finaltask.run();
                             } catch (Throwable throwable) {
                                 Logger.error("HashWheelTimerTask asynchronous error:", throwable);
@@ -188,6 +189,7 @@ public abstract class HashWheelTask {
                 }
             }else{
                 try {
+                    finalHashWheel.removeTask(finaltask);
                     run();
                 } catch (Throwable throwable) {
                     Logger.error("HashWheelTimerTask error:", throwable);

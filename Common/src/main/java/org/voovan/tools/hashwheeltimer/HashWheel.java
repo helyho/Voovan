@@ -134,10 +134,10 @@ public class HashWheel {
                 tmpList.addAll(tasks);
 
                 for (HashWheelTask task : tmpList) {
-                    tasks.remove(task);
-
                     if(task!=null) {
                         task.doTask();
+                    } else {
+                        tasks.remove(task);
                     }
                 }
             }
