@@ -55,8 +55,15 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 		return EventRunnerGroup.newInstance(name, size, threadPriority, (obj)->{
 			try {
-				//IO 线程检查超时
-				return new SocketSelector(obj, !isAccept);
+				boolean isCheckTimeout = true;
+
+				if(isAccept) {
+					isCheckTimeout = false;
+				} else {
+					isCheckTimeout = CHECK_TIMEOUT != null ? CHECK_TIMEOUT : true;
+				}
+
+				return new SocketSelector(obj, isCheckTimeout);
 			} catch (IOException e) {
 				Logger.error(e);
 			}
