@@ -132,7 +132,7 @@ public class ThreadPool {
 		ThreadPoolExecutor threadPoolInstance = THREAD_POOL_HANDLER.get(poolName);
 
 		if(threadPoolInstance==null) {
-			threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, keepAliveTime, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(queueSize), new DefaultThreadFactory(poolName, daemon, priority));
+			threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, keepAliveTime, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(queueSize), new FastThreadFactory(poolName, daemon, priority));
 			//设置allowCoreThreadTimeOut,允许回收超时的线程
 			threadPoolInstance.allowCoreThreadTimeOut(true);
 

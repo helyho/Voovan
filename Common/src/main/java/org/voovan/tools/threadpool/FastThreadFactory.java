@@ -6,28 +6,28 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 默认线程工程类
+ * FastThread 工厂类
  *
  * @author: helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class DefaultThreadFactory implements ThreadFactory {
+public class FastThreadFactory implements ThreadFactory {
     private String name;
     private AtomicInteger threadCount = new AtomicInteger(0);
     private boolean daemon;
     private int priority;
 
-    public DefaultThreadFactory(String name) {
+    public FastThreadFactory(String name) {
         this(name, false, 5);
     }
 
-    public DefaultThreadFactory(String name, boolean daemon) {
+    public FastThreadFactory(String name, boolean daemon) {
         this(name, daemon, 5);
     }
 
-    public DefaultThreadFactory(String name, boolean daemon, int priority) {
+    public FastThreadFactory(String name, boolean daemon, int priority) {
         this.name = name;
         this.daemon = daemon;
         this.priority = priority;
