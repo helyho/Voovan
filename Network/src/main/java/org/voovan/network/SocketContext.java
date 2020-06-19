@@ -207,7 +207,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.readTimeout = parentSocketContext.readTimeout;
 		this.sendTimeout = parentSocketContext.sendTimeout;
 		this.handler = parentSocketContext.handler;
-		this.filterChain = (Chain<IoFilter>) parentSocketContext.filterChain.clone();
+		this.filterChain = parentSocketContext.filterChain;
 		this.messageSplitter = parentSocketContext.messageSplitter;
 		this.sslManager = parentSocketContext.sslManager;
 		this.readBufferSize = parentSocketContext.readBufferSize;

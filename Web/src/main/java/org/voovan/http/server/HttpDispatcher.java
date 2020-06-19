@@ -174,7 +174,7 @@ public class HttpDispatcher {
 	 * @param response   HTTP 响应
 	 */
 	public void process(HttpRequest request, HttpResponse response){
-		Chain<HttpFilterConfig> filterConfigs = webConfig.getLocalFilterConfigs();
+		Chain<HttpFilterConfig> filterConfigs = (Chain<HttpFilterConfig>) webConfig.getFilterConfigs().clone();
 
 		Object filterResult = new Object();
 		boolean isFrameWorkRequest = false;

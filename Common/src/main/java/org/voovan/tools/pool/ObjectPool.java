@@ -39,7 +39,7 @@ public class ObjectPool<T> {
     private Function<T, Boolean> validator = null;
     private int minSize = 0;
     private int maxSize = Integer.MAX_VALUE;
-    private int interval = 1;
+    private int interval = 5;
 
     /**
      * 构造一个对象池
@@ -474,41 +474,48 @@ public class ObjectPool<T> {
                 @Override
                 public void run() {
                     try {
-                        Iterator<InnerObject<T>> iterator = objects.values().iterator();
-                        int totalSize = objects.size();
-                        while (iterator.hasNext()) {
+                        synchronized (objects) {
+                            Iterator<InnerObject<T>> iterator = objects.values().iterator();
+                            int totalSize = objects.size();
 
-                            InnerObject<T> innerObject = iterator.next();
+                            int avaliableSize = 0;
+                            while (iterator.hasNext()) {
 
-                            if (!innerObject.isBorrow() &&
-                                    !innerObject.isAlive() ||
-                                    !(validator!=null && validator.apply(innerObject.object))) {
-                                if (destory != null) {
-                                    //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
-                                    if (destory.apply(innerObject.getObject())) {
-                                        remove(innerObject.getId());
+                                InnerObject<T> innerObject = iterator.next();
+
+                                if(avaliableSize < minSize && validator.apply(innerObject.object)) {
+                                    innerObject.refresh();
+                                    avaliableSize++;
+                                    continue;
+                                }
+
+                                if (!innerObject.isBorrow() && !innerObject.isAlive()) {
+                                    if (destory != null) {
+                                        //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
+                                        if (destory.apply(innerObject.object)) {
+                                            remove(innerObject.getId());
+                                        } else {
+                                            innerObject.refresh();
+                                        }
                                     } else {
-                                        innerObject.refresh();
+                                        remove(innerObject.getId());
                                     }
-                                } else {
-                                    remove(innerObject.getId());
+                                }
+                            }
+
+                            int sizeDiff = minSize - totalSize;
+
+                            if (sizeDiff > 0 && supplier != null) {
+                                for (int i = 0; i < sizeDiff; i++) {
+                                    try {
+                                        add(supplier.get());
+                                    } catch (Exception e) {
+                                        Logger.error("Create object failed", e);
+                                        break;
+                                    }
                                 }
                             }
                         }
-
-                        int sizeDiff = minSize - totalSize;
-
-                        if(sizeDiff > 0 && supplier!=null) {
-                            for (int i = 0; i < sizeDiff; i++) {
-                                try {
-                                    add(supplier.get());
-                                } catch (Exception e) {
-                                    Logger.error("Create object failed", e);
-                                    break;
-                                }
-                            }
-                        }
-
                     } catch (Exception e) {
                         Logger.error(e);
                     }

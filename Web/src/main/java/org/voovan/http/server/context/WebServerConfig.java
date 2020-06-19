@@ -57,9 +57,6 @@ public class WebServerConfig {
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
     private List<HttpModuleConfig> moduleConfigs = new Vector<HttpModuleConfig>();
 
-    //过滤器的线程本地变量
-    private FastThreadLocal<Chain<HttpFilterConfig>> localFilterConfigs =FastThreadLocal.withInitial(()->(Chain<HttpFilterConfig>)filterConfigs.clone());
-
     public String getServerName() {
         if(serverName==null){
             serverName = Global.NAME;
@@ -252,10 +249,6 @@ public class WebServerConfig {
 
     public void setEnableWebSocket(boolean enableWebSocket) {
         this.enableWebSocket = enableWebSocket;
-    }
-
-    public Chain<HttpFilterConfig> getLocalFilterConfigs() {
-        return localFilterConfigs.get();
     }
 
     public Chain<HttpFilterConfig> getFilterConfigs() {
