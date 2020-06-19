@@ -483,12 +483,19 @@ public class ObjectPool<T> {
 
                                 InnerObject<T> innerObject = iterator.next();
 
-                                if(avaliableSize < minSize && validator.apply(innerObject.object)) {
+                                //不可用移除
+                                if(validator != null && !validator.apply(innerObject.object)) {
+                                    remove(innerObject.getId());
+                                }
+
+                                //保留最小可用对象
+                                if(avaliableSize <= minSize) {
                                     innerObject.refresh();
                                     avaliableSize++;
                                     continue;
                                 }
 
+                                //未借出且非存活对象使用 destory 进行处理
                                 if (!innerObject.isBorrow() && !innerObject.isAlive()) {
                                     if (destory != null) {
                                         //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
@@ -503,8 +510,8 @@ public class ObjectPool<T> {
                                 }
                             }
 
+                            //补齐最小对象数
                             int sizeDiff = minSize - totalSize;
-
                             if (sizeDiff > 0 && supplier != null) {
                                 for (int i = 0; i < sizeDiff; i++) {
                                     try {
