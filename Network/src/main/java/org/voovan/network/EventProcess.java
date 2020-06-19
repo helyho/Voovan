@@ -1,16 +1,19 @@
 package org.voovan.network;
 
+import org.omg.PortableServer.POAPackage.ObjectAlreadyActive;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.FastThreadLocal;
+import org.voovan.tools.TObject;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -216,7 +219,8 @@ public class EventProcess {
      */
     public static Object filterDecoder(IoSession session, ByteBuffer readedBuffer) throws IoFilterException{
         Object result = readedBuffer;
-        Chain<IoFilter> filterChain = session.socketContext().filterChain().rewind();
+        Chain<IoFilter> filterChain = (Chain<IoFilter>) session.socketContext().filterChain().clone();
+        filterChain.rewind();
         while (filterChain.hasNext()) {
             IoFilter fitler = filterChain.next();
             result = fitler.decode(session, result);
@@ -236,12 +240,12 @@ public class EventProcess {
      * @throws IoFilterException 过滤器异常
      */
     public static ByteBuffer filterEncoder(IoSession session, Object result) throws IoFilterException{
-        Chain<IoFilter> filterChain = session.socketContext().filterChain().rewind();
+        Chain<IoFilter> filterChain = (Chain<IoFilter>) session.socketContext().filterChain().clone();
         filterChain.rewind();
         while (filterChain.hasPrevious()) {
             IoFilter fitler = filterChain.previous();
             result = fitler.encode(session, result);
-            if(result == null){
+            if (result == null) {
                 break;
             }
         }

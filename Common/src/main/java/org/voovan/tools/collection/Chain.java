@@ -1,7 +1,5 @@
 package org.voovan.tools.collection;
 
-import org.voovan.tools.FastThreadLocal;
-
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Chain<E>  extends ArrayList<E> {
 	public int iterator = 0;
-	public int  invertedIterator = 0;
+	public int invertedIterator = 0;
 	private boolean isStop;
 
 	/**
