@@ -1,6 +1,7 @@
 package org.voovan.tools.collection;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -12,10 +13,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class Chain<E>  extends ArrayList<E> {
+public class Chain<E> {
 	public int iterator = 0;
 	public int invertedIterator = 0;
 	private boolean isStop;
+	private List<E> contianer = new ArrayList<E>();
 
 	/**
 	 * 构造函数
@@ -25,6 +27,43 @@ public class Chain<E>  extends ArrayList<E> {
 		rewind();
 	}
 
+	public Chain(List<E> contianer) {
+		this.contianer = contianer;
+		isStop = false;
+		rewind();
+	}
+
+	public Chain<E> add(E e) {
+		contianer.add(e);
+		return this;
+	}
+
+	public boolean contains(E e) {
+		return contianer.contains(e);
+	}
+
+	public boolean remove(E e) {
+		return contianer.remove(e);
+	}
+
+	public Chain<E> clear() {
+		contianer.clear();
+		return this;
+	}
+
+	public int size() {
+		return contianer.size();
+	}
+
+
+	/**
+	 * 获取保存对象的容器
+	 * @return
+	 */
+	public Chain<E> getContianer() {
+		return this;
+	}
+
 	/**
 	 * 重置链的迭代器
 	 * @return 链对象
@@ -32,7 +71,7 @@ public class Chain<E>  extends ArrayList<E> {
 	public Chain<E> rewind(){
 		isStop = false;
 		iterator = 0;
-		invertedIterator = this.size() - 1;
+		invertedIterator = contianer.size() - 1;
 
 		return this;
 	}
@@ -53,7 +92,7 @@ public class Chain<E>  extends ArrayList<E> {
 			return null;
 		} else {
 			if(this.hasNext()){
-				 E e = this.get(iterator++);
+				 E e = contianer.get(iterator++);
 				return e;
 			} else {
 				return null;
@@ -69,7 +108,7 @@ public class Chain<E>  extends ArrayList<E> {
 		if(isStop){
 			return false;
 		} else {
-			return iterator <= this.size() - 1;
+			return iterator <= contianer.size() - 1;
 		}
 	}
 
@@ -82,7 +121,7 @@ public class Chain<E>  extends ArrayList<E> {
 			return null;
 		} else {
 			if(this.hasPrevious()){
-				return this.get(invertedIterator--);
+				return contianer.get(invertedIterator--);
 			} else {
 				return null;
 			}
@@ -103,10 +142,6 @@ public class Chain<E>  extends ArrayList<E> {
 
 	@Override
 	public Object clone() {
-		Chain chain = (Chain) super.clone();
-		chain.rewind();
-		chain.isStop = false;
-
-		return chain;
+		return new Chain<E>(contianer);
 	}
 }
