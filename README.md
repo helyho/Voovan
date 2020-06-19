@@ -7,25 +7,24 @@
 
 Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTTP客户端抓取、动态编译支持、数据库访问封装以及DateTime、String、Log、反射、对象工具、流操作、文件操作、异步双向通道等功能。旨在提供可靠、方便、可单元测试的代码。它是极少依赖的独立工具包，希望能够方便广大开发者快速的实现应用。
 
+**开源协议:**  Apache v2 License
+
 **极简并且优雅的编码是 Voovan 的宗旨和目标**
 
 ---------------------
 
-**TFB 性能测试:** 
-  
-  [2019-10-24](https://www.techempower.com/benchmarks/#section=test&runid=59583d86-f7b6-4e86-b86a-a7e8eebf89fb&hw=ph&test=json)
+| 传送门           | 链接                                                                                                                          |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **外媒新闻**     | [Naked Performance With Clojure](https://www.slideshare.net/metosin/naked-performance-with-clojure)  重点在第七页             |
+| **TFB 性能测试** | [Round 19](https://www.techempower.com/benchmarks/#section=data-r19&hw=ph&test=json) [2019-10-24](https://www.techempower.com/benchmarks/#section=test&runid=59583d86-f7b6-4e86-b86a-a7e8eebf89fb&hw=ph&test=json) |
+| **文档入口**     | [Voovan 开发手册](http://www.voovan.org/doc/#/Document/v4/)                                                                   |
+| **入门教程**     | [Voovan 一步步入门](http://www.voovan.org/doc/#/Turorial/v4/)                                                                 |
 
-**文档入口:** [Voovan 开发手册](http://www.voovan.org/doc/#/Document/v4/)
-
-**入门教程:** [Voovan 一步步入门](http://www.voovan.org/doc/#/Turorial/v4/)
-
-**交流QQ群** 454201740
-
-**开源协议:** Apache v2 License
-
-**Voovan开源项目源代码主要托管于 Git@OSC.**
-
-**Issues地址:** [Git@OSC](http://git.oschina.net/helyho/Voovan/issues)
+---------------------
+| 联系我们      | 链接                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| **QQ Group:** | 454201740                                                                                         |
+| **Issues**    | [GitHub](https://github.com/helyho/Voovan/issues) [Gitee](https://gitee.com/helyho/Voovan/issues) |
 
 ---------------------
 
@@ -47,7 +46,6 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
   - WebServer 增加热部署支持, 修改类和 jar 中的类,无须重启 web 服务
   - WebServer 增加扫描新类和 jar 到 ClassPath 的支持,新增类和 jar 无须重启 web 服务
   - WebServer 路径变量抽取算法优化, 以获得性能提升
-  - WebServer 路径变量支持通过'_' 和 '-' 来进行变量分
   - WebServer 实现基于 redis 的 session 共享形式的集群
   - WebServer 提供对基于 Websocket 协议的 socket.io 和 engine.io 的支持
 
@@ -84,11 +82,11 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 ---------------------
 ** Voovan 相关新闻 **
 
-|日期                              | 标题                   |
-|-------------------------------    |-----------------------|
-| 2017-06-28 | [t-io 和 Voovan 并发性能测试](https://my.oschina.net/helyho/blog/1068640)  |
-| 2017-06-02 | [Netty、t-io、Voovan 框架浅谈](https://my.oschina.net/helyho/blog/919465) |
-| 2017-02-21 | [Netty与Voovan并发性能对比](https://my.oschina.net/helyho/blog/853755)    |
+| 日期       | 标题                                                                                      |
+| ---------- | ----------------------------------------------------------------------------------------- |
+| 2017-06-28 | [t-io 和 Voovan 并发性能测试](https://my.oschina.net/helyho/blog/1068640)                 |
+| 2017-06-02 | [Netty、t-io、Voovan 框架浅谈](https://my.oschina.net/helyho/blog/919465)                 |
+| 2017-02-21 | [Netty与Voovan并发性能对比](https://my.oschina.net/helyho/blog/853755)                    |
 | 2017-01-04 | [Voovan 参照 Jetty 的性能测试](http://www.oschina.net/news/80665/voovan-performance-test) |
 
 ---------------------
@@ -116,11 +114,11 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 
   类似 Netty 和 MINA 的异步 Socket 通信框架.但有有所不同。
   1. **可灵活解决Socket通信粘包的支持**（源码中包含 HTTP协议,字符串换行,定长报文的粘包实现）。
-  1. **支持 SSL/TLS 加密通信。**
-  1. **提供线程池依据系统负载情况自动动态调整。**
-  1. 采用非阻塞方式的异步传输。
-  1. 事件驱动(Connect、Recive、Sent、Close、Exception)，采用回调的方式完成调用。
-  1. **可灵活的加载过滤器机制。**
+  2. **支持 SSL/TLS 加密通信。**
+  3. **提供线程池依据系统负载情况自动动态调整。**
+  4. 采用非阻塞方式的异步传输。
+  5. 事件驱动(Connect、Recive、Sent、Close、Exception)，采用回调的方式完成调用。
+  6. **可灵活的加载过滤器机制。**
 
 ---------------------
 
@@ -185,13 +183,13 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 
 **包结构说明**
 
-|  包名                      | 名称           |
-| -------------             |:-------------: |
-|org.voovan.db              |数据库操作类      |
-|org.voovan.http            |HTTP工具包       |
-|org.voovan.dynamicComplier |动态编译包        |
-|org.voovan.network         |网络异步通信包    |
-|org.voovan.tools           |基本工具包        |
+| 包名                       |      名称      |
+| -------------------------- | :------------: |
+| org.voovan.db              |  数据库操作类  |
+| org.voovan.http            |   HTTP工具包   |
+| org.voovan.dynamicComplier |   动态编译包   |
+| org.voovan.network         | 网络异步通信包 |
+| org.voovan.tools           |   基本工具包   |
 
 ---------------------
 
