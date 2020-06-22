@@ -90,15 +90,11 @@ public class TByteBuffer {
     public final static Field attField = ByteBufferField("att");
 
     private static Constructor getConsturctor(){
-        try {
-            Constructor constructor = DIRECT_BYTE_BUFFER_CLASS.getDeclaredConstructor(long.class, int.class, Object.class);
-            constructor.setAccessible(true);
-            return constructor;
-        } catch (NoSuchMethodException e) {
-            Logger.error(e);
-        }
+        int paramCount = TEnv.JDK_VERSION >= 14 ? 4 : 3;
+        Constructor[] constructor = TReflect.findConstructor(DIRECT_BYTE_BUFFER_CLASS, paramCount);
 
-        return null;
+        constructor[0].setAccessible(true);
+        return constructor[0];
     }
 
     private static Field ByteBufferField(String fieldName){
@@ -118,7 +114,13 @@ public class TByteBuffer {
 
             Deallocator deallocator = new Deallocator(address, capacity);
 
-            ByteBuffer byteBuffer =  (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
+            ByteBuffer byteBuffer = null;
+            if(DIRECT_BYTE_BUFFER_CONSTURCTOR.getParameterCount() == 3) {
+                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
+            } else {
+                //jdk 14 兼容
+                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator, null);
+            }
 
             Cleaner.create(byteBuffer, deallocator);
 

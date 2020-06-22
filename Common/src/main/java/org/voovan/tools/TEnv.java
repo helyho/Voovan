@@ -678,7 +678,7 @@ public class TEnv {
 		System.out.println(msg + " " + measure(runnable)/(timeUnit.toNanos(1)*1f));
 	}
 
-	public static <T> T getSystemProperty(String propertyName, @NotNull T defVal) {
+	public static <T> T getSystemProperty(String propertyName, T defVal) {
 		String value = System.getProperty(propertyName);
 		return value == null ? defVal : TString.toObject(value, defVal.getClass());
 	}
