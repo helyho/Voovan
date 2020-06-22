@@ -2,6 +2,7 @@ package org.voovan.tools.threadpool;
 
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TProperties;
+import org.voovan.tools.log.Logger;
 
 import java.util.Timer;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -75,8 +76,8 @@ public class ThreadPool {
      * @return 线程池对象
      */
 	public static ThreadPoolExecutor createThreadPool(String poolName){
-		System.out.println("[THREAD_POOL] " + poolName + " Min size: " + MIN_POOL_SIZE);
-		System.out.println("[THREAD_POOL] " + poolName + " Max size: " + MAX_POOL_SIZE);
+		Logger.simple("[THREAD_POOL] " + poolName + " Min size: " + MIN_POOL_SIZE);
+		Logger.simple("[THREAD_POOL] " + poolName + " Max size: " + MAX_POOL_SIZE);
 
 		ThreadPoolExecutor threadPoolInstance = createThreadPool(poolName, MIN_POOL_SIZE, MAX_POOL_SIZE, 1000*60);
 
