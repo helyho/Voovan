@@ -58,10 +58,10 @@ public class Chain<E> {
 
 	/**
 	 * 获取保存对象的容器
-	 * @return
+	 * @return 对象容器
 	 */
-	public Chain<E> getContianer() {
-		return this;
+	public List<E> getContianer() {
+		return contianer;
 	}
 
 	/**
