@@ -207,7 +207,7 @@ public class AopWeave {
 
     /**
      * Javassist 扫描所有的切面注入点
-     * @param scanPackage 扫描的包路径
+     * @param scanPackages 扫描的包路径
      * @throws IOException IO 异常
      * @throws ClassNotFoundException 类未找到异常
      */
