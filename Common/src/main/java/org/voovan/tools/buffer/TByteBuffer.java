@@ -150,16 +150,27 @@ public class TByteBuffer {
      */
     public static ByteBuffer allocateDirect(int capacity) {
 
-        ByteBuffer byteBuffer = THREAD_BYTE_BUFFER_POOL.get(()->allocateManualReleaseBuffer(capacity));
+        ByteBuffer byteBuffer = null;
 
-        if(capacity <= byteBuffer.capacity()) {
-            byteBuffer.limit(capacity);
-        } else {
-            reallocate(byteBuffer, capacity);
+        while (byteBuffer == null) {
+            byteBuffer = THREAD_BYTE_BUFFER_POOL.get(() -> allocateManualReleaseBuffer(capacity));
+
+            try {
+                if (capacity <= byteBuffer.capacity()) {
+                    byteBuffer.limit(capacity);
+                } else {
+                    reallocate(byteBuffer, capacity);
+                }
+
+                byteBuffer.position(0);
+                byteBuffer.limit(capacity);
+            } catch (Exception e) {
+                byteBuffer = null;
+                if(byteBuffer!=null) {
+                    TByteBuffer.release(byteBuffer);
+                }
+            }
         }
-
-        byteBuffer.position(0);
-        byteBuffer.limit(capacity);
 
         return byteBuffer;
 

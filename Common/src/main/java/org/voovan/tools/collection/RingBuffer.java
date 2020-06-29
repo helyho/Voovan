@@ -1,5 +1,7 @@
 package org.voovan.tools.collection;
 
+import org.voovan.tools.log.Logger;
+
 import java.nio.BufferOverflowException;
 
 /**
@@ -181,11 +183,7 @@ public class RingBuffer<T> {
 			return false;
 		}
 
-		try {
-			elements[writePositon] = t;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		elements[writePositon] = t;
 
 		writePositon = (writePositon + 1);
 		writePositon = writePositon == capacity ? 0 : writePositon;
