@@ -385,7 +385,7 @@ public class Request {
             basicSend = true;
         } catch (Throwable e){
             if(!(e instanceof MemoryReleasedException)){
-                Logger.error("Response writeToChannel error: ", (Exception) e);
+                Logger.error("Request writeToChannel error: ", (Exception) e);
             }
             return;
         } finally {

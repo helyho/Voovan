@@ -54,10 +54,13 @@ public class AsyncHandler implements IoHandler {
     @Override
     public Object onReceive(IoSession session, Object obj) {
         Response response = (Response) obj;
-        async.accept(response);
+        if(session.isConnected()) {
+            async.accept(response);
+        }
+
         httpClient.finished(response);
         running = false;
-        if(synchronousHandler!=null) {
+        if (synchronousHandler != null) {
             session.socketContext().handler(synchronousHandler);
         }
         return null;
