@@ -31,8 +31,8 @@ public class ByteBufferChannel {
     private volatile long address = 0;
     private Unsafe unsafe = TUnsafe.getUnsafe();
     private ByteBuffer byteBuffer;
-    private int capacity;
-    private int size;
+    private volatile int capacity;
+    private volatile int size;
     private ReentrantLock lock;
     private AtomicBoolean borrowed = new AtomicBoolean(false);
 
