@@ -44,7 +44,6 @@ public class HttpParser {
 	private final static int PL_STATUS_CODE = 9;
 	private final static int PL_QUERY_STRING = 10;
 	private final static int HEADER_MARK = 11;
-	private final static int CACHE_FLAG = 12;
 
 	private final static String MULTIPART_FORM_DATA 	= "multipart/form-data";
 
@@ -393,7 +392,8 @@ public class HttpParser {
 			packetMap[PL_STATUS_CODE] = segment_3;
 		}
 
-		return segment_1.hashCode() + segment_2.hashCode() + packetMap[PL_VERSION].hashCode();
+		int queryStringHashCode = queryString==null ? 0 : queryString.hashCode();
+		return segment_1.hashCode() + segment_2.hashCode() + queryStringHashCode + packetMap[PL_VERSION].hashCode();
 	}
 
 	/**
@@ -500,7 +500,7 @@ public class HttpParser {
 
 		boolean hasBody = false;
 		boolean isCache = WebContext.isCache();
-		Map<String, Object> headerMap = null;
+		TreeMap<String, Object> headerMap = null;
 
 		requestMaxSize = requestMaxSize < 0 ? Integer.MAX_VALUE : requestMaxSize;
 
@@ -531,32 +531,39 @@ public class HttpParser {
 					if (isCache) {
 						Long cachedMark = PROTOCOL_HASH_MAP.get(protocolMark);
 
-						if (cachedMark!=null) {
-							Object[] cachedPacketMap = PARSED_PACKET_MAP.get(cachedMark);
+						try {
+							if (cachedMark != null) {
+								Object[] cachedPacketMap = PARSED_PACKET_MAP.get(cachedMark);
 
-							if(cachedPacketMap!=null) {
-								long totalLengthInMark = cachedMark & 0x00000000FFFFFFFFL; //高位清空, 获得整个头的长度
+								if (cachedPacketMap != null) {
+									long totalLengthInMark = cachedMark & 0x00000000FFFFFFFFL; //高位清空, 获得整个头的长度
 
-								if (totalLengthInMark > innerByteBuffer.limit()) {
-									continue;
-								}
+									if (totalLengthInMark >= innerByteBuffer.limit() ||
+											(byteBufferChannel.size() >= totalLengthInMark &&
+													byteBufferChannel.get((int) totalLengthInMark - 1) == 10 &&
+													byteBufferChannel.get((int) totalLengthInMark - 2) == 13 &&
+													byteBufferChannel.get((int) totalLengthInMark - 3) == 10 &&
+													byteBufferChannel.get((int) totalLengthInMark - 4) == 13
+											)
+									) {
 
-								if (byteBufferChannel.size() >= totalLengthInMark &&
-										byteBufferChannel.get((int) totalLengthInMark - 1) == 10 &&
-										byteBufferChannel.get((int) totalLengthInMark - 2) == 13 &&
-										byteBufferChannel.get((int) totalLengthInMark - 3) == 10 &&
-										byteBufferChannel.get((int) totalLengthInMark - 4) == 13) {
+										headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
+										if (protocolMark + headerMark == cachedMark >> 32) {
+											innerByteBuffer.position((int) totalLengthInMark);
 
-									headerMark = THash.HashFNV1(innerByteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
-									if (protocolMark + headerMark == cachedMark >> 32) {
-										innerByteBuffer.position((int) totalLengthInMark);
-
-										packetMap = cachedPacketMap;
-										headerMap = (Map<String, Object>) packetMap[HEADER];
-										findCache = true;
+											packetMap = Arrays.copyOf(cachedPacketMap, cachedPacketMap.length);
+											headerMap = (TreeMap<String, Object>) packetMap[HEADER];
+											findCache = true;
+										}
+									} else {
+										PROTOCOL_HASH_MAP.remove(protocolMark);
+										PARSED_PACKET_MAP.remove(cachedMark);
 									}
 								}
 							}
+						} catch (Exception e) {
+							PROTOCOL_HASH_MAP.remove(protocolMark);
+							PARSED_PACKET_MAP.remove(cachedMark);
 						}
 					}
 				}
@@ -582,8 +589,6 @@ public class HttpParser {
 						packetMap[HEADER_MARK] = mark;
 
 						Object[] cachedPacketMap = Arrays.copyOf(packetMap, packetMap.length);
-						cachedPacketMap[CACHE_FLAG] =  1;
-
 						PARSED_PACKET_MAP.put(mark, cachedPacketMap);
 						PROTOCOL_HASH_MAP.put(protocolMark, mark);
 					}
@@ -914,7 +919,6 @@ public class HttpParser {
 		request.clear();
 
 		//是否使用的时缓存的数据
-		boolean cacheFlag = false;
 		boolean bodyFlag = false;
 		boolean bodyPartFlag = false;
 
@@ -927,9 +931,6 @@ public class HttpParser {
 			}
 
 			switch (key) {
-				case CACHE_FLAG:
-					cacheFlag = true;
-					break;
 				case PL_METHOD:
 					request.protocol().setMethod(value.toString());
 					break;
@@ -995,24 +996,16 @@ public class HttpParser {
 					break;
 				case HEADER:
 					request.header().setHeaders((Map<String, String>) value);
-					request.header().setCache(cacheFlag);
 					break;
 			}
 		}
 
-		if(!cacheFlag) {
-			Arrays.fill(packetMap, null);;
-		}
+		Arrays.fill(packetMap, null);;
 
-		if(isCache && bodyFlag) {
-			//MULTIPART_FORM_DATA 不使用缓存
-			if(bodyPartFlag) {
-				request.setMark(null);
-				Arrays.fill(packetMap, null);
-			} else if (request.getMark() != null && bodyFlag) {
-				Integer bodyMark = request.body().getMark();
-				request.setMark(request.getMark() | bodyMark);
-			}
+		//设置 post 请求的 mark
+		if(isCache && bodyFlag && request.getMark() != null && !bodyPartFlag) {
+			Integer bodyMark = request.body().getMark();
+			request.setMark(request.getMark() | bodyMark);
 		}
 
 		return request;
