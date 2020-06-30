@@ -25,7 +25,6 @@ public class Header {
 	private String contentEncoding;
 	private String transferEncoding;
 	private Map<String, String> headers;
-	private boolean isCache = false;
 
 	/**
 	 * 构造函数
@@ -39,13 +38,9 @@ public class Header {
 	 * @return HTTP-Header 转换候的 Map
 	 */
 	public Map<String,String> getHeaders() {
-		if(isCache) {
-			TreeMap<String, String> newHeaders = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
-			newHeaders.putAll(headers);
-			return newHeaders;
-		} else {
-			return headers;
-		}
+		TreeMap<String, String> newHeaders = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+		newHeaders.putAll(headers);
+		return newHeaders;
 	}
 
 	public void setHeaders(Map<String, String> headers) {
@@ -56,24 +51,12 @@ public class Header {
 		this.headers = headers;
 	}
 
-	public boolean isCache() {
-		return isCache;
-	}
-
-	public void setCache(boolean cache) {
-		isCache = cache;
-	}
-
 	/**
 	 * 通过 name  删除 Header值
 	 * @param header header 的 name
 	 * @return 移除的header 的 name
 	 */
 	public String remove(String header){
-		if(isCache) {
-			throw new UnsupportedOperationException("This header can't modify");
-		}
-
 		String ret = null;
 		switch (header) {
 			case HttpStatic.CONTENT_TYPE_STRING:
@@ -154,10 +137,6 @@ public class Header {
 	 * @return header 的 name
 	 */
 	public String put(String header,String value){
-		if(isCache) {
-			throw new UnsupportedOperationException("This header can't modify");
-		}
-
 		switch (header) {
 			case HttpStatic.CONTENT_TYPE_STRING 	 :  this.contentType 		= value; break;
 			case HttpStatic.CONTENT_LENGTH_STRING 	 : 	this.contentLength 		= value; break;
@@ -173,10 +152,6 @@ public class Header {
 	 * @param valueMap Header 的 Map 形式
 	 */
 	public void putAll(Map<String, String> valueMap){
-		if(isCache) {
-			throw new UnsupportedOperationException("This header can't modify");
-		}
-
 		for(Entry<String, String> entry : valueMap.entrySet()) {
 			put(entry.getKey(), entry.getValue());
 		}
@@ -189,7 +164,7 @@ public class Header {
 	public int size(){
 		return headers.size();
 	}
-	
+
 	public Header copyFrom(Header otherHeader) {
 		this.putAll(otherHeader.getHeaders());
 		this.put(HttpStatic.CONTENT_TYPE_STRING, otherHeader.get(HttpStatic.CONTENT_TYPE_STRING));
@@ -203,13 +178,11 @@ public class Header {
 	 * 清空头
 	 */
 	public void clear(){
-		if(!isCache) {
-			contentType = null;
-			contentLength = null;
-			contentEncoding = null;
-			transferEncoding = null;
-			headers.clear();
-		}
+		contentType = null;
+		contentLength = null;
+		contentEncoding = null;
+		transferEncoding = null;
+		headers = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
 	}
 
 	@Override
