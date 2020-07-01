@@ -149,8 +149,9 @@ public class HttpDispatcher {
 	 * @param router         请求处理句柄
 	 */
 	public void addRouter(String method, String routePath, HttpRouter router) {
+		routePath = fixRoutePath(routePath);
 		if (methodRouters.keySet().contains(method)) {
-			methodRouters.get(method).put(fixRoutePath(routePath), new RouterWrap(method, routePath, router));
+			methodRouters.get(method).put(routePath, new RouterWrap(method, routePath, router));
 		}
 	}
 
@@ -356,7 +357,8 @@ public class HttpDispatcher {
 	/**
 	 * 路径匹配
 	 * @param requestPath    请求路径
-	 * @param routePath      正则匹配路径
+	 * @param routePath      路由定义路径
+	 * @param routeRegexPath 正则匹配路径
 	 * @param matchRouteIgnoreCase 路劲匹配是否忽略大消息
 	 * @return  是否匹配成功
 	 */
