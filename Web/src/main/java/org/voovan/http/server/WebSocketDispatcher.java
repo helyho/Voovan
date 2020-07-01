@@ -1,6 +1,6 @@
 package org.voovan.http.server;
 
-import org.voovan.http.HttpRequestType;
+import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.websocket.WebSocketFrame;
@@ -10,7 +10,6 @@ import org.voovan.http.websocket.WebSocketType;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.tools.TObject;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.log.Logger;
@@ -18,7 +17,6 @@ import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.nio.ByteBuffer;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,7 +56,7 @@ public class WebSocketDispatcher {
 	/**
 	 * [Key] = Route path ,[Value] = WebSocketBizHandler对象
 	 */
-	private Map<String, WebSocketRouter> routers;
+	private Map<String, RouterWrap<WebSocketRouter>>routers;
 
 	public enum WebSocketEvent {
 		OPEN, RECIVED, SENT, CLOSE, PING, PONG
@@ -75,7 +73,7 @@ public class WebSocketDispatcher {
 
 		webSocketSessions = new ConcurrentHashMap<IoSession, WebSocketSession>();
 
-		routers =  new TreeMap<String, WebSocketRouter>(new Comparator<String>() {
+		routers =  new TreeMap<String, RouterWrap<WebSocketRouter>>(new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
 				if(o1.length() > o2.length()){
@@ -95,19 +93,19 @@ public class WebSocketDispatcher {
 	 * 获取 WebSocket 的路由配置
 	 * @return 路由配置信息
 	 */
-	public Map<String, WebSocketRouter> getRouters(){
+	public Map<String, RouterWrap<WebSocketRouter>> getRouters(){
 		return routers;
 	}
 
 	/**
 	 * 增加一个路由规则
 	 *
-	 * @param routeRegexPath 匹配路径
+	 * @param routePath 匹配路径
 	 * @param handler WebSocketRouter 对象
 	 */
-	public void addRouteHandler(String routeRegexPath, WebSocketRouter handler) {
-		routeRegexPath = HttpDispatcher.fixRoutePath(routeRegexPath);
-		routers.put(routeRegexPath, handler);
+	public void addRouteHandler(String routePath, WebSocketRouter handler) {
+		routePath = HttpDispatcher.fixRoutePath(routePath);
+		routers.put(routePath, new RouterWrap<WebSocketRouter>(HttpStatic.GET_STRING, routePath, handler));
 	}
 
 	/**
@@ -115,13 +113,14 @@ public class WebSocketDispatcher {
 	 * @param request 请求对象
 	 * @return 路由信息对象 [ 匹配到的已注册路由, WebSocketRouter对象 ]
 	 */
-	public List<Object> findRouter(HttpRequest request){
+	public RouterWrap<WebSocketRouter> findRouter(HttpRequest request){
 		String requestPath = request.protocol().getPath();
-		for (Map.Entry<String,WebSocketRouter> routeEntry : routers.entrySet()) {
+		for (Map.Entry<String, RouterWrap<WebSocketRouter>> routeEntry : routers.entrySet()) {
 			String routePath = routeEntry.getKey();
-			if(HttpDispatcher.matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())){
+			if(HttpDispatcher.matchPath(requestPath, routePath, HttpDispatcher.routePath2RegexPath(routePath), webConfig.isMatchRouteIgnoreCase())) {
 				//[ 匹配到的已注册路由, HttpRouter对象 ]
-				return TObject.asList(routePath, routeEntry.getValue());}
+				return routeEntry.getValue();
+			}
 		}
 
 		return null;
@@ -139,11 +138,11 @@ public class WebSocketDispatcher {
 	public WebSocketFrame process(WebSocketEvent event, IoSession session, HttpRequest request, ByteBuffer byteBuffer) {
 
 		//[ 匹配到的已注册路由, WebSocketRouter对象 ]
-		List<Object> routerInfo = findRouter(request);
+		RouterWrap<WebSocketRouter> routerWrap = findRouter(request);
 
-		if (routerInfo != null) {
+		if (routerWrap != null) {
 //			String routePath = (String)routerInfo.getThread(0);
-			WebSocketRouter webSocketRouter = (WebSocketRouter)routerInfo.get(1);
+			WebSocketRouter webSocketRouter = routerWrap.getRouter();
 
 			WebSocketSession webSocketSession = disposeSession(request, webSocketRouter);
 

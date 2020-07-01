@@ -12,7 +12,6 @@ import org.voovan.tools.*;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.security.THash;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -45,13 +44,12 @@ import java.util.regex.Pattern;
  */
 public class HttpDispatcher {
 
-	private static FastThreadLocal<Map<String, String>> REGEXED_ROUTER_CACHE     = FastThreadLocal.withInitial(()->new HashMap<String, String>());
-	private static FastThreadLocal<IntKeyMap<Object[]>> ROUTER_INFO_CACHE = FastThreadLocal.withInitial(()->new IntKeyMap<Object[]>(16));
+	private static FastThreadLocal<IntKeyMap<RouterWrap<HttpRouter>>> ROUTER_INFO_CACHE = FastThreadLocal.withInitial(()->new IntKeyMap<RouterWrap<HttpRouter>>(16));
 
 	/**
 	 * [MainKey] = HTTP method ,[Value] = { [Value Key] = Route path, [Value value] = RouteBuiz对象 }
 	 */
-	private Map<String, Map<String, HttpRouter>> methodRouters;
+	private Map<String, Map<String, RouterWrap<HttpRouter>>> methodRouters;
 	private WebServerConfig webConfig;
 	private SessionManager sessionManager;
 	private MimeFileRouter mimeFileRouter;
@@ -65,11 +63,9 @@ public class HttpDispatcher {
 	 */
 	public HttpDispatcher(WebServerConfig webConfig, SessionManager sessionManager) {
 
-		//清理缓存的路由正则
-		REGEXED_ROUTER_CACHE.get().clear();
 		ROUTER_INFO_CACHE.get().clear();
 
-		methodRouters = new ConcurrentHashMap<String, Map<String, HttpRouter>>();
+		methodRouters = new ConcurrentHashMap<String, Map<String, RouterWrap<HttpRouter>>>();
 		this.webConfig = webConfig;
 		this.sessionManager = sessionManager;
 
@@ -94,7 +90,7 @@ public class HttpDispatcher {
 	 * 获取 Http 的路由配置
 	 * @return 路由配置信息
 	 */
-	public Map<String, Map<String, HttpRouter>> getRoutes(){
+	public Map<String, Map<String, RouterWrap<HttpRouter>>> getRoutes(){
 		return methodRouters;
 	}
 
@@ -106,7 +102,7 @@ public class HttpDispatcher {
 	public void addRouteMethod(String method) {
 		if (!methodRouters.containsKey(method)) {
 			//TODO: 尝试优化改成多级数组形式
-			Map<String,HttpRouter> routers = new TreeMap<String, HttpRouter>(new Comparator<String>() {
+			Map<String, RouterWrap<HttpRouter>> routers = new TreeMap<String, RouterWrap<HttpRouter>>(new Comparator<String>() {
 				@Override
 				public int compare(String o1, String o2) {
 					if(o1.length() > o2.length() && !o1.equals(o2)){
@@ -149,12 +145,12 @@ public class HttpDispatcher {
 	 * 增加一个路由规则
 	 *
 	 * @param method          Http 请求方法
-	 * @param routeRegexPath  路径匹配正则
+	 * @param routePath  路径匹配正则
 	 * @param router         请求处理句柄
 	 */
-	public void addRouteHandler(String method, String routeRegexPath, HttpRouter router) {
+	public void addRouter(String method, String routePath, HttpRouter router) {
 		if (methodRouters.keySet().contains(method)) {
-			methodRouters.get(method).put(fixRoutePath(routeRegexPath), router);
+			methodRouters.get(method).put(fixRoutePath(routePath), new RouterWrap(method, routePath, router));
 		}
 	}
 
@@ -249,38 +245,36 @@ public class HttpDispatcher {
 	 * @param request 请求对象
 	 * @return 路由信息对象 { 路由标签, [ 匹配到的已注册路由, HttpRouter对象 ] }
 	 */
-	public Object[] findRouter(HttpRequest request){
+	public RouterWrap<HttpRouter> findRouter(HttpRequest request){
 		String requestPath   = request.protocol().getPath();
 		String requestMethod 	= request.protocol().getMethod();
 		int routerMark    = requestPath.hashCode() << 16 +  requestMethod.hashCode();
 
-		Object[] routerInfo = ROUTER_INFO_CACHE.get().get(routerMark);
+		RouterWrap<HttpRouter> routerWrap = ROUTER_INFO_CACHE.get().get(routerMark);
 
-		if(routerInfo==null) {
+		if(routerWrap ==null) {
+			Map<String, RouterWrap<HttpRouter>> routers = methodRouters.get(requestMethod);
+			for (Map.Entry<String, RouterWrap<HttpRouter>> routeEntry : routers.entrySet()) {
+				RouterWrap tmpRouterWrap = routeEntry.getValue();
 
-			Map<String, HttpRouter> routers = methodRouters.get(requestMethod);
-			for (Map.Entry<String, HttpRouter> routeEntry : routers.entrySet()) {
-				String routePath = routeEntry.getKey();
 				//寻找匹配的路由对象
-				if (matchPath(requestPath, routePath, webConfig.isMatchRouteIgnoreCase())) {
-					//[ 匹配到的已注册路由, HttpRouter对象 ]
-					routerInfo = new Object[] {routePath, routeEntry.getValue()};
-					ROUTER_INFO_CACHE.get().put(routerMark, routerInfo);
-					return routerInfo;
+				if (matchPath(requestPath, tmpRouterWrap.getRoutePath(), tmpRouterWrap.getRegexPath(), webConfig.isMatchRouteIgnoreCase())) {
+					ROUTER_INFO_CACHE.get().put(routerMark, tmpRouterWrap);
+					return tmpRouterWrap;
 				}
 			}
 		}
 
 		//判断是否是静态文件
-		if(routerInfo == null){
+		if(routerWrap == null){
 			if(isStaticFile(request)){
-				routerInfo = new Object[] {request.protocol().getPath(), mimeFileRouter};
-				ROUTER_INFO_CACHE.get().put(routerMark, routerInfo);
-				return routerInfo;
+				routerWrap = new RouterWrap(HttpStatic.GET_STRING, request.protocol().getPath(), mimeFileRouter);
+				ROUTER_INFO_CACHE.get().put(routerMark, routerWrap);
+				return routerWrap;
 			}
 		}
 
-		return routerInfo;
+		return routerWrap;
 	}
 
 	/**
@@ -292,14 +286,14 @@ public class HttpDispatcher {
 		String requestPath = request.protocol().getPath();
 
 		//[ 匹配到的已注册路由, HttpRouter对象
-		Object[] routerInfo = findRouter(request);
+		RouterWrap<HttpRouter> routerWrap = findRouter(request);
 
-		if (routerInfo!=null) {
+		if (routerWrap !=null) {
 			try {
-				String routePath = (String)routerInfo[0];
-				HttpRouter router = (HttpRouter)routerInfo[1];
+				String routePath = routerWrap.getRoutePath();
+				HttpRouter router = routerWrap.getRouter();
 
-				if(webConfig.isEnablePathVariables()) {
+				if(routerWrap.hasUrlParam) {
 					//获取路径变量
 					Map<String, String> pathVariables = fetchPathVariables(requestPath, routePath, webConfig.isMatchRouteIgnoreCase());
 					if (pathVariables != null) {
@@ -352,16 +346,11 @@ public class HttpDispatcher {
 	 * @return  转换后的正则匹配路径
 	 */
 	public static String routePath2RegexPath(String routePath){
-		if(!REGEXED_ROUTER_CACHE.get().containsKey(routePath)) {
-			String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
-			routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/");
-			routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/]*", "[^:?/]*");
-			routeRegexPath = TString.assembly("^\\/?", routeRegexPath, "\\/?$");
-			REGEXED_ROUTER_CACHE.get().put(routePath, routeRegexPath);
-			return routeRegexPath;
-		} else {
-			return REGEXED_ROUTER_CACHE.get().get(routePath);
-		}
+		String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
+		routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/");
+		routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/]*", "[^:?/]*");
+		routeRegexPath = TString.assembly("^\\/?", routeRegexPath, "\\/?$");
+		return routeRegexPath;
 	}
 
 	/**
@@ -371,10 +360,9 @@ public class HttpDispatcher {
 	 * @param matchRouteIgnoreCase 路劲匹配是否忽略大消息
 	 * @return  是否匹配成功
 	 */
-	public static boolean matchPath(String requestPath, String routePath, boolean matchRouteIgnoreCase){
+	public static boolean matchPath(String requestPath, String routePath, String routeRegexPath, boolean matchRouteIgnoreCase){
 		//转换成可以配置的正则,主要是处理:后的参数表达式
 		//把/home/:name转换成^[/]?/home/[/]?+来匹配
-		String routeRegexPath = routePath2RegexPath(routePath);
 		if(TString.regexMatch(requestPath, routeRegexPath, matchRouteIgnoreCase ? Pattern.UNICODE_CASE | Pattern.CASE_INSENSITIVE : 0) > 0 ){
 			return true;
 		}else {
@@ -588,4 +576,5 @@ public class HttpDispatcher {
 			response.write(errorPageContent);
 		}
 	}
+
 }
