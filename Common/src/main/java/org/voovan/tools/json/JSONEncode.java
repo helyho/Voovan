@@ -159,7 +159,7 @@ public class JSONEncode {
 
         Integer jsonHash = null;
         if(JSON_HASH_ENABLE) {
-            jsonHash = Objects.hash(TReflect.getClassName(object.getClass()), object, allField);
+            jsonHash = Objects.hash(object.getClass(), object, allField);
             value = JSON_ENCODE_CACHE.get(jsonHash);
 
             if (value != null) {
