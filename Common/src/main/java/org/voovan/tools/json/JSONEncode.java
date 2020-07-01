@@ -3,12 +3,10 @@ package org.voovan.tools.json;
 import org.voovan.Global;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.reflect.TReflect;
-import org.voovan.tools.security.THash;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -27,11 +25,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class JSONEncode {
-    public final static boolean JSON_CACHE_ENABLE = TEnv.getSystemProperty("JsonCacheEnable", false);
+    public final static boolean JSON_HASH_ENABLE = TEnv.getSystemProperty("JsonHashEnable", false);
     public final static IntKeyMap<String> JSON_ENCODE_CACHE = new IntKeyMap<String>(1024);
 
     static {
-        if(JSON_CACHE_ENABLE) {
+        if(JSON_HASH_ENABLE) {
             Global.getHashWheelTimer().addTask(new HashWheelTask() {
                 @Override
                 public void run() {
@@ -154,17 +152,19 @@ public class JSONEncode {
     @SuppressWarnings("unchecked")
     public static String fromObject(Object object, boolean allField) throws ReflectiveOperationException {
         String value = null;
-        int jsonHash = Objects.hash(object, allField);
-        if(JSON_CACHE_ENABLE) {
+
+        if(object == null) {
+            return "null";
+        }
+
+        Integer jsonHash = null;
+        if(JSON_HASH_ENABLE) {
+            jsonHash = Objects.hash(TReflect.getClassName(object.getClass()), object, allField);
             value = JSON_ENCODE_CACHE.get(jsonHash);
 
             if (value != null) {
                 return value;
             }
-        }
-
-        if (object == null) {
-            return "null";
         }
 
         Class clazz = object.getClass();
@@ -212,7 +212,7 @@ public class JSONEncode {
             value = complexObject(object, allField);
         }
 
-        if(JSON_CACHE_ENABLE) {
+        if(JSON_HASH_ENABLE && jsonHash!=null) {
             JSON_ENCODE_CACHE.put(jsonHash, value);
         }
 
