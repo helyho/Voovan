@@ -652,104 +652,8 @@ public class HttpParser {
 			String transferEncoding = (String)headerMap.get(HttpStatic.TRANSFER_ENCODING_STRING);
 			String contentLength 	= (String)headerMap.get(HttpStatic.CONTENT_LENGTH_STRING);
 
-			//1. HTTP(请求和响应) 报文的内容段中Content-Length 提供长度,按长度读取 body 内容段
-			if(contentLength!=null){
-				int contentSize = Integer.parseInt(contentLength.toString());
-
-				//累计请求大小
-				totalLength = totalLength + contentSize;
-
-				//请求过大的处理
-				if(totalLength > requestMaxSize * 1024){
-					throw new HttpParserException("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
-				}
-
-
-				// 等待数据
-				if(!byteBufferChannel.waitData(contentSize, timeout, contiuneRead)){
-					throw new HttpParserException("Http Parser readFromChannel data error");
-				}
-
-				byte[] contentBytes = new byte[contentSize];
-				byteBufferChannel.get(contentBytes);
-				byteBufferChannel.shrink(0, contentSize);
-
-				byte[] value = dealBodyContent(headerMap, contentBytes);
-				packetMap[BODY_VALUE] = value;
-			}
-
-			//2. 解析 HTTP 响应 body 内容段的 chunked
-			else if(HttpStatic.CHUNKED_STRING.equals(transferEncoding)){
-
-				ByteBufferChannel chunkedByteBufferChannel = new ByteBufferChannel(3);
-				String chunkedLengthLine = "";
-
-				while(chunkedLengthLine!=null){
-
-					// 等待数据
-					if(!byteBufferChannel.waitData("\r\n".getBytes(), timeout, contiuneRead)){
-						throw new HttpParserException("Http Parser readFromChannel data error");
-					}
-
-					chunkedLengthLine = byteBufferChannel.readLine().trim();
-
-					if("0".equals(chunkedLengthLine)){
-						break;
-					}
-
-					if(chunkedLengthLine.isEmpty()){
-						continue;
-					}
-
-					int chunkedLength = 0;
-					//读取chunked长度
-					try {
-						chunkedLength = Integer.parseInt(chunkedLengthLine, 16);
-					}catch(Exception e){
-						Logger.error(e);
-						break;
-					}
-
-					// 等待数据
-					if(!byteBufferChannel.waitData(chunkedLength, timeout, contiuneRead)){
-						throw new HttpParserException("Http Parser readFromChannel data error");
-					}
-
-					int readSize = 0;
-					if(chunkedLength > 0) {
-						//按长度读取chunked内容
-						ByteBuffer chunkedByteBuffer = TByteBuffer.allocateDirect(chunkedLength);
-						readSize = byteBufferChannel.readHead(chunkedByteBuffer);
-
-						//累计请求大小
-						totalLength = totalLength + readSize;
-						//请求过大的处理
-						if(readSize != chunkedLength){
-							throw new HttpParserException("Http Parser readFromChannel chunked data error");
-						}
-
-						//如果多次读取则拼接
-						chunkedByteBufferChannel.writeEnd(chunkedByteBuffer);
-						TByteBuffer.release(chunkedByteBuffer);
-					}
-
-					//请求过大的处理
-					if(totalLength > requestMaxSize * 1024){
-						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
-					}
-
-					//跳过换行符号
-					byteBufferChannel.shrink(2);
-				}
-
-				byte[] value = dealBodyContent(headerMap, chunkedByteBufferChannel.array());
-				chunkedByteBufferChannel.release();
-				packetMap[BODY_VALUE] = value;
-				byteBufferChannel.shrink(2);
-			}
-
-			//3. 解析 HTTP 的 POST 请求 body part
-			else if(contentType!=null && contentType.contains(HttpStatic.MULTIPART_FORM_DATA_STRING)){
+			//1. 解析 HTTP 的 POST 请求 body part
+			if(contentType!=null && contentType.contains(HttpStatic.MULTIPART_FORM_DATA_STRING)){
 				//用来保存 Part 的 list
 				List<Object[]> bodyPartList = new ArrayList<Object[]>();
 
@@ -901,7 +805,101 @@ public class HttpParser {
 				packetMap[BODY_PARTS] = bodyPartList;
 			}
 
+			//2. 解析 HTTP 响应 body 内容段的 chunked
+			else if(HttpStatic.CHUNKED_STRING.equals(transferEncoding)){
 
+				ByteBufferChannel chunkedByteBufferChannel = new ByteBufferChannel(3);
+				String chunkedLengthLine = "";
+
+				while(chunkedLengthLine!=null){
+
+					// 等待数据
+					if(!byteBufferChannel.waitData("\r\n".getBytes(), timeout, contiuneRead)){
+						throw new HttpParserException("Http Parser readFromChannel data error");
+					}
+
+					chunkedLengthLine = byteBufferChannel.readLine().trim();
+
+					if("0".equals(chunkedLengthLine)){
+						break;
+					}
+
+					if(chunkedLengthLine.isEmpty()){
+						continue;
+					}
+
+					int chunkedLength = 0;
+					//读取chunked长度
+					try {
+						chunkedLength = Integer.parseInt(chunkedLengthLine, 16);
+					}catch(Exception e){
+						Logger.error(e);
+						break;
+					}
+
+					// 等待数据
+					if(!byteBufferChannel.waitData(chunkedLength, timeout, contiuneRead)){
+						throw new HttpParserException("Http Parser readFromChannel data error");
+					}
+
+					int readSize = 0;
+					if(chunkedLength > 0) {
+						//按长度读取chunked内容
+						ByteBuffer chunkedByteBuffer = TByteBuffer.allocateDirect(chunkedLength);
+						readSize = byteBufferChannel.readHead(chunkedByteBuffer);
+
+						//累计请求大小
+						totalLength = totalLength + readSize;
+						//请求过大的处理
+						if(readSize != chunkedLength){
+							throw new HttpParserException("Http Parser readFromChannel chunked data error");
+						}
+
+						//如果多次读取则拼接
+						chunkedByteBufferChannel.writeEnd(chunkedByteBuffer);
+						TByteBuffer.release(chunkedByteBuffer);
+					}
+
+					//请求过大的处理
+					if(totalLength > requestMaxSize * 1024){
+						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+					}
+
+					//跳过换行符号
+					byteBufferChannel.shrink(2);
+				}
+
+				byte[] value = dealBodyContent(headerMap, chunkedByteBufferChannel.array());
+				chunkedByteBufferChannel.release();
+				packetMap[BODY_VALUE] = value;
+				byteBufferChannel.shrink(2);
+			}
+
+			//3. HTTP(请求和响应) 报文的内容段中Content-Length 提供长度,按长度读取 body 内容段
+			else if(contentLength!=null){
+				int contentSize = Integer.parseInt(contentLength.toString());
+
+				//累计请求大小
+				totalLength = totalLength + contentSize;
+
+				//请求过大的处理
+				if(totalLength > requestMaxSize * 1024){
+					throw new HttpParserException("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+				}
+
+
+				// 等待数据
+				if(!byteBufferChannel.waitData(contentSize, timeout, contiuneRead)){
+					throw new HttpParserException("Http Parser readFromChannel data error");
+				}
+
+				byte[] contentBytes = new byte[contentSize];
+				byteBufferChannel.get(contentBytes);
+				byteBufferChannel.shrink(0, contentSize);
+
+				byte[] value = dealBodyContent(headerMap, contentBytes);
+				packetMap[BODY_VALUE] = value;
+			}
 
 			break;
 		}
