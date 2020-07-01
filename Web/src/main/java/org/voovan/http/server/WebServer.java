@@ -1,6 +1,5 @@
 package org.voovan.http.server;
 
-import javassist.tools.web.Webserver;
 import org.voovan.Global;
 import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.context.HttpModuleConfig;
@@ -206,7 +205,7 @@ public class WebServer {
 	 * @return WebServer对象
 	 */
 	public WebServer get(String routeRegexPath, HttpRouter router) {
-		httpDispatcher.addRouteHandler(HttpStatic.GET_STRING, routeRegexPath, router);
+		httpDispatcher.addRouter(HttpStatic.GET_STRING, routeRegexPath, router);
 		return this;
 	}
 
@@ -217,7 +216,7 @@ public class WebServer {
 	 * @return WebServer对象
 	 */
 	public WebServer post(String routeRegexPath, HttpRouter router) {
-		httpDispatcher.addRouteHandler(HttpStatic.POST_STRING, routeRegexPath, router);
+		httpDispatcher.addRouter(HttpStatic.POST_STRING, routeRegexPath, router);
 		return this;
 	}
 
@@ -240,7 +239,7 @@ public class WebServer {
 	 * @return WebServer对象
 	 */
 	public WebServer head(String routeRegexPath, HttpRouter router) {
-		httpDispatcher.addRouteHandler(HttpStatic.HEAD_STRING, routeRegexPath, router);
+		httpDispatcher.addRouter(HttpStatic.HEAD_STRING, routeRegexPath, router);
 		return this;
 	}
 
@@ -251,7 +250,7 @@ public class WebServer {
 	 * @return WebServer对象
 	 */
 	public WebServer put(String routeRegexPath, HttpRouter router) {
-		httpDispatcher.addRouteHandler(HttpStatic.PUT_STRING, routeRegexPath, router);
+		httpDispatcher.addRouter(HttpStatic.PUT_STRING, routeRegexPath, router);
 		return this;
 	}
 
@@ -262,7 +261,7 @@ public class WebServer {
 	 * @return WebServer对象
 	 */
 	public WebServer delete(String routeRegexPath, HttpRouter router) {
-		httpDispatcher.addRouteHandler(HttpStatic.DELETE_STRING, routeRegexPath, router);
+		httpDispatcher.addRouter(HttpStatic.DELETE_STRING, routeRegexPath, router);
 		return this;
 	}
 
@@ -273,7 +272,7 @@ public class WebServer {
 	 * @return WebServer对象
 	 */
 	public WebServer trace(String routeRegexPath, HttpRouter router) {
-		httpDispatcher.addRouteHandler(HttpStatic.TRACE_STRING, routeRegexPath, router);
+		httpDispatcher.addRouter(HttpStatic.TRACE_STRING, routeRegexPath, router);
 		return this;
 	}
 
@@ -284,7 +283,7 @@ public class WebServer {
 	 * @return WebServer对象
 	 */
 	public WebServer connect(String routeRegexPath, HttpRouter router) {
-		httpDispatcher.addRouteHandler(HttpStatic.CONNECTION_STRING, routeRegexPath, router);
+		httpDispatcher.addRouter(HttpStatic.CONNECTION_STRING, routeRegexPath, router);
 		return this;
 	}
 
@@ -295,7 +294,7 @@ public class WebServer {
 	 * @return WebServer对象
 	 */
 	public WebServer options(String routeRegexPath, HttpRouter router) {
-		httpDispatcher.addRouteHandler(HttpStatic.OPTIONS_STRING, routeRegexPath, router);
+		httpDispatcher.addRouter(HttpStatic.OPTIONS_STRING, routeRegexPath, router);
 		return this;
 	}
 
@@ -308,7 +307,7 @@ public class WebServer {
 	 */
 	public WebServer otherMethod(String method, String routeRegexPath, HttpRouter router) {
 		httpDispatcher.addRouteMethod(method);
-		httpDispatcher.addRouteHandler(method, routeRegexPath, router);
+		httpDispatcher.addRouter(method, routeRegexPath, router);
 		return this;
 	}
 
@@ -716,7 +715,7 @@ public class WebServer {
 	 * 获取 Http 的路由配置
 	 * @return 路由配置信息
 	 */
-	public Map<String, Map<String, HttpRouter>> getHttpRouters(){
+	public Map<String, Map<String, RouterWrap<HttpRouter>>> getHttpRouters(){
 		return httpDispatcher.getRoutes();
 	}
 
@@ -724,7 +723,7 @@ public class WebServer {
 	 * 获取 WebSocket 的路由配置
 	 * @return 路由配置信息
 	 */
-	public Map<String, WebSocketRouter> getWebSocketRouters(){
+	public Map<String, RouterWrap<WebSocketRouter>> getWebSocketRouters(){
 		return webSocketDispatcher.getRouters();
 	}
 
