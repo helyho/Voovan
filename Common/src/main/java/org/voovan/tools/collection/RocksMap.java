@@ -114,7 +114,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private transient ColumnFamilyHandle          dataColumnFamilyHandle;
     private transient ThreadLocal<Transaction>    threadLocalTransaction      = new ThreadLocal<Transaction>();
     private transient ThreadLocal<Integer>        threadLocalSavePointCount   = ThreadLocal.withInitial(()->new Integer(0));
-    private transient ThreadLocal<StringBuilder>  threadLocalBuilder           = ThreadLocal.withInitial(()->new StringBuilder());
 
     private transient String dbname;
     private transient String dataPath;
@@ -1129,8 +1128,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     private boolean keyMayExists(byte[] keyBytes) {
-        boolean result = rocksDB.keyMayExist(dataColumnFamilyHandle, keyBytes, threadLocalBuilder.get());
-        threadLocalBuilder.get().setLength(0);
+        Holder<byte[]> holder = new Holder<byte[]>(new byte[0]);
+        boolean result = rocksDB.keyMayExist(dataColumnFamilyHandle, keyBytes, holder);
         return result;
     }
 
@@ -1412,8 +1411,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public void drop(){
         try {
             rocksDB.dropColumnFamily(dataColumnFamilyHandle);
-            dataColumnFamilyHandle.close();
             COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).remove(new String(dataColumnFamilyHandle.getName()));
+            dataColumnFamilyHandle.close();
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap drop failed", e);
         }

@@ -1,8 +1,9 @@
 package org.voovan.test.tools.collection;
 
-import org.rocksdb.Comparator;
+import org.rocksdb.AbstractComparator;
 import org.rocksdb.ComparatorOptions;
 import org.rocksdb.Slice;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.serialize.TSerialize;
 
 import java.nio.ByteBuffer;
@@ -15,7 +16,7 @@ import java.nio.ByteBuffer;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class RocksComparatorTest extends Comparator {
+public class RocksComparatorTest extends AbstractComparator {
     public RocksComparatorTest(ComparatorOptions copt) {
         super(copt);
     }
@@ -26,8 +27,8 @@ public class RocksComparatorTest extends Comparator {
     }
 
     @Override
-    public int compare(Slice a, Slice b) {
-        return (int) ((Long)TSerialize.unserialize(a.data()) - (Long)TSerialize.unserialize(b.data()));
+    public int compare(ByteBuffer a, ByteBuffer b) {
+        return (int) ((Long)TSerialize.unserialize(TByteBuffer.toArray(a)) - (Long)TSerialize.unserialize(TByteBuffer.toArray(b)));
     }
 
     private static int compare(final byte[] a, final byte[] b) {
