@@ -11,6 +11,7 @@ import org.voovan.tools.json.JSON;
 import org.voovan.tools.serialize.ProtoStuffSerialize;
 import org.voovan.tools.serialize.TSerialize;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class RocksMapTest extends TestCase {
         cppColumnFamilyOptions.setComparator(new BytewiseComparator(new ComparatorOptions()));
 
         ColumnFamilyOptions javaColumnFamilyOptions = new ColumnFamilyOptions();
-        Comparator comparator = new RocksComparatorTest(new ComparatorOptions());
+        AbstractComparator comparator = new RocksComparatorTest(new ComparatorOptions());
         javaColumnFamilyOptions.setComparator(comparator);
 
         dbOptions.setCreateIfMissing(true);
@@ -57,7 +58,7 @@ public class RocksMapTest extends TestCase {
         if(rocksMap2.size() < 3000)
         TEnv.measure("cppComparator", ()->{
             for (int i = 0; i < 3000; i++) {
-                rocksMap2.put(((Long)uniqueId.nextNumber()).toString(), i);
+                rocksMap2.put(((Long)uniqueId.nextNumber()), i);
             }
         });
 
@@ -74,6 +75,7 @@ public class RocksMapTest extends TestCase {
 //            }
 //        });
 
+        TEnv.sleep(500);
         System.out.println(1);
     }
 
@@ -167,6 +169,8 @@ public class RocksMapTest extends TestCase {
         rocksMap.clear();
         System.out.println(rocksMap.get("name"));
         rocksMap.put("11", "11");
+
+        System.out.println("keyMayExists: " + rocksMap.keyMayExists("11"));
 
         rocksMap.clear();
 
