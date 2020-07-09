@@ -2,6 +2,7 @@ package org.voovan.tools;
 
 import org.voovan.tools.reflect.TReflect;
 
+import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.*;
 
@@ -248,6 +249,47 @@ public class TObject {
 			}
 
 			return index;
+	}
+
+
+	/**
+	 * 比较两个对象的差异, 并返回变更的数据
+	 *
+	 * @param origin 原对象
+	 * @param current 当前对象
+	 * @param compareSuperField 是否比较父级属性
+	 * @return 返回变更的数据 Map<变更的Field, [原数据, 当前数据]>
+	 * @throws IllegalAccessException 反射非法访问异常
+	 */
+	public static  Map<Field, Object[]> compare(Object origin, Object current, boolean compareSuperField) throws IllegalAccessException {
+			Class clazz = origin.getClass();
+
+			if (!origin.getClass().equals(current.getClass())) {
+				return null;
+			}
+
+			Field[] fields = TReflect.getFields(clazz);
+
+			HashMap<Field, Object[]> ret = new HashMap<Field, Object[]>();
+
+			List<String> modifyField = new ArrayList<String>();
+			for (Field field : fields) {
+				if(!compareSuperField || field.getDeclaringClass().equals(clazz) ) {
+
+					Object originFieldValue = field.get(origin);
+					Object currentFieldValue = field.get(current);
+
+					if (originFieldValue == null && currentFieldValue == null) {
+						continue;
+					} else if (originFieldValue != null && !originFieldValue.equals(currentFieldValue)) {
+						ret.put(field, new Object[]{originFieldValue, currentFieldValue});
+					} else if (currentFieldValue != null && !currentFieldValue.equals(originFieldValue)) {
+						ret.put(field, new Object[]{originFieldValue, currentFieldValue});
+					}
+				}
+			}
+
+			return ret;
 	}
 
 	/**
