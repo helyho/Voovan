@@ -375,7 +375,7 @@ public class Recorder {
                 } else if (dataBaseType.equals(DataBaseType.Oracle)) {
                     resultSql = genOraclePageSql(resultSql, query);
                 } else if (dataBaseType.equals(DataBaseType.Postage)) {
-                    resultSql = genOraclePageSql(resultSql, query);
+                    resultSql = genPostgrePageSql(resultSql, query);
                 }
             }
 

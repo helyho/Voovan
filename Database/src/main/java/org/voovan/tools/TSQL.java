@@ -242,8 +242,8 @@ public class TSQL {
 	public static Map<String, Object> getOneRowWithMap(ResultSet resultset)
 			throws SQLException, ReflectiveOperationException {
 
-		HashMap<String, Object> resultMap = new HashMap<String,Object>();
-		HashMap<String,Integer> columns = new HashMap<String,Integer>();
+		LinkedHashMap<String, Object> resultMap = new LinkedHashMap<String,Object>();
+		LinkedHashMap<String,Integer> columns = new LinkedHashMap<String,Integer>();
 
 		//遍历结果集字段信息
 		int columnCount = resultset.getMetaData().getColumnCount();
@@ -731,7 +731,7 @@ public class TSQL {
 	public static String genMysqlPageSql(String sql, int pageNumber, int pageSize){
 		int pageStart 	= (pageNumber-1) * pageSize;
 
-		if(pageSize<0 || pageNumber<0) {
+		if(pageStart<0 || pageNumber<0) {
 			return sql;
 		}
 
@@ -748,11 +748,11 @@ public class TSQL {
 	public static String genPostgrePageSql(String sql, int pageNumber, int pageSize){
 		int pageStart 	= (pageNumber-1) * pageSize;
 
-		if(pageSize<0 || pageNumber<0) {
+		if(pageStart<0 || pageNumber<0) {
 			return sql;
 		}
 
-		return sql + " limit " + pageSize + " offset " + pageStart;
+		return sql + " limit " + pageStart + " offset " + pageStart;
 	}
 
 	/**
@@ -766,7 +766,7 @@ public class TSQL {
 		int pageStart 	= (pageNumber-1) * pageSize;
 		int pageEnd 	= pageStart + pageSize;
 
-		if(pageSize<0 || pageNumber<0) {
+		if(pageStart<0 || pageNumber<0) {
 			return sql;
 		}
 
