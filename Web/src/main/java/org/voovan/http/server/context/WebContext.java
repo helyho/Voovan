@@ -351,13 +351,15 @@ public class WebContext {
 
 		Logger.simple(TString.rightPad("  AuthToken:",35,' ')+ AUTH_TOKEN);
 
-		Logger.simple("==================================================================================================================================================");
-		Logger.simple("  This WebServer based on VoovanFramework.");
-		Logger.simple("  Version: " + VERSION);
-		Logger.simple("  WebSite: http://www.voovan.org");
-		Logger.simple("  Author: helyho");
-		Logger.simple("  E-mail: helyho@gmail.com");
-		Logger.simple("==================================================================================================================================================");
+		TEnv.sleep(300);
+
+		System.out.println("==================================================================================================================================================");
+		System.out.println("  This WebServer based on VoovanFramework.");
+		System.out.println("  Version: " + VERSION);
+		System.out.println("  WebSite: http://www.voovan.org");
+		System.out.println("  Author: helyho");
+		System.out.println("  E-mail: helyho@gmail.com");
+		System.out.println("==================================================================================================================================================");
 	}
 
 
