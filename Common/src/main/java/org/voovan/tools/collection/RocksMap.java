@@ -473,7 +473,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     private String getProperty(ColumnFamilyHandle columnFamilyHandle, String name) {
         try {
-           return rocksDB.getProperty(columnFamilyHandle, "rocksdb." + name);
+            return rocksDB.getProperty(columnFamilyHandle, "rocksdb." + name);
         } catch (RocksDBException e) {
             throw new RocksMapException("getProperty failed", e);
         }
@@ -1855,7 +1855,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         @Override
         public RocksMapEntry<K,V> next() {
-           return nextAndValid(false);
+            return nextAndValid(false);
         }
 
         @Override

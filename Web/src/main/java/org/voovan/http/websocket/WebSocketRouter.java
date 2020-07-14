@@ -1,8 +1,6 @@
 package org.voovan.http.websocket;
 
 import org.voovan.http.websocket.exception.WebSocketFilterException;
-import org.voovan.tools.FastThread;
-import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.collection.Chain;
 
 import java.nio.ByteBuffer;
@@ -38,53 +36,8 @@ public abstract class WebSocketRouter implements Cloneable{
 		return this;
 	}
 
-	/**
-	 * 过滤器解密函数,接收事件(onRecive)前调用
-	 * 			onRecive事件前调用
-	 * @param session  session 对象
-	 * @param result   解码对象,上一个过滤器的返回值
-	 * @return 解码后对象
-	 * @throws WebSocketFilterException WebSocket过滤器异常
-	 */
-	public Object filterDecoder(WebSocketSession session, Object result) throws WebSocketFilterException {
-		Chain<WebSocketFilter> webFilterChain = (Chain<WebSocketFilter>) webSocketFilterChain.clone();
-		webFilterChain.rewind();
-		while (webFilterChain.hasNext()) {
-			WebSocketFilter fitler = webFilterChain.next();
-			result = fitler.decode(session, result);
-			if(result==null){
-				break;
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * 使用过滤器编码结果
-	 * @param session      Session 对象
-	 * @param result	   需编码的对象
-	 * @return  编码后的对象
-	 * @throws WebSocketFilterException WebSocket过滤器异常
-	 */
-	public Object filterEncoder(WebSocketSession session,Object result) throws WebSocketFilterException {
-		Chain<WebSocketFilter> webFilterChain = (Chain<WebSocketFilter>) webSocketFilterChain.clone();
-		webFilterChain.rewind();
-		while (webFilterChain.hasPrevious()) {
-			WebSocketFilter fitler = webFilterChain.previous();
-			result = fitler.encode(session, result);
-			if(result==null){
-				break;
-			}
-		}
-
-		if(result == null){
-			return null;
-		} else if(result instanceof ByteBuffer) {
-			return (ByteBuffer)result;
-		}else{
-			throw new WebSocketFilterException("Send object must be ByteBuffer, " +
-					"please check you filter be sure the latest filter return Object's type is ByteBuffer.");
-		}
+	public Chain<WebSocketFilter> getWebSocketFilterChain() {
+		return webSocketFilterChain;
 	}
 
 	/**

@@ -56,10 +56,16 @@ public class WebServerHandler implements IoHandler {
 	}
 
 	public static HttpSessionState getAttachment(IoSession session){
-		HttpSessionState httpSessionState = (HttpSessionState)session.getAttachment();
+		Object[] attachment = (Object[]) session.getAttachment();
+		if(attachment == null) {
+			attachment = new Object[3];
+			session.setAttachment(attachment);
+		}
+
+		HttpSessionState httpSessionState = (HttpSessionState)attachment[0];
 		if(httpSessionState == null) {
 			httpSessionState = new HttpSessionState();
-			session.setAttachment(httpSessionState);
+			attachment[0] = httpSessionState;
 		}
 
 		return  httpSessionState;

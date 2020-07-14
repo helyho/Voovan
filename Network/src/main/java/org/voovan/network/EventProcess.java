@@ -219,12 +219,12 @@ public class EventProcess {
      */
     public static Object filterDecoder(IoSession session, ByteBuffer readedBuffer) throws IoFilterException{
         Object result = readedBuffer;
-        Chain<IoFilter> filterChain = (Chain<IoFilter>) session.socketContext().filterChain().clone();
+        Chain<IoFilter> filterChain = (Chain<IoFilter>) session.socketContext().getReciveFilterChain();
         filterChain.rewind();
         while (filterChain.hasNext()) {
             IoFilter fitler = filterChain.next();
             result = fitler.decode(session, result);
-            if(result == null){
+            if (result == null) {
                 break;
             }
         }
@@ -240,7 +240,8 @@ public class EventProcess {
      * @throws IoFilterException 过滤器异常
      */
     public static ByteBuffer filterEncoder(IoSession session, Object result) throws IoFilterException{
-        Chain<IoFilter> filterChain = (Chain<IoFilter>) session.socketContext().filterChain().clone();
+        Chain<IoFilter> filterChain = (Chain<IoFilter>) session.socketContext().getSendFilterChain();
+
         filterChain.rewind();
         while (filterChain.hasPrevious()) {
             IoFilter fitler = filterChain.previous();
@@ -249,14 +250,16 @@ public class EventProcess {
                 break;
             }
         }
-        if(result==null){
+
+        if (result == null) {
             return null;
-        } else if(result instanceof ByteBuffer) {
-            return (ByteBuffer)result;
-        } else{
+        } else if (result instanceof ByteBuffer) {
+            return (ByteBuffer) result;
+        } else {
             throw new IoFilterException("Send object must be ByteBuffer, " +
                     "please check you filter be sure the latest filter return Object's type is ByteBuffer.");
         }
+
     }
 
     /**
