@@ -240,7 +240,7 @@ public class AnnotationRouter implements HttpRouter {
                                             if (!routerMaps.containsKey(moduleRoutePath)) {
                                                 //注册路由,不带路径参数的路由
                                                 annotationModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                                routeLog = "[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
+                                                routeLog = "[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
                                                         "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
                                                         moduleRoutePath;
                                                 routeMethodNum++;
@@ -256,7 +256,7 @@ public class AnnotationRouter implements HttpRouter {
                                                 if (!routerMaps.containsKey(moduleRoutePath)) {
                                                     annotationModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
 
-                                                    routeLog = "[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
+                                                    routeLog = "[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
                                                             "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
                                                             moduleRouteParamPath;
                                                 }
@@ -292,7 +292,7 @@ public class AnnotationRouter implements HttpRouter {
 
                         if (!webServer.getWebSocketRouters().containsKey(moduleRoutePath)) {
                             annotationModule.socket(classRouterPath, (WebSocketRouter) TReflect.newInstance(webSocketClass));
-                            Logger.simple("[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
+                            Logger.simple("[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
                                     "] add WebSocket: " + TString.leftPad(moduleRoutePath, 11, ' '));
                             routeMethodNum++;
                         }
@@ -300,7 +300,7 @@ public class AnnotationRouter implements HttpRouter {
                 }
 
                 if(routeMethodNum>0) {
-                    Logger.simple(TFile.getLineSeparator() + "[SYSTEM] Module [" + annotationModule.getModuleConfig().getName() +
+                    Logger.simple(TFile.getLineSeparator() + "[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
                             "] Scan some class [" + scanRouterPackage + "] annotation by Router: " + routerClasses.size() +
                             ". Register Router method annotation by route: " + routeMethodNum + ".");
                 }

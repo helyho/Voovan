@@ -529,7 +529,7 @@ public class TEnv {
 				File agentJar = findAgentJar();
 				if (agentJar != null && agentJar.exists()) {
 					agentJarPath = agentJar.getAbsolutePath();
-					Logger.info("[System] Choose an agent jar file: " + agentJarPath);
+					Logger.simple("[WEAVE] Choose an agent jar file: " + agentJarPath);
 				} else {
 					throw new FileNotFoundException("The agent jar file not found");
 				}

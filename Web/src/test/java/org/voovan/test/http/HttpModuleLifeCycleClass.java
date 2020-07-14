@@ -15,11 +15,11 @@ import org.voovan.tools.log.Logger;
 public class HttpModuleLifeCycleClass implements HttpModuleLifeCycle {
     @Override
     public void init(HttpModule httpModule) {
-        Logger.info("HttpModule Init messsage");
+        Logger.simple("HttpModule Init messsage");
     }
 
     @Override
     public void destory(HttpModule httpModule) {
-        Logger.info("HttpModule destory messsage");
+        Logger.simple("HttpModule destory messsage");
     }
 }

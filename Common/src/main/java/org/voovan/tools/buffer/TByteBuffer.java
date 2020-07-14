@@ -72,8 +72,8 @@ public class TByteBuffer {
     public final static ThreadObjectPool<ByteBuffer> THREAD_BYTE_BUFFER_POOL = new ThreadObjectPool<ByteBuffer>(THREAD_BUFFER_POOL_SIZE, ()->allocateManualReleaseBuffer(DEFAULT_BYTE_BUFFER_SIZE));
 
     static {
-        System.out.println("[SYTSEM] ThreadBufferPoolSize: " + THREAD_BYTE_BUFFER_POOL.getThreadPoolSize());
-        System.out.println("[SYTSEM] BufferSize: " + DEFAULT_BYTE_BUFFER_SIZE);
+        System.out.println("[BUFFER] ThreadBufferPoolSize: \t" + THREAD_BYTE_BUFFER_POOL.getThreadPoolSize());
+        System.out.println("[BUFFER] BufferSize: \t\t" + DEFAULT_BYTE_BUFFER_SIZE);
     }
 
     public final static ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);

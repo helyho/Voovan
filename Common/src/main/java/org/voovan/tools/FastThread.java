@@ -13,7 +13,7 @@ public class FastThread extends Thread {
 	public static int FAST_THREAD_LOCAL_SIZE = TEnv.getSystemProperty("FastThreadLocalSize", TPerformance.getProcessorCount()*4096);
 
 	static {
-		System.out.println("[SYSTEM] FAST_THREAD_LOCAL_SIZE: " + FAST_THREAD_LOCAL_SIZE);
+		System.out.println("[FRAMEWRORK] FAST_THREAD_LOCAL_SIZE: " + FAST_THREAD_LOCAL_SIZE);
 	}
 
 	//用于保存当前线程的 FastThreadLocal

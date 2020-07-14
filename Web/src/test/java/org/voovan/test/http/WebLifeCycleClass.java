@@ -15,11 +15,11 @@ import org.voovan.tools.log.Logger;
 public class WebLifeCycleClass implements WebServerLifeCycle {
     @Override
     public void init(WebServer webServer) {
-        Logger.info("Init messsage");
+        Logger.simple("Init messsage");
     }
 
     @Override
     public void destory(WebServer webServer) {
-        Logger.info("Destory messsage");
+        Logger.simple("Destory messsage");
     }
 }

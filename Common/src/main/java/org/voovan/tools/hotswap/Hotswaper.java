@@ -210,7 +210,7 @@ public class Hotswaper {
 
         cancelAutoReload();
 
-        Logger.info("[HOTSWAP] Start auto reload and hotswap every " + intervals + " seconds");
+        Logger.simple("[HOTSWAP] Start auto reload and hotswap every " + intervals + " seconds");
 
         reloadTask = new HashWheelTask() {
             @Override

@@ -173,12 +173,12 @@ public abstract class HttpModule extends Attributes {
         String lifeCycleClass = this.moduleConfig.getLifeCycleClass();
 
         if(lifeCycleClass==null) {
-            Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] None HttpMoudule lifeCycle class to load.");
+            Logger.simple("[HTTP] Module ["+moduleConfig.getName()+"] None HttpMoudule lifeCycle class to load.");
             return;
         }
 
         if(lifeCycleClass.isEmpty()){
-            Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] None HttpMoudule lifeCycle class to load.");
+            Logger.simple("[HTTP] Module ["+moduleConfig.getName()+"] None HttpMoudule lifeCycle class to load.");
             return;
         }
 
