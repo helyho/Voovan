@@ -166,7 +166,7 @@ public class WebServer {
 			HttpModule httpModule = moduleConfig.getHttpModuleInstance(this);
 			httpModule.runModuleDestory();
 			httpModule.unInstall();
-			Logger.simple("[SYSTEM] Module ["+moduleConfig.getName()+"] uninstall");
+			Logger.simple("[HTTP] Module ["+moduleConfig.getName()+"] uninstall");
 		}
 	}
 

@@ -93,7 +93,7 @@ public class Global {
     public static final Boolean IS_DEBUG_MODE = TProperties.getBoolean("framework", "DebugMode", false);
     public static final Boolean ENABLE_SANDBOX = TProperties.getBoolean("framework", "EnableSandBox", false);
     static {
-        System.out.println("[SYSTEM] DebugMode: " + IS_DEBUG_MODE);
+        System.out.println("[FRAMEWRORK] DebugMode: " + IS_DEBUG_MODE);
     }
 
     public static UniqueId UNIQUE_ID = new UniqueId(0);

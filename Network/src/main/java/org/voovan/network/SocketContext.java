@@ -37,6 +37,13 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	static {
 		IO_THREAD_SIZE = IO_THREAD_SIZE < 8 ? 8 : IO_THREAD_SIZE;
+
+		System.out.println("[SOCKET] AcceptThreadSize:\t" + ACCEPT_THREAD_SIZE);
+		System.out.println("[SOCKET] IoThreadSize:\t\t" + IO_THREAD_SIZE);
+		System.out.println("[SOCKET] SelectInterval:\t" + SELECT_INTERVAL);
+		System.out.println("[SOCKET] CheckTimeout:\t\t" + CHECK_TIMEOUT);
+		System.out.println("[SOCKET] AsyncSend:\t\t\t" + ASYNC_SEND);
+		System.out.println("[SOCKET] AsyncRecive:\t\t" + ASYNC_RECIVE);
 	}
 
 	public static EventRunnerGroup COMMON_ACCEPT_EVENT_RUNNER_GROUP;
@@ -78,7 +85,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 */
 	public static synchronized EventRunnerGroup getCommonAcceptEventRunnerGroup(){
 		if(COMMON_ACCEPT_EVENT_RUNNER_GROUP == null) {
-			Logger.simple("[SYSTEM] Create common accept EventRunnerGroup");
+			Logger.simple("[HTTP] Create common accept EventRunnerGroup");
 			COMMON_ACCEPT_EVENT_RUNNER_GROUP = createEventRunnerGroup("Common", ACCEPT_THREAD_SIZE, true);
 		}
 
@@ -91,18 +98,13 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 */
 	public static synchronized EventRunnerGroup getCommonIoEventRunnerGroup(){
 		if(COMMON_IO_EVENT_RUNNER_GROUP == null) {
-			Logger.simple("[SYSTEM] Create common IO EventRunnerGroup");
+			Logger.simple("[HTTP] Create common IO EventRunnerGroup");
 			COMMON_IO_EVENT_RUNNER_GROUP = createEventRunnerGroup("Common", IO_THREAD_SIZE, false);
 		}
 
 		return COMMON_IO_EVENT_RUNNER_GROUP;
 	}
 
-
-
-	static {
-		System.out.println("[SOCKET] IO_THREAD_SIZE: " + IO_THREAD_SIZE);
-	}
 
 	//===============================SocketChannel=============================
 	protected String host;
@@ -207,7 +209,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.readTimeout = parentSocketContext.readTimeout;
 		this.sendTimeout = parentSocketContext.sendTimeout;
 		this.handler = parentSocketContext.handler;
-		this.filterChain = parentSocketContext.filterChain;
+		this.filterChain = (Chain<IoFilter>) parentSocketContext.filterChain.clone();
 		this.messageSplitter = parentSocketContext.messageSplitter;
 		this.sslManager = parentSocketContext.sslManager;
 		this.readBufferSize = parentSocketContext.readBufferSize;

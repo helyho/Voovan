@@ -80,10 +80,10 @@ public class AnnotationModule extends HttpModule {
             //更新 ClassPath, 步长1秒, 槽数60个;
             Global.getHashWheelTimer().addTask(scanRouterTask, getScanRouterInterval());
 
-            Logger.simple("[SYSTEM] Module ["+this.getModuleConfig().getName()+"] Router scan package: "+ this.getScanRouterPackage());
-            Logger.simple("[SYSTEM] Module ["+this.getModuleConfig().getName()+"] Router scan interval: "+ this.getScanRouterInterval());
+            Logger.simple("[HTTP] Module ["+this.getModuleConfig().getName()+"] Router scan package: "+ this.getScanRouterPackage());
+            Logger.simple("[HTTP] Module ["+this.getModuleConfig().getName()+"] Router scan interval: "+ this.getScanRouterInterval());
 
-            Logger.simple("[SYSTEM] Module ["+this.getModuleConfig().getName()+"] Start auto scan annotation router.");
+            Logger.simple("[HTTP] Module ["+this.getModuleConfig().getName()+"] Start auto scan annotation router.");
         }
     }
 

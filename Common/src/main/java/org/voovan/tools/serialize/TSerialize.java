@@ -39,7 +39,7 @@ public class TSerialize {
             Logger.error(e);
         }
 
-        Logger.simple("[SYSTEM] serialize type: " + serializeType);
+        Logger.simple("[FRAMEWRORK] serialize type: " + serializeType);
     }
 
     /**

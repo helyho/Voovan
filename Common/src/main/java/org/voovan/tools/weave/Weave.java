@@ -48,9 +48,9 @@ public class Weave {
                         }
                     }
                 });
-                Logger.info("[AOP] Weave init success");
+                Logger.simple("[WEAVE] Weave init success");
             } else {
-                Logger.error("[AOP] Weave init failed, instrumentation is null");
+                Logger.error("[WEAVE] Weave init failed, instrumentation is null");
             }
         } catch (Exception e) {
             throw new WeaveException("Weave init failed", e);

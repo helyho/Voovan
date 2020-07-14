@@ -284,7 +284,7 @@ public class WebServerConfig {
         for (Map<String, Object> filterConfigMap : filterInfoList) {
             HttpFilterConfig httpFilterConfig = new HttpFilterConfig(filterConfigMap);
             filterConfigs.add(httpFilterConfig);
-            Logger.simple("Load HttpFilter ["+httpFilterConfig.getName()+
+            Logger.simple("[HTTP] Load HttpFilter ["+httpFilterConfig.getName()+
                     "] by ["+ httpFilterConfig.getClassName()+"]");
             filterConfigs.rewind();
         }
@@ -299,7 +299,7 @@ public class WebServerConfig {
         for (Map<String, Object> routerInfoMap : routerInfoList) {
             HttpRouterConfig httpRouterConfig = new HttpRouterConfig(routerInfoMap);
             routerConfigs.add(httpRouterConfig);
-            Logger.simple("Load HttpRouter ["+httpRouterConfig.getName()+"] by Method ["+httpRouterConfig.getMethod()+
+            Logger.simple("[HTTP] Load HttpRouter ["+httpRouterConfig.getName()+"] by Method ["+httpRouterConfig.getMethod()+
                     "] on route ["+httpRouterConfig.getRoute()+"] by ["+ httpRouterConfig.getClassName()+"]");
         }
     }
@@ -314,7 +314,7 @@ public class WebServerConfig {
         for (Map<String, Object> moduleInfoMap : moduleInfoList) {
             HttpModuleConfig httpModuleConfig = new HttpModuleConfig(moduleInfoMap);
             moduleConfigs.add(httpModuleConfig);
-            Logger.simple("Load HttpModule ["+httpModuleConfig.getName()+"] on [" + httpModuleConfig.getPath() +
+            Logger.simple("[HTTP] Load HttpModule ["+httpModuleConfig.getName()+"] on [" + httpModuleConfig.getPath() +
                     "] by ["+ httpModuleConfig.getClassName()+"]");
         }
     }
