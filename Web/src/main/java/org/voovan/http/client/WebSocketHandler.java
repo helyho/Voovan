@@ -1,6 +1,7 @@
 package org.voovan.http.client;
 
 import org.voovan.Global;
+import org.voovan.http.server.WebSocketDispatcher;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
@@ -124,7 +125,7 @@ public class WebSocketHandler implements IoHandler{
                 ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
                 try {
-                    result = webSocketRouter.filterDecoder(webSocketSession, byteBuffer);
+                    result = WebSocketDispatcher.filterDecoder(webSocketSession, byteBuffer);
 
                     //触发 onRecive
                     result = webSocketRouter.onRecived(webSocketSession, result);
@@ -135,7 +136,7 @@ public class WebSocketHandler implements IoHandler{
 
                 if(result!=null) {
                     //封包
-                    ByteBuffer buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+                    ByteBuffer buffer = (ByteBuffer) WebSocketDispatcher.filterEncoder(webSocketSession, result);
 
                     respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
                 }
@@ -162,7 +163,7 @@ public class WebSocketHandler implements IoHandler{
 
             //解包
             try {
-                obj = webSocketRouter.filterDecoder(webSocketSession, data);
+                obj = WebSocketDispatcher.filterDecoder(webSocketSession, data);
 
                 //触发 onSent
                 webSocketRouter.onSent(webSocketSession, obj);

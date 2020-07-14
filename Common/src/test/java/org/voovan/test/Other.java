@@ -8,6 +8,7 @@ import org.rocksdb.WriteOptions;
 import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.*;
 import org.voovan.tools.collection.CacheMap;
+import org.voovan.tools.collection.Chain;
 import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
@@ -37,19 +38,21 @@ public class Other {
     private int orange = 10;
 
     public static void main(String[] args) throws Exception {
-        TestObject t = new TestObject();
-        t.setBint(1);
-        t.setString("2");
-        Vector l = new Vector<>();
-        l.add(1111);
-        t.setList(l);
+        Chain<String[]> m = new Chain<>();
 
-        TestObject t1 = TObject.clone(t);
-        l = new Vector<>();
-        l.add(1122);
-        t1.setList(l);
-        t1.setBint(2);
+        m.add(new String[]{"11", "22", "33"});
+        TEnv.measure("clone", ()->{
+            for (int i=0;i<1000000;i++) {
+                m.clone();
+                String ml = m.getContianer().get(0)[0];
+            }
+        });
 
-        System.out.println(JSON.toJSONWithFormat(TObject.compare(t, t1, false)));
+        final Object[] x = new Object[]{m};
+        TEnv.measure("cache", ()->{
+            for (int i=0;i<1000000;i++) {
+               String ml =  ((Chain<String[]>)x[0]).getContianer().get(0)[0];
+            }
+        });
     }
 }

@@ -5,6 +5,7 @@ import org.voovan.tools.*;
 import org.voovan.tools.collection.ThreadObjectPool;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import sun.misc.Unsafe;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
@@ -24,6 +25,8 @@ import java.util.concurrent.atomic.LongAdder;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
+
+    public final static Unsafe UNSAFE = TUnsafe.getUnsafe();
     public final static int DEFAULT_BYTE_BUFFER_SIZE = TEnv.getSystemProperty("ByteBufferSize", 1024*8);
     public final static int THREAD_BUFFER_POOL_SIZE  = TEnv.getSystemProperty("ThreadBufferPoolSize", 64);
     public final static LongAdder MALLOC_SIZE       = new LongAdder();
@@ -86,8 +89,11 @@ public class TByteBuffer {
     }
 
     public final static Field addressField = ByteBufferField("address");
+    public final static Long addressFieldOffset = TUnsafe.getFieldOffset(addressField);
     public final static Field capacityField = ByteBufferField("capacity");
+    public final static Long capacityFieldOffset = TUnsafe.getFieldOffset(capacityField);
     public final static Field attField = ByteBufferField("att");
+    public final static Long attFieldOffset = TUnsafe.getFieldOffset(attField);
 
     private static Constructor getConsturctor(){
         int paramCount = TEnv.JDK_VERSION >= 14 ? 4 : 3;
@@ -110,7 +116,7 @@ public class TByteBuffer {
      */
     protected static ByteBuffer allocateManualReleaseBuffer(int capacity){
         try {
-            long address = (TUnsafe.getUnsafe().allocateMemory(capacity));
+            long address = (UNSAFE.allocateMemory(capacity));
 
             Deallocator deallocator = new Deallocator(address, capacity);
 
@@ -201,7 +207,7 @@ public class TByteBuffer {
                     throw new UnsupportedOperationException("JDK's ByteBuffer can't reallocate");
                 }
                 long address = getAddress(byteBuffer);
-                long newAddress = TUnsafe.getUnsafe().reallocateMemory(address, newSize);
+                long newAddress = UNSAFE.reallocateMemory(address, newSize);
                 setAddress(byteBuffer, newAddress);
             }else{
                 byte[] hb = byteBuffer.array();
@@ -259,7 +265,7 @@ public class TByteBuffer {
                     if (address > targetAddress) {
                         targetAddress = address;
                     }
-                    TUnsafe.getUnsafe().copyMemory(startAddress, targetAddress, byteBuffer.remaining());
+                    UNSAFE.copyMemory(startAddress, targetAddress, byteBuffer.remaining());
                 }
             }else{
                 byte[] hb = byteBuffer.array();
@@ -288,7 +294,7 @@ public class TByteBuffer {
         if(byteBuffer.hasRemaining()) {
             long address = getAddress(byteBuffer);
             long newAddress = getAddress(newByteBuffer);
-            TUnsafe.getUnsafe().copyMemory(address, newAddress + byteBuffer.position(), byteBuffer.remaining());
+            UNSAFE.copyMemory(address, newAddress + byteBuffer.position(), byteBuffer.remaining());
         }
 
         newByteBuffer.position(byteBuffer.position());
@@ -319,7 +325,7 @@ public class TByteBuffer {
                 reallocate(srcBuffer, newSize);
             }
 
-            TUnsafe.getUnsafe().copyMemory(appendAddress, srcAddress, appendSize);
+            UNSAFE.copyMemory(appendAddress, srcAddress, appendSize);
 
             srcBuffer.limit(srcPosition + appendSize);
             srcBuffer.position(srcBuffer.limit());
@@ -363,7 +369,7 @@ public class TByteBuffer {
                                 setCapacity(byteBuffer, 0);
                                 setAddress(byteBuffer, 0);
 
-                                TUnsafe.getUnsafe().freeMemory(address);
+                                UNSAFE.freeMemory(address);
                                 free(byteBuffer.capacity());
                             }
                         }
@@ -509,7 +515,8 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Long getAddress(ByteBuffer byteBuffer) throws ReflectiveOperationException {
-        return (Long) addressField.get(byteBuffer);
+//        return (Long) addressField.get(byteBuffer);
+        return UNSAFE.getLong(byteBuffer, addressFieldOffset);
     }
 
     /**
@@ -519,9 +526,10 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static void setAddress(ByteBuffer byteBuffer, long address) throws ReflectiveOperationException {
-        addressField.set(byteBuffer, address);
+//        addressField.set(byteBuffer, address);
+        UNSAFE.putLong(byteBuffer, addressFieldOffset, address);
         Object att = getAtt(byteBuffer);
-        if(att!=null && att.getClass() == Deallocator.class){
+        if(att!=null && att instanceof Deallocator){
             ((Deallocator) att).setAddress(address);
         }
     }
@@ -533,7 +541,8 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Object getAtt(ByteBuffer byteBuffer) throws ReflectiveOperationException {
-        return attField.get(byteBuffer);
+//        return attField.get(byteBuffer);
+        return UNSAFE.getObject(byteBuffer, attFieldOffset);
     }
 
     /**
@@ -543,7 +552,8 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static void setAttr(ByteBuffer byteBuffer, Object attr) throws ReflectiveOperationException {
-        attField.set(byteBuffer, attr);
+//        attField.set(byteBuffer, attr);
+        UNSAFE.putObject(byteBuffer, attFieldOffset, attr);
     }
 
     /**
@@ -553,9 +563,10 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static void setCapacity(ByteBuffer byteBuffer, int capacity) throws ReflectiveOperationException {
-        capacityField.set(byteBuffer, capacity);
+//        capacityField.set(byteBuffer, capacity);
+        UNSAFE.putInt(byteBuffer, capacityFieldOffset, capacity);
         Object att = getAtt(byteBuffer);
-        if(att!=null && att.getClass() == Deallocator.class){
+        if(att!=null && att instanceof Deallocator){
             ((Deallocator) att).setCapacity(capacity);
         }
     }

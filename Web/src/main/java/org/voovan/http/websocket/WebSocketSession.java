@@ -1,9 +1,6 @@
 package org.voovan.http.websocket;
 
-import org.voovan.http.server.HttpRequest;
-import org.voovan.http.server.HttpSession;
-import org.voovan.http.server.HttpSessionState;
-import org.voovan.http.server.WebServerHandler;
+import org.voovan.http.server.*;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
@@ -114,7 +111,7 @@ public class WebSocketSession extends Attributes {
      */
     public void send(Object obj) throws SendMessageException, WebSocketFilterException {
 
-        ByteBuffer byteBuffer = (ByteBuffer)webSocketRouter.filterEncoder(this, obj);
+        ByteBuffer byteBuffer = (ByteBuffer) WebSocketDispatcher.filterEncoder(this, obj);
         WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, masked, byteBuffer);
         this.socketSession.syncSend(webSocketFrame);
     }
@@ -132,7 +129,7 @@ public class WebSocketSession extends Attributes {
         } else if(obj instanceof ByteBuffer) {
             byteBuffer = (ByteBuffer)obj;
         } else {
-            byteBuffer = (ByteBuffer)webSocketRouter.filterEncoder(this, obj);
+            byteBuffer = (ByteBuffer)WebSocketDispatcher.filterEncoder(this, obj);
         }
 
         WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.BINARY, masked, byteBuffer);

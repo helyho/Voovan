@@ -114,6 +114,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	protected IoHandler handler;
 	protected Chain<IoFilter> filterChain;
+	protected Chain<IoFilter> reciveFilterChain;
+	protected Chain<IoFilter> sendFilterChain;
 	protected MessageSplitter messageSplitter;
 	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
@@ -173,6 +175,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.idleInterval = idleInterval;
 		connectModel = null;
 		filterChain = new Chain<IoFilter>();
+		this.reciveFilterChain = (Chain<IoFilter>) filterChain.clone();
+		this.sendFilterChain = (Chain<IoFilter>) filterChain.clone();
 		this.messageSplitter = new TransferSplitter();
 		this.handler = new SynchronousHandler();
 	}
@@ -209,7 +213,9 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.readTimeout = parentSocketContext.readTimeout;
 		this.sendTimeout = parentSocketContext.sendTimeout;
 		this.handler = parentSocketContext.handler;
-		this.filterChain = (Chain<IoFilter>) parentSocketContext.filterChain.clone();
+		this.filterChain = (Chain<IoFilter>) parentSocketContext.filterChain;
+		this.reciveFilterChain = (Chain<IoFilter>) filterChain.clone();
+		this.sendFilterChain = (Chain<IoFilter>) filterChain.clone();
 		this.messageSplitter = parentSocketContext.messageSplitter;
 		this.sslManager = parentSocketContext.sslManager;
 		this.readBufferSize = parentSocketContext.readBufferSize;
@@ -392,6 +398,14 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 */
 	public Chain<IoFilter> filterChain(){
 		return this.filterChain;
+	}
+
+	protected Chain<IoFilter> getReciveFilterChain() {
+		return reciveFilterChain;
+	}
+
+	protected Chain<IoFilter> getSendFilterChain() {
+		return sendFilterChain;
 	}
 
 	/**

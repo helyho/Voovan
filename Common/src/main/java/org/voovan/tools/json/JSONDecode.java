@@ -8,6 +8,7 @@ import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.security.THash;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -45,7 +46,7 @@ public class JSONDecode {
 
 	public static Object parse(String jsonStr) {
 		Object value;
-		int jsonHash = jsonStr.hashCode();
+		int jsonHash = THash.HashFNV1(jsonStr);
 		if(JSON_HASH_ENABLE) {
 			value = JSON_DECODE_CACHE.get(jsonHash);
 

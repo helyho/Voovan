@@ -171,7 +171,12 @@ public class HttpDispatcher {
 	 * @param response   HTTP 响应
 	 */
 	public void process(HttpRequest request, HttpResponse response){
-		Chain<HttpFilterConfig> filterConfigs = (Chain<HttpFilterConfig>) webConfig.getFilterConfigs().clone();
+		Object[] attachment = (Object[])request.getSocketSession().getAttachment();
+		Chain<HttpFilterConfig> filterConfigs = (Chain<HttpFilterConfig>) attachment[1];
+		if(filterConfigs == null) {
+			filterConfigs = (Chain<HttpFilterConfig>) webConfig.getFilterConfigs().clone();
+			attachment[1] =  filterConfigs;
+		}
 
 		Object filterResult = new Object();
 		boolean isFrameWorkRequest = false;
@@ -427,24 +432,20 @@ public class HttpDispatcher {
 	 * @return 过滤器最后的结果
 	 */
 	public Object disposeFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
-		if(filterConfigs.size() > 0) {
-			filterConfigs.rewind();
-			Object filterResult = null;
-			while (filterConfigs.hasNext()) {
-				HttpFilterConfig filterConfig = filterConfigs.next();
-				HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
-				if (httpFilter != null) {
-					filterResult = httpFilter.onRequest(filterConfig, request, response, filterResult);
-					if (filterResult == null) {
-						break;
-					}
+		filterConfigs.rewind();
+		Object filterResult = null;
+		while (filterConfigs.hasNext()) {
+			HttpFilterConfig filterConfig = filterConfigs.next();
+			HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
+			if (httpFilter != null) {
+				filterResult = httpFilter.onRequest(filterConfig, request, response, filterResult);
+				if (filterResult == null) {
+					break;
 				}
 			}
-
-			return filterResult;
-		}  else {
-			return true;
 		}
+
+		return filterResult;
 	}
 
 	/**
@@ -455,24 +456,20 @@ public class HttpDispatcher {
 	 * @return 过滤器最后的结果
 	 */
 	public Object disposeInvertedFilter(Chain<HttpFilterConfig> filterConfigs, HttpRequest request, HttpResponse response) {
-		if(filterConfigs.size() > 0) {
-			filterConfigs.rewind();
-			Object filterResult = null;
-			while (filterConfigs.hasPrevious()) {
-				HttpFilterConfig filterConfig = filterConfigs.previous();
-				HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
-				if (httpFilter != null) {
-					filterResult = httpFilter.onResponse(filterConfig, request, response, filterResult);
-					if (filterResult == null) {
-						break;
-					}
+		filterConfigs.rewind();
+		Object filterResult = null;
+		while (filterConfigs.hasPrevious()) {
+			HttpFilterConfig filterConfig = filterConfigs.previous();
+			HttpFilter httpFilter = filterConfig.getHttpFilterInstance();
+			if (httpFilter != null) {
+				filterResult = httpFilter.onResponse(filterConfig, request, response, filterResult);
+				if (filterResult == null) {
+					break;
 				}
 			}
-
-			return filterResult;
-		} else {
-			return true;
 		}
+
+		return filterResult;
 	}
 
 	/**

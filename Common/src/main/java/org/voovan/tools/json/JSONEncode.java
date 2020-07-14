@@ -5,8 +5,10 @@ import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 import org.voovan.tools.collection.IntKeyMap;
+import org.voovan.tools.collection.LongKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.security.THash;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -26,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class JSONEncode {
     public final static boolean JSON_HASH_ENABLE = TEnv.getSystemProperty("JsonHashEnable", false);
-    public final static IntKeyMap<String> JSON_ENCODE_CACHE = new IntKeyMap<String>(1024);
+    public final static LongKeyMap<String> JSON_ENCODE_CACHE = new LongKeyMap<String>(1024);
 
     static {
         if(JSON_HASH_ENABLE) {
@@ -157,9 +159,9 @@ public class JSONEncode {
             return "null";
         }
 
-        Integer jsonHash = null;
+        Long jsonHash = null;
         if(JSON_HASH_ENABLE) {
-            jsonHash = Objects.hash(object.getClass(), object, allField);
+            jsonHash = ((long)(object.getClass().hashCode() + (allField?1:0))) << 32 + object.hashCode();
             value = JSON_ENCODE_CACHE.get(jsonHash);
 
             if (value != null) {

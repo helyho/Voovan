@@ -1,15 +1,14 @@
 package org.voovan.http.server;
 
 import org.voovan.http.message.HttpStatic;
+import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
-import org.voovan.http.websocket.WebSocketFrame;
-import org.voovan.http.websocket.WebSocketRouter;
-import org.voovan.http.websocket.WebSocketSession;
-import org.voovan.http.websocket.WebSocketType;
+import org.voovan.http.websocket.*;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.tools.collection.Chain;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.log.Logger;
@@ -126,6 +125,80 @@ public class WebSocketDispatcher {
 		return null;
 	}
 
+
+	/**
+	 * 过滤器解密函数,接收事件(onRecive)前调用
+	 * 			onRecive事件前调用
+	 * @param session  session 对象
+	 * @param result   解码对象,上一个过滤器的返回值
+	 * @return 解码后对象
+	 * @throws WebSocketFilterException WebSocket过滤器异常
+	 */
+	public static Object filterDecoder(WebSocketSession session, Chain<WebSocketFilter> wsFilterChain, Object result) throws WebSocketFilterException {
+		wsFilterChain.rewind();
+		while (wsFilterChain.hasNext()) {
+			WebSocketFilter fitler = wsFilterChain.next();
+			result = fitler.decode(session, result);
+			if (result == null) {
+				break;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 过滤器解密函数,接收事件(onRecive)前调用
+	 * 			onRecive事件前调用
+	 * @param session  session 对象
+	 * @param result   解码对象,上一个过滤器的返回值
+	 * @return 解码后对象
+	 * @throws WebSocketFilterException WebSocket过滤器异常
+	 */
+	public static Object filterDecoder(WebSocketSession session, Object result) throws WebSocketFilterException {
+		return filterDecoder(session, (Chain<WebSocketFilter>) session.getWebSocketRouter().getWebSocketFilterChain().clone(), result);
+	}
+
+	/**
+	 * 使用过滤器编码结果
+	 * @param session      Session 对象
+	 * @param wsFilterChain 过滤器链
+	 * @param result	   需编码的对象
+	 * @return  编码后的对象
+	 * @throws WebSocketFilterException WebSocket过滤器异常
+	 */
+	public static Object filterEncoder(WebSocketSession session, Chain<WebSocketFilter> wsFilterChain, Object result) throws WebSocketFilterException {
+		wsFilterChain.rewind();
+		while (wsFilterChain.hasPrevious()) {
+			WebSocketFilter fitler = wsFilterChain.previous();
+			result = fitler.encode(session, result);
+			if (result == null) {
+				break;
+			}
+		}
+
+		if(result == null){
+			return null;
+		} else if(result instanceof ByteBuffer) {
+			return (ByteBuffer)result;
+		}else{
+			throw new WebSocketFilterException("Send object must be ByteBuffer, " +
+					"please check you filter be sure the latest filter return Object's type is ByteBuffer.");
+		}
+	}
+
+	/**
+	 * 过滤器解密函数,接收事件(onRecive)前调用
+	 * 			onRecive事件前调用
+	 * @param session  session 对象
+	 * @param result   解码对象,上一个过滤器的返回值
+	 * @return 解码后对象
+	 * @throws WebSocketFilterException WebSocket过滤器异常
+	 */
+	public static Object filterEncoder(WebSocketSession session, Object result) throws WebSocketFilterException {
+		return filterEncoder(session, (Chain<WebSocketFilter>) session.getWebSocketRouter().getWebSocketFilterChain().clone(), result);
+	}
+
+
 	/**
 	 * 路由处理函数
 	 *
@@ -146,6 +219,13 @@ public class WebSocketDispatcher {
 
 			WebSocketSession webSocketSession = disposeSession(request, webSocketRouter);
 
+			Object[] attachment = (Object[])session.getAttachment();
+			Chain<WebSocketFilter> webFilterChain = (Chain<WebSocketFilter>) attachment[2];
+			if(webFilterChain == null) {
+				webFilterChain = (Chain<WebSocketFilter>) webSocketRouter.getWebSocketFilterChain().clone();
+				attachment[2] =  webFilterChain;
+			}
+
 			// 获取路径变量
 			ByteBuffer responseMessage = null;
 
@@ -155,16 +235,16 @@ public class WebSocketDispatcher {
 				if (event == WebSocketEvent.OPEN) {
 					result = webSocketRouter.onOpen(webSocketSession);
 					//封包
-					responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+					responseMessage = (ByteBuffer) filterEncoder(webSocketSession, webFilterChain, result);
 				} else if (event == WebSocketEvent.RECIVED) {
 					//解包
-					result = webSocketRouter.filterDecoder(webSocketSession, result);
+					result = filterDecoder(webSocketSession, webFilterChain, result);
 					//触发 onRecive 事件
 					if(result!=null) {
 						result = webSocketRouter.onRecived(webSocketSession, result);
 					}
 					//封包
-					responseMessage = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+					responseMessage = (ByteBuffer) filterEncoder(webSocketSession, webFilterChain, result);
 				}
 
 				//将返回消息包装称WebSocketFrame
@@ -174,7 +254,7 @@ public class WebSocketDispatcher {
 
 				if (event == WebSocketEvent.SENT) {
 					//封包
-					result = webSocketRouter.filterDecoder(webSocketSession, byteBuffer);
+					result = filterDecoder(webSocketSession, webFilterChain, byteBuffer);
 					webSocketRouter.onSent(webSocketSession, result);
 				} else if (event == WebSocketEvent.CLOSE) {
 					webSocketRouter.onClose(webSocketSession);

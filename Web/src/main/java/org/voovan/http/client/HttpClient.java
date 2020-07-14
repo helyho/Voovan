@@ -11,6 +11,7 @@ import org.voovan.http.message.packet.Part;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpSessionState;
 import org.voovan.http.server.WebServerHandler;
+import org.voovan.http.server.WebSocketDispatcher;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
@@ -723,7 +724,7 @@ public class HttpClient extends PooledObject implements Closeable{
 			//封包
 			ByteBuffer buffer = null;
 			try {
-				buffer = (ByteBuffer) webSocketRouter.filterEncoder(webSocketSession, result);
+				buffer = (ByteBuffer) WebSocketDispatcher.filterEncoder(webSocketSession, result);
 				WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
 				sendWebSocketData(webSocketFrame);
 			} catch (WebSocketFilterException e) {
