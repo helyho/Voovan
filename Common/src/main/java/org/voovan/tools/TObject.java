@@ -258,7 +258,7 @@ public class TObject {
 	 * @param origin 原对象
 	 * @param current 当前对象
 	 * @param compareSuperField 是否比较父级属性
-	 * @return 返回变更的数据 Map<变更的Field, [原数据, 当前数据]>
+	 * @return 返回变更的数据 Map{变更的Field, [原数据, 当前数据]}
 	 * @throws IllegalAccessException 反射非法访问异常
 	 */
 	public static  Map<Field, Object[]> compare(Object origin, Object current, boolean compareSuperField) throws IllegalAccessException {

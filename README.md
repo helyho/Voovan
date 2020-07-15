@@ -3,7 +3,7 @@
 [![](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 [![](https://maven-badges.herokuapp.com/maven-central/org.voovan/voovan-framework/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.voovan/voovan-framework)
 ![JDK 1.7](https://img.shields.io/badge/JDK-1.7-green.svg "JDK 1.8")
-[![jar size 497K](https://img.shields.io/badge/size-497K-green.svg "size 497K")](https://git.oschina.net/helyho/Voovan/raw/master/voovan-framework.jar)
+[![jar size 720K](https://img.shields.io/badge/size-720K-green.svg "size 497K")](https://git.oschina.net/helyho/Voovan/raw/master/voovan-framework.jar)
 
 Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTTP客户端抓取、动态编译支持、数据库访问封装以及DateTime、String、Log、反射、对象工具、流操作、文件操作、异步双向通道等功能。旨在提供可靠、方便、可单元测试的代码。它是极少依赖的独立工具包，希望能够方便广大开发者快速的实现应用。
 
@@ -33,7 +33,7 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
     <dependency>
         <groupId>org.voovan</groupId>
         <artifactId>voovan-framework</artifactId>
-        <version>4.3.2</version>
+        <version>4.3.5</version>
     </dependency>
     ```
 
