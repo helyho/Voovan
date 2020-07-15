@@ -130,6 +130,7 @@ public class WebSocketDispatcher {
 	 * 过滤器解密函数,接收事件(onRecive)前调用
 	 * 			onRecive事件前调用
 	 * @param session  session 对象
+	 * @param wsFilterChain 过滤器链
 	 * @param result   解码对象,上一个过滤器的返回值
 	 * @return 解码后对象
 	 * @throws WebSocketFilterException WebSocket过滤器异常
