@@ -176,6 +176,12 @@ public class HttpClient extends PooledObject implements Closeable{
 
 			synchronousHandler = (SynchronousHandler) socket.handler();
 
+			//初始化 Session.attachment
+			//[0] HttpSessionState
+			//[1] HttpFilter
+			//[2] WebSocketFilter
+			Object[] attachment = new Object[3];
+			socket.getSession().setAttachment(attachment);
 
 		} catch (IOException e) {
 			Logger.error("HttpClient init failed",e);

@@ -52,15 +52,10 @@ public class WebServerHandler implements IoHandler {
 		keepAliveSessionList = new Vector<IoSession>();
 
 		initKeepAliveTimer();
-
 	}
 
 	public static HttpSessionState getAttachment(IoSession session){
 		Object[] attachment = (Object[]) session.getAttachment();
-		if(attachment == null) {
-			attachment = new Object[3];
-			session.setAttachment(attachment);
-		}
 
 		HttpSessionState httpSessionState = (HttpSessionState)attachment[0];
 		if(httpSessionState == null) {
@@ -75,7 +70,6 @@ public class WebServerHandler implements IoHandler {
 	 * 初始化连接保持 Timer
 	 */
 	public void initKeepAliveTimer(){
-
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 
 			@Override
@@ -107,6 +101,12 @@ public class WebServerHandler implements IoHandler {
 
 	@Override
 	public Object onConnect(IoSession session) {
+		//初始化 Session.attachment
+		//[0] HttpSessionState
+		//[1] HttpFilter
+		//[2] WebSocketFilter
+		Object[] attachment = new Object[3];
+		session.setAttachment(attachment);
 		return null;
 	}
 
