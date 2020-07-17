@@ -29,13 +29,13 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 ---------------------
 
 **Maven中央库支持:**
-    ```xml
+  ```xml
     <dependency>
         <groupId>org.voovan</groupId>
         <artifactId>voovan-framework</artifactId>
         <version>4.3.6</version>
     </dependency>
-    ```
+  ```
 
 ---------------------
 **Voovan 4.2.0+ 新特性:**

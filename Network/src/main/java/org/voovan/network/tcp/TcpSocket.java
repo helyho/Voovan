@@ -193,7 +193,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	@Override
 	public boolean isConnected() {
 		try {
-			if (socketChannel.isConnected() && socketChannel.getRemoteAddress() != null) {
+			if (socketChannel.isConnected()) {
 				return true;
 			} else {
 				return false;
