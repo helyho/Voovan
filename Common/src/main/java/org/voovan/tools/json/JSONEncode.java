@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class JSONEncode {
     public final static boolean JSON_HASH_ENABLE = TEnv.getSystemProperty("JsonHashEnable", false);
-    public final static LongKeyMap<String> JSON_ENCODE_CACHE = new LongKeyMap<String>(1024);
+    public final static IntKeyMap<String> JSON_ENCODE_CACHE = new IntKeyMap<String>(1024);
 
     static {
         if(JSON_HASH_ENABLE) {
@@ -159,9 +159,10 @@ public class JSONEncode {
             return "null";
         }
 
-        Long jsonHash = null;
+        Integer jsonHash = null;
         if(JSON_HASH_ENABLE) {
-            jsonHash = ((long)(object.getClass().hashCode() + (allField?1:0))) << 32 + object.hashCode();
+            jsonHash = object.hashCode();
+            jsonHash =  ((jsonHash << 5) - jsonHash) + (allField ? 1 : 0);
             value = JSON_ENCODE_CACHE.get(jsonHash);
 
             if (value != null) {
