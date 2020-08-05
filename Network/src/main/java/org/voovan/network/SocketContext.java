@@ -42,7 +42,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		System.out.println("[SOCKET] IoThreadSize:\t\t" + IO_THREAD_SIZE);
 		System.out.println("[SOCKET] SelectInterval:\t" + SELECT_INTERVAL);
 		System.out.println("[SOCKET] CheckTimeout:\t\t" + CHECK_TIMEOUT);
-		System.out.println("[SOCKET] AsyncSend:\t\t\t" + ASYNC_SEND);
+		System.out.println("[SOCKET] AsyncSend:\t\t" + ASYNC_SEND);
 		System.out.println("[SOCKET] AsyncRecive:\t\t" + ASYNC_RECIVE);
 	}
 

@@ -1,6 +1,5 @@
 package org.voovan.tools.json;
 
-import com.sun.xml.internal.rngom.util.Uri;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TStream;
 import org.voovan.tools.TString;

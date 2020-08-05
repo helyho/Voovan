@@ -139,7 +139,7 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 	 */
 	@Override
 	public void syncStart() throws IOException {
-		serverSocketChannel.bind(new InetSocketAddress(host, port), 1000);
+		serverSocketChannel.bind(new InetSocketAddress(host, port), 512);
 
 		bindToSocketSelector(SelectionKey.OP_ACCEPT);
 	}
