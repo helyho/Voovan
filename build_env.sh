@@ -1,12 +1,12 @@
 #!/bin/sh
-VOOVAN_VERSION=4.2.5
+VOOVAN_VERSION=4.3.6
 
 jlink --no-header-files --no-man-pages --compress=2 --strip-debug --module-path $JAVA_HOME/jmods \
  --add-modules java.base,java.compiler,java.instrument,java.management,java.sql,jdk.attach,jdk.unsupported \
  --output launcher/jvm
 
 
-mvn package -Dmaven.test.skip=true -Dmaven.javadoc.skip=true
+mvn clean package -Dmaven.test.skip=true -Dmaven.javadoc.skip=true
 mkdir launcher/lib
 cp All/target/voovan-framework-$VOOVAN_VERSION.jar launcher/lib/
 

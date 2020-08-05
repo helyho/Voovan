@@ -1,6 +1,5 @@
 package org.voovan.network;
 
-import org.omg.PortableServer.POAPackage.ObjectAlreadyActive;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
