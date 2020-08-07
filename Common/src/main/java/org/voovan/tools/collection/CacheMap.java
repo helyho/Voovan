@@ -52,6 +52,11 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
         this.cacheData = map;
     }
 
+    public CacheMap(Map<K, V> map){
+        this.maxSize = Integer.MAX_VALUE;
+        this.cacheData = map;
+    }
+
     /**
      * 构造函数
      * @param maxSize 缓存集合的最大容量, 多余的数据会被移除

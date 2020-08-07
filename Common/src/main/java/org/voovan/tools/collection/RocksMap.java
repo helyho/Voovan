@@ -2023,10 +2023,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             List<RocksWalRecord> rocksWalRecords = new ArrayList<RocksWalRecord>();
 
-            for(int count=0;byteBuffer.hasRemaining();count++) {
+            for(int count=0;
+                count < recordCount && byteBuffer.hasRemaining();
+                count++) {
 
                 RocksWalRecord rocksWalRecord = parseOperation(byteBuffer, sequence, filter, withSerial);
-                if(rocksWalRecord !=null) {
+                if (rocksWalRecord != null) {
                     rocksWalRecords.add(rocksWalRecord);
                 }
             }
@@ -2073,7 +2075,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     type == TYPE_COLUMNFAMILY_MERGE ||
                     type == TYPE_COLUMNFAMILY_SINGLE_DELETION ||
                     type == TYPE_COLUMNFAMILY_RANGE_DELETION) {
-                columnFamilyId = byteBuffer.get();
+                columnFamilyId = Varint.varintToInt(byteBuffer);
             }
 
 

@@ -144,12 +144,30 @@ public class RocksMapTest extends TestCase {
         String cfName = "testdb_re";
         ColumnFamilyOptions columnFamilyOptions = new ColumnFamilyOptions();
         columnFamilyOptions.setCompactionFilter(new RemoveEmptyValueCompactionFilter());
-        RocksMap rocksMap1 = new RocksMap(null, cfName, columnFamilyOptions, null, null, null, false);
-        rocksMap1.put("1111", new byte[]{(byte)1, (byte)2});
-        rocksMap1.put("2222", new byte[]{});
-        System.out.println(rocksMap1.get("2222"));
-        rocksMap1.compact();
-        System.out.println(rocksMap1.get("2222"));
+        RocksMap rocksMap = new RocksMap(null, cfName, columnFamilyOptions, null, null, null, false);
+        rocksMap.withTransaction(rm->{
+            RocksMap rocksMap1 = (RocksMap)rm;
+            rocksMap1.put("1111", new byte[]{(byte)1, (byte)2});
+            rocksMap1.put("1111", new byte[]{});
+            System.out.println(rocksMap1.get("1111"));
+            return true;
+        });
+
+
+        List<RocksMap.RocksWalRecord> rocksWalRecords = rocksMap.getWalSince(0l, true);
+        for(RocksMap.RocksWalRecord rocksWalRecord : rocksWalRecords) {
+
+            System.out.println(rocksWalRecord.getSequence() + " " + rocksWalRecord.getType() + " " + rocksWalRecord.getColumnFamilyId() + " = " + ((byte[])rocksWalRecord.getChunks().get(1)).length);
+        }
+
+        System.out.println(((byte[])rocksMap.get("1111")).length);
+        rocksMap.compact();
+        System.out.println(rocksMap.get("1111"));
+
+        rocksWalRecords = rocksMap.getWalSince(0l, true);
+        for(RocksMap.RocksWalRecord rocksWalRecord : rocksWalRecords) {
+            System.out.println(rocksWalRecord.getSequence() + " " + rocksWalRecord.getType() + " " + rocksWalRecord.getColumnFamilyId() + " = " + ((byte[])rocksWalRecord.getChunks().get(1)).length);
+        }
     }
 
     public void testAll() throws RocksDBException {
