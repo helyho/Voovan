@@ -274,7 +274,7 @@ public class AnnotationRouter implements HttpRouter {
                 }
 
                 //查找包含 WebSocket 注解的类
-                List<Class> webSocketClasses = TEnv.searchClassInEnv(annotationModule.getScanRouterPackage(), new Class[]{WebSocket.class});
+                List<Class> webSocketClasses = TEnv.searchClassInEnv(scanRouterPackage, new Class[]{WebSocket.class});
                 for (Class webSocketClass : webSocketClasses) {
                     if (TReflect.isExtendsByClass(webSocketClass, WebSocketRouter.class)) {
                         WebSocket[] annonClassRouters = (WebSocket[]) webSocketClass.getAnnotationsByType(WebSocket.class);
