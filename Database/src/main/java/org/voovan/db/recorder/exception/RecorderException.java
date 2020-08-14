@@ -13,7 +13,18 @@ public class RecorderException extends RuntimeException {
         super(message);
     }
 
+    public RecorderException() {
+    }
+
     public RecorderException(String message, Throwable e){
         super(message, e);
+    }
+
+    public RecorderException(Throwable cause) {
+        super(cause);
+    }
+
+    public RecorderException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

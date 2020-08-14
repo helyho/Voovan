@@ -6,6 +6,8 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
 
+import java.util.function.Function;
+
 /**
  * 日志工具类
  *
@@ -215,7 +217,8 @@ public class Logger {
 			if(msg instanceof String) {
 				return msg.toString();
 			} else {
-				return JSON.toJSON(msg);
+				Function<Object, String> jsonFormat = LoggerStatic.JSON_FORMAT ? JSON::toJSONWithFormat : JSON::toJSON;
+				return jsonFormat.apply(msg);
 			}
 		}
 

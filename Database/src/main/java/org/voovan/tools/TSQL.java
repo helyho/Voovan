@@ -32,6 +32,8 @@ import java.util.regex.Pattern;
  * Licence: Apache v2 License
  */
 public class TSQL {
+	public static final Map<String, Object> EMPTE_MAP = new Hashtable<String, Object>();
+
 	/**
 	 * 从 SQL 字符串中,取 SQL 参数表
 	 * @param sqlStr  原始 sql 字符串 (select * from table where x=::x and y=::y)
@@ -91,7 +93,7 @@ public class TSQL {
 	 * @return			PreparedStatement 对象
 	 * @throws SQLException SQL 异常
 	 */
-	public static PreparedStatement createPreparedStatement(Connection conn,String sqlStr,Map<String, Object> params) throws SQLException{
+	public static PreparedStatement createPreparedStatement(Connection conn,String sqlStr, Map<String, Object> params) throws SQLException{
 
 		//将没有提供查询参数的条件移除
 		sqlStr = TSQL.removeEmptyCondiction(sqlStr, params);
@@ -108,7 +110,7 @@ public class TSQL {
 
 		//如果params为空,则新建一个
 		if(params==null){
-			params = new Hashtable<String, Object>();
+			params = EMPTE_MAP;
 		}
 
 		//为preparedStatement参数填充
@@ -269,7 +271,7 @@ public class TSQL {
 	 * @throws SQLException  SQL 异常
 	 * @throws ParseException  解析异常
 	 */
-	public static Object getOneRowWithObject(Class<?> clazz,ResultSet resultset)
+	public static Object getOneRowWithObject(Class<?> clazz, ResultSet resultset)
 			throws SQLException, ReflectiveOperationException, ParseException {
 		Map<String,Object>rowMap = getOneRowWithMap(resultset);
 		return TReflect.getObjectFromMap(clazz, rowMap, true);

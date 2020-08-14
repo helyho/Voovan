@@ -32,7 +32,7 @@ public class LoggerStatic {
 		DEFAULT_LOG_TEMPLATE = DEFAULT_LOG_TEMPLATE.replace("<",TOKEN_PREFIX).replace(">",TOKEN_SUFFIX);
 	}
 
-	public final static String LOG_TEMPLATE = LoggerStatic.getLogConfig("LogTemplate", LoggerStatic.DEFAULT_LOG_TEMPLATE);
+	public final static String LOG_TEMPLATE = getLogConfig("LogTemplate", LoggerStatic.DEFAULT_LOG_TEMPLATE);
 
 	public static boolean HAS_COLOR = 	TString.regexMatch(LOG_TEMPLATE, TOKEN_PREFIX_REGEX + "[FB][0-7D]"	+ TOKEN_SUFFIX_REGEX) > 0;
 	public static boolean HAS_STACK = 	TString.regexMatch(LOG_TEMPLATE, TOKEN_PREFIX_REGEX + "SI"	+ TOKEN_SUFFIX_REGEX) > 0 ||
@@ -45,6 +45,7 @@ public class LoggerStatic {
 	public static boolean HAS_DATE 		= TString.regexMatch(LOG_TEMPLATE, 	TOKEN_PREFIX_REGEX + "D" + TOKEN_SUFFIX_REGEX) > 0;
 	public static boolean HAS_THREAD 	= TString.regexMatch(LOG_TEMPLATE, 	TOKEN_PREFIX_REGEX + "T" + TOKEN_SUFFIX_REGEX) > 0;
 	public static boolean HAS_RUNTIME 	= TString.regexMatch(LOG_TEMPLATE, 	TOKEN_PREFIX_REGEX + "R" + TOKEN_SUFFIX_REGEX) > 0;
+	public static boolean JSON_FORMAT  	= Boolean.valueOf(getLogConfig("JsonFormat", "true"));
 
 	/**
 	 * 获取启动时间信息

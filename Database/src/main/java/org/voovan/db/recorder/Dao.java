@@ -2,6 +2,7 @@ package org.voovan.db.recorder;
 
 import org.voovan.db.JdbcOperate;
 import org.voovan.db.TranscationType;
+import org.voovan.db.exception.DaoException;
 import org.voovan.db.exception.UpdateFieldException;
 import org.voovan.db.recorder.annotation.Field;
 import org.voovan.db.recorder.annotation.NotInsert;
@@ -63,7 +64,7 @@ public class Dao<T extends Dao> {
      */
     public T setJdbcOperate(JdbcOperate jdbcOperate) {
         if(jdbcOperate == null) {
-            throw new RecorderException("JdbcOperate must not null");
+            throw new RecorderException("JdbcOperate not null");
         }
 
         this.recorder = new Recorder(jdbcOperate);
@@ -93,6 +94,12 @@ public class Dao<T extends Dao> {
         this.recorder = recorder;
 
         return (T) this;
+    }
+
+    private void check() {
+        if(jdbcOperate == null) {
+            throw new DaoException("jdbcOperate is null");
+        }
     }
 
     /**
@@ -142,6 +149,8 @@ public class Dao<T extends Dao> {
      * @return 影响1行返回 true, 否则返回 false
      */
     public boolean insert() {
+        check();
+
         try {
             if (recorder.insert((T)this) == 1) {
                 return true;
@@ -162,6 +171,8 @@ public class Dao<T extends Dao> {
      * @return 影响的行数于effectRow相等返回true, 否则返回false
      */
     public boolean update(String[] dataFields, String[] andFields, int effectRow) {
+        check();
+
         try {
             Query query = Query.newInstance().data(dataFields).and(andFields);
             if (recorder.update((T) this, query) == effectRow) {
@@ -276,6 +287,8 @@ public class Dao<T extends Dao> {
      * @return 影响的行数于effectRow相等返回true, 否则返回false
      */
     public boolean updateField(Map<String, Object> fieldDatas, String[] andFields, int effectRow) {
+        check();
+
         try {
             for(Map.Entry<String, Object> fieldData : fieldDatas.entrySet()) {
                 String fieldName = fieldData.getKey();
@@ -314,6 +327,8 @@ public class Dao<T extends Dao> {
      * @return 查询的结果集
      */
     public List<T> query(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
+        check();
+
         Query query = Query.newInstance().data(dataFields).and(andFields);
         pageNum = pageNum == null ? -1 : pageNum;
         pageSize = pageSize == null ? -1 : pageSize;
@@ -380,11 +395,10 @@ public class Dao<T extends Dao> {
      * @param pageSize 分页单页大小
      * @return 查询的结果
      */
-    public T queryOne(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
+    public T queryOne(String[] dataFields, String[] andFields) {
+        check();
+
         Query query = Query.newInstance().data(dataFields).and(andFields);
-        pageNum = pageNum == null ? -1 : pageNum;
-        pageSize = pageSize == null ? -1 : pageSize;
-        query.page(pageNum, pageSize);
         try {
 
             List<T> results = recorder.query((T)this, query);
@@ -409,21 +423,11 @@ public class Dao<T extends Dao> {
 
     /**
      * 使用对象模型查询一条数据
-     * @param dataFields select 和 from 之间作为数据返回的属性
-     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
-     * @return 查询的结果
-     */
-    public List<T> queryOne(String[] dataFields, String[] andFields) {
-        return query(dataFields, andFields, null, null);
-    }
-
-    /**
-     * 使用对象模型查询一条数据
      * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
      * @return 查询的结果
      */
     public T queryOne(String ... andFields) {
-        return queryOne(null, andFields, null, null);
+        return queryOne(null, andFields);
     }
 
     /**
@@ -432,9 +436,9 @@ public class Dao<T extends Dao> {
      */
     public T queryOne() {
         if(snapshot !=null) {
-            return queryOne(null, getModifyField(), null, null);
+            return queryOne(null, getModifyField());
         } else {
-            return queryOne(null, null, null, null);
+            return queryOne(null, null);
         }
     }
 
@@ -447,6 +451,8 @@ public class Dao<T extends Dao> {
      * @return 查询的结果
      */
     public <R> R customQuery(String dataSql, String[] andFields, Class<R> clazz) {
+        check();
+
         Query query = Query.newInstance().and(andFields);
         try {
             R ret = recorder.customQuery(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
@@ -479,6 +485,8 @@ public class Dao<T extends Dao> {
      * @return 影响的行数于effectRow相等返回true, 否则返回false
      */
     public boolean delete(String[] andFields, int effectRow) {
+        check();
+
         Query query = Query.newInstance().and(andFields);
 
         try {
@@ -499,7 +507,20 @@ public class Dao<T extends Dao> {
      * @return 影响1行返回 true, 否则返回 false
      */
     public boolean delete(String ... andFields) {
+        check();
+
         return delete(andFields, 1);
+    }
+
+    /**
+     * 删除指定的数据
+     * @param effectRow  影响的行数
+     * @return 影响1行返回 true, 否则返回 false
+     */
+    public boolean delete(int effectRow) {
+        check();
+
+        return delete(null, effectRow);
     }
 
     /**
@@ -507,6 +528,8 @@ public class Dao<T extends Dao> {
      * @return 影响1行返回 true, 否则返回 false
      */
     public boolean delete() {
+        check();
+
         if(snapshot !=null) {
             return delete(getModifyField());
         } else {

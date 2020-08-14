@@ -580,7 +580,12 @@ public class Recorder {
 
             whereSql = "where 1=1";
 
-            if (query == null || !query.hasCondiction()) {
+            if (
+                    query == null || (
+                                    !query.hasCondiction() &&
+                                    query.getPageNumber() <= 0 && query.getPageSize() <=0 &&
+                                    query.getOrderFields().isEmpty())
+            ) {
                 Field[] fields = TReflect.getFields(obj.getClass());
                 //字段拼接 sql
                 for (Field field : fields) {

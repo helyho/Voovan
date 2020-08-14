@@ -5,6 +5,7 @@ import org.voovan.http.server.HttpModule;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouterFilter;
 import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -23,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AnnotationModule extends HttpModule {
     public ConcurrentHashMap<Method, String> METHOD_URL_MAP = new ConcurrentHashMap<Method, String>();
     public ConcurrentHashMap<String, Method> URL_METHOD_MAP = new ConcurrentHashMap<String, Method>();
+    public static String DEFAULT_SCAN_ROUTER_PACKAGE = "com;org;net;io";
+    public static int DEFAULT_SCAN_ROUTER_INTERVAL = 30;
 
     private HashWheelTask scanRouterTask;
     private AnnotationRouterFilter annotationRouterFilter;
@@ -32,7 +35,7 @@ public class AnnotationModule extends HttpModule {
      * @return 注解路由的包路劲
      */
     public String getScanRouterPackage(){
-        return (String)getParamters("ScanRouterPackage");
+        return TObject.nullDefault ((String)getParamters("ScanRouterPackage"), DEFAULT_SCAN_ROUTER_PACKAGE);
     }
 
     /**
@@ -40,7 +43,7 @@ public class AnnotationModule extends HttpModule {
      * @return 注解路由的扫描时间间隔
      */
     public int getScanRouterInterval(){
-        return (int)getParamters("ScanRouterInterval");
+        return (int) TObject.nullDefault(getParamters("ScanRouterInterval"), DEFAULT_SCAN_ROUTER_INTERVAL);
     }
 
     /**
@@ -62,12 +65,13 @@ public class AnnotationModule extends HttpModule {
     @Override
     public void install() {
         final AnnotationModule annotationModule = this;
-        String scanRouterPackate = getScanRouterPackage();
-        if (scanRouterPackate != null) {
+        String scanRouterPackage = getScanRouterPackage();
+        if (scanRouterPackage != null) {
             AnnotationRouter.scanRouterClassAndRegister(annotationModule);
         }
 
-        if(scanRouterPackate != null && getScanRouterInterval() > 0){
+
+        if(scanRouterPackage != null && getScanRouterInterval() > 0){
 
             scanRouterTask = new HashWheelTask() {
                 @Override

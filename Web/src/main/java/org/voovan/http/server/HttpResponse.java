@@ -3,6 +3,7 @@ package org.voovan.http.server;
 import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Response;
 import org.voovan.network.IoSession;
+import org.voovan.tools.json.JSON;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -128,6 +129,24 @@ public class HttpResponse extends Response {
 		if(strs!=null){
 			body().write(strs, characterSet);
 		}
+	}
+
+
+	/**
+	 * 写入 body 对象, 自动转换为 json,默认 UTF-8
+	 * @param obj body 对象
+	 */
+	public void writeObject(Object obj){
+		body().writeObject(obj);
+	}
+
+	/**
+	 * 写入 body 字符串 自动转换为 json
+	 * @param obj body 对象
+	 * @param charset 字符集
+	 */
+	public void writeObject(Object obj, String charset){
+		body().writeObject(obj, charset);
 	}
 
 	/**
