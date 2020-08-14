@@ -1,13 +1,14 @@
 package org.voovan.http.server.context;
 
 import org.voovan.Global;
-import org.voovan.tools.FastThreadLocal;
-import org.voovan.tools.collection.CacheMap;
-import org.voovan.tools.weave.WeaveConfig;
-import org.voovan.tools.collection.Chain;
+import org.voovan.http.server.module.annontationRouter.AnnotationModule;
 import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
+import org.voovan.tools.collection.CacheMap;
+import org.voovan.tools.collection.Chain;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.weave.WeaveConfig;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -259,7 +260,7 @@ public class WebServerConfig {
         return routerConfigs;
     }
 
-    public List<HttpModuleConfig> getModuleonfigs() {
+    public List<HttpModuleConfig> getModuleConfigs() {
         return moduleConfigs;
     }
 
@@ -313,6 +314,17 @@ public class WebServerConfig {
     public void addModuleByList(List<Map<String, Object>>  moduleInfoList) {
         for (Map<String, Object> moduleInfoMap : moduleInfoList) {
             HttpModuleConfig httpModuleConfig = new HttpModuleConfig(moduleInfoMap);
+
+            //没有模块名称则使用服务名称
+            if(TString.isNullOrEmpty(httpModuleConfig.getName())){
+                httpModuleConfig.setName(serverName);
+            }
+
+            //没有模块服务类成则使用注解模块 (AnnotationModule)
+            if(TString.isNullOrEmpty(httpModuleConfig.getClassName())){
+                httpModuleConfig.setClassName(AnnotationModule.class.getCanonicalName());
+            }
+
             moduleConfigs.add(httpModuleConfig);
             Logger.simple("[HTTP] Load HttpModule ["+httpModuleConfig.getName()+"] on [" + httpModuleConfig.getPath() +
                     "] by ["+ httpModuleConfig.getClassName()+"]");

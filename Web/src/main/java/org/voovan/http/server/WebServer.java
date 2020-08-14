@@ -147,10 +147,10 @@ public class WebServer {
 	 * 模块安装
 	 */
 	public void initModule() {
-		for (HttpModuleConfig httpModuleConfig : config.getModuleonfigs()) {
+		for (HttpModuleConfig httpModuleConfig : config.getModuleConfigs()) {
 			HttpModule httpModule = httpModuleConfig.getHttpModuleInstance(this);
 			if(httpModule!=null){
-				httpModule.runModuleInit();
+				httpModule.lifeCycleInit();
 				httpModule.install();
 			}
 
@@ -162,9 +162,9 @@ public class WebServer {
 	 */
 	public void unInitModule() {
 		//卸载模块
-		for (HttpModuleConfig moduleConfig : this.config.getModuleonfigs().toArray(new HttpModuleConfig[0])) {
+		for (HttpModuleConfig moduleConfig : this.config.getModuleConfigs().toArray(new HttpModuleConfig[0])) {
 			HttpModule httpModule = moduleConfig.getHttpModuleInstance(this);
-			httpModule.runModuleDestory();
+			httpModule.lifeCycleDestory();
 			httpModule.unInstall();
 			Logger.simple("[HTTP] Module ["+moduleConfig.getName()+"] uninstall");
 		}

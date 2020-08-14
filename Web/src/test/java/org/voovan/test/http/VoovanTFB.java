@@ -10,15 +10,11 @@ import org.voovan.http.server.HttpRouter;
 import org.voovan.http.server.WebServer;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
-import org.voovan.tools.TEnv;
-import org.voovan.tools.TObject;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
 
 
@@ -54,7 +50,7 @@ public class VoovanTFB {
 		webServerConfig.setPort(8080);
 		webServerConfig.setHotSwapInterval(0);
 		webServerConfig.setCache(true);
-		webServerConfig.getModuleonfigs().clear();
+		webServerConfig.getModuleConfigs().clear();
 		webServerConfig.getRouterConfigs().clear();
 		webServerConfig.setEnablePathVariables(false);
 		webServerConfig.setEnableWebSocket(false);

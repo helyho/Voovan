@@ -6,7 +6,6 @@ import org.voovan.http.message.Response;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.WebServer;
-import org.voovan.network.SocketContext;
 import org.voovan.tools.*;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSONDecode;
@@ -17,9 +16,7 @@ import org.voovan.tools.reflect.TReflect;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.Socket;
 import java.net.URL;
-import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -252,22 +249,27 @@ public class WebContext {
 		if(!isInit) {
 			webServerConfig.getFilterConfigs().clear();
 		}
-		Logger.simple("==================================================================================================-================================================");
-		webServerConfig.addFilterByList(getContextParameter("Filters",new ArrayList<Map<String,Object>>()));
+		Logger.simple("===================================================================================================================================================");
+		webServerConfig.addFilterByList(getContextParameter("Filters", new ArrayList<Map<String,Object>>()));
 
 		//初始路由处理器
 		if(!isInit) {
 			webServerConfig.getRouterConfigs().clear();
 		}
-		Logger.simple("=============================================================================================================-=====================================");
-		webServerConfig.addRouterByList(getContextParameter("Routers",new ArrayList<Map<String,Object>>()));
+		Logger.simple("===================================================================================================================================================");
+		webServerConfig.addRouterByList(getContextParameter("Routers", new ArrayList<Map<String,Object>>()));
 
 		//初始化模块
 		if(!isInit) {
-			webServerConfig.getModuleonfigs().clear();
+			webServerConfig.getModuleConfigs().clear();
 		}
-		Logger.simple("=============================================================================================================================-=====================");
-		webServerConfig.addModuleByList(getContextParameter("Modules",new ArrayList<Map<String,Object>>()));
+		Logger.simple("===================================================================================================================================================");
+		ArrayList<Map<String,Object>> moduleList = getContextParameter("Modules", new ArrayList<Map<String,Object>>());
+		//如果没有启用模块, 则添加一个空, 会默认使用默认配置加载成注解模块
+		if(moduleList.isEmpty()) {
+			moduleList.add(TObject.asMap());
+		}
+		webServerConfig.addModuleByList(moduleList);
 
 	}
 

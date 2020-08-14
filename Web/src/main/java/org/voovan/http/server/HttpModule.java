@@ -169,7 +169,7 @@ public abstract class HttpModule extends Attributes {
     /**
      * 加载并运模块行初始化类
      */
-    protected void runModuleInit(){
+    protected void lifeCycleInit(){
         String lifeCycleClass = this.moduleConfig.getLifeCycleClass();
 
         if(lifeCycleClass==null) {
@@ -199,7 +199,7 @@ public abstract class HttpModule extends Attributes {
     /**
      * 加载并运模块行初始化类
      */
-    protected void runModuleDestory(){
+    protected void lifeCycleDestory(){
         if(httpModuleLifeCycle!=null) {
             try {
                 httpModuleLifeCycle.destory(this);
