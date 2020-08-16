@@ -9,6 +9,7 @@ import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
+import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
@@ -445,7 +446,8 @@ public class AnnotationRouter implements HttpRouter {
                             String defaultVal = ((Body) annotation).defaultVal();
                             if("".equals(defaultVal)) {
                                 if(((Body) annotation).isRequire()) {
-                                    throw new AnnotationRouterException("Router annotation @Body = null] error, data: " + bodyString);
+//                                    throw new AnnotationRouterException("Router annotation @Body = null] error, data: " + bodyString);
+                                    params[i] = TObject.asMap();
                                 }
                                 continue;
                             } else {
@@ -457,9 +459,11 @@ public class AnnotationRouter implements HttpRouter {
                                 TString.toObject(bodyString, parameterTypes[i], true) :
                                 TReflect.getObjectFromMap(parameterTypes[i], bodyMap, true);
                         continue;
-                    } catch (AnnotationRouterException e) {
-                        throw e;
-                    } catch (Exception e) {
+                    }
+//                    catch (AnnotationRouterException e) {
+//                        throw e;
+//                    }
+                    catch (Exception e) {
                         if(((Body) annotation).isRequire()) {
                             throw new AnnotationRouterException("Router annotation @Body error.\r\n data: " + bodyString, e);
                         }
