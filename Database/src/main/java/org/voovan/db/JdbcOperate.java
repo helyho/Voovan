@@ -156,6 +156,29 @@ public class JdbcOperate implements Closeable {
 	}
 
 	/**
+	 * 开启事务
+	 * @return true: 开启了一个新的事务, false: 开启了一个 savepoint
+	 * @throws SQLException
+	 */
+	public boolean beginTransaction() throws SQLException {
+		long threadId = Thread.currentThread().getId();
+
+		if(connection == null) {
+			connection = getConnection();
+		}
+
+		if (transcationType!=TranscationType.NONE) {
+			savepoint = connection.setSavepoint();
+			return false;
+		} else {
+			transcationType = TranscationType.ALONE;
+			connection.setAutoCommit(false);
+			JDBC_OPERATE_THREAD_LIST.put(threadId, this);
+			return true;
+		}
+	}
+
+	/**
 	 * 返回当前事务形式
 	 * @return 事务类型
 	 */
@@ -318,11 +341,11 @@ public class JdbcOperate implements Closeable {
 			// 非事务模式执行
 			if (transcationType == TranscationType.NONE) {
 				closeConnection(preparedStatement);
-			}else{
+			} else {
 				if(exception!=null) {
 					rollback();
+					closeStatement(preparedStatement);
 				}
-				closeStatement(preparedStatement);
 			}
 		}
 
@@ -371,11 +394,11 @@ public class JdbcOperate implements Closeable {
 			// 非事务模式执行
 			if (transcationType == TranscationType.NONE) {
 				closeConnection(statement);
-			}else{
+			} else {
 				if(exception!=null) {
 					rollback();
+					closeStatement(statement);
 				}
-				closeStatement(statement);
 			}
 		}
 
@@ -432,11 +455,11 @@ public class JdbcOperate implements Closeable {
 			// 非事务模式执行
 			if (transcationType == TranscationType.NONE) {
 				closeConnection(preparedStatement);
-			}else{
+			} else {
 				if(exception!=null) {
 					rollback();
+					closeStatement(preparedStatement);
 				}
-				closeStatement(preparedStatement);
 			}
 		}
 
@@ -465,11 +488,11 @@ public class JdbcOperate implements Closeable {
 			// 非事务模式执行
 			if (transcationType == TranscationType.NONE) {
 				closeConnection(callableStatement);
-			}else{
+			} else {
 				if(exception!=null) {
 					rollback();
+					closeStatement(callableStatement);
 				}
-				closeStatement(callableStatement);
 			}
 		}
 

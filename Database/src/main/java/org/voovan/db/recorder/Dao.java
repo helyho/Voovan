@@ -1,26 +1,20 @@
 package org.voovan.db.recorder;
 
 import org.voovan.db.JdbcOperate;
-import org.voovan.db.TranscationType;
 import org.voovan.db.exception.DaoException;
 import org.voovan.db.exception.UpdateFieldException;
-import org.voovan.db.recorder.annotation.Field;
 import org.voovan.db.recorder.annotation.NotInsert;
 import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.exception.RecorderException;
-import org.voovan.tools.TEnv;
-import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
-import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 
 /**
@@ -32,7 +26,7 @@ import java.util.function.Function;
  * Licence: Apache v2 License
  */
 public class Dao<T extends Dao> {
-    private static String[] emptyStringArray = new String[0];
+    private static String[] EMPTY_STRING_ARRAY = new String[0];
 
     @NotUpdate
     @NotInsert
@@ -138,7 +132,7 @@ public class Dao<T extends Dao> {
             }
 
             snapshot = null;
-            return modifyField.toArray(emptyStringArray);
+            return modifyField.toArray(EMPTY_STRING_ARRAY);
         } catch (ReflectiveOperationException e) {
             throw new RecorderException("endUpdate failed", e);
         }
@@ -167,20 +161,29 @@ public class Dao<T extends Dao> {
      * 使用主键更新指定的对象属性
      * @param dataFields 对象属性名称
      * @param andFields 更新记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
-     * @param effectRow  影响的行数
+     * @param effectRow  影响的行数, 小于 0 对影响行数无限制
      * @return 影响的行数于effectRow相等返回true, 否则返回false
      */
     public boolean update(String[] dataFields, String[] andFields, int effectRow) {
         check();
-
         try {
+            boolean newTransaction = jdbcOperate.beginTransaction();
             Query query = Query.newInstance().data(dataFields).and(andFields);
-            if (recorder.update((T) this, query) == effectRow) {
+            if (recorder.update((T) this, query) == effectRow || effectRow < 0) {
+                if(newTransaction) {
+                    jdbcOperate.commit();
+                }
                 return true;
             } else {
+                jdbcOperate.rollback();
                 return false;
             }
         } catch (Exception e) {
+            try {
+                jdbcOperate.rollback();
+            } catch (SQLException throwables) {
+                Logger.error("Dao.update rollback failed", e);
+            }
             Logger.error("Dao.update failed", e);
             return false;
         }
@@ -189,7 +192,7 @@ public class Dao<T extends Dao> {
     /**
      * 使用主键更新指定的对象属性
      * @param dataFields 对象属性名称
-     * @param effectRow  影响的行数
+     * @param effectRow  影响的行数, 小于 0 对影响行数无限制
      * @return 影响的行数于effectRow相等返回true, 否则返回false
      */
     public boolean update(String[] dataFields, int effectRow) {
@@ -207,7 +210,7 @@ public class Dao<T extends Dao> {
 
     /**
      * 使用主键更新对象中所有非 null 的属性, 但不包括主键
-     * @param effectRow 影响的行数
+     * @param effectRow 影响的行数, 小于 0 对影响行数无限制
      * @return 影响的行数于effectRow相等返回true, 否则返回false
      */
     public boolean update(int effectRow) {
@@ -244,7 +247,7 @@ public class Dao<T extends Dao> {
             return ret;
 
         } else {
-            return update(new String[0]);
+            return update(EMPTY_STRING_ARRAY);
         }
     }
 
@@ -308,7 +311,8 @@ public class Dao<T extends Dao> {
                 }
             }
 
-            update(fieldDatas.keySet().toArray(new String[0]), andFields, effectRow);
+            //调用通用的 update 方法
+            update(fieldDatas.keySet().toArray(EMPTY_STRING_ARRAY), andFields, effectRow);
             return true;
         } catch (Exception e) {
             if(e instanceof UpdateFieldException) {
@@ -481,7 +485,7 @@ public class Dao<T extends Dao> {
     /**
      * 删除指定的数据
      * @param andFields 删除记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
-     * @param effectRow  影响的行数
+     * @param effectRow  影响的行数, 小于 0 对影响行数无限制
      * @return 影响的行数于effectRow相等返回true, 否则返回false
      */
     public boolean delete(String[] andFields, int effectRow) {
@@ -490,12 +494,22 @@ public class Dao<T extends Dao> {
         Query query = Query.newInstance().and(andFields);
 
         try {
-            if (recorder.delete((T)this, query) == effectRow) {
+            boolean newTransaction = jdbcOperate.beginTransaction();
+            if (recorder.delete((T)this, query) == effectRow || effectRow < 0) {
+                if(newTransaction) {
+                    jdbcOperate.commit();
+                }
                 return true;
             } else {
+                jdbcOperate.rollback();
                 return false;
             }
         } catch (Exception e) {
+            try {
+                jdbcOperate.rollback();
+            } catch (SQLException throwables) {
+                Logger.error("Dao.update rollback failed", e);
+            }
             Logger.error("Dao.update failed", e);
             return false;
         }
@@ -514,7 +528,7 @@ public class Dao<T extends Dao> {
 
     /**
      * 删除指定的数据
-     * @param effectRow  影响的行数
+     * @param effectRow  影响的行数, 小于 0 对影响行数无限制
      * @return 影响1行返回 true, 否则返回 false
      */
     public boolean delete(int effectRow) {
