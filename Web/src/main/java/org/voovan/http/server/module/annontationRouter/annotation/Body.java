@@ -15,6 +15,7 @@ import java.lang.annotation.*;
 @Documented
 public @interface Body {
     boolean isRequire() default true;
+    String defaultVal() default "";
 
     //-------------- API 文档相关属性 --------------
     /**

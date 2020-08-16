@@ -382,12 +382,25 @@ public class AnnotationRouter implements HttpRouter {
                 if (annotation instanceof Param) {
                     String paramName = ((Param) annotation).value();
                     try {
-                        params[i] = TString.toObject(request.getParameter(paramName), parameterTypes[i], true);
-                        continue;
-                    } catch (Exception e) {
-                        if(((Param) annotation).isRequire()) {
-                            throw new AnnotationRouterException("Router annotation @Param [" + paramName + " = " + params[i] + "] error, data: " + request.getParameters(), e);
+                        Object param = request.getParameter(paramName);
+                        if (param == null) {
+                            String defaultVal = ((Param) annotation).defaultVal();
+                            if("".equals(defaultVal)) {
+                                if(((Param) annotation).isRequire()) {
+                                    throw new AnnotationRouterException("Router annotation @Param [" + paramName + " = null] error, data: " + request.getParameters());
+                                }
+                                continue;
+                            } else {
+                                param = defaultVal;
+                            }
                         }
+
+                        params[i] = TString.toObject(param.toString(), parameterTypes[i], true);
+                        continue;
+                    } catch (AnnotationRouterException e) {
+                      throw e;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation error, when feed @Param [" + paramName + "] data: " + request.getParameters(), e);
                     }
                 }
 
@@ -397,6 +410,18 @@ public class AnnotationRouter implements HttpRouter {
                     try {
                         if(bodyMap != null && bodyMap instanceof Map) {
                             Object bodyParam = bodyMap.get(paramName);
+                            if(bodyParam == null) {
+                                String defaultVal = ((BodyParam) annotation).defaultVal();
+                                if("".equals(defaultVal)) {
+                                    if(((BodyParam) annotation).isRequire()) {
+                                        throw new AnnotationRouterException("Router annotation @BodyParam [" + paramName + " = null] error, data: " + bodyMap);
+                                    }
+                                    continue;
+                                } else {
+                                    bodyParam = defaultVal;
+                                }
+                            }
+
                             if(TReflect.isBasicType(bodyParam.getClass())) {
                                 params[i] = TString.toObject(bodyParam.toString(), parameterTypes[i], true);
                             } else if(bodyParam instanceof Map){
@@ -406,58 +431,95 @@ public class AnnotationRouter implements HttpRouter {
                             }
                         }
                         continue;
+                    } catch (AnnotationRouterException e) {
+                        throw e;
                     } catch (Exception e) {
-                        if(((BodyParam) annotation).isRequire()) {
-                            throw new AnnotationRouterException("Router annotation @BodyParam [" + paramName + " = " + params[i] + "] error, data: " + bodyMap.toString(), e);
-                        }
-                    }
-
-                }
-
-                //请求的头
-                if (annotation instanceof Header) {
-                    String headName = ((Header) annotation).value();
-                    try {
-                        params[i] = TString.toObject(request.header().get(headName), parameterTypes[i], true);
-                        continue;
-                    } catch (Exception e) {
-                        if(((Header) annotation).isRequire()) {
-                            throw new AnnotationRouterException("Router annotation @Head [" + headName + " = " + params[i] + "] error, data: " + request.header().toString(), e);
-                        }
-                    }
-                }
-
-                //请求的 Cookie
-                if (annotation instanceof Cookie) {
-                    String cookieValue = null;
-                    String cookieName = ((Cookie) annotation).value();
-                    try {
-                        org.voovan.http.message.packet.Cookie cookie = request.getCookie(cookieName);
-                        if (cookie != null) {
-                            cookieValue = cookie.getValue();
-                        }
-
-                        params[i] = TString.toObject(cookieValue, parameterTypes[i], true);
-                        continue;
-                    } catch (Exception e) {
-                        if(((Cookie) annotation).isRequire()) {
-                            String cookieStr = request.cookies().parallelStream().map(cookie -> cookie.getName() + "=" + cookie.getName()).collect(Collectors.toList()).toString();
-                            throw new AnnotationRouterException("Router annotation @Cookie [" + cookieName + " = " + params[i] + "] error, data: " + cookieStr, e);
-                        }
+                        throw new AnnotationRouterException("Router annotation error, when feed @BodyParam [" + paramName + "] , data: " + bodyMap, e);
                     }
                 }
 
                 //请求的 Body
                 if (annotation instanceof Body) {
                     try {
-                        params[i] = bodyMap == null ?
+                        if("".equals(bodyString)) {
+                            String defaultVal = ((Body) annotation).defaultVal();
+                            if("".equals(defaultVal)) {
+                                if(((Body) annotation).isRequire()) {
+                                    throw new AnnotationRouterException("Router annotation @Body = null] error, data: " + bodyString);
+                                }
+                                continue;
+                            } else {
+                                bodyMap = (Map) JSON.parse(defaultVal);
+                            }
+                        }
+
+                        params[i] =  bodyMap == null ?
                                 TString.toObject(bodyString, parameterTypes[i], true) :
                                 TReflect.getObjectFromMap(parameterTypes[i], bodyMap, true);
                         continue;
+                    } catch (AnnotationRouterException e) {
+                        throw e;
                     } catch (Exception e) {
                         if(((Body) annotation).isRequire()) {
-                            throw new AnnotationRouterException("Router annotation @Body error \r\n data: " + bodyString, e);
+                            throw new AnnotationRouterException("Router annotation @Body error.\r\n data: " + bodyString, e);
                         }
+                    }
+                }
+
+                //请求的头
+                if (annotation instanceof Header) {
+                    String headName = ((Header) annotation).value();
+                    try {
+                        Object headParam = request.header().get(headName);
+                        if (headParam == null) {
+                            String defaultVal = ((Header) annotation).defaultVal();
+                            if("".equals(defaultVal)) {
+                                if(((Header) annotation).isRequire()) {
+                                    throw new AnnotationRouterException("Router annotation @Header [" + headName + " = null] error, data: " + request.header());
+                                }
+                                continue;
+                            } else {
+                                headParam = defaultVal;
+                            }
+                        }
+
+                        params[i] = TString.toObject(headParam.toString(), parameterTypes[i], true);
+                        continue;
+                    } catch (AnnotationRouterException e) {
+                        throw e;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation error, when feed @Header [" + headName + "] , data: " + request.header(), e);
+                    }
+                }
+
+                //请求的 Cookie
+                if (annotation instanceof Cookie) {
+                    String cookieParam = null;
+                    String cookieName = ((Cookie) annotation).value();
+                    try {
+                        org.voovan.http.message.packet.Cookie cookie = request.getCookie(cookieName);
+                        if (cookie != null) {
+                            cookieParam = cookie.getValue();
+                        }
+
+                        if (cookieParam == null) {
+                            String defaultVal = ((Cookie) annotation).defaultVal();
+                            if("".equals(defaultVal)) {
+                                if(((Cookie) annotation).isRequire()) {
+                                    throw new AnnotationRouterException("Router annotation @Cookie [" + cookieName + " = null] error, data: " + request.cookies());
+                                }
+                                continue;
+                            } else {
+                                cookieParam = defaultVal;
+                            }
+                        }
+
+                        params[i] = TString.toObject(cookieParam.toString(), parameterTypes[i], true);
+                        continue;
+                    } catch (AnnotationRouterException e) {
+                        throw e;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation error, when feed @Cookie [" + cookieParam + "] , data: " + request.cookies(), e);
                     }
                 }
 
@@ -465,12 +527,25 @@ public class AnnotationRouter implements HttpRouter {
                 if (annotation instanceof Attribute) {
                     String attrName = ((Attribute) annotation).value();
                     try {
-                        params[i] = TString.toObject(request.getAttributes().get(attrName).toString(), parameterTypes[i], true);
-                        continue;
-                    } catch (Exception e) {
-                        if(((Attribute) annotation).isRequire()) {
-                            throw new AnnotationRouterException("Router annotation @Attribute [" + attrName + " = " + params[i] + "] error, data: " + request.header().toString(), e);
+                        Object attrParam = request.getAttributes().get(attrName);
+                        if(attrParam == null) {
+                            String defaultVal = ((Attribute) annotation).defaultVal();
+                            if("".equals(defaultVal)) {
+                                if (((Attribute) annotation).isRequire()) {
+                                    throw new AnnotationRouterException("Router annotation @Attribute [" + attrParam + " = null] error, data: " + request.getAttributes());
+                                }
+                                continue;
+                            } else {
+                                attrParam = defaultVal;
+                            }
                         }
+
+                        params[i] = TString.toObject(attrParam.toString(), parameterTypes[i], true);
+                        continue;
+                    } catch (AnnotationRouterException e) {
+                        throw e;
+                    } catch (Exception e) {
+                        throw new AnnotationRouterException("Router annotation error, when feed @Attribute [" + attrName + "] , data: " + request.getAttributes(), e);
                     }
                 }
 
@@ -480,16 +555,30 @@ public class AnnotationRouter implements HttpRouter {
                     HttpSession httpSession = request.getSession();
 
                     try {
-                        if (httpSession.getAttribute(sessionName).getClass() == parameterTypes[i]) {
+                        Object sessionParam = httpSession.getAttribute(sessionName);
+                        if(sessionParam == null) {
+                            String defaultVal = ((Session) annotation).defaultVal();
+                            if("".equals(defaultVal)) {
+                                if (((Session) annotation).isRequire()) {
+                                    throw new AnnotationRouterException("Router annotation @Session [" + sessionParam + " = null] error, data: " + httpSession.attributes());
+                                }
+                                continue;
+                            } else {
+                                sessionParam = TString.toObject(defaultVal, parameterTypes[i]);
+                            }
+                        }
+
+                        if (sessionParam == parameterTypes[i]) {
                             params[i] = httpSession.getAttribute(sessionName);
                         }
                         continue;
+                    } catch (AnnotationRouterException e) {
+                        throw e;
                     } catch (Exception e) {
-                        if(((Session) annotation).isRequire()) {
-                            throw new AnnotationRouterException("Router annotation @Session [" + sessionName + " = " + params[i] + "] error, data: " + httpSession.attributes().toString(), e);
-                        }
+                        throw new AnnotationRouterException("Router annotation error, when feed @Session [" + sessionName + "] , data: " + httpSession.attributes(), e);
                     }
                 }
+
             }
 
             //没有注解的参数,按顺序处理
@@ -505,8 +594,13 @@ public class AnnotationRouter implements HttpRouter {
 
         }
 
-        //调用方法
-        return TReflect.invokeMethod(annotationObj, method, params);
+        try {
+            //调用方法
+            return TReflect.invokeMethod(annotationObj, method, params);
+        } catch (IllegalArgumentException e) {
+            throw new AnnotationRouterException("Router method [" + method + "] has some null parameter, " +
+                    "if you want accpect null parameter, you should change the parameter's class to it's Object type, like int -> Integer.", e);
+        }
     }
 
     @Override
