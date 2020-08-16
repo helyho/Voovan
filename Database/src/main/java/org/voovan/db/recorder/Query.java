@@ -90,14 +90,6 @@ public class Query {
     }
 
     public Query page(int pageNumber, int pageSize){
-        if(pageNumber <=0 ) {
-            throw new RecorderException("pageNumber must be > 0");
-        }
-
-        if(pageNumber <=0 ) {
-            throw new RecorderException("pageSize must be > 0");
-        }
-
         this.pageNumber = pageNumber;
         this.pageSize = pageSize;
 
@@ -109,9 +101,6 @@ public class Query {
     }
 
     public void setPageNumber(int pageNumber) {
-        if(pageNumber <=0 ) {
-            throw new RecorderException("pageNumber must be > 0");
-        }
         this.pageNumber = pageNumber;
     }
 
@@ -120,9 +109,6 @@ public class Query {
     }
 
     public void setPageSize(int pageSize) {
-        if(pageNumber <=0 ) {
-            throw new RecorderException("pageSize must be > 0");
-        }
         this.pageSize = pageSize;
     }
 
