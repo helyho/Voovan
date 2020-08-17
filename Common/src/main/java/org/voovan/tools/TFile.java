@@ -207,11 +207,11 @@ public class TFile {
 			}
 
 			if(beginPos >= fileSize){
-				return null;
+				return new byte[0];
 			}
 
 			if(beginPos == endPos){
-				return null;
+				return new byte[0];
 			}
 
 			// 计算需要读取的差高难度
