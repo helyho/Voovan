@@ -330,8 +330,6 @@ public class TReflect {
             code.insert(0, paramtypeCode);
 
             DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "Reader", code.toString());
-            dynamicFunction.addImport(ConcurrentHashMap.class);
-            dynamicFunction.addImport(Arrays.class);
             dynamicFunction.addImport(clazz);
             dynamicFunction.addPrepareArg(0, clazz, "obj");        //目标对象
             dynamicFunction.addPrepareArg(1, String.class, "methodName"); //写入字段
@@ -1542,8 +1540,8 @@ public class TReflect {
     public static Map<String, Object> getMapfromObject(Object obj, boolean allField) throws ReflectiveOperationException {
         LinkedHashMap<String, Object> mapResult = new LinkedHashMap<String, Object>();
 
-        if(obj==null || TReflect.isBasicType(obj.getClass())){
-            mapResult.put(null, obj);
+        if(obj==null){
+            mapResult.put(null, null);
 
             return mapResult;
         }
@@ -1593,7 +1591,7 @@ public class TReflect {
         else if(obj instanceof Map){
             Map mapObject = (Map)obj;
 
-            Map map = new HashMap();
+            Map map = new LinkedHashMap();
             Iterator iterator = mapObject.entrySet().iterator();
             while (iterator.hasNext()) {
                 Entry<?, ?> entry = (Entry<?, ?>) iterator.next();

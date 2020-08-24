@@ -2,6 +2,7 @@ package org.voovan.tools;
 
 import org.voovan.Global;
 
+import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -46,6 +47,37 @@ public class TDateTime {
 	public static String now(String format){
 		return format(new Date(),format);
 	}
+
+	/**
+	 * 时间戳转换
+	 * @param value 待转换的时间戳
+	 * @param timeUnit 时间单位
+	 * @param format 转换格式
+	 * @return 转后的时间
+	 */
+	public static String timestamp(long value, TimeUnit timeUnit, String format) {
+		return format(new Date(timeUnit.toMillis(value)), format);
+	}
+
+	/**
+	 * 时间戳转换
+	 * @param value 待转换的时间戳(毫秒)
+	 * @param format 转换格式
+	 * @return 转后的时间
+	 */
+	public static String timestamp(long value, String format) {
+		return format(new Date(value), format);
+	}
+
+	/**
+	 * 时间戳转换为标准时间格式
+	 * @param value 待转换的时间戳(毫秒)
+	 * @return 转后的时间
+	 */
+	public static String timestamp(long value) {
+		return format(new Date(value));
+	}
+
 
 	/**
 	 * 格式化日期成字符串
@@ -158,7 +190,6 @@ public class TDateTime {
 		} catch (ParseException e){
 			throw new org.voovan.tools.exception.ParseException(e);
 		}
-
 	}
 
 	/**
