@@ -302,7 +302,7 @@ public class TEnv {
 						result.add(clazz);
 					}
 				} catch (ClassNotFoundException e) {
-					Logger.warn("Try to load class["+fileName+"] failed",e);
+					continue;
 				}
 			}
 		}
@@ -337,7 +337,7 @@ public class TEnv {
 						result.add(clazz);
 					}
 				} catch (Throwable e) {
-					fileName = null;
+				    continue;
 				}
 			}
 		}
@@ -468,8 +468,8 @@ public class TEnv {
 
 		try {
 			return Class.forName(className);
-		}catch (Exception ex) {
-			throw new ClassNotFoundException("load and define class " + className + " failed");
+		} catch (Throwable thr) {
+			throw new ClassNotFoundException("load and define class " + className + " failed", thr);
 		}
 	}
 

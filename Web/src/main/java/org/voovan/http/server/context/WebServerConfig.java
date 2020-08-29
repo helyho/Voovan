@@ -60,7 +60,7 @@ public class WebServerConfig {
 
     public String getServerName() {
         if(serverName==null){
-            serverName = Global.NAME;
+            serverName = Global.FRAMEWORK_NAME;
         }
         return serverName;
     }

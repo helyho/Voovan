@@ -907,7 +907,7 @@ public class TString {
 		ThreadLocalRandom random = ThreadLocalRandom.current();
 
 		if(sign == null){
-			sign = Global.NAME;
+			sign = Global.FRAMEWORK_NAME;
 		}
 
 		if(obj==null){
