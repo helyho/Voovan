@@ -27,11 +27,11 @@ import java.util.*;
  * Licence: Apache v2 License
  */
 public class JSONDecode {
-	public final static boolean JSON_HASH_ENABLE = TEnv.getSystemProperty("JsonHashEnable", false);
+	public final static boolean JSON_HASH = TEnv.getSystemProperty("JsonHash", false);
 	public final static IntKeyMap<Object> JSON_DECODE_CACHE = new IntKeyMap<Object>(1024);
 
 	static {
-		if(JSON_HASH_ENABLE) {
+		if(JSON_HASH) {
 			Global.getHashWheelTimer().addTask(new HashWheelTask() {
 				@Override
 				public void run() {
@@ -47,7 +47,7 @@ public class JSONDecode {
 	public static Object parse(String jsonStr) {
 		Object value;
 		int jsonHash = THash.HashFNV1(jsonStr);
-		if(JSON_HASH_ENABLE) {
+		if(JSON_HASH) {
 			value = JSON_DECODE_CACHE.get(jsonHash);
 
 			if (value != null) {
@@ -57,7 +57,7 @@ public class JSONDecode {
 
 		value = parse(new StringReader(jsonStr.trim() + "\0"));
 
-		if(JSON_HASH_ENABLE) {
+		if(JSON_HASH) {
 			JSON_DECODE_CACHE.put(jsonHash, value);
 		}
 
