@@ -158,7 +158,7 @@ public class JdbcOperate implements Closeable {
 	/**
 	 * 开启事务
 	 * @return true: 开启了一个新的事务, false: 开启了一个 savepoint
-	 * @throws SQLException
+	 * @throws SQLException SQL 异常
 	 */
 	public boolean beginTransaction() throws SQLException {
 		long threadId = Thread.currentThread().getId();

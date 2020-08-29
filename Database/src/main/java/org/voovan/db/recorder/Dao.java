@@ -395,8 +395,6 @@ public class Dao<T extends Dao> {
      * 使用对象模型查询一条数据
      * @param dataFields select 和 from 之间作为数据返回的属性
      * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
-     * @param pageNum  分页页号
-     * @param pageSize 分页单页大小
      * @return 查询的结果
      */
     public T queryOne(String[] dataFields, String[] andFields) {
