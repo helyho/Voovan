@@ -88,7 +88,7 @@ public class Global {
     public static final Charset CS_ASCII = Charset.forName("US-ASCII");
     public static final Charset CS_UTF_8 = Charset.forName("UTF-8");
 
-    public static final String NAME = "Voovan";
+    public static final String FRAMEWORK_NAME = "Voovan";
 
     public static final Boolean IS_DEBUG_MODE = TProperties.getBoolean("framework", "DebugMode", false);
     public static final Boolean ENABLE_SANDBOX = TProperties.getBoolean("framework", "EnableSandBox", false);

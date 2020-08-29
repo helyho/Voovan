@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Http 报文解析类
@@ -741,7 +740,7 @@ public class HttpParser {
 						fileExtName = fileExtName==null || fileExtName.equals(Global.EMPTY_STRING) ? "tmp" : fileExtName;
 
 						//拼文件名
-						String localFileName =TString.assembly(UPLOAD_PATH, Global.NAME, System.currentTimeMillis(), ".", fileExtName);
+						String localFileName =TString.assembly(UPLOAD_PATH, Global.FRAMEWORK_NAME, System.currentTimeMillis(), ".", fileExtName);
 						File localFile = new File(localFileName);
 
 						//文件是否接收完成

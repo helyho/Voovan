@@ -45,22 +45,22 @@ public class WebContext {
 	 */
 	public static boolean PAUSE = false;
 
-	public static final String FRAMEWORK_NAME = "Voovan";
+	public static final String SERVER = TEnv.getSystemProperty("Server", Global.FRAMEWORK_NAME);
 
-	public static final String FULL_VERSION = FRAMEWORK_NAME + " v" + Global.getVersion();
+	public static final String FULL_VERSION = SERVER + " v" + Global.getVersion();
 
 	public static final String VERSION = "v" + Global.getVersion();
 
-	private static final String SESSION_NAME = "VOOVAN_SESSIONID";
+	private static final String SESSION_NAME = Global.FRAMEWORK_NAME.toLowerCase() + "_SESSIONID";
 
 	//通用 Header
-	public static byte[] RESPONSE_COMMON_HEADER = ("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FRAMEWORK_NAME + "\r\n\r\n").getBytes();
+	public static byte[] RESPONSE_COMMON_HEADER = ("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + SERVER + "\r\n\r\n").getBytes();
 
 	static{
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 			@Override
 			public void run() {
-				RESPONSE_COMMON_HEADER = ("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FRAMEWORK_NAME + "\r\n\r\n").getBytes();
+				RESPONSE_COMMON_HEADER = ("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + SERVER + "\r\n\r\n").getBytes();
 			}
 		}, 1);
 	}
