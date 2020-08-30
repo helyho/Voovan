@@ -96,10 +96,6 @@ public class WebServerFilter implements IoFilter {
 	@Override
 	public Object decode(IoSession session, Object object) {
 
-		if(!session.isConnected()){
-			return null;
-		}
-
 		HttpSessionState httpSessionState = WebServerHandler.getAttachment(session);
 
 		if (httpSessionState.isHttp()) {

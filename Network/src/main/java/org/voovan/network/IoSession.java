@@ -389,7 +389,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 			readSize = this.getReadByteBufferChannel().readHead(byteBuffer);
 		}
 
-		if(!this.isConnected() && readSize <= 0){
+		if(readSize <= 0){
 			readSize = -1;
 			close();
 		}
@@ -448,7 +448,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 */
 	protected int send0(ByteBuffer buffer) {
 		if(socketSelector != null) {
-		return socketSelector.writeToChannel(socketContext, buffer);
+			return socketSelector.writeToChannel(socketContext, buffer);
 		} else {
 			return -1;
 		}

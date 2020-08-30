@@ -54,9 +54,7 @@ public class AsyncHandler implements IoHandler {
     @Override
     public Object onReceive(IoSession session, Object obj) {
         Response response = (Response) obj;
-        if(session.isConnected()) {
-            async.accept(response);
-        }
+        async.accept(response);
 
         httpClient.finished(response);
         running = false;
