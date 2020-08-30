@@ -243,7 +243,7 @@ public class SocketSelector implements Closeable {
 			Logger.error("NioSelector error: ", e);
 		}
 
-		return false;
+		return ret;
 	}
 
 	/**
