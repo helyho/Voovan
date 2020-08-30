@@ -154,13 +154,8 @@ public class EventProcess {
             Logger.error(e);
         }
 
-       if ((session.socketContext().getConnectType() == ConnectType.UDP && session.isOpen())
-                || session.isConnected()) {
-            session.getReadByteBufferChannel().readHead(byteBuffer);
-            return byteBuffer;
-        } else {
-            return null;
-        }
+        session.getReadByteBufferChannel().readHead(byteBuffer);
+        return byteBuffer;
     }
 
     /**
@@ -199,7 +194,6 @@ public class EventProcess {
 
         // 返回的结果不为空的时候才发送
         if (result != null) {
-
             //触发发送事件
             session.getState().setSend(true);
             sendMessage(session, result);
@@ -277,7 +271,7 @@ public class EventProcess {
             // ---------------------------------------------------
 
             // 发送消息
-            if (sendBuffer != null && session.isOpen()) {
+            if (sendBuffer != null) {
                 if (sendBuffer.limit() > 0) {
                     int sendLength = session.send(sendBuffer);
                     if(sendLength >= 0) {

@@ -167,10 +167,6 @@ public class WebServerHandler implements IoHandler {
 			//检查服务是否暂停
 			checkPause(session, request);
 
-			if(!session.isConnected()){
-				return null;
-			}
-
 			// 构造 Http 请求 对象
 			HttpRequest httpRequest = THREAD_HTTP_REQUEST.get();
 			httpRequest.init(request, defaultCharacterSet, session);

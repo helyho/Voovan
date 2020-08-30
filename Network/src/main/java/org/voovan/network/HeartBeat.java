@@ -112,10 +112,6 @@ public class HeartBeat {
     public static boolean beat(IoSession session) {
         HeartBeat heartBeat = session.getHeartBeat();
 
-        if(!session.isConnected()){
-            return false;
-        }
-
         //收个心跳返回成功
         if (heartBeat.isFirstBeat) {
             heartBeat.isFirstBeat = false;
