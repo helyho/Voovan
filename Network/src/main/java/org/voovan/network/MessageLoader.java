@@ -128,12 +128,6 @@ public class MessageLoader {
 
 		while (isConnect && stopType == StopType.RUNNING && !byteBufferChannel.isEmpty()) {
 
-			if(session.socketContext().getConnectType() == ConnectType.UDP) {
-				isConnect = session.isOpen();
-			}else {
-				isConnect = session.isConnected();
-			}
-
 			//如果连接关闭,
 			if(!isConnect){
 				stopType = StopType.SOCKET_CLOSED;
@@ -171,12 +165,20 @@ public class MessageLoader {
 							session.getSocketSelector().select();
 						}
 					}
+
+					if(readsize==0 && !dataByteBuffer.hasRemaining()) {
+						if(session.socketContext().getConnectType() == ConnectType.UDP) {
+							isConnect = session.isOpen();
+						}else {
+							isConnect = session.isConnected();
+						}
+					}
 				} finally {
 					byteBufferChannel.compact();
 				}
 
 				oldByteChannelSize = byteBufferChannel.size();
-			}catch(MemoryReleasedException e){
+			} catch(MemoryReleasedException e){
 				stopType = StopType.SOCKET_CLOSED;
 			}
 		}

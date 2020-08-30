@@ -220,8 +220,11 @@ public class SocketSelector implements Closeable {
 
 	/**
 	 * 事件选择业务
+	 * @return true: 有相关的 NIO 事件被处理, false: 无相关 NIO 事件被处理
 	 */
-	public void select() {
+	public boolean select() {
+		boolean ret = false;
+
 		// 事件循环
 		try {
 			if (selector != null && selector.isOpen()) {
@@ -230,7 +233,7 @@ public class SocketSelector implements Closeable {
 
 				//如果有待处理的操作则下次调用 selectNow, 如果没有待处理的操作则调用带有阻赛的 select
 				if (!selectedKeys.isEmpty()) {
-					processSelectionKeys();
+					ret = processSelectionKeys();
 					useSelectNow = true;
 				} else {
 					useSelectNow = false;
@@ -239,6 +242,8 @@ public class SocketSelector implements Closeable {
 		} catch (IOException e){
 			Logger.error("NioSelector error: ", e);
 		}
+
+		return false;
 	}
 
 	/**
@@ -286,10 +291,12 @@ public class SocketSelector implements Closeable {
 
 	/**
 	 * 处理选择到的 Key
+	 * @return true: 有相关的 NIO 事件被处理, false: 无相关 NIO 事件被处理
 	 * @throws IOException IO 异常
 	 */
 
-	private void processSelectionKeys() throws IOException {
+	private boolean processSelectionKeys() throws IOException {
+		boolean ret = false;
 		for (int i = 0; i< selectedKeys.size(); i++) {
 			SelectionKey selectedKey = selectedKeys.getAndRemove(i);
 
@@ -311,13 +318,13 @@ public class SocketSelector implements Closeable {
 						readFromChannel(socketContext, channel);
 					}
 				}
+				ret = true;
 			}
-//			else {
-//				unRegister(selectionKey);
-//			}
 		}
 
 		selectedKeys.reset();
+
+		return ret;
 	}
 
 	/**
@@ -359,7 +366,10 @@ public class SocketSelector implements Closeable {
 	 */
 	public int writeToChannel(SocketContext socketContext, ByteBuffer buffer){
 		try {
-			socketContext.updateLastTime();
+
+			if(isCheckTimeout) {
+				socketContext.updateLastTime();
+			}
 
 			if (socketContext.getConnectType() == ConnectType.TCP) {
 				return tcpWriteToChannel((TcpSocket) socketContext, buffer);
@@ -434,23 +444,28 @@ public class SocketSelector implements Closeable {
 	public int tcpWriteToChannel(TcpSocket socketContext, ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
 		long start = System.currentTimeMillis();
-		if (socketContext.isConnected() && buffer != null) {
+		if (buffer != null) {
 			//循环发送直到全部内容发送完毕
-			while (socketContext.isConnected() && buffer.remaining() != 0) {
-				int sendSize = socketContext.socketChannel().write(buffer);
-				if (sendSize == 0) {
-					if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
-						Logger.error("SocketSelector tcpWriteToChannel timeout", new TimeoutException());
+			try {
+				while (buffer.remaining() != 0) {
+					int sendSize = socketContext.socketChannel().write(buffer);
+					if (sendSize == 0) {
+						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
+							Logger.error("SocketSelector tcpWriteToChannel timeout", new TimeoutException());
+							socketContext.close();
+							return -1;
+						}
+					} else if (sendSize < 0) {
 						socketContext.close();
 						return -1;
+					} else {
+						start = System.currentTimeMillis();
+						totalSendByte += sendSize;
 					}
-				} if (sendSize < 0){
-					socketContext.close();
-					return -1;
-				} else {
-					start = System.currentTimeMillis();
-					totalSendByte += sendSize;
 				}
+			} catch (NotYetConnectedException e) {
+				socketContext.close();
+				return -1;
 			}
 		}
 		return totalSendByte;
@@ -532,26 +547,35 @@ public class SocketSelector implements Closeable {
 
 		int totalSendByte = 0;
 		long start = System.currentTimeMillis();
-		if (socketContext.isOpen() && buffer != null) {
-			//循环发送直到全部内容发送完毕
-			while (buffer.remaining() != 0) {
-				int sendSize = 0;
-				if (datagramChannel.isConnected()) {
-					sendSize = datagramChannel.write(buffer);
-				} else {
-					sendSize = datagramChannel.send(buffer, session.getInetSocketAddress());
-				}
-				if (sendSize == 0) {
-					TEnv.sleep(1);
-					if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
-						Logger.error("SocketSelector udpWriteToChannel timeout, Socket will be close");
+		if (buffer != null) {
+			try {
+				//循环发送直到全部内容发送完毕
+				while (buffer.remaining() != 0) {
+					int sendSize = 0;
+					if (datagramChannel.isConnected()) {
+						sendSize = datagramChannel.write(buffer);
+					} else {
+						sendSize = datagramChannel.send(buffer, session.getInetSocketAddress());
+					}
+
+					if (sendSize == 0) {
+						TEnv.sleep(1);
+						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
+							Logger.error("SocketSelector udpWriteToChannel timeout, Socket will be close");
+							socketContext.close();
+							return -1;
+						}
+					} else if (sendSize < 0) {
 						socketContext.close();
 						return -1;
+					} else {
+						start = System.currentTimeMillis();
+						totalSendByte += sendSize;
 					}
-				} else {
-					start = System.currentTimeMillis();
-					totalSendByte += sendSize;
 				}
+			} catch (NotYetConnectedException e) {
+				socketContext.close();
+				return -1;
 			}
 		}
 		return totalSendByte;
@@ -585,7 +609,7 @@ public class SocketSelector implements Closeable {
 					}
 				}
 
-				if (session.isConnected() && !session.getState().isReceive() && appByteBufferChannel.size() > 0) {
+				if (!session.getState().isReceive() && appByteBufferChannel.size() > 0) {
 					// 触发 onReceive 事件
 					if(SocketContext.ASYNC_RECIVE) {
 						EventTrigger.fireReceiveAsync(session);
