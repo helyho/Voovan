@@ -376,7 +376,7 @@ public class WebContext {
 	 */
 	public static void getAuthToken(){
 		//保存 Token
-		File tokenFile = new File("logs/.token");
+		File tokenFile = new File(".token");
 
 		if(tokenFile.exists()){
 			WebContext.AUTH_TOKEN = new String(TFile.loadFile(tokenFile));
