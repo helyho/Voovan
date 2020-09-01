@@ -79,8 +79,8 @@ public class HttpItem {
 		}
 
 
-		//hash 冲突简单解决方案 比较长度, 起始/中位/结束位置的数据是否相等
-//		int midOffset = length / 2;
+//		//hash 冲突简单解决方案 比较长度, 起始/中位/结束位置的数据是否相等
+//		int midOffset = length >> 1;
 //		if(length == httpItem.getBytes().length
 //				&& bytes[offset] == httpItem.bytes[0]
 //				&& bytes[offset + midOffset] == httpItem.bytes[midOffset]
