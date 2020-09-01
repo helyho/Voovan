@@ -24,6 +24,7 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 | 联系我们      | 链接                                                                                              |
 | ------------- | ------------------------------------------------------------------------------------------------- |
 | **QQ Group:** | 454201740                                                                                         |
+| **Email:** | helyho@gmail.com                                                                                         |
 | **Issues**    | [GitHub](https://github.com/helyho/Voovan/issues) [Gitee](https://gitee.com/helyho/Voovan/issues) |
 
 ---------------------
