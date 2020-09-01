@@ -73,11 +73,11 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
  - 基于 Voovan 开发物联网管理服务
  - 基于 Voovan 开发的游戏后端服务
  - 基于 Voovan 开发的 WEB 服务以及手机推送服务
- - 某通信企业基于 Voovan开发日通信10w+ 次的关口机
+ - 某通信企业基于 Voovan开发每分钟通信 10w+ 次的关口机
  - Vestful 一款提供 Restful 服务的框架
  - Dockerfly 一款 Docker web 管理工具
  - JDocker 一款 java 开发 Docker API 封装的框架
- - 某区块链交易所后段所有服务都基于 Voovan 运行, 以稳定运行一年半(截至2020年4月)
+ - 某区块链交易所后端所有服务都基于 Voovan 运行, 以稳定运行一年半(截至2020年4月)
 
 ---------------------
 ** Voovan 相关新闻 **
