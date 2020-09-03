@@ -181,9 +181,10 @@ public class WebContext {
 		}
 
 		//如果是相对路径则转换成绝对路
-		if(!WebContext.webServerConfig.getContextPath().startsWith(File.separator)){
-			WebContext.webServerConfig.setContextPath(System.getProperty("user.dir")+ File.separator + WebContext.webServerConfig.getContextPath());
-		}
+//		if(!WebContext.webServerConfig.getContextPath().startsWith(File.separator)){
+//			WebContext.webServerConfig.setContextPath(System.getProperty("user.dir")+ File.separator + WebContext.webServerConfig.getContextPath());
+//		}
+
 		if(WebContext.webServerConfig.getContextPath().endsWith(File.separator)){
 			WebContext.webServerConfig.setContextPath(TString.removeSuffix(WebContext.webServerConfig.getContextPath()));
 		}

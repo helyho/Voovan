@@ -68,6 +68,22 @@ public class TObject {
 		return map;
 	}
 
+
+	/**
+	 * 初始化一个 Map, 并移除值为 null 或者 "" 的键值对
+	 * @param objs		每两个参数组成一个键值对，来初始化一个 Map. 如:key1,value1,key2,value2.....
+	 * @return	初始化完成的Map对象
+	 */
+	@SuppressWarnings("rawtypes")
+	public static Map asNotNullMap(Object ...objs){
+		Map<Object,Object> map = new LinkedHashMap<Object,Object>();
+		for(int i=1;i<objs.length;i+=2){
+			map.put(objs[i-1], objs[i]);
+		}
+
+		return TObject.removeMapNullValue(map, true);
+	}
+
 	/**
 	 * 移除 map 中的 null 或者 空字符串
 	 * @param source 被处理的 map

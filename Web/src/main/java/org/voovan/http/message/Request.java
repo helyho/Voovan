@@ -240,9 +240,10 @@ public class Request {
             }
         }
 
-        if("multipart/form-data;".equals(header.get(CONTENT_TYPE))){
+        String contentType = header.get(CONTENT_TYPE);
+        if(contentType!=null && contentType.startsWith("multipart/form-data;")){
             boundary = THash.encryptBASE64(TString.generateId(this));
-            header.put(CONTENT_TYPE, TString.assembly(header.get(CONTENT_TYPE), " boundary=", boundary));
+            header.put(CONTENT_TYPE, "multipart/form-data;boundary=" + boundary);
         }
 
         if (body.size() > 0) {
