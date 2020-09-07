@@ -463,7 +463,7 @@ public class SocketSelector implements Closeable {
 						totalSendByte += sendSize;
 					}
 				}
-			} catch (NotYetConnectedException e) {
+			} catch (NotYetConnectedException | ClosedChannelException e) {
 				socketContext.close();
 				return -1;
 			}
