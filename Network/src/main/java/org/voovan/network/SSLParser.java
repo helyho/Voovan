@@ -94,26 +94,30 @@ public class SSLParser {
 	 * @throws IOException IO 异常
 	 */
 	public synchronized SSLEngineResult warpData(ByteBuffer buffer) throws IOException {
-		SSLEngineResult engineResult = null;
+		if (session.isConnected()) {
+			SSLEngineResult engineResult = null;
 
-		do {
-			synchronized (netData) {
-				if(!TByteBuffer.isReleased(netData)) {
-					netData.clear();
-					engineResult = engine.wrap(buffer, netData);
+			do {
+				synchronized (netData) {
+					if(!TByteBuffer.isReleased(netData)) {
+						netData.clear();
+						engineResult = engine.wrap(buffer, netData);
 
-					netData.flip();
-					if (session.isConnected() && engineResult.bytesProduced() > 0 && netData.limit() > 0) {
-						session.sendToBuffer(netData);
+						netData.flip();
+						if (session.isConnected() && engineResult.bytesProduced() > 0 && netData.limit() > 0) {
+							session.sendToBuffer(netData);
+						}
+						netData.clear();
+					} else {
+						return null;
 					}
-					netData.clear();
-				} else {
-					return null;
 				}
-			}
-		} while (engineResult.getStatus() == Status.OK && buffer.hasRemaining());
+			} while (engineResult.getStatus() == Status.OK && buffer.hasRemaining());
 
-		return engineResult;
+			return engineResult;
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -153,15 +157,19 @@ public class SSLParser {
 	 * @return SSLEngineResult 对象
 	 */
 	public synchronized SSLEngineResult unwarpData(ByteBuffer netBuffer, ByteBuffer appBuffer) throws SSLException {
-		SSLEngineResult engineResult = null;
-		synchronized (appBuffer) {
-			if(!TByteBuffer.isReleased(appBuffer)) {
-				engineResult = engine.unwrap(netBuffer, appBuffer);
-			} else {
-				return null;
+		if (session.isConnected()) {
+			SSLEngineResult engineResult = null;
+			synchronized (appBuffer) {
+				if(!TByteBuffer.isReleased(appBuffer)) {
+					engineResult = engine.unwrap(netBuffer, appBuffer);
+				} else {
+					return null;
+				}
 			}
+			return engineResult;
+		} else {
+			return null;
 		}
-		return engineResult;
 	}
 
 	/**
@@ -308,7 +316,7 @@ public class SSLParser {
 
 		int readSize = 0;
 
-		if (sslByteBufferChannel.size() > 0) {
+		if (session.isConnected() && sslByteBufferChannel.size() > 0) {
 			SSLEngineResult engineResult = null;
 
 			try {
