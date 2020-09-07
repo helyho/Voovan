@@ -677,7 +677,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 commit();
             }
             return object;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             rollback();
             throw e;
         }
@@ -806,13 +806,21 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 事务回滚
      */
     public void rollback() {
+       rollback(true);
+    }
+
+    /**
+     * 事务回滚
+     * @param all true: 直接彻底回滚当前事务, false: 回滚到上一个 savepoint
+     */
+    public void rollback(boolean all) {
         Transaction transaction = getTransaction();
 
-        if(threadLocalSavePointCount.get()!=0) {
-            rollbackSavePoint();
-        } else {
+        if(all) {
             rollback(transaction);
             threadLocalTransaction.set(null);
+        } else if(threadLocalSavePointCount.get()!=0) {
+            rollbackSavePoint();
         }
     }
 
