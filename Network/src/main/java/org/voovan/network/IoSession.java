@@ -540,7 +540,6 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		if(sendByteBufferChannel.size()>0) {
 			ByteBuffer byteBuffer = sendByteBufferChannel.getByteBuffer();
 			try {
-				socketContext.updateLastTime();
 				int size = send0(byteBuffer);
 				if(size >= 0) {
 					//ssl 握手完成后才触发 flush 事件
