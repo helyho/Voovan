@@ -260,11 +260,17 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	}
 
 	public void updateLastTime() {
-		this.lastReadTime = System.currentTimeMillis();
+		if(SocketContext.CHECK_TIMEOUT) {
+			this.lastReadTime = System.currentTimeMillis();
+		}
 	}
 
 	public boolean isTimeOut(){
-		return (System.currentTimeMillis() - lastReadTime) >= readTimeout;
+		if(CHECK_TIMEOUT) {
+			return false;
+		} else {
+			return (System.currentTimeMillis() - lastReadTime) >= readTimeout;
+		}
 	}
 
 	/**
