@@ -183,22 +183,20 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 
 	@Override
 	public boolean isOpen() {
-		if(socketChannel!=null){
-			return socketChannel.isOpen();
-		}else{
+		if (socketChannel.isOpen()) {
+			updateLastTime();
+			return true;
+		} else {
 			return false;
 		}
 	}
 
 	@Override
 	public boolean isConnected() {
-		try {
-			if (socketChannel.isConnected()) {
-				return true;
-			} else {
-				return false;
-			}
-		}catch(Exception e){
+		if (socketChannel.isConnected()) {
+			updateLastTime();
+			return true;
+		} else {
 			return false;
 		}
 	}
