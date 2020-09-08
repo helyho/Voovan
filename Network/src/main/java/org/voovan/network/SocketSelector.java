@@ -367,9 +367,7 @@ public class SocketSelector implements Closeable {
 	public int writeToChannel(SocketContext socketContext, ByteBuffer buffer){
 		try {
 
-			if(isCheckTimeout) {
-				socketContext.updateLastTime();
-			}
+			socketContext.updateLastTime();
 
 			if (socketContext.getConnectType() == ConnectType.TCP) {
 				return tcpWriteToChannel((TcpSocket) socketContext, buffer);
