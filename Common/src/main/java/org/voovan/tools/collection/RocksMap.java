@@ -104,6 +104,15 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
 
+    public static byte[] serialize(Object obj) {
+        return obj == null ? new byte[0] : TSerialize.serialize(obj);
+    }
+
+    public static Object unserialize(byte[] obj) {
+        return obj.length == 0 ? null : TSerialize.unserialize(obj);
+    }
+
+
     //--------------------- 成员变量 --------------------
     public transient DBOptions            dbOptions;
     public transient ReadOptions          readOptions;
@@ -465,7 +474,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     public void compactRange(K start, K end){
         try {
-            rocksDB.compactRange(dataColumnFamilyHandle, TSerialize.serialize(start), TSerialize.serialize(end));
+            rocksDB.compactRange(dataColumnFamilyHandle, serialize(start), serialize(end));
         } catch (RocksDBException e) {
             throw new RocksMapException("compact failed", e);
         }
@@ -860,8 +869,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public SortedMap<K,V> subMap(K fromKey, K toKey) {
         TreeMap<K,V> subMap =  new TreeMap<K,V>();
         try (RocksIterator iterator = getIterator()){
-            byte[] fromKeyBytes = TSerialize.serialize(fromKey);
-            byte[] toKeyBytes = TSerialize.serialize(toKey);
+            byte[] fromKeyBytes = serialize(fromKey);
+            byte[] toKeyBytes = serialize(toKey);
 
             if (fromKeyBytes == null) {
                 iterator.seekToFirst();
@@ -872,9 +881,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             while (iterator.isValid()) {
                 byte[] key = iterator.key();
                 if (toKey == null || !Arrays.equals(toKeyBytes, key)) {
-                    subMap.put((K) TSerialize.unserialize(iterator.key()), (V) TSerialize.unserialize(iterator.value()));
+                    subMap.put((K) unserialize(iterator.key()), (V) unserialize(iterator.value()));
                 } else {
-                    subMap.put((K) TSerialize.unserialize(iterator.key()), (V) TSerialize.unserialize(iterator.value()));
+                    subMap.put((K) unserialize(iterator.key()), (V) unserialize(iterator.value()));
                     break;
                 }
                 iterator.next();
@@ -906,7 +915,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             iterator.seekToFirst();
             if (iterator.isValid()) {
-                return (K) TSerialize.unserialize(iterator.key());
+                return (K) unserialize(iterator.key());
             }
 
             return null;
@@ -919,7 +928,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             iterator.seekToLast();
             if (iterator.isValid()) {
-                return (K) TSerialize.unserialize(iterator.key());
+                return (K) unserialize(iterator.key());
             }
 
             return null;
@@ -972,9 +981,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         try {
             Transaction transaction = threadLocalTransaction.get();
             if(transaction!=null) {
-                values = transaction.get(dataColumnFamilyHandle, readOptions, TSerialize.serialize(key));
+                values = transaction.get(dataColumnFamilyHandle, readOptions, serialize(key));
             } else {
-                values = rocksDB.get(dataColumnFamilyHandle, readOptions, TSerialize.serialize(key));
+                values = rocksDB.get(dataColumnFamilyHandle, readOptions, serialize(key));
             }
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap containsKey " + key + " failed, " + e.getMessage(), e);
@@ -1003,7 +1012,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public void unlock(Object key) {
         Transaction transaction = getTransaction();
-        transaction.undoGetForUpdate(TSerialize.serialize(key));
+        transaction.undoGetForUpdate(serialize(key));
     }
 
     /**
@@ -1016,8 +1025,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         Transaction transaction = getTransaction();
 
         try {
-            byte[] values = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, TSerialize.serialize(key), exclusive);
-            return values==null ? null : (V) TSerialize.unserialize(values);
+            byte[] values = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, serialize(key), exclusive);
+            return values==null ? null : (V) unserialize(values);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap lock " + key + " failed, " + e.getMessage(), e);
         }
@@ -1045,8 +1054,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             throw new NullPointerException();
         }
 
-        byte[] values = get(TSerialize.serialize(key));
-        return values==null ? null : (V) TSerialize.unserialize(values);
+        byte[] values = get(serialize(key));
+        return values==null ? null : (V) unserialize(values);
     }
 
     public List<V> getAll(Collection<K> keys) {
@@ -1055,7 +1064,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             ArrayList<ColumnFamilyHandle> columnFamilyHandles = new ArrayList<ColumnFamilyHandle>();
             Iterator keysIterator = keys.iterator();
             for (int i = 0; i < keys.size(); i++) {
-                keysBytes.add(TSerialize.serialize(keysIterator.next()));
+                keysBytes.add(serialize(keysIterator.next()));
                 columnFamilyHandles.add(dataColumnFamilyHandle);
             }
 
@@ -1069,7 +1078,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             ArrayList<V> values = new ArrayList<V>();
             for (byte[] valueByte : valuesBytes) {
-                values.add((V) TSerialize.unserialize(valueByte));
+                values.add((V) unserialize(valueByte));
             }
             return values;
         } catch (RocksDBException e) {
@@ -1078,33 +1087,47 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     }
 
-    private void put(byte[] keyBytes, byte[] valueBytes) {
+    private byte[] put(byte[] keyBytes, byte[] valueBytes, boolean isRetVal) {
+        if(keyBytes == null || valueBytes == null){
+            throw new NullPointerException();
+        }
+
         try {
+            byte[] oldValueBytes = null;
+            if(isRetVal) {
+                oldValueBytes = get(keyBytes);
+            }
+
             Transaction transaction = threadLocalTransaction.get();
             if (transaction != null) {
                 transaction.put(dataColumnFamilyHandle, keyBytes, valueBytes);
             } else {
                 rocksDB.put(dataColumnFamilyHandle, writeOptions, keyBytes, valueBytes);
             }
+
+            return oldValueBytes;
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap put failed, " + e.getMessage(), e);
         }
     }
 
+    public void empty(Object key) {
+        put(serialize(key), null);
+    }
+
+    public Object put(Object key, Object value, boolean isRetVal) {
+        return put(serialize(key), serialize(value), isRetVal);
+    }
+
     @Override
     public Object put(Object key, Object value) {
-        if(key == null || value == null){
-            throw new NullPointerException();
-        }
-
-        put(TSerialize.serialize(key), TSerialize.serialize(value));
-        return value;
+        return put(serialize(key), serialize(value), true);
     }
 
     @Override
     public V putIfAbsent(K key, V value) {
-        byte[] keyBytes = TSerialize.serialize(key);
-        byte[] valueBytes = TSerialize.serialize(value);
+        byte[] keyBytes = serialize(key);
+        byte[] valueBytes = serialize(value);
 
         //这里使用独立的事务是未了防止默认事务提交导致失效
         Transaction innerTransaction = createTransaction(-1, false, false);
@@ -1116,7 +1139,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 innerTransaction.put(dataColumnFamilyHandle, keyBytes, valueBytes);
                 return null;
             } else {
-                return (V) TSerialize.unserialize(oldValueBytes);
+                return (V) unserialize(oldValueBytes);
             }
         } catch (RocksDBException e) {
             rollback(innerTransaction);
@@ -1132,7 +1155,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 当返回 false 的时候 key 一定不存在, 当返回 true 的时候, key 有可能不存在, 参考 boomfilter
      */
     public boolean keyMayExists(K key) {
-        return keyMayExists(TSerialize.serialize(key));
+        return keyMayExists(serialize(key));
     }
 
     private boolean keyMayExists(byte[] keyBytes) {
@@ -1143,9 +1166,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
-        byte[] keyBytes = TSerialize.serialize(key);
-        byte[] newValueBytes = TSerialize.serialize(newValue);
-        byte[] oldValueBytes = TSerialize.serialize(oldValue);
+        byte[] keyBytes = serialize(key);
+        byte[] newValueBytes = serialize(newValue);
+        byte[] oldValueBytes = serialize(oldValue);
 
         //这里使用独立的事务是未了防止默认事务提交导致失效
         Transaction innerTransaction = createTransaction(-1, false, false);
@@ -1206,8 +1229,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
 
         try {
-            byte[] valuesByte = remove(TSerialize.serialize(key), isRetVal);
-            return (V) TSerialize.unserialize(valuesByte);
+            byte[] valuesByte = remove(serialize(key), isRetVal);
+            return (V) unserialize(valuesByte);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap remove " + key + " failed", e);
         }
@@ -1237,7 +1260,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     }
 
                     try {
-                        writeBatch.delete(dataColumnFamilyHandle, TSerialize.serialize(key));
+                        writeBatch.delete(dataColumnFamilyHandle, serialize(key));
                     } catch (RocksDBException e) {
                         throw new RocksMapException("RocksMap removeAll " + key + " failed", e);
                     }
@@ -1250,7 +1273,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     }
 
                     try {
-                        transaction.delete(dataColumnFamilyHandle, TSerialize.serialize(key));
+                        transaction.delete(dataColumnFamilyHandle, serialize(key));
                     } catch (RocksDBException e) {
                         throw new RocksMapException("RocksMap removeAll " + key + " failed", e);
                     }
@@ -1285,8 +1308,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public void removeRange(K fromKey, K toKey, boolean useTransaction) {
         Transaction transaction = useTransaction ? threadLocalTransaction.get() : null;
-        byte[] fromKeyBytes = TSerialize.serialize(fromKey);
-        byte[] toKeyBytes = TSerialize.serialize(toKey);
+        byte[] fromKeyBytes = serialize(fromKey);
+        byte[] toKeyBytes = serialize(toKey);
         try {
             if(transaction==null) {
                 rocksDB.deleteRange(dataColumnFamilyHandle, writeOptions, fromKeyBytes, toKeyBytes);
@@ -1323,7 +1346,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     Entry entry = iterator.next();
                     Object key = entry.getKey();
                     Object value = entry.getValue();
-                    writeBatch.put(dataColumnFamilyHandle, TSerialize.serialize(key), TSerialize.serialize(value));
+                    writeBatch.put(dataColumnFamilyHandle, serialize(key), serialize(value));
                 }
                 rocksDB.write(writeOptions, writeBatch);
             } else {
@@ -1332,7 +1355,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     Entry entry = iterator.next();
                     Object key = entry.getKey();
                     Object value = entry.getValue();
-                    transaction.put(dataColumnFamilyHandle, TSerialize.serialize(key), TSerialize.serialize(value));
+                    transaction.put(dataColumnFamilyHandle, serialize(key), serialize(value));
                 }
             }
 
@@ -1436,7 +1459,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         try (RocksIterator iterator = getIterator()){
             iterator.seekToFirst();
             while (iterator.isValid()) {
-                K k = (K) TSerialize.unserialize(iterator.key());
+                K k = (K) unserialize(iterator.key());
                 keySet.add(k);
                 iterator.next();
             }
@@ -1452,7 +1475,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         try (RocksIterator iterator = getIterator()){
             iterator.seekToFirst();
             while (iterator.isValid()) {
-                V value = (V) TSerialize.unserialize(iterator.value());
+                V value = (V) unserialize(iterator.value());
                 values.add(value);
                 iterator.next();
             }
@@ -1496,7 +1519,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 找到的 Map 数据
      */
     public Map<K,V> startWith(K key, int skipSize, int size) {
-        byte[] keyBytes = TSerialize.serialize(key);
+        byte[] keyBytes = serialize(key);
         TreeMap<K,V> entryMap =  new TreeMap<K,V>();
 
         try (RocksMapIterator iterator = new RocksMapIterator(this, key, null, skipSize, size)) {
@@ -1662,7 +1685,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         @Override
         public K getKey() {
             if(k==null){
-                this.k = (K) TSerialize.unserialize(keyBytes);
+                this.k = (K) unserialize(keyBytes);
             }
             return k;
         }
@@ -1670,7 +1693,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         @Override
         public V getValue() {
             if(v==null) {
-                this.v = (V) TSerialize.unserialize(valueBytes);
+                this.v = (V) unserialize(valueBytes);
             }
             return v;
         }
@@ -1685,7 +1708,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         @Override
         public V setValue(V value) {
-            rocksMap.put(keyBytes, TSerialize.serialize(value));
+            rocksMap.put(keyBytes, serialize(value));
             return value;
         }
 
@@ -1726,8 +1749,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         protected RocksMapIterator(RocksMap rocksMap, K fromKey, K toKey, int skipSize, int size) {
             this.rocksMap = rocksMap;
             this.iterator = rocksMap.getIterator();
-            this.fromKeyBytes = TSerialize.serialize(fromKey);
-            this.toKeyBytes = TSerialize.serialize(toKey);
+            this.fromKeyBytes = serialize(fromKey);
+            this.toKeyBytes = serialize(toKey);
             this.skipSize = skipSize;
             this.size = size;
 
@@ -1800,7 +1823,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
          * @return Key 的值
          */
         public K key(){
-            return (K)TSerialize.unserialize(iterator.key());
+            return (K)unserialize(iterator.key());
         }
 
         /**
@@ -1808,7 +1831,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
          * @return value 的值
          */
         public V value(){
-            return (V)TSerialize.unserialize(iterator.value());
+            return (V)unserialize(iterator.value());
         }
 
         /**
@@ -2106,7 +2129,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
                         Object chunk = chunkBytes;
                         if (withSerial) {
-                            chunk = TSerialize.unserialize(chunkBytes);
+                            chunk = unserialize(chunkBytes);
                         } else {
                             chunk = chunkBytes;
                         }
