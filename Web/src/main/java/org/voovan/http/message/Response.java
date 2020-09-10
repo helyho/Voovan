@@ -9,7 +9,6 @@ import org.voovan.network.IoSession;
 import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.TByte;
 import org.voovan.tools.buffer.ByteBufferChannel;
-import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
@@ -37,7 +36,7 @@ public class Response {
 	private Body 				body;
 	private boolean				isCompress;
 	private boolean         	hasBody;
-	protected boolean 			basicSend = false;
+	protected boolean 			isSend = false;
 	private boolean 			async = false;
 	private boolean         	cookieParsed = false;
 	private Long                mark;
@@ -57,7 +56,7 @@ public class Response {
 		this.body = response.body;
 		this.cookies = response.cookies;
 		this.isCompress = response.isCompress;
-		this.basicSend = false;
+		this.isSend = false;
 		this.mark = response.mark;
 		this.hasBody = response.hasBody;
 	}
@@ -71,7 +70,7 @@ public class Response {
 		cookies = new ArrayList<Cookie>();
 		body = new Body();
 		isCompress = false;
-		this.basicSend = false;
+		this.isSend = false;
 	}
 
 	public Long getMark() {
@@ -252,7 +251,6 @@ public class Response {
 	 * @throws IOException IO异常
 	 */
 	public void send(IoSession session) throws IOException {
-
 		try {
 			ByteBufferChannel byteBufferChannel = session.getSendByteBufferChannel();
 
@@ -339,7 +337,7 @@ public class Response {
 				return;
 			}
 
-			basicSend = true;
+			this.isSend = true;
 		} finally {
 			if(async) {
 				session.flush();
@@ -388,7 +386,7 @@ public class Response {
 			this.header().remove("Server");
 		} else {
 			this.async 		= otherResponse.async;
-			this.basicSend 	= otherResponse.basicSend;
+			this.isSend = otherResponse.isSend;
 		}
 
 		return this;
@@ -403,7 +401,7 @@ public class Response {
 		this.protocol.clear();
 		this.body.clear();
 		this.isCompress = false;
-		this.basicSend = false;
+		this.isSend = false;
 		this.async = false;
 		this.cookieParsed = false;
 		this.mark = null;
