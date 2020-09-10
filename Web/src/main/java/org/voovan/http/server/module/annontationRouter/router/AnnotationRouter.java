@@ -544,7 +544,11 @@ public class AnnotationRouter implements HttpRouter {
                             }
                         }
 
-                        params[i] = TString.toObject(attrParam.toString(), parameterTypes[i], true);
+                        if(parameterTypes[i].equals(attrParam.getClass())){
+                            params[i] = attrParam;
+                        } else {
+                            params[i] = TString.toObject(JSON.toJSON(attrParam), parameterTypes[i], true);
+                        }
                         continue;
                     } catch (AnnotationRouterException e) {
                         throw e;
@@ -572,8 +576,10 @@ public class AnnotationRouter implements HttpRouter {
                             }
                         }
 
-                        if (sessionParam == parameterTypes[i]) {
-                            params[i] = httpSession.getAttribute(sessionName);
+                        if(parameterTypes[i].equals(sessionParam.getClass())){
+                            params[i] = sessionParam;
+                        } else {
+                            params[i] = TString.toObject(JSON.toJSON(sessionParam), parameterTypes[i], true);
                         }
                         continue;
                     } catch (AnnotationRouterException e) {
