@@ -39,7 +39,7 @@ public class Request {
     private List<Part>		parts;
     private String 			boundary;
     private boolean         hasBody;
-    protected boolean 		basicSend = false;
+    protected boolean       isSend = false;
     private boolean         cookieParsed = false;
     private Long            mark = 0l;
 
@@ -71,7 +71,7 @@ public class Request {
         this.cookies = request.cookies;
         this.parts = request.parts;
         this.hasBody = request.hasBody;
-        this.basicSend = false;
+        this.isSend = false;
         this.cookieParsed = false;
         this.mark = request.mark;
     }
@@ -85,7 +85,7 @@ public class Request {
         cookies = new Vector<Cookie>();
         body = new Body();
         parts = new Vector<Part>();
-        this.basicSend = false;
+        this.isSend = false;
     }
 
     /**
@@ -321,7 +321,6 @@ public class Request {
      * @throws IOException IO异常
      */
     public void send(IoSession session) throws IOException {
-        int readSize = 0;
 
         //发送报文头
         ByteBuffer byteBuffer = null;
@@ -348,7 +347,7 @@ public class Request {
             // 有 BodyBytes 时直接写入包体
             if (body.size() > 0) {
                 while(true) {
-                    readSize = body.read(byteBuffer);
+                    int readSize = body.read(byteBuffer);
                     if (readSize == -1) {
                         break;
                     }
@@ -383,7 +382,7 @@ public class Request {
                 }
             }
 
-            basicSend = true;
+            isSend = true;
         } catch (Throwable e){
             if(!(e instanceof MemoryReleasedException)){
                 Logger.error("Request writeToChannel error: ", (Exception) e);

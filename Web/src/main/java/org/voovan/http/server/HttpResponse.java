@@ -3,7 +3,6 @@ package org.voovan.http.server;
 import org.voovan.http.message.HttpStatic;
 import org.voovan.http.message.Response;
 import org.voovan.network.IoSession;
-import org.voovan.tools.json.JSON;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,7 +23,7 @@ public class HttpResponse extends Response {
 	/**
 	 * 构造 HTTP 响应对象
 	 */
-	protected HttpResponse() {
+	public HttpResponse() {
 	}
 
 
@@ -34,7 +33,7 @@ public class HttpResponse extends Response {
 	 * @param socketSession   Socket会话对象
 	 * @param characterSet 字符集
 	 */
-	protected HttpResponse(Response response,String characterSet, IoSession socketSession) {
+	public HttpResponse(Response response,String characterSet, IoSession socketSession) {
 		super(response);
 		this.characterSet=characterSet;
 		//设置当前响应的时间
@@ -46,7 +45,7 @@ public class HttpResponse extends Response {
 	 * @param socketSession   Socket会话对象
 	 * @param characterSet 字符集
 	 */
-	protected HttpResponse(String characterSet, IoSession socketSession) {
+	public HttpResponse(String characterSet, IoSession socketSession) {
 		this.characterSet=characterSet;
 		//设置当前响应的时间
 		this.socketSession = socketSession;
@@ -164,7 +163,7 @@ public class HttpResponse extends Response {
 	 * @throws IOException IOException IO 异常
 	 */
 	public int send(ByteBuffer byteBuffer) throws IOException {
-		if(!super.basicSend) {
+		if(!super.isSend) {
 			send();
 		}
 		return socketSession.send(byteBuffer);
@@ -191,7 +190,11 @@ public class HttpResponse extends Response {
 	public HttpResponse copyFrom(HttpResponse response, boolean useForSend) {
 		super.copyFrom(response, useForSend);
 		this.setCharacterSet(response.getCharacterSet());
-		this.setSocketSession(response.getSocketSession());
+
+		if(!useForSend) {
+			this.setSocketSession(response.getSocketSession());
+		}
+
 		return this;
 	}
 

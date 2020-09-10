@@ -423,7 +423,7 @@ public class HttpRequest extends Request {
 	 * @throws IOException IOException IO 异常
 	 */
 	public int send(ByteBuffer byteBuffer) throws IOException {
-		if(!super.basicSend) {
+		if(!super.isSend) {
 			send();
 		}
 		return socketSession.send(byteBuffer);
@@ -491,17 +491,21 @@ public class HttpRequest extends Request {
 
 	public HttpRequest copyFrom(HttpRequest request, boolean useForSend) {
 		super.copyFrom(request);
+
 		if(!useForSend) {
 			this.setSocketSession(request.getSocketSession());
 			this.setSessionManager(request.getSessionManager());
 		}
+
 		this.parameters.putAll(request.getParameters());
 		this.attributes.putAll(request.getAttributes());
 		this.setCharacterSet(request.getCharacterSet());
 
 		if(request.sessionExists()) {
 			this.setSession(request.getSession());
+			session.setSocketSession(socketSession);
 		}
+
 		return this;
 	}
 
