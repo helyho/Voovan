@@ -24,7 +24,7 @@ import java.util.Map;
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License
  */
-public class RocksMapTest extends TestCase {
+public class RocksMapUnit extends TestCase {
 
     @Override
     public void setUp() throws Exception {
@@ -148,7 +148,7 @@ public class RocksMapTest extends TestCase {
         rocksMap.withTransaction(rm->{
             RocksMap rocksMap1 = (RocksMap)rm;
             rocksMap1.put("1111", new byte[]{(byte)1, (byte)2});
-            rocksMap1.put("1111", new byte[]{});
+            rocksMap1.empty("1111");
             System.out.println(rocksMap1.get("1111"));
             return true;
         });
@@ -156,17 +156,20 @@ public class RocksMapTest extends TestCase {
 
         List<RocksMap.RocksWalRecord> rocksWalRecords = rocksMap.getWalSince(0l, true);
         for(RocksMap.RocksWalRecord rocksWalRecord : rocksWalRecords) {
-
-            System.out.println(rocksWalRecord.getSequence() + " " + rocksWalRecord.getType() + " " + rocksWalRecord.getColumnFamilyId() + " = " + ((byte[])rocksWalRecord.getChunks().get(1)).length);
+            byte[] bytes = (byte[])rocksWalRecord.getChunks().get(1);
+            Object value = bytes==null ? null : bytes.length;
+            System.out.println(rocksWalRecord.getSequence() + " " + rocksWalRecord.getType() + " " + rocksWalRecord.getColumnFamilyId() + " = " + value);
         }
 
-        System.out.println(((byte[])rocksMap.get("1111")).length);
+        System.out.println("compact before: " + rocksMap.get("1111"));
         rocksMap.compact();
-        System.out.println(rocksMap.get("1111"));
+        System.out.println("compact after: " + rocksMap.get("1111"));
 
         rocksWalRecords = rocksMap.getWalSince(0l, true);
         for(RocksMap.RocksWalRecord rocksWalRecord : rocksWalRecords) {
-            System.out.println(rocksWalRecord.getSequence() + " " + rocksWalRecord.getType() + " " + rocksWalRecord.getColumnFamilyId() + " = " + ((byte[])rocksWalRecord.getChunks().get(1)).length);
+            byte[] bytes = (byte[])rocksWalRecord.getChunks().get(1);
+            Object value = bytes==null ? null : bytes.length;
+            System.out.println(rocksWalRecord.getSequence() + " " + rocksWalRecord.getType() + " " + rocksWalRecord.getColumnFamilyId() + " = " + value);
         }
     }
 
