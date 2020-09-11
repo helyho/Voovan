@@ -109,7 +109,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     public static Object unserialize(byte[] obj) {
-        return obj.length == 0 ? null : TSerialize.unserialize(obj);
+        return obj==null || obj.length == 0 ? null : TSerialize.unserialize(obj);
     }
 
 
@@ -1813,7 +1813,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if (toKeyBytes == null) {
                 ret = iterator.isValid();
             } else {
-                ret = iterator.isValid() && TByte.byteArrayCompare(iterator.key(), toKeyBytes) < 0;
+                ret = iterator.isValid() && TByte.byteArrayCompare(toKeyBytes, iterator.key()) == 0;
             }
             return ret;
         }
