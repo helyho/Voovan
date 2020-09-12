@@ -391,4 +391,9 @@ public class Body {
 	public void release(){
 		byteBufferChannel.release();
 	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		release();
+	}
 }

@@ -1298,4 +1298,9 @@ public class ByteBufferChannel {
     public String content(){
         return new String(array());
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        release();
+    }
 }
