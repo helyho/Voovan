@@ -514,7 +514,7 @@ public class HttpDispatcher {
 		Map<String, Object> error = new HashMap<String, Object>();
 		//初始化默认异常
 		{
-			error.put("ContentType", "text/html");
+			error.put("Mime", "text/html");
 			//输出异常
 			if (!(e instanceof ResourceNotFound || e instanceof RouterNotFound)) {
 				response.protocol().setStatus(500);
@@ -538,16 +538,17 @@ public class HttpDispatcher {
 		}
 
 		//转换成能在 HTML 中展示的超文本字符串
-		String contentType = error.get("ContentType").toString();
-		response.header().put(HttpStatic.CONTENT_TYPE_STRING, contentType);
-		if(contentType.contains("html")) {
+		String mime = error.get("Mime").toString();
+		response.header().put(HttpStatic.CONTENT_TYPE_STRING, mime);
+		if(mime.contains("html")) {
 			errorMessage = errorMessage.replaceAll(TFile.getLineSeparator(), "<br/>");
 			stackInfo = TString.indent(stackInfo.trim(), 1).replaceAll("\\n", "<br/>");
 		}
 
-		if(contentType.contains("json")) {
-			errorMessage = errorMessage.replaceAll("\\r+\\n+", " ");
-			stackInfo = stackInfo.replaceAll("\\r+\\n+", " ");
+		if(mime.contains("json")) {
+			errorMessage = errorMessage.replaceAll("\"", "\\\"");
+			errorMessage = TString.convertEscapeChar(errorMessage);
+			stackInfo = TString.convertEscapeChar(stackInfo);
 		}
 
 		if(!error.containsKey("Description")) {

@@ -10,18 +10,21 @@
 	
 	//available static file not found
 	"org.voovan.http.server.exception.ResourceNotFound":{
+		"Mime"			:"text/html",
 		"StatusCode"	:404,
 		"Page"			:"Error.html",
 		"Description"	:"The request file is not found."
 	},
 	//available router not found
 	"org.voovan.http.server.exception.RouterNotFound":{
-		"StatusCode"	:404,
-		"Page"			:"Error.html",
+		"Mime"			:"application/json",
+		"StatusCode"	:500,
+		"Page"			:"Error.json",
 		"Description"	:"None avaliable router to use."
 	},
 	//undefined error
 	"Other":{
+		"Mime"			:"text/html",
 		"StatusCode"	:500,
 		"Page"			:"Error.html"
 	}  
