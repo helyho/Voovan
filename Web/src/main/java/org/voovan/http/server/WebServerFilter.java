@@ -130,10 +130,10 @@ public class WebServerFilter implements IoFilter {
 				//如果请求过大的异常处理
 				if(e instanceof RequestTooLarge){
 					response.protocol().setStatus(413);
-					response.body().write(WebContext.SERVER + " " + Global.getVersion() + " server error: " + e.getMessage());
+					response.body().write(WebContext.SERVER + " " + Global.getVersion() + " error: " + e.getMessage());
 				} else {
 					response.protocol().setStatus(500);
-					response.body().write(WebContext.SERVER + " " + " server error: internal");
+					response.body().write(WebContext.SERVER + " " + " error: internal");
 				}
 
 				try {
