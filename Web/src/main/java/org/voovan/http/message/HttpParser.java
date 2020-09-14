@@ -759,6 +759,13 @@ public class HttpParser {
 									//累计请求大小
 									totalLength = totalLength + dataLength;
 								}
+
+								//请求过大的处理
+								if(totalLength > requestMaxSize * 1024){
+									TFile.deleteFile(new File(localFileName));
+									throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+								}
+
 								continue;
 							} else {
 								boundaryIndex = byteBufferChannel.indexOf(boundary.getBytes(Global.CS_UTF_8));
@@ -769,11 +776,7 @@ public class HttpParser {
 								}
 							}
 
-							//请求过大的处理
-							if(totalLength > requestMaxSize * 1024){
-								TFile.deleteFile(new File(localFileName));
-								throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
-							}
+
 
 
 							if(!isFileRecvDone){
@@ -1109,8 +1112,6 @@ public class HttpParser {
 	}
 
 	public static void resetThreadLocal(){
-		THREAD_REQUEST.get().release();
-		THREAD_RESPONSE.get().release();
 		THREAD_REQUEST.set(new Request());
 		THREAD_RESPONSE.set(new Response());
 	}

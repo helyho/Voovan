@@ -249,7 +249,6 @@ public class WebServerHandler implements IoHandler {
 		//释放 part 的内存
 		if(!httpRequest.parts().isEmpty()) {
 			httpRequest.release();
-			HttpParser.resetThreadLocal();
 		}
 
 		return httpResponse;
