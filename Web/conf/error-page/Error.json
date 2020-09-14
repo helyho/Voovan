@@ -1,0 +1,7 @@
+{
+  "Status":{StatusCode},
+  "Method":"{RequestMethod}",
+  "URL":"{RequestPath}",
+  "Message":"{ErrorMessage}",
+  "Version":"{Version}"
+}
