@@ -130,8 +130,10 @@ public class WebServerFilter implements IoFilter {
 				//如果请求过大的异常处理
 				if(e instanceof RequestTooLarge){
 					response.protocol().setStatus(413);
+					response.body().write(WebContext.SERVER + " " + Global.getVersion() + " server error: " + e.getMessage());
 				} else {
 					response.protocol().setStatus(500);
+					response.body().write(WebContext.SERVER + " " + " server error: internal");
 				}
 
 				try {
@@ -140,7 +142,7 @@ public class WebServerFilter implements IoFilter {
 					Logger.error(e1);
 				}
 
-				Logger.error("ParseRequest failed", e);
+				Logger.error("ParseRequest failed: " + session, e);
 				return null;
 			}
 		}

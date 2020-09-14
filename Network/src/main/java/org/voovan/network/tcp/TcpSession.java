@@ -135,6 +135,6 @@ public class TcpSession extends IoSession<TcpSocket> {
 
 	@Override
 	public String toString() {
-		return "[" + this.localAddress() + ":" + this.loaclPort() + "] -> [" + this.remoteAddress() + ":" + this.remotePort() + "]";
+		return "L:[" + this.localAddress() + ":" + this.loaclPort() + "] <-> R:[" + this.remoteAddress() + ":" + this.remotePort() + "]";
 	}
 }
