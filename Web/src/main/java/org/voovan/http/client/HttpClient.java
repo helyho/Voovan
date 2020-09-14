@@ -566,16 +566,14 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		socket.getSession().getReadByteBufferChannel().clear();
 		socket.getSession().getSendByteBufferChannel().clear();
-		if(socket.handler() == synchronousHandler) {
-			synchronousHandler.clearResponse();
-		} else {
-			socket.getSession().socketContext().handler(synchronousHandler);
-		}
+		synchronousHandler.clearResponse();
 
 		//异步模式更新 handler
 		if(async != null) {
 			asyncHandler.setAsync(async);
 			socket.handler(asyncHandler);
+		} else {
+			socket.getSession().socketContext().handler(synchronousHandler);
 		}
 
 		//发送报文

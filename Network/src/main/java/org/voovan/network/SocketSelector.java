@@ -300,7 +300,7 @@ public class SocketSelector implements Closeable {
 		for (int i = 0; i< selectedKeys.size(); i++) {
 			SelectionKey selectedKey = selectedKeys.getAndRemove(i);
 
-			if (selectedKey.isValid()) {
+			if (selectedKey!=null && selectedKey.isValid()) {
 				// 获取 socket 通道
 				SelectableChannel channel = selectedKey.channel();
 				SocketContext socketContext = (SocketContext) selectedKey.attachment();
