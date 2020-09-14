@@ -399,6 +399,7 @@ public class Request {
 
     public void release(){
         for (Part part : this.parts) {
+            //TODO: 使用 part.release();
             part.body().release();
         }
 
@@ -426,7 +427,17 @@ public class Request {
         this.cookies.clear();
         this.protocol.clear();
         this.body.clear();
-        this.parts.clear();
+
+        if(!this.parts.isEmpty()) {
+            for(Part part : parts){
+                if(part.body().isFile()) {
+                    part.clear();
+                }
+            }
+
+            this.parts.clear();
+        }
+
         this.cookieParsed = false;
         this.mark = 0l;
     }

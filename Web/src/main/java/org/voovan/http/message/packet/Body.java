@@ -389,7 +389,13 @@ public class Body {
 	}
 
 	public void release(){
-		byteBufferChannel.release();
+		if(type == BodyType.BYTES && byteBufferChannel!=null && !byteBufferChannel.isReleased()) {
+			byteBufferChannel.release();
+		} else if(type == BodyType.FILE){
+			if(bodyFile!=null && bodyFile.getPath().startsWith(TFile.getTemporaryPath())) {
+				bodyFile.delete();
+			}
+		}
 	}
 
 	@Override
