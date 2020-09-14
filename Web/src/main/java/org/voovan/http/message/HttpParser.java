@@ -1109,6 +1109,8 @@ public class HttpParser {
 	}
 
 	public static void resetThreadLocal(){
+		THREAD_REQUEST.get().release();
+		THREAD_RESPONSE.get().release();
 		THREAD_REQUEST.set(new Request());
 		THREAD_RESPONSE.set(new Response());
 	}
