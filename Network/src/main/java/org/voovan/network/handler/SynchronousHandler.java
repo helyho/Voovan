@@ -3,10 +3,7 @@ package org.voovan.network.handler;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
  * Socket 同步通信 handler
@@ -18,16 +15,12 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public class SynchronousHandler implements IoHandler {
-    //Socket 响应队列
-    private ArrayBlockingQueue<Object> socketResponses  = new ArrayBlockingQueue<Object>(20);
+    private final Object lock = new Object();
 
-    /**
-     * 增加响应对象
-     * @param obj 响应对象
-     */
-    public void addResponse(Object obj){
-        socketResponses.offer(obj);
-    }
+    //Socket 响应队列
+    //哈哈, 猜猜这里为什么不使用 ArrayBlockingQueue ?
+    private ConcurrentLinkedQueue<Object> socketResponses  = new ConcurrentLinkedQueue<Object>();
+
 
     @Override
     public Object onConnect(IoSession session) {
@@ -65,22 +58,23 @@ public class SynchronousHandler implements IoHandler {
     }
 
     /**
+     * 增加响应对象
+     * @param obj 响应对象
+     */
+    public void addResponse(Object obj){
+        socketResponses.offer(obj);
+        dataNotify();
+    }
+
+    /**
      * 获取下一个响应对象
      * @param  timeout 超时时间
      * @return 响应对象
      * @throws TimeoutException 超时异常
      */
     public Object getResponse(int timeout) throws Exception {
-        try {
-            Object result = socketResponses.poll(timeout, TimeUnit.MILLISECONDS);
-            if(result == null) {
-                throw new TimeoutException("SynchronousHandler.getResponse timeout");
-            } else {
-                return result;
-            }
-        } catch (InterruptedException e) {
-            throw new TimeoutException("SynchronousHandler.getResponse InterruptedException");
-        }
+        waitData(timeout);
+        return socketResponses.poll();
     }
 
     /**
@@ -100,6 +94,26 @@ public class SynchronousHandler implements IoHandler {
      * @return true: 存在, false: 不存在
      */
     public boolean hasNextResponse(){
-        return responseCount() > 0;
+        return !socketResponses.isEmpty();
+    }
+
+    public void waitData(int timeout) throws TimeoutException {
+        synchronized (this) {
+            if (!hasNextResponse()) {
+                synchronized (lock) {
+                    try {
+                        lock.wait(timeout);
+                    } catch (InterruptedException e) {
+                        throw new TimeoutException();
+                    }
+                }
+            }
+        }
+    }
+
+    public void dataNotify(){
+        synchronized (lock) {
+            lock.notifyAll();
+        }
     }
 }
