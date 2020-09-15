@@ -33,7 +33,7 @@ public class HttpClientUnit extends TestCase {
 	public void testGetHeader() throws IOException {
 		HttpClient httpClient = new HttpClient("http://webserver.voovan.org");
 		httpClient.putParameters("name", "测试");
-		assertEquals(httpClient.getHeader().get("Host"),"127.0.0.1");
+		assertEquals(httpClient.getHeader().get("Host"),"webserver.voovan.org");
 		httpClient.close();
 	}
 
@@ -48,7 +48,7 @@ public class HttpClientUnit extends TestCase {
 		HttpClient getClient = new HttpClient("http://www.voovan.org","GB2312", 60);
 		Response response  = getClient.setMethod("GET")
 			.putParameters("name", "测试Get")
-			.putParameters("age", "32").send("/fonts/fontawesome-webfont.woff2");
+			.putParameters("age", "32").send();
 		System.out.println(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 		getClient.close();
