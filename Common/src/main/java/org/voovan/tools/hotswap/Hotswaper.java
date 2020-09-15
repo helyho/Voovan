@@ -4,6 +4,7 @@ import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import org.voovan.Global;
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
@@ -168,10 +169,10 @@ public class Hotswaper {
 
             ClassDefinition classDefinition = new ClassDefinition(clazz, classBytes);
             try {
-                Logger.info("[HOTSWAP] class:" + clazz + " will reload.");
+                Logger.info("[HOTSWAP] " + TDateTime.now() + " class:" + clazz + " will reload.");
                 TEnv.instrumentation.redefineClasses(classDefinition);
             } catch (Exception e) {
-                Logger.error("[HOTSWAP] class:" + clazz + " reload failed", e);
+                Logger.error("[HOTSWAP] " + TDateTime.now() + " class:" + clazz + " reload failed", e);
             }
         }
     }
@@ -210,7 +211,7 @@ public class Hotswaper {
 
         cancelAutoReload();
 
-        Logger.simple("[HOTSWAP] Start auto reload and hotswap every " + intervals + " seconds");
+        Logger.simple("[HOTSWAP] "  + TDateTime.now() + " Start auto reload and hotswap every " + intervals + " seconds");
 
         reloadTask = new HashWheelTask() {
             @Override
