@@ -78,6 +78,9 @@ public class TEnv {
 	 * @return 环境的配置名
 	 */
 	public static String getEnvName(){
+		if(ENV_NAME == null) {
+			ENV_NAME = System.getProperty("Env");
+		}
 		return ENV_NAME;
 	}
 
