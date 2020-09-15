@@ -160,7 +160,7 @@ public class JSONEncode {
         Integer jsonHash = null;
         if(JSON_HASH) {
             jsonHash = object.hashCode();
-            jsonHash =  ((jsonHash << 5) - jsonHash) + (allField ? 1 : 0);
+            jsonHash =  jsonHash + (allField ? 1 : 0);
             value = JSON_ENCODE_CACHE.get(jsonHash);
 
             if (value != null) {
