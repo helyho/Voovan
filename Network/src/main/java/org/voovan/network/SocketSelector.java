@@ -10,6 +10,7 @@ import org.voovan.tools.*;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.collection.ArraySet;
 import org.voovan.tools.event.EventRunner;
+import org.voovan.tools.event.EventTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -72,7 +73,7 @@ public class SocketSelector implements Closeable {
 					int ioTaskCount = 0;
 					int eventTaskCount = 0;
 					int registerTaskCount = 0;
-					for (EventRunner.EventTask eventTask : eventRunner.getEventQueue()) {
+					for (EventTask eventTask : eventRunner.getEventQueue()) {
 						if (eventTask.getPriority() == 4)
 							ioTaskCount++;
 						if (eventTask.getPriority() == 5)
