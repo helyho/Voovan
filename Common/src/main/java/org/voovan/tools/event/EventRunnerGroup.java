@@ -2,6 +2,7 @@ package org.voovan.tools.event;
 
 import org.voovan.tools.threadpool.ThreadPool;
 
+import java.util.Queue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -19,16 +20,19 @@ public class EventRunnerGroup {
 	private EventRunner[] eventRunners;
 	private ThreadPoolExecutor threadPool;
 	private int size;
+	private volatile boolean isSteal = false;
 
 	/**
 	 * 构造方法
 	 * @param threadPoolExecutor 用于分发任务执行的线程池
 	 * @param size 容纳事件执行器的数量
+	 * @param steal 是否允许任务窃取
 	 * @param attachmentSupplier 事件执行器的附属对象构造器
 	 */
-	public EventRunnerGroup(ThreadPoolExecutor threadPoolExecutor, int size, Function<EventRunner, Object> attachmentSupplier) {
+	public EventRunnerGroup(ThreadPoolExecutor threadPoolExecutor, int size, boolean isSteal, Function<EventRunner, Object> attachmentSupplier) {
 		this.size = size;
         this.threadPool = threadPoolExecutor;
+        this.isSteal = isSteal;
 
 		eventRunners = new EventRunner[size];
 		for(int i=0;i<size;i++){
@@ -43,6 +47,14 @@ public class EventRunnerGroup {
 			//为事件执行器分配线程并启动
 			eventRunner.process();
 		}
+	}
+
+	public boolean isSteal() {
+		return isSteal;
+	}
+
+	public void setSteal(boolean steal) {
+		isSteal = steal;
 	}
 
 	public ThreadPoolExecutor getThreadPool() {
@@ -70,15 +82,49 @@ public class EventRunnerGroup {
 	}
 
 	/**
+	 * 从任务最多的 EventRunner 窃取任务
+	 * @return EventTask 对象
+	 */
+	public EventTask stealTask() {
+		if(!isSteal) {
+			return null;
+		}
+
+		EventRunner largestEventRunner = null;
+		for(EventRunner eventRunner : eventRunners) {
+			if(eventRunner == null) {
+				largestEventRunner = eventRunner;
+				continue;
+			}
+
+			if(eventRunner.getEventQueue().size() > largestEventRunner.getEventQueue().size()) {
+				largestEventRunner = eventRunner;
+				break;
+			}
+		}
+
+		if(largestEventRunner == null) {
+			return null;
+		}
+
+		Queue<EventTask> eventQueue = largestEventRunner.getEventQueue();
+		synchronized (eventQueue) {
+			return largestEventRunner.getEventQueue().poll();
+		}
+
+	}
+
+	/**
 	 * 静态构造方法
 	 * @param groupName 事件执行器名称
 	 * @param size 容纳事件执行器的数量
+	 * @param steal 是否允许任务窃取
 	 * @param threadPriority 线程优先级
 	 * @param attachmentSupplier 事件执行器的附属对象构造器
 	 * @return 事件执行管理器
 	 */
-	public static EventRunnerGroup newInstance(String groupName, int size, int threadPriority, Function<EventRunner, Object> attachmentSupplier){
+	public static EventRunnerGroup newInstance(String groupName, int size, boolean isSteal, int threadPriority, Function<EventRunner, Object> attachmentSupplier){
 		ThreadPoolExecutor threadPoolExecutor = ThreadPool.createThreadPool(groupName, size, size, 60*1000, true, threadPriority);
-		return new EventRunnerGroup(threadPoolExecutor, size, attachmentSupplier);
+		return new EventRunnerGroup(threadPoolExecutor, size, isSteal, attachmentSupplier);
 	}
 }

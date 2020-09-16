@@ -97,6 +97,14 @@ public class EventRunner {
 			while (true) {
 				try {
 					EventTask eventTask = eventQueue.poll(1000, TimeUnit.MILLISECONDS);
+
+					//窃取任务
+					if(eventRunnerGroup.isSteal() && eventTask == null) {
+						eventTask = eventRunnerGroup.stealTask();
+						if(eventTask!=null) {
+						}
+					}
+
 					if(eventTask!=null) {
 						Runnable runnable = eventTask.getRunnable();
 						if (runnable != null) {
@@ -113,53 +121,6 @@ public class EventRunner {
 				}
 			}
 		});
-	}
-
-	public static class EventTask implements Comparable{
-		private int priority;
-		private Runnable runnable;
-
-		public EventTask(int priority, Runnable runnable) {
-			this.priority = priority;
-			this.runnable = runnable;
-		}
-
-		public int getPriority() {
-			return priority;
-		}
-
-		public void setPriority(int priority) {
-			this.priority = priority;
-		}
-
-		public Runnable getRunnable() {
-			return runnable;
-		}
-
-		public void setRunnable(Runnable runnable) {
-			this.runnable = runnable;
-		}
-
-		public static EventTask newInstance(int priority, Runnable runnable){
-			return new EventTask(priority, runnable);
-		}
-
-		public static EventTask newInstance(Runnable runnable){
-			return new EventTask(0, runnable);
-		}
-
-
-		@Override
-		public int compareTo(Object o) {
-			EventTask current=(EventTask)o;
-			if(current.priority > this.priority){
-				return 1;
-			} else if(current.priority==priority){
-				return 0;
-			} else {
-				return -1;
-			}
-		}
 	}
 
 }

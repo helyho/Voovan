@@ -60,7 +60,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		name = name + "-" + (isAccept ? "Accept" : "IO");
 		int threadPriority = isAccept ? 10 : 9;
 
-		return EventRunnerGroup.newInstance(name, size, threadPriority, (obj)->{
+		return EventRunnerGroup.newInstance(name, size, false, threadPriority, (obj)->{
 			try {
 				boolean isCheckTimeout = true;
 
