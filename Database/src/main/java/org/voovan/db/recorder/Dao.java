@@ -228,13 +228,14 @@ public class Dao<T extends Dao> {
 
             try {
                 if(!ret) {
+                    //回滚内存对象
                     for(String fieldName: updateFields) {
 
                         java.lang.reflect.Field field = TReflect.findField(this.getClass(), fieldName);
 
                         if (field != null) {
 
-                            TReflect.setFieldValue(this, fieldName, TReflect.getFieldValue(snapshot,fieldName));
+                            TReflect.setFieldValue(this, fieldName, snapshot.get(fieldName));
 
                         } else {
                             throw new UpdateFieldException("Dao.updateField failed rollback " + fieldName + " failed");
