@@ -397,9 +397,4 @@ public class Body {
 			}
 		}
 	}
-
-	@Override
-	protected void finalize() throws Throwable {
-		release();
-	}
 }
