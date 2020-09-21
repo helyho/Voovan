@@ -418,24 +418,28 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 			if(isConnected()) {
 				readObject = synchronousHandler.getResponse(socketContext.getReadTimeout());
 			} else {
-				close();
+				throw new ReadMessageException("syncRead failed, Socket is disconnected");
 			}
 
-			if(readObject == null && !isConnected()) {
-				throw new ReadMessageException("Method syncRead error! Socket is disconnected");
+			if(readObject == null) {
+				throw new ReadMessageException("syncRead failed, resposne is null");
 			}
 
 			if(readObject instanceof Throwable){
 				Exception exception = (Exception) readObject;
 				if (exception != null) {
-					throw new ReadMessageException("Method syncRead error! Error by " +
-							exception.getClass().getSimpleName() + ". " + exception.getMessage(), exception);
+					throw new ReadMessageException("syncRead failed, Error by " + exception.getMessage(), exception);
 				}
 			} else {
 				return readObject;
 			}
+		} catch (ReadMessageException re) {
+			throw re;
+		} catch (TimeoutException te) {
+			socketContext.close();
+			throw new ReadMessageException("syncRead failed, socket is timeout", te);
 		} catch (Exception e) {
-			throw new ReadMessageException("syncRead readFromChannel timeout or socket is disconnect", e);
+			throw new ReadMessageException("syncRead failed", e);
 		}
 		return readObject;
 	}
