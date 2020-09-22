@@ -26,7 +26,7 @@ public class EventRunnerGroup {
 	 * 构造方法
 	 * @param threadPoolExecutor 用于分发任务执行的线程池
 	 * @param size 容纳事件执行器的数量
-	 * @param steal 是否允许任务窃取
+	 * @param isSteal 是否允许任务窃取
 	 * @param attachmentSupplier 事件执行器的附属对象构造器
 	 */
 	public EventRunnerGroup(ThreadPoolExecutor threadPoolExecutor, int size, boolean isSteal, Function<EventRunner, Object> attachmentSupplier) {
@@ -118,7 +118,7 @@ public class EventRunnerGroup {
 	 * 静态构造方法
 	 * @param groupName 事件执行器名称
 	 * @param size 容纳事件执行器的数量
-	 * @param steal 是否允许任务窃取
+	 * @param isSteal 是否允许任务窃取
 	 * @param threadPriority 线程优先级
 	 * @param attachmentSupplier 事件执行器的附属对象构造器
 	 * @return 事件执行管理器
