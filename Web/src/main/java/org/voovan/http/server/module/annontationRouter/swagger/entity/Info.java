@@ -16,9 +16,6 @@ public class Info {
     private String title;
     private String description;
     private String version;
-    private String termsOfService = "http://swagger.io/terms/";
-    private Map<String, String> contact = TObject.asMap("email","helyho@gmail.com");
-    private Map<String, String> license = TObject.asMap("name","Apache 2.0");
 
     public Info(String title, String description, String version) {
         this.title = title;
