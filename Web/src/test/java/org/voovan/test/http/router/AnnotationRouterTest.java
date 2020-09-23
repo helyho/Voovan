@@ -13,7 +13,7 @@ import java.io.IOException;
 
 //将当前类注解为一个请求路由处理类, 采用默认的请求方法 GET
 //为当前类指定一个请求路径为:/annon，如果不指定则默认的路径为/AnnotationRouterTest
-@Router(value = "/annon", singleton = true)
+@Router(value = "/annon", singleton = true, tags = {"aaa[aaaaa]"})
 public class AnnotationRouterTest {
 
     private String lastPath = "";
@@ -34,7 +34,7 @@ public class AnnotationRouterTest {
     @Router(method = "GET")
     //支持同一方法多个路由
     //同时支持 GET 和 POST 方法
-    @Router(path = "/params/r1", method = {"GET", "POST"})
+//    @Router(path = "/params/r1", method = {"GET", "POST"})
     public String params(@Param("aa") String aa, @Param("bb") int bb){
         String oldPath = lastPath;
         lastPath = "/annon/parms, time:" + System.currentTimeMillis();

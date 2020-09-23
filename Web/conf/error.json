@@ -18,7 +18,7 @@
 	//available router not found
 	"org.voovan.http.server.exception.RouterNotFound":{
 		"Mime"			:"application/json",
-		"StatusCode"	:500,
+		"StatusCode"	:404,
 		"Page"			:"Error.json",
 		"Description"	:"None avaliable router to use."
 	},
