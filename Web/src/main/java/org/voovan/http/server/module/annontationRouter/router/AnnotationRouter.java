@@ -622,7 +622,7 @@ public class AnnotationRouter implements HttpRouter {
 
         try {
             //根据 Router 注解的标记设置响应的Content-Type
-            response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpContentType.getHttpContentType(methodRoute.contentType()));
+            response.header().put(HttpStatic.CONTENT_TYPE_STRING, methodRoute.contentType().getContentType());
 
             //过滤器前置处理
             if(annotationRouterFilter!=null) {
@@ -676,7 +676,7 @@ public class AnnotationRouter implements HttpRouter {
             } else if (responseObj instanceof byte[]) {
                 response.write((byte[]) responseObj);
             } else {
-                response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpContentType.getHttpContentType(HttpContentType.JSON));
+                response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpContentType.JSON.getContentType());
                 response.write(JSON.toJSON(responseObj));
             }
         }

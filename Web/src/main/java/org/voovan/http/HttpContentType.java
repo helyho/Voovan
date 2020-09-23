@@ -10,38 +10,26 @@ import org.voovan.http.message.HttpStatic;
  * Create: 2017/9/21 19:41
  */
 public enum HttpContentType {
-    TEXT, JSON, XML, IMAGE_JPG, IMAGE_GIF, IMAGE_PNG, IMAGE_SVG;
+    HTML("text/HTML"),
+    PLAIN("text/plain"),
+    JSON("application/json"),
+    XML("text/xml"),
+    IMAGE_JPG("image/jpg"),
+    IMAGE_GIF("image/gif"),
+    IMAGE_PNG("image/png"),
+    IMAGE_SVG("image/svg+xml");
 
-    /**
-     * 根据标识获得标准Content-Type类型
-     * @param httpContentType  标记
-     * @return 标准Content-Type类型
-     */
+    String contentType = null;
 
-    public static String getHttpContentType(HttpContentType httpContentType){
-        if(httpContentType == HttpContentType.TEXT){
-            return HttpStatic.TEXT_PLAIN_STRING;
-        }
-        else if(httpContentType == HttpContentType.XML){
-            return "text/xml";
-        }
-        else if(httpContentType == HttpContentType.JSON){
-            return HttpStatic.APPLICATION_JSON_STRING;
-        }
-        else if(httpContentType == HttpContentType.IMAGE_GIF){
-            return "image/gif";
-        }
-        else if(httpContentType == HttpContentType.IMAGE_JPG){
-            return "image/jpeg";
-        }
-        else if(httpContentType == HttpContentType.IMAGE_PNG){
-            return "image/png";
-        }
-        else if(httpContentType == HttpContentType.IMAGE_SVG){
-            return "image/svg+xml";
-        }
-        else {
-            return HttpStatic.TEXT_HTML_STRING;
-        }
+    HttpContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
     }
 }
