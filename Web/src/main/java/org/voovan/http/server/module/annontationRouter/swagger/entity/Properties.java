@@ -10,7 +10,7 @@ import org.voovan.tools.reflect.annotation.Serialization;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class SchemaItem {
+public class Properties {
     /**
      * 必填。参数类型。”string”, “number”, “integer”, “boolean”, “array” or “file”.
      * 由于参数不在请求体，所以都是简单类型。consumes必须为multipart/form-data或者application/x-www-form-urlencoded或者两者皆有。
@@ -31,7 +31,7 @@ public class SchemaItem {
 
     private String description;
 
-    public SchemaItem(String type, String format, String description) {
+    public Properties(String type, String format, String description) {
         this.type = type;
         this.format = format;
         this.description = description;

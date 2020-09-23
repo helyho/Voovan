@@ -1,5 +1,7 @@
 package org.voovan.http.server.module.annontationRouter.swagger.entity;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -17,21 +19,36 @@ public class Schema {
     private String type = "object";
 
     //item
-    private SchemaItem items;
+    private Properties items;
 
     //properties 属性名->SchemaItem
-    Map<String, SchemaItem> properties;
+    Map<String, Properties> properties;
+
+    private List<String> required;
 
 
-    public Map<String, SchemaItem> getProperties() {
+    public Map<String, Properties> getProperties() {
         if(properties == null) {
-            properties = new TreeMap<String, SchemaItem>();
+            properties = new TreeMap<String, Properties>();
         }
 
         return properties;
     }
 
-    public void setProperties(Map<String, SchemaItem> properties) {
+    public void setProperties(Map<String, Properties> properties) {
         this.properties = properties;
+    }
+
+    public List<String> getRequired() {
+
+        if(required == null) {
+            required = new ArrayList<String>();
+        }
+
+        return required;
+    }
+
+    public void setRequired(List<String> required) {
+        this.required = required;
     }
 }

@@ -1,12 +1,12 @@
 package org.voovan.http.server.module.annontationRouter.swagger;
 
-import org.voovan.http.message.HttpItem;
 import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.*;
+import org.voovan.http.server.module.annontationRouter.swagger.entity.Properties;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
@@ -129,11 +129,14 @@ public class SwaggerApi {
                             String[] types = getParamType(paramTypes[i]);
 
                             Schema schema = parameter.getSchema();
-                            Map<String, SchemaItem> schemaItemMap = schema.getProperties();
-                            SchemaItem schemaItem = new SchemaItem(types[0], types[1], ((BodyParam) paramAnnotation).description());
-                            schemaItem.setDefaultVal(((BodyParam) paramAnnotation).defaultVal());
-                            schemaItem.setDescription(((BodyParam) paramAnnotation).description() + " / isRequired: " + ((BodyParam) paramAnnotation).isRequire());
-                            schemaItemMap.put(((BodyParam) paramAnnotation).value(), schemaItem);
+                            Map<String, Properties> schemaItemMap = schema.getProperties();
+                            Properties properties = new Properties(types[0], types[1], ((BodyParam) paramAnnotation).description());
+                            properties.setDefaultVal(((BodyParam) paramAnnotation).defaultVal());
+                            properties.setDescription(((BodyParam) paramAnnotation).description());
+                            if(((BodyParam) paramAnnotation).isRequire()) {
+                                schema.getRequired().add(((BodyParam) paramAnnotation).value());
+                            }
+                            schemaItemMap.put(((BodyParam) paramAnnotation).value(), properties);
                         } else if(paramAnnotation instanceof Body) {
                             Parameter parameter = new Parameter();
                             parameter.setIn("body");
@@ -147,12 +150,12 @@ public class SwaggerApi {
                                 parameter.setDefaultVal(((Body) paramAnnotation).defaultVal());
                             } else {
                                 Schema schema = parameter.getSchema();
-                                Map<String, SchemaItem> schemaItemMap = schema.getProperties();
+                                Map<String, Properties> schemaItemMap = schema.getProperties();
                                 for (Field field : TReflect.getFields(paramTypes[i])) {
                                     String[] types = getParamType(field.getType());
                                     parameter.setDescription(((Body) paramAnnotation).description());
-                                    SchemaItem schemaItem = new SchemaItem(types[0], types[1], null);
-                                    schemaItemMap.put(field.getName(), schemaItem);
+                                    Properties properties = new Properties(types[0], types[1], null);
+                                    schemaItemMap.put(field.getName(), properties);
                                 }
                             }
                             path.getParameters().add(parameter);
@@ -228,6 +231,8 @@ public class SwaggerApi {
             return new String[]{"string", "date"};
         } else if(TReflect.getUnPackageType(clazz.getSimpleName()).equals("String")) {
             return new String[]{"string", null};
+        } else if(TReflect.getUnPackageType(clazz.getSimpleName()).equals("BigDecimal")) {
+            return new String[]{"number", null};
         } else if(clazz.isArray()) {
             return new String[]{"array", clazz.getComponentType().getName().toLowerCase()};
         } else if(clazz == List.class) {
