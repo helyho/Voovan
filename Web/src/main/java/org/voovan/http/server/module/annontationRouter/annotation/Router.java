@@ -40,7 +40,7 @@ public @interface Router {
      * Content-Type 配置
      * @return HttpContentType 枚举
      */
-    HttpContentType contentType() default HttpContentType.TEXT;
+    HttpContentType contentType() default HttpContentType.PLAIN;
 
     /**
      * 定义路由类是否采用单例模式
