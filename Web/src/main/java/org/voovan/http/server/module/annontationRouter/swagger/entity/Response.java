@@ -9,9 +9,12 @@ package org.voovan.http.server.module.annontationRouter.swagger.entity;
  * Licence: Apache v2 License
  */
 public class Response {
-    private transient String code;
-    private String description;
+    private transient String code= "200";
+    private String description = "successful";
     private Schema schema;
+
+    public Response() {
+    }
 
     public Response(String code, String description) {
         this.code = code;
