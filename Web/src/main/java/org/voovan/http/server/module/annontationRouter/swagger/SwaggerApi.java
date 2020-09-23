@@ -6,7 +6,7 @@ import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.*;
-import org.voovan.http.server.module.annontationRouter.swagger.entity.Properties;
+import org.voovan.http.server.module.annontationRouter.swagger.entity.Property;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
@@ -129,14 +129,14 @@ public class SwaggerApi {
                             String[] types = getParamType(paramTypes[i]);
 
                             Schema schema = parameter.getSchema();
-                            Map<String, Properties> schemaItemMap = schema.getProperties();
-                            Properties properties = new Properties(types[0], types[1], ((BodyParam) paramAnnotation).description());
-                            properties.setDefaultVal(((BodyParam) paramAnnotation).defaultVal());
-                            properties.setDescription(((BodyParam) paramAnnotation).description());
+                            Map<String, Property> schemaItemMap = schema.getProperties();
+                            Property property = new Property(types[0], types[1], ((BodyParam) paramAnnotation).description());
+                            property.setDefaultVal(((BodyParam) paramAnnotation).defaultVal());
+                            property.setDescription(((BodyParam) paramAnnotation).description());
                             if(((BodyParam) paramAnnotation).isRequire()) {
                                 schema.getRequired().add(((BodyParam) paramAnnotation).value());
                             }
-                            schemaItemMap.put(((BodyParam) paramAnnotation).value(), properties);
+                            schemaItemMap.put(((BodyParam) paramAnnotation).value(), property);
                         } else if(paramAnnotation instanceof Body) {
                             Parameter parameter = new Parameter();
                             parameter.setIn("body");
@@ -146,16 +146,15 @@ public class SwaggerApi {
                                 parameter.setFormat(types[1]);
                                 parameter.setName("body");
                                 parameter.setDescription(((Body) paramAnnotation).description());
-                                parameter.setRequired(((Body) paramAnnotation).isRequire());
                                 parameter.setDefaultVal(((Body) paramAnnotation).defaultVal());
                             } else {
                                 Schema schema = parameter.getSchema();
-                                Map<String, Properties> schemaItemMap = schema.getProperties();
+                                Map<String, Property> schemaItemMap = schema.getProperties();
                                 for (Field field : TReflect.getFields(paramTypes[i])) {
                                     String[] types = getParamType(field.getType());
                                     parameter.setDescription(((Body) paramAnnotation).description());
-                                    Properties properties = new Properties(types[0], types[1], null);
-                                    schemaItemMap.put(field.getName(), properties);
+                                    Property property = new Property(types[0], types[1], null);
+                                    schemaItemMap.put(field.getName(), property);
                                 }
                             }
                             path.getParameters().add(parameter);

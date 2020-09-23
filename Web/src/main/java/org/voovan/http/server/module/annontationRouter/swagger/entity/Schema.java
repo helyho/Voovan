@@ -18,24 +18,28 @@ public class Schema {
     //类型
     private String type = "object";
 
-    //item
-    private Properties items;
-
     //properties 属性名->SchemaItem
-    Map<String, Properties> properties;
+    Map<String, Property> properties;
 
     private List<String> required;
 
-
-    public Map<String, Properties> getProperties() {
+    public Map<String, Property> getProperties() {
         if(properties == null) {
-            properties = new TreeMap<String, Properties>();
+            properties = new TreeMap<String, Property>();
         }
 
         return properties;
     }
 
-    public void setProperties(Map<String, Properties> properties) {
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setProperties(Map<String, Property> properties) {
         this.properties = properties;
     }
 
