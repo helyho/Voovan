@@ -6,6 +6,8 @@ import org.voovan.http.server.*;
 import org.voovan.http.server.exception.AnnotationRouterException;
 import org.voovan.http.server.module.annontationRouter.AnnotationModule;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
+import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
+import org.voovan.http.server.module.annontationRouter.swagger.SwaggerRouter;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
@@ -185,7 +187,6 @@ public class AnnotationRouter implements HttpRouter {
 
                                             //如果方法上的注解指定了 Method 则使用方法上的注解指定的,否则使用类上的注解指定的
                                             String routeMethod = methodRouterMethod.isEmpty() ? classRouterMethod : methodRouterMethod;
-                                            routeMethod = routeMethod.isEmpty() ? HttpStatic.GET_STRING : routeMethod;
 
                                             //为方法的参数准备带参数的路径
                                             String paramPath = "";
@@ -214,7 +215,7 @@ public class AnnotationRouter implements HttpRouter {
                                                 }
                                             }
 
-                                            /**
+                                           /**
                                              * 注册路由部分代码在下面
                                              */
                                             if (webServer.getHttpRouters().get(routeMethod) == null) {
@@ -227,6 +228,8 @@ public class AnnotationRouter implements HttpRouter {
                                             //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
                                             Map routerMaps = new HashMap();
                                             routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
+
+                                            SwaggerApi.SWAGGER_ROUTERS.add(new SwaggerRouter(routePath + paramPath, routeMethod, annonClassRouter, routerClass, annonMethodRouter, method));
 
                                             //构造注解路由器
                                             AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method,
@@ -310,6 +313,8 @@ public class AnnotationRouter implements HttpRouter {
         } catch (Exception e){
             Logger.error("Scan router class error.", e);
         }
+
+        SwaggerApi.buildSwagger();
     }
 
 //    /**

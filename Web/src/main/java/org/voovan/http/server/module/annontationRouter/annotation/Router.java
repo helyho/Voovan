@@ -1,7 +1,6 @@
 package org.voovan.http.server.module.annontationRouter.annotation;
 
 import org.voovan.http.HttpContentType;
-import org.voovan.http.server.module.annontationRouter.swagger.Tag;
 
 import java.lang.annotation.*;
 
@@ -34,7 +33,7 @@ public @interface Router {
      * 请求的方法
      * @return 请求的方法
      */
-    String[] method() default {};
+    String[] method() default "GET";
 
 
     /**
