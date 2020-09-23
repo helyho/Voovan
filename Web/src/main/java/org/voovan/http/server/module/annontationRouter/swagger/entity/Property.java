@@ -10,7 +10,7 @@ import org.voovan.tools.reflect.annotation.Serialization;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class Properties {
+public class Property {
     /**
      * 必填。参数类型。”string”, “number”, “integer”, “boolean”, “array” or “file”.
      * 由于参数不在请求体，所以都是简单类型。consumes必须为multipart/form-data或者application/x-www-form-urlencoded或者两者皆有。
@@ -23,6 +23,8 @@ public class Properties {
      */
     private String format;
 
+    //item
+    private Property items;
 
     private Boolean required;
 
@@ -31,8 +33,14 @@ public class Properties {
 
     private String description;
 
-    public Properties(String type, String format, String description) {
+    public Property(String type, String format, String description) {
         this.type = type;
+
+        //数组的特殊处理
+        if(type.equals("array")) {
+            items = new Property(format, null, null);
+            return;
+        }
         this.format = format;
         this.description = description;
     }
@@ -51,6 +59,14 @@ public class Properties {
 
     public void setFormat(String format) {
         this.format = format;
+    }
+
+    public Property getItems() {
+        return items;
+    }
+
+    public void setItems(Property items) {
+        this.items = items;
     }
 
     public Boolean getRequired() {
