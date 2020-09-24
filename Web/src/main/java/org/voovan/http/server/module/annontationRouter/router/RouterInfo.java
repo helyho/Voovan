@@ -1,4 +1,4 @@
-package org.voovan.http.server.module.annontationRouter.swagger;
+package org.voovan.http.server.module.annontationRouter.router;
 
 import org.voovan.http.server.module.annontationRouter.annotation.Router;
 
@@ -12,7 +12,7 @@ import java.lang.reflect.Method;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class SwaggerRouter {
+public class RouterInfo {
     private String url;
     private String routeMethod;
     private Router classAnnotation;
@@ -20,7 +20,7 @@ public class SwaggerRouter {
     private Router methodAnnotation;
     private Method method;
 
-    public SwaggerRouter(String url, String routeMethod, Router classAnnotation, Class clazz, Router methodAnnotation, Method method) {
+    public RouterInfo(String url, String routeMethod, Router classAnnotation, Class clazz, Router methodAnnotation, Method method) {
         this.url = url;
         this.routeMethod = routeMethod;
         this.classAnnotation = classAnnotation;
