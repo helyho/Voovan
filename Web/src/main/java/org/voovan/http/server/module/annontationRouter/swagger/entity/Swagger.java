@@ -3,10 +3,7 @@ package org.voovan.http.server.module.annontationRouter.swagger.entity;
 import org.voovan.http.server.context.WebContext;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Swagger root
@@ -24,7 +21,20 @@ public class Swagger {
     private List<Tag> tags = new ArrayList<Tag>();
     private List<String> schemes = new ArrayList<String>();
     //<url,<method, pathinfo>>
-    private Map<String, Map<String, Path>> paths = new TreeMap<String, Map<String, Path>>();
+    private Map<String, Map<String, Path>> paths = new TreeMap<String, Map<String, Path>>(new Comparator<String>() {
+        @Override
+        public int compare(String o1, String o2) {
+            if(o1.length() > o2.length() && !o1.equals(o2)){
+                return 1;
+            } else if(o1.length() < o2.length() &&!o1.equals(o2)){
+                return -1;
+            } else if(o1.equals(o2)){
+                return 0;
+            } else{
+                return -1;
+            }
+        }
+    });
     private Security securityDefinitions;
 
     public Swagger(String basePath, String description, String version) {
