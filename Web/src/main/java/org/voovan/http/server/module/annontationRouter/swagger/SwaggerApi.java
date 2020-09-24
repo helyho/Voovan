@@ -15,12 +15,14 @@ import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -295,7 +297,7 @@ public class SwaggerApi {
                 property.setDefaultVal(TString.isNullOrEmpty(defaultVal) ? null : defaultVal);
                 property.setDescription(TString.isNullOrEmpty(description) ? null : description);
                 schema.getProperties().put(name, property);
-                if(!required) {
+                if(required == null || required) {
                     schema.getRequired().add(name);
                 }
             }
@@ -311,6 +313,13 @@ public class SwaggerApi {
             if(field.getName().startsWith("this$")){
                 continue;
             }
+
+            if(Modifier.isTransient(field.getModifiers()) ||
+                    Modifier.isStatic(field.getModifiers()) ||
+                    field.isAnnotationPresent(NotSerialization.class)) {
+                continue;
+            }
+
             String[] types = getParamType(field.getType());
             Property property = null;
             if(types[0] == null) {

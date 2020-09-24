@@ -73,11 +73,11 @@ public class AnnotationRouterTest {
     //将Cookie中名为 _ga 的 参数在调用时注入成方法的 aa 参数
     //同时将请求对象,响应对象和会话对象在调用时注入到方法的参数
     @Router
-    public String cookie(@Cookie("_ga") String aa, HttpRequest request, HttpResponse response, HttpSession session){
-        String oldPath = lastPath;
-        lastPath = "/annon/cookie, time:" + System.currentTimeMillis();
-        return "cookie: " + aa + " " +request +" " +response +" " +session + ", lastPath="+oldPath;
-    }
+//    public String cookie(@Cookie("_ga") String aa, HttpRequest request, HttpResponse response, HttpSession session){
+//        String oldPath = lastPath;
+//        lastPath = "/annon/cookie, time:" + System.currentTimeMillis();
+//        return "cookie: " + aa + " " +request +" " +response +" " +session + ", lastPath="+oldPath;
+//    }
 
     //将当前方法注解为一个请求路由
     //当前方法的请求路由为:/annon/head,采用方法名作为路由的路径
