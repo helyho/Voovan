@@ -110,7 +110,16 @@ public class AnnotationRouterTest {
     }
 
     @Router()
-    public String error(String aa, int bb){
+    public B error(String aa, int bb){
        throw new RuntimeException("my exception.");
+    }
+
+    public class A {
+        String a_name;
+    }
+
+    public class B {
+        String b_name;
+        A a;
     }
 }

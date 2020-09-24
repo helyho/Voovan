@@ -13,7 +13,7 @@ import java.util.TreeMap;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class Property {
+public class Property extends Properites{
     /**
      * 必填。参数类型。”string”, “number”, “integer”, “boolean”, “array” or “file”.
      * 由于参数不在请求体，所以都是简单类型。consumes必须为multipart/form-data或者application/x-www-form-urlencoded或者两者皆有。
@@ -29,15 +29,15 @@ public class Property {
     //item
     private Property items;
 
-    //properties 属性名->SchemaItem
-    Map<String, Property> properties;
-
     private Boolean required;
 
     @Serialization("default")
     private String defaultVal;
 
     private String description;
+
+    public Property() {
+    }
 
     public Property(String type, String format) {
         this.type = type;
@@ -77,18 +77,6 @@ public class Property {
 
     public void setItems(Property items) {
         this.items = items;
-    }
-
-    public Map<String, Property> getProperties() {
-        if(properties == null) {
-            properties = new TreeMap<String, Property>();
-        }
-
-        return properties;
-    }
-
-    public void setProperties(Map<String, Property> properties) {
-        this.properties = properties;
     }
 
     public void setRequired(Boolean required) {
