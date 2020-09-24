@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Class name
+ * Swagger path
  *
  * @author: helyho
  * Voovan Framework.

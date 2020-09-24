@@ -21,7 +21,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
- * Class name
+ * Swagger 配置构造类
  *
  * @author: helyho
  * Voovan Framework.
@@ -38,7 +38,8 @@ public class SwaggerApi {
 
         Map<String, Tag> tagsMap = new HashMap<String, Tag>();
         for(SwaggerRouter swaggerRouter : SWAGGER_ROUTERS) {
-            String url = swaggerRouter.getPath();
+            String url = swaggerRouter.getUrl();
+            //转换路径中的参数未 swagger 的格式
             while(url.indexOf("/:") >0 ) {
                 int startIndex = url.indexOf(":");
                 url = url.substring(0, startIndex) + "{" + url.substring(startIndex + 1);
@@ -49,6 +50,8 @@ public class SwaggerApi {
                     url = url + "}";
                 }
             }
+
+
             String routeMethod = swaggerRouter.getRouteMethod();
             Router classAnnotation = swaggerRouter.getClassAnnotation();
             Class clazz = swaggerRouter.getClass();
@@ -59,7 +62,8 @@ public class SwaggerApi {
                 continue;
             }
 
-            Path path = new Path(swaggerRouter.getMethod().getName(), methodAnnotation.summary(), methodAnnotation.description(),
+            String operationId = swaggerRouter.getClazz().getSimpleName() + "." + swaggerRouter.getMethod().getName();
+            Path path = new Path(operationId, methodAnnotation.summary(), methodAnnotation.description(),
                     new String[]{HttpStatic.APPLICATION_JSON_STRING}, new String[]{HttpStatic.APPLICATION_JSON_STRING},
                     methodAnnotation.deprecated());
 
@@ -251,8 +255,8 @@ public class SwaggerApi {
         } else if(clazz == List.class) {
             Class[] classes = TReflect.getGenericClass(clazz);
             return new String[]{"array", classes!=null ? classes[0].getName().toLowerCase() : null};
-        } else if(clazz == Map.class) {
-            return new String[]{"object", null};
+        } else if(clazz == Map.class || clazz == Object.class) {
+            return new String[]{"string", "object"};
         } else {
             return new String[]{null, null};
         }

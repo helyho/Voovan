@@ -3,7 +3,7 @@ package org.voovan.http.server.module.annontationRouter.swagger.entity;
 import org.voovan.tools.reflect.annotation.Serialization;
 
 /**
- * Class name
+ * Swagger property
  *
  * @author: helyho
  * Voovan Framework.
