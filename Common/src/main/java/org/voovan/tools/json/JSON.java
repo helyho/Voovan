@@ -258,7 +258,7 @@ public class JSON {
 	 * @return 清理null节点的结果
 	 */
 	public static String removeNullNode(String jsonStr){
-		jsonStr	= TString.fastReplaceAll(jsonStr, "\\\"\\w+?\\\":\\s*null\\s*,?[\\s]*", "");
+		jsonStr	= TString.fastReplaceAll(jsonStr, "\\\".\\w+?\\\":\\s*null\\s*,?[\\s]*", "");
     	return fixJSON(jsonStr);
 	}
 
