@@ -1,9 +1,8 @@
 package org.voovan.http.server.module.annontationRouter.swagger;
 
+import org.voovan.Global;
 import org.voovan.http.message.HttpStatic;
-import org.voovan.http.server.HttpRequest;
-import org.voovan.http.server.HttpResponse;
-import org.voovan.http.server.HttpSession;
+import org.voovan.http.server.*;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
 import org.voovan.http.server.module.annontationRouter.router.RouterInfo;
@@ -11,8 +10,10 @@ import org.voovan.http.server.module.annontationRouter.swagger.entity.*;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.Property;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
+import org.voovan.tools.TProperties;
 import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
@@ -31,10 +32,39 @@ import java.util.*;
  * Licence: Apache v2 License
  */
 public class SwaggerApi {
+    public static boolean ENABLE        = TProperties.getBoolean("swagger", "enable", false);
+    public static String ROUTE_PATH     = TProperties.getString("swagger", "routePath", "/swagger");
+    public static int REFRESH_INTERVAL  = TProperties.getInt("swagger", "refreshInterval", 30);
+    public static String DESCRIPTION    = TProperties.getString("swagger", "description");
+    public static String VERSION        = TProperties.getString("swagger", "version");
+    public static Swagger SWAGGER;
 
-    public static Swagger buildSwagger(String swaggerDescription, String version) {
-        Swagger swagger = new Swagger(swaggerDescription, version);
+    static {
+        SWAGGER = new Swagger(DESCRIPTION, VERSION);
+    }
 
+    public static void init(WebServer webserver) {
+        if(SwaggerApi.ENABLE) {
+            SwaggerApi.buildSwagger(null);
+            Global.getHashWheelTimer().addTask(()->{
+                SWAGGER = new Swagger(DESCRIPTION, VERSION);
+                SwaggerApi.buildSwagger(null);
+            }, REFRESH_INTERVAL);
+
+            webserver.get(ROUTE_PATH, new HttpRouter() {
+                @Override
+                public void process(HttpRequest request, HttpResponse response) throws Exception {
+                    response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.APPLICATION_JSON_STRING);
+                    response.write(JSON.formatJson(JSON.removeNullNode(JSON.toJSON(SWAGGER))));
+                }
+            });
+
+            Logger.simplef("[Swagger] routePath: {1}, refreshInterval: {2}", ROUTE_PATH, REFRESH_INTERVAL);
+        }
+    }
+
+    public static Swagger buildSwagger(Swagger swagger) {
+        swagger = swagger == null ? SWAGGER : swagger;
         swagger.getTags().addAll(parseAllTags());
 
         Map<String, Tag> tagsMap = new HashMap<String, Tag>();
@@ -52,7 +82,6 @@ public class SwaggerApi {
                     url = url + "}";
                 }
             }
-
 
             String routeMethod = routerInfo.getRouteMethod();
             Router classAnnotation = routerInfo.getClassAnnotation();
@@ -179,11 +208,11 @@ public class SwaggerApi {
             swagger.getPaths().put(url, TObject.asMap(routeMethod.toLowerCase(), path));
         }
 
-        try {
-            TFile.writeFile(new File("/Users/helyho/swagger.json"), false, JSON.formatJson(JSON.removeNullNode(JSON.toJSON(swagger))).getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            TFile.writeFile(new File("/Users/helyho/swagger.json"), false, JSON.formatJson(JSON.removeNullNode(JSON.toJSON(swagger))).getBytes());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         return swagger;
     }
