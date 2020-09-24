@@ -165,6 +165,12 @@ public class SwaggerApi {
                 }
             }
 
+            Response response = new Response();
+
+            createSchema(response.getSchema(),method.getReturnType(),null, null, null, null);
+
+            path.getResponses().put("200", response);
+
 
             swagger.getPaths().put(url, TObject.asMap(routeMethod.toLowerCase(), path));
         }
@@ -228,23 +234,42 @@ public class SwaggerApi {
                 }
             }
         } else {
-            for (Field field : TReflect.getFields(clazz)) {
-                String[] types = getParamType(field.getType());
-                Property property = new Property(types[0], types[1]);
-                schema.getProperties().put(field.getName(), property);
-            }
+            createProperites(schema, clazz);
         }
 
         return schema;
     }
 
+    public static Properites createProperites(Properites properites, Class clazz) {
+        for (Field field : TReflect.getFields(clazz)) {
+            if(field.getName().startsWith("this$")){
+                continue;
+            }
+            String[] types = getParamType(field.getType());
+            Property property = null;
+            if(types[0] == null) {
+                property = new Property();
+                createProperites(property, field.getType());
+            } else {
+                property = new Property(types[0], types[1]);
+            }
+            properites.getProperties().put(field.getName(), property);
+        }
+
+        return properites;
+    }
+
     public static String[] getParamType(Class clazz) {
-        if(TReflect.getUnPackageType(clazz.getName()).equals("int")) {
+        if(TReflect.getUnPackageType(clazz.getSimpleName()).equals("String")) {
+            return new String[]{"string", null};
+        } else if(TReflect.getUnPackageType(clazz.getName()).equals("int")) {
             return new String[]{"integer", "int32"};
         } else if(TReflect.getUnPackageType(clazz.getName()).equals("long")) {
             return new String[]{"integer", "int64"};
         } else if(TReflect.getUnPackageType(clazz.getName()).equals("float")) {
             return new String[]{"number", "float"};
+        } else if(TReflect.getUnPackageType(clazz.getName()).equals("double")) {
+            return new String[]{"number", "double"};
         } else if(TReflect.getUnPackageType(clazz.getName()).equals("String")) {
             return new String[]{"string", null};
         } else if(TReflect.getUnPackageType(clazz.getName()).equals("byte")) {
@@ -253,8 +278,6 @@ public class SwaggerApi {
             return new String[]{"boolean", null};
         } else if(TReflect.getUnPackageType(clazz.getSimpleName()).equals("Date")) {
             return new String[]{"string", "date"};
-        } else if(TReflect.getUnPackageType(clazz.getSimpleName()).equals("String")) {
-            return new String[]{"string", null};
         } else if(TReflect.getUnPackageType(clazz.getSimpleName()).equals("BigDecimal")) {
             return new String[]{"number", null};
         } else if(clazz.isArray()) {

@@ -38,6 +38,9 @@ public class Response {
     }
 
     public Schema getSchema() {
+        if(schema == null) {
+            schema = new Schema();
+        }
         return schema;
     }
 

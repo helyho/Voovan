@@ -13,30 +13,15 @@ import java.util.TreeMap;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class Schema {
+public class Schema extends Properites{
 
     //类型
     private String type = "object";
     private String format;
 
-    //properties 属性名->SchemaItem
-    Map<String, Property> properties;
-
     private List<String> required;
 
     private String $ref;
-
-    public Map<String, Property> getProperties() {
-        if(properties == null) {
-            properties = new TreeMap<String, Property>();
-        }
-
-        return properties;
-    }
-
-    public void setProperties(Map<String, Property> properties) {
-        this.properties = properties;
-    }
 
     public String getType() {
         return type;
