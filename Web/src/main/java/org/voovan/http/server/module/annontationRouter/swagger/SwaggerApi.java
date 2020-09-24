@@ -284,9 +284,12 @@ public class SwaggerApi {
             return new String[]{"array", clazz.getComponentType().getName().toLowerCase()};
         } else if(clazz == List.class) {
             Class[] classes = TReflect.getGenericClass(clazz);
-            return new String[]{"array", classes!=null ? classes[0].getName().toLowerCase() : null};
-        } else if(clazz == Map.class || clazz == Object.class) {
+            return new String[]{"array", classes!=null ? getParamType(classes[0])[0] : null};
+        } else if(clazz == Map.class) {
             return new String[]{"string", "object"};
+        } else if(clazz == Object.class) {
+            Class[] genericClazz = TReflect.getGenericClass(clazz);
+            return genericClazz!=null  ? getParamType(genericClazz[0]) : new String[]{"string", "object"};
         } else {
             return new String[]{null, null};
         }
