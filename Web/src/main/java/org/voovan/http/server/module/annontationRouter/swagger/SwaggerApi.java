@@ -22,6 +22,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Swagger 配置构造类
@@ -32,39 +33,56 @@ import java.util.*;
  * Licence: Apache v2 License
  */
 public class SwaggerApi {
-    public static boolean ENABLE        = TProperties.getBoolean("swagger", "enable", false);
-    public static String ROUTE_PATH     = TProperties.getString("swagger", "routePath", "/swagger");
-    public static int REFRESH_INTERVAL  = TProperties.getInt("swagger", "refreshInterval", 30);
-    public static String DESCRIPTION    = TProperties.getString("swagger", "description");
-    public static String VERSION        = TProperties.getString("swagger", "version");
-    public static Swagger SWAGGER;
+    public static ConcurrentHashMap<String,Swagger> MODULE_SWAGGER = new ConcurrentHashMap<String, Swagger>();
 
     static {
-        SWAGGER = new Swagger(DESCRIPTION, VERSION);
     }
 
-    public static void init(WebServer webserver) {
-        if(SwaggerApi.ENABLE) {
-            SwaggerApi.buildSwagger(null);
-            Global.getHashWheelTimer().addTask(()->{
-                SWAGGER = new Swagger(DESCRIPTION, VERSION);
-                SwaggerApi.buildSwagger(null);
-            }, REFRESH_INTERVAL);
+    public static void init(HttpModule httpModule) {
+        WebServer webserver = httpModule.getWebServer();
+        Map<String, Object> swaggerConfig = (Map<String, Object>) httpModule.getModuleConfig().getParameter("swagger");
+        if(swaggerConfig == null) {
+            return;
+        }
 
-            webserver.get(ROUTE_PATH, new HttpRouter() {
+        String  moduleName      = httpModule.getModuleConfig().getName();
+        String  modulePath      = httpModule.getModuleConfig().getPath();
+        Boolean enable          = (Boolean) swaggerConfig.getOrDefault("enable",false);
+        String  routePath       = (String)  swaggerConfig.getOrDefault("routePath", "/swagger");
+        Integer refreshInterval = (Integer) swaggerConfig.getOrDefault("refreshInterval", 30);
+        String  description     = (String)  swaggerConfig.getOrDefault("description", "");
+        String  version         = (String)  swaggerConfig.get("version");
+
+        MODULE_SWAGGER.put(moduleName, new Swagger(httpModule.getModuleConfig().getPath(), description, version));
+
+        if(enable) {
+            SwaggerApi.buildModuleSwagger(moduleName);
+            Global.getHashWheelTimer().addTask(()->{
+                MODULE_SWAGGER.put(moduleName, new Swagger(modulePath, description, version));
+
+                SwaggerApi.buildModuleSwagger(moduleName);
+            }, refreshInterval);
+
+            String swaggerPath = routePath + (modulePath.startsWith("/") ? modulePath : ("/" + modulePath));
+            swaggerPath = HttpDispatcher.fixRoutePath(swaggerPath);
+
+            webserver.get(swaggerPath, new HttpRouter() {
                 @Override
                 public void process(HttpRequest request, HttpResponse response) throws Exception {
                     response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.APPLICATION_JSON_STRING);
-                    response.write(JSON.removeNullNode(JSON.toJSON(SWAGGER)));
+                    response.write(JSON.removeNullNode(JSON.toJSON(MODULE_SWAGGER.get(moduleName))));
                 }
             });
 
-            Logger.simplef("[Swagger] routePath: {1}, refreshInterval: {2}", ROUTE_PATH, REFRESH_INTERVAL);
+            Logger.simplef("[SWAGGER] module: {1}  path: {2}, refreshInterval: {3}", moduleName, swaggerPath, refreshInterval);
         }
     }
 
+    public static Swagger buildModuleSwagger(String moduleName) {
+        return buildSwagger(MODULE_SWAGGER.get(moduleName));
+    }
+
     public static Swagger buildSwagger(Swagger swagger) {
-        swagger = swagger == null ? SWAGGER : swagger;
         swagger.getTags().addAll(parseAllTags());
 
         Map<String, Tag> tagsMap = new HashMap<String, Tag>();
