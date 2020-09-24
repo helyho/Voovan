@@ -4,6 +4,8 @@ import org.voovan.Global;
 import org.voovan.http.server.HttpModule;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouterFilter;
+import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
+import org.voovan.http.server.module.annontationRouter.swagger.entity.Swagger;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
@@ -89,6 +91,8 @@ public class AnnotationModule extends HttpModule {
 
             Logger.simple("[HTTP] Module ["+this.getModuleConfig().getName()+"] Start auto scan annotation router.");
         }
+
+        SwaggerApi.init(this.getWebServer());
     }
 
     @Override

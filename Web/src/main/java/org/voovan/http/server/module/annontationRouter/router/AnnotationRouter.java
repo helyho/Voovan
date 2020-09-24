@@ -315,8 +315,6 @@ public class AnnotationRouter implements HttpRouter {
         } catch (Exception e){
             Logger.error("Scan router class error.", e);
         }
-
-        SwaggerApi.buildSwagger(null, "v1.0.0");
     }
 
 //    /**
