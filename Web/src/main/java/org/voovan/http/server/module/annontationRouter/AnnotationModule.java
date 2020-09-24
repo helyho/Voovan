@@ -92,7 +92,7 @@ public class AnnotationModule extends HttpModule {
             Logger.simple("[HTTP] Module ["+this.getModuleConfig().getName()+"] Start auto scan annotation router.");
         }
 
-        SwaggerApi.init(this.getWebServer());
+        SwaggerApi.init(this);
     }
 
     @Override

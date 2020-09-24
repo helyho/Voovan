@@ -14,7 +14,7 @@ import java.util.List;
 
 //将当前类注解为一个请求路由处理类, 采用默认的请求方法 GET
 //为当前类指定一个请求路径为:/annon，如果不指定则默认的路径为/AnnotationRouterTest
-@Router(value = "/annon", singleton = true, tags = {"aaa[aaaaa]"})
+@Router(value = "/annon", singleton = true)
 public class AnnotationRouterTest {
 
     private String lastPath = "";

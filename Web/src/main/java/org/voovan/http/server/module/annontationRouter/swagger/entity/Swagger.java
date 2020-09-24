@@ -27,8 +27,9 @@ public class Swagger {
     private Map<String, Map<String, Path>> paths = new TreeMap<String, Map<String, Path>>();
     private Security securityDefinitions;
 
-    public Swagger(String description, String version) {
+    public Swagger(String basePath, String description, String version) {
         schemes.add("http");
+        this.basePath = basePath == null ? "/" : basePath;
         info = new Info(WebContext.getWebServerConfig().getServerName(), description, version == null ? "Voovan " + WebContext.VERSION : version);
         host = WebContext.getWebServerConfig().getHost() + ":" + WebContext.getWebServerConfig().getPort();
     }
