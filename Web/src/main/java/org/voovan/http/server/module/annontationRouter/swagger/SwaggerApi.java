@@ -42,12 +42,17 @@ public class SwaggerApi {
         WebServer webserver = httpModule.getWebServer();
         Map<String, Object> swaggerConfig = (Map<String, Object>) httpModule.getModuleConfig().getParameter("swagger");
         if(swaggerConfig == null) {
-            return;
+            swaggerConfig = TObject.asMap();
         }
 
         String  moduleName      = httpModule.getModuleConfig().getName();
         String  modulePath      = httpModule.getModuleConfig().getPath();
-        Boolean enable          = (Boolean) swaggerConfig.getOrDefault("enable",false);
+        Boolean enable          = (Boolean) swaggerConfig.getOrDefault("enable", true);
+
+        if(enable == false) {
+            return;
+        }
+
         String  routePath       = (String)  swaggerConfig.getOrDefault("routePath", "/swagger");
         Integer refreshInterval = (Integer) swaggerConfig.getOrDefault("refreshInterval", 30);
         String  description     = (String)  swaggerConfig.getOrDefault("description", "");
@@ -65,6 +70,14 @@ public class SwaggerApi {
 
             String swaggerPath = routePath + (modulePath.startsWith("/") ? modulePath : ("/" + modulePath));
             swaggerPath = HttpDispatcher.fixRoutePath(swaggerPath);
+
+            webserver.get(swaggerPath+"-ui", new HttpRouter() {
+                @Override
+                public void process(HttpRequest request, HttpResponse response) throws Exception {
+                    response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.TEXT_HTML_STRING);
+                    response.write(TFile.loadResource("org/voovan/http/server/conf/swagger.html"));
+                }
+            });
 
             webserver.get(swaggerPath, new HttpRouter() {
                 @Override

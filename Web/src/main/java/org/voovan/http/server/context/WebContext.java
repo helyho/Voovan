@@ -442,7 +442,7 @@ public class WebContext {
 	 * @return  MIME 定义 Map
 	 */
 	public static Map<String, Object> getMimeDefine() {
-		byte[] mimeDefBytes = TFile.loadResource(TEnv.classToResource(WebServer.class).replaceAll("WebServer.class","conf/mime.json"));
+		byte[] mimeDefBytes = TFile.loadResource("org/voovan/http/server/conf/mime.json");
 		Map<String, Object> mimeDefMap = new ConcurrentHashMap<String, Object>();
 		try {
 			Map<String, Object> systemMimeDef = (Map<String, Object>)JSONDecode.parse(new String(mimeDefBytes,"UTF-8"));
