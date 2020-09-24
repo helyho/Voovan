@@ -7,7 +7,6 @@ import org.voovan.http.server.exception.AnnotationRouterException;
 import org.voovan.http.server.module.annontationRouter.AnnotationModule;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
-import org.voovan.http.server.module.annontationRouter.swagger.SwaggerRouter;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
@@ -19,11 +18,11 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * 通过注解实现的路由
@@ -34,6 +33,9 @@ import java.util.stream.Collectors;
  * Licence: Apache v2 License
  */
 public class AnnotationRouter implements HttpRouter {
+
+    public static final List<RouterInfo> ROUTER_INFO_LIST = new ArrayList<RouterInfo>();
+
 
     private static Map<Class, Object> singletonObjs = new ConcurrentHashMap<Class, Object>();
 
@@ -229,7 +231,7 @@ public class AnnotationRouter implements HttpRouter {
                                             Map routerMaps = new HashMap();
                                             routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
 
-                                            SwaggerApi.SWAGGER_ROUTERS.add(new SwaggerRouter(routePath + paramPath, routeMethod, annonClassRouter, routerClass, annonMethodRouter, method));
+                                            ROUTER_INFO_LIST.add(new RouterInfo(routePath + paramPath, routeMethod, annonClassRouter, routerClass, annonMethodRouter, method));
 
                                             //构造注解路由器
                                             AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method,
@@ -314,7 +316,7 @@ public class AnnotationRouter implements HttpRouter {
             Logger.error("Scan router class error.", e);
         }
 
-        SwaggerApi.buildSwagger();
+        SwaggerApi.buildSwagger(null, "v1.0.0");
     }
 
 //    /**

@@ -19,7 +19,7 @@ import java.util.TreeMap;
 public class Swagger {
     private String swagger = "2.0";
     private Info info;
-    private String host = "127.0.0.1";  //TODO: 配置文件读取
+    private String host;
     private String basePath = "/";      //TODO: 配置文件读取
     private List<Tag> tags = new ArrayList<Tag>();
     private List<String> schemes = new ArrayList<String>();
@@ -27,11 +27,9 @@ public class Swagger {
     private Map<String, Map<String, Path>> paths = new TreeMap<String, Map<String, Path>>();
     private Security securityDefinitions;
 
-    public Swagger() {
+    public Swagger(String description, String version) {
         schemes.add("http");
-
-        //TODO: 配置读取 info.description
-        info = new Info(WebContext.getWebServerConfig().getServerName(), "12312312313", WebContext.VERSION);
+        info = new Info(WebContext.getWebServerConfig().getServerName(), description, version == null ? "Voovan " + WebContext.VERSION : version);
         host = WebContext.getWebServerConfig().getHost() + ":" + WebContext.getWebServerConfig().getPort();
     }
 

@@ -5,6 +5,8 @@ import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
+import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
+import org.voovan.http.server.module.annontationRouter.router.RouterInfo;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.*;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.Property;
 import org.voovan.tools.TFile;
@@ -29,16 +31,16 @@ import java.util.*;
  * Licence: Apache v2 License
  */
 public class SwaggerApi {
-    public static final List<SwaggerRouter> SWAGGER_ROUTERS = new ArrayList<SwaggerRouter>();
 
-    public static Swagger buildSwagger() {
-        Swagger swagger = new Swagger();
+    public static Swagger buildSwagger(String swaggerDescription, String version) {
+        Swagger swagger = new Swagger(swaggerDescription, version);
 
         swagger.getTags().addAll(parseAllTags());
 
         Map<String, Tag> tagsMap = new HashMap<String, Tag>();
-        for(SwaggerRouter swaggerRouter : SWAGGER_ROUTERS) {
-            String url = swaggerRouter.getUrl();
+        for(RouterInfo routerInfo : AnnotationRouter.ROUTER_INFO_LIST) {
+            String classUrl = routerInfo.getClassAnnotation().value() == null ? routerInfo.getClassAnnotation().path() : routerInfo.getClassAnnotation().value();
+            String url = routerInfo.getUrl();
             //转换路径中的参数未 swagger 的格式
             while(url.indexOf("/:") >0 ) {
                 int startIndex = url.indexOf(":");
@@ -52,25 +54,27 @@ public class SwaggerApi {
             }
 
 
-            String routeMethod = swaggerRouter.getRouteMethod();
-            Router classAnnotation = swaggerRouter.getClassAnnotation();
-            Class clazz = swaggerRouter.getClass();
-            Router methodAnnotation = swaggerRouter.getMethodAnnotation();
-            Method method = swaggerRouter.getMethod();
+            String routeMethod = routerInfo.getRouteMethod();
+            Router classAnnotation = routerInfo.getClassAnnotation();
+            Class clazz = routerInfo.getClass();
+            Router methodAnnotation = routerInfo.getMethodAnnotation();
+            Method method = routerInfo.getMethod();
 
             if(methodAnnotation.hide()) {
                 continue;
             }
 
-            String operationId = swaggerRouter.getClazz().getSimpleName() + "." + swaggerRouter.getMethod().getName();
+            String operationId = routerInfo.getClazz().getSimpleName() + "." + routerInfo.getMethod().getName();
             Path path = new Path(operationId, methodAnnotation.summary(), methodAnnotation.description(),
                     new String[]{HttpStatic.APPLICATION_JSON_STRING}, new String[]{HttpStatic.APPLICATION_JSON_STRING},
                     methodAnnotation.deprecated());
 
+            //处理 Tag
             path.getTags().addAll(TObject.asList(methodAnnotation.tags()));
             for(Tag tag : parseTags(classAnnotation).values()) {
                 path.getTags().add(tag.getName());
             }
+            path.getTags().add(classUrl);
 
             Annotation[][] paramAnnotationsArrary = method.getParameterAnnotations();
             Class[] paramTypes = method.getParameterTypes();
@@ -187,8 +191,10 @@ public class SwaggerApi {
     public static Collection<Tag> parseAllTags() {
 
         Map<String, Tag> tagsMap = new HashMap<String, Tag>();
-        for(SwaggerRouter swaggerRouter : SWAGGER_ROUTERS) {
-            tagsMap.putAll(parseTags(swaggerRouter.getClassAnnotation()));
+        for(RouterInfo routerInfo : AnnotationRouter.ROUTER_INFO_LIST) {
+            tagsMap.putAll(parseTags(routerInfo.getClassAnnotation()));
+            String URL = routerInfo.getClassAnnotation().value() == null ? routerInfo.getClassAnnotation().path() : routerInfo.getClassAnnotation().value();
+            tagsMap.put(URL, new Tag(URL, "Tag of Router class: " + routerInfo.getClazz().getSimpleName()));
 
         }
         return tagsMap.values();
