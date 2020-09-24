@@ -34,6 +34,10 @@ public class Schema {
         return properties;
     }
 
+    public void setProperties(Map<String, Property> properties) {
+        this.properties = properties;
+    }
+
     public String getType() {
         return type;
     }
@@ -50,9 +54,6 @@ public class Schema {
         this.format = format;
     }
 
-    public void setProperties(Map<String, Property> properties) {
-        this.properties = properties;
-    }
 
     public List<String> getRequired() {
 

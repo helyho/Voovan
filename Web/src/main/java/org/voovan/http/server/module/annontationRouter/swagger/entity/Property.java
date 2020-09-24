@@ -2,6 +2,9 @@ package org.voovan.http.server.module.annontationRouter.swagger.entity;
 
 import org.voovan.tools.reflect.annotation.Serialization;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 /**
  * Swagger property
  *
@@ -26,6 +29,9 @@ public class Property {
     //item
     private Property items;
 
+    //properties 属性名->SchemaItem
+    Map<String, Property> properties;
+
     private Boolean required;
 
     @Serialization("default")
@@ -47,6 +53,7 @@ public class Property {
         }
         this.format = format;
     }
+
 
     public String getType() {
         return type;
@@ -72,8 +79,16 @@ public class Property {
         this.items = items;
     }
 
-    public Boolean getRequired() {
-        return required;
+    public Map<String, Property> getProperties() {
+        if(properties == null) {
+            properties = new TreeMap<String, Property>();
+        }
+
+        return properties;
+    }
+
+    public void setProperties(Map<String, Property> properties) {
+        this.properties = properties;
     }
 
     public void setRequired(Boolean required) {
