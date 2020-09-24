@@ -103,6 +103,7 @@ public class SwaggerApi {
         Map<String, Tag> tagsMap = new HashMap<String, Tag>();
         for(RouterInfo routerInfo : AnnotationRouter.ROUTER_INFO_LIST) {
             String classUrl = routerInfo.getClassAnnotation().value() == null ? routerInfo.getClassAnnotation().path() : routerInfo.getClassAnnotation().value();
+            classUrl = HttpDispatcher.fixRoutePath(classUrl);
             String url = routerInfo.getUrl();
             //转换路径中的参数未 swagger 的格式
             while(url.indexOf("/:") >0 ) {
@@ -115,6 +116,8 @@ public class SwaggerApi {
                     url = url + "}";
                 }
             }
+
+            url = HttpDispatcher.fixRoutePath(url);
 
             String routeMethod = routerInfo.getRouteMethod();
             Router classAnnotation = routerInfo.getClassAnnotation();
