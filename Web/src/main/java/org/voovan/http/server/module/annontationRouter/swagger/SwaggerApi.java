@@ -100,6 +100,23 @@ public class SwaggerApi {
     public static Swagger buildSwagger(Swagger swagger) {
         swagger.getTags().addAll(parseAllTags());
 
+        Collections.sort(swagger.getTags(), new Comparator<Tag>() {
+            @Override
+            public int compare(Tag o1, Tag o2) {
+                String tag1Name = o1.getName();
+                String tag2Name = o2.getName();
+                if(tag1Name.length() > tag2Name.length() && !tag1Name.equals(o2)){
+                    return 1;
+                } else if(tag1Name.length() < tag2Name.length() &&!tag1Name.equals(o2)){
+                    return -1;
+                } else if(tag1Name.equals(o2)){
+                    return 0;
+                } else{
+                    return -1;
+                }
+            }
+        });
+
         Map<String, Tag> tagsMap = new HashMap<String, Tag>();
         for(RouterInfo routerInfo : AnnotationRouter.ROUTER_INFO_LIST) {
             String classUrl = routerInfo.getClassAnnotation().value() == null ? routerInfo.getClassAnnotation().path() : routerInfo.getClassAnnotation().value();
