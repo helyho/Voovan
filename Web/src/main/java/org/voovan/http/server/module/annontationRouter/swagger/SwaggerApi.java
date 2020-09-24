@@ -55,7 +55,7 @@ public class SwaggerApi {
                 @Override
                 public void process(HttpRequest request, HttpResponse response) throws Exception {
                     response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.APPLICATION_JSON_STRING);
-                    response.write(JSON.formatJson(JSON.removeNullNode(JSON.toJSON(SWAGGER))));
+                    response.write(JSON.removeNullNode(JSON.toJSON(SWAGGER)));
                 }
             });
 
