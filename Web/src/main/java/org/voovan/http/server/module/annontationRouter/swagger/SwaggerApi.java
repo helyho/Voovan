@@ -126,37 +126,18 @@ public class SwaggerApi {
 
                             Parameter parameter = path.getParameters().get(0);
 
-                            String[] types = getParamType(paramTypes[i]);
-
                             Schema schema = parameter.getSchema();
-                            Map<String, Property> schemaItemMap = schema.getProperties();
-                            Property property = new Property(types[0], types[1], ((BodyParam) paramAnnotation).description());
-                            property.setDefaultVal(((BodyParam) paramAnnotation).defaultVal());
-                            property.setDescription(((BodyParam) paramAnnotation).description());
-                            if(((BodyParam) paramAnnotation).isRequire()) {
-                                schema.getRequired().add(((BodyParam) paramAnnotation).value());
-                            }
-                            schemaItemMap.put(((BodyParam) paramAnnotation).value(), property);
+                            String name = ((BodyParam) paramAnnotation).value();
+                            String description = ((BodyParam) paramAnnotation).description();
+                            String defaultVal = ((BodyParam) paramAnnotation).defaultVal();
+                            boolean isRequire = ((BodyParam) paramAnnotation).isRequire();
+                            createSchema(parameter.getSchema(), paramTypes[i], name, description, defaultVal, isRequire);
                         } else if(paramAnnotation instanceof Body) {
                             Parameter parameter = new Parameter();
                             parameter.setIn("body");
-                            if(TReflect.isSystemType(paramTypes[i])) {
-                                String[] types = getParamType(paramTypes[i]);
-                                parameter.setType(types[0]);
-                                parameter.setFormat(types[1]);
-                                parameter.setName("body");
-                                parameter.setDescription(((Body) paramAnnotation).description());
-                                parameter.setDefaultVal(((Body) paramAnnotation).defaultVal());
-                            } else {
-                                Schema schema = parameter.getSchema();
-                                Map<String, Property> schemaItemMap = schema.getProperties();
-                                for (Field field : TReflect.getFields(paramTypes[i])) {
-                                    String[] types = getParamType(field.getType());
-                                    parameter.setDescription(((Body) paramAnnotation).description());
-                                    Property property = new Property(types[0], types[1], null);
-                                    schemaItemMap.put(field.getName(), property);
-                                }
-                            }
+                            parameter.setName("body");
+                            Schema schema = parameter.getSchema();
+                            createSchema(parameter.getSchema(), paramTypes[i], null, null, null, true);
                             path.getParameters().add(parameter);
                         }
                     }
@@ -213,6 +194,39 @@ public class SwaggerApi {
         return tagsMap;
     }
 
+    public static Schema createSchema(Schema schema, Class clazz, String name, String description, String defaultVal, Boolean required){
+        if(schema == null) {
+            schema = new Schema();
+        }
+
+        if(TReflect.isSystemType(clazz)) {
+            if(name == null) {
+                String[] types = getParamType(clazz);
+                schema.setType(types[0]);
+                schema.setFormat(types[1]);
+
+            } else {
+                String[] types = getParamType(clazz);
+                schema.setType("object");
+                Property property = new Property(types[0], types[1]);
+                property.setDefaultVal(TString.isNullOrEmpty(defaultVal) ? null : defaultVal);
+                property.setDescription(TString.isNullOrEmpty(description) ? null : description);
+                schema.getProperties().put(name, property);
+                if(!required) {
+                    schema.getRequired().add(name);
+                }
+            }
+        } else {
+            for (Field field : TReflect.getFields(clazz)) {
+                String[] types = getParamType(field.getType());
+                Property property = new Property(types[0], types[1]);
+                schema.getProperties().put(field.getName(), property);
+            }
+        }
+
+        return schema;
+    }
+
     public static String[] getParamType(Class clazz) {
         if(TReflect.getUnPackageType(clazz.getName()).equals("int")) {
             return new String[]{"integer", "int32"};
@@ -236,7 +250,7 @@ public class SwaggerApi {
             return new String[]{"array", clazz.getComponentType().getName().toLowerCase()};
         } else if(clazz == List.class) {
             Class[] classes = TReflect.getGenericClass(clazz);
-            return new String[]{"array", classes[0].getName().toLowerCase()};
+            return new String[]{"array", classes!=null ? classes[0].getName().toLowerCase() : null};
         } else if(clazz == Map.class) {
             return new String[]{"object", null};
         } else {

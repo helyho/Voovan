@@ -10,6 +10,7 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 
 import java.io.IOException;
+import java.util.List;
 
 //将当前类注解为一个请求路由处理类, 采用默认的请求方法 GET
 //为当前类指定一个请求路径为:/annon，如果不指定则默认的路径为/AnnotationRouterTest
@@ -51,7 +52,10 @@ public class AnnotationRouterTest {
 
 
     @Router(method = "POST")
-    public void asyncBodyParmas(@BodyParam(value="data", isRequire=false) String data, @BodyParam("number") int number, HttpResponse response){
+    public void asyncBodyParmas(@BodyParam(value="data", isRequire=false, defaultVal = "123123") String data,
+                                @BodyParam("number") int number,
+                                @BodyParam(value = "array", isRequire = false) List<String> array,
+                                HttpResponse response){
         HttpResponse asyncResponse = response.getAsyncResponse();
         Global.getThreadPool().execute(()->{
             TEnv.sleep(50);

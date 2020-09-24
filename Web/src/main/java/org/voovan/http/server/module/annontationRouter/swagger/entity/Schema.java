@@ -17,11 +17,14 @@ public class Schema {
 
     //类型
     private String type = "object";
+    private String format;
 
     //properties 属性名->SchemaItem
     Map<String, Property> properties;
 
     private List<String> required;
+
+    private String $ref;
 
     public Map<String, Property> getProperties() {
         if(properties == null) {
@@ -39,6 +42,14 @@ public class Schema {
         this.type = type;
     }
 
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
     public void setProperties(Map<String, Property> properties) {
         this.properties = properties;
     }
@@ -54,5 +65,13 @@ public class Schema {
 
     public void setRequired(List<String> required) {
         this.required = required;
+    }
+
+    public String get$ref() {
+        return $ref;
+    }
+
+    public void set$ref(String $ref) {
+        this.$ref = $ref;
     }
 }
