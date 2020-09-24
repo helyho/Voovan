@@ -140,6 +140,13 @@ public class SwaggerApi {
                             Parameter parameter = new Parameter();
                             parameter.setIn("body");
                             parameter.setName("body");
+
+                            String description = ((Body) paramAnnotation).description();
+                            String defaultVal = ((Body) paramAnnotation).defaultVal();
+
+                            parameter.setDescription(description);
+                            parameter.setDefaultVal(defaultVal);
+
                             Schema schema = parameter.getSchema();
                             createSchema(parameter.getSchema(), paramTypes[i], null, null, null, true);
                             path.getParameters().add(parameter);
