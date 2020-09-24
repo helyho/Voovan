@@ -33,16 +33,19 @@ public class Property {
 
     private String description;
 
-    public Property(String type, String format, String description) {
+    public Property(String type, String format) {
         this.type = type;
+
+        if(type == null) {
+            return;
+        }
 
         //数组的特殊处理
         if(type.equals("array")) {
-            items = new Property(format, null, null);
+            items = new Property(format, null);
             return;
         }
         this.format = format;
-        this.description = description;
     }
 
     public String getType() {
