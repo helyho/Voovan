@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Class name
+ * Swagger root
  *
  * @author: helyho
  * Voovan Framework.

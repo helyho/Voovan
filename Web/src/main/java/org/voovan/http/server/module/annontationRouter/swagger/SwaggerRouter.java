@@ -13,15 +13,15 @@ import java.lang.reflect.Method;
  * Licence: Apache v2 License
  */
 public class SwaggerRouter {
-    private String path;
+    private String url;
     private String routeMethod;
     private Router classAnnotation;
     private Class clazz;
     private Router methodAnnotation;
     private Method method;
 
-    public SwaggerRouter(String path, String routeMethod, Router classAnnotation, Class clazz, Router methodAnnotation, Method method) {
-        this.path = path;
+    public SwaggerRouter(String url, String routeMethod, Router classAnnotation, Class clazz, Router methodAnnotation, Method method) {
+        this.url = url;
         this.routeMethod = routeMethod;
         this.classAnnotation = classAnnotation;
         this.clazz = clazz;
@@ -29,12 +29,12 @@ public class SwaggerRouter {
         this.method = method;
     }
 
-    public String getPath() {
-        return path;
+    public String getUrl() {
+        return url;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getRouteMethod() {

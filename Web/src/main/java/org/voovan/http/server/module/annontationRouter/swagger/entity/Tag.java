@@ -1,7 +1,7 @@
 package org.voovan.http.server.module.annontationRouter.swagger.entity;
 
 /**
- * Class name
+ * Swagger Tag
  *
  * @author: helyho
  * Voovan Framework.

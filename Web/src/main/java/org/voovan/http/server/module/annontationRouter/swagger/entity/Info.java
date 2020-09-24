@@ -5,7 +5,7 @@ import org.voovan.tools.TObject;
 import java.util.Map;
 
 /**
- * Class name
+ * Swagger info
  *
  * @author: helyho
  * Voovan Framework.
