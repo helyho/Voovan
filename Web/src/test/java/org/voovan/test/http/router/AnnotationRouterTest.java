@@ -6,6 +6,8 @@ import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiModel;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiProperty;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 
@@ -114,8 +116,13 @@ public class AnnotationRouterTest {
        throw new RuntimeException("my exception.");
     }
 
+    @ApiModel("A classes")
     public class A {
+        @ApiProperty(value = "a_name", isRequire = false, example = "11111")
         String a_name;
+
+        @ApiProperty(hidden = true)
+        String hiddes;
 
         @Override
         public String toString() {
@@ -125,6 +132,7 @@ public class AnnotationRouterTest {
         }
     }
 
+    @ApiModel("B classes")
     public class B {
         String b_name;
         A a;

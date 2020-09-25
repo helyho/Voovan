@@ -27,6 +27,8 @@ public class Schema extends Properites{
 
     private Object example;
 
+    private String description;
+
     public String getType() {
         return type;
     }
@@ -75,5 +77,13 @@ public class Schema extends Properites{
 
     public void setExample(Object example) {
         this.example = example;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
