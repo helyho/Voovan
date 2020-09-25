@@ -422,7 +422,11 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 			}
 
 			if(readObject == null) {
-				throw new ReadMessageException("syncRead failed, resposne is null");
+				if(isConnected()) {
+					throw new ReadMessageException("syncRead failed, resposne is null");
+				} else {
+					throw new ReadMessageException("syncRead failed, Socket is disconnected");
+				}
 			}
 
 			if(readObject instanceof Throwable){
