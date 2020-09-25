@@ -80,7 +80,9 @@ public class SwaggerApi {
                 @Override
                 public void process(HttpRequest request, HttpResponse response) throws Exception {
                     response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.TEXT_HTML_STRING);
-                    response.write(TFile.loadResource("org/voovan/http/server/conf/swagger.html"));
+                    String content = new String(TFile.loadResource("org/voovan/http/server/conf/swagger.html"));
+                    content = content.replace("${Title}", moduleName + " - swagger" );
+                    response.write(content);
                 }
             });
 
