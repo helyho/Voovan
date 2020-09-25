@@ -1,5 +1,6 @@
 package org.voovan.http.server.module.annontationRouter.swagger.entity;
 
+import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
 import org.voovan.tools.reflect.annotation.Serialization;
 
 /**
@@ -20,6 +21,7 @@ public class Parameter {
     private Schema schema;
     @Serialization("default")
     private String defaultVal;
+    private Object example;
 
 
     public String getName() {
@@ -87,5 +89,17 @@ public class Parameter {
 
     public void setSchema(Schema schema) {
         this.schema = schema;
+    }
+
+    public Object getExample() {
+        return example;
+    }
+
+    public void setExample(String example) {
+        this.example = example == null || example.isEmpty() ? null : SwaggerApi.convertExample(example);
+    }
+
+    public void setExample(Object example) {
+        this.example = example;
     }
 }

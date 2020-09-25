@@ -24,4 +24,10 @@ public @interface BodyParam {
      * @return  参数说明
      */
     String description() default "";
+
+    /**
+     * 样例数据
+     * @return
+     */
+    String example() default "";
 }

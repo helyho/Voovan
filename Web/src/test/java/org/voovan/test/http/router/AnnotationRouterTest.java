@@ -36,7 +36,7 @@ public class AnnotationRouterTest {
     //支持同一方法多个路由
     //同时支持 GET 和 POST 方法
 //    @Router(path = "/params/r1", method = {"GET", "POST"})
-    public String params(@Param("aa") String aa, @Param("bb") int bb){
+    public String params(@Param(value = "aa", example = "aa example") String aa, @Param(value = "bb", example = "111222") int bb){
         String oldPath = lastPath;
         lastPath = "/annon/parms, time:" + System.currentTimeMillis();
         return "params: aa=" + aa + ", bb=" + bb+ ", lastPath="+oldPath;
@@ -46,12 +46,12 @@ public class AnnotationRouterTest {
     //下面例子会将{"data": "testdata", "number": 1}中的 testdata 注入到方法参数 data
     //下面例子会将{"data": "testdata", "number": 1}中的 1 注入到方法参数 number
     @Router(value = "bodyParmas", method = "POST")
-    public String bodyParmas(@BodyParam(value="data", isRequire=false) String data, @BodyParam("number") int number){
+    public String bodyParmas(@BodyParam(value="data", isRequire=false, example = "data example") String data, @BodyParam(value = "number", example = "111222") int number){
         return data + " " + number;
     }
 
 
-    @Router(method = "POST")
+    @Router(method = "POST", hide = true)
     public void asyncBodyParmas(@BodyParam(value="data", isRequire=false, defaultVal = "123123") String data,
                                 @BodyParam("number") int number,
                                 @BodyParam(value = "array", isRequire = false) List<String> array,
@@ -93,7 +93,7 @@ public class AnnotationRouterTest {
     //当前方法的请求路由为:/annon/body,采用方法名作为路由的路径
     //将请求中报文在调用时注入成方法的 aa 参数,在 resetful 中经常被使用到
     @Router(method="POST")
-    public String body(@Body(description = "123123", defaultVal = "{'aaaa': 123}") String aa){
+    public String body(@Body(description = "123123", defaultVal = "{'a_name': '123'}", example = "{'a_name': '123'}") A aa){
         String oldPath = lastPath;
         lastPath = "/annon/body, time:" + System.currentTimeMillis();
         return "body: " + aa + ", lastPath="+oldPath;
@@ -116,6 +116,13 @@ public class AnnotationRouterTest {
 
     public class A {
         String a_name;
+
+        @Override
+        public String toString() {
+            return "A{" +
+                    "a_name='" + a_name + '\'' +
+                    '}';
+        }
     }
 
     public class B {

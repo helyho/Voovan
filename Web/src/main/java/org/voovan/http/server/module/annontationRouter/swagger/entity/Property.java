@@ -1,5 +1,6 @@
 package org.voovan.http.server.module.annontationRouter.swagger.entity;
 
+import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
 import org.voovan.tools.reflect.annotation.Serialization;
 
 import java.util.Map;
@@ -35,6 +36,8 @@ public class Property extends Properites{
     private String defaultVal;
 
     private String description;
+
+    private Object example;
 
     public Property() {
     }
@@ -79,6 +82,10 @@ public class Property extends Properites{
         this.items = items;
     }
 
+    public Boolean getRequired() {
+        return required;
+    }
+
     public void setRequired(Boolean required) {
         this.required = required;
     }
@@ -97,5 +104,13 @@ public class Property extends Properites{
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public void setExample(String example) {
+        this.example = example == null || example.isEmpty() ? null : SwaggerApi.convertExample(example);
+    }
+
+    public void setExample(Object example) {
+        this.example = example;
     }
 }
