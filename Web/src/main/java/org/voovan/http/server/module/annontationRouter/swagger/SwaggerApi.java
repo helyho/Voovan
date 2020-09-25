@@ -42,23 +42,23 @@ public class SwaggerApi {
 
     public static void init(HttpModule httpModule) {
         WebServer webserver = httpModule.getWebServer();
-        Map<String, Object> swaggerConfig = (Map<String, Object>) httpModule.getModuleConfig().getParameter("swagger");
+        Map<String, Object> swaggerConfig = (Map<String, Object>) httpModule.getModuleConfig().getParameter("Swagger");
         if(swaggerConfig == null) {
             swaggerConfig = TObject.asMap();
         }
 
         String  moduleName      = httpModule.getModuleConfig().getName();
         String  modulePath      = httpModule.getModuleConfig().getPath();
-        Boolean enable          = (Boolean) swaggerConfig.getOrDefault("enable", true);
+        Boolean enable          = (Boolean) swaggerConfig.getOrDefault("Enable", true);
 
         if(enable == false) {
             return;
         }
 
-        String  routePath       = (String)  swaggerConfig.getOrDefault("routePath", "/swagger");
-        Integer refreshInterval = (Integer) swaggerConfig.getOrDefault("refreshInterval", 30);
-        String  description     = (String)  swaggerConfig.getOrDefault("description", "");
-        String  version         = (String)  swaggerConfig.get("version");
+        String  routePath       = (String)  swaggerConfig.getOrDefault("RoutePath", "/swagger");
+        Integer refreshInterval = (Integer) swaggerConfig.getOrDefault("RefreshInterval", 30);
+        String  description     = (String)  swaggerConfig.getOrDefault("Description", "");
+        String  version         = (String)  swaggerConfig.get("Version");
 
         MODULE_SWAGGER.put(moduleName, new Swagger(httpModule.getModuleConfig().getPath(), description, version));
 
