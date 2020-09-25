@@ -6,11 +6,16 @@
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.22.1/swagger-ui-standalone-preset.js"></script> -->
     <script src="//unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.22.1/swagger-ui-bundle.js"></script> -->
-    <link rel="stylesheet" href="//unpkg.com/swagger-ui-dist@3/swagger-ui.css" />
+    <link rel="stylesheet" href="//unpkg.com/swagger-ui-dist@3/swagger-ui.css"/>
     <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.22.1/swagger-ui.css" /> -->
 </head>
+<style>
+    .swagger-ui textarea {
+        min-height: 180px;
+    }
+</style>
 <script>
-    window.onload = function() {
+    window.onload = function () {
         const ui = SwaggerUIBundle({
             url: "/swagger",
             dom_id: '#swagger-ui',
@@ -18,7 +23,14 @@
                 SwaggerUIBundle.presets.apis,
                 SwaggerUIStandalonePreset
             ],
-            layout: "StandaloneLayout"
+            layout: "BaseLayout",//"StandaloneLayout","BaseLayout"
+            filter: true,
+            displayOperationId: true,
+            displayRequestDuration: true,
+            docExpansion: "none",
+            syntaxHighlight: {
+                theme: "nord"
+            },
         });
     }
 </script>

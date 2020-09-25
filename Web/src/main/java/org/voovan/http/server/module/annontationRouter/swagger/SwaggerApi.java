@@ -81,7 +81,7 @@ public class SwaggerApi {
                 public void process(HttpRequest request, HttpResponse response) throws Exception {
                     response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.TEXT_HTML_STRING);
                     String content = new String(TFile.loadResource("org/voovan/http/server/conf/swagger.html"));
-                    content = content.replace("${Title}", moduleName + " - swagger" );
+                    content = content.replace("${Title}", moduleName + " - voovan" );
                     response.write(content);
                 }
             });
@@ -188,6 +188,7 @@ public class SwaggerApi {
                             parameter.setDescription(((Param) paramAnnotation).description());
                             parameter.setRequired(((Param) paramAnnotation).isRequire());
                             parameter.setDefaultVal(((Param) paramAnnotation).defaultVal());
+                            parameter.setExample(((Param) paramAnnotation).example());
                             path.getParameters().add(parameter);
                         } else if (paramAnnotation instanceof Header) {
                             Parameter parameter = new Parameter();
@@ -199,6 +200,7 @@ public class SwaggerApi {
                             parameter.setDescription(((Header) paramAnnotation).description());
                             parameter.setRequired(((Header) paramAnnotation).isRequire());
                             parameter.setDefaultVal(((Header) paramAnnotation).defaultVal());
+                            parameter.setExample(((Header) paramAnnotation).example());
                             path.getParameters().add(parameter);
                         }  else if (paramAnnotation instanceof Cookie) {
                             Parameter parameter = new Parameter();
@@ -210,6 +212,7 @@ public class SwaggerApi {
                             parameter.setDescription(((Cookie) paramAnnotation).description());
                             parameter.setRequired(((Cookie) paramAnnotation).isRequire());
                             parameter.setDefaultVal(((Cookie) paramAnnotation).defaultVal());
+                            parameter.setExample(((Cookie) paramAnnotation).example());
                             path.getParameters().add(parameter);
                         }else if (paramAnnotation instanceof BodyParam) {
                             if(path.getParameters().size() == 0) {
@@ -226,7 +229,8 @@ public class SwaggerApi {
                             String description = ((BodyParam) paramAnnotation).description();
                             String defaultVal = ((BodyParam) paramAnnotation).defaultVal();
                             boolean isRequire = ((BodyParam) paramAnnotation).isRequire();
-                            createSchema(parameter.getSchema(), paramTypes[i], name, description, defaultVal, isRequire);
+                            String example = ((BodyParam) paramAnnotation).example();
+                            createSchema(parameter.getSchema(), paramTypes[i], name, description, defaultVal, isRequire, example);
                         } else if(paramAnnotation instanceof Body) {
                             Parameter parameter = new Parameter();
                             parameter.setIn("body");
@@ -234,12 +238,13 @@ public class SwaggerApi {
 
                             String description = ((Body) paramAnnotation).description();
                             String defaultVal = ((Body) paramAnnotation).defaultVal();
+                            String example = ((Body) paramAnnotation).example();
 
                             parameter.setDescription(description);
                             parameter.setDefaultVal(defaultVal);
 
                             Schema schema = parameter.getSchema();
-                            createSchema(parameter.getSchema(), paramTypes[i], null, null, null, true);
+                            createSchema(parameter.getSchema(), paramTypes[i], null, null, null, true, example);
                             path.getParameters().add(parameter);
                         }
                     }
@@ -258,7 +263,7 @@ public class SwaggerApi {
 
             Response response = new Response();
 
-            createSchema(response.getSchema(),method.getReturnType(),null, null, null, null);
+            createSchema(response.getSchema(),method.getReturnType(),null, null, null, null, null);
 
             path.getResponses().put("200", response);
 
@@ -305,7 +310,7 @@ public class SwaggerApi {
         return tagsMap;
     }
 
-    public static Schema createSchema(Schema schema, Class clazz, String name, String description, String defaultVal, Boolean required){
+    public static Schema createSchema(Schema schema, Class clazz, String name, String description, String defaultVal, Boolean required, String example){
         if(schema == null) {
             schema = new Schema();
         }
@@ -315,6 +320,7 @@ public class SwaggerApi {
                 String[] types = getParamType(clazz);
                 schema.setType(types[0]);
                 schema.setFormat(types[1]);
+                schema.setExample(example);
 
             } else {
                 String[] types = getParamType(clazz);
@@ -322,6 +328,7 @@ public class SwaggerApi {
                 Property property = new Property(types[0], types[1]);
                 property.setDefaultVal(TString.isNullOrEmpty(defaultVal) ? null : defaultVal);
                 property.setDescription(TString.isNullOrEmpty(description) ? null : description);
+                property.setExample(example);
                 schema.getProperties().put(name, property);
                 if(required == null || required) {
                     schema.getRequired().add(name);
@@ -329,9 +336,18 @@ public class SwaggerApi {
             }
         } else {
             createProperites(schema, clazz);
+            schema.setExample(example);
         }
 
         return schema;
+    }
+
+    public static Object convertExample(String example) {
+        if(JSON.isJSON(example)) {
+            return JSON.parse(example);
+        } else {
+            return example;
+        }
     }
 
     public static Properites createProperites(Properites properites, Class clazz) {
