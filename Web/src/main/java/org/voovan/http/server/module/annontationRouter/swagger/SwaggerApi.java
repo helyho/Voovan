@@ -56,7 +56,7 @@ public class SwaggerApi {
         }
 
         String  routePath       = (String)  swaggerConfig.getOrDefault("RoutePath", "/swagger");
-        Integer refreshInterval = (Integer) swaggerConfig.getOrDefault("RefreshInterval", 30);
+        Integer refreshInterval = (Integer) swaggerConfig.getOrDefault("RefreshInterval", -1);
         String  description     = (String)  swaggerConfig.getOrDefault("Description", "");
         String  version         = (String)  swaggerConfig.get("Version");
 
@@ -64,11 +64,14 @@ public class SwaggerApi {
 
         if(enable) {
             SwaggerApi.buildModuleSwagger(moduleName);
-            Global.getHashWheelTimer().addTask(()->{
-                MODULE_SWAGGER.put(moduleName, new Swagger(modulePath, description, version));
 
-                SwaggerApi.buildModuleSwagger(moduleName);
-            }, refreshInterval);
+            if(refreshInterval > 0) {
+                Global.getHashWheelTimer().addTask(() -> {
+                    MODULE_SWAGGER.put(moduleName, new Swagger(modulePath, description, version));
+
+                    SwaggerApi.buildModuleSwagger(moduleName);
+                }, refreshInterval);
+            }
 
             String swaggerPath = routePath + (modulePath.startsWith("/") ? modulePath : ("/" + modulePath));
             swaggerPath = HttpDispatcher.fixRoutePath(swaggerPath);
