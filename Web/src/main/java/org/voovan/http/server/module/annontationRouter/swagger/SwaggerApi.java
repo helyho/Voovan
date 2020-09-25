@@ -6,6 +6,8 @@ import org.voovan.http.server.*;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
 import org.voovan.http.server.module.annontationRouter.router.RouterInfo;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiModel;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiProperty;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.*;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.Property;
 import org.voovan.tools.TFile;
@@ -265,6 +267,8 @@ public class SwaggerApi {
 
             createSchema(response.getSchema(),method.getReturnType(),null, null, null, null, null);
 
+            response.setDescription(response.getSchema().getDescription());
+
             path.getResponses().put("200", response);
 
 
@@ -323,6 +327,7 @@ public class SwaggerApi {
                 schema.setExample(example);
 
             } else {
+                //for @BodyParam
                 String[] types = getParamType(clazz);
                 schema.setType("object");
                 Property property = new Property(types[0], types[1]);
@@ -335,8 +340,14 @@ public class SwaggerApi {
                 }
             }
         } else {
+            //for @Body
             createProperites(schema, clazz);
             schema.setExample(example);
+
+            ApiModel apiModel = (ApiModel) clazz.getAnnotation(ApiModel.class);
+            if(apiModel != null) {
+                schema.setDescription(apiModel.value());
+            }
         }
 
         return schema;
@@ -362,6 +373,12 @@ public class SwaggerApi {
                 continue;
             }
 
+            ApiProperty apiProperty = field.getAnnotation(ApiProperty.class);
+
+            if(apiProperty!=null && apiProperty.hidden()) {
+                continue;
+            }
+
             String[] types = getParamType(field.getType());
             Property property = null;
             if(types[0] == null) {
@@ -369,7 +386,14 @@ public class SwaggerApi {
                 createProperites(property, field.getType());
             } else {
                 property = new Property(types[0], types[1]);
+
+                if(apiProperty!=null) {
+                    property.setDescription(apiProperty.value());
+                    property.setRequired(apiProperty.isRequire());
+                    property.setExample(apiProperty.example());
+                }
             }
+
             properites.getProperties().put(field.getName(), property);
         }
 
