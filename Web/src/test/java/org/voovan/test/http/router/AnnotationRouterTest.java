@@ -117,9 +117,9 @@ public class AnnotationRouterTest {
     //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
     //当前方法的请求路由为:/annon/sp
     //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
-    @Router(tags = {"/generic"})
+    @Router(tags = {"/genericBody"})
     @ApiGeneric(generic=A.class)
-    public <T> T generic(@Body T bb){
+    public <T> T g_body(@Body T bb){
         String oldPath = lastPath;
         lastPath = "/annon/sp, time:" + System.currentTimeMillis();
         return (T)bb;
@@ -128,9 +128,17 @@ public class AnnotationRouterTest {
     //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
     //当前方法的请求路由为:/annon/sp
     //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
-    @Router(tags = {"/generic"})
+    @Router(tags = {"/genericBody"})
     @ApiGeneric(genericProperty = "t_name", generic=Long.class)
-    public G<Long> genericObj(@Body G<Long> gggg){
+    public G<Long> g_bodyObj(@Body G<Long> gggg){
+        String oldPath = lastPath;
+        lastPath = "/annon/sp, time:" + System.currentTimeMillis();
+        return gggg;
+    }
+
+    @Router(tags = {"/genericBody"})
+    @ApiGeneric(genericProperty = "t_name", generic=Float.class)
+    public G<Float> g_bodyObj1(@Body G<Float> gggg){
         String oldPath = lastPath;
         lastPath = "/annon/sp, time:" + System.currentTimeMillis();
         return gggg;
@@ -139,9 +147,9 @@ public class AnnotationRouterTest {
     //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
     //当前方法的请求路由为:/annon/sp
     //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
-    @Router(tags = {"/generic"})
+    @Router(tags = {"/genericBody"})
     @ApiGeneric(generic=A.class)
-    public List<A> genericList(@Body List<A> list){
+    public List<A> g_bodyList(@Body List<A> list){
         String oldPath = lastPath;
         lastPath = "/annon/sp, time:" + System.currentTimeMillis();
         return list;
@@ -151,13 +159,70 @@ public class AnnotationRouterTest {
     //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
     //当前方法的请求路由为:/annon/sp
     //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
-    @Router(tags = {"/generic"})
+    @Router(tags = {"/genericBody"})
     @ApiGeneric(generic=A.class)
-    public Map<String, A> genericMap(@Body Map<String, A> map){
+    public Map<String, A> g_bodyMap(@Body Map<String, A> map){
         String oldPath = lastPath;
         lastPath = "/annon/sp, time:" + System.currentTimeMillis();
         return map;
     }
+
+    ////////=================
+
+
+    //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
+    //当前方法的请求路由为:/annon/sp
+    //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
+    @Router(tags = {"/genericBodyParam"})
+    @ApiGeneric(genericName = "bb", generic=A.class)
+    public <T> T g_bodyParam(@BodyParam("bb") T bb, @BodyParam("other") String other){
+        String oldPath = lastPath;
+        lastPath = "/annon/sp, time:" + System.currentTimeMillis();
+        return (T)bb;
+    }
+
+    //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
+    //当前方法的请求路由为:/annon/sp
+    //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
+    @Router(tags = {"/genericBodyParam"})
+    @ApiGeneric(genericProperty = "t_name", generic=Long.class)
+    public G<Long> g_bodyParamObj(@BodyParam("gggg") G<Long> gggg, @BodyParam("other") String other){
+        String oldPath = lastPath;
+        lastPath = "/annon/sp, time:" + System.currentTimeMillis();
+        return gggg;
+    }
+
+    @Router(tags = {"/genericBodyParam"})
+    @ApiGeneric(genericProperty = "t_name", generic=Float.class)
+    public G<Float> g_bodyParamObj1(@BodyParam("gggg") G<Float> gggg, @BodyParam("other") String other){
+        String oldPath = lastPath;
+        lastPath = "/annon/sp, time:" + System.currentTimeMillis();
+        return gggg;
+    }
+
+    //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
+    //当前方法的请求路由为:/annon/sp
+    //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
+    @Router(tags = {"/genericBodyParam"})
+    @ApiGeneric(generic=A.class)
+    public List<A> g_bodyParamList(@BodyParam("list") List<A> list, @BodyParam("other") String other){
+        String oldPath = lastPath;
+        lastPath = "/annon/sp, time:" + System.currentTimeMillis();
+        return list;
+    }
+
+
+    //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
+    //当前方法的请求路由为:/annon/sp
+    //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
+    @Router(tags = {"/genericBodyParam"})
+    @ApiGeneric(generic=A.class)
+    public Map<String, A> g_bodyParamMap(@BodyParam("map") Map<String, A> map, @BodyParam("other") String other){
+        String oldPath = lastPath;
+        lastPath = "/annon/sp, time:" + System.currentTimeMillis();
+        return map;
+    }
+
 
     @Router()
     public B error(String aa, int bb){

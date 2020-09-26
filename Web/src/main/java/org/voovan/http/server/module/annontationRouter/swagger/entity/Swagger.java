@@ -17,12 +17,12 @@ public class Swagger {
     public static Comparator<String> STRING_COMPARATOR = new Comparator<String>() {
         @Override
         public int compare(String o1, String o2) {
-            if(o1.length() > o2.length() && !o1.equals(o2)){
+            if(o1.length() > o2.length()){
                 return 1;
-            } else if(o1.length() < o2.length() &&!o1.equals(o2)){
+            } else if(o1.length() < o2.length()){
                 return -1;
-            } else if(o1.equals(o2)){
-                return 0;
+            } else if(o1.length() == o2.length()){
+                return o1.compareTo(o2);
             } else{
                 return -1;
             }
@@ -34,12 +34,12 @@ public class Swagger {
         public int compare(Tag o1, Tag o2) {
             String tag1Name = o1.getName();
             String tag2Name = o2.getName();
-            if(tag1Name.length() > tag2Name.length() && !tag1Name.equals(o2)){
+            if(tag1Name.length() > tag2Name.length()){
                 return 1;
-            } else if(tag1Name.length() < tag2Name.length() &&!tag1Name.equals(o2)){
+            } else if(tag1Name.length() < tag2Name.length()){
                 return -1;
-            } else if(tag1Name.equals(o2)){
-                return 0;
+            } else if(tag1Name.length() == tag2Name.length()){
+                return tag1Name.compareTo(tag2Name);
             } else{
                 return -1;
             }
