@@ -15,6 +15,7 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class Schema extends Properties {
+    private Class clazz;
     /**
      * 必填。参数类型。”string”, “number”, “integer”, “boolean”, “array” or “file”.
      * 由于参数不在请求体，所以都是简单类型。consumes必须为multipart/form-data或者application/x-www-form-urlencoded或者两者皆有。
@@ -59,6 +60,13 @@ public class Schema extends Properties {
         this.format = format;
     }
 
+    public Class getClazz() {
+        return clazz;
+    }
+
+    public void setClazz(Class clazz) {
+        this.clazz = clazz;
+    }
 
     public String getType() {
         return type;
