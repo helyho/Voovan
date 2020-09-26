@@ -349,6 +349,8 @@ public class SwaggerApi {
                     schema = fieldSchema;
                 }
 
+                name = name + "." + schema.getClazz().getSimpleName();
+
                 clazz = genericClass[i];
             }
         }
