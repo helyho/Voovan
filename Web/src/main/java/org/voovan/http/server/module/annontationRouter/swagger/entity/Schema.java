@@ -1,6 +1,7 @@
 package org.voovan.http.server.module.annontationRouter.swagger.entity;
 
 import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
+import org.voovan.tools.reflect.annotation.NotSerialization;
 import org.voovan.tools.reflect.annotation.Serialization;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
  * Licence: Apache v2 License
  */
 public class Schema extends Properties {
+    @NotSerialization
     private Class clazz;
     /**
      * 必填。参数类型。”string”, “number”, “integer”, “boolean”, “array” or “file”.
@@ -69,10 +71,14 @@ public class Schema extends Properties {
     }
 
     public String getType() {
+
         return type;
     }
 
     public void setType(String type) {
+        if(type!=null && type.equals("array")) {
+            items = new Schema(format, null);
+        }
         this.type = type;
     }
 
