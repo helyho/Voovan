@@ -250,9 +250,14 @@ public class SwaggerApi {
 
             createSchema(swagger, response.getSchema(), method.getReturnType(),null, null, null, null, null);
 
-            String schemaDescription = response.getSchema().getDescription();
-            if(schemaDescription!=null && !schemaDescription.isEmpty()) {
-                response.setDescription(response.getSchema().getDescription());
+            if(response.getSchema().getRef() == null) {
+                String schemaDescription = response.getSchema().getDescription();
+                if (schemaDescription != null && !schemaDescription.isEmpty()) {
+                    response.setDescription(response.getSchema().getDescription());
+                }
+            } else {
+                response.getSchema().setType(null);
+                response.getSchema().setDescription(null);
             }
 
             path.getResponses().put("200", response);
