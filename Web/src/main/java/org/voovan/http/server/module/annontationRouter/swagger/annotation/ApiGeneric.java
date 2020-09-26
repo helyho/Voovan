@@ -15,11 +15,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ApiGeneric {
-    String code() default "200";
-    String description() default "successful";
-
-    ApiGenericType genericType() default ApiGenericType.ALL;
-    String genericName() default "";
-    String genericProperty() default "";
-    Class generic();
+    ApiGenericType type() default ApiGenericType.ALL;
+    String param() default "";
+    String property() default "";
+    Class clazz();
 }

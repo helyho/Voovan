@@ -311,13 +311,13 @@ public class SwaggerApi {
     public static void generic(ApiGenericType genericType, Swagger swagger, Schema schema, Class clazz, Method method) {
         ApiGeneric[] apiGenerics = method.getAnnotationsByType(ApiGeneric.class);
         for(ApiGeneric apiGeneric : apiGenerics) {
-            if(apiGeneric.genericType() == ApiGenericType.ALL || apiGeneric.genericType() == genericType) {
+            if(apiGeneric.type() == ApiGenericType.ALL || apiGeneric.type() == genericType) {
                 if (clazz == Object.class) {
                     schema.setType("object");
-                    createSchema(swagger, schema, apiGeneric.generic(), null, null, null, null, null, false);
+                    createSchema(swagger, schema, apiGeneric.clazz(), null, null, null, null, null, false);
                 } else if (TReflect.isImpByInterface(clazz, Collection.class)) {
                     schema.setType("array");
-                    createSchema(swagger, schema.getItems(), apiGeneric.generic(), null, null, null, null, null, false);
+                    createSchema(swagger, schema.getItems(), apiGeneric.clazz(), null, null, null, null, null, false);
                 } else if (TReflect.isImpByInterface(clazz, Map.class)) {
                     schema.setType("object");
 
@@ -326,16 +326,16 @@ public class SwaggerApi {
                     schema.getProperties().put("key", keySchema);
 
                     Schema valueSchema = new Schema();
-                    valueSchema.setClazz(apiGeneric.generic());
-                    createSchema(swagger, valueSchema, apiGeneric.generic(), null, null, null, null, null, false);
+                    valueSchema.setClazz(apiGeneric.clazz());
+                    createSchema(swagger, valueSchema, apiGeneric.clazz(), null, null, null, null, null, false);
                     schema.getProperties().put("value", valueSchema);
                 } else {
                     // 范型无法引用, 所以重新构造 schema
                     if(schema.getRef()!=null) {
                         createSchema(swagger, schema, clazz, null, null, null, null, null, false);
                     }
-                    Schema fieldSchema = schema.getProperties().get(apiGeneric.genericProperty());
-                    createSchema(swagger, fieldSchema, apiGeneric.generic(), null, null, null, null, null, false);
+                    Schema fieldSchema = schema.getProperties().get(apiGeneric.property());
+                    createSchema(swagger, fieldSchema, apiGeneric.clazz(), null, null, null, null, null, false);
                 }
             }
         }
@@ -546,10 +546,10 @@ public class SwaggerApi {
             return new String[]{"number", null};
         } else if(clazz.isArray()) {
             return new String[]{"array", clazz.getComponentType().getName().toLowerCase()};
-        } else if(clazz == Collection.class) {
+        } else if(TReflect.isImpByInterface(clazz, Collection.class)) {
             Class[] classes = TReflect.getGenericClass(clazz);
             return new String[]{"array", classes!=null ? getParamType(classes[0])[0] : null};
-        } else if(clazz == Map.class) {
+        } else if(TReflect.isImpByInterface(clazz, Map.class)) {
             return new String[]{"string", "object"};
         } else if(clazz == Object.class) {
             Class[] genericClazz = TReflect.getGenericClass(clazz);
