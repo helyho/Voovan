@@ -340,13 +340,25 @@ public class SwaggerApi {
                 }
             }
         } else {
-            //for @Body
-            createProperites(schema, clazz);
-            schema.setExample(example);
+            if(name == null) {
+                //for @BodyParam
+                createProperites(schema, clazz);
+                schema.setExample(example);
 
-            ApiModel apiModel = (ApiModel) clazz.getAnnotation(ApiModel.class);
-            if(apiModel != null) {
-                schema.setDescription(apiModel.value());
+                ApiModel apiModel = (ApiModel) clazz.getAnnotation(ApiModel.class);
+                if (apiModel != null) {
+                    schema.setDescription(apiModel.value());
+                }
+            } else {
+                Property property = new Property();
+                schema.getProperties().put(name, property);
+                createProperites(property, clazz);
+                schema.setExample(example);
+
+                ApiModel apiModel = (ApiModel) clazz.getAnnotation(ApiModel.class);
+                if (apiModel != null) {
+                    schema.setDescription(apiModel.value());
+                }
             }
         }
 
