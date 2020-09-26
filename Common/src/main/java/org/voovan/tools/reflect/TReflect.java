@@ -1538,6 +1538,10 @@ public class TReflect {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Map<String, Object> getMapfromObject(Object obj, boolean allField) throws ReflectiveOperationException {
+        if(obj instanceof MapObject) {
+            return ((MapObject)obj).toMap();
+        }
+
         LinkedHashMap<String, Object> mapResult = new LinkedHashMap<String, Object>();
 
         if(obj==null){
@@ -1660,7 +1664,7 @@ public class TReflect {
                     if(mapResult.get(key) == null) {
                         mapResult.put(key, value);
                     }
-                }else if(!key.contains("$")){
+                }else if(!field.getName().contains("$")){
                     Class valueClass = value.getClass();
                     if(TReflect.isBasicType(valueClass)){
                         //由于属性是按子类->父类顺序处理的, 所以如果子类和父类有重复属性, 则只在子类为空时用父类的属性覆盖
