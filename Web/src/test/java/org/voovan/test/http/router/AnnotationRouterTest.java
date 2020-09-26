@@ -49,7 +49,7 @@ public class AnnotationRouterTest {
     //下面例子会将{"data": "testdata", "number": 1}中的 testdata 注入到方法参数 data
     //下面例子会将{"data": "testdata", "number": 1}中的 1 注入到方法参数 number
     @Router(value = "bodyParmas", method = "POST")
-    public String bodyParmas(@BodyParam(value="data", isRequire=false, example = "['data example']") List<String> data,
+    public String bodyParmas(@BodyParam(value="data", isRequire=false, example = "data example") List<String> data,
                              @BodyParam(value = "number") B number){
         return data + " " + number;
     }
