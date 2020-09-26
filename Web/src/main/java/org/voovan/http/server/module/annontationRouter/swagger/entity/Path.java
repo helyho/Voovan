@@ -1,9 +1,6 @@
 package org.voovan.http.server.module.annontationRouter.swagger.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Swagger path
@@ -108,5 +105,11 @@ public class Path {
 
     public void setResponses(Map<String, Response> responses) {
         this.responses = responses;
+    }
+
+    public Parameter getParameter(String name) {
+        Optional<Parameter> optional = parameters.parallelStream().filter(parameter->parameter.getName().equals(name)).findAny();
+        return optional.isPresent() ? optional.get() : null;
+
     }
 }
