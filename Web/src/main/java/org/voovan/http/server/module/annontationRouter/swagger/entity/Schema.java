@@ -29,6 +29,9 @@ public class Schema extends Properites{
 
     private String description;
 
+    public Schema() {
+    }
+
     public String getType() {
         return type;
     }
