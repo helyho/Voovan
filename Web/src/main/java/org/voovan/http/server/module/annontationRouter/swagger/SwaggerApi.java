@@ -528,7 +528,7 @@ public class SwaggerApi {
         }
 
         //create definition
-        if(ref){
+        if(!swagger.getDefinitions().containsKey(clazz.getSimpleName())) {
             definitionSchema = new Schema();
             definitionSchema.setClazz(clazz);
             definitionSchema.setType("object");
@@ -537,7 +537,9 @@ public class SwaggerApi {
 
             properties.setProperties(null);
             properties.setRef(clazz.getSimpleName());
-        } else {
+        }
+
+        if(!ref){
             properties.setRef(null);
         }
 
@@ -578,7 +580,7 @@ public class SwaggerApi {
             return new String[]{"string", "object"};
         } else if(clazz == Object.class) {
             Class[] genericClazz = TReflect.getGenericClass(clazz);
-            return genericClazz!=null  ? getParamType(genericClazz[0]) : new String[]{"string", "object"};
+            return genericClazz!=null  ? getParamType(genericClazz[0]) : new String[]{"object", null};
         } else {
             return new String[]{null, null};
         }
