@@ -15,8 +15,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ApiGeneric {
-    ApiGenericType type() default ApiGenericType.ALL;
     String param() default "";
     String property() default "";
-    Class clazz();
+    Class[] clazz();
 }

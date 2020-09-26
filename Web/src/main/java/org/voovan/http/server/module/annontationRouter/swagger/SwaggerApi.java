@@ -6,7 +6,6 @@ import org.voovan.http.server.*;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
 import org.voovan.http.server.module.annontationRouter.router.RouterInfo;
-import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGenericType;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiModel;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiProperty;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGeneric;
@@ -222,7 +221,7 @@ public class SwaggerApi {
                             if(method.getAnnotationsByType(ApiGeneric.class).length > 0) {
                                 if (parameter.getSchema().getType().equals("object")) {
                                     for (Schema propertySchema : parameter.getSchema().getProperties().values()) {
-                                        generic(ApiGenericType.REQUEST, swagger, propertySchema, propertySchema.getClazz(), method);
+                                        generic(swagger, propertySchema, propertySchema.getClazz(), method, name);
                                     }
                                 }
                             }
@@ -244,11 +243,11 @@ public class SwaggerApi {
                             path.getParameters().add(parameter);
 
                             if(method.getAnnotationsByType(ApiGeneric.class).length > 0) {
-                                generic(ApiGenericType.REQUEST, swagger, parameter.getSchema(), paramTypes[i], method);
+                                generic(swagger, parameter.getSchema(), paramTypes[i], method, null);
 
                                 if (parameter.getSchema().getType().equals("object")) {
                                     for (Schema propertySchema : parameter.getSchema().getProperties().values()) {
-                                        generic(ApiGenericType.REQUEST, swagger, propertySchema, propertySchema.getClazz(), method);
+                                        generic(swagger, propertySchema, propertySchema.getClazz(), method, null);
                                     }
                                 }
                             }
@@ -303,21 +302,27 @@ public class SwaggerApi {
 
         //范型处理
         Schema schema = response.getSchema();
-        generic(ApiGenericType.RESPONSE, swagger, schema, returnType, method);
+        generic(swagger, schema, returnType, method, "response");
 
         return response;
     }
 
-    public static void generic(ApiGenericType genericType, Swagger swagger, Schema schema, Class clazz, Method method) {
+    public static void generic(Swagger swagger, Schema schema, Class clazz, Method method, String name) {
         ApiGeneric[] apiGenerics = method.getAnnotationsByType(ApiGeneric.class);
         for(ApiGeneric apiGeneric : apiGenerics) {
-            if(apiGeneric.type() == ApiGenericType.ALL || apiGeneric.type() == genericType) {
+            if(!apiGeneric.param().isEmpty() && !apiGeneric.param().equals(name)) {
+                continue;
+            }
+
+            Class[] genericClass = apiGeneric.clazz();
+
+            for(int i=0;i<genericClass.length;i++) {
                 if (clazz == Object.class) {
                     schema.setType("object");
-                    createSchema(swagger, schema, apiGeneric.clazz(), null, null, null, null, null, false);
+                    createSchema(swagger, schema, genericClass[i], null, null, null, null, null, false);
                 } else if (TReflect.isImpByInterface(clazz, Collection.class)) {
                     schema.setType("array");
-                    createSchema(swagger, schema.getItems(), apiGeneric.clazz(), null, null, null, null, null, false);
+                    createSchema(swagger, schema.getItems(), genericClass[i], null, null, null, null, null, false);
                 } else if (TReflect.isImpByInterface(clazz, Map.class)) {
                     schema.setType("object");
 
@@ -326,16 +331,21 @@ public class SwaggerApi {
                     schema.getProperties().put("key", keySchema);
 
                     Schema valueSchema = new Schema();
-                    valueSchema.setClazz(apiGeneric.clazz());
-                    createSchema(swagger, valueSchema, apiGeneric.clazz(), null, null, null, null, null, false);
+                    valueSchema.setClazz(genericClass[i]);
+                    createSchema(swagger, valueSchema, genericClass[i], null, null, null, null, null, false);
                     schema.getProperties().put("value", valueSchema);
                 } else {
                     // 范型无法引用, 所以重新构造 schema
-                    if(schema.getRef()!=null) {
+                    if (schema.getRef() != null) {
                         createSchema(swagger, schema, clazz, null, null, null, null, null, false);
                     }
                     Schema fieldSchema = schema.getProperties().get(apiGeneric.property());
-                    createSchema(swagger, fieldSchema, apiGeneric.clazz(), null, null, null, null, null, false);
+                    if(fieldSchema == null) {
+                        break;
+                    }
+                    createSchema(swagger, fieldSchema, genericClass[i], null, null, null, null, null, false);
+                    schema = fieldSchema;
+                    clazz = fieldSchema.getClazz();
                 }
             }
         }
