@@ -92,7 +92,11 @@ public class AnnotationModule extends HttpModule {
             Logger.simple("[HTTP] Module ["+this.getModuleConfig().getName()+"] Start auto scan annotation router.");
         }
 
-        SwaggerApi.init(this);
+        try {
+            SwaggerApi.init(this);
+        } catch (Throwable e) {
+            Logger.error("[SWAGGER] error: ", e);
+        }
     }
 
     @Override
