@@ -3,6 +3,8 @@ package org.voovan.http.server.module.annontationRouter.swagger.entity;
 import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
 import org.voovan.tools.reflect.annotation.Serialization;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -30,7 +32,7 @@ public class Property extends Properites{
     //item
     private Property items;
 
-    private Boolean required;
+    private List<String> required;
 
     @Serialization("default")
     private String defaultVal;
@@ -40,9 +42,11 @@ public class Property extends Properites{
     private Object example;
 
     public Property() {
+        this.setProperty(this);
     }
 
     public Property(String type, String format) {
+        this.setProperty(this);
         this.type = type;
 
         if(type == null) {
@@ -82,11 +86,14 @@ public class Property extends Properites{
         this.items = items;
     }
 
-    public Boolean getRequired() {
+    public List<String> getRequired() {
+        if(required == null) {
+            required = new ArrayList<String>();
+        }
         return required;
     }
 
-    public void setRequired(Boolean required) {
+    public void setRequired(List<String> required) {
         this.required = required;
     }
 
