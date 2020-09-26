@@ -174,6 +174,7 @@ public class AnnotationRouterTest {
     //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
     @Router(tags = {"genericBodyParam"})
     @ApiGeneric(param = "bb", clazz =A.class)
+    @ApiGeneric(param = "response", clazz =A.class)
     public <T> T g_bodyParam(@BodyParam("bb") T bb, @BodyParam("other") String other){
         String oldPath = lastPath;
         lastPath = "/annon/sp, time:" + System.currentTimeMillis();
