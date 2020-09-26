@@ -290,20 +290,23 @@ public class SwaggerApi {
 
         createSchema(swagger, response.getSchema(), returnType, null, null, null, null, null, true);
 
+        //范型处理
+        Schema schema = response.getSchema();
+        generic(swagger, schema, returnType, method, "response");
+
         if(response.getSchema().getRef() == null) {
             String schemaDescription = response.getSchema().getDescription();
             if (schemaDescription != null && !schemaDescription.isEmpty()) {
                 response.setDescription(response.getSchema().getDescription());
             }
-        } else {
-            response.getSchema().setType(null);
-            response.getSchema().setDescription(null);
         }
 
-        //范型处理
-        Schema schema = response.getSchema();
-        generic(swagger, schema, returnType, method, "response");
 
+        response.getSchema().setType(null);
+        response.getSchema().setDescription(null);
+        response.getSchema().setExample(null);
+        response.getSchema().setDefaultVal(null);
+        response.getSchema().setRequired(null);
         return response;
     }
 
@@ -352,6 +355,13 @@ public class SwaggerApi {
                 name = name + "." + schema.getClazz().getSimpleName();
 
                 clazz = genericClass[i];
+
+                if(name.startsWith("response") && i!=0) {
+                    schema.setDescription(null);
+                    schema.setExample(null);
+                    schema.setDefaultVal(null);
+                    schema.setRequired(null);
+                }
             }
         }
     }
