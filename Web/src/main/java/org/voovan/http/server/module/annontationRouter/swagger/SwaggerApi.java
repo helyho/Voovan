@@ -308,7 +308,10 @@ public class SwaggerApi {
                     createSchema(swagger, valueSchema, apiGeneric.generic(), null, null, null, null, null, false);
                     schema.getProperties().put("value", valueSchema);
                 } else {
-                    createSchema(swagger, schema, clazz, null, null, null, null, null, false);
+                    // 范型无法引用, 所以重新构造 schema
+                    if(schema.getRef()!=null) {
+                        createSchema(swagger, schema, clazz, null, null, null, null, null, false);
+                    }
                     Schema fieldSchema = schema.getProperties().get(apiGeneric.genericProperty());
                     createSchema(swagger, fieldSchema, apiGeneric.generic(), null, null, null, null, null, false);
                 }

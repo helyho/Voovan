@@ -6,13 +6,16 @@ import org.voovan.http.server.HttpRequest;
 import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGenericType;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiModel;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiProperty;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGeneric;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 //将当前类注解为一个请求路由处理类, 采用默认的请求方法 GET
 //为当前类指定一个请求路径为:/annon，如果不指定则默认的路径为/AnnotationRouterTest
@@ -103,14 +106,57 @@ public class AnnotationRouterTest {
         return "body: " + aa + ", lastPath="+oldPath;
     }
 
+    @Router("/sp")
+    public List seqparams(String aa, int bb){
+        String oldPath = lastPath;
+        lastPath = "/annon/sp, time:" + System.currentTimeMillis();
+        return TObject.asList("param1", aa, "param2", bb, "lastPath", oldPath);
+    }
+
+
     //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
     //当前方法的请求路由为:/annon/sp
     //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
-    @Router("/sp")
-    public String seqparams(String aa, int bb){
+    @Router(tags = {"/generic"})
+    @ApiGeneric(generic=A.class)
+    public <T> T generic(@Body T bb){
         String oldPath = lastPath;
         lastPath = "/annon/sp, time:" + System.currentTimeMillis();
-        return "seqparams: param1=" + aa + ", param2=" + bb + ", lastPath="+oldPath;
+        return (T)bb;
+    }
+
+    //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
+    //当前方法的请求路由为:/annon/sp
+    //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
+    @Router(tags = {"/generic"})
+    @ApiGeneric(genericProperty = "t_name", generic=Long.class)
+    public G<Long> genericObj(@Body G<Long> gggg){
+        String oldPath = lastPath;
+        lastPath = "/annon/sp, time:" + System.currentTimeMillis();
+        return gggg;
+    }
+
+    //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
+    //当前方法的请求路由为:/annon/sp
+    //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
+    @Router(tags = {"/generic"})
+    @ApiGeneric(generic=A.class)
+    public List<A> genericList(@Body List<A> list){
+        String oldPath = lastPath;
+        lastPath = "/annon/sp, time:" + System.currentTimeMillis();
+        return list;
+    }
+
+
+    //将当前方法注解为一个请求路由, 并指定请求的访问路径为 sp
+    //当前方法的请求路由为:/annon/sp
+    //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
+    @Router(tags = {"/generic"})
+    @ApiGeneric(generic=A.class)
+    public Map<String, A> genericMap(@Body Map<String, A> map){
+        String oldPath = lastPath;
+        lastPath = "/annon/sp, time:" + System.currentTimeMillis();
+        return map;
     }
 
     @Router()
@@ -122,9 +168,14 @@ public class AnnotationRouterTest {
     public class A {
         @ApiProperty(value = "a_name", isRequire = false, example = "11111")
         String a_name;
+        String str;
 
         @ApiProperty(hidden = true)
         String hiddes;
+
+        public A(String a_name) {
+            this.a_name = a_name;
+        }
 
         @Override
         public String toString() {
@@ -138,5 +189,28 @@ public class AnnotationRouterTest {
     public class B {
         String b_name;
         A a;
+    }
+
+
+    @ApiModel("G classes")
+    public class G<T> {
+        @ApiProperty(value = "t_name", isRequire = false, example = "11111")
+        T t_name;
+        String str;
+        Long bigInteger;
+
+        @ApiProperty(hidden = true)
+        String hiddes;
+
+        public G(T t_name) {
+            this.t_name = t_name;
+        }
+
+        @Override
+        public String toString() {
+            return "A{" +
+                    "t_name='" + t_name + '\'' +
+                    '}';
+        }
     }
 }
