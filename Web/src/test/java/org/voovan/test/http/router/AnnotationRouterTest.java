@@ -38,7 +38,8 @@ public class AnnotationRouterTest {
     //支持同一方法多个路由
     //同时支持 GET 和 POST 方法
 //    @Router(path = "/params/r1", method = {"GET", "POST"})
-    public String params(@Param(value = "aa", example = "['aa example']") List<String> aa, @Param(value = "bb", example = "111222") int bb){
+    public String params(@Param(value = "aa", example = "['aa example']") String aa,
+                         @Param(value = "bb", example = "111222") int bb){
         String oldPath = lastPath;
         lastPath = "/annon/parms, time:" + System.currentTimeMillis();
         return "params: aa=" + aa + ", bb=" + bb+ ", lastPath="+oldPath;
@@ -48,7 +49,8 @@ public class AnnotationRouterTest {
     //下面例子会将{"data": "testdata", "number": 1}中的 testdata 注入到方法参数 data
     //下面例子会将{"data": "testdata", "number": 1}中的 1 注入到方法参数 number
     @Router(value = "bodyParmas", method = "POST")
-    public String bodyParmas(@BodyParam(value="data", isRequire=false, example = "['data example']") List<String> data, @BodyParam(value = "number") B number){
+    public String bodyParmas(@BodyParam(value="data", isRequire=false, example = "['data example']") List<String> data,
+                             @BodyParam(value = "number") B number){
         return data + " " + number;
     }
 
