@@ -12,9 +12,19 @@ import java.util.TreeMap;
  * Licence: Apache v2 License
  */
 public class Properites {
+    public transient Property property;
+
     //properties 属性名->SchemaItem
     Map<String, Property> properties;
 
+
+    public Property getProperty() {
+        return property;
+    }
+
+    public void setProperty(Property property) {
+        this.property = property;
+    }
 
     public Map<String, Property> getProperties() {
         if(properties == null) {
@@ -27,4 +37,5 @@ public class Properites {
     public void setProperties(Map<String, Property> properties) {
         this.properties = properties;
     }
+
 }

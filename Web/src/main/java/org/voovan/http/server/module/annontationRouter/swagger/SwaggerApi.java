@@ -265,9 +265,12 @@ public class SwaggerApi {
 
             Response response = new Response();
 
-            createSchema(response.getSchema(),method.getReturnType(),null, null, null, null, null);
+            createSchema(response.getSchema(), method.getReturnType(),null, null, null, null, null);
 
-            response.setDescription(response.getSchema().getDescription());
+            String schemaDescription = response.getSchema().getDescription();
+            if(schemaDescription!=null && !schemaDescription.isEmpty()) {
+                response.setDescription(response.getSchema().getDescription());
+            }
 
             path.getResponses().put("200", response);
 
@@ -325,7 +328,6 @@ public class SwaggerApi {
                 schema.setType(types[0]);
                 schema.setFormat(types[1]);
                 schema.setExample(example);
-
             } else {
                 //for @BodyParam
                 String[] types = getParamType(clazz);
@@ -358,6 +360,10 @@ public class SwaggerApi {
                 ApiModel apiModel = (ApiModel) clazz.getAnnotation(ApiModel.class);
                 if (apiModel != null) {
                     schema.setDescription(apiModel.value());
+                }
+
+                if(required == null || required) {
+                    schema.getRequired().add(name);
                 }
             }
         }
@@ -401,8 +407,14 @@ public class SwaggerApi {
 
                 if(apiProperty!=null) {
                     property.setDescription(apiProperty.value());
-                    property.setRequired(apiProperty.isRequire());
+
+                    if(!apiProperty.isRequire()) {
+                        properites.getProperty().getRequired().add(field.getName());
+                    }
+
                     property.setExample(apiProperty.example());
+                } else {
+                    properites.getProperty().getRequired().add(field.getName());
                 }
             }
 

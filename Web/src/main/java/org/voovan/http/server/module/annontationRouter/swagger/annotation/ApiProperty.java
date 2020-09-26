@@ -21,7 +21,7 @@ public @interface ApiProperty {
     String value() default "";
 
 
-    boolean isRequire() default false;
+    boolean isRequire() default true;
 
     /**
      * 样例数据
