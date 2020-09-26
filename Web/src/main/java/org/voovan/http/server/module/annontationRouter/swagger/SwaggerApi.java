@@ -6,8 +6,10 @@ import org.voovan.http.server.*;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
 import org.voovan.http.server.module.annontationRouter.router.RouterInfo;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGenericType;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiModel;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiProperty;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGeneric;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.*;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.Properties;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.Schema;
@@ -215,7 +217,7 @@ public class SwaggerApi {
                             String defaultVal = ((BodyParam) paramAnnotation).defaultVal();
                             boolean isRequire = ((BodyParam) paramAnnotation).isRequire();
                             String example = ((BodyParam) paramAnnotation).example();
-                            createSchema(swagger, parameter.getSchema(), paramTypes[i], name, description, defaultVal, isRequire, example);
+                            createSchema(swagger, parameter.getSchema(), paramTypes[i], name, description, defaultVal, isRequire, example, true);
                         } else if(paramAnnotation instanceof Body) {
                             Parameter parameter = new Parameter();
                             parameter.setIn("body");
@@ -229,7 +231,7 @@ public class SwaggerApi {
                             parameter.setDefaultVal(defaultVal);
 
                             Schema schema = parameter.getSchema();
-                            createSchema(swagger, parameter.getSchema(), paramTypes[i], null, null, null, true, example);
+                            createSchema(swagger, parameter.getSchema(), paramTypes[i], null, null, null, true, example, true);
                             path.getParameters().add(parameter);
                         }
                     }
@@ -263,9 +265,11 @@ public class SwaggerApi {
      * @return Response 对象
      */
     public static Response buildResponse(Swagger swagger, Method method) {
+        Class returnType = method.getReturnType();
+
         Response response = new Response();
 
-        createSchema(swagger, response.getSchema(), method.getReturnType(),null, null, null, null, null);
+        createSchema(swagger, response.getSchema(), returnType, null, null, null, null, null, true);
 
         if(response.getSchema().getRef() == null) {
             String schemaDescription = response.getSchema().getDescription();
@@ -277,7 +281,39 @@ public class SwaggerApi {
             response.getSchema().setDescription(null);
         }
 
+        //范型处理
+        Schema schema = response.getSchema();
+        generic(ApiGenericType.RESPONSE, swagger, schema, returnType, method);
+
         return response;
+    }
+
+    public static void generic(ApiGenericType genericType, Swagger swagger, Schema schema, Class clazz, Method method) {
+        ApiGeneric[] apiGenerics = method.getAnnotationsByType(ApiGeneric.class);
+        for(ApiGeneric apiGeneric : apiGenerics) {
+            if(apiGeneric.genericType() == ApiGenericType.ALL || apiGeneric.genericType() == genericType) {
+                if (clazz == Object.class) {
+                    schema.setType("object");
+                    createSchema(swagger, schema, apiGeneric.generic(), null, null, null, null, null, false);
+                } else if (TReflect.isImpByInterface(clazz, Collection.class)) {
+                    schema.setType("array");
+                    createSchema(swagger, schema.getItems(), apiGeneric.generic(), null, null, null, null, null, false);
+                } else if (TReflect.isImpByInterface(clazz, Map.class)) {
+                    schema.setType("object");
+
+                    Schema keySchema = new Schema("string", null);
+                    schema.getProperties().put("key", keySchema);
+
+                    Schema valueSchema = new Schema();
+                    createSchema(swagger, valueSchema, apiGeneric.generic(), null, null, null, null, null, false);
+                    schema.getProperties().put("value", valueSchema);
+                } else {
+                    createSchema(swagger, schema, clazz, null, null, null, null, null, false);
+                    Schema fieldSchema = schema.getProperties().get(apiGeneric.genericProperty());
+                    createSchema(swagger, fieldSchema, apiGeneric.generic(), null, null, null, null, null, false);
+                }
+            }
+        }
     }
 
     public static Collection<Tag> parseAllTags() {
@@ -310,7 +346,7 @@ public class SwaggerApi {
         return tagsMap;
     }
 
-    public static Schema createSchema(Swagger swagger, Schema schema, Class clazz, String name, String description, String defaultVal, Boolean required, String example){
+    public static Schema createSchema(Swagger swagger, Schema schema, Class clazz, String name, String description, String defaultVal, Boolean required, String example, boolean ref){
         if(schema == null) {
             schema = new Schema();
         }
@@ -329,6 +365,7 @@ public class SwaggerApi {
                 property.setDefaultVal(TString.isNullOrEmpty(defaultVal) ? null : defaultVal);
                 property.setDescription(TString.isNullOrEmpty(description) ? null : description);
                 property.setExample(example);
+
                 schema.getProperties().put(name, property);
                 if(required == null || required) {
                     schema.getRequired().add(name);
@@ -338,7 +375,7 @@ public class SwaggerApi {
             schema.setType("object");
             if(name == null) {
                 //for @BodyParam
-                createProperites(swagger, schema, clazz);
+                createProperites(swagger, schema, clazz, ref);
                 schema.setExample(example);
 
                 ApiModel apiModel = (ApiModel) clazz.getAnnotation(ApiModel.class);
@@ -347,7 +384,7 @@ public class SwaggerApi {
                 }
             } else {
                 Schema property = new Schema();
-                createProperites(swagger, property, clazz);
+                createProperites(swagger, property, clazz, ref);
                 schema.setExample(example);
 
                 ApiModel apiModel = (ApiModel) clazz.getAnnotation(ApiModel.class);
@@ -374,13 +411,17 @@ public class SwaggerApi {
         }
     }
 
-    public static Properties createProperites(Swagger swagger, Properties properties, Class clazz) {
+    public static Properties createProperites(Swagger swagger, Properties properties, Class clazz, boolean ref) {
         //find created Definition
-        Schema definitionSchema = swagger.getDefinitions().get(clazz.getSimpleName());
-        if(definitionSchema!=null) {
-            properties.setProperties(null);
-            properties.setRef(clazz.getSimpleName());
-            return properties;
+        Schema definitionSchema = null;
+
+        if(ref) {
+            definitionSchema = swagger.getDefinitions().get(clazz.getSimpleName());
+            if (definitionSchema != null) {
+                properties.setProperties(null);
+                properties.setRef(clazz.getSimpleName());
+                return properties;
+            }
         }
 
         for (Field field : TReflect.getFields(clazz)) {
@@ -404,7 +445,7 @@ public class SwaggerApi {
             Schema schema = null;
             if(types[0] == null) {
                 schema = new Schema();
-                createProperites(swagger, schema, field.getType());
+                createProperites(swagger, schema, field.getType(), ref);
                 schema.setProperties(null);
                 schema.setRequired(null);
                 schema.setRef(field.getType().getSimpleName());
@@ -416,12 +457,12 @@ public class SwaggerApi {
                     schema.setDescription(apiProperty.value());
 
                     if(!apiProperty.isRequire()) {
-                        properties.getProperty().getRequired().add(field.getName());
+                        properties.getParent().getRequired().add(field.getName());
                     }
 
                     schema.setExample(apiProperty.example());
                 } else {
-                    properties.getProperty().getRequired().add(field.getName());
+                    properties.getParent().getRequired().add(field.getName());
                 }
             }
 
@@ -429,7 +470,7 @@ public class SwaggerApi {
         }
 
         //create definition
-        {
+        if(ref){
             definitionSchema = new Schema();
             definitionSchema.setType("object");
             definitionSchema.getProperties().putAll(properties.getProperties());
@@ -437,6 +478,8 @@ public class SwaggerApi {
 
             properties.setProperties(null);
             properties.setRef(clazz.getSimpleName());
+        } else {
+            properties.setRef(null);
         }
 
         return properties;
@@ -465,7 +508,7 @@ public class SwaggerApi {
             return new String[]{"number", null};
         } else if(clazz.isArray()) {
             return new String[]{"array", clazz.getComponentType().getName().toLowerCase()};
-        } else if(clazz == List.class) {
+        } else if(clazz == Collection.class) {
             Class[] classes = TReflect.getGenericClass(clazz);
             return new String[]{"array", classes!=null ? getParamType(classes[0])[0] : null};
         } else if(clazz == Map.class) {

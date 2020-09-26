@@ -40,11 +40,11 @@ public class Schema extends Properties {
     private Object example;
 
     public Schema() {
-        this.setProperty(this);
+        this.setParent(this);
     }
 
     public Schema(String type, String format) {
-        this.setProperty(this);
+        this.setParent(this);
         this.type = type;
 
         if(type == null) {
@@ -77,6 +77,9 @@ public class Schema extends Properties {
     }
 
     public Schema getItems() {
+        if(items == null) {
+            items = new Schema();
+        }
         return items;
     }
 

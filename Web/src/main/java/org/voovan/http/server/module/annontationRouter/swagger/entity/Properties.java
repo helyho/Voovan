@@ -14,7 +14,7 @@ import java.util.TreeMap;
  * Licence: Apache v2 License
  */
 public class Properties {
-    public transient Schema schema;
+    public transient Schema parent;
 
     //properties 属性名->SchemaItem
     Map<String, Schema> properties;
@@ -22,12 +22,12 @@ public class Properties {
     @Serialization("$ref")
     private String ref;
 
-    public Schema getProperty() {
-        return schema;
+    public Schema getParent() {
+        return parent;
     }
 
-    public void setProperty(Schema schema) {
-        this.schema = schema;
+    public void setParent(Schema parent) {
+        this.parent = parent;
     }
 
     public Map<String, Schema> getProperties() {
@@ -46,7 +46,12 @@ public class Properties {
         return ref;
     }
 
+    public String getOriginRef() {
+        String originRef = ref.replace("#/definitions/","");
+        return originRef.isEmpty() ? null: originRef;
+    }
+
     public void setRef(String ref) {
-        this.ref = "#/definitions/" + ref;
+        this.ref = ref == null ? null : ("#/definitions/" + ref);
     }
 }
