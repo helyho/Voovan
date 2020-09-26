@@ -10,7 +10,7 @@ import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiMod
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiProperty;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.*;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.Properties;
-import org.voovan.http.server.module.annontationRouter.swagger.entity.Property;
+import org.voovan.http.server.module.annontationRouter.swagger.entity.Schema;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
@@ -246,33 +246,38 @@ public class SwaggerApi {
                 }
             }
 
-            Response response = new Response();
-
-            createSchema(swagger, response.getSchema(), method.getReturnType(),null, null, null, null, null);
-
-            if(response.getSchema().getRef() == null) {
-                String schemaDescription = response.getSchema().getDescription();
-                if (schemaDescription != null && !schemaDescription.isEmpty()) {
-                    response.setDescription(response.getSchema().getDescription());
-                }
-            } else {
-                response.getSchema().setType(null);
-                response.getSchema().setDescription(null);
-            }
-
+            Response response = buildResponse(swagger, method);
             path.getResponses().put("200", response);
 
 
             swagger.getPaths().put(url, TObject.asMap(routeMethod.toLowerCase(), path));
         }
 
-//        try {
-//            TFile.writeFile(new File("/Users/helyho/swagger.json"), false, JSON.formatJson(JSON.removeNullNode(JSON.toJSON(swagger))).getBytes());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
         return swagger;
+    }
+
+    /**
+     * 构造响应
+     * @param swagger Swagger 对象
+     * @param method 方法对象
+     * @return Response 对象
+     */
+    public static Response buildResponse(Swagger swagger, Method method) {
+        Response response = new Response();
+
+        createSchema(swagger, response.getSchema(), method.getReturnType(),null, null, null, null, null);
+
+        if(response.getSchema().getRef() == null) {
+            String schemaDescription = response.getSchema().getDescription();
+            if (schemaDescription != null && !schemaDescription.isEmpty()) {
+                response.setDescription(response.getSchema().getDescription());
+            }
+        } else {
+            response.getSchema().setType(null);
+            response.getSchema().setDescription(null);
+        }
+
+        return response;
     }
 
     public static Collection<Tag> parseAllTags() {
@@ -320,7 +325,7 @@ public class SwaggerApi {
                 //for @BodyParam
                 String[] types = getParamType(clazz);
                 schema.setType("object");
-                Property property = new Property(types[0], types[1]);
+                Schema property = new Schema(types[0], types[1]);
                 property.setDefaultVal(TString.isNullOrEmpty(defaultVal) ? null : defaultVal);
                 property.setDescription(TString.isNullOrEmpty(description) ? null : description);
                 property.setExample(example);
@@ -341,7 +346,7 @@ public class SwaggerApi {
                     schema.setDescription(apiModel.value());
                 }
             } else {
-                Property property = new Property();
+                Schema property = new Schema();
                 createProperites(swagger, property, clazz);
                 schema.setExample(example);
 
@@ -396,31 +401,31 @@ public class SwaggerApi {
             }
 
             String[] types = getParamType(field.getType());
-            Property property = null;
+            Schema schema = null;
             if(types[0] == null) {
-                property = new Property();
-                createProperites(swagger, property, field.getType());
-                property.setProperties(null);
-                property.setRequired(null);
-                property.setRef(field.getType().getSimpleName());
+                schema = new Schema();
+                createProperites(swagger, schema, field.getType());
+                schema.setProperties(null);
+                schema.setRequired(null);
+                schema.setRef(field.getType().getSimpleName());
 
             } else {
-                property = new Property(types[0], types[1]);
+                schema = new Schema(types[0], types[1]);
 
                 if(apiProperty!=null) {
-                    property.setDescription(apiProperty.value());
+                    schema.setDescription(apiProperty.value());
 
                     if(!apiProperty.isRequire()) {
                         properties.getProperty().getRequired().add(field.getName());
                     }
 
-                    property.setExample(apiProperty.example());
+                    schema.setExample(apiProperty.example());
                 } else {
                     properties.getProperty().getRequired().add(field.getName());
                 }
             }
 
-            properties.getProperties().put(field.getName(), property);
+            properties.getProperties().put(field.getName(), schema);
         }
 
         //create definition
