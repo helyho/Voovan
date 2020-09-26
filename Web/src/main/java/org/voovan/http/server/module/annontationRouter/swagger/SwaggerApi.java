@@ -323,6 +323,7 @@ public class SwaggerApi {
                 } else if (TReflect.isImpByInterface(clazz, Collection.class)) {
                     schema.setType("array");
                     createSchema(swagger, schema.getItems(), genericClass[i], null, null, null, null, null, false);
+                    schema = schema.getItems();
                 } else if (TReflect.isImpByInterface(clazz, Map.class)) {
                     schema.setType("object");
 
@@ -334,6 +335,7 @@ public class SwaggerApi {
                     valueSchema.setClazz(genericClass[i]);
                     createSchema(swagger, valueSchema, genericClass[i], null, null, null, null, null, false);
                     schema.getProperties().put("value", valueSchema);
+                    schema = valueSchema;
                 } else {
                     // 范型无法引用, 所以重新构造 schema
                     if (schema.getRef() != null) {
@@ -345,8 +347,9 @@ public class SwaggerApi {
                     }
                     createSchema(swagger, fieldSchema, genericClass[i], null, null, null, null, null, false);
                     schema = fieldSchema;
-                    clazz = fieldSchema.getClazz();
                 }
+
+                clazz = genericClass[i];
             }
         }
     }
