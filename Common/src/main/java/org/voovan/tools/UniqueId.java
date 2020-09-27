@@ -2,6 +2,7 @@ package org.voovan.tools;
 
 import java.security.SecureRandom;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 高速ID生成器
@@ -25,6 +26,8 @@ public class UniqueId {
     private Long lastTime = 0L;
     private int signId = 0;
     private int step = 1;
+
+    private ReentrantLock lock = new ReentrantLock();
 
     /**
      * 构造函数
@@ -78,25 +81,32 @@ public class UniqueId {
      * 生成带顺序的 ID 序列
      * @return ID字符串
      */
-    private synchronized long generateId(){
-        long currentTime = System.currentTimeMillis();
+    private long generateId(){
+        try {
+            lock.lock();
+            long currentTime = System.currentTimeMillis();
 
-        if(lastTime < currentTime){
-            orderedIdSequence.set(SEQ_DEFAULT);
-        }else if(lastTime > currentTime){
-            throw new RuntimeException("Clock moved backwards.");
+            if (lastTime < currentTime) {
+                orderedIdSequence.set(SEQ_DEFAULT);
+            } else if (lastTime > currentTime) {
+                throw new RuntimeException("Clock moved backwards.");
+            }
+
+            if (orderedIdSequence.get() >= MAX_SEQUENCE) {
+                TEnv.sleep(1);
+                currentTime = System.currentTimeMillis();
+                orderedIdSequence.set(SEQ_DEFAULT);
+            }
+
+            long resultId = generateId(currentTime, signId, orderedIdSequence.getAndAdd(step));
+
+            lastTime = System.currentTimeMillis();
+            return resultId;
+        } finally {
+            if(lock.isLocked()) {
+                lock.unlock();
+            }
         }
-
-        if(orderedIdSequence.get() >= MAX_SEQUENCE){
-            TEnv.sleep(1);
-            currentTime = System.currentTimeMillis();
-            orderedIdSequence.set(SEQ_DEFAULT);
-        }
-
-        long resultId = generateId(currentTime, signId,  orderedIdSequence.getAndAdd(step));
-
-        lastTime = System.currentTimeMillis();
-        return resultId;
     }
 
     /**
