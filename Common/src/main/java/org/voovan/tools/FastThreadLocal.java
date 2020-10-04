@@ -72,7 +72,7 @@ public class FastThreadLocal<T> {
      * @return 线程局部变量
      */
     public T get() {
-        FastThreadLocal fastThreadLocal = tryCreate();
+        FastThreadLocal fastThreadLocal = find();
 
         T t = (T) fastThreadLocal.value;
         if (t == null && supplier != null) {
@@ -85,10 +85,10 @@ public class FastThreadLocal<T> {
     }
 
     /**
-     * 根据线程的类型尝试创建不同的线程局部变量
-     * @return true: FastThreadLocal, false: JdkThreadLocal
+     * 查找可用的 ThreadLocal 对象
+     * @return null: 不存在, not null: 存在
      */
-    private FastThreadLocal tryCreate(){
+    private FastThreadLocal find(){
         FastThread thread = FastThread.getThread();
 
         if(thread != null && index < FastThread.FAST_THREAD_LOCAL_SIZE) {
@@ -114,7 +114,7 @@ public class FastThreadLocal<T> {
      * @param t 线程局部变量
      */
     public void set(T t){
-        FastThreadLocal fastThreadLocal = tryCreate();
+        FastThreadLocal fastThreadLocal = find();
         fastThreadLocal.value = t;
     }
 
