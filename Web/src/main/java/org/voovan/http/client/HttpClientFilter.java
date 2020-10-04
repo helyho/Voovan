@@ -26,8 +26,6 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class HttpClientFilter implements IoFilter {
-	private static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
-
 	private HttpClient httpClient;
 
 	public HttpClientFilter(HttpClient httpClient){
@@ -62,13 +60,8 @@ public class HttpClientFilter implements IoFilter {
 				if(WebServerHandler.getAttachment(session).isWebSocket()){
 					return WebSocketFrame.parse((ByteBuffer)object);
 				}else {
-					Response response = HttpParser.parseResponse(THREAD_RESPONSE.get(), session, byteBufferChannel, session.socketContext().getReadTimeout());
-
-
-					if(response.protocol().getStatus() == 101){
-						//初始化 WebSocket
-						httpClient.initWebSocket();
-					}
+					Response response = (Response) ((Object[])session.getAttachment())[3];
+					response = HttpParser.parseResponse(response, session, byteBufferChannel, session.socketContext().getReadTimeout());
 
 					return response;
 				}
