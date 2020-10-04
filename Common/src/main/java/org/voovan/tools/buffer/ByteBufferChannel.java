@@ -28,9 +28,11 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ByteBufferChannel {
     private static int BYTEBUFFERCHANNEL_MAX_SIZE = TProperties.getInt("framework", "ByteBufferChannelMaxSize", 1024*1024*2);
-    private volatile long address = 0;
+
     private Unsafe unsafe = TUnsafe.getUnsafe();
-    private ByteBuffer byteBuffer;
+
+    private volatile ByteBuffer byteBuffer;
+    private volatile long address = 0;
     private volatile int capacity;
     private volatile int size;
     private ReentrantLock lock;

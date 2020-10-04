@@ -17,9 +17,7 @@ import java.util.concurrent.*;
 public class SynchronousHandler implements IoHandler {
     private final Object lock = new Object();
 
-    //Socket 响应队列
-    //哈哈, 猜猜这里为什么不使用 ArrayBlockingQueue ?
-    private ConcurrentLinkedQueue<Object> socketResponses  = new ConcurrentLinkedQueue<Object>();
+    private volatile Object socketResponses = null;
 
 
     @Override
@@ -62,8 +60,8 @@ public class SynchronousHandler implements IoHandler {
      * @param obj 响应对象
      */
     public void addResponse(Object obj){
-        socketResponses.offer(obj);
-        dataNotify();
+        socketResponses = obj;
+        unhold();
     }
 
     /**
@@ -72,46 +70,30 @@ public class SynchronousHandler implements IoHandler {
      * @return 响应对象
      * @throws TimeoutException 超时异常
      */
-    public Object getResponse(int timeout) throws Exception {
-        waitData(timeout);
-        return socketResponses.poll();
+    public synchronized Object getResponse(int timeout) throws Exception {
+        try {
+            hold(timeout);
+            return socketResponses;
+        } finally {
+            clear();
+        }
     }
 
-    /**
-     * 获取响应对象数量
-     * @return 获取响应对象数量
-     */
-    public int responseCount(){
-        return socketResponses.size();
+    public void clear(){
+        socketResponses = null;
     }
 
-    public void clearResponse(){
-        socketResponses.clear();
-    }
-
-    /**
-     * 是否存在下一个响应对象
-     * @return true: 存在, false: 不存在
-     */
-    public boolean hasNextResponse(){
-        return !socketResponses.isEmpty();
-    }
-
-    public void waitData(int timeout) throws TimeoutException {
-        synchronized (this) {
-            if (!hasNextResponse()) {
-                synchronized (lock) {
-                    try {
-                        lock.wait(timeout);
-                    } catch (InterruptedException e) {
-                        throw new TimeoutException();
-                    }
-                }
+    public void hold(int timeout) throws TimeoutException {
+        synchronized (lock) {
+            try {
+                lock.wait(timeout);
+            } catch (InterruptedException e) {
+                throw new TimeoutException();
             }
         }
     }
 
-    public void dataNotify(){
+    public void unhold(){
         synchronized (lock) {
             lock.notifyAll();
         }

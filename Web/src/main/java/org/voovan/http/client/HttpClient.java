@@ -566,7 +566,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		socket.getSession().getReadByteBufferChannel().clear();
 		socket.getSession().getSendByteBufferChannel().clear();
-		synchronousHandler.clearResponse();
+		synchronousHandler.clear();
 
 		//异步模式更新 handler
 		if(async != null) {
@@ -683,7 +683,7 @@ public class HttpClient extends PooledObject implements Closeable{
 		httpRequest.header().put("Origin", this.urlString);
 		httpRequest.header().put("Sec-WebSocket-Version","13");
 		httpRequest.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
-		Response response =send(location);
+		asyncSend(location, resp->{});
 	}
 
 	/**
