@@ -180,7 +180,9 @@ public class HttpClient extends PooledObject implements Closeable{
 			//[0] HttpSessionState
 			//[1] HttpFilter
 			//[2] WebSocketFilter
-			Object[] attachment = new Object[3];
+			//[3] Response
+			Object[] attachment = new Object[4];
+			attachment[3] = new Response();
 			socket.getSession().setAttachment(attachment);
 
 		} catch (IOException e) {
@@ -683,7 +685,12 @@ public class HttpClient extends PooledObject implements Closeable{
 		httpRequest.header().put("Origin", this.urlString);
 		httpRequest.header().put("Sec-WebSocket-Version","13");
 		httpRequest.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
-		asyncSend(location, resp->{});
+		Response response = send(location);
+
+		if(response.protocol().getStatus() == 101){
+			//初始化 WebSocket
+			initWebSocket();
+		}
 	}
 
 	/**
@@ -754,6 +761,8 @@ public class HttpClient extends PooledObject implements Closeable{
 	@Override
 	public void close(){
 		if(socket!=null) {
+			Response response = ((Response) ((Object[])socket.getSession().getAttachment())[3]);
+			response.release();
 			socket.close();
 		}
 	}
