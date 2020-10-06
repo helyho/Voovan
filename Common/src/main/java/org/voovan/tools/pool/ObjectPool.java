@@ -474,7 +474,7 @@ public class ObjectPool<T> {
                 @Override
                 public void run() {
                     try {
-                        synchronized (objects) {
+                        synchronized (finalobjectPool) {
                             Iterator<InnerObject<T>> iterator = objects.values().iterator();
                             int totalSize = objects.size();
 
