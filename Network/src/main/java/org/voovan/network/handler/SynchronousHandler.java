@@ -2,6 +2,7 @@ package org.voovan.network.handler;
 
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
+import org.voovan.tools.TEnv;
 
 import java.util.concurrent.*;
 
@@ -86,9 +87,14 @@ public class SynchronousHandler implements IoHandler {
     public void hold(int timeout) throws TimeoutException {
         synchronized (lock) {
             try {
+                long start = System.currentTimeMillis();
                 lock.wait(timeout);
+                long cost = System.currentTimeMillis() - start;
+                if(cost >= timeout && socketResponses == null) {
+                    throw new TimeoutException();
+                }
             } catch (InterruptedException e) {
-                throw new TimeoutException();
+                throw new TimeoutException(e.getMessage());
             }
         }
     }

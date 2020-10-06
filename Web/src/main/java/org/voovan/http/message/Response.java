@@ -386,7 +386,7 @@ public class Response {
 			this.header().remove("Server");
 		} else {
 			this.async 		= otherResponse.async;
-			this.isSend = otherResponse.isSend;
+			this.isSend 	= otherResponse.isSend;
 		}
 
 		return this;
