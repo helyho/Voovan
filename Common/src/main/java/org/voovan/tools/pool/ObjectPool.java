@@ -537,7 +537,7 @@ public class ObjectPool<T> {
      * 池中缓存的对象模型
      */
     public class InnerObject<T>{
-        private long lastVisiediTime;
+        private volatile long lastVisiediTime;
         private long id;
         @NotSerialization
         private T object;
