@@ -32,16 +32,16 @@ import java.util.Vector;
  */
 
 public class Request {
-    private RequestProtocol protocol;
-    private Header 			header;
-    private List<Cookie>	cookies;
-    private Body 			body;
-    private List<Part>		parts;
-    private String 			boundary;
-    private boolean         hasBody;
-    protected boolean       isSend = false;
-    private boolean         cookieParsed = false;
-    private Long            mark = 0l;
+    private RequestProtocol     protocol;
+    private Header 			    header;
+    private List<Cookie>	    cookies;
+    private Body 			    body;
+    private List<Part>		    parts;
+    private String 			    boundary;
+    private volatile boolean    hasBody;
+    protected volatile boolean  isSend = false;
+    private volatile boolean    cookieParsed = false;
+    private volatile Long       mark = 0l;
 
     private static final String CONTENT_TYPE = "Content-Type";
 

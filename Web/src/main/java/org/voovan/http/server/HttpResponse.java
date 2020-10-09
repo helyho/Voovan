@@ -17,8 +17,8 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class HttpResponse extends Response {
-	private String	characterSet;
-	private IoSession socketSession;
+	private volatile String	characterSet;
+	private volatile IoSession socketSession;
 
 	/**
 	 * 构造 HTTP 响应对象

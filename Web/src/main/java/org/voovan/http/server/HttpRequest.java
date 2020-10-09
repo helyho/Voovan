@@ -24,11 +24,11 @@ import java.util.*;
  */
 public class HttpRequest extends Request {
 
-	private HttpSession session;
-	private String characterSet;
+	private volatile HttpSession session;
+	private volatile String characterSet;
 	private Map<String, String> parameters;
 	private Map<String, Object> attributes;
-	private IoSession socketSession;
+	private volatile IoSession socketSession;
 	private SessionManager sessionManager;
 
 	/**

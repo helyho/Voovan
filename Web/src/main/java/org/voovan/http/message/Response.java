@@ -34,12 +34,12 @@ public class Response {
 	private Header				header;
 	private List<Cookie>		cookies;
 	private Body 				body;
-	private boolean				isCompress;
-	private boolean         	hasBody;
-	protected boolean 			isSend = false;
-	private boolean 			async = false;
-	private boolean         	cookieParsed = false;
-	private Long                mark;
+	private volatile boolean	isCompress;
+	private volatile boolean    hasBody;
+	protected volatile boolean 	isSend = false;
+	private volatile boolean 	async = false;
+	private volatile boolean    cookieParsed = false;
+	private volatile Long       mark;
 
 	/**
 	 * 构造函数
@@ -57,6 +57,7 @@ public class Response {
 		this.cookies = response.cookies;
 		this.isCompress = response.isCompress;
 		this.isSend = false;
+		this.async = false;
 		this.mark = response.mark;
 		this.hasBody = response.hasBody;
 	}
@@ -252,6 +253,10 @@ public class Response {
 	 */
 	public void send(IoSession session) throws IOException {
 		try {
+			if(isSend) {
+				return;
+			}
+
 			ByteBufferChannel byteBufferChannel = session.getSendByteBufferChannel();
 
 			//发送报文头
@@ -384,6 +389,8 @@ public class Response {
 
 			this.header().remove("Date");
 			this.header().remove("Server");
+			this.isSend = false;
+			this.async 	= false;
 		} else {
 			this.async 		= otherResponse.async;
 			this.isSend 	= otherResponse.isSend;
