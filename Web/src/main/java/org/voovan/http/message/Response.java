@@ -390,7 +390,6 @@ public class Response {
 			this.header().remove("Date");
 			this.header().remove("Server");
 			this.isSend = false;
-			this.async 	= false;
 		} else {
 			this.async 		= otherResponse.async;
 			this.isSend 	= otherResponse.isSend;
