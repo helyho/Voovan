@@ -52,7 +52,7 @@ public class HttpParser {
 	private final static FastThreadLocal<Object[]> THREAD_PACKET_MAP = FastThreadLocal.withInitial(()->new Object[20]);
 	private final static FastThreadLocal<Request>  THREAD_REQUEST    = FastThreadLocal.withInitial(()->new Request());
 	private final static FastThreadLocal<Response> THREAD_RESPONSE   = FastThreadLocal.withInitial(()->new Response());
-	private final static FastThreadLocal<byte[]>   THREAD_BYTE_ARRAY = FastThreadLocal.withInitial(()->new byte[1024]);
+	private final static FastThreadLocal<byte[]>   THREAD_BYTE_ARRAY = FastThreadLocal.withInitial(()->new byte[4096]);
 
 	private final static LongKeyMap<Long> 	  	   PROTOCOL_HASH_MAP = new LongKeyMap<Long>(64);
 	private final static LongKeyMap<Object[]> 	   PARSED_PACKET_MAP = new LongKeyMap<Object[]>(64);
