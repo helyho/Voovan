@@ -949,9 +949,6 @@ public class WebServer {
 			System.out.println("=============================================================================================");
 			System.out.println("[" + TDateTime.now() + "] Try to stop WebServer....");
 
-			unInitModule();
-			this.WebServerDestory(this);
-
 			if(serverSocket!=null) {
 				serverSocket.close();
 			}
@@ -969,6 +966,10 @@ public class WebServer {
 			ThreadPool.gracefulShutdown(Global.getThreadPool());
 
 			System.out.println("[" + TDateTime.now() + "] Thread pool is shutdown.");
+
+			//LifeCycle.destory
+			unInitModule();
+			this.WebServerDestory(this);
 
 			System.out.println("[" + TDateTime.now() + "] Now webServer is fully stoped.");
 			TEnv.sleep(1000);
