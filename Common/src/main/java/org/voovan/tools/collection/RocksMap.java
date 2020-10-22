@@ -99,6 +99,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             columnFamilyHandle.close();
         }
 
+        try {
+            rocksDB.syncWal();
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
         rocksDB.close();
         COLUMN_FAMILY_HANDLE_MAP.remove(rocksDB);
     }
@@ -115,6 +120,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     //--------------------- 成员变量 --------------------
     public transient DBOptions            dbOptions;
+
     public transient ReadOptions          readOptions;
     public transient WriteOptions         writeOptions;
     public transient ColumnFamilyOptions  columnFamilyOptions;
