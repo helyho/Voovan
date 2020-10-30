@@ -35,10 +35,8 @@ public class FixedQueue<E> {
      * @param e 入队的元素
      */
     public void offer(E e) {
-        int i = 0;
         while (queue.size() >= limit) {
             queue.poll();
-            i++;
         }
         queue.offer(e);
     }
