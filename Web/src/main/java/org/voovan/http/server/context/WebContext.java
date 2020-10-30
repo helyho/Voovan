@@ -132,15 +132,18 @@ public class WebContext {
 	 */
 	public static void loadWebConfig(){
 		synchronized (WEB_CONFIG) {
-			WEB_CONFIG = loadJsonFromFile(new File(TFile.getSystemPath("/conf/web.json")));
+			String confWeb = TFile.assemblyPath("conf", "web.json");
+			WEB_CONFIG = loadJsonFromFile(new File(TFile.getSystemPath(confWeb)));
 		}
 
 		synchronized (MIME_TYPES) {
-			MIME_TYPES = loadJsonFromFile(new File(TFile.getSystemPath("/conf/mime.json")));
+			String confMime = TFile.assemblyPath("conf", "mime.json");
+			MIME_TYPES = loadJsonFromFile(new File(TFile.getSystemPath(confMime)));
 		}
 
 		synchronized (ERROR_DEFINE) {
-			ERROR_DEFINE = loadJsonFromFile(new File(TFile.getSystemPath("/conf/error.json")));
+			String confError = TFile.assemblyPath("conf", "error.json");
+			ERROR_DEFINE = loadJsonFromFile(new File(TFile.getSystemPath(confError)));
 		}
 	}
 
