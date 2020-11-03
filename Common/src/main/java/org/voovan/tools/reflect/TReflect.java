@@ -1650,7 +1650,7 @@ public class TReflect {
 
                         //转换值数据
                         Class convertClass = serialization.convert();
-                        if(convertClass != Convert.class) {
+                        if(value != null && convertClass != Convert.class) {
                             Convert convert = Convert.getConvert(convertClass);
                             if(convert != null) {
                                 value = convert.convert(value);
