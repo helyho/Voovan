@@ -157,7 +157,7 @@ public class JSONEncode {
             return "null";
         }
 
-        Integer jsonHash = null;
+        int jsonHash = 0;
         if(JSON_HASH) {
             jsonHash = object.hashCode();
             jsonHash =  jsonHash + (allField ? 1 : 0);
@@ -213,7 +213,7 @@ public class JSONEncode {
             value = complexObject(object, allField);
         }
 
-        if(JSON_HASH && jsonHash!=null) {
+        if(JSON_HASH) {
             JSON_ENCODE_CACHE.put(jsonHash, value);
         }
 
