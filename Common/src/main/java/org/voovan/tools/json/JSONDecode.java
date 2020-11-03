@@ -370,8 +370,6 @@ public class JSONDecode {
 
 					//判断返回对象的类型,填充返回对象
 					if (root instanceof HashMap) {
-						@SuppressWarnings("unchecked")
-						HashMap<String, Object> result = (HashMap<String, Object>) root;
 						if (keyString != null) {
 							//判断是字符串去掉头尾的包裹符号
 							if (keyString.length() >= 2 && keyString.charAt(0) == Global.CHAR_QUOTE && keyString.charAt(keyString.length()-1) == Global.CHAR_QUOTE) {
@@ -381,12 +379,10 @@ public class JSONDecode {
 							if (keyString.length() >= 2 && keyString.charAt(0) == Global.CHAR_S_QUOTE && keyString.charAt(keyString.length()-1) == Global.CHAR_S_QUOTE) {
 								keyString = keyString.substring(1, keyString.length() - 1);
 							}
-							result.put(keyString, value);
+							((Map)root).put(keyString, value);
 						}
 					} else if (root instanceof ArrayList && value != null) {
-						@SuppressWarnings("unchecked")
-						ArrayList<Object> result = (ArrayList<Object>) root;
-						result.add(value);
+						((List)root).add(value);
 					} else if(root == null){
 						root = value;
 					}
@@ -401,7 +397,7 @@ public class JSONDecode {
 			}
 
 			return root;
-		}catch(Exception e){
+		} catch(Exception e){
 			try {
 				int position = ((int) TReflect.getFieldValue(reader, "next") -1);
 				String jsonStr = (String) TReflect.getFieldValue(reader, "str");
