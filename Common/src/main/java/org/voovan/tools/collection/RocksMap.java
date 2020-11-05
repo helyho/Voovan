@@ -2,7 +2,6 @@ package org.voovan.tools.collection;
 import org.rocksdb.*;
 import org.voovan.Global;
 import org.voovan.tools.TByte;
-import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
 import org.voovan.tools.Varint;
 import org.voovan.tools.exception.ParseException;
@@ -35,7 +34,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         RocksDB.loadLibrary();
     }
 
-    public final static String DEFAULT_COLUMN_FAMILY_NAME = "Default";
+    public final static String DEFAULT_DB_NAME = "Default";
 
     private static byte[] DATA_BYTES = "data".getBytes();
     //缓存 db 和他对应的 TransactionDB
@@ -200,7 +199,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param readOnly 是否以只读模式打开
      */
     public RocksMap(String dbname, String columnFamilyName, ColumnFamilyOptions columnFamilyOptions, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Boolean readOnly) {
-        this.dbname = dbname == null ? DEFAULT_COLUMN_FAMILY_NAME : dbname;
+        this.dbname = dbname == null ? DEFAULT_DB_NAME : dbname;
         this.columnFamilyName = columnFamilyName == null ? "voovan_default" : columnFamilyName;
         this.readOptions = readOptions == null ? new ReadOptions() : readOptions;
         this.writeOptions = writeOptions == null ? new WriteOptions() : writeOptions;
@@ -435,7 +434,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     public static void restoreFromLatestBackup() throws RocksDBException {
-        restoreFromLatestBackup(DEFAULT_COLUMN_FAMILY_NAME, null, true);
+        restoreFromLatestBackup(DEFAULT_DB_NAME, null, true);
     }
 
     /**
@@ -462,7 +461,23 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     public static void restore(int backupId) throws RocksDBException {
-        restoreFromLatestBackup(DEFAULT_COLUMN_FAMILY_NAME, null, true);
+        restoreFromLatestBackup(DEFAULT_DB_NAME, null, true);
+    }
+
+    /**
+     * 清理备份
+     * @param dbName 数据库明城
+     * @param backupableDBOptions 备份选项
+     * @param number 保留的备份书
+     * @throws RocksDBException 异常
+     */
+    public static void PurgeOldBackups(String dbName, BackupableDBOptions backupableDBOptions, int number) throws RocksDBException {
+        if(backupableDBOptions==null) {
+            backupableDBOptions = createBackupableOption(dbName);
+        }
+
+        BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
+        backupEngine.purgeOldBackups(number);
     }
 
 
