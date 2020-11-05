@@ -288,7 +288,7 @@ public class SwaggerApi {
 
         Response response = new Response();
 
-        createSchema(swagger, response.getSchema(), returnType, null, null, null, null, null, true);
+        createSchema(swagger, response.getSchema(), returnType, null, null, null, null, null, false);
 
         //范型处理
         Schema schema = response.getSchema();
@@ -300,7 +300,6 @@ public class SwaggerApi {
                 response.setDescription(response.getSchema().getDescription());
             }
         }
-
 
         response.getSchema().setType(null);
         response.getSchema().setDescription(null);
@@ -534,13 +533,11 @@ public class SwaggerApi {
             definitionSchema.setType("object");
             definitionSchema.getProperties().putAll(properties.getProperties());
             swagger.getDefinitions().put(clazz.getSimpleName(), definitionSchema);
-
-            properties.setProperties(null);
-            properties.setRef(clazz.getSimpleName());
         }
 
-        if(!ref){
-            properties.setRef(null);
+        if(ref){
+            properties.setProperties(null);
+            properties.setRef(clazz.getSimpleName());
         }
 
         if(properties instanceof Schema) {
