@@ -427,7 +427,8 @@ public class WebServer {
 		//保存 PID
 		Long pid = TEnv.getCurrentPID();
 		System.out.println("  Pid: \t"+ pid.toString());
-		File pidFile = new File("logs/.pid");
+		File pidFile = new File("logs" + File.separator + ".pid");
+		TFile.mkdir(pidFile.getPath());
 		try {
 			TFile.writeFile(pidFile, false, pid.toString().getBytes());
 		} catch (IOException e) {
