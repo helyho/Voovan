@@ -103,6 +103,11 @@ public class SwaggerApi {
         return buildSwagger(MODULE_SWAGGER.get(moduleName));
     }
 
+    /**
+     * 创建 swagger 对象
+     * @param swagger 目标 swagger 对象
+     * @return Swagger 对象
+     */
     public static Swagger buildSwagger(Swagger swagger) {
         swagger.getTags().addAll(parseAllTags());
 
@@ -162,8 +167,10 @@ public class SwaggerApi {
                     continue;
                 }
 
+                //有注解方法参数
                 if (paramAnnotations.length > 0) {
                     for (Annotation paramAnnotation : paramAnnotations) {
+                        //@Param
                         if (paramAnnotation instanceof Param) {
                             Parameter parameter = new Parameter();
                             parameter.setIn("path");
@@ -176,7 +183,9 @@ public class SwaggerApi {
                             parameter.setDefaultVal(((Param) paramAnnotation).defaultVal());
                             parameter.setExample(((Param) paramAnnotation).example());
                             path.getParameters().add(parameter);
-                        } else if (paramAnnotation instanceof Header) {
+                        }
+                        //@Header
+                        else if (paramAnnotation instanceof Header) {
                             Parameter parameter = new Parameter();
                             parameter.setIn("header");
                             String[] types = getParamType(paramTypes[i]);
@@ -188,7 +197,9 @@ public class SwaggerApi {
                             parameter.setDefaultVal(((Header) paramAnnotation).defaultVal());
                             parameter.setExample(((Header) paramAnnotation).example());
                             path.getParameters().add(parameter);
-                        }  else if (paramAnnotation instanceof Cookie) {
+                        }
+                        //@Cookie
+                        else if (paramAnnotation instanceof Cookie) {
                             Parameter parameter = new Parameter();
                             parameter.setIn("cookie");
                             String[] types = getParamType(paramTypes[i]);
@@ -200,7 +211,9 @@ public class SwaggerApi {
                             parameter.setDefaultVal(((Cookie) paramAnnotation).defaultVal());
                             parameter.setExample(((Cookie) paramAnnotation).example());
                             path.getParameters().add(parameter);
-                        }else if (paramAnnotation instanceof BodyParam) {
+                        }
+                        //@BodyParam
+                        else if (paramAnnotation instanceof BodyParam) {
                             if(path.getParameters().size() == 0) {
                                 Parameter parameter = new Parameter();
                                 parameter.setIn("body");
@@ -226,7 +239,9 @@ public class SwaggerApi {
                                 }
                             }
 
-                        } else if(paramAnnotation instanceof Body) {
+                        }
+                        //@Body
+                        else if(paramAnnotation instanceof Body) {
                             Parameter parameter = new Parameter();
                             parameter.setIn("body");
                             parameter.setName("body");
@@ -254,7 +269,9 @@ public class SwaggerApi {
 
                         }
                     }
-                } else {
+                }
+                //无注解方法参数
+                else {
                     Parameter parameter = new Parameter();
                     parameter.setIn("path");
                     String[] types = getParamType(paramTypes[i]);
@@ -309,6 +326,14 @@ public class SwaggerApi {
         return response;
     }
 
+    /**
+     * 范型填充
+     * @param swagger Swagger 对象
+     * @param schema 需要填充范型的 schema
+     * @param clazz  范型类型
+     * @param method 范型相关方法
+     * @param name 不要填充范型的属性名称
+     */
     public static void generic(Swagger swagger, Schema schema, Class clazz, Method method, String name) {
         ApiGeneric[] apiGenerics = method.getAnnotationsByType(ApiGeneric.class);
         for(ApiGeneric apiGeneric : apiGenerics) {
@@ -325,18 +350,18 @@ public class SwaggerApi {
                 } else if (TReflect.isImpByInterface(clazz, Collection.class)) {
                     schema.setType("array");
                     createSchema(swagger, schema.getItems(), genericClass[i], null, null, null, null, null, false);
+
+                    //循环注解, 方便下一个注解引用
                     schema = schema.getItems();
                 } else if (TReflect.isImpByInterface(clazz, Map.class)) {
                     schema.setType("object");
 
-                    Schema keySchema = new Schema("string", null);
-                    keySchema.setClazz(String.class);
-                    schema.getProperties().put("key", keySchema);
-
                     Schema valueSchema = new Schema();
                     valueSchema.setClazz(genericClass[i]);
                     createSchema(swagger, valueSchema, genericClass[i], null, null, null, null, null, false);
-                    schema.getProperties().put("value", valueSchema);
+                    schema.getProperties().put("string", valueSchema);
+
+                    //循环注解, 方便下一个注解引用
                     schema = valueSchema;
                 } else {
                     // 范型无法引用, 所以重新构造 schema
@@ -348,6 +373,8 @@ public class SwaggerApi {
                         break;
                     }
                     createSchema(swagger, fieldSchema, genericClass[i], null, null, null, null, null, false);
+
+                    //循环注解, 方便下一个注解引用
                     schema = fieldSchema;
                 }
 
@@ -365,6 +392,10 @@ public class SwaggerApi {
         }
     }
 
+    /**
+     * 解析所有的 tag 用于初始化 Swagger 对象
+     * @return 所有的 tag
+     */
     public static Collection<Tag> parseAllTags() {
 
         Map<String, Tag> tagsMap = new HashMap<String, Tag>();
@@ -378,6 +409,11 @@ public class SwaggerApi {
         return tagsMap.values();
     }
 
+    /**
+     * 解析特定路由的 Tag
+     * @param router Router 对象
+     * @return 路由相关的 Tag
+     */
     public static Map<String, Tag> parseTags(Router router) {
         Map<String, Tag> tagsMap = new HashMap<String, Tag>();
         for(String tag : router.tags()) {
@@ -395,11 +431,26 @@ public class SwaggerApi {
         return tagsMap;
     }
 
-    public static Schema createSchema(Swagger swagger, Schema schema, Class clazz, String name, String description, String defaultVal, Boolean required, String example, boolean ref){
+    /**
+     * 创建或填充 Schema 对象
+     * @param swagger Swagger 对象
+     * @param schema  schema 对象, null会自动创建一个新的 Schema 对象并返回
+     * @param clazz   当前 Schema 的类信息
+     * @param name    'null' 用 class 填充整个 schema, !=null 用 class 填充 schema 某个特定的 properties
+     * @param description 描述信息
+     * @param defaultVal 默认值
+     * @param required 是否必填
+     * @param example 样例数据
+     * @param ref 是否采用引用方式
+     * @return Schema 对象
+     */
+    public static Schema createSchema(Swagger swagger, Schema schema, Class clazz, String name,
+                                      String description, String defaultVal, Boolean required, String example, boolean ref){
         if(schema == null) {
             schema = new Schema();
         }
 
+        //基本类型
         if(TReflect.isSystemType(clazz)) {
             if(name == null) {
                 String[] types = getParamType(clazz);
@@ -407,7 +458,6 @@ public class SwaggerApi {
                 schema.setFormat(types[1]);
                 schema.setExample(example);
             } else {
-                //for @BodyParam
                 String[] types = getParamType(clazz);
                 schema.setType("object");
                 Schema property = new Schema(types[0], types[1]);
@@ -421,10 +471,11 @@ public class SwaggerApi {
                     schema.getRequired().add(name);
                 }
             }
-        } else {
+        }
+        //复杂类型
+        else {
             schema.setType("object");
             if(name == null) {
-                //for @BodyParam
                 createProperites(swagger, schema, clazz, ref);
                 schema.setExample(example);
 
@@ -455,6 +506,11 @@ public class SwaggerApi {
         return schema;
     }
 
+    /**
+     * 样例数据转换
+     * @param example 样例数据
+     * @return 转换后的对象
+     */
     public static Object convertExample(String example) {
         if(JSON.isJSON(example)) {
             return JSON.parse(example);
@@ -463,6 +519,14 @@ public class SwaggerApi {
         }
     }
 
+    /**
+     * 创建 propertie
+     * @param swagger Swagger 对象
+     * @param properties schema 对象, null会自动创建一个新的 Properties 对象并返回
+     * @param clazz 当前 Schema 的类信息
+     * @param ref 是否采用引用方式
+     * @return Properties 对象
+     */
     public static Properties createProperites(Swagger swagger, Properties properties, Class clazz, boolean ref) {
         //find created Definition
         Schema definitionSchema = null;
@@ -547,6 +611,11 @@ public class SwaggerApi {
         return properties;
     }
 
+    /**
+     * 获取参数的 Swagger 类型
+     * @param clazz 对象
+     * @return 参数类型 [主类型, 辅助类型]
+     */
     public static String[] getParamType(Class clazz) {
         if(TReflect.getUnPackageType(clazz.getSimpleName()).equals("String")) {
             return new String[]{"string", null};
