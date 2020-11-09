@@ -27,7 +27,7 @@ import java.util.Vector;
  * Licence: Apache v2 License
  */
 public class WebServerConfig {
-    private String serverName;
+    private String serverName               = "voovan";
     private String host                     = "0.0.0.0";
     private int port                        = 28080;
     private int readTimeout                 = 30;
