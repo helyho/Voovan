@@ -201,7 +201,7 @@ public class JSONEncode {
             value = object.toString();
         } else if (object instanceof AtomicLong || object instanceof AtomicInteger ||
                 object instanceof AtomicBoolean) {
-            value = TReflect.invokeMethod(object, "get");
+            value = TReflect.invokeMethod(object, "get").toString();
         } else if (TReflect.isBasicType(object.getClass())) {
             //这里这么做的目的是方便 js 中通过 eval 方法产生 js 对象
             String strValue = object.toString();
