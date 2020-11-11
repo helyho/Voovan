@@ -443,8 +443,16 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		} catch (ReadMessageException re) {
 			throw re;
 		} catch (TimeoutException te) {
-			socketContext.close();
-			throw new ReadMessageException("syncRead failed, socket is timeout", te);
+			try {
+				//区分连接状态
+				if (isConnected()) {
+					throw new ReadMessageException("syncRead failed by timeout, Socket is disconnected");
+				} else {
+					throw new ReadMessageException("syncRead failed, socket is timeout", te);
+				}
+			} finally {
+				socketContext.close();
+			}
 		} catch (Exception e) {
 			throw new ReadMessageException("syncRead failed", e);
 		}

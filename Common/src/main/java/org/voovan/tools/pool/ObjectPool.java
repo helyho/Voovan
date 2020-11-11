@@ -349,21 +349,21 @@ public class ObjectPool<T extends IPooledObject> {
             return;
         }
 
-        if(validator==null || validator.apply(obj)) {
+        if(validator!=null && !validator.apply(obj)) {
+            remove(obj);
+        } else {
             Long id = ((IPooledObject) obj).getPoolObjectId();
 
             InnerObject innerObject = objects.get(id);
-            if(innerObject == null) {
-                if(destory!=null) {
+            if (innerObject == null) {
+                if (destory != null) {
                     destory.apply(obj);
                 }
-            } else if(maxBorrow>0 && innerObject.getBorrowCount()>=this.maxBorrow) {
+            } else if (maxBorrow > 0 && innerObject.getBorrowCount() >= this.maxBorrow) {
                 remove(id);
             } else if (!innerObject.isRemoved() && objects.get(id).setBorrow(false)) {
                 unborrowedIdList.offer(id);
             }
-        } else {
-            remove(obj);
         }
     }
 
