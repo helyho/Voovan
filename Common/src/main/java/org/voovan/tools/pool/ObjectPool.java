@@ -1,6 +1,7 @@
     package org.voovan.tools.pool;
 
 import org.voovan.Global;
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
@@ -11,6 +12,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -25,7 +27,7 @@ import java.util.function.Supplier;
  * WebSite: https://github.com/helyho/Vestful
  * Licence: Apache v2 License
  */
-public class ObjectPool<T> {
+public class ObjectPool<T extends IPooledObject> {
 
     //<ID, 缓存的对象>
     private ConcurrentHashMap<Long, InnerObject<T>> objects = new ConcurrentHashMap<Long, InnerObject<T>>();
@@ -40,6 +42,7 @@ public class ObjectPool<T> {
     private int minSize = 0;
     private int maxSize = Integer.MAX_VALUE;
     private int interval = 5;
+    private int maxBorrow = -1;
 
     /**
      * 构造一个对象池
@@ -171,6 +174,15 @@ public class ObjectPool<T> {
         return this;
     }
 
+    public int maxBorrow() {
+        return maxBorrow;
+    }
+
+    public ObjectPool<T> maxBorrow(int maxBorrow) {
+        this.maxBorrow = maxBorrow;
+        return this;
+    }
+
     /**
      * 生成ObjectId
      * @return 生成的ObjectId
@@ -205,28 +217,23 @@ public class ObjectPool<T> {
     private Long add(T obj, boolean isBorrow){
         Objects.requireNonNull(obj, "add a null object failed");
 
-        if(obj instanceof IPooledObject) {
-            if (objects.size() >= maxSize) {
-                return null;
-            }
-
-            long id = genObjectId();
-            ((IPooledObject)obj).setPoolObjectId(id);
-
-            InnerObject innerObject = new InnerObject<T>(this, id, obj);
-
-            objects.put(id, innerObject);
-
-            //默认借出状态不加入未借出队列
-            if(!isBorrow) {
-                unborrowedIdList.offer(id);
-            }
-
-            return id;
-        } else {
-            throw new RuntimeException("the Object is not implement IPooledObject interface, please make " + TReflect.getClassName(obj.getClass()) +
-                    " implemets IPooledObject.class or extends PooledObject or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
+        if (objects.size() >= maxSize) {
+            return null;
         }
+
+        long id = genObjectId();
+        ((IPooledObject)obj).setPoolObjectId(id);
+
+        InnerObject innerObject = new InnerObject<T>(this, id, obj);
+
+        objects.put(id, innerObject);
+
+        //默认借出状态不加入未借出队列
+        if(!isBorrow) {
+            unborrowedIdList.offer(id);
+        }
+
+        return id;
     }
 
     /**
@@ -342,30 +349,27 @@ public class ObjectPool<T> {
             return;
         }
 
-        if (obj instanceof IPooledObject) {
-            if(validator==null || validator.apply(obj)) {
-                Long id = ((IPooledObject) obj).getPoolObjectId();
+        if(validator==null || validator.apply(obj)) {
+            Long id = ((IPooledObject) obj).getPoolObjectId();
 
-                InnerObject innerObject = objects.get(id);
-                if(innerObject == null) {
-                    if(destory!=null) {
-                        destory.apply(obj);
-                    }
-                } else if (!innerObject.isRemoved() && objects.get(id).setBorrow(false)) {
-                    unborrowedIdList.offer(id);
+            InnerObject innerObject = objects.get(id);
+            if(innerObject == null) {
+                if(destory!=null) {
+                    destory.apply(obj);
                 }
-            } else {
-                remove(obj);
+            } else if(maxBorrow>0 && innerObject.getBorrowCount()>=this.maxBorrow) {
+                remove(id);
+            } else if (!innerObject.isRemoved() && objects.get(id).setBorrow(false)) {
+                unborrowedIdList.offer(id);
             }
         } else {
-            throw new RuntimeException("the Object is not implement IPooledObject interface, please make " + TReflect.getClassName(obj.getClass()) +
-                    " implemets IPooledObject.class or extends PooledObject or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
+            remove(obj);
         }
     }
 
     /**
      * 判断池中是否存在对象
-     * @param id 对象的 hash 值
+     * @param id 对象的 hash 值[
      * @return true: 存在, false: 不存在
      */
     public boolean contains(long id){
@@ -377,14 +381,8 @@ public class ObjectPool<T> {
      * @param obj 清理的对象
      */
     private void remove(T obj){
-        if(obj instanceof IPooledObject) {
-            Long id = ((IPooledObject) obj).getPoolObjectId();
-            remove(id);
-
-        } else {
-            throw new RuntimeException("the Object is not implement IPooledObject interface, please make " + TReflect.getClassName(obj.getClass()) +
-                    " implemets IPooledObject.class or extends PooledObject or add use annotation @Pool on  " + TReflect.getClassName(obj.getClass()) +"  and Aop support");
-        }
+        Long id = obj.getPoolObjectId();
+        remove(id);
     }
 
     /**
@@ -483,19 +481,28 @@ public class ObjectPool<T> {
 
                                 InnerObject<T> innerObject = iterator.next();
 
-                                //不可用移除
+                                //1. 借出次数控制
+                                if(innerObject.isBorrow()) {
+                                    long usingTime = innerObject.getBorrowTimestamp() > 0 ? System.currentTimeMillis() - innerObject.getBorrowTimestamp() : 0;
+                                    if (usingTime > interval * 1000) {
+                                        Logger.warnf("object borrowed too long time: {id={}, timestamp={}, class={}}\r\nPool info: {}",
+                                                innerObject.getId(), innerObject.getBorrowTimestamp(), innerObject.getObject().getClass(), finalobjectPool.toString());
+                                    }
+                                }
+
+                                //2. 不可用的对象移除
                                 if(validator != null && !validator.apply(innerObject.object)) {
                                     remove(innerObject.getId());
                                 }
 
-                                //保留最小可用对象
+                                //3. 保留最小可用对象
                                 if(avaliableSize <= minSize) {
                                     innerObject.refresh();
                                     avaliableSize++;
                                     continue;
                                 }
 
-                                //未借出且非存活对象使用 destory 进行处理
+                                //4. 未借出且非存活对象使用 destory 进行处理
                                 if (!innerObject.isBorrow() && !innerObject.isAlive()) {
                                     if (destory != null) {
                                         //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
@@ -510,7 +517,7 @@ public class ObjectPool<T> {
                                 }
                             }
 
-                            //补齐最小对象数
+                            //5. 补齐最小对象数
                             int sizeDiff = minSize - totalSize;
                             if (sizeDiff > 0 && supplier != null) {
                                 for (int i = 0; i < sizeDiff; i++) {
@@ -536,15 +543,17 @@ public class ObjectPool<T> {
     /**
      * 池中缓存的对象模型
      */
-    public class InnerObject<T>{
+    public class InnerObject<T extends IPooledObject>{
         private volatile long lastVisiediTime;
         private long id;
+        private long borrowTimestamp = -1;
         @NotSerialization
         private T object;
         @NotSerialization
         private ObjectPool objectCachedPool;
         private AtomicBoolean isBorrow = new AtomicBoolean(false);
         private AtomicBoolean isRemoved = new AtomicBoolean(false);
+        private AtomicInteger borrowCount = new AtomicInteger(0);
 
         public InnerObject(ObjectPool objectCachedPool, long id, T object) {
             this.objectCachedPool = objectCachedPool;
@@ -554,6 +563,10 @@ public class ObjectPool<T> {
         }
 
         protected boolean setBorrow(Boolean isBorrow) {
+            if(isBorrow) {
+                borrowCount.getAndIncrement();
+                borrowTimestamp = System.currentTimeMillis();
+            }
             return this.isBorrow.compareAndSet(!isBorrow, isBorrow);
         }
 
@@ -567,6 +580,14 @@ public class ObjectPool<T> {
 
         public boolean isRemoved() {
             return isRemoved.get();
+        }
+
+        public int getBorrowCount() {
+            return borrowCount.get();
+        }
+
+        public long getBorrowTimestamp() {
+            return borrowTimestamp;
         }
 
         /**
