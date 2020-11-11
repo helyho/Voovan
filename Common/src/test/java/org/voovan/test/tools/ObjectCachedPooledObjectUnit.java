@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.voovan.Global;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.exception.WeaveException;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.weave.Weave;
 import org.voovan.tools.weave.WeaveConfig;
 import org.voovan.tools.pool.ObjectPool;
@@ -26,11 +27,45 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ObjectCachedPooledObjectUnit extends TestCase {
 
+    public void testMaxBorrow() {
+        TestPoolObject t = new TestPoolObject("element ");
+
+        ObjectPool objectPool = new ObjectPool(2).destory(k-> {
+            System.out.println("destory: " + JSON.toJSON(k));
+            return null;
+        }).maxBorrow(10).create();
+        objectPool.add(t);
+
+        for(int k=0;k<30;k++) {
+            Global.getThreadPool().execute(()->{
+                for (int i = 0; i < 50; i++) {
+                    TestPoolObject t1 = (TestPoolObject) objectPool.borrow();
+                    System.out.println(Thread.currentThread().getName() + " " + i + " " + t1);
+                    objectPool.restitution(t1);
+                    TEnv.sleep(100);
+                }
+            });
+        }
+
+        TEnv.sleep(100000);
+    }
+
+    public void testLongTimeBorrow() {
+        TestPoolObject t = new TestPoolObject("element ");
+
+        ObjectPool objectPool = new ObjectPool(2).create();
+        objectPool.add(t);
+
+        TestPoolObject t1 = (TestPoolObject) objectPool.borrow();
+
+        TEnv.sleep(100000);
+    }
+
     public void testAddAndLiveTime(){
         TestPoolObject t = new TestPoolObject("element ");
         ObjectPool objectPool = new ObjectPool(2).create();
         for(int i=0;i<30;i++) {
-            Object item = new TestPoolObject("element " + i);
+            TestPoolObject item = new TestPoolObject("element " + i);
             objectPool.add(item);
         }
 
