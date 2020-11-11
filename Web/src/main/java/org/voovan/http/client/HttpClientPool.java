@@ -27,7 +27,6 @@ public class HttpClientPool {
 
     public HttpClientPool(String host, Integer timeout, Integer minSize, Integer maxSize) {
         pool = new ObjectPool<HttpClient>()
-            .interval(timeout)
             .maxBorrow(500)
             .minSize(minSize).maxSize(maxSize)
             .validator(httpClient -> httpClient.isConnect())
