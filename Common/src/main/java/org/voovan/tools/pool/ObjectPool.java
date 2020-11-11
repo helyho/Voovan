@@ -485,8 +485,8 @@ public class ObjectPool<T extends IPooledObject> {
                                 if(innerObject.isBorrow()) {
                                     long usingTime = innerObject.getBorrowTimestamp() > 0 ? System.currentTimeMillis() - innerObject.getBorrowTimestamp() : 0;
                                     if (usingTime > interval * 1000) {
-                                        Logger.warnf("Object borrowed too long time: {id={}, time={}, class={}}\r\nPool info: {}",
-                                                innerObject.getId(), usingTime/1000, innerObject.getObject().getClass(), finalobjectPool.toString());
+                                        Logger.warnf("Object borrowed too long time: {id={}, time={}, class={}}\r\nPool info: {}\r\n{}",
+                                                innerObject.getId(), usingTime/1000, innerObject.getObject().getClass(), finalobjectPool, innerObject);
                                     }
                                 }
 
