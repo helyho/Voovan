@@ -482,7 +482,7 @@ public class ObjectPool<T extends IPooledObject> {
                                 InnerObject<T> innerObject = iterator.next();
 
                                 //1. 借出次数控制
-                                if(innerObject.isBorrow()) {
+                                if(Global.IS_DEBUG_MODE && innerObject.isBorrow()) {
                                     long usingTime = innerObject.getBorrowTimestamp() > 0 ? System.currentTimeMillis() - innerObject.getBorrowTimestamp() : 0;
                                     if (usingTime > interval * 1000) {
                                         Logger.warnf("Object borrowed too long time: {id:{}, time:{}, class:{}}\r\nPool info: {}\r\n{}",
