@@ -594,7 +594,9 @@ public class HttpClient extends PooledObject implements Closeable{
 				Object readObject = socket.syncRead();
 
 				//如果是异常则抛出异常
-				if (readObject instanceof Exception) {
+				if (readObject instanceof ReadMessageException) {
+					throw (ReadMessageException)readObject;
+				} else if (readObject instanceof Exception) {
 					throw new ReadMessageException((Exception) readObject);
 				} else {
 					response = (Response) readObject;
