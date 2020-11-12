@@ -380,7 +380,8 @@ public class WebContext {
 	 */
 	public static void getAuthToken(){
 		//保存 Token
-		File tokenFile = new File(".token");
+		File tokenFile = new File("logs" + File.separator + ".token");
+		TFile.mkdir(tokenFile.getPath());
 
 		if(tokenFile.exists()){
 			WebContext.AUTH_TOKEN = new String(TFile.loadFile(tokenFile));
