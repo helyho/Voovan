@@ -58,6 +58,11 @@ public class JSONPath {
         ArrayList result = new ArrayList();
 
         for (String pathElem : pathElems) {
+
+            if(currentPathObject == null) {
+                return null;
+            }
+
             pathElem = pathElem.trim();
 
             if (pathElem.isEmpty()) {
