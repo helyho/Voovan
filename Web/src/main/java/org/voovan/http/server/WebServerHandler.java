@@ -14,7 +14,6 @@ import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.FastThreadLocal;
-import org.voovan.tools.TObject;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
@@ -54,16 +53,9 @@ public class WebServerHandler implements IoHandler {
 		initKeepAliveTimer();
 	}
 
-	public static HttpSessionState getAttachment(IoSession session){
+	public static HttpSessionState getSessionState(IoSession session){
 		Object[] attachment = (Object[]) session.getAttachment();
-
-		HttpSessionState httpSessionState = (HttpSessionState)attachment[0];
-		if(httpSessionState == null) {
-			httpSessionState = new HttpSessionState();
-			attachment[0] = httpSessionState;
-		}
-
-		return  httpSessionState;
+		return  (HttpSessionState)attachment[0];
 	}
 
 	/**
@@ -85,7 +77,7 @@ public class WebServerHandler implements IoHandler {
 						continue;
 					}
 
-					long timeoutValue = getAttachment(session).getKeepAliveTimeout();
+					long timeoutValue = getSessionState(session).getKeepAliveTimeout();
 
 					if(timeoutValue < currentTimeValue){
 						//如果超时则结束当前连接
@@ -106,13 +98,14 @@ public class WebServerHandler implements IoHandler {
 		//[1] SocketFilterChain
 		//[2] WebSocketFilter
 		Object[] attachment = new Object[3];
+		attachment[0] = new HttpSessionState();
 		session.setAttachment(attachment);
 		return null;
 	}
 
 	@Override
 	public void onDisconnect(IoSession session) {
-		HttpSessionState httpSessionState = getAttachment(session);
+		HttpSessionState httpSessionState = getSessionState(session);
 
 		if (httpSessionState.isWebSocket()) {
 
@@ -178,7 +171,7 @@ public class WebServerHandler implements IoHandler {
 			HttpResponse httpResponse = THREAD_HTTP_RESPONSE.get();
 			httpResponse.init(defaultCharacterSet, session);
 
-			HttpSessionState httpSessionState = getAttachment(session);
+			HttpSessionState httpSessionState = getSessionState(session);
 			httpSessionState.setHttpRequest(httpRequest);
 			httpSessionState.setHttpResponse(httpResponse);
 
@@ -211,7 +204,7 @@ public class WebServerHandler implements IoHandler {
 	 * @return HTTP 响应对象
 	 */
 	public HttpResponse disposeHttp(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
-		HttpSessionState httpSessionState = getAttachment(session);
+		HttpSessionState httpSessionState = getSessionState(session);
 
 		//如果是长连接则填充响应报文
 		if(httpRequest.protocol().getVersion().endsWith(HttpStatic.HTTP_11_STRING)) {
@@ -264,7 +257,7 @@ public class WebServerHandler implements IoHandler {
 	 */
 	private static String upgradeStatusCode = "Switching Protocols";
 	public HttpResponse disposeUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
-		HttpSessionState httpSessionState = getAttachment(session);
+		HttpSessionState httpSessionState = getSessionState(session);
 
 		//如果不是匹配的路由则关闭连接
 		if(webSocketDispatcher.findRouter(httpRequest)!=null){
@@ -303,7 +296,7 @@ public class WebServerHandler implements IoHandler {
 	 * @return WebSocket 帧对象
 	 */
 	public WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
-		HttpSessionState httpSessionState = getAttachment(session);
+		HttpSessionState httpSessionState = getSessionState(session);
 
 		ByteBufferChannel byteBufferChannel = null;
 		if(!session.containAttribute("WebSocketByteBufferChannel")){
@@ -358,7 +351,7 @@ public class WebServerHandler implements IoHandler {
 	}
 
 	private void refreshTimeout(IoSession session){
-		HttpSessionState httpSessionState = getAttachment(session);
+		HttpSessionState httpSessionState = getSessionState(session);
 
 		int keepAliveTimeout = webConfig.getKeepAliveTimeout();
 		long timeoutValue = System.currentTimeMillis()+keepAliveTimeout*1000;
@@ -367,7 +360,7 @@ public class WebServerHandler implements IoHandler {
 
 	@Override
 	public void onSent(IoSession session, Object obj) {
-		HttpSessionState httpSessionState = getAttachment(session);
+		HttpSessionState httpSessionState = getSessionState(session);
 
 		HttpRequest request = httpSessionState.getHttpRequest();
 
@@ -423,7 +416,7 @@ public class WebServerHandler implements IoHandler {
 
 	@Override
 	public void onFlush(IoSession session) {
-		HttpSessionState httpSessionState = getAttachment(session);
+		HttpSessionState httpSessionState = getSessionState(session);
 
 		HttpRequest request = httpSessionState.getHttpRequest();
 		//处理连接保持

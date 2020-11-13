@@ -1,7 +1,6 @@
 package org.voovan.http.server;
 
 import org.voovan.http.message.HttpStatic;
-import org.voovan.http.server.context.HttpFilterConfig;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.exception.RouterNotFound;
 import org.voovan.http.websocket.*;
@@ -356,7 +355,7 @@ public class WebSocketDispatcher {
 	 * @param session HTTP-Session 对象
 	 */
 	public void fireCloseEvent(IoSession session){
-		HttpSessionState httpSessionState = WebServerHandler.getAttachment(session);
+		HttpSessionState httpSessionState = WebServerHandler.getSessionState(session);
 		//检查是否是WebSocket
 		if (httpSessionState.isWebSocket()) {
 			// 触发一个 WebSocket Close 事件

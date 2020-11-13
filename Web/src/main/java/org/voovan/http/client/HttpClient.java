@@ -182,6 +182,7 @@ public class HttpClient extends PooledObject implements Closeable{
 			//[2] WebSocketFilter
 			//[3] Response
 			Object[] attachment = new Object[4];
+			attachment[0] = new HttpSessionState();
 			attachment[3] = new Response();
 			socket.getSession().setAttachment(attachment);
 
@@ -725,7 +726,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		//先注册Socket业务处理句柄,再打开消息分割器中 WebSocket 开关
 		socket.handler(webSocketHandler);
-		HttpSessionState httpSessionState = WebServerHandler.getAttachment(session);
+		HttpSessionState httpSessionState = WebServerHandler.getSessionState(session);
 		httpSessionState.setType(HttpRequestType.WEBSOCKET);
 
 		Object result = null;

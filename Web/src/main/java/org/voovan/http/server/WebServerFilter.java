@@ -100,7 +100,7 @@ public class WebServerFilter implements IoFilter {
 			return null;
 		}
 
-		HttpSessionState httpSessionState = WebServerHandler.getAttachment(session);
+		HttpSessionState httpSessionState = WebServerHandler.getSessionState(session);
 
 		if (httpSessionState.isHttp()) {
 
