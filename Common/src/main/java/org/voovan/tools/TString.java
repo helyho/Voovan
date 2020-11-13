@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  */
 public class TString {
 
-	private static Map<Integer, Pattern> regexPattern = new ConcurrentHashMap<Integer, Pattern>();
+	private static Map<Integer, Pattern> REGEX_PATTERN = new ConcurrentHashMap<Integer, Pattern>();
 
 	/**
 	 * 单词首字母大写
@@ -179,10 +179,10 @@ public class TString {
 	private static Pattern getCachedPattern(String regex, Integer flags) {
 		Pattern pattern = null;
 		flags = flags == null ? 0 : flags;
-		pattern = regexPattern.get(regex.hashCode());
+		pattern = REGEX_PATTERN.get(regex.hashCode());
 		if (pattern==null) {
 			pattern = Pattern.compile(regex, flags);
-			regexPattern.put(regex.hashCode(), pattern);
+			REGEX_PATTERN.put(regex.hashCode(), pattern);
 		}
 		return pattern;
 	}
