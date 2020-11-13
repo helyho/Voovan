@@ -178,7 +178,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 			//初始化 Session.attachment
 			//[0] HttpSessionState
-			//[1] HttpFilter
+			//[1] SocketFilterChain
 			//[2] WebSocketFilter
 			//[3] Response
 			Object[] attachment = new Object[4];

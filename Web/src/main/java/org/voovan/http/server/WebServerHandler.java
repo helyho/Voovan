@@ -103,7 +103,7 @@ public class WebServerHandler implements IoHandler {
 	public Object onConnect(IoSession session) {
 		//初始化 Session.attachment
 		//[0] HttpSessionState
-		//[1] HttpFilter
+		//[1] SocketFilterChain
 		//[2] WebSocketFilter
 		Object[] attachment = new Object[3];
 		session.setAttachment(attachment);
