@@ -25,9 +25,9 @@ public class HttpClientPool {
     private static int MIN_SIZE = TPerformance.getProcessorCount();
     private static int MAX_SIZE = TPerformance.getProcessorCount();
 
-    public HttpClientPool(String host, Integer timeout, Integer minSize, Integer maxSize) {
+    public HttpClientPool(String host, Integer timeout, Integer minSize, Integer maxSize, int maxBorrow) {
         pool = new ObjectPool<HttpClient>()
-            .maxBorrow(100)
+            .maxBorrow(maxBorrow)
             .minSize(minSize).maxSize(maxSize)
             .validator(httpClient -> httpClient.isConnect())
             .supplier(()->{
@@ -51,6 +51,10 @@ public class HttpClientPool {
                 httpClient.close();
                 return true;
             }).create();
+    }
+
+    public HttpClientPool(String host, Integer timeout, Integer minSize, Integer maxSize) {
+        this(host, timeout, minSize, maxSize, -1);
     }
 
     public HttpClientPool(String host, Integer timeout) {
