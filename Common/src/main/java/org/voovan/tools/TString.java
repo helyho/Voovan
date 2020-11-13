@@ -303,11 +303,24 @@ public class TString {
 
 	/**
 	 * 快速字符串替换算法
+	 * 		默认正在 flag = 0, quoteReplacement = true
+	 * @param source      源字符串
+	 * @param regex       正则字符串
+	 * @param replacement 替换字符串
+	 * @param flags  	  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
+	 * @return 替换后的字符串
+	 */
+	public static String fastReplaceAll(String source, String regex, String replacement, int flags) {
+		return fastReplaceAll(source, regex, replacement, flags, true);
+	}
+
+	/**
+	 * 快速字符串替换算法
 	 * 		默认正在 flag = 0
 	 * @param source      源字符串
 	 * @param regex       正则字符串
 	 * @param replacement 替换字符串
-	 * @param quoteReplacement 对 replacement 是否进行转移
+	 * @param quoteReplacement 对 replacement 是否进行转义
 	 * @return 替换后的字符串
 	 */
 	public static String fastReplaceAll(String source, String regex, String replacement, boolean quoteReplacement) {
@@ -321,7 +334,7 @@ public class TString {
 	 * @param regex       正则字符串
 	 * @param replacement 替换字符串
 	 * @param flags  	  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
-	 * @param quoteReplacement 对 replacement 是否进行转移
+	 * @param quoteReplacement 对 replacement 是否进行转义
 	 * @return 替换后的字符串
 	 */
 	public static String fastReplaceAll(String source, String regex, String replacement, Integer flags, boolean quoteReplacement) {
@@ -347,11 +360,24 @@ public class TString {
 
 	/**
 	 * 快速字符串替换算法
+	 * 		默认正在 flag = 0, quoteReplacement = true
+	 * @param source      源字符串
+	 * @param regex       正则字符串
+	 * @param replacement 替换字符串
+	 * @param flags  	  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
+	 * @return 替换后的字符串
+	 */
+	public static String fastReplaceFirst(String source, String regex, String replacement, int flags) {
+		return fastReplaceFirst(source, regex, replacement, flags, true);
+	}
+
+	/**
+	 * 快速字符串替换算法
 	 * 		默认正在 flag = 0
 	 * @param source      源字符串
 	 * @param regex       正则字符串
 	 * @param replacement 替换字符串
-	 * @param quoteReplacement 对 replacement 是否进行转移
+	 * @param quoteReplacement 对 replacement 是否进行转义
 	 * @return 替换后的字符串
 	 */
 	public static String fastReplaceFirst(String source, String regex, String replacement, boolean quoteReplacement) {
@@ -365,7 +391,7 @@ public class TString {
 	 * @param regex       正则字符串
 	 * @param replacement 替换字符串
 	 * @param flags  	  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
-	 * @param quoteReplacement 对 replacement 是否进行转移
+	 * @param quoteReplacement 对 replacement 是否进行转义
 	 * @return 替换后的字符串
 	 */
 	public static String fastReplaceFirst(String source, String regex, String replacement, Integer flags, boolean quoteReplacement) {
