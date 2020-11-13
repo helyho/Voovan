@@ -9,7 +9,6 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
-import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.log.Logger;
@@ -57,7 +56,7 @@ public class HttpClientFilter implements IoFilter {
 			if(object instanceof ByteBuffer){
 				ByteBuffer byteBuffer = (ByteBuffer)object;
 
-				if(WebServerHandler.getAttachment(session).isWebSocket()){
+				if(WebServerHandler.getSessionState(session).isWebSocket()){
 					return WebSocketFrame.parse((ByteBuffer)object);
 				}else {
 					Response response = (Response) ((Object[])session.getAttachment())[3];

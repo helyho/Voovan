@@ -50,7 +50,7 @@ public class WebSocketSession extends Attributes {
      * @return WebSocket的地址
      */
     public String getLocation(){
-        HttpSessionState httpSessionState = WebServerHandler.getAttachment(socketSession);
+        HttpSessionState httpSessionState = WebServerHandler.getSessionState(socketSession);
         HttpRequest request = httpSessionState.getHttpRequest();
         return request.protocol().getPath();
     }
@@ -60,7 +60,7 @@ public class WebSocketSession extends Attributes {
      * @return HttpSession对象
      */
     public HttpSession getHttpSession(){
-        HttpSessionState httpSessionState = WebServerHandler.getAttachment(socketSession);
+        HttpSessionState httpSessionState = WebServerHandler.getSessionState(socketSession);
         HttpRequest request = httpSessionState.getHttpRequest();
         if(request.sessionExists()) {
             return request.getSession();

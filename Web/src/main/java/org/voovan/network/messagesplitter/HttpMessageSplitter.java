@@ -1,12 +1,10 @@
 package org.voovan.network.messagesplitter;
 
 import org.voovan.http.HttpRequestType;
-import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.HttpSessionState;
 import org.voovan.http.server.WebServerHandler;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
-import org.voovan.tools.buffer.TByteBuffer;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -31,7 +29,7 @@ public class HttpMessageSplitter implements MessageSplitter {
             return -1;
         }
 
-        HttpSessionState httpSessionState = WebServerHandler.getAttachment(session);
+        HttpSessionState httpSessionState = WebServerHandler.getSessionState(session);
 
         if(httpSessionState.isWebSocket()){
             result = isWebSocketFrame(byteBuffer);
