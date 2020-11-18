@@ -717,9 +717,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 开启事务
      *      同一个线程共线给一个事务
      *      默认: 锁提交等待时间-1, 死锁检测:true, 是否启用快照事务: false
+     * @return Transaction 事务对象
      */
-    public void beginTransaction() {
-        beginTransaction(-1, true, false);
+    public Transaction beginTransaction() {
+        return beginTransaction(-1, true, false);
     }
 
     /**
@@ -733,8 +734,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param expire         提交时锁超时时间
      * @param deadlockDetect 死锁检测是否打开
      * @param withSnapShot   是否启用快照事务
+     * @return Transaction 事务对象
      */
-    public void beginTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
+    public Transaction beginTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
         Transaction transaction = threadLocalTransaction.get();
         if(transaction==null) {
             transaction = createTransaction(expire, deadlockDetect, withSnapShot);
@@ -742,6 +744,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         } else {
             savePoint();
         }
+
+        return transaction;
     }
 
     private Transaction createTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
@@ -1151,22 +1155,22 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         byte[] valueBytes = serialize(value);
 
         //这里使用独立的事务是未了防止默认事务提交导致失效
-        Transaction innerTransaction = createTransaction(-1, false, false);
+        Transaction transaction = beginTransaction(-1, true, false);
 
         try {
-            byte[] oldValueBytes = innerTransaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
+            byte[] oldValueBytes = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
 
             if(oldValueBytes == null){
-                innerTransaction.put(dataColumnFamilyHandle, keyBytes, valueBytes);
+                transaction.put(dataColumnFamilyHandle, keyBytes, valueBytes);
                 return null;
             } else {
                 return (V) unserialize(oldValueBytes);
             }
         } catch (RocksDBException e) {
-            rollback(innerTransaction);
+            rollback();
             throw new RocksMapException("RocksMap putIfAbsent error, " + e.getMessage(), e);
         } finally {
-            commit(innerTransaction);
+            commit();
         }
     }
 
@@ -1192,22 +1196,22 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         byte[] oldValueBytes = serialize(oldValue);
 
         //这里使用独立的事务是未了防止默认事务提交导致失效
-        Transaction innerTransaction = createTransaction(-1, false, false);
+        Transaction transaction = beginTransaction(-1, true, false);
 
         try {
-            byte[] oldDbValueBytes = innerTransaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
+            byte[] oldDbValueBytes = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
             if(oldDbValueBytes!=null && Arrays.equals(oldDbValueBytes, oldValueBytes)){
-                innerTransaction.put(dataColumnFamilyHandle, keyBytes, newValueBytes);
+                transaction.put(dataColumnFamilyHandle, keyBytes, newValueBytes);
                 return true;
             } else {
                 return false;
             }
 
         } catch (RocksDBException e) {
-            rollback(innerTransaction);
+            rollback();
             throw new RocksMapException("RocksMap replace failed , " + e.getMessage(), e);
         } finally {
-            commit(innerTransaction);
+            commit();
         }
     }
 
