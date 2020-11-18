@@ -554,7 +554,7 @@ public class TString {
 				indent.append(" ");
 			}
 			source = indent.toString() + source;
-			source = org.voovan.tools.TString.fastReplaceAll(source, "\n", "\n" + indent.toString());
+			source = fastReplaceAll(source, "\n", "\n" + indent.toString());
 		}
 		return source;
 	}
@@ -946,7 +946,7 @@ public class TString {
 		long randomMark = currentTime ^random.nextLong();
 
 		long id = obj.hashCode()^Runtime.getRuntime().freeMemory()^mark^(new Random(randomMark).nextLong())^Long.valueOf(sign, 36);
-		return org.voovan.tools.TString.radixConvert(id, 62);
+		return radixConvert(id, 62);
 	}
 
 

@@ -43,7 +43,7 @@ public class RocksMapBench {
 //        blockBasedTableConfig.setEnableIndexCompression(false);
 //        blockBasedTableConfig.setVerifyCompression(false);
 //        blockBasedTableConfig.setWholeKeyFiltering(true);
-//        options = new Options();
+        options = new Options();
 //        options.optimizeFiltersForHits();
 //        options.setTableFormatConfig(blockBasedTableConfig);
 //        options.setCreateIfMissing(true);
@@ -53,12 +53,16 @@ public class RocksMapBench {
 //        options.setCompressionType(CompressionType.NO_COMPRESSION);
 //        options.setCompactionStyle(CompactionStyle.NONE);
 //        options.setIncreaseParallelism(Math.max(Runtime.getRuntime().availableProcessors(), 2));
-//        dbOptions = new DBOptions(options);
+        dbOptions = new DBOptions(options);
 //        readOptions = new ReadOptions();
 //        readOptions.setVerifyChecksums(false);
 //        writeOptions = new WriteOptions();
 //        writeOptions.setDisableWAL(true);
 //        columnFamilyOptions = new ColumnFamilyOptions();
+
+        dbOptions.setCreateIfMissing(true);
+
+        dbOptions.setWalFilter(new RocksDBWalFilter());
 
         RocksMap rocksMap = new RocksMap("berch", "benchCF", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
         //Rocksdb 数据库配置

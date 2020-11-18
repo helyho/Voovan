@@ -56,7 +56,7 @@ public class JSONDecode {
 			}
 		}
 
-		value = parse(new StringReader(jsonStr.trim() + "\0"));
+		value = parse(new StringReader(jsonStr.trim()));
 
 		if(JSON_HASH) {
 			JSON_DECODE_CACHE.put(jsonHash, value);
@@ -129,23 +129,19 @@ public class JSONDecode {
 			char nextChar = 0;
 			char prevChar = 0;
 
-			int charCount = 0;   //start with 1
 			while (true) {
 				currentChar = (char) reader.read();
-				charCount++;
 
+				reader.mark(0);
 				nextChar = (char) reader.read();
-				if (nextChar != 65535) {
-					reader.skip(-1);
-				}
+				reader.reset();
 
-				if (charCount >= 2) {
-					reader.skip(-2);
+				if (reader.skip(-2)==-2) {
 					prevChar = (char) reader.read();
-					reader.skip(1);
 				}
+				reader.reset();
 
-				//处理注释
+				//====================  处理注释  ====================
 				if (!isString) {
 					if(currentChar == Global.CHAR_BACKSLASH && isComment == 0) {
 						if (nextChar != 0 && nextChar == Global.CHAR_BACKSLASH){
@@ -181,25 +177,21 @@ public class JSONDecode {
 					}
 				}
 
-				//创建根对象
-				if (root == null) {
-					if(!isString && isComment==0 && !isFunction &&
-							(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES)
-					) {
+				//====================  创建根对象  ====================
+				if (root == null && !isString && isComment==0 && !isFunction) {
+					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
 						reader.skip(-1);
 						root = createRootObj(reader);
+						continue;
 					}
-
-					continue;
 				}
 
-				//处理字符串
-				//    分析字符串,如果是字符串不作任何处理
+				//====================  处理字符串  ====================
+				//分析字符串,如果是字符串不作任何处理
 				if (currentChar == Global.CHAR_QUOTE || currentChar == Global.CHAR_S_QUOTE) {
-					//i小于1的不是转意字符,判断为字符串(因为转意字符要2个字节),大于2的要判断是否\\"的转义字符
-					if (isComment==0 && nextChar != 0 && prevChar != Global.CHAR_SLASH) {
-
-						//字符串起始的"
+					//非注释状态, 并且不是转移字符
+					if (isComment==0 && prevChar != Global.CHAR_SLASH) {
+						//字符串起始的 " 或 '
 						if (stringWarpFlag == Global.CHAR_EOF) {
 							stringWarpFlag = currentChar;
 							isString = true;
@@ -214,9 +206,9 @@ public class JSONDecode {
 				}
 
 
-				//处理对象的包裹
+				//====================  处理对象的包裹  ====================
 				if(!isString &&  !isFunction) {
-					//JSON数组字符串分组,以符号对称的方式取 []
+					//数组 []
 					if (currentChar == Global.CHAR_LS_BRACES) {
 						reader.skip(-1);
 						//递归解析处理,取 value 对象
@@ -232,7 +224,7 @@ public class JSONDecode {
 						}
 					}
 
-					//JSON对象字符串分组,以符号对称的方式取 {}
+					//对象 {}
 					else if (currentChar == Global.CHAR_LC_BRACES) {
 						reader.skip(-1);
 						//递归解析处理,取 value 对象
@@ -253,10 +245,6 @@ public class JSONDecode {
 				//如果不是字符串,则只拼装可见字符
 				if (isString || (!isString && !Character.isWhitespace(currentChar))) {
 					itemString.append(currentChar);
-				}
-
-				if (root == null) {
-					root = value;
 				}
 
 				//处理数据
@@ -306,7 +294,7 @@ public class JSONDecode {
 				}
 
 				//返回值处理
-				if (value != null && root != null) {
+				if (value != null) {
 					//判断取值不是任何对象
 					if (value instanceof String) {
 						String stringValue = (String)value;
@@ -390,7 +378,10 @@ public class JSONDecode {
 					value = null;
 				}
 
-				if (currentChar == 65535) {
+				if (nextChar == 65535) {
+					if(root==null && value == null && keyString == null) {
+						root = itemString.toString();
+					}
 					break;
 				}
 			}
