@@ -853,8 +853,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         if(all) {
             rollback(transaction);
             threadLocalTransaction.set(null);
-        } else if(threadLocalSavePointCount.get()!=0) {
-            rollbackSavePoint();
+        } else {
+            if(threadLocalSavePointCount.get()==0) {
+                rollback(transaction);
+            } else {
+                rollbackSavePoint();
+            }
         }
     }
 
@@ -1184,8 +1188,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     private boolean keyMayExists(byte[] keyBytes) {
-        Holder<byte[]> holder = new Holder<byte[]>(new byte[0]);
-        boolean result = rocksDB.keyMayExist(dataColumnFamilyHandle, keyBytes, holder);
+        boolean result = rocksDB.keyMayExist(dataColumnFamilyHandle, keyBytes, null);
         return result;
     }
 
@@ -1838,7 +1841,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if (toKeyBytes == null) {
                 ret = iterator.isValid();
             } else {
-                ret = iterator.isValid() && TByte.byteArrayCompare(toKeyBytes, iterator.key()) == 0;
+                ret = iterator.isValid() && TByte.byteArrayCompare(toKeyBytes, iterator.key()) != 0;
             }
             return ret;
         }
