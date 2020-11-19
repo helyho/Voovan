@@ -2,6 +2,7 @@ package org.voovan.tools;
 
 import org.voovan.Global;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.pool.ObjectPool;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -12,6 +13,7 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 系统性能相关
@@ -29,6 +31,10 @@ public class TPerformance {
 	private static List<String> LOCAL_IP_ADDRESSES = new ArrayList<String>();
 	private static ConcurrentHashMap<String, byte[]> LOCAL_IP_MAC = new ConcurrentHashMap<>();
 	private static List<NetworkInterface> NETWROK_INTERFACE = new ArrayList<NetworkInterface>();
+
+
+	private static long START_TIME_MILLIS	= System.currentTimeMillis();
+
 
 	static {
 		getLocalIpAddrs();
@@ -400,6 +406,22 @@ public class TPerformance {
 		return jvmInfo;
 	}
 
+	/**
+	 * 获取当前进程的运行时间
+	 * @param timeUnit 时间单位
+	 * @return 响应的时间
+	 */
+	public static Long getRuningTime(TimeUnit timeUnit){
+		return timeUnit.convert(getRuningTime(), TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * 获取当前进程的运行时间 (毫秒)
+	 * @return
+	 */
+	public static Long getRuningTime(){
+		return System.currentTimeMillis() - START_TIME_MILLIS;
+	}
 
 	/**
 	 * JVM 中对象信息

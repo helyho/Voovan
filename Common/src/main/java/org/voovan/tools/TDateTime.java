@@ -269,6 +269,11 @@ public class TDateTime {
 		final long min = TimeUnit.SECONDS.toMinutes(eTime);
 		eTime -= TimeUnit.MINUTES.toSeconds(min);
 		final long sec = eTime;
-		return String.format("%d days, %02d:%02d:%02d", days, hr, min, sec);
+
+		if(days == 0) {
+			return String.format("%02d:%02d:%02d", hr, min, sec);
+		} else {
+			return String.format("%d, %02d:%02d:%02d", days, hr, min, sec);
+		}
 	}
 }

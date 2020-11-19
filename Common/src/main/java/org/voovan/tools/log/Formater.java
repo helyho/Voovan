@@ -204,7 +204,7 @@ public class Formater {
         }
 
         if(LoggerStatic.HAS_RUNTIME) {
-            tokens.put("R", Long.toString(System.currentTimeMillis() - LoggerStatic.getStartTimeMillis())); //系统运行时间
+            tokens.put("R", TDateTime.formatElapsedSecs(TPerformance.getRuningTime()/1000)); //系统运行时间
         }
 
         if(LoggerStatic.HAS_STACK) {
