@@ -63,7 +63,7 @@ public class SingleLogger {
 		loggerThread.addLogMessage(msg);
 	}
 
-	public synchronized static SingleLogger writeLog(String fileName,String msg) {
+	public synchronized static SingleLogger writeLog(String fileName, String msg) {
 		SingleLogger singleLog = null;
 		if(!singleLoggerPool.containsKey(fileName) || singleLoggerPool.get(fileName).isFinished()) {
 			try {
