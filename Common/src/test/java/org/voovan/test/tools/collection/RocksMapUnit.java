@@ -249,7 +249,7 @@ public class RocksMapUnit extends TestCase {
             RocksMap rocksMapT = (RocksMap)map;
             rocksMapT.put("commit", "ffdasf");
             //测试事务隔离
-            rocksMapT.rollback();
+            rocksMapT.rollback(false);
             System.out.println("withTransaction: " + rocksMapT.get("commit"));
             return true;
         });
@@ -310,7 +310,7 @@ public class RocksMapUnit extends TestCase {
             rocksMap.put("transaction55", "rocksMap.value");
             rocksMap.rollback();
         }
-        rocksMap.commit();
+
         System.out.println("rocksMap nest commit get: "+ rocksMap.get("transaction44"));
         System.out.println("rocksMap2 nest rollback get: "+ rocksMap2.get("transaction55"));
 
@@ -372,6 +372,7 @@ public class RocksMapUnit extends TestCase {
             iterator.next();
             System.out.println(iterator.key() + " " + iterator.value());
         }
+
         System.out.println("=================iterator range 3333->transaction================");
         iterator = rocksMap.iterator("3", "tr");
         while(iterator.hasNext()) {
@@ -388,8 +389,8 @@ public class RocksMapUnit extends TestCase {
         }
         System.out.println("=================================================");
 
-        System.out.println("=================iterator range start->3333================");
-        iterator = rocksMap.iterator(null, "3333");
+        System.out.println("=================iterator range start->transaction================");
+        iterator = rocksMap.iterator(null, "tr");
         while(iterator.hasNext()) {
             iterator.next();
             System.out.println(iterator.key() + " " + iterator.value());
@@ -442,11 +443,11 @@ public class RocksMapUnit extends TestCase {
         System.out.println("name:" + rocksMap.get("name"));
         rocksMap.removeAll(TObject.asList("111", "222"));
         System.out.println("KeySet: "+ rocksMap.keySet());
-        System.out.println("search: " + JSON.toJSON(rocksMap.startWith("hh")));
-        System.out.println("search: " + JSON.toJSON(rocksMap.startWith("hh",3, 30)));
-        System.out.println("KeySet: "+ rocksMap.keySet());
-        rocksMap.removeRange("hhhh5", "hhhh3");
-        System.out.println("KeySet: "+ rocksMap.keySet());
+        System.out.println("startWith hh: " + JSON.toJSON(rocksMap.startWith("hh")));
+        System.out.println("startWith hh 3->end: " + JSON.toJSON(rocksMap.startWith("hh",3, 30)));
+        System.out.println("range remove before KeySet: "+ rocksMap.keySet());
+        rocksMap.removeRange("hhhh3", "hhhh5");
+        System.out.println("range remove after KeySet: "+ rocksMap.keySet());
     }
 
     public void testBackup() throws RocksDBException {
