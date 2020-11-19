@@ -46,7 +46,7 @@ public class Logger {
 	 * @param logLevel  日志级别
 	 * @return true: 包含, false: 不包含
 	 */
-	public static boolean isLogLevel(String logLevel){
+	public static boolean hasLevel(String logLevel){
 		if(formater.getLogLevel().contains("ALL")){
 			return true;
 		}
@@ -60,6 +60,10 @@ public class Logger {
 
 	public static void custom(String logLevel, Object msg, Throwable e) {
 		if(!Logger.isEnable()){
+			return;
+		}
+
+		if(!hasLevel(logLevel)) {
 			return;
 		}
 

@@ -379,7 +379,7 @@ public class JdbcOperate implements Closeable {
 			for(String sqlText : sqlTexts) {
 				statement.addBatch(sqlText);
 
-				if (Logger.isLogLevel("DEBUG")) {
+				if (Logger.hasLevel("DEBUG")) {
 					Logger.sql("[SQL_Executed]: " + sqlText);
 				}
 			}
@@ -440,7 +440,7 @@ public class JdbcOperate implements Closeable {
 				}
 			}
 
-			if(Logger.isLogLevel("DEBUG")) {
+			if(Logger.hasLevel("DEBUG")) {
 				Logger.sql("[SQL_Executed]: " + sqlText);
 			}
 
