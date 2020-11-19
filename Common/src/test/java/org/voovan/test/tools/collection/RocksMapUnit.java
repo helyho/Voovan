@@ -145,6 +145,9 @@ public class RocksMapUnit extends TestCase {
         ColumnFamilyOptions columnFamilyOptions = new ColumnFamilyOptions();
         columnFamilyOptions.setCompactionFilter(new RemoveEmptyValueCompactionFilter());
         RocksMap rocksMap = new RocksMap(null, cfName, columnFamilyOptions, null, null, null, false);
+
+        rocksMap.clear();
+
         rocksMap.withTransaction(rm->{
             RocksMap rocksMap1 = (RocksMap)rm;
             rocksMap1.put("1111", new byte[]{(byte)1, (byte)2});
@@ -154,7 +157,7 @@ public class RocksMapUnit extends TestCase {
         });
 
 
-        List<RocksMap.RocksWalRecord> rocksWalRecords = rocksMap.getWalSince(0l, true);
+        List<RocksMap.RocksWalRecord> rocksWalRecords = rocksMap.getWalSince(0l, false);
         for(RocksMap.RocksWalRecord rocksWalRecord : rocksWalRecords) {
             byte[] bytes = (byte[])rocksWalRecord.getChunks().get(1);
             Object value = bytes==null ? null : bytes.length;
@@ -191,7 +194,8 @@ public class RocksMapUnit extends TestCase {
         System.out.println(rocksMap.get("name"));
         rocksMap.put("11", "11");
 
-        System.out.println("keyMayExists: " + rocksMap.keyMayExists("11"));
+        System.out.println("keyMayExists 11: " + rocksMap.keyMayExists("11"));
+        System.out.println("keyMayExists 22: " + rocksMap.keyMayExists("22"));
 
         rocksMap.clear();
 
@@ -473,6 +477,6 @@ public class RocksMapUnit extends TestCase {
     public void testRestoreLastBackup() throws RocksDBException {
         //测试列族区分,这个列族不写入任何数据
         String cfName = "testdb1000";
-        RocksMap.restoreFromLatestBackup();
+        RocksMap.restoreLatestBackup();
     }
 }
