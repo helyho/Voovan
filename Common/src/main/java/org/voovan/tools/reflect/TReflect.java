@@ -1088,8 +1088,9 @@ public class TReflect {
                     METHODS.put(getMethodParamTypeMark(objClass, methodName, paramTypes), methodItem);
                     return result;
                 } catch (Exception e) {
-                    Logger.warn("Method: " + getClassName(objClass) + "#" +methodName + "("+args.length+") reflect invoke, can be use strict parameter type to improve performance");
+                    exception = e;
 
+                    Logger.warn("Method: " + getClassName(objClass) + "#" +methodName + "("+args.length+") reflect invoke, can be use strict parameter type to improve performance");
                     if(Global.IS_DEBUG_MODE) {
                         e.printStackTrace();
                     }
@@ -1282,6 +1283,8 @@ public class TReflect {
 
                     return result;
                 } catch (Exception e) {
+                    exception = e;
+
                     Logger.warn("Constructor: " + getClassName(targetClazz) + "("+args.length+") reflect invoke, can be use strict parameter type to improve performance");
                     if(Global.IS_DEBUG_MODE) {
                         e.printStackTrace();
@@ -1294,14 +1297,16 @@ public class TReflect {
         try {
             return (T) TUnsafe.getUnsafe().allocateInstance(targetClazz);
         } catch (Exception e) {
-            if (!(e instanceof ReflectiveOperationException)) {
-                exception = new ReflectiveOperationException(e.getMessage(), e);
-            } else {
-                exception = (ReflectiveOperationException) e;
-            }
-
-            throw (ReflectiveOperationException)exception;
+            exception = e;
         }
+
+        if (!(exception instanceof ReflectiveOperationException)) {
+            exception = new ReflectiveOperationException(exception.getMessage(), exception);
+        } else {
+            exception = (ReflectiveOperationException) exception;
+        }
+
+        throw (ReflectiveOperationException)exception;
     }
 
     /**
