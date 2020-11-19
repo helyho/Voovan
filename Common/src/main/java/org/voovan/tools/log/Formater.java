@@ -239,32 +239,14 @@ public class Formater {
     }
 
     /**
-     * 消息类型是否可以记录
-     * @param message 消息对象
-     * @return 是否可写入
-     */
-    public boolean messageWritable(Message message){
-        if(logLevel.contains("ALL")){
-            return true;
-        }
-        else if(logLevel.contains(message.getLevel())){
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    /**
      * 写入消息对象,在进行格式化后的写入
      * @param message 消息对象
      */
     public void writeFormatedLog(Message message) {
-        if(messageWritable(message)){
-            if("SIMPLE".equals(message.getLevel())){
-                writeLog(simpleFormat(message)+"\r\n");
-            }else{
-                writeLog(format(message));
-            }
+        if("SIMPLE".equals(message.getLevel())){
+            writeLog(simpleFormat(message)+"\r\n");
+        }else{
+            writeLog(format(message));
         }
     }
 
