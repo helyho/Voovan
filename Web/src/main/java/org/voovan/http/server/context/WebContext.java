@@ -367,10 +367,10 @@ public class WebContext {
 
 		System.out.println("==================================================================================================================================================");
 		System.out.println("  This WebServer based on VoovanFramework.");
-		System.out.println("  Version: " + VERSION);
-		System.out.println("  WebSite: http://www.voovan.org");
-		System.out.println("  Author: helyho");
-		System.out.println("  E-mail: helyho@gmail.com");
+		System.out.println("  Version: \t" + VERSION);
+		System.out.println("  WebSite: \thttp://www.voovan.org");
+		System.out.println("  Author: \thelyho");
+		System.out.println("  E-mail: \thelyho@gmail.com");
 		System.out.println("==================================================================================================================================================");
 	}
 

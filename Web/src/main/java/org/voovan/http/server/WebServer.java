@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.channels.ShutdownChannelGroupException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * WebServer 对象
@@ -426,7 +427,7 @@ public class WebServer {
 
 		//保存 PID
 		Long pid = TEnv.getCurrentPID();
-		System.out.println("  Pid: \t"+ pid.toString());
+
 		File pidFile = new File("logs" + File.separator + ".pid");
 		TFile.mkdir(pidFile.getPath());
 		try {
@@ -435,11 +436,14 @@ public class WebServer {
 			Logger.error("Write pid to file: " + pidFile.getPath() + " error", e);
 		}
 
+		System.out.println("  Pid: \t\t"+ pid.toString());
 		String serviceUrl = "http" + (config.isHttps()?"s":"") + "://"
 				+ (config.getHost().equals("0.0.0.0") ? "127.0.0.1" : config.getHost())
 				+ ":"+config.getPort();
-		Logger.simple("  Listen: " + serviceUrl);
-		Logger.simple("  Time: \t" + TDateTime.now());
+		Logger.simplef("  Listen: \t{}", serviceUrl);
+		Logger.simplef("  Time: \t{}", TDateTime.now());
+		Logger.simplef("  Elapsed: \t{} ms", TPerformance.getRuningTime());
+		Logger.simple("==================================================================================================================================================");
 
 	}
 
