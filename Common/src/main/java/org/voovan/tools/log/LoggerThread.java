@@ -184,13 +184,13 @@ public class LoggerThread implements Runnable {
 					}
 
 					outputStream.write(formatedMessage.getBytes());
-
-					return true;
 				}
 			}
-		}
 
-		return false;
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	/**
