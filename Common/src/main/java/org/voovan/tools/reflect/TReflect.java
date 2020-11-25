@@ -402,8 +402,8 @@ public class TReflect {
 
             DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "Reader", code.toString());
             dynamicFunction.addImport(clazz);
-            dynamicFunction.addPrepareArg(0, clazz, "obj");        //目标对象
-            dynamicFunction.addPrepareArg(1, String.class, "methodName"); //写入字段
+            dynamicFunction.addPrepareArg(0, clazz, "obj");                 //目标对象
+            dynamicFunction.addPrepareArg(1, String.class, "methodName");   //写入字段
             dynamicFunction.addPrepareArg(2, Object[].class, "params");     //写入数据
 
             try {
@@ -514,13 +514,14 @@ public class TReflect {
      * @throws ReflectiveOperationException 调用异常
      */
     public static <T> T invokeMethodNative(Object obj, String methodName, Object ... params) throws ReflectiveOperationException {
-        DynamicFunction dynamicFunction = METHOD_INVOKE.get(obj.getClass());
+        DynamicFunction dynamicFunction = METHOD_INVOKE.get(obj instanceof Class ? obj : obj.getClass());
 
         if(dynamicFunction == null) {
             return null;
         }
 
         try {
+            obj = obj instanceof Class ? null : obj;
             return dynamicFunction.call(obj, methodName, params);
         } catch (Exception e) {
             if (!(e instanceof ReflectiveOperationException)) {
@@ -706,7 +707,7 @@ public class TReflect {
      * @return GenericInfo[] 范型类型信息
      */
     public static GenericInfo[] getGenericInfo(GenericInfo genericInfo) {
-       return getGenericInfo(genericInfo.getType());
+        return getGenericInfo(genericInfo.getType());
     }
 
 
@@ -1277,7 +1278,7 @@ public class TReflect {
             constructors = findConstructor(targetClazz, args.length);
             for(Constructor constructorItem : constructors) {
                 try {
-                     result = (T) constructorItem.newInstance(args);
+                    result = (T) constructorItem.newInstance(args);
                     //匹配到合适的则加入缓存
                     CONSTRUCTORS.put(getConstructorParamTypeMark(clazz, paramTeypes), constructorItem);
 
@@ -1718,11 +1719,11 @@ public class TReflect {
 
                     if(serialization != null) {
                         //转换 key 名称
-                       if(!TString.isNullOrEmpty(serialization.value())) {
-                           key = serialization.value();
-                       } else if(!TString.isNullOrEmpty(serialization.name())) {
-                           key = serialization.name();
-                       }
+                        if(!TString.isNullOrEmpty(serialization.value())) {
+                            key = serialization.value();
+                        } else if(!TString.isNullOrEmpty(serialization.name())) {
+                            key = serialization.name();
+                        }
 
                         //转换值数据
                         Class convertClass = serialization.convert();
