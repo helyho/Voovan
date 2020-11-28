@@ -5,6 +5,9 @@ import java.util.function.Supplier;
 
 /**
  * 线程局部变量
+ *      1. 声明时为作为标记索引为使用
+ *      2. get / set 时作为 wrap 使用
+ *      3. 如果当前索引位不够用, 则采用 java.lang.ThreadLocal 补充
  *
  * @author: helyho
  * Voovan Framework.
@@ -15,7 +18,7 @@ import java.util.function.Supplier;
  */
 public class FastThreadLocal<T> {
     private ThreadLocal<FastThreadLocal> jdkThreadLocal = new ThreadLocal<FastThreadLocal>();
-    private static AtomicInteger indexGenerator = new AtomicInteger(0);
+    private static AtomicInteger INDEX_GENERATOR = new AtomicInteger(0);
 
 	private int index = -1;
 
@@ -25,18 +28,18 @@ public class FastThreadLocal<T> {
 
     /**
      * 构造函数
-     * 		为当前对象生成一个 id
+     * 		为当前对象生成一个 id, 在各个线程的 data 数组中标记当前对象在线程中的索引位置
      */
-    public FastThreadLocal(){
-        this(indexGenerator.getAndIncrement());
+    private FastThreadLocal(int index){
+        this.index =  index;
     }
 
     /**
      * 构造函数
      * 		为当前对象生成一个 id
      */
-    private FastThreadLocal(int index){
-        this.index =  index;
+    public FastThreadLocal(){
+        this(INDEX_GENERATOR.getAndIncrement());
     }
 
     /**
@@ -67,6 +70,31 @@ public class FastThreadLocal<T> {
         this.supplier = supplier;
     }
 
+
+    /**
+     * 在当前线程中的 data 数组中查找可用的 ThreadLocal 对象
+     * @return null: 不存在, not null: 存在
+     */
+    private FastThreadLocal find(){
+        FastThread thread = FastThread.getThread();
+
+        if(thread != null && index < FastThread.FAST_THREAD_LOCAL_SIZE) {
+            FastThreadLocal fastThreadLocal = thread.data[index];
+            if (fastThreadLocal == null) {
+                fastThreadLocal = new FastThreadLocal(this.index);
+                thread.data[index] = fastThreadLocal;
+            }
+            return fastThreadLocal;
+        } else {
+            FastThreadLocal fastThreadLocal = jdkThreadLocal.get();
+            if(fastThreadLocal == null){
+                fastThreadLocal = new FastThreadLocal(this.index);
+                jdkThreadLocal.set(fastThreadLocal);
+            }
+            return fastThreadLocal;
+        }
+    }
+
     /**
      * 获取 线程局部变量
      * @return 线程局部变量
@@ -82,31 +110,6 @@ public class FastThreadLocal<T> {
 
         return t;
 
-    }
-
-    /**
-     * 查找可用的 ThreadLocal 对象
-     * @return null: 不存在, not null: 存在
-     */
-    private FastThreadLocal find(){
-        FastThread thread = FastThread.getThread();
-
-        if(thread != null && index < FastThread.FAST_THREAD_LOCAL_SIZE) {
-            FastThreadLocal[] data = thread.data;
-            FastThreadLocal fastThreadLocal = data[index];
-            if (fastThreadLocal == null) {
-                fastThreadLocal = new FastThreadLocal(this.index);
-                data[index] = fastThreadLocal;
-            }
-            return fastThreadLocal;
-        } else {
-            FastThreadLocal fastThreadLocal = jdkThreadLocal.get();
-            if(fastThreadLocal == null){
-                fastThreadLocal = new FastThreadLocal(this.index);
-                jdkThreadLocal.set(fastThreadLocal);
-            }
-            return fastThreadLocal;
-        }
     }
 
     /**
