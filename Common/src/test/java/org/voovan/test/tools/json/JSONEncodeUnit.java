@@ -24,7 +24,7 @@ public class JSONEncodeUnit extends TestCase {
 		testObject.getList().add(null);
 		testObject.getMap().put("mapitem1", "mapitem1");
 		testObject.getMap().put("mapitem2", "mapitem2");
-		testObject.getTb2().setString("bingo\r\nsrc\\main\\kkk");
+		testObject.getTb2().setString(null);
 		testObject.getTb2().setBint(56);
 		testObject.getTb2().getList().add("tb2 list item");
 		testObject.getTb2().getMap().put("tb2 map item", "tb2 map item");

@@ -10,10 +10,14 @@ import java.math.BigDecimal;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class StringConvert<T, String> implements Convert {
+public class ToString<T, String> implements Convert {
 
     @Override
     public Object convert(Object parameter) {
+        if(parameter == null) {
+            return null;
+        }
+
         if(parameter instanceof BigDecimal) {
             return ((BigDecimal)parameter).stripTrailingZeros().toPlainString();
         }

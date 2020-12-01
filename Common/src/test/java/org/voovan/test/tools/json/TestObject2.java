@@ -1,11 +1,15 @@
 package org.voovan.test.tools.json;
 
+import org.voovan.tools.reflect.annotation.Serialization;
+import org.voovan.tools.reflect.exclude.Null;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Vector;
 
 public class TestObject2 implements Serializable{
+	@Serialization(exclude = Null.class)
 	private String string;
 	private int bint;
 	private HashMap<String, String> map = new HashMap<String, String>();
