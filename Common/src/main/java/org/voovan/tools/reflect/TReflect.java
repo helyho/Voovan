@@ -7,6 +7,7 @@ import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 import org.voovan.tools.reflect.annotation.Serialization;
+import org.voovan.tools.reflect.exclude.Exclude;
 import org.voovan.tools.reflect.convert.Convert;
 import org.voovan.tools.security.THash;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
@@ -1725,9 +1726,20 @@ public class TReflect {
                             key = serialization.name();
                         }
 
+                        //数据检查
+                        Class checkClass = serialization.exclude();
+                        if(checkClass != null) {
+                            Exclude exclude = Exclude.getConvert(checkClass);
+                            if (exclude != null) {
+                                if (exclude.check(value)) {
+                                    continue;
+                                }
+                            }
+                        }
+
                         //转换值数据
                         Class convertClass = serialization.convert();
-                        if(value != null && convertClass != Convert.class) {
+                        if(convertClass != null) {
                             Convert convert = Convert.getConvert(convertClass);
                             if(convert != null) {
                                 value = convert.convert(value);
