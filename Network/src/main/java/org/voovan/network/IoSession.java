@@ -542,11 +542,15 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 				sslParser.warpData(buffer);
 				return buffer.limit();
 			} else {
-
 				return sendToBuffer(buffer);
 			}
 		} catch (IOException e) {
 			Logger.error("IoSession.writeToChannel data failed" ,e);
+		} finally {
+			//同步模式自动 flush
+			if(socketContext.handler instanceof SynchronousHandler) {
+				flush();
+			}
 		}
 
 		return -1;
