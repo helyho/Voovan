@@ -30,10 +30,12 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
     public void testMaxBorrow() {
         TestPoolObject t = new TestPoolObject("element ");
 
-        ObjectPool objectPool = new ObjectPool(2).destory(k-> {
+        ObjectPool objectPool = new ObjectPool(2).interval(1).destory(k-> {
             System.out.println("destory: " + JSON.toJSON(k));
             return null;
         }).maxBorrow(10).create();
+
+
         objectPool.add(t);
 
         for(int k=0;k<30;k++) {
@@ -47,13 +49,15 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
             });
         }
 
-        TEnv.sleep(100000);
+        while(true) {
+            TEnv.sleep(100);
+        }
     }
 
     public void testLongTimeBorrow() {
         TestPoolObject t = new TestPoolObject("element ");
 
-        ObjectPool objectPool = new ObjectPool(2).create();
+        ObjectPool objectPool = new ObjectPool(2).interval(1).create();
         objectPool.add(t);
 
         TestPoolObject t1 = (TestPoolObject) objectPool.borrow();
@@ -63,23 +67,22 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
 
     public void testAddAndLiveTime(){
         TestPoolObject t = new TestPoolObject("element ");
-        ObjectPool objectPool = new ObjectPool(2).create();
-        for(int i=0;i<30;i++) {
+        ObjectPool objectPool = new ObjectPool(2).interval(1).create();
+        for(int i=0;i<5;i++) {
             TestPoolObject item = new TestPoolObject("element " + i);
             objectPool.add(item);
         }
 
-        TEnv.sleep(3000);
+        TEnv.sleep(4000);
 
         assertEquals(0,objectPool.size());
-        assertEquals(null, objectPool.add(null));
     }
 
     public void testBorrow() {
         Object pooledId = null;
         ObjectPool<TestPoolObject> objectPool = new ObjectPool();
 
-        for(int i=0;i<1000;i++) {
+        for(int i=0;i<50;i++) {
             TestPoolObject item = new TestPoolObject("element " + i);
             if(pooledId==null) {
                 pooledId = objectPool.add(item);
