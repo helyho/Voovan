@@ -1,4 +1,4 @@
-    package org.voovan.tools.pool;
+package org.voovan.tools.pool;
 
 import org.voovan.Global;
 import org.voovan.tools.TDateTime;
@@ -8,6 +8,7 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
+import java.sql.Time;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.*;
@@ -208,7 +209,7 @@ public class ObjectPool<T extends IPooledObject> {
         return add(obj, false);
     }
 
-  /**
+    /**
      * 增加池中的对象
      * @param obj 增加到池中的对象
      * @parma 是否默认为借出状态
@@ -245,11 +246,6 @@ public class ObjectPool<T extends IPooledObject> {
         if(id != null) {
             InnerObject<T> innerObject = objects.get(id);
             if (innerObject != null) {
-                if(innerObject.isBorrow()) {
-                    throw new RuntimeException("Object already borrowed");
-                }
-
-                innerObject.setBorrow(true);
                 return innerObject.getObject();
             } else {
                 return null;
@@ -265,25 +261,57 @@ public class ObjectPool<T extends IPooledObject> {
      * @return 借出的对象
      */
     public T borrow() {
+        try {
+            return borrow(0);
+        } catch (TimeoutException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 借出这个对象
+     *         如果有提供 supplier 函数, 在没有可借出对象时会构造一个新的对象, 否则返回 null
+     * @return 借出的对象
+     */
+    public T borrow(long waitTime) throws TimeoutException {
         while (true) {
             boolean useSupplier = false;
-            Long id = unborrowedIdList.poll();
+
+            Long id = null;
+
+            if(waitTime <=0) {
+                id = unborrowedIdList.poll();
+            } else {
+                try {
+                    id = unborrowedIdList.poll(waitTime, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    throw new TimeoutException("borrow failed.");
+                }
+            }
 
             //检查是否有重复借出
             if (id != null && objects.get(id).isBorrow()) {
                 throw new RuntimeException("Object already borrowed");
             }
 
-            T result = get(id);
+            T result = null;
+
+            if(id != null) {
+                InnerObject innerObject = objects.get(id);
+                innerObject.setBorrow(true);
+                result = (T) innerObject.getObject();
+            }
 
             if (result == null && supplier != null) {
-                synchronized (objects) {
-                    if (objects.size() < maxSize) {
-                        result = get(add(supplier.get(), true));
-                        useSupplier = true;
-                    } else {
-                        return null;
-                    }
+                if (objects.size() < maxSize) {
+                    id = add(supplier.get(), true);
+                    InnerObject innerObject = objects.get(id);
+                    innerObject.setBorrow(true);
+                    result = (T) innerObject.getObject();
+
+                    useSupplier = true;
+                } else {
+                    return null;
                 }
             }
 
@@ -291,7 +319,7 @@ public class ObjectPool<T extends IPooledObject> {
             if (validator != null && result!=null  && !validator.apply(result)) {
                 remove(result);
                 if(useSupplier) {
-                   return null;
+                    return null;
                 } else {
                     continue;
                 }
@@ -300,44 +328,6 @@ public class ObjectPool<T extends IPooledObject> {
             return result;
         }
 
-    }
-
-    /**
-     * 借出对象
-     * @param waitTime 超时时间
-     * @return 借出的对象, 超时返回 null
-     * @throws TimeoutException 超时异常
-     */
-    public T borrow(long waitTime) throws TimeoutException {
-        while (true) {
-            Long id = null;
-
-            //放这里取一边的作用是, borrow()方法里有尝试使用 supplier 创建
-            T result = borrow();
-
-            if (result == null) {
-                try {
-                    id = unborrowedIdList.poll(waitTime, TimeUnit.MILLISECONDS);
-
-                    //检查是否有重复借出
-                    if (id != null && objects.get(id).isBorrow()) {
-                        throw new RuntimeException("Object already borrowed");
-                    }
-
-                    result = get(id);
-                } catch (InterruptedException e) {
-                    throw new TimeoutException("borrow failed.");
-                }
-            }
-
-            //检查是否可用, 不可用则移除并重新获取
-            if (validator != null && result!=null && !validator.apply(result)) {
-                remove(result);
-                continue;
-            }
-
-            return result;
-        }
     }
 
     /**
@@ -472,61 +462,62 @@ public class ObjectPool<T extends IPooledObject> {
                 @Override
                 public void run() {
                     try {
-                        synchronized (finalobjectPool) {
-                            Iterator<InnerObject<T>> iterator = objects.values().iterator();
-                            int totalSize = objects.size();
+                        Iterator<InnerObject<T>> iterator = objects.values().iterator();
+                        int totalSize = objects.size();
 
-                            int avaliableSize = 0;
-                            while (iterator.hasNext()) {
+                        int avaliableSize = 0;
+                        while (iterator.hasNext()) {
 
-                                InnerObject<T> innerObject = iterator.next();
+                            InnerObject<T> innerObject = iterator.next();
 
-                                //1. 借出次数控制
-                                if(Global.IS_DEBUG_MODE && innerObject.isBorrow()) {
-                                    long usingTime = innerObject.getBorrowTimestamp() > 0 ? System.currentTimeMillis() - innerObject.getBorrowTimestamp() : 0;
-                                    if (usingTime > interval * 1000) {
-                                        Logger.warnf("Object borrowed too long time: {id:{}, time:{}, class:{}}\r\nPool info: {}\r\n{}",
-                                                innerObject.getId(), usingTime/1000, innerObject.getObject().getClass(), finalobjectPool, innerObject);
-                                    }
-                                }
-
-                                //2. 不可用的对象移除
-                                if(validator != null && !validator.apply(innerObject.object)) {
-                                    remove(innerObject.getId());
-                                }
-
-                                //3. 保留最小可用对象
-                                if(avaliableSize <= minSize) {
-                                    innerObject.refresh();
-                                    avaliableSize++;
-                                    continue;
-                                }
-
-                                //4. 未借出且非存活对象使用 destory 进行处理
-                                if (!innerObject.isBorrow() && !innerObject.isAlive()) {
-                                    if (destory != null) {
-                                        //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
-                                        if (destory.apply(innerObject.object)) {
-                                            remove(innerObject.getId());
-                                        } else {
-                                            innerObject.refresh();
-                                        }
-                                    } else {
-                                        remove(innerObject.getId());
-                                    }
+                            //1. 借出次数控制
+                            if(Global.IS_DEBUG_MODE && innerObject.isBorrow()) {
+                                long usingTime = innerObject.getBorrowTimestamp() > 0 ? System.currentTimeMillis() - innerObject.getBorrowTimestamp() : 0;
+                                if (usingTime > interval * 1000) {
+                                    Logger.warnf("Object borrowed too long time: {id:{}, time:{}, class:{}}\r\nPool info: {}\r\n{}",
+                                            innerObject.getId(), usingTime/1000, innerObject.getObject().getClass(), finalobjectPool, innerObject);
                                 }
                             }
 
-                            //5. 补齐最小对象数
-                            int sizeDiff = minSize - totalSize;
-                            if (sizeDiff > 0 && supplier != null) {
-                                for (int i = 0; i < sizeDiff; i++) {
-                                    try {
-                                        add(supplier.get());
-                                    } catch (Exception e) {
-                                        Logger.error("Create object failed", e);
-                                        break;
+                            //2. 不可用的对象移除
+                            if(validator != null && !validator.apply(innerObject.object)) {
+                                iterator.remove();
+                                remove(innerObject.getId());
+                            }
+
+                            //3. 保留最小可用对象
+                            if(avaliableSize>0 && avaliableSize <= minSize) {
+                                innerObject.refresh();
+                                avaliableSize++;
+                                continue;
+                            }
+
+                            //4. 未借出且非存活对象使用 destory 进行处理
+                            if (!innerObject.isBorrow() && !innerObject.isAlive()) {
+                                if (destory != null) {
+                                    //如果返回 null 则 清理对象, 如果返回为非 null 则刷新对象
+                                    if (destory.apply(innerObject.object)) {
+                                        iterator.remove();
+                                        remove(innerObject.getId());
+                                    } else {
+                                        innerObject.refresh();
                                     }
+                                } else {
+                                    iterator.remove();
+                                    remove(innerObject.getId());
+                                }
+                            }
+                        }
+
+                        //5. 补齐最小对象数
+                        int sizeDiff = minSize - totalSize;
+                        if (sizeDiff > 0 && supplier != null) {
+                            for (int i = 0; i < sizeDiff; i++) {
+                                try {
+                                    add(supplier.get());
+                                } catch (Exception e) {
+                                    Logger.error("Create object failed", e);
+                                    break;
                                 }
                             }
                         }

@@ -54,7 +54,11 @@ public class HttpClientPool {
     }
 
     public HttpClientPool(String host, Integer timeout, Integer minSize, Integer maxSize) {
-        this(host, timeout, minSize, maxSize, -1);
+        this(host, timeout, minSize, maxSize, 50);
+    }
+
+    public HttpClientPool(String host, Integer timeout, Integer maxSize) {
+        this(host, timeout, MIN_SIZE, MAX_SIZE, maxSize);
     }
 
     public HttpClientPool(String host, Integer timeout) {

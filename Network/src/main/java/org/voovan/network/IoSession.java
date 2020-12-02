@@ -448,7 +448,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 				if (isConnected()) {
 					throw new ReadMessageException("syncRead failed, socket is timeout", te);
 				} else {
-					throw new ReadMessageException("syncRead failed by timeout, Socket already disconnect");
+					throw new ReadMessageException("syncRead failed by timeout, Socket already disconnect", te);
 				}
 			} finally {
 				socketContext.close();
