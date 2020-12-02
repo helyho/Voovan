@@ -85,17 +85,21 @@ public class SynchronousHandler implements IoHandler {
     }
 
     public void hold(int timeout) throws TimeoutException {
-        synchronized (lock) {
-            try {
-                long start = System.currentTimeMillis();
-                lock.wait(timeout);
-                long cost = System.currentTimeMillis() - start;
-                if(cost >= timeout && socketResponses == null) {
-                    throw new TimeoutException();
+        try {
+            synchronized (lock) {
+                //socketResponses 有数据则不触发 hold
+                if(socketResponses==null) {
+                    long start = System.currentTimeMillis();
+                    lock.wait(timeout);
+                    long cost = System.currentTimeMillis() - start;
+                    if (cost >= timeout && socketResponses == null) {
+                        throw new TimeoutException();
+                    }
                 }
-            } catch (InterruptedException e) {
-                throw new TimeoutException(e.getMessage());
             }
+
+        } catch (InterruptedException e) {
+            throw new TimeoutException(e.getMessage());
         }
     }
 

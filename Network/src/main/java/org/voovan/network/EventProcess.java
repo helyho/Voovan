@@ -3,6 +3,7 @@ package org.voovan.network;
 import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.TObject;
@@ -115,14 +116,17 @@ public class EventProcess {
                     }
                 }
             } finally {
-                //释放 onRecive 锁
-                if (session.getSendByteBufferChannel().size() > 0) {
-                    //异步处理 flush
-                    session.flush();
-                }
+                //异步模式自动 flush 并触发事件
+                if(!(session.socketContext().handler instanceof SynchronousHandler)) {
+                    //释放 onRecive 锁
+                    if (session.getSendByteBufferChannel().size() > 0) {
+                        //异步处理 flush
+                        session.flush();
+                    }
 
-                if (session.getReadByteBufferChannel().size() > 0) {
-                    EventTrigger.fireReceiveAsync(session);
+                    if (session.getReadByteBufferChannel().size() > 0) {
+                        EventTrigger.fireReceiveAsync(session);
+                    }
                 }
             }
         }
