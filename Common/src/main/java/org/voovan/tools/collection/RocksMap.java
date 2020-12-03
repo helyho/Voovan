@@ -372,7 +372,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param backupableDBOptions 备份选项
      * @param beforeFlush 是否在备份前执行 flush
      * @return 备份路径
-     * @throws RocksDBException 异常
      */
     public String createBackup(BackupableDBOptions backupableDBOptions, boolean beforeFlush) {
         if(backupableDBOptions==null) {
@@ -400,7 +399,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 获取备份信息
      * @param backupableDBOptions 备份选线
      * @return 备份信息清单
-     * @throws RocksDBException 异常
      */
     public List<BackupInfo> getBackupInfo(BackupableDBOptions backupableDBOptions) {
         if(backupableDBOptions==null) {
@@ -424,7 +422,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param dbName 数据库名, 用以确定恢复路径
      * @param backupableDBOptions 备份选项
      * @param keepLogfile 是否覆盖原有 wal 日志
-     * @throws RocksDBException 异常
      */
     public static void restoreLatestBackup(String dbName, BackupableDBOptions backupableDBOptions, Boolean keepLogfile) {
 
@@ -455,7 +452,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param dbName 数据库名, 用以确定恢复路径
      * @param backupableDBOptions 备份选项
      * @param keepLogfile 是否覆盖原有 wal 日志
-     * @throws RocksDBException 异常
      */
     public static void restore(int backupId, String dbName, BackupableDBOptions backupableDBOptions, Boolean keepLogfile) {
 
@@ -485,7 +481,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param dbName 数据库明城
      * @param backupableDBOptions 备份选项
      * @param number 保留的备份书
-     * @throws RocksDBException 异常
      */
     public static void PurgeOldBackups(String dbName, BackupableDBOptions backupableDBOptions, int number) {
         if(backupableDBOptions==null) {
