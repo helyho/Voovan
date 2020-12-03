@@ -417,7 +417,7 @@ public class TPerformance {
 
 	/**
 	 * 获取当前进程的运行时间 (毫秒)
-	 * @return
+	 * @return 当前进程的运行时间
 	 */
 	public static Long getRuningTime(){
 		return System.currentTimeMillis() - START_TIME_MILLIS;

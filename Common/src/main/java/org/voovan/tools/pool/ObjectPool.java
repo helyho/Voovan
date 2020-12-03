@@ -270,7 +270,9 @@ public class ObjectPool<T extends IPooledObject> {
     /**
      * 借出这个对象
      *         如果有提供 supplier 函数, 在没有可借出对象时会构造一个新的对象, 否则返回 null
+     * @param waitTime 超时时间
      * @return 借出的对象
+     * @throws TimeoutException 超时异常
      */
     public T borrow(long waitTime) throws TimeoutException {
         while (true) {

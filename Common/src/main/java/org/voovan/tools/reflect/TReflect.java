@@ -1616,8 +1616,8 @@ public class TReflect {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Map<String, Object> getMapfromObject(Object obj, boolean allField) throws ReflectiveOperationException {
-        if(obj instanceof MapObject) {
-            return ((MapObject)obj).toMap();
+        if(obj instanceof ToMap) {
+            return ((ToMap)obj).toMap();
         }
 
         LinkedHashMap<String, Object> mapResult = new LinkedHashMap<String, Object>();
