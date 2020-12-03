@@ -91,4 +91,20 @@ public class HttpClientPool {
     public void restitution(HttpClient httpClient) {
         pool.restitution(httpClient);
     }
+
+    public <T> T send(ExFunction<HttpClient, T> function) {
+        HttpClient httpClient = this.getHttpClient();
+        try {
+            return function.apply(httpClient);
+        } catch (Throwable e) {
+            Logger.error(e);
+            return null;
+        } finally {
+            this.restitution(httpClient);
+        }
+    }
+
+    public interface ExFunction<T, R> {
+        R apply(T t) throws Exception;
+    }
 }

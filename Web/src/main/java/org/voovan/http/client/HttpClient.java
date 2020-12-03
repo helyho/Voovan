@@ -278,7 +278,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @return    HttpClient 对象
 	 */
 	public HttpClient setMethod(String method){
-		httpRequest.protocol().setMethod(method);
+		httpRequest.protocol().setMethod(method.toUpperCase());
 		return this;
 	}
 
@@ -646,7 +646,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @return 发送的字节数
 	 * @throws IOException IO 异常
 	 */
-	public int send(ByteBuffer buffer) throws IOException {
+	public int sendBinary(ByteBuffer buffer) throws IOException {
 		return this.httpRequest.send(buffer);
 	}
 
