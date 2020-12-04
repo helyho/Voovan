@@ -161,12 +161,9 @@ public class EventRunnerGroup implements Closeable {
 
 	@Override
 	public void close() {
-		ThreadPool.gracefulShutdown(threadPool);
-	}
-
-
-	public void closeNow() {
-		threadPool.shutdownNow();
+		for(EventRunner eventRunner : eventRunners) {
+			eventRunner.close();
+		}
 	}
 
 	/**
