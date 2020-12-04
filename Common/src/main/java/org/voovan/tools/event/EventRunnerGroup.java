@@ -1,8 +1,11 @@
 package org.voovan.tools.event;
 
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TPerformance;
 import org.voovan.tools.threadpool.ThreadPool;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,7 +19,7 @@ import java.util.function.Function;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class EventRunnerGroup {
+public class EventRunnerGroup implements Closeable {
 	private AtomicInteger indexAtom = new AtomicInteger();
 	private EventRunner[] eventRunners;
 	private ThreadPoolExecutor threadPool;
@@ -156,6 +159,16 @@ public class EventRunnerGroup {
 		}
 	}
 
+	@Override
+	public void close() {
+		ThreadPool.gracefulShutdown(threadPool);
+	}
+
+
+	public void closeNow() {
+		threadPool.shutdownNow();
+	}
+
 	/**
 	 * 静态构造方法
 	 * @param groupName 事件执行器名称
@@ -179,4 +192,9 @@ public class EventRunnerGroup {
 	public static EventRunnerGroup newInstance(int size) {
 		return EventRunnerGroup.newInstance(size, true);
 	}
+
+	public static EventRunnerGroup newInstance() {
+		return EventRunnerGroup.newInstance(TPerformance.getProcessorCount(), true);
+	}
+
 }

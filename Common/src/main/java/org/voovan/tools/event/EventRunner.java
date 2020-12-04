@@ -3,6 +3,8 @@ package org.voovan.tools.event;
 import org.voovan.tools.exception.EventRunnerException;
 import org.voovan.tools.log.Logger;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -15,12 +17,13 @@ import java.util.concurrent.TimeUnit;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class EventRunner {
+public class EventRunner implements Closeable {
 
 	private PriorityBlockingQueue<EventTask> eventQueue = new PriorityBlockingQueue<EventTask>();
 	private Object attachment;
 	private Thread thread = null;
 	private EventRunnerGroup eventRunnerGroup;
+	private boolean running = false;
 
 	/**
 	 * 事件处理 Thread
@@ -91,18 +94,25 @@ public class EventRunner {
 		return eventQueue;
 	}
 
+
+	@Override
+	public void close() {
+		running = false;
+	}
+
 	/**
 	 * 执行, 在 EventRunnerGroup 执行
 	 */
 	public void process() {
-		if(this.thread!=null) {
+		if(running) {
 		    return;
 		}
 
+		running = true;
 		//启动线程任务执行
 		eventRunnerGroup.getThreadPool().execute(()->{
 			this.setThread(Thread.currentThread());
-			while (true) {
+			while (running) {
 				try {
 					EventTask eventTask = eventQueue.poll(1000, TimeUnit.MILLISECONDS);
 
