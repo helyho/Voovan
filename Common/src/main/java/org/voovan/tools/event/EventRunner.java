@@ -76,6 +76,14 @@ public class EventRunner {
 	}
 
 	/**
+	 * 添加事件
+	 * @param runnable 事件执行器
+	 */
+	public void addEvent(Runnable runnable){
+		addEvent(5, runnable);
+	}
+
+	/**
 	 * 获取事件任务对象集合
 	 * @return 事件任务对象集合
 	 */
@@ -88,7 +96,7 @@ public class EventRunner {
 	 */
 	public void process() {
 		if(this.thread!=null) {
-			throw new EventRunnerException("EventRunner already running");
+		    return;
 		}
 
 		//启动线程任务执行
