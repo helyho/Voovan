@@ -1727,9 +1727,9 @@ public class TReflect {
                         }
 
                         //数据检查
-                        Class checkClass = serialization.exclude();
-                        if(checkClass != null) {
-                            Exclude exclude = Exclude.getConvert(checkClass);
+                        Class excludeClass = serialization.exclude();
+                        if(excludeClass != Exclude.class) {
+                            Exclude exclude = Exclude.getExclude(excludeClass);
                             if (exclude != null) {
                                 if (exclude.check(value)) {
                                     continue;
@@ -1739,7 +1739,7 @@ public class TReflect {
 
                         //转换值数据
                         Class convertClass = serialization.convert();
-                        if(convertClass != null) {
+                        if(convertClass != Convert.class) {
                             Convert convert = Convert.getConvert(convertClass);
                             if(convert != null) {
                                 value = convert.convert(value);
