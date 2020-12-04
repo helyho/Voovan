@@ -1,5 +1,6 @@
 package org.voovan.tools.event;
 
+import org.voovan.tools.TEnv;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import java.util.Queue;
@@ -27,6 +28,7 @@ public class EventRunnerGroup {
 	 * @param threadPoolExecutor 用于分发任务执行的线程池
 	 * @param size 容纳事件执行器的数量
 	 * @param isSteal 是否允许任务窃取
+	 * @param autoProcess EventRunner 创建后就执行创建后
 	 * @param attachmentSupplier 事件执行器的附属对象构造器
 	 */
 	public EventRunnerGroup(ThreadPoolExecutor threadPoolExecutor, int size, boolean isSteal, Function<EventRunner, Object> attachmentSupplier) {
@@ -43,11 +45,9 @@ public class EventRunnerGroup {
 				eventRunner.attachment(attachmentSupplier.apply(eventRunner));
 			}
 			eventRunners[i] = eventRunner;
-
-			//为事件执行器分配线程并启动
-			eventRunner.process();
 		}
 	}
+
 
 	public boolean isSteal() {
 		return isSteal;
@@ -79,6 +79,31 @@ public class EventRunnerGroup {
 
 		EventRunner eventRunner = eventRunners[index];
 		return eventRunner;
+	}
+
+	public EventRunnerGroup process() {
+		for(EventRunner eventRunner : eventRunners) {
+			eventRunner.process();
+		}
+
+		return this;
+	}
+
+	/**
+	 * 添加事件
+	 * @param priority 事件优先级必须在1-10之间
+	 * @param runnable 事件执行器
+	 */
+	public void addEvent(int priority, Runnable runnable) {
+		choseEventRunner().addEvent(priority, runnable);
+	}
+
+	/**
+	 * 添加事件
+	 * @param runnable 事件执行器
+	 */
+	public void addEvent(Runnable runnable){
+		addEvent(5, runnable);
 	}
 
 	/**
@@ -114,6 +139,23 @@ public class EventRunnerGroup {
 
 	}
 
+	public void await() {
+		process();
+		for(;;) {
+			int count = 0;
+			for (EventRunner eventRunner : eventRunners) {
+				count += eventRunner.getEventQueue().size();
+			}
+
+			if(count>0) {
+				TEnv.sleep(1);
+				continue;
+			} else {
+				break;
+			}
+		}
+	}
+
 	/**
 	 * 静态构造方法
 	 * @param groupName 事件执行器名称
@@ -126,5 +168,15 @@ public class EventRunnerGroup {
 	public static EventRunnerGroup newInstance(String groupName, int size, boolean isSteal, int threadPriority, Function<EventRunner, Object> attachmentSupplier){
 		ThreadPoolExecutor threadPoolExecutor = ThreadPool.createThreadPool(groupName, size, size, 60*1000, true, threadPriority);
 		return new EventRunnerGroup(threadPoolExecutor, size, isSteal, attachmentSupplier);
+	}
+
+
+	public static EventRunnerGroup newInstance(int size, boolean isSteal) {
+		ThreadPoolExecutor threadPoolExecutor  = ThreadPool.createThreadPool("ERG", size, size , 60*1000);
+		return new EventRunnerGroup(threadPoolExecutor, threadPoolExecutor.getMaximumPoolSize(),isSteal, null);
+	}
+
+	public static EventRunnerGroup newInstance(int size) {
+		return EventRunnerGroup.newInstance(size, true);
 	}
 }
