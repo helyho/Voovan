@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public interface Exclude<P> {
     public static Map<Class<? extends Exclude>, Exclude> CHECK_CACHE = new ConcurrentHashMap<Class<? extends Exclude>, Exclude>();
 
-    public static Exclude getConvert(Class<Exclude> clazz) {
+    public static Exclude getExclude(Class<Exclude> clazz) {
         Exclude exclude = CHECK_CACHE.get(clazz);
         if(exclude == null) {
             synchronized (CHECK_CACHE) {
