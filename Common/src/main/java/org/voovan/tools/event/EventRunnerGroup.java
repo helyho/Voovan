@@ -120,7 +120,7 @@ public class EventRunnerGroup implements Closeable {
 
 		EventRunner largestEventRunner = null;
 		for(EventRunner eventRunner : eventRunners) {
-			if(eventRunner == null) {
+			if(largestEventRunner == null) {
 				largestEventRunner = eventRunner;
 				continue;
 			}
