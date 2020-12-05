@@ -15,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Licence: Apache v2 License
  */
 public class UniqueId {
+    private static SecureRandom secureRandom = new SecureRandom();
     private static final int SEQ_DEFAULT = 0;
     private static final int RADIX = 62;
     private static final int SEQUENCE_LEFT = 11; //一毫秒生成 2048 个 id
@@ -24,7 +25,7 @@ public class UniqueId {
 
     private AtomicInteger orderedIdSequence = new AtomicInteger(SEQ_DEFAULT);
     private Long lastTime = 0L;
-    private int signId = 0;
+    private int signId = -1;
     private int step = 1;
 
     private ReentrantLock lock = new ReentrantLock();
@@ -32,13 +33,7 @@ public class UniqueId {
     /**
      * 构造函数
      */
-    public UniqueId() {
-        int workId = (new SecureRandom()).nextInt(MAX_SIGNID);
-        if(workId > MAX_SIGNID || workId < 0){
-            throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", MAX_SIGNID));
-        }
-        workId = 0;
-    }
+    public UniqueId() {}
 
     /**
      *  构造函数
@@ -46,7 +41,7 @@ public class UniqueId {
      */
     public UniqueId(int signId) {
         if(signId >= MAX_SIGNID || signId < 0){
-            throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", MAX_SIGNID));
+            throw new IllegalArgumentException(String.format("Sign Id can't be greater than %d or less than 0", MAX_SIGNID));
         }
         this.signId = signId;
     }
@@ -117,6 +112,10 @@ public class UniqueId {
      * @return id
      */
     public static long generateId(long timeMills, int signId, int sequence){
+        if(signId < 0) {
+            signId = secureRandom.nextInt(MAX_SIGNID - 1);
+        }
+
         return (timeMills << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (signId << SEQUENCE_LEFT) | sequence;
     }
 
@@ -146,7 +145,7 @@ public class UniqueId {
      * @return 当前时间点的 id
      */
     private long generateId(Long timeMills){
-        return (timeMills << (SEQUENCE_LEFT + SIGNID_LEFT) ) | (signId << SEQUENCE_LEFT) | 1;
+        return generateId(timeMills, signId, 1);
     }
 
     public static Long getMillis(Long uniqueId){
@@ -158,11 +157,16 @@ public class UniqueId {
     }
 
     public static Integer getSignId(Long uniqueId) {
-        return uniqueId==null ? null : (int)(uniqueId << 42 >> 53);
+        int signId = (int)(uniqueId << 42 >> 53);
+        signId = signId < 0 ? 2048 + signId : signId;
+        return uniqueId==null ? null : signId;
     }
 
     public static Integer getSignId(String uniqueId) {
-        return uniqueId==null ? null : (int)(TString.radixUnConvert(uniqueId, RADIX)  << 42 >> 53);
+        long longUniqueId =TString.radixUnConvert(uniqueId, RADIX);
+        int signId = (int)(longUniqueId << 42 >> 53);
+        signId = signId < 0 ? 2048 + signId : signId;
+        return uniqueId==null ? null : signId;
     }
 
     public static Integer getSequence(Long uniqueId) {
