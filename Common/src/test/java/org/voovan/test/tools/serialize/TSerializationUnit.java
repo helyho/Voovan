@@ -3,13 +3,12 @@ package org.voovan.test.tools.serialize;
 import junit.framework.TestCase;
 import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.TObject;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.serialize.TSerialize;
 
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * 类文字命名
@@ -43,5 +42,34 @@ public class TSerializationUnit extends TestCase {
 
         Object o = TReflect.getObjectFromMap(TestObject.class, TObject.asMap(), false);
         System.out.println(object);
+    }
+
+    public void testProtoStuffMapCollection() {
+        HashMap m = new HashMap();
+        m.putAll(TObject.asMap("a", "123123", "1", 123));
+        byte[] mm =TSerialize.serialize(m);
+        Object mk = TSerialize.unserialize(mm);
+        System.out.println(mk);
+
+        List m1 = new ArrayList();
+        m1.add("123123");
+        m1.add(123123);
+        mm =TSerialize.serialize(m1);
+        mk = TSerialize.unserialize(mm);
+        System.out.println(mk);
+
+        HashSet hashSet = new HashSet();
+        hashSet.add("345345");
+        mm =TSerialize.serialize(hashSet);
+        mk = TSerialize.unserialize(mm);
+        System.out.println(mk);
+
+        TestObject testObject = new TestObject();
+        testObject.setString("helyho");
+        mm =TSerialize.serialize(testObject);
+        mk = TSerialize.unserialize(mm);
+        System.out.println(JSON.toJSON(mk));
+
+
     }
 }
