@@ -5,13 +5,14 @@ import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;
 import org.voovan.tools.TByte;
+import org.voovan.tools.TPerformance;
 import org.voovan.tools.collection.ThreadObjectPool;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ProtoStuff 的序列化实现
@@ -23,17 +24,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ProtoStuffSerialize implements Serialize {
 
-    ThreadObjectPool<LinkedBuffer> threadBufferPool = new ThreadObjectPool<LinkedBuffer>(128);
+    static Schema PROTOSTUFF_WARP = getSchema(ProtoStuffWrap.class);
 
-    Map<Class, Schema> SCHEMAS = new ConcurrentHashMap<Class, Schema>();
+    ThreadObjectPool<LinkedBuffer> threadBufferPool = new ThreadObjectPool<LinkedBuffer>(TPerformance.getProcessorCount());
 
-    public Schema getSchema(Class clazz) {
-        Schema schema = SCHEMAS.get(clazz);
-        if(schema == null) {
-            schema = RuntimeSchema.getSchema(clazz);
-        }
-
-        return schema;
+    public static Schema getSchema(Class clazz) {
+        return RuntimeSchema.getSchema(clazz);
     }
 
     @Override
@@ -49,7 +45,19 @@ public class ProtoStuffSerialize implements Serialize {
             Schema schema = getSchema(obj.getClass());
             LinkedBuffer buffer = threadBufferPool.get(()->LinkedBuffer.allocate(512));
             try {
-                buf = ProtostuffIOUtil.toByteArray(obj, schema, buffer);
+                Object wrapObj = obj;
+                if(obj instanceof Map) {
+                    wrapObj = new ProtoStuffWrap((Map) obj, null);
+                    schema = PROTOSTUFF_WARP;
+
+                }
+
+                if(obj instanceof Collection) {
+                    wrapObj = new ProtoStuffWrap(null, (Collection) obj);
+                    schema = PROTOSTUFF_WARP;
+                }
+
+                buf = ProtostuffIOUtil.toByteArray(wrapObj, schema, buffer);
             } finally {
                 buffer.clear();
             }
@@ -80,7 +88,22 @@ public class ProtoStuffSerialize implements Serialize {
                 if (obj == null) {
                     Schema schema = getSchema(innerClazz);
                     obj = TReflect.newInstance(innerClazz);
-                    ProtostuffIOUtil.mergeFrom(valueBytes, 0, valueBytes.length, obj, schema);
+                    Object wrapObj = obj;
+
+                    if(obj instanceof Map || obj instanceof Collection) {
+                        wrapObj = new ProtoStuffWrap();
+                        schema = PROTOSTUFF_WARP;
+                    }
+
+                    ProtostuffIOUtil.mergeFrom(valueBytes, 0, valueBytes.length, wrapObj, schema);
+
+                    if(obj instanceof Map) {
+                        ((ProtoStuffWrap)wrapObj).feed((Map)obj);
+                    }
+
+                    if(obj instanceof Collection) {
+                        ((ProtoStuffWrap)wrapObj).feed((Collection)obj);
+                    }
                 }
 
                 return (T) obj;
@@ -93,4 +116,5 @@ public class ProtoStuffSerialize implements Serialize {
 
         return null;
     }
+
 }
