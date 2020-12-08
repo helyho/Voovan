@@ -416,6 +416,7 @@ public class SocketSelector implements Closeable {
 		int readSize = -1;
 
 		if(!byteBufferChannel.isReleased()) {
+			System.out.println("data: " + byteBufferChannel.content());
 
 			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
