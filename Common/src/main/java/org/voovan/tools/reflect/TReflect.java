@@ -1969,7 +1969,6 @@ public class TReflect {
             return true;
         }
 
-        //排除的包中的 class 不加载
         for(String systemPackage : systemPackages){
             if(getClassName(clazz).startsWith(systemPackage)){
                 return true;

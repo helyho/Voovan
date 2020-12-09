@@ -10,6 +10,7 @@ public class TestObject implements Serializable {
 	public String string;
 	private Integer bint;
 	private float[] floatArr;
+	private TestObject2[] TestObject2Arr;
 	private HashMap<String, Object> map = new HashMap<String, Object>();
 	private Vector<Object> list= new Vector<Object>();
 	private TestObject2 tb2 = new TestObject2();
