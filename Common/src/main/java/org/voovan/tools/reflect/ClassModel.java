@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author: helyho
  * Voovan Framework.
- * WebSite: https://github.com/helyho/Voovan
+ * WebSite: https://github.com/helyho/Voovand
  * Licence: Apache v2 License
  */
 public class ClassModel {
@@ -34,9 +34,38 @@ public class ClassModel {
      * @param classModel class 模型
      * @return 当前类的简单名称
      */
-    public static String getSimpleName(Map<String, Object> classModel) {
-        String[] $Array = classModel.get("$").toString().split("\\.");
+    public static String getSimpleName(String classModel) {
+        Object obj =  JSON.parse(classModel);
+        if(obj instanceof Map) {
+            return getSimpleName((Map) obj);
+        } else {
+            throw new IllegalArgumentException("Illegal class model format: " + JSON.formatJson(classModel));
+        }
+    }
+
+    /**
+     * 通过模型获取当前类的名称
+     * @param classModel class 模型
+     * @return 当前类的名称
+     */
+    public static String getClassName(String classModel) {
+        Object obj =  JSON.parse(classModel);
+        if(obj instanceof Map) {
+            return getClassName((Map) obj);
+        } else {
+            throw new IllegalArgumentException("Illegal class model format: " + JSON.formatJson(classModel));
+        }
+    }
+
+
+
+    private static String getSimpleName(Map<String, Object> classModel) {
+        String[] $Array = getClassName(classModel).split("\\.");
         return $Array[$Array.length-1].replace("$", "_");
+    }
+
+    private static String getClassName(Map<String, Object> classModel) {
+        return classModel.get("$").toString();
     }
 
 
@@ -123,10 +152,10 @@ public class ClassModel {
      * 根据模型构造 Class
      * @param classModel 模型
      */
-    public static void buildClass(String classModel){
+    public static String buildClass(String classModel){
         Object obj =  JSON.parse(classModel);
         if(obj instanceof Map) {
-            buildClass((Map) obj);
+            return buildClass((Map) obj);
         } else {
             throw new IllegalArgumentException("Illegal class model format: " + JSON.formatJson(classModel));
         }
@@ -136,14 +165,15 @@ public class ClassModel {
      * 根据模型构造 class
      * @param classModel class 模型 Map
      */
-    private static void buildClass(Map<String, Object> classModel) {
+    private static String buildClass(Map<String, Object> classModel) {
         StringBuilder classStrBuilder = new StringBuilder();
-        String className = getSimpleName(classModel);
+        String className = getClassName(classModel);
+        String simpleClassName = getSimpleName(classModel);
         if(CLASS_CODE.containsKey(className)) {
-            return;
+            return null;
         }
 
-        classStrBuilder.append("public class " + className + "{");
+        classStrBuilder.append("public static class " + simpleClassName + "{");
 
         StringBuilder fieldStrBuild = new StringBuilder();
         StringBuilder methodStrBuild = new StringBuilder();
@@ -176,5 +206,6 @@ public class ClassModel {
 
 
         CLASS_CODE.put(className, classStrBuilder.toString());
+        return classStrBuilder.toString();
     }
 }
