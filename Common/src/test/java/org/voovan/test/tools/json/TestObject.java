@@ -9,6 +9,7 @@ public class TestObject implements Serializable {
 	
 	public String string;
 	private Integer bint;
+	private float[] floatArr;
 	private HashMap<String, Object> map = new HashMap<String, Object>();
 	private Vector<Object> list= new Vector<Object>();
 	private TestObject2 tb2 = new TestObject2();
@@ -25,6 +26,14 @@ public class TestObject implements Serializable {
 	public void setBint(int bint) {
 		this.bint = bint;
 	}
+	public float[] getFloatArr() {
+		return floatArr;
+	}
+
+	public void setFloatArr(float[] floatArr) {
+		this.floatArr = floatArr;
+	}
+
 	public HashMap<String, Object> getMap() {
 		return map;
 	}
