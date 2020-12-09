@@ -76,6 +76,18 @@ public class TSerialize {
 
     /**
      * 注册一个 Class 名称简写
+     * @param mark  Class 别名
+     * @return 注册的 hashcode
+     */
+    public static int register(String mark, Class clazz){
+        int hashcode = THash.HashFNV1(mark);
+        System.out.println(mark + "   "+ hashcode + " " + clazz);
+        register(hashcode, clazz);
+        return hashcode;
+    }
+
+    /**
+     * 注册一个 Class 名称简写
      * @param code  简写代码
      * @param clazz 类对象
      */
@@ -84,8 +96,10 @@ public class TSerialize {
             throw new RuntimeException("simple name is exists");
         }
 
-        if(HASH_AND_CLASS.containsKey(code) && !CLASS_AND_HASH.containsKey(clazz)) {
-            throw new SerializeException("TSerialize.registerClassWithSimpleName failed, because class or simplename is registerd");
+        if(HASH_AND_CLASS.containsKey(code)) {
+            if(!HASH_AND_CLASS.get(code).equals(clazz)) {
+                throw new SerializeException("TSerialize.registerClassWithSimpleName failed, because class or simplename is registerd");
+            }
         } else {
             CLASS_AND_HASH.put(clazz, code);
             HASH_AND_CLASS.put(code, clazz);
