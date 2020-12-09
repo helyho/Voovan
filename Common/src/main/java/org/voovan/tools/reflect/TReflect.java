@@ -1867,43 +1867,6 @@ public class TReflect {
         return classes;
     }
 
-    /**
-     * 获取类的 json 形式的描述
-     * @param clazz  Class 类型对象
-     * @return 类的 json 形式的描述
-     */
-    public static String getClazzJSONModel(Class clazz){
-        StringBuilder jsonStrBuilder = new StringBuilder();
-        if(TReflect.isBasicType(clazz)){
-            jsonStrBuilder.append(clazz.getName());
-        } else if(clazz.isArray()){
-            String clazzName = getClassName(clazz);
-            clazzName = clazzName.substring(clazzName.lastIndexOf(Global.STR_POINT)+1,clazzName.length()-2)+"[]";
-            jsonStrBuilder.append(clazzName);
-        } else {
-            jsonStrBuilder.append(Global.STR_LC_BRACES);
-            for (Field field : TReflect.getFields(clazz)) {
-                jsonStrBuilder.append(Global.STR_QUOTE);
-                jsonStrBuilder.append(field.getName());
-                jsonStrBuilder.append(Global.STR_QUOTE).append(Global.STR_COLON);
-                String filedValueModel = getClazzJSONModel(field.getType());
-                if(filedValueModel.startsWith(Global.STR_LC_BRACES) && filedValueModel.endsWith(Global.STR_RC_BRACES)) {
-                    jsonStrBuilder.append(filedValueModel);
-                    jsonStrBuilder.append(Global.STR_COMMA);
-                } else if(filedValueModel.startsWith(Global.STR_LS_BRACES) && filedValueModel.endsWith(Global.STR_RS_BRACES)) {
-                    jsonStrBuilder.append(filedValueModel);
-                    jsonStrBuilder.append(Global.STR_COMMA);
-                } else {
-                    jsonStrBuilder.append(Global.STR_QUOTE);
-                    jsonStrBuilder.append(filedValueModel);
-                    jsonStrBuilder.append(Global.STR_QUOTE).append(Global.STR_COMMA);
-                }
-            }
-            jsonStrBuilder.deleteCharAt(jsonStrBuilder.length()-1);
-            jsonStrBuilder.append("}");
-        }
-        return jsonStrBuilder.toString();
-    }
 
     /**
      * 过滤对象的属性, 产生一个 Map
