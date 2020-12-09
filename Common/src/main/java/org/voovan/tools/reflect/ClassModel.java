@@ -6,6 +6,7 @@ import org.voovan.tools.json.JSON;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.IllegalFormatException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,9 +41,26 @@ public class ClassModel {
 
 
     /**
+     * 是否模型
+     * @param clazz
+     * @return
+     */
+    public static boolean hasModel(Class clazz) {
+        if(TReflect.isBasicType(clazz)){
+            return false;
+        } else if(TReflect.isImpByInterface(clazz, Map.class) || TReflect.isImpByInterface(clazz, Collection.class)){
+            return false;
+        } else if(clazz.isArray()){
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
      * 获取类的模型的描述
      * @param clazz  Class 类型对象
-     * @return 类的模型
+     * @return 类的模型, 如果是 jdk 的基础类则直接返回类名称
      */
     public static String getClazzModel(Class clazz){
         String code = CLASS_MODEL.get(clazz);
@@ -57,8 +75,14 @@ public class ClassModel {
             jsonStrBuilder.append(clazz.getName());
         } else if(clazz.isArray()){
             String clazzName = TReflect.getClassName(clazz);
-            clazzName = clazzName.substring(clazzName.lastIndexOf(".")+1,clazzName.length()-2)+"[]";
-            jsonStrBuilder.append(clazzName);
+            Class componentType = clazz.getComponentType();
+            if(hasModel(componentType)) {
+                String componentModel = getClazzModel(componentType);
+                componentModel = componentModel.replace(componentType.getTypeName(), clazzName);
+                jsonStrBuilder.append(componentModel);
+            } else {
+                jsonStrBuilder.append(clazzName);
+            }
         } else {
             jsonStrBuilder.append("{");
 
@@ -80,15 +104,14 @@ public class ClassModel {
                 String filedValueModel = getClazzModel(field.getType());
                 if(filedValueModel.startsWith("{") && filedValueModel.endsWith("}")) {
                     jsonStrBuilder.append(filedValueModel);
-                    jsonStrBuilder.append(",");
                 } else if(filedValueModel.startsWith("[") && filedValueModel.endsWith("]")) {
                     jsonStrBuilder.append(filedValueModel);
-                    jsonStrBuilder.append(",");
                 } else {
                     jsonStrBuilder.append("\"");
                     jsonStrBuilder.append(filedValueModel);
-                    jsonStrBuilder.append("\"").append(",");
+                    jsonStrBuilder.append("\"");
                 }
+                jsonStrBuilder.append(",");
             }
             jsonStrBuilder.deleteCharAt(jsonStrBuilder.length()-1);
             jsonStrBuilder.append("}");
@@ -96,11 +119,24 @@ public class ClassModel {
         return jsonStrBuilder.toString();
     }
 
+    /**
+     * 根据模型构造 Class
+     * @param classModel 模型
+     */
     public static void buildClass(String classModel){
-        buildClass((Map) JSON.parse(classModel));
+        Object obj =  JSON.parse(classModel);
+        if(obj instanceof Map) {
+            buildClass((Map) obj);
+        } else {
+            throw new IllegalArgumentException("Illegal class model format: " + JSON.formatJson(classModel));
+        }
     }
 
-    public static void buildClass(Map<String, Object> classModel) {
+    /**
+     * 根据模型构造 class
+     * @param classModel class 模型 Map
+     */
+    private static void buildClass(Map<String, Object> classModel) {
         StringBuilder classStrBuilder = new StringBuilder();
         String className = getSimpleName(classModel);
         if(CLASS_CODE.containsKey(className)) {
