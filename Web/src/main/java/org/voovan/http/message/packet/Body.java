@@ -246,18 +246,14 @@ public class Body {
 	 * @param length  写入长度
 	 */
 	public void write(byte[] body,int offset,int length){
-		try {
-			if(type == BodyType.BYTES) {
-				int hash = THash.HashFNV1(body, offset, length);
-				mark = mark==0 ? hash : mark + hash;
-				if(!byteBufferChannel.isReleased()) {
-					byteBufferChannel.writeEnd(body, offset, length);
-				}
-			}else{
-				TFile.writeFile(bodyFile,true, body, offset, length);
+		if(type == BodyType.BYTES) {
+			int hash = THash.HashFNV1(body, offset, length);
+			mark = mark==0 ? hash : mark + hash;
+			if(!byteBufferChannel.isReleased()) {
+				byteBufferChannel.writeEnd(body, offset, length);
 			}
-		} catch (IOException e) {
-			Logger.error("Wirte byte array faild by OutputStream",e);
+		}else{
+			TFile.writeFile(bodyFile,true, body, offset, length);
 		}
 	}
 
