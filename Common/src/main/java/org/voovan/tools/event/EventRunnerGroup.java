@@ -31,7 +31,6 @@ public class EventRunnerGroup implements Closeable {
 	 * @param threadPoolExecutor 用于分发任务执行的线程池
 	 * @param size 容纳事件执行器的数量
 	 * @param isSteal 是否允许任务窃取
-	 * @param autoProcess EventRunner 创建后就执行创建后
 	 * @param attachmentSupplier 事件执行器的附属对象构造器
 	 */
 	public EventRunnerGroup(ThreadPoolExecutor threadPoolExecutor, int size, boolean isSteal, Function<EventRunner, Object> attachmentSupplier) {
