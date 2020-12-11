@@ -8,9 +8,14 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.CompletionHandler;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
@@ -69,7 +74,7 @@ public class TFile {
 			long fileSize = randomAccessFile.length();
 			return fileSize;
 		} catch (Exception e) {
-			Logger.error("File not found: "+file.getCanonicalPath(),e);
+			Logger.error("File not found: "+file.getCanonicalPath(), e);
 			return -1;
 		}finally {
 			if(randomAccessFile!=null) {
@@ -161,9 +166,87 @@ public class TFile {
 			InputStream inputStream = TEnv.class.getClassLoader().getResourceAsStream(resourcePath);
 			return TStream.readAll(inputStream);
 		} catch (IOException e) {
-			Logger.error("Load resource " + resourcePath + " failed",e);
+			Logger.error("Load resource " + resourcePath + " failed", e);
 			return null;
 		}
+	}
+
+
+	/**
+	 * 异步读取 File 对象所代表的文件的内容
+	 *
+	 * @param file 文件对象
+	 * @param handler 异步接收对象
+	 * @return 文件内容
+	 */
+	public static boolean asyncLoadFile(File file, CompletionHandler<Integer, ByteBuffer> handler) {
+		return asyncLoadFile(file, 0, -1, handler);
+	}
+
+
+	/**
+	 * 异步读取 File 对象所代表的文件的内容
+	 *
+	 * @param file
+	 *            文件对象
+	 * @param beginPos
+	 *            起始位置
+	 * @param endPos
+	 *            结束位置,如果值小于0则读取全部,如果大于文件的大小,则自动调整为文件的大小
+	 * @param handler 异步接收对象
+	 * @return 文件内容
+	 */
+	public static boolean asyncLoadFile(File file, long beginPos, long endPos, CompletionHandler<Integer, ByteBuffer> handler) {
+		if(!file.exists()){
+			return false;
+		}
+
+		long fileSize = file.length();
+
+		if (endPos > fileSize) {
+			endPos = (int) fileSize;
+		}
+
+		if (beginPos < 0) {
+			return false;
+		}
+
+		if(beginPos >= fileSize){
+			return false;
+		}
+
+		if(beginPos == endPos){
+			return false;
+		}
+
+		// 计算需要读取的差高难度
+		long loadLength = 0;
+		if (endPos < 0) {
+			loadLength = (int) fileSize - beginPos + 1;
+		} else {
+			loadLength = endPos - beginPos + 1;
+		}
+
+		AsynchronousFileChannel asynchronousFileChannel = null;
+		try {
+			asynchronousFileChannel = AsynchronousFileChannel.open(file.toPath(), StandardOpenOption.READ);
+			ByteBuffer byteBuffer = ByteBuffer.allocate((int) loadLength);
+			asynchronousFileChannel.read(byteBuffer, beginPos, byteBuffer, handler);
+			return true;
+		} catch (IOException e) {
+			Logger.error("TFile.asyncLoadFile error: "+file.getAbsolutePath(), e);
+			return false;
+		} finally {
+			if(asynchronousFileChannel!=null) {
+				try {
+					asynchronousFileChannel.close();
+				} catch (Exception e) {
+					Logger.error("TFile.asyncLoadFile close failed", e);
+				}
+			}
+		}
+
+
 	}
 
 	/**
@@ -175,6 +258,7 @@ public class TFile {
 	public static byte[] loadFile(File file) {
 		return loadFile(file, 0, -1);
 	}
+
 
 	/**
 	 * 读取 File 对象所代表的文件的内容
@@ -229,13 +313,13 @@ public class TFile {
 
 			return fileBytes;
 		} catch (IOException e) {
-			Logger.error("Load file error: "+file.getAbsolutePath(),e);
+			Logger.error("Load file error: "+file.getAbsolutePath(), e);
 		} finally {
 			if(randomAccessFile!=null) {
 				try {
 					randomAccessFile.close();
 				} catch (Exception e) {
-					Logger.error("TFile.loadFile failed", e);
+					Logger.error("TFile.loadFile close failed", e);
 				}
 			}
 		}
@@ -247,9 +331,8 @@ public class TFile {
 	 * @param file  文件对象
 	 * @param lastLineNum 最后几行的行数
 	 * @return 文件内容
-	 * @throws IOException IO 异常
 	 */
-	public static byte[] loadFileLastLines(File file, int lastLineNum) throws IOException {
+	public static byte[] loadFileLastLines(File file, int lastLineNum) {
 		RandomAccessFile  randomAccessFile = null;
 		try{
 			randomAccessFile = new RandomAccessFile(file, "r");
@@ -279,15 +362,93 @@ public class TFile {
 				}
 				--fileLength;
 			}
-		} catch(IOException e){
-			throw e;
+		} catch (IOException e) {
+			Logger.error("Load file error: "+file.getAbsolutePath(), e);
 		} finally {
 			if(randomAccessFile!=null) {
-				randomAccessFile.close();
+				try {
+					randomAccessFile.close();
+				} catch (Exception e) {
+					Logger.error("TFile.loadFile close failed", e);
+				}
 			}
 		}
 
 		return new byte[0];
+	}
+
+	/**
+	 * 异步向文件写入内容
+	 * @param file	文件对象
+	 * @param append    是否以追加形式写入
+	 * @param contents	文件内容
+	 * @param offset	偏移值(起始位置)
+	 * @param length	写入长度
+	 * @param handler 异步接收对象
+	 * @return 成功返回 true,失败返回 false
+	 */
+	public static boolean asyncWriteFile(File file, boolean append, byte[] contents, int offset, int length, CompletionHandler<Integer, File> handler) {
+		if(!append && file.exists()){
+			file.delete();
+		}
+
+		if(handler==null) {
+
+		}
+		AsynchronousFileChannel asynchronousFileChannel = null;
+		try {
+			asynchronousFileChannel = AsynchronousFileChannel.open(file.toPath(), append ? StandardOpenOption.APPEND : StandardOpenOption.WRITE);
+			asynchronousFileChannel.write(ByteBuffer.wrap(contents), asynchronousFileChannel.size(), file, handler);
+		} catch (IOException e) {
+			Logger.error("TFile.writeFile Error!", e);
+			return false;
+		} finally {
+			if (asynchronousFileChannel != null) {
+				try {
+					asynchronousFileChannel.close();
+				} catch (Exception e) {
+					Logger.error("TFile.writeFile close failed", e);
+				}
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * 异步向文件写入内容
+	 * @param file	文件对象
+	 * @param append    是否以追加形式写入
+	 * @param contents	文件内容
+	 * @param handler 异步接收对象
+	 * @return 成功返回 true,失败返回 false
+	 */
+	public static boolean asyncWriteFile(File file, boolean append, byte[] contents, CompletionHandler<Integer, File> handler) {
+		return asyncWriteFile(file, append, contents, 0, contents.length, handler);
+	}
+
+	/**
+	 * 异步以追加的形式,向文件写入内容
+	 * @param file	文件路径
+	 * @param contents	文件内容
+	 * @param offset	偏移值(起始位置)
+	 * @param length	写入长度
+	 * @param handler 异步接收对象
+	 * @return 成功返回 true,失败返回 false
+	 */
+	public static boolean asyncWriteFile(File file, byte[] contents, int offset, int length, CompletionHandler<Integer, File> handler) {
+		return asyncWriteFile(file, true, contents, 0, contents.length, handler);
+	}
+
+
+	/**
+	 * 异步以追加的形式,向文件写入内容
+	 * @param file	文件路径
+	 * @param contents	文件内容
+	 * @param handler 异步接收对象
+	 * @return 成功返回 true,失败返回 false
+	 */
+	public static boolean asyncWriteFile(File file, byte[] contents, CompletionHandler<Integer, File> handler) {
+		return asyncWriteFile(file, true, contents, 0, contents.length, handler);
 	}
 
 	/**
@@ -297,19 +458,18 @@ public class TFile {
 	 * @param contents	文件内容
 	 * @param offset	偏移值(起始位置)
 	 * @param length	写入长度
-	 * @throws IOException IO操作异常
 	 * @return 成功返回 true,失败返回 false
 	 */
-	public static boolean writeFile(File file, boolean append, byte[] contents, int offset, int length) throws IOException {
+	public static boolean writeFile(File file, boolean append, byte[] contents, int offset, int length) {
 
 		if(!append && file.exists()){
 			file.delete();
 		}
 
 		RandomAccessFile randomAccessFile = null;
-		try{
+		try {
 			randomAccessFile = new RandomAccessFile(file, "rwd");
-			if(append){
+			if (append) {
 				randomAccessFile.seek(randomAccessFile.length());
 			}
 
@@ -319,8 +479,12 @@ public class TFile {
 			Logger.error("TFile.writeFile Error!", e);
 			return false;
 		} finally {
-			if(randomAccessFile != null) {
-				randomAccessFile.close();
+			if (randomAccessFile != null) {
+				try {
+					randomAccessFile.close();
+				} catch (Exception e) {
+					Logger.error("TFile.writeFile close failed", e);
+				}
 			}
 		}
 	}
@@ -330,10 +494,9 @@ public class TFile {
 	 * @param file	文件对象
 	 * @param append    是否以追加形式写入
 	 * @param contents	文件内容
-	 * @throws IOException IO操作异常
 	 * @return 成功返回 true,失败返回 false
 	 */
-	public static boolean writeFile(File file, boolean append, byte[] contents) throws IOException {
+	public static boolean writeFile(File file, boolean append, byte[] contents) {
 		return writeFile(file, append, contents, 0, contents.length);
 	}
 
@@ -343,10 +506,9 @@ public class TFile {
 	 * @param contents	文件内容
 	 * @param offset	偏移值(起始位置)
 	 * @param length	写入长度
-	 * @throws IOException IO操作异常
 	 * @return 成功返回 true,失败返回 false
 	 */
-	public static boolean writeFile(File file, byte[] contents, int offset, int length) throws IOException {
+	public static boolean writeFile(File file, byte[] contents, int offset, int length) {
 		return writeFile(file, true, contents, 0, contents.length);
 	}
 
@@ -354,10 +516,9 @@ public class TFile {
 	 * 以追加的形式,向文件写入内容
 	 * @param file	文件路径
 	 * @param contents	文件内容
-	 * @throws IOException IO操作异常
 	 * @return 成功返回 true,失败返回 false
 	 */
-	public static boolean writeFile(File file, byte[] contents) throws IOException {
+	public static boolean writeFile(File file, byte[] contents) {
 		return writeFile(file, true, contents, 0, contents.length);
 	}
 

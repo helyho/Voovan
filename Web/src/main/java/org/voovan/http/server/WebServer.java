@@ -430,11 +430,7 @@ public class WebServer {
 
 		File pidFile = new File("logs" + File.separator + ".pid");
 		TFile.mkdir(pidFile.getPath());
-		try {
-			TFile.writeFile(pidFile, false, pid.toString().getBytes());
-		} catch (IOException e) {
-			Logger.error("Write pid to file: " + pidFile.getPath() + " error", e);
-		}
+		TFile.writeFile(pidFile, false, pid.toString().getBytes());
 
 		System.out.println("  Pid: \t\t"+ pid.toString());
 		String serviceUrl = "http" + (config.isHttps()?"s":"") + "://"
