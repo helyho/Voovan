@@ -77,6 +77,7 @@ public class TSerialize {
     /**
      * 注册一个 Class 名称简写
      * @param mark  Class 别名
+     * @param clazz 类对象
      * @return 注册的 hashcode
      */
     public static int register(String mark, Class clazz){

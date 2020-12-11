@@ -71,8 +71,8 @@ public class ClassModel {
 
     /**
      * 是否模型
-     * @param clazz
-     * @return
+     * @param clazz 类对象
+     * @return true: 有模型, false: 基本类型 或 java.util 类型
      */
     public static boolean hasModel(Class clazz) {
         if(TReflect.isBasicType(clazz)){
@@ -151,6 +151,7 @@ public class ClassModel {
     /**
      * 根据模型构造 Class
      * @param classModel 模型
+     * @return 模型
      */
     public static String buildClass(String classModel){
         Object obj =  JSON.parse(classModel);
@@ -164,6 +165,7 @@ public class ClassModel {
     /**
      * 根据模型构造 class
      * @param classModel class 模型 Map
+     * @return 模型
      */
     private static String buildClass(Map<String, Object> classModel) {
         StringBuilder classStrBuilder = new StringBuilder();

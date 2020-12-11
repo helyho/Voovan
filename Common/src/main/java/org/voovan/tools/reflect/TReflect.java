@@ -121,6 +121,7 @@ public class TReflect {
      * @param clazz 目标对象类
      * @param override 是否覆盖注册
      * @return DynamicFunction 对象
+     * @throws ReflectiveOperationException 反射异常
      */
     public static DynamicFunction genFieldReader(Class clazz, boolean override) throws ReflectiveOperationException {
         if(!override){
@@ -184,6 +185,7 @@ public class TReflect {
      * @param clazz 目标对象类
      * @param override 是否覆盖注册
      * @return DynamicFunction 对象
+     * @throws ReflectiveOperationException 反射异常
      */
     public static DynamicFunction genFieldWriter(Class clazz, boolean override) throws ReflectiveOperationException {
         if(!override){
