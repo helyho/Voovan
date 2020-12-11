@@ -71,6 +71,7 @@ public class JSONPath {
 
             //获取 list 索引位置
             if ( pathElem.indexOf("[") > -1 &&  pathElem.indexOf("]") > -1 ) {
+                //多级数组支持
                 String[] pathElemSegms = pathElem.trim().split("\\[");
 
                 for(int i=0;i<pathElemSegms.length;i++ ){
@@ -88,8 +89,6 @@ public class JSONPath {
             }else{
                 currentPathObject =  ((Map)currentPathObject).get(pathElem);
             }
-
-
         }
 
         return currentPathObject;
@@ -191,7 +190,7 @@ public class JSONPath {
      * @param elemClazz    List 元素对象的 class
      * @return  转换后的对象
      */
-    public <T> List<T> listObject(String pathQry, Class<T> elemClazz) {
+    public <T> List<T> listObject(String pathQry, String elemKey, Class<T> elemClazz) {
         List<T> resultList = new ArrayList<T>();
         List<?> listObjects = value(pathQry, List.class, TObject.asList());
 
@@ -202,7 +201,12 @@ public class JSONPath {
         Map map = null;
         for(Object value :listObjects){
             if(value instanceof Map){
-                map = (Map)value;
+                if(elemKey == null) {
+                    map = (Map) value;
+                } else {
+                    map = TObject.asMap("", ((Map)value).get(elemKey));
+                }
+
             }else{
                 map = TObject.asMap("", value);
             }
@@ -219,6 +223,34 @@ public class JSONPath {
     }
 
     /**
+     * 获取节点值并转换成相应的 List 对象,忽略段大小写
+     * @param <T>      范型指代对象
+     * @param pathQry  JSONPath 路径
+     * @param elemClazz    List 元素对象的 class
+     * @return  转换后的对象
+     */
+    public <T> List<T> listObject(String pathQry, Class<T> elemClazz) {
+        return listObject(pathQry,null, elemClazz);
+    }
+
+    /**
+     * 获取节点值并转换成相应的对象,忽略段大小写
+     * @param <T>      范型指代对象
+     * @param pathQry  JSONPath 路径
+     * @param elemClazz    List 元素对象的 class
+     * @param defaultValue 节点不存在时的默认值
+     * @return  转换后的对象
+     */
+    public <T> List<T> listObject(String pathQry, String elemKey, Class<T> elemClazz, List<T> defaultValue) {
+        List<T> result = listObject(pathQry, elemKey, elemClazz);
+        if(result==null){
+            return defaultValue;
+        }else {
+            return result;
+        }
+    }
+
+    /**
      * 获取节点值并转换成相应的对象,忽略段大小写
      * @param <T>      范型指代对象
      * @param pathQry  JSONPath 路径
@@ -227,12 +259,7 @@ public class JSONPath {
      * @return  转换后的对象
      */
     public <T> List<T> listObject(String pathQry, Class<T> elemClazz, List<T> defaultValue) {
-        List<T> result = listObject(pathQry,elemClazz);
-        if(result==null){
-            return defaultValue;
-        }else {
-            return result;
-        }
+        return listObject(pathQry, null, elemClazz, defaultValue);
     }
 
 
