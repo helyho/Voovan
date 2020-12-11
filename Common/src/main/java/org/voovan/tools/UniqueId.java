@@ -88,7 +88,11 @@ public class UniqueId {
             }
 
             if (orderedIdSequence.get() >= MAX_SEQUENCE) {
-                TEnv.sleep(1);
+                for(;;) {
+                    if(currentTime < System.currentTimeMillis()){
+                        break;
+                    }
+                }
                 currentTime = System.currentTimeMillis();
                 orderedIdSequence.set(SEQ_DEFAULT);
             }
