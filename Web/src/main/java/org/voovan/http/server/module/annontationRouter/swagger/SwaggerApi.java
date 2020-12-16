@@ -543,6 +543,8 @@ public class SwaggerApi {
             }
         }
 
+        ApiModel apiModel = (ApiModel) clazz.getAnnotation(ApiModel.class);
+
         for (Field field : TReflect.getFields(clazz)) {
             if(field.getName().startsWith("this$")){
                 continue;
@@ -551,6 +553,11 @@ public class SwaggerApi {
             if(Modifier.isTransient(field.getModifiers()) ||
                     Modifier.isStatic(field.getModifiers()) ||
                     field.isAnnotationPresent(NotSerialization.class)) {
+                continue;
+            }
+
+            //隐藏 ApiModel 需要隐藏的属性
+            if(apiModel != null && Arrays.stream(apiModel.hiddenProperty()).filter(hiddenProperty-> hiddenProperty.equals(field.getName())).count()>0){
                 continue;
             }
 
