@@ -1,5 +1,7 @@
 package org.voovan.tools.serialize;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Map;
 
@@ -14,13 +16,28 @@ import java.util.Map;
 public class ProtoStuffWrap {
     private Map mapObj;
     private Collection collectionObj;
+    private BigDecimal bigDecimalObj;
+    private BigInteger bigIntegerObj;
 
     public ProtoStuffWrap() {
     }
 
-    public ProtoStuffWrap(Map mapObj, Collection collectionObj) {
+    public ProtoStuffWrap(Map mapObj) {
         this.mapObj = mapObj;
+    }
+
+
+    public ProtoStuffWrap(Collection collectionObj) {
         this.collectionObj = collectionObj;
+    }
+
+
+    public ProtoStuffWrap(BigDecimal bigDecimal) {
+        this.bigDecimalObj = bigDecimal;
+    }
+
+    public ProtoStuffWrap(BigInteger bigInteger) {
+        this.bigIntegerObj = bigInteger;
     }
 
     public Map getMapObj() {
@@ -38,6 +55,23 @@ public class ProtoStuffWrap {
     public void setCollectionObj(Collection collectionObj) {
         this.collectionObj = collectionObj;
     }
+
+    public BigDecimal getBigDecimalObj() {
+        return bigDecimalObj;
+    }
+
+    public void setBigDecimalObj(BigDecimal bigDecimalObj) {
+        this.bigDecimalObj = bigDecimalObj;
+    }
+
+    public BigInteger getBigInteger() {
+        return bigIntegerObj;
+    }
+
+    public void setBigInteger(BigInteger bigInteger) {
+        this.bigIntegerObj = bigInteger;
+    }
+
 
     public void feed(Map target) {
         target.putAll(mapObj);

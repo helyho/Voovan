@@ -1708,6 +1708,12 @@ public class TReflect {
 
                 String key = field.getName();
                 Object value = null;
+
+                //lambda 中的 this
+                if(key.startsWith("this$")){
+                    break;
+                }
+
                 try {
                     value = getFieldValue(obj, key);
                 } catch (Exception e) {

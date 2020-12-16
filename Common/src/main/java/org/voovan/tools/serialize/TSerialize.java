@@ -6,6 +6,10 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.security.THash;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -126,6 +130,10 @@ public class TSerialize {
         CLASS_AND_HASH.put(Boolean.class,   THash.HashFNV1(Boolean.class.getName()));
         CLASS_AND_HASH.put(String.class,    THash.HashFNV1(String.class.getName()));
         CLASS_AND_HASH.put(byte[].class,    THash.HashFNV1(byte[].class.getName()));
+        CLASS_AND_HASH.put(ArrayList.class,    THash.HashFNV1(ArrayList.class.getName()));
+        CLASS_AND_HASH.put(HashMap.class,    THash.HashFNV1(HashMap.class.getName()));
+        CLASS_AND_HASH.put(HashSet.class,    THash.HashFNV1(HashSet.class.getName()));
+        CLASS_AND_HASH.put(BigDecimal.class,    THash.HashFNV1(BigDecimal.class.getName()));
 
         for(Map.Entry<Class, Integer> entry : CLASS_AND_HASH.entrySet()) {
 
