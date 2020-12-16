@@ -613,8 +613,7 @@ public class AnnotationRouter implements HttpRouter {
             //调用方法
             return TReflect.invokeMethod(annotationObj, method, params);
         } catch (IllegalArgumentException e) {
-            throw new AnnotationRouterException("Router method [" + method + "] has some null parameter, " +
-                    "if you want accpect null parameter, you should change the parameter's class to it's Object type, like int -> Integer.", e);
+            throw new AnnotationRouterException("Router method failed: \r\n [" + method + "]\r\n params" + JSON.toJSON(params), e);
         }
     }
 
