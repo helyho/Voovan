@@ -3,8 +3,10 @@ package org.voovan.tools.reflect;
 import org.voovan.Global;
 import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.IllegalFormatException;
 import java.util.Map;
@@ -75,7 +77,7 @@ public class ClassModel {
      * @return true: 有模型, false: 基本类型 或 java.util 类型
      */
     public static boolean hasModel(Class clazz) {
-        if(TReflect.isBasicType(clazz)){
+        if(TReflect.isSystemType(clazz)){
             return false;
         } else if(TReflect.isImpByInterface(clazz, Map.class) || TReflect.isImpByInterface(clazz, Collection.class)){
             return false;
@@ -98,7 +100,7 @@ public class ClassModel {
         }
 
         StringBuilder jsonStrBuilder = new StringBuilder();
-        if(TReflect.isBasicType(clazz)){
+        if(TReflect.isSystemType(clazz)){
             jsonStrBuilder.append(clazz.getName());
         } else if(TReflect.isImpByInterface(clazz, Map.class) || TReflect.isImpByInterface(clazz, Collection.class)){
             jsonStrBuilder.append(clazz.getName());
@@ -125,6 +127,18 @@ public class ClassModel {
             for (Field field : TReflect.getFields(clazz)) {
                 if(field.getName().startsWith("this$")){
                     break;
+                }
+
+                if(Modifier.isStatic(field.getModifiers())){
+                    continue;
+                }
+
+                if (Modifier.isTransient(field.getModifiers())) {
+                    continue;
+                }
+
+                if(field.isAnnotationPresent(NotSerialization.class)) {
+                    continue;
                 }
 
                 jsonStrBuilder.append("\"");

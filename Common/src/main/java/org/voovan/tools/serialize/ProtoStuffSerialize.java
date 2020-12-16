@@ -10,6 +10,8 @@ import org.voovan.tools.collection.ThreadObjectPool;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -47,13 +49,23 @@ public class ProtoStuffSerialize implements Serialize {
             try {
                 Object wrapObj = obj;
                 if(obj instanceof Map) {
-                    wrapObj = new ProtoStuffWrap((Map) obj, null);
+                    wrapObj = new ProtoStuffWrap((Map) obj);
                     schema = PROTOSTUFF_WARP;
 
                 }
 
                 if(obj instanceof Collection) {
-                    wrapObj = new ProtoStuffWrap(null, (Collection) obj);
+                    wrapObj = new ProtoStuffWrap((Collection) obj);
+                    schema = PROTOSTUFF_WARP;
+                }
+
+                if(obj instanceof BigDecimal) {
+                    wrapObj = new ProtoStuffWrap((BigDecimal)obj);
+                    schema = PROTOSTUFF_WARP;
+                }
+
+                if(obj instanceof BigInteger) {
+                    wrapObj = new ProtoStuffWrap((BigInteger)obj);
                     schema = PROTOSTUFF_WARP;
                 }
 
@@ -90,7 +102,8 @@ public class ProtoStuffSerialize implements Serialize {
                     obj = TReflect.newInstance(innerClazz);
                     Object wrapObj = obj;
 
-                    if(obj instanceof Map || obj instanceof Collection) {
+                    if(obj instanceof Map || obj instanceof Collection ||
+                       obj instanceof BigDecimal || obj instanceof BigInteger) {
                         wrapObj = new ProtoStuffWrap();
                         schema = PROTOSTUFF_WARP;
                     }
@@ -103,6 +116,14 @@ public class ProtoStuffSerialize implements Serialize {
 
                     if(obj instanceof Collection) {
                         ((ProtoStuffWrap)wrapObj).feed((Collection)obj);
+                    }
+
+                    if(obj instanceof BigDecimal) {
+                        obj = ((ProtoStuffWrap)wrapObj).getBigDecimalObj();
+                    }
+
+                    if(obj instanceof BigInteger) {
+                        obj = ((ProtoStuffWrap)wrapObj).getBigInteger();
                     }
                 }
 
