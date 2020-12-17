@@ -333,6 +333,14 @@ public class TObject {
 	 * @throws ParseException 解析异常
 	 */
 	public static <T> T convert(Object origin, Class<? extends T> clazz) throws ReflectiveOperationException, ParseException {
+		if(origin.getClass().equals(clazz)){
+			return (T) origin;
+		}
+
+		if(TReflect.getPackageClass(origin.getClass()).equals(TReflect.getPackageClass(clazz))) {
+			return (T) origin;
+		}
+
 		Map dataMap = TReflect.getMapfromObject(origin);
 		return (T)TReflect.getObjectFromMap(clazz, dataMap, false);
 	}
