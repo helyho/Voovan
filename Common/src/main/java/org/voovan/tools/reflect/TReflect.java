@@ -1234,17 +1234,17 @@ public class TReflect {
         Class targetClazz = clazz;
 
         //不可构造的类型使用最常用的类型
-        if(isImpByInterface(clazz, List.class) && (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers()))){
+        if(isImp(clazz, List.class) && (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers()))){
             targetClazz = ArrayList.class;
         }
 
         //不可构造的类型使用最常用的类型
-        if(isImpByInterface(clazz, Set.class) && (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers()))){
+        if(isImp(clazz, Set.class) && (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers()))){
             targetClazz = LinkedHashSet.class;
         }
 
         //不可构造的类型使用最常用的类型
-        if(isImpByInterface(clazz, Map.class) && (Modifier.isAbstract(clazz.getModifiers()) && Modifier.isInterface(clazz.getModifiers()))){
+        if(isImp(clazz, Map.class) && (Modifier.isAbstract(clazz.getModifiers()) && Modifier.isInterface(clazz.getModifiers()))){
             targetClazz = LinkedHashMap.class;
         }
 
@@ -1456,7 +1456,7 @@ public class TReflect {
             }
         }
         //java 日期对象
-        else if(isExtendsByClass(clazz, Date.class)){
+        else if(isExtends(clazz, Date.class)){
             //取 Map.Values 里的递第一个值
             String value = singleValue == null ? null : singleValue.toString();
             SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
@@ -1464,7 +1464,7 @@ public class TReflect {
             obj = (T)TReflect.newInstance(clazz,dateObj.getTime());
         }
         //Map 类型
-        else if(isImpByInterface(clazz, Map.class)){
+        else if(isImp(clazz, Map.class)){
             Map mapObject = (Map)newInstance(clazz);
 
             if(genericType!=null) {
@@ -1496,7 +1496,7 @@ public class TReflect {
             obj = (T)mapObject;
         }
         //Collection 类型
-        else if(isImpByInterface(clazz, Collection.class)){
+        else if(isImp(clazz, Collection.class)){
             Collection collectionObject = (Collection)newInstance(clazz);
 
             if(singleValue!=null){
@@ -1555,8 +1555,8 @@ public class TReflect {
                             //通过 JSON 将,String类型的 value转换,将 String 转换成 Collection, Map 或者 复杂类型 对象作为参数
                             if( value instanceof String &&
                                     (
-                                            isImpByInterface(fieldType, Map.class) ||
-                                                    isImpByInterface(fieldType, Collection.class) ||
+                                            isImp(fieldType, Map.class) ||
+                                                    isImp(fieldType, Collection.class) ||
                                                     !TReflect.isBasicType(fieldType)
                                     )
                             ){
@@ -1564,15 +1564,15 @@ public class TReflect {
                             }
 
                             //对于 目标对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
-                            else if (isImpByInterface(fieldType, Map.class) && value instanceof Map) {
+                            else if (isImp(fieldType, Map.class) && value instanceof Map) {
                                 value = getObjectFromMap(fieldGenericType, (Map<String,?>)value, ignoreCase);
                             }
                             //对于 目标对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
-                            else if (isImpByInterface(fieldType, Collection.class) && value instanceof Collection) {
+                            else if (isImp(fieldType, Collection.class) && value instanceof Collection) {
                                 value = getObjectFromMap(fieldGenericType, TObject.asMap(SINGLE_VALUE_KEY, value), ignoreCase);
                             }
                             //对于 目标对象类型不是 Map,则认定为复杂类型
-                            else if (!isImpByInterface(fieldType, Map.class)) {
+                            else if (!isImp(fieldType, Map.class)) {
                                 if (value instanceof Map) {
                                     value = getObjectFromMap(fieldType, (Map<String, ?>) value, ignoreCase);
                                 } else {
@@ -1668,7 +1668,7 @@ public class TReflect {
             mapResult.put(null, ((BigDecimal) obj));
         }
         //java 日期对象
-        else if(isExtendsByClass(obj.getClass(),Date.class)){
+        else if(isExtends(obj.getClass(),Date.class)){
             mapResult.put(null, (Date) obj);
         }
         //对 Map 类型的处理
@@ -1784,13 +1784,28 @@ public class TReflect {
     }
 
     /**
+     * 判断某个类型是否实现了某个接口或继承了某个类
+     * 		包括判断其父接口
+     * @param type               被判断的类型
+     * @param interfaceClass     检查是否实现了次类的接口
+     * @return 是否实现某个接口
+     */
+    public static boolean isSuper(Class<?> type, Class<?> superClass) {
+        if (type == superClass) {
+            return true;
+        }
+
+        return superClass.isAssignableFrom(type);
+    }
+
+    /**
      * 判断某个类型是否实现了某个接口
      * 		包括判断其父接口
      * @param type               被判断的类型
      * @param interfaceClass     检查是否实现了次类的接口
      * @return 是否实现某个接口
      */
-    public static boolean isImpByInterface(Class<?> type,Class<?> interfaceClass){
+    public static boolean isImp(Class<?> type, Class<?> interfaceClass){
         if(type==interfaceClass && interfaceClass.isInterface()){
             return true;
         }
@@ -1806,7 +1821,7 @@ public class TReflect {
      * @param extendsClass	用于判断的父类类型
      * @return 是否继承于某个类
      */
-    public static boolean isExtendsByClass(Class<?> type,Class<?> extendsClass){
+    public static boolean isExtends(Class<?> type, Class<?> extendsClass){
         if(type==extendsClass && !extendsClass.isInterface()){
             return true;
         }
@@ -1840,9 +1855,9 @@ public class TReflect {
 
             if(filterClazz.isAnnotation() && clazz.isAnnotationPresent(filterClazz)){
                 matchCount++;
-            }else if(filterClazz.isInterface() && TReflect.isImpByInterface(clazz, filterClazz)){
+            }else if(filterClazz.isInterface() && TReflect.isImp(clazz, filterClazz)){
                 matchCount++;
-            }else if(TReflect.isExtendsByClass(clazz, filterClazz)){
+            }else if(TReflect.isExtends(clazz, filterClazz)){
                 matchCount++;
             }
         }

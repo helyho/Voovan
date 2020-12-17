@@ -1,6 +1,5 @@
 package org.voovan.tools.reflect;
 
-import org.voovan.Global;
 import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.reflect.annotation.NotSerialization;
@@ -8,7 +7,6 @@ import org.voovan.tools.reflect.annotation.NotSerialization;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
-import java.util.IllegalFormatException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -79,7 +77,7 @@ public class ClassModel {
     public static boolean hasModel(Class clazz) {
         if(TReflect.isSystemType(clazz)){
             return false;
-        } else if(TReflect.isImpByInterface(clazz, Map.class) || TReflect.isImpByInterface(clazz, Collection.class)){
+        } else if(TReflect.isImp(clazz, Map.class) || TReflect.isImp(clazz, Collection.class)){
             return false;
         } else if(clazz.isArray()){
             return false;
@@ -102,7 +100,7 @@ public class ClassModel {
         StringBuilder jsonStrBuilder = new StringBuilder();
         if(TReflect.isSystemType(clazz)){
             jsonStrBuilder.append(clazz.getName());
-        } else if(TReflect.isImpByInterface(clazz, Map.class) || TReflect.isImpByInterface(clazz, Collection.class)){
+        } else if(TReflect.isImp(clazz, Map.class) || TReflect.isImp(clazz, Collection.class)){
             jsonStrBuilder.append(clazz.getName());
         } else if(clazz.isArray()){
             String clazzName = TReflect.getClassName(clazz);

@@ -347,13 +347,13 @@ public class SwaggerApi {
                 if (clazz == Object.class) {
                     schema.setType("object");
                     createSchema(swagger, schema, genericClass[i], null, null, null, null, null, false);
-                } else if (TReflect.isImpByInterface(clazz, Collection.class)) {
+                } else if (TReflect.isImp(clazz, Collection.class)) {
                     schema.setType("array");
                     createSchema(swagger, schema.getItems(), genericClass[i], null, null, null, null, null, false);
 
                     //循环注解, 方便下一个注解引用
                     schema = schema.getItems();
-                } else if (TReflect.isImpByInterface(clazz, Map.class)) {
+                } else if (TReflect.isImp(clazz, Map.class)) {
                     schema.setType("object");
 
                     Schema valueSchema = new Schema();
@@ -646,10 +646,10 @@ public class SwaggerApi {
             return new String[]{"number", null};
         } else if(clazz.isArray()) {
             return new String[]{"array", clazz.getComponentType().getName().toLowerCase()};
-        } else if(TReflect.isImpByInterface(clazz, Collection.class)) {
+        } else if(TReflect.isImp(clazz, Collection.class)) {
             Class[] classes = TReflect.getGenericClass(clazz);
             return new String[]{"array", classes!=null ? getParamType(classes[0])[0] : null};
-        } else if(TReflect.isImpByInterface(clazz, Map.class)) {
+        } else if(TReflect.isImp(clazz, Map.class)) {
             return new String[]{"string", "object"};
         } else if(clazz == Object.class) {
             Class[] genericClazz = TReflect.getGenericClass(clazz);

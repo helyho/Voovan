@@ -37,7 +37,7 @@ public class TSerialize {
 
         try {
             Class serializeClazz = Class.forName(serializeType);
-            TReflect.isImpByInterface(serializeClazz, Serialize.class);
+            TReflect.isImp(serializeClazz, Serialize.class);
             SERIALIZE = (Serialize) TReflect.newInstance(serializeClazz);
         } catch (ReflectiveOperationException e) {
             Logger.error(e);
