@@ -321,4 +321,40 @@ public class TObject {
 		return (T)TReflect.getObjectFromMap(obj.getClass(),dataMap, false);
 	}
 
+
+	/**
+	 * 将对象转换为其他类型的对象
+	 * 			传递名称相同类型相同的属相到新的对象
+	 * @param origin 源对象
+	 * @param clazz 目标对象的类型
+	 * @param <T> 范型
+	 * @return 克隆后的新对象
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws ParseException 解析异常
+	 */
+	public static <T> T convert(Object origin, Class<? extends T> clazz) throws ReflectiveOperationException, ParseException {
+		Map dataMap = TReflect.getMapfromObject(origin);
+		return (T)TReflect.getObjectFromMap(clazz, dataMap, false);
+	}
+
+	/**
+	 * 复制对象属性到新的对象(浅复制)
+	 * 			传递名称相同类型相同的属相到新的对象
+	 * @param origin 源对象
+	 * @param target 目标对象
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws ParseException 解析异常
+	 */
+	public static void copyField(Object origin, Object target) throws ReflectiveOperationException, ParseException {
+		Map<String, Object> originMap = TReflect.getMapfromObject(origin);
+		Field[] targetFields = TReflect.getFields(target.getClass());
+
+		for(Field targetField : targetFields){
+			Object value = originMap.get(targetField.getName());
+			if(TReflect.getPackageClass(value.getClass()).equals(TReflect.getPackageClass(targetField.getType()))) {
+				TReflect.setFieldValue(target, targetField.getName(), value);
+			}
+		}
+	}
+
 }
