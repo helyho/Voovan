@@ -671,48 +671,15 @@ public class TReflect {
     /**
      * 获取类型的范型类型信息
      * @param type 类型对象
-     * @return GenericInfo[] 范型类型信息
+     * @return GenericInfo 范型类型信息
      */
-    public static GenericInfo[] getGenericInfo(Type type) {
+    public static GenericInfo getGenericInfo(Type type) {
         if(type == null) {
             return null;
         }
 
-        ParameterizedType parameterizedType = null;
-        if(type instanceof ParameterizedType) {
-            parameterizedType = (ParameterizedType) type;
-        }
-
-        if(parameterizedType==null){
-            return null;
-        }
-        Type[] actualType = parameterizedType.getActualTypeArguments();
-        GenericInfo[] result = new GenericInfo[actualType.length];
-
-        for(int i=0;i<actualType.length;i++){
-            Type oneType = actualType[i];
-
-            if(oneType instanceof Class){
-                result[i] = new GenericInfo((Class)oneType, null);
-            } else if(type instanceof ParameterizedType){
-                result[i] = new GenericInfo(((ParameterizedTypeImpl)oneType).getRawType(), oneType);
-            } else {
-                result[i] = new GenericInfo(null, oneType);
-            }
-        }
-
-        return result;
+        return new GenericInfo(type);
     }
-
-    /**
-     * 获取类型的范型类型信息
-     * @param genericInfo GenericInfo 对象
-     * @return GenericInfo[] 范型类型信息
-     */
-    public static GenericInfo[] getGenericInfo(GenericInfo genericInfo) {
-        return getGenericInfo(genericInfo.getType());
-    }
-
 
     /**
      * 获取类型的范型类型
@@ -1370,12 +1337,7 @@ public class TReflect {
      * @throws ParseException 解析异常
      */
     public static <T>T getObjectFromMap(Type type, Map<String, ?> mapArg,  boolean ignoreCase) throws ParseException, ReflectiveOperationException {
-        Class[] genericType = null;
-
-        if(type instanceof ParameterizedType) {
-            ParameterizedType parameterizedType = (ParameterizedType) type;
-            genericType = getGenericClass(parameterizedType);
-        }
+        Class[] genericType = getGenericClass(type);;
 
         return getObjectFromMap(type, mapArg, genericType, ignoreCase);
     }
@@ -1399,13 +1361,8 @@ public class TReflect {
     public static <T>T getObjectFromMap(Type type, Map<String, ?> mapArg, Class[] genericType,  boolean ignoreCase)
             throws ReflectiveOperationException, ParseException {
         T obj = null;
-        Class<?> clazz = null;
-        if(type instanceof ParameterizedType) {
-            ParameterizedType parameterizedType = (ParameterizedType) type;
-            clazz = (Class)parameterizedType.getRawType();
-        }else if(type instanceof Class){
-            clazz = (Class)type;
-        }
+        GenericInfo genericInfo = TReflect.getGenericInfo(type);
+        Class<?> clazz = genericInfo.getClazz();
 
         if(mapArg==null){
             return null;
