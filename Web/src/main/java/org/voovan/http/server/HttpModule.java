@@ -185,7 +185,7 @@ public abstract class HttpModule extends Attributes {
         try {
 
             Class clazz = Class.forName(lifeCycleClass);
-            if(TReflect.isImpByInterface(clazz, HttpModuleLifeCycle.class)){
+            if(TReflect.isImp(clazz, HttpModuleLifeCycle.class)){
                 httpModuleLifeCycle = (HttpModuleLifeCycle)TReflect.newInstance(clazz);
                 httpModuleLifeCycle.init(this);
             }else{

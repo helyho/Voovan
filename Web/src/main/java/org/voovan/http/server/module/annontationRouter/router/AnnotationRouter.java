@@ -6,7 +6,6 @@ import org.voovan.http.server.*;
 import org.voovan.http.server.exception.AnnotationRouterException;
 import org.voovan.http.server.module.annontationRouter.AnnotationModule;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
-import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
@@ -282,7 +281,7 @@ public class AnnotationRouter implements HttpRouter {
                 //查找包含 WebSocket 注解的类
                 List<Class> webSocketClasses = TEnv.searchClassInEnv(scanRouterPackage, new Class[]{WebSocket.class});
                 for (Class webSocketClass : webSocketClasses) {
-                    if (TReflect.isExtendsByClass(webSocketClass, WebSocketRouter.class)) {
+                    if (TReflect.isExtends(webSocketClass, WebSocketRouter.class)) {
                         WebSocket[] annonClassRouters = (WebSocket[]) webSocketClass.getAnnotationsByType(WebSocket.class);
                         WebSocket annonClassRouter = annonClassRouters[0];
                         String classRouterPath = annonClassRouter.path().isEmpty() ? annonClassRouter.value() : annonClassRouter.path();

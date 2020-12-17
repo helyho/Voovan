@@ -743,7 +743,7 @@ public class TString {
 		} else if (clazz == char.class || clazz == Character.class) {
 			Object tmpValue = value != null ? value.charAt(0) : null;
 			return (T) tmpValue;
-		} else if (clazz == Date.class || TReflect.isExtendsByClass(clazz,  Date.class)) {
+		} else if (clazz == Date.class || TReflect.isExtends(clazz,  Date.class)) {
 			try {
 				SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
 				return (T) (value != null ? TReflect.newInstance(clazz, dateFormat.parse(value).getTime()): null);
@@ -751,10 +751,10 @@ public class TString {
 				Logger.error("TString.toObject error: ", e);
 				return null;
 			}
-		} else if ((TReflect.isImpByInterface(clazz, Collection.class) || clazz.isArray()) &&
+		} else if ((TReflect.isImp(clazz, Collection.class) || clazz.isArray()) &&
 				JSON.isJSONList(value)) {
 			return JSON.toObject(value, type, ignoreCase);
-		} else if (TReflect.isImpByInterface(clazz, Map.class) && JSON.isJSONMap(value)) {
+		} else if (TReflect.isImp(clazz, Map.class) && JSON.isJSONMap(value)) {
 			return JSON.toObject(value, type, ignoreCase);
 		} else if (JSON.isJSON(value) && !TReflect.isSystemType(clazz)) {
 			return JSON.toObject(value, type, ignoreCase);

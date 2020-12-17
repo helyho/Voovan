@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.channels.ShutdownChannelGroupException;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * WebServer 对象
@@ -515,7 +514,7 @@ public class WebServer {
 
 		try {
 			Class clazz = Class.forName(lifeCycleClass);
-			if(TReflect.isImpByInterface(clazz, WebServerLifeCycle.class)){
+			if(TReflect.isImp(clazz, WebServerLifeCycle.class)){
 				webServerLifeCycle = (WebServerLifeCycle)TReflect.newInstance(clazz);
 				webServerLifeCycle.init(webServer);
 
