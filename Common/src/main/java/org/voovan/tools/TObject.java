@@ -1,8 +1,10 @@
 package org.voovan.tools;
 
+import org.voovan.tools.reflect.GenericInfo;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.util.*;
 
@@ -332,7 +334,14 @@ public class TObject {
 	 * @throws ReflectiveOperationException 反射异常
 	 * @throws ParseException 解析异常
 	 */
-	public static <T> T convert(Object origin, Class<? extends T> clazz) throws ReflectiveOperationException, ParseException {
+	public static <T> T convert(Object origin, Type type) throws ReflectiveOperationException, ParseException {
+		if(origin == null || type == null) {
+			return null;
+		}
+
+		GenericInfo genericInfo = TReflect.getGenericInfo(type);
+		Class clazz = genericInfo.getClazz();
+
 		if(origin.getClass().equals(clazz)){
 			return (T) origin;
 		}
@@ -342,7 +351,7 @@ public class TObject {
 		}
 
 		Map dataMap = TReflect.getMapfromObject(origin);
-		return (T)TReflect.getObjectFromMap(clazz, dataMap, false);
+		return (T)TReflect.getObjectFromMap(type, dataMap, false);
 	}
 
 	/**
@@ -354,6 +363,10 @@ public class TObject {
 	 * @throws ParseException 解析异常
 	 */
 	public static void copyField(Object origin, Object target) throws ReflectiveOperationException, ParseException {
+		if(origin == null || target == null) {
+			return;
+		}
+
 		Map<String, Object> originMap = TReflect.getMapfromObject(origin);
 		Field[] targetFields = TReflect.getFields(target.getClass());
 
