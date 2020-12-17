@@ -3,9 +3,9 @@ package org.voovan.tools;
 import org.voovan.Global;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.GenericInfo;
 import org.voovan.tools.reflect.TReflect;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -698,18 +698,8 @@ public class TString {
 		if(value==null || type==null) {
 			return null;
 		}
-
-		Class<?> clazz = null;
-		if (type instanceof ParameterizedType) {
-			ParameterizedType parameterizedType = (ParameterizedType) type;
-			clazz = (Class<T>) parameterizedType.getRawType();
-		} else if (type instanceof Class) {
-			clazz = (Class<T>) type;
-		} else {
-			return (T) value;
-		}
-
-
+		GenericInfo genericInfo = TReflect.getGenericInfo(type);
+		Class<?> clazz = genericInfo.getClazz();
 
 		if (value == null && !clazz.isPrimitive()) {
 			return null;
