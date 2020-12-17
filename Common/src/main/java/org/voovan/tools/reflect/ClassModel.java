@@ -99,9 +99,9 @@ public class ClassModel {
 
         StringBuilder jsonStrBuilder = new StringBuilder();
         if(TReflect.isSystemType(clazz)){
-            jsonStrBuilder.append(clazz.getName());
+            jsonStrBuilder.append(clazz.getCanonicalName());
         } else if(TReflect.isImp(clazz, Map.class) || TReflect.isImp(clazz, Collection.class)){
-            jsonStrBuilder.append(clazz.getName());
+            jsonStrBuilder.append(clazz.getCanonicalName());
         } else if(clazz.isArray()){
             String clazzName = TReflect.getClassName(clazz);
             Class componentType = clazz.getComponentType();
@@ -119,7 +119,7 @@ public class ClassModel {
             jsonStrBuilder.append("$");
             jsonStrBuilder.append("\"").append(":");
             jsonStrBuilder.append("\"");
-            jsonStrBuilder.append(clazz.getName());
+            jsonStrBuilder.append(clazz.getCanonicalName());
             jsonStrBuilder.append("\"").append(",");
 
             for (Field field : TReflect.getFields(clazz)) {
