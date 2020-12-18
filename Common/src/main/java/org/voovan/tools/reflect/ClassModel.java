@@ -187,7 +187,10 @@ public class ClassModel {
             return null;
         }
 
-        classStrBuilder.append("public static class " + simpleClassName + "{");
+        classStrBuilder.append("import java.util.*;");
+        classStrBuilder.append("import java.math.*;");
+
+        classStrBuilder.append("public class " + simpleClassName + "{");
 
         StringBuilder fieldStrBuild = new StringBuilder();
         StringBuilder methodStrBuild = new StringBuilder();
@@ -198,7 +201,7 @@ public class ClassModel {
             }
 
             String fieldName = entry.getKey();
-            String fieldType = entry.getValue().toString();
+            String fieldType = entry.getValue().toString().replace("java.lang.", "").replace("java.util.", "").replace("java.math.", "");;
 
             if(entry.getValue() instanceof Map) {
                 Map<String, Object> subClassModel = (Map)entry.getValue();
