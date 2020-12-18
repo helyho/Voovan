@@ -31,7 +31,7 @@ public class HttpClientPoolUnit {
             System.out.println("===================" + i + "===================");
             httpClient.setMethod("GET");
             Response response = httpClient.send("/vjson");
-            System.out.println("" + response.body().toString() + "");
+            System.out.println("" + response.body().toString() + "      ");
             httpClientPool.restitution(httpClient);
         }
 
