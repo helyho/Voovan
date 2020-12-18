@@ -556,6 +556,8 @@ public class HttpClient extends PooledObject implements Closeable{
 	 */
 	private synchronized Response commonSend(String location, Consumer<Response> async) throws SendMessageException, ReadMessageException {
 
+		IoSession session = socket.getSession();
+
 		if (isWebSocket) {
 			throw new SendMessageException("The WebSocket is connect, you can't send an http request.");
 		}
@@ -567,8 +569,8 @@ public class HttpClient extends PooledObject implements Closeable{
 		//构造 Request 对象
 		buildRequest(TString.isNullOrEmpty(location) ? "/" : location);
 
-		socket.getSession().getReadByteBufferChannel().clear();
-		socket.getSession().getSendByteBufferChannel().clear();
+		session.getReadByteBufferChannel().clear();
+		session.getSendByteBufferChannel().clear();
 		synchronousHandler.clear();
 
 		//异步模式更新 handler
@@ -576,16 +578,12 @@ public class HttpClient extends PooledObject implements Closeable{
 			asyncHandler.setAsync(async);
 			socket.handler(asyncHandler);
 		} else {
-			socket.getSession().socketContext().handler(synchronousHandler);
+			session.socketContext().handler(synchronousHandler);
 		}
 
 		//发送报文
 		try {
-			httpRequest.send(socket.getSession());
-
-			if(socket.handler() instanceof AsyncHandler) {
-				socket.getSession().flush();
-			}
+			session.syncSend(httpRequest);
 		} catch (Exception e) {
 			throw new SendMessageException("HttpClient writeToChannel error", e);
 		}

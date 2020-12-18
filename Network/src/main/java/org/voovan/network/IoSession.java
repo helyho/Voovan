@@ -546,12 +546,14 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 			}
 		} catch (IOException e) {
 			Logger.error("IoSession.writeToChannel data failed" ,e);
-		} finally {
-			//同步模式自动 flush
-			if(socketContext.handler instanceof SynchronousHandler) {
-				flush();
-			}
 		}
+
+//		finally {
+//			//同步模式自动 flush
+//			if(socketContext.handler instanceof SynchronousHandler) {
+//				flush();
+//			}
+//		}
 
 		return -1;
 	}
