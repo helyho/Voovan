@@ -153,6 +153,9 @@ public class HttpResponse extends Response {
 	 * @throws IOException IO 异常
 	 */
 	public void send() throws IOException {
+		if(socketSession == null) {
+			throw new NullPointerException("Socket session is null, are you clear this object before?");
+		}
 		super.send(socketSession);
 	}
 

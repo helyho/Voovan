@@ -585,7 +585,7 @@ public class HttpClient extends PooledObject implements Closeable{
 		try {
 			session.syncSend(httpRequest);
 		} catch (Exception e) {
-			throw new SendMessageException("HttpClient writeToChannel error", e);
+			throw new SendMessageException("HttpClient send to socket error", e);
 		}
 
 		Response response = null;
@@ -665,7 +665,7 @@ public class HttpClient extends PooledObject implements Closeable{
 		//清理请求对象,以便下次请求使用
 		parameters.clear();
 		List<Cookie> cookies = httpRequest.cookies();
-		httpRequest.clear();
+		httpRequest.clear();  							//socketSession will be null
 		httpRequest.cookies().addAll(cookies);
 
 		//重新初始化 Header
