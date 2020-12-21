@@ -86,7 +86,6 @@ public class TSerialize {
      */
     public static int register(String mark, Class clazz){
         int hashcode = THash.HashFNV1(mark);
-        System.out.println(mark + "   "+ hashcode + " " + clazz);
         register(hashcode, clazz);
         return hashcode;
     }
