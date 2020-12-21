@@ -954,8 +954,6 @@ public class WebServer {
 			}
 			System.out.println("[" + TDateTime.now() + "] Socket closed");
 
-			SocketContext.gracefulShutdown();
-
 			if(serverSocket.getAcceptEventRunnerGroup()!=null) {
 				ThreadPool.gracefulShutdown(serverSocket.getAcceptEventRunnerGroup().getThreadPool());
 			}
@@ -963,7 +961,10 @@ public class WebServer {
 				ThreadPool.gracefulShutdown(serverSocket.getIoEventRunnerGroup().getThreadPool());
 			}
 
+			SocketContext.gracefulShutdown();
+
 			ThreadPool.gracefulShutdown(Global.getThreadPool());
+
 
 			System.out.println("[" + TDateTime.now() + "] Thread pool is shutdown.");
 
