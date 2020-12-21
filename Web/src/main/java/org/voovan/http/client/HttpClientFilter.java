@@ -39,7 +39,7 @@ public class HttpClientFilter implements IoFilter {
 		if(object instanceof HttpRequest){
 			HttpRequest httpRequest = (HttpRequest)object;
 			try {
-				httpRequest.send();
+				httpRequest.send(session);
 			} catch (IOException e) {
 				Logger.error(e);
 			}
