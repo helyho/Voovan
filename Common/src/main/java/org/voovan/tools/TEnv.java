@@ -483,7 +483,7 @@ public class TEnv {
 	 */
 	public static boolean isClassExists(String className){
 		try {
-			return Class.forName(className)!=null;
+			return TEnv.class.getClassLoader().loadClass(className)!=null;
 		} catch (Throwable e) {
 			return false;
 		}
