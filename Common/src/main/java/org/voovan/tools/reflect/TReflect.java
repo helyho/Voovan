@@ -10,6 +10,8 @@ import org.voovan.tools.reflect.annotation.Serialization;
 import org.voovan.tools.reflect.exclude.Exclude;
 import org.voovan.tools.reflect.convert.Convert;
 import org.voovan.tools.security.THash;
+import org.voovan.tools.tuple.Tuple;
+import org.voovan.tools.tuple.TupleItem;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.lang.annotation.Annotation;
@@ -1384,7 +1386,14 @@ public class TReflect {
                 obj = (T) mapArg;
             }
         }
-
+        //元组
+        else if(clazz == Tuple.class){
+            Tuple tuple = new Tuple();
+            for(Entry entry : mapArg.entrySet()) {
+                tuple.set(entry.getKey().toString(), entry.getValue());
+            }
+            obj = (T) tuple;
+        }
         //java标准对象
         else if (clazz.isPrimitive()){
             if(singleValue!=null && singleValue.getClass() !=  clazz) {
@@ -1594,6 +1603,10 @@ public class TReflect {
         //如果是 java 标准类型
         if(TReflect.isBasicType(obj.getClass())){
             mapResult.put(null, obj);
+        }
+        //元组类型
+        else if(obj instanceof Tuple){
+            mapResult.putAll(((Tuple) obj).toMap());
         }
         //对 Collection 类型的处理
         else if(obj instanceof Collection){

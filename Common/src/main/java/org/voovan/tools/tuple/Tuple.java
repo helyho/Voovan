@@ -41,6 +41,10 @@ public class Tuple {
         return (int)items.values().stream().filter(tupleItem -> tupleItem.equals(value)).count();
     }
 
+    public Map<String, TupleItem> getItems() {
+        return items;
+    }
+
     /**
      * 设置元素属性
      * @param name 属性名称
@@ -137,7 +141,7 @@ public class Tuple {
      */
     public Map<String, ?> toMap() {
         Map ret = new LinkedHashMap();
-        items.values().stream().forEach(tupleItem -> ret.put(tupleItem.getName(), tupleItem.value));
+        items.values().stream().forEach(tupleItem -> ret.put(tupleItem.getName(), tupleItem.getValue()));
         return ret;
     }
 
