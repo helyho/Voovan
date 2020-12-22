@@ -477,6 +477,19 @@ public class TEnv {
 	}
 
 	/**
+	 * 判断类是否存在
+	 * @param className 类名 字符串
+	 * @return true: 存在, false: 不存在
+	 */
+	public static boolean isClassExists(String className){
+		try {
+			return Class.forName(className)!=null;
+		} catch (Throwable e) {
+			return false;
+		}
+	}
+
+	/**
 	 * 返回当前 jvm 的 JAVA_HOME 参数
 	 * @return 当前 jvm 的 JAVA_HOME 参数
 	 */
