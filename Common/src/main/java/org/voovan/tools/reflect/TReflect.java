@@ -1744,7 +1744,7 @@ public class TReflect {
      * 判断某个类型是否实现了某个接口或继承了某个类
      * 		包括判断其父接口
      * @param type               被判断的类型
-     * @param interfaceClass     检查是否实现了次类的接口
+     * @param superClass         检查是否实现了父类接口或者继承于父类
      * @return 是否实现某个接口
      */
     public static boolean isSuper(Class<?> type, Class<?> superClass) {
@@ -1759,7 +1759,7 @@ public class TReflect {
      * 判断某个类型是否实现了某个接口
      * 		包括判断其父接口
      * @param type               被判断的类型
-     * @param interfaceClass     检查是否实现了次类的接口
+     * @param interfaceClass     检查是否实现了父类的接口
      * @return 是否实现某个接口
      */
     public static boolean isImp(Class<?> type, Class<?> interfaceClass){
