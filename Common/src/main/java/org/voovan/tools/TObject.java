@@ -328,7 +328,7 @@ public class TObject {
 	 * 将对象转换为其他类型的对象
 	 * 			传递名称相同类型相同的属相到新的对象
 	 * @param origin 源对象
-	 * @param clazz 目标对象的类型
+	 * @param type 目标对象的类型
 	 * @param <T> 范型
 	 * @return 克隆后的新对象
 	 * @throws ReflectiveOperationException 反射异常
