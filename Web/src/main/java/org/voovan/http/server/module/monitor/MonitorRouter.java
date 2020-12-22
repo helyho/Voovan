@@ -75,18 +75,18 @@ public class MonitorRouter implements HttpRouter {
             } else if ("CPU".equals(type)) {
                 responseStr = JSON.toJSON(TPerformance.getProcessorInfo());
             } else if ("Memory".equals(type)) {
-                responseStr = JSON.toJSON(TPerformance.getJvmMemoryInfo());
+                responseStr = JSON.toJSON(TPerformance.getJVMMemoryInfo());
             } else if ("MemoryUsage".equals(type)) {
-                responseStr = JSON.toJSON(TPerformance.getJvmMemoryUsage());
+                responseStr = JSON.toJSON(TPerformance.getJVMMemoryUsage());
             } else if ("Objects".equals(type)) {
                 String filterWord = request.getParameter("Param1");
                 filterWord = filterWord == null ? ".*" : filterWord;
                 String headCountStr = request.getParameter("Param2");
                 int headCount = headCountStr==null ? 10 : Integer.valueOf(headCountStr);
 
-                responseStr = JSON.toJSON(TPerformance.getJvmObjectInfo(filterWord, headCount));
+                responseStr = JSON.toJSON(TPerformance.getJVMObjectInfo(filterWord, headCount));
             } else if ("GC".equals(type)) {
-                responseStr = JSON.toJSON(TPerformance.getJvmGCInfo());
+                responseStr = JSON.toJSON(TPerformance.getJVMGCInfo());
             } else if ("Threads".equals(type)) {
                 String state = request.getParameter("Param1");
                 boolean withStack  = Boolean.valueOf(request.getParameter("Param2"));
@@ -109,14 +109,14 @@ public class MonitorRouter implements HttpRouter {
             } else if("Summary".equals(type)){
                 Map summary = new LinkedHashMap();
                 summary.put("CPU", TPerformance.getProcessorInfo());
-                summary.put("Memory", TPerformance.getJvmMemoryInfo());
-                summary.put("MemoryUsage", TPerformance.getJvmMemoryUsage());
+                summary.put("Memory", TPerformance.getJVMMemoryInfo());
+                summary.put("MemoryUsage", TPerformance.getJVMMemoryUsage());
                 summary.put("ThreadPool", TPerformance.getThreadPoolInfo());
                 summary.put("ThreadCount", TEnv.getThreads().length);
 
                 if(!"fast".equals(request.getParameter("Param1"))) {
-                    summary.put("Objects", TPerformance.getJvmObjectInfo("", 10));
-                    summary.put("GC", TPerformance.getJvmGCInfo());
+                    summary.put("Objects", TPerformance.getJVMObjectInfo("", 10));
+                    summary.put("GC", TPerformance.getJVMGCInfo());
                     summary.put("RunningThreads", TPerformance.getThreadDetail("RUNNABLE", false));
                     summary.put("RequestAnalysis", requestInfo());
                     summary.put("IPAddressAnalysis", ipAddressInfo());

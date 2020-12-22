@@ -180,7 +180,7 @@ public class TPerformance {
 	 * JVM 虚拟机的内存使用情况
 	 * @return 内存使用情况
 	 * */
-	public static double getJvmMemoryUsage(){
+	public static double getJVMMemoryUsage(){
 		//maxMemory()这个方法返回的是java虚拟机（这个进程）能构从操作系统那里挖到的最大的内存，以字节为单位, -Xmx参数
 		//totalMemory()这个方法返回的是java虚拟机现在已经从操作系统那里挖过来的内存大小
 		//freeMemory() 当前申请到的内存有多少没有使用的空闲内存
@@ -196,7 +196,7 @@ public class TPerformance {
 	 * @param memType 获取的信息类型
 	 * @return 当前内存数值
 	 */
-	public static long getJvmMemoryInfo(MemType memType){
+	public static long getJVMMemoryInfo(MemType memType){
 		if(memType== MemType.NOHEAP_INIT){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getInit();
 		} else if(memType== MemType.NOHEAP_MAX){
@@ -222,17 +222,17 @@ public class TPerformance {
 	 * 获取当前内存信息
 	 * @return  内存信息描述对象
 	 */
-	public static MemoryInfo getJvmMemoryInfo(){
+	public static MemoryInfo getJVMMemoryInfo(){
 		MemoryInfo memoryInfo = new MemoryInfo();
-		memoryInfo.setHeapInit(getJvmMemoryInfo(MemType.HEAP_INIT));
-		memoryInfo.setHeapUsage(getJvmMemoryInfo(MemType.HEAP_USAGE));
-		memoryInfo.setHeapCommit(getJvmMemoryInfo(MemType.HEAP_COMMIT));
-		memoryInfo.setHeapMax(getJvmMemoryInfo(MemType.HEAP_MAX));
+		memoryInfo.setHeapInit(getJVMMemoryInfo(MemType.HEAP_INIT));
+		memoryInfo.setHeapUsage(getJVMMemoryInfo(MemType.HEAP_USAGE));
+		memoryInfo.setHeapCommit(getJVMMemoryInfo(MemType.HEAP_COMMIT));
+		memoryInfo.setHeapMax(getJVMMemoryInfo(MemType.HEAP_MAX));
 
-		memoryInfo.setNoHeapInit(getJvmMemoryInfo(MemType.NOHEAP_INIT));
-		memoryInfo.setNoHeapUsage(getJvmMemoryInfo(MemType.NOHEAP_USAGE));
-		memoryInfo.setNoHeapCommit(getJvmMemoryInfo(MemType.NOHEAP_COMMIT));
-		memoryInfo.setNoHeapMax(getJvmMemoryInfo(MemType.NOHEAP_MAX));
+		memoryInfo.setNoHeapInit(getJVMMemoryInfo(MemType.NOHEAP_INIT));
+		memoryInfo.setNoHeapUsage(getJVMMemoryInfo(MemType.NOHEAP_USAGE));
+		memoryInfo.setNoHeapCommit(getJVMMemoryInfo(MemType.NOHEAP_COMMIT));
+		memoryInfo.setNoHeapMax(getJVMMemoryInfo(MemType.NOHEAP_MAX));
 		memoryInfo.setFree(Runtime.getRuntime().freeMemory());
 		memoryInfo.setTotal(Runtime.getRuntime().totalMemory());
 		memoryInfo.setMax(Runtime.getRuntime().maxMemory());
@@ -245,7 +245,7 @@ public class TPerformance {
 	 * @return GC信息
 	 * @throws IOException IO 异常
 	 */
-	public static Map<String, String> getJvmGCInfo(long pid) throws IOException {
+	public static Map<String, String> getJVMGCInfo(long pid) throws IOException {
 		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
 		InputStream processInputStream = TEnv.createSysProcess("jstat -gcutil "+pid, null, (File)null).getInputStream();
 		String console = new String(TStream.readAll(processInputStream));
@@ -263,8 +263,8 @@ public class TPerformance {
 	 * @return GC信息
 	 * @throws IOException IO 异常
 	 */
-	public static Map<String, String> getJvmGCInfo() throws IOException {
-		return getJvmGCInfo(TEnv.getCurrentPID());
+	public static Map<String, String> getJVMGCInfo() throws IOException {
+		return getJVMGCInfo(TEnv.getCurrentPID());
 	}
 
 	/**
@@ -275,7 +275,7 @@ public class TPerformance {
 	 * @return 虚拟机中的对象信息
 	 * @throws IOException IO 异常
 	 */
-	public static Map<String,ObjectInfo> getJvmObjectInfo(long pid, String regex, Integer headCount) throws IOException {
+	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex, Integer headCount) throws IOException {
 		LinkedHashMap<String,ObjectInfo> result = new LinkedHashMap<String,ObjectInfo>();
 		InputStream processInputStream = TEnv.createSysProcess("jmap -histo "+pid, null, (File)null).getInputStream();
 		String console = new String(TStream.readAll(processInputStream));
@@ -314,8 +314,8 @@ public class TPerformance {
 	 * @return 虚拟机中的对象信息
 	 * @throws IOException IO 异常
 	 */
-	public static Map<String,ObjectInfo> getJvmObjectInfo(long pid, String regex) throws IOException {
-		return TPerformance.getJvmObjectInfo(TEnv.getCurrentPID(), regex, null);
+	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex) throws IOException {
+		return TPerformance.getJVMObjectInfo(TEnv.getCurrentPID(), regex, null);
 	}
 
 	/**
@@ -324,14 +324,14 @@ public class TPerformance {
 	 * @param headCount 头部记录数
 	 * @return 系统对象信息的Map
 	 */
-	public static Map<String,TPerformance.ObjectInfo> getJvmObjectInfo(String regex, int headCount) {
+	public static Map<String,TPerformance.ObjectInfo> getJVMObjectInfo(String regex, int headCount) {
 		if(regex==null){
 			regex = ".*";
 		}
 
 		Map<String,TPerformance.ObjectInfo> result;
 		try {
-			result = TPerformance.getJvmObjectInfo(TEnv.getCurrentPID(), regex, headCount);
+			result = TPerformance.getJVMObjectInfo(TEnv.getCurrentPID(), regex, headCount);
 		} catch (IOException e) {
 			result = new Hashtable<String,TPerformance.ObjectInfo>();
 		}
