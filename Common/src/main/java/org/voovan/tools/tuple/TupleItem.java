@@ -9,9 +9,9 @@ package org.voovan.tools.tuple;
  * Licence: Apache v2 License
  */
 public class TupleItem {
-    String name;
-    Class clazz;
-    Object value;
+    private String name;
+    private Class clazz;
+    private Object value;
 
     public TupleItem(String name, Class clazz) {
         this.name = name;
