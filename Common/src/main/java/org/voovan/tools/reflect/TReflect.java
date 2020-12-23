@@ -2,16 +2,19 @@ package org.voovan.tools.reflect;
 
 
 import org.voovan.Global;
-import org.voovan.tools.*;
+import org.voovan.tools.TDateTime;
+import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
+import org.voovan.tools.TUnsafe;
+import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 import org.voovan.tools.reflect.annotation.Serialization;
-import org.voovan.tools.reflect.exclude.Exclude;
 import org.voovan.tools.reflect.convert.Convert;
+import org.voovan.tools.reflect.exclude.Exclude;
 import org.voovan.tools.security.THash;
 import org.voovan.tools.tuple.Tuple;
-import org.voovan.tools.tuple.TupleItem;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.lang.annotation.Annotation;
@@ -36,44 +39,47 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class TReflect {
-    private class EmptyClass {
-        private Object emptyField;
+    public static class Empty {
+        private Object field;
 
-        private EmptyClass() {
+        public Empty() {
         }
 
-        private void emptyMethod(){
+        public void method(){
         }
     }
 
+    public static Empty EMPTY = new Empty();
     public static Constructor EMPTY_CONSTRUCTOR;
     public static Field EMPTY_FIELD;
     public static Method EMPTY_METHOD;
 
     static {
         try {
-            EMPTY_CONSTRUCTOR = EmptyClass.class.getDeclaredConstructor(TReflect.class);
-            EMPTY_FIELD = EmptyClass.class.getDeclaredField("emptyField");
-            EMPTY_METHOD = EmptyClass.class.getDeclaredMethod("emptyMethod");
+            EMPTY_CONSTRUCTOR = Empty.class.getDeclaredConstructor();
+            EMPTY_FIELD = Empty.class.getDeclaredField("field");
+            EMPTY_METHOD = Empty.class.getDeclaredMethod("method");
         } catch (Exception e) {
             Logger.error("Create empty reflect object failed", e);
         }
     }
 
-    private static Map<Integer, Field>           FIELDS               = new ConcurrentHashMap<Integer ,Field>();
-    private static Map<Integer, Method>          METHODS              = new ConcurrentHashMap<Integer ,Method>();
-    private static Map<Integer, Constructor>     CONSTRUCTORS         = new ConcurrentHashMap<Integer ,Constructor>();
-    private static Map<Class, Field[]>           FIELD_ARRAYS         = new ConcurrentHashMap<Class ,Field[]>();
-    private static Map<Integer, Method[]>        METHOD_ARRAYS        = new ConcurrentHashMap<Integer ,Method[]>();
-    private static Map<Integer, Constructor[]>   CONSTRUCTOR_ARRAYS   = new ConcurrentHashMap<Integer ,Constructor[]>();
-    private static Map<Class, String>            NAME_CLASS           = new ConcurrentHashMap<Class ,String>();
-    private static Map<String, Class>            CLASS_NAME           = new ConcurrentHashMap<String, Class>();
-    private static Map<Class, Boolean>           CLASS_BASIC_TYPE     = new ConcurrentHashMap<Class ,Boolean>();
+    private static IntKeyMap<Field[]>           FIELD_ARRAYS         = new IntKeyMap<Field[]>(256);
+    private static IntKeyMap<Method[]>          METHOD_ARRAYS        = new IntKeyMap<Method[]>(256);
+    private static IntKeyMap<Constructor[]>     CONSTRUCTOR_ARRAYS   = new IntKeyMap<Constructor[]>(256);
 
-    private static Map<Class, DynamicFunction>   FIELD_READER         = new ConcurrentHashMap<Class, DynamicFunction>();
-    private static Map<Class, DynamicFunction>   FIELD_WRITER         = new ConcurrentHashMap<Class, DynamicFunction>();
-    private static Map<Class, DynamicFunction>   CONSTRUCTOR_INVOKE   = new ConcurrentHashMap<Class, DynamicFunction>();
-    private static Map<Class, DynamicFunction>   METHOD_INVOKE        = new ConcurrentHashMap<Class, DynamicFunction>();
+    private static IntKeyMap<Field>             FIELDS               = new IntKeyMap<Field>(256);
+    private static IntKeyMap<Method>            METHODS              = new IntKeyMap<Method>(256);
+    private static IntKeyMap<Constructor>       CONSTRUCTORS         = new IntKeyMap<Constructor>(256);
+
+    private static IntKeyMap<String>            NAME_CLASS           = new IntKeyMap<String>(256);
+    private static Map<String, Class>           CLASS_NAME           = new ConcurrentHashMap<String, Class>();
+    private static IntKeyMap<Boolean>           CLASS_BASIC_TYPE     = new IntKeyMap<Boolean>(256);
+
+    private static IntKeyMap<DynamicFunction>   FIELD_READER         = new IntKeyMap<DynamicFunction>(256);
+    private static IntKeyMap<DynamicFunction>   FIELD_WRITER         = new IntKeyMap<DynamicFunction>(256);
+    private static IntKeyMap<DynamicFunction>   CONSTRUCTOR_INVOKE   = new IntKeyMap<DynamicFunction>(256);
+    private static IntKeyMap<DynamicFunction>   METHOD_INVOKE        = new IntKeyMap<DynamicFunction>(256);
 
 
     /**
@@ -118,6 +124,11 @@ public class TReflect {
         TReflect.METHOD_INVOKE.clear();
     }
 
+
+    private static int getClassMark(Class clazz) {
+        return clazz.hashCode();
+    }
+
     /**
      * 生成对象的读取的动态编译方法
      * @param clazz 目标对象类
@@ -127,7 +138,7 @@ public class TReflect {
      */
     public static DynamicFunction genFieldReader(Class clazz, boolean override) throws ReflectiveOperationException {
         if(!override){
-            DynamicFunction dynamicFunction = FIELD_READER.get(clazz);
+            DynamicFunction dynamicFunction = FIELD_READER.get(getClassMark(clazz));
             if(dynamicFunction!=null) {
                 return dynamicFunction;
             }
@@ -162,15 +173,16 @@ public class TReflect {
         }
 
         if(hasGenCode) {
-            code = code + "default : return null;\r\n }";
+            code = code + "default : return TReflect.EMPTY;\r\n }";
 
             DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_READER", code);
             dynamicFunction.addImport(clazz);
+            dynamicFunction.addImport(TReflect.class);
             dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
             dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //取值字段
             dynamicFunction.compileCode();
 
-            FIELD_READER.put(clazz, dynamicFunction);
+            FIELD_READER.put(getClassMark(clazz), dynamicFunction);
 
             if (Global.IS_DEBUG_MODE) {
                 Logger.debug(code);
@@ -191,7 +203,7 @@ public class TReflect {
      */
     public static DynamicFunction genFieldWriter(Class clazz, boolean override) throws ReflectiveOperationException {
         if(!override){
-            DynamicFunction dynamicFunction = FIELD_WRITER.get(clazz);
+            DynamicFunction dynamicFunction = FIELD_WRITER.get(getClassMark(clazz));
             if(dynamicFunction!=null) {
                 return dynamicFunction;
             }
@@ -217,22 +229,23 @@ public class TReflect {
 
             code = code + "case \"" + field.getName() + "\" : ";
 
-            String methodCode =methodName + "(("+field.getType().getName()+")value); return true;";
+            String methodCode =methodName + "(("+TReflect.getClassName(field.getType())+")value); return null;";
             code = code + "obj."+methodCode + " \r\n";
             hasGenCode = true;
         }
 
         if(hasGenCode) {
-            code = code + "default : return null;\r\n }";
+            code = code + "default : return TReflect.EMPTY;\r\n }";
 
             DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_WRITER", code);
             dynamicFunction.addImport(clazz);
+            dynamicFunction.addImport(TReflect.class);
             dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
             dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //写入字段
             dynamicFunction.addPrepareArg(2, Object.class, "value");     //写入数据
             dynamicFunction.compileCode();
 
-            FIELD_WRITER.put(clazz, dynamicFunction);
+            FIELD_WRITER.put(getClassMark(clazz), dynamicFunction);
 
             if (Global.IS_DEBUG_MODE) {
                 Logger.debug(code);
@@ -252,7 +265,7 @@ public class TReflect {
      */
     public static DynamicFunction genConstructorInvoker(Class clazz, boolean override) {
         if(!override){
-            DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(clazz);
+            DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(getClassMark(clazz));
             if(dynamicFunction!=null) {
                 return dynamicFunction;
             }
@@ -299,13 +312,13 @@ public class TReflect {
 
         if(hasGenCode) {
 
-            code.append("else { return null; }");
+            code.append("else { return TReflect.EMPTY; }");
 
             code.insert(0, paramtypeCode);
 
             DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_CONSTRUCTOR", code.toString());
-            dynamicFunction.addImport(TReflect.class);
             dynamicFunction.addImport(clazz);
+            dynamicFunction.addImport(TReflect.class);
             dynamicFunction.addPrepareArg(0, Class.class, "clazz");     //写入数据
             dynamicFunction.addPrepareArg(1, Object[].class, "params");     //写入数据
 
@@ -316,7 +329,7 @@ public class TReflect {
                 Logger.error("TReflect.genMethodInvoker error", e);
             }
 
-            CONSTRUCTOR_INVOKE.put(clazz, dynamicFunction);
+            CONSTRUCTOR_INVOKE.put(getClassMark(clazz), dynamicFunction);
 
             if (Global.IS_DEBUG_MODE) {
                 Logger.debug(code);
@@ -337,7 +350,7 @@ public class TReflect {
      */
     public static DynamicFunction genMethodInvoker(Class clazz, boolean override) {
         if(!override){
-            DynamicFunction dynamicFunction = METHOD_INVOKE.get(clazz);
+            DynamicFunction dynamicFunction = METHOD_INVOKE.get(getClassMark(clazz));
             if(dynamicFunction!=null) {
                 return dynamicFunction;
             }
@@ -401,12 +414,13 @@ public class TReflect {
         }
 
         if(hasGenCode) {
-            code.append("else { return null; }");
+            code.append("else { return TReflect.EMPTY; }");
 
             code.insert(0, paramtypeCode);
 
             DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "Reader", code.toString());
             dynamicFunction.addImport(clazz);
+            dynamicFunction.addImport(TReflect.class);
             dynamicFunction.addPrepareArg(0, clazz, "obj");                 //目标对象
             dynamicFunction.addPrepareArg(1, String.class, "methodName");   //写入字段
             dynamicFunction.addPrepareArg(2, Object[].class, "params");     //写入数据
@@ -418,7 +432,7 @@ public class TReflect {
                 Logger.error("TReflect.genMethodInvoker error", e);
             }
 
-            METHOD_INVOKE.put(clazz, dynamicFunction);
+            METHOD_INVOKE.put(getClassMark(clazz), dynamicFunction);
             if (Global.IS_DEBUG_MODE) {
                 Logger.debug(code);
             }
@@ -439,10 +453,10 @@ public class TReflect {
      * @throws ReflectiveOperationException 调用异常
      */
     public static <T> T getFieldValueNatvie(Object obj, String fieldName) throws ReflectiveOperationException {
-        DynamicFunction dynamicFunction = FIELD_READER.get(obj.getClass());
+        DynamicFunction dynamicFunction = FIELD_READER.get(getClassMark(obj.getClass()));
 
         if(dynamicFunction == null) {
-            return null;
+            return (T) EMPTY;
         }
 
         try {
@@ -465,7 +479,7 @@ public class TReflect {
      * @return true:成功, false:失败
      */
     public static Boolean setFieldValueNatvie(Object obj, String fieldName, Object value) throws ReflectiveOperationException {
-        DynamicFunction dynamicFunction = FIELD_WRITER.get(obj.getClass());
+        DynamicFunction dynamicFunction = FIELD_WRITER.get(getClassMark(obj.getClass()));
 
         if(dynamicFunction == null) {
             return false;
@@ -492,10 +506,10 @@ public class TReflect {
      */
     public static <T> T newInstanceNative(Class clazz, Object ... params) throws ReflectiveOperationException {
 
-        DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(clazz);
+        DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(getClassMark(clazz));
 
         if(dynamicFunction == null) {
-            return null;
+            return (T) EMPTY;
         }
 
         try {
@@ -519,10 +533,11 @@ public class TReflect {
      * @throws ReflectiveOperationException 调用异常
      */
     public static <T> T invokeMethodNative(Object obj, String methodName, Object ... params) throws ReflectiveOperationException {
-        DynamicFunction dynamicFunction = METHOD_INVOKE.get(obj instanceof Class ? obj : obj.getClass());
+        Class clazz = obj instanceof Class ? (Class)obj : obj.getClass();
+        DynamicFunction dynamicFunction = METHOD_INVOKE.get(getClassMark(clazz));
 
         if(dynamicFunction == null) {
-            return null;
+            return (T) EMPTY;
         }
 
         try {
@@ -543,10 +558,10 @@ public class TReflect {
      * @return 类的完全现定名
      */
     public static String getClassName(Class clazz){
-        String canonicalName = NAME_CLASS.get(clazz);
+        String canonicalName = NAME_CLASS.get(getClassMark(clazz));
         if(canonicalName == null){
             canonicalName = clazz.getCanonicalName();
-            NAME_CLASS.put(clazz, canonicalName);
+            NAME_CLASS.put(getClassMark(clazz), canonicalName);
         }
 
         return canonicalName;
@@ -575,7 +590,7 @@ public class TReflect {
      * @return Field数组
      */
     public static Field[] getFields(Class<?> clazz) {
-        Field[] fields = FIELD_ARRAYS.get(clazz);
+        Field[] fields = FIELD_ARRAYS.get(getClassMark(clazz));
 
         Class loopClazz = clazz;
         if(fields==null){
@@ -591,7 +606,7 @@ public class TReflect {
             fields = fieldArray.toArray(new Field[]{});
 
             if(clazz!=null) {
-                FIELD_ARRAYS.put(clazz, fields);
+                FIELD_ARRAYS.put(getClassMark(clazz), fields);
                 fieldArray.clear();
             }
         }
@@ -600,7 +615,7 @@ public class TReflect {
     }
 
     private static Integer getFieldMark(Class<?> clazz, String fieldName) {
-        return THash.HashFNV1(clazz.getName()) ^ THash.HashFNV1(fieldName);
+        return clazz.hashCode() ^ THash.HashFNV1(fieldName);
     }
 
     /**
@@ -728,7 +743,7 @@ public class TReflect {
         if (genericClazzs == null) {
             if (object instanceof Map) {
                 if (((Map) object).size() > 0) {
-                    Map.Entry entry = (Map.Entry) ((Map) object).entrySet().iterator().next();
+                    Entry entry = (Entry) ((Map) object).entrySet().iterator().next();
                     genericClazzs = new Class[]{entry.getKey().getClass(), entry.getValue().getClass()};
                 }
             } else if (object instanceof Collection) {
@@ -765,7 +780,7 @@ public class TReflect {
             throws ReflectiveOperationException {
         //尝试 native 方法
         T t = getFieldValueNatvie(obj, fieldName);
-        if(t==null) {
+        if(t==EMPTY) {
             Field field = findField(obj.getClass(), fieldName);
             t = (T) field.get(obj);
         }
@@ -833,9 +848,9 @@ public class TReflect {
     }
 
     private static int getMethodParamTypeMark(Class<?> clazz, String name, Class<?>... paramTypes) {
-        int hashCode = THash.HashFNV1(clazz.getName()) ^ THash.HashFNV1(name);
+        int hashCode = clazz.hashCode() ^ THash.HashFNV1(name);
         for(Class<?> paramType : paramTypes){
-            hashCode = hashCode ^ THash.HashFNV1(paramType.getName());
+            hashCode = hashCode ^ paramType.hashCode();
         }
         return hashCode;
     }
@@ -874,7 +889,7 @@ public class TReflect {
     }
 
     private static int getMethodParamCountMark(Class<?> clazz, String name, int paramCount) {
-        int hashCode = THash.HashFNV1(clazz.getName()) ^ THash.HashFNV1(name) ^ paramCount;
+        int hashCode = clazz.hashCode() ^ THash.HashFNV1(name) ^ paramCount;
         return hashCode;
     }
 
@@ -920,7 +935,7 @@ public class TReflect {
 
         Method[] methods = null;
 
-        Integer marker = clazz.hashCode();
+        Integer marker = getClassMark(clazz);
 
         methods = METHOD_ARRAYS.get(marker);
 
@@ -947,8 +962,7 @@ public class TReflect {
     }
 
     private static int getMethodMark(Class<?> clazz, String name) {
-        int hashCode = THash.HashFNV1(clazz.getName()) ^ THash.HashFNV1(name);
-        return hashCode;
+        return clazz.hashCode() ^ THash.HashFNV1(name);
     }
 
     /**
@@ -1033,7 +1047,7 @@ public class TReflect {
             throws ReflectiveOperationException {
         //尝试 native 方法
         T t = invokeMethodNative(obj, methodName, args);
-        if(t!=null){
+        if(t != EMPTY){
             return t;
         }
 
@@ -1058,7 +1072,7 @@ public class TReflect {
                 try {
                     T result = (T) methodItem.invoke(obj, args);
                     //匹配到合适则加入缓存
-                    METHODS.put(getMethodParamTypeMark(objClass, methodName, paramTypes), methodItem);
+                    METHODS.putIfAbsent(getMethodParamTypeMark(objClass, methodName, paramTypes), methodItem);
                     return result;
                 } catch (Exception e) {
                     exception = e;
@@ -1081,9 +1095,9 @@ public class TReflect {
     }
 
     public static int getConstructorParamTypeMark(Class<?> clazz, Class<?>... paramTypes) {
-        int hashCode = THash.HashFNV1(clazz.getName());
+        int hashCode = clazz.hashCode();
         for(Class<?> paramType : paramTypes){
-            hashCode = hashCode ^ THash.HashFNV1(paramType.getName());
+            hashCode = hashCode ^ paramType.hashCode();
         }
         return hashCode;
     }
@@ -1120,7 +1134,7 @@ public class TReflect {
     }
 
     private static int getConstructorParamCountMark(Class<?> clazz, int paramCount) {
-        int hashCode = THash.HashFNV1(clazz.getName()) ^ paramCount;
+        int hashCode =clazz.hashCode() ^ paramCount;
         return hashCode;
     }
 
@@ -1165,7 +1179,7 @@ public class TReflect {
 
         Constructor[] constructors = null;
 
-        Integer marker = clazz.hashCode();
+        Integer marker = getClassMark(clazz);
 
         constructors = CONSTRUCTOR_ARRAYS.get(marker);
 
@@ -1235,7 +1249,7 @@ public class TReflect {
             }
         }
 
-        if(result != null) {
+        if(result!=EMPTY) {
             return result;
         }
 
@@ -1252,7 +1266,7 @@ public class TReflect {
                 try {
                     result = (T) constructorItem.newInstance(args);
                     //匹配到合适的则加入缓存
-                    CONSTRUCTORS.put(getConstructorParamTypeMark(clazz, paramTeypes), constructorItem);
+                    CONSTRUCTORS.putIfAbsent(getConstructorParamTypeMark(clazz, paramTeypes), constructorItem);
 
                     return result;
                 } catch (Exception e) {
@@ -1427,7 +1441,7 @@ public class TReflect {
             String value = singleValue == null ? null : singleValue.toString();
             SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
             Date dateObj = singleValue != null ? dateFormat.parse(value.toString()) : null;
-            obj = (T)TReflect.newInstance(clazz,dateObj.getTime());
+            obj = (T) TReflect.newInstance(clazz,dateObj.getTime());
         }
         //Map 类型
         else if(isImp(clazz, Map.class)){
@@ -1923,15 +1937,15 @@ public class TReflect {
      * @return true: 是基本类型, false:非基本类型
      */
     public static boolean isBasicType(Class clazz) {
-        Boolean isBasicType = CLASS_BASIC_TYPE.get(clazz);
+        Boolean isBasicType = CLASS_BASIC_TYPE.get(getClassMark(clazz));
         if(isBasicType==null) {
             if (clazz == null ||
                     clazz.isPrimitive() ||
                     clazz.getName().startsWith("java.lang")) {
-                CLASS_BASIC_TYPE.put(clazz, true);
+                CLASS_BASIC_TYPE.put(getClassMark(clazz), true);
                 isBasicType = true;
             } else {
-                CLASS_BASIC_TYPE.put(clazz, false);
+                CLASS_BASIC_TYPE.put(getClassMark(clazz), false);
                 isBasicType =  false;
             }
         }
