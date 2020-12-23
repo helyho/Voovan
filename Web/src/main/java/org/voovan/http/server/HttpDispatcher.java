@@ -12,6 +12,7 @@ import org.voovan.tools.*;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.security.THash;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -252,9 +253,9 @@ public class HttpDispatcher {
 	 * @return 路由信息对象 { 路由标签, [ 匹配到的已注册路由, HttpRouter对象 ] }
 	 */
 	public RouterWrap<HttpRouter> findRouter(HttpRequest request){
-		String requestPath   = request.protocol().getPath();
+		String requestPath      = request.protocol().getPath();
 		String requestMethod 	= request.protocol().getMethod();
-		int routerMark    = requestPath.hashCode() << 16 +  requestMethod.hashCode();
+		int routerMark          = THash.HashFNV1(requestPath) << 16 +  THash.HashFNV1(requestMethod);
 
 		RouterWrap<HttpRouter> routerWrap = ROUTER_INFO_CACHE.get().get(routerMark);
 
@@ -265,7 +266,9 @@ public class HttpDispatcher {
 
 				//寻找匹配的路由对象
 				if (matchPath(requestPath, tmpRouterWrap.getRoutePath(), tmpRouterWrap.getRegexPath(), webConfig.isMatchRouteIgnoreCase())) {
-					ROUTER_INFO_CACHE.get().put(routerMark, tmpRouterWrap);
+					if(!tmpRouterWrap.getHasUrlParam()) {
+						ROUTER_INFO_CACHE.get().put(routerMark, tmpRouterWrap);
+					}
 					return tmpRouterWrap;
 				}
 			}
