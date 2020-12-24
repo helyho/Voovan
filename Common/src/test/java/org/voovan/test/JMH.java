@@ -40,8 +40,7 @@ public class JMH {
     @Benchmark
     public void oldRef() throws ReflectiveOperationException {
         for(int i=0;i<10000;i++) {
-            m.hashCode();
-            TReflect.setFieldValue(testObject, "bint", 111);
+            TReflect.invokeMethod(testObject, "getData", "123123", 111);
 //            TReflect.getFields(TestObject.class);
         }
     }
@@ -49,7 +48,7 @@ public class JMH {
     @Benchmark
     public void newRef() {
         for(int i=0;i<10000;i++) {
-            testObject.setBint(111);
+            testObject.getData("123123", 111);
 //            TReflect2.findField(TestObject.class, "TestObject2Arr");
 //            TReflect2.getFields(TestObject.class);
         }
@@ -58,7 +57,7 @@ public class JMH {
     public static void main(String[] args) throws Exception {
         TReflect.register(TestObject.class);
 
-        TReflect.invokeMethod(testObject, "setList", ml);
+        TReflect.invokeMethod(testObject, "getData", "123123", 111);
         Options options = new OptionsBuilder()
                 .include(JMH.class.getSimpleName())
                 .build();
