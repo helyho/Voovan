@@ -364,15 +364,24 @@ public class TReflect {
 
         boolean hasGenCode = false;
         for(Method method : methods) {
+            String methodName = method.getName();
+
+            //过滤 bean 的 get / set 方法
+            if(methodName.startsWith("get") || methodName.startsWith("set")) {
+                String tryFieldName = methodName.substring(3);
+                if(findFieldIgnoreCase(clazz, tryFieldName)!=null) {
+                    continue;
+                }
+            }
+
             int modifier = method.getModifiers();
-            if(      Modifier.isPrivate(modifier) ||
-                    method.getName().startsWith("$")) {
+            if(Modifier.isPrivate(modifier) || methodName.startsWith("$")) {
                 continue;
             }
 
             Class[] paramTypes = method.getParameterTypes();
             code.append(code.length() == 0 ? "if" : "else if");
-            code.append("(methodName.equals(\"" + method.getName() + "\") && ");
+            code.append("(methodName.equals(\"" + methodName + "\") && ");
             code.append("paramTypeLength == " + paramTypes.length);
 
             //参数类型匹配
@@ -396,7 +405,7 @@ public class TReflect {
 
             String main = Modifier.isStatic(modifier) ? clazz.getCanonicalName() : "obj";
 
-            code.append(resultCode + main + "." + method.getName()+"(");
+            code.append(resultCode + main + "." + methodName + "(");
 
             //拼装方法参数代码, 类似: (java.lang.String) params[i],
             if(paramTypes.length > 0) {
