@@ -11,6 +11,7 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -47,6 +48,7 @@ public class AnnotationRouter implements HttpRouter {
     private Router classRouter;
     private Router methodRoute;
     private AnnotationModule annotationModule;
+    private DynamicFunction methodDynamicFunction;
 
     /**
      * 构造函数
@@ -79,6 +81,8 @@ public class AnnotationRouter implements HttpRouter {
                 Logger.error("New a singleton object error", e);
             }
         }
+
+        methodDynamicFunction = TReflect.genMethodInvoker(clazz, method);
     }
 
     public String getUrlPath() {
@@ -610,7 +614,8 @@ public class AnnotationRouter implements HttpRouter {
 
         try {
             //调用方法
-            return TReflect.invokeMethod(annotationObj, method, params);
+            // return TReflect.invokeMethod(annotationObj, method, params);
+            return methodDynamicFunction.call(annotationObj, params);
         } catch (IllegalArgumentException e) {
             throw new AnnotationRouterException("Router method failed: \r\n [" + method + "]\r\n params" + JSON.toJSON(params), e);
         }
@@ -635,7 +640,7 @@ public class AnnotationRouter implements HttpRouter {
             //null: 执行请求路由方法
             //非 null: 作为 http 请求的响应直接返回
             if(fliterResult == null) {
-                responseObj = invokeRouterMethod(request, response, clazz, method);
+                    responseObj = invokeRouterMethod(request, response, clazz, method);
             } else {
                 responseObj = fliterResult;
             }

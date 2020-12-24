@@ -265,7 +265,7 @@ public class TReflect {
      * @return DynamicFunction 对象
      */
     public static DynamicFunction genConstructorInvoker(Class clazz, Constructor constructor) {
-        String paramtypeCode = "int paramTypeLength = params==null ? 0 : params.length;\r\n\r\n";
+        String paramtypeCode = "int paramLength = params==null ? 0 : params.length;\r\n\r\n";
 
         StringBuilder code = new StringBuilder();
         {
@@ -277,7 +277,7 @@ public class TReflect {
             }
 
             Class[] paramTypes = constructor.getParameterTypes();
-            code.append("if(paramTypeLength == " + paramTypes.length);
+            code.append("if(paramLength == " + paramTypes.length);
 
             //参数类型匹配
             for (int i = 0; i < paramTypes.length; i++) {
@@ -420,7 +420,7 @@ public class TReflect {
         String className = clazz.getCanonicalName();
 
         StringBuilder code = new StringBuilder();
-        String paramtypeCode = "int paramTypeLength = params==null ? 0 : params.length;\r\n\r\n";
+        String paramtypeCode = "int paramLength = params==null ? 0 : params.length;\r\n\r\n";
         {
             String methodName = method.getName();
 
@@ -430,7 +430,7 @@ public class TReflect {
             }
 
             Class[] paramTypes = method.getParameterTypes();
-            code.append("if(paramTypeLength == " + paramTypes.length);
+            code.append("if(paramLength == " + paramTypes.length);
 
             //参数类型匹配
             for (int i = 0; i < paramTypes.length; i++) {
