@@ -1,9 +1,6 @@
 package org.voovan.tools.log;
 
-import org.voovan.tools.TEnv;
-import org.voovan.tools.TFile;
-import org.voovan.tools.TObject;
-import org.voovan.tools.TString;
+import org.voovan.tools.*;
 import org.voovan.tools.json.JSON;
 
 import java.util.function.Function;
@@ -58,18 +55,195 @@ public class Logger {
 		}
 	}
 
+
+	//============================================== INFO ==============================================
+	public static void info(Object msg) {
+		basicLog(Formater.INFO, msg);
+	}
+
+	public static void infof(String msg, Object ... args){
+		basicLog(Formater.INFO, msg, args);
+	}
+
+	//============================================== FRAMEWORK ==============================================
+	public static void fremawork(Object msg) {
+		basicLog(Formater.FRAMEWORK, msg);
+	}
+
+	public static void fremaworkf(String msg, Object ... args){
+		basicLog(Formater.FRAMEWORK, msg, args);
+	}
+
+	//============================================== SQL ==============================================
+	public static void sql(Object msg) {
+		basicLog(Formater.SQL, msg);
+	}
+
+	public static void sqlf(String msg, Object ... args){
+		basicLog(Formater.SQL, msg, args);
+	}
+
+	//============================================== DEBUG ==============================================
+	public static void debug(Object msg) {
+		basicLog(Formater.DEBUG, msg);
+	}
+
+	public static void debugf(String msg, Object ... args){
+		basicLog(Formater.DEBUG, msg, args);
+	}
+
+	public static void debug(Throwable e) {
+		basicLog(Formater.DEBUG, e);
+	}
+
+	public static void debug(Object msg, Throwable e) {
+		basicLog(Formater.DEBUG, msg, e);
+	}
+
+	public static void debugf(String msg, Throwable e, Object ... args){
+		basicLog(Formater.DEBUG, msg, e, args);
+	}
+
+	//============================================== TRACE ==============================================
+	public static void trade(Object msg) {
+		basicLog(Formater.TRACE, msg);
+	}
+
+	public static void tradef(String msg, Object ... args){
+		basicLog(Formater.TRACE, msg, args);
+	}
+
+	public static void trade(Throwable e) {
+		basicLog(Formater.TRACE, e);
+	}
+
+	public static void trade(Object msg, Throwable e) {
+		basicLog(Formater.TRACE, msg, e);
+	}
+
+	public static void tradef(String msg, Throwable e, Object ... args){
+		basicLog(Formater.TRACE, msg, e, args);
+	}
+
+	//============================================== WARN ==============================================
+	public static void warn(Object msg) {
+		basicLog(Formater.WARN, msg);
+	}
+
+	public static void warnf(String msg, Object ... args){
+		basicLog(Formater.WARN, msg, args);
+	}
+
+	public static void warn(Throwable e) {
+		basicLog(Formater.WARN, null, e);
+	}
+
+	public static void warn(Object msg, Throwable e) {
+		basicLog(Formater.WARN, msg, e);
+	}
+
+	public static void warnf(String msg, Throwable e, Object ... args){
+		basicLog(Formater.WARN, msg, e, args);
+	}
+
+	//============================================== ERROR ==============================================
+	public static void error(Object msg) {
+		basicLog(Formater.ERROR, msg);
+	}
+
+	public static void errorf(String msg, Object ... args){
+		basicLog(Formater.ERROR, msg, args);
+	}
+
+	public static void error(Throwable e) {
+		basicLog(Formater.ERROR, e);
+	}
+
+	public static void error(Object msg, Throwable e) {
+		basicLog(Formater.ERROR, msg, e);
+	}
+
+	public static void errorf(String msg, Throwable e, Object ... args){
+		basicLog(Formater.ERROR, msg, e, args);
+	}
+
+	//============================================== FATAL ==============================================
+	public static void fatal(Object msg) {
+		basicLog(Formater.FATAL, msg);
+	}
+
+	public static void fatalf(String msg, Object ... args){
+		basicLog(Formater.FATAL, msg, args);
+	}
+
+	public static void fatal(Throwable e) {
+		basicLog(Formater.FATAL, e);
+	}
+
+	public static void fatal(Object msg, Throwable e) {
+		basicLog(Formater.FATAL, msg, e);
+	}
+
+	public static void fatalf(String msg, Throwable e, Object ... args){
+		basicLog(Formater.FATAL, msg, e, args);
+	}
+
+	//============================================== FATAL ==============================================
+	public static void simple(Object msg) {
+		basicLog(Formater.SIMPLE, msg);
+	}
+
+	public static void simplef(String msg, Object ... args){
+		basicLog(Formater.SIMPLE, msg, args);
+	}
+
+	//============================================== CUSTOM ==============================================
 	public static void custom(String logLevel, Object msg, Throwable e) {
+		basicLog(logLevel, msg, e);
+	}
+
+	public static void custom(String logLevel, Object msg) {
+		basicLog(logLevel, msg, null);
+	}
+
+	public static void custom(String logLevel, Throwable e) {
+		basicLog(logLevel, null, e);
+	}
+
+	public static void customf(String logLevel, String msg, Throwable e, Object ... args){
+		basicLog(logLevel, TString.tokenReplace(msg, args), e);
+	}
+
+	public static void customf(String logLevel, String msg, Object ... args) {
+		customf(logLevel, msg, null, args);
+	}
+
+	//============================================== BASIC_LOG ==============================================
+	private static void basicLog(Object logLevel, Object msg, Throwable e) {
 		if(!Logger.isEnable()){
 			return;
 		}
 
-		if(!hasLevel(logLevel)) {
-			return;
+		//自定义的日志级别
+		if(logLevel instanceof String) {
+			if(!hasLevel((String)logLevel)) {
+				return;
+			}
+		}
+		//系统默认的日志级别
+		else if(logLevel instanceof Integer){
+			if(((Integer)logLevel)>=0) {
+				logLevel = formater.getLogLevel().get((Integer) logLevel);
+			} else {
+				return;
+			}
+		} else {
+			System.out.println(TDateTime.now() + " [ERROR] Unknow log level [" + logLevel + "], " + msg + ", " + e);
 		}
 
 		try {
 			msg = buildMessage(msg, e);
-			Message message = Message.newInstance(logLevel, msg.toString());
+			Message message = Message.newInstance((String)logLevel, msg.toString());
 			formater.writeFormatedLog(message);
 		} catch (Exception oe) {
 			simple("Logger system error: "+oe.getMessage()+"\r\n");
@@ -78,132 +252,24 @@ public class Logger {
 		}
 	}
 
-	public static void custom(String logLevel, Object msg) {
-		custom(logLevel, msg, null);
+	private static void basicLog(Object logLevel, Object msg) {
+		basicLog(logLevel, msg, null);
 	}
 
-	public static void custom(String logLevel, Throwable e) {
-		custom(logLevel, null, e);
+	private static void basicLog(Object logLevel, Throwable e) {
+		basicLog(logLevel, null, e);
 	}
 
-	public static void customf(String logLevel, String msg, Throwable e, Object ... args){
+	private static void basicLog(Object logLevel, String msg, Throwable e, Object ... args){
 		if(!Logger.isEnable()){
 			return;
 		}
 
-		custom(logLevel, TString.tokenReplace(msg, args), e);
+		basicLog(logLevel, TString.tokenReplace(msg, args), e);
 	}
 
-	public static void customf(String logLevel, String msg, Object ... args) {
-		customf(logLevel, msg, null, args);
-	}
-
-	//============================================== INFO ==============================================
-	public static void info(Object msg) {
-		custom("INFO", msg);
-	}
-
-	public static void infof(String msg, Object ... args){
-		customf("INFO", msg, args);
-	}
-
-	//============================================== FRAMEWORK ==============================================
-	public static void fremawork(Object msg) {
-		custom("FRAMEWORK", msg);
-	}
-
-	public static void fremaworkf(String msg, Object ... args){
-		customf("FRAMEWORK", msg, args);
-	}
-
-	//============================================== SQL ==============================================
-	public static void sql(Object msg) {
-		custom("SQL", msg);
-	}
-
-	public static void sqlf(String msg, Object ... args){
-		customf("SQL", msg, args);
-	}
-
-	//============================================== DEBUG ==============================================
-	public static void debug(Object msg) {
-		custom("DEBUG", msg);
-	}
-
-	public static void debugf(String msg, Object ... args){
-		customf("DEBUG", msg, args);
-	}
-
-	//============================================== WARN ==============================================
-	public static void warn(Object msg) {
-		custom("WARN", msg);
-	}
-
-	public static void warnf(String msg, Object ... args){
-		customf("WARN", msg, args);
-	}
-
-	public static void warn(Throwable e) {
-		custom("WARN", null, e);
-	}
-
-	public static void warn(Object msg, Throwable e) {
-		custom("WARN", msg, e);
-	}
-
-	public static void warnf(String msg, Throwable e, Object ... args){
-		customf("WARN", msg, e, args);
-	}
-
-	//============================================== ERROR ==============================================
-	public static void error(Object msg) {
-		custom("ERROR", msg);
-	}
-
-	public static void errorf(String msg, Object ... args){
-		customf("ERROR", msg, args);
-	}
-
-	public static void error(Throwable e) {
-		custom("ERROR", e);
-	}
-
-	public static void error(Object msg, Throwable e) {
-		custom("ERROR", msg, e);
-	}
-
-	public static void errorf(String msg, Throwable e, Object ... args){
-		customf("ERROR", msg, e, args);
-	}
-
-	//============================================== FATAL ==============================================
-	public static void fatal(Object msg) {
-		custom("FATAL", msg);
-	}
-
-	public static void fatalf(String msg, Object ... args){
-		customf("FATAL", msg, args);
-	}
-
-	public static void fatal(Throwable e) {
-		custom("FATAL", e);
-	}
-
-	public static void fatal(Object msg, Throwable e) {
-		custom("FATAL", msg, e);
-	}
-
-	public static void fatalf(String msg, Throwable e, Object ... args){
-		customf("FATAL", msg, e, args);
-	}
-
-	//============================================== FATAL ==============================================
-	public static void simple(Object msg) {
-		custom("SIMPLE", msg);
-	}
-
-	public static void simplef(String msg, Object ... args){
-		customf("SIMPLE", msg, args);
+	private static void basicLog(Object logLevel, String msg, Object ... args) {
+		basicLog(logLevel, msg, null, args);
 	}
 
 
