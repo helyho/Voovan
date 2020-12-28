@@ -52,7 +52,7 @@ public class ServerHandlerTest implements IoHandler {
 			HeartBeat heartBeat = session.getHeartBeat();
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-            System.out.println(TDateTime.now() + " ===>  HB==>" + heartBeat.beat(session) );
+            System.out.println(TDateTime.now() + " ===============>  HB==>" + heartBeat.beat(session) );
 
 			if (heartBeat.getFailedCount() > 5) {
                 session.close();

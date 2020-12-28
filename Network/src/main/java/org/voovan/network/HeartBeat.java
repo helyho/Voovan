@@ -149,13 +149,8 @@ public class HeartBeat {
             }
         }
 
-        if(heartBeat.isFirstBeat) {
-            heartBeat.isFirstBeat = false;
-            return true;
-        } else {
-            heartBeat.failedCount++;
-            return false;
-        }
+        heartBeat.failedCount++;
+        return false;
     }
     /**
      * 将心跳绑定到 Session
