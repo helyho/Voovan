@@ -33,9 +33,13 @@ public class HeartBeat {
     private HeartBeat(String ping, String pong){
         this.ping = ping.getBytes();
         this.pong = pong.getBytes();
-        this.pingBuffer = ByteBuffer.wrap(this.ping);
-        this.pongBuffer = ByteBuffer.wrap(this.pong);
+        this.pingBuffer = ByteBuffer.allocate(this.ping.length);
+        this.pongBuffer = ByteBuffer.allocate(this.pong.length);
+
         queue = new LinkedBlockingDeque<Integer>();
+
+        pingBuffer.put(this.ping);
+        pongBuffer.put(this.pong);
     }
 
     /**
