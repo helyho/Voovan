@@ -118,18 +118,15 @@ public class HeartBeat {
 
         //收个心跳返回成功
         if (heartBeat.isFirstBeat) {
-            heartBeat.isFirstBeat = false;
             if (session.socketContext().getConnectModel() == ConnectModel.CLIENT) {
                 //等待这个时间的目的是为了等待客户端那边的心跳检测启动
                 TEnv.sleep(session.getIdleInterval());
                 session.send(heartBeat.pingBuffer);
                 session.flush();
+                heartBeat.pingBuffer.flip();
             }
             return true;
         }
-
-        //弥补双方发送的时间差,等待心跳到来,如果超过空闲事件周期则认为是失败
-        TEnv.wait(session.getIdleInterval() * 1000, false, ()->heartBeat.getQueue().size() == 0);
 
         if (heartBeat.getQueue().size() > 0) {
             int beatType = heartBeat.getQueue().pollFirst();
@@ -137,11 +134,13 @@ public class HeartBeat {
             if (beatType == 1) {
                 session.send(heartBeat.pongBuffer);
                 session.flush();
+                heartBeat.pongBuffer.flip();
                 heartBeat.failedCount = 0;
                 return true;
             } else if (beatType == 2) {
                 session.send(heartBeat.pingBuffer);
                 session.flush();
+                heartBeat.pingBuffer.flip();
                 heartBeat.failedCount = 0;
                 return true;
             } else {
@@ -150,8 +149,13 @@ public class HeartBeat {
             }
         }
 
-        heartBeat.failedCount++;
-        return false;
+        if(heartBeat.isFirstBeat) {
+            heartBeat.isFirstBeat = false;
+            return true;
+        } else {
+            heartBeat.failedCount++;
+            return false;
+        }
     }
     /**
      * 将心跳绑定到 Session

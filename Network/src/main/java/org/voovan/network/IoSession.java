@@ -616,10 +616,15 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	public void release() {
 		if(socketContext.isRegister() && socketSelector!=null) {
 			socketSelector.unRegister(selectionKey);
-		} else {
-			readByteBufferChannel.release();
-			sendByteBufferChannel.release();
 		}
+
+		readByteBufferChannel.release();
+		sendByteBufferChannel.release();
+		if (isSSLMode()) {
+			sslParser.release();
+		}
+
+		cancelIdle();
 	}
 
 	@Override
