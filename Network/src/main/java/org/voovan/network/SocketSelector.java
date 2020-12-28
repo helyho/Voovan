@@ -168,12 +168,6 @@ public class SocketSelector implements Closeable {
 			socketContext.setRegister(false);
 			selectionKey.attach(null);
 
-			socketContext.getSession().getReadByteBufferChannel().release();
-			socketContext.getSession().getSendByteBufferChannel().release();
-			if (socketContext.getSession().isSSLMode()) {
-				socketContext.getSession().getSSLParser().release();
-			}
-
 			EventTrigger.fireDisconnect(socketContext.getSession());
 		}
 	}
