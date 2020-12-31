@@ -587,6 +587,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 获取某个序号以后的更新操作记录
+     *          包含 start 和 end
      * @param startSequence 起始序号
      * @param endSequence 结束序号
      * @param filter 过滤器,用来过滤可用的操作类型和列族
@@ -615,10 +616,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     continue;
                 }
 
-                //不包含 endSequence 指定的日志
-                if(endSequence!=null && batchResult.sequenceNumber() >= endSequence) {
+                if(endSequence!=null && batchResult.sequenceNumber() > endSequence) {
                     break;
                 }
+
                 seq = batchResult.sequenceNumber();
                 try (WriteBatch writeBatch = batchResult.writeBatch()) {
                     List<RocksWalRecord> rocksWalRecordBySeq = RocksWalRecord.parse(ByteBuffer.wrap(writeBatch.data()), filter, withSerial);
