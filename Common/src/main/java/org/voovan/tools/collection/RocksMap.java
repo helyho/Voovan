@@ -1721,6 +1721,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public void scan(K fromKey, K toKey, Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker, boolean disableWal) {
         RocksMap<K,V> innerRocksMap = this.duplicate(this.getColumnFamilyName(), false);
 
+        if(disableWal) {
+            innerRocksMap.writeOptions.setSync(false);
+        }
+
         innerRocksMap.writeOptions.setDisableWAL(disableWal);
 
         try(RocksMap<K,V>.RocksMapIterator<K,V> iterator = innerRocksMap.iterator(fromKey, toKey)) {
