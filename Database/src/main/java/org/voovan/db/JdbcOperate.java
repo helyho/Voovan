@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 
 /**
@@ -1023,6 +1024,20 @@ public class JdbcOperate implements Closeable {
 	 */
 	public int[] batchMap(String sqlText, Collection<Map<String, Object>> maps) throws SQLException {
 		return this.baseBatch(sqlText, maps);
+	}
+
+	/**
+	 * 执行数据库批量更新
+	 *
+	 * @param sqlText sql字符串 参数使用"::1"作为标识
+	 * @param lists 批量处理SQL的参数
+	 * @return 每条 SQL 更新记录数
+	 * @throws SQLException SQL 异常
+	 */
+	public int[] batchList(String sqlText, Collection<List> lists) throws SQLException {
+		Collection<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
+		lists.stream().forEach(list->maps.add(TObject.collectionToMap(list)));
+		return this.batchMap(sqlText, maps);
 	}
 
 	/**
