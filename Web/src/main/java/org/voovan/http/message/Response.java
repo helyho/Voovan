@@ -304,7 +304,7 @@ public class Response {
 					//判断是否需要发送 chunked 段长度
 					if (isCompress() && avaliableSize != 0) {
 						String chunkedLengthLine = Integer.toHexString(avaliableSize) + HttpStatic.LINE_MARK_STRING;
-						byteBuffer.put(chunkedLengthLine.getBytes());
+						byteBuffer.put(TString.toAsciiBytes(chunkedLengthLine));
 					}
 
 					//重置 Bytebuffer 可用字节数为 readSize

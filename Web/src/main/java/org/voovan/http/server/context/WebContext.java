@@ -54,13 +54,13 @@ public class WebContext {
 	private static final String SESSION_NAME = Global.FRAMEWORK_NAME.toLowerCase() + "_SESSIONID";
 
 	//通用 Header
-	public static byte[] RESPONSE_COMMON_HEADER = ("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n").getBytes();
+	public static byte[] RESPONSE_COMMON_HEADER = TString.toAsciiBytes("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n");
 
 	static{
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 			@Override
 			public void run() {
-				RESPONSE_COMMON_HEADER = ("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n").getBytes();
+				RESPONSE_COMMON_HEADER =  TString.toAsciiBytes("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n");
 			}
 		}, 1);
 	}
