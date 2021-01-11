@@ -27,7 +27,7 @@ public class AnnotationModule extends HttpModule {
     public ConcurrentHashMap<Method, String> METHOD_URL_MAP = new ConcurrentHashMap<Method, String>();
     public ConcurrentHashMap<String, Method> URL_METHOD_MAP = new ConcurrentHashMap<String, Method>();
     public static String DEFAULT_SCAN_ROUTER_PACKAGE = "com;org;net;io";
-    public static int DEFAULT_SCAN_ROUTER_INTERVAL = 30;
+    public static int DEFAULT_SCAN_ROUTER_INTERVAL = -1;
 
     private HashWheelTask scanRouterTask;
     private AnnotationRouterFilter annotationRouterFilter;

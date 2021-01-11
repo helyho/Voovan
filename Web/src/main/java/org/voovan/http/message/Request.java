@@ -306,13 +306,7 @@ public class Request {
 
         stringBuilder.append("\r\n");
 
-        try {
-            return ByteBuffer.wrap(stringBuilder.toString().getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            Logger.error("Response.readHead io error",e);
-            return null;
-        }
-
+        return ByteBuffer.wrap(TString.toAsciiBytes(stringBuilder.toString()));
     }
 
     /**
@@ -374,7 +368,7 @@ public class Request {
                     }
 
                     //发送结尾标识
-                    byteBuffer.put(TString.assembly("--" + boundary + "--").getBytes());
+                    byteBuffer.put(TString.toAsciiBytes(TString.assembly("--" + boundary + "--")));
                     byteBuffer.flip();
                     session.send(byteBuffer);
                     byteBuffer.clear();
