@@ -266,7 +266,7 @@ public class HttpDispatcher {
 
 				//寻找匹配的路由对象
 				if (matchPath(requestPath, tmpRouterWrap.getRoutePath(), tmpRouterWrap.getRegexPath(), webConfig.isMatchRouteIgnoreCase())) {
-					if(!tmpRouterWrap.getHasUrlParam()) {
+					if(!tmpRouterWrap.getHasPathParam()) {
 						ROUTER_INFO_CACHE.get().put(routerMark, tmpRouterWrap);
 					}
 					return tmpRouterWrap;
@@ -299,12 +299,11 @@ public class HttpDispatcher {
 
 		if (routerWrap !=null) {
 			try {
-				String routePath = routerWrap.getRoutePath();
 				HttpRouter router = routerWrap.getRouter();
 
-				if(routerWrap.hasUrlParam) {
+				if(routerWrap.hasPathParam) {
 					//获取路径变量
-					Map<String, String> pathVariables = fetchPathVariables(requestPath, routePath, webConfig.isMatchRouteIgnoreCase());
+					Map<String, String> pathVariables = fetchPathVariables(requestPath, routerWrap, webConfig.isMatchRouteIgnoreCase());
 					if (pathVariables != null) {
 						request.getParameters().putAll(pathVariables);
 					}
@@ -387,35 +386,24 @@ public class HttpDispatcher {
 	 * @param matchRouteIgnoreCase 是否匹配路由大小写
 	 * @return     路径抽取参数 Map
 	 */
-	public static Map<String, String> fetchPathVariables(String requestPath,String routePath, boolean matchRouteIgnoreCase) {
+	public static Map<String, String> fetchPathVariables(String requestPath,RouterWrap<HttpRouter> routerWarp, boolean matchRouteIgnoreCase) {
 		//修正请求和匹配路由检查是否存在路径请求参数
-		String compareRoutePath = routePath.charAt(routePath.length()-1) == '*' 	? TString.removeSuffix(routePath) : routePath;
-		compareRoutePath = compareRoutePath.charAt(compareRoutePath.length()-1)=='/'? TString.removeSuffix(compareRoutePath) : compareRoutePath;
-		String compareRequestPath = requestPath.charAt(requestPath.length()-1)== '/'? TString.removeSuffix(requestPath) : requestPath;
+		String compareRequestPath = requestPath.charAt(requestPath.length()-1)=='/'			  ? TString.removeSuffix(requestPath) : requestPath;
 
 		//判断是否存在路径请求参数
-		if(compareRequestPath.equals(compareRoutePath)){
+		if(routerWarp.getCompareRoutePath().equals(compareRequestPath)){
 			return null;
 		} else {
 			Map<String, String> resultMap = new LinkedHashMap<String, String>();
-			String routePathMathchRegex = routePath;
-
+			String routePathMathchRegex = routerWarp.getRoutePathMathchRegex();
 
 			try {
 				//抽取路径中的变量名
-				String[] names = TString.searchByRegex(routePath, ":[^:?/]*", matchRouteIgnoreCase ? Pattern.UNICODE_CASE | Pattern.CASE_INSENSITIVE : 0);
-				if (names.length > 0) {
-					for (int i = 0; i < names.length; i++) {
-						names[i] = TString.removePrefix(names[i]);
-						String name = names[i];
-						//拼装通过命名抽取数据的正则表达式
-						routePathMathchRegex = routePathMathchRegex.replace(":" + name, "(?<" + name + ">.*)");
-					}
-
+				if (routerWarp.hasPathParam) {
 					//运行正则
 					Matcher matcher = TString.doRegex(requestPath, routePathMathchRegex, matchRouteIgnoreCase ? Pattern.UNICODE_CASE | Pattern.CASE_INSENSITIVE : 0);
 
-					for (String name : names) {
+					for (String name : routerWarp.getParamNames()) {
 						resultMap.put(name, URLDecoder.decode(matcher.group(name), "UTF-8"));
 					}
 				}
