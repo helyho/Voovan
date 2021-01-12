@@ -72,6 +72,30 @@ public class TObject {
 
 
 	/**
+	 * List 按数量分组
+	 * @param src 待分组的源数组
+	 * @param size 分组大小
+	 * @param <T> 元素范型
+	 * @return 分组后的 List
+	 */
+	public static <T> List<List<T>> splitList(List<T> src, int size){
+		List<List<T>> result = new ArrayList<List<T>>();
+		int srcSize = src.size();
+		int grpCount = srcSize / size;
+		grpCount = srcSize % size > 0 ? grpCount+1 : grpCount;
+
+		for(int i=0;i<grpCount;i++){
+			int begin = i*size;
+			int end = (i+1)*size;
+			end = end > srcSize ? srcSize : end;
+
+			result.add(src.subList(begin, end));
+		}
+
+		return result;
+	}
+
+	/**
 	 * 初始化一个 Map, 并移除值为 null 或者 "" 的键值对
 	 * @param objs		每两个参数组成一个键值对，来初始化一个 Map. 如:key1,value1,key2,value2.....
 	 * @return	初始化完成的Map对象
