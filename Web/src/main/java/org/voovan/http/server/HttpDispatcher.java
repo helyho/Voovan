@@ -355,7 +355,7 @@ public class HttpDispatcher {
 	 */
 	public static String routePath2RegexPath(String routePath){
 		String routeRegexPath = TString.fastReplaceAll(routePath, "\\*", ".*?");
-		routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/*");
+		routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/+");
 		routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/]*", "[^:?/]*");
 		routeRegexPath = TString.assembly(routeRegexPath, "\\/?$");
 		return routeRegexPath;
