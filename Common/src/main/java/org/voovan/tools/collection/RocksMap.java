@@ -1434,7 +1434,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     /**
-     * 刷新数据到文件
+     * 刷新当前列族数据到文件
      * @param sync 同步刷新
      * @param allowStall 是否允许写入暂停
      */
@@ -1455,20 +1455,53 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     /**
-     * 刷新数据到文件
-     * @param sync 同步刷新
+     * 刷新当前列族数据到文件
+     * @param allowStall 允许 stall
      */
-    public void flush(boolean sync){
-        flush(sync, true);
+    public void flush(boolean allowStall){
+        flush(true, allowStall);
     }
 
     /**
-     * 刷新数据到文件
+     * 刷新当前列族数据到文件, not stall
      */
     public void flush(){
-        flush(true, true);
+        flush(true, false);
     }
 
+    /**
+     * 刷新所有列族数据到文件
+     * @param sync 同步刷新
+     * @param allowStall 是否允许写入暂停
+     */
+    public void flushAll(boolean sync, boolean allowStall) {
+        try {
+            Map<String, ColumnFamilyHandle> columnFamilyHandleMap = RocksMap.COLUMN_FAMILY_HANDLE_MAP.get(rocksDB);
+            List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList(columnFamilyHandleMap.values());
+            FlushOptions flushOptions = new FlushOptions();
+            flushOptions.setWaitForFlush(sync);
+            flushOptions.setAllowWriteStall(allowStall);
+            rocksDB.flush(flushOptions, columnFamilyHandleList);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap flush all failed", e);
+        }
+    }
+
+    /**
+     * 刷新所有列族数据到文件
+     * @param sync 同步刷新
+     * @param allowStall 是否允许写入暂停
+     */
+    public void flushAll(boolean allowStall) {
+        flushAll(true, allowStall);
+    }
+
+    /**
+     * 刷新所有列族数据到文件, not stall
+     */
+    public void flushAll() {
+        flushAll(true, false);
+    }
 
     /**
      * 刷新WAL数据到文件
