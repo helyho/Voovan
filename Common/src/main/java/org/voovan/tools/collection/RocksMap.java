@@ -1444,11 +1444,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             flushOptions.setWaitForFlush(sync);
             flushOptions.setAllowWriteStall(allowStall);
             rocksDB.flush(flushOptions, this.dataColumnFamilyHandle);
-            if(!sync) {
-                Global.getHashWheelTimer().addTask(()->{
-                    flushOptions.waitForFlush();
-                }, 1, true);
-            }
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap flush failed", e);
         }
