@@ -221,6 +221,10 @@ public class ObjectPool<T extends IPooledObject> {
             return null;
         }
 
+        if(validator !=null && !validator.apply(obj)) {
+            throw new RuntimeException("add object invalidator ...");
+        }
+
         long id = genObjectId();
         ((IPooledObject)obj).setPoolObjectId(id);
 
@@ -352,6 +356,9 @@ public class ObjectPool<T extends IPooledObject> {
                 }
             } else if (maxBorrow > 0 && innerObject.getBorrowCount() >= this.maxBorrow) {
                 remove(id);
+                if(supplier!=null) {
+                    add(supplier.get());
+                }
             } else if (!innerObject.isRemoved() && objects.get(id).setBorrow(false)) {
                 unborrowedIdList.offer(id);
             }
