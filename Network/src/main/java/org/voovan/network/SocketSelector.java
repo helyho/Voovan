@@ -551,7 +551,6 @@ public class SocketSelector implements Closeable {
 					}
 
 					if (sendSize == 0) {
-						TEnv.sleep(1);
 						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
 							Logger.error("SocketSelector udpWriteToChannel timeout, Socket will be close");
 							socketContext.close();
