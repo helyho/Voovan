@@ -62,7 +62,7 @@ public class Logger {
 	}
 
 	public static void infof(String msg, Object ... args){
-		basicLog(Formater.INFO, msg, args);
+		basicLog(Formater.INFO, msg, null, args);
 	}
 
 	//============================================== FRAMEWORK ==============================================
@@ -71,7 +71,7 @@ public class Logger {
 	}
 
 	public static void fremaworkf(String msg, Object ... args){
-		basicLog(Formater.FRAMEWORK, msg, args);
+		basicLog(Formater.FRAMEWORK, msg, null, args);
 	}
 
 	//============================================== SQL ==============================================
@@ -80,7 +80,7 @@ public class Logger {
 	}
 
 	public static void sqlf(String msg, Object ... args){
-		basicLog(Formater.SQL, msg, args);
+		basicLog(Formater.SQL, msg, null, args);
 	}
 
 	//============================================== DEBUG ==============================================
@@ -89,7 +89,7 @@ public class Logger {
 	}
 
 	public static void debugf(String msg, Object ... args){
-		basicLog(Formater.DEBUG, msg, args);
+		basicLog(Formater.DEBUG, msg, null, args);
 	}
 
 	public static void debug(Throwable e) {
@@ -110,7 +110,7 @@ public class Logger {
 	}
 
 	public static void tradef(String msg, Object ... args){
-		basicLog(Formater.TRACE, msg, args);
+		basicLog(Formater.TRACE, msg, null, args);
 	}
 
 	public static void trade(Throwable e) {
@@ -131,7 +131,7 @@ public class Logger {
 	}
 
 	public static void warnf(String msg, Object ... args){
-		basicLog(Formater.WARN, msg, args);
+		basicLog(Formater.WARN, msg, null, args);
 	}
 
 	public static void warn(Throwable e) {
@@ -152,7 +152,7 @@ public class Logger {
 	}
 
 	public static void errorf(String msg, Object ... args){
-		basicLog(Formater.ERROR, msg, args);
+		basicLog(Formater.ERROR, msg, null, args);
 	}
 
 	public static void error(Throwable e) {
@@ -173,7 +173,7 @@ public class Logger {
 	}
 
 	public static void fatalf(String msg, Object ... args){
-		basicLog(Formater.FATAL, msg, args);
+		basicLog(Formater.FATAL, msg, null, args);
 	}
 
 	public static void fatal(Throwable e) {
@@ -194,7 +194,7 @@ public class Logger {
 	}
 
 	public static void simplef(String msg, Object ... args){
-		basicLog(Formater.SIMPLE, msg, args);
+		basicLog(Formater.SIMPLE, msg, null, args);
 	}
 
 	//============================================== CUSTOM ==============================================
@@ -267,11 +267,6 @@ public class Logger {
 
 		basicLog(logLevel, TString.tokenReplace(msg, args), e);
 	}
-
-	private static void basicLog(Object logLevel, String msg, Object ... args) {
-		basicLog(logLevel, msg, null, args);
-	}
-
 
 	/**
 	 * 构造消息
