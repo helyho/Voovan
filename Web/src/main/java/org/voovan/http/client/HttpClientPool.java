@@ -31,22 +31,7 @@ public class HttpClientPool {
             .minSize(minSize).maxSize(maxSize)
             .validator(httpClient -> httpClient.isConnect())
             .supplier(()->{
-                HttpClient httpClient = null;
-
-                long start = System.currentTimeMillis();
-                do {
-                    httpClient = HttpClient.newInstance(host, timeout);
-                    if (httpClient == null) {
-                        if(System.currentTimeMillis() - start > timeout) {
-                            Logger.error("Create httpclient by supplier failed");
-                        } else {
-                            TEnv.sleep(1);
-                            continue;
-                        }
-                    }
-                } while (httpClient==null);
-
-                return httpClient;
+                return HttpClient.newInstance(host, timeout);
             }).destory(httpClient -> {
                 httpClient.close();
                 return true;

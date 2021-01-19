@@ -188,7 +188,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		} catch (IOException e) {
 			Logger.error("HttpClient init failed",e);
-			throw new HttpClientException("HttpClient init failed:", e);
+			throw new HttpClientException("HttpClient init failed, on connect to " + urlString, e);
 		}
 	}
 
