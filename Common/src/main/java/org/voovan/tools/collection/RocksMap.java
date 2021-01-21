@@ -136,7 +136,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private transient Boolean readOnly;
     private transient Boolean isDuplicate = false;
     private transient int transactionLockTimeout = 5000;
-    private volatile boolean flushing = false;
 
     /**
      * 构造方法
@@ -595,12 +594,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public List<RocksWalRecord> getWalBetween(Long startSequence, Long endSequence, BiFunction<Integer, Integer, Boolean> filter, boolean  withSerial) {
         ArrayList<RocksWalRecord> rocksWalRecords = new ArrayList<RocksWalRecord>();
-
-        //flushing 状态不读取 wal, 可能会出发异常
-        if(flushing) {
-            return rocksWalRecords;
-        }
-
         try (TransactionLogIterator transactionLogIterator = rocksDB.getUpdatesSince(startSequence)) {
 
             if(startSequence > getLastSequence()) {
@@ -639,7 +632,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 Logger.debug("wal between: " + startSequence + "->" + endSequence +  ", "  + rocksWalRecords.get(0).getSequence() + "->" + rocksWalRecords.get(rocksWalRecords.size()-1).getSequence());
             return rocksWalRecords;
         } catch (RocksDBException e) {
-            throw new RocksMapException("getUpdatesSince failed, " + e.getMessage(), e);
+            throw new RocksMapException("getWalBetween failed, " + e.getMessage(), e);
         }
     }
 
@@ -1444,15 +1437,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public void flush(boolean sync, boolean allowStall){
         try {
-            flushing = true;
             FlushOptions flushOptions = new FlushOptions();
             flushOptions.setWaitForFlush(sync);
             flushOptions.setAllowWriteStall(allowStall);
             rocksDB.flush(flushOptions, this.dataColumnFamilyHandle);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap flush failed", e);
-        } finally {
-            flushing = false;
         }
     }
 
@@ -1478,7 +1468,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public void flushAll(boolean sync, boolean allowStall) {
         try {
-            flushing = true;
             Map<String, ColumnFamilyHandle> columnFamilyHandleMap = RocksMap.COLUMN_FAMILY_HANDLE_MAP.get(rocksDB);
             List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList(columnFamilyHandleMap.values());
             FlushOptions flushOptions = new FlushOptions();
@@ -1487,8 +1476,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             rocksDB.flush(flushOptions, columnFamilyHandleList);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap flush all failed", e);
-        } finally {
-            flushing = false;
         }
     }
 
@@ -2309,19 +2296,25 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 endSequence = lastSequence + batchSeqsize;
             }
 
-            List<RocksWalRecord> rocksWalRecords = rocksMap.getWalBetween(lastSequence, endSequence, (columnFamilyId, type)-> {
-                return (walTypes == null ? true : walTypes.contains(type)) &&
-                        (columnFamilys==null ? true : columnFamilys.contains(columnFamilyId));
+            try {
+                List<RocksWalRecord> rocksWalRecords = rocksMap.getWalBetween(lastSequence, endSequence, (columnFamilyId, type) -> {
+                    return (walTypes == null ? true : walTypes.contains(type)) &&
+                            (columnFamilys == null ? true : columnFamilys.contains(columnFamilyId));
 
-            }, true);
+                }, true);
 
-            if(rocksWalRecords.size() > 0) {
-                //调用处理器
-                rocksWalProcessor.process(endSequence, rocksWalRecords);
+                if (rocksWalRecords.size() > 0) {
+                    //调用处理器
+                    rocksWalProcessor.process(endSequence, rocksWalRecords);
+                }
+
+                rocksMap.put(mark, endSequence);
+                lastSequence = endSequence;
+            } catch (RocksMapException ex) {
+                if(!ex.getMessage().contains("while stat a file for size")) {
+                    throw ex;
+                }
             }
-
-            rocksMap.put(mark, endSequence);
-            lastSequence = endSequence;
         }
 
         /**
