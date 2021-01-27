@@ -34,6 +34,18 @@ public class JSONEncode {
     //<对象类型, 转换器>
     public final static ConcurrentHashMap<Class, Class<? extends Convert>> JSON_CONVERT = new ConcurrentHashMap<Class, Class<? extends Convert>>();
 
+    static {
+        if(JSON_HASH) {
+            Global.getHashWheelTimer().addTask(new HashWheelTask() {
+                @Override
+                public void run() {
+                    JSON_ENCODE_CACHE.clear();
+                }
+            }, 1);
+        }
+    }
+
+
     /**
      * 新增转换器, 指定类型的对象转换为另一个类型的对象
      * @param objClass 匹配目标对象类型
@@ -43,14 +55,26 @@ public class JSONEncode {
         JSON_CONVERT.put(objClass, convertClazz);
     }
 
-    static {
-        if(JSON_HASH) {
-            Global.getHashWheelTimer().addTask(new HashWheelTask() {
-                @Override
-                public void run() {
-                    JSON_ENCODE_CACHE.clear();
-                }
-            }, 1);
+
+    /**
+     * 转换法方法
+     * @param fieldName 属性冥
+     * @param object 对象
+     * @param allField 是否序列化所有属性
+     * @return
+     * @throws ReflectiveOperationException
+     */
+    private static String convert(String fieldName, Object object, boolean allField) throws ReflectiveOperationException {
+        if(object!=null && !allField) {
+            //查找转换器并转换
+            Convert convert = Convert.getConvert(JSON_CONVERT.get(object.getClass()));
+            if (convert != null) {
+                return fromObject(convert.convert(null, object), true);
+            } else {
+                return fromObject(object, allField);
+            }
+        } else {
+            return fromObject(object, allField);
         }
     }
 
@@ -77,20 +101,7 @@ public class JSONEncode {
 
         for (Object mapkey : mapObject.keySet()) {
             String key = fromObject(mapkey, allField);
-            Object originValue = mapObject.get(mapkey);
-
-            String value = null;
-            if(originValue!=null && !allField) {
-                //查找转换器并转换,基于对象类型转换
-                Convert convert = Convert.getConvert(JSON_CONVERT.get(originValue.getClass()));
-                if (convert != null) {
-                    value = fromObject(convert.convert(key, originValue), true);
-                } else {
-                    value = fromObject(originValue, allField);
-                }
-            } else {
-                value = fromObject(originValue, allField);
-            }
+            String value = convert(key, mapObject.get(mapkey), allField);
 
             String wrapQuote = key.startsWith(Global.STR_QUOTE) && key.endsWith(Global.STR_QUOTE) ? Global.EMPTY_STRING : Global.STR_QUOTE;
             contentStringBuilder.append(wrapQuote);
@@ -121,18 +132,7 @@ public class JSONEncode {
         StringBuilder contentStringBuilder = new StringBuilder(Global.STR_LS_BRACES);
 
         for (Object object : arrayObject) {
-            String value = null;
-            if(object!=null && !allField) {
-                //查找转换器并转换
-                Convert convert = Convert.getConvert(JSON_CONVERT.get(object.getClass()));
-                if (convert != null) {
-                    value = fromObject(convert.convert(null, object), true);
-                } else {
-                    value = fromObject(object, allField);
-                }
-            } else {
-                value = fromObject(object, allField);
-            }
+            String value = convert(null, object, allField);
 
             contentStringBuilder.append(value);
             contentStringBuilder.append(Global.STR_COMMA);
@@ -157,18 +157,7 @@ public class JSONEncode {
         StringBuilder contentStringBuilder = new StringBuilder(Global.STR_LS_BRACES);
 
         for (Object object : collectionObject) {
-            String value = null;
-            if(object!=null && !allField) {
-                //查找转换器并转换
-                Convert convert = Convert.getConvert(JSON_CONVERT.get(object.getClass()));
-                if (convert != null) {
-                    value = fromObject(convert.convert(null, object), true);
-                } else {
-                    value = fromObject(object, allField);
-                }
-            } else {
-                value = fromObject(object, allField);
-            }
+            String value = convert(null, object, allField);
             contentStringBuilder.append(value);
             contentStringBuilder.append(Global.STR_COMMA);
         }
