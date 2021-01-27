@@ -382,11 +382,11 @@ public class HttpDispatcher {
 	/**
 	 * 获取路径变量,形如/:test/:name 的路径匹配的请求路径/test/var1后得到{name:var1}
 	 * @param requestPath   请求路径
-	 * @param routePath     正则匹配路径
+	 * @param routerWarp    路由包裹对象
 	 * @param matchRouteIgnoreCase 是否匹配路由大小写
 	 * @return     路径抽取参数 Map
 	 */
-	public static Map<String, String> fetchPathVariables(String requestPath,RouterWrap<HttpRouter> routerWarp, boolean matchRouteIgnoreCase) {
+	public static Map<String, String> fetchPathVariables(String requestPath, RouterWrap<HttpRouter> routerWarp, boolean matchRouteIgnoreCase) {
 		//修正请求和匹配路由检查是否存在路径请求参数
 		String compareRequestPath = requestPath.charAt(requestPath.length()-1)=='/'			  ? TString.removeSuffix(requestPath) : requestPath;
 

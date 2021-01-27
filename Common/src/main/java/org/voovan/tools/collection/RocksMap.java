@@ -1481,7 +1481,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 刷新所有列族数据到文件
-     * @param sync 同步刷新
      * @param allowStall 是否允许写入暂停
      */
     public void flushAll(boolean allowStall) {

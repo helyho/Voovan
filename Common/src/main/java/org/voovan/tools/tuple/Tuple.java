@@ -75,7 +75,6 @@ public class Tuple {
 
     /**
      * 设置元素属性
-     * @param name 属性名称
      * @param value 属性类型
      * @return 元组对象
      */
@@ -137,7 +136,7 @@ public class Tuple {
     /**
      * 转换为 Map
      *      Map 中的元素为 [TupleItem.name, TupleItem.valu]
-     * @return
+     * @return 元组对应的 Map
      */
     public Map<String, ?> toMap() {
         Map ret = new LinkedHashMap();

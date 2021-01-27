@@ -60,8 +60,8 @@ public class JSONEncode {
      * 转换法方法
      * @param fieldName 属性冥
      * @param object 对象
-     * @param allField 是否序列化所有属性
-     * @return
+     * @param allField 是否处理所有属性
+     * @return 转换的结果
      * @throws ReflectiveOperationException
      */
     private static String convert(String fieldName, Object object, boolean allField) throws ReflectiveOperationException {
@@ -82,6 +82,7 @@ public class JSONEncode {
      * 分析自定义对象为JSON字符串
      *
      * @param object 自定义对象
+     * @param allField 是否处理所有属性
      * @return JSON字符串
      * @throws ReflectiveOperationException
      */
@@ -92,7 +93,8 @@ public class JSONEncode {
     /**
      * 分析Map对象为JSON字符串
      *
-     * @param mapObject map对象b
+     * @param mapObject map对象
+     * @param allField 是否处理所有属性
      * @return JSON字符串
      * @throws ReflectiveOperationException
      */
@@ -125,6 +127,7 @@ public class JSONEncode {
      * 分析Array对象为JSON字符串
      *
      * @param arrayObject Array对象
+     * @param allField 是否处理所有属性
      * @throws ReflectiveOperationException
      * @return JSON字符串
      */
@@ -150,6 +153,7 @@ public class JSONEncode {
      * 分析Collection对象为JSON字符串
      *
      * @param collectionObject Collection 对象
+     * @param allField 是否处理所有属性
      * @throws ReflectiveOperationException
      * @return JSON字符串
      */
