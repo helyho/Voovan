@@ -34,6 +34,11 @@ public class JSONEncode {
     //<对象类型, 转换器>
     public final static ConcurrentHashMap<Class, Class<? extends Convert>> JSON_CONVERT = new ConcurrentHashMap<Class, Class<? extends Convert>>();
 
+    /**
+     * 新增转换器, 指定类型的对象转换为另一个类型的对象
+     * @param objClass 匹配目标对象类型
+     * @param convertClazz 转换器 Class
+     */
     public static void addConvert(Class objClass, Class<? extends Convert> convertClazz) {
         JSON_CONVERT.put(objClass, convertClazz);
     }
