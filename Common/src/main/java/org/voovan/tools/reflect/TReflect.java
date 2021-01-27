@@ -261,7 +261,7 @@ public class TReflect {
     /**
      * 生成构造方法的原生调用代码
      * @param clazz 根绝这个对象的元信息生成静态调用代码
-     * @param method 需要生成于原生调用的构造方法
+     * @param constructor 需要生成于原生调用的构造方法
      * @return DynamicFunction 对象
      */
     public static DynamicFunction genConstructorInvoker(Class clazz, Constructor constructor) {
