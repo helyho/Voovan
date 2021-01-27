@@ -1886,7 +1886,7 @@ public class TReflect {
                         if(excludeClass != Exclude.class) {
                             Exclude exclude = Exclude.getExclude(excludeClass);
                             if (exclude != null) {
-                                if (exclude.check(value)) {
+                                if (exclude.check(field.getName(), value)) {
                                     continue;
                                 }
                             }
@@ -1897,7 +1897,7 @@ public class TReflect {
                         if(convertClass != Convert.class) {
                             Convert convert = Convert.getConvert(convertClass);
                             if(convert != null) {
-                                value = convert.convert(value);
+                                value = convert.convert(field.getName(),value);
                             }
                         }
                     }

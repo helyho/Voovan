@@ -1,5 +1,6 @@
 package org.voovan.tools.reflect.exclude;
 
+import javafx.scene.Parent;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -17,7 +18,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public interface Exclude<P> {
     public static Map<Class<? extends Exclude>, Exclude> CHECK_CACHE = new ConcurrentHashMap<Class<? extends Exclude>, Exclude>();
 
-    public static Exclude getExclude(Class<Exclude> clazz) {
+    public static Exclude getExclude(Class<? extends Exclude> clazz) {
+        if(clazz == null) {
+            return null;
+        }
+
         Exclude exclude = CHECK_CACHE.get(clazz);
         if(exclude == null) {
             synchronized (CHECK_CACHE) {
@@ -36,5 +41,5 @@ public interface Exclude<P> {
         return exclude;
     }
 
-    public boolean check(P parameter);
+    public boolean check(String name, P parameter);
 }

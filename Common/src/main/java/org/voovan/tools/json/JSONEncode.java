@@ -7,10 +7,13 @@ import org.voovan.tools.TString;
 import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.reflect.convert.Convert;
+import org.voovan.tools.reflect.exclude.Exclude;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -27,6 +30,13 @@ import java.util.concurrent.atomic.AtomicLong;
 public class JSONEncode {
     public static boolean JSON_HASH = TEnv.getSystemProperty("JsonHash", false);
     public final static IntKeyMap<String> JSON_ENCODE_CACHE = new IntKeyMap<String>(1024);
+
+    //<对象类型, 转换器>
+    public final static ConcurrentHashMap<Class, Class<? extends Convert>> JSON_CONVERT = new ConcurrentHashMap<Class, Class<? extends Convert>>();
+
+    public static void addConvert(Class objClass, Class<? extends Convert> convertClazz) {
+        JSON_CONVERT.put(objClass, convertClazz);
+    }
 
     static {
         if(JSON_HASH) {
@@ -62,13 +72,27 @@ public class JSONEncode {
 
         for (Object mapkey : mapObject.keySet()) {
             String key = fromObject(mapkey, allField);
-            String Value = fromObject(mapObject.get(mapkey), allField);
+            Object originValue = mapObject.get(mapkey);
+
+            String value = null;
+            if(originValue!=null && !allField) {
+                //查找转换器并转换,基于对象类型转换
+                Convert convert = Convert.getConvert(JSON_CONVERT.get(originValue.getClass()));
+                if (convert != null) {
+                    value = fromObject(convert.convert(key, originValue), true);
+                } else {
+                    value = fromObject(originValue, allField);
+                }
+            } else {
+                value = fromObject(originValue, allField);
+            }
+
             String wrapQuote = key.startsWith(Global.STR_QUOTE) && key.endsWith(Global.STR_QUOTE) ? Global.EMPTY_STRING : Global.STR_QUOTE;
             contentStringBuilder.append(wrapQuote);
             contentStringBuilder.append(key);
             contentStringBuilder.append(wrapQuote);
             contentStringBuilder.append(Global.STR_COLON);
-            contentStringBuilder.append(Value);
+            contentStringBuilder.append(value);
             contentStringBuilder.append(Global.STR_COMMA);
         }
 
@@ -92,8 +116,20 @@ public class JSONEncode {
         StringBuilder contentStringBuilder = new StringBuilder(Global.STR_LS_BRACES);
 
         for (Object object : arrayObject) {
-            String Value = fromObject(object, allField);
-            contentStringBuilder.append(Value);
+            String value = null;
+            if(object!=null && !allField) {
+                //查找转换器并转换
+                Convert convert = Convert.getConvert(JSON_CONVERT.get(object.getClass()));
+                if (convert != null) {
+                    value = fromObject(convert.convert(null, object), true);
+                } else {
+                    value = fromObject(object, allField);
+                }
+            } else {
+                value = fromObject(object, allField);
+            }
+
+            contentStringBuilder.append(value);
             contentStringBuilder.append(Global.STR_COMMA);
         }
 
@@ -116,8 +152,19 @@ public class JSONEncode {
         StringBuilder contentStringBuilder = new StringBuilder(Global.STR_LS_BRACES);
 
         for (Object object : collectionObject) {
-            String Value = fromObject(object, allField);
-            contentStringBuilder.append(Value);
+            String value = null;
+            if(object!=null && !allField) {
+                //查找转换器并转换
+                Convert convert = Convert.getConvert(JSON_CONVERT.get(object.getClass()));
+                if (convert != null) {
+                    value = fromObject(convert.convert(null, object), true);
+                } else {
+                    value = fromObject(object, allField);
+                }
+            } else {
+                value = fromObject(object, allField);
+            }
+            contentStringBuilder.append(value);
             contentStringBuilder.append(Global.STR_COMMA);
         }
 

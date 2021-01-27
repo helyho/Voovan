@@ -10,7 +10,7 @@ package org.voovan.tools.reflect.exclude;
  */
 public class Null implements Exclude {
     @Override
-    public boolean check(Object parameter) {
+    public boolean check(String name, Object parameter) {
         return parameter == null;
     }
 }
