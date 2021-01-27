@@ -17,7 +17,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public interface Convert<P, T> {
     public static Map<Class<? extends Convert>, Convert> CONVERT_CACHE = new ConcurrentHashMap<Class<? extends Convert>, Convert>();
 
-    public static Convert getConvert(Class<Convert> clazz) {
+    public static Convert getConvert(Class<? extends Convert> clazz) {
+        if(clazz == null) {
+            return null;
+        }
+
         Convert convert = CONVERT_CACHE.get(clazz);
         if(convert == null) {
             synchronized (CONVERT_CACHE) {
@@ -36,5 +40,5 @@ public interface Convert<P, T> {
         return convert;
     }
 
-    public T convert(P parameter);
+    public T convert(String name, P parameter);
 }
