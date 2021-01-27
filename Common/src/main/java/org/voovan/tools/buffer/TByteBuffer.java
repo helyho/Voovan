@@ -353,6 +353,7 @@ public class TByteBuffer {
             if(THREAD_BYTE_BUFFER_POOL.getPool().avaliable() > 0 &&
                     byteBuffer.capacity() > DEFAULT_BYTE_BUFFER_SIZE){
                 reallocate(byteBuffer, DEFAULT_BYTE_BUFFER_SIZE);
+                return;
             }
 
             THREAD_BYTE_BUFFER_POOL.release(byteBuffer, (buffer)->{
@@ -363,10 +364,6 @@ public class TByteBuffer {
                         if(address!=0) {
                             byteBuffer.clear();
                             synchronized (byteBuffer) {
-                                //这里不使用传入的参数, 需要复用上面代码获得的地址
-                                byteBuffer.position(0);
-                                byteBuffer.limit(0);
-                                setCapacity(byteBuffer, 0);
                                 setAddress(byteBuffer, 0);
 
                                 UNSAFE.freeMemory(address);
