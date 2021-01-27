@@ -1,15 +1,21 @@
 package org.voovan.test;
 
+import com.jsoniter.output.JsonStream;
+import com.jsoniter.output.JsonStreamPool;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.compiler.function.DynamicFunction;
+import org.voovan.tools.json.JSON;
+import org.voovan.tools.json.JSONEncode;
 import org.voovan.tools.reflect.TReflect;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.security.MessageDigest;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
@@ -28,47 +34,48 @@ import java.util.concurrent.TimeUnit;
 @Fork(1)
 //@OutputTimeUnit(TimeUnit.)
 public class JMH {
-    static String m = new String("abcdabcdefghijkabcdefghijkabcdefghijkabcdefghijkabcdefghijkabcdefghijkabcdefghijkefghijk");
-    static TestObject testObject = new TestObject();
-    static Vector ml = new Vector();
-    static Method method = TReflect.findMethod(TestObject.class, "getData", 2)[0];
-    static Constructor constructor = TReflect.findConstructor(TestObject.class, 0)[0];
-    static DynamicFunction methodFunction = TReflect.genMethodInvoker(TestObject.class, method);
-    static DynamicFunction constructorFunction = TReflect.genConstructorInvoker(TestObject.class, constructor);
+    public static class Message {
 
-    static {
-        testObject.setBint(11);
-    }
+        private String message;
 
-    @Benchmark
-    public static void nativeCall() throws Exception {
-        for(int i=0;i<10000;i++) {
-//            constructorFunction.call(new Object[]{new Object[0]});
-            methodFunction.call(testObject, new Object[]{"123123", 111});
+        public Message(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        @Override
+        public int hashCode() {
+            return  -9;
         }
     }
 
     @Benchmark
-    public void reflectCall() throws Exception {
-        for(int i=0;i<10000;i++) {
-//            TReflect.newInstance(TestObject.class, new Object[0]);
-            TReflect.invokeMethod(testObject, "getData", "123123", 111);
-        }
+    public static void withHash() throws Exception {
+        JSONEncode.JSON_HASH =true;
+        JSON.toJSON((new Message("hello word")));
     }
 
     @Benchmark
-    public void directCall() {
-        for(int i=0;i<10000;i++) {
-//            new TestObject();
-            testObject.getData("123123", 111);
-        }
+    public void withoutHash() throws Exception {
+        JSONEncode.JSON_HASH =false;
+        JSON.toJSON((new Message("hello word")));
+    }
+
+    @Benchmark
+    public void withMethod() {
+        Message message = new Message("hello word");
+        json(message);
+    }
+
+    public String json(Message message) {
+        return "{\""+"message" + "\":\"" + message.getMessage() + "\"}";
     }
 
     public static void main(String[] args) throws Exception {
-        TReflect.register(TestObject.class);
-
-//        TReflect.invokeMethod(testObject, "getData", "123123", 111);
-        constructorFunction.call(new Object[]{new Object[0]});
+        TReflect.register(Message.class);
 
         Options options = new OptionsBuilder()
                 .include(JMH.class.getSimpleName())

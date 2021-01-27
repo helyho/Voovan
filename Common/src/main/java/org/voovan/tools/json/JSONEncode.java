@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class JSONEncode {
-    public final static boolean JSON_HASH = TEnv.getSystemProperty("JsonHash", false);
+    public static boolean JSON_HASH = TEnv.getSystemProperty("JsonHash", false);
     public final static IntKeyMap<String> JSON_ENCODE_CACHE = new IntKeyMap<String>(1024);
 
     static {
