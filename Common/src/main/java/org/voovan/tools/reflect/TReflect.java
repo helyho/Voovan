@@ -153,7 +153,7 @@ public class TReflect {
         for(Field field : fields) {
             int modifier = field.getModifiers();
             if(Modifier.isStatic(modifier) ||
-                    field.getName().startsWith("$")) {
+                    field.isSynthetic()) {
                 continue;
             }
 
@@ -217,7 +217,7 @@ public class TReflect {
         for(Field field : fields) {
             int modifier = field.getModifiers();
             if(Modifier.isStatic(modifier) ||
-                    field.getName().startsWith("$")) {
+                    field.isSynthetic()) {
                 continue;
             }
 
@@ -272,7 +272,7 @@ public class TReflect {
             int modifier = constructor.getModifiers();
             if (Modifier.isStatic(modifier) ||
                     Modifier.isPrivate(modifier) ||
-                    constructor.getName().startsWith("$")) {
+                    constructor.isSynthetic()) {
                 return null;
             }
 
@@ -349,7 +349,7 @@ public class TReflect {
             int modifier = constructor.getModifiers();
             if(Modifier.isStatic(modifier) ||
                     Modifier.isPrivate(modifier) ||
-                    constructor.getName().startsWith("$")) {
+                    constructor.isSynthetic()) {
                 continue;
             }
 
@@ -425,7 +425,7 @@ public class TReflect {
             String methodName = method.getName();
 
             int modifier = method.getModifiers();
-            if (Modifier.isPrivate(modifier) || methodName.startsWith("$")) {
+            if (Modifier.isPrivate(modifier) || method.isSynthetic()) {
                 return null;
             }
 
@@ -1857,7 +1857,7 @@ public class TReflect {
                 Object value = null;
 
                 //lambda 中的 this
-                if(key.startsWith("this$")){
+                if(field.isSynthetic()){
                     break;
                 }
 
@@ -1908,7 +1908,7 @@ public class TReflect {
                     if(mapResult.get(key) == null) {
                         mapResult.put(key, value);
                     }
-                }else if(!field.getName().contains("$")){
+                } else {
                     Class valueClass = value.getClass();
                     if(TReflect.isBasicType(valueClass)){
                         //由于属性是按子类->父类顺序处理的, 所以如果子类和父类有重复属性, 则只在子类为空时用父类的属性覆盖
