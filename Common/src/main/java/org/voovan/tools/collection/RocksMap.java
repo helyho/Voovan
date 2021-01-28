@@ -1548,7 +1548,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     @Override
     public Set keySet() {
-        TreeSet<K> keySet = new TreeSet<K>();
+        LinkedHashSet<K> keySet = new LinkedHashSet<K>();
         try (RocksIterator iterator = getIterator()){
             iterator.seekToFirst();
             while (iterator.isValid()) {
@@ -1583,7 +1583,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     @Override
     public Set<Entry<K, V>> entrySet() {
-        TreeSet<Entry<K,V>> entrySet =  new TreeSet<Entry<K,V>>();
+        LinkedHashSet<Entry<K,V>> entrySet =  new LinkedHashSet<Entry<K,V>>();
         try (RocksIterator iterator = getIterator()) {
             iterator.seekToFirst();
             while (iterator.isValid()) {
