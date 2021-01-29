@@ -469,15 +469,17 @@ public class ByteBufferChannel {
      * @return 是否compact成功,true:成功, false:失败
      */
     public boolean compact(){
+
+        boolean isHoldByCurrentThread = lock.isHeldByCurrentThread();
         if(isReleased()){
-            if(lock.isHeldByCurrentThread() && borrowed.compareAndSet(true, false)) {
+            if(isHoldByCurrentThread && borrowed.compareAndSet(true, false)) {
                 unlock();
             }
             return false;
         }
 
         if(size()==0 && !byteBuffer.hasRemaining()){
-            if(lock.isHeldByCurrentThread() && borrowed.compareAndSet(true, false)){
+            if(isHoldByCurrentThread && borrowed.compareAndSet(true, false)){
                 unlock();
             }
             return true;
@@ -493,11 +495,9 @@ public class ByteBufferChannel {
             int position = byteBuffer.position();
             int limit = byteBuffer.limit();
             boolean result = false;
-            if(TByteBuffer.move(byteBuffer, position*-1)) {
-                byteBuffer.position(0);
-                size = limit - position;
-                byteBuffer.limit(size);
 
+            if(TByteBuffer.move(byteBuffer, position*-1)) {
+                size = limit - position;
                 result = true;
             }
             return result;

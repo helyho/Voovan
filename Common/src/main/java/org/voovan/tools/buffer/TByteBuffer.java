@@ -236,7 +236,7 @@ public class TByteBuffer {
      */
     public static boolean move(ByteBuffer byteBuffer, int offset) {
         try {
-            if(byteBuffer.remaining() == 0) {
+            if(!byteBuffer.hasRemaining()) {
                 byteBuffer.position(0);
                 byteBuffer.limit(0);
                 return true;
