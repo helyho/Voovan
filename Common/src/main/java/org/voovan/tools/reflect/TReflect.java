@@ -175,7 +175,7 @@ public class TReflect {
         if(hasGenCode) {
             code = code + "default : return TReflect.EMPTY;\r\n }";
 
-            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_READER", code);
+            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_Reader", code);
             dynamicFunction.addImport(clazz);
             dynamicFunction.addImport(TReflect.class);
             dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
@@ -237,7 +237,7 @@ public class TReflect {
         if(hasGenCode) {
             code = code + "default : return TReflect.EMPTY;\r\n }";
 
-            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_WRITER", code);
+            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_Writer", code);
             dynamicFunction.addImport(clazz);
             dynamicFunction.addImport(TReflect.class);
             dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
@@ -306,7 +306,7 @@ public class TReflect {
 
             code.insert(0, paramtypeCode);
 
-            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_CONSTRUCTOR", code.toString());
+            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_Constructor", code.toString());
             dynamicFunction.addImport(clazz);
             dynamicFunction.addImport(TReflect.class);
             dynamicFunction.addPrepareArg(0, Object[].class, "params");     //写入数据
@@ -385,7 +385,7 @@ public class TReflect {
 
             code.insert(0, paramtypeCode);
 
-            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_CONSTRUCTOR", code.toString());
+            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_All_Constructor", code.toString());
             dynamicFunction.addImport(clazz);
             dynamicFunction.addImport(TReflect.class);
             dynamicFunction.addPrepareArg(0, Class.class, "clazz");     //写入数据
@@ -474,7 +474,7 @@ public class TReflect {
 
             code.insert(0, paramtypeCode);
 
-            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "Reader", code.toString());
+            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_Method", code.toString());
             dynamicFunction.addImport(clazz);
             dynamicFunction.addImport(TReflect.class);
             dynamicFunction.addPrepareArg(0, clazz, "obj");                 //目标对象
@@ -581,7 +581,7 @@ public class TReflect {
 
             code.insert(0, paramtypeCode);
 
-            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "Reader", code.toString());
+            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_All_Method", code.toString());
             dynamicFunction.addImport(clazz);
             dynamicFunction.addImport(TReflect.class);
             dynamicFunction.addPrepareArg(0, clazz, "obj");                 //目标对象
