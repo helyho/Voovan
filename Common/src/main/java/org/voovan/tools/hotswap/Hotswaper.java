@@ -169,10 +169,10 @@ public class Hotswaper {
 
             ClassDefinition classDefinition = new ClassDefinition(clazz, classBytes);
             try {
-                Logger.info("[HOTSWAP] " + TDateTime.now() + " class:" + clazz + " will reload.");
+                Logger.info("[HOTSWAP] " + TDateTime.now() + " class->" + clazz.getCanonicalName() + " will reload.");
                 TEnv.instrumentation.redefineClasses(classDefinition);
             } catch (Exception e) {
-                Logger.error("[HOTSWAP] " + TDateTime.now() + " class:" + clazz + " reload failed", e);
+                Logger.error("[HOTSWAP] " + TDateTime.now() + " class->" + clazz.getCanonicalName() + " reload failed \r\n", e);
             }
         }
     }

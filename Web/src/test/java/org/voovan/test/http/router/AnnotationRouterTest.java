@@ -29,7 +29,7 @@ public class AnnotationRouterTest {
     public Object index(){
         String oldPath = lastPath;
         lastPath = "/annon/index, time:" + System.currentTimeMillis();
-        return TObject.asMap("index", 1, "seq", 133832);//"index, lastPath="+oldPath;
+        return TObject.asMap("index", lastPath, "seq", 133832);//"index, lastPath="+oldPath;
     }
 
     //将当前方法注解为一个请求路由
