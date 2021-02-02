@@ -28,7 +28,7 @@ public class AnnotationRouterTest {
     @Router(contentType = HttpContentType.IMAGE_GIF,tags = {"annonation"})
     public Object index(){
         String oldPath = lastPath;
-        lastPath = "/annon/index, time:" + System.currentTimeMillis();
+        lastPath = "/annon/index, time19:" + System.currentTimeMillis();
         return TObject.asMap("index", lastPath, "seq", 133832);//"index, lastPath="+oldPath;
     }
 

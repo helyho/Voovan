@@ -236,33 +236,30 @@ public class AnnotationRouter implements HttpRouter {
 
                                             ROUTER_INFO_LIST.add(new RouterInfo(routePath + paramPath, routeMethod, annonClassRouter, routerClass, annonMethodRouter, method));
 
-                                            //构造注解路由器
-                                            AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method,
-                                                    annonClassRouter, annonMethodRouter, routePath, paramPath);
-
                                             String routeLog = null;
 
-                                            //1.注册路由, 处理不带参数的路由
                                             routePath = HttpDispatcher.fixRoutePath(routePath);
                                             String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routePath);
-                                            //判断路由是否注册过
+
                                             if (!routerMaps.containsKey(moduleRoutePath)) {
-                                                //注册路由,不带路径参数的路由
+                                                //构造注解路由器
+                                                AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method,
+                                                        annonClassRouter, annonMethodRouter, routePath, paramPath);
+
+                                                //1.注册路由,不带路径参数的路由
                                                 annotationModule.otherMethod(routeMethod, routePath, annotationRouter);
                                                 routeLog = "[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
                                                         "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
                                                         moduleRoutePath;
                                                 routeMethodNum++;
-                                            }
 
-                                            //2.注册路由,带路径参数的路由
-                                            if(!paramPath.isEmpty()) {
-                                                String routeParamPath = null;
-                                                routeParamPath = routePath + paramPath;
-                                                routeParamPath = HttpDispatcher.fixRoutePath(routeParamPath);
-                                                String moduleRouteParamPath = HttpDispatcher.fixRoutePath(modulePath + routeParamPath);
+                                                //2.注册路由,带路径参数的路由
+                                                if(!paramPath.isEmpty()) {
+                                                    String routeParamPath = null;
+                                                    routeParamPath = routePath + paramPath;
+                                                    routeParamPath = HttpDispatcher.fixRoutePath(routeParamPath);
+                                                    String moduleRouteParamPath = HttpDispatcher.fixRoutePath(modulePath + routeParamPath);
 
-                                                if (!routerMaps.containsKey(moduleRoutePath)) {
                                                     annotationModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
 
                                                     routeLog = "[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
@@ -614,7 +611,7 @@ public class AnnotationRouter implements HttpRouter {
 
         try {
             //调用方法
-            // return TReflect.invokeMethod(annotationObj, method, params);
+//             return TReflect.invokeMethod(annotationObj, method, params);
             return methodDynamicFunction.call(annotationObj, params);
         } catch (IllegalArgumentException e) {
             throw new AnnotationRouterException("Router method failed: \r\n [" + method + "]\r\n params" + JSON.toJSON(params), e);
