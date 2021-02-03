@@ -71,7 +71,7 @@ public class WebServer {
 		//热加载
 		if(config.getHotSwapInterval() > 0) {
 			try {
-				Hotswaper hotSwaper = new Hotswaper();
+				Hotswaper hotSwaper = Hotswaper.get();
 				hotSwaper.autoReload(config.getHotSwapInterval());
 			} catch (Exception e) {
 				Logger.error("Init hotswap failed: " + e.getMessage());
