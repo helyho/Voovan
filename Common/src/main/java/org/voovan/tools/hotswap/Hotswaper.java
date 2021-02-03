@@ -256,7 +256,7 @@ public class Hotswaper {
         this.classFileInfos = classFileInfos;
     }
 
-    public static Hotswaper get() throws AgentInitializationException, AgentLoadException, AttachNotSupportedException, IOException {
+    public synchronized static Hotswaper get() throws AgentInitializationException, AgentLoadException, AttachNotSupportedException, IOException {
         if(HOT_SWAPER == null) {
             return new Hotswaper();
         }
@@ -264,7 +264,7 @@ public class Hotswaper {
         return HOT_SWAPER;
     }
 
-    public static Hotswaper get(String agentJarPath) throws AgentInitializationException, AgentLoadException, AttachNotSupportedException, IOException {
+    public synchronized static Hotswaper get(String agentJarPath) throws AgentInitializationException, AgentLoadException, AttachNotSupportedException, IOException {
         if(HOT_SWAPER == null) {
             return new Hotswaper(agentJarPath);
         }
