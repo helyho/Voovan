@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * 热部署核心类
@@ -30,10 +32,15 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class Hotswaper {
+    public static List<Consumer<Class>> WATCHERS = new ArrayList<Consumer<Class>>();
+
+    private static Hotswaper HOT_SWAPER;
+
     private List<ClassFileInfo> classFileInfos;
     private List<String> excludePackages;
     private int reloadIntervals;
     private HashWheelTask reloadTask;
+
 
     /**
      * 构造函数
@@ -42,7 +49,7 @@ public class Hotswaper {
      * @throws AgentLoadException Agent 加载异常
      * @throws AgentInitializationException Agent 初始化异常
      */
-    public Hotswaper() throws IOException, AgentInitializationException, AgentLoadException, AttachNotSupportedException {
+    private Hotswaper() throws IOException, AgentInitializationException, AgentLoadException, AttachNotSupportedException {
         init(null);
     }
 
@@ -54,7 +61,7 @@ public class Hotswaper {
      * @throws AgentLoadException Agent 加载异常
      * @throws AgentInitializationException Agent 初始化异常
      */
-    public Hotswaper(String agentJarPath) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException {
+    private Hotswaper(String agentJarPath) throws IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException {
         init(new File(agentJarPath));
     }
 
@@ -71,7 +78,6 @@ public class Hotswaper {
         }
 
         loadCustomClass();
-
     }
 
     /**
@@ -171,6 +177,11 @@ public class Hotswaper {
             try {
                 Logger.info("[HOTSWAP] " + TDateTime.now() + " class->" + clazz.getCanonicalName() + " will reload.");
                 TEnv.instrumentation.redefineClasses(classDefinition);
+
+                for(Consumer<Class> wather : WATCHERS){
+                    wather.accept(clazz);
+                }
+
             } catch (Exception e) {
                 Logger.error("[HOTSWAP] " + TDateTime.now() + " class->" + clazz.getCanonicalName() + " reload failed \r\n", e);
             }
@@ -243,6 +254,22 @@ public class Hotswaper {
 
     public void setClassFileInfos(List<ClassFileInfo> classFileInfos) {
         this.classFileInfos = classFileInfos;
+    }
+
+    public static Hotswaper get() throws AgentInitializationException, AgentLoadException, AttachNotSupportedException, IOException {
+        if(HOT_SWAPER == null) {
+            return new Hotswaper();
+        }
+
+        return HOT_SWAPER;
+    }
+
+    public static Hotswaper get(String agentJarPath) throws AgentInitializationException, AgentLoadException, AttachNotSupportedException, IOException {
+        if(HOT_SWAPER == null) {
+            return new Hotswaper(agentJarPath);
+        }
+
+        return HOT_SWAPER;
     }
 
     /**
