@@ -139,13 +139,15 @@ public class TProperties {
 
 			String configFileNameWithEnv = null;
 			String configFileName = "";
+			String envName = TEnv.getEnvName();
+			envName = envName == null ? "" : "-" + envName;
+
 			if (!fileName.contains(".properties")) {
-				String envName = TEnv.getEnvName();
-
-				envName = envName == null ? "" : "-" + envName;
-
 				configFileNameWithEnv = fileName + envName + ".properties";
 				configFileName = fileName + ".properties";
+			} else {
+				configFileNameWithEnv = TString.insert(fileName, fileName.indexOf("."), envName);
+				configFileName = fileName;
 			}
 
 			properties = propertiesName.get(configFileNameWithEnv);
