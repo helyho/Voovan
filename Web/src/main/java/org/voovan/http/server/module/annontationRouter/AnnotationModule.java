@@ -77,28 +77,28 @@ public class AnnotationModule extends HttpModule {
      *
      * @param annotationModule   AnnotationModule对象用于注册路由
      */
-    public static void scanRouterClassAndRegister(AnnotationModule annotationModule) {
+    public void scanRouterClassAndRegister() {
         int routeMethodNum = 0;
 
-        String modulePath = annotationModule.getModuleConfig().getPath();
+        String modulePath = this.getModuleConfig().getPath();
         modulePath = HttpDispatcher.fixRoutePath(modulePath);
 
-        WebServer webServer = annotationModule.getWebServer();
+        WebServer webServer = this.getWebServer();
         try {
             //查找包含 Router 注解的类
-            String[] scanRouterPackageArr = annotationModule.getScanRouterPackage().split(";");
+            String[] scanRouterPackageArr = this.getScanRouterPackage().split(";");
             for(String scanRouterPackage : scanRouterPackageArr) {
                 scanRouterPackage = scanRouterPackage.trim();
 
                 List<Class> routerClasses = TEnv.searchClassInEnv(scanRouterPackage, new Class[]{Router.class});
                 for (Class routerClass : routerClasses) {
-                    AnnotationRouter.routerRegister(annotationModule, routerClass);
+                    AnnotationRouter.routerRegister(this, routerClass);
                 }
 
                 //查找包含 WebSocket 注解的类
                 List<Class> webSocketClasses = TEnv.searchClassInEnv(scanRouterPackage, new Class[]{WebSocket.class});
                 for (Class webSocketClass : webSocketClasses) {
-                    AnnotationRouter.webSocketRegister(annotationModule, webSocketClass);
+                    AnnotationRouter.webSocketRegister(this, webSocketClass);
                 }
             }
 
@@ -116,20 +116,8 @@ public class AnnotationModule extends HttpModule {
         Logger.simple("[HTTP] Module ["+this.getModuleConfig().getName()+"] Router scan interval: "+ this.getScanRouterInterval());
 
         if (scanRouterPackage != null) {
-            scanRouterClassAndRegister(annotationModule);
+            scanRouterClassAndRegister();
         }
-
-//        Hotswaper.WATCHERS.add(clazz->{
-//            if(clazz.isAnnotationPresent(Router.class)) {
-//                AnnotationRouter.routerRegister(annotationModule, clazz);
-//            }
-//        });
-//
-//        Hotswaper.WATCHERS.add(clazz->{
-//            if(clazz.isAnnotationPresent(WebSocket.class) && TReflect.isExtends(clazz, WebSocketRouter.class)) {
-//                AnnotationRouter.webSocketRegister(annotationModule, clazz);
-//            }
-//        });
 
         if(scanRouterPackage != null && getScanRouterInterval() > 0) {
 
@@ -137,7 +125,7 @@ public class AnnotationModule extends HttpModule {
                 @Override
                 public void run() {
                     //查找并刷新新的@Route 注解类
-                    scanRouterClassAndRegister(annotationModule);
+                    scanRouterClassAndRegister();
                 }
             };
 
@@ -154,8 +142,8 @@ public class AnnotationModule extends HttpModule {
 
     @Override
     public void unInstall() {
-//        if(scanRouterTask!=null) {
-//            scanRouterTask.cancel();
-//        }
+        if(scanRouterTask!=null) {
+            scanRouterTask.cancel();
+        }
     }
 }

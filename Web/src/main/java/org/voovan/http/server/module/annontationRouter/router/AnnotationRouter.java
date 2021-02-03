@@ -211,10 +211,6 @@ public class AnnotationRouter implements HttpRouter {
                                 //生成完整的路由,用来检查路由是否存在
                                 routePath = HttpDispatcher.fixRoutePath(routePath);
 
-                                //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
-                                Map routerMaps = new HashMap();
-                                routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
-
                                 ROUTER_INFO_LIST.add(new RouterInfo(routePath + paramPath, routeMethod, annonClassRouter, routerClass, annonMethodRouter, method));
 
                                 String routeLog = null;
@@ -222,7 +218,7 @@ public class AnnotationRouter implements HttpRouter {
                                 routePath = HttpDispatcher.fixRoutePath(routePath);
                                 String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routePath);
 
-                                if (!routerMaps.containsKey(moduleRoutePath)) {
+                                if (!webServer.getHttpRouters().get(routeMethod).containsKey(moduleRoutePath)) {
                                     //构造注解路由器
                                     AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method,
                                             annonClassRouter, annonMethodRouter, routePath, paramPath);
