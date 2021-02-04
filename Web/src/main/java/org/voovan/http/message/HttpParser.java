@@ -575,7 +575,7 @@ public class HttpParser {
 	 * @param type 解析的报文类型, 0: Request, 1: Response
 	 * @param byteBufferChannel 输入流
 	 * @param timeout 读取超时时间参数
-	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
+	 * @param requestMaxSize 上传文件的最大尺寸, 单位: byte
 	 * @return 解析后的 Map
 	 * @throws IOException IO 异常
 	 */
@@ -678,8 +678,8 @@ public class HttpParser {
 					//累计请求大小
 					totalLength = totalLength + readSize;
 					//请求过大的处理
-					if(totalLength > requestMaxSize * 1024){
-						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+					if(totalLength > requestMaxSize){
+						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize + ", expect size: " + totalLength + "}");
 					}
 
 					//确认 boundary 结尾字符, 如果是"--" 则标识报文结束
@@ -761,9 +761,9 @@ public class HttpParser {
 								}
 
 								//请求过大的处理
-								if(totalLength > requestMaxSize * 1024){
+								if(totalLength > requestMaxSize){
 									TFile.deleteFile(new File(localFileName));
-									throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+									throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize + ", expect size: " + totalLength + "}");
 								}
 
 								continue;
@@ -863,8 +863,8 @@ public class HttpParser {
 					}
 
 					//请求过大的处理
-					if(totalLength > requestMaxSize * 1024){
-						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+					if(totalLength > requestMaxSize){
+						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize + ", expect size: " + totalLength + "}");
 					}
 
 					//跳过换行符号
@@ -885,8 +885,8 @@ public class HttpParser {
 				totalLength = totalLength + contentSize;
 
 				//请求过大的处理
-				if(totalLength > requestMaxSize * 1024){
-					throw new HttpParserException("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+				if(totalLength > requestMaxSize){
+					throw new HttpParserException("Request is too large: {max size: " + requestMaxSize + ", expect size: " + totalLength + "}");
 				}
 
 
@@ -914,7 +914,7 @@ public class HttpParser {
 	 * @param session socket 会话对象
 	 * @param byteBufferChannel  输入字节流
 	 * @param timeOut 读取超时时间参数
-	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
+	 * @param requestMaxSize 上传文件的最大尺寸, 单位: byte
 	 * @return   返回请求报文
 	 * @throws IOException IO 异常
 	 */
@@ -929,7 +929,7 @@ public class HttpParser {
 	 * @param session socket 会话对象
 	 * @param byteBufferChannel  输入字节流
 	 * @param timeOut 读取超时时间参数
-	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
+	 * @param requestMaxSize 上传文件的最大尺寸, 单位: byte
 	 * @return   返回请求报文
 	 * @throws IOException IO 异常
 	 */

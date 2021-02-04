@@ -30,11 +30,13 @@ import java.nio.ByteBuffer;
  */
 public class WebServerFilter implements IoFilter {
 	public final static LongKeyMap<byte[]> RESPONSE_MAP = new LongKeyMap<byte[]>(4096);
+	public static int MAX_REQUEST_SIZE = WebContext.getWebServerConfig().getMaxRequestSize() * 1024;
 
 	static {
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 			@Override
 			public void run() {
+				MAX_REQUEST_SIZE = WebContext.getWebServerConfig().getMaxRequestSize() * 1024;
 				RESPONSE_MAP.clear();
 			}
 		}, 1);
@@ -107,7 +109,7 @@ public class WebServerFilter implements IoFilter {
 			ByteBufferChannel byteBufferChannel = byteBufferChannel = session.getReadByteBufferChannel();
 
 			try {
-				Request request = HttpParser.parseRequest(session, byteBufferChannel, session.socketContext().getReadTimeout(), WebContext.getWebServerConfig().getMaxRequestSize());
+				Request request = HttpParser.parseRequest(session, byteBufferChannel, session.socketContext().getReadTimeout(), MAX_REQUEST_SIZE);
 				if(request!=null){
 					return request;
 				}else{
