@@ -226,9 +226,17 @@ public class JSONDecode {
 					//数组 []
 					if (currentChar == Global.CHAR_LS_BRACES) {
 						reader.skip(-1);
-						//递归解析处理,取 value 对象
-						value = JSONDecode.parse(reader);
-						continue;
+
+						//支持{ key [...] }的形式, 插入一个 : 作为分割
+						if(itemString.length() >0) {
+							nextChar = currentChar;
+							currentChar = ':';
+						} else {
+							//递归解析处理,取 value 对象
+							value = JSONDecode.parse(reader);
+							continue;
+						}
+
 					} else if (currentChar == Global.CHAR_RS_BRACES) {
 						//最后一个元素,追加一个,好将其附加到结果集
 						if (itemString.length() != 0 || value != null) {
@@ -242,9 +250,16 @@ public class JSONDecode {
 					//对象 {}
 					else if (currentChar == Global.CHAR_LC_BRACES) {
 						reader.skip(-1);
-						//递归解析处理,取 value 对象
-						value = JSONDecode.parse(reader);
-						continue;
+
+						//支持{ key {...} }的形式,, 插入一个 : 作为分割
+						if(itemString.length() >0) {
+							nextChar = currentChar;
+							currentChar = ':';
+						} else {
+							//递归解析处理,取 value 对象
+							value = JSONDecode.parse(reader);
+							continue;
+						}
 					} else if (currentChar == Global.CHAR_RC_BRACES) {
 						//最后一个元素,追加一个,号来将其附加到结果集
 						if (itemString.length() != 0 || value != null) {
