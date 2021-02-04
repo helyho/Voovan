@@ -15,7 +15,7 @@ public class JSONDecodeUnit extends TestCase {
 	@SuppressWarnings("rawtypes")
 	public void testRun() throws Exception{
 		String jsonString = "/*asdfasdf*/"+
-							" {"+
+							" "+
 								"\"bint\":32,"+
 								"\"string\":\"helyho\","+
 								"\"tb2\":{"+
@@ -37,7 +37,7 @@ public class JSONDecodeUnit extends TestCase {
 									"\"mapitem2\":\"mapitem2\","+
 									"\"mapitem1\":\"mapitem1\""+
 								"} " +
-							"} ";
+							" ";
 
 
 		Map<String, Object> obj = (Map<String, Object>)JSONDecode.parse(jsonString);

@@ -192,7 +192,7 @@ public class JSONDecode {
 					}
 				}
 
-				//====================  创建根对象  ====================
+				//====================  创建根对象((有根包裹)  ====================
 				if (root == null && !isString && isComment==0 && !isFunction) {
 					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
 						reader.skip(-1);
@@ -369,6 +369,14 @@ public class JSONDecode {
 						}
 					}
 
+					//====================  创建根对象(无根包裹)  ====================
+					if(root == null) {
+						if(keyString!=null) {
+							root = (Map) new LinkedHashMap<String, Object>(1024);
+						} else {
+							root = (List) new ArrayList<Object>(1024);
+						}
+					}
 
 					//判断返回对象的类型,填充返回对象
 					if (root instanceof HashMap) {
